@@ -23,9 +23,7 @@
   "engines": {
     "node": ">=4"
   },
-  "dependencies": {
-    "@babel/polyfill": "7.0.0-beta.39"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "7.0.0-beta.39",
     "@babel/core": "7.0.0-beta.39",

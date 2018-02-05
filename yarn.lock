@@ -410,7 +410,7 @@
     core-js "^2.4.0"
     regenerator-runtime "^0.11.1"
 
-"@babel/polyfill@7.0.0-beta.39":
+"@babel/polyfill@7.0.0-beta.39", "@babel/polyfill@^7.0.0-beta.36":
   version "7.0.0-beta.39"
   resolved "https://registry.yarnpkg.com/@babel/polyfill/-/polyfill-7.0.0-beta.39.tgz#3711a88b11f5982b936d5a60f239410ce75c6529"
   dependencies:
