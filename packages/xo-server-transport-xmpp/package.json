@@ -48,7 +48,7 @@
     "clean": "rimraf dist/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
-    "predev": "yarn run clean",
+    "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
   },
   "babel": {
