@@ -24,6 +24,8 @@
 /packages/xo-web/src/common/intl/locales/index.js
 /packages/xo-web/src/common/themes/index.js
 
+/packages/xo-server-rework/src/app/mixins/index.js
+
 npm-debug.log
 npm-debug.log.*
 pnpm-debug.log

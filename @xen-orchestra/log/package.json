@@ -6,7 +6,7 @@
   "description": "",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/@xen-orchestra/log",
-  "bugs": "https://github.com/vatesfr/xo-web/issues",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
@@ -21,19 +21,22 @@
   "files": [
     "dist/"
   ],
+  "browserslist": [
+    ">2%"
+  ],
   "engines": {
     "node": ">=4"
   },
   "dependencies": {
-    "@babel/polyfill": "7.0.0-beta.39",
+    "@babel/polyfill": "7.0.0-beta.46",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.9.5"
   },
   "devDependencies": {
-    "@babel/cli": "7.0.0-beta.39",
-    "@babel/core": "7.0.0-beta.39",
-    "@babel/preset-env": "7.0.0-beta.39",
-    "@babel/preset-flow": "7.0.0-beta.39",
+    "@babel/cli": "7.0.0-beta.46",
+    "@babel/core": "7.0.0-beta.46",
+    "@babel/preset-env": "7.0.0-beta.46",
+    "@babel/preset-flow": "7.0.0-beta.46",
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^5.1.3",
     "index-modules": "^0.3.0",
@@ -44,7 +47,7 @@
     "clean": "rimraf dist/",
     "dev": "index-modules --cjs-lazy src/transports && cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
-    "predev": "yarn run clean",
+    "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
   }
 }

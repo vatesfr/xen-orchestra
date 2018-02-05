@@ -7,34 +7,46 @@ const NODE_ENV = process.env.NODE_ENV || 'development'
 const __PROD__ = NODE_ENV === 'production'
 const __TEST__ = NODE_ENV === 'test'
 
+const configs = {
+  '@babel/plugin-proposal-decorators': {
+    legacy: true,
+  },
+  '@babel/preset-env' (pkg) {
+    return {
+      debug: !__TEST__,
+      loose: true,
+      shippedProposals: true,
+      targets: __PROD__
+        ? (() => {
+          let node = (pkg.engines || {}).node
+          if (node !== undefined) {
+            const trimChars = '^=>~'
+            while (trimChars.includes(node[0])) {
+              node = node.slice(1)
+            }
+            return { node: node }
+          }
+        })()
+        : { browsers: '', node: 'current' },
+      useBuiltIns: '@babel/polyfill' in (pkg.dependencies || {}) && 'usage',
+    }
+  },
+}
+
+const getConfig = (key, ...args) => {
+  const config = configs[key]
+  return config === undefined ? {} : typeof config === 'function' ? config(...args) : config
+}
+
 module.exports = function (pkg, plugins, presets) {
   plugins === undefined && (plugins = {})
-
   presets === undefined && (presets = {})
-  presets['@babel/preset-env'] = {
-    debug: !__TEST__,
-    loose: true,
-    shippedProposals: true,
-    targets: __PROD__
-      ? (() => {
-        let node = (pkg.engines || {}).node
-        if (node !== undefined) {
-          const trimChars = '^=>~'
-          while (trimChars.includes(node[0])) {
-            node = node.slice(1)
-          }
-          return { node: node }
-        }
-      })()
-      : { browsers: '', node: 'current' },
-    useBuiltIns: '@babel/polyfill' in (pkg.dependencies || {}) && 'usage',
-  }
 
   Object.keys(pkg.devDependencies || {}).forEach(name => {
     if (!(name in presets) && PLUGINS_RE.test(name)) {
-      plugins[name] = {}
+      plugins[name] = getConfig(name, pkg)
     } else if (!(name in presets) && PRESETS_RE.test(name)) {
-      presets[name] = {}
+      presets[name] = getConfig(name, pkg)
     }
   })
 

@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@babel/register": "^7.0.0-beta.44",
+    "@babel/register": "^7.0.0-beta.46",
     "babel-7-jest": "^21.3.2",
     "babel-eslint": "^8.1.2",
     "benchmark": "^2.1.4",
