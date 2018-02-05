@@ -63,10 +63,5 @@
         }
       ]
     ]
-  },
-  "config": {
-    "ghooks": {
-      "commit-msg": "npm test"
-    }
   }
 }

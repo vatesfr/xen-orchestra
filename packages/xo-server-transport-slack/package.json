@@ -62,10 +62,5 @@
       ],
       "stage-3"
     ]
-  },
-  "config": {
-    "ghooks": {
-      "commit-msg": "npm test"
-    }
   }
 }
