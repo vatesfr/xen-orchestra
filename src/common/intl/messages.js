@@ -187,6 +187,7 @@ const messages = {
   selectAll: 'Select all',
   remove: 'Remove',
   preview: 'Preview',
+  action: 'Action',
   item: 'Item',
   noSelectedValue: 'No selected value',
   selectSubjects: 'Choose user(s) and/or group(s)',
@@ -299,6 +300,9 @@ const messages = {
   jobOwnerPlaceholder: 'Job owner',
   jobUserNotFound: "This job's creator no longer exists",
   backupUserNotFound: "This backup's creator no longer exists",
+  redirectToMatchingVms: 'Click here to see the matching VMs',
+  noMatchingVms: 'There are no matching VMs!',
+  allMatchingVms: '{icon} See the matching VMs ({nMatchingVms, number})',
   backupOwner: 'Backup owner',
 
   // ------ New backup -----
@@ -316,6 +320,7 @@ const messages = {
   editBackupSmartResidentOn: 'Resident on',
   editBackupSmartPools: 'Pools',
   editBackupSmartTags: 'Tags',
+  sampleOfMatchingVms: 'Sample of matching Vms',
   editBackupSmartTagsTitle: 'VMs Tags',
   editBackupNot: 'Reverse',
   editBackupTagTitle: 'Tag',

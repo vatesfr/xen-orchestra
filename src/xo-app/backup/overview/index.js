@@ -11,6 +11,7 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
+import { constructQueryString } from 'smart-backup-pattern'
 import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
 import { filter, find, forEach, get, map, orderBy } from 'lodash'
@@ -80,7 +81,7 @@ const JOB_COLUMNS = [
   },
   {
     name: _('jobAction'),
-    itemRenderer: ({ schedule }, isScheduleUserMissing) => (
+    itemRenderer: ({ redirect, schedule }, isScheduleUserMissing) => (
       <fieldset>
         {!isScheduleUserMissing[schedule.id] && (
           <Tooltip content={_('backupUserNotFound')}>
@@ -94,6 +95,14 @@ const JOB_COLUMNS = [
           <Icon icon='edit' />
         </Link>
         <ButtonGroup>
+          {redirect && (
+            <ActionRowButton
+              btnStyle='primary'
+              handler={redirect}
+              icon='preview'
+              tooltip={_('redirectToMatchingVms')}
+            />
+          )}
           <ActionRowButton
             icon='delete'
             btnStyle='danger'
@@ -120,6 +129,10 @@ const JOB_COLUMNS = [
   users: subscribeUsers,
 })
 export default class Overview extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object,
+  }
+
   constructor (props) {
     super(props)
     this.state = {
@@ -166,6 +179,13 @@ export default class Overview extends Component {
     }
   }
 
+  _redirectToMatchingVms = pattern => {
+    this.context.router.push({
+      pathname: '/home',
+      query: { t: 'VM', s: constructQueryString(pattern) },
+    })
+  }
+
   _getScheduleCollection = createSelector(
     () => this.state.schedules,
     () => this.state.scheduleTable,
@@ -178,10 +198,14 @@ export default class Overview extends Component {
       return map(schedules, schedule => {
         const job = jobs[schedule.job]
         const { items } = job.paramsVector
+        const pattern = get(items, '[1].collection.pattern')
 
         return {
           jobId: job.id,
           jobLabel: jobKeyToLabel[job.key] || _('unknownSchedule'),
+          redirect:
+            pattern !== undefined &&
+            (() => this._redirectToMatchingVms(pattern)),
           // Old versions of XenOrchestra use items[0]
           scheduleTag:
             get(items, '[0].values[0].tag') ||
