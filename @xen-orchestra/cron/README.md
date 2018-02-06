@@ -13,17 +13,20 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/cron)
 ## Usage
 
 ```js
-import * as Cron from '@xen-orchestra/cron'
+import { createSchedule } from '@xen-orchestra/cron'
 
-Cron.parse('* * * jan,mar *')
-// → { month: [ 1, 3 ] }
+const schedule = createSchedule('0 0 * * sun', 'America/New_York')
 
-Cron.next('* * * jan,mar *', 2, 'America/New_York')
-// → [ 2018-01-19T22:15:00.000Z, 2018-01-19T22:16:00.000Z ]
+schedule.next(2)
+// [ 2018-02-11T05:00:00.000Z, 2018-02-18T05:00:00.000Z ]
 
-const stop = Cron.schedule('@hourly', () => {
+const job = schedule.createJob(() => {
   console.log(new Date())
-}, 'UTC+05:30')
+})
+
+job.start()
+
+job.stop()
 ```
 
 ### Pattern syntax
