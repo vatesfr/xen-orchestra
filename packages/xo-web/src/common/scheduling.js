@@ -1,8 +1,8 @@
 import classNames from 'classnames'
-import later from 'later'
 import React from 'react'
-import { FormattedDate, FormattedTime } from 'react-intl'
+import { createSchedule } from '@xen-orchestra/cron'
 import { forEach, includes, isArray, map, sortedIndex } from 'lodash'
+import { FormattedDate, FormattedTime } from 'react-intl'
 
 import _ from './intl'
 import Button from './button'
@@ -14,11 +14,6 @@ import Tooltip from './tooltip'
 import { Card, CardHeader, CardBlock } from './card'
 import { Col, Row } from './grid'
 import { Range, Toggle } from './form'
-
-// ===================================================================
-
-// By default, later uses UTC but we use this line for future versions.
-later.date.UTC()
 
 // ===================================================================
 
@@ -137,15 +132,7 @@ export class SchedulePreview extends Component {
     const { cronPattern } = this.props
     const { value } = this.state
 
-    const cronSched = later.parse.cron(cronPattern)
-
-    // Due to implementation, the range used for months is 0-11
-    // instead of 1-12
-    forEach(cronSched.schedules[0].M, (v, i, a) => {
-      a[i] = v + 1
-    })
-
-    const dates = later.schedule(cronSched).next(value)
+    const dates = createSchedule(cronPattern).next(value)
 
     return (
       <div>
