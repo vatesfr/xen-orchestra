@@ -9,7 +9,7 @@ class Job {
       if (scheduledRun) {
         fn()
       }
-      this._timeout = setTimeout(wrapper, schedule.next() - Date.now(), true)
+      this._timeout = setTimeout(wrapper, schedule._nextDelay(), true)
     }
     this._fn = wrapper
     this._timeout = undefined
@@ -43,6 +43,11 @@ class Schedule {
       dates[i] = (date = next(schedule, date)).toJSDate()
     }
     return dates
+  }
+
+  _nextDelay () {
+    const now = DateTime.fromObject(this._dateTimeOpts)
+    return next(this._schedule, now) - now
   }
 }
 
