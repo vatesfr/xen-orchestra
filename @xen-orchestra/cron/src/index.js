@@ -7,22 +7,29 @@ const MAX_DELAY = 2 ** 31 - 1
 
 class Job {
   constructor (schedule, fn) {
-    const wrapper = scheduledRun => {
-      if (scheduledRun) {
-        fn()
+    const wrapper = () => {
+      const result = fn()
+      let then
+      if (result != null && typeof (then = result.then) === 'function') {
+        then.call(result, scheduleNext, scheduleNext)
+      } else {
+        scheduleNext()
       }
+    }
+    const scheduleNext = () => {
       const delay = schedule._nextDelay()
       this._timeout = delay < MAX_DELAY
-        ? setTimeout(wrapper, delay, true)
-        : setTimeout(wrapper, MAX_DELAY)
+        ? setTimeout(wrapper, delay)
+        : setTimeout(scheduleNext, MAX_DELAY)
     }
-    this._fn = wrapper
+
+    this._scheduleNext = scheduleNext
     this._timeout = undefined
   }
 
   start () {
     this.stop()
-    this._fn()
+    this._scheduleNext()
   }
 
   stop () {

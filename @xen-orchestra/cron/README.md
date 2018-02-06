@@ -29,6 +29,9 @@ job.start()
 job.stop()
 ```
 
+> If the scheduled job returns a promise, its resolution (or
+> rejection) will be awaited before scheduling the next run.
+
 ### Pattern syntax
 
 ```
