@@ -3,13 +3,18 @@ import { DateTime } from 'luxon'
 import next from './next'
 import parse from './parse'
 
+const MAX_DELAY = 2 ** 31 - 1
+
 class Job {
   constructor (schedule, fn) {
     const wrapper = scheduledRun => {
       if (scheduledRun) {
         fn()
       }
-      this._timeout = setTimeout(wrapper, schedule._nextDelay(), true)
+      const delay = schedule._nextDelay()
+      this._timeout = delay < MAX_DELAY
+        ? setTimeout(wrapper, delay, true)
+        : setTimeout(wrapper, MAX_DELAY)
     }
     this._fn = wrapper
     this._timeout = undefined
