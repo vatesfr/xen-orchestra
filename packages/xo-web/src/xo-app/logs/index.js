@@ -59,7 +59,7 @@ class JobReturn extends Component {
 const JobCallStateInfos = ({ end, error }) => {
   const [icon, tooltip] =
     error !== undefined
-      ? isAnError(error)
+      ? isSkippedError(error)
         ? ['halted', 'failedJobCall']
         : ['skipped', 'jobCallSkipped']
       : end !== undefined
@@ -113,8 +113,8 @@ const CALL_FILTER_OPTIONS = [
 
 const PREDICATES = {
   all: () => true,
-  skipped: call => call.error !== undefined && !isAnError(call.error),
-  error: call => call.error !== undefined && isAnError(call.error),
+  skipped: call => call.error !== undefined && !isSkippedError(call.error),
+  error: call => call.error !== undefined && isSkippedError(call.error),
   running: call => call.end === undefined && call.error === undefined,
   success: call => call.end !== undefined && call.error === undefined,
 }
@@ -124,7 +124,7 @@ const NO_SUCH_OBJECT_ERROR = 'no such object'
 const UNHEALTHY_VDI_CHAIN_LINK =
   'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
 
-const isAnError = error =>
+const isSkippedError = error =>
   error.message !== UNHEALTHY_VDI_CHAIN_ERROR &&
   error.message !== NO_SUCH_OBJECT_ERROR
 
@@ -236,10 +236,12 @@ class Log extends BaseComponent {
                     ) : (
                       <span
                         className={
-                          isAnError(error) ? 'text-danger' : 'text-info'
+                          isSkippedError(error) ? 'text-danger' : 'text-info'
                         }
                       >
-                        <Icon icon={isAnError(error) ? 'error' : 'alarm'} />{' '}
+                        <Icon
+                          icon={isSkippedError(error) ? 'error' : 'alarm'}
+                        />{' '}
                         {error.message !== undefined ? (
                           <strong>{error.message}</strong>
                         ) : (
@@ -323,11 +325,12 @@ const LOG_COLUMNS = [
       <span>
         {log.status === 'finished' && (
           <span
-            className={classnames('tag', {
-              'tag-danger': log.hasErrors,
-              'tag-info': !log.hasErrors && log.callSkipped,
-              'tag-success': !log.hasErrors && !log.callSkipped,
-            })}
+            className={classnames(
+              'tag',
+              log.hasErrors
+                ? 'tag-danger'
+                : log.callSkipped ? 'tag-info' : 'tag-success'
+            )}
           >
             {_('jobFinished')}
           </span>
@@ -424,7 +427,7 @@ export default class LogList extends Component {
 
             if (data.error) {
               call.error = data.error
-              if (isAnError(data.error)) {
+              if (isSkippedError(data.error)) {
                 entry.hasErrors = true
               } else {
                 entry.callSkipped = true
