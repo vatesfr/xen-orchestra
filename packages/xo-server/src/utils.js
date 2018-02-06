@@ -22,7 +22,7 @@ import { resolve } from 'path'
 import 'moment-timezone'
 
 import through2 from 'through2'
-import { CronJob } from 'cron'
+import { createSchedule } from '@xen-orchestra/cron'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
   all as pAll,
@@ -526,29 +526,22 @@ export const streamToArray = (stream, { filter, mapper } = {}) =>
 export const scheduleFn = (cronTime, fn, timeZone) => {
   let running = false
 
-  const job = new CronJob({
-    cronTime,
-    onTick: async () => {
-      if (running) {
-        return
-      }
+  const job = createSchedule(cronTime, timeZone).createJob(async () => {
+    if (running) {
+      return
+    }
 
-      running = true
-
-      try {
-        await fn()
-      } catch (error) {
-        console.error(
-          '[WARN] scheduled function:',
-          (error && error.stack) || error
-        )
-      } finally {
-        running = false
-      }
-    },
-    start: true,
-    timeZone,
+    running = true
+    try {
+      await fn()
+    } catch (error) {
+      console.error('[WARN] scheduled function:', (error && error.stack) || error)
+    } finally {
+      running = false
+    }
   })
+
+  job.start()
 
   return () => {
     job.stop()
