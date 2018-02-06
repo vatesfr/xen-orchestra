@@ -4,6 +4,8 @@
 
 Tested with:
 
+- XenServer 7.3
+- XenServer 7.2
 - XenServer 7.1
 - XenServer 7
 - XenServer 6.5
