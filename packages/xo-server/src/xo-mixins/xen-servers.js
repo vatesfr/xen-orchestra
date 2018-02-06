@@ -1,7 +1,7 @@
 import { ignoreErrors } from 'promise-toolbox'
+import { isEqual, some } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 import { parseUrl } from 'xen-api'
-import { isEqual, some } from 'lodash'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
