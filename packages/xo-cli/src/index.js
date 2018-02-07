@@ -29,7 +29,6 @@ const progressStream = require('progress-stream')
 const pw = require('pw')
 
 // FIXME: re-enable the rule when https://github.com/mysticatea/eslint-plugin-node/issues/100 is fixed
-// eslint-disable-next-line node/no-missing-require
 const Xo = require('xo-lib').default
 
 // -------------------------------------------------------------------
