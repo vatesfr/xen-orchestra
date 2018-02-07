@@ -10,7 +10,7 @@ import {
   mapValues,
 } from 'lodash'
 
-import * as methods from '../api' // eslint-disable-line node/no-missing-import
+import * as methods from '../api'
 import {
   MethodNotFound,
 } from 'json-rpc-peer'

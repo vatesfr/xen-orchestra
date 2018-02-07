@@ -14,7 +14,7 @@ import {
   stubTrue,
 } from 'lodash'
 
-import mixins from './xo-mixins' // eslint-disable-line node/no-missing-import
+import mixins from './xo-mixins'
 import Connection from './connection'
 import {
   mixin,
