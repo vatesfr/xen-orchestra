@@ -27,7 +27,6 @@ require('exec-promise')(() =>
       url: 'https://github.com/vatesfr/xen-orchestra.git',
     }
 
-    delete pkg.jest
     delete pkg.standard
 
     deleteProperties(pkg, 'config', [ 'commitizen' ])
