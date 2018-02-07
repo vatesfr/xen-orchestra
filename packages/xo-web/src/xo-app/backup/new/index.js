@@ -75,12 +75,6 @@ const SMART_SCHEMA = {
       type: 'object',
       title: _('editBackupSmartPools'),
       properties: {
-        not: {
-          type: 'boolean',
-          title: _('editBackupNot'),
-          description:
-            'Toggle on to backup VMs that are NOT resident on these pools',
-        },
         values: {
           type: 'array',
           items: {
@@ -88,7 +82,17 @@ const SMART_SCHEMA = {
             'xo:type': 'pool',
           },
           title: _('editBackupSmartResidentOn'),
-          description: 'Not used if empty.', // FIXME: can't translate
+          description: 'Backup VMs resident on these pools. Not used if empty.', // FIXME: can't translate
+        },
+        notValues: {
+          type: 'array',
+          items: {
+            type: 'string',
+            'xo:type': 'pool',
+          },
+          title: _('editBackupSmartNotResidentOn'),
+          description:
+            'Backup VMs that are NOT resident on these pools. Not used if empty.', // FIXME: can't translate
         },
       },
     },
@@ -113,7 +117,7 @@ const SMART_SCHEMA = {
             'xo:type': 'tag',
           },
           title: _('editBackupSmartNoTagsTitle'),
-          description: 'VMs that do not contain these tags.', // FIXME: can't translate
+          description: 'VMs that do not contain these tags. Not used if empty.', // FIXME: can't translate
         },
       },
     },

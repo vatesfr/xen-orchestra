@@ -1,35 +1,62 @@
 import * as CM from 'complex-matcher'
-import { flatten, identity, map } from 'lodash'
+import { flatten, get, identity, map } from 'lodash'
 
 import { EMPTY_OBJECT } from './utils'
 
 export const destructPattern = (pattern, valueTransform = identity) =>
   pattern && {
-    not: !!pattern.__not,
-    values: valueTransform((pattern.__not || pattern).__or),
+    values: valueTransform(
+      pattern.__and !== undefined ? pattern.__and[0].__or : pattern.__or
+    ),
+    notValues: valueTransform(
+      pattern.__and !== undefined
+        ? pattern.__and[1].__not.__or
+        : get(pattern, '__not.__or')
+    ),
   }
 
 export const constructPattern = (
-  { not, values } = EMPTY_OBJECT,
+  { values, notValues } = EMPTY_OBJECT,
   valueTransform = identity
 ) => {
-  if (values == null || !values.length) {
+  const valuesExists = values != null && values.length !== 0
+  const notValuesExists = notValues != null && notValues.length !== 0
+
+  if (!valuesExists && !notValuesExists) {
     return
   }
 
-  const pattern = { __or: valueTransform(values) }
-  return not ? { __not: pattern } : pattern
+  return valuesExists && notValuesExists
+    ? {
+      __and: [
+        { __or: valueTransform(values) },
+        { __not: { __or: valueTransform(notValues) } },
+      ],
+    }
+    : valuesExists
+      ? { __or: valueTransform(values) }
+      : { __not: { __or: valueTransform(notValues) } }
 }
 
 const parsePattern = pattern => {
-  const patternValues = flatten(
-    pattern.__not !== undefined ? pattern.__not.__or : pattern.__or
+  const values = flatten(
+    pattern.__and !== undefined ? pattern.__and[0].__or : pattern.__or
+  )
+  const notValues = flatten(
+    pattern.__and !== undefined
+      ? pattern.__and[1].__not.__or
+      : get(pattern, '__not.__or')
   )
 
-  const queryString = new CM.Or(
-    map(patternValues, array => new CM.String(array))
-  )
-  return pattern.__not !== undefined ? CM.Not(queryString) : queryString
+  const valuesQueryString =
+    values.length !== 0 && new CM.Or(map(values, value => new CM.String(value)))
+  const notValuesQueryString =
+    notValues.length !== 0 &&
+    new CM.Not(new CM.Or(map(notValues, notValue => new CM.String(notValue))))
+
+  return valuesQueryString && notValuesQueryString
+    ? new CM.And([valuesQueryString, notValuesQueryString])
+    : valuesQueryString || notValuesQueryString
 }
 
 export const constructQueryString = pattern => {
