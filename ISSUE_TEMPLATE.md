@@ -1,3 +1,3 @@
-# ALL ISSUES SHOULD BE CREATED IN XO-WEB'S TRACKER!
+# ALL ISSUES SHOULD BE CREATED IN XEN-ORCHESTRA'S TRACKER!
 
-https://github.com/vatesfr/xo-web/issues
+https://github.com/vatesfr/xen-orchestra/issues

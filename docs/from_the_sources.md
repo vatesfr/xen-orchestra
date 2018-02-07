@@ -8,7 +8,7 @@
 
 This installation is validated against a fresh Debian 8 (Jessie) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
 
-As you may have seen, in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/) and [xo-web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
+As you may have seen, in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/) and [xo-web](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
 ## Packages and Pre-requisites
 
@@ -47,16 +47,13 @@ You need to use the `git` source code manager:
 
 ```
 git clone -b master http://github.com/vatesfr/xen-orchestra
-git clone -b stable http://github.com/vatesfr/xo-web
 ```
 
-> Note: xo-server has been migrated to the
+> Note: xo-server and xo-web have been migrated to the
 [xen-orchestra](https://github.com/vatesfr/xen-orchestra)
-mono-repository, and xo-web **will migrate in future too**.
+mono-repository.
 
 ## Installing dependencies
-
-### xo-server
 
 Once you have it, use `yarn`, as the non-root user owning the fetched code, to install the other dependencies. Into `xen-orchestra` directory and launch the following command:
 
@@ -75,7 +72,7 @@ $ cp sample.config.yaml .xo-server.yaml
 Edit and uncomment it to have the right path to deliver `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xen-orchestra` and `xo-web` are in the same directory). It's near the end of the file:
 
 ```yaml
-  mounts: '/': '../../../xo-web/dist/'
+  mounts: '/': '../xo-web/dist/'
 ```
 > Note this `dist` folder will be created in the next step (see the `xo-web` section)
 
@@ -91,14 +88,6 @@ WebServer listening on localhost:80
 [INFO] Default user: "admin@admin.net" with password "admin"
 ```
 
-### xo-web
-
-First, we'll also install dependencies:
-
-```
-$ yarn
-$ yarn build
-```
 ## Running XO
 
 The sole part you have to launch is xo-server which is quite easy to do, just launch the `xo-server` script, which is in the root of xo-server's directory:

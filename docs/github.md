@@ -6,7 +6,7 @@ The first time a user signs in, XO will create a new XO user with the same ident
 
 First you need to configure a new app in your GitHub account:
 
-![](https://raw.githubusercontent.com/vatesfr/xo-server-auth-github/master/github.png)
+![](https://raw.githubusercontent.com/vatesfr/xen-orchestra/master/packages/xo-server-auth-github/github.png)
 
 When you got your `clientID` and your `clientSecret`, you can configure them in the GitHub Plugin inside "Settings/Plugins" view of Xen Orchestra.
 

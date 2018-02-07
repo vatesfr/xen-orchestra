@@ -4,7 +4,7 @@ XO is an Open Source project released under the [AGPL v3](http://www.gnu.org/lic
 
 ## Bug reports
 
-You can [open bug reports here](https://github.com/vatesfr/xo-web/issues) (issues, enhancements, ideas etc.).
+You can [open bug reports here](https://github.com/vatesfr/xen-orchestra/issues) (issues, enhancements, ideas etc.).
 
 ## Documentation / Code
 

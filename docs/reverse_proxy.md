@@ -39,7 +39,7 @@ location /[<path>] {
 
   proxy_redirect default;
 
-  # Issue https://github.com/vatesfr/xo-web/issues/1471
+  # Issue https://github.com/vatesfr/xen-orchestra/issues/1471
   proxy_read_timeout 1800; # Error will be only every 30m
 
   # For the VM import feature, this size must be larger than the file we want to upload.
