@@ -30,7 +30,6 @@
   "scripts": {
     "build": "babel --source-maps --out-dir=dist/ src/",
     "dev": "babel --watch --source-maps --out-dir=dist/ src/",
-    "prepare": "yarn run build",
     "prepublishOnly": "yarn run build"
   }
 }

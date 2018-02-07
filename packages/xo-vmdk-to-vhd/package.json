@@ -45,7 +45,6 @@
     "dev-test": "mocha --watch --reporter=min \"dist/**/*.spec.js\"",
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
-    "prepare": "yarn run build",
     "prepublishOnly": "yarn run build",
     "test-disabled": "mocha \"dist/**/*.spec.js\""
   },

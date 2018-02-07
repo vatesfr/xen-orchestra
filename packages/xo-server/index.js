@@ -8,4 +8,4 @@ if (process.env.DEBUG === undefined) {
 }
 
 // Import the real main module.
-module.exports = require('./dist').default // eslint-disable-line node/no-missing-require
+module.exports = require('./dist').default

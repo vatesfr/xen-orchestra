@@ -10,6 +10,7 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
+// eslint-disable-next-line node/no-extraneous-import
 import { formatIps, getNextIpV4, parseIpPattern } from 'ip'
 import { injectIntl } from 'react-intl'
 import { Input as DebounceInput } from 'debounce-input-decorator'

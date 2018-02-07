@@ -44,7 +44,7 @@ import {
   pSettle,
 } from '../utils'
 
-import mixins from './mixins' // eslint-disable-line node/no-missing-import
+import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
 import {
   asBoolean,

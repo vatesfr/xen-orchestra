@@ -24,10 +24,12 @@
   },
   "jest": {
     "collectCoverage": true,
+    "projects": ["<rootDir>", "<rootDir>/packages/xo-web"],
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "/dist/",
-      "/xo-vmdk-to-vhd/"
+      "/xo-vmdk-to-vhd/",
+      "/xo-web/"
     ],
     "testRegex": "\\.spec\\.js$",
     "transform": {
