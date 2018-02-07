@@ -280,11 +280,11 @@ gulp.task(function copyAssets () {
   return pipe(
     src(['assets/**/*', 'favicon.*']),
     src('fontawesome-webfont.*', {
-      base: __dirname + '/node_modules/font-awesome/fonts', // eslint-disable-line no-path-concat
+      base: __dirname + '/../../node_modules/font-awesome/fonts', // eslint-disable-line no-path-concat
       passthrough: true,
     }),
     src(['!*.css', 'font-mfizz.*'], {
-      base: __dirname + '/node_modules/font-mfizz/dist', // eslint-disable-line no-path-concat
+      base: __dirname + '/../../node_modules/font-mfizz/dist', // eslint-disable-line no-path-concat
       passthrough: true,
     }),
     dest()

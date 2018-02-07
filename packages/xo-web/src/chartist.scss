@@ -19,8 +19,8 @@ $ct-series-colors: (
   #a748ca
 ) !default;
 
-@import "../node_modules/chartist/dist/scss/settings/_chartist-settings";
-@import "../node_modules/chartist/dist/scss/chartist";
+@import "../../../node_modules/chartist/dist/scss/settings/_chartist-settings";
+@import "../../../node_modules/chartist/dist/scss/chartist";
 
 .ct-chart {
   display: flex;

@@ -1,9 +1,10 @@
 module.exports = {
-  'extends': [
-    'standard',
-  ],
-  'parser': 'babel-eslint',
-  'rules': {
+  extends: ['standard', 'standard-jsx'],
+  globals: {
+    __DEV__: true,
+  },
+  parser: 'babel-eslint',
+  rules: {
     'comma-dangle': ['error', 'always-multiline'],
     'no-var': 'error',
     'node/no-extraneous-import': 'error',

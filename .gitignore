@@ -13,6 +13,9 @@
 /packages/xo-server/src/xapi/mixins/index.js
 /packages/xo-server/src/xo-mixins/index.js
 
+/packages/xo-web/src/common/intl/locales/index.js
+/packages/xo-web/src/common/themes/index.js
+
 npm-debug.log
 npm-debug.log.*
 pnpm-debug.log

@@ -11,13 +11,13 @@ $brand-danger: #990822;
 $brand-warning: #eca649;
 $brand-info: #044b7f;
 
-@import "../node_modules/bootstrap/scss/bootstrap";
+@import "../../../node_modules/bootstrap/scss/bootstrap";
 
 // -------------------------------------------------------------------
 
 $fa-font-path: "./";
 
-@import "../node_modules/font-awesome/scss/font-awesome";
+@import "../../../node_modules/font-awesome/scss/font-awesome";
 
 // Replace Bootstrap's glyphicons by Font Awesome.
 .glyphicon {
@@ -26,7 +26,7 @@ $fa-font-path: "./";
 
 // -------------------------------------------------------------------
 
-@import "../node_modules/font-mfizz/dist/font-mfizz";
+@import "../../../node_modules/font-mfizz/dist/font-mfizz";
 
 // -------------------------------------------------------------------
 
@@ -60,12 +60,12 @@ $side-menu-color: white;
 
 // REACT-VIRTUALIZED ===========================================================
 
-@import '../node_modules/react-virtualized/styles';
+@import '../../../node_modules/react-virtualized/styles';
 
 // REACT-SELECT ================================================================
 
 $select-input-height: 40px; // Bootstrap input height
-@import '../node_modules/react-select/scss/default';
+@import '../../../node_modules/react-select/scss/default';
 
 // Boostrap hack...
 .is-searchable {

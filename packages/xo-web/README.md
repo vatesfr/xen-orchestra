@@ -1,4 +1,4 @@
-# Xen Orchestra Web [![Chat with us](https://storage.crisp.im/plugins/images/936925df-f37b-4ba8-bab0-70cd2edcb0be/badge.svg)](https://go.crisp.im/chat/embed/?website_id=-JzqzzwddSV7bKGtEyAQ) [![Build Status](https://travis-ci.org/vatesfr/xo-web.png?branch=master)](https://travis-ci.org/vatesfr/xo-web)
+# Xen Orchestra Web [![Chat with us](https://storage.crisp.im/plugins/images/936925df-f37b-4ba8-bab0-70cd2edcb0be/badge.svg)](https://go.crisp.im/chat/embed/?website_id=-JzqzzwddSV7bKGtEyAQ) [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 ![](http://i.imgur.com/tRffA5y.png)
 
@@ -53,7 +53,7 @@ if (process.env.XOA_PLAN > 3) {
 
 ## How to report a bug?
 
-If you are certain the bug is exclusively related to XO-Web, you may use the [bugtracker of this repository](https://github.com/vatesfr/xo-web/issues).
+If you are certain the bug is exclusively related to XO-Web, you may use the [bugtracker of this repository](https://github.com/vatesfr/xen-orchestra/issues).
 
 Otherwise, please consider using the [bugtracker of the general repository](https://github.com/vatesfr/xo/issues).
 

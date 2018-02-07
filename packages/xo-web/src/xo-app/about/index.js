@@ -81,7 +81,7 @@ export default class About extends Component {
               </Row>
               <Row>
                 <Col mediumSize={6}>
-                  <a href='https://github.com/vatesfr/xo-web/issues/new'>
+                  <a href='https://github.com/vatesfr/xen-orchestra/issues/new'>
                     <Icon icon='bug' size={4} />
                     <h4>{_('bugTracker')}</h4>
                   </a>

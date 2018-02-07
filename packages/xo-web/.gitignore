@@ -1,9 +1,0 @@
-/dist/
-/node_modules/
-/src/common/intl/locales/index.js
-/src/common/themes/index.js
-
-npm-debug.log
-npm-debug.log.*
-pnpm-debug.log
-pnpm-debug.log.*

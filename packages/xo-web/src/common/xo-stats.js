@@ -48,7 +48,7 @@ const _computeArraysAvg = arrays => {
 }
 
 // Arrays can be null.
-// See: https://github.com/vatesfr/xo-web/issues/969
+// See: https://github.com/vatesfr/xen-orchestra/issues/969
 //
 // It's a fix to avoid error like `Uncaught TypeError: Cannot read property 'length' of null`.
 // FIXME: Repare this bug in xo-server. (Warning: Can break the stats of xo-web v4.)
