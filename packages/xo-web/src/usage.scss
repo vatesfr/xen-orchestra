@@ -1,0 +1,62 @@
+// Usage
+
+.usage {
+  @extend .progress;
+  background-color: #eee;
+  height: 2em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
+  margin-top: 1em;
+  margin-bottom: 2em;
+}
+
+.usage-element {
+  background-color: #5cb85c;
+  box-shadow: -1px 0 0 0 white;
+  height: 2em;
+  display: inline-block;
+  transition: all 0.3s ease 0s;
+}
+
+.usage-element-highlight {
+  background-color: $brand-warning;
+}
+
+.usage-element-others {
+  background-color: $brand-info;
+}
+
+.usage-element:hover {
+  opacity: 0.6;
+}
+
+// Limits
+
+.limits {
+  @extend .progress;
+  background-color: #eee;
+  height: 1.1em;
+  width: 100%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
+}
+
+.limits-element {
+  background-color: #5cb85c;
+  height: 100%;
+  display: inline-block;
+  transition: all 0.3s ease 0s;
+}
+
+.limits-used {
+  @extend .limits-element;
+  background-color: $brand-primary;
+}
+
+.limits-to-be-used {
+  @extend .limits-element;
+  background-color: $brand-success;
+}
+
+.limits-over-used {
+  @extend .limits-element;
+  background-color: $brand-danger;
+}

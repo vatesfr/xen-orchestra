@@ -1,0 +1,13 @@
+.clickToEdit * {
+  cursor: context-menu !important;
+}
+.shortClick {
+  border-bottom: 1px dashed #ccc;
+}
+
+.select {
+  padding: 0px;
+}
+.size {
+  width: 10rem;
+}

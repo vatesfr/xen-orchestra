@@ -1,0 +1,80 @@
+.inlineSelect {
+  display: inline-block;
+  font-size: 1rem;
+  width: 20em;
+}
+
+.button {
+  font-size: 1.8em;
+}
+
+.sizeInput {
+  width: 10rem;
+}
+
+.lineItem {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.item {
+  align-items: center;
+  display: inline-flex;
+  margin: 0.5em;
+  white-space: nowrap;
+}
+
+.input {
+  flex: 1 0 20rem;
+}
+
+.sectionContent {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.sectionContentColumn {
+  flex-direction: column;
+}
+
+.summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 2em;
+  justify-content: space-around;
+}
+
+.submitSection {
+  display: flex;
+  justify-content: space-around;
+}
+
+.configDrive {
+  display: flex;
+  background-color: #eee;
+  padding: 1em;
+  margin-bottom: 0.5em;
+}
+
+.configDriveToggle {
+  margin: auto;
+}
+
+.refreshNames {
+  cursor: pointer;
+}
+
+.customConfig {
+  resize: both;
+}
+
+.fixedWidth {
+  width: 20em;
+}
+
+.tags {
+  font-size: 1.5em;
+}

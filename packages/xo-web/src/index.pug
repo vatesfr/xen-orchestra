@@ -1,0 +1,64 @@
+//- HTML 5 Doctype
+doctype html
+
+//- The `no-js` class will be automatically removed if JavaScript is
+//- available.
+html.no-js(
+  dir = 'ltr'
+  lang = 'en'
+)
+
+  head
+
+    meta(charset = 'utf-8')
+
+    //- Makes sure IE is using the last engine available.
+    meta(
+      http-equiv = 'x-ua-compatible'
+      content = 'ie=edge,chrome=1'
+    )
+
+    //- .visible-js to display content only when JavaScript is ENABLED.
+    //- .hidden-js to display content only when JavaScript is DISABLED.
+    script !function(d){d.className=d.className.replace(/\bno-js\b/,'js')}(document.documentElement)
+
+    style .no-js .visible-js,.js .hidden-js{display:none}
+
+    //- (TODO: confirm) For smartphones and tablets: sets the page
+    //- width to the device width and prevents the page from being
+    //- zoomed in when going to landscape mode.
+    meta(
+      name = 'viewport'
+      content = 'width=device-width, initial-scale=1'
+    )
+
+    title Xen Orchestra
+
+    link(
+      rel = 'stylesheet'
+      href = 'index.css'
+    )
+    link(
+      rel = 'stylesheet'
+      href = 'modules.css'
+    )
+
+    link(
+      rel = 'shortcut icon'
+      href = 'favicon.ico'
+    )
+
+    //- Styles required for a proper display while loading.
+    style.
+      html, body, #xo-app { height: 100% }
+
+  body
+
+    #xo-app
+      div(style = 'display: flex; height: 100%')
+        div(style = 'margin: auto')
+          h1.hidden-js.text-danger JavaScript is required for Xen Orchestra!
+          h1.visible-js.text-muted
+            img(src='assets/loading.svg')
+
+    script(src = 'index.js')

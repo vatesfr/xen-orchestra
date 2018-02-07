@@ -1,0 +1,1011 @@
+.xo-icon {
+  &-pool {
+    @extend .fa;
+    @extend .fa-cloud;
+  }
+  &-host {
+    @extend .fa;
+    @extend .fa-server;
+  }
+  &-vm {
+    @extend .fa;
+    @extend .fa-desktop;
+  }
+  &-remote {
+    @extend .fa;
+    @extend .fa-plug;
+  }
+  &-task {
+    @extend .fa;
+    @extend .fa-tasks;
+  }
+  &-template {
+    @extend .fa;
+    @extend .fa-thumb-tack;
+  }
+  &-message {
+    @extend .fa;
+    @extend .fa-envelope-o;
+  }
+  &-logs {
+    @extend .fa;
+    @extend .fa-list;
+  }
+  &-alarm {
+    @extend .fa;
+    @extend .fa-exclamation-triangle;
+  }
+  &-error {
+    @extend .fa;
+    @extend .fa-exclamation-triangle;
+    @extend .text-danger;
+  }
+  &-success {
+    @extend .fa;
+    @extend .fa-check;
+    @extend .text-success;
+  }
+  &-undo {
+    @extend .fa;
+    @extend .fa-undo;
+    @extend .text-warning;
+  }
+  &-edition {
+    @extend .fa;
+    @extend .fa-pencil-square-o;
+  }
+  &-edit {
+    @extend .fa;
+    @extend .fa-pencil;
+  }
+  &-refresh {
+    @extend .fa;
+    @extend .fa-refresh;
+  }
+  &-administration {
+    @extend .fa;
+    @extend .fa-wrench;
+  }
+  &-diagnosis {
+    @extend .fa;
+    @extend .fa-medkit;
+  }
+  &-chevron-up {
+    @extend .fa;
+    @extend .fa-chevron-up;
+  }
+  &-chevron-down {
+    @extend .fa;
+    @extend .fa-chevron-down;
+  }
+
+  &-grab {
+    @extend .fa;
+    @extend .fa-ellipsis-v;
+  },
+  &-previous {
+    @extend .fa;
+    @extend .fa-chevron-left;
+  },
+  &-next {
+    @extend .fa;
+    @extend .fa-chevron-right;
+  },
+  &-caret {
+    @extend .fa;
+    @extend .fa-caret-down;
+  }
+  &-caret-up {
+    @extend .fa;
+    @extend .fa-caret-up;
+  }
+  &-loading {
+    @extend .fa;
+    @extend .fa-spinner;
+    @extend .fa-pulse;
+  }
+  &-clipboard {
+    @extend .fa;
+    @extend .fa-clipboard;
+  }
+  &-shortcuts {
+    @extend .fa;
+    @extend .fa-keyboard-o;
+  }
+  &-info {
+    @extend .fa;
+    @extend .fa-info-circle;
+  }
+  &-search {
+    @extend .fa;
+    @extend .fa-search;
+  }
+  &-settings {
+    @extend .fa;
+    @extend .fa-cog;
+  }
+  &-summary {
+    @extend .fa;
+    @extend .fa-flag-checkered;
+  }
+  &-run {
+    @extend .fa;
+    @extend .fa-play;
+  }
+  &-ssh-key {
+    @extend .fa;
+    @extend .fa-key;
+  }
+  &-ip {
+    @extend .fa;
+    @extend .fa-map-marker;
+  }
+  &-file {
+    @extend .fa;
+    @extend .fa-file-o;
+  }
+
+  &-shown {
+    @extend .fa;
+    @extend .fa-eye;
+  }
+  &-hidden {
+    @extend .fa;
+    @extend .fa-eye-slash;
+  }
+
+  &-password {
+    @extend .fa;
+    @extend .fa-key;
+  }
+
+  &-toggle-on {
+    @extend .fa;
+    @extend .fa-toggle-on;
+  }
+
+  &-toggle-off {
+    @extend .fa;
+    @extend .fa-toggle-off;
+  }
+
+  &-scale {
+    @extend .fa;
+    @extend .fa-balance-scale;
+  }
+
+  &-asc {
+    @extend .fa;
+    @extend .fa-arrow-down;
+  }
+  &-desc {
+    @extend .fa;
+    @extend .fa-arrow-up;
+  }
+  &-sort {
+    @extend .fa;
+    @extend .fa-sort;
+  }
+
+  &-connect {
+    @extend .fa;
+    @extend .fa-link;
+  }
+  &-disconnect {
+    @extend .fa;
+    @extend .fa-chain-broken;
+  }
+
+  &-lock {
+    @extend .fa;
+    @extend .fa-lock;
+  }
+  &-unlock {
+    @extend .fa;
+    @extend .fa-unlock;
+  }
+  &-unknown-status {
+    @extend .fa;
+    @extend .fa-question-circle;
+  }
+
+  &-cpu {
+    @extend .fa;
+    @extend .fa-microchip;
+  }
+  &-gpu {
+    @extend .fa;
+    @extend .fa-microchip;
+  }
+  &-vgpu {
+    @extend .fa;
+    @extend .fa-microchip;
+  }
+  &-memory {
+    @extend .fa;
+    @extend .fa-sliders;
+  }
+  &-disk {
+    @extend .fa;
+    @extend .fa-hdd-o;
+  }
+  &-network {
+    @extend .fa;
+    @extend .fa-sitemap;
+  }
+  &-sr {
+    @extend .fa;
+    @extend .fa-database;
+  }
+  &-delete {
+    @extend .fa;
+    @extend .fa-trash;
+  }
+  &-self-service {
+    @extend .fa;
+    @extend .fa-cloud;
+  }
+  &-resource-set {
+    @extend .fa;
+    @extend .fa-list-alt;
+  }
+  &-trial {
+    @extend .fa;
+    @extend .fa-thumbs-up;
+  }
+
+  // Backups
+  &-backup {
+    @extend .fa;
+    @extend .fa-download;
+  }
+  &-rolling-snapshot {
+    @extend .fa;
+    @extend .fa-camera;
+  }
+  &-delta-backup {
+    @extend .fa;
+    @extend .fa-code-fork;
+  }
+  &-disaster-recovery {
+    @extend .fa;
+    @extend .fa-medkit;
+  }
+  &-continuous-replication {
+    @extend .fa;
+    @extend .fa-map-signs;
+  }
+
+  // Jobs
+  &-jobs {
+    @extend .fa;
+    @extend .fa-cogs;
+  }
+
+  // VM
+  &-vm {
+    // States
+    &-running {
+      @extend .fa;
+      @extend .fa-desktop;
+      @extend .text-success;
+    }
+    &-suspended {
+      @extend .fa;
+      @extend .fa-desktop;
+      @extend .text-primary;
+    }
+    &-halted {
+      @extend .fa;
+      @extend .fa-desktop;
+      @extend .text-danger;
+    }
+    &-busy {
+      @extend .fa;
+      @extend .fa-desktop;
+      @extend .text-warning;
+    }
+
+    // Actions
+    &-create-template {
+      @extend .fa;
+      @extend .fa-thumb-tack;
+    }
+    &-copy {
+      @extend .fa;
+      @extend .fa-clone;
+    }
+    &-console {
+      @extend .fa;
+      @extend .fa-terminal;
+    }
+    &-migrate {
+      @extend .fa;
+      @extend .fa-share;
+    }
+    &-snapshot {
+      @extend .fa;
+      @extend .fa-camera;
+    }
+    &-fast-clone {
+      @extend .fa;
+      @extend .fa-code-fork;
+    }
+    &-clone {
+      @extend .fa;
+      @extend .fa-copy;
+    }
+    &-suspend {
+      @extend .fa;
+      @extend .fa-pause;
+    }
+    &-force-reboot {
+      @extend .fa;
+      @extend .fa-bolt;
+    }
+    &-recovery-mode {
+      @extend .fa;
+      @extend .fa-forward;
+    }
+    &-force-shutdown {
+      @extend .fa;
+      @extend .fa-power-off;
+    }
+    &-docker {
+      @extend .fa;
+      @extend .text-primary;
+      @extend .fa-ship;
+    }
+  }
+
+  // Generic states
+  &-running {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-running;
+  }
+
+  &-halted {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-halted;
+  }
+
+  &-suspended {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-suspended;
+  }
+
+  &-paused {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-suspended;
+  }
+
+  &-unknown {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-unknown;
+  }
+
+  &-busy {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-busy;
+  }
+
+  &-disabled {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-busy;
+  }
+
+  &-all-connected {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-running;
+  }
+
+  &-some-connected {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-busy;
+  }
+
+  &-all-disconnected {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-halted;
+  }
+
+  &-connected {
+    @extend .fa;
+    @extend .fa-link;
+  }
+
+  &-disconnected {
+    @extend .fa;
+    @extend .fa-unlink;
+  }
+
+  // Task
+  &-task {
+    &-cancel {
+      @extend .fa;
+      @extend .fa-ban;
+    }
+    &-destroy {
+      @extend .fa;
+      @extend .fa-trash;
+    }
+  }
+
+  // SR
+  &-sr, &-vdi {
+    &-reconnect-all {
+      @extend .fa;
+      @extend .fa-retweet;
+    }
+    &-disconnect-all {
+      @extend .fa;
+      @extend .fa-power-off;
+    }
+    &-forget {
+      @extend .fa;
+      @extend .fa-ban;
+    }
+    &-remove {
+      @extend .fa;
+      @extend .fa-trash;
+    }
+    &-migrate {
+      @extend .fa;
+      @extend .fa-share;
+    }
+  }
+  // Host
+  &-host {
+    // States
+    &-running {
+      @extend .fa;
+      @extend .fa-server;
+      @extend .text-success;
+    }
+    &-halted {
+      @extend .fa;
+      @extend .fa-server;
+      @extend .text-danger;
+    }
+    &-disabled {
+      @extend .fa;
+      @extend .fa-server;
+      @extend .text-warning;
+    }
+    &-forget {
+      @extend .fa;
+      @extend .fa-ban;
+    }
+    &-working {
+      @extend .fa;
+      @extend .fa-circle;
+      @extend .text-warning;
+    }
+
+    // Actions
+    &-enable {
+      @extend .fa;
+      @extend .fa-check-circle;
+    }
+    &-disable {
+      @extend .fa;
+      @extend .fa-times-circle;
+    }
+    &-restart-agent {
+      @extend .fa;
+      @extend .fa-retweet;
+    }
+    &-emergency-shutdown {
+      @extend .fa;
+      @extend .fa-exclamation-triangle;
+    }
+    &-patch-update {
+      @extend .fa;
+      @extend .fa-download;
+    }
+  }
+
+  // Host and VM actions
+  &-host, &-vm {
+    &-start {
+      @extend .fa;
+      @extend .fa-play;
+    }
+    &-delete {
+      @extend .fa;
+      @extend .fa-trash;
+    }
+    &-stop {
+      @extend .fa;
+      @extend .fa-stop;
+    }
+    &-force-reboot {
+      @extend .fa;
+      @extend .fa-bolt;
+    }
+    &-reboot {
+      @extend .fa;
+      @extend .fa-refresh;
+    }
+    &-eject {
+      @extend .fa;
+      @extend .fa-eject;
+    }
+    &-keyboard {
+      @extend .fa;
+      @extend .fa-keyboard-o;
+    }
+    &-new {
+      @extend .fa;
+      @extend .fa-plus;
+    }
+  }
+
+  &-snapshot {
+    &-revert {
+      @extend .fa;
+      @extend .fa-refresh;
+    }
+    &-delete {
+      @extend .fa;
+      @extend .fa-trash;
+    }
+  }
+
+  &-filters {
+    @extend .fa;
+    @extend .fa-filter
+  }
+
+  &-tags {
+    @extend .fa;
+    @extend .fa-tags
+  }
+
+  &-remove-tag {
+    @extend .fa;
+    @extend .fa-times;
+  }
+
+  &-add {
+    @extend .fa;
+    @extend .fa-plus;
+  }
+
+  &-add-tag {
+    @extend .fa;
+    @extend .fa-plus;
+  }
+
+  &-sort {
+    @extend .fa;
+    @extend .fa-sort;
+  }
+  &-reset {
+    @extend .fa;
+    @extend .fa-undo;
+  }
+  &-save {
+    @extend .fa;
+    @extend .fa-floppy-o;
+  }
+  &-delete {
+    @extend .fa;
+    @extend .fa-trash;
+  }
+  &-remove {
+    @extend .fa;
+    @extend .fa-times;
+  }
+  &-minus {
+    @extend .fa;
+    @extend .fa-minus
+  }
+  &-plus {
+    @extend .fa;
+    @extend .fa-plus
+  }
+  &-clear-search {
+    @extend .fa;
+    @extend .fa-times-circle;
+  }
+
+  &-preview {
+    @extend .fa;
+    @extend .fa-eye;
+  }
+  &-backup {
+    @extend .fa;
+    @extend .fa-archive;
+  }
+  &-import {
+    @extend .fa;
+    @extend .fa-file-archive-o;
+  }
+  &-export {
+    @extend .fa;
+    @extend .fa-download;
+  }
+  &-schedule {
+    @extend .fa;
+    @extend .fa-clock-o;
+  }
+  &-time {
+    @extend .fa;
+    @extend .fa-clock-o;
+  }
+  &-database {
+    @extend .fa;
+    @extend .fa-database;
+  }
+  &-arrow-right {
+    @extend .fa;
+    @extend .fa-arrow-right;
+  }
+
+  &-run-schedule {
+    @extend .fa;
+    @extend .fa-play;
+  }
+
+  &-user {
+    @extend .fa;
+    @extend .fa-user;
+  }
+  &-group {
+    @extend .fa;
+    @extend .fa-users;
+  }
+  &-sign-out {
+    @extend .fa;
+    @extend .fa-sign-out;
+  }
+
+  // Menu
+  &-menu-collapse {
+    @extend .fa;
+    @extend .fa-bars;
+  }
+  &-menu-home {
+    @extend .fa;
+    @extend .fa-home;
+  }
+  &-menu-dashboard {
+    @extend .fa;
+    @extend .fa-dashboard;
+    &-overview {
+      @extend .fa;
+      @extend .fa-eye;
+    }
+    &-visualization {
+      @extend .fa;
+      @extend .fa-pie-chart;
+    }
+    &-stats {
+      @extend .fa;
+      @extend .fa-bar-chart;
+    }
+    &-health {
+      @extend .fa;
+      @extend .fa-heartbeat;
+    }
+  }
+  &-menu-self-service {
+    @extend .fa;
+    @extend .fa-cloud;
+  }
+  &-menu-backup {
+    @extend .fa;
+    @extend .fa-archive;
+    &-overview {
+      @extend .fa;
+      @extend .fa-eye;
+    }
+    &-new {
+      @extend .fa;
+      @extend .fa-plus;
+    }
+    &-remotes {
+      @extend .fa;
+      @extend .fa-plug;
+    }
+    &-restore {
+      @extend .fa;
+      @extend .fa-upload;
+    }
+    &-file-restore {
+      @extend .fa;
+      @extend .fa-file-o;
+    }
+  }
+  &-menu-jobs {
+    @extend .fa;
+    @extend .fa-cogs;
+    &-overview {
+      @extend .fa;
+      @extend .fa-eye;
+    }
+    &-new {
+      @extend .fa;
+      @extend .fa-plus;
+    }
+    &-schedule {
+      @extend .fa;
+      @extend .fa-clock-o;
+    }
+  }
+  &-menu-xoa {
+    @extend .fa;
+    @extend .fa-cube;
+  }
+  &-menu-update {
+    @extend .fa;
+    @extend .fa-refresh;
+  }
+  &-menu-license {
+    @extend .fa;
+    @extend .fa-file-text-o;
+  }
+  &-menu-settings {
+    @extend .fa;
+    @extend .fa-cog;
+    &-servers {
+      @extend .fa;
+      @extend .fa-cloud;
+    }
+    &-users {
+      @extend .fa;
+      @extend .fa-user;
+    }
+    &-groups {
+      @extend .fa;
+      @extend .fa-users;
+    }
+    &-acls {
+      @extend .fa;
+      @extend .fa-key;
+    }
+    &-plugins {
+      @extend .fa;
+      @extend .fa-puzzle-piece;
+    }
+    &-logs {
+      @extend .fa;
+      @extend .fa-list;
+    }
+    &-config {
+      @extend .fa;
+      @extend .fa-file-o;
+    }
+  }
+  &-menu-about {
+    @extend .fa;
+    @extend .fa-info;
+  }
+  &-menu-new {
+    @extend .fa;
+    @extend .fa-plus;
+    &-vm {
+      @extend .fa;
+      @extend .fa-desktop;
+    }
+    &-sr {
+      @extend .fa;
+      @extend .fa-database;
+    }
+    &-import {
+      @extend .fa;
+      @extend .fa-file-archive-o;
+    }
+  }
+  &-menu-xosan {
+    @extend .fa;
+    @extend .fa-database;
+  }
+  // New VM
+  &-new-vm {
+    &-infos {
+      @extend .fa;
+      @extend .fa-info-circle
+    }
+    &-perf {
+      @extend .fa;
+      @extend .fa-dashboard;
+    }
+    &-install-settings {
+      @extend .fa;
+      @extend .fa-download;
+    }
+    &-interfaces {
+      @extend .fa;
+      @extend .fa-sitemap;
+    }
+    &-disks {
+      @extend .fa;
+      @extend .fa-hdd-o;
+    }
+    &-summary {
+      @extend .fa;
+      @extend .fa-flag-checkered;
+    }
+    &-create {
+      @extend .fa;
+      @extend .fa-play;
+    }
+    &-reset {
+      @extend .fa;
+      @extend .fa-undo;
+    }
+    &-add {
+      @extend .fa;
+      @extend .fa-plus;
+    }
+    &-remove {
+      @extend .fa;
+      @extend .fa-times;
+    }
+  }
+  //  OS Icons
+  &-centos {
+    @extend .fa;
+    @extend .icon-centos;
+  }
+  &-debian {
+    @extend .fa;
+    @extend .icon-debian;
+  }
+  &-docker {
+    @extend .fa;
+    @extend .icon-docker;
+  }
+  &-fedora {
+    @extend .fa;
+    @extend .icon-fedora;
+  }
+  &-freebsd {
+    @extend .fa;
+    @extend .icon-freebsd;
+  }
+  &-gentoo {
+    @extend .fa;
+    @extend .icon-gentoo;
+  }
+  &-linux {
+    @extend .fa;
+    @extend .fa-linux;
+  }
+  &-linux-mint {
+    @extend .fa;
+    @extend .icon-linux-mint;
+  }
+  &-netbsd {
+    @extend .fa;
+    @extend .icon-netbsd;
+  }
+  &-oracle {
+    @extend .fa;
+    @extend .icon-oracle;
+  }
+  &-osx {
+    @extend .fa;
+    @extend .icon-osx;
+  }
+  &-redhat {
+    @extend .fa;
+    @extend .icon-redhat;
+  }
+  &-solaris {
+    @extend .fa;
+    @extend .icon-solaris;
+  }
+  &-suse {
+    @extend .fa;
+    @extend .icon-suse;
+  }
+  &-ubuntu {
+    @extend .fa;
+    @extend .icon-ubuntu;
+  }
+  &-windows {
+    @extend .fa;
+    @extend .fa-windows;
+  }
+
+  // Home
+  &-nav {
+    @extend .fa;
+    @extend .fa-bars;
+    color: #ccc;
+  }
+
+ // About
+  &-bug {
+    @extend .fa;
+    @extend .fa-bug;
+  }
+  &-help {
+    @extend .fa;
+    @extend .fa-life-ring;
+  }
+
+  // Updates
+  &-upgrade {
+    @extend .fa;
+    @extend .fa-cog;
+  }
+  &-update-unknown {
+    @extend .fa;
+    @extend .fa-question-circle;
+  }
+  &-update-ready {
+    @extend .fa;
+    @extend .fa-bell;
+  }
+  &-not-registered {
+    @extend .fa;
+    @extend .fa-bell-slash;
+  }
+
+  // Generic actions
+
+  &-add-sr {
+    @extend .fa;
+    @extend .fa-database;
+  }
+  &-add-vm {
+    @extend .fa;
+    @extend .fa-desktop;
+  }
+  &-add-host {
+    @extend .fa;
+    @extend .fa-server;
+  }
+  &-connect {
+    @extend .fa;
+    @extend .fa-link;
+  }
+  &-disconnect {
+    @extend .fa;
+    @extend .fa-unlink;
+  }
+  &-refresh {
+    @extend .fa;
+    @extend .fa-refresh;
+  }
+
+  // XOA related
+
+  &-plan-upgrade {
+    @extend .fa;
+    @extend .fa-cloud-upload;
+  }
+  &-plan-trial {
+    @extend .fa;
+    @extend .fa-star;
+  }
+  &-support {
+    @extend .fa;
+    @extend .fa-support;
+  }
+
+  // XOSAN related
+
+  &-health {
+    @extend .fa;
+    @extend .fa-heartbeat;
+  }
+  &-fix {
+    @extend .fa;
+    @extend .fa-wrench;
+  }
+}

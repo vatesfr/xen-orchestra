@@ -1,0 +1,5 @@
+.widthLimit {
+  overflow-wrap: break-word;
+  width: 100%;
+  max-width: 30em;
+}

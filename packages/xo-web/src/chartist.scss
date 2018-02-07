@@ -1,0 +1,133 @@
+
+// CHARTIST  ===================================================================
+
+$ct-series-colors: (
+  $brand-success,
+  $brand-primary,
+  #f17cb0,
+  #86797d,
+  #b276b2,
+  #f15854,
+  #b2912f,
+  #decf3f,
+  #dda458,
+  #60bd68,
+  #4d4d4d,
+  #eacf7d,
+  #b2c326,
+  #6188e2,
+  #a748ca
+) !default;
+
+@import "../node_modules/chartist/dist/scss/settings/_chartist-settings";
+@import "../node_modules/chartist/dist/scss/chartist";
+
+.ct-chart {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+// safari has a bug in flex computing that prevent charts from showing see #1755
+// by fixing the height with a value found in Chrome it seems like it fixes the issue without breaking the layout
+// elsewhere
+.dashboardItem .ct-chart {
+  height: 150px;
+}
+
+// Line in charts with only 2px in width
+.ct-line {
+  stroke-width: 2px;
+}
+
+.ct-bar {
+  stroke-width: 10%;
+}
+
+.ct-point {
+  stroke-width: 30px;
+  stroke-opacity: 0!important;
+}
+
+.ct-point:hover {
+  stroke-opacity: 0.2!important;
+  stroke-width: 20px;
+}
+
+.ct-tooltip {
+  position: absolute;
+  display: inline-block;
+  min-width: 5em;
+  padding: 8px 10px;
+  background: #383838;
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+  z-index: 10;
+  font-weight: 700;
+
+  // Arrow!
+  &:before {
+    bottom: -14px;
+    top: 100%;
+    left: 50%;
+    border: solid transparent;
+    content: '';
+    height: 0;
+    width: 0;
+    pointer-events: none;
+    border-color: rgba(251, 249, 228, 0);
+    border-top-color: #383838;
+    border-width: 7px;
+    margin-left: -8px;
+  }
+
+  &.hide {
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+// CHARTIST LEGEND =============================================================
+
+.ct-legend {
+  bottom: 0;
+  margin-bottom: -1em;
+
+  li {
+    position: relative;
+    padding-left: 0.5em;
+    list-style-type: none;
+    display: inline-block;
+    margin-right: 0.5em;
+    font-size: 0.8em;
+  }
+
+  li:before {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    left: 0;
+    content: '';
+    border: 3px solid transparent;
+    border-radius: 2px;
+    margin-right: 0.2em;
+  }
+
+  li.inactive:before {
+    background: transparent;
+  }
+
+  &.ct-legend-inside {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  @for $i from 0 to length($ct-series-colors) {
+    .ct-series-#{$i}:before {
+      background-color: nth($ct-series-colors, $i + 1);
+      border-color: nth($ct-series-colors, $i + 1);
+    }
+  }
+}

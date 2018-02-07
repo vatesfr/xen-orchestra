@@ -1,0 +1,110 @@
+#!/usr/bin/env node
+
+var filter = require('lodash/filter')
+var forEach = require('lodash/forEach')
+var join = require('path').join
+var map = require('lodash/map')
+var readDir = require('fs').readdirSync
+var writeFile = require('fs').writeFileSync
+
+// Necessary to load messages and locales files which are not in
+// ES5.
+//
+// Note: must be done after all other requires to avoid impacting too
+// much the perfs.
+require('babel-register')
+
+// ===================================================================
+
+function defaultRequire (module) {
+  var value = require(module)
+  return value && value.__esModule ? value.default : value
+}
+
+// See https://github.com/joliss/js-string-escape/blob/master/index.js
+function quote (string, q) {
+  string = string.split('')
+
+  if (q === undefined) {
+    q = string.indexOf("'") !== -1 && string.indexOf('"') === -1
+      ? '"'
+      : "'"
+  }
+
+  var replacements = {
+    '\\': '\\\\',
+    '\n': '\\n',
+    '\r': '\\r',
+    '\u2028': '\\u2028',
+    '\u2029': '\\u2029'
+  }
+  replacements[q] = '\\' + q
+
+  forEach(string, function (c, i) {
+    if (c in replacements) {
+      string[i] = replacements[c]
+    }
+  })
+
+  return q + string.join('') + q
+}
+
+// ===================================================================
+
+var LOCALES_DIR = join(__dirname, '../src/common/intl/locales/')
+var LOCALE_RE = /^(.+)\.js(?:on)?$/
+var messages = defaultRequire('../src/common/intl/messages')
+
+function updateLocale (locale) {
+  var path = join(LOCALES_DIR, locale + '.js')
+
+  try {
+    var translations = defaultRequire(path)
+    var flags = 'w'
+  } catch (error) {
+    if (error.code !== 'MODULE_NOT_FOUND') {
+      console.error('failed to load ' + locale, error)
+      return
+    }
+    flags = 'wx'
+  }
+
+  var content = [
+    '// See http://momentjs.com/docs/#/use-it/browserify/',
+    'import \'moment/locale/' + locale + '\'',
+    '',
+    'import reactIntlData from \'react-intl/locale-data/' + locale + '\'',
+    'import { addLocaleData } from \'react-intl\'',
+    'addLocaleData(reactIntlData)',
+    '',
+    '// ===================================================================',
+    '',
+    'export default {'
+  ]
+
+  content.push(map(messages, function (message, id) {
+    var translation = translations && translations[id]
+    return [
+      '  // Original text: ', quote(message.defaultMessage, translation && '"'), '\n',
+      '  ', id, ': ', translation ? quote(translation) : 'undefined'
+    ].join('')
+  }).join(',\n\n'))
+
+  content.push('}', '')
+
+  writeFile(path, content.join('\n'), { flag: flags })
+}
+
+// ===================================================================
+
+(function main (args) {
+  var locales = args.length
+    ? args
+    : filter(map(readDir(LOCALES_DIR), function (entry) {
+      var matches = LOCALE_RE.exec(entry)
+      return matches && matches[1]
+    }))
+
+  forEach(locales, updateLocale)
+})(process.argv.slice(2))
+

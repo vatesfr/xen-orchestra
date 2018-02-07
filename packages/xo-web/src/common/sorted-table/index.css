@@ -1,0 +1,17 @@
+.clickableColumn {
+  cursor: pointer;
+}
+
+.clickableColumn:hover {
+  color: #fff;
+  background-color: #96b8d1;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.highlight {
+  outline: 2px solid #366e98;
+  outline-offset: -2px;
+}

@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Col 1`] = `
+<div
+  className="col-xs-12"
+/>
+`;
+
+exports[`Container 1`] = `
+<div
+  className="container-fluid"
+/>
+`;
+
+exports[`Row 1`] = `
+<div
+  className=" row"
+/>
+`;

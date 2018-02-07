@@ -1,0 +1,9 @@
+.container .button {
+  position: absolute;
+  margin-left: 1ex;
+  visibility: hidden;
+}
+
+.container:hover .button {
+  visibility: visible;
+}

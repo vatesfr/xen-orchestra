@@ -1,0 +1,18 @@
+.listTitle {
+  font-weight: bold;
+  font-size: 1.1em
+}
+
+.listItem {
+  margin-top: 2px;
+}
+
+.block {
+  padding-bottom: 1em;
+}
+
+.groupBlock {
+  padding-bottom: 1em;
+  padding-top: 1em;
+  border-top: 1px solid #e5e5e5;
+}

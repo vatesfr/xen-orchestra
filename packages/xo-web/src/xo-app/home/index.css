@@ -1,0 +1,63 @@
+.itemRowHeader {
+  margin-bottom: 0.8em;
+}
+
+.itemContainer {
+  border: 1px solid #eee;
+  border-radius: .3em;
+}
+
+.itemContainerHeader {
+  padding: 0.5em;
+  background: #ededed;
+  border-bottom: 1px solid #eee;
+  margin: 0px;
+}
+
+.item {
+  padding: 0.5em;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+}
+
+.item:hover {
+  background: #f4f4f4;
+}
+
+.item:hover .itemActionButons {
+  opacity: 1;
+}
+
+.itemActionButons {
+  margin-right: 0.6em;
+  color: #999;
+  opacity: 0;
+}
+
+.itemActionButons:hover {
+  color: #111;
+}
+
+.itemExpanded {
+  color: #999;
+  font-size: 1em;
+  text-overflow: ellipsis;
+  white-space:nowrap;
+}
+
+.itemExpandButton {
+  cursor: pointer;
+}
+
+.itemExpandRow {
+  text-align: right;
+  padding-left: 0;
+}
+
+.selectObject {
+  width: 20em;
+}
+
+.highlight {
+  outline: 2px solid #366e98;
+}

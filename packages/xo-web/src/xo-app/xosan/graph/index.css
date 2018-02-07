@@ -1,0 +1,26 @@
+.wrapper {
+  display: flex column;
+}
+
+.graphWrapper {
+  display: flex;
+}
+
+.graph {
+  margin: auto;
+  font-size: 15px;
+}
+
+.wrapper:hover .loss {
+  color: #990822;
+  font-weight: bold;
+}
+
+.legend {
+  color: #990822;
+  visibility: hidden;
+}
+
+.wrapper:hover .legend {
+  visibility: visible;
+}

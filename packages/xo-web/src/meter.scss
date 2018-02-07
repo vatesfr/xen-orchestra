@@ -1,0 +1,50 @@
+// METER OBJECT ================================================================
+
+// Used for object utilization (eg SR):
+// success for usage < 80%
+// warning for usage between 80% and 89%
+// error for usage > 90%
+
+meter {
+    /* For Firefox */
+    background: #EEE;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.2) inset;
+    border-radius: 3px;
+}
+
+meter::-webkit-meter-bar {
+    background: #EEE;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.2) inset;
+    border-radius: 3px;
+}
+
+meter::-webkit-meter-optimum-value {
+    background: $brand-success;
+    border-radius: 3px;
+}
+
+meter::-webkit-meter-suboptimum-value {
+    background: $brand-warning;
+    border-radius: 3px;
+}
+
+meter::-webkit-meter-even-less-good-value {
+    background: $brand-danger;
+    border-radius: 3px;
+}
+
+meter::-moz-meter-bar {
+    border-radius: 3px;
+}
+
+meter:-moz-meter-optimum::-moz-meter-bar {
+    background: $brand-success;
+}
+
+meter:-moz-meter-sub-optimum::-moz-meter-bar {
+    background: $brand-warning;
+}
+
+meter:-moz-meter-sub-sub-optimum::-moz-meter-bar {
+    background: $brand-danger;
+}

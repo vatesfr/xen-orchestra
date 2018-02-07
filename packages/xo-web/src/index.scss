@@ -1,0 +1,247 @@
+// http://v4-alpha.getbootstrap.com/getting-started/flexbox/#how-it-works
+// $enable-flex: true;
+
+$nav-pills-border-radius: 0;
+$nav-pills-active-link-color: white;
+$nav-pills-active-link-bg: #366e98;
+$brand-primary: #366e98;
+$brand-secondary: #047f75;
+$brand-success: #089944;
+$brand-danger: #990822;
+$brand-warning: #eca649;
+$brand-info: #044b7f;
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+// -------------------------------------------------------------------
+
+$fa-font-path: "./";
+
+@import "../node_modules/font-awesome/scss/font-awesome";
+
+// Replace Bootstrap's glyphicons by Font Awesome.
+.glyphicon {
+  @extend .fa;
+}
+
+// -------------------------------------------------------------------
+
+@import "../node_modules/font-mfizz/dist/font-mfizz";
+
+// -------------------------------------------------------------------
+
+@import "./chartist";
+@import "./meter";
+@import "./icons";
+@import "./usage";
+
+// ROOT STYLES =================================================================
+
+$side-menu-bg: #044b7f;
+$side-menu-color: white;
+
+@include media-breakpoint-down(md) {
+  html {
+    font-size: 1.5vw;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  html {
+    font-size: 3vmin;
+  }
+}
+
+@include media-breakpoint-down(xs) {
+  html {
+    font-size: 2.95vmin;
+  }
+}
+
+// REACT-VIRTUALIZED ===========================================================
+
+@import '../node_modules/react-virtualized/styles';
+
+// REACT-SELECT ================================================================
+
+$select-input-height: 40px; // Bootstrap input height
+@import '../node_modules/react-select/scss/default';
+
+// Boostrap hack...
+.is-searchable {
+  width: 100%;
+}
+
+.Select-value-label {
+  color: #373a3c;
+}
+
+.Select-control {
+  border-radius: unset;
+}
+
+// Disabled option style.
+.Select-menu-outer .Select-option.is-disabled {
+  cursor: default;
+  font-weight: bold;
+  color: #777;
+}
+
+.Select-placeholder {
+  color: #999;
+}
+
+.Select--single > .Select-control .Select-value {
+  color: #333;
+}
+
+// COLORS ======================================================================
+
+.xo-status-running {
+  @extend .text-success;
+}
+
+.xo-status-halted {
+  @extend .text-danger;
+}
+
+.xo-status-suspended {
+  @extend .text-info;
+}
+
+.xo-status-unknown, .xo-status-paused {
+  @extend .text-muted;
+}
+
+.xo-status-busy {
+  @extend .text-warning;
+}
+
+// HEADER CONTENT STYLE=========================================================
+
+.header-title {
+  margin-bottom: 1em;
+}
+
+.nav-tabs {
+  font-size: 1.2em;
+}
+
+// CONTENT TAB STYLE ===========================================================
+
+.btn-huge {
+  font-size: 4em;
+}
+
+.console {
+  margin-top: 1em;
+  text-align: center;
+}
+
+// GENERAL STYLES ==============================================================
+
+.tag-ip {
+  margin-left: 1em;
+}
+
+// MENU STYLE ==================================================================
+
+.xo-menu, .xo-sub-menu {
+  background: $side-menu-bg;
+  color: $side-menu-color;
+}
+
+.xo-menu {
+  a {
+    color: inherit;
+  }
+
+  button {
+    background-color: inherit;
+    color: inherit;
+  }
+}
+
+.xo-menu-item {
+  min-width: 100%;
+  position: relative;
+  width: max-content;
+
+  &:hover {
+    background-color: $nav-pills-active-link-bg;
+    color: $nav-pills-active-link-color;
+  }
+}
+
+.xo-sub-menu {
+  left: 100%;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  transition: opacity .3s;
+  visibility: hidden;
+  width: max-content;
+  z-index: 1000;
+}
+
+.xo-menu-item:hover > .xo-sub-menu {
+  opacity: 1;
+  visibility: visible;
+}
+// PAGE HEADER STYLE ===========================================================
+
+.page-header {
+  background: $gray-lighter;
+}
+
+// NOTIFICATIONS STYLE =========================================================
+
+.notify-container {
+  align-content: flex-start;
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+.notify-item {
+  border-radius: 5px;
+  border: 1px solid black;
+  margin: 5px 10px;
+  width: 250px;
+  &.success {
+    background: $alert-success-bg;
+    border-color: $alert-success-border;
+    color: $alert-success-text;
+  }
+  &.info {
+    background: $alert-info-bg;
+    border-color: $alert-info-border;
+    color: $alert-info-text;
+  }
+  &.error {
+    background: $alert-danger-bg;
+    border-color: $alert-danger-border;
+    color: $alert-danger-text;
+  }
+}
+
+.notify-item > p {
+  margin: 10px;
+}
+
+.notify-title {
+  font-weight: 700;
+}
+
+// =============================================================================
+
+.no-text-selection {
+  cursor: not-allowed;
+  -moz-user-select: none; /* Firefox */
+  user-select: none; /* Chrome */
+}
