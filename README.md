@@ -1,7 +1,11 @@
-Almost all dev for Xen Orchestra is happening in this repository.
+# Xen Orchestra [![Chat with us](https://storage.crisp.im/plugins/images/936925df-f37b-4ba8-bab0-70cd2edcb0be/badge.svg)](https://go.crisp.im/chat/embed/?website_id=-JzqzzwddSV7bKGtEyAQ) [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-Because transition is still underway,
-[xo-web](https://github.com/vatesfr/xo-web) is still developed in
-their own repositories.
+![](http://i.imgur.com/tRffA5y.png)
 
-For now, all issues are still to be reported in [xo-web's tracker](https://github.com/vatesfr/xo-web/issues).
+## Installation
+
+XOA or manual install procedure is [available here](https://xen-orchestra.com/docs/installation.html)
+
+## License
+
+AGPL3 © [Vates SAS](http://vates.fr)

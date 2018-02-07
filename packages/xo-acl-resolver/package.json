@@ -5,7 +5,7 @@
   "description": "Xen-Orchestra internal: do ACLs resolution",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-acl-resolver",
-  "bugs": "https://github.com/vatesfr/xo-web/issues",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"

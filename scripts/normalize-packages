@@ -21,7 +21,7 @@ require('exec-promise')(() =>
   getPackages(true).map(({ dir, name, package: pkg }) => {
     pkg.name = name
     pkg.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/packages/${name}`
-    pkg.bugs = `https://github.com/vatesfr/xo-web/issues`
+    pkg.bugs = `https://github.com/vatesfr/xen-orchestra/issues`
     pkg.repository = {
       type: 'git',
       url: 'https://github.com/vatesfr/xen-orchestra.git',

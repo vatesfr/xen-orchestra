@@ -159,7 +159,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-web/issues)
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 

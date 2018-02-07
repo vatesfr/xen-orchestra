@@ -5,7 +5,7 @@
   "description": "Code shared between [XO](https://xen-orchestra.com) server and clients",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-common",
-  "bugs": "https://github.com/vatesfr/xo-web/issues",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
