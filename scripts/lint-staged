@@ -20,6 +20,7 @@ do
       set -- "$@" "$file";;
   esac
 done < "$buf"
+rm -f "$buf"
 
 if [ $# -eq 0 ]
 then
@@ -41,7 +42,7 @@ then
     git read-tree HEAD
     git checkout $stash "$@"
   }
-  trap 'GIT_INDEX_FILE=$buf on_exit "$@"' EXIT
+  trap 'GIT_INDEX_FILE=$buf on_exit "$@"; rm -f "$buf"' EXIT
 fi
 
 test_files "$@"
