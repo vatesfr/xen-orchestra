@@ -19,11 +19,18 @@ then
   exit
 fi
 
-# stash unstaged changes
-if git stash save --keep-index --quiet
+# save unstaged changes
+if ! git diff-index --binary --exit-code --ignore-submodules --no-color --no-ext-diff HEAD > .git/lint-staged.diff
 then
-  # unstash on exit
-  trap 'git stash pop --quiet' EXIT
+  # remove them from the worktree
+  git checkout .
+
+  # re-apply them on exit
+  on_exit () {
+    git apply --whitespace=nowarn .git/lint-staged.diff
+    rm -f .git/lint-staged.diff
+  }
+  trap on_exit EXIT
 fi
 
 #  run commands
