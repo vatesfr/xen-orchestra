@@ -2,6 +2,13 @@
 
 set -eu
 
+format_files () {
+  eslint --fix "$@"
+}
+test_files () {
+  jest --findRelatedTests --passWithNoTests "$@"
+}
+
 # compute the list of staged files we are interrested in
 set --
 buf=$(mktemp -u)
@@ -19,7 +26,7 @@ then
   exit
 fi
 
-eslint --fix "$@"
+format_files "$@"
 
 # stash unstaged changes
 if stash=$(git stash create --keep-index --quiet)
@@ -28,12 +35,16 @@ then
   git checkout .
 
   # unstash on exit
-  trap 'git checkout $stash "$@"' EXIT
+  on_exit () {
+    git read-tree HEAD
+    git checkout $stash "$@"
+  }
+  trap 'GIT_INDEX_FILE=$buf on_exit "$@"' EXIT
+else
+  format_files "$@"
 fi
 
-#  run commands
-eslint --fix "$@"
-jest --findRelatedTests --passWithNoTests "$@"
+test_files "$@"
 
 # add any changes made by the commands
 git add "$@"
