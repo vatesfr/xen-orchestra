@@ -1,0 +1,51 @@
+#!/bin/sh
+
+set -eu
+
+format_files () {
+  eslint --fix "$@"
+}
+test_files () {
+  jest --findRelatedTests --passWithNoTests "$@"
+}
+
+# compute the list of staged files we are interested in
+set --
+buf=$(mktemp -u)
+git diff-index --cached --diff-filter=AM --name-only HEAD > "$buf"
+while IFS= read -r file
+do
+  case "$file" in
+    *.js)
+      set -- "$@" "$file";;
+  esac
+done < "$buf"
+rm -f "$buf"
+
+if [ $# -eq 0 ]
+then
+  exit
+fi
+
+format_files "$@"
+
+# stash unstaged changes
+if stash=$(git stash create --keep-index --quiet)
+then
+  # remove those changes from the worktree
+  git checkout .
+
+  format_files "$@"
+
+  # unstash on exit
+  on_exit () {
+    git read-tree HEAD
+    git checkout $stash "$@"
+  }
+  trap 'GIT_INDEX_FILE=$buf on_exit "$@"; rm -f "$buf"' EXIT
+fi
+
+test_files "$@"
+
+# add any changes made by the commands
+git add "$@"
