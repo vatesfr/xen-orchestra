@@ -23,7 +23,7 @@ fi
 if ! git diff-files --binary --exit-code --no-color --no-ext-diff "$@" > .git/lint-staged.diff
 then
   # remove them from the worktree
-  git checkout .
+  git checkout "$@"
 
   # re-apply them on exit
   on_exit () {
