@@ -9,7 +9,7 @@ test_files () {
   jest --findRelatedTests --passWithNoTests "$@"
 }
 
-# compute the list of staged files we are interrested in
+# compute the list of staged files we are interested in
 set --
 buf=$(mktemp -u)
 git diff-index --cached --diff-filter=AM --name-only HEAD > "$buf"
