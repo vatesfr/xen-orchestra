@@ -20,7 +20,7 @@ then
 fi
 
 # save unstaged changes
-if ! git diff-index --binary --exit-code --ignore-submodules --no-color --no-ext-diff HEAD > .git/lint-staged.diff
+if ! git diff-files --binary --exit-code --no-color --no-ext-diff "$@" > .git/lint-staged.diff
 then
   # remove them from the worktree
   git checkout .
