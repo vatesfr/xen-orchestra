@@ -12,9 +12,12 @@ import Upgrade from 'xoa-upgrade'
 import xml2js from 'xml2js'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
+import { connectStore, formatSize, mapPlus, noop, resolveIds } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { fromCallback } from 'promise-toolbox'
+import { SelectPool } from 'select-objects'
 import {
   deleteMessage,
   deleteOrphanedVdis,
@@ -26,12 +29,11 @@ import {
 import {
   areObjectsFetched,
   createCollectionWrapper,
+  createFilter,
   createGetObject,
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { flatten, get, map, mapValues } from 'lodash'
-import { connectStore, formatSize, mapPlus, noop } from 'utils'
 
 const SrColContainer = connectStore(() => ({
   container: createGetObject(),
@@ -385,6 +387,10 @@ const ALARM_COLUMNS = [
   }
 })
 export default class Health extends Component {
+  state = {
+    pools: [],
+  }
+
   componentWillReceiveProps (props) {
     if (props.alertMessages !== this.props.alertMessages) {
       this._updateAlarms(props)
@@ -445,11 +451,57 @@ export default class Health extends Component {
 
   _getSrUrl = sr => `srs/${sr.id}`
 
+  _getPoolPredicate = createSelector(
+    createSelector(() => this.state.pools, resolveIds),
+    poolIds =>
+      isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
+  )
+
+  _getUserSrs = createFilter(
+    () => this.props.userSrs,
+    this._getPoolPredicate
+  )
+
+  _getVdiOrphaned = createFilter(
+    () => this.props.vdiOrphaned,
+    this._getPoolPredicate
+  )
+
+  _getControlDomainVdis = createFilter(
+    () => this.props.controlDomainVdis,
+    this._getPoolPredicate
+  )
+
+  _getVmOrphaned = createFilter(
+    () => this.props.vmOrphaned,
+    this._getPoolPredicate
+  )
+
+  _getAlertMessages = createFilter(
+    () => this.props.alertMessages,
+    this._getPoolPredicate
+  )
+
+  _getMessages = createFilter(
+    () => this.state.messages,
+    this._getPoolPredicate
+  )
+
   render () {
-    const { props } = this
+    const { props, state } = this
+
+    const userSrs = this._getUserSrs()
+    const vdiOrphaned = this._getVdiOrphaned()
 
     return process.env.XOA_PLAN > 3 ? (
       <Container>
+        <Row className='mb-1'>
+          <SelectPool
+            multi
+            onChange={this.linkState('pools')}
+            value={state.pools}
+          />
+        </Row>
         <Row>
           <Col>
             <Card>
@@ -458,14 +510,14 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={props.areObjectsFetched ? props.userSrs : null}
+                  collection={props.areObjectsFetched ? userSrs : null}
                   emptyMessage={_('noSrs')}
                 >
                   {() => (
                     <Row>
                       <Col>
                         <SortedTable
-                          collection={props.userSrs}
+                          collection={userSrs}
                           columns={SR_COLUMNS}
                           rowLink={this._getSrUrl}
                           shortcutsTarget='body'
@@ -486,9 +538,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={
-                    props.areObjectsFetched ? props.vdiOrphaned : null
-                  }
+                  collection={props.areObjectsFetched ? vdiOrphaned : null}
                   emptyMessage={_('noOrphanedObject')}
                 >
                   {() => (
@@ -506,7 +556,7 @@ export default class Health extends Component {
                       <Row>
                         <Col>
                           <SortedTable
-                            collection={this.props.vdiOrphaned}
+                            collection={vdiOrphaned}
                             columns={ORPHANED_VDI_COLUMNS}
                           />
                         </Col>
@@ -527,7 +577,7 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={
-                    props.areObjectsFetched ? props.controlDomainVdis : null
+                    props.areObjectsFetched ? this._getControlDomainVdis() : null
                   }
                   columns={CONTROL_DOMAIN_VDI_COLUMNS}
                   component={SortedTable}
@@ -545,7 +595,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={props.areObjectsFetched ? props.vmOrphaned : null}
+                  collection={props.areObjectsFetched ? this._getVmOrphaned() : null}
                   columns={VM_COLUMNS}
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
@@ -563,9 +613,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={
-                    props.areObjectsFetched ? props.alertMessages : null
-                  }
+                  collection={props.areObjectsFetched ? this._getAlertMessages() : null}
                   emptyMessage={_('noAlarms')}
                 >
                   {() => (
@@ -583,7 +631,7 @@ export default class Health extends Component {
                       <Row>
                         <Col>
                           <SortedTable
-                            collection={this.state.messages}
+                            collection={this._getMessages()}
                             columns={ALARM_COLUMNS}
                           />
                         </Col>
