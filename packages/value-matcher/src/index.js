@@ -1,7 +1,14 @@
 // @flow
 
-// eslint-disable-next-line no-use-before-define
-export type Pattern = OrPattern | NotPattern | ObjectPattern | ArrayPattern | ValuePattern
+/* eslint-disable no-use-before-define */
+export type Pattern =
+  | AndPattern
+  | OrPattern
+  | NotPattern
+  | ObjectPattern
+  | ArrayPattern
+  | ValuePattern
+/* eslint-enable no-use-before-define */
 
 // all patterns must match
 type AndPattern = {| __and: Array<Pattern> |}
