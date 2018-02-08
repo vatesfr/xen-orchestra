@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import moment from 'moment-timezone'
 import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
 import { forEach, includes, isArray, map, sortedIndex } from 'lodash'
@@ -21,6 +22,8 @@ const CLICKABLE = { cursor: 'pointer' }
 const PREVIEW_SLIDER_STYLE = { width: '400px' }
 
 // ===================================================================
+
+const LOCAL_TIMEZONE = moment.tz.guess()
 
 const UNITS = ['minute', 'hour', 'monthDay', 'month', 'weekDay']
 
@@ -95,14 +98,7 @@ const TIME_FORMAT = {
   day: 'numeric',
   hour: 'numeric',
   minute: 'numeric',
-
-  // The timezone is not significant for displaying the date previews
-  // as long as it is the same used to generate the next occurrences
-  // from the cron patterns.
-
-  // Therefore we can use UTC everywhere and say to the user that the
-  // previews are in the configured timezone.
-  timeZone: 'UTC',
+  timeZone: LOCAL_TIMEZONE,
 }
 
 // ===================================================================
@@ -131,8 +127,7 @@ export class SchedulePreview extends Component {
   render () {
     const { cronPattern } = this.props
     const { value } = this.state
-
-    const dates = createSchedule(cronPattern).next(value)
+    const dates = createSchedule(cronPattern, LOCAL_TIMEZONE).next(value)
 
     return (
       <div>
