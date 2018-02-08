@@ -3,7 +3,8 @@
 set -eu
 
 format_files () {
-  eslint --fix "$@"
+  prettier --write "$@"
+  eslint --ignore-pattern '!*' --fix "$@"
 }
 test_files () {
   jest --findRelatedTests --passWithNoTests "$@"

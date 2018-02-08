@@ -48,6 +48,7 @@ require('exec-promise')(() =>
       'husky',
       'jest',
       'lint-staged',
+      'prettier',
       'standard',
     ])
     deleteProperties(pkg, 'scripts', [ 'commitmsg', 'cz' ])
@@ -75,6 +76,7 @@ require('exec-promise')(() =>
       unlink(`${dir}/.flowconfig`),
       unlink(`${dir}/.gitignore`),
       unlink(`${dir}/.jshintrc`),
+      unlink(`${dir}/.prettierrc.js`),
       unlink(`${dir}/.travis.yml`),
       unlink(`${dir}/ISSUE_TEMPLATE.lock`),
       unlink(`${dir}/package-lock.json`),
