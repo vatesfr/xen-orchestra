@@ -1,5 +1,5 @@
+import { find, isEqual, some } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
-import { isEqual, some } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 import { parseUrl } from 'xen-api'
 
@@ -322,43 +322,38 @@ export default class {
 
     xapi.xo.install()
 
-    let _url
+    let urlAfterRedirect
     xapi.on('redirect', url => {
-      _url = url
+      urlAfterRedirect = url
     })
 
     await xapi.connect().catch(
       error => {
-        this.updateXenServer(id, { force: true, error: serializeError(error) })
+        this.updateXenServer(id, { error: serializeError(error) })::ignoreErrors()
         throw error
       }
     )
 
-    let error = null
-    if (_url !== undefined) {
+    if (urlAfterRedirect !== undefined) {
       const servers = await this.getAllXenServers()
       const serverExists = some(
         servers,
-        server => isEqual(parseUrl(server.host), _url)
+        server => isEqual(parseUrl(server.host), urlAfterRedirect)
       )
 
       if (!serverExists) {
-        return this.updateXenServer(id, { host: _url.hostname, force: true, error })
+        return this.updateXenServer(id, { host: urlAfterRedirect.hostname, force: true, error: null })
       } else {
         await this.disconnectXenServer(id)
 
-        error = {
+        const error = {
           code: 'Connection failed',
-          message: 'host is slave and the master is already connected',
+          message: 'host is slave and the master exists',
         }
-        console.error(
-          `[WARN] ${server.host}:`,
-          error.message
-        )
+        this.updateXenServer(id, { error })::ignoreErrors()
+        throw new Error(error.message)
       }
     }
-
-    return this.updateXenServer(id, { force: true, error })
   }
 
   async disconnectXenServer (id) {
@@ -449,5 +444,17 @@ export default class {
     }
 
     await this.unregisterXenServer(sourceId)
+  }
+
+  async detachHostFromPool (hostId) {
+    const xapi = this.getXapi(hostId)
+
+    await xapi.ejectHostFromPool(hostId)
+
+    const servers = await this._servers.get()
+    const { address } = xapi.getObject(hostId)
+    const server = find(servers, { host: address })
+
+    this.registerXenServer(server).then(server => this.connectXenServer(server.id))::ignoreErrors()
   }
 }

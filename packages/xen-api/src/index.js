@@ -114,7 +114,7 @@ export const wrapError = error => {
 // ===================================================================
 
 const URL_RE = /^(?:(https?:)\/*)?(?:([^:]+):([^@]+)@)?([^/]+?)(?::([0-9]+))?\/?$/
-const parseUrl = url => {
+export const parseUrl = url => {
   const matches = URL_RE.exec(url)
   if (!matches) {
     throw new Error('invalid URL: ' + url)
