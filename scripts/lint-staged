@@ -19,16 +19,14 @@ then
   exit
 fi
 
-# save unstaged changes
-if ! git diff-files --binary --exit-code --no-color --no-ext-diff "$@" > .git/lint-staged.diff
-then
-  # remove them from the worktree
-  git checkout "$@"
+eslint --fix "$@"
 
+# save unstaged changes
+if git stash save --keep-index
+then
   # re-apply them on exit
   on_exit () {
-    git apply --whitespace=nowarn .git/lint-staged.diff
-    rm -f .git/lint-staged.diff
+    git stash pop
   }
   trap on_exit EXIT
 fi
