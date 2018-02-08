@@ -21,14 +21,11 @@ fi
 
 eslint --fix "$@"
 
-# save unstaged changes
-if git stash save --keep-index
+# stash unstaged changes
+if stash=$(git stash create --keep-index --quiet)
 then
-  # re-apply them on exit
-  on_exit () {
-    git stash pop
-  }
-  trap on_exit EXIT
+  # unstash on exit
+  trap 'git checkout $stash "$@"' EXIT
 fi
 
 #  run commands
