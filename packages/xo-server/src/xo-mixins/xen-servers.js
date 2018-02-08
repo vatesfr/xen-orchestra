@@ -453,8 +453,10 @@ export default class {
     await xapi.ejectHostFromPool(hostId)
 
     const { properties } = await this._servers.first(
-      findKey(this.xapis, candidate => candidate === xapi)
+      findKey(this._xapis, candidate => candidate === xapi)
     )
+
+    delete properties.id
 
     this.registerXenServer({
       ...properties,
