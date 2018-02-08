@@ -32,6 +32,7 @@ import {
 import {
   deleteSr,
   getLicenses,
+  registerXosan,
   subscribePlugins,
   subscribeResourceCatalog,
   subscribeVolumeInfo,
@@ -395,19 +396,22 @@ export default class Xosan extends Component {
     }
   )
 
-  _showBetaIsOver = createSelector(
-    () => this.props.catalog,
-    () => this.state.xosanLicenses,
-    () => this.state.xosanTrialLicenses,
-    () => this.state.licenseError,
-    (catalog, xosanLicenses, xosanTrialLicenses, licenseError) =>
-      licenseError === undefined &&
-      get(() => catalog._namespaces.xosan) !== undefined &&
-      isEmpty(xosanLicenses) &&
-      isEmpty(xosanTrialLicenses)
-  )
-
   _onSrCreationStarted = () => this.setState({ showNewXosanForm: false })
+
+  _isXosanRegistered = () => get(() => this.props.catalog._namespaces.xosan.registered)
+
+  _toggleShowNewXosanForm = () => {
+    if (this.state.showNewXosanForm) {
+      this.setState({ showNewXosanForm: false })
+      return
+    }
+
+    if (!this._isXosanRegistered()) {
+      registerXosan()
+    }
+
+    this.setState({ showNewXosanForm: true })
+  }
 
   render () {
     const {
@@ -433,18 +437,11 @@ export default class Xosan extends Component {
               </Row>
             ) : (
               [
-                this._showBetaIsOver() && (
-                  <Row key='beta-is-over'>
-                    <Col>
-                      <em>{_('xosanBetaOverMessage')}</em>
-                    </Col>
-                  </Row>
-                ),
                 <Row key='new-button' className='mb-1'>
                   <Col>
                     <ActionButton
                       btnStyle='primary'
-                      handler={this.toggleState('showNewXosanForm')}
+                      handler={this._toggleShowNewXosanForm}
                       icon={this.state.showNewXosanForm ? 'minus' : 'plus'}
                     >
                       {_('xosanNew')}
@@ -454,16 +451,18 @@ export default class Xosan extends Component {
                 <Row key='new-form'>
                   <Col>
                     {this.state.showNewXosanForm && (
-                      <NewXosan
-                        hostsNeedRestartByPool={hostsNeedRestartByPool}
-                        noPacksByPool={noPacksByPool}
-                        poolPredicate={poolPredicate}
-                        onSrCreationFinished={this._updateLicenses}
-                        onSrCreationStarted={this._onSrCreationStarted}
-                        notRegistered={
-                          get(() => xoaRegistration.state) !== 'registered'
-                        }
-                      />
+                      this._isXosanRegistered()
+                        ? <NewXosan
+                          hostsNeedRestartByPool={hostsNeedRestartByPool}
+                          noPacksByPool={noPacksByPool}
+                          poolPredicate={poolPredicate}
+                          onSrCreationFinished={this._updateLicenses}
+                          onSrCreationStarted={this._onSrCreationStarted}
+                          notRegistered={
+                            get(() => xoaRegistration.state) !== 'registered'
+                          }
+                        />
+                        : <em>{_('statusLoading')}</em>
                     )}
                   </Col>
                 </Row>,

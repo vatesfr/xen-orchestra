@@ -2179,6 +2179,9 @@ export const downloadAndInstallXosanPack = pool =>
     })
   )
 
+export const registerXosan = () =>
+  _call('cloud.registerResource', { namespace: 'xosan' })
+
 export const fixHostNotInXosanNetwork = (xosanSr, host) =>
   _call('xosan.fixHostNotInNetwork', { xosanSr, host })
 
