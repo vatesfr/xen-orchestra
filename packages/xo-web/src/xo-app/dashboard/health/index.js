@@ -457,26 +457,41 @@ export default class Health extends Component {
       isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
   )
 
-  _getFilteredCollections = createSelector(
-    createFilter(() => this.props.userSrs, this._getPoolPredicate),
-    createFilter(() => this.props.vdiOrphaned, this._getPoolPredicate),
-    createFilter(() => this.props.controlDomainVdis, this._getPoolPredicate),
-    createFilter(() => this.props.vmOrphaned, this._getPoolPredicate),
-    createFilter(() => this.props.alertMessages, this._getPoolPredicate),
-    createFilter(() => this.state.messages, this._getPoolPredicate),
-    (...filteredCollections) => filteredCollections
+  _getUserSrs = createFilter(
+    () => this.props.userSrs,
+    this._getPoolPredicate
+  )
+
+  _getVdiOrphaned = createFilter(
+    () => this.props.vdiOrphaned,
+    this._getPoolPredicate
+  )
+
+  _getControlDomainVdis = createFilter(
+    () => this.props.controlDomainVdis,
+    this._getPoolPredicate
+  )
+
+  _getVmOrphaned = createFilter(
+    () => this.props.vmOrphaned,
+    this._getPoolPredicate
+  )
+
+  _getAlertMessages = createFilter(
+    () => this.props.alertMessages,
+    this._getPoolPredicate
+  )
+
+  _getMessages = createFilter(
+    () => this.state.messages,
+    this._getPoolPredicate
   )
 
   render () {
     const { props, state } = this
-    const [
-      userSrs,
-      vdiOrphaned,
-      controlDomainVdis,
-      vmOrphaned,
-      alertMessages,
-      messages,
-    ] = this._getFilteredCollections()
+
+    const userSrs = this._getUserSrs()
+    const vdiOrphaned = this._getVdiOrphaned()
 
     return process.env.XOA_PLAN > 3 ? (
       <Container>
@@ -562,7 +577,7 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={
-                    props.areObjectsFetched ? controlDomainVdis : null
+                    props.areObjectsFetched ? this._getControlDomainVdis() : null
                   }
                   columns={CONTROL_DOMAIN_VDI_COLUMNS}
                   component={SortedTable}
@@ -580,7 +595,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={props.areObjectsFetched ? vmOrphaned : null}
+                  collection={props.areObjectsFetched ? this._getVmOrphaned() : null}
                   columns={VM_COLUMNS}
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
@@ -598,7 +613,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={props.areObjectsFetched ? alertMessages : null}
+                  collection={props.areObjectsFetched ? this._getAlertMessages() : null}
                   emptyMessage={_('noAlarms')}
                 >
                   {() => (
@@ -616,7 +631,7 @@ export default class Health extends Component {
                       <Row>
                         <Col>
                           <SortedTable
-                            collection={messages}
+                            collection={this._getMessages()}
                             columns={ALARM_COLUMNS}
                           />
                         </Col>
