@@ -1,4 +1,4 @@
-import { find, isEqual, some } from 'lodash'
+import { findKey, isEqual, some } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 import { parseUrl } from 'xen-api'
@@ -448,13 +448,17 @@ export default class {
 
   async detachHostFromPool (hostId) {
     const xapi = this.getXapi(hostId)
+    const { address } = xapi.getObject(hostId)
 
     await xapi.ejectHostFromPool(hostId)
 
-    const servers = await this._servers.get()
-    const { address } = xapi.getObject(hostId)
-    const server = find(servers, { host: address })
+    const { properties } = await this._servers.first(
+      findKey(this.xapis, candidate => candidate === xapi)
+    )
 
-    this.registerXenServer(server).then(server => this.connectXenServer(server.id))::ignoreErrors()
+    this.registerXenServer({
+      ...properties,
+      host: address,
+    }).then(server => this.connectXenServer(server.id))::ignoreErrors()
   }
 }
