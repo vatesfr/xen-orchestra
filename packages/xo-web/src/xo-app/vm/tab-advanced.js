@@ -42,7 +42,7 @@ import {
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
 } from 'xo'
-import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
+import { createGetObjectsOfType, createSelector, getCheckPermissions, isAdmin } from 'selectors'
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -312,17 +312,24 @@ export default connectStore(() => {
     createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup'))
   )
 
+  const getCanAdministrate = createSelector(
+    getCheckPermissions,
+    (_, props) => props.vm,
+    (check, { id }) => check(id, 'administrate')
+  )
+
   return {
+    canAdministrate: getCanAdministrate,
     gpuGroup: getGpuGroup,
     isAdmin,
     vgpus: getVgpus,
     vgpuTypes: getVgpuTypes,
   }
-})(({ container, gpuGroup, isAdmin, vgpus, vgpuTypes, vm }) => (
+})(({ canAdministrate, container, gpuGroup, isAdmin, vgpus, vgpuTypes, vm }) => (
   <Container>
     <Row>
       <Col className='text-xs-right'>
-        {isAdmin && vm.resourceSet != null && <ShareVmButton vm={vm} />}
+        {(isAdmin || canAdministrate) && vm.resourceSet != null && <ShareVmButton vm={vm} />}
         {vm.power_state === 'Running' && (
           <span>
             <TabButton
