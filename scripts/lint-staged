@@ -34,14 +34,14 @@ then
   # remove those changes from the worktree
   git checkout .
 
+  format_files "$@"
+
   # unstash on exit
   on_exit () {
     git read-tree HEAD
     git checkout $stash "$@"
   }
   trap 'GIT_INDEX_FILE=$buf on_exit "$@"' EXIT
-else
-  format_files "$@"
 fi
 
 test_files "$@"
