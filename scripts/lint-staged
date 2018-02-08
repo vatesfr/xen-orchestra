@@ -22,9 +22,6 @@ fi
 # stash unstaged changes
 if git stash save --keep-index --quiet
 then
-  # remove unstaged changes
-  git checkout .
-
   # unstash on exit
   trap 'git stash pop --quiet' EXIT
 fi
