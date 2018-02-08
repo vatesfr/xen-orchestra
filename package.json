@@ -15,6 +15,7 @@
     "husky": "^0.14.3",
     "jest": "^22.0.4",
     "lodash": "^4.17.4",
+    "prettier": "^1.10.2",
     "promise-toolbox": "^0.9.5",
     "sorted-object": "^2.0.1"
   },
