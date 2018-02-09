@@ -9,6 +9,7 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
 import { get } from 'xo-defined'
+import { ignoreErrors } from 'promise-toolbox'
 import {
   every,
   filter,
@@ -398,7 +399,8 @@ export default class Xosan extends Component {
 
   _onSrCreationStarted = () => this.setState({ showNewXosanForm: false })
 
-  _isXosanRegistered = () => get(() => this.props.catalog._namespaces.xosan.registered)
+  _isXosanRegistered = () =>
+    get(() => this.props.catalog._namespaces.xosan.registered)
 
   _toggleShowNewXosanForm = () => {
     if (this.state.showNewXosanForm) {
@@ -407,7 +409,7 @@ export default class Xosan extends Component {
     }
 
     if (!this._isXosanRegistered()) {
-      registerXosan()
+      ;registerXosan()::ignoreErrors()
     }
 
     this.setState({ showNewXosanForm: true })
@@ -450,9 +452,9 @@ export default class Xosan extends Component {
                 </Row>,
                 <Row key='new-form'>
                   <Col>
-                    {this.state.showNewXosanForm && (
-                      this._isXosanRegistered()
-                        ? <NewXosan
+                    {this.state.showNewXosanForm &&
+                      (this._isXosanRegistered() ? (
+                        <NewXosan
                           hostsNeedRestartByPool={hostsNeedRestartByPool}
                           noPacksByPool={noPacksByPool}
                           poolPredicate={poolPredicate}
@@ -462,8 +464,9 @@ export default class Xosan extends Component {
                             get(() => xoaRegistration.state) !== 'registered'
                           }
                         />
-                        : <em>{_('statusLoading')}</em>
-                    )}
+                      ) : (
+                        <em>{_('statusLoading')}</em>
+                      ))}
                   </Col>
                 </Row>,
                 <Row key='progress'>
