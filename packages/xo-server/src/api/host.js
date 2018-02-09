@@ -108,7 +108,7 @@ stop.resolve = {
 
 // -------------------------------------------------------------------
 
-export function detach ({host}) {
+export function detach ({ host }) {
   return this.detachHostFromPool(host._xapiId)
 }
 

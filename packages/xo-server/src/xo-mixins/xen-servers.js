@@ -88,17 +88,20 @@ export default class {
     }
   }
 
-  async updateXenServer (id, {
-    allowUnauthorized,
-    enabled,
-    error,
-    force,
-    host,
-    label,
-    password,
-    readOnly,
-    username,
-  }) {
+  async updateXenServer (
+    id,
+    {
+      allowUnauthorized,
+      enabled,
+      error,
+      force,
+      host,
+      label,
+      password,
+      readOnly,
+      username,
+    }
+  ) {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
@@ -327,33 +330,39 @@ export default class {
       urlAfterRedirect = url
     })
 
-    await xapi.connect().catch(
-      error => {
-        this.updateXenServer(id, { error: serializeError(error) })::ignoreErrors()
-        throw error
-      }
+    await xapi.connect().catch(error => {
+      ;this.updateXenServer(id, {
+        error: serializeError(error),
+      })::ignoreErrors()
+      throw error
+    })
+
+    if (urlAfterRedirect === undefined) {
+      return this.updateXenServer(id, { error: null })
+    }
+
+    const servers = await this.getAllXenServers()
+    const serverExists = some(servers, server =>
+      isEqual(parseUrl(server.host), urlAfterRedirect)
     )
 
-    if (urlAfterRedirect !== undefined) {
-      const servers = await this.getAllXenServers()
-      const serverExists = some(
-        servers,
-        server => isEqual(parseUrl(server.host), urlAfterRedirect)
-      )
+    if (!serverExists) {
+      const { hostname, protocol, port } = urlAfterRedirect
+      const host = `${
+        protocol !== undefined ? protocol + '//' : ''
+      }${hostname}${port !== undefined ? ':' + port : ''}`
 
-      if (!serverExists) {
-        return this.updateXenServer(id, { host: urlAfterRedirect.hostname, force: true, error: null })
-      } else {
-        await this.disconnectXenServer(id)
-
-        const error = {
-          code: 'Connection failed',
-          message: 'host is slave and the master exists',
-        }
-        this.updateXenServer(id, { error })::ignoreErrors()
-        throw new Error(error.message)
-      }
+      return this.updateXenServer(id, { host, force: true, error: null })
     }
+
+    await this.disconnectXenServer(id)
+
+    const error = {
+      code: 'Connection failed',
+      message: 'host is slave and the master exists',
+    }
+    this.updateXenServer(id, { error })::ignoreErrors()
+    throw new Error(error.message)
   }
 
   async disconnectXenServer (id) {
@@ -461,6 +470,8 @@ export default class {
     this.registerXenServer({
       ...properties,
       host: address,
-    }).then(server => this.connectXenServer(server.id))::ignoreErrors()
+    })
+      .then(server => this.connectXenServer(server.id))
+      ::ignoreErrors()
   }
 }
