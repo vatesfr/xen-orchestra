@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-require('babel-register')
+require('@babel/register')
 
+const pkg = require('../package.json')
 const Benchmark = require('benchmark')
 const globby = require('globby')
 const resolve = require('path').resolve
@@ -28,12 +29,12 @@ function bench (path) {
   })
 }
 
-function main (args) {
-  if (!args.length) {
-    throw new Error('missing path patterns')
-  }
-
-  return globby(args).then(function (paths) {
+function main () {
+  return globby(
+    pkg.workspaces.map(workspace =>
+      resolve(__dirname, '..', workspace, 'src/**/*.bench.js')
+    )
+  ).then(function (paths) {
     if (!paths.length) {
       throw new Error('no files to run')
     }
@@ -44,7 +45,7 @@ function main (args) {
   })
 }
 new Promise(function (resolve) {
-  resolve(main(process.argv.slice(2)))
+  resolve(main())
 }).catch(function (error) {
   console.log((error != null && (error.stack || error.message)) || error)
 })
