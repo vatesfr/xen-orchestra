@@ -2179,6 +2179,11 @@ export const downloadAndInstallXosanPack = pool =>
     })
   )
 
+export const registerXosan = () =>
+  _call('cloud.registerResource', { namespace: 'xosan' })::tap(
+    subscribeResourceCatalog.forceRefresh
+  )
+
 export const fixHostNotInXosanNetwork = (xosanSr, host) =>
   _call('xosan.fixHostNotInNetwork', { xosanSr, host })
 

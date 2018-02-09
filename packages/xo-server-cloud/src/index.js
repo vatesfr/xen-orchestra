@@ -94,8 +94,12 @@ class XoServerCloud {
   async _registerResource (namespace) {
     const _namespace = (await this._getNamespaces())[namespace]
 
+    if (_namespace === undefined) {
+      throw new Error(`${namespace} is not available`)
+    }
+
     if (_namespace.registered || _namespace.pending) {
-      return new Error(`already registered for ${namespace}`)
+      throw new Error(`already registered for ${namespace}`)
     }
 
     return this._updater.call('registerResource', { namespace })

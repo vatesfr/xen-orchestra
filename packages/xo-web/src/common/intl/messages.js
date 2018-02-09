@@ -1749,8 +1749,6 @@ const messages = {
   contactUs: 'Contact us!',
   xosanNoLicense: 'No license.',
   xosanUnlockNow: 'Unlock now!',
-  xosanBetaOverMessage:
-    'XOSAN Beta is over. You may now delete and recreate previous existing XOSAN SRs.',
   selectLicense: 'Select a license',
   bindLicense: 'Bind license',
   expiresOn: 'expires on {date}',
