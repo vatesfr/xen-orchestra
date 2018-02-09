@@ -246,7 +246,7 @@ export default class Schedules extends Component {
             onChange={this._updateCronPattern}
             timezone={timezone}
           />
-          <SchedulePreview cronPattern={cronPattern} />
+          <SchedulePreview cronPattern={cronPattern} timezone={timezone} />
         </fieldset>
         <br />
         <div className='form-group'>

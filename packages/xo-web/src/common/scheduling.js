@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import moment from 'moment-timezone'
 import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
 import { forEach, includes, isArray, map, sortedIndex } from 'lodash'
@@ -14,6 +13,7 @@ import Icon from './icon'
 import Tooltip from './tooltip'
 import { Card, CardHeader, CardBlock } from './card'
 import { Col, Row } from './grid'
+import { getXoServerTimezone } from './xo'
 import { Range, Toggle } from './form'
 
 // ===================================================================
@@ -22,8 +22,6 @@ const CLICKABLE = { cursor: 'pointer' }
 const PREVIEW_SLIDER_STYLE = { width: '400px' }
 
 // ===================================================================
-
-const LOCAL_TIMEZONE = moment.tz.guess()
 
 const UNITS = ['minute', 'hour', 'monthDay', 'month', 'weekDay']
 
@@ -98,7 +96,6 @@ const TIME_FORMAT = {
   day: 'numeric',
   hour: 'numeric',
   minute: 'numeric',
-  timeZone: LOCAL_TIMEZONE,
 }
 
 // ===================================================================
@@ -122,12 +119,22 @@ const getDayName = dayNum => (
 
 @propTypes({
   cronPattern: propTypes.string.isRequired,
+  timezone: propTypes.string,
 })
 export class SchedulePreview extends Component {
+  componentDidMount () {
+    getXoServerTimezone.then(serverTimezone => {
+      this.setState({
+        defaultTimezone: serverTimezone,
+      })
+    })
+  }
+
   render () {
-    const { cronPattern } = this.props
+    const { defaultTimezone } = this.state
+    const { cronPattern, timezone = defaultTimezone } = this.props
     const { value } = this.state
-    const dates = createSchedule(cronPattern, LOCAL_TIMEZONE).next(value)
+    const dates = createSchedule(cronPattern, timezone).next(value)
 
     return (
       <div>
