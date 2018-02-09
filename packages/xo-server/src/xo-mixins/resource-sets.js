@@ -391,14 +391,18 @@ export default class {
       await this._xo.removeAclsForObject(vmId)
     }
     if (resourceSetId != null) {
-      await this.shareVmResourceSet(vmId, resourceSetId)
+      await this.shareVmResourceSet(vmId)
     }
   }
 
-  async shareVmResourceSet (vmId, resourceSetId) {
+  async shareVmResourceSet (vmId) {
+    const xapi = this._xo.getXapi(vmId)
+    const resourceSetId = xapi.xo.getData(vmId, 'resourceSet')
+    if (resourceSetId === undefined) {
+      throw new Error('the vm is not in a resource set')
+    }
+
     const { subjects } = await this.getResourceSet(resourceSetId)
-    await asyncMap(subjects, subject =>
-      this._xo.addAcl(subject, vmId, 'admin')
-    )
+    await asyncMap(subjects, subject => this._xo.addAcl(subject, vmId, 'admin'))
   }
 }
