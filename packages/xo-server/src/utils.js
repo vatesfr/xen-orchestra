@@ -524,7 +524,16 @@ export const streamToArray = (stream, { filter, mapper } = {}) =>
 // Contrary to most implentations this one use the range 0-11 instead
 // of 1-12 for months.
 export const scheduleFn = (cronTime, fn, timeZone) => {
-  const job = createSchedule(cronTime, timeZone).createJob(fn)
+  const job = createSchedule(cronTime, timeZone).createJob(async () => {
+    try {
+      await fn()
+    } catch (error) {
+      console.error(
+        '[WARN] scheduled function:',
+        (error && error.stack) || error
+      )
+    }
+  })
 
   job.start()
 
