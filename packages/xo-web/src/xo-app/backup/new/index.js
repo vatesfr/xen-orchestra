@@ -6,7 +6,6 @@ import GenericInput from 'json-schema-input'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
-import moment from 'moment-timezone'
 import PropTypes from 'prop-types'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
@@ -389,7 +388,6 @@ class TimeoutInput extends Component {
 // ===================================================================
 
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
-const DEFAULT_TIMEZONE = moment.tz.guess()
 
 // xo-web v5.7.1 introduced a bug where an extra level
 // ({ id: { id: <id> } }) was introduced for the VM param.
@@ -488,8 +486,7 @@ export default class New extends Component {
         return scheduling
       }
 
-      const { cron = DEFAULT_CRON_PATTERN, timezone = DEFAULT_TIMEZONE } =
-        schedule || EMPTY_OBJECT
+      const { cron = DEFAULT_CRON_PATTERN, timezone } = schedule || EMPTY_OBJECT
 
       return {
         cronPattern: cron,
@@ -781,7 +778,10 @@ export default class New extends Component {
                 onChange={this.linkState('scheduling')}
                 value={scheduling}
               />
-              <SchedulePreview cronPattern={scheduling.cronPattern} />
+              <SchedulePreview
+                cronPattern={scheduling.cronPattern}
+                timezone={scheduling.timezone}
+              />
             </Section>
             <Section title='action' summary>
               <Container>

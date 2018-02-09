@@ -165,7 +165,7 @@ export default class Schedules extends Component {
     this.setState({
       cronPattern: schedule.cron,
       schedule,
-      timezone: schedule.timezone || null,
+      timezone: schedule.timezone,
     })
   }
 

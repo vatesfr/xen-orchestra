@@ -131,9 +131,8 @@ export class SchedulePreview extends Component {
   }
 
   render () {
-    const { defaultTimezone } = this.state
+    const { defaultTimezone, value } = this.state
     const { cronPattern, timezone = defaultTimezone } = this.props
-    const { value } = this.state
     const dates = createSchedule(cronPattern, timezone).next(value)
 
     return (
