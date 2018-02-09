@@ -1174,8 +1174,10 @@ export const deleteVgpu = vgpu => _call('vm.deleteVgpu', resolveIds({ vgpu }))
 
 export const shareVm = ({ vm, resourceSet }) =>
   confirm({
-    title: _('shareVmModalTitle'),
-    body: _('shareVmModalMessage', { self: renderXoItem(resourceSet) }),
+    title: _('shareVmInResourceSetModalTitle'),
+    body: _('shareVmInResourceSetModalMessage', {
+      self: renderXoItem(resourceSet),
+    }),
   }).then(() => editVm(vm, { share: true }), noop)
 
 // DISK ---------------------------------------------------------------
