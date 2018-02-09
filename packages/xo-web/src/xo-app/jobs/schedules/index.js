@@ -4,10 +4,12 @@ import Button from 'button'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import moment from 'moment-timezone'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
+import { createSelector } from 'selectors'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import { Select, Toggle } from 'form'
@@ -22,6 +24,8 @@ import {
 
 const JOB_KEY = 'genericTask'
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
+const DEFAULT_TIMEZONE = moment.tz.guess()
+
 const COLUMNS = [
   {
     itemRenderer: schedule => (
@@ -141,6 +145,7 @@ export default class Schedules extends Component {
         cron: cronPattern,
         enabled: enabled.value,
         name: name.value,
+        timezone,
       })
     }
     return save
@@ -204,8 +209,15 @@ export default class Schedules extends Component {
     },
   ]
 
+  _getTimezone = createSelector(
+    () => this.state.schedule !== undefined,
+    () => this.state.timezone,
+    (scheduleExists, timezone) => (scheduleExists ? timezone : DEFAULT_TIMEZONE)
+  )
+
   render () {
-    const { cronPattern, jobs, schedule, schedules, timezone } = this.state
+    const { cronPattern, jobs, schedule, schedules } = this.state
+    const timezone = this._getTimezone()
     const userData = { jobs }
     return (
       <div>
