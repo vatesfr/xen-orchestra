@@ -14,10 +14,10 @@ export async function get (id) {
 get.permission = 'admin'
 get.description = 'Gets an existing job'
 get.params = {
-  id: {type: 'string'},
+  id: { type: 'string' },
 }
 
-export async function create ({job}) {
+export async function create ({ job }) {
   if (!job.userId) {
     job.userId = this.session.get('user_id')
   }
@@ -31,16 +31,16 @@ create.params = {
   job: {
     type: 'object',
     properties: {
-      userId: {type: 'string', optional: true},
-      name: {type: 'string', optional: true},
-      timeout: {type: 'number', optional: true},
-      type: {type: 'string'},
-      key: {type: 'string'},
-      method: {type: 'string'},
+      userId: { type: 'string', optional: true },
+      name: { type: 'string', optional: true },
+      timeout: { type: 'number', optional: true },
+      type: { type: 'string' },
+      key: { type: 'string' },
+      method: { type: 'string' },
       paramsVector: {
         type: 'object',
         properties: {
-          type: {type: 'string'},
+          type: { type: 'string' },
           items: {
             type: 'array',
             items: {
@@ -54,7 +54,7 @@ create.params = {
   },
 }
 
-export async function set ({job}) {
+export async function set ({ job }) {
   await this.updateJob(job)
 }
 
@@ -64,16 +64,16 @@ set.params = {
   job: {
     type: 'object',
     properties: {
-      id: {type: 'string'},
-      name: {type: 'string', optional: true},
-      timeout: {type: ['number', 'null'], optional: true},
-      type: {type: 'string', optional: true},
-      key: {type: 'string', optional: true},
-      method: {type: 'string', optional: true},
+      id: { type: 'string' },
+      name: { type: 'string', optional: true },
+      timeout: { type: ['number', 'null'], optional: true },
+      type: { type: 'string', optional: true },
+      key: { type: 'string', optional: true },
+      method: { type: 'string', optional: true },
       paramsVector: {
         type: 'object',
         properties: {
-          type: {type: 'string'},
+          type: { type: 'string' },
           items: {
             type: 'array',
             items: {
@@ -87,24 +87,24 @@ set.params = {
   },
 }
 
-async function delete_ ({id}) {
+async function delete_ ({ id }) {
   await this.removeJob(id)
 }
 
 delete_.permission = 'admin'
 delete_.description = 'Deletes an existing job'
 delete_.params = {
-  id: {type: 'string'},
+  id: { type: 'string' },
 }
 
-export {delete_ as delete}
+export { delete_ as delete }
 
-export async function runSequence ({idSequence}) {
+export async function runSequence ({ idSequence }) {
   await this.runJobSequence(idSequence)
 }
 
 runSequence.permission = 'admin'
 runSequence.description = 'Runs jobs sequentially, in the provided order'
 runSequence.params = {
-  idSequence: {type: 'array', items: {type: 'string'}},
+  idSequence: { type: 'array', items: { type: 'string' } },
 }

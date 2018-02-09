@@ -20,10 +20,7 @@ const SPECIAL_CHARS = {
   '\r': '\\r',
   '\t': '\\t',
 }
-const SPECIAL_CHARS_RE = new RegExp(
-  Object.keys(SPECIAL_CHARS).join('|'),
-  'g'
-)
+const SPECIAL_CHARS_RE = new RegExp(Object.keys(SPECIAL_CHARS).join('|'), 'g')
 
 const parseResult = result => {
   const status = result.Status
@@ -78,11 +75,7 @@ export default ({
   allowUnauthorized,
   url: { hostname, path, port, protocol },
 }) => {
-  const client = (
-    protocol === 'https:'
-      ? createSecureClient
-      : createClient
-  )({
+  const client = (protocol === 'https:' ? createSecureClient : createClient)({
     host: hostname,
     path: '/json',
     port,
@@ -90,8 +83,5 @@ export default ({
   })
   const call = promisify(client.methodCall, client)
 
-  return (method, args) => call(method, args).then(
-    parseResult,
-    logError
-  )
+  return (method, args) => call(method, args).then(parseResult, logError)
 }

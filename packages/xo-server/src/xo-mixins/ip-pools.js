@@ -40,10 +40,10 @@ const normalize = ({
   resourceSets,
 })
 
-const _isAddressInIpPool = (address, network, ipPool) => (
-  ipPool.addresses && (address in ipPool.addresses) &&
+const _isAddressInIpPool = (address, network, ipPool) =>
+  ipPool.addresses &&
+  address in ipPool.addresses &&
   includes(ipPool.networks, isObject(network) ? network.id : network)
-)
 
 // ===================================================================
 
@@ -57,9 +57,11 @@ export default class IpPools {
     xo.on('start', async () => {
       this._store = await xo.getStore('ipPools')
 
-      xo.addConfigManager('ipPools',
+      xo.addConfigManager(
+        'ipPools',
         () => this.getAllIpPools(),
-        ipPools => Promise.all(mapToArray(ipPools, ipPool => this._save(ipPool)))
+        ipPools =>
+          Promise.all(mapToArray(ipPools, ipPool => this._save(ipPool)))
       )
     })
   }
@@ -81,10 +83,12 @@ export default class IpPools {
     const store = this._store
 
     if (await store.has(id)) {
-      await Promise.all(mapToArray(await this._xo.getAllResourceSets(), async set => {
-        await this._xo.removeLimitFromResourceSet(`ipPool:${id}`, set.id)
-        return this._xo.removeIpPoolFromResourceSet(id, set.id)
-      }))
+      await Promise.all(
+        mapToArray(await this._xo.getAllResourceSets(), async set => {
+          await this._xo.removeLimitFromResourceSet(`ipPool:${id}`, set.id)
+          return this._xo.removeIpPoolFromResourceSet(id, set.id)
+        })
+      )
       await this._removeIpAddressesFromVifs(
         mapValues((await this.getIpPool(id)).addresses, 'vifs')
       )
@@ -123,7 +127,9 @@ export default class IpPools {
   }
 
   async _getAddressIpPool (address, network) {
-    const ipPools = await this._getAllIpPools(ipPool => _isAddressInIpPool(address, network, ipPool))
+    const ipPools = await this._getAllIpPools(ipPool =>
+      _isAddressInIpPool(address, network, ipPool)
+    )
 
     return ipPools && ipPools[0]
   }
@@ -134,9 +140,16 @@ export default class IpPools {
     const vifs = vm.VIFs
     const ipPools = []
     for (const vifId of vifs) {
-      const { allowedIpv4Addresses, allowedIpv6Addresses, $network } = this._xo.getObject(vifId)
+      const {
+        allowedIpv4Addresses,
+        allowedIpv6Addresses,
+        $network,
+      } = this._xo.getObject(vifId)
 
-      for (const address of concat(allowedIpv4Addresses, allowedIpv6Addresses)) {
+      for (const address of concat(
+        allowedIpv4Addresses,
+        allowedIpv6Addresses
+      )) {
         const ipPool = await this._getAddressIpPool(address, $network)
         ipPool && ipPools.push(ipPool.id)
       }
@@ -158,11 +171,12 @@ export default class IpPools {
       const resourseSetId = xapi.xo.getData(vif.VM, 'resourceSet')
 
       return () => {
-        const saveIpPools = () => Promise.all(mapToArray(updatedIpPools, ipPool => this._save(ipPool)))
+        const saveIpPools = () =>
+          Promise.all(mapToArray(updatedIpPools, ipPool => this._save(ipPool)))
         return resourseSetId
-          ? this._xo.allocateLimitsInResourceSet(limits, resourseSetId).then(
-            saveIpPools
-          )
+          ? this._xo
+            .allocateLimitsInResourceSet(limits, resourseSetId)
+            .then(saveIpPools)
           : saveIpPools()
       }
     })()
@@ -173,45 +187,47 @@ export default class IpPools {
 
       const isVif = id => id === vifId
 
-      highland(this._store.createValueStream()).each(ipPool => {
-        const { addresses, networks } = updatedIpPools[ipPool.id] || ipPool
-        if (!(addresses && networks && includes(networks, networkId))) {
-          return false
-        }
+      highland(this._store.createValueStream())
+        .each(ipPool => {
+          const { addresses, networks } = updatedIpPools[ipPool.id] || ipPool
+          if (!(addresses && networks && includes(networks, networkId))) {
+            return false
+          }
 
-        let allocations = 0
-        let changed = false
-        forEach(removeAddresses, address => {
-          let vifs, i
-          if (
-            (vifs = addresses[address]) &&
-            (vifs = vifs.vifs) &&
-            (i = findIndex(vifs, isVif)) !== -1
-          ) {
-            vifs.splice(i, 1)
-            --allocations
-            changed = true
+          let allocations = 0
+          let changed = false
+          forEach(removeAddresses, address => {
+            let vifs, i
+            if (
+              (vifs = addresses[address]) &&
+              (vifs = vifs.vifs) &&
+              (i = findIndex(vifs, isVif)) !== -1
+            ) {
+              vifs.splice(i, 1)
+              --allocations
+              changed = true
+            }
+          })
+          forEach(addAddresses, address => {
+            const data = addresses[address]
+            if (!data) {
+              return
+            }
+            const vifs = data.vifs || (data.vifs = [])
+            if (!includes(vifs, vifId)) {
+              vifs.push(vifId)
+              ++allocations
+              changed = true
+            }
+          })
+
+          if (changed) {
+            const { id } = ipPool
+            updatedIpPools[id] = ipPool
+            limits[`ipPool:${id}`] = (limits[`ipPool:${id}`] || 0) + allocations
           }
         })
-        forEach(addAddresses, address => {
-          const data = addresses[address]
-          if (!data) {
-            return
-          }
-          const vifs = data.vifs || (data.vifs = [])
-          if (!includes(vifs, vifId)) {
-            vifs.push(vifId)
-            ++allocations
-            changed = true
-          }
-        })
-
-        if (changed) {
-          const { id } = ipPool
-          updatedIpPools[id] = ipPool
-          limits[`ipPool:${id}`] = (limits[`ipPool:${id}`] || 0) + allocations
-        }
-      }).toCallback(cb)
+        .toCallback(cb)
     }).then(allocAndSave)
   }
 
@@ -222,38 +238,39 @@ export default class IpPools {
         if (mapVifAddresses[vifId]) {
           mapVifAddresses[vifId].push(address)
         } else {
-          mapVifAddresses[vifId] = [ address ]
+          mapVifAddresses[vifId] = [address]
         }
       })
     })
 
     const { getXapi } = this._xo
-    return Promise.all(mapToArray(mapVifAddresses, (addresses, vifId) => {
-      let vif
-      try {
-        // The IP may not have been correctly deallocated from the IP pool when the VIF was deleted
-        vif = this._xo.getObject(vifId)
-      } catch (error) {
-        return
-      }
-      const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
-      remove(allowedIpv4Addresses, address => includes(addresses, address))
-      remove(allowedIpv6Addresses, address => includes(addresses, address))
-      this.allocIpAddresses(vifId, undefined, concat(allowedIpv4Addresses, allowedIpv6Addresses))
+    return Promise.all(
+      mapToArray(mapVifAddresses, (addresses, vifId) => {
+        let vif
+        try {
+          // The IP may not have been correctly deallocated from the IP pool when the VIF was deleted
+          vif = this._xo.getObject(vifId)
+        } catch (error) {
+          return
+        }
+        const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
+        remove(allowedIpv4Addresses, address => includes(addresses, address))
+        remove(allowedIpv6Addresses, address => includes(addresses, address))
+        this.allocIpAddresses(
+          vifId,
+          undefined,
+          concat(allowedIpv4Addresses, allowedIpv6Addresses)
+        )
 
-      return getXapi(vif).editVif(vif._xapiId, {
-        ipv4Allowed: allowedIpv4Addresses,
-        ipv6Allowed: allowedIpv6Addresses,
+        return getXapi(vif).editVif(vif._xapiId, {
+          ipv4Allowed: allowedIpv4Addresses,
+          ipv6Allowed: allowedIpv6Addresses,
+        })
       })
-    }))
+    )
   }
 
-  async updateIpPool (id, {
-    addresses,
-    name,
-    networks,
-    resourceSets,
-  }) {
+  async updateIpPool (id, { addresses, name, networks, resourceSets }) {
     const ipPool = await this.getIpPool(id)
     const previousAddresses = { ...ipPool.addresses }
 
@@ -270,7 +287,9 @@ export default class IpPools {
 
       // Remove the addresses that are no longer in the IP pool from the concerned VIFs
       const deletedAddresses = diff(keys(previousAddresses), keys(addresses_))
-      await this._removeIpAddressesFromVifs(pick(previousAddresses, deletedAddresses))
+      await this._removeIpAddressesFromVifs(
+        pick(previousAddresses, deletedAddresses)
+      )
 
       if (isEmpty(addresses_)) {
         delete ipPool.addresses

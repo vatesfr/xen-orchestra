@@ -36,11 +36,13 @@ const fuFooter = fu.struct([
   fu.char('creatorApplication', 4), // 28
   fu.uint32('creatorVersion'), // 32
   fu.uint32('creatorHostOs'), // 36
-  fu.struct('originalSize', [ // At the creation, current size of the hard disk.
+  fu.struct('originalSize', [
+    // At the creation, current size of the hard disk.
     fu.uint32('high'), // 40
     fu.uint32('low'), // 44
   ]),
-  fu.struct('currentSize', [ // Current size of the virtual disk. At the creation: currentSize = originalSize.
+  fu.struct('currentSize', [
+    // Current size of the virtual disk. At the creation: currentSize = originalSize.
     fu.uint32('high'), // 48
     fu.uint32('low'), // 52
   ]),
@@ -60,11 +62,9 @@ const FOOTER_SIZE = fuFooter.size
 
 const fuHeader = fu.struct([
   fu.char('cookie', 8),
-  fu.struct('dataOffset', [
-    fu.uint32('high'),
-    fu.uint32('low'),
-  ]),
-  fu.struct('tableOffset', [ // Absolute byte offset of the Block Allocation Table.
+  fu.struct('dataOffset', [fu.uint32('high'), fu.uint32('low')]),
+  fu.struct('tableOffset', [
+    // Absolute byte offset of the Block Allocation Table.
     fu.uint32('high'),
     fu.uint32('low'),
   ]),
@@ -76,16 +76,21 @@ const fuHeader = fu.struct([
   fu.uint32('parentTimestamp'),
   fu.byte('reserved1', 4),
   fu.char16be('parentUnicodeName', 512),
-  fu.struct('parentLocatorEntry', [
-    fu.uint32('platformCode'),
-    fu.uint32('platformDataSpace'),
-    fu.uint32('platformDataLength'),
-    fu.uint32('reserved'),
-    fu.struct('platformDataOffset', [ // Absolute byte offset of the locator data.
-      fu.uint32('high'),
-      fu.uint32('low'),
-    ]),
-  ], 8),
+  fu.struct(
+    'parentLocatorEntry',
+    [
+      fu.uint32('platformCode'),
+      fu.uint32('platformDataSpace'),
+      fu.uint32('platformDataLength'),
+      fu.uint32('reserved'),
+      fu.struct('platformDataOffset', [
+        // Absolute byte offset of the locator data.
+        fu.uint32('high'),
+        fu.uint32('low'),
+      ]),
+    ],
+    8
+  ),
   fu.byte('reserved2', 256),
 ])
 const HEADER_SIZE = fuHeader.size
@@ -98,10 +103,10 @@ const SIZE_OF_32_BITS = Math.pow(2, 32)
 const uint32ToUint64 = fu => fu.high * SIZE_OF_32_BITS + fu.low
 
 // Returns a 32 bits integer corresponding to a Vhd version.
-const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000FFFF)
+const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000ffff)
 
 // bytes[] bit manipulation
-const testBit = (map, bit) => map[bit >> 3] & 1 << (bit & 7)
+const testBit = (map, bit) => map[bit >> 3] & (1 << (bit & 7))
 const setBit = (map, bit) => {
   map[bit >> 3] |= 1 << (bit & 7)
 }
@@ -109,98 +114,95 @@ const unsetBit = (map, bit) => {
   map[bit >> 3] &= ~(1 << (bit & 7))
 }
 
-const addOffsets = (...offsets) => offsets.reduce(
-  (a, b) => b == null
-    ? a
-    : typeof b === 'object'
-      ? { bytes: a.bytes + b.bytes, bits: a.bits + b.bits }
-      : { bytes: a.bytes + b, bits: a.bits },
-  { bytes: 0, bits: 0 }
-)
+const addOffsets = (...offsets) =>
+  offsets.reduce(
+    (a, b) =>
+      b == null
+        ? a
+        : typeof b === 'object'
+          ? { bytes: a.bytes + b.bytes, bits: a.bits + b.bits }
+          : { bytes: a.bytes + b, bits: a.bits },
+    { bytes: 0, bits: 0 }
+  )
 
 const pack = (field, value, buf, offset) => {
-  field.pack(
-    value,
-    buf,
-    addOffsets(field.offset, offset)
-  )
+  field.pack(value, buf, addOffsets(field.offset, offset))
 }
 
 const unpack = (field, buf, offset) =>
-  field.unpack(
-    buf,
-    addOffsets(field.offset, offset)
-  )
+  field.unpack(buf, addOffsets(field.offset, offset))
 
 // ===================================================================
 
-const streamToNewBuffer = stream => new Promise((resolve, reject) => {
-  const chunks = []
-  let length = 0
+const streamToNewBuffer = stream =>
+  new Promise((resolve, reject) => {
+    const chunks = []
+    let length = 0
 
-  const onData = chunk => {
-    chunks.push(chunk)
-    length += chunk.length
-  }
-  stream.on('data', onData)
+    const onData = chunk => {
+      chunks.push(chunk)
+      length += chunk.length
+    }
+    stream.on('data', onData)
 
-  const clean = () => {
-    stream.removeListener('data', onData)
-    stream.removeListener('end', onEnd)
-    stream.removeListener('error', onError)
-  }
-  const onEnd = () => {
-    resolve(Buffer.concat(chunks, length))
-    clean()
-  }
-  stream.on('end', onEnd)
-  const onError = error => {
-    reject(error)
-    clean()
-  }
-  stream.on('error', onError)
-})
+    const clean = () => {
+      stream.removeListener('data', onData)
+      stream.removeListener('end', onEnd)
+      stream.removeListener('error', onError)
+    }
+    const onEnd = () => {
+      resolve(Buffer.concat(chunks, length))
+      clean()
+    }
+    stream.on('end', onEnd)
+    const onError = error => {
+      reject(error)
+      clean()
+    }
+    stream.on('error', onError)
+  })
 
 const streamToExistingBuffer = (
   stream,
   buffer,
   offset = 0,
   end = buffer.length
-) => new Promise((resolve, reject) => {
-  assert(offset >= 0)
-  assert(end > offset)
-  assert(end <= buffer.length)
+) =>
+  new Promise((resolve, reject) => {
+    assert(offset >= 0)
+    assert(end > offset)
+    assert(end <= buffer.length)
 
-  let i = offset
+    let i = offset
 
-  const onData = chunk => {
-    const prev = i
-    i += chunk.length
+    const onData = chunk => {
+      const prev = i
+      i += chunk.length
 
-    if (i > end) {
-      return onError(new Error('too much data'))
+      if (i > end) {
+        return onError(new Error('too much data'))
+      }
+
+      chunk.copy(buffer, prev)
     }
+    stream.on('data', onData)
 
-    chunk.copy(buffer, prev)
-  }
-  stream.on('data', onData)
-
-  const clean = () => {
-    stream.removeListener('data', onData)
-    stream.removeListener('end', onEnd)
-    stream.removeListener('error', onError)
-  }
-  const onEnd = () => {
-    resolve(i - offset)
-    clean()
-  }
-  stream.on('end', onEnd)
-  const onError = error => {
-    reject(error)
-    clean()
-  }
-  stream.on('error', onError)
-})
+    const clean = () => {
+      stream.removeListener('data', onData)
+      stream.removeListener('end', onEnd)
+      stream.removeListener('error', onError)
+    }
+    const onEnd = () => {
+      resolve(i - offset)
+      clean()
+    }
+    stream.on('end', onEnd)
+    const onError = error => {
+      reject(error)
+      clean()
+    }
+    stream.on('error', onError)
+  })
 
 // ===================================================================
 
@@ -214,7 +216,11 @@ const computeChecksum = (struct, buf, offset = 0) => {
   for (let i = offset, n = checksumOffset; i < n; ++i) {
     sum += buf[i]
   }
-  for (let i = checksumOffset + checksumField.size, n = offset + struct.size; i < n; ++i) {
+  for (
+    let i = checksumOffset + checksumField.size, n = offset + struct.size;
+    i < n;
+    ++i
+  ) {
     sum += buf[i]
   }
 
@@ -222,7 +228,8 @@ const computeChecksum = (struct, buf, offset = 0) => {
 }
 
 const verifyChecksum = (struct, buf, offset) =>
-  unpack(struct.fields.checksum, buf, offset) === computeChecksum(struct, buf, offset)
+  unpack(struct.fields.checksum, buf, offset) ===
+  computeChecksum(struct, buf, offset)
 
 const getParentLocatorSize = parentLocatorEntry => {
   const { platformDataSpace } = parentLocatorEntry
@@ -231,15 +238,13 @@ const getParentLocatorSize = parentLocatorEntry => {
     return platformDataSpace * SECTOR_SIZE
   }
 
-  return (platformDataSpace % SECTOR_SIZE === 0)
-    ? platformDataSpace
-    : 0
+  return platformDataSpace % SECTOR_SIZE === 0 ? platformDataSpace : 0
 }
 
 // ===================================================================
 
 // Euclidean division, returns the quotient and the remainder of a / b.
-const div = (a, b) => [ Math.floor(a / b), a % b ]
+const div = (a, b) => [Math.floor(a / b), a % b]
 
 export default class Vhd {
   constructor (handler, path) {
@@ -263,13 +268,22 @@ export default class Vhd {
     assert(begin >= 0)
     assert(length > 0)
 
-    return this._handler.createReadStream(this._path, {
-      end: begin + length - 1,
-      start: begin,
-    }).then(buf
-      ? stream => streamToExistingBuffer(stream, buf, offset, (offset || 0) + length)
-      : streamToNewBuffer
-    )
+    return this._handler
+      .createReadStream(this._path, {
+        end: begin + length - 1,
+        start: begin,
+      })
+      .then(
+        buf
+          ? stream =>
+            streamToExistingBuffer(
+              stream,
+              buf,
+              offset,
+              (offset || 0) + length
+            )
+          : streamToNewBuffer
+      )
   }
 
   // - if `buffer`: it is filled with 0 starting from `offset`, and
@@ -296,7 +310,7 @@ export default class Vhd {
     assert(block < this._header.maxTableEntries)
 
     const blockAddr = this._blockAllocationTable[block]
-    if (blockAddr !== 0xFFFFFFFF) {
+    if (blockAddr !== 0xffffffff) {
       return blockAddr * SECTOR_SIZE
     }
   }
@@ -325,7 +339,8 @@ export default class Vhd {
     assert(sectorsPerBlock % 1 === 0)
 
     // 1 bit per sector, rounded up to full sectors
-    this._blockBitmapSize = Math.ceil(sectorsPerBlock / 8 / SECTOR_SIZE) * SECTOR_SIZE
+    this._blockBitmapSize =
+      Math.ceil(sectorsPerBlock / 8 / SECTOR_SIZE) * SECTOR_SIZE
     assert(this._blockBitmapSize === SECTOR_SIZE)
 
     this._footer = footer
@@ -368,10 +383,10 @@ export default class Vhd {
     const blockBitmapSize = this._blockBitmapSize
     const parent = this._parent
 
-    if (blockAddr && (
-      !parent ||
-      testBit(await this._read(blockAddr, blockBitmapSize), sector)
-    )) {
+    if (
+      blockAddr &&
+      (!parent || testBit(await this._read(blockAddr, blockBitmapSize), sector))
+    ) {
       return this._read(
         blockAddr + blockBitmapSize + sector * SECTOR_SIZE + begin,
         length,
@@ -402,12 +417,17 @@ export default class Vhd {
     }
 
     if (!parent) {
-      return this._read(blockAddr + this._blockBitmapSize + begin, length, buf, offset)
+      return this._read(
+        blockAddr + this._blockBitmapSize + begin,
+        length,
+        buf,
+        offset
+      )
     }
 
     // FIXME: we should read as many sectors in a single pass as
     // possible for maximum perf.
-    const [ sector, beginInSector ] = div(begin, SECTOR_SIZE)
+    const [sector, beginInSector] = div(begin, SECTOR_SIZE)
     return this._readBlockSector(
       block,
       sector,
@@ -428,7 +448,7 @@ export default class Vhd {
     }
 
     const { blockSize } = this._header
-    const [ block, beginInBlock ] = div(begin, blockSize)
+    const [block, beginInBlock] = div(begin, blockSize)
 
     return this._readBlock(
       block,

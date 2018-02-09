@@ -1,27 +1,27 @@
-export async function create ({name}) {
-  return (await this.createGroup({name})).id
+export async function create ({ name }) {
+  return (await this.createGroup({ name })).id
 }
 
 create.description = 'creates a new group'
 create.permission = 'admin'
 create.params = {
-  name: {type: 'string'},
+  name: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
 
 // Deletes an existing group.
-async function delete_ ({id}) {
+async function delete_ ({ id }) {
   await this.deleteGroup(id)
 }
 
 // delete is not a valid identifier.
-export {delete_ as delete}
+export { delete_ as delete }
 
 delete_.description = 'deletes an existing group'
 delete_.permission = 'admin'
 delete_.params = {
-  id: {type: 'string'},
+  id: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
@@ -36,35 +36,35 @@ getAll.permission = 'admin'
 // -------------------------------------------------------------------
 
 // sets group.users with an array of user ids
-export async function setUsers ({id, userIds}) {
+export async function setUsers ({ id, userIds }) {
   await this.setGroupUsers(id, userIds)
 }
 
 setUsers.description = 'sets the users belonging to a group'
 setUsers.permission = 'admin'
 setUsers.params = {
-  id: {type: 'string'},
+  id: { type: 'string' },
   userIds: {},
 }
 
 // -------------------------------------------------------------------
 
 // adds the user id to group.users
-export async function addUser ({id, userId}) {
+export async function addUser ({ id, userId }) {
   await this.addUserToGroup(userId, id)
 }
 
 addUser.description = 'adds a user to a group'
 addUser.permission = 'admin'
 addUser.params = {
-  id: {type: 'string'},
-  userId: {type: 'string'},
+  id: { type: 'string' },
+  userId: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
 
 // remove the user id from group.users
-export async function removeUser ({id, userId}) {
+export async function removeUser ({ id, userId }) {
   await this.removeUserFromGroup(userId, id)
 }
 
@@ -73,14 +73,14 @@ export async function removeUser ({id, userId}) {
 removeUser.description = 'removes a user from a group'
 removeUser.permission = 'admin'
 removeUser.params = {
-  id: {type: 'string'},
-  userId: {type: 'string'},
+  id: { type: 'string' },
+  userId: { type: 'string' },
 }
 
 // -------------------------------------------------------------------
 
-export async function set ({id, name}) {
-  await this.updateGroup(id, {name})
+export async function set ({ id, name }) {
+  await this.updateGroup(id, { name })
 }
 
 set.description = 'changes the properties of an existing group'

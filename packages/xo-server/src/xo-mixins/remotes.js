@@ -3,13 +3,8 @@ import { noSuchObject } from 'xo-common/api-errors'
 import RemoteHandlerLocal from '../remote-handlers/local'
 import RemoteHandlerNfs from '../remote-handlers/nfs'
 import RemoteHandlerSmb from '../remote-handlers/smb'
-import {
-  forEach,
-  mapToArray,
-} from '../utils'
-import {
-  Remotes,
-} from '../models/remote'
+import { forEach, mapToArray } from '../utils'
+import { Remotes } from '../models/remote'
 
 // ===================================================================
 
@@ -23,11 +18,11 @@ export default class {
 
     xo.on('clean', () => this._remotes.rebuildIndexes())
     xo.on('start', async () => {
-      xo.addConfigManager('remotes',
+      xo.addConfigManager(
+        'remotes',
         () => this._remotes.get(),
-        remotes => Promise.all(mapToArray(remotes, remote =>
-          this._remotes.save(remote)
-        ))
+        remotes =>
+          Promise.all(mapToArray(remotes, remote => this._remotes.save(remote)))
       )
 
       await this.initRemotes()
@@ -83,21 +78,21 @@ export default class {
     return (await this._getRemote(id)).properties
   }
 
-  async createRemote ({name, url}) {
+  async createRemote ({ name, url }) {
     const remote = await this._remotes.create(name, url)
-    return /* await */ this.updateRemote(remote.get('id'), {enabled: true})
+    return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  async updateRemote (id, {name, url, enabled, error}) {
+  async updateRemote (id, { name, url, enabled, error }) {
     const remote = await this._getRemote(id)
-    this._updateRemote(remote, {name, url, enabled, error})
+    this._updateRemote(remote, { name, url, enabled, error })
     const handler = await this.getRemoteHandler(remote.properties, true)
     const props = await handler.sync()
     this._updateRemote(remote, props)
     return (await this._remotes.save(remote)).properties
   }
 
-  _updateRemote (remote, {name, url, enabled, error}) {
+  _updateRemote (remote, { name, url, enabled, error }) {
     if (name) remote.set('name', name)
     if (url) remote.set('url', url)
     if (enabled !== undefined) remote.set('enabled', enabled)
@@ -127,7 +122,7 @@ export default class {
     const remotes = await this.getAllRemotes()
     for (const remote of remotes) {
       try {
-        (await this.getRemoteHandler(remote, true)).forget()
+        ;(await this.getRemoteHandler(remote, true)).forget()
       } catch (_) {}
     }
   }
@@ -136,7 +131,10 @@ export default class {
   async initRemotes () {
     const remotes = await this.getAllRemotes()
     if (!remotes || !remotes.length) {
-      await this.createRemote({name: 'default', url: 'file://var/lib/xoa-backups'})
+      await this.createRemote({
+        name: 'default',
+        url: 'file://var/lib/xoa-backups',
+      })
     }
   }
 }

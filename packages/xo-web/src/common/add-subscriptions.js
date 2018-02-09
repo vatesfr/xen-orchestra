@@ -11,7 +11,9 @@ const addSubscriptions = subscriptions => Component =>
 
     componentWillMount () {
       this._unsubscribes = map(
-        typeof subscriptions === 'function' ? subscriptions(this.props) : subscriptions,
+        typeof subscriptions === 'function'
+          ? subscriptions(this.props)
+          : subscriptions,
         (subscribe, prop) =>
           subscribe(value => this.setState({ [prop]: value }))
       )

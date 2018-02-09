@@ -1,6 +1,6 @@
 // FIXME: too low level, should be removed.
 
-async function delete_ ({vbd}) {
+async function delete_ ({ vbd }) {
   await this.getXapi(vbd).deleteVbd(vbd)
 }
 
@@ -16,7 +16,7 @@ export { delete_ as delete }
 
 // -------------------------------------------------------------------
 
-export async function disconnect ({vbd}) {
+export async function disconnect ({ vbd }) {
   const xapi = this.getXapi(vbd)
   await xapi.disconnectVbd(vbd._xapiRef)
 }
@@ -31,7 +31,7 @@ disconnect.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function connect ({vbd}) {
+export async function connect ({ vbd }) {
   const xapi = this.getXapi(vbd)
   await xapi.connectVbd(vbd._xapiRef)
 }
@@ -46,7 +46,7 @@ connect.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function set ({position, vbd}) {
+export async function set ({ position, vbd }) {
   if (position !== undefined) {
     const xapi = this.getXapi(vbd)
     await xapi.call('VBD.set_userdevice', vbd._xapiRef, String(position))
@@ -66,7 +66,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function setBootable ({vbd, bootable}) {
+export async function setBootable ({ vbd, bootable }) {
   const xapi = this.getXapi(vbd)
 
   await xapi.call('VBD.set_bootable', vbd._xapiRef, bootable)

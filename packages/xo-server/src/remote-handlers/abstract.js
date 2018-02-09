@@ -12,7 +12,7 @@ import {
 
 export default class RemoteHandlerAbstract {
   constructor (remote) {
-    this._remote = {...remote, ...parse(remote.url)}
+    this._remote = { ...remote, ...parse(remote.url) }
     if (this._remote.type !== this.type) {
       throw new Error('Incorrect remote type')
     }
@@ -66,7 +66,7 @@ export default class RemoteHandlerAbstract {
         error: error.message || String(error),
       }
     } finally {
-      this.unlink(testFileName)::ignoreErrors()
+      ;this.unlink(testFileName)::ignoreErrors()
     }
   }
 
@@ -108,11 +108,10 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  createReadStream (file, {
-    checksum = false,
-    ignoreMissingChecksum = false,
-    ...options
-  } = {}) {
+  createReadStream (
+    file,
+    { checksum = false, ignoreMissingChecksum = false, ...options } = {}
+  ) {
     const streamP = this._createReadStream(file, options).then(stream => {
       // detect early errors
       let promise = eventToPromise(stream, 'readable')
@@ -125,9 +124,11 @@ export default class RemoteHandlerAbstract {
       ) {
         promise = Promise.all([
           promise,
-          this.getSize(file).then(size => {
-            stream.length = size
-          })::ignoreErrors(),
+          this.getSize(file)
+            .then(size => {
+              stream.length = size
+            })
+            ::ignoreErrors(),
         ])
       }
 
@@ -139,16 +140,17 @@ export default class RemoteHandlerAbstract {
     }
 
     // avoid a unhandled rejection warning
-    streamP::ignoreErrors()
+    ;streamP::ignoreErrors()
 
     return this.readFile(`${file}.checksum`).then(
-      checksum => streamP.then(stream => {
-        const { length } = stream
-        stream = validChecksumOfReadStream(stream, String(checksum).trim())
-        stream.length = length
+      checksum =>
+        streamP.then(stream => {
+          const { length } = stream
+          stream = validChecksumOfReadStream(stream, String(checksum).trim())
+          stream.length = length
 
-        return stream
-      }),
+          return stream
+        }),
       error => {
         if (ignoreMissingChecksum && error && error.code === 'ENOENT') {
           return streamP
@@ -169,10 +171,7 @@ export default class RemoteHandlerAbstract {
     await this.outputFile(`${path}.checksum`, checksum)
   }
 
-  async createOutputStream (file, {
-    checksum = false,
-    ...options
-  } = {}) {
+  async createOutputStream (file, { checksum = false, ...options } = {}) {
     const streamP = this._createOutputStream(file, {
       flags: 'wx',
       ...options,
@@ -201,11 +200,9 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async unlink (file, {
-    checksum = true,
-  } = {}) {
+  async unlink (file, { checksum = true } = {}) {
     if (checksum) {
-      this._unlink(`${file}.checksum`)::ignoreErrors()
+      ;this._unlink(`${file}.checksum`)::ignoreErrors()
     }
 
     return this._unlink(file)

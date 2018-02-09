@@ -9,7 +9,7 @@ const NEXT_MAPPING = {
   minute: { hour: 1 },
 }
 
-const getFirst = values => values !== undefined ? values[0] : 0
+const getFirst = values => (values !== undefined ? values[0] : 0)
 
 const setFirstAvailable = (date, unit, values) => {
   if (values === undefined) {

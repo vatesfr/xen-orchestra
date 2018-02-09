@@ -1,10 +1,10 @@
-import {invalidParameters} from 'xo-common/api-errors'
+import { invalidParameters } from 'xo-common/api-errors'
 import { getUserPublicProperties, mapToArray } from '../utils'
 
 // ===================================================================
 
-export async function create ({email, password, permission}) {
-  return (await this.createUser({email, password, permission})).id
+export async function create ({ email, password, permission }) {
+  return (await this.createUser({ email, password, permission })).id
 }
 
 create.description = 'creates a new user'
@@ -20,7 +20,7 @@ create.params = {
 // -------------------------------------------------------------------
 
 // Deletes an existing user.
-async function delete_ ({id}) {
+async function delete_ ({ id }) {
   if (id === this.session.get('user_id')) {
     throw invalidParameters('a user cannot delete itself')
   }
@@ -29,7 +29,7 @@ async function delete_ ({id}) {
 }
 
 // delete is not a valid identifier.
-export {delete_ as delete}
+export { delete_ as delete }
 
 delete_.description = 'deletes an existing user'
 
@@ -57,17 +57,19 @@ getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function set ({id, email, password, permission, preferences}) {
+export async function set ({ id, email, password, permission, preferences }) {
   const isAdmin = this.user && this.user.permission === 'admin'
   if (isAdmin) {
     if (permission && id === this.session.get('user_id')) {
       throw invalidParameters('a user cannot change its own permission')
     }
   } else if (email || password || permission) {
-    throw invalidParameters('this properties can only changed by an administrator')
+    throw invalidParameters(
+      'this properties can only changed by an administrator'
+    )
   }
 
-  await this.updateUser(id, {email, password, permission, preferences})
+  await this.updateUser(id, { email, password, permission, preferences })
 }
 
 set.description = 'changes the properties of an existing user'
@@ -84,16 +86,17 @@ set.params = {
 
 // -------------------------------------------------------------------
 
-export async function changePassword ({oldPassword, newPassword}) {
+export async function changePassword ({ oldPassword, newPassword }) {
   const id = this.session.get('user_id')
   await this.changeUserPassword(id, oldPassword, newPassword)
 }
 
-changePassword.description = 'change password after checking old password (user function)'
+changePassword.description =
+  'change password after checking old password (user function)'
 
 changePassword.permission = ''
 
 changePassword.params = {
-  oldPassword: {type: 'string'},
-  newPassword: {type: 'string'},
+  oldPassword: { type: 'string' },
+  newPassword: { type: 'string' },
 }

@@ -38,7 +38,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function setDefaultSr ({ sr }) {
-  await this.hasPermissions(this.user.id, [ [ sr.$pool, 'administrate' ] ])
+  await this.hasPermissions(this.user.id, [[sr.$pool, 'administrate']])
 
   await this.getXapi(sr).setDefaultSr(sr._xapiId)
 }
@@ -58,7 +58,7 @@ setDefaultSr.resolve = {
 // -------------------------------------------------------------------
 
 export async function setPoolMaster ({ host }) {
-  await this.hasPermissions(this.user.id, [ [ host.$pool, 'administrate' ] ])
+  await this.hasPermissions(this.user.id, [[host.$pool, 'administrate']])
 
   await this.getXapi(host).setPoolMaster(host._xapiId)
 }
@@ -75,7 +75,7 @@ setPoolMaster.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function installPatch ({pool, patch: patchUuid}) {
+export async function installPatch ({ pool, patch: patchUuid }) {
   await this.getXapi(pool).installPoolPatchOnAllHosts(patchUuid)
 }
 
@@ -107,11 +107,12 @@ installAllPatches.resolve = {
   pool: ['pool', 'pool', 'administrate'],
 }
 
-installAllPatches.description = 'Install automatically all patches for every hosts of a pool'
+installAllPatches.description =
+  'Install automatically all patches for every hosts of a pool'
 
 // -------------------------------------------------------------------
 
-async function handlePatchUpload (req, res, {pool}) {
+async function handlePatchUpload (req, res, { pool }) {
   const contentLength = req.headers['content-length']
   if (!contentLength) {
     res.writeHead(411)
@@ -122,9 +123,9 @@ async function handlePatchUpload (req, res, {pool}) {
   await this.getXapi(pool).uploadPoolPatch(req, contentLength)
 }
 
-export async function uploadPatch ({pool}) {
+export async function uploadPatch ({ pool }) {
   return {
-    $sendTo: await this.registerHttpRequest(handlePatchUpload, {pool}),
+    $sendTo: await this.registerHttpRequest(handlePatchUpload, { pool }),
   }
 }
 
@@ -139,7 +140,7 @@ uploadPatch.resolve = {
 // Compatibility
 //
 // TODO: remove when no longer used in xo-web
-export {uploadPatch as patch}
+export { uploadPatch as patch }
 
 // -------------------------------------------------------------------
 
@@ -177,11 +178,8 @@ mergeInto.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function getLicenseState ({pool}) {
-  return this.getXapi(pool).call(
-    'pool.get_license_state',
-    pool._xapiId.$ref
-  )
+export async function getLicenseState ({ pool }) {
+  return this.getXapi(pool).call('pool.get_license_state', pool._xapiId.$ref)
 }
 
 getLicenseState.params = {
@@ -215,11 +213,14 @@ async function handleInstallSupplementalPack (req, res, { poolId }) {
 
 export async function installSupplementalPack ({ pool }) {
   return {
-    $sendTo: await this.registerHttpRequest(handleInstallSupplementalPack, { poolId: pool.id }),
+    $sendTo: await this.registerHttpRequest(handleInstallSupplementalPack, {
+      poolId: pool.id,
+    }),
   }
 }
 
-installSupplementalPack.description = 'installs supplemental pack from ISO file on all hosts'
+installSupplementalPack.description =
+  'installs supplemental pack from ISO file on all hosts'
 
 installSupplementalPack.params = {
   pool: { type: 'string' },

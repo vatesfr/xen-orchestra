@@ -28,9 +28,7 @@ describe('parse()', () => {
   })
 
   it('reports missing integer', () => {
-    expect(() => parse('*/a')).toThrow(
-      'minute: missing integer at character 2'
-    )
+    expect(() => parse('*/a')).toThrow('minute: missing integer at character 2')
     expect(() => parse('*')).toThrow('hour: missing integer at character 1')
   })
 

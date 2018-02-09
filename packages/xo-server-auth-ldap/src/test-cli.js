@@ -5,13 +5,8 @@ import { bind } from 'lodash'
 import { fromCallback } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
-import promptSchema, {
-  input,
-  password,
-} from './prompt-schema'
-import createPlugin, {
-  configurationSchema,
-} from './'
+import promptSchema, { input, password } from './prompt-schema'
+import createPlugin, { configurationSchema } from './'
 
 // ===================================================================
 
@@ -27,7 +22,9 @@ execPromise(async args => {
       () => ({})
     )
   )
-  await fromCallback(cb => writeFile(CACHE_FILE, JSON.stringify(config, null, 2), cb)).then(
+  await fromCallback(cb =>
+    writeFile(CACHE_FILE, JSON.stringify(config, null, 2), cb)
+  ).then(
     () => {
       console.log('configuration saved in %s', CACHE_FILE)
     },
@@ -40,10 +37,13 @@ execPromise(async args => {
   const plugin = createPlugin({})
   await plugin.configure(config)
 
-  await plugin._authenticate({
-    username: await input('Username', {
-      validate: input => !!input.length,
-    }),
-    password: await password('Password'),
-  }, bind(console.log, console))
+  await plugin._authenticate(
+    {
+      username: await input('Username', {
+        validate: input => !!input.length,
+      }),
+      password: await password('Password'),
+    },
+    bind(console.log, console)
+  )
 })

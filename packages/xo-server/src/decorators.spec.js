@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import {debounce} from './decorators'
+import { debounce } from './decorators'
 
 // ===================================================================
 

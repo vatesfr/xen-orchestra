@@ -13,25 +13,24 @@ const { env } = process
 // TODO: https://docs.npmjs.com/misc/scripts#environment
 require('exec-promise')(args => {
   const parallel = args[0] === '--parallel'
-  let script = args[parallel ? 1 : 0]
+  const script = args[parallel ? 1 : 0]
 
   let errors = 0
-  return getPackages(true)[parallel ? 'map' : 'forEach'](({ dir, name, package: { scripts } }) => {
-    if (scripts == null) {
-      return
-    }
+  return getPackages(true)
+    [parallel ? 'map' : 'forEach'](({ dir, name, package: { scripts } }) => {
+      if (scripts == null) {
+        return
+      }
 
-    const spawnOpts = {
-      cwd: dir,
-      env: Object.assign({}, env, {
-        PATH: `${dir}/node_modules/.bin${delimiter}${env.PATH}`,
-      }),
-      shell: true,
-      stdio: 'inherit',
-    }
-    return forEach.call(
-      [ `pre${script}`, script, `post${script}` ],
-      script => {
+      const spawnOpts = {
+        cwd: dir,
+        env: Object.assign({}, env, {
+          PATH: `${dir}/node_modules/.bin${delimiter}${env.PATH}`,
+        }),
+        shell: true,
+        stdio: 'inherit',
+      }
+      return forEach.call([`pre${script}`, script, `post${script}`], script => {
         const command = scripts[script]
         if (command !== undefined) {
           console.log(`* ${name}:${script} −`, command)
@@ -42,11 +41,11 @@ require('exec-promise')(args => {
             }
           })
         }
+      })
+    })
+    .then(() => {
+      if (errors !== 0) {
+        throw errors
       }
-    )
-  }).then(() => {
-    if (errors !== 0) {
-      throw errors
-    }
-  })
+    })
 })

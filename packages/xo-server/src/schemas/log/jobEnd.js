@@ -14,8 +14,5 @@ export default {
       description: 'describe one failure, exists if no call has been made',
     },
   },
-  required: [
-    'event',
-    'runJobId',
-  ],
+  required: ['event', 'runJobId'],
 }

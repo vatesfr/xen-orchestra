@@ -2,23 +2,11 @@ import createDebug from 'debug'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
-import {
-  forEach,
-  isArray,
-  isFunction,
-  map,
-  mapValues,
-} from 'lodash'
+import { forEach, isArray, isFunction, map, mapValues } from 'lodash'
 
 import * as methods from '../api'
-import {
-  MethodNotFound,
-} from 'json-rpc-peer'
-import {
-  createRawObject,
-  noop,
-  serializeError,
-} from '../utils'
+import { MethodNotFound } from 'json-rpc-peer'
+import { createRawObject, noop, serializeError } from '../utils'
 
 import * as errors from 'xo-common/api-errors'
 
@@ -38,24 +26,30 @@ const PERMISSIONS = {
 // - error when halted VM migration failure is due to XS < 7
 const XAPI_ERROR_TO_XO_ERROR = {
   EHOSTUNREACH: errors.serverUnreachable,
-  HOST_OFFLINE: ([ host ], getId) => errors.hostOffline({ host: getId(host) }),
+  HOST_OFFLINE: ([host], getId) => errors.hostOffline({ host: getId(host) }),
   NO_HOSTS_AVAILABLE: errors.noHostsAvailable,
   NOT_SUPPORTED_DURING_UPGRADE: errors.notSupportedDuringUpgrade,
-  OPERATION_BLOCKED: ([ ref, code ], getId) => errors.operationBlocked({ objectId: getId(ref), code }),
-  PATCH_PRECHECK_FAILED_ISO_MOUNTED: ([ patch ]) => errors.patchPrecheck({ errorType: 'isoMounted', patch }),
-  PIF_VLAN_EXISTS: ([ pif ], getId) => errors.objectAlreadyExists({ objectId: getId(pif), objectType: 'PIF' }),
+  OPERATION_BLOCKED: ([ref, code], getId) =>
+    errors.operationBlocked({ objectId: getId(ref), code }),
+  PATCH_PRECHECK_FAILED_ISO_MOUNTED: ([patch]) =>
+    errors.patchPrecheck({ errorType: 'isoMounted', patch }),
+  PIF_VLAN_EXISTS: ([pif], getId) =>
+    errors.objectAlreadyExists({ objectId: getId(pif), objectType: 'PIF' }),
   SESSION_AUTHENTICATION_FAILED: errors.authenticationFailed,
-  VDI_IN_USE: ([ vdi, operation ], getId) => errors.vdiInUse({ vdi: getId(vdi), operation }),
-  VM_BAD_POWER_STATE: ([ vm, expected, actual ], getId) => errors.vmBadPowerState({ vm: getId(vm), expected, actual }),
+  VDI_IN_USE: ([vdi, operation], getId) =>
+    errors.vdiInUse({ vdi: getId(vdi), operation }),
+  VM_BAD_POWER_STATE: ([vm, expected, actual], getId) =>
+    errors.vmBadPowerState({ vm: getId(vm), expected, actual }),
   VM_IS_TEMPLATE: errors.vmIsTemplate,
-  VM_LACKS_FEATURE: ([ vm ], getId) => errors.vmLacksFeature({ vm: getId(vm) }),
-  VM_LACKS_FEATURE_SHUTDOWN: ([ vm ], getId) => errors.vmLacksFeature({ vm: getId(vm), feature: 'shutdown' }),
-  VM_MISSING_PV_DRIVERS: ([ vm ], getId) => errors.vmMissingPvDrivers({ vm: getId(vm) }),
+  VM_LACKS_FEATURE: ([vm], getId) => errors.vmLacksFeature({ vm: getId(vm) }),
+  VM_LACKS_FEATURE_SHUTDOWN: ([vm], getId) =>
+    errors.vmLacksFeature({ vm: getId(vm), feature: 'shutdown' }),
+  VM_MISSING_PV_DRIVERS: ([vm], getId) =>
+    errors.vmMissingPvDrivers({ vm: getId(vm) }),
 }
 
-const hasPermission = (user, permission) => (
+const hasPermission = (user, permission) =>
   PERMISSIONS[user.permission] >= PERMISSIONS[permission]
-)
 
 function checkParams (method, params) {
   const schema = method.params
@@ -63,10 +57,13 @@ function checkParams (method, params) {
     return
   }
 
-  const result = schemaInspector.validate({
-    type: 'object',
-    properties: schema,
-  }, params)
+  const result = schemaInspector.validate(
+    {
+      type: 'object',
+      properties: schema,
+    },
+    params
+  )
 
   if (!result.valid) {
     throw errors.invalidParameters(result.error)
@@ -76,14 +73,14 @@ function checkParams (method, params) {
 function checkPermission (method) {
   /* jshint validthis: true */
 
-  const {permission} = method
+  const { permission } = method
 
   // No requirement.
   if (permission === undefined) {
     return
   }
 
-  const {user} = this
+  const { user } = this
   if (!user) {
     throw errors.unauthorized()
   }
@@ -104,7 +101,7 @@ function resolveParams (method, params) {
     return params
   }
 
-  const {user} = this
+  const { user } = this
   if (!user) {
     throw errors.unauthorized()
   }
@@ -133,7 +130,7 @@ function resolveParams (method, params) {
     // value (except null or undefined which trigger the default
     // value) to simply do a resolve without checking any permissions.
     if (permission) {
-      permissions.push([ object.id, permission ])
+      permissions.push([object.id, permission])
     }
   })
 
@@ -242,7 +239,8 @@ export default class Api {
     // FIXME: it can cause issues if there any property assignments in
     // XO methods called from the API.
     const context = Object.create(this._xo, {
-      api: { // Used by system.*().
+      api: {
+        // Used by system.*().
         value: this,
       },
       session: {
@@ -252,10 +250,8 @@ export default class Api {
 
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
-    context.user = userId && await this._xo.getUser(userId)
-    const userName = context.user
-      ? context.user.email
-      : '(unknown user)'
+    context.user = userId && (await this._xo.getUser(userId))
+    const userName = context.user ? context.user.email : '(unknown user)'
 
     try {
       await checkPermission.call(context, method)
@@ -305,7 +301,9 @@ export default class Api {
         duration: Date.now() - startTime,
         error: serializeError(error),
       }
-      const message = `${userName} | ${name}(${JSON.stringify(params)}) [${ms(Date.now() - startTime)}] =!> ${error}`
+      const message = `${userName} | ${name}(${JSON.stringify(params)}) [${ms(
+        Date.now() - startTime
+      )}] =!> ${error}`
 
       this._logger.error(message, data)
 

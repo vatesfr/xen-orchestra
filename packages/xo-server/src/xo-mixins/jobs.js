@@ -11,21 +11,20 @@ import { mapToArray } from '../utils'
 export default class Jobs {
   constructor (xo) {
     this._executor = new JobExecutor(xo)
-    const jobsDb = this._jobs = new JobsDb({
+    const jobsDb = (this._jobs = new JobsDb({
       connection: xo._redis,
       prefix: 'xo:job',
       indexes: ['user_id', 'key'],
-    })
+    }))
     this._runningJobs = Object.create(null)
 
     xo.on('clean', () => jobsDb.rebuildIndexes())
     xo.on('start', () => {
-      xo.addConfigManager('jobs',
+      xo.addConfigManager(
+        'jobs',
         () => jobsDb.get(),
-        jobs => Promise.all(mapToArray(jobs, job =>
-          jobsDb.save(job)
-        )),
-        [ 'users' ]
+        jobs => Promise.all(mapToArray(jobs, job => jobsDb.save(job))),
+        ['users']
       )
     })
   }
@@ -49,7 +48,7 @@ export default class Jobs {
     return job_.properties
   }
 
-  async updateJob ({id, ...props}) {
+  async updateJob ({ id, ...props }) {
     const job = await this.getJob(id)
 
     assign(job, props)
@@ -77,7 +76,9 @@ export default class Jobs {
   }
 
   async runJobSequence (idSequence) {
-    const jobs = await Promise.all(mapToArray(idSequence, id => this.getJob(id)))
+    const jobs = await Promise.all(
+      mapToArray(idSequence, id => this.getJob(id))
+    )
 
     for (const job of jobs) {
       await this._runJob(job)

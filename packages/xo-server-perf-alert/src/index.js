@@ -91,9 +91,7 @@ const HOST_FUNCTIONS = {
     unit: '% used',
     comparator: '>',
     createParser: (legend, threshold) => {
-      const memoryKBytesLegend = legend.find(
-        l => l.name === 'memory_total_kib'
-      )
+      const memoryKBytesLegend = legend.find(l => l.name === 'memory_total_kib')
       const memoryKBytesFreeLegend = legend.find(
         l => l.name === 'memory_free_kib'
       )

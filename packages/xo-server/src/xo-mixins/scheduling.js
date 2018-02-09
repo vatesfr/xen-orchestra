@@ -2,11 +2,7 @@ import { BaseError } from 'make-error'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { Schedules } from '../models/schedule'
-import {
-  forEach,
-  mapToArray,
-  scheduleFn,
-} from '../utils'
+import { forEach, mapToArray, scheduleFn } from '../utils'
 
 // ===================================================================
 
@@ -37,21 +33,23 @@ export class ScheduleAlreadyEnabled extends SchedulerError {
 export default class {
   constructor (xo) {
     this.xo = xo
-    const schedules = this._redisSchedules = new Schedules({
+    const schedules = (this._redisSchedules = new Schedules({
       connection: xo._redis,
       prefix: 'xo:schedule',
       indexes: ['user_id', 'job'],
-    })
+    }))
     this._scheduleTable = undefined
 
     xo.on('clean', () => schedules.rebuildIndexes())
     xo.on('start', () => {
-      xo.addConfigManager('schedules',
+      xo.addConfigManager(
+        'schedules',
         () => schedules.get(),
-        schedules_ => Promise.all(mapToArray(schedules_, schedule =>
-          schedules.save(schedule)
-        )),
-        [ 'jobs' ]
+        schedules_ =>
+          Promise.all(
+            mapToArray(schedules_, schedule => schedules.save(schedule))
+          ),
+        ['jobs']
       )
 
       return this._loadSchedules()
@@ -86,7 +84,7 @@ export default class {
 
     const stopSchedule = scheduleFn(
       schedule.cron,
-      () => this.xo.runJobSequence([ schedule.job ]),
+      () => this.xo.runJobSequence([schedule.job]),
       schedule.timezone
     )
 
@@ -150,7 +148,14 @@ export default class {
   }
 
   async createSchedule (userId, { job, cron, enabled, name, timezone }) {
-    const schedule_ = await this._redisSchedules.create(userId, job, cron, enabled, name, timezone)
+    const schedule_ = await this._redisSchedules.create(
+      userId,
+      job,
+      cron,
+      enabled,
+      name,
+      timezone
+    )
     const schedule = schedule_.properties
 
     this._add(schedule)

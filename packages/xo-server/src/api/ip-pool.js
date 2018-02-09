@@ -26,9 +26,8 @@ export function getAll (params) {
     throw unauthorized()
   }
 
-  return this.getAllIpPools(user.permission === 'admin'
-    ? params && params.userId
-    : user.id
+  return this.getAllIpPools(
+    user.permission === 'admin' ? params && params.userId : user.id
   )
 }
 

@@ -4,7 +4,10 @@ import { promisify } from 'promise-toolbox'
 // ===================================================================
 
 const logAndRethrow = error => {
-  console.error('[WARN] plugin transport-slack:', (error != null && error.stack) || error)
+  console.error(
+    '[WARN] plugin transport-slack:',
+    (error != null && error.stack) || error
+  )
 
   throw error
 }
@@ -48,10 +51,7 @@ class XoServerTransportSlack {
     this._send = null
   }
 
-  configure ({
-    webhookUri,
-    ...conf
-  }) {
+  configure ({ webhookUri, ...conf }) {
     const slack = new Slack()
     slack.setWebhook(webhookUri)
     this._conf = conf
@@ -74,9 +74,7 @@ The transport-slack plugin for Xen Orchestra server seems to be working fine, ni
     })
   }
 
-  _sendSlack ({
-    message,
-  }) {
+  _sendSlack ({ message }) {
     // TODO: handle errors
     return this._send({ ...this._conf, text: message }).catch(logAndRethrow)
   }

@@ -4,7 +4,14 @@ export function getBondModes () {
   return ['balance-slb', 'active-backup', 'lacp']
 }
 
-export async function create ({ pool, name, description, pif, mtu = 1500, vlan = 0 }) {
+export async function create ({
+  pool,
+  name,
+  description,
+  pif,
+  mtu = 1500,
+  vlan = 0,
+}) {
   return this.getXapi(pool).createNetwork({
     name,
     description,
@@ -30,13 +37,19 @@ create.permission = 'admin'
 
 // =================================================================
 
-export async function createBonded ({ pool, name, description, pifs, mtu = 1500, mac, bondMode }) {
+export async function createBonded ({
+  pool,
+  name,
+  description,
+  pifs,
+  mtu = 1500,
+  mac,
+  bondMode,
+}) {
   return this.getXapi(pool).createBondedNetwork({
     name,
     description,
-    pifIds: mapToArray(pifs, pif =>
-      this.getObject(pif, 'PIF')._xapiId
-    ),
+    pifIds: mapToArray(pifs, pif => this.getObject(pif, 'PIF')._xapiId),
     mtu: +mtu,
     mac,
     bondMode,
@@ -56,14 +69,18 @@ createBonded.params = {
   mtu: { type: ['integer', 'string'], optional: true },
   mac: { type: 'string', optional: true },
   // RegExp since schema-inspector does not provide a param check based on an enumeration
-  bondMode: { type: 'string', pattern: new RegExp(`^(${getBondModes().join('|')})$`) },
+  bondMode: {
+    type: 'string',
+    pattern: new RegExp(`^(${getBondModes().join('|')})$`),
+  },
 }
 
 createBonded.resolve = {
   pool: ['pool', 'pool', 'administrate'],
 }
 createBonded.permission = 'admin'
-createBonded.description = 'Create a bonded network. bondMode can be balance-slb, active-backup or lacp'
+createBonded.description =
+  'Create a bonded network. bondMode can be balance-slb, active-backup or lacp'
 
 // ===================================================================
 
@@ -109,7 +126,7 @@ set.resolve = {
 export async function delete_ ({ network }) {
   return this.getXapi(network).deleteNetwork(network._xapiId)
 }
-export {delete_ as delete}
+export { delete_ as delete }
 
 delete_.params = {
   id: { type: 'string' },

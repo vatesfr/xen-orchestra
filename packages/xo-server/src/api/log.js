@@ -1,11 +1,12 @@
-export async function get ({namespace}) {
+export async function get ({ namespace }) {
   const logger = await this.getLogger(namespace)
 
   return new Promise((resolve, reject) => {
     const logs = {}
 
-    logger.createReadStream()
-      .on('data', (data) => {
+    logger
+      .createReadStream()
+      .on('data', data => {
         logs[data.key] = data.value
       })
       .on('end', () => {
@@ -23,16 +24,16 @@ get.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-async function delete_ ({namespace, id}) {
+async function delete_ ({ namespace, id }) {
   const logger = await this.getLogger(namespace)
   logger.del(id)
 }
 
 delete_.description = 'deletes one or several logs from a namespace'
 delete_.params = {
-  id: { type: [ 'array', 'string' ] },
+  id: { type: ['array', 'string'] },
   namespace: { type: 'string' },
 }
 delete_.permission = 'admin'
 
-export {delete_ as delete}
+export { delete_ as delete }

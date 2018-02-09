@@ -41,9 +41,13 @@ export class PluginsMetadata extends Collection {
       const { autoload, configuration } = pluginMetadata
       pluginMetadata.autoload = autoload === 'true'
       try {
-        pluginMetadata.configuration = configuration && JSON.parse(configuration)
+        pluginMetadata.configuration =
+          configuration && JSON.parse(configuration)
       } catch (error) {
-        console.warn('cannot parse pluginMetadata.configuration:', configuration)
+        console.warn(
+          'cannot parse pluginMetadata.configuration:',
+          configuration
+        )
         pluginMetadata.configuration = []
       }
     })

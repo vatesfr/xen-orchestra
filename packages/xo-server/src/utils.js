@@ -32,10 +32,7 @@ import {
   promisify,
   reflect as pReflect,
 } from 'promise-toolbox'
-import {
-  createHash,
-  randomBytes,
-} from 'crypto'
+import { createHash, randomBytes } from 'crypto'
 
 // ===================================================================
 
@@ -53,11 +50,13 @@ export const asyncMap = (collection, iteratee) => {
     }
   }
 
-  return Promise.all(mapToArray(collection, (item, key, collection) =>
-    new Promise(resolve => {
-      resolve(iteratee(item, key, collection))
-    }).catch(onError)
-  )).then(values => {
+  return Promise.all(
+    mapToArray(collection, (item, key, collection) =>
+      new Promise(resolve => {
+        resolve(iteratee(item, key, collection))
+      }).catch(onError)
+    )
+  ).then(values => {
     if (errorContainer !== undefined) {
       throw errorContainer.error
     }
@@ -103,7 +102,7 @@ export const diffItems = (coll1, coll2) => {
     }
   })
 
-  return [ added, keys(removed) ]
+  return [added, keys(removed)]
 }
 
 // -------------------------------------------------------------------
@@ -138,16 +137,18 @@ export const addChecksumToReadStream = (stream, algorithm = 'md5') => {
   const hash = createHash(algorithm)
   const { promise, resolve } = defer()
 
-  const wrapper = stream.pipe(through2(
-    (chunk, enc, callback) => {
-      hash.update(chunk)
-      callback(null, chunk)
-    },
-    callback => {
-      resolve(hash.digest('hex'))
-      callback()
-    }
-  ))
+  const wrapper = stream.pipe(
+    through2(
+      (chunk, enc, callback) => {
+        hash.update(chunk)
+        callback(null, chunk)
+      },
+      callback => {
+        resolve(hash.digest('hex'))
+        callback()
+      }
+    )
+  )
 
   stream.on('error', error => wrapper.emit('error', error))
   wrapper.checksum = promise.then(hash => `$${algorithmId}$$${hash}`)
@@ -159,7 +160,10 @@ export const addChecksumToReadStream = (stream, algorithm = 'md5') => {
 // The given stream is wrapped in a stream which emits an error event
 // if the computed checksum is not equals to the expected checksum.
 export const validChecksumOfReadStream = (stream, expectedChecksum) => {
-  const algorithmId = expectedChecksum.slice(1, expectedChecksum.indexOf('$', 1))
+  const algorithmId = expectedChecksum.slice(
+    1,
+    expectedChecksum.indexOf('$', 1)
+  )
 
   if (!algorithmId) {
     throw new Error(`unknown algorithm: ${algorithmId}`)
@@ -167,22 +171,26 @@ export const validChecksumOfReadStream = (stream, expectedChecksum) => {
 
   const hash = createHash(ID_TO_ALGORITHM[algorithmId])
 
-  const wrapper = stream.pipe(through2(
-    { highWaterMark: 0 },
-    (chunk, enc, callback) => {
-      hash.update(chunk)
-      callback(null, chunk)
-    },
-    callback => {
-      const checksum = `$${algorithmId}$$${hash.digest('hex')}`
+  const wrapper = stream.pipe(
+    through2(
+      { highWaterMark: 0 },
+      (chunk, enc, callback) => {
+        hash.update(chunk)
+        callback(null, chunk)
+      },
+      callback => {
+        const checksum = `$${algorithmId}$$${hash.digest('hex')}`
 
-      callback(
-        checksum !== expectedChecksum
-          ? new Error(`Bad checksum (${checksum}), expected: ${expectedChecksum}`)
-          : null
-      )
-    }
-  ))
+        callback(
+          checksum !== expectedChecksum
+            ? new Error(
+              `Bad checksum (${checksum}), expected: ${expectedChecksum}`
+            )
+            : null
+        )
+      }
+    )
+  )
 
   stream.on('error', error => wrapper.emit('error', error))
   wrapper.checksumVerified = eventToPromise(wrapper, 'end')
@@ -225,10 +233,16 @@ export const firstDefined = function () {
 
 // -------------------------------------------------------------------
 
-export const getUserPublicProperties = user => pick(
-  user.properties || user,
-  'id', 'email', 'groups', 'permission', 'preferences', 'provider'
-)
+export const getUserPublicProperties = user =>
+  pick(
+    user.properties || user,
+    'id',
+    'email',
+    'groups',
+    'permission',
+    'preferences',
+    'provider'
+  )
 
 // -------------------------------------------------------------------
 
@@ -237,17 +251,18 @@ export const getPseudoRandomBytes = n => {
 
   const odd = n & 1
   for (let i = 0, m = n - odd; i < m; i += 2) {
-    bytes.writeUInt16BE(Math.random() * 65536 | 0, i)
+    bytes.writeUInt16BE((Math.random() * 65536) | 0, i)
   }
 
   if (odd) {
-    bytes.writeUInt8(Math.random() * 256 | 0, n - 1)
+    bytes.writeUInt8((Math.random() * 256) | 0, n - 1)
   }
 
   return bytes
 }
 
-export const generateUnsecureToken = (n = 32) => base64url(getPseudoRandomBytes(n))
+export const generateUnsecureToken = (n = 32) =>
+  base64url(getPseudoRandomBytes(n))
 
 // Generate a secure random Base64 string.
 export const generateToken = (randomBytes => {
@@ -270,7 +285,7 @@ export const parseXml = (function () {
     explicitArray: false,
   }
 
-  return (xml) => {
+  return xml => {
     let result
 
     // xml2js.parseString() use a callback for synchronous code.
@@ -340,13 +355,17 @@ export function pDebug (promise, name) {
     value => {
       console.log(
         '%s',
-        `Promise ${name} resolved${value !== undefined ? ` with ${kindOf(value)}` : ''}`
+        `Promise ${name} resolved${
+          value !== undefined ? ` with ${kindOf(value)}` : ''
+        }`
       )
     },
     reason => {
       console.log(
         '%s',
-        `Promise ${name} rejected${reason !== undefined ? ` with ${kindOf(reason)}` : ''}`
+        `Promise ${name} rejected${
+          reason !== undefined ? ` with ${kindOf(reason)}` : ''
+        }`
       )
     }
   )
@@ -471,14 +490,15 @@ export function map (
 // -------------------------------------------------------------------
 
 // Create a hash from multiple values.
-export const multiKeyHash = (...args) => new Promise(resolve => {
-  const hash = multiKeyHashInt(...args)
+export const multiKeyHash = (...args) =>
+  new Promise(resolve => {
+    const hash = multiKeyHashInt(...args)
 
-  const buf = Buffer.allocUnsafe(4)
-  buf.writeUInt32LE(hash, 0)
+    const buf = Buffer.allocUnsafe(4)
+    buf.writeUInt32LE(hash, 0)
 
-  resolve(base64url(buf))
-})
+    resolve(base64url(buf))
+  })
 
 // -------------------------------------------------------------------
 
@@ -487,19 +507,17 @@ export const resolveSubpath = (root, path) =>
 
 // -------------------------------------------------------------------
 
-export const streamToArray = (stream, {
-  filter,
-  mapper,
-} = {}) => new Promise((resolve, reject) => {
-  stream = highland(stream).stopOnError(reject)
-  if (filter) {
-    stream = stream.filter(filter)
-  }
-  if (mapper) {
-    stream = stream.map(mapper)
-  }
-  stream.toArray(resolve)
-})
+export const streamToArray = (stream, { filter, mapper } = {}) =>
+  new Promise((resolve, reject) => {
+    stream = highland(stream).stopOnError(reject)
+    if (filter) {
+      stream = stream.filter(filter)
+    }
+    if (mapper) {
+      stream = stream.map(mapper)
+    }
+    stream.toArray(resolve)
+  })
 
 // -------------------------------------------------------------------
 
@@ -520,7 +538,10 @@ export const scheduleFn = (cronTime, fn, timeZone) => {
       try {
         await fn()
       } catch (error) {
-        console.error('[WARN] scheduled function:', (error && error.stack) || error)
+        console.error(
+          '[WARN] scheduled function:',
+          (error && error.stack) || error
+        )
       } finally {
         running = false
       }
@@ -563,11 +584,7 @@ export const thunkToArray = thunk => {
 // function foo (param = throwFn('param is required')()) {}
 // ```
 export const throwFn = error => () => {
-  throw (
-    isString(error)
-      ? new Error(error)
-      : error
-  )
+  throw isString(error) ? new Error(error) : error
 }
 
 // -------------------------------------------------------------------
@@ -596,10 +613,9 @@ export const mapFilter = (collection, iteratee) => {
 
 export const splitFirst = (string, separator) => {
   const i = string.indexOf(separator)
-  return i === -1 ? null : [
-    string.slice(0, i),
-    string.slice(i + separator.length),
-  ]
+  return i === -1
+    ? null
+    : [string.slice(0, i), string.slice(i + separator.length)]
 }
 
 // -------------------------------------------------------------------

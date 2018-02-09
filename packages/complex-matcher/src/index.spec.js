@@ -49,13 +49,15 @@ describe('Number', () => {
 
 describe('setPropertyClause', () => {
   it('creates a node if none passed', () => {
-    expect(setPropertyClause(undefined, 'foo', 'bar').toString()).toBe('foo:bar')
+    expect(setPropertyClause(undefined, 'foo', 'bar').toString()).toBe(
+      'foo:bar'
+    )
   })
 
   it('adds a property clause if there was none', () => {
-    expect(
-      setPropertyClause(parse('baz'), 'foo', 'bar').toString()
-    ).toBe('baz foo:bar')
+    expect(setPropertyClause(parse('baz'), 'foo', 'bar').toString()).toBe(
+      'baz foo:bar'
+    )
   })
 
   it('replaces the property clause if there was one', () => {

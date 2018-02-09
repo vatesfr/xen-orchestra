@@ -25,7 +25,7 @@ export class Users extends Collection {
     const { email } = properties
 
     // Avoid duplicates.
-    if (await this.exists({email})) {
+    if (await this.exists({ email })) {
       throw new Error(`the user ${email} already exists`)
     }
 
@@ -39,10 +39,8 @@ export class Users extends Collection {
   async save (user) {
     // Serializes.
     let tmp
-    user.groups = isEmpty(tmp = user.groups)
-      ? undefined
-      : JSON.stringify(tmp)
-    user.preferences = isEmpty(tmp = user.preferences)
+    user.groups = isEmpty((tmp = user.groups)) ? undefined : JSON.stringify(tmp)
+    user.preferences = isEmpty((tmp = user.preferences))
       ? undefined
       : JSON.stringify(tmp)
 

@@ -6,15 +6,10 @@ import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
 
 import constantStream from './constant-stream'
-import {
-  noop,
-  streamToBuffer,
-} from './utils'
+import { noop, streamToBuffer } from './utils'
 
 const VHD_UTIL_DEBUG = 0
-const debug = VHD_UTIL_DEBUG
-  ? str => console.log(`[vhd-util]${str}`)
-  : noop
+const debug = VHD_UTIL_DEBUG ? str => console.log(`[vhd-util]${str}`) : noop
 
 // ===================================================================
 //
@@ -42,7 +37,7 @@ const HARD_DISK_TYPE_DYNAMIC = 3 // Full backup.
 const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
 
 // Other.
-const BLOCK_UNUSED = 0xFFFFFFFF
+const BLOCK_UNUSED = 0xffffffff
 const BIT_MASK = 0x80
 
 // unused block as buffer containing a uint32BE
@@ -63,11 +58,13 @@ const fuFooter = fu.struct([
   fu.char('creatorApplication', 4), // 28
   fu.uint32('creatorVersion'), // 32
   fu.uint32('creatorHostOs'), // 36
-  fu.struct('originalSize', [ // At the creation, current size of the hard disk.
+  fu.struct('originalSize', [
+    // At the creation, current size of the hard disk.
     fu.uint32('high'), // 40
     fu.uint32('low'), // 44
   ]),
-  fu.struct('currentSize', [ // Current size of the virtual disk. At the creation: currentSize = originalSize.
+  fu.struct('currentSize', [
+    // Current size of the virtual disk. At the creation: currentSize = originalSize.
     fu.uint32('high'), // 48
     fu.uint32('low'), // 52
   ]),
@@ -86,11 +83,9 @@ const fuFooter = fu.struct([
 
 const fuHeader = fu.struct([
   fu.char('cookie', 8),
-  fu.struct('dataOffset', [
-    fu.uint32('high'),
-    fu.uint32('low'),
-  ]),
-  fu.struct('tableOffset', [ // Absolute byte offset of the Block Allocation Table.
+  fu.struct('dataOffset', [fu.uint32('high'), fu.uint32('low')]),
+  fu.struct('tableOffset', [
+    // Absolute byte offset of the Block Allocation Table.
     fu.uint32('high'),
     fu.uint32('low'),
   ]),
@@ -102,16 +97,21 @@ const fuHeader = fu.struct([
   fu.uint32('parentTimestamp'),
   fu.uint32('reserved1'),
   fu.char16be('parentUnicodeName', 512),
-  fu.struct('parentLocatorEntry', [
-    fu.uint32('platformCode'),
-    fu.uint32('platformDataSpace'),
-    fu.uint32('platformDataLength'),
-    fu.uint32('reserved'),
-    fu.struct('platformDataOffset', [ // Absolute byte offset of the locator data.
-      fu.uint32('high'),
-      fu.uint32('low'),
-    ]),
-  ], VHD_PARENT_LOCATOR_ENTRIES),
+  fu.struct(
+    'parentLocatorEntry',
+    [
+      fu.uint32('platformCode'),
+      fu.uint32('platformDataSpace'),
+      fu.uint32('platformDataLength'),
+      fu.uint32('reserved'),
+      fu.struct('platformDataOffset', [
+        // Absolute byte offset of the locator data.
+        fu.uint32('high'),
+        fu.uint32('low'),
+      ]),
+    ],
+    VHD_PARENT_LOCATOR_ENTRIES
+  ),
   fu.char('reserved2', 256),
 ])
 
@@ -120,19 +120,22 @@ const fuHeader = fu.struct([
 // ===================================================================
 
 const SIZE_OF_32_BITS = Math.pow(2, 32)
-const uint32ToUint64 = (fu) => fu.high * SIZE_OF_32_BITS + fu.low
+const uint32ToUint64 = fu => fu.high * SIZE_OF_32_BITS + fu.low
 
 // Returns a 32 bits integer corresponding to a Vhd version.
-const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000FFFF)
+const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000ffff)
 
 // Sectors conversions.
-const sectorsRoundUp = bytes => Math.floor((bytes + VHD_SECTOR_SIZE - 1) / VHD_SECTOR_SIZE)
+const sectorsRoundUp = bytes =>
+  Math.floor((bytes + VHD_SECTOR_SIZE - 1) / VHD_SECTOR_SIZE)
 const sectorsRoundUpNoZero = bytes => sectorsRoundUp(bytes) || 1
 const sectorsToBytes = sectors => sectors * VHD_SECTOR_SIZE
 
 // Check/Set a bit on a vhd map.
 const mapTestBit = (map, bit) => ((map[bit >> 3] << (bit & 7)) & BIT_MASK) !== 0
-const mapSetBit = (map, bit) => { map[bit >> 3] |= (BIT_MASK >> (bit & 7)) }
+const mapSetBit = (map, bit) => {
+  map[bit >> 3] |= BIT_MASK >> (bit & 7)
+}
 
 const packField = (field, value, buf) => {
   const { offset } = field
@@ -140,7 +143,7 @@ const packField = (field, value, buf) => {
   field.pack(
     value,
     buf,
-    (typeof offset !== 'object') ? { bytes: offset, bits: 0 } : offset
+    typeof offset !== 'object' ? { bytes: offset, bits: 0 } : offset
   )
 }
 
@@ -149,7 +152,7 @@ const unpackField = (field, buf) => {
 
   return field.unpack(
     buf,
-    (typeof offset !== 'object') ? { bytes: offset, bits: 0 } : offset
+    typeof offset !== 'object' ? { bytes: offset, bits: 0 } : offset
   )
 }
 // ===================================================================
@@ -165,10 +168,10 @@ function checksumStruct (rawStruct, struct) {
   packField(checksumField, 0, rawStruct)
 
   for (let i = 0, n = struct.size; i < n; i++) {
-    sum = (sum + rawStruct[i]) & 0xFFFFFFFF
+    sum = (sum + rawStruct[i]) & 0xffffffff
   }
 
-  sum = 0xFFFFFFFF - sum
+  sum = 0xffffffff - sum
 
   // Write new sum.
   packField(checksumField, sum, rawStruct)
@@ -210,15 +213,19 @@ class Vhd {
     )
 
     // Max(end, block allocation table end)
-    end = Math.max(end, uint32ToUint64(header.tableOffset) + blockAllocationTableSize)
+    end = Math.max(
+      end,
+      uint32ToUint64(header.tableOffset) + blockAllocationTableSize
+    )
 
     for (let i = 0; i < VHD_PARENT_LOCATOR_ENTRIES; i++) {
       const entry = header.parentLocatorEntry[i]
 
       if (entry.platformCode !== VHD_PLATFORM_CODE_NONE) {
-        end = Math.max(end,
+        end = Math.max(
+          end,
           uint32ToUint64(entry.platformDataOffset) +
-          sectorsToBytes(entry.platformDataSpace)
+            sectorsToBytes(entry.platformDataSpace)
         )
       }
     }
@@ -256,19 +263,27 @@ class Vhd {
 
     // Checksum child & parent.
     if (sumToTest !== sum) {
-      throw new Error(`Bad checksum in vhd. Expected: ${sum}. Given: ${sumToTest}. (data=${buf.toString('hex')})`)
+      throw new Error(
+        `Bad checksum in vhd. Expected: ${sum}. Given: ${sumToTest}. (data=${buf.toString(
+          'hex'
+        )})`
+      )
     }
 
-    const header = this.header = fuHeader.unpack(buf.slice(VHD_FOOTER_SIZE))
+    const header = (this.header = fuHeader.unpack(buf.slice(VHD_FOOTER_SIZE)))
     this.footer = fuFooter.unpack(buf)
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
-    const sectorsPerBlock = this.sectorsPerBlock = Math.floor(header.blockSize / VHD_SECTOR_SIZE)
+    const sectorsPerBlock = (this.sectorsPerBlock = Math.floor(
+      header.blockSize / VHD_SECTOR_SIZE
+    ))
 
     // Compute bitmap size in sectors.
     // Default: 1.
-    const sectorsOfBitmap = this.sectorsOfBitmap = sectorsRoundUpNoZero(sectorsPerBlock >> 3)
+    const sectorsOfBitmap = (this.sectorsOfBitmap = sectorsRoundUpNoZero(
+      sectorsPerBlock >> 3
+    ))
 
     // Full block size => data block size + bitmap size.
     this.fullBlockSize = sectorsToBytes(sectorsPerBlock + sectorsOfBitmap)
@@ -309,12 +324,14 @@ class Vhd {
     return this._read(
       sectorsToBytes(blockAddr),
       onlyBitmap ? this.bitmapSize : this.fullBlockSize
-    ).then(buf => onlyBitmap
-      ? { bitmap: buf }
-      : {
-        bitmap: buf.slice(0, this.bitmapSize),
-        data: buf.slice(this.bitmapSize),
-      }
+    ).then(
+      buf =>
+        onlyBitmap
+          ? { bitmap: buf }
+          : {
+            bitmap: buf.slice(0, this.bitmapSize),
+            data: buf.slice(this.bitmapSize),
+          }
     )
   }
 
@@ -366,19 +383,26 @@ class Vhd {
 
   // Write a buffer/stream at a given position in a vhd file.
   _write (data, offset) {
-    debug(`_write offset=${offset} size=${Buffer.isBuffer(data) ? data.length : '???'}`)
-    // TODO: could probably be merged in remote handlers.
-    return this._handler.createOutputStream(this._path, {
-      flags: 'r+',
-      start: offset,
-    }).then(
-      Buffer.isBuffer(data)
-        ? stream => new Promise((resolve, reject) => {
-          stream.on('error', reject)
-          stream.end(data, resolve)
-        })
-        : stream => eventToPromise(data.pipe(stream), 'finish')
+    debug(
+      `_write offset=${offset} size=${
+        Buffer.isBuffer(data) ? data.length : '???'
+      }`
     )
+    // TODO: could probably be merged in remote handlers.
+    return this._handler
+      .createOutputStream(this._path, {
+        flags: 'r+',
+        start: offset,
+      })
+      .then(
+        Buffer.isBuffer(data)
+          ? stream =>
+            new Promise((resolve, reject) => {
+              stream.on('error', reject)
+              stream.end(data, resolve)
+            })
+          : stream => eventToPromise(data.pipe(stream), 'finish')
+      )
   }
 
   async ensureBatSize (size) {
@@ -393,16 +417,20 @@ class Vhd {
     const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
 
     // extend BAT
-    const maxTableEntries = header.maxTableEntries = size
+    const maxTableEntries = (header.maxTableEntries = size)
     const batSize = maxTableEntries * VHD_ENTRY_SIZE
     const prevBat = this.blockTable
-    const bat = this.blockTable = Buffer.allocUnsafe(batSize)
+    const bat = (this.blockTable = Buffer.allocUnsafe(batSize))
     prevBat.copy(bat)
     bat.fill(BUF_BLOCK_UNUSED, prevBat.length)
-    debug(`ensureBatSize: extend in memory BAT ${prevMaxTableEntries} -> ${maxTableEntries}`)
+    debug(
+      `ensureBatSize: extend in memory BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
+    )
 
     const extendBat = () => {
-      debug(`ensureBatSize: extend in file BAT ${prevMaxTableEntries} -> ${maxTableEntries}`)
+      debug(
+        `ensureBatSize: extend in file BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
+      )
 
       return this._write(
         constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
@@ -411,10 +439,7 @@ class Vhd {
     }
 
     if (tableOffset + batSize < sectorsToBytes(firstSector)) {
-      return Promise.all([
-        extendBat(),
-        this.writeHeader(),
-      ])
+      return Promise.all([extendBat(), this.writeHeader()])
     }
 
     const { fullBlockSize } = this
@@ -423,9 +448,9 @@ class Vhd {
 
     return Promise.all([
       // copy the first block at the end
-      this._readStream(sectorsToBytes(firstSector), fullBlockSize).then(stream =>
-        this._write(stream, sectorsToBytes(newFirstSector))
-      ).then(extendBat),
+      this._readStream(sectorsToBytes(firstSector), fullBlockSize)
+        .then(stream => this._write(stream, sectorsToBytes(newFirstSector)))
+        .then(extendBat),
 
       this._setBatEntry(first, newFirstSector),
       this.writeHeader(),
@@ -456,7 +481,7 @@ class Vhd {
     await Promise.all([
       // Write an empty block and addr in vhd file.
       this._write(
-        constantStream([ 0 ], this.fullBlockSize),
+        constantStream([0], this.fullBlockSize),
         sectorsToBytes(blockAddr)
       ),
 
@@ -476,7 +501,11 @@ class Vhd {
 
     const offset = sectorsToBytes(blockAddr)
 
-    debug(`Write bitmap at: ${offset}. (size=${bitmapSize}, data=${bitmap.toString('hex')})`)
+    debug(
+      `Write bitmap at: ${offset}. (size=${bitmapSize}, data=${bitmap.toString(
+        'hex'
+      )})`
+    )
     await this._write(bitmap, sectorsToBytes(blockAddr))
   }
 
@@ -489,7 +518,11 @@ class Vhd {
 
     const offset = blockAddr + this.sectorsOfBitmap + beginSectorId
 
-    debug(`writeBlockSectors at ${offset} block=${block.id}, sectors=${beginSectorId}...${endSectorId}`)
+    debug(
+      `writeBlockSectors at ${offset} block=${
+        block.id
+      }, sectors=${beginSectorId}...${endSectorId}`
+    )
 
     await this._write(
       block.data.slice(
@@ -532,11 +565,7 @@ class Vhd {
 
       // Write n sectors into parent.
       debug(`coalesceBlock: write sectors=${i}...${endSector}`)
-      await this.writeBlockSectors(
-        { id: blockId, data },
-        i,
-        endSector
-      )
+      await this.writeBlockSectors({ id: blockId, data }, i, endSector)
 
       i = endSector
     }
@@ -553,7 +582,11 @@ class Vhd {
     const rawFooter = fuFooter.pack(footer)
 
     footer.checksum = checksumStruct(rawFooter, fuFooter)
-    debug(`Write footer at: ${offset} (checksum=${footer.checksum}). (data=${rawFooter.toString('hex')})`)
+    debug(
+      `Write footer at: ${offset} (checksum=${
+        footer.checksum
+      }). (data=${rawFooter.toString('hex')})`
+    )
 
     await this._write(rawFooter, 0)
     await this._write(rawFooter, offset)
@@ -564,7 +597,11 @@ class Vhd {
     const rawHeader = fuHeader.pack(header)
     header.checksum = checksumStruct(rawHeader, fuHeader)
     const offset = VHD_FOOTER_SIZE
-    debug(`Write header at: ${offset} (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
+    debug(
+      `Write header at: ${offset} (checksum=${
+        header.checksum
+      }). (data=${rawHeader.toString('hex')})`
+    )
     return this._write(rawHeader, offset)
   }
 }
@@ -576,8 +613,10 @@ class Vhd {
 //
 // TODO: update the identifier of the parent VHD.
 export default async function vhdMerge (
-  parentHandler, parentPath,
-  childHandler, childPath
+  parentHandler,
+  parentPath,
+  childHandler,
+  childPath
 ) {
   const parentVhd = new Vhd(parentHandler, parentPath)
   const childVhd = new Vhd(childHandler, childPath)
@@ -609,10 +648,7 @@ export default async function vhdMerge (
   }
 
   // Read allocation table of child/parent.
-  await Promise.all([
-    parentVhd.readBlockTable(),
-    childVhd.readBlockTable(),
-  ])
+  await Promise.all([parentVhd.readBlockTable(), childVhd.readBlockTable()])
 
   await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
@@ -641,8 +677,10 @@ export default async function vhdMerge (
 
 // returns true if the child was actually modified
 export async function chainVhd (
-  parentHandler, parentPath,
-  childHandler, childPath
+  parentHandler,
+  parentPath,
+  childHandler,
+  childPath
 ) {
   const parentVhd = new Vhd(parentHandler, parentPath)
   const childVhd = new Vhd(childHandler, childPath)

@@ -8,9 +8,11 @@ export async function create ({ name, size, sr, vm, bootable, position, mode }) 
 
   let resourceSet
   if (attach && (resourceSet = vm.resourceSet) != null) {
-    await this.checkResourceSetConstraints(resourceSet, this.user.id, [ sr.id ])
+    await this.checkResourceSetConstraints(resourceSet, this.user.id, [sr.id])
     await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
-  } else if (!(await this.hasPermissions(this.user.id, [ [ sr.id, 'administrate' ] ]))) {
+  } else if (
+    !await this.hasPermissions(this.user.id, [[sr.id, 'administrate']])
+  ) {
     throw unauthorized()
   }
 

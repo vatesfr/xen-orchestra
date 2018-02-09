@@ -457,10 +457,7 @@ export default class Health extends Component {
       isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
   )
 
-  _getUserSrs = createFilter(
-    () => this.props.userSrs,
-    this._getPoolPredicate
-  )
+  _getUserSrs = createFilter(() => this.props.userSrs, this._getPoolPredicate)
 
   _getVdiOrphaned = createFilter(
     () => this.props.vdiOrphaned,
@@ -482,10 +479,7 @@ export default class Health extends Component {
     this._getPoolPredicate
   )
 
-  _getMessages = createFilter(
-    () => this.state.messages,
-    this._getPoolPredicate
-  )
+  _getMessages = createFilter(() => this.state.messages, this._getPoolPredicate)
 
   render () {
     const { props, state } = this
@@ -577,7 +571,9 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={
-                    props.areObjectsFetched ? this._getControlDomainVdis() : null
+                    props.areObjectsFetched
+                      ? this._getControlDomainVdis()
+                      : null
                   }
                   columns={CONTROL_DOMAIN_VDI_COLUMNS}
                   component={SortedTable}
@@ -595,7 +591,9 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={props.areObjectsFetched ? this._getVmOrphaned() : null}
+                  collection={
+                    props.areObjectsFetched ? this._getVmOrphaned() : null
+                  }
                   columns={VM_COLUMNS}
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
@@ -613,7 +611,9 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={props.areObjectsFetched ? this._getAlertMessages() : null}
+                  collection={
+                    props.areObjectsFetched ? this._getAlertMessages() : null
+                  }
                   emptyMessage={_('noAlarms')}
                 >
                   {() => (

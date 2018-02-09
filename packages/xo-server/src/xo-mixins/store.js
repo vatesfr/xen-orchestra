@@ -4,23 +4,16 @@ import startsWith from 'lodash/startsWith'
 import sublevel from 'level-sublevel'
 import { ensureDir } from 'fs-extra'
 
-import {
-  forEach,
-  isFunction,
-  promisify,
-} from '../utils'
+import { forEach, isFunction, promisify } from '../utils'
 
 // ===================================================================
 
 const _levelHas = function has (key, cb) {
   if (cb) {
-    return this.get(key, (error, value) => error
-      ? (
-        error.notFound
-          ? cb(null, false)
-          : cb(error)
-      )
-      : cb(null, true)
+    return this.get(
+      key,
+      (error, value) =>
+        error ? (error.notFound ? cb(null, false) : cb(error)) : cb(null, true)
     )
   }
 
@@ -47,10 +40,7 @@ const levelPromise = db => {
       return
     }
 
-    if (
-      endsWith(name, 'Stream') ||
-      startsWith(name, 'is')
-    ) {
+    if (endsWith(name, 'Stream') || startsWith(name, 'is')) {
       dbP[name] = db::value
     } else {
       dbP[`${name}Sync`] = db::value
@@ -67,15 +57,15 @@ export default class {
   constructor (xo) {
     const dir = `${xo._config.datadir}/leveldb`
     this._db = ensureDir(dir).then(() => {
-      return sublevel(levelup(dir, {
-        valueEncoding: 'json',
-      }))
+      return sublevel(
+        levelup(dir, {
+          valueEncoding: 'json',
+        })
+      )
     })
   }
 
   getStore (namespace) {
-    return this._db.then(db => levelPromise(
-      levelHas(db.sublevel(namespace))
-    ))
+    return this._db.then(db => levelPromise(levelHas(db.sublevel(namespace))))
   }
 }

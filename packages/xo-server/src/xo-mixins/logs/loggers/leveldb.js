@@ -13,7 +13,7 @@ function generateUniqueKey (date) {
   }
 
   increment = 0
-  return String(lastDate = date)
+  return String((lastDate = date))
 }
 
 export default class LevelDbLogger extends AbstractLogger {
@@ -41,8 +41,9 @@ export default class LevelDbLogger extends AbstractLogger {
   }
 
   createReadStream () {
-    return highland(this._db.createReadStream())
-      .filter(({value}) => value.namespace === this._namespace)
+    return highland(this._db.createReadStream()).filter(
+      ({ value }) => value.namespace === this._namespace
+    )
   }
 
   del (id) {

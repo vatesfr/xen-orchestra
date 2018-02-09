@@ -19,10 +19,5 @@ export default {
       description: 'user (or group)',
     },
   },
-  required: [
-    'id',
-    'action',
-    'object',
-    'subject',
-  ],
+  required: ['id', 'action', 'object', 'subject'],
 }

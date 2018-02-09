@@ -20,11 +20,13 @@ function emitAsync (event) {
 
   const onError = opts != null && opts.onError
 
-  return Promise.all(this.listeners(event).map(
-    listener => new Promise(resolve => {
-      resolve(listener.apply(this, args))
-    }).catch(onError)
-  ))
+  return Promise.all(
+    this.listeners(event).map(listener =>
+      new Promise(resolve => {
+        resolve(listener.apply(this, args))
+      }).catch(onError)
+    )
+  )
 }
 
 const makeSingletonHook = (hook, postEvent) => {
@@ -44,12 +46,17 @@ const makeSingletonHook = (hook, postEvent) => {
 
 const runHook = (app, hook) => {
   debug(`${hook} start…`)
-  const promise = emitAsync.call(app, {
-    onError: error => console.error(
-      `[WARN] hook ${hook} failure:`,
-      (error != null && error.stack) || error
-    ),
-  }, hook)
+  const promise = emitAsync.call(
+    app,
+    {
+      onError: error =>
+        console.error(
+          `[WARN] hook ${hook} failure:`,
+          (error != null && error.stack) || error
+        ),
+    },
+    hook
+  )
   promise.then(() => {
     debug(`${hook} finished`)
   })

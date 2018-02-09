@@ -18,16 +18,9 @@ export default {
       description: 'describe one failure, exists if the call has failed',
     },
     returnedValue: {
-      description: 'call\'s result, exists if the call is a success',
+      description: "call's result, exists if the call is a success",
     },
   },
-  required: [
-    'event',
-    'runJobId',
-    'runCallId',
-  ],
-  oneOf: [
-    { required: ['error'] },
-    { required: ['returnedValue'] },
-  ],
+  required: ['event', 'runJobId', 'runCallId'],
+  oneOf: [{ required: ['error'] }, { required: ['returnedValue'] }],
 }

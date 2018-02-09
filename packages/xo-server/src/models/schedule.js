@@ -12,14 +12,16 @@ export class Schedules extends Collection {
   }
 
   create (userId, job, cron, enabled, name = undefined, timezone = undefined) {
-    return this.add(new Schedule({
-      userId,
-      job,
-      cron,
-      enabled,
-      name,
-      timezone,
-    }))
+    return this.add(
+      new Schedule({
+        userId,
+        job,
+        cron,
+        enabled,
+        name,
+        timezone,
+      })
+    )
   }
 
   async save (schedule) {
@@ -29,7 +31,7 @@ export class Schedules extends Collection {
   async get (properties) {
     const schedules = await super.get(properties)
     forEach(schedules, schedule => {
-      schedule.enabled = (schedule.enabled === 'true')
+      schedule.enabled = schedule.enabled === 'true'
     })
     return schedules
   }

@@ -17,7 +17,14 @@ export default class NfsHandler extends LocalHandler {
     let stdout
     const mounted = {}
     try {
-      stdout = await execa.stdout('findmnt', ['-P', '-t', 'nfs,nfs4', '--output', 'SOURCE,TARGET', '--noheadings'])
+      stdout = await execa.stdout('findmnt', [
+        '-P',
+        '-t',
+        'nfs,nfs4',
+        '--output',
+        'SOURCE,TARGET',
+        '--noheadings',
+      ])
       const regex = /^SOURCE="([^:]*):(.*)" TARGET="(.*)"$/
       forEach(stdout.split('\n'), m => {
         if (m) {
@@ -45,7 +52,14 @@ export default class NfsHandler extends LocalHandler {
 
   async _mount () {
     await fs.ensureDir(this._getRealPath())
-    return execa('mount', ['-t', 'nfs', '-o', 'vers=3', `${this._remote.host}:${this._remote.path}`, this._getRealPath()])
+    return execa('mount', [
+      '-t',
+      'nfs',
+      '-o',
+      'vers=3',
+      `${this._remote.host}:${this._remote.path}`,
+      this._getRealPath(),
+    ])
   }
 
   async _sync () {

@@ -17,11 +17,7 @@ import { join as joinPath } from 'path'
 
 import JsonRpcPeer from 'json-rpc-peer'
 import { invalidCredentials } from 'xo-common/api-errors'
-import {
-  ensureDir,
-  readdir,
-  readFile,
-} from 'fs-extra'
+import { ensureDir, readdir, readFile } from 'fs-extra'
 
 import WebServer from 'http-server-plus'
 import Xo from './xo'
@@ -52,10 +48,7 @@ const warn = (...args) => {
 
 // ===================================================================
 
-const DEPRECATED_ENTRIES = [
-  'users',
-  'servers',
-]
+const DEPRECATED_ENTRIES = ['users', 'servers']
 
 async function loadConfiguration () {
   const config = await appConf.load('xo-server', {
@@ -85,13 +78,15 @@ function createExpressApp () {
   // Registers the cookie-parser and express-session middlewares,
   // necessary for connect-flash.
   app.use(cookieParser())
-  app.use(expressSession({
-    resave: false,
-    saveUninitialized: false,
+  app.use(
+    expressSession({
+      resave: false,
+      saveUninitialized: false,
 
-    // TODO: should be in the config file.
-    secret: 'CLWguhRZAZIXZcbrMzHCYmefxgweItKnS',
-  }))
+      // TODO: should be in the config file.
+      secret: 'CLWguhRZAZIXZcbrMzHCYmefxgweItKnS',
+    })
+  )
 
   // Registers the connect-flash middleware, necessary for Passport to
   // display error messages.
@@ -112,7 +107,7 @@ async function setUpPassport (express, xo) {
   xo.registerPassportStrategy = strategy => {
     passport.use(strategy)
 
-    const {name} = strategy
+    const { name } = strategy
     if (name !== 'local') {
       strategies[name] = strategy.label || name
     }
@@ -123,10 +118,12 @@ async function setUpPassport (express, xo) {
     await readFile(joinPath(__dirname, '..', 'signin.pug'))
   )
   express.get('/signin', (req, res, next) => {
-    res.send(signInPage({
-      error: req.flash('error')[0],
-      strategies,
-    }))
+    res.send(
+      signInPage({
+        error: req.flash('error')[0],
+        strategies,
+      })
+    )
   })
 
   express.get('/signout', (req, res) => {
@@ -154,7 +151,7 @@ async function setUpPassport (express, xo) {
         // browsers do not save cookies on redirect.
         req.flash(
           'token',
-          (await xo.createAuthenticationToken({userId: user.id})).id
+          (await xo.createAuthenticationToken({ userId: user.id })).id
         )
 
         // The session is only persistent for internal provider and if 'Remember me' box is checked
@@ -183,7 +180,9 @@ async function setUpPassport (express, xo) {
       next()
     } else if (req.cookies.token) {
       next()
-    } else if (/favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/.test(url)) {
+    } else if (
+      /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/.test(url)
+    ) {
       next()
     } else {
       req.flash('return-url', url)
@@ -192,16 +191,16 @@ async function setUpPassport (express, xo) {
   })
 
   // Install the local strategy.
-  xo.registerPassportStrategy(new LocalStrategy(
-    async (username, password, done) => {
+  xo.registerPassportStrategy(
+    new LocalStrategy(async (username, password, done) => {
       try {
-        const user = await xo.authenticateUser({username, password})
+        const user = await xo.authenticateUser({ username, password })
         done(null, user)
       } catch (error) {
         done(null, false, { message: error.message })
       }
-    }
-  ))
+    })
+  )
 }
 
 // ===================================================================
@@ -274,40 +273,44 @@ async function registerPluginsInPath (path) {
     throw error
   })
 
-  await Promise.all(mapToArray(files, name => {
-    if (startsWith(name, PLUGIN_PREFIX)) {
-      return registerPluginWrapper.call(
-        this,
-        `${path}/${name}`,
-        name.slice(PLUGIN_PREFIX_LENGTH)
-      )
-    }
-  }))
+  await Promise.all(
+    mapToArray(files, name => {
+      if (startsWith(name, PLUGIN_PREFIX)) {
+        return registerPluginWrapper.call(
+          this,
+          `${path}/${name}`,
+          name.slice(PLUGIN_PREFIX_LENGTH)
+        )
+      }
+    })
+  )
 }
 
 async function registerPlugins (xo) {
-  await Promise.all(mapToArray([
-    `${__dirname}/../node_modules/`,
-    '/usr/local/lib/node_modules/',
-  ], xo::registerPluginsInPath))
+  await Promise.all(
+    mapToArray(
+      [`${__dirname}/../node_modules/`, '/usr/local/lib/node_modules/'],
+      xo::registerPluginsInPath
+    )
+  )
 }
 
 // ===================================================================
 
-async function makeWebServerListen (webServer, {
-  certificate,
+async function makeWebServerListen (
+  webServer,
+  {
+    certificate,
 
-  // The properties was called `certificate` before.
-  cert = certificate,
+    // The properties was called `certificate` before.
+    cert = certificate,
 
-  key,
-  ...opts
-}) {
+    key,
+    ...opts
+  }
+) {
   if (cert && key) {
-    [opts.cert, opts.key] = await Promise.all([
-      readFile(cert),
-      readFile(key),
-    ])
+    ;[opts.cert, opts.key] = await Promise.all([readFile(cert), readFile(key)])
   }
   try {
     const niceAddress = await webServer.listen(opts)
@@ -316,7 +319,7 @@ async function makeWebServerListen (webServer, {
     if (error.niceAddress) {
       warn(`Web server could not listen on ${error.niceAddress}`)
 
-      const {code} = error
+      const { code } = error
       if (code === 'EACCES') {
         warn('  Access denied.')
         warn('  Ports < 1024 are often reserved to privileges users.')
@@ -332,9 +335,11 @@ async function makeWebServerListen (webServer, {
 async function createWebServer ({ listen, listenOptions }) {
   const webServer = new WebServer()
 
-  await Promise.all(mapToArray(listen,
-    opts => makeWebServerListen(webServer, { ...listenOptions, ...opts })
-  ))
+  await Promise.all(
+    mapToArray(listen, opts =>
+      makeWebServerListen(webServer, { ...listenOptions, ...opts })
+    )
+  )
 
   return webServer
 }
@@ -348,7 +353,7 @@ const setUpProxies = (express, opts, xo) => {
 
   const proxy = createProxyServer({
     ignorePath: true,
-  }).on('error', (error) => console.error(error))
+  }).on('error', error => console.error(error))
 
   // TODO: sort proxies by descending prefix length.
 
@@ -464,7 +469,9 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   }
   webServer.on('upgrade', (req, socket, head) => {
     if (req.url === '/api/') {
-      webSocketServer.handleUpgrade(req, socket, head, ws => onConnection(ws, req))
+      webSocketServer.handleUpgrade(req, socket, head, ws =>
+        onConnection(ws, req)
+      )
     }
   })
 }
@@ -492,7 +499,7 @@ const setUpConsoleProxy = (webServer, xo) => {
         const { token } = parseCookies(req.headers.cookie)
 
         const user = await xo.authenticateUser({ token })
-        if (!await xo.hasPermissions(user.id, [ [ id, 'operate' ] ])) {
+        if (!await xo.hasPermissions(user.id, [[id, 'operate']])) {
           throw invalidCredentials()
         }
 
@@ -518,10 +525,7 @@ const setUpConsoleProxy = (webServer, xo) => {
 
 // ===================================================================
 
-const USAGE = (({
-  name,
-  version,
-}) => `Usage: ${name} [--safe-mode]
+const USAGE = (({ name, version }) => `Usage: ${name} [--safe-mode]
 
 ${name} v${version}`)(require('../package.json'))
 
@@ -545,7 +549,7 @@ export default async function main (args) {
 
   // Now the web server is listening, drop privileges.
   try {
-    const {user, group} = config
+    const { user, group } = config
     if (group) {
       process.setgid(group)
       debug('Group changed to', group)
@@ -576,10 +580,7 @@ export default async function main (args) {
   if (config.http.redirectToHttps) {
     let port
     forEach(config.http.listen, listen => {
-      if (
-        listen.port &&
-        (listen.cert || listen.certificate)
-      ) {
+      if (listen.port && (listen.cert || listen.certificate)) {
         port = listen.port
         return false
       }
@@ -629,7 +630,7 @@ export default async function main (args) {
   //
   // TODO: implements a timeout? (or maybe it is the services launcher
   // responsibility?)
-  forEach([ 'SIGINT', 'SIGTERM' ], signal => {
+  forEach(['SIGINT', 'SIGTERM'], signal => {
     let alreadyCalled = false
 
     process.on(signal, () => {

@@ -26,13 +26,16 @@ type ObjectPattern = { [string]: Pattern }
 type ArrayPattern = Array<Pattern>
 
 // value equals the pattern
-type ValuePattern = bool | number | string
+type ValuePattern = boolean | number | string
 
 const match = (pattern: Pattern, value: any) => {
   if (Array.isArray(pattern)) {
-    return Array.isArray(value) && pattern.every((subpattern, i) =>
-      // FIXME: subpatterns should match different subvalues
-      value.some(subvalue => match(subpattern, subvalue))
+    return (
+      Array.isArray(value) &&
+      pattern.every((subpattern, i) =>
+        // FIXME: subpatterns should match different subvalues
+        value.some(subvalue => match(subpattern, subvalue))
+      )
     )
   }
 
@@ -41,7 +44,7 @@ const match = (pattern: Pattern, value: any) => {
     const { length } = keys
 
     if (length === 1) {
-      const [ key ] = keys
+      const [key] = keys
       if (key === '__and') {
         const andPattern: AndPattern = (pattern: any)
         return andPattern.__and.every(subpattern => match(subpattern, value))
@@ -74,4 +77,5 @@ const match = (pattern: Pattern, value: any) => {
   return pattern === value
 }
 
-export const createPredicate = (pattern: Pattern) => (value: any) => match(pattern, value)
+export const createPredicate = (pattern: Pattern) => (value: any) =>
+  match(pattern, value)

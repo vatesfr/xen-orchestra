@@ -1,5 +1,4 @@
-
-import {format} from 'json-rpc-peer'
+import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
@@ -58,7 +57,7 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export function restartAgent ({host}) {
+export function restartAgent ({ host }) {
   return this.getXapi(host).restartHostAgent(host._xapiId)
 }
 
@@ -77,7 +76,7 @@ export { restartAgent as restart_agent } // eslint-disable-line camelcase
 
 // -------------------------------------------------------------------
 
-export function start ({host}) {
+export function start ({ host }) {
   return this.getXapi(host).powerOnHost(host._xapiId)
 }
 
@@ -93,7 +92,7 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stop ({host}) {
+export function stop ({ host }) {
   return this.getXapi(host).shutdownHost(host._xapiId)
 }
 
@@ -109,7 +108,7 @@ stop.resolve = {
 
 // -------------------------------------------------------------------
 
-export function detach ({host}) {
+export function detach ({ host }) {
   return this.getXapi(host).ejectHostFromPool(host._xapiId)
 }
 
@@ -125,7 +124,7 @@ detach.resolve = {
 
 // -------------------------------------------------------------------
 
-export function enable ({host}) {
+export function enable ({ host }) {
   return this.getXapi(host).enableHost(host._xapiId)
 }
 
@@ -141,7 +140,7 @@ enable.resolve = {
 
 // -------------------------------------------------------------------
 
-export function disable ({host}) {
+export function disable ({ host }) {
   return this.getXapi(host).disableHost(host._xapiId)
 }
 
@@ -157,7 +156,7 @@ disable.resolve = {
 
 // -------------------------------------------------------------------
 
-export function forget ({host}) {
+export function forget ({ host }) {
   return this.getXapi(host).forgetHost(host._xapiId)
 }
 
@@ -176,11 +175,12 @@ forget.resolve = {
 // Returns an array of missing new patches in the host
 // Returns an empty array if up-to-date
 // Throws an error if the host is not running the latest XS version
-export function listMissingPatches ({host}) {
+export function listMissingPatches ({ host }) {
   return this.getXapi(host).listMissingPoolPatchesOnHost(host._xapiId)
 }
 
-listMissingPatches.description = 'return an array of missing new patches in the host'
+listMissingPatches.description =
+  'return an array of missing new patches in the host'
 
 listMissingPatches.params = {
   host: { type: 'string' },
@@ -192,7 +192,7 @@ listMissingPatches.resolve = {
 
 // -------------------------------------------------------------------
 
-export function installPatch ({host, patch: patchUuid}) {
+export function installPatch ({ host, patch: patchUuid }) {
   return this.getXapi(host).installPoolPatchOnHost(patchUuid, host._xapiId)
 }
 
@@ -209,7 +209,7 @@ installPatch.resolve = {
 
 // -------------------------------------------------------------------
 
-export function installAllPatches ({host}) {
+export function installAllPatches ({ host }) {
   return this.getXapi(host).installAllPoolPatchesOnHost(host._xapiId)
 }
 
@@ -225,7 +225,7 @@ installAllPatches.resolve = {
 
 // -------------------------------------------------------------------
 
-export function emergencyShutdownHost ({host}) {
+export function emergencyShutdownHost ({ host }) {
   return this.getXapi(host).emergencyShutdownHost(host._xapiId)
 }
 
@@ -241,7 +241,7 @@ emergencyShutdownHost.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stats ({host, granularity}) {
+export function stats ({ host, granularity }) {
   return this.getXapiHostStats(host, granularity)
 }
 
@@ -278,9 +278,11 @@ async function handleInstallSupplementalPack (req, res, { hostId }) {
   }
 }
 
-export async function installSupplementalPack ({host}) {
+export async function installSupplementalPack ({ host }) {
   return {
-    $sendTo: (await this.registerHttpRequest(handleInstallSupplementalPack, { hostId: host.id })),
+    $sendTo: await this.registerHttpRequest(handleInstallSupplementalPack, {
+      hostId: host.id,
+    }),
   }
 }
 

@@ -2,11 +2,7 @@ import { bind, iteratee } from 'lodash'
 
 import clearObject from './clear-object'
 import NotImplemented from './not-implemented'
-import {
-  ACTION_ADD,
-  ACTION_UPDATE,
-  ACTION_REMOVE,
-} from './collection'
+import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
 
 // ===================================================================
 
@@ -108,10 +104,7 @@ export default class UniqueIndex {
   }
 
   _onRemove (items) {
-    const {
-      _itemByHash: itemByHash,
-      _keysToHash: keysToHash,
-    } = this
+    const { _itemByHash: itemByHash, _keysToHash: keysToHash } = this
 
     for (const key in items) {
       const prev = keysToHash[key]

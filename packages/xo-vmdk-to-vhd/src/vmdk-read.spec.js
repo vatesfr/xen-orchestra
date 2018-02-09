@@ -1,16 +1,23 @@
 import expect from 'must'
-import {createReadStream} from 'fs-promise'
-import {describe, it} from 'mocha'
-import {exec} from 'child-process-promise'
+import { createReadStream } from 'fs-promise'
+import { describe, it } from 'mocha'
+import { exec } from 'child-process-promise'
 
-import {VMDKDirectParser} from './vmdk-read'
+import { VMDKDirectParser } from './vmdk-read'
 
 describe('VMDK reading', () => {
   it('VMDKDirectParser reads OK', async () => {
     const rawFileName = 'random-data'
     const fileName = 'random-data.vmdk'
     await exec('base64 /dev/urandom | head -c 104448 > ' + rawFileName)
-    await exec('rm -f ' + fileName + '&& VBoxManage convertfromraw --format VMDK --variant Stream ' + rawFileName + ' ' + fileName)
+    await exec(
+      'rm -f ' +
+        fileName +
+        '&& VBoxManage convertfromraw --format VMDK --variant Stream ' +
+        rawFileName +
+        ' ' +
+        fileName
+    )
     const parser = new VMDKDirectParser(createReadStream(fileName))
     const header = await parser.readHeader()
     const harvested = []

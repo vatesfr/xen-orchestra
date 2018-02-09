@@ -20,10 +20,5 @@ export default {
     },
     data: {},
   },
-  required: [
-    'id',
-    'time',
-    'message',
-    'namespace',
-  ],
+  required: ['id', 'time', 'message', 'namespace'],
 }

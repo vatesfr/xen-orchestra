@@ -1,10 +1,6 @@
-import {EventEmitter} from 'events'
+import { EventEmitter } from 'events'
 
-import {
-  forEach,
-  isEmpty,
-  isString,
-} from './utils'
+import { forEach, isEmpty, isString } from './utils'
 
 // ===================================================================
 
@@ -35,7 +31,7 @@ export default class Model extends EventEmitter {
 
   // Check whether a property exists.
   has (name) {
-    return (this.properties[name] !== undefined)
+    return this.properties[name] !== undefined
   }
 
   // Set properties.

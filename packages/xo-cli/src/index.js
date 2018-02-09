@@ -108,14 +108,16 @@ const humanFormatOpts = {
 
 function printProgress (progress) {
   if (progress.length) {
-    console.warn('%s% of %s @ %s/s - ETA %s',
+    console.warn(
+      '%s% of %s @ %s/s - ETA %s',
       Math.round(progress.percentage),
       humanFormat(progress.length, humanFormatOpts),
       humanFormat(progress.speed, humanFormatOpts),
       prettyMs(progress.eta * 1e3)
     )
   } else {
-    console.warn('%s @ %s/s',
+    console.warn(
+      '%s @ %s/s',
       humanFormat(progress.transferred, humanFormatOpts),
       humanFormat(progress.speed, humanFormatOpts)
     )
@@ -130,8 +132,10 @@ function wrap (val) {
 
 // ===================================================================
 
-const help = wrap((function (pkg) {
-  return require('strip-indent')(`
+const help = wrap(
+  (function (pkg) {
+    return require('strip-indent')(
+      `
     Usage:
 
       $name --register [--expiresIn duration] <XO-Server URL> <username> [<password>]
@@ -162,18 +166,20 @@ const help = wrap((function (pkg) {
         Executes a command on the current XO instance.
 
     $name v$version
-  `).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
-    if (arg) {
-      return '<' + chalk.yellow(arg) + '>'
-    }
+  `
+    ).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+      if (arg) {
+        return '<' + chalk.yellow(arg) + '>'
+      }
 
-    if (key === 'name') {
-      return chalk.bold(pkg[key])
-    }
+      if (key === 'name') {
+        return chalk.bold(pkg[key])
+      }
 
-    return pkg[key]
-  })
-})(require('../package')))
+      return pkg[key]
+    })
+  })(require('../package'))
+)
 
 // -------------------------------------------------------------------
 
@@ -230,10 +236,7 @@ async function register (args) {
 exports.register = register
 
 function unregister () {
-  return config.unset([
-    'server',
-    'token',
-  ])
+  return config.unset(['server', 'token'])
 }
 exports.unregister = unregister
 
@@ -284,11 +287,7 @@ async function listCommands (args) {
       str.push(
         name,
         '=<',
-        type == null
-          ? 'unknown type'
-          : isArray(type)
-            ? type.join('|')
-            : type,
+        type == null ? 'unknown type' : isArray(type) ? type.join('|') : type,
         '>'
       )
 
@@ -347,10 +346,7 @@ async function call (args) {
 
   const result = await xo.call(method, params)
   let keys, key, url
-  if (
-    isObject(result) &&
-    (keys = getKeys(result)).length === 1
-  ) {
+  if (isObject(result) && (keys = getKeys(result)).length === 1) {
     key = keys[0]
 
     if (key === '$getFrom') {
@@ -359,16 +355,19 @@ async function call (args) {
 
       const progress = progressStream({ time: 1e3 }, printProgress)
 
-      return eventToPromise(nicePipe([
-        got.stream(url).on('response', function (response) {
-          const length = response.headers['content-length']
-          if (length !== undefined) {
-            progress.length(length)
-          }
-        }),
-        progress,
-        output,
-      ]), 'finish')
+      return eventToPromise(
+        nicePipe([
+          got.stream(url).on('response', function (response) {
+            const length = response.headers['content-length']
+            if (length !== undefined) {
+              progress.length(length)
+            }
+          }),
+          progress,
+          output,
+        ]),
+        'finish'
+      )
     }
 
     if (key === '$sendTo') {
@@ -379,10 +378,13 @@ async function call (args) {
 
       const input = nicePipe([
         createReadStream(file),
-        progressStream({
-          length: length,
-          time: 1e3,
-        }, printProgress),
+        progressStream(
+          {
+            length: length,
+            time: 1e3,
+          },
+          printProgress
+        ),
       ])
 
       const response = await got.post(url, {

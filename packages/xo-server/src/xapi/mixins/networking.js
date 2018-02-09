@@ -31,9 +31,10 @@ export default {
       set: [
         'ipv4Allowed',
         function (value, vif) {
-          const lockingMode = isEmpty(value) && isEmpty(vif.ipv6_allowed)
-            ? 'network_default'
-            : 'locked'
+          const lockingMode =
+            isEmpty(value) && isEmpty(vif.ipv6_allowed)
+              ? 'network_default'
+              : 'locked'
 
           if (lockingMode !== vif.locking_mode) {
             return this._set('locking_mode', lockingMode)
@@ -46,9 +47,10 @@ export default {
       set: [
         'ipv6Allowed',
         function (value, vif) {
-          const lockingMode = isEmpty(value) && isEmpty(vif.ipv4_allowed)
-            ? 'network_default'
-            : 'locked'
+          const lockingMode =
+            isEmpty(value) && isEmpty(vif.ipv4_allowed)
+              ? 'network_default'
+              : 'locked'
 
           if (lockingMode !== vif.locking_mode) {
             return this._set('locking_mode', lockingMode)

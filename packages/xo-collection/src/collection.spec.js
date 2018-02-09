@@ -3,15 +3,15 @@
 import eventToPromise from 'event-to-promise'
 import { forEach } from 'lodash'
 
-import Collection, {DuplicateItem, NoSuchItem} from './collection'
+import Collection, { DuplicateItem, NoSuchItem } from './collection'
 
 // ===================================================================
 
 function waitTicks (n = 2) {
-  const {nextTick} = process
+  const { nextTick } = process
 
   return new Promise(function (resolve) {
-    (function waitNextTick () {
+    ;(function waitNextTick () {
       // The first tick is handled by Promise#then()
       if (--n) {
         nextTick(waitNextTick)
@@ -34,16 +34,16 @@ describe('Collection', function () {
   it('is iterable', function () {
     const iterator = col[Symbol.iterator]()
 
-    expect(iterator.next()).toEqual({done: false, value: ['bar', 0]})
-    expect(iterator.next()).toEqual({done: true, value: undefined})
+    expect(iterator.next()).toEqual({ done: false, value: ['bar', 0] })
+    expect(iterator.next()).toEqual({ done: true, value: undefined })
   })
 
   describe('#keys()', function () {
     it('returns an iterator over the keys', function () {
       const iterator = col.keys()
 
-      expect(iterator.next()).toEqual({done: false, value: 'bar'})
-      expect(iterator.next()).toEqual({done: true, value: undefined})
+      expect(iterator.next()).toEqual({ done: false, value: 'bar' })
+      expect(iterator.next()).toEqual({ done: true, value: undefined })
     })
   })
 
@@ -51,8 +51,8 @@ describe('Collection', function () {
     it('returns an iterator over the values', function () {
       const iterator = col.values()
 
-      expect(iterator.next()).toEqual({done: false, value: 0})
-      expect(iterator.next()).toEqual({done: true, value: undefined})
+      expect(iterator.next()).toEqual({ done: false, value: 0 })
+      expect(iterator.next()).toEqual({ done: true, value: undefined })
     })
   })
 
@@ -70,7 +70,7 @@ describe('Collection', function () {
 
       // Async event.
       return eventToPromise(col, 'add').then(function (added) {
-        expect(Object.keys(added)).toEqual([ 'foo' ])
+        expect(Object.keys(added)).toEqual(['foo'])
         expect(added.foo).toBe(true)
       })
     })
@@ -216,7 +216,7 @@ describe('Collection', function () {
     })
 
     it('accepts an object with an id property', function () {
-      col.unset({id: 'bar'})
+      col.unset({ id: 'bar' })
 
       expect(col.has('bar')).toBe(false)
 
@@ -235,7 +235,7 @@ describe('Collection', function () {
       return waitTicks().then(() => {
         col.touch(foo)
 
-        return eventToPromise(col, 'update', (items) => {
+        return eventToPromise(col, 'update', items => {
           expect(Object.keys(items)).toEqual(['foo'])
           expect(items.foo).toBe(foo)
         })
@@ -249,7 +249,7 @@ describe('Collection', function () {
 
       expect(col.size).toBe(0)
 
-      return eventToPromise(col, 'remove').then((items) => {
+      return eventToPromise(col, 'remove').then(items => {
         expect(Object.keys(items)).toEqual(['bar'])
         expect(items.bar).toBeUndefined()
       })
@@ -257,84 +257,69 @@ describe('Collection', function () {
   })
 
   describe('deduplicates events', function () {
-    forEach({
-      'add & update → add': [
-        [
-          ['add', 'foo', 0],
-          ['update', 'foo', 1],
-        ],
-        {
-          add: {
-            foo: 1,
+    forEach(
+      {
+        'add & update → add': [
+          [['add', 'foo', 0], ['update', 'foo', 1]],
+          {
+            add: {
+              foo: 1,
+            },
           },
-        },
-      ],
-
-      'add & remove → ∅': [
-        [
-          ['add', 'foo', 0],
-          ['remove', 'foo'],
         ],
-        {},
-      ],
 
-      'update & update → update': [
-        [
-          ['update', 'bar', 1],
-          ['update', 'bar', 2],
-        ],
-        {
-          update: {
-            bar: 2,
+        'add & remove → ∅': [[['add', 'foo', 0], ['remove', 'foo']], {}],
+
+        'update & update → update': [
+          [['update', 'bar', 1], ['update', 'bar', 2]],
+          {
+            update: {
+              bar: 2,
+            },
           },
-        },
-      ],
-
-      'update & remove → remove': [
-        [
-          ['update', 'bar', 1],
-          ['remove', 'bar'],
         ],
-        {
-          remove: {
-            bar: undefined,
-          },
-        },
-      ],
 
-      'remove & add → update': [
-        [
-          ['remove', 'bar'],
-          ['add', 'bar', 0],
+        'update & remove → remove': [
+          [['update', 'bar', 1], ['remove', 'bar']],
+          {
+            remove: {
+              bar: undefined,
+            },
+          },
         ],
-        {
-          update: {
-            bar: 0,
+
+        'remove & add → update': [
+          [['remove', 'bar'], ['add', 'bar', 0]],
+          {
+            update: {
+              bar: 0,
+            },
           },
-        },
-      ],
-    }, ([operations, results], label) => {
-      it(label, function () {
-        forEach(operations, ([method, ...args]) => {
-          col[method](...args)
-        })
+        ],
+      },
+      ([operations, results], label) => {
+        it(label, function () {
+          forEach(operations, ([method, ...args]) => {
+            col[method](...args)
+          })
 
-        const spies = Object.create(null)
-        forEach(['add', 'update', 'remove'], event => {
-          col.on(event, (spies[event] = jest.fn()))
-        })
+          const spies = Object.create(null)
+          forEach(['add', 'update', 'remove'], event => {
+            col.on(event, (spies[event] = jest.fn()))
+          })
 
-        return waitTicks().then(() => {
-          forEach(spies, (spy, event) => {
-            const items = results[event]
-            if (items) {
-              expect(spy.mock.calls).toEqual([ [ items ] ])
-            } else {
-              expect(spy).not.toHaveBeenCalled()
-            }
+          return waitTicks().then(() => {
+            forEach(spies, (spy, event) => {
+              const items = results[event]
+              if (items) {
+                expect(spy.mock.calls).toEqual([[items]])
+              } else {
+                expect(spy).not.toHaveBeenCalled()
+              }
+            })
           })
         })
-      })
-    })
+      }
+    )
   })
 })

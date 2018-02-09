@@ -27,9 +27,7 @@ module.exports = {
         debug: !__TEST__,
         loose: true,
         shippedProposals: true,
-        targets: __PROD__
-          ? { node: nodeCompat }
-          : { node: 'current' },
+        targets: __PROD__ ? { node: nodeCompat } : { node: 'current' },
         useBuiltIns: '@babel/polyfill' in (pkg.dependencies || {}) && 'usage',
       },
     ],

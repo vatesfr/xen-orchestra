@@ -1,7 +1,7 @@
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
-import {createClient as createRedisClient} from 'redis'
-import {EventEmitter} from 'events'
+import { createClient as createRedisClient } from 'redis'
+import { EventEmitter } from 'events'
 import { noSuchObject } from 'xo-common/api-errors'
 import {
   forEach,
@@ -16,14 +16,8 @@ import {
 
 import mixins from './xo-mixins'
 import Connection from './connection'
-import {
-  mixin,
-} from './decorators'
-import {
-  createRawObject,
-  generateToken,
-  noop,
-} from './utils'
+import { mixin } from './decorators'
+import { createRawObject, generateToken, noop } from './utils'
 
 // ===================================================================
 
@@ -48,13 +42,13 @@ export default class Xo extends EventEmitter {
 
     // Connects to Redis.
     {
-      const {
-        renameCommands,
-        socket: path,
-        uri: url,
-      } = config.redis || {}
+      const { renameCommands, socket: path, uri: url } = config.redis || {}
 
-      this._redis = createRedisClient({ path, rename_commands: renameCommands, url })
+      this._redis = createRedisClient({
+        path,
+        rename_commands: renameCommands,
+        url,
+      })
     }
 
     this.on('start', () => this._watchObjects())
@@ -64,22 +58,17 @@ export default class Xo extends EventEmitter {
 
   // Returns an object from its key or UUID.
   getObject (key, type) {
-    const {
-      all,
-      indexes: {
-        byRef,
-      },
-    } = this._objects
+    const { all, indexes: { byRef } } = this._objects
 
     const obj = all[key] || byRef[key]
     if (!obj) {
       throw noSuchObject(key, type)
     }
 
-    if (type != null && (
-      (isString(type) && type !== obj.type) ||
-      !includes(type, obj.type) // Array
-    )) {
+    if (
+      type != null &&
+      ((isString(type) && type !== obj.type) || !includes(type, obj.type)) // Array
+    ) {
       throw noSuchObject(key, type)
     }
 
@@ -117,10 +106,10 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   createUserConnection () {
-    const {_connections: connections} = this
+    const { _connections: connections } = this
 
     const connection = new Connection()
-    const id = connection.id = this._nextConId++
+    const id = (connection.id = this._nextConId++)
 
     connections[id] = connection
     connection.on('close', () => {
@@ -133,9 +122,9 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   _handleHttpRequest (req, res, next) {
-    const {url} = req
+    const { url } = req
 
-    const {_httpRequestWatchers: watchers} = this
+    const { _httpRequestWatchers: watchers } = this
     const watcher = watchers[url]
     if (!watcher) {
       next()
@@ -145,7 +134,7 @@ export default class Xo extends EventEmitter {
       delete watchers[url]
     }
 
-    const {fn, data} = watcher
+    const { fn, data } = watcher
     new Promise(resolve => {
       resolve(fn.call(this, req, res, data, next))
     }).then(
@@ -166,15 +155,13 @@ export default class Xo extends EventEmitter {
   }
 
   async registerHttpRequest (fn, data, { suffix = '' } = {}) {
-    const {_httpRequestWatchers: watchers} = this
+    const { _httpRequestWatchers: watchers } = this
 
     const url = await (function generateUniqueUrl () {
       return generateToken().then(token => {
         const url = `/api/${token}${suffix}`
 
-        return url in watchers
-          ? generateUniqueUrl()
-          : url
+        return url in watchers ? generateUniqueUrl() : url
       })
     })()
 
@@ -186,11 +173,12 @@ export default class Xo extends EventEmitter {
     return url
   }
 
-  async registerHttpRequestHandler (url, fn, {
-    data = undefined,
-    persistent = true,
-  } = {}) {
-    const {_httpRequestWatchers: watchers} = this
+  async registerHttpRequestHandler (
+    url,
+    fn,
+    { data = undefined, persistent = true } = {}
+  ) {
+    const { _httpRequestWatchers: watchers } = this
 
     if (url in watchers) {
       throw new Error(`a handler is already registered for ${url}`)
@@ -217,9 +205,10 @@ export default class Xo extends EventEmitter {
 
     // For security, prevent from accessing `this`.
     if (isFunction(value)) {
-      value = (value => function () {
-        return value.apply(thisArg, arguments)
-      })(value)
+      value = (value =>
+        function () {
+          return value.apply(thisArg, arguments)
+        })(value)
     }
 
     Object.defineProperty(this, name, {
@@ -258,10 +247,7 @@ export default class Xo extends EventEmitter {
   // Some should be forwarded to connected clients.
   // Some should be persistently saved.
   _watchObjects () {
-    const {
-      _connections: connections,
-      _objects: objects,
-    } = this
+    const { _connections: connections, _objects: objects } = this
 
     let entered, exited
     function reset () {
@@ -278,7 +264,7 @@ export default class Xo extends EventEmitter {
     objects.on('add', onAdd)
     objects.on('update', onAdd)
 
-    objects.on('remove', (items) => {
+    objects.on('remove', items => {
       forEach(items, (_, id) => {
         // We don't care about the value here, so we choose `0`
         // because it is small in JSON.

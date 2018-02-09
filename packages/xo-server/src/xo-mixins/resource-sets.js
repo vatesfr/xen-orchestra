@@ -9,10 +9,7 @@ import {
   remove,
   some,
 } from 'lodash'
-import {
-  noSuchObject,
-  unauthorized,
-} from 'xo-common/api-errors'
+import { noSuchObject, unauthorized } from 'xo-common/api-errors'
 
 import {
   asyncMap,
@@ -41,7 +38,7 @@ const computeVmResourcesUsage = vm => {
     let vdi, vdiId
     if (
       vbd.type === 'Disk' &&
-      !processed[vdiId = vbd.VDI] &&
+      !processed[(vdiId = vbd.VDI)] &&
       (vdi = vbd.$VDI)
     ) {
       processed[vdiId] = true
@@ -63,12 +60,15 @@ const normalize = set => ({
   id: set.id,
   ipPools: set.ipPools || [],
   limits: set.limits
-    ? map(set.limits, limit => isObject(limit)
-      ? limit
-      : {
-        available: limit,
-        total: limit,
-      }
+    ? map(
+      set.limits,
+      limit =>
+        isObject(limit)
+          ? limit
+          : {
+            available: limit,
+            total: limit,
+          }
     )
     : {},
   name: set.name || '',
@@ -84,12 +84,14 @@ export default class {
 
     this._store = null
     xo.on('start', async () => {
-      xo.addConfigManager('resourceSets',
+      xo.addConfigManager(
+        'resourceSets',
         () => this.getAllResourceSets(),
-        resourceSets => Promise.all(mapToArray(resourceSets, resourceSet =>
-          this._save(resourceSet)
-        )),
-        [ 'groups', 'users' ]
+        resourceSets =>
+          Promise.all(
+            mapToArray(resourceSets, resourceSet => this._save(resourceSet))
+          ),
+        ['groups', 'users']
       )
 
       this._store = await xo.getStore('resourceSets')
@@ -112,32 +114,32 @@ export default class {
     const set = await this.getResourceSet(id)
 
     const user = await this._xo.getUser(userId)
-    if ((
-      user.permission !== 'admin' &&
-
-      // The set does not contains ANY subjects related to this user
-      // (itself or its groups).
-      !some(set.subjects, lightSet(user.groups).add(user.id).has)
-    ) || (
-        objectIds &&
-
-      // The set does not contains ALL objects.
-      !every(objectIds, lightSet(set.objects).has)
-      )) {
+    if (
+      (user.permission !== 'admin' &&
+        // The set does not contains ANY subjects related to this user
+        // (itself or its groups).
+        !some(set.subjects, lightSet(user.groups).add(user.id).has)) ||
+      (objectIds &&
+        // The set does not contains ALL objects.
+        !every(objectIds, lightSet(set.objects).has))
+    ) {
       throw unauthorized()
     }
   }
 
   async computeVmResourcesUsage (vm) {
     return assign(
-      computeVmResourcesUsage(
-        this._xo.getXapi(vm).getObject(vm._xapiId)
-      ),
+      computeVmResourcesUsage(this._xo.getXapi(vm).getObject(vm._xapiId)),
       await this._xo.computeVmIpPoolsUsage(vm)
     )
   }
 
-  async createResourceSet (name, subjects = undefined, objects = undefined, limits = undefined) {
+  async createResourceSet (
+    name,
+    subjects = undefined,
+    objects = undefined,
+    limits = undefined
+  ) {
     const id = await this._generateId()
     const set = normalize({
       id,
@@ -162,13 +164,16 @@ export default class {
     throw noSuchObject(id, 'resourceSet')
   }
 
-  async updateResourceSet (id, {
-    name = undefined,
-    subjects = undefined,
-    objects = undefined,
-    limits = undefined,
-    ipPools = undefined,
-  }) {
+  async updateResourceSet (
+    id,
+    {
+      name = undefined,
+      subjects = undefined,
+      objects = undefined,
+      limits = undefined,
+      ipPools = undefined,
+    }
+  ) {
     const set = await this.getResourceSet(id)
     if (name) {
       set.name = name
@@ -317,7 +322,8 @@ export default class {
     const sets = keyBy(await this.getAllResourceSets(), 'id')
     forEach(sets, ({ limits }) => {
       forEach(limits, (limit, id) => {
-        if (VM_RESOURCES[id]) { // only reset VMs related limits
+        if (VM_RESOURCES[id]) {
+          // only reset VMs related limits
           limit.available = limit.total
         }
       })
@@ -329,10 +335,8 @@ export default class {
         let set
         if (
           object.$type !== 'vm' ||
-
           // No set for this VM.
           !(id = xapi.xo.getData(object, 'resourceSet')) ||
-
           // Not our set.
           !(set = sets[id])
         ) {
@@ -356,20 +360,32 @@ export default class {
     const xapi = this._xo.getXapi(vmId)
     const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')
 
-    if (resourceSetId === previousResourceSetId || (previousResourceSetId === undefined && resourceSetId === null)) {
+    if (
+      resourceSetId === previousResourceSetId ||
+      (previousResourceSetId === undefined && resourceSetId === null)
+    ) {
       return
     }
 
-    const resourcesUsage = await this.computeVmResourcesUsage(this._xo.getObject(vmId))
+    const resourcesUsage = await this.computeVmResourcesUsage(
+      this._xo.getObject(vmId)
+    )
 
     if (resourceSetId != null) {
       await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId)
     }
     if (previousResourceSetId !== undefined) {
-      await this.releaseLimitsInResourceSet(resourcesUsage, previousResourceSetId)
+      await this.releaseLimitsInResourceSet(
+        resourcesUsage,
+        previousResourceSetId
+      )
     }
 
-    await xapi.xo.setData(vmId, 'resourceSet', resourceSetId === undefined ? null : resourceSetId)
+    await xapi.xo.setData(
+      vmId,
+      'resourceSet',
+      resourceSetId === undefined ? null : resourceSetId
+    )
 
     if (previousResourceSetId !== undefined) {
       await this._xo.removeAclsForObject(vmId)

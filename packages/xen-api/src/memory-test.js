@@ -14,7 +14,7 @@ setInterval(() => {
   )
 }, 1e2)
 
-const [ , , url, user, password ] = process.argv
+const [, , url, user, password] = process.argv
 createClient({
   auth: { user, password },
   readOnly: true,

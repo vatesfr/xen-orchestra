@@ -1,15 +1,9 @@
 import checkAuthorization from 'xo-acl-resolver'
 import { forEach, includes, map } from 'lodash'
 
-import {
-  ModelAlreadyExists,
-} from '../collection'
-import {
-  Acls,
-} from '../models/acl'
-import {
-  createRawObject,
-} from '../utils'
+import { ModelAlreadyExists } from '../collection'
+import { Acls } from '../models/acl'
+import { createRawObject } from '../utils'
 
 // ===================================================================
 
@@ -17,17 +11,18 @@ export default class {
   constructor (xo) {
     this._xo = xo
 
-    const aclsDb = this._acls = new Acls({
+    const aclsDb = (this._acls = new Acls({
       connection: xo._redis,
       prefix: 'xo:acl',
       indexes: ['subject', 'object'],
-    })
+    }))
 
     xo.on('start', () => {
-      xo.addConfigManager('acls',
+      xo.addConfigManager(
+        'acls',
         () => aclsDb.get(),
         acls => aclsDb.update(acls),
-        [ 'groups', 'users' ]
+        ['groups', 'users']
       )
     })
 
@@ -48,19 +43,16 @@ export default class {
     const user = await this._xo.getUser(userId)
     const { groups } = user
 
-    const subjects = groups
-      ? groups.concat(userId)
-      : [ userId ]
+    const subjects = groups ? groups.concat(userId) : [userId]
 
     const acls = []
     const pushAcls = (push => entries => {
       push.apply(acls, entries)
     })(acls.push)
 
-    await Promise.all(map(
-      subjects,
-      subject => this.getAclsForSubject(subject).then(pushAcls)
-    ))
+    await Promise.all(
+      map(subjects, subject => this.getAclsForSubject(subject).then(pushAcls))
+    )
 
     return acls
   }
@@ -89,20 +81,15 @@ export default class {
   }
 
   async getPermissionsForUser (userId) {
-    const [
-      acls,
-      permissionsByRole,
-    ] = await Promise.all([
+    const [acls, permissionsByRole] = await Promise.all([
       this._getAclsForUser(userId),
       this._getPermissionsByRole(),
     ])
 
     const permissions = createRawObject()
     for (const { action, object: objectId } of acls) {
-      const current = (
-        permissions[objectId] ||
-        (permissions[objectId] = createRawObject())
-      )
+      const current =
+        permissions[objectId] || (permissions[objectId] = createRawObject())
 
       const permissionsForRole = permissionsByRole[action]
       if (permissionsForRole) {
@@ -154,26 +141,17 @@ export default class {
       {
         id: 'viewer',
         name: 'Viewer',
-        permissions: [
-          'view',
-        ],
+        permissions: ['view'],
       },
       {
         id: 'operator',
         name: 'Operator',
-        permissions: [
-          'view',
-          'operate',
-        ],
+        permissions: ['view', 'operate'],
       },
       {
         id: 'admin',
         name: 'Admin',
-        permissions: [
-          'view',
-          'operate',
-          'administrate',
-        ],
+        permissions: ['view', 'operate', 'administrate'],
       },
     ]
   }

@@ -8,7 +8,8 @@ let getObject
 const authorized = () => true // eslint-disable-line no-unused-vars
 const forbiddden = () => false // eslint-disable-line no-unused-vars
 
-const and = (...checkers) => (object, permission) => { // eslint-disable-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
+const and = (...checkers) => (object, permission) => {
   for (const checker of checkers) {
     if (!checker(object, permission)) {
       return false
@@ -17,7 +18,8 @@ const and = (...checkers) => (object, permission) => { // eslint-disable-line no
   return true
 }
 
-const or = (...checkers) => (object, permission) => { // eslint-disable-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
+const or = (...checkers) => (object, permission) => {
   for (const checker of checkers) {
     if (checker(object, permission)) {
       return true
@@ -28,7 +30,7 @@ const or = (...checkers) => (object, permission) => { // eslint-disable-line no-
 
 // -------------------------------------------------------------------
 
-const checkMember = (memberName) => (object, permission) => {
+const checkMember = memberName => (object, permission) => {
   const member = object[memberName]
   return member !== object.id && checkAuthorization(member, permission)
 }
@@ -36,10 +38,7 @@ const checkMember = (memberName) => (object, permission) => {
 const checkSelf = ({ id }, permission) => {
   const permissionsForObject = permissionsByObject[id]
 
-  return (
-    permissionsForObject &&
-    permissionsForObject[permission]
-  )
+  return permissionsForObject && permissionsForObject[permission]
 }
 
 // ===================================================================
@@ -102,12 +101,7 @@ function checkAuthorization (objectId, permission) {
 
 // -------------------------------------------------------------------
 
-export default (
-  permissionsByObject_,
-  getObject_,
-  permissions,
-  permission
-) => {
+export default (permissionsByObject_, getObject_, permissions, permission) => {
   // Assign global variables.
   permissionsByObject = permissionsByObject_
   getObject = getObject_

@@ -35,7 +35,10 @@ export default class PerformancePlan extends Plan {
     try {
       await Promise.all(
         mapToArray(
-          filter(this._getHosts({ powerState: 'Halted' }), host => host.powerOnMode !== ''),
+          filter(
+            this._getHosts({ powerState: 'Halted' }),
+            host => host.powerOnMode !== ''
+          ),
           host => {
             const { id } = host
             return this.xo.getXapi(id).powerOnHost(id)
@@ -52,17 +55,14 @@ export default class PerformancePlan extends Plan {
       return
     }
 
-    const {
-      averages,
-      toOptimize,
-    } = results
+    const { averages, toOptimize } = results
     let { hosts } = results
 
     toOptimize.sort((a, b) => {
       a = averages[a.id]
       b = averages[b.id]
 
-      return (b.cpu - a.cpu) || (a.memoryFree - b.memoryFree)
+      return b.cpu - a.cpu || a.memoryFree - b.memoryFree
     })
 
     for (const exceededHost of toOptimize) {
@@ -85,9 +85,7 @@ export default class PerformancePlan extends Plan {
     const vmsAverages = await this._getVmsAverages(vms, exceededHost)
 
     // Sort vms by cpu usage. (lower to higher)
-    vms.sort((a, b) =>
-      vmsAverages[b.id].cpu - vmsAverages[a.id].cpu
-    )
+    vms.sort((a, b) => vmsAverages[b.id].cpu - vmsAverages[a.id].cpu)
 
     const exceededAverages = hostsAverages[exceededHost.id]
     const promises = []
@@ -95,11 +93,15 @@ export default class PerformancePlan extends Plan {
     const xapiSrc = this.xo.getXapi(exceededHost)
     let optimizationsCount = 0
 
-    const searchFunction = (a, b) => hostsAverages[b.id].cpu - hostsAverages[a.id].cpu
+    const searchFunction = (a, b) =>
+      hostsAverages[b.id].cpu - hostsAverages[a.id].cpu
 
     for (const vm of vms) {
       // Search host with lower cpu usage in the same pool first. In other pool if necessary.
-      let destination = searchBestObject(find(hosts, host => host.$poolId === vm.$poolId), searchFunction)
+      let destination = searchBestObject(
+        find(hosts, host => host.$poolId === vm.$poolId),
+        searchFunction
+      )
 
       if (!destination) {
         destination = searchBestObject(hosts, searchFunction)
@@ -110,7 +112,8 @@ export default class PerformancePlan extends Plan {
 
       // Unable to move the vm.
       if (
-        exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
+        exceededAverages.cpu - vmAverages.cpu <
+          destinationAverages.cpu + vmAverages.cpu ||
         destinationAverages.memoryFree > vmAverages.memory
       ) {
         continue
@@ -122,15 +125,27 @@ export default class PerformancePlan extends Plan {
       exceededAverages.memoryFree += vmAverages.memory
       destinationAverages.memoryFree -= vmAverages.memory
 
-      debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id}).`)
+      debug(
+        `Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${
+          exceededHost.id
+        }).`
+      )
       optimizationsCount++
 
       promises.push(
-        xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
+        xapiSrc.migrateVm(
+          vm._xapiId,
+          this.xo.getXapi(destination),
+          destination._xapiId
+        )
       )
     }
 
     await Promise.all(promises)
-    debug(`Performance mode: ${optimizationsCount} optimizations for Host (${exceededHost.id}).`)
+    debug(
+      `Performance mode: ${optimizationsCount} optimizations for Host (${
+        exceededHost.id
+      }).`
+    )
   }
 }

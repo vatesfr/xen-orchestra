@@ -1,9 +1,9 @@
 import expect from 'must'
-import {createReadStream, readFile} from 'fs-promise'
-import {describe, it} from 'mocha'
-import {exec} from 'child-process-promise'
+import { createReadStream, readFile } from 'fs-promise'
+import { describe, it } from 'mocha'
+import { exec } from 'child-process-promise'
 
-import {VirtualBuffer} from './virtual-buffer'
+import { VirtualBuffer } from './virtual-buffer'
 
 describe('Virtual Buffer', function () {
   it('can read a file correctly', async () => {
@@ -14,6 +14,8 @@ describe('Virtual Buffer', function () {
     const part2 = await buffer.readChunk(-1)
     const original = await readFile(rawFileName)
     expect(buffer.isDepleted).to.be.true()
-    expect(Buffer.concat([part1, part2]).toString('ascii')).to.equal(original.toString('ascii'))
+    expect(Buffer.concat([part1, part2]).toString('ascii')).to.equal(
+      original.toString('ascii')
+    )
   })
 })

@@ -27,7 +27,8 @@ class XoServerCloud {
     getResourceCatalog.description = 'Get the list of all available resources'
     getResourceCatalog.permission = 'admin'
 
-    const registerResource = ({ namespace }) => this._registerResource(namespace)
+    const registerResource = ({ namespace }) =>
+      this._registerResource(namespace)
     registerResource.description = 'Register a resource via cloud plugin'
     registerResource.params = {
       namespace: {
@@ -42,21 +43,22 @@ class XoServerCloud {
         registerResource,
       },
     })
-    this._unsetRequestResource = this._xo.defineProperty('requestResource', this._requestResource, this)
+    this._unsetRequestResource = this._xo.defineProperty(
+      'requestResource',
+      this._requestResource,
+      this
+    )
 
-    const updater = this._updater = new Client(`${UPDATER_URL}:${WS_PORT}`)
-    const connect = () => updater.open(createBackoff()).catch(
-      error => {
+    const updater = (this._updater = new Client(`${UPDATER_URL}:${WS_PORT}`))
+    const connect = () =>
+      updater.open(createBackoff()).catch(error => {
         console.error('xo-server-cloud: fail to connect to updater', error)
 
         return connect()
-      }
-    )
-    updater
-      .on('closed', connect)
-      .on('scheduledAttempt', ({ delay }) => {
-        console.warn('xo-server-cloud: next attempt in %s ms', delay)
       })
+    updater.on('closed', connect).on('scheduledAttempt', ({ delay }) => {
+      console.warn('xo-server-cloud: next attempt in %s ms', delay)
+    })
     connect()
   }
 
@@ -138,13 +140,15 @@ class XoServerCloud {
       throw new Error('cannot get download token')
     }
 
-    const req = request.get(`${UPDATER_URL}:${HTTP_PORT}/`)
+    const req = request
+      .get(`${UPDATER_URL}:${HTTP_PORT}/`)
       .set('Authorization', `Bearer ${downloadToken}`)
 
     // Impossible to pipe the response directly: https://github.com/visionmedia/superagent/issues/1187
     const pt = new PassThrough()
     req.pipe(pt)
-    pt.length = (await eventToPromise(req, 'response')).headers['content-length']
+    const { headers } = await eventToPromise(req, 'response')
+    pt.length = headers['content-length']
 
     return pt
   }

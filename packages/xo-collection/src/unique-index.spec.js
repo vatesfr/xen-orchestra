@@ -9,10 +9,10 @@ import Index from './unique-index'
 // ===================================================================
 
 const waitTicks = (n = 2) => {
-  const {nextTick} = process
+  const { nextTick } = process
 
   return new Promise(resolve => {
-    (function waitNextTick () {
+    ;(function waitNextTick () {
       // The first tick is handled by Promise#then()
       if (--n) {
         nextTick(waitNextTick)
