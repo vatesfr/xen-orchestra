@@ -1172,7 +1172,7 @@ export const createVgpu = (vm, { gpuGroup, vgpuType }) =>
 
 export const deleteVgpu = vgpu => _call('vm.deleteVgpu', resolveIds({ vgpu }))
 
-export const shareVm = ({ vm, resourceSet }) =>
+export const shareVm = (vm, resourceSet) =>
   confirm({
     title: _('shareVmInResourceSetModalTitle'),
     body: _('shareVmInResourceSetModalMessage', {

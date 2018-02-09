@@ -132,22 +132,20 @@ class ResourceSetItem extends Component {
   resourceSets: subscribeResourceSets,
 })
 class ShareVmButton extends Component {
-  _getResourceSet = createSelector(
-    () => this.props.resourceSets,
-    () => this.props.vm.resourceSet,
-    (resourceSets, id) =>
-      assign(find(resourceSets, { id }), { type: 'resourceSet' })
-  )
+  _shareVm = () => {
+    const { resourceSets, vm } = this.props
+
+    return shareVm(vm, {
+      ...find(resourceSets, { id: vm.resourceSet }),
+      type: 'resourceSet',
+    })
+  }
 
   render () {
     return (
       <TabButton
         btnStyle='primary'
-        handler={shareVm}
-        handlerParam={{
-          vm: this.props.vm,
-          resourceSet: this._getResourceSet(),
-        }}
+        handler={this._shareVm}
         icon='vm-share'
         labelId='vmShareButton'
       />
