@@ -1,34 +1,18 @@
 import { filter, includes } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
-import {
-  hash,
-  needsRehash,
-  verify,
-} from 'hashy'
-import {
-  invalidCredentials,
-  noSuchObject,
-} from 'xo-common/api-errors'
+import { hash, needsRehash, verify } from 'hashy'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 
-import {
-  Groups,
-} from '../models/group'
-import {
-  Users,
-} from '../models/user'
-import {
-  forEach,
-  isEmpty,
-  lightSet,
-  mapToArray,
-} from '../utils'
+import { Groups } from '../models/group'
+import { Users } from '../models/user'
+import { forEach, isEmpty, lightSet, mapToArray } from '../utils'
 
 // ===================================================================
 
-const addToArraySet = (set, value) => set && !includes(set, value)
-  ? set.concat(value)
-  : [ value ]
-const removeFromArraySet = (set, value) => set && filter(set, current => current !== value)
+const addToArraySet = (set, value) =>
+  set && !includes(set, value) ? set.concat(value) : [value]
+const removeFromArraySet = (set, value) =>
+  set && filter(set, current => current !== value)
 
 // ===================================================================
 
@@ -38,46 +22,59 @@ export default class {
 
     const redis = xo._redis
 
-    const groupsDb = this._groups = new Groups({
+    const groupsDb = (this._groups = new Groups({
       connection: redis,
       prefix: 'xo:group',
-    })
-    const usersDb = this._users = new Users({
+    }))
+    const usersDb = (this._users = new Users({
       connection: redis,
       prefix: 'xo:user',
       indexes: ['email'],
-    })
+    }))
 
-    xo.on('clean', () => Promise.all([
-      groupsDb.rebuildIndexes(),
-      usersDb.rebuildIndexes(),
-    ]))
+    xo.on('clean', () =>
+      Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()])
+    )
     xo.on('start', async () => {
-      xo.addConfigManager('groups',
+      xo.addConfigManager(
+        'groups',
         () => groupsDb.get(),
-        groups => Promise.all(mapToArray(groups, group => groupsDb.save(group))),
-        [ 'users' ]
+        groups =>
+          Promise.all(mapToArray(groups, group => groupsDb.save(group))),
+        ['users']
       )
-      xo.addConfigManager('users',
+      xo.addConfigManager(
+        'users',
         () => usersDb.get(),
-        users => Promise.all(mapToArray(users, async user => {
-          const userId = user.id
-          const conflictUsers = await usersDb.get({ email: user.email })
-          if (!isEmpty(conflictUsers)) {
-            await Promise.all(mapToArray(conflictUsers, ({ id }) =>
-              (id !== userId) && this.deleteUser(id)
-            ))
-          }
-          return usersDb.save(user)
-        }))
+        users =>
+          Promise.all(
+            mapToArray(users, async user => {
+              const userId = user.id
+              const conflictUsers = await usersDb.get({ email: user.email })
+              if (!isEmpty(conflictUsers)) {
+                await Promise.all(
+                  mapToArray(
+                    conflictUsers,
+                    ({ id }) => id !== userId && this.deleteUser(id)
+                  )
+                )
+              }
+              return usersDb.save(user)
+            })
+          )
       )
 
       if (!await usersDb.exists()) {
         const email = 'admin@admin.net'
         const password = 'admin'
 
-        await this.createUser({email, password, permission: 'admin'})
-        console.log('[INFO] Default user created:', email, ' with password', password)
+        await this.createUser({ email, password, permission: 'admin' })
+        console.log(
+          '[INFO] Default user created:',
+          email,
+          ' with password',
+          password
+        )
       }
     })
   }
@@ -105,10 +102,11 @@ export default class {
     await this._users.remove(id)
 
     // Remove tokens of user.
-    this._xo.getAuthenticationTokensForUser(id)
+    this._xo
+      .getAuthenticationTokensForUser(id)
       .then(tokens => {
         forEach(tokens, token => {
-          this._xo.deleteAuthenticationToken(id)::ignoreErrors()
+          ;this._xo.deleteAuthenticationToken(id)::ignoreErrors()
         })
       })
       ::ignoreErrors()
@@ -116,27 +114,30 @@ export default class {
     // Remove ACLs for this user.
     this._xo.getAclsForSubject(id).then(acls => {
       forEach(acls, acl => {
-        this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
+        ;this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
 
     // Remove the user from all its groups.
     forEach(user.groups, groupId => {
-      this.getGroup(groupId)
+      ;this.getGroup(groupId)
         .then(group => this._removeUserFromGroup(id, group))
         ::ignoreErrors()
     })
   }
 
-  async updateUser (id, {
-    // TODO: remove
-    email,
+  async updateUser (
+    id,
+    {
+      // TODO: remove
+      email,
 
-    name = email,
-    password,
-    permission,
-    preferences,
-  }) {
+      name = email,
+      password,
+      permission,
+      preferences,
+    }
+  ) {
     const user = await this.getUser(id)
 
     if (name) {
@@ -157,9 +158,7 @@ export default class {
         newPreferences[name] = value
       }
     })
-    user.preferences = isEmpty(newPreferences)
-      ? undefined
-      : newPreferences
+    user.preferences = isEmpty(newPreferences) ? undefined : newPreferences
 
     // TODO: remove
     user.email = user.name
@@ -230,7 +229,7 @@ export default class {
   }
 
   async changeUserPassword (userId, oldPassword, newPassword) {
-    if (!(await this.checkUserPassword(userId, oldPassword, false))) {
+    if (!await this.checkUserPassword(userId, oldPassword, false)) {
       throw invalidCredentials()
     }
 
@@ -239,10 +238,7 @@ export default class {
 
   async checkUserPassword (userId, password, updateIfNecessary = true) {
     const { pw_hash: hash } = await this.getUser(userId)
-    if (!(
-      hash &&
-      await verify(password, hash)
-    )) {
+    if (!(hash && (await verify(password, hash)))) {
       return false
     }
 
@@ -255,7 +251,7 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createGroup ({name}) {
+  async createGroup ({ name }) {
     // TODO: use plain objects.
     const group = (await this._groups.create(name)).properties
 
@@ -270,19 +266,19 @@ export default class {
     // Remove ACLs for this group.
     this._xo.getAclsForSubject(id).then(acls => {
       forEach(acls, acl => {
-        this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
+        ;this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
 
     // Remove the group from all its users.
     forEach(group.users, userId => {
-      this.getUser(userId)
+      ;this.getUser(userId)
         .then(user => this._removeGroupFromUser(id, user))
         ::ignoreErrors()
     })
   }
 
-  async updateGroup (id, {name}) {
+  async updateGroup (id, { name }) {
     const group = await this.getGroup(id)
 
     if (name) group.name = name
@@ -312,10 +308,7 @@ export default class {
     user.groups = addToArraySet(user.groups, groupId)
     group.users = addToArraySet(group.users, userId)
 
-    await Promise.all([
-      this._users.save(user),
-      this._groups.save(group),
-    ])
+    await Promise.all([this._users.save(user), this._groups.save(group)])
   }
 
   async _removeUserFromGroup (userId, group) {

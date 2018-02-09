@@ -8,48 +8,61 @@ const EMPTY_OBJECT = Object.freeze({ __proto__: null })
 
 const _extractValue = ({ value }) => value
 
-export const confirm = (message, {
-  default: defaultValue = null,
-} = EMPTY_OBJECT) => prompt({
-  default: defaultValue,
+export const confirm = (
   message,
-  name: 'value',
-  type: 'confirm',
-}).then(_extractValue)
+  { default: defaultValue = null } = EMPTY_OBJECT
+) =>
+  prompt({
+    default: defaultValue,
+    message,
+    name: 'value',
+    type: 'confirm',
+  }).then(_extractValue)
 
-export const input = (message, {
-  default: defaultValue = null,
-  filter = undefined,
-  validate = undefined,
-} = EMPTY_OBJECT) => prompt({
-  default: defaultValue,
+export const input = (
   message,
-  name: 'value',
-  type: 'input',
-  validate,
-}).then(_extractValue)
+  {
+    default: defaultValue = null,
+    filter = undefined,
+    validate = undefined,
+  } = EMPTY_OBJECT
+) =>
+  prompt({
+    default: defaultValue,
+    message,
+    name: 'value',
+    type: 'input',
+    validate,
+  }).then(_extractValue)
 
-export const list = (message, choices, {
-  default: defaultValue = null,
-} = EMPTY_OBJECT) => prompt({
-  default: defaultValue,
+export const list = (
+  message,
   choices,
-  message,
-  name: 'value',
-  type: 'list',
-}).then(_extractValue)
+  { default: defaultValue = null } = EMPTY_OBJECT
+) =>
+  prompt({
+    default: defaultValue,
+    choices,
+    message,
+    name: 'value',
+    type: 'list',
+  }).then(_extractValue)
 
-export const password = (message, {
-  default: defaultValue = null,
-  filter = undefined,
-  validate = undefined,
-} = EMPTY_OBJECT) => prompt({
-  default: defaultValue,
+export const password = (
   message,
-  name: 'value',
-  type: 'password',
-  validate,
-}).then(_extractValue)
+  {
+    default: defaultValue = null,
+    filter = undefined,
+    validate = undefined,
+  } = EMPTY_OBJECT
+) =>
+  prompt({
+    default: defaultValue,
+    message,
+    name: 'value',
+    type: 'password',
+    validate,
+  }).then(_extractValue)
 
 // ===================================================================
 
@@ -69,25 +82,25 @@ const promptByType = {
       items[i] = await promptGeneric(
         itemSchema,
         defaultValue[i],
-        path
-          ? `${path} [${i}]`
-          : `[${i}]`
+        path ? `${path} [${i}]` : `[${i}]`
       )
 
       ++i
     }
 
     let n = schema.minItems || 0
-    while (i < n) { // eslint-disable-line no-unmodified-loop-condition
+    // eslint-disable-next-line no-unmodified-loop-condition
+    while (i < n) {
       await promptItem()
     }
 
     n = schema.maxItems || Infinity
     while (
-      i < n && // eslint-disable-line no-unmodified-loop-condition
-      await confirm('additional item?', {
+      // eslint-disable-next-line no-unmodified-loop-condition
+      i < n &&
+      (await confirm('additional item?', {
         default: false,
-      })
+      }))
     ) {
       await promptItem()
     }
@@ -95,33 +108,38 @@ const promptByType = {
     return items
   },
 
-  boolean: (schema, defaultValue, path) => confirm(path, {
-    default: defaultValue != null ? defaultValue : schema.default,
-  }),
+  boolean: (schema, defaultValue, path) =>
+    confirm(path, {
+      default: defaultValue != null ? defaultValue : schema.default,
+    }),
 
-  enum: (schema, defaultValue, path) => list(path, schema.enum, {
-    defaultValue: defaultValue || schema.defaultValue,
-  }),
+  enum: (schema, defaultValue, path) =>
+    list(path, schema.enum, {
+      defaultValue: defaultValue || schema.defaultValue,
+    }),
 
-  integer: (schema, defaultValue, path) => input(path, {
-    default: defaultValue || schema.default,
-    filter: input => +input,
-    validate: input => isInteger(+input),
-  }),
+  integer: (schema, defaultValue, path) =>
+    input(path, {
+      default: defaultValue || schema.default,
+      filter: input => +input,
+      validate: input => isInteger(+input),
+    }),
 
-  number: (schema, defaultValue, path) => input(path, {
-    default: defaultValue || schema.default,
-    filter: input => +input,
-    validate: input => isFinite(+input),
-  }),
+  number: (schema, defaultValue, path) =>
+    input(path, {
+      default: defaultValue || schema.default,
+      filter: input => +input,
+      validate: input => isFinite(+input),
+    }),
 
   object: async (schema, defaultValue, path) => {
     const value = {}
 
     const required = {}
-    schema.required && forEach(schema.required, name => {
-      required[name] = true
-    })
+    schema.required &&
+      forEach(schema.required, name => {
+        required[name] = true
+      })
 
     const promptProperty = async (schema, name) => {
       const subpath = path
@@ -130,9 +148,9 @@ const promptByType = {
 
       if (
         required[name] ||
-        await confirm(`fill optional ${subpath}?`, {
+        (await confirm(`fill optional ${subpath}?`, {
           default: Boolean(defaultValue && name in defaultValue),
-        })
+        }))
       ) {
         value[name] = await promptGeneric(
           schema,
@@ -147,15 +165,14 @@ const promptByType = {
     return value
   },
 
-  string: (schema, defaultValue, path) => input(path, {
-    default: defaultValue || schema.default,
-  }),
+  string: (schema, defaultValue, path) =>
+    input(path, {
+      default: defaultValue || schema.default,
+    }),
 }
 
 export default function promptGeneric (schema, defaultValue, path) {
-  const type = schema.enum
-    ? 'enum'
-    : schema.type
+  const type = schema.enum ? 'enum' : schema.type
 
   const prompt = promptByType[type.toLowerCase()]
   if (!prompt) {

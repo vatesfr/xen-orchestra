@@ -13,20 +13,18 @@ import {
   popProperty,
   serializeError,
 } from '../utils'
-import {
-  Servers,
-} from '../models/server'
+import { Servers } from '../models/server'
 
 // ===================================================================
 
 export default class {
   constructor (xo) {
     this._objectConflicts = createRawObject() // TODO: clean when a server is disconnected.
-    const serversDb = this._servers = new Servers({
+    const serversDb = (this._servers = new Servers({
       connection: xo._redis,
       prefix: 'xo:server',
       indexes: ['host'],
-    })
+    }))
     this._stats = new XapiStats()
     this._xapis = createRawObject()
     this._xapisByPool = createRawObject()
@@ -34,7 +32,8 @@ export default class {
 
     xo.on('clean', () => serversDb.rebuildIndexes())
     xo.on('start', async () => {
-      xo.addConfigManager('xenServers',
+      xo.addConfigManager(
+        'xenServers',
         () => serversDb.get(),
         servers => serversDb.update(servers)
       )
@@ -81,23 +80,26 @@ export default class {
   }
 
   async unregisterXenServer (id) {
-    this.disconnectXenServer(id)::ignoreErrors()
+    ;this.disconnectXenServer(id)::ignoreErrors()
 
     if (!await this._servers.remove(id)) {
       throw noSuchObject(id, 'xenServer')
     }
   }
 
-  async updateXenServer (id, {
-    allowUnauthorized,
-    enabled,
-    error,
-    host,
-    label,
-    password,
-    readOnly,
-    username,
-  }) {
+  async updateXenServer (
+    id,
+    {
+      allowUnauthorized,
+      enabled,
+      error,
+      host,
+      label,
+      password,
+      readOnly,
+      username,
+    }
+  ) {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
@@ -111,7 +113,9 @@ export default class {
       xapi !== undefined &&
       xapi.status !== 'disconnected'
     ) {
-      throw new Error('this entry require disconnecting the server to update it')
+      throw new Error(
+        'this entry require disconnecting the server to update it'
+      )
     }
 
     if (label !== undefined) server.set('label', label || undefined)
@@ -167,14 +171,10 @@ export default class {
         xapiIdsToXo[xapiId] = xoId
 
         const previous = objects.get(xoId, undefined)
-        if (
-          previous &&
-          previous._xapiRef !== xapiObject.$ref
-        ) {
-          (
-            conflicts[xoId] ||
-            (conflicts[xoId] = createRawObject())
-          )[conId] = xoObject
+        if (previous && previous._xapiRef !== xapiObject.$ref) {
+          const conflicts_ =
+            conflicts[xoId] || (conflicts[xoId] = createRawObject())
+          conflicts_[conId] = xoObject
         } else {
           objects.set(xoId, xoObject)
         }
@@ -221,7 +221,7 @@ export default class {
   async connectXenServer (id) {
     const server = (await this._getXenServer(id)).properties
 
-    const xapi = this._xapis[server.id] = new Xapi({
+    const xapi = (this._xapis[server.id] = new Xapi({
       allowUnauthorized: Boolean(server.allowUnauthorized),
       auth: {
         user: server.username,
@@ -229,7 +229,7 @@ export default class {
       },
       readOnly: Boolean(server.readOnly),
       url: server.host,
-    })
+    }))
 
     xapi.xo = (() => {
       const conId = server.id
@@ -300,18 +300,18 @@ export default class {
 
         addObject,
         getData: (id, key) => {
-          const value = (
-            typeof id === 'string'
-              ? xapi.getObject(id)
-              : id
-          ).other_config[`xo:${camelToSnakeCase(key)}`]
+          const value = (typeof id === 'string' ? xapi.getObject(id) : id)
+            .other_config[`xo:${camelToSnakeCase(key)}`]
           return value && JSON.parse(value)
         },
         setData: async (id, key, value) => {
           await xapi._updateObjectMapProperty(
             xapi.getObject(id),
             'other_config',
-            { [`xo:${camelToSnakeCase(key)}`]: value !== null ? JSON.stringify(value) : value }
+            {
+              [`xo:${camelToSnakeCase(key)}`]:
+                value !== null ? JSON.stringify(value) : value,
+            }
           )
 
           // Register the updated object.
@@ -381,10 +381,7 @@ export default class {
         server.status = xapi.status
 
         let pool
-        if (
-          server.label === undefined &&
-          (pool = xapi.pool) != null
-        ) {
+        if (server.label === undefined && (pool = xapi.pool) != null) {
           server.label = pool.name_label
         }
       }
@@ -408,10 +405,9 @@ export default class {
 
   async mergeXenPools (sourceId, targetId, force = false) {
     const sourceXapi = this.getXapi(sourceId)
-    const {
-      _auth: { user, password },
-      _url: { hostname },
-    } = this.getXapi(targetId)
+    const { _auth: { user, password }, _url: { hostname } } = this.getXapi(
+      targetId
+    )
 
     // We don't want the events of the source XAPI to interfere with
     // the events of the new XAPI.

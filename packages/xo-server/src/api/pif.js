@@ -13,11 +13,11 @@ export function getIpv6ConfigurationModes () {
 // ===================================================================
 // Delete
 
-async function delete_ ({pif}) {
+async function delete_ ({ pif }) {
   // TODO: check if PIF is attached before
   await this.getXapi(pif).call('PIF.destroy', pif._xapiRef)
 }
-export {delete_ as delete}
+export { delete_ as delete }
 
 delete_.params = {
   id: { type: 'string' },
@@ -30,7 +30,7 @@ delete_.resolve = {
 // ===================================================================
 // Disconnect
 
-export async function disconnect ({pif}) {
+export async function disconnect ({ pif }) {
   // TODO: check if PIF is attached before
   await this.getXapi(pif).call('PIF.unplug', pif._xapiRef)
 }
@@ -45,7 +45,7 @@ disconnect.resolve = {
 // ===================================================================
 // Connect
 
-export async function connect ({pif}) {
+export async function connect ({ pif }) {
   // TODO: check if PIF is attached before
   await this.getXapi(pif).call('PIF.plug', pif._xapiRef)
 }
@@ -60,8 +60,23 @@ connect.resolve = {
 // ===================================================================
 // Reconfigure IP
 
-export async function reconfigureIp ({ pif, mode = 'DHCP', ip = '', netmask = '', gateway = '', dns = '' }) {
-  await this.getXapi(pif).call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
+export async function reconfigureIp ({
+  pif,
+  mode = 'DHCP',
+  ip = '',
+  netmask = '',
+  gateway = '',
+  dns = '',
+}) {
+  await this.getXapi(pif).call(
+    'PIF.reconfigure_ip',
+    pif._xapiRef,
+    mode,
+    ip,
+    netmask,
+    gateway,
+    dns
+  )
 }
 
 reconfigureIp.params = {

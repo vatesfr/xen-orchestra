@@ -1,7 +1,4 @@
-import JsonRpcWebSocketClient, {
-  OPEN,
-  CLOSED,
-} from 'jsonrpc-websocket-client'
+import JsonRpcWebSocketClient, { OPEN, CLOSED } from 'jsonrpc-websocket-client'
 import { BaseError } from 'make-error'
 import { startsWith } from 'lodash'
 
@@ -20,7 +17,7 @@ export default class Xo extends JsonRpcWebSocketClient {
     const url = opts != null ? opts.url : '.'
     super(`${url === '/' ? '' : url}/api/`)
 
-    this._credentials = (opts != null ? opts.credentials : null)
+    this._credentials = opts != null ? opts.credentials : null
     this._user = null
 
     this.on(OPEN, () => {
@@ -45,12 +42,13 @@ export default class Xo extends JsonRpcWebSocketClient {
     }
 
     const promise = super.call(method, args)
-    promise.retry = (predicate) => promise.catch((error) => {
-      i = (i || 0) + 1
-      if (predicate(error, i)) {
-        return this.call(method, args, i)
-      }
-    })
+    promise.retry = predicate =>
+      promise.catch(error => {
+        i = (i || 0) + 1
+        if (predicate(error, i)) {
+          return this.call(method, args, i)
+        }
+      })
 
     return promise
   }

@@ -1,7 +1,7 @@
-import {deprecate} from 'util'
+import { deprecate } from 'util'
 
 import { getUserPublicProperties } from '../utils'
-import {invalidCredentials} from 'xo-common/api-errors'
+import { invalidCredentials } from 'xo-common/api-errors'
 
 // ===================================================================
 
@@ -19,7 +19,10 @@ signIn.description = 'sign in'
 
 // -------------------------------------------------------------------
 
-export const signInWithPassword = deprecate(signIn, 'use session.signIn() instead')
+export const signInWithPassword = deprecate(
+  signIn,
+  'use session.signIn() instead'
+)
 
 signInWithPassword.params = {
   email: { type: 'string' },

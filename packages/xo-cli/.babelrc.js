@@ -5,7 +5,7 @@ const __TEST__ = NODE_ENV === 'test'
 module.exports = {
   comments: !__PROD__,
   compact: __PROD__,
-  ignore: __TEST__ ? undefined : [ /\.spec\.js$/ ],
+  ignore: __TEST__ ? undefined : [/\.spec\.js$/],
   plugins: ['lodash'],
   presets: [
     [
@@ -14,9 +14,7 @@ module.exports = {
         debug: !__TEST__,
         loose: true,
         shippedProposals: true,
-        targets: __PROD__
-          ? { node: '6' }
-          : { node: 'current' },
+        targets: __PROD__ ? { node: '6' } : { node: 'current' },
         useBuiltIns: 'usage',
       },
     ],

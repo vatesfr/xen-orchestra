@@ -56,7 +56,7 @@ const main = async args => {
 
   let auth
   if (opts._.length > 1) {
-    const [ , user, password = await askPassword() ] = opts._
+    const [, user, password = await askPassword()] = opts._
     auth = { user, password }
   }
 
@@ -86,11 +86,11 @@ const main = async args => {
 
   // Make the REPL waits for promise completion.
   repl.eval = (evaluate => (cmd, context, filename, cb) => {
-    fromCallback(cb => {
+    ;fromCallback(cb => {
       evaluate.call(repl, cmd, context, filename, cb)
-    }).then(value =>
-      isArray(value) ? Promise.all(value) : value
-    )::asCallback(cb)
+    })
+      .then(value => (isArray(value) ? Promise.all(value) : value))
+      ::asCallback(cb)
   })(repl.eval)
 
   await eventToPromise(repl, 'exit')

@@ -54,7 +54,7 @@ export default class View extends Collection {
   }
 
   _onAdd (items) {
-    const {_predicate: predicate} = this
+    const { _predicate: predicate } = this
 
     forEach(items, (value, key) => {
       if (predicate(value, key, this)) {
@@ -67,7 +67,7 @@ export default class View extends Collection {
   }
 
   _onUpdate (items) {
-    const {_predicate: predicate} = this
+    const { _predicate: predicate } = this
 
     forEach(items, (value, key) => {
       if (predicate(value, key, this)) {

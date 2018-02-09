@@ -8,26 +8,26 @@ import sublevel from 'level-sublevel'
 import util from 'util'
 import { repair as repairDb } from 'level'
 
-import {forEach} from './utils'
+import { forEach } from './utils'
 import globMatcher from './glob-matcher'
 
 // ===================================================================
 
 async function printLogs (db, args) {
-  let stream = highland(db.createReadStream({reverse: true}))
+  let stream = highland(db.createReadStream({ reverse: true }))
 
   if (args.since) {
-    stream = stream.filter(({value}) => (value.time >= args.since))
+    stream = stream.filter(({ value }) => value.time >= args.since)
   }
 
   if (args.until) {
-    stream = stream.filter(({value}) => (value.time <= args.until))
+    stream = stream.filter(({ value }) => value.time <= args.until)
   }
 
   const fields = Object.keys(args.matchers)
 
   if (fields.length > 0) {
-    stream = stream.filter(({value}) => {
+    stream = stream.filter(({ value }) => {
       for (const field of fields) {
         const fieldValue = get(value, field)
         if (fieldValue === undefined || !args.matchers[field](fieldValue)) {
@@ -42,10 +42,9 @@ async function printLogs (db, args) {
   stream = stream.take(args.limit)
 
   if (args.json) {
-    stream = highland(stream.pipe(ndjson.serialize()))
-      .each(value => {
-        process.stdout.write(value)
-      })
+    stream = highland(stream.pipe(ndjson.serialize())).each(value => {
+      process.stdout.write(value)
+    })
   } else {
     stream = stream.each(value => {
       console.log(util.inspect(value, { depth: null }))
@@ -126,7 +125,7 @@ function getArgs () {
 
       patterns[pattern]
         ? patterns[field].push(pattern)
-        : patterns[field] = [ pattern ]
+        : (patterns[field] = [pattern])
     } else if (!patterns[value]) {
       patterns[value] = null
     }
@@ -137,7 +136,7 @@ function getArgs () {
 
   for (const field in patterns) {
     const values = patterns[field]
-    args.matchers[field] = (values === null) ? trueFunction : globMatcher(values)
+    args.matchers[field] = values === null ? trueFunction : globMatcher(values)
   }
 
   // Warning: minimist makes one array of values if the same option is used many times.
@@ -147,7 +146,6 @@ function getArgs () {
       throw new Error(`error: too many values for ${arg} argument`)
     }
   })
-
   ;['since', 'until'].forEach(arg => {
     if (args[arg] !== undefined) {
       args[arg] = Date.parse(args[arg])
@@ -158,7 +156,7 @@ function getArgs () {
     }
   })
 
-  if (isNaN(args.limit = +args.limit)) {
+  if (isNaN((args.limit = +args.limit))) {
     throw new Error('error: limit is not a valid number')
   }
 
@@ -193,10 +191,9 @@ export default async function main () {
     return
   }
 
-  const db = sublevel(levelup(
-    `${config.datadir}/leveldb`,
-    { valueEncoding: 'json' }
-  )).sublevel('logs')
+  const db = sublevel(
+    levelup(`${config.datadir}/leveldb`, { valueEncoding: 'json' })
+  ).sublevel('logs')
 
   return printLogs(db, args)
 }

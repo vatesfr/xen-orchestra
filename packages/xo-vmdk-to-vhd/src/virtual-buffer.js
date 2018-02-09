@@ -1,6 +1,6 @@
 'use strict'
 
-import {Slicer} from 'pipette'
+import { Slicer } from 'pipette'
 
 const chunkSize = 1024 * 1024
 
@@ -30,7 +30,7 @@ export class VirtualBuffer {
             if (error !== false && error !== true) {
               reject(error)
             } else {
-              resolve({error, data})
+              resolve({ error, data })
             }
           })
         })

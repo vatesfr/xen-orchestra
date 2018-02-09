@@ -17,10 +17,5 @@ export default {
       type: 'string',
     },
   },
-  required: [
-    'event',
-    'userId',
-    'jobId',
-    'key',
-  ],
+  required: ['event', 'userId', 'jobId', 'key'],
 }

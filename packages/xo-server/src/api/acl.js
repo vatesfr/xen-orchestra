@@ -14,11 +14,12 @@ export async function getCurrentPermissions () {
 
 getCurrentPermissions.permission = ''
 
-getCurrentPermissions.description = 'get (explicit) permissions by object for the current user'
+getCurrentPermissions.description =
+  'get (explicit) permissions by object for the current user'
 
 // -------------------------------------------------------------------
 
-export async function add ({subject, object, action}) {
+export async function add ({ subject, object, action }) {
   await this.addAcl(subject, object, action)
 }
 
@@ -34,7 +35,7 @@ add.description = 'add a new ACL entry'
 
 // -------------------------------------------------------------------
 
-export async function remove ({subject, object, action}) {
+export async function remove ({ subject, object, action }) {
   await this.removeAcl(subject, object, action)
 }
 

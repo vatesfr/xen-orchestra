@@ -34,19 +34,12 @@ export default ({
   allowUnauthorized,
   url: { hostname, path, port, protocol },
 }) => {
-  const client = (
-    protocol === 'https:'
-      ? createSecureClient
-      : createClient
-  )({
+  const client = (protocol === 'https:' ? createSecureClient : createClient)({
     host: hostname,
     port,
     rejectUnauthorized: !allowUnauthorized,
   })
   const call = promisify(client.methodCall, client)
 
-  return (method, args) => call(method, args).then(
-    parseResult,
-    logError
-  )
+  return (method, args) => call(method, args).then(parseResult, logError)
 }

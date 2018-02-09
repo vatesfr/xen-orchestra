@@ -11,10 +11,10 @@ const RRD_STEP_HOURS = 3600
 const RRD_STEP_DAYS = 86400
 
 const RRD_STEP_FROM_STRING = {
-  'seconds': RRD_STEP_SECONDS,
-  'minutes': RRD_STEP_MINUTES,
-  'hours': RRD_STEP_HOURS,
-  'days': RRD_STEP_DAYS,
+  seconds: RRD_STEP_SECONDS,
+  minutes: RRD_STEP_MINUTES,
+  hours: RRD_STEP_HOURS,
+  days: RRD_STEP_DAYS,
 }
 
 const RRD_POINTS_PER_STEP = {
@@ -178,7 +178,7 @@ function parseLegends (json) {
       throw new UnknownLegendFormat(value)
     }
 
-    const [ , name, uuid, type, , ] = parsedLine
+    const [, name, uuid, type] = parsedLine
 
     if (name !== 'vm') {
       parseOneHostLegend(hostLegends, type, index)
@@ -208,7 +208,10 @@ export default class XapiStats {
     for (const key in source) {
       if (key === 'cpus') {
         for (const cpuIndex in source.cpus) {
-          dest.cpus[cpuIndex].splice(0, dest.cpus[cpuIndex].length - pointsPerStep)
+          dest.cpus[cpuIndex].splice(
+            0,
+            dest.cpus[cpuIndex].length - pointsPerStep
+          )
         }
 
         // If the number of cpus has been decreased, remove !
@@ -221,20 +224,28 @@ export default class XapiStats {
         // For each pif or vif
         for (const ifType in source[key]) {
           for (const pifIndex in source[key][ifType]) {
-            dest[key][ifType][pifIndex].splice(0, dest[key][ifType][pifIndex].length - pointsPerStep)
+            dest[key][ifType][pifIndex].splice(
+              0,
+              dest[key][ifType][pifIndex].length - pointsPerStep
+            )
           }
 
           // If the number of pifs has been decreased, remove !
           let offset
 
-          if ((offset = dest[key][ifType].length - source[key][ifType].length) > 0) {
+          if (
+            (offset = dest[key][ifType].length - source[key][ifType].length) > 0
+          ) {
             dest[key][ifType].splice(-offset)
           }
         }
       } else if (key === 'xvds') {
         for (const xvdType in source.xvds) {
           for (const xvdLetter in source.xvds[xvdType]) {
-            dest.xvds[xvdType][xvdLetter].splice(0, dest.xvds[xvdType][xvdLetter].length - pointsPerStep)
+            dest.xvds[xvdType][xvdLetter].splice(
+              0,
+              dest.xvds[xvdType][xvdLetter].length - pointsPerStep
+            )
           }
 
           // If the number of xvds has been decreased, remove !
@@ -340,7 +351,9 @@ export default class XapiStats {
           vmStats.xvds[xvdType][index] = []
         }
 
-        vmStats.xvds[xvdType][index].push(convertNanToNull(values[vmLegends.xvds[xvdType][index]]))
+        vmStats.xvds[xvdType][index].push(
+          convertNanToNull(values[vmLegends.xvds[xvdType][index]])
+        )
       }
     }
 
@@ -385,15 +398,17 @@ export default class XapiStats {
   // Return stats (Json format) or throws got exception
   @limitConcurrency(3)
   _getJson (xapi, host, timestamp) {
-    return xapi.getResource('/rrd_updates', {
-      host,
-      query: {
-        cf: 'AVERAGE',
-        host: 'true',
-        json: 'true',
-        start: timestamp,
-      },
-    }).then(response => response.readAll().then(JSON5.parse))
+    return xapi
+      .getResource('/rrd_updates', {
+        host,
+        query: {
+          cf: 'AVERAGE',
+          host: 'true',
+          json: 'true',
+          start: timestamp,
+        },
+      })
+      .then(response => response.readAll().then(JSON5.parse))
   }
 
   async _getLastTimestamp (xapi, host, step) {
@@ -428,11 +443,15 @@ export default class XapiStats {
 
   async _getAndUpdatePoints (xapi, host, vmId, granularity) {
     // Get granularity to use
-    const step = (granularity === undefined || granularity === 0)
-      ? RRD_STEP_SECONDS : RRD_STEP_FROM_STRING[granularity]
+    const step =
+      granularity === undefined || granularity === 0
+        ? RRD_STEP_SECONDS
+        : RRD_STEP_FROM_STRING[granularity]
 
     if (step === undefined) {
-      throw new FaultyGranularity(`Unknown granularity: '${granularity}'. Use 'seconds', 'minutes', 'hours', or 'days'.`)
+      throw new FaultyGranularity(
+        `Unknown granularity: '${granularity}'. Use 'seconds', 'minutes', 'hours', or 'days'.`
+      )
     }
 
     // Limit the number of http requests
@@ -443,8 +462,10 @@ export default class XapiStats {
       this._vms[hostname] = {}
     }
 
-    if (this._hosts[hostname][step] !== undefined &&
-        this._hosts[hostname][step].localTimestamp + step > getCurrentTimestamp()) {
+    if (
+      this._hosts[hostname][step] !== undefined &&
+      this._hosts[hostname][step].localTimestamp + step > getCurrentTimestamp()
+    ) {
       return this._getPoints(hostname, step, vmId)
     }
 
@@ -459,15 +480,25 @@ export default class XapiStats {
     // Check if the granularity is linked to 'step'
     // If it's not the case, we retry other url with the json timestamp
     if (json.meta.step !== step) {
-      console.log(`RRD call: Expected step: ${step}, received step: ${json.meta.step}. Retry with other timestamp`)
+      console.log(
+        `RRD call: Expected step: ${step}, received step: ${
+          json.meta.step
+        }. Retry with other timestamp`
+      )
       const serverTimestamp = await getServerTimestamp(xapi, host)
 
       // Approximately: half points are asked
       // FIXME: Not the best solution
-      json = await this._getJson(xapi, host, serverTimestamp - step * (RRD_POINTS_PER_STEP[step] / 2) + step)
+      json = await this._getJson(
+        xapi,
+        host,
+        serverTimestamp - step * (RRD_POINTS_PER_STEP[step] / 2) + step
+      )
 
       if (json.meta.step !== step) {
-        throw new FaultyGranularity(`Unable to get the true granularity: ${json.meta.step}`)
+        throw new FaultyGranularity(
+          `Unable to get the true granularity: ${json.meta.step}`
+        )
       }
     }
 
@@ -488,7 +519,9 @@ export default class XapiStats {
 
       // Remove useless data and reorder
       // Note: Older values are at end of json.data.row
-      const parseOffset = (this._hosts[hostname][step].endTimestamp - startTimestamp + step) / step
+      const parseOffset =
+        (this._hosts[hostname][step].endTimestamp - startTimestamp + step) /
+        step
 
       json.data.splice(json.data.length - parseOffset)
       json.data.reverse()
@@ -502,10 +535,18 @@ export default class XapiStats {
         this._parseHostStats(json, hostname, hostLegends, step)
 
         // Remove older stats
-        this._removeOlderStats(hostLegends, this._hosts[hostname][step].stats, RRD_POINTS_PER_STEP[step])
+        this._removeOlderStats(
+          hostLegends,
+          this._hosts[hostname][step].stats,
+          RRD_POINTS_PER_STEP[step]
+        )
 
         for (const uuid in vmsLegends) {
-          this._removeOlderStats(vmsLegends[uuid], this._vms[hostname][step][uuid], RRD_POINTS_PER_STEP[step])
+          this._removeOlderStats(
+            vmsLegends[uuid],
+            this._vms[hostname][step][uuid],
+            RRD_POINTS_PER_STEP[step]
+          )
         }
       }
     }

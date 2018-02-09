@@ -5,8 +5,8 @@ import { diffItems } from '../utils'
 // ===================================================================
 
 // TODO: move into vm and rename to removeInterface
-async function delete_ ({vif}) {
-  this.allocIpAddresses(
+async function delete_ ({ vif }) {
+  ;this.allocIpAddresses(
     vif.id,
     null,
     vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
@@ -14,7 +14,7 @@ async function delete_ ({vif}) {
 
   await this.getXapi(vif).deleteVif(vif._xapiId)
 }
-export {delete_ as delete}
+export { delete_ as delete }
 
 delete_.params = {
   id: { type: 'string' },
@@ -27,7 +27,7 @@ delete_.resolve = {
 // -------------------------------------------------------------------
 
 // TODO: move into vm and rename to disconnectInterface
-export async function disconnect ({vif}) {
+export async function disconnect ({ vif }) {
   // TODO: check if VIF is attached before
   await this.getXapi(vif).disconnectVif(vif._xapiId)
 }
@@ -42,7 +42,7 @@ disconnect.resolve = {
 
 // -------------------------------------------------------------------
 // TODO: move into vm and rename to connectInterface
-export async function connect ({vif}) {
+export async function connect ({ vif }) {
   // TODO: check if VIF is attached before
   await this.getXapi(vif).connectVif(vif._xapiId)
 }
@@ -65,7 +65,9 @@ export async function set ({
   allowedIpv6Addresses,
   attached,
 }) {
-  const oldIpAddresses = vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
+  const oldIpAddresses = vif.allowedIpv4Addresses.concat(
+    vif.allowedIpv6Addresses
+  )
   const newIpAddresses = []
   {
     const { push } = newIpAddresses
@@ -96,15 +98,11 @@ export async function set ({
     return
   }
 
-  const [ addAddresses, removeAddresses ] = diffItems(
+  const [addAddresses, removeAddresses] = diffItems(
     newIpAddresses,
     oldIpAddresses
   )
-  await this.allocIpAddresses(
-    vif.id,
-    addAddresses,
-    removeAddresses
-  )
+  await this.allocIpAddresses(vif.id, addAddresses, removeAddresses)
 
   return this.getXapi(vif).editVif(vif._xapiId, {
     ipv4Allowed: allowedIpv4Addresses,

@@ -1,6 +1,6 @@
-import {EventEmitter} from 'events'
+import { EventEmitter } from 'events'
 
-import {createRawObject, noop} from './utils'
+import { createRawObject, noop } from './utils'
 
 // ===================================================================
 
@@ -21,7 +21,7 @@ export default class Connection extends EventEmitter {
 
   // Gets the value for this key.
   get (key, defaultValue) {
-    const {_data: data} = this
+    const { _data: data } = this
 
     if (key in data) {
       return data[key]

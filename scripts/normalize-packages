@@ -29,7 +29,7 @@ require('exec-promise')(() =>
 
     delete pkg.standard
 
-    deleteProperties(pkg, 'config', [ 'commitizen' ])
+    deleteProperties(pkg, 'config', ['commitizen'])
     deleteProperties(pkg, 'devDependencies', [
       'babel-7-jest',
       'babel-eslint',
@@ -51,15 +51,12 @@ require('exec-promise')(() =>
       'prettier',
       'standard',
     ])
-    deleteProperties(pkg, 'scripts', [ 'commitmsg', 'cz' ])
+    deleteProperties(pkg, 'scripts', ['commitmsg', 'cz'])
 
     const { scripts } = pkg
     if (scripts !== undefined) {
       const prepublish = scripts.prepublish
-      if (
-        prepublish !== undefined &&
-        !('prepublishOnly' in scripts)
-      ) {
+      if (prepublish !== undefined && !('prepublishOnly' in scripts)) {
         delete scripts.prepublish
         scripts.prepublishOnly = prepublish
         pkg.scripts = sortedObject(scripts)
@@ -67,10 +64,7 @@ require('exec-promise')(() =>
     }
 
     return Promise.all([
-      writeFile(
-        `${dir}/package.json`,
-        JSON.stringify(pkg, null, 2) + '\n'
-      ),
+      writeFile(`${dir}/package.json`, JSON.stringify(pkg, null, 2) + '\n'),
       unlink(`${dir}/.editorconfig`),
       unlink(`${dir}/.eslintrc.js`),
       unlink(`${dir}/.flowconfig`),

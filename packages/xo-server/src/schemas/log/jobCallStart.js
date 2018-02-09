@@ -18,10 +18,5 @@ export default {
       description: 'params of the called method',
     },
   },
-  required: [
-    'event',
-    'runJobId',
-    'method',
-    'params',
-  ],
+  required: ['event', 'runJobId', 'method', 'params'],
 }

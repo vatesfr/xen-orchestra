@@ -3,11 +3,7 @@ import { bind, iteratee } from 'lodash'
 import clearObject from './clear-object'
 import isEmpty from './is-empty'
 import NotImplemented from './not-implemented'
-import {
-  ACTION_ADD,
-  ACTION_UPDATE,
-  ACTION_REMOVE,
-} from './collection'
+import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
 
 // ===================================================================
 
@@ -34,7 +30,7 @@ export default class Index {
 
   // Remove empty items lists.
   sweep () {
-    const {_itemsByHash: itemsByHash} = this
+    const { _itemsByHash: itemsByHash } = this
     for (const hash in itemsByHash) {
       if (isEmpty(itemsByHash[hash])) {
         delete itemsByHash[hash]
@@ -86,14 +82,11 @@ export default class Index {
       const hash = computeHash(value, key)
 
       if (hash != null) {
-        (
-          itemsByHash[hash] ||
-
+        ;(itemsByHash[hash] ||
           // FIXME: We do not use objects without prototype for now
           // because it breaks Angular in xo-web, change it back when
           // this is fixed.
-          (itemsByHash[hash] = {})
-        )[key] = value
+          (itemsByHash[hash] = {}))[key] = value
 
         keysToHash[key] = hash
       }
@@ -118,12 +111,9 @@ export default class Index {
 
       // Inserts item into the new hash's list if any.
       if (hash != null) {
-        (
-          itemsByHash[hash] ||
-
+        ;(itemsByHash[hash] ||
           // FIXME: idem: change back to Object.create(null)
-          (itemsByHash[hash] = {})
-        )[key] = value
+          (itemsByHash[hash] = {}))[key] = value
 
         keysToHash[key] = hash
       } else {
@@ -133,10 +123,7 @@ export default class Index {
   }
 
   _onRemove (items) {
-    const {
-      _itemsByHash: itemsByHash,
-      _keysToHash: keysToHash,
-    } = this
+    const { _itemsByHash: itemsByHash, _keysToHash: keysToHash } = this
 
     for (const key in items) {
       const prev = keysToHash[key]

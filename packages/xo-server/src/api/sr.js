@@ -1,12 +1,7 @@
 import { some } from 'lodash'
 
 import { asInteger } from '../xapi/utils'
-import {
-  asyncMap,
-  ensureArray,
-  forEach,
-  parseXml,
-} from '../utils'
+import { asyncMap, ensureArray, forEach, parseXml } from '../utils'
 
 // ===================================================================
 
@@ -50,10 +45,11 @@ scan.resolve = {
 }
 
 // -------------------------------------------------------------------
-const srIsBackingHa = (sr) => sr.$pool.ha_enabled && some(sr.$pool.$ha_statefiles, f => f.$SR === sr)
+const srIsBackingHa = sr =>
+  sr.$pool.ha_enabled && some(sr.$pool.$ha_statefiles, f => f.$SR === sr)
 
 // TODO: find a way to call this "delete" and not destroy
-export async function destroy ({sr}) {
+export async function destroy ({ sr }) {
   const xapi = this.getXapi(sr)
   if (sr.SR_type !== 'xosan') {
     await xapi.destroySr(sr._xapiId)
@@ -61,7 +57,9 @@ export async function destroy ({sr}) {
   }
   const xapiSr = xapi.getObject(sr)
   if (srIsBackingHa(xapiSr)) {
-    throw new Error('You tried to remove a SR the High Availability is relying on. Please disable HA first.')
+    throw new Error(
+      'You tried to remove a SR the High Availability is relying on. Please disable HA first.'
+    )
   }
   const config = xapi.xo.getData(sr, 'xosan_config')
   // we simply forget because the hosted disks are being destroyed with the VMs
@@ -239,12 +237,7 @@ createNfs.resolve = {
 
 // This functions creates an HBA SR
 
-export async function createHba ({
-  host,
-  nameLabel,
-  nameDescription,
-  scsiId,
-}) {
+export async function createHba ({ host, nameLabel, nameDescription, scsiId }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -284,12 +277,7 @@ createHba.resolve = {
 
 // This functions creates a local LVM SR
 
-export async function createLvm ({
-  host,
-  nameLabel,
-  nameDescription,
-  device,
-}) {
+export async function createLvm ({ host, nameLabel, nameDescription, device }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -328,10 +316,7 @@ createLvm.resolve = {
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
 
-export async function probeNfs ({
-  host,
-  server,
-}) {
+export async function probeNfs ({ host, server }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -341,13 +326,7 @@ export async function probeNfs ({
   let xml
 
   try {
-    await xapi.call(
-      'SR.probe',
-      host._xapiRef,
-      deviceConfig,
-      'nfs',
-      {}
-    )
+    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'nfs', {})
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
@@ -381,20 +360,13 @@ probeNfs.resolve = {
 // -------------------------------------------------------------------
 // This function helps to detect all HBA devices on the host
 
-export async function probeHba ({
-  host,
-}) {
+export async function probeHba ({ host }) {
   const xapi = this.getXapi(host)
 
   let xml
 
   try {
-    await xapi.call(
-      'SR.probe',
-      host._xapiRef,
-      'type',
-      {}
-    )
+    await xapi.call('SR.probe', host._xapiRef, 'type', {})
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
@@ -527,13 +499,7 @@ export async function probeIscsiIqns ({
   let xml
 
   try {
-    await xapi.call(
-      'SR.probe',
-      host._xapiRef,
-      deviceConfig,
-      'lvmoiscsi',
-      {}
-    )
+    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmoiscsi', {})
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
@@ -605,13 +571,7 @@ export async function probeIscsiLuns ({
   let xml
 
   try {
-    await xapi.call(
-      'SR.probe',
-      host._xapiRef,
-      deviceConfig,
-      'lvmoiscsi',
-      {}
-    )
+    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmoiscsi', {})
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
@@ -681,7 +641,9 @@ export async function probeIscsiExists ({
     deviceConfig.port = asInteger(port)
   }
 
-  const xml = parseXml(await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmoiscsi', {}))
+  const xml = parseXml(
+    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmoiscsi', {})
+  )
 
   const srs = []
   forEach(ensureArray(xml['SRlist'].SR), sr => {
@@ -710,11 +672,7 @@ probeIscsiExists.resolve = {
 // This function helps to detect if this NFS SR already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-export async function probeNfsExists ({
-  host,
-  server,
-  serverPath,
-}) {
+export async function probeNfsExists ({ host, server, serverPath }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -722,7 +680,9 @@ export async function probeNfsExists ({
     serverpath: serverPath,
   }
 
-  const xml = parseXml(await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'nfs', {}))
+  const xml = parseXml(
+    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'nfs', {})
+  )
 
   const srs = []
 

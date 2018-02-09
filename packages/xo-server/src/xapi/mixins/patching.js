@@ -19,11 +19,7 @@ import {
   parseXml,
 } from '../../utils'
 
-import {
-  debug,
-  extractOpaqueRef,
-  useUpdateSystem,
-} from '../utils'
+import { debug, extractOpaqueRef, useUpdateSystem } from '../utils'
 
 export default {
   // FIXME: should be static
@@ -71,7 +67,7 @@ export default {
     const resolveVersionPatches = function (uuids) {
       const versionPatches = createRawObject()
 
-      forEach(ensureArray(uuids), ({uuid}) => {
+      forEach(ensureArray(uuids), ({ uuid }) => {
         versionPatches[uuid] = patches[uuid]
       })
 
@@ -112,9 +108,7 @@ export default {
       versions[hostVersions.product_version] ||
       versions[hostVersions.product_version_text]
 
-    return version
-      ? version.patches
-      : []
+    return version ? version.patches : []
   },
 
   _getInstalledPoolPatchesOnHost (host) {
@@ -163,9 +157,8 @@ export default {
   },
 
   async _ejectToolsIsos (hostRef) {
-    return Promise.all(mapFilter(
-      this.objects.all,
-      vm => {
+    return Promise.all(
+      mapFilter(this.objects.all, vm => {
         if (vm.$type !== 'vm' || (hostRef && vm.resident_on !== hostRef)) {
           return
         }
@@ -179,8 +172,8 @@ export default {
         if (shouldEjectCd) {
           return this.ejectCdFromVm(vm.$id)
         }
-      }
-    ))
+      })
+    )
   },
 
   // -----------------------------------------------------------------
@@ -208,7 +201,9 @@ export default {
   _isPoolPatchInstallableOnPool (patchUuid) {
     return every(
       this.objects.all,
-      obj => obj.$type !== 'host' || this._isPoolPatchInstallableOnHost(patchUuid, obj)
+      obj =>
+        obj.$type !== 'host' ||
+        this._isPoolPatchInstallableOnHost(patchUuid, obj)
     )
   },
 
@@ -216,13 +211,9 @@ export default {
 
   // platform_version < 2.1.1 ----------------------------------------
   async uploadPoolPatch (stream, patchName) {
-    const patchRef = await this.putResource(
-      stream,
-      '/pool_patch_upload',
-      {
-        task: this.createTask('Patch upload', patchName),
-      }
-    ).then(extractOpaqueRef)
+    const patchRef = await this.putResource(stream, '/pool_patch_upload', {
+      task: this.createTask('Patch upload', patchName),
+    }).then(extractOpaqueRef)
 
     return this._getOrWaitObject(patchRef)
   },
@@ -242,14 +233,17 @@ export default {
     let stream = await this.xo.httpRequest(patchInfo.url)
     stream = await new Promise((resolve, reject) => {
       const PATCH_RE = /\.xsupdate$/
-      stream.pipe(unzip.Parse()).on('entry', entry => {
-        if (PATCH_RE.test(entry.path)) {
-          entry.length = entry.size
-          resolve(entry)
-        } else {
-          entry.autodrain()
-        }
-      }).on('error', reject)
+      stream
+        .pipe(unzip.Parse())
+        .on('entry', entry => {
+          if (PATCH_RE.test(entry.path)) {
+            entry.length = entry.size
+            resolve(entry)
+          } else {
+            entry.autodrain()
+          }
+        })
+        .on('error', reject)
     })
 
     return this.uploadPoolPatch(stream, patchInfo.name)
@@ -266,10 +260,13 @@ export default {
 
     let stream = await this.xo.httpRequest(patchInfo.url)
     stream = await new Promise((resolve, reject) => {
-      stream.pipe(unzip.Parse()).on('entry', entry => {
-        entry.length = entry.size
-        resolve(entry)
-      }).on('error', reject)
+      stream
+        .pipe(unzip.Parse())
+        .on('entry', entry => {
+          entry.length = entry.size
+          resolve(entry)
+        })
+        .on('error', reject)
     })
 
     let vdi
@@ -282,9 +279,19 @@ export default {
         return
       }
 
-      vdi = await this.createTemporaryVdiOnSr(stream, sr, '[XO] Patch ISO', 'small temporary VDI to store a patch ISO')
+      vdi = await this.createTemporaryVdiOnSr(
+        stream,
+        sr,
+        '[XO] Patch ISO',
+        'small temporary VDI to store a patch ISO'
+      )
     } else {
-      vdi = await this.createTemporaryVdiOnHost(stream, hostId, '[XO] Patch ISO', 'small temporary VDI to store a patch ISO')
+      vdi = await this.createTemporaryVdiOnHost(
+        stream,
+        hostId,
+        '[XO] Patch ISO',
+        'small temporary VDI to store a patch ISO'
+      )
     }
     $defer(() => this._deleteVdi(vdi))
 
@@ -295,14 +302,21 @@ export default {
 
   // patform_version < 2.1.1 -----------------------------------------
   async _installPoolPatchOnHost (patchUuid, host) {
-    const [ patch ] = await Promise.all([ this._getOrUploadPoolPatch(patchUuid), this._ejectToolsIsos(host.$ref) ])
+    const [patch] = await Promise.all([
+      this._getOrUploadPoolPatch(patchUuid),
+      this._ejectToolsIsos(host.$ref),
+    ])
 
     await this.call('pool_patch.apply', patch.$ref, host.$ref)
   },
 
   // patform_version >= 2.1.1
-  _installPatchUpdateOnHost: deferrable(async function ($defer, patchUuid, host) {
-    const [ vdi ] = await Promise.all([
+  _installPatchUpdateOnHost: deferrable(async function (
+    $defer,
+    patchUuid,
+    host
+  ) {
+    const [vdi] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid, host.$id),
       this._ejectToolsIsos(host.$ref),
     ])
@@ -333,7 +347,7 @@ export default {
 
   // platform_version < 2.1.1
   async _installPoolPatchOnAllHosts (patchUuid) {
-    const [ patch ] = await Promise.all([
+    const [patch] = await Promise.all([
       this._getOrUploadPoolPatch(patchUuid),
       this._ejectToolsIsos(),
     ])
@@ -343,7 +357,7 @@ export default {
 
   // platform_version >= 2.1.1
   _installPatchUpdateOnAllHosts: deferrable(async function ($defer, patchUuid) {
-    let [ vdi ] = await Promise.all([
+    let [vdi] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid),
       this._ejectToolsIsos(),
     ])
@@ -369,9 +383,10 @@ export default {
 
   // If no host is provided, install on pool
   async _installPoolPatchAndRequirements (patch, patchesByUuid, host) {
-    if (host == null
-      ? !this._isPoolPatchInstallableOnPool(patch.uuid)
-      : !this._isPoolPatchInstallableOnHost(patch.uuid, host)
+    if (
+      host == null
+        ? !this._isPoolPatchInstallableOnPool(patch.uuid)
+        : !this._isPoolPatchInstallableOnHost(patch.uuid, host)
     ) {
       return
     }
@@ -383,7 +398,11 @@ export default {
         const requirement = patchesByUuid[requirementUuid]
 
         if (requirement != null) {
-          await this._installPoolPatchAndRequirements(requirement, patchesByUuid, host)
+          await this._installPoolPatchAndRequirements(
+            requirement,
+            patchesByUuid,
+            host
+          )
           host = host && this.getObject(host.$id)
         }
       }
@@ -408,21 +427,29 @@ export default {
         }
       })
     }
-    addPatchesToList(mapToArray(patchNames, name =>
-      find(missingPatches, { name })
-    ))
+    addPatchesToList(
+      mapToArray(patchNames, name => find(missingPatches, { name }))
+    )
 
     for (let i = 0, n = patchesToInstall.length; i < n; i++) {
-      await this._installPoolPatchAndRequirements(patchesToInstall[i], missingPatches, host)
+      await this._installPoolPatchAndRequirements(
+        patchesToInstall[i],
+        missingPatches,
+        host
+      )
     }
   },
 
   async installAllPoolPatchesOnHost (hostId) {
     let host = this.getObject(hostId)
 
-    const installableByUuid = host.license_params.sku_type !== 'free'
-      ? await this._listMissingPoolPatchesOnHost(host)
-      : filter(await this._listMissingPoolPatchesOnHost(host), { paid: false, upgrade: false })
+    const installableByUuid =
+      host.license_params.sku_type !== 'free'
+        ? await this._listMissingPoolPatchesOnHost(host)
+        : filter(await this._listMissingPoolPatchesOnHost(host), {
+          paid: false,
+          upgrade: false,
+        })
 
     // List of all installable patches sorted from the newest to the
     // oldest.
@@ -435,8 +462,15 @@ export default {
       const patch = installable[i]
 
       if (this._isPoolPatchInstallableOnHost(patch.uuid, host)) {
-        await this._installPoolPatchAndRequirements(patch, installableByUuid, host).catch(error => {
-          if (error.code !== 'PATCH_ALREADY_APPLIED' && error.code !== 'UPDATE_ALREADY_APPLIED') {
+        await this._installPoolPatchAndRequirements(
+          patch,
+          installableByUuid,
+          host
+        ).catch(error => {
+          if (
+            error.code !== 'PATCH_ALREADY_APPLIED' &&
+            error.code !== 'UPDATE_ALREADY_APPLIED'
+          ) {
             throw error
           }
         })
@@ -448,14 +482,18 @@ export default {
   async installAllPoolPatchesOnAllHosts () {
     const installableByUuid = assign(
       {},
-      ...await Promise.all(mapFilter(this.objects.all, host => {
-        if (host.$type === 'host') {
-          return this._listMissingPoolPatchesOnHost(host).then(patches => host.license_params.sku_type !== 'free'
-            ? patches
-            : filter(patches, { paid: false, upgrade: false })
-          )
-        }
-      }))
+      ...(await Promise.all(
+        mapFilter(this.objects.all, host => {
+          if (host.$type === 'host') {
+            return this._listMissingPoolPatchesOnHost(host).then(
+              patches =>
+                host.license_params.sku_type !== 'free'
+                  ? patches
+                  : filter(patches, { paid: false, upgrade: false })
+            )
+          }
+        })
+      ))
     )
 
     // List of all installable patches sorted from the newest to the
@@ -468,8 +506,14 @@ export default {
     for (let i = 0, n = installable.length; i < n; ++i) {
       const patch = installable[i]
 
-      await this._installPoolPatchAndRequirements(patch, installableByUuid).catch(error => {
-        if (error.code !== 'PATCH_ALREADY_APPLIED' && error.code !== 'UPDATE_ALREADY_APPLIED_IN_POOL') {
+      await this._installPoolPatchAndRequirements(
+        patch,
+        installableByUuid
+      ).catch(error => {
+        if (
+          error.code !== 'PATCH_ALREADY_APPLIED' &&
+          error.code !== 'UPDATE_ALREADY_APPLIED_IN_POOL'
+        ) {
           throw error
         }
       })

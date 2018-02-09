@@ -1,15 +1,8 @@
 import Ajv from 'ajv'
 
 import { PluginsMetadata } from '../models/plugin-metadata'
-import {
-  invalidParameters,
-  noSuchObject,
-} from 'xo-common/api-errors'
-import {
-  createRawObject,
-  isFunction,
-  mapToArray,
-} from '../utils'
+import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
+import { createRawObject, isFunction, mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -26,11 +19,13 @@ export default class {
     })
 
     xo.on('start', () => {
-      xo.addConfigManager('plugins',
+      xo.addConfigManager(
+        'plugins',
         () => this._pluginsMetadata.get(),
-        plugins => Promise.all(mapToArray(plugins, plugin =>
-          this._pluginsMetadata.save(plugin)
-        ))
+        plugins =>
+          Promise.all(
+            mapToArray(plugins, plugin => this._pluginsMetadata.save(plugin))
+          )
       )
     })
   }
@@ -45,9 +40,7 @@ export default class {
 
   async _getPluginMetadata (id) {
     const metadata = await this._pluginsMetadata.first(id)
-    return metadata
-      ? metadata.properties
-      : null
+    return metadata ? metadata.properties : null
   }
 
   async registerPlugin (
@@ -60,7 +53,7 @@ export default class {
     version
   ) {
     const id = name
-    const plugin = this._plugins[id] = {
+    const plugin = (this._plugins[id] = {
       configurationPresets,
       configurationSchema,
       configured: !configurationSchema,
@@ -72,16 +65,13 @@ export default class {
       testSchema,
       unloadable: isFunction(instance.unload),
       version,
-    }
+    })
 
     const metadata = await this._getPluginMetadata(id)
     let autoload = true
     let configuration
     if (metadata) {
-      ({
-        autoload,
-        configuration,
-      } = metadata)
+      ;({ autoload, configuration } = metadata)
     } else {
       console.log(`[NOTICE] register plugin ${name} for the first time`)
       await this._pluginsMetadata.save({
@@ -115,10 +105,8 @@ export default class {
       unloadable,
       version,
     } = this._getRawPlugin(id)
-    const {
-      autoload,
-      configuration,
-    } = (await this._getPluginMetadata(id)) || {}
+    const { autoload, configuration } =
+      (await this._getPluginMetadata(id)) || {}
 
     return {
       id,
@@ -232,10 +220,12 @@ export default class {
     const { testSchema } = plugin
     if (testSchema) {
       if (data == null) {
-        throw invalidParameters([{
-          field: 'data',
-          message: 'is the wrong type',
-        }])
+        throw invalidParameters([
+          {
+            field: 'data',
+            message: 'is the wrong type',
+          },
+        ])
       }
 
       const validate = this._ajv.compile(testSchema)

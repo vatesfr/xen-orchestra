@@ -9,10 +9,7 @@ import {
   DEFAULT_CRITICAL_THRESHOLD_CPU,
   DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE,
 } from './plan'
-import {
-  EXECUTION_DELAY,
-  debug,
-} from './utils'
+import { EXECUTION_DELAY, debug } from './utils'
 
 // ===================================================================
 
@@ -41,7 +38,7 @@ export const configurationSchema = {
           },
 
           mode: {
-            enum: [ 'Performance mode', 'Density mode' ],
+            enum: ['Performance mode', 'Density mode'],
             title: 'Mode',
           },
 
@@ -85,7 +82,7 @@ export const configurationSchema = {
           },
         },
 
-        required: [ 'name', 'mode', 'pools' ],
+        required: ['name', 'mode', 'pools'],
       },
 
       minItems: 1,
@@ -115,7 +112,10 @@ const makeJob = (cronPattern, fn) => {
     try {
       await fn()
     } catch (error) {
-      console.error('[WARN] scheduled function:', (error && error.stack) || error)
+      console.error(
+        '[WARN] scheduled function:',
+        (error && error.stack) || error
+      )
     } finally {
       job.running = false
       job.emitter.emit('finish')
@@ -133,7 +133,10 @@ const makeJob = (cronPattern, fn) => {
 class LoadBalancerPlugin {
   constructor (xo) {
     this.xo = xo
-    this._job = makeJob(`*/${EXECUTION_DELAY} * * * *`, this._executePlans.bind(this))
+    this._job = makeJob(
+      `*/${EXECUTION_DELAY} * * * *`,
+      this._executePlans.bind(this)
+    )
   }
 
   async configure ({ plans }) {
@@ -154,7 +157,10 @@ class LoadBalancerPlugin {
 
     if (plans) {
       for (const plan of plans) {
-        this._addPlan(plan.mode === 'Performance mode' ? PERFORMANCE_MODE : DENSITY_MODE, plan)
+        this._addPlan(
+          plan.mode === 'Performance mode' ? PERFORMANCE_MODE : DENSITY_MODE,
+          plan
+        )
       }
     }
 
@@ -180,18 +186,17 @@ class LoadBalancerPlugin {
     }
 
     this._poolIds = this._poolIds.concat(pools)
-    this._plans.push(mode === PERFORMANCE_MODE
-      ? new PerformancePlan(this.xo, name, pools, options)
-      : new DensityPlan(this.xo, name, pools, options)
+    this._plans.push(
+      mode === PERFORMANCE_MODE
+        ? new PerformancePlan(this.xo, name, pools, options)
+        : new DensityPlan(this.xo, name, pools, options)
     )
   }
 
   _executePlans () {
     debug('Execute plans!')
 
-    return Promise.all(
-      mapToArray(this._plans, plan => plan.execute())
-    )
+    return Promise.all(mapToArray(this._plans, plan => plan.execute()))
   }
 }
 

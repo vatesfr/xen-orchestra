@@ -7,8 +7,9 @@ import { debug } from './utils'
 
 export default class DensityPlan extends Plan {
   _checkRessourcesThresholds (objects, averages) {
-    return filter(objects, object =>
-      averages[object.id].memoryFree > this._thresholds.memoryFree.low
+    return filter(
+      objects,
+      object => averages[object.id].memoryFree > this._thresholds.memoryFree.low
     )
   }
 
@@ -19,27 +20,17 @@ export default class DensityPlan extends Plan {
       return
     }
 
-    const {
-      hosts,
-      toOptimize,
-    } = results
+    const { hosts, toOptimize } = results
 
-    let {
-      averages: hostsAverages,
-    } = results
+    let { averages: hostsAverages } = results
 
     const pools = await this._getPlanPools()
     let optimizationsCount = 0
 
     for (const hostToOptimize of toOptimize) {
-      const {
-        id: hostId,
-        $poolId: poolId,
-      } = hostToOptimize
+      const { id: hostId, $poolId: poolId } = hostToOptimize
 
-      const {
-        master: masterId,
-      } = pools[poolId]
+      const { master: masterId } = pools[poolId]
 
       // Avoid master optimization.
       if (masterId === hostId) {
@@ -58,10 +49,7 @@ export default class DensityPlan extends Plan {
       const otherHosts = []
 
       for (const dest of hosts) {
-        const {
-          id: destId,
-          $poolId: destPoolId,
-        } = dest
+        const { id: destId, $poolId: destPoolId } = dest
 
         // Destination host != Host to optimize!
         if (destId === hostId) {
@@ -83,12 +71,7 @@ export default class DensityPlan extends Plan {
 
       const simulResults = await this._simulate({
         host: hostToOptimize,
-        destinations: [
-          [ poolMaster ],
-          poolHosts,
-          masters,
-          otherHosts,
-        ],
+        destinations: [[poolMaster], poolHosts, masters, otherHosts],
         hostsAverages: clone(hostsAverages),
       })
 
@@ -115,15 +98,15 @@ export default class DensityPlan extends Plan {
 
     for (const vm of vms) {
       if (!vm.xenTools) {
-        debug(`VM (${vm.id}) of Host (${hostId}) does not support pool migration.`)
+        debug(
+          `VM (${vm.id}) of Host (${hostId}) does not support pool migration.`
+        )
         return
       }
     }
 
     // Sort vms by amount of memory. (+ -> -)
-    vms.sort((a, b) =>
-      vmsAverages[b.id].memory - vmsAverages[a.id].memory
-    )
+    vms.sort((a, b) => vmsAverages[b.id].memory - vmsAverages[a.id].memory)
 
     const simulResults = {
       hostsAverages,
@@ -162,15 +145,11 @@ export default class DensityPlan extends Plan {
 
   // Test if a VM migration on a destination (of a destinations set) is possible.
   _testMigration ({ vm, destinations, hostsAverages, vmsAverages }) {
-    const {
-      _thresholds: {
-        critical: criticalThreshold,
-      },
-    } = this
+    const { _thresholds: { critical: criticalThreshold } } = this
 
     // Sort the destinations by available memory. (- -> +)
-    destinations.sort((a, b) =>
-      hostsAverages[a.id].memoryFree - hostsAverages[b.id].memoryFree
+    destinations.sort(
+      (a, b) => hostsAverages[a.id].memoryFree - hostsAverages[b.id].memoryFree
     )
 
     for (const destination of destinations) {
@@ -204,13 +183,18 @@ export default class DensityPlan extends Plan {
 
     await Promise.all(
       mapToArray(moves, move => {
-        const {
-          vm,
-          destination,
-        } = move
+        const { vm, destination } = move
         const xapiDest = this.xo.getXapi(destination)
-        debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${vm.$container}).`)
-        return xapiDest.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
+        debug(
+          `Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${
+            vm.$container
+          }).`
+        )
+        return xapiDest.migrateVm(
+          vm._xapiId,
+          this.xo.getXapi(destination),
+          destination._xapiId
+        )
       })
     )
 

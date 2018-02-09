@@ -12,15 +12,17 @@ clean.permission = 'admin'
 
 export async function exportConfig () {
   return {
-    $getFrom: await this.registerHttpRequest((req, res) => {
-      res.writeHead(200, 'OK', {
-        'content-disposition': 'attachment',
-      })
+    $getFrom: await this.registerHttpRequest(
+      (req, res) => {
+        res.writeHead(200, 'OK', {
+          'content-disposition': 'attachment',
+        })
 
-      return this.exportConfig()
-    },
-    undefined,
-    { suffix: '/config.json' }),
+        return this.exportConfig()
+      },
+      undefined,
+      { suffix: '/config.json' }
+    ),
   }
 }
 

@@ -1,16 +1,16 @@
-export async function enable ({id}) {
+export async function enable ({ id }) {
   const schedule = await this.getSchedule(id)
   schedule.enabled = true
   await this.updateSchedule(id, schedule)
 }
 
 enable.permission = 'admin'
-enable.description = 'Enables a schedule to run it\'s job as scheduled'
+enable.description = "Enables a schedule to run it's job as scheduled"
 enable.params = {
-  id: {type: 'string'},
+  id: { type: 'string' },
 }
 
-export async function disable ({id}) {
+export async function disable ({ id }) {
   const schedule = await this.getSchedule(id)
   schedule.enabled = false
   await this.updateSchedule(id, schedule)
@@ -19,7 +19,7 @@ export async function disable ({id}) {
 disable.permission = 'admin'
 disable.description = 'Disables a schedule'
 disable.params = {
-  id: {type: 'string'},
+  id: { type: 'string' },
 }
 
 export function getScheduleTable () {

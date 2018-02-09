@@ -37,9 +37,8 @@ export const asInteger = value => String(value)
 
 export const filterUndefineds = obj => pickBy(obj, value => value !== undefined)
 
-export const optional = (value, fn) => value == null
-  ? undefined
-  : fn ? fn(value) : value
+export const optional = (value, fn) =>
+  value == null ? undefined : fn ? fn(value) : value
 
 export const prepareXapiParam = param => {
   // if (isFinite(param) && !isInteger(param)) {
@@ -79,33 +78,36 @@ export const extractOpaqueRef = str => {
 // -------------------------------------------------------------------
 
 const TYPE_TO_NAMESPACE = createRawObject()
-forEach([
-  'Bond',
-  'DR_task',
-  'GPU_group',
-  'PBD',
-  'PCI',
-  'PGPU',
-  'PIF',
-  'PIF_metrics',
-  'SM',
-  'SR',
-  'VBD',
-  'VBD_metrics',
-  'VDI',
-  'VGPU',
-  'VGPU_type',
-  'VIF',
-  'VLAN',
-  'VM',
-  'VM_appliance',
-  'VM_guest_metrics',
-  'VM_metrics',
-  'VMPP',
-  'VTPM',
-], namespace => {
-  TYPE_TO_NAMESPACE[namespace.toLowerCase()] = namespace
-})
+forEach(
+  [
+    'Bond',
+    'DR_task',
+    'GPU_group',
+    'PBD',
+    'PCI',
+    'PGPU',
+    'PIF',
+    'PIF_metrics',
+    'SM',
+    'SR',
+    'VBD',
+    'VBD_metrics',
+    'VDI',
+    'VGPU',
+    'VGPU_type',
+    'VIF',
+    'VLAN',
+    'VM',
+    'VM_appliance',
+    'VM_guest_metrics',
+    'VM_metrics',
+    'VMPP',
+    'VTPM',
+  ],
+  namespace => {
+    TYPE_TO_NAMESPACE[namespace.toLowerCase()] = namespace
+  }
+)
 
 // Object types given by `xen-api` are always lowercase but the
 // namespaces in the Xen API can have a different casing.
@@ -120,7 +122,6 @@ export const getVmDisks = vm => {
     if (
       // Do not remove CDs and Floppies.
       vbd.type === 'Disk' &&
-
       // Ignore VBD without VDI.
       (vdi = vbd.$VDI)
     ) {
@@ -273,8 +274,8 @@ export const makeEditObject = specs => {
     }
 
     let tmp
-    specs[tmp = camelCase(name)] || (specs[tmp] = spec)
-    specs[tmp = camelToSnakeCase(name)] || (specs[tmp] = spec)
+    specs[(tmp = camelCase(name))] || (specs[tmp] = spec)
+    specs[(tmp = camelToSnakeCase(name))] || (specs[tmp] = spec)
   })
 
   return async function _editObject_ (id, values, checkLimits) {
@@ -287,7 +288,8 @@ export const makeEditObject = specs => {
     // Context used to execute functions.
     const context = {
       __proto__: this,
-      _set: (prop, value) => this.call(_setMethodPrefix + prop, _objectRef, prepareXapiParam(value)),
+      _set: (prop, value) =>
+        this.call(_setMethodPrefix + prop, _objectRef, prepareXapiParam(value)),
     }
 
     const set = (value, name) => {
@@ -335,7 +337,10 @@ export const makeEditObject = specs => {
           const constraintNewValue = values[constraintName]
 
           if (!constraint(constraintCurrentValue, value)) {
-            const cb = set(constraintNewValue == null ? value : constraintNewValue, constraintName)
+            const cb = set(
+              constraintNewValue == null ? value : constraintNewValue,
+              constraintName
+            )
             if (cb) {
               cbs.push(cb)
             }

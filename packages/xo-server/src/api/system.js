@@ -20,7 +20,8 @@ export function getMethodsInfo () {
 
   return methods
 }
-getMethodsInfo.description = 'returns the signatures of all available API methods'
+getMethodsInfo.description =
+  'returns the signatures of all available API methods'
 
 // -------------------------------------------------------------------
 
@@ -46,7 +47,7 @@ listMethods.description = 'returns the name of all available API methods'
 
 // -------------------------------------------------------------------
 
-export function methodSignature ({method: name}) {
+export function methodSignature ({ method: name }) {
   const method = this.apiMethods[name]
 
   if (!method) {

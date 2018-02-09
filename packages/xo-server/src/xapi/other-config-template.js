@@ -41,7 +41,8 @@ const OTHER_CONFIG_TEMPLATE = {
   PV_kernel: '',
   PV_legacy_args: '',
   PV_ramdisk: '',
-  recommendations: '<restrictions><restriction field="memory-static-max" max="137438953472" /><restriction field="vcpus-max" max="32" /><restriction property="number-of-vbds" max="255" /><restriction property="number-of-vifs" max="7" /><restriction field="has-vendor-device" value="false" /></restrictions>',
+  recommendations:
+    '<restrictions><restriction field="memory-static-max" max="137438953472" /><restriction field="vcpus-max" max="32" /><restriction property="number-of-vbds" max="255" /><restriction property="number-of-vifs" max="7" /><restriction field="has-vendor-device" value="false" /></restrictions>',
   shutdown_delay: 0,
   start_delay: 0,
   user_version: 1,

@@ -1,17 +1,14 @@
 import kindOf from 'kindof'
-import {BaseError} from 'make-error'
-import {EventEmitter} from 'events'
-import {forEach} from 'lodash'
+import { BaseError } from 'make-error'
+import { EventEmitter } from 'events'
+import { forEach } from 'lodash'
 
 import isEmpty from './is-empty'
 import isObject from './is-object'
 
 // ===================================================================
 
-const {
-  create: createObject,
-  prototype: { hasOwnProperty },
-} = Object
+const { create: createObject, prototype: { hasOwnProperty } } = Object
 
 export const ACTION_ADD = 'add'
 export const ACTION_UPDATE = 'update'
@@ -189,7 +186,7 @@ export default class Collection extends EventEmitter {
   // -----------------------------------------------------------------
 
   createIndex (name, index) {
-    const {_indexes: indexes} = this
+    const { _indexes: indexes } = this
     if (hasOwnProperty.call(indexes, name)) {
       throw new DuplicateIndex(name)
     }
@@ -201,7 +198,7 @@ export default class Collection extends EventEmitter {
   }
 
   deleteIndex (name) {
-    const {_indexes: indexes} = this
+    const { _indexes: indexes } = this
     if (!hasOwnProperty.call(indexes, name)) {
       throw new NoSuchIndex(name)
     }
@@ -218,7 +215,7 @@ export default class Collection extends EventEmitter {
   // -----------------------------------------------------------------
 
   * [Symbol.iterator] () {
-    const {_items: items} = this
+    const { _items: items } = this
 
     for (const key in items) {
       yield [key, items[key]]
@@ -226,7 +223,7 @@ export default class Collection extends EventEmitter {
   }
 
   * keys () {
-    const {_items: items} = this
+    const { _items: items } = this
 
     for (const key in items) {
       yield key
@@ -234,7 +231,7 @@ export default class Collection extends EventEmitter {
   }
 
   * values () {
-    const {_items: items} = this
+    const { _items: items } = this
 
     for (const key in items) {
       yield items[key]
@@ -259,7 +256,7 @@ export default class Collection extends EventEmitter {
         return
       }
 
-      const {_buffer: buffer} = this
+      const { _buffer: buffer } = this
 
       // Due to deduplication there could be nothing in the buffer.
       if (isEmpty(buffer)) {
@@ -354,7 +351,8 @@ export default class Collection extends EventEmitter {
       } else {
         this._buffer[key] = ACTION_REMOVE
       }
-    } else { // update
+    } else {
+      // update
       if (!this._buffer[key]) {
         this._buffer[key] = ACTION_UPDATE
       }

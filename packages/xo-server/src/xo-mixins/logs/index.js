@@ -29,14 +29,15 @@ export default class Logs {
       db.del(key, cb)
     }
 
-    const onData = keep !== 0
-      ? () => {
-        if (--keep === 0) {
-          stream.on('data', deleteEntry)
-          stream.removeListener('data', onData)
+    const onData =
+      keep !== 0
+        ? () => {
+          if (--keep === 0) {
+            stream.on('data', deleteEntry)
+            stream.removeListener('data', onData)
+          }
         }
-      }
-      : deleteEntry
+        : deleteEntry
     stream.on('data', onData)
 
     await fromEvent(stream, 'end')
@@ -46,9 +47,8 @@ export default class Logs {
   }
 
   getLogger (namespace) {
-    return this._app.getStore('logs').then(store => new LevelDbLogger(
-      store,
-      namespace
-    ))
+    return this._app
+      .getStore('logs')
+      .then(store => new LevelDbLogger(store, namespace))
   }
 }

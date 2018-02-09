@@ -13,9 +13,7 @@ getPermissionsForUser.params = {
 // -------------------------------------------------------------------
 
 export function hasPermission ({ userId, objectId, permission }) {
-  return this.hasPermissions(userId, [
-    [ objectId, permission ],
-  ])
+  return this.hasPermissions(userId, [[objectId, permission]])
 }
 
 hasPermission.permission = 'admin'
@@ -34,7 +32,7 @@ hasPermission.params = {
 
 // -------------------------------------------------------------------
 
-export function wait ({duration, returnValue}) {
+export function wait ({ duration, returnValue }) {
   return new Promise(resolve => {
     setTimeout(() => {
       resolve(returnValue)
@@ -81,6 +79,6 @@ copyVm.params = {
 }
 
 copyVm.resolve = {
-  vm: [ 'vm', 'VM' ],
-  sr: [ 'sr', 'SR' ],
+  vm: ['vm', 'VM'],
+  sr: ['sr', 'SR'],
 }

@@ -10,15 +10,16 @@ import { readFile } from 'fs'
 // ===================================================================
 
 const VAR_RE = /\{\{([^}]+)\}\}/g
-const evalFilter = (filter, vars) => filter.replace(VAR_RE, (_, name) => {
-  const value = vars[name]
+const evalFilter = (filter, vars) =>
+  filter.replace(VAR_RE, (_, name) => {
+    const value = vars[name]
 
-  if (value === undefined) {
-    throw new Error('invalid variable: ' + name)
-  }
+    if (value === undefined) {
+      throw new Error('invalid variable: ' + name)
+    }
 
-  return escape(value)
-})
+    return escape(value)
+  })
 
 export const configurationSchema = {
   type: 'object',
@@ -39,7 +40,8 @@ If not specified, it will use a default set of well-known CAs.
       },
     },
     checkCertificate: {
-      description: 'Enforce the validity of the server\'s certificates. You can disable it when connecting to servers that use a self-signed certificate.',
+      description:
+        "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
       default: true,
     },
@@ -58,14 +60,16 @@ For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
           type: 'string',
         },
         password: {
-          description: 'Password of the user permitted of search the LDAP directory.',
+          description:
+            'Password of the user permitted of search the LDAP directory.',
           type: 'string',
         },
       },
       required: ['dn', 'password'],
     },
     base: {
-      description: 'The base is the part of the description tree where the users are looked for.',
+      description:
+        'The base is the part of the description tree where the users are looked for.',
       type: 'string',
     },
     filter: {
@@ -116,25 +120,21 @@ class AuthLdap {
   }
 
   async configure (conf) {
-    const clientOpts = this._clientOpts = {
+    const clientOpts = (this._clientOpts = {
       url: conf.uri,
       maxConnections: 5,
       tlsOptions: {},
-    }
+    })
 
     {
-      const {
-        bind,
-        checkCertificate = true,
-        certificateAuthorities,
-      } = conf
+      const { bind, checkCertificate = true, certificateAuthorities } = conf
 
       if (bind) {
         clientOpts.bindDN = bind.dn
         clientOpts.bindCredentials = bind.password
       }
 
-      const {tlsOptions} = clientOpts
+      const { tlsOptions } = clientOpts
 
       tlsOptions.rejectUnauthorized = checkCertificate
       if (certificateAuthorities) {
@@ -192,7 +192,7 @@ class AuthLdap {
 
       // Bind if necessary.
       {
-        const {_credentials: credentials} = this
+        const { _credentials: credentials } = this
         if (credentials) {
           logger(`attempting to bind with as ${credentials.dn}...`)
           await bind(credentials.dn, credentials.password)
@@ -216,7 +216,7 @@ class AuthLdap {
           entries.push(entry.json)
         })
 
-        const {status} = await eventToPromise(response, 'end')
+        const { status } = await eventToPromise(response, 'end')
         if (status) {
           throw new Error('unexpected search response status: ' + status)
         }
@@ -229,7 +229,11 @@ class AuthLdap {
         try {
           logger(`attempting to bind as ${entry.objectName}`)
           await bind(entry.objectName, password)
-          logger(`successfully bound as ${entry.objectName} => ${username} authenticated`)
+          logger(
+            `successfully bound as ${
+              entry.objectName
+            } => ${username} authenticated`
+          )
           return { username }
         } catch (error) {
           logger(`failed to bind as ${entry.objectName}: ${error.message}`)
@@ -246,4 +250,4 @@ class AuthLdap {
 
 // ===================================================================
 
-export default ({xo}) => new AuthLdap(xo)
+export default ({ xo }) => new AuthLdap(xo)

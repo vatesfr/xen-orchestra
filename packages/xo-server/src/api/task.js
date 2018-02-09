@@ -1,4 +1,4 @@
-export async function cancel ({task}) {
+export async function cancel ({ task }) {
   await this.getXapi(task).call('task.cancel', task._xapiRef)
 }
 
@@ -12,7 +12,7 @@ cancel.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function destroy ({task}) {
+export async function destroy ({ task }) {
   await this.getXapi(task).call('task.destroy', task._xapiRef)
 }
 

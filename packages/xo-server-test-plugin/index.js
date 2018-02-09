@@ -37,7 +37,6 @@ exports.default = function (opts) {
   // For simplicity's sake, this plugin returns a plain object, but
   // usually it returns a new instance of an existing class.
   return {
-
     // This (optional) method is called each time the plugin is
     // (re-)configured.
     //

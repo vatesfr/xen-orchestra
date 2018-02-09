@@ -1,4 +1,4 @@
-import {Strategy} from 'passport-github'
+import { Strategy } from 'passport-github'
 
 // ===================================================================
 
@@ -27,18 +27,23 @@ class AuthGitHubXoPlugin {
   }
 
   load () {
-    const {_xo: xo} = this
+    const { _xo: xo } = this
 
-    xo.registerPassportStrategy(new Strategy(this._conf, async (accessToken, refreshToken, profile, done) => {
-      try {
-        done(null, await xo.registerUser('github', profile.username))
-      } catch (error) {
-        done(error.message)
-      }
-    }))
+    xo.registerPassportStrategy(
+      new Strategy(
+        this._conf,
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            done(null, await xo.registerUser('github', profile.username))
+          } catch (error) {
+            done(error.message)
+          }
+        }
+      )
+    )
   }
 }
 
 // ===================================================================
 
-export default ({xo}) => new AuthGitHubXoPlugin(xo)
+export default ({ xo }) => new AuthGitHubXoPlugin(xo)

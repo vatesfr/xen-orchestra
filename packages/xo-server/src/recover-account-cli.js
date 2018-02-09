@@ -4,12 +4,8 @@ import pw from 'pw'
 import Xo from './xo'
 import { generateToken } from './utils'
 
-const recoverAccount = async ([ name ]) => {
-  if (
-    name === undefined ||
-    name === '--help' ||
-    name === '-h'
-  ) {
+const recoverAccount = async ([name]) => {
+  if (name === undefined || name === '--help' || name === '-h') {
     return `
 xo-server-recover-account <user name or email>
 
@@ -28,9 +24,11 @@ xo-server-recover-account <user name or email>
     console.log('The generated password is', password)
   }
 
-  const xo = new Xo(await appConf.load('xo-server', {
-    ignoreUnknownFormats: true,
-  }))
+  const xo = new Xo(
+    await appConf.load('xo-server', {
+      ignoreUnknownFormats: true,
+    })
+  )
 
   const user = await xo.getUserByName(name, true)
   if (user !== null) {

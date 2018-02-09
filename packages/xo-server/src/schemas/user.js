@@ -19,7 +19,8 @@ export default {
     },
     permission: {
       enum: ['none', 'read', 'write', 'admin'],
-      description: 'root permission for this user, none and admin are the only significant ones',
+      description:
+        'root permission for this user, none and admin are the only significant ones',
     },
     preferences: {
       type: 'object',
@@ -33,18 +34,12 @@ export default {
               key: { type: 'string' },
               title: { type: 'string' },
             },
-            required: [
-              'key',
-              'title',
-            ],
+            required: ['key', 'title'],
           },
         },
       },
       description: 'various user preferences',
     },
   },
-  required: [
-    'id',
-    'email',
-  ],
+  required: ['id', 'email'],
 }

@@ -25,9 +25,7 @@ export class Groups extends Collection {
   async save (group) {
     // Serializes.
     let tmp
-    group.users = isEmpty(tmp = group.users)
-      ? undefined
-      : JSON.stringify(tmp)
+    group.users = isEmpty((tmp = group.users)) ? undefined : JSON.stringify(tmp)
 
     return /* await */ this.update(group)
   }

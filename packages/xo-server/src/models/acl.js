@@ -1,10 +1,6 @@
 import Collection from '../collection/redis'
 import Model from '../model'
-import {
-  forEach,
-  mapToArray,
-  multiKeyHash,
-} from '../utils'
+import { forEach, mapToArray, multiKeyHash } from '../utils'
 
 // ===================================================================
 
@@ -17,12 +13,15 @@ const DEFAULT_ACTION = 'admin'
 export default class Acl extends Model {}
 
 Acl.create = (subject, object, action) => {
-  return Acl.hash(subject, object, action).then(hash => new Acl({
-    id: hash,
-    subject,
-    object,
-    action,
-  }))
+  return Acl.hash(subject, object, action).then(
+    hash =>
+      new Acl({
+        id: hash,
+        subject,
+        object,
+        action,
+      })
+  )
 }
 
 Acl.hash = (subject, object, action) => multiKeyHash(subject, object, action)
@@ -62,13 +61,14 @@ export class Acls extends Collection {
       await this.remove(mapToArray(toUpdate, 'id'))
 
       // Compute the new ids (new hashes).
-      const {hash} = Acl
-      await Promise.all(mapToArray(
-        toUpdate,
-        (acl) => hash(acl.subject, acl.object, acl.action).then(id => {
-          acl.id = id
-        })
-      ))
+      const { hash } = Acl
+      await Promise.all(
+        mapToArray(toUpdate, acl =>
+          hash(acl.subject, acl.object, acl.action).then(id => {
+            acl.id = id
+          })
+        )
+      )
 
       // Inserts the new (updated) entries.
       await this.add(toUpdate)

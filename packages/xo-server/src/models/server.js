@@ -18,7 +18,7 @@ export class Servers extends Collection {
   async create (params) {
     const { host } = params
 
-    if (await this.exists({host})) {
+    if (await this.exists({ host })) {
       throw new Error('server already exists')
     }
 

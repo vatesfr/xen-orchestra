@@ -11,7 +11,7 @@ const _combine = (vectors, n, cb) => {
   const m = vector.length
   if (n === 1) {
     for (let i = 0; i < m; ++i) {
-      cb([ vector[i] ]) // eslint-disable-line standard/no-callback-literal
+      cb([vector[i]]) // eslint-disable-line standard/no-callback-literal
     }
     return
   }
@@ -19,7 +19,7 @@ const _combine = (vectors, n, cb) => {
   for (let i = 0; i < m; ++i) {
     const value = vector[i]
 
-    _combine(vectors, nLast, (vector) => {
+    _combine(vectors, nLast, vector => {
       vector.push(value)
       cb(vector)
     })
@@ -41,8 +41,7 @@ export const mergeObjects = objects => assign({}, ...objects)
 //
 // Ex: crossProduct([ [ { a: 2 }, { b: 3 } ], [ { c: 5 }, { d: 7 } ] ] )
 // => [ { a: 2, c: 5 }, { b: 3, c: 5 }, { a: 2, d: 7 }, { b: 3, d: 7 } ]
-export const crossProduct = (vectors, mergeFn = mergeObjects) => cb => (
+export const crossProduct = (vectors, mergeFn = mergeObjects) => cb =>
   combine(vectors)(vector => {
     cb(mergeFn(vector))
   })
-)

@@ -1,6 +1,4 @@
-import {
-  startsWith,
-} from 'lodash'
+import { startsWith } from 'lodash'
 
 import {
   ensureArray,
@@ -12,22 +10,12 @@ import {
   mapToArray,
   parseXml,
 } from './utils'
-import {
-  isHostRunning,
-  isVmHvm,
-  isVmRunning,
-  parseDateTime,
-} from './xapi'
-import {
-  useUpdateSystem,
-} from './xapi/utils'
+import { isHostRunning, isVmHvm, isVmRunning, parseDateTime } from './xapi'
+import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
 
-const {
-  defineProperties,
-  freeze,
-} = Object
+const { defineProperties, freeze } = Object
 
 function link (obj, prop, idField = '$id') {
   const dynamicValue = obj[`$${prop}`]
@@ -56,7 +44,8 @@ function toTimestamp (date) {
   const timestamp = +date
 
   // Not NaN.
-  if (timestamp === timestamp) { // eslint-disable-line no-self-compare
+  // eslint-disable-next-line no-self-compare
+  if (timestamp === timestamp) {
     return timestamp
   }
 
@@ -80,7 +69,9 @@ const TRANSFORMS = {
       tags: obj.tags,
       name_description: obj.name_description,
       name_label: obj.name_label || obj.$master.name_label,
-      xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time),
+      xosanPackInstallationTime: toTimestamp(
+        obj.other_config.xosan_pack_installation_time
+      ),
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
@@ -178,15 +169,14 @@ const TRANSFORMS = {
       })(),
       patches: patches || link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
-      power_state: metrics
-        ? (isRunning ? 'Running' : 'Halted')
-        : 'Unknown',
+      power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
       startTime: toTimestamp(otherConfig.boot_time),
-      supplementalPacks: supplementalPacks ||
+      supplementalPacks:
+        supplementalPacks ||
         mapFilter(softwareVersion, (value, key) => {
           let author, name
-          if (([ author, name ] = key.split(':')).length === 2) {
-            const [ description, version ] = value.split(', ')
+          if (([author, name] = key.split(':')).length === 2) {
+            const [description, version] = value.split(', ')
             return {
               name,
               description,
@@ -242,10 +232,9 @@ const TRANSFORMS = {
       }
 
       const { major, minor } = guestMetrics.PV_drivers_version
-      const [ hostMajor, hostMinor ] = (obj.$resident_on || obj.$pool.$master)
-        .software_version
-        .product_version
-        .split('.')
+      const [hostMajor, hostMinor] = (
+        obj.$resident_on || obj.$pool.$master
+      ).software_version.product_version.split('.')
 
       return major >= hostMajor && minor >= hostMinor
         ? 'up to date'
@@ -272,11 +261,10 @@ const TRANSFORMS = {
       boot: obj.HVM_boot_params,
       CPUs: {
         max: +obj.VCPUs_max,
-        number: (
+        number:
           isRunning && metrics && xenTools
             ? +metrics.VCPUs_number
-            : +obj.VCPUs_at_startup
-        ),
+            : +obj.VCPUs_at_startup,
       },
       current_operations: obj.current_operations,
       docker: (function () {
@@ -316,8 +304,8 @@ const TRANSFORMS = {
         const staticMax = +obj.memory_static_max
 
         const memory = {
-          dynamic: [ dynamicMin, dynamicMax ],
-          static: [ staticMin, staticMax ],
+          dynamic: [dynamicMin, dynamicMax],
+          static: [staticMin, staticMax],
         }
 
         const gmMemory = guestMetrics && guestMetrics.memory
@@ -356,11 +344,8 @@ const TRANSFORMS = {
       // - 'up to date': optimized
       xenTools,
 
-      $container: (
-        isRunning
-          ? link(obj, 'resident_on')
-          : link(obj, 'pool') // TODO: handle local VMs (`VM.get_possible_hosts()`).
-      ),
+      // TODO: handle local VMs (`VM.get_possible_hosts()`).
+      $container: isRunning ? link(obj, 'resident_on') : link(obj, 'pool'),
       $VBDs: link(obj, 'VBDs'),
 
       // TODO: dedupe
@@ -369,10 +354,7 @@ const TRANSFORMS = {
     }
 
     if (isHvm) {
-      ({
-        vga: vm.vga = 'cirrus',
-        videoram: vm.videoram = 4,
-      } = obj.platform)
+      ;({ vga: vm.vga = 'cirrus', videoram: vm.videoram = 4 } = obj.platform)
     }
 
     const coresPerSocket = obj.platform['cores-per-socket']
@@ -398,7 +380,7 @@ const TRANSFORMS = {
       vm.template_info = {
         arch: otherConfig['install-arch'],
         disks: (function () {
-          const {disks: xml} = otherConfig
+          const { disks: xml } = otherConfig
           let data
           if (!xml || !(data = parseXml(xml)).provision) {
             return []
@@ -457,11 +439,10 @@ const TRANSFORMS = {
       other_config: obj.other_config,
       sm_config: obj.sm_config,
 
-      $container: (
+      $container:
         obj.shared || !obj.$PBDs[0]
           ? link(obj, 'pool')
-          : link(obj.$PBDs[0], 'host')
-      ),
+          : link(obj.$PBDs[0], 'host'),
       $PBDs: link(obj, 'PBDs'),
     }
   },
@@ -762,10 +743,7 @@ export default xapiObj => {
   if (!('type' in xoObj)) {
     xoObj.type = xapiObj.$type
   }
-  if (
-    'uuid' in xapiObj &&
-    !('uuid' in xoObj)
-  ) {
+  if ('uuid' in xapiObj && !('uuid' in xoObj)) {
     xoObj.uuid = xapiObj.uuid
   }
   xoObj.$pool = xapiObj.$pool.$id

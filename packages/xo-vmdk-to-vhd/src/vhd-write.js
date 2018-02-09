@@ -1,7 +1,7 @@
 'use strict'
-import {open, write} from 'fs-promise'
+import { open, write } from 'fs-promise'
 import stream from 'stream'
-import {VMDKDirectParser} from './vmdk-read'
+import { VMDKDirectParser } from './vmdk-read'
 
 const footerCookie = 'conectix'
 const creatorApp = 'xo  '
@@ -19,13 +19,14 @@ export function computeChecksum (buffer) {
     sum += buffer[i]
   }
   // http://stackoverflow.com/a/1908655/72637 the >>> prevents the number from going negative
-  return (~sum) >>> 0
+  return ~sum >>> 0
 }
 
 class Block {
   constructor (blockSize) {
     const bitmapSize = blockSize / sectorSize / 8
-    const bufferSize = Math.ceil((blockSize + bitmapSize) / sectorSize) * sectorSize
+    const bufferSize =
+      Math.ceil((blockSize + bitmapSize) / sectorSize) * sectorSize
     this.buffer = Buffer.alloc(bufferSize)
     this.bitmapBuffer = this.buffer.slice(0, bitmapSize)
     this.dataBuffer = this.buffer.slice(bitmapSize)
@@ -68,13 +69,16 @@ class SparseExtent {
     const startBlock = Math.floor(offset / this.blockSize)
     const endBlock = Math.ceil((offset + buffer.length) / this.blockSize)
     for (let i = startBlock; i < endBlock; i++) {
-      const blockDelta = offset - (i * this.blockSize)
+      const blockDelta = offset - i * this.blockSize
       let blockBuffer, blockOffset
       if (blockDelta > 0) {
         blockBuffer = buffer.slice(0, (i + 1) * this.blockSize - offset)
         blockOffset = blockDelta
       } else {
-        blockBuffer = buffer.slice(-blockDelta, (i + 1) * this.blockSize - offset)
+        blockBuffer = buffer.slice(
+          -blockDelta,
+          (i + 1) * this.blockSize - offset
+        )
         blockOffset = 0
       }
       this._writeBlock(blockBuffer, i, blockOffset)
@@ -105,7 +109,11 @@ export class VHDFile {
     this.geomtry = computeGeometryForSize(virtualSize)
     this.timestamp = timestamp
     this.blockSize = 0x00200000
-    this.sparseFile = new SparseExtent(this.geomtry.actualSize, this.blockSize, sectorSize * 3)
+    this.sparseFile = new SparseExtent(
+      this.geomtry.actualSize,
+      this.blockSize,
+      sectorSize * 3
+    )
   }
 
   writeBuffer (buffer, offset = 0) {
@@ -113,8 +121,18 @@ export class VHDFile {
   }
 
   async writeFile (fileName) {
-    const fileFooter = createFooter(this.geomtry.actualSize, this.timestamp, this.geomtry, dynamicHardDiskType, 512, 0)
-    const diskHeader = createDynamicDiskHeader(this.sparseFile.entryCount, this.blockSize)
+    const fileFooter = createFooter(
+      this.geomtry.actualSize,
+      this.timestamp,
+      this.geomtry,
+      dynamicHardDiskType,
+      512,
+      0
+    )
+    const diskHeader = createDynamicDiskHeader(
+      this.sparseFile.entryCount,
+      this.blockSize
+    )
     const file = await open(fileName, 'w')
     await write(file, fileFooter, 0, fileFooter.length)
     await write(file, diskHeader, 0, diskHeader.length)
@@ -143,12 +161,12 @@ export function computeGeometryForSize (size) {
     if (heads < 4) {
       heads = 4
     }
-    if (cylinderTimesHeads >= (heads * 1024) || heads > 16) {
+    if (cylinderTimesHeads >= heads * 1024 || heads > 16) {
       sectorsPerTrack = 31
       heads = 16
       cylinderTimesHeads = totalSectors / sectorsPerTrack
     }
-    if (cylinderTimesHeads >= (heads * 1024)) {
+    if (cylinderTimesHeads >= heads * 1024) {
       sectorsPerTrack = 63
       heads = 16
       cylinderTimesHeads = totalSectors / sectorsPerTrack
@@ -156,10 +174,17 @@ export function computeGeometryForSize (size) {
   }
   const cylinders = Math.floor(cylinderTimesHeads / heads)
   const actualSize = cylinders * heads * sectorsPerTrack * sectorSize
-  return {cylinders, heads, sectorsPerTrack, actualSize}
+  return { cylinders, heads, sectorsPerTrack, actualSize }
 }
 
-export function createFooter (size, timestamp, geometry, diskType, dataOffsetLow = 0xFFFFFFFF, dataOffsetHigh = 0xFFFFFFFF) {
+export function createFooter (
+  size,
+  timestamp,
+  geometry,
+  diskType,
+  dataOffsetLow = 0xffffffff,
+  dataOffsetHigh = 0xffffffff
+) {
   const footer = Buffer.alloc(512)
   Buffer.from(footerCookie, 'ascii').copy(footer)
   footer.writeUInt32BE(2, 8)
@@ -189,8 +214,8 @@ export function createDynamicDiskHeader (tableEntries, blockSize) {
   const header = Buffer.alloc(1024)
   Buffer.from(headerCookie, 'ascii').copy(header)
   // hard code no next data
-  header.writeUInt32BE(0xFFFFFFFF, 8)
-  header.writeUInt32BE(0xFFFFFFFF, 12)
+  header.writeUInt32BE(0xffffffff, 8)
+  header.writeUInt32BE(0xffffffff, 12)
   // hard code table offset
   header.writeUInt32BE(0, 16)
   header.writeUInt32BE(sectorSize * 3, 20)
@@ -206,7 +231,7 @@ export function createEmptyTable (dataSize, blockSize) {
   const blockCount = Math.ceil(dataSize / blockSize)
   const tableSizeSectors = Math.ceil(blockCount * 4 / sectorSize)
   const buffer = Buffer.alloc(tableSizeSectors * sectorSize, 0xff)
-  return {entryCount: blockCount, buffer: buffer, entries: []}
+  return { entryCount: blockCount, buffer: buffer, entries: [] }
 }
 
 export class ReadableRawVHDStream extends stream.Readable {
@@ -214,7 +239,12 @@ export class ReadableRawVHDStream extends stream.Readable {
     super()
     this.size = size
     const geometry = computeGeometryForSize(size)
-    this.footer = createFooter(size, Math.floor(Date.now() / 1000), geometry, fixedHardDiskType)
+    this.footer = createFooter(
+      size,
+      Math.floor(Date.now() / 1000),
+      geometry,
+      fixedHardDiskType
+    )
     this.position = 0
     this.vmdkParser = vmdkParser
     this.done = false
@@ -254,7 +284,12 @@ export class ReadableRawVHDStream extends stream.Readable {
       const buffer = next.grain
       const paddingLength = offset - this.position
       if (paddingLength < 0) {
-        process.nextTick(() => this.emit('error', 'This VMDK file does not have its blocks in the correct order'))
+        process.nextTick(() =>
+          this.emit(
+            'error',
+            'This VMDK file does not have its blocks in the correct order'
+          )
+        )
       }
       this.filePadding(paddingLength)
       this.currentFile.push(() => buffer)
@@ -278,8 +313,7 @@ export class ReadableRawVHDStream extends stream.Readable {
   }
 
   async pushNextUntilFull () {
-    while (!this.done && await this.pushNextBlock()) {
-    }
+    while (!this.done && (await this.pushNextBlock())) {}
   }
 
   _read () {
@@ -288,11 +322,13 @@ export class ReadableRawVHDStream extends stream.Readable {
     }
     if (this.pushFileUntilFull()) {
       this.busy = true
-      this.pushNextUntilFull().then(() => {
-        this.busy = false
-      }).catch((error) => {
-        process.nextTick(() => this.emit('error', error))
-      })
+      this.pushNextUntilFull()
+        .then(() => {
+          this.busy = false
+        })
+        .catch(error => {
+          process.nextTick(() => this.emit('error', error))
+        })
     }
   }
 }

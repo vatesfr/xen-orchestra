@@ -52,10 +52,7 @@ describe('createRawObject()', () => {
 
 describe('diffItems', () => {
   it('computes the added/removed items between 2 iterables', () => {
-    expect(diffItems(
-      ['foo', 'bar'],
-      ['baz', 'foo']
-    )).toEqual([
+    expect(diffItems(['foo', 'bar'], ['baz', 'foo'])).toEqual([
       ['bar'],
       ['baz'],
     ])
@@ -105,14 +102,13 @@ describe('extractProperty()', function () {
 
 describe('formatXml()', function () {
   it('formats a JS object to an XML string', function () {
-    expect(formatXml({
-      foo: {
-        bar: [
-          {$: {baz: 'plop'}},
-          {$: {baz: 'plip'}},
-        ],
-      },
-    })).toBe(`<foo>
+    expect(
+      formatXml({
+        foo: {
+          bar: [{ $: { baz: 'plop' } }, { $: { baz: 'plip' } }],
+        },
+      })
+    ).toBe(`<foo>
   <bar baz="plop"/>
   <bar baz="plip"/>
 </foo>`)
@@ -154,11 +150,7 @@ describe('parseSize()', function () {
 describe('pSettle()', () => {
   it('works with arrays', async () => {
     const rejection = 'fatality'
-    const [
-      status1,
-      status2,
-      status3,
-    ] = await pSettle([
+    const [status1, status2, status3] = await pSettle([
       Promise.resolve(42),
       Math.PI,
       Promise.reject(rejection),
@@ -184,11 +176,7 @@ describe('pSettle()', () => {
   it('works with objects', async () => {
     const rejection = 'fatality'
 
-    const {
-      a: status1,
-      b: status2,
-      c: status3,
-    } = await pSettle({
+    const { a: status1, b: status2, c: status3 } = await pSettle({
       a: Promise.resolve(42),
       b: Math.PI,
       c: Promise.reject(rejection),

@@ -1,18 +1,10 @@
-import {
-  forEach,
-  groupBy,
-} from 'lodash'
+import { forEach, groupBy } from 'lodash'
 
-import {
-  createRawObject,
-  mapToArray,
-} from '../../utils'
+import { createRawObject, mapToArray } from '../../utils'
 
 export default {
   _connectAllSrPbds (sr) {
-    return Promise.all(
-      mapToArray(sr.$PBDs, pbd => this._plugPbd(pbd))
-    )
+    return Promise.all(mapToArray(sr.$PBDs, pbd => this._plugPbd(pbd)))
   },
 
   async connectAllSrPbds (id) {
@@ -20,9 +12,7 @@ export default {
   },
 
   _disconnectAllSrPbds (sr) {
-    return Promise.all(
-      mapToArray(sr.$PBDs, pbd => this._unplugPbd(pbd))
-    )
+    return Promise.all(mapToArray(sr.$PBDs, pbd => this._unplugPbd(pbd)))
   },
 
   async disconnectAllSrPbds (id) {
@@ -61,9 +51,7 @@ export default {
     let length = cache[uuid]
     if (length === undefined) {
       const children = childrenMap[uuid]
-      length = children !== undefined && children.length === 1
-        ? 1
-        : 0
+      length = children !== undefined && children.length === 1 ? 1 : 0
       try {
         const parent = this.getObjectByUuid(uuid).sm_config['vhd-parent']
         if (parent !== undefined) {

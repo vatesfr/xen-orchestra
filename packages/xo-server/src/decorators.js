@@ -1,16 +1,10 @@
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 
-import {
-  isArray,
-  isFunction,
-} from './utils'
+import { isArray, isFunction } from './utils'
 
 // ===================================================================
 
-const {
-  defineProperties,
-  getOwnPropertyDescriptor,
-} = Object
+const { defineProperties, getOwnPropertyDescriptor } = Object
 
 // ===================================================================
 
@@ -27,10 +21,12 @@ export const debounce = duration => (target, name, descriptor) => {
   const s = Symbol(`debounced ${name} data`)
 
   function debounced () {
-    const data = this[s] || (this[s] = {
-      lastCall: 0,
-      wrapper: null,
-    })
+    const data =
+      this[s] ||
+      (this[s] = {
+        lastCall: 0,
+        wrapper: null,
+      })
 
     const now = Date.now()
     if (now > data.lastCall + duration) {
@@ -39,12 +35,16 @@ export const debounce = duration => (target, name, descriptor) => {
         const result = fn.apply(this, arguments)
         data.wrapper = () => result
       } catch (error) {
-        data.wrapper = () => { throw error }
+        data.wrapper = () => {
+          throw error
+        }
       }
     }
     return data.wrapper()
   }
-  debounced.reset = obj => { delete obj[s] }
+  debounced.reset = obj => {
+    delete obj[s]
+  }
 
   descriptor.value = debounced
   return descriptor
@@ -52,21 +52,12 @@ export const debounce = duration => (target, name, descriptor) => {
 
 // -------------------------------------------------------------------
 
-const _ownKeys = (
+const _ownKeys =
   (typeof Reflect !== 'undefined' && Reflect.ownKeys) ||
-  (({
-    getOwnPropertyNames: names,
-    getOwnPropertySymbols: symbols,
-  }) => symbols
-    ? obj => names(obj).concat(symbols(obj))
-    : names
-  )(Object)
-)
+  (({ getOwnPropertyNames: names, getOwnPropertySymbols: symbols }) =>
+    symbols ? obj => names(obj).concat(symbols(obj)) : names)(Object)
 
-const _isIgnoredProperty = name => (
-  name[0] === '_' ||
-  name === 'constructor'
-)
+const _isIgnoredProperty = name => name[0] === '_' || name === 'constructor'
 
 const _IGNORED_STATIC_PROPERTIES = {
   __proto__: null,
@@ -81,7 +72,7 @@ const _isIgnoredStaticProperty = name => _IGNORED_STATIC_PROPERTIES[name]
 
 export const mixin = MixIns => Class => {
   if (!isArray(MixIns)) {
-    MixIns = [ MixIns ]
+    MixIns = [MixIns]
   }
 
   const { name } = Class
@@ -103,9 +94,10 @@ export const mixin = MixIns => Class => {
           throw new Error(`${name}#${prop} is already defined`)
         }
 
-        (
-          descriptors[prop] = getOwnPropertyDescriptor(MixIn, prop)
-        ).enumerable = false // Object methods are enumerable but class methods are not.
+        ;(descriptors[prop] = getOwnPropertyDescriptor(
+          MixIn,
+          prop
+        )).enumerable = false // Object methods are enumerable but class methods are not.
       }
     }
     defineProperties(prototype, descriptors)
@@ -143,16 +135,15 @@ export const mixin = MixIns => Class => {
   const descriptors = { __proto__: null }
   for (const prop of _ownKeys(Class)) {
     let descriptor
-    if (!(
-      // Special properties are not defined...
-      _isIgnoredStaticProperty(prop) &&
-
-      // if they already exist...
-      (descriptor = getOwnPropertyDescriptor(Decorator, prop)) &&
-
-      // and are not configurable.
-      !descriptor.configurable
-    )) {
+    if (
+      !(
+        _isIgnoredStaticProperty(prop) &&
+        // if they already exist...
+        (descriptor = getOwnPropertyDescriptor(Decorator, prop)) &&
+        // and are not configurable.
+        !descriptor.configurable
+      )
+    ) {
       descriptors[prop] = getOwnPropertyDescriptor(Class, prop)
     }
   }

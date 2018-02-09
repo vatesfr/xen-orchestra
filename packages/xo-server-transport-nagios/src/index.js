@@ -35,18 +35,12 @@ export const configurationSchema = {
 
 // ===================================================================
 
-const bind = (fn, thisArg) => function __bound__ () {
-  return fn.apply(thisArg, arguments)
-}
+const bind = (fn, thisArg) =>
+  function __bound__ () {
+    return fn.apply(thisArg, arguments)
+  }
 
-function nscaPacketBuilder ({
-  host,
-  iv,
-  message,
-  service,
-  status,
-  timestamp,
-}) {
+function nscaPacketBuilder ({ host, iv, message, service, status, timestamp }) {
   // Building NSCA packet
   const SIZE = 720
   const packet = Buffer.alloc(SIZE)
@@ -112,15 +106,13 @@ class XoServerNagios {
 
   test () {
     return this._sendPassiveCheck({
-      message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
+      message:
+        'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
       status: OK,
     })
   }
 
-  _sendPassiveCheck ({
-    message,
-    status,
-  }) {
+  _sendPassiveCheck ({ message, status }) {
     return new Promise((resolve, reject) => {
       if (/\r|\n/.test(message)) {
         throw new Error('the message must not contain a line break')
@@ -145,13 +137,7 @@ class XoServerNagios {
 
         // 1) Using xor between the NSCA packet and the initialization vector
         // 2) Using xor between the result of the first operation and the encryption key
-        const xorPacketBuffer = xor(
-          xor(
-            packet,
-            iv
-          ),
-          this._key
-        )
+        const xorPacketBuffer = xor(xor(packet, iv), this._key)
 
         client.write(xorPacketBuffer, res => {
           client.destroy()

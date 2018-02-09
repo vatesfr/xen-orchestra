@@ -68,13 +68,15 @@ class TransportXmppPlugin {
     this._unset = this._client = null
   }
 
-  _sendToXmppClient ({to, message}) {
+  _sendToXmppClient ({ to, message }) {
     for (const receiver of to) {
       this._client.send(
         new XmppClient.Stanza('message', {
           to: receiver,
           type: 'chat',
-        }).c('body').t(message)
+        })
+          .c('body')
+          .t(message)
       )
     }
   }

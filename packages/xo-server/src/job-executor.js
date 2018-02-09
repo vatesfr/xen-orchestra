@@ -2,20 +2,10 @@ import Bluebird from 'bluebird'
 import { BaseError } from 'make-error'
 import { createPredicate } from 'value-matcher'
 import { timeout } from 'promise-toolbox'
-import {
-  assign,
-  filter,
-  find,
-  isEmpty,
-  map,
-  mapValues,
-} from 'lodash'
+import { assign, filter, find, isEmpty, map, mapValues } from 'lodash'
 
 import { crossProduct } from './math'
-import {
-  serializeError,
-  thunkToArray,
-} from './utils'
+import { serializeError, thunkToArray } from './utils'
 
 export class JobExecutorError extends BaseError {}
 export class UnsupportedJobType extends JobExecutorError {
@@ -36,9 +26,9 @@ const paramsVectorActionsMap = {
     return mapValues(mapping, key => value[key])
   },
   crossProduct ({ items }) {
-    return thunkToArray(crossProduct(
-      map(items, value => resolveParamsVector.call(this, value))
-    ))
+    return thunkToArray(
+      crossProduct(map(items, value => resolveParamsVector.call(this, value)))
+    )
   },
   fetchObjects ({ pattern }) {
     const objects = filter(this.xo.getObjects(), createPredicate(pattern))
@@ -74,9 +64,11 @@ export default class JobExecutor {
     this.xo = xo
 
     // The logger is not available until Xo has started.
-    xo.on('start', () => xo.getLogger('jobs').then(logger => {
-      this._logger = logger
-    }))
+    xo.on('start', () =>
+      xo.getLogger('jobs').then(logger => {
+        this._logger = logger
+      })
+    )
   }
 
   async exec (job) {
@@ -130,51 +122,68 @@ export default class JobExecutor {
       timezone: schedule !== undefined ? schedule.timezone : undefined,
     }
 
-    await Bluebird.map(paramsFlatVector, params => {
-      const runCallId = this._logger.notice(`Starting ${job.method} call. (${job.id})`, {
-        event: 'jobCall.start',
-        runJobId,
-        method: job.method,
-        params,
-      })
-
-      const call = execStatus.calls[runCallId] = {
-        method: job.method,
-        params,
-        start: Date.now(),
-      }
-      let promise = this.xo.callApiMethod(connection, job.method, assign({}, params))
-      if (job.timeout) {
-        promise = promise::timeout(job.timeout)
-      }
-
-      return promise.then(
-        value => {
-          this._logger.notice(`Call ${job.method} (${runCallId}) is a success. (${job.id})`, {
-            event: 'jobCall.end',
+    await Bluebird.map(
+      paramsFlatVector,
+      params => {
+        const runCallId = this._logger.notice(
+          `Starting ${job.method} call. (${job.id})`,
+          {
+            event: 'jobCall.start',
             runJobId,
-            runCallId,
-            returnedValue: value,
-          })
+            method: job.method,
+            params,
+          }
+        )
 
-          call.returnedValue = value
-          call.end = Date.now()
-        },
-        reason => {
-          this._logger.notice(`Call ${job.method} (${runCallId}) has failed. (${job.id})`, {
-            event: 'jobCall.end',
-            runJobId,
-            runCallId,
-            error: serializeError(reason),
-          })
-
-          call.error = reason
-          call.end = Date.now()
+        const call = (execStatus.calls[runCallId] = {
+          method: job.method,
+          params,
+          start: Date.now(),
+        })
+        let promise = this.xo.callApiMethod(
+          connection,
+          job.method,
+          assign({}, params)
+        )
+        if (job.timeout) {
+          promise = promise::timeout(job.timeout)
         }
-      )
-    }, {
-      concurrency: 2,
-    })
+
+        return promise.then(
+          value => {
+            this._logger.notice(
+              `Call ${job.method} (${runCallId}) is a success. (${job.id})`,
+              {
+                event: 'jobCall.end',
+                runJobId,
+                runCallId,
+                returnedValue: value,
+              }
+            )
+
+            call.returnedValue = value
+            call.end = Date.now()
+          },
+          reason => {
+            this._logger.notice(
+              `Call ${job.method} (${runCallId}) has failed. (${job.id})`,
+              {
+                event: 'jobCall.end',
+                runJobId,
+                runCallId,
+                error: serializeError(reason),
+              }
+            )
+
+            call.error = reason
+            call.end = Date.now()
+          }
+        )
+      },
+      {
+        concurrency: 2,
+      }
+    )
 
     connection.close()
     execStatus.end = Date.now()

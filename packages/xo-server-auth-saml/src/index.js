@@ -1,4 +1,4 @@
-import {Strategy} from 'passport-saml'
+import { Strategy } from 'passport-saml'
 
 // ===================================================================
 
@@ -38,19 +38,21 @@ class AuthSamlXoPlugin {
   load () {
     const xo = this._xo
 
-    xo.registerPassportStrategy(new Strategy(this._conf, async (profile, done) => {
-      const name = profile[this._usernameField]
-      if (!name) {
-        done('no name found for this user')
-        return
-      }
+    xo.registerPassportStrategy(
+      new Strategy(this._conf, async (profile, done) => {
+        const name = profile[this._usernameField]
+        if (!name) {
+          done('no name found for this user')
+          return
+        }
 
-      try {
-        done(null, await xo.registerUser('saml', name))
-      } catch (error) {
-        done(error.message)
-      }
-    }))
+        try {
+          done(null, await xo.registerUser('saml', name))
+        } catch (error) {
+          done(error.message)
+        }
+      })
+    )
   }
 }
 

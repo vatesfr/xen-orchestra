@@ -3,10 +3,13 @@ import map from 'lodash/map'
 import trim from 'lodash/trim'
 import trimStart from 'lodash/trimStart'
 
-const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
+const sanitizePath = (...paths) =>
+  filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join(
+    '/'
+  )
 
 export const parse = string => {
-  const object = { }
+  const object = {}
 
   const [type, rest] = string.split('://')
   if (type === 'file') {
@@ -36,7 +39,7 @@ export const parse = string => {
   return object
 }
 
-export const format = ({type, host, path, username, password, domain}) => {
+export const format = ({ type, host, path, username, password, domain }) => {
   type === 'local' && (type = 'file')
   let string = `${type}://`
   if (type === 'nfs') {

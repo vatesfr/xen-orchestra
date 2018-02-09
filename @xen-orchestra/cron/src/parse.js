@@ -90,7 +90,7 @@ const createParser = ({ fields: [...fields], presets: { ...presets } }) => {
       if (!match('/')) {
         return
       }
-      [start, end] = field.range
+      ;[start, end] = field.range
       step = parseInteger()
     } else {
       start = parseValue()

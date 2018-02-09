@@ -12,7 +12,7 @@ create.description = 'create a new authentication token'
 create.params = {
   expiresIn: {
     optional: true,
-    type: [ 'number', 'string' ],
+    type: ['number', 'string'],
   },
 }
 
@@ -21,11 +21,11 @@ create.permission = '' // sign in
 // -------------------------------------------------------------------
 
 // TODO: an user should be able to delete its own tokens.
-async function delete_ ({token: id}) {
+async function delete_ ({ token: id }) {
   await this.deleteAuthenticationToken(id)
 }
 
-export {delete_ as delete}
+export { delete_ as delete }
 
 delete_.description = 'delete an existing authentication token'
 

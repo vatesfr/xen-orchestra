@@ -1,6 +1,4 @@
-import {
-  unauthorized,
-} from 'xo-common/api-errors'
+import { unauthorized } from 'xo-common/api-errors'
 
 // ===================================================================
 
@@ -237,4 +235,5 @@ export function recomputeAllLimits () {
 }
 
 recomputeAllLimits.permission = 'admin'
-recomputeAllLimits.description = 'Recompute manually the current resource set usage'
+recomputeAllLimits.description =
+  'Recompute manually the current resource set usage'

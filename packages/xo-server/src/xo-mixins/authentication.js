@@ -3,16 +3,11 @@ import { noSuchObject } from 'xo-common/api-errors'
 import { ignoreErrors } from 'promise-toolbox'
 
 import Token, { Tokens } from '../models/token'
-import {
-  createRawObject,
-  forEach,
-  generateToken,
-} from '../utils'
+import { createRawObject, forEach, generateToken } from '../utils'
 
 // ===================================================================
 
-const noSuchAuthenticationToken = id =>
-  noSuchObject(id, 'authenticationToken')
+const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
 const ONE_MONTH = 1e3 * 60 * 60 * 24 * 30
 
@@ -27,31 +22,26 @@ export default class {
     this._providers = new Set()
 
     // Creates persistent collections.
-    const tokensDb = this._tokens = new Tokens({
+    const tokensDb = (this._tokens = new Tokens({
       connection: xo._redis,
       prefix: 'xo:token',
       indexes: ['user_id'],
-    })
+    }))
 
     // Password authentication provider.
-    this.registerAuthenticationProvider(async ({
-      username,
-      password,
-    }) => {
+    this.registerAuthenticationProvider(async ({ username, password }) => {
       if (username === undefined || password === undefined) {
         return
       }
 
       const user = await xo.getUserByName(username, true)
-      if (user && await xo.checkUserPassword(user.id, password)) {
+      if (user && (await xo.checkUserPassword(user.id, password))) {
         return user.id
       }
     })
 
     // Token authentication provider.
-    this.registerAuthenticationProvider(async ({
-      token: tokenId,
-    }) => {
+    this.registerAuthenticationProvider(async ({ token: tokenId }) => {
       if (!tokenId) {
         return
       }
@@ -75,7 +65,8 @@ export default class {
     })
 
     xo.on('start', () => {
-      xo.addConfigManager('authTokens',
+      xo.addConfigManager(
+        'authTokens',
         () => tokensDb.get(),
         tokens => tokensDb.update(tokens)
       )
@@ -135,7 +126,7 @@ export default class {
     if (
       username &&
       (lastFailure = failures[username]) &&
-      (lastFailure + 2e3) > now
+      lastFailure + 2e3 > now
     ) {
       throw new Error('too fast authentication tries')
     }
@@ -152,18 +143,12 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken ({
-    expiresIn = ONE_MONTH,
-    userId,
-  }) {
+  async createAuthenticationToken ({ expiresIn = ONE_MONTH, userId }) {
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
-      expiration: Date.now() + (
-        typeof expiresIn === 'string'
-          ? ms(expiresIn)
-          : expiresIn
-      ),
+      expiration:
+        Date.now() + (typeof expiresIn === 'string' ? ms(expiresIn) : expiresIn),
     })
 
     await this._tokens.add(token)
@@ -186,10 +171,8 @@ export default class {
 
     token = token.properties
 
-    if (!(
-      token.expiration > Date.now()
-    )) {
-      this._tokens.remove(id)::ignoreErrors()
+    if (!(token.expiration > Date.now())) {
+      ;this._tokens.remove(id)::ignoreErrors()
 
       throw noSuchAuthenticationToken(id)
     }

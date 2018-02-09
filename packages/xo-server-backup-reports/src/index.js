@@ -37,15 +37,17 @@ const ICON_FAILURE = '🚨'
 const ICON_SUCCESS = '✔'
 
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
-const createDateFormater = timezone => timezone !== undefined
-  ? timestamp => moment(timestamp).tz(timezone).format(DATE_FORMAT)
-  : timestamp => moment(timestamp).format(DATE_FORMAT)
+const createDateFormater = timezone =>
+  timezone !== undefined
+    ? timestamp =>
+      moment(timestamp)
+        .tz(timezone)
+        .format(DATE_FORMAT)
+    : timestamp => moment(timestamp).format(DATE_FORMAT)
 
-const formatDuration = milliseconds =>
-  moment.duration(milliseconds).humanize()
+const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
 
-const formatMethod = method =>
-  startCase(method.slice(method.indexOf('.') + 1))
+const formatMethod = method => startCase(method.slice(method.indexOf('.') + 1))
 
 const formatSize = bytes =>
   humanFormat(bytes, {
@@ -83,7 +85,9 @@ class BackupReportsXoPlugin {
   }
 
   _wrapper (status) {
-    return new Promise(resolve => resolve(this._listener(status))).catch(logError)
+    return new Promise(resolve => resolve(this._listener(status))).catch(
+      logError
+    )
   }
 
   _listener (status) {
@@ -114,8 +118,7 @@ class BackupReportsXoPlugin {
     }
 
     const reportOnFailure =
-      reportWhen === 'fail' || // xo-web < 5
-      reportWhen === 'failure' // xo-web >= 5
+      reportWhen === 'fail' || reportWhen === 'failure' // xo-web < 5 // xo-web >= 5
 
     let globalMergeSize = 0
     let globalTransferSize = 0
@@ -152,11 +155,7 @@ class BackupReportsXoPlugin {
 
         const { message } = error
 
-        failedBackupsText.push(
-          ...text,
-          `- **Error**: ${message}`,
-          ''
-        )
+        failedBackupsText.push(...text, `- **Error**: ${message}`, '')
 
         nagiosText.push(
           `[ ${vm !== undefined ? vm.name_label : 'undefined'} : ${message} ]`
@@ -169,22 +168,25 @@ class BackupReportsXoPlugin {
             globalTransferSize += transferSize
             text.push(
               `- **Transfer size**: ${formatSize(transferSize)}`,
-              `- **Transfer speed**: ${formatSpeed(transferSize, returnedValue.transferDuration)}`
+              `- **Transfer speed**: ${formatSpeed(
+                transferSize,
+                returnedValue.transferDuration
+              )}`
             )
           }
           if (mergeSize !== undefined) {
             globalMergeSize += mergeSize
             text.push(
               `- **Merge size**: ${formatSize(mergeSize)}`,
-              `- **Merge speed**: ${formatSpeed(mergeSize, returnedValue.mergeDuration)}`
+              `- **Merge speed**: ${formatSpeed(
+                mergeSize,
+                returnedValue.mergeDuration
+              )}`
             )
           }
         }
 
-        successfulBackupText.push(
-          ...text,
-          ''
-        )
+        successfulBackupText.push(...text, '')
       }
     })
 
@@ -208,14 +210,10 @@ class BackupReportsXoPlugin {
       `- **Successes**: ${nSuccesses} / ${nCalls}`,
     ]
     if (globalTransferSize !== 0) {
-      markdown.push(
-        `- **Transfer size**: ${formatSize(globalTransferSize)}`
-      )
+      markdown.push(`- **Transfer size**: ${formatSize(globalTransferSize)}`)
     }
     if (globalMergeSize !== 0) {
-      markdown.push(
-        `- **Merge size**: ${formatSize(globalMergeSize)}`
-      )
+      markdown.push(`- **Merge size**: ${formatSize(globalMergeSize)}`)
     }
     markdown.push('')
 
@@ -239,38 +237,40 @@ class BackupReportsXoPlugin {
       )
     }
 
-    markdown.push(
-      '---',
-      '',
-      `*${pkg.name} v${pkg.version}*`
-    )
+    markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
 
     markdown = markdown.join('\n')
 
     const xo = this._xo
     return Promise.all([
-      xo.sendEmail !== undefined && xo.sendEmail({
-        to: this._mailsReceivers,
-        subject: `[Xen Orchestra] ${
-          globalSuccess ? 'Success' : 'Failure'
-        } − Backup report for ${tag} ${
-          globalSuccess ? ICON_SUCCESS : ICON_FAILURE
-        }`,
-        markdown,
-      }),
-      xo.sendToXmppClient !== undefined && xo.sendToXmppClient({
-        to: this._xmppReceivers,
-        message: markdown,
-      }),
-      xo.sendSlackMessage !== undefined && xo.sendSlackMessage({
-        message: markdown,
-      }),
-      xo.sendPassiveCheck !== undefined && xo.sendPassiveCheck({
-        status: globalSuccess ? 0 : 2,
-        message: globalSuccess
-          ? `[Xen Orchestra] [Success] Backup report for ${tag}`
-          : `[Xen Orchestra] [Failure] Backup report for ${tag} - VMs : ${nagiosText.join(' ')}`,
-      }),
+      xo.sendEmail !== undefined &&
+        xo.sendEmail({
+          to: this._mailsReceivers,
+          subject: `[Xen Orchestra] ${
+            globalSuccess ? 'Success' : 'Failure'
+          } − Backup report for ${tag} ${
+            globalSuccess ? ICON_SUCCESS : ICON_FAILURE
+          }`,
+          markdown,
+        }),
+      xo.sendToXmppClient !== undefined &&
+        xo.sendToXmppClient({
+          to: this._xmppReceivers,
+          message: markdown,
+        }),
+      xo.sendSlackMessage !== undefined &&
+        xo.sendSlackMessage({
+          message: markdown,
+        }),
+      xo.sendPassiveCheck !== undefined &&
+        xo.sendPassiveCheck({
+          status: globalSuccess ? 0 : 2,
+          message: globalSuccess
+            ? `[Xen Orchestra] [Success] Backup report for ${tag}`
+            : `[Xen Orchestra] [Failure] Backup report for ${tag} - VMs : ${nagiosText.join(
+              ' '
+            )}`,
+        }),
     ])
   }
 }

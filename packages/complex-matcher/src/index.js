@@ -325,7 +325,10 @@ class P {
         value.push(result.value)
         pos = result.pos
       }
-      while (i < max && (result = this._parse(input, pos, end)) instanceof Success) {
+      while (
+        i < max &&
+        (result = this._parse(input, pos, end)) instanceof Success
+      ) {
         ++i
         value.push(result.value)
         pos = result.pos
@@ -359,8 +362,9 @@ P.eof = new P(
 
 const parser = P.grammar({
   default: r =>
-    P.seq(r.ws, r.term.repeat(), P.eof)
-      .map(([, terms]) => (terms.length === 0 ? new Null() : new And(terms))),
+    P.seq(r.ws, r.term.repeat(), P.eof).map(
+      ([, terms]) => (terms.length === 0 ? new Null() : new And(terms))
+    ),
   quotedString: new P((input, pos, end) => {
     if (input[pos] !== '"') {
       return new Failure(pos, '"')
@@ -416,7 +420,7 @@ const parser = P.grammar({
             ? new StringNode(str)
             : new NumberNode(asNum)
         })
-      ),
+      )
     ).skip(r.ws),
   ws: P.regex(/\s*/),
 }).default
@@ -476,17 +480,19 @@ export const getPropertyClausesStrings = node => {
 // -------------------------------------------------------------------
 
 export const setPropertyClause = (node, name, child) => {
-  const property = child && new Property(
-    name,
-    typeof child === 'string' ? new StringNode(child) : child
-  )
+  const property =
+    child &&
+    new Property(
+      name,
+      typeof child === 'string' ? new StringNode(child) : child
+    )
 
   if (node === undefined) {
     return property
   }
 
-  const children = (node instanceof And ? node.children : [node]).filter(child =>
-    !(child instanceof Property && child.name === name)
+  const children = (node instanceof And ? node.children : [node]).filter(
+    child => !(child instanceof Property && child.name === name)
   )
   if (property !== undefined) {
     children.push(property)

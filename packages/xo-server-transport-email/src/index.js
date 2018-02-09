@@ -16,7 +16,10 @@ const removeUndefined = obj => {
 const markdownCompiler = nodemailerMarkdown()
 
 const logAndRethrow = error => {
-  console.error('[WARN] plugin transport-email:', (error && error.stack) || error)
+  console.error(
+    '[WARN] plugin transport-email:',
+    (error && error.stack) || error
+  )
 
   throw error
 }
@@ -59,7 +62,7 @@ export const configurationSchema = {
         },
         secure: {
           default: false,
-          enum: [ false, 'force', 'disabled', true ],
+          enum: [false, 'force', 'disabled', true],
           enumNames: [
             'auto (uses STARTTLS if available)',
             'force (requires STARTTLS or fail)',
@@ -70,7 +73,8 @@ export const configurationSchema = {
         },
         ignoreUnauthorized: {
           type: 'boolean',
-          description: 'ignore certificates error (e.g. self-signed certificate)',
+          description:
+            'ignore certificates error (e.g. self-signed certificate)',
         },
 
         // FIXME: xo-web does not support edition of too nested
@@ -138,18 +142,11 @@ class TransportEmailPlugin {
 
   configure ({
     from,
-    transport: {
-      ignoreUnauthorized,
-      password,
-      secure,
-      user,
-      ...transportConf
-    },
+    transport: { ignoreUnauthorized, password, secure, user, ...transportConf },
   }) {
     if (ignoreUnauthorized != null) {
-      (
-        transportConf.tls ||
-        (transportConf.tls = {})
+      ;(
+        transportConf.tls || (transportConf.tls = {})
       ).rejectUnauthorized = !ignoreUnauthorized
     }
 
@@ -159,11 +156,14 @@ class TransportEmailPlugin {
 
     switch (secure) {
       case true:
-        transportConf.secure = true; break
+        transportConf.secure = true
+        break
       case 'disabled':
-        transportConf.ignoreTLS = true; break
+        transportConf.ignoreTLS = true
+        break
       case 'required':
-        transportConf.requireTLS = true; break
+        transportConf.requireTLS = true
+        break
     }
 
     const transport = createTransport(transportConf, { from })
@@ -180,7 +180,7 @@ class TransportEmailPlugin {
     this._unset()
   }
 
-  test ({to}) {
+  test ({ to }) {
     return this._sendEmail({
       to,
       subject: '[Xen Orchestra] Test of transport-email plugin',
@@ -188,29 +188,27 @@ class TransportEmailPlugin {
 
 The transport-email plugin for Xen Orchestra server seems to be working fine, nicely done :)
 `,
-      attachments: [ {
-        filename: 'example.txt',
-        content: 'Attachments are working too, great!\n',
-      } ],
+      attachments: [
+        {
+          filename: 'example.txt',
+          content: 'Attachments are working too, great!\n',
+        },
+      ],
     })
   }
 
-  _sendEmail ({
-    from,
-    to, cc, bcc,
-    subject,
-    markdown,
-    attachments,
-  }) {
-    return this._send(removeUndefined({
-      from,
-      to,
-      cc,
-      bcc,
-      subject,
-      markdown,
-      attachments,
-    })).catch(logAndRethrow)
+  _sendEmail ({ from, to, cc, bcc, subject, markdown, attachments }) {
+    return this._send(
+      removeUndefined({
+        from,
+        to,
+        cc,
+        bcc,
+        subject,
+        markdown,
+        attachments,
+      })
+    ).catch(logAndRethrow)
   }
 }
 

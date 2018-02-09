@@ -19,11 +19,13 @@ const configFile = configPath + '/config.json'
 
 // ===================================================================
 
-const load = exports.load = function () {
-  return readFile(configFile).then(JSON.parse).catch(function () {
-    return {}
-  })
-}
+const load = (exports.load = function () {
+  return readFile(configFile)
+    .then(JSON.parse)
+    .catch(function () {
+      return {}
+    })
+})
 
 exports.get = function (path) {
   return load().then(function (config) {
@@ -31,11 +33,11 @@ exports.get = function (path) {
   })
 }
 
-const save = exports.save = function (config) {
+const save = (exports.save = function (config) {
   return mkdirp(configPath).then(function () {
     return writeFile(configFile, JSON.stringify(config))
   })
-}
+})
 
 exports.set = function (data) {
   return load().then(function (config) {
