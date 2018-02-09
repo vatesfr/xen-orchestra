@@ -2407,20 +2407,6 @@ export const removeXosanBricks = (xosansr, bricks) =>
 export const computeXosanPossibleOptions = (lvmSrs, brickSize) =>
   _call('xosan.computeXosanPossibleOptions', { lvmSrs, brickSize })
 
-import InstallXosanPackModal from './install-xosan-pack-modal' // eslint-disable-line import/first
-export const downloadAndInstallXosanPack = pool =>
-  confirm({
-    title: _('xosanInstallPackTitle', { pool: pool.name_label }),
-    icon: 'export',
-    body: <InstallXosanPackModal pool={pool} />,
-  }).then(pack =>
-    _call('xosan.downloadAndInstallXosanPack', {
-      id: pack.id,
-      version: pack.version,
-      pool: resolveId(pool),
-    })
-  )
-
 export const registerXosan = () =>
   _call('cloud.registerResource', { namespace: 'xosan' })::tap(
     subscribeResourceCatalog.forceRefresh
@@ -2428,6 +2414,31 @@ export const registerXosan = () =>
 
 export const fixHostNotInXosanNetwork = (xosanSr, host) =>
   _call('xosan.fixHostNotInNetwork', { xosanSr, host })
+
+// XOSAN packs -----------------------------------------------------------------
+
+export const getResourceCatalog = () => _call('cloud.getResourceCatalog')
+
+const downloadAndInstallXosanPack = (pack, pool, { version }) =>
+  _call('xosan.downloadAndInstallXosanPack', {
+    id: resolveId(pack),
+    version,
+    pool: resolveId(pool),
+  })
+
+import UpdateXosanPacksModal from './update-xosan-packs-modal' // eslint-disable-line import/first
+export const updateXosanPacks = pool =>
+  confirm({
+    title: _('xosanUpdatePacks'),
+    icon: 'host-patch-update',
+    body: <UpdateXosanPacksModal pool={pool} />,
+  }).then(pack => {
+    if (pack === undefined) {
+      return
+    }
+
+    return downloadAndInstallXosanPack(pack, pool, { version: pack.version })
+  })
 
 // Licenses --------------------------------------------------------------------
 

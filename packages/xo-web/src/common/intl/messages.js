@@ -1743,7 +1743,8 @@ const messages = {
   xosanUsedSpace: 'Used space',
   xosanLicense: 'License',
   xosanMultipleLicenses: 'This XOSAN has more than 1 license!',
-  xosanNeedPack: 'XOSAN pack needs to be installed on each host of the pool.',
+  xosanNeedPack:
+    'XOSAN pack needs to be installed and up to date on each host of the pool.',
   xosanInstallIt: 'Install it now!',
   xosanNeedRestart:
     'Some hosts need their toolstack to be restarted before you can create an XOSAN',
@@ -1771,6 +1772,14 @@ const messages = {
   xosanPbdsDetached: 'Some SRs are detached from the XOSAN',
   xosanBadStatus: 'Something is wrong with: {badStatuses}',
   xosanRunning: 'Running',
+  xosanUpdatePacks: 'Update packs',
+  xosanPackUpdateChecking: 'Checking for updates',
+  xosanPackUpdateError:
+    'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded and that the updater is reachable.',
+  xosanPackUpdateUnavailable: 'XOSAN resources are unavailable',
+  xosanPackUpdateUnregistered: 'Not registered for XOSAN resources',
+  xosanPackUpdateUpToDate: "✓ This pool's XOSAN packs are up to date!",
+  xosanPackUpdateVersion: 'Update pool with latest pack v{version}',
   xosanDelete: 'Delete XOSAN',
   xosanFixIssue: 'Fix',
   xosanCreatingOn: 'Creating XOSAN on {pool}',
@@ -1787,12 +1796,8 @@ const messages = {
   xosanRegister: 'Register your appliance first',
   xosanLoading: 'Loading…',
   xosanNotAvailable: 'XOSAN is not available at the moment',
-  xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
-  xosanInstallPack: 'Install {pack} v{version}?',
   xosanNoPackFound:
     'No compatible XOSAN pack found for your XenServer versions.',
-  xosanPackRequirements:
-    'At least one of these version requirements must be satisfied by all the hosts in this pool:',
   // SR tab XOSAN
   xosanVmsNotRunning: 'Some XOSAN Virtual Machines are not running',
   xosanVmsNotFound: 'Some XOSAN Virtual Machines could not be found',

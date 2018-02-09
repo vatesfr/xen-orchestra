@@ -3857,7 +3857,8 @@ export default {
   xosanUsedSpace: 'Espace utilisé',
 
   // Original text: "XOSAN pack needs to be installed on each host of the pool."
-  xosanNeedPack: 'La pack XOSAN doit être installé sur tous les hôtes du pool.',
+  xosanNeedPack:
+    'Le pack XOSAN doit être installé et à jour sur tous les hôtes du pool.',
 
   // Original text: "Install it now!"
   xosanInstallIt: 'Installer maintenant !',
