@@ -352,7 +352,7 @@ class Vhd {
       j += VHD_ENTRY_SIZE
 
       if (i === n) {
-        return
+        throw new Error('no allocated block found')
       }
     }
     lastSector = firstSector
