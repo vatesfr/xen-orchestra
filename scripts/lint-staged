@@ -1,52 +1,78 @@
-#!/bin/sh
+#!/usr/bin/env node
 
-set -eu
-
-format_files () {
-  prettier --write "$@"
-  eslint --ignore-pattern '!*' --fix "$@"
+const formatFiles = files => {
+  run('./node_modules/.bin/prettier', ['--write'].concat(files))
+  run(
+    './node_modules/.bin/eslint',
+    ['--ignore-pattern', '!*', '--fix'].concat(files)
+  )
 }
-test_files () {
-  jest --findRelatedTests --passWithNoTests "$@"
-}
+const testFiles = files =>
+  run(
+    './node_modules/.bin/jest',
+    ['--findRelatedTests', '--passWithNoTests'].concat(files)
+  )
 
-# compute the list of staged files we are interested in
-set --
-buf=$(mktemp -u)
-git diff-index --cached --diff-filter=AM --name-only HEAD > "$buf"
-while IFS= read -r file
-do
-  case "$file" in
-    *.js)
-      set -- "$@" "$file";;
-  esac
-done < "$buf"
-rm -f "$buf"
+// -----------------------------------------------------------------------------
 
-if [ $# -eq 0 ]
-then
-  exit
-fi
+const defer = require('golike-defer').default
+const { execFileSync, spawnSync } = require('child_process')
+const { readFileSync, writeFileSync } = require('fs')
 
-format_files "$@"
+const run = (command, args, opts) =>
+  spawnSync(
+    command,
+    args,
+    Object.assign({
+      stdio: 'inherit',
+      opts,
+    })
+  )
 
-# stash unstaged changes
-if stash=$(git stash create --keep-index --quiet)
-then
-  # remove those changes from the worktree
-  git checkout .
+const gitDiff = (what, args = []) =>
+  execFileSync(
+    'git',
+    [
+      'diff-' + what,
+      '--diff-filter=AM',
+      '--ignore-submodules',
+      '--name-only',
+    ].concat(args),
+    { encoding: 'utf8' }
+  )
+    .split('\n')
+    .filter(_ => _ !== '')
+const gitDiffFiles = (files = []) => gitDiff('files', files)
+const gitDiffIndex = () => gitDiff('index', ['--cached', 'HEAD'])
 
-  format_files "$@"
-
-  # unstash on exit
-  on_exit () {
-    git read-tree HEAD
-    git checkout $stash "$@"
+defer($defer => {
+  let files = gitDiffIndex()
+  files = files.filter(_ => _.endsWith('.js'))
+  if (files.length === 0) {
+    return
   }
-  trap 'GIT_INDEX_FILE=$buf on_exit "$@"; rm -f "$buf"' EXIT
-fi
 
-test_files "$@"
+  // save the list of files with unstaged changes
+  let unstaged = gitDiffFiles(files)
 
-# add any changes made by the commands
-git add "$@"
+  // format all files
+  formatFiles(files)
+
+  if (unstaged.length !== 0) {
+    // refresh the list of files with unstaged changes, maybe the
+    // changes have been reverted by the formatting
+    run('git', ['update-index', '-q', '--refresh'])
+    unstaged = gitDiffFiles(unstaged)
+
+    if (unstaged.length !== 0) {
+      const contents = unstaged.map(name => readFileSync(name))
+      $defer(() => unstaged.map((name, i) => writeFileSync(name, contents[i])))
+      run('git', ['checkout'].concat(unstaged))
+      formatFiles(unstaged)
+    }
+  }
+
+  testFiles(files)
+
+  run('git', ['add'].concat(files))
+})()
