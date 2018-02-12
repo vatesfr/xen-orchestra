@@ -744,6 +744,8 @@ export default class Home extends Component {
   _getShortcutsHandler = createSelector(
     () => this._getVisibleItems(),
     items => (command, event) => {
+      if (event.target.tagName === 'INPUT') return
+
       event.preventDefault()
       switch (command) {
         case 'SEARCH':
@@ -912,10 +914,11 @@ export default class Home extends Component {
     return (
       <Page header={this._renderHeader()}>
         <Shortcuts
-          name='Home'
           handler={this._getShortcutsHandler()}
+          isolate
+          name='Home'
+          stopPropagation
           targetNodeSelector='body'
-          stopPropagation={false}
         />
         <div>
           <div className={styles.itemContainer}>
