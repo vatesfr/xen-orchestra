@@ -23,10 +23,13 @@ schedule.next(2)
 const job = schedule.createJob(() => {
   console.log(new Date())
 })
-
 job.start()
-
 job.stop()
+
+const stopJob = schedule.startJob(() => {
+  console.log(new Date())
+})
+stopJob()
 ```
 
 > If the scheduled job returns a promise, its resolution (or

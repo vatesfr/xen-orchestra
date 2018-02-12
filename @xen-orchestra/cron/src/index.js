@@ -62,6 +62,12 @@ class Schedule {
     const now = DateTime.fromObject(this._dateTimeOpts)
     return next(this._schedule, now) - now
   }
+
+  startJob (fn) {
+    const job = this.createJob(fn)
+    job.start()
+    return job.stop.bind(job)
+  }
 }
 
 export const createSchedule = (...args) => new Schedule(...args)
