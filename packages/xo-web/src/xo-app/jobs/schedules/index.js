@@ -9,7 +9,6 @@ import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
-import { createSelector } from 'selectors'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import { Select, Toggle } from 'form'
@@ -82,7 +81,7 @@ export default class Schedules extends Component {
       cronPattern: DEFAULT_CRON_PATTERN,
       job: undefined,
       jobs: undefined,
-      timezone: undefined,
+      timezone: DEFAULT_TIMEZONE,
     }
     this.loaded = new Promise((resolve, reject) => {
       this._resolveLoaded = resolve
@@ -179,7 +178,7 @@ export default class Schedules extends Component {
       {
         cronPattern: DEFAULT_CRON_PATTERN,
         schedule: undefined,
-        timezone: undefined,
+        timezone: DEFAULT_TIMEZONE,
       },
       () => {
         const { name, job, enabled } = this.refs
@@ -209,15 +208,8 @@ export default class Schedules extends Component {
     },
   ]
 
-  _getTimezone = createSelector(
-    () => this.state.schedule !== undefined,
-    () => this.state.timezone,
-    (scheduleExists, timezone) => (scheduleExists ? timezone : DEFAULT_TIMEZONE)
-  )
-
   render () {
-    const { cronPattern, jobs, schedule, schedules } = this.state
-    const timezone = this._getTimezone()
+    const { cronPattern, jobs, schedule, schedules, timezone } = this.state
     const userData = { jobs }
     return (
       <div>
