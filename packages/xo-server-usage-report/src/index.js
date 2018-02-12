@@ -474,11 +474,10 @@ class UsageReportPlugin {
     this._conf = null
   }
 
-  configure (configuration) {
+  configure (configuration, loaded) {
     this._conf = configuration
-    const enabled = this.job !== undefined && this.job.enabled
 
-    if (enabled) {
+    if (this._job !== undefined) {
       this._job.stop()
     }
 
@@ -495,7 +494,7 @@ class UsageReportPlugin {
       }
     })
 
-    if (enabled) {
+    if (loaded) {
       this._job.start()
     }
   }
@@ -505,12 +504,10 @@ class UsageReportPlugin {
     this._storedStatsPath = `${dir}/stats.json`
 
     this._job.start()
-    this._job.enabled = true
   }
 
   unload () {
     this._job.stop()
-    this._job.enabled = false
   }
 
   test () {

@@ -42,8 +42,9 @@ exports.default = function (opts) {
     //
     // Note: before being called, the configuration is validated
     // against the provided configuration schema.
-    configure: function (configuration) {
+    configure: function (configuration, loaded) {
       console.log('stub configured', configuration)
+      console.log('is stub loaded ?', loaded)
     },
 
     // This method is called to load the plugin.
