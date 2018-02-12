@@ -474,7 +474,7 @@ class UsageReportPlugin {
     this._conf = null
   }
 
-  configure (configuration, loaded) {
+  configure (configuration, state) {
     this._conf = configuration
 
     if (this._job !== undefined) {
@@ -494,7 +494,7 @@ class UsageReportPlugin {
       }
     })
 
-    if (loaded) {
+    if (state.loaded) {
       this._job.start()
     }
   }

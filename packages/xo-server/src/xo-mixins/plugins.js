@@ -151,7 +151,9 @@ export default class {
         // which is handed over to it.
         ...configuration,
       },
-      plugin.loaded
+      {
+        loaded: plugin.loaded,
+      }
     )
     plugin.configured = true
   }
