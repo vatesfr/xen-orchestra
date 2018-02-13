@@ -66,7 +66,6 @@
     "font-awesome": "^4.7.0",
     "font-mfizz": "^2.4.1",
     "get-stream": "^3.0.0",
-    "globby": "^7.1.1",
     "gulp": "^4.0.0",
     "gulp-autoprefixer": "^4.1.0",
     "gulp-csso": "^3.0.0",
@@ -140,7 +139,6 @@
     "xo-remote-parser": "^0.3"
   },
   "scripts": {
-    "benchmarks": "./tools/run-benchmarks.js 'src/**/*.bench.js'",
     "build": "NODE_ENV=production gulp build",
     "clean": "gulp clean",
     "dev": "NODE_ENV=development gulp build",
