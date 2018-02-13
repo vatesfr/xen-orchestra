@@ -626,6 +626,13 @@
   version "9.4.5"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.4.5.tgz#d2a90c634208173d1b1a0a6ba9f1df3de62edcf5"
 
+"@xen-orchestra/cron@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@xen-orchestra/cron/-/cron-1.0.0.tgz#30431505c6bd8c5f670d61f7b1d4a6125167cf01"
+  dependencies:
+    lodash "^4.17.4"
+    luxon "^0.4.0"
+
 "@xmpp/jid@^0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@xmpp/jid/-/jid-0.0.2.tgz#0d528ca9d58dafc833665564ffe62f332a3167f2"
@@ -3190,12 +3197,6 @@ create-react-class@^15.5.1, create-react-class@^15.6.0:
     fbjs "^0.8.9"
     loose-envify "^1.3.1"
     object-assign "^4.1.1"
-
-cron@^1.1.0, cron@^1.2.1, cron@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/cron/-/cron-1.3.0.tgz#7e459968eaf94e1a445be796ce402166c234659d"
-  dependencies:
-    moment-timezone "^0.5.x"
 
 cross-env@^5.1.1, cross-env@^5.1.3:
   version "5.1.3"
@@ -6962,10 +6963,6 @@ last-run@^1.1.0:
     default-resolution "^2.0.0"
     es6-weak-map "^2.0.1"
 
-later@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/later/-/later-1.2.0.tgz#f2cf6c4dd7956dd2f520adf0329836e9876bad0f"
-
 lazy-cache@^1.0.3:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/lazy-cache/-/lazy-cache-1.0.4.tgz#a1d78fc3a50474cb80845d3b3b6e1da49a446e8e"
@@ -7848,7 +7845,7 @@ module-deps@^6.0.0:
     through2 "^2.0.0"
     xtend "^4.0.0"
 
-moment-timezone@^0.5.13, moment-timezone@^0.5.14, moment-timezone@^0.5.x:
+moment-timezone@^0.5.13, moment-timezone@^0.5.14:
   version "0.5.14"
   resolved "https://registry.yarnpkg.com/moment-timezone/-/moment-timezone-0.5.14.tgz#4eb38ff9538b80108ba467a458f3ed4268ccfcb1"
   dependencies:

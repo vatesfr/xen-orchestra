@@ -4,6 +4,7 @@ import Button from 'button'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import moment from 'moment-timezone'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import React, { Component } from 'react'
@@ -22,6 +23,8 @@ import {
 
 const JOB_KEY = 'genericTask'
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
+const DEFAULT_TIMEZONE = moment.tz.guess()
+
 const COLUMNS = [
   {
     itemRenderer: schedule => (
@@ -78,7 +81,7 @@ export default class Schedules extends Component {
       cronPattern: DEFAULT_CRON_PATTERN,
       job: undefined,
       jobs: undefined,
-      timezone: undefined,
+      timezone: DEFAULT_TIMEZONE,
     }
     this.loaded = new Promise((resolve, reject) => {
       this._resolveLoaded = resolve
@@ -141,6 +144,7 @@ export default class Schedules extends Component {
         cron: cronPattern,
         enabled: enabled.value,
         name: name.value,
+        timezone,
       })
     }
     return save
@@ -165,7 +169,7 @@ export default class Schedules extends Component {
     this.setState({
       cronPattern: schedule.cron,
       schedule,
-      timezone: schedule.timezone || null,
+      timezone: schedule.timezone,
     })
   }
 
@@ -174,7 +178,7 @@ export default class Schedules extends Component {
       {
         cronPattern: DEFAULT_CRON_PATTERN,
         schedule: undefined,
-        timezone: undefined,
+        timezone: DEFAULT_TIMEZONE,
       },
       () => {
         const { name, job, enabled } = this.refs
@@ -246,7 +250,7 @@ export default class Schedules extends Component {
             onChange={this._updateCronPattern}
             timezone={timezone}
           />
-          <SchedulePreview cronPattern={cronPattern} />
+          <SchedulePreview cronPattern={cronPattern} timezone={timezone} />
         </fieldset>
         <br />
         <div className='form-group'>

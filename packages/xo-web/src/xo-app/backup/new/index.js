@@ -781,7 +781,10 @@ export default class New extends Component {
                 onChange={this.linkState('scheduling')}
                 value={scheduling}
               />
-              <SchedulePreview cronPattern={scheduling.cronPattern} />
+              <SchedulePreview
+                cronPattern={scheduling.cronPattern}
+                timezone={scheduling.timezone}
+              />
             </Section>
             <Section title='action' summary>
               <Container>

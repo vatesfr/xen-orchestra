@@ -1,6 +1,6 @@
 import Handlebars from 'handlebars'
+import { createSchedule } from '@xen-orchestra/cron'
 import { minify } from 'html-minifier'
-import { CronJob } from 'cron'
 import {
   assign,
   concat,
@@ -474,15 +474,29 @@ class UsageReportPlugin {
     this._conf = null
   }
 
-  configure (configuration) {
+  configure (configuration, state) {
     this._conf = configuration
 
-    this._job = new CronJob({
-      cronTime:
-        configuration.periodicity === 'monthly' ? '00 06 1 * *' : '00 06 * * 0',
-      onTick: () => this._sendReport(),
-      start: false,
+    if (this._job !== undefined) {
+      this._job.stop()
+    }
+
+    this._job = createSchedule(
+      configuration.periodicity === 'monthly' ? '00 06 1 * *' : '00 06 * * 0'
+    ).createJob(async () => {
+      try {
+        await this._sendReport()
+      } catch (error) {
+        console.error(
+          '[WARN] scheduled function:',
+          (error && error.stack) || error
+        )
+      }
     })
+
+    if (state.loaded) {
+      this._job.start()
+    }
   }
 
   async load () {

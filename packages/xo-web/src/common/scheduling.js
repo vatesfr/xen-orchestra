@@ -1,8 +1,8 @@
 import classNames from 'classnames'
-import later from 'later'
 import React from 'react'
-import { FormattedDate, FormattedTime } from 'react-intl'
+import { createSchedule } from '@xen-orchestra/cron'
 import { forEach, includes, isArray, map, sortedIndex } from 'lodash'
+import { FormattedDate, FormattedTime } from 'react-intl'
 
 import _ from './intl'
 import Button from './button'
@@ -13,12 +13,8 @@ import Icon from './icon'
 import Tooltip from './tooltip'
 import { Card, CardHeader, CardBlock } from './card'
 import { Col, Row } from './grid'
+import { getXoServerTimezone } from './xo'
 import { Range, Toggle } from './form'
-
-// ===================================================================
-
-// By default, later uses UTC but we use this line for future versions.
-later.date.UTC()
 
 // ===================================================================
 
@@ -100,14 +96,6 @@ const TIME_FORMAT = {
   day: 'numeric',
   hour: 'numeric',
   minute: 'numeric',
-
-  // The timezone is not significant for displaying the date previews
-  // as long as it is the same used to generate the next occurrences
-  // from the cron patterns.
-
-  // Therefore we can use UTC everywhere and say to the user that the
-  // previews are in the configured timezone.
-  timeZone: 'UTC',
 }
 
 // ===================================================================
@@ -131,21 +119,21 @@ const getDayName = dayNum => (
 
 @propTypes({
   cronPattern: propTypes.string.isRequired,
+  timezone: propTypes.string,
 })
 export class SchedulePreview extends Component {
-  render () {
-    const { cronPattern } = this.props
-    const { value } = this.state
-
-    const cronSched = later.parse.cron(cronPattern)
-
-    // Due to implementation, the range used for months is 0-11
-    // instead of 1-12
-    forEach(cronSched.schedules[0].M, (v, i, a) => {
-      a[i] = v + 1
+  componentDidMount () {
+    getXoServerTimezone.then(serverTimezone => {
+      this.setState({
+        defaultTimezone: serverTimezone,
+      })
     })
+  }
 
-    const dates = later.schedule(cronSched).next(value)
+  render () {
+    const { defaultTimezone, value } = this.state
+    const { cronPattern, timezone = defaultTimezone } = this.props
+    const dates = createSchedule(cronPattern, timezone).next(value)
 
     return (
       <div>

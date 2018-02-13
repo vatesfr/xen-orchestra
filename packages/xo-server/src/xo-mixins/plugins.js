@@ -144,12 +144,17 @@ export default class {
     }
 
     // Sets the plugin configuration.
-    await plugin.instance.configure({
-      // Shallow copy of the configuration object to avoid most of the
-      // errors when the plugin is altering the configuration object
-      // which is handed over to it.
-      ...configuration,
-    })
+    await plugin.instance.configure(
+      {
+        // Shallow copy of the configuration object to avoid most of the
+        // errors when the plugin is altering the configuration object
+        // which is handed over to it.
+        ...configuration,
+      },
+      {
+        loaded: plugin.loaded,
+      }
+    )
     plugin.configured = true
   }
 
