@@ -110,9 +110,7 @@ class LoadBalancerPlugin {
     )
   }
 
-  async configure ({ plans }, { loaded }) {
-    this._job.stop()
-
+  async configure ({ plans }) {
     this._plans = []
     this._poolIds = [] // Used pools.
 
@@ -123,10 +121,6 @@ class LoadBalancerPlugin {
           plan
         )
       }
-    }
-
-    if (loaded) {
-      this._job.start()
     }
   }
 
