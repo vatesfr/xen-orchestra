@@ -22,7 +22,6 @@ import { resolve } from 'path'
 import 'moment-timezone'
 
 import through2 from 'through2'
-import { createSchedule } from '@xen-orchestra/cron'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
   all as pAll,
@@ -517,22 +516,6 @@ export const streamToArray = (stream, { filter, mapper } = {}) =>
       stream = stream.map(mapper)
     }
     stream.toArray(resolve)
-  })
-
-// -------------------------------------------------------------------
-
-// Contrary to most implentations this one use the range 0-11 instead
-// of 1-12 for months.
-export const scheduleFn = (cronTime, fn, timeZone) =>
-  createSchedule(cronTime, timeZone).startJob(async () => {
-    try {
-      await fn()
-    } catch (error) {
-      console.error(
-        '[WARN] scheduled function:',
-        (error && error.stack) || error
-      )
-    }
   })
 
 // -------------------------------------------------------------------

@@ -1,8 +1,9 @@
 import { BaseError } from 'make-error'
+import { createSchedule } from '@xen-orchestra/cron'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { Schedules } from '../models/schedule'
-import { forEach, mapToArray, scheduleFn } from '../utils'
+import { forEach, mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -79,16 +80,10 @@ export default class {
     return this._scheduleTable[_resolveId(scheduleOrId)]
   }
 
-  _enable (schedule) {
-    const { id } = schedule
-
-    const stopSchedule = scheduleFn(
-      schedule.cron,
-      () => this.xo.runJobSequence([schedule.job]),
-      schedule.timezone
+  _enable ({ cron, id, job, timezone }) {
+    this._cronJobs[id] = createSchedule(cron, timezone).startJob(() =>
+      this.xo.runJobSequence([job])
     )
-
-    this._cronJobs[id] = stopSchedule
     this._scheduleTable[id] = true
   }
 
