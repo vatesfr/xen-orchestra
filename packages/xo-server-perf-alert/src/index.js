@@ -1,5 +1,5 @@
 import JSON5 from 'json5'
-import { CronJob } from 'cron'
+import { createSchedule } from '@xen-orchestra/cron'
 import { forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 
@@ -280,10 +280,15 @@ async function getServerTimestamp (xapi, host) {
 class PerfAlertXoPlugin {
   constructor (xo) {
     this._xo = xo
-    this._job = new CronJob({
-      cronTime: '* * * * *',
-      start: false,
-      onTick: this._checkMonitors.bind(this),
+    this._job = createSchedule('* * * * *').createJob(async () => {
+      try {
+        await this._checkMonitors()
+      } catch (error) {
+        console.error(
+          '[WARN] scheduled function:',
+          (error && error.stack) || error
+        )
+      }
     })
   }
 
