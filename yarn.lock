@@ -626,13 +626,6 @@
   version "9.4.5"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.4.5.tgz#d2a90c634208173d1b1a0a6ba9f1df3de62edcf5"
 
-"@xen-orchestra/cron@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@xen-orchestra/cron/-/cron-1.0.0.tgz#30431505c6bd8c5f670d61f7b1d4a6125167cf01"
-  dependencies:
-    lodash "^4.17.4"
-    luxon "^0.4.0"
-
 "@xmpp/jid@^0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@xmpp/jid/-/jid-0.0.2.tgz#0d528ca9d58dafc833665564ffe62f332a3167f2"
@@ -9723,7 +9716,7 @@ readable-stream@~2.0.0:
     string_decoder "~0.10.x"
     util-deprecate "~1.0.1"
 
-"readdir-enhanced@github:mrmlnc/readdir-enhanced#ISSUE-11_monkey_fix":
+readdir-enhanced@mrmlnc/readdir-enhanced#ISSUE-11_monkey_fix:
   version "2.2.0"
   resolved "https://codeload.github.com/mrmlnc/readdir-enhanced/tar.gz/1580afe4fdf21cd191c202ec599d1ca7d0ab062d"
   dependencies:
