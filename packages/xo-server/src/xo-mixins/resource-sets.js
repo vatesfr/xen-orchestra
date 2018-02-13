@@ -110,10 +110,6 @@ export default class {
     return this._store.put(set.id, set)
   }
 
-  _exists (id) {
-    return this._store.has(id)
-  }
-
   async checkResourceSetConstraints (id, userId, objectIds) {
     const set = await this.getResourceSet(id)
 
@@ -381,7 +377,7 @@ export default class {
 
     if (
       previousResourceSetId !== undefined &&
-      (await this._exists(previousResourceSetId))
+      (await this._store.has(previousResourceSetId))
     ) {
       await this.releaseLimitsInResourceSet(
         resourcesUsage,
