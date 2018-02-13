@@ -30,9 +30,8 @@
     "node": ">=4"
   },
   "dependencies": {
+    "@xen-orchestra/cron": "^1.0.0",
     "babel-runtime": "^6.11.6",
-    "cron": "^1.1.0",
-    "event-to-promise": "^0.8.0",
     "lodash": "^4.16.2"
   },
   "devDependencies": {

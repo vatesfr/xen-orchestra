@@ -1,6 +1,4 @@
-import EventEmitter from 'events'
-import eventToPromise from 'event-to-promise'
-import { CronJob } from 'cron'
+import { createSchedule } from '@xen-orchestra/cron'
 import { intersection, map as mapToArray, uniq } from 'lodash'
 
 import DensityPlan from './density-plan'
@@ -94,63 +92,26 @@ export const configurationSchema = {
 
 // ===================================================================
 
-// Create a job not enabled by default.
-// A job is a cron task, a running and enabled state.
-const makeJob = (cronPattern, fn) => {
-  const job = {
-    running: false,
-    emitter: new EventEmitter(),
-  }
-
-  job.cron = new CronJob(cronPattern, async () => {
-    if (job.running) {
-      return
-    }
-
-    job.running = true
-
-    try {
-      await fn()
-    } catch (error) {
-      console.error(
-        '[WARN] scheduled function:',
-        (error && error.stack) || error
-      )
-    } finally {
-      job.running = false
-      job.emitter.emit('finish')
-    }
-  })
-
-  job.isEnabled = () => job.cron.running
-
-  return job
-}
-
-// ===================================================================
-// ===================================================================
-
 class LoadBalancerPlugin {
   constructor (xo) {
     this.xo = xo
-    this._job = makeJob(
-      `*/${EXECUTION_DELAY} * * * *`,
-      this._executePlans.bind(this)
+
+    this._job = createSchedule(`*/${EXECUTION_DELAY} * * * *`).createJob(
+      async () => {
+        try {
+          await this._executePlans()
+        } catch (error) {
+          console.error(
+            '[WARN] scheduled function:',
+            (error && error.stack) || error
+          )
+        }
+      }
     )
   }
 
-  async configure ({ plans }) {
-    const job = this._job
-    const enabled = job.isEnabled()
-
-    if (enabled) {
-      job.cron.stop()
-    }
-
-    // Wait until all old plans stopped running.
-    if (job.running) {
-      await eventToPromise(job.emitter, 'finish')
-    }
+  async configure ({ plans }, { loaded }) {
+    this._job.stop()
 
     this._plans = []
     this._poolIds = [] // Used pools.
@@ -164,17 +125,17 @@ class LoadBalancerPlugin {
       }
     }
 
-    if (enabled) {
-      job.cron.start()
+    if (loaded) {
+      this._job.start()
     }
   }
 
   load () {
-    this._job.cron.start()
+    this._job.start()
   }
 
   unload () {
-    this._job.cron.stop()
+    this._job.stop()
   }
 
   _addPlan (mode, { name, pools, ...options }) {

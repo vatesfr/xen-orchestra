@@ -44,7 +44,7 @@ exports.default = function (opts) {
     // against the provided configuration schema.
     configure: function (configuration, state) {
       console.log('stub configured', configuration)
-      console.log('the stub state', state)
+      console.log('sub is currently', state.loaded ? 'loaded' : 'unloaded')
     },
 
     // This method is called to load the plugin.
