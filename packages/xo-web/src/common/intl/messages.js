@@ -894,6 +894,7 @@ const messages = {
   vmVgpuNone: 'None',
   vmAddVgpu: 'Add vGPU',
   vmSelectVgpuType: 'Select vGPU type',
+  setVmResourceSetFailed: 'Set VM resourceSet failed',
 
   // ----- VM placeholders -----
 
