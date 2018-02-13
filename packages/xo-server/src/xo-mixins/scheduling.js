@@ -80,7 +80,7 @@ export default class {
     return this._scheduleTable[_resolveId(scheduleOrId)]
   }
 
-  _enable ({ cron, id, job, timezone }) {
+  _enable ({ cron, id, job, timezone = 'local' }) {
     this._cronJobs[id] = createSchedule(cron, timezone).startJob(() =>
       this.xo.runJobSequence([job])
     )
