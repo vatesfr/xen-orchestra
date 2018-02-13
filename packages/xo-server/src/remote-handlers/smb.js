@@ -197,4 +197,14 @@ export default class SmbHandler extends RemoteHandlerAbstract {
 
     return size
   }
+
+  // this is a fake
+  async openFile (path, flags) {
+    return {
+      file: this._getFilePath(path),
+      getClient: async () => this._getClient(this._remote),
+    }
+  }
+
+  async closeFile (fd) {}
 }

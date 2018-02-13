@@ -85,4 +85,12 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     const stats = await fs.stat(this._getFilePath(file))
     return stats.size
   }
+
+  async openFile (path, flags) {
+    return fs.open(this._getFilePath(path), flags)
+  }
+
+  async closeFile (fd) {
+    return fs.close(fd)
+  }
 }

@@ -192,6 +192,14 @@ class Vhd {
   // =================================================================
 
   _readStream (start, n) {
+    if (this._fd) {
+      return this._handler.createReadStream(this._path, {
+        fd: this._fd,
+        autoClose: false,
+        start,
+        end: start + n - 1, // end is inclusive
+      })
+    }
     return this._handler.createReadStream(this._path, {
       start,
       end: start + n - 1, // end is inclusive
@@ -382,27 +390,25 @@ class Vhd {
   // =================================================================
 
   // Write a buffer/stream at a given position in a vhd file.
-  _write (data, offset) {
+  async _write (data, offset) {
     debug(
       `_write offset=${offset} size=${
         Buffer.isBuffer(data) ? data.length : '???'
       }`
     )
     // TODO: could probably be merged in remote handlers.
-    return this._handler
-      .createOutputStream(this._path, {
-        flags: 'r+',
-        start: offset,
+    const stream = await this._handler.createOutputStream(this._path, {
+      fd: this._fd,
+      autoClose: false,
+      flags: 'r+',
+      start: offset,
+    })
+    return Buffer.isBuffer(data)
+      ? new Promise((resolve, reject) => {
+        stream.on('error', reject)
+        stream.end(data, resolve)
       })
-      .then(
-        Buffer.isBuffer(data)
-          ? stream =>
-            new Promise((resolve, reject) => {
-              stream.on('error', reject)
-              stream.end(data, resolve)
-            })
-          : stream => eventToPromise(data.pipe(stream), 'finish')
-      )
+      : eventToPromise(data.pipe(stream), 'finish')
   }
 
   async ensureBatSize (size) {
@@ -619,60 +625,73 @@ export default async function vhdMerge (
   childPath
 ) {
   const parentVhd = new Vhd(parentHandler, parentPath)
-  const childVhd = new Vhd(childHandler, childPath)
+  parentVhd._fd = await parentHandler.openFile(parentPath, 'r+')
+  try {
+    const childVhd = new Vhd(childHandler, childPath)
+    childVhd._fd = await childHandler.openFile(childPath, 'r')
+    try {
+      // Reading footer and header.
+      await Promise.all([
+        parentVhd.readHeaderAndFooter(),
+        childVhd.readHeaderAndFooter(),
+      ])
 
-  // Reading footer and header.
-  await Promise.all([
-    parentVhd.readHeaderAndFooter(),
-    childVhd.readHeaderAndFooter(),
-  ])
+      assert(childVhd.header.blockSize === parentVhd.header.blockSize)
 
-  assert(childVhd.header.blockSize === parentVhd.header.blockSize)
+      // Child must be a delta.
+      if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
+        throw new Error('Unable to merge, child is not a delta backup.')
+      }
 
-  // Child must be a delta.
-  if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
-    throw new Error('Unable to merge, child is not a delta backup.')
-  }
+      // Merging in differencing disk is prohibited in our case.
+      if (parentVhd.footer.diskType !== HARD_DISK_TYPE_DYNAMIC) {
+        throw new Error('Unable to merge, parent is not a full backup.')
+      }
 
-  // Merging in differencing disk is prohibited in our case.
-  if (parentVhd.footer.diskType !== HARD_DISK_TYPE_DYNAMIC) {
-    throw new Error('Unable to merge, parent is not a full backup.')
-  }
+      // Allocation table map is not yet implemented.
+      if (
+        parentVhd.hasBlockAllocationTableMap() ||
+        childVhd.hasBlockAllocationTableMap()
+      ) {
+        throw new Error('Unsupported allocation table map.')
+      }
 
-  // Allocation table map is not yet implemented.
-  if (
-    parentVhd.hasBlockAllocationTableMap() ||
-    childVhd.hasBlockAllocationTableMap()
-  ) {
-    throw new Error('Unsupported allocation table map.')
-  }
+      // Read allocation table of child/parent.
+      await Promise.all([parentVhd.readBlockTable(), childVhd.readBlockTable()])
 
-  // Read allocation table of child/parent.
-  await Promise.all([parentVhd.readBlockTable(), childVhd.readBlockTable()])
+      await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
-  await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
+      let mergedDataSize = 0
 
-  let mergedDataSize = 0
+      for (
+        let blockId = 0;
+        blockId < childVhd.header.maxTableEntries;
+        blockId++
+      ) {
+        if (childVhd._getBatEntry(blockId) !== BLOCK_UNUSED) {
+          mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+        }
+      }
 
-  for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
-    if (childVhd._getBatEntry(blockId) !== BLOCK_UNUSED) {
-      mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+      const cFooter = childVhd.footer
+      const pFooter = parentVhd.footer
+
+      pFooter.currentSize = { ...cFooter.currentSize }
+      pFooter.diskGeometry = { ...cFooter.diskGeometry }
+      pFooter.originalSize = { ...cFooter.originalSize }
+      pFooter.timestamp = cFooter.timestamp
+
+      // necessary to update values and to recreate the footer after block
+      // creation
+      await parentVhd.writeFooter()
+
+      return mergedDataSize
+    } finally {
+      await childHandler.closeFile(childVhd._fd)
     }
+  } finally {
+    await parentHandler.closeFile(parentVhd._fd)
   }
-
-  const cFooter = childVhd.footer
-  const pFooter = parentVhd.footer
-
-  pFooter.currentSize = { ...cFooter.currentSize }
-  pFooter.diskGeometry = { ...cFooter.diskGeometry }
-  pFooter.originalSize = { ...cFooter.originalSize }
-  pFooter.timestamp = cFooter.timestamp
-
-  // necessary to update values and to recreate the footer after block
-  // creation
-  await parentVhd.writeFooter()
-
-  return mergedDataSize
 }
 
 // returns true if the child was actually modified
