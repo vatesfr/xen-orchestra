@@ -2,6 +2,7 @@ import synchronized from 'decorator-synchronized'
 import {
   assign,
   every,
+  find,
   forEach,
   isObject,
   keyBy,
@@ -374,7 +375,11 @@ export default class {
     if (resourceSetId != null) {
       await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId)
     }
-    if (previousResourceSetId !== undefined) {
+
+    const previousResourceSetExists = find(await this.getAllResourceSets(), {
+      id: previousResourceSetId,
+    })
+    if (previousResourceSetId !== undefined && previousResourceSetExists) {
       await this.releaseLimitsInResourceSet(
         resourcesUsage,
         previousResourceSetId
@@ -387,7 +392,7 @@ export default class {
       resourceSetId === undefined ? null : resourceSetId
     )
 
-    if (previousResourceSetId !== undefined) {
+    if (previousResourceSetId !== undefined && previousResourceSetExists) {
       await this._xo.removeAclsForObject(vmId)
     }
     if (resourceSetId != null) {
