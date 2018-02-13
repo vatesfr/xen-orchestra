@@ -10,31 +10,6 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/cron)
 > npm install --save @xen-orchestra/cron
 ```
 
-## Usage
-
-```js
-import { createSchedule } from '@xen-orchestra/cron'
-
-const schedule = createSchedule('0 0 * * sun', 'America/New_York')
-
-schedule.next(2)
-// [ 2018-02-11T05:00:00.000Z, 2018-02-18T05:00:00.000Z ]
-
-const job = schedule.createJob(() => {
-  console.log(new Date())
-})
-job.start()
-job.stop()
-
-const stopJob = schedule.startJob(() => {
-  console.log(new Date())
-})
-stopJob()
-```
-
-> If the scheduled job returns a promise, its resolution (or
-> rejection) will be awaited before scheduling the next run.
-
 ### Pattern syntax
 
 ```
@@ -65,6 +40,75 @@ Step values can be used in conjunctions with ranges. For instance,
 > Note: the month range is 0-11 to be compatible with
 > [cron](https://github.com/kelektiv/node-cron), it does not appear to
 > be very standard though.
+
+### API
+
+`createSchedule(pattern: string, zone: string = 'utc'): Schedule`
+
+> Create a new schedule.
+
+- `pattern`: the pattern to use, see [the syntax](#pattern-syntax)
+- `zone`: the timezone to use, use `'local'` for the local timezone
+
+```js
+import { createSchedule } from '@xen-orchestra/cron'
+
+const schedule = createSchedule('0 0 * * sun', 'America/New_York')
+```
+
+`Schedule#createJob(fn: Function): Job`
+
+> Create a new job from this schedule.
+
+- `fn`: function to execute, if it returns a promise, it will be
+  awaited before scheduling the next run.
+
+```js
+const job = schedule.createJob(() => {
+  console.log(new Date())
+})
+```
+
+`Schedule#next(n: number): Array<Date>`
+
+> Returns the next dates matching this schedule.
+
+- `n`: number of dates to return
+
+```js
+schedule.next(2)
+// [ 2018-02-11T05:00:00.000Z, 2018-02-18T05:00:00.000Z ]
+```
+
+`Schedule#startJob(fn: Function): () => void`
+
+> Start a new job from this schedule and return a function to stop it.
+
+- `fn`: function to execute, if it returns a promise, it will be
+  awaited before scheduling the next run.
+
+```js
+const stopJob = schedule.startJob(() => {
+  console.log(new Date())
+})
+stopJob()
+```
+
+`Job#start(): void`
+
+> Start this job.
+
+```js
+job.start()
+```
+
+`Job#stop(): void`
+
+> Stop this job.
+
+```js
+job.stop()
+```
 
 ## Development
 
