@@ -24,6 +24,7 @@ import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 import _ from '../intl'
 import invoke from '../invoke'
 import logError from '../log-error'
+import renderXoItem from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
@@ -1170,6 +1171,14 @@ export const createVgpu = (vm, { gpuGroup, vgpuType }) =>
   _call('vm.createVgpu', resolveIds({ vm, gpuGroup, vgpuType }))
 
 export const deleteVgpu = vgpu => _call('vm.deleteVgpu', resolveIds({ vgpu }))
+
+export const shareVm = (vm, resourceSet) =>
+  confirm({
+    title: _('shareVmInResourceSetModalTitle'),
+    body: _('shareVmInResourceSetModalMessage', {
+      self: renderXoItem(resourceSet),
+    }),
+  }).then(() => editVm(vm, { share: true }), noop)
 
 // DISK ---------------------------------------------------------------
 

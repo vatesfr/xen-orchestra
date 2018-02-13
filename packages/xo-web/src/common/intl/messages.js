@@ -844,6 +844,7 @@ const messages = {
   // ----- VM advanced tab -----
   vmRemoveButton: 'Remove',
   vmConvertButton: 'Convert',
+  vmShareButton: 'Share',
   xenSettingsLabel: 'Xen settings',
   guestOsLabel: 'Guest OS',
   miscLabel: 'Misc',
@@ -1252,6 +1253,9 @@ const messages = {
   deleteRemotesModalMessage:
     'Are you sure you want to delete {nRemotes, number} remote{nRemotes, plural, one {} other {s}}?',
   revertVmModalTitle: 'Revert your VM',
+  shareVmInResourceSetModalTitle: 'Share your VM',
+  shareVmInResourceSetModalMessage:
+    'This VM will be shared with all the members of the self-service {self}. Are you sure?',
   deleteVifsModalTitle: 'Delete VIF{nVifs, plural, one {} other {s}}',
   deleteVifsModalMessage:
     'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?',

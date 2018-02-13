@@ -356,6 +356,10 @@
       @extend .text-primary;
       @extend .fa-ship;
     }
+    &-share {
+      @extend .fa;
+      @extend .fa-list-alt;
+    }
   }
 
   // Generic states

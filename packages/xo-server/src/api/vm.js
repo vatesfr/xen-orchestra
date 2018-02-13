@@ -500,13 +500,17 @@ export async function set (params) {
   const vmId = VM._xapiId
 
   const resourceSetId = extract(params, 'resourceSet')
-
   if (resourceSetId !== undefined) {
     if (this.user.permission !== 'admin') {
       throw unauthorized()
     }
 
     await this.setVmResourceSet(vmId, resourceSetId)
+  }
+
+  const share = extract(params, 'share')
+  if (share) {
+    await this.shareVmResourceSet(vmId)
   }
 
   return xapi.editVm(vmId, params, async (limits, vm) => {
@@ -580,6 +584,8 @@ set.params = {
 
   // Move the vm In to/Out of Self Service
   resourceSet: { type: ['string', 'null'], optional: true },
+
+  share: { type: 'boolean', optional: true },
 }
 
 set.resolve = {
