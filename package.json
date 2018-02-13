@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@babel/register": "^7.0.0-beta.39",
+    "@babel/register": "^7.0.0-beta.40",
     "babel-7-jest": "^21.3.2",
     "babel-eslint": "^8.1.2",
     "benchmark": "^2.1.4",
@@ -14,7 +14,7 @@
     "eslint-plugin-standard": "^3.0.1",
     "exec-promise": "^0.7.0",
     "flow-bin": "^0.65.0",
-    "globby": "^7.1.1",
+    "globby": "^8.0.0",
     "husky": "^0.14.3",
     "jest": "^22.0.4",
     "lodash": "^4.17.4",
@@ -27,7 +27,10 @@
   },
   "jest": {
     "collectCoverage": true,
-    "projects": ["<rootDir>", "<rootDir>/packages/xo-web"],
+    "projects": [
+      "<rootDir>",
+      "<rootDir>/packages/xo-web"
+    ],
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "/dist/",

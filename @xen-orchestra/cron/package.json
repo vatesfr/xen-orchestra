@@ -41,10 +41,10 @@
     "luxon": "^0.4.0"
   },
   "devDependencies": {
-    "@babel/cli": "7.0.0-beta.39",
-    "@babel/core": "7.0.0-beta.39",
-    "@babel/preset-env": "7.0.0-beta.39",
-    "@babel/preset-flow": "7.0.0-beta.39",
+    "@babel/cli": "7.0.0-beta.40",
+    "@babel/core": "7.0.0-beta.40",
+    "@babel/preset-env": "7.0.0-beta.40",
+    "@babel/preset-flow": "7.0.0-beta.40",
     "cross-env": "^5.1.3",
     "rimraf": "^2.6.2"
   },
