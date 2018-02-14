@@ -369,6 +369,12 @@
     @extend .xo-status-running;
   }
 
+  &-skipped {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-suspended;
+  }
+
   &-halted {
     @extend .fa;
     @extend .fa-circle;
