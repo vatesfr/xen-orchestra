@@ -312,14 +312,13 @@ export default class XapiStats {
     const memoryFree = values[hostLegends.memoryFree] * 1024
 
     hostStats.memory.push(memory)
-
-    if (hostLegends.memoryFree !== undefined) {
+    if (hostLegends.memoryFree) {
       hostStats.memoryFree.push(memoryFree)
       hostStats.memoryUsed.push(memory - memoryFree)
     }
 
     // GPU memory
-    if (hostLegends.gpuMemoryFree !== undefined) {
+    if (hostLegends.gpuMemoryFree) {
       const gpuMemoryFree = values[hostLegends.gpuMemoryFree] * 1024
       const gpuMemoryUsed = values[hostLegends.gpuMemoryUsed] * 1024
 

@@ -179,7 +179,7 @@ export default class HostStats extends Component {
             <LoadLineChart data={stats} />
           </Col>
         </Row>
-        {stats.gpuMemoryUsed !== undefined && (
+        {stats.stats.gpuMemoryUsed.length !== 0 && (
           <div>
             <br />
             <hr />
