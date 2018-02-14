@@ -339,6 +339,7 @@ class Vhd {
           : {
             bitmap: buf.slice(0, this.bitmapSize),
             data: buf.slice(this.bitmapSize),
+            buffer: buf,
           }
     )
   }
@@ -515,7 +516,16 @@ class Vhd {
     await this._write(bitmap, sectorsToBytes(blockAddr))
   }
 
-  async writeBlockSectors (block, beginSectorId, endSectorId) {
+  async writeEntireBlock (block) {
+    let blockAddr = this._getBatEntry(block.id)
+
+    if (blockAddr === BLOCK_UNUSED) {
+      blockAddr = await this.createBlock(block.id)
+    }
+    await this._write(block.buffer, sectorsToBytes(blockAddr))
+  }
+
+  async writeBlockSectors (block, beginSectorId, endSectorId, parentBitmap) {
     let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
@@ -530,6 +540,11 @@ class Vhd {
       }, sectors=${beginSectorId}...${endSectorId}`
     )
 
+    for (let i = beginSectorId; i < endSectorId; ++i) {
+      mapSetBit(parentBitmap, i)
+    }
+
+    await this.writeBlockBitmap(blockAddr, parentBitmap)
     await this._write(
       block.data.slice(
         sectorsToBytes(beginSectorId),
@@ -537,20 +552,11 @@ class Vhd {
       ),
       sectorsToBytes(offset)
     )
-
-    const { bitmap } = await this._readBlock(block.id, true)
-
-    for (let i = beginSectorId; i < endSectorId; ++i) {
-      mapSetBit(bitmap, i)
-    }
-
-    await this.writeBlockBitmap(blockAddr, bitmap)
   }
 
-  // Merge block id (of vhd child) into vhd parent.
   async coalesceBlock (child, blockId) {
-    // Get block data and bitmap of block id.
-    const { bitmap, data } = await child._readBlock(blockId)
+    const block = await child._readBlock(blockId)
+    const { bitmap, data } = block
 
     debug(`coalesceBlock block=${blockId}`)
 
@@ -571,7 +577,18 @@ class Vhd {
 
       // Write n sectors into parent.
       debug(`coalesceBlock: write sectors=${i}...${endSector}`)
-      await this.writeBlockSectors({ id: blockId, data }, i, endSector)
+
+      const isFullBlock = i === 0 && endSector === sectorsPerBlock
+      if (isFullBlock) {
+        await this.writeEntireBlock(block)
+      } else {
+        await this.writeBlockSectors(
+          block,
+          i,
+          endSector,
+          (await this._readBlock(blockId, true)).bitmap
+        )
+      }
 
       i = endSector
     }
@@ -662,7 +679,6 @@ export default async function vhdMerge (
       await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
       let mergedDataSize = 0
-
       for (
         let blockId = 0;
         blockId < childVhd.header.maxTableEntries;
@@ -672,7 +688,6 @@ export default async function vhdMerge (
           mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
         }
       }
-
       const cFooter = childVhd.footer
       const pFooter = parentVhd.footer
 

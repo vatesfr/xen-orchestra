@@ -68,7 +68,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _createOutputStream (file, options) {
     const path = this._getFilePath(file)
-    await fs.ensureDir(dirname(path))
+    if (!options.fd) {
+      await fs.ensureDir(dirname(path))
+    }
     return fs.createWriteStream(path, options)
   }
 
