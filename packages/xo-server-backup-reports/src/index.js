@@ -34,7 +34,7 @@ export const configurationSchema = {
 // ===================================================================
 
 const ICON_FAILURE = '🚨'
-const ICON_SKIPPED = '✖'
+const ICON_SKIPPED = '⏩'
 const ICON_SUCCESS = '✔'
 
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
@@ -70,8 +70,8 @@ const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
 
 const isSkippedError = error =>
-  error.message !== UNHEALTHY_VDI_CHAIN_ERROR &&
-  error.message !== NO_SUCH_OBJECT_ERROR
+  error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
+  error.message === NO_SUCH_OBJECT_ERROR
 
 class BackupReportsXoPlugin {
   constructor (xo) {
@@ -163,20 +163,20 @@ class BackupReportsXoPlugin {
         const { message } = error
 
         if (isSkippedError(error)) {
-          ++nFailures
-          failedBackupsText.push(...text, `- **Error**: ${message}`, '')
-
-          nagiosText.push(
-            `[(Failed) ${
-              vm !== undefined ? vm.name_label : 'undefined'
-            } : ${message} ]`
-          )
-        } else {
           ++nSkipped
           skippedBackupsText.push(...text, `- **Reason**: ${message}`, '')
 
           nagiosText.push(
             `[(Skipped) ${
+              vm !== undefined ? vm.name_label : 'undefined'
+            } : ${message} ]`
+          )
+        } else {
+          ++nFailures
+          failedBackupsText.push(...text, `- **Error**: ${message}`, '')
+
+          nagiosText.push(
+            `[(Failed) ${
               vm !== undefined ? vm.name_label : 'undefined'
             } : ${message} ]`
           )

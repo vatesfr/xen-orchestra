@@ -60,8 +60,8 @@ const JobCallStateInfos = ({ end, error }) => {
   const [icon, tooltip] =
     error !== undefined
       ? isSkippedError(error)
-        ? ['halted', 'failedJobCall']
-        : ['skipped', 'jobCallSkipped']
+        ? ['skipped', 'jobCallSkipped']
+        : ['halted', 'failedJobCall']
       : end !== undefined
         ? ['running', 'successfulJobCall']
         : ['busy', 'jobCallInProgess']
@@ -113,8 +113,8 @@ const CALL_FILTER_OPTIONS = [
 
 const PREDICATES = {
   all: () => true,
-  skipped: call => call.error !== undefined && !isSkippedError(call.error),
-  error: call => call.error !== undefined && isSkippedError(call.error),
+  skipped: call => call.error !== undefined && isSkippedError(call.error),
+  error: call => call.error !== undefined && !isSkippedError(call.error),
   running: call => call.end === undefined && call.error === undefined,
   success: call => call.end !== undefined && call.error === undefined,
 }
@@ -125,8 +125,8 @@ const UNHEALTHY_VDI_CHAIN_LINK =
   'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
 
 const isSkippedError = error =>
-  error.message !== UNHEALTHY_VDI_CHAIN_ERROR &&
-  error.message !== NO_SUCH_OBJECT_ERROR
+  error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
+  error.message === NO_SUCH_OBJECT_ERROR
 
 class Log extends BaseComponent {
   state = {
@@ -236,11 +236,11 @@ class Log extends BaseComponent {
                     ) : (
                       <span
                         className={
-                          isSkippedError(error) ? 'text-danger' : 'text-info'
+                          isSkippedError(error) ? 'text-info' : 'text-danger'
                         }
                       >
                         <Icon
-                          icon={isSkippedError(error) ? 'error' : 'alarm'}
+                          icon={isSkippedError(error) ? 'alarm' : 'error'}
                         />{' '}
                         {error.message !== undefined ? (
                           <strong>{error.message}</strong>
@@ -428,9 +428,9 @@ export default class LogList extends Component {
             if (data.error) {
               call.error = data.error
               if (isSkippedError(data.error)) {
-                entry.hasErrors = true
-              } else {
                 entry.callSkipped = true
+              } else {
+                entry.hasErrors = true
               }
               entry.meta = 'error'
             } else {
