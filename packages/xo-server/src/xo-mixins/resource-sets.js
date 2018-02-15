@@ -374,7 +374,11 @@ export default class {
     if (resourceSetId != null) {
       await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId)
     }
-    if (previousResourceSetId !== undefined) {
+
+    if (
+      previousResourceSetId !== undefined &&
+      (await this._store.has(previousResourceSetId))
+    ) {
       await this.releaseLimitsInResourceSet(
         resourcesUsage,
         previousResourceSetId
