@@ -112,6 +112,7 @@ export default class RemoteHandlerAbstract {
     file,
     { checksum = false, ignoreMissingChecksum = false, ...options } = {}
   ) {
+    const path = typeof file === 'string' ? file : file.path
     const streamP = this._createReadStream(file, options).then(stream => {
       // detect early errors
       let promise = eventToPromise(stream, 'readable')
@@ -142,7 +143,7 @@ export default class RemoteHandlerAbstract {
     // avoid a unhandled rejection warning
     ;streamP::ignoreErrors()
 
-    return this.readFile(`${file}.checksum`).then(
+    return this.readFile(`${path}.checksum`).then(
       checksum =>
         streamP.then(stream => {
           const { length } = stream
@@ -180,6 +181,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async createOutputStream (file, { checksum = false, ...options } = {}) {
+    const path = typeof file === 'string' ? file : file.path
     const streamP = this._createOutputStream(file, {
       flags: 'wx',
       ...options,
@@ -198,7 +200,7 @@ export default class RemoteHandlerAbstract {
     streamWithChecksum.pipe(await streamP)
 
     streamWithChecksum.checksum
-      .then(value => this.outputFile(`${file}.checksum`, value))
+      .then(value => this.outputFile(`${path}.checksum`, value))
       .catch(forwardError)
 
     return connectorStream

@@ -193,15 +193,7 @@ class Vhd {
   // =================================================================
 
   _readStream (start, n) {
-    if (this._fd) {
-      return this._handler.createReadStream(this._path, {
-        fd: this._fd,
-        autoClose: false,
-        start,
-        end: start + n - 1, // end is inclusive
-      })
-    }
-    return this._handler.createReadStream(this._path, {
+    return this._handler.createReadStream(this._fd ? this._fd : this._path, {
       start,
       end: start + n - 1, // end is inclusive
     })
@@ -399,12 +391,13 @@ class Vhd {
       }`
     )
     // TODO: could probably be merged in remote handlers.
-    const stream = await this._handler.createOutputStream(this._path, {
-      fd: this._fd,
-      autoClose: false,
-      flags: 'r+',
-      start: offset,
-    })
+    const stream = await this._handler.createOutputStream(
+      this._fd ? this._fd : this._path,
+      {
+        flags: 'r+',
+        start: offset,
+      }
+    )
     return Buffer.isBuffer(data)
       ? new Promise((resolve, reject) => {
         stream.on('error', reject)
