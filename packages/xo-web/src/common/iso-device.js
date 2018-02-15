@@ -7,18 +7,22 @@ import Icon from 'icon'
 import propTypes from './prop-types-decorator'
 import Tooltip from 'tooltip'
 import { alert } from 'modal'
-import { connectStore } from './utils'
-import { SelectVdi } from './select-objects'
+import { isAdmin } from 'selectors'
+import { SelectVdi, SelectResourceSetsVdi } from './select-objects'
+import { addSubscriptions, connectStore, resolveResourceSet } from './utils'
+import { ejectCd, insertCd, subscribeResourceSets } from './xo'
 import {
   createGetObjectsOfType,
   createFinder,
   createGetObject,
   createSelector,
 } from './selectors'
-import { ejectCd, insertCd } from './xo'
 
 @propTypes({
   vm: propTypes.object.isRequired,
+})
+@addSubscriptions({
+  resourceSets: subscribeResourceSets,
 })
 @connectStore(() => {
   const getCdDrive = createFinder(
@@ -35,6 +39,7 @@ import { ejectCd, insertCd } from './xo'
 
   return {
     cdDrive: getCdDrive,
+    isAdmin,
     mountedIso: getMountedIso,
   }
 })
@@ -55,6 +60,19 @@ export default class IsoDevice extends Component {
     }
   )
 
+  _getResourceSet = createFinder(
+    () => this.props.resourceSets,
+    createSelector(
+      () => this.props.vm.resourceSet,
+      id => resourceSet => resourceSet.id === id
+    )
+  )
+
+  _getResolvedResourceSet = createSelector(
+    this._getResourceSet,
+    resolveResourceSet
+  )
+
   _handleInsert = iso => {
     const { vm } = this.props
 
@@ -70,13 +88,17 @@ export default class IsoDevice extends Component {
   _showWarning = () => alert(_('cdDriveNotInstalled'), _('cdDriveInstallation'))
 
   render () {
-    const { cdDrive, mountedIso } = this.props
+    const { cdDrive, isAdmin, mountedIso } = this.props
+    const resourceSet = this._getResolvedResourceSet()
+    const SelectVdi_ =
+      isAdmin || resourceSet === null ? SelectVdi : SelectResourceSetsVdi
 
     return (
       <div className='input-group'>
-        <SelectVdi
-          srPredicate={this._getPredicate()}
+        <SelectVdi_
           onChange={this._handleInsert}
+          resourceSet={isAdmin ? undefined : resourceSet}
+          srPredicate={this._getPredicate()}
           value={mountedIso}
         />
         <span className='input-group-btn'>
