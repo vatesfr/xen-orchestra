@@ -936,6 +936,8 @@ export class SelectResourceSetIp extends React.Component {
 // ===================================================================
 
 export class SelectSshKey extends React.PureComponent {
+  state = {}
+
   get value () {
     return this.refs.select.value
   }
