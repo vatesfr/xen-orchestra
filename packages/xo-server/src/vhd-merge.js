@@ -568,7 +568,7 @@ class Vhd {
       if (!mapTestBit(bitmap, i)) {
         continue
       }
-
+      let parentBitmap = null
       let endSector = i + 1
 
       // Count changed sectors.
@@ -583,12 +583,10 @@ class Vhd {
       if (isFullBlock) {
         await this.writeEntireBlock(block)
       } else {
-        await this.writeBlockSectors(
-          block,
-          i,
-          endSector,
-          (await this._readBlock(blockId, true)).bitmap
-        )
+        if (parentBitmap === null) {
+          parentBitmap = (await this._readBlock(blockId, true)).bitmap
+        }
+        await this.writeBlockSectors(block, i, endSector, parentBitmap)
       }
 
       i = endSector
