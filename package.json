@@ -50,6 +50,7 @@
   "scripts": {
     "build": "scripts/run-script --parallel build",
     "clean": "scripts/run-script --parallel clean",
+    "dev": "scripts/run-script --parallel dev",
     "dev-test": "jest --bail --watch",
     "posttest": "scripts/run-script test",
     "precommit": "scripts/lint-staged",
