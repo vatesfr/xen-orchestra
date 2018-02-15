@@ -59,9 +59,17 @@ const COLUMNS = [
       )
       const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
       const getVms = createGetObjectsOfType('VM').pick(getVmIds)
+      const getVmSnapshots = createGetObjectsOfType('VM-snapshot').pick(
+        getVmIds
+      )
+      const getAllVms = createSelector(
+        getVms,
+        getVmSnapshots,
+        (vms, vmSnapshots) => ({ ...vms, ...vmSnapshots })
+      )
 
       return (state, props) => ({
-        vms: getVms(state, props),
+        vms: getAllVms(state, props),
         vbds: getVbds(state, props),
       })
     })(({ vbds, vms }) => {
@@ -79,7 +87,8 @@ const COLUMNS = [
 
             if (type === 'VM') {
               link = `/vms/${vm.id}`
-            } else if (type === 'VM-snapshot') {
+            } else {
+              // VM-snapshot
               const id = vm.$snapshot_of
               link =
                 id !== undefined ? `/vms/${id}/snapshots` : '/dashboard/health'
