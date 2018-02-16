@@ -60,16 +60,14 @@ export default class IsoDevice extends Component {
     }
   )
 
-  _getResourceSet = createFinder(
-    () => this.props.resourceSets,
-    createSelector(
-      () => this.props.vm.resourceSet,
-      id => resourceSet => resourceSet.id === id
-    )
-  )
-
   _getResolvedResourceSet = createSelector(
-    this._getResourceSet,
+    createFinder(
+      () => this.props.resourceSets,
+      createSelector(
+        () => this.props.vm.resourceSet,
+        id => resourceSet => resourceSet.id === id
+      )
+    ),
     resolveResourceSet
   )
 
@@ -91,7 +89,7 @@ export default class IsoDevice extends Component {
     const { cdDrive, isAdmin, mountedIso } = this.props
     const resourceSet = this._getResolvedResourceSet()
     const SelectVdi_ =
-      isAdmin || resourceSet === null ? SelectVdi : SelectResourceSetsVdi
+      isAdmin || resourceSet === undefined ? SelectVdi : SelectResourceSetsVdi
 
     return (
       <div className='input-group'>
