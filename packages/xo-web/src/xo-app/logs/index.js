@@ -15,9 +15,9 @@ import Tooltip from 'tooltip'
 import { alert, confirm } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize, formatSpeed } from 'utils'
-import { createGetObject } from 'selectors'
+import { createFilter, createGetObject, createSelector } from 'selectors'
 import { deleteJobsLog, subscribeJobsLogs } from 'xo'
-import { filter, forEach, get, includes, isEmpty, map, orderBy } from 'lodash'
+import { forEach, get, includes, isEmpty, map, orderBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
 
 // ===================================================================
@@ -130,23 +130,27 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
-const filterOptionRenderer = ({ label, value }) =>
-  _(label, message => <option value={value}>{message}</option>)
+const filterOptionRenderer = ({ label }) => _(label)
 
 class Log extends BaseComponent {
   state = {
     filter: DEFAULT_CALL_FILTER,
   }
 
-  _getFilteredCalls = () =>
-    filter(this.props.log.calls, PREDICATES[this.state.filter.value])
+  _getFilteredCalls = createFilter(
+    () => this.props.log.calls,
+    createSelector(() => this.state.filter.value, value => PREDICATES[value])
+  )
 
-  _filterValueRenderer = ({ label, value }) =>
-    _(label, message => (
-      <option value={value}>
-        {message} ({this._getFilteredCalls().length})
-      </option>
-    ))
+  _filterValueRenderer = createSelector(
+    () => this._getFilteredCalls().length,
+    ({ label }) => label,
+    (size, label) => (
+      <span>
+        {_(label)} ({size})
+      </span>
+    )
+  )
 
   render () {
     return (
@@ -241,7 +245,11 @@ class Log extends BaseComponent {
                       </a>
                     </Tooltip>
                   ) : (
-                    <span className={isSkippedError(error) ? 'text-info' : 'text-danger'}>
+                    <span
+                      className={
+                        isSkippedError(error) ? 'text-info' : 'text-danger'
+                      }
+                    >
                       <Icon icon={isSkippedError(error) ? 'alarm' : 'error'} />{' '}
                       {error.message !== undefined ? (
                         <strong>{error.message}</strong>
