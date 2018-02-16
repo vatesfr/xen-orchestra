@@ -207,15 +207,25 @@ class IndividualAction extends Component {
       isFunction(disabled) ? disabled(item, userData) : disabled
   )
 
+  _getHandlerParam = createSelector(
+    () => this.props.handlerParam,
+    () => this.props.item,
+    () => this.props.userData,
+    (handlerParam, item, userData) =>
+      isFunction(handlerParam) ? handlerParam(item, userData) : handlerParam
+  )
+
   render () {
-    const { icon, label, level, handler, item } = this.props
+    const { icon, label, level, handler, handlerParam, item } = this.props
 
     return (
       <ActionRowButton
         btnStyle={level}
         disabled={this._getIsDisabled()}
         handler={handler}
-        handlerParam={item}
+        handlerParam={
+          handlerParam === undefined ? item : this._getHandlerParam()
+        }
         icon={icon}
         tooltip={label}
       />
@@ -232,15 +242,34 @@ class GroupedAction extends Component {
       isFunction(disabled) ? disabled(selectedItems, userData) : disabled
   )
 
+  _getHandlerParam = createSelector(
+    () => this.props.handlerParam,
+    () => this.props.selectedItems,
+    () => this.props.userData,
+    (handlerParam, selectedItems, userData) =>
+      isFunction(handlerParam)
+        ? handlerParam(selectedItems, userData)
+        : handlerParam
+  )
+
   render () {
-    const { icon, label, level, handler, selectedItems } = this.props
+    const {
+      icon,
+      label,
+      level,
+      handler,
+      handlerParam,
+      selectedItems,
+    } = this.props
 
     return (
       <ActionRowButton
         btnStyle={level}
         disabled={this._getIsDisabled()}
         handler={handler}
-        handlerParam={selectedItems}
+        handlerParam={
+          handlerParam === undefined ? selectedItems : this._getHandlerParam()
+        }
         icon={icon}
         tooltip={label}
       />
