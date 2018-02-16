@@ -1,63 +1,73 @@
 import { readJson } from 'fs-extra'
-import { map, forEach, endsWith } from 'lodash'
+import { map, forEach, endsWith, find } from 'lodash'
+
+const computeValues = (dataRow, legendKey, type) =>
+  type === 'memory'
+    ? map(dataRow, ({ values }) => values[legendKey] * 1024)
+    : type === 'cpu'
+      ? map(dataRow, ({ values }) => values[legendKey] * 100)
+      : map(dataRow, ({ values }) => values[legendKey])
 
 const STATS = {
   host: {
-    cpus: {
-      test: legendType => /^cpu([0-9]+)$/.exec(legendType),
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey] * 100)
+    init (uuid) {
+      let host
+      this._hosts[uuid] = host = this._hosts[uuid] || {}
+      return host
     },
-    pifs: {
-      test: legendType => /^pif_eth([0-9]+)_(rx|tx)$/.exec(legendType),
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey])
-    },
-    load: {
-      test: legendType => legendType === 'loadavg',
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey])
-    },
-    memoryFree: {
-      test: legendType => legendType === 'memory_free_kib',
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey] * 1024)
-    },
-    memory: {
-      test: legendType => legendType === 'memory_total_kib',
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey] * 1024)
+    metrics: {
+      load: {
+        init: collection => initializeProperty(collection, 'load'),
+        test: metricType => metricType === 'loadavg',
+        compute: computeValues,
+      },
+      memoryFree: {
+        init: collection => initializeProperty(collection, 'memoryFree'),
+        test: metricType => metricType === 'memory_free_kib',
+        compute: (dataRow, legendKey) =>
+          computeValues(dataRow, legendKey, 'memory'),
+      },
+      memory: {
+        init: collection => initializeProperty(collection, 'memory'),
+        test: metricType => metricType === 'memory_total_kib',
+        compute: (dataRow, legendKey) =>
+          computeValues(dataRow, legendKey, 'memory'),
+      },
     },
   },
   vm: {
-    cpus: {
-      test: legendType => /^cpu([0-9]+)$/.exec(legendType),
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey] * 100),
+    init (uuid) {
+      let vm
+      this._vms[uuid] = vm = this._vms[uuid] || {}
+      return vm
     },
-    vifs: {
-      test: legendType => /^vif_([0-9]+)_(rx|tx)$/.exec(legendType),
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey]),
+    metrics: {
+      memoryFree: {
+        init: collection => initializeProperty(collection, 'memoryFree'),
+        test: metricType => metricType === 'memory_internal_free',
+        compute: (dataRow, legendKey) =>
+          computeValues(dataRow, legendKey, 'memory'),
+      },
+      memory: {
+        init: collection => initializeProperty(collection, 'memory'),
+        test: metricType => endsWith(metricType, 'memory'),
+        compute: (dataRow, legendKey) =>
+          computeValues(dataRow, legendKey, 'memory'),
+      },
     },
-    xvds: {
-      test: legendType => /^vbd_xvd(.)_(read|write)$/.exec(legendType),
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey]),
-    },
-    memoryFree: {
-      test: legendType => legendType === 'memory_internal_free',
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey] * 1024),
-    },
-    memory: {
-      test: legendType => endsWith(legendType, 'memory'),
-      compute: (dataRow, legendKey) => map(dataRow, ({ values }) => values[legendKey] * 1024),
-    },
-  }
+  },
 }
 
-
-const initialiseProperty = (obj, deep) => {
+const initializeProperty = (obj, deep) => {
   const splitedDeep = deep.split('.')
   forEach(splitedDeep, (deep, key) => {
     if (obj[deep] === undefined) {
-      obj = obj[deep] = splitedDeep.length -1 === key ? [] : {}
+      obj = obj[deep] = splitedDeep.length - 1 === key ? [] : {}
       return
     }
     obj = obj[deep]
   })
+  return obj
 }
 
 class Stats {
@@ -66,116 +76,35 @@ class Stats {
     this._hosts = {}
   }
 
-  _handleHostStats (uuid, legendType, legendKey, data) {
-    let host
-    this._hosts[uuid] = (host = this._hosts[uuid] || {})
-
-    let testResult
-    if ((testResult = STATS.host.cpus.test(legendType)) !== null) {
-      initialiseProperty(host, `cpus.${testResult[1]}`)
-      host.cpus[testResult[1]].push(...STATS.host.cpus.compute(data, legendKey))
-      return
-    }
-
-    if ((testResult = STATS.host.pifs.test(legendType)) !== null) {
-      if (testResult[2] === 'rx') {
-        initialiseProperty(host, `pifs.rx.${testResult[1]}`)
-        host.pifs.rx[testResult[1]].push(...STATS.host.pifs.compute(data, legendKey))
-        return
-      }
-
-      initialiseProperty(host, `pifs.tx.${testResult[1]}`)
-      host.pifs.tx[testResult[1]].push(...STATS.host.pifs.compute(data, legendKey))
-      return
-    }
-
-    if (STATS.host.load.test(legendType)) {
-      initialiseProperty(host, 'load')
-      host.load.push(...STATS.host.load.compute(data, legendKey))
-      return
-    }
-
-    if (STATS.host.memoryFree.test(legendType)) {
-      initialiseProperty(host, 'memoryFree')
-      host.memoryFree.push(...STATS.host.memoryFree.compute(data, legendKey))
-      return
-    }
-
-    if (STATS.host.memory.test(legendType)) {
-      initialiseProperty(host, 'memory')
-      host.memory.push(...STATS.host.memory.compute(data, legendKey))
-      return
-    }
-  }
-
-  _handleVmStats (uuid, legendType, legendKey, data) {
-    let vm
-    this._vms[uuid] = (vm = this._vms[uuid] || {})
-
-    let testResult
-    if ((testResult = STATS.vm.cpus.test(legendType)) !== null) {
-      initialiseProperty(vm, `cpus.${testResult[1]}`)
-      vm.cpus[testResult[1]].push(...STATS.vm.cpus.compute(data, legendKey))
-      return
-    }
-
-    if ((testResult = STATS.vm.vifs.test(legendType)) !== null) {
-      if (testResult[2] === 'rx') {
-        initialiseProperty(vm, `vifs.rx.${testResult[1]}`)
-        vm.vifs.rx[testResult[1]].push(...STATS.vm.vifs.compute(data, legendKey))
-        return
-      }
-
-      initialiseProperty(vm, `vifs.tx.${testResult[1]}`)
-      vm.vifs.tx[testResult[1]].push(...STATS.vm.vifs.compute(data, legendKey))
-      return
-    }
-
-    if ((testResult = STATS.vm.xvds.test(legendType)) !== null) {
-      if (testResult[2] === 'read') {
-        initialiseProperty(vm, `xvds.r.${testResult[1]}`)
-        vm.xvds.r[testResult[1]].push(...STATS.vm.xvds.compute(data, legendKey))
-        return
-      }
-
-      initialiseProperty(vm, `xvds.w.${testResult[1]}`)
-      vm.xvds.w[testResult[1]].push(...STATS.vm.xvds.compute(data, legendKey))
-      return
-    }
-
-    if (STATS.vm.memoryFree.test(legendType)) {
-      initialiseProperty(vm, 'memoryFree')
-      vm.memoryFree.push(...STATS.vm.memoryFree.compute(data, legendKey))
-      return
-    }
-
-    if (STATS.vm.memory.test(legendType)) {
-      initialiseProperty(vm, 'memory')
-      vm.memory.push(...STATS.vm.memory.compute(data, legendKey))
-      return
-    }
-  }
-
   async getStats (hostId, vmId) {
     const json = await readJson('../src/stats.json')
     forEach(json.meta.legend, (legend, key) => {
-      const [, type, uuid, legendType] = /^AVERAGE:(host|vm):(.+):(.+)$/.exec(legend)
+      const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(
+        legend
+      )
 
-      if (type === 'host') {
-        return this._handleHostStats(uuid, legendType, key, json.data)
-      }
-
-      if (vmId !== uuid) {
+      // rename this var
+      const globalTests = STATS[type]
+      if (globalTests === undefined || (vmId !== undefined && vmId !== uuid)) {
         return
       }
-      this._handleVmStats(uuid, legendType, key, json.data)
+
+      const metric = find(globalTests.metrics, metric =>
+        metric.test(metricType)
+      )
+      if (metric === undefined) {
+        return
+      }
+
+      const collection = globalTests.init.call(this, uuid)
+      const metricValues = metric.init(collection)
+      metricValues.push(...metric.compute(json.data, key))
     })
 
-    return vmId !== undefined
-      ? this._vms[vmId]
-      : this._hosts[hostId]
+    // console.log(this._vms)
+    return vmId !== undefined ? this._vms[vmId] : this._hosts[hostId]
   }
 }
 
-//const test1 = new Stats().getStats('77b3f6ad-020b-4e48-b090-74b2a26c4f69').then(res => console.log(res))
-// const test2 = new Stats().getStats('77b3f6ad-020b-4e48-b090-74b2a26c4f69', '69196054-4ce4-d4cd-5e72-2f7db33b695f').then(res => console.log(res))
+//const test1 = new Stats().getStats('77b3f6ad-020b-4e48-b090-74b2a26c4f69')
+// const test2 = new Stats().getStats('77b3f6ad-020b-4e48-b090-74b2a26c4f69', '69196054-4ce4-d4cd-5e72-2f7db33b695f')
