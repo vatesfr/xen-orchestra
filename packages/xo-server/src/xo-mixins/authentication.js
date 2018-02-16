@@ -111,6 +111,12 @@ export default class {
   }
 
   async authenticateUser (credentials) {
+    // don't even attempt to authenticate with empty password
+    const { password } = credentials
+    if (password === '') {
+      throw new Error('empty password')
+    }
+
     // TODO: remove when email has been replaced by username.
     if (credentials.email) {
       credentials.username = credentials.email
