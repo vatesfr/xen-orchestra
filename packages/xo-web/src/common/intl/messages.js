@@ -894,7 +894,6 @@ const messages = {
   vmVgpuNone: 'None',
   vmAddVgpu: 'Add vGPU',
   vmSelectVgpuType: 'Select vGPU type',
-  setVmResourceSetFailed: 'Set VM resourceSet failed',
 
   // ----- VM placeholders -----
 
@@ -1090,6 +1089,7 @@ const messages = {
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
+  setVmFailed: 'Error on setting the vm: {vm}',
   startVmImport: 'Import starting…',
   startVmExport: 'Export starting…',
   nCpus: 'N CPUs',

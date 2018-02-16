@@ -1128,7 +1128,9 @@ export const revertSnapshot = vm =>
   )
 
 export const editVm = (vm, props) =>
-  _call('vm.set', { ...props, id: resolveId(vm) })
+  _call('vm.set', { ...props, id: resolveId(vm) }).catch(err => {
+    error(_('setVmFailed', { vm: renderXoItem(vm) }), err.message)
+  })
 
 export const fetchVmStats = (vm, granularity) =>
   _call('vm.stats', { id: resolveId(vm), granularity })

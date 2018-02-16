@@ -12,7 +12,6 @@ import Tooltip from 'tooltip'
 import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
-import { error } from 'notification'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { SelectResourceSet, SelectVgpuType } from 'select-objects'
 import { Toggle } from 'form'
@@ -647,8 +646,6 @@ export default connectStore(() => {
                         editVm(vm, {
                           resourceSet:
                             resourceSet != null ? resourceSet.id : resourceSet,
-                        }).catch(err => {
-                          error(_('setVmResourceSetFailed'), err.message)
                         })
                       }
                       value={vm.resourceSet}
