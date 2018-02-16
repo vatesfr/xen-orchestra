@@ -1,5 +1,5 @@
 import * as CM from 'complex-matcher'
-import { flatten, get, identity, map } from 'lodash'
+import { flatten, get, identity, isEmpty, map } from 'lodash'
 
 import { EMPTY_OBJECT } from './utils'
 
@@ -19,23 +19,20 @@ export const constructPattern = (
   { values, notValues } = EMPTY_OBJECT,
   valueTransform = identity
 ) => {
-  const valuesExists = values != null && values.length !== 0
-  const notValuesExists = notValues != null && notValues.length !== 0
+  const valuesExist = !isEmpty(values)
+  const notValuesExist = !isEmpty(notValues)
 
-  if (!valuesExists && !notValuesExists) {
+  if (!valuesExist && !notValuesExist) {
     return
   }
 
-  return valuesExists && notValuesExists
-    ? {
-      __and: [
-        { __or: valueTransform(values) },
-        { __not: { __or: valueTransform(notValues) } },
-      ],
-    }
-    : valuesExists
-      ? { __or: valueTransform(values) }
-      : { __not: { __or: valueTransform(notValues) } }
+  const valuesPattern = valuesExist && { __or: valueTransform(values) }
+  const notValuesPattern = notValuesExist && {
+    __not: { __or: valueTransform(notValues) },
+  }
+  return valuesPattern && notValuesPattern
+    ? { __and: [valuesPattern, notValuesPattern] }
+    : valuesPattern || notValuesPattern
 }
 
 const parsePattern = pattern => {
