@@ -26,6 +26,8 @@ import {
   delay as pDelay,
   fromEvents,
   lastly,
+  timeout as pTimeout,
+  TimeoutError,
 } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
@@ -822,13 +824,16 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
+    const timeout = 60
     const loop = () =>
       this.status === CONNECTED &&
       this._sessionCall('event.from', [
         ['*'],
         this._fromToken,
-        60 + 0.1, // Force float.
-      ]).then(onSuccess, onFailure)
+        timeout + 0.1, // Force float.
+      ])
+        ::pTimeout(timeout * 1e3)
+        .then(onSuccess, onFailure)
 
     const onSuccess = ({ events, token, valid_ref_counts: { task } }) => {
       this._fromToken = token
@@ -858,6 +863,10 @@ export class Xapi extends EventEmitter {
       return debounce != null ? pDelay(debounce).then(loop) : loop()
     }
     const onFailure = error => {
+      if (error instanceof TimeoutError) {
+        return loop()
+      }
+
       if (areEventsLost(error)) {
         this._fromToken = ''
         this._objects.clear()
