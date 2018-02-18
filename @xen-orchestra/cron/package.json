@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "luxon": "^0.4.0"
+    "luxon": "^0.5.2"
   },
   "devDependencies": {
     "@babel/cli": "7.0.0-beta.40",

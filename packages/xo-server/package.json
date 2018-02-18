@@ -75,7 +75,7 @@
     "julien-f-source-map-support": "0.1.0",
     "julien-f-unzip": "^0.2.1",
     "kindof": "^2.0.0",
-    "level": "^2.1.1",
+    "level": "^3.0.0",
     "level-party": "^3.0.4",
     "level-sublevel": "^6.6.1",
     "limit-concurrency-decorator": "^0.3.0",
