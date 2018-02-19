@@ -1,17 +1,18 @@
 import _ from 'intl'
 import ActionRowButton from 'action-row-button'
+import ButtonGroup from 'button-group'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import { Text } from 'editable'
 import { concat, isEmpty, map } from 'lodash'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { deleteVbd, deleteVdi, deleteVdis, editVdi } from 'xo'
-import { Text } from 'editable'
+import { deleteVbd, deleteVdi, deleteVdis, disconnectVbd, editVdi } from 'xo'
 
 // ===================================================================
 
@@ -97,15 +98,25 @@ const COLUMNS = [
             return (
               <Row>
                 <Col mediumSize={8}>{<Link to={link}>{item}</Link>}</Col>
-                <Col mediumSize={2}>
-                  <ActionRowButton
-                    btnStyle='danger'
-                    disabled={vbd.attached}
-                    handler={deleteVbd}
-                    handlerParam={vbd}
-                    icon='vdi-forget'
-                    tooltip={_('vdiForget')}
-                  />
+                <Col mediumSize={4}>
+                  <ButtonGroup>
+                    <ActionRowButton
+                      btnStyle='danger'
+                      disabled={vbd.attached}
+                      handler={deleteVbd}
+                      handlerParam={vbd}
+                      icon='vdi-forget'
+                      tooltip={_('vdiForget')}
+                    />
+                    <ActionRowButton
+                      btnStyle='danger'
+                      disabled={vbd.attached}
+                      handler={disconnectVbd}
+                      handlerParam={vbd}
+                      icon='disconnect'
+                      tooltip={_('vbdDisconnect')}
+                    />
+                  </ButtonGroup>
                 </Col>
               </Row>
             )
