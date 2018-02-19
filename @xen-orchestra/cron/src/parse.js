@@ -173,12 +173,7 @@ export default createParser({
     {
       aliases: 'jan feb mar apr may jun jul aug sep oct nov dec'.split(' '),
       name: 'month',
-      range: [1, 12],
-
-      // this function is applied to numeric entries (not steps)
-      //
-      // currently parse month 0-11
-      post: value => value + 1,
+      range: [0, 11],
     },
     {
       aliases: 'mon tue wen thu fri sat sun'.split(' '),
