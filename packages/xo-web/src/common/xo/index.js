@@ -25,7 +25,7 @@ import _ from '../intl'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import logError from '../log-error'
-import renderXoItem from '../render-xo-item'
+import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
@@ -1129,7 +1129,10 @@ export const revertSnapshot = vm =>
 
 export const editVm = (vm, props) =>
   _call('vm.set', { ...props, id: resolveId(vm) }).catch(err => {
-    error(_('setVmFailed', { vm: renderXoItem(vm) }), err.message)
+    error(
+      _('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }),
+      err.message
+    )
   })
 
 export const fetchVmStats = (vm, granularity) =>
