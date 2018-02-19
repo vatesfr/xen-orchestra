@@ -36,6 +36,9 @@ const debug = createDebug('xen-api')
 
 // ===================================================================
 
+// in seconds
+const EVENT_TIMEOUT = 60
+
 // http://www.gnu.org/software/libc/manual/html_node/Error-Codes.html
 const NETWORK_ERRORS = {
   // Connection has been closed outside of our control.
@@ -824,15 +827,14 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    const timeout = 60
     const loop = () =>
       this.status === CONNECTED &&
       this._sessionCall('event.from', [
         ['*'],
         this._fromToken,
-        timeout + 0.1, // Force float.
+        EVENT_TIMEOUT + 0.1, // Force float.
       ])
-        ::pTimeout(timeout * 1e3)
+        ::pTimeout(EVENT_TIMEOUT * 1.1e3) // 10% longer than the XenAPI timeout
         .then(onSuccess, onFailure)
 
     const onSuccess = ({ events, token, valid_ref_counts: { task } }) => {
