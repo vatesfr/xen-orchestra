@@ -39,10 +39,10 @@ class Job {
 }
 
 class Schedule {
-  constructor (pattern, zone) {
+  constructor (pattern, zone = 'utc') {
     this._schedule = parse(pattern)
     this._createDate =
-      zone === undefined
+      zone.toLowerCase() === 'utc'
         ? moment.utc
         : zone === 'local' ? moment : () => moment.tz(zone)
   }
