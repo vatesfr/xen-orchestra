@@ -1,10 +1,10 @@
+import moment from 'moment-timezone'
 import sortedIndex from 'lodash/sortedIndex'
-import { DateTime } from 'luxon'
 
 const NEXT_MAPPING = {
   month: { year: 1 },
-  day: { month: 1 },
-  weekday: { week: 1 },
+  date: { month: 1 },
+  day: { week: 1 },
   hour: { day: 1 },
   minute: { hour: 1 },
 }
@@ -13,38 +13,37 @@ const getFirst = values => (values !== undefined ? values[0] : 0)
 
 const setFirstAvailable = (date, unit, values) => {
   if (values === undefined) {
-    return date
+    return
   }
 
   const curr = date.get(unit)
   const next = values[sortedIndex(values, curr) % values.length]
   if (curr === next) {
-    return date
+    return
   }
 
-  const newDate = date.set({ [unit]: next })
-  return newDate > date ? newDate : newDate.plus(NEXT_MAPPING[unit])
+  const timestamp = +date
+  date.set(unit, next)
+  if (timestamp > +date) {
+    date.add(NEXT_MAPPING[unit])
+  }
+  return true
 }
 
 // returns the next run, after the passed date
 export default (schedule, fromDate) => {
-  let date = fromDate
+  let date = moment(fromDate)
     .set({
       second: 0,
       millisecond: 0,
     })
-    .plus({ minute: 1 })
+    .add({ minute: 1 })
 
   const { minute, hour, dayOfMonth, month, dayOfWeek } = schedule
-  date = setFirstAvailable(date, 'minute', minute)
+  setFirstAvailable(date, 'minute', minute)
 
-  let tmp
-
-  tmp = setFirstAvailable(date, 'hour', hour)
-  if (tmp !== date) {
-    date = tmp.set({
-      minute: getFirst(minute),
-    })
+  if (setFirstAvailable(date, 'hour', hour)) {
+    date.set('minute', getFirst(minute))
   }
 
   let loop
@@ -52,30 +51,30 @@ export default (schedule, fromDate) => {
   do {
     loop = false
 
-    tmp = setFirstAvailable(date, 'month', month)
-    if (tmp !== date) {
-      date = tmp.set({
-        day: 1,
+    if (setFirstAvailable(date, 'month', month)) {
+      date.set({
+        date: 1,
         hour: getFirst(hour),
         minute: getFirst(minute),
       })
     }
 
+    let newDate = date.clone()
     if (dayOfMonth === undefined) {
       if (dayOfWeek !== undefined) {
-        tmp = setFirstAvailable(date, 'weekday', dayOfWeek)
+        setFirstAvailable(newDate, 'day', dayOfWeek)
       }
     } else if (dayOfWeek === undefined) {
-      tmp = setFirstAvailable(date, 'day', dayOfMonth)
+      setFirstAvailable(newDate, 'date', dayOfMonth)
     } else {
-      tmp = DateTime.min(
-        setFirstAvailable(date, 'day', dayOfMonth),
-        setFirstAvailable(date, 'weekday', dayOfWeek)
-      )
+      const dateDay = newDate.clone()
+      setFirstAvailable(dateDay, 'date', dayOfMonth)
+      setFirstAvailable(newDate, 'day', dayOfWeek)
+      newDate = moment.min(dateDay, newDate)
     }
-    if (tmp !== date) {
-      loop = tmp.month !== date.month
-      date = tmp.set({
+    if (+date !== +newDate) {
+      loop = date.month() !== newDate.month()
+      date = newDate.set({
         hour: getFirst(hour),
         minute: getFirst(minute),
       })

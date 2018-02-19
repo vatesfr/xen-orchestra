@@ -8,16 +8,16 @@ describe('parse()', () => {
       minute: [0],
       hour: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       dayOfMonth: [1, 11, 21, 31],
-      month: [1, 3, 5, 8, 11],
+      month: [0, 2, 4, 7, 10],
     })
   })
 
   it('correctly parse months', () => {
     expect(parse('* * * 0,11 *')).toEqual({
-      month: [1, 12],
+      month: [0, 11],
     })
     expect(parse('* * * jan,dec *')).toEqual({
-      month: [1, 12],
+      month: [0, 11],
     })
   })
 

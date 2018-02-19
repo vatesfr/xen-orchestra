@@ -4957,10 +4957,6 @@ ftp@~0.3.10:
     readable-stream "1.1.x"
     xregexp "2.0.0"
 
-full-icu@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/full-icu/-/full-icu-1.2.0.tgz#6bd8bf565f696aab30df503de2d47b92d9f1046f"
-
 function-bind@^1.0.2, function-bind@^1.1.0, function-bind@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
@@ -7517,12 +7513,6 @@ ltx@^2.5.0, ltx@^2.6.2:
   resolved "https://registry.yarnpkg.com/ltx/-/ltx-2.7.1.tgz#0e5cbdcb5bf178cfa7831ea41dc323d97422315a"
   dependencies:
     inherits "^2.0.1"
-
-luxon@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/luxon/-/luxon-0.5.2.tgz#80d93f8e8a30e3a5bafa1d05a464872920e08be1"
-  dependencies:
-    full-icu "^1.2.0"
 
 make-dir@^1.0.0:
   version "1.1.0"
