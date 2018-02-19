@@ -56,6 +56,9 @@ const NETWORK_ERRORS = {
   // Host is not reachable (does not respond).
   EHOSTUNREACH: true,
 
+  // network is unreachable
+  ENETUNREACH: true,
+
   // Connection configured timed out has been reach.
   ETIMEDOUT: true,
 }
