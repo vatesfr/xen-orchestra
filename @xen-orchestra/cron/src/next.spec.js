@@ -1,17 +1,15 @@
 /* eslint-env jest */
 
 import mapValues from 'lodash/mapValues'
-import { DateTime } from 'luxon'
+import moment from 'moment-timezone'
 
 import next from './next'
 import parse from './parse'
 
-const N = (pattern, fromDate = '2018-04-09T06:25') =>
-  next(parse(pattern), DateTime.fromISO(fromDate, { zone: 'utc' })).toISO({
-    includeOffset: false,
-    suppressMilliseconds: true,
-    suppressSeconds: true,
-  })
+const N = (pattern, fromDate = '2018-04-09T06:25') => {
+  const iso = next(parse(pattern), moment.utc(fromDate)).toISOString()
+  return iso.slice(0, iso.lastIndexOf(':'))
+}
 
 describe('next()', () => {
   mapValues(
