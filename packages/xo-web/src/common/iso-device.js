@@ -88,14 +88,14 @@ export default class IsoDevice extends Component {
   render () {
     const { cdDrive, isAdmin, mountedIso } = this.props
     const resourceSet = this._getResolvedResourceSet()
-    const SelectVdi_ =
-      isAdmin || resourceSet === undefined ? SelectVdi : SelectResourceSetsVdi
+    const useResourceSet = !(isAdmin || resourceSet === undefined)
+    const SelectVdi_ = useResourceSet ? SelectResourceSetsVdi : SelectVdi
 
     return (
       <div className='input-group'>
         <SelectVdi_
           onChange={this._handleInsert}
-          resourceSet={isAdmin ? undefined : resourceSet}
+          resourceSet={useResourceSet ? resourceSet : undefined}
           srPredicate={this._getPredicate()}
           value={mountedIso}
         />
