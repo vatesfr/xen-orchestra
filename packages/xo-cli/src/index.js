@@ -328,6 +328,15 @@ async function listObjects (args) {
 }
 exports.listObjects = listObjects
 
+function ensurePathParam (method, value) {
+  if (typeof value !== 'string') {
+    const error =
+      method +
+      ' requires the @ parameter to be a path (e.g. @=/tmp/config.json)'
+    throw error
+  }
+}
+
 async function call (args) {
   if (!args.length) {
     throw new Error('missing command name')
@@ -350,6 +359,7 @@ async function call (args) {
     key = keys[0]
 
     if (key === '$getFrom') {
+      ensurePathParam(method, file)
       url = resolveUrl(baseUrl, result[key])
       const output = createWriteStream(file)
 
@@ -371,6 +381,7 @@ async function call (args) {
     }
 
     if (key === '$sendTo') {
+      ensurePathParam(method, file)
       url = resolveUrl(baseUrl, result[key])
 
       const stats = await stat(file)
