@@ -8,11 +8,19 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { Text } from 'editable'
-import { concat, isEmpty, map } from 'lodash'
+import { concat, isEmpty, map, some } from 'lodash'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { deleteVbd, deleteVdi, deleteVdis, disconnectVbd, editVdi } from 'xo'
+import {
+  connectVbd,
+  deleteVbd,
+  deleteVdi,
+  deleteVdis,
+  disconnectVbd,
+  editVdi,
+  isVmRunning,
+} from 'xo'
 
 // ===================================================================
 
@@ -82,11 +90,15 @@ const COLUMNS = [
         <Container>
           {map(vbds, vbd => {
             const vm = vms[vbd.VM]
+
+            if (vm === undefined) {
+              return null
+            }
+
             const item = renderXoItem(vm)
-            const { type } = vm
             let link
 
-            if (type === 'VM') {
+            if (vm.type === 'VM') {
               link = `/vms/${vm.id}`
             } else {
               // VM-snapshot
@@ -96,25 +108,36 @@ const COLUMNS = [
             }
 
             return (
-              <Row>
-                <Col mediumSize={8}>{<Link to={link}>{item}</Link>}</Col>
+              <Row marginBottom={1}>
+                <Col mediumSize={8}>
+                  <Link to={link}>{item}</Link>
+                </Col>
                 <Col mediumSize={4}>
                   <ButtonGroup>
+                    {vbd.attached ? (
+                      <ActionRowButton
+                        btnStyle='danger'
+                        handler={disconnectVbd}
+                        handlerParam={vbd}
+                        icon='disconnect'
+                        tooltip={_('vbdDisconnect')}
+                      />
+                    ) : (
+                      <ActionRowButton
+                        btnStyle='danger'
+                        disabled={some(vbds, 'attached') || !isVmRunning(vm)}
+                        handler={connectVbd}
+                        handlerParam={vbd}
+                        icon='connect'
+                        tooltip={_('vbdConnect')}
+                      />
+                    )}
                     <ActionRowButton
                       btnStyle='danger'
-                      disabled={vbd.attached}
                       handler={deleteVbd}
                       handlerParam={vbd}
                       icon='vdi-forget'
                       tooltip={_('vdiForget')}
-                    />
-                    <ActionRowButton
-                      btnStyle='danger'
-                      disabled={vbd.attached}
-                      handler={disconnectVbd}
-                      handlerParam={vbd}
-                      icon='disconnect'
-                      tooltip={_('vbdDisconnect')}
                     />
                   </ButtonGroup>
                 </Col>
