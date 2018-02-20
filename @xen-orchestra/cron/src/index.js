@@ -56,7 +56,7 @@ class Schedule {
     const schedule = this._schedule
     let date = this._createDate()
     for (let i = 0; i < n; ++i) {
-      dates[i] = (date = next(schedule, date)).toJSDate()
+      dates[i] = (date = next(schedule, date)).toDate()
     }
     return dates
   }

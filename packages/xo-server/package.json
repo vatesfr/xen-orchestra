@@ -34,7 +34,7 @@
   "dependencies": {
     "@marsaud/smb2-promise": "^0.2.1",
     "@nraynaud/struct-fu": "^1.0.1",
-    "@xen-orchestra/cron": "^1.0.1",
+    "@xen-orchestra/cron": "^1.0.2",
     "ajv": "^6.1.1",
     "app-conf": "^0.5.0",
     "archiver": "^2.1.0",
@@ -106,7 +106,7 @@
     "through2": "^2.0.3",
     "tmp": "^0.0.33",
     "uuid": "^3.0.1",
-    "value-matcher": "^0.1.0",
+    "value-matcher": "^0.2.0",
     "ws": "^4.0.0",
     "xen-api": "^0.16.5",
     "xml2js": "^0.4.19",
