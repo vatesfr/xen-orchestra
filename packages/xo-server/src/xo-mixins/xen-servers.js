@@ -11,6 +11,7 @@ import {
   forEach,
   isEmpty,
   isString,
+  pDelay,
   popProperty,
   serializeError,
 } from '../utils'
@@ -221,7 +222,7 @@ export default class {
     })
   }
 
-  async connectXenServer (id) {
+  async connectXenServer (id, { noRedirect } = {}) {
     const server = (await this._getXenServer(id)).properties
 
     const xapi = (this._xapis[server.id] = new Xapi({
@@ -341,6 +342,14 @@ export default class {
       return this.updateXenServer(id, { error: null })
     }
 
+    if (noRedirect) {
+      await this.disconnectXenServer(id)
+
+      return pDelay(2e4).then(() =>
+        this.connectXenServer(id, { noRedirect: true })
+      )
+    }
+
     const servers = await this.getAllXenServers()
     const serverExists = some(servers, server =>
       isEqual(parseUrl(server.host), urlAfterRedirect)
@@ -436,6 +445,8 @@ export default class {
 
   async mergeXenPools (sourceId, targetId, force = false) {
     const sourceXapi = this.getXapi(sourceId)
+    const { properties: { id } } = await this._getXenServerByXapi(sourceXapi)
+
     const { _auth: { user, password }, _url: { hostname } } = this.getXapi(
       targetId
     )
@@ -452,7 +463,13 @@ export default class {
       throw e
     }
 
-    await this.unregisterXenServer(sourceId)
+    await this.unregisterXenServer(id)
+  }
+
+  _getXenServerByXapi (xapi) {
+    return this._getXenServer(
+      findKey(this._xapis, candidate => candidate === xapi)
+    )
   }
 
   async detachHostFromPool (hostId) {
@@ -461,17 +478,27 @@ export default class {
 
     await xapi.ejectHostFromPool(hostId)
 
-    const { properties } = await this._servers.first(
-      findKey(this._xapis, candidate => candidate === xapi)
-    )
-
+    const { properties } = await this._getXenServerByXapi(xapi)
     delete properties.id
 
     this.registerXenServer({
       ...properties,
       host: address,
     })
-      .then(server => this.connectXenServer(server.id))
+      .then(server => this.connectXenServer(server.id, { noRedirect: true }))
       ::ignoreErrors()
+  }
+
+  async setPoolMaster (hostId) {
+    const xapi = this.getXapi(hostId)
+    await xapi.setPoolMaster(hostId)
+
+    const host = xapi.getObject(hostId)
+    const [{ properties: { id } }] = await Promise.all([
+      this._getXenServerByXapi(xapi),
+      xapi._waitObjectState(host.$pool.$id, pool => pool.master === host.$ref),
+    ])
+
+    this.connectXenServer(id)::ignoreErrors()
   }
 }

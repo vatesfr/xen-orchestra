@@ -60,7 +60,7 @@ setDefaultSr.resolve = {
 export async function setPoolMaster ({ host }) {
   await this.hasPermissions(this.user.id, [[host.$pool, 'administrate']])
 
-  await this.getXapi(host).setPoolMaster(host._xapiId)
+  await this.setPoolMaster(host._xapiId)
 }
 
 setPoolMaster.params = {
