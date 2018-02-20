@@ -105,6 +105,12 @@ encoding by prefixing with `json:`:
 > xo-cli foo.bar baz='json:[1, 2, 3]'
 ```
 
+##### Configuration export
+
+```
+> xo-cli xo.exportConfig @=config.json
+```
+
 ##### VM export
 
 ```
