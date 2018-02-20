@@ -9,12 +9,12 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
-import { confirm } from 'modal'
-import { Container, Row, Col } from 'grid'
-import { Number, Size, Text, XoSelect } from 'editable'
-import { SelectResourceSet, SelectVgpuType } from 'select-objects'
 import { Toggle } from 'form'
+import { Number, Size, Text, XoSelect } from 'editable'
+import { Container, Row, Col } from 'grid'
+import { SelectResourceSet, SelectVgpuType } from 'select-objects'
+import { confirm } from 'modal'
+import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
 import {
   addSubscriptions,
   connectStore,
