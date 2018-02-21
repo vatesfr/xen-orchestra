@@ -1875,15 +1875,6 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  // Returns a stream to the exported VDI.
-  exportVdi (vdiId, { baseId, format } = {}) {
-    return this._exportVdi(
-      this.getObject(vdiId),
-      baseId && this.getObject(baseId),
-      format
-    )
-  }
-
   // -----------------------------------------------------------------
 
   async _importVdiContent (vdi, body, format = VDI_FORMAT_VHD) {
