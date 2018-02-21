@@ -95,22 +95,17 @@ const COLUMNS = [
               return null
             }
 
-            const item = renderXoItem(vm)
-            let link
-
-            if (vm.type === 'VM') {
-              link = `/vms/${vm.id}`
-            } else {
-              // VM-snapshot
-              const id = vm.$snapshot_of
-              link =
-                id !== undefined ? `/vms/${id}/snapshots` : '/dashboard/health'
-            }
+            const link =
+              vm.type === 'VM'
+                ? `/vms/${vm.id}`
+                : vm.$snapshot_of === undefined
+                  ? '/dashboard/health'
+                  : `/vms/${vm.$snapshot_of}/snapshots`
 
             return (
-              <Row marginBottom={1}>
+              <Row className='mb-1'>
                 <Col mediumSize={8}>
-                  <Link to={link}>{item}</Link>
+                  <Link to={link}>{renderXoItem(vm)}</Link>
                 </Col>
                 <Col mediumSize={4}>
                   <ButtonGroup>
@@ -124,7 +119,7 @@ const COLUMNS = [
                       />
                     ) : (
                       <ActionRowButton
-                        btnStyle='danger'
+                        btnStyle='primary'
                         disabled={some(vbds, 'attached') || !isVmRunning(vm)}
                         handler={connectVbd}
                         handlerParam={vbd}

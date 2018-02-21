@@ -56,14 +56,6 @@ export const Container = propTypes({
 // Only columns can be children of a row.
 export const Row = propTypes({
   className: propTypes.string,
-  marginBottom: propTypes.number,
-})(({ children, className, marginBottom }) => (
-  <div
-    className={classNames(
-      `${className || ''} row`,
-      marginBottom && `mb-${marginBottom}`
-    )}
-  >
-    {children}
-  </div>
+})(({ children, className }) => (
+  <div className={`${className || ''} row`}>{children}</div>
 ))
