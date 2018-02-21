@@ -10,9 +10,19 @@ test_files () {
   jest --findRelatedTests --passWithNoTests "$@"
 }
 
+# facility to register commands on exit
+on_exit_commands=''
+on_exit () {
+  on_exit_commands="$1; $on_exit_commands"
+}
+trap 'eval "$on_exit_commands"' EXIT
+
+# create a temporary file
+buf=$(mktemp -u)
+on_exit 'rm -f "$buf"'
+
 # compute the list of staged files we are interested in
 set --
-buf=$(mktemp -u)
 git diff-index --cached --diff-filter=AM --name-only HEAD > "$buf"
 while IFS= read -r file
 do
@@ -21,30 +31,56 @@ do
       set -- "$@" "$file";;
   esac
 done < "$buf"
-rm -f "$buf"
 
 if [ $# -eq 0 ]
 then
   exit
 fi
 
-format_files "$@"
+# a function is necessary to have a new list of files, without loosing the
+# current one ($@)
+format_and_handle_unstaged () {
+  local file stash
 
-# stash unstaged changes
-if stash=$(git stash create --keep-index --quiet)
-then
-  # remove those changes from the worktree
+  # compute the files with unstaged changes
+  git diff-files --diff-filter=AM --name-only "$@" > "$buf"
+
+  # format all files
+  format_files "$@"
+
+  # retrieve the files with unstaged changes
+  set --
+  while IFS= read -r file; do set -- "$@" "$file"; done < "$buf"
+
+  # return if there are none
+  if [ $# -eq 0 ]; then return; fi
+
+
+  # re-compute the files with unstaged changes, the changes may have been
+  # reverted by the formatting
+  git update-index -q --refresh
+  git diff-files --diff-filter=AM --name-only "$@" > "$buf"
+  set --
+  while IFS= read -r file; do set -- "$@" "$file"; done < "$buf"
+
+  # return if there are none
+  if [ $# -eq 0 ]; then return; fi
+
+  # stash those changes away
+  stash=$(git stash create -- "$@")
   git checkout .
 
+  # reformat those files, without the unstaged changes
   format_files "$@"
 
   # unstash on exit
-  on_exit () {
+  unstash () {
     git read-tree HEAD
-    git checkout $stash "$@"
+    git checkout "$@"
   }
-  trap 'GIT_INDEX_FILE=$buf on_exit "$@"; rm -f "$buf"' EXIT
-fi
+  on_exit "GIT_INDEX_FILE=\$buf unstash $stash \"\$@\""
+}
+format_and_handle_unstaged "$@"
 
 test_files "$@"
 
