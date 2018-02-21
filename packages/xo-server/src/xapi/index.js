@@ -1845,7 +1845,7 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  @concurrency(1, stream => stream.then(stream => fromEvent(stream, 'end')))
+  @concurrency(12, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancellable
   _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const host = vdi.$SR.$PBDs[0].$host
