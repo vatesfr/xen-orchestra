@@ -66,6 +66,23 @@ You shouldn't have to change this. It's the path were "xo-web" files are served 
       - '../xo-web/dist/'
 ```
 
+### Custom certificate authority
+
+If you want to use certificates signed by an in-house CA for your XenServer hosts, and have Xen Orchestra connecting to it without rejecting them, you need to add `--use-openssl-ca` option in Node, but also add this CA to your trust store (`/etc/ssl/certs` via `update-ca-certificates` in your XOA).
+
+To enable this option in your XOA, edit the `/etc/systemd/system/xo-server.service` file and add this:
+
+```
+Environment=NODE_OPTIONS=--use-openssl-ca
+```
+
+Don't forget to reload `systemd` conf and restart `xo-server`:
+
+```
+# systemctl daemon-reload
+# systemctl restart xo-server.service
+```
+
 ### Redis server
 
 By default, XO-server will try to contact Redis server on `localhost`, with the port `6379`. But you can define anything else you want:
