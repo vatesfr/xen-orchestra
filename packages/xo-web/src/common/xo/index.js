@@ -1566,6 +1566,18 @@ export const createJob = job =>
 export const deleteJob = job =>
   _call('job.delete', { id: resolveId(job) })::tap(subscribeJobs.forceRefresh)
 
+export const deleteJobs = jobs =>
+  confirm({
+    title: _('deleteJobsModalTitle', { nJobs: jobs.length }),
+    body: _('deleteJobsModalMessage', { nJobs: jobs.length }),
+  }).then(
+    () =>
+      Promise.all(
+        map(jobs, job => _call('job.delete', { id: resolveId(job) }))
+      )::tap(subscribeJobs.forceRefresh),
+    noop
+  )
+
 export const editJob = job =>
   _call('job.set', { job })::tap(subscribeJobs.forceRefresh)
 

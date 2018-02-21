@@ -15,6 +15,7 @@ import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import React from 'react'
 import Select from 'form/select'
+import SortedTable from 'sorted-table'
 import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
@@ -29,6 +30,7 @@ import {
   apiMethods,
   createJob,
   deleteJob,
+  deleteJobs,
   editJob,
   runJob,
   subscribeCurrentUser,
@@ -37,6 +39,15 @@ import {
 } from 'xo'
 
 const JOB_KEY = 'genericTask'
+const GROUPED_ACTIONS = [
+  {
+    handler: deleteJobs,
+    handlerParam: selectedJobs => map(selectedJobs, 'id'),
+    icon: 'delete',
+    label: _('deleteSelectedJobs'),
+    level: 'danger',
+  },
+]
 
 const getType = function (param) {
   if (!param) {
@@ -377,12 +388,66 @@ export default class Jobs extends Component {
   _subjectPredicate = ({ type, permission }) =>
     type === 'user' && permission === 'admin'
 
+  columns = [
+    {
+      itemRenderer: job => (
+        <span>
+          {job.name} <span className='text-muted'>({job.id.slice(4, 8)})</span>
+        </span>
+      ),
+      name: _('jobName'),
+      sortCriteria: 'name',
+    },
+    {
+      itemRenderer: job => job.method,
+      name: _('jobAction'),
+      sortCriteria: 'method',
+    },
+    {
+      itemRenderer: job => {
+        const isJobUserMissing = this._getIsJobUserMissing()
+
+        return (
+          <div>
+            <ActionRowButton
+              disabled={!isJobUserMissing[job.id]}
+              icon='run-schedule'
+              btnStyle='warning'
+              handler={runJob}
+              handlerParam={job.id}
+            />
+            {!isJobUserMissing[job.id] && (
+              <Tooltip content={_('jobUserNotFound')}>
+                <Icon className='ml-1' icon='error' />
+              </Tooltip>
+            )}
+          </div>
+        )
+      },
+    },
+  ]
+
+  individualActions = [
+    {
+      handler: this._edit,
+      handlerParam: job => job.id,
+      icon: 'edit',
+      label: _('jobEdit'),
+      level: 'primary',
+    },
+    {
+      handler: deleteJob,
+      handlerParam: job => job.id,
+      icon: 'delete',
+      label: _('jobDelete'),
+      level: 'danger',
+    },
+  ]
+
   render () {
     const { props, state } = this
     const { action, actions, job, jobs } = state
     const { formatMessage } = this.props.intl
-
-    const isJobUserMissing = this._getIsJobUserMissing()
 
     return (
       <div>
@@ -455,64 +520,14 @@ export default class Jobs extends Component {
             </fieldset>
           )}
         </form>
-        <table className='table'>
-          <thead>
-            <tr>
-              <th>{_('jobName')}</th>
-              <th>{_('jobAction')}</th>
-              <th />
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {isEmpty(jobs) && (
-              <tr>
-                <td>
-                  <em>{_('noJobs')}</em>
-                </td>
-              </tr>
-            )}
-            {map(jobs, job => (
-              <tr key={job.id}>
-                <td>
-                  <span>
-                    {job.name}{' '}
-                    <span className='text-muted'>({job.id.slice(4, 8)})</span>
-                  </span>
-                </td>
-                <td>{job.method}</td>
-                <td>
-                  <ActionRowButton
-                    disabled={!isJobUserMissing[job.id]}
-                    icon='run-schedule'
-                    btnStyle='warning'
-                    handler={runJob}
-                    handlerParam={job.id}
-                  />
-                  {!isJobUserMissing[job.id] && (
-                    <Tooltip content={_('jobUserNotFound')}>
-                      <Icon className='ml-1' icon='error' />
-                    </Tooltip>
-                  )}
-                </td>
-                <td>
-                  <ActionRowButton
-                    icon='edit'
-                    btnStyle='primary'
-                    handler={this._edit}
-                    handlerParam={job.id}
-                  />{' '}
-                  <ActionRowButton
-                    icon='delete'
-                    btnStyle='danger'
-                    handler={deleteJob}
-                    handlerParam={job.id}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <SortedTable
+          collection={jobs}
+          columns={this.columns}
+          groupedActions={GROUPED_ACTIONS}
+          individualActions={this.individualActions}
+          shortcutsTarget='body'
+          stateUrlParam='s'
+        />
       </div>
     )
   }
