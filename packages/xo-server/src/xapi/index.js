@@ -9,6 +9,7 @@ import {
   cancellable,
   catchPlus as pCatch,
   defer,
+  fromEvent,
   ignoreErrors,
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
@@ -83,9 +84,6 @@ export const VDI_FORMAT_RAW = 'raw'
 
 export const IPV4_CONFIG_MODES = ['None', 'DHCP', 'Static']
 export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
-
-// do not share the same limit for export and import, it could lead to deadlocks
-const importLimit = concurrency(2)
 
 // ===================================================================
 
@@ -711,6 +709,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Returns a stream to the exported VM.
+  @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
   async exportVm (vmId, { compress = true } = {}) {
     const vm = this.getObject(vmId)
 
@@ -1227,7 +1226,6 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @importLimit
   async _importVm (stream, sr, onVmCreation = undefined) {
     const taskRef = await this.createTask('VM import')
     const query = {}
@@ -1256,7 +1254,6 @@ export default class Xapi extends XapiBase {
     return vmRef
   }
 
-  @importLimit
   @deferrable
   async _importOvaVm (
     $defer,
