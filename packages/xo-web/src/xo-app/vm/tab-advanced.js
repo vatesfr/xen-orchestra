@@ -128,6 +128,10 @@ class ResourceSetItem extends Component {
   }
 }
 
+// Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
+// https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
+const SHARE_BUTTON_STYLE = { height: '38px' }
+
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
 })
@@ -143,11 +147,12 @@ class ShareVmButton extends Component {
 
   render () {
     return (
-      <TabButton
+      <ActionButton
         btnStyle='primary'
         handler={this._shareVm}
         icon='vm-share'
-        labelId='vmShareButton'
+        style={SHARE_BUTTON_STYLE}
+        tooltip={_('vmShareButton')}
       />
     )
   }
@@ -333,8 +338,6 @@ export default connectStore(() => {
     <Container>
       <Row>
         <Col className='text-xs-right'>
-          {(isAdmin || canAdministrate) &&
-            vm.resourceSet != null && <ShareVmButton vm={vm} />}
           {vm.power_state === 'Running' && (
             <span>
               <TabButton
@@ -640,21 +643,29 @@ export default connectStore(() => {
               <tr>
                 <th>{_('resourceSet')}</th>
                 <td>
-                  {isAdmin ? (
-                    <SelectResourceSet
-                      onChange={resourceSet =>
-                        editVm(vm, {
-                          resourceSet:
-                            resourceSet != null ? resourceSet.id : resourceSet,
-                        })
-                      }
-                      value={vm.resourceSet}
-                    />
-                  ) : vm.resourceSet !== undefined ? (
-                    <ResourceSetItem id={vm.resourceSet} />
-                  ) : (
-                    _('resourceSetNone')
-                  )}
+                  <div className='input-group'>
+                    {isAdmin ? (
+                      <SelectResourceSet
+                        onChange={resourceSet =>
+                          editVm(vm, {
+                            resourceSet:
+                              resourceSet != null ? resourceSet.id : resourceSet,
+                          })
+                        }
+                        value={vm.resourceSet}
+                      />
+                    ) : vm.resourceSet !== undefined ? (
+                      <ResourceSetItem id={vm.resourceSet} />
+                    ) : (
+                      _('resourceSetNone')
+                    )}
+                    {(isAdmin || canAdministrate) &&
+                      vm.resourceSet != null && (
+                        <span className='input-group-btn'>
+                          <ShareVmButton vm={vm} />
+                        </span>
+                      )}
+                  </div>
                 </td>
               </tr>
             </tbody>
