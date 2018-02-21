@@ -652,6 +652,10 @@ export default class {
     xapi,
     { vdiParent, isFull, handler, stream, dir, retention }
   ) {
+    if (typeof stream === 'function') {
+      stream = await stream()
+    }
+
     const backupDirectory = `vdi_${vdiParent.uuid}`
     dir = `${dir}/${backupDirectory}`
 
