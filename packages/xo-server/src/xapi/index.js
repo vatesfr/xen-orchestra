@@ -943,8 +943,6 @@ export default class Xapi extends XapiBase {
         baseVdis[vbd.VDI] = vbd.$VDI
       })
 
-    const { streams } = delta
-
     // 1. Create the VMs.
     const vm = await this._getOrWaitObject(
       await this._createVmRecord({
@@ -1012,6 +1010,9 @@ export default class Xapi extends XapiBase {
       defaultNetwork = networksOnPoolMasterByDevice[pif.device] = pif.$network
     })
 
+    const { streams } = delta
+    let transferSize = 0
+
     await Promise.all([
       // Create VBDs.
       asyncMap(delta.vbds, vbd =>
@@ -1028,7 +1029,13 @@ export default class Xapi extends XapiBase {
           if (typeof stream === 'function') {
             stream = await stream()
           }
-          await this._importVdiContent(vdi, stream, VDI_FORMAT_VHD)
+          const sizeStream = stream
+            .pipe(createSizeStream())
+            .once('finish', () => {
+              transferSize += sizeStream.size
+            })
+          stream.task = sizeStream.task
+          await this._importVdiContent(vdi, sizeStream, VDI_FORMAT_VHD)
         }
       }),
 
@@ -1064,7 +1071,7 @@ export default class Xapi extends XapiBase {
       }),
     ])
 
-    return vm
+    return { transferSize, vm }
   }
 
   async _migrateVmWithStorageMotion (
