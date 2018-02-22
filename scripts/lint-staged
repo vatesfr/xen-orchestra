@@ -19,8 +19,8 @@ const defer = require('golike-defer').default
 const { execFileSync, spawnSync } = require('child_process')
 const { readFileSync, writeFileSync } = require('fs')
 
-const run = (command, args, opts) =>
-  spawnSync(
+const run = (command, args, opts) => {
+  const { status } = spawnSync(
     command,
     args,
     Object.assign({
@@ -28,6 +28,10 @@ const run = (command, args, opts) =>
       opts,
     })
   )
+  if (status !== 0) {
+    throw status
+  }
+}
 
 const gitDiff = (what, args = []) =>
   execFileSync(
