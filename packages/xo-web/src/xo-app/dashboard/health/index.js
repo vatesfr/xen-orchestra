@@ -177,46 +177,61 @@ const ORPHANED_VDI_COLUMNS = [
 const CONTROL_DOMAIN_VDI_COLUMNS = [
   {
     name: _('vdiNameLabel'),
-    itemRenderer: vdi => vdi && vdi.name_label,
-    sortCriteria: vdi => vdi && vdi.name_label,
+    itemRenderer: vdi => (
+      <span>
+        {vdi.name_label}
+        {vdi.type === 'VDI-snapshot' && [
+          ' ',
+          <Icon icon='vm-snapshot' key='1' />,
+        ]}
+      </span>
+    ),
+    sortCriteria: vdi => vdi.name_label,
   },
   {
     name: _('vdiNameDescription'),
-    itemRenderer: vdi => vdi && vdi.name_description,
-    sortCriteria: vdi => vdi && vdi.name_description,
+    itemRenderer: vdi => vdi.name_description,
+    sortCriteria: vdi => vdi.name_description,
   },
   {
     name: _('vdiPool'),
-    itemRenderer: vdi =>
-      vdi &&
-      vdi.pool && (
-        <Link to={`pools/${vdi.pool.id}`}>{vdi.pool.name_label}</Link>
-      ),
-    sortCriteria: vdi => vdi && vdi.pool && vdi.pool.name_label,
+    component: connectStore({
+      pool: createGetObject((_, props) => props.item.$pool),
+    })(
+      ({ pool }) =>
+        pool === undefined ? null : (
+          <Link to={`pools/${pool.id}`}>{pool.name_label}</Link>
+        )
+    ),
+    sortCriteria: vdi => vdi.$pool,
   },
   {
     name: _('vdiSize'),
-    itemRenderer: vdi => vdi && formatSize(vdi.size),
-    sortCriteria: vdi => vdi && vdi.size,
+    itemRenderer: vdi => formatSize(vdi.size),
+    sortCriteria: vdi => vdi.size,
   },
   {
     name: _('vdiSr'),
-    itemRenderer: vdi =>
-      vdi && vdi.sr && <Link to={`srs/${vdi.sr.id}`}>{vdi.sr.name_label}</Link>,
-    sortCriteria: vdi => vdi && vdi.sr && vdi.sr.name_label,
+    component: connectStore({
+      sr: createGetObject((_, props) => props.item.$SR),
+    })(
+      ({ sr }) =>
+        sr === undefined ? null : (
+          <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>
+        )
+    ),
+    sortCriteria: vdi => vdi.$SR,
   },
   {
     name: _('vdiAction'),
-    itemRenderer: vdi =>
-      vdi &&
-      vdi.vbd && (
-        <ActionRowButton
-          btnStyle='danger'
-          handler={deleteVbd}
-          handlerParam={vdi.vbd}
-          icon='delete'
-        />
-      ),
+    itemRenderer: vdi => (
+      <ActionRowButton
+        btnStyle='danger'
+        handler={deleteVbd}
+        handlerParam={vdi.vbd}
+        icon='delete'
+      />
+    ),
   },
 ]
 
@@ -347,11 +362,10 @@ const ALARM_COLUMNS = [
   const getControlDomainVdis = createSelector(
     getControlDomainVbds,
     createGetObjectsOfType('VDI'),
-    createGetObjectsOfType('pool'),
-    createGetObjectsOfType('SR'),
-    (vbds, vdis, pools, srs) =>
+    createGetObjectsOfType('VDI-snapshot'),
+    (vbds, vdis, vdiSnapshots) =>
       mapPlus(vbds, (vbd, push) => {
-        const vdi = vdis[vbd.VDI]
+        const vdi = vdis[vbd.VDI] || vdiSnapshots[vbd.VDI]
 
         if (vdi == null) {
           return
@@ -359,8 +373,6 @@ const ALARM_COLUMNS = [
 
         push({
           ...vdi,
-          pool: pools[vbd.$pool],
-          sr: srs[vdi.$SR],
           vbd,
         })
       })
