@@ -18,15 +18,8 @@ const testFiles = files =>
 const { execFileSync, spawnSync } = require('child_process')
 const { readFileSync, writeFileSync } = require('fs')
 
-const run = (command, args, opts) => {
-  const { status } = spawnSync(
-    command,
-    args,
-    Object.assign({
-      stdio: 'inherit',
-      opts,
-    })
-  )
+const run = (command, args) => {
+  const { status } = spawnSync(command, args, { stdio: 'inherit' })
   if (status !== 0) {
     process.exit(status)
   }
