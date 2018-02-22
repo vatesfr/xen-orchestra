@@ -99,10 +99,13 @@ set.params = {
 // -------------------------------------------------------------------
 
 export function get ({ id }) {
+  const { user } = this
+  if (!user) {
+    throw unauthorized()
+  }
+
   return this.getResourceSet(id)
 }
-
-get.permission = 'admin'
 
 get.params = {
   id: {

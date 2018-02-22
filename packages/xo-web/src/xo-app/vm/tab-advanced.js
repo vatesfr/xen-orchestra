@@ -49,9 +49,14 @@ import {
   isAdmin,
 } from 'selectors'
 
+// Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
+// https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
+const SHARE_BUTTON_STYLE = { height: '38px' }
+
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
 const fullCopy = vm => cloneVm(vm, true)
+const shareVmProxy = vm => shareVm(vm, vm.resourceSet)
 
 @connectStore(() => {
   const getAffinityHost = createGetObjectsOfType('host').find((_, { vm }) => ({
@@ -125,36 +130,6 @@ class ResourceSetItem extends Component {
     return this.props.resourceSets === undefined
       ? null
       : renderXoItem(this._getResourceSet())
-  }
-}
-
-// Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
-// https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
-const SHARE_BUTTON_STYLE = { height: '38px' }
-
-@addSubscriptions({
-  resourceSets: subscribeResourceSets,
-})
-class ShareVmButton extends Component {
-  _shareVm = () => {
-    const { resourceSets, vm } = this.props
-
-    return shareVm(vm, {
-      ...find(resourceSets, { id: vm.resourceSet }),
-      type: 'resourceSet',
-    })
-  }
-
-  render () {
-    return (
-      <ActionButton
-        btnStyle='primary'
-        handler={this._shareVm}
-        icon='vm-share'
-        style={SHARE_BUTTON_STYLE}
-        tooltip={_('vmShareButton')}
-      />
-    )
   }
 }
 
@@ -643,8 +618,8 @@ export default connectStore(() => {
               <tr>
                 <th>{_('resourceSet')}</th>
                 <td>
-                  <div className='input-group'>
-                    {isAdmin ? (
+                  {isAdmin ? (
+                    <div className='input-group'>
                       <SelectResourceSet
                         onChange={resourceSet =>
                           editVm(vm, {
@@ -654,18 +629,36 @@ export default connectStore(() => {
                         }
                         value={vm.resourceSet}
                       />
-                    ) : vm.resourceSet !== undefined ? (
-                      <ResourceSetItem id={vm.resourceSet} />
-                    ) : (
-                      _('resourceSetNone')
-                    )}
-                    {(isAdmin || canAdministrate) &&
-                      vm.resourceSet != null && (
+                      {vm.resourceSet !== undefined && (
                         <span className='input-group-btn'>
-                          <ShareVmButton vm={vm} />
+                          <ActionButton
+                            btnStyle='primary'
+                            handler={shareVmProxy}
+                            handlerParam={vm}
+                            icon='vm-share'
+                            style={SHARE_BUTTON_STYLE}
+                            tooltip={_('vmShareButton')}
+                          />
                         </span>
                       )}
-                  </div>
+                    </div>
+                  ) : vm.resourceSet !== undefined ? (
+                    <span>
+                      <ResourceSetItem id={vm.resourceSet} />{' '}
+                      {canAdministrate && (
+                        <ActionButton
+                          btnStyle='primary'
+                          handler={shareVmProxy}
+                          handlerParam={vm}
+                          icon='vm-share'
+                          size='small'
+                          tooltip={_('vmShareButton')}
+                        />
+                      )}
+                    </span>
+                  ) : (
+                    _('resourceSetNone')
+                  )}
                 </td>
               </tr>
             </tbody>
