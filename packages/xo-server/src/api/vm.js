@@ -411,7 +411,9 @@ insertCd.params = {
 
 insertCd.resolve = {
   vm: ['id', 'VM', 'operate'],
-  vdi: ['cd_id', 'VDI', 'view'],
+  // Not compatible with resource sets.
+  // FIXME: find a workaround.
+  vdi: ['cd_id', 'VDI', ''],
 }
 
 // -------------------------------------------------------------------
