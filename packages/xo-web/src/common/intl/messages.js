@@ -295,6 +295,7 @@ const messages = {
   cancelScheduleEdition: 'Cancel',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
+  scheduleRun: 'Run schedule',
   deleteSelectedSchedules: 'Delete selected schedules',
   noScheduledJobs: 'No scheduled jobs.',
   newSchedule: 'New schedule',
