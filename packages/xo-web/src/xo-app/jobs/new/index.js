@@ -39,6 +39,47 @@ import {
 } from 'xo'
 
 const JOB_KEY = 'genericTask'
+
+const COLUMNS = [
+  {
+    itemRenderer: job => (
+      <span>
+        {job.name} <span className='text-muted'>({job.id.slice(4, 8)})</span>
+      </span>
+    ),
+    name: _('jobName'),
+    sortCriteria: 'name',
+  },
+  {
+    itemRenderer: job => job.method,
+    name: _('jobAction'),
+    sortCriteria: 'method',
+  },
+  {
+    itemRenderer: (job, userData) => {
+      const { id } = job
+      const isJobUserMissing = userData.isJobUserMissing[id]
+
+      return (
+        <div>
+          <ActionRowButton
+            disabled={!isJobUserMissing}
+            icon='run-schedule'
+            btnStyle='warning'
+            handler={runJob}
+            handlerParam={id}
+          />
+          {!isJobUserMissing && (
+            <Tooltip content={_('jobUserNotFound')}>
+              <Icon className='ml-1' icon='error' />
+            </Tooltip>
+          )}
+        </div>
+      )
+    },
+  },
+]
+
 const GROUPED_ACTIONS = [
   {
     handler: deleteJobs,
@@ -388,45 +429,6 @@ export default class Jobs extends Component {
   _subjectPredicate = ({ type, permission }) =>
     type === 'user' && permission === 'admin'
 
-  columns = [
-    {
-      itemRenderer: job => (
-        <span>
-          {job.name} <span className='text-muted'>({job.id.slice(4, 8)})</span>
-        </span>
-      ),
-      name: _('jobName'),
-      sortCriteria: 'name',
-    },
-    {
-      itemRenderer: job => job.method,
-      name: _('jobAction'),
-      sortCriteria: 'method',
-    },
-    {
-      itemRenderer: job => {
-        const isJobUserMissing = this._getIsJobUserMissing()
-
-        return (
-          <div>
-            <ActionRowButton
-              disabled={!isJobUserMissing[job.id]}
-              icon='run-schedule'
-              btnStyle='warning'
-              handler={runJob}
-              handlerParam={job.id}
-            />
-            {!isJobUserMissing[job.id] && (
-              <Tooltip content={_('jobUserNotFound')}>
-                <Icon className='ml-1' icon='error' />
-              </Tooltip>
-            )}
-          </div>
-        )
-      },
-    },
-  ]
-
   individualActions = [
     {
       handler: this._edit,
@@ -522,11 +524,12 @@ export default class Jobs extends Component {
         </form>
         <SortedTable
           collection={jobs}
-          columns={this.columns}
+          columns={COLUMNS}
           groupedActions={GROUPED_ACTIONS}
           individualActions={this.individualActions}
           shortcutsTarget='body'
           stateUrlParam='s'
+          userData={{ isJobUserMissing: this._getIsJobUserMissing() }}
         />
       </div>
     )
