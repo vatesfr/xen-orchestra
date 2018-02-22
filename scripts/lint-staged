@@ -48,37 +48,36 @@ const gitDiff = (what, args = []) =>
 const gitDiffFiles = (files = []) => gitDiff('files', files)
 const gitDiffIndex = () => gitDiff('index', ['--cached', 'HEAD'])
 
-function main () {
-  let files = gitDiffIndex()
-  files = files.filter(_ => _.endsWith('.js'))
-  if (files.length === 0) {
-    return
-  }
+// -----------------------------------------------------------------------------
 
-  // save the list of files with unstaged changes
-  let unstaged = gitDiffFiles(files)
+let files = gitDiffIndex()
+files = files.filter(_ => _.endsWith('.js'))
+if (files.length === 0) {
+  return
+}
 
-  // format all files
-  formatFiles(files)
+// save the list of files with unstaged changes
+let unstaged = gitDiffFiles(files)
+
+if (unstaged.length !== 0) {
+  // refresh the list of files with unstaged changes, maybe the
+  // changes have been reverted by the formatting
+  run('git', ['update-index', '-q', '--refresh'])
+  unstaged = gitDiffFiles(unstaged)
 
   if (unstaged.length !== 0) {
-    // refresh the list of files with unstaged changes, maybe the
-    // changes have been reverted by the formatting
-    run('git', ['update-index', '-q', '--refresh'])
-    unstaged = gitDiffFiles(unstaged)
-
-    if (unstaged.length !== 0) {
-      const contents = unstaged.map(name => readFileSync(name))
-      process.on('exit', () =>
-        unstaged.map((name, i) => writeFileSync(name, contents[i]))
-      )
-      run('git', ['checkout'].concat(unstaged))
-      formatFiles(unstaged)
-    }
+    const contents = unstaged.map(name => readFileSync(name))
+    process.on('exit', () =>
+      unstaged.map((name, i) => writeFileSync(name, contents[i]))
+    )
+    run('git', ['checkout'].concat(unstaged))
+    formatFiles(unstaged)
   }
-
-  testFiles(files)
-
-  run('git', ['add'].concat(files))
 }
-main()
+
+// format all files
+formatFiles(files)
+
+testFiles(files)
+
+run('git', ['add'].concat(files))
