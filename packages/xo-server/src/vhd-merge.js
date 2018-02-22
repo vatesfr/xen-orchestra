@@ -182,7 +182,7 @@ function checksumStruct (rawStruct, struct) {
 
 // ===================================================================
 
-class Vhd {
+export class Vhd {
   constructor (handler, path) {
     this._handler = handler
     this._path = path
@@ -328,8 +328,9 @@ class Vhd {
     ).then(
       buf =>
         onlyBitmap
-          ? { bitmap: buf }
+          ? { id: blockId, bitmap: buf }
           : {
+            id: blockId,
             bitmap: buf.slice(0, this.bitmapSize),
             data: buf.slice(this.bitmapSize),
             buffer: buf,
@@ -340,7 +341,6 @@ class Vhd {
   // get the identifiers and first sectors of the first and last block
   // in the file
   //
-  // return undefined if none
   _getFirstAndLastBlocks () {
     const n = this.header.maxTableEntries
     const bat = this.blockTable
@@ -354,7 +354,9 @@ class Vhd {
       j += VHD_ENTRY_SIZE
 
       if (i === n) {
-        throw new Error('no allocated block found')
+        const error = new Error('no allocated block found')
+        error.noBlock = true
+        throw error
       }
     }
     lastSector = firstSector
@@ -415,11 +417,11 @@ class Vhd {
     }
 
     const tableOffset = uint32ToUint64(header.tableOffset)
-    const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
-
     // extend BAT
     const maxTableEntries = (header.maxTableEntries = size)
-    const batSize = maxTableEntries * VHD_ENTRY_SIZE
+    const batSize = sectorsToBytes(
+      sectorsRoundUpNoZero(maxTableEntries * VHD_ENTRY_SIZE)
+    )
     const prevBat = this.blockTable
     const bat = (this.blockTable = Buffer.allocUnsafe(batSize))
     prevBat.copy(bat)
@@ -428,7 +430,7 @@ class Vhd {
       `ensureBatSize: extend in memory BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
     )
 
-    const extendBat = () => {
+    const extendBat = async () => {
       debug(
         `ensureBatSize: extend in file BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
       )
@@ -438,25 +440,37 @@ class Vhd {
         tableOffset + prevBat.length
       )
     }
+    try {
+      const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
+      if (tableOffset + batSize < sectorsToBytes(firstSector)) {
+        return Promise.all([extendBat(), this.writeHeader()])
+      }
 
-    if (tableOffset + batSize < sectorsToBytes(firstSector)) {
-      return Promise.all([extendBat(), this.writeHeader()])
-    }
+      const { fullBlockSize } = this
+      const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
+      debug(
+        `ensureBatSize: move first block ${firstSector} -> ${newFirstSector}`
+      )
 
-    const { fullBlockSize } = this
-    const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
-    debug(`ensureBatSize: move first block ${firstSector} -> ${newFirstSector}`)
-
-    return Promise.all([
       // copy the first block at the end
-      this._readStream(sectorsToBytes(firstSector), fullBlockSize)
-        .then(stream => this._write(stream, sectorsToBytes(newFirstSector)))
-        .then(extendBat),
-
-      this._setBatEntry(first, newFirstSector),
-      this.writeHeader(),
-      this.writeFooter(),
-    ])
+      const stream = await this._readStream(
+        sectorsToBytes(firstSector),
+        fullBlockSize
+      )
+      await this._write(stream, sectorsToBytes(newFirstSector))
+      await extendBat()
+      await this._setBatEntry(first, newFirstSector)
+      await this.writeHeader()
+      await this.writeFooter()
+    } catch (e) {
+      if (e.noBlock) {
+        await extendBat()
+        await this.writeHeader()
+        await this.writeFooter()
+      } else {
+        throw e
+      }
+    }
   }
 
   // set the first sector (bitmap) of a block
