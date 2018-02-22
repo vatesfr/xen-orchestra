@@ -51,6 +51,9 @@ if (files.length === 0) {
 // save the list of files with unstaged changes
 let unstaged = gitDiffFiles(files)
 
+// format all files
+formatFiles(files)
+
 if (unstaged.length !== 0) {
   // refresh the list of files with unstaged changes, maybe the
   // changes have been reverted by the formatting
@@ -66,9 +69,6 @@ if (unstaged.length !== 0) {
     formatFiles(unstaged)
   }
 }
-
-// format all files
-formatFiles(files)
 
 testFiles(files)
 
