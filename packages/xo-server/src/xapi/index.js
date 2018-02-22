@@ -9,6 +9,7 @@ import {
   cancellable,
   catchPlus as pCatch,
   defer,
+  fromEvent,
   ignoreErrors,
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
@@ -83,9 +84,6 @@ export const VDI_FORMAT_RAW = 'raw'
 
 export const IPV4_CONFIG_MODES = ['None', 'DHCP', 'Static']
 export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
-
-// do not share the same limit for export and import, it could lead to deadlocks
-const importLimit = concurrency(2)
 
 // ===================================================================
 
@@ -711,6 +709,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Returns a stream to the exported VM.
+  @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
   async exportVm (vmId, { compress = true } = {}) {
     const vm = this.getObject(vmId)
 
@@ -870,13 +869,8 @@ export default class Xapi extends XapiBase {
             ...vdi,
             $SR$uuid: vdi.$SR.uuid,
           }
-      const stream = (streams[`${vdiRef}.vhd`] = this._exportVdi(
-        $cancelToken,
-        vdi,
-        baseVdi,
-        VDI_FORMAT_VHD
-      ))
-      $defer.onFailure(stream.cancel)
+      streams[`${vdiRef}.vhd`] = () =>
+        this._exportVdi($cancelToken, vdi, baseVdi, VDI_FORMAT_VHD)
     })
 
     const vifs = {}
@@ -906,7 +900,7 @@ export default class Xapi extends XapiBase {
       },
       'streams',
       {
-        value: await streams::pAll(),
+        value: streams,
       }
     )
   }
@@ -1030,7 +1024,10 @@ export default class Xapi extends XapiBase {
 
       // Import VDI contents.
       asyncMap(newVdis, async (vdi, id) => {
-        for (const stream of ensureArray(streams[`${id}.vhd`])) {
+        for (let stream of ensureArray(streams[`${id}.vhd`])) {
+          if (typeof stream === 'function') {
+            stream = await stream()
+          }
           await this._importVdiContent(vdi, stream, VDI_FORMAT_VHD)
         }
       }),
@@ -1227,7 +1224,6 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @importLimit
   async _importVm (stream, sr, onVmCreation = undefined) {
     const taskRef = await this.createTask('VM import')
     const query = {}
@@ -1256,7 +1252,6 @@ export default class Xapi extends XapiBase {
     return vmRef
   }
 
-  @importLimit
   @deferrable
   async _importOvaVm (
     $defer,
@@ -1850,6 +1845,7 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
+  @concurrency(12, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancellable
   _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const host = vdi.$SR.$PBDs[0].$host
@@ -1873,15 +1869,6 @@ export default class Xapi extends XapiBase {
       query,
       task: this.createTask('VDI Export', vdi.name_label),
     })
-  }
-
-  // Returns a stream to the exported VDI.
-  exportVdi (vdiId, { baseId, format } = {}) {
-    return this._exportVdi(
-      this.getObject(vdiId),
-      baseId && this.getObject(baseId),
-      format
-    )
   }
 
   // -----------------------------------------------------------------

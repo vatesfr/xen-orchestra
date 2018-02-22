@@ -7208,9 +7208,9 @@ liftoff@^2.5.0:
     rechoir "^0.6.2"
     resolve "^1.1.7"
 
-limit-concurrency-decorator@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/limit-concurrency-decorator/-/limit-concurrency-decorator-0.3.0.tgz#f01dc6ece361ecc2169400847bad45d80727c79e"
+limit-concurrency-decorator@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/limit-concurrency-decorator/-/limit-concurrency-decorator-0.4.0.tgz#d79c4e97b6ef547df2d905cc3acaabbae1bfeed6"
 
 livereload-js@^2.2.0:
   version "2.3.0"
