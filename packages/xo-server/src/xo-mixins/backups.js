@@ -902,11 +902,11 @@ export default class {
       delta.vm.name_label += ` (${shortDate(datetime * 1e3)})`
       delta.vm.tags.push('restored from backup')
 
-      vm = await xapi.importDeltaVm(delta, {
+      vm = (await xapi.importDeltaVm(delta, {
         disableStartAfterImport: false,
         srId: sr !== undefined && sr._xapiId,
         mapVdisSrs,
-      })
+      })).vm
     } else {
       throw new Error(`Unsupported delta backup version: ${version}`)
     }

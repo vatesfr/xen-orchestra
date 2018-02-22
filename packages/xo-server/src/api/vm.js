@@ -773,7 +773,7 @@ export function importDeltaBackup ({ sr, remote, filePath, mapVdisSrs }) {
     remoteId: remote,
     filePath,
     mapVdisSrs: mapVdisSrsXapi,
-  })
+  }).then(_ => _.vm)
 }
 
 importDeltaBackup.params = {
