@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/cron",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "license": "ISC",
   "description": "Focused, well maintained, cron parser/scheduler",
   "keywords": [
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "luxon": "^0.4.0"
+    "moment-timezone": "^0.5.14"
   },
   "devDependencies": {
     "@babel/cli": "7.0.0-beta.40",

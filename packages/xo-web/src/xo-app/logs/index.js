@@ -9,15 +9,16 @@ import NoObjects from 'no-objects'
 import propTypes from 'prop-types-decorator'
 import React, { Component } from 'react'
 import renderXoItem from 'render-xo-item'
+import Select from 'form/select'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { alert, confirm } from 'modal'
-import { createGetObject } from 'selectors'
-import { FormattedDate } from 'react-intl'
-import { connectStore, formatSize, formatSpeed } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
-import { forEach, get, includes, isEmpty, map, orderBy } from 'lodash'
+import { connectStore, formatSize, formatSpeed } from 'utils'
+import { createFilter, createGetObject, createSelector } from 'selectors'
 import { deleteJobsLog, subscribeJobsLogs } from 'xo'
+import { forEach, get, includes, isEmpty, map, orderBy } from 'lodash'
+import { FormattedDate } from 'react-intl'
 
 // ===================================================================
 
@@ -103,8 +104,9 @@ const JobDataInfos = ({
   </div>
 )
 
+const DEFAULT_CALL_FILTER = { label: 'allJobCalls', value: 'all' }
 const CALL_FILTER_OPTIONS = [
-  { label: 'allJobCalls', value: 'all' },
+  DEFAULT_CALL_FILTER,
   { label: 'failedJobCall', value: 'error' },
   { label: 'jobCallInProgess', value: 'running' },
   { label: 'jobCallSkipped', value: 'skipped' },
@@ -128,31 +130,44 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
+const filterOptionRenderer = ({ label }) => _(label)
+
 class Log extends BaseComponent {
   state = {
-    filter: 'all',
+    filter: DEFAULT_CALL_FILTER,
   }
 
-  render () {
-    const { props, state } = this
-    const predicate = PREDICATES[state.filter]
+  _getFilteredCalls = createFilter(
+    () => this.props.log.calls,
+    createSelector(() => this.state.filter.value, value => PREDICATES[value])
+  )
 
+  _filterValueRenderer = createSelector(
+    () => this._getFilteredCalls().length,
+    ({ label }) => label,
+    (size, label) => (
+      <span>
+        {_(label)} ({size})
+      </span>
+    )
+  )
+
+  render () {
     return (
       <div>
-        <select
-          className='form-control'
+        <Select
+          labelKey='label'
           onChange={this.linkState('filter')}
-          value={state.filter}
-        >
-          {map(CALL_FILTER_OPTIONS, ({ label, value }) =>
-            _({ key: value }, label, message => (
-              <option value={value}>{message}</option>
-            ))
-          )}
-        </select>
+          optionRenderer={filterOptionRenderer}
+          options={CALL_FILTER_OPTIONS}
+          required
+          value={this.state.filter}
+          valueKey='value'
+          valueRenderer={this._filterValueRenderer}
+        />
         <br />
         <ul className='list-group'>
-          {map(props.log.calls, call => {
+          {map(this._getFilteredCalls(), call => {
             const { end, error, returnedValue, start } = call
 
             let id
@@ -166,91 +181,84 @@ class Log extends BaseComponent {
             const jobDuration = end - start
 
             return (
-              predicate(call) && (
-                <li key={call.callKey} className='list-group-item'>
-                  <strong className='text-info'>{call.method}: </strong>
-                  <JobCallStateInfos end={end} error={error} />
-                  <br />
-                  {map(call.params, (value, key) => [
-                    <JobParam id={value} paramKey={key} key={key} />,
-                    <br />,
-                  ])}
-                  {_.keyValue(
-                    _('jobStart'),
-                    <FormattedDate
-                      value={new Date(start)}
-                      month='short'
-                      day='numeric'
-                      year='numeric'
-                      hour='2-digit'
-                      minute='2-digit'
-                      second='2-digit'
-                    />
-                  )}
-                  <br />
-                  {end !== undefined && (
-                    <div>
-                      {_.keyValue(
-                        _('jobEnd'),
-                        <FormattedDate
-                          value={new Date(end)}
-                          month='short'
-                          day='numeric'
-                          year='numeric'
-                          hour='2-digit'
-                          minute='2-digit'
-                          second='2-digit'
-                        />
-                      )}
-                      <br />
-                      {_.keyValue(
-                        _('jobDuration'),
-                        <FormattedDuration duration={jobDuration} />
-                      )}
-                    </div>
-                  )}
-                  {returnedValue != null && (
-                    <JobDataInfos
-                      jobDuration={jobDuration}
-                      {...returnedValue}
-                    />
-                  )}
-                  {id !== undefined && (
-                    <span>
-                      {' '}
-                      <JobReturn id={id} />
-                    </span>
-                  )}
-                  {error != null &&
-                    (error.message === UNHEALTHY_VDI_CHAIN_ERROR ? (
-                      <Tooltip content={_('clickForMoreInformation')}>
-                        <a
-                          className='text-info'
-                          href={UNHEALTHY_VDI_CHAIN_LINK}
-                          rel='noopener noreferrer'
-                          target='_blank'
-                        >
-                          <Icon icon='info' /> {_('unhealthyVdiChainError')}
-                        </a>
-                      </Tooltip>
-                    ) : (
-                      <span
-                        className={
-                          isSkippedError(error) ? 'text-info' : 'text-danger'
-                        }
+              <li key={call.callKey} className='list-group-item'>
+                <strong className='text-info'>{call.method}: </strong>
+                <JobCallStateInfos end={end} error={error} />
+                <br />
+                {map(call.params, (value, key) => [
+                  <JobParam id={value} paramKey={key} key={key} />,
+                  <br />,
+                ])}
+                {_.keyValue(
+                  _('jobStart'),
+                  <FormattedDate
+                    value={new Date(start)}
+                    month='short'
+                    day='numeric'
+                    year='numeric'
+                    hour='2-digit'
+                    minute='2-digit'
+                    second='2-digit'
+                  />
+                )}
+                <br />
+                {end !== undefined && (
+                  <div>
+                    {_.keyValue(
+                      _('jobEnd'),
+                      <FormattedDate
+                        value={new Date(end)}
+                        month='short'
+                        day='numeric'
+                        year='numeric'
+                        hour='2-digit'
+                        minute='2-digit'
+                        second='2-digit'
+                      />
+                    )}
+                    <br />
+                    {_.keyValue(
+                      _('jobDuration'),
+                      <FormattedDuration duration={jobDuration} />
+                    )}
+                  </div>
+                )}
+                {returnedValue != null && (
+                  <JobDataInfos jobDuration={jobDuration} {...returnedValue} />
+                )}
+                {id !== undefined && (
+                  <span>
+                    {' '}
+                    <JobReturn id={id} />
+                  </span>
+                )}
+                {error != null &&
+                  (error.message === UNHEALTHY_VDI_CHAIN_ERROR ? (
+                    <Tooltip content={_('clickForMoreInformation')}>
+                      <a
+                        className='text-info'
+                        href={UNHEALTHY_VDI_CHAIN_LINK}
+                        rel='noopener noreferrer'
+                        target='_blank'
                       >
-                        <Icon
-                          icon={isSkippedError(error) ? 'alarm' : 'error'}
-                        />{' '}
-                        {error.message !== undefined ? (
-                          <strong>{error.message}</strong>
-                        ) : (
-                          JSON.stringify(error)
-                        )}
-                      </span>
-                    ))}
-                </li>
-              )
+                        <Icon icon='info' /> {_('unhealthyVdiChainError')}
+                      </a>
+                    </Tooltip>
+                  ) : (
+                    <span
+                      className={
+                        isSkippedError(error) ? 'text-info' : 'text-danger'
+                      }
+                    >
+                      <Icon icon={isSkippedError(error) ? 'alarm' : 'error'} />{' '}
+                      {error.message !== undefined ? (
+                        <strong>{error.message}</strong>
+                      ) : (
+                        JSON.stringify(error)
+                      )}
+                    </span>
+                  ))}
+              </li>
             )
           })}
         </ul>

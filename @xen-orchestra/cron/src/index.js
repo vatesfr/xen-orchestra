@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon'
+import moment from 'moment-timezone'
 
 import next from './next'
 import parse from './parse'
@@ -41,7 +41,10 @@ class Job {
 class Schedule {
   constructor (pattern, zone = 'utc') {
     this._schedule = parse(pattern)
-    this._dateTimeOpts = { zone }
+    this._createDate =
+      zone.toLowerCase() === 'utc'
+        ? moment.utc
+        : zone === 'local' ? moment : () => moment.tz(zone)
   }
 
   createJob (fn) {
@@ -51,15 +54,15 @@ class Schedule {
   next (n) {
     const dates = new Array(n)
     const schedule = this._schedule
-    let date = DateTime.fromObject(this._dateTimeOpts)
+    let date = this._createDate()
     for (let i = 0; i < n; ++i) {
-      dates[i] = (date = next(schedule, date)).toJSDate()
+      dates[i] = (date = next(schedule, date)).toDate()
     }
     return dates
   }
 
   _nextDelay () {
-    const now = DateTime.fromObject(this._dateTimeOpts)
+    const now = this._createDate()
     return next(this._schedule, now) - now
   }
 

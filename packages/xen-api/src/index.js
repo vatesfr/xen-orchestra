@@ -26,6 +26,8 @@ import {
   delay as pDelay,
   fromEvents,
   lastly,
+  timeout as pTimeout,
+  TimeoutError,
 } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
@@ -33,6 +35,9 @@ import autoTransport from './transports/auto'
 const debug = createDebug('xen-api')
 
 // ===================================================================
+
+// in seconds
+const EVENT_TIMEOUT = 60
 
 // http://www.gnu.org/software/libc/manual/html_node/Error-Codes.html
 const NETWORK_ERRORS = {
@@ -50,6 +55,9 @@ const NETWORK_ERRORS = {
 
   // Host is not reachable (does not respond).
   EHOSTUNREACH: true,
+
+  // network is unreachable
+  ENETUNREACH: true,
 
   // Connection configured timed out has been reach.
   ETIMEDOUT: true,
@@ -410,11 +418,10 @@ export class Xapi extends EventEmitter {
   }
 
   // create a task and automatically destroy it when settled
+  //
+  //  allowed even in read-only mode because it does not have impact on the
+  //  XenServer and it's necessary for getResource()
   createTask (nameLabel, nameDescription = '') {
-    if (this._readOnly) {
-      return Promise.reject(new Error('cannot create task in read only mode'))
-    }
-
     const promise = this._sessionCall('task.create', [
       nameLabel,
       nameDescription,
@@ -827,8 +834,10 @@ export class Xapi extends EventEmitter {
       this._sessionCall('event.from', [
         ['*'],
         this._fromToken,
-        60 + 0.1, // Force float.
-      ]).then(onSuccess, onFailure)
+        EVENT_TIMEOUT + 0.1, // Force float.
+      ])
+        ::pTimeout(EVENT_TIMEOUT * 1.1e3) // 10% longer than the XenAPI timeout
+        .then(onSuccess, onFailure)
 
     const onSuccess = ({ events, token, valid_ref_counts: { task } }) => {
       this._fromToken = token
@@ -858,6 +867,10 @@ export class Xapi extends EventEmitter {
       return debounce != null ? pDelay(debounce).then(loop) : loop()
     }
     const onFailure = error => {
+      if (error instanceof TimeoutError) {
+        return loop()
+      }
+
       if (areEventsLost(error)) {
         this._fromToken = ''
         this._objects.clear()

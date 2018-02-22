@@ -66,8 +66,10 @@ const logError = e => {
   console.error('backup report error:', e)
 }
 
-const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
+const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
+const UNHEALTHY_VDI_CHAIN_MESSAGE =
+  '[(unhealthy VDI chain) Job canceled to protect the VDI chain](https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection)'
 
 const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
@@ -164,7 +166,15 @@ class BackupReportsXoPlugin {
 
         if (isSkippedError(error)) {
           ++nSkipped
-          skippedBackupsText.push(...text, `- **Reason**: ${message}`, '')
+          skippedBackupsText.push(
+            ...text,
+            `- **Reason**: ${
+              message === UNHEALTHY_VDI_CHAIN_ERROR
+                ? UNHEALTHY_VDI_CHAIN_MESSAGE
+                : message
+            }`,
+            ''
+          )
 
           nagiosText.push(
             `[(Skipped) ${

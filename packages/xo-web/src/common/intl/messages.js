@@ -1089,6 +1089,7 @@ const messages = {
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
+  setVmFailed: 'Error on setting the VM: {vm}',
   startVmImport: 'Import starting…',
   startVmExport: 'Export starting…',
   nCpus: 'N CPUs',

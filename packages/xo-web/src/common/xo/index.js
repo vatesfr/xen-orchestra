@@ -22,14 +22,14 @@ import { lastly, reflect, tap } from 'promise-toolbox'
 import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 
 import _ from '../intl'
+import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import logError from '../log-error'
-import renderXoItem from '../render-xo-item'
+import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
-import { post } from '../fetch'
 import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
@@ -127,9 +127,33 @@ export const connectStore = store => {
   xo.on('authenticated', () => {
     store.dispatch(signedIn(xo.user))
 
-    _call('xo.getAllObjects').then(objects =>
-      store.dispatch(updateObjects(objects))
-    )
+    _call('xo.getAllObjects', { ndjson: true })
+      .then(({ $getFrom }) => fetch($getFrom))
+      .then(response => response.text())
+      .then(data => {
+        const objects = Object.create(null)
+
+        const { length } = data
+        let i = 0
+        while (i < length) {
+          let j = data.indexOf('\n', i)
+
+          // no final \n
+          if (j === -1) {
+            j = length
+          }
+
+          // non empty line
+          if (j !== i) {
+            const object = JSON.parse(data.slice(i, j))
+            objects[object.id] = object
+          }
+
+          i = j + 1
+        }
+
+        store.dispatch(updateObjects(objects))
+      })
   })
   xo.on('notification', notification => {
     if (notification.method !== 'all') {
@@ -1104,7 +1128,12 @@ export const revertSnapshot = vm =>
   )
 
 export const editVm = (vm, props) =>
-  _call('vm.set', { ...props, id: resolveId(vm) })
+  _call('vm.set', { ...props, id: resolveId(vm) }).catch(err => {
+    error(
+      _('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }),
+      err.message
+    )
+  })
 
 export const fetchVmStats = (vm, granularity) =>
   _call('vm.stats', { id: resolveId(vm), granularity })
