@@ -1,22 +1,13 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import ActionRowButton from 'action-row-button'
 import Button from 'button'
 import Component from 'base-component'
 import defined from 'xo-defined'
-import delay from 'lodash/delay'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
-import includes from 'lodash/includes'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
 import React from 'react'
 import Select from 'form/select'
 import SortedTable from 'sorted-table'
-import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { addSubscriptions } from 'utils'
@@ -25,7 +16,15 @@ import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { injectIntl } from 'react-intl'
 import { SelectSubject } from 'select-objects'
-
+import {
+  delay,
+  find,
+  forEach,
+  includes,
+  isEmpty,
+  mapValues,
+  size,
+} from 'lodash'
 import {
   apiMethods,
   createJob,
@@ -42,11 +41,20 @@ const JOB_KEY = 'genericTask'
 
 const COLUMNS = [
   {
-    itemRenderer: job => (
-      <span>
-        {job.name} <span className='text-muted'>({job.id.slice(4, 8)})</span>
-      </span>
-    ),
+    itemRenderer: (job, isJobUserMissing) => {
+      const { id } = job
+
+      return (
+        <div>
+          {job.name} <span className='text-muted'>({id.slice(4, 8)})</span>
+          {!isJobUserMissing[id] && (
+            <Tooltip content={_('jobUserNotFound')}>
+              <Icon className='ml-1' icon='error' />
+            </Tooltip>
+          )}
+        </div>
+      )
+    },
     name: _('jobName'),
     sortCriteria: 'name',
   },
@@ -55,37 +63,15 @@ const COLUMNS = [
     name: _('jobAction'),
     sortCriteria: 'method',
   },
-  {
-    itemRenderer: (job, userData) => {
-      const { id } = job
-      const isJobUserMissing = userData.isJobUserMissing[id]
-
-      return (
-        <div>
-          <ActionRowButton
-            disabled={!isJobUserMissing}
-            icon='run-schedule'
-            btnStyle='warning'
-            handler={runJob}
-            handlerParam={id}
-          />
-          {!isJobUserMissing && (
-            <Tooltip content={_('jobUserNotFound')}>
-              <Icon className='ml-1' icon='error' />
-            </Tooltip>
-          )}
-        </div>
-      )
-    },
-  },
 ]
 
-const GROUPED_ACTIONS = [
+const ACTIONS = [
   {
     handler: deleteJobs,
-    handlerParam: selectedJobs => map(selectedJobs, 'id'),
+    handlerParam: selectedJob => selectedJob.id,
+    individualHandler: deleteJob,
     icon: 'delete',
-    label: _('deleteSelectedJobs'),
+    label: _('jobDelete'),
     level: 'danger',
   },
 ]
@@ -431,18 +417,19 @@ export default class Jobs extends Component {
 
   individualActions = [
     {
+      disabled: job => !this._getIsJobUserMissing()[job.id],
+      handler: runJob,
+      handlerParam: job => job.id,
+      icon: 'run-schedule',
+      label: _('runJob'),
+      level: 'warning',
+    },
+    {
       handler: this._edit,
       handlerParam: job => job.id,
       icon: 'edit',
       label: _('jobEdit'),
       level: 'primary',
-    },
-    {
-      handler: deleteJob,
-      handlerParam: job => job.id,
-      icon: 'delete',
-      label: _('jobDelete'),
-      level: 'danger',
     },
   ]
 
@@ -522,15 +509,17 @@ export default class Jobs extends Component {
             </fieldset>
           )}
         </form>
-        <SortedTable
-          collection={jobs}
-          columns={COLUMNS}
-          groupedActions={GROUPED_ACTIONS}
-          individualActions={this.individualActions}
-          shortcutsTarget='body'
-          stateUrlParam='s'
-          userData={{ isJobUserMissing: this._getIsJobUserMissing() }}
-        />
+        {jobs !== undefined && (
+          <SortedTable
+            actions={ACTIONS}
+            collection={jobs}
+            columns={COLUMNS}
+            individualActions={this.individualActions}
+            shortcutsTarget='body'
+            stateUrlParam='s'
+            userData={this._getIsJobUserMissing()}
+          />
+        )}
       </div>
     )
   }

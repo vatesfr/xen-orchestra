@@ -1316,7 +1316,7 @@ const messages = {
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
   chooseSrForEachVdisModalOptionalEntry: '* optional',
-  deleteJobsModalTitle: 'Delete Job{nJobs, plural, one {} other {s}}',
+  deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
   deleteJobsModalMessage:
     'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
   deleteVbdsModalTitle: 'Delete VBD{nVbds, plural, one {} other {s}}',
