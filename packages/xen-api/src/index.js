@@ -418,11 +418,10 @@ export class Xapi extends EventEmitter {
   }
 
   // create a task and automatically destroy it when settled
+  //
+  //  allowed even in read-only mode because it does not have impact on the
+  //  XenServer and it's necessary for getResource()
   createTask (nameLabel, nameDescription = '') {
-    if (this._readOnly) {
-      return Promise.reject(new Error('cannot create task in read only mode'))
-    }
-
     const promise = this._sessionCall('task.create', [
       nameLabel,
       nameDescription,
