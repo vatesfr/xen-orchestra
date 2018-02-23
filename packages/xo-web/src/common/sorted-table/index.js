@@ -34,6 +34,7 @@ import Tooltip from '../tooltip'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
 import {
+  createCollectionWrapper,
   createCounter,
   createFilter,
   createPager,
@@ -312,7 +313,7 @@ export default class SortedTable extends Component {
     this._getUserData =
       'userData' in props
         ? () => this.props.userData
-        : () => {
+        : createCollectionWrapper(() => {
           const { props } = this
           const userData = {}
           Object.keys(props).forEach(key => {
@@ -321,7 +322,7 @@ export default class SortedTable extends Component {
             }
           })
           return userData
-        }
+        })
 
     let selectedColumn = props.defaultColumn
     if (selectedColumn == null) {
