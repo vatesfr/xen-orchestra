@@ -18,6 +18,7 @@ import {
   isEmpty,
   isFunction,
   map,
+  startsWith,
 } from 'lodash'
 
 import ActionRowButton from '../action-row-button'
@@ -291,6 +292,8 @@ const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
     // The shortcuts will be enabled when the node is focused
     shortcutsTarget: propTypes.string,
     stateUrlParam: propTypes.string,
+
+    // @deprecated, use `data-${key}` instead
     userData: propTypes.any,
   },
   {
@@ -304,6 +307,20 @@ export default class SortedTable extends Component {
 
   constructor (props, context) {
     super(props, context)
+
+    this._getUserData =
+      'userData' in props
+        ? () => this.props.userData
+        : () => {
+          const { props } = this
+          const userData = {}
+          Object.keys(props).forEach(key => {
+            if (startsWith(key, 'data-')) {
+              userData[key.slice(5)] = props[key]
+            }
+          })
+          return userData
+        }
 
     let selectedColumn = props.defaultColumn
     if (selectedColumn == null) {
@@ -360,7 +377,7 @@ export default class SortedTable extends Component {
       ),
       createSelector(
         () => this._getSelectedColumn().sortCriteria,
-        () => this.props.userData,
+        this._getUserData,
         (sortCriteria, userData) =>
           typeof sortCriteria === 'function'
             ? object => sortCriteria(object, userData)
@@ -396,7 +413,7 @@ export default class SortedTable extends Component {
       () => this.state.highlighted,
       () => this.props.rowLink,
       () => this.props.rowAction,
-      () => this.props.userData,
+      this._getUserData,
       (
         visibleItems,
         hasGroupedActions,
@@ -643,7 +660,8 @@ export default class SortedTable extends Component {
 
   _renderItem = (item, i) => {
     const { props, state } = this
-    const { actions, individualActions, rowAction, rowLink, userData } = props
+    const { actions, individualActions, rowAction, rowLink } = props
+    const userData = this._getUserData()
 
     const hasGroupedActions = this._hasGroupedActions()
     const hasIndividualActions =
@@ -736,7 +754,6 @@ export default class SortedTable extends Component {
       itemsPerPage,
       paginationContainer,
       shortcutsTarget,
-      userData,
     } = props
     const { all } = state
     const groupedActions = this._getGroupedActions()
@@ -772,6 +789,8 @@ export default class SortedTable extends Component {
         value={state.filter}
       />
     )
+
+    const userData = this._getUserData()
 
     return (
       <div>
