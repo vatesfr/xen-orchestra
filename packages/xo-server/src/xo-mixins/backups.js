@@ -939,8 +939,6 @@ export default class {
     $defer.onFailure.call(handler, 'unlink', file)
     $defer.onFailure.call(targetStream, 'close')
 
-    const promise = eventToPromise(targetStream, 'finish')
-
     const sourceStream = await this._xo.getXapi(vm).exportVm(vm._xapiId, {
       compress,
     })
@@ -949,7 +947,10 @@ export default class {
 
     sourceStream.pipe(sizeStream).pipe(targetStream)
 
-    await promise
+    await Promise.all([
+      sourceStream.task,
+      eventToPromise(targetStream, 'finish'),
+    ])
 
     return {
       transferSize: sizeStream.size,
