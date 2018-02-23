@@ -63,9 +63,9 @@ const COLUMNS = [
   {
     name: _('vdiVms'),
     component: connectStore(() => {
-      const getVbds = createGetObjectsOfType('VBD').pick(
-        (_, props) => props.item.$VBDs
-      )
+      const getVbds = createGetObjectsOfType('VBD')
+        .pick((_, props) => props.item.$VBDs)
+        .sort()
       const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
       const getVms = createGetObjectsOfType('VM').pick(getVmIds)
       const getVmSnapshots = createGetObjectsOfType('VM-snapshot').pick(
@@ -88,7 +88,7 @@ const COLUMNS = [
 
       return (
         <Container>
-          {map(vbds, vbd => {
+          {map(vbds, (vbd, index) => {
             const vm = vms[vbd.VM]
 
             if (vm === undefined) {
@@ -103,7 +103,7 @@ const COLUMNS = [
                   : `/vms/${vm.$snapshot_of}/snapshots`
 
             return (
-              <Row className='mb-1'>
+              <Row className={index > 0 && 'mt-1'}>
                 <Col mediumSize={8}>
                   <Link to={link}>{renderXoItem(vm)}</Link>
                 </Col>
