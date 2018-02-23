@@ -1058,12 +1058,12 @@ export function revert ({ snapshot, snapshotBefore }) {
 }
 
 revert.params = {
-  id: { type: 'string' },
+  snapshot: { type: 'string' },
   snapshotBefore: { type: 'boolean', optional: true },
 }
 
 revert.resolve = {
-  snapshot: ['id', 'VM-snapshot', 'administrate'],
+  snapshot: ['snapshot', 'VM-snapshot', 'administrate'],
 }
 
 // -------------------------------------------------------------------

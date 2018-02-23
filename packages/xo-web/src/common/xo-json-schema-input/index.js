@@ -5,6 +5,7 @@ import XoHostInput from './xo-host-input'
 import XoPoolInput from './xo-pool-input'
 import XoRemoteInput from './xo-remote-input'
 import XoRoleInput from './xo-role-input'
+import xoSnapshotInput from './xo-snapshot-input'
 import XoSrInput from './xo-sr-input'
 import XoSubjectInput from './xo-subject-input'
 import XoTagInput from './xo-tag-input'
@@ -18,6 +19,7 @@ const XO_TYPE_TO_COMPONENT = {
   pool: XoPoolInput,
   remote: XoRemoteInput,
   role: XoRoleInput,
+  snapshot: xoSnapshotInput,
   sr: XoSrInput,
   subject: XoSubjectInput,
   tag: XoTagInput,

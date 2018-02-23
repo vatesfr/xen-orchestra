@@ -187,6 +187,7 @@ export default class Jobs extends Component {
                 Host: 'Host(s)',
                 Pool: 'Pool(s)',
                 Role: 'Role(s)',
+                Snapshot: 'Snapshot',
                 Sr: 'Storage(s)',
                 Subject: 'Subject(s)',
                 Vm: 'VM(s)',
@@ -211,8 +212,12 @@ export default class Jobs extends Component {
                 }
               } else if (group === 'host' && key === 'id') {
                 modifyProperty(property, 'Host')
-              } else if (group === 'vm' && key === 'id') {
-                modifyProperty(property, 'Vm')
+              } else if (group === 'vm') {
+                if (key === 'id') {
+                  modifyProperty(property, 'Vm')
+                } else if (key === 'snapshot') {
+                  modifyProperty(property, 'Snapshot')
+                }
               } else {
                 if (includes(['pool', 'pool_id', 'target_pool_id'], key)) {
                   modifyProperty(property, 'Pool')
