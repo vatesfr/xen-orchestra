@@ -12,7 +12,7 @@ import Upgrade from 'xoa-upgrade'
 import xml2js from 'xml2js'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
-import { connectStore, formatSize, mapPlus, noop, resolveIds } from 'utils'
+import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -174,66 +174,102 @@ const ORPHANED_VDI_COLUMNS = [
   },
 ]
 
-const CONTROL_DOMAIN_VDI_COLUMNS = [
-  {
-    name: _('vdiNameLabel'),
-    itemRenderer: vdi => (
-      <span>
-        {vdi.name_label}
-        {vdi.type === 'VDI-snapshot' && [
-          ' ',
-          <Icon icon='vm-snapshot' key='1' />,
-        ]}
-      </span>
-    ),
-    sortCriteria: vdi => vdi.name_label,
-  },
-  {
-    name: _('vdiNameDescription'),
-    itemRenderer: vdi => vdi.name_description,
-    sortCriteria: vdi => vdi.name_description,
-  },
-  {
-    name: _('vdiPool'),
-    component: connectStore({
-      pool: createGetObject((_, props) => props.item.$pool),
-    })(
-      ({ pool }) =>
-        pool === undefined ? null : (
-          <Link to={`pools/${pool.id}`}>{pool.name_label}</Link>
+const AttachedVdisTable = [
+  connectStore({
+    pools: createGetObjectsOfType('pool'),
+    srs: createGetObjectsOfType('SR'),
+    vbds: createGetObjectsOfType('VBD').pick(
+      createSelector(
+        createFilter(
+          createGetObjectsOfType('VM-controller'),
+          (_, props) => props.poolPredicate
+        ),
+        createCollectionWrapper(vmControllers =>
+          flatten(map(vmControllers, '$VBDs'))
         )
+      )
     ),
-    sortCriteria: vdi => vdi.$pool,
-  },
+    vdis: createGetObjectsOfType('VDI'),
+    vdiSnapshots: createGetObjectsOfType('VDI-snapshot'),
+  }),
+  ({ columns, rowTransform }) => ({ pools, srs, vbds, vdis, vdiSnapshots }) => (
+    <NoObjects
+      collection={vbds}
+      columns={columns}
+      component={SortedTable}
+      data-pools={pools}
+      data-srs={srs}
+      data-vdis={vdis}
+      data-vdiSnapshots={vdiSnapshots}
+      emptyMessage={_('noControlDomainVdis')}
+      rowTransform={rowTransform}
+    />
+  ),
   {
-    name: _('vdiSize'),
-    itemRenderer: vdi => formatSize(vdi.size),
-    sortCriteria: vdi => vdi.size,
+    columns: [
+      {
+        name: _('vdiNameLabel'),
+        itemRenderer: ({ vdi }) => (
+          <span>
+            {vdi.name_label}
+            {vdi.type === 'VDI-snapshot' && [
+              ' ',
+              <Icon icon='vm-snapshot' key='1' />,
+            ]}
+          </span>
+        ),
+        sortCriteria: ({ vdi }) => vdi.name_label,
+      },
+      {
+        name: _('vdiNameDescription'),
+        itemRenderer: ({ vdi }) => vdi.name_description,
+        sortCriteria: ({ vdi }) => vdi.name_description,
+      },
+      {
+        name: _('vdiPool'),
+        itemRenderer: ({ pool }) =>
+          pool === undefined ? null : (
+            <Link to={`pools/${pool.id}`}>{pool.name_label}</Link>
+          ),
+        sortCriteria: ({ pool }) => pool != null && pool.name_label,
+      },
+      {
+        name: _('vdiSize'),
+        itemRenderer: ({ vdi }) => formatSize(vdi.size),
+        sortCriteria: ({ vdi }) => vdi.size,
+      },
+      {
+        name: _('vdiSr'),
+        itemRenderer: ({ sr }) =>
+          sr === undefined ? null : (
+            <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>
+          ),
+        sortCriteria: ({ sr }) => sr != null && sr.name_label,
+      },
+      {
+        name: _('vdiAction'),
+        itemRenderer: ({ vbd }) => (
+          <ActionRowButton
+            btnStyle='danger'
+            handler={deleteVbd}
+            handlerParam={vbd}
+            icon='delete'
+          />
+        ),
+      },
+    ],
+    rowTransform: (vbd, { pools, srs, vdis, vdiSnapshots }) => {
+      const vdi = vdis[vbd.VDI] || vdiSnapshots[vbd.VDI]
+
+      return {
+        vbd,
+        vdi,
+        sr: srs[vdi.$SR],
+        pool: pools[vbd.$poolId],
+      }
+    },
   },
-  {
-    name: _('vdiSr'),
-    component: connectStore({
-      sr: createGetObject((_, props) => props.item.$SR),
-    })(
-      ({ sr }) =>
-        sr === undefined ? null : (
-          <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>
-        )
-    ),
-    sortCriteria: vdi => vdi.$SR,
-  },
-  {
-    name: _('vdiAction'),
-    itemRenderer: vdi => (
-      <ActionRowButton
-        btnStyle='danger'
-        handler={deleteVbd}
-        handlerParam={vdi.vbd}
-        icon='delete'
-      />
-    ),
-  },
-]
+].reduceRight((value, decorator) => decorator(value))
 
 const VM_COLUMNS = [
   {
@@ -349,34 +385,6 @@ const ALARM_COLUMNS = [
   const getOrphanVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
     .filter([_ => !_.$snapshot_of && _.$VBDs.length === 0])
     .sort()
-  const getControlDomainVbds = createGetObjectsOfType('VBD')
-    .pick(
-      createSelector(
-        createGetObjectsOfType('VM-controller'),
-        createCollectionWrapper(vmControllers =>
-          flatten(map(vmControllers, '$VBDs'))
-        )
-      )
-    )
-    .sort()
-  const getControlDomainVdis = createSelector(
-    getControlDomainVbds,
-    createGetObjectsOfType('VDI'),
-    createGetObjectsOfType('VDI-snapshot'),
-    (vbds, vdis, vdiSnapshots) =>
-      mapPlus(vbds, (vbd, push) => {
-        const vdi = vdis[vbd.VDI] || vdiSnapshots[vbd.VDI]
-
-        if (vdi == null) {
-          return
-        }
-
-        push({
-          ...vdi,
-          vbd,
-        })
-      })
-  )
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
     .sort()
@@ -391,7 +399,6 @@ const ALARM_COLUMNS = [
   return {
     areObjectsFetched,
     alertMessages: getAlertMessages,
-    controlDomainVdis: getControlDomainVdis,
     userSrs: getUserSrs,
     vdiOrphaned: getOrphanVdiSnapshots,
     vdiSr: getVdiSrs,
@@ -473,11 +480,6 @@ export default class Health extends Component {
 
   _getVdiOrphaned = createFilter(
     () => this.props.vdiOrphaned,
-    this._getPoolPredicate
-  )
-
-  _getControlDomainVdis = createFilter(
-    () => this.props.controlDomainVdis,
     this._getPoolPredicate
   )
 
@@ -581,16 +583,7 @@ export default class Health extends Component {
                 <Icon icon='disk' /> {_('vdisOnControlDomain')}
               </CardHeader>
               <CardBlock>
-                <NoObjects
-                  collection={
-                    props.areObjectsFetched
-                      ? this._getControlDomainVdis()
-                      : null
-                  }
-                  columns={CONTROL_DOMAIN_VDI_COLUMNS}
-                  component={SortedTable}
-                  emptyMessage={_('noControlDomainVdis')}
-                />
+                <AttachedVdisTable poolPredicate={this._getPoolPredicate()} />
               </CardBlock>
             </Card>
           </Col>
