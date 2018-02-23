@@ -429,8 +429,7 @@ export default class {
     })(srcVm.other_config[TAG_LAST_BASE_DELTA])
 
     // 2. Copy.
-    let size = 0
-    const dstVm = await (async () => {
+    const { transferSize, vm: dstVm } = await (async () => {
       const { cancel, token } = CancelToken.source()
       const delta = await srcXapi.exportDeltaVm(
         token,
@@ -451,17 +450,6 @@ export default class {
       delta.vm.other_config[TAG_SOURCE_VM] = uuid
       delta.vm.other_config[TAG_EXPORT_TIME] = date
       delta.vm.tags = [...delta.vm.tags, 'Continuous Replication']
-
-      const { streams } = delta
-      forEach(delta.vdis, (vdi, key) => {
-        const id = `${key}.vhd`
-        const stream = streams[id]
-        const sizeStream = createSizeStream().once('finish', () => {
-          size += sizeStream.size
-        })
-        sizeStream.task = stream.task
-        streams[id] = stream.pipe(sizeStream)
-      })
 
       let toRemove = filter(
         targetXapi.objects.all,
@@ -508,7 +496,7 @@ export default class {
       // 5. Return the identifier of the new XO VM object.
       id: xapiObjectToXo(dstVm).id,
       transferDuration: Date.now() - transferStart,
-      transferSize: size,
+      transferSize,
     }
   }
 
@@ -914,11 +902,11 @@ export default class {
       delta.vm.name_label += ` (${shortDate(datetime * 1e3)})`
       delta.vm.tags.push('restored from backup')
 
-      vm = await xapi.importDeltaVm(delta, {
+      vm = (await xapi.importDeltaVm(delta, {
         disableStartAfterImport: false,
         srId: sr !== undefined && sr._xapiId,
         mapVdisSrs,
-      })
+      })).vm
     } else {
       throw new Error(`Unsupported delta backup version: ${version}`)
     }
