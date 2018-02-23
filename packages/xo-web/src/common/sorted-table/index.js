@@ -18,6 +18,7 @@ import {
   isEmpty,
   isFunction,
   map,
+  startsWith,
 } from 'lodash'
 
 import ActionRowButton from '../action-row-button'
@@ -33,6 +34,7 @@ import Tooltip from '../tooltip'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
 import {
+  createCollectionWrapper,
   createCounter,
   createFilter,
   createPager,
@@ -287,10 +289,13 @@ const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
     paginationContainer: propTypes.func,
     rowAction: propTypes.func,
     rowLink: propTypes.oneOfType([propTypes.func, propTypes.string]),
+    rowTransform: propTypes.func,
     // DOM node selector like body or .my-class
     // The shortcuts will be enabled when the node is focused
     shortcutsTarget: propTypes.string,
     stateUrlParam: propTypes.string,
+
+    // @deprecated, use `data-${key}` instead
     userData: propTypes.any,
   },
   {
@@ -304,6 +309,20 @@ export default class SortedTable extends Component {
 
   constructor (props, context) {
     super(props, context)
+
+    this._getUserData =
+      'userData' in props
+        ? () => this.props.userData
+        : createCollectionWrapper(() => {
+          const { props } = this
+          const userData = {}
+          Object.keys(props).forEach(key => {
+            if (startsWith(key, 'data-')) {
+              userData[key.slice(5)] = props[key]
+            }
+          })
+          return userData
+        })
 
     let selectedColumn = props.defaultColumn
     if (selectedColumn == null) {
@@ -350,17 +369,27 @@ export default class SortedTable extends Component {
     this._getSelectedColumn = () =>
       this.props.columns[this.state.selectedColumn]
 
-    this._getTotalNumberOfItems = createCounter(() => this.props.collection)
+    let getAllItems = () => this.props.collection
+    if ('rowTransform' in props) {
+      getAllItems = createSelector(
+        getAllItems,
+        this._getUserData,
+        () => this.props.rowTransform,
+        (items, userData, rowTransform) =>
+          map(items, item => rowTransform(item, userData))
+      )
+    }
+    this._getTotalNumberOfItems = createCounter(getAllItems)
 
     const createMatcher = str => CM.parse(str).createPredicate()
     this._getItems = createSort(
       createFilter(
-        () => this.props.collection,
+        getAllItems,
         createSelector(() => this.state.filter, createMatcher)
       ),
       createSelector(
         () => this._getSelectedColumn().sortCriteria,
-        () => this.props.userData,
+        this._getUserData,
         (sortCriteria, userData) =>
           typeof sortCriteria === 'function'
             ? object => sortCriteria(object, userData)
@@ -396,7 +425,7 @@ export default class SortedTable extends Component {
       () => this.state.highlighted,
       () => this.props.rowLink,
       () => this.props.rowAction,
-      () => this.props.userData,
+      this._getUserData,
       (
         visibleItems,
         hasGroupedActions,
@@ -643,7 +672,8 @@ export default class SortedTable extends Component {
 
   _renderItem = (item, i) => {
     const { props, state } = this
-    const { actions, individualActions, rowAction, rowLink, userData } = props
+    const { actions, individualActions, rowAction, rowLink } = props
+    const userData = this._getUserData()
 
     const hasGroupedActions = this._hasGroupedActions()
     const hasIndividualActions =
@@ -736,7 +766,6 @@ export default class SortedTable extends Component {
       itemsPerPage,
       paginationContainer,
       shortcutsTarget,
-      userData,
     } = props
     const { all } = state
     const groupedActions = this._getGroupedActions()
@@ -772,6 +801,8 @@ export default class SortedTable extends Component {
         value={state.filter}
       />
     )
+
+    const userData = this._getUserData()
 
     return (
       <div>
