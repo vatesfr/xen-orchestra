@@ -356,10 +356,7 @@ async function delete_ ({
   )
 
   // Update resource sets
-  if (
-    vm.$snapshot_of === undefined &&
-    xapi.xo.getData(vm._xapiId, 'resourceSet') != null
-  ) {
+  if (vm.type === 'VM' && xapi.xo.getData(vm._xapiId, 'resourceSet') != null) {
     ;this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
   }
 
