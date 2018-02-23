@@ -288,6 +288,7 @@ const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
     paginationContainer: propTypes.func,
     rowAction: propTypes.func,
     rowLink: propTypes.oneOfType([propTypes.func, propTypes.string]),
+    rowTransform: propTypes.func,
     // DOM node selector like body or .my-class
     // The shortcuts will be enabled when the node is focused
     shortcutsTarget: propTypes.string,
@@ -367,12 +368,22 @@ export default class SortedTable extends Component {
     this._getSelectedColumn = () =>
       this.props.columns[this.state.selectedColumn]
 
-    this._getTotalNumberOfItems = createCounter(() => this.props.collection)
+    let getAllItems = () => this.props.collection
+    if ('rowTransform' in props) {
+      getAllItems = createSelector(
+        getAllItems,
+        this._getUserData,
+        () => this.props.rowTransform,
+        (items, userData, rowTransform) =>
+          map(items, item => rowTransform(item, userData))
+      )
+    }
+    this._getTotalNumberOfItems = createCounter(getAllItems)
 
     const createMatcher = str => CM.parse(str).createPredicate()
     this._getItems = createSort(
       createFilter(
-        () => this.props.collection,
+        getAllItems,
         createSelector(() => this.state.filter, createMatcher)
       ),
       createSelector(
