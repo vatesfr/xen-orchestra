@@ -335,6 +335,7 @@ export default class {
         let set
         if (
           object.$type !== 'vm' ||
+          object.is_a_snapshot ||
           // No set for this VM.
           !(id = xapi.xo.getData(object, 'resourceSet')) ||
           // Not our set.
