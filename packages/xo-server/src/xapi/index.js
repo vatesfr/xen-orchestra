@@ -717,7 +717,8 @@ export default class Xapi extends XapiBase {
     let snapshotRef
     if (isVmRunning(vm)) {
       host = vm.$resident_on
-      snapshotRef = (await this._snapshotVm(vm)).$ref
+      snapshotRef = (await this._snapshotVm(vm, `[XO Export] ${vm.name_label}`))
+        .$ref
     }
 
     const promise = this.getResource('/export/', {
