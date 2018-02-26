@@ -368,7 +368,7 @@ const LOG_COLUMNS = [
           get(() => jobs[log.jobId].running) ? (
             <span className='tag tag-warning'>{_('jobStarted')}</span>
           ) : (
-            <span className='tag tag-danger'>interrupted</span>
+            <span className='tag tag-danger'>{_('jobInterrupted')}</span>
           )
         ) : (
           <span className='tag tag-default'>{_('jobUnknown')}</span>
