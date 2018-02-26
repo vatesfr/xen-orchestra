@@ -15,8 +15,9 @@ import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize, formatSpeed } from 'utils'
 import { createFilter, createGetObject, createSelector } from 'selectors'
 import { deleteJobsLog, subscribeJobs, subscribeJobsLogs } from 'xo'
-import { forEach, get, includes, map, orderBy } from 'lodash'
+import { forEach, includes, keyBy, map, orderBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
+import { get } from 'xo-defined'
 
 // ===================================================================
 
@@ -289,10 +290,12 @@ const LOG_ACTIONS_INDIVIDUAL = [
   },
 ]
 
+const getCallTag = log => log.calls[0].params.tag
+
 const LOG_COLUMNS = [
   {
     name: _('jobId'),
-    itemRenderer: log => log.jobId,
+    itemRenderer: log => log.jobId.slice(4, 8),
     sortCriteria: log => log.jobId,
   },
   {
@@ -302,8 +305,8 @@ const LOG_COLUMNS = [
   },
   {
     name: _('jobTag'),
-    itemRenderer: log => get(log, 'calls[0].params.tag'),
-    sortCriteria: log => get(log, 'calls[0].params.tag'),
+    itemRenderer: log => get(getCallTag, log),
+    sortCriteria: log => get(getCallTag, log),
   },
   {
     name: _('jobStart'),
@@ -362,7 +365,11 @@ const LOG_COLUMNS = [
             {_('jobFinished')}
           </span>
         ) : log.status === 'started' ? (
-          <span className='tag tag-warning'>{_('jobStarted')}</span>
+          get(() => jobs[log.jobId].running) ? (
+            <span className='tag tag-warning'>{_('jobStarted')}</span>
+          ) : (
+            <span className='tag tag-danger'>interrupted</span>
+          )
         ) : (
           <span className='tag tag-default'>{_('jobUnknown')}</span>
         )}
@@ -392,7 +399,7 @@ export default [
           if (data.event === 'job.start' && includes(jobKeys, data.key)) {
             logs[id] = {
               id,
-              jobId: data.jobId.slice(4, 8),
+              jobId: data.jobId,
               key: data.key,
               userId: data.userId,
               start: time,
@@ -447,7 +454,7 @@ export default [
 
         cb(orderBy(logs, ['time'], ['desc']))
       }),
-    jobs: subscribeJobs,
+    jobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
   })),
   ({ logs, jobs }) => (
     <Card>
