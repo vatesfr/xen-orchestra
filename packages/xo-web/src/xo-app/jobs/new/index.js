@@ -212,12 +212,8 @@ export default class Jobs extends Component {
                 }
               } else if (group === 'host' && key === 'id') {
                 modifyProperty(property, 'Host')
-              } else if (group === 'vm') {
-                if (includes(['id', 'vm'], key)) {
-                  modifyProperty(property, 'Vm')
-                } else if (key === 'snapshot') {
-                  modifyProperty(property, 'Snapshot')
-                }
+              } else if (group === 'vm' && key === 'id') {
+                modifyProperty(property, 'Vm')
               } else {
                 if (includes(['pool', 'pool_id', 'target_pool_id'], key)) {
                   modifyProperty(property, 'Pool')
@@ -232,6 +228,8 @@ export default class Jobs extends Component {
                   modifyProperty(property, 'Host')
                 } else if (includes(['vm'], key)) {
                   modifyProperty(property, 'Vm')
+                } else if (includes(['snapshot'], key)) {
+                  modifyProperty(property, 'Snapshot')
                 }
               }
             }
