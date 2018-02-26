@@ -213,7 +213,7 @@ export default class Jobs extends Component {
               } else if (group === 'host' && key === 'id') {
                 modifyProperty(property, 'Host')
               } else if (group === 'vm') {
-                if (key === 'id') {
+                if (includes(['id', 'vm'], key)) {
                   modifyProperty(property, 'Vm')
                 } else if (key === 'snapshot') {
                   modifyProperty(property, 'Snapshot')
