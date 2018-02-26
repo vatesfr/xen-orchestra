@@ -1,8 +1,6 @@
 import _, { FormattedDuration } from 'intl'
-import ActionButton from 'action-button'
-import ActionRowButton from 'action-row-button'
+import addSubscriptions from 'add-subscriptions'
 import BaseComponent from 'base-component'
-import ButtonGroup from 'button-group'
 import classnames from 'classnames'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
@@ -16,8 +14,8 @@ import { alert, confirm } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize, formatSpeed } from 'utils'
 import { createFilter, createGetObject, createSelector } from 'selectors'
-import { deleteJobsLog, subscribeJobsLogs } from 'xo'
-import { forEach, get, includes, isEmpty, map, orderBy } from 'lodash'
+import { deleteJobsLog, subscribeJobs, subscribeJobsLogs } from 'xo'
+import { forEach, get, includes, map, orderBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
 
 // ===================================================================
@@ -270,6 +268,27 @@ class Log extends BaseComponent {
 const showCalls = log =>
   alert(_('jobModalTitle', { job: log.jobId }), <Log log={log} />)
 
+const LOG_ACTIONS = [
+  {
+    handler: logs =>
+      confirm({
+        title: _('logDeleteMultiple', { nLogs: logs.length }),
+        body: <p>{_('logDeleteMultipleMessage', { nLogs: logs.length })}</p>,
+      }).then(() => deleteJobsLog(logs.map(_ => _.id))),
+    individualHandler: _ => deleteJobsLog(_.id),
+    icon: 'delete',
+    label: _('remove'),
+  },
+]
+
+const LOG_ACTIONS_INDIVIDUAL = [
+  {
+    handler: showCalls,
+    icon: 'preview',
+    label: _('logDisplayDetails'),
+  },
+]
+
 const LOG_COLUMNS = [
   {
     name: _('jobId'),
@@ -329,9 +348,9 @@ const LOG_COLUMNS = [
   },
   {
     name: _('jobStatus'),
-    itemRenderer: log => (
+    itemRenderer: (log, { jobs }) => (
       <span>
-        {log.status === 'finished' && (
+        {log.status === 'finished' ? (
           <span
             className={classnames(
               'tag',
@@ -342,161 +361,111 @@ const LOG_COLUMNS = [
           >
             {_('jobFinished')}
           </span>
-        )}
-        {log.status === 'started' && (
+        ) : log.status === 'started' ? (
           <span className='tag tag-warning'>{_('jobStarted')}</span>
+        ) : (
+          <span className='tag tag-default'>{_('jobUnknown')}</span>
         )}
-        {log.status !== 'started' &&
-          log.status !== 'finished' && (
-            <span className='tag tag-default'>{_('jobUnknown')}</span>
-          )}{' '}
-        <span className='pull-right'>
-          <ButtonGroup>
-            <Tooltip content={_('logDisplayDetails')}>
-              <ActionRowButton
-                icon='preview'
-                handler={showCalls}
-                handlerParam={log}
-              />
-            </Tooltip>
-            <Tooltip content={_('remove')}>
-              <ActionRowButton
-                handler={deleteJobsLog}
-                handlerParam={log.logKey}
-                icon='delete'
-              />
-            </Tooltip>
-          </ButtonGroup>
-        </span>
       </span>
     ),
     sortCriteria: log => (log.hasErrors ? ' ' : log.status),
   },
 ]
 
-@propTypes({
-  jobKeys: propTypes.array.isRequired,
-})
-export default class LogList extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      logsToClear: [],
-    }
-    this.filters = {
-      onError: 'hasErrors?',
-      successful: 'status:finished !hasErrors?',
-      jobCallSkipped: '!hasErrors? callSkipped?',
-    }
-  }
+const LOG_FILTERS = {
+  onError: 'hasErrors?',
+  successful: 'status:finished !hasErrors?',
+  jobCallSkipped: '!hasErrors? callSkipped?',
+}
 
-  componentWillMount () {
-    this.componentWillUnmount = subscribeJobsLogs(rawLogs => {
-      const logs = {}
-      const logsToClear = []
-      forEach(rawLogs, (log, logKey) => {
-        const data = log.data
-        const { time } = log
-        if (
-          data.event === 'job.start' &&
-          includes(this.props.jobKeys, data.key)
-        ) {
-          logsToClear.push(logKey)
-          logs[logKey] = {
-            logKey,
-            jobId: data.jobId.slice(4, 8),
-            key: data.key,
-            userId: data.userId,
-            start: time,
-            calls: {},
-            time,
-          }
-        } else {
-          const runJobId = data.runJobId
-          const entry = logs[runJobId]
-          if (!entry) {
-            return
-          }
-          logsToClear.push(logKey)
-          if (data.event === 'job.end') {
-            entry.end = time
-            entry.duration = time - entry.start
-            entry.status = 'finished'
-          } else if (data.event === 'jobCall.start') {
-            entry.calls[logKey] = {
-              callKey: logKey,
-              params: data.params,
-              method: data.method,
+export default [
+  propTypes({
+    jobKeys: propTypes.array.isRequired,
+  }),
+  addSubscriptions(({ jobKeys }) => ({
+    logs: cb =>
+      subscribeJobsLogs(rawLogs => {
+        const logs = {}
+        forEach(rawLogs, (log, id) => {
+          const data = log.data
+          const { time } = log
+          if (data.event === 'job.start' && includes(jobKeys, data.key)) {
+            logs[id] = {
+              id,
+              jobId: data.jobId.slice(4, 8),
+              key: data.key,
+              userId: data.userId,
               start: time,
+              calls: {},
               time,
             }
-          } else if (data.event === 'jobCall.end') {
-            const call = entry.calls[data.runCallId]
-
-            if (data.error) {
-              call.error = data.error
-              if (isSkippedError(data.error)) {
-                entry.callSkipped = true
-              } else {
-                entry.hasErrors = true
+          } else {
+            const runJobId = data.runJobId
+            const entry = logs[runJobId]
+            if (!entry) {
+              return
+            }
+            if (data.event === 'job.end') {
+              entry.end = time
+              entry.duration = time - entry.start
+              entry.status = 'finished'
+            } else if (data.event === 'jobCall.start') {
+              entry.calls[id] = {
+                callKey: id,
+                params: data.params,
+                method: data.method,
+                start: time,
+                time,
               }
-              entry.meta = 'error'
-            } else {
-              call.returnedValue = data.returnedValue
-              call.end = time
+            } else if (data.event === 'jobCall.end') {
+              const call = entry.calls[data.runCallId]
+
+              if (data.error) {
+                call.error = data.error
+                if (isSkippedError(data.error)) {
+                  entry.callSkipped = true
+                } else {
+                  entry.hasErrors = true
+                }
+                entry.meta = 'error'
+              } else {
+                call.returnedValue = data.returnedValue
+                call.end = time
+              }
             }
           }
-        }
-      })
+        })
 
-      forEach(logs, log => {
-        if (log.end === undefined) {
-          log.status = 'started'
-        } else if (!log.meta) {
-          log.meta = 'success'
-        }
-        log.calls = orderBy(log.calls, ['time'], ['desc'])
-      })
+        forEach(logs, log => {
+          if (log.end === undefined) {
+            log.status = 'started'
+          } else if (!log.meta) {
+            log.meta = 'success'
+          }
+          log.calls = orderBy(log.calls, ['time'], ['desc'])
+        })
 
-      this.setState({
-        logs: orderBy(logs, ['time'], ['desc']),
-        logsToClear,
-      })
-    })
-  }
-
-  _deleteAllLogs = () => {
-    return confirm({
-      title: _('removeAllLogsModalTitle'),
-      body: <p>{_('removeAllLogsModalWarning')}</p>,
-    }).then(() => deleteJobsLog(this.state.logsToClear))
-  }
-
-  render () {
-    const { logs } = this.state
-
-    return (
-      <Card>
-        <CardHeader>
-          <Icon icon='log' /> Logs<span className='pull-right'>
-            <ActionButton
-              disabled={isEmpty(logs)}
-              btnStyle='danger'
-              handler={this._deleteAllLogs}
-              icon='delete'
-            />
-          </span>
-        </CardHeader>
-        <CardBlock>
-          <NoObjects
-            collection={logs}
-            columns={LOG_COLUMNS}
-            component={SortedTable}
-            emptyMessage={_('noLogs')}
-            filters={this.filters}
-          />
-        </CardBlock>
-      </Card>
-    )
-  }
-}
+        cb(orderBy(logs, ['time'], ['desc']))
+      }),
+    jobs: subscribeJobs,
+  })),
+  ({ logs, jobs }) => (
+    <Card>
+      <CardHeader>
+        <Icon icon='log' /> Logs
+      </CardHeader>
+      <CardBlock>
+        <NoObjects
+          actions={LOG_ACTIONS}
+          collection={logs}
+          columns={LOG_COLUMNS}
+          component={SortedTable}
+          data-jobs={jobs}
+          emptyMessage={_('noLogs')}
+          filters={LOG_FILTERS}
+          individualActions={LOG_ACTIONS_INDIVIDUAL}
+        />
+      </CardBlock>
+    </Card>
+  ),
+].reduceRight((value, decorator) => decorator(value))

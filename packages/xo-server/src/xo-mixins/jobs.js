@@ -30,7 +30,12 @@ export default class Jobs {
   }
 
   async getAllJobs () {
-    return /* await */ this._jobs.get()
+    const jobs = await this._jobs.get()
+    const runningJobs = this._runningJobs
+    jobs.forEach(job => {
+      job.running = job.id in runningJobs
+    })
+    return jobs
   }
 
   async getJob (id) {
