@@ -70,13 +70,16 @@ export default class JobExecutor {
     )
   }
 
-  async exec (job) {
+  async exec (job, onStart) {
     const runJobId = this._logger.notice(`Starting execution of ${job.id}.`, {
       event: 'job.start',
       userId: job.userId,
       jobId: job.id,
       key: job.key,
     })
+    if (onStart !== undefined) {
+      onStart(runJobId)
+    }
 
     try {
       if (job.type === 'call') {

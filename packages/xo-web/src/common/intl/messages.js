@@ -274,8 +274,9 @@ const messages = {
   jobServerTimezone: 'Server',
   runJob: 'Run job',
   runJobVerbose: 'One shot running started. See overview for logs.',
-  jobStarted: 'Started',
   jobFinished: 'Finished',
+  jobInterrupted: 'Interrupted',
+  jobStarted: 'Started',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
