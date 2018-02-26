@@ -1866,10 +1866,28 @@ export const createSrLvm = (host, nameLabel, nameDescription, device) =>
 
 // Job logs ----------------------------------------------------------
 
-export const deleteJobsLog = id =>
-  _call('log.delete', { namespace: 'jobs', id })::tap(
-    subscribeJobsLogs.forceRefresh
-  )
+export const deleteJobsLogs = async ids => {
+  const { length } = ids
+  if (length === 0) {
+    return
+  }
+  if (length !== 1) {
+    const vars = { nLogs: length }
+    try {
+      await confirm({
+        title: _('logDeleteMultiple', vars),
+        body: <p>{_('logDeleteMultipleMessage', vars)}</p>,
+      })
+    } catch (_) {
+      return
+    }
+  }
+
+  return _call('log.delete', {
+    namespace: 'jobs',
+    id: ids.map(resolveId),
+  })::tap(subscribeJobsLogs.forceRefresh)
+}
 
 // Logs
 

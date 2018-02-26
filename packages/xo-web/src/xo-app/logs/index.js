@@ -10,11 +10,11 @@ import renderXoItem from 'render-xo-item'
 import Select from 'form/select'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import { alert, confirm } from 'modal'
+import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize, formatSpeed } from 'utils'
 import { createFilter, createGetObject, createSelector } from 'selectors'
-import { deleteJobsLog, subscribeJobs, subscribeJobsLogs } from 'xo'
+import { deleteJobsLogs, subscribeJobs, subscribeJobsLogs } from 'xo'
 import { forEach, includes, keyBy, map, orderBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { get } from 'xo-defined'
@@ -271,12 +271,7 @@ const showCalls = log =>
 
 const LOG_ACTIONS = [
   {
-    handler: logs =>
-      confirm({
-        title: _('logDeleteMultiple', { nLogs: logs.length }),
-        body: <p>{_('logDeleteMultipleMessage', { nLogs: logs.length })}</p>,
-      }).then(() => deleteJobsLog(logs.map(_ => _.id))),
-    individualHandler: _ => deleteJobsLog(_.id),
+    handler: deleteJobsLogs,
     icon: 'delete',
     label: _('remove'),
   },
