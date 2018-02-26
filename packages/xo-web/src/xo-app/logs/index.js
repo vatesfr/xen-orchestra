@@ -360,7 +360,7 @@ const LOG_COLUMNS = [
             {_('jobFinished')}
           </span>
         ) : log.status === 'started' ? (
-          get(() => jobs[log.jobId].running) ? (
+          log.id === get(() => jobs[log.jobId].runId) ? (
             <span className='tag tag-warning'>{_('jobStarted')}</span>
           ) : (
             <span className='tag tag-danger'>{_('jobInterrupted')}</span>

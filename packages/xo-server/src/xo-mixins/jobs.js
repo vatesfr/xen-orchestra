@@ -33,7 +33,7 @@ export default class Jobs {
     const jobs = await this._jobs.get()
     const runningJobs = this._runningJobs
     jobs.forEach(job => {
-      job.running = job.id in runningJobs
+      job.runId = runningJobs[job.id]
     })
     return jobs
   }
@@ -74,10 +74,13 @@ export default class Jobs {
     if (runningJobs[id]) {
       throw new Error(`job ${id} is already running`)
     }
-    runningJobs[id] = true
-    return this._executor.exec(job)::lastly(() => {
-      delete runningJobs[id]
-    })
+    return this._executor
+      .exec(job, runJobId => {
+        runningJobs[id] = runJobId
+      })
+      ::lastly(() => {
+        delete runningJobs[id]
+      })
   }
 
   async runJobSequence (idSequence) {
