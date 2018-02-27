@@ -66,7 +66,6 @@ import {
   optional,
   prepareXapiParam,
 } from './utils'
-import execa from 'execa'
 
 // ===================================================================
 
@@ -1414,11 +1413,6 @@ export default class Xapi extends XapiBase {
 
     let ref
     try {
-      console.log('SENDING SSH')
-      await execa('ssh', [
-        'debian@192.168.100.91',
-        'head -c 1G </dev/urandom >randomfile',
-      ])
       ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
       this.addTag(ref, 'quiesce')::ignoreErrors()
 
