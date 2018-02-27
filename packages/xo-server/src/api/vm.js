@@ -356,8 +356,10 @@ async function delete_ ({
   )
 
   // Update resource sets
-  const resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')
-  if (resourceSet != null) {
+  if (
+    vm.type === 'VM' && // only regular VMs
+    xapi.xo.getData(vm._xapiId, 'resourceSet') != null
+  ) {
     ;this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
   }
 
@@ -775,7 +777,7 @@ export function importDeltaBackup ({ sr, remote, filePath, mapVdisSrs }) {
     remoteId: remote,
     filePath,
     mapVdisSrs: mapVdisSrsXapi,
-  })
+  }).then(_ => _.vm)
 }
 
 importDeltaBackup.params = {
