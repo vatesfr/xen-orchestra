@@ -1,16 +1,26 @@
 import _ from 'intl'
+import ActionRowButton from 'action-row-button'
+import ButtonGroup from 'button-group'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
-import renderXoItem, { renderXoUnknownItem } from 'render-xo-item'
+import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { concat, isEmpty } from 'lodash'
+import { Text } from 'editable'
+import { concat, isEmpty, map, some } from 'lodash'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createGetObject, createSelector } from 'selectors'
-import { deleteVdi, deleteVdis, editVdi } from 'xo'
-import { Text } from 'editable'
+import { createGetObjectsOfType, createSelector } from 'selectors'
+import {
+  connectVbd,
+  deleteVbd,
+  deleteVdi,
+  deleteVdis,
+  disconnectVbd,
+  editVdi,
+  isVmRunning,
+} from 'xo'
 
 // ===================================================================
 
@@ -42,45 +52,6 @@ const COLUMNS = [
     ),
   },
   {
-    name: _('vdiVm'),
-    component: connectStore(() => {
-      const getObject = createGetObject((_, id) => id)
-
-      return {
-        vm: (state, { item: { $VBDs: [vbdId] } }) => {
-          if (vbdId === undefined) {
-            return null
-          }
-
-          const vbd = getObject(state, vbdId)
-          if (vbd != null) {
-            return getObject(state, vbd.VM)
-          }
-        },
-      }
-    })(({ vm }) => {
-      if (vm === null) {
-        return null // no attached VM
-      }
-
-      if (vm === undefined) {
-        return renderXoUnknownItem()
-      }
-
-      let link
-      const { type } = vm
-      if (type === 'VM') {
-        link = `/vms/${vm.id}`
-      } else if (type === 'VM-snapshot') {
-        const id = vm.$snapshot_of
-        link = id !== undefined ? `/vms/${id}/snapshots` : '/dashboard/health'
-      }
-
-      const item = renderXoItem(vm)
-      return link === undefined ? item : <Link to={link}>{item}</Link>
-    }),
-  },
-  {
     name: _('vdiTags'),
     itemRenderer: vdi => vdi.tags,
   },
@@ -89,6 +60,89 @@ const COLUMNS = [
     itemRenderer: vdi => formatSize(vdi.size),
     sortCriteria: vdi => vdi.size,
   },
+  {
+    name: _('vdiVms'),
+    component: connectStore(() => {
+      const getVbds = createGetObjectsOfType('VBD')
+        .pick((_, props) => props.item.$VBDs)
+        .sort()
+      const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
+      const getVms = createGetObjectsOfType('VM').pick(getVmIds)
+      const getVmSnapshots = createGetObjectsOfType('VM-snapshot').pick(
+        getVmIds
+      )
+      const getAllVms = createSelector(
+        getVms,
+        getVmSnapshots,
+        (vms, vmSnapshots) => ({ ...vms, ...vmSnapshots })
+      )
+
+      return (state, props) => ({
+        vms: getAllVms(state, props),
+        vbds: getVbds(state, props),
+      })
+    })(({ vbds, vms }) => {
+      if (isEmpty(vms)) {
+        return null
+      }
+
+      return (
+        <Container>
+          {map(vbds, (vbd, index) => {
+            const vm = vms[vbd.VM]
+
+            if (vm === undefined) {
+              return null
+            }
+
+            const link =
+              vm.type === 'VM'
+                ? `/vms/${vm.id}`
+                : vm.$snapshot_of === undefined
+                  ? '/dashboard/health'
+                  : `/vms/${vm.$snapshot_of}/snapshots`
+
+            return (
+              <Row className={index > 0 && 'mt-1'}>
+                <Col mediumSize={8}>
+                  <Link to={link}>{renderXoItem(vm)}</Link>
+                </Col>
+                <Col mediumSize={4}>
+                  <ButtonGroup>
+                    {vbd.attached ? (
+                      <ActionRowButton
+                        btnStyle='danger'
+                        handler={disconnectVbd}
+                        handlerParam={vbd}
+                        icon='disconnect'
+                        tooltip={_('vbdDisconnect')}
+                      />
+                    ) : (
+                      <ActionRowButton
+                        btnStyle='primary'
+                        disabled={some(vbds, 'attached') || !isVmRunning(vm)}
+                        handler={connectVbd}
+                        handlerParam={vbd}
+                        icon='connect'
+                        tooltip={_('vbdConnect')}
+                      />
+                    )}
+                    <ActionRowButton
+                      btnStyle='danger'
+                      handler={deleteVbd}
+                      handlerParam={vbd}
+                      icon='vdi-forget'
+                      tooltip={_('vdiForget')}
+                    />
+                  </ButtonGroup>
+                </Col>
+              </Row>
+            )
+          })}
+        </Container>
+      )
+    }),
+  },
 ]
 
 const GROUPED_ACTIONS = [
@@ -96,6 +150,7 @@ const GROUPED_ACTIONS = [
     handler: deleteVdis,
     icon: 'delete',
     label: _('deleteSelectedVdis'),
+    level: 'danger',
   },
 ]
 
