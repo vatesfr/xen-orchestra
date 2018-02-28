@@ -165,11 +165,19 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async openFile (path) {
+  async openFile (path, flags) {
+    return { fd: await this._openFile(path, flags), path }
+  }
+
+  async _openFile (path, flags) {
     throw new Error('Not implemented')
   }
 
   async closeFile (fd) {
+    return this._closeFile(fd.fd)
+  }
+
+  async _closeFile (fd) {
     throw new Error('Not implemented')
   }
 
