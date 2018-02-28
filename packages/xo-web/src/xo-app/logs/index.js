@@ -14,10 +14,15 @@ import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize, formatSpeed } from 'utils'
 import { createFilter, createGetObject, createSelector } from 'selectors'
-import { deleteJobsLogs, subscribeJobs, subscribeJobsLogs } from 'xo'
 import { forEach, includes, keyBy, map, orderBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { get } from 'xo-defined'
+import {
+  deleteJobsLogs,
+  subscribeJobs,
+  subscribeJobsLogs,
+  subscribeBackupNgJobs,
+} from 'xo'
 
 // ===================================================================
 
@@ -83,7 +88,7 @@ const JobDataInfos = ({
   mergeSize,
 }) => (
   <div>
-    {transferSize !== undefined && (
+    {transferSize && transferDuration ? (
       <div>
         <strong>{_('jobTransferredDataSize')}</strong>{' '}
         {formatSize(transferSize)}
@@ -91,15 +96,15 @@ const JobDataInfos = ({
         <strong>{_('jobTransferredDataSpeed')}</strong>{' '}
         {formatSpeed(transferSize, transferDuration)}
       </div>
-    )}
-    {mergeSize !== undefined && (
+    ) : null}
+    {mergeSize && mergeDuration ? (
       <div>
         <strong>{_('jobMergedDataSize')}</strong> {formatSize(mergeSize)}
         <br />
         <strong>{_('jobMergedDataSpeed')}</strong>{' '}
         {formatSpeed(mergeSize, mergeDuration)}
       </div>
-    )}
+    ) : null}
   </div>
 )
 
@@ -382,7 +387,7 @@ const LOG_FILTERS = {
 
 export default [
   propTypes({
-    jobKeys: propTypes.array.isRequired,
+    jobKeys: propTypes.array,
   }),
   addSubscriptions(({ jobKeys }) => ({
     logs: cb =>
@@ -391,7 +396,10 @@ export default [
         forEach(rawLogs, (log, id) => {
           const data = log.data
           const { time } = log
-          if (data.event === 'job.start' && includes(jobKeys, data.key)) {
+          if (
+            data.event === 'job.start' &&
+            (jobKeys === undefined || includes(jobKeys, data.key))
+          ) {
             logs[id] = {
               id,
               jobId: data.jobId,
@@ -450,8 +458,9 @@ export default [
         cb(orderBy(logs, ['time'], ['desc']))
       }),
     jobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
+    ngJobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
   })),
-  ({ logs, jobs }) => (
+  ({ logs, jobs, ngJobs }) => (
     <Card>
       <CardHeader>
         <Icon icon='log' /> Logs
@@ -462,7 +471,7 @@ export default [
           collection={logs}
           columns={LOG_COLUMNS}
           component={SortedTable}
-          data-jobs={jobs}
+          data-jobs={{ ...jobs, ...ngJobs }}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           individualActions={LOG_ACTIONS_INDIVIDUAL}
