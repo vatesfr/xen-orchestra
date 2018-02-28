@@ -186,10 +186,12 @@ export default class Jobs extends Component {
               const titles = {
                 Host: 'Host(s)',
                 Pool: 'Pool(s)',
+                Remote: 'Remote(s)',
                 Role: 'Role(s)',
-                Snapshot: 'Snapshot',
+                Snapshot: 'Snapshot(s)',
                 Sr: 'Storage(s)',
                 Subject: 'Subject(s)',
+                Vdi: 'Vdi(s)',
                 Vm: 'VM(s)',
                 XoObject: 'Object(s)',
               }
@@ -221,7 +223,13 @@ export default class Jobs extends Component {
                   modifyProperty(property, 'Sr')
                 } else if (
                   includes(
-                    ['host', 'host_id', 'target_host_id', 'targetHost'],
+                    [
+                      'affinityHost',
+                      'host',
+                      'host_id',
+                      'target_host_id',
+                      'targetHost',
+                    ],
                     key
                   )
                 ) {
@@ -230,6 +238,10 @@ export default class Jobs extends Component {
                   modifyProperty(property, 'Vm')
                 } else if (includes(['snapshot'], key)) {
                   modifyProperty(property, 'Snapshot')
+                } else if (includes(['remote', 'remoteId'], key)) {
+                  modifyProperty(property, 'Remote')
+                } else if (includes(['vdi'], key)) {
+                  modifyProperty(property, 'Vdi')
                 }
               }
             }
