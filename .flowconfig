@@ -8,6 +8,7 @@
 [lints]
 
 [options]
+esproposal.decorators=ignore
 include_warnings=true
 module.use_strict=true
 

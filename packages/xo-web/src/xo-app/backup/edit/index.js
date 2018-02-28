@@ -14,7 +14,7 @@ export default class Edit extends Component {
     }
 
     getSchedule(id).then(schedule => {
-      getJob(schedule.job).then(job => {
+      getJob(schedule.jobId).then(job => {
         this.setState({ job, schedule })
       })
     })
