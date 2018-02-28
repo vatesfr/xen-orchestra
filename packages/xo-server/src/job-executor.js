@@ -125,6 +125,7 @@ export default class JobExecutor {
     }
 
     await asyncMap(paramsFlatVector, params => {
+      Object.assign(params, extraParams)
       const runCallId = this._logger.notice(
         `Starting ${job.method} call. (${job.id})`,
         {
