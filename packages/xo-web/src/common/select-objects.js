@@ -420,6 +420,27 @@ export const SelectVm = makeStoreSelect(
 
 // ===================================================================
 
+export const SelectVmSnapshot = makeStoreSelect(
+  () => {
+    const getSnapshotsByVms = createGetObjectsOfType('VM-snapshot')
+      .filter(getPredicate)
+      .sort()
+      .groupBy('$snapshot_of')
+
+    const getVms = createGetObjectsOfType('VM')
+      .pick(createSelector(getSnapshotsByVms, keys))
+      .sort()
+
+    return {
+      xoObjects: getSnapshotsByVms,
+      xoContainers: getVms,
+    }
+  },
+  { placeholder: _('selectVmSnapshots') }
+)
+
+// ===================================================================
+
 export const SelectHostVm = makeStoreSelect(
   () => {
     const getHosts = createGetObjectsOfType('host')
