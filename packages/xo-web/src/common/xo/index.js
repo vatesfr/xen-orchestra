@@ -1201,11 +1201,14 @@ export const createVgpu = (vm, { gpuGroup, vgpuType }) =>
 
 export const deleteVgpu = vgpu => _call('vm.deleteVgpu', resolveIds({ vgpu }))
 
-export const shareVm = (vm, resourceSet) =>
+export const shareVm = async (vm, resourceSet) =>
   confirm({
     title: _('shareVmInResourceSetModalTitle'),
     body: _('shareVmInResourceSetModalMessage', {
-      self: renderXoItem(resourceSet),
+      self: renderXoItem({
+        ...(await getResourceSet(resourceSet)),
+        type: 'resourceSet',
+      }),
     }),
   }).then(() => editVm(vm, { share: true }), noop)
 
@@ -1681,6 +1684,9 @@ export const deleteResourceSet = async id => {
 
 export const recomputeResourceSetsLimits = () =>
   _call('resourceSet.recomputeAllLimits')
+
+export const getResourceSet = id =>
+  _call('resourceSet.get', { id: resolveId(id) })
 
 // Remote ------------------------------------------------------------
 
