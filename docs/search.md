@@ -95,6 +95,15 @@ Postfix the name of a property by an question mark `?`:
 - `auto_poweron?`
 - `high_availability?`
 
+#### Number comparison
+
+You can use the search field/filter with number comparison:
+
+* `snapshots:length:>2` (to display VMs with more than 2 snapshots)
+* `$VBDs:length:>=4` (VMs with more 4 or more disks attached)
+* `VIFs:length:>=2` (number of network interfaces)
+
+
 ## Available properties
 
 No documentation on this side either, but you can see all objects and their properties using `xo-cli --list-objects`.
