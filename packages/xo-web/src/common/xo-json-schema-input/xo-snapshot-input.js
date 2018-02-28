@@ -2,7 +2,7 @@ import React from 'react'
 
 import XoAbstractInput from './xo-abstract-input'
 import { PrimitiveInputWrapper } from '../json-schema-input/helpers'
-import { SelectSnapshot } from '../select-objects'
+import { SelectVmSnapshot } from '../select-objects'
 
 // ===================================================================
 
@@ -12,7 +12,7 @@ export default class snapshotInput extends XoAbstractInput {
 
     return (
       <PrimitiveInputWrapper {...props}>
-        <SelectSnapshot
+        <SelectVmSnapshot
           disabled={props.disabled}
           hasSelectAll
           multi={props.multi}

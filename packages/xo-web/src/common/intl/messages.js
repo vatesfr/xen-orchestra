@@ -207,7 +207,7 @@ const messages = {
   selectSshKey: 'Select SSH key(s)…',
   selectSrs: 'Select SR(s)…',
   selectVms: 'Select VM(s)…',
-  selectSnapshots: 'Select snapshot(s)…',
+  selectVmSnapshots: 'Select snapshot(s)…',
   selectVmTemplates: 'Select VM template(s)…',
   selectTags: 'Select tag(s)…',
   selectVdis: 'Select disk(s)…',
