@@ -115,7 +115,7 @@ export default class JobExecutor {
 
     connection.set('user_id', job.userId)
 
-    const schedule = find(await this.xo.getAllSchedules(), { job: job.id })
+    const schedule = find(await this.xo.getAllSchedules(), { jobId: job.id })
 
     const execStatus = {
       calls: {},

@@ -1,204 +1,171 @@
-import { BaseError } from 'make-error'
+// @flow
+
 import { createSchedule } from '@xen-orchestra/cron'
-import { noSuchObject } from 'xo-common/api-errors.js'
+import { noSuchObject } from 'xo-common/api-errors'
 
-import { Schedules } from '../models/schedule'
-import { forEach, mapToArray } from '../utils'
+import Collection from '../collection/redis'
+import { asyncMap } from '../utils'
 
-// ===================================================================
+export type Schedule = {|
+  cron: string,
+  enabled: boolean,
+  id: string,
+  jobId: string,
+  name: string,
+  timezone?: string,
+  userId: string
+|}
 
-const _resolveId = scheduleOrId => scheduleOrId.id || scheduleOrId
+const normalize = schedule => {
+  const { enabled } = schedule
+  if (typeof enabled !== 'boolean') {
+    schedule.enabled = enabled === 'true'
+  }
+  if ('job' in schedule) {
+    schedule.jobId = schedule.job
+    delete schedule.job
+  }
+  return schedule
+}
 
-export class SchedulerError extends BaseError {}
-
-export class ScheduleOverride extends SchedulerError {
-  constructor (scheduleOrId) {
-    super('Schedule ID ' + _resolveId(scheduleOrId) + ' is already added')
+class Schedules extends Collection {
+  async get (properties) {
+    const schedules = await super.get(properties)
+    schedules.forEach(normalize)
+    return schedules
   }
 }
 
-export class ScheduleNotEnabled extends SchedulerError {
-  constructor (scheduleOrId) {
-    super('Schedule ' + _resolveId(scheduleOrId) + ' is not enabled')
-  }
+// patch o: assign properties from p
+// if the value of a p property is null, delete it from o
+const patch = <T: {}>(o: T, p: $Shape<T>) => {
+  Object.keys(p).forEach(k => {
+    const v: any = p[k]
+    if (v === null) {
+      delete o[k]
+    } else if (v !== undefined) {
+      o[k] = v
+    }
+  })
 }
 
-export class ScheduleAlreadyEnabled extends SchedulerError {
-  constructor (scheduleOrId) {
-    super('Schedule ' + _resolveId(scheduleOrId) + ' is already enabled')
-  }
-}
+export default class Scheduling {
+  _app: any
+  _db: {|
+    add: Function,
+    first: Function,
+    get: Function,
+    remove: Function,
+    update: Function
+  |}
+  _runs: { __proto__: null, [string]: () => void }
 
-// ===================================================================
+  constructor (app: any) {
+    this._app = app
 
-export default class {
-  constructor (xo) {
-    this.xo = xo
-    const schedules = (this._redisSchedules = new Schedules({
-      connection: xo._redis,
+    const db = (this._db = new Schedules({
+      connection: app._redis,
       prefix: 'xo:schedule',
-      indexes: ['user_id', 'job'],
     }))
-    this._scheduleTable = undefined
 
-    xo.on('clean', () => schedules.rebuildIndexes())
-    xo.on('start', () => {
-      xo.addConfigManager(
+    this._runs = Object.create(null)
+
+    app.on('clean', () => db.rebuildIndexes())
+    app.on('start', async () => {
+      app.addConfigManager(
         'schedules',
-        () => schedules.get(),
-        schedules_ =>
-          Promise.all(
-            mapToArray(schedules_, schedule => schedules.save(schedule))
-          ),
+        () => db.get(),
+        schedules =>
+          asyncMap(schedules, schedule => db.update(normalize(schedule))),
         ['jobs']
       )
 
-      return this._loadSchedules()
+      const schedules = await this.getAllSchedules()
+      schedules.forEach(schedule => this._start(schedule))
     })
-    xo.on('stop', () => this._disableAll())
-  }
-
-  _add (schedule) {
-    const { id } = schedule
-    this._schedules[id] = schedule
-    this._scheduleTable[id] = false
-    try {
-      if (schedule.enabled) {
-        this._enable(schedule)
-      }
-    } catch (error) {
-      console.warn('Scheduling#_add(%s)', id, error)
-    }
-  }
-
-  _exists (scheduleOrId) {
-    const id_ = _resolveId(scheduleOrId)
-    return id_ in this._schedules
-  }
-
-  _isEnabled (scheduleOrId) {
-    return this._scheduleTable[_resolveId(scheduleOrId)]
-  }
-
-  _enable ({ cron, id, job, timezone = 'local' }) {
-    this._cronJobs[id] = createSchedule(cron, timezone).startJob(() =>
-      this.xo.runJobSequence([job])
-    )
-    this._scheduleTable[id] = true
-  }
-
-  _disable (scheduleOrId) {
-    if (!this._exists(scheduleOrId)) {
-      throw noSuchObject(scheduleOrId, 'schedule')
-    }
-    if (!this._isEnabled(scheduleOrId)) {
-      throw new ScheduleNotEnabled(scheduleOrId)
-    }
-    const id = _resolveId(scheduleOrId)
-    this._cronJobs[id]() // Stop cron job.
-    delete this._cronJobs[id]
-    this._scheduleTable[id] = false
-  }
-
-  _disableAll () {
-    forEach(this._scheduleTable, (enabled, id) => {
-      if (enabled) {
-        this._disable(id)
-      }
+    app.on('stop', () => {
+      const runs = this._runs
+      Object.keys(runs).forEach(id => {
+        runs[id]()
+        delete runs[id]
+      })
     })
   }
 
-  get scheduleTable () {
-    return this._scheduleTable
-  }
-
-  async _loadSchedules () {
-    this._schedules = {}
-    this._scheduleTable = {}
-    this._cronJobs = {}
-
-    const schedules = await this.xo.getAllSchedules()
-
-    forEach(schedules, schedule => {
-      this._add(schedule)
-    })
-  }
-
-  async _getSchedule (id) {
-    const schedule = await this._redisSchedules.first(id)
-
-    if (!schedule) {
-      throw noSuchObject(id, 'schedule')
-    }
-
-    return schedule
-  }
-
-  async getSchedule (id) {
-    return (await this._getSchedule(id)).properties
-  }
-
-  async getAllSchedules () {
-    return /* await */ this._redisSchedules.get()
-  }
-
-  async createSchedule (userId, { job, cron, enabled, name, timezone }) {
-    const schedule_ = await this._redisSchedules.create(
-      userId,
-      job,
+  async createSchedule ({
+    cron,
+    enabled,
+    jobId,
+    name,
+    timezone,
+    userId,
+  }: $Diff<Schedule, {| id: string |}>) {
+    const schedule = (await this._db.add({
       cron,
       enabled,
+      jobId,
       name,
-      timezone
-    )
-    const schedule = schedule_.properties
-
-    this._add(schedule)
-
+      timezone,
+      userId,
+    })).properties
+    this._start(schedule)
     return schedule
   }
 
-  async updateSchedule (id, { job, cron, enabled, name, timezone }) {
-    const schedule = await this._getSchedule(id)
-
-    if (job !== undefined) schedule.set('job', job)
-    if (cron !== undefined) schedule.set('cron', cron)
-    if (enabled !== undefined) schedule.set('enabled', enabled)
-    if (name !== undefined) schedule.set('name', name)
-    if (timezone === null) {
-      schedule.set('timezone', undefined) // Remove current timezone
-    } else if (timezone !== undefined) {
-      schedule.set('timezone', timezone)
-    }
-
-    await this._redisSchedules.save(schedule)
-
-    const { properties } = schedule
-
-    if (!this._exists(id)) {
+  async getSchedule (id: string): Promise<Schedule> {
+    const schedule = await this._db.first(id)
+    if (schedule === null) {
       throw noSuchObject(id, 'schedule')
     }
-
-    // disable the schedule, _add() will enable it if necessary
-    if (this._isEnabled(id)) {
-      this._disable(id)
-    }
-
-    this._add(properties)
+    return schedule.properties
   }
 
-  async removeSchedule (id) {
-    await this._redisSchedules.remove(id)
+  async getAllSchedules (): Promise<Array<Schedule>> {
+    return this._db.get()
+  }
 
-    try {
-      this._disable(id)
-    } catch (exc) {
-      if (!(exc instanceof SchedulerError)) {
-        throw exc
-      }
-    } finally {
-      delete this._schedules[id]
-      delete this._scheduleTable[id]
+  async removeSchedule (id: string) {
+    this._stop(id)
+    await this._db.remove(id)
+  }
+
+  async updateSchedule ({
+    cron,
+    enabled,
+    id,
+    jobId,
+    name,
+    timezone,
+    userId,
+  }: $Shape<Schedule>) {
+    const schedule = await this.getSchedule(id)
+    patch(schedule, { cron, enabled, jobId, name, timezone, userId })
+
+    this._start(schedule)
+
+    await this._db.update(schedule)
+  }
+
+  _start (schedule: Schedule) {
+    const { id } = schedule
+
+    this._stop(id)
+
+    if (schedule.enabled) {
+      this._runs[id] = createSchedule(
+        schedule.cron,
+        schedule.timezone
+      ).startJob(() =>
+        this._app.runJobSequence([schedule.jobId], { _schedule: schedule })
+      )
+    }
+  }
+
+  _stop (id: string) {
+    const runs = this._runs
+    if (id in runs) {
+      runs[id]()
+      delete runs[id]
     }
   }
 }
