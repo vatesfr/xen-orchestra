@@ -68,7 +68,6 @@ const COLUMNS = [
 const ACTIONS = [
   {
     handler: deleteJobs,
-    handlerParam: selectedJob => selectedJob.id,
     individualHandler: deleteJob,
     icon: 'delete',
     label: _('jobDelete'),
@@ -419,14 +418,12 @@ export default class Jobs extends Component {
     {
       disabled: job => !this._getIsJobUserMissing()[job.id],
       handler: runJob,
-      handlerParam: job => job.id,
       icon: 'run-schedule',
       label: _('runJob'),
       level: 'warning',
     },
     {
       handler: this._edit,
-      handlerParam: job => job.id,
       icon: 'edit',
       label: _('jobEdit'),
       level: 'primary',
