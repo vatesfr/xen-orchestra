@@ -3,9 +3,14 @@ import React from 'react'
 
 import Link from './link'
 
-export const NavLink = ({ children, to }) => (
+export const NavLink = ({ children, exact, to }) => (
   <li className='nav-item' role='tab'>
-    <Link className='nav-link' activeClassName='active' to={to}>
+    <Link
+      activeClassName='active'
+      className='nav-link'
+      onlyActiveOnIndex={exact}
+      to={to}
+    >
       {children}
     </Link>
   </li>
