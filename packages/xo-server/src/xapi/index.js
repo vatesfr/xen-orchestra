@@ -6,7 +6,7 @@ import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
 import {
-  cancellable,
+  cancelable,
   catchPlus as pCatch,
   defer,
   fromEvent,
@@ -710,18 +710,22 @@ export default class Xapi extends XapiBase {
 
   // Returns a stream to the exported VM.
   @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
-  async exportVm (vmId, { compress = true } = {}) {
+  @cancelable
+  async exportVm ($cancelToken, vmId, { compress = true } = {}) {
     const vm = this.getObject(vmId)
 
     let host
     let snapshotRef
     if (isVmRunning(vm)) {
       host = vm.$resident_on
-      snapshotRef = (await this._snapshotVm(vm, `[XO Export] ${vm.name_label}`))
-        .$ref
+      snapshotRef = (await this._snapshotVm(
+        $cancelToken,
+        vm,
+        `[XO Export] ${vm.name_label}`
+      )).$ref
     }
 
-    const promise = this.getResource('/export/', {
+    const promise = this.getResource($cancelToken, '/export/', {
       host,
       query: {
         ref: snapshotRef || vm.$ref,
@@ -779,7 +783,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Create a snapshot of the VM and returns a delta export object.
-  @cancellable
+  @cancelable
   @deferrable
   async exportDeltaVm (
     $defer,
@@ -1232,7 +1236,8 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _importVm (stream, sr, onVmCreation = undefined) {
+  @cancelable
+  async _importVm ($cancelToken, stream, sr, onVmCreation = undefined) {
     const taskRef = await this.createTask('VM import')
     const query = {}
 
@@ -1242,16 +1247,18 @@ export default class Xapi extends XapiBase {
       query.sr_id = sr.$ref
     }
 
-    if (onVmCreation) {
+    if (onVmCreation != null) {
       ;this._waitObject(
         obj =>
-          obj && obj.current_operations && taskRef in obj.current_operations
+          obj != null &&
+          obj.current_operations != null &&
+          taskRef in obj.current_operations
       )
         .then(onVmCreation)
         ::ignoreErrors()
     }
 
-    const vmRef = await this.putResource(stream, '/import/', {
+    const vmRef = await this.putResource($cancelToken, stream, '/import/', {
       host,
       query,
       task: taskRef,
@@ -1412,7 +1419,8 @@ export default class Xapi extends XapiBase {
   }
 
   @synchronized() // like @concurrency(1) but more efficient
-  async _snapshotVm (vm, nameLabel = vm.name_label) {
+  @cancelable
+  async _snapshotVm ($cancelToken, vm, nameLabel = vm.name_label) {
     debug(
       `Snapshotting VM ${vm.name_label}${
         nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''
@@ -1421,7 +1429,12 @@ export default class Xapi extends XapiBase {
 
     let ref
     try {
-      ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
+      ref = await this.callAsync(
+        $cancelToken,
+        'VM.snapshot_with_quiesce',
+        vm.$ref,
+        nameLabel
+      )
       this.addTag(ref, 'quiesce')::ignoreErrors()
 
       await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
@@ -1437,7 +1450,12 @@ export default class Xapi extends XapiBase {
       ) {
         throw error
       }
-      ref = await this.call('VM.snapshot', vm.$ref, nameLabel)
+      ref = await this.callAsync(
+        $cancelToken,
+        'VM.snapshot',
+        vm.$ref,
+        nameLabel
+      )
     }
     // Convert the template to a VM and wait to have receive the up-
     // to-date object.
@@ -1854,7 +1872,7 @@ export default class Xapi extends XapiBase {
   }
 
   @concurrency(12, stream => stream.then(stream => fromEvent(stream, 'end')))
-  @cancellable
+  @cancelable
   _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const host = vdi.$SR.$PBDs[0].$host
 
