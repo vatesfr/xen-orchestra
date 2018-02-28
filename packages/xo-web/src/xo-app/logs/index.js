@@ -382,7 +382,7 @@ const LOG_FILTERS = {
 
 export default [
   propTypes({
-    jobKeys: propTypes.array.isRequired,
+    jobKeys: propTypes.array,
   }),
   addSubscriptions(({ jobKeys }) => ({
     logs: cb =>
@@ -391,7 +391,10 @@ export default [
         forEach(rawLogs, (log, id) => {
           const data = log.data
           const { time } = log
-          if (data.event === 'job.start' && includes(jobKeys, data.key)) {
+          if (
+            data.event === 'job.start' &&
+            (jobKeys === undefined || includes(jobKeys, data.key))
+          ) {
             logs[id] = {
               id,
               jobId: data.jobId,

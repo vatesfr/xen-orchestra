@@ -203,6 +203,11 @@ export default class Menu extends Component {
         ],
       },
       isAdmin && {
+        to: '/backup-ng',
+        icon: 'menu-backup',
+        label: ['Backup NG'],
+      },
+      isAdmin && {
         to: 'xoa/update',
         icon: 'menu-xoa',
         label: 'xoa',
@@ -454,13 +459,20 @@ const MenuLinkItem = props => {
         className={classNames('nav-link', styles.centerCollapsed)}
         to={to}
       >
-        <Icon
-          className={classNames((pill || extra) && styles.hiddenCollapsed)}
-          icon={`${icon}`}
-          size='lg'
-          fixedWidth
-        />
-        <span className={styles.hiddenCollapsed}> {_(label)}&nbsp;</span>
+        {typeof icon === 'string' ? (
+          <Icon
+            className={classNames((pill || extra) && styles.hiddenCollapsed)}
+            icon={icon}
+            size='lg'
+            fixedWidth
+          />
+        ) : (
+          icon
+        )}
+        <span className={styles.hiddenCollapsed}>
+          {' '}
+          {typeof label === 'string' ? _(label) : label}&nbsp;
+        </span>
         {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
         {extra}
       </Link>

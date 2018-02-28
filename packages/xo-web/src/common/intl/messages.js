@@ -354,6 +354,13 @@ const messages = {
   remoteTestSuccessMessage: 'The remote appears to work correctly',
   remoteConnectionFailed: 'Connection failed',
 
+  // ------ Backup job -----
+
+  confirmDeleteBackupJobsTitle:
+    'Delete backup job{nJobs, plural, one {} other {s}}',
+  confirmDeleteBackupJobsBody:
+    'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
+
   // ------ Remote -----
   remoteName: 'Name',
   remotePath: 'Path',

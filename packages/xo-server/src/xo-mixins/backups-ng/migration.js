@@ -1,0 +1,153 @@
+// @flow
+
+import assert from 'assert'
+
+import { type BackupJob } from '../backups-ng'
+import { type CallJob } from '../jobs'
+import { type Schedule } from '../scheduling'
+
+const createOr = (children: Array<any>): any =>
+  children.length === 1 ? children[0] : { __or: children }
+
+const methods = {
+  'vm.deltaCopy': (
+    job: CallJob,
+    { retention = 1, sr, vms },
+    schedule: Schedule
+  ) => ({
+    mode: 'delta',
+    settings: {
+      [schedule.id]: {
+        exportRetention: retention,
+        vmTimeout: job.timeout,
+      },
+    },
+    srs: { id: sr },
+    userId: job.userId,
+    vms,
+  }),
+  'vm.rollingDeltaBackup': (
+    job: CallJob,
+    { depth = 1, retention = depth, remote, vms },
+    schedule: Schedule
+  ) => ({
+    mode: 'delta',
+    remotes: { id: remote },
+    settings: {
+      [schedule.id]: {
+        exportRetention: retention,
+        vmTimeout: job.timeout,
+      },
+    },
+    vms,
+  }),
+  'vm.rollingDrCopy': (
+    job: CallJob,
+    { deleteOldBackupsFirst, depth = 1, retention = depth, sr, vms },
+    schedule: Schedule
+  ) => ({
+    mode: 'full',
+    settings: {
+      [schedule.id]: {
+        deleteFirst: deleteOldBackupsFirst,
+        exportRetention: retention,
+        vmTimeout: job.timeout,
+      },
+    },
+    srs: { id: sr },
+    vms,
+  }),
+  'vm.rollingBackup': (
+    job: CallJob,
+    { compress, depth = 1, retention = depth, remoteId, vms },
+    schedule: Schedule
+  ) => ({
+    compression: compress ? 'native' : undefined,
+    mode: 'full',
+    remotes: { id: remoteId },
+    settings: {
+      [schedule.id]: {
+        exportRetention: retention,
+        vmTimeout: job.timeout,
+      },
+    },
+    vms,
+  }),
+  'vm.rollingSnapshot': (
+    job: CallJob,
+    { depth = 1, retention = depth, vms },
+    schedule: Schedule
+  ) => ({
+    mode: 'full',
+    settings: {
+      [schedule.id]: {
+        snapshotRetention: retention,
+        vmTimeout: job.timeout,
+      },
+    },
+    vms,
+  }),
+}
+
+const parseParamsVector = vector => {
+  assert.strictEqual(vector.type, 'crossProduct')
+  const { items } = vector
+  assert.strictEqual(items.length, 2)
+
+  let vms, params
+  if (items[1].type === 'map') {
+    ;[params, vms] = items
+
+    vms = vms.collection
+    assert.strictEqual(vms.type, 'fetchObjects')
+    vms = vms.pattern
+  } else {
+    ;[vms, params] = items
+
+    assert.strictEqual(vms.type, 'set')
+    vms = vms.values
+    if (vms.length !== 0) {
+      assert.deepStrictEqual(Object.keys(vms[0]), ['id'])
+      vms = { id: createOr(vms.map(_ => _.id)) }
+    }
+  }
+
+  assert.strictEqual(params.type, 'set')
+  params = params.values
+  assert.strictEqual(params.length, 1)
+  params = params[0]
+
+  return { ...params, vms }
+}
+
+export const translateOldJobs = async (app: any): Promise<Array<BackupJob>> => {
+  const backupJobs: Array<BackupJob> = []
+  const [jobs, schedules] = await Promise.all([
+    app.getAllJobs('call'),
+    app.getAllSchedules(),
+  ])
+  jobs.forEach(job => {
+    try {
+      const { id } = job
+      let method, schedule
+      if (
+        job.type === 'call' &&
+        (method = methods[job.method]) !== undefined &&
+        (schedule = schedules.find(_ => _.jobId === id)) !== undefined
+      ) {
+        const params = parseParamsVector(job.paramsVector)
+        backupJobs.push({
+          id,
+          name: params.tag || job.name,
+          type: 'backup',
+          userId: job.userId,
+          // $FlowFixMe `method` is initialized but Flow fails to see this
+          ...method(job, params, schedule),
+        })
+      }
+    } catch (error) {
+      console.warn('translateOldJobs', job, error)
+    }
+  })
+  return backupJobs
+}
