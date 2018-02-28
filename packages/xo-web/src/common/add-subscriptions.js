@@ -7,6 +7,16 @@ const call = fn => fn()
 // callbacks have been correctly initialized when there are circular dependencies
 const addSubscriptions = subscriptions => Component =>
   class SubscriptionWrapper extends React.PureComponent {
+    constructor () {
+      super()
+
+      // provide all props since the beginning (better behavior with Freactal)
+      const state = (this.state = {})
+      Object.keys(subscriptions).forEach(key => {
+        state[key] = undefined
+      })
+    }
+
     _unsubscribes = null
 
     componentWillMount () {
