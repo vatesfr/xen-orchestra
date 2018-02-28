@@ -207,12 +207,9 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   // this is a fake
-  async openFile (path, flags) {
-    return {
-      file: this._getFilePath(path),
-      path,
-    }
+  async _openFile (path) {
+    return this._getFilePath(path)
   }
 
-  async closeFile (fd) {}
+  async _closeFile (fd) {}
 }
