@@ -70,7 +70,7 @@ export default class JobExecutor {
     )
   }
 
-  async exec (job, onStart) {
+  async exec (job, onStart, extraParams) {
     const runJobId = this._logger.notice(`Starting execution of ${job.id}.`, {
       event: 'job.start',
       userId: job.userId,
@@ -83,7 +83,7 @@ export default class JobExecutor {
 
     try {
       if (job.type === 'call') {
-        const execStatus = await this._execCall(job, runJobId)
+        const execStatus = await this._execCall(job, runJobId, extraParams)
 
         this.xo.emit('job:terminated', execStatus)
       } else {
@@ -105,7 +105,7 @@ export default class JobExecutor {
     }
   }
 
-  async _execCall (job, runJobId) {
+  async _execCall (job, runJobId, extraParams) {
     const { paramsVector } = job
     const paramsFlatVector = paramsVector
       ? resolveParamsVector.call(this, paramsVector)
