@@ -22,8 +22,12 @@ import {
   deleteMessage,
   deleteOrphanedVdis,
   deleteVbd,
+  deleteVbds,
   deleteVdi,
+  deleteVdis,
   deleteVm,
+  disconnectVbd,
+  disconnectVbds,
   isSrWritable,
 } from 'xo'
 import {
@@ -174,6 +178,33 @@ const ORPHANED_VDI_COLUMNS = [
   },
 ]
 
+const AttachedVdisActions = [
+  {
+    handler: disconnectVbds,
+    icon: 'disconnect',
+    individualHandler: disconnectVbd,
+    individualLabel: _('vbdDisconnect'),
+    label: _('vbdsDisconnect'),
+    level: 'danger',
+  },
+  {
+    handler: deleteVbds,
+    individualHandler: deleteVbd,
+    icon: 'vdi-forget',
+    label: _('vdiForget'),
+    level: 'danger',
+  },
+  {
+    handler: deleteVdis,
+    icon: 'delete',
+    handlerParam: ({ vdi }) => vdi,
+    individualHandler: deleteVdi,
+    individualLabel: _('deleteSelectedVdi'),
+    label: _('deleteSelectedVdis'),
+    level: 'danger',
+  },
+]
+
 const AttachedVdisTable = [
   connectStore({
     pools: createGetObjectsOfType('pool'),
@@ -194,6 +225,7 @@ const AttachedVdisTable = [
   }),
   ({ columns, rowTransform }) => ({ pools, srs, vbds, vdis, vdiSnapshots }) => (
     <NoObjects
+      actions={AttachedVdisActions}
       collection={vbds}
       columns={columns}
       component={SortedTable}
@@ -246,22 +278,12 @@ const AttachedVdisTable = [
           ),
         sortCriteria: ({ sr }) => sr != null && sr.name_label,
       },
-      {
-        name: _('vdiAction'),
-        itemRenderer: ({ vbd }) => (
-          <ActionRowButton
-            btnStyle='danger'
-            handler={deleteVbd}
-            handlerParam={vbd}
-            icon='delete'
-          />
-        ),
-      },
     ],
     rowTransform: (vbd, { pools, srs, vdis, vdiSnapshots }) => {
       const vdi = vdis[vbd.VDI] || vdiSnapshots[vbd.VDI]
 
       return {
+        id: vbd.id,
         vbd,
         vdi,
         sr: srs[vdi.$SR],

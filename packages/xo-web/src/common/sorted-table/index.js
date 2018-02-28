@@ -208,10 +208,20 @@ class IndividualAction extends Component {
     (disabled, item, userData) =>
       isFunction(disabled) ? disabled(item, userData) : disabled
   )
+  _getHandlerParam = createSelector(
+    () => this.props.handlerParam,
+    () => this.props.item,
+    () => this.props.userData,
+    (handlerParam, item, userData) =>
+      isFunction(handlerParam) ? handlerParam(item, userData) : handlerParam
+  )
 
   _executeAction = () => {
     const p = this.props
-    return p.handler(p.item, p.userData)
+    return p.handler(
+      p.handlerParam === undefined ? p.item : this._getHandlerParam(),
+      p.userData
+    )
   }
 
   render () {
@@ -238,9 +248,22 @@ class GroupedAction extends Component {
       isFunction(disabled) ? disabled(selectedItems, userData) : disabled
   )
 
+  _getHandlerParam = createSelector(
+    () => this.props.handlerParam,
+    () => this.props.selectedItems,
+    () => this.props.userData,
+    (handlerParam, selectedItems, userData) =>
+      isFunction(handlerParam)
+        ? map(selectedItems, item => handlerParam(item, userData))
+        : handlerParam
+  )
+
   _executeAction = () => {
     const p = this.props
-    return p.handler(p.selectedItems, p.userData)
+    return p.handler(
+      p.handlerParam === undefined ? p.selectedItems : this._getHandlerParam(),
+      p.userData
+    )
   }
 
   render () {
@@ -287,6 +310,7 @@ const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
         handler: propTypes.func.isRequired,
         icon: propTypes.string.isRequired,
         individualHandler: propTypes.func,
+        individualLabel: propTypes.node,
         label: propTypes.node.isRequired,
         level: propTypes.oneOf(['primary', 'warning', 'danger']),
       })
@@ -730,6 +754,7 @@ export default class SortedTable extends Component {
                 handler={props.individualHandler || props.handler}
                 item={props.individualHandler !== undefined ? item : [item]}
                 key={key}
+                label={props.individualLabel || props.label}
                 userData={userData}
               />
             ))}
