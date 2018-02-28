@@ -2,7 +2,9 @@
 
 import type { Pattern } from 'value-matcher'
 
+// $FlowFixMe
 import { assign } from 'lodash'
+// $FlowFixMe
 import { finally as pFinally } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
@@ -43,13 +45,12 @@ export type Job = {
   userId: string
 }
 
-export type CallJob = $Exact<{
-  ...Job,
+export type CallJob = Job & {|
   method: string,
   paramsVector: ParamsVector,
   timeout?: number,
   type: 'call'
-}>
+|}
 
 export default class Jobs {
   _executor: JobExecutor
