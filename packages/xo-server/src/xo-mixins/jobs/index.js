@@ -143,7 +143,7 @@ export default class Jobs {
 
   registerJobExecutor (type: string, executor: Executor): void {
     const executors = this._executors
-    if (type in executor) {
+    if (type in executors) {
       throw new Error(`there is already a job executor for type ${type}`)
     }
     executors[type] = executor
