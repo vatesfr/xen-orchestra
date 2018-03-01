@@ -1597,6 +1597,43 @@ export const enableSchedule = id => editSchedule({ id, enabled: true })
 
 export const getSchedule = id => _call('schedule.get', { id })
 
+// Backup NG ---------------------------------------------------------
+
+export const subscribeBackupNgJobs = createSubscription(() =>
+  _call('backupNg.getAllJobs')
+)
+
+export const createBackupNgJob = props =>
+  _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
+
+export const deleteBackupNgJobs = async ids => {
+  const { length } = ids
+  if (length === 0) {
+    return
+  }
+  const vars = { nJobs: length }
+  try {
+    await confirm({
+      title: _('confirmDeleteBackupJobsTitle', vars),
+      body: <p>{_('confirmDeleteBackupJobsBody', vars)}</p>,
+    })
+  } catch (_) {
+    return
+  }
+
+  return Promise.all(
+    ids.map(id => _call('backupNg.deleteJob', { id: resolveId(id) }))
+  )::tap(subscribeBackupNgJobs.forceRefresh)
+}
+
+export const editBackupNgJob = props =>
+  _call('backupNg.editJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
+
+export const getBackupNgJob = id => _call('backupNg.getJob', { id })
+
+export const runBackupNgJob = (id, scheduleId) =>
+  _call('backupNg.runJob', { id, scheduleId })
+
 // Plugins -----------------------------------------------------------
 
 export const loadPlugin = async id =>
