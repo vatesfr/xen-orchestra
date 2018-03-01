@@ -4,6 +4,8 @@ import type { Pattern } from 'value-matcher'
 
 // $FlowFixMe
 import { assign } from 'lodash'
+// $FlowFixMe
+import { cancelable } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import { Jobs as JobsDb } from '../../models/job'
@@ -56,6 +58,7 @@ export type CallJob = {|
 |}
 
 type Executor = ({|
+  cancelToken: any,
   data: Object,
   job: Job,
   runJobId: string,
@@ -148,7 +151,7 @@ export default class Jobs {
     return /* await */ this._jobs.remove(id)
   }
 
-  async _runJob (job: Job, data: {}) {
+  async _runJob (cancelToken: any, job: Job, data: {}) {
     const { id } = job
 
     const runningJobs = this._runningJobs
@@ -178,6 +181,7 @@ export default class Jobs {
       session.set('user_id', job.userId)
 
       const status = await executor({
+        cancelToken,
         data,
         job,
         runJobId,
@@ -202,13 +206,17 @@ export default class Jobs {
     }
   }
 
-  async runJobSequence (idSequence: Array<string>, data: {}) {
+  @cancelable
+  async runJobSequence ($cancelToken: any, idSequence: Array<string>, data: {}) {
     const jobs = await Promise.all(
       mapToArray(idSequence, id => this.getJob(id))
     )
 
     for (const job of jobs) {
-      await this._runJob(job, data)
+      if ($cancelToken.requested) {
+        break
+      }
+      await this._runJob($cancelToken, job, data)
     }
   }
 }
