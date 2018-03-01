@@ -12,10 +12,18 @@ import { Jobs as JobsDb } from '../../models/job'
 import { mapToArray, serializeError } from '../../utils'
 
 import type Logger from '../logs/loggers/abstract'
+import { type Schedule } from '../scheduling'
 
 import executeCall from './execute-call'
 
 // ===================================================================
+
+export type Job = {
+  id: string,
+  name: string,
+  type: string,
+  userId: string
+}
 
 type ParamsVector =
   | {|
@@ -42,13 +50,6 @@ type ParamsVector =
       values: any
     |}
 
-export type Job = {
-  id: string,
-  name: string,
-  type: string,
-  userId: string
-}
-
 export type CallJob = {|
   ...$Exact<Job>,
   method: string,
@@ -57,13 +58,13 @@ export type CallJob = {|
   type: 'call'
 |}
 
-type Executor = ({|
+export type Executor = ({|
   app: Object,
   cancelToken: any,
-  data: Object,
   job: Job,
   logger: Logger,
   runJobId: string,
+  schedule?: Schedule,
   session: Object
 |}) => Promise<void>
 
@@ -153,7 +154,7 @@ export default class Jobs {
     return /* await */ this._jobs.remove(id)
   }
 
-  async _runJob (cancelToken: any, job: Job, data: {}) {
+  async _runJob (cancelToken: any, job: Job, schedule?: Schedule) {
     const { id } = job
 
     const runningJobs = this._runningJobs
@@ -185,10 +186,10 @@ export default class Jobs {
       const status = await executor({
         app,
         cancelToken,
-        data,
         job,
         logger,
         runJobId,
+        schedule,
         session,
       })
       logger.notice(`Execution terminated for ${job.id}.`, {
@@ -211,7 +212,11 @@ export default class Jobs {
   }
 
   @cancelable
-  async runJobSequence ($cancelToken: any, idSequence: Array<string>, data: {}) {
+  async runJobSequence (
+    $cancelToken: any,
+    idSequence: Array<string>,
+    schedule?: Schedule
+  ) {
     const jobs = await Promise.all(
       mapToArray(idSequence, id => this.getJob(id))
     )
@@ -220,7 +225,7 @@ export default class Jobs {
       if ($cancelToken.requested) {
         break
       }
-      await this._runJob($cancelToken, job, data)
+      await this._runJob($cancelToken, job, schedule)
     }
   }
 }

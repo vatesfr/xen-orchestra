@@ -155,9 +155,7 @@ export default class Scheduling {
       this._runs[id] = createSchedule(
         schedule.cron,
         schedule.timezone
-      ).startJob(() =>
-        this._app.runJobSequence([schedule.jobId], { _schedule: schedule })
-      )
+      ).startJob(() => this._app.runJobSequence([schedule.jobId], schedule))
     }
   }
 
