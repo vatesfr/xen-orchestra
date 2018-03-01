@@ -178,7 +178,7 @@ const ORPHANED_VDI_COLUMNS = [
   },
 ]
 
-const AttachedVdisActions = [
+const CONTROL_DOMAIN_VDIS_ACTIONS = [
   {
     handler: disconnectVbds,
     icon: 'disconnect',
@@ -195,10 +195,9 @@ const AttachedVdisActions = [
     level: 'danger',
   },
   {
-    handler: deleteVdis,
+    handler: selectedItems => deleteVdis(map(selectedItems, 'vdi')),
     icon: 'delete',
-    handlerParam: ({ vdi }) => vdi,
-    individualHandler: deleteVdi,
+    individualHandler: ({ vdi }) => deleteVdi(vdi),
     individualLabel: _('deleteSelectedVdi'),
     label: _('deleteSelectedVdis'),
     level: 'danger',
@@ -225,7 +224,7 @@ const AttachedVdisTable = [
   }),
   ({ columns, rowTransform }) => ({ pools, srs, vbds, vdis, vdiSnapshots }) => (
     <NoObjects
-      actions={AttachedVdisActions}
+      actions={CONTROL_DOMAIN_VDIS_ACTIONS}
       collection={vbds}
       columns={columns}
       component={SortedTable}
