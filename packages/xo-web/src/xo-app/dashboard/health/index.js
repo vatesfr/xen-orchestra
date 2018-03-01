@@ -14,7 +14,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { flatten, get, includes, isEmpty, map, mapValues, some } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { fromCallback } from 'promise-toolbox'
 import { SelectPool } from 'select-objects'
@@ -180,8 +180,11 @@ const ORPHANED_VDI_COLUMNS = [
 
 const CONTROL_DOMAIN_VDIS_ACTIONS = [
   {
+    disabled: selectedItems =>
+      some(map(selectedItems, 'vbd'), ['attached', false]),
     handler: disconnectVbds,
     icon: 'disconnect',
+    individualDisabled: ({ vbd }) => !vbd.attached,
     individualHandler: disconnectVbd,
     individualLabel: _('vbdDisconnect'),
     label: _('vbdsDisconnect'),
@@ -198,7 +201,7 @@ const CONTROL_DOMAIN_VDIS_ACTIONS = [
     handler: selectedItems => deleteVdis(map(selectedItems, 'vdi')),
     icon: 'delete',
     individualHandler: ({ vdi }) => deleteVdi(vdi),
-    individualLabel: _('deleteSelectedVdi'),
+    individualLabel: _('vdiDelete'),
     label: _('deleteSelectedVdis'),
     level: 'danger',
   },

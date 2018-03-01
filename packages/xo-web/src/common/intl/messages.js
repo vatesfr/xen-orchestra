@@ -767,6 +767,7 @@ const messages = {
   vdiMigrateAll: 'Migrate all VDIs',
   vdiMigrateNoSr: 'No SR',
   vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
+  vdiDelete: 'Delete VDI',
   vdiForget: 'Forget',
   vdiRemove: 'Remove VDI',
   noControlDomainVdis: 'No VDIs attached to Control Domain',

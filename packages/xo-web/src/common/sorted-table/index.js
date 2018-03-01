@@ -286,6 +286,10 @@ const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
         disabled: propTypes.oneOfType([propTypes.bool, propTypes.func]),
         handler: propTypes.func.isRequired,
         icon: propTypes.string.isRequired,
+        individualDisabled: propTypes.oneOfType([
+          propTypes.bool,
+          propTypes.func,
+        ]),
         individualHandler: propTypes.func,
         individualLabel: propTypes.node,
         label: propTypes.node.isRequired,
@@ -728,6 +732,7 @@ export default class SortedTable extends Component {
             {map(actions, (props, key) => (
               <IndividualAction
                 {...props}
+                disabled={props.individualDisabled || props.disabled}
                 handler={props.individualHandler || props.handler}
                 item={props.individualHandler !== undefined ? item : [item]}
                 key={key}
