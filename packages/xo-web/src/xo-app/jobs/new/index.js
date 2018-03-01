@@ -69,8 +69,9 @@ const ACTIONS = [
   {
     handler: deleteJobs,
     individualHandler: deleteJob,
+    individualLabel: _('jobDelete'),
     icon: 'delete',
-    label: _('jobDelete'),
+    label: _('deleteSelectedJobs'),
     level: 'danger',
   },
 ]
