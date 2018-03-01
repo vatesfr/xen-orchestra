@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import { forEach } from 'lodash'
-import { resolveParamsVector } from './job-executor'
+import { resolveParamsVector } from './execute-call'
 
 describe('resolveParamsVector', function () {
   forEach(
