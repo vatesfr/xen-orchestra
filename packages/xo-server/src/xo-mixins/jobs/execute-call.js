@@ -17,7 +17,7 @@ const paramsVectorActionsMap = {
     )
   },
   fetchObjects ({ pattern }) {
-    const objects = filter(this.xo.getObjects(), createPredicate(pattern))
+    const objects = filter(this.getObjects(), createPredicate(pattern))
     if (isEmpty(objects)) {
       throw new Error('no objects match this pattern')
     }
@@ -45,13 +45,20 @@ export function resolveParamsVector (paramsVector) {
 
 // ===================================================================
 
-export default async function executeJobCall ({ data, job, runJobId, session }) {
+export default async function executeJobCall ({
+  app,
+  data,
+  job,
+  logger,
+  runJobId,
+  session,
+}) {
   const { paramsVector } = job
   const paramsFlatVector = paramsVector
-    ? resolveParamsVector.call(this, paramsVector)
+    ? resolveParamsVector.call(app, paramsVector)
     : [{}] // One call with no parameters
 
-  const schedule = find(await this.xo.getAllSchedules(), { jobId: job.id })
+  const schedule = find(await app.getAllSchedules(), { jobId: job.id })
 
   const execStatus = {
     calls: {},
@@ -62,7 +69,7 @@ export default async function executeJobCall ({ data, job, runJobId, session }) 
 
   await asyncMap(paramsFlatVector, params => {
     Object.assign(params, data)
-    const runCallId = this._logger.notice(
+    const runCallId = logger.notice(
       `Starting ${job.method} call. (${job.id})`,
       {
         event: 'jobCall.start',
@@ -77,14 +84,14 @@ export default async function executeJobCall ({ data, job, runJobId, session }) 
       params,
       start: Date.now(),
     })
-    let promise = this.xo.callApiMethod(session, job.method, assign({}, params))
+    let promise = app.callApiMethod(session, job.method, assign({}, params))
     if (job.timeout) {
       promise = promise::timeout(job.timeout)
     }
 
     return promise.then(
       value => {
-        this._logger.notice(
+        logger.notice(
           `Call ${job.method} (${runCallId}) is a success. (${job.id})`,
           {
             event: 'jobCall.end',
@@ -98,7 +105,7 @@ export default async function executeJobCall ({ data, job, runJobId, session }) 
         call.end = Date.now()
       },
       reason => {
-        this._logger.notice(
+        logger.notice(
           `Call ${job.method} (${runCallId}) has failed. (${job.id})`,
           {
             event: 'jobCall.end',

@@ -58,9 +58,11 @@ export type CallJob = {|
 |}
 
 type Executor = ({|
+  app: Object,
   cancelToken: any,
   data: Object,
   job: Job,
+  logger: Logger,
   runJobId: string,
   session: Object
 |}) => Promise<void>
@@ -181,9 +183,11 @@ export default class Jobs {
       session.set('user_id', job.userId)
 
       const status = await executor({
+        app,
         cancelToken,
         data,
         job,
+        logger,
         runJobId,
         session,
       })
