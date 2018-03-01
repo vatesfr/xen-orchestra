@@ -3,12 +3,11 @@
 import type { Pattern } from 'value-matcher'
 
 // $FlowFixMe
-import { assign } from 'lodash'
-// $FlowFixMe
 import { cancelable } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
-import { Jobs as JobsDb } from '../../models/job'
+import Collection from '../../collection/redis'
+import patch from '../../patch'
 import { mapToArray, serializeError } from '../../utils'
 
 import type Logger from '../logs/loggers/abstract'
@@ -66,7 +65,46 @@ export type Executor = ({|
   runJobId: string,
   schedule?: Schedule,
   session: Object
-|}) => Promise<void>
+|}) => Promise<any>
+
+// -----------------------------------------------------------------------------
+
+const normalize = job => {
+  Object.keys(job).forEach(key => {
+    try {
+      job[key] = JSON.parse(job[key])
+    } catch (_) {}
+  })
+  return job
+}
+
+const serialize = (job: {| [string]: any |}) => {
+  Object.keys(job).forEach(key => {
+    const value = job[key]
+    if (typeof value !== 'string') {
+      job[key] = JSON.stringify(job[key])
+    }
+  })
+  return job
+}
+
+class JobsDb extends Collection {
+  async create (job): Promise<Job> {
+    return normalize((await this.add(serialize((job: any)))).properties)
+  }
+
+  async save (job): Promise<void> {
+    await this.update(serialize((job: any)))
+  }
+
+  async get (): Promise<Array<Job>> {
+    const jobs = await super.get()
+    jobs.forEach(normalize)
+    return jobs
+  }
+}
+
+// -----------------------------------------------------------------------------
 
 export default class Jobs {
   _app: any
@@ -116,29 +154,22 @@ export default class Jobs {
     return result
   }
 
-  async getJob (id: string, type: string = 'call'): Promise<Job> {
+  async getJob (id: string, type?: string): Promise<Job> {
     const job = await this._jobs.first(id)
-    if (job === null || job.type !== type) {
+    if (job === null || (type !== undefined && job.properties.type !== type)) {
       throw noSuchObject(id, 'job')
     }
 
     return job.properties
   }
 
-  async createJob (job: $Diff<Job, {| id: string |}>): Promise<Job> {
-    // TODO: use plain objects
-    const job_ = await this._jobs.create(job)
-    return job_.properties
+  createJob (job: $Diff<Job, {| id: string |}>): Promise<Job> {
+    return this._jobs.create(job)
   }
 
   async updateJob ({ id, ...props }: $Shape<Job>) {
     const job = await this.getJob(id)
-
-    assign(job, props)
-    if (job.timeout === null) {
-      delete job.timeout
-    }
-
+    patch(job, props)
     return /* await */ this._jobs.save(job)
   }
 
