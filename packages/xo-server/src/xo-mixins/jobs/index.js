@@ -5,12 +5,15 @@ import type { Pattern } from 'value-matcher'
 // $FlowFixMe
 import { assign } from 'lodash'
 // $FlowFixMe
-import { finally as pFinally } from 'promise-toolbox'
+import { cancelable } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
-import JobExecutor from '../job-executor'
-import { Jobs as JobsDb } from '../models/job'
-import { mapToArray } from '../utils'
+import { Jobs as JobsDb } from '../../models/job'
+import { mapToArray, serializeError } from '../../utils'
+
+import type Logger from '../logs/loggers/abstract'
+
+import executeCall from './execute-call'
 
 // ===================================================================
 
@@ -42,29 +45,47 @@ type ParamsVector =
 export type Job = {
   id: string,
   name: string,
+  type: string,
   userId: string
 }
 
-export type CallJob = Job & {|
+export type CallJob = {|
+  ...$Exact<Job>,
   method: string,
   paramsVector: ParamsVector,
   timeout?: number,
   type: 'call'
 |}
 
+type Executor = ({|
+  app: Object,
+  cancelToken: any,
+  data: Object,
+  job: Job,
+  logger: Logger,
+  runJobId: string,
+  session: Object
+|}) => Promise<void>
+
 export default class Jobs {
-  _executor: JobExecutor
+  _app: any
+  _executors: { __proto__: null, [string]: Executor }
   _jobs: JobsDb
+  _logger: Logger
   _runningJobs: { __proto__: null, [string]: boolean }
 
   constructor (xo: any) {
-    this._executor = new JobExecutor(xo)
+    this._app = xo
+    const executors = (this._executors = Object.create(null))
     const jobsDb = (this._jobs = new JobsDb({
       connection: xo._redis,
       prefix: 'xo:job',
       indexes: ['user_id', 'key'],
     }))
+    this._logger = undefined
     this._runningJobs = Object.create(null)
+
+    executors.call = executeCall
 
     xo.on('clean', () => jobsDb.rebuildIndexes())
     xo.on('start', () => {
@@ -74,6 +95,10 @@ export default class Jobs {
         jobs => Promise.all(mapToArray(jobs, job => jobsDb.save(job))),
         ['users']
       )
+
+      xo.getLogger('jobs').then(logger => {
+        this._logger = logger
+      })
     })
   }
 
@@ -116,38 +141,86 @@ export default class Jobs {
     return /* await */ this._jobs.save(job)
   }
 
+  registerJobExecutor (type: string, executor: Executor): void {
+    const executors = this._executors
+    if (type in executor) {
+      throw new Error(`there is already a job executor for type ${type}`)
+    }
+    executors[type] = executor
+  }
+
   async removeJob (id: string) {
     return /* await */ this._jobs.remove(id)
   }
 
-  _runJob (job: Job, extraParams: {}) {
+  async _runJob (cancelToken: any, job: Job, data: {}) {
     const { id } = job
+
     const runningJobs = this._runningJobs
     if (id in runningJobs) {
       throw new Error(`job ${id} is already running`)
     }
-    runningJobs[id] = true
-    return pFinally.call(
-      this._executor.exec(
+
+    const executor = this._executors[job.type]
+    if (executor === undefined) {
+      throw new Error(`cannot run job ${id}: no executor for type ${job.type}`)
+    }
+
+    const logger = this._logger
+    const runJobId = logger.notice(`Starting execution of ${id}.`, {
+      event: 'job.start',
+      userId: job.userId,
+      jobId: id,
+      // $FlowFixMe only defined for CallJob
+      key: job.key,
+    })
+
+    runningJobs[id] = runJobId
+
+    try {
+      const app = this._app
+      const session = app.createUserConnection()
+      session.set('user_id', job.userId)
+
+      const status = await executor({
+        app,
+        cancelToken,
+        data,
         job,
-        runJobId => {
-          runningJobs[id] = runJobId
-        },
-        extraParams
-      ),
-      () => {
-        delete runningJobs[id]
-      }
-    )
+        logger,
+        runJobId,
+        session,
+      })
+      logger.notice(`Execution terminated for ${job.id}.`, {
+        event: 'job.end',
+        runJobId,
+      })
+
+      session.close()
+      app.emit('job:terminated', status)
+    } catch (error) {
+      logger.error(`The execution of ${id} has failed.`, {
+        event: 'job.end',
+        runJobId,
+        error: serializeError(error),
+      })
+      throw error
+    } finally {
+      delete runningJobs[id]
+    }
   }
 
-  async runJobSequence (idSequence: Array<string>, extraParams: {}) {
+  @cancelable
+  async runJobSequence ($cancelToken: any, idSequence: Array<string>, data: {}) {
     const jobs = await Promise.all(
       mapToArray(idSequence, id => this.getJob(id))
     )
 
     for (const job of jobs) {
-      await this._runJob(job, extraParams)
+      if ($cancelToken.requested) {
+        break
+      }
+      await this._runJob($cancelToken, job, data)
     }
   }
 }
