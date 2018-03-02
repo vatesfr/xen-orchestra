@@ -276,6 +276,7 @@ const messages = {
   jobTimezone: 'Timezone',
   jobServerTimezone: 'Server',
   runJob: 'Run job',
+  runJobConfirm: 'Are you sure you want to run {job}?',
   runJobVerbose: 'One shot running started. See overview for logs.',
   jobFinished: 'Finished',
   jobInterrupted: 'Interrupted',

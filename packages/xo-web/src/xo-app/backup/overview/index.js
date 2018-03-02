@@ -10,6 +10,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
+import { confirm } from 'modal'
 import { addSubscriptions } from 'utils'
 import { constructQueryString } from 'smart-backup'
 import { createSelector } from 'selectors'
@@ -35,6 +36,18 @@ const jobKeyToLabel = {
   rollingBackup: _('backup'),
   rollingSnapshot: _('rollingSnapshot'),
 }
+
+const _runJob = job =>
+  confirm({
+    title: _('runJob'),
+    body: _('runJobConfirm', {
+      job: (
+        <strong>
+          {job.id.slice(4, 8)} {job.label}
+        </strong>
+      ),
+    }),
+  }).then(() => runJob(job.id))
 
 const JOB_COLUMNS = [
   {
@@ -81,7 +94,7 @@ const JOB_COLUMNS = [
   },
   {
     name: _('jobAction'),
-    itemRenderer: ({ redirect, schedule }, isScheduleUserMissing) => (
+    itemRenderer: ({ redirect, schedule, jobLabel }, isScheduleUserMissing) => (
       <fieldset>
         {!isScheduleUserMissing[schedule.id] && (
           <Tooltip content={_('backupUserNotFound')}>
@@ -113,8 +126,11 @@ const JOB_COLUMNS = [
             disabled={!isScheduleUserMissing[schedule.id]}
             icon='run-schedule'
             btnStyle='warning'
-            handler={runJob}
-            handlerParam={schedule.jobId}
+            handler={_runJob}
+            handlerParam={{
+              id: schedule.jobId,
+              label: jobLabel,
+            }}
           />
           <ActionRowButton
             icon='migrate-job'
