@@ -1,5 +1,5 @@
-import isFunction from 'lodash/isFunction'
 import React from 'react'
+import { isFunction, startsWith } from 'lodash'
 
 import Button from './button'
 import Component from './base-component'
@@ -27,6 +27,9 @@ import { error as _error } from './notification'
   handler: propTypes.func.isRequired,
 
   // optional value which will be passed as first param to the handler
+  //
+  // if you need multiple values, you can provide `data-*` props instead of
+  // `handlerParam`
   handlerParam: propTypes.any,
 
   // XO icon to use for this button
@@ -50,11 +53,30 @@ export default class ActionButton extends Component {
   }
 
   async _execute () {
-    if (this.props.pending || this.state.working) {
+    const { props } = this
+
+    if (props.pending || this.state.working) {
       return
     }
 
-    const { children, handler, handlerParam, tooltip } = this.props
+    const { children, handler, tooltip } = props
+
+    let handlerParam
+    if ('handlerParam' in props) {
+      handlerParam = props.handlerParam
+    } else {
+      let empty = true
+      handlerParam = {}
+      Object.keys(props).forEach(key => {
+        if (startsWith(key, 'data-')) {
+          empty = false
+          handlerParam[key.slice(5)] = props[key]
+        }
+      })
+      if (empty) {
+        handlerParam = undefined
+      }
+    }
 
     try {
       this.setState({
@@ -64,7 +86,7 @@ export default class ActionButton extends Component {
 
       const result = await handler(handlerParam)
 
-      const { redirectOnSuccess } = this.props
+      const { redirectOnSuccess } = props
       if (redirectOnSuccess) {
         return this.context.router.push(
           isFunction(redirectOnSuccess)
