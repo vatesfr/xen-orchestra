@@ -908,7 +908,9 @@ export default class Xapi extends XapiBase {
       },
       'streams',
       {
+        configurable: true,
         value: streams,
+        writable: true,
       }
     )
   }
