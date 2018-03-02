@@ -4,6 +4,7 @@ import { createSchedule } from '@xen-orchestra/cron'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../collection/redis'
+import patch from '../patch'
 import { asyncMap } from '../utils'
 
 export type Schedule = {|
@@ -34,19 +35,6 @@ class Schedules extends Collection {
     schedules.forEach(normalize)
     return schedules
   }
-}
-
-// patch o: assign properties from p
-// if the value of a p property is null, delete it from o
-const patch = <T: {}>(o: T, p: $Shape<T>) => {
-  Object.keys(p).forEach(k => {
-    const v: any = p[k]
-    if (v === null) {
-      delete o[k]
-    } else if (v !== undefined) {
-      o[k] = v
-    }
-  })
 }
 
 export default class Scheduling {
