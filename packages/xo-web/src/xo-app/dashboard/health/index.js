@@ -180,8 +180,7 @@ const ORPHANED_VDI_COLUMNS = [
 
 const CONTROL_DOMAIN_VDIS_ACTIONS = [
   {
-    disabled: selectedItems =>
-      some(map(selectedItems, 'vbd'), ['attached', false]),
+    disabled: selectedItems => some(selectedItems, ({ vbd }) => !vbd.attached),
     handler: disconnectVbds,
     icon: 'disconnect',
     individualDisabled: ({ vbd }) => !vbd.attached,
