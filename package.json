@@ -56,7 +56,7 @@
     "precommit": "scripts/lint-staged",
     "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
-    "test": "jest && flow status"
+    "test": "jest"
   },
   "workspaces": [
     "@xen-orchestra/*",

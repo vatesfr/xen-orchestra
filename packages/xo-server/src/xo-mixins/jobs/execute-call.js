@@ -1,6 +1,6 @@
 import { createPredicate } from 'value-matcher'
 import { timeout } from 'promise-toolbox'
-import { assign, filter, find, isEmpty, map, mapValues } from 'lodash'
+import { assign, filter, isEmpty, map, mapValues } from 'lodash'
 
 import { crossProduct } from '../../math'
 import { asyncMap, serializeError, thunkToArray } from '../../utils'
@@ -47,18 +47,16 @@ export function resolveParamsVector (paramsVector) {
 
 export default async function executeJobCall ({
   app,
-  data,
   job,
   logger,
   runJobId,
+  schedule,
   session,
 }) {
   const { paramsVector } = job
   const paramsFlatVector = paramsVector
     ? resolveParamsVector.call(app, paramsVector)
     : [{}] // One call with no parameters
-
-  const schedule = find(await app.getAllSchedules(), { jobId: job.id })
 
   const execStatus = {
     calls: {},
@@ -68,7 +66,6 @@ export default async function executeJobCall ({
   }
 
   await asyncMap(paramsFlatVector, params => {
-    Object.assign(params, data)
     const runCallId = logger.notice(
       `Starting ${job.method} call. (${job.id})`,
       {
