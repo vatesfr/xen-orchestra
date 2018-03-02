@@ -143,13 +143,20 @@ const COLUMNS_VM_PV = [
 
 const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
 
-const GROUPED_ACTIONS = [
+const ACTIONS = [
   {
     disabled: (selectedItems, userData) =>
       some(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]), 'attached'),
-    handler: deleteVbds,
-    handlerParam: (selectedItems, userData) =>
-      map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]),
+    handler: (selectedItems, userData) =>
+      deleteVbds(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id])),
+    individualDisabled: (vdi, userData) => {
+      const vbd = userData.vbdsByVdi[vdi.id]
+      return vbd !== undefined && vbd.attached
+    },
+    individualHandler: (vdi, userData) => {
+      const vbd = userData.vbdsByVdi[vdi.id]
+      return vbd !== undefined && deleteVbd(vbd)
+    },
     icon: 'vdi-forget',
     label: _('vdiForget'),
     level: 'danger',
@@ -158,8 +165,14 @@ const GROUPED_ACTIONS = [
     disabled: (selectedItems, userData) =>
       some(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]), 'attached'),
     handler: deleteVdis,
+    individualDisabled: (vdi, userData) => {
+      const vbd = userData.vbdsByVdi[vdi.id]
+      return vbd !== undefined && vbd.attached
+    },
+    individualHandler: deleteVdi,
+    individualLabel: _('vdiRemove'),
     icon: 'vdi-remove',
-    label: _('vdiRemove'),
+    label: _('deleteSelectedVdis'),
     level: 'danger',
   },
 ]
@@ -644,31 +657,8 @@ export default class TabDisks extends Component {
       icon: 'vdi-migrate',
       label: _('vdiMigrate'),
     },
-    {
-      disabled: (vdi, userData) => {
-        const vbd = userData.vbdsByVdi[vdi.id]
-        return vbd !== undefined && vbd.attached
-      },
-      handler: deleteVbd,
-      handlerParam: (vdi, userData) => {
-        const vbd = userData.vbdsByVdi[vdi.id]
-        return vbd !== undefined && vbd
-      },
-      icon: 'vdi-forget',
-      label: _('vdiForget'),
-      level: 'danger',
-    },
-    {
-      disabled: (vdi, userData) => {
-        const vbd = userData.vbdsByVdi[vdi.id]
-        return vbd !== undefined && vbd.attached
-      },
-      handler: deleteVdi,
-      icon: 'vdi-remove',
-      label: _('vdiRemove'),
-      level: 'danger',
-    },
   ]
+
   render () {
     const { srs, vbds, vdis, vm } = this.props
 
@@ -731,9 +721,9 @@ export default class TabDisks extends Component {
         <Row>
           <Col>
             <SortedTable
+              actions={ACTIONS}
               collection={vdis}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
-              groupedActions={GROUPED_ACTIONS}
               individualActions={this.individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'
