@@ -97,8 +97,8 @@ class JobsDb extends Collection {
     await this.update(serialize((job: any)))
   }
 
-  async get (): Promise<Array<Job>> {
-    const jobs = await super.get()
+  async get (properties): Promise<Array<Job>> {
+    const jobs = await super.get(properties)
     jobs.forEach(normalize)
     return jobs
   }
