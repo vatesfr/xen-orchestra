@@ -782,7 +782,8 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  // Create a snapshot of the VM and returns a delta export object.
+  // Create a snapshot (if necessary) of the VM and returns a delta export
+  // object.
   @cancelable
   @deferrable
   async exportDeltaVm (
@@ -800,16 +801,18 @@ export default class Xapi extends XapiBase {
       snapshotNameLabel = undefined,
     } = {}
   ) {
+    let vm = this.getObject(vmId)
     if (!bypassVdiChainsCheck) {
-      this._assertHealthyVdiChains(this.getObject(vmId))
+      this._assertHealthyVdiChains(this.getObject(vm))
     }
-
-    const vm = await this.snapshotVm(vmId)
-    $defer.onFailure(() => this._deleteVm(vm))
-    if (snapshotNameLabel) {
-      ;this._setObjectProperties(vm, {
-        nameLabel: snapshotNameLabel,
-      })::ignoreErrors()
+    if (!vm.is_a_snapshot) {
+      vm = await this.snapshotVm(vmId)
+      $defer.onFailure(() => this._deleteVm(vm))
+      if (snapshotNameLabel) {
+        ;this._setObjectProperties(vm, {
+          nameLabel: snapshotNameLabel,
+        })::ignoreErrors()
+      }
     }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
