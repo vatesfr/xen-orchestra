@@ -142,6 +142,7 @@ export default class Jobs {
   }
 
   async getAllJobs (type: string = 'call'): Promise<Array<Job>> {
+    // $FlowFixMe don't know what is the problem (JFT)
     const jobs = await this._jobs.get()
     const runningJobs = this._runningJobs
     const result = []
