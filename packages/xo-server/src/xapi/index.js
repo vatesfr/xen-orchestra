@@ -1434,7 +1434,7 @@ export default class Xapi extends XapiBase {
         'VM.snapshot_with_quiesce',
         vm.$ref,
         nameLabel
-      )
+      ).then(extractOpaqueRef)
       this.addTag(ref, 'quiesce')::ignoreErrors()
 
       await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
@@ -1455,7 +1455,7 @@ export default class Xapi extends XapiBase {
         'VM.snapshot',
         vm.$ref,
         nameLabel
-      )
+      ).then(extractOpaqueRef)
     }
     // Convert the template to a VM and wait to have receive the up-
     // to-date object.
