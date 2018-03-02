@@ -22,6 +22,8 @@ const constructPattern = values => ({
   },
 })
 
+const destructPattern = pattern => pattern.id.__or
+
 const removeScheduleFromSettings = tmpSchedules => {
   const newTmpSchedules = cloneDeep(tmpSchedules)
 
@@ -57,6 +59,12 @@ export default [
       name: '',
       remotes: [],
       schedules: {},
+      savedJob: {},
+      editedName: false,
+      editedRemotes: false,
+      editedSrs: false,
+      editedVms: false,
+      editedDelta: false,
       srs: [],
       vms: [],
       tmpSchedules: {},
@@ -79,16 +87,29 @@ export default [
       },
       createJob: () => async state => {
         await createBackupNgJob({
-          name: state.name,
+          name: estate.name,
           mode: state.delta ? 'delta' : 'full',
           remotes: constructPattern(state.remotes),
           schedules: state.tmpSchedules,
           settings: {
             ...removeScheduleFromSettings(state.tmpSchedules),
-            ...state.schedules,
           },
           srs: constructPattern(state.srs),
           vms: constructPattern(state.vms),
+        })
+      },
+      editJob: () => async (state, props) => {
+         await editBackupNgJob({
+          id: props.job.id,
+          name: state.name || props.name,
+          mode: (state.delta || props.delta) ? 'delta' : 'full',
+          remotes: state.remotes ? constructPattern(state.remotes) : props.remotes,
+          settings: {
+            ...removeScheduleFromSettings(state.tmpSchedules),
+            ...props.job.settings
+          },
+          srs: state.srs ? constructPattern(state.srs) : props.srs,
+          vms: state.vms ? constructPattern(state.vms) : props.vms,
         })
       },
       setTmpSchedule: (_, schedule) => state => ({
@@ -106,10 +127,21 @@ export default [
         ...state,
         snapshotRetention: value,
       }),
-      editSchedule: (
-        _,
-        { target: { dataset: { scheduleId } } }
-      ) => state => ({}),
+      populateSchedule: (_, { cron, timezone, ...props }) => state => ({
+        ...state,
+        ...props,
+        tmpSchedule: {
+          cron,
+          timezone
+        }
+      }),
+      editSchedule: (_, { scheduleId }) => async (state, props) => {
+        await editSchedule({
+          id: scheduleId,
+          jobId: props.job.id,
+          ...state.tmpSchedule
+        })
+      },
       editTmpSchedule: (_, { scheduleId }) => state => ({
         ...state,
         tmpSchedules: {
@@ -123,20 +155,39 @@ export default [
       }),
       setDelta: (_, { target: { value } }) => state => ({
         ...state,
+        editedDelta: true,
         delta: value,
       }),
       setName: (_, { target: { value } }) => state => ({
         ...state,
+        editedName: true,
         name: value,
       }),
-      setRemotes: (_, remotes) => state => ({ ...state, remotes }),
-      setSrs: (_, srs) => state => ({ ...state, srs }),
-      setVms: (_, vms) => state => ({ ...state, vms }),
+      setRemotes: (_, remotes) => state => ({ ...state, editedRemotes: true, remotes }),
+      setSrs: (_, srs) => state => ({ ...state, editedSrs: true, srs }),
+      setVms: (_, vms) => state => ({ ...state, editedVms: true, vms }),
     },
     computed: {
+      schedules: (state, { schedules }) => schedules,
+      jobSettings: (state, { job: { settings } }) =>  settings,
+      getName: (state, { job }) => (state.editedName || job === undefined)
+        ? state.name
+        : job.name,
+      getRemotes: (state, { job }) => (state.editedRemotes || job === undefined)
+        ? state.remotes
+        : destructPattern(job.remotes),
+      getSrs: (state, { job }) => (state.editedSrs || job === undefined)
+        ? state.srs
+        : destructPattern(job.srs),
+      getVms: (state, { job }) => (state.editedVms || job === undefined)
+        ? state.vms
+        : destructPattern(job.vms),
+      getDelta: (state, { job }) => (state.editedDelta || job === undefined)
+        ? state.delta
+        : job.delta,
       isInvalid: state =>
         state.name.trim() === '' ||
-        (isEmpty(state.schedules) && isEmpty(state.tmpSchedules)),
+        (isEmpty(state.schedules) && isEmpty(state.tmpSchedules)&& isEmpty(state.vms)),
       sortedSchedules: ({ schedules }) => orderBy(schedules, 'name'),
       // TO DO: use sortedTmpSchedules
       sortedTmpSchedules: ({ tmpSchedules }) => orderBy(tmpSchedules, 'id'),
@@ -150,36 +201,38 @@ export default [
         <label>
           <strong>Name</strong>
         </label>
-        <Input onChange={effects.setName} value={state.name} />
+        <Input onChange={effects.setName} value={state.getName} />
       </FormGroup>
       <FormGroup>
-        <label>Target remotes (for Export)</label>
+        <label>
+          <strong>Target remotes (for Export)</strong>
+        </label>
         <SelectRemote
           multi
           onChange={effects.setRemotes}
-          value={state.remotes}
+          value={state.getRemotes}
         />
       </FormGroup>
       <FormGroup>
         <label>
-          Target SRs (for Replication)
-          <SelectSr multi onChange={effects.setSrs} value={state.srs} />
+          <strong>Target SRs (for Replication)</strong>
         </label>
+        <SelectSr multi onChange={effects.setSrs} value={state.getSrs} />
       </FormGroup>
       <FormGroup>
         <label>
-          Vms to Backup
-          <SelectVm multi onChange={effects.setVms} value={state.vms} />
+          <strong>Vms to Backup</strong>
         </label>
+        <SelectVm multi onChange={effects.setVms} value={state.getVms} />
       </FormGroup>
-      {false /* TODO: remove when implemented */ && (!isEmpty(state.srs) || !isEmpty(state.remotes)) && (
+      {false /* TODO: remove when implemented */ && (!isEmpty(state.getSrs) || !isEmpty(state.getRemotes)) && (
         <Upgrade place='newBackup' required={4}>
           <FormGroup>
             <label>
               <input
                 type='checkbox'
                 onChange={effects.setDelta}
-                value={state.delta}
+                value={state.getDelta}
               />{' '}
               Use delta
             </label>
@@ -192,11 +245,21 @@ export default [
           <ul>
             {state.sortedSchedules.map(schedule => (
               <li key={schedule.id}>
-                {schedule.name} {schedule.cron} {schedule.timezone}
+                {schedule.name} {schedule.cron} {schedule.timezone} {state.jobSettings[schedule.id].exportRetention}{' '}
+                {state.jobSettings[schedule.id].snapshotRetention}
+                <ActionButton
+                  handler={effects.populateSchedule}
+                  data-cron={schedule.cron}
+                  data-timezone={schedule.timezone}
+                  data-exportRetention={state.jobSettings[schedule.id].exportRetention}
+                  data-snapshotRetention={state.jobSettings[schedule.id].snapshotRetention}
+                  icon='edit'
+                  size='small'
+                />
                 <ActionButton
                   data-scheduleId={schedule.id}
                   handler={effects.editSchedule}
-                  icon='edit'
+                  icon='save'
                   size='small'
                 />
               </li>
@@ -224,7 +287,7 @@ export default [
         </FormGroup>
       )}
       <FormGroup>
-        <h1>BackupNG</h1>
+        <h1>Schedule</h1>
         <label>
           <strong>Export retention</strong>
         </label>
@@ -263,6 +326,13 @@ export default [
         icon='save'
       >
         Create
+      </ActionButton>
+      <ActionButton
+        handler={effects.editJob}
+        icon='save'
+        redirectOnSuccess='/backup-ng'
+      >
+        Edit
       </ActionButton>
     </form>
   ),

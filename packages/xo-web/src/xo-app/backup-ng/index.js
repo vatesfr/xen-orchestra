@@ -114,7 +114,7 @@ class JobsTable extends React.Component {
         component: _ => (
           <SchedulePreviewBody
             job={_.item}
-            schedules={_.userData.schedulesByJob[_.item.id]}
+            schedules={_.userData.schedulesByJob && _.userData.schedulesByJob[_.item.id]}
           />
         ),
         name: <SchedulePreviewHeader />,
