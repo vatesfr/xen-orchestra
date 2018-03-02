@@ -10,6 +10,8 @@ import {
   validChecksumOfReadStream,
 } from '../utils'
 
+const checksumFile = file => file + '.checksum'
+
 export default class RemoteHandlerAbstract {
   constructor (remote) {
     this._remote = { ...remote, ...parse(remote.url) }
@@ -92,8 +94,15 @@ export default class RemoteHandlerAbstract {
     return this.createReadStream(file, options).then(streamToBuffer)
   }
 
-  async rename (oldPath, newPath) {
-    return this._rename(oldPath, newPath)
+  async rename (oldPath, newPath, { checksum = false } = {}) {
+    let p = this._rename(oldPath, newPath)
+    if (checksum) {
+      p = Promise.all([
+        p,
+        this._rename(checksumFile(oldPath), checksumFile(newPath)),
+      ])
+    }
+    return p
   }
 
   async _rename (oldPath, newPath) {
@@ -143,7 +152,7 @@ export default class RemoteHandlerAbstract {
     // avoid a unhandled rejection warning
     ;streamP::ignoreErrors()
 
-    return this.readFile(`${path}.checksum`).then(
+    return this.readFile(checksumFile(path)).then(
       checksum =>
         streamP.then(stream => {
           const { length } = stream
@@ -185,7 +194,7 @@ export default class RemoteHandlerAbstract {
     const stream = addChecksumToReadStream(await this.createReadStream(path))
     stream.resume() // start reading the whole file
     const checksum = await stream.checksum
-    await this.outputFile(`${path}.checksum`, checksum)
+    await this.outputFile(checksumFile(path), checksum)
   }
 
   async createOutputStream (file, { checksum = false, ...options } = {}) {
@@ -210,7 +219,7 @@ export default class RemoteHandlerAbstract {
     streamWithChecksum.pipe(stream)
 
     streamWithChecksum.checksum
-      .then(value => this.outputFile(`${path}.checksum`, value))
+      .then(value => this.outputFile(checksumFile(path), value))
       .catch(forwardError)
 
     return connectorStream
