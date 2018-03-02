@@ -1163,6 +1163,9 @@ const messages = {
   restoreFilesUnselectAll: 'Unselect all files',
 
   // ----- Modals -----
+  emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
+  emergencyShutdownHostModalMessage:
+    'Are you sure you want to shutdown {host}?',
   emergencyShutdownHostsModalTitle:
     'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
   emergencyShutdownHostsModalMessage:

@@ -656,7 +656,12 @@ export const getHostMissingPatches = host =>
   )
 
 export const emergencyShutdownHost = host =>
-  _call('host.emergencyShutdownHost', { host: resolveId(host) })
+  confirm({
+    title: _('emergencyShutdownHostModalTitle'),
+    body: _('emergencyShutdownHostModalMessage', {
+      host: <strong>{host.name_label}</strong>,
+    }),
+  }).then(() => _call('host.emergencyShutdownHost', { host: resolveId(host) }))
 
 export const emergencyShutdownHosts = hosts => {
   const nHosts = size(hosts)
