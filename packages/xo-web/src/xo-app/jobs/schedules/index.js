@@ -39,18 +39,18 @@ const COLUMNS = [
   },
   {
     itemRenderer: (schedule, userData) => {
-      const job = userData.jobs[schedule.job]
+      const job = userData.jobs[schedule.jobId]
       if (job !== undefined) {
         return (
           <span>
             {job.name} - {job.method}{' '}
-            <span className='text-muted'>({schedule.job.slice(4, 8)})</span>
+            <span className='text-muted'>({schedule.jobId.slice(4, 8)})</span>
           </span>
         )
       }
     },
     name: _('job'),
-    sortCriteria: (schedule, userData) => userData.jobs[schedule.job].name,
+    sortCriteria: (schedule, userData) => userData.jobs[schedule.jobId].name,
   },
   {
     itemRenderer: schedule => schedule.cron,
@@ -115,7 +115,7 @@ export default class Schedules extends Component {
       }
       for (const id in schedules) {
         const schedule = schedules[id]
-        const scheduleJob = find(jobs, job => job.id === schedule.job)
+        const scheduleJob = find(jobs, job => job.id === schedule.jobId)
         if (scheduleJob && scheduleJob.key === JOB_KEY) {
           s[id] = schedule
         }
@@ -134,7 +134,7 @@ export default class Schedules extends Component {
     const { cronPattern, schedule, timezone } = this.state
     let save
     if (schedule) {
-      schedule.job = job.value.id
+      schedule.jobId = job.value.id
       schedule.cron = cronPattern
       schedule.name = name.value
       schedule.timezone = timezone
@@ -165,7 +165,7 @@ export default class Schedules extends Component {
 
     const { name, job } = this.refs
     name.value = schedule.name
-    job.value = jobs[schedule.job]
+    job.value = jobs[schedule.jobId]
     this.setState({
       cronPattern: schedule.cron,
       schedule,

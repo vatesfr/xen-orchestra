@@ -17,37 +17,40 @@ get.params = {
   id: { type: 'string' },
 }
 
-export async function create ({ jobId, cron, enabled, name, timezone }) {
-  return /* await */ this.createSchedule(this.session.get('user_id'), {
-    job: jobId,
+export function create ({ cron, enabled, jobId, name, timezone }) {
+  return this.createSchedule({
     cron,
     enabled,
+    jobId,
     name,
     timezone,
+    userId: this.session.get('user_id'),
   })
 }
 
 create.permission = 'admin'
 create.description = 'Creates a new schedule'
 create.params = {
-  jobId: { type: 'string' },
   cron: { type: 'string' },
   enabled: { type: 'boolean', optional: true },
+  jobId: { type: 'string' },
   name: { type: 'string', optional: true },
+  timezone: { type: 'string', optional: true },
 }
 
-export async function set ({ id, jobId, cron, enabled, name, timezone }) {
-  await this.updateSchedule(id, { job: jobId, cron, enabled, name, timezone })
+export async function set ({ cron, enabled, id, jobId, name, timezone }) {
+  await this.updateSchedule({ cron, enabled, id, jobId, name, timezone })
 }
 
 set.permission = 'admin'
 set.description = 'Modifies an existing schedule'
 set.params = {
-  id: { type: 'string' },
-  jobId: { type: 'string', optional: true },
   cron: { type: 'string', optional: true },
   enabled: { type: 'boolean', optional: true },
+  id: { type: 'string' },
+  jobId: { type: 'string', optional: true },
   name: { type: 'string', optional: true },
+  timezone: { type: 'string', optional: true },
 }
 
 async function delete_ ({ id }) {

@@ -42,16 +42,16 @@ import {
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
 } from 'xo'
-import {
-  createGetObjectsOfType,
-  createSelector,
-  getCheckPermissions,
-  isAdmin,
-} from 'selectors'
+import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
+
+// Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
+// https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
+const SHARE_BUTTON_STYLE = { height: '38px' }
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
 const fullCopy = vm => cloneVm(vm, true)
+const shareVmProxy = vm => shareVm(vm, vm.resourceSet)
 
 @connectStore(() => {
   const getAffinityHost = createGetObjectsOfType('host').find((_, { vm }) => ({
@@ -125,31 +125,6 @@ class ResourceSetItem extends Component {
     return this.props.resourceSets === undefined
       ? null
       : renderXoItem(this._getResourceSet())
-  }
-}
-
-@addSubscriptions({
-  resourceSets: subscribeResourceSets,
-})
-class ShareVmButton extends Component {
-  _shareVm = () => {
-    const { resourceSets, vm } = this.props
-
-    return shareVm(vm, {
-      ...find(resourceSets, { id: vm.resourceSet }),
-      type: 'resourceSet',
-    })
-  }
-
-  render () {
-    return (
-      <TabButton
-        btnStyle='primary'
-        handler={this._shareVm}
-        icon='vm-share'
-        labelId='vmShareButton'
-      />
-    )
   }
 }
 
@@ -315,332 +290,322 @@ export default connectStore(() => {
     createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup'))
   )
 
-  const getCanAdministrate = createSelector(
-    getCheckPermissions,
-    (_, props) => props.vm.id,
-    (check, id) => check(id, 'administrate')
-  )
-
   return {
-    canAdministrate: getCanAdministrate,
     gpuGroup: getGpuGroup,
     isAdmin,
     vgpus: getVgpus,
     vgpuTypes: getVgpuTypes,
   }
-})(
-  ({ canAdministrate, container, gpuGroup, isAdmin, vgpus, vgpuTypes, vm }) => (
-    <Container>
-      <Row>
-        <Col className='text-xs-right'>
-          {(isAdmin || canAdministrate) &&
-            vm.resourceSet != null && <ShareVmButton vm={vm} />}
-          {vm.power_state === 'Running' && (
-            <span>
-              <TabButton
-                btnStyle='primary'
-                handler={suspendVm}
-                handlerParam={vm}
-                icon='vm-suspend'
-                labelId='suspendVmLabel'
-              />
-              <TabButton
-                btnStyle='warning'
-                handler={forceReboot}
-                handlerParam={vm}
-                icon='vm-force-reboot'
-                labelId='forceRebootVmLabel'
-              />
-              <TabButton
-                btnStyle='warning'
-                handler={forceShutdown}
-                handlerParam={vm}
-                icon='vm-force-shutdown'
-                labelId='forceShutdownVmLabel'
-              />
-            </span>
-          )}
-          {vm.power_state === 'Halted' && (
-            <span>
-              <TabButton
-                btnStyle='primary'
-                handler={recoveryStartVm}
-                handlerParam={vm}
-                icon='vm-recovery-mode'
-                labelId='recoveryModeLabel'
-              />
-              <TabButton
-                btnStyle='primary'
-                handler={fullCopy}
-                handlerParam={vm}
-                icon='vm-clone'
-                labelId='cloneVmLabel'
-              />
-              <TabButton
-                btnStyle='danger'
-                handler={convertVmToTemplate}
-                handlerParam={vm}
-                icon='vm-create-template'
-                labelId='vmConvertButton'
-                redirectOnSuccess='/'
-              />
-            </span>
-          )}
-          {vm.power_state === 'Suspended' && (
-            <span>
-              <TabButton
-                btnStyle='primary'
-                handler={resumeVm}
-                handlerParam={vm}
-                icon='vm-start'
-                labelId='resumeVmLabel'
-              />
-              <TabButton
-                btnStyle='warning'
-                handler={forceShutdown}
-                handlerParam={vm}
-                icon='vm-force-shutdown'
-                labelId='forceShutdownVmLabel'
-              />
-            </span>
-          )}
-          <TabButton
-            btnStyle='danger'
-            handler={deleteVm}
-            handlerParam={vm}
-            icon='vm-delete'
-            labelId='vmRemoveButton'
-          />
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <h3>{_('xenSettingsLabel')}</h3>
-          <table className='table'>
-            <tbody>
+})(({ container, gpuGroup, isAdmin, vgpus, vgpuTypes, vm }) => (
+  <Container>
+    <Row>
+      <Col className='text-xs-right'>
+        {vm.power_state === 'Running' && (
+          <span>
+            <TabButton
+              btnStyle='primary'
+              handler={suspendVm}
+              handlerParam={vm}
+              icon='vm-suspend'
+              labelId='suspendVmLabel'
+            />
+            <TabButton
+              btnStyle='warning'
+              handler={forceReboot}
+              handlerParam={vm}
+              icon='vm-force-reboot'
+              labelId='forceRebootVmLabel'
+            />
+            <TabButton
+              btnStyle='warning'
+              handler={forceShutdown}
+              handlerParam={vm}
+              icon='vm-force-shutdown'
+              labelId='forceShutdownVmLabel'
+            />
+          </span>
+        )}
+        {vm.power_state === 'Halted' && (
+          <span>
+            <TabButton
+              btnStyle='primary'
+              handler={recoveryStartVm}
+              handlerParam={vm}
+              icon='vm-recovery-mode'
+              labelId='recoveryModeLabel'
+            />
+            <TabButton
+              btnStyle='primary'
+              handler={fullCopy}
+              handlerParam={vm}
+              icon='vm-clone'
+              labelId='cloneVmLabel'
+            />
+            <TabButton
+              btnStyle='danger'
+              handler={convertVmToTemplate}
+              handlerParam={vm}
+              icon='vm-create-template'
+              labelId='vmConvertButton'
+              redirectOnSuccess='/'
+            />
+          </span>
+        )}
+        {vm.power_state === 'Suspended' && (
+          <span>
+            <TabButton
+              btnStyle='primary'
+              handler={resumeVm}
+              handlerParam={vm}
+              icon='vm-start'
+              labelId='resumeVmLabel'
+            />
+            <TabButton
+              btnStyle='warning'
+              handler={forceShutdown}
+              handlerParam={vm}
+              icon='vm-force-shutdown'
+              labelId='forceShutdownVmLabel'
+            />
+          </span>
+        )}
+        <TabButton
+          btnStyle='danger'
+          handler={deleteVm}
+          handlerParam={vm}
+          icon='vm-delete'
+          labelId='vmRemoveButton'
+        />
+      </Col>
+    </Row>
+    <Row>
+      <Col>
+        <h3>{_('xenSettingsLabel')}</h3>
+        <table className='table'>
+          <tbody>
+            <tr>
+              <th>{_('uuid')}</th>
+              <Copiable tagName='td'>{vm.uuid}</Copiable>
+            </tr>
+            <tr>
+              <th>{_('virtualizationMode')}</th>
+              <td>
+                {vm.virtualizationMode === 'pv'
+                  ? _('paraVirtualizedMode')
+                  : _('hardwareVirtualizedMode')}
+              </td>
+            </tr>
+            {vm.virtualizationMode === 'pv' && (
               <tr>
-                <th>{_('uuid')}</th>
-                <Copiable tagName='td'>{vm.uuid}</Copiable>
-              </tr>
-              <tr>
-                <th>{_('virtualizationMode')}</th>
+                <th>{_('pvArgsLabel')}</th>
                 <td>
-                  {vm.virtualizationMode === 'pv'
-                    ? _('paraVirtualizedMode')
-                    : _('hardwareVirtualizedMode')}
+                  <Text
+                    value={vm.PV_args}
+                    onChange={value => editVm(vm, { PV_args: value })}
+                  />
                 </td>
               </tr>
-              {vm.virtualizationMode === 'pv' && (
-                <tr>
-                  <th>{_('pvArgsLabel')}</th>
-                  <td>
-                    <Text
-                      value={vm.PV_args}
-                      onChange={value => editVm(vm, { PV_args: value })}
-                    />
-                  </td>
-                </tr>
-              )}
+            )}
+            <tr>
+              <th>{_('cpuWeightLabel')}</th>
+              <td>
+                <Number
+                  value={vm.cpuWeight == null ? null : vm.cpuWeight}
+                  onChange={value => editVm(vm, { cpuWeight: value })}
+                  nullable
+                >
+                  {vm.cpuWeight == null
+                    ? _('defaultCpuWeight', { value: XEN_DEFAULT_CPU_WEIGHT })
+                    : vm.cpuWeight}
+                </Number>
+              </td>
+            </tr>
+            <tr>
+              <th>{_('cpuCapLabel')}</th>
+              <td>
+                <Number
+                  value={vm.cpuCap == null ? null : vm.cpuCap}
+                  onChange={value => editVm(vm, { cpuCap: value })}
+                  nullable
+                >
+                  {vm.cpuCap == null
+                    ? _('defaultCpuCap', { value: XEN_DEFAULT_CPU_CAP })
+                    : vm.cpuCap}
+                </Number>
+              </td>
+            </tr>
+            <tr>
+              <th>{_('autoPowerOn')}</th>
+              <td>
+                <Toggle
+                  value={Boolean(vm.auto_poweron)}
+                  onChange={value => editVm(vm, { auto_poweron: value })}
+                />
+              </td>
+            </tr>
+            <tr>
+              <th>{_('ha')}</th>
+              <td>
+                <Toggle
+                  value={vm.high_availability}
+                  onChange={value => editVm(vm, { high_availability: value })}
+                />
+              </td>
+            </tr>
+            <tr>
+              <th>{_('vmAffinityHost')}</th>
+              <td>
+                <AffinityHost vm={vm} />
+              </td>
+            </tr>
+            {vm.virtualizationMode === 'hvm' && (
               <tr>
-                <th>{_('cpuWeightLabel')}</th>
+                <th>{_('vmVgpus')}</th>
                 <td>
-                  <Number
-                    value={vm.cpuWeight == null ? null : vm.cpuWeight}
-                    onChange={value => editVm(vm, { cpuWeight: value })}
-                    nullable
-                  >
-                    {vm.cpuWeight == null
-                      ? _('defaultCpuWeight', { value: XEN_DEFAULT_CPU_WEIGHT })
-                      : vm.cpuWeight}
-                  </Number>
+                  <Vgpus vgpus={vgpus} vm={vm} />
                 </td>
               </tr>
+            )}
+            {vm.virtualizationMode === 'hvm' && (
               <tr>
-                <th>{_('cpuCapLabel')}</th>
-                <td>
-                  <Number
-                    value={vm.cpuCap == null ? null : vm.cpuCap}
-                    onChange={value => editVm(vm, { cpuCap: value })}
-                    nullable
-                  >
-                    {vm.cpuCap == null
-                      ? _('defaultCpuCap', { value: XEN_DEFAULT_CPU_CAP })
-                      : vm.cpuCap}
-                  </Number>
-                </td>
-              </tr>
-              <tr>
-                <th>{_('autoPowerOn')}</th>
+                <th>{_('vmVga')}</th>
                 <td>
                   <Toggle
-                    value={Boolean(vm.auto_poweron)}
-                    onChange={value => editVm(vm, { auto_poweron: value })}
+                    value={vm.vga === 'std'}
+                    onChange={value =>
+                      editVm(vm, { vga: value ? 'std' : 'cirrus' })
+                    }
                   />
                 </td>
               </tr>
+            )}
+            {vm.vga === 'std' && (
               <tr>
-                <th>{_('ha')}</th>
+                <th>{_('vmVideoram')}</th>
                 <td>
-                  <Toggle
-                    value={vm.high_availability}
-                    onChange={value => editVm(vm, { high_availability: value })}
-                  />
+                  <select
+                    className='form-control'
+                    onChange={event =>
+                      editVm(vm, { videoram: +getEventValue(event) })
+                    }
+                    value={vm.videoram}
+                  >
+                    {map(XEN_VIDEORAM_VALUES, val => (
+                      <option key={val} value={val}>
+                        {formatSize(val * 1048576)}
+                      </option>
+                    ))}
+                  </select>
                 </td>
               </tr>
-              <tr>
-                <th>{_('vmAffinityHost')}</th>
-                <td>
-                  <AffinityHost vm={vm} />
-                </td>
-              </tr>
-              {vm.virtualizationMode === 'hvm' && (
-                <tr>
-                  <th>{_('vmVgpus')}</th>
-                  <td>
-                    <Vgpus vgpus={vgpus} vm={vm} />
-                  </td>
-                </tr>
-              )}
-              {vm.virtualizationMode === 'hvm' && (
-                <tr>
-                  <th>{_('vmVga')}</th>
-                  <td>
-                    <Toggle
-                      value={vm.vga === 'std'}
-                      onChange={value =>
-                        editVm(vm, { vga: value ? 'std' : 'cirrus' })
-                      }
-                    />
-                  </td>
-                </tr>
-              )}
-              {vm.vga === 'std' && (
-                <tr>
-                  <th>{_('vmVideoram')}</th>
-                  <td>
-                    <select
-                      className='form-control'
-                      onChange={event =>
-                        editVm(vm, { videoram: +getEventValue(event) })
-                      }
-                      value={vm.videoram}
-                    >
-                      {map(XEN_VIDEORAM_VALUES, val => (
-                        <option key={val} value={val}>
-                          {formatSize(val * 1048576)}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          <br />
-          <h3>{_('vmLimitsLabel')}</h3>
-          <table className='table table-hover'>
-            <tbody>
-              <tr>
-                <th>{_('vmCpuLimitsLabel')}</th>
-                <td>
+            )}
+          </tbody>
+        </table>
+        <br />
+        <h3>{_('vmLimitsLabel')}</h3>
+        <table className='table table-hover'>
+          <tbody>
+            <tr>
+              <th>{_('vmCpuLimitsLabel')}</th>
+              <td>
+                <Number
+                  value={vm.CPUs.number}
+                  onChange={cpus => editVm(vm, { cpus })}
+                />
+                /
+                {vm.power_state === 'Running' ? (
+                  vm.CPUs.max
+                ) : (
                   <Number
-                    value={vm.CPUs.number}
-                    onChange={cpus => editVm(vm, { cpus })}
+                    value={vm.CPUs.max}
+                    onChange={cpusStaticMax => editVm(vm, { cpusStaticMax })}
                   />
-                  /
-                  {vm.power_state === 'Running' ? (
-                    vm.CPUs.max
-                  ) : (
-                    <Number
-                      value={vm.CPUs.max}
-                      onChange={cpusStaticMax => editVm(vm, { cpusStaticMax })}
-                    />
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <th>{_('vmCpuTopology')}</th>
-                <td>
-                  <CoresPerSocket container={container} vm={vm} />
-                </td>
-              </tr>
-              <tr>
-                <th>{_('vmMemoryLimitsLabel')}</th>
-                <td>
-                  <p>
-                    Static: {formatSize(vm.memory.static[0])}/<Size
-                      value={defined(vm.memory.static[1], null)}
-                      onChange={memoryStaticMax =>
-                        editVm(vm, { memoryStaticMax })
-                      }
-                    />
-                  </p>
-                  <p>
-                    Dynamic:{' '}
-                    <Size
-                      value={defined(vm.memory.dynamic[0], null)}
-                      onChange={memoryMin => editVm(vm, { memoryMin })}
-                    />/<Size
-                      value={defined(vm.memory.dynamic[1], null)}
-                      onChange={memoryMax => editVm(vm, { memoryMax })}
-                    />
-                  </p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <br />
-          <h3>{_('guestOsLabel')}</h3>
-          <table className='table table-hover'>
-            <tbody>
-              <tr>
-                <th>{_('xenToolsStatus')}</th>
-                <td>
-                  {_('xenToolsStatusValue', {
-                    status: normalizeXenToolsStatus(vm.xenTools),
-                  })}
-                </td>
-              </tr>
-              <tr>
-                <th>{_('osName')}</th>
-                <td>
-                  {isEmpty(vm.os_version) ? (
-                    _('unknownOsName')
-                  ) : (
-                    <span>
-                      <Icon
-                        className='text-info'
-                        icon={osFamily(vm.os_version.distro)}
-                      />&nbsp;{vm.os_version.name}
-                    </span>
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <th>{_('osKernel')}</th>
-                <td>
-                  {(vm.os_version && vm.os_version.uname) ||
-                    _('unknownOsKernel')}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <br />
-          <h3>{_('miscLabel')}</h3>
-          <table className='table table-hover'>
-            <tbody>
-              <tr>
-                <th>{_('originalTemplate')}</th>
-                <td>
-                  {vm.other.base_template_name
-                    ? vm.other.base_template_name
-                    : _('unknownOriginalTemplate')}
-                </td>
-              </tr>
-              <tr>
-                <th>{_('resourceSet')}</th>
-                <td>
-                  {isAdmin ? (
+                )}
+              </td>
+            </tr>
+            <tr>
+              <th>{_('vmCpuTopology')}</th>
+              <td>
+                <CoresPerSocket container={container} vm={vm} />
+              </td>
+            </tr>
+            <tr>
+              <th>{_('vmMemoryLimitsLabel')}</th>
+              <td>
+                <p>
+                  Static: {formatSize(vm.memory.static[0])}/<Size
+                    value={defined(vm.memory.static[1], null)}
+                    onChange={memoryStaticMax =>
+                      editVm(vm, { memoryStaticMax })
+                    }
+                  />
+                </p>
+                <p>
+                  Dynamic:{' '}
+                  <Size
+                    value={defined(vm.memory.dynamic[0], null)}
+                    onChange={memoryMin => editVm(vm, { memoryMin })}
+                  />/<Size
+                    value={defined(vm.memory.dynamic[1], null)}
+                    onChange={memoryMax => editVm(vm, { memoryMax })}
+                  />
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <br />
+        <h3>{_('guestOsLabel')}</h3>
+        <table className='table table-hover'>
+          <tbody>
+            <tr>
+              <th>{_('xenToolsStatus')}</th>
+              <td>
+                {_('xenToolsStatusValue', {
+                  status: normalizeXenToolsStatus(vm.xenTools),
+                })}
+              </td>
+            </tr>
+            <tr>
+              <th>{_('osName')}</th>
+              <td>
+                {isEmpty(vm.os_version) ? (
+                  _('unknownOsName')
+                ) : (
+                  <span>
+                    <Icon
+                      className='text-info'
+                      icon={osFamily(vm.os_version.distro)}
+                    />&nbsp;{vm.os_version.name}
+                  </span>
+                )}
+              </td>
+            </tr>
+            <tr>
+              <th>{_('osKernel')}</th>
+              <td>
+                {(vm.os_version && vm.os_version.uname) || _('unknownOsKernel')}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <br />
+        <h3>{_('miscLabel')}</h3>
+        <table className='table table-hover'>
+          <tbody>
+            <tr>
+              <th>{_('originalTemplate')}</th>
+              <td>
+                {vm.other.base_template_name
+                  ? vm.other.base_template_name
+                  : _('unknownOriginalTemplate')}
+              </td>
+            </tr>
+            <tr>
+              <th>{_('resourceSet')}</th>
+              <td>
+                {isAdmin ? (
+                  <div className='input-group'>
                     <SelectResourceSet
                       onChange={resourceSet =>
                         editVm(vm, {
@@ -650,17 +615,39 @@ export default connectStore(() => {
                       }
                       value={vm.resourceSet}
                     />
-                  ) : vm.resourceSet !== undefined ? (
-                    <ResourceSetItem id={vm.resourceSet} />
-                  ) : (
-                    _('resourceSetNone')
-                  )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </Col>
-      </Row>
-    </Container>
-  )
-)
+                    {vm.resourceSet !== undefined && (
+                      <span className='input-group-btn'>
+                        <ActionButton
+                          btnStyle='primary'
+                          handler={shareVmProxy}
+                          handlerParam={vm}
+                          icon='vm-share'
+                          style={SHARE_BUTTON_STYLE}
+                          tooltip={_('vmShareButton')}
+                        />
+                      </span>
+                    )}
+                  </div>
+                ) : vm.resourceSet !== undefined ? (
+                  <span>
+                    <ResourceSetItem id={vm.resourceSet} />{' '}
+                    <ActionButton
+                      btnStyle='primary'
+                      handler={shareVmProxy}
+                      handlerParam={vm}
+                      icon='vm-share'
+                      size='small'
+                      tooltip={_('vmShareButton')}
+                    />
+                  </span>
+                ) : (
+                  _('resourceSetNone')
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </Col>
+    </Row>
+  </Container>
+))

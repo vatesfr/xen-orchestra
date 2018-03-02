@@ -209,15 +209,19 @@ class IndividualAction extends Component {
       isFunction(disabled) ? disabled(item, userData) : disabled
   )
 
+  _executeAction = () => {
+    const p = this.props
+    return p.handler(p.item, p.userData)
+  }
+
   render () {
-    const { icon, label, level, handler, item } = this.props
+    const { icon, label, level } = this.props
 
     return (
       <ActionRowButton
         btnStyle={level}
         disabled={this._getIsDisabled()}
-        handler={handler}
-        handlerParam={item}
+        handler={this._executeAction}
         icon={icon}
         tooltip={label}
       />
@@ -234,15 +238,19 @@ class GroupedAction extends Component {
       isFunction(disabled) ? disabled(selectedItems, userData) : disabled
   )
 
+  _executeAction = () => {
+    const p = this.props
+    return p.handler(p.selectedItems, p.userData)
+  }
+
   render () {
-    const { icon, label, level, handler, selectedItems } = this.props
+    const { icon, label, level } = this.props
 
     return (
       <ActionRowButton
         btnStyle={level}
         disabled={this._getIsDisabled()}
-        handler={handler}
-        handlerParam={selectedItems}
+        handler={this._executeAction}
         icon={icon}
         tooltip={label}
       />

@@ -300,10 +300,6 @@ export const subscribeResourceSets = createSubscription(() =>
   _call('resourceSet.getAll')
 )
 
-export const subscribeScheduleTable = createSubscription(() =>
-  _call('scheduler.getScheduleTable')
-)
-
 export const subscribeSchedules = createSubscription(() =>
   _call('schedule.getAll')
 )
@@ -660,7 +656,12 @@ export const getHostMissingPatches = host =>
   )
 
 export const emergencyShutdownHost = host =>
-  _call('host.emergencyShutdownHost', { host: resolveId(host) })
+  confirm({
+    title: _('emergencyShutdownHostModalTitle'),
+    body: _('emergencyShutdownHostModalMessage', {
+      host: <strong>{host.name_label}</strong>,
+    }),
+  }).then(() => _call('host.emergencyShutdownHost', { host: resolveId(host) }))
 
 export const emergencyShutdownHosts = hosts => {
   const nHosts = size(hosts)
@@ -1118,12 +1119,13 @@ export const importDeltaBackup = ({ remote, file, sr, mapVdisSrs }) =>
   )
 
 import RevertSnapshotModalBody from './revert-snapshot-modal' // eslint-disable-line import/first
-export const revertSnapshot = vm =>
+export const revertSnapshot = snapshot =>
   confirm({
     title: _('revertVmModalTitle'),
     body: <RevertSnapshotModalBody />,
   }).then(
-    snapshotBefore => _call('vm.revert', { id: resolveId(vm), snapshotBefore }),
+    snapshotBefore =>
+      _call('vm.revert', { snapshot: resolveId(snapshot), snapshotBefore }),
     noop
   )
 
@@ -1201,11 +1203,14 @@ export const createVgpu = (vm, { gpuGroup, vgpuType }) =>
 
 export const deleteVgpu = vgpu => _call('vm.deleteVgpu', resolveIds({ vgpu }))
 
-export const shareVm = (vm, resourceSet) =>
+export const shareVm = async (vm, resourceSet) =>
   confirm({
     title: _('shareVmInResourceSetModalTitle'),
     body: _('shareVmInResourceSetModalMessage', {
-      self: renderXoItem(resourceSet),
+      self: renderXoItem({
+        ...(await getResourceSet(resourceSet)),
+        type: 'resourceSet',
+      }),
     }),
   }).then(() => editVm(vm, { share: true }), noop)
 
@@ -1563,7 +1568,7 @@ export const deleteBackupSchedule = async schedule => {
     body: _('deleteBackupScheduleQuestion'),
   })
   await _call('schedule.delete', { id: schedule.id })
-  await _call('job.delete', { id: schedule.job })
+  await _call('job.delete', { id: schedule.jobId })
 
   subscribeSchedules.forceRefresh()
   subscribeJobs.forceRefresh()
@@ -1586,23 +1591,14 @@ export const deleteSchedules = schedules =>
     )
   )
 
-export const disableSchedule = id =>
-  _call('scheduler.disable', { id })::tap(subscribeScheduleTable.forceRefresh)
+export const disableSchedule = id => editSchedule({ id, enabled: false })
 
-export const editSchedule = ({
-  id,
-  job: jobId,
-  cron,
-  enabled,
-  name,
-  timezone,
-}) =>
+export const editSchedule = ({ id, jobId, cron, enabled, name, timezone }) =>
   _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(
     subscribeSchedules.forceRefresh
   )
 
-export const enableSchedule = id =>
-  _call('scheduler.enable', { id })::tap(subscribeScheduleTable.forceRefresh)
+export const enableSchedule = id => editSchedule({ id, enabled: true })
 
 export const getSchedule = id => _call('schedule.get', { id })
 
@@ -1681,6 +1677,9 @@ export const deleteResourceSet = async id => {
 
 export const recomputeResourceSetsLimits = () =>
   _call('resourceSet.recomputeAllLimits')
+
+export const getResourceSet = id =>
+  _call('resourceSet.get', { id: resolveId(id) })
 
 // Remote ------------------------------------------------------------
 

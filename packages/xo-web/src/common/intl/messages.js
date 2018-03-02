@@ -207,6 +207,7 @@ const messages = {
   selectSshKey: 'Select SSH key(s)…',
   selectSrs: 'Select SR(s)…',
   selectVms: 'Select VM(s)…',
+  selectVmSnapshots: 'Select snapshot(s)…',
   selectVmTemplates: 'Select VM template(s)…',
   selectTags: 'Select tag(s)…',
   selectVdis: 'Select disk(s)…',
@@ -432,10 +433,10 @@ const messages = {
   groupNameColumn: 'Name',
   groupUsersColumn: 'Users',
   addUserToGroupColumn: 'Add User',
-  userNameColumn: 'Email',
+  userNameColumn: 'Username',
   userPermissionColumn: 'Permissions',
   userPasswordColumn: 'Password',
-  userName: 'Email',
+  userName: 'Username',
   userPassword: 'Password',
   createUserButton: 'Create',
   noUserFound: 'No user found',
@@ -1162,6 +1163,9 @@ const messages = {
   restoreFilesUnselectAll: 'Unselect all files',
 
   // ----- Modals -----
+  emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
+  emergencyShutdownHostModalMessage:
+    'Are you sure you want to shutdown {host}?',
   emergencyShutdownHostsModalTitle:
     'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
   emergencyShutdownHostsModalMessage:

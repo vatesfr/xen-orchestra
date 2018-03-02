@@ -22,7 +22,6 @@ import {
   runJob,
   subscribeJobs,
   subscribeSchedules,
-  subscribeScheduleTable,
   subscribeUsers,
 } from 'xo'
 
@@ -65,7 +64,7 @@ const JOB_COLUMNS = [
   },
   {
     name: _('jobState'),
-    itemRenderer: ({ schedule, scheduleToggleValue }) => (
+    itemRenderer: ({ schedule }) => (
       <StateButton
         disabledLabel={_('jobStateDisabled')}
         disabledHandler={enableSchedule}
@@ -74,10 +73,10 @@ const JOB_COLUMNS = [
         enabledHandler={disableSchedule}
         enabledTooltip={_('logIndicationToDisable')}
         handlerParam={schedule.id}
-        state={scheduleToggleValue}
+        state={schedule.enabled}
       />
     ),
-    sortCriteria: 'scheduleToggleValue',
+    sortCriteria: 'schedule.enabled',
   },
   {
     name: _('jobAction'),
@@ -114,7 +113,7 @@ const JOB_COLUMNS = [
             icon='run-schedule'
             btnStyle='warning'
             handler={runJob}
-            handlerParam={schedule.job}
+            handlerParam={schedule.jobId}
           />
         </ButtonGroup>
       </fieldset>
@@ -133,13 +132,6 @@ export default class Overview extends Component {
     router: React.PropTypes.object,
   }
 
-  constructor (props) {
-    super(props)
-    this.state = {
-      scheduleTable: {},
-    }
-  }
-
   componentWillMount () {
     const unsubscribeJobs = subscribeJobs(jobs => {
       const obj = {}
@@ -155,7 +147,7 @@ export default class Overview extends Component {
     const unsubscribeSchedules = subscribeSchedules(schedules => {
       // Get only backup jobs.
       schedules = filter(schedules, schedule => {
-        const job = this.state.jobs && this.state.jobs[schedule.job]
+        const job = this.state.jobs && this.state.jobs[schedule.jobId]
         return job && jobKeyToLabel[job.key]
       })
 
@@ -166,16 +158,9 @@ export default class Overview extends Component {
       })
     })
 
-    const unsubscribeScheduleTable = subscribeScheduleTable(scheduleTable => {
-      this.setState({
-        scheduleTable,
-      })
-    })
-
     this.componentWillUnmount = () => {
       unsubscribeJobs()
       unsubscribeSchedules()
-      unsubscribeScheduleTable()
     }
   }
 
@@ -188,15 +173,14 @@ export default class Overview extends Component {
 
   _getScheduleCollection = createSelector(
     () => this.state.schedules,
-    () => this.state.scheduleTable,
     () => this.state.jobs,
-    (schedules, scheduleTable, jobs) => {
+    (schedules, jobs) => {
       if (!schedules || !jobs) {
         return []
       }
 
       return map(schedules, schedule => {
-        const job = jobs[schedule.job]
+        const job = jobs[schedule.jobId]
         const { items } = job.paramsVector
         const pattern = get(items, '[1].collection.pattern')
 
@@ -212,7 +196,6 @@ export default class Overview extends Component {
             get(items, '[1].values[0].tag') ||
             schedule.id,
           schedule,
-          scheduleToggleValue: scheduleTable && scheduleTable[schedule.id],
         }
       })
     }
@@ -226,7 +209,7 @@ export default class Overview extends Component {
       const isScheduleUserMissing = {}
       forEach(schedules, schedule => {
         isScheduleUserMissing[schedule.id] = !!(
-          jobs && find(users, user => user.id === jobs[schedule.job].userId)
+          jobs && find(users, user => user.id === jobs[schedule.jobId].userId)
         )
       })
 

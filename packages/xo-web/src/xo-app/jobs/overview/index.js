@@ -23,7 +23,6 @@ import {
   runJob,
   subscribeJobs,
   subscribeSchedules,
-  subscribeScheduleTable,
   subscribeUsers,
 } from 'xo'
 
@@ -43,7 +42,6 @@ export default class Overview extends Component {
     super(props)
     this.state = {
       schedules: [],
-      scheduleTable: {},
     }
   }
 
@@ -73,22 +71,15 @@ export default class Overview extends Component {
       })
     })
 
-    const unsubscribeScheduleTable = subscribeScheduleTable(scheduleTable => {
-      this.setState({
-        scheduleTable,
-      })
-    })
-
     this.componentWillUnmount = () => {
       unsubscribeJobs()
       unsubscribeSchedules()
-      unsubscribeScheduleTable()
     }
   }
 
   _getScheduleJob (schedule) {
     const { jobs } = this.state || {}
-    return jobs[schedule.job]
+    return jobs[schedule.jobId]
   }
 
   _getJobLabel (job = {}) {
@@ -111,7 +102,7 @@ export default class Overview extends Component {
         enabledHandler={disableSchedule}
         enabledTooltip={_('logIndicationToDisable')}
         handlerParam={id}
-        state={this.state.scheduleTable[id]}
+        state={schedule.enabled}
       />
     )
   }
@@ -200,7 +191,7 @@ export default class Overview extends Component {
                               icon='run-schedule'
                               btnStyle='warning'
                               handler={runJob}
-                              handlerParam={schedule.job}
+                              handlerParam={schedule.jobId}
                             />
                           </fieldset>
                         </td>

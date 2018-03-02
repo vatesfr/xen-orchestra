@@ -1,5 +1,5 @@
 import * as CM from 'complex-matcher'
-import { flatten, identity, map } from 'lodash'
+import { identity } from 'lodash'
 
 import { EMPTY_OBJECT } from './utils'
 
@@ -21,33 +21,52 @@ export const constructPattern = (
   return not ? { __not: pattern } : pattern
 }
 
-const parsePattern = pattern => {
-  const patternValues = flatten(
-    pattern.__not !== undefined ? pattern.__not.__or : pattern.__or
-  )
+const valueToComplexMatcher = pattern => {
+  if (typeof pattern === 'string') {
+    return new CM.String(pattern)
+  }
 
-  const queryString = new CM.Or(
-    map(patternValues, array => new CM.String(array))
-  )
-  return pattern.__not !== undefined ? CM.Not(queryString) : queryString
+  if (Array.isArray(pattern)) {
+    return new CM.And(pattern.map(valueToComplexMatcher))
+  }
+
+  if (pattern !== null && typeof pattern === 'object') {
+    const keys = Object.keys(pattern)
+    const { length } = keys
+
+    if (length === 1) {
+      const [key] = keys
+      if (key === '__and') {
+        return new CM.And(pattern.__and.map(valueToComplexMatcher))
+      }
+      if (key === '__or') {
+        return new CM.Or(pattern.__or.map(valueToComplexMatcher))
+      }
+      if (key === '__not') {
+        return new CM.Not(valueToComplexMatcher(pattern.__not))
+      }
+    }
+
+    const children = []
+    Object.keys(pattern).forEach(property => {
+      const subpattern = pattern[property]
+      if (subpattern !== undefined) {
+        children.push(
+          new CM.Property(property, valueToComplexMatcher(subpattern))
+        )
+      }
+    })
+    return children.length === 0 ? new CM.Null() : new CM.And(children)
+  }
+
+  throw new Error('could not transform this pattern')
 }
 
 export const constructQueryString = pattern => {
-  const powerState = pattern.power_state
-  const pool = pattern.$pool
-  const tags = pattern.tags
-
-  const filter = []
-
-  if (powerState !== undefined) {
-    filter.push(new CM.Property('power_state', new CM.String(powerState)))
+  try {
+    return valueToComplexMatcher(pattern).toString()
+  } catch (error) {
+    console.warn('constructQueryString', pattern, error)
+    return ''
   }
-  if (pool !== undefined) {
-    filter.push(new CM.Property('$pool', parsePattern(pool)))
-  }
-  if (tags !== undefined) {
-    filter.push(new CM.Property('tags', parsePattern(tags)))
-  }
-
-  return filter.length !== 0 ? new CM.And(filter).toString() : ''
 }
