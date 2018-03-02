@@ -48,8 +48,6 @@
 - token.create should accept an expiration [#1769](https://github.com/vatesfr/xen-orchestra/issues/1769)
 - Self Service User -  User don't have quota in his dashboard [#1538](https://github.com/vatesfr/xen-orchestra/issues/1538)
 - Remove CoffeeScript in xo-server [#189](https://github.com/vatesfr/xen-orchestra/issues/189)
-
-
 - Better Handling of suspending VMs from the Home screen [#2547](https://github.com/vatesfr/xen-orchestra/issues/2547)
 - [xen-api] Stronger reconnection policy [#2410](https://github.com/vatesfr/xen-orchestra/issues/2410)
 
