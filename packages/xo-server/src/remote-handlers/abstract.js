@@ -231,7 +231,7 @@ export default class RemoteHandlerAbstract {
 
   async unlink (file, { checksum = true } = {}) {
     if (checksum) {
-      ;this._unlink(`${file}.checksum`)::ignoreErrors()
+      ;this._unlink(checksumFile(file))::ignoreErrors()
     }
 
     return this._unlink(file)
