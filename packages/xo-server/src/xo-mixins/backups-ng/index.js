@@ -69,13 +69,10 @@ type MetadataFull = {|
 |}
 type Metadata = MetadataDelta | MetadataFull
 
-const compareSnapshotTime = (
-  { snapshot_time: time1 },
-  { snapshot_time: time2 }
-) => (time1 < time2 ? -1 : 1)
+const compareSnapshotTime = (a, b) =>
+  a.snapshot_time < b.snapshot_time ? -1 : 1
 
-const compareTimestamp = ({ timestamp: time1 }, { timestamp: time2 }) =>
-  time1 - time2
+const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 // returns all entries but the last (retention - 1)-th
 //
