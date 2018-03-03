@@ -168,6 +168,14 @@ const unboxIds = (pattern?: SimpleIdPattern): string[] => {
 //      │     └─ <YYYYMMDD>T<HHmmss>.vhd
 //      ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
 //      └─ <YYYYMMDD>T<HHmmss>.xva
+//
+// Attributes of created VMs:
+//
+// - name: `${original name} (${safeDateFormat(backup timestamp)})`
+// - tag:
+//    - copy in delta mode: `Continuous Replication`
+//    - copy in full mode: `Disaster Recovery`
+//    - imported from backup: `restored from backup`
 export default class BackupNg {
   _app: any
 
