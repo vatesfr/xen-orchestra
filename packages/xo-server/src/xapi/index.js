@@ -806,7 +806,7 @@ export default class Xapi extends XapiBase {
       this._assertHealthyVdiChains(vm)
     }
     if (!vm.is_a_snapshot) {
-      vm = await this._snapshotVm(vm, snapshotNameLabel)
+      vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
       $defer.onFailure(() => this._deleteVm(vm))
     }
 
