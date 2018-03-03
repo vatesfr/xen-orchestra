@@ -1643,7 +1643,7 @@ export const listVmBackups = remotes =>
   _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
 
 export const restoreBackup = (backup, sr) =>
-  _call('backupNg.importVmBackupNg', {
+  _call('backupNg.importVmBackup', {
     id: resolveId(backup),
     sr: resolveId(sr),
   })
