@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-web",
-  "version": "5.16.2",
+  "version": "5.17.0",
   "license": "AGPL-3.0",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -30,6 +30,7 @@
     "node": ">=6"
   },
   "devDependencies": {
+    "@julien-f/freactal": "0.1.0",
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.2",
     "ansi_up": "^2.0.2",

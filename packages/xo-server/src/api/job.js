@@ -8,7 +8,7 @@ getAll.permission = 'admin'
 getAll.description = 'Gets all available jobs'
 
 export async function get (id) {
-  return /* await */ this.getJob(id)
+  return /* await */ this.getJob(id, 'call')
 }
 
 get.permission = 'admin'
