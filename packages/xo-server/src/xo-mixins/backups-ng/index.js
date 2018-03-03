@@ -188,7 +188,7 @@ export default class BackupNg {
         job: job_,
         logger,
         runJobId,
-        schedule = {},
+        schedule,
       }) => {
         const job: BackupJob = (job_: any)
         const vms = app.getObjects({
