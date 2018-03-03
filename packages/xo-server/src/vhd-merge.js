@@ -10,7 +10,7 @@ import constantStream from './constant-stream'
 import { noop, streamToBuffer } from './utils'
 
 const VHD_UTIL_DEBUG = 0
-const debug = VHD_UTIL_DEBUG ? str => console.log(`[vhd-util]${str}`) : noop
+const debug = VHD_UTIL_DEBUG ? str => console.log(`[vhd-merge]${str}`) : noop
 
 // ===================================================================
 //
@@ -408,69 +408,66 @@ export class Vhd {
       : eventToPromise(data.pipe(stream), 'finish')
   }
 
+  async freeFirstBlockSpace (spaceNeededBytes) {
+    try {
+      const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
+      const tableOffset = uint32ToUint64(this.header.tableOffset)
+      const batSize = sectorsToBytes(
+        sectorsRoundUpNoZero(this.header.maxTableEntries * VHD_ENTRY_SIZE)
+      )
+      if (
+        tableOffset + batSize + spaceNeededBytes >=
+        sectorsToBytes(firstSector)
+      ) {
+        const { fullBlockSize } = this
+        const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
+        debug(
+          `freeFirstBlockSpace: move first block ${firstSector} -> ${newFirstSector}`
+        )
+        // copy the first block at the end
+        const stream = await this._readStream(
+          sectorsToBytes(firstSector),
+          fullBlockSize
+        )
+        await this._write(stream, sectorsToBytes(newFirstSector))
+        await this._setBatEntry(first, newFirstSector)
+        await this.writeFooter(true)
+        spaceNeededBytes -= this.fullBlockSize
+        if (spaceNeededBytes > 0) {
+          return this.freeFirstBlockSpace(spaceNeededBytes)
+        }
+      }
+    } catch (e) {
+      if (!e.noBlock) {
+        throw e
+      }
+    }
+  }
+
   async ensureBatSize (size) {
     const { header } = this
-
     const prevMaxTableEntries = header.maxTableEntries
     if (prevMaxTableEntries >= size) {
       return
     }
 
-    const tableOffset = uint32ToUint64(header.tableOffset)
-    // extend BAT
+    const newBatSize = sectorsToBytes(
+      sectorsRoundUpNoZero(size * VHD_ENTRY_SIZE)
+    )
+    await this.freeFirstBlockSpace(newBatSize - this.blockTable.length)
     const maxTableEntries = (header.maxTableEntries = size)
-    const batSize = sectorsToBytes(
-      sectorsRoundUpNoZero(maxTableEntries * VHD_ENTRY_SIZE)
-    )
     const prevBat = this.blockTable
-    const bat = (this.blockTable = Buffer.allocUnsafe(batSize))
+    const bat = (this.blockTable = Buffer.allocUnsafe(newBatSize))
     prevBat.copy(bat)
-    bat.fill(BUF_BLOCK_UNUSED, prevBat.length)
+    bat.fill(BUF_BLOCK_UNUSED, prevMaxTableEntries * VHD_ENTRY_SIZE)
     debug(
-      `ensureBatSize: extend in memory BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
+      `ensureBatSize: extend BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
     )
-
-    const extendBat = async () => {
-      debug(
-        `ensureBatSize: extend in file BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
-      )
-
-      return this._write(
-        constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
-        tableOffset + prevBat.length
-      )
-    }
-    try {
-      const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
-      if (tableOffset + batSize < sectorsToBytes(firstSector)) {
-        return Promise.all([extendBat(), this.writeHeader()])
-      }
-
-      const { fullBlockSize } = this
-      const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
-      debug(
-        `ensureBatSize: move first block ${firstSector} -> ${newFirstSector}`
-      )
-
-      // copy the first block at the end
-      const stream = await this._readStream(
-        sectorsToBytes(firstSector),
-        fullBlockSize
-      )
-      await this._write(stream, sectorsToBytes(newFirstSector))
-      await extendBat()
-      await this._setBatEntry(first, newFirstSector)
-      await this.writeHeader()
-      await this.writeFooter()
-    } catch (e) {
-      if (e.noBlock) {
-        await extendBat()
-        await this.writeHeader()
-        await this.writeFooter()
-      } else {
-        throw e
-      }
-    }
+    await this._write(
+      constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
+      uint32ToUint64(header.tableOffset) + prevBat.length
+    )
+    await this.writeHeader()
   }
 
   // set the first sector (bitmap) of a block
@@ -533,11 +530,21 @@ export class Vhd {
     await this._write(block.buffer, sectorsToBytes(blockAddr))
   }
 
-  async writeBlockSectors (block, beginSectorId, endSectorId, parentBitmap) {
+  async writeBlockSectors (
+    block,
+    beginSectorId,
+    endSectorId,
+    parentBitmap = null
+  ) {
     let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
       blockAddr = await this.createBlock(block.id)
+      parentBitmap = Buffer.alloc(this.bitmapSize, 0)
+    } else {
+      if (parentBitmap === null) {
+        parentBitmap = (await this._readBlock(block.id, true)).bitmap
+      }
     }
 
     const offset = blockAddr + this.sectorsOfBitmap + beginSectorId
@@ -604,11 +611,13 @@ export class Vhd {
   }
 
   // Write a context footer. (At the end and beginning of a vhd file.)
-  async writeFooter () {
+  async writeFooter (onlyEndFooter = false) {
     const { footer } = this
 
-    const offset = this.getEndOfData()
     const rawFooter = fuFooter.pack(footer)
+    const eof = await this._handler.getSize(this._path)
+    // sometimes the file is longer than anticipated, we still need to put the footer at the end
+    const offset = Math.max(this.getEndOfData(), eof - rawFooter.length)
 
     footer.checksum = checksumStruct(rawFooter, fuFooter)
     debug(
@@ -616,8 +625,9 @@ export class Vhd {
         footer.checksum
       }). (data=${rawFooter.toString('hex')})`
     )
-
-    await this._write(rawFooter, 0)
+    if (!onlyEndFooter) {
+      await this._write(rawFooter, 0)
+    }
     await this._write(rawFooter, offset)
   }
 
@@ -632,6 +642,76 @@ export class Vhd {
       }). (data=${rawHeader.toString('hex')})`
     )
     return this._write(rawHeader, offset)
+  }
+
+  async writeData (offsetSectors, buffer) {
+    const bufferSizeSectors = Math.ceil(buffer.length / VHD_SECTOR_SIZE)
+    const startBlock = Math.floor(offsetSectors / this.sectorsPerBlock)
+    const endBufferSectors = offsetSectors + bufferSizeSectors
+    const lastBlock = Math.ceil(endBufferSectors / this.sectorsPerBlock) - 1
+    await this.ensureBatSize(lastBlock)
+    const blockSizeBytes = this.sectorsPerBlock * VHD_SECTOR_SIZE
+    const coversWholeBlock = (offsetInBlockSectors, endInBlockSectors) =>
+      offsetInBlockSectors === 0 && endInBlockSectors === this.sectorsPerBlock
+
+    for (
+      let currentBlock = startBlock;
+      currentBlock <= lastBlock;
+      currentBlock++
+    ) {
+      const offsetInBlockSectors = Math.max(
+        0,
+        offsetSectors - currentBlock * this.sectorsPerBlock
+      )
+      const endInBlockSectors = Math.min(
+        endBufferSectors - currentBlock * this.sectorsPerBlock,
+        this.sectorsPerBlock
+      )
+      const startInBuffer = Math.max(
+        0,
+        (currentBlock * this.sectorsPerBlock - offsetSectors) * VHD_SECTOR_SIZE
+      )
+      const endInBuffer = Math.min(
+        ((currentBlock + 1) * this.sectorsPerBlock - offsetSectors) *
+          VHD_SECTOR_SIZE,
+        buffer.length
+      )
+      let inputBuffer
+      if (coversWholeBlock(offsetInBlockSectors, endInBlockSectors)) {
+        inputBuffer = buffer.slice(startInBuffer, endInBuffer)
+      } else {
+        inputBuffer = Buffer.alloc(blockSizeBytes, 0)
+        buffer.copy(
+          inputBuffer,
+          offsetInBlockSectors * VHD_SECTOR_SIZE,
+          startInBuffer,
+          endInBuffer
+        )
+      }
+      await this.writeBlockSectors(
+        { id: currentBlock, data: inputBuffer },
+        offsetInBlockSectors,
+        endInBlockSectors
+      )
+    }
+    await this.writeFooter()
+  }
+
+  async ensureSpaceForParentLocators (neededSectors) {
+    const firstLocatorOffset = VHD_FOOTER_SIZE + VHD_HEADER_SIZE
+    const currentSpace =
+      Math.floor(uint32ToUint64(this.header.tableOffset) / VHD_SECTOR_SIZE) -
+      firstLocatorOffset / VHD_SECTOR_SIZE
+    if (currentSpace < neededSectors) {
+      const deltaSectors = neededSectors - currentSpace
+      await this.freeFirstBlockSpace(sectorsToBytes(deltaSectors))
+      this.header.tableOffset.low += sectorsToBytes(deltaSectors)
+      await this._write(
+        this.blockTable,
+        uint32ToUint64(this.header.tableOffset)
+      )
+    }
+    return firstLocatorOffset
   }
 }
 
@@ -728,8 +808,8 @@ export async function chainVhd (
     parentVhd.readHeaderAndFooter(),
     childVhd.readHeaderAndFooter(),
   ])
-
-  const { header } = childVhd
+  await childVhd.readBlockTable()
+  const { header, footer } = childVhd
 
   const parentName = parentPath.split('/').pop()
   const parentUuid = parentVhd.footer.uuid
@@ -737,9 +817,31 @@ export async function chainVhd (
     header.parentUnicodeName !== parentName ||
     !isEqual(header.parentUuid, parentUuid)
   ) {
+    footer.diskType = 4
     header.parentUuid = parentUuid
     header.parentUnicodeName = parentName
+
+    header.parentLocatorEntry[0].platformCode = 0x57327275
+    const encodedFilename = Buffer.from(parentName, 'utf16le')
+    const dataSpaceSectors = Math.ceil(encodedFilename.length / VHD_SECTOR_SIZE)
+    const position = await childVhd.ensureSpaceForParentLocators(
+      dataSpaceSectors
+    )
+    await childVhd._write(encodedFilename, position)
+    header.parentLocatorEntry[0].platformDataSpace = sectorsToBytes(
+      dataSpaceSectors
+    )
+    header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
+    header.parentLocatorEntry[0].platformDataOffset.low = position
+    for (let i = 1; i < 8; i++) {
+      header.parentLocatorEntry[i].platformCode = VHD_PLATFORM_CODE_NONE
+      header.parentLocatorEntry[i].platformDataSpace = 0
+      header.parentLocatorEntry[i].platformDataLength = 0
+      header.parentLocatorEntry[i].platformDataOffset.high = 0
+      header.parentLocatorEntry[i].platformDataOffset.low = 0
+    }
     await childVhd.writeHeader()
+    await childVhd.writeFooter()
     return true
   }
 
