@@ -803,7 +803,7 @@ export default class Xapi extends XapiBase {
   ) {
     let vm = this.getObject(vmId)
     if (!bypassVdiChainsCheck) {
-      this._assertHealthyVdiChains(this.getObject(vm))
+      this._assertHealthyVdiChains(vm)
     }
     if (!vm.is_a_snapshot) {
       vm = await this.snapshotVm(vmId)
