@@ -243,21 +243,20 @@ export default [
         </label>
         <SelectVm multi onChange={effects.setVms} value={state.getVms} />
       </FormGroup>
-      {false /* TODO: remove when implemented */ &&
-        (!isEmpty(state.getSrs) || !isEmpty(state.getRemotes)) && (
-          <Upgrade place='newBackup' required={4}>
-            <FormGroup>
-              <label>
-                <input
-                  type='checkbox'
-                  onChange={effects.setDelta}
-                  value={state.getDelta}
-                />{' '}
-                Use delta
-              </label>
-            </FormGroup>
-          </Upgrade>
-        )}
+      {(!isEmpty(state.getSrs) || !isEmpty(state.getRemotes)) && (
+        <Upgrade place='newBackup' required={4}>
+          <FormGroup>
+            <label>
+              <input
+                type='checkbox'
+                onChange={effects.setDelta}
+                value={state.getDelta}
+              />{' '}
+              Use delta
+            </label>
+          </FormGroup>
+        </Upgrade>
+      )}
       {!isEmpty(state.schedules) && (
         <FormGroup>
           <h3>Saved schedules</h3>
