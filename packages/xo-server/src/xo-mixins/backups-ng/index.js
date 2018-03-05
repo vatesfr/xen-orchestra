@@ -162,9 +162,11 @@ const unboxIds = (pattern?: SimpleIdPattern): string[] => {
 //      ├─ vdis
 //      │  └─ <VDI UUID>
 //      │     ├─ index.json // TODO
-//      │     └─ <YYYYMMDD>T<HHmmss>.vhd
+//      │     ├─ <YYYYMMDD>T<HHmmss>.vhd
+//      │     └─ <YYYYMMDD>T<HHmmss>.vhd.checksum (only for deltas)
 //      ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
-//      └─ <YYYYMMDD>T<HHmmss>.xva
+//      ├─ <YYYYMMDD>T<HHmmss>.xva
+//      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
 //
 // Attributes of created VMs:
 //
