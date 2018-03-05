@@ -227,6 +227,9 @@ export default [
       schedules: (state, { schedules }) => schedules,
       needUpdateParams: (state, { job }) =>
         job !== undefined && !state.paramsUpdated,
+      isScheduleInvalid: state =>
+        (+state.snapshotRetention === 0 || state.snapshotRetention === '') &&
+        (+state.exportRetention === 0 || state.exportRetention === ''),
       isInvalid: state =>
         state.name.trim() === '' ||
         (isEmpty(state.schedules) && isEmpty(state.tmpSchedules)) ||
@@ -311,6 +314,7 @@ export default [
                   />
                   <ActionButton
                     data-scheduleId={schedule.id}
+                    disabled={state.isScheduleInvalid}
                     handler={effects.editSchedule}
                     icon='save'
                     size='small'
@@ -336,6 +340,7 @@ export default [
                   {schedule.snapshotRetention}
                   <ActionButton
                     data-scheduleId={key}
+                    disabled={state.isScheduleInvalid}
                     handler={effects.editTmpSchedule}
                     icon='edit'
                     size='small'
@@ -379,7 +384,11 @@ export default [
             timezone={state.tmpSchedule.timezone}
           />
           <br />
-          <ActionButton handler={effects.addSchedule} icon='add'>
+          <ActionButton
+            disabled={state.isScheduleInvalid}
+            handler={effects.addSchedule}
+            icon='add'
+          >
             Add a schedule
           </ActionButton>
         </FormGroup>
