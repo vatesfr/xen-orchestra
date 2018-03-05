@@ -4,7 +4,7 @@ import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import Upgrade from 'xoa-upgrade'
 import { injectState, provideState } from '@julien-f/freactal'
-import { cloneDeep, orderBy, isEmpty, map } from 'lodash'
+import { orderBy, isEmpty, map } from 'lodash'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import { resolveIds } from 'utils'
 import {
@@ -28,15 +28,17 @@ const constructPattern = values => ({
 
 const destructPattern = pattern => pattern.id.__or
 
-const removeSchedulesFromSettings = tmpSchedules => {
-  const newTmpSchedules = cloneDeep(tmpSchedules)
+const getNewSettings = schedules => {
+  const newSettings = {}
 
-  for (const schedule in newTmpSchedules) {
-    delete newTmpSchedules[schedule].cron
-    delete newTmpSchedules[schedule].timezone
+  for (const schedule in schedules) {
+    newSettings[schedule] = {
+      exportRetention: +schedules[schedule].exportRetention,
+      snapshotRetention: +schedules[schedule].snapshotRetention,
+    }
   }
 
-  return newTmpSchedules
+  return newSettings
 }
 
 const getRandomId = () =>
@@ -92,7 +94,7 @@ export default [
           remotes: constructPattern(state.remotes),
           schedules: state.tmpSchedules,
           settings: {
-            ...removeSchedulesFromSettings(state.tmpSchedules),
+            ...getNewSettings(state.tmpSchedules),
           },
           srs: constructPattern(state.srs),
           vms: constructPattern(state.vms),
@@ -108,8 +110,8 @@ export default [
                 timezone: schedule.timezone,
               })).id
               newSettings[scheduleId] = {
-                exportRetention: schedule.exportRetention,
-                snapshotRetention: schedule.snapshotRetention,
+                exportRetention: +schedule.exportRetention,
+                snapshotRetention: +schedule.snapshotRetention,
               }
             })
           )
