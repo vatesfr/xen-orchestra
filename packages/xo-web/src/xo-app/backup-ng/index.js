@@ -57,7 +57,7 @@ const SchedulePreviewBody = ({ job, schedules }) => (
             icon='run-schedule'
             size='small'
             data-id={job.id}
-            data-scheduleId={schedule.id}
+            data-schedule={schedule.id}
             btnStyle='warning'
           />
         </td>
@@ -114,7 +114,9 @@ class JobsTable extends React.Component {
         component: _ => (
           <SchedulePreviewBody
             job={_.item}
-            schedules={_.userData.schedulesByJob && _.userData.schedulesByJob[_.item.id]}
+            schedules={
+              _.userData.schedulesByJob && _.userData.schedulesByJob[_.item.id]
+            }
           />
         ),
         name: <SchedulePreviewHeader />,

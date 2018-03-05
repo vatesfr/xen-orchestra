@@ -95,8 +95,8 @@ getJob.params = {
   },
 }
 
-export async function runJob ({ id, scheduleId }) {
-  return this.runJobSequence([id], await this.getSchedule(scheduleId))
+export async function runJob ({ id, schedule }) {
+  return this.runJobSequence([id], await this.getSchedule(schedule))
 }
 
 runJob.permission = 'admin'
@@ -105,7 +105,7 @@ runJob.params = {
   id: {
     type: 'string',
   },
-  scheduleId: {
+  schedule: {
     type: 'string',
   },
 }
