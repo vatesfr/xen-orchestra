@@ -56,7 +56,7 @@ export default class Scheduling {
       prefix: 'xo:schedule',
     }))
 
-    this._runs = Object.create(null)
+    this._runs = { __proto__: null }
 
     app.on('clean', () => db.rebuildIndexes())
     app.on('start', async () => {

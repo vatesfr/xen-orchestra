@@ -11,7 +11,6 @@ import unzip from 'julien-f-unzip'
 
 import { debounce } from '../../decorators'
 import {
-  createRawObject,
   ensureArray,
   forEach,
   mapFilter,
@@ -35,7 +34,7 @@ export default {
 
     const data = parseXml(await readAll()).patchdata
 
-    const patches = createRawObject()
+    const patches = { __proto__: null }
     forEach(data.patches.patch, patch => {
       patches[patch.uuid] = {
         date: patch.timestamp,
@@ -65,7 +64,7 @@ export default {
     })
 
     const resolveVersionPatches = function (uuids) {
-      const versionPatches = createRawObject()
+      const versionPatches = { __proto__: null }
 
       forEach(ensureArray(uuids), ({ uuid }) => {
         versionPatches[uuid] = patches[uuid]
@@ -74,7 +73,7 @@ export default {
       return versionPatches
     }
 
-    const versions = createRawObject()
+    const versions = { __proto__: null }
     let latestVersion
     forEach(data.serverversions.version, version => {
       versions[version.value] = {
@@ -112,7 +111,7 @@ export default {
   },
 
   _getInstalledPoolPatchesOnHost (host) {
-    const installed = createRawObject()
+    const installed = { __proto__: null }
 
     // platform_version < 2.1.1
     forEach(host.$patches, hostPatch => {
@@ -131,7 +130,7 @@ export default {
     const all = await this._getPoolPatchesForHost(host)
     const installed = this._getInstalledPoolPatchesOnHost(host)
 
-    const installable = createRawObject()
+    const installable = { __proto__: null }
     forEach(all, (patch, uuid) => {
       if (installed[uuid]) {
         return

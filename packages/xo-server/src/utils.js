@@ -73,16 +73,9 @@ export function camelToSnakeCase (string) {
 
 // -------------------------------------------------------------------
 
-// Returns an empty object without prototype (if possible).
-export const createRawObject = Object.create
-  ? (createObject => () => createObject(null))(Object.create)
-  : () => ({})
-
-// -------------------------------------------------------------------
-
 // Only works with string items!
 export const diffItems = (coll1, coll2) => {
-  const removed = createRawObject()
+  const removed = { __proto__: null }
   forEach(coll2, value => {
     removed[value] = true
   })
@@ -209,7 +202,7 @@ export const parseXml = (function () {
 // - works only with strings
 // - methods are already bound and chainable
 export const lightSet = collection => {
-  let data = createRawObject()
+  let data = { __proto__: null }
   if (collection) {
     forEach(collection, value => {
       data[value] = true
@@ -223,7 +216,7 @@ export const lightSet = collection => {
       return set
     },
     clear: () => {
-      data = createRawObject()
+      data = { __proto__: null }
       return set
     },
     delete: value => {

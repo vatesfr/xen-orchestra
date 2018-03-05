@@ -35,7 +35,6 @@ import { mixin } from '../decorators'
 import {
   asyncMap,
   camelToSnakeCase,
-  createRawObject,
   ensureArray,
   forEach,
   isFunction,
@@ -101,8 +100,8 @@ export default class Xapi extends XapiBase {
       return getObject.apply(this, args)
     })(this.getObject)
 
-    const genericWatchers = (this._genericWatchers = createRawObject())
-    const objectsWatchers = (this._objectWatchers = createRawObject())
+    const genericWatchers = (this._genericWatchers = { __proto__: null })
+    const objectsWatchers = (this._objectWatchers = { __proto__: null })
 
     const onAddOrUpdate = objects => {
       forEach(objects, object => {
@@ -776,7 +775,7 @@ export default class Xapi extends XapiBase {
   }
 
   _assertHealthyVdiChains (vm) {
-    const cache = createRawObject()
+    const cache = { __proto__: null }
     forEach(vm.$VBDs, ({ $VDI }) => {
       this._assertHealthyVdiChain($VDI, cache)
     })

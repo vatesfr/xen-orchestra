@@ -22,7 +22,6 @@ import { ensureDir, readdir, readFile } from 'fs-extra'
 import WebServer from 'http-server-plus'
 import Xo from './xo'
 import {
-  createRawObject,
   forEach,
   isArray,
   isFunction,
@@ -103,7 +102,7 @@ function createExpressApp () {
 }
 
 async function setUpPassport (express, xo) {
-  const strategies = createRawObject()
+  const strategies = { __proto__: null }
   xo.registerPassportStrategy = strategy => {
     passport.use(strategy)
 

@@ -17,7 +17,7 @@ import {
 import mixins from './xo-mixins'
 import Connection from './connection'
 import { mixin } from './decorators'
-import { createRawObject, generateToken, noop } from './utils'
+import { generateToken, noop } from './utils'
 
 // ===================================================================
 
@@ -36,9 +36,9 @@ export default class Xo extends EventEmitter {
 
     // Connections to users.
     this._nextConId = 0
-    this._connections = createRawObject()
+    this._connections = { __proto__: null }
 
-    this._httpRequestWatchers = createRawObject()
+    this._httpRequestWatchers = { __proto__: null }
 
     // Connects to Redis.
     {
@@ -90,7 +90,7 @@ export default class Xo extends EventEmitter {
       }
     }
 
-    const results = createRawObject(null)
+    const results = { __proto__: null }
     for (const id in all) {
       const object = all[id]
       if (filter(object, id, all)) {
@@ -251,8 +251,8 @@ export default class Xo extends EventEmitter {
 
     let entered, exited
     function reset () {
-      entered = createRawObject()
-      exited = createRawObject()
+      entered = { __proto__: null }
+      exited = { __proto__: null }
     }
     reset()
 

@@ -6,7 +6,6 @@ import xapiObjectToXo from '../xapi-object-to-xo'
 import XapiStats from '../xapi-stats'
 import {
   camelToSnakeCase,
-  createRawObject,
   forEach,
   isEmpty,
   isString,
@@ -19,15 +18,15 @@ import { Servers } from '../models/server'
 
 export default class {
   constructor (xo) {
-    this._objectConflicts = createRawObject() // TODO: clean when a server is disconnected.
+    this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
       prefix: 'xo:server',
       indexes: ['host'],
     }))
     this._stats = new XapiStats()
-    this._xapis = createRawObject()
-    this._xapisByPool = createRawObject()
+    this._xapis = { __proto__: null }
+    this._xapisByPool = { __proto__: null }
     this._xo = xo
 
     xo.on('clean', () => serversDb.rebuildIndexes())
@@ -173,7 +172,7 @@ export default class {
         const previous = objects.get(xoId, undefined)
         if (previous && previous._xapiRef !== xapiObject.$ref) {
           const conflicts_ =
-            conflicts[xoId] || (conflicts[xoId] = createRawObject())
+            conflicts[xoId] || (conflicts[xoId] = { __proto__: null })
           conflicts_[conId] = xoObject
         } else {
           objects.set(xoId, xoObject)
@@ -235,7 +234,7 @@ export default class {
       const conId = server.id
 
       // Maps ids of XAPI objects to ids of XO objects.
-      const xapiIdsToXo = createRawObject()
+      const xapiIdsToXo = { __proto__: null }
 
       // Map of XAPI objects which failed to be transformed to XO
       // objects.
@@ -243,7 +242,7 @@ export default class {
       // At each `finish` there will be another attempt to transform
       // until they succeed.
       let toRetry
-      let toRetryNext = createRawObject()
+      let toRetryNext = { __proto__: null }
 
       const onAddOrUpdate = objects => {
         this._onXenAdd(objects, xapiIdsToXo, toRetryNext, conId)
@@ -266,7 +265,7 @@ export default class {
 
         if (!isEmpty(toRetryNext)) {
           toRetry = toRetryNext
-          toRetryNext = createRawObject()
+          toRetryNext = { __proto__: null }
         }
       }
 

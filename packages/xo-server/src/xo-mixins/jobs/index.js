@@ -115,14 +115,14 @@ export default class Jobs {
 
   constructor (xo: any) {
     this._app = xo
-    const executors = (this._executors = Object.create(null))
+    const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
       connection: xo._redis,
       prefix: 'xo:job',
       indexes: ['user_id', 'key'],
     }))
     this._logger = undefined
-    this._runningJobs = Object.create(null)
+    this._runningJobs = { __proto__: null }
 
     executors.call = executeCall
 
