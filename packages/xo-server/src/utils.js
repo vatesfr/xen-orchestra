@@ -23,11 +23,6 @@ import {
   reflect as pReflect,
 } from 'promise-toolbox'
 
-// Moment timezone can be loaded only one time, it's a workaround to load
-// the latest version because cron module uses an old version of moment which
-// does not implement `guess` function for example.
-import 'moment-timezone'
-
 // ===================================================================
 
 // Similar to map() + Promise.all() but wait for all promises to
