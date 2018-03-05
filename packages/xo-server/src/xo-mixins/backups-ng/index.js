@@ -187,6 +187,10 @@ export default class BackupNg {
         runJobId,
         schedule,
       }) => {
+        if (schedule === undefined) {
+          throw new Error('backup job cannot run without a schedule')
+        }
+
         const job: BackupJob = (job_: any)
         const vms = app.getObjects({
           filter: createPredicate({
