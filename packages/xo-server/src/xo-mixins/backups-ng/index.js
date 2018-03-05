@@ -363,7 +363,11 @@ export default class BackupNg {
     const xapi = app.getXapi(srId)
     const sr = xapi.getObject(srId)
     const xva = await handler.createReadStream(
-      resolveRelativeFromFile(metadataFilename, metadata.data)
+      resolveRelativeFromFile(metadataFilename, metadata.data),
+      {
+        checksum: true,
+        ignoreMissingChecksum: true, // provide an easy way to opt-out
+      }
     )
     const vm = await xapi.importVm(xva, { srId: sr.$id })
     await Promise.all([
