@@ -1140,6 +1140,7 @@ const messages = {
   remoteError: 'Error',
   noBackup: 'No backup available',
   backupVmNameColumn: 'VM Name',
+  backupVmDescriptionColumn: 'VM Description',
   backupTags: 'Tags',
   lastBackupColumn: 'Last Backup',
   availableBackupsColumn: 'Available Backups',
@@ -1153,6 +1154,10 @@ const messages = {
   importBackupTitle: 'Import VM',
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
+  restoreResfreshList: 'Refresh backup list',
+  restoreVm: 'Restore {vm}',
+  restoreBackup: 'Restore a backup',
+  deleteBackups: 'Delete some backups…',
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
@@ -1286,6 +1291,7 @@ const messages = {
   importBackupModalTitle: 'Import a {name} Backup',
   importBackupModalStart: 'Start VM after restore',
   importBackupModalSelectBackup: 'Select your backup…',
+  importBackupModalSelectSr: 'Select a destination SR…',
   removeAllOrphanedModalWarning:
     'Are you sure you want to remove all orphaned snapshot VDIs?',
   removeAllLogsModalTitle: 'Remove all logs',

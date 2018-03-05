@@ -1,7 +1,7 @@
 import _ from 'intl'
 import React from 'react'
 import Component from 'base-component'
-import { Select } from 'form'
+import { Select, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
 import { FormattedDate } from 'react-intl'
 
@@ -16,7 +16,13 @@ export default class ImportModalBody extends Component {
           <Select
             optionRenderer={backup => (
               <span>
-                {`[${backup.mode}] `}
+                <span
+                  className='tag tag-info'
+                  style={{ textTransform: 'capitalize' }}
+                >
+                  {backup.mode}
+                </span>{' '}
+                <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
                 <FormattedDate
                   value={new Date(backup.timestamp)}
                   month='long'
@@ -33,8 +39,15 @@ export default class ImportModalBody extends Component {
             placeholder={_('importBackupModalSelectBackup')}
           />
         </div>
+        <div className='mb-1'>
+          <SelectSr
+            onChange={this.linkState('sr')}
+            placeholder={_('importBackupModalSelectSr')}
+          />
+        </div>
         <div>
-          <SelectSr onChange={this.linkState('sr')} />
+          <Toggle iconSize={1} onChange={this.linkState('start')} />{' '}
+          {_('importBackupModalStart')}
         </div>
       </div>
     )

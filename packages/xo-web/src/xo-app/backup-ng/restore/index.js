@@ -1,30 +1,38 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, noop } from 'utils'
-import { subscribeRemotes, listVmBackups, restoreBackup } from 'xo'
-import { assign, filter, forEach, map } from 'lodash'
+import { assign, filter, find, forEach, map } from 'lodash'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
+import {
+  deleteBackups,
+  listVmBackups,
+  restoreBackup,
+  startVm,
+  subscribeRemotes,
+} from 'xo'
 
+import DeleteBackupsModalBody from './delete-backups-modal-body'
 import ImportModalBody from './import-modal-body'
 
 const BACKUPS_COLUMNS = [
   {
-    name: 'VM',
+    name: _('backupVmNameColumn'),
     itemRenderer: ({ last }) => last.vm.name_label,
+    sortCriteria: 'last.vm.name_label',
   },
   {
-    name: 'VM description',
+    name: _('backupVmDescriptionColumn'),
     itemRenderer: ({ last }) => last.vm.name_description,
+    sortCriteria: 'last.vm.name_description',
   },
   {
-    name: 'Last backup',
+    name: _('lastBackupColumn'),
     itemRenderer: ({ last }) => (
       <FormattedDate
         value={new Date(last.timestamp)}
@@ -36,11 +44,20 @@ const BACKUPS_COLUMNS = [
         second='2-digit'
       />
     ),
+    sortCriteria: 'last.timestamp',
+    default: true,
+    sortOrder: 'desc',
   },
   {
-    name: 'Available backups',
+    name: _('availableBackupsColumn'),
     itemRenderer: ({ count }) =>
-      map(count, (n, mode) => `${mode}: ${n}`).join(', '),
+      map(count, (n, mode) => (
+        <span key={mode}>
+          <span style={{ textTransform: 'capitalize' }}>{mode}</span>{' '}
+          <span className='tag tag-pill tag-primary'>{n}</span>
+          <br />
+        </span>
+      )),
   },
 ]
 
@@ -58,18 +75,21 @@ export default class Restore extends Component {
     }
   }
 
-  _refreshBackupList = async remotes => {
+  _refreshBackupList = async (remotes = this.props.remotes) => {
     const backupsByRemote = await listVmBackups(
       filter(remotes, { enabled: true })
     )
     const backupsByVm = {}
-    forEach(backupsByRemote, backups => {
+    forEach(backupsByRemote, (backups, remoteId) => {
       forEach(backups, (vmBackups, vmId) => {
         if (backupsByVm[vmId] === undefined) {
           backupsByVm[vmId] = { backups: [] }
         }
 
-        backupsByVm[vmId].backups.push(...vmBackups)
+        const remote = find(remotes, { id: remoteId })
+        backupsByVm[vmId].backups.push(
+          ...map(vmBackups, bkp => ({ ...bkp, remote }))
+        )
       })
     })
     // TODO: perf
@@ -91,27 +111,52 @@ export default class Restore extends Component {
 
   _restore = data =>
     confirm({
-      title: `Restore ${data.last.vm.name_label}`,
+      title: _('restoreVm', { vm: data.last.vm.name_label }),
       body: <ImportModalBody data={data} />,
-    }).then(({ backup, sr }) => {
+      icon: 'restore',
+    }).then(({ backup, sr, start }) => {
       if (backup == null || sr == null) {
         error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
         return
       }
 
-      return restoreBackup(backup, sr)
+      const promise = restoreBackup(backup, sr)
+
+      if (start) {
+        return promise.then(startVm)
+      }
+
+      return promise
     }, noop)
+
+  _deleteBackups = data =>
+    confirm({
+      title: 'Delete ' + data.last.vm.name_label + ' backups',
+      body: <DeleteBackupsModalBody backups={data.backups} />,
+      icon: 'delete',
+    })
+      .then(deleteBackups)
+      .then(() => this._refreshBackupList())
+
+  _individualActions = [
+    {
+      label: _('restoreBackup'),
+      icon: 'restore',
+      handler: this._restore,
+      level: 'primary',
+    },
+    {
+      label: _('deleteBackups'),
+      icon: 'delete',
+      handler: this._deleteBackups,
+      level: 'danger',
+    },
+  ]
 
   render () {
     return (
       <Upgrade place='restoreBackup' available={2}>
         <div>
-          <h2>{_('restoreBackups')}</h2>
-          <div className='mb-1'>
-            <em>
-              <Icon icon='info' /> {_('restoreBackupsInfo')}
-            </em>
-          </div>
           <div className='mb-1'>
             <ActionButton
               btnStyle='primary'
@@ -119,13 +164,13 @@ export default class Restore extends Component {
               handlerParam={this.props.remotes}
               icon='refresh'
             >
-              Refresh backup list
+              {_('restoreResfreshList')}
             </ActionButton>
           </div>
           <SortedTable
             collection={this.state.backupsByVm}
             columns={BACKUPS_COLUMNS}
-            rowAction={this._restore}
+            individualActions={this._individualActions}
           />
         </div>
       </Upgrade>

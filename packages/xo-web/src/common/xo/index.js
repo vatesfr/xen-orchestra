@@ -1648,6 +1648,11 @@ export const restoreBackup = (backup, sr) =>
     sr: resolveId(sr),
   })
 
+export const deleteBackup = backup =>
+  _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
+
+export const deleteBackups = backups => Promise.all(map(backups, deleteBackup))
+
 // Plugins -----------------------------------------------------------
 
 export const loadPlugin = async id =>
