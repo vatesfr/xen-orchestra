@@ -7,7 +7,12 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { cloneDeep, orderBy, isEmpty, map } from 'lodash'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import { resolveIds } from 'utils'
-import { createBackupNgJob, editBackupNgJob, editSchedule } from 'xo'
+import {
+  createBackupNgJob,
+  createSchedule,
+  editBackupNgJob,
+  editSchedule,
+} from 'xo'
 
 const FormGroup = props => <div {...props} className='form-group' />
 const Input = props => <input {...props} className='form-control' />
@@ -94,16 +99,31 @@ export default [
         })
       },
       editJob: () => async (state, props) => {
+        const newSettings = {}
+        if (!isEmpty(state.tmpSchedules)) {
+          await Promise.all(
+            map(state.tmpSchedules, async schedule => {
+              const scheduleId = (await createSchedule(props.job.id, {
+                cron: schedule.cron,
+                timezone: schedule.timezone,
+              })).id
+              newSettings[scheduleId] = {
+                exportRetention: schedule.exportRetention,
+                snapshotRetention: schedule.snapshotRetention,
+              }
+            })
+          )
+        }
+
         await editBackupNgJob({
           id: props.job.id,
           name: state.name,
           mode: state.delta ? 'delta' : 'full',
-          schedules: state.tmpSchedules,
           remotes: constructPattern(state.remotes),
           srs: constructPattern(state.srs),
           vms: constructPattern(state.vms),
           settings: {
-            ...removeSchedulesFromSettings(state.tmpSchedules),
+            ...newSettings,
             ...props.job.settings,
           },
         })
