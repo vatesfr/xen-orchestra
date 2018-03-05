@@ -60,6 +60,8 @@ const messages = {
   selfServicePage: 'Self service',
   backupPage: 'Backup',
   jobsPage: 'Jobs',
+  backupNG: 'Backups NG',
+  backupNGName: 'Name',
   xoaPage: 'XOA',
   updatePage: 'Updates',
   licensesPage: 'Licenses',
@@ -354,6 +356,13 @@ const messages = {
   remoteTestSuccessMessage: 'The remote appears to work correctly',
   remoteConnectionFailed: 'Connection failed',
 
+  // ------ Backup job -----
+
+  confirmDeleteBackupJobsTitle:
+    'Delete backup job{nJobs, plural, one {} other {s}}',
+  confirmDeleteBackupJobsBody:
+    'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
+
   // ------ Remote -----
   remoteName: 'Name',
   remotePath: 'Path',
@@ -433,10 +442,10 @@ const messages = {
   groupNameColumn: 'Name',
   groupUsersColumn: 'Users',
   addUserToGroupColumn: 'Add User',
-  userNameColumn: 'Email',
+  userNameColumn: 'Username',
   userPermissionColumn: 'Permissions',
   userPasswordColumn: 'Password',
-  userName: 'Email',
+  userName: 'Username',
   userPassword: 'Password',
   createUserButton: 'Create',
   noUserFound: 'No user found',
@@ -1165,6 +1174,9 @@ const messages = {
   restoreFilesUnselectAll: 'Unselect all files',
 
   // ----- Modals -----
+  emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
+  emergencyShutdownHostModalMessage:
+    'Are you sure you want to shutdown {host}?',
   emergencyShutdownHostsModalTitle:
     'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
   emergencyShutdownHostsModalMessage:

@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import { forEach } from 'lodash'
-import { resolveParamsVector } from './job-executor'
+import { resolveParamsVector } from './execute-call'
 
 describe('resolveParamsVector', function () {
   forEach(
@@ -68,37 +68,35 @@ describe('resolveParamsVector', function () {
 
         // Context.
         {
-          xo: {
-            getObjects: function () {
-              return [
-                {
-                  id: 'vm:1',
-                  $pool: 'pool:1',
-                  tags: [],
-                  type: 'VM',
-                  power_state: 'Halted',
-                },
-                {
-                  id: 'vm:2',
-                  $pool: 'pool:1',
-                  tags: ['foo'],
-                  type: 'VM',
-                  power_state: 'Running',
-                },
-                {
-                  id: 'host:1',
-                  type: 'host',
-                  power_state: 'Running',
-                },
-                {
-                  id: 'vm:3',
-                  $pool: 'pool:8',
-                  tags: ['foo'],
-                  type: 'VM',
-                  power_state: 'Halted',
-                },
-              ]
-            },
+          getObjects: function () {
+            return [
+              {
+                id: 'vm:1',
+                $pool: 'pool:1',
+                tags: [],
+                type: 'VM',
+                power_state: 'Halted',
+              },
+              {
+                id: 'vm:2',
+                $pool: 'pool:1',
+                tags: ['foo'],
+                type: 'VM',
+                power_state: 'Running',
+              },
+              {
+                id: 'host:1',
+                type: 'host',
+                power_state: 'Running',
+              },
+              {
+                id: 'vm:3',
+                $pool: 'pool:8',
+                tags: ['foo'],
+                type: 'VM',
+                power_state: 'Halted',
+              },
+            ]
           },
         },
       ],

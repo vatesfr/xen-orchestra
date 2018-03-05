@@ -782,7 +782,8 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  // Create a snapshot of the VM and returns a delta export object.
+  // Create a snapshot (if necessary) of the VM and returns a delta export
+  // object.
   @cancelable
   @deferrable
   async exportDeltaVm (
@@ -800,16 +801,13 @@ export default class Xapi extends XapiBase {
       snapshotNameLabel = undefined,
     } = {}
   ) {
+    let vm = this.getObject(vmId)
     if (!bypassVdiChainsCheck) {
-      this._assertHealthyVdiChains(this.getObject(vmId))
+      this._assertHealthyVdiChains(vm)
     }
-
-    const vm = await this.snapshotVm(vmId)
-    $defer.onFailure(() => this._deleteVm(vm))
-    if (snapshotNameLabel) {
-      ;this._setObjectProperties(vm, {
-        nameLabel: snapshotNameLabel,
-      })::ignoreErrors()
+    if (!vm.is_a_snapshot) {
+      vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
+      $defer.onFailure(() => this._deleteVm(vm))
     }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
@@ -905,7 +903,9 @@ export default class Xapi extends XapiBase {
       },
       'streams',
       {
+        configurable: true,
         value: streams,
+        writable: true,
       }
     )
   }
@@ -1434,7 +1434,7 @@ export default class Xapi extends XapiBase {
         'VM.snapshot_with_quiesce',
         vm.$ref,
         nameLabel
-      )
+      ).then(extractOpaqueRef)
       this.addTag(ref, 'quiesce')::ignoreErrors()
 
       await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
@@ -1455,7 +1455,7 @@ export default class Xapi extends XapiBase {
         'VM.snapshot',
         vm.$ref,
         nameLabel
-      )
+      ).then(extractOpaqueRef)
     }
     // Convert the template to a VM and wait to have receive the up-
     // to-date object.

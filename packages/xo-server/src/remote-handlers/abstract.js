@@ -10,6 +10,8 @@ import {
   validChecksumOfReadStream,
 } from '../utils'
 
+const checksumFile = file => file + '.checksum'
+
 export default class RemoteHandlerAbstract {
   constructor (remote) {
     this._remote = { ...remote, ...parse(remote.url) }
@@ -92,8 +94,15 @@ export default class RemoteHandlerAbstract {
     return this.createReadStream(file, options).then(streamToBuffer)
   }
 
-  async rename (oldPath, newPath) {
-    return this._rename(oldPath, newPath)
+  async rename (oldPath, newPath, { checksum = false } = {}) {
+    let p = this._rename(oldPath, newPath)
+    if (checksum) {
+      p = Promise.all([
+        p,
+        this._rename(checksumFile(oldPath), checksumFile(newPath)),
+      ])
+    }
+    return p
   }
 
   async _rename (oldPath, newPath) {
@@ -112,6 +121,7 @@ export default class RemoteHandlerAbstract {
     file,
     { checksum = false, ignoreMissingChecksum = false, ...options } = {}
   ) {
+    const path = typeof file === 'string' ? file : file.path
     const streamP = this._createReadStream(file, options).then(stream => {
       // detect early errors
       let promise = eventToPromise(stream, 'readable')
@@ -142,7 +152,7 @@ export default class RemoteHandlerAbstract {
     // avoid a unhandled rejection warning
     ;streamP::ignoreErrors()
 
-    return this.readFile(`${file}.checksum`).then(
+    return this.readFile(checksumFile(path)).then(
       checksum =>
         streamP.then(stream => {
           const { length } = stream
@@ -164,14 +174,31 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
+  async openFile (path, flags) {
+    return { fd: await this._openFile(path, flags), path }
+  }
+
+  async _openFile (path, flags) {
+    throw new Error('Not implemented')
+  }
+
+  async closeFile (fd) {
+    return this._closeFile(fd.fd)
+  }
+
+  async _closeFile (fd) {
+    throw new Error('Not implemented')
+  }
+
   async refreshChecksum (path) {
     const stream = addChecksumToReadStream(await this.createReadStream(path))
     stream.resume() // start reading the whole file
     const checksum = await stream.checksum
-    await this.outputFile(`${path}.checksum`, checksum)
+    await this.outputFile(checksumFile(path), checksum)
   }
 
   async createOutputStream (file, { checksum = false, ...options } = {}) {
+    const path = typeof file === 'string' ? file : file.path
     const streamP = this._createOutputStream(file, {
       flags: 'wx',
       ...options,
@@ -187,10 +214,12 @@ export default class RemoteHandlerAbstract {
     }
 
     const streamWithChecksum = addChecksumToReadStream(connectorStream)
-    streamWithChecksum.pipe(await streamP)
+    const stream = await streamP
+    stream.on('error', forwardError)
+    streamWithChecksum.pipe(stream)
 
     streamWithChecksum.checksum
-      .then(value => this.outputFile(`${file}.checksum`, value))
+      .then(value => this.outputFile(checksumFile(path), value))
       .catch(forwardError)
 
     return connectorStream
@@ -202,7 +231,7 @@ export default class RemoteHandlerAbstract {
 
   async unlink (file, { checksum = true } = {}) {
     if (checksum) {
-      ;this._unlink(`${file}.checksum`)::ignoreErrors()
+      ;this._unlink(checksumFile(file))::ignoreErrors()
     }
 
     return this._unlink(file)

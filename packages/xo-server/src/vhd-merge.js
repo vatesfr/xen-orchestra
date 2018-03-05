@@ -182,7 +182,7 @@ function checksumStruct (rawStruct, struct) {
 
 // ===================================================================
 
-class Vhd {
+export class Vhd {
   constructor (handler, path) {
     this._handler = handler
     this._path = path
@@ -193,7 +193,7 @@ class Vhd {
   // =================================================================
 
   _readStream (start, n) {
-    return this._handler.createReadStream(this._path, {
+    return this._handler.createReadStream(this._fd ? this._fd : this._path, {
       start,
       end: start + n - 1, // end is inclusive
     })
@@ -328,10 +328,12 @@ class Vhd {
     ).then(
       buf =>
         onlyBitmap
-          ? { bitmap: buf }
+          ? { id: blockId, bitmap: buf }
           : {
+            id: blockId,
             bitmap: buf.slice(0, this.bitmapSize),
             data: buf.slice(this.bitmapSize),
+            buffer: buf,
           }
     )
   }
@@ -339,7 +341,6 @@ class Vhd {
   // get the identifiers and first sectors of the first and last block
   // in the file
   //
-  // return undefined if none
   _getFirstAndLastBlocks () {
     const n = this.header.maxTableEntries
     const bat = this.blockTable
@@ -353,7 +354,9 @@ class Vhd {
       j += VHD_ENTRY_SIZE
 
       if (i === n) {
-        throw new Error('no allocated block found')
+        const error = new Error('no allocated block found')
+        error.noBlock = true
+        throw error
       }
     }
     lastSector = firstSector
@@ -383,27 +386,26 @@ class Vhd {
   // =================================================================
 
   // Write a buffer/stream at a given position in a vhd file.
-  _write (data, offset) {
+  async _write (data, offset) {
     debug(
       `_write offset=${offset} size=${
         Buffer.isBuffer(data) ? data.length : '???'
       }`
     )
     // TODO: could probably be merged in remote handlers.
-    return this._handler
-      .createOutputStream(this._path, {
+    const stream = await this._handler.createOutputStream(
+      this._fd ? this._fd : this._path,
+      {
         flags: 'r+',
         start: offset,
+      }
+    )
+    return Buffer.isBuffer(data)
+      ? new Promise((resolve, reject) => {
+        stream.on('error', reject)
+        stream.end(data, resolve)
       })
-      .then(
-        Buffer.isBuffer(data)
-          ? stream =>
-            new Promise((resolve, reject) => {
-              stream.on('error', reject)
-              stream.end(data, resolve)
-            })
-          : stream => eventToPromise(data.pipe(stream), 'finish')
-      )
+      : eventToPromise(data.pipe(stream), 'finish')
   }
 
   async ensureBatSize (size) {
@@ -415,11 +417,11 @@ class Vhd {
     }
 
     const tableOffset = uint32ToUint64(header.tableOffset)
-    const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
-
     // extend BAT
     const maxTableEntries = (header.maxTableEntries = size)
-    const batSize = maxTableEntries * VHD_ENTRY_SIZE
+    const batSize = sectorsToBytes(
+      sectorsRoundUpNoZero(maxTableEntries * VHD_ENTRY_SIZE)
+    )
     const prevBat = this.blockTable
     const bat = (this.blockTable = Buffer.allocUnsafe(batSize))
     prevBat.copy(bat)
@@ -428,7 +430,7 @@ class Vhd {
       `ensureBatSize: extend in memory BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
     )
 
-    const extendBat = () => {
+    const extendBat = async () => {
       debug(
         `ensureBatSize: extend in file BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
       )
@@ -438,25 +440,37 @@ class Vhd {
         tableOffset + prevBat.length
       )
     }
+    try {
+      const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
+      if (tableOffset + batSize < sectorsToBytes(firstSector)) {
+        return Promise.all([extendBat(), this.writeHeader()])
+      }
 
-    if (tableOffset + batSize < sectorsToBytes(firstSector)) {
-      return Promise.all([extendBat(), this.writeHeader()])
-    }
+      const { fullBlockSize } = this
+      const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
+      debug(
+        `ensureBatSize: move first block ${firstSector} -> ${newFirstSector}`
+      )
 
-    const { fullBlockSize } = this
-    const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
-    debug(`ensureBatSize: move first block ${firstSector} -> ${newFirstSector}`)
-
-    return Promise.all([
       // copy the first block at the end
-      this._readStream(sectorsToBytes(firstSector), fullBlockSize)
-        .then(stream => this._write(stream, sectorsToBytes(newFirstSector)))
-        .then(extendBat),
-
-      this._setBatEntry(first, newFirstSector),
-      this.writeHeader(),
-      this.writeFooter(),
-    ])
+      const stream = await this._readStream(
+        sectorsToBytes(firstSector),
+        fullBlockSize
+      )
+      await this._write(stream, sectorsToBytes(newFirstSector))
+      await extendBat()
+      await this._setBatEntry(first, newFirstSector)
+      await this.writeHeader()
+      await this.writeFooter()
+    } catch (e) {
+      if (e.noBlock) {
+        await extendBat()
+        await this.writeHeader()
+        await this.writeFooter()
+      } else {
+        throw e
+      }
+    }
   }
 
   // set the first sector (bitmap) of a block
@@ -510,7 +524,16 @@ class Vhd {
     await this._write(bitmap, sectorsToBytes(blockAddr))
   }
 
-  async writeBlockSectors (block, beginSectorId, endSectorId) {
+  async writeEntireBlock (block) {
+    let blockAddr = this._getBatEntry(block.id)
+
+    if (blockAddr === BLOCK_UNUSED) {
+      blockAddr = await this.createBlock(block.id)
+    }
+    await this._write(block.buffer, sectorsToBytes(blockAddr))
+  }
+
+  async writeBlockSectors (block, beginSectorId, endSectorId, parentBitmap) {
     let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
@@ -525,6 +548,11 @@ class Vhd {
       }, sectors=${beginSectorId}...${endSectorId}`
     )
 
+    for (let i = beginSectorId; i < endSectorId; ++i) {
+      mapSetBit(parentBitmap, i)
+    }
+
+    await this.writeBlockBitmap(blockAddr, parentBitmap)
     await this._write(
       block.data.slice(
         sectorsToBytes(beginSectorId),
@@ -532,20 +560,11 @@ class Vhd {
       ),
       sectorsToBytes(offset)
     )
-
-    const { bitmap } = await this._readBlock(block.id, true)
-
-    for (let i = beginSectorId; i < endSectorId; ++i) {
-      mapSetBit(bitmap, i)
-    }
-
-    await this.writeBlockBitmap(blockAddr, bitmap)
   }
 
-  // Merge block id (of vhd child) into vhd parent.
   async coalesceBlock (child, blockId) {
-    // Get block data and bitmap of block id.
-    const { bitmap, data } = await child._readBlock(blockId)
+    const block = await child._readBlock(blockId)
+    const { bitmap, data } = block
 
     debug(`coalesceBlock block=${blockId}`)
 
@@ -556,7 +575,7 @@ class Vhd {
       if (!mapTestBit(bitmap, i)) {
         continue
       }
-
+      let parentBitmap = null
       let endSector = i + 1
 
       // Count changed sectors.
@@ -566,7 +585,16 @@ class Vhd {
 
       // Write n sectors into parent.
       debug(`coalesceBlock: write sectors=${i}...${endSector}`)
-      await this.writeBlockSectors({ id: blockId, data }, i, endSector)
+
+      const isFullBlock = i === 0 && endSector === sectorsPerBlock
+      if (isFullBlock) {
+        await this.writeEntireBlock(block)
+      } else {
+        if (parentBitmap === null) {
+          parentBitmap = (await this._readBlock(blockId, true)).bitmap
+        }
+        await this.writeBlockSectors(block, i, endSector, parentBitmap)
+      }
 
       i = endSector
     }
@@ -620,60 +648,71 @@ export default concurrency(2)(async function vhdMerge (
   childPath
 ) {
   const parentVhd = new Vhd(parentHandler, parentPath)
-  const childVhd = new Vhd(childHandler, childPath)
+  parentVhd._fd = await parentHandler.openFile(parentPath, 'r+')
+  try {
+    const childVhd = new Vhd(childHandler, childPath)
+    childVhd._fd = await childHandler.openFile(childPath, 'r')
+    try {
+      // Reading footer and header.
+      await Promise.all([
+        parentVhd.readHeaderAndFooter(),
+        childVhd.readHeaderAndFooter(),
+      ])
 
-  // Reading footer and header.
-  await Promise.all([
-    parentVhd.readHeaderAndFooter(),
-    childVhd.readHeaderAndFooter(),
-  ])
+      assert(childVhd.header.blockSize === parentVhd.header.blockSize)
 
-  assert(childVhd.header.blockSize === parentVhd.header.blockSize)
+      // Child must be a delta.
+      if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
+        throw new Error('Unable to merge, child is not a delta backup.')
+      }
 
-  // Child must be a delta.
-  if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
-    throw new Error('Unable to merge, child is not a delta backup.')
-  }
+      // Merging in differencing disk is prohibited in our case.
+      if (parentVhd.footer.diskType !== HARD_DISK_TYPE_DYNAMIC) {
+        throw new Error('Unable to merge, parent is not a full backup.')
+      }
 
-  // Merging in differencing disk is prohibited in our case.
-  if (parentVhd.footer.diskType !== HARD_DISK_TYPE_DYNAMIC) {
-    throw new Error('Unable to merge, parent is not a full backup.')
-  }
+      // Allocation table map is not yet implemented.
+      if (
+        parentVhd.hasBlockAllocationTableMap() ||
+        childVhd.hasBlockAllocationTableMap()
+      ) {
+        throw new Error('Unsupported allocation table map.')
+      }
 
-  // Allocation table map is not yet implemented.
-  if (
-    parentVhd.hasBlockAllocationTableMap() ||
-    childVhd.hasBlockAllocationTableMap()
-  ) {
-    throw new Error('Unsupported allocation table map.')
-  }
+      // Read allocation table of child/parent.
+      await Promise.all([parentVhd.readBlockTable(), childVhd.readBlockTable()])
 
-  // Read allocation table of child/parent.
-  await Promise.all([parentVhd.readBlockTable(), childVhd.readBlockTable()])
+      await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
-  await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
+      let mergedDataSize = 0
+      for (
+        let blockId = 0;
+        blockId < childVhd.header.maxTableEntries;
+        blockId++
+      ) {
+        if (childVhd._getBatEntry(blockId) !== BLOCK_UNUSED) {
+          mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+        }
+      }
+      const cFooter = childVhd.footer
+      const pFooter = parentVhd.footer
 
-  let mergedDataSize = 0
+      pFooter.currentSize = { ...cFooter.currentSize }
+      pFooter.diskGeometry = { ...cFooter.diskGeometry }
+      pFooter.originalSize = { ...cFooter.originalSize }
+      pFooter.timestamp = cFooter.timestamp
 
-  for (let blockId = 0; blockId < childVhd.header.maxTableEntries; blockId++) {
-    if (childVhd._getBatEntry(blockId) !== BLOCK_UNUSED) {
-      mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+      // necessary to update values and to recreate the footer after block
+      // creation
+      await parentVhd.writeFooter()
+
+      return mergedDataSize
+    } finally {
+      await childHandler.closeFile(childVhd._fd)
     }
+  } finally {
+    await parentHandler.closeFile(parentVhd._fd)
   }
-
-  const cFooter = childVhd.footer
-  const pFooter = parentVhd.footer
-
-  pFooter.currentSize = { ...cFooter.currentSize }
-  pFooter.diskGeometry = { ...cFooter.diskGeometry }
-  pFooter.originalSize = { ...cFooter.originalSize }
-  pFooter.timestamp = cFooter.timestamp
-
-  // necessary to update values and to recreate the footer after block
-  // creation
-  await parentVhd.writeFooter()
-
-  return mergedDataSize
 })
 
 // returns true if the child was actually modified
