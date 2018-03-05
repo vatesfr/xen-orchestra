@@ -3,12 +3,9 @@ import through2 from 'through2'
 import { ignoreErrors } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 
-import {
-  addChecksumToReadStream,
-  getPseudoRandomBytes,
-  streamToBuffer,
-  validChecksumOfReadStream,
-} from '../utils'
+import { getPseudoRandomBytes, streamToBuffer } from '../utils'
+
+import { addChecksumToReadStream, validChecksumOfReadStream } from './checksum'
 
 const checksumFile = file => file + '.checksum'
 
