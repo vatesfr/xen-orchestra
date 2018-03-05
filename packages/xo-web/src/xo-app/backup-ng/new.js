@@ -4,7 +4,7 @@ import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import Upgrade from 'xoa-upgrade'
 import { injectState, provideState } from '@julien-f/freactal'
-import { orderBy, isEmpty, map } from 'lodash'
+import { orderBy, isEmpty, map, some } from 'lodash'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import { resolveIds } from 'utils'
 import {
@@ -56,6 +56,7 @@ export default [
   provideState({
     initialState: () => ({
       delta: false,
+      compression: true,
       formId: getRandomId(),
       tmpSchedule: {
         cron: DEFAULT_CRON_PATTERN,
@@ -67,7 +68,6 @@ export default [
       paramsUpdated: false,
       remotes: [],
       schedules: {},
-      savedJob: {},
       srs: [],
       vms: [],
       tmpSchedules: {},
@@ -92,6 +92,7 @@ export default [
         await createBackupNgJob({
           name: state.name,
           mode: state.delta ? 'delta' : 'full',
+          compression: state.compression ? 'native' : '',
           remotes: constructPattern(state.remotes),
           schedules: state.tmpSchedules,
           settings: {
@@ -122,6 +123,7 @@ export default [
           id: props.job.id,
           name: state.name,
           mode: state.delta ? 'delta' : 'full',
+          compression: state.compression ? 'native' : '',
           remotes: constructPattern(state.remotes),
           srs: constructPattern(state.srs),
           vms: constructPattern(state.vms),
@@ -165,8 +167,8 @@ export default [
           settings: {
             ...props.job.settings,
             [scheduleId]: {
-              exportRetention: state.exportRetention,
-              snapshotRetention: state.snapshotRetention,
+              exportRetention: +state.exportRetention,
+              snapshotRetention: +state.snapshotRetention,
             },
           },
         })
@@ -205,6 +207,10 @@ export default [
         ...state,
         delta: checked,
       }),
+      setCompression: (_, { target: { checked } }) => state => ({
+        ...state,
+        compression: checked,
+      }),
       setName: (_, { target: { value } }) => state => ({
         ...state,
         name: value,
@@ -217,13 +223,14 @@ export default [
         paramsUpdated: true,
         name: job.name,
         delta: job.mode === 'delta',
+        compression: job.compression === 'native',
         remotes: destructPattern(job.remotes),
         srs: destructPattern(job.srs),
         vms: destructPattern(job.vms),
       }),
     },
     computed: {
-      jobSettings: (state, { job: { settings } }) => settings,
+      jobSettings: (state, { job }) => job && job.settings,
       schedules: (state, { schedules }) => schedules,
       needUpdateParams: (state, { job }) =>
         job !== undefined && !state.paramsUpdated,
@@ -234,6 +241,14 @@ export default [
         state.name.trim() === '' ||
         (isEmpty(state.schedules) && isEmpty(state.tmpSchedules)) ||
         isEmpty(state.vms),
+      showCompression: (state, { job }) =>
+        !state.delta &&
+        (some(
+          state.tmpSchedules,
+          schedule => +schedule.exportRetention !== 0
+        ) ||
+          (job &&
+            some(job.settings, schedule => schedule.exportRetention !== 0))),
       sortedSchedules: ({ schedules }) => orderBy(schedules, 'name'),
       // TO DO: use sortedTmpSchedules
       sortedTmpSchedules: ({ tmpSchedules }) => orderBy(tmpSchedules, 'id'),
@@ -276,6 +291,16 @@ export default [
           </label>
           <SelectVm multi onChange={effects.setVms} value={state.vms} />
         </FormGroup>
+        {state.showCompression && (
+          <label>
+            <input
+              type='checkbox'
+              onChange={effects.setCompression}
+              checked={state.compression}
+            />{' '}
+            Enable compression
+          </label>
+        )}
         {(!isEmpty(state.srs) || !isEmpty(state.remotes)) && (
           <Upgrade place='newBackup' required={4}>
             <FormGroup>
