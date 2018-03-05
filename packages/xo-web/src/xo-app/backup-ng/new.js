@@ -23,7 +23,7 @@ const constructPattern = values => ({
 
 const destructPattern = pattern => pattern.id.__or
 
-const removeScheduleFromSettings = tmpSchedules => {
+const removeSchedulesFromSettings = tmpSchedules => {
   const newTmpSchedules = cloneDeep(tmpSchedules)
 
   for (const schedule in newTmpSchedules) {
@@ -56,14 +56,10 @@ export default [
       exportRetention: 0,
       snapshotRetention: 0,
       name: '',
+      paramsUpdated: false,
       remotes: [],
       schedules: {},
       savedJob: {},
-      editedName: false,
-      editedRemotes: false,
-      editedSrs: false,
-      editedVms: false,
-      editedDelta: false,
       srs: [],
       vms: [],
       tmpSchedules: {},
@@ -91,7 +87,7 @@ export default [
           remotes: constructPattern(state.remotes),
           schedules: state.tmpSchedules,
           settings: {
-            ...removeScheduleFromSettings(state.tmpSchedules),
+            ...removeSchedulesFromSettings(state.tmpSchedules),
           },
           srs: constructPattern(state.srs),
           vms: constructPattern(state.vms),
@@ -100,17 +96,16 @@ export default [
       editJob: () => async (state, props) => {
         await editBackupNgJob({
           id: props.job.id,
-          name: state.name || props.name,
-          mode: state.delta || props.delta ? 'delta' : 'full',
-          remotes: state.remotes
-            ? constructPattern(state.remotes)
-            : props.remotes,
+          name: state.name,
+          mode: state.delta ? 'delta' : 'full',
+          schedules: state.tmpSchedules,
+          remotes: constructPattern(state.remotes),
+          srs: constructPattern(state.srs),
+          vms: constructPattern(state.vms),
           settings: {
-            ...removeScheduleFromSettings(state.tmpSchedules),
+            ...removeSchedulesFromSettings(state.tmpSchedules),
             ...props.job.settings,
           },
-          srs: state.srs ? constructPattern(state.srs) : props.srs,
-          vms: state.vms ? constructPattern(state.vms) : props.vms,
         })
       },
       setTmpSchedule: (_, schedule) => state => ({
@@ -164,43 +159,32 @@ export default [
           },
         },
       }),
-      setDelta: (_, { target: { value } }) => state => ({
+      setDelta: (_, { target: { checked } }) => state => ({
         ...state,
-        editedDelta: true,
-        delta: value,
+        delta: checked,
       }),
       setName: (_, { target: { value } }) => state => ({
         ...state,
-        editedName: true,
         name: value,
       }),
-      setRemotes: (_, remotes) => state => ({
+      setRemotes: (_, remotes) => state => ({ ...state, remotes }),
+      setSrs: (_, srs) => state => ({ ...state, srs }),
+      setVms: (_, vms) => state => ({ ...state, vms }),
+      updateParams: () => (state, { job }) => ({
         ...state,
-        editedRemotes: true,
-        remotes,
+        paramsUpdated: true,
+        name: job.name,
+        delta: job.mode === 'delta',
+        remotes: destructPattern(job.remotes),
+        srs: destructPattern(job.srs),
+        vms: destructPattern(job.vms),
       }),
-      setSrs: (_, srs) => state => ({ ...state, editedSrs: true, srs }),
-      setVms: (_, vms) => state => ({ ...state, editedVms: true, vms }),
     },
     computed: {
-      schedules: (state, { schedules }) => schedules,
       jobSettings: (state, { job: { settings } }) => settings,
-      getName: (state, { job }) =>
-        state.editedName || job === undefined ? state.name : job.name,
-      getRemotes: (state, { job }) =>
-        state.editedRemotes || job === undefined
-          ? state.remotes
-          : destructPattern(job.remotes),
-      getSrs: (state, { job }) =>
-        state.editedSrs || job === undefined
-          ? state.srs
-          : destructPattern(job.srs),
-      getVms: (state, { job }) =>
-        state.editedVms || job === undefined
-          ? state.vms
-          : destructPattern(job.vms),
-      getDelta: (state, { job }) =>
-        state.editedDelta || job === undefined ? state.delta : job.delta,
+      schedules: (state, { schedules }) => schedules,
+      needUpdateParams: (state, { job }) =>
+        job !== undefined && !state.paramsUpdated,
       isInvalid: state =>
         state.name.trim() === '' ||
         (isEmpty(state.schedules) &&
@@ -212,151 +196,161 @@ export default [
     },
   }),
   injectState,
-  ({ effects, state }) => (
-    <form id={state.formId}>
-      <FormGroup>
-        <h1>BackupNG</h1>
-        <label>
-          <strong>Name</strong>
-        </label>
-        <Input onChange={effects.setName} value={state.getName} />
-      </FormGroup>
-      <FormGroup>
-        <label>
-          <strong>Target remotes (for Export)</strong>
-        </label>
-        <SelectRemote
-          multi
-          onChange={effects.setRemotes}
-          value={state.getRemotes}
-        />
-      </FormGroup>
-      <FormGroup>
-        <label>
-          <strong>Target SRs (for Replication)</strong>
-        </label>
-        <SelectSr multi onChange={effects.setSrs} value={state.getSrs} />
-      </FormGroup>
-      <FormGroup>
-        <label>
-          <strong>Vms to Backup</strong>
-        </label>
-        <SelectVm multi onChange={effects.setVms} value={state.getVms} />
-      </FormGroup>
-      {(!isEmpty(state.getSrs) || !isEmpty(state.getRemotes)) && (
-        <Upgrade place='newBackup' required={4}>
+  ({ effects, state }) => {
+    if (state.needUpdateParams) {
+      effects.updateParams()
+    }
+
+    return (
+      <form id={state.formId}>
+        <FormGroup>
+          <h1>BackupNG</h1>
+          <label>
+            <strong>Name</strong>
+          </label>
+          <Input onChange={effects.setName} value={state.name} />
+        </FormGroup>
+        <FormGroup>
+          <label>
+            <strong>Target remotes (for Export)</strong>
+          </label>
+          <SelectRemote
+            multi
+            onChange={effects.setRemotes}
+            value={state.remotes}
+          />
+        </FormGroup>
+        <FormGroup>
+          <label>
+            <strong>Target SRs (for Replication)</strong>
+          </label>
+          <SelectSr multi onChange={effects.setSrs} value={state.srs} />
+        </FormGroup>
+        <FormGroup>
+          <label>
+            <strong>Vms to Backup</strong>
+          </label>
+          <SelectVm multi onChange={effects.setVms} value={state.vms} />
+        </FormGroup>
+        {(!isEmpty(state.srs) || !isEmpty(state.remotes)) && (
+          <Upgrade place='newBackup' required={4}>
+            <FormGroup>
+              <label>
+                <input
+                  type='checkbox'
+                  onChange={effects.setDelta}
+                  checked={state.delta}
+                />{' '}
+                Use delta
+              </label>
+            </FormGroup>
+          </Upgrade>
+        )}
+        {!isEmpty(state.sortedSchedules) && (
           <FormGroup>
-            <label>
-              <input
-                type='checkbox'
-                onChange={effects.setDelta}
-                value={state.getDelta}
-              />{' '}
-              Use delta
-            </label>
+            <h3>Saved schedules</h3>
+            <ul>
+              {state.sortedSchedules.map(schedule => (
+                <li key={schedule.id}>
+                  {schedule.name} {schedule.cron} {schedule.timezone}{' '}
+                  {state.jobSettings[schedule.id].exportRetention}{' '}
+                  {state.jobSettings[schedule.id].snapshotRetention}
+                  <ActionButton
+                    handler={effects.populateSchedule}
+                    data-cron={schedule.cron}
+                    data-timezone={schedule.timezone}
+                    data-exportRetention={
+                      state.jobSettings[schedule.id].exportRetention
+                    }
+                    data-snapshotRetention={
+                      state.jobSettings[schedule.id].snapshotRetention
+                    }
+                    icon='edit'
+                    size='small'
+                  />
+                  <ActionButton
+                    data-scheduleId={schedule.id}
+                    handler={effects.editSchedule}
+                    icon='save'
+                    size='small'
+                  />
+                </li>
+              ))}
+            </ul>
           </FormGroup>
-        </Upgrade>
-      )}
-      {!isEmpty(state.schedules) && (
+        )}
+        {!isEmpty(state.tmpSchedules) && (
+          <FormGroup>
+            <h3>New schedules</h3>
+            <ul>
+              {map(state.tmpSchedules, (schedule, key) => (
+                <li key={key}>
+                  {schedule.cron} {schedule.timezone} {schedule.exportRetention}{' '}
+                  {schedule.snapshotRetention}
+                  <ActionButton
+                    data-scheduleId={key}
+                    handler={effects.editTmpSchedule}
+                    icon='edit'
+                    size='small'
+                  />
+                </li>
+              ))}
+            </ul>
+          </FormGroup>
+        )}
         <FormGroup>
-          <h3>Saved schedules</h3>
-          <ul>
-            {state.sortedSchedules.map(schedule => (
-              <li key={schedule.id}>
-                {schedule.name} {schedule.cron} {schedule.timezone}{' '}
-                {state.jobSettings[schedule.id].exportRetention}{' '}
-                {state.jobSettings[schedule.id].snapshotRetention}
-                <ActionButton
-                  handler={effects.populateSchedule}
-                  data-cron={schedule.cron}
-                  data-timezone={schedule.timezone}
-                  data-exportRetention={
-                    state.jobSettings[schedule.id].exportRetention
-                  }
-                  data-snapshotRetention={
-                    state.jobSettings[schedule.id].snapshotRetention
-                  }
-                  icon='edit'
-                  size='small'
-                />
-                <ActionButton
-                  data-scheduleId={schedule.id}
-                  handler={effects.editSchedule}
-                  icon='save'
-                  size='small'
-                />
-              </li>
-            ))}
-          </ul>
+          <h1>Schedule</h1>
+          <label>
+            <strong>Export retention</strong>
+          </label>
+          <Input
+            type='number'
+            onChange={effects.setExportRetention}
+            value={state.exportRetention}
+          />
+          <label>
+            <strong>Snapshot retention</strong>
+          </label>
+          <Input
+            type='number'
+            onChange={effects.setSnapshotRetention}
+            value={state.snapshotRetention}
+          />
+          <Scheduler
+            cronPattern={state.tmpSchedule.cron}
+            onChange={effects.setTmpSchedule}
+            timezone={state.tmpSchedule.timezone}
+          />
+          <SchedulePreview
+            cronPattern={state.tmpSchedule.cron}
+            timezone={state.tmpSchedule.timezone}
+          />
+          <br />
+          <ActionButton handler={effects.addSchedule} icon='add'>
+            Add a schedule
+          </ActionButton>
         </FormGroup>
-      )}
-      {!isEmpty(state.tmpSchedules) && (
-        <FormGroup>
-          <h3>New schedules</h3>
-          <ul>
-            {map(state.tmpSchedules, (schedule, key) => (
-              <li key={key}>
-                {schedule.cron} {schedule.timezone} {schedule.exportRetention}{' '}
-                {schedule.snapshotRetention}
-                <ActionButton
-                  data-scheduleId={key}
-                  handler={effects.editTmpSchedule}
-                  icon='edit'
-                  size='small'
-                />
-              </li>
-            ))}
-          </ul>
-        </FormGroup>
-      )}
-      <FormGroup>
-        <h1>Schedule</h1>
-        <label>
-          <strong>Export retention</strong>
-        </label>
-        <Input
-          type='number'
-          onChange={effects.setExportRetention}
-          value={state.exportRetention}
-        />
-        <label>
-          <strong>Snapshot retention</strong>
-        </label>
-        <Input
-          type='number'
-          onChange={effects.setSnapshotRetention}
-          value={state.snapshotRetention}
-        />
-        <Scheduler
-          cronPattern={state.tmpSchedule.cron}
-          onChange={effects.setTmpSchedule}
-          timezone={state.tmpSchedule.timezone}
-        />
-        <SchedulePreview
-          cronPattern={state.tmpSchedule.cron}
-          timezone={state.tmpSchedule.timezone}
-        />
-        <br />
-        <ActionButton handler={effects.addSchedule} icon='add'>
-          Add a schedule
-        </ActionButton>
-      </FormGroup>
-      <ActionButton
-        disabled={state.isInvalid}
-        form={state.formId}
-        handler={effects.createJob}
-        redirectOnSuccess='/backup-ng'
-        icon='save'
-      >
-        Create
-      </ActionButton>
-      <ActionButton
-        handler={effects.editJob}
-        icon='save'
-        redirectOnSuccess='/backup-ng'
-      >
-        Edit
-      </ActionButton>
-    </form>
-  ),
+        {state.paramsUpdated ? (
+          <ActionButton
+            handler={effects.editJob}
+            form={state.formId}
+            icon='save'
+            redirectOnSuccess='/backup-ng'
+          >
+            Edit
+          </ActionButton>
+        ) : (
+          <ActionButton
+            disabled={state.isInvalid}
+            form={state.formId}
+            handler={effects.createJob}
+            redirectOnSuccess='/backup-ng'
+            icon='save'
+          >
+            Create
+          </ActionButton>
+        )}
+      </form>
+    )
+  },
 ].reduceRight((value, decorator) => decorator(value))
