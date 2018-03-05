@@ -10,6 +10,7 @@ import { resolveIds } from 'utils'
 import {
   createBackupNgJob,
   createSchedule,
+  deleteSchedule,
   editBackupNgJob,
   editSchedule,
 } from 'xo'
@@ -170,6 +171,17 @@ export default [
           },
         })
       },
+      deleteSchedule: (_, { scheduleId }) => async (state, props) => {
+        await deleteSchedule(scheduleId)
+
+        delete props.job.settings[scheduleId]
+        await editBackupNgJob({
+          id: props.job.id,
+          settings: {
+            ...props.job.settings,
+          },
+        })
+      },
       editTmpSchedule: (_, { scheduleId }) => state => ({
         ...state,
         tmpSchedules: {
@@ -181,6 +193,14 @@ export default [
           },
         },
       }),
+      deleteTmpSchedule: (_, { scheduleId }) => state => {
+        const tmpSchedules = { ...state.tmpSchedules }
+        delete tmpSchedules[scheduleId]
+        return {
+          ...state,
+          tmpSchedules,
+        }
+      },
       setDelta: (_, { target: { checked } }) => state => ({
         ...state,
         delta: checked,
@@ -209,9 +229,8 @@ export default [
         job !== undefined && !state.paramsUpdated,
       isInvalid: state =>
         state.name.trim() === '' ||
-        (isEmpty(state.schedules) &&
-          isEmpty(state.tmpSchedules) &&
-          isEmpty(state.vms)),
+        (isEmpty(state.schedules) && isEmpty(state.tmpSchedules)) ||
+        isEmpty(state.vms),
       sortedSchedules: ({ schedules }) => orderBy(schedules, 'name'),
       // TO DO: use sortedTmpSchedules
       sortedTmpSchedules: ({ tmpSchedules }) => orderBy(tmpSchedules, 'id'),
@@ -296,6 +315,12 @@ export default [
                     icon='save'
                     size='small'
                   />
+                  <ActionButton
+                    data-scheduleId={schedule.id}
+                    handler={effects.deleteSchedule}
+                    icon='delete'
+                    size='small'
+                  />
                 </li>
               ))}
             </ul>
@@ -313,6 +338,12 @@ export default [
                     data-scheduleId={key}
                     handler={effects.editTmpSchedule}
                     icon='edit'
+                    size='small'
+                  />
+                  <ActionButton
+                    data-scheduleId={key}
+                    handler={effects.deleteTmpSchedule}
+                    icon='delete'
                     size='small'
                   />
                 </li>
@@ -354,6 +385,7 @@ export default [
         </FormGroup>
         {state.paramsUpdated ? (
           <ActionButton
+            disabled={state.isInvalid}
             handler={effects.editJob}
             form={state.formId}
             icon='save'
