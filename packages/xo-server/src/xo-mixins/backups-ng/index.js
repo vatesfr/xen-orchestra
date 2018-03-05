@@ -314,7 +314,7 @@ export default class BackupNg {
       app.removeJob(id),
       asyncMap(schedules, schedule => {
         if (schedule.id === id) {
-          app.removeSchedule(schedule.id)
+          app.deleteSchedule(schedule.id)
         }
       }),
     ])

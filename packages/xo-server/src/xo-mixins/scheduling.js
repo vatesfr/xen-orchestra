@@ -112,7 +112,7 @@ export default class Scheduling {
     return this._db.get()
   }
 
-  async removeSchedule (id: string) {
+  async deleteSchedule (id: string) {
     this._stop(id)
     await this._db.remove(id)
   }
