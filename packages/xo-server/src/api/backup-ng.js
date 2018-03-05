@@ -78,13 +78,13 @@ editJob.params = {
 }
 
 export function getAllJobs () {
-  return this.getAllBackupNgJobs()
+  return this.getAllJobs('backup')
 }
 
 getAllJobs.permission = 'admin'
 
 export function getJob ({ id }) {
-  return this.getBackupNgJob(id)
+  return this.getJob(id, 'backup')
 }
 
 getJob.permission = 'admin'

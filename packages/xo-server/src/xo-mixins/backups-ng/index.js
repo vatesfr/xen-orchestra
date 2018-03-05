@@ -342,14 +342,6 @@ export default class BackupNg {
     await this._deleteFullVmBackups(handler, [metadata])
   }
 
-  getAllBackupNgJobs (): Promise<BackupJob[]> {
-    return this._app.getAllJobs('backup')
-  }
-
-  getBackupNgJob (id: string): Promise<BackupJob> {
-    return this._app.getJob(id, 'backup')
-  }
-
   async importVmBackupNg (id: string, srId: string): Promise<void> {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
