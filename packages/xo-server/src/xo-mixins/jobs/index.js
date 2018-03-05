@@ -141,13 +141,13 @@ export default class Jobs {
     })
   }
 
-  async getAllJobs (type: string = 'call'): Promise<Array<Job>> {
+  async getAllJobs (type: ?string): Promise<Array<Job>> {
     // $FlowFixMe don't know what is the problem (JFT)
     const jobs = await this._jobs.get()
     const runningJobs = this._runningJobs
     const result = []
     jobs.forEach(job => {
-      if (job.type === type) {
+      if (type === undefined || job.type === type) {
         job.runId = runningJobs[job.id]
         result.push(job)
       }

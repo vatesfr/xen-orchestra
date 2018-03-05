@@ -1,6 +1,8 @@
 // @flow
 
 import { createSchedule } from '@xen-orchestra/cron'
+// $FlowFixMe
+import { keyBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../collection/redis'
@@ -58,7 +60,18 @@ export default class Scheduling {
 
     this._runs = { __proto__: null }
 
-    app.on('clean', () => db.rebuildIndexes())
+    app.on('clean', async () => {
+      const [jobsById, schedules] = await Promise.all([
+        app.getAllJobs().then(_ => keyBy(_, 'id')),
+        app.getAllSchedules(),
+      ])
+
+      await db.remove(
+        schedules.filter(_ => !(_.jobId in jobsById)).map(_ => _.id)
+      )
+
+      return db.rebuildIndexes()
+    })
     app.on('start', async () => {
       app.addConfigManager(
         'schedules',
