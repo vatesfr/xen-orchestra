@@ -517,7 +517,9 @@ export default class BackupNg {
         $defer.call(xapi, 'deleteVm', snapshot)
       }
 
-      let xva = await xapi.exportVm($cancelToken, snapshot)
+      let xva = await xapi.exportVm($cancelToken, snapshot, {
+        compress: job.compression === 'native',
+      })
       const exportTask = xva.task
       xva = xva.pipe(createSizeStream())
 
