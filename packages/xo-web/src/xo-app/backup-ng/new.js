@@ -291,16 +291,6 @@ export default [
           </label>
           <SelectVm multi onChange={effects.setVms} value={state.vms} />
         </FormGroup>
-        {state.showCompression && (
-          <label>
-            <input
-              type='checkbox'
-              onChange={effects.setCompression}
-              checked={state.compression}
-            />{' '}
-            Enable compression
-          </label>
-        )}
         {(!isEmpty(state.srs) || !isEmpty(state.remotes)) && (
           <Upgrade place='newBackup' required={4}>
             <FormGroup>
@@ -314,6 +304,16 @@ export default [
               </label>
             </FormGroup>
           </Upgrade>
+        )}
+        {state.showCompression && (
+          <label>
+            <input
+              type='checkbox'
+              onChange={effects.setCompression}
+              checked={state.compression}
+            />{' '}
+            Enable compression
+          </label>
         )}
         {!isEmpty(state.sortedSchedules) && (
           <FormGroup>
