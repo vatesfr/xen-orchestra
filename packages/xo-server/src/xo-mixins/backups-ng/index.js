@@ -198,10 +198,11 @@ const writeStream = async (
 //   └─ <VM UUID>
 //      ├─ index.json // TODO
 //      ├─ vdis
-//      │  └─ <VDI UUID>
-//      │     ├─ index.json // TODO
-//      │     ├─ <YYYYMMDD>T<HHmmss>.vhd
-//      │     └─ <YYYYMMDD>T<HHmmss>.vhd.checksum (only for deltas)
+//      │  └─ <job UUID>
+//      │     └─ <VDI UUID>
+//      │        ├─ index.json // TODO
+//      │        ├─ <YYYYMMDD>T<HHmmss>.vhd
+//      │        └─ <YYYYMMDD>T<HHmmss>.vhd.checksum (only for deltas)
 //      ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
 //      ├─ <YYYYMMDD>T<HHmmss>.xva
 //      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
@@ -689,7 +690,7 @@ export default class BackupNg {
       }
     }
 
-    const vdiDir = vmDir + '/vdis'
+    const vdiDir = `${vmDir}/${jobId}/vdis`
 
     const baseSnapshot = last(snapshots)
     if (baseSnapshot !== undefined) {
@@ -714,7 +715,7 @@ export default class BackupNg {
     const forkExport = (() => {
       // replace the stream factories by fork factories
       const streams = mapValues(deltaExport.streams, lazyStream => {
-        const forks = []
+        let forks = []
         return () => {
           if (forks === undefined) {
             throw new Error('cannot fork the stream after it has been created')
@@ -727,11 +728,13 @@ export default class BackupNg {
                   fork.task = stream.task
                   resolve(fork)
                 })
+                forks = undefined
               },
               error => {
                 forks.forEach(({ reject }) => {
                   reject(error)
                 })
+                forks = undefined
               }
             )
           }
