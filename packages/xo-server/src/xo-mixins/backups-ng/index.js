@@ -317,14 +317,14 @@ export default class BackupNg {
                 event: 'jobCall.end',
                 runJobId,
                 runCallId,
-                error: serializeError(error),
+                error: Array.isArray(error)
+                  ? error.map(serializeError)
+                  : serializeError(error),
               }
             )
 
             call.error = error
             call.end = Date.now()
-
-            console.warn(error.stack) // TODO: remove
           }
         })
         status.end = Date.now()
