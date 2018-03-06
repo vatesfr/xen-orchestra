@@ -202,11 +202,24 @@ export default class Restore extends Component {
       strongConfirm: {
         messageId: 'deleteVmBackupsBulkConfirmText',
         values: {
-          nBackups: reduce(datas, (sum, data) => sum + data.backups.length, 0),
+          nBackups: reduce(
+            datas,
+            (sum, data) =>
+              // TODO: [DELTA] remove filter
+              sum + data.backups.filter(b => b.mode !== 'delta').length,
+            0
+          ),
         },
       },
     })
-      .then(() => deleteBackups(flatMap(datas, 'backups')), noop)
+      .then(
+        () =>
+          deleteBackups(
+            // TODO: [DELTA] remove filter
+            flatMap(datas, 'backups').filter(b => b.mode !== 'delta')
+          ),
+        noop
+      )
       .then(() => this._refreshBackupList())
 
   // ---------------------------------------------------------------------------

@@ -1172,6 +1172,7 @@ const messages = {
   deleteVmBackupsTitle: 'Delete {vm} backups',
   deleteVmBackupsSelect: 'Select backups to delete:',
   deleteVmBackupsSelectAll: 'All',
+  deleteVmBackupsDeltaInfo: 'Delta backup deletion will be available soon',
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',
