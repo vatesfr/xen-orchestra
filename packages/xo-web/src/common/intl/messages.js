@@ -262,6 +262,7 @@ const messages = {
   jobId: 'ID',
   jobType: 'Type',
   jobName: 'Name',
+  jobMode: 'Mode',
   jobNamePlaceholder: 'Name of your job (forbidden: "_")',
   jobStart: 'Start',
   jobEnd: 'End',
@@ -1128,6 +1129,11 @@ const messages = {
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',
+  scheduleCron: 'Cron pattern',
+  scheduleTimezone: 'Timezone',
+  scheduleExportRetention: 'Export ret.',
+  scheduleSnapshotRetention: 'Snapshot ret.',
+  scheduleRun: 'Run',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',
