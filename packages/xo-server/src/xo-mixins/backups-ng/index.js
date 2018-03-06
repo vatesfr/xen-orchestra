@@ -4,7 +4,7 @@
 import defer from 'golike-defer'
 import { basename, dirname, resolve } from 'path'
 // $FlowFixMe
-import { fromEvent, timeout as pTimeout } from 'promise-toolbox'
+import { timeout as pTimeout } from 'promise-toolbox'
 import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
@@ -179,9 +179,8 @@ const writeStream = async (
   const tmpPath = `${dirname(path)}/.${basename(path)}`
   const output = await handler.createOutputStream(tmpPath, { checksum: true })
   try {
-    const promise = fromEvent(output, 'finish')
     input.pipe(output)
-    await promise
+    await output.checksumWritten
     // $FlowFixMe
     await input.task
     await handler.rename(tmpPath, path, { checksum: true })

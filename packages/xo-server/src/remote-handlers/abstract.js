@@ -213,7 +213,7 @@ export default class RemoteHandlerAbstract {
     stream.on('error', forwardError)
     checksumStream.pipe(stream)
 
-    checksumStream.checksum
+    checksumStream.checksumWritten = checksumStream.checksum
       .then(value => this.outputFile(checksumFile(path), value))
       .catch(forwardError)
 
