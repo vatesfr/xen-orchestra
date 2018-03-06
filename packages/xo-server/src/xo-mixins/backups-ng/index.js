@@ -5,7 +5,6 @@ import defer from 'golike-defer'
 import { dirname, resolve } from 'path'
 // $FlowFixMe
 import { fromEvent, timeout as pTimeout } from 'promise-toolbox'
-// $FlowFixMe
 import { isEmpty, last, mapValues, values } from 'lodash'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { PassThrough } from 'stream'
