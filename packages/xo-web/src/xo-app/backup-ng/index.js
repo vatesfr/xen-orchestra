@@ -4,6 +4,7 @@ import addSubscriptions from 'add-subscriptions'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import StateButton from 'state-button'
 import { map, groupBy } from 'lodash'
 import { Card, CardHeader, CardBlock } from 'card'
 import { constructQueryString } from 'smart-backup-pattern'
@@ -12,9 +13,11 @@ import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
 import {
   deleteBackupNgJobs,
+  disableSchedule,
+  enableSchedule,
+  runBackupNgJob,
   subscribeBackupNgJobs,
   subscribeSchedules,
-  runBackupNgJob,
 } from 'xo'
 
 import LogsTable from '../logs'
@@ -51,6 +54,18 @@ const SchedulePreviewBody = ({ job, schedules }) => (
         <Td>{schedule.timezone}</Td>
         <Td>{job.settings[schedule.id].exportRetention}</Td>
         <Td>{job.settings[schedule.id].snapshotRetention}</Td>
+        <Td>
+          <StateButton
+            disabledLabel={_('jobStateDisabled')}
+            disabledHandler={enableSchedule}
+            disabledTooltip={_('logIndicationToEnable')}
+            enabledLabel={_('jobStateEnabled')}
+            enabledHandler={disableSchedule}
+            enabledTooltip={_('logIndicationToDisable')}
+            handlerParam={schedule.id}
+            state={schedule.enabled}
+          />
+        </Td>
         <td>
           <ActionButton
             handler={runBackupNgJob}
@@ -68,8 +83,8 @@ const SchedulePreviewBody = ({ job, schedules }) => (
 
 const SchedulePreviewHeader = ({ _ }) => (
   <Ul>
-    <Li>Schedule ID</Li> | <Li>Cron</Li> | <Li>Timezone</Li> |{' '}
-    <Li>Export retention</Li> | <Li>Snapshot retention</Li> |{' '}
+    <Li>Cron</Li> | <Li>Timezone</Li> | <Li>Export retention</Li> |{' '}
+    <Li>Snapshot retention</Li> | <Li>State</Li>
   </Ul>
 )
 
