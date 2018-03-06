@@ -199,7 +199,17 @@ const writeStream = async (
 //    - copy in full mode: `Disaster Recovery`
 //    - imported from backup: `restored from backup`
 export default class BackupNg {
-  _app: any
+  _app: {
+    createJob: ($Diff<BackupJob, {| id: string |}>) => Promise<BackupJob>,
+    createSchedule: ($Diff<Schedule, {| id: string |}>) => Promise<Schedule>,
+    deleteSchedule: (id: string) => Promise<void>,
+    getAllSchedules: () => Promise<Schedule[]>,
+    getRemoteHandler: (id: string) => Promise<RemoteHandlerAbstract>,
+    getXapi: (id: string) => Xapi,
+    getJob: (id: string, 'backup') => Promise<BackupJob>,
+    updateJob: ($Shape<BackupJob>) => Promise<BackupJob>,
+    removeJob: (id: string) => Promise<void>
+  }
 
   constructor (app: any) {
     this._app = app
