@@ -5,7 +5,7 @@ import defer from 'golike-defer'
 import { basename, dirname, resolve } from 'path'
 // $FlowFixMe
 import { fromEvent, timeout as pTimeout } from 'promise-toolbox'
-import { isEmpty, last, mapValues, values } from 'lodash'
+import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 
@@ -153,6 +153,18 @@ const unboxIds = (pattern?: SimpleIdPattern): string[] => {
   }
   const { id } = pattern
   return typeof id === 'string' ? [id] : id.__or
+}
+
+// similar to Promise.all() but do not gather results
+const waitAll = async (promises, onRejection) => {
+  promises = promises.map(promise => {
+    promise = promise.catch(onRejection)
+    promise.catch(noop) // prevent unhandled rejection warning
+    return promise
+  })
+  for (const promise of promises) {
+    await promise
+  }
 }
 
 // write a stream to a file using a temporary file
@@ -503,16 +515,9 @@ export default class BackupNg {
       scheduleId
     )
 
-    let remotes, srs
     if (exportRetention === 0) {
       if (snapshotRetention === 0) {
         throw new Error('export and snapshots retentions cannot both be 0')
-      }
-    } else {
-      remotes = unboxIds(job.remotes)
-      srs = unboxIds(job.srs)
-      if (remotes.length === 0 && srs.length === 0) {
-        throw new Error('export retention must be 0 without remotes and SRs')
       }
     }
 
@@ -544,6 +549,12 @@ export default class BackupNg {
         transferDuration: 0,
         transferSize: 0,
       }
+    }
+
+    const remotes = unboxIds(job.remotes)
+    const srs = unboxIds(job.srs)
+    if (remotes.length === 0 && srs.length === 0) {
+      throw new Error('export retention must be 0 without remotes and SRs')
     }
 
     const now = Date.now()
@@ -584,83 +595,91 @@ export default class BackupNg {
 
       const jsonMetadata = JSON.stringify(metadata)
 
-      await Promise.all([
-        asyncMap(
-          remotes,
-          defer(async ($defer, remoteId) => {
-            const fork = xva.pipe(new PassThrough())
+      const errors = []
+      await waitAll(
+        [
+          ...remotes.map(
+            defer(async ($defer, remoteId) => {
+              const fork = xva.pipe(new PassThrough())
 
-            const handler = await app.getRemoteHandler(remoteId)
+              const handler = await app.getRemoteHandler(remoteId)
 
-            const oldBackups = getOldEntries(
-              exportRetention,
-              await this._listVmBackups(
-                handler,
-                vm,
-                _ => _.mode === 'full' && _.scheduleId === scheduleId
+              const oldBackups = getOldEntries(
+                exportRetention,
+                await this._listVmBackups(
+                  handler,
+                  vm,
+                  _ => _.mode === 'full' && _.scheduleId === scheduleId
+                )
               )
-            )
 
-            const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
-            if (deleteFirst) {
-              await this._deleteFullVmBackups(handler, oldBackups)
-            }
+              const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
+              if (deleteFirst) {
+                await this._deleteFullVmBackups(handler, oldBackups)
+              }
 
-            await writeStream(fork, handler, dataFilename)
+              await writeStream(fork, handler, dataFilename)
 
-            await handler.outputFile(metadataFilename, jsonMetadata)
+              await handler.outputFile(metadataFilename, jsonMetadata)
 
-            if (!deleteFirst) {
-              await this._deleteFullVmBackups(handler, oldBackups)
-            }
-          })
-        ),
-        asyncMap(
-          srs,
-          defer(async ($defer, srId) => {
-            const fork = xva.pipe(new PassThrough())
-            fork.task = exportTask
+              if (!deleteFirst) {
+                await this._deleteFullVmBackups(handler, oldBackups)
+              }
+            })
+          ),
+          ...srs.map(
+            defer(async ($defer, srId) => {
+              const fork = xva.pipe(new PassThrough())
+              fork.task = exportTask
 
-            const xapi = app.getXapi(srId)
-            const sr = xapi.getObject(srId)
+              const xapi = app.getXapi(srId)
+              const sr = xapi.getObject(srId)
 
-            const oldVms = getOldEntries(
-              exportRetention,
-              listReplicatedVms(xapi, scheduleId, srId)
-            )
-
-            const deleteFirst = getSetting(settings, 'deleteFirst', srId)
-            if (deleteFirst) {
-              await this._deleteVms(xapi, oldVms)
-            }
-
-            const vm = await xapi.barrier(
-              await xapi._importVm($cancelToken, fork, sr, vm =>
-                xapi._setObjectProperties(vm, {
-                  nameLabel: `${metadata.vm.name_label} (${safeDateFormat(
-                    metadata.timestamp
-                  )})`,
-                })
+              const oldVms = getOldEntries(
+                exportRetention,
+                listReplicatedVms(xapi, scheduleId, srId)
               )
-            )
 
-            await Promise.all([
-              xapi.addTag(vm.$ref, 'Disaster Recovery'),
-              xapi._updateObjectMapProperty(vm, 'blocked_operations', {
-                start:
-                  'Start operation for this vm is blocked, clone it if you want to use it.',
-              }),
-              xapi._updateObjectMapProperty(vm, 'other_config', {
-                'xo:backup:sr': srId,
-              }),
-            ])
+              const deleteFirst = getSetting(settings, 'deleteFirst', srId)
+              if (deleteFirst) {
+                await this._deleteVms(xapi, oldVms)
+              }
 
-            if (!deleteFirst) {
-              await this._deleteVms(xapi, oldVms)
-            }
-          })
-        ),
-      ])
+              const vm = await xapi.barrier(
+                await xapi._importVm($cancelToken, fork, sr, vm =>
+                  xapi._setObjectProperties(vm, {
+                    nameLabel: `${metadata.vm.name_label} (${safeDateFormat(
+                      metadata.timestamp
+                    )})`,
+                  })
+                )
+              )
+
+              await Promise.all([
+                xapi.addTag(vm.$ref, 'Disaster Recovery'),
+                xapi._updateObjectMapProperty(vm, 'blocked_operations', {
+                  start:
+                    'Start operation for this vm is blocked, clone it if you want to use it.',
+                }),
+                xapi._updateObjectMapProperty(vm, 'other_config', {
+                  'xo:backup:sr': srId,
+                }),
+              ])
+
+              if (!deleteFirst) {
+                await this._deleteVms(xapi, oldVms)
+              }
+            })
+          ),
+        ],
+        error => {
+          console.warn(error)
+          errors.push(error)
+        }
+      )
+      if (errors.length !== 0) {
+        throw errors
+      }
 
       return {
         mergeDuration: 0,
@@ -733,90 +752,98 @@ export default class BackupNg {
     const mergeEnd = 0
     let transferStart = 0
     let transferEnd = 0
-    await Promise.all([
-      asyncMap(
-        remotes,
-        defer(async ($defer, remoteId) => {
-          const fork = forkExport()
+    const errors = []
+    await waitAll(
+      [
+        ...remotes.map(
+          defer(async ($defer, remoteId) => {
+            const fork = forkExport()
 
-          const handler = await app.getRemoteHandler(remoteId)
+            const handler = await app.getRemoteHandler(remoteId)
 
-          const oldBackups = getOldEntries(
-            exportRetention,
-            await this._listVmBackups(
-              handler,
-              vm,
-              _ => _.mode === 'delta' && _.scheduleId === scheduleId
+            // const oldBackups = getOldEntries(
+            //   exportRetention,
+            //   await this._listVmBackups(
+            //     handler,
+            //     vm,
+            //     _ => _.mode === 'delta' && _.scheduleId === scheduleId
+            //   )
+            // )
+
+            const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
+            if (deleteFirst) {
+              // TODO
+            }
+
+            await asyncMap(fork.vdis, (vdi, id) =>
+              writeStream(
+                fork.streams[`${id}.vhd`](),
+                handler,
+                `${vdiDir}/${vdi.uuid}/${basename}.vhd`
+              )
             )
-          )
 
-          const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
-          if (deleteFirst) {
-            // TODO
-          }
+            await handler.outputFile(metadataFilename, jsonMetadata)
 
-          await asyncMap(fork.vdis, (vdi, id) =>
-            writeStream(
-              fork.streams[`${id}.vhd`],
-              handler,
-              `${vdiDir}/${vdi.uuid}/${basename}.vhd`
-            )
-          )
-
-          await handler.outputFile(metadataFilename, jsonMetadata)
-
-          if (!deleteFirst) {
-            // TODO
-          }
-        })
-      ),
-      asyncMap(
-        srs,
-        defer(async ($defer, srId) => {
-          const fork = forkExport()
-
-          const xapi = app.getXapi(srId)
-          const sr = xapi.getObject(srId)
-
-          const oldVms = getOldEntries(
-            exportRetention,
-            listReplicatedVms(xapi, scheduleId, srId)
-          )
-
-          const deleteFirst = getSetting(settings, 'deleteFirst', srId)
-          if (deleteFirst) {
-            await this._deleteVms(xapi, oldVms)
-          }
-
-          transferStart = Math.min(transferStart, Date.now())
-
-          const { vm } = await xapi.importDeltaVm(fork, {
-            disableStartAfterImport: false, // we'll take care of that
-            name_label: `${metadata.vm.name_label} (${safeDateFormat(
-              metadata.timestamp
-            )})`,
-            srId: sr.$id,
+            if (!deleteFirst) {
+              // TODO
+            }
           })
+        ),
+        ...srs.map(
+          defer(async ($defer, srId) => {
+            const fork = forkExport()
 
-          transferEnd = Math.max(transferEnd, Date.now())
+            const xapi = app.getXapi(srId)
+            const sr = xapi.getObject(srId)
 
-          await Promise.all([
-            xapi.addTag(vm.$ref, 'Continuous Replication'),
-            xapi._updateObjectMapProperty(vm, 'blocked_operations', {
-              start:
-                'Start operation for this vm is blocked, clone it if you want to use it.',
-            }),
-            xapi._updateObjectMapProperty(vm, 'other_config', {
-              'xo:backup:sr': srId,
-            }),
-          ])
+            const oldVms = getOldEntries(
+              exportRetention,
+              listReplicatedVms(xapi, scheduleId, srId)
+            )
 
-          if (!deleteFirst) {
-            await this._deleteVms(xapi, oldVms)
-          }
-        })
-      ),
-    ])
+            const deleteFirst = getSetting(settings, 'deleteFirst', srId)
+            if (deleteFirst) {
+              await this._deleteVms(xapi, oldVms)
+            }
+
+            transferStart = Math.min(transferStart, Date.now())
+
+            const { vm } = await xapi.importDeltaVm(fork, {
+              disableStartAfterImport: false, // we'll take care of that
+              name_label: `${metadata.vm.name_label} (${safeDateFormat(
+                metadata.timestamp
+              )})`,
+              srId: sr.$id,
+            })
+
+            transferEnd = Math.max(transferEnd, Date.now())
+
+            await Promise.all([
+              xapi.addTag(vm.$ref, 'Continuous Replication'),
+              xapi._updateObjectMapProperty(vm, 'blocked_operations', {
+                start:
+                  'Start operation for this vm is blocked, clone it if you want to use it.',
+              }),
+              xapi._updateObjectMapProperty(vm, 'other_config', {
+                'xo:backup:sr': srId,
+              }),
+            ])
+
+            if (!deleteFirst) {
+              await this._deleteVms(xapi, oldVms)
+            }
+          })
+        ),
+      ],
+      error => {
+        console.warn(error)
+        errors.push(error)
+      }
+    )
+    if (errors.length !== 0) {
+      throw errors
+    }
 
     return {
       mergeDuration: mergeEnd - mergeStart,
