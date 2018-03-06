@@ -11,19 +11,17 @@ const ALGORITHM_TO_ID = {
 
 const ID_TO_ALGORITHM = invert(ALGORITHM_TO_ID)
 
-// Wrap a readable stream in a stream with a checksum promise
-// attribute which is resolved at the end of an input stream.
-// (Finally .checksum contains the checksum of the input stream)
+// Create a through stream which computes the checksum of all data going
+// through.
 //
-// Example:
-// const sourceStream = ...
-// const targetStream = ...
-// const checksumStream = addChecksumToReadStream(sourceStream)
-// await Promise.all([
-//   fromEvent(checksumStream.pipe(targetStream), 'finish'),
-//   checksumStream.checksum.then(console.log)
-// ])
-export const addChecksumToReadStream = (stream, algorithm = 'md5') => {
+// The `checksum` attribute is a promise which resolves at the end of the stream
+// with a string representation of the checksum.
+//
+//    const source = ...
+//    const checksumStream = source.pipe(createChecksumStream())
+//    checksumStream.resume() // make the data flow without an output
+//    console.log(await checksumStream.checksum)
+export const createChecksumStream = (algorithm = 'md5') => {
   const algorithmId = ALGORITHM_TO_ID[algorithm]
 
   if (!algorithmId) {
@@ -31,25 +29,20 @@ export const addChecksumToReadStream = (stream, algorithm = 'md5') => {
   }
 
   const hash = createHash(algorithm)
-  const { promise, resolve } = defer()
+  const { promise, resolve, reject } = defer()
 
-  const wrapper = stream.pipe(
-    through2(
-      (chunk, enc, callback) => {
-        hash.update(chunk)
-        callback(null, chunk)
-      },
-      callback => {
-        resolve(hash.digest('hex'))
-        callback()
-      }
-    )
-  )
-
-  stream.on('error', error => wrapper.emit('error', error))
-  wrapper.checksum = promise.then(hash => `$${algorithmId}$$${hash}`)
-
-  return wrapper
+  const stream = through2(
+    (chunk, enc, callback) => {
+      hash.update(chunk)
+      callback(null, chunk)
+    },
+    callback => {
+      resolve(`$${algorithmId}$$${hash.digest('hex')}`)
+      callback()
+    }
+  ).once('error', reject)
+  stream.checksum = promise
+  return stream
 }
 
 // Check if the checksum of a readable stream is equals to an expected checksum.
