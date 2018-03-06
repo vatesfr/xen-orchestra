@@ -11,7 +11,8 @@ const ALGORITHM_TO_ID = {
 
 const ID_TO_ALGORITHM = invert(ALGORITHM_TO_ID)
 
-// Create a through stream which computes the checksum of all data going though.
+// Create a through stream which computes the checksum of all data going
+// through.
 //
 // The `checksum` attribute is a promise which resolves at the end of the stream
 // with a string representation of the checksum.
@@ -19,7 +20,7 @@ const ID_TO_ALGORITHM = invert(ALGORITHM_TO_ID)
 //    const source = ...
 //    const checksumStream = source.pipe(createChecksumStream())
 //    checksumStream.resume() // make the data flow without an output
-//    console.log(await checksumStream.stream)
+//    console.log(await checksumStream.checksum)
 export const createChecksumStream = (algorithm = 'md5') => {
   const algorithmId = ALGORITHM_TO_ID[algorithm]
 
