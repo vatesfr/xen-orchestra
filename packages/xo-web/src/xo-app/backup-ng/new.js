@@ -2,11 +2,25 @@ import ActionButton from 'action-button'
 import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
+import SmartBackupPreview from 'smart-backup-preview'
 import Upgrade from 'xoa-upgrade'
+import { Card, CardBlock, CardHeader } from 'card'
+import { connectStore, resolveIds } from 'utils'
+import {
+  constructSmartPattern,
+  destructSmartPattern,
+} from 'smart-backup-pattern'
+import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from '@julien-f/freactal'
 import { orderBy, isEmpty, map, some } from 'lodash'
-import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
-import { resolveIds } from 'utils'
+import { Select, Toggle } from 'form'
+import {
+  SelectPool,
+  SelectRemote,
+  SelectSr,
+  SelectTag,
+  SelectVm,
+} from 'select-objects'
 import {
   createBackupNgJob,
   createSchedule,
@@ -15,11 +29,7 @@ import {
   editSchedule,
 } from 'xo'
 
-const FormGroup = props => <div {...props} className='form-group' />
-const Input = props => <input {...props} className='form-control' />
-
-const DEFAULT_CRON_PATTERN = '0 0 * * *'
-const DEFAULT_TIMEZONE = moment.tz.guess()
+// ===================================================================
 
 const constructPattern = values => ({
   id: {
@@ -28,6 +38,140 @@ const constructPattern = values => ({
 })
 
 const destructPattern = pattern => pattern.id.__or
+
+const destructVmsPattern = pattern =>
+  pattern.id === undefined
+    ? destructSmartPattern(pattern)
+    : destructPattern(pattern)
+
+const SMART_MODE_INITIAL_STATE = {
+  powerState: 'All',
+  poolValues: [],
+  poolNotValues: [],
+  tagValues: [],
+  tagNotValues: [],
+}
+
+const SMART_MODE_FUNCTIONS = {
+  setPowerState: (_, powerState) => state => ({
+    ...state,
+    powerState,
+  }),
+  setPoolValues: (_, poolValues) => state => ({
+    ...state,
+    poolValues,
+  }),
+  setPoolNotValues: (_, poolNotValues) => state => ({
+    ...state,
+    poolNotValues,
+  }),
+  setTagValues: (_, tagValues) => state => ({
+    ...state,
+    tagValues,
+  }),
+  setTagNotValues: (_, tagNotValues) => state => ({
+    ...state,
+    tagNotValues,
+  }),
+}
+
+const normaliseTagValues = values => resolveIds(values).map(value => [value])
+
+const SMART_MODE_COMPUTED = {
+  vmsSmartPattern: state => ({
+    $pool: constructSmartPattern({
+      values: resolveIds(state.poolValues),
+      notValues: resolveIds(state.poolNotValues),
+    }),
+    power_state: state.powerState === 'All' ? undefined : state.powerState,
+    tags: constructSmartPattern({
+      values: normaliseTagValues(state.tagValues),
+      notValues: normaliseTagValues(state.tagNotValues),
+    }),
+    type: 'VM',
+  }),
+}
+
+const VMS_STATUSES_OPTIONS = [
+  { value: 'All', label: 'All' },
+  { value: 'Running', label: 'Running' },
+  { value: 'Halted', label: 'Halted' },
+]
+
+const SmartBackup = injectState(({ state, effects }) => (
+  <Card>
+    <CardHeader>Smart Mode</CardHeader>
+    <CardBlock>
+      <FormGroup>
+        <label>
+          <strong>VMs statuses</strong>
+        </label>
+        <Select
+          options={VMS_STATUSES_OPTIONS}
+          onChange={effects.setPowerState}
+          value={state.powerState}
+          simpleValue
+          required
+        />
+      </FormGroup>
+      <FormGroup>
+        <label>
+          <strong>Pools</strong>
+        </label>
+        <hr />
+        <label>
+          <strong>Resident on</strong>
+        </label>
+        <SelectPool
+          multi
+          onChange={effects.setPoolValues}
+          value={state.poolValues}
+        />
+        <label>
+          <strong>Not resident on</strong>
+        </label>
+        <br />
+        <SelectPool
+          multi
+          onChange={effects.setPoolNotValues}
+          value={state.poolNotValues}
+        />
+      </FormGroup>
+      <FormGroup>
+        <label>
+          <strong>Tags</strong>
+        </label>
+        <hr />
+        <label>
+          <strong>VMs Tags</strong>
+        </label>
+        <SelectTag
+          multi
+          onChange={effects.setTagValues}
+          value={state.tagValues}
+        />
+        <label>
+          <strong>Excluded VMs tags</strong>
+        </label>
+        <br />
+        <SelectTag
+          multi
+          onChange={effects.setTagNotValues}
+          value={state.tagNotValues}
+        />
+      </FormGroup>
+      <SmartBackupPreview vms={state.allVms} pattern={state.vmsSmartPattern} />
+    </CardBlock>
+  </Card>
+))
+
+// ===================================================================
+
+const FormGroup = props => <div {...props} className='form-group' />
+const Input = props => <input {...props} className='form-control' />
+
+const DEFAULT_CRON_PATTERN = '0 0 * * *'
+const DEFAULT_TIMEZONE = moment.tz.guess()
 
 const getNewSettings = schedules => {
   const newSettings = {}
@@ -53,24 +197,29 @@ export default [
       <New {...props} />
     </Upgrade>
   ),
+  connectStore({
+    allVms: createGetObjectsOfType('VM'),
+  }),
   provideState({
     initialState: () => ({
-      delta: false,
       compression: true,
-      formId: getRandomId(),
-      tmpSchedule: {
-        cron: DEFAULT_CRON_PATTERN,
-        timezone: DEFAULT_TIMEZONE,
-      },
+      delta: false,
       exportRetention: 0,
-      snapshotRetention: 0,
+      formId: getRandomId(),
       name: '',
       paramsUpdated: false,
       remotes: [],
       schedules: {},
+      snapshotRetention: 0,
+      smartMode: false,
       srs: [],
-      vms: [],
+      tmpSchedule: {
+        cron: DEFAULT_CRON_PATTERN,
+        timezone: DEFAULT_TIMEZONE,
+      },
       tmpSchedules: {},
+      vms: [],
+      ...SMART_MODE_INITIAL_STATE,
     }),
     effects: {
       addSchedule: () => state => {
@@ -93,13 +242,15 @@ export default [
           name: state.name,
           mode: state.delta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          remotes: constructPattern(state.remotes),
           schedules: state.tmpSchedules,
           settings: {
             ...getNewSettings(state.tmpSchedules),
           },
+          remotes: constructPattern(state.remotes),
           srs: constructPattern(state.srs),
-          vms: constructPattern(state.vms),
+          vms: state.smartMode
+            ? state.vmsSmartPattern
+            : constructPattern(state.vms),
         })
       },
       editJob: () => async (state, props) => {
@@ -126,7 +277,9 @@ export default [
           compression: state.compression ? 'native' : '',
           remotes: constructPattern(state.remotes),
           srs: constructPattern(state.srs),
-          vms: constructPattern(state.vms),
+          vms: state.smartMode
+            ? state.vmsSmartPattern
+            : constructPattern(state.vms),
           settings: {
             ...newSettings,
             ...props.job.settings,
@@ -211,6 +364,10 @@ export default [
         ...state,
         compression: checked,
       }),
+      setSmartMode: (_, smartMode) => state => ({
+        ...state,
+        smartMode,
+      }),
       setName: (_, { target: { value } }) => state => ({
         ...state,
         name: value,
@@ -220,16 +377,19 @@ export default [
       setVms: (_, vms) => state => ({ ...state, vms }),
       updateParams: () => (state, { job }) => ({
         ...state,
-        paramsUpdated: true,
-        name: job.name,
-        delta: job.mode === 'delta',
         compression: job.compression === 'native',
+        delta: job.mode === 'delta',
+        name: job.name,
+        paramsUpdated: true,
+        smartMode: job.vms.id === undefined,
         remotes: destructPattern(job.remotes),
         srs: destructPattern(job.srs),
-        vms: destructPattern(job.vms),
+        vms: destructVmsPattern(job.vms),
       }),
+      ...SMART_MODE_FUNCTIONS,
     },
     computed: {
+      allVms: (state, { allVms }) => allVms,
       jobSettings: (state, { job }) => job && job.settings,
       schedules: (state, { schedules }) => schedules,
       needUpdateParams: (state, { job }) =>
@@ -240,7 +400,7 @@ export default [
       isInvalid: state =>
         state.name.trim() === '' ||
         (isEmpty(state.schedules) && isEmpty(state.tmpSchedules)) ||
-        isEmpty(state.vms),
+        (isEmpty(state.vms) && !state.smartMode),
       showCompression: (state, { job }) =>
         !state.delta &&
         (some(
@@ -252,6 +412,7 @@ export default [
       sortedSchedules: ({ schedules }) => orderBy(schedules, 'name'),
       // TO DO: use sortedTmpSchedules
       sortedTmpSchedules: ({ tmpSchedules }) => orderBy(tmpSchedules, 'id'),
+      ...SMART_MODE_COMPUTED,
     },
   }),
   injectState,
@@ -287,10 +448,23 @@ export default [
         </FormGroup>
         <FormGroup>
           <label>
-            <strong>Vms to Backup</strong>
+            <strong>Smart selection</strong>
           </label>
-          <SelectVm multi onChange={effects.setVms} value={state.vms} />
+          <br />
+          <Toggle onChange={effects.setSmartMode} value={state.smartMode} />
         </FormGroup>
+        {state.smartMode ? (
+          <Upgrade place='newBackup' required={3}>
+            <SmartBackup />
+          </Upgrade>
+        ) : (
+          <FormGroup>
+            <label>
+              <strong>Vms to Backup</strong>
+            </label>
+            <SelectVm multi onChange={effects.setVms} value={state.vms} />
+          </FormGroup>
+        )}
         {(!isEmpty(state.srs) || !isEmpty(state.remotes)) && (
           <Upgrade place='newBackup' required={4}>
             <FormGroup>

@@ -5,40 +5,22 @@ import Component from 'base-component'
 import GenericInput from 'json-schema-input'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
-import Link from 'link'
 import moment from 'moment-timezone'
-import PropTypes from 'prop-types'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
 import Scheduler, { SchedulePreview } from 'scheduling'
-import Tooltip from 'tooltip'
+import SmartBackupPreview from 'smart-backup-preview'
 import uncontrollableInput from 'uncontrollable-input'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
-import { Card, CardBlock, CardHeader } from 'card'
+import { connectStore, EMPTY_OBJECT } from 'utils'
+import { constructPattern, destructPattern } from 'smart-backup-pattern'
 import { Container, Row, Col } from 'grid'
-import { createPredicate } from 'value-matcher'
+import { createGetObjectsOfType, getUser } from 'selectors'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectSubject } from 'select-objects'
-import { createGetObjectsOfType, getUser } from 'selectors'
-import { connectStore, EMPTY_OBJECT } from 'utils'
-import {
-  constructPattern,
-  destructPattern,
-  constructQueryString,
-} from 'smart-backup-pattern'
-import {
-  filter,
-  forEach,
-  isArray,
-  map,
-  mapValues,
-  noop,
-  pickBy,
-  startsWith,
-} from 'lodash'
+import { forEach, isArray, map, mapValues, noop, startsWith } from 'lodash'
 
 import { createJob, createSchedule, getRemote, editJob, editSchedule } from 'xo'
 
@@ -287,83 +269,6 @@ const BACKUP_METHOD_TO_INFO = {
 
 // ===================================================================
 
-const SAMPLE_SIZE_OF_MATCHING_VMS = 3
-
-@connectStore({
-  vms: createGetObjectsOfType('VM'),
-})
-class SmartBackupPreview extends Component {
-  static propTypes = {
-    pattern: PropTypes.object.isRequired,
-  }
-
-  _getMatchingVms = createSelector(
-    () => this.props.vms,
-    createSelector(
-      () => this.props.pattern,
-      pattern => createPredicate(pickBy(pattern, val => val != null))
-    ),
-    (vms, predicate) => filter(vms, predicate)
-  )
-
-  _getSampleOfMatchingVms = createSelector(this._getMatchingVms, vms =>
-    vms.slice(0, SAMPLE_SIZE_OF_MATCHING_VMS)
-  )
-
-  _getQueryString = createSelector(
-    () => this.props.pattern,
-    constructQueryString
-  )
-
-  render () {
-    const nMatchingVms = this._getMatchingVms().length
-    const sampleOfMatchingVms = this._getSampleOfMatchingVms()
-    const queryString = this._getQueryString()
-
-    return (
-      <Card>
-        <CardHeader>{_('sampleOfMatchingVms')}</CardHeader>
-        <CardBlock>
-          {nMatchingVms === 0 ? (
-            <p className='text-xs-center'>{_('noMatchingVms')}</p>
-          ) : (
-            <div>
-              <ul className='list-group'>
-                {map(sampleOfMatchingVms, vm => (
-                  <li className='list-group-item' key={vm.id}>
-                    {renderXoItem(vm)}
-                  </li>
-                ))}
-              </ul>
-              <br />
-              <Tooltip content={_('redirectToMatchingVms')}>
-                <Link
-                  className='pull-right'
-                  target='_blank'
-                  to={{
-                    pathname: '/home',
-                    query: {
-                      t: 'VM',
-                      s: queryString,
-                    },
-                  }}
-                >
-                  {_('allMatchingVms', {
-                    icon: <Icon icon='preview' />,
-                    nMatchingVms,
-                  })}
-                </Link>
-              </Tooltip>
-            </div>
-          )}
-        </CardBlock>
-      </Card>
-    )
-  }
-}
-
-// ===================================================================
-
 @uncontrollableInput()
 class TimeoutInput extends Component {
   _onChange = event => {
@@ -416,6 +321,7 @@ const normalizeMainParams = params => {
 
 @connectStore({
   currentUser: getUser,
+  vms: createGetObjectsOfType('VM'),
 })
 export default class New extends Component {
   _getParams = createSelector(
@@ -755,6 +661,7 @@ export default class New extends Component {
                             </Upgrade>
                             <SmartBackupPreview
                               pattern={this._constructPattern(vms)}
+                              vms={this.props.vms}
                             />
                           </div>
                         ) : (
