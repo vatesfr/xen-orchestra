@@ -413,22 +413,32 @@ export default class BackupNg {
     return backupsByVmByRemote
   }
 
-  // - [x] files (.tmp) should be renamed at the end of job
+  // High:
+  // - [ ] clones of replicated VMs should not be garbage collected
+  //     - if storing uuids in source VM, how to detect them if the source is
+  //       lost?
+  // - [ ] adding and removing VDIs should behave
   // - [ ] validate VHDs after exports and before imports
+  //
+  // Low:
+  // - [ ] check merge/transfert duration/size are what we want for delta
+  // - [ ] jobs should be cancelable
+  // - [ ] possibility to (re-)run a single VM in a backup?
+  // - [ ] display queued VMs
+  // - [ ] snapshots and files of an old job should be detected and removed
+  //
+  // Triage:
   // - [ ] protect against concurrent backup against a single VM (JFT: why?)
+  // - [ ] logs
+  //
+  // Done:
+  //
+  // - [x] files (.tmp) should be renamed at the end of job
   // - [x] detect full remote
   // - [x] can the snapshot and export retention be different? → Yes
-  // - [ ] snapshots and files of an old job should be detected and removed
-  // - [ ] adding and removing VDIs should behave
-  // - [ ] key export?
   // - [x] deleteFirst per target
-  // - [ ] possibility to (re-)run a single VM in a backup?
   // - [x] timeout per VM
-  // - [ ] display queued VMs
-  // - [ ] jobs should be cancelable
-  // - [ ] logs
   // - [x] backups should be deletable from the API
-  // - [ ] check merge/transfert duration/size are what we want for delta
   @defer
   async _backupVm (
     $defer: any,
