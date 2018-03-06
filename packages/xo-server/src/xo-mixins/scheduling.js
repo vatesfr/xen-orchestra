@@ -1,7 +1,6 @@
 // @flow
 
 import { createSchedule } from '@xen-orchestra/cron'
-// $FlowFixMe
 import { keyBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
