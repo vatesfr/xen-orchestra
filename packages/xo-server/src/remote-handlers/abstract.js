@@ -1,6 +1,5 @@
-import eventToPromise from 'event-to-promise'
 import through2 from 'through2'
-import { ignoreErrors } from 'promise-toolbox'
+import { fromEvent, ignoreErrors } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 
 import { getPseudoRandomBytes, streamToBuffer } from '../utils'
@@ -78,7 +77,7 @@ export default class RemoteHandlerAbstract {
 
   async _outputFile (file, data, options) {
     const stream = await this.createOutputStream(file, options)
-    const promise = eventToPromise(stream, 'finish')
+    const promise = fromEvent(stream, 'finish')
     stream.end(data)
     return promise
   }
@@ -121,7 +120,7 @@ export default class RemoteHandlerAbstract {
     const path = typeof file === 'string' ? file : file.path
     const streamP = this._createReadStream(file, options).then(stream => {
       // detect early errors
-      let promise = eventToPromise(stream, 'readable')
+      let promise = fromEvent(stream, 'readable')
 
       // try to add the length prop if missing and not a range stream
       if (
