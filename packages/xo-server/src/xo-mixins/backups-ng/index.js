@@ -2,12 +2,12 @@
 
 // $FlowFixMe
 import defer from 'golike-defer'
-import { dirname, resolve } from 'path'
+import { basename, dirname, resolve } from 'path'
 // $FlowFixMe
 import { fromEvent, timeout as pTimeout } from 'promise-toolbox'
 import { isEmpty, last, mapValues, values } from 'lodash'
 import { type Pattern, createPredicate } from 'value-matcher'
-import { PassThrough } from 'stream'
+import { type Readable, PassThrough } from 'stream'
 
 import { type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
@@ -149,6 +149,30 @@ const unboxIds = (pattern?: SimpleIdPattern): string[] => {
   }
   const { id } = pattern
   return typeof id === 'string' ? [id] : id.__or
+}
+
+// write a stream to a file using a temporary file
+//
+// TODO: merge into RemoteHandlerAbstract
+const writeStream = async (
+  input: Readable | Promise<Readable>,
+  handler: RemoteHandlerAbstract,
+  path: string
+): Promise<void> => {
+  input = await input
+  const tmpPath = `${dirname(path)}/.${basename(path)}`
+  const output = await handler.createOutputStream(tmpPath, { checksum: true })
+  try {
+    const promise = fromEvent(output, 'finish')
+    input.pipe(output)
+    await promise
+    // $FlowFixMe
+    await input.task
+    await handler.rename(tmpPath, path, { checksum: true })
+  } catch (error) {
+    await handler.unlink(tmpPath)
+    throw error
+  }
 }
 
 // File structure on remotes:
@@ -542,7 +566,6 @@ export default class BackupNg {
 
       metadata.data = `./${dataBasename}`
       const dataFilename = `${dirname}/${dataBasename}`
-      const tmpFilename = `${dirname}/.${dataBasename}`
 
       const jsonMetadata = JSON.stringify(metadata)
 
@@ -568,21 +591,7 @@ export default class BackupNg {
               await this._deleteFullVmBackups(handler, oldBackups)
             }
 
-            const output = await handler.createOutputStream(tmpFilename, {
-              checksum: true,
-            })
-            $defer.onFailure.call(handler, 'unlink', tmpFilename)
-            $defer.onSuccess.call(
-              handler,
-              'rename',
-              tmpFilename,
-              dataFilename,
-              { checksum: true }
-            )
-
-            const promise = fromEvent(output, 'finish')
-            fork.pipe(output)
-            await Promise.all([exportTask, promise])
+            await writeStream(fork, handler, dataFilename)
 
             await handler.outputFile(metadataFilename, jsonMetadata)
 
