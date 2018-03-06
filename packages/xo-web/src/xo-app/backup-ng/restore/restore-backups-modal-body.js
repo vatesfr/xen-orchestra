@@ -1,11 +1,12 @@
 import _ from 'intl'
 import React from 'react'
 import Component from 'base-component'
+import StateButton from 'state-button'
 import { Select, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
 import { FormattedDate } from 'react-intl'
 
-export default class ImportModalBody extends Component {
+export default class RestoreBackupsModalBody extends Component {
   get value () {
     return this.state
   }
@@ -47,7 +48,46 @@ export default class ImportModalBody extends Component {
         </div>
         <div>
           <Toggle iconSize={1} onChange={this.linkState('start')} />{' '}
-          {_('importBackupModalStart')}
+          {_('restoreVmBackupsStart', { nVms: 1 })}
+        </div>
+      </div>
+    )
+  }
+}
+
+export class RestoreBackupsBulkModalBody extends Component {
+  state = { latest: true }
+
+  get value () {
+    return this.state
+  }
+  render () {
+    const { datas } = this.props
+    return (
+      <div>
+        <div className='mb-1'>
+          {_('restoreVmBackupsBulkMessage', {
+            nVms: datas.length,
+            oldestOrLatest: (
+              <StateButton
+                disabledLabel={_('oldest')}
+                disabledHandler={() => this.setState({ latest: true })}
+                enabledLabel={_('latest')}
+                enabledHandler={() => this.setState({ latest: false })}
+                state={this.state.latest}
+              />
+            ),
+          })}
+        </div>
+        <div className='mb-1'>
+          <SelectSr
+            onChange={this.linkState('sr')}
+            placeholder={_('importBackupModalSelectSr')}
+          />
+        </div>
+        <div>
+          <Toggle iconSize={1} onChange={this.linkState('start')} />{' '}
+          {_('restoreVmBackupsStart', { nVms: datas.length })}
         </div>
       </div>
     )

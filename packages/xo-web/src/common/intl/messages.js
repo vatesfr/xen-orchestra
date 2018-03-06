@@ -1142,7 +1142,8 @@ const messages = {
   backupVmNameColumn: 'VM Name',
   backupVmDescriptionColumn: 'VM Description',
   backupTags: 'Tags',
-  lastBackupColumn: 'Last Backup',
+  firstBackupColumn: 'Oldest backup',
+  lastBackupColumn: 'Latest backup',
   availableBackupsColumn: 'Available Backups',
   backupRestoreErrorTitle: 'Missing parameters',
   backupRestoreErrorMessage: 'Choose a SR and a backup',
@@ -1155,9 +1156,27 @@ const messages = {
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
   restoreResfreshList: 'Refresh backup list',
-  restoreVm: 'Restore {vm}',
-  restoreBackup: 'Restore a backup',
-  deleteBackups: 'Delete some backups…',
+  restoreVmBackups: 'Restore',
+  restoreVmBackupsTitle: 'Restore {vm}',
+  restoreVmBackupsBulkTitle:
+    'Restore {nVms, number} VM{nVms, plural, one {} other {s}}',
+  restoreVmBackupsBulkMessage:
+    'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.',
+  oldest: 'oldest',
+  latest: 'latest',
+  restoreVmBackupsStart:
+    'Start VM{nVms, plural, one {} other {s}} after restore',
+  restoreVmBackupsBulkErrorTitle: 'Multi-restore error',
+  restoreVmBackupsBulkErrorMessage: 'You need to select a destination SR',
+  deleteVmBackups: 'Delete backups…',
+  deleteVmBackupsTitle: 'Delete {vm} backups',
+  deleteVmBackupsSelect: 'Select backups to delete:',
+  deleteVmBackupsSelectAll: 'All',
+  deleteVmBackupsBulkTitle: 'Delete backups',
+  deleteVmBackupsBulkMessage:
+    'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',
+  deleteVmBackupsBulkConfirmText:
+    'delete {nBackups} backup{nBackups, plural, one {} other {s}}',
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',

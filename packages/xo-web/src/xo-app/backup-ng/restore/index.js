@@ -5,20 +5,32 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, noop } from 'utils'
-import { assign, filter, find, forEach, map } from 'lodash'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
 import {
+  assign,
+  filter,
+  flatMap,
+  forEach,
+  keyBy,
+  map,
+  reduce,
+  toArray,
+} from 'lodash'
+import {
   deleteBackups,
   listVmBackups,
   restoreBackup,
-  startVm,
   subscribeRemotes,
 } from 'xo'
 
+import RestoreBackupsModalBody, {
+  RestoreBackupsBulkModalBody,
+} from './restore-backups-modal-body'
 import DeleteBackupsModalBody from './delete-backups-modal-body'
-import ImportModalBody from './import-modal-body'
+
+// -----------------------------------------------------------------------------
 
 const BACKUPS_COLUMNS = [
   {
@@ -30,6 +42,22 @@ const BACKUPS_COLUMNS = [
     name: _('backupVmDescriptionColumn'),
     itemRenderer: ({ last }) => last.vm.name_description,
     sortCriteria: 'last.vm.name_description',
+  },
+  {
+    name: _('firstBackupColumn'),
+    itemRenderer: ({ first }) => (
+      <FormattedDate
+        value={new Date(first.timestamp)}
+        month='long'
+        day='numeric'
+        year='numeric'
+        hour='2-digit'
+        minute='2-digit'
+        second='2-digit'
+      />
+    ),
+    sortCriteria: 'first.timestamp',
+    sortOrder: 'desc',
   },
   {
     name: _('lastBackupColumn'),
@@ -61,12 +89,14 @@ const BACKUPS_COLUMNS = [
   },
 ]
 
+// -----------------------------------------------------------------------------
+
 @addSubscriptions({
   remotes: subscribeRemotes,
 })
 export default class Restore extends Component {
   state = {
-    backupsByVm: {},
+    backupDataByVm: {},
   }
 
   componentWillReceiveProps (props) {
@@ -75,80 +105,125 @@ export default class Restore extends Component {
     }
   }
 
-  _refreshBackupList = async (remotes = this.props.remotes) => {
-    const backupsByRemote = await listVmBackups(
-      filter(remotes, { enabled: true })
-    )
-    const backupsByVm = {}
+  _refreshBackupList = async (_ = this.props.remotes) => {
+    const remotes = keyBy(filter(_, { enabled: true }), 'id')
+    const backupsByRemote = await listVmBackups(toArray(remotes))
+
+    const backupDataByVm = {}
     forEach(backupsByRemote, (backups, remoteId) => {
+      const remote = remotes[remoteId]
       forEach(backups, (vmBackups, vmId) => {
-        if (backupsByVm[vmId] === undefined) {
-          backupsByVm[vmId] = { backups: [] }
+        if (backupDataByVm[vmId] === undefined) {
+          backupDataByVm[vmId] = { backups: [] }
         }
 
-        const remote = find(remotes, { id: remoteId })
-        backupsByVm[vmId].backups.push(
+        backupDataByVm[vmId].backups.push(
           ...map(vmBackups, bkp => ({ ...bkp, remote }))
         )
       })
     })
     // TODO: perf
-    let last
-    forEach(backupsByVm, (vmBackups, vmId) => {
+    let first, last
+    forEach(backupDataByVm, (data, vmId) => {
+      first = { timestamp: Infinity }
       last = { timestamp: 0 }
       const count = {}
-      forEach(vmBackups.backups, backup => {
+      forEach(data.backups, backup => {
         if (backup.timestamp > last.timestamp) {
           last = backup
+        }
+        if (backup.timestamp < first.timestamp) {
+          first = backup
         }
         count[backup.mode] = (count[backup.mode] || 0) + 1
       })
 
-      assign(vmBackups, { last, count })
+      assign(data, { first, last, count, id: vmId })
     })
-    this.setState({ backupsByVm })
+    this.setState({ backupDataByVm })
   }
+
+  // Actions -------------------------------------------------------------------
 
   _restore = data =>
     confirm({
-      title: _('restoreVm', { vm: data.last.vm.name_label }),
-      body: <ImportModalBody data={data} />,
+      title: _('restoreVmBackupsTitle', { vm: data.last.vm.name_label }),
+      body: <RestoreBackupsModalBody data={data} />,
       icon: 'restore',
-    }).then(({ backup, sr, start }) => {
-      if (backup == null || sr == null) {
-        error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
-        return
-      }
+    })
+      .then(({ backup, sr, start }) => {
+        if (backup == null || sr == null) {
+          error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
+          return
+        }
 
-      const promise = restoreBackup(backup, sr)
+        return restoreBackup(backup, sr, start)
+      }, noop)
+      .then(() => this._refreshBackupList())
 
-      if (start) {
-        return promise.then(startVm)
-      }
-
-      return promise
-    }, noop)
-
-  _deleteBackups = data =>
+  _delete = data =>
     confirm({
-      title: 'Delete ' + data.last.vm.name_label + ' backups',
+      title: _('deleteVmBackupsTitle', { vm: data.last.vm.name_label }),
       body: <DeleteBackupsModalBody backups={data.backups} />,
       icon: 'delete',
     })
-      .then(deleteBackups)
+      .then(deleteBackups, noop)
       .then(() => this._refreshBackupList())
 
-  _individualActions = [
-    {
-      label: _('restoreBackup'),
+  _bulkRestore = datas =>
+    confirm({
+      title: _('restoreVmBackupsBulkTitle', { nVms: datas.length }),
+      body: <RestoreBackupsBulkModalBody datas={datas} />,
       icon: 'restore',
-      handler: this._restore,
+    })
+      .then(({ sr, latest, start }) => {
+        if (sr == null) {
+          error(
+            _(
+              'restoreVmBackupsBulkErrorTitle',
+              'restoreVmBackupsBulkErrorMessage'
+            )
+          )
+          return
+        }
+
+        const prop = latest ? 'last' : 'first'
+        return Promise.all(
+          map(datas, data => restoreBackup(data[prop], sr, start))
+        )
+      }, noop)
+      .then(() => this._refreshBackupList())
+
+  _bulkDelete = datas =>
+    confirm({
+      title: _('deleteVmBackupsBulkTitle'),
+      body: <p>{_('deleteVmBackupsBulkMessage', { nVms: datas.length })}</p>,
+      icon: 'delete',
+      strongConfirm: {
+        messageId: 'deleteVmBackupsBulkConfirmText',
+        values: {
+          nBackups: reduce(datas, (sum, data) => sum + data.backups.length, 0),
+        },
+      },
+    })
+      .then(() => deleteBackups(flatMap(datas, 'backups')), noop)
+      .then(() => this._refreshBackupList())
+
+  // ---------------------------------------------------------------------------
+
+  _actions = [
+    {
+      handler: this._bulkRestore,
+      icon: 'restore',
+      individualHandler: this._restore,
+      label: _('restoreVmBackups'),
       level: 'primary',
     },
     {
-      label: _('deleteBackups'),
+      handler: this._bulkDelete,
       icon: 'delete',
-      handler: this._deleteBackups,
+      individualHandler: this._delete,
+      label: _('deleteVmBackups'),
       level: 'danger',
     },
   ]
@@ -161,16 +236,15 @@ export default class Restore extends Component {
             <ActionButton
               btnStyle='primary'
               handler={this._refreshBackupList}
-              handlerParam={this.props.remotes}
               icon='refresh'
             >
               {_('restoreResfreshList')}
             </ActionButton>
           </div>
           <SortedTable
-            collection={this.state.backupsByVm}
+            actions={this._actions}
+            collection={this.state.backupDataByVm}
             columns={BACKUPS_COLUMNS}
-            individualActions={this._individualActions}
           />
         </div>
       </Upgrade>
