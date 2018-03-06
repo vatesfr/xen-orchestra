@@ -469,6 +469,7 @@ export default class BackupNg {
   //       lost?
   // - [ ] adding and removing VDIs should behave
   // - [ ] validate VHDs after exports and before imports
+  // - [ ] isolate VHD chains by job
   //
   // Low:
   // - [ ] check merge/transfert duration/size are what we want for delta
