@@ -12,7 +12,7 @@ import {
 } from 'smart-backup-pattern'
 import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from '@julien-f/freactal'
-import { orderBy, isEmpty, map, some } from 'lodash'
+import { flatten, get, orderBy, isEmpty, map, some } from 'lodash'
 import { Select, Toggle } from 'form'
 import {
   SelectPool,
@@ -41,15 +41,19 @@ const destructPattern = pattern => pattern.id.__or
 
 const destructVmsPattern = pattern =>
   pattern.id === undefined
-    ? destructSmartPattern(pattern)
-    : destructPattern(pattern)
+    ? {
+      powerState: pattern.power_state || 'All',
+      $pool: destructSmartPattern(pattern.$pool),
+      tags: destructSmartPattern(pattern.tags, flatten),
+    }
+    : {
+      vm: destructPattern(pattern),
+    }
 
 const SMART_MODE_INITIAL_STATE = {
   powerState: 'All',
-  poolValues: [],
-  poolNotValues: [],
-  tagValues: [],
-  tagNotValues: [],
+  $pool: {},
+  tags: {},
 }
 
 const SMART_MODE_FUNCTIONS = {
@@ -57,21 +61,33 @@ const SMART_MODE_FUNCTIONS = {
     ...state,
     powerState,
   }),
-  setPoolValues: (_, poolValues) => state => ({
+  setPoolValues: (_, values) => state => ({
     ...state,
-    poolValues,
+    $pool: {
+      ...state.$pool,
+      values,
+    },
   }),
-  setPoolNotValues: (_, poolNotValues) => state => ({
+  setPoolNotValues: (_, notValues) => state => ({
     ...state,
-    poolNotValues,
+    $pool: {
+      ...state.$pool,
+      notValues,
+    },
   }),
-  setTagValues: (_, tagValues) => state => ({
+  setTagValues: (_, values) => state => ({
     ...state,
-    tagValues,
+    tags: {
+      ...state.tags,
+      values,
+    },
   }),
-  setTagNotValues: (_, tagNotValues) => state => ({
+  setTagNotValues: (_, notValues) => state => ({
     ...state,
-    tagNotValues,
+    tags: {
+      ...state.tags,
+      notValues,
+    },
   }),
 }
 
@@ -79,15 +95,9 @@ const normaliseTagValues = values => resolveIds(values).map(value => [value])
 
 const SMART_MODE_COMPUTED = {
   vmsSmartPattern: state => ({
-    $pool: constructSmartPattern({
-      values: resolveIds(state.poolValues),
-      notValues: resolveIds(state.poolNotValues),
-    }),
+    $pool: constructSmartPattern(state.$pool, resolveIds),
     power_state: state.powerState === 'All' ? undefined : state.powerState,
-    tags: constructSmartPattern({
-      values: normaliseTagValues(state.tagValues),
-      notValues: normaliseTagValues(state.tagNotValues),
-    }),
+    tags: constructSmartPattern(state.tags, normaliseTagValues),
     type: 'VM',
   }),
 }
@@ -125,7 +135,7 @@ const SmartBackup = injectState(({ state, effects }) => (
         <SelectPool
           multi
           onChange={effects.setPoolValues}
-          value={state.poolValues}
+          value={get(state.$pool, 'values')}
         />
         <label>
           <strong>Not resident on</strong>
@@ -134,7 +144,7 @@ const SmartBackup = injectState(({ state, effects }) => (
         <SelectPool
           multi
           onChange={effects.setPoolNotValues}
-          value={state.poolNotValues}
+          value={get(state.$pool, 'notValues')}
         />
       </FormGroup>
       <FormGroup>
@@ -148,7 +158,7 @@ const SmartBackup = injectState(({ state, effects }) => (
         <SelectTag
           multi
           onChange={effects.setTagValues}
-          value={state.tagValues}
+          value={get(state.tags, 'values')}
         />
         <label>
           <strong>Excluded VMs tags</strong>
@@ -157,7 +167,7 @@ const SmartBackup = injectState(({ state, effects }) => (
         <SelectTag
           multi
           onChange={effects.setTagNotValues}
-          value={state.tagNotValues}
+          value={get(state.tags, 'notValues')}
         />
       </FormGroup>
       <SmartBackupPreview vms={state.allVms} pattern={state.vmsSmartPattern} />
@@ -384,7 +394,7 @@ export default [
         smartMode: job.vms.id === undefined,
         remotes: destructPattern(job.remotes),
         srs: destructPattern(job.srs),
-        vms: destructVmsPattern(job.vms),
+        ...destructVmsPattern(job.vms),
       }),
       ...SMART_MODE_FUNCTIONS,
     },
