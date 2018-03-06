@@ -1,10 +1,9 @@
-import through2 from 'through2'
 import { fromEvent, ignoreErrors } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 
 import { getPseudoRandomBytes, streamToBuffer } from '../utils'
 
-import { addChecksumToReadStream, validChecksumOfReadStream } from './checksum'
+import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
 const checksumFile = file => file + '.checksum'
 
@@ -187,10 +186,11 @@ export default class RemoteHandlerAbstract {
   }
 
   async refreshChecksum (path) {
-    const stream = addChecksumToReadStream(await this.createReadStream(path))
+    const stream = (await this.createReadStream(path)).pipe(
+      createChecksumStream()
+    )
     stream.resume() // start reading the whole file
-    const checksum = await stream.checksum
-    await this.outputFile(checksumFile(path), checksum)
+    await this.outputFile(checksumFile(path), await stream.checksum)
   }
 
   async createOutputStream (file, { checksum = false, ...options } = {}) {
@@ -204,21 +204,20 @@ export default class RemoteHandlerAbstract {
       return streamP
     }
 
-    const connectorStream = through2()
+    const checksumStream = createChecksumStream()
     const forwardError = error => {
-      connectorStream.emit('error', error)
+      checksumStream.emit('error', error)
     }
 
-    const streamWithChecksum = addChecksumToReadStream(connectorStream)
     const stream = await streamP
     stream.on('error', forwardError)
-    streamWithChecksum.pipe(stream)
+    checksumStream.pipe(stream)
 
-    streamWithChecksum.checksum
+    checksumStream.checksum
       .then(value => this.outputFile(checksumFile(path), value))
       .catch(forwardError)
 
-    return connectorStream
+    return checksumStream
   }
 
   async _createOutputStream (file, options) {
