@@ -523,11 +523,17 @@ export default class BackupNg {
     }
 
     const snapshots = vm.$snapshots
-      .filter(_ => _.other_config['xo:backup:schedule'] === scheduleId)
+      .filter(_ => _.other_config['xo:backup:job'] === jobId)
       .sort(compareSnapshotTime)
     $defer(() =>
-      asyncMap(getOldEntries(snapshotRetention, snapshots), _ =>
-        xapi.deleteVm(_)
+      asyncMap(
+        getOldEntries(
+          snapshotRetention.filter(
+            _ => _.other_config['xo:backup:schedule'] === scheduleId
+          ),
+          snapshots
+        ),
+        _ => xapi.deleteVm(_)
       )
     )
 
