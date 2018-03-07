@@ -3,7 +3,6 @@
 // $FlowFixMe
 import defer from 'golike-defer'
 import { basename, dirname, resolve } from 'path'
-// $FlowFixMe
 import { timeout as pTimeout } from 'promise-toolbox'
 import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { type Pattern, createPredicate } from 'value-matcher'
