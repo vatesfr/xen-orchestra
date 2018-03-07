@@ -805,8 +805,12 @@ export default class Xapi extends XapiBase {
       this._assertHealthyVdiChains(vm)
     }
     if (!vm.is_a_snapshot) {
+      const { name_label } = vm
       vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
       $defer.onFailure(() => this._deleteVm(vm))
+
+      // do not use the snapshot name in the delta export
+      vm.name_label = name_label
     }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
