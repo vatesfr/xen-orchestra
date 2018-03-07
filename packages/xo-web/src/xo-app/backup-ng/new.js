@@ -1,3 +1,4 @@
+import _ from 'intl'
 import ActionButton from 'action-button'
 import moment from 'moment-timezone'
 import React from 'react'
@@ -30,25 +31,6 @@ import {
 } from 'xo'
 
 // ===================================================================
-
-const constructPattern = values => ({
-  id: {
-    __or: resolveIds(values),
-  },
-})
-
-const destructPattern = pattern => pattern.id.__or
-
-const destructVmsPattern = pattern =>
-  pattern.id === undefined
-    ? {
-      powerState: pattern.power_state || 'All',
-      $pool: destructSmartPattern(pattern.$pool),
-      tags: destructSmartPattern(pattern.tags, flatten),
-    }
-    : {
-      vm: destructPattern(pattern),
-    }
 
 const SMART_MODE_INITIAL_STATE = {
   powerState: 'All',
@@ -94,27 +76,27 @@ const SMART_MODE_FUNCTIONS = {
 const normaliseTagValues = values => resolveIds(values).map(value => [value])
 
 const SMART_MODE_COMPUTED = {
-  vmsSmartPattern: state => ({
-    $pool: constructSmartPattern(state.$pool, resolveIds),
-    power_state: state.powerState === 'All' ? undefined : state.powerState,
-    tags: constructSmartPattern(state.tags, normaliseTagValues),
+  vmsSmartPattern: ({ $pool, powerState, tags }) => ({
+    $pool: constructSmartPattern($pool, resolveIds),
+    power_state: powerState === 'All' ? undefined : powerState,
+    tags: constructSmartPattern(tags, normaliseTagValues),
     type: 'VM',
   }),
 }
 
 const VMS_STATUSES_OPTIONS = [
-  { value: 'All', label: 'All' },
-  { value: 'Running', label: 'Running' },
-  { value: 'Halted', label: 'Halted' },
+  { value: 'All', label: _('vmStateAll') },
+  { value: 'Running', label: _('vmStateRunning') },
+  { value: 'Halted', label: _('vmStateHalted') },
 ]
 
 const SmartBackup = injectState(({ state, effects }) => (
   <Card>
-    <CardHeader>Smart Mode</CardHeader>
+    <CardHeader>{_('smartBackupModeTitle')}</CardHeader>
     <CardBlock>
       <FormGroup>
         <label>
-          <strong>VMs statuses</strong>
+          <strong>{_('editBackupSmartStatusTitle')}</strong>
         </label>
         <Select
           options={VMS_STATUSES_OPTIONS}
@@ -124,46 +106,44 @@ const SmartBackup = injectState(({ state, effects }) => (
           required
         />
       </FormGroup>
+      <h3>{_('editBackupSmartPools')}</h3>
+      <hr />
       <FormGroup>
         <label>
-          <strong>Pools</strong>
-        </label>
-        <hr />
-        <label>
-          <strong>Resident on</strong>
+          <strong>{_('editBackupSmartResidentOn')}</strong>
         </label>
         <SelectPool
           multi
           onChange={effects.setPoolValues}
           value={get(state.$pool, 'values')}
         />
+      </FormGroup>
+      <FormGroup>
         <label>
-          <strong>Not resident on</strong>
+          <strong>{_('editBackupSmartNotResidentOn')}</strong>
         </label>
-        <br />
         <SelectPool
           multi
           onChange={effects.setPoolNotValues}
           value={get(state.$pool, 'notValues')}
         />
       </FormGroup>
+      <h3>{_('editBackupSmartTags')}</h3>
+      <hr />
       <FormGroup>
         <label>
-          <strong>Tags</strong>
-        </label>
-        <hr />
-        <label>
-          <strong>VMs Tags</strong>
+          <strong>{_('editBackupSmartTagsTitle')}</strong>
         </label>
         <SelectTag
           multi
           onChange={effects.setTagValues}
           value={get(state.tags, 'values')}
         />
+      </FormGroup>
+      <FormGroup>
         <label>
-          <strong>Excluded VMs tags</strong>
+          <strong>{_('editBackupSmartExcludedTagsTitle')}</strong>
         </label>
-        <br />
         <SelectTag
           multi
           onChange={effects.setTagNotValues}
@@ -176,6 +156,25 @@ const SmartBackup = injectState(({ state, effects }) => (
 ))
 
 // ===================================================================
+
+const constructPattern = values => ({
+  id: {
+    __or: resolveIds(values),
+  },
+})
+
+const destructPattern = pattern => pattern.id.__or
+
+const destructVmsPattern = pattern =>
+  pattern.id === undefined
+    ? {
+      powerState: pattern.power_state || 'All',
+      $pool: destructSmartPattern(pattern.$pool),
+      tags: destructSmartPattern(pattern.tags, flatten),
+    }
+    : {
+      vm: destructPattern(pattern),
+    }
 
 const FormGroup = props => <div {...props} className='form-group' />
 const Input = props => <input {...props} className='form-control' />
@@ -434,15 +433,14 @@ export default [
     return (
       <form id={state.formId}>
         <FormGroup>
-          <h1>BackupNG</h1>
           <label>
-            <strong>Name</strong>
+            <strong>{_('backupName')}</strong>
           </label>
           <Input onChange={effects.setName} value={state.name} />
         </FormGroup>
         <FormGroup>
           <label>
-            <strong>Target remotes (for Export)</strong>
+            <strong>{_('backupTargetRemotes')}</strong>
           </label>
           <SelectRemote
             multi
@@ -452,13 +450,13 @@ export default [
         </FormGroup>
         <FormGroup>
           <label>
-            <strong>Target SRs (for Replication)</strong>
+            <strong>{_('backupTargetSrs')}</strong>
           </label>
           <SelectSr multi onChange={effects.setSrs} value={state.srs} />
         </FormGroup>
         <FormGroup>
           <label>
-            <strong>Smart selection</strong>
+            <strong>{_('smartBackupModeTitle')}</strong>
           </label>
           <br />
           <Toggle onChange={effects.setSmartMode} value={state.smartMode} />
@@ -470,7 +468,7 @@ export default [
         ) : (
           <FormGroup>
             <label>
-              <strong>Vms to Backup</strong>
+              <strong>{_('vmsToBackup')}</strong>
             </label>
             <SelectVm multi onChange={effects.setVms} value={state.vms} />
           </FormGroup>
@@ -484,7 +482,7 @@ export default [
                   onChange={effects.setDelta}
                   checked={state.delta}
                 />{' '}
-                Use delta
+                <strong>{_('useDelta')}</strong>
               </label>
             </FormGroup>
           </Upgrade>
@@ -496,7 +494,7 @@ export default [
               onChange={effects.setCompression}
               checked={state.compression}
             />{' '}
-            Enable compression
+            <strong>{_('useCompression')}</strong>
           </label>
         )}
         {!isEmpty(state.sortedSchedules) && (
