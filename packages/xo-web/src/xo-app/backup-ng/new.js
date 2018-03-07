@@ -173,7 +173,7 @@ const destructVmsPattern = pattern =>
       tags: destructSmartPattern(pattern.tags, flatten),
     }
     : {
-      vm: destructPattern(pattern),
+      vms: destructPattern(pattern),
     }
 
 const FormGroup = props => <div {...props} className='form-group' />
