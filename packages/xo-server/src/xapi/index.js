@@ -804,13 +804,11 @@ export default class Xapi extends XapiBase {
     if (!bypassVdiChainsCheck) {
       this._assertHealthyVdiChains(vm)
     }
+    // do not use the snapshot name in the delta export
+    const exportedNameLabel = vm.name_label
     if (!vm.is_a_snapshot) {
-      const { name_label } = vm
       vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
       $defer.onFailure(() => this._deleteVm(vm))
-
-      // do not use the snapshot name in the delta export
-      vm.name_label = name_label
     }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
@@ -895,6 +893,7 @@ export default class Xapi extends XapiBase {
         vifs,
         vm: {
           ...vm,
+          name_label: exportedNameLabel,
           other_config:
             baseVm && !disableBaseTags
               ? {
