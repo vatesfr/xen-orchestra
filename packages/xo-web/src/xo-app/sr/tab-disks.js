@@ -1,25 +1,39 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
+import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
+import propTypes from 'prop-types-decorator'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import TabButton from 'tab-button'
+import { injectIntl } from 'react-intl'
 import { Text } from 'editable'
-import { concat, isEmpty, map, some } from 'lodash'
-import { connectStore, formatSize } from 'utils'
+import { SelectVm } from 'select-objects'
+import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { concat, get, includes, isEmpty, map, some } from 'lodash'
+import { createFinder, createGetObjectsOfType, createSelector } from 'selectors'
+import {
+  addSubscriptions,
+  connectStore,
+  formatSize,
+  noop,
+  resolveResourceSet,
+} from 'utils'
 import {
   connectVbd,
+  createDisk,
   deleteVbd,
   deleteVdi,
   deleteVdis,
   disconnectVbd,
   editVdi,
   isVmRunning,
+  subscribeResourceSets,
 } from 'xo'
 
 // ===================================================================
@@ -172,8 +186,166 @@ const FILTERS = {
 }
 
 // ===================================================================
+@injectIntl
+@propTypes({
+  onClose: propTypes.func,
+  sr: propTypes.object.isRequired,
+})
+@addSubscriptions({
+  resourceSets: subscribeResourceSets,
+})
+class NewDisk extends Component {
+  _createDisk = () => {
+    const { sr, onClose = noop } = this.props
+    const { bootable, name, readOnly, size, vm } = this.state
+
+    return createDisk(name, size, sr, {
+      vm,
+      bootable,
+      mode: readOnly ? 'RO' : 'RW',
+    }).then(onClose)
+  }
+
+  _getResourceSet = createFinder(
+    () => this.props.resourceSets,
+    createSelector(
+      () => this.state.vm && this.state.vm.resourceSet,
+      id => resourceSet => resourceSet.id === id
+    )
+  )
+
+  _getResolvedResourceSet = createSelector(
+    this._getResourceSet,
+    resolveResourceSet
+  )
+
+  _getIsInPool = createSelector(
+    () => this.props.sr.$pool,
+    poolId => ({ $pool }) => $pool === poolId
+  )
+
+  _getIsInResourceSet = createSelector(
+    () => {
+      const resourceSet = this._getResourceSet()
+      return resourceSet && resourceSet.objects
+    },
+    objectsIds => id => includes(objectsIds, id)
+  )
+
+  _getVmPredicate = createSelector(
+    this._getIsInPool,
+    this._getIsInResourceSet,
+    (isInPool, isInResourceSet) => vm =>
+      vm.resourceSet !== undefined ? isInResourceSet(vm.id) : isInPool(vm)
+  )
+
+  _getResourceSetDiskLimit = createSelector(this._getResourceSet, resourceSet =>
+    get(resourceSet, 'limits.disk.available')
+  )
+
+  render () {
+    const { formatMessage } = this.props.intl
+    const { bootable, name, readOnly, size, vm } = this.state
+
+    const diskLimit = this._getResourceSetDiskLimit()
+    const resourceSet = this._getResolvedResourceSet()
+
+    return (
+      <form id='newDiskForm'>
+        <div className='form-group'>
+          <SelectVm
+            onChange={this.linkState('vm')}
+            predicate={this._getVmPredicate()}
+            required
+            value={vm}
+          />
+        </div>
+        <fieldset className='form-inline'>
+          <div className='form-group'>
+            <input
+              className='form-control'
+              onChange={this.linkState('name')}
+              placeholder={formatMessage(messages.vbdNamePlaceHolder)}
+              required
+              type='text'
+              value={name}
+            />
+          </div>{' '}
+          <div className='form-group'>
+            <SizeInput
+              onChange={this.linkState('size')}
+              placeholder={formatMessage(messages.vbdSizePlaceHolder)}
+              required
+              value={size}
+            />
+          </div>
+          <div className='form-group'>
+            {vm &&
+              vm.virtualizationMode !== 'pv' && (
+                <span>
+                  {_('vbdBootable')}{' '}
+                  <Toggle
+                    onChange={this.toggleState('bootable')}
+                    value={bootable}
+                  />{' '}
+                </span>
+              )}
+
+            <span>
+              {_('vbdReadonly')}{' '}
+              <Toggle
+                onChange={this.toggleState('readOnly')}
+                value={readOnly}
+              />
+            </span>
+          </div>
+          <span className='pull-right'>
+            <ActionButton
+              btnStyle='primary'
+              disabled={diskLimit < size}
+              form='newDiskForm'
+              handler={this._createDisk}
+              icon='add'
+            >
+              {_('vbdCreate')}
+            </ActionButton>
+          </span>
+        </fieldset>
+        {resourceSet !== undefined &&
+          diskLimit !== undefined &&
+          (diskLimit < size ? (
+            <em className='text-danger'>
+              {_('notEnoughSpaceInResourceSet', {
+                resourceSet: <strong>{resourceSet.name}</strong>,
+                spaceLeft: formatSize(diskLimit),
+              })}
+            </em>
+          ) : (
+            <em>
+              {_('useQuotaWarning', {
+                resourceSet: <strong>{resourceSet.name}</strong>,
+                spaceLeft: formatSize(diskLimit),
+              })}
+            </em>
+          ))}
+      </form>
+    )
+  }
+}
 
 export default class SrDisks extends Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      newDisk: false,
+    }
+  }
+
+  _toggleNewDisk = () =>
+    this.setState({
+      newDisk: !this.state.newDisk,
+    })
+
   _getAllVdis = createSelector(
     () => this.props.vdis,
     () => this.props.vdiSnapshots,
@@ -183,8 +355,28 @@ export default class SrDisks extends Component {
 
   render () {
     const vdis = this._getAllVdis()
+    const { newDisk } = this.state
+
     return (
       <Container>
+        <Row>
+          <Col className='text-xs-right'>
+            <TabButton
+              btnStyle={newDisk ? 'info' : 'primary'}
+              handler={this._toggleNewDisk}
+              icon='add'
+              labelId='vbdCreateDeviceButton'
+            />
+          </Col>
+          <Col>
+            {newDisk && (
+              <div>
+                <NewDisk sr={this.props.sr} onClose={this._toggleNewDisk} />
+                <hr />
+              </div>
+            )}
+          </Col>
+        </Row>
         <Row>
           <Col>
             {!isEmpty(vdis) ? (
