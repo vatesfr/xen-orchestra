@@ -2,6 +2,7 @@ module.exports = {
   extends: ['standard', 'standard-jsx'],
   globals: {
     __DEV__: true,
+    $Dict: true,
     $Diff: true,
     $Exact: true,
     $Keys: true,

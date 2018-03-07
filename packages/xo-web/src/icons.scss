@@ -259,6 +259,10 @@
     @extend .fa;
     @extend .fa-download;
   }
+  &-restore {
+    @extend .fa;
+    @extend .fa-upload;
+  }
   &-rolling-snapshot {
     @extend .fa;
     @extend .fa-camera;

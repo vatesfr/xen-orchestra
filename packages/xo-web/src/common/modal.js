@@ -235,7 +235,8 @@ export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
           resolve={resolve}
           strongConfirm={strongConfirm}
           title={title}
-        />
+        />,
+        reject
       )
     })
     : chooseAction({

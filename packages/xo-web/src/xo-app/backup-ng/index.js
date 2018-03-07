@@ -4,6 +4,7 @@ import addSubscriptions from 'add-subscriptions'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import StateButton from 'state-button'
 import { map, groupBy } from 'lodash'
 import { Card, CardHeader, CardBlock } from 'card'
 import { constructQueryString } from 'smart-backup-pattern'
@@ -12,9 +13,11 @@ import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
 import {
   deleteBackupNgJobs,
+  disableSchedule,
+  enableSchedule,
+  runBackupNgJob,
   subscribeBackupNgJobs,
   subscribeSchedules,
-  runBackupNgJob,
 } from 'xo'
 
 import LogsTable from '../logs'
@@ -25,52 +28,46 @@ import New from './new'
 import FileRestore from './file-restore'
 import Restore from './restore'
 
-const Ul = ({ children, ...props }) => (
-  <ul {...props} style={{ display: 'inline', padding: '0 0.5em' }}>
-    {children}
-  </ul>
-)
-
-const Li = ({ children, ...props }) => (
-  <li {...props} style={{ listStyleType: 'none', display: 'inline-block' }}>
-    {children}
-  </li>
-)
-
-const Td = ({ children, ...props }) => (
-  <td {...props} style={{ borderRight: '1px solid black' }}>
-    {children}
-  </td>
-)
-
-const SchedulePreviewBody = ({ job, schedules }) => (
+const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
   <table>
-    {map(schedules, schedule => (
+    <tr className='text-muted'>
+      <th>{_('scheduleCron')}</th>
+      <th>{_('scheduleTimezone')}</th>
+      <th>{_('scheduleExportRetention')}</th>
+      <th>{_('scheduleSnapshotRetention')}</th>
+      <th>{_('scheduleRun')}</th>
+    </tr>
+    {map(schedulesByJob && schedulesByJob[job.id], schedule => (
       <tr key={schedule.id}>
-        <Td>{schedule.cron}</Td>
-        <Td>{schedule.timezone}</Td>
-        <Td>{job.settings[schedule.id].exportRetention}</Td>
-        <Td>{job.settings[schedule.id].snapshotRetention}</Td>
+        <td>{schedule.cron}</td>
+        <td>{schedule.timezone}</td>
+        <td>{job.settings[schedule.id].exportRetention}</td>
+        <td>{job.settings[schedule.id].snapshotRetention}</td>
+        <td>
+          <StateButton
+            disabledLabel={_('jobStateDisabled')}
+            disabledHandler={enableSchedule}
+            disabledTooltip={_('logIndicationToEnable')}
+            enabledLabel={_('jobStateEnabled')}
+            enabledHandler={disableSchedule}
+            enabledTooltip={_('logIndicationToDisable')}
+            handlerParam={schedule.id}
+            state={schedule.enabled}
+          />
+        </td>
         <td>
           <ActionButton
             handler={runBackupNgJob}
             icon='run-schedule'
             size='small'
             data-id={job.id}
-            data-scheduleId={schedule.id}
-            btnStyle='warning'
+            data-schedule={schedule.id}
+            btnStyle='primary'
           />
         </td>
       </tr>
     ))}
   </table>
-)
-
-const SchedulePreviewHeader = ({ _ }) => (
-  <Ul>
-    <Li>Schedule ID</Li> | <Li>Cron</Li> | <Li>Timezone</Li> |{' '}
-    <Li>Export retention</Li> | <Li>Snapshot retention</Li> |{' '}
-  </Ul>
 )
 
 @addSubscriptions({
@@ -97,27 +94,24 @@ class JobsTable extends React.Component {
     columns: [
       {
         itemRenderer: _ => _.id.slice(0, 5),
-        sortCriteria: _ => _.id,
         name: _('jobId'),
       },
       {
         itemRenderer: _ => _.name,
-        sortCriteria: _ => _.name,
+        sortCriteria: 'name',
         name: _('jobName'),
+        default: true,
       },
       {
-        itemRenderer: _ => _.mode,
-        sortCriteria: _ => _.mode,
-        name: 'mode',
-      },
-      {
-        component: _ => (
-          <SchedulePreviewBody
-            job={_.item}
-            schedules={_.userData.schedulesByJob[_.item.id]}
-          />
+        itemRenderer: _ => (
+          <span style={{ textTransform: 'capitalize' }}>{_.mode}</span>
         ),
-        name: <SchedulePreviewHeader />,
+        sortCriteria: 'mode',
+        name: _('jobMode'),
+      },
+      {
+        component: SchedulePreviewBody,
+        name: _('jobSchedules'),
       },
     ],
     individualActions: [
