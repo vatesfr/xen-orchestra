@@ -69,7 +69,7 @@
     "font-mfizz": "^2.4.1",
     "get-stream": "^3.0.0",
     "gulp": "^4.0.0",
-    "gulp-autoprefixer": "^4.1.0",
+    "gulp-autoprefixer": "^5.0.0",
     "gulp-csso": "^3.0.0",
     "gulp-embedlr": "^0.5.2",
     "gulp-plumber": "^1.1.0",
