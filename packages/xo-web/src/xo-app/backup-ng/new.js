@@ -4,6 +4,7 @@ import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import SmartBackupPreview from 'smart-backup-preview'
+import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore, resolveIds } from 'utils'
@@ -13,8 +14,8 @@ import {
 } from 'smart-backup-pattern'
 import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from '@julien-f/freactal'
-import { flatten, get, orderBy, isEmpty, map, some } from 'lodash'
 import { Select, Toggle } from 'form'
+import { findKey, flatten, get, isEmpty, map, size, some } from 'lodash'
 import {
   SelectPool,
   SelectRemote,
@@ -82,6 +83,7 @@ const SMART_MODE_COMPUTED = {
     tags: constructSmartPattern(tags, normaliseTagValues),
     type: 'VM',
   }),
+  allVms: (state, { allVms }) => allVms,
 }
 
 const VMS_STATUSES_OPTIONS = [
@@ -157,6 +159,214 @@ const SmartBackup = injectState(({ state, effects }) => (
 
 // ===================================================================
 
+const SCHEDULES_INITIAL_STATE = {
+  schedules: {},
+  tmpSchedules: {},
+}
+
+const SCHEDULES_COMPUTED = {
+  jobSettings: (state, { job }) => job && job.settings,
+  schedules: (state, { schedules }) => schedules,
+  isScheduleInvalid: state =>
+    (+state.snapshotRetention === 0 || state.snapshotRetention === '') &&
+    (+state.exportRetention === 0 || state.exportRetention === ''),
+  canDeleteSchedule: state =>
+    state.schedules.length + size(state.tmpSchedules) > 1,
+}
+
+const SCHEDULES_FUNCTIONS = {
+  populateSchedule: (_, { cron, timezone, ...props }) => state => ({
+    ...state,
+    ...props,
+    tmpSchedule: {
+      cron,
+      timezone,
+    },
+  }),
+  editSchedule: (_, id) => async (state, props) => {
+    await editSchedule({
+      id,
+      jobId: props.job.id,
+      ...state.tmpSchedule,
+    })
+    await editBackupNgJob({
+      id: props.job.id,
+      settings: {
+        ...props.job.settings,
+        [id]: {
+          exportRetention: +state.exportRetention,
+          snapshotRetention: +state.snapshotRetention,
+        },
+      },
+    })
+  },
+  deleteSchedule: (_, id) => async (state, props) => {
+    await deleteSchedule(id)
+
+    delete props.job.settings[id]
+    await editBackupNgJob({
+      id: props.job.id,
+      settings: {
+        ...props.job.settings,
+      },
+    })
+  },
+  editTmpSchedule: (_, id) => state => ({
+    ...state,
+    tmpSchedules: {
+      ...state.tmpSchedules,
+      [id]: {
+        ...state.tmpSchedule,
+        exportRetention: state.exportRetention,
+        snapshotRetention: state.snapshotRetention,
+      },
+    },
+  }),
+  deleteTmpSchedule: (_, id) => state => {
+    const tmpSchedules = { ...state.tmpSchedules }
+    delete tmpSchedules[id]
+    return {
+      ...state,
+      tmpSchedules,
+    }
+  },
+}
+
+const SAVED_SCHEDULES_INDIVIDUAL_ACTIONS = [
+  {
+    handler: (schedule, { effects: { populateSchedule } }) =>
+      populateSchedule(schedule),
+    label: '',
+    icon: 'edit',
+    level: 'warning',
+  },
+  {
+    handler: (schedule, { effects: { editSchedule } }) =>
+      editSchedule(schedule.id),
+    label: '',
+    disabled: (_, { disabledEdition }) => disabledEdition,
+    icon: 'save',
+    level: 'primary',
+  },
+  {
+    handler: (schedule, { effects: { deleteSchedule } }) =>
+      deleteSchedule(schedule.id),
+    label: '',
+    disabled: (_, { disabledSupression }) => disabledSupression,
+    icon: 'delete',
+    level: 'danger',
+  },
+]
+
+const NEW_SCHEDULES_INDIVIDUAL_ACTIONS = [
+  {
+    handler: (schedule, { effects: { editTmpSchedule }, tmpSchedules }) =>
+      editTmpSchedule(findKey(tmpSchedules, schedule)),
+    label: '',
+    disabled: (_, { disabledEdition }) => disabledEdition,
+    icon: 'save',
+    level: 'primary',
+  },
+  {
+    handler: (schedule, { effects: { deleteTmpSchedule }, tmpSchedules }) =>
+      deleteTmpSchedule(findKey(tmpSchedules, schedule)),
+    label: '',
+    disabled: (_, { disabledSupression }) => disabledSupression,
+    icon: 'delete',
+    level: 'danger',
+  },
+]
+
+const SCHEDULES_COLUMNS = [
+  {
+    itemRenderer: _ => _.cron,
+    sortCriteria: 'cron',
+    name: _('scheduleCron'),
+  },
+  {
+    itemRenderer: _ => _.timezone,
+    sortCriteria: 'timezone',
+    name: _('scheduleTimezone'),
+  },
+  {
+    itemRenderer: _ => _.exportRetention,
+    sortCriteria: _ => _.exportRetention,
+    name: _('scheduleExportRetention'),
+  },
+  {
+    itemRenderer: _ => _.snapshotRetention,
+    sortCriteria: _ => _.snapshotRetention,
+    name: _('scheduleSnapshotRetention'),
+  },
+]
+
+const SAVED_SCHEDULES_COLUMNS = [
+  {
+    itemRenderer: _ => _.name,
+    sortCriteria: 'name',
+    name: _('scheduleName'),
+    default: true,
+  },
+  ...SCHEDULES_COLUMNS,
+]
+
+const rowTransform = (schedule, { jobSettings }) => {
+  const jobShedule = jobSettings[schedule.id]
+
+  return {
+    ...schedule,
+    exportRetention: jobShedule && jobShedule.exportRetention,
+    snapshotRetention: jobShedule && jobShedule.snapshotRetention,
+  }
+}
+
+const SchedulesOverview = injectState(({ state, effects }) => (
+  <Card>
+    <CardHeader>{_('backupSchedules')}</CardHeader>
+    <CardBlock>
+      {isEmpty(state.schedules) &&
+        isEmpty(state.tmpSchedules) && (
+          <p className='text-xs-center'>{_('noSchedules')}</p>
+        )}
+      {!isEmpty(state.schedules) && (
+        <FormGroup>
+          <label>
+            <strong>{_('backupSavedSchedules')}</strong>
+          </label>
+          <SortedTable
+            collection={state.schedules}
+            columns={SAVED_SCHEDULES_COLUMNS}
+            data-disabledEdition={state.isScheduleInvalid}
+            data-disabledSupression={!state.canDeleteSchedule}
+            data-effects={effects}
+            data-jobSettings={state.jobSettings}
+            individualActions={SAVED_SCHEDULES_INDIVIDUAL_ACTIONS}
+            rowTransform={rowTransform}
+          />
+        </FormGroup>
+      )}
+      {!isEmpty(state.tmpSchedules) && (
+        <FormGroup>
+          <label>
+            <strong>{_('backupNewSchedules')}</strong>
+          </label>
+          <SortedTable
+            collection={state.tmpSchedules}
+            columns={SCHEDULES_COLUMNS}
+            data-disabledEdition={state.isScheduleInvalid}
+            data-disabledSupression={!state.canDeleteSchedule}
+            data-effects={effects}
+            data-tmpSchedules={state.tmpSchedules}
+            individualActions={NEW_SCHEDULES_INDIVIDUAL_ACTIONS}
+          />
+        </FormGroup>
+      )}
+    </CardBlock>
+  </Card>
+))
+
+// ===================================================================
+
 const constructPattern = values => ({
   id: {
     __or: resolveIds(values),
@@ -218,7 +428,6 @@ export default [
       name: '',
       paramsUpdated: false,
       remotes: [],
-      schedules: {},
       snapshotRetention: 0,
       smartMode: false,
       srs: [],
@@ -226,9 +435,9 @@ export default [
         cron: DEFAULT_CRON_PATTERN,
         timezone: DEFAULT_TIMEZONE,
       },
-      tmpSchedules: {},
       vms: [],
       ...SMART_MODE_INITIAL_STATE,
+      ...SCHEDULES_INITIAL_STATE,
     }),
     effects: {
       addSchedule: () => state => {
@@ -310,61 +519,6 @@ export default [
         ...state,
         snapshotRetention: value,
       }),
-      populateSchedule: (_, { cron, timezone, ...props }) => state => ({
-        ...state,
-        ...props,
-        tmpSchedule: {
-          cron,
-          timezone,
-        },
-      }),
-      editSchedule: (_, { scheduleId }) => async (state, props) => {
-        await editSchedule({
-          id: scheduleId,
-          jobId: props.job.id,
-          ...state.tmpSchedule,
-        })
-        await editBackupNgJob({
-          id: props.job.id,
-          settings: {
-            ...props.job.settings,
-            [scheduleId]: {
-              exportRetention: +state.exportRetention,
-              snapshotRetention: +state.snapshotRetention,
-            },
-          },
-        })
-      },
-      deleteSchedule: (_, { scheduleId }) => async (state, props) => {
-        await deleteSchedule(scheduleId)
-
-        delete props.job.settings[scheduleId]
-        await editBackupNgJob({
-          id: props.job.id,
-          settings: {
-            ...props.job.settings,
-          },
-        })
-      },
-      editTmpSchedule: (_, { scheduleId }) => state => ({
-        ...state,
-        tmpSchedules: {
-          ...state.tmpSchedules,
-          [scheduleId]: {
-            ...state.tmpSchedule,
-            exportRetention: state.exportRetention,
-            snapshotRetention: state.snapshotRetention,
-          },
-        },
-      }),
-      deleteTmpSchedule: (_, { scheduleId }) => state => {
-        const tmpSchedules = { ...state.tmpSchedules }
-        delete tmpSchedules[scheduleId]
-        return {
-          ...state,
-          tmpSchedules,
-        }
-      },
       setDelta: (_, { target: { checked } }) => state => ({
         ...state,
         delta: checked,
@@ -396,16 +550,11 @@ export default [
         ...destructVmsPattern(job.vms),
       }),
       ...SMART_MODE_FUNCTIONS,
+      ...SCHEDULES_FUNCTIONS,
     },
     computed: {
-      allVms: (state, { allVms }) => allVms,
-      jobSettings: (state, { job }) => job && job.settings,
-      schedules: (state, { schedules }) => schedules,
       needUpdateParams: (state, { job }) =>
         job !== undefined && !state.paramsUpdated,
-      isScheduleInvalid: state =>
-        (+state.snapshotRetention === 0 || state.snapshotRetention === '') &&
-        (+state.exportRetention === 0 || state.exportRetention === ''),
       isInvalid: state =>
         state.name.trim() === '' ||
         (isEmpty(state.schedules) && isEmpty(state.tmpSchedules)) ||
@@ -418,10 +567,8 @@ export default [
         ) ||
           (job &&
             some(job.settings, schedule => schedule.exportRetention !== 0))),
-      sortedSchedules: ({ schedules }) => orderBy(schedules, 'name'),
-      // TO DO: use sortedTmpSchedules
-      sortedTmpSchedules: ({ tmpSchedules }) => orderBy(tmpSchedules, 'id'),
       ...SMART_MODE_COMPUTED,
+      ...SCHEDULES_COMPUTED,
     },
   }),
   injectState,
@@ -497,72 +644,7 @@ export default [
             <strong>{_('useCompression')}</strong>
           </label>
         )}
-        {!isEmpty(state.sortedSchedules) && (
-          <FormGroup>
-            <h3>Saved schedules</h3>
-            <ul>
-              {state.sortedSchedules.map(schedule => (
-                <li key={schedule.id}>
-                  {schedule.name} {schedule.cron} {schedule.timezone}{' '}
-                  {state.jobSettings[schedule.id].exportRetention}{' '}
-                  {state.jobSettings[schedule.id].snapshotRetention}
-                  <ActionButton
-                    handler={effects.populateSchedule}
-                    data-cron={schedule.cron}
-                    data-timezone={schedule.timezone}
-                    data-exportRetention={
-                      state.jobSettings[schedule.id].exportRetention
-                    }
-                    data-snapshotRetention={
-                      state.jobSettings[schedule.id].snapshotRetention
-                    }
-                    icon='edit'
-                    size='small'
-                  />
-                  <ActionButton
-                    data-scheduleId={schedule.id}
-                    disabled={state.isScheduleInvalid}
-                    handler={effects.editSchedule}
-                    icon='save'
-                    size='small'
-                  />
-                  <ActionButton
-                    data-scheduleId={schedule.id}
-                    handler={effects.deleteSchedule}
-                    icon='delete'
-                    size='small'
-                  />
-                </li>
-              ))}
-            </ul>
-          </FormGroup>
-        )}
-        {!isEmpty(state.tmpSchedules) && (
-          <FormGroup>
-            <h3>New schedules</h3>
-            <ul>
-              {map(state.tmpSchedules, (schedule, key) => (
-                <li key={key}>
-                  {schedule.cron} {schedule.timezone} {schedule.exportRetention}{' '}
-                  {schedule.snapshotRetention}
-                  <ActionButton
-                    data-scheduleId={key}
-                    disabled={state.isScheduleInvalid}
-                    handler={effects.editTmpSchedule}
-                    icon='edit'
-                    size='small'
-                  />
-                  <ActionButton
-                    data-scheduleId={key}
-                    handler={effects.deleteTmpSchedule}
-                    icon='delete'
-                    size='small'
-                  />
-                </li>
-              ))}
-            </ul>
-          </FormGroup>
-        )}
+        <SchedulesOverview />
         <FormGroup>
           <h1>Schedule</h1>
           <label>

@@ -1136,7 +1136,10 @@ const messages = {
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',
+  backupSavedSchedules: 'Saved schedules',
+  backupNewSchedules: 'New schedules',
   scheduleCron: 'Cron pattern',
+  scheduleName: 'Name',
   scheduleTimezone: 'Timezone',
   scheduleExportRetention: 'Export ret.',
   scheduleSnapshotRetention: 'Snapshot ret.',
