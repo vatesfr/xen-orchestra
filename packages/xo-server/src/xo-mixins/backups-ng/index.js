@@ -12,10 +12,9 @@ import { type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
+import type RemoteHandler from '../../remote-handlers/abstract'
 import { asyncMap, safeDateFormat, serializeError } from '../../utils'
-// import { parseDateTime } from '../../xapi/utils'
-import { type RemoteHandlerAbstract } from '../../remote-handlers/abstract'
-import { type Xapi } from '../../xapi'
+import type { Vm, Xapi } from '../../xapi'
 
 type Mode = 'full' | 'delta'
 
@@ -69,17 +68,16 @@ type MetadataFull = {|
 |}
 type Metadata = MetadataDelta | MetadataFull
 
-const compareSnapshotTime = (a, b) =>
+const compareSnapshotTime = (a: Vm, b: Vm): number =>
   a.snapshot_time < b.snapshot_time ? -1 : 1
 
-const compareTimestamp = (a, b) => a.timestamp - b.timestamp
+const compareTimestamp = (a: Metadata, b: Metadata): number =>
+  a.timestamp - b.timestamp
 
 // returns all entries but the last (retention - 1)-th
 //
 // the “-1” is because this code is usually run with entries computed before the
 // new entry is created
-//
-// FIXME: check whether it take the new one into account
 const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
   entries === undefined
     ? []
@@ -113,7 +111,11 @@ const getVmBackupDir = (uuid: string) => `${BACKUP_DIR}/${uuid}`
 
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
 
-const listReplicatedVms = (xapi: Xapi, scheduleId: string, srId) => {
+const listReplicatedVms = (
+  xapi: Xapi,
+  scheduleId: string,
+  srId: string
+): Vm[] => {
   const { all } = xapi.objects
   const vms = {}
   for (const key in all) {
@@ -132,7 +134,7 @@ const listReplicatedVms = (xapi: Xapi, scheduleId: string, srId) => {
   return values(vms).sort(compareSnapshotTime)
 }
 
-const parseVmBackupId = id => {
+const parseVmBackupId = (id: string) => {
   const i = id.indexOf('/')
   return {
     metadataFilename: id.slice(i + 1),
@@ -141,7 +143,7 @@ const parseVmBackupId = id => {
 }
 
 // used to resolve the data field from the metadata
-const resolveRelativeFromFile = (file, path) =>
+const resolveRelativeFromFile = (file: string, path: string): string =>
   resolve('/', dirname(file), path).slice(1)
 
 const unboxIds = (pattern?: SimpleIdPattern): string[] => {
@@ -153,7 +155,10 @@ const unboxIds = (pattern?: SimpleIdPattern): string[] => {
 }
 
 // similar to Promise.all() but do not gather results
-const waitAll = async (promises, onRejection) => {
+const waitAll = async <T>(
+  promises: Promise<T>[],
+  onRejection: Function
+): Promise<void> => {
   promises = promises.map(promise => {
     promise = promise.catch(onRejection)
     promise.catch(noop) // prevent unhandled rejection warning
@@ -169,7 +174,7 @@ const waitAll = async (promises, onRejection) => {
 // TODO: merge into RemoteHandlerAbstract
 const writeStream = async (
   input: Readable | Promise<Readable>,
-  handler: RemoteHandlerAbstract,
+  handler: RemoteHandler,
   path: string
 ): Promise<void> => {
   input = await input
@@ -217,7 +222,7 @@ export default class BackupNg {
     createSchedule: ($Diff<Schedule, {| id: string |}>) => Promise<Schedule>,
     deleteSchedule: (id: string) => Promise<void>,
     getAllSchedules: () => Promise<Schedule[]>,
-    getRemoteHandler: (id: string) => Promise<RemoteHandlerAbstract>,
+    getRemoteHandler: (id: string) => Promise<RemoteHandler>,
     getXapi: (id: string) => Xapi,
     getJob: (id: string, 'backup') => Promise<BackupJob>,
     updateJob: ($Shape<BackupJob>) => Promise<BackupJob>,
@@ -388,7 +393,7 @@ export default class BackupNg {
     await this._deleteFullVmBackups(handler, [metadata])
   }
 
-  async importVmBackupNg (id: string, srId: string): Promise<void> {
+  async importVmBackupNg (id: string, srId: string): Promise<string> {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
     const handler = await app.getRemoteHandler(remoteId)
@@ -477,6 +482,7 @@ export default class BackupNg {
   //
   // Triage:
   // - [ ] protect against concurrent backup against a single VM (JFT: why?)
+  //       - shouldn't be necessary now that VHD chains are separated by job
   // - [ ] logs
   //
   // Done:
@@ -497,7 +503,7 @@ export default class BackupNg {
   ): Promise<BackupResult> {
     const app = this._app
     const xapi = app.getXapi(vmId)
-    const vm = xapi.getObject(vmId)
+    const vm: Vm = (xapi.getObject(vmId): any)
 
     const { id: jobId, settings } = job
     const { id: scheduleId } = schedule
@@ -525,10 +531,10 @@ export default class BackupNg {
     $defer(() =>
       asyncMap(
         getOldEntries(
-          snapshotRetention.filter(
+          snapshotRetention,
+          snapshots.filter(
             _ => _.other_config['xo:backup:schedule'] === scheduleId
-          ),
-          snapshots
+          )
         ),
         _ => xapi.deleteVm(_)
       )
@@ -702,12 +708,11 @@ export default class BackupNg {
       // await Promise.all([asyncMap(remotes, remoteId => {})])
     }
 
-    const deltaExport: {
-      streams: $Dict<() => Promise<Readable>>,
-      vbds: { [ref: string]: {} },
-      vdis: { [ref: string]: { $SR$uuid: string } },
-      vifs: { [ref: string]: {} }
-    } = await xapi.exportDeltaVm($cancelToken, snapshot, baseSnapshot)
+    const deltaExport = await xapi.exportDeltaVm(
+      $cancelToken,
+      snapshot,
+      baseSnapshot
+    )
 
     metadata.vbds = deltaExport.vbds
     metadata.vdis = deltaExport.vdis
@@ -860,7 +865,7 @@ export default class BackupNg {
   }
 
   async _deleteFullVmBackups (
-    handler: RemoteHandlerAbstract,
+    handler: RemoteHandler,
     backups: Metadata[]
   ): Promise<void> {
     await asyncMap(backups, ({ _filename, data }) =>
@@ -875,12 +880,8 @@ export default class BackupNg {
     return asyncMap(vms, vm => xapi.deleteVm(vm))
   }
 
-  async _importDeltaVmBackup () {
-    // TODO
-  }
-
   async _listVmBackups (
-    handler: RemoteHandlerAbstract,
+    handler: RemoteHandler,
     vm: Object | string,
     predicate?: Metadata => boolean
   ): Promise<Metadata[]> {
