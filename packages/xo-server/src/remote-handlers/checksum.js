@@ -1,7 +1,11 @@
-import invert from 'lodash/invert'
+// @flow
+
+// $FlowFixMe
 import through2 from 'through2'
 import { createHash } from 'crypto'
 import { defer, fromEvent } from 'promise-toolbox'
+import { invert } from 'lodash'
+import { type Readable, type Transform } from 'stream'
 
 const ALGORITHM_TO_ID = {
   md5: '1',
@@ -21,7 +25,9 @@ const ID_TO_ALGORITHM = invert(ALGORITHM_TO_ID)
 //    const checksumStream = source.pipe(createChecksumStream())
 //    checksumStream.resume() // make the data flow without an output
 //    console.log(await checksumStream.checksum)
-export const createChecksumStream = (algorithm = 'md5') => {
+export const createChecksumStream = (
+  algorithm: string = 'md5'
+): Transform & { checksum: Promise<string> } => {
   const algorithmId = ALGORITHM_TO_ID[algorithm]
 
   if (!algorithmId) {
@@ -48,7 +54,10 @@ export const createChecksumStream = (algorithm = 'md5') => {
 // Check if the checksum of a readable stream is equals to an expected checksum.
 // The given stream is wrapped in a stream which emits an error event
 // if the computed checksum is not equals to the expected checksum.
-export const validChecksumOfReadStream = (stream, expectedChecksum) => {
+export const validChecksumOfReadStream = (
+  stream: Readable,
+  expectedChecksum: string
+): Readable & { checksumVerified: Promise<void> } => {
   const algorithmId = expectedChecksum.slice(
     1,
     expectedChecksum.indexOf('$', 1)
@@ -60,7 +69,7 @@ export const validChecksumOfReadStream = (stream, expectedChecksum) => {
 
   const hash = createHash(ID_TO_ALGORITHM[algorithmId])
 
-  const wrapper = stream.pipe(
+  const wrapper: any = stream.pipe(
     through2(
       { highWaterMark: 0 },
       (chunk, enc, callback) => {

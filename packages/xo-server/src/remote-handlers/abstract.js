@@ -207,7 +207,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async refreshChecksum (path: string): Promise<void> {
-    const stream: any = (await this.createReadStream(path)).pipe(
+    const stream = (await this.createReadStream(path)).pipe(
       createChecksumStream()
     )
     stream.resume() // start reading the whole file
