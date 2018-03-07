@@ -72,7 +72,16 @@ export type Executor = ({|
 const normalize = job => {
   Object.keys(job).forEach(key => {
     try {
-      job[key] = JSON.parse(job[key])
+      const value = (job[key] = JSON.parse(job[key]))
+
+      // userId are always strings, even if the value is numeric, which might to
+      // them being parsed as numbers.
+      //
+      // The issue has been introduced by
+      // 48b2297bc151df582160be7c1bf1e8ee160320b8.
+      if (key === 'userId' && typeof value === 'number') {
+        job[key] = String(value)
+      }
     } catch (_) {}
   })
   return job
