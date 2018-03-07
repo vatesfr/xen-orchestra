@@ -696,7 +696,7 @@ export default class BackupNg {
       }
     }
 
-    const vdiDir = `${vmDir}/${jobId}/vdis`
+    // const vdiDir = `${vmDir}/${jobId}/vdis`
 
     const baseSnapshot = last(snapshots)
     if (baseSnapshot !== undefined) {
@@ -715,7 +715,7 @@ export default class BackupNg {
     metadata.vbds = deltaExport.vbds
     metadata.vdis = deltaExport.vdis
     metadata.vifs = deltaExport.vifs
-    const jsonMetadata = JSON.stringify(metadata)
+    // const jsonMetadata = JSON.stringify(metadata)
 
     // create a fork of the delta export
     const forkExport = (() => {
@@ -764,41 +764,41 @@ export default class BackupNg {
     const errors = []
     await waitAll(
       [
-        ...remotes.map(
-          defer(async ($defer, remoteId) => {
-            const fork = forkExport()
-
-            const handler = await app.getRemoteHandler(remoteId)
-
-            // const oldBackups = getOldEntries(
-            //   exportRetention,
-            //   await this._listVmBackups(
-            //     handler,
-            //     vm,
-            //     _ => _.mode === 'delta' && _.scheduleId === scheduleId
-            //   )
-            // )
-
-            const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
-            if (deleteFirst) {
-              // TODO
-            }
-
-            await asyncMap(fork.vdis, (vdi, id) =>
-              writeStream(
-                fork.streams[`${id}.vhd`](),
-                handler,
-                `${vdiDir}/${vdi.uuid}/${basename}.vhd`
-              )
-            )
-
-            await handler.outputFile(metadataFilename, jsonMetadata)
-
-            if (!deleteFirst) {
-              // TODO
-            }
-          })
-        ),
+        // ...remotes.map(
+        //   defer(async ($defer, remoteId) => {
+        //     const fork = forkExport()
+        //
+        //     const handler = await app.getRemoteHandler(remoteId)
+        //
+        //     // const oldBackups = getOldEntries(
+        //     //   exportRetention,
+        //     //   await this._listVmBackups(
+        //     //     handler,
+        //     //     vm,
+        //     //     _ => _.mode === 'delta' && _.scheduleId === scheduleId
+        //     //   )
+        //     // )
+        //
+        //     const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
+        //     if (deleteFirst) {
+        //       // TODO
+        //     }
+        //
+        //     await asyncMap(fork.vdis, (vdi, id) =>
+        //       writeStream(
+        //         fork.streams[`${id}.vhd`](),
+        //         handler,
+        //         `${vdiDir}/${vdi.uuid}/${basename}.vhd`
+        //       )
+        //     )
+        //
+        //     await handler.outputFile(metadataFilename, jsonMetadata)
+        //
+        //     if (!deleteFirst) {
+        //       // TODO
+        //     }
+        //   })
+        // ),
         ...srs.map(
           defer(async ($defer, srId) => {
             const fork = forkExport()
