@@ -5,5 +5,6 @@ declare module 'promise-toolbox' {
     resolve: T => void
   |}
   declare export function fromEvent(emitter: mixed, string): Promise<mixed>
+  declare export function ignoreErrors(): Promise<void>
   declare export function timeout<T>(delay: number): Promise<T>
 }
