@@ -280,6 +280,7 @@ const messages = {
   jobInterrupted: 'Interrupted',
   jobStarted: 'Started',
   saveBackupJob: 'Save',
+  createBackupJob: 'Create',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
     'Are you sure you want to delete this backup job?',
@@ -289,6 +290,7 @@ const messages = {
   jobEditMessage:
     'You are editing job {name} ({id}). Saving will override previous job state.',
   scheduleEdit: 'Edit',
+  scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   deleteSelectedSchedules: 'Delete selected schedules',
   noScheduledJobs: 'No scheduled jobs.',

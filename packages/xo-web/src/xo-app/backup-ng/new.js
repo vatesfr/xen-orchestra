@@ -1,13 +1,16 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Component from 'base-component'
 import moment from 'moment-timezone'
 import React from 'react'
-import Scheduler, { SchedulePreview } from 'scheduling'
+import Scheduler from 'scheduler-tmp'
 import SmartBackupPreview from 'smart-backup-preview'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import { Card, CardBlock, CardHeader } from 'card'
 import { connectStore, resolveIds } from 'utils'
+import { confirm } from 'modal'
+import { SchedulePreview } from 'scheduling'
 import {
   constructSmartPattern,
   destructSmartPattern,
@@ -167,38 +170,39 @@ const SCHEDULES_INITIAL_STATE = {
 const SCHEDULES_COMPUTED = {
   jobSettings: (state, { job }) => job && job.settings,
   schedules: (state, { schedules }) => schedules,
-  isScheduleInvalid: state =>
-    (+state.snapshotRetention === 0 || state.snapshotRetention === '') &&
-    (+state.exportRetention === 0 || state.exportRetention === ''),
   canDeleteSchedule: state =>
-    state.schedules.length + size(state.tmpSchedules) > 1,
+    ((state.schedules && state.schedules.length) || 0) +
+      size(state.tmpSchedules) >
+    1,
 }
 
+const isScheduleValid = (snapshotRetention, exportRetention) =>
+  (+snapshotRetention !== 0 && snapshotRetention !== '') ||
+  (+exportRetention !== 0 && exportRetention !== '')
+
 const SCHEDULES_FUNCTIONS = {
-  populateSchedule: (_, { cron, timezone, ...props }) => state => ({
-    ...state,
-    ...props,
-    tmpSchedule: {
-      cron,
-      timezone,
-    },
-  }),
-  editSchedule: (_, id) => async (state, props) => {
-    await editSchedule({
-      id,
-      jobId: props.job.id,
-      ...state.tmpSchedule,
+  editSchedule: (_, value) => async (_, props) => {
+    const { schedule, snapshotRetention, exportRetention } = await confirm({
+      title: 'New schedule',
+      body: <ScheduleModal {...value} />,
     })
-    await editBackupNgJob({
-      id: props.job.id,
-      settings: {
-        ...props.job.settings,
-        [id]: {
-          exportRetention: +state.exportRetention,
-          snapshotRetention: +state.snapshotRetention,
+    if (isScheduleValid(snapshotRetention, exportRetention)) {
+      await editSchedule({
+        id: value.id,
+        jobId: props.job.id,
+        ...schedule,
+      })
+      await editBackupNgJob({
+        id: props.job.id,
+        settings: {
+          ...props.job.settings,
+          [value.id]: {
+            exportRetention: +exportRetention,
+            snapshotRetention: +snapshotRetention,
+          },
         },
-      },
-    })
+      })
+    }
   },
   deleteSchedule: (_, id) => async (state, props) => {
     await deleteSchedule(id)
@@ -211,17 +215,25 @@ const SCHEDULES_FUNCTIONS = {
       },
     })
   },
-  editTmpSchedule: (_, id) => state => ({
-    ...state,
-    tmpSchedules: {
-      ...state.tmpSchedules,
-      [id]: {
-        ...state.tmpSchedule,
-        exportRetention: state.exportRetention,
-        snapshotRetention: state.snapshotRetention,
-      },
-    },
-  }),
+  editTmpSchedule: (_, value) => async state => {
+    const { schedule, snapshotRetention, exportRetention } = await confirm({
+      title: 'New schedule',
+      body: <ScheduleModal {...value} />,
+    })
+    if (isScheduleValid(snapshotRetention, exportRetention)) {
+      return {
+        ...state,
+        tmpSchedules: {
+          ...state.tmpSchedules,
+          [value.id]: {
+            ...schedule,
+            exportRetention: exportRetention,
+            snapshotRetention: snapshotRetention,
+          },
+        },
+      }
+    }
+  },
   deleteTmpSchedule: (_, id) => state => {
     const tmpSchedules = { ...state.tmpSchedules }
     delete tmpSchedules[id]
@@ -234,25 +246,17 @@ const SCHEDULES_FUNCTIONS = {
 
 const SAVED_SCHEDULES_INDIVIDUAL_ACTIONS = [
   {
-    handler: (schedule, { effects: { populateSchedule } }) =>
-      populateSchedule(schedule),
-    label: '',
+    handler: (schedule, { effects: { editSchedule } }) =>
+      editSchedule(schedule),
+    label: _('scheduleEdit'),
     icon: 'edit',
     level: 'warning',
   },
   {
-    handler: (schedule, { effects: { editSchedule } }) =>
-      editSchedule(schedule.id),
-    label: '',
-    disabled: (_, { disabledEdition }) => disabledEdition,
-    icon: 'save',
-    level: 'primary',
-  },
-  {
     handler: (schedule, { effects: { deleteSchedule } }) =>
       deleteSchedule(schedule.id),
-    label: '',
-    disabled: (_, { disabledSupression }) => disabledSupression,
+    label: _('scheduleDelete'),
+    disabled: (_, { disabled }) => disabled,
     icon: 'delete',
     level: 'danger',
   },
@@ -261,17 +265,19 @@ const SAVED_SCHEDULES_INDIVIDUAL_ACTIONS = [
 const NEW_SCHEDULES_INDIVIDUAL_ACTIONS = [
   {
     handler: (schedule, { effects: { editTmpSchedule }, tmpSchedules }) =>
-      editTmpSchedule(findKey(tmpSchedules, schedule)),
-    label: '',
-    disabled: (_, { disabledEdition }) => disabledEdition,
-    icon: 'save',
-    level: 'primary',
+      editTmpSchedule({
+        id: findKey(tmpSchedules, schedule),
+        ...schedule,
+      }),
+    label: _('scheduleEdit'),
+    icon: 'edit',
+    level: 'warning',
   },
   {
     handler: (schedule, { effects: { deleteTmpSchedule }, tmpSchedules }) =>
       deleteTmpSchedule(findKey(tmpSchedules, schedule)),
-    label: '',
-    disabled: (_, { disabledSupression }) => disabledSupression,
+    label: _('scheduleDelete'),
+    disabled: (_, { disabled }) => disabled,
     icon: 'delete',
     level: 'danger',
   },
@@ -336,8 +342,7 @@ const SchedulesOverview = injectState(({ state, effects }) => (
           <SortedTable
             collection={state.schedules}
             columns={SAVED_SCHEDULES_COLUMNS}
-            data-disabledEdition={state.isScheduleInvalid}
-            data-disabledSupression={!state.canDeleteSchedule}
+            data-disabled={!state.canDeleteSchedule}
             data-effects={effects}
             data-jobSettings={state.jobSettings}
             individualActions={SAVED_SCHEDULES_INDIVIDUAL_ACTIONS}
@@ -353,8 +358,7 @@ const SchedulesOverview = injectState(({ state, effects }) => (
           <SortedTable
             collection={state.tmpSchedules}
             columns={SCHEDULES_COLUMNS}
-            data-disabledEdition={state.isScheduleInvalid}
-            data-disabledSupression={!state.canDeleteSchedule}
+            data-disabled={!state.canDeleteSchedule}
             data-effects={effects}
             data-tmpSchedules={state.tmpSchedules}
             individualActions={NEW_SCHEDULES_INDIVIDUAL_ACTIONS}
@@ -364,6 +368,74 @@ const SchedulesOverview = injectState(({ state, effects }) => (
     </CardBlock>
   </Card>
 ))
+
+// ===================================================================
+
+const DEFAULT_CRON_PATTERN = '0 0 * * *'
+const DEFAULT_TIMEZONE = moment.tz.guess()
+
+class ScheduleModal extends Component {
+  get value () {
+    return this.state
+  }
+
+  constructor (props) {
+    super(props)
+    this.state = {
+      schedule: {
+        cron: props.cron || DEFAULT_CRON_PATTERN,
+        timezone: props.timezone || DEFAULT_TIMEZONE,
+      },
+      exportRetention: props.exportRetention || 0,
+      snapshotRetention: props.snapshotRetention || 0,
+    }
+  }
+
+  _onChange = ({ cronPattern, timezone }) => {
+    this.setState({
+      schedule: {
+        cron: cronPattern,
+        timezone,
+      },
+    })
+  }
+
+  render () {
+    return (
+      <div>
+        <FormGroup>
+          <label>
+            <strong>Export retention</strong>
+          </label>
+          <Input
+            type='number'
+            onChange={this.linkState('exportRetention')}
+            value={this.state.exportRetention}
+          />
+        </FormGroup>
+        <FormGroup>
+          <label>
+            <strong>Snapshot retention</strong>
+          </label>
+          <Input
+            type='number'
+            onChange={this.linkState('snapshotRetention')}
+            value={this.state.snapshotRetention}
+          />
+        </FormGroup>
+        <Scheduler
+          cronPattern={this.state.schedule.cron}
+          onChange={this._onChange}
+          timezone={this.state.schedule.timezone}
+        />
+        <SchedulePreview
+          cronPattern={this.state.schedule.cron}
+          timezone={this.state.schedule.timezone}
+        />
+      </div>
+    )
+  }
+}
 
 // ===================================================================
 
@@ -388,9 +460,6 @@ const destructVmsPattern = pattern =>
 
 const FormGroup = props => <div {...props} className='form-group' />
 const Input = props => <input {...props} className='form-control' />
-
-const DEFAULT_CRON_PATTERN = '0 0 * * *'
-const DEFAULT_TIMEZONE = moment.tz.guess()
 
 const getNewSettings = schedules => {
   const newSettings = {}
@@ -423,36 +492,36 @@ export default [
     initialState: () => ({
       compression: true,
       delta: false,
-      exportRetention: 0,
       formId: getRandomId(),
       name: '',
       paramsUpdated: false,
       remotes: [],
-      snapshotRetention: 0,
       smartMode: false,
       srs: [],
-      tmpSchedule: {
-        cron: DEFAULT_CRON_PATTERN,
-        timezone: DEFAULT_TIMEZONE,
-      },
       vms: [],
       ...SMART_MODE_INITIAL_STATE,
       ...SCHEDULES_INITIAL_STATE,
     }),
     effects: {
-      addSchedule: () => state => {
-        const id = getRandomId()
+      addSchedule: () => async state => {
+        const { schedule, snapshotRetention, exportRetention } = await confirm({
+          title: 'New schedule',
+          body: <ScheduleModal />,
+        })
 
-        return {
-          ...state,
-          tmpSchedules: {
-            ...state.tmpSchedules,
-            [id]: {
-              ...state.tmpSchedule,
-              exportRetention: state.exportRetention,
-              snapshotRetention: state.snapshotRetention,
+        if (isScheduleValid(snapshotRetention, exportRetention)) {
+          const id = getRandomId()
+          return {
+            ...state,
+            tmpSchedules: {
+              ...state.tmpSchedules,
+              [id]: {
+                ...schedule,
+                exportRetention: exportRetention,
+                snapshotRetention: snapshotRetention,
+              },
             },
-          },
+          }
         }
       },
       createJob: () => async state => {
@@ -504,21 +573,6 @@ export default [
           },
         })
       },
-      setTmpSchedule: (_, schedule) => state => ({
-        ...state,
-        tmpSchedule: {
-          cron: schedule.cronPattern,
-          timezone: schedule.timezone,
-        },
-      }),
-      setExportRetention: (_, { target: { value } }) => state => ({
-        ...state,
-        exportRetention: value,
-      }),
-      setSnapshotRetention: (_, { target: { value } }) => state => ({
-        ...state,
-        snapshotRetention: value,
-      }),
       setDelta: (_, { target: { checked } }) => state => ({
         ...state,
         delta: checked,
@@ -644,62 +698,41 @@ export default [
             <strong>{_('useCompression')}</strong>
           </label>
         )}
+        <br />
+        <ActionButton
+          handler={effects.addSchedule}
+          icon='add'
+          className='pull-right'
+        >
+          {_('scheduleAdd')}
+        </ActionButton>
+        <br />
+        <br />
         <SchedulesOverview />
-        <FormGroup>
-          <h1>Schedule</h1>
-          <label>
-            <strong>Export retention</strong>
-          </label>
-          <Input
-            type='number'
-            onChange={effects.setExportRetention}
-            value={state.exportRetention}
-          />
-          <label>
-            <strong>Snapshot retention</strong>
-          </label>
-          <Input
-            type='number'
-            onChange={effects.setSnapshotRetention}
-            value={state.snapshotRetention}
-          />
-          <Scheduler
-            cronPattern={state.tmpSchedule.cron}
-            onChange={effects.setTmpSchedule}
-            timezone={state.tmpSchedule.timezone}
-          />
-          <SchedulePreview
-            cronPattern={state.tmpSchedule.cron}
-            timezone={state.tmpSchedule.timezone}
-          />
-          <br />
-          <ActionButton
-            disabled={state.isScheduleInvalid}
-            handler={effects.addSchedule}
-            icon='add'
-          >
-            Add a schedule
-          </ActionButton>
-        </FormGroup>
+        <br />
         {state.paramsUpdated ? (
           <ActionButton
+            btnStyle='primary'
             disabled={state.isInvalid}
-            handler={effects.editJob}
             form={state.formId}
+            handler={effects.editJob}
             icon='save'
             redirectOnSuccess='/backup-ng'
+            size='large'
           >
-            Edit
+            {_('scheduleEdit')}
           </ActionButton>
         ) : (
           <ActionButton
+            btnStyle='primary'
             disabled={state.isInvalid}
             form={state.formId}
             handler={effects.createJob}
-            redirectOnSuccess='/backup-ng'
             icon='save'
+            redirectOnSuccess='/backup-ng'
+            size='large'
           >
-            Create
+            {_('createBackupJob')}
           </ActionButton>
         )}
       </form>
