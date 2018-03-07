@@ -382,7 +382,7 @@ export default class BackupNg {
     const { metadataFilename, remoteId } = parseVmBackupId(id)
     const handler = await app.getRemoteHandler(remoteId)
     const metadata: Metadata = JSON.parse(
-      await handler.readFile(metadataFilename)
+      String(await handler.readFile(metadataFilename))
     )
 
     if (metadata.mode === 'delta') {
@@ -398,7 +398,7 @@ export default class BackupNg {
     const { metadataFilename, remoteId } = parseVmBackupId(id)
     const handler = await app.getRemoteHandler(remoteId)
     const metadata: Metadata = JSON.parse(
-      await handler.readFile(metadataFilename)
+      String(await handler.readFile(metadataFilename))
     )
 
     if (metadata.mode === 'delta') {
@@ -731,6 +731,7 @@ export default class BackupNg {
           if (forks.length === 0) {
             lazyStream().then(
               stream => {
+                // $FlowFixMe
                 forks.forEach(({ resolve }) => {
                   const fork = stream.pipe(new PassThrough())
                   fork.task = stream.task
@@ -739,6 +740,7 @@ export default class BackupNg {
                 forks = undefined
               },
               error => {
+                // $FlowFixMe
                 forks.forEach(({ reject }) => {
                   reject(error)
                 })
@@ -747,6 +749,7 @@ export default class BackupNg {
             )
           }
           return new Promise((resolve, reject) => {
+            // $FlowFixMe
             forks.push({ reject, resolve })
           })
         }
@@ -894,7 +897,7 @@ export default class BackupNg {
         files.filter(isMetadataFile).map(async file => {
           const path = `${dir}/${file}`
           try {
-            const metadata = JSON.parse(await handler.readFile(path))
+            const metadata = JSON.parse(String(await handler.readFile(path)))
             if (predicate === undefined || predicate(metadata)) {
               Object.defineProperty(metadata, '_filename', {
                 value: path,
