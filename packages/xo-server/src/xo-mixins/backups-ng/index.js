@@ -18,8 +18,6 @@ import { asyncMap, safeDateFormat, serializeError } from '../../utils'
 import { type RemoteHandlerAbstract } from '../../remote-handlers/abstract'
 import { type Xapi } from '../../xapi'
 
-type Dict<T, K = string> = { [K]: T }
-
 type Mode = 'full' | 'delta'
 
 type Settings = {|
@@ -38,7 +36,7 @@ export type BackupJob = {|
   compression?: 'native',
   mode: Mode,
   remotes?: SimpleIdPattern,
-  settings: Dict<Settings>,
+  settings: $Dict<Settings>,
   srs?: SimpleIdPattern,
   type: 'backup',
   vms: Pattern
@@ -63,7 +61,7 @@ type MetadataBase = {|
 type MetadataDelta = {|
   ...MetadataBase,
   mode: 'delta',
-  vdis: Dict<{}>
+  vdis: $Dict<{}>
 |}
 type MetadataFull = {|
   ...MetadataBase,
@@ -95,7 +93,7 @@ const defaultSettings: Settings = {
   vmTimeout: 0,
 }
 const getSetting = (
-  settings: Dict<Settings>,
+  settings: $Dict<Settings>,
   name: $Keys<Settings>,
   ...keys: string[]
 ): any => {
@@ -337,7 +335,7 @@ export default class BackupNg {
 
   async createBackupNgJob (
     props: $Diff<BackupJob, {| id: string |}>,
-    schedules?: Dict<$Diff<Schedule, {| id: string |}>>
+    schedules?: $Dict<$Diff<Schedule, {| id: string |}>>
   ): Promise<BackupJob> {
     const app = this._app
     props.type = 'backup'
@@ -425,7 +423,7 @@ export default class BackupNg {
   }
 
   async listVmBackupsNg (remotes: string[]) {
-    const backupsByVmByRemote: Dict<Dict<Metadata[]>> = {}
+    const backupsByVmByRemote: $Dict<$Dict<Metadata[]>> = {}
 
     const app = this._app
     await Promise.all(
@@ -706,7 +704,7 @@ export default class BackupNg {
     }
 
     const deltaExport: {
-      streams: Dict<() => Promise<Readable>>,
+      streams: $Dict<() => Promise<Readable>>,
       vbds: { [ref: string]: {} },
       vdis: { [ref: string]: { $SR$uuid: string } },
       vifs: { [ref: string]: {} }
