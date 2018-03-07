@@ -155,10 +155,10 @@ const unboxIds = (pattern?: SimpleIdPattern): string[] => {
 }
 
 // similar to Promise.all() but do not gather results
-const waitAll = async <T>(
+async function waitAll<T> (
   promises: Promise<T>[],
   onRejection: Function
-): Promise<void> => {
+): Promise<void> {
   promises = promises.map(promise => {
     promise = promise.catch(onRejection)
     promise.catch(noop) // prevent unhandled rejection warning
