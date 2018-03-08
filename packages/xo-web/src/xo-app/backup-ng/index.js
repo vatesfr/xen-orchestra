@@ -5,6 +5,7 @@ import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
+import { confirm } from 'modal'
 import { map, groupBy } from 'lodash'
 import { Card, CardHeader, CardBlock } from 'card'
 import { constructQueryString } from 'smart-backup'
@@ -27,6 +28,15 @@ import Edit from './edit'
 import New from './new'
 import FileRestore from './file-restore'
 import Restore from './restore'
+
+const _runBackupNgJob = ({ id, name, schedule }) =>
+  confirm({
+    title: _('runJob'),
+    body: _('runBackupNgJobConfirm', {
+      id: id.slice(0, 5),
+      name: <strong>{name}</strong>,
+    }),
+  }).then(() => runBackupNgJob({ id, schedule }))
 
 const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
   <table>
@@ -57,11 +67,14 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
         </td>
         <td>
           <ActionButton
-            handler={runBackupNgJob}
+            handler={_runBackupNgJob}
+            handlerParam={{
+              id: job.id,
+              name: job.name,
+              schedule: schedule.id,
+            }}
             icon='run-schedule'
             size='small'
-            data-id={job.id}
-            data-schedule={schedule.id}
             btnStyle='primary'
           />
         </td>
