@@ -9,7 +9,6 @@ import { satisfies as versionSatisfies } from 'semver'
 
 import {
   camelToSnakeCase,
-  createRawObject,
   forEach,
   isArray,
   isBoolean,
@@ -77,7 +76,7 @@ export const extractOpaqueRef = str => {
 
 // -------------------------------------------------------------------
 
-const TYPE_TO_NAMESPACE = createRawObject()
+const TYPE_TO_NAMESPACE = { __proto__: null }
 forEach(
   [
     'Bond',
@@ -116,7 +115,7 @@ export const getNamespaceForType = type => TYPE_TO_NAMESPACE[type] || type
 // -------------------------------------------------------------------
 
 export const getVmDisks = vm => {
-  const disks = createRawObject(null)
+  const disks = { __proto__: null }
   forEach(vm.$VBDs, vbd => {
     let vdi
     if (

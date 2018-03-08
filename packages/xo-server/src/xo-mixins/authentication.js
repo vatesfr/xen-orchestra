@@ -3,7 +3,7 @@ import { noSuchObject } from 'xo-common/api-errors'
 import { ignoreErrors } from 'promise-toolbox'
 
 import Token, { Tokens } from '../models/token'
-import { createRawObject, forEach, generateToken } from '../utils'
+import { forEach, generateToken } from '../utils'
 
 // ===================================================================
 
@@ -17,7 +17,7 @@ export default class {
 
     // Store last failures by user to throttle tries (slow bruteforce
     // attacks).
-    this._failures = createRawObject()
+    this._failures = { __proto__: null }
 
     this._providers = new Set()
 

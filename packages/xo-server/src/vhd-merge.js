@@ -2,9 +2,9 @@
 
 import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
-import eventToPromise from 'event-to-promise'
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
+import { fromEvent } from 'promise-toolbox'
 
 import constantStream from './constant-stream'
 import { noop, streamToBuffer } from './utils'
@@ -405,7 +405,7 @@ export class Vhd {
         stream.on('error', reject)
         stream.end(data, resolve)
       })
-      : eventToPromise(data.pipe(stream), 'finish')
+      : fromEvent(data.pipe(stream), 'finish')
   }
 
   async ensureBatSize (size) {

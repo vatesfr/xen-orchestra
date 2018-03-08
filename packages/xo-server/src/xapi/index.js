@@ -35,7 +35,6 @@ import { mixin } from '../decorators'
 import {
   asyncMap,
   camelToSnakeCase,
-  createRawObject,
   ensureArray,
   forEach,
   isFunction,
@@ -101,8 +100,8 @@ export default class Xapi extends XapiBase {
       return getObject.apply(this, args)
     })(this.getObject)
 
-    const genericWatchers = (this._genericWatchers = createRawObject())
-    const objectsWatchers = (this._objectWatchers = createRawObject())
+    const genericWatchers = (this._genericWatchers = { __proto__: null })
+    const objectsWatchers = (this._objectWatchers = { __proto__: null })
 
     const onAddOrUpdate = objects => {
       forEach(objects, object => {
@@ -776,7 +775,7 @@ export default class Xapi extends XapiBase {
   }
 
   _assertHealthyVdiChains (vm) {
-    const cache = createRawObject()
+    const cache = { __proto__: null }
     forEach(vm.$VBDs, ({ $VDI }) => {
       this._assertHealthyVdiChain($VDI, cache)
     })
@@ -805,6 +804,8 @@ export default class Xapi extends XapiBase {
     if (!bypassVdiChainsCheck) {
       this._assertHealthyVdiChains(vm)
     }
+    // do not use the snapshot name in the delta export
+    const exportedNameLabel = vm.name_label
     if (!vm.is_a_snapshot) {
       vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
       $defer.onFailure(() => this._deleteVm(vm))
@@ -892,6 +893,7 @@ export default class Xapi extends XapiBase {
         vifs,
         vm: {
           ...vm,
+          name_label: exportedNameLabel,
           other_config:
             baseVm && !disableBaseTags
               ? {

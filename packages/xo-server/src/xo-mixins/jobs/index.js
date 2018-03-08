@@ -72,7 +72,16 @@ export type Executor = ({|
 const normalize = job => {
   Object.keys(job).forEach(key => {
     try {
-      job[key] = JSON.parse(job[key])
+      const value = (job[key] = JSON.parse(job[key]))
+
+      // userId are always strings, even if the value is numeric, which might to
+      // them being parsed as numbers.
+      //
+      // The issue has been introduced by
+      // 48b2297bc151df582160be7c1bf1e8ee160320b8.
+      if (key === 'userId' && typeof value === 'number') {
+        job[key] = String(value)
+      }
     } catch (_) {}
   })
   return job
@@ -115,14 +124,14 @@ export default class Jobs {
 
   constructor (xo: any) {
     this._app = xo
-    const executors = (this._executors = Object.create(null))
+    const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
       connection: xo._redis,
       prefix: 'xo:job',
       indexes: ['user_id', 'key'],
     }))
     this._logger = undefined
-    this._runningJobs = Object.create(null)
+    this._runningJobs = { __proto__: null }
 
     executors.call = executeCall
 
@@ -141,13 +150,13 @@ export default class Jobs {
     })
   }
 
-  async getAllJobs (type: string = 'call'): Promise<Array<Job>> {
+  async getAllJobs (type?: string): Promise<Array<Job>> {
     // $FlowFixMe don't know what is the problem (JFT)
     const jobs = await this._jobs.get()
     const runningJobs = this._runningJobs
     const result = []
     jobs.forEach(job => {
-      if (job.type === type) {
+      if (type === undefined || job.type === type) {
         job.runId = runningJobs[job.id]
         result.push(job)
       }

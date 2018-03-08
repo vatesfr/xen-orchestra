@@ -1,7 +1,7 @@
 // FIXME so far, no acls for jobs
 
 export async function getAll () {
-  return /* await */ this.getAllJobs()
+  return /* await */ this.getAllJobs('call')
 }
 
 getAll.permission = 'admin'

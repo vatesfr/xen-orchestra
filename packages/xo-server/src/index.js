@@ -3,7 +3,6 @@ import bind from 'lodash/bind'
 import blocked from 'blocked'
 import createExpress from 'express'
 import createLogger from 'debug'
-import eventToPromise from 'event-to-promise'
 import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
@@ -13,6 +12,7 @@ import startsWith from 'lodash/startsWith'
 import WebSocket from 'ws'
 import { compile as compilePug } from 'pug'
 import { createServer as createProxyServer } from 'http-proxy'
+import { fromEvent } from 'promise-toolbox'
 import { join as joinPath } from 'path'
 
 import JsonRpcPeer from 'json-rpc-peer'
@@ -22,7 +22,6 @@ import { ensureDir, readdir, readFile } from 'fs-extra'
 import WebServer from 'http-server-plus'
 import Xo from './xo'
 import {
-  createRawObject,
   forEach,
   isArray,
   isFunction,
@@ -103,7 +102,7 @@ function createExpressApp () {
 }
 
 async function setUpPassport (express, xo) {
-  const strategies = createRawObject()
+  const strategies = { __proto__: null }
   xo.registerPassportStrategy = strategy => {
     passport.use(strategy)
 
@@ -645,7 +644,7 @@ export default async function main (args) {
     })
   })
 
-  await eventToPromise(xo, 'stopped')
+  await fromEvent(xo, 'stopped')
 
   debug('bye :-)')
 }

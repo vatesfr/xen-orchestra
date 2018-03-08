@@ -1660,17 +1660,28 @@ export const editBackupNgJob = props =>
 
 export const getBackupNgJob = id => _call('backupNg.getJob', { id })
 
-export const runBackupNgJob = ({ id, scheduleId }) =>
-  _call('backupNg.runJob', { id, scheduleId })
+export const runBackupNgJob = params => _call('backupNg.runJob', params)
 
 export const listVmBackups = remotes =>
   _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
 
-export const restoreBackup = (backup, sr) =>
-  _call('backupNg.importVmBackup', {
+export const restoreBackup = (backup, sr, startOnRestore) => {
+  const promise = _call('backupNg.importVmBackup', {
     id: resolveId(backup),
     sr: resolveId(sr),
   })
+
+  if (startOnRestore) {
+    return promise.then(startVm)
+  }
+
+  return promise
+}
+
+export const deleteBackup = backup =>
+  _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
+
+export const deleteBackups = backups => Promise.all(map(backups, deleteBackup))
 
 // Plugins -----------------------------------------------------------
 

@@ -6,7 +6,7 @@ import { forEach, isArray, isFunction, map, mapValues } from 'lodash'
 
 import * as methods from '../api'
 import { MethodNotFound } from 'json-rpc-peer'
-import { createRawObject, noop, serializeError } from '../utils'
+import { noop, serializeError } from '../utils'
 
 import * as errors from 'xo-common/api-errors'
 
@@ -164,7 +164,7 @@ const removeSensitiveParams = (value, name) => {
 export default class Api {
   constructor (xo) {
     this._logger = null
-    this._methods = createRawObject()
+    this._methods = { __proto__: null }
     this._xo = xo
 
     this.addApiMethods(methods)

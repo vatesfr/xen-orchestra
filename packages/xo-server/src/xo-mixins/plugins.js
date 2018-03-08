@@ -2,7 +2,7 @@ import Ajv from 'ajv'
 
 import { PluginsMetadata } from '../models/plugin-metadata'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
-import { createRawObject, isFunction, mapToArray } from '../utils'
+import { isFunction, mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -11,7 +11,7 @@ export default class {
     this._ajv = new Ajv({
       useDefaults: true,
     })
-    this._plugins = createRawObject()
+    this._plugins = { __proto__: null }
 
     this._pluginsMetadata = new PluginsMetadata({
       connection: xo._redis,

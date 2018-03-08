@@ -1,9 +1,8 @@
 import deferrable from 'golike-defer'
 import escapeStringRegexp from 'escape-string-regexp'
-import eventToPromise from 'event-to-promise'
 import execa from 'execa'
 import splitLines from 'split-lines'
-import { CancelToken, ignoreErrors } from 'promise-toolbox'
+import { CancelToken, fromEvent, ignoreErrors } from 'promise-toolbox'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
 import { satisfies as versionSatisfies } from 'semver'
@@ -123,7 +122,7 @@ async function checkFileIntegrity (handler, name) {
   //  }
   //
   //  stream.resume()
-  //  await eventToPromise(stream, 'finish')
+  //  await fromEvent(stream, 'finish')
 }
 
 // -------------------------------------------------------------------
@@ -678,7 +677,7 @@ export default class {
       stream.on('error', error => targetStream.emit('error', error))
 
       await Promise.all([
-        eventToPromise(stream.pipe(sizeStream).pipe(targetStream), 'finish'),
+        fromEvent(stream.pipe(sizeStream).pipe(targetStream), 'finish'),
         stream.task,
       ])
     } catch (error) {
@@ -935,10 +934,7 @@ export default class {
 
     sourceStream.pipe(sizeStream).pipe(targetStream)
 
-    await Promise.all([
-      sourceStream.task,
-      eventToPromise(targetStream, 'finish'),
-    ])
+    await Promise.all([sourceStream.task, fromEvent(targetStream, 'finish')])
 
     return {
       transferSize: sizeStream.size,

@@ -1,6 +1,6 @@
 import { forEach, groupBy } from 'lodash'
 
-import { createRawObject, mapToArray } from '../../utils'
+import { mapToArray } from '../../utils'
 
 export default {
   _connectAllSrPbds (sr) {
@@ -67,9 +67,9 @@ export default {
 
   getUnhealthyVdiChainsLength (sr) {
     const vdis = this.getObject(sr).$VDIs
-    const unhealthyVdis = createRawObject()
+    const unhealthyVdis = { __proto__: null }
     const children = groupBy(vdis, 'sm_config.vhd-parent')
-    const cache = createRawObject()
+    const cache = { __proto__: null }
     forEach(vdis, vdi => {
       if (vdi.managed && !vdi.is_a_snapshot) {
         const { uuid } = vdi

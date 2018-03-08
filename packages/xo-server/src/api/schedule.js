@@ -54,7 +54,7 @@ set.params = {
 }
 
 async function delete_ ({ id }) {
-  await this.removeSchedule(id)
+  await this.deleteSchedule(id)
 }
 
 delete_.permission = 'admin'
