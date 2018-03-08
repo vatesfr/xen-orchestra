@@ -1274,7 +1274,31 @@ export const connectVbd = vbd => _call('vbd.connect', { id: resolveId(vbd) })
 export const disconnectVbd = vbd =>
   _call('vbd.disconnect', { id: resolveId(vbd) })
 
+export const disconnectVbds = vbds =>
+  confirm({
+    title: _('disconnectVbdsModalTitle', { nVbds: vbds.length }),
+    body: _('disconnectVbdsModalMessage', { nVbds: vbds.length }),
+  }).then(
+    () =>
+      Promise.all(
+        map(vbds, vbd => _call('vbd.disconnect', { id: resolveId(vbd) }))
+      ),
+    noop
+  )
+
 export const deleteVbd = vbd => _call('vbd.delete', { id: resolveId(vbd) })
+
+export const deleteVbds = vbds =>
+  confirm({
+    title: _('deleteVbdsModalTitle', { nVbds: vbds.length }),
+    body: _('deleteVbdsModalMessage', { nVbds: vbds.length }),
+  }).then(
+    () =>
+      Promise.all(
+        map(vbds, vbd => _call('vbd.delete', { id: resolveId(vbd) }))
+      ),
+    noop
+  )
 
 export const editVbd = (vbd, props) =>
   _call('vbd.set', { ...props, id: resolveId(vbd) })

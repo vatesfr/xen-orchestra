@@ -785,6 +785,7 @@ const messages = {
   vdiMigrateAll: 'Migrate all VDIs',
   vdiMigrateNoSr: 'No SR',
   vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
+  vdiDelete: 'Delete VDI',
   vdiForget: 'Forget',
   vdiRemove: 'Remove VDI',
   noControlDomainVdis: 'No VDIs attached to Control Domain',
@@ -795,6 +796,7 @@ const messages = {
   vbdNoVbd: 'No disks',
   vbdConnect: 'Connect VBD',
   vbdDisconnect: 'Disconnect VBD',
+  vbdsDisconnect: 'Disconnect VBDs',
   vbdBootable: 'Bootable',
   vbdReadonly: 'Readonly',
   vbdAction: 'Action',
@@ -1298,6 +1300,9 @@ const messages = {
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
   chooseSrForEachVdisModalOptionalEntry: '* optional',
+  deleteVbdsModalTitle: 'Delete VBD{nVbds, plural, one {} other {s}}',
+  deleteVbdsModalMessage:
+    'Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
   deleteVdiModalTitle: 'Delete VDI',
   deleteVdiModalMessage:
     'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
@@ -1323,6 +1328,9 @@ const messages = {
   deleteSnapshotsModalTitle: 'Delete snapshot{nVms, plural, one {} other {s}}',
   deleteSnapshotsModalMessage:
     'Are you sure you want to delete {nVms, number} snapshot{nVms, plural, one {} other {s}}?',
+  disconnectVbdsModalTitle: 'Disconnect VBD{nVbds, plural, one {} other {s}}',
+  disconnectVbdsModalMessage:
+    'Are you sure you want to disconnect {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
   revertVmModalMessage:
     'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.',
   revertVmModalSnapshotBefore: 'Snapshot before',
