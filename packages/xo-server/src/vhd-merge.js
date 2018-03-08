@@ -6,6 +6,7 @@ import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
 import { fromEvent } from 'promise-toolbox'
 
+import type RemoteHandler from './remote-handlers/abstract'
 import constantStream from './constant-stream'
 import { noop, streamToBuffer } from './utils'
 
@@ -758,4 +759,13 @@ export async function chainVhd (
   }
 
   return false
+}
+
+export async function readVhdMetadata (handler: RemoteHandler, path: string) {
+  const vhd = new Vhd(handler, path)
+  await vhd.readHeaderAndFooter()
+  return {
+    footer: vhd.footer,
+    header: vhd.header,
+  }
 }

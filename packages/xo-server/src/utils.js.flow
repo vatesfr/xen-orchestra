@@ -1,0 +1,22 @@
+// @flow
+
+import { type Readable } from 'stream'
+
+type MaybePromise<T> = T | Promise<T>
+
+declare export function asyncMap<T1, T2>(
+  collection: MaybePromise<T1[]>,
+  (T1, number) => MaybePromise<T2>
+): Promise<T2[]>
+declare export function asyncMap<K, V1, V2>(
+  collection: MaybePromise<{ [K]: V1 }>,
+  (V1, K) => MaybePromise<V2>
+): Promise<V2[]>
+
+declare export function getPseudoRandomBytes(n: number): Buffer
+
+declare export function safeDateFormat(timestamp: number): string
+
+declare export function serializeError(error: Error): Object
+
+declare export function streamToBuffer(stream: Readable): Promise<Buffer>

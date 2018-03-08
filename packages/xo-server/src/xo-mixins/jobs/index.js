@@ -2,13 +2,13 @@
 
 import type { Pattern } from 'value-matcher'
 
-// $FlowFixMe
 import { cancelable } from 'promise-toolbox'
+import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../../collection/redis'
 import patch from '../../patch'
-import { mapToArray, serializeError } from '../../utils'
+import { serializeError } from '../../utils'
 
 import type Logger from '../logs/loggers/abstract'
 import { type Schedule } from '../scheduling'

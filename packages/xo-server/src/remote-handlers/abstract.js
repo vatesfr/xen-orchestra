@@ -92,11 +92,11 @@ export default class RemoteHandlerAbstract {
     await promise
   }
 
-  async readFile (file: string, options?: Object): Promise<Buffer | string> {
+  async readFile (file: string, options?: Object): Promise<Buffer> {
     return this._readFile(file, options)
   }
 
-  _readFile (file: string, options?: Object): Promise<Buffer | string> {
+  _readFile (file: string, options?: Object): Promise<Buffer> {
     return this.createReadStream(file, options).then(streamToBuffer)
   }
 
