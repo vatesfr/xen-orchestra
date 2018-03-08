@@ -33,11 +33,11 @@ export default class RemoteHandlerAbstract {
   /**
    * Asks the handler to sync the state of the effective remote with its' metadata
    */
-  async sync (): Promise<void> {
-    await this._sync()
+  async sync (): Promise<mixed> {
+    return this._sync()
   }
 
-  async _sync (): Promise<void> {
+  async _sync (): Promise<mixed> {
     throw new Error('Not implemented')
   }
 
