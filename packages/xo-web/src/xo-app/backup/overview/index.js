@@ -37,17 +37,15 @@ const jobKeyToLabel = {
   rollingSnapshot: _('rollingSnapshot'),
 }
 
-const _runJob = job =>
+const _runJob = ({ jobLabel, jobId, scheduleTag }) =>
   confirm({
     title: _('runJob'),
     body: _('runJobConfirm', {
-      job: (
-        <strong>
-          {job.id.slice(4, 8)} {job.label}
-        </strong>
-      ),
+      backupType: <strong>{jobLabel}</strong>,
+      id: <strong>{jobId.slice(4, 8)}</strong>,
+      tag: scheduleTag,
     }),
-  }).then(() => runJob(job.id))
+  }).then(() => runJob(jobId))
 
 const JOB_COLUMNS = [
   {
@@ -94,26 +92,37 @@ const JOB_COLUMNS = [
   },
   {
     name: _('jobAction'),
-    itemRenderer: ({ redirect, schedule, jobLabel }, isScheduleUserMissing) => (
-      <fieldset>
-        {!isScheduleUserMissing[schedule.id] && (
-          <Tooltip content={_('backupUserNotFound')}>
-            <Icon className='mr-1' icon='error' />
-          </Tooltip>
-        )}
-        <Link
-          className='btn btn-sm btn-primary mr-1'
-          to={`/backup/${schedule.id}/edit`}
-        >
-          <Icon icon='edit' />
-        </Link>
-        <ButtonGroup>
-          {redirect && (
+    itemRenderer: (item, isScheduleUserMissing) => {
+      const { redirect, schedule } = item
+      const { id } = schedule
+
+      return (
+        <fieldset>
+          {!isScheduleUserMissing[id] && (
+            <Tooltip content={_('backupUserNotFound')}>
+              <Icon className='mr-1' icon='error' />
+            </Tooltip>
+          )}
+          <Link
+            className='btn btn-sm btn-primary mr-1'
+            to={`/backup/${id}/edit`}
+          >
+            <Icon icon='edit' />
+          </Link>
+          <ButtonGroup>
+            {redirect && (
+              <ActionRowButton
+                btnStyle='primary'
+                handler={redirect}
+                icon='preview'
+                tooltip={_('redirectToMatchingVms')}
+              />
+            )}
             <ActionRowButton
-              btnStyle='primary'
-              handler={redirect}
-              icon='preview'
-              tooltip={_('redirectToMatchingVms')}
+              btnStyle='danger'
+              handler={deleteBackupSchedule}
+              handlerParam={schedule}
+              icon='delete'
             />
           )}
           <ActionRowButton
@@ -140,7 +149,8 @@ const JOB_COLUMNS = [
           />
         </ButtonGroup>
       </fieldset>
-    ),
+    )
+  },
     textAlign: 'right',
   },
 ]
