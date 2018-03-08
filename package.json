@@ -43,6 +43,7 @@
       "/packages/complex-matcher/.+\\.jsx?$": "babel-7-jest",
       "/packages/value-matcher/.+\\.jsx?$": "babel-7-jest",
       "/packages/xo-cli/.+\\.jsx?$": "babel-7-jest",
+      "/packages/xo-server/.+\\.jsx?$": "babel-7-jest",
       "\\.jsx?$": "babel-jest"
     }
   },
