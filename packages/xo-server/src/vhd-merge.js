@@ -35,7 +35,7 @@ const VHD_PARENT_LOCATOR_ENTRIES = 8
 const VHD_PLATFORM_CODE_NONE = 0
 
 // Types of backup treated. Others are not supported.
-const HARD_DISK_TYPE_DYNAMIC = 3 // Full backup.
+export const HARD_DISK_TYPE_DYNAMIC = 3 // Full backup.
 export const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
 
 // Other.
@@ -665,11 +665,6 @@ export default concurrency(2)(async function vhdMerge (
       // Child must be a delta.
       if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
         throw new Error('Unable to merge, child is not a delta backup.')
-      }
-
-      // Merging in differencing disk is prohibited in our case.
-      if (parentVhd.footer.diskType !== HARD_DISK_TYPE_DYNAMIC) {
-        throw new Error('Unable to merge, parent is not a full backup.')
       }
 
       // Allocation table map is not yet implemented.

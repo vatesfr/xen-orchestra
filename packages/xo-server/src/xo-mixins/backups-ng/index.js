@@ -20,10 +20,9 @@ import {
   type Xapi,
 } from '../../xapi'
 import { asyncMap, safeDateFormat, serializeError } from '../../utils'
-import {
+import mergeVhd, {
   HARD_DISK_TYPE_DIFFERENCING,
   chainVhd,
-  mergeVhd,
   readVhdMetadata,
 } from '../../vhd-merge'
 
@@ -33,11 +32,11 @@ type Settings = {|
   deleteFirst?: boolean,
   exportRetention?: number,
   snapshotRetention?: number,
-  vmTimeout?: number
+  vmTimeout?: number,
 |}
 
 type SimpleIdPattern = {|
-  id: string | {| __or: string[] |}
+  id: string | {| __or: string[] |},
 |}
 
 export type BackupJob = {|
@@ -48,14 +47,14 @@ export type BackupJob = {|
   settings: $Dict<Settings>,
   srs?: SimpleIdPattern,
   type: 'backup',
-  vms: Pattern
+  vms: Pattern,
 |}
 
 type BackupResult = {|
   mergeDuration: number,
   mergeSize: number,
   transferDuration: number,
-  transferSize: number
+  transferSize: number,
 |}
 
 type MetadataBase = {|
@@ -65,7 +64,7 @@ type MetadataBase = {|
   timestamp: number,
   version: '2.0.0',
   vm: Object,
-  vmSnapshot: Object
+  vmSnapshot: Object,
 |}
 type MetadataDelta = {|
   ...MetadataBase,
@@ -73,12 +72,12 @@ type MetadataDelta = {|
   vdis: $PropertyType<DeltaVmExport, 'vdis'>,
   vbds: $PropertyType<DeltaVmExport, 'vbds'>,
   vhds: { [vdiId: string]: string },
-  vifs: $PropertyType<DeltaVmExport, 'vifs'>
+  vifs: $PropertyType<DeltaVmExport, 'vifs'>,
 |}
 type MetadataFull = {|
   ...MetadataBase,
   mode: 'full',
-  xva: string
+  xva: string,
 |}
 type Metadata = MetadataDelta | MetadataFull
 
@@ -335,7 +334,7 @@ export default class BackupNg {
     getXapi: (id: string) => Xapi,
     getJob: (id: string, 'backup') => Promise<BackupJob>,
     updateJob: ($Shape<BackupJob>) => Promise<BackupJob>,
-    removeJob: (id: string) => Promise<void>
+    removeJob: (id: string) => Promise<void>,
   }
 
   constructor (app: any) {
@@ -577,6 +576,7 @@ export default class BackupNg {
   // - [ ] in case of merge failure
   //       1. delete (or isolate) the tainted VHD
   //       2. next run should be a full
+  // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
   //
   // Low:
   // - [ ] check merge/transfert duration/size are what we want for delta
@@ -927,7 +927,7 @@ export default class BackupNg {
                   }
 
                   await writeStream(fork.streams[`${id}.vhd`](), handler, path)
-                  $defer.onFailure(handler, 'unlink', path)
+                  $defer.onFailure.call(handler, 'unlink', path)
 
                   if (isDelta) {
                     await chainVhd(handler, parentPath, handler, path)
@@ -1013,13 +1013,17 @@ export default class BackupNg {
     backups: MetadataDelta[]
   ): Promise<void> {
     // TODO: remove VHD as well
-    await asyncMap(backups, async backup =>
-      Promise.all([
-        handler.unlink((backup._filename: any)),
-        // $FlowFixMe injected $defer param
-        asyncMap(backup.vhds, _ => this._deleteVhd(handler, _)),
+    await asyncMap(backups, async backup => {
+      const filename = ((backup._filename: any): string)
+
+      return Promise.all([
+        handler.unlink(filename),
+        asyncMap(backup.vhds, _ =>
+          // $FlowFixMe injected $defer param
+          this._deleteVhd(handler, resolveRelativeFromFile(filename, _))
+        ),
       ])
-    )
+    })
   }
 
   async _deleteFullVmBackups (
@@ -1035,19 +1039,24 @@ export default class BackupNg {
     })
   }
 
+  // FIXME: synchronize by job/VDI, otherwise it can cause issues with the merge
   @defer
   async _deleteVhd ($defer: any, handler: RemoteHandler, path: string) {
     const vhds = await asyncMap(
       await handler.list(dirname(path), { filter: isVhd, prependDir: true }),
-      _ => readVhdMetadata(handler, _)
+      async path => {
+        const metadata = await readVhdMetadata(handler, path)
+        metadata.path = path
+        return metadata
+      }
     )
     const base = basename(path)
-    const child = vhds.find(_ => _.footer.parentUnicodeName === base)
+    const child = vhds.find(_ => _.header.parentUnicodeName === base)
     if (child === undefined) {
       return handler.unlink(path)
     }
 
-    $defer.onFailure(handler, 'unlink', path)
+    $defer.onFailure.call(handler, 'unlink', path)
 
     const childPath = child.path
 
