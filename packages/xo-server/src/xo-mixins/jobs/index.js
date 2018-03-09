@@ -165,12 +165,15 @@ export default class Jobs {
   }
 
   async getJob (id: string, type?: string): Promise<Job> {
-    const job = await this._jobs.first(id)
+    let job = await this._jobs.first(id)
     if (job === null || (type !== undefined && job.properties.type !== type)) {
       throw noSuchObject(id, 'job')
     }
 
-    return job.properties
+    job = job.properties
+    job.runId = this._runningJobs[id]
+
+    return job
   }
 
   createJob (job: $Diff<Job, {| id: string |}>): Promise<Job> {

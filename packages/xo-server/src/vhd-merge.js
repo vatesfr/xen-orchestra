@@ -36,7 +36,7 @@ const VHD_PLATFORM_CODE_NONE = 0
 
 // Types of backup treated. Others are not supported.
 const HARD_DISK_TYPE_DYNAMIC = 3 // Full backup.
-const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
+export const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
 
 // Other.
 const BLOCK_UNUSED = 0xffffffff

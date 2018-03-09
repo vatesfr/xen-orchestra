@@ -7,12 +7,23 @@ type AugmentedReadable = Readable & {
   task?: Promise<mixed>
 }
 
-export type DeltaVmExport = {
+type MaybeArray<T> = Array<T> | T
+
+export type DeltaVmExport = {|
   streams: $Dict<() => Promise<AugmentedReadable>>,
-  vbds: { [ref: string]: {} },
-  vdis: { [ref: string]: { $SR$uuid: string } },
-  vifs: { [ref: string]: {} }
-}
+  vbds: { [ref: string]: Object },
+  vdis: { [ref: string]: {
+    $SR$uuid: string,
+    snapshot_of: string,
+  } },
+  vifs: { [ref: string]: Object },
+  vm: Vm,
+|}
+
+export type DeltaVmImport = {|
+  ...DeltaVmExport,
+  streams: $Dict<MaybeArray<AugmentedReadable | () => Promise<AugmentedReadable>>>,
+|}
 
 declare class XapiObject {
   $id: string;
@@ -65,6 +76,6 @@ declare export class Xapi {
     options?: Object
   ): Promise<AugmentedReadable>;
   getObject(object: Id): XapiObject;
-  importDeltaVm(data: DeltaVmExport, options: Object): Promise<{ vm: Vm }>;
+  importDeltaVm(data: DeltaVmImport, options: Object): Promise<{ vm: Vm }>;
   importVm(stream: AugmentedReadable, options: Object): Promise<Vm>;
 }

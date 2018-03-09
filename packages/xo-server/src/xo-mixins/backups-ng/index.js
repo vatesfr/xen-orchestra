@@ -13,9 +13,19 @@ import { type Schedule } from '../scheduling'
 
 import type RemoteHandler from '../../remote-handlers/abstract'
 import createSizeStream from '../../size-stream'
-import { type Vm, type Xapi } from '../../xapi'
+import {
+  type DeltaVmExport,
+  type DeltaVmImport,
+  type Vm,
+  type Xapi,
+} from '../../xapi'
 import { asyncMap, safeDateFormat, serializeError } from '../../utils'
-import { readVhdMetadata } from '../../vhd-merge'
+import {
+  HARD_DISK_TYPE_DIFFERENCING,
+  chainVhd,
+  mergeVhd,
+  readVhdMetadata,
+} from '../../vhd-merge'
 
 type Mode = 'full' | 'delta'
 
@@ -60,14 +70,15 @@ type MetadataBase = {|
 type MetadataDelta = {|
   ...MetadataBase,
   mode: 'delta',
-  vdis: Object,
-  vbds: Object,
-  vifs: Object
+  vdis: $PropertyType<DeltaVmExport, 'vdis'>,
+  vbds: $PropertyType<DeltaVmExport, 'vbds'>,
+  vhds: { [vdiId: string]: string },
+  vifs: $PropertyType<DeltaVmExport, 'vifs'>
 |}
 type MetadataFull = {|
   ...MetadataBase,
-  data: string, // relative path to the XVA
-  mode: 'full'
+  mode: 'full',
+  xva: string
 |}
 type Metadata = MetadataDelta | MetadataFull
 
@@ -113,6 +124,7 @@ const BACKUP_DIR = 'xo-vm-backups'
 const getVmBackupDir = (uuid: string) => `${BACKUP_DIR}/${uuid}`
 
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
+const isVhd = (filename: string) => filename.endsWith('.vhd')
 
 const listReplicatedVms = (
   xapi: Xapi,
@@ -137,6 +149,28 @@ const listReplicatedVms = (
   return values(vms).sort(compareSnapshotTime)
 }
 
+// returns the chain of parents of this VHD
+//
+// TODO: move to vhd-merge module
+const getVhdChain = async (
+  handler: RemoteHandler,
+  path: string
+): Promise<Object[]> => {
+  const chain = []
+
+  while (true) {
+    const vhd = await readVhdMetadata(handler, path)
+    vhd.path = path
+    chain.push(vhd)
+    if (vhd.header.type !== HARD_DISK_TYPE_DIFFERENCING) {
+      break
+    }
+    path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
+  }
+
+  return chain
+}
+
 const importers: $Dict<
   (
     handler: RemoteHandler,
@@ -149,14 +183,48 @@ const importers: $Dict<
 > = {
   async delta (handler, metadataFilename, metadata, xapi, sr) {
     metadata = ((metadata: any): MetadataDelta)
+    const { vdis, vhds, vm } = metadata
 
-    throw new Error('not implemented')
+    const streams = {}
+    await asyncMap(vdis, async (vdi, id) => {
+      const chain = await getVhdChain(
+        handler,
+        resolveRelativeFromFile(metadataFilename, vhds[id])
+      )
+      streams[`${id}.vhd`] = await asyncMap(chain, ({ path }) =>
+        handler.createReadStream(path, {
+          checksum: true,
+          ignoreMissingChecksum: true,
+        })
+      )
+    })
+
+    const delta: DeltaVmImport = {
+      streams,
+      vbds: metadata.vbds,
+      vdis,
+      vifs: metadata.vifs,
+      vm: {
+        ...vm,
+        name_label: `${vm.name_label} ({${safeDateFormat(
+          metadata.timestamp
+        )}})`,
+        tags: [...vm.tags, 'restored from backup'],
+      },
+    }
+
+    const { vm: newVm } = await xapi.importDeltaVm(delta, {
+      disableStartAfterImport: false,
+      srId: sr,
+      // TODO: support mapVdisSrs
+    })
+    return newVm.$id
   },
   async full (handler, metadataFilename, metadata, xapi, sr) {
     metadata = ((metadata: any): MetadataFull)
 
     const xva = await handler.createReadStream(
-      resolveRelativeFromFile(metadataFilename, metadata.data),
+      resolveRelativeFromFile(metadataFilename, metadata.xva),
       {
         checksum: true,
         ignoreMissingChecksum: true, // provide an easy way to opt-out
@@ -183,7 +251,7 @@ const parseVmBackupId = (id: string) => {
   }
 }
 
-// used to resolve the data field from the metadata
+// used to resolve the xva field from the metadata
 const resolveRelativeFromFile = (file: string, path: string): string =>
   resolve('/', dirname(file), path).slice(1)
 
@@ -506,6 +574,9 @@ export default class BackupNg {
   // - [ ] adding and removing VDIs should behave
   // - [ ] validate VHDs after exports and before imports
   // - [ ] isolate VHD chains by job
+  // - [ ] in case of merge failure
+  //       1. delete (or isolate) the tainted VHD
+  //       2. next run should be a full
   //
   // Low:
   // - [ ] check merge/transfert duration/size are what we want for delta
@@ -513,6 +584,8 @@ export default class BackupNg {
   // - [ ] possibility to (re-)run a single VM in a backup?
   // - [ ] display queued VMs
   // - [ ] snapshots and files of an old job should be detected and removed
+  // - [ ] delta import should support mapVdisSrs
+  // - [ ] size of the path? (short-uuid)
   //
   // Triage:
   // - [ ] protect against concurrent backup against a single VM (JFT: why?)
@@ -577,7 +650,7 @@ export default class BackupNg {
     let snapshot: Vm = (await xapi._snapshotVm(
       $cancelToken,
       vm,
-      `[XO Backup] ${vm.name_label}`
+      `[XO Backup ${job.name}] ${vm.name_label}`
     ): any)
     $defer.onFailure.call(xapi, '_deleteVm', snapshot)
     await xapi._updateObjectMapProperty(snapshot, 'other_config', {
@@ -624,7 +697,6 @@ export default class BackupNg {
       const dataBasename = `${basename}.xva`
 
       const metadata: MetadataFull = {
-        data: `./${dataBasename}`,
         jobId,
         mode: 'full',
         scheduleId,
@@ -632,6 +704,7 @@ export default class BackupNg {
         version: '2.0.0',
         vm,
         vmSnapshot: snapshot,
+        xva: `./${dataBasename}`,
       }
       const dataFilename = `${vmDir}/${dataBasename}`
 
@@ -730,8 +803,6 @@ export default class BackupNg {
         transferSize: xva.size,
       }
     } else if (job.mode === 'delta') {
-      const vdiDir = `${vmDir}/${jobId}/vdis`
-
       const baseSnapshot = last(snapshots)
       if (baseSnapshot !== undefined) {
         console.log(baseSnapshot.$id) // TODO: remove
@@ -754,6 +825,13 @@ export default class BackupNg {
         vdis: deltaExport.vdis,
         version: '2.0.0',
         vifs: deltaExport.vifs,
+        vhds: mapValues(
+          deltaExport.vdis,
+          vdi =>
+            `vdis/${jobId}/${
+              (xapi.getObject(vdi.snapshot_of): Object).uuid
+            }/${basename}.vhd`
+        ),
         vm,
         vmSnapshot: snapshot,
       }
@@ -763,7 +841,7 @@ export default class BackupNg {
       // create a fork of the delta export
       const forkExport = (() => {
         // replace the stream factories by fork factories
-        const streams = mapValues(deltaExport.streams, lazyStream => {
+        const streams: any = mapValues(deltaExport.streams, lazyStream => {
           let forks = []
           return () => {
             if (forks === undefined) {
@@ -832,15 +910,30 @@ export default class BackupNg {
                 this._deleteDeltaVmBackups(handler, oldBackups)
               }
 
-              await asyncMap(fork.vdis, (vdi, id) => {
-                return writeStream(
-                  fork.streams[`${id}.vhd`](),
-                  handler,
-                  `${vdiDir}/${
-                    ((xapi.getObject(vdi.snapshot_of): any): Vm).uuid
-                  }/${basename}.vhd`
-                )
-              })
+              await asyncMap(
+                fork.vdis,
+                defer(async ($defer, vdi, id) => {
+                  const path = `${vmDir}/${metadata.vhds[id]}`
+
+                  const isDelta = 'xo:base_delta' in vdi.other_config
+                  let parentPath
+                  if (isDelta) {
+                    const vdiDir = dirname(path)
+                    const parent = (await handler.list(vdiDir))
+                      .filter(isVhd)
+                      .sort()
+                      .pop()
+                    parentPath = `${vdiDir}/${parent}`
+                  }
+
+                  await writeStream(fork.streams[`${id}.vhd`](), handler, path)
+                  $defer.onFailure(handler, 'unlink', path)
+
+                  if (isDelta) {
+                    await chainVhd(handler, parentPath, handler, path)
+                  }
+                })
+              )
 
               await handler.outputFile(metadataFilename, jsonMetadata)
 
@@ -920,19 +1013,53 @@ export default class BackupNg {
     backups: MetadataDelta[]
   ): Promise<void> {
     // TODO: remove VHD as well
-    await asyncMap(backups, backup => handler.unlink((backup._filename: any)))
+    await asyncMap(backups, async backup =>
+      Promise.all([
+        handler.unlink((backup._filename: any)),
+        // $FlowFixMe injected $defer param
+        asyncMap(backup.vhds, _ => this._deleteVhd(handler, _)),
+      ])
+    )
   }
 
   async _deleteFullVmBackups (
     handler: RemoteHandler,
     backups: MetadataFull[]
   ): Promise<void> {
-    await asyncMap(backups, ({ _filename, data }: any) =>
-      Promise.all([
+    await asyncMap(backups, ({ _filename, xva }) => {
+      _filename = ((_filename: any): string)
+      return Promise.all([
         handler.unlink(_filename),
-        handler.unlink(resolveRelativeFromFile(_filename, data)),
+        handler.unlink(resolveRelativeFromFile(_filename, xva)),
       ])
+    })
+  }
+
+  @defer
+  async _deleteVhd ($defer: any, handler: RemoteHandler, path: string) {
+    const vhds = await asyncMap(
+      await handler.list(dirname(path), { filter: isVhd, prependDir: true }),
+      _ => readVhdMetadata(handler, _)
     )
+    const base = basename(path)
+    const child = vhds.find(_ => _.footer.parentUnicodeName === base)
+    if (child === undefined) {
+      return handler.unlink(path)
+    }
+
+    $defer.onFailure(handler, 'unlink', path)
+
+    const childPath = child.path
+
+    await Promise.all([
+      mergeVhd(handler, path, handler, childPath),
+      handler.unlink(path + '.checksum'),
+    ])
+
+    await Promise.all([
+      handler.rename(path, childPath),
+      handler.unlink(childPath + '.checksum'),
+    ])
   }
 
   async _deleteVms (xapi: Xapi, vms: Vm[]): Promise<void> {

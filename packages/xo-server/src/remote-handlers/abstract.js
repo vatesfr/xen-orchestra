@@ -119,11 +119,25 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async list (dir: string = '.') {
-    return this._list(dir)
+  async list (
+    dir: string = '.',
+    {
+      filter,
+      prependDir = false,
+    }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
+  ): Promise<string[]> {
+    const entries = await this._list(dir)
+
+    if (prependDir) {
+      entries.forEach((entry, i) => {
+        entries[i] = dir + '/' + entry
+      })
+    }
+
+    return filter === undefined ? entries : entries.filter(filter)
   }
 
-  async _list (dir: string) {
+  async _list (dir: string): Promise<string[]> {
     throw new Error('Not implemented')
   }
 
