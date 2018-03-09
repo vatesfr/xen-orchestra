@@ -67,6 +67,9 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
         </td>
         <td>
           <ActionButton
+            btnStyle='primary'
+            data-id={job.id}
+            data-schedule={schedule.id}
             handler={_runBackupNgJob}
             handlerParam={{
               id: job.id,
@@ -75,7 +78,6 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
             }}
             icon='run-schedule'
             size='small'
-            btnStyle='primary'
           />
         </td>
       </tr>
