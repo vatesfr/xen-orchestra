@@ -511,8 +511,14 @@ export default class Home extends Component {
       return
     }
 
-    const parsed = ComplexMatcher.parse(filter)
-    const properties = ComplexMatcher.getPropertyClausesStrings(parsed)
+    let properties
+    try {
+      properties = ComplexMatcher.getPropertyClausesStrings(
+        ComplexMatcher.parse(filter)
+      )
+    } catch (_) {
+      properties = {}
+    }
 
     const sort = this._getDefaultSort(props)
 
@@ -538,7 +544,11 @@ export default class Home extends Component {
 
   _getParsedFilter = createSelector(
     props => this._getFilter(),
-    filter => ComplexMatcher.parse(filter)
+    filter => {
+      try {
+        return ComplexMatcher.parse(filter)
+      } catch (_) {}
+    }
   )
 
   _getFilterFunction = createSelector(

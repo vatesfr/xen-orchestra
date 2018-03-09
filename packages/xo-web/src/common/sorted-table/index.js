@@ -394,11 +394,17 @@ export default class SortedTable extends Component {
     }
     this._getTotalNumberOfItems = createCounter(getAllItems)
 
-    const createMatcher = str => CM.parse(str).createPredicate()
     this._getItems = createSort(
       createFilter(
         getAllItems,
-        createSelector(() => this.state.filter, createMatcher)
+        createSelector(
+          () => this.state.filter,
+          filter => {
+            try {
+              return CM.parse(filter).createPredicate()
+            } catch (_) {}
+          }
+        )
       ),
       createSelector(
         () => this._getSelectedColumn().sortCriteria,
