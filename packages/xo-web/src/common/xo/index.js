@@ -1583,9 +1583,9 @@ export const editJob = job =>
 
 export const getJob = id => _call('job.get', { id })
 
-export const runJob = id => {
+export const runJob = job => {
   info(_('runJob'), _('runJobVerbose'))
-  return _call('job.runSequence', { idSequence: [id] })
+  return _call('job.runSequence', { idSequence: [resolveId(job)] })
 }
 
 // Backup/Schedule ---------------------------------------------------------

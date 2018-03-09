@@ -22,6 +22,7 @@ import {
   forEach,
   includes,
   isEmpty,
+  isObject,
   mapValues,
   size,
 } from 'lodash'
@@ -47,7 +48,7 @@ const COLUMNS = [
       return (
         <div>
           {job.name} <span className='text-muted'>({id.slice(4, 8)})</span>
-          {!isJobUserMissing[id] && (
+          {isJobUserMissing[id] && (
             <Tooltip content={_('jobUserNotFound')}>
               <Icon className='ml-1' icon='error' />
             </Tooltip>
@@ -335,9 +336,11 @@ export default class Jobs extends Component {
       .catch(err => error('Create Job', err.message || String(err)))
   }
 
-  _edit = id => {
+  _edit = job => {
     const { jobs, actions } = this.state
-    const job = find(jobs, job => job.id === id)
+
+    if (!isObject(job)) job = find(jobs, job => job.id === job)
+
     if (!job) {
       error('Job edition', 'This job was not found, or may not longer exists.')
       return
@@ -405,7 +408,7 @@ export default class Jobs extends Component {
     (jobs, users) => {
       const isJobUserMissing = {}
       forEach(jobs, job => {
-        isJobUserMissing[job.id] = !!find(users, user => user.id === job.userId)
+        isJobUserMissing[job.id] = !find(users, user => user.id === job.userId)
       })
 
       return isJobUserMissing
@@ -415,9 +418,9 @@ export default class Jobs extends Component {
   _subjectPredicate = ({ type, permission }) =>
     type === 'user' && permission === 'admin'
 
-  individualActions = [
+  _individualActions = [
     {
-      disabled: job => !this._getIsJobUserMissing()[job.id],
+      disabled: (job, isJobUserMissing) => isJobUserMissing[job.id],
       handler: runJob,
       icon: 'run-schedule',
       label: _('runJob'),
@@ -512,7 +515,7 @@ export default class Jobs extends Component {
             actions={ACTIONS}
             collection={jobs}
             columns={COLUMNS}
-            individualActions={this.individualActions}
+            individualActions={this._individualActions}
             shortcutsTarget='body'
             stateUrlParam='s'
             userData={this._getIsJobUserMissing()}
