@@ -402,9 +402,7 @@ export default class SortedTable extends Component {
           filter => {
             try {
               return CM.parse(filter).createPredicate()
-            } catch (error) {
-              console.warn('filter parsing', error)
-            }
+            } catch (_) {}
           }
         )
       ),

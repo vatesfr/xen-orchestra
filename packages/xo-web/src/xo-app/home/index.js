@@ -516,8 +516,7 @@ export default class Home extends Component {
       properties = ComplexMatcher.getPropertyClausesStrings(
         ComplexMatcher.parse(filter)
       )
-    } catch (error) {
-      console.warn('filter parsing', error)
+    } catch (_) {
       properties = {}
     }
 
@@ -548,9 +547,7 @@ export default class Home extends Component {
     filter => {
       try {
         return ComplexMatcher.parse(filter)
-      } catch (error) {
-        console.warn('filter parsing', error)
-      }
+      } catch (_) {}
     }
   )
 
