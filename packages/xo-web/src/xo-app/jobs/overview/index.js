@@ -29,39 +29,30 @@ const jobKeyToLabel = {
   genericTask: _('customJob'),
 }
 
-const COLUMNS = [
+const SCHEDULES_COLUMNS = [
   {
-    itemRenderer: schedule => {
-      const { id } = schedule
-
-      return (
-        <div>
-          <span>{`${schedule.name} (${id.slice(4, 8)})`}</span>
-          <Link
-            className='btn btn-sm btn-primary ml-1'
-            to={`/jobs/schedules/${id}/edit`}
-          >
-            <Icon icon='edit' />
-          </Link>
-        </div>
-      )
-    },
+    itemRenderer: schedule => (
+      <span>{`${schedule.name} (${schedule.id.slice(4, 8)})`}</span>
+    ),
     name: _('schedule'),
     sortCriteria: 'name',
   },
   {
     itemRenderer: (schedule, userData) => {
-      const job = userData.jobs[schedule.jobId]
+      const jobId = schedule.jobId
+      const job = userData.jobs[jobId]
 
       return (
         job !== undefined && (
           <div>
-            <span>{`${job.name} - ${job.method} (${job.id.slice(4, 8)})`}</span>
+            <span>{`${job.name} - ${job.method} (${jobId.slice(4, 8)})`}</span>
             <Link
               className='btn btn-sm btn-primary ml-1'
               to={`/jobs/${job.id}/edit`}
             >
-              <Icon icon='edit' />
+              <Tooltip content={_('jobEdit')}>
+                <Icon icon='edit' />
+              </Tooltip>
             </Link>
           </div>
         )
@@ -94,22 +85,11 @@ const COLUMNS = [
   },
   {
     itemRenderer: (schedule, userData) =>
-      !userData.isScheduleUserMissing[schedule.id] && (
+      userData.isScheduleUserMissing[schedule.id] && (
         <Tooltip content={_('jobUserNotFound')}>
           <Icon className='mr-1' icon='error' />
         </Tooltip>
       ),
-  },
-]
-
-const INDIVIDUAL_ACTIONS = [
-  {
-    disabled: (schedule, userData) =>
-      !userData.isScheduleUserMissing[schedule.id],
-    handler: schedule => runJob(schedule.jobId),
-    icon: 'run-schedule',
-    label: _('scheduleRun'),
-    level: 'warning',
   },
 ]
 
@@ -130,6 +110,10 @@ const ACTIONS = [
   users: subscribeUsers,
 })
 export default class Overview extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object,
+  }
+
   constructor (props) {
     super(props)
     this.state = {
@@ -181,7 +165,7 @@ export default class Overview extends Component {
       const isScheduleUserMissing = {}
 
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !!find(
+        isScheduleUserMissing[schedule.id] = !find(
           users,
           user => user.id === this._getScheduleJob(schedule).userId
         )
@@ -190,6 +174,28 @@ export default class Overview extends Component {
       return isScheduleUserMissing
     }
   )
+
+  _getJobs = createSelector(() => this.state.jobs, jobs => jobs || {})
+
+  _individualActions = [
+    {
+      disabled: (schedule, userData) =>
+        userData.isScheduleUserMissing[schedule.id],
+      handler: schedule => runJob(schedule.jobId),
+      icon: 'run-schedule',
+      label: _('scheduleRun'),
+      level: 'warning',
+    },
+    {
+      handler: schedule =>
+        this.context.router.push({
+          pathname: `/jobs/schedules/${schedule.id}/edit`,
+        }),
+      icon: 'edit',
+      label: _('scheduleEdit'),
+      level: 'primary',
+    },
+  ]
 
   render () {
     const { schedules } = this.state
@@ -204,13 +210,13 @@ export default class Overview extends Component {
             <SortedTable
               actions={ACTIONS}
               collection={schedules}
-              columns={COLUMNS}
-              individualActions={INDIVIDUAL_ACTIONS}
+              columns={SCHEDULES_COLUMNS}
+              individualActions={this._individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'
               userData={{
                 isScheduleUserMissing: this._getIsScheduleUserMissing(),
-                jobs: this.state.jobs || {},
+                jobs: this._getJobs(),
               }}
             />
           </CardBlock>

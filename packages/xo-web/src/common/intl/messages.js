@@ -256,6 +256,7 @@ const messages = {
   jobMergedDataSpeed: 'Merge speed:',
   allJobCalls: 'All',
   job: 'Job',
+  jobEdit: 'Edit job',
   jobModalTitle: 'Job {job}',
   jobId: 'ID',
   jobType: 'Type',
@@ -290,7 +291,7 @@ const messages = {
     'You are editing Schedule {name} ({id}). Saving will override previous schedule state.',
   jobEditMessage:
     'You are editing job {name} ({id}). Saving will override previous job state.',
-  scheduleEdit: 'Edit',
+  scheduleEdit: 'Edit schedule',
   scheduleSave: 'Save',
   cancelScheduleEdition: 'Cancel',
   scheduleAdd: 'Add a schedule',
