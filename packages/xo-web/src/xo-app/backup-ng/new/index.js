@@ -1,19 +1,21 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import React from 'react'
+import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import SmartBackupPreview from 'smart-backup-preview'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
+import { addSubscriptions, connectStore, resolveId, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
-import { connectStore, resolveIds } from 'utils'
 import { Container, Col, Row } from 'grid'
+import { createGetObjectsOfType } from 'selectors'
+import { flatten, get, keyBy, isEmpty, map, some } from 'lodash'
+import { injectState, provideState } from '@julien-f/freactal'
+import { Select, Toggle } from 'form'
 import {
   constructSmartPattern,
   destructSmartPattern,
 } from 'smart-backup-pattern'
-import { createGetObjectsOfType } from 'selectors'
-import { injectState, provideState } from '@julien-f/freactal'
-import { Select, Toggle } from 'form'
-import { flatten, get, isEmpty, map, some } from 'lodash'
 import {
   SelectPool,
   SelectRemote,
@@ -27,10 +29,11 @@ import {
   deleteSchedule,
   editBackupNgJob,
   editSchedule,
+  subscribeRemotes,
 } from 'xo'
 
 import Schedules from './schedules'
-import { FormGroup, Input } from './form'
+import { FormGroup, Input, Ul, Li } from './form'
 
 // ===================================================================
 
@@ -94,68 +97,65 @@ const VMS_STATUSES_OPTIONS = [
 ]
 
 const SmartBackup = injectState(({ state, effects }) => (
-  <Card>
-    <CardHeader>{_('smartBackupModeTitle')}</CardHeader>
-    <CardBlock>
-      <FormGroup>
-        <label>
-          <strong>{_('editBackupSmartStatusTitle')}</strong>
-        </label>
-        <Select
-          options={VMS_STATUSES_OPTIONS}
-          onChange={effects.setPowerState}
-          value={state.powerState}
-          simpleValue
-          required
-        />
-      </FormGroup>
-      <h3>{_('editBackupSmartPools')}</h3>
-      <hr />
-      <FormGroup>
-        <label>
-          <strong>{_('editBackupSmartResidentOn')}</strong>
-        </label>
-        <SelectPool
-          multi
-          onChange={effects.setPoolValues}
-          value={get(state.$pool, 'values')}
-        />
-      </FormGroup>
-      <FormGroup>
-        <label>
-          <strong>{_('editBackupSmartNotResidentOn')}</strong>
-        </label>
-        <SelectPool
-          multi
-          onChange={effects.setPoolNotValues}
-          value={get(state.$pool, 'notValues')}
-        />
-      </FormGroup>
-      <h3>{_('editBackupSmartTags')}</h3>
-      <hr />
-      <FormGroup>
-        <label>
-          <strong>{_('editBackupSmartTagsTitle')}</strong>
-        </label>
-        <SelectTag
-          multi
-          onChange={effects.setTagValues}
-          value={get(state.tags, 'values')}
-        />
-      </FormGroup>
-      <FormGroup>
-        <label>
-          <strong>{_('editBackupSmartExcludedTagsTitle')}</strong>
-        </label>
-        <SelectTag
-          multi
-          onChange={effects.setTagNotValues}
-          value={get(state.tags, 'notValues')}
-        />
-      </FormGroup>
-      <SmartBackupPreview vms={state.allVms} pattern={state.vmsSmartPattern} />
-    </CardBlock>
-  </Card>
+  <div>
+    <FormGroup>
+      <label>
+        <strong>{_('editBackupSmartStatusTitle')}</strong>
+      </label>
+      <Select
+        options={VMS_STATUSES_OPTIONS}
+        onChange={effects.setPowerState}
+        value={state.powerState}
+        simpleValue
+        required
+      />
+    </FormGroup>
+    <h3>{_('editBackupSmartPools')}</h3>
+    <hr />
+    <FormGroup>
+      <label>
+        <strong>{_('editBackupSmartResidentOn')}</strong>
+      </label>
+      <SelectPool
+        multi
+        onChange={effects.setPoolValues}
+        value={get(state.$pool, 'values')}
+      />
+    </FormGroup>
+    <FormGroup>
+      <label>
+        <strong>{_('editBackupSmartNotResidentOn')}</strong>
+      </label>
+      <SelectPool
+        multi
+        onChange={effects.setPoolNotValues}
+        value={get(state.$pool, 'notValues')}
+      />
+    </FormGroup>
+    <h3>{_('editBackupSmartTags')}</h3>
+    <hr />
+    <FormGroup>
+      <label>
+        <strong>{_('editBackupSmartTagsTitle')}</strong>
+      </label>
+      <SelectTag
+        multi
+        onChange={effects.setTagValues}
+        value={get(state.tags, 'values')}
+      />
+    </FormGroup>
+    <FormGroup>
+      <label>
+        <strong>{_('editBackupSmartExcludedTagsTitle')}</strong>
+      </label>
+      <SelectTag
+        multi
+        onChange={effects.setTagNotValues}
+        value={get(state.tags, 'notValues')}
+      />
+    </FormGroup>
+    <SmartBackupPreview vms={state.allVms} pattern={state.vmsSmartPattern} />
+  </div>
 ))
 
 // ===================================================================
@@ -192,6 +192,19 @@ const getNewSettings = schedules => {
   return newSettings
 }
 
+const getNewSchedules = schedules => {
+  const newSchedules = {}
+
+  for (const schedule in schedules) {
+    newSchedules[schedule] = {
+      cron: schedules[schedule].cron,
+      timezone: schedules[schedule].timezone,
+    }
+  }
+
+  return newSchedules
+}
+
 const getRandomId = () =>
   Math.random()
     .toString(36)
@@ -206,10 +219,20 @@ export default [
   connectStore({
     allVms: createGetObjectsOfType('VM'),
   }),
+  addSubscriptions({
+    remotes: cb =>
+      subscribeRemotes(remotes => {
+        cb(keyBy(remotes, 'id'))
+      }),
+  }),
   provideState({
     initialState: () => ({
       compression: true,
-      delta: false,
+      backupMode: undefined,
+      drMode: undefined,
+      deltaMode: undefined,
+      crMode: undefined,
+      snapshotMode: undefined,
       formId: getRandomId(),
       name: '',
       paramsUpdated: false,
@@ -226,14 +249,16 @@ export default [
       createJob: () => async state => {
         await createBackupNgJob({
           name: state.name,
-          mode: state.delta ? 'delta' : 'full',
+          mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          schedules: state.newSchedules,
+          schedules: getNewSchedules(state.newSchedules),
           settings: {
             ...getNewSettings(state.newSchedules),
           },
-          remotes: constructPattern(state.remotes),
-          srs: constructPattern(state.srs),
+          remotes:
+            (state.deltaMode || state.backupMode) &&
+            constructPattern(state.remotes),
+          srs: (state.crMode || state.drMode) && constructPattern(state.srs),
           vms: state.smartMode
             ? state.vmsSmartPattern
             : constructPattern(state.vms),
@@ -259,22 +284,40 @@ export default [
         await editBackupNgJob({
           id: props.job.id,
           name: state.name,
-          mode: state.delta ? 'delta' : 'full',
+          mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          remotes: constructPattern(state.remotes),
-          srs: constructPattern(state.srs),
-          vms: state.smartMode
-            ? state.vmsSmartPattern
-            : constructPattern(state.vms),
           settings: {
             ...newSettings,
             ...props.job.settings,
           },
+          remotes:
+            (state.deltaMode || state.backupMode) &&
+            constructPattern(state.remotes),
+          srs: (state.crMode || state.drMode) && constructPattern(state.srs),
+          vms: state.smartMode
+            ? state.vmsSmartPattern
+            : constructPattern(state.vms),
         })
       },
-      setDelta: (_, { target: { checked } }) => state => ({
+      setSnapshotMode: () => state => ({
         ...state,
-        delta: checked,
+        snapshotMode: !state.snapshotMode || undefined,
+      }),
+      setBackupMode: () => state => ({
+        ...state,
+        backupMode: !state.backupMode || undefined,
+      }),
+      setDeltaMode: () => state => ({
+        ...state,
+        deltaMode: !state.deltaMode || undefined,
+      }),
+      setDrMode: () => state => ({
+        ...state,
+        drMode: !state.drMode || undefined,
+      }),
+      setCrMode: () => state => ({
+        ...state,
+        crMode: !state.crMode || undefined,
       }),
       setCompression: (_, { target: { checked } }) => state => ({
         ...state,
@@ -288,8 +331,38 @@ export default [
         ...state,
         name: value,
       }),
-      setRemotes: (_, remotes) => state => ({ ...state, remotes }),
-      setSrs: (_, srs) => state => ({ ...state, srs }),
+      addRemote: (_, remote) => state => {
+        const remotes = [...state.remotes]
+        remotes.push(resolveId(remote))
+        return {
+          ...state,
+          remotes,
+        }
+      },
+      deleteRemote: (_, key) => state => {
+        const remotes = [...state.remotes]
+        remotes.splice(key, 1)
+        return {
+          ...state,
+          remotes,
+        }
+      },
+      addSr: (_, sr) => state => {
+        const srs = [...state.srs]
+        srs.push(resolveId(sr))
+        return {
+          ...state,
+          srs,
+        }
+      },
+      deleteSr: (_, key) => state => {
+        const srs = [...state.srs]
+        srs.splice(key, 1)
+        return {
+          ...state,
+          srs,
+        }
+      },
       setVms: (_, vms) => state => ({ ...state, vms }),
       updateParams: () => (state, { job }) => ({
         ...state,
@@ -298,8 +371,17 @@ export default [
         name: job.name,
         paramsUpdated: true,
         smartMode: job.vms.id === undefined,
-        remotes: destructPattern(job.remotes),
-        srs: destructPattern(job.srs),
+        snapshotMode:
+          some(
+            job.settings,
+            ({ snapshotRetention }) => snapshotRetention > 0
+          ) || undefined,
+        backupMode: (job.mode === 'full' && !isEmpty(job.remotes)) || undefined,
+        deltaMode: (job.mode === 'delta' && !isEmpty(job.remotes)) || undefined,
+        drMode: (job.mode === 'full' && !isEmpty(job.srs)) || undefined,
+        crMode: (job.mode === 'delta' && !isEmpty(job.srs)) || undefined,
+        remotes: job.remotes !== undefined ? destructPattern(job.remotes) : [],
+        srs: job.srs !== undefined ? destructPattern(job.srs) : [],
         ...destructVmsPattern(job.vms),
       }),
       addSchedule: () => state => ({
@@ -326,7 +408,6 @@ export default [
       },
       deleteSchedule: (_, id) => async (state, props) => {
         await deleteSchedule(id)
-
         delete props.job.settings[id]
         await editBackupNgJob({
           id: props.job.id,
@@ -418,17 +499,25 @@ export default [
       isJobInvalid: state =>
         state.name.trim() === '' ||
         (isEmpty(state.schedules) && isEmpty(state.newSchedules)) ||
-        (isEmpty(state.vms) && !state.smartMode),
+        (isEmpty(state.vms) && !state.smartMode) ||
+        ((state.backupMode || state.deltaMode) && isEmpty(state.remotes)) ||
+        ((state.drMode || state.crMode) && isEmpty(state.srs)) ||
+        (!state.isDelta && !state.isFull && !state.snapshotMode),
       showCompression: (state, { job }) =>
-        !state.delta &&
+        state.isFull &&
         (some(
           state.newSchedules,
           schedule => +schedule.exportRetention !== 0
         ) ||
           (job &&
             some(job.settings, schedule => schedule.exportRetention !== 0))),
+      exportMode: state =>
+        state.backupMode || state.deltaMode || state.drMode || state.crMode,
       settings: (state, { job }) => get(job, 'settings') || {},
       schedules: (state, { schedules }) => schedules || [],
+      isDelta: state => state.deltaMode || state.crMode,
+      isFull: state => state.backupMode || state.drMode,
+      allRemotes: (state, { remotes }) => remotes,
       ...SMART_MODE_COMPUTED,
     },
   }),
@@ -444,43 +533,23 @@ export default [
           <Row>
             <Col mediumSize={6}>
               <Card>
-                <CardHeader>{_('job')}</CardHeader>
+                <CardHeader>
+                  {_('backupName')}
+                  <Tooltip content={_('smartBackupModeTitle')}>
+                    <Toggle
+                      className='pull-right'
+                      onChange={effects.setSmartMode}
+                      value={state.smartMode}
+                      iconSize={1}
+                    />
+                  </Tooltip>
+                </CardHeader>
                 <CardBlock>
                   <FormGroup>
                     <label>
                       <strong>{_('backupName')}</strong>
                     </label>
                     <Input onChange={effects.setName} value={state.name} />
-                  </FormGroup>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('backupTargetRemotes')}</strong>
-                    </label>
-                    <SelectRemote
-                      multi
-                      onChange={effects.setRemotes}
-                      value={state.remotes}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('backupTargetSrs')}</strong>
-                    </label>
-                    <SelectSr
-                      multi
-                      onChange={effects.setSrs}
-                      value={state.srs}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('smartBackupModeTitle')}</strong>
-                    </label>
-                    <br />
-                    <Toggle
-                      onChange={effects.setSmartMode}
-                      value={state.smartMode}
-                    />
                   </FormGroup>
                   {state.smartMode ? (
                     <Upgrade place='newBackup' required={3}>
@@ -498,20 +567,6 @@ export default [
                       />
                     </FormGroup>
                   )}
-                  {(!isEmpty(state.srs) || !isEmpty(state.remotes)) && (
-                    <Upgrade place='newBackup' required={4}>
-                      <FormGroup>
-                        <label>
-                          <input
-                            type='checkbox'
-                            onChange={effects.setDelta}
-                            checked={state.delta}
-                          />{' '}
-                          <strong>{_('useDelta')}</strong>
-                        </label>
-                      </FormGroup>
-                    </Upgrade>
-                  )}
                   {state.showCompression && (
                     <label>
                       <input
@@ -524,6 +579,121 @@ export default [
                   )}
                 </CardBlock>
               </Card>
+              <Card>
+                <CardBlock>
+                  <div className='btn-toolbar text-xs-center'>
+                    <ActionButton
+                      active={state.snapshotMode}
+                      handler={effects.setSnapshotMode}
+                      icon='rolling-snapshot'
+                    >
+                      {_('rollingSnapshot')}
+                    </ActionButton>
+                    <ActionButton
+                      active={state.backupMode}
+                      disabled={state.isDelta}
+                      handler={effects.setBackupMode}
+                      icon='backup'
+                    >
+                      {_('backup')}
+                    </ActionButton>
+                    <ActionButton
+                      active={state.deltaMode}
+                      disabled={state.isFull}
+                      handler={effects.setDeltaMode}
+                      icon='delta-backup'
+                    >
+                      {_('deltaBackup')}
+                    </ActionButton>
+                    <ActionButton
+                      active={state.drMode}
+                      disabled={state.isDelta}
+                      handler={effects.setDrMode}
+                      icon='disaster-recovery'
+                    >
+                      {_('disasterRecovery')}
+                    </ActionButton>
+                    <ActionButton
+                      active={state.crMode}
+                      disabled={state.isFull}
+                      handler={effects.setCrMode}
+                      icon='continuous-replication'
+                    >
+                      {_('continuousReplication')}
+                    </ActionButton>
+                  </div>
+                </CardBlock>
+              </Card>
+              {(state.backupMode || state.deltaMode) && (
+                <Card>
+                  <CardHeader>
+                    {_(state.backupMode ? 'backup' : 'deltaBackup')}
+                  </CardHeader>
+                  <CardBlock>
+                    <FormGroup>
+                      <label>
+                        <strong>{_('backupTargetRemotes')}</strong>
+                      </label>
+                      <SelectRemote onChange={effects.addRemote} value={null} />
+                      <br />
+                      <Ul>
+                        {map(state.remotes, (id, key) => (
+                          <Li key={id}>
+                            {state.allRemotes &&
+                              renderXoItem({
+                                type: 'remote',
+                                value: state.allRemotes[id],
+                              })}
+                            <ActionButton
+                              btnStyle='danger'
+                              className='pull-right'
+                              handler={effects.deleteRemote}
+                              handlerParam={key}
+                              icon='delete'
+                              size='small'
+                            />
+                          </Li>
+                        ))}
+                      </Ul>
+                    </FormGroup>
+                  </CardBlock>
+                </Card>
+              )}
+              {(state.drMode || state.crMode) && (
+                <Card>
+                  <CardHeader>
+                    {_(
+                      state.drMode
+                        ? 'disasterRecovery'
+                        : 'continuousReplication'
+                    )}
+                  </CardHeader>
+                  <CardBlock>
+                    <FormGroup>
+                      <label>
+                        <strong>{_('backupTargetSrs')}</strong>
+                      </label>
+                      <SelectSr onChange={effects.addSr} value={null} />
+                      <br />
+                      <Ul>
+                        {map(state.srs, (id, key) => (
+                          <Li key={id}>
+                            {renderXoItemFromId(id)}
+                            <ActionButton
+                              btnStyle='danger'
+                              className='pull-right'
+                              icon='delete'
+                              size='small'
+                              handler={effects.deleteSr}
+                              handlerParam={key}
+                            />
+                          </Li>
+                        ))}
+                      </Ul>
+                    </FormGroup>
+                  </CardBlock>
+                </Card>
+              )}
             </Col>
             <Col mediumSize={6}>
               <Schedules />

@@ -3,8 +3,8 @@ import ActionButton from 'action-button'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { Card, CardBlock, CardHeader } from 'card'
-import { isEmpty, findKey } from 'lodash'
 import { injectState, provideState } from '@julien-f/freactal'
+import { isEmpty, findKey } from 'lodash'
 
 import NewSchedule from './new-schedule'
 import { FormGroup } from './form'
@@ -98,8 +98,10 @@ export default [
   injectState,
   provideState({
     computed: {
-      canDeleteSchedule: state => state.schedules.length > 1,
-      disabledEdition: state => state.editionMode !== undefined,
+      disabledDeletion: state => state.schedules.length <= 1,
+      disabledEdition: state =>
+        state.editionMode !== undefined ||
+        (!state.exportMode && !state.snapshotMode),
     },
   }),
   injectState,
@@ -131,7 +133,7 @@ export default [
                 collection={state.schedules}
                 columns={SAVED_SCHEDULES_COLUMNS}
                 data-deleteSchedule={effects.deleteSchedule}
-                data-disabledDeletion={!state.canDeleteSchedule}
+                data-disabledDeletion={state.disabledDeletion}
                 data-disabledEdition={state.disabledEdition}
                 data-editSchedule={effects.editSchedule}
                 data-settings={state.settings}
@@ -148,8 +150,9 @@ export default [
               <SortedTable
                 collection={state.newSchedules}
                 columns={SCHEDULES_COLUMNS}
-                data-editNewSchedule={effects.editNewSchedule}
                 data-deleteNewSchedule={effects.deleteNewSchedule}
+                data-disabledEdition={state.disabledEdition}
+                data-editNewSchedule={effects.editNewSchedule}
                 data-newSchedules={state.newSchedules}
                 individualActions={NEW_SCHEDULES_INDIVIDUAL_ACTIONS}
               />

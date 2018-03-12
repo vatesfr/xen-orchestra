@@ -2,9 +2,9 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import moment from 'moment-timezone'
 import React from 'react'
+import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
-import Scheduler, { SchedulePreview } from 'scheduling'
 
 import { FormGroup, Input } from './form'
 
@@ -49,26 +49,30 @@ export default [
   ({ effects, state }) => (
     <Card>
       <CardBlock>
-        <FormGroup>
-          <label>
-            <strong>{_('exportRetention')}</strong>
-          </label>
-          <Input
-            type='number'
-            onChange={effects.setExportRetention}
-            value={state.exportRetention}
-          />
-        </FormGroup>
-        <FormGroup>
-          <label>
-            <strong>{_('snapshotRetention')}</strong>
-          </label>
-          <Input
-            type='number'
-            onChange={effects.setSnapshotRetention}
-            value={state.snapshotRetention}
-          />
-        </FormGroup>
+        {state.exportMode && (
+          <FormGroup>
+            <label>
+              <strong>{_('exportRetention')}</strong>
+            </label>
+            <Input
+              type='number'
+              onChange={effects.setExportRetention}
+              value={state.exportRetention}
+            />
+          </FormGroup>
+        )}
+        {state.snapshotMode && (
+          <FormGroup>
+            <label>
+              <strong>{_('snapshotRetention')}</strong>
+            </label>
+            <Input
+              type='number'
+              onChange={effects.setSnapshotRetention}
+              value={state.snapshotRetention}
+            />
+          </FormGroup>
+        )}
         <Scheduler
           onChange={effects.setSchedule}
           cronPattern={state.cron}
@@ -90,8 +94,8 @@ export default [
           {_('scheduleSave')}
         </ActionButton>
         <ActionButton
-          handler={effects.cancelSchedule}
           className='pull-right'
+          handler={effects.cancelSchedule}
           icon='save'
           size='large'
         >
