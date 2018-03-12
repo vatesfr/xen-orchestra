@@ -334,7 +334,7 @@ export default class SortedTable extends Component {
               userData[key.slice(5)] = props[key]
             }
           })
-          return userData
+          return !isEmpty(userData) ? userData : undefined
         })
 
     let selectedColumn = props.defaultColumn
