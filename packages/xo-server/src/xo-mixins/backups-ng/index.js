@@ -570,9 +570,7 @@ export default class BackupNg {
   // - [ ] clones of replicated VMs should not be garbage collected
   //     - if storing uuids in source VM, how to detect them if the source is
   //       lost?
-  // - [ ] adding and removing VDIs should behave
-  // - [ ] validate VHDs after exports and before imports
-  // - [ ] isolate VHD chains by job
+  // - [ ] validate VHDs after exports and before imports, how?
   // - [ ] in case of merge failure
   //       1. delete (or isolate) the tainted VHD
   //       2. next run should be a full
@@ -585,11 +583,9 @@ export default class BackupNg {
   // - [ ] display queued VMs
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
-  // - [ ] size of the path? (short-uuid)
+  // - [ ] size of the path? (base64url(Buffer.from(uuid.split('-').join(''), 'hex')))
   //
   // Triage:
-  // - [ ] protect against concurrent backup against a single VM (JFT: why?)
-  //       - shouldn't be necessary now that VHD chains are separated by job
   // - [ ] logs
   //
   // Done:
@@ -600,6 +596,8 @@ export default class BackupNg {
   // - [x] deleteFirst per target
   // - [x] timeout per VM
   // - [x] backups should be deletable from the API
+  // - [x] adding and removing VDIs should behave
+  // - [x] isolate VHD chains by job
   @defer
   async _backupVm (
     $defer: any,
