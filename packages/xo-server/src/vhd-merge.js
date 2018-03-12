@@ -690,6 +690,7 @@ export default concurrency(2)(async function vhdMerge (
           mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
         }
       }
+
       const cFooter = childVhd.footer
       const pFooter = parentVhd.footer
 
@@ -697,6 +698,7 @@ export default concurrency(2)(async function vhdMerge (
       pFooter.diskGeometry = { ...cFooter.diskGeometry }
       pFooter.originalSize = { ...cFooter.originalSize }
       pFooter.timestamp = cFooter.timestamp
+      pFooter.uuid = cFooter.uuid
 
       // necessary to update values and to recreate the footer after block
       // creation
