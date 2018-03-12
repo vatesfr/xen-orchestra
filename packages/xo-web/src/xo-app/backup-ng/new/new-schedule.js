@@ -6,7 +6,7 @@ import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
 
-import { FormGroup, Input } from './form'
+import { FormGroup, getRandomId, Input } from './utils'
 
 export default [
   injectState,
@@ -21,6 +21,7 @@ export default [
     }) => ({
       cron,
       exportRetention,
+      formId: getRandomId(),
       snapshotRetention,
       timezone,
     }),
@@ -47,61 +48,64 @@ export default [
   }),
   injectState,
   ({ effects, state }) => (
-    <Card>
-      <CardBlock>
-        {state.exportMode && (
-          <FormGroup>
-            <label>
-              <strong>{_('exportRetention')}</strong>
-            </label>
-            <Input
-              type='number'
-              onChange={effects.setExportRetention}
-              value={state.exportRetention}
-            />
-          </FormGroup>
-        )}
-        {state.snapshotMode && (
-          <FormGroup>
-            <label>
-              <strong>{_('snapshotRetention')}</strong>
-            </label>
-            <Input
-              type='number'
-              onChange={effects.setSnapshotRetention}
-              value={state.snapshotRetention}
-            />
-          </FormGroup>
-        )}
-        <Scheduler
-          onChange={effects.setSchedule}
-          cronPattern={state.cron}
-          timezone={state.timezone}
-        />
-        <SchedulePreview cronPattern={state.cron} timezone={state.timezone} />
-        <br />
-        <ActionButton
-          btnStyle='primary'
-          data-cron={state.cron}
-          data-exportRetention={state.exportRetention}
-          data-snapshotRetention={state.snapshotRetention}
-          data-timezone={state.timezone}
-          disabled={state.isScheduleInvalid}
-          handler={effects.saveSchedule}
-          icon='save'
-          size='large'
-        >
-          {_('scheduleSave')}
-        </ActionButton>
-        <ActionButton
-          className='pull-right'
-          handler={effects.cancelSchedule}
-          icon='save'
-          size='large'
-        >
-          {_('cancelScheduleEdition')}
-        </ActionButton>
-      </CardBlock>
-    </Card>
+    <form id={state.formId}>
+      <Card>
+        <CardBlock>
+          {state.exportMode && (
+            <FormGroup>
+              <label>
+                <strong>{_('exportRetention')}</strong>
+              </label>
+              <Input
+                type='number'
+                onChange={effects.setExportRetention}
+                value={state.exportRetention}
+              />
+            </FormGroup>
+          )}
+          {state.snapshotMode && (
+            <FormGroup>
+              <label>
+                <strong>{_('snapshotRetention')}</strong>
+              </label>
+              <Input
+                type='number'
+                onChange={effects.setSnapshotRetention}
+                value={state.snapshotRetention}
+              />
+            </FormGroup>
+          )}
+          <Scheduler
+            onChange={effects.setSchedule}
+            cronPattern={state.cron}
+            timezone={state.timezone}
+          />
+          <SchedulePreview cronPattern={state.cron} timezone={state.timezone} />
+          <br />
+          <ActionButton
+            btnStyle='primary'
+            data-cron={state.cron}
+            data-exportRetention={state.exportRetention}
+            data-snapshotRetention={state.snapshotRetention}
+            data-timezone={state.timezone}
+            disabled={state.isScheduleInvalid}
+            form={state.formId}
+            handler={effects.saveSchedule}
+            icon='save'
+            size='large'
+          >
+            {_('scheduleSave')}
+          </ActionButton>
+          <ActionButton
+            className='pull-right'
+            handler={effects.cancelSchedule}
+            icon='save'
+            size='large'
+          >
+            {_('cancelScheduleEdition')}
+          </ActionButton>
+        </CardBlock>
+      </Card>
+    </form>
   ),
 ].reduceRight((value, decorator) => decorator(value))

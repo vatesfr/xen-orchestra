@@ -7,7 +7,7 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { isEmpty, findKey } from 'lodash'
 
 import NewSchedule from './new-schedule'
-import { FormGroup } from './form'
+import { FormGroup } from './utils'
 
 // ===================================================================
 

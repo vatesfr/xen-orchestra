@@ -33,7 +33,7 @@ import {
 } from 'xo'
 
 import Schedules from './schedules'
-import { FormGroup, Input, Ul, Li } from './form'
+import { FormGroup, getRandomId, Input, Ul, Li } from './utils'
 
 // ===================================================================
 
@@ -204,11 +204,6 @@ const getNewSchedules = schedules => {
 
   return newSchedules
 }
-
-const getRandomId = () =>
-  Math.random()
-    .toString(36)
-    .slice(2)
 
 export default [
   New => props => (
