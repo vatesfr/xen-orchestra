@@ -788,8 +788,8 @@ export default class Xapi extends XapiBase {
   async exportDeltaVm (
     $defer,
     $cancelToken,
-    vmId,
-    baseVmId = undefined,
+    vmId: string,
+    baseVmId?: string,
     {
       bypassVdiChainsCheck = false,
 
@@ -799,7 +799,7 @@ export default class Xapi extends XapiBase {
       disableBaseTags = false,
       snapshotNameLabel = undefined,
     } = {}
-  ) {
+  ): Promise<DeltaVmExport> {
     let vm = this.getObject(vmId)
     if (!bypassVdiChainsCheck) {
       this._assertHealthyVdiChains(vm)
@@ -915,7 +915,7 @@ export default class Xapi extends XapiBase {
   @deferrable
   async importDeltaVm (
     $defer,
-    delta,
+    delta: DeltaVmExport,
     {
       deleteBase = false,
       disableStartAfterImport = true,

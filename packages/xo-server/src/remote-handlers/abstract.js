@@ -92,11 +92,11 @@ export default class RemoteHandlerAbstract {
     await promise
   }
 
-  async readFile (file: string, options?: Object): Promise<Buffer | string> {
+  async readFile (file: string, options?: Object): Promise<Buffer> {
     return this._readFile(file, options)
   }
 
-  _readFile (file: string, options?: Object): Promise<Buffer | string> {
+  _readFile (file: string, options?: Object): Promise<Buffer> {
     return this.createReadStream(file, options).then(streamToBuffer)
   }
 
@@ -119,11 +119,25 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async list (dir: string = '.') {
-    return this._list(dir)
+  async list (
+    dir: string = '.',
+    {
+      filter,
+      prependDir = false,
+    }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
+  ): Promise<string[]> {
+    const entries = await this._list(dir)
+
+    if (prependDir) {
+      entries.forEach((entry, i) => {
+        entries[i] = dir + '/' + entry
+      })
+    }
+
+    return filter === undefined ? entries : entries.filter(filter)
   }
 
-  async _list (dir: string) {
+  async _list (dir: string): Promise<string[]> {
     throw new Error('Not implemented')
   }
 
@@ -207,7 +221,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async refreshChecksum (path: string): Promise<void> {
-    const stream: any = (await this.createReadStream(path)).pipe(
+    const stream = (await this.createReadStream(path)).pipe(
       createChecksumStream()
     )
     stream.resume() // start reading the whole file

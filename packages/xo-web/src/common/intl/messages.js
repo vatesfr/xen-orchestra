@@ -290,6 +290,8 @@ const messages = {
   jobEditMessage:
     'You are editing job {name} ({id}). Saving will override previous job state.',
   scheduleEdit: 'Edit',
+  scheduleSave: 'Save',
+  cancelScheduleEdition: 'Cancel',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   deleteSelectedSchedules: 'Delete selected schedules',
@@ -316,6 +318,8 @@ const messages = {
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',
   smartBackup: 'Smart backup',
+  exportRetention: 'Export retention',
+  snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
   useDelta: 'Use delta',
   useCompression: 'Use compression',
@@ -1192,7 +1196,6 @@ const messages = {
   deleteVmBackupsTitle: 'Delete {vm} backups',
   deleteVmBackupsSelect: 'Select backups to delete:',
   deleteVmBackupsSelectAll: 'All',
-  deleteVmBackupsDeltaInfo: 'Delta backup deletion will be available soon',
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',

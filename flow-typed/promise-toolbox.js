@@ -1,4 +1,5 @@
 declare module 'promise-toolbox' {
+  declare export function cancelable(Function): Function
   declare export function defer<T>(): {|
     promise: Promise<T>,
     reject: T => void,

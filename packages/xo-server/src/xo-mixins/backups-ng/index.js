@@ -2,19 +2,29 @@
 
 // $FlowFixMe
 import defer from 'golike-defer'
-import { basename, dirname, resolve } from 'path'
-import { timeout as pTimeout } from 'promise-toolbox'
-import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
+import { basename, dirname, resolve } from 'path'
+import { isEmpty, last, mapValues, noop, values } from 'lodash'
+import { timeout as pTimeout } from 'promise-toolbox'
 
 import { type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
-import createSizeStream from '../../size-stream'
 import type RemoteHandler from '../../remote-handlers/abstract'
+import createSizeStream from '../../size-stream'
+import {
+  type DeltaVmExport,
+  type DeltaVmImport,
+  type Vm,
+  type Xapi,
+} from '../../xapi'
 import { asyncMap, safeDateFormat, serializeError } from '../../utils'
-import type { Vm, Xapi } from '../../xapi'
+import mergeVhd, {
+  HARD_DISK_TYPE_DIFFERENCING,
+  chainVhd,
+  readVhdMetadata,
+} from '../../vhd-merge'
 
 type Mode = 'full' | 'delta'
 
@@ -22,11 +32,11 @@ type Settings = {|
   deleteFirst?: boolean,
   exportRetention?: number,
   snapshotRetention?: number,
-  vmTimeout?: number
+  vmTimeout?: number,
 |}
 
 type SimpleIdPattern = {|
-  id: string | {| __or: string[] |}
+  id: string | {| __or: string[] |},
 |}
 
 export type BackupJob = {|
@@ -37,34 +47,37 @@ export type BackupJob = {|
   settings: $Dict<Settings>,
   srs?: SimpleIdPattern,
   type: 'backup',
-  vms: Pattern
+  vms: Pattern,
 |}
 
 type BackupResult = {|
   mergeDuration: number,
   mergeSize: number,
   transferDuration: number,
-  transferSize: number
+  transferSize: number,
 |}
 
 type MetadataBase = {|
+  _filename?: string,
   jobId: string,
-  mode: Mode,
   scheduleId: string,
   timestamp: number,
   version: '2.0.0',
   vm: Object,
-  vmSnapshot: Object
+  vmSnapshot: Object,
 |}
 type MetadataDelta = {|
   ...MetadataBase,
   mode: 'delta',
-  vdis: $Dict<{}>
+  vdis: $PropertyType<DeltaVmExport, 'vdis'>,
+  vbds: $PropertyType<DeltaVmExport, 'vbds'>,
+  vhds: { [vdiId: string]: string },
+  vifs: $PropertyType<DeltaVmExport, 'vifs'>,
 |}
 type MetadataFull = {|
   ...MetadataBase,
-  data: string, // relative path to the XVA
-  mode: 'full'
+  mode: 'full',
+  xva: string,
 |}
 type Metadata = MetadataDelta | MetadataFull
 
@@ -110,6 +123,7 @@ const BACKUP_DIR = 'xo-vm-backups'
 const getVmBackupDir = (uuid: string) => `${BACKUP_DIR}/${uuid}`
 
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
+const isVhd = (filename: string) => filename.endsWith('.vhd')
 
 const listReplicatedVms = (
   xapi: Xapi,
@@ -134,6 +148,100 @@ const listReplicatedVms = (
   return values(vms).sort(compareSnapshotTime)
 }
 
+// returns the chain of parents of this VHD
+//
+// TODO: move to vhd-merge module
+const getVhdChain = async (
+  handler: RemoteHandler,
+  path: string
+): Promise<Object[]> => {
+  const chain = []
+
+  while (true) {
+    const vhd = await readVhdMetadata(handler, path)
+    vhd.path = path
+    chain.push(vhd)
+    if (vhd.header.type !== HARD_DISK_TYPE_DIFFERENCING) {
+      break
+    }
+    path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
+  }
+
+  return chain
+}
+
+const importers: $Dict<
+  (
+    handler: RemoteHandler,
+    metadataFilename: string,
+    metadata: Metadata,
+    xapi: Xapi,
+    sr: { $id: string }
+  ) => Promise<string>,
+  Mode
+> = {
+  async delta (handler, metadataFilename, metadata, xapi, sr) {
+    metadata = ((metadata: any): MetadataDelta)
+    const { vdis, vhds, vm } = metadata
+
+    const streams = {}
+    await asyncMap(vdis, async (vdi, id) => {
+      const chain = await getVhdChain(
+        handler,
+        resolveRelativeFromFile(metadataFilename, vhds[id])
+      )
+      streams[`${id}.vhd`] = await asyncMap(chain, ({ path }) =>
+        handler.createReadStream(path, {
+          checksum: true,
+          ignoreMissingChecksum: true,
+        })
+      )
+    })
+
+    const delta: DeltaVmImport = {
+      streams,
+      vbds: metadata.vbds,
+      vdis,
+      vifs: metadata.vifs,
+      vm: {
+        ...vm,
+        name_label: `${vm.name_label} ({${safeDateFormat(
+          metadata.timestamp
+        )}})`,
+        tags: [...vm.tags, 'restored from backup'],
+      },
+    }
+
+    const { vm: newVm } = await xapi.importDeltaVm(delta, {
+      disableStartAfterImport: false,
+      srId: sr,
+      // TODO: support mapVdisSrs
+    })
+    return newVm.$id
+  },
+  async full (handler, metadataFilename, metadata, xapi, sr) {
+    metadata = ((metadata: any): MetadataFull)
+
+    const xva = await handler.createReadStream(
+      resolveRelativeFromFile(metadataFilename, metadata.xva),
+      {
+        checksum: true,
+        ignoreMissingChecksum: true, // provide an easy way to opt-out
+      }
+    )
+    const vm = await xapi.importVm(xva, { srId: sr.$id })
+    await Promise.all([
+      xapi.addTag(vm.$id, 'restored from backup'),
+      xapi.editVm(vm.$id, {
+        name_label: `${metadata.vm.name_label} (${safeDateFormat(
+          metadata.timestamp
+        )})`,
+      }),
+    ])
+    return vm.$id
+  },
+}
+
 const parseVmBackupId = (id: string) => {
   const i = id.indexOf('/')
   return {
@@ -142,7 +250,7 @@ const parseVmBackupId = (id: string) => {
   }
 }
 
-// used to resolve the data field from the metadata
+// used to resolve the xva field from the metadata
 const resolveRelativeFromFile = (file: string, path: string): string =>
   resolve('/', dirname(file), path).slice(1)
 
@@ -226,7 +334,7 @@ export default class BackupNg {
     getXapi: (id: string) => Xapi,
     getJob: (id: string, 'backup') => Promise<BackupJob>,
     updateJob: ($Shape<BackupJob>) => Promise<BackupJob>,
-    removeJob: (id: string) => Promise<void>
+    removeJob: (id: string) => Promise<void>,
   }
 
   constructor (app: any) {
@@ -245,7 +353,7 @@ export default class BackupNg {
         }
 
         const job: BackupJob = (job_: any)
-        const vms = app.getObjects({
+        const vms: $Dict<Vm> = app.getObjects({
           filter: createPredicate({
             type: 'VM',
             ...job.vms,
@@ -384,13 +492,15 @@ export default class BackupNg {
     const metadata: Metadata = JSON.parse(
       String(await handler.readFile(metadataFilename))
     )
+    metadata._filename = metadataFilename
 
     if (metadata.mode === 'delta') {
-      throw new Error('not implemented')
+      await this._deleteDeltaVmBackups(handler, [metadata])
+    } else if (metadata.mode === 'full') {
+      await this._deleteFullVmBackups(handler, [metadata])
+    } else {
+      throw new Error(`no deleter for backup mode ${metadata.mode}`)
     }
-
-    metadata._filename = metadataFilename
-    await this._deleteFullVmBackups(handler, [metadata])
   }
 
   async importVmBackupNg (id: string, srId: string): Promise<string> {
@@ -401,29 +511,20 @@ export default class BackupNg {
       String(await handler.readFile(metadataFilename))
     )
 
-    if (metadata.mode === 'delta') {
-      throw new Error('not implemented')
+    const importer = importers[metadata.mode]
+    if (importer === undefined) {
+      throw new Error(`no importer for backup mode ${metadata.mode}`)
     }
 
     const xapi = app.getXapi(srId)
-    const sr = xapi.getObject(srId)
-    const xva = await handler.createReadStream(
-      resolveRelativeFromFile(metadataFilename, metadata.data),
-      {
-        checksum: true,
-        ignoreMissingChecksum: true, // provide an easy way to opt-out
-      }
+
+    return importer(
+      handler,
+      metadataFilename,
+      metadata,
+      xapi,
+      xapi.getObject(srId)
     )
-    const vm = await xapi.importVm(xva, { srId: sr.$id })
-    await Promise.all([
-      xapi.addTag(vm.$id, 'restored from backup'),
-      xapi.editVm(vm.$id, {
-        name_label: `${metadata.vm.name_label} (${safeDateFormat(
-          metadata.timestamp
-        )})`,
-      }),
-    ])
-    return vm.$id
   }
 
   async listVmBackupsNg (remotes: string[]) {
@@ -469,9 +570,12 @@ export default class BackupNg {
   // - [ ] clones of replicated VMs should not be garbage collected
   //     - if storing uuids in source VM, how to detect them if the source is
   //       lost?
-  // - [ ] adding and removing VDIs should behave
-  // - [ ] validate VHDs after exports and before imports
-  // - [ ] isolate VHD chains by job
+  // - [ ] validate VHDs after exports and before imports, how?
+  // - [ ] in case of merge failure
+  //       1. delete (or isolate) the tainted VHD
+  //       2. next run should be a full
+  // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
+  // - [ ] import for delta
   //
   // Low:
   // - [ ] check merge/transfert duration/size are what we want for delta
@@ -479,10 +583,10 @@ export default class BackupNg {
   // - [ ] possibility to (re-)run a single VM in a backup?
   // - [ ] display queued VMs
   // - [ ] snapshots and files of an old job should be detected and removed
+  // - [ ] delta import should support mapVdisSrs
+  // - [ ] size of the path? (base64url(Buffer.from(uuid.split('-').join(''), 'hex')))
   //
   // Triage:
-  // - [ ] protect against concurrent backup against a single VM (JFT: why?)
-  //       - shouldn't be necessary now that VHD chains are separated by job
   // - [ ] logs
   //
   // Done:
@@ -493,6 +597,8 @@ export default class BackupNg {
   // - [x] deleteFirst per target
   // - [x] timeout per VM
   // - [x] backups should be deletable from the API
+  // - [x] adding and removing VDIs should behave
+  // - [x] isolate VHD chains by job
   @defer
   async _backupVm (
     $defer: any,
@@ -540,17 +646,17 @@ export default class BackupNg {
       )
     )
 
-    let snapshot = await xapi._snapshotVm(
+    let snapshot: Vm = (await xapi._snapshotVm(
       $cancelToken,
       vm,
-      `[XO Backup] ${vm.name_label}`
-    )
+      `[XO Backup ${job.name}] ${vm.name_label}`
+    ): any)
     $defer.onFailure.call(xapi, '_deleteVm', snapshot)
     await xapi._updateObjectMapProperty(snapshot, 'other_config', {
       'xo:backup:job': jobId,
       'xo:backup:schedule': scheduleId,
     })
-    snapshot = await xapi.barrier(snapshot.$ref)
+    snapshot = ((await xapi.barrier(snapshot.$ref): any): Vm)
 
     if (exportRetention === 0) {
       return {
@@ -569,30 +675,19 @@ export default class BackupNg {
 
     const now = Date.now()
     const vmDir = getVmBackupDir(vm.uuid)
-    const { mode } = job
 
     const basename = safeDateFormat(now)
 
     const metadataFilename = `${vmDir}/${basename}.json`
 
-    const metadata: Metadata = {
-      jobId,
-      mode,
-      scheduleId,
-      timestamp: now,
-      version: '2.0.0',
-      vm,
-      vmSnapshot: snapshot,
-    }
-
-    if (mode === 'full') {
+    if (job.mode === 'full') {
       // TODO: do not create the snapshot if there are no snapshotRetention and
       // the VM is not running
       if (snapshotRetention === 0) {
         $defer.call(xapi, 'deleteVm', snapshot)
       }
 
-      let xva = await xapi.exportVm($cancelToken, snapshot, {
+      let xva: any = await xapi.exportVm($cancelToken, snapshot, {
         compress: job.compression === 'native',
       })
       const exportTask = xva.task
@@ -600,7 +695,16 @@ export default class BackupNg {
 
       const dataBasename = `${basename}.xva`
 
-      metadata.data = `./${dataBasename}`
+      const metadata: MetadataFull = {
+        jobId,
+        mode: 'full',
+        scheduleId,
+        timestamp: now,
+        version: '2.0.0',
+        vm,
+        vmSnapshot: snapshot,
+        xva: `./${dataBasename}`,
+      }
       const dataFilename = `${vmDir}/${dataBasename}`
 
       const jsonMetadata = JSON.stringify(metadata)
@@ -614,14 +718,14 @@ export default class BackupNg {
 
               const handler = await app.getRemoteHandler(remoteId)
 
-              const oldBackups = getOldEntries(
+              const oldBackups: MetadataFull[] = (getOldEntries(
                 exportRetention,
                 await this._listVmBackups(
                   handler,
                   vm,
                   _ => _.mode === 'full' && _.scheduleId === scheduleId
                 )
-              )
+              ): any)
 
               const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
               if (deleteFirst) {
@@ -697,190 +801,277 @@ export default class BackupNg {
         transferDuration: Date.now() - now,
         transferSize: xva.size,
       }
-    }
-
-    // const vdiDir = `${vmDir}/${jobId}/vdis`
-
-    const baseSnapshot = last(snapshots)
-    if (baseSnapshot !== undefined) {
-      console.log(baseSnapshot.$id) // TODO: remove
-      // check current state
-      // await Promise.all([asyncMap(remotes, remoteId => {})])
-    }
-
-    const deltaExport = await xapi.exportDeltaVm(
-      $cancelToken,
-      snapshot,
-      baseSnapshot
-    )
-
-    metadata.vbds = deltaExport.vbds
-    metadata.vdis = deltaExport.vdis
-    metadata.vifs = deltaExport.vifs
-    // const jsonMetadata = JSON.stringify(metadata)
-
-    // create a fork of the delta export
-    const forkExport = (() => {
-      // replace the stream factories by fork factories
-      const streams = mapValues(deltaExport.streams, lazyStream => {
-        let forks = []
-        return () => {
-          if (forks === undefined) {
-            throw new Error('cannot fork the stream after it has been created')
-          }
-          if (forks.length === 0) {
-            lazyStream().then(
-              stream => {
-                // $FlowFixMe
-                forks.forEach(({ resolve }) => {
-                  const fork = stream.pipe(new PassThrough())
-                  fork.task = stream.task
-                  resolve(fork)
-                })
-                forks = undefined
-              },
-              error => {
-                // $FlowFixMe
-                forks.forEach(({ reject }) => {
-                  reject(error)
-                })
-                forks = undefined
-              }
-            )
-          }
-          return new Promise((resolve, reject) => {
-            // $FlowFixMe
-            forks.push({ reject, resolve })
-          })
-        }
-      })
-      return () => {
-        return {
-          __proto__: deltaExport,
-          streams,
-        }
+    } else if (job.mode === 'delta') {
+      const baseSnapshot = last(snapshots)
+      if (baseSnapshot !== undefined) {
+        console.log(baseSnapshot.$id) // TODO: remove
+        // check current state
+        // await Promise.all([asyncMap(remotes, remoteId => {})])
       }
-    })()
 
-    const mergeStart = 0
-    const mergeEnd = 0
-    let transferStart = 0
-    let transferEnd = 0
-    const errors = []
-    await waitAll(
-      [
-        // ...remotes.map(
-        //   defer(async ($defer, remoteId) => {
-        //     const fork = forkExport()
-        //
-        //     const handler = await app.getRemoteHandler(remoteId)
-        //
-        //     // const oldBackups = getOldEntries(
-        //     //   exportRetention,
-        //     //   await this._listVmBackups(
-        //     //     handler,
-        //     //     vm,
-        //     //     _ => _.mode === 'delta' && _.scheduleId === scheduleId
-        //     //   )
-        //     // )
-        //
-        //     const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
-        //     if (deleteFirst) {
-        //       // TODO
-        //     }
-        //
-        //     await asyncMap(fork.vdis, (vdi, id) =>
-        //       writeStream(
-        //         fork.streams[`${id}.vhd`](),
-        //         handler,
-        //         `${vdiDir}/${vdi.uuid}/${basename}.vhd`
-        //       )
-        //     )
-        //
-        //     await handler.outputFile(metadataFilename, jsonMetadata)
-        //
-        //     if (!deleteFirst) {
-        //       // TODO
-        //     }
-        //   })
-        // ),
-        ...srs.map(
-          defer(async ($defer, srId) => {
-            const fork = forkExport()
+      const deltaExport = await xapi.exportDeltaVm(
+        $cancelToken,
+        snapshot,
+        baseSnapshot
+      )
 
-            const xapi = app.getXapi(srId)
-            const sr = xapi.getObject(srId)
-
-            const oldVms = getOldEntries(
-              exportRetention,
-              listReplicatedVms(xapi, scheduleId, srId)
-            )
-
-            const deleteFirst = getSetting(settings, 'deleteFirst', srId)
-            if (deleteFirst) {
-              await this._deleteVms(xapi, oldVms)
-            }
-
-            transferStart = Math.min(transferStart, Date.now())
-
-            const { vm } = await xapi.importDeltaVm(fork, {
-              disableStartAfterImport: false, // we'll take care of that
-              name_label: `${metadata.vm.name_label} (${safeDateFormat(
-                metadata.timestamp
-              )})`,
-              srId: sr.$id,
-            })
-
-            transferEnd = Math.max(transferEnd, Date.now())
-
-            await Promise.all([
-              xapi.addTag(vm.$ref, 'Continuous Replication'),
-              xapi._updateObjectMapProperty(vm, 'blocked_operations', {
-                start:
-                  'Start operation for this vm is blocked, clone it if you want to use it.',
-              }),
-              xapi._updateObjectMapProperty(vm, 'other_config', {
-                'xo:backup:sr': srId,
-              }),
-            ])
-
-            if (!deleteFirst) {
-              await this._deleteVms(xapi, oldVms)
-            }
-          })
+      const metadata: MetadataDelta = {
+        jobId,
+        mode: 'delta',
+        scheduleId,
+        timestamp: now,
+        vbds: deltaExport.vbds,
+        vdis: deltaExport.vdis,
+        version: '2.0.0',
+        vifs: deltaExport.vifs,
+        vhds: mapValues(
+          deltaExport.vdis,
+          vdi =>
+            `vdis/${jobId}/${
+              (xapi.getObject(vdi.snapshot_of): Object).uuid
+            }/${basename}.vhd`
         ),
-      ],
-      error => {
-        console.warn(error)
-        errors.push(error)
+        vm,
+        vmSnapshot: snapshot,
       }
-    )
-    if (errors.length !== 0) {
-      throw errors
-    }
 
-    return {
-      mergeDuration: mergeEnd - mergeStart,
-      mergeSize: 0,
-      transferDuration: transferEnd - transferStart,
-      transferSize: 0,
+      const jsonMetadata = JSON.stringify(metadata)
+
+      // create a fork of the delta export
+      const forkExport = (() => {
+        // replace the stream factories by fork factories
+        const streams: any = mapValues(deltaExport.streams, lazyStream => {
+          let forks = []
+          return () => {
+            if (forks === undefined) {
+              throw new Error(
+                'cannot fork the stream after it has been created'
+              )
+            }
+            if (forks.length === 0) {
+              lazyStream().then(
+                stream => {
+                  // $FlowFixMe
+                  forks.forEach(({ resolve }) => {
+                    const fork: any = stream.pipe(new PassThrough())
+                    fork.task = stream.task
+                    resolve(fork)
+                  })
+                  forks = undefined
+                },
+                error => {
+                  // $FlowFixMe
+                  forks.forEach(({ reject }) => {
+                    reject(error)
+                  })
+                  forks = undefined
+                }
+              )
+            }
+            return new Promise((resolve, reject) => {
+              // $FlowFixMe
+              forks.push({ reject, resolve })
+            })
+          }
+        })
+        return () => {
+          return {
+            __proto__: deltaExport,
+            streams,
+          }
+        }
+      })()
+
+      const mergeStart = 0
+      const mergeEnd = 0
+      let transferStart = 0
+      let transferEnd = 0
+      const errors = []
+      await waitAll(
+        [
+          ...remotes.map(
+            defer(async ($defer, remoteId) => {
+              const fork = forkExport()
+
+              const handler = await app.getRemoteHandler(remoteId)
+
+              const oldBackups: MetadataDelta[] = (getOldEntries(
+                exportRetention,
+                await this._listVmBackups(
+                  handler,
+                  vm,
+                  _ => _.mode === 'delta' && _.scheduleId === scheduleId
+                )
+              ): any)
+
+              const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
+              if (deleteFirst) {
+                this._deleteDeltaVmBackups(handler, oldBackups)
+              }
+
+              await asyncMap(
+                fork.vdis,
+                defer(async ($defer, vdi, id) => {
+                  const path = `${vmDir}/${metadata.vhds[id]}`
+
+                  const isDelta = 'xo:base_delta' in vdi.other_config
+                  let parentPath
+                  if (isDelta) {
+                    const vdiDir = dirname(path)
+                    const parent = (await handler.list(vdiDir))
+                      .filter(isVhd)
+                      .sort()
+                      .pop()
+                    parentPath = `${vdiDir}/${parent}`
+                  }
+
+                  await writeStream(fork.streams[`${id}.vhd`](), handler, path)
+                  $defer.onFailure.call(handler, 'unlink', path)
+
+                  if (isDelta) {
+                    await chainVhd(handler, parentPath, handler, path)
+                  }
+                })
+              )
+
+              await handler.outputFile(metadataFilename, jsonMetadata)
+
+              if (!deleteFirst) {
+                this._deleteDeltaVmBackups(handler, oldBackups)
+              }
+            })
+          ),
+          ...srs.map(
+            defer(async ($defer, srId) => {
+              const fork = forkExport()
+
+              const xapi = app.getXapi(srId)
+              const sr = xapi.getObject(srId)
+
+              const oldVms = getOldEntries(
+                exportRetention,
+                listReplicatedVms(xapi, scheduleId, srId)
+              )
+
+              const deleteFirst = getSetting(settings, 'deleteFirst', srId)
+              if (deleteFirst) {
+                await this._deleteVms(xapi, oldVms)
+              }
+
+              transferStart = Math.min(transferStart, Date.now())
+
+              const { vm } = await xapi.importDeltaVm(fork, {
+                disableStartAfterImport: false, // we'll take care of that
+                name_label: `${metadata.vm.name_label} (${safeDateFormat(
+                  metadata.timestamp
+                )})`,
+                srId: sr.$id,
+              })
+
+              transferEnd = Math.max(transferEnd, Date.now())
+
+              await Promise.all([
+                xapi.addTag(vm.$ref, 'Continuous Replication'),
+                xapi._updateObjectMapProperty(vm, 'blocked_operations', {
+                  start:
+                    'Start operation for this vm is blocked, clone it if you want to use it.',
+                }),
+                xapi._updateObjectMapProperty(vm, 'other_config', {
+                  'xo:backup:sr': srId,
+                }),
+              ])
+
+              if (!deleteFirst) {
+                await this._deleteVms(xapi, oldVms)
+              }
+            })
+          ),
+        ],
+        error => {
+          console.warn(error)
+          errors.push(error)
+        }
+      )
+      if (errors.length !== 0) {
+        throw errors
+      }
+
+      return {
+        mergeDuration: mergeEnd - mergeStart,
+        mergeSize: 0,
+        transferDuration: transferEnd - transferStart,
+        transferSize: 0,
+      }
+    } else {
+      throw new Error(`no exporter for backup mode ${job.mode}`)
     }
+  }
+
+  async _deleteDeltaVmBackups (
+    handler: RemoteHandler,
+    backups: MetadataDelta[]
+  ): Promise<void> {
+    // TODO: remove VHD as well
+    await asyncMap(backups, async backup => {
+      const filename = ((backup._filename: any): string)
+
+      return Promise.all([
+        handler.unlink(filename),
+        asyncMap(backup.vhds, _ =>
+          // $FlowFixMe injected $defer param
+          this._deleteVhd(handler, resolveRelativeFromFile(filename, _))
+        ),
+      ])
+    })
   }
 
   async _deleteFullVmBackups (
     handler: RemoteHandler,
-    backups: Metadata[]
+    backups: MetadataFull[]
   ): Promise<void> {
-    await asyncMap(backups, ({ _filename, data }) =>
-      Promise.all([
+    await asyncMap(backups, ({ _filename, xva }) => {
+      _filename = ((_filename: any): string)
+      return Promise.all([
         handler.unlink(_filename),
-        handler.unlink(resolveRelativeFromFile(_filename, data)),
+        handler.unlink(resolveRelativeFromFile(_filename, xva)),
       ])
-    )
+    })
   }
 
-  async _deleteVms (xapi: Xapi, vms: Object[]): Promise<void> {
-    return asyncMap(vms, vm => xapi.deleteVm(vm))
+  // FIXME: synchronize by job/VDI, otherwise it can cause issues with the merge
+  @defer
+  async _deleteVhd ($defer: any, handler: RemoteHandler, path: string) {
+    const vhds = await asyncMap(
+      await handler.list(dirname(path), { filter: isVhd, prependDir: true }),
+      async path => {
+        const metadata = await readVhdMetadata(handler, path)
+        metadata.path = path
+        return metadata
+      }
+    )
+    const base = basename(path)
+    const child = vhds.find(_ => _.header.parentUnicodeName === base)
+    if (child === undefined) {
+      return handler.unlink(path)
+    }
+
+    $defer.onFailure.call(handler, 'unlink', path)
+
+    const childPath = child.path
+
+    await Promise.all([
+      mergeVhd(handler, path, handler, childPath),
+      handler.unlink(path + '.checksum'),
+    ])
+
+    await Promise.all([
+      handler.rename(path, childPath),
+      handler.unlink(childPath + '.checksum'),
+    ])
+  }
+
+  async _deleteVms (xapi: Xapi, vms: Vm[]): Promise<void> {
+    await asyncMap(vms, vm => xapi.deleteVm(vm))
   }
 
   async _listVmBackups (
