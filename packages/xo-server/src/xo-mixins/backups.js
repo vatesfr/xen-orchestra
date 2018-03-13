@@ -101,30 +101,6 @@ const getDeltaBackupNameWithoutExt = name =>
   name.slice(0, -DELTA_BACKUP_EXT_LENGTH)
 const isDeltaBackup = name => endsWith(name, DELTA_BACKUP_EXT)
 
-// Checksums have been corrupted between 5.2.6 and 5.2.7.
-//
-// For a short period of time, bad checksums will be regenerated
-// instead of rejected.
-//
-// TODO: restore when enough time has passed (a week/a month).
-async function checkFileIntegrity (handler, name) {
-  await handler.refreshChecksum(name)
-  //  let stream
-  //
-  //  try {
-  //    stream = await handler.createReadStream(name, { checksum: true })
-  //  } catch (error) {
-  //    if (error.code === 'ENOENT') {
-  //      return
-  //    }
-  //
-  //    throw error
-  //  }
-  //
-  //  stream.resume()
-  //  await fromEvent(stream, 'finish')
-}
-
 // -------------------------------------------------------------------
 
 const listPartitions = (() => {
@@ -545,15 +521,7 @@ export default class {
     const backups = await this._listVdiBackups(handler, dir)
     for (let i = 1; i < backups.length; i++) {
       const childPath = dir + '/' + backups[i]
-      const modified = await chainVhd(
-        handler,
-        dir + '/' + backups[i - 1],
-        handler,
-        childPath
-      )
-      if (modified) {
-        await handler.refreshChecksum(childPath)
-      }
+      await chainVhd(handler, dir + '/' + backups[i - 1], handler, childPath)
     }
   }
 
@@ -569,8 +537,6 @@ export default class {
     const timestamp = getVdiTimestamp(backups[i])
     const newFullBackup = `${dir}/${timestamp}_full.vhd`
 
-    await checkFileIntegrity(handler, `${dir}/${backups[i]}`)
-
     let j = i
     for (; j > 0 && isDeltaVdiBackup(backups[j]); j--);
     const fullBackupId = j
@@ -585,7 +551,6 @@ export default class {
       const backup = `${dir}/${backups[j]}`
 
       try {
-        await checkFileIntegrity(handler, backup)
         mergedDataSize += await vhdMerge(handler, parent, handler, backup)
       } catch (e) {
         console.error('Unable to use vhd-util.', e)
@@ -666,13 +631,7 @@ export default class {
     const sizeStream = createSizeStream()
 
     try {
-      const targetStream = await handler.createOutputStream(backupFullPath, {
-        // FIXME: Checksum is not computed for full vdi backups.
-        // The problem is in the merge case, a delta merged in a full vdi
-        // backup forces us to browse the resulting file =>
-        // Significant transfer time on the network !
-        checksum: !isFull,
-      })
+      const targetStream = await handler.createOutputStream(backupFullPath)
 
       stream.on('error', error => targetStream.emit('error', error))
 
@@ -889,10 +848,7 @@ export default class {
 
           streams[`${id}.vhd`] = await Promise.all(
             mapToArray(backups, async backup =>
-              handler.createReadStream(`${vdisFolder}/${backup}`, {
-                checksum: true,
-                ignoreMissingChecksum: true,
-              })
+              handler.createReadStream(`${vdisFolder}/${backup}`)
             )
           )
         })

@@ -283,19 +283,20 @@ async function waitAll<T> (
 const writeStream = async (
   input: Readable | Promise<Readable>,
   handler: RemoteHandler,
-  path: string
+  path: string,
+  { checksum = true }: { checksum?: boolean } = {}
 ): Promise<void> => {
   input = await input
   const tmpPath = `${dirname(path)}/.${basename(path)}`
-  const output = await handler.createOutputStream(tmpPath, { checksum: true })
+  const output = await handler.createOutputStream(tmpPath, { checksum })
   try {
     input.pipe(output)
     await output.checksumWritten
     // $FlowFixMe
     await input.task
-    await handler.rename(tmpPath, path, { checksum: true })
+    await handler.rename(tmpPath, path, { checksum })
   } catch (error) {
-    await handler.unlink(tmpPath)
+    await handler.unlink(tmpPath, { checksum })
     throw error
   }
 }
@@ -311,8 +312,7 @@ const writeStream = async (
 //      │  └─ <job UUID>
 //      │     └─ <VDI UUID>
 //      │        ├─ index.json // TODO
-//      │        ├─ <YYYYMMDD>T<HHmmss>.vhd
-//      │        └─ <YYYYMMDD>T<HHmmss>.vhd.checksum (only for deltas)
+//      │        └─ <YYYYMMDD>T<HHmmss>.vhd
 //      ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
 //      ├─ <YYYYMMDD>T<HHmmss>.xva
 //      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
@@ -925,7 +925,16 @@ export default class BackupNg {
                     parentPath = `${vdiDir}/${parent}`
                   }
 
-                  await writeStream(fork.streams[`${id}.vhd`](), handler, path)
+                  await writeStream(
+                    fork.streams[`${id}.vhd`](),
+                    handler,
+                    path,
+                    {
+                      // no checksum for VHDs, because they will be invalidated by
+                      // merges and chainings
+                      checksum: false,
+                    }
+                  )
                   $defer.onFailure.call(handler, 'unlink', path)
 
                   if (isDelta) {
@@ -1058,16 +1067,8 @@ export default class BackupNg {
     $defer.onFailure.call(handler, 'unlink', path)
 
     const childPath = child.path
-
-    await Promise.all([
-      mergeVhd(handler, path, handler, childPath),
-      handler.unlink(path + '.checksum'),
-    ])
-
-    await Promise.all([
-      handler.rename(path, childPath),
-      handler.unlink(childPath + '.checksum'),
-    ])
+    await mergeVhd(handler, path, handler, childPath)
+    await handler.rename(path, childPath)
   }
 
   async _deleteVms (xapi: Xapi, vms: Vm[]): Promise<void> {
