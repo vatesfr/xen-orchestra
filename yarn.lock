@@ -10623,6 +10623,10 @@ stealthy-require@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/stealthy-require/-/stealthy-require-1.1.1.tgz#35b09875b4ff49f26a777e509b3090a3226bf24b"
 
+stoppable@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/stoppable/-/stoppable-1.0.5.tgz#96917d198fa21918cfc17475a3a1536190ee7aed"
+
 stream-browserify@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/stream-browserify/-/stream-browserify-2.0.1.tgz#66266ee5f9bdb9940a4e4514cafb43bb71e5c9db"

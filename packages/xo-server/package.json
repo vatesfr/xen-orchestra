@@ -101,6 +101,7 @@
     "serve-static": "^1.13.1",
     "split-lines": "^1.1.0",
     "stack-chain": "^2.0.0",
+    "stoppable": "^1.0.5",
     "tar-stream": "^1.5.5",
     "through2": "^2.0.3",
     "tmp": "^0.0.33",

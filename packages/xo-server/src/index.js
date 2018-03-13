@@ -9,6 +9,7 @@ import includes from 'lodash/includes'
 import proxyConsole from './proxy-console'
 import serveStatic from 'serve-static'
 import startsWith from 'lodash/startsWith'
+import stoppable from 'stoppable'
 import WebSocket from 'ws'
 import { compile as compilePug } from 'pug'
 import { createServer as createProxyServer } from 'http-proxy'
@@ -332,7 +333,7 @@ async function makeWebServerListen (
 }
 
 async function createWebServer ({ listen, listenOptions }) {
-  const webServer = new WebServer()
+  const webServer = stoppable(new WebServer())
 
   await Promise.all(
     mapToArray(listen, opts =>
@@ -565,7 +566,7 @@ export default async function main (args) {
   const xo = new Xo(config)
 
   // Register web server close on XO stop.
-  xo.on('stop', () => pFromCallback(cb => webServer.close(cb)))
+  xo.on('stop', () => pFromCallback(cb => webServer.stop(cb)))
 
   // Connects to all registered servers.
   await xo.start()
