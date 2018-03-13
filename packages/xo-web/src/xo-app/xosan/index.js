@@ -172,7 +172,7 @@ const XOSAN_COLUMNS = [
             '✔'
           ) : expired ? (
             <span>
-              {_('xosanLicenseHasExpired')}{' '}
+              {_('licenseHasExpired')}{' '}
               {isAdmin && (
                 <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
               )}

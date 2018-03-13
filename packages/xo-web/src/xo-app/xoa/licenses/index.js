@@ -6,30 +6,94 @@ import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import {
-  addSubscriptions,
-  adminOnly,
-  connectStore,
-  getXoaPlan,
-  ShortDate,
-} from 'utils'
+import { addSubscriptions, adminOnly, connectStore, ShortDate } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
-import { find, forEach } from 'lodash'
 import { get } from '@xen-orchestra/defined'
-import { subscribePlugins, getLicenses } from 'xo'
+import {
+  subscribePlugins,
+  getLicenses,
+  productId2Plan,
+  selfBindLicense,
+  subscribeCurrentLicense,
+} from 'xo'
+import { find, flatten, forEach, some, pick, toArray, zipObject } from 'lodash'
 
 import Xosan from './xosan'
 
-const openNewLicense = () => {
-  // FIXME: use link with target attribute
-  window.open('https://xen-orchestra.com/#!/member/purchaser')
+const PRODUCTS = [
+  'xosan',
+  'xosan.trial',
+  'starter',
+  'enterprise',
+  'premium',
+  'sb-premium',
+]
+
+// -----------------------------------------------------------------------------
+
+const LicenseManager = ({ item, userData }) => {
+  const { type } = item
+
+  if (type === 'xosan') {
+    const { srId } = item
+
+    if (srId === undefined) {
+      return _('licenseNotBoundXosan')
+    }
+
+    const sr = userData.xosanSrs[srId]
+    if (sr === undefined) {
+      return _('licenseBoundUnknownXosan')
+    }
+
+    return <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>
+  }
+
+  if (type === 'xoa') {
+    const { id, xoaId } = item
+    const { xoaLicense } = userData
+
+    if (xoaLicense != null) {
+      if (xoaLicense.id === id) {
+        return (
+          <span>
+            {_('licenseBoundToThisXoa')}{' '}
+            {productId2Plan(xoaLicense.productId) !== process.env.XOA_PLAN && (
+              <span className='ml-1'>
+                <Icon icon='error' />{' '}
+                <Link to='/xoa/update'>{_('updateNeeded')}</Link>
+              </span>
+            )}
+          </span>
+        )
+      }
+
+      return null // XOA is bound to another license
+    }
+
+    if (xoaId === undefined) {
+      return (
+        <ActionButton
+          btnStyle='success'
+          data-id={item.licenseId}
+          data-plan={item.productId}
+          handler={selfBindLicense}
+          icon='unlock'
+        >
+          {_('bindXoaLicense')}
+        </ActionButton>
+      )
+    }
+
+    return <span>{_('licenseBoundToOtherXoa')}</span>
+  }
+
+  console.warn('encountered unsupported license type')
+  return null
 }
 
-const openSupport = () => {
-  // FIXME: use link with target attribute
-  window.open('https://xen-orchestra.com/#!/xosan-home/')
-}
+// -----------------------------------------------------------------------------
 
 const PRODUCTS_COLUMNS = [
   {
@@ -43,9 +107,8 @@ const PRODUCTS_COLUMNS = [
     default: true,
   },
   {
-    name: _('licenseBoundObject'),
-    itemRenderer: ({ renderBoundObject }) =>
-      renderBoundObject !== undefined && renderBoundObject(),
+    name: '',
+    component: LicenseManager,
   },
   {
     name: _('licensePurchaser'),
@@ -70,18 +133,7 @@ const PRODUCTS_COLUMNS = [
   },
 ]
 
-const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
-  if (boundObjectId === undefined) {
-    return () => _('licenseNotBoundXosan')
-  }
-
-  const sr = xosanSrs[boundObjectId]
-  if (sr === undefined) {
-    return () => _('licenseBoundUnknownXosan')
-  }
-
-  return () => <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>
-}
+// -----------------------------------------------------------------------------
 
 @adminOnly
 @connectStore({
@@ -92,6 +144,7 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
 })
 @addSubscriptions(() => ({
   plugins: subscribePlugins,
+  xoaLicense: subscribeCurrentLicense,
 }))
 export default class Licenses extends Component {
   constructor() {
@@ -100,46 +153,64 @@ export default class Licenses extends Component {
     this.componentDidMount = this._updateLicenses
   }
 
-  _updateLicenses = () =>
-    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')])
-      .then(([xosanLicenses, xosanTrialLicenses]) => {
-        this.setState({
-          xosanLicenses,
-          xosanTrialLicenses,
-          licenseError: undefined,
-        })
+  _updateLicenses = () => {
+    this.setState({ licenseError: undefined })
+
+    return Promise.all(PRODUCTS.map(getLicenses))
+      .then(licenses => {
+        this.setState({ licenses: zipObject(PRODUCTS, licenses) })
       })
       .catch(error => {
         this.setState({ licenseError: error })
       })
+  }
 
   _getProducts = createSelector(
-    () => this.state.xosanLicenses,
     () => this.props.xosanSrs,
-    (xosanLicenses, xosanSrs) => {
-      const products = []
-      if (get(() => xosanLicenses.state) === 'register-needed') {
+    () => this.state.licenses,
+    (xosanSrs, licenses) => {
+      if (get(() => licenses.xosan.state) === 'register-needed') {
         // Should not happen
         return
       }
 
-      // XOSAN
-      const boundSrs = []
-      forEach(xosanLicenses, license => {
-        if (license.boundObjectId !== undefined) {
-          boundSrs.push(license.boundObjectId)
+      const now = Date.now()
+      const products = []
+
+      // --- XOSAN ---
+      forEach(licenses.xosan, license => {
+        if (!(license.expires < now)) {
+          products.push({
+            buyer: license.buyer,
+            expires: license.expires,
+            id: license.id,
+            product: 'XOSAN',
+            srId: license.boundObjectId,
+            type: 'xosan',
+          })
         }
-        products.push({
-          product: 'XOSAN',
-          renderBoundObject: getBoundXosanRenderer(
-            license.boundObjectId,
-            xosanSrs
-          ),
-          buyer: license.buyer,
-          expires: license.expires,
-          id: license.id,
-        })
       })
+
+      // --- XOA ---
+      forEach(
+        flatten(
+          toArray(
+            pick(licenses, ['starter', 'enterprise', 'premium', 'sb-premium'])
+          )
+        ),
+        license => {
+          if (!(license.expires < now)) {
+            products.push({
+              buyer: license.buyer,
+              expires: license.expires,
+              id: license.id,
+              product: `XOA ${license.productId}`,
+              type: 'xoa',
+              xoaId: license.boundObjectId,
+            })
+          }
+        }
+      )
 
       return products
     }
@@ -182,24 +253,23 @@ export default class Licenses extends Component {
       return <span className='text-danger'>{_('xosanGetLicensesError')}</span>
     }
 
-    if (
-      this.state.xosanLicenses === undefined &&
-      this.state.xosanTrialLicenses === undefined
-    ) {
+    if (!some(this.state.licenses)) {
       return <em>{_('statusLoading')}</em>
     }
+
+    const { xoaRegistration, xoaLicense, xosanSrs } = this.props
 
     return (
       <Container>
         <Row className='mb-1'>
           <Col>
-            <ActionButton
-              btnStyle='success'
-              icon='add'
-              handler={openNewLicense}
+            <a
+              className='btn btn-success'
+              href='https://xen-orchestra.com/#!/member/purchaser'
+              target='_blank'
             >
-              {_('newLicense')}
-            </ActionButton>
+              <Icon icon='add' /> {_('newLicense')}
+            </a>
             <ActionButton
               btnStyle='primary'
               className='ml-1'
@@ -210,22 +280,15 @@ export default class Licenses extends Component {
             </ActionButton>
           </Col>
         </Row>
-        {/* TODO: Remove when XOA license management is available */}
-        <Row>
-          <Col>
-            <Icon icon='info' />{' '}
-            <em>{_('xoaLicenseNotShown', { plan: getXoaPlan() })}</em>
-          </Col>
-        </Row>
         <Row>
           <Col>
             <SortedTable
               collection={this._getProducts()}
               columns={PRODUCTS_COLUMNS}
+              data-registeredEmail={xoaRegistration.email}
+              data-xoaLicense={xoaLicense}
+              data-xosanSrs={xosanSrs}
               stateUrlParam='s'
-              userData={{
-                registeredEmail: this.props.xoaRegistration.email,
-              }}
             />
           </Col>
         </Row>
@@ -233,13 +296,17 @@ export default class Licenses extends Component {
           <Col>
             <h2>
               XOSAN
-              <ActionButton className='ml-1' handler={openSupport} icon='bug'>
-                {_('productSupport')}
-              </ActionButton>
+              <a
+                className='btn btn-secondary ml-1'
+                href='https://xen-orchestra.com/#!/xosan-home'
+                target='_blank'
+              >
+                <Icon icon='bug' /> {_('productSupport')}
+              </a>
             </h2>
             <Xosan
-              xosanLicenses={this.state.xosanLicenses}
-              xosanTrialLicenses={this.state.xosanTrialLicenses}
+              xosanLicenses={this.state.xosan}
+              xosanTrialLicenses={this.state['xosan.trial']}
               updateLicenses={this._updateLicenses}
             />
           </Col>
