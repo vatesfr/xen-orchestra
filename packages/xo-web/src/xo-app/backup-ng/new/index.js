@@ -2,27 +2,16 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
-import SmartBackupPreview from 'smart-backup-preview'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, connectStore, resolveId, resolveIds } from 'utils'
+import { addSubscriptions, resolveId, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Col, Row } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
 import { flatten, get, keyBy, isEmpty, map, some } from 'lodash'
 import { injectState, provideState } from '@julien-f/freactal'
-import { Select, Toggle } from 'form'
-import {
-  constructSmartPattern,
-  destructSmartPattern,
-} from 'smart-backup-pattern'
-import {
-  SelectPool,
-  SelectRemote,
-  SelectSr,
-  SelectTag,
-  SelectVm,
-} from 'select-objects'
+import { Toggle } from 'form'
+import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
+import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   createBackupNgJob,
   createSchedule,
@@ -33,132 +22,12 @@ import {
 } from 'xo'
 
 import Schedules from './schedules'
+import SmartBackup from './smart-backup'
 import { FormGroup, getRandomId, Input, Ul, Li } from './utils'
 
 // ===================================================================
 
-const SMART_MODE_INITIAL_STATE = {
-  powerState: 'All',
-  $pool: {},
-  tags: {},
-}
-
-const SMART_MODE_FUNCTIONS = {
-  setPowerState: (_, powerState) => state => ({
-    ...state,
-    powerState,
-  }),
-  setPoolValues: (_, values) => state => ({
-    ...state,
-    $pool: {
-      ...state.$pool,
-      values,
-    },
-  }),
-  setPoolNotValues: (_, notValues) => state => ({
-    ...state,
-    $pool: {
-      ...state.$pool,
-      notValues,
-    },
-  }),
-  setTagValues: (_, values) => state => ({
-    ...state,
-    tags: {
-      ...state.tags,
-      values,
-    },
-  }),
-  setTagNotValues: (_, notValues) => state => ({
-    ...state,
-    tags: {
-      ...state.tags,
-      notValues,
-    },
-  }),
-}
-
 const normaliseTagValues = values => resolveIds(values).map(value => [value])
-
-const SMART_MODE_COMPUTED = {
-  vmsSmartPattern: ({ $pool, powerState, tags }) => ({
-    $pool: constructSmartPattern($pool, resolveIds),
-    power_state: powerState === 'All' ? undefined : powerState,
-    tags: constructSmartPattern(tags, normaliseTagValues),
-    type: 'VM',
-  }),
-  allVms: (state, { allVms }) => allVms,
-}
-
-const VMS_STATUSES_OPTIONS = [
-  { value: 'All', label: _('vmStateAll') },
-  { value: 'Running', label: _('vmStateRunning') },
-  { value: 'Halted', label: _('vmStateHalted') },
-]
-
-const SmartBackup = injectState(({ state, effects }) => (
-  <div>
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartStatusTitle')}</strong>
-      </label>
-      <Select
-        options={VMS_STATUSES_OPTIONS}
-        onChange={effects.setPowerState}
-        value={state.powerState}
-        simpleValue
-        required
-      />
-    </FormGroup>
-    <h3>{_('editBackupSmartPools')}</h3>
-    <hr />
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartResidentOn')}</strong>
-      </label>
-      <SelectPool
-        multi
-        onChange={effects.setPoolValues}
-        value={get(state.$pool, 'values')}
-      />
-    </FormGroup>
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartNotResidentOn')}</strong>
-      </label>
-      <SelectPool
-        multi
-        onChange={effects.setPoolNotValues}
-        value={get(state.$pool, 'notValues')}
-      />
-    </FormGroup>
-    <h3>{_('editBackupSmartTags')}</h3>
-    <hr />
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartTagsTitle')}</strong>
-      </label>
-      <SelectTag
-        multi
-        onChange={effects.setTagValues}
-        value={get(state.tags, 'values')}
-      />
-    </FormGroup>
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartExcludedTagsTitle')}</strong>
-      </label>
-      <SelectTag
-        multi
-        onChange={effects.setTagNotValues}
-        value={get(state.tags, 'notValues')}
-      />
-    </FormGroup>
-    <SmartBackupPreview vms={state.allVms} pattern={state.vmsSmartPattern} />
-  </div>
-))
-
-// ===================================================================
 
 const constructPattern = values => ({
   id: {
@@ -211,9 +80,6 @@ export default [
       <New {...props} />
     </Upgrade>
   ),
-  connectStore({
-    allVms: createGetObjectsOfType('VM'),
-  }),
   addSubscriptions({
     remotes: cb =>
       subscribeRemotes(remotes => {
@@ -222,23 +88,25 @@ export default [
   }),
   provideState({
     initialState: () => ({
-      compression: true,
+      $pool: {},
       backupMode: undefined,
-      drMode: undefined,
-      deltaMode: undefined,
+      compression: true,
       crMode: undefined,
-      snapshotMode: undefined,
+      deltaMode: undefined,
+      drMode: undefined,
+      editionMode: undefined,
       formId: getRandomId(),
       name: '',
+      newSchedules: {},
       paramsUpdated: false,
+      powerState: 'All',
       remotes: [],
       smartMode: false,
+      snapshotMode: undefined,
       srs: [],
-      vms: [],
+      tags: {},
       tmpSchedule: {},
-      newSchedules: {},
-      editionMode: undefined,
-      ...SMART_MODE_INITIAL_STATE,
+      vms: [],
     }),
     effects: {
       createJob: () => async state => {
@@ -486,7 +354,38 @@ export default [
           },
         }
       },
-      ...SMART_MODE_FUNCTIONS,
+      setPowerState: (_, powerState) => state => ({
+        ...state,
+        powerState,
+      }),
+      setPoolValues: (_, values) => state => ({
+        ...state,
+        $pool: {
+          ...state.$pool,
+          values,
+        },
+      }),
+      setPoolNotValues: (_, notValues) => state => ({
+        ...state,
+        $pool: {
+          ...state.$pool,
+          notValues,
+        },
+      }),
+      setTagValues: (_, values) => state => ({
+        ...state,
+        tags: {
+          ...state.tags,
+          values,
+        },
+      }),
+      setTagNotValues: (_, notValues) => state => ({
+        ...state,
+        tags: {
+          ...state.tags,
+          notValues,
+        },
+      }),
     },
     computed: {
       needUpdateParams: (state, { job }) =>
@@ -513,7 +412,12 @@ export default [
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
       allRemotes: (state, { remotes }) => remotes,
-      ...SMART_MODE_COMPUTED,
+      vmsSmartPattern: ({ $pool, powerState, tags }) => ({
+        $pool: constructSmartPattern($pool, resolveIds),
+        power_state: powerState === 'All' ? undefined : powerState,
+        tags: constructSmartPattern(tags, normaliseTagValues),
+        type: 'VM',
+      }),
     },
   }),
   injectState,
