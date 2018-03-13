@@ -194,7 +194,7 @@ export class Vhd {
   // =================================================================
 
   _readStream (start, n) {
-    return this._handler.createReadStream(this._fd ? this._fd : this._path, {
+    return this._handler.createReadStream(this._path, {
       start,
       end: start + n - 1, // end is inclusive
     })
@@ -394,13 +394,10 @@ export class Vhd {
       }`
     )
     // TODO: could probably be merged in remote handlers.
-    const stream = await this._handler.createOutputStream(
-      this._fd ? this._fd : this._path,
-      {
-        flags: 'r+',
-        start: offset,
-      }
-    )
+    const stream = await this._handler.createOutputStream(this._path, {
+      flags: 'r+',
+      start: offset,
+    })
     return Buffer.isBuffer(data)
       ? new Promise((resolve, reject) => {
         stream.on('error', reject)
@@ -648,12 +645,13 @@ export default concurrency(2)(async function vhdMerge (
   childHandler,
   childPath
 ) {
-  const parentVhd = new Vhd(parentHandler, parentPath)
-  parentVhd._fd = await parentHandler.openFile(parentPath, 'r+')
+  const parentFd = await parentHandler.openFile(parentPath, 'r+')
   try {
-    const childVhd = new Vhd(childHandler, childPath)
-    childVhd._fd = await childHandler.openFile(childPath, 'r')
+    const parentVhd = new Vhd(parentHandler, parentFd)
+    const childFd = await childHandler.openFile(childPath, 'r')
     try {
+      const childVhd = new Vhd(childHandler, childFd)
+
       // Reading footer and header.
       await Promise.all([
         parentVhd.readHeaderAndFooter(),
@@ -706,10 +704,10 @@ export default concurrency(2)(async function vhdMerge (
 
       return mergedDataSize
     } finally {
-      await childHandler.closeFile(childVhd._fd)
+      await childHandler.closeFile(childFd)
     }
   } finally {
-    await parentHandler.closeFile(parentVhd._fd)
+    await parentHandler.closeFile(parentFd)
   }
 })
 
