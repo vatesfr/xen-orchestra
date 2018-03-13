@@ -739,20 +739,6 @@ export async function chainVhd (
     return true
   }
 
-  // The checksum was broken between xo-server v5.2.4 and v5.2.5
-  //
-  // Replace by a correct checksum if necessary.
-  //
-  // TODO: remove when enough time as passed (6 months).
-  {
-    const rawHeader = fuHeader.pack(header)
-    const checksum = checksumStruct(rawHeader, fuHeader)
-    if (checksum !== header.checksum) {
-      await childVhd._write(rawHeader, VHD_FOOTER_SIZE)
-      return true
-    }
-  }
-
   return false
 }
 
