@@ -7,6 +7,9 @@ import { defer, fromEvent } from 'promise-toolbox'
 import { invert } from 'lodash'
 import { type Readable, type Transform } from 'stream'
 
+// Format: $<algorithm>$<salt>$<encrypted>
+//
+// http://man7.org/linux/man-pages/man3/crypt.3.html#NOTES
 const ALGORITHM_TO_ID = {
   md5: '1',
   sha256: '5',
