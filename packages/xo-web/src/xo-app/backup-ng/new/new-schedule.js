@@ -5,6 +5,7 @@ import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
+import { isEqual } from 'lodash'
 
 import { FormGroup, getRandomId, Input } from './utils'
 
@@ -19,6 +20,12 @@ export default [
         timezone = moment.tz.guess(),
       },
     }) => ({
+      oldSchedule: {
+        cron,
+        exportRetention,
+        snapshotRetention,
+        timezone,
+      },
       cron,
       exportRetention,
       formId: getRandomId(),
@@ -41,9 +48,21 @@ export default [
       }),
     },
     computed: {
-      isScheduleInvalid: ({ snapshotRetention, exportRetention }) =>
-        (+snapshotRetention === 0 || snapshotRetention === '') &&
-        (+exportRetention === 0 || exportRetention === ''),
+      isScheduleInvalid: ({
+        cron,
+        exportRetention,
+        snapshotRetention,
+        timezone,
+        oldSchedule,
+      }) =>
+        ((+snapshotRetention === 0 || snapshotRetention === '') &&
+          (+exportRetention === 0 || exportRetention === '')) ||
+        isEqual(oldSchedule, {
+          cron,
+          exportRetention,
+          snapshotRetention,
+          timezone,
+        }),
     },
   }),
   injectState,
