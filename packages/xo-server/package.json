@@ -70,7 +70,7 @@
     "is-redirect": "^1.0.0",
     "js-yaml": "^3.10.0",
     "json-rpc-peer": "^0.15.3",
-    "json5": "^0.5.1",
+    "json5": "^1.0.0",
     "julien-f-source-map-support": "0.1.0",
     "julien-f-unzip": "^0.2.1",
     "kindof": "^2.0.0",

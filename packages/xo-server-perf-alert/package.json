@@ -22,7 +22,7 @@
   "dependencies": {
     "@xen-orchestra/cron": "^1.0.2",
     "d3-time-format": "^2.1.1",
-    "json5": "^0.5.1",
+    "json5": "^1.0.0",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
