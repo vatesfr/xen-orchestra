@@ -14,7 +14,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { flatten, get, includes, isEmpty, map, mapValues, some } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { fromCallback } from 'promise-toolbox'
 import { SelectPool } from 'select-objects'
@@ -22,8 +22,12 @@ import {
   deleteMessage,
   deleteOrphanedVdis,
   deleteVbd,
+  deleteVbds,
   deleteVdi,
+  deleteVdis,
   deleteVm,
+  disconnectVbd,
+  disconnectVbds,
   isSrWritable,
 } from 'xo'
 import {
@@ -174,6 +178,34 @@ const ORPHANED_VDI_COLUMNS = [
   },
 ]
 
+const CONTROL_DOMAIN_VDIS_ACTIONS = [
+  {
+    disabled: selectedItems => some(selectedItems, ({ vbd }) => !vbd.attached),
+    handler: disconnectVbds,
+    icon: 'disconnect',
+    individualDisabled: ({ vbd }) => !vbd.attached,
+    individualHandler: disconnectVbd,
+    individualLabel: _('vbdDisconnect'),
+    label: _('vbdsDisconnect'),
+    level: 'danger',
+  },
+  {
+    handler: deleteVbds,
+    individualHandler: deleteVbd,
+    icon: 'vdi-forget',
+    label: _('vdiForget'),
+    level: 'danger',
+  },
+  {
+    handler: selectedItems => deleteVdis(map(selectedItems, 'vdi')),
+    icon: 'delete',
+    individualHandler: ({ vdi }) => deleteVdi(vdi),
+    individualLabel: _('vdiDelete'),
+    label: _('deleteSelectedVdis'),
+    level: 'danger',
+  },
+]
+
 const AttachedVdisTable = [
   connectStore({
     pools: createGetObjectsOfType('pool'),
@@ -194,6 +226,7 @@ const AttachedVdisTable = [
   }),
   ({ columns, rowTransform }) => ({ pools, srs, vbds, vdis, vdiSnapshots }) => (
     <NoObjects
+      actions={CONTROL_DOMAIN_VDIS_ACTIONS}
       collection={vbds}
       columns={columns}
       component={SortedTable}
@@ -246,22 +279,12 @@ const AttachedVdisTable = [
           ),
         sortCriteria: ({ sr }) => sr != null && sr.name_label,
       },
-      {
-        name: _('vdiAction'),
-        itemRenderer: ({ vbd }) => (
-          <ActionRowButton
-            btnStyle='danger'
-            handler={deleteVbd}
-            handlerParam={vbd}
-            icon='delete'
-          />
-        ),
-      },
     ],
     rowTransform: (vbd, { pools, srs, vdis, vdiSnapshots }) => {
       const vdi = vdis[vbd.VDI] || vdiSnapshots[vbd.VDI]
 
       return {
+        id: vbd.id,
         vbd,
         vdi,
         sr: srs[vdi.$SR],

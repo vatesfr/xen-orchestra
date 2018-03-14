@@ -2,10 +2,11 @@
 
 import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
-import eventToPromise from 'event-to-promise'
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
+import { fromEvent } from 'promise-toolbox'
 
+import type RemoteHandler from './remote-handlers/abstract'
 import constantStream from './constant-stream'
 import { noop, streamToBuffer } from './utils'
 
@@ -34,8 +35,8 @@ const VHD_PARENT_LOCATOR_ENTRIES = 8
 const VHD_PLATFORM_CODE_NONE = 0
 
 // Types of backup treated. Others are not supported.
-const HARD_DISK_TYPE_DYNAMIC = 3 // Full backup.
-const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
+export const HARD_DISK_TYPE_DYNAMIC = 3 // Full backup.
+export const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
 
 // Other.
 const BLOCK_UNUSED = 0xffffffff
@@ -193,7 +194,7 @@ export class Vhd {
   // =================================================================
 
   _readStream (start, n) {
-    return this._handler.createReadStream(this._fd ? this._fd : this._path, {
+    return this._handler.createReadStream(this._path, {
       start,
       end: start + n - 1, // end is inclusive
     })
@@ -393,19 +394,16 @@ export class Vhd {
       }`
     )
     // TODO: could probably be merged in remote handlers.
-    const stream = await this._handler.createOutputStream(
-      this._fd ? this._fd : this._path,
-      {
-        flags: 'r+',
-        start: offset,
-      }
-    )
+    const stream = await this._handler.createOutputStream(this._path, {
+      flags: 'r+',
+      start: offset,
+    })
     return Buffer.isBuffer(data)
       ? new Promise((resolve, reject) => {
         stream.on('error', reject)
         stream.end(data, resolve)
       })
-      : eventToPromise(data.pipe(stream), 'finish')
+      : fromEvent(data.pipe(stream), 'finish')
   }
 
   async freeFirstBlockSpace (spaceNeededBytes) {
@@ -727,12 +725,13 @@ export default concurrency(2)(async function vhdMerge (
   childHandler,
   childPath
 ) {
-  const parentVhd = new Vhd(parentHandler, parentPath)
-  parentVhd._fd = await parentHandler.openFile(parentPath, 'r+')
+  const parentFd = await parentHandler.openFile(parentPath, 'r+')
   try {
-    const childVhd = new Vhd(childHandler, childPath)
-    childVhd._fd = await childHandler.openFile(childPath, 'r')
+    const parentVhd = new Vhd(parentHandler, parentFd)
+    const childFd = await childHandler.openFile(childPath, 'r')
     try {
+      const childVhd = new Vhd(childHandler, childFd)
+
       // Reading footer and header.
       await Promise.all([
         parentVhd.readHeaderAndFooter(),
@@ -744,11 +743,6 @@ export default concurrency(2)(async function vhdMerge (
       // Child must be a delta.
       if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
         throw new Error('Unable to merge, child is not a delta backup.')
-      }
-
-      // Merging in differencing disk is prohibited in our case.
-      if (parentVhd.footer.diskType !== HARD_DISK_TYPE_DYNAMIC) {
-        throw new Error('Unable to merge, parent is not a full backup.')
       }
 
       // Allocation table map is not yet implemented.
@@ -774,6 +768,7 @@ export default concurrency(2)(async function vhdMerge (
           mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
         }
       }
+
       const cFooter = childVhd.footer
       const pFooter = parentVhd.footer
 
@@ -781,6 +776,7 @@ export default concurrency(2)(async function vhdMerge (
       pFooter.diskGeometry = { ...cFooter.diskGeometry }
       pFooter.originalSize = { ...cFooter.originalSize }
       pFooter.timestamp = cFooter.timestamp
+      pFooter.uuid = cFooter.uuid
 
       // necessary to update values and to recreate the footer after block
       // creation
@@ -788,10 +784,10 @@ export default concurrency(2)(async function vhdMerge (
 
       return mergedDataSize
     } finally {
-      await childHandler.closeFile(childVhd._fd)
+      await childHandler.closeFile(childFd)
     }
   } finally {
-    await parentHandler.closeFile(parentVhd._fd)
+    await parentHandler.closeFile(parentFd)
   }
 })
 
@@ -860,4 +856,13 @@ export async function chainVhd (
   }
 
   return false
+}
+
+export async function readVhdMetadata (handler: RemoteHandler, path: string) {
+  const vhd = new Vhd(handler, path)
+  await vhd.readHeaderAndFooter()
+  return {
+    footer: vhd.footer,
+    header: vhd.header,
+  }
 }

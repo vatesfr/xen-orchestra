@@ -1,0 +1,81 @@
+// @flow
+
+import { type Readable } from 'stream'
+
+type AugmentedReadable = Readable & {
+  size?: number,
+  task?: Promise<mixed>
+}
+
+type MaybeArray<T> = Array<T> | T
+
+export type DeltaVmExport = {|
+  streams: $Dict<() => Promise<AugmentedReadable>>,
+  vbds: { [ref: string]: Object },
+  vdis: { [ref: string]: {
+    $SR$uuid: string,
+    snapshot_of: string,
+  } },
+  vifs: { [ref: string]: Object },
+  vm: Vm,
+|}
+
+export type DeltaVmImport = {|
+  ...DeltaVmExport,
+  streams: $Dict<MaybeArray<AugmentedReadable | () => Promise<AugmentedReadable>>>,
+|}
+
+declare class XapiObject {
+  $id: string;
+  $ref: string;
+  $type: string;
+}
+
+type Id = string | XapiObject
+declare export class Vm extends XapiObject {
+  $snapshots: Vm[];
+  name_label: string;
+  other_config: $Dict<string>;
+  snapshot_time: number;
+  uuid: string;
+}
+
+declare export class Xapi {
+  objects: { all: $Dict<Object> };
+
+  _importVm(
+    cancelToken: mixed,
+    stream: AugmentedReadable,
+    sr?: XapiObject,
+    onVmCreation?: (XapiObject) => any
+  ): Promise<string>;
+  _updateObjectMapProperty(
+    object: XapiObject,
+    property: string,
+    entries: $Dict<string>
+  ): Promise<void>;
+  _setObjectProperties(
+    object: XapiObject,
+    properties: $Dict<mixed>
+  ): Promise<void>;
+  _snapshotVm(cancelToken: mixed, vm: Vm, nameLabel?: string): Promise<Vm>;
+
+  addTag(object: Id, tag: string): Promise<void>;
+  barrier(): void;
+  barrier(ref: string): XapiObject;
+  deleteVm(vm: Id): Promise<void>;
+  editVm(vm: Id, $Dict<mixed>): Promise<void>;
+  exportDeltaVm(
+    cancelToken: mixed,
+    snapshot: Id,
+    baseSnapshot?: Id
+  ): Promise<DeltaVmExport>;
+  exportVm(
+    cancelToken: mixed,
+    vm: Vm,
+    options?: Object
+  ): Promise<AugmentedReadable>;
+  getObject(object: Id): XapiObject;
+  importDeltaVm(data: DeltaVmImport, options: Object): Promise<{ vm: Vm }>;
+  importVm(stream: AugmentedReadable, options: Object): Promise<Vm>;
+}

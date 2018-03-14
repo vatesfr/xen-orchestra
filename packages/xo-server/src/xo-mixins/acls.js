@@ -3,7 +3,6 @@ import { forEach, includes, map } from 'lodash'
 
 import { ModelAlreadyExists } from '../collection'
 import { Acls } from '../models/acl'
-import { createRawObject } from '../utils'
 
 // ===================================================================
 
@@ -86,10 +85,10 @@ export default class {
       this._getPermissionsByRole(),
     ])
 
-    const permissions = createRawObject()
+    const permissions = { __proto__: null }
     for (const { action, object: objectId } of acls) {
       const current =
-        permissions[objectId] || (permissions[objectId] = createRawObject())
+        permissions[objectId] || (permissions[objectId] = { __proto__: null })
 
       const permissionsForRole = permissionsByRole[action]
       if (permissionsForRole) {
@@ -128,7 +127,7 @@ export default class {
   async _getPermissionsByRole () {
     const roles = await this.getRoles()
 
-    const permissions = createRawObject()
+    const permissions = { __proto__: null }
     for (const role of roles) {
       permissions[role.id] = role.permissions
     }

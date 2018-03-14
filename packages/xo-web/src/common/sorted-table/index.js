@@ -286,7 +286,12 @@ const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
         disabled: propTypes.oneOfType([propTypes.bool, propTypes.func]),
         handler: propTypes.func.isRequired,
         icon: propTypes.string.isRequired,
+        individualDisabled: propTypes.oneOfType([
+          propTypes.bool,
+          propTypes.func,
+        ]),
         individualHandler: propTypes.func,
+        individualLabel: propTypes.node,
         label: propTypes.node.isRequired,
         level: propTypes.oneOf(['primary', 'warning', 'danger']),
       })
@@ -329,7 +334,7 @@ export default class SortedTable extends Component {
               userData[key.slice(5)] = props[key]
             }
           })
-          return userData
+          return isEmpty(userData) ? undefined : userData
         })
 
     let selectedColumn = props.defaultColumn
@@ -389,11 +394,17 @@ export default class SortedTable extends Component {
     }
     this._getTotalNumberOfItems = createCounter(getAllItems)
 
-    const createMatcher = str => CM.parse(str).createPredicate()
     this._getItems = createSort(
       createFilter(
         getAllItems,
-        createSelector(() => this.state.filter, createMatcher)
+        createSelector(
+          () => this.state.filter,
+          filter => {
+            try {
+              return CM.parse(filter).createPredicate()
+            } catch (_) {}
+          }
+        )
       ),
       createSelector(
         () => this._getSelectedColumn().sortCriteria,
@@ -727,9 +738,11 @@ export default class SortedTable extends Component {
             {map(actions, (props, key) => (
               <IndividualAction
                 {...props}
+                disabled={props.individualDisabled || props.disabled}
                 handler={props.individualHandler || props.handler}
                 item={props.individualHandler !== undefined ? item : [item]}
                 key={key}
+                label={props.individualLabel || props.label}
                 userData={userData}
               />
             ))}

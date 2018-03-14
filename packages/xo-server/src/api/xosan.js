@@ -665,7 +665,9 @@ export const createSR = defer(async function (
 
   CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 0 }
 
-  const tmpBoundObjectId = srs.join(',')
+  const tmpBoundObjectId = `tmp_${srs.join(',')}_${Math.random()
+    .toString(32)
+    .slice(2)}`
   const license = await this.createBoundXosanTrialLicense({
     boundObjectId: tmpBoundObjectId,
   })

@@ -2,13 +2,13 @@
 
 import type { Pattern } from 'value-matcher'
 
-// $FlowFixMe
 import { cancelable } from 'promise-toolbox'
+import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../../collection/redis'
 import patch from '../../patch'
-import { mapToArray, serializeError } from '../../utils'
+import { serializeError } from '../../utils'
 
 import type Logger from '../logs/loggers/abstract'
 import { type Schedule } from '../scheduling'
@@ -72,7 +72,16 @@ export type Executor = ({|
 const normalize = job => {
   Object.keys(job).forEach(key => {
     try {
-      job[key] = JSON.parse(job[key])
+      const value = (job[key] = JSON.parse(job[key]))
+
+      // userId are always strings, even if the value is numeric, which might to
+      // them being parsed as numbers.
+      //
+      // The issue has been introduced by
+      // 48b2297bc151df582160be7c1bf1e8ee160320b8.
+      if (key === 'userId' && typeof value === 'number') {
+        job[key] = String(value)
+      }
     } catch (_) {}
   })
   return job
@@ -115,14 +124,14 @@ export default class Jobs {
 
   constructor (xo: any) {
     this._app = xo
-    const executors = (this._executors = Object.create(null))
+    const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
       connection: xo._redis,
       prefix: 'xo:job',
       indexes: ['user_id', 'key'],
     }))
     this._logger = undefined
-    this._runningJobs = Object.create(null)
+    this._runningJobs = { __proto__: null }
 
     executors.call = executeCall
 
@@ -141,13 +150,13 @@ export default class Jobs {
     })
   }
 
-  async getAllJobs (type: string = 'call'): Promise<Array<Job>> {
+  async getAllJobs (type?: string): Promise<Array<Job>> {
     // $FlowFixMe don't know what is the problem (JFT)
     const jobs = await this._jobs.get()
     const runningJobs = this._runningJobs
     const result = []
     jobs.forEach(job => {
-      if (job.type === type) {
+      if (type === undefined || job.type === type) {
         job.runId = runningJobs[job.id]
         result.push(job)
       }
@@ -156,12 +165,15 @@ export default class Jobs {
   }
 
   async getJob (id: string, type?: string): Promise<Job> {
-    const job = await this._jobs.first(id)
+    let job = await this._jobs.first(id)
     if (job === null || (type !== undefined && job.properties.type !== type)) {
       throw noSuchObject(id, 'job')
     }
 
-    return job.properties
+    job = job.properties
+    job.runId = this._runningJobs[id]
+
+    return job
   }
 
   createJob (job: $Diff<Job, {| id: string |}>): Promise<Job> {

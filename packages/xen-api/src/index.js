@@ -408,6 +408,7 @@ export class Xapi extends EventEmitter {
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(`Async.${method}`, args).then(taskRef => {
         $cancelToken.promise.then(() => {
+          // TODO: do not trigger if the task is already over
           this._sessionCall('task.cancel', [taskRef]).catch(noop)
         })
 

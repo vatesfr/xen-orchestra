@@ -160,12 +160,11 @@ export async function create (params) {
     ])
   }
 
-  for (const vifId of vm.VIFs) {
-    const vif = this.getObject(vifId, 'VIF')
+  for (const vif of xapiVm.$VIFs) {
     await this.allocIpAddresses(
-      vifId,
-      concat(vif.allowedIpv4Addresses, vif.allowedIpv6Addresses)
-    ).catch(() => xapi.deleteVif(vif._xapiId))
+      vif.$id,
+      concat(vif.ipv4_allowed, vif.ipv6_allowed)
+    ).catch(() => xapi.deleteVif(vif))
   }
 
   if (params.bootAfterCreate) {

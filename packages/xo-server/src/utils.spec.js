@@ -2,7 +2,6 @@
 
 import {
   camelToSnakeCase,
-  createRawObject,
   diffItems,
   ensureArray,
   extractProperty,
@@ -28,24 +27,6 @@ describe('camelToSnakeCase()', function () {
   it('does not alter upper case letters expect those from the camelCase', function () {
     expect(camelToSnakeCase('fooBar_BAZ')).toBe('foo_bar_BAZ')
   })
-})
-
-// -------------------------------------------------------------------
-
-describe('createRawObject()', () => {
-  it('returns an empty object', () => {
-    expect(createRawObject()).toEqual({})
-  })
-
-  it('creates a new object each time', () => {
-    expect(createRawObject()).not.toBe(createRawObject())
-  })
-
-  if (Object.getPrototypeOf) {
-    it('creates an object without a prototype', () => {
-      expect(Object.getPrototypeOf(createRawObject())).toBe(null)
-    })
-  }
 })
 
 // -------------------------------------------------------------------

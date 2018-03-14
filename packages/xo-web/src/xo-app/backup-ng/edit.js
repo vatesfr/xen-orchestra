@@ -1,21 +1,26 @@
 import addSubscriptions from 'add-subscriptions'
 import React from 'react'
 import { injectState, provideState } from '@julien-f/freactal'
-import { Debug } from 'utils'
 import { subscribeBackupNgJobs, subscribeSchedules } from 'xo'
+import { find, groupBy } from 'lodash'
 
 import New from './new'
 
 export default [
   addSubscriptions({
     jobs: subscribeBackupNgJobs,
-    schedules: subscribeSchedules,
+    schedulesByJob: cb =>
+      subscribeSchedules(schedules => {
+        cb(groupBy(schedules, 'jobId'))
+      }),
   }),
   provideState({
     computed: {
-      value: ({ jobs, schedules }) => {},
+      job: (_, { jobs, routeParams: { id } }) => find(jobs, { id }),
+      schedules: (_, { schedulesByJob, routeParams: { id } }) =>
+        schedulesByJob && schedulesByJob[id],
     },
   }),
   injectState,
-  props => ({ state }) => <New value={state.value} />,
+  ({ state: { job, schedules } }) => <New job={job} schedules={schedules} />,
 ].reduceRight((value, decorator) => decorator(value))
