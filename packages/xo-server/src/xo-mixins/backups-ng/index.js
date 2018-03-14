@@ -585,6 +585,10 @@ export default class BackupNg {
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
   // - [ ] size of the path? (base64url(Buffer.from(uuid.split('-').join(''), 'hex')))
+  // - [ ] do not create snapshot if unhealthy vdi chain
+  // - [ ] fix backup reports
+  // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
+  //       a very long time to finish if there are other VMs before…
   //
   // Triage:
   // - [ ] logs
