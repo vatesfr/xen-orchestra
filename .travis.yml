@@ -7,6 +7,11 @@ node_js:
 # Use containers.
 # http://docs.travis-ci.com/user/workers/container-based-infrastructure/
 sudo: false
+addons:
+  apt:
+    packages:
+    - qemu-utils
+    - blktap-utils
 
 before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash
@@ -14,3 +19,6 @@ before_install:
 
 cache:
   yarn: true
+
+script:
+  - yarn run test-integration
