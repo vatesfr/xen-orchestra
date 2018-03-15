@@ -183,6 +183,24 @@ function checksumStruct (rawStruct, struct) {
 
 // ===================================================================
 
+// Format:
+//
+// - Footer (512)
+// - Header (1024)
+//
+// - BAT (batSize @ header.tableOffset)
+// - Block i (@ blockOffset(i))
+//   - bitmap (blockBitmapSize)
+//   - data (header.blockSize)
+//
+// - Footer (512)
+//
+// Variables:
+//
+// - batSize = min(1, ceil(header.maxTableEntries * 4)) * sectorSize
+// - blockBitmapSize = ceil(header.blockSize / sectorSize / 8 / sectorSize) * sectorSize
+// - blockOffset(i) = bat[i] * sectorSize
+// - sectorSize = 512
 export class Vhd {
   constructor (handler, path) {
     this._handler = handler
