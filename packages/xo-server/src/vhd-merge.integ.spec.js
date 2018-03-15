@@ -10,6 +10,8 @@ import vhdMerge, { chainVhd, Vhd } from './vhd-merge'
 
 const initialDir = process.cwd()
 
+jest.setTimeout(10000)
+
 beforeEach(async () => {
   const dir = await tmpDir()
   process.chdir(dir)
