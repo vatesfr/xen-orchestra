@@ -265,8 +265,10 @@ export default [
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
       updateParams: () => (state, { job, schedules }) => {
-        const remotes = destructPattern(job.remotes)
-        const srs = destructPattern(job.srs)
+        const remotes =
+          job.remotes !== undefined ? destructPattern(job.remotes) : []
+        const srs = job.srs !== undefined ? destructPattern(job.srs) : []
+
         return {
           ...state,
           compression: job.compression === 'native',
@@ -282,8 +284,8 @@ export default [
           deltaMode: (job.mode === 'delta' && !isEmpty(remotes)) || undefined,
           drMode: (job.mode === 'full' && !isEmpty(srs)) || undefined,
           crMode: (job.mode === 'delta' && !isEmpty(srs)) || undefined,
-          remotes: job.remotes !== undefined ? remotes : [],
-          srs: job.srs !== undefined ? srs : [],
+          remotes,
+          srs,
           settings: job.settings,
           schedules,
           ...destructVmsPattern(job.vms),
