@@ -10,20 +10,22 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import ResourceSetQuotas from 'resource-set-quotas'
 import Upgrade from 'xoa-upgrade'
+import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
-import { forEach, isEmpty, map, size } from 'lodash'
+import { compact, forEach, includes, isEmpty, map, size } from 'lodash'
 import { injectIntl } from 'react-intl'
+import { SelectHost, SelectPool } from 'select-objects'
 import {
   createCollectionWrapper,
   createCounter,
-  createGetObjectsOfType,
+  createFilter,
   createGetHostMetrics,
+  createGetObjectsOfType,
   createSelector,
   createTop,
   isAdmin,
 } from 'selectors'
-import { addSubscriptions, connectStore, formatSize } from 'utils'
 import {
   isSrWritable,
   sendUsageReport,
@@ -68,29 +70,77 @@ class PatchesCard extends Component {
   }
 }
 
-@connectStore(() => {
-  const getHosts = createGetObjectsOfType('host')
-  const getVms = createGetObjectsOfType('VM')
-
-  const getHostMetrics = createGetHostMetrics(getHosts)
-
-  const writableSrs = createGetObjectsOfType('SR').filter([isSrWritable])
-
-  const getSrMetrics = createCollectionWrapper(
-    createSelector(writableSrs, writableSrs => {
-      const metrics = {
-        srTotal: 0,
-        srUsage: 0,
-      }
-      forEach(writableSrs, sr => {
-        metrics.srUsage += sr.physical_usage
-        metrics.srTotal += sr.size
-      })
-      return metrics
+@connectStore({
+  hosts: createGetObjectsOfType('host'),
+  pools: createGetObjectsOfType('pool'),
+  srs: createGetObjectsOfType('SR').filter([isSrWritable]),
+  vms: createGetObjectsOfType('VM'),
+  alarmMessages: createGetObjectsOfType('message').filter([
+    message => message.name === 'ALARM',
+  ]),
+  tasks: createGetObjectsOfType('task').filter([
+    task => task.status === 'pending',
+  ]),
+})
+@addSubscriptions({
+  plugins: subscribePlugins,
+})
+@injectIntl
+class DefaultCard extends Component {
+  componentWillMount () {
+    this.componentWillUnmount = subscribeUsers(users => {
+      this.setState({ users })
     })
+  }
+
+  _getPredicateByPool = createSelector(
+    () => this.state.pools,
+    pools => item => isEmpty(pools) || includes(map(pools, 'id'), item.$pool)
   )
-  const getVmMetrics = createCollectionWrapper(
-    createSelector(getVms, vms => {
+
+  _getPredicate = createSelector(
+    this._getPredicateByPool,
+    () => this.state.hosts,
+    (predicateByPool, hosts) => item =>
+      predicateByPool(item) &&
+      (isEmpty(hosts) ||
+        includes(map(hosts, 'id'), item.$container || item.$host))
+  )
+
+  _getHosts = createSelector(
+    createFilter(() => this.props.hosts, this._getPredicateByPool),
+    () => this.state.hosts,
+    (hosts, selectedHosts) => (isEmpty(selectedHosts) ? hosts : selectedHosts)
+  )
+
+  _getVms = createFilter(() => this.props.vms, this._getPredicate)
+
+  _getSrs = createFilter(() => this.props.srs, this._getPredicate)
+
+  _getPoolsNumber = createCounter(
+    createSelector(
+      () => this.props.pools,
+      () => this.state.pools,
+      (pools, selectedPools) => (isEmpty(selectedPools) ? pools : selectedPools)
+    )
+  )
+
+  _getHostsNumber = createCounter(this._getHosts)
+
+  _getVmsNumber = createCounter(this._getVms)
+
+  _getAlarmMessagesNumber = createCounter(
+    createFilter(() => this.props.alarmMessages, this._getPredicateByPool)
+  )
+
+  _getTasksNumber = createCounter(
+    createFilter(() => this.props.tasks, this._getPredicate)
+  )
+
+  _getHostMetrics = createGetHostMetrics(this._getHosts)
+
+  _getVmMetrics = createCollectionWrapper(
+    createSelector(this._getVms, vms => {
       const metrics = {
         vcpus: 0,
         running: 0,
@@ -108,42 +158,26 @@ class PatchesCard extends Component {
       return metrics
     })
   )
-  const getNumberOfAlarmMessages = createCounter(
-    createGetObjectsOfType('message'),
-    [message => message.name === 'ALARM']
-  )
-  const getNumberOfHosts = createCounter(getHosts)
-  const getNumberOfPools = createCounter(createGetObjectsOfType('pool'))
-  const getNumberOfTasks = createCounter(
-    createGetObjectsOfType('task').filter([task => task.status === 'pending'])
-  )
-  const getNumberOfVms = createCounter(getVms)
 
-  return {
-    hostMetrics: getHostMetrics,
-    hosts: getHosts,
-    nAlarmMessages: getNumberOfAlarmMessages,
-    nHosts: getNumberOfHosts,
-    nPools: getNumberOfPools,
-    nTasks: getNumberOfTasks,
-    nVms: getNumberOfVms,
-    srMetrics: getSrMetrics,
-    topWritableSrs: createTop(
-      writableSrs,
-      [sr => sr.physical_usage / sr.size],
-      5
-    ),
-    vmMetrics: getVmMetrics,
-  }
-})
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
-@injectIntl
-class DefaultCard extends Component {
-  componentWillMount () {
-    this.componentWillUnmount = subscribeUsers(users => {
-      this.setState({ users })
+  _getSrMetrics = createCollectionWrapper(
+    createSelector(this._getSrs, srs => {
+      const metrics = {
+        srTotal: 0,
+        srUsage: 0,
+      }
+      forEach(srs, sr => {
+        metrics.srUsage += sr.physical_usage
+        metrics.srTotal += sr.size
+      })
+      return metrics
+    })
+  )
+
+  _getTopSrs = createTop(this._getSrs, [sr => sr.physical_usage / sr.size], 5)
+
+  _onChange = hosts => {
+    this.setState({
+      hosts: compact(hosts),
     })
   }
 
@@ -168,20 +202,47 @@ class DefaultCard extends Component {
     const users = state && state.users
     const nUsers = size(users)
     const canSendTheReport = this._canSendTheReport()
+    const nPools = this._getPoolsNumber()
+    const nHosts = this._getHostsNumber()
+    const nVms = this._getVmsNumber()
+    const nAlarmMessages = this._getAlarmMessagesNumber()
+    const hostMetrics = this._getHostMetrics()
+    const vmMetrics = this._getVmMetrics()
+    const srMetrics = this._getSrMetrics()
+    const topSrs = this._getTopSrs()
 
     const { formatMessage } = props.intl
 
     return (
       <Container>
         <Row>
+          <Col mediumSize={6}>
+            <SelectPool
+              multi
+              onChange={this.linkState('pools')}
+              value={state.pools}
+            />
+          </Col>
+          <Col mediumSize={6}>
+            <SelectHost
+              disabled={isEmpty(state.pools)}
+              multi
+              onChange={this._onChange}
+              predicate={this._getPredicateByPool()}
+              value={state.hosts}
+            />
+          </Col>
+        </Row>
+        <br />
+        <Row>
           <Col mediumSize={4}>
             <Card>
               <CardHeader>
-                <Icon icon='pool' /> {_('poolPanel', { pools: props.nPools })}
+                <Icon icon='pool' /> {_('poolPanel', { pools: nPools })}
               </CardHeader>
               <CardBlock>
                 <p className={styles.bigCardContent}>
-                  <Link to='/home?t=pool'>{props.nPools}</Link>
+                  <Link to='/home?t=pool'>{nPools}</Link>
                 </p>
               </CardBlock>
             </Card>
@@ -189,11 +250,11 @@ class DefaultCard extends Component {
           <Col mediumSize={4}>
             <Card>
               <CardHeader>
-                <Icon icon='host' /> {_('hostPanel', { hosts: props.nHosts })}
+                <Icon icon='host' /> {_('hostPanel', { hosts: nHosts })}
               </CardHeader>
               <CardBlock>
                 <p className={styles.bigCardContent}>
-                  <Link to='/home?t=host'>{props.nHosts}</Link>
+                  <Link to='/home?t=host'>{nHosts}</Link>
                 </p>
               </CardBlock>
             </Card>
@@ -201,11 +262,11 @@ class DefaultCard extends Component {
           <Col mediumSize={4}>
             <Card>
               <CardHeader>
-                <Icon icon='vm' /> {_('vmPanel', { vms: props.nVms })}
+                <Icon icon='vm' /> {_('vmPanel', { vms: nVms })}
               </CardHeader>
               <CardBlock>
                 <p className={styles.bigCardContent}>
-                  <Link to='/home?s=&t=VM'>{props.nVms}</Link>
+                  <Link to='/home?s=&t=VM'>{nVms}</Link>
                 </p>
               </CardBlock>
             </Card>
@@ -225,9 +286,8 @@ class DefaultCard extends Component {
                       formatMessage(messages.totalMemory),
                     ],
                     series: [
-                      props.hostMetrics.memoryUsage,
-                      props.hostMetrics.memoryTotal -
-                        props.hostMetrics.memoryUsage,
+                      hostMetrics.memoryUsage,
+                      hostMetrics.memoryTotal - hostMetrics.memoryUsage,
                     ],
                   }}
                   options={PIE_GRAPH_OPTIONS}
@@ -235,8 +295,8 @@ class DefaultCard extends Component {
                 />
                 <p className='text-xs-center'>
                   {_('ofUsage', {
-                    total: formatSize(props.hostMetrics.memoryTotal),
-                    usage: formatSize(props.hostMetrics.memoryUsage),
+                    total: formatSize(hostMetrics.memoryTotal),
+                    usage: formatSize(hostMetrics.memoryUsage),
                   })}
                 </p>
               </CardBlock>
@@ -255,7 +315,7 @@ class DefaultCard extends Component {
                         formatMessage(messages.usedVCpus),
                         formatMessage(messages.totalCpus),
                       ],
-                      series: [props.vmMetrics.vcpus, props.hostMetrics.cpus],
+                      series: [vmMetrics.vcpus, hostMetrics.cpus],
                     }}
                     options={{
                       showLabel: false,
@@ -266,8 +326,8 @@ class DefaultCard extends Component {
                   />
                   <p className='text-xs-center'>
                     {_('ofCpusUsage', {
-                      nCpus: props.hostMetrics.cpus,
-                      nVcpus: props.vmMetrics.vcpus,
+                      nCpus: hostMetrics.cpus,
+                      nVcpus: vmMetrics.vcpus,
                     })}
                   </p>
                 </div>
@@ -289,8 +349,8 @@ class DefaultCard extends Component {
                           formatMessage(messages.totalSpace),
                         ],
                         series: [
-                          props.srMetrics.srUsage,
-                          props.srMetrics.srTotal - props.srMetrics.srUsage,
+                          srMetrics.srUsage,
+                          srMetrics.srTotal - srMetrics.srUsage,
                         ],
                       }}
                       options={PIE_GRAPH_OPTIONS}
@@ -298,8 +358,8 @@ class DefaultCard extends Component {
                     />
                     <p className='text-xs-center'>
                       {_('ofUsage', {
-                        total: formatSize(props.srMetrics.srTotal),
-                        usage: formatSize(props.srMetrics.srUsage),
+                        total: formatSize(srMetrics.srTotal),
+                        usage: formatSize(srMetrics.srUsage),
                       })}
                     </p>
                   </BlockLink>
@@ -318,9 +378,9 @@ class DefaultCard extends Component {
                 <p className={styles.bigCardContent}>
                   <Link
                     to='/dashboard/health'
-                    className={props.nAlarmMessages > 0 ? 'text-warning' : ''}
+                    className={nAlarmMessages > 0 ? 'text-warning' : ''}
                   >
-                    {props.nAlarmMessages}
+                    {nAlarmMessages}
                   </Link>
                 </p>
               </CardBlock>
@@ -333,7 +393,7 @@ class DefaultCard extends Component {
               </CardHeader>
               <CardBlock>
                 <p className={styles.bigCardContent}>
-                  <Link to='/tasks'>{props.nTasks}</Link>
+                  <Link to='/tasks'>{this._getTasksNumber()}</Link>
                 </p>
               </CardBlock>
             </Card>
@@ -371,9 +431,9 @@ class DefaultCard extends Component {
                         formatMessage(messages.vmStateOther),
                       ],
                       series: [
-                        props.vmMetrics.running,
-                        props.vmMetrics.halted,
-                        props.vmMetrics.other,
+                        vmMetrics.running,
+                        vmMetrics.halted,
+                        vmMetrics.other,
                       ],
                     }}
                     options={{ showLabel: false }}
@@ -381,8 +441,8 @@ class DefaultCard extends Component {
                   />
                   <p className='text-xs-center'>
                     {_('vmsStates', {
-                      running: props.vmMetrics.running,
-                      halted: props.vmMetrics.halted,
+                      running: vmMetrics.running,
+                      halted: vmMetrics.halted,
                     })}
                   </p>
                 </BlockLink>
@@ -399,9 +459,9 @@ class DefaultCard extends Component {
                   <ChartistGraph
                     style={{ strokeWidth: '30px' }}
                     data={{
-                      labels: map(props.topWritableSrs, 'name_label'),
+                      labels: map(topSrs, 'name_label'),
                       series: map(
-                        props.topWritableSrs,
+                        topSrs,
                         sr => sr.physical_usage / sr.size * 100
                       ),
                     }}
@@ -449,7 +509,7 @@ class DefaultCard extends Component {
         </Row>
         <Row>
           <Col>
-            <PatchesCard hosts={props.hosts} />
+            <PatchesCard hosts={this._getHosts()} />
           </Col>
         </Row>
       </Container>
