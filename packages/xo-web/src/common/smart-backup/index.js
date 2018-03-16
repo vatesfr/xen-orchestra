@@ -1,7 +1,7 @@
 import * as CM from 'complex-matcher'
 import { get, identity, isEmpty } from 'lodash'
 
-import { EMPTY_OBJECT } from './utils'
+import { EMPTY_OBJECT } from './../utils'
 
 export const destructPattern = (pattern, valueTransform = identity) =>
   pattern && {
@@ -106,3 +106,7 @@ export const constructQueryString = pattern => {
     return ''
   }
 }
+
+// ===================================================================
+
+export default from './preview'

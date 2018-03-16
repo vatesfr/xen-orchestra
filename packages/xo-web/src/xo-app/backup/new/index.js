@@ -8,13 +8,15 @@ import Icon from 'icon'
 import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
-import SmartBackupPreview from 'smart-backup-preview'
+import SmartBackupPreview, {
+  constructPattern,
+  destructPattern,
+} from 'smart-backup'
 import uncontrollableInput from 'uncontrollable-input'
 import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { connectStore, EMPTY_OBJECT } from 'utils'
-import { constructPattern, destructPattern } from 'smart-backup-pattern'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, getUser } from 'selectors'
 import { createSelector } from 'reselect'

@@ -4,7 +4,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { Card, CardBlock, CardHeader } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
-import { isEmpty, findKey } from 'lodash'
+import { isEmpty, findKey, size } from 'lodash'
 
 import NewSchedule from './new-schedule'
 import { FormGroup } from './utils'
@@ -98,7 +98,8 @@ export default [
   injectState,
   provideState({
     computed: {
-      disabledDeletion: state => state.schedules.length <= 1,
+      disabledDeletion: state =>
+        state.schedules.length + size(state.newSchedules) <= 1,
       disabledEdition: state =>
         state.editionMode !== undefined ||
         (!state.exportMode && !state.snapshotMode),

@@ -50,6 +50,7 @@ import {
 
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
+import { type DeltaVmExport } from './'
 import {
   asBoolean,
   asInteger,

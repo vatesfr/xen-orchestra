@@ -4,6 +4,7 @@ import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
+import { dirname, relative } from 'path'
 import { fromEvent } from 'promise-toolbox'
 
 import type RemoteHandler from './remote-handlers/abstract'
@@ -745,7 +746,7 @@ export async function chainVhd (
 
   const { header } = childVhd
 
-  const parentName = parentPath.split('/').pop()
+  const parentName = relative(dirname(childPath), parentPath)
   const parentUuid = parentVhd.footer.uuid
   if (
     header.parentUnicodeName !== parentName ||
@@ -755,20 +756,6 @@ export async function chainVhd (
     header.parentUnicodeName = parentName
     await childVhd.writeHeader()
     return true
-  }
-
-  // The checksum was broken between xo-server v5.2.4 and v5.2.5
-  //
-  // Replace by a correct checksum if necessary.
-  //
-  // TODO: remove when enough time as passed (6 months).
-  {
-    const rawHeader = fuHeader.pack(header)
-    const checksum = checksumStruct(rawHeader, fuHeader)
-    if (checksum !== header.checksum) {
-      await childVhd._write(rawHeader, VHD_FOOTER_SIZE)
-      return true
-    }
   }
 
   return false

@@ -280,6 +280,7 @@ const messages = {
   jobInterrupted: 'Interrupted',
   jobStarted: 'Started',
   saveBackupJob: 'Save',
+  resetBackupJob: 'Reset',
   createBackupJob: 'Create',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
