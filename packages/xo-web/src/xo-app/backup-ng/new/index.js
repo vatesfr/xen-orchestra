@@ -51,10 +51,10 @@ const destructVmsPattern = pattern =>
 const getNewSettings = schedules => {
   const newSettings = {}
 
-  for (const schedule in schedules) {
-    newSettings[schedule] = {
-      exportRetention: +schedules[schedule].exportRetention,
-      snapshotRetention: +schedules[schedule].snapshotRetention,
+  for (const id in schedules) {
+    newSettings[id] = {
+      exportRetention: +schedules[id].exportRetention,
+      snapshotRetention: +schedules[id].snapshotRetention,
     }
   }
 
@@ -64,10 +64,10 @@ const getNewSettings = schedules => {
 const getNewSchedules = schedules => {
   const newSchedules = {}
 
-  for (const schedule in schedules) {
-    newSchedules[schedule] = {
-      cron: schedules[schedule].cron,
-      timezone: schedules[schedule].timezone,
+  for (const id in schedules) {
+    newSchedules[id] = {
+      cron: schedules[id].cron,
+      timezone: schedules[id].timezone,
     }
   }
 
