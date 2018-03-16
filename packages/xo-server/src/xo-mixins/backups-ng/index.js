@@ -212,6 +212,7 @@ const importers: $Dict<
     }
 
     const { vm: newVm } = await xapi.importDeltaVm(delta, {
+      detectBase: false,
       disableStartAfterImport: false,
       srId: sr,
       // TODO: support mapVdisSrs
