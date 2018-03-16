@@ -286,7 +286,6 @@ export class Edit extends Component {
       {
         availableHosts,
         networkPredicate,
-        nSrs: newSrs.length,
         srs: newSrs,
       },
       () => this._updateSelectedNetworks(newNetworks || this.state.networks)
