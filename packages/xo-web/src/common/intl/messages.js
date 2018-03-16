@@ -539,7 +539,7 @@ const messages = {
   srNoVdis: 'No VDIs in this storage',
   // ----- Pool general -----
   poolTitleRamUsage: 'Pool RAM usage:',
-  poolRamUsage: '{used} used on {total}',
+  poolRamUsage: '{used} used on {total} ({free} free)',
   poolMaster: 'Master:',
   displayAllHosts: 'Display all hosts of this pool',
   displayAllStorages: 'Display all storages of this pool',
@@ -610,7 +610,9 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
-  memoryHostState: 'RAM Usage: {memoryUsed}',
+  hostTitleRamUsage: 'Host RAM usage:',
+  memoryHostState:
+    'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
   hostAddress: 'Address',
   hostStatus: 'Status',
