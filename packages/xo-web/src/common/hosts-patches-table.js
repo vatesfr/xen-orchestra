@@ -1,6 +1,6 @@
 import React from 'react'
 import { Portal } from 'react-overlays'
-import { forEach, isEmpty, keys, map, noop } from 'lodash'
+import { forEach, isEmpty, keys, map } from 'lodash'
 
 import _ from './intl'
 import ActionButton from './action-button'
@@ -76,9 +76,6 @@ const ActionButton_ = ({ children, labelId, ...props }) => (
 
 // ===================================================================
 
-@connectStore({
-  hostsById: createGetObjectsOfType('host').groupBy('id'),
-})
 class HostsPatchesTable extends Component {
   constructor (props) {
     super(props)
@@ -93,23 +90,16 @@ class HostsPatchesTable extends Component {
     )
   )
 
-  _subscribeMissingPatches = (
-    hosts = this.props.hosts,
-    hostsById = this.props.hostsById
-  ) => {
-    const unsubs = map(
-      hosts,
-      host =>
-        isEmpty(hostsById)
-          ? noop
-          : subscribeHostMissingPatches(hostsById[host.id][0], patches =>
-            this.setState({
-              missingPatches: {
-                ...this.state.missingPatches,
-                [host.id]: patches.length,
-              },
-            })
-          )
+  _subscribeMissingPatches = (hosts = this.props.hosts) => {
+    const unsubs = map(hosts, host =>
+      subscribeHostMissingPatches(host, patches =>
+        this.setState({
+          missingPatches: {
+            ...this.state.missingPatches,
+            [host.id]: patches.length,
+          },
+        })
+      )
     )
 
     if (this.unsubscribeMissingPatches !== undefined) {
@@ -136,11 +126,8 @@ class HostsPatchesTable extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (
-      nextProps.hosts !== this.props.hosts ||
-      nextProps.hostsById !== this.props.hostsById
-    ) {
-      this._subscribeMissingPatches(nextProps.hosts, nextProps.hostsById)
+    if (nextProps.hosts !== this.props.hosts) {
+      this._subscribeMissingPatches(nextProps.hosts)
     }
   }
 
