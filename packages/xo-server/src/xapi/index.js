@@ -981,7 +981,7 @@ export default class Xapi extends XapiBase {
 
     // 3. Create VDIs.
     const newVdis = await map(delta.vdis, async vdi => {
-      const remoteBaseVdiUuid = vdi.other_config[TAG_BASE_DELTA]
+      const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
       if (!remoteBaseVdiUuid) {
         const newVdi = await this.createVdi({
           ...vdi,
