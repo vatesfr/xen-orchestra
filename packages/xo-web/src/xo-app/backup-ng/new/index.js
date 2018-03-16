@@ -462,20 +462,27 @@ export default [
         (isEmpty(state.vms) && !state.smartMode) ||
         ((state.backupMode || state.deltaMode) && isEmpty(state.remotes)) ||
         ((state.drMode || state.crMode) && isEmpty(state.srs)) ||
+        (state.exportMode && !state.exportRetentionExists) ||
+        (state.snapshotMode && !state.snapshotRetentionExists) ||
         (!state.isDelta && !state.isFull && !state.snapshotMode),
-      showCompression: (state, { job }) =>
-        state.isFull &&
-        (some(
+      showCompression: state => state.isFull && state.exportRetentionExists,
+      exportMode: state =>
+        state.backupMode || state.deltaMode || state.drMode || state.crMode,
+      exportRetentionExists: state =>
+        some(
           state.newSchedules,
           ({ exportRetention }) => +exportRetention !== 0
         ) ||
-          (job !== undefined &&
-            some(
-              job.settings,
-              ({ exportRetention }) => exportRetention !== 0
-            ))),
-      exportMode: state =>
-        state.backupMode || state.deltaMode || state.drMode || state.crMode,
+        some(state.settings, ({ exportRetention }) => +exportRetention !== 0),
+      snapshotRetentionExists: state =>
+        some(
+          state.newSchedules,
+          ({ snapshotRetention }) => +snapshotRetention !== 0
+        ) ||
+        some(
+          state.settings,
+          ({ snapshotRetention }) => +snapshotRetention !== 0
+        ),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
       storedRemotes: (state, { remotes }) => remotes,
