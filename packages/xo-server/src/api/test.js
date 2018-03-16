@@ -86,29 +86,3 @@ copyVm.resolve = {
   vm: ['vm', 'VM'],
   sr: ['sr', 'SR'],
 }
-
-// -------------------------------------------------------------------
-
-import fs from 'fs'
-import * as Vhd from '../vhd-merge'
-
-export async function syntheticVhd () {
-  const handler = await this.getRemoteHandler(
-    'de509936-4d07-462c-a89f-25f0fbf1b518'
-  )
-
-  const input = await Vhd.createReadStream(
-    handler,
-    [
-      'vm_delta_plop_0f7cd576-3ba4-e4dd-0063-dfc1cecd8eaf',
-      'vdi_822806d5-3582-4573-ba6a-1e5a8ad05e58',
-      '20180314T131806Z_delta.vhd',
-    ].join('/')
-  )
-  await new Promise((resolve, reject) => {
-    input
-      .pipe(fs.createWriteStream('/tmp/disk.vhd'))
-      .on('error', reject)
-      .on('finish', resolve)
-  })
-}
