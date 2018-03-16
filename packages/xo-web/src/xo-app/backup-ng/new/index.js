@@ -486,17 +486,24 @@ export default [
       exportRetentionExists: state =>
         some(
           state.newSchedules,
-          ({ exportRetention }) => +exportRetention !== 0
-        ) ||
-        some(state.settings, ({ exportRetention }) => +exportRetention !== 0),
-      snapshotRetentionExists: state =>
-        some(
-          state.newSchedules,
-          ({ snapshotRetention }) => +snapshotRetention !== 0
+          ({ exportRetention }) =>
+            exportRetention !== '' && +exportRetention !== 0
         ) ||
         some(
           state.settings,
-          ({ snapshotRetention }) => +snapshotRetention !== 0
+          ({ exportRetention }) =>
+            exportRetention !== '' && +exportRetention !== 0
+        ),
+      snapshotRetentionExists: state =>
+        some(
+          state.newSchedules,
+          ({ snapshotRetention }) =>
+            snapshotRetention !== '' && +snapshotRetention !== 0
+        ) ||
+        some(
+          state.settings,
+          ({ snapshotRetention }) =>
+            snapshotRetention !== '' && +snapshotRetention !== 0
         ),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
