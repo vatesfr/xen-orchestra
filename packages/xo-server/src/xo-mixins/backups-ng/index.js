@@ -4,7 +4,7 @@
 import defer from 'golike-defer'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
-import { basename, dirname, resolve } from 'path'
+import { basename, dirname } from 'path'
 import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { timeout as pTimeout } from 'promise-toolbox'
 
@@ -19,10 +19,15 @@ import {
   type Vm,
   type Xapi,
 } from '../../xapi'
-import { asyncMap, safeDateFormat, serializeError } from '../../utils'
+import {
+  asyncMap,
+  resolveRelativeFromFile,
+  safeDateFormat,
+  serializeError,
+} from '../../utils'
 import mergeVhd, {
-  HARD_DISK_TYPE_DIFFERENCING,
   chainVhd,
+  createReadStream as createVhdReadStream,
   readVhdMetadata,
 } from '../../vhd-merge'
 
@@ -148,28 +153,6 @@ const listReplicatedVms = (
   return values(vms).sort(compareSnapshotTime)
 }
 
-// returns the chain of parents of this VHD
-//
-// TODO: move to vhd-merge module
-const getVhdChain = async (
-  handler: RemoteHandler,
-  path: string
-): Promise<Object[]> => {
-  const chain = []
-
-  while (true) {
-    const vhd = await readVhdMetadata(handler, path)
-    vhd.path = path
-    chain.push(vhd)
-    if (vhd.header.type !== HARD_DISK_TYPE_DIFFERENCING) {
-      break
-    }
-    path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
-  }
-
-  return chain
-}
-
 const importers: $Dict<
   (
     handler: RemoteHandler,
@@ -186,15 +169,9 @@ const importers: $Dict<
 
     const streams = {}
     await asyncMap(vdis, async (vdi, id) => {
-      const chain = await getVhdChain(
+      streams[`${id}.vhd`] = await createVhdReadStream(
         handler,
         resolveRelativeFromFile(metadataFilename, vhds[id])
-      )
-      streams[`${id}.vhd`] = await asyncMap(chain, ({ path }) =>
-        handler.createReadStream(path, {
-          checksum: true,
-          ignoreMissingChecksum: true,
-        })
       )
     })
 
@@ -249,10 +226,6 @@ const parseVmBackupId = (id: string) => {
     remoteId: id.slice(0, i),
   }
 }
-
-// used to resolve the xva field from the metadata
-const resolveRelativeFromFile = (file: string, path: string): string =>
-  resolve('/', dirname(file), path).slice(1)
 
 const unboxIds = (pattern?: SimpleIdPattern): string[] => {
   if (pattern === undefined) {
