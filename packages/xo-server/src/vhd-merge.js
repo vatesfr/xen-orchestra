@@ -4,6 +4,7 @@ import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
 import fu from '@nraynaud/struct-fu'
 import isEqual from 'lodash/isEqual'
+import { dirname, relative } from 'path'
 import { fromEvent } from 'promise-toolbox'
 
 import type RemoteHandler from './remote-handlers/abstract'
@@ -745,7 +746,7 @@ export async function chainVhd (
 
   const { header } = childVhd
 
-  const parentName = parentPath.split('/').pop()
+  const parentName = relative(dirname(childPath), parentPath)
   const parentUuid = parentVhd.footer.uuid
   if (
     header.parentUnicodeName !== parentName ||
