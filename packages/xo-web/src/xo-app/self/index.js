@@ -261,7 +261,6 @@ export class Edit extends Component {
     this.setState(
       {
         internalNetworkPredicate,
-        nPools: newPools.length,
         pools: newPools,
         srPredicate: predicate,
         vmTemplatePredicate: predicate,
@@ -420,7 +419,7 @@ export class Edit extends Component {
                 <Col mediumSize={4}>
                   <SelectVmTemplate
                     autoSelectSingleOption={false}
-                    disabled={!state.nPools}
+                    disabled={isEmpty(state.pools)}
                     hasSelectAll
                     multi
                     onChange={this.linkState('templates')}
@@ -432,7 +431,7 @@ export class Edit extends Component {
                 <Col mediumSize={4}>
                   <SelectSr
                     autoSelectSingleOption={false}
-                    disabled={!state.nPools}
+                    disabled={isEmpty(state.pools)}
                     hasSelectAll
                     multi
                     onChange={this._updateSelectedSrs}
@@ -444,7 +443,7 @@ export class Edit extends Component {
                 <Col mediumSize={4}>
                   <SelectNetwork
                     autoSelectSingleOption={false}
-                    disabled={!state.nPools}
+                    disabled={isEmpty(state.pools)}
                     hasSelectAll
                     multi
                     onChange={this._updateSelectedNetworks}
