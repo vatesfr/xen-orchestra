@@ -7,7 +7,7 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, resolveId, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Col, Row } from 'grid'
-import { findKey, flatten, keyBy, isEmpty, map, some } from 'lodash'
+import { find, findKey, flatten, keyBy, isEmpty, map, some } from 'lodash'
 import { injectState, provideState } from '@julien-f/freactal'
 import { Toggle } from 'form'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
@@ -89,8 +89,6 @@ const getInitialState = () => ({
   powerState: 'All',
   remotes: [],
   schedules: [],
-  schedulesToDelete: [],
-  schedulesToEdit: [],
   settings: {},
   smartMode: false,
   snapshotMode: undefined,
@@ -150,31 +148,49 @@ export default [
           )
         }
 
-        if (!isEmpty(state.schedulesToEdit)) {
-          await Promise.all(
-            map(state.schedulesToEdit, async schedule => {
-              await editSchedule({
-                id: schedule.id,
-                jobId: props.job.id,
-                cron: schedule.cron,
-                timezone: schedule.timezone,
-              })
-              newSettings[schedule.id] = {
-                exportRetention: +schedule.exportRetention,
-                snapshotRetention: +schedule.snapshotRetention,
-              }
-            })
-          )
-        }
+        await Promise.all(
+          map(props.schedules, oldSchedule => {
+            const scheduleId = oldSchedule.id
+            const newSchedule = find(state.schedules, { id: scheduleId })
 
-        if (!isEmpty(state.schedulesToDelete)) {
-          await Promise.all(
-            map(state.schedulesToDelete, async id => {
-              await deleteSchedule(id)
-              delete props.job.settings[id]
-              delete newSettings[id]
+            if (
+              newSchedule !== undefined &&
+              newSchedule.cron === oldSchedule.cron &&
+              newSchedule.timezone === oldSchedule.timezone
+            ) {
+              return
+            }
+
+            if (newSchedule === undefined) {
+              return deleteSchedule(scheduleId)
+            }
+
+            return editSchedule({
+              id: scheduleId,
+              jobId: props.job.id,
+              cron: newSchedule.cron,
+              timezone: newSchedule.timezone,
             })
-          )
+          })
+        )
+
+        const oldSettings = props.job.settings
+        const settings = state.settings
+        for (const id in oldSettings) {
+          const oldSetting = oldSettings[id]
+          const newSetting = settings[id]
+
+          if (!(id in settings)) {
+            delete oldSettings[id]
+          } else if (
+            oldSetting.snapshotRetention !== newSetting.snapshotRetention ||
+            oldSetting.exportRetention !== newSetting.exportRetention
+          ) {
+            newSettings[id] = {
+              exportRetention: +newSetting.exportRetention,
+              snapshotRetention: +newSetting.snapshotRetention,
+            }
+          }
         }
 
         await editBackupNgJob({
@@ -183,7 +199,7 @@ export default [
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
           settings: {
-            ...props.job.settings,
+            ...oldSettings,
             ...newSettings,
           },
           remotes:
@@ -314,17 +330,12 @@ export default [
         }
       },
       deleteSchedule: (_, id) => async (state, props) => {
-        const schedulesToDelete = [...state.schedulesToDelete]
-        schedulesToDelete.push(id)
-
-        const scheduleKey = findKey(state.schedules, { id })
         const schedules = [...state.schedules]
-        schedules.splice(scheduleKey, 1)
+        schedules.splice(findKey(state.schedules, { id }), 1)
 
         return {
           ...state,
           schedules,
-          schedulesToDelete,
         }
       },
       editNewSchedule: (_, schedule) => state => ({
@@ -365,15 +376,6 @@ export default [
         const id = state.tmpSchedule.id
         if (state.editionMode === 'editSchedule') {
           const scheduleKey = findKey(state.schedules, { id })
-          const schedulesToEdit = [...state.schedulesToEdit]
-          schedulesToEdit[scheduleKey] = {
-            id,
-            cron,
-            exportRetention,
-            snapshotRetention,
-            timezone,
-          }
-
           const schedules = [...state.schedules]
           schedules[scheduleKey] = {
             ...schedules[scheduleKey],
@@ -391,7 +393,6 @@ export default [
             ...state,
             editionMode: undefined,
             schedules,
-            schedulesToEdit,
             settings,
             tmpSchedule: {},
           }
