@@ -93,14 +93,16 @@ class HostsPatchesTable extends Component {
     )
   )
 
-  _subscribeMissingPatches = (hosts = this.props.hosts) => {
-    const { hostsById } = this.props
-
+  _subscribeMissingPatches = (
+    hosts = this.props.hosts,
+    hostsById = this.props.hostsById
+  ) => {
     const unsubs = map(
       hosts,
       host =>
-        hostsById
-          ? subscribeHostMissingPatches(hostsById[host.id][0], patches =>
+        isEmpty(hostsById)
+          ? noop
+          : subscribeHostMissingPatches(hostsById[host.id][0], patches =>
             this.setState({
               missingPatches: {
                 ...this.state.missingPatches,
@@ -108,7 +110,6 @@ class HostsPatchesTable extends Component {
               },
             })
           )
-          : noop
     )
 
     if (this.unsubscribeMissingPatches !== undefined) {
@@ -135,8 +136,11 @@ class HostsPatchesTable extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.hosts !== this.props.hosts) {
-      this._subscribeMissingPatches(nextProps.hosts)
+    if (
+      nextProps.hosts !== this.props.hosts ||
+      nextProps.hostsById !== this.props.hostsById
+    ) {
+      this._subscribeMissingPatches(nextProps.hosts, nextProps.hostsById)
     }
   }
 
