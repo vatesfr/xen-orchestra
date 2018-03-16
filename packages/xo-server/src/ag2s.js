@@ -21,7 +21,7 @@ const next = async (iterator, arg) => {
       value = await value
       success = true
     } catch (error) {
-      cursor = iterator.thrown(error)
+      cursor = iterator.throw(error)
     }
     if (success) {
       cursor = iterator.next(value)
