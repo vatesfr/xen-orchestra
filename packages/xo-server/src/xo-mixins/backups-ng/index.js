@@ -206,9 +206,7 @@ const importers: $Dict<
       vifs: metadata.vifs,
       vm: {
         ...vm,
-        name_label: `${vm.name_label} ({${safeDateFormat(
-          metadata.timestamp
-        )}})`,
+        name_label: `${vm.name_label} (${safeDateFormat(metadata.timestamp)})`,
         tags: [...vm.tags, 'restored from backup'],
       },
     }
