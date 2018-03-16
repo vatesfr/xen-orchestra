@@ -202,6 +202,7 @@ const importers: $Dict<
       streams,
       vbds: metadata.vbds,
       vdis,
+      version: '1.0.0',
       vifs: metadata.vifs,
       vm: {
         ...vm,
