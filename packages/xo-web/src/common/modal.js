@@ -199,7 +199,13 @@ class StrongConfirm extends Component {
           <strong className='no-text-selection'>{_(messageId, values)}</strong>
         </div>
         <div>
-          <input className='form-control' onChange={this._onInputChange} />
+          <input
+            className='form-control'
+            ref={ref => {
+              ref && ref.focus()
+            }}
+            onChange={this._onInputChange}
+          />
         </div>
       </GenericModal>
     )
