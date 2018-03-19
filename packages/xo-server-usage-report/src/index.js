@@ -314,9 +314,14 @@ function getMostAllocatedSpaces ({ disks, xo }) {
 async function getHostsMissingPatches ({ runningHosts, xo }) {
   const hostsMissingPatches = await Promise.all(
     map(runningHosts, async host => {
-      const hostsPatches = await xo
+      let hostsPatches = await xo
         .getXapi(host)
         .listMissingPoolPatchesOnHost(host._xapiId)
+
+      if (host.license_params.sku_type === 'free') {
+        hostsPatches = filter(hostsPatches, { paid: false })
+      }
+
       if (hostsPatches.length > 0) {
         return {
           uuid: host.uuid,
