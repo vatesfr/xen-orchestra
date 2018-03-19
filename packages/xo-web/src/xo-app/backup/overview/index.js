@@ -11,10 +11,10 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
-import { constructQueryString } from 'smart-backup-pattern'
+import { constructQueryString } from 'smart-backup'
 import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
-import { filter, find, forEach, get, map, orderBy } from 'lodash'
+import { filter, find, forEach, get, keyBy, map, orderBy } from 'lodash'
 import {
   deleteBackupSchedule,
   disableSchedule,
@@ -125,6 +125,8 @@ const JOB_COLUMNS = [
 // ===================================================================
 
 @addSubscriptions({
+  jobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
+  schedules: cb => subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
   users: subscribeUsers,
 })
 export default class Overview extends Component {
@@ -132,37 +134,20 @@ export default class Overview extends Component {
     router: React.PropTypes.object,
   }
 
-  componentWillMount () {
-    const unsubscribeJobs = subscribeJobs(jobs => {
-      const obj = {}
-      forEach(jobs, job => {
-        obj[job.id] = job
-      })
-
-      this.setState({
-        jobs: obj,
-      })
-    })
-
-    const unsubscribeSchedules = subscribeSchedules(schedules => {
-      // Get only backup jobs.
-      schedules = filter(schedules, schedule => {
-        const job = this.state.jobs && this.state.jobs[schedule.jobId]
-        return job && jobKeyToLabel[job.key]
-      })
-
-      this.setState({
-        schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], [
-          'desc',
-        ]),
-      })
-    })
-
-    this.componentWillUnmount = () => {
-      unsubscribeJobs()
-      unsubscribeSchedules()
-    }
-  }
+  _getSchedules = createSelector(
+    () => this.props.jobs,
+    () => this.props.schedules,
+    (jobs, schedules) =>
+      jobs === undefined || schedules === undefined
+        ? []
+        : orderBy(
+          filter(schedules, schedule => {
+            const job = jobs[schedule.jobId]
+            return job && jobKeyToLabel[job.key]
+          }),
+          'id'
+        )
+  )
 
   _redirectToMatchingVms = pattern => {
     this.context.router.push({
@@ -172,8 +157,8 @@ export default class Overview extends Component {
   }
 
   _getScheduleCollection = createSelector(
-    () => this.state.schedules,
-    () => this.state.jobs,
+    this._getSchedules,
+    () => this.props.jobs,
     (schedules, jobs) => {
       if (!schedules || !jobs) {
         return []
@@ -202,8 +187,8 @@ export default class Overview extends Component {
   )
 
   _getIsScheduleUserMissing = createSelector(
-    () => this.state.schedules,
-    () => this.state.jobs,
+    this._getSchedules,
+    () => this.props.jobs,
     () => this.props.users,
     (schedules, jobs, users) => {
       const isScheduleUserMissing = {}
@@ -218,8 +203,7 @@ export default class Overview extends Component {
   )
 
   render () {
-    const { schedules } = this.state
-
+    const schedules = this._getSchedules()
     const isScheduleUserMissing = this._getIsScheduleUserMissing()
 
     return (

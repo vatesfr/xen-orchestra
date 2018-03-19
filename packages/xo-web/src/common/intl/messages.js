@@ -280,6 +280,7 @@ const messages = {
   jobInterrupted: 'Interrupted',
   jobStarted: 'Started',
   saveBackupJob: 'Save',
+  resetBackupJob: 'Reset',
   createBackupJob: 'Create',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
@@ -290,6 +291,8 @@ const messages = {
   jobEditMessage:
     'You are editing job {name} ({id}). Saving will override previous job state.',
   scheduleEdit: 'Edit',
+  scheduleSave: 'Save',
+  cancelScheduleEdition: 'Cancel',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   deleteSelectedSchedules: 'Delete selected schedules',
@@ -316,6 +319,8 @@ const messages = {
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',
   smartBackup: 'Smart backup',
+  exportRetention: 'Export retention',
+  snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
   useDelta: 'Use delta',
   useCompression: 'Use compression',
@@ -534,7 +539,7 @@ const messages = {
   srNoVdis: 'No VDIs in this storage',
   // ----- Pool general -----
   poolTitleRamUsage: 'Pool RAM usage:',
-  poolRamUsage: '{used} used on {total}',
+  poolRamUsage: '{used} used on {total} ({free} free)',
   poolMaster: 'Master:',
   displayAllHosts: 'Display all hosts of this pool',
   displayAllStorages: 'Display all storages of this pool',
@@ -605,7 +610,9 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
-  memoryHostState: 'RAM Usage: {memoryUsed}',
+  hostTitleRamUsage: 'Host RAM usage:',
+  memoryHostState:
+    'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
   hostAddress: 'Address',
   hostStatus: 'Status',
@@ -1192,7 +1199,6 @@ const messages = {
   deleteVmBackupsTitle: 'Delete {vm} backups',
   deleteVmBackupsSelect: 'Select backups to delete:',
   deleteVmBackupsSelectAll: 'All',
-  deleteVmBackupsDeltaInfo: 'Delta backup deletion will be available soon',
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',

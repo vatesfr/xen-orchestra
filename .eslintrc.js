@@ -6,6 +6,7 @@ module.exports = {
     $Diff: true,
     $Exact: true,
     $Keys: true,
+    $PropertyType: true,
     $Shape: true,
   },
   parser: 'babel-eslint',

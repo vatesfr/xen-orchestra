@@ -19,6 +19,7 @@ import React from 'react'
 import remove from 'lodash/remove'
 import renderXoItem from 'render-xo-item'
 import ResourceSetQuotas from 'resource-set-quotas'
+import some from 'lodash/some'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -254,10 +255,12 @@ export class Edit extends Component {
 
   _updateSelectedPools = (newPools, newSrs, newNetworks) => {
     const predicate = object => includes(resolveIds(newPools), object.$pool)
+    const internalNetworkPredicate = network =>
+      predicate(network) && isEmpty(network.PIFs)
 
     this.setState(
       {
-        nPools: newPools.length,
+        internalNetworkPredicate,
         pools: newPools,
         srPredicate: predicate,
         vmTemplatePredicate: predicate,
@@ -272,20 +275,17 @@ export class Edit extends Component {
       newSrs,
       this.props.hostsByPool
     )
-    const networkPredicate = network => {
-      let kept = false
-      forEach(
+    const networkPredicate = network =>
+      this.state.internalNetworkPredicate(network) ||
+      some(
         availableHosts,
-        host => !(kept = intersection(network.PIFs, host.PIFs).length > 0)
+        host => intersection(network.PIFs, host.PIFs).length > 0
       )
-      return kept
-    }
 
     this.setState(
       {
         availableHosts,
         networkPredicate,
-        nSrs: newSrs.length,
         srs: newSrs,
       },
       () => this._updateSelectedNetworks(newNetworks || this.state.networks)
@@ -418,7 +418,7 @@ export class Edit extends Component {
                 <Col mediumSize={4}>
                   <SelectVmTemplate
                     autoSelectSingleOption={false}
-                    disabled={!state.nPools}
+                    disabled={isEmpty(state.pools)}
                     hasSelectAll
                     multi
                     onChange={this.linkState('templates')}
@@ -430,7 +430,7 @@ export class Edit extends Component {
                 <Col mediumSize={4}>
                   <SelectSr
                     autoSelectSingleOption={false}
-                    disabled={!state.nPools}
+                    disabled={isEmpty(state.pools)}
                     hasSelectAll
                     multi
                     onChange={this._updateSelectedSrs}
@@ -442,11 +442,13 @@ export class Edit extends Component {
                 <Col mediumSize={4}>
                   <SelectNetwork
                     autoSelectSingleOption={false}
-                    disabled={!state.nSrs}
+                    disabled={isEmpty(state.pools)}
                     hasSelectAll
                     multi
                     onChange={this._updateSelectedNetworks}
-                    predicate={state.networkPredicate}
+                    predicate={
+                      state.networkPredicate || state.internalNetworkPredicate
+                    }
                     required
                     value={state.networks}
                   />
