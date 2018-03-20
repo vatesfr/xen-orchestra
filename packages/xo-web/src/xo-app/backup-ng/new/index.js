@@ -2,27 +2,16 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
-import SmartBackupPreview from 'smart-backup-preview'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, connectStore, resolveId, resolveIds } from 'utils'
+import { addSubscriptions, resolveId, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Col, Row } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
-import { flatten, get, keyBy, isEmpty, map, some } from 'lodash'
+import { find, findKey, flatten, keyBy, isEmpty, map, some } from 'lodash'
 import { injectState, provideState } from '@julien-f/freactal'
-import { Select, Toggle } from 'form'
-import {
-  constructSmartPattern,
-  destructSmartPattern,
-} from 'smart-backup-pattern'
-import {
-  SelectPool,
-  SelectRemote,
-  SelectSr,
-  SelectTag,
-  SelectVm,
-} from 'select-objects'
+import { Toggle } from 'form'
+import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
+import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   createBackupNgJob,
   createSchedule,
@@ -33,132 +22,12 @@ import {
 } from 'xo'
 
 import Schedules from './schedules'
+import SmartBackup from './smart-backup'
 import { FormGroup, getRandomId, Input, Ul, Li } from './utils'
 
 // ===================================================================
 
-const SMART_MODE_INITIAL_STATE = {
-  powerState: 'All',
-  $pool: {},
-  tags: {},
-}
-
-const SMART_MODE_FUNCTIONS = {
-  setPowerState: (_, powerState) => state => ({
-    ...state,
-    powerState,
-  }),
-  setPoolValues: (_, values) => state => ({
-    ...state,
-    $pool: {
-      ...state.$pool,
-      values,
-    },
-  }),
-  setPoolNotValues: (_, notValues) => state => ({
-    ...state,
-    $pool: {
-      ...state.$pool,
-      notValues,
-    },
-  }),
-  setTagValues: (_, values) => state => ({
-    ...state,
-    tags: {
-      ...state.tags,
-      values,
-    },
-  }),
-  setTagNotValues: (_, notValues) => state => ({
-    ...state,
-    tags: {
-      ...state.tags,
-      notValues,
-    },
-  }),
-}
-
 const normaliseTagValues = values => resolveIds(values).map(value => [value])
-
-const SMART_MODE_COMPUTED = {
-  vmsSmartPattern: ({ $pool, powerState, tags }) => ({
-    $pool: constructSmartPattern($pool, resolveIds),
-    power_state: powerState === 'All' ? undefined : powerState,
-    tags: constructSmartPattern(tags, normaliseTagValues),
-    type: 'VM',
-  }),
-  allVms: (state, { allVms }) => allVms,
-}
-
-const VMS_STATUSES_OPTIONS = [
-  { value: 'All', label: _('vmStateAll') },
-  { value: 'Running', label: _('vmStateRunning') },
-  { value: 'Halted', label: _('vmStateHalted') },
-]
-
-const SmartBackup = injectState(({ state, effects }) => (
-  <div>
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartStatusTitle')}</strong>
-      </label>
-      <Select
-        options={VMS_STATUSES_OPTIONS}
-        onChange={effects.setPowerState}
-        value={state.powerState}
-        simpleValue
-        required
-      />
-    </FormGroup>
-    <h3>{_('editBackupSmartPools')}</h3>
-    <hr />
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartResidentOn')}</strong>
-      </label>
-      <SelectPool
-        multi
-        onChange={effects.setPoolValues}
-        value={get(state.$pool, 'values')}
-      />
-    </FormGroup>
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartNotResidentOn')}</strong>
-      </label>
-      <SelectPool
-        multi
-        onChange={effects.setPoolNotValues}
-        value={get(state.$pool, 'notValues')}
-      />
-    </FormGroup>
-    <h3>{_('editBackupSmartTags')}</h3>
-    <hr />
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartTagsTitle')}</strong>
-      </label>
-      <SelectTag
-        multi
-        onChange={effects.setTagValues}
-        value={get(state.tags, 'values')}
-      />
-    </FormGroup>
-    <FormGroup>
-      <label>
-        <strong>{_('editBackupSmartExcludedTagsTitle')}</strong>
-      </label>
-      <SelectTag
-        multi
-        onChange={effects.setTagNotValues}
-        value={get(state.tags, 'notValues')}
-      />
-    </FormGroup>
-    <SmartBackupPreview vms={state.allVms} pattern={state.vmsSmartPattern} />
-  </div>
-))
-
-// ===================================================================
 
 const constructPattern = values => ({
   id: {
@@ -182,10 +51,10 @@ const destructVmsPattern = pattern =>
 const getNewSettings = schedules => {
   const newSettings = {}
 
-  for (const schedule in schedules) {
-    newSettings[schedule] = {
-      exportRetention: +schedules[schedule].exportRetention,
-      snapshotRetention: +schedules[schedule].snapshotRetention,
+  for (const id in schedules) {
+    newSettings[id] = {
+      exportRetention: +schedules[id].exportRetention,
+      snapshotRetention: +schedules[id].snapshotRetention,
     }
   }
 
@@ -195,15 +64,39 @@ const getNewSettings = schedules => {
 const getNewSchedules = schedules => {
   const newSchedules = {}
 
-  for (const schedule in schedules) {
-    newSchedules[schedule] = {
-      cron: schedules[schedule].cron,
-      timezone: schedules[schedule].timezone,
+  for (const id in schedules) {
+    newSchedules[id] = {
+      cron: schedules[id].cron,
+      timezone: schedules[id].timezone,
     }
   }
 
   return newSchedules
 }
+
+const getInitialState = () => ({
+  $pool: {},
+  backupMode: undefined,
+  compression: true,
+  crMode: undefined,
+  deltaMode: undefined,
+  drMode: undefined,
+  editionMode: undefined,
+  formId: getRandomId(),
+  name: '',
+  newSchedules: {},
+  paramsUpdated: false,
+  powerState: 'All',
+  remotes: [],
+  schedules: [],
+  settings: {},
+  smartMode: false,
+  snapshotMode: undefined,
+  srs: [],
+  tags: {},
+  tmpSchedule: {},
+  vms: [],
+})
 
 export default [
   New => props => (
@@ -211,9 +104,6 @@ export default [
       <New {...props} />
     </Upgrade>
   ),
-  connectStore({
-    allVms: createGetObjectsOfType('VM'),
-  }),
   addSubscriptions({
     remotes: cb =>
       subscribeRemotes(remotes => {
@@ -221,25 +111,7 @@ export default [
       }),
   }),
   provideState({
-    initialState: () => ({
-      compression: true,
-      backupMode: undefined,
-      drMode: undefined,
-      deltaMode: undefined,
-      crMode: undefined,
-      snapshotMode: undefined,
-      formId: getRandomId(),
-      name: '',
-      paramsUpdated: false,
-      remotes: [],
-      smartMode: false,
-      srs: [],
-      vms: [],
-      tmpSchedule: {},
-      newSchedules: {},
-      editionMode: undefined,
-      ...SMART_MODE_INITIAL_STATE,
-    }),
+    initialState: getInitialState,
     effects: {
       createJob: () => async state => {
         await createBackupNgJob({
@@ -276,19 +148,68 @@ export default [
           )
         }
 
+        await Promise.all(
+          map(props.schedules, oldSchedule => {
+            const scheduleId = oldSchedule.id
+            const newSchedule = find(state.schedules, { id: scheduleId })
+
+            if (
+              newSchedule !== undefined &&
+              newSchedule.cron === oldSchedule.cron &&
+              newSchedule.timezone === oldSchedule.timezone
+            ) {
+              return
+            }
+
+            if (newSchedule === undefined) {
+              return deleteSchedule(scheduleId)
+            }
+
+            return editSchedule({
+              id: scheduleId,
+              jobId: props.job.id,
+              cron: newSchedule.cron,
+              timezone: newSchedule.timezone,
+            })
+          })
+        )
+
+        const oldSettings = props.job.settings
+        const settings = state.settings
+        for (const id in oldSettings) {
+          const oldSetting = oldSettings[id]
+          const newSetting = settings[id]
+
+          if (!(id in settings)) {
+            delete oldSettings[id]
+          } else if (
+            oldSetting.snapshotRetention !== newSetting.snapshotRetention ||
+            oldSetting.exportRetention !== newSetting.exportRetention
+          ) {
+            newSettings[id] = {
+              exportRetention: +newSetting.exportRetention,
+              snapshotRetention: +newSetting.snapshotRetention,
+            }
+          }
+        }
+
         await editBackupNgJob({
           id: props.job.id,
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
           settings: {
+            ...oldSettings,
             ...newSettings,
-            ...props.job.settings,
           },
           remotes:
-            (state.deltaMode || state.backupMode) &&
-            constructPattern(state.remotes),
-          srs: (state.crMode || state.drMode) && constructPattern(state.srs),
+            state.deltaMode || state.backupMode
+              ? constructPattern(state.remotes)
+              : constructPattern([]),
+          srs:
+            state.crMode || state.drMode
+              ? constructPattern(state.srs)
+              : constructPattern([]),
           vms: state.smartMode
             ? state.vmsSmartPattern
             : constructPattern(state.vms),
@@ -359,26 +280,33 @@ export default [
         }
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
-      updateParams: () => (state, { job }) => ({
-        ...state,
-        compression: job.compression === 'native',
-        delta: job.mode === 'delta',
-        name: job.name,
-        paramsUpdated: true,
-        smartMode: job.vms.id === undefined,
-        snapshotMode:
-          some(
-            job.settings,
-            ({ snapshotRetention }) => snapshotRetention > 0
-          ) || undefined,
-        backupMode: (job.mode === 'full' && !isEmpty(job.remotes)) || undefined,
-        deltaMode: (job.mode === 'delta' && !isEmpty(job.remotes)) || undefined,
-        drMode: (job.mode === 'full' && !isEmpty(job.srs)) || undefined,
-        crMode: (job.mode === 'delta' && !isEmpty(job.srs)) || undefined,
-        remotes: job.remotes !== undefined ? destructPattern(job.remotes) : [],
-        srs: job.srs !== undefined ? destructPattern(job.srs) : [],
-        ...destructVmsPattern(job.vms),
-      }),
+      updateParams: () => (state, { job, schedules }) => {
+        const remotes =
+          job.remotes !== undefined ? destructPattern(job.remotes) : []
+        const srs = job.srs !== undefined ? destructPattern(job.srs) : []
+
+        return {
+          ...state,
+          compression: job.compression === 'native',
+          name: job.name,
+          paramsUpdated: true,
+          smartMode: job.vms.id === undefined,
+          snapshotMode:
+            some(
+              job.settings,
+              ({ snapshotRetention }) => snapshotRetention > 0
+            ) || undefined,
+          backupMode: (job.mode === 'full' && !isEmpty(remotes)) || undefined,
+          deltaMode: (job.mode === 'delta' && !isEmpty(remotes)) || undefined,
+          drMode: (job.mode === 'full' && !isEmpty(srs)) || undefined,
+          crMode: (job.mode === 'delta' && !isEmpty(srs)) || undefined,
+          remotes,
+          srs,
+          settings: job.settings,
+          schedules,
+          ...destructVmsPattern(job.vms),
+        }
+      },
       addSchedule: () => state => ({
         ...state,
         editionMode: 'creation',
@@ -402,14 +330,13 @@ export default [
         }
       },
       deleteSchedule: (_, id) => async (state, props) => {
-        await deleteSchedule(id)
-        delete props.job.settings[id]
-        await editBackupNgJob({
-          id: props.job.id,
-          settings: {
-            ...props.job.settings,
-          },
-        })
+        const schedules = [...state.schedules]
+        schedules.splice(findKey(state.schedules, { id }), 1)
+
+        return {
+          ...state,
+          schedules,
+        }
       },
       editNewSchedule: (_, schedule) => state => ({
         ...state,
@@ -446,27 +373,27 @@ export default [
           }
         }
 
+        const id = state.tmpSchedule.id
         if (state.editionMode === 'editSchedule') {
-          await editSchedule({
-            id: state.tmpSchedule.id,
-            jobId: props.job.id,
+          const scheduleKey = findKey(state.schedules, { id })
+          const schedules = [...state.schedules]
+          schedules[scheduleKey] = {
+            ...schedules[scheduleKey],
             cron,
             timezone,
-          })
-          await editBackupNgJob({
-            id: props.job.id,
-            settings: {
-              ...props.job.settings,
-              [state.tmpSchedule.id]: {
-                exportRetention: +exportRetention,
-                snapshotRetention: +snapshotRetention,
-              },
-            },
-          })
+          }
+
+          const settings = { ...state.settings }
+          settings[id] = {
+            exportRetention,
+            snapshotRetention,
+          }
 
           return {
             ...state,
             editionMode: undefined,
+            schedules,
+            settings,
             tmpSchedule: {},
           }
         }
@@ -477,7 +404,7 @@ export default [
           tmpSchedule: {},
           newSchedules: {
             ...state.newSchedules,
-            [state.tmpSchedule.id]: {
+            [id]: {
               cron,
               timezone,
               exportRetention,
@@ -486,34 +413,85 @@ export default [
           },
         }
       },
-      ...SMART_MODE_FUNCTIONS,
+      setPowerState: (_, powerState) => state => ({
+        ...state,
+        powerState,
+      }),
+      setPoolValues: (_, values) => state => ({
+        ...state,
+        $pool: {
+          ...state.$pool,
+          values,
+        },
+      }),
+      setPoolNotValues: (_, notValues) => state => ({
+        ...state,
+        $pool: {
+          ...state.$pool,
+          notValues,
+        },
+      }),
+      setTagValues: (_, values) => state => ({
+        ...state,
+        tags: {
+          ...state.tags,
+          values,
+        },
+      }),
+      setTagNotValues: (_, notValues) => state => ({
+        ...state,
+        tags: {
+          ...state.tags,
+          notValues,
+        },
+      }),
+      resetJob: ({ updateParams }) => (state, { job }) => {
+        if (job !== undefined) {
+          updateParams()
+        }
+
+        return getInitialState()
+      },
     },
     computed: {
-      needUpdateParams: (state, { job }) =>
-        job !== undefined && !state.paramsUpdated,
+      needUpdateParams: (state, { job, schedules }) =>
+        job !== undefined && schedules !== undefined && !state.paramsUpdated,
       isJobInvalid: state =>
         state.name.trim() === '' ||
         (isEmpty(state.schedules) && isEmpty(state.newSchedules)) ||
         (isEmpty(state.vms) && !state.smartMode) ||
         ((state.backupMode || state.deltaMode) && isEmpty(state.remotes)) ||
         ((state.drMode || state.crMode) && isEmpty(state.srs)) ||
+        (state.exportMode && !state.exportRetentionExists) ||
+        (state.snapshotMode && !state.snapshotRetentionExists) ||
         (!state.isDelta && !state.isFull && !state.snapshotMode),
-      showCompression: (state, { job }) =>
-        state.isFull &&
-        (some(
-          state.newSchedules,
-          schedule => +schedule.exportRetention !== 0
-        ) ||
-          (job &&
-            some(job.settings, schedule => schedule.exportRetention !== 0))),
+      showCompression: state => state.isFull && state.exportRetentionExists,
       exportMode: state =>
         state.backupMode || state.deltaMode || state.drMode || state.crMode,
-      settings: (state, { job }) => get(job, 'settings') || {},
-      schedules: (state, { schedules }) => schedules || [],
+      exportRetentionExists: state =>
+        some(
+          state.newSchedules,
+          ({ exportRetention }) => +exportRetention !== 0
+        ) ||
+        some(state.settings, ({ exportRetention }) => +exportRetention !== 0),
+      snapshotRetentionExists: state =>
+        some(
+          state.newSchedules,
+          ({ snapshotRetention }) => +snapshotRetention !== 0
+        ) ||
+        some(
+          state.settings,
+          ({ snapshotRetention }) => +snapshotRetention !== 0
+        ),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
-      allRemotes: (state, { remotes }) => remotes,
-      ...SMART_MODE_COMPUTED,
+      storedRemotes: (state, { remotes }) => remotes,
+      vmsSmartPattern: ({ $pool, powerState, tags }) => ({
+        $pool: constructSmartPattern($pool, resolveIds),
+        power_state: powerState === 'All' ? undefined : powerState,
+        tags: constructSmartPattern(tags, normaliseTagValues),
+        type: 'VM',
+      }),
     },
   }),
   injectState,
@@ -634,10 +612,10 @@ export default [
                       <Ul>
                         {map(state.remotes, (id, key) => (
                           <Li key={id}>
-                            {state.allRemotes &&
+                            {state.storedRemotes &&
                               renderXoItem({
                                 type: 'remote',
-                                value: state.allRemotes[id],
+                                value: state.storedRemotes[id],
                               })}
                             <ActionButton
                               btnStyle='danger'
@@ -695,31 +673,43 @@ export default [
             </Col>
           </Row>
           <Row>
-            {state.paramsUpdated ? (
-              <ActionButton
-                btnStyle='primary'
-                disabled={state.isJobInvalid}
-                form={state.formId}
-                handler={effects.editJob}
-                icon='save'
-                redirectOnSuccess='/backup-ng'
-                size='large'
-              >
-                {_('scheduleEdit')}
-              </ActionButton>
-            ) : (
-              <ActionButton
-                btnStyle='primary'
-                disabled={state.isJobInvalid}
-                form={state.formId}
-                handler={effects.createJob}
-                icon='save'
-                redirectOnSuccess='/backup-ng'
-                size='large'
-              >
-                {_('createBackupJob')}
-              </ActionButton>
-            )}
+            <Card>
+              <CardBlock>
+                {state.paramsUpdated ? (
+                  <ActionButton
+                    btnStyle='primary'
+                    disabled={state.isJobInvalid}
+                    form={state.formId}
+                    handler={effects.editJob}
+                    icon='save'
+                    redirectOnSuccess='/backup-ng'
+                    size='large'
+                  >
+                    {_('scheduleEdit')}
+                  </ActionButton>
+                ) : (
+                  <ActionButton
+                    btnStyle='primary'
+                    disabled={state.isJobInvalid}
+                    form={state.formId}
+                    handler={effects.createJob}
+                    icon='save'
+                    redirectOnSuccess='/backup-ng'
+                    size='large'
+                  >
+                    {_('createBackupJob')}
+                  </ActionButton>
+                )}
+                <ActionButton
+                  handler={effects.resetJob}
+                  icon='undo'
+                  className='pull-right'
+                  size='large'
+                >
+                  {_('resetBackupJob')}
+                </ActionButton>
+              </CardBlock>
+            </Card>
           </Row>
         </Container>
       </form>

@@ -5,13 +5,13 @@ import { createPredicate } from 'value-matcher'
 import { createSelector } from 'reselect'
 import { filter, map, pickBy } from 'lodash'
 
-import Component from './base-component'
-import Icon from './icon'
-import Link from './link'
-import renderXoItem from './render-xo-item'
-import Tooltip from './tooltip'
-import { Card, CardBlock, CardHeader } from './card'
-import { constructQueryString } from './smart-backup-pattern'
+import Component from './../base-component'
+import Icon from './../icon'
+import Link from './../link'
+import renderXoItem from './../render-xo-item'
+import Tooltip from './../tooltip'
+import { Card, CardBlock, CardHeader } from './../card'
+import { constructQueryString } from './index'
 
 const SAMPLE_SIZE_OF_MATCHING_VMS = 3
 

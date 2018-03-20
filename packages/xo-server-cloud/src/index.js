@@ -128,10 +128,15 @@ class XoServerCloud {
       throw new Error(`cannot get resource: ${namespace} not registered`)
     }
 
-    const namespaceCatalog = await this._getNamespaceCatalog(namespace)
+    const { _token: token } = await this._getNamespaceCatalog(namespace)
+
+    // 2018-03-20 Extra check: getResourceDownloadToken seems to be called without a token in some cases
+    if (token === undefined) {
+      throw new Error(`${namespace} namespace token is undefined`)
+    }
 
     const downloadToken = await this._updater.call('getResourceDownloadToken', {
-      token: namespaceCatalog._token,
+      token,
       id,
       version,
     })

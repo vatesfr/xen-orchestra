@@ -4,7 +4,7 @@
 import defer from 'golike-defer'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
-import { basename, dirname, resolve } from 'path'
+import { basename, dirname } from 'path'
 import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { timeout as pTimeout } from 'promise-toolbox'
 
@@ -19,10 +19,15 @@ import {
   type Vm,
   type Xapi,
 } from '../../xapi'
-import { asyncMap, safeDateFormat, serializeError } from '../../utils'
+import {
+  asyncMap,
+  resolveRelativeFromFile,
+  safeDateFormat,
+  serializeError,
+} from '../../utils'
 import mergeVhd, {
-  HARD_DISK_TYPE_DIFFERENCING,
   chainVhd,
+  createReadStream as createVhdReadStream,
   readVhdMetadata,
 } from '../../vhd-merge'
 
@@ -148,28 +153,6 @@ const listReplicatedVms = (
   return values(vms).sort(compareSnapshotTime)
 }
 
-// returns the chain of parents of this VHD
-//
-// TODO: move to vhd-merge module
-const getVhdChain = async (
-  handler: RemoteHandler,
-  path: string
-): Promise<Object[]> => {
-  const chain = []
-
-  while (true) {
-    const vhd = await readVhdMetadata(handler, path)
-    vhd.path = path
-    chain.push(vhd)
-    if (vhd.header.type !== HARD_DISK_TYPE_DIFFERENCING) {
-      break
-    }
-    path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
-  }
-
-  return chain
-}
-
 const importers: $Dict<
   (
     handler: RemoteHandler,
@@ -186,15 +169,9 @@ const importers: $Dict<
 
     const streams = {}
     await asyncMap(vdis, async (vdi, id) => {
-      const chain = await getVhdChain(
+      streams[`${id}.vhd`] = await createVhdReadStream(
         handler,
         resolveRelativeFromFile(metadataFilename, vhds[id])
-      )
-      streams[`${id}.vhd`] = await asyncMap(chain, ({ path }) =>
-        handler.createReadStream(path, {
-          checksum: true,
-          ignoreMissingChecksum: true,
-        })
       )
     })
 
@@ -202,17 +179,17 @@ const importers: $Dict<
       streams,
       vbds: metadata.vbds,
       vdis,
+      version: '1.0.0',
       vifs: metadata.vifs,
       vm: {
         ...vm,
-        name_label: `${vm.name_label} ({${safeDateFormat(
-          metadata.timestamp
-        )}})`,
+        name_label: `${vm.name_label} (${safeDateFormat(metadata.timestamp)})`,
         tags: [...vm.tags, 'restored from backup'],
       },
     }
 
     const { vm: newVm } = await xapi.importDeltaVm(delta, {
+      detectBase: false,
       disableStartAfterImport: false,
       srId: sr,
       // TODO: support mapVdisSrs
@@ -250,10 +227,6 @@ const parseVmBackupId = (id: string) => {
   }
 }
 
-// used to resolve the xva field from the metadata
-const resolveRelativeFromFile = (file: string, path: string): string =>
-  resolve('/', dirname(file), path).slice(1)
-
 const unboxIds = (pattern?: SimpleIdPattern): string[] => {
   if (pattern === undefined) {
     return []
@@ -283,19 +256,20 @@ async function waitAll<T> (
 const writeStream = async (
   input: Readable | Promise<Readable>,
   handler: RemoteHandler,
-  path: string
+  path: string,
+  { checksum = true }: { checksum?: boolean } = {}
 ): Promise<void> => {
   input = await input
   const tmpPath = `${dirname(path)}/.${basename(path)}`
-  const output = await handler.createOutputStream(tmpPath, { checksum: true })
+  const output = await handler.createOutputStream(tmpPath, { checksum })
   try {
     input.pipe(output)
     await output.checksumWritten
     // $FlowFixMe
     await input.task
-    await handler.rename(tmpPath, path, { checksum: true })
+    await handler.rename(tmpPath, path, { checksum })
   } catch (error) {
-    await handler.unlink(tmpPath)
+    await handler.unlink(tmpPath, { checksum })
     throw error
   }
 }
@@ -311,8 +285,7 @@ const writeStream = async (
 //      │  └─ <job UUID>
 //      │     └─ <VDI UUID>
 //      │        ├─ index.json // TODO
-//      │        ├─ <YYYYMMDD>T<HHmmss>.vhd
-//      │        └─ <YYYYMMDD>T<HHmmss>.vhd.checksum (only for deltas)
+//      │        └─ <YYYYMMDD>T<HHmmss>.vhd
 //      ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
 //      ├─ <YYYYMMDD>T<HHmmss>.xva
 //      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
@@ -929,7 +902,16 @@ export default class BackupNg {
                     parentPath = `${vdiDir}/${parent}`
                   }
 
-                  await writeStream(fork.streams[`${id}.vhd`](), handler, path)
+                  await writeStream(
+                    fork.streams[`${id}.vhd`](),
+                    handler,
+                    path,
+                    {
+                      // no checksum for VHDs, because they will be invalidated by
+                      // merges and chainings
+                      checksum: false,
+                    }
+                  )
                   $defer.onFailure.call(handler, 'unlink', path)
 
                   if (isDelta) {
@@ -1062,16 +1044,8 @@ export default class BackupNg {
     $defer.onFailure.call(handler, 'unlink', path)
 
     const childPath = child.path
-
-    await Promise.all([
-      mergeVhd(handler, path, handler, childPath),
-      handler.unlink(path + '.checksum'),
-    ])
-
-    await Promise.all([
-      handler.rename(path, childPath),
-      handler.unlink(childPath + '.checksum'),
-    ])
+    await mergeVhd(handler, path, handler, childPath)
+    await handler.rename(path, childPath)
   }
 
   async _deleteVms (xapi: Xapi, vms: Vm[]): Promise<void> {

@@ -10,19 +10,22 @@ type AugmentedReadable = Readable & {
 type MaybeArray<T> = Array<T> | T
 
 export type DeltaVmExport = {|
-  streams: $Dict<() => Promise<AugmentedReadable>>,
-  vbds: { [ref: string]: Object },
-  vdis: { [ref: string]: {
+  streams: $Dict < () => Promise < AugmentedReadable >>,
+    vbds: { [ref: string]: Object },
+vdis: {
+  [ref: string]: {
     $SR$uuid: string,
-    snapshot_of: string,
-  } },
+      snapshot_of: string,
+  }
+},
+version: '1.0.0',
   vifs: { [ref: string]: Object },
-  vm: Vm,
+vm: Vm,
 |}
 
 export type DeltaVmImport = {|
   ...DeltaVmExport,
-  streams: $Dict<MaybeArray<AugmentedReadable | () => Promise<AugmentedReadable>>>,
+streams: $Dict < MaybeArray < AugmentedReadable | () => Promise < AugmentedReadable >>>,
 |}
 
 declare class XapiObject {
@@ -65,17 +68,17 @@ declare export class Xapi {
   barrier(ref: string): XapiObject;
   deleteVm(vm: Id): Promise<void>;
   editVm(vm: Id, $Dict<mixed>): Promise<void>;
-  exportDeltaVm(
-    cancelToken: mixed,
-    snapshot: Id,
-    baseSnapshot?: Id
-  ): Promise<DeltaVmExport>;
-  exportVm(
-    cancelToken: mixed,
-    vm: Vm,
-    options?: Object
-  ): Promise<AugmentedReadable>;
-  getObject(object: Id): XapiObject;
-  importDeltaVm(data: DeltaVmImport, options: Object): Promise<{ vm: Vm }>;
-  importVm(stream: AugmentedReadable, options: Object): Promise<Vm>;
+exportDeltaVm(
+  cancelToken: mixed,
+  snapshot: Id,
+  baseSnapshot ?: Id
+): Promise<DeltaVmExport>;
+exportVm(
+  cancelToken: mixed,
+  vm: Vm,
+  options ?: Object
+): Promise<AugmentedReadable>;
+getObject(object: Id): XapiObject;
+importDeltaVm(data: DeltaVmImport, options: Object): Promise<{ vm: Vm }>;
+importVm(stream: AugmentedReadable, options: Object): Promise<Vm>;
 }

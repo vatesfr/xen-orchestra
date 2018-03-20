@@ -50,6 +50,7 @@ import {
 
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
+import { type DeltaVmExport } from './'
 import {
   asBoolean,
   asInteger,
@@ -918,6 +919,7 @@ export default class Xapi extends XapiBase {
     delta: DeltaVmExport,
     {
       deleteBase = false,
+      detectBase = true,
       disableStartAfterImport = true,
       mapVdisSrs = {},
       name_label = delta.vm.name_label,
@@ -930,17 +932,19 @@ export default class Xapi extends XapiBase {
       throw new Error(`Unsupported delta backup version: ${version}`)
     }
 
-    const remoteBaseVmUuid = delta.vm.other_config[TAG_BASE_DELTA]
     let baseVm
-    if (remoteBaseVmUuid) {
-      baseVm = find(
-        this.objects.all,
-        obj =>
-          (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid
-      )
+    if (detectBase) {
+      const remoteBaseVmUuid = delta.vm.other_config[TAG_BASE_DELTA]
+      if (remoteBaseVmUuid) {
+        baseVm = find(
+          this.objects.all,
+          obj =>
+            (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid
+        )
 
-      if (!baseVm) {
-        throw new Error('could not find the base VM')
+        if (!baseVm) {
+          throw new Error('could not find the base VM')
+        }
       }
     }
 
@@ -977,7 +981,7 @@ export default class Xapi extends XapiBase {
 
     // 3. Create VDIs.
     const newVdis = await map(delta.vdis, async vdi => {
-      const remoteBaseVdiUuid = vdi.other_config[TAG_BASE_DELTA]
+      const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
       if (!remoteBaseVdiUuid) {
         const newVdi = await this.createVdi({
           ...vdi,
