@@ -2,7 +2,7 @@
 
 import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
-import fu from '@nraynaud/struct-fu'
+import fu from 'struct-fu'
 import isEqual from 'lodash/isEqual'
 import { fromEvent } from 'promise-toolbox'
 
@@ -48,28 +48,23 @@ BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 
 // ===================================================================
 
+const uint64 = fu.derive(
+  fu.struct([fu.uint32('high'), fu.uint32('low')]),
+  number => ({ high: 0, low: number % SIZE_OF_32_BITS }),
+  obj => obj.high * SIZE_OF_32_BITS + obj.low
+)
+
 const fuFooter = fu.struct([
   fu.char('cookie', 8), // 0
   fu.uint32('features'), // 8
   fu.uint32('fileFormatVersion'), // 12
-  fu.struct('dataOffset', [
-    fu.uint32('high'), // 16
-    fu.uint32('low'), // 20
-  ]),
+  uint64('dataOffset'),
   fu.uint32('timestamp'), // 24
   fu.char('creatorApplication', 4), // 28
   fu.uint32('creatorVersion'), // 32
   fu.uint32('creatorHostOs'), // 36
-  fu.struct('originalSize', [
-    // At the creation, current size of the hard disk.
-    fu.uint32('high'), // 40
-    fu.uint32('low'), // 44
-  ]),
-  fu.struct('currentSize', [
-    // Current size of the virtual disk. At the creation: currentSize = originalSize.
-    fu.uint32('high'), // 48
-    fu.uint32('low'), // 52
-  ]),
+  uint64('originalSize'),
+  uint64('currentSize'),
   fu.struct('diskGeometry', [
     fu.uint16('cylinders'), // 56
     fu.uint8('heads'), // 58
@@ -85,12 +80,8 @@ const fuFooter = fu.struct([
 
 const fuHeader = fu.struct([
   fu.char('cookie', 8),
-  fu.struct('dataOffset', [fu.uint32('high'), fu.uint32('low')]),
-  fu.struct('tableOffset', [
-    // Absolute byte offset of the Block Allocation Table.
-    fu.uint32('high'),
-    fu.uint32('low'),
-  ]),
+  fu.uint8('dataOffsetUnused', 8),
+  uint64('tableOffset'),
   fu.uint32('headerVersion'),
   fu.uint32('maxTableEntries'), // Max entries in the Block Allocation Table.
   fu.uint32('blockSize'), // Block size in bytes. Default (2097152 => 2MB)
@@ -106,11 +97,7 @@ const fuHeader = fu.struct([
       fu.uint32('platformDataSpace'),
       fu.uint32('platformDataLength'),
       fu.uint32('reserved'),
-      fu.struct('platformDataOffset', [
-        // Absolute byte offset of the locator data.
-        fu.uint32('high'),
-        fu.uint32('low'),
-      ]),
+      uint64('platformDataOffset'), // Absolute byte offset of the locator data.
     ],
     VHD_PARENT_LOCATOR_ENTRIES
   ),
@@ -122,8 +109,6 @@ const fuHeader = fu.struct([
 // ===================================================================
 
 const SIZE_OF_32_BITS = Math.pow(2, 32)
-const uint32ToUint64 = fu => fu.high * SIZE_OF_32_BITS + fu.low
-
 // Returns a 32 bits integer corresponding to a Vhd version.
 const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000ffff)
 
@@ -226,17 +211,14 @@ export class Vhd {
   getEndOfHeaders () {
     const { header } = this
 
-    let end = uint32ToUint64(this.footer.dataOffset) + VHD_HEADER_SIZE
+    let end = this.footer.dataOffset + VHD_HEADER_SIZE
 
     const blockAllocationTableSize = sectorsToBytes(
       sectorsRoundUpNoZero(header.maxTableEntries * VHD_ENTRY_SIZE)
     )
 
     // Max(end, block allocation table end)
-    end = Math.max(
-      end,
-      uint32ToUint64(header.tableOffset) + blockAllocationTableSize
-    )
+    end = Math.max(end, header.tableOffset + blockAllocationTableSize)
 
     for (let i = 0; i < VHD_PARENT_LOCATOR_ENTRIES; i++) {
       const entry = header.parentLocatorEntry[i]
@@ -244,8 +226,7 @@ export class Vhd {
       if (entry.platformCode !== VHD_PLATFORM_CODE_NONE) {
         end = Math.max(
           end,
-          uint32ToUint64(entry.platformDataOffset) +
-            sectorsToBytes(entry.platformDataSpace)
+          entry.platformDataOffset + sectorsToBytes(entry.platformDataSpace)
         )
       }
     }
@@ -279,7 +260,7 @@ export class Vhd {
     const buf = await this._read(0, VHD_FOOTER_SIZE + VHD_HEADER_SIZE)
 
     const sum = unpackField(fuFooter.fields.checksum, buf)
-    const sumToTest = checksumStruct(buf, fuFooter)
+    const sumToTest = checksumStruct(buf.slice(0, VHD_FOOTER_SIZE), fuFooter)
 
     // Checksum child & parent.
     if (sumToTest !== sum) {
@@ -322,12 +303,11 @@ export class Vhd {
   async readBlockTable () {
     const { header } = this
 
-    const offset = uint32ToUint64(header.tableOffset)
     const size = sectorsToBytes(
       sectorsRoundUpNoZero(header.maxTableEntries * VHD_ENTRY_SIZE)
     )
 
-    this.blockTable = await this._read(offset, size)
+    this.blockTable = await this._read(header.tableOffset, size)
   }
 
   // return the first sector (bitmap) of a block
@@ -427,7 +407,7 @@ export class Vhd {
   async freeFirstBlockSpace (spaceNeededBytes) {
     try {
       const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
-      const tableOffset = uint32ToUint64(this.header.tableOffset)
+      const tableOffset = this.header.tableOffset
       const batSize = sectorsToBytes(
         sectorsRoundUpNoZero(this.header.maxTableEntries * VHD_ENTRY_SIZE)
       )
@@ -481,7 +461,7 @@ export class Vhd {
     )
     await this._write(
       constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
-      uint32ToUint64(header.tableOffset) + prevBat.length
+      header.tableOffset + prevBat.length
     )
     await this.writeHeader()
   }
@@ -495,7 +475,7 @@ export class Vhd {
 
     return this._write(
       blockTable.slice(i, i + VHD_ENTRY_SIZE),
-      uint32ToUint64(this.header.tableOffset) + i
+      this.header.tableOffset + i
     )
   }
 
@@ -716,16 +696,13 @@ export class Vhd {
   async ensureSpaceForParentLocators (neededSectors) {
     const firstLocatorOffset = VHD_FOOTER_SIZE + VHD_HEADER_SIZE
     const currentSpace =
-      Math.floor(uint32ToUint64(this.header.tableOffset) / VHD_SECTOR_SIZE) -
+      Math.floor(this.header.tableOffset / VHD_SECTOR_SIZE) -
       firstLocatorOffset / VHD_SECTOR_SIZE
     if (currentSpace < neededSectors) {
       const deltaSectors = neededSectors - currentSpace
       await this.freeFirstBlockSpace(sectorsToBytes(deltaSectors))
-      this.header.tableOffset.low += sectorsToBytes(deltaSectors)
-      await this._write(
-        this.blockTable,
-        uint32ToUint64(this.header.tableOffset)
-      )
+      this.header.tableOffset += sectorsToBytes(deltaSectors)
+      await this._write(this.blockTable, this.header.tableOffset)
     }
     return firstLocatorOffset
   }
@@ -790,9 +767,9 @@ export default concurrency(2)(async function vhdMerge (
       const cFooter = childVhd.footer
       const pFooter = parentVhd.footer
 
-      pFooter.currentSize = { ...cFooter.currentSize }
+      pFooter.currentSize = cFooter.currentSize
       pFooter.diskGeometry = { ...cFooter.diskGeometry }
-      pFooter.originalSize = { ...cFooter.originalSize }
+      pFooter.originalSize = cFooter.originalSize
       pFooter.timestamp = cFooter.timestamp
       pFooter.uuid = cFooter.uuid
 
@@ -846,13 +823,12 @@ export async function chainVhd (
       dataSpaceSectors
     )
     header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
-    header.parentLocatorEntry[0].platformDataOffset.low = position
+    header.parentLocatorEntry[0].platformDataOffset = position
     for (let i = 1; i < 8; i++) {
       header.parentLocatorEntry[i].platformCode = VHD_PLATFORM_CODE_NONE
       header.parentLocatorEntry[i].platformDataSpace = 0
       header.parentLocatorEntry[i].platformDataLength = 0
-      header.parentLocatorEntry[i].platformDataOffset.high = 0
-      header.parentLocatorEntry[i].platformDataOffset.low = 0
+      header.parentLocatorEntry[i].platformDataOffset = 0
     }
     await childVhd.writeHeader()
     await childVhd.writeFooter()
