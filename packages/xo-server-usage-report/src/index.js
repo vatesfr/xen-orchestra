@@ -176,7 +176,7 @@ function computePercentage (curr, prev, options) {
     map(
       options,
       opt =>
-        prev[opt] === 0
+        (prev[opt] === 0 || prev[opt] === null)
           ? 'NONE'
           : `${round((curr[opt] - prev[opt]) * 100 / prev[opt], 2)}`
     )
