@@ -895,9 +895,7 @@ export const createReadStream = (handler, path) =>
       const sectorsPerBlock =
         sectorsPerBlockData + vhd.bitmapSize / VHD_SECTOR_SIZE
 
-      const nBlocks = Math.ceil(
-        uint32ToUint64(footer.currentSize) / header.blockSize
-      )
+      const nBlocks = Math.ceil(footer.currentSize / header.blockSize)
 
       const blocksOwner = new Array(nBlocks)
       for (
