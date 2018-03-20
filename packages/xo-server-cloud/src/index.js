@@ -130,7 +130,7 @@ class XoServerCloud {
 
     const { _token: token } = await this._getNamespaceCatalog(namespace)
 
-    // 20-03-2018 Extra check: getResourceDownloadToken seems to be called without a token in some cases
+    // 2018-03-20 Extra check: getResourceDownloadToken seems to be called without a token in some cases
     if (token === undefined) {
       throw new Error(`${namespace} namespace token is undefined`)
     }
