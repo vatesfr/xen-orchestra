@@ -1,13 +1,13 @@
 # Smart backup
 
-There is two ways to select which VMs will be backup:
+There are two ways to select which VMs will be backed up:
 
 1. Multiple VM selector
 1. Smart backup
 
-Picking VMs manually can be a limitation if you environment is moving fast (ie having new VMs you need to backup often). Because you needed to edit the previous job and add it.
+Picking VMs manually can be a limitation if you environment is moving fast (i.e. having new VMs you need to backup often), Because you needed to edit the previous job and add it.
 
-But thanks to *smart backup*, you have now more flexibility: you won't select specific VMs, but VMs status/tag/placement **at the time backup job will be executed**. Let's see some examples!
+But thanks to *smart backup*, you now have more flexibility: you won't select specific VMs, but VMs status/tag/placement **at the time backup job will be executed**. Let's see some examples!
 
 ## Backup all VMs on a pool
 
@@ -36,4 +36,4 @@ Now if you do this:
 
 ![](https://xen-orchestra.com/blog/content/images/2016/08/xo5smartbackup2.png)
 
-It means any VMs on "Lab Pool" with the "prod" tag will be backup.
+It means any VMs on "Lab Pool" with the "prod" tag will be backed up.

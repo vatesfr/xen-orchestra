@@ -2,13 +2,13 @@
 
 Xen Orchestra can import and export VM in XVA format (XenServer format) or import OVA files (OVF1 format).
 
-> we are supporting OVA import from VirtualBox. Feel free to report issues with OVA from other virtualization platform.
+> We are supporting OVA import from VirtualBox. Feel free to report issues with OVA from other virtualization platform.
 
 ## Import
 
 ### XVA files
 
-To import a XVA file, just go in New/Import menu:
+To import a XVA file, just go to the New/Import menu:
 
 ![](./assets/xoa5import.png)
 

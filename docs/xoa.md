@@ -36,7 +36,7 @@ SSH on your XenServer, and execute this:
 bash -c "$(curl -s http://xoa.io/deploy)"
 ```
 
-And follow instructions:
+And follow the instructions:
 
 * Your IP configuration will be requested: it's in **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
 * If DHCP is selected, the script will continue automatically. Otherwise, a netmask, gateway and DNS should be provided.
@@ -50,7 +50,7 @@ After the VM is imported, you just need to start it with a `xe vm-start vm="XOA 
 
 ## Registration
 
-**The first thing** you need to do with your XOA, is to register. [Read the documentation page dedicated to the updater/register inferface](updater.md).
+**The first thing** you need to do with your XOA, is to register. [Read the documentation on the page dedicated to the updater/register inferface](updater.md).
 
 ### First console connection
 
@@ -59,7 +59,7 @@ If you connect in SSH or via console, the default credentials are:
 * user: xoa
 * password: xoa
 
-During your first connection, the system will ask to:
+During your first connection, the system will ask you to:
 
 * enter again the current password (`xoa`)
 * enter your new password
@@ -128,7 +128,7 @@ Administrator. It usually boils down to these three things:
 
 ### Network configuration
 
-XOA is in **DHCP** by default, so if you need to configure the IP, please run the command `xoa network static`. It will ask you network details:
+XOA is in **DHCP** by default, so if you need to configure the IP address, please run the command `xoa network static`. It will ask you network details:
 
 ```
 $ xoa network static

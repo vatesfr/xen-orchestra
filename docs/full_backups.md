@@ -1,6 +1,6 @@
 # Full backups
 
-You can schedule full backups of your VMs, by exporting them in the local XOA file-system, or directly in a NFS or SMB share. "rentention" parameter allow to modify the retention (removing the oldest one).
+You can schedule full backups of your VMs, by exporting them to the local XOA file-system, or directly to an NFS or SMB share. The "rentention" parameter allows you to modify the retention (removing the oldest one).
 
 [![](./assets/backupexample.png)](https://xen-orchestra.com/blog/backup-your-xenserver-vms-with-xen-orchestra/)
 

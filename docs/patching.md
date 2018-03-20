@@ -1,6 +1,6 @@
 # Patching
 
-Patching a host manually could be time consuming (and boring). That's why we provide a high level feature downloading and applying all missing patches automatically.
+Patching a host manually could be time consuming (and boring). That's why we provide the high level feature of downloading and applying all missing patches automatically.
 
 ## XOA smart patching system
 

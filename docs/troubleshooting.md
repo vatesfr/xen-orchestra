@@ -1,12 +1,12 @@
 # Troubleshooting
 
-This page recap the possible actions to realize if you have any problems with your XOA.
+This page recap the possible actions to perform if you have any problems with your XOA.
 
 ## XOA deploy error
 
 > Auto deploy failed. - No SR specified and Pool default SR is null
 
-It means you didn't have any default SR set on your pool you are importing XOA. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you got the UUID, you can set the default SR like this: `xe pool-param-set default-SR=<SR_UUID>`. When it's done, re-enter the deploy script command and it will work!
+It means you don't have a default SR set on the pool you are importing XOA to. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you got the UUID, you can set the default SR with: `xe pool-param-set default-SR=<SR_UUID>`. When this is done, re-enter the deploy script command and it will work!
 
 ## XOA unreachable after boot
 

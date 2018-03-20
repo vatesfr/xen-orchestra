@@ -1,8 +1,8 @@
 # Backups
 
-This section is dedicated to any existing means to rollback or backup your VMs in Xen Orchestra.
+This section is dedicated to all existing means to rollback or backup your VMs in Xen Orchestra.
 
-There is different way to protect your VMs:
+There are different ways to protect your VMs:
 
 * [full backups](full_backups.md) [*Starter Edition*]
 * [rolling snapshots](rolling_snapshots.md) [*Starter Edition*]
@@ -11,9 +11,9 @@ There is different way to protect your VMs:
 * [continuous replication](continuous_replication.md) [*Premium Edition*]
 * [file level restore](file_level_restore.md) [*Premium Edition*]
 
-> Don't forget to take a look on the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look on the [backup reports](backup_reports.md) section for configuring notification.
+> Don't forget to take a look at the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look at the [backup reports](backup_reports.md) section for configuring notifications.
 
-There is also a way to select automatically VMs to backup: **[smart backup](smart_backup.md)** [*Enterprise Edition*]
+There is also a way to automatically select the VMs to backup: **[smart backup](smart_backup.md)** [*Enterprise Edition*]
 
 ## Overview
 
@@ -47,7 +47,7 @@ The tooltip confirms this:
 
 > Remotes are places where your *backup* and *delta backup* files will be stored.
 
-To add a *remote*, go in **Settings/Remotes** menu.
+To add a *remote*, go in the **Settings/Remotes** menu.
 
 Supported stores:
 
@@ -60,7 +60,7 @@ Supported stores:
 
 ### NFS
 
-On your NFS server, authorize XOA's IP and permissions for subfolders. That's all!
+On your NFS server, authorize XOA's IP address and permissions for subfolders. That's all!
 
 ### SMB
 
@@ -93,29 +93,29 @@ Any Debian Linux mount point could be supported this way, until we add further o
 
 ## Restore backups
 
-All your scheduled backup are acccessible in the "Restore" view in backup section of Xen Orchestra.
+All your scheduled backups are acccessible in the "Restore" view in the backup section of Xen Orchestra.
 
-1. Select your remote and click on the eye icon to see available VMs
+1. Select your remote and click on the eye icon to see the VMs available
 2. Choose the backup you want to restore
-3. Select SR where you want to restore it
+3. Select the SR where you want to restore it
 
 > Note: You can restore your backup even on a brand new XenServer and on a brand new hardware.
 
 ## About backup compression
 
-By default, *Backup* are compressed (using GZIP, done in XenServer side). There is no absolute rule but in general not compressed backup are faster.
+By default, *Backups* are compressed (using GZIP, done on XenServer side). There is no absolute rule but in general not compressed backups are faster.
 
 XenServer uses Gzip compression, which is:
 
 * slow
 * space efficient
-* consume less bandwidth (if your NFS share is far)
+* consumes less bandwidth (if your NFS share is far)
 
 If you have compression on your NFS share (or destination file-system like ZFS), you can disable compression in Xen Orchestra.
 
 ## Add a disk for local backups
 
-If you want to use XOA to store all your backups, you need to attach a large disk to it. This can be done in live.
+If you want to use XOA to store all your backups, you need to attach a large disk to it. This can be done live.
 
 First, after your disk is attached to XOA, you'll have to find the new disk name with `fdisk -l`. It's probably `xvdb`.
 
@@ -126,9 +126,9 @@ mkfs.ext4 /dev/xvdb
 
 ```
 
-If you already have backups done, you can move them to the new disk. The orignal backup folder is in `/var/lib/xoa-backups`.
+If you already have backups done, you can move them to the new disk. The orignal backups folder is in `/var/lib/xoa-backups`.
 
-To get the mount point persistent in XOA, edit the `/etc/fstab` file, and add:
+To make the mount point persistent in XOA, edit the `/etc/fstab` file, and add:
 
 ```
 /dev/xvdb /var/lib/xoa-backups ext4 defaults 0 0

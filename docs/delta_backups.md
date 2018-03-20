@@ -45,4 +45,4 @@ Just go inside your "Backup" view, and select Delta Backup. Then, it's like a no
 
 During a delta backup job, you can avoid saving all disks of the VM. To do that, it's trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not after, doesn't matter).
 
-For every following backup, this disk will be now ignored.
+The disks marked with `[NOBACK]` will be now ignored in all following backups.

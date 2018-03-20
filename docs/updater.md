@@ -6,9 +6,9 @@ It allows also to transform your current version in any others (Trial, Starter, 
 
 > By design, the updater is only available in XOA. If you are using the XO from the sources, you'll have to use `git` commands and rebuild to keep up.
 
-## Requierements
+## Requirements
 
-In order to work, the updater needs to access to xen-orchestra.com (port 443).
+In order to work, the updater needs access to `xen-orchestra.com` (port 443).
 
 ## Usage
 
@@ -102,7 +102,7 @@ Installing new packages...
 
 If your updater is down, you can restart it with `systemctl restart xoa-updater`.
 
-If you can't fetch updates, make some checks from your XOA:
+If you can't fetch updates, perform some checks from your XOA:
 
 * you should be able to successfully `ping xen-orchestra.com`
 * if not, check your `/etc/resolv.conf` file and modify it if necessary (give a correct DNS server)

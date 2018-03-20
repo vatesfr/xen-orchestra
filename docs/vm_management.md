@@ -2,7 +2,7 @@
 
 ## Live Edition
 
-Any object with a dotted underline can be editer on mouse click: VM title, description, CPU and memory.
+Any object with a dotted underline can be edited on mouse click: VM title, description, CPU and memory.
 
 ![](./assets/xo5editvm.png)
 

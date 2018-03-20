@@ -2,7 +2,7 @@
 
 > WARNING: it works only on XenServer 6.5 or later
 
-This feature allow continuous replication system for your XenServer VMs **without any storage vendor lock-in**. You can replicate a VM every xx minutes/hours on a any storage repository. It could be on a distant XenServer host or just another local storage.
+This feature is a continuous replication system for your XenServer VMs **without any storage vendor lock-in**. You can replicate a VM every *X* minutes/hours to any storage repository. It could be to a distant XenServer host or just another local storage.
 
 This feature covers multiple objectives:
 
@@ -18,31 +18,31 @@ If you lose your main pool, you can start the copy on the other side, with very 
 
 ![](https://xen-orchestra.com/blog/content/images/2016/01/replication.png)
 
-> Warning: that's normal you can't boot the copied VM directly: we protected it. The normal workflow is to make a clone and to work on it.
+> Warning: it is normal that you can't boot the copied VM directly: we protected it. The normal workflow is to make a clone and to work on it.
 
 ## Configure it
 
-As you'll see, this is trivial to configure. Inside the "Backup/new" section, select "Continuous Replication".
+As you'll see, it is trivial to configure. Inside the "Backup/new" section, select "Continuous Replication".
 
 Then:
 
-1. Select VMs you want to protect
+1. Select the VMs you want to protect
 1. Schedule the replication interval
 1. Select the destination storage (could be any storage connected to any XenServer host!)
 
 That's it! Your VMs are protected and replicated as requested.
 
-To protect the replication, we removed the possibility to boot your copied VM directly, because if you do that, it will break the next delta. The solution is to clone it if you need it (a clone is really quick). You can do whatever you want with this clone!
+To protect the replication, we removed the possibility to boot your copied VM directly, because if you do that, it will break the next delta. The solution is to clone it if you need it (a clone is really quick). You can then do whatever you want with this clone!
 
 ## Manual initial seed
 
 > This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need that**.
 
-**If you can't transfer the first backup through your network**, you can make a seed locally. In order to do this, follow this procedure (until we made it accessible directly in XO):
+**If you can't transfer the first backup through your network**, you can make a seed locally. In order to do this, follow this procedure (until we make it accessible directly in XO):
 
 ### Preparation
 
-1. create a cont. rep job to a non-distant SR (even the SR where is currently the VM). Do NOT enable the job at the creation.
+1. create a cont. rep job to a non-distant SR (even the SR where the VM currently is). Do NOT enable the job at the creation.
 1. start manually the first replication (only the first)
 1. when finished, export the replicated VM (via XOA or any other mean, doesn't matter until you got your XVA file)
 1. import the replicated VM on destination

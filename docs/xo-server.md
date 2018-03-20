@@ -4,7 +4,7 @@ XO-Server is the core of Xen Orchestra. Its central role opens a lot of possibil
 
 ### Daemon mode
 
-As a daemon, XO-server is always up. In this way, it can listen and record every event occurring on your whole Xen infrastructure. Connections are always open and it can cache informations before serve it to another client (CLI, Web or anything else).
+As a daemon, XO-server is always up. In this way, it can listen and record every event occurring on your whole Xen infrastructure. Connections are always open and it can cache informations before serving it to another client (CLI, Web or anything else).
 
 ### Central point
 
@@ -12,7 +12,7 @@ Contrary to XenCenter, each Xen Orchestra's client is connected to one XO-Server
 
 ![](./assets/without-xo.jpg)
 
-You can see how we avoid a lost of resources and bandwidth waste with a central point:
+You can see how we avoid a lot of resources and bandwidth waste with a central point:
 
 ![](./assets/with-xo.jpg)
 
@@ -24,17 +24,17 @@ Legacy interfaces use the "pull" model, requesting data every "x" seconds:
 
 It's **not scalable** and slow.
 
-With XO < 3.4, we used events in this way:
+With XO < 3.4, we used events in the following way:
 
 ![](./assets/semievent.jpg)
 
-But interface was still lagging behind the server. With XO 3.4, we got a full event system, allowing instant display of what's happening on your infrastructure:
+But the interface was still lagging behind the server. With XO 3.4, we now have a full event system, allowing instant display of what is happening on your infrastructure:
 
 ![](./assets/fullevent.jpg)
 
 ### A proxy for your hosts
 
-XO-Server will act as a proxy for all your clients. It opens a lot of possibilities!
+XO-Server will act as a proxy for all your clients. This opens a lot of possibilities!
 
 #### Console proxy
 
@@ -64,8 +64,8 @@ To install a patch manually, you need a lot of steps: find, download, extract an
 "xo-server" can do all these steps once:
 
 1. downloading automatically the patch on Citrix servers
-2. unzip it and uploading it on the fly to your host
-3. apply it as soon it's done
+2. unzipping it and uploading it on the fly to your host
+3. applying it as soon it's done
 
 
 ### Pluggable
