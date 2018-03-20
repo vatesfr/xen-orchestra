@@ -124,7 +124,11 @@ const OPTIONS = {
         sortOrder: 'desc',
       },
       { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
-      { labelId: 'homeSortByCpus', sortBy: 'CPUs.cpu_count', sortOrder: 'desc' },
+      {
+        labelId: 'homeSortByCpus',
+        sortBy: 'CPUs.cpu_count',
+        sortOrder: 'desc',
+      },
     ],
   },
   VM: {
@@ -199,7 +203,11 @@ const OPTIONS = {
     defaultFilter: '',
     filters: homeFilters.vmTemplate,
     mainActions: [
-      { handler: deleteTemplates, icon: 'delete', tooltip: _('templateDelete') },
+      {
+        handler: deleteTemplates,
+        icon: 'delete',
+        tooltip: _('templateDelete'),
+      },
     ],
     Item: TemplateItem,
     showPoolsSelector: true,
@@ -485,13 +493,35 @@ export default class Home extends Component {
   }
 
   _getDefaultSort (props = this.props) {
-    const sortOption = find(OPTIONS[props.type].sortOptions, 'default')
+    const { sortOptions } = OPTIONS[props.type]
+    const defaultSort = find(sortOptions, 'default')
+    const urlSort = find(sortOptions, { sortBy: props.location.query.sortBy })
 
     return {
-      sortBy: defined(() => sortOption.sortBy, 'name_label'),
-      sortOrder: defined(() => sortOption.sortOrder, 'asc'),
+      sortBy: defined(
+        () => urlSort.sortBy,
+        () => defaultSort.sortBy,
+        'name_label'
+      ),
+      sortOrder: defined(
+        () => urlSort.sortOrder,
+        () => defaultSort.sortOrder,
+        'asc'
+      ),
     }
   }
+
+  _setSort (event) {
+    const { sortBy, sortOrder } = event.currentTarget.dataset
+    const { pathname, query } = this.props.location
+
+    this.setState({ sortBy, sortOrder })
+    this.context.router.replace({
+      pathname,
+      query: { ...query, sortBy },
+    })
+  }
+  _setSort = this._setSort.bind(this)
 
   _initFilterAndSortBy (props) {
     const filter = this._getFilter(props)
@@ -1060,9 +1090,9 @@ export default class Home extends Component {
                         ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
                           <MenuItem
                             key={key}
-                            onClick={() =>
-                              this.setState({ sortBy: _sortBy, sortOrder })
-                            }
+                            data-sort-by={_sortBy}
+                            data-sort-order={sortOrder}
+                            onClick={this._setSort}
                           >
                             {this._tick(_sortBy === sortBy)}
                             {_sortBy === sortBy ? (
