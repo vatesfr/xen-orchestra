@@ -227,6 +227,20 @@ function getHostsStats ({ runningHosts, xo }) {
   )
 }
 
+function getSrsStats (xoObjects) {
+  return map(filter(xoObjects, { type: 'SR' }), sr => {
+    const total = sr.size / gibPower
+    const used = sr.physical_usage / gibPower
+    return {
+      uuid: sr.uuid,
+      name: sr.name_label,
+      total,
+      used,
+      free: total - used,
+    }
+  })
+}
+
 function computeGlobalVmsStats ({ haltedVms, vmsStats, xo }) {
   const allVms = concat(
     map(vmsStats, vm => ({
@@ -303,12 +317,8 @@ function getTopHosts ({ hostsStats, xo }) {
   ])
 }
 
-function getMostAllocatedSpaces ({ disks, xo }) {
-  return map(orderBy(disks, ['size'], ['desc']).slice(0, 3), disk => ({
-    uuid: disk.uuid,
-    name: disk.name_label,
-    size: round(disk.size / gibPower, 2),
-  }))
+function getTopSrs ({ srsStats, xo }) {
+  return getTop(srsStats, ['total']).total
 }
 
 async function getHostsMissingPatches ({ runningHosts, xo }) {
@@ -408,18 +418,17 @@ async function dataBuilder ({ xo, storedStatsPath }) {
     power_state: 'Running',
   })
   const haltedHosts = filter(xoObjects, { type: 'host', power_state: 'Halted' })
-  const disks = filter(xoObjects, { type: 'SR' })
   const [
     users,
     vmsStats,
     hostsStats,
-    topAllocation,
+    srsStats,
     hostsMissingPatches,
   ] = await Promise.all([
     xo.getAllUsers(),
     getVmsStats({ xo, runningVms }),
     getHostsStats({ xo, runningHosts }),
-    getMostAllocatedSpaces({ xo, disks }),
+    getSrsStats(xoObjects),
     getHostsMissingPatches({ xo, runningHosts }),
   ])
 
@@ -428,12 +437,14 @@ async function dataBuilder ({ xo, storedStatsPath }) {
     globalHostsStats,
     topVms,
     topHosts,
+    topSrs,
     usersEmail,
   ] = await Promise.all([
     computeGlobalVmsStats({ xo, vmsStats, haltedVms }),
     computeGlobalHostsStats({ xo, hostsStats, haltedHosts }),
     getTopVms({ xo, vmsStats }),
     getTopHosts({ xo, hostsStats }),
+    getTopSrs({ xo, srsStats }),
     getAllUsersEmail(users),
   ])
   const evolution = await computeEvolution({
@@ -450,11 +461,11 @@ async function dataBuilder ({ xo, storedStatsPath }) {
       vmsEvolution: evolution && evolution.vmsEvolution,
       hostsEvolution: evolution && evolution.hostsEvolution,
     },
-    topVms,
     topHosts,
+    topSrs,
+    topVms,
     hostsMissingPatches,
     usersEmail,
-    topAllocation,
     vmsResourcesEvolution: evolution && evolution.vmsResourcesEvolution,
     hostsResourcesEvolution: evolution && evolution.hostsResourcesEvolution,
     usersEvolution: evolution && evolution.usersEvolution,

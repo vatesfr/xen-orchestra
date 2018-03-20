@@ -464,11 +464,11 @@
               <th>Name</th>
               <th>value</th>
             </tr>
-            {{#each topAllocation}}
+            {{#each topSrs}}
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
-                <td>{{this.size}} GiB</td>
+                <td>{{this.value}} GiB</td>
               </tr>
              {{/each}}
           </table>
