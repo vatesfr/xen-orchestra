@@ -533,8 +533,8 @@
               <th>UUID</th>
               <th>Name</th>
             </tr>
-            {{#if vmsRessourcesEvolution.added}}
-              {{#each vmsRessourcesEvolution.added}}
+            {{#if vmsResourcesEvolution.added}}
+              {{#each vmsResourcesEvolution.added}}
                 <tr>
                   <td>{{shortUUID this.uuid}}</td>
                   <td>{{this.name}}</td>
@@ -553,8 +553,8 @@
               <th>UUID</th>
               <th>Name</th>
             </tr>
-            {{#if vmsRessourcesEvolution.removed}}
-              {{#each vmsRessourcesEvolution.removed}}
+            {{#if vmsResourcesEvolution.removed}}
+              {{#each vmsResourcesEvolution.removed}}
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
@@ -572,8 +572,8 @@
               <th>UUID</th>
               <th>Name</th>
             </tr>
-            {{#if hostsRessourcesEvolution.added}}
-              {{#each hostsRessourcesEvolution.added}}
+            {{#if hostsResourcesEvolution.added}}
+              {{#each hostsResourcesEvolution.added}}
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
@@ -591,8 +591,8 @@
               <th>UUID</th>
               <th>Name</th>
             </tr>
-            {{#if hostsRessourcesEvolution.removed}}
-              {{#each hostsRessourcesEvolution.removed}}
+            {{#if hostsResourcesEvolution.removed}}
+              {{#each hostsResourcesEvolution.removed}}
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>

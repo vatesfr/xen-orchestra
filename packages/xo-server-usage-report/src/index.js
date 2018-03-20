@@ -88,12 +88,12 @@ Handlebars.registerHelper('compare', function (
   options
 ) {
   if (arguments.length < 3) {
-    throw new Error('Handlerbars Helper "compare" needs 2 parameters')
+    throw new Error('Handlebars Helper "compare" needs 2 parameters')
   }
 
   if (!compareOperators[operator]) {
     throw new Error(
-      `Handlerbars Helper "compare" doesn't know the operator ${operator}`
+      `Handlebars Helper "compare" doesn't know the operator ${operator}`
     )
   }
 
@@ -104,12 +104,12 @@ Handlebars.registerHelper('compare', function (
 
 Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
   if (arguments.length < 3) {
-    throw new Error('Handlerbars Helper "math" needs 2 parameters')
+    throw new Error('Handlebars Helper "math" needs 2 parameters')
   }
 
   if (!mathOperators[operator]) {
     throw new Error(
-      `Handlerbars Helper "math" doesn't know the operator ${operator}`
+      `Handlebars Helper "math" doesn't know the operator ${operator}`
     )
   }
 
@@ -170,7 +170,7 @@ function getTop (objects, options) {
   )
 }
 
-function conputePercentage (curr, prev, options) {
+function computePercentage (curr, prev, options) {
   return zipObject(
     options,
     map(
@@ -354,7 +354,7 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
 
     const vmsEvolution = {
       number: newStatsVms.number - oldStatsVms.number,
-      ...conputePercentage(newStatsVms, oldStatsVms, [
+      ...computePercentage(newStatsVms, oldStatsVms, [
         'cpu',
         'ram',
         'diskRead',
@@ -366,7 +366,7 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
 
     const hostsEvolution = {
       number: newStatsHosts.number - oldStatsHosts.number,
-      ...conputePercentage(newStatsHosts, oldStatsHosts, [
+      ...computePercentage(newStatsHosts, oldStatsHosts, [
         'cpu',
         'ram',
         'load',
@@ -375,11 +375,11 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
       ]),
     }
 
-    const vmsRessourcesEvolution = getDiff(
+    const vmsResourcesEvolution = getDiff(
       oldStatsVms.allVms,
       newStatsVms.allVms
     )
-    const hostsRessourcesEvolution = getDiff(
+    const hostsResourcesEvolution = getDiff(
       oldStatsHosts.allHosts,
       newStatsHosts.allHosts
     )
@@ -390,8 +390,8 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
       vmsEvolution,
       hostsEvolution,
       prevDate,
-      vmsRessourcesEvolution,
-      hostsRessourcesEvolution,
+      vmsResourcesEvolution,
+      hostsResourcesEvolution,
       usersEvolution,
     }
   } catch (err) {
@@ -455,8 +455,8 @@ async function dataBuilder ({ xo, storedStatsPath }) {
     hostsMissingPatches,
     usersEmail,
     topAllocation,
-    vmsRessourcesEvolution: evolution && evolution.vmsRessourcesEvolution,
-    hostsRessourcesEvolution: evolution && evolution.hostsRessourcesEvolution,
+    vmsResourcesEvolution: evolution && evolution.vmsResourcesEvolution,
+    hostsResourcesEvolution: evolution && evolution.hostsResourcesEvolution,
     usersEvolution: evolution && evolution.usersEvolution,
     style: {
       imgXo,
