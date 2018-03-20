@@ -121,6 +121,10 @@
       border:1px solid #95a5a6;
       text-align: center;
     }
+
+    .allResources table {
+      width: 1000px
+    }
   </style>
 </head>
 <body>
@@ -606,5 +610,81 @@
           </table>
       </div>
     </div>
+    {{#if allResources}}
+      <div class="page">
+        <div class="top allResources">
+          <hr color="#95a5a6" size="1px"/>
+            <h3 style="text-align: center;">All resources</h3>
+          <hr color="#95a5a6" size="1px"/>
+          <table>
+            <caption>VMs</caption>
+              <tr>
+                <th>UUID</th>
+                <th>Name</th>
+                <th>CPU</th>
+                <th>RAM (GiB)</th>
+                <th>Disk read (MiB)</th>
+                <th>Disk write (MiB)</th>
+                <th>Net reception (KiB)</th>
+                <th>Net transmission (KiB)</th>
+              </tr>
+              {{#each allResources.vms}}
+                <tr>
+                  <td>{{shortUUID this.uuid}}</td>
+                  <td>{{this.name}}</td>
+                  <td>{{normaliseValue this.cpu}} % {{normaliseEvolution this.evolution.cpu}}</td>
+                  <td>{{normaliseValue this.ram}} {{normaliseEvolution this.evolution.ram}}</td>
+                  <td>{{normaliseValue this.diskRead}} {{normaliseEvolution this.evolution.diskRead}}</td>
+                  <td>{{normaliseValue this.diskWrite}} {{normaliseEvolution this.evolution.diskWrite}}</td>
+                  <td>{{normaliseValue this.netReception}} {{normaliseEvolution this.evolution.netReception}}</td>
+                  <td>{{normaliseValue this.netTransmission}} {{normaliseEvolution this.evolution.netTransmission}}</td>
+                </tr>
+              {{/each}}
+          </table>
+          <table>
+            <caption>Hosts</caption>
+              <tr>
+                <th>UUID</th>
+                <th>Name</th>
+                <th>CPU</th>
+                <th>RAM (GiB)</th>
+                <th>Load average</th>
+                <th>Net reception (KiB)</th>
+                <th>Net transmission (KiB)</th>
+              </tr>
+              {{#each allResources.hosts}}
+                <tr>
+                  <td>{{shortUUID this.uuid}}</td>
+                  <td>{{this.name}}</td>
+                  <td>{{normaliseValue this.cpu}} % {{normaliseEvolution this.evolution.cpu}}</td>
+                  <td>{{normaliseValue this.ram}} {{normaliseEvolution this.evolution.ram}}</td>
+                  <td>{{normaliseValue this.load}} {{normaliseEvolution this.evolution.load}}</td>
+                  <td>{{normaliseValue this.netReception}} {{normaliseEvolution this.evolution.netReception}}</td>
+                  <td>{{normaliseValue this.netTransmission}} {{normaliseEvolution this.evolution.netTransmission}}</td>
+                </tr>
+              {{/each}}
+          </table>
+          <table>
+            <caption>SRs</caption>
+              <tr>
+                <th>UUID</th>
+                <th>Name</th>
+                <th>Total space (GiB)</th>
+                <th>Used space (GiB)</th>
+                <th>Free space (GiB)</th>
+              </tr>
+              {{#each allResources.srs}}
+                <tr>
+                  <td>{{shortUUID this.uuid}}</td>
+                  <td>{{this.name}}</td>
+                  <td>{{normaliseValue this.total}} {{normaliseEvolution this.evolution.total}}</td>
+                  <td>{{normaliseValue this.used}}</td>
+                  <td>{{normaliseValue this.free}}</td>
+                </tr>
+              {{/each}}
+          </table>
+        </div>
+      </div>
+    {{/if}}
 </body>
 </html>

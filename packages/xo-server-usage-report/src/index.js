@@ -6,6 +6,7 @@ import {
   concat,
   differenceBy,
   filter,
+  find,
   forEach,
   isFinite,
   map,
@@ -67,6 +68,10 @@ export const configurationSchema = {
         type: 'string',
       },
     },
+    all: {
+      type: 'boolean',
+      description: "It includes all resources' stats if on.",
+    },
     periodicity: {
       type: 'string',
       enum: ['monthly', 'weekly'],
@@ -122,6 +127,16 @@ Handlebars.registerHelper('shortUUID', uuid => {
   }
 })
 
+Handlebars.registerHelper(
+  'normaliseValue',
+  value => (isFinite(value) ? round(value, 2) : '-')
+)
+
+Handlebars.registerHelper(
+  'normaliseEvolution',
+  value => (isFinite(+value) ? `(${value > 0 ? '+' : ''}${value} %)` : '')
+)
+
 // ===================================================================
 
 function computeMean (values) {
@@ -176,7 +191,7 @@ function computePercentage (curr, prev, options) {
     map(
       options,
       opt =>
-        (prev[opt] === 0 || prev[opt] === null)
+        prev[opt] === 0 || prev[opt] === null
           ? 'NONE'
           : `${round((curr[opt] - prev[opt]) * 100 / prev[opt], 2)}`
     )
@@ -185,8 +200,8 @@ function computePercentage (curr, prev, options) {
 
 function getDiff (oldElements, newElements) {
   return {
-    added: differenceBy(oldElements, newElements, 'uuid'),
-    removed: differenceBy(newElements, oldElements, 'uuid'),
+    added: differenceBy(newElements, oldElements, 'uuid'),
+    removed: differenceBy(oldElements, newElements, 'uuid'),
   }
 }
 
@@ -362,27 +377,31 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
 
     const prevDate = oldStats.style.currDate
 
-    const vmsEvolution = {
-      number: newStatsVms.number - oldStatsVms.number,
-      ...computePercentage(newStatsVms, oldStatsVms, [
+    const resourcesOptions = {
+      vms: [
         'cpu',
         'ram',
         'diskRead',
         'diskWrite',
         'netReception',
         'netTransmission',
-      ]),
+      ],
+      hosts: ['cpu', 'ram', 'load', 'netReception', 'netTransmission'],
+      srs: ['total'],
+    }
+
+    const vmsEvolution = {
+      number: newStatsVms.number - oldStatsVms.number,
+      ...computePercentage(newStatsVms, oldStatsVms, resourcesOptions.vms),
     }
 
     const hostsEvolution = {
       number: newStatsHosts.number - oldStatsHosts.number,
-      ...computePercentage(newStatsHosts, oldStatsHosts, [
-        'cpu',
-        'ram',
-        'load',
-        'netReception',
-        'netTransmission',
-      ]),
+      ...computePercentage(
+        newStatsHosts,
+        oldStatsHosts,
+        resourcesOptions.hosts
+      ),
     }
 
     const vmsResourcesEvolution = getDiff(
@@ -395,6 +414,31 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
     )
 
     const usersEvolution = getDiff(oldStats.users, newStats.users)
+
+    const newAllRessourcesStats = newStats.allResources
+    const oldAllRessourcesStats = oldStats.allResources
+
+    // adding for each resource its evolution
+    if (
+      newAllRessourcesStats !== undefined &&
+      oldAllRessourcesStats !== undefined
+    ) {
+      forEach(newAllRessourcesStats, (resource, key) => {
+        const option = resourcesOptions[key]
+
+        if (option !== undefined) {
+          forEach(resource, newItem => {
+            const oldItem = find(oldAllRessourcesStats[key], {
+              uuid: newItem.uuid,
+            })
+
+            if (oldItem !== undefined) {
+              newItem.evolution = computePercentage(newItem, oldItem, option)
+            }
+          })
+        }
+      })
+    }
 
     return {
       vmsEvolution,
@@ -409,7 +453,7 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
   }
 }
 
-async function dataBuilder ({ xo, storedStatsPath }) {
+async function dataBuilder ({ xo, storedStatsPath, all }) {
   const xoObjects = values(xo.getObjects())
   const runningVms = filter(xoObjects, { type: 'VM', power_state: 'Running' })
   const haltedVms = filter(xoObjects, { type: 'VM', power_state: 'Halted' })
@@ -447,14 +491,27 @@ async function dataBuilder ({ xo, storedStatsPath }) {
     getTopSrs({ xo, srsStats }),
     getAllUsersEmail(users),
   ])
+
+  let allResources
+  if (all) {
+    allResources = {
+      vms: vmsStats,
+      hosts: hostsStats,
+      srs: srsStats,
+      date: currDate,
+    }
+  }
+
   const evolution = await computeEvolution({
+    allResources,
     storedStatsPath,
     hosts: globalHostsStats,
     usersEmail,
     vms: globalVmsStats,
   })
 
-  const data = {
+  return {
+    allResources,
     global: {
       vms: globalVmsStats,
       hosts: globalHostsStats,
@@ -476,8 +533,6 @@ async function dataBuilder ({ xo, storedStatsPath }) {
       page: '{{page}}',
     },
   }
-
-  return data
 }
 
 // ===================================================================
@@ -534,6 +589,7 @@ class UsageReportPlugin {
     const data = await dataBuilder({
       xo: this._xo,
       storedStatsPath: this._storedStatsPath,
+      all: this._conf.all,
     })
 
     await Promise.all([
