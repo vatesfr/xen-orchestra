@@ -175,7 +175,7 @@ class DefaultCard extends Component {
 
   _getTopSrs = createTop(this._getSrs, [sr => sr.physical_usage / sr.size], 5)
 
-  _onChange = hosts => {
+  _onHostsChange = hosts => {
     this.setState({
       hosts: compact(hosts),
     })
@@ -226,7 +226,7 @@ class DefaultCard extends Component {
           <Col mediumSize={6}>
             <SelectHost
               multi
-              onChange={this._onChange}
+              onChange={this._onHostsChange}
               predicate={this._getPoolWisePredicate()}
               value={state.hosts}
             />
