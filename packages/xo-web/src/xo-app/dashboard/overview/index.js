@@ -9,7 +9,6 @@ import Link, { BlockLink } from 'link'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ResourceSetQuotas from 'resource-set-quotas'
-import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
@@ -175,24 +174,6 @@ class DefaultCard extends Component {
 
     return (
       <Container>
-        <Row>
-          <span className='pull-right'>
-            {!canSendTheReport && (
-              <Tooltip content={_('dashboardSendReportInfo')}>
-                <Icon icon='info' size='lg' color='text-info' />
-              </Tooltip>
-            )}{' '}
-            <ActionButton
-              btnStyle='primary'
-              handler={sendUsageReport}
-              icon='menu-dashboard-stats'
-              disabled={!canSendTheReport}
-            >
-              {_('dashboardSendReport')}
-            </ActionButton>
-          </span>
-        </Row>
-        <br />
         <Row>
           <Col mediumSize={4}>
             <Card>
@@ -434,6 +415,32 @@ class DefaultCard extends Component {
                     type='Bar'
                   />
                 </BlockLink>
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='menu-dashboard-stats' /> {_('dashboardReport')}
+              </CardHeader>
+              <CardBlock className='text-xs-center'>
+                <ActionButton
+                  btnStyle='primary'
+                  disabled={!canSendTheReport}
+                  handler={sendUsageReport}
+                  icon=''
+                >
+                  {_('dashboardSendReport')}
+                </ActionButton>
+                <br />
+                {!canSendTheReport && (
+                  <Link to='/settings/plugins' className='text-info'>
+                    <Icon icon='info' /> {_('dashboardSendReportInfo')} <br />
+                  </Link>
+                )}
+                {_('dashboardSendReportMessage')}
               </CardBlock>
             </Card>
           </Col>

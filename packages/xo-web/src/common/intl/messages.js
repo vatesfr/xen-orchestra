@@ -981,8 +981,11 @@ const messages = {
   dashboardStatsButtonAddAllHost: 'Add all hosts',
   dashboardStatsButtonAddAllVM: 'Add all VMs',
   dashboardSendReport: 'Send report',
+  dashboardReport: 'Report',
+  dashboardSendReportMessage:
+    'This will send a usage report to your configured emails.',
   dashboardSendReportInfo:
-    'The plugins usage report and transport email need to be loaded',
+    'The plugins usage report and transport email needs to be loaded!',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
