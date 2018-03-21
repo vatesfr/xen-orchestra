@@ -1145,7 +1145,7 @@ export default class Home extends Component {
                   <Pagination
                     onChange={this._onPageSelection}
                     pages={ceil(filteredItems.length / ITEMS_PER_PAGE)}
-                    value={activePage}
+                    value={activePage || 1}
                   />
                 </div>
               </div>
