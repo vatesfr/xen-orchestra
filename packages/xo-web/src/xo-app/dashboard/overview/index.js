@@ -93,22 +93,22 @@ class DefaultCard extends Component {
     })
   }
 
-  _getPredicateByPool = createSelector(
+  _getPoolWisePredicate = createSelector(
     () => this.state.pools,
     pools => item => isEmpty(pools) || includes(map(pools, 'id'), item.$pool)
   )
 
   _getPredicate = createSelector(
-    this._getPredicateByPool,
+    this._getPoolWisePredicate,
     () => this.state.hosts,
-    (predicateByPool, hosts) => item =>
-      predicateByPool(item) &&
+    (poolWisePredicate, hosts) => item =>
+      poolWisePredicate(item) &&
       (isEmpty(hosts) ||
         includes(map(hosts, 'id'), item.$container || item.$host))
   )
 
   _getHosts = createSelector(
-    createFilter(() => this.props.hosts, this._getPredicateByPool),
+    createFilter(() => this.props.hosts, this._getPoolWisePredicate),
     () => this.state.hosts,
     (hosts, selectedHosts) => (isEmpty(selectedHosts) ? hosts : selectedHosts)
   )
@@ -130,7 +130,7 @@ class DefaultCard extends Component {
   _getVmsNumber = createCounter(this._getVms)
 
   _getAlarmMessagesNumber = createCounter(
-    createFilter(() => this.props.alarmMessages, this._getPredicateByPool)
+    createFilter(() => this.props.alarmMessages, this._getPoolWisePredicate)
   )
 
   _getTasksNumber = createCounter(
@@ -228,7 +228,7 @@ class DefaultCard extends Component {
               disabled={isEmpty(state.pools)}
               multi
               onChange={this._onChange}
-              predicate={this._getPredicateByPool()}
+              predicate={this._getPoolWisePredicate()}
               value={state.hosts}
             />
           </Col>
