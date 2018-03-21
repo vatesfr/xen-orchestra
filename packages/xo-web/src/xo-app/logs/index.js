@@ -150,7 +150,7 @@ class Log extends BaseComponent {
   _getIsJobInterrupted = createSelector(
     () => this.props.log.id,
     () => get(() => this.props.job.runId),
-    (logId, runningJobId) => logId !== runningJobId
+    (logId, runId) => logId !== runId
   )
 
   _getFilteredCalls = createFilter(
