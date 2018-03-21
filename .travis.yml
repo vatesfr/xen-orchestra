@@ -21,4 +21,5 @@ cache:
   yarn: true
 
 script:
+  - yarn run test
   - yarn run test-integration

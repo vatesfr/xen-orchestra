@@ -2,7 +2,6 @@
 
 import execa from 'execa'
 import fs from 'fs-extra'
-import path from 'path'
 import rimraf from 'rimraf'
 
 import LocalHandler from './remote-handlers/local'
@@ -137,7 +136,7 @@ test('coalesce works with empty parent files', async () => {
   await checkFile('empty.vhd')
   const handler = new LocalHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler._getSize('randomfile')
-  await chainVhd(handler, path.resolve('empty.vhd'), handler, 'randomfile.vhd')
+  await chainVhd(handler, 'empty.vhd', handler, 'randomfile.vhd')
   await checkFile('randomfile.vhd')
   await checkFile('empty.vhd')
   await vhdMerge(handler, 'empty.vhd', handler, 'randomfile.vhd')
