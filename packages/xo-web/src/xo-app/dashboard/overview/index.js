@@ -84,15 +84,10 @@ class PatchesCard extends Component {
 })
 @addSubscriptions({
   plugins: subscribePlugins,
+  users: subscribeUsers,
 })
 @injectIntl
 class DefaultCard extends Component {
-  componentWillMount () {
-    this.componentWillUnmount = subscribeUsers(users => {
-      this.setState({ users })
-    })
-  }
-
   _getPoolWisePredicate = createSelector(
     () => map(this.state.pools, 'id'),
     poolsIds => item => isEmpty(poolsIds) || includes(poolsIds, item.$pool)
@@ -199,7 +194,7 @@ class DefaultCard extends Component {
 
   render () {
     const { props, state } = this
-    const users = state && state.users
+    const users = props.users
     const nUsers = size(users)
     const canSendTheReport = this._canSendTheReport()
     const nPools = this._getPoolsNumber()
