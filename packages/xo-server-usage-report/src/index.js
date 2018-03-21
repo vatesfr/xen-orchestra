@@ -543,6 +543,7 @@ class UsageReportPlugin {
     this._dir = getDataDir
     // Defined in configure().
     this._conf = null
+    this._xo.addApiMethod('plugin.sendUsageReport', this._sendReport.bind(this, false))
   }
 
   configure (configuration, state) {
@@ -556,7 +557,7 @@ class UsageReportPlugin {
       configuration.periodicity === 'monthly' ? '00 06 1 * *' : '00 06 * * 0'
     ).createJob(async () => {
       try {
-        await this._sendReport()
+        await this._sendReport(true)
       } catch (error) {
         console.error(
           '[WARN] scheduled function:',
@@ -582,10 +583,10 @@ class UsageReportPlugin {
   }
 
   test () {
-    return this._sendReport()
+    return this._sendReport(true)
   }
 
-  async _sendReport () {
+  async _sendReport (storeData) {
     const data = await dataBuilder({
       xo: this._xo,
       storedStatsPath: this._storedStatsPath,
@@ -609,7 +610,7 @@ class UsageReportPlugin {
           },
         ],
       }),
-      storeStats({
+      storeData && storeStats({
         data,
         storedStatsPath: this._storedStatsPath,
       }),
