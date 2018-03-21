@@ -207,8 +207,8 @@ function getDiff (oldElements, newElements) {
 
 // ===================================================================
 
-function getVmsStats ({ runningVms, xo }) {
-  return Promise.all(
+async function getVmsStats ({ runningVms, xo }) {
+  return orderBy(await Promise.all(
     map(runningVms, async vm => {
       const vmStats = await xo.getXapiVmStats(vm, 'days')
       return {
@@ -222,11 +222,11 @@ function getVmsStats ({ runningVms, xo }) {
         netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower,
       }
     })
-  )
+  ), 'name', 'asc')
 }
 
-function getHostsStats ({ runningHosts, xo }) {
-  return Promise.all(
+async function getHostsStats ({ runningHosts, xo }) {
+  return orderBy(await Promise.all(
     map(runningHosts, async host => {
       const hostStats = await xo.getXapiHostStats(host, 'days')
       return {
@@ -239,11 +239,11 @@ function getHostsStats ({ runningHosts, xo }) {
         netTransmission: computeDoubleMean(hostStats.stats.pifs.tx) / kibPower,
       }
     })
-  )
+  ), 'name', 'asc')
 }
 
 function getSrsStats (xoObjects) {
-  return map(filter(xoObjects, { type: 'SR' }), sr => {
+  return orderBy(map(filter(xoObjects, { type: 'SR' }), sr => {
     const total = sr.size / gibPower
     const used = sr.physical_usage / gibPower
     return {
@@ -253,7 +253,7 @@ function getSrsStats (xoObjects) {
       used,
       free: total - used,
     }
-  })
+  }), 'total', 'desc')
 }
 
 function computeGlobalVmsStats ({ haltedVms, vmsStats, xo }) {
