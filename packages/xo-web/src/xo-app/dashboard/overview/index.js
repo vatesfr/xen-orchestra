@@ -225,7 +225,6 @@ class DefaultCard extends Component {
           </Col>
           <Col mediumSize={6}>
             <SelectHost
-              disabled={isEmpty(state.pools)}
               multi
               onChange={this._onChange}
               predicate={this._getPoolWisePredicate()}
