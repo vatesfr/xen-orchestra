@@ -214,7 +214,7 @@
           </td>
         <tr>
         <tr>
-          <td>Net reception:</td>
+          <td>Network RX:</td>
           <td>{{global.vms.netReception}} KiB</td>
           <td style='color:{{#compare global.vmsEvolution.netReception ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.vmsEvolution.netReception}}
@@ -226,7 +226,7 @@
           </td>
         <tr>
         <tr>
-          <td>Net transmission:</td>
+          <td>Network TX:</td>
           <td>{{global.vms.netTransmission}} KiB</td>
           <td style='color:{{#compare global.vmsEvolution.netTransmission ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.vmsEvolution.netTransmission}}
@@ -292,7 +292,7 @@
           </tr>
           {{/each}}
           <tr>
-            <td rowspan='{{math topVms.netReception.length "+" 1}}' class="tableHeader">Net reception</td>
+            <td rowspan='{{math topVms.netReception.length "+" 1}}' class="tableHeader">Network RX</td>
           </tr>
           {{#each topVms.netReception}}
           <tr>
@@ -302,7 +302,7 @@
           </tr>
           {{/each}}
           <tr>
-            <td rowspan='{{math topVms.netTransmission.length "+" 1}}' class="tableHeader">Net transmission</td>
+            <td rowspan='{{math topVms.netTransmission.length "+" 1}}' class="tableHeader">Network TX</td>
           </tr>
           {{#each topVms.netTransmission}}
           <tr>
@@ -370,7 +370,7 @@
           </td>
         <tr>
         <tr>
-          <td>Net reception:</td>
+          <td>Network RX:</td>
           <td>{{global.hosts.netReception}} KiB</td>
           <td style='color:{{#compare global.hostsEvolution.netReception ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.hostsEvolution.netReception}}
@@ -382,7 +382,7 @@
           </td>
         <tr>
         <tr>
-          <td>Net transmission:</td>
+          <td>Network TX:</td>
           <td>{{global.hosts.netTransmission}} KiB</td>
           <td style='color:{{#compare global.hostsEvolution.netTransmission ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.hostsEvolution.netTransmission}}
@@ -436,7 +436,7 @@
           </tr>
           {{/each}}
           <tr>
-            <td rowspan='{{math topHosts.netReception.length "+" 1}}' class="tableHeader">Net reception</td>
+            <td rowspan='{{math topHosts.netReception.length "+" 1}}' class="tableHeader">Network RX</td>
           </tr>
           {{#each topHosts.netReception}}
           <tr>
@@ -446,7 +446,7 @@
           </tr>
           {{/each}}
           <tr>
-            <td rowspan='{{math topHosts.netTransmission.length "+" 1}}' class="tableHeader">Net transmission</td>
+            <td rowspan='{{math topHosts.netTransmission.length "+" 1}}' class="tableHeader">Network TX</td>
           </tr>
           {{#each topHosts.netTransmission}}
           <tr>
@@ -625,8 +625,8 @@
                 <th>RAM (GiB)</th>
                 <th>Disk read (MiB)</th>
                 <th>Disk write (MiB)</th>
-                <th>Net reception (KiB)</th>
-                <th>Net transmission (KiB)</th>
+                <th>Network RX (KiB)</th>
+                <th>Network TX (KiB)</th>
               </tr>
               {{#each allResources.vms}}
                 <tr>
@@ -649,8 +649,8 @@
                 <th>CPU</th>
                 <th>RAM (GiB)</th>
                 <th>Load average</th>
-                <th>Net reception (KiB)</th>
-                <th>Net transmission (KiB)</th>
+                <th>Network RX (KiB)</th>
+                <th>Network TX (KiB)</th>
               </tr>
               {{#each allResources.hosts}}
                 <tr>
