@@ -4,9 +4,10 @@ import execa from 'execa'
 import fs from 'fs-extra'
 import path from 'path'
 import rimraf from 'rimraf'
-import LocalHandler from './remote-handlers/local.js'
+
+import LocalHandler from './remote-handlers/local'
+import vhdMerge, { chainVhd, Vhd, VHD_SECTOR_SIZE } from './vhd-merge'
 import { tmpDir, pFromCallback } from './utils'
-import vhdMerge, { chainVhd, Vhd } from './vhd-merge'
 
 const initialDir = process.cwd()
 
@@ -46,9 +47,9 @@ async function convertFromRawToVhd (rawName, vhdName) {
 
 test('writeData on empty file', async () => {
   expect.assertions(1)
-  const moOfRandom = 11
-  await createRandomFile('randomfile', moOfRandom)
-  await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', moOfRandom + 'M'])
+  const mbOfRandom = 11
+  await createRandomFile('randomfile', mbOfRandom)
+  await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
   const handler = new LocalHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler.getSize('randomfile')
@@ -62,9 +63,9 @@ test('writeData on empty file', async () => {
 
 test('writeData in 2 non-overlaping operations', async () => {
   expect.assertions(1)
-  const moOfRandom = 11
-  await createRandomFile('randomfile', moOfRandom)
-  await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', moOfRandom + 'M'])
+  const mbOfRandom = 11
+  await createRandomFile('randomfile', mbOfRandom)
+  await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
   const handler = new LocalHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler.getSize('randomfile')
@@ -83,9 +84,9 @@ test('writeData in 2 non-overlaping operations', async () => {
 
 test('writeData in 2 overlaping operations', async () => {
   expect.assertions(1)
-  const moOfRandom = 11
-  await createRandomFile('randomfile', moOfRandom)
-  await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', moOfRandom + 'M'])
+  const mbOfRandom = 11
+  await createRandomFile('randomfile', mbOfRandom)
+  await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
   const handler = new LocalHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler.getSize('randomfile')
@@ -114,7 +115,7 @@ test('BAT can be extended and blocks moved', async () => {
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockTable()
   await newVhd.ensureBatSize(2000)
-  await newVhd.freeFirstBlockSpace(8000000)
+  await newVhd._freeFirstBlockSpace(8000000)
   await recoverRawContent('randomfile.vhd', 'recovered', originalSize)
   expect(await fs.readFile('recovered')).toEqual(
     await fs.readFile('randomfile')
@@ -123,14 +124,14 @@ test('BAT can be extended and blocks moved', async () => {
 
 test('coalesce works with empty parent files', async () => {
   expect.assertions(1)
-  const moOfRandom = 12
-  await createRandomFile('randomfile', moOfRandom)
+  const mbOfRandom = 12
+  await createRandomFile('randomfile', mbOfRandom)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
   await execa('qemu-img', [
     'create',
     '-fvpc',
     'empty.vhd',
-    moOfRandom + 1 + 'M',
+    mbOfRandom + 1 + 'M',
   ])
   await checkFile('randomfile.vhd')
   await checkFile('empty.vhd')
@@ -148,14 +149,14 @@ test('coalesce works with empty parent files', async () => {
 
 test('coalesce works in normal cases', async () => {
   expect.assertions(1)
-  const moOfRandom = 5
-  await createRandomFile('randomfile', moOfRandom)
-  await createRandomFile('small_randomfile', Math.ceil(moOfRandom / 2))
+  const mbOfRandom = 5
+  await createRandomFile('randomfile', mbOfRandom)
+  await createRandomFile('small_randomfile', Math.ceil(mbOfRandom / 2))
   await execa('qemu-img', [
     'create',
     '-fvpc',
     'parent.vhd',
-    moOfRandom + 1 + 'M',
+    mbOfRandom + 1 + 'M',
   ])
   await convertFromRawToVhd('randomfile', 'child1.vhd')
   const handler = new LocalHandler({ url: 'file://' + process.cwd() })
@@ -193,7 +194,7 @@ test('coalesce works in normal cases', async () => {
   await execa('cp', ['randomfile', 'randomfile2'])
   const fd = await fs.open('randomfile2', 'r+')
   try {
-    await fs.write(fd, smallRandom, 0, smallRandom.length, 5 * 512)
+    await fs.write(fd, smallRandom, 0, smallRandom.length, 5 * VHD_SECTOR_SIZE)
   } finally {
     await fs.close(fd)
   }

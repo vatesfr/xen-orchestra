@@ -70,7 +70,6 @@ if (unstaged.length !== 0) {
   }
 }
 
-console.log('RUNNING', files)
 testFiles(files)
 
 run('git', ['add'].concat(files))

@@ -3,7 +3,6 @@
 import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
 import fu from '@nraynaud/struct-fu'
-import isEqual from 'lodash/isEqual'
 import { fromEvent } from 'promise-toolbox'
 
 import type RemoteHandler from './remote-handlers/abstract'
@@ -26,7 +25,7 @@ const debug = VHD_UTIL_DEBUG ? str => console.log(`[vhd-merge]${str}`) : noop
 // Sizes in bytes.
 const VHD_FOOTER_SIZE = 512
 const VHD_HEADER_SIZE = 1024
-const VHD_SECTOR_SIZE = 512
+export const VHD_SECTOR_SIZE = 512
 
 // Block allocation table entry size. (Block addr)
 const VHD_ENTRY_SIZE = 4
@@ -37,6 +36,12 @@ const VHD_PLATFORM_CODE_NONE = 0
 // Types of backup treated. Others are not supported.
 export const HARD_DISK_TYPE_DYNAMIC = 3 // Full backup.
 export const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
+
+export const PLATFORM_NONE = 0
+export const PLATFORM_W2RU = 0x57327275
+export const PLATFORM_W2KU = 0x57326b75
+export const PLATFORM_MAC = 0x4d616320
+export const PLATFORM_MACX = 0x4d616358
 
 // Other.
 const BLOCK_UNUSED = 0xffffffff
@@ -424,7 +429,7 @@ export class Vhd {
       : fromEvent(data.pipe(stream), 'finish')
   }
 
-  async freeFirstBlockSpace (spaceNeededBytes) {
+  async _freeFirstBlockSpace (spaceNeededBytes) {
     try {
       const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
       const tableOffset = uint32ToUint64(this.header.tableOffset)
@@ -450,7 +455,7 @@ export class Vhd {
         await this.writeFooter(true)
         spaceNeededBytes -= this.fullBlockSize
         if (spaceNeededBytes > 0) {
-          return this.freeFirstBlockSpace(spaceNeededBytes)
+          return this._freeFirstBlockSpace(spaceNeededBytes)
         }
       }
     } catch (e) {
@@ -470,7 +475,7 @@ export class Vhd {
     const newBatSize = sectorsToBytes(
       sectorsRoundUpNoZero(size * VHD_ENTRY_SIZE)
     )
-    await this.freeFirstBlockSpace(newBatSize - this.blockTable.length)
+    await this._freeFirstBlockSpace(newBatSize - this.blockTable.length)
     const maxTableEntries = (header.maxTableEntries = size)
     const prevBat = this.blockTable
     const bat = (this.blockTable = Buffer.allocUnsafe(newBatSize))
@@ -720,7 +725,7 @@ export class Vhd {
       firstLocatorOffset / VHD_SECTOR_SIZE
     if (currentSpace < neededSectors) {
       const deltaSectors = neededSectors - currentSpace
-      await this.freeFirstBlockSpace(sectorsToBytes(deltaSectors))
+      await this._freeFirstBlockSpace(sectorsToBytes(deltaSectors))
       this.header.tableOffset.low += sectorsToBytes(deltaSectors)
       await this._write(
         this.blockTable,
@@ -827,53 +832,30 @@ export async function chainVhd (
 
   const parentName = parentPath.split('/').pop()
   const parentUuid = parentVhd.footer.uuid
-  if (
-    header.parentUnicodeName !== parentName ||
-    !isEqual(header.parentUuid, parentUuid)
-  ) {
-    footer.diskType = 4
-    header.parentUuid = parentUuid
-    header.parentUnicodeName = parentName
+  footer.diskType = HARD_DISK_TYPE_DIFFERENCING
+  header.parentUuid = parentUuid
+  header.parentUnicodeName = parentName
 
-    header.parentLocatorEntry[0].platformCode = 0x57327275
-    const encodedFilename = Buffer.from(parentName, 'utf16le')
-    const dataSpaceSectors = Math.ceil(encodedFilename.length / VHD_SECTOR_SIZE)
-    const position = await childVhd.ensureSpaceForParentLocators(
-      dataSpaceSectors
-    )
-    await childVhd._write(encodedFilename, position)
-    header.parentLocatorEntry[0].platformDataSpace = sectorsToBytes(
-      dataSpaceSectors
-    )
-    header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
-    header.parentLocatorEntry[0].platformDataOffset.low = position
-    for (let i = 1; i < 8; i++) {
-      header.parentLocatorEntry[i].platformCode = VHD_PLATFORM_CODE_NONE
-      header.parentLocatorEntry[i].platformDataSpace = 0
-      header.parentLocatorEntry[i].platformDataLength = 0
-      header.parentLocatorEntry[i].platformDataOffset.high = 0
-      header.parentLocatorEntry[i].platformDataOffset.low = 0
-    }
-    await childVhd.writeHeader()
-    await childVhd.writeFooter()
-    return true
+  header.parentLocatorEntry[0].platformCode = PLATFORM_W2KU
+  const encodedFilename = Buffer.from(parentName, 'utf16le')
+  const dataSpaceSectors = Math.ceil(encodedFilename.length / VHD_SECTOR_SIZE)
+  const position = await childVhd.ensureSpaceForParentLocators(dataSpaceSectors)
+  await childVhd._write(encodedFilename, position)
+  header.parentLocatorEntry[0].platformDataSpace = sectorsToBytes(
+    dataSpaceSectors
+  )
+  header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
+  header.parentLocatorEntry[0].platformDataOffset.low = position
+  for (let i = 1; i < 8; i++) {
+    header.parentLocatorEntry[i].platformCode = VHD_PLATFORM_CODE_NONE
+    header.parentLocatorEntry[i].platformDataSpace = 0
+    header.parentLocatorEntry[i].platformDataLength = 0
+    header.parentLocatorEntry[i].platformDataOffset.high = 0
+    header.parentLocatorEntry[i].platformDataOffset.low = 0
   }
-
-  // The checksum was broken between xo-server v5.2.4 and v5.2.5
-  //
-  // Replace by a correct checksum if necessary.
-  //
-  // TODO: remove when enough time as passed (6 months).
-  {
-    const rawHeader = fuHeader.pack(header)
-    const checksum = checksumStruct(rawHeader, fuHeader)
-    if (checksum !== header.checksum) {
-      await childVhd._write(rawHeader, VHD_FOOTER_SIZE)
-      return true
-    }
-  }
-
-  return false
+  await childVhd.writeHeader()
+  await childVhd.writeFooter()
+  return true
 }
 
 export async function readVhdMetadata (handler: RemoteHandler, path: string) {
