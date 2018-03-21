@@ -1,4 +1,5 @@
 import _, { messages } from 'intl'
+import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
@@ -8,6 +9,7 @@ import Link, { BlockLink } from 'link'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ResourceSetQuotas from 'resource-set-quotas'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
@@ -25,7 +27,9 @@ import {
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import {
   isSrWritable,
+  sendUsageReport,
   subscribePermissions,
+  subscribePlugins,
   subscribeResourceSets,
   subscribeUsers,
 } from 'xo'
@@ -133,6 +137,9 @@ class PatchesCard extends Component {
     vmMetrics: getVmMetrics,
   }
 })
+@addSubscriptions({
+  plugins: subscribePlugins,
+})
 @injectIntl
 class DefaultCard extends Component {
   componentWillMount () {
@@ -141,15 +148,51 @@ class DefaultCard extends Component {
     })
   }
 
+  _canSendTheReport = createSelector(
+    () => this.props.plugins,
+    plugins => {
+      let count = 0
+      forEach(plugins, ({ id, loaded }) => {
+        if ((id === 'usage-report' || id === 'transport-email') && loaded) {
+          count++
+        }
+        if (count === 2) {
+          return false
+        }
+      })
+
+      return count === 2
+    }
+  )
+
   render () {
     const { props, state } = this
     const users = state && state.users
     const nUsers = size(users)
+    const canSendTheReport = this._canSendTheReport()
 
     const { formatMessage } = props.intl
 
     return (
       <Container>
+        <Row>
+          <span className='pull-right'>
+            {!canSendTheReport && (
+              <Tooltip content={_('dashboardSendReportInfo')}>
+                <Icon icon='info' size='lg' color='text-info' />
+              </Tooltip>
+            )}{' '}
+            <ActionButton
+              btnStyle='primary'
+              handler={sendUsageReport}
+              icon='menu-dashboard-stats'
+              disabled={!canSendTheReport}
+            >
+              {_('dashboardSendReport')}
+            </ActionButton>
+          </span>
+        </Row>
+        <br />
         <Row>
           <Col mediumSize={4}>
             <Card>

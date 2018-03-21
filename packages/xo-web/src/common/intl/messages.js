@@ -980,6 +980,9 @@ const messages = {
   dashboardStatsButtonRemoveAll: 'Clear selection',
   dashboardStatsButtonAddAllHost: 'Add all hosts',
   dashboardStatsButtonAddAllVM: 'Add all VMs',
+  dashboardSendReport: 'Send report',
+  dashboardSendReportInfo:
+    'The plugins usage report and transport email need to be loaded',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
