@@ -94,17 +94,17 @@ class DefaultCard extends Component {
   }
 
   _getPoolWisePredicate = createSelector(
-    () => this.state.pools,
-    pools => item => isEmpty(pools) || includes(map(pools, 'id'), item.$pool)
+    () => map(this.state.pools, 'id'),
+    poolsIds => item => isEmpty(poolsIds) || includes(poolsIds, item.$pool)
   )
 
   _getPredicate = createSelector(
     this._getPoolWisePredicate,
-    () => this.state.hosts,
-    (poolWisePredicate, hosts) => item =>
+    () => map(this.state.hosts, 'id'),
+    (poolWisePredicate, hostsIds) => item =>
       poolWisePredicate(item) &&
-      (isEmpty(hosts) ||
-        includes(map(hosts, 'id'), item.$container || item.$host))
+      (isEmpty(hostsIds) ||
+        includes(hostsIds, item.$container || item.$host))
   )
 
   _getHosts = createSelector(
