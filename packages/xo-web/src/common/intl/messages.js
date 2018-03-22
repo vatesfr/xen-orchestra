@@ -1524,6 +1524,9 @@ const messages = {
   promptUpgradeReloadTitle: 'Upgrade successful',
   promptUpgradeReloadMessage:
     'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
+  upgradeWarningTitle: 'Upgrade warning',
+  upgradeWarningMessage:
+    'You have some jobs in progress. If you upgrade now, this jobs will be broken! Do you want to continue ?',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
