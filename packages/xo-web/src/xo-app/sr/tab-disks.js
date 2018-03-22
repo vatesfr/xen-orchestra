@@ -15,7 +15,6 @@ import { Text } from 'editable'
 import { SelectVm } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
-import { concat, get, includes, isEmpty, map, some } from 'lodash'
 import { createFinder, createGetObjectsOfType, createSelector } from 'selectors'
 import {
   addSubscriptions,
@@ -25,6 +24,17 @@ import {
   resolveResourceSet,
 } from 'utils'
 import {
+  concat,
+  every,
+  flatten,
+  forEach,
+  get,
+  includes,
+  isEmpty,
+  map,
+  some,
+} from 'lodash'
+import {
   connectVbd,
   createDisk,
   deleteVbd,
@@ -33,6 +43,7 @@ import {
   disconnectVbd,
   editVdi,
   isVmRunning,
+  isSrShared,
   subscribeResourceSets,
 } from 'xo'
 
@@ -186,6 +197,7 @@ const FILTERS = {
 }
 
 // ===================================================================
+
 @injectIntl
 @propTypes({
   onClose: propTypes.func,
@@ -193,6 +205,28 @@ const FILTERS = {
 })
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
+})
+@connectStore(() => {
+  const getSrPbds = createGetObjectsOfType('PBD').pick(
+    (_, props) => props.sr.$PBDs
+  )
+  const getSrHosts = createGetObjectsOfType('host').pick(
+    createSelector(getSrPbds, pbds => map(pbds, pbd => pbd.host))
+  )
+  const getHosts = createGetObjectsOfType('host')
+  const getPbds = createGetObjectsOfType('PBD')
+  const getSR = createGetObjectsOfType('SR')
+  const getVbds = createGetObjectsOfType('VBD')
+  const getVdis = createGetObjectsOfType('VDI')
+
+  return (state, props) => ({
+    hosts: getHosts(state, props),
+    pbds: getPbds(state, props),
+    srHosts: getSrHosts(state, props),
+    srs: getSR(state, props),
+    vbds: getVbds(state, props),
+    vdis: getVdis(state, props),
+  })
 })
 class NewDisk extends Component {
   _createDisk = () => {
@@ -219,9 +253,41 @@ class NewDisk extends Component {
     resolveResourceSet
   )
 
+  _getIsLocalSrOnSameSrHosts = createSelector(
+    () => this.props.hosts,
+    () => this.props.pbds,
+    () => this.props.srHosts,
+    () => this.props.srs,
+    () => this.props.vbds,
+    () => this.props.vdis,
+    (hosts, pbds, srHosts, srs, vbds, vdis) => vm => {
+      const isOnSameHosts = []
+      forEach(vm.$VBDs, id => {
+        const vbd = vbds[id]
+        const vdi = vbd.is_cd_drive ? undefined : vdis[vbd.VDI]
+        if (vdi !== undefined) {
+          isOnSameHosts.push(
+            every(
+              map(map(flatten(map(srs[vdi.$SR].$PBDs)), id => pbds[id]), pbd =>
+                includes(srHosts, hosts[pbd.host])
+              )
+            )
+          )
+        }
+      })
+      return every(isOnSameHosts)
+    }
+  )
+
   _getIsInPool = createSelector(
-    () => this.props.sr.$pool,
-    poolId => ({ $pool }) => $pool === poolId
+    this._getIsLocalSrOnSameSrHosts,
+    () => this.props.sr,
+    (getIsLocalSrOnSameSrHosts, sr) => vm => {
+      const isInPool = vm.$pool === sr.$pool
+      return isInPool && !isSrShared(sr)
+        ? isVmRunning(vm) ? false : getIsLocalSrOnSameSrHosts(vm)
+        : isInPool
+    }
   )
 
   _getIsInResourceSet = createSelector(
@@ -235,8 +301,12 @@ class NewDisk extends Component {
   _getVmPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => vm =>
-      vm.resourceSet !== undefined ? isInResourceSet(vm.id) : isInPool(vm)
+    (isInPool, isInResourceSet) => vm => {
+      const vmIsInPool = isInPool(vm)
+      return vm.resourceSet !== undefined
+        ? vmIsInPool && isInResourceSet(vm.id)
+        : vmIsInPool
+    }
   )
 
   _getResourceSetDiskLimit = createSelector(this._getResourceSet, resourceSet =>
@@ -280,7 +350,7 @@ class NewDisk extends Component {
             />
           </div>
           <div className='form-group'>
-            {vm &&
+            {vm !== undefined &&
               vm.virtualizationMode !== 'pv' && (
                 <span>
                   {_('vbdBootable')}{' '}
@@ -290,7 +360,6 @@ class NewDisk extends Component {
                   />{' '}
                 </span>
               )}
-
             <span>
               {_('vbdReadonly')}{' '}
               <Toggle
@@ -334,13 +403,6 @@ class NewDisk extends Component {
 }
 
 export default class SrDisks extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      newDisk: false,
-    }
-  }
-
   _toggleNewDisk = () =>
     this.setState({
       newDisk: !this.state.newDisk,
@@ -363,11 +425,13 @@ export default class SrDisks extends Component {
           <Col className='text-xs-right'>
             <TabButton
               btnStyle={newDisk ? 'info' : 'primary'}
-              handler={this._toggleNewDisk}
+              handler={this.toggleState('newDisk')}
               icon='add'
               labelId='vbdCreateDeviceButton'
             />
           </Col>
+        </Row>
+        <Row>
           <Col>
             {newDisk && (
               <div>
