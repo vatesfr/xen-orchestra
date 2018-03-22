@@ -9,7 +9,7 @@ import { addTag, removeTag } from 'xo'
 import Link, { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import Usage, { UsageElement } from 'usage'
-import { formatSize } from 'utils'
+import { formatSize, formatSizeShort } from 'utils'
 import Tooltip from 'tooltip'
 
 export default ({ hosts, nVms, pool, srs }) => (
@@ -68,8 +68,11 @@ export default ({ hosts, nVms, pool, srs }) => (
       <Col className='text-xs-center'>
         <h5>
           {_('poolRamUsage', {
-            used: formatSize(sumBy(hosts, 'memory.usage')),
-            total: formatSize(sumBy(hosts, 'memory.size')),
+            used: formatSizeShort(sumBy(hosts, 'memory.usage')),
+            total: formatSizeShort(sumBy(hosts, 'memory.size')),
+            free: formatSizeShort(
+              sumBy(hosts, host => host.memory.size - host.memory.usage)
+            ),
           })}
         </h5>
       </Col>

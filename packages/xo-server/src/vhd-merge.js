@@ -3,11 +3,13 @@
 import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
 import fu from '@nraynaud/struct-fu'
+import { dirname, relative } from 'path'
 import { fromEvent } from 'promise-toolbox'
 
 import type RemoteHandler from './remote-handlers/abstract'
 import constantStream from './constant-stream'
-import { noop, streamToBuffer } from './utils'
+import { createReadable } from './ag2s'
+import { noop, resolveRelativeFromFile, streamToBuffer } from './utils'
 
 const VHD_UTIL_DEBUG = 0
 const debug = VHD_UTIL_DEBUG ? str => console.log(`[vhd-merge]${str}`) : noop
@@ -190,21 +192,24 @@ function checksumStruct (rawStruct, struct) {
 
 // Format:
 //
-// - Footer (512)
-// - Header (1024)
-//
-// - BAT (batSize @ header.tableOffset)
-// - Block i (@ blockOffset(i))
-//   - bitmap (blockBitmapSize)
-//   - data (header.blockSize)
-//
-// - Footer (512)
+// 1. Footer (512)
+// 2. Header (1024)
+// 3. Unordered entries
+//    - BAT (batSize @ header.tableOffset)
+//    - Blocks (@ blockOffset(i))
+//      - bitmap (blockBitmapSize)
+//      - data (header.blockSize)
+//    - Parent locators (parentLocatorSize(i) @ parentLocatorOffset(i))
+// 4. Footer (512 @ vhdSize - 512)
 //
 // Variables:
 //
-// - batSize = min(1, ceil(header.maxTableEntries * 4)) * sectorSize
+// - batSize = min(1, ceil(header.maxTableEntries * 4 / sectorSize)) * sectorSize
 // - blockBitmapSize = ceil(header.blockSize / sectorSize / 8 / sectorSize) * sectorSize
 // - blockOffset(i) = bat[i] * sectorSize
+// - nBlocks = ceil(footer.currentSize / header.blockSize)
+// - parentLocatorOffset(i) = header.parentLocatorEntry[i].platformDataOffset
+// - parentLocatorSize(i) = header.parentLocatorEntry[i].platformDataSpace * sectorSize
 // - sectorSize = 512
 export class Vhd {
   constructor (handler, path) {
@@ -225,6 +230,10 @@ export class Vhd {
 
   _read (start, n) {
     return this._readStream(start, n).then(streamToBuffer)
+  }
+
+  containsBlock (id) {
+    return this._getBatEntry(id) !== BLOCK_UNUSED
   }
 
   // Returns the first address after metadata. (In bytes)
@@ -787,7 +796,7 @@ export default concurrency(2)(async function vhdMerge (
         blockId < childVhd.header.maxTableEntries;
         blockId++
       ) {
-        if (childVhd._getBatEntry(blockId) !== BLOCK_UNUSED) {
+        if (childVhd.containsBlock(blockId)) {
           mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
         }
       }
@@ -830,7 +839,7 @@ export async function chainVhd (
   await childVhd.readBlockTable()
   const { header, footer } = childVhd
 
-  const parentName = parentPath.split('/').pop()
+  const parentName = relative(dirname(childPath), parentPath)
   const parentUuid = parentVhd.footer.uuid
   footer.diskType = HARD_DISK_TYPE_DIFFERENCING
   header.parentUuid = parentUuid
@@ -857,6 +866,139 @@ export async function chainVhd (
   await childVhd.writeFooter()
   return true
 }
+
+export const createReadStream = (handler, path) =>
+  createReadable(function * () {
+    const fds = []
+
+    try {
+      const vhds = []
+      while (true) {
+        const fd = yield handler.openFile(path, 'r')
+        fds.push(fd)
+        const vhd = new Vhd(handler, fd)
+        vhds.push(vhd)
+        yield vhd.readHeaderAndFooter()
+        yield vhd.readBlockTable()
+
+        if (vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC) {
+          break
+        }
+
+        path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
+      }
+      const nVhds = vhds.length
+
+      // this the VHD we want to synthetize
+      const vhd = vhds[0]
+
+      // data of our synthetic VHD
+      // TODO: empty parentUuid and parentLocatorEntry-s in header
+      let header = {
+        ...vhd.header,
+        tableOffset: {
+          high: 0,
+          low: 512 + 1024,
+        },
+        parentUnicodeName: '',
+      }
+
+      const bat = Buffer.allocUnsafe(
+        Math.ceil(4 * header.maxTableEntries / VHD_SECTOR_SIZE) *
+          VHD_SECTOR_SIZE
+      )
+      let footer = {
+        ...vhd.footer,
+        diskType: HARD_DISK_TYPE_DYNAMIC,
+      }
+      const sectorsPerBlockData = vhd.sectorsPerBlock
+      const sectorsPerBlock =
+        sectorsPerBlockData + vhd.bitmapSize / VHD_SECTOR_SIZE
+
+      const nBlocks = Math.ceil(
+        uint32ToUint64(footer.currentSize) / header.blockSize
+      )
+
+      const blocksOwner = new Array(nBlocks)
+      for (
+        let iBlock = 0,
+          blockOffset = Math.ceil((512 + 1024 + bat.length) / VHD_SECTOR_SIZE);
+        iBlock < nBlocks;
+        ++iBlock
+      ) {
+        let blockSector = BLOCK_UNUSED
+        for (let i = 0; i < nVhds; ++i) {
+          if (vhds[i].containsBlock(iBlock)) {
+            blocksOwner[iBlock] = i
+            blockSector = blockOffset
+            blockOffset += sectorsPerBlock
+            break
+          }
+        }
+        bat.writeUInt32BE(blockSector, iBlock * 4)
+      }
+
+      footer = fuFooter.pack(footer)
+      checksumStruct(footer, fuFooter)
+      yield footer
+
+      header = fuHeader.pack(header)
+      checksumStruct(header, fuHeader)
+      yield header
+
+      yield bat
+
+      const bitmap = Buffer.alloc(vhd.bitmapSize, 0xff)
+      for (let iBlock = 0; iBlock < nBlocks; ++iBlock) {
+        const owner = blocksOwner[iBlock]
+        if (owner === undefined) {
+          continue
+        }
+
+        yield bitmap
+
+        const blocksByVhd = new Map()
+        const emitBlockSectors = function * (iVhd, i, n) {
+          const vhd = vhds[iVhd]
+          if (!vhd.containsBlock(iBlock)) {
+            yield * emitBlockSectors(iVhd + 1, i, n)
+            return
+          }
+          let block = blocksByVhd.get(vhd)
+          if (block === undefined) {
+            block = yield vhd._readBlock(iBlock)
+            blocksByVhd.set(vhd, block)
+          }
+          const { bitmap, data } = block
+          if (vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC) {
+            yield data.slice(i * VHD_SECTOR_SIZE, n * VHD_SECTOR_SIZE)
+            return
+          }
+          while (i < n) {
+            const hasData = mapTestBit(bitmap, i)
+            const start = i
+            do {
+              ++i
+            } while (i < n && mapTestBit(bitmap, i) === hasData)
+            if (hasData) {
+              yield data.slice(start * VHD_SECTOR_SIZE, i * VHD_SECTOR_SIZE)
+            } else {
+              yield * emitBlockSectors(iVhd + 1, start, i)
+            }
+          }
+        }
+        yield * emitBlockSectors(owner, 0, sectorsPerBlock)
+      }
+
+      yield footer
+    } finally {
+      for (let i = 0, n = fds.length; i < n; ++i) {
+        handler.closeFile(fds[i]).catch(error => {
+          console.warn('createReadStream, closeFd', i, error)
+        })
+      }
+    }
+  })
 
 export async function readVhdMetadata (handler: RemoteHandler, path: string) {
   const vhd = new Vhd(handler, path)

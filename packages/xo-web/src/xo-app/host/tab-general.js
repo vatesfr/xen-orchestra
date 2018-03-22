@@ -10,7 +10,7 @@ import { addTag, removeTag } from 'xo'
 import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative } from 'react-intl'
-import { formatSize } from 'utils'
+import { formatSize, formatSizeShort } from 'utils'
 import Usage, { UsageElement } from 'usage'
 import { getObject } from 'selectors'
 import {
@@ -113,9 +113,7 @@ export default ({
       <br />
       <Row>
         <Col className='text-xs-center'>
-          <h5>
-            {_('memoryHostState', { memoryUsed: formatSize(memoryUsed) })}
-          </h5>
+          <h5>{_('hostTitleRamUsage')}</h5>
         </Col>
       </Row>
       <Row>
@@ -137,16 +135,31 @@ export default ({
           </Usage>
         </Col>
       </Row>
-      {pool &&
-        host.id === pool.master && (
-          <Row className='text-xs-center'>
-            <Col>
-              <h3>
-                <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>
-              </h3>
-            </Col>
-          </Row>
-        )}
+      <Row>
+        <Col className='text-xs-center'>
+          <h5>
+            {_('memoryHostState', {
+              memoryUsed: formatSizeShort(memoryUsed),
+              memoryTotal: formatSizeShort(host.memory.size),
+              memoryFree: formatSizeShort(host.memory.size - host.memory.usage),
+            })}
+          </h5>
+        </Col>
+      </Row>
+      <Row>
+        {pool &&
+          host.id === pool.master && (
+            <Row className='text-xs-center'>
+              <Col>
+                <h3>
+                  <span className='tag tag-pill tag-info'>
+                    {_('pillMaster')}
+                  </span>
+                </h3>
+              </Col>
+            </Row>
+          )}
+      </Row>
       <Row>
         <Col>
           <h2 className='text-xs-center'>

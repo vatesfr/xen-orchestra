@@ -13,7 +13,7 @@ import pick from 'lodash/pick'
 import tmp from 'tmp'
 import xml2js from 'xml2js'
 import { randomBytes } from 'crypto'
-import { resolve } from 'path'
+import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
   all as pAll,
@@ -316,6 +316,12 @@ export const popProperty = obj => {
     }
   }
 }
+
+// -------------------------------------------------------------------
+
+// resolve a relative path from a file
+export const resolveRelativeFromFile = (file, path) =>
+  resolve('/', dirname(file), path).slice(1)
 
 // -------------------------------------------------------------------
 
