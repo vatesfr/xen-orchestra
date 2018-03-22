@@ -52,7 +52,10 @@ BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 
 const uint64 = fu.derive(
   fu.struct([fu.uint32('high'), fu.uint32('low')]),
-  number => ({ high: 0, low: number % SIZE_OF_32_BITS }),
+  number => ({
+    high: Math.floor(number / SIZE_OF_32_BITS),
+    low: number % SIZE_OF_32_BITS,
+  }),
   obj => obj.high * SIZE_OF_32_BITS + obj.low
 )
 
