@@ -68,8 +68,8 @@ const getNewSettings = schedules => {
 
   for (const id in schedules) {
     newSettings[id] = {
-      exportRetention: +schedules[id].exportRetention,
-      snapshotRetention: +schedules[id].snapshotRetention,
+      exportRetention: schedules[id].exportRetention,
+      snapshotRetention: schedules[id].snapshotRetention,
     }
   }
 
@@ -156,8 +156,8 @@ export default [
                 timezone: schedule.timezone,
               })).id
               newSettings[scheduleId] = {
-                exportRetention: +schedule.exportRetention,
-                snapshotRetention: +schedule.snapshotRetention,
+                exportRetention: schedule.exportRetention,
+                snapshotRetention: schedule.snapshotRetention,
               }
             })
           )
@@ -202,8 +202,8 @@ export default [
             oldSetting.exportRetention !== newSetting.exportRetention
           ) {
             newSettings[id] = {
-              exportRetention: +newSetting.exportRetention,
-              snapshotRetention: +newSetting.snapshotRetention,
+              exportRetention: newSetting.exportRetention,
+              snapshotRetention: newSetting.snapshotRetention,
             }
           }
         }
@@ -483,27 +483,15 @@ export default [
       showCompression: state => state.isFull && state.exportRetentionExists,
       exportMode: state =>
         state.backupMode || state.deltaMode || state.drMode || state.crMode,
-      exportRetentionExists: state =>
+      exportRetentionExists: ({ newSchedules, settings }) =>
         some(
-          state.newSchedules,
-          ({ exportRetention }) =>
-            exportRetention !== '' && +exportRetention !== 0
-        ) ||
-        some(
-          state.settings,
-          ({ exportRetention }) =>
-            exportRetention !== '' && +exportRetention !== 0
+          { ...newSchedules, ...settings },
+          ({ exportRetention }) => exportRetention !== 0
         ),
-      snapshotRetentionExists: state =>
+      snapshotRetentionExists: ({ newSchedules, settings }) =>
         some(
-          state.newSchedules,
-          ({ snapshotRetention }) =>
-            snapshotRetention !== '' && +snapshotRetention !== 0
-        ) ||
-        some(
-          state.settings,
-          ({ snapshotRetention }) =>
-            snapshotRetention !== '' && +snapshotRetention !== 0
+          { ...newSchedules, ...settings },
+          ({ snapshotRetention }) => snapshotRetention !== 0
         ),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,

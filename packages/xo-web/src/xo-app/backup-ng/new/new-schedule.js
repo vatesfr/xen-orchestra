@@ -9,6 +9,31 @@ import { isEqual } from 'lodash'
 
 import { FormGroup, getRandomId, Input } from './utils'
 
+const Number = [
+  provideState({
+    effects: {
+      onChange: (_, { target: { value } }) => (state, props) => {
+        if (value === '') {
+          return
+        }
+        props.onChange(+value)
+      },
+    },
+    computed: {
+      value: (_, { value }) => value,
+    },
+  }),
+  injectState,
+  ({ effects, state }) => (
+    <Input
+      type='number'
+      onChange={effects.onChange}
+      value={String(state.value)}
+      min='0'
+    />
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
 export default [
   injectState,
   provideState({
@@ -33,11 +58,11 @@ export default [
       timezone,
     }),
     effects: {
-      setExportRetention: (_, { target: { value } }) => state => ({
+      setExportRetention: (_, value) => state => ({
         ...state,
         exportRetention: value,
       }),
-      setSnapshotRetention: (_, { target: { value } }) => state => ({
+      setSnapshotRetention: (_, value) => state => ({
         ...state,
         snapshotRetention: value,
       }),
@@ -55,8 +80,7 @@ export default [
         timezone,
         oldSchedule,
       }) =>
-        ((+snapshotRetention === 0 || snapshotRetention === '') &&
-          (+exportRetention === 0 || exportRetention === '')) ||
+        (snapshotRetention === 0 && exportRetention === 0) ||
         isEqual(oldSchedule, {
           cron,
           exportRetention,
@@ -75,8 +99,7 @@ export default [
               <label>
                 <strong>{_('exportRetention')}</strong>
               </label>
-              <Input
-                type='number'
+              <Number
                 onChange={effects.setExportRetention}
                 value={state.exportRetention}
               />
@@ -87,8 +110,7 @@ export default [
               <label>
                 <strong>{_('snapshotRetention')}</strong>
               </label>
-              <Input
-                type='number'
+              <Number
                 onChange={effects.setSnapshotRetention}
                 value={state.snapshotRetention}
               />
