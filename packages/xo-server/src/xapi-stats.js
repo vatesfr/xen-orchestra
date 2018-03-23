@@ -47,18 +47,18 @@ const RRD_POINTS_PER_STEP = {
 // Utils
 // -------------------------------------------------------------------
 
-async function getServerTimestamp (xapi, hostRef) {
-  const serverLocalTime = await xapi.call('host.get_servertime', hostRef)
-  return Math.floor(parseDateTime(serverLocalTime).getTime() / 1e3)
+// Return current local timestamp in seconds
+function getCurrentTimestamp () {
+  return Date.now() / 1000
 }
 
 function convertNanToNull (value) {
   return isNaN(value) ? null : value
 }
 
-// Return current local timestamp in seconds
-function getCurrentTimestamp () {
-  return Date.now() / 1000
+async function getServerTimestamp (xapi, hostRef) {
+  const serverLocalTime = await xapi.call('host.get_servertime', hostRef)
+  return Math.floor(parseDateTime(serverLocalTime).getTime() / 1e3)
 }
 
 // -------------------------------------------------------------------
