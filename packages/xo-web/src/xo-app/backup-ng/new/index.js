@@ -91,12 +91,12 @@ const getNewSchedules = schedules => {
 
 const getInitialState = () => ({
   $pool: {},
-  backupMode: undefined,
+  backupMode: false,
   compression: true,
-  crMode: undefined,
-  deltaMode: undefined,
-  drMode: undefined,
-  editionMode: undefined,
+  crMode: false,
+  deltaMode: false,
+  drMode: false,
+  editionMode: false,
   formId: getRandomId(),
   name: '',
   newSchedules: {},
@@ -106,7 +106,7 @@ const getInitialState = () => ({
   schedules: [],
   settings: {},
   smartMode: false,
-  snapshotMode: undefined,
+  snapshotMode: false,
   srs: [],
   tags: {},
   tmpSchedule: {},
@@ -232,23 +232,23 @@ export default [
       },
       setSnapshotMode: () => state => ({
         ...state,
-        snapshotMode: !state.snapshotMode || undefined,
+        snapshotMode: !state.snapshotMode,
       }),
       setBackupMode: () => state => ({
         ...state,
-        backupMode: !state.backupMode || undefined,
+        backupMode: !state.backupMode,
       }),
       setDeltaMode: () => state => ({
         ...state,
-        deltaMode: !state.deltaMode || undefined,
+        deltaMode: !state.deltaMode,
       }),
       setDrMode: () => state => ({
         ...state,
-        drMode: !state.drMode || undefined,
+        drMode: !state.drMode,
       }),
       setCrMode: () => state => ({
         ...state,
-        crMode: !state.crMode || undefined,
+        crMode: !state.crMode,
       }),
       setCompression: (_, { target: { checked } }) => state => ({
         ...state,
@@ -306,15 +306,14 @@ export default [
           name: job.name,
           paramsUpdated: true,
           smartMode: job.vms.id === undefined,
-          snapshotMode:
-            some(
-              job.settings,
-              ({ snapshotRetention }) => snapshotRetention > 0
-            ) || undefined,
-          backupMode: (job.mode === 'full' && !isEmpty(remotes)) || undefined,
-          deltaMode: (job.mode === 'delta' && !isEmpty(remotes)) || undefined,
-          drMode: (job.mode === 'full' && !isEmpty(srs)) || undefined,
-          crMode: (job.mode === 'delta' && !isEmpty(srs)) || undefined,
+          snapshotMode: some(
+            job.settings,
+            ({ snapshotRetention }) => snapshotRetention > 0
+          ),
+          backupMode: job.mode === 'full' && !isEmpty(remotes),
+          deltaMode: job.mode === 'delta' && !isEmpty(remotes),
+          drMode: job.mode === 'full' && !isEmpty(srs),
+          crMode: job.mode === 'delta' && !isEmpty(srs),
           remotes,
           srs,
           settings: job.settings,
@@ -568,14 +567,14 @@ export default [
                 <CardBlock>
                   <div className='text-xs-center'>
                     <ActionButton
-                      active={state.snapshotMode}
+                      active={state.snapshotMode || undefined}
                       handler={effects.setSnapshotMode}
                       icon='rolling-snapshot'
                     >
                       {_('rollingSnapshot')}
                     </ActionButton>{' '}
                     <ActionButton
-                      active={state.backupMode}
+                      active={state.backupMode || undefined}
                       disabled={state.isDelta}
                       handler={effects.setBackupMode}
                       icon='backup'
@@ -583,7 +582,7 @@ export default [
                       {_('backup')}
                     </ActionButton>{' '}
                     <ActionButton
-                      active={state.deltaMode}
+                      active={state.deltaMode || undefined}
                       disabled={
                         state.isFull ||
                         (!state.deltaMode && process.env.XOA_PLAN < 3)
@@ -594,7 +593,7 @@ export default [
                       {_('deltaBackup')}
                     </ActionButton>{' '}
                     <ActionButton
-                      active={state.drMode}
+                      active={state.drMode || undefined}
                       disabled={
                         state.isDelta ||
                         (!state.drMode && process.env.XOA_PLAN < 3)
@@ -610,7 +609,7 @@ export default [
                       </Tooltip>
                     )}{' '}
                     <ActionButton
-                      active={state.crMode}
+                      active={state.crMode || undefined}
                       disabled={
                         state.isFull ||
                         (!state.crMode && process.env.XOA_PLAN < 4)
