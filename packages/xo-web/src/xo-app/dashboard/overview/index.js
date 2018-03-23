@@ -149,10 +149,9 @@ class DefaultCard extends Component {
 
   _canSendTheReport = createSelector(
     () => this.props.plugins,
-    plugins => {
+    (plugins = []) => {
       let count = 0
-      for (const key in plugins) {
-        const { id, loaded } = plugins[key]
+      for (const { id, loaded } of plugins) {
         if (
           (id === 'usage-report' || id === 'transport-email') &&
           loaded &&
