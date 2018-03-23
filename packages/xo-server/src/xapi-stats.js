@@ -109,7 +109,7 @@ const findMetric = (metrics, metricType) => {
 
 // -------------------------------------------------------------------
 
-// The metric's:
+// The metrics:
 //  test: can be a function, regexp or string, default to: currentKey
 //  getPath: default to: () => currentKey
 //  transformValue: default to: identity
