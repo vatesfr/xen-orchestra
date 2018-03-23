@@ -98,7 +98,7 @@ const JOB_COLUMNS = [
 
       return (
         <fieldset>
-          {!isScheduleUserMissing[id] && (
+          {isScheduleUserMissing[id] && (
             <Tooltip content={_('backupUserNotFound')}>
               <Icon className='mr-1' icon='error' />
             </Tooltip>
@@ -226,7 +226,7 @@ export default class Overview extends Component {
     (schedules, jobs, users) => {
       const isScheduleUserMissing = {}
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !!(
+        isScheduleUserMissing[schedule.id] = !(
           jobs && find(users, user => user.id === jobs[schedule.jobId].userId)
         )
       })

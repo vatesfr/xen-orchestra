@@ -69,8 +69,8 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
           <ActionButton
             btnStyle='primary'
             data-id={job.id}
-            data-schedule={schedule.id}
             data-name={job.name}
+            data-schedule={schedule.id}
             handler={_runBackupNgJob}
             icon='run-schedule'
             size='small'
