@@ -543,7 +543,7 @@ class UsageReportPlugin {
     this._dir = getDataDir
     // Defined in configure().
     this._conf = null
-    this._xo.addApiMethod('plugin.sendUsageReport', this._sendReport.bind(this, false))
+    this._xo.addApiMethod('plugin.usageReport.send', this._sendReport.bind(this, false))
   }
 
   configure (configuration, state) {

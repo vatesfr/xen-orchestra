@@ -1726,7 +1726,7 @@ export const purgePluginConfiguration = async id => {
 
 export const testPlugin = async (id, data) => _call('plugin.test', { id, data })
 
-export const sendUsageReport = () => _call('plugin.sendUsageReport')
+export const sendUsageReport = () => _call('plugin.usageReport.send')
 
 // Resource set ------------------------------------------------------
 
