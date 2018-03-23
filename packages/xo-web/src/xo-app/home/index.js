@@ -915,7 +915,6 @@ export default class Home extends Component {
           handler={this._getShortcutsHandler()}
           isolate
           name='Home'
-          stopPropagation
           targetNodeSelector='body'
         />
         <div>
