@@ -1,15 +1,7 @@
 import JSON5 from 'json5'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { BaseError } from 'make-error'
-import {
-  endsWith,
-  findKey,
-  forEach,
-  identity,
-  isFunction,
-  isString,
-  map,
-} from 'lodash'
+import { endsWith, findKey, forEach, identity, map } from 'lodash'
 
 import { parseDateTime } from './xapi'
 
@@ -74,7 +66,7 @@ const computeValues = (dataRow, legendIndex, transformValue = identity) =>
 // The targerPath can be a string or an array containing the depth
 // targetPath: [a, b, c] => a.b.c
 const getValuesFromDepth = (obj, targetPath) => {
-  if (isString(targetPath)) {
+  if (typeof targetPath === 'string') {
     return (obj[targetPath] = [])
   }
 
@@ -89,9 +81,9 @@ const getValuesFromDepth = (obj, targetPath) => {
 }
 
 const testMetric = (test, type) =>
-  isString(test)
+  typeof test === 'string'
     ? test === type
-    : isFunction(test) ? test(type) : test.exec(type)
+    : typeof test === 'function' ? test(type) : test.exec(type)
 
 const findMetric = (metrics, metricType) => {
   let testResult
