@@ -51,8 +51,8 @@ const states = {
 }
 
 const update = () => xoaUpdater.update()
-const upgrade = ({ runningJobsExists }) =>
-  runningJobsExists
+const upgrade = ({ runningJobsExist }) =>
+  runningJobsExist
     ? confirm({
       title: _('upgradeWarningTitle'),
       body: _('upgradeWarningMessage'),
@@ -167,7 +167,7 @@ export default class XoaUpdates extends Component {
     update()
   }
 
-  _isRunningJobsExists = createSelector(
+  _getRunningJobsExist = createSelector(
     () => this.props.jobs,
     () => this.props.backupNgJobs,
     (jobs, backupNgJobs) =>
@@ -229,7 +229,7 @@ export default class XoaUpdates extends Component {
                 </ActionButton>{' '}
                 <ActionButton
                   btnStyle='success'
-                  data-runningJobsExists={this._isRunningJobsExists()}
+                  data-runningJobsExist={this._getRunningJobsExist()}
                   handler={upgrade}
                   icon='upgrade'
                 >
