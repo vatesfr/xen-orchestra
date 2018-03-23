@@ -152,10 +152,11 @@ class DefaultCard extends Component {
     plugins => {
       let count = 0
       forEach(plugins, ({ id, loaded }) => {
-        if ((id === 'usage-report' || id === 'transport-email') && loaded) {
-          count++
-        }
-        if (count === 2) {
+        if (
+          (id === 'usage-report' || id === 'transport-email') &&
+          loaded &&
+          count++ === 2
+        ) {
           return false
         }
       })
