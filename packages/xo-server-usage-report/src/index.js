@@ -208,52 +208,65 @@ function getDiff (oldElements, newElements) {
 // ===================================================================
 
 async function getVmsStats ({ runningVms, xo }) {
-  return orderBy(await Promise.all(
-    map(runningVms, async vm => {
-      const vmStats = await xo.getXapiVmStats(vm, 'days')
-      return {
-        uuid: vm.uuid,
-        name: vm.name_label,
-        cpu: computeDoubleMean(vmStats.stats.cpus),
-        ram: computeMean(vmStats.stats.memoryUsed) / gibPower,
-        diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
-        diskWrite: computeDoubleMean(values(vmStats.stats.xvds.w)) / mibPower,
-        netReception: computeDoubleMean(vmStats.stats.vifs.rx) / kibPower,
-        netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower,
-      }
-    })
-  ), 'name', 'asc')
+  return orderBy(
+    await Promise.all(
+      map(runningVms, async vm => {
+        const vmStats = await xo.getXapiVmStats(vm, 'days')
+        return {
+          uuid: vm.uuid,
+          name: vm.name_label,
+          cpu: computeDoubleMean(vmStats.stats.cpus),
+          ram: computeMean(vmStats.stats.memoryUsed) / gibPower,
+          diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
+          diskWrite: computeDoubleMean(values(vmStats.stats.xvds.w)) / mibPower,
+          netReception: computeDoubleMean(vmStats.stats.vifs.rx) / kibPower,
+          netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower,
+        }
+      })
+    ),
+    'name',
+    'asc'
+  )
 }
 
 async function getHostsStats ({ runningHosts, xo }) {
-  return orderBy(await Promise.all(
-    map(runningHosts, async host => {
-      const hostStats = await xo.getXapiHostStats(host, 'days')
-      return {
-        uuid: host.uuid,
-        name: host.name_label,
-        cpu: computeDoubleMean(hostStats.stats.cpus),
-        ram: computeMean(hostStats.stats.memoryUsed) / gibPower,
-        load: computeMean(hostStats.stats.load),
-        netReception: computeDoubleMean(hostStats.stats.pifs.rx) / kibPower,
-        netTransmission: computeDoubleMean(hostStats.stats.pifs.tx) / kibPower,
-      }
-    })
-  ), 'name', 'asc')
+  return orderBy(
+    await Promise.all(
+      map(runningHosts, async host => {
+        const hostStats = await xo.getXapiHostStats(host, 'days')
+        return {
+          uuid: host.uuid,
+          name: host.name_label,
+          cpu: computeDoubleMean(hostStats.stats.cpus),
+          ram: computeMean(hostStats.stats.memoryUsed) / gibPower,
+          load: computeMean(hostStats.stats.load),
+          netReception: computeDoubleMean(hostStats.stats.pifs.rx) / kibPower,
+          netTransmission:
+            computeDoubleMean(hostStats.stats.pifs.tx) / kibPower,
+        }
+      })
+    ),
+    'name',
+    'asc'
+  )
 }
 
 function getSrsStats (xoObjects) {
-  return orderBy(map(filter(xoObjects, { type: 'SR' }), sr => {
-    const total = sr.size / gibPower
-    const used = sr.physical_usage / gibPower
-    return {
-      uuid: sr.uuid,
-      name: sr.name_label,
-      total,
-      used,
-      free: total - used,
-    }
-  }), 'total', 'desc')
+  return orderBy(
+    map(filter(xoObjects, { type: 'SR' }), sr => {
+      const total = sr.size / gibPower
+      const used = sr.physical_usage / gibPower
+      return {
+        uuid: sr.uuid,
+        name: sr.name_label,
+        total,
+        used,
+        free: total - used,
+      }
+    }),
+    'total',
+    'desc'
+  )
 }
 
 function computeGlobalVmsStats ({ haltedVms, vmsStats, xo }) {
@@ -415,20 +428,20 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
 
     const usersEvolution = getDiff(oldStats.users, newStats.users)
 
-    const newAllRessourcesStats = newStats.allResources
-    const oldAllRessourcesStats = oldStats.allResources
+    const newAllResourcesStats = newStats.allResources
+    const oldAllResourcesStats = oldStats.allResources
 
     // adding for each resource its evolution
     if (
-      newAllRessourcesStats !== undefined &&
-      oldAllRessourcesStats !== undefined
+      newAllResourcesStats !== undefined &&
+      oldAllResourcesStats !== undefined
     ) {
-      forEach(newAllRessourcesStats, (resource, key) => {
+      forEach(newAllResourcesStats, (resource, key) => {
         const option = resourcesOptions[key]
 
         if (option !== undefined) {
           forEach(resource, newItem => {
-            const oldItem = find(oldAllRessourcesStats[key], {
+            const oldItem = find(oldAllResourcesStats[key], {
               uuid: newItem.uuid,
             })
 
@@ -543,7 +556,10 @@ class UsageReportPlugin {
     this._dir = getDataDir
     // Defined in configure().
     this._conf = null
-    this._xo.addApiMethod('plugin.usageReport.send', this._sendReport.bind(this, false))
+    this._xo.addApiMethod(
+      'plugin.usageReport.send',
+      this._sendReport.bind(this, false)
+    )
   }
 
   configure (configuration, state) {
@@ -610,10 +626,11 @@ class UsageReportPlugin {
           },
         ],
       }),
-      storeData && storeStats({
-        data,
-        storedStatsPath: this._storedStatsPath,
-      }),
+      storeData &&
+        storeStats({
+          data,
+          storedStatsPath: this._storedStatsPath,
+        }),
     ])
   }
 }

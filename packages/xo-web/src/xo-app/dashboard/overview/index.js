@@ -151,17 +151,16 @@ class DefaultCard extends Component {
     () => this.props.plugins,
     plugins => {
       let count = 0
-      forEach(plugins, ({ id, loaded }) => {
+      for (const key in plugins) {
+        const { id, loaded } = plugins[key]
         if (
           (id === 'usage-report' || id === 'transport-email') &&
           loaded &&
-          count++ === 2
+          ++count === 2
         ) {
-          return false
+          return true
         }
-      })
-
-      return count === 2
+      }
     }
   )
 
@@ -437,9 +436,12 @@ class DefaultCard extends Component {
                 </ActionButton>
                 <br />
                 {!canSendTheReport && (
-                  <Link to='/settings/plugins' className='text-info'>
-                    <Icon icon='info' /> {_('dashboardSendReportInfo')} <br />
-                  </Link>
+                  <span>
+                    <Link to='/settings/plugins' className='text-info'>
+                      <Icon icon='info' /> {_('dashboardSendReportInfo')}
+                    </Link>
+                    <br />
+                  </span>
                 )}
                 {_('dashboardSendReportMessage')}
               </CardBlock>

@@ -985,7 +985,7 @@ const messages = {
   dashboardSendReportMessage:
     'This will send a usage report to your configured emails.',
   dashboardSendReportInfo:
-    'The plugins usage report and transport email needs to be loaded!',
+    'The usage report and transport email plugins need to be loaded!',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
