@@ -647,8 +647,7 @@ export default class TabDisks extends Component {
     () => this.props.vdis,
     () => this.props.vbds,
     () => this.props.vm,
-    (vdis, vbds, vm) =>
-      mapValues(vdis, vdi => find(vbds, { VDI: vdi.id, VM: vm.id }))
+    (vdis, vbds, vm) => mapValues(vdis, vdi => find(vbds, { VDI: vdi.id }))
   )
 
   individualActions = [
@@ -724,10 +723,12 @@ export default class TabDisks extends Component {
               actions={ACTIONS}
               collection={vdis}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
+              data-srs={srs}
+              data-vbdsByVdi={this._getVbdsByVdi()}
+              data-vm={vm}
               individualActions={this.individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'
-              userData={{ srs, vm, vbdsByVdi: this._getVbdsByVdi() }}
             />
           </Col>
         </Row>

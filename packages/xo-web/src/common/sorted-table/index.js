@@ -453,8 +453,6 @@ export default class SortedTable extends Component {
         rowAction,
         userData
       ) => (command, event) => {
-        if (event.target.tagName === 'INPUT') return
-
         event.preventDefault()
         const item =
           itemIndex !== undefined ? visibleItems[itemIndex] : undefined
