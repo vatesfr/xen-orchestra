@@ -29,7 +29,7 @@ export default class Shortcuts extends Component {
   }
   /* if we press unprintable keys when an input is focused,
        handler passing to ReactShortcuts fire the first.
-    https://github.com/avocode/react-shortcuts/issues/13#issuecomment-256011709
+    https://github.com/avocode/react-shortcuts/issues/13#issuecomment-255868423
   */
   render () {
     return enabled ? (
