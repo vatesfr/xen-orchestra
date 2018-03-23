@@ -161,6 +161,7 @@ export async function create (params) {
   }
 
   for (const vif of xapiVm.$VIFs) {
+    xapi.xo.addObject(vif)
     await this.allocIpAddresses(
       vif.$id,
       concat(vif.ipv4_allowed, vif.ipv6_allowed)
