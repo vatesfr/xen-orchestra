@@ -38,14 +38,19 @@ const SCHEDULES_COLUMNS = [
     sortCriteria: 'name',
   },
   {
-    itemRenderer: (schedule, userData) => {
+    itemRenderer: (schedule, { jobs, isScheduleUserMissing }) => {
       const jobId = schedule.jobId
-      const job = userData.jobs[jobId]
+      const job = jobs[jobId]
 
       return (
         job !== undefined && (
           <div>
-            <span>{`${job.name} - ${job.method} (${jobId.slice(4, 8)})`}</span>
+            <span>{`${job.name} - ${job.method} (${jobId.slice(4, 8)})`}</span>{' '}
+            {isScheduleUserMissing[schedule.id] && (
+              <Tooltip content={_('jobUserNotFound')}>
+                <Icon className='mr-1' icon='error' />
+              </Tooltip>
+            )}
             <Link
               className='btn btn-sm btn-primary ml-1'
               to={`/jobs/${job.id}/edit`}
@@ -59,8 +64,8 @@ const SCHEDULES_COLUMNS = [
       )
     },
     name: _('job'),
-    sortCriteria: (schedule, userData) => {
-      const job = userData.jobs[schedule.jobId]
+    sortCriteria: (schedule, { jobs }) => {
+      const job = jobs[schedule.jobId]
       return job !== undefined && job.name
     },
   },
@@ -82,14 +87,6 @@ const SCHEDULES_COLUMNS = [
       />
     ),
     name: _('jobState'),
-  },
-  {
-    itemRenderer: (schedule, userData) =>
-      userData.isScheduleUserMissing[schedule.id] && (
-        <Tooltip content={_('jobUserNotFound')}>
-          <Icon className='mr-1' icon='error' />
-        </Tooltip>
-      ),
   },
 ]
 
@@ -175,12 +172,10 @@ export default class Overview extends Component {
     }
   )
 
-  _getJobs = createSelector(() => this.state.jobs, jobs => jobs || {})
-
   _individualActions = [
     {
-      disabled: (schedule, userData) =>
-        userData.isScheduleUserMissing[schedule.id],
+      disabled: (schedule, { isScheduleUserMissing }) =>
+        isScheduleUserMissing[schedule.id],
       handler: schedule => runJob(schedule.jobId),
       icon: 'run-schedule',
       label: _('scheduleRun'),
@@ -211,13 +206,11 @@ export default class Overview extends Component {
               actions={ACTIONS}
               collection={schedules}
               columns={SCHEDULES_COLUMNS}
+              data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
+              data-jobs={this.state.jobs || {}}
               individualActions={this._individualActions}
               shortcutsTarget='body'
               stateUrlParam='s'
-              userData={{
-                isScheduleUserMissing: this._getIsScheduleUserMissing(),
-                jobs: this._getJobs(),
-              }}
             />
           </CardBlock>
         </Card>
