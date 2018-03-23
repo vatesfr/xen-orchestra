@@ -158,8 +158,7 @@
           <td>{{global.vms.number}}</td>
           <td>
             {{#if global.vmsEvolution.number}}
-              {{#compare global.vmsEvolution.number ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.number}}
+              {{#compare global.vmsEvolution.number ">" 0}}+{{/compare}}{{global.vmsEvolution.number}}
             {{else}}
               0
             {{/if}}
@@ -170,8 +169,7 @@
           <td>{{global.vms.cpu}} %</td> <!-- One condition doesn't work -->
           <td style='color:{{#compare global.vmsEvolution.cpu ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.vmsEvolution.cpu}}
-              {{#compare global.vmsEvolution.cpu ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.cpu}}%
+              {{#compare global.vmsEvolution.cpu ">" 0}}+{{/compare}}{{global.vmsEvolution.cpu}}%
             {{else}}
               0
             {{/if}}
@@ -182,8 +180,7 @@
           <td>{{global.vms.ram}} GiB</td>
           <td style='color:{{#compare global.vmsEvolution.ram ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.vmsEvolution.ram}}
-              {{#compare global.vmsEvolution.ram ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.ram}}%
+              {{#compare global.vmsEvolution.ram ">" 0}}+{{/compare}}{{global.vmsEvolution.ram}}%
             {{else}}
               0
             {{/if}}
@@ -194,8 +191,7 @@
           <td>{{global.vms.diskRead}} MiB</td>
           <td style='color:{{#compare global.vmsEvolution.diskRead ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.vmsEvolution.diskRead}}
-              {{#compare global.vmsEvolution.diskRead ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.diskRead}}%
+              {{#compare global.vmsEvolution.diskRead ">" 0}}+{{/compare}}{{global.vmsEvolution.diskRead}}%
             {{else}}
               0
             {{/if}}
@@ -206,8 +202,7 @@
           <td>{{global.vms.diskWrite}} MiB</td>
           <td style='color:{{#compare global.vmsEvolution.diskWrite ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.vmsEvolution.diskWrite}}
-              {{#compare global.vmsEvolution.diskWrite ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.diskWrite}}%
+              {{#compare global.vmsEvolution.diskWrite ">" 0}}+{{/compare}}{{global.vmsEvolution.diskWrite}}%
             {{else}}
               0
             {{/if}}
@@ -218,8 +213,7 @@
           <td>{{global.vms.netReception}} KiB</td>
           <td style='color:{{#compare global.vmsEvolution.netReception ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.vmsEvolution.netReception}}
-              {{#compare global.vmsEvolution.netReception ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.netReception}}%
+              {{#compare global.vmsEvolution.netReception ">" 0}}+{{/compare}}{{global.vmsEvolution.netReception}}%
             {{else}}
               0
             {{/if}}
@@ -230,8 +224,7 @@
           <td>{{global.vms.netTransmission}} KiB</td>
           <td style='color:{{#compare global.vmsEvolution.netTransmission ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.vmsEvolution.netTransmission}}
-              {{#compare global.vmsEvolution.netTransmission ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.netTransmission}}%
+              {{#compare global.vmsEvolution.netTransmission ">" 0}}+{{/compare}}{{global.vmsEvolution.netTransmission}}%
             {{else}}
               0
             {{/if}}
@@ -325,8 +318,7 @@
           <td>{{global.hosts.number}}</td>
           <td>
             {{#if global.hostsEvolution.number}}
-              {{#compare global.hostsEvolution.number ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.number}}
+              {{#compare global.hostsEvolution.number ">" 0}}+{{/compare}}{{global.hostsEvolution.number}}
             {{else}}
               0
             {{/if}}
@@ -337,8 +329,7 @@
           <td>{{global.hosts.cpu}} %</td>
           <td style='color:{{#compare global.hostsEvolution.cpu ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.hostsEvolution.cpu}}
-              {{#compare global.hostsEvolution.cpu ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.cpu}}%
+              {{#compare global.hostsEvolution.cpu ">" 0}}+{{/compare}}{{global.hostsEvolution.cpu}}%
             {{else}}
               0
             {{/if}}
@@ -349,8 +340,7 @@
           <td>{{global.hosts.ram}} GiB</td>
           <td style='color:{{#compare global.hostsEvolution.ram ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.hostsEvolution.ram}}
-              {{#compare global.hostsEvolution.ram ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.ram}}%
+              {{#compare global.hostsEvolution.ram ">" 0}}+{{/compare}}{{global.hostsEvolution.ram}}%
             {{else}}
               0
             {{/if}}
@@ -362,8 +352,7 @@
           <td>{{global.hosts.load}} </td>
           <td style='color:{{#compare global.hostsEvolution.load ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.hostsEvolution.load}}
-              {{#compare global.hostsEvolution.load ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.load}}%
+              {{#compare global.hostsEvolution.load ">" 0}}+{{/compare}}{{global.hostsEvolution.load}}%
             {{else}}
               0
             {{/if}}
@@ -374,8 +363,7 @@
           <td>{{global.hosts.netReception}} KiB</td>
           <td style='color:{{#compare global.hostsEvolution.netReception ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.hostsEvolution.netReception}}
-              {{#compare global.hostsEvolution.netReception ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.netReception}}%
+              {{#compare global.hostsEvolution.netReception ">" 0}}+{{/compare}}{{global.hostsEvolution.netReception}}%
             {{else}}
               0
             {{/if}}
@@ -386,8 +374,7 @@
           <td>{{global.hosts.netTransmission}} KiB</td>
           <td style='color:{{#compare global.hostsEvolution.netTransmission ">" 0}} red {{else}} green {{/compare}}'>
             {{#if global.hostsEvolution.netTransmission}}
-              {{#compare global.hostsEvolution.netTransmission ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.netTransmission}}%
+              {{#compare global.hostsEvolution.netTransmission ">" 0}}+{{/compare}}{{global.hostsEvolution.netTransmission}}%
             {{else}}
               0
             {{/if}}
