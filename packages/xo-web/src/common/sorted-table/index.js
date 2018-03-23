@@ -741,7 +741,6 @@ export default class SortedTable extends Component {
                 disabled={props.individualDisabled || props.disabled}
                 handler={props.individualHandler || props.handler}
                 item={props.individualHandler !== undefined ? item : [item]}
-                label={props.individualLabel || props.label}
                 key={key}
                 label={props.individualLabel || props.label}
                 userData={userData}

@@ -42,7 +42,7 @@ const JOB_KEY = 'genericTask'
 
 const COLUMNS = [
   {
-    itemRenderer: (job, isJobUserMissing) => {
+    itemRenderer: (job, { isJobUserMissing }) => {
       const { id } = job
 
       return (
@@ -336,10 +336,11 @@ export default class Jobs extends Component {
       .catch(err => error('Create Job', err.message || String(err)))
   }
 
-  _edit = job => {
+  _edit = jobOrIdJob => {
     const { jobs, actions } = this.state
-
-    if (!isObject(job)) job = find(jobs, job => job.id === job)
+    const job = isObject(jobOrIdJob)
+      ? jobOrIdJob
+      : find(jobs, { id: jobOrIdJob })
 
     if (!job) {
       error('Job edition', 'This job was not found, or may not longer exists.')
@@ -420,7 +421,7 @@ export default class Jobs extends Component {
 
   _individualActions = [
     {
-      disabled: (job, isJobUserMissing) => isJobUserMissing[job.id],
+      disabled: (job, { isJobUserMissing }) => isJobUserMissing[job.id],
       handler: runJob,
       icon: 'run-schedule',
       label: _('runJob'),
@@ -515,10 +516,10 @@ export default class Jobs extends Component {
             actions={ACTIONS}
             collection={jobs}
             columns={COLUMNS}
+            data-isJobUserMissing={this._getIsJobUserMissing()}
             individualActions={this._individualActions}
             shortcutsTarget='body'
             stateUrlParam='s'
-            userData={this._getIsJobUserMissing()}
           />
         )}
       </div>
