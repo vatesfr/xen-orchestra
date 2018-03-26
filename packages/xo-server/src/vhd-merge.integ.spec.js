@@ -114,7 +114,7 @@ test('the BAT MSB is not used for sign', async () => {
 })
 
 test('writeData on empty file', async () => {
-  const mbOfRandom = 11
+  const mbOfRandom = 3
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
@@ -129,7 +129,7 @@ test('writeData on empty file', async () => {
 })
 
 test('writeData in 2 non-overlaping operations', async () => {
-  const mbOfRandom = 11
+  const mbOfRandom = 3
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
@@ -138,7 +138,7 @@ test('writeData in 2 non-overlaping operations', async () => {
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockTable()
-  const splitPointSectors = 4
+  const splitPointSectors = 2
   await newVhd.writeData(0, randomData.slice(0, splitPointSectors * 512))
   await newVhd.writeData(
     splitPointSectors,
@@ -149,7 +149,7 @@ test('writeData in 2 non-overlaping operations', async () => {
 })
 
 test('writeData in 2 overlaping operations', async () => {
-  const mbOfRandom = 11
+  const mbOfRandom = 3
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
@@ -158,8 +158,8 @@ test('writeData in 2 overlaping operations', async () => {
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockTable()
-  const endFirstWrite = 5
-  const startSecondWrite = 3
+  const endFirstWrite = 3
+  const startSecondWrite = 2
   await newVhd.writeData(0, randomData.slice(0, endFirstWrite * 512))
   await newVhd.writeData(
     startSecondWrite,
@@ -186,7 +186,7 @@ test('BAT can be extended and blocks moved', async () => {
 })
 
 test('coalesce works with empty parent files', async () => {
-  const mbOfRandom = 12
+  const mbOfRandom = 2
   await createRandomFile('randomfile', mbOfRandom)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
   await execa('qemu-img', [
