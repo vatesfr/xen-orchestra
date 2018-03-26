@@ -14,7 +14,6 @@ import Pagination from 'pagination'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
 import Shortcuts from 'shortcuts'
-import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
@@ -782,9 +781,28 @@ export default class Home extends Component {
   // Header --------------------------------------------------------------------
 
   _renderHeader () {
-    const { isAdmin, noResourceSets, type } = this.props
-    const { filters } = OPTIONS[type]
     const customFilters = this._getCustomFilters()
+    const filteredItems = this._getFilteredItems()
+    const nItems = this._getNumberOfItems()
+    const { isAdmin, items, noResourceSets, type } = this.props
+
+    const {
+      selectedHosts,
+      selectedPools,
+      selectedResourceSets,
+      selectedTags,
+      sortBy,
+    } = this.state
+
+    const options = OPTIONS[type]
+    const {
+      filters,
+      mainActions,
+      otherActions,
+      showHostsSelector,
+      showPoolsSelector,
+      showResourceSetsSelector,
+    } = options
 
     return (
       <Container>
@@ -862,6 +880,190 @@ export default class Home extends Component {
             </Col>
           )}
         </Row>
+        <Row className={`${styles.itemRowHeader} mt-1`}>
+          <Col smallsize={11} mediumSize={3}>
+            <input
+              checked={this._getIsAllSelected()}
+              onChange={this._toggleMaster}
+              ref='masterCheckbox'
+              type='checkbox'
+            />{' '}
+            <span className='text-muted'>
+              {this._getNumberOfSelectedItems()
+                ? _('homeSelectedItems', {
+                  icon: <Icon icon={type.toLowerCase()} />,
+                  selected: this._getNumberOfSelectedItems(),
+                  total: nItems,
+                })
+                : _('homeDisplayedItems', {
+                  displayed: filteredItems.length,
+                  icon: <Icon icon={type.toLowerCase()} />,
+                  total: nItems,
+                })}
+            </span>
+          </Col>
+          <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
+            {this._getNumberOfSelectedItems() ? (
+              <div>
+                {mainActions && (
+                  <div className='btn-group'>
+                    {map(mainActions, (action, key) => (
+                      <Tooltip content={action.tooltip} key={key}>
+                        <ActionButton
+                          {...action}
+                          handlerParam={this._getSelectedItemsIds()}
+                        />
+                      </Tooltip>
+                    ))}
+                  </div>
+                )}
+                {otherActions && (
+                  <DropdownButton
+                    bsStyle='secondary'
+                    id='advanced'
+                    title={_('homeMore')}
+                  >
+                    {map(otherActions, (action, key) => (
+                      <MenuItem
+                        key={key}
+                        onClick={() => {
+                          action.handler(
+                            this._getSelectedItemsIds(),
+                            action.params
+                          )
+                        }}
+                      >
+                        <Icon icon={action.icon} fixedWidth />{' '}
+                        {_(action.labelId)}
+                      </MenuItem>
+                    ))}
+                  </DropdownButton>
+                )}
+              </div>
+            ) : (
+              <div>
+                {showPoolsSelector && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='poolPopover'>
+                        <SelectPool
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedPools}
+                          value={selectedPools}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button btnStyle='link'>
+                      <Icon icon='pool' /> {_('homeAllPools')}
+                    </Button>
+                  </OverlayTrigger>
+                )}
+                {showHostsSelector && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='HostPopover'>
+                        <SelectHost
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedHosts}
+                          value={selectedHosts}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button btnStyle='link'>
+                      <Icon icon='host' /> {_('homeAllHosts')}
+                    </Button>
+                  </OverlayTrigger>
+                )}
+                <OverlayTrigger
+                  autoFocus
+                  trigger='click'
+                  rootClose
+                  placement='bottom'
+                  overlay={
+                    <Popover className={styles.selectObject} id='tagPopover'>
+                      <SelectTag
+                        autoFocus
+                        multi
+                        objects={items}
+                        onChange={this._updateSelectedTags}
+                        value={selectedTags}
+                      />
+                    </Popover>
+                  }
+                >
+                  <Button btnStyle='link'>
+                    <Icon icon='tags' /> {_('homeAllTags')}
+                  </Button>
+                </OverlayTrigger>
+                {showResourceSetsSelector &&
+                  isAdmin &&
+                  !noResourceSets && (
+                    <OverlayTrigger
+                      trigger='click'
+                      rootClose
+                      placement='bottom'
+                      overlay={
+                        <Popover
+                          className={styles.selectObject}
+                          id='resourceSetPopover'
+                        >
+                          <SelectResourceSet
+                            autoFocus
+                            multi
+                            onChange={this._updateSelectedResourceSets}
+                            value={selectedResourceSets}
+                          />
+                        </Popover>
+                      }
+                    >
+                      <Button btnStyle='link'>
+                        <Icon icon='resource-set' /> {_('homeAllResourceSets')}
+                      </Button>
+                    </OverlayTrigger>
+                  )}
+                <DropdownButton
+                  bsStyle='link'
+                  id='sort'
+                  title={_('homeSortBy')}
+                >
+                  {map(
+                    options.sortOptions,
+                    ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
+                      <MenuItem
+                        key={key}
+                        data-sort-by={_sortBy}
+                        data-sort-order={sortOrder}
+                        onClick={this._setSort}
+                      >
+                        {this._tick(_sortBy === sortBy)}
+                        {_sortBy === sortBy ? (
+                          <strong>{_(labelId)}</strong>
+                        ) : (
+                          _(labelId)
+                        )}
+                      </MenuItem>
+                    )
+                  )}
+                </DropdownButton>
+              </div>
+            )}
+          </Col>
+          <Col smallsize={1} mediumSize={1} className='text-xs-right'>
+            <Button onClick={this._expandAll}>
+              <Icon icon='nav' />
+            </Button>
+          </Col>
+        </Row>
       </Container>
     )
   }
@@ -879,29 +1081,8 @@ export default class Home extends Component {
 
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
-
-    const {
-      activePage,
-      expandAll,
-      highlighted,
-      selectedHosts,
-      selectedItems,
-      selectedPools,
-      selectedResourceSets,
-      selectedTags,
-      sortBy,
-    } = this.state
-    const { items, type } = this.props
-
-    const options = OPTIONS[type]
-    const {
-      Item,
-      mainActions,
-      otherActions,
-      showHostsSelector,
-      showPoolsSelector,
-      showResourceSetsSelector,
-    } = options
+    const { Item } = OPTIONS[this.props.type]
+    const { activePage, expandAll, highlighted, selectedItems } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
     if (this.refs.masterCheckbox) {
@@ -919,200 +1100,6 @@ export default class Home extends Component {
         />
         <div>
           <div className={styles.itemContainer}>
-            <SingleLineRow className={styles.itemContainerHeader}>
-              <Col smallsize={11} mediumSize={3}>
-                <input
-                  checked={this._getIsAllSelected()}
-                  onChange={this._toggleMaster}
-                  ref='masterCheckbox'
-                  type='checkbox'
-                />{' '}
-                <span className='text-muted'>
-                  {this._getNumberOfSelectedItems()
-                    ? _('homeSelectedItems', {
-                      icon: <Icon icon={type.toLowerCase()} />,
-                      selected: this._getNumberOfSelectedItems(),
-                      total: nItems,
-                    })
-                    : _('homeDisplayedItems', {
-                      displayed: filteredItems.length,
-                      icon: <Icon icon={type.toLowerCase()} />,
-                      total: nItems,
-                    })}
-                </span>
-              </Col>
-              <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
-                {this._getNumberOfSelectedItems() ? (
-                  <div>
-                    {mainActions && (
-                      <div className='btn-group'>
-                        {map(mainActions, (action, key) => (
-                          <Tooltip content={action.tooltip} key={key}>
-                            <ActionButton
-                              {...action}
-                              handlerParam={this._getSelectedItemsIds()}
-                            />
-                          </Tooltip>
-                        ))}
-                      </div>
-                    )}
-                    {otherActions && (
-                      <DropdownButton
-                        bsStyle='secondary'
-                        id='advanced'
-                        title={_('homeMore')}
-                      >
-                        {map(otherActions, (action, key) => (
-                          <MenuItem
-                            key={key}
-                            onClick={() => {
-                              action.handler(
-                                this._getSelectedItemsIds(),
-                                action.params
-                              )
-                            }}
-                          >
-                            <Icon icon={action.icon} fixedWidth />{' '}
-                            {_(action.labelId)}
-                          </MenuItem>
-                        ))}
-                      </DropdownButton>
-                    )}
-                  </div>
-                ) : (
-                  <div>
-                    {showPoolsSelector && (
-                      <OverlayTrigger
-                        trigger='click'
-                        rootClose
-                        placement='bottom'
-                        overlay={
-                          <Popover
-                            className={styles.selectObject}
-                            id='poolPopover'
-                          >
-                            <SelectPool
-                              autoFocus
-                              multi
-                              onChange={this._updateSelectedPools}
-                              value={selectedPools}
-                            />
-                          </Popover>
-                        }
-                      >
-                        <Button btnStyle='link'>
-                          <Icon icon='pool' /> {_('homeAllPools')}
-                        </Button>
-                      </OverlayTrigger>
-                    )}
-                    {showHostsSelector && (
-                      <OverlayTrigger
-                        trigger='click'
-                        rootClose
-                        placement='bottom'
-                        overlay={
-                          <Popover
-                            className={styles.selectObject}
-                            id='HostPopover'
-                          >
-                            <SelectHost
-                              autoFocus
-                              multi
-                              onChange={this._updateSelectedHosts}
-                              value={selectedHosts}
-                            />
-                          </Popover>
-                        }
-                      >
-                        <Button btnStyle='link'>
-                          <Icon icon='host' /> {_('homeAllHosts')}
-                        </Button>
-                      </OverlayTrigger>
-                    )}
-                    <OverlayTrigger
-                      autoFocus
-                      trigger='click'
-                      rootClose
-                      placement='bottom'
-                      overlay={
-                        <Popover
-                          className={styles.selectObject}
-                          id='tagPopover'
-                        >
-                          <SelectTag
-                            autoFocus
-                            multi
-                            objects={items}
-                            onChange={this._updateSelectedTags}
-                            value={selectedTags}
-                          />
-                        </Popover>
-                      }
-                    >
-                      <Button btnStyle='link'>
-                        <Icon icon='tags' /> {_('homeAllTags')}
-                      </Button>
-                    </OverlayTrigger>
-                    {showResourceSetsSelector &&
-                      isAdmin &&
-                      !noResourceSets && (
-                        <OverlayTrigger
-                          trigger='click'
-                          rootClose
-                          placement='bottom'
-                          overlay={
-                            <Popover
-                              className={styles.selectObject}
-                              id='resourceSetPopover'
-                            >
-                              <SelectResourceSet
-                                autoFocus
-                                multi
-                                onChange={this._updateSelectedResourceSets}
-                                value={selectedResourceSets}
-                              />
-                            </Popover>
-                          }
-                        >
-                          <Button btnStyle='link'>
-                            <Icon icon='resource-set' />{' '}
-                            {_('homeAllResourceSets')}
-                          </Button>
-                        </OverlayTrigger>
-                      )}
-                    <DropdownButton
-                      bsStyle='link'
-                      id='sort'
-                      title={_('homeSortBy')}
-                    >
-                      {map(
-                        options.sortOptions,
-                        ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
-                          <MenuItem
-                            key={key}
-                            data-sort-by={_sortBy}
-                            data-sort-order={sortOrder}
-                            onClick={this._setSort}
-                          >
-                            {this._tick(_sortBy === sortBy)}
-                            {_sortBy === sortBy ? (
-                              <strong>{_(labelId)}</strong>
-                            ) : (
-                              _(labelId)
-                            )}
-                          </MenuItem>
-                        )
-                      )}
-                    </DropdownButton>
-                  </div>
-                )}
-              </Col>
-              <Col smallsize={1} mediumSize={1} className='text-xs-right'>
-                <Button onClick={this._expandAll}>
-                  <Icon icon='nav' />
-                </Button>
-              </Col>
-            </SingleLineRow>
             {isEmpty(filteredItems) ? (
               <p className='text-xs-center mt-1'>
                 <a className='btn btn-link' onClick={this._clearFilter}>
