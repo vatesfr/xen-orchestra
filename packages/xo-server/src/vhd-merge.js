@@ -28,7 +28,7 @@ const debug = VHD_UTIL_DEBUG ? str => console.log(`[vhd-merge]${str}`) : noop
 // Sizes in bytes.
 const VHD_FOOTER_SIZE = 512
 const VHD_HEADER_SIZE = 1024
-const VHD_SECTOR_SIZE = 512
+export const VHD_SECTOR_SIZE = 512
 
 // Block allocation table entry size. (Block addr)
 const VHD_ENTRY_SIZE = 4
@@ -423,12 +423,18 @@ export class Vhd {
       const batSize = sectorsToBytes(
         sectorsRoundUpNoZero(this.header.maxTableEntries * VHD_ENTRY_SIZE)
       )
+      const newMinSector = Math.ceil(
+        (tableOffset + batSize + spaceNeededBytes) / VHD_SECTOR_SIZE
+      )
       if (
         tableOffset + batSize + spaceNeededBytes >=
         sectorsToBytes(firstSector)
       ) {
         const { fullBlockSize } = this
-        const newFirstSector = lastSector + fullBlockSize / VHD_SECTOR_SIZE
+        const newFirstSector = Math.max(
+          lastSector + fullBlockSize / VHD_SECTOR_SIZE,
+          newMinSector
+        )
         debug(
           `freeFirstBlockSpace: move first block ${firstSector} -> ${newFirstSector}`
         )
