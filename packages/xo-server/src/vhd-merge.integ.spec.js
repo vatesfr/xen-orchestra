@@ -4,9 +4,15 @@ import execa from 'execa'
 import fs from 'fs-extra'
 import rimraf from 'rimraf'
 import { randomBytes } from 'crypto'
+import { fromEvent } from 'promise-toolbox'
 
 import LocalHandler from './remote-handlers/local'
-import vhdMerge, { chainVhd, Vhd, VHD_SECTOR_SIZE } from './vhd-merge'
+import vhdMerge, {
+  chainVhd,
+  createReadStream,
+  Vhd,
+  VHD_SECTOR_SIZE,
+} from './vhd-merge'
 import { pFromCallback, streamToBuffer, tmpDir } from './utils'
 
 const initialDir = process.cwd()
@@ -262,4 +268,17 @@ test('coalesce works in normal cases', async () => {
   expect(await fs.readFile('recovered_from_coalescing')).toEqual(
     await fs.readFile('randomfile2')
   )
+})
+
+test('createReadStream passes vhd-util check', async () => {
+  const initalSize = 4
+  await createRandomFile('randomfile', initalSize)
+  await convertFromRawToVhd('randomfile', 'randomfile.vhd')
+  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const stream = createReadStream(handler, 'randomfile.vhd')
+  await fromEvent(
+    stream.pipe(await fs.createWriteStream('recovered.vhd')),
+    'finish'
+  )
+  await checkFile('recovered.vhd')
 })

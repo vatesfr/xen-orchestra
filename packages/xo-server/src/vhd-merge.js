@@ -879,10 +879,7 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
     // TODO: empty parentUuid and parentLocatorEntry-s in header
     let header = {
       ...vhd.header,
-      tableOffset: {
-        high: 0,
-        low: 512 + 1024,
-      },
+      tableOffset: 512 + 1024,
       parentUnicodeName: '',
     }
 
