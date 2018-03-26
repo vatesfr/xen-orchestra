@@ -40,7 +40,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "prepare": "yarn run build"
   },
   "babel": {
     "plugins": [

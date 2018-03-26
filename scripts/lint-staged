@@ -10,7 +10,7 @@ const formatFiles = files => {
 const testFiles = files =>
   run(
     './node_modules/.bin/jest',
-    ['--findRelatedTests', '--passWithNoTests'].concat(files)
+    ['--testRegex=^(?!.*.integ.spec.js$).*.spec.js$', '--findRelatedTests', '--passWithNoTests'].concat(files)
   )
 
 // -----------------------------------------------------------------------------
@@ -70,6 +70,7 @@ if (unstaged.length !== 0) {
   }
 }
 
+console.log('RUNNING', files)
 testFiles(files)
 
 run('git', ['add'].concat(files))
