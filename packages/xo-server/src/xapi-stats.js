@@ -1,7 +1,7 @@
 import JSON5 from 'json5'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { BaseError } from 'make-error'
-import { endsWith, findKey, forEach, identity, map } from 'lodash'
+import { endsWith, findKey, forEach, get, identity, map } from 'lodash'
 
 import { parseDateTime } from './xapi'
 
@@ -182,8 +182,7 @@ const STATS = {
 
 export default class XapiStats {
   constructor () {
-    this._vms = {}
-    this._hosts = {}
+    this._statsByObject = {}
   }
 
   // Execute one http request on a XenServer for get stats
@@ -206,12 +205,14 @@ export default class XapiStats {
   async _getTimestamp (xapi, host, step) {
     const serverTimeStamp = await getServerTimestamp(xapi, host.$ref)
     const maxDuration = step * RRD_POINTS_PER_STEP[step]
-    const lastTimestamp =
-      this._hosts[host.address][step] !== undefined &&
-      this._hosts[host.address][step].endTimestamp
+    const lastTimestamp = get(this._statsByObject, [
+      host.uuid,
+      step,
+      'endTimestamp',
+    ])
 
     if (
-      !lastTimestamp ||
+      lastTimestamp === undefined ||
       serverTimeStamp - lastTimestamp + step > maxDuration
     ) {
       return serverTimeStamp - maxDuration + step
@@ -219,11 +220,11 @@ export default class XapiStats {
     return lastTimestamp
   }
 
-  _getStats (hostname, step, vmId) {
-    const hostStats = this._hosts[hostname][step]
+  _getStats (hostUUID, step, vmUUID) {
+    const hostStats = this._statsByObject[hostUUID][step]
 
     // Return host stats
-    if (vmId === undefined) {
+    if (vmUUID === undefined) {
       return {
         interval: step,
         ...hostStats,
@@ -234,7 +235,7 @@ export default class XapiStats {
     return {
       interval: step,
       endTimestamp: hostStats.endTimestamp,
-      stats: this._vms[hostname][step][vmId],
+      ...this._statsByObject[vmUUID][step],
     }
   }
 
@@ -249,7 +250,7 @@ export default class XapiStats {
     )
   }
 
-  async _getAndUpdateStats (xapi, { host, vmId, granularity }) {
+  async _getAndUpdateStats (xapi, { host, vmUUID, granularity }) {
     const step =
       granularity === undefined
         ? RRD_STEP_SECONDS
@@ -262,18 +263,13 @@ export default class XapiStats {
     }
 
     // Limit the number of http requests
-    const hostname = host.address
-
-    if (this._hosts[hostname] === undefined) {
-      this._hosts[hostname] = {}
-      this._vms[hostname] = {}
-    }
+    const hostUUID = host.uuid
 
     if (
-      this._hosts[hostname][step] !== undefined &&
-      this._hosts[hostname][step].localTimestamp + step > getCurrentTimestamp()
+      get(this._statsByObject, [hostUUID, step, 'localTimestamp']) + step >
+      getCurrentTimestamp()
     ) {
-      return this._getStats(hostname, step, vmId)
+      return this._getStats(hostUUID, step, vmUUID)
     }
 
     const timestamp = await this._getTimestamp(xapi, host, step)
@@ -286,15 +282,15 @@ export default class XapiStats {
 
     // It exists data
     if (json.data.length !== 0) {
-      const host =
-        this._hosts[hostname][step] || (this._hosts[hostname][step] = {})
-      const vms = this._vms[hostname][step] || (this._vms[hostname][step] = {})
-
       // Warning: Sometimes, the json.xport.meta.start value does not match with the
       // timestamp of the oldest data value
       // So, we use the timestamp of the oldest data value !
       const startTimestamp = json.data[json.meta.rows - 1].t
-      const endTimestamp = this._hosts[hostname][step].endTimestamp
+      const endTimestamp = get(this._statsByObject, [
+        hostUUID,
+        step,
+        'endTimestamp',
+      ])
 
       const statsOffset = endTimestamp - startTimestamp + step
       if (endTimestamp !== undefined && statsOffset > 0) {
@@ -324,17 +320,17 @@ export default class XapiStats {
             return
           }
 
-          const collection =
-            type === 'vm'
-              ? vms[uuid] || (vms[uuid] = {})
-              : host.stats || (host.stats = {})
-
-          const metricValues = getValuesFromDepth(
-            collection,
+          const path =
             metric.getPath !== undefined
               ? metric.getPath(testResult)
-              : findKey(metrics, metric)
-          )
+              : [findKey(metrics, metric)]
+
+          const metricValues = getValuesFromDepth(this._statsByObject, [
+            uuid,
+            step,
+            'stats',
+            ...path,
+          ])
 
           metricValues.push(
             ...computeValues(json.data, index, metric.transformValue)
@@ -347,15 +343,19 @@ export default class XapiStats {
           )
         })
 
-        this._parseMemory(this._hosts[hostname][step].stats)
-        forEach(this._vms[hostname][step], this._parseMemory)
+        forEach(this._statsByObject, obj => {
+          if (obj[step] !== undefined) {
+            this._parseMemory(obj[step].stats)
+          }
+        })
       }
     }
 
     // Update timestamp
-    this._hosts[hostname][step].endTimestamp = json.meta.end
-    this._hosts[hostname][step].localTimestamp = getCurrentTimestamp()
-    return this._getStats(hostname, step, vmId)
+    const hostStats = this._statsByObject[hostUUID][step]
+    hostStats.endTimestamp = json.meta.end
+    hostStats.localTimestamp = getCurrentTimestamp()
+    return this._getStats(hostUUID, step, vmUUID)
   }
 
   getHostStats (xapi, hostId, granularity) {
@@ -374,7 +374,7 @@ export default class XapiStats {
 
     return this._getAndUpdateStats(xapi, {
       host,
-      vmId: vm.uuid,
+      vmUUID: vm.uuid,
       granularity,
     })
   }
