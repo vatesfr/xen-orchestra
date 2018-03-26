@@ -134,7 +134,14 @@ Handlebars.registerHelper(
 
 Handlebars.registerHelper(
   'normaliseEvolution',
-  value => (isFinite(+value) ? `(${value > 0 ? '+' : ''}${value} %)` : '')
+  value =>
+    new Handlebars.SafeString(
+      isFinite(+value) && +value !== 0
+        ? value > 0
+          ? `(<b style="color: green;">${'▲'} ${value}</b>)`
+          : `(<b style="color: red;">${'▼'} ${String(value).slice(1)}</b>)`
+        : ''
+    )
 )
 
 // ===================================================================

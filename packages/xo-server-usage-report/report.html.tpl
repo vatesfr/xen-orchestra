@@ -155,79 +155,34 @@
         </tr>
         <tr>
           <td>Number:</td>
-          <td>{{global.vms.number}}</td>
-          <td>
-            {{#if global.vmsEvolution.number}}
-              {{#compare global.vmsEvolution.number ">" 0}}+{{/compare}}{{global.vmsEvolution.number}}
-            {{else}}
-              0
-            {{/if}}
-          </td>
+          <td>{{global.vms.number}} {{normaliseEvolution global.vmsEvolution.number}}</td>
         </tr>
         <tr>
           <td>CPU:</td>
-          <td>{{global.vms.cpu}} %</td> <!-- One condition doesn't work -->
-          <td style='color:{{#compare global.vmsEvolution.cpu ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.cpu}}
-              {{#compare global.vmsEvolution.cpu ">" 0}}+{{/compare}}{{global.vmsEvolution.cpu}}%
-            {{else}}
-              0
-            {{/if}}
-          </td>
+          <td>{{global.vms.cpu}} % {{normaliseEvolution global.vmsEvolution.cpu}}</td>
         <tr>
         <tr>
           <td>RAM:</td>
-          <td>{{global.vms.ram}} GiB</td>
-          <td style='color:{{#compare global.vmsEvolution.ram ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.ram}}
-              {{#compare global.vmsEvolution.ram ">" 0}}+{{/compare}}{{global.vmsEvolution.ram}}%
-            {{else}}
-              0
-            {{/if}}
-          </td>
+          <td>{{global.vms.ram}} GiB {{normaliseEvolution global.vmsEvolution.ram}}</td>
         <tr>
         <tr>
           <td>Disk read:</td>
-          <td>{{global.vms.diskRead}} MiB</td>
-          <td style='color:{{#compare global.vmsEvolution.diskRead ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.diskRead}}
-              {{#compare global.vmsEvolution.diskRead ">" 0}}+{{/compare}}{{global.vmsEvolution.diskRead}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.vms.diskRead}} MiB {{normaliseEvolution global.vmsEvolution.diskRead}}
           </td>
         <tr>
         <tr>
           <td>Disk write:</td>
-          <td>{{global.vms.diskWrite}} MiB</td>
-          <td style='color:{{#compare global.vmsEvolution.diskWrite ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.diskWrite}}
-              {{#compare global.vmsEvolution.diskWrite ">" 0}}+{{/compare}}{{global.vmsEvolution.diskWrite}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.vms.diskWrite}} MiB {{normaliseEvolution global.vmsEvolution.diskWrite}}
           </td>
         <tr>
         <tr>
           <td>Network RX:</td>
-          <td>{{global.vms.netReception}} KiB</td>
-          <td style='color:{{#compare global.vmsEvolution.netReception ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.netReception}}
-              {{#compare global.vmsEvolution.netReception ">" 0}}+{{/compare}}{{global.vmsEvolution.netReception}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.vms.netReception}} KiB {{normaliseEvolution global.vmsEvolution.netReception}}
           </td>
         <tr>
         <tr>
           <td>Network TX:</td>
-          <td>{{global.vms.netTransmission}} KiB</td>
-          <td style='color:{{#compare global.vmsEvolution.netTransmission ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.netTransmission}}
-              {{#compare global.vmsEvolution.netTransmission ">" 0}}+{{/compare}}{{global.vmsEvolution.netTransmission}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.vms.netTransmission}} KiB {{normaliseEvolution global.vmsEvolution.netTransmission}}
           </td>
         <tr>
       </table>
@@ -315,69 +270,33 @@
         </tr>
         <tr>
           <td>Number:</td>
-          <td>{{global.hosts.number}}</td>
-          <td>
-            {{#if global.hostsEvolution.number}}
-              {{#compare global.hostsEvolution.number ">" 0}}+{{/compare}}{{global.hostsEvolution.number}}
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.number}} {{normaliseEvolution global.hostsEvolution.number}}
           </td>
         </tr>
         <tr>
           <td>CPU:</td>
-          <td>{{global.hosts.cpu}} %</td>
-          <td style='color:{{#compare global.hostsEvolution.cpu ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.cpu}}
-              {{#compare global.hostsEvolution.cpu ">" 0}}+{{/compare}}{{global.hostsEvolution.cpu}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.cpu}} % {{normaliseEvolution global.hostsEvolution.cpu}}
           </td>
         <tr>
         <tr>
           <td>RAM:</td>
-          <td>{{global.hosts.ram}} GiB</td>
-          <td style='color:{{#compare global.hostsEvolution.ram ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.ram}}
-              {{#compare global.hostsEvolution.ram ">" 0}}+{{/compare}}{{global.hostsEvolution.ram}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.ram}} GiB {{normaliseEvolution global.hostsEvolution.ram}}
           </td>
           </td>
         <tr>
         <tr>
           <td>Load average:</td>
-          <td>{{global.hosts.load}} </td>
-          <td style='color:{{#compare global.hostsEvolution.load ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.load}}
-              {{#compare global.hostsEvolution.load ">" 0}}+{{/compare}}{{global.hostsEvolution.load}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.load}}  {{normaliseEvolution global.hostsEvolution.load}}
           </td>
         <tr>
         <tr>
           <td>Network RX:</td>
-          <td>{{global.hosts.netReception}} KiB</td>
-          <td style='color:{{#compare global.hostsEvolution.netReception ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.netReception}}
-              {{#compare global.hostsEvolution.netReception ">" 0}}+{{/compare}}{{global.hostsEvolution.netReception}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.netReception}} KiB {{normaliseEvolution global.hostsEvolution.netReception}}
           </td>
         <tr>
         <tr>
           <td>Network TX:</td>
-          <td>{{global.hosts.netTransmission}} KiB</td>
-          <td style='color:{{#compare global.hostsEvolution.netTransmission ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.netTransmission}}
-              {{#compare global.hostsEvolution.netTransmission ">" 0}}+{{/compare}}{{global.hostsEvolution.netTransmission}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.netTransmission}} KiB {{normaliseEvolution global.hostsEvolution.netTransmission}}
           </td>
         <tr>
       </table>
