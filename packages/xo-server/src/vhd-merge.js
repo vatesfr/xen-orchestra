@@ -549,21 +549,14 @@ export class Vhd {
     await this._write(block.buffer, sectorsToBytes(blockAddr))
   }
 
-  async writeBlockSectors (
-    block,
-    beginSectorId,
-    endSectorId,
-    parentBitmap = null
-  ) {
+  async writeBlockSectors (block, beginSectorId, endSectorId, parentBitmap) {
     let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
       blockAddr = await this.createBlock(block.id)
       parentBitmap = Buffer.alloc(this.bitmapSize, 0)
-    } else {
-      if (parentBitmap === null) {
-        parentBitmap = (await this._readBlock(block.id, true)).bitmap
-      }
+    } else if (parentBitmap === undefined) {
+      parentBitmap = (await this._readBlock(block.id, true)).bitmap
     }
 
     const offset = blockAddr + this.sectorsOfBitmap + beginSectorId
@@ -814,7 +807,8 @@ export async function chainVhd (
   parentHandler,
   parentPath,
   childHandler,
-  childPath
+  childPath,
+  force = false
 ) {
   const parentVhd = new Vhd(parentHandler, parentPath)
   const childVhd = new Vhd(childHandler, childPath)
@@ -827,7 +821,12 @@ export async function chainVhd (
 
   const parentName = relative(dirname(childPath), parentPath)
   const parentUuid = parentVhd.footer.uuid
-  footer.diskType = HARD_DISK_TYPE_DIFFERENCING
+  if (footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
+    if (!force) {
+      throw new Error('cannot chain disk of type ' + footer.diskType)
+    }
+    footer.diskType = HARD_DISK_TYPE_DIFFERENCING
+  }
   header.parentUuid = parentUuid
   header.parentUnicodeName = parentName
 

@@ -47,6 +47,23 @@ async function convertFromRawToVhd (rawName, vhdName) {
   await execa('qemu-img', ['convert', '-f', 'raw', '-Ovpc', rawName, vhdName])
 }
 
+test('blocks can be moved', async () => {
+  expect.assertions(1)
+  const initalSize = 4
+  await createRandomFile('randomfile', initalSize)
+  await convertFromRawToVhd('randomfile', 'randomfile.vhd')
+  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const originalSize = await handler.getSize('randomfile')
+  const newVhd = new Vhd(handler, 'randomfile.vhd')
+  await newVhd.readHeaderAndFooter()
+  await newVhd.readBlockTable()
+  await newVhd._freeFirstBlockSpace(8000000)
+  await recoverRawContent('randomfile.vhd', 'recovered', originalSize)
+  expect(await fs.readFile('recovered')).toEqual(
+    await fs.readFile('randomfile')
+  )
+})
+
 test('the BAT MSB is not used for sign', async () => {
   expect.assertions(1)
   const randomBuffer = await pFromCallback(cb =>
@@ -168,7 +185,6 @@ test('BAT can be extended and blocks moved', async () => {
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockTable()
   await newVhd.ensureBatSize(2000)
-  await newVhd._freeFirstBlockSpace(8000000)
   await recoverRawContent('randomfile.vhd', 'recovered', originalSize)
   expect(await fs.readFile('recovered')).toEqual(
     await fs.readFile('randomfile')
@@ -190,7 +206,7 @@ test('coalesce works with empty parent files', async () => {
   await checkFile('empty.vhd')
   const handler = new LocalHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler._getSize('randomfile')
-  await chainVhd(handler, 'empty.vhd', handler, 'randomfile.vhd')
+  await chainVhd(handler, 'empty.vhd', handler, 'randomfile.vhd', true)
   await checkFile('randomfile.vhd')
   await checkFile('empty.vhd')
   await vhdMerge(handler, 'empty.vhd', handler, 'randomfile.vhd')
@@ -221,9 +237,9 @@ test('coalesce works in normal cases', async () => {
   await vhd.writeFooter()
 
   const originalSize = await handler._getSize('randomfile')
-  await chainVhd(handler, 'parent.vhd', handler, 'child1.vhd')
+  await chainVhd(handler, 'parent.vhd', handler, 'child1.vhd', true)
   await execa('vhd-util', ['check', '-t', '-n', 'child1.vhd'])
-  await chainVhd(handler, 'child1.vhd', handler, 'child2.vhd')
+  await chainVhd(handler, 'child1.vhd', handler, 'child2.vhd', true)
   await execa('vhd-util', ['check', '-t', '-n', 'child2.vhd'])
   const smallRandom = await fs.readFile('small_randomfile')
   const newVhd = new Vhd(handler, 'child2.vhd')
@@ -235,7 +251,7 @@ test('coalesce works in normal cases', async () => {
   await checkFile('parent.vhd')
   await vhdMerge(handler, 'parent.vhd', handler, 'child1.vhd')
   await checkFile('parent.vhd')
-  await chainVhd(handler, 'parent.vhd', handler, 'child2.vhd')
+  await chainVhd(handler, 'parent.vhd', handler, 'child2.vhd', true)
   await checkFile('child2.vhd')
   await vhdMerge(handler, 'parent.vhd', handler, 'child2.vhd')
   await checkFile('parent.vhd')
