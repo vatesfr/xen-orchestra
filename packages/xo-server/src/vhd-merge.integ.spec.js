@@ -3,14 +3,15 @@
 import execa from 'execa'
 import fs from 'fs-extra'
 import path from 'path'
+import { randomBytes } from 'crypto'
 import rimraf from 'rimraf'
 import LocalHandler from './remote-handlers/local.js'
-import { tmpDir, pFromCallback } from './utils'
-import vhdMerge, { chainVhd, Vhd } from './vhd-merge'
+import { tmpDir, pFromCallback, streamToBuffer } from './utils'
+import vhdMerge, { chainVhd, Vhd, VHD_SECTOR_SIZE } from './vhd-merge'
 
 const initialDir = process.cwd()
 
-jest.setTimeout(10000)
+jest.setTimeout(1000000)
 
 beforeEach(async () => {
   const dir = await tmpDir()
@@ -23,10 +24,10 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tmpDir, cb))
 })
 
-async function createRandomFile (name, sizeMo) {
+async function createRandomFile (name, sizeMb) {
   await execa('bash', [
     '-c',
-    `< /dev/urandom tr -dc "\\t\\n [:alnum:]" | head -c ${sizeMo}M >${name}`,
+    `< /dev/urandom tr -dc "\\t\\n [:alnum:]" | head -c ${sizeMb}M >${name}`,
   ])
 }
 
@@ -37,12 +38,65 @@ async function checkFile (vhdName) {
 async function recoverRawContent (vhdName, rawName, originalSize) {
   await checkFile(vhdName)
   await execa('qemu-img', ['convert', '-fvpc', '-Oraw', vhdName, rawName])
-  await execa('truncate', ['-s', originalSize, rawName])
+  if (originalSize !== undefined) {
+    await execa('truncate', ['-s', originalSize, rawName])
+  }
 }
 
 async function convertFromRawToVhd (rawName, vhdName) {
   await execa('qemu-img', ['convert', '-f', 'raw', '-Ovpc', rawName, vhdName])
 }
+
+test('the BAT MSB is not used for sign', async () => {
+  expect.assertions(1)
+  const randomBuffer = await pFromCallback(cb =>
+    randomBytes(VHD_SECTOR_SIZE, cb)
+  )
+  await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', '1.8T'])
+  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const vhd = new Vhd(handler, 'empty.vhd')
+  await vhd.readHeaderAndFooter()
+  await vhd.readBlockTable()
+  // we want the bit 31 to be on, to prove it's not been used for sign
+  const hugeWritePositionSectors = Math.pow(2, 31) + 200
+  await vhd.writeData(hugeWritePositionSectors, randomBuffer)
+  await checkFile('empty.vhd')
+  // here we are moving the first sector very far in the VHD to prove the BAT doesn't use signed int32
+  const hugePositionBytes = hugeWritePositionSectors * VHD_SECTOR_SIZE
+  await vhd.freeFirstBlockSpace(hugePositionBytes)
+
+  // we recover the data manually for speed reasons.
+  // fs.write() with offset is way faster than qemu-img when there is a 1.5To
+  // hole before the block of data
+  const recoveredFile = await fs.open('recovered', 'w')
+  try {
+    const vhd2 = new Vhd(handler, 'empty.vhd')
+    await vhd2.readHeaderAndFooter()
+    await vhd2.readBlockTable()
+    for (let i = 0; i < vhd.header.maxTableEntries; i++) {
+      const entry = vhd._getBatEntry(i)
+      if (entry !== 0xffffffff) {
+        const block = (await vhd2._readBlock(i)).data
+        await fs.write(
+          recoveredFile,
+          block,
+          0,
+          block.length,
+          vhd2.header.blockSize * i
+        )
+      }
+    }
+  } finally {
+    fs.close(recoveredFile)
+  }
+  const recovered = await streamToBuffer(
+    await fs.createReadStream('recovered', {
+      start: hugePositionBytes,
+      end: hugePositionBytes + randomBuffer.length - 1,
+    })
+  )
+  expect(recovered).toEqual(randomBuffer)
+})
 
 test('writeData on empty file', async () => {
   expect.assertions(1)
