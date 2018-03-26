@@ -1,20 +1,10 @@
 import _, { messages } from 'intl'
 import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
-import every from 'lodash/every'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
-import groupBy from 'lodash/groupBy'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
 import moment from 'moment'
 import React from 'react'
-import reduce from 'lodash/reduce'
 import SortedTable from 'sorted-table'
-import uniq from 'lodash/uniq'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { createSelector } from 'selectors'
@@ -23,6 +13,19 @@ import { Container, Row, Col } from 'grid'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { info, error } from 'notification'
 import { Select, Toggle } from 'form'
+import {
+  countBy,
+  every,
+  filter,
+  find,
+  forEach,
+  groupBy,
+  isEmpty,
+  map,
+  mapValues,
+  reduce,
+  uniq,
+} from 'lodash'
 
 import {
   importBackup,
@@ -98,19 +101,19 @@ const VM_COLUMNS = [
   },
   {
     name: _('availableBackupsColumn'),
-    itemRenderer: ({ simpleCount, deltaCount }) => (
+    itemRenderer: ({ count }) => (
       <span>
-        {!!simpleCount && (
+        {count.simple > 0 && (
           <span>
             {_('simpleBackup')}{' '}
-            <span className='tag tag-pill tag-primary'>{simpleCount}</span>
+            <span className='tag tag-pill tag-primary'>{count.simple}</span>
           </span>
         )}
-        {!!simpleCount && !!deltaCount && ', '}
-        {!!deltaCount && (
+        {count.simple > 0 && count.delta > 0 && ', '}
+        {count.delta > 0 && (
           <span>
             {_('delta')}{' '}
-            <span className='tag tag-pill tag-primary'>{deltaCount}</span>
+            <span className='tag tag-pill tag-primary'>{count.delta}</span>
           </span>
         )}
       </span>
@@ -140,8 +143,6 @@ const doImport = ({ backup, targetSrs, start }) => {
       mapVdisSrs: targetSrs.mapVdisSrs,
       remote: backup.remoteId,
       sr: targetSrs.mainSr,
-    }).then(id => {
-      return id
     })
     if (start) {
       importPromise.then(id => startVm({ id }))
@@ -242,16 +243,20 @@ const ImportModalBody = injectIntl(_ModalBody, { withRef: true })
 })
 export default class Restore extends Component {
   componentWillReceiveProps ({ rawRemotes }) {
-    let filteredRemotes
-    if (
-      (filteredRemotes = filter(rawRemotes, 'enabled')) !==
-      filter(this.props.rawRemotes, 'enabled')
-    ) {
-      this._listAll(filteredRemotes).catch(noop)
+    if (rawRemotes !== this.props.rawRemotes) {
+      this._listAll(rawRemotes).catch(noop)
     }
   }
 
-  _listAll = async remotes => {
+  componentDidMount () {
+    const { rawRemotes } = this.props
+    if (rawRemotes !== undefined) {
+      this._listAll(rawRemotes).catch(noop)
+    }
+  }
+
+  _listAll = async rawRemotes => {
+    const remotes = filter(rawRemotes, 'enabled')
     const remotesInfo = await Promise.all(
       map(remotes, async remote => ({
         files: await listRemote(remote.id),
@@ -309,23 +314,14 @@ export default class Restore extends Component {
     forEach(backupInfoByVm, (backups, vm) => {
       backupInfoByVm[vm] = {
         backups,
+        count: countBy(backups, 'type'),
         last: reduce(backups, (last, b) => (b.date > last.date ? b : last)),
         tagsByRemote: mapValues(
           groupBy(backups, 'remoteId'),
           (backups, remoteId) => ({
-            remoteName: find(remotes, remote => remote.id === remoteId).name,
+            remoteName: backups[0].remoteName,
             tags: uniq(map(backups, 'tag')),
           })
-        ),
-        simpleCount: reduce(
-          backups,
-          (sum, b) => (b.type === 'simple' ? ++sum : sum),
-          0
-        ),
-        deltaCount: reduce(
-          backups,
-          (sum, b) => (b.type === 'delta' ? ++sum : sum),
-          0
         ),
       }
     })

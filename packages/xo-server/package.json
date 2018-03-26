@@ -38,6 +38,7 @@
     "ajv": "^6.1.1",
     "app-conf": "^0.5.0",
     "archiver": "^2.1.0",
+    "async-iterator-to-stream": "^1.0.1",
     "base64url": "^2.0.0",
     "bind-property-descriptor": "^1.0.0",
     "blocked": "^1.2.1",
