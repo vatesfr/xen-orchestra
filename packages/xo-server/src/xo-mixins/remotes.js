@@ -1,9 +1,7 @@
 import { noSuchObject } from 'xo-common/api-errors'
 
-import RemoteHandlerLocal from '../remote-handlers/local'
-import RemoteHandlerNfs from '../remote-handlers/nfs'
-import RemoteHandlerSmb from '../remote-handlers/smb'
 import { forEach, mapToArray } from '../utils'
+import { getHandler } from '../remote-handlers'
 import { Remotes } from '../models/remote'
 
 // ===================================================================
@@ -40,20 +38,7 @@ export default class {
       throw new Error('remote is disabled')
     }
 
-    const HANDLERS = {
-      file: RemoteHandlerLocal,
-      smb: RemoteHandlerSmb,
-      nfs: RemoteHandlerNfs,
-    }
-
-    // FIXME: should be done in xo-remote-parser.
-    const type = remote.url.split('://')[0]
-
-    const Handler = HANDLERS[type]
-    if (!Handler) {
-      throw new Error('Unhandled remote type')
-    }
-    return new Handler(remote)
+    return getHandler(remote)
   }
 
   async testRemote (remote) {
