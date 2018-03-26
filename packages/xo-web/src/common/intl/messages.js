@@ -1156,7 +1156,6 @@ const messages = {
   scheduleTimezone: 'Timezone',
   scheduleExportRetention: 'Export ret.',
   scheduleSnapshotRetention: 'Snapshot ret.',
-  scheduleRun: 'Run',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',
