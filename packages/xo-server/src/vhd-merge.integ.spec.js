@@ -48,7 +48,6 @@ async function convertFromRawToVhd (rawName, vhdName) {
 }
 
 test('blocks can be moved', async () => {
-  expect.assertions(1)
   const initalSize = 4
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
@@ -65,7 +64,6 @@ test('blocks can be moved', async () => {
 })
 
 test('the BAT MSB is not used for sign', async () => {
-  expect.assertions(1)
   const randomBuffer = await pFromCallback(cb =>
     randomBytes(VHD_SECTOR_SIZE, cb)
   )
@@ -116,7 +114,6 @@ test('the BAT MSB is not used for sign', async () => {
 })
 
 test('writeData on empty file', async () => {
-  expect.assertions(1)
   const mbOfRandom = 11
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
@@ -132,7 +129,6 @@ test('writeData on empty file', async () => {
 })
 
 test('writeData in 2 non-overlaping operations', async () => {
-  expect.assertions(1)
   const mbOfRandom = 11
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
@@ -153,7 +149,6 @@ test('writeData in 2 non-overlaping operations', async () => {
 })
 
 test('writeData in 2 overlaping operations', async () => {
-  expect.assertions(1)
   const mbOfRandom = 11
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
@@ -175,7 +170,6 @@ test('writeData in 2 overlaping operations', async () => {
 })
 
 test('BAT can be extended and blocks moved', async () => {
-  expect.assertions(1)
   const initalSize = 4
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
@@ -192,7 +186,6 @@ test('BAT can be extended and blocks moved', async () => {
 })
 
 test('coalesce works with empty parent files', async () => {
-  expect.assertions(1)
   const mbOfRandom = 12
   await createRandomFile('randomfile', mbOfRandom)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
@@ -217,7 +210,6 @@ test('coalesce works with empty parent files', async () => {
 })
 
 test('coalesce works in normal cases', async () => {
-  expect.assertions(1)
   const mbOfRandom = 5
   await createRandomFile('randomfile', mbOfRandom)
   await createRandomFile('small_randomfile', Math.ceil(mbOfRandom / 2))
