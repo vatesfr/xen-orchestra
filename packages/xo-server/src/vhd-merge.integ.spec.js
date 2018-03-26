@@ -2,12 +2,12 @@
 
 import execa from 'execa'
 import fs from 'fs-extra'
-import { randomBytes } from 'crypto'
 import rimraf from 'rimraf'
+import { randomBytes } from 'crypto'
 
 import LocalHandler from './remote-handlers/local'
 import vhdMerge, { chainVhd, Vhd, VHD_SECTOR_SIZE } from './vhd-merge'
-import { tmpDir, pFromCallback, streamToBuffer } from './utils'
+import { pFromCallback, streamToBuffer, tmpDir } from './utils'
 
 const initialDir = process.cwd()
 
