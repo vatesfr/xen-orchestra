@@ -90,7 +90,7 @@
     .top table{
       margin: auto;
       margin-top: 20px;
-      width: 400px;
+      min-width: 30em;
     }
 
     .top table caption {
@@ -123,7 +123,7 @@
     }
 
     .allResources table {
-      width: 1000px
+      min-width: 60em
     }
   </style>
 </head>
