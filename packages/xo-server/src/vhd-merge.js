@@ -55,13 +55,11 @@ BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 
 // ===================================================================
 
+const SIZE_OF_32_BITS = Math.pow(2, 32)
 const uint64 = fu.derive(
-  fu.struct([fu.uint32('high'), fu.uint32('low')]),
-  number => ({
-    high: Math.floor(number / SIZE_OF_32_BITS),
-    low: number % SIZE_OF_32_BITS,
-  }),
-  obj => obj.high * SIZE_OF_32_BITS + obj.low
+  fu.uint32(2),
+  number => [Math.floor(number / SIZE_OF_32_BITS), number % SIZE_OF_32_BITS],
+  _ => _[0] * SIZE_OF_32_BITS + _[1]
 )
 
 const fuFooter = fu.struct([
@@ -118,7 +116,6 @@ const fuHeader = fu.struct([
 // Helpers
 // ===================================================================
 
-const SIZE_OF_32_BITS = Math.pow(2, 32)
 // Returns a 32 bits integer corresponding to a Vhd version.
 const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000ffff)
 
