@@ -701,10 +701,6 @@
   dependencies:
     pako "^1.0.3"
 
-"@nraynaud/struct-fu@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@nraynaud/struct-fu/-/struct-fu-1.0.1.tgz#059a0588dea50647c3677783692dafdadfcadf97"
-
 "@nraynaud/xo-fs@^0.0.5":
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/@nraynaud/xo-fs/-/xo-fs-0.0.5.tgz#0f8c525440909223904b6841a37f4d255baa54b3"
@@ -10885,7 +10881,7 @@ strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
 
-struct-fu@^1.0.0:
+struct-fu@^1.0.0, struct-fu@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/struct-fu/-/struct-fu-1.2.0.tgz#a40b9eb60a41bb341228cff125fde4887daa85ac"
 
