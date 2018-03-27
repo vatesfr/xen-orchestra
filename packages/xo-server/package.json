@@ -69,6 +69,7 @@
     "http-server-plus": "^0.9.0",
     "human-format": "^0.10.0",
     "is-redirect": "^1.0.0",
+    "jest-worker": "^22.4.3",
     "js-yaml": "^3.10.0",
     "json-rpc-peer": "^0.15.3",
     "json5": "^1.0.0",
