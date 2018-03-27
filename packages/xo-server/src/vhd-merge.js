@@ -289,8 +289,8 @@ export class Vhd {
     const bufFooter = buf.slice(0, VHD_FOOTER_SIZE)
     const bufHeader = buf.slice(VHD_FOOTER_SIZE)
 
-    assertChecksum('footer', fuFooter, bufFooter)
-    assertChecksum('header', fuHeader, bufHeader)
+    assertChecksum('footer', bufFooter, fuFooter)
+    assertChecksum('header', bufHeader, fuHeader)
 
     const footer = (this.footer = fuFooter.unpack(bufFooter))
     assert.strictEqual(footer.dataOffset, VHD_FOOTER_SIZE)
