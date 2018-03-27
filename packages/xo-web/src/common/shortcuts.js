@@ -27,14 +27,17 @@ export default class Shortcuts extends Component {
   componentWillUnmount () {
     remove(instances, this)
   }
-  _handler = (action, event) => {
-    // if we press unprintable keys when an input is focused,
-    //   the handler passed to ReactShortcuts fires first.
-    //  https://github.com/avocode/react-shortcuts/issues/13#issuecomment-255868423
-    if (event.target.tagName === 'INPUT') return
-    this.props.handler(action, event)
+
+  _handler = (command, event) => {
+    // When an input is focused, shortcuts are disabled by default *except* for
+    // non-printable keys (Esc, Enter, ...) but we want to disable them as well
+    // https://github.com/avocode/react-shortcuts/issues/13#issuecomment-255868423
+    if (event.target.tagName === 'INPUT') {
+      return
+    }
+
+    this.props.handler(command, event)
   }
-  _handler = this._handler.bind(this)
 
   render () {
     return enabled ? (
