@@ -32,6 +32,16 @@ createJob.params = {
   },
 }
 
+export function migrateLegacyJob ({ id }) {
+  return this.migrateLegacyBackupJob(id)
+}
+migrateLegacyJob.permission = 'admin'
+migrateLegacyJob.params = {
+  id: {
+    type: 'string',
+  },
+}
+
 export function deleteJob ({ id }) {
   return this.deleteBackupNgJob(id)
 }
