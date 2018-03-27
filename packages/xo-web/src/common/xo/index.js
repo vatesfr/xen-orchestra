@@ -1602,7 +1602,7 @@ export const migrateBackupSchedule = id =>
   confirm({
     title: _('migrateBackupSchedule'),
     body: _('migrateBackupScheduleMessage'),
-  }).then(id => _call('job.migrate', { id: resolveId(id) }))
+  }).then(() => _call('backupNg.migrateLegacyJob', { id: resolveId(id) }))
 
 export const deleteSchedule = schedule =>
   _call('schedule.delete', { id: resolveId(schedule) })::tap(
