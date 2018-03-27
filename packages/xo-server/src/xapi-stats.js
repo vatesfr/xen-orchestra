@@ -202,7 +202,7 @@ export default class XapiStats {
       .then(response => response.readAll().then(JSON5.parse))
   }
 
-  async _getValidTimestamp (xapi, host, step) {
+  async _getNextTimestamp (xapi, host, step) {
     const currentTimeStamp = await getServerTimestamp(xapi, host.$ref)
     const maxDuration = step * RRD_POINTS_PER_STEP[step]
     const lastTimestamp = get(this._statsByObject, [
@@ -272,7 +272,7 @@ export default class XapiStats {
       return this._getStats(hostUuid, step, vmUuid)
     }
 
-    const timestamp = await this._getValidTimestamp(xapi, host, step)
+    const timestamp = await this._getNextTimestamp(xapi, host, step)
     const json = await this._getJson(xapi, host, timestamp)
     if (json.meta.step !== step) {
       throw new FaultyGranularity(
