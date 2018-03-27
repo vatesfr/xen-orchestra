@@ -33,7 +33,6 @@
   "dependencies": {
     "@babel/polyfill": "7.0.0-beta.42",
     "@marsaud/smb2-promise": "^0.2.1",
-    "@nraynaud/struct-fu": "^1.0.1",
     "@xen-orchestra/cron": "^1.0.2",
     "ajv": "^6.1.1",
     "app-conf": "^0.5.0",
@@ -104,6 +103,7 @@
     "split-lines": "^1.1.0",
     "stack-chain": "^2.0.0",
     "stoppable": "^1.0.5",
+    "struct-fu": "^1.2.0",
     "tar-stream": "^1.5.5",
     "through2": "^2.0.3",
     "tmp": "^0.0.33",
