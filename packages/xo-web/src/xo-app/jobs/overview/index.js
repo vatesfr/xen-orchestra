@@ -1,14 +1,9 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import Link from 'link'
 import LogList from '../../logs'
-import map from 'lodash/map'
-import orderBy from 'lodash/orderBy'
 import React, { Component } from 'react'
+import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
@@ -16,8 +11,10 @@ import { addSubscriptions } from 'utils'
 import { Container } from 'grid'
 import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
+import { filter, find, forEach, orderBy } from 'lodash'
 import {
   deleteSchedule,
+  deleteSchedules,
   disableSchedule,
   enableSchedule,
   runJob,
@@ -32,12 +29,88 @@ const jobKeyToLabel = {
   genericTask: _('customJob'),
 }
 
+const SCHEDULES_COLUMNS = [
+  {
+    itemRenderer: schedule => (
+      <span>{`${schedule.name} (${schedule.id.slice(4, 8)})`}</span>
+    ),
+    name: _('schedule'),
+    sortCriteria: 'name',
+  },
+  {
+    itemRenderer: (schedule, { jobs, isScheduleUserMissing }) => {
+      const jobId = schedule.jobId
+      const job = jobs[jobId]
+
+      return (
+        job !== undefined && (
+          <div>
+            <span>{`${job.name} - ${job.method} (${jobId.slice(4, 8)})`}</span>{' '}
+            {isScheduleUserMissing[schedule.id] && (
+              <Tooltip content={_('jobUserNotFound')}>
+                <Icon className='mr-1' icon='error' />
+              </Tooltip>
+            )}
+            <Link
+              className='btn btn-sm btn-primary ml-1'
+              to={`/jobs/${job.id}/edit`}
+            >
+              <Tooltip content={_('jobEdit')}>
+                <Icon icon='edit' />
+              </Tooltip>
+            </Link>
+          </div>
+        )
+      )
+    },
+    name: _('job'),
+    sortCriteria: (schedule, { jobs }) => {
+      const job = jobs[schedule.jobId]
+      return job !== undefined && job.name
+    },
+  },
+  {
+    itemRenderer: schedule => schedule.cron,
+    name: _('jobScheduling'),
+  },
+  {
+    itemRenderer: schedule => (
+      <StateButton
+        disabledLabel={_('jobStateDisabled')}
+        disabledHandler={enableSchedule}
+        disabledTooltip={_('logIndicationToEnable')}
+        enabledLabel={_('jobStateEnabled')}
+        enabledHandler={disableSchedule}
+        enabledTooltip={_('logIndicationToDisable')}
+        handlerParam={schedule.id}
+        state={schedule.enabled}
+      />
+    ),
+    name: _('jobState'),
+  },
+]
+
+const ACTIONS = [
+  {
+    handler: deleteSchedules,
+    icon: 'delete',
+    individualHandler: deleteSchedule,
+    individualLabel: _('scheduleDelete'),
+    label: _('deleteSelectedSchedules'),
+    level: 'danger',
+  },
+]
+
 // ===================================================================
 
 @addSubscriptions({
   users: subscribeUsers,
 })
 export default class Overview extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object,
+  }
+
   constructor (props) {
     super(props)
     this.state = {
@@ -82,31 +155,6 @@ export default class Overview extends Component {
     return jobs[schedule.jobId]
   }
 
-  _getJobLabel (job = {}) {
-    return `${job.name} - ${job.method} (${job.id.slice(4, 8)})`
-  }
-
-  _getScheduleLabel (schedule) {
-    return `${schedule.name} (${schedule.id.slice(4, 8)})`
-  }
-
-  _getScheduleToggle (schedule) {
-    const { id } = schedule
-
-    return (
-      <StateButton
-        disabledLabel={_('jobStateDisabled')}
-        disabledHandler={enableSchedule}
-        disabledTooltip={_('logIndicationToEnable')}
-        enabledLabel={_('jobStateEnabled')}
-        enabledHandler={disableSchedule}
-        enabledTooltip={_('logIndicationToDisable')}
-        handlerParam={id}
-        state={schedule.enabled}
-      />
-    )
-  }
-
   _getIsScheduleUserMissing = createSelector(
     () => this.state.schedules,
     () => this.props.users,
@@ -114,7 +162,7 @@ export default class Overview extends Component {
       const isScheduleUserMissing = {}
 
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !!find(
+        isScheduleUserMissing[schedule.id] = !find(
           users,
           user => user.id === this._getScheduleJob(schedule).userId
         )
@@ -124,10 +172,28 @@ export default class Overview extends Component {
     }
   )
 
+  _individualActions = [
+    {
+      disabled: (schedule, { isScheduleUserMissing }) =>
+        isScheduleUserMissing[schedule.id],
+      handler: schedule => runJob(schedule.jobId),
+      icon: 'run-schedule',
+      label: _('scheduleRun'),
+      level: 'warning',
+    },
+    {
+      handler: schedule =>
+        this.context.router.push({
+          pathname: `/jobs/schedules/${schedule.id}/edit`,
+        }),
+      icon: 'edit',
+      label: _('scheduleEdit'),
+      level: 'primary',
+    },
+  ]
+
   render () {
     const { schedules } = this.state
-
-    const isScheduleUserMissing = this._getIsScheduleUserMissing()
 
     return process.env.XOA_PLAN > 3 ? (
       <Container>
@@ -136,73 +202,16 @@ export default class Overview extends Component {
             <Icon icon='schedule' /> {_('backupSchedules')}
           </CardHeader>
           <CardBlock>
-            {schedules.length ? (
-              <table className='table'>
-                <thead className='thead-default'>
-                  <tr>
-                    <th>{_('schedule')}</th>
-                    <th>{_('job')}</th>
-                    <th className='hidden-xs-down'>{_('jobScheduling')}</th>
-                    <th>{_('jobState')}</th>
-                    <th className='text-xs-right'>{_('jobAction')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {map(schedules, (schedule, key) => {
-                    const job = this._getScheduleJob(schedule)
-
-                    return (
-                      <tr key={key}>
-                        <td>
-                          {this._getScheduleLabel(schedule)}
-                          <Link
-                            className='btn btn-sm btn-primary ml-1'
-                            to={`/jobs/schedules/${schedule.id}/edit`}
-                          >
-                            <Icon icon='edit' />
-                          </Link>
-                        </td>
-                        <td>
-                          {this._getJobLabel(job)}
-                          <Link
-                            className='btn btn-sm btn-primary ml-1'
-                            to={`/jobs/${job.id}/edit`}
-                          >
-                            <Icon icon='edit' />
-                          </Link>
-                        </td>
-                        <td className='hidden-xs-down'>{schedule.cron}</td>
-                        <td>{this._getScheduleToggle(schedule)}</td>
-                        <td className='text-xs-right'>
-                          <fieldset>
-                            {!isScheduleUserMissing[schedule.id] && (
-                              <Tooltip content={_('jobUserNotFound')}>
-                                <Icon className='mr-1' icon='error' />
-                              </Tooltip>
-                            )}
-                            <ActionRowButton
-                              icon='delete'
-                              btnStyle='danger'
-                              handler={deleteSchedule}
-                              handlerParam={schedule}
-                            />
-                            <ActionRowButton
-                              disabled={!isScheduleUserMissing[schedule.id]}
-                              icon='run-schedule'
-                              btnStyle='warning'
-                              handler={runJob}
-                              handlerParam={schedule.jobId}
-                            />
-                          </fieldset>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            ) : (
-              <p>{_('noScheduledJobs')}</p>
-            )}
+            <SortedTable
+              actions={ACTIONS}
+              collection={schedules}
+              columns={SCHEDULES_COLUMNS}
+              data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
+              data-jobs={this.state.jobs || {}}
+              individualActions={this._individualActions}
+              shortcutsTarget='body'
+              stateUrlParam='s'
+            />
           </CardBlock>
         </Card>
         <LogList jobKeys={Object.keys(jobKeyToLabel)} />
