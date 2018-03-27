@@ -181,7 +181,7 @@ function checksumStruct (buf, struct) {
 
 const assertChecksum = (name, buf, struct) => {
   const actual = unpackField(struct.fields.checksum, buf)
-  const expected = checksumStruct(struct, buf)
+  const expected = checksumStruct(buf, struct)
   if (actual !== expected) {
     throw new Error(`invalid ${name} checksum ${actual}, expected ${expected}`)
   }
