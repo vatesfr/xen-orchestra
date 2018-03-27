@@ -66,7 +66,7 @@ const fuFooter = fu.struct([
   fu.char('cookie', 8), // 0
   fu.uint32('features'), // 8
   fu.uint32('fileFormatVersion'), // 12
-  uint64('dataOffset'),
+  uint64('dataOffset'), // offset of the header, should always be 512
   fu.uint32('timestamp'), // 24
   fu.char('creatorApplication', 4), // 28
   fu.uint32('creatorVersion'), // 32
@@ -230,7 +230,7 @@ export class Vhd {
   getEndOfHeaders () {
     const { header } = this
 
-    let end = this.footer.dataOffset + VHD_HEADER_SIZE
+    let end = VHD_FOOTER_SIZE + VHD_HEADER_SIZE
 
     // Max(end, block allocation table end)
     end = Math.max(end, header.tableOffset + this.batSize)
@@ -286,8 +286,10 @@ export class Vhd {
       )
     }
 
+    const footer = (this.footer = fuFooter.unpack(buf))
+    assert.strictEqual(footer.dataOffset, VHD_FOOTER_SIZE)
+
     const header = (this.header = fuHeader.unpack(buf.slice(VHD_FOOTER_SIZE)))
-    this.footer = fuFooter.unpack(buf)
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
