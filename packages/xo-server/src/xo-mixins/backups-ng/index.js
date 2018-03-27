@@ -25,7 +25,7 @@ import {
   safeDateFormat,
   serializeError,
 } from '../../utils'
-import mergeVhd, {
+import {
   chainVhd,
   createReadStream as createVhdReadStream,
   readVhdMetadata,
@@ -308,6 +308,7 @@ export default class BackupNg {
     getJob: (id: string, 'backup') => Promise<BackupJob>,
     updateJob: ($Shape<BackupJob>) => Promise<BackupJob>,
     removeJob: (id: string) => Promise<void>,
+    worker: $Dict<any>,
   }
 
   constructor (app: any) {
@@ -1044,7 +1045,12 @@ export default class BackupNg {
     $defer.onFailure.call(handler, 'unlink', path)
 
     const childPath = child.path
-    await mergeVhd(handler, path, handler, childPath)
+    await this._app.worker.mergeVhd(
+      handler._remote,
+      path,
+      handler._remote,
+      childPath
+    )
     await handler.rename(path, childPath)
   }
 

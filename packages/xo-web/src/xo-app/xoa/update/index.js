@@ -7,15 +7,16 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
-import { confirm } from 'modal'
-import { connectStore } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
+import { assign, includes, isEmpty, map, some } from 'lodash'
 import { Card, CardBlock, CardHeader } from 'card'
+import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { createSelector } from 'selectors'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import { Password } from 'form'
-import { serverVersion } from 'xo'
-import { assign, includes, isEmpty, map } from 'lodash'
+import { serverVersion, subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
 import pkg from '../../../../package'
 
@@ -50,8 +51,18 @@ const states = {
 }
 
 const update = () => xoaUpdater.update()
-const upgrade = () => xoaUpdater.upgrade()
+const upgrade = ({ runningJobsExist }) =>
+  runningJobsExist
+    ? confirm({
+      title: _('upgradeWarningTitle'),
+      body: _('upgradeWarningMessage'),
+    }).then(() => xoaUpdater.upgrade())
+    : xoaUpdater.upgrade()
 
+@addSubscriptions({
+  backupNgJobs: subscribeBackupNgJobs,
+  jobs: subscribeJobs,
+})
 @connectStore(state => {
   return {
     configuration: state.xoaConfiguration,
@@ -156,6 +167,15 @@ export default class XoaUpdates extends Component {
     update()
   }
 
+  _getRunningJobsExist = createSelector(
+    () => this.props.jobs,
+    () => this.props.backupNgJobs,
+    (jobs, backupNgJobs) =>
+      jobs !== undefined &&
+      backupNgJobs !== undefined &&
+      some(jobs.concat(backupNgJobs), job => job.runId !== undefined)
+  )
+
   render () {
     const textClasses = {
       info: 'text-info',
@@ -209,6 +229,7 @@ export default class XoaUpdates extends Component {
                 </ActionButton>{' '}
                 <ActionButton
                   btnStyle='success'
+                  data-runningJobsExist={this._getRunningJobsExist()}
                   handler={upgrade}
                   icon='upgrade'
                 >
