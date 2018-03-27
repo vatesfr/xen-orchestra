@@ -220,11 +220,11 @@ export default class XapiStats {
     return lastTimestamp
   }
 
-  _getStats (hostUUID, step, vmUUID) {
-    const hostStats = this._statsByObject[hostUUID][step]
+  _getStats (hostUuid, step, vmUuid) {
+    const hostStats = this._statsByObject[hostUuid][step]
 
     // Return host stats
-    if (vmUUID === undefined) {
+    if (vmUuid === undefined) {
       return {
         interval: step,
         ...hostStats,
@@ -235,7 +235,7 @@ export default class XapiStats {
     return {
       interval: step,
       endTimestamp: hostStats.endTimestamp,
-      ...this._statsByObject[vmUUID][step],
+      ...this._statsByObject[vmUuid][step],
     }
   }
 
@@ -250,7 +250,7 @@ export default class XapiStats {
     )
   }
 
-  async _getAndUpdateStats (xapi, { host, vmUUID, granularity }) {
+  async _getAndUpdateStats (xapi, { host, vmUuid, granularity }) {
     const step =
       granularity === undefined
         ? RRD_STEP_SECONDS
@@ -263,13 +263,13 @@ export default class XapiStats {
     }
 
     // Limit the number of http requests
-    const hostUUID = host.uuid
+    const hostUuid = host.uuid
 
     if (
-      get(this._statsByObject, [hostUUID, step, 'localTimestamp']) + step >
+      get(this._statsByObject, [hostUuid, step, 'localTimestamp']) + step >
       getCurrentTimestamp()
     ) {
-      return this._getStats(hostUUID, step, vmUUID)
+      return this._getStats(hostUuid, step, vmUuid)
     }
 
     const timestamp = await this._getValidTimestamp(xapi, host, step)
@@ -287,7 +287,7 @@ export default class XapiStats {
       // So, we use the timestamp of the oldest data value !
       const startTimestamp = json.data[json.meta.rows - 1].t
       const endTimestamp = get(this._statsByObject, [
-        hostUUID,
+        hostUuid,
         step,
         'endTimestamp',
       ])
@@ -352,10 +352,10 @@ export default class XapiStats {
     }
 
     // Update timestamp
-    const hostStats = this._statsByObject[hostUUID][step]
+    const hostStats = this._statsByObject[hostUuid][step]
     hostStats.endTimestamp = json.meta.end
     hostStats.localTimestamp = getCurrentTimestamp()
-    return this._getStats(hostUUID, step, vmUUID)
+    return this._getStats(hostUuid, step, vmUuid)
   }
 
   getHostStats (xapi, hostId, granularity) {
@@ -374,7 +374,7 @@ export default class XapiStats {
 
     return this._getAndUpdateStats(xapi, {
       host,
-      vmUUID: vm.uuid,
+      vmUuid: vm.uuid,
       granularity,
     })
   }
