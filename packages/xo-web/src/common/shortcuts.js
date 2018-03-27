@@ -1,8 +1,7 @@
 import Component from 'base-component'
-import forEach from 'lodash/forEach'
 import React from 'react'
-import remove from 'lodash/remove'
 import { Shortcuts as ReactShortcuts } from 'react-shortcuts'
+import { forEach, remove } from 'lodash'
 
 let enabled = true
 const instances = []
@@ -29,7 +28,20 @@ export default class Shortcuts extends Component {
     remove(instances, this)
   }
 
+  _handler = (command, event) => {
+    // When an input is focused, shortcuts are disabled by default *except* for
+    // non-printable keys (Esc, Enter, ...) but we want to disable them as well
+    // https://github.com/avocode/react-shortcuts/issues/13#issuecomment-255868423
+    if (event.target.tagName === 'INPUT') {
+      return
+    }
+
+    this.props.handler(command, event)
+  }
+
   render () {
-    return enabled ? <ReactShortcuts {...this.props} /> : null
+    return enabled ? (
+      <ReactShortcuts {...this.props} handler={this._handler} />
+    ) : null
   }
 }
