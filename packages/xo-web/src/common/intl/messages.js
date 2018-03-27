@@ -982,6 +982,12 @@ const messages = {
   dashboardStatsButtonRemoveAll: 'Clear selection',
   dashboardStatsButtonAddAllHost: 'Add all hosts',
   dashboardStatsButtonAddAllVM: 'Add all VMs',
+  dashboardSendReport: 'Send report',
+  dashboardReport: 'Report',
+  dashboardSendReportMessage:
+    'This will send a usage report to your configured emails.',
+  dashboardSendReportInfo:
+    'The usage report and transport email plugins need to be loaded!',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
@@ -1525,6 +1531,9 @@ const messages = {
   promptUpgradeReloadTitle: 'Upgrade successful',
   promptUpgradeReloadMessage:
     'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
+  upgradeWarningTitle: 'Upgrade warning',
+  upgradeWarningMessage:
+    'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
