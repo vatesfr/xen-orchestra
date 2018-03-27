@@ -120,8 +120,7 @@ const fuHeader = fu.struct([
 const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000ffff)
 
 // Sectors conversions.
-const sectorsRoundUp = bytes =>
-  Math.floor((bytes + VHD_SECTOR_SIZE - 1) / VHD_SECTOR_SIZE)
+const sectorsRoundUp = bytes => Math.ceil(bytes / VHD_SECTOR_SIZE)
 const sectorsRoundUpNoZero = bytes => sectorsRoundUp(bytes) || 1
 const sectorsToBytes = sectors => sectors * VHD_SECTOR_SIZE
 
