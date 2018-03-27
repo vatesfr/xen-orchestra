@@ -1,4 +1,5 @@
 import _, { messages } from 'intl'
+import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import ChartistGraph from 'react-chartist'
 import Component from 'base-component'
@@ -25,7 +26,9 @@ import {
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import {
   isSrWritable,
+  sendUsageReport,
   subscribePermissions,
+  subscribePlugins,
   subscribeResourceSets,
   subscribeUsers,
 } from 'xo'
@@ -133,6 +136,9 @@ class PatchesCard extends Component {
     vmMetrics: getVmMetrics,
   }
 })
+@addSubscriptions({
+  plugins: subscribePlugins,
+})
 @injectIntl
 class DefaultCard extends Component {
   componentWillMount () {
@@ -141,10 +147,27 @@ class DefaultCard extends Component {
     })
   }
 
+  _canSendTheReport = createSelector(
+    () => this.props.plugins,
+    (plugins = []) => {
+      let count = 0
+      for (const { id, loaded } of plugins) {
+        if (
+          (id === 'usage-report' || id === 'transport-email') &&
+          loaded &&
+          ++count === 2
+        ) {
+          return true
+        }
+      }
+    }
+  )
+
   render () {
     const { props, state } = this
     const users = state && state.users
     const nUsers = size(users)
+    const canSendTheReport = this._canSendTheReport()
 
     const { formatMessage } = props.intl
 
@@ -391,6 +414,35 @@ class DefaultCard extends Component {
                     type='Bar'
                   />
                 </BlockLink>
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='menu-dashboard-stats' /> {_('dashboardReport')}
+              </CardHeader>
+              <CardBlock className='text-xs-center'>
+                <ActionButton
+                  btnStyle='primary'
+                  disabled={!canSendTheReport}
+                  handler={sendUsageReport}
+                  icon=''
+                >
+                  {_('dashboardSendReport')}
+                </ActionButton>
+                <br />
+                {!canSendTheReport && (
+                  <span>
+                    <Link to='/settings/plugins' className='text-info'>
+                      <Icon icon='info' /> {_('dashboardSendReportInfo')}
+                    </Link>
+                    <br />
+                  </span>
+                )}
+                {_('dashboardSendReportMessage')}
               </CardBlock>
             </Card>
           </Col>
