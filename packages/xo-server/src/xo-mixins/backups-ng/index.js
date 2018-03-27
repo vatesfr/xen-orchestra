@@ -563,6 +563,7 @@ export default class BackupNg {
   // - [ ] fix backup reports
   // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
   //       a very long time to finish if there are other VMs before…
+  // - [ ] detect and gc uncomplete replications
   //
   // Triage:
   // - [ ] logs
