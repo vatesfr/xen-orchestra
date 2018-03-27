@@ -812,22 +812,25 @@ export async function chainVhd (
 ) {
   const parentVhd = new Vhd(parentHandler, parentPath)
   const childVhd = new Vhd(childHandler, childPath)
-  await Promise.all([
-    parentVhd.readHeaderAndFooter(),
-    childVhd.readHeaderAndFooter(),
-  ])
-  await childVhd.readBlockTable()
+
+  await childVhd.readHeaderAndFooter()
   const { header, footer } = childVhd
 
-  const parentName = relative(dirname(childPath), parentPath)
-  const parentUuid = parentVhd.footer.uuid
   if (footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
     if (!force) {
       throw new Error('cannot chain disk of type ' + footer.diskType)
     }
     footer.diskType = HARD_DISK_TYPE_DIFFERENCING
   }
-  header.parentUuid = parentUuid
+
+  await Promise.all([
+    childVhd.readBlockTable(),
+    parentVhd.readHeaderAndFooter(),
+  ])
+
+  const parentName = relative(dirname(childPath), parentPath)
+
+  header.parentUuid = parentVhd.footer.uuid
   header.parentUnicodeName = parentName
 
   header.parentLocatorEntry[0].platformCode = PLATFORM_W2KU
