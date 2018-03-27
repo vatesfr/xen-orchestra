@@ -154,24 +154,37 @@ const unpackField = (field, buf) => {
 
 // Returns the checksum of a raw struct.
 // The raw struct (footer or header) is altered with the new sum.
-function checksumStruct (rawStruct, struct) {
+function checksumStruct (buf, struct) {
   const checksumField = struct.fields.checksum
-
   let sum = 0
 
-  // Reset current sum.
-  packField(checksumField, 0, rawStruct)
-
-  for (let i = 0, n = struct.size; i < n; i++) {
-    sum = (sum + rawStruct[i]) & 0xffffffff
+  // Do not use the stored checksum to compute the new checksum.
+  const checksumOffset = checksumField.offset
+  for (let i = 0, n = checksumOffset; i < n; ++i) {
+    sum += buf[i]
+  }
+  for (
+    let i = checksumOffset + checksumField.size, n = struct.size;
+    i < n;
+    ++i
+  ) {
+    sum += buf[i]
   }
 
-  sum = 0xffffffff - sum
+  sum = ~sum >>> 0
 
   // Write new sum.
-  packField(checksumField, sum, rawStruct)
+  packField(checksumField, sum, buf)
 
   return sum
+}
+
+const assertChecksum = (name, buf, struct) => {
+  const actual = unpackField(struct.fields.checksum, buf)
+  const expected = checksumStruct(struct, buf)
+  if (actual !== expected) {
+    throw new Error(`invalid ${name} checksum ${actual}, expected ${expected}`)
+  }
 }
 
 // ===================================================================
@@ -273,23 +286,16 @@ export class Vhd {
   // Get the beginning (footer + header) of a vhd file.
   async readHeaderAndFooter () {
     const buf = await this._read(0, VHD_FOOTER_SIZE + VHD_HEADER_SIZE)
+    const bufFooter = buf.slice(0, VHD_FOOTER_SIZE)
+    const bufHeader = buf.slice(VHD_FOOTER_SIZE)
 
-    const sum = unpackField(fuFooter.fields.checksum, buf)
-    const sumToTest = checksumStruct(buf, fuFooter)
+    assertChecksum('footer', fuFooter, bufFooter)
+    assertChecksum('header', fuHeader, bufHeader)
 
-    // Checksum child & parent.
-    if (sumToTest !== sum) {
-      throw new Error(
-        `Bad checksum in vhd. Expected: ${sum}. Given: ${sumToTest}. (data=${buf.toString(
-          'hex'
-        )})`
-      )
-    }
-
-    const footer = (this.footer = fuFooter.unpack(buf))
+    const footer = (this.footer = fuFooter.unpack(bufFooter))
     assert.strictEqual(footer.dataOffset, VHD_FOOTER_SIZE)
 
-    const header = (this.header = fuHeader.unpack(buf.slice(VHD_FOOTER_SIZE)))
+    const header = (this.header = fuHeader.unpack(bufHeader))
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
