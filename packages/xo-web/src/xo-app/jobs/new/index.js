@@ -186,7 +186,7 @@ export default class Jobs extends Component {
       'vm.clone',
       'vm.convert',
       'vm.copy',
-      'vm.creatInterface',
+      'vm.createInterface',
       'vm.delete',
       'vm.migrate',
       'vm.migrate',
