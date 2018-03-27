@@ -5811,9 +5811,9 @@ http-request-plus@^0.5.0:
     lodash "^4.17.4"
     promise-toolbox "^0.9.5"
 
-http-server-plus@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/http-server-plus/-/http-server-plus-0.9.0.tgz#3b0b38415aa18a479327e6781b23a1a26de71819"
+http-server-plus@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/http-server-plus/-/http-server-plus-0.10.0.tgz#c341b0fbfa5e2dc26122173c7410920d632b7515"
   dependencies:
     event-to-promise "^0.8.0"
     lodash "^4.16.0"
