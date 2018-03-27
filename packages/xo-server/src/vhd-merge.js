@@ -116,6 +116,9 @@ const fuHeader = fu.struct([
 // Helpers
 // ===================================================================
 
+const computeBatSize = entries =>
+  sectorsToBytes(sectorsRoundUpNoZero(entries * VHD_ENTRY_SIZE))
+
 // Returns a 32 bits integer corresponding to a Vhd version.
 const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000ffff)
 
@@ -196,6 +199,10 @@ function checksumStruct (rawStruct, struct) {
 // - parentLocatorSize(i) = header.parentLocatorEntry[i].platformDataSpace * sectorSize
 // - sectorSize = 512
 export class Vhd {
+  get batSize () {
+    return computeBatSize(this.header.maxTableEntries)
+  }
+
   constructor (handler, path) {
     this._handler = handler
     this._path = path
@@ -226,12 +233,8 @@ export class Vhd {
 
     let end = this.footer.dataOffset + VHD_HEADER_SIZE
 
-    const blockAllocationTableSize = sectorsToBytes(
-      sectorsRoundUpNoZero(header.maxTableEntries * VHD_ENTRY_SIZE)
-    )
-
     // Max(end, block allocation table end)
-    end = Math.max(end, header.tableOffset + blockAllocationTableSize)
+    end = Math.max(end, header.tableOffset + this.batSize)
 
     for (let i = 0; i < VHD_PARENT_LOCATOR_ENTRIES; i++) {
       const entry = header.parentLocatorEntry[i]
@@ -421,9 +424,7 @@ export class Vhd {
     try {
       const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
       const tableOffset = this.header.tableOffset
-      const batSize = sectorsToBytes(
-        sectorsRoundUpNoZero(this.header.maxTableEntries * VHD_ENTRY_SIZE)
-      )
+      const { batSize } = this
       const newMinSector = Math.ceil(
         (tableOffset + batSize + spaceNeededBytes) / VHD_SECTOR_SIZE
       )
@@ -459,18 +460,16 @@ export class Vhd {
     }
   }
 
-  async ensureBatSize (size) {
+  async ensureBatSize (entries) {
     const { header } = this
     const prevMaxTableEntries = header.maxTableEntries
-    if (prevMaxTableEntries >= size) {
+    if (prevMaxTableEntries >= entries) {
       return
     }
 
-    const newBatSize = sectorsToBytes(
-      sectorsRoundUpNoZero(size * VHD_ENTRY_SIZE)
-    )
-    await this._freeFirstBlockSpace(newBatSize - this.blockTable.length)
-    const maxTableEntries = (header.maxTableEntries = size)
+    const newBatSize = computeBatSize(entries)
+    await this._freeFirstBlockSpace(newBatSize - this.batSize)
+    const maxTableEntries = (header.maxTableEntries = entries)
     const prevBat = this.blockTable
     const bat = (this.blockTable = Buffer.allocUnsafe(newBatSize))
     prevBat.copy(bat)
