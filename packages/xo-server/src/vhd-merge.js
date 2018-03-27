@@ -275,7 +275,7 @@ export class Vhd {
     const buf = await this._read(0, VHD_FOOTER_SIZE + VHD_HEADER_SIZE)
 
     const sum = unpackField(fuFooter.fields.checksum, buf)
-    const sumToTest = checksumStruct(buf.slice(0, VHD_FOOTER_SIZE), fuFooter)
+    const sumToTest = checksumStruct(buf, fuFooter)
 
     // Checksum child & parent.
     if (sumToTest !== sum) {
