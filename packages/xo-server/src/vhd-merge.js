@@ -318,12 +318,10 @@ export class Vhd {
   // Returns a buffer that contains the block allocation table of a vhd file.
   async readBlockTable () {
     const { header } = this
-
-    const size = sectorsToBytes(
-      sectorsRoundUpNoZero(header.maxTableEntries * VHD_ENTRY_SIZE)
+    this.blockTable = await this._read(
+      header.tableOffset,
+      header.maxTableEntries * VHD_ENTRY_SIZE
     )
-
-    this.blockTable = await this._read(header.tableOffset, size)
   }
 
   // return the first sector (bitmap) of a block
