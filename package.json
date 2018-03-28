@@ -52,12 +52,13 @@
     "build": "scripts/run-script --parallel build",
     "clean": "scripts/run-script --parallel clean",
     "dev": "scripts/run-script --parallel dev",
-    "dev-test": "jest --bail --watch",
+    "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "posttest": "scripts/run-script test",
     "precommit": "scripts/lint-staged",
     "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
-    "test": "jest"
+    "test": "jest \"^(?!.*\\.integ\\.spec\\.js$)\"",
+    "test-integration": "jest \".integ\\.spec\\.js$\""
   },
   "workspaces": [
     "@xen-orchestra/*",

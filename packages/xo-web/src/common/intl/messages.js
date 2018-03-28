@@ -256,6 +256,7 @@ const messages = {
   jobMergedDataSpeed: 'Merge speed:',
   allJobCalls: 'All',
   job: 'Job',
+  jobEdit: 'Edit job',
   jobModalTitle: 'Job {job}',
   jobId: 'ID',
   jobType: 'Type',
@@ -290,11 +291,12 @@ const messages = {
     'You are editing Schedule {name} ({id}). Saving will override previous schedule state.',
   jobEditMessage:
     'You are editing job {name} ({id}). Saving will override previous job state.',
-  scheduleEdit: 'Edit',
+  scheduleEdit: 'Edit schedule',
   scheduleSave: 'Save',
   cancelScheduleEdition: 'Cancel',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
+  scheduleRun: 'Run schedule',
   deleteSelectedSchedules: 'Delete selected schedules',
   noScheduledJobs: 'No scheduled jobs.',
   newSchedule: 'New schedule',
@@ -980,6 +982,12 @@ const messages = {
   dashboardStatsButtonRemoveAll: 'Clear selection',
   dashboardStatsButtonAddAllHost: 'Add all hosts',
   dashboardStatsButtonAddAllVM: 'Add all VMs',
+  dashboardSendReport: 'Send report',
+  dashboardReport: 'Report',
+  dashboardSendReportMessage:
+    'This will send a usage report to your configured emails.',
+  dashboardSendReportInfo:
+    'The usage report and transport email plugins need to be loaded!',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
@@ -1154,7 +1162,6 @@ const messages = {
   scheduleTimezone: 'Timezone',
   scheduleExportRetention: 'Export ret.',
   scheduleSnapshotRetention: 'Snapshot ret.',
-  scheduleRun: 'Run',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',
@@ -1524,6 +1531,9 @@ const messages = {
   promptUpgradeReloadTitle: 'Upgrade successful',
   promptUpgradeReloadMessage:
     'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
+  upgradeWarningTitle: 'Upgrade warning',
+  upgradeWarningMessage:
+    'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',

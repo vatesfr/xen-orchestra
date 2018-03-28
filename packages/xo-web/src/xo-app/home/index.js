@@ -1094,10 +1094,10 @@ export default class Home extends Component {
     return (
       <Page header={this._renderHeader()}>
         <Shortcuts
-          name='Home'
           handler={this._getShortcutsHandler()}
+          isolate
+          name='Home'
           targetNodeSelector='body'
-          stopPropagation={false}
         />
         <div>
           <div className={styles.itemContainer}>

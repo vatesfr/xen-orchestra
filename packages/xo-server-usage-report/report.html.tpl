@@ -90,7 +90,7 @@
     .top table{
       margin: auto;
       margin-top: 20px;
-      width: 400px;
+      min-width: 30em;
     }
 
     .top table caption {
@@ -120,6 +120,10 @@
       font-size: 13px;
       border:1px solid #95a5a6;
       text-align: center;
+    }
+
+    .allResources table {
+      min-width: 60em
     }
   </style>
 </head>
@@ -151,86 +155,34 @@
         </tr>
         <tr>
           <td>Number:</td>
-          <td>{{global.vms.number}}</td>
-          <td>
-            {{#if global.vmsEvolution.number}}
-              {{#compare global.vmsEvolution.number ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.number}}
-            {{else}}
-              0
-            {{/if}}
-          </td>
+          <td>{{global.vms.number}} {{normaliseEvolution global.vmsEvolution.number}}</td>
         </tr>
         <tr>
           <td>CPU:</td>
-          <td>{{global.vms.cpu}} %</td> <!-- One condition doesn't work -->
-          <td style='color:{{#compare global.vmsEvolution.cpu ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.cpu}}
-              {{#compare global.vmsEvolution.cpu ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.cpu}}%
-            {{else}}
-              0
-            {{/if}}
-          </td>
+          <td>{{global.vms.cpu}} % {{normaliseEvolution global.vmsEvolution.cpu}}</td>
         <tr>
         <tr>
           <td>RAM:</td>
-          <td>{{global.vms.ram}} GiB</td>
-          <td style='color:{{#compare global.vmsEvolution.ram ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.ram}}
-              {{#compare global.vmsEvolution.ram ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.ram}}%
-            {{else}}
-              0
-            {{/if}}
-          </td>
+          <td>{{global.vms.ram}} GiB {{normaliseEvolution global.vmsEvolution.ram}}</td>
         <tr>
         <tr>
           <td>Disk read:</td>
-          <td>{{global.vms.diskRead}} MiB</td>
-          <td style='color:{{#compare global.vmsEvolution.diskRead ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.diskRead}}
-              {{#compare global.vmsEvolution.diskRead ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.diskRead}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.vms.diskRead}} MiB {{normaliseEvolution global.vmsEvolution.diskRead}}
           </td>
         <tr>
         <tr>
           <td>Disk write:</td>
-          <td>{{global.vms.diskWrite}} MiB</td>
-          <td style='color:{{#compare global.vmsEvolution.diskWrite ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.diskWrite}}
-              {{#compare global.vmsEvolution.diskWrite ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.diskWrite}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.vms.diskWrite}} MiB {{normaliseEvolution global.vmsEvolution.diskWrite}}
           </td>
         <tr>
         <tr>
-          <td>Net reception:</td>
-          <td>{{global.vms.netReception}} KiB</td>
-          <td style='color:{{#compare global.vmsEvolution.netReception ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.netReception}}
-              {{#compare global.vmsEvolution.netReception ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.netReception}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>Network RX:</td>
+          <td>{{global.vms.netReception}} KiB {{normaliseEvolution global.vmsEvolution.netReception}}
           </td>
         <tr>
         <tr>
-          <td>Net transmission:</td>
-          <td>{{global.vms.netTransmission}} KiB</td>
-          <td style='color:{{#compare global.vmsEvolution.netTransmission ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.vmsEvolution.netTransmission}}
-              {{#compare global.vmsEvolution.netTransmission ">" 0}}+{{/compare}}
-              {{global.vmsEvolution.netTransmission}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>Network TX:</td>
+          <td>{{global.vms.netTransmission}} KiB {{normaliseEvolution global.vmsEvolution.netTransmission}}
           </td>
         <tr>
       </table>
@@ -288,7 +240,7 @@
           </tr>
           {{/each}}
           <tr>
-            <td rowspan='{{math topVms.netReception.length "+" 1}}' class="tableHeader">Net reception</td>
+            <td rowspan='{{math topVms.netReception.length "+" 1}}' class="tableHeader">Network RX</td>
           </tr>
           {{#each topVms.netReception}}
           <tr>
@@ -298,7 +250,7 @@
           </tr>
           {{/each}}
           <tr>
-            <td rowspan='{{math topVms.netTransmission.length "+" 1}}' class="tableHeader">Net transmission</td>
+            <td rowspan='{{math topVms.netTransmission.length "+" 1}}' class="tableHeader">Network TX</td>
           </tr>
           {{#each topVms.netTransmission}}
           <tr>
@@ -318,75 +270,33 @@
         </tr>
         <tr>
           <td>Number:</td>
-          <td>{{global.hosts.number}}</td>
-          <td>
-            {{#if global.hostsEvolution.number}}
-              {{#compare global.hostsEvolution.number ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.number}}
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.number}} {{normaliseEvolution global.hostsEvolution.number}}
           </td>
         </tr>
         <tr>
           <td>CPU:</td>
-          <td>{{global.hosts.cpu}} %</td>
-          <td style='color:{{#compare global.hostsEvolution.cpu ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.cpu}}
-              {{#compare global.hostsEvolution.cpu ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.cpu}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.cpu}} % {{normaliseEvolution global.hostsEvolution.cpu}}
           </td>
         <tr>
         <tr>
           <td>RAM:</td>
-          <td>{{global.hosts.ram}} GiB</td>
-          <td style='color:{{#compare global.hostsEvolution.ram ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.ram}}
-              {{#compare global.hostsEvolution.ram ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.ram}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.ram}} GiB {{normaliseEvolution global.hostsEvolution.ram}}
           </td>
           </td>
         <tr>
         <tr>
           <td>Load average:</td>
-          <td>{{global.hosts.load}} </td>
-          <td style='color:{{#compare global.hostsEvolution.load ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.load}}
-              {{#compare global.hostsEvolution.load ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.load}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>{{global.hosts.load}}  {{normaliseEvolution global.hostsEvolution.load}}
           </td>
         <tr>
         <tr>
-          <td>Net reception:</td>
-          <td>{{global.hosts.netReception}} KiB</td>
-          <td style='color:{{#compare global.hostsEvolution.netReception ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.netReception}}
-              {{#compare global.hostsEvolution.netReception ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.netReception}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>Network RX:</td>
+          <td>{{global.hosts.netReception}} KiB {{normaliseEvolution global.hostsEvolution.netReception}}
           </td>
         <tr>
         <tr>
-          <td>Net transmission:</td>
-          <td>{{global.hosts.netTransmission}} KiB</td>
-          <td style='color:{{#compare global.hostsEvolution.netTransmission ">" 0}} red {{else}} green {{/compare}}'>
-            {{#if global.hostsEvolution.netTransmission}}
-              {{#compare global.hostsEvolution.netTransmission ">" 0}}+{{/compare}}
-              {{global.hostsEvolution.netTransmission}}%
-            {{else}}
-              0
-            {{/if}}
+          <td>Network TX:</td>
+          <td>{{global.hosts.netTransmission}} KiB {{normaliseEvolution global.hostsEvolution.netTransmission}}
           </td>
         <tr>
       </table>
@@ -432,7 +342,7 @@
           </tr>
           {{/each}}
           <tr>
-            <td rowspan='{{math topHosts.netReception.length "+" 1}}' class="tableHeader">Net reception</td>
+            <td rowspan='{{math topHosts.netReception.length "+" 1}}' class="tableHeader">Network RX</td>
           </tr>
           {{#each topHosts.netReception}}
           <tr>
@@ -442,7 +352,7 @@
           </tr>
           {{/each}}
           <tr>
-            <td rowspan='{{math topHosts.netTransmission.length "+" 1}}' class="tableHeader">Net transmission</td>
+            <td rowspan='{{math topHosts.netTransmission.length "+" 1}}' class="tableHeader">Network TX</td>
           </tr>
           {{#each topHosts.netTransmission}}
           <tr>
@@ -464,11 +374,11 @@
               <th>Name</th>
               <th>value</th>
             </tr>
-            {{#each topAllocation}}
+            {{#each topSrs}}
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
-                <td>{{this.size}} GiB</td>
+                <td>{{this.value}} GiB</td>
               </tr>
              {{/each}}
           </table>
@@ -533,8 +443,8 @@
               <th>UUID</th>
               <th>Name</th>
             </tr>
-            {{#if vmsRessourcesEvolution.added}}
-              {{#each vmsRessourcesEvolution.added}}
+            {{#if vmsResourcesEvolution.added}}
+              {{#each vmsResourcesEvolution.added}}
                 <tr>
                   <td>{{shortUUID this.uuid}}</td>
                   <td>{{this.name}}</td>
@@ -553,8 +463,8 @@
               <th>UUID</th>
               <th>Name</th>
             </tr>
-            {{#if vmsRessourcesEvolution.removed}}
-              {{#each vmsRessourcesEvolution.removed}}
+            {{#if vmsResourcesEvolution.removed}}
+              {{#each vmsResourcesEvolution.removed}}
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
@@ -572,8 +482,8 @@
               <th>UUID</th>
               <th>Name</th>
             </tr>
-            {{#if hostsRessourcesEvolution.added}}
-              {{#each hostsRessourcesEvolution.added}}
+            {{#if hostsResourcesEvolution.added}}
+              {{#each hostsResourcesEvolution.added}}
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
@@ -591,8 +501,8 @@
               <th>UUID</th>
               <th>Name</th>
             </tr>
-            {{#if hostsRessourcesEvolution.removed}}
-              {{#each hostsRessourcesEvolution.removed}}
+            {{#if hostsResourcesEvolution.removed}}
+              {{#each hostsResourcesEvolution.removed}}
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
@@ -606,5 +516,81 @@
           </table>
       </div>
     </div>
+    {{#if allResources}}
+      <div class="page">
+        <div class="top allResources">
+          <hr color="#95a5a6" size="1px"/>
+          <h3 style="text-align: center;">All resources</h3>
+          <hr color="#95a5a6" size="1px"/>
+          <table>
+            <caption>VMs</caption>
+            <tr>
+              <th>UUID</th>
+              <th>Name</th>
+              <th>CPU</th>
+              <th>RAM (GiB)</th>
+              <th>Disk read (MiB)</th>
+              <th>Disk write (MiB)</th>
+              <th>Network RX (KiB)</th>
+              <th>Network TX (KiB)</th>
+            </tr>
+            {{#each allResources.vms}}
+              <tr>
+                <td>{{shortUUID this.uuid}}</td>
+                <td>{{this.name}}</td>
+                <td>{{normaliseValue this.cpu}} % {{normaliseEvolution this.evolution.cpu}}</td>
+                <td>{{normaliseValue this.ram}} {{normaliseEvolution this.evolution.ram}}</td>
+                <td>{{normaliseValue this.diskRead}} {{normaliseEvolution this.evolution.diskRead}}</td>
+                <td>{{normaliseValue this.diskWrite}} {{normaliseEvolution this.evolution.diskWrite}}</td>
+                <td>{{normaliseValue this.netReception}} {{normaliseEvolution this.evolution.netReception}}</td>
+                <td>{{normaliseValue this.netTransmission}} {{normaliseEvolution this.evolution.netTransmission}}</td>
+              </tr>
+            {{/each}}
+          </table>
+          <table>
+            <caption>Hosts</caption>
+            <tr>
+              <th>UUID</th>
+              <th>Name</th>
+              <th>CPU</th>
+              <th>RAM (GiB)</th>
+              <th>Load average</th>
+              <th>Network RX (KiB)</th>
+              <th>Network TX (KiB)</th>
+            </tr>
+            {{#each allResources.hosts}}
+              <tr>
+                <td>{{shortUUID this.uuid}}</td>
+                <td>{{this.name}}</td>
+                <td>{{normaliseValue this.cpu}} % {{normaliseEvolution this.evolution.cpu}}</td>
+                <td>{{normaliseValue this.ram}} {{normaliseEvolution this.evolution.ram}}</td>
+                <td>{{normaliseValue this.load}} {{normaliseEvolution this.evolution.load}}</td>
+                <td>{{normaliseValue this.netReception}} {{normaliseEvolution this.evolution.netReception}}</td>
+                <td>{{normaliseValue this.netTransmission}} {{normaliseEvolution this.evolution.netTransmission}}</td>
+              </tr>
+            {{/each}}
+          </table>
+          <table>
+            <caption>SRs</caption>
+            <tr>
+              <th>UUID</th>
+              <th>Name</th>
+              <th>Total space (GiB)</th>
+              <th>Used space (GiB)</th>
+              <th>Free space (GiB)</th>
+            </tr>
+            {{#each allResources.srs}}
+              <tr>
+                <td>{{shortUUID this.uuid}}</td>
+                <td>{{this.name}}</td>
+                <td>{{normaliseValue this.total}} {{normaliseEvolution this.evolution.total}}</td>
+                <td>{{normaliseValue this.used}}</td>
+                <td>{{normaliseValue this.free}}</td>
+              </tr>
+            {{/each}}
+          </table>
+        </div>
+      </div>
+    {{/if}}
 </body>
 </html>

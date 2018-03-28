@@ -1,5 +1,5 @@
 import assert from 'assert'
-import fu from '@nraynaud/struct-fu'
+import fu from 'struct-fu'
 import { dirname } from 'path'
 
 // ===================================================================

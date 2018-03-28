@@ -611,7 +611,7 @@
     pirates "^3.0.1"
     source-map-support "^0.4.2"
 
-"@babel/runtime@^7.0.0-beta.39":
+"@babel/runtime@^7.0.0-beta.39", "@babel/runtime@^7.0.0-beta.42":
   version "7.0.0-beta.42"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.0.0-beta.42.tgz#352e40c92e0460d3e82f49bd7e79f6cda76f919f"
   dependencies:
@@ -700,10 +700,6 @@
   resolved "https://registry.yarnpkg.com/@nraynaud/novnc/-/novnc-0.6.1.tgz#995459bb6f7bd5dd9bd7899b021f68f7744cf1b3"
   dependencies:
     pako "^1.0.3"
-
-"@nraynaud/struct-fu@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@nraynaud/struct-fu/-/struct-fu-1.0.1.tgz#059a0588dea50647c3677783692dafdadfcadf97"
 
 "@nraynaud/xo-fs@^0.0.5":
   version "0.0.5"
@@ -1251,6 +1247,13 @@ async-each@^1.0.0:
 async-foreach@^0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/async-foreach/-/async-foreach-0.1.3.tgz#36121f845c0578172de419a97dbeb1d16ec34542"
+
+async-iterator-to-stream@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/async-iterator-to-stream/-/async-iterator-to-stream-1.0.1.tgz#e609c9102a17412772b9c94ffb77ddffb9b743b2"
+  dependencies:
+    "@babel/runtime" "^7.0.0-beta.42"
+    readable-stream "^2.3.5"
 
 async-limiter@~1.0.0:
   version "1.0.0"
@@ -4306,7 +4309,7 @@ eslint@^4.14.0:
     doctrine "^2.1.0"
     eslint-scope "^3.7.1"
     eslint-visitor-keys "^1.0.0"
-    espree "^3.5.4"
+    espree "^3.5.2"
     esquery "^1.0.0"
     esutils "^2.0.2"
     file-entry-cache "^2.0.0"
@@ -4328,7 +4331,6 @@ eslint@^4.14.0:
     path-is-inside "^1.0.2"
     pluralize "^7.0.0"
     progress "^2.0.0"
-    regexpp "^1.0.1"
     require-uncached "^1.0.3"
     semver "^5.3.0"
     strip-ansi "^4.0.0"
@@ -4336,7 +4338,7 @@ eslint@^4.14.0:
     table "4.0.2"
     text-table "~0.2.0"
 
-espree@^3.5.4:
+espree@^3.5.2:
   version "3.5.4"
   resolved "https://registry.yarnpkg.com/espree/-/espree-3.5.4.tgz#b0f447187c8a8bed944b815a660bddf5deb5d1a7"
   dependencies:
@@ -5809,9 +5811,9 @@ http-request-plus@^0.5.0:
     lodash "^4.17.4"
     promise-toolbox "^0.9.5"
 
-http-server-plus@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/http-server-plus/-/http-server-plus-0.9.0.tgz#3b0b38415aa18a479327e6781b23a1a26de71819"
+http-server-plus@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/http-server-plus/-/http-server-plus-0.10.0.tgz#c341b0fbfa5e2dc26122173c7410920d632b7515"
   dependencies:
     event-to-promise "^0.8.0"
     lodash "^4.16.0"
@@ -6759,6 +6761,12 @@ jest-validate@^22.4.2:
 jest-worker@^22.2.2:
   version "22.2.2"
   resolved "https://registry.yarnpkg.com/jest-worker/-/jest-worker-22.2.2.tgz#c1f5dc39976884b81f68ec50cb8532b2cbab3390"
+  dependencies:
+    merge-stream "^1.0.1"
+
+jest-worker@^22.4.3:
+  version "22.4.3"
+  resolved "https://registry.yarnpkg.com/jest-worker/-/jest-worker-22.4.3.tgz#5c421417cba1c0abf64bf56bd5fb7968d79dd40b"
   dependencies:
     merge-stream "^1.0.1"
 
@@ -9906,10 +9914,6 @@ regex-not@^1.0.0, regex-not@^1.0.2:
     extend-shallow "^3.0.2"
     safe-regex "^1.1.0"
 
-regexpp@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/regexpp/-/regexpp-1.0.1.tgz#d857c3a741dce075c2848dcb019a0a975b190d43"
-
 regexpu-core@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/regexpu-core/-/regexpu-core-2.0.0.tgz#49d038837b8dcf8bfa5b9a42139938e6ea2ae240"
@@ -10878,7 +10882,7 @@ strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
 
-struct-fu@^1.0.0:
+struct-fu@^1.0.0, struct-fu@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/struct-fu/-/struct-fu-1.2.0.tgz#a40b9eb60a41bb341228cff125fde4887daa85ac"
 

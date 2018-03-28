@@ -6,6 +6,7 @@ import {
   concat,
   differenceBy,
   filter,
+  find,
   forEach,
   isFinite,
   map,
@@ -67,6 +68,10 @@ export const configurationSchema = {
         type: 'string',
       },
     },
+    all: {
+      type: 'boolean',
+      description: "It includes all resources' stats if on.",
+    },
     periodicity: {
       type: 'string',
       enum: ['monthly', 'weekly'],
@@ -88,12 +93,12 @@ Handlebars.registerHelper('compare', function (
   options
 ) {
   if (arguments.length < 3) {
-    throw new Error('Handlerbars Helper "compare" needs 2 parameters')
+    throw new Error('Handlebars Helper "compare" needs 2 parameters')
   }
 
   if (!compareOperators[operator]) {
     throw new Error(
-      `Handlerbars Helper "compare" doesn't know the operator ${operator}`
+      `Handlebars Helper "compare" doesn't know the operator ${operator}`
     )
   }
 
@@ -104,12 +109,12 @@ Handlebars.registerHelper('compare', function (
 
 Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
   if (arguments.length < 3) {
-    throw new Error('Handlerbars Helper "math" needs 2 parameters')
+    throw new Error('Handlebars Helper "math" needs 2 parameters')
   }
 
   if (!mathOperators[operator]) {
     throw new Error(
-      `Handlerbars Helper "math" doesn't know the operator ${operator}`
+      `Handlebars Helper "math" doesn't know the operator ${operator}`
     )
   }
 
@@ -121,6 +126,23 @@ Handlebars.registerHelper('shortUUID', uuid => {
     return uuid.split('-')[0]
   }
 })
+
+Handlebars.registerHelper(
+  'normaliseValue',
+  value => (isFinite(value) ? round(value, 2) : '-')
+)
+
+Handlebars.registerHelper(
+  'normaliseEvolution',
+  value =>
+    new Handlebars.SafeString(
+      isFinite(+value) && +value !== 0
+        ? value > 0
+          ? `(<b style="color: green;">▲ ${value}</b>)`
+          : `(<b style="color: red;">▼ ${String(value).slice(1)}</b>)`
+        : ''
+    )
+)
 
 // ===================================================================
 
@@ -170,13 +192,13 @@ function getTop (objects, options) {
   )
 }
 
-function conputePercentage (curr, prev, options) {
+function computePercentage (curr, prev, options) {
   return zipObject(
     options,
     map(
       options,
       opt =>
-        prev[opt] === 0
+        prev[opt] === 0 || prev[opt] === null
           ? 'NONE'
           : `${round((curr[opt] - prev[opt]) * 100 / prev[opt], 2)}`
     )
@@ -185,45 +207,72 @@ function conputePercentage (curr, prev, options) {
 
 function getDiff (oldElements, newElements) {
   return {
-    added: differenceBy(oldElements, newElements, 'uuid'),
-    removed: differenceBy(newElements, oldElements, 'uuid'),
+    added: differenceBy(newElements, oldElements, 'uuid'),
+    removed: differenceBy(oldElements, newElements, 'uuid'),
   }
 }
 
 // ===================================================================
 
-function getVmsStats ({ runningVms, xo }) {
-  return Promise.all(
-    map(runningVms, async vm => {
-      const vmStats = await xo.getXapiVmStats(vm, 'days')
-      return {
-        uuid: vm.uuid,
-        name: vm.name_label,
-        cpu: computeDoubleMean(vmStats.stats.cpus),
-        ram: computeMean(vmStats.stats.memoryUsed) / gibPower,
-        diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
-        diskWrite: computeDoubleMean(values(vmStats.stats.xvds.w)) / mibPower,
-        netReception: computeDoubleMean(vmStats.stats.vifs.rx) / kibPower,
-        netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower,
-      }
-    })
+async function getVmsStats ({ runningVms, xo }) {
+  return orderBy(
+    await Promise.all(
+      map(runningVms, async vm => {
+        const vmStats = await xo.getXapiVmStats(vm, 'days')
+        return {
+          uuid: vm.uuid,
+          name: vm.name_label,
+          cpu: computeDoubleMean(vmStats.stats.cpus),
+          ram: computeMean(vmStats.stats.memoryUsed) / gibPower,
+          diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
+          diskWrite: computeDoubleMean(values(vmStats.stats.xvds.w)) / mibPower,
+          netReception: computeDoubleMean(vmStats.stats.vifs.rx) / kibPower,
+          netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower,
+        }
+      })
+    ),
+    'name',
+    'asc'
   )
 }
 
-function getHostsStats ({ runningHosts, xo }) {
-  return Promise.all(
-    map(runningHosts, async host => {
-      const hostStats = await xo.getXapiHostStats(host, 'days')
+async function getHostsStats ({ runningHosts, xo }) {
+  return orderBy(
+    await Promise.all(
+      map(runningHosts, async host => {
+        const hostStats = await xo.getXapiHostStats(host, 'days')
+        return {
+          uuid: host.uuid,
+          name: host.name_label,
+          cpu: computeDoubleMean(hostStats.stats.cpus),
+          ram: computeMean(hostStats.stats.memoryUsed) / gibPower,
+          load: computeMean(hostStats.stats.load),
+          netReception: computeDoubleMean(hostStats.stats.pifs.rx) / kibPower,
+          netTransmission:
+            computeDoubleMean(hostStats.stats.pifs.tx) / kibPower,
+        }
+      })
+    ),
+    'name',
+    'asc'
+  )
+}
+
+function getSrsStats (xoObjects) {
+  return orderBy(
+    map(filter(xoObjects, { type: 'SR' }), sr => {
+      const total = sr.size / gibPower
+      const used = sr.physical_usage / gibPower
       return {
-        uuid: host.uuid,
-        name: host.name_label,
-        cpu: computeDoubleMean(hostStats.stats.cpus),
-        ram: computeMean(hostStats.stats.memoryUsed) / gibPower,
-        load: computeMean(hostStats.stats.load),
-        netReception: computeDoubleMean(hostStats.stats.pifs.rx) / kibPower,
-        netTransmission: computeDoubleMean(hostStats.stats.pifs.tx) / kibPower,
+        uuid: sr.uuid,
+        name: sr.name_label,
+        total,
+        used,
+        free: total - used,
       }
-    })
+    }),
+    'total',
+    'desc'
   )
 }
 
@@ -303,20 +352,21 @@ function getTopHosts ({ hostsStats, xo }) {
   ])
 }
 
-function getMostAllocatedSpaces ({ disks, xo }) {
-  return map(orderBy(disks, ['size'], ['desc']).slice(0, 3), disk => ({
-    uuid: disk.uuid,
-    name: disk.name_label,
-    size: round(disk.size / gibPower, 2),
-  }))
+function getTopSrs ({ srsStats, xo }) {
+  return getTop(srsStats, ['total']).total
 }
 
 async function getHostsMissingPatches ({ runningHosts, xo }) {
   const hostsMissingPatches = await Promise.all(
     map(runningHosts, async host => {
-      const hostsPatches = await xo
+      let hostsPatches = await xo
         .getXapi(host)
         .listMissingPoolPatchesOnHost(host._xapiId)
+
+      if (host.license_params.sku_type === 'free') {
+        hostsPatches = filter(hostsPatches, { paid: false })
+      }
+
       if (hostsPatches.length > 0) {
         return {
           uuid: host.uuid,
@@ -347,46 +397,75 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
 
     const prevDate = oldStats.style.currDate
 
-    const vmsEvolution = {
-      number: newStatsVms.number - oldStatsVms.number,
-      ...conputePercentage(newStatsVms, oldStatsVms, [
+    const resourcesOptions = {
+      vms: [
         'cpu',
         'ram',
         'diskRead',
         'diskWrite',
         'netReception',
         'netTransmission',
-      ]),
+      ],
+      hosts: ['cpu', 'ram', 'load', 'netReception', 'netTransmission'],
+      srs: ['total'],
+    }
+
+    const vmsEvolution = {
+      number: newStatsVms.number - oldStatsVms.number,
+      ...computePercentage(newStatsVms, oldStatsVms, resourcesOptions.vms),
     }
 
     const hostsEvolution = {
       number: newStatsHosts.number - oldStatsHosts.number,
-      ...conputePercentage(newStatsHosts, oldStatsHosts, [
-        'cpu',
-        'ram',
-        'load',
-        'netReception',
-        'netTransmission',
-      ]),
+      ...computePercentage(
+        newStatsHosts,
+        oldStatsHosts,
+        resourcesOptions.hosts
+      ),
     }
 
-    const vmsRessourcesEvolution = getDiff(
+    const vmsResourcesEvolution = getDiff(
       oldStatsVms.allVms,
       newStatsVms.allVms
     )
-    const hostsRessourcesEvolution = getDiff(
+    const hostsResourcesEvolution = getDiff(
       oldStatsHosts.allHosts,
       newStatsHosts.allHosts
     )
 
     const usersEvolution = getDiff(oldStats.users, newStats.users)
 
+    const newAllResourcesStats = newStats.allResources
+    const oldAllResourcesStats = oldStats.allResources
+
+    // adding for each resource its evolution
+    if (
+      newAllResourcesStats !== undefined &&
+      oldAllResourcesStats !== undefined
+    ) {
+      forEach(newAllResourcesStats, (resource, key) => {
+        const option = resourcesOptions[key]
+
+        if (option !== undefined) {
+          forEach(resource, newItem => {
+            const oldItem = find(oldAllResourcesStats[key], {
+              uuid: newItem.uuid,
+            })
+
+            if (oldItem !== undefined) {
+              newItem.evolution = computePercentage(newItem, oldItem, option)
+            }
+          })
+        }
+      })
+    }
+
     return {
       vmsEvolution,
       hostsEvolution,
       prevDate,
-      vmsRessourcesEvolution,
-      hostsRessourcesEvolution,
+      vmsResourcesEvolution,
+      hostsResourcesEvolution,
       usersEvolution,
     }
   } catch (err) {
@@ -394,7 +473,7 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
   }
 }
 
-async function dataBuilder ({ xo, storedStatsPath }) {
+async function dataBuilder ({ xo, storedStatsPath, all }) {
   const xoObjects = values(xo.getObjects())
   const runningVms = filter(xoObjects, { type: 'VM', power_state: 'Running' })
   const haltedVms = filter(xoObjects, { type: 'VM', power_state: 'Halted' })
@@ -403,18 +482,17 @@ async function dataBuilder ({ xo, storedStatsPath }) {
     power_state: 'Running',
   })
   const haltedHosts = filter(xoObjects, { type: 'host', power_state: 'Halted' })
-  const disks = filter(xoObjects, { type: 'SR' })
   const [
     users,
     vmsStats,
     hostsStats,
-    topAllocation,
+    srsStats,
     hostsMissingPatches,
   ] = await Promise.all([
     xo.getAllUsers(),
     getVmsStats({ xo, runningVms }),
     getHostsStats({ xo, runningHosts }),
-    getMostAllocatedSpaces({ xo, disks }),
+    getSrsStats(xoObjects),
     getHostsMissingPatches({ xo, runningHosts }),
   ])
 
@@ -423,35 +501,50 @@ async function dataBuilder ({ xo, storedStatsPath }) {
     globalHostsStats,
     topVms,
     topHosts,
+    topSrs,
     usersEmail,
   ] = await Promise.all([
     computeGlobalVmsStats({ xo, vmsStats, haltedVms }),
     computeGlobalHostsStats({ xo, hostsStats, haltedHosts }),
     getTopVms({ xo, vmsStats }),
     getTopHosts({ xo, hostsStats }),
+    getTopSrs({ xo, srsStats }),
     getAllUsersEmail(users),
   ])
+
+  let allResources
+  if (all) {
+    allResources = {
+      vms: vmsStats,
+      hosts: hostsStats,
+      srs: srsStats,
+      date: currDate,
+    }
+  }
+
   const evolution = await computeEvolution({
+    allResources,
     storedStatsPath,
     hosts: globalHostsStats,
     usersEmail,
     vms: globalVmsStats,
   })
 
-  const data = {
+  return {
+    allResources,
     global: {
       vms: globalVmsStats,
       hosts: globalHostsStats,
       vmsEvolution: evolution && evolution.vmsEvolution,
       hostsEvolution: evolution && evolution.hostsEvolution,
     },
-    topVms,
     topHosts,
+    topSrs,
+    topVms,
     hostsMissingPatches,
     usersEmail,
-    topAllocation,
-    vmsRessourcesEvolution: evolution && evolution.vmsRessourcesEvolution,
-    hostsRessourcesEvolution: evolution && evolution.hostsRessourcesEvolution,
+    vmsResourcesEvolution: evolution && evolution.vmsResourcesEvolution,
+    hostsResourcesEvolution: evolution && evolution.hostsResourcesEvolution,
     usersEvolution: evolution && evolution.usersEvolution,
     style: {
       imgXo,
@@ -460,8 +553,6 @@ async function dataBuilder ({ xo, storedStatsPath }) {
       page: '{{page}}',
     },
   }
-
-  return data
 }
 
 // ===================================================================
@@ -472,6 +563,10 @@ class UsageReportPlugin {
     this._dir = getDataDir
     // Defined in configure().
     this._conf = null
+    this._xo.addApiMethod(
+      'plugin.usageReport.send',
+      this._sendReport.bind(this, false)
+    )
   }
 
   configure (configuration, state) {
@@ -485,7 +580,7 @@ class UsageReportPlugin {
       configuration.periodicity === 'monthly' ? '00 06 1 * *' : '00 06 * * 0'
     ).createJob(async () => {
       try {
-        await this._sendReport()
+        await this._sendReport(true)
       } catch (error) {
         console.error(
           '[WARN] scheduled function:',
@@ -511,13 +606,14 @@ class UsageReportPlugin {
   }
 
   test () {
-    return this._sendReport()
+    return this._sendReport(true)
   }
 
-  async _sendReport () {
+  async _sendReport (storeData) {
     const data = await dataBuilder({
       xo: this._xo,
       storedStatsPath: this._storedStatsPath,
+      all: this._conf.all,
     })
 
     await Promise.all([
@@ -537,10 +633,11 @@ class UsageReportPlugin {
           },
         ],
       }),
-      storeStats({
-        data,
-        storedStatsPath: this._storedStatsPath,
-      }),
+      storeData &&
+        storeStats({
+          data,
+          storedStatsPath: this._storedStatsPath,
+        }),
     ])
   }
 }
