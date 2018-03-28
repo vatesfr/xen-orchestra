@@ -4,6 +4,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
 import CenterPanel from 'center-panel'
+import classNames from 'classnames'
 import Component from 'base-component'
 import defined, { get } from 'xo-defined'
 import Icon from 'icon'
@@ -880,8 +881,8 @@ export default class Home extends Component {
             </Col>
           )}
         </Row>
-        <Row className={`${styles.itemRowHeader} mt-1`}>
-          <Col smallsize={11} mediumSize={3}>
+        <Row className={classNames(styles.itemRowHeader, `mt-1`)}>
+          <Col smallSize={11} mediumSize={3}>
             <input
               checked={this._getIsAllSelected()}
               onChange={this._toggleMaster}
@@ -1058,7 +1059,7 @@ export default class Home extends Component {
               </div>
             )}
           </Col>
-          <Col smallsize={1} mediumSize={1} className='text-xs-right'>
+          <Col smallSize={1} mediumSize={1} className='text-xs-right'>
             <Button onClick={this._expandAll}>
               <Icon icon='nav' />
             </Button>
