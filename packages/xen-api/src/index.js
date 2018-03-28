@@ -452,7 +452,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('there is not object can be matched to ' + idOrUuidOrRef)
+    throw new Error('no object with UUID or opaque ref: ' + idOrUuidOrRef)
   }
 
   // Returns the object for a given opaque reference (internal to
@@ -464,7 +464,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('there is no object with the ref ' + ref)
+    throw new Error('no object with opaque ref: ' + ref)
   }
 
   // Returns the object for a given UUID (unique identifier that some
@@ -477,7 +477,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('there is no object with the UUID ' + uuid)
+    throw new Error('no object with UUID: ' + uuid)
   }
 
   getRecord (type, ref) {
