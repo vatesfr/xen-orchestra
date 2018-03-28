@@ -441,10 +441,12 @@ export class Xapi extends EventEmitter {
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
   getObject (idOrUuidOrRef, defaultValue) {
+    if (typeof idOrUuidOrRef === 'object') {
+      idOrUuidOrRef = idOrUuidOrRef.$id
+    }
+
     const object =
-      typeof idOrUuidOrRef === 'string'
-        ? this._objects.all[idOrUuidOrRef] || this._objectsByRefs[idOrUuidOrRef]
-        : this._objects.all[idOrUuidOrRef.$id]
+      this._objects.all[idOrUuidOrRef] || this._objectsByRefs[idOrUuidOrRef]
 
     if (object) return object
 
