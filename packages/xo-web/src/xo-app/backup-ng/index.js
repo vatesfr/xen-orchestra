@@ -93,7 +93,7 @@ class JobsTable extends React.Component {
     ],
     columns: [
       {
-        itemRenderer: _ => _.id.slice(0, 5),
+        itemRenderer: _ => _.id.slice(4, 8),
         name: _('jobId'),
       },
       {

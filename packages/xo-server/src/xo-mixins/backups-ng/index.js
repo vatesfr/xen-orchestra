@@ -9,7 +9,7 @@ import { basename, dirname } from 'path'
 import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { timeout as pTimeout } from 'promise-toolbox'
 
-import { type Executor, type Job } from '../jobs'
+import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
@@ -30,6 +30,8 @@ import {
   createReadStream as createVhdReadStream,
   readVhdMetadata,
 } from '../../vhd-merge'
+
+import { translateLegacyJob } from './migration'
 
 type Mode = 'full' | 'delta'
 
@@ -305,8 +307,10 @@ export default class BackupNg {
     getAllSchedules: () => Promise<Schedule[]>,
     getRemoteHandler: (id: string) => Promise<RemoteHandler>,
     getXapi: (id: string) => Xapi,
-    getJob: (id: string, 'backup') => Promise<BackupJob>,
-    updateJob: ($Shape<BackupJob>) => Promise<BackupJob>,
+    getJob: ((id: string, 'backup') => Promise<BackupJob>) &
+      ((id: string, 'call') => Promise<CallJob>),
+    updateJob: (($Shape<BackupJob>, ?boolean) => Promise<BackupJob>) &
+      (($Shape<CallJob>, ?boolean) => Promise<CallJob>),
     removeJob: (id: string) => Promise<void>,
     worker: $Dict<any>,
   }
@@ -540,6 +544,14 @@ export default class BackupNg {
     return backupsByVmByRemote
   }
 
+  async migrateLegacyBackupJob (jobId: string) {
+    const [job, schedules] = await Promise.all([
+      this._app.getJob(jobId, 'call'),
+      this._app.getAllSchedules(),
+    ])
+    await this._app.updateJob(translateLegacyJob(job, schedules), false)
+  }
+
   // High:
   // - [ ] clones of replicated VMs should not be garbage collected
   //     - if storing uuids in source VM, how to detect them if the source is
@@ -563,6 +575,7 @@ export default class BackupNg {
   // - [ ] fix backup reports
   // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
   //       a very long time to finish if there are other VMs before…
+  // - [ ] detect and gc uncomplete replications
   //
   // Triage:
   // - [ ] logs

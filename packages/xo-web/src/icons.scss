@@ -285,6 +285,10 @@
     @extend .fa;
     @extend .fa-cogs;
   }
+  &-migrate-job {
+    @extend .fa;
+    @extend .fa-share;
+  }
 
   // VM
   &-vm {

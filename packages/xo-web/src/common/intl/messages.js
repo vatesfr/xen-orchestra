@@ -315,6 +315,9 @@ const messages = {
   noMatchingVms: 'There are no matching VMs!',
   allMatchingVms: '{icon} See the matching VMs ({nMatchingVms, number})',
   backupOwner: 'Backup owner',
+  migrateBackupSchedule: 'Migrate to backup NG',
+  migrateBackupScheduleMessage:
+    'This will migrate this backup to a backup NG. This operation is not reversible. Do you want to continue?',
 
   // ------ New backup -----
   newBackupSelection: 'Select your backup type:',
