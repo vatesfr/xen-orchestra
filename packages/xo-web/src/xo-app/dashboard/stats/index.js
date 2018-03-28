@@ -16,7 +16,7 @@ import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { SelectHostVm } from 'select-objects'
 import { createGetObjectsOfType } from 'selectors'
-import { connectStore, formatSize, mapPlus } from 'utils'
+import { connectStore, formatSize, getMemoryUsedMetric, mapPlus } from 'utils'
 import { fetchHostStats, fetchVmStats } from 'xo'
 
 // ===================================================================
@@ -246,6 +246,7 @@ class SelectMetric extends Component {
                 (result.endTimestamp - 3600 * (stats.memory.length - 1)) * 1000,
             }
 
+            stats.memoryUsed = getMemoryUsedMetric(stats)
             forEach(stats, (stats, type) => {
               const fnc = STATS_TYPE_TO_COMPUTE_FNC[type]
 
