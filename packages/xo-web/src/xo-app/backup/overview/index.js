@@ -19,6 +19,7 @@ import {
   deleteBackupSchedule,
   disableSchedule,
   enableSchedule,
+  migrateBackupSchedule,
   runJob,
   subscribeJobs,
   subscribeSchedules,
@@ -113,6 +114,12 @@ const JOB_COLUMNS = [
             icon='run-schedule'
             btnStyle='warning'
             handler={runJob}
+            handlerParam={schedule.jobId}
+          />
+          <ActionRowButton
+            icon='migrate-job'
+            btnStyle='danger'
+            handler={migrateBackupSchedule}
             handlerParam={schedule.jobId}
           />
         </ButtonGroup>

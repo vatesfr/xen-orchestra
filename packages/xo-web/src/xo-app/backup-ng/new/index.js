@@ -29,13 +29,18 @@ import { FormGroup, getRandomId, Input, Ul, Li } from './utils'
 
 const normaliseTagValues = values => resolveIds(values).map(value => [value])
 
-const constructPattern = values => ({
-  id: {
-    __or: resolveIds(values),
-  },
-})
+const constructPattern = values =>
+  values.length === 1
+    ? {
+      id: resolveId(values[0]),
+    }
+    : {
+      id: {
+        __or: resolveIds(values),
+      },
+    }
 
-const destructPattern = pattern => pattern.id.__or
+const destructPattern = pattern => pattern.id.__or || [pattern.id]
 
 const destructVmsPattern = pattern =>
   pattern.id === undefined
