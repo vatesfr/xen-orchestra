@@ -239,17 +239,6 @@ export default class XapiStats {
     }
   }
 
-  _parseMemory (collection) {
-    if (collection.memoryFree === undefined) {
-      collection.memoryFree = collection.memory
-    }
-
-    collection.memoryUsed = map(
-      collection.memory,
-      (value, key) => value - collection.memoryFree[key]
-    )
-  }
-
   async _getAndUpdateStats (xapi, { host, vmUuid, granularity }) {
     const step =
       granularity === undefined
@@ -341,12 +330,6 @@ export default class XapiStats {
             0,
             metricValues.length - RRD_POINTS_PER_STEP[step]
           )
-        })
-
-        forEach(this._statsByObject, obj => {
-          if (obj[step] !== undefined) {
-            this._parseMemory(obj[step].stats)
-          }
         })
       }
     }
