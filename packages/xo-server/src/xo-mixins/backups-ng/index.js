@@ -309,8 +309,8 @@ export default class BackupNg {
     getXapi: (id: string) => Xapi,
     getJob: ((id: string, 'backup') => Promise<BackupJob>) &
       ((id: string, 'call') => Promise<CallJob>),
-    updateJob: (($Shape<BackupJob>) => Promise<BackupJob>) &
-      (($Shape<CallJob>) => Promise<CallJob>),
+    updateJob: (($Shape<BackupJob>, ?boolean) => Promise<BackupJob>) &
+      (($Shape<CallJob>, ?boolean) => Promise<CallJob>),
     removeJob: (id: string) => Promise<void>,
     worker: $Dict<any>,
   }
@@ -549,7 +549,7 @@ export default class BackupNg {
       this._app.getJob(jobId, 'call'),
       this._app.getAllSchedules(),
     ])
-    await this._app.updateJob(translateLegacyJob(job, schedules))
+    await this._app.updateJob(translateLegacyJob(job, schedules), false)
   }
 
   // High:
