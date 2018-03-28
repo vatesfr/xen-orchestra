@@ -448,7 +448,7 @@ export class Xapi extends EventEmitter {
     const object =
       this._objects.all[idOrUuidOrRef] || this._objectsByRefs[idOrUuidOrRef]
 
-    if (object) return object
+    if (object !== undefined) return object
 
     if (arguments.length > 1) return defaultValue
 
@@ -460,7 +460,7 @@ export class Xapi extends EventEmitter {
   getObjectByRef (ref, defaultValue) {
     const object = this._objectsByRefs[ref]
 
-    if (object) return object
+    if (object !== undefined) return object
 
     if (arguments.length > 1) return defaultValue
 
