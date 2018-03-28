@@ -881,7 +881,7 @@ export default class Home extends Component {
             </Col>
           )}
         </Row>
-        <Row className={classNames(styles.itemRowHeader, `mt-1`)}>
+        <Row className={classNames(styles.itemRowHeader, 'mt-1')}>
           <Col smallSize={11} mediumSize={3}>
             <input
               checked={this._getIsAllSelected()}
