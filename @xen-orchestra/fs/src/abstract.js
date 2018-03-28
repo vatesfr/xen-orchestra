@@ -4,7 +4,7 @@ import { type Readable, type Writable } from 'stream'
 import { fromEvent, ignoreErrors } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 
-import { getPseudoRandomBytes, streamToBuffer } from '../utils'
+import { getPseudoRandomBytes, streamToBuffer } from './utils'
 
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 

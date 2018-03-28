@@ -1,6 +1,7 @@
 // @flow
 
 // $FlowFixMe
+import type RemoteHandler from '@xen-orchestra/fs'
 import defer from 'golike-defer'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
@@ -11,7 +12,6 @@ import { timeout as pTimeout } from 'promise-toolbox'
 import { type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
-import type RemoteHandler from '../../remote-handlers/abstract'
 import createSizeStream from '../../size-stream'
 import {
   type DeltaVmExport,

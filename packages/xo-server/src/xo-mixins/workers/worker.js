@@ -1,7 +1,7 @@
 // @flow
 
+import { type Remote, getHandler } from '@xen-orchestra/fs'
 import mergeVhd_ from '../../vhd-merge'
-import { type Remote, getHandler } from '../../remote-handlers'
 
 export function mergeVhd (
   parentRemote: Remote,

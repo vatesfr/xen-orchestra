@@ -5,8 +5,8 @@ import fs from 'fs-extra'
 import rimraf from 'rimraf'
 import { randomBytes } from 'crypto'
 import { fromEvent } from 'promise-toolbox'
+import { getHandler } from '@xen-orchestra/fs'
 
-import LocalHandler from './remote-handlers/local'
 import vhdMerge, {
   chainVhd,
   createReadStream,
@@ -57,7 +57,7 @@ test('blocks can be moved', async () => {
   const initalSize = 4
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
-  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'randomfile.vhd')
   await newVhd.readHeaderAndFooter()
@@ -74,7 +74,7 @@ test('the BAT MSB is not used for sign', async () => {
     randomBytes(VHD_SECTOR_SIZE, cb)
   )
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', '1.8T'])
-  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() })
   const vhd = new Vhd(handler, 'empty.vhd')
   await vhd.readHeaderAndFooter()
   await vhd.readBlockTable()
@@ -124,7 +124,7 @@ test('writeData on empty file', async () => {
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
-  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
@@ -139,7 +139,7 @@ test('writeData in 2 non-overlaping operations', async () => {
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
-  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
@@ -159,7 +159,7 @@ test('writeData in 2 overlaping operations', async () => {
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
-  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
@@ -179,7 +179,7 @@ test('BAT can be extended and blocks moved', async () => {
   const initalSize = 4
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
-  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'randomfile.vhd')
   await newVhd.readHeaderAndFooter()
@@ -203,7 +203,7 @@ test('coalesce works with empty parent files', async () => {
   ])
   await checkFile('randomfile.vhd')
   await checkFile('empty.vhd')
-  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() })
   const originalSize = await handler._getSize('randomfile')
   await chainVhd(handler, 'empty.vhd', handler, 'randomfile.vhd', true)
   await checkFile('randomfile.vhd')
@@ -226,7 +226,7 @@ test('coalesce works in normal cases', async () => {
     mbOfRandom + 1 + 'M',
   ])
   await convertFromRawToVhd('randomfile', 'child1.vhd')
-  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() })
   await execa('vhd-util', ['snapshot', '-n', 'child2.vhd', '-p', 'child1.vhd'])
   const vhd = new Vhd(handler, 'child2.vhd')
   await vhd.readHeaderAndFooter()
@@ -274,7 +274,7 @@ test('createReadStream passes vhd-util check', async () => {
   const initalSize = 4
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
-  const handler = new LocalHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() })
   const stream = createReadStream(handler, 'randomfile.vhd')
   await fromEvent(
     stream.pipe(await fs.createWriteStream('recovered.vhd')),

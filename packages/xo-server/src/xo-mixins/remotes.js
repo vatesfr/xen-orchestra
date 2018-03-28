@@ -1,7 +1,7 @@
+import { getHandler } from '@xen-orchestra/fs'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import { forEach, mapToArray } from '../utils'
-import { getHandler } from '../remote-handlers'
 import { Remotes } from '../models/remote'
 
 // ===================================================================

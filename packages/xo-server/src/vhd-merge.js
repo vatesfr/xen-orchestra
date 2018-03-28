@@ -1,5 +1,6 @@
 // TODO: remove once completely merged in vhd.js
 
+import type RemoteHandler from '@xen-orchestra/fs'
 import assert from 'assert'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import concurrency from 'limit-concurrency-decorator'
@@ -7,7 +8,6 @@ import fu from 'struct-fu'
 import { dirname, relative } from 'path'
 import { fromEvent } from 'promise-toolbox'
 
-import type RemoteHandler from './remote-handlers/abstract'
 import constantStream from './constant-stream'
 import { noop, resolveRelativeFromFile, streamToBuffer } from './utils'
 
