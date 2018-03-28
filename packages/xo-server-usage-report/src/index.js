@@ -212,6 +212,15 @@ function getDiff (oldElements, newElements) {
   }
 }
 
+function getMemoryUsedMetric ({ memory, memoryFree = memory }) {
+  const memoryUsed = []
+  for (const key in memory) {
+    memoryUsed.push(memory[key] - memoryFree[key])
+  }
+
+  return memoryUsed
+}
+
 // ===================================================================
 
 async function getVmsStats ({ runningVms, xo }) {
@@ -223,7 +232,7 @@ async function getVmsStats ({ runningVms, xo }) {
           uuid: vm.uuid,
           name: vm.name_label,
           cpu: computeDoubleMean(vmStats.stats.cpus),
-          ram: computeMean(vmStats.stats.memoryUsed) / gibPower,
+          ram: computeMean(getMemoryUsedMetric(vmStats.stats)) / gibPower,
           diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
           diskWrite: computeDoubleMean(values(vmStats.stats.xvds.w)) / mibPower,
           netReception: computeDoubleMean(vmStats.stats.vifs.rx) / kibPower,
@@ -245,7 +254,7 @@ async function getHostsStats ({ runningHosts, xo }) {
           uuid: host.uuid,
           name: host.name_label,
           cpu: computeDoubleMean(hostStats.stats.cpus),
-          ram: computeMean(hostStats.stats.memoryUsed) / gibPower,
+          ram: computeMean(getMemoryUsedMetric(hostStats.stats)) / gibPower,
           load: computeMean(hostStats.stats.load),
           netReception: computeDoubleMean(hostStats.stats.pifs.rx) / kibPower,
           netTransmission:
