@@ -159,7 +159,7 @@ function computeMean (values) {
   return sum / n
 }
 
-const computeDoubleMean = val => computeMean(val.map(computeMean))
+const computeDoubleMean = val => computeMean(map(val, computeMean))
 
 function computeMeans (objects, options) {
   return zipObject(
