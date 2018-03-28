@@ -2,6 +2,7 @@
 
 import execa from 'execa'
 import fs from 'fs-extra'
+import getStream from 'get-stream'
 import rimraf from 'rimraf'
 import { randomBytes } from 'crypto'
 import { fromEvent } from 'promise-toolbox'
@@ -13,7 +14,7 @@ import vhdMerge, {
   Vhd,
   VHD_SECTOR_SIZE,
 } from './vhd-merge'
-import { pFromCallback, streamToBuffer, tmpDir } from './utils'
+import { pFromCallback, tmpDir } from './utils'
 
 const initialDir = process.cwd()
 
@@ -110,7 +111,7 @@ test('the BAT MSB is not used for sign', async () => {
   } finally {
     fs.close(recoveredFile)
   }
-  const recovered = await streamToBuffer(
+  const recovered = await getStream.buffer(
     await fs.createReadStream('recovered', {
       start: hugePositionBytes,
       end: hugePositionBytes + randomBuffer.length - 1,

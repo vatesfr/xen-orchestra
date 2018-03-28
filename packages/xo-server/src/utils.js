@@ -55,10 +55,6 @@ export const asyncMap = (collection, iteratee) => {
 
 // -------------------------------------------------------------------
 
-export streamToBuffer from './stream-to-new-buffer'
-
-// -------------------------------------------------------------------
-
 export function camelToSnakeCase (string) {
   return string.replace(
     /([a-z0-9])([A-Z])/g,

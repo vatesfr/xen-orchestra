@@ -3,13 +3,14 @@
 import type RemoteHandler from '@xen-orchestra/fs'
 import assert from 'assert'
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import getStream from 'get-stream'
 import concurrency from 'limit-concurrency-decorator'
 import fu from 'struct-fu'
 import { dirname, relative } from 'path'
 import { fromEvent } from 'promise-toolbox'
 
 import constantStream from './constant-stream'
-import { noop, resolveRelativeFromFile, streamToBuffer } from './utils'
+import { noop, resolveRelativeFromFile } from './utils'
 
 const VHD_UTIL_DEBUG = 0
 const debug = VHD_UTIL_DEBUG ? str => console.log(`[vhd-merge]${str}`) : noop
@@ -232,7 +233,7 @@ export class Vhd {
   }
 
   _read (start, n) {
-    return this._readStream(start, n).then(streamToBuffer)
+    return this._readStream(start, n).then(getStream.buffer)
   }
 
   containsBlock (id) {

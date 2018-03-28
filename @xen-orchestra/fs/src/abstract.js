@@ -1,10 +1,10 @@
 // @flow
 
+import { randomBytes } from 'crypto'
+import getStream from 'get-stream'
+import { fromCallback, fromEvent, ignoreErrors } from 'promise-toolbox'
 import { type Readable, type Writable } from 'stream'
-import { fromEvent, ignoreErrors } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
-
-import { getPseudoRandomBytes, streamToBuffer } from './utils'
 
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
@@ -54,7 +54,7 @@ export default class RemoteHandlerAbstract {
 
   async test (): Promise<Object> {
     const testFileName = `${Date.now()}.test`
-    const data = getPseudoRandomBytes(1024 * 1024)
+    const data = await fromCallback(cb => randomBytes(1024 * 1024, cb))
     let step = 'write'
     try {
       await this.outputFile(testFileName, data)
@@ -97,7 +97,7 @@ export default class RemoteHandlerAbstract {
   }
 
   _readFile (file: string, options?: Object): Promise<Buffer> {
-    return this.createReadStream(file, options).then(streamToBuffer)
+    return this.createReadStream(file, options).then(getStream.buffer)
   }
 
   async rename (
