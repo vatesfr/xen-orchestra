@@ -562,6 +562,7 @@ export default class BackupNg {
   //       2. next run should be a full
   // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
   // - [ ] import for delta
+  // - [ ] do not delete rolling snapshot in case of failure!
   //
   // Low:
   // - [ ] check merge/transfert duration/size are what we want for delta
