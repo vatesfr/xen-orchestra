@@ -22,7 +22,6 @@ import {
   forEach,
   includes,
   isEmpty,
-  isObject,
   mapValues,
   size,
 } from 'lodash'
@@ -336,13 +335,14 @@ export default class Jobs extends Component {
       .catch(err => error('Create Job', err.message || String(err)))
   }
 
-  _edit = jobOrIdJob => {
+  _edit = job => {
     const { jobs, actions } = this.state
-    const job = isObject(jobOrIdJob)
-      ? jobOrIdJob
-      : find(jobs, { id: jobOrIdJob })
 
-    if (!job) {
+    if (typeof job === 'string') {
+      job = find(jobs, { id: job })
+    }
+
+    if (job === undefined) {
       error('Job edition', 'This job was not found, or may not longer exists.')
       return
     }
