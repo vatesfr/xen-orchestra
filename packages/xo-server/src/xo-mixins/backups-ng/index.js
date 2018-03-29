@@ -562,7 +562,6 @@ export default class BackupNg {
   //       2. next run should be a full
   // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
   // - [ ] import for delta
-  // - [ ] do not delete rolling snapshot in case of failure!
   //
   // Low:
   // - [ ] check merge/transfert duration/size are what we want for delta
@@ -591,6 +590,7 @@ export default class BackupNg {
   // - [x] backups should be deletable from the API
   // - [x] adding and removing VDIs should behave
   // - [x] isolate VHD chains by job
+  // - [x] do not delete rolling snapshot in case of failure!
   @defer
   async _backupVm (
     $defer: any,
@@ -793,6 +793,11 @@ export default class BackupNg {
         transferSize: xva.size,
       }
     } else if (job.mode === 'delta') {
+      if (snapshotRetention === 0) {
+        // only keep the snapshot in case of success
+        $defer.onFailure.call(xapi, 'deleteVm', snapshot)
+      }
+
       const baseSnapshot = last(snapshots)
       if (baseSnapshot !== undefined) {
         console.log(baseSnapshot.$id) // TODO: remove
