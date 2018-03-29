@@ -9,12 +9,8 @@ import { randomBytes } from 'crypto'
 import { fromCallback as pFromCallback, fromEvent } from 'promise-toolbox'
 import { getHandler } from '@xen-orchestra/fs'
 
-import vhdMerge, {
-  chainVhd,
-  createReadStream,
-  Vhd,
-  VHD_SECTOR_SIZE,
-} from './vhd-merge'
+import { VHD_SECTOR_SIZE, Vhd } from './vhd'
+import vhdMerge, { chainVhd, createReadStream } from './vhd-merge'
 
 const initialDir = process.cwd()
 
