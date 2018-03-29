@@ -276,6 +276,7 @@ const messages = {
   jobTimezone: 'Timezone',
   jobServerTimezone: 'Server',
   runJob: 'Run job',
+  runJobConfirm: 'Are you sure you want to run {backupType} {id} ({tag})?',
   runJobVerbose: 'One shot running started. See overview for logs.',
   jobFinished: 'Finished',
   jobInterrupted: 'Interrupted',
@@ -318,6 +319,7 @@ const messages = {
   migrateBackupSchedule: 'Migrate to backup NG',
   migrateBackupScheduleMessage:
     'This will migrate this backup to a backup NG. This operation is not reversible. Do you want to continue?',
+  runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
 
   // ------ New backup -----
   newBackupSelection: 'Select your backup type:',

@@ -135,16 +135,23 @@ const isVhd = (filename: string) => filename.endsWith('.vhd')
 const listReplicatedVms = (
   xapi: Xapi,
   scheduleId: string,
-  srId: string
+  srId: string,
+  vmUuid?: string,
 ): Vm[] => {
   const { all } = xapi.objects
   const vms = {}
   for (const key in all) {
     const object = all[key]
+    const oc = object.other_config
     if (
       object.$type === 'vm' &&
-      object.other_config['xo:backup:schedule'] === scheduleId &&
-      object.other_config['xo:backup:sr'] === srId
+      oc['xo:backup:schedule'] === scheduleId &&
+      oc['xo:backup:sr'] === srId &&
+      (
+        oc['xo:backup:vm'] === vmUuid ||
+        // 2018-03-28, JFT: to catch VMs replicated before this fix
+        oc['xo:backup:vm'] === undefined
+      )
     ) {
       vms[object.$id] = object
     }
@@ -522,9 +529,9 @@ export default class BackupNg {
 
         const backupsByVm = (backupsByVmByRemote[remoteId] = {})
         await Promise.all(
-          entries.map(async vmId => {
+          entries.map(async vmUuid => {
             // $FlowFixMe don't know what is the problem (JFT)
-            const backups = await this._listVmBackups(handler, vmId)
+            const backups = await this._listVmBackups(handler, vmUuid)
 
             if (backups.length === 0) {
               return
@@ -535,7 +542,7 @@ export default class BackupNg {
               backup.id = `${remoteId}/${backup._filename}`
             })
 
-            backupsByVm[vmId] = backups
+            backupsByVm[vmUuid] = backups
           })
         )
       })
@@ -571,7 +578,6 @@ export default class BackupNg {
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
   // - [ ] size of the path? (base64url(Buffer.from(uuid.split('-').join(''), 'hex')))
-  // - [ ] do not create snapshot if unhealthy vdi chain
   // - [ ] fix backup reports
   // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
   //       a very long time to finish if there are other VMs before…
@@ -590,17 +596,20 @@ export default class BackupNg {
   // - [x] backups should be deletable from the API
   // - [x] adding and removing VDIs should behave
   // - [x] isolate VHD chains by job
+  // - [x] do not delete rolling snapshot in case of failure!
+  // - [x] do not create snapshot if unhealthy vdi chain
+  // - [x] replicated VMs should be discriminated by VM (vatesfr/xen-orchestra#2807)
   @defer
   async _backupVm (
     $defer: any,
     $cancelToken: any,
-    vmId: string,
+    vmUuid: string,
     job: BackupJob,
     schedule: Schedule
   ): Promise<BackupResult> {
     const app = this._app
-    const xapi = app.getXapi(vmId)
-    const vm: Vm = (xapi.getObject(vmId): any)
+    const xapi = app.getXapi(vmUuid)
+    const vm: Vm = (xapi.getObject(vmUuid): any)
 
     const { id: jobId, settings } = job
     const { id: scheduleId } = schedule
@@ -625,6 +634,20 @@ export default class BackupNg {
     const snapshots = vm.$snapshots
       .filter(_ => _.other_config['xo:backup:job'] === jobId)
       .sort(compareSnapshotTime)
+
+    await xapi._assertHealthyVdiChains(vm)
+
+    let snapshot: Vm = (await xapi._snapshotVm(
+      $cancelToken,
+      vm,
+      `[XO Backup ${job.name}] ${vm.name_label}`
+    ): any)
+    await xapi._updateObjectMapProperty(snapshot, 'other_config', {
+      'xo:backup:job': jobId,
+      'xo:backup:schedule': scheduleId,
+      'xo:backup:vm': vmUuid,
+    })
+
     $defer(() =>
       asyncMap(
         getOldEntries(
@@ -637,16 +660,6 @@ export default class BackupNg {
       )
     )
 
-    let snapshot: Vm = (await xapi._snapshotVm(
-      $cancelToken,
-      vm,
-      `[XO Backup ${job.name}] ${vm.name_label}`
-    ): any)
-    $defer.onFailure.call(xapi, '_deleteVm', snapshot)
-    await xapi._updateObjectMapProperty(snapshot, 'other_config', {
-      'xo:backup:job': jobId,
-      'xo:backup:schedule': scheduleId,
-    })
     snapshot = ((await xapi.barrier(snapshot.$ref): any): Vm)
 
     if (exportRetention === 0) {
@@ -665,7 +678,7 @@ export default class BackupNg {
     }
 
     const now = Date.now()
-    const vmDir = getVmBackupDir(vm.uuid)
+    const vmDir = getVmBackupDir(vmUuid)
 
     const basename = safeDateFormat(now)
 
@@ -742,7 +755,7 @@ export default class BackupNg {
 
               const oldVms = getOldEntries(
                 exportRetention,
-                listReplicatedVms(xapi, scheduleId, srId)
+                listReplicatedVms(xapi, scheduleId, srId, vmUuid)
               )
 
               const deleteFirst = getSetting(settings, 'deleteFirst', srId)
@@ -793,6 +806,11 @@ export default class BackupNg {
         transferSize: xva.size,
       }
     } else if (job.mode === 'delta') {
+      if (snapshotRetention === 0) {
+        // only keep the snapshot in case of success
+        $defer.onFailure.call(xapi, 'deleteVm', snapshot)
+      }
+
       const baseSnapshot = last(snapshots)
       if (baseSnapshot !== undefined) {
         console.log(baseSnapshot.$id) // TODO: remove
@@ -950,7 +968,7 @@ export default class BackupNg {
 
               const oldVms = getOldEntries(
                 exportRetention,
-                listReplicatedVms(xapi, scheduleId, srId)
+                listReplicatedVms(xapi, scheduleId, srId, vmUuid)
               )
 
               const deleteFirst = getSetting(settings, 'deleteFirst', srId)
