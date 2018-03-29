@@ -1,19 +1,21 @@
 // TODO: remove once completely merged in vhd.js
 
-import type RemoteHandler from '@xen-orchestra/fs'
 import assert from 'assert'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import getStream from 'get-stream'
 import concurrency from 'limit-concurrency-decorator'
 import fu from 'struct-fu'
-import { dirname, relative } from 'path'
+import { dirname, relative, resolve } from 'path'
 import { fromEvent } from 'promise-toolbox'
 
+// import type RemoteHandler from '@xen-orchestra/fs'
+
 import constantStream from './constant-stream'
-import { noop, resolveRelativeFromFile } from './utils'
 
 const VHD_UTIL_DEBUG = 0
-const debug = VHD_UTIL_DEBUG ? str => console.log(`[vhd-merge]${str}`) : noop
+const debug = VHD_UTIL_DEBUG
+  ? str => console.log(`[vhd-merge]${str}`)
+  : () => null
 
 // ===================================================================
 //
@@ -116,6 +118,8 @@ const fuHeader = fu.struct([
 // ===================================================================
 // Helpers
 // ===================================================================
+const resolveRelativeFromFile = (file, path) =>
+  resolve('/', dirname(file), path).slice(1)
 
 const computeBatSize = entries =>
   sectorsToBytes(sectorsRoundUpNoZero(entries * VHD_ENTRY_SIZE))
@@ -981,7 +985,10 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
   }
 })
 
-export async function readVhdMetadata (handler: RemoteHandler, path: string) {
+export async function readVhdMetadata (
+  handler /*: RemoteHandler */,
+  path /*: string */
+) {
   const vhd = new Vhd(handler, path)
   await vhd.readHeaderAndFooter()
   return {

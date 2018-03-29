@@ -1,3 +1,4 @@
+import { vhdMerge, chainVhd } from '@xen-orchestra/vhd-lib'
 import deferrable from 'golike-defer'
 import escapeStringRegexp from 'escape-string-regexp'
 import execa from 'execa'
@@ -22,7 +23,6 @@ import {
 } from 'lodash'
 
 import createSizeStream from '../size-stream'
-import vhdMerge, { chainVhd } from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import { lvs, pvs } from '../lvm'
 import {

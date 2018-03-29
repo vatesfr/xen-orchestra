@@ -4,8 +4,9 @@ import execa from 'execa'
 import fs from 'fs-extra'
 import getStream from 'get-stream'
 import rimraf from 'rimraf'
+import tmp from 'tmp'
 import { randomBytes } from 'crypto'
-import { fromEvent } from 'promise-toolbox'
+import { fromCallback as pFromCallback, fromEvent } from 'promise-toolbox'
 import { getHandler } from '@xen-orchestra/fs'
 
 import vhdMerge, {
@@ -14,14 +15,13 @@ import vhdMerge, {
   Vhd,
   VHD_SECTOR_SIZE,
 } from './vhd-merge'
-import { pFromCallback, tmpDir } from './utils'
 
 const initialDir = process.cwd()
 
 jest.setTimeout(10000)
 
 beforeEach(async () => {
-  const dir = await tmpDir()
+  const dir = await pFromCallback(cb => tmp.dir(cb))
   process.chdir(dir)
 })
 

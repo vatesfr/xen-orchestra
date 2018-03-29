@@ -1,14 +1,15 @@
 /* eslint-env jest */
 
 import rimraf from 'rimraf'
+import tmp from 'tmp'
 
-import { pFromCallback, tmpDir } from './utils'
+import { pFromCallback } from './utils'
 import { getHandler } from '.'
 
 const initialDir = process.cwd()
 
 beforeEach(async () => {
-  const dir = await tmpDir()
+  const dir = await pFromCallback(cb => tmp.dir(cb))
   process.chdir(dir)
 })
 
