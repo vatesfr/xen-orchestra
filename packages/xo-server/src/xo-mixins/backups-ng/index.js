@@ -29,7 +29,7 @@ import {
   chainVhd,
   createReadStream as createVhdReadStream,
   readVhdMetadata,
-} from '../../vhd-merge'
+} from '@xen-orchestra/vhd-lib'
 
 import { translateLegacyJob } from './migration'
 
@@ -136,7 +136,7 @@ const listReplicatedVms = (
   xapi: Xapi,
   scheduleId: string,
   srId: string,
-  vmUuid?: string,
+  vmUuid?: string
 ): Vm[] => {
   const { all } = xapi.objects
   const vms = {}
@@ -147,11 +147,9 @@ const listReplicatedVms = (
       object.$type === 'vm' &&
       oc['xo:backup:schedule'] === scheduleId &&
       oc['xo:backup:sr'] === srId &&
-      (
-        oc['xo:backup:vm'] === vmUuid ||
+      (oc['xo:backup:vm'] === vmUuid ||
         // 2018-03-28, JFT: to catch VMs replicated before this fix
-        oc['xo:backup:vm'] === undefined
-      )
+        oc['xo:backup:vm'] === undefined)
     ) {
       vms[object.$id] = object
     }
