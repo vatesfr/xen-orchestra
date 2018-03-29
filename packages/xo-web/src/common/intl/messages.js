@@ -320,6 +320,7 @@ const messages = {
   migrateBackupScheduleMessage:
     'This will migrate this backup to a backup NG. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
+
   // ------ New backup -----
   newBackupSelection: 'Select your backup type:',
   smartBackupModeSelection: 'Select backup mode:',

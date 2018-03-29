@@ -124,33 +124,23 @@ const JOB_COLUMNS = [
               handlerParam={schedule}
               icon='delete'
             />
-          )}
-          <ActionRowButton
-            icon='delete'
-            btnStyle='danger'
-            handler={deleteBackupSchedule}
-            handlerParam={schedule}
-          />
-          <ActionRowButton
-            disabled={!isScheduleUserMissing[schedule.id]}
-            icon='run-schedule'
-            btnStyle='warning'
-            handler={_runJob}
-            handlerParam={{
-              id: schedule.jobId,
-              label: jobLabel,
-            }}
-          />
-          <ActionRowButton
-            icon='migrate-job'
-            btnStyle='danger'
-            handler={migrateBackupSchedule}
-            handlerParam={schedule.jobId}
-          />
-        </ButtonGroup>
-      </fieldset>
-    )
-  },
+            <ActionRowButton
+              btnStyle='warning'
+              disabled={isScheduleUserMissing[id]}
+              handler={_runJob}
+              handlerParam={item}
+              icon='run-schedule'
+            />
+            <ActionRowButton
+              icon='migrate-job'
+              btnStyle='danger'
+              handler={migrateBackupSchedule}
+              handlerParam={schedule.jobId}
+            />
+          </ButtonGroup>
+        </fieldset>
+      )
+    },
     textAlign: 'right',
   },
 ]
