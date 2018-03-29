@@ -336,10 +336,8 @@ export default class Jobs extends Component {
   }
 
   _edit = job => {
-    const { jobs, actions } = this.state
-
     if (typeof job === 'string') {
-      job = find(jobs, { id: job })
+      job = find(this.state.jobs, { id: job })
     }
 
     if (job === undefined) {
@@ -348,7 +346,7 @@ export default class Jobs extends Component {
     }
 
     const { name, method } = this.refs
-    const action = find(actions, action => action.method === job.method)
+    const action = find(this.state.actions, { method: job.method })
     name.value = job.name
     method.value = action
     this.setState(
@@ -443,7 +441,7 @@ export default class Jobs extends Component {
     return (
       <div>
         <h1>{_('jobsPage')}</h1>
-        <form id='newJobForm'>
+        <form id='newJobForm' className='mb-2'>
           <SelectSubject
             onChange={this.linkState('owner', 'id')}
             placeholder={_('jobOwnerPlaceholder')}
