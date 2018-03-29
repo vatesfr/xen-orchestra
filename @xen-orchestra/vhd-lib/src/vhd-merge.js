@@ -8,7 +8,7 @@ import fu from 'struct-fu'
 import { dirname, relative, resolve } from 'path'
 import { fromEvent } from 'promise-toolbox'
 
-// import type RemoteHandler from '@xen-orchestra/fs'
+import type RemoteHandler from '@xen-orchestra/fs'
 
 import constantStream from './constant-stream'
 
@@ -985,10 +985,7 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
   }
 })
 
-export async function readVhdMetadata (
-  handler /*: RemoteHandler */,
-  path /*: string */
-) {
+export async function readVhdMetadata (handler: RemoteHandler, path: string) {
   const vhd = new Vhd(handler, path)
   await vhd.readHeaderAndFooter()
   return {

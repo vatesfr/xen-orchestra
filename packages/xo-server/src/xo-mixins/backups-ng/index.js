@@ -8,6 +8,11 @@ import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
 import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { timeout as pTimeout } from 'promise-toolbox'
+import {
+  chainVhd,
+  createReadStream as createVhdReadStream,
+  readVhdMetadata,
+} from '@xen-orchestra/vhd-lib'
 
 import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
@@ -25,11 +30,6 @@ import {
   safeDateFormat,
   serializeError,
 } from '../../utils'
-import {
-  chainVhd,
-  createReadStream as createVhdReadStream,
-  readVhdMetadata,
-} from '@xen-orchestra/vhd-lib'
 
 import { translateLegacyJob } from './migration'
 
