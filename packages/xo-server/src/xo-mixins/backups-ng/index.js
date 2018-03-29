@@ -643,7 +643,6 @@ export default class BackupNg {
       vm,
       `[XO Backup ${job.name}] ${vm.name_label}`
     ): any)
-    $defer.onFailure.call(xapi, '_deleteVm', snapshot)
     await xapi._updateObjectMapProperty(snapshot, 'other_config', {
       'xo:backup:job': jobId,
       'xo:backup:schedule': scheduleId,
