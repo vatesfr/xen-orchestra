@@ -1,7 +1,9 @@
 import Smb2 from '@marsaud/smb2-promise'
+import { lastly as pFinally } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
-import { noop, pFinally } from './utils'
+
+const noop = () => {}
 
 // Normalize the error code for file not found.
 const normalizeError = error => {
