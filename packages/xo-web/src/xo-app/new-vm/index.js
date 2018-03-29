@@ -122,10 +122,14 @@ const Item = ({ label, children, className }) => (
 })
 @injectIntl
 class Vif extends BaseComponent {
+  _getIpPoolPredicate = createSelector(
+    () => this.props.vif,
+    vif => ipPool => includes(ipPool.networks, vif.network)
+  )
+
   render () {
     const {
       intl: { formatMessage },
-      ipPoolPredicate,
       ipPoolsConfigured,
       networkPredicate,
       onChangeAddresses,
@@ -170,14 +174,14 @@ class Vif extends BaseComponent {
             <span className={styles.inlineSelect}>
               {pool ? (
                 <SelectIp
-                  containerPredicate={ipPoolPredicate}
+                  containerPredicate={this._getIpPoolPredicate()}
                   multi
                   onChange={onChangeAddresses}
                   value={vif.addresses}
                 />
               ) : (
                 <SelectResourceSetIp
-                  containerPredicate={ipPoolPredicate}
+                  containerPredicate={this._getIpPoolPredicate()}
                   multi
                   onChange={onChangeAddresses}
                   resourceSetId={resourceSet.id}
