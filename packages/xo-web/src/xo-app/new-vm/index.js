@@ -41,6 +41,7 @@ import {
   createVms,
   getCloudInitConfig,
   subscribeCurrentUser,
+  subscribeIpPools,
   subscribePermissions,
   subscribeResourceSets,
   XEN_DEFAULT_CPU_CAP,
@@ -115,12 +116,17 @@ const Item = ({ label, children, className }) => (
   </span>
 )
 
+@addSubscriptions({
+  // eslint-disable-next-line standard/no-callback-literal
+  ipPoolsConfigured: cb => subscribeIpPools(ipPools => cb(ipPools.length > 0)),
+})
 @injectIntl
 class Vif extends BaseComponent {
   render () {
     const {
       intl: { formatMessage },
       ipPoolPredicate,
+      ipPoolsConfigured,
       networkPredicate,
       onChangeAddresses,
       onChangeMac,
@@ -159,26 +165,28 @@ class Vif extends BaseComponent {
             )}
           </span>
         </Item>
-        <LineItem>
-          <span className={styles.inlineSelect}>
-            {pool ? (
-              <SelectIp
-                containerPredicate={ipPoolPredicate}
-                multi
-                onChange={onChangeAddresses}
-                value={vif.addresses}
-              />
-            ) : (
-              <SelectResourceSetIp
-                containerPredicate={ipPoolPredicate}
-                multi
-                onChange={onChangeAddresses}
-                resourceSetId={resourceSet.id}
-                value={vif.addresses}
-              />
-            )}
-          </span>
-        </LineItem>
+        {ipPoolsConfigured && (
+          <LineItem>
+            <span className={styles.inlineSelect}>
+              {pool ? (
+                <SelectIp
+                  containerPredicate={ipPoolPredicate}
+                  multi
+                  onChange={onChangeAddresses}
+                  value={vif.addresses}
+                />
+              ) : (
+                <SelectResourceSetIp
+                  containerPredicate={ipPoolPredicate}
+                  multi
+                  onChange={onChangeAddresses}
+                  resourceSetId={resourceSet.id}
+                  value={vif.addresses}
+                />
+              )}
+            </span>
+          </LineItem>
+        )}
         <Item>
           <Button onClick={onDelete}>
             <Icon icon='new-vm-remove' />
@@ -530,25 +538,6 @@ export default class NewVm extends BaseComponent {
     () => this.props.pool && this.props.pool.id,
     poolId => sr =>
       (poolId == null || poolId === sr.$pool) && sr.SR_type === 'iso'
-  )
-  _getIpPoolPredicate = createSelector(
-    () => !!this.props.pool,
-    () => {
-      const { resourceSet } = this.props
-      return resourceSet && resourceSet.ipPools
-    },
-    () => this.props.vif,
-    (pool, ipPools, vif) => ipPool => {
-      if (!ipPool) {
-        return false
-      }
-      return (
-        pool ||
-        (ipPools &&
-          includes(ipPools, ipPool.id) &&
-          find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vif.network))
-      )
-    }
   )
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
