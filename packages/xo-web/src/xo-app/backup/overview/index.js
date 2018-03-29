@@ -119,12 +119,6 @@ const JOB_COLUMNS = [
               />
             )}
             <ActionRowButton
-              btnStyle='danger'
-              handler={deleteBackupSchedule}
-              handlerParam={schedule}
-              icon='delete'
-            />
-            <ActionRowButton
               btnStyle='warning'
               disabled={isScheduleUserMissing[id]}
               handler={_runJob}
@@ -136,6 +130,12 @@ const JOB_COLUMNS = [
               btnStyle='danger'
               handler={migrateBackupSchedule}
               handlerParam={schedule.jobId}
+            />
+            <ActionRowButton
+              btnStyle='danger'
+              handler={deleteBackupSchedule}
+              handlerParam={schedule}
+              icon='delete'
             />
           </ButtonGroup>
         </fieldset>
