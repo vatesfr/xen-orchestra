@@ -571,7 +571,6 @@ export default class BackupNg {
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
   // - [ ] size of the path? (base64url(Buffer.from(uuid.split('-').join(''), 'hex')))
-  // - [ ] do not create snapshot if unhealthy vdi chain
   // - [ ] fix backup reports
   // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
   //       a very long time to finish if there are other VMs before…
@@ -591,6 +590,7 @@ export default class BackupNg {
   // - [x] adding and removing VDIs should behave
   // - [x] isolate VHD chains by job
   // - [x] do not delete rolling snapshot in case of failure!
+  // - [x] do not create snapshot if unhealthy vdi chain
   @defer
   async _backupVm (
     $defer: any,
@@ -626,6 +626,19 @@ export default class BackupNg {
     const snapshots = vm.$snapshots
       .filter(_ => _.other_config['xo:backup:job'] === jobId)
       .sort(compareSnapshotTime)
+
+    await xapi._assertHealthyVdiChains(vm)
+
+    let snapshot: Vm = (await xapi._snapshotVm(
+      $cancelToken,
+      vm,
+      `[XO Backup ${job.name}] ${vm.name_label}`
+    ): any)
+    await xapi._updateObjectMapProperty(snapshot, 'other_config', {
+      'xo:backup:job': jobId,
+      'xo:backup:schedule': scheduleId,
+    })
+
     $defer(() =>
       asyncMap(
         getOldEntries(
@@ -638,15 +651,6 @@ export default class BackupNg {
       )
     )
 
-    let snapshot: Vm = (await xapi._snapshotVm(
-      $cancelToken,
-      vm,
-      `[XO Backup ${job.name}] ${vm.name_label}`
-    ): any)
-    await xapi._updateObjectMapProperty(snapshot, 'other_config', {
-      'xo:backup:job': jobId,
-      'xo:backup:schedule': scheduleId,
-    })
     snapshot = ((await xapi.barrier(snapshot.$ref): any): Vm)
 
     if (exportRetention === 0) {

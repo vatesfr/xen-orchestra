@@ -46,6 +46,7 @@ declare export class Vm extends XapiObject {
 declare export class Xapi {
   objects: { all: $Dict<Object> };
 
+  _assertHealthyVdiChains(vm: Vm): void;
   _importVm(
     cancelToken: mixed,
     stream: AugmentedReadable,
