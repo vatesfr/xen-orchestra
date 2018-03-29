@@ -323,6 +323,7 @@ create.resolve = {
 async function delete_ ({
   delete_disks, // eslint-disable-line camelcase
   force,
+  forceDeleteDefaultTemplate,
   vm,
 
   deleteDisks = delete_disks,
@@ -363,7 +364,12 @@ async function delete_ ({
     ;this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
   }
 
-  return xapi.deleteVm(vm._xapiId, deleteDisks, force)
+  return xapi.deleteVm(
+    vm._xapiId,
+    deleteDisks,
+    force,
+    forceDeleteDefaultTemplate
+  )
 }
 
 delete_.params = {
@@ -375,6 +381,11 @@ delete_.params = {
   },
 
   force: {
+    optional: true,
+    type: 'boolean',
+  },
+
+  forceDeleteDefaultTemplate: {
     optional: true,
     type: 'boolean',
   },

@@ -19,7 +19,11 @@ import {
   throttle,
 } from 'lodash'
 import { lastly, reflect, tap } from 'promise-toolbox'
-import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
+import {
+  forbiddenOperation,
+  noHostsAvailable,
+  vmIsTemplate,
+} from 'xo-common/api-errors'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
@@ -968,11 +972,49 @@ export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
     body: _('templateDeleteModalBody', { templates: templates.length }),
-  }).then(
-    () =>
-      Promise.all(map(resolveIds(templates), id => _call('vm.delete', { id }))),
-    noop
-  )
+  }).then(async () => {
+    const defaultTemplates = []
+    let nErrors = 0
+    await Promise.all(
+      map(resolveIds(templates), id =>
+        _call('vm.delete', { id }).catch(reason => {
+          if (vmIsTemplate.is(reason)) {
+            defaultTemplates.push(id)
+          } else {
+            nErrors++
+          }
+        })
+      )
+    )
+
+    const nDefaultTemplate = defaultTemplates.length
+    if (nDefaultTemplate === 0 && nErrors === 0) {
+      return
+    }
+
+    const showError = () =>
+      error(
+        _('failedToDeleteTemplatesTitle', { nTemplates: nErrors }),
+        _('failedToDeleteTemplatesMessage', { nTemplates: nErrors })
+      )
+
+    return nDefaultTemplate === 0
+      ? showError()
+      : confirm({
+        title: _('DeleteDefaultTemplatesTitle', { nDefaultTemplate }),
+        body: _('DeleteDefaultTemplatesMessage', { nDefaultTemplate }),
+      }).then(() => {
+        if (nErrors !== 0) {
+          showError()
+        }
+
+        return Promise.all(
+          map(defaultTemplates, id =>
+            _call('vm.delete', { id, forceDeleteDefaultTemplate: true })
+          )
+        )
+      }, noop)
+  }, noop)
 
 export const snapshotVm = vm => _call('vm.snapshot', { id: resolveId(vm) })
 
