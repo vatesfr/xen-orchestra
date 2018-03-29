@@ -575,30 +575,36 @@ export default [
                     >
                       {_('backup')}
                     </ActionButton>
-                    <ActionButton
-                      active={state.deltaMode}
-                      disabled={state.isFull}
-                      handler={effects.setDeltaMode}
-                      icon='delta-backup'
-                    >
-                      {_('deltaBackup')}
-                    </ActionButton>
-                    <ActionButton
-                      active={state.drMode}
-                      disabled={state.isDelta}
-                      handler={effects.setDrMode}
-                      icon='disaster-recovery'
-                    >
-                      {_('disasterRecovery')}
-                    </ActionButton>
-                    <ActionButton
-                      active={state.crMode}
-                      disabled={state.isFull}
-                      handler={effects.setCrMode}
-                      icon='continuous-replication'
-                    >
-                      {_('continuousReplication')}
-                    </ActionButton>
+                    <Upgrade place='newBackup' required={3}>
+                      <ActionButton
+                        active={state.deltaMode}
+                        disabled={state.isFull}
+                        handler={effects.setDeltaMode}
+                        icon='delta-backup'
+                      >
+                        {_('deltaBackup')}
+                      </ActionButton>
+                    </Upgrade>
+                    <Upgrade place='newBackup' required={3}>
+                      <ActionButton
+                        active={state.drMode}
+                        disabled={state.isDelta}
+                        handler={effects.setDrMode}
+                        icon='disaster-recovery'
+                      >
+                        {_('disasterRecovery')}
+                      </ActionButton>
+                    </Upgrade>
+                    <Upgrade place='newBackup' required={4}>
+                      <ActionButton
+                        active={state.crMode}
+                        disabled={state.isFull}
+                        handler={effects.setCrMode}
+                        icon='continuous-replication'
+                      >
+                        {_('continuousReplication')}
+                      </ActionButton>
+                    </Upgrade>
                   </div>
                 </CardBlock>
               </Card>
