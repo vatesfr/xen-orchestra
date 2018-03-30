@@ -1424,7 +1424,7 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  @synchronized() // like @concurrency(1) but more efficient
+  @concurrency(2)
   @cancelable
   async _snapshotVm ($cancelToken, vm, nameLabel = vm.name_label) {
     debug(
