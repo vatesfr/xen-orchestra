@@ -671,7 +671,8 @@ export default class BackupNg {
 
     const remotes = unboxIds(job.remotes)
     const srs = unboxIds(job.srs)
-    if (remotes.length === 0 && srs.length === 0) {
+    const nTargets = remotes.length + srs.length
+    if (nTargets === 0) {
       throw new Error('export retention must be 0 without remotes and SRs')
     }
 
@@ -695,6 +696,15 @@ export default class BackupNg {
       const exportTask = xva.task
       xva = xva.pipe(createSizeStream())
 
+      const forkExport =
+        nTargets === 0
+          ? () => xva
+          : () => {
+            const fork = xva.pipe(new PassThrough())
+            fork.task = exportTask
+            return fork
+          }
+
       const dataBasename = `${basename}.xva`
 
       const metadata: MetadataFull = {
@@ -715,7 +725,7 @@ export default class BackupNg {
       await waitAll(
         [
           ...remotes.map(async remoteId => {
-            const fork = xva.pipe(new PassThrough())
+            const fork = forkExport()
 
             const handler = await app.getRemoteHandler(remoteId)
 
@@ -742,8 +752,7 @@ export default class BackupNg {
             }
           }),
           ...srs.map(async srId => {
-            const fork = xva.pipe(new PassThrough())
-            fork.task = exportTask
+            const fork = forkExport()
 
             const xapi = app.getXapi(srId)
             const sr = xapi.getObject(srId)
@@ -841,49 +850,55 @@ export default class BackupNg {
       const jsonMetadata = JSON.stringify(metadata)
 
       // create a fork of the delta export
-      const forkExport = (() => {
-        // replace the stream factories by fork factories
-        const streams: any = mapValues(deltaExport.streams, lazyStream => {
-          let forks = []
-          return () => {
-            if (forks === undefined) {
-              throw new Error(
-                'cannot fork the stream after it has been created'
-              )
-            }
-            if (forks.length === 0) {
-              lazyStream().then(
-                stream => {
-                  // $FlowFixMe
-                  forks.forEach(({ resolve }) => {
-                    const fork: any = stream.pipe(new PassThrough())
-                    fork.task = stream.task
-                    resolve(fork)
+      const forkExport =
+        nTargets === 1
+          ? () => deltaExport
+          : (() => {
+            // replace the stream factories by fork factories
+            const streams: any = mapValues(
+              deltaExport.streams,
+              lazyStream => {
+                let forks = []
+                return () => {
+                  if (forks === undefined) {
+                    throw new Error(
+                      'cannot fork the stream after it has been created'
+                    )
+                  }
+                  if (forks.length === 0) {
+                    lazyStream().then(
+                      stream => {
+                        // $FlowFixMe
+                        forks.forEach(({ resolve }) => {
+                          const fork: any = stream.pipe(new PassThrough())
+                          fork.task = stream.task
+                          resolve(fork)
+                        })
+                        forks = undefined
+                      },
+                      error => {
+                        // $FlowFixMe
+                        forks.forEach(({ reject }) => {
+                          reject(error)
+                        })
+                        forks = undefined
+                      }
+                    )
+                  }
+                  return new Promise((resolve, reject) => {
+                    // $FlowFixMe
+                    forks.push({ reject, resolve })
                   })
-                  forks = undefined
-                },
-                error => {
-                  // $FlowFixMe
-                  forks.forEach(({ reject }) => {
-                    reject(error)
-                  })
-                  forks = undefined
                 }
-              )
+              }
+            )
+            return () => {
+              return {
+                __proto__: deltaExport,
+                streams,
+              }
             }
-            return new Promise((resolve, reject) => {
-              // $FlowFixMe
-              forks.push({ reject, resolve })
-            })
-          }
-        })
-        return () => {
-          return {
-            __proto__: deltaExport,
-            streams,
-          }
-        }
-      })()
+          })()
 
       const mergeStart = 0
       const mergeEnd = 0
