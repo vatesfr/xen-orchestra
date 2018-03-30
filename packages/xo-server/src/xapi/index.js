@@ -633,7 +633,12 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _deleteVm (vm, deleteDisks = true, force = false) {
+  async _deleteVm (
+    vm,
+    deleteDisks = true,
+    force = false,
+    forceDeleteDefaultTemplate = false
+  ) {
     debug(`Deleting VM ${vm.name_label}`)
 
     const { $ref } = vm
@@ -654,6 +659,10 @@ export default class Xapi extends XapiBase {
     vm = await this.barrier('VM', $ref)
 
     return Promise.all([
+      forceDeleteDefaultTemplate &&
+        this._updateObjectMapProperty(vm, 'other_config', {
+          default_template: null,
+        }),
       this.call('VM.destroy', $ref),
 
       asyncMap(vm.$snapshots, snapshot =>
@@ -693,8 +702,13 @@ export default class Xapi extends XapiBase {
     ])
   }
 
-  async deleteVm (vmId, deleteDisks, force) {
-    return /* await */ this._deleteVm(this.getObject(vmId), deleteDisks, force)
+  async deleteVm (vmId, deleteDisks, force, forceDeleteDefaultTemplate) {
+    return /* await */ this._deleteVm(
+      this.getObject(vmId),
+      deleteDisks,
+      force,
+      forceDeleteDefaultTemplate
+    )
   }
 
   getVmConsole (vmId) {
