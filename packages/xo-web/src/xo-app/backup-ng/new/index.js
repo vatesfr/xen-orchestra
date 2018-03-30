@@ -599,7 +599,7 @@ export default [
                       {_('disasterRecovery')}
                     </ActionButton>{' '}
                     {process.env.XOA_PLAN < 3 && (
-                      <Tooltip content={_('needEntreprisePlan')}>
+                      <Tooltip content={_('dbAndDrRequireEntreprisePlan')}>
                         <Icon icon='info' />
                       </Tooltip>
                     )}{' '}
@@ -615,7 +615,7 @@ export default [
                       {_('continuousReplication')}
                     </ActionButton>{' '}
                     {process.env.XOA_PLAN < 4 && (
-                      <Tooltip content={_('needPremiumPlan')}>
+                      <Tooltip content={_('crRequiresPremiumPlan')}>
                         <Icon icon='info' />
                       </Tooltip>
                     )}
