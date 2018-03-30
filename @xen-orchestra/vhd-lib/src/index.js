@@ -4,3 +4,5 @@ export {
   createReadStream,
   readVhdMetadata,
 } from './vhd-merge'
+
+export { Vhd } from './vhd'

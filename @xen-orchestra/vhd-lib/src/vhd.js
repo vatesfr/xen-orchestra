@@ -720,6 +720,25 @@ export class Vhd {
     }
     return firstLocatorOffset
   }
+
+  async setUniqueParentLocator (fileNameString) {
+    const { header } = this
+    header.parentLocatorEntry[0].platformCode = PLATFORM_W2KU
+    const encodedFilename = Buffer.from(fileNameString, 'utf16le')
+    const dataSpaceSectors = Math.ceil(encodedFilename.length / VHD_SECTOR_SIZE)
+    const position = await this.ensureSpaceForParentLocators(dataSpaceSectors)
+    await this._write(encodedFilename, position)
+    header.parentLocatorEntry[0].platformDataSpace =
+      dataSpaceSectors * VHD_SECTOR_SIZE
+    header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
+    header.parentLocatorEntry[0].platformDataOffset = position
+    for (let i = 1; i < 8; i++) {
+      header.parentLocatorEntry[i].platformCode = VHD_PLATFORM_CODE_NONE
+      header.parentLocatorEntry[i].platformDataSpace = 0
+      header.parentLocatorEntry[i].platformDataLength = 0
+      header.parentLocatorEntry[i].platformDataOffset = 0
+    }
+  }
 }
 
 export const createReadStream = asyncIteratorToStream(function * (handler, path) {

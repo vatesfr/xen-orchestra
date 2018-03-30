@@ -671,7 +671,7 @@
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@julien-f/freactal/-/freactal-0.1.0.tgz#c3c97c1574ed82de6989f7f3c6110f34b0da3866"
 
-"@marsaud/smb2-promise@^0.2.0", "@marsaud/smb2-promise@^0.2.1":
+"@marsaud/smb2-promise@^0.2.1":
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@marsaud/smb2-promise/-/smb2-promise-0.2.1.tgz#fee95f4baba6e4d930e8460d3377aa12560e0f0e"
   dependencies:
@@ -700,20 +700,6 @@
   resolved "https://registry.yarnpkg.com/@nraynaud/novnc/-/novnc-0.6.1.tgz#995459bb6f7bd5dd9bd7899b021f68f7744cf1b3"
   dependencies:
     pako "^1.0.3"
-
-"@nraynaud/xo-fs@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@nraynaud/xo-fs/-/xo-fs-0.0.5.tgz#0f8c525440909223904b6841a37f4d255baa54b3"
-  dependencies:
-    "@marsaud/smb2-promise" "^0.2.0"
-    event-to-promise "^0.7.0"
-    execa "^0.4.0"
-    fs-promise "^0.4.1"
-    get-stream "^2.1.0"
-    lodash "^4.13.1"
-    promise-toolbox "^0.5.0"
-    through2 "^2.0.0"
-    xo-remote-parser "^0.3"
 
 "@sindresorhus/is@^0.7.0":
   version "0.7.0"
@@ -3260,13 +3246,6 @@ cross-env@^5.1.1, cross-env@^5.1.3:
     cross-spawn "^5.1.0"
     is-windows "^1.0.0"
 
-cross-spawn-async@^2.1.1:
-  version "2.2.5"
-  resolved "https://registry.yarnpkg.com/cross-spawn-async/-/cross-spawn-async-2.2.5.tgz#845ff0c0834a3ded9d160daca6d390906bb288cc"
-  dependencies:
-    lru-cache "^4.0.0"
-    which "^1.2.8"
-
 cross-spawn@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-3.0.1.tgz#1256037ecb9f0c5f79e3d6ef135e30770184b982"
@@ -4453,17 +4432,6 @@ execa@^0.10.0:
     signal-exit "^3.0.0"
     strip-eof "^1.0.0"
 
-execa@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/execa/-/execa-0.4.0.tgz#4eb6467a36a095fabb2970ff9d5e3fb7bce6ebc3"
-  dependencies:
-    cross-spawn-async "^2.1.1"
-    is-stream "^1.1.0"
-    npm-run-path "^1.0.0"
-    object-assign "^4.0.1"
-    path-key "^1.0.0"
-    strip-eof "^1.0.0"
-
 execa@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/execa/-/execa-0.7.0.tgz#944becd34cc41ee32a63a9faf27ad5a65fc59777"
@@ -4955,12 +4923,6 @@ fs-mkdirp-stream@^1.0.0:
     graceful-fs "^4.1.11"
     through2 "^2.0.3"
 
-fs-promise@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/fs-promise/-/fs-promise-0.4.1.tgz#9d57aed89dbcea0fdb6d4cb9c2044aedd9722efd"
-  dependencies:
-    any-promise "^1.0.0"
-
 fs-promise@^2.0.0, fs-promise@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/fs-promise/-/fs-promise-2.0.3.tgz#f64e4f854bcf689aa8bddcba268916db3db46854"
@@ -5074,13 +5036,6 @@ get-stdin@^4.0.1:
 get-stream@3.0.0, get-stream@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc37555054ecbe2edb05aa174ede14"
-
-get-stream@^2.1.0:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-2.3.1.tgz#5f38f93f346009666ee0150a054167f91bdd95de"
-  dependencies:
-    object-assign "^4.0.1"
-    pinkie-promise "^2.0.0"
 
 get-uri@^2.0.0:
   version "2.0.1"
@@ -7557,7 +7512,7 @@ lru-cache@^2.6.5:
   version "2.7.3"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-2.7.3.tgz#6d4524e8b955f95d4f5b58851ce21dd72fb4e952"
 
-lru-cache@^4.0.0, lru-cache@^4.0.1:
+lru-cache@^4.0.1:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-4.1.2.tgz#45234b2e6e2f2b33da125624c4664929a0224c3f"
   dependencies:
@@ -8303,12 +8258,6 @@ now-and-later@^2.0.0:
   dependencies:
     once "^1.3.2"
 
-npm-run-path@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-1.0.0.tgz#f5c32bf595fe81ae927daec52e82f8b000ac3c8f"
-  dependencies:
-    path-key "^1.0.0"
-
 npm-run-path@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-2.0.2.tgz#35a9232dfa35d7067b4cb2ddf2357b1871536c5f"
@@ -8826,10 +8775,6 @@ path-is-inside@^1.0.1, path-is-inside@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/path-is-inside/-/path-is-inside-1.0.2.tgz#365417dede44430d1c11af61027facf074bdfc53"
 
-path-key@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/path-key/-/path-key-1.0.0.tgz#5d53d578019646c0d68800db4e146e6bdc2ac7af"
-
 path-key@^2.0.0, path-key@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/path-key/-/path-key-2.0.1.tgz#411cadb574c5a140d3a4b1910d40d80cc9f40b40"
@@ -9105,12 +9050,6 @@ progress@^2.0.0:
 promise-polyfill@^6.0.1:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/promise-polyfill/-/promise-polyfill-6.1.0.tgz#dfa96943ea9c121fca4de9b5868cb39d3472e057"
-
-promise-toolbox@^0.5.0:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.5.1.tgz#23977649a1c501e39b3352b047718ed9fe54e194"
-  dependencies:
-    make-error "^1.0.4"
 
 promise-toolbox@^0.8.0:
   version "0.8.3"
@@ -11721,7 +11660,7 @@ which-pm-runs@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/which-pm-runs/-/which-pm-runs-1.0.0.tgz#670b3afbc552e0b55df6b7780ca74615f23ad1cb"
 
-which@1, which@^1.2.12, which@^1.2.14, which@^1.2.8, which@^1.2.9, which@^1.3.0:
+which@1, which@^1.2.12, which@^1.2.14, which@^1.2.9, which@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/which/-/which-1.3.0.tgz#ff04bdfc010ee547d780bec38e1ac1c2777d253a"
   dependencies:
