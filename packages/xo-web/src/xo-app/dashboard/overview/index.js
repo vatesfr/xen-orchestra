@@ -112,11 +112,6 @@ class DefaultCard extends Component {
     })
   }
 
-  _getValidHosts = createFilter(
-    () => this.state.hosts,
-    this._getPoolWisePredicate
-  )
-
   _getHosts = createSelector(
     createFilter(() => this.props.hosts, this._getPoolWisePredicate),
     () => this.state.hosts,
