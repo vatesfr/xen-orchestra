@@ -203,9 +203,31 @@ export default class Menu extends Component {
         ],
       },
       isAdmin && {
-        to: '/backup-ng',
+        to: '/backup-ng/overview',
         icon: 'menu-backup',
-        label: ['Backup NG'],
+        label: <span>Backup NG</span>,
+        subMenu: [
+          {
+            to: '/backup-ng/overview',
+            icon: 'menu-backup-overview',
+            label: 'backupOverviewPage',
+          },
+          {
+            to: '/backup-ng/new',
+            icon: 'menu-backup-new',
+            label: 'backupNewPage',
+          },
+          {
+            to: '/backup-ng/restore',
+            icon: 'menu-backup-restore',
+            label: 'backupRestorePage',
+          },
+          {
+            to: '/backup-ng/file-restore',
+            icon: 'menu-backup-file-restore',
+            label: 'backupFileRestorePage',
+          },
+        ],
       },
       isAdmin && {
         to: 'xoa/update',
