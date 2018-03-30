@@ -104,11 +104,12 @@ class DefaultCard extends Component {
 
   _onPoolsChange = pools => {
     const { hosts } = this.state
+    const poolIds = map(pools, 'id')
     this.setState({
       pools,
       hosts: isEmpty(pools)
         ? hosts
-        : filter(hosts, host => includes(map(pools, 'id'), host.$pool)),
+        : filter(hosts, host => includes(poolIds, host.$pool)),
     })
   }
 
@@ -231,7 +232,7 @@ class DefaultCard extends Component {
           <Col mediumSize={6}>
             <SelectHost
               multi
-              onChange={this.linkState('hosts')}
+              onChange={this._onHostsChange}
               predicate={this._getPoolWisePredicate()}
               value={state.hosts}
             />
