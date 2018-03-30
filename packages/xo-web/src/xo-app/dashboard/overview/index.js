@@ -13,7 +13,7 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
-import { compact, forEach, includes, isEmpty, map, size } from 'lodash'
+import { compact, filter, forEach, includes, isEmpty, map, size } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { SelectHost, SelectPool } from 'select-objects'
 import {
@@ -97,9 +97,24 @@ class DefaultCard extends Component {
     this._getPoolWisePredicate,
     () => map(this.state.hosts, 'id'),
     (poolWisePredicate, hostsIds) => item =>
-      poolWisePredicate(item) &&
-      (isEmpty(hostsIds) ||
-        includes(hostsIds, item.$container || item.$host))
+      isEmpty(hostsIds)
+        ? poolWisePredicate(item)
+        : includes(hostsIds, item.$container || item.$host)
+  )
+
+  _onPoolsChange = pools => {
+    const { hosts } = this.state
+    this.setState({
+      pools,
+      hosts: isEmpty(pools)
+        ? hosts
+        : filter(hosts, host => includes(map(pools, 'id'), host.$pool)),
+    })
+  }
+
+  _getValidHosts = createFilter(
+    () => this.state.hosts,
+    this._getPoolWisePredicate
   )
 
   _getHosts = createSelector(
@@ -214,14 +229,14 @@ class DefaultCard extends Component {
           <Col mediumSize={6}>
             <SelectPool
               multi
-              onChange={this.linkState('pools')}
+              onChange={this._onPoolsChange}
               value={state.pools}
             />
           </Col>
           <Col mediumSize={6}>
             <SelectHost
               multi
-              onChange={this._onHostsChange}
+              onChange={this.linkState('hosts')}
               predicate={this._getPoolWisePredicate()}
               value={state.hosts}
             />
