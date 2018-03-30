@@ -228,6 +228,7 @@ export default class XoaUpdates extends Component {
                   {_('refresh')}
                 </ActionButton>{' '}
                 <ActionButton
+                  disabled={state !== 'upgradeNeeded'}
                   btnStyle='success'
                   data-runningJobsExist={this._getRunningJobsExist()}
                   handler={upgrade}
