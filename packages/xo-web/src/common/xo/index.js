@@ -1003,21 +1003,24 @@ export const deleteTemplates = templates =>
       : confirm({
         title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
         body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
-      }).then(async () => {
-        await Promise.all(
-          map(defaultTemplates, id =>
-            _call('vm.delete', {
-              id,
-              forceDeleteDefaultTemplate: true,
-            }).catch(() => {
-              nErrors++
-            })
+      })
+        .then(async () => {
+          await Promise.all(
+            map(defaultTemplates, id =>
+              _call('vm.delete', {
+                id,
+                forceDeleteDefaultTemplate: true,
+              }).catch(() => {
+                nErrors++
+              })
+            )
           )
-        )
-        if (nErrors !== 0) {
-          showError()
-        }
-      }, noop)
+        }, noop)
+        .then(() => {
+          if (nErrors !== 0) {
+            showError()
+          }
+        }, noop)
   }, noop)
 
 export const snapshotVm = vm => _call('vm.snapshot', { id: resolveId(vm) })
