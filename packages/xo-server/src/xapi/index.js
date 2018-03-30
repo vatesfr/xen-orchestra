@@ -655,16 +655,14 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    if (forceDeleteDefaultTemplate) {
-      await this._updateObjectMapProperty(vm, 'other_config', {
-        default_template: null,
-      })
-    }
-
     // ensure the vm record is up-to-date
     vm = await this.barrier('VM', $ref)
 
     return Promise.all([
+      forceDeleteDefaultTemplate &&
+        this._updateObjectMapProperty(vm, 'other_config', {
+          default_template: null,
+        }),
       this.call('VM.destroy', $ref),
 
       asyncMap(vm.$snapshots, snapshot =>

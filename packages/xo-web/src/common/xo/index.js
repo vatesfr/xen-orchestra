@@ -987,8 +987,8 @@ export const deleteTemplates = templates =>
       )
     )
 
-    const nDefaultTemplate = defaultTemplates.length
-    if (nDefaultTemplate === 0 && nErrors === 0) {
+    const nDefaultTemplates = defaultTemplates.length
+    if (nDefaultTemplates === 0 && nErrors === 0) {
       return
     }
 
@@ -998,21 +998,25 @@ export const deleteTemplates = templates =>
         _('failedToDeleteTemplatesMessage', { nTemplates: nErrors })
       )
 
-    return nDefaultTemplate === 0
+    return nDefaultTemplates === 0
       ? showError()
       : confirm({
-        title: _('DeleteDefaultTemplatesTitle', { nDefaultTemplate }),
-        body: _('DeleteDefaultTemplatesMessage', { nDefaultTemplate }),
-      }).then(() => {
+        title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
+        body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
+      }).then(async () => {
+        await Promise.all(
+          map(defaultTemplates, id =>
+            _call('vm.delete', {
+              id,
+              forceDeleteDefaultTemplate: true,
+            }).catch(() => {
+              nErrors++
+            })
+          )
+        )
         if (nErrors !== 0) {
           showError()
         }
-
-        return Promise.all(
-          map(defaultTemplates, id =>
-            _call('vm.delete', { id, forceDeleteDefaultTemplate: true })
-          )
-        )
       }, noop)
   }, noop)
 

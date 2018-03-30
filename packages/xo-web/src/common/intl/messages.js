@@ -952,11 +952,11 @@ const messages = {
   failedToDeleteTemplatesTitle:
     'Delete template{nTemplates, plural, one {} other {s}} failed',
   failedToDeleteTemplatesMessage:
-    'Failed to delete {nTemplates, number} template{nTemplates, plural, one {} other {s}}. Please see your logs to get more information.',
-  DeleteDefaultTemplatesTitle:
-    'Delete default template{nDefaultTemplate, plural, one {} other {s}}',
-  DeleteDefaultTemplatesMessage:
-    'You are attempting to delete {nDefaultTemplate, number} default template{nDefaultTemplate, plural, one {} other {s}}. Do you want to continue?',
+    'Failed to delete {nTemplates, number} template{nTemplates, plural, one {} other {s}}.',
+  deleteDefaultTemplatesTitle:
+    'Delete default template{nDefaultTemplates, plural, one {} other {s}}',
+  deleteDefaultTemplatesMessage:
+    'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?',
 
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
