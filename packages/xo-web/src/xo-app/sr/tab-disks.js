@@ -12,28 +12,15 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import { injectIntl } from 'react-intl'
 import { Text } from 'editable'
-import { SelectVm } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
-import { createFinder, createGetObjectsOfType, createSelector } from 'selectors'
+import { connectStore, formatSize, noop } from 'utils'
+import { concat, isEmpty, map, some } from 'lodash'
 import {
-  addSubscriptions,
-  connectStore,
-  formatSize,
-  noop,
-  resolveResourceSet,
-} from 'utils'
-import {
-  concat,
-  every,
-  flatten,
-  forEach,
-  get,
-  includes,
-  isEmpty,
-  map,
-  some,
-} from 'lodash'
+  createGetObjectsOfType,
+  createSelector,
+  getCheckPermissions,
+} from 'selectors'
 import {
   connectVbd,
   createDisk,
@@ -43,8 +30,6 @@ import {
   disconnectVbd,
   editVdi,
   isVmRunning,
-  isSrShared,
-  subscribeResourceSets,
 } from 'xo'
 
 // ===================================================================
@@ -203,133 +188,22 @@ const FILTERS = {
   onClose: propTypes.func,
   sr: propTypes.object.isRequired,
 })
-@addSubscriptions({
-  resourceSets: subscribeResourceSets,
-})
-@connectStore(() => {
-  const getSrPbds = createGetObjectsOfType('PBD').pick(
-    (_, props) => props.sr.$PBDs
-  )
-  const getSrHosts = createGetObjectsOfType('host').pick(
-    createSelector(getSrPbds, pbds => map(pbds, pbd => pbd.host))
-  )
-  const getHosts = createGetObjectsOfType('host')
-  const getPbds = createGetObjectsOfType('PBD')
-  const getSR = createGetObjectsOfType('SR')
-  const getVbds = createGetObjectsOfType('VBD')
-  const getVdis = createGetObjectsOfType('VDI')
-
-  return (state, props) => ({
-    hosts: getHosts(state, props),
-    pbds: getPbds(state, props),
-    srHosts: getSrHosts(state, props),
-    srs: getSR(state, props),
-    vbds: getVbds(state, props),
-    vdis: getVdis(state, props),
-  })
-})
 class NewDisk extends Component {
   _createDisk = () => {
     const { sr, onClose = noop } = this.props
-    const { bootable, name, readOnly, size, vm } = this.state
+    const { name, readOnly, size } = this.state
 
     return createDisk(name, size, sr, {
-      vm,
-      bootable,
       mode: readOnly ? 'RO' : 'RW',
     }).then(onClose)
   }
 
-  _getResourceSet = createFinder(
-    () => this.props.resourceSets,
-    createSelector(
-      () => this.state.vm && this.state.vm.resourceSet,
-      id => resourceSet => resourceSet.id === id
-    )
-  )
-
-  _getResolvedResourceSet = createSelector(
-    this._getResourceSet,
-    resolveResourceSet
-  )
-
-  _getIsLocalSrOnSameSrHosts = createSelector(
-    () => this.props.hosts,
-    () => this.props.pbds,
-    () => this.props.srHosts,
-    () => this.props.srs,
-    () => this.props.vbds,
-    () => this.props.vdis,
-    (hosts, pbds, srHosts, srs, vbds, vdis) => vm => {
-      const isOnSameHosts = []
-      forEach(vm.$VBDs, id => {
-        const vbd = vbds[id]
-        const vdi = vbd.is_cd_drive ? undefined : vdis[vbd.VDI]
-        if (vdi !== undefined) {
-          isOnSameHosts.push(
-            every(
-              map(map(flatten(map(srs[vdi.$SR].$PBDs)), id => pbds[id]), pbd =>
-                includes(srHosts, hosts[pbd.host])
-              )
-            )
-          )
-        }
-      })
-      return every(isOnSameHosts)
-    }
-  )
-
-  _getIsInPool = createSelector(
-    this._getIsLocalSrOnSameSrHosts,
-    () => this.props.sr,
-    (getIsLocalSrOnSameSrHosts, sr) => vm => {
-      const isInPool = vm.$pool === sr.$pool
-      return isInPool && !isSrShared(sr)
-        ? isVmRunning(vm) ? false : getIsLocalSrOnSameSrHosts(vm)
-        : isInPool
-    }
-  )
-
-  _getIsInResourceSet = createSelector(
-    () => {
-      const resourceSet = this._getResourceSet()
-      return resourceSet && resourceSet.objects
-    },
-    objectsIds => id => includes(objectsIds, id)
-  )
-
-  _getVmPredicate = createSelector(
-    this._getIsInPool,
-    this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => vm => {
-      const vmIsInPool = isInPool(vm)
-      return vm.resourceSet !== undefined
-        ? vmIsInPool && isInResourceSet(vm.id)
-        : vmIsInPool
-    }
-  )
-
-  _getResourceSetDiskLimit = createSelector(this._getResourceSet, resourceSet =>
-    get(resourceSet, 'limits.disk.available')
-  )
-
   render () {
     const { formatMessage } = this.props.intl
-    const { bootable, name, readOnly, size, vm } = this.state
-
-    const diskLimit = this._getResourceSetDiskLimit()
-    const resourceSet = this._getResolvedResourceSet()
+    const { name, readOnly, size } = this.state
 
     return (
       <form id='newDiskForm'>
-        <div className='form-group'>
-          <SelectVm
-            onChange={this.linkState('vm')}
-            predicate={this._getVmPredicate()}
-            required
-            value={vm}
-          />
-        </div>
         <fieldset className='form-inline'>
           <div className='form-group'>
             <input
@@ -340,8 +214,8 @@ class NewDisk extends Component {
               type='text'
               value={name}
             />
-          </div>{' '}
-          <div className='form-group'>
+          </div>
+          <div className='form-group ml-1'>
             <SizeInput
               onChange={this.linkState('size')}
               placeholder={formatMessage(messages.vbdSizePlaceHolder)}
@@ -349,17 +223,7 @@ class NewDisk extends Component {
               value={size}
             />
           </div>
-          <div className='form-group'>
-            {vm !== undefined &&
-              vm.virtualizationMode !== 'pv' && (
-                <span>
-                  {_('vbdBootable')}{' '}
-                  <Toggle
-                    onChange={this.toggleState('bootable')}
-                    value={bootable}
-                  />{' '}
-                </span>
-              )}
+          <div className='form-group ml-1'>
             <span>
               {_('vbdReadonly')}{' '}
               <Toggle
@@ -371,7 +235,6 @@ class NewDisk extends Component {
           <span className='pull-right'>
             <ActionButton
               btnStyle='primary'
-              disabled={diskLimit < size}
               form='newDiskForm'
               handler={this._createDisk}
               icon='add'
@@ -380,33 +243,18 @@ class NewDisk extends Component {
             </ActionButton>
           </span>
         </fieldset>
-        {resourceSet !== undefined &&
-          diskLimit !== undefined &&
-          (diskLimit < size ? (
-            <em className='text-danger'>
-              {_('notEnoughSpaceInResourceSet', {
-                resourceSet: <strong>{resourceSet.name}</strong>,
-                spaceLeft: formatSize(diskLimit),
-              })}
-            </em>
-          ) : (
-            <em>
-              {_('useQuotaWarning', {
-                resourceSet: <strong>{resourceSet.name}</strong>,
-                spaceLeft: formatSize(diskLimit),
-              })}
-            </em>
-          ))}
       </form>
     )
   }
 }
 
+@connectStore(() => {
+  return (state, props) => ({
+    checkPermissions: getCheckPermissions,
+  })
+})
 export default class SrDisks extends Component {
-  _toggleNewDisk = () =>
-    this.setState({
-      newDisk: !this.state.newDisk,
-    })
+  _closeNewDiskForm = () => this.setState({ newDisk: false })
 
   _getAllVdis = createSelector(
     () => this.props.vdis,
@@ -415,32 +263,45 @@ export default class SrDisks extends Component {
     concat
   )
 
+  _getIsSrAdmin = createSelector(
+    () => this.props.checkPermissions,
+    () => this.props.sr.id,
+    (check, id) => check(id, 'administrate')
+  )
+
   render () {
     const vdis = this._getAllVdis()
     const { newDisk } = this.state
 
     return (
       <Container>
-        <Row>
-          <Col className='text-xs-right'>
-            <TabButton
-              btnStyle={newDisk ? 'info' : 'primary'}
-              handler={this.toggleState('newDisk')}
-              icon='add'
-              labelId='vbdCreateDeviceButton'
-            />
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            {newDisk && (
-              <div>
-                <NewDisk sr={this.props.sr} onClose={this._toggleNewDisk} />
-                <hr />
-              </div>
-            )}
-          </Col>
-        </Row>
+        {this._getIsSrAdmin() && (
+          <Container>
+            <Row>
+              <Col className='text-xs-right'>
+                <TabButton
+                  btnStyle={newDisk ? 'info' : 'primary'}
+                  handler={this.toggleState('newDisk')}
+                  icon='add'
+                  labelId='vbdCreateDeviceButton'
+                />
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                {newDisk && (
+                  <div>
+                    <NewDisk
+                      sr={this.props.sr}
+                      onClose={this._closeNewDiskForm}
+                    />
+                    <hr />
+                  </div>
+                )}
+              </Col>
+            </Row>
+          </Container>
+        )}
         <Row>
           <Col>
             {!isEmpty(vdis) ? (
