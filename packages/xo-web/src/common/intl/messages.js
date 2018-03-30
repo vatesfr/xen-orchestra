@@ -331,6 +331,8 @@ const messages = {
   backupName: 'Name',
   useDelta: 'Use delta',
   useCompression: 'Use compression',
+  dbAndDrRequireEntreprisePlan: 'Delta Backup and DR require Entreprise plan',
+  crRequiresPremiumPlan: 'CR requires Premium plan',
   smartBackupModeTitle: 'Smart mode',
   backupTargetRemotes: 'Target remotes (for Export)',
   backupTargetSrs: 'Target SRs (for Replication)',

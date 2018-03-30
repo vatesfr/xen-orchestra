@@ -1424,7 +1424,7 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  @synchronized() // like @concurrency(1) but more efficient
+  @concurrency(2)
   @cancelable
   async _snapshotVm ($cancelToken, vm, nameLabel = vm.name_label) {
     debug(
@@ -1442,8 +1442,6 @@ export default class Xapi extends XapiBase {
         nameLabel
       ).then(extractOpaqueRef)
       this.addTag(ref, 'quiesce')::ignoreErrors()
-
-      await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
     } catch (error) {
       const { code } = error
       if (
@@ -1467,7 +1465,7 @@ export default class Xapi extends XapiBase {
     // to-date object.
     const [, snapshot] = await Promise.all([
       this.call('VM.set_is_a_template', ref, false),
-      this._waitObjectState(ref, snapshot => !snapshot.is_a_template),
+      this.barrier(ref),
     ])
 
     return snapshot
