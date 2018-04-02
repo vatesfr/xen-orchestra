@@ -331,6 +331,8 @@ const messages = {
   backupName: 'Name',
   useDelta: 'Use delta',
   useCompression: 'Use compression',
+  dbAndDrRequireEntreprisePlan: 'Delta Backup and DR require Entreprise plan',
+  crRequiresPremiumPlan: 'CR requires Premium plan',
   smartBackupModeTitle: 'Smart mode',
   backupTargetRemotes: 'Target remotes (for Export)',
   backupTargetSrs: 'Target SRs (for Replication)',
@@ -947,6 +949,14 @@ const messages = {
     'Delete VM template{templates, plural, one {} other {s}}',
   templateDeleteModalBody:
     'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
+  failedToDeleteTemplatesTitle:
+    'Delete template{nTemplates, plural, one {} other {s}} failed',
+  failedToDeleteTemplatesMessage:
+    'Failed to delete {nTemplates, number} template{nTemplates, plural, one {} other {s}}.',
+  deleteDefaultTemplatesTitle:
+    'Delete default template{nDefaultTemplates, plural, one {} other {s}}',
+  deleteDefaultTemplatesMessage:
+    'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?',
 
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
