@@ -32,7 +32,7 @@
   "devDependencies": {
     "@julien-f/freactal": "0.1.0",
     "@nraynaud/novnc": "0.6.1",
-    "@xen-orchestra/cron": "^1.0.2",
+    "@xen-orchestra/cron": "^1.0.3",
     "ansi_up": "^2.0.2",
     "asap": "^2.0.6",
     "babel-core": "^6.26.0",
