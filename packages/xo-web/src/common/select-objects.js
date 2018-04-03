@@ -82,6 +82,8 @@ const options = props => ({
   defaultValue: props.multi ? [] : undefined,
 })
 
+const getObjectById = id => getObject(store.getState(), id, true)
+
 // ===================================================================
 
 /*
@@ -358,10 +360,26 @@ export const SelectPool = makeStoreSelect(
 
 export const SelectSr = makeStoreSelect(
   () => {
-    const getSrsByContainer = createGetObjectsOfType('SR')
-      .filter((_, { predicate }) => predicate || isSrWritable)
-      .sort()
-      .groupBy('$container')
+    const getSrsByContainer = createSelector(
+      createGetObjectsOfType('SR')
+        .filter((_, { predicate }) => predicate || isSrWritable)
+        .sort(),
+      srs => {
+        for (const sr1 of srs) {
+          for (const sr2 of srs) {
+            if (sr1.name_label === sr2.name_label && sr1.id !== sr2.id) {
+              sr1.name_label = `(${getObjectById(sr1.$container).name_label}) ${
+                sr1.name_label
+              }`
+              sr2.name_label = `(${getObjectById(sr2.$container).name_label}) ${
+                sr2.name_label
+              }`
+            }
+          }
+        }
+        return groupBy(srs, '$container')
+      }
+    )
 
     const getContainerIds = createSelector(getSrsByContainer, srsByContainer =>
       keys(srsByContainer)
@@ -819,10 +837,6 @@ export class SelectResourceSetsVdi extends React.PureComponent {
     this.refs.select.value = value
   }
 
-  _getObject (id) {
-    return getObject(store.getState(), id, true)
-  }
-
   _getSrs = createSelector(
     () => this.props.resourceSet,
     ({ objectsByType }) => {
@@ -833,7 +847,7 @@ export class SelectResourceSetsVdi extends React.PureComponent {
   )
 
   _getVdis = createSelector(this._getSrs, srs =>
-    sortBy(map(flatten(map(srs, sr => sr.VDIs)), this._getObject), 'name_label')
+    sortBy(map(flatten(map(srs, sr => sr.VDIs)), getObjectById), 'name_label')
   )
 
   render () {
