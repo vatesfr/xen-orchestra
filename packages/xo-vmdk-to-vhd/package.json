@@ -27,7 +27,9 @@
     "child-process-promise": "^2.0.3",
     "deflate-js": "^0.2.3",
     "fs-promise": "^2.0.0",
-    "pipette": "^0.9.3"
+    "pipette": "^0.9.3",
+    "promise-toolbox": "^0.9.5",
+    "tmp": "^0.0.33"
   },
   "devDependencies": {
     "@babel/cli": "7.0.0-beta.42",

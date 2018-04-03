@@ -27,9 +27,9 @@
     "from2": "^2.3.0",
     "get-stream": "^3.0.0",
     "limit-concurrency-decorator": "^0.4.0",
+    "promise-toolbox": "^0.9.5",
     "struct-fu": "^1.2.0",
-    "tmp": "^0.0.33",
-    "promise-toolbox": "^0.9.5"
+    "tmp": "^0.0.33"
   },
   "devDependencies": {
     "@babel/cli": "7.0.0-beta.42",
