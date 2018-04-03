@@ -1,5 +1,6 @@
 /* eslint-env jest */
 
+import execa from 'execa'
 import { exec } from 'child-process-promise'
 import { createReadStream, createWriteStream } from 'fs-promise'
 
@@ -37,6 +38,7 @@ test('VMDK to VHD can convert a random data file with readRawContent()', async (
   const f = new VHDFile(rawContent.length, 523557791)
   await f.writeBuffer(rawContent)
   await f.writeFile(vhdFileName)
+  await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
   await exec(
     'qemu-img convert -fvpc -Oraw ' + vhdFileName + ' ' + reconvertedRawFilemane
   )
@@ -83,6 +85,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
     pipe.on('finish', resolve)
     pipe.on('error', reject)
   })
+  await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
   await exec(
     'qemu-img convert -fvmdk -Oraw ' +
       vmdkFileName +

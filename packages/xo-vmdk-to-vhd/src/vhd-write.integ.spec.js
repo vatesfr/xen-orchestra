@@ -1,5 +1,6 @@
 /* eslint-env jest */
 
+import execa from 'execa'
 import { createWriteStream } from 'fs'
 import { exec } from 'child-process-promise'
 import { readFile } from 'fs-promise'
@@ -140,6 +141,7 @@ test('writing a known file with VHDFile is successful', async () => {
   f.writeBuffer(buffer.slice(0, splitPoint), 0)
   f.writeBuffer(buffer.slice(splitPoint), splitPoint)
   await f.writeFile(fileName)
+  await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', fileName])
   await exec('qemu-img convert -fvpc -Oraw ' + fileName + ' ' + rawFilename)
   const fileContent = await readFile(rawFilename)
   expect(fileContent.length).toEqual(dataSize)
