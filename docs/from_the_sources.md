@@ -74,7 +74,7 @@ Edit and uncomment it to have the right path to deliver `xo-web`, because `xo-se
 ```yaml
   mounts: '/': '../xo-web/dist/'
 ```
-> Note this `dist` folder will be created in the next step (see the `xo-web` section)
+> Note this `dist` folder will be created in the next step.
 
 **WARNING: YAML is very strict with indentation: use spaces for it, not tabs**.
 
@@ -138,7 +138,7 @@ $ yarn build
 
 ## Troubleshooting
 
-If you have problem during the building phase in `xo-web` or `xo-server`, follow these steps:
+If you have problem during the building phase, follow these steps:
 
 1. `rm -rf node_modules`
 1. `yarn`
