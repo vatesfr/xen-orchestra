@@ -5,4 +5,4 @@ export {
   readVhdMetadata,
 } from './vhd-merge'
 
-export { Vhd } from './vhd'
+export { Vhd, fuHeader, fuFooter, checksumStruct } from './vhd'

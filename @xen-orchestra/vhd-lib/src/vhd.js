@@ -60,12 +60,23 @@ export const uint64 = fu.derive(
   number => [Math.floor(number / SIZE_OF_32_BITS), number % SIZE_OF_32_BITS],
   _ => _[0] * SIZE_OF_32_BITS + _[1]
 )
+export const uint64Undefinable = fu.derive(
+  fu.uint32(2),
+  number =>
+    number === undefined
+      ? [0xffffffff, 0xffffffff]
+      : [Math.floor(number / SIZE_OF_32_BITS), number % SIZE_OF_32_BITS],
+  _ =>
+    _[0] === 0xffffffff && _[1] === 0xffffffff
+      ? undefined
+      : _[0] * SIZE_OF_32_BITS + _[1]
+)
 
 export const fuFooter = fu.struct([
   fu.char('cookie', 8), // 0
   fu.uint32('features'), // 8
   fu.uint32('fileFormatVersion'), // 12
-  uint64('dataOffset'), // offset of the header, should always be 512
+  uint64Undefinable('dataOffset'), // offset of the header
   fu.uint32('timestamp'), // 24
   fu.char('creatorApplication', 4), // 28
   fu.uint32('creatorVersion'), // 32
@@ -151,7 +162,7 @@ const unpackField = (field, buf) => {
 
 // Returns the checksum of a raw struct.
 // The raw struct (footer or header) is altered with the new sum.
-function checksumStruct (buf, struct) {
+export function checksumStruct (buf, struct) {
   const checksumField = struct.fields.checksum
   let sum = 0
 

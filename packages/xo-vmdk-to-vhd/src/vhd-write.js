@@ -1,4 +1,5 @@
 'use strict'
+import { checksumStruct, fuFooter, fuHeader } from '@xen-orchestra/vhd-lib'
 import { open, write } from 'fs-promise'
 import stream from 'stream'
 import { VMDKDirectParser } from './vmdk-read'
@@ -6,7 +7,7 @@ import { VMDKDirectParser } from './vmdk-read'
 const footerCookie = 'conectix'
 const creatorApp = 'xo  '
 // it looks like everybody is using Wi2k
-const osString = 'Wi2k'
+const WIN2K_OS = 0x5769326b
 const headerCookie = 'cxsparse'
 const fixedHardDiskType = 2
 const dynamicHardDiskType = 3
@@ -126,8 +127,7 @@ export class VHDFile {
       this.timestamp,
       this.geomtry,
       dynamicHardDiskType,
-      512,
-      0
+      fuFooter.size
     )
     const diskHeader = createDynamicDiskHeader(
       this.sparseFile.entryCount,
@@ -143,7 +143,7 @@ export class VHDFile {
 
 export function computeGeometryForSize (size) {
   const totalSectors = Math.ceil(size / 512)
-  let sectorsPerTrack
+  let sectorsPerTrackCylinder
   let heads
   let cylinderTimesHeads
   if (totalSectors > 65535 * 16 * 255) {
@@ -151,79 +151,61 @@ export function computeGeometryForSize (size) {
   }
   // straight copypasta from the file spec appendix on CHS Calculation
   if (totalSectors >= 65535 * 16 * 63) {
-    sectorsPerTrack = 255
+    sectorsPerTrackCylinder = 255
     heads = 16
-    cylinderTimesHeads = totalSectors / sectorsPerTrack
+    cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
   } else {
-    sectorsPerTrack = 17
-    cylinderTimesHeads = totalSectors / sectorsPerTrack
+    sectorsPerTrackCylinder = 17
+    cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
     heads = Math.floor((cylinderTimesHeads + 1023) / 1024)
     if (heads < 4) {
       heads = 4
     }
     if (cylinderTimesHeads >= heads * 1024 || heads > 16) {
-      sectorsPerTrack = 31
+      sectorsPerTrackCylinder = 31
       heads = 16
-      cylinderTimesHeads = totalSectors / sectorsPerTrack
+      cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
     }
     if (cylinderTimesHeads >= heads * 1024) {
-      sectorsPerTrack = 63
+      sectorsPerTrackCylinder = 63
       heads = 16
-      cylinderTimesHeads = totalSectors / sectorsPerTrack
+      cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
     }
   }
   const cylinders = Math.floor(cylinderTimesHeads / heads)
-  const actualSize = cylinders * heads * sectorsPerTrack * sectorSize
-  return { cylinders, heads, sectorsPerTrack, actualSize }
+  const actualSize = cylinders * heads * sectorsPerTrackCylinder * sectorSize
+  return { cylinders, heads, sectorsPerTrackCylinder, actualSize }
 }
 
-export function createFooter (
-  size,
-  timestamp,
-  geometry,
-  diskType,
-  dataOffsetLow = 0xffffffff,
-  dataOffsetHigh = 0xffffffff
-) {
-  const footer = Buffer.alloc(512)
-  Buffer.from(footerCookie, 'ascii').copy(footer)
-  footer.writeUInt32BE(2, 8)
-  footer.writeUInt32BE(0x00010000, 12)
-  footer.writeUInt32BE(dataOffsetHigh, 16)
-  footer.writeUInt32BE(dataOffsetLow, 20)
-  footer.writeUInt32BE(timestamp, 24)
-  Buffer.from(creatorApp, 'ascii').copy(footer, 28)
-  Buffer.from(osString, 'ascii').copy(footer, 36)
-  // do not use & 0xFFFFFFFF to extract lower bits, that would propagate a negative sign if the 2^31 bit is one
-  const sizeHigh = Math.floor(size / Math.pow(2, 32)) % Math.pow(2, 32)
-  const sizeLow = size % Math.pow(2, 32)
-  footer.writeUInt32BE(sizeHigh, 40)
-  footer.writeUInt32BE(sizeLow, 44)
-  footer.writeUInt32BE(sizeHigh, 48)
-  footer.writeUInt32BE(sizeLow, 52)
-  footer.writeUInt16BE(geometry['cylinders'], 56)
-  footer.writeUInt8(geometry['heads'], 58)
-  footer.writeUInt8(geometry['sectorsPerTrack'], 59)
-  footer.writeUInt32BE(diskType, 60)
-  const checksum = computeChecksum(footer)
-  footer.writeUInt32BE(checksum, 64)
+export function createFooter (size, timestamp, geometry, diskType, dataOffset) {
+  const footer = fuFooter.pack({
+    cookie: footerCookie,
+    features: 2,
+    fileFormatVersion: 0x00010000,
+    dataOffset,
+    timestamp,
+    creatorApplication: creatorApp,
+    creatorHostOs: WIN2K_OS,
+    originalSize: size,
+    currentSize: size,
+    diskGeometry: geometry,
+    diskType,
+  })
+  checksumStruct(footer, fuFooter)
   return footer
 }
 
 export function createDynamicDiskHeader (tableEntries, blockSize) {
-  const header = Buffer.alloc(1024)
-  Buffer.from(headerCookie, 'ascii').copy(header)
-  // hard code no next data
-  header.writeUInt32BE(0xffffffff, 8)
-  header.writeUInt32BE(0xffffffff, 12)
-  // hard code table offset
-  header.writeUInt32BE(0, 16)
-  header.writeUInt32BE(sectorSize * 3, 20)
-  header.writeUInt32BE(0x00010000, 24)
-  header.writeUInt32BE(tableEntries, 28)
-  header.writeUInt32BE(blockSize, 32)
-  const checksum = computeChecksum(header)
-  header.writeUInt32BE(checksum, 36)
+  const header = fuHeader.pack({
+    cookie: headerCookie,
+    dataOffsetUnused: Buffer.alloc(8, 0xff),
+    tableOffset: sectorSize * 3,
+    headerVersion: 0x00010000,
+    maxTableEntries: tableEntries,
+    blockSize: blockSize,
+    checksum: 0,
+  })
+  checksumStruct(header, fuHeader)
   return header
 }
 
