@@ -128,7 +128,7 @@ If you need to delete the service:
 forever-service delete orchestra
 ```
 
-- If you want to update your current version, do this on both repositories:
+- If you want to update your current version, do this:
 
 ```
 $ git pull --ff-only
