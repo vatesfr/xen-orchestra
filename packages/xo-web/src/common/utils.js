@@ -527,11 +527,5 @@ export const ShortDate = ({ timestamp }) => (
 
 // ===================================================================
 
-export const getMemoryUsedMetric = ({ memory, memoryFree = memory }) => {
-  const memoryUsed = []
-  for (const key in memory) {
-    memoryUsed.push(memory[key] - memoryFree[key])
-  }
-
-  return memoryUsed
-}
+export const getMemoryUsedMetric = ({ memory, memoryFree = memory }) =>
+  map(memory, (value, key) => value - memoryFree[key])
