@@ -2011,7 +2011,9 @@ export default class Xapi extends XapiBase {
       name_label: name,
       name_description: description,
       MTU: asInteger(mtu),
-      other_config: {},
+      // Set automatic to false so XenCenter does not get confused
+      // https://citrix.github.io/xenserver-sdk/#network
+      other_config: { automatic: 'false' },
     })
     $defer.onFailure(() => this.call('network.destroy', networkRef))
     if (pifId) {
