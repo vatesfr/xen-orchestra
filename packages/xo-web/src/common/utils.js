@@ -524,3 +524,8 @@ export const createFakeProgress = (() => {
 export const ShortDate = ({ timestamp }) => (
   <FormattedDate value={timestamp} month='short' day='numeric' year='numeric' />
 )
+
+// ===================================================================
+
+export const getMemoryUsedMetric = ({ memory, memoryFree = memory }) =>
+  map(memory, (value, key) => value - memoryFree[key])
