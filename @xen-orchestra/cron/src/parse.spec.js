@@ -23,7 +23,7 @@ describe('parse()', () => {
 
   it('correctly parse days', () => {
     expect(parse('* * * * mon,sun')).toEqual({
-      dayOfWeek: [1, 7],
+      dayOfWeek: [0, 1],
     })
   })
 
@@ -40,10 +40,10 @@ describe('parse()', () => {
 
   it('dayOfWeek: 0 and 7 bind to sunday', () => {
     expect(parse('* * * * 0')).toEqual({
-      dayOfWeek: [7],
+      dayOfWeek: [0],
     })
     expect(parse('* * * * 7')).toEqual({
-      dayOfWeek: [7],
+      dayOfWeek: [0],
     })
   })
 })
