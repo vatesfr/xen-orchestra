@@ -213,12 +213,7 @@ function getDiff (oldElements, newElements) {
 }
 
 function getMemoryUsedMetric ({ memory, memoryFree = memory }) {
-  const memoryUsed = []
-  for (const key in memory) {
-    memoryUsed.push(memory[key] - memoryFree[key])
-  }
-
-  return memoryUsed
+  return map(memory, (value, key) => value - memoryFree[key])
 }
 
 // ===================================================================
