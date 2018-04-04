@@ -8,7 +8,7 @@ describe('debounce()', () => {
   let i
 
   class Foo {
-    @debounce(1e1)
+    @debounce(10)
     foo () {
       ++i
     }
@@ -19,6 +19,10 @@ describe('debounce()', () => {
   })
 
   it('works', done => {
+    const now = Date.now()
+    const mockDate = jest.fn()
+    mockDate.mockReturnValueOnce(now)
+    Date.now = mockDate
     const foo = new Foo()
 
     expect(i).toBe(0)
@@ -26,14 +30,13 @@ describe('debounce()', () => {
     foo.foo()
     expect(i).toBe(1)
 
+    mockDate.mockReturnValueOnce(now + 2)
     foo.foo()
     expect(i).toBe(1)
 
-    setTimeout(() => {
-      foo.foo()
-      expect(i).toBe(2)
-
-      done()
-    }, 2e1)
+    mockDate.mockReturnValueOnce(now + 2 + 10)
+    foo.foo()
+    expect(i).toBe(2)
+    done()
   })
 })
