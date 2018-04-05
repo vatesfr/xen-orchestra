@@ -18,25 +18,28 @@ describe('debounce()', () => {
     i = 0
   })
 
-  it('works', done => {
-    const now = Date.now()
-    const mockDate = jest.fn()
-    mockDate.mockReturnValueOnce(now)
-    Date.now = mockDate
-    const foo = new Foo()
+  it('works', () => {
+    const savedNow = Date.now
+    try {
+      const now = Date.now()
+      const mockDate = jest.fn()
+      Date.now = mockDate
+      const foo = new Foo()
+      expect(i).toBe(0)
 
-    expect(i).toBe(0)
+      mockDate.mockReturnValueOnce(now)
+      foo.foo()
+      expect(i).toBe(1)
 
-    foo.foo()
-    expect(i).toBe(1)
+      mockDate.mockReturnValueOnce(now + 2)
+      foo.foo()
+      expect(i).toBe(1)
 
-    mockDate.mockReturnValueOnce(now + 2)
-    foo.foo()
-    expect(i).toBe(1)
-
-    mockDate.mockReturnValueOnce(now + 2 + 10)
-    foo.foo()
-    expect(i).toBe(2)
-    done()
+      mockDate.mockReturnValueOnce(now + 2 + 10)
+      foo.foo()
+      expect(i).toBe(2)
+    } finally {
+      Date.now = savedNow
+    }
   })
 })
