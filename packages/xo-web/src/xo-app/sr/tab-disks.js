@@ -268,33 +268,26 @@ export default class SrDisks extends Component {
 
     return (
       <Container>
-        {this._getIsSrAdmin() && (
-          <Container>
-            <Row>
-              <Col className='text-xs-right'>
-                <TabButton
-                  btnStyle={newDisk ? 'info' : 'primary'}
-                  handler={this.toggleState('newDisk')}
-                  icon='add'
-                  labelId='vbdCreateDeviceButton'
-                />
-              </Col>
-            </Row>
+        {this._getIsSrAdmin() && [
+          <Row>
+            <Col className='text-xs-right'>
+              <TabButton
+                btnStyle={newDisk ? 'info' : 'primary'}
+                handler={this.toggleState('newDisk')}
+                icon='add'
+                labelId='vbdCreateDeviceButton'
+              />
+            </Col>
+          </Row>,
+          newDisk && (
             <Row>
               <Col>
-                {newDisk && (
-                  <div>
-                    <NewDisk
-                      sr={this.props.sr}
-                      onClose={this._closeNewDiskForm}
-                    />
-                    <hr />
-                  </div>
-                )}
+                <NewDisk sr={this.props.sr} onClose={this._closeNewDiskForm} />
+                <hr />
               </Col>
             </Row>
-          </Container>
-        )}
+          ),
+        ]}
         <Row>
           <Col>
             {!isEmpty(vdis) ? (
