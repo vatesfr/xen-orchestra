@@ -61,7 +61,7 @@ class JobReturn extends Component {
   }
 }
 
-const JobCallStateInfos = ({ end, error }) => {
+const JobCallStateInfos = ({ end, error, isJobInterrupted }) => {
   const [icon, tooltip] =
     error !== undefined
       ? isSkippedError(error)
@@ -69,7 +69,9 @@ const JobCallStateInfos = ({ end, error }) => {
         : ['halted', 'failedJobCall']
       : end !== undefined
         ? ['running', 'successfulJobCall']
-        : ['busy', 'jobCallInProgess']
+        : isJobInterrupted
+          ? ['halted', 'jobInterrupted']
+          : ['busy', 'jobCallInProgess']
 
   return (
     <Tooltip content={_(tooltip)}>
@@ -115,14 +117,18 @@ const CALL_FILTER_OPTIONS = [
   { label: 'jobCallInProgess', value: 'running' },
   { label: 'jobCallSkipped', value: 'skipped' },
   { label: 'successfulJobCall', value: 'success' },
+  { label: 'jobInterrupted', value: 'interrupted' },
 ]
 
 const PREDICATES = {
-  all: () => true,
-  skipped: call => call.error !== undefined && isSkippedError(call.error),
-  error: call => call.error !== undefined && !isSkippedError(call.error),
-  running: call => call.end === undefined && call.error === undefined,
-  success: call => call.end !== undefined && call.error === undefined,
+  all: () => () => true,
+  error: () => call => call.error !== undefined && !isSkippedError(call.error),
+  interrupted: isInterrupted => call =>
+    call.end === undefined && call.error === undefined && isInterrupted,
+  running: isInterrupted => call =>
+    call.end === undefined && call.error === undefined && !isInterrupted,
+  skipped: () => call => call.error !== undefined && isSkippedError(call.error),
+  success: () => call => call.end !== undefined && call.error === undefined,
 }
 
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
@@ -141,9 +147,19 @@ class Log extends BaseComponent {
     filter: DEFAULT_CALL_FILTER,
   }
 
+  _getIsJobInterrupted = createSelector(
+    () => this.props.log.id,
+    () => get(() => this.props.job.runId),
+    (logId, runId) => logId !== runId
+  )
+
   _getFilteredCalls = createFilter(
     () => this.props.log.calls,
-    createSelector(() => this.state.filter.value, value => PREDICATES[value])
+    createSelector(
+      () => this.state.filter.value,
+      this._getIsJobInterrupted,
+      (value, isInterrupted) => PREDICATES[value](isInterrupted)
+    )
   )
 
   _filterValueRenderer = createSelector(
@@ -187,7 +203,11 @@ class Log extends BaseComponent {
             return (
               <li key={call.callKey} className='list-group-item'>
                 <strong className='text-info'>{call.method}: </strong>
-                <JobCallStateInfos end={end} error={error} />
+                <JobCallStateInfos
+                  end={end}
+                  error={error}
+                  isJobInterrupted={this._getIsJobInterrupted()}
+                />
                 <br />
                 {map(call.params, (value, key) => [
                   <JobParam id={value} paramKey={key} key={key} />,
@@ -271,8 +291,11 @@ class Log extends BaseComponent {
   }
 }
 
-const showCalls = log =>
-  alert(_('jobModalTitle', { job: log.jobId }), <Log log={log} />)
+const showCalls = (log, { jobs }) =>
+  alert(
+    _('jobModalTitle', { job: log.jobId }),
+    <Log log={log} job={jobs[log.jobId]} />
+  )
 
 const LOG_ACTIONS = [
   {
