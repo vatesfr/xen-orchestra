@@ -241,7 +241,7 @@ export async function createHba ({ host, nameLabel, nameDescription, scsiId }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
-    scsiId,
+    SCSIid: scsiId,
   }
 
   const srRef = await xapi.call(
