@@ -1,11 +1,12 @@
 /* eslint-env jest */
 
+import { computeGeometryForSize } from '@xen-orchestra/vhd-lib'
 import execa from 'execa'
 import { exec } from 'child-process-promise'
 import { createReadStream, createWriteStream } from 'fs-promise'
 
 import { readRawContent } from './vmdk-read'
-import { VHDFile, convertFromVMDK, computeGeometryForSize } from './vhd-write'
+import { VHDFile, convertFromVMDK } from './vhd-write'
 
 jest.setTimeout(10000)
 

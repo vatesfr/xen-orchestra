@@ -42,6 +42,7 @@ export const VHD_HEADER_SIZE = 1024
 export const VHD_SECTOR_SIZE = 512
 
 // Types of backup treated. Others are not supported.
+export const HARD_DISK_TYPE_FIXED = 2 // Fixed had disk.
 export const HARD_DISK_TYPE_DYNAMIC = 3 // Full backup.
 export const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
 
@@ -193,6 +194,43 @@ const assertChecksum = (name, buf, struct) => {
   if (actual !== expected) {
     throw new Error(`invalid ${name} checksum ${actual}, expected ${expected}`)
   }
+}
+
+export function computeGeometryForSize (size) {
+  const totalSectors = Math.ceil(size / 512)
+  let sectorsPerTrackCylinder
+  let heads
+  let cylinderTimesHeads
+  if (totalSectors > 65535 * 16 * 255) {
+    throw Error('disk is too big')
+  }
+  // straight copypasta from the file spec appendix on CHS Calculation
+  if (totalSectors >= 65535 * 16 * 63) {
+    sectorsPerTrackCylinder = 255
+    heads = 16
+    cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
+  } else {
+    sectorsPerTrackCylinder = 17
+    cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
+    heads = Math.floor((cylinderTimesHeads + 1023) / 1024)
+    if (heads < 4) {
+      heads = 4
+    }
+    if (cylinderTimesHeads >= heads * 1024 || heads > 16) {
+      sectorsPerTrackCylinder = 31
+      heads = 16
+      cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
+    }
+    if (cylinderTimesHeads >= heads * 1024) {
+      sectorsPerTrackCylinder = 63
+      heads = 16
+      cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
+    }
+  }
+  const cylinders = Math.floor(cylinderTimesHeads / heads)
+  const actualSize =
+    cylinders * heads * sectorsPerTrackCylinder * VHD_SECTOR_SIZE
+  return { cylinders, heads, sectorsPerTrackCylinder, actualSize }
 }
 
 // ===================================================================

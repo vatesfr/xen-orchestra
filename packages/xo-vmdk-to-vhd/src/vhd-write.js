@@ -1,5 +1,13 @@
 'use strict'
-import { checksumStruct, fuFooter, fuHeader } from '@xen-orchestra/vhd-lib'
+import {
+  checksumStruct,
+  fuFooter,
+  fuHeader,
+  VHD_SECTOR_SIZE,
+  HARD_DISK_TYPE_FIXED,
+  HARD_DISK_TYPE_DYNAMIC,
+  computeGeometryForSize,
+} from '@xen-orchestra/vhd-lib'
 import { open, write } from 'fs-promise'
 import stream from 'stream'
 import { VMDKDirectParser } from './vmdk-read'
@@ -9,25 +17,12 @@ const creatorApp = 'xo  '
 // it looks like everybody is using Wi2k
 const WIN2K_OS = 0x5769326b
 const headerCookie = 'cxsparse'
-const fixedHardDiskType = 2
-const dynamicHardDiskType = 3
-
-const sectorSize = 512
-
-export function computeChecksum (buffer) {
-  let sum = 0
-  for (let i = 0; i < buffer.length; i++) {
-    sum += buffer[i]
-  }
-  // http://stackoverflow.com/a/1908655/72637 the >>> prevents the number from going negative
-  return ~sum >>> 0
-}
 
 class Block {
   constructor (blockSize) {
-    const bitmapSize = blockSize / sectorSize / 8
+    const bitmapSize = blockSize / VHD_SECTOR_SIZE / 8
     const bufferSize =
-      Math.ceil((blockSize + bitmapSize) / sectorSize) * sectorSize
+      Math.ceil((blockSize + bitmapSize) / VHD_SECTOR_SIZE) * VHD_SECTOR_SIZE
     this.buffer = Buffer.alloc(bufferSize)
     this.bitmapBuffer = this.buffer.slice(0, bitmapSize)
     this.dataBuffer = this.buffer.slice(bitmapSize)
@@ -47,7 +42,8 @@ class SparseExtent {
   constructor (dataSize, blockSize, startOffset) {
     this.table = createEmptyTable(dataSize, blockSize)
     this.blockSize = blockSize
-    this.startOffset = (startOffset + this.table.buffer.length) / sectorSize
+    this.startOffset =
+      (startOffset + this.table.buffer.length) / VHD_SECTOR_SIZE
   }
 
   get entryCount () {
@@ -92,7 +88,7 @@ class SparseExtent {
       const block = this.table.entries[i]
       if (block !== undefined) {
         this.table.buffer.writeUInt32BE(currentOffset, i * 4)
-        currentOffset += block.buffer.length / sectorSize
+        currentOffset += block.buffer.length / VHD_SECTOR_SIZE
       }
     }
     await write(file, this.table.buffer, 0, this.table.buffer.length)
@@ -113,7 +109,7 @@ export class VHDFile {
     this.sparseFile = new SparseExtent(
       this.geomtry.actualSize,
       this.blockSize,
-      sectorSize * 3
+      VHD_SECTOR_SIZE * 3
     )
   }
 
@@ -126,7 +122,7 @@ export class VHDFile {
       this.geomtry.actualSize,
       this.timestamp,
       this.geomtry,
-      dynamicHardDiskType,
+      HARD_DISK_TYPE_DYNAMIC,
       fuFooter.size
     )
     const diskHeader = createDynamicDiskHeader(
@@ -139,42 +135,6 @@ export class VHDFile {
     await this.sparseFile.writeOnFile(file)
     await write(file, fileFooter, 0, fileFooter.length)
   }
-}
-
-export function computeGeometryForSize (size) {
-  const totalSectors = Math.ceil(size / 512)
-  let sectorsPerTrackCylinder
-  let heads
-  let cylinderTimesHeads
-  if (totalSectors > 65535 * 16 * 255) {
-    throw Error('disk is too big')
-  }
-  // straight copypasta from the file spec appendix on CHS Calculation
-  if (totalSectors >= 65535 * 16 * 63) {
-    sectorsPerTrackCylinder = 255
-    heads = 16
-    cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
-  } else {
-    sectorsPerTrackCylinder = 17
-    cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
-    heads = Math.floor((cylinderTimesHeads + 1023) / 1024)
-    if (heads < 4) {
-      heads = 4
-    }
-    if (cylinderTimesHeads >= heads * 1024 || heads > 16) {
-      sectorsPerTrackCylinder = 31
-      heads = 16
-      cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
-    }
-    if (cylinderTimesHeads >= heads * 1024) {
-      sectorsPerTrackCylinder = 63
-      heads = 16
-      cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
-    }
-  }
-  const cylinders = Math.floor(cylinderTimesHeads / heads)
-  const actualSize = cylinders * heads * sectorsPerTrackCylinder * sectorSize
-  return { cylinders, heads, sectorsPerTrackCylinder, actualSize }
 }
 
 export function createFooter (size, timestamp, geometry, diskType, dataOffset) {
@@ -199,7 +159,7 @@ export function createDynamicDiskHeader (tableEntries, blockSize) {
   const header = fuHeader.pack({
     cookie: headerCookie,
     dataOffsetUnused: Buffer.alloc(8, 0xff),
-    tableOffset: sectorSize * 3,
+    tableOffset: VHD_SECTOR_SIZE * 3,
     headerVersion: 0x00010000,
     maxTableEntries: tableEntries,
     blockSize: blockSize,
@@ -211,8 +171,8 @@ export function createDynamicDiskHeader (tableEntries, blockSize) {
 
 export function createEmptyTable (dataSize, blockSize) {
   const blockCount = Math.ceil(dataSize / blockSize)
-  const tableSizeSectors = Math.ceil(blockCount * 4 / sectorSize)
-  const buffer = Buffer.alloc(tableSizeSectors * sectorSize, 0xff)
+  const tableSizeSectors = Math.ceil(blockCount * 4 / VHD_SECTOR_SIZE)
+  const buffer = Buffer.alloc(tableSizeSectors * VHD_SECTOR_SIZE, 0xff)
   return { entryCount: blockCount, buffer: buffer, entries: [] }
 }
 
@@ -225,7 +185,7 @@ export class ReadableRawVHDStream extends stream.Readable {
       size,
       Math.floor(Date.now() / 1000),
       geometry,
-      fixedHardDiskType
+      HARD_DISK_TYPE_FIXED
     )
     this.position = 0
     this.vmdkParser = vmdkParser
@@ -240,13 +200,11 @@ export class ReadableRawVHDStream extends stream.Readable {
       const chunkCount = Math.floor(paddingLength / chunkSize)
       for (let i = 0; i < chunkCount; i++) {
         this.currentFile.push(() => {
-          const paddingBuffer = Buffer.alloc(chunkSize)
-          return paddingBuffer
+          return Buffer.alloc(chunkSize)
         })
       }
       this.currentFile.push(() => {
-        const paddingBuffer = Buffer.alloc(paddingLength % chunkSize)
-        return paddingBuffer
+        return Buffer.alloc(paddingLength % chunkSize)
       })
     }
   }
@@ -318,5 +276,8 @@ export class ReadableRawVHDStream extends stream.Readable {
 export async function convertFromVMDK (vmdkReadStream) {
   const parser = new VMDKDirectParser(vmdkReadStream)
   const header = await parser.readHeader()
-  return new ReadableRawVHDStream(header.capacitySectors * sectorSize, parser)
+  return new ReadableRawVHDStream(
+    header.capacitySectors * VHD_SECTOR_SIZE,
+    parser
+  )
 }
