@@ -44,12 +44,7 @@ export default class GenericInput extends Component {
   }
 
   render () {
-    const {
-      schema,
-      value = schema.default,
-      uiSchema = EMPTY_OBJECT,
-      ...opts
-    } = this.props
+    const { schema, value, uiSchema = EMPTY_OBJECT, ...opts } = this.props
 
     const props = {
       ...opts,
