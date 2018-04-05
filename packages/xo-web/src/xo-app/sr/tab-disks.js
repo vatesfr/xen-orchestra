@@ -203,56 +203,49 @@ class NewDisk extends Component {
     const { name, readOnly, size } = this.state
 
     return (
-      <form id='newDiskForm'>
-        <fieldset className='form-inline'>
-          <div className='form-group'>
-            <input
-              className='form-control'
-              onChange={this.linkState('name')}
-              placeholder={formatMessage(messages.vbdNamePlaceHolder)}
-              required
-              type='text'
-              value={name}
-            />
-          </div>
-          <div className='form-group ml-1'>
-            <SizeInput
-              onChange={this.linkState('size')}
-              placeholder={formatMessage(messages.vbdSizePlaceHolder)}
-              required
-              value={size}
-            />
-          </div>
-          <div className='form-group ml-1'>
-            <span>
-              {_('vbdReadonly')}{' '}
-              <Toggle
-                onChange={this.toggleState('readOnly')}
-                value={readOnly}
-              />
-            </span>
-          </div>
-          <span className='pull-right'>
-            <ActionButton
-              btnStyle='primary'
-              form='newDiskForm'
-              handler={this._createDisk}
-              icon='add'
-            >
-              {_('vbdCreate')}
-            </ActionButton>
+      <form id='newDiskForm' className='form-inline'>
+        <div className='form-group'>
+          <input
+            autoFocus
+            className='form-control'
+            onChange={this.linkState('name')}
+            placeholder={formatMessage(messages.vbdNamePlaceHolder)}
+            required
+            type='text'
+            value={name}
+          />
+        </div>
+        <div className='form-group ml-1'>
+          <SizeInput
+            onChange={this.linkState('size')}
+            placeholder={formatMessage(messages.vbdSizePlaceHolder)}
+            required
+            value={size}
+          />
+        </div>
+        <div className='form-group ml-1'>
+          <span>
+            {_('vbdReadonly')}{' '}
+            <Toggle onChange={this.toggleState('readOnly')} value={readOnly} />
           </span>
-        </fieldset>
+        </div>
+        <ActionButton
+          className='pull-right'
+          btnStyle='primary'
+          form='newDiskForm'
+          handler={this._createDisk}
+          icon='add'
+        >
+          {_('vbdCreate')}
+        </ActionButton>
       </form>
     )
   }
 }
 
-@connectStore(() => {
-  return (state, props) => ({
-    checkPermissions: getCheckPermissions,
-  })
-})
+@connectStore(() => ({
+  checkPermissions: getCheckPermissions,
+}))
 export default class SrDisks extends Component {
   _closeNewDiskForm = () => this.setState({ newDisk: false })
 
