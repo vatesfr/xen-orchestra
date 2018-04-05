@@ -42,8 +42,8 @@ function handleGetAllObjects (req, res, { filter, limit }) {
 export function getAllObjects ({ filter, limit, ndjson = false }) {
   return ndjson
     ? this.registerHttpRequest(handleGetAllObjects, { filter, limit }).then(
-      $getFrom => ({ $getFrom })
-    )
+        $getFrom => ({ $getFrom })
+      )
     : this.getObjects({ filter, limit })
 }
 

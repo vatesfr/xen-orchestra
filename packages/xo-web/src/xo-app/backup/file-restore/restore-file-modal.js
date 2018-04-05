@@ -43,13 +43,13 @@ const formatFilesOptions = (rawFiles, path) => {
   const files =
     path !== '/'
       ? [
-        {
-          name: '..',
-          id: '..',
-          path: getParentPath(path),
-          content: {},
-        },
-      ]
+          {
+            name: '..',
+            id: '..',
+            path: getParentPath(path),
+            content: {},
+          },
+        ]
       : []
 
   return files.concat(
