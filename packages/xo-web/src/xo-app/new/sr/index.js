@@ -48,6 +48,50 @@ import {
   onChange: propTypes.func.isRequired,
   options: propTypes.array.isRequired,
 })
+class SelectIscsiId extends Component {
+  _getOptions = createSelector(
+    () => this.props.options,
+    options =>
+      map(options, ({ vendor, path, size }, index) => ({
+        label: `${vendor} - ${path} (${size})`,
+        value: index,
+      }))
+  )
+
+  _handleChange = ({ value }) => {
+    const { props } = this
+
+    this.setState({ value }, () => props.onChange(props.options[value]))
+  }
+
+  componentDidMount () {
+    return this.componentDidUpdate()
+  }
+
+  componentDidUpdate () {
+    let options
+    if (
+      this.state.value === null &&
+      (options = this._getOptions()).length === 1
+    ) {
+      this._handleChange(options[0])
+    }
+  }
+
+  state = { value: null }
+
+  render () {
+    return (
+      <Select
+        clearable={false}
+        onChange={this._handleChange}
+        options={this._getOptions()}
+        value={this.state.value}
+      />
+    )
+  }
+}
+
 class SelectIqn extends Component {
   _getOptions = createSelector(
     () => this.props.options,
@@ -353,7 +397,7 @@ export default class New extends Component {
     try {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
       const hbaDevices = await probeSrHba(host.id)
-
+      console.log(hbaDevices)
       this.setState({
         hbaDevices,
       })
@@ -625,7 +669,7 @@ export default class New extends Component {
                       <label>{_('newSrLun')}</label>
                       {!hbaDevices && <p>No HBA device found!</p>}
                       {hbaDevices && (
-                        <SelectIqn
+                        <SelectIscsiId
                           options={hbaDevices}
                           onChange={this._handleSrHbaSelection}
                         />

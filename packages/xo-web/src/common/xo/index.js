@@ -1949,7 +1949,7 @@ export const probeSrIscsiExists = (
 }
 
 export const probeSrHba = host => {
-  _call('sr.probeHba', { host })
+  return _call('sr.probeHba', { host })
 }
 
 export const probeSrHbaExists = (host, scsiId) => {
