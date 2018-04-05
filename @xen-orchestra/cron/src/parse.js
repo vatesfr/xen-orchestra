@@ -176,10 +176,10 @@ export default createParser({
       range: [0, 11],
     },
     {
-      aliases: 'mon tue wen thu fri sat sun'.split(' '),
+      aliases: 'sun mon tue wen thu fri sat'.split(' '),
       name: 'dayOfWeek',
-      post: value => (value === 0 ? 7 : value),
-      range: [1, 7],
+      post: value => (value === 7 ? 0 : value),
+      range: [0, 6],
     },
   ],
   presets: {

@@ -8,7 +8,7 @@ import { find, flatten, floor, map, max, size, sum, values } from 'lodash'
 
 import propTypes from '../prop-types-decorator'
 import { computeArraysSum } from '../xo-stats'
-import { formatSize } from '../utils'
+import { formatSize, getMemoryUsedMetric } from '../utils'
 
 import styles from './index.css'
 
@@ -225,7 +225,8 @@ export const MemoryLineChart = injectIntl(
     data: propTypes.object.isRequired,
     options: propTypes.object,
   })(({ data, options = {}, intl }) => {
-    const { memory, memoryUsed } = data.stats
+    const { memory } = data.stats
+    const memoryUsed = getMemoryUsedMetric(data.stats)
 
     if (!memory || !memoryUsed) {
       return templateError
@@ -265,7 +266,8 @@ export const PoolMemoryLineChart = injectIntl(
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
     const firstHostData = data[0]
-    const { memory, memoryUsed } = firstHostData.stats
+    const { memory } = firstHostData.stats
+    const memoryUsed = getMemoryUsedMetric(firstHostData.stats)
 
     if (!memory || !memoryUsed) {
       return templateError
@@ -273,13 +275,15 @@ export const PoolMemoryLineChart = injectIntl(
 
     const series = map(data, ({ host, stats }) => ({
       name: host,
-      data: stats.memoryUsed,
+      data: getMemoryUsedMetric(stats),
     }))
 
     if (addSumSeries) {
       series.push({
         name: intl.formatMessage(messages.poolAllHosts),
-        data: computeArraysSum(map(data, 'stats.memoryUsed')),
+        data: computeArraysSum(
+          map(data, ({ stats }) => getMemoryUsedMetric(stats))
+        ),
         className: styles.dashedLine,
       })
     }
@@ -298,7 +302,7 @@ export const PoolMemoryLineChart = injectIntl(
         options={{
           ...makeOptions({
             intl,
-            nValues: firstHostData.stats.memoryUsed.length,
+            nValues: memoryUsed.length,
             endTimestamp: firstHostData.endTimestamp,
             interval: firstHostData.interval,
             valueTransform: formatSize,

@@ -3,6 +3,7 @@ import { Sparklines, SparklinesLine } from 'react-sparklines'
 
 import propTypes from './prop-types-decorator'
 import { computeArraysAvg, computeObjectsAvg } from './xo-stats'
+import { getMemoryUsedMetric } from './utils'
 
 const STYLE = {}
 
@@ -50,8 +51,8 @@ export const CpuSparkLines = propTypes({
 export const MemorySparkLines = propTypes({
   data: propTypes.object.isRequired,
 })(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
-  const { memory, memoryUsed } = data.stats
-
+  const { memory } = data.stats
+  const memoryUsed = getMemoryUsedMetric(data.stats)
   if (!memory || !memoryUsed) {
     return templateError
   }
