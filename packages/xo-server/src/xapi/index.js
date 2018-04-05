@@ -266,8 +266,8 @@ export default class Xapi extends XapiBase {
           return value === null
             ? removal
             : removal
-            ::ignoreErrors()
-              .then(() => this.call(add, ref, name, prepareXapiParam(value)))
+                ::ignoreErrors()
+                .then(() => this.call(add, ref, name, prepareXapiParam(value)))
         }
       })
     )
@@ -517,9 +517,9 @@ export default class Xapi extends XapiBase {
     const onVmCreation =
       nameLabel !== undefined
         ? vm =>
-          targetXapi._setObjectProperties(vm, {
-            nameLabel,
-          })
+            targetXapi._setObjectProperties(vm, {
+              nameLabel,
+            })
         : null
 
     const vm = await targetXapi._getOrWaitObject(
@@ -874,29 +874,30 @@ export default class Xapi extends XapiBase {
       // Look for a snapshot of this vdi in the base VM.
       const baseVdi = baseVdis[vdi.snapshot_of]
 
-      vdis[vdiRef] =
-        baseVdi && !disableBaseTags
-          ? {
-            ...vdi,
-            other_config: {
-              ...vdi.other_config,
-              [TAG_BASE_DELTA]: baseVdi.uuid,
-            },
-            $SR$uuid: vdi.$SR.uuid,
-          }
-          : {
-            ...vdi,
-            $SR$uuid: vdi.$SR.uuid,
-          }
+      vdis[vdiRef] = {
+        ...vdi,
+        other_config: {
+          ...vdi.other_config,
+          [TAG_BASE_DELTA]:
+            baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
+        },
+        $SR$uuid: vdi.$SR.uuid,
+      }
+
       streams[`${vdiRef}.vhd`] = () =>
         this._exportVdi($cancelToken, vdi, baseVdi, VDI_FORMAT_VHD)
     })
 
     const vifs = {}
     forEach(vm.$VIFs, vif => {
+      const network = vif.$network
       vifs[vif.$ref] = {
         ...vif,
-        $network$uuid: vif.$network.uuid,
+        $network$uuid: network.uuid,
+        $network$name_label: network.name_label,
+        // https://github.com/babel/babel-eslint/issues/595
+        // eslint-disable-next-line no-undef
+        $network$VLAN: network.$PIFs[0]?.VLAN,
       }
     })
 
@@ -912,9 +913,9 @@ export default class Xapi extends XapiBase {
           other_config:
             baseVm && !disableBaseTags
               ? {
-                ...vm.other_config,
-                [TAG_BASE_DELTA]: baseVm.uuid,
-              }
+                  ...vm.other_config,
+                  [TAG_BASE_DELTA]: baseVm.uuid,
+                }
               : omit(vm.other_config, TAG_BASE_DELTA),
         },
       },
@@ -1029,10 +1030,22 @@ export default class Xapi extends XapiBase {
       return newVdi
     })::pAll()
 
-    const networksOnPoolMasterByDevice = {}
-    let defaultNetwork
-    forEach(this.pool.$master.$PIFs, pif => {
-      defaultNetwork = networksOnPoolMasterByDevice[pif.device] = pif.$network
+    const networksUuidByNameLabelByVlan = {}
+    let defaultNetworkUuid
+    forEach(this.objects.all, object => {
+      if (object.$type === 'network') {
+        const pif = object.$PIFs[0]
+        if (pif === undefined) {
+          // ignore network
+          return
+        }
+        const vlan = pif.VLAN
+        const networksUuidByNameLabel =
+          networksUuidByNameLabelByVlan[vlan] ||
+          (networksUuidByNameLabelByVlan[vlan] = {})
+        defaultNetworkUuid = networksUuidByNameLabel[object.name_label] =
+          object.uuid
+      }
     })
 
     const { streams } = delta
@@ -1069,10 +1082,18 @@ export default class Xapi extends XapiBase {
 
       // Create VIFs.
       asyncMap(delta.vifs, vif => {
-        const network =
-          (vif.$network$uuid && this.getObject(vif.$network$uuid, null)) ||
-          networksOnPoolMasterByDevice[vif.device] ||
-          defaultNetwork
+        let network =
+          vif.$network$uuid && this.getObject(vif.$network$uuid, undefined)
+        if (network === undefined) {
+          const { $network$VLAN: vlan = -1 } = vif.$network$VLAN
+          const networksUuidByNameLabel = networksUuidByNameLabelByVlan[vlan]
+          if (networksUuidByNameLabel !== undefined) {
+            network = networksUuidByNameLabelByVlan[vif.$network$name_label]
+          }
+          if (network === undefined) {
+            network = defaultNetworkUuid
+          }
+        }
 
         if (network) {
           return this._createVif(vm, network, vif)
