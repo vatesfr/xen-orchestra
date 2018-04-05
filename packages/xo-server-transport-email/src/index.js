@@ -58,7 +58,8 @@ export const configurationSchema = {
         },
         port: {
           type: 'integer',
-          description: 'port of the SMTP server (defaults to 25 or 465 for TLS)',
+          description:
+            'port of the SMTP server (defaults to 25 or 465 for TLS)',
         },
         secure: {
           default: false,
