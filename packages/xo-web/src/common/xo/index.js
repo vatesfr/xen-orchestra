@@ -1948,6 +1948,15 @@ export const probeSrIscsiExists = (
   return _call('sr.probeIscsiExists', params)
 }
 
+export const probeSrHba = host => {
+  _call('sr.probeHba', { host })
+}
+
+export const probeSrHbaExists = (host, scsiId) => {
+  const params = { host, scsiId }
+  return _call('sr.probeHbaExists', params)
+}
+
 export const reattachSr = (host, uuid, nameLabel, nameDescription, type) =>
   _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type })
 
@@ -1982,6 +1991,11 @@ export const createSrIscsi = (
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
+  return _call('sr.createIscsi', params)
+}
+
+export const createSrHba = (host, nameLabel, nameDescription, scsiId) => {
+  const params = { host, nameLabel, nameDescription, scsiId }
   return _call('sr.createIscsi', params)
 }
 

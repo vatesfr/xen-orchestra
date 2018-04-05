@@ -30,11 +30,14 @@ import {
   createSrIscsi,
   createSrLvm,
   createSrNfs,
+  createSrHba,
   probeSrIscsiExists,
   probeSrIscsiIqns,
   probeSrIscsiLuns,
   probeSrNfs,
   probeSrNfsExists,
+  probeSrHba,
+  probeSrHbaExists,
   reattachSrIso,
   reattachSr,
 } from 'xo'
@@ -141,10 +144,11 @@ class SelectLun extends Component {
 // ===================================================================
 
 const SR_TYPE_TO_LABEL = {
-  nfs: 'NFS',
+  hba: 'HBA',
   iscsi: 'iSCSI',
-  lvm: 'Local LVM',
   local: 'Local',
+  lvm: 'Local LVM',
+  nfs: 'NFS',
   nfsiso: 'NFS ISO',
   smb: 'SMB',
 }
@@ -155,7 +159,7 @@ const SR_GROUP_TO_LABEL = {
 }
 
 const typeGroups = {
-  vdisr: ['nfs', 'iscsi', 'lvm'],
+  vdisr: ['hba', 'iscsi', 'lvm', 'nfs'],
   isosr: ['local', 'nfsiso', 'smb'],
 }
 
@@ -183,6 +187,7 @@ export default class New extends Component {
       lockCreation: undefined,
       lun: undefined,
       luns: undefined,
+      hbaDevices: undefined,
       name: undefined,
       path: undefined,
       paths: undefined,
@@ -212,7 +217,7 @@ export default class New extends Component {
       server,
       username,
     } = this.refs
-    const { host, iqn, lun, path, type } = this.state
+    const { host, iqn, lun, path, type, scsiId } = this.state
 
     const createMethodFactories = {
       nfs: async () => {
@@ -234,6 +239,20 @@ export default class New extends Component {
           server.value,
           path
         )
+      },
+      hba: async () => {
+        const previous = await probeSrHbaExists(host.id, scsiId)
+        if (previous && previous.length > 0) {
+          try {
+            await confirm({
+              title: _('existingLunModalTitle'),
+              body: <p>{_('existingLunModalText')}</p>,
+            })
+          } catch (error) {
+            return
+          }
+        }
+        return createSrHba(host.id, name.value, description.value, scsiId)
       },
       iscsi: async () => {
         const previous = await probeSrIscsiExists(
@@ -313,15 +332,36 @@ export default class New extends Component {
 
   _handleSrTypeSelection = event => {
     const type = event.target.value
+    if (type === 'hba') {
+      this._handleSrHbaSelection()
+    }
     this.setState({
-      type,
-      paths: undefined,
+      hbaDevices: undefined,
       iqns: undefined,
+      paths: undefined,
+      summary: type === 'lvm' || type === 'local' || type === 'smb',
+      type,
+      unused: undefined,
       usage: undefined,
       used: undefined,
-      unused: undefined,
-      summary: type === 'lvm' || type === 'local' || type === 'smb',
     })
+  }
+
+  _handleSrHbaSelection = async () => {
+    const { host } = this.state
+
+    try {
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
+      const hbaDevices = await probeSrHba(host.id)
+
+      this.setState({
+        hbaDevices,
+      })
+    } catch (err) {
+      error('HBA Detection', err.message || String(err))
+    } finally {
+      this.setState(({ loading }) => ({ loading: loading - 1 }))
+    }
   }
 
   _handleSrIqnSelection = async iqn => {
@@ -484,6 +524,7 @@ export default class New extends Component {
       auth,
       host,
       iqns,
+      hbaDevices,
       loading,
       lockCreation,
       lun,
@@ -577,6 +618,18 @@ export default class New extends Component {
                           />
                         </span>
                       </div>
+                    </fieldset>
+                  )}
+                  {type === 'hba' && (
+                    <fieldset>
+                      <label>{_('newSrLun')}</label>
+                      {!hbaDevices && <p>No HBA device found!</p>}
+                      {hbaDevices && (
+                        <SelectIqn
+                          options={hbaDevices}
+                          onChange={this._handleSrHbaSelection}
+                        />
+                      )}
                     </fieldset>
                   )}
                   {paths && (
