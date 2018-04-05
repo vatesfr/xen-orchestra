@@ -251,7 +251,7 @@ export async function createHba ({ host, nameLabel, nameDescription, scsiId }) {
     '0',
     nameLabel,
     nameDescription,
-    'lvmoohba', // SR LVM over HBA
+    'lvmohba', // SR LVM over HBA
     'user', // recommended by Citrix
     true,
     {}
@@ -366,7 +366,7 @@ export async function probeHba ({ host }) {
   let xml
 
   try {
-    await xapi.call('SR.probe', host._xapiRef, 'type', {})
+    await xapi.call('SR.probe', host._xapiRef, {}, 'lvmohba', {})
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
@@ -665,6 +665,39 @@ probeIscsiExists.params = {
 }
 
 probeIscsiExists.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+// This function helps to detect if this HBA already exists in XAPI
+// It returns a table of SR UUID, empty if no existing connections
+
+export async function probeHbaExists ({ host, scsiId }) {
+  const xapi = this.getXapi(host)
+
+  const deviceConfig = {
+    SCSIid: scsiId,
+  }
+
+  const xml = parseXml(
+    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmohba', {})
+  )
+
+  const srs = []
+  forEach(ensureArray(xml['SRlist'].SR), sr => {
+    // get the UUID of SR connected to this LUN
+    srs.push({ uuid: sr.UUID.trim() })
+  })
+
+  return srs
+}
+
+probeHbaExists.params = {
+  host: { type: 'string' },
+  scsiId: { type: 'string' },
+}
+
+probeHbaExists.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
