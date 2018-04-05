@@ -154,7 +154,8 @@ export default class {
       id: await generateToken(),
       user_id: userId,
       expiration:
-        Date.now() + (typeof expiresIn === 'string' ? ms(expiresIn) : expiresIn),
+        Date.now() +
+        (typeof expiresIn === 'string' ? ms(expiresIn) : expiresIn),
     })
 
     await this._tokens.add(token)
