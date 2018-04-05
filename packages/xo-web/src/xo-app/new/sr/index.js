@@ -48,20 +48,20 @@ import {
   onChange: propTypes.func.isRequired,
   options: propTypes.array.isRequired,
 })
-class SelectIscsiId extends Component {
+class SelectScsiId extends Component {
   _getOptions = createSelector(
     () => this.props.options,
     options =>
-      map(options, ({ vendor, path, size }, index) => ({
+      map(options, ({ vendor, path, size, scsiId }) => ({
         label: `${vendor} - ${path} (${size})`,
-        value: index,
+        value: scsiId,
       }))
   )
 
-  _handleChange = ({ value }) => {
+  _handleChange = opt => {
     const { props } = this
 
-    this.setState({ value }, () => props.onChange(props.options[value]))
+    this.setState({ value: opt.value }, () => props.onChange(opt.value))
   }
 
   componentDidMount () {
@@ -391,15 +391,16 @@ export default class New extends Component {
     })
   }
 
-  _handleSrHbaSelection = async () => {
+  _handleSrHbaSelection = async scsiId => {
     const { host } = this.state
 
     try {
-      this.setState(({ loading }) => ({ loading: loading + 1 }))
+      this.setState(({ loading }) => ({ loading: loading + 1, scsiId }))
       const hbaDevices = await probeSrHba(host.id)
-      console.log(hbaDevices)
       this.setState({
         hbaDevices,
+        usage: true,
+        summary: true,
       })
     } catch (err) {
       error('HBA Detection', err.message || String(err))
@@ -667,9 +668,8 @@ export default class New extends Component {
                   {type === 'hba' && (
                     <fieldset>
                       <label>{_('newSrLun')}</label>
-                      {!hbaDevices && <p>No HBA device found!</p>}
                       {hbaDevices && (
-                        <SelectIscsiId
+                        <SelectScsiId
                           options={hbaDevices}
                           onChange={this._handleSrHbaSelection}
                         />
@@ -899,6 +899,12 @@ export default class New extends Component {
                     </dl>
                   )}
                   {type === 'nfs' && (
+                    <dl className='dl-horizontal'>
+                      <dt>{_('newSrPath')}</dt>
+                      <dd>{path}</dd>
+                    </dl>
+                  )}
+                  {type === 'hba' && (
                     <dl className='dl-horizontal'>
                       <dt>{_('newSrPath')}</dt>
                       <dd>{path}</dd>

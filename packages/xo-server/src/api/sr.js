@@ -382,7 +382,7 @@ export async function probeHba ({ host }) {
     hbaDevices.push({
       hba: hbaDevice.hba.trim(),
       path: hbaDevice.path.trim(),
-      scsciId: hbaDevice.SCSIid.trim(),
+      scsiId: hbaDevice.SCSIid.trim(),
       size: hbaDevice.size.trim(),
       vendor: hbaDevice.vendor.trim(),
     })

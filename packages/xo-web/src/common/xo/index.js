@@ -1996,7 +1996,7 @@ export const createSrIscsi = (
 
 export const createSrHba = (host, nameLabel, nameDescription, scsiId) => {
   const params = { host, nameLabel, nameDescription, scsiId }
-  return _call('sr.createIscsi', params)
+  return _call('sr.createHba', params)
 }
 
 export const createSrIso = (
