@@ -73,7 +73,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       host =>
         host
           ? sr =>
-            isSrWritable(sr) &&
+              isSrWritable(sr) &&
               (sr.$container === host.id || sr.$container === host.$pool)
           : false
     )

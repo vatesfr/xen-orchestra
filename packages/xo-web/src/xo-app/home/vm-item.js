@@ -42,7 +42,10 @@ import styles from './index.css'
 })
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$container),
-  totalDiskSize: createSumBy(createGetVmDisks((_, props) => props.item), 'size'),
+  totalDiskSize: createSumBy(
+    createGetVmDisks((_, props) => props.item),
+    'size'
+  ),
 }))
 export default class VmItem extends Component {
   get _isRunning () {

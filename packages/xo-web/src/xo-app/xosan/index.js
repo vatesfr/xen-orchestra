@@ -70,12 +70,12 @@ const XOSAN_COLUMNS = [
       const badStatus = every(status[sr.id])
         ? null
         : _('xosanBadStatus', {
-          badStatuses: (
-            <ul>
-              {map(status, (_, status) => <li key={status}>{status}</li>)}
-            </ul>
-          ),
-        })
+            badStatuses: (
+              <ul>
+                {map(status, (_, status) => <li key={status}>{status}</li>)}
+              </ul>
+            ),
+          })
 
       if (pbdsDetached != null || badStatus != null) {
         return (
