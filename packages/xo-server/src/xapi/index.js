@@ -1084,13 +1084,17 @@ export default class Xapi extends XapiBase {
       asyncMap(delta.vifs, vif => {
         let network =
           vif.$network$uuid && this.getObject(vif.$network$uuid, undefined)
+
         if (network === undefined) {
-          const { $network$VLAN: vlan = -1 } = vif.$network$VLAN
+          const { $network$VLAN: vlan = -1 } = vif
           const networksUuidByNameLabel = networksUuidByNameLabelByVlan[vlan]
           if (networksUuidByNameLabel !== undefined) {
-            network = networksUuidByNameLabelByVlan[vif.$network$name_label]
-          }
-          if (network === undefined) {
+            network = networksUuidByNameLabel[vif.$network$name_label]
+            if (network === undefined) {
+              network =
+                networksUuidByNameLabel[Object.keys(networksUuidByNameLabel)[0]]
+            }
+          } else {
             network = defaultNetworkUuid
           }
         }
