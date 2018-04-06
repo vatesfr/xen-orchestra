@@ -429,6 +429,7 @@ const messages = {
   newSrPath: 'Path',
   newSrIqn: 'IQN',
   newSrLun: 'LUN',
+  newSrNoHba: 'No HBA devices',
   newSrAuth: 'with auth.',
   newSrUsername: 'User Name',
   newSrPassword: 'Password',
