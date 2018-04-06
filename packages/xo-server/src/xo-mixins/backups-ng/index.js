@@ -145,7 +145,7 @@ const listReplicatedVms = (
     const oc = object.other_config
     if (
       object.$type === 'vm' &&
-      !('start' in object.blocked_operations) &&
+      'start' in object.blocked_operations &&
       oc['xo:backup:schedule'] === scheduleId &&
       oc['xo:backup:sr'] === srId &&
       (oc['xo:backup:vm'] === vmUuid ||
