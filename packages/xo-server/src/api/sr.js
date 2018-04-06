@@ -189,6 +189,7 @@ export async function createNfs ({
   server,
   serverPath,
   nfsVersion,
+  nfsOptions,
 }) {
   const xapi = this.getXapi(host)
 
@@ -200,6 +201,11 @@ export async function createNfs ({
   //  if NFS version given
   if (nfsVersion) {
     deviceConfig.nfsversion = nfsVersion
+  }
+
+  //  if NFS options given
+  if (nfsVersion) {
+    deviceConfig.options = nfsVersion
   }
 
   const srRef = await xapi.call(
@@ -226,6 +232,7 @@ createNfs.params = {
   server: { type: 'string' },
   serverPath: { type: 'string' },
   nfsVersion: { type: 'string', optional: true },
+  nfsOptions: { type: 'string', optional: true },
 }
 
 createNfs.resolve = {
