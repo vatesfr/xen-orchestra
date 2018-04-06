@@ -1,19 +1,29 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
+import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
+import propTypes from 'prop-types-decorator'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import TabButton from 'tab-button'
+import { injectIntl } from 'react-intl'
 import { Text } from 'editable'
-import { concat, isEmpty, map, some } from 'lodash'
-import { connectStore, formatSize } from 'utils'
+import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { connectStore, formatSize, noop } from 'utils'
+import { concat, isEmpty, map, some } from 'lodash'
+import {
+  createGetObjectsOfType,
+  createSelector,
+  getCheckPermissions,
+} from 'selectors'
 import {
   connectVbd,
+  createDisk,
   deleteVbd,
   deleteVdi,
   deleteVdis,
@@ -173,7 +183,72 @@ const FILTERS = {
 
 // ===================================================================
 
+@injectIntl
+@propTypes({
+  onClose: propTypes.func,
+  sr: propTypes.object.isRequired,
+})
+class NewDisk extends Component {
+  _createDisk = () => {
+    const { sr, onClose = noop } = this.props
+    const { name, readOnly, size } = this.state
+
+    return createDisk(name, size, sr, {
+      mode: readOnly ? 'RO' : 'RW',
+    }).then(onClose)
+  }
+
+  render () {
+    const { formatMessage } = this.props.intl
+    const { name, readOnly, size } = this.state
+
+    return (
+      <form id='newDiskForm' className='form-inline'>
+        <div className='form-group'>
+          <input
+            autoFocus
+            className='form-control'
+            onChange={this.linkState('name')}
+            placeholder={formatMessage(messages.vbdNamePlaceHolder)}
+            required
+            type='text'
+            value={name}
+          />
+        </div>
+        <div className='form-group ml-1'>
+          <SizeInput
+            onChange={this.linkState('size')}
+            placeholder={formatMessage(messages.vbdSizePlaceHolder)}
+            required
+            value={size}
+          />
+        </div>
+        <div className='form-group ml-1'>
+          <span>
+            {_('vbdReadonly')}{' '}
+            <Toggle onChange={this.toggleState('readOnly')} value={readOnly} />
+          </span>
+        </div>
+        <ActionButton
+          className='pull-right'
+          btnStyle='primary'
+          form='newDiskForm'
+          handler={this._createDisk}
+          icon='add'
+        >
+          {_('vbdCreate')}
+        </ActionButton>
+      </form>
+    )
+  }
+}
+
+@connectStore(() => ({
+  checkPermissions: getCheckPermissions,
+}))
 export default class SrDisks extends Component {
+  _closeNewDiskForm = () => this.setState({ newDisk: false })
+
   _getAllVdis = createSelector(
     () => this.props.vdis,
     () => this.props.vdiSnapshots,
@@ -181,10 +256,38 @@ export default class SrDisks extends Component {
     concat
   )
 
+  _getIsSrAdmin = createSelector(
+    () => this.props.checkPermissions,
+    () => this.props.sr.id,
+    (check, id) => check(id, 'administrate')
+  )
+
   render () {
     const vdis = this._getAllVdis()
+    const { newDisk } = this.state
+
     return (
       <Container>
+        {this._getIsSrAdmin() && [
+          <Row>
+            <Col className='text-xs-right'>
+              <TabButton
+                btnStyle={newDisk ? 'info' : 'primary'}
+                handler={this.toggleState('newDisk')}
+                icon='add'
+                labelId='vbdCreateDeviceButton'
+              />
+            </Col>
+          </Row>,
+          newDisk && (
+            <Row>
+              <Col>
+                <NewDisk sr={this.props.sr} onClose={this._closeNewDiskForm} />
+                <hr />
+              </Col>
+            </Row>
+          ),
+        ]}
         <Row>
           <Col>
             {!isEmpty(vdis) ? (

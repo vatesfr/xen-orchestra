@@ -232,13 +232,11 @@ const TRANSFORMS = {
       }
 
       const { major, minor } = guestMetrics.PV_drivers_version
-      const [hostMajor, hostMinor] = (
-        obj.$resident_on || obj.$pool.$master
-      ).software_version.product_version.split('.')
 
-      return major >= hostMajor && minor >= hostMinor
-        ? 'up to date'
-        : 'out of date'
+      return {
+        major,
+        minor,
+      }
     })()
 
     let resourceSet = otherConfig['xo:resource_set']
