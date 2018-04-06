@@ -560,8 +560,7 @@ export default connectStore(() => {
             <tr>
               <th>{_('xenToolsStatus')}</th>
               <td>
-                {vm.xenTools !== undefined &&
-                  `${vm.xenTools.major}.${vm.xenTools.minor}`}
+                {vm.xenTools && `${vm.xenTools.major}.${vm.xenTools.minor}`}
               </td>
             </tr>
             <tr>
