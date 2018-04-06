@@ -226,10 +226,6 @@ export const normalizeXenToolsStatus = status => {
   if (status === undefined) {
     return 'unknown'
   }
-  if (status === 'up to date') {
-    return 'up-to-date'
-  }
-  return 'out-of-date'
 }
 
 // -------------------------------------------------------------------
