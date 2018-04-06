@@ -256,7 +256,6 @@ const messages = {
   jobMergedDataSpeed: 'Merge speed:',
   allJobCalls: 'All',
   job: 'Job',
-  jobEdit: 'Edit job',
   jobModalTitle: 'Job {job}',
   jobId: 'ID',
   jobType: 'Type',
@@ -278,6 +277,8 @@ const messages = {
   runJob: 'Run job',
   runJobConfirm: 'Are you sure you want to run {backupType} {id} ({tag})?',
   runJobVerbose: 'One shot running started. See overview for logs.',
+  jobEdit: 'Edit job',
+  jobDelete: 'Delete',
   jobFinished: 'Finished',
   jobInterrupted: 'Interrupted',
   jobStarted: 'Started',
@@ -287,6 +288,7 @@ const messages = {
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
     'Are you sure you want to delete this backup job?',
+  deleteSelectedJobs: 'Delete selected jobs',
   scheduleEnableAfterCreation: 'Enable immediately after creation',
   scheduleEditMessage:
     'You are editing Schedule {name} ({id}). Saving will override previous schedule state.',
@@ -1324,6 +1326,9 @@ const messages = {
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
   chooseSrForEachVdisModalOptionalEntry: '* optional',
+  deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
+  deleteJobsModalMessage:
+    'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
   deleteVbdsModalTitle: 'Delete VBD{nVbds, plural, one {} other {s}}',
   deleteVbdsModalMessage:
     'Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
