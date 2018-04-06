@@ -1030,8 +1030,8 @@ export default class Xapi extends XapiBase {
       return newVdi
     })::pAll()
 
-    const networksUuidByNameLabelByVlan = {}
-    let defaultNetworkUuid
+    const networksByNameLabelByVlan = {}
+    let defaultNetwork
     forEach(this.objects.all, object => {
       if (object.$type === 'network') {
         const pif = object.$PIFs[0]
@@ -1040,11 +1040,10 @@ export default class Xapi extends XapiBase {
           return
         }
         const vlan = pif.VLAN
-        const networksUuidByNameLabel =
-          networksUuidByNameLabelByVlan[vlan] ||
-          (networksUuidByNameLabelByVlan[vlan] = {})
-        defaultNetworkUuid = networksUuidByNameLabel[object.name_label] =
-          object.uuid
+        const networksByNameLabel =
+          networksByNameLabelByVlan[vlan] ||
+          (networksByNameLabelByVlan[vlan] = {})
+        defaultNetwork = networksByNameLabel[object.name_label] = object
       }
     })
 
@@ -1087,15 +1086,14 @@ export default class Xapi extends XapiBase {
 
         if (network === undefined) {
           const { $network$VLAN: vlan = -1 } = vif
-          const networksUuidByNameLabel = networksUuidByNameLabelByVlan[vlan]
-          if (networksUuidByNameLabel !== undefined) {
-            network = networksUuidByNameLabel[vif.$network$name_label]
+          const networksByNameLabel = networksByNameLabelByVlan[vlan]
+          if (networksByNameLabel !== undefined) {
+            network = networksByNameLabel[vif.$network$name_label]
             if (network === undefined) {
-              network =
-                networksUuidByNameLabel[Object.keys(networksUuidByNameLabel)[0]]
+              network = networksByNameLabel[Object.keys(networksByNameLabel)[0]]
             }
           } else {
-            network = defaultNetworkUuid
+            network = defaultNetwork
           }
         }
 
