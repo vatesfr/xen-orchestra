@@ -917,26 +917,26 @@ export const copyVm = (vm, sr, name, compress) => {
   const vmId = resolveId(vm)
   return sr !== undefined
     ? confirm({
-      title: _('copyVm'),
-      body: _('copyVmConfirm', { SR: sr.name_label }),
-    }).then(() =>
-      _call('vm.copy', {
-        vm: vmId,
-        sr: sr.id,
-        name: name || vm.name_label + '_COPY',
-        compress,
-      })
-    )
+        title: _('copyVm'),
+        body: _('copyVmConfirm', { SR: sr.name_label }),
+      }).then(() =>
+        _call('vm.copy', {
+          vm: vmId,
+          sr: sr.id,
+          name: name || vm.name_label + '_COPY',
+          compress,
+        })
+      )
     : confirm({
-      title: _('copyVm'),
-      body: <CopyVmModalBody vm={vm} />,
-    }).then(params => {
-      if (!params.sr) {
-        error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
-        return
-      }
-      return _call('vm.copy', { vm: vmId, ...params })
-    }, noop)
+        title: _('copyVm'),
+        body: <CopyVmModalBody vm={vm} />,
+      }).then(params => {
+        if (!params.sr) {
+          error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
+          return
+        }
+        return _call('vm.copy', { vm: vmId, ...params })
+      }, noop)
 }
 
 import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
@@ -1001,28 +1001,28 @@ export const deleteTemplates = templates =>
     return nDefaultTemplates === 0
       ? showError()
       : confirm({
-        title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
-        body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
-      })
-        .then(
-          () =>
-            Promise.all(
-              map(defaultTemplates, id =>
-                _call('vm.delete', {
-                  id,
-                  forceDeleteDefaultTemplate: true,
-                }).catch(() => {
-                  nErrors++
-                })
-              )
-            ),
-          noop
-        )
-        .then(() => {
-          if (nErrors !== 0) {
-            showError()
-          }
-        }, noop)
+          title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
+          body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
+        })
+          .then(
+            () =>
+              Promise.all(
+                map(defaultTemplates, id =>
+                  _call('vm.delete', {
+                    id,
+                    forceDeleteDefaultTemplate: true,
+                  }).catch(() => {
+                    nErrors++
+                  })
+                )
+              ),
+            noop
+          )
+          .then(() => {
+            if (nErrors !== 0) {
+              showError()
+            }
+          }, noop)
   }, noop)
 
 export const snapshotVm = vm => _call('vm.snapshot', { id: resolveId(vm) })
@@ -1977,10 +1977,12 @@ export const createSrNfs = (
   nameDescription,
   server,
   serverPath,
-  nfsVersion = undefined
+  nfsVersion = undefined,
+  nfsOptions
 ) => {
   const params = { host, nameLabel, nameDescription, server, serverPath }
   nfsVersion && (params.nfsVersion = nfsVersion)
+  nfsOptions && (params.nfsOptions = nfsOptions)
   return _call('sr.createNfs', params)
 }
 
