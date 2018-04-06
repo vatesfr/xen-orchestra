@@ -219,17 +219,6 @@ export const parseSize = size => {
 
 // -------------------------------------------------------------------
 
-export const normalizeXenToolsStatus = status => {
-  if (status === false) {
-    return 'not-installed'
-  }
-  if (status === undefined) {
-    return 'unknown'
-  }
-}
-
-// -------------------------------------------------------------------
-
 const _NotFound = () => <h1>{_('errorPageNotFound')}</h1>
 
 // Decorator to declare routes on a component.
