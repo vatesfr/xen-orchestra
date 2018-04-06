@@ -118,8 +118,8 @@ export default connectStore(() => {
             <p className='text-xs-center'>
               {lastShutdownTime
                 ? _('vmHaltedSince', {
-                  ago: <FormattedRelative value={lastShutdownTime * 1000} />,
-                })
+                    ago: <FormattedRelative value={lastShutdownTime * 1000} />,
+                  })
                 : _('vmNotRunning')}
             </p>
           )}

@@ -487,8 +487,8 @@ export async function probeIscsiIqns ({
 
   // if we give user and password
   if (chapUser && chapPassword) {
-    deviceConfig.chapUser = chapUser
-    deviceConfig.chapPassword = chapPassword
+    deviceConfig.chapuser = chapUser
+    deviceConfig.chappassword = chapPassword
   }
 
   //  if we give another port than default iSCSI

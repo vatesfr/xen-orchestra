@@ -495,11 +495,11 @@ export default class TabXosan extends Component {
           size: isEmpty(vm && vm.$VBDs)
             ? null
             : sum(
-              map(vm.$VBDs, vbdId => {
-                const vdi = vdis[vbds[vbdId].VDI]
-                return vdi === undefined ? 0 : vdi.size
-              })
-            ),
+                map(vm.$VBDs, vbdId => {
+                  const vdi = vdis[vbds[vbdId].VDI]
+                  return vdi === undefined ? 0 : vdi.size
+                })
+              ),
           vm,
         }
       })

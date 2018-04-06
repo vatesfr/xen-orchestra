@@ -8,12 +8,14 @@ try {
     const filtered = frames.filter(function (frame) {
       const name = frame && frame.getFileName()
 
-      return (// has a filename
+      return (
+        // has a filename
         name &&
         // contains a separator (no internal modules)
         name.indexOf(sep) !== -1 &&
         // does not start with `internal`
-        name.lastIndexOf('internal', 0) !== -1)
+        name.lastIndexOf('internal', 0) !== -1
+      )
     })
 
     // depd (used amongst other by express requires at least 3 frames

@@ -765,8 +765,8 @@ export default class NewVm extends BaseComponent {
             <h2>
               {isAdmin || !isEmpty(resourceSets)
                 ? _('newVmCreateNewVmOn', {
-                  select: isAdmin ? selectPool : selectResourceSet,
-                })
+                    select: isAdmin ? selectPool : selectResourceSet,
+                  })
                 : _('newVmCreateNewVmNoPermission')}
             </h2>
           </Col>
@@ -1547,15 +1547,15 @@ export default class NewVm extends BaseComponent {
           ),
           template &&
             template.virtualizationMode === 'hvm' && (
-            <SectionContent>
-              <Item label={_('vmVgpu')}>
-                <SelectVgpuType
-                  onChange={this._linkState('vgpuType')}
-                  predicate={this._getVgpuTypePredicate()}
-                />
-              </Item>
-            </SectionContent>
-          ),
+              <SectionContent>
+                <Item label={_('vmVgpu')}>
+                  <SelectVgpuType
+                    onChange={this._linkState('vgpuType')}
+                    predicate={this._getVgpuTypePredicate()}
+                  />
+                </Item>
+              </SectionContent>
+            ),
         ]}
       </Section>
     )

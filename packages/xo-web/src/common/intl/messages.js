@@ -895,12 +895,7 @@ const messages = {
   cpuCapLabel: 'CPU cap',
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
-  xenToolsStatus: 'Xen tools status',
-  xenToolsStatusValue: {
-    defaultMessage: '{status}',
-    description:
-      'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`',
-  },
+  xenToolsStatus: 'Xen tools version',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
