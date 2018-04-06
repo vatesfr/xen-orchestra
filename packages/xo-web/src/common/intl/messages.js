@@ -275,6 +275,7 @@ const messages = {
   jobTimezone: 'Timezone',
   jobServerTimezone: 'Server',
   runJob: 'Run job',
+  runJobConfirm: 'Are you sure you want to run {backupType} {id} ({tag})?',
   runJobVerbose: 'One shot running started. See overview for logs.',
   jobEdit: 'Edit job',
   jobDelete: 'Delete',
@@ -317,6 +318,10 @@ const messages = {
   noMatchingVms: 'There are no matching VMs!',
   allMatchingVms: '{icon} See the matching VMs ({nMatchingVms, number})',
   backupOwner: 'Backup owner',
+  migrateBackupSchedule: 'Migrate to backup NG',
+  migrateBackupScheduleMessage:
+    'This will migrate this backup to a backup NG. This operation is not reversible. Do you want to continue?',
+  runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
 
   // ------ New backup -----
   newBackupSelection: 'Select your backup type:',
@@ -328,6 +333,8 @@ const messages = {
   backupName: 'Name',
   useDelta: 'Use delta',
   useCompression: 'Use compression',
+  dbAndDrRequireEntreprisePlan: 'Delta Backup and DR require Entreprise plan',
+  crRequiresPremiumPlan: 'CR requires Premium plan',
   smartBackupModeTitle: 'Smart mode',
   backupTargetRemotes: 'Target remotes (for Export)',
   backupTargetSrs: 'Target SRs (for Replication)',
@@ -424,6 +431,7 @@ const messages = {
   newSrPath: 'Path',
   newSrIqn: 'IQN',
   newSrLun: 'LUN',
+  newSrNoHba: 'No HBA devices',
   newSrAuth: 'with auth.',
   newSrUsername: 'User Name',
   newSrPassword: 'Password',
@@ -889,12 +897,7 @@ const messages = {
   cpuCapLabel: 'CPU cap',
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
-  xenToolsStatus: 'Xen tools status',
-  xenToolsStatusValue: {
-    defaultMessage: '{status}',
-    description:
-      'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`',
-  },
+  xenToolsStatus: 'Xen tools version',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
@@ -944,6 +947,14 @@ const messages = {
     'Delete VM template{templates, plural, one {} other {s}}',
   templateDeleteModalBody:
     'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
+  failedToDeleteTemplatesTitle:
+    'Delete template{nTemplates, plural, one {} other {s}} failed',
+  failedToDeleteTemplatesMessage:
+    'Failed to delete {nTemplates, number} template{nTemplates, plural, one {} other {s}}.',
+  deleteDefaultTemplatesTitle:
+    'Delete default template{nDefaultTemplates, plural, one {} other {s}}',
+  deleteDefaultTemplatesMessage:
+    'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?',
 
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',

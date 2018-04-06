@@ -10,6 +10,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
+import { confirm } from 'modal'
 import { addSubscriptions } from 'utils'
 import { constructQueryString } from 'smart-backup'
 import { createSelector } from 'selectors'
@@ -19,6 +20,7 @@ import {
   deleteBackupSchedule,
   disableSchedule,
   enableSchedule,
+  migrateBackupSchedule,
   runJob,
   subscribeJobs,
   subscribeSchedules,
@@ -34,6 +36,16 @@ const jobKeyToLabel = {
   rollingBackup: _('backup'),
   rollingSnapshot: _('rollingSnapshot'),
 }
+
+const _runJob = ({ jobLabel, jobId, scheduleTag }) =>
+  confirm({
+    title: _('runJob'),
+    body: _('runJobConfirm', {
+      backupType: <strong>{jobLabel}</strong>,
+      id: <strong>{jobId.slice(4, 8)}</strong>,
+      tag: scheduleTag,
+    }),
+  }).then(() => runJob(jobId))
 
 const JOB_COLUMNS = [
   {
@@ -80,44 +92,55 @@ const JOB_COLUMNS = [
   },
   {
     name: _('jobAction'),
-    itemRenderer: ({ redirect, schedule }, isScheduleUserMissing) => (
-      <fieldset>
-        {!isScheduleUserMissing[schedule.id] && (
-          <Tooltip content={_('backupUserNotFound')}>
-            <Icon className='mr-1' icon='error' />
-          </Tooltip>
-        )}
-        <Link
-          className='btn btn-sm btn-primary mr-1'
-          to={`/backup/${schedule.id}/edit`}
-        >
-          <Icon icon='edit' />
-        </Link>
-        <ButtonGroup>
-          {redirect && (
-            <ActionRowButton
-              btnStyle='primary'
-              handler={redirect}
-              icon='preview'
-              tooltip={_('redirectToMatchingVms')}
-            />
+    itemRenderer: (item, isScheduleUserMissing) => {
+      const { redirect, schedule } = item
+      const { id } = schedule
+
+      return (
+        <fieldset>
+          {isScheduleUserMissing[id] && (
+            <Tooltip content={_('backupUserNotFound')}>
+              <Icon className='mr-1' icon='error' />
+            </Tooltip>
           )}
-          <ActionRowButton
-            icon='delete'
-            btnStyle='danger'
-            handler={deleteBackupSchedule}
-            handlerParam={schedule}
-          />
-          <ActionRowButton
-            disabled={!isScheduleUserMissing[schedule.id]}
-            icon='run-schedule'
-            btnStyle='warning'
-            handler={runJob}
-            handlerParam={schedule.jobId}
-          />
-        </ButtonGroup>
-      </fieldset>
-    ),
+          <Link
+            className='btn btn-sm btn-primary mr-1'
+            to={`/backup/${id}/edit`}
+          >
+            <Icon icon='edit' />
+          </Link>
+          <ButtonGroup>
+            {redirect && (
+              <ActionRowButton
+                btnStyle='primary'
+                handler={redirect}
+                icon='preview'
+                tooltip={_('redirectToMatchingVms')}
+              />
+            )}
+            <ActionRowButton
+              btnStyle='warning'
+              disabled={isScheduleUserMissing[id]}
+              handler={_runJob}
+              handlerParam={item}
+              icon='run-schedule'
+            />
+            <ActionRowButton
+              icon='migrate-job'
+              btnStyle='danger'
+              handler={migrateBackupSchedule}
+              handlerParam={schedule.jobId}
+            />
+            <ActionRowButton
+              btnStyle='danger'
+              handler={deleteBackupSchedule}
+              handlerParam={schedule}
+              icon='delete'
+            />
+          </ButtonGroup>
+        </fieldset>
+      )
+    },
     textAlign: 'right',
   },
 ]
@@ -193,7 +216,7 @@ export default class Overview extends Component {
     (schedules, jobs, users) => {
       const isScheduleUserMissing = {}
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !!(
+        isScheduleUserMissing[schedule.id] = !(
           jobs && find(users, user => user.id === jobs[schedule.jobId].userId)
         )
       })

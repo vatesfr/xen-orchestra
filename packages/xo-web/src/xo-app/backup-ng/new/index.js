@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Icon from 'icon'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Tooltip from 'tooltip'
@@ -29,13 +30,18 @@ import { FormGroup, getRandomId, Input, Ul, Li } from './utils'
 
 const normaliseTagValues = values => resolveIds(values).map(value => [value])
 
-const constructPattern = values => ({
-  id: {
-    __or: resolveIds(values),
-  },
-})
+const constructPattern = values =>
+  values.length === 1
+    ? {
+      id: resolveId(values[0]),
+    }
+    : {
+      id: {
+        __or: resolveIds(values),
+      },
+    }
 
-const destructPattern = pattern => pattern.id.__or
+const destructPattern = pattern => pattern.id.__or || [pattern.id]
 
 const destructVmsPattern = pattern =>
   pattern.id === undefined
@@ -554,14 +560,14 @@ export default [
               </Card>
               <Card>
                 <CardBlock>
-                  <div className='btn-toolbar text-xs-center'>
+                  <div className='text-xs-center'>
                     <ActionButton
                       active={state.snapshotMode}
                       handler={effects.setSnapshotMode}
                       icon='rolling-snapshot'
                     >
                       {_('rollingSnapshot')}
-                    </ActionButton>
+                    </ActionButton>{' '}
                     <ActionButton
                       active={state.backupMode}
                       disabled={state.isDelta}
@@ -569,31 +575,50 @@ export default [
                       icon='backup'
                     >
                       {_('backup')}
-                    </ActionButton>
+                    </ActionButton>{' '}
                     <ActionButton
                       active={state.deltaMode}
-                      disabled={state.isFull}
+                      disabled={
+                        state.isFull ||
+                        (!state.deltaMode && process.env.XOA_PLAN < 3)
+                      }
                       handler={effects.setDeltaMode}
                       icon='delta-backup'
                     >
                       {_('deltaBackup')}
-                    </ActionButton>
+                    </ActionButton>{' '}
                     <ActionButton
                       active={state.drMode}
-                      disabled={state.isDelta}
+                      disabled={
+                        state.isDelta ||
+                        (!state.drMode && process.env.XOA_PLAN < 3)
+                      }
                       handler={effects.setDrMode}
                       icon='disaster-recovery'
                     >
                       {_('disasterRecovery')}
-                    </ActionButton>
+                    </ActionButton>{' '}
+                    {process.env.XOA_PLAN < 3 && (
+                      <Tooltip content={_('dbAndDrRequireEntreprisePlan')}>
+                        <Icon icon='info' />
+                      </Tooltip>
+                    )}{' '}
                     <ActionButton
                       active={state.crMode}
-                      disabled={state.isFull}
+                      disabled={
+                        state.isFull ||
+                        (!state.crMode && process.env.XOA_PLAN < 4)
+                      }
                       handler={effects.setCrMode}
                       icon='continuous-replication'
                     >
                       {_('continuousReplication')}
-                    </ActionButton>
+                    </ActionButton>{' '}
+                    {process.env.XOA_PLAN < 4 && (
+                      <Tooltip content={_('crRequiresPremiumPlan')}>
+                        <Icon icon='info' />
+                      </Tooltip>
+                    )}
                   </div>
                 </CardBlock>
               </Card>

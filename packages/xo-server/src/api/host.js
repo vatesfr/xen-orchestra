@@ -242,7 +242,7 @@ emergencyShutdownHost.resolve = {
 // -------------------------------------------------------------------
 
 export function stats ({ host, granularity }) {
-  return this.getXapiHostStats(host, granularity)
+  return this.getXapiHostStats(host._xapiId, granularity)
 }
 
 stats.description = 'returns statistic of the host'

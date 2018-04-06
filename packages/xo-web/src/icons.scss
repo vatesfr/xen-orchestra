@@ -82,15 +82,15 @@
   &-grab {
     @extend .fa;
     @extend .fa-ellipsis-v;
-  },
+  }
   &-previous {
     @extend .fa;
     @extend .fa-chevron-left;
-  },
+  }
   &-next {
     @extend .fa;
     @extend .fa-chevron-right;
-  },
+  }
   &-caret {
     @extend .fa;
     @extend .fa-caret-down;
@@ -284,6 +284,10 @@
   &-jobs {
     @extend .fa;
     @extend .fa-cogs;
+  }
+  &-migrate-job {
+    @extend .fa;
+    @extend .fa-share;
   }
 
   // VM

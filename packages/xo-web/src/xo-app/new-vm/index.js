@@ -41,6 +41,7 @@ import {
   createVms,
   getCloudInitConfig,
   subscribeCurrentUser,
+  subscribeIpPools,
   subscribePermissions,
   subscribeResourceSets,
   XEN_DEFAULT_CPU_CAP,
@@ -115,12 +116,21 @@ const Item = ({ label, children, className }) => (
   </span>
 )
 
+@addSubscriptions({
+  // eslint-disable-next-line standard/no-callback-literal
+  ipPoolsConfigured: cb => subscribeIpPools(ipPools => cb(ipPools.length > 0)),
+})
 @injectIntl
 class Vif extends BaseComponent {
+  _getIpPoolPredicate = createSelector(
+    () => this.props.vif,
+    vif => ipPool => includes(ipPool.networks, vif.network)
+  )
+
   render () {
     const {
       intl: { formatMessage },
-      ipPoolPredicate,
+      ipPoolsConfigured,
       networkPredicate,
       onChangeAddresses,
       onChangeMac,
@@ -159,26 +169,28 @@ class Vif extends BaseComponent {
             )}
           </span>
         </Item>
-        <LineItem>
-          <span className={styles.inlineSelect}>
-            {pool ? (
-              <SelectIp
-                containerPredicate={ipPoolPredicate}
-                multi
-                onChange={onChangeAddresses}
-                value={vif.addresses}
-              />
-            ) : (
-              <SelectResourceSetIp
-                containerPredicate={ipPoolPredicate}
-                multi
-                onChange={onChangeAddresses}
-                resourceSetId={resourceSet.id}
-                value={vif.addresses}
-              />
-            )}
-          </span>
-        </LineItem>
+        {ipPoolsConfigured && (
+          <LineItem>
+            <span className={styles.inlineSelect}>
+              {pool ? (
+                <SelectIp
+                  containerPredicate={this._getIpPoolPredicate()}
+                  multi
+                  onChange={onChangeAddresses}
+                  value={vif.addresses}
+                />
+              ) : (
+                <SelectResourceSetIp
+                  containerPredicate={this._getIpPoolPredicate()}
+                  multi
+                  onChange={onChangeAddresses}
+                  resourceSetId={resourceSet.id}
+                  value={vif.addresses}
+                />
+              )}
+            </span>
+          </LineItem>
+        )}
         <Item>
           <Button onClick={onDelete}>
             <Icon icon='new-vm-remove' />
@@ -531,25 +543,6 @@ export default class NewVm extends BaseComponent {
     poolId => sr =>
       (poolId == null || poolId === sr.$pool) && sr.SR_type === 'iso'
   )
-  _getIpPoolPredicate = createSelector(
-    () => !!this.props.pool,
-    () => {
-      const { resourceSet } = this.props
-      return resourceSet && resourceSet.ipPools
-    },
-    () => this.props.vif,
-    (pool, ipPools, vif) => ipPool => {
-      if (!ipPool) {
-        return false
-      }
-      return (
-        pool ||
-        (ipPools &&
-          includes(ipPools, ipPool.id) &&
-          find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vif.network))
-      )
-    }
-  )
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
@@ -772,8 +765,8 @@ export default class NewVm extends BaseComponent {
             <h2>
               {isAdmin || !isEmpty(resourceSets)
                 ? _('newVmCreateNewVmOn', {
-                  select: isAdmin ? selectPool : selectResourceSet,
-                })
+                    select: isAdmin ? selectPool : selectResourceSet,
+                  })
                 : _('newVmCreateNewVmNoPermission')}
             </h2>
           </Col>
@@ -1554,15 +1547,15 @@ export default class NewVm extends BaseComponent {
           ),
           template &&
             template.virtualizationMode === 'hvm' && (
-            <SectionContent>
-              <Item label={_('vmVgpu')}>
-                <SelectVgpuType
-                  onChange={this._linkState('vgpuType')}
-                  predicate={this._getVgpuTypePredicate()}
-                />
-              </Item>
-            </SectionContent>
-          ),
+              <SectionContent>
+                <Item label={_('vmVgpu')}>
+                  <SelectVgpuType
+                    onChange={this._linkState('vgpuType')}
+                    predicate={this._getVgpuTypePredicate()}
+                  />
+                </Item>
+              </SectionContent>
+            ),
         ]}
       </Section>
     )

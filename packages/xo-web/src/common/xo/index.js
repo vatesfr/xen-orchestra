@@ -19,7 +19,11 @@ import {
   throttle,
 } from 'lodash'
 import { lastly, reflect, tap } from 'promise-toolbox'
-import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
+import {
+  forbiddenOperation,
+  noHostsAvailable,
+  vmIsTemplate,
+} from 'xo-common/api-errors'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
@@ -968,11 +972,58 @@ export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
     body: _('templateDeleteModalBody', { templates: templates.length }),
-  }).then(
-    () =>
-      Promise.all(map(resolveIds(templates), id => _call('vm.delete', { id }))),
-    noop
-  )
+  }).then(async () => {
+    const defaultTemplates = []
+    let nErrors = 0
+    await Promise.all(
+      map(resolveIds(templates), id =>
+        _call('vm.delete', { id }).catch(reason => {
+          if (vmIsTemplate.is(reason)) {
+            defaultTemplates.push(id)
+          } else {
+            nErrors++
+          }
+        })
+      )
+    )
+
+    const nDefaultTemplates = defaultTemplates.length
+    if (nDefaultTemplates === 0 && nErrors === 0) {
+      return
+    }
+
+    const showError = () =>
+      error(
+        _('failedToDeleteTemplatesTitle', { nTemplates: nErrors }),
+        _('failedToDeleteTemplatesMessage', { nTemplates: nErrors })
+      )
+
+    return nDefaultTemplates === 0
+      ? showError()
+      : confirm({
+        title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
+        body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
+      })
+        .then(
+          () =>
+            Promise.all(
+              map(defaultTemplates, id =>
+                _call('vm.delete', {
+                  id,
+                  forceDeleteDefaultTemplate: true,
+                }).catch(() => {
+                  nErrors++
+                })
+              )
+            ),
+          noop
+        )
+        .then(() => {
+          if (nErrors !== 0) {
+            showError()
+          }
+        }, noop)
+  }, noop)
 
 export const snapshotVm = vm => _call('vm.snapshot', { id: resolveId(vm) })
 
@@ -1610,6 +1661,12 @@ export const deleteBackupSchedule = async schedule => {
   subscribeJobs.forceRefresh()
 }
 
+export const migrateBackupSchedule = id =>
+  confirm({
+    title: _('migrateBackupSchedule'),
+    body: _('migrateBackupScheduleMessage'),
+  }).then(() => _call('backupNg.migrateLegacyJob', { id: resolveId(id) }))
+
 export const deleteSchedule = schedule =>
   _call('schedule.delete', { id: resolveId(schedule) })::tap(
     subscribeSchedules.forceRefresh
@@ -1903,6 +1960,11 @@ export const probeSrIscsiExists = (
   return _call('sr.probeIscsiExists', params)
 }
 
+export const probeSrHba = host => _call('sr.probeHba', { host })
+
+export const probeSrHbaExists = (host, scsiId) =>
+  _call('sr.probeHbaExists', { host, scsiId })
+
 export const reattachSr = (host, uuid, nameLabel, nameDescription, type) =>
   _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type })
 
@@ -1939,6 +2001,9 @@ export const createSrIscsi = (
   chapPassword && (params.chapPassword = chapPassword)
   return _call('sr.createIscsi', params)
 }
+
+export const createSrHba = (host, nameLabel, nameDescription, scsiId) =>
+  _call('sr.createHba', { host, nameLabel, nameDescription, scsiId })
 
 export const createSrIso = (
   host,

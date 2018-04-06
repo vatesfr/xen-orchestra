@@ -89,7 +89,7 @@ const methods = {
   }),
 }
 
-const parseParamsVector = vector => {
+const parseParamsVector = (vector: any) => {
   assert.strictEqual(vector.type, 'crossProduct')
   const { items } = vector
   assert.strictEqual(items.length, 2)
@@ -120,34 +120,26 @@ const parseParamsVector = vector => {
   return { ...params, vms }
 }
 
-export const translateOldJobs = async (app: any): Promise<Array<BackupJob>> => {
-  const backupJobs: Array<BackupJob> = []
-  const [jobs, schedules] = await Promise.all([
-    app.getAllJobs('call'),
-    app.getAllSchedules(),
-  ])
-  jobs.forEach(job => {
-    try {
-      const { id } = job
-      let method, schedule
-      if (
-        job.type === 'call' &&
-        (method = methods[job.method]) !== undefined &&
-        (schedule = schedules.find(_ => _.jobId === id)) !== undefined
-      ) {
-        const params = parseParamsVector(job.paramsVector)
-        backupJobs.push({
-          id,
-          name: params.tag || job.name,
-          type: 'backup',
-          userId: job.userId,
-          // $FlowFixMe `method` is initialized but Flow fails to see this
-          ...method(job, params, schedule),
-        })
-      }
-    } catch (error) {
-      console.warn('translateOldJobs', job, error)
-    }
-  })
-  return backupJobs
+export const translateLegacyJob = (
+  job: CallJob,
+  schedules: Schedule[]
+): BackupJob => {
+  const { id } = job
+  let method, schedule
+  if (
+    job.type !== 'call' ||
+    (method = methods[job.method]) === undefined ||
+    (schedule = schedules.find(_ => _.jobId === id)) === undefined
+  ) {
+    throw new Error(`cannot convert job ${job.id}`)
+  }
+  const params = parseParamsVector(job.paramsVector)
+  return {
+    id,
+    name: params.tag || job.name,
+    type: 'backup',
+    userId: job.userId,
+    // $FlowFixMe `method` is initialized but Flow fails to see this
+    ...method(job, params, schedule),
+  }
 }

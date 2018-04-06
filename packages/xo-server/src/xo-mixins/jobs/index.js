@@ -21,32 +21,32 @@ export type Job = {
   id: string,
   name: string,
   type: string,
-  userId: string
+  userId: string,
 }
 
 type ParamsVector =
   | {|
       items: Array<Object>,
-      type: 'crossProduct'
+      type: 'crossProduct',
     |}
   | {|
       mapping: Object,
       type: 'extractProperties',
-      value: Object
+      value: Object,
     |}
   | {|
       pattern: Pattern,
-      type: 'fetchObjects'
+      type: 'fetchObjects',
     |}
   | {|
       collection: Object,
       iteratee: Function,
       paramName?: string,
-      type: 'map'
+      type: 'map',
     |}
   | {|
       type: 'set',
-      values: any
+      values: any,
     |}
 
 export type CallJob = {|
@@ -54,7 +54,7 @@ export type CallJob = {|
   method: string,
   paramsVector: ParamsVector,
   timeout?: number,
-  type: 'call'
+  type: 'call',
 |}
 
 export type Executor = ({|
@@ -64,7 +64,7 @@ export type Executor = ({|
   logger: Logger,
   runJobId: string,
   schedule?: Schedule,
-  session: Object
+  session: Object,
 |}) => Promise<any>
 
 // -----------------------------------------------------------------------------
@@ -180,9 +180,12 @@ export default class Jobs {
     return this._jobs.create(job)
   }
 
-  async updateJob ({ id, ...props }: $Shape<Job>) {
-    const job = await this.getJob(id)
-    patch(job, props)
+  async updateJob (job: $Shape<Job>, merge: boolean = true) {
+    if (merge) {
+      const { id, ...props } = job
+      job = await this.getJob(id)
+      patch(job, props)
+    }
     return /* await */ this._jobs.save(job)
   }
 

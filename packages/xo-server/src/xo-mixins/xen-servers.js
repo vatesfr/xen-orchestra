@@ -392,14 +392,12 @@ export default class {
     return servers
   }
 
-  getXapiVmStats (vm, granularity) {
-    const xapi = this.getXapi(vm)
-    return this._stats.getVmPoints(xapi, vm._xapiId, granularity)
+  getXapiVmStats (vmId, granularity) {
+    return this._stats.getVmStats(this.getXapi(vmId), vmId, granularity)
   }
 
-  getXapiHostStats (host, granularity) {
-    const xapi = this.getXapi(host)
-    return this._stats.getHostPoints(xapi, host._xapiId, granularity)
+  getXapiHostStats (hostId, granularity) {
+    return this._stats.getHostStats(this.getXapi(hostId), hostId, granularity)
   }
 
   async mergeXenPools (sourceId, targetId, force = false) {

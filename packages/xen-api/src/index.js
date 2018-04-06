@@ -441,16 +441,18 @@ export class Xapi extends EventEmitter {
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
   getObject (idOrUuidOrRef, defaultValue) {
-    const object =
-      typeof idOrUuidOrRef === 'string'
-        ? this._objects.all[idOrUuidOrRef] || this._objectsByRefs[idOrUuidOrRef]
-        : this._objects.all[idOrUuidOrRef.$id]
+    if (typeof idOrUuidOrRef === 'object') {
+      idOrUuidOrRef = idOrUuidOrRef.$id
+    }
 
-    if (object) return object
+    const object =
+      this._objects.all[idOrUuidOrRef] || this._objectsByRefs[idOrUuidOrRef]
+
+    if (object !== undefined) return object
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('there is not object can be matched to ' + idOrUuidOrRef)
+    throw new Error('no object with UUID or opaque ref: ' + idOrUuidOrRef)
   }
 
   // Returns the object for a given opaque reference (internal to
@@ -458,11 +460,11 @@ export class Xapi extends EventEmitter {
   getObjectByRef (ref, defaultValue) {
     const object = this._objectsByRefs[ref]
 
-    if (object) return object
+    if (object !== undefined) return object
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('there is no object with the ref ' + ref)
+    throw new Error('no object with opaque ref: ' + ref)
   }
 
   // Returns the object for a given UUID (unique identifier that some
@@ -475,7 +477,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('there is no object with the UUID ' + uuid)
+    throw new Error('no object with UUID: ' + uuid)
   }
 
   getRecord (type, ref) {
@@ -813,7 +815,10 @@ export class Xapi extends EventEmitter {
     const taskWatchers = this._taskWatchers
     const taskWatcher = taskWatchers[ref]
     if (taskWatcher !== undefined) {
-      taskWatcher.reject(new Error('task has been destroyed before completion'))
+      const error = new Error('task has been destroyed before completion')
+      error.task = object
+      error.taskRef = ref
+      taskWatcher.reject(error)
       delete taskWatchers[ref]
     }
   }

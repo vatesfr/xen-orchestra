@@ -20,7 +20,6 @@ import {
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
-  normalizeXenToolsStatus,
   osFamily,
 } from 'utils'
 import {
@@ -561,9 +560,7 @@ export default connectStore(() => {
             <tr>
               <th>{_('xenToolsStatus')}</th>
               <td>
-                {_('xenToolsStatusValue', {
-                  status: normalizeXenToolsStatus(vm.xenTools),
-                })}
+                {vm.xenTools && `${vm.xenTools.major}.${vm.xenTools.minor}`}
               </td>
             </tr>
             <tr>

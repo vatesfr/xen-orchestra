@@ -633,7 +633,12 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _deleteVm (vm, deleteDisks = true, force = false) {
+  async _deleteVm (
+    vm,
+    deleteDisks = true,
+    force = false,
+    forceDeleteDefaultTemplate = false
+  ) {
     debug(`Deleting VM ${vm.name_label}`)
 
     const { $ref } = vm
@@ -654,6 +659,10 @@ export default class Xapi extends XapiBase {
     vm = await this.barrier('VM', $ref)
 
     return Promise.all([
+      forceDeleteDefaultTemplate &&
+        this._updateObjectMapProperty(vm, 'other_config', {
+          default_template: null,
+        }),
       this.call('VM.destroy', $ref),
 
       asyncMap(vm.$snapshots, snapshot =>
@@ -693,8 +702,13 @@ export default class Xapi extends XapiBase {
     ])
   }
 
-  async deleteVm (vmId, deleteDisks, force) {
-    return /* await */ this._deleteVm(this.getObject(vmId), deleteDisks, force)
+  async deleteVm (vmId, deleteDisks, force, forceDeleteDefaultTemplate) {
+    return /* await */ this._deleteVm(
+      this.getObject(vmId),
+      deleteDisks,
+      force,
+      forceDeleteDefaultTemplate
+    )
   }
 
   getVmConsole (vmId) {
@@ -1424,7 +1438,7 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  @synchronized() // like @concurrency(1) but more efficient
+  @concurrency(2)
   @cancelable
   async _snapshotVm ($cancelToken, vm, nameLabel = vm.name_label) {
     debug(
@@ -1442,8 +1456,6 @@ export default class Xapi extends XapiBase {
         nameLabel
       ).then(extractOpaqueRef)
       this.addTag(ref, 'quiesce')::ignoreErrors()
-
-      await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
     } catch (error) {
       const { code } = error
       if (
@@ -1467,7 +1479,7 @@ export default class Xapi extends XapiBase {
     // to-date object.
     const [, snapshot] = await Promise.all([
       this.call('VM.set_is_a_template', ref, false),
-      this._waitObjectState(ref, snapshot => !snapshot.is_a_template),
+      this.barrier(ref),
     ])
 
     return snapshot
@@ -1999,7 +2011,9 @@ export default class Xapi extends XapiBase {
       name_label: name,
       name_description: description,
       MTU: asInteger(mtu),
-      other_config: {},
+      // Set automatic to false so XenCenter does not get confused
+      // https://citrix.github.io/xenserver-sdk/#network
+      other_config: { automatic: 'false' },
     })
     $defer.onFailure(() => this.call('network.destroy', networkRef))
     if (pifId) {

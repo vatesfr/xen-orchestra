@@ -425,32 +425,32 @@ export default class New extends Component {
         type: 'crossProduct',
         items: isArray(vms.vms)
           ? [
-            {
-              type: 'set',
-              values: map(vms.vms, vm => ({ id: extractId(vm) })),
-            },
-            {
-              type: 'set',
-              values: [mainParams],
-            },
-          ]
+              {
+                type: 'set',
+                values: map(vms.vms, vm => ({ id: extractId(vm) })),
+              },
+              {
+                type: 'set',
+                values: [mainParams],
+              },
+            ]
           : [
-            {
-              type: 'set',
-              values: [mainParams],
-            },
-            {
-              type: 'map',
-              collection: {
-                type: 'fetchObjects',
-                pattern: this._constructPattern(vms),
+              {
+                type: 'set',
+                values: [mainParams],
               },
-              iteratee: {
-                type: 'extractProperties',
-                mapping: { id: 'id' },
+              {
+                type: 'map',
+                collection: {
+                  type: 'fetchObjects',
+                  pattern: this._constructPattern(vms),
+                },
+                iteratee: {
+                  type: 'extractProperties',
+                  mapping: { id: 'id' },
+                },
               },
-            },
-          ],
+            ],
       },
     }
 
@@ -607,10 +607,10 @@ export default class New extends Component {
                     </fieldset>
                     {(method === 'vm.rollingDeltaBackup' ||
                       method === 'vm.deltaCopy') && (
-                        <div className='alert alert-warning' role='alert'>
-                          <Icon icon='error' /> {_('backupVersionWarning')}
-                        </div>
-                      )}
+                      <div className='alert alert-warning' role='alert'>
+                        <Icon icon='error' /> {_('backupVersionWarning')}
+                      </div>
+                    )}
                     {backupInfo && (
                       <div>
                         <GenericInput
@@ -704,31 +704,31 @@ export default class New extends Component {
                     backupInfo &&
                     process.env.XOA_PLAN <
                       REQUIRED_XOA_PLAN[backupInfo.jobKey] ? (
-                        <Upgrade
-                          place='newBackup'
-                          available={REQUIRED_XOA_PLAN[backupInfo.jobKey]}
-                        />
-                      ) : smartBackupMode && process.env.XOA_PLAN < 3 ? (
-                        <Upgrade place='newBackup' available={3} />
-                      ) : (
-                        <fieldset className='pull-right pt-1'>
-                          <ActionButton
-                            btnStyle='primary'
-                            className='mr-1'
-                            disabled={!backupInfo}
-                            form='form-new-vm-backup'
-                            handler={this._handleSubmit}
-                            icon='save'
-                            redirectOnSuccess='/backup/overview'
-                            size='large'
-                          >
-                            {_('saveBackupJob')}
-                          </ActionButton>
-                          <Button onClick={this._handleReset} size='large'>
-                            {_('selectTableReset')}
-                          </Button>
-                        </fieldset>
-                      )}
+                      <Upgrade
+                        place='newBackup'
+                        available={REQUIRED_XOA_PLAN[backupInfo.jobKey]}
+                      />
+                    ) : smartBackupMode && process.env.XOA_PLAN < 3 ? (
+                      <Upgrade place='newBackup' available={3} />
+                    ) : (
+                      <fieldset className='pull-right pt-1'>
+                        <ActionButton
+                          btnStyle='primary'
+                          className='mr-1'
+                          disabled={!backupInfo}
+                          form='form-new-vm-backup'
+                          handler={this._handleSubmit}
+                          icon='save'
+                          redirectOnSuccess='/backup/overview'
+                          size='large'
+                        >
+                          {_('saveBackupJob')}
+                        </ActionButton>
+                        <Button onClick={this._handleReset} size='large'>
+                          {_('selectTableReset')}
+                        </Button>
+                      </fieldset>
+                    )}
                   </Col>
                 </Row>
               </Container>

@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-web",
-  "version": "5.17.3",
+  "version": "5.18.0",
   "license": "AGPL-3.0",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -32,8 +32,8 @@
   "devDependencies": {
     "@julien-f/freactal": "0.1.0",
     "@nraynaud/novnc": "0.6.1",
-    "@xen-orchestra/cron": "^1.0.2",
-    "ansi_up": "^2.0.2",
+    "@xen-orchestra/cron": "^1.0.3",
+    "ansi_up": "^3.0.0",
     "asap": "^2.0.6",
     "babel-core": "^6.26.0",
     "babel-plugin-dev": "^1.0.0",
@@ -59,7 +59,7 @@
     "classnames": "^2.2.3",
     "complex-matcher": "^0.3.0",
     "cookies-js": "^1.2.2",
-    "d3": "^4.12.2",
+    "d3": "^5.0.0",
     "debounce-input-decorator": "^0.1.0",
     "enzyme": "^3.3.0",
     "enzyme-adapter-react-15": "^1.0.5",

@@ -241,7 +241,7 @@ export async function createHba ({ host, nameLabel, nameDescription, scsiId }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
-    scsiId,
+    SCSIid: scsiId,
   }
 
   const srRef = await xapi.call(
@@ -251,7 +251,7 @@ export async function createHba ({ host, nameLabel, nameDescription, scsiId }) {
     '0',
     nameLabel,
     nameDescription,
-    'lvmoohba', // SR LVM over HBA
+    'lvmohba', // SR LVM over HBA
     'user', // recommended by Citrix
     true,
     {}
@@ -366,7 +366,7 @@ export async function probeHba ({ host }) {
   let xml
 
   try {
-    await xapi.call('SR.probe', host._xapiRef, 'type', {})
+    await xapi.call('SR.probe', host._xapiRef, {}, 'lvmohba', {})
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
@@ -382,7 +382,7 @@ export async function probeHba ({ host }) {
     hbaDevices.push({
       hba: hbaDevice.hba.trim(),
       path: hbaDevice.path.trim(),
-      scsciId: hbaDevice.SCSIid.trim(),
+      scsiId: hbaDevice.SCSIid.trim(),
       size: hbaDevice.size.trim(),
       vendor: hbaDevice.vendor.trim(),
     })
@@ -487,8 +487,8 @@ export async function probeIscsiIqns ({
 
   // if we give user and password
   if (chapUser && chapPassword) {
-    deviceConfig.chapUser = chapUser
-    deviceConfig.chapPassword = chapPassword
+    deviceConfig.chapuser = chapUser
+    deviceConfig.chappassword = chapPassword
   }
 
   //  if we give another port than default iSCSI
@@ -665,6 +665,34 @@ probeIscsiExists.params = {
 }
 
 probeIscsiExists.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+// This function helps to detect if this HBA already exists in XAPI
+// It returns a table of SR UUID, empty if no existing connections
+
+export async function probeHbaExists ({ host, scsiId }) {
+  const xapi = this.getXapi(host)
+
+  const deviceConfig = {
+    SCSIid: scsiId,
+  }
+
+  const xml = parseXml(
+    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmohba', {})
+  )
+
+  // get the UUID of SR connected to this LUN
+  return ensureArray(xml.SRlist.SR).map(sr => ({ uuid: sr.UUID.trim() }))
+}
+
+probeHbaExists.params = {
+  host: { type: 'string' },
+  scsiId: { type: 'string' },
+}
+
+probeHbaExists.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
