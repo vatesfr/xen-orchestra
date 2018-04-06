@@ -1948,14 +1948,10 @@ export const probeSrIscsiExists = (
   return _call('sr.probeIscsiExists', params)
 }
 
-export const probeSrHba = host => {
-  return _call('sr.probeHba', { host })
-}
+export const probeSrHba = host => _call('sr.probeHba', { host })
 
-export const probeSrHbaExists = (host, scsiId) => {
-  const params = { host, scsiId }
-  return _call('sr.probeHbaExists', params)
-}
+export const probeSrHbaExists = (host, scsiId) =>
+  _call('sr.probeHbaExists', { host, scsiId })
 
 export const reattachSr = (host, uuid, nameLabel, nameDescription, type) =>
   _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type })
@@ -1994,10 +1990,8 @@ export const createSrIscsi = (
   return _call('sr.createIscsi', params)
 }
 
-export const createSrHba = (host, nameLabel, nameDescription, scsiId) => {
-  const params = { host, nameLabel, nameDescription, scsiId }
-  return _call('sr.createHba', params)
-}
+export const createSrHba = (host, nameLabel, nameDescription, scsiId) =>
+  _call('sr.createHba', { host, nameLabel, nameDescription, scsiId })
 
 export const createSrIso = (
   host,

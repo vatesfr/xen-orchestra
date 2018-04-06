@@ -683,13 +683,8 @@ export async function probeHbaExists ({ host, scsiId }) {
     await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmohba', {})
   )
 
-  const srs = []
-  forEach(ensureArray(xml['SRlist'].SR), sr => {
-    // get the UUID of SR connected to this LUN
-    srs.push({ uuid: sr.UUID.trim() })
-  })
-
-  return srs
+  // get the UUID of SR connected to this LUN
+  return ensureArray(xml.SRlist.SR).map(sr => ({ uuid: sr.UUID.trim() }))
 }
 
 probeHbaExists.params = {

@@ -16,6 +16,7 @@ import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { ignoreErrors } from 'promise-toolbox'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 import { SelectHost } from 'select-objects'
@@ -53,7 +54,7 @@ class SelectScsiId extends Component {
     () => this.props.options,
     options =>
       map(options, ({ vendor, path, size, scsiId }) => ({
-        label: `${vendor} - ${path} (${size})`,
+        label: `${vendor} - ${path} (${formatSize(size)})`,
         value: scsiId,
       }))
   )
@@ -374,39 +375,33 @@ export default class New extends Component {
   _handleDescriptionChange = event =>
     this.setState({ description: event.target.value })
 
-  _handleSrTypeSelection = event => {
+  _handleSrTypeSelection = async event => {
     const type = event.target.value
-    if (type === 'hba') {
-      this._handleSrHbaSelection()
-    }
     this.setState({
       hbaDevices: undefined,
       iqns: undefined,
       paths: undefined,
-      summary: type === 'lvm' || type === 'local' || type === 'smb',
+      summary: includes(['lvm', 'local', 'smb', 'hba']),
       type,
       unused: undefined,
       usage: undefined,
       used: undefined,
     })
+    if (type === 'hba' && this.state.host !== undefined) {
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
+      const hbaDevices = await probeSrHba(this.state.host.id)::ignoreErrors()
+      this.setState(({ loading }) => ({
+        hbaDevices,
+        loading: loading - 1,
+      }))
+    }
   }
 
   _handleSrHbaSelection = async scsiId => {
-    const { host } = this.state
-
-    try {
-      this.setState(({ loading }) => ({ loading: loading + 1, scsiId }))
-      const hbaDevices = await probeSrHba(host.id)
-      this.setState({
-        hbaDevices,
-        usage: true,
-        summary: true,
-      })
-    } catch (err) {
-      error('HBA Detection', err.message || String(err))
-    } finally {
-      this.setState(({ loading }) => ({ loading: loading - 1 }))
-    }
+    this.setState({
+      scsiId,
+      usage: true,
+    })
   }
 
   _handleSrIqnSelection = async iqn => {
@@ -668,12 +663,16 @@ export default class New extends Component {
                   {type === 'hba' && (
                     <fieldset>
                       <label>{_('newSrLun')}</label>
-                      {hbaDevices && (
-                        <SelectScsiId
-                          options={hbaDevices}
-                          onChange={this._handleSrHbaSelection}
-                        />
-                      )}
+                      <div>
+                        {!isEmpty(hbaDevices) ? (
+                          <SelectScsiId
+                            options={hbaDevices}
+                            onChange={this._handleSrHbaSelection}
+                          />
+                        ) : (
+                          <em>{_('newSrNoHba')}</em>
+                        )}
+                      </div>
                     </fieldset>
                   )}
                   {paths && (
@@ -871,8 +870,8 @@ export default class New extends Component {
                     <p key={key}>
                       {sr.uuid}
                       <span className='pull-right'>
-                        <a className='btn btn-warning'>{_('newSrInUse')}</a> //
-                        FIXME Goes to sr view
+                        {/* FIXME Goes to sr view */}
+                        <a className='btn btn-warning'>{_('newSrInUse')}</a>
                       </span>
                     </p>
                   ))}
@@ -898,13 +897,7 @@ export default class New extends Component {
                       <dd>{formatSize(+lun.size)}</dd>
                     </dl>
                   )}
-                  {type === 'nfs' && (
-                    <dl className='dl-horizontal'>
-                      <dt>{_('newSrPath')}</dt>
-                      <dd>{path}</dd>
-                    </dl>
-                  )}
-                  {type === 'hba' && (
+                  {includes(['nfs', 'hba'], type) && (
                     <dl className='dl-horizontal'>
                       <dt>{_('newSrPath')}</dt>
                       <dd>{path}</dd>
