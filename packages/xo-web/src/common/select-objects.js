@@ -82,8 +82,6 @@ const options = props => ({
   defaultValue: props.multi ? [] : undefined,
 })
 
-const getObjectById = id => getObject(store.getState(), id, true)
-
 // ===================================================================
 
 /*
@@ -360,23 +358,36 @@ export const SelectPool = makeStoreSelect(
 
 export const SelectSr = makeStoreSelect(
   () => {
+    const getPools = createGetObjectsOfType('pools')
+    const getHosts = createGetObjectsOfType('host')
+
     const getSrsByContainer = createSelector(
       createGetObjectsOfType('SR')
         .filter((_, { predicate }) => predicate || isSrWritable)
         .sort(),
-      srs => {
-        for (const sr1 of srs) {
-          for (const sr2 of srs) {
-            if (sr1.name_label === sr2.name_label && sr1.id !== sr2.id) {
-              sr1.name_label = `(${getObjectById(sr1.$container).name_label}) ${
-                sr1.name_label
-              }`
-              sr2.name_label = `(${getObjectById(sr2.$container).name_label}) ${
-                sr2.name_label
-              }`
+      createSelector(getHosts, getPools, (hosts, pools) => id =>
+        hosts[id] || pools[id]
+      ),
+      (srs, containerFinder) => {
+        const { length } = srs
+
+        if (length >= 2) {
+          for (let i = 1; i < length; ++i) {
+            for (let j = 0; j < i; ++j) {
+              const sr1 = srs[i]
+              const sr2 = srs[j]
+              if (sr1.name_label === sr2.name_label) {
+                sr1.name_label = `(${
+                  containerFinder(sr1.$container).name_label
+                }) ${sr1.name_label}`
+                sr2.name_label = `(${
+                  containerFinder(sr2.$container).name_label
+                }) ${sr2.name_label}`
+              }
             }
           }
         }
+
         return groupBy(srs, '$container')
       }
     )
@@ -385,15 +396,10 @@ export const SelectSr = makeStoreSelect(
       keys(srsByContainer)
     )
 
-    const getPools = createGetObjectsOfType('pool')
-      .pick(getContainerIds)
-      .sort()
-    const getHosts = createGetObjectsOfType('host')
-      .pick(getContainerIds)
-      .sort()
-
-    const getContainers = createSelector(getPools, getHosts, (pools, hosts) =>
-      pools.concat(hosts)
+    const getContainers = createSelector(
+      getPools.pick(getContainerIds).sort(),
+      getHosts.pick(getContainerIds).sort(),
+      (pools, hosts) => pools.concat(hosts)
     )
 
     return {
@@ -837,6 +843,10 @@ export class SelectResourceSetsVdi extends React.PureComponent {
     this.refs.select.value = value
   }
 
+  _getObject (id) {
+    return getObject(store.getState(), id, true)
+  }
+
   _getSrs = createSelector(
     () => this.props.resourceSet,
     ({ objectsByType }) => {
@@ -847,7 +857,7 @@ export class SelectResourceSetsVdi extends React.PureComponent {
   )
 
   _getVdis = createSelector(this._getSrs, srs =>
-    sortBy(map(flatten(map(srs, sr => sr.VDIs)), getObjectById), 'name_label')
+    sortBy(map(flatten(map(srs, sr => sr.VDIs)), this._getObject), 'name_label')
   )
 
   render () {
