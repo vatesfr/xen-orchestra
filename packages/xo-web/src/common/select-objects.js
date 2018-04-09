@@ -6,6 +6,7 @@ import {
   filter,
   flatten,
   forEach,
+  get,
   groupBy,
   includes,
   isArray,
@@ -377,12 +378,14 @@ export const SelectSr = makeStoreSelect(
               const sr1 = srs[i]
               const sr2 = srs[j]
               if (sr1.name_label === sr2.name_label) {
-                sr1.name_label = `(${
-                  containerFinder(sr1.$container).name_label
-                }) ${sr1.name_label}`
-                sr2.name_label = `(${
-                  containerFinder(sr2.$container).name_label
-                }) ${sr2.name_label}`
+                sr1.name_label = `(${get(
+                  containerFinder(sr1.$container),
+                  'name_label'
+                )}) ${sr1.name_label}`
+                sr2.name_label = `(${get(
+                  containerFinder(sr2.$container),
+                  'name_label'
+                )}) ${sr2.name_label}`
               }
             }
           }
