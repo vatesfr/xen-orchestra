@@ -65,7 +65,7 @@
     "posttest": "standard && dependency-check ./package.json",
     "prebuild": "rimraf dist/",
     "predev": "npm run prebuild",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "jest"
   },
   "babel": {
