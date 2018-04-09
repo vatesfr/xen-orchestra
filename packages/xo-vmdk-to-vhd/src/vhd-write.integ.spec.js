@@ -1,19 +1,10 @@
 /* eslint-env jest */
-import { computeGeometryForSize } from '@xen-orchestra/vhd-lib'
-import execa from 'execa'
-import { createWriteStream } from 'fs'
-import { exec } from 'child-process-promise'
-import { readFile } from 'fs-promise'
-import { fromCallback as pFromCallback } from 'promise-toolbox'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
+import { createWriteStream } from 'fs'
+import { fromCallback as pFromCallback } from 'promise-toolbox'
 
-import {
-  createDynamicDiskHeader,
-  createFooter,
-  ReadableRawVHDStream,
-  VHDFile,
-} from './vhd-write'
+import { createFooter, ReadableRawVHDStream } from './vhd-write'
 
 const initialDir = process.cwd()
 
@@ -34,10 +25,6 @@ test('createFooter() does not crash', () => {
     heads: 4,
     sectorsPerTrack: 17,
   })
-})
-
-test('createDynamicDiskHeader() does not crash', () => {
-  createDynamicDiskHeader(1, 0x00200000)
 })
 
 test('ReadableRawVHDStream does not crash', async () => {
@@ -105,29 +92,4 @@ test('ReadableRawVHDStream detects when blocks are out of order', () => {
   ).rejects.toThrow(
     'This VMDK file does not have its blocks in the correct order'
   )
-})
-
-test('writing a known file with VHDFile is successful', async () => {
-  const fileName = 'output.vhd'
-  const rawFilename = 'output.raw'
-  const randomFileName = 'random.raw'
-  const geometry = computeGeometryForSize(1024 * 1024 * 8)
-  const dataSize = geometry.actualSize
-  await exec(
-    'base64 /dev/urandom | head -c ' + dataSize + ' > ' + randomFileName
-  )
-  const buffer = await readFile(randomFileName)
-  const f = new VHDFile(buffer.length, 523557791)
-  const splitPoint = Math.floor(Math.random() * buffer.length)
-  f.writeBuffer(buffer.slice(splitPoint), splitPoint)
-  f.writeBuffer(buffer.slice(0, splitPoint), 0)
-  f.writeBuffer(buffer.slice(splitPoint), splitPoint)
-  await f.writeFile(fileName)
-  await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', fileName])
-  await exec('qemu-img convert -fvpc -Oraw ' + fileName + ' ' + rawFilename)
-  const fileContent = await readFile(rawFilename)
-  expect(fileContent.length).toEqual(dataSize)
-  for (let i = 0; i < fileContent.length; i++) {
-    expect(fileContent[i]).toEqual(buffer[i])
-  }
 })
