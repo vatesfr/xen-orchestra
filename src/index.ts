@@ -7,6 +7,24 @@ import execPromise = require('exec-promise')
 import through2 = require('through2')
 import Xo from 'xo-lib'
 
+const parseBoolean = (value: string, defaultValue?: boolean): boolean | undefined => {
+  if (value === undefined || value === '') {
+    return defaultValue
+  }
+
+  const lcValue = value.toLocaleLowerCase()
+
+  if (value === '0' || lcValue === 'false') {
+    return false
+  }
+
+  if (value === '1' || lcValue === 'true') {
+    return true
+  }
+
+  throw new Error(`invalid boolean value: ${value}`)
+}
+
 const requiredParam = (name: string) => {
   throw `missing param: ${name}
 
@@ -27,15 +45,22 @@ execPromise(async ([
   const errors: any[] = []
 
   const stream = process.stdin
-    .pipe(csvParser({
-      headers: [ 'host', 'username', 'password' ]
-    }))
-    .pipe(through2.obj(({ host, username, password }, _, next) => {
+    .pipe(csvParser())
+    .pipe(through2.obj(({
+      allowUnauthorized,
+      autoConnect,
+      host,
+      label,
+      password,
+      username,
+    }, _, next) => {
       console.log('server', host)
 
       xo.call('server.add', {
-        autoConnect: false,
+        allowUnauthorized: parseBoolean(allowUnauthorized),
+        autoConnect: parseBoolean(autoConnect, false),
         host,
+        label,
         password,
         username
       }).then(
