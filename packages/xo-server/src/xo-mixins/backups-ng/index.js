@@ -857,8 +857,9 @@ export default class BackupNg {
               const streams: any = mapValues(
                 deltaExport.streams,
                 lazyStream => {
+                  const pStream = lazyStream()
                   const forks = Array.from({ length: nTargets }, _ => {
-                    const promise = lazyStream().then(stream => {
+                    const promise = pStream.then(stream => {
                       const fork: any = stream.pipe(new PassThrough())
                       fork.task = stream.task
                       return fork
