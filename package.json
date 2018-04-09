@@ -1,6 +1,6 @@
 {
   "name": "xo-import-servers-csv",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "ISC",
   "description": "CLI to import servers in XO from a CSV file",
   "keywords": [
