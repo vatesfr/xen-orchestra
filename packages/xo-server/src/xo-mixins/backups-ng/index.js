@@ -145,6 +145,7 @@ const listReplicatedVms = (
     const oc = object.other_config
     if (
       object.$type === 'vm' &&
+      'start' in object.blocked_operations &&
       oc['xo:backup:schedule'] === scheduleId &&
       oc['xo:backup:sr'] === srId &&
       (oc['xo:backup:vm'] === vmUuid ||
@@ -558,9 +559,6 @@ export default class BackupNg {
   }
 
   // High:
-  // - [ ] clones of replicated VMs should not be garbage collected
-  //     - if storing uuids in source VM, how to detect them if the source is
-  //       lost?
   // - [ ] validate VHDs after exports and before imports, how?
   // - [ ] in case of merge failure
   //       1. delete (or isolate) the tainted VHD
@@ -597,6 +595,7 @@ export default class BackupNg {
   // - [x] do not delete rolling snapshot in case of failure!
   // - [x] do not create snapshot if unhealthy vdi chain
   // - [x] replicated VMs should be discriminated by VM (vatesfr/xen-orchestra#2807)
+  // - [x] clones of replicated VMs should not be garbage collected
   @defer
   async _backupVm (
     $defer: any,
@@ -700,10 +699,10 @@ export default class BackupNg {
         nTargets === 0
           ? () => xva
           : () => {
-            const fork = xva.pipe(new PassThrough())
-            fork.task = exportTask
-            return fork
-          }
+              const fork = xva.pipe(new PassThrough())
+              fork.task = exportTask
+              return fork
+            }
 
       const dataBasename = `${basename}.xva`
 
@@ -854,51 +853,51 @@ export default class BackupNg {
         nTargets === 1
           ? () => deltaExport
           : (() => {
-            // replace the stream factories by fork factories
-            const streams: any = mapValues(
-              deltaExport.streams,
-              lazyStream => {
-                let forks = []
-                return () => {
-                  if (forks === undefined) {
-                    throw new Error(
-                      'cannot fork the stream after it has been created'
-                    )
+              // replace the stream factories by fork factories
+              const streams: any = mapValues(
+                deltaExport.streams,
+                lazyStream => {
+                  let forks = []
+                  return () => {
+                    if (forks === undefined) {
+                      throw new Error(
+                        'cannot fork the stream after it has been created'
+                      )
+                    }
+                    if (forks.length === 0) {
+                      lazyStream().then(
+                        stream => {
+                          // $FlowFixMe
+                          forks.forEach(({ resolve }) => {
+                            const fork: any = stream.pipe(new PassThrough())
+                            fork.task = stream.task
+                            resolve(fork)
+                          })
+                          forks = undefined
+                        },
+                        error => {
+                          // $FlowFixMe
+                          forks.forEach(({ reject }) => {
+                            reject(error)
+                          })
+                          forks = undefined
+                        }
+                      )
+                    }
+                    return new Promise((resolve, reject) => {
+                      // $FlowFixMe
+                      forks.push({ reject, resolve })
+                    })
                   }
-                  if (forks.length === 0) {
-                    lazyStream().then(
-                      stream => {
-                        // $FlowFixMe
-                        forks.forEach(({ resolve }) => {
-                          const fork: any = stream.pipe(new PassThrough())
-                          fork.task = stream.task
-                          resolve(fork)
-                        })
-                        forks = undefined
-                      },
-                      error => {
-                        // $FlowFixMe
-                        forks.forEach(({ reject }) => {
-                          reject(error)
-                        })
-                        forks = undefined
-                      }
-                    )
-                  }
-                  return new Promise((resolve, reject) => {
-                    // $FlowFixMe
-                    forks.push({ reject, resolve })
-                  })
+                }
+              )
+              return () => {
+                return {
+                  __proto__: deltaExport,
+                  streams,
                 }
               }
-            )
-            return () => {
-              return {
-                __proto__: deltaExport,
-                streams,
-              }
-            }
-          })()
+            })()
 
       const mergeStart = 0
       const mergeEnd = 0

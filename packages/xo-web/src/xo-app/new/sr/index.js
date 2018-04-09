@@ -18,7 +18,7 @@ import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { ignoreErrors } from 'promise-toolbox'
 import { injectIntl } from 'react-intl'
-import { Password, Select } from 'form'
+import { Password, Select, Toggle } from 'form'
 import { SelectHost } from 'select-objects'
 import {
   createFilter,
@@ -262,7 +262,7 @@ export default class New extends Component {
       server,
       username,
     } = this.refs
-    const { host, iqn, lun, path, type, scsiId } = this.state
+    const { host, iqn, lun, path, type, scsiId, nfs4, nfsOptions } = this.state
 
     const createMethodFactories = {
       nfs: async () => {
@@ -282,7 +282,9 @@ export default class New extends Component {
           name.value,
           description.value,
           server.value,
-          path
+          path,
+          nfs4 ? '4' : undefined,
+          nfsOptions
         )
       },
       hba: async () => {
@@ -637,7 +639,7 @@ export default class New extends Component {
             <Section icon='settings' title='newSrSettings'>
               {host && (
                 <fieldset>
-                  {(type === 'nfs' || type === 'nfsiso') && (
+                  {(type === 'nfs' || type === 'nfsiso') && [
                     <fieldset>
                       <label htmlFor='srServer'>{_('newSrServer')}</label>
                       <div className='input-group'>
@@ -658,8 +660,23 @@ export default class New extends Component {
                           />
                         </span>
                       </div>
-                    </fieldset>
-                  )}
+                    </fieldset>,
+                    <fieldset>
+                      <label>{_('newSrUseNfs4')}</label>
+                      <div>
+                        <Toggle onChange={this.toggleState('nfs4')} />
+                      </div>
+                    </fieldset>,
+                    <fieldset>
+                      <label>{_('newSrNfsOptions')}</label>
+                      <input
+                        className='form-control'
+                        onChange={this.linkState('nfsOptions')}
+                        type='text'
+                        value={this.state.nfsOptions}
+                      />
+                    </fieldset>,
+                  ]}
                   {type === 'hba' && (
                     <fieldset>
                       <label>{_('newSrLun')}</label>
