@@ -1,7 +1,18 @@
 import JSON5 from 'json5'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { BaseError } from 'make-error'
-import { endsWith, findKey, forEach, get, identity, map } from 'lodash'
+import {
+  endsWith,
+  findKey,
+  forEach,
+  get,
+  identity,
+  map,
+  mapValues,
+  mean,
+  sum,
+  zipWith,
+} from 'lodash'
 
 import { parseDateTime } from './xapi'
 
@@ -61,6 +72,9 @@ const computeValues = (dataRow, legendIndex, transformValue = identity) =>
   map(dataRow, ({ values }) =>
     transformValue(convertNanToNull(values[legendIndex]))
   )
+
+const computSrStats = (stats, path, transformValues) =>
+  zipWith(...map(stats, path), (...values) => transformValues(values))
 
 // It browse the object in depth and initialise it's properties
 // The targerPath can be a string or an array containing the depth
@@ -140,6 +154,45 @@ const STATS = {
         test: /^pif_eth(\d+)_tx$/,
         getPath: matches => ['pifs', 'tx', matches[1]],
       },
+    },
+    iops: {
+      r: {
+        test: /^iops_read_(\w+)$/,
+        getPath: matches => ['iops', 'r', matches[1]],
+      },
+      w: {
+        test: /^iops_write_(\w+)$/,
+        getPath: matches => ['iops', 'w', matches[1]],
+      },
+    },
+    ioThroughput: {
+      r: {
+        test: /^io_throughput_read_(\w+)$/,
+        getPath: matches => ['ioThroughput', 'r', matches[1]],
+        transformValue: value => value * 2 ** 20,
+      },
+      w: {
+        test: /^io_throughput_write_(\w+)$/,
+        getPath: matches => ['ioThroughput', 'w', matches[1]],
+        transformValue: value => value * 2 ** 20,
+      },
+    },
+    latency: {
+      r: {
+        test: /^read_latency_(\w+)$/,
+        getPath: matches => ['latency', 'r', matches[1]],
+        transformValue: value => value / 1e3,
+      },
+      w: {
+        test: /^write_latency_(\w+)$/,
+        getPath: matches => ['latency', 'w', matches[1]],
+        transformValue: value => value / 1e3,
+      },
+    },
+    iowait: {
+      test: /^iowait_(\w+)$/,
+      getPath: matches => ['iowait', matches[1]],
+      transformValue: value => value * 1e2,
     },
   },
   vm: {
@@ -360,5 +413,48 @@ export default class XapiStats {
       vmUuid: vm.uuid,
       granularity,
     })
+  }
+
+  async getSrStats (xapi, srId, granularity) {
+    const sr = xapi.getObject(srId)
+
+    const hostsStats = {}
+    await Promise.all(
+      map(map(sr.$PBDs, 'host'), hostId =>
+        this.getHostStats(xapi, hostId, granularity).then(stats => {
+          hostsStats[xapi.getObject(hostId).name_label] = stats
+        })
+      )
+    )
+
+    const srShortUUID = sr.uuid.slice(0, 8)
+    return {
+      interval: hostsStats[Object.keys(hostsStats)[0]].interval,
+      endTimestamp: Math.max(...map(hostsStats, 'endTimestamp')),
+      localTimestamp: Math.min(...map(hostsStats, 'localTimestamp')),
+      stats: {
+        iops: {
+          r: computSrStats(hostsStats, `stats.iops.r[${srShortUUID}]`, sum),
+          w: computSrStats(hostsStats, `stats.iops.w[${srShortUUID}]`, sum),
+        },
+        ioThroughput: {
+          r: computSrStats(
+            hostsStats,
+            `stats.ioThroughput.r[${srShortUUID}]`,
+            sum
+          ),
+          w: computSrStats(
+            hostsStats,
+            `stats.ioThroughput.w[${srShortUUID}]`,
+            sum
+          ),
+        },
+        latency: {
+          r: computSrStats(hostsStats, `stats.latency.r[${srShortUUID}]`, mean),
+          w: computSrStats(hostsStats, `stats.latency.w[${srShortUUID}]`, mean),
+        },
+        iowait: mapValues(hostsStats, `stats.iowait[${srShortUUID}]`),
+      },
+    }
   }
 }
