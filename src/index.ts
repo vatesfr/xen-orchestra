@@ -78,6 +78,6 @@ execPromise(async ([
   })
 
   if (errors.length) {
-    console.log(errors)
+    console.error(errors)
   }
 })
