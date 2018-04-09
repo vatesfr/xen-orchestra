@@ -94,7 +94,7 @@ execPromise(async args => {
         vhdChildrenByUuid[vhdParent] ||
         (vhdChildrenByUuid[vhdParent] = [])
       ).push(vdi)
-    } else if (vdi.snapshot_of === 'OpaqueRef:NULL') {
+    } else if (!(vdi.snapshot_of in vdisByRef)) {
       return
     }
 
