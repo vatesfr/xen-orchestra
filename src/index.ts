@@ -17,7 +17,7 @@ execPromise(async ([
   url = requiredParam('url'),
   username = requiredParam('username'),
   password = requiredParam('password')
-]): any => {
+]): Promise<void> => {
   const xo = new Xo({ url })
 
   await xo.open()

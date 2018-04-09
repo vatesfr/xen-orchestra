@@ -1,17 +1,3 @@
-declare class Promise {
-  constructor (resolver: (
-    resolve: (value?: any) => void,
-    reject: (reason?: any) => void
-  ) => void)
-
-  then (
-    thenFn?: (value?: any) => any,
-    catchFn?: (reason?: any) => any
-  ): Promise
-
-  catch (catchFn?: (reason?: any) => any): Promise
-}
-
 declare module 'csv-parser' {
   function csvParser (opts?: Object): any
   export = csvParser
@@ -31,10 +17,10 @@ declare module 'xo-lib' {
       url: string
     })
 
-    call (method: string, ...params: any[]): Promise
+    call (method: string, ...params: any[]): Promise<any>
 
-    open (): Promise
+    open (): Promise<void>
 
-    signIn (credentials: {}): Promise
+    signIn (credentials: {}): Promise<void>
   }
 }
