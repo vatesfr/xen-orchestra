@@ -70,7 +70,9 @@ execPromise(async args => {
   ] = args
 
   const xapi = createClient({
+    allowUnauthorized: true,
     auth: { user, password },
+    readOnly: true,
     url,
     watchEvents: false
   })
