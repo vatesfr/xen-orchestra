@@ -857,38 +857,17 @@ export default class BackupNg {
               const streams: any = mapValues(
                 deltaExport.streams,
                 lazyStream => {
-                  let forks = []
-                  return () => {
-                    if (forks === undefined) {
-                      throw new Error(
-                        'cannot fork the stream after it has been created'
-                      )
-                    }
-                    if (forks.length === 0) {
-                      lazyStream().then(
-                        stream => {
-                          // $FlowFixMe
-                          forks.forEach(({ resolve }) => {
-                            const fork: any = stream.pipe(new PassThrough())
-                            fork.task = stream.task
-                            resolve(fork)
-                          })
-                          forks = undefined
-                        },
-                        error => {
-                          // $FlowFixMe
-                          forks.forEach(({ reject }) => {
-                            reject(error)
-                          })
-                          forks = undefined
-                        }
-                      )
-                    }
-                    return new Promise((resolve, reject) => {
-                      // $FlowFixMe
-                      forks.push({ reject, resolve })
+                  const pStream = lazyStream()
+                  const forks = Array.from({ length: nTargets }, _ => {
+                    const promise = pStream.then(stream => {
+                      const fork: any = stream.pipe(new PassThrough())
+                      fork.task = stream.task
+                      return fork
                     })
-                  }
+                    promise.catch(noop) // prevent unhandled rejection
+                    return promise
+                  })
+                  return () => forks.pop()
                 }
               )
               return () => {
