@@ -80,11 +80,8 @@ export class ReadableRawVHDStream extends stream.Readable {
       const buffer = next.grain
       const paddingLength = offset - this.position
       if (paddingLength < 0) {
-        process.nextTick(() =>
-          this.emit(
-            'error',
-            'This VMDK file does not have its blocks in the correct order'
-          )
+        throw new Error(
+          'This VMDK file does not have its blocks in the correct order'
         )
       }
       this.filePadding(paddingLength)
@@ -100,8 +97,7 @@ export class ReadableRawVHDStream extends stream.Readable {
       if (this.currentFile.length === 0) {
         break
       }
-      const result = this.push(this.currentFile.shift()())
-      if (!result) {
+      if (!this.push(this.currentFile.shift()())) {
         break
       }
     }
@@ -112,19 +108,18 @@ export class ReadableRawVHDStream extends stream.Readable {
     while (!this.done && (await this.pushNextBlock())) {}
   }
 
-  _read () {
+  async _read () {
     if (this.busy || this.done) {
       return
     }
     if (this.pushFileUntilFull()) {
       this.busy = true
-      this.pushNextUntilFull()
-        .then(() => {
-          this.busy = false
-        })
-        .catch(error => {
-          process.nextTick(() => this.emit('error', error))
-        })
+      try {
+        await this.pushNextUntilFull()
+        this.busy = false
+      } catch (error) {
+        this.emit('error', error)
+      }
     }
   }
 }
