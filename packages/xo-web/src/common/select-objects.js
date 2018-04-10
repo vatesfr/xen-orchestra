@@ -372,24 +372,27 @@ export const SelectSr = makeStoreSelect(
       (srs, containerFinder) => {
         const { length } = srs
 
+        let sr1, sr2
+        const srsToModify = {}
         if (length >= 2) {
           for (let i = 1; i < length; ++i) {
+            sr1 = srs[i]
             for (let j = 0; j < i; ++j) {
-              const sr1 = srs[i]
-              const sr2 = srs[j]
+              sr2 = srs[j]
               if (sr1.name_label === sr2.name_label) {
-                sr1.name_label = `(${get(
-                  containerFinder(sr1.$container),
-                  'name_label'
-                )}) ${sr1.name_label}`
-                sr2.name_label = `(${get(
-                  containerFinder(sr2.$container),
-                  'name_label'
-                )}) ${sr2.name_label}`
+                srsToModify[sr1.id] = sr1
+                srsToModify[sr2.id] = sr2
               }
             }
           }
         }
+
+        forEach(srsToModify, sr => {
+          sr.name_label = `(${get(
+            containerFinder(sr.$container),
+            'name_label'
+          )}) ${sr.name_label}`
+        })
 
         return groupBy(srs, '$container')
       }
