@@ -156,7 +156,7 @@ export default [
           <ActionButton
             className='pull-right'
             handler={effects.cancelSchedule}
-            icon='save'
+            icon='cancel'
             size='large'
           >
             {_('cancelScheduleEdition')}

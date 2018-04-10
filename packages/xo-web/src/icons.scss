@@ -1012,6 +1012,10 @@
     @extend .fa;
     @extend .fa-refresh;
   }
+  &-cancel {
+    @extend .fa;
+    @extend .fa-ban;
+  }
 
   // XOA related
 
