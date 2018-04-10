@@ -730,7 +730,7 @@ export default [
                     redirectOnSuccess='/backup-ng'
                     size='large'
                   >
-                    {_('scheduleEdit')}
+                    {_('saveBackupJob')}
                   </ActionButton>
                 ) : (
                   <ActionButton
