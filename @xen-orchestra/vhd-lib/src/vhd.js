@@ -882,8 +882,11 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
       const blocksByVhd = new Map()
       const emitBlockSectors = function * (iVhd, i, n) {
         const vhd = vhds[iVhd]
+        const isRootVhd = vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC
         if (!vhd.containsBlock(iBlock)) {
-          yield * emitBlockSectors(iVhd + 1, i, n)
+          if (!isRootVhd) {
+            yield * emitBlockSectors(iVhd + 1, i, n)
+          }
           return
         }
         let block = blocksByVhd.get(vhd)
@@ -892,7 +895,7 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
           blocksByVhd.set(vhd, block)
         }
         const { bitmap, data } = block
-        if (vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC) {
+        if (isRootVhd) {
           yield data.slice(i * VHD_SECTOR_SIZE, n * VHD_SECTOR_SIZE)
           return
         }
