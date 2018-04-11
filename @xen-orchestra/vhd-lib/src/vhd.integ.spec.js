@@ -2,7 +2,7 @@
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 import { createWriteStream } from 'fs'
-import { fromCallback as pFromCallback } from 'promise-toolbox'
+import { fromCallback as pFromCallback, fromEvent } from 'promise-toolbox'
 
 import { createFooter, ReadableRawVHDStream } from './vhd'
 
@@ -52,13 +52,10 @@ test('ReadableRawVHDStream does not crash', async () => {
   }
   const stream = new ReadableRawVHDStream(100000, mockParser)
   const pipe = stream.pipe(createWriteStream('outputStream'))
-  return new Promise((resolve, reject) => {
-    pipe.on('finish', resolve)
-    pipe.on('error', reject)
-  })
+  await fromEvent(pipe, 'finish')
 })
 
-test('ReadableRawVHDStream detects when blocks are out of order', () => {
+test('ReadableRawVHDStream detects when blocks are out of order', async () => {
   const data = [
     {
       offsetBytes: 700,
