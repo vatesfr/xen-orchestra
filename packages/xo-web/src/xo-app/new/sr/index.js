@@ -383,7 +383,7 @@ export default class New extends Component {
       hbaDevices: undefined,
       iqns: undefined,
       paths: undefined,
-      summary: includes(['lvm', 'local', 'smb', 'hba']),
+      summary: includes(['lvm', 'local', 'smb', 'hba'], type),
       type,
       unused: undefined,
       usage: undefined,
