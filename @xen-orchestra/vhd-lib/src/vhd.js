@@ -2,6 +2,7 @@ import assert from 'assert'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import fu from 'struct-fu'
 import getStream from 'get-stream'
+import stream from 'stream'
 import { fromEvent } from 'promise-toolbox'
 
 import constantStream from './constant-stream'
@@ -51,6 +52,11 @@ export const PLATFORM_W2RU = 0x57327275
 export const PLATFORM_W2KU = 0x57326b75
 export const PLATFORM_MAC = 0x4d616320
 export const PLATFORM_MACX = 0x4d616358
+
+const footerCookie = 'conectix'
+const creatorApp = 'xo  '
+// it looks like everybody is using Wi2k
+const WIN2K_OS = 0x5769326b
 
 export const VHD_PARENT_LOCATOR_ENTRIES = 8
 
@@ -397,11 +403,11 @@ export class Vhd {
         onlyBitmap
           ? { id: blockId, bitmap: buf }
           : {
-            id: blockId,
-            bitmap: buf.slice(0, this.bitmapSize),
-            data: buf.slice(this.bitmapSize),
-            buffer: buf,
-          }
+              id: blockId,
+              bitmap: buf.slice(0, this.bitmapSize),
+              data: buf.slice(this.bitmapSize),
+              buffer: buf,
+            }
     )
   }
 
@@ -466,9 +472,9 @@ export class Vhd {
     })
     return Buffer.isBuffer(data)
       ? new Promise((resolve, reject) => {
-        stream.on('error', reject)
-        stream.end(data, resolve)
-      })
+          stream.on('error', reject)
+          stream.end(data, resolve)
+        })
       : fromEvent(data.pipe(stream), 'finish')
   }
 
@@ -915,3 +921,109 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
     }
   }
 })
+
+export function createFooter (size, timestamp, geometry, diskType, dataOffset) {
+  const footer = fuFooter.pack({
+    cookie: footerCookie,
+    features: 2,
+    fileFormatVersion: 0x00010000,
+    dataOffset,
+    timestamp,
+    creatorApplication: creatorApp,
+    creatorHostOs: WIN2K_OS,
+    originalSize: size,
+    currentSize: size,
+    diskGeometry: geometry,
+    diskType,
+  })
+  checksumStruct(footer, fuFooter)
+  return footer
+}
+
+export class ReadableRawVHDStream extends stream.Readable {
+  constructor (size, blockParser) {
+    super()
+    this.size = size
+    const geometry = computeGeometryForSize(size)
+    this.footer = createFooter(
+      size,
+      Math.floor(Date.now() / 1000),
+      geometry,
+      HARD_DISK_TYPE_FIXED
+    )
+    this.position = 0
+    this.blockParser = blockParser
+    this.done = false
+    this.busy = false
+    this.currentFile = []
+  }
+
+  filePadding (paddingLength) {
+    if (paddingLength !== 0) {
+      const chunkSize = 1024 * 1024 // 1Mo
+      const chunkCount = Math.floor(paddingLength / chunkSize)
+      for (let i = 0; i < chunkCount; i++) {
+        this.currentFile.push(() => {
+          return Buffer.alloc(chunkSize)
+        })
+      }
+      this.currentFile.push(() => {
+        return Buffer.alloc(paddingLength % chunkSize)
+      })
+    }
+  }
+
+  async pushNextBlock () {
+    const next = await this.blockParser.next()
+    if (next === null) {
+      const paddingLength = this.size - this.position
+      this.filePadding(paddingLength)
+      this.currentFile.push(() => this.footer)
+      this.currentFile.push(() => {
+        this.done = true
+        return null
+      })
+    } else {
+      const paddingLength = next.offsetBytes - this.position
+      if (paddingLength < 0) {
+        throw new Error('Received out of order blocks')
+      }
+      this.filePadding(paddingLength)
+      this.currentFile.push(() => next.data)
+      this.position = next.offsetBytes + next.data.length
+    }
+    return this.pushFileUntilFull()
+  }
+
+  // returns true if the file is empty
+  pushFileUntilFull () {
+    while (true) {
+      if (this.currentFile.length === 0) {
+        break
+      }
+      if (!this.push(this.currentFile.shift()())) {
+        break
+      }
+    }
+    return this.currentFile.length === 0
+  }
+
+  async pushNextUntilFull () {
+    while (!this.done && (await this.pushNextBlock())) {}
+  }
+
+  async _read () {
+    if (this.busy || this.done) {
+      return
+    }
+    if (this.pushFileUntilFull()) {
+      this.busy = true
+      try {
+        await this.pushNextUntilFull()
+        this.busy = false
+      } catch (error) {
+        this.emit('error', error)
+      }
+    }
+  }
+}

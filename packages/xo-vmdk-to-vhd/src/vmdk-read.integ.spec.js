@@ -46,6 +46,7 @@ test('VMDKDirectParser reads OK', async () => {
     harvested.push(res)
   }
   expect(harvested.length).toEqual(2)
-  expect(harvested[0].lba).toEqual(0)
-  expect(harvested[1].lba).toEqual(header['grainSizeSectors'])
+  expect(harvested[0].offsetBytes).toEqual(0)
+  expect(harvested[0].data.length).toEqual(header['grainSizeSectors'] * 512)
+  expect(harvested[1].offsetBytes).toEqual(header['grainSizeSectors'] * 512)
 })

@@ -4,7 +4,7 @@ import tmp from 'tmp'
 import { createWriteStream } from 'fs'
 import { fromCallback as pFromCallback } from 'promise-toolbox'
 
-import { createFooter, ReadableRawVHDStream } from './vhd-write'
+import { createFooter, ReadableRawVHDStream } from './vhd'
 
 const initialDir = process.cwd()
 
@@ -30,12 +30,12 @@ test('createFooter() does not crash', () => {
 test('ReadableRawVHDStream does not crash', async () => {
   const data = [
     {
-      lbaBytes: 100,
-      grain: Buffer.from('azerzaerazeraze', 'ascii'),
+      offsetBytes: 100,
+      data: Buffer.from('azerzaerazeraze', 'ascii'),
     },
     {
-      lbaBytes: 700,
-      grain: Buffer.from('gdfslkdfguer', 'ascii'),
+      offsetBytes: 700,
+      data: Buffer.from('gdfslkdfguer', 'ascii'),
     },
   ]
   let index = 0
@@ -61,12 +61,12 @@ test('ReadableRawVHDStream does not crash', async () => {
 test('ReadableRawVHDStream detects when blocks are out of order', () => {
   const data = [
     {
-      lbaBytes: 700,
-      grain: Buffer.from('azerzaerazeraze', 'ascii'),
+      offsetBytes: 700,
+      data: Buffer.from('azerzaerazeraze', 'ascii'),
     },
     {
-      lbaBytes: 100,
-      grain: Buffer.from('gdfslkdfguer', 'ascii'),
+      offsetBytes: 100,
+      data: Buffer.from('gdfslkdfguer', 'ascii'),
     },
   ]
   let index = 0
@@ -89,7 +89,5 @@ test('ReadableRawVHDStream detects when blocks are out of order', () => {
       pipe.on('finish', resolve)
       pipe.on('error', reject)
     })
-  ).rejects.toThrow(
-    'This VMDK file does not have its blocks in the correct order'
-  )
+  ).rejects.toThrow('Received out of order blocks')
 })

@@ -293,14 +293,15 @@ export class VMDKDirectParser {
           'grain remainder ' + this.virtualBuffer.position
         )
         const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
-        return readGrain(
+        const grain = await readGrain(
           0,
           grainBuffer,
           this.header.compressionMethod === compressionDeflate &&
             this.header.flags.compressedGrains
         )
+        return { offsetBytes: grain.lbaBytes, data: grain.grain }
       }
     }
-    return new Promise(resolve => resolve(null))
+    return null
   }
 }
