@@ -350,11 +350,11 @@ export class Vhd {
         onlyBitmap
           ? { id: blockId, bitmap: buf }
           : {
-            id: blockId,
-            bitmap: buf.slice(0, this.bitmapSize),
-            data: buf.slice(this.bitmapSize),
-            buffer: buf,
-          }
+              id: blockId,
+              bitmap: buf.slice(0, this.bitmapSize),
+              data: buf.slice(this.bitmapSize),
+              buffer: buf,
+            }
     )
   }
 
@@ -419,9 +419,9 @@ export class Vhd {
     })
     return Buffer.isBuffer(data)
       ? new Promise((resolve, reject) => {
-        stream.on('error', reject)
-        stream.end(data, resolve)
-      })
+          stream.on('error', reject)
+          stream.end(data, resolve)
+        })
       : fromEvent(data.pipe(stream), 'finish')
   }
 
@@ -940,8 +940,11 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
       const blocksByVhd = new Map()
       const emitBlockSectors = function * (iVhd, i, n) {
         const vhd = vhds[iVhd]
+        const isRootVhd = vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC
         if (!vhd.containsBlock(iBlock)) {
-          yield * emitBlockSectors(iVhd + 1, i, n)
+          if (!isRootVhd) {
+            yield * emitBlockSectors(iVhd + 1, i, n)
+          }
           return
         }
         let block = blocksByVhd.get(vhd)
@@ -950,7 +953,7 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
           blocksByVhd.set(vhd, block)
         }
         const { bitmap, data } = block
-        if (vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC) {
+        if (isRootVhd) {
           yield data.slice(i * VHD_SECTOR_SIZE, n * VHD_SECTOR_SIZE)
           return
         }
