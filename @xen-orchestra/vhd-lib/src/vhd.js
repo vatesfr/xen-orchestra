@@ -884,7 +884,9 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
         const vhd = vhds[iVhd]
         const isRootVhd = vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC
         if (!vhd.containsBlock(iBlock)) {
-          if (!isRootVhd) {
+          if (isRootVhd) {
+            yield Buffer.alloc((n - i) * VHD_SECTOR_SIZE)
+          } else {
             yield * emitBlockSectors(iVhd + 1, i, n)
           }
           return
