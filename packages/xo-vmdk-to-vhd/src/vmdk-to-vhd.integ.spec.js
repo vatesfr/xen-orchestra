@@ -1,6 +1,5 @@
 /* eslint-env jest */
 
-import { computeGeometryForSize } from '@xen-orchestra/vhd-lib'
 import execa from 'execa'
 import eventToPromise from 'event-to-promise'
 import { createReadStream, createWriteStream } from 'fs-promise'
@@ -30,7 +29,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
   const vhdFileName = 'from-vmdk-VMDKDirectParser.vhd'
   const reconvertedFromVhd = 'from-vhd.raw'
   const reconvertedFromVmdk = 'from-vhd-by-vbox.raw'
-  const dataSize = computeGeometryForSize(8 * 1024 * 1024).actualSize
+  const dataSize = 8355840 // this number is an integer head/cylinder/count equation solution
   try {
     await execa.shell(
       'base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName
@@ -46,18 +45,25 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
     )
     await eventToPromise(pipe, 'finish')
     await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
-    await execa.shell(
-      'qemu-img convert -fvmdk -Oraw ' +
-        vmdkFileName +
-        ' ' +
-        reconvertedFromVmdk
-    )
-    await execa.shell(
-      'qemu-img convert -fvpc -Oraw ' + vhdFileName + ' ' + reconvertedFromVhd
-    )
-    await execa.shell(
-      'qemu-img compare ' + reconvertedFromVmdk + ' ' + reconvertedFromVhd
-    )
+    await execa('qemu-img', [
+      'convert',
+      '-fvmdk',
+      '-Oraw',
+      vmdkFileName,
+      reconvertedFromVmdk,
+    ])
+    await execa('qemu-img', [
+      'convert',
+      '-fvpc',
+      '-Oraw',
+      vhdFileName,
+      reconvertedFromVhd,
+    ])
+    await execa('qemu-img', [
+      'compare',
+      reconvertedFromVmdk,
+      reconvertedFromVhd,
+    ])
   } catch (error) {
     console.error(error.stdout)
     console.error(error.stderr)

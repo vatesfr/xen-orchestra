@@ -5,4 +5,4 @@ export {
   readVhdMetadata,
 } from './vhd-merge'
 
-export { Vhd, ReadableRawVHDStream, computeGeometryForSize } from './vhd'
+export { Vhd, ReadableRawVHDStream } from './vhd'
