@@ -246,7 +246,7 @@ export class Xapi extends EventEmitter {
       objects.getKey = getKey
 
       this._objectsByRefs = createObject(null)
-      this._objectsByRefs['OpaqueRef:NULL'] = null
+      this._objectsByRefs['OpaqueRef:NULL'] = undefined
 
       this._taskWatchers = Object.create(null)
 
