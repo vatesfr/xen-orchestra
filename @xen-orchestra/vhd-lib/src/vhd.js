@@ -959,15 +959,19 @@ export const createReadableRawVHDStream = asyncIteratorToStream(async function *
   let position = 0
 
   function * filePadding (paddingLength) {
-    if (paddingLength <= 0) {
+    if (paddingLength > 0) {
       const chunkSize = 1024 * 1024 // 1Mo
-      const chunkCount = Math.floor(paddingLength / chunkSize)
-      for (let i = 0; i < chunkCount; i++) {
+      for (
+        let paddingPosition = 0;
+        paddingPosition < paddingLength;
+        paddingPosition += chunkSize
+      ) {
         yield Buffer.alloc(chunkSize)
       }
       yield Buffer.alloc(paddingLength % chunkSize)
     }
   }
+
   let next
   while ((next = await blockParser.next()) !== null) {
     const paddingLength = next.offsetBytes - position
