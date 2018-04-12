@@ -1,12 +1,11 @@
 import appConf from 'app-conf'
 import get from 'lodash/get'
 import highland from 'highland'
-import levelup from 'level-party'
 import ndjson from 'ndjson'
 import parseArgs from 'minimist'
 import sublevel from 'level-sublevel'
 import util from 'util'
-import { repair as repairDb } from 'level'
+import levelup, { repair as repairDb } from 'level'
 
 import { forEach } from './utils'
 import globMatcher from './glob-matcher'
