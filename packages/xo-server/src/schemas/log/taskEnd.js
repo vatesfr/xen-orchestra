@@ -3,17 +3,16 @@ export default {
   type: 'object',
   properties: {
     event: {
-      enum: ['task.start'],
-    },
-    parentId: {
-      type: 'string',
-      description: 'identifier of the parent task or job',
+      enum: ['task.end'],
     },
     taskId: {
       type: 'string',
       description: 'identifier of this task',
     },
-    data: {},
+    status: {
+      enum: ['canceled', 'failure', 'success'],
+    },
+    result: {},
   },
-  required: ['event', 'taskId'],
+  required: ['event', 'taskId', 'status'],
 }
