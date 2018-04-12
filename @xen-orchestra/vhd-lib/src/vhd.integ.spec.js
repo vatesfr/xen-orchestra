@@ -4,7 +4,7 @@ import tmp from 'tmp'
 import { createWriteStream } from 'fs'
 import { fromCallback as pFromCallback, fromEvent } from 'promise-toolbox'
 
-import { createFooter, ReadableRawVHDStream } from './vhd'
+import { createFooter, createReadableRawVHDStream } from './vhd'
 
 const initialDir = process.cwd()
 
@@ -50,7 +50,7 @@ test('ReadableRawVHDStream does not crash', async () => {
       }
     },
   }
-  const stream = new ReadableRawVHDStream(100000, mockParser)
+  const stream = createReadableRawVHDStream(100000, mockParser)
   const pipe = stream.pipe(createWriteStream('outputStream'))
   await fromEvent(pipe, 'finish')
 })
@@ -80,7 +80,7 @@ test('ReadableRawVHDStream detects when blocks are out of order', async () => {
   }
   return expect(
     new Promise((resolve, reject) => {
-      const stream = new ReadableRawVHDStream(100000, mockParser)
+      const stream = createReadableRawVHDStream(100000, mockParser)
       stream.on('error', reject)
       const pipe = stream.pipe(createWriteStream('outputStream'))
       pipe.on('finish', resolve)

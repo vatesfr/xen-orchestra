@@ -2,7 +2,6 @@ import assert from 'assert'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import fu from 'struct-fu'
 import getStream from 'get-stream'
-import stream from 'stream'
 import { fromEvent } from 'promise-toolbox'
 
 import constantStream from './constant-stream'
@@ -945,90 +944,40 @@ export function createFooter (size, timestamp, geometry, diskType, dataOffset) {
   return footer
 }
 
-export class ReadableRawVHDStream extends stream.Readable {
-  constructor (size, blockParser) {
-    super()
-    this.size = size
-    const geometry = computeGeometryForSize(size)
-    this.footer = createFooter(
-      size,
-      Math.floor(Date.now() / 1000),
-      geometry,
-      HARD_DISK_TYPE_FIXED
-    )
-    this.position = 0
-    this.blockParser = blockParser
-    this.done = false
-    this.busy = false
-    this.currentFile = []
-  }
+export const createReadableRawVHDStream = asyncIteratorToStream(async function * (
+  size,
+  blockParser
+) {
+  const geometry = computeGeometryForSize(size)
+  const footer = createFooter(
+    size,
+    Math.floor(Date.now() / 1000),
+    geometry,
+    HARD_DISK_TYPE_FIXED
+  )
 
-  filePadding (paddingLength) {
-    if (paddingLength !== 0) {
+  let position = 0
+
+  function * filePadding (paddingLength) {
+    if (paddingLength <= 0) {
       const chunkSize = 1024 * 1024 // 1Mo
       const chunkCount = Math.floor(paddingLength / chunkSize)
       for (let i = 0; i < chunkCount; i++) {
-        this.currentFile.push(() => {
-          return Buffer.alloc(chunkSize)
-        })
+        yield Buffer.alloc(chunkSize)
       }
-      this.currentFile.push(() => {
-        return Buffer.alloc(paddingLength % chunkSize)
-      })
+      yield Buffer.alloc(paddingLength % chunkSize)
     }
   }
-
-  async pushNextBlock () {
-    const next = await this.blockParser.next()
-    if (next === null) {
-      const paddingLength = this.size - this.position
-      this.filePadding(paddingLength)
-      this.currentFile.push(() => this.footer)
-      this.currentFile.push(() => {
-        this.done = true
-        return null
-      })
-    } else {
-      const paddingLength = next.offsetBytes - this.position
-      if (paddingLength < 0) {
-        throw new Error('Received out of order blocks')
-      }
-      this.filePadding(paddingLength)
-      this.currentFile.push(() => next.data)
-      this.position = next.offsetBytes + next.data.length
+  let next
+  while ((next = await blockParser.next()) !== null) {
+    const paddingLength = next.offsetBytes - position
+    if (paddingLength < 0) {
+      throw new Error('Received out of order blocks')
     }
-    return this.pushFileUntilFull()
+    yield * filePadding(paddingLength)
+    yield next.data
+    position = next.offsetBytes + next.data.length
   }
-
-  // returns true if the file is empty
-  pushFileUntilFull () {
-    while (true) {
-      if (this.currentFile.length === 0) {
-        break
-      }
-      if (!this.push(this.currentFile.shift()())) {
-        break
-      }
-    }
-    return this.currentFile.length === 0
-  }
-
-  async pushNextUntilFull () {
-    while (!this.done && (await this.pushNextBlock())) {}
-  }
-
-  async _read () {
-    if (this.busy || this.done) {
-      return
-    }
-    if (this.pushFileUntilFull()) {
-      this.busy = true
-      try {
-        await this.pushNextUntilFull()
-        this.busy = false
-      } catch (error) {
-        this.emit('error', error)
-      }
-    }
-  }
-}
+  yield * filePadding(size - position)
+  yield footer
+})
