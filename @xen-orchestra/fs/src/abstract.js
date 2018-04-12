@@ -1,7 +1,7 @@
 // @flow
 
-import { randomBytes } from 'crypto'
 import getStream from 'get-stream'
+import { randomBytes } from 'crypto'
 import { fromCallback, fromEvent, ignoreErrors } from 'promise-toolbox'
 import { type Readable, type Writable } from 'stream'
 import { parse } from 'xo-remote-parser'
