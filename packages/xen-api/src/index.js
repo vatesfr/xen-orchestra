@@ -182,20 +182,20 @@ const EMPTY_ARRAY = freezeObject([])
 
 // -------------------------------------------------------------------
 
-const getTaskResult = (task, onSuccess, onFailure) => {
+const getTaskResult = task => {
   const { status } = task
   if (status === 'cancelled') {
-    return [onFailure(new Cancel('task canceled'))]
+    return Promise.reject(new Cancel('task canceled'))
   }
   if (status === 'failure') {
-    return [onFailure(wrapError(task.error_info))]
+    return Promise.reject(wrapError(task.error_info))
   }
   if (status === 'success') {
     // the result might be:
     // - empty string
     // - an opaque reference
     // - an XML-RPC value
-    return [onSuccess(task.result)]
+    return Promise.resolve(task.result)
   }
 }
 
@@ -642,11 +642,11 @@ export class Xapi extends EventEmitter {
     let watcher = watchers[ref]
     if (watcher === undefined) {
       // sync check if the task is already settled
-      const task = this.objects.all[ref]
+      const task = this._objectsByRefs[ref]
       if (task !== undefined) {
-        const result = getTaskResult(task, Promise.resolve, Promise.reject)
-        if (result) {
-          return result[0]
+        const result = getTaskResult(task)
+        if (result !== undefined) {
+          return result
         }
       }
 
@@ -793,11 +793,12 @@ export class Xapi extends EventEmitter {
 
       const taskWatchers = this._taskWatchers
       const taskWatcher = taskWatchers[ref]
-      if (
-        taskWatcher !== undefined &&
-        getTaskResult(object, taskWatcher.resolve, taskWatcher.reject)
-      ) {
-        delete taskWatchers[ref]
+      if (taskWatcher !== undefined) {
+        const result = getTaskResult(object)
+        if (result !== undefined) {
+          taskWatcher.resolve(result)
+          delete taskWatchers[ref]
+        }
       }
     }
   }
