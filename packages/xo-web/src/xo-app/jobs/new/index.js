@@ -286,6 +286,9 @@ export default class Jobs extends Component {
             if (!property.optional) {
               required.push(key)
             }
+            if (method === 'vm.revert' && key === 'snapshotBefore') {
+              property.default = true
+            }
             properties[key] = property
           }
           !isEmpty(required) && (info.required = required)
@@ -374,9 +377,12 @@ export default class Jobs extends Component {
         forEach(item.values, valueItem => {
           forEach(valueItem, (value, key) => {
             if (data[key] === undefined) {
-              data[key] = []
+              data[key] = value
+            } else if (Array.isArray(data[key])) {
+              data[key].push(value)
+            } else {
+              data[key] = [data[key], value]
             }
-            data[key].push(value)
           })
         })
       })
