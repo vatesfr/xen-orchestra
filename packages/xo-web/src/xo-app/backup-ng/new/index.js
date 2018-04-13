@@ -230,23 +230,23 @@ export default [
             : constructPattern(state.vms),
         })
       },
-      setSnapshotMode: () => state => ({
+      toggleSnapshotMode: () => state => ({
         ...state,
         snapshotMode: !state.snapshotMode,
       }),
-      setBackupMode: () => state => ({
+      toggleBackupMode: () => state => ({
         ...state,
         backupMode: !state.backupMode,
       }),
-      setDeltaMode: () => state => ({
+      toggleDeltaMode: () => state => ({
         ...state,
         deltaMode: !state.deltaMode,
       }),
-      setDrMode: () => state => ({
+      toggleDrMode: () => state => ({
         ...state,
         drMode: !state.drMode,
       }),
-      setCrMode: () => state => ({
+      toggleCrMode: () => state => ({
         ...state,
         crMode: !state.crMode,
       }),
@@ -254,7 +254,7 @@ export default [
         ...state,
         compression: checked,
       }),
-      setSmartMode: (_, smartMode) => state => ({
+      toggleSmartMode: (_, smartMode) => state => ({
         ...state,
         smartMode,
       }),
@@ -522,7 +522,7 @@ export default [
                   <Tooltip content={_('smartBackupModeTitle')}>
                     <Toggle
                       className='pull-right'
-                      onChange={effects.setSmartMode}
+                      onChange={effects.toggleSmartMode}
                       value={state.smartMode}
                       iconSize={1}
                     />
@@ -568,7 +568,7 @@ export default [
                   <div className='text-xs-center'>
                     <ActionButton
                       active={state.snapshotMode || undefined}
-                      handler={effects.setSnapshotMode}
+                      handler={effects.toggleSnapshotMode}
                       icon='rolling-snapshot'
                     >
                       {_('rollingSnapshot')}
@@ -576,7 +576,7 @@ export default [
                     <ActionButton
                       active={state.backupMode || undefined}
                       disabled={state.isDelta}
-                      handler={effects.setBackupMode}
+                      handler={effects.toggleBackupMode}
                       icon='backup'
                     >
                       {_('backup')}
@@ -587,7 +587,7 @@ export default [
                         state.isFull ||
                         (!state.deltaMode && process.env.XOA_PLAN < 3)
                       }
-                      handler={effects.setDeltaMode}
+                      handler={effects.toggleDeltaMode}
                       icon='delta-backup'
                     >
                       {_('deltaBackup')}
@@ -598,7 +598,7 @@ export default [
                         state.isDelta ||
                         (!state.drMode && process.env.XOA_PLAN < 3)
                       }
-                      handler={effects.setDrMode}
+                      handler={effects.toggleDrMode}
                       icon='disaster-recovery'
                     >
                       {_('disasterRecovery')}
@@ -614,7 +614,7 @@ export default [
                         state.isFull ||
                         (!state.crMode && process.env.XOA_PLAN < 4)
                       }
-                      handler={effects.setCrMode}
+                      handler={effects.toggleCrMode}
                       icon='continuous-replication'
                     >
                       {_('continuousReplication')}
