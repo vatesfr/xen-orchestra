@@ -1,6 +1,6 @@
 {
   "name": "xapi-explore-sr",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "ISC",
   "description": "Display the list of VDIs (unmanaged and snapshots included) of a SR",
   "keywords": [
