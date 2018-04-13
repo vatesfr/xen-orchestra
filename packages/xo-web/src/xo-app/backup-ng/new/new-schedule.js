@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import moment from 'moment-timezone'
+import PropTypes from 'prop-types'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
@@ -33,6 +34,11 @@ const Number = [
     />
   ),
 ].reduceRight((value, decorator) => decorator(value))
+
+Number.propTypes = {
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.number.isRequired,
+}
 
 export default [
   injectState,
