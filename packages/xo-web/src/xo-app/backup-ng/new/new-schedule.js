@@ -20,16 +20,13 @@ const Number = [
         props.onChange(+value)
       },
     },
-    computed: {
-      value: (_, { value }) => value,
-    },
   }),
   injectState,
-  ({ effects, state }) => (
+  ({ effects, state, value }) => (
     <Input
       type='number'
       onChange={effects.onChange}
-      value={String(state.value)}
+      value={String(value)}
       min='0'
     />
   ),
