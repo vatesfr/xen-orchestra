@@ -54,9 +54,9 @@ const update = () => xoaUpdater.update()
 const upgrade = ({ runningJobsExist }) =>
   runningJobsExist
     ? confirm({
-      title: _('upgradeWarningTitle'),
-      body: _('upgradeWarningMessage'),
-    }).then(() => xoaUpdater.upgrade())
+        title: _('upgradeWarningTitle'),
+        body: _('upgradeWarningMessage'),
+      }).then(() => xoaUpdater.upgrade())
     : xoaUpdater.upgrade()
 
 @addSubscriptions({

@@ -327,15 +327,15 @@ export default class SortedTable extends Component {
       'userData' in props
         ? () => this.props.userData
         : createCollectionWrapper(() => {
-          const { props } = this
-          const userData = {}
-          Object.keys(props).forEach(key => {
-            if (startsWith(key, 'data-')) {
-              userData[key.slice(5)] = props[key]
-            }
+            const { props } = this
+            const userData = {}
+            Object.keys(props).forEach(key => {
+              if (startsWith(key, 'data-')) {
+                userData[key.slice(5)] = props[key]
+              }
+            })
+            return isEmpty(userData) ? undefined : userData
           })
-          return isEmpty(userData) ? undefined : userData
-        })
 
     let selectedColumn = props.defaultColumn
     if (selectedColumn == null) {
@@ -649,8 +649,8 @@ export default class SortedTable extends Component {
     }
 
     const method = (selected === undefined
-      ? !selectedItemsIds.has(item.id)
-      : selected)
+    ? !selectedItemsIds.has(item.id)
+    : selected)
       ? 'add'
       : 'delete'
 
@@ -659,16 +659,16 @@ export default class SortedTable extends Component {
       selectedItemsIds:
         range && (previous = this._previous) !== undefined
           ? selectedItemsIds.withMutations(selectedItemsIds => {
-            let i = previous
-            let end = current
-            if (previous > current) {
-              i = current
-              end = previous
-            }
-            for (; i <= end; ++i) {
-              selectedItemsIds[method](visibleItems[i].id)
-            }
-          })
+              let i = previous
+              let end = current
+              if (previous > current) {
+                i = current
+                end = previous
+              }
+              for (; i <= end; ++i) {
+                selectedItemsIds[method](visibleItems[i].id)
+              }
+            })
           : selectedItemsIds[method](item.id),
     })
 
@@ -842,9 +842,9 @@ export default class SortedTable extends Component {
                 {nItems === nAllItems
                   ? _('sortedTableNumberOfItems', { nTotal: nItems })
                   : _('sortedTableNumberOfFilteredItems', {
-                    nFiltered: nItems,
-                    nTotal: nAllItems,
-                  })}
+                      nFiltered: nItems,
+                      nTotal: nAllItems,
+                    })}
                 {all ? (
                   <span>
                     {' '}

@@ -266,8 +266,8 @@ export default class Xapi extends XapiBase {
           return value === null
             ? removal
             : removal
-            ::ignoreErrors()
-              .then(() => this.call(add, ref, name, prepareXapiParam(value)))
+                ::ignoreErrors()
+                .then(() => this.call(add, ref, name, prepareXapiParam(value)))
         }
       })
     )
@@ -517,9 +517,9 @@ export default class Xapi extends XapiBase {
     const onVmCreation =
       nameLabel !== undefined
         ? vm =>
-          targetXapi._setObjectProperties(vm, {
-            nameLabel,
-          })
+            targetXapi._setObjectProperties(vm, {
+              nameLabel,
+            })
         : null
 
     const vm = await targetXapi._getOrWaitObject(
@@ -633,7 +633,12 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _deleteVm (vm, deleteDisks = true, force = false) {
+  async _deleteVm (
+    vm,
+    deleteDisks = true,
+    force = false,
+    forceDeleteDefaultTemplate = false
+  ) {
     debug(`Deleting VM ${vm.name_label}`)
 
     const { $ref } = vm
@@ -654,6 +659,10 @@ export default class Xapi extends XapiBase {
     vm = await this.barrier('VM', $ref)
 
     return Promise.all([
+      forceDeleteDefaultTemplate &&
+        this._updateObjectMapProperty(vm, 'other_config', {
+          default_template: null,
+        }),
       this.call('VM.destroy', $ref),
 
       asyncMap(vm.$snapshots, snapshot =>
@@ -693,8 +702,13 @@ export default class Xapi extends XapiBase {
     ])
   }
 
-  async deleteVm (vmId, deleteDisks, force) {
-    return /* await */ this._deleteVm(this.getObject(vmId), deleteDisks, force)
+  async deleteVm (vmId, deleteDisks, force, forceDeleteDefaultTemplate) {
+    return /* await */ this._deleteVm(
+      this.getObject(vmId),
+      deleteDisks,
+      force,
+      forceDeleteDefaultTemplate
+    )
   }
 
   getVmConsole (vmId) {
@@ -860,29 +874,30 @@ export default class Xapi extends XapiBase {
       // Look for a snapshot of this vdi in the base VM.
       const baseVdi = baseVdis[vdi.snapshot_of]
 
-      vdis[vdiRef] =
-        baseVdi && !disableBaseTags
-          ? {
-            ...vdi,
-            other_config: {
-              ...vdi.other_config,
-              [TAG_BASE_DELTA]: baseVdi.uuid,
-            },
-            $SR$uuid: vdi.$SR.uuid,
-          }
-          : {
-            ...vdi,
-            $SR$uuid: vdi.$SR.uuid,
-          }
+      vdis[vdiRef] = {
+        ...vdi,
+        other_config: {
+          ...vdi.other_config,
+          [TAG_BASE_DELTA]:
+            baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
+        },
+        $SR$uuid: vdi.$SR.uuid,
+      }
+
       streams[`${vdiRef}.vhd`] = () =>
         this._exportVdi($cancelToken, vdi, baseVdi, VDI_FORMAT_VHD)
     })
 
     const vifs = {}
     forEach(vm.$VIFs, vif => {
+      const network = vif.$network
       vifs[vif.$ref] = {
         ...vif,
-        $network$uuid: vif.$network.uuid,
+        $network$uuid: network.uuid,
+        $network$name_label: network.name_label,
+        // https://github.com/babel/babel-eslint/issues/595
+        // eslint-disable-next-line no-undef
+        $network$VLAN: network.$PIFs[0]?.VLAN,
       }
     })
 
@@ -898,9 +913,9 @@ export default class Xapi extends XapiBase {
           other_config:
             baseVm && !disableBaseTags
               ? {
-                ...vm.other_config,
-                [TAG_BASE_DELTA]: baseVm.uuid,
-              }
+                  ...vm.other_config,
+                  [TAG_BASE_DELTA]: baseVm.uuid,
+                }
               : omit(vm.other_config, TAG_BASE_DELTA),
         },
       },
@@ -1015,10 +1030,21 @@ export default class Xapi extends XapiBase {
       return newVdi
     })::pAll()
 
-    const networksOnPoolMasterByDevice = {}
+    const networksByNameLabelByVlan = {}
     let defaultNetwork
-    forEach(this.pool.$master.$PIFs, pif => {
-      defaultNetwork = networksOnPoolMasterByDevice[pif.device] = pif.$network
+    forEach(this.objects.all, object => {
+      if (object.$type === 'network') {
+        const pif = object.$PIFs[0]
+        if (pif === undefined) {
+          // ignore network
+          return
+        }
+        const vlan = pif.VLAN
+        const networksByNameLabel =
+          networksByNameLabelByVlan[vlan] ||
+          (networksByNameLabelByVlan[vlan] = {})
+        defaultNetwork = networksByNameLabel[object.name_label] = object
+      }
     })
 
     const { streams } = delta
@@ -1055,10 +1081,21 @@ export default class Xapi extends XapiBase {
 
       // Create VIFs.
       asyncMap(delta.vifs, vif => {
-        const network =
-          (vif.$network$uuid && this.getObject(vif.$network$uuid, null)) ||
-          networksOnPoolMasterByDevice[vif.device] ||
-          defaultNetwork
+        let network =
+          vif.$network$uuid && this.getObject(vif.$network$uuid, undefined)
+
+        if (network === undefined) {
+          const { $network$VLAN: vlan = -1 } = vif
+          const networksByNameLabel = networksByNameLabelByVlan[vlan]
+          if (networksByNameLabel !== undefined) {
+            network = networksByNameLabel[vif.$network$name_label]
+            if (network === undefined) {
+              network = networksByNameLabel[Object.keys(networksByNameLabel)[0]]
+            }
+          } else {
+            network = defaultNetwork
+          }
+        }
 
         if (network) {
           return this._createVif(vm, network, vif)
@@ -1424,7 +1461,7 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  @synchronized() // like @concurrency(1) but more efficient
+  @concurrency(2)
   @cancelable
   async _snapshotVm ($cancelToken, vm, nameLabel = vm.name_label) {
     debug(
@@ -1442,8 +1479,6 @@ export default class Xapi extends XapiBase {
         nameLabel
       ).then(extractOpaqueRef)
       this.addTag(ref, 'quiesce')::ignoreErrors()
-
-      await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
     } catch (error) {
       const { code } = error
       if (
@@ -1467,7 +1502,7 @@ export default class Xapi extends XapiBase {
     // to-date object.
     const [, snapshot] = await Promise.all([
       this.call('VM.set_is_a_template', ref, false),
-      this._waitObjectState(ref, snapshot => !snapshot.is_a_template),
+      this.barrier(ref),
     ])
 
     return snapshot
@@ -1999,7 +2034,9 @@ export default class Xapi extends XapiBase {
       name_label: name,
       name_description: description,
       MTU: asInteger(mtu),
-      other_config: {},
+      // Set automatic to false so XenCenter does not get confused
+      // https://citrix.github.io/xenserver-sdk/#network
+      other_config: { automatic: 'false' },
     })
     $defer.onFailure(() => this.call('network.destroy', networkRef))
     if (pifId) {

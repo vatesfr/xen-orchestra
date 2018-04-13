@@ -15,7 +15,7 @@ export type Schedule = {|
   jobId: string,
   name: string,
   timezone?: string,
-  userId: string
+  userId: string,
 |}
 
 const normalize = schedule => {
@@ -45,7 +45,7 @@ export default class Scheduling {
     first: Function,
     get: Function,
     remove: Function,
-    update: Function
+    update: Function,
   |}
   _runs: { __proto__: null, [string]: () => void }
 

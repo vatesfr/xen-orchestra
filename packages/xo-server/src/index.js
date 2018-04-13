@@ -538,9 +538,14 @@ export default async function main (args) {
 
   {
     const debug = createLogger('xo:perf')
-    blocked(ms => {
-      debug('blocked for %sms', ms | 0)
-    })
+    blocked(
+      ms => {
+        debug('blocked for %sms', ms | 0)
+      },
+      {
+        threshold: 50,
+      }
+    )
   }
 
   const config = await loadConfiguration()

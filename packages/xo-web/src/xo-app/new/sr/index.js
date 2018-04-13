@@ -16,8 +16,9 @@ import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { ignoreErrors } from 'promise-toolbox'
 import { injectIntl } from 'react-intl'
-import { Password, Select } from 'form'
+import { Password, Select, Toggle } from 'form'
 import { SelectHost } from 'select-objects'
 import {
   createFilter,
@@ -30,11 +31,14 @@ import {
   createSrIscsi,
   createSrLvm,
   createSrNfs,
+  createSrHba,
   probeSrIscsiExists,
   probeSrIscsiIqns,
   probeSrIscsiLuns,
   probeSrNfs,
   probeSrNfsExists,
+  probeSrHba,
+  probeSrHbaExists,
   reattachSrIso,
   reattachSr,
 } from 'xo'
@@ -45,6 +49,50 @@ import {
   onChange: propTypes.func.isRequired,
   options: propTypes.array.isRequired,
 })
+class SelectScsiId extends Component {
+  _getOptions = createSelector(
+    () => this.props.options,
+    options =>
+      map(options, ({ vendor, path, size, scsiId }) => ({
+        label: `${vendor} - ${path} (${formatSize(size)})`,
+        value: scsiId,
+      }))
+  )
+
+  _handleChange = opt => {
+    const { props } = this
+
+    this.setState({ value: opt.value }, () => props.onChange(opt.value))
+  }
+
+  componentDidMount () {
+    return this.componentDidUpdate()
+  }
+
+  componentDidUpdate () {
+    let options
+    if (
+      this.state.value === null &&
+      (options = this._getOptions()).length === 1
+    ) {
+      this._handleChange(options[0])
+    }
+  }
+
+  state = { value: null }
+
+  render () {
+    return (
+      <Select
+        clearable={false}
+        onChange={this._handleChange}
+        options={this._getOptions()}
+        value={this.state.value}
+      />
+    )
+  }
+}
+
 class SelectIqn extends Component {
   _getOptions = createSelector(
     () => this.props.options,
@@ -141,10 +189,11 @@ class SelectLun extends Component {
 // ===================================================================
 
 const SR_TYPE_TO_LABEL = {
-  nfs: 'NFS',
+  hba: 'HBA',
   iscsi: 'iSCSI',
-  lvm: 'Local LVM',
   local: 'Local',
+  lvm: 'Local LVM',
+  nfs: 'NFS',
   nfsiso: 'NFS ISO',
   smb: 'SMB',
 }
@@ -155,7 +204,7 @@ const SR_GROUP_TO_LABEL = {
 }
 
 const typeGroups = {
-  vdisr: ['nfs', 'iscsi', 'lvm'],
+  vdisr: ['hba', 'iscsi', 'lvm', 'nfs'],
   isosr: ['local', 'nfsiso', 'smb'],
 }
 
@@ -183,6 +232,7 @@ export default class New extends Component {
       lockCreation: undefined,
       lun: undefined,
       luns: undefined,
+      hbaDevices: undefined,
       name: undefined,
       path: undefined,
       paths: undefined,
@@ -212,7 +262,7 @@ export default class New extends Component {
       server,
       username,
     } = this.refs
-    const { host, iqn, lun, path, type } = this.state
+    const { host, iqn, lun, path, type, scsiId, nfs4, nfsOptions } = this.state
 
     const createMethodFactories = {
       nfs: async () => {
@@ -232,8 +282,24 @@ export default class New extends Component {
           name.value,
           description.value,
           server.value,
-          path
+          path,
+          nfs4 ? '4' : undefined,
+          nfsOptions
         )
+      },
+      hba: async () => {
+        const previous = await probeSrHbaExists(host.id, scsiId)
+        if (previous && previous.length > 0) {
+          try {
+            await confirm({
+              title: _('existingLunModalTitle'),
+              body: <p>{_('existingLunModalText')}</p>,
+            })
+          } catch (error) {
+            return
+          }
+        }
+        return createSrHba(host.id, name.value, description.value, scsiId)
       },
       iscsi: async () => {
         const previous = await probeSrIscsiExists(
@@ -311,16 +377,32 @@ export default class New extends Component {
   _handleDescriptionChange = event =>
     this.setState({ description: event.target.value })
 
-  _handleSrTypeSelection = event => {
+  _handleSrTypeSelection = async event => {
     const type = event.target.value
     this.setState({
-      type,
-      paths: undefined,
+      hbaDevices: undefined,
       iqns: undefined,
+      paths: undefined,
+      summary: includes(['lvm', 'local', 'smb', 'hba'], type),
+      type,
+      unused: undefined,
       usage: undefined,
       used: undefined,
-      unused: undefined,
-      summary: type === 'lvm' || type === 'local' || type === 'smb',
+    })
+    if (type === 'hba' && this.state.host !== undefined) {
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
+      const hbaDevices = await probeSrHba(this.state.host.id)::ignoreErrors()
+      this.setState(({ loading }) => ({
+        hbaDevices,
+        loading: loading - 1,
+      }))
+    }
+  }
+
+  _handleSrHbaSelection = async scsiId => {
+    this.setState({
+      scsiId,
+      usage: true,
     })
   }
 
@@ -484,6 +566,7 @@ export default class New extends Component {
       auth,
       host,
       iqns,
+      hbaDevices,
       loading,
       lockCreation,
       lun,
@@ -556,7 +639,7 @@ export default class New extends Component {
             <Section icon='settings' title='newSrSettings'>
               {host && (
                 <fieldset>
-                  {(type === 'nfs' || type === 'nfsiso') && (
+                  {(type === 'nfs' || type === 'nfsiso') && [
                     <fieldset>
                       <label htmlFor='srServer'>{_('newSrServer')}</label>
                       <div className='input-group'>
@@ -576,6 +659,36 @@ export default class New extends Component {
                             handler={this._handleSearchServer}
                           />
                         </span>
+                      </div>
+                    </fieldset>,
+                    <fieldset>
+                      <label>{_('newSrUseNfs4')}</label>
+                      <div>
+                        <Toggle onChange={this.toggleState('nfs4')} />
+                      </div>
+                    </fieldset>,
+                    <fieldset>
+                      <label>{_('newSrNfsOptions')}</label>
+                      <input
+                        className='form-control'
+                        onChange={this.linkState('nfsOptions')}
+                        type='text'
+                        value={this.state.nfsOptions}
+                      />
+                    </fieldset>,
+                  ]}
+                  {type === 'hba' && (
+                    <fieldset>
+                      <label>{_('newSrLun')}</label>
+                      <div>
+                        {!isEmpty(hbaDevices) ? (
+                          <SelectScsiId
+                            options={hbaDevices}
+                            onChange={this._handleSrHbaSelection}
+                          />
+                        ) : (
+                          <em>{_('newSrNoHba')}</em>
+                        )}
                       </div>
                     </fieldset>
                   )}
@@ -774,8 +887,8 @@ export default class New extends Component {
                     <p key={key}>
                       {sr.uuid}
                       <span className='pull-right'>
-                        <a className='btn btn-warning'>{_('newSrInUse')}</a> //
-                        FIXME Goes to sr view
+                        {/* FIXME Goes to sr view */}
+                        <a className='btn btn-warning'>{_('newSrInUse')}</a>
                       </span>
                     </p>
                   ))}
@@ -801,7 +914,7 @@ export default class New extends Component {
                       <dd>{formatSize(+lun.size)}</dd>
                     </dl>
                   )}
-                  {type === 'nfs' && (
+                  {includes(['nfs', 'hba'], type) && (
                     <dl className='dl-horizontal'>
                       <dt>{_('newSrPath')}</dt>
                       <dd>{path}</dd>

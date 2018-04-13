@@ -19,7 +19,11 @@ import {
   throttle,
 } from 'lodash'
 import { lastly, reflect, tap } from 'promise-toolbox'
-import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
+import {
+  forbiddenOperation,
+  noHostsAvailable,
+  vmIsTemplate,
+} from 'xo-common/api-errors'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
@@ -913,26 +917,26 @@ export const copyVm = (vm, sr, name, compress) => {
   const vmId = resolveId(vm)
   return sr !== undefined
     ? confirm({
-      title: _('copyVm'),
-      body: _('copyVmConfirm', { SR: sr.name_label }),
-    }).then(() =>
-      _call('vm.copy', {
-        vm: vmId,
-        sr: sr.id,
-        name: name || vm.name_label + '_COPY',
-        compress,
-      })
-    )
+        title: _('copyVm'),
+        body: _('copyVmConfirm', { SR: sr.name_label }),
+      }).then(() =>
+        _call('vm.copy', {
+          vm: vmId,
+          sr: sr.id,
+          name: name || vm.name_label + '_COPY',
+          compress,
+        })
+      )
     : confirm({
-      title: _('copyVm'),
-      body: <CopyVmModalBody vm={vm} />,
-    }).then(params => {
-      if (!params.sr) {
-        error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
-        return
-      }
-      return _call('vm.copy', { vm: vmId, ...params })
-    }, noop)
+        title: _('copyVm'),
+        body: <CopyVmModalBody vm={vm} />,
+      }).then(params => {
+        if (!params.sr) {
+          error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
+          return
+        }
+        return _call('vm.copy', { vm: vmId, ...params })
+      }, noop)
 }
 
 import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
@@ -968,11 +972,58 @@ export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
     body: _('templateDeleteModalBody', { templates: templates.length }),
-  }).then(
-    () =>
-      Promise.all(map(resolveIds(templates), id => _call('vm.delete', { id }))),
-    noop
-  )
+  }).then(async () => {
+    const defaultTemplates = []
+    let nErrors = 0
+    await Promise.all(
+      map(resolveIds(templates), id =>
+        _call('vm.delete', { id }).catch(reason => {
+          if (vmIsTemplate.is(reason)) {
+            defaultTemplates.push(id)
+          } else {
+            nErrors++
+          }
+        })
+      )
+    )
+
+    const nDefaultTemplates = defaultTemplates.length
+    if (nDefaultTemplates === 0 && nErrors === 0) {
+      return
+    }
+
+    const showError = () =>
+      error(
+        _('failedToDeleteTemplatesTitle', { nTemplates: nErrors }),
+        _('failedToDeleteTemplatesMessage', { nTemplates: nErrors })
+      )
+
+    return nDefaultTemplates === 0
+      ? showError()
+      : confirm({
+          title: _('deleteDefaultTemplatesTitle', { nDefaultTemplates }),
+          body: _('deleteDefaultTemplatesMessage', { nDefaultTemplates }),
+        })
+          .then(
+            () =>
+              Promise.all(
+                map(defaultTemplates, id =>
+                  _call('vm.delete', {
+                    id,
+                    forceDeleteDefaultTemplate: true,
+                  }).catch(() => {
+                    nErrors++
+                  })
+                )
+              ),
+            noop
+          )
+          .then(() => {
+            if (nErrors !== 0) {
+              showError()
+            }
+          }, noop)
+  }, noop)
 
 export const snapshotVm = vm => _call('vm.snapshot', { id: resolveId(vm) })
 
@@ -1566,14 +1617,26 @@ export const createJob = job =>
 export const deleteJob = job =>
   _call('job.delete', { id: resolveId(job) })::tap(subscribeJobs.forceRefresh)
 
+export const deleteJobs = jobs =>
+  confirm({
+    title: _('deleteJobsModalTitle', { nJobs: jobs.length }),
+    body: _('deleteJobsModalMessage', { nJobs: jobs.length }),
+  }).then(
+    () =>
+      Promise.all(
+        map(jobs, job => _call('job.delete', { id: resolveId(job) }))
+      )::tap(subscribeJobs.forceRefresh),
+    noop
+  )
+
 export const editJob = job =>
   _call('job.set', { job })::tap(subscribeJobs.forceRefresh)
 
 export const getJob = id => _call('job.get', { id })
 
-export const runJob = id => {
+export const runJob = job => {
   info(_('runJob'), _('runJobVerbose'))
-  return _call('job.runSequence', { idSequence: [id] })
+  return _call('job.runSequence', { idSequence: [resolveId(job)] })
 }
 
 // Backup/Schedule ---------------------------------------------------------
@@ -1897,6 +1960,11 @@ export const probeSrIscsiExists = (
   return _call('sr.probeIscsiExists', params)
 }
 
+export const probeSrHba = host => _call('sr.probeHba', { host })
+
+export const probeSrHbaExists = (host, scsiId) =>
+  _call('sr.probeHbaExists', { host, scsiId })
+
 export const reattachSr = (host, uuid, nameLabel, nameDescription, type) =>
   _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type })
 
@@ -1909,10 +1977,12 @@ export const createSrNfs = (
   nameDescription,
   server,
   serverPath,
-  nfsVersion = undefined
+  nfsVersion = undefined,
+  nfsOptions
 ) => {
   const params = { host, nameLabel, nameDescription, server, serverPath }
   nfsVersion && (params.nfsVersion = nfsVersion)
+  nfsOptions && (params.nfsOptions = nfsOptions)
   return _call('sr.createNfs', params)
 }
 
@@ -1933,6 +2003,9 @@ export const createSrIscsi = (
   chapPassword && (params.chapPassword = chapPassword)
   return _call('sr.createIscsi', params)
 }
+
+export const createSrHba = (host, nameLabel, nameDescription, scsiId) =>
+  _call('sr.createHba', { host, nameLabel, nameDescription, scsiId })
 
 export const createSrIso = (
   host,

@@ -256,7 +256,6 @@ const messages = {
   jobMergedDataSpeed: 'Merge speed:',
   allJobCalls: 'All',
   job: 'Job',
-  jobEdit: 'Edit job',
   jobModalTitle: 'Job {job}',
   jobId: 'ID',
   jobType: 'Type',
@@ -278,6 +277,8 @@ const messages = {
   runJob: 'Run job',
   runJobConfirm: 'Are you sure you want to run {backupType} {id} ({tag})?',
   runJobVerbose: 'One shot running started. See overview for logs.',
+  jobEdit: 'Edit job',
+  jobDelete: 'Delete',
   jobFinished: 'Finished',
   jobInterrupted: 'Interrupted',
   jobStarted: 'Started',
@@ -287,6 +288,7 @@ const messages = {
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
     'Are you sure you want to delete this backup job?',
+  deleteSelectedJobs: 'Delete selected jobs',
   scheduleEnableAfterCreation: 'Enable immediately after creation',
   scheduleEditMessage:
     'You are editing Schedule {name} ({id}). Saving will override previous schedule state.',
@@ -331,6 +333,8 @@ const messages = {
   backupName: 'Name',
   useDelta: 'Use delta',
   useCompression: 'Use compression',
+  dbAndDrRequireEntreprisePlan: 'Delta Backup and DR require Entreprise plan',
+  crRequiresPremiumPlan: 'CR requires Premium plan',
   smartBackupModeTitle: 'Smart mode',
   backupTargetRemotes: 'Target remotes (for Export)',
   backupTargetSrs: 'Target SRs (for Replication)',
@@ -427,6 +431,7 @@ const messages = {
   newSrPath: 'Path',
   newSrIqn: 'IQN',
   newSrLun: 'LUN',
+  newSrNoHba: 'No HBA devices',
   newSrAuth: 'with auth.',
   newSrUsername: 'User Name',
   newSrPassword: 'Password',
@@ -442,6 +447,8 @@ const messages = {
   newSrPasswordPlaceHolder: 'Password',
   newSrLvmDevicePlaceHolder: 'Device, e.g /dev/sda…',
   newSrLocalPathPlaceHolder: '/path/to/directory',
+  newSrUseNfs4: 'Use NFSv4',
+  newSrNfsOptions: 'Comma delimited NFS options',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',
@@ -892,12 +899,7 @@ const messages = {
   cpuCapLabel: 'CPU cap',
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
-  xenToolsStatus: 'Xen tools status',
-  xenToolsStatusValue: {
-    defaultMessage: '{status}',
-    description:
-      'status can be `not-installed`, `unknown`, `out-of-date` & `up-to-date`',
-  },
+  xenToolsStatus: 'Xen tools version',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
@@ -947,6 +949,14 @@ const messages = {
     'Delete VM template{templates, plural, one {} other {s}}',
   templateDeleteModalBody:
     'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
+  failedToDeleteTemplatesTitle:
+    'Delete template{nTemplates, plural, one {} other {s}} failed',
+  failedToDeleteTemplatesMessage:
+    'Failed to delete {nTemplates, number} template{nTemplates, plural, one {} other {s}}.',
+  deleteDefaultTemplatesTitle:
+    'Delete default template{nDefaultTemplates, plural, one {} other {s}}',
+  deleteDefaultTemplatesMessage:
+    'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?',
 
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
@@ -1318,6 +1328,9 @@ const messages = {
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
   chooseSrForEachVdisModalOptionalEntry: '* optional',
+  deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
+  deleteJobsModalMessage:
+    'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
   deleteVbdsModalTitle: 'Delete VBD{nVbds, plural, one {} other {s}}',
   deleteVbdsModalMessage:
     'Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',

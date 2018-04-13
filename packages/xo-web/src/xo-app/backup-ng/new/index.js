@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Icon from 'icon'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Tooltip from 'tooltip'
@@ -7,7 +8,16 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, resolveId, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Col, Row } from 'grid'
-import { find, findKey, flatten, keyBy, isEmpty, map, some } from 'lodash'
+import {
+  find,
+  findKey,
+  flatten,
+  keyBy,
+  includes,
+  isEmpty,
+  map,
+  some,
+} from 'lodash'
 import { injectState, provideState } from '@julien-f/freactal'
 import { Toggle } from 'form'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
@@ -32,26 +42,26 @@ const normaliseTagValues = values => resolveIds(values).map(value => [value])
 const constructPattern = values =>
   values.length === 1
     ? {
-      id: resolveId(values[0]),
-    }
+        id: resolveId(values[0]),
+      }
     : {
-      id: {
-        __or: resolveIds(values),
-      },
-    }
+        id: {
+          __or: resolveIds(values),
+        },
+      }
 
 const destructPattern = pattern => pattern.id.__or || [pattern.id]
 
 const destructVmsPattern = pattern =>
   pattern.id === undefined
     ? {
-      powerState: pattern.power_state || 'All',
-      $pool: destructSmartPattern(pattern.$pool),
-      tags: destructSmartPattern(pattern.tags, flatten),
-    }
+        powerState: pattern.power_state || 'All',
+        $pool: destructSmartPattern(pattern.$pool),
+        tags: destructSmartPattern(pattern.tags, flatten),
+      }
     : {
-      vms: destructPattern(pattern),
-    }
+        vms: destructPattern(pattern),
+      }
 
 const getNewSettings = schedules => {
   const newSettings = {}
@@ -497,6 +507,8 @@ export default [
         tags: constructSmartPattern(tags, normaliseTagValues),
         type: 'VM',
       }),
+      srPredicate: ({ srs }) => ({ id }) => !includes(srs, id),
+      remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
     },
   }),
   injectState,
@@ -559,14 +571,14 @@ export default [
               </Card>
               <Card>
                 <CardBlock>
-                  <div className='btn-toolbar text-xs-center'>
+                  <div className='text-xs-center'>
                     <ActionButton
                       active={state.snapshotMode}
                       handler={effects.setSnapshotMode}
                       icon='rolling-snapshot'
                     >
                       {_('rollingSnapshot')}
-                    </ActionButton>
+                    </ActionButton>{' '}
                     <ActionButton
                       active={state.backupMode}
                       disabled={state.isDelta}
@@ -574,31 +586,50 @@ export default [
                       icon='backup'
                     >
                       {_('backup')}
-                    </ActionButton>
+                    </ActionButton>{' '}
                     <ActionButton
                       active={state.deltaMode}
-                      disabled={state.isFull}
+                      disabled={
+                        state.isFull ||
+                        (!state.deltaMode && process.env.XOA_PLAN < 3)
+                      }
                       handler={effects.setDeltaMode}
                       icon='delta-backup'
                     >
                       {_('deltaBackup')}
-                    </ActionButton>
+                    </ActionButton>{' '}
                     <ActionButton
                       active={state.drMode}
-                      disabled={state.isDelta}
+                      disabled={
+                        state.isDelta ||
+                        (!state.drMode && process.env.XOA_PLAN < 3)
+                      }
                       handler={effects.setDrMode}
                       icon='disaster-recovery'
                     >
                       {_('disasterRecovery')}
-                    </ActionButton>
+                    </ActionButton>{' '}
+                    {process.env.XOA_PLAN < 3 && (
+                      <Tooltip content={_('dbAndDrRequireEntreprisePlan')}>
+                        <Icon icon='info' />
+                      </Tooltip>
+                    )}{' '}
                     <ActionButton
                       active={state.crMode}
-                      disabled={state.isFull}
+                      disabled={
+                        state.isFull ||
+                        (!state.crMode && process.env.XOA_PLAN < 4)
+                      }
                       handler={effects.setCrMode}
                       icon='continuous-replication'
                     >
                       {_('continuousReplication')}
-                    </ActionButton>
+                    </ActionButton>{' '}
+                    {process.env.XOA_PLAN < 4 && (
+                      <Tooltip content={_('crRequiresPremiumPlan')}>
+                        <Icon icon='info' />
+                      </Tooltip>
+                    )}
                   </div>
                 </CardBlock>
               </Card>
@@ -612,7 +643,11 @@ export default [
                       <label>
                         <strong>{_('backupTargetRemotes')}</strong>
                       </label>
-                      <SelectRemote onChange={effects.addRemote} value={null} />
+                      <SelectRemote
+                        onChange={effects.addRemote}
+                        predicate={state.remotePredicate}
+                        value={null}
+                      />
                       <br />
                       <Ul>
                         {map(state.remotes, (id, key) => (
@@ -651,7 +686,11 @@ export default [
                       <label>
                         <strong>{_('backupTargetSrs')}</strong>
                       </label>
-                      <SelectSr onChange={effects.addSr} value={null} />
+                      <SelectSr
+                        onChange={effects.addSr}
+                        predicate={state.srPredicate}
+                        value={null}
+                      />
                       <br />
                       <Ul>
                         {map(state.srs, (id, key) => (

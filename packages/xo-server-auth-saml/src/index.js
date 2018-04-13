@@ -52,6 +52,7 @@ class AuthSamlXoPlugin {
       new Strategy(this._conf, async (profile, done) => {
         const name = profile[this._usernameField]
         if (!name) {
+          console.warn('xo-server-auth-saml:', profile)
           done('no name found for this user')
           return
         }

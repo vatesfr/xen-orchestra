@@ -232,13 +232,11 @@ const TRANSFORMS = {
       }
 
       const { major, minor } = guestMetrics.PV_drivers_version
-      const [hostMajor, hostMinor] = (
-        obj.$resident_on || obj.$pool.$master
-      ).software_version.product_version.split('.')
 
-      return major >= hostMajor && minor >= hostMinor
-        ? 'up to date'
-        : 'out of date'
+      return {
+        major,
+        minor,
+      }
     })()
 
     let resourceSet = otherConfig['xo:resource_set']
@@ -512,9 +510,7 @@ const TRANSFORMS = {
       vdi.type += '-snapshot'
       vdi.snapshot_time = toTimestamp(obj.snapshot_time)
       vdi.$snapshot_of = link(obj, 'snapshot_of')
-    }
-
-    if (!obj.managed) {
+    } else if (!obj.managed) {
       vdi.type += '-unmanaged'
     }
 

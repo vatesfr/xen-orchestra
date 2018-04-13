@@ -143,7 +143,9 @@ export const isOpaqueRef = value =>
 
 const RE_READ_ONLY_METHOD = /^[^.]+\.get_/
 const isReadOnlyCall = (method, args) =>
-  args.length === 1 && isOpaqueRef(args[0]) && RE_READ_ONLY_METHOD.test(method)
+  args.length === 1 &&
+  typeof args[0] === 'string' &&
+  RE_READ_ONLY_METHOD.test(method)
 
 // Prepare values before passing them to the XenAPI:
 //
@@ -180,20 +182,20 @@ const EMPTY_ARRAY = freezeObject([])
 
 // -------------------------------------------------------------------
 
-const getTaskResult = (task, onSuccess, onFailure) => {
+const getTaskResult = task => {
   const { status } = task
   if (status === 'cancelled') {
-    return [onFailure(new Cancel('task canceled'))]
+    return Promise.reject(new Cancel('task canceled'))
   }
   if (status === 'failure') {
-    return [onFailure(wrapError(task.error_info))]
+    return Promise.reject(wrapError(task.error_info))
   }
   if (status === 'success') {
     // the result might be:
     // - empty string
     // - an opaque reference
     // - an XML-RPC value
-    return [onSuccess(task.result)]
+    return Promise.resolve(task.result)
   }
 }
 
@@ -244,7 +246,7 @@ export class Xapi extends EventEmitter {
       objects.getKey = getKey
 
       this._objectsByRefs = createObject(null)
-      this._objectsByRefs['OpaqueRef:NULL'] = null
+      this._objectsByRefs['OpaqueRef:NULL'] = undefined
 
       this._taskWatchers = Object.create(null)
 
@@ -407,15 +409,15 @@ export class Xapi extends EventEmitter {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(`Async.${method}`, args).then(taskRef => {
-        $cancelToken.promise.then(() => {
-          // TODO: do not trigger if the task is already over
-          this._sessionCall('task.cancel', [taskRef]).catch(noop)
-        })
+          $cancelToken.promise.then(() => {
+            // TODO: do not trigger if the task is already over
+            this._sessionCall('task.cancel', [taskRef]).catch(noop)
+          })
 
-        return this.watchTask(taskRef)::lastly(() => {
-          this._sessionCall('task.destroy', [taskRef]).catch(noop)
+          return this.watchTask(taskRef)::lastly(() => {
+            this._sessionCall('task.destroy', [taskRef]).catch(noop)
+          })
         })
-      })
   }
 
   // create a task and automatically destroy it when settled
@@ -577,31 +579,31 @@ export class Xapi extends EventEmitter {
         // redirection before consuming body
         const promise = isStream
           ? doRequest({
-            body: '',
+              body: '',
 
-            // omit task_id because this request will fail on purpose
-            query: 'task_id' in query ? omit(query, 'task_id') : query,
+              // omit task_id because this request will fail on purpose
+              query: 'task_id' in query ? omit(query, 'task_id') : query,
 
-            maxRedirects: 0,
-          }).then(
-            response => {
-              response.req.abort()
-              return doRequest()
-            },
-            error => {
-              let response
-              if (error != null && (response = error.response) != null) {
+              maxRedirects: 0,
+            }).then(
+              response => {
                 response.req.abort()
+                return doRequest()
+              },
+              error => {
+                let response
+                if (error != null && (response = error.response) != null) {
+                  response.req.abort()
 
-                const { headers: { location }, statusCode } = response
-                if (statusCode === 302 && location !== undefined) {
-                  return doRequest(location)
+                  const { headers: { location }, statusCode } = response
+                  if (statusCode === 302 && location !== undefined) {
+                    return doRequest(location)
+                  }
                 }
-              }
 
-              throw error
-            }
-          )
+                throw error
+              }
+            )
           : doRequest()
 
         return promise.then(response => {
@@ -640,11 +642,11 @@ export class Xapi extends EventEmitter {
     let watcher = watchers[ref]
     if (watcher === undefined) {
       // sync check if the task is already settled
-      const task = this.objects.all[ref]
+      const task = this._objectsByRefs[ref]
       if (task !== undefined) {
-        const result = getTaskResult(task, Promise.resolve, Promise.reject)
-        if (result) {
-          return result[0]
+        const result = getTaskResult(task)
+        if (result !== undefined) {
+          return result
         }
       }
 
@@ -791,11 +793,12 @@ export class Xapi extends EventEmitter {
 
       const taskWatchers = this._taskWatchers
       const taskWatcher = taskWatchers[ref]
-      if (
-        taskWatcher !== undefined &&
-        getTaskResult(object, taskWatcher.resolve, taskWatcher.reject)
-      ) {
-        delete taskWatchers[ref]
+      if (taskWatcher !== undefined) {
+        const result = getTaskResult(object)
+        if (result !== undefined) {
+          taskWatcher.resolve(result)
+          delete taskWatchers[ref]
+        }
       }
     }
   }
@@ -815,7 +818,10 @@ export class Xapi extends EventEmitter {
     const taskWatchers = this._taskWatchers
     const taskWatcher = taskWatchers[ref]
     if (taskWatcher !== undefined) {
-      taskWatcher.reject(new Error('task has been destroyed before completion'))
+      const error = new Error('task has been destroyed before completion')
+      error.task = object
+      error.taskRef = ref
+      taskWatcher.reject(error)
       delete taskWatchers[ref]
     }
   }

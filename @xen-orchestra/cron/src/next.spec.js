@@ -41,4 +41,8 @@ describe('next()', () => {
       'no solutions found for this schedule'
     )
   })
+
+  it('select the first sunday of the month', () => {
+    expect(N('* * * * 0', '2018-03-31T00:00')).toBe('2018-04-01T00:00')
+  })
 })
