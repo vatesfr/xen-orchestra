@@ -815,10 +815,6 @@ const messages = {
   powerStateSuspended: 'suspended',
 
   // ----- VM home -----
-  vmStatus: 'No Xen tools detected',
-  vmName: 'No IPv4 record',
-  vmDescription: 'No IP record',
-  vmSettings: 'Started {ago}',
   vmCurrentStatus: 'Current status:',
   vmNotRunning: 'Not running',
   vmHaltedSince: 'Halted {ago}',
