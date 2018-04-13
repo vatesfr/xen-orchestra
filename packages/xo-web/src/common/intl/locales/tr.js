@@ -9,4700 +9,4700 @@ addLocaleData(reactIntlData)
 
 export default {
   // Original text: '{key}: {value}'
-  keyValue: undefined,
+  keyValue: '{key}: {value}',
 
   // Original text: 'Connecting'
-  statusConnecting: undefined,
+  statusConnecting: 'Bağlanıyor',
 
   // Original text: 'Disconnected'
-  statusDisconnected: undefined,
+  statusDisconnected: 'Bağlantı kesildi',
 
   // Original text: 'Loading…'
-  statusLoading: undefined,
+  statusLoading: 'Yükleniyor...',
 
   // Original text: 'Page not found'
-  errorPageNotFound: undefined,
+  errorPageNotFound: 'Sayfa bulunamadı',
 
   // Original text: 'no such item'
-  errorNoSuchItem: undefined,
+  errorNoSuchItem: 'Böyle bir öğe yok',
 
   // Original text: 'Long click to edit'
-  editableLongClickPlaceholder: undefined,
+  editableLongClickPlaceholder: 'Düzenlemek için uzun tıklayın',
 
   // Original text: 'Click to edit'
-  editableClickPlaceholder: undefined,
+  editableClickPlaceholder: 'Düzenlemek için tıklayın',
 
   // Original text: 'Browse files'
-  browseFiles: undefined,
+  browseFiles: 'Dosyaları tara',
 
   // Original text: 'Show logs'
-  showLogs: undefined,
+  showLogs: 'Günlüğü göster',
 
   // Original text: 'OK'
-  alertOk: undefined,
+  alertOk: 'Tamam',
 
   // Original text: 'OK'
-  confirmOk: undefined,
+  confirmOk: 'Tamam',
 
   // Original text: 'Cancel'
-  genericCancel: undefined,
+  genericCancel: 'İptal',
 
   // Original text: 'Enter the following text to confirm:'
-  enterConfirmText: undefined,
+  enterConfirmText: 'Onaylamak için aşağıdaki metni girin:',
 
   // Original text: 'On error'
-  onError: undefined,
+  onError: 'Hata durumunda',
 
   // Original text: 'Successful'
-  successful: undefined,
+  successful: 'Başarılı',
 
   // Original text: 'Managed disks'
-  filterOnlyManaged: undefined,
+  filterOnlyManaged: 'Yönetilen diskler',
 
   // Original text: 'Orphaned disks'
-  filterOnlyOrphaned: undefined,
+  filterOnlyOrphaned: 'Yetim diskler',
 
   // Original text: 'Normal disks'
-  filterOnlyRegular: undefined,
+  filterOnlyRegular: 'Normal diskler',
 
   // Original text: 'Snapshot disks'
-  filterOnlySnapshots: undefined,
+  filterOnlySnapshots: 'Snapshot diskleri',
 
   // Original text: 'Unmanaged disks'
-  filterOnlyUnmanaged: undefined,
+  filterOnlyUnmanaged: 'Yönetilmeyen diskler',
 
   // Original text: 'Save…'
-  filterSaveAs: undefined,
+  filterSaveAs: 'Kaydet...',
 
   // Original text: 'Explore the search syntax in the documentation'
-  filterSyntaxLinkTooltip: undefined,
+  filterSyntaxLinkTooltip: 'Dokümanlarda arama sözdizimini keşfedin',
 
   // Original text: 'Connected VIFs'
-  filterVifsOnlyConnected: undefined,
+  filterVifsOnlyConnected: "Bağlı VIF'ler",
 
   // Original text: 'Disconnected VIFs'
-  filterVifsOnlyDisconnected: undefined,
+  filterVifsOnlyDisconnected: "Bağlı olmayan VIF'ler",
 
   // Original text: 'Connected remotes'
-  filterRemotesOnlyConnected: undefined,
+  filterRemotesOnlyConnected: 'Bağlı hedefler',
 
   // Original text: 'Disconnected remotes'
-  filterRemotesOnlyDisconnected: undefined,
+  filterRemotesOnlyDisconnected: 'Bağlı olmayan hedefler',
 
   // Original text: 'Copy to clipboard'
-  copyToClipboard: undefined,
+  copyToClipboard: 'Panoya kopyala',
 
   // Original text: 'Master'
-  pillMaster: undefined,
+  pillMaster: 'Master',
 
   // Original text: 'Home'
-  homePage: undefined,
+  homePage: 'Ana sayfa',
 
   // Original text: 'VMs'
-  homeVmPage: undefined,
+  homeVmPage: "VM'ler",
 
   // Original text: 'Hosts'
-  homeHostPage: undefined,
+  homeHostPage: 'Sunucular',
 
   // Original text: 'Pools'
-  homePoolPage: undefined,
+  homePoolPage: 'Havuzlar',
 
   // Original text: 'Templates'
-  homeTemplatePage: undefined,
+  homeTemplatePage: 'Kalıplar',
 
   // Original text: 'Storages'
-  homeSrPage: undefined,
+  homeSrPage: 'Depolama birimleri',
 
   // Original text: 'Dashboard'
-  dashboardPage: undefined,
+  dashboardPage: 'Gösterge paneli ',
 
   // Original text: 'Overview'
-  overviewDashboardPage: undefined,
+  overviewDashboardPage: 'Genel görünüm',
 
   // Original text: 'Visualizations'
-  overviewVisualizationDashboardPage: undefined,
+  overviewVisualizationDashboardPage: 'Görselleştirmeler',
 
   // Original text: 'Statistics'
-  overviewStatsDashboardPage: undefined,
+  overviewStatsDashboardPage: 'İstatistikler',
 
   // Original text: 'Health'
-  overviewHealthDashboardPage: undefined,
+  overviewHealthDashboardPage: 'Sağlık',
 
   // Original text: 'Self service'
-  selfServicePage: undefined,
+  selfServicePage: 'Self servis',
 
   // Original text: 'Backup'
-  backupPage: undefined,
+  backupPage: 'Yedekleme',
 
   // Original text: 'Jobs'
-  jobsPage: undefined,
+  jobsPage: 'İşler',
 
   // Original text: 'XOA'
-  xoaPage: undefined,
+  xoaPage: 'XOA',
 
   // Original text: 'Updates'
-  updatePage: undefined,
+  updatePage: 'Güncellemeler',
 
   // Original text: 'Licenses'
-  licensesPage: undefined,
+  licensesPage: 'Lisanslar',
 
   // Original text: 'Settings'
-  settingsPage: undefined,
+  settingsPage: 'Ayarlar',
 
   // Original text: 'Servers'
-  settingsServersPage: undefined,
+  settingsServersPage: 'Sunucular',
 
   // Original text: 'Users'
-  settingsUsersPage: undefined,
+  settingsUsersPage: 'Kullanıcılar',
 
   // Original text: 'Groups'
-  settingsGroupsPage: undefined,
+  settingsGroupsPage: 'Gruplar',
 
   // Original text: 'ACLs'
-  settingsAclsPage: undefined,
+  settingsAclsPage: "ACL'ler",
 
   // Original text: 'Plugins'
-  settingsPluginsPage: undefined,
+  settingsPluginsPage: 'Eklentiler',
 
   // Original text: 'Logs'
-  settingsLogsPage: undefined,
+  settingsLogsPage: 'Günlükler',
 
   // Original text: 'IPs'
-  settingsIpsPage: undefined,
+  settingsIpsPage: "IP'ler",
 
   // Original text: 'Config'
-  settingsConfigPage: undefined,
+  settingsConfigPage: 'Yapılandırma',
 
   // Original text: 'About'
-  aboutPage: undefined,
+  aboutPage: 'Hakkında',
 
   // Original text: 'About XO {xoaPlan}'
-  aboutXoaPlan: undefined,
+  aboutXoaPlan: 'XO {xoaPlan} hakkında',
 
   // Original text: 'New'
-  newMenu: undefined,
+  newMenu: 'Yeni',
 
   // Original text: 'Tasks'
-  taskMenu: undefined,
+  taskMenu: 'Görevler',
 
   // Original text: 'Tasks'
-  taskPage: undefined,
+  taskPage: 'Görevler',
 
   // Original text: 'VM'
-  newVmPage: undefined,
+  newVmPage: 'VM',
 
   // Original text: 'Storage'
-  newSrPage: undefined,
+  newSrPage: 'Depolama birimi',
 
   // Original text: 'Server'
-  newServerPage: undefined,
+  newServerPage: 'Sunucu',
 
   // Original text: 'Import'
-  newImport: undefined,
+  newImport: 'İçe aktar',
 
   // Original text: 'XOSAN'
-  xosan: undefined,
+  xosan: 'XOSAN',
 
   // Original text: 'Overview'
-  backupOverviewPage: undefined,
+  backupOverviewPage: 'Genel bakış',
 
   // Original text: 'New'
-  backupNewPage: undefined,
+  backupNewPage: 'Yeni',
 
   // Original text: 'Remotes'
-  backupRemotesPage: undefined,
+  backupRemotesPage: 'Hedefler',
 
   // Original text: 'Restore'
-  backupRestorePage: undefined,
+  backupRestorePage: 'Geri yükle',
 
   // Original text: 'File restore'
-  backupFileRestorePage: undefined,
+  backupFileRestorePage: 'Dosya geri yükle',
 
   // Original text: 'Schedule'
-  schedule: undefined,
+  schedule: 'Zamanlama',
 
   // Original text: 'New VM backup'
-  newVmBackup: undefined,
+  newVmBackup: 'Yeni VM yedekleme',
 
   // Original text: 'Edit VM backup'
-  editVmBackup: undefined,
+  editVmBackup: 'VM yedekleme düzenle',
 
   // Original text: 'Backup'
-  backup: undefined,
+  backup: 'Yedekleme',
 
   // Original text: 'Rolling Snapshot'
-  rollingSnapshot: undefined,
+  rollingSnapshot: 'Snapshot döngüsü',
 
   // Original text: 'Delta Backup'
-  deltaBackup: undefined,
+  deltaBackup: 'Fark yedekleme',
 
   // Original text: 'Disaster Recovery'
-  disasterRecovery: undefined,
+  disasterRecovery: 'Felaket kurtarma',
 
   // Original text: 'Continuous Replication'
-  continuousReplication: undefined,
+  continuousReplication: 'Sürekli replikasyon',
 
   // Original text: 'Overview'
-  jobsOverviewPage: undefined,
+  jobsOverviewPage: 'Genel bakış',
 
   // Original text: 'New'
-  jobsNewPage: undefined,
+  jobsNewPage: 'Yeni',
 
   // Original text: 'Scheduling'
-  jobsSchedulingPage: undefined,
+  jobsSchedulingPage: 'Zamanlama',
 
   // Original text: 'Custom Job'
-  customJob: undefined,
+  customJob: 'Özel iş',
 
   // Original text: 'User'
-  userPage: undefined,
+  userPage: 'Kullanıcı',
 
   // Original text: 'XOA'
-  xoa: undefined,
+  xoa: 'XOA',
 
   // Original text: 'No support'
-  noSupport: undefined,
+  noSupport: 'Destek yok',
 
   // Original text: 'Free upgrade!'
-  freeUpgrade: undefined,
+  freeUpgrade: 'Bedava yükseltme!',
 
   // Original text: 'Sign out'
-  signOut: undefined,
+  signOut: 'Oturumu kapat',
 
   // Original text: 'Edit my settings {username}'
-  editUserProfile: undefined,
+  editUserProfile: 'Ayarlarımı düzenle {username}',
 
   // Original text: 'Fetching data…'
-  homeFetchingData: undefined,
+  homeFetchingData: 'Veri getiriliyor...',
 
   // Original text: 'Welcome to Xen Orchestra!'
-  homeWelcome: undefined,
+  homeWelcome: "Xen Orchestra'ya Hoşgeldiniz!",
 
   // Original text: 'Add your XenServer hosts or pools'
-  homeWelcomeText: undefined,
+  homeWelcomeText: 'XenServer sunucu veya havuzunu ekle',
 
   // Original text: 'Some XenServers have been registered but are not connected'
-  homeConnectServerText: undefined,
+  homeConnectServerText: "Bazı XenServer'lar kayıtlı ama bağlı değil",
 
   // Original text: 'Want some help?'
-  homeHelp: undefined,
+  homeHelp: 'Yardım ister misin?',
 
   // Original text: 'Add server'
-  homeAddServer: undefined,
+  homeAddServer: 'Sunucu ekle',
 
   // Original text: 'Connect servers'
-  homeConnectServer: undefined,
+  homeConnectServer: 'Bağlı sunucular',
 
   // Original text: 'Online Doc'
-  homeOnlineDoc: undefined,
+  homeOnlineDoc: 'Çevrimiçi Doküman',
 
   // Original text: 'Pro Support'
-  homeProSupport: undefined,
+  homeProSupport: 'Profesyonel Destek',
 
   // Original text: 'There are no VMs!'
-  homeNoVms: undefined,
+  homeNoVms: "Hiç VM yok",
 
   // Original text: 'Or…'
-  homeNoVmsOr: undefined,
+  homeNoVmsOr: 'Veya...',
 
   // Original text: 'Import VM'
-  homeImportVm: undefined,
+  homeImportVm: 'VM içe aktar',
 
   // Original text: 'Import an existing VM in xva format'
-  homeImportVmMessage: undefined,
+  homeImportVmMessage: "Varolan bir VM'i xva formatından içe aktar",
 
   // Original text: 'Restore a backup'
-  homeRestoreBackup: undefined,
+  homeRestoreBackup: 'Bir yedeği geri yükle',
 
   // Original text: 'Restore a backup from a remote store'
-  homeRestoreBackupMessage: undefined,
+  homeRestoreBackupMessage: 'Bir yedeği uzak depodan geri yükle',
 
   // Original text: 'This will create a new VM'
-  homeNewVmMessage: undefined,
+  homeNewVmMessage: 'Bu yeni bir VM oluşturacak',
 
   // Original text: 'Filters'
-  homeFilters: undefined,
+  homeFilters: 'Filtreler',
 
   // Original text: 'No results! Click here to reset your filters'
-  homeNoMatches: undefined,
+  homeNoMatches: 'Sonuç yok! Filtreyi sıfırlamak için buraya tıklayın',
 
   // Original text: 'Pool'
-  homeTypePool: undefined,
+  homeTypePool: 'Havuz',
 
   // Original text: 'Host'
-  homeTypeHost: undefined,
+  homeTypeHost: 'Sunucu',
 
   // Original text: 'VM'
-  homeTypeVm: undefined,
+  homeTypeVm: 'VM',
 
   // Original text: 'SR'
-  homeTypeSr: undefined,
+  homeTypeSr: 'SR',
 
   // Original text: 'Template'
-  homeTypeVmTemplate: undefined,
+  homeTypeVmTemplate: 'Kalıp',
 
   // Original text: 'Sort'
-  homeSort: undefined,
+  homeSort: 'Sırala',
 
   // Original text: 'Pools'
-  homeAllPools: undefined,
+  homeAllPools: 'Havuzlar',
 
   // Original text: 'Hosts'
-  homeAllHosts: undefined,
+  homeAllHosts: 'Sunucular',
 
   // Original text: 'Tags'
-  homeAllTags: undefined,
+  homeAllTags: 'Etiketler',
 
   // Original text: 'Resource sets'
-  homeAllResourceSets: undefined,
+  homeAllResourceSets: 'Kaynak setleri',
 
   // Original text: 'New VM'
-  homeNewVm: undefined,
+  homeNewVm: 'Yeni VM',
 
   // Original text: 'None'
-  homeFilterNone: undefined,
+  homeFilterNone: 'Yok',
 
   // Original text: 'Running hosts'
-  homeFilterRunningHosts: undefined,
+  homeFilterRunningHosts: 'Çalışan sunucular',
 
   // Original text: 'Disabled hosts'
-  homeFilterDisabledHosts: undefined,
+  homeFilterDisabledHosts: 'Devre dışı sunucular',
 
   // Original text: 'Running VMs'
-  homeFilterRunningVms: undefined,
+  homeFilterRunningVms: "Çalışan VM'ler",
 
   // Original text: 'Non running VMs'
-  homeFilterNonRunningVms: undefined,
+  homeFilterNonRunningVms: "Çalışmayan VM'ler",
 
   // Original text: 'Pending VMs'
-  homeFilterPendingVms: undefined,
+  homeFilterPendingVms: "Askıdaki VM'ler",
 
   // Original text: 'HVM guests'
-  homeFilterHvmGuests: undefined,
+  homeFilterHvmGuests: 'HVM konuklar',
 
   // Original text: 'Tags'
-  homeFilterTags: undefined,
+  homeFilterTags: 'Etiketler',
 
   // Original text: 'Sort by'
-  homeSortBy: undefined,
+  homeSortBy: 'Sırala',
 
   // Original text: 'CPUs'
-  homeSortByCpus: undefined,
+  homeSortByCpus: "CPU'lar",
 
   // Original text: 'Name'
-  homeSortByName: undefined,
+  homeSortByName: 'İsim',
 
   // Original text: 'Power state'
-  homeSortByPowerstate: undefined,
+  homeSortByPowerstate: 'Güç durumu',
 
   // Original text: 'RAM'
-  homeSortByRAM: undefined,
+  homeSortByRAM: 'RAM',
 
   // Original text: 'Shared/Not shared'
-  homeSortByShared: undefined,
+  homeSortByShared: "Paylaşımlı/Paylaşımsız",
 
   // Original text: 'Size'
-  homeSortBySize: undefined,
+  homeSortBySize: 'Boyut',
 
   // Original text: 'Type'
-  homeSortByType: undefined,
+  homeSortByType: 'Tip',
 
   // Original text: 'Usage'
-  homeSortByUsage: undefined,
+  homeSortByUsage: 'Kullanım',
 
   // Original text: 'vCPUs'
-  homeSortByvCPUs: undefined,
+  homeSortByvCPUs: "vCPU'lar",
 
   // Original text: 'Snapshots'
-  homeSortVmsBySnapshots: undefined,
+  homeSortVmsBySnapshots: "Snapshot'lar",
 
   // Original text: '{displayed, number}x {icon} (on {total, number})'
-  homeDisplayedItems: undefined,
+  homeDisplayedItems: "{displayed, number}x {icon} (on {total, number})",
 
   // Original text: '{selected, number}x {icon} selected (on {total, number})'
-  homeSelectedItems: undefined,
+  homeSelectedItems: "{selected, number}x {icon} selected (on {total, number})",
 
   // Original text: 'More'
-  homeMore: undefined,
+  homeMore: 'Daha fazla',
 
   // Original text: 'Migrate to…'
-  homeMigrateTo: undefined,
+  homeMigrateTo: 'Taşı...',
 
   // Original text: 'Missing patches'
-  homeMissingPaths: undefined,
+  homeMissingPaths: 'Eksik yamalar',
 
   // Original text: 'Master:'
-  homePoolMaster: undefined,
+  homePoolMaster: 'Master:',
 
   // Original text: 'Resource set: {resourceSet}'
-  homeResourceSet: undefined,
+  homeResourceSet: 'Kaynak seti: {resourceSet}',
 
   // Original text: 'High Availability'
-  highAvailability: undefined,
+  highAvailability: 'Yüksek kullanılabilirlik',
 
   // Original text: 'Shared {type}'
-  srSharedType: undefined,
+  srSharedType: 'Paylaşımlı {type}',
 
   // Original text: 'Not shared {type}'
-  srNotSharedType: undefined,
+  srNotSharedType: 'Paylaşımsız {type}',
 
   // Original text: 'All of them are selected'
-  sortedTableAllItemsSelected: undefined,
+  sortedTableAllItemsSelected: 'Hepsi seçildi',
 
   // Original text: 'No items found'
-  sortedTableNoItems: undefined,
+  sortedTableNoItems: 'Hiç öğe bulunamadı',
 
   // Original text: '{nFiltered, number} of {nTotal, number} items'
-  sortedTableNumberOfFilteredItems: undefined,
+  sortedTableNumberOfFilteredItems: "{nTotal, number} öğeden {nFiltered, number}",
 
   // Original text: '{nTotal, number} items'
-  sortedTableNumberOfItems: undefined,
+  sortedTableNumberOfItems: '{nTotal, number} öğe',
 
   // Original text: '{nSelected, number} selected'
-  sortedTableNumberOfSelectedItems: undefined,
+  sortedTableNumberOfSelectedItems: '{nSelected, number} seçildi',
 
   // Original text: 'Click here to select all items'
-  sortedTableSelectAllItems: undefined,
+  sortedTableSelectAllItems: 'Bütün öğeleri seçmek için buraya tıklayın',
 
   // Original text: 'Add'
-  add: undefined,
+  add: 'Ekle',
 
   // Original text: 'Select all'
-  selectAll: undefined,
+  selectAll: 'Hepsini seç',
 
   // Original text: 'Remove'
-  remove: undefined,
+  remove: 'Kaldır',
 
   // Original text: 'Preview'
-  preview: undefined,
+  preview: 'Örnek',
 
   // Original text: 'Action'
-  action: undefined,
+  action: 'Aksiyon',
 
   // Original text: 'Item'
-  item: undefined,
+  item: 'Öğe',
 
   // Original text: 'No selected value'
-  noSelectedValue: undefined,
+  noSelectedValue: 'Seçilmiş değer yok',
 
   // Original text: 'Choose user(s) and/or group(s)'
-  selectSubjects: undefined,
+  selectSubjects: 'Kullanıcı(ları) ve/veya grub(ları) seç',
 
   // Original text: 'Select Object(s)…'
-  selectObjects: undefined,
+  selectObjects: 'Nesne(leri) seç...',
 
   // Original text: 'Choose a role'
-  selectRole: undefined,
+  selectRole: 'Bir rol seç',
 
   // Original text: 'Select Host(s)…'
-  selectHosts: undefined,
+  selectHosts: 'Sunucu(ları) seç...',
 
   // Original text: 'Select object(s)…'
-  selectHostsVms: undefined,
+  selectHostsVms: 'Nesne(leri) seç...',
 
   // Original text: 'Select Network(s)…'
-  selectNetworks: undefined,
+  selectNetworks: 'Ağ(ları) seç...',
 
   // Original text: 'Select PIF(s)…'
-  selectPifs: undefined,
+  selectPifs: 'PIF(leri) seç...',
 
   // Original text: 'Select Pool(s)…'
-  selectPools: undefined,
+  selectPools: 'Havuz(ları) seç...',
 
   // Original text: 'Select Remote(s)…'
-  selectRemotes: undefined,
+  selectRemotes: 'Hedef(leri) seç...',
 
   // Original text: 'Select resource set(s)…'
-  selectResourceSets: undefined,
+  selectResourceSets: 'Kaynak seti(lerini) seç...',
 
   // Original text: 'Select template(s)…'
-  selectResourceSetsVmTemplate: undefined,
+  selectResourceSetsVmTemplate: 'Kalıp(ları) seç...',
 
   // Original text: 'Select SR(s)…'
-  selectResourceSetsSr: undefined,
+  selectResourceSetsSr: 'SR(leri) seç...',
 
   // Original text: 'Select network(s)…'
-  selectResourceSetsNetwork: undefined,
+  selectResourceSetsNetwork: 'Ağ(ları) seç...',
 
   // Original text: 'Select disk(s)…'
-  selectResourceSetsVdi: undefined,
+  selectResourceSetsVdi: 'Disk(leri) seç...',
 
   // Original text: 'Select SSH key(s)…'
-  selectSshKey: undefined,
+  selectSshKey: 'SSH anahtarı(larını) seç...',
 
   // Original text: 'Select SR(s)…'
-  selectSrs: undefined,
+  selectSrs: 'SR(leri) seç...',
 
   // Original text: 'Select VM(s)…'
-  selectVms: undefined,
+  selectVms: 'VM(leri) seç...',
 
   // Original text: 'Select snapshot(s)…'
-  selectVmSnapshots: undefined,
+  selectVmSnapshots: 'Snapshot(ları) seç...',
 
   // Original text: 'Select VM template(s)…'
-  selectVmTemplates: undefined,
+  selectVmTemplates: 'VM kalıbı(ları) seç...',
 
   // Original text: 'Select tag(s)…'
-  selectTags: undefined,
+  selectTags: 'Etiket(leri) seç...',
 
   // Original text: 'Select disk(s)…'
-  selectVdis: undefined,
+  selectVdis: 'Disk(leri) seç...',
 
   // Original text: 'Select timezone…'
-  selectTimezone: undefined,
+  selectTimezone: 'Saat dilimini seç...',
 
   // Original text: 'Select IP(s)…'
-  selectIp: undefined,
+  selectIp: 'IP(leri) seç...',
 
   // Original text: 'Select IP pool(s)…'
-  selectIpPool: undefined,
+  selectIpPool: 'IP havuzu(larını) seç...',
 
   // Original text: 'Select VGPU type(s)…'
-  selectVgpuType: undefined,
+  selectVgpuType: 'VGPU tipi(lerini)seç...',
 
   // Original text: 'Fill required informations.'
-  fillRequiredInformations: undefined,
+  fillRequiredInformations: 'Gerekli bilgileri doldur.',
 
   // Original text: 'Fill informations (optional)'
-  fillOptionalInformations: undefined,
+  fillOptionalInformations: 'Bilgileri doldur (opsiyonel)',
 
   // Original text: 'Reset'
-  selectTableReset: undefined,
+  selectTableReset: 'Sıfırla',
 
   // Original text: 'Month'
-  schedulingMonth: undefined,
+  schedulingMonth: 'Ay',
 
   // Original text: 'Every N month'
-  schedulingEveryNMonth: undefined,
+  schedulingEveryNMonth: 'N ayda bir',
 
   // Original text: 'Each selected month'
-  schedulingEachSelectedMonth: undefined,
+  schedulingEachSelectedMonth: 'Seçilen aylarda',
 
   // Original text: 'Day'
-  schedulingDay: undefined,
+  schedulingDay: 'Gün',
 
   // Original text: 'Every N day'
-  schedulingEveryNDay: undefined,
+  schedulingEveryNDay: 'N günde bir',
 
   // Original text: 'Each selected day'
-  schedulingEachSelectedDay: undefined,
+  schedulingEachSelectedDay: 'Seçilen günlerde',
 
   // Original text: 'Switch to week days'
-  schedulingSetWeekDayMode: undefined,
+  schedulingSetWeekDayMode: 'Haftanın günlerine çevir',
 
   // Original text: 'Switch to month days'
-  schedulingSetMonthDayMode: undefined,
+  schedulingSetMonthDayMode: 'Ayın günlerine çevir',
 
   // Original text: 'Hour'
-  schedulingHour: undefined,
+  schedulingHour: 'Saat',
 
   // Original text: 'Each selected hour'
-  schedulingEachSelectedHour: undefined,
+  schedulingEachSelectedHour: 'Seçilen saatlerde',
 
   // Original text: 'Every N hour'
-  schedulingEveryNHour: undefined,
+  schedulingEveryNHour: 'N saatte bir',
 
   // Original text: 'Minute'
-  schedulingMinute: undefined,
+  schedulingMinute: 'Dakika',
 
   // Original text: 'Each selected minute'
-  schedulingEachSelectedMinute: undefined,
+  schedulingEachSelectedMinute: 'Seçilen dakikalarda',
 
   // Original text: 'Every N minute'
-  schedulingEveryNMinute: undefined,
+  schedulingEveryNMinute: 'N dakikada bir',
 
   // Original text: 'Every month'
-  selectTableAllMonth: undefined,
+  selectTableAllMonth: 'Her ay',
 
   // Original text: 'Every day'
-  selectTableAllDay: undefined,
+  selectTableAllDay: 'Her gün',
 
   // Original text: 'Every hour'
-  selectTableAllHour: undefined,
+  selectTableAllHour: 'Her saat',
 
   // Original text: 'Every minute'
-  selectTableAllMinute: undefined,
+  selectTableAllMinute: 'Her dakika',
 
   // Original text: 'Reset'
-  schedulingReset: undefined,
+  schedulingReset: 'Sıfırla',
 
   // Original text: 'Unknown'
-  unknownSchedule: undefined,
+  unknownSchedule: 'Bilinmeyen',
 
   // Original text: 'Web browser timezone'
-  timezonePickerUseLocalTime: undefined,
+  timezonePickerUseLocalTime: 'Tarayıcı kaynaklı saat dilimi',
 
   // Original text: 'Server timezone ({value})'
-  serverTimezoneOption: undefined,
+  serverTimezoneOption: 'Sunucu saat dilimi ({value})',
 
   // Original text: 'Cron Pattern:'
-  cronPattern: undefined,
+  cronPattern: 'Cron kalıbı:',
 
   // Original text: 'Cannot edit backup'
-  backupEditNotFoundTitle: undefined,
+  backupEditNotFoundTitle: 'Yedekleme düzenlenemiyor',
 
   // Original text: 'Missing required info for edition'
-  backupEditNotFoundMessage: undefined,
+  backupEditNotFoundMessage: 'Sürüm için gerekli bilgi eksik',
 
   // Original text: 'Successful'
-  successfulJobCall: undefined,
+  successfulJobCall: 'Başarılı',
 
   // Original text: 'Failed'
-  failedJobCall: undefined,
+  failedJobCall: 'Başarısız',
 
   // Original text: 'Skipped'
-  jobCallSkipped: undefined,
+  jobCallSkipped: 'Atlandı',
 
   // Original text: 'In progress'
-  jobCallInProgess: undefined,
+  jobCallInProgess: 'Devam ediyor',
 
   // Original text: 'Transfer size:'
-  jobTransferredDataSize: undefined,
+  jobTransferredDataSize: 'Transfer boyutu',
 
   // Original text: 'Transfer speed:'
-  jobTransferredDataSpeed: undefined,
+  jobTransferredDataSpeed: 'Transfer hızı',
 
   // Original text: 'Merge size:'
-  jobMergedDataSize: undefined,
+  jobMergedDataSize: 'Birleştirme boyutu',
 
   // Original text: 'Merge speed:'
-  jobMergedDataSpeed: undefined,
+  jobMergedDataSpeed: 'Birleştrime hızı',
 
   // Original text: 'All'
-  allJobCalls: undefined,
+  allJobCalls: 'Hepsi',
 
   // Original text: 'Job'
-  job: undefined,
+  job: 'İş',
 
   // Original text: 'Job {job}'
-  jobModalTitle: undefined,
+  jobModalTitle: 'İş {job}',
 
   // Original text: 'ID'
-  jobId: undefined,
+  jobId: 'ID',
 
   // Original text: 'Type'
-  jobType: undefined,
+  jobType: 'Tip',
 
   // Original text: 'Name'
-  jobName: undefined,
+  jobName: 'İsim',
 
   // Original text: 'Mode'
-  jobMode: undefined,
+  jobMode: 'Mod',
 
   // Original text: 'Name of your job (forbidden: "_")'
-  jobNamePlaceholder: undefined,
+  jobNamePlaceholder: 'İşin adı (yasak: "_")',
 
   // Original text: 'Start'
-  jobStart: undefined,
+  jobStart: 'Başla',
 
   // Original text: 'End'
-  jobEnd: undefined,
+  jobEnd: 'Son',
 
   // Original text: 'Duration'
-  jobDuration: undefined,
+  jobDuration: 'Süre',
 
   // Original text: 'Status'
-  jobStatus: undefined,
+  jobStatus: 'Durum',
 
   // Original text: 'Action'
-  jobAction: undefined,
+  jobAction: 'Aksiyon',
 
   // Original text: 'Tag'
-  jobTag: undefined,
+  jobTag: 'Etiket',
 
   // Original text: 'Scheduling'
-  jobScheduling: undefined,
+  jobScheduling: 'Zamanlama',
 
   // Original text: 'State'
-  jobState: undefined,
+  jobState: 'Durum',
 
   // Original text: 'Enabled'
-  jobStateEnabled: undefined,
+  jobStateEnabled: 'Açık',
 
   // Original text: 'Disabled'
-  jobStateDisabled: undefined,
+  jobStateDisabled: 'Kapalı',
 
   // Original text: 'Timezone'
-  jobTimezone: undefined,
+  jobTimezone: 'Saat dilimi',
 
   // Original text: 'Server'
-  jobServerTimezone: undefined,
+  jobServerTimezone: 'Sunucu',
 
   // Original text: 'Run job'
-  runJob: undefined,
+  runJob: 'İşi çalıştır',
 
   // Original text: 'Are you sure you want to run {backupType} {id} ({tag})?'
-  runJobConfirm: undefined,
+  runJobConfirm: '{backupType} {id} ({tag} işini çalıştırmak istediğinize emin misiniz?',
 
   // Original text: 'One shot running started. See overview for logs.'
-  runJobVerbose: undefined,
+  runJobVerbose: 'Tek seferlik çalıştırma başladı. Günlükler için genel görünüme bakın',
 
   // Original text: 'Edit job'
-  jobEdit: undefined,
+  jobEdit: 'İşi düzenle',
 
   // Original text: 'Delete'
-  jobDelete: undefined,
+  jobDelete: 'Sil',
 
   // Original text: 'Finished'
-  jobFinished: undefined,
+  jobFinished: 'Tamamlandı',
 
   // Original text: 'Interrupted'
-  jobInterrupted: undefined,
+  jobInterrupted: 'Kesintiye uğradı',
 
   // Original text: 'Started'
-  jobStarted: undefined,
+  jobStarted: 'Başladı',
 
   // Original text: 'Save'
-  saveBackupJob: undefined,
+  saveBackupJob: 'Kaydet',
 
   // Original text: 'Reset'
-  resetBackupJob: undefined,
+  resetBackupJob: 'Sıfırla',
 
   // Original text: 'Create'
-  createBackupJob: undefined,
+  createBackupJob: 'Oluştur',
 
   // Original text: 'Remove backup job'
-  deleteBackupSchedule: undefined,
+  deleteBackupSchedule: 'Yedekleme işini kaldır',
 
   // Original text: 'Are you sure you want to delete this backup job?'
-  deleteBackupScheduleQuestion: undefined,
+  deleteBackupScheduleQuestion: 'Bu yedekleme işini silmek istediğinize emin misiniz?',
 
   // Original text: 'Delete selected jobs'
-  deleteSelectedJobs: undefined,
+  deleteSelectedJobs: 'Seçilen işleri sil',
 
   // Original text: 'Enable immediately after creation'
-  scheduleEnableAfterCreation: undefined,
+  scheduleEnableAfterCreation: 'Oluşturmanın ardından hemen aktif et',
 
   // Original text: 'You are editing Schedule {name} ({id}). Saving will override previous schedule state.'
-  scheduleEditMessage: undefined,
+  scheduleEditMessage: '{name} ({id}) zamanlamasını düzenliyorsunuz. Kaydetme işlemi önceki zamanlamanın üzerine yazılacak.',
 
   // Original text: 'You are editing job {name} ({id}). Saving will override previous job state.'
-  jobEditMessage: undefined,
+  jobEditMessage: '{name} ({id}) işini düzenliyorsunuz. Kaydetme işlemi önceki işin üzerine yazılacak',
 
   // Original text: 'Edit schedule'
-  scheduleEdit: undefined,
+  scheduleEdit: 'Zamanlamayı düzenle',
 
   // Original text: 'Save'
-  scheduleSave: undefined,
+  scheduleSave: 'Kaydet',
 
   // Original text: 'Cancel'
-  cancelScheduleEdition: undefined,
+  cancelScheduleEdition: 'İptal',
 
   // Original text: 'Add a schedule'
-  scheduleAdd: undefined,
+  scheduleAdd: 'Zamanlama ekle',
 
   // Original text: 'Delete'
-  scheduleDelete: undefined,
+  scheduleDelete: 'Sil',
 
   // Original text: 'Run schedule'
-  scheduleRun: undefined,
+  scheduleRun: 'Zamanlanmış çalıştırma',
 
   // Original text: 'Delete selected schedules'
-  deleteSelectedSchedules: undefined,
+  deleteSelectedSchedules: 'Seçili zamanlamayı sil',
 
   // Original text: 'No scheduled jobs.'
-  noScheduledJobs: undefined,
+  noScheduledJobs: 'Zamanlanmış iş yok.',
 
   // Original text: 'New schedule'
-  newSchedule: undefined,
+  newSchedule: 'Yeni zamanlama',
 
   // Original text: 'No jobs found.'
-  noJobs: undefined,
+  noJobs: 'İş bulunamadı',
 
   // Original text: 'No schedules found'
-  noSchedules: undefined,
+  noSchedules: 'Zamanlama bulunamadı',
 
   // Original text: 'Select a xo-server API command'
-  jobActionPlaceHolder: undefined,
+  jobActionPlaceHolder: 'Bir xo-server API komutu seç',
 
   // Original text: 'Timeout (number of seconds after which a VM is considered failed)'
-  jobTimeoutPlaceHolder: undefined,
+  jobTimeoutPlaceHolder: "Zaman aşımı (Bir VM'nin değerlendirilmesinin başarısız olduğu saniye sayısı)",
 
   // Original text: 'Schedules'
-  jobSchedules: undefined,
+  jobSchedules: 'Zamanlamalar',
 
   // Original text: 'Name of your schedule'
-  jobScheduleNamePlaceHolder: undefined,
+  jobScheduleNamePlaceHolder: 'Zamanlamanın adı',
 
   // Original text: 'Select a Job'
-  jobScheduleJobPlaceHolder: undefined,
+  jobScheduleJobPlaceHolder: 'Bir iş seç',
 
   // Original text: 'Job owner'
-  jobOwnerPlaceholder: undefined,
+  jobOwnerPlaceholder: 'işin sahibi',
 
   // Original text: "This job's creator no longer exists"
-  jobUserNotFound: undefined,
+  jobUserNotFound: "Bu işi oluşturan kullanıcı artık yok",
 
   // Original text: "This backup's creator no longer exists"
-  backupUserNotFound: undefined,
+  backupUserNotFound: "Bu yedeklemeyi oluşturan kullanıcı artık yok",
 
   // Original text: 'Click here to see the matching VMs'
-  redirectToMatchingVms: undefined,
+  redirectToMatchingVms: "Eşleşen VM'leri görmek için tıklayın",
 
   // Original text: 'There are no matching VMs!'
-  noMatchingVms: undefined,
+  noMatchingVms: 'Hiç eşleşen VM yok',
 
   // Original text: '{icon} See the matching VMs ({nMatchingVms, number})'
-  allMatchingVms: undefined,
+  allMatchingVms: "{icon} Eşleşen VM'leri gör ({nMatchingVms, number})",
 
   // Original text: 'Backup owner'
-  backupOwner: undefined,
+  backupOwner: 'Yedeklemenin sahibi',
 
   // Original text: 'Migrate to backup NG'
-  migrateBackupSchedule: undefined,
+  migrateBackupSchedule: "Backup NG'ye taşı",
 
   // Original text: 'This will migrate this backup to a backup NG. This operation is not reversible. Do you want to continue?'
-  migrateBackupScheduleMessage: undefined,
+  migrateBackupScheduleMessage: "Bu, yedeklemeyi Backup NG'ye taşıyacak. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?",
 
   // Original text: 'Are you sure you want to run {name} ({id})?'
-  runBackupNgJobConfirm: undefined,
+  runBackupNgJobConfirm: 'Çalıştırmak istediğinize emin misiniz {name} ({id})?',
 
   // Original text: 'Select your backup type:'
-  newBackupSelection: undefined,
+  newBackupSelection: 'Yedekleme tipini seçin:',
 
   // Original text: 'Select backup mode:'
-  smartBackupModeSelection: undefined,
+  smartBackupModeSelection: 'Yedekleme modunu seçin:',
 
   // Original text: 'Normal backup'
-  normalBackup: undefined,
+  normalBackup: 'Normal yedekleme',
 
   // Original text: 'Smart backup'
-  smartBackup: undefined,
+  smartBackup: 'Akıllı yedekleme',
 
   // Original text: 'Export retention'
-  exportRetention: undefined,
+  exportRetention: 'Saklanacak yedek sayısı',
 
   // Original text: 'Snapshot retention'
-  snapshotRetention: undefined,
+  snapshotRetention: 'Saklanacak snapshot sayısı',
 
   // Original text: 'Name'
-  backupName: undefined,
+  backupName: 'Ad',
 
   // Original text: 'Use delta'
-  useDelta: undefined,
+  useDelta: 'Farkı kullan',
 
   // Original text: 'Use compression'
-  useCompression: undefined,
+  useCompression: 'Sıkıştırmayı kullan',
 
   // Original text: 'Delta Backup and DR require Entreprise plan'
-  dbAndDrRequireEntreprisePlan: undefined,
+  dbAndDrRequireEntreprisePlan: 'Fark Yedekleme ve DR Enterprise planı gerektirir',
 
   // Original text: 'CR requires Premium plan'
-  crRequiresPremiumPlan: undefined,
+  crRequiresPremiumPlan: 'CR Premium planı gerektirir',
 
   // Original text: 'Smart mode'
-  smartBackupModeTitle: undefined,
+  smartBackupModeTitle: 'Akıllı mod',
 
   // Original text: 'Target remotes (for Export)'
-  backupTargetRemotes: undefined,
+  backupTargetRemotes: 'Hedefler (Yedekleme için)',
 
   // Original text: 'Target SRs (for Replication)'
-  backupTargetSrs: undefined,
+  backupTargetSrs: "Hedef SR'ler (Replikasyon için)",
 
   // Original text: 'Local remote selected'
-  localRemoteWarningTitle: undefined,
+  localRemoteWarningTitle: 'Yerel hedef seçildi',
 
   // Original text: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.'
-  localRemoteWarningMessage: undefined,
+  localRemoteWarningMessage: "Uyarı: yerel hedef XOA'nın disk alını ile sınırlıdır. Sadece ileri seviye kullanıcılar içindir.",
 
   // Original text: 'Warning: this feature works only with XenServer 6.5 or newer.'
-  backupVersionWarning: undefined,
+  backupVersionWarning: 'Uyarı: Bu özellik yalnızca Xenserver 6.5 ve daha yeni sürümlerinde çalışır.',
 
   // Original text: 'VMs'
-  editBackupVmsTitle: undefined,
+  editBackupVmsTitle: "VM'ler"
 
   // Original text: 'VMs statuses'
-  editBackupSmartStatusTitle: undefined,
+  editBackupSmartStatusTitle: "VM'lerin durumları",
 
   // Original text: 'Resident on'
-  editBackupSmartResidentOn: undefined,
+  editBackupSmartResidentOn: 'Üzerinde olan',
 
   // Original text: 'Not resident on'
-  editBackupSmartNotResidentOn: undefined,
+  editBackupSmartNotResidentOn: 'Üzerinde olmayan',
 
   // Original text: 'Pools'
-  editBackupSmartPools: undefined,
+  editBackupSmartPools: 'Havuzlar',
 
   // Original text: 'Tags'
-  editBackupSmartTags: undefined,
+  editBackupSmartTags: 'Etiketler',
 
   // Original text: 'Sample of matching Vms'
-  sampleOfMatchingVms: undefined,
+  sampleOfMatchingVms: "Eşleşen VM'lerden bazıları",
 
   // Original text: 'VMs Tags'
-  editBackupSmartTagsTitle: undefined,
+  editBackupSmartTagsTitle: 'VM etiketleri',
 
   // Original text: 'Excluded VMs tags'
-  editBackupSmartExcludedTagsTitle: undefined,
+  editBackupSmartExcludedTagsTitle: 'Hariç tutulan VM etiketleri',
 
   // Original text: 'Reverse'
-  editBackupNot: undefined,
+  editBackupNot: 'Ters',
 
   // Original text: 'Tag'
-  editBackupTagTitle: undefined,
+  editBackupTagTitle: 'Etiket',
 
   // Original text: 'Report'
-  editBackupReportTitle: undefined,
+  editBackupReportTitle: 'Rapor',
 
   // Original text: 'Automatically run as scheduled'
-  editBackupScheduleEnabled: undefined,
+  editBackupScheduleEnabled: 'Zamanlamaya göre otomatik çalıştır',
 
   // Original text: 'Retention'
-  editBackupRetentionTitle: undefined,
+  editBackupRetentionTitle: 'Saklama',
 
   // Original text: 'Remote'
-  editBackupRemoteTitle: undefined,
+  editBackupRemoteTitle: 'Hedef',
 
   // Original text: 'Delete the old backups first'
-  deleteOldBackupsFirst: undefined,
+  deleteOldBackupsFirst: 'Önce eski yedekleri sil',
 
   // Original text: 'Remote stores for backup'
-  remoteList: undefined,
+  remoteList: 'Yedekleme için uzak depolar',
 
   // Original text: 'New File System Remote'
-  newRemote: undefined,
+  newRemote: 'Yeni Dosya Sistemi Hedefi',
 
   // Original text: 'Local'
-  remoteTypeLocal: undefined,
+  remoteTypeLocal: 'Yerel',
 
   // Original text: 'NFS'
-  remoteTypeNfs: undefined,
+  remoteTypeNfs: 'NFS',
 
   // Original text: 'SMB'
-  remoteTypeSmb: undefined,
+  remoteTypeSmb: 'SMB',
 
   // Original text: 'Type'
-  remoteType: undefined,
+  remoteType: 'Tip',
 
   // Original text: 'SMB remotes are meant to work on Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.'
-  remoteSmbWarningMessage: undefined,
+  remoteSmbWarningMessage: "SMB hedefler Windows Server üzerinde çalışır. Diğer sistemler için (Linux samba, neredeyse bütün NAS cihazları anlamına gelir) lütfen NFS kullanın.",
 
   // Original text: 'Test your remote'
-  remoteTestTip: undefined,
+  remoteTestTip: 'Hedefinizi test edin',
 
   // Original text: 'Test Remote'
-  testRemote: undefined,
+  testRemote: 'Hedefi test et',
 
   // Original text: 'Test failed for {name}'
-  remoteTestFailure: undefined,
+  remoteTestFailure: '{name} için test başarısız',
 
   // Original text: 'Test passed for {name}'
-  remoteTestSuccess: undefined,
+  remoteTestSuccess: '{name} için test başarılı',
 
   // Original text: 'Error'
-  remoteTestError: undefined,
+  remoteTestError: 'Hata',
 
   // Original text: 'Test Step'
-  remoteTestStep: undefined,
+  remoteTestStep: 'Test Adımı',
 
   // Original text: 'Test file'
-  remoteTestFile: undefined,
+  remoteTestFile: 'Test dosyası',
 
   // Original text: 'Test name'
-  remoteTestName: undefined,
+  remoteTestName: 'Test adı',
 
   // Original text: 'Remote name already exists!'
-  remoteTestNameFailure: undefined,
+  remoteTestNameFailure: 'Hedef ismi zaten kullanılıyor!',
 
   // Original text: 'The remote appears to work correctly'
-  remoteTestSuccessMessage: undefined,
+  remoteTestSuccessMessage: 'Hedef düzgün çalışıyor',
 
   // Original text: 'Connection failed'
-  remoteConnectionFailed: undefined,
+  remoteConnectionFailed: 'Bağlantı başarısız',
 
   // Original text: 'Delete backup job{nJobs, plural, one {} other {s}}'
-  confirmDeleteBackupJobsTitle: undefined,
+  confirmDeleteBackupJobsTitle: "Yedekleme işini(lerini) sil",
 
   // Original text: 'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?'
-  confirmDeleteBackupJobsBody: undefined,
+  confirmDeleteBackupJobsBody: '{nJobs, number} yedekleme işini(lerini) silmek istediğinize emin misiniz?',
 
   // Original text: 'Name'
-  remoteName: undefined,
+  remoteName: 'Ad',
 
   // Original text: 'Path'
-  remotePath: undefined,
+  remotePath: 'Yol',
 
   // Original text: 'State'
-  remoteState: undefined,
+  remoteState: 'Durum',
 
   // Original text: 'Device'
-  remoteDevice: undefined,
+  remoteDevice: 'Cihaz',
 
   // Original text: 'Share'
-  remoteShare: undefined,
+  remoteShare: 'Paylaşım',
 
   // Original text: 'Action'
-  remoteAction: undefined,
+  remoteAction: 'Aksiyon',
 
   // Original text: 'Auth'
-  remoteAuth: undefined,
+  remoteAuth: 'Kimlik doğrulama',
 
   // Original text: 'Mounted'
-  remoteMounted: undefined,
+  remoteMounted: 'Takıldı',
 
   // Original text: 'Unmounted'
-  remoteUnmounted: undefined,
+  remoteUnmounted: 'Çıkarıldı',
 
   // Original text: 'Connect'
-  remoteConnectTip: undefined,
+  remoteConnectTip: 'Bağlan',
 
   // Original text: 'Disconnect'
-  remoteDisconnectTip: undefined,
+  remoteDisconnectTip: 'Bağlatıyı kes',
 
   // Original text: 'Connected'
-  remoteConnected: undefined,
+  remoteConnected: 'Bağlandı',
 
   // Original text: 'Disconnected'
-  remoteDisconnected: undefined,
+  remoteDisconnected: 'Bağlantı kesildi',
 
   // Original text: 'Delete'
-  remoteDeleteTip: undefined,
+  remoteDeleteTip: 'Sil',
 
   // Original text: 'Delete selected remotes'
-  remoteDeleteSelected: undefined,
+  remoteDeleteSelected: 'Seçilen hedefi sil',
 
   // Original text: 'remote name *'
-  remoteNamePlaceHolder: undefined,
+  remoteNamePlaceHolder: 'hedef adı *',
 
   // Original text: 'Name *'
-  remoteMyNamePlaceHolder: undefined,
+  remoteMyNamePlaceHolder: 'Ad *',
 
   // Original text: '/path/to/backup'
-  remoteLocalPlaceHolderPath: undefined,
+  remoteLocalPlaceHolderPath: "/yedek/için/yol",
 
   // Original text: 'host *'
-  remoteNfsPlaceHolderHost: undefined,
+  remoteNfsPlaceHolderHost: 'sunucu *',
 
   // Original text: 'path/to/backup'
-  remoteNfsPlaceHolderPath: undefined,
+  remoteNfsPlaceHolderPath: "/yedek/için/yol",
 
   // Original text: 'subfolder [path\\\\to\\\\backup]'
-  remoteSmbPlaceHolderRemotePath: undefined,
+  remoteSmbPlaceHolderRemotePath: 'altdizin [yedek\\\\için\\\\yol]',
 
   // Original text: 'Username'
-  remoteSmbPlaceHolderUsername: undefined,
+  remoteSmbPlaceHolderUsername: 'Kullanıcı adı',
 
   // Original text: 'Password'
-  remoteSmbPlaceHolderPassword: undefined,
+  remoteSmbPlaceHolderPassword: 'Parola',
 
   // Original text: 'Domain'
-  remoteSmbPlaceHolderDomain: undefined,
+  remoteSmbPlaceHolderDomain: 'Domain',
 
   // Original text: '<address>\\\\<share> *'
-  remoteSmbPlaceHolderAddressShare: undefined,
+  remoteSmbPlaceHolderAddressShare: "<paylaşım>\\\\<adresi> *",
 
   // Original text: 'password(fill to edit)'
-  remotePlaceHolderPassword: undefined,
+  remotePlaceHolderPassword: 'parola(düzenlemek için doldurun)',
 
   // Original text: 'Create a new SR'
-  newSrTitle: undefined,
+  newSrTitle: 'Yeni SR oluştur',
 
   // Original text: 'General'
-  newSrGeneral: undefined,
+  newSrGeneral: 'Genel',
 
   // Original text: 'Select Storage Type:'
-  newSrTypeSelection: undefined,
+  newSrTypeSelection: 'Depolama Birimi Tipi:',
 
   // Original text: 'Settings'
-  newSrSettings: undefined,
+  newSrSettings: 'Ayarlar',
 
   // Original text: 'Storage Usage'
-  newSrUsage: undefined,
+  newSrUsage: 'Depolama birimi kullanımı',
 
   // Original text: 'Summary'
-  newSrSummary: undefined,
+  newSrSummary: 'Özet',
 
   // Original text: 'Host'
-  newSrHost: undefined,
+  newSrHost: 'Sunucu',
 
   // Original text: 'Type'
-  newSrType: undefined,
+  newSrType: 'Tip',
 
   // Original text: 'Name'
-  newSrName: undefined,
+  newSrName: 'Ad',
 
   // Original text: 'Description'
-  newSrDescription: undefined,
+  newSrDescription: 'Açıklama',
 
   // Original text: 'Server'
-  newSrServer: undefined,
+  newSrServer: 'Sunucu',
 
   // Original text: 'Path'
-  newSrPath: undefined,
+  newSrPath: 'Yol',
 
   // Original text: 'IQN'
-  newSrIqn: undefined,
+  newSrIqn: 'IQN',
 
   // Original text: 'LUN'
-  newSrLun: undefined,
+  newSrLun: 'LUN',
 
   // Original text: 'No HBA devices'
-  newSrNoHba: undefined,
+  newSrNoHba: 'HBA olmayan cihaz',
 
   // Original text: 'with auth.'
-  newSrAuth: undefined,
+  newSrAuth: 'Kimlik doğrulama ile',
 
   // Original text: 'User Name'
-  newSrUsername: undefined,
+  newSrUsername: 'Kullanıcı adı',
 
   // Original text: 'Password'
-  newSrPassword: undefined,
+  newSrPassword: 'Parola',
 
   // Original text: 'Device'
-  newSrDevice: undefined,
+  newSrDevice: 'Cihaz',
 
   // Original text: 'in use'
-  newSrInUse: undefined,
+  newSrInUse: 'kullanımda',
 
   // Original text: 'Size'
-  newSrSize: undefined,
+  newSrSize: 'Boyut',
 
   // Original text: 'Create'
-  newSrCreate: undefined,
+  newSrCreate: 'Create',
 
   // Original text: 'Storage name'
-  newSrNamePlaceHolder: undefined,
+  newSrNamePlaceHolder: 'Depolama birimi adı',
 
   // Original text: 'Storage description'
-  newSrDescPlaceHolder: undefined,
+  newSrDescPlaceHolder: 'Depolama birimi açıklaması',
 
   // Original text: 'Address'
-  newSrAddressPlaceHolder: undefined,
+  newSrAddressPlaceHolder: 'Adres',
 
   // Original text: '[port]'
-  newSrPortPlaceHolder: undefined,
+  newSrPortPlaceHolder: '[port]',
 
   // Original text: 'Username'
-  newSrUsernamePlaceHolder: undefined,
+  newSrUsernamePlaceHolder: 'Kullanıcı adı',
 
   // Original text: 'Password'
-  newSrPasswordPlaceHolder: undefined,
+  newSrPasswordPlaceHolder: 'Parola',
 
   // Original text: 'Device, e.g /dev/sda…'
-  newSrLvmDevicePlaceHolder: undefined,
+  newSrLvmDevicePlaceHolder: 'Cihaz, örn: /dev/sda...',
 
   // Original text: '/path/to/directory'
-  newSrLocalPathPlaceHolder: undefined,
+  newSrLocalPathPlaceHolder: "/dizin/için/yol",
 
   // Original text: 'Use NFSv4'
-  newSrUseNfs4: undefined,
+  newSrUseNfs4: 'NFSv4 kullan',
 
   // Original text: 'Comma delimited NFS options'
-  newSrNfsOptions: undefined,
+  newSrNfsOptions: 'Virgülle ayrılmış NFS seçenekleri',
 
   // Original text: 'Users/Groups'
-  subjectName: undefined,
+  subjectName: "Kullanıcılar/Gruplar",
 
   // Original text: 'Object'
-  objectName: undefined,
+  objectName: 'Nesne',
 
   // Original text: 'No acls found'
-  aclNoneFound: undefined,
+  aclNoneFound: 'acl bulunamadı',
 
   // Original text: 'Role'
-  roleName: undefined,
+  roleName: 'Rol',
 
   // Original text: 'Create'
-  aclCreate: undefined,
+  aclCreate: 'Oluştur',
 
   // Original text: 'New Group Name'
-  newGroupName: undefined,
+  newGroupName: 'Yeni grup adı',
 
   // Original text: 'Create Group'
-  createGroup: undefined,
+  createGroup: 'Grup oluştur',
 
   // Original text: 'Create'
-  createGroupButton: undefined,
+  createGroupButton: 'Oluştur',
 
   // Original text: 'Delete Group'
-  deleteGroup: undefined,
+  deleteGroup: 'Grubu sil',
 
   // Original text: 'Are you sure you want to delete this group?'
-  deleteGroupConfirm: undefined,
+  deleteGroupConfirm: 'Bu grubu silmek istediğinize emin misiniz?',
 
   // Original text: 'Remove user from Group'
-  removeUserFromGroup: undefined,
+  removeUserFromGroup: 'Kullanıcıyı gruptan kaldır',
 
   // Original text: 'Are you sure you want to delete this user?'
-  deleteUserConfirm: undefined,
+  deleteUserConfirm: 'Bu kullanıcıyı silmek istediğinize emin misiniz?',
 
   // Original text: 'Delete User'
-  deleteUser: undefined,
+  deleteUser: 'Kullanıcıyı sil',
 
   // Original text: 'no user'
-  noUser: undefined,
+  noUser: 'kullanıcı yok',
 
   // Original text: 'unknown user'
-  unknownUser: undefined,
+  unknownUser: 'bilinmeyen kullanıcı',
 
   // Original text: 'No group found'
-  noGroupFound: undefined,
+  noGroupFound: 'Grup bulunmadı',
 
   // Original text: 'Name'
-  groupNameColumn: undefined,
+  groupNameColumn: 'Ad',
 
   // Original text: 'Users'
-  groupUsersColumn: undefined,
+  groupUsersColumn: 'Kullanıcılar',
 
   // Original text: 'Add User'
-  addUserToGroupColumn: undefined,
+  addUserToGroupColumn: 'Kullanıcı ekle',
 
   // Original text: 'Username'
-  userNameColumn: undefined,
+  userNameColumn: 'Kullanıcı adı',
 
   // Original text: 'Permissions'
-  userPermissionColumn: undefined,
+  userPermissionColumn: 'Yetkiler',
 
   // Original text: 'Password'
-  userPasswordColumn: undefined,
+  userPasswordColumn: 'Parola',
 
   // Original text: 'Username'
-  userName: undefined,
+  userName: 'Kullanıcı adı',
 
   // Original text: 'Password'
-  userPassword: undefined,
+  userPassword: 'Parola',
 
   // Original text: 'Create'
-  createUserButton: undefined,
+  createUserButton: 'Oluştur',
 
   // Original text: 'No user found'
-  noUserFound: undefined,
+  noUserFound: 'Kullanıcı bulunamadı',
 
   // Original text: 'User'
-  userLabel: undefined,
+  userLabel: 'Kullanıcı',
 
   // Original text: 'Admin'
-  adminLabel: undefined,
+  adminLabel: 'Yönetici',
 
   // Original text: 'No user in group'
-  noUserInGroup: undefined,
+  noUserInGroup: 'Grupta kullanıcı yok',
 
   // Original text: '{users, number} user{users, plural, one {} other {s}}'
-  countUsers: undefined,
+  countUsers: "{users, number} kullanıcı(lar)",
 
   // Original text: 'Select Permission'
-  selectPermission: undefined,
+  selectPermission: 'Yetkileri seç',
 
   // Original text: 'No plugins found'
-  noPlugins: undefined,
+  noPlugins: 'Eklenti bulunamadı',
 
   // Original text: 'Auto-load at server start'
-  autoloadPlugin: undefined,
+  autoloadPlugin: 'Sunucu açılışında otomatik yükle',
 
   // Original text: 'Save configuration'
-  savePluginConfiguration: undefined,
+  savePluginConfiguration: 'Yapılandırmayı kaydet',
 
   // Original text: 'Delete configuration'
-  deletePluginConfiguration: undefined,
+  deletePluginConfiguration: 'Yapılandırma sil',
 
   // Original text: 'Plugin error'
-  pluginError: undefined,
+  pluginError: 'Eklenti hatası',
 
   // Original text: 'Unknown error'
-  unknownPluginError: undefined,
+  unknownPluginError: 'Bilinmeyen hata',
 
   // Original text: 'Purge plugin configuration'
-  purgePluginConfiguration: undefined,
+  purgePluginConfiguration: 'Eklenti yapılandırmasını temizle',
 
   // Original text: 'Are you sure you want to purge this configuration ?'
-  purgePluginConfigurationQuestion: undefined,
+  purgePluginConfigurationQuestion: 'Bu yapılandırmayı temizlemek istediğinize emin misiniz?',
 
   // Original text: 'Edit'
-  editPluginConfiguration: undefined,
+  editPluginConfiguration: 'Düzenle',
 
   // Original text: 'Cancel'
-  cancelPluginEdition: undefined,
+  cancelPluginEdition: 'İptal',
 
   // Original text: 'Plugin configuration'
-  pluginConfigurationSuccess: undefined,
+  pluginConfigurationSuccess: 'Eklenti yapılandırması',
 
   // Original text: 'Plugin configuration successfully saved!'
-  pluginConfigurationChanges: undefined,
+  pluginConfigurationChanges: 'Eklenti yapılandırması başarıyla kaydedildi',
 
   // Original text: 'Predefined configuration'
-  pluginConfigurationPresetTitle: undefined,
+  pluginConfigurationPresetTitle: 'Öntanımlı yapılandırma',
 
   // Original text: 'Choose a predefined configuration.'
-  pluginConfigurationChoosePreset: undefined,
+  pluginConfigurationChoosePreset: 'Bir öntanımlı yapılandırma seç',
 
   // Original text: 'Apply'
-  applyPluginPreset: undefined,
+  applyPluginPreset: 'Uygula',
 
   // Original text: 'Save filter error'
-  saveNewUserFilterErrorTitle: undefined,
+  saveNewUserFilterErrorTitle: 'Filtre hatasını kaydet',
 
   // Original text: 'Bad parameter: name must be given.'
-  saveNewUserFilterErrorBody: undefined,
+  saveNewUserFilterErrorBody: 'Kötü parametre: ad verilmeli',
 
   // Original text: 'Name:'
-  filterName: undefined,
+  filterName: 'Ad:',
 
   // Original text: 'Value:'
-  filterValue: undefined,
+  filterValue: 'Değer:',
 
   // Original text: 'Save new filter'
-  saveNewFilterTitle: undefined,
+  saveNewFilterTitle: 'Yeni filtreyi kaydet',
 
   // Original text: 'Set custom filters'
-  setUserFiltersTitle: undefined,
+  setUserFiltersTitle: 'Özel filtreleri belirle',
 
   // Original text: 'Are you sure you want to set custom filters?'
-  setUserFiltersBody: undefined,
+  setUserFiltersBody: 'Özel filtreleri belirlemek istediğinize emin misiniz?',
 
   // Original text: 'Remove custom filter'
-  removeUserFilterTitle: undefined,
+  removeUserFilterTitle: 'Özel filtreyi kaldır',
 
   // Original text: 'Are you sure you want to remove custom filter?'
-  removeUserFilterBody: undefined,
+  removeUserFilterBody: 'Özel filtreyi kaldırmak istediğinize emin misiniz?',
 
   // Original text: 'Default filter'
-  defaultFilter: undefined,
+  defaultFilter: 'Varsayılan filtre',
 
   // Original text: 'Default filters'
-  defaultFilters: undefined,
+  defaultFilters: 'Varsayılan filtreler',
 
   // Original text: 'Custom filters'
-  customFilters: undefined,
+  customFilters: 'Özel filtreler',
 
   // Original text: 'Customize filters'
-  customizeFilters: undefined,
+  customizeFilters: 'Filtreleri özelleştir',
 
   // Original text: 'Save custom filters'
-  saveCustomFilters: undefined,
+  saveCustomFilters: 'Özel filtreleri kaydet',
 
   // Original text: 'Start'
-  startVmLabel: undefined,
+  startVmLabel: 'Çalıştır',
 
   // Original text: 'Recovery start'
-  recoveryModeLabel: undefined,
+  recoveryModeLabel: 'Kurtarmayı başlat',
 
   // Original text: 'Suspend'
-  suspendVmLabel: undefined,
+  suspendVmLabel: 'Askıya al',
 
   // Original text: 'Stop'
-  stopVmLabel: undefined,
+  stopVmLabel: 'Durdur',
 
   // Original text: 'Force shutdown'
-  forceShutdownVmLabel: undefined,
+  forceShutdownVmLabel: 'Zorla kapat',
 
   // Original text: 'Reboot'
-  rebootVmLabel: undefined,
+  rebootVmLabel: 'Yeniden başlat',
 
   // Original text: 'Force reboot'
-  forceRebootVmLabel: undefined,
+  forceRebootVmLabel: 'Zorla yeniden başlat',
 
   // Original text: 'Delete'
-  deleteVmLabel: undefined,
+  deleteVmLabel: 'Sil',
 
   // Original text: 'Migrate'
-  migrateVmLabel: undefined,
+  migrateVmLabel: 'Taşı',
 
   // Original text: 'Snapshot'
-  snapshotVmLabel: undefined,
+  snapshotVmLabel: 'Snapshot',
 
   // Original text: 'Export'
-  exportVmLabel: undefined,
+  exportVmLabel: 'Dışa aktar',
 
   // Original text: 'Resume'
-  resumeVmLabel: undefined,
+  resumeVmLabel: 'Devam et',
 
   // Original text: 'Copy'
-  copyVmLabel: undefined,
+  copyVmLabel: 'Kopyala',
 
   // Original text: 'Clone'
-  cloneVmLabel: undefined,
+  cloneVmLabel: 'Klonla',
 
   // Original text: 'Fast clone'
-  fastCloneVmLabel: undefined,
+  fastCloneVmLabel: 'Hızlı klonla',
 
   // Original text: 'Convert to template'
-  convertVmToTemplateLabel: undefined,
+  convertVmToTemplateLabel: 'Kalıba çevir',
 
   // Original text: 'Console'
-  vmConsoleLabel: undefined,
+  vmConsoleLabel: 'Konsol',
 
   // Original text: 'Name'
-  srUnhealthyVdiNameLabel: undefined,
+  srUnhealthyVdiNameLabel: 'Ad',
 
   // Original text: 'Size'
-  srUnhealthyVdiSize: undefined,
+  srUnhealthyVdiSize: 'Boyut',
 
   // Original text: 'Depth'
-  srUnhealthyVdiDepth: undefined,
+  srUnhealthyVdiDepth: 'Derinlik',
 
   // Original text: 'VDI to coalesce ({total, number})'
-  srUnhealthyVdiTitle: undefined,
+  srUnhealthyVdiTitle: 'Kaynaşma aşmasındaki VDI ({total, number})',
 
   // Original text: 'Rescan all disks'
-  srRescan: undefined,
+  srRescan: 'Bütün diskleri tekrar tara',
 
   // Original text: 'Connect to all hosts'
-  srReconnectAll: undefined,
+  srReconnectAll: 'Bütün sunuculara bağla',
 
   // Original text: 'Disconnect from all hosts'
-  srDisconnectAll: undefined,
+  srDisconnectAll: 'Bütün sunuculardan bağlantıyı kes',
 
   // Original text: 'Forget this SR'
-  srForget: undefined,
+  srForget: "Bu SR'i unut",
 
   // Original text: 'Forget SRs'
-  srsForget: undefined,
+  srsForget: "SR'leri unut",
 
   // Original text: 'Remove this SR'
-  srRemoveButton: undefined,
+  srRemoveButton: "Bu SR'i kaldır",
 
   // Original text: 'No VDIs in this storage'
-  srNoVdis: undefined,
+  srNoVdis: 'Bu depolama biriminde VDI yok',
 
   // Original text: 'Pool RAM usage:'
-  poolTitleRamUsage: undefined,
+  poolTitleRamUsage: 'Havuz RAM kullanımı',
 
   // Original text: '{used} used on {total} ({free} free)'
-  poolRamUsage: undefined,
+  poolRamUsage: '{total} alanda {used} kullanılıyor ({free} boş)',
 
   // Original text: 'Master:'
-  poolMaster: undefined,
+  poolMaster: 'Master:',
 
   // Original text: 'Display all hosts of this pool'
-  displayAllHosts: undefined,
+  displayAllHosts: 'Bu havuzun tüm sunucularını göster',
 
   // Original text: 'Display all storages of this pool'
-  displayAllStorages: undefined,
+  displayAllStorages: 'Bu havuzun tüm depolama birimlerini göster',
 
   // Original text: 'Display all VMs of this pool'
-  displayAllVMs: undefined,
+  displayAllVMs: "Bu havuzun tüm VM'lerini göster",
 
   // Original text: 'Hosts'
-  hostsTabName: undefined,
+  hostsTabName: 'Sunucular',
 
   // Original text: 'Vms'
-  vmsTabName: undefined,
+  vmsTabName: "VM'ler",
 
   // Original text: 'Srs'
-  srsTabName: undefined,
+  srsTabName: "Sr'ler",
 
   // Original text: 'High Availability'
-  poolHaStatus: undefined,
+  poolHaStatus: 'Yüksek kullanılabilirlik',
 
   // Original text: 'Enabled'
-  poolHaEnabled: undefined,
+  poolHaEnabled: 'Açık',
 
   // Original text: 'Disabled'
-  poolHaDisabled: undefined,
+  poolHaDisabled: 'Kapalı',
 
   // Original text: 'Master'
-  setpoolMaster: undefined,
+  setpoolMaster: 'Master',
 
   // Original text: 'GPU groups'
-  poolGpuGroups: undefined,
+  poolGpuGroups: 'GPU grubu',
 
   // Original text: 'Name'
-  hostNameLabel: undefined,
+  hostNameLabel: 'Ad',
 
   // Original text: 'Description'
-  hostDescription: undefined,
+  hostDescription: 'Açıklama',
 
   // Original text: 'Memory'
-  hostMemory: undefined,
+  hostMemory: 'Bellek',
 
   // Original text: 'No hosts'
-  noHost: undefined,
+  noHost: 'Sunucu yok',
 
   // Original text: '{used}% used ({free} free)'
-  memoryLeftTooltip: undefined,
+  memoryLeftTooltip: "%{used} kullanılıyor ({free} boş)",
 
   // Original text: 'PIF'
-  pif: undefined,
+  pif: 'PIF',
 
   // Original text: 'Name'
-  poolNetworkNameLabel: undefined,
+  poolNetworkNameLabel: 'Ad',
 
   // Original text: 'Description'
-  poolNetworkDescription: undefined,
+  poolNetworkDescription: 'Açıklama',
 
   // Original text: 'PIFs'
-  poolNetworkPif: undefined,
+  poolNetworkPif: "PIF'ler",
 
   // Original text: 'No networks'
-  poolNoNetwork: undefined,
+  poolNoNetwork: 'Ağ yok',
 
   // Original text: 'MTU'
-  poolNetworkMTU: undefined,
+  poolNetworkMTU: 'MTU',
 
   // Original text: 'Connected'
-  poolNetworkPifAttached: undefined,
+  poolNetworkPifAttached: 'Bağlı',
 
   // Original text: 'Disconnected'
-  poolNetworkPifDetached: undefined,
+  poolNetworkPifDetached: 'Bağlı değil',
 
   // Original text: 'Show PIFs'
-  showPifs: undefined,
+  showPifs: "PIF'leri göster",
 
   // Original text: 'Hide PIFs'
-  hidePifs: undefined,
+  hidePifs: "PIF'leri gizle",
 
   // Original text: 'Show details'
-  showDetails: undefined,
+  showDetails: 'Ayrıntıları göster',
 
   // Original text: 'Hide details'
-  hideDetails: undefined,
+  hideDetails: 'Ayrıntıları gizle',
 
   // Original text: 'No stats'
-  poolNoStats: undefined,
+  poolNoStats: 'Durum yok',
 
   // Original text: 'All hosts'
-  poolAllHosts: undefined,
+  poolAllHosts: 'Tüm sunucular',
 
   // Original text: 'Add SR'
-  addSrLabel: undefined,
+  addSrLabel: 'SR ekle',
 
   // Original text: 'Add VM'
-  addVmLabel: undefined,
+  addVmLabel: 'VM ekle',
 
   // Original text: 'Add Host'
-  addHostLabel: undefined,
+  addHostLabel: 'Sunucu ekle',
 
   // Original text: 'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.'
-  hostNeedsPatchUpdate: undefined,
+  hostNeedsPatchUpdate: "Havuza eklemeden önce bu sunucuya {patches, number} yama yüklenmeli. Bu işlem uzun sürebilir.",
 
   // Original text: "This host cannot be added to the pool because it's missing some patches."
-  hostNeedsPatchUpdateNoInstall: undefined,
+  hostNeedsPatchUpdateNoInstall: "Bu sunucu havuza eklenemez çünkü bazı yamaları eksik",
 
   // Original text: 'Adding host failed'
-  addHostErrorTitle: undefined,
+  addHostErrorTitle: 'Sunucu ekleme başarısız',
 
   // Original text: 'Host patches could not be homogenized.'
-  addHostNotHomogeneousErrorMessage: undefined,
+  addHostNotHomogeneousErrorMessage: 'Sunucu yamaları homojenleştirilemedi.',
 
   // Original text: 'Disconnect'
-  disconnectServer: undefined,
+  disconnectServer: 'Bağlantıyı kes',
 
   // Original text: 'Start'
-  startHostLabel: undefined,
+  startHostLabel: 'Çalıştır',
 
   // Original text: 'Stop'
-  stopHostLabel: undefined,
+  stopHostLabel: 'Durdur',
 
   // Original text: 'Enable'
-  enableHostLabel: undefined,
+  enableHostLabel: 'Aktif',
 
   // Original text: 'Disable'
-  disableHostLabel: undefined,
+  disableHostLabel: 'Pasif',
 
   // Original text: 'Restart toolstack'
-  restartHostAgent: undefined,
+  restartHostAgent: "toolstack'ı yeniden başlat",
 
   // Original text: 'Force reboot'
-  forceRebootHostLabel: undefined,
+  forceRebootHostLabel: 'Zorla yeniden başlat',
 
   // Original text: 'Reboot'
-  rebootHostLabel: undefined,
+  rebootHostLabel: 'Yeniden başlat',
 
   // Original text: 'Error while restarting host'
-  noHostsAvailableErrorTitle: undefined,
+  noHostsAvailableErrorTitle: 'Sunucu yeniden başlatılırken hata',
 
   // Original text: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.'
-  noHostsAvailableErrorMessage: undefined,
+  noHostsAvailableErrorMessage: "Bazı VM'ler taşınamaz olduğu için sunucu yeniden başlatılamıyor. Zorla yeniden başlatmayı deneyin.",
 
   // Original text: 'Error while restarting hosts'
-  failHostBulkRestartTitle: undefined,
+  failHostBulkRestartTitle: 'Sunucu yeniden başlatılırken hata',
 
   // Original text: '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.'
-  failHostBulkRestartMessage: undefined,
+  failHostBulkRestartMessage: "{failedHosts, number}/{totalHosts, number} sunucu yeniden başlatılamadı.",
 
   // Original text: 'Reboot to apply updates'
-  rebootUpdateHostLabel: undefined,
+  rebootUpdateHostLabel: 'Güncellemeleri uygulamak için yeniden başlat',
 
   // Original text: 'Emergency mode'
-  emergencyModeLabel: undefined,
+  emergencyModeLabel: 'Acil durum modu',
 
   // Original text: 'Storage'
-  storageTabName: undefined,
+  storageTabName: 'Depolama birimi',
 
   // Original text: 'Patches'
-  patchesTabName: undefined,
+  patchesTabName: 'Yamalar',
 
   // Original text: 'Load average'
-  statLoad: undefined,
+  statLoad: 'Ortalama yük',
 
   // Original text: 'Host RAM usage:'
-  hostTitleRamUsage: undefined,
+  hostTitleRamUsage: 'Sunucu RAM kullanımı:',
 
   // Original text: 'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)'
-  memoryHostState: undefined,
+  memoryHostState: 'RAM: {memoryTotal} alanda {memoryUsed} alan kullanılıyor ({memoryFree} boş)',
 
   // Original text: 'Hardware'
-  hardwareHostSettingsLabel: undefined,
+  hardwareHostSettingsLabel: 'Donanım',
 
   // Original text: 'Address'
-  hostAddress: undefined,
+  hostAddress: 'Adres',
 
   // Original text: 'Status'
-  hostStatus: undefined,
+  hostStatus: 'Durum',
 
   // Original text: 'Build number'
-  hostBuildNumber: undefined,
+  hostBuildNumber: 'Yapım numarası',
 
   // Original text: 'iSCSI name'
-  hostIscsiName: undefined,
+  hostIscsiName: 'iSCSI adı',
 
   // Original text: 'Version'
-  hostXenServerVersion: undefined,
+  hostXenServerVersion: 'Sürüm',
 
   // Original text: 'Enabled'
-  hostStatusEnabled: undefined,
+  hostStatusEnabled: 'Aktif',
 
   // Original text: 'Disabled'
-  hostStatusDisabled: undefined,
+  hostStatusDisabled: 'Pasif',
 
   // Original text: 'Power on mode'
-  hostPowerOnMode: undefined,
+  hostPowerOnMode: 'Power on modu',
 
   // Original text: 'Host uptime'
-  hostStartedSince: undefined,
+  hostStartedSince: 'Sunucu çalışma süresi',
 
   // Original text: 'Toolstack uptime'
-  hostStackStartedSince: undefined,
+  hostStackStartedSince: 'Toolstack çalışma süresi',
 
   // Original text: 'CPU model'
-  hostCpusModel: undefined,
+  hostCpusModel: 'CPU modeli',
 
   // Original text: 'GPUs'
-  hostGpus: undefined,
+  hostGpus: "GPU'lar",
 
   // Original text: 'Core (socket)'
-  hostCpusNumber: undefined,
+  hostCpusNumber: 'Core (soket)',
 
   // Original text: 'Manufacturer info'
-  hostManufacturerinfo: undefined,
+  hostManufacturerinfo: 'Üretici bilgisi',
 
   // Original text: 'BIOS info'
-  hostBiosinfo: undefined,
+  hostBiosinfo: 'BIOS bilgisi',
 
   // Original text: 'License'
-  licenseHostSettingsLabel: undefined,
+  licenseHostSettingsLabel: 'Lisans',
 
   // Original text: 'Type'
-  hostLicenseType: undefined,
+  hostLicenseType: 'Tip',
 
   // Original text: 'Socket'
-  hostLicenseSocket: undefined,
+  hostLicenseSocket: 'Soket',
 
   // Original text: 'Expiry'
-  hostLicenseExpiry: undefined,
+  hostLicenseExpiry: 'Zamanaşımı',
 
   // Original text: 'Installed supplemental packs'
-  supplementalPacks: undefined,
+  supplementalPacks: 'Yüklü ek paketler',
 
   // Original text: 'Install new supplemental pack'
-  supplementalPackNew: undefined,
+  supplementalPackNew: 'Yeni ek paket yükle',
 
   // Original text: 'Install supplemental pack on every host'
-  supplementalPackPoolNew: undefined,
+  supplementalPackPoolNew: 'Ek paketi her sunucuya yükle',
 
   // Original text: '{name} (by {author})'
-  supplementalPackTitle: undefined,
+  supplementalPackTitle: "{name} (by {author})",
 
   // Original text: 'Installation started'
-  supplementalPackInstallStartedTitle: undefined,
+  supplementalPackInstallStartedTitle: 'Kurulum başladı',
 
   // Original text: 'Installing new supplemental pack…'
-  supplementalPackInstallStartedMessage: undefined,
+  supplementalPackInstallStartedMessage: 'Yeni ek paket kuruluyor...',
 
   // Original text: 'Installation error'
-  supplementalPackInstallErrorTitle: undefined,
+  supplementalPackInstallErrorTitle: 'Kurulum hatası',
 
   // Original text: 'The installation of the supplemental pack failed.'
-  supplementalPackInstallErrorMessage: undefined,
+  supplementalPackInstallErrorMessage: 'Ek paket kurulumu başarısız oldu.',
 
   // Original text: 'Installation success'
-  supplementalPackInstallSuccessTitle: undefined,
+  supplementalPackInstallSuccessTitle: 'Kurulum başarılı',
 
   // Original text: 'Supplemental pack successfully installed.'
-  supplementalPackInstallSuccessMessage: undefined,
+  supplementalPackInstallSuccessMessage: 'Ek paket başarıyla kuruldu',
 
   // Original text: 'Add a network'
-  networkCreateButton: undefined,
+  networkCreateButton: 'Bir ağ ekle',
 
   // Original text: 'Add a bonded network'
-  networkCreateBondedButton: undefined,
+  networkCreateBondedButton: 'Bir bağlı ağ ekle',
 
   // Original text: 'Device'
-  pifDeviceLabel: undefined,
+  pifDeviceLabel: 'Cihaz',
 
   // Original text: 'Network'
-  pifNetworkLabel: undefined,
+  pifNetworkLabel: 'Ağ',
 
   // Original text: 'VLAN'
-  pifVlanLabel: undefined,
+  pifVlanLabel: 'VLAN',
 
   // Original text: 'Address'
-  pifAddressLabel: undefined,
+  pifAddressLabel: 'Adres',
 
   // Original text: 'Mode'
-  pifModeLabel: undefined,
+  pifModeLabel: 'Mod',
 
   // Original text: 'MAC'
-  pifMacLabel: undefined,
+  pifMacLabel: 'MAC',
 
   // Original text: 'MTU'
-  pifMtuLabel: undefined,
+  pifMtuLabel: 'MTU',
 
   // Original text: 'Status'
-  pifStatusLabel: undefined,
+  pifStatusLabel: 'Durum',
 
   // Original text: 'Connected'
-  pifStatusConnected: undefined,
+  pifStatusConnected: 'Bağlı',
 
   // Original text: 'Disconnected'
-  pifStatusDisconnected: undefined,
+  pifStatusDisconnected: 'Bağlı değil',
 
   // Original text: 'No physical interface detected'
-  pifNoInterface: undefined,
+  pifNoInterface: 'Fizisel arayüz tespit edilmedi',
 
   // Original text: 'This interface is currently in use'
-  pifInUse: undefined,
+  pifInUse: 'Bu arayüz kullanımda',
 
   // Original text: 'Action'
-  pifAction: undefined,
+  pifAction: 'Aksiyon',
 
   // Original text: 'Default locking mode'
-  defaultLockingMode: undefined,
+  defaultLockingMode: 'Varsayılan kilitleme modu',
 
   // Original text: 'Configure IP address'
-  pifConfigureIp: undefined,
+  pifConfigureIp: 'IP adresini ayarla',
 
   // Original text: 'Invalid parameters'
-  configIpErrorTitle: undefined,
+  configIpErrorTitle: 'Geçersiz parametre',
 
   // Original text: 'IP address and netmask required'
-  configIpErrorMessage: undefined,
+  configIpErrorMessage: 'IP adresi ve ağ maskesi gerekli',
 
   // Original text: 'Static IP address'
-  staticIp: undefined,
+  staticIp: 'Statik IP adresi',
 
   // Original text: 'Netmask'
-  netmask: undefined,
+  netmask: 'Ağ maskesi',
 
   // Original text: 'DNS'
-  dns: undefined,
+  dns: 'DNS',
 
   // Original text: 'Gateway'
-  gateway: undefined,
+  gateway: 'Ağ geçidi',
 
   // Original text: 'Add a storage'
-  addSrDeviceButton: undefined,
+  addSrDeviceButton: 'Depolama ünitesi ekle',
 
   // Original text: 'Name'
-  srNameLabel: undefined,
+  srNameLabel: 'Ad',
 
   // Original text: 'Type'
-  srType: undefined,
+  srType: 'Tip',
 
   // Original text: 'Action'
-  pbdAction: undefined,
+  pbdAction: 'Aksiyon',
 
   // Original text: 'Status'
-  pbdStatus: undefined,
+  pbdStatus: 'Durum',
 
   // Original text: 'Connected'
-  pbdStatusConnected: undefined,
+  pbdStatusConnected: 'Bağlı',
 
   // Original text: 'Disconnected'
-  pbdStatusDisconnected: undefined,
+  pbdStatusDisconnected: 'Bağlı değil',
 
   // Original text: 'Connect'
-  pbdConnect: undefined,
+  pbdConnect: 'Bağlan',
 
   // Original text: 'Disconnect'
-  pbdDisconnect: undefined,
+  pbdDisconnect: 'Bağlantıyı kes',
 
   // Original text: 'Forget'
-  pbdForget: undefined,
+  pbdForget: 'Unut',
 
   // Original text: 'Shared'
-  srShared: undefined,
+  srShared: 'Paylaşımlı',
 
   // Original text: 'Not shared'
-  srNotShared: undefined,
+  srNotShared: 'Paylaşımsız',
 
   // Original text: 'No storage detected'
-  pbdNoSr: undefined,
+  pbdNoSr: 'Depolama ünitesi tespit edilmedi',
 
   // Original text: 'Name'
-  patchNameLabel: undefined,
+  patchNameLabel: 'Ad',
 
   // Original text: 'Install all patches'
-  patchUpdateButton: undefined,
+  patchUpdateButton: 'Tüm yamaları yükle',
 
   // Original text: 'Description'
-  patchDescription: undefined,
+  patchDescription: 'Açıklama',
 
   // Original text: 'Applied date'
-  patchApplied: undefined,
+  patchApplied: 'Uygulanan tarih',
 
   // Original text: 'Size'
-  patchSize: undefined,
+  patchSize: 'Boyut',
 
   // Original text: 'Status'
-  patchStatus: undefined,
+  patchStatus: 'Durum',
 
   // Original text: 'Applied'
-  patchStatusApplied: undefined,
+  patchStatusApplied: 'Uygulandı',
 
   // Original text: 'Missing patches'
-  patchStatusNotApplied: undefined,
+  patchStatusNotApplied: 'Eksik yamalar',
 
   // Original text: 'No patches detected'
-  patchNothing: undefined,
+  patchNothing: 'Yama tespit edilmedi',
 
   // Original text: 'Release date'
-  patchReleaseDate: undefined,
+  patchReleaseDate: 'Yayınlanma tarihi',
 
   // Original text: 'Guidance'
-  patchGuidance: undefined,
+  patchGuidance: 'Yönlendirme',
 
   // Original text: 'Action'
-  patchAction: undefined,
+  patchAction: 'Aksiyon',
 
   // Original text: 'Applied patches'
-  hostAppliedPatches: undefined,
+  hostAppliedPatches: 'Uygulanan yamalar',
 
   // Original text: 'Missing patches'
-  hostMissingPatches: undefined,
+  hostMissingPatches: 'Eksik yamalar',
 
   // Original text: 'Host up-to-date!'
-  hostUpToDate: undefined,
+  hostUpToDate: 'Sunucu güncel!',
 
   // Original text: 'Non-recommended patch install'
-  installPatchWarningTitle: undefined,
+  installPatchWarningTitle: 'Tavsiye edilmeyen yama yüklemesi',
 
   // Original text: 'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway'
-  installPatchWarningContent: undefined,
+  installPatchWarningContent: 'Yama yalnızca bu sunucuya yüklenecek. Bu tavsiye edilmez. Lütfen Havuz yama ekranına gidin ve oradaki talimatları takip edin. Ancak eminseniz devam edebilirsiniz',
 
   // Original text: 'Go to pool'
-  installPatchWarningReject: undefined,
+  installPatchWarningReject: 'Havuza git',
 
   // Original text: 'Install'
-  installPatchWarningResolve: undefined,
+  installPatchWarningResolve: 'Yükle',
 
   // Original text: 'Refresh patches'
-  refreshPatches: undefined,
+  refreshPatches: 'Yamaları yenile',
 
   // Original text: 'Install pool patches'
-  installPoolPatches: undefined,
+  installPoolPatches: 'Havuz yamalarını yükle',
 
   // Original text: 'Default SR'
-  defaultSr: undefined,
+  defaultSr: 'Varsayılan depolama ünitesi',
 
   // Original text: 'Set as default SR'
-  setAsDefaultSr: undefined,
+  setAsDefaultSr: 'Varsayılan depolama ünitesi olarak ayarla',
 
   // Original text: 'General'
-  generalTabName: undefined,
+  generalTabName: 'Genel',
 
   // Original text: 'Stats'
-  statsTabName: undefined,
+  statsTabName: 'Durum',
 
   // Original text: 'Console'
-  consoleTabName: undefined,
+  consoleTabName: 'Konsol',
 
   // Original text: 'Container'
-  containersTabName: undefined,
+  containersTabName: 'Konteyner',
 
   // Original text: 'Snapshots'
-  snapshotsTabName: undefined,
+  snapshotsTabName: "Snapshot'lar",
 
   // Original text: 'Logs'
-  logsTabName: undefined,
+  logsTabName: 'Günlükler',
 
   // Original text: 'Advanced'
-  advancedTabName: undefined,
+  advancedTabName: 'Gelişmiş',
 
   // Original text: 'Network'
-  networkTabName: undefined,
+  networkTabName: 'Ağ',
 
   // Original text: 'Disk{disks, plural, one {} other {s}}'
-  disksTabName: undefined,
+  disksTabName: 'Disk(ler)',
 
   // Original text: 'halted'
-  powerStateHalted: undefined,
+  powerStateHalted: 'durduruldu',
 
   // Original text: 'running'
-  powerStateRunning: undefined,
+  powerStateRunning: 'çalışıyor',
 
   // Original text: 'suspended'
-  powerStateSuspended: undefined,
+  powerStateSuspended: 'askıya alında',
 
   // Original text: 'No Xen tools detected'
-  vmStatus: undefined,
+  vmStatus: 'Xen tool tespit edilmedi',
 
   // Original text: 'No IPv4 record'
-  vmName: undefined,
+  vmName: 'IPv4 kaydı yok',
 
   // Original text: 'No IP record'
-  vmDescription: undefined,
+  vmDescription: 'IP kaydı yok',
 
   // Original text: 'Started {ago}'
-  vmSettings: undefined,
+  vmSettings: 'Başlatıldı {ago}',
 
   // Original text: 'Current status:'
-  vmCurrentStatus: undefined,
+  vmCurrentStatus: 'Mevcut durum:',
 
   // Original text: 'Not running'
-  vmNotRunning: undefined,
+  vmNotRunning: 'Çalışmıyor',
 
   // Original text: 'Halted {ago}'
-  vmHaltedSince: undefined,
+  vmHaltedSince: 'Durduruldu {ago}',
 
   // Original text: 'No Xen tools detected'
-  noToolsDetected: undefined,
+  noToolsDetected: 'Xen tool tespit edilmedi',
 
   // Original text: 'No IPv4 record'
-  noIpv4Record: undefined,
+  noIpv4Record: 'IPv4 kaydı yok',
 
   // Original text: 'No IP record'
-  noIpRecord: undefined,
+  noIpRecord: 'IP kaydı yok',
 
   // Original text: 'Started {ago}'
-  started: undefined,
+  started: 'Başlatıldı {ago}',
 
   // Original text: 'Paravirtualization (PV)'
-  paraVirtualizedMode: undefined,
+  paraVirtualizedMode: 'Paravirtualization (PV)',
 
   // Original text: 'Hardware virtualization (HVM)'
-  hardwareVirtualizedMode: undefined,
+  hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
 
   // Original text: 'CPU usage'
-  statsCpu: undefined,
+  statsCpu: 'CPU kullanımı',
 
   // Original text: 'Memory usage'
-  statsMemory: undefined,
+  statsMemory: 'Bellek kullanımı',
 
   // Original text: 'Network throughput'
-  statsNetwork: undefined,
+  statsNetwork: 'Ağ veri akışı',
 
   // Original text: 'Stacked values'
-  useStackedValuesOnStats: undefined,
+  useStackedValuesOnStats: 'Yığılmış değerler',
 
   // Original text: 'Disk throughput'
-  statDisk: undefined,
+  statDisk: 'Disk veri akışı',
 
   // Original text: 'Last 10 minutes'
-  statLastTenMinutes: undefined,
+  statLastTenMinutes: 'Son 10 dakika',
 
   // Original text: 'Last 2 hours'
-  statLastTwoHours: undefined,
+  statLastTwoHours: 'Son 2 saat',
 
   // Original text: 'Last week'
-  statLastWeek: undefined,
+  statLastWeek: 'Son hafta',
 
   // Original text: 'Last year'
-  statLastYear: undefined,
+  statLastYear: 'Son yıl',
 
   // Original text: 'Copy'
-  copyToClipboardLabel: undefined,
+  copyToClipboardLabel: 'Kopyala',
 
   // Original text: 'Ctrl+Alt+Del'
-  ctrlAltDelButtonLabel: undefined,
+  ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
 
   // Original text: 'Tip:'
-  tipLabel: undefined,
+  tipLabel: 'İpucu:',
 
   // Original text: 'Hide infos'
-  hideHeaderTooltip: undefined,
+  hideHeaderTooltip: 'Bilgileri gizle',
 
   // Original text: 'Show infos'
-  showHeaderTooltip: undefined,
+  showHeaderTooltip: 'Bilgileri göster',
 
   // Original text: 'Name'
-  containerName: undefined,
+  containerName: 'Ad',
 
   // Original text: 'Command'
-  containerCommand: undefined,
+  containerCommand: 'Komut',
 
   // Original text: 'Creation date'
-  containerCreated: undefined,
+  containerCreated: 'Oluşturma tarihi',
 
   // Original text: 'Status'
-  containerStatus: undefined,
+  containerStatus: 'Durum',
 
   // Original text: 'Action'
-  containerAction: undefined,
+  containerAction: 'Aksiyon',
 
   // Original text: 'No existing containers'
-  noContainers: undefined,
+  noContainers: 'Mevcutta konteyner yok',
 
   // Original text: 'Stop this container'
-  containerStop: undefined,
+  containerStop: "Bu konteyner'i durdur",
 
   // Original text: 'Start this container'
-  containerStart: undefined,
+  containerStart: "Bu konteyner'i çalıştır",
 
   // Original text: 'Pause this container'
-  containerPause: undefined,
+  containerPause: "Bu konteyner'i duraklat",
 
   // Original text: 'Resume this container'
-  containerResume: undefined,
+  containerResume: "Bu konteyner'i devam ettir",
 
   // Original text: 'Restart this container'
-  containerRestart: undefined,
+  containerRestart: "Bu konteyner'i yeniden başlat",
 
   // Original text: 'Action'
-  vdiAction: undefined,
+  vdiAction: 'Aksiyon',
 
   // Original text: 'Attach disk'
-  vdiAttachDeviceButton: undefined,
+  vdiAttachDeviceButton: 'Disk tak',
 
   // Original text: 'New disk'
-  vbdCreateDeviceButton: undefined,
+  vbdCreateDeviceButton: 'Yeni disk',
 
   // Original text: 'Boot order'
-  vdiBootOrder: undefined,
+  vdiBootOrder: 'Önyükleme sıralaması',
 
   // Original text: 'Name'
-  vdiNameLabel: undefined,
+  vdiNameLabel: 'Ad',
 
   // Original text: 'Description'
-  vdiNameDescription: undefined,
+  vdiNameDescription: 'Açıklama',
 
   // Original text: 'Pool'
-  vdiPool: undefined,
+  vdiPool: 'Havuz',
 
   // Original text: 'Disconnect'
-  vdiDisconnect: undefined,
+  vdiDisconnect: 'Bağlatıyı kes',
 
   // Original text: 'Tags'
-  vdiTags: undefined,
+  vdiTags: 'Etiketler',
 
   // Original text: 'Size'
-  vdiSize: undefined,
+  vdiSize: 'Boyut',
 
   // Original text: 'SR'
-  vdiSr: undefined,
+  vdiSr: 'SR',
 
   // Original text: 'VMs'
-  vdiVms: undefined,
+  vdiVms: "VM'ler",
 
   // Original text: 'Migrate VDI'
-  vdiMigrate: undefined,
+  vdiMigrate: 'VDI taşı',
 
   // Original text: 'Destination SR:'
-  vdiMigrateSelectSr: undefined,
+  vdiMigrateSelectSr: 'Hedef SR:',
 
   // Original text: 'Migrate all VDIs'
-  vdiMigrateAll: undefined,
+  vdiMigrateAll: "Tüm VDI'ları taşı",
 
   // Original text: 'No SR'
-  vdiMigrateNoSr: undefined,
+  vdiMigrateNoSr: 'SR yok',
 
   // Original text: 'A target SR is required to migrate a VDI'
-  vdiMigrateNoSrMessage: undefined,
+  vdiMigrateNoSrMessage: 'VDI taşımak için bir SR gereklidir',
 
   // Original text: 'Delete VDI'
-  vdiDelete: undefined,
+  vdiDelete: 'VDI sil',
 
   // Original text: 'Forget'
-  vdiForget: undefined,
+  vdiForget: 'Unut',
 
   // Original text: 'Remove VDI'
-  vdiRemove: undefined,
+  vdiRemove: 'VDI kaldır',
 
   // Original text: 'No VDIs attached to Control Domain'
-  noControlDomainVdis: undefined,
+  noControlDomainVdis: "Kontrol Domain'e takılı VDI yok",
 
   // Original text: 'Boot flag'
-  vbdBootableStatus: undefined,
+  vbdBootableStatus: 'Önyükleme bayrağı',
 
   // Original text: 'Status'
-  vbdStatus: undefined,
+  vbdStatus: 'Durum',
 
   // Original text: 'Connected'
-  vbdStatusConnected: undefined,
+  vbdStatusConnected: 'Bağlı',
 
   // Original text: 'Disconnected'
-  vbdStatusDisconnected: undefined,
+  vbdStatusDisconnected: 'Bağlı değil',
 
   // Original text: 'No disks'
-  vbdNoVbd: undefined,
+  vbdNoVbd: 'Disk yok',
 
   // Original text: 'Connect VBD'
-  vbdConnect: undefined,
+  vbdConnect: "VBD'i bağla",
 
   // Original text: 'Disconnect VBD'
-  vbdDisconnect: undefined,
+  vbdDisconnect: "VBD'nin bağlantısı kes",
 
   // Original text: 'Disconnect VBDs'
-  vbdsDisconnect: undefined,
+  vbdsDisconnect: "VBD'lerin bağlantısını kes",
 
   // Original text: 'Bootable'
-  vbdBootable: undefined,
+  vbdBootable: 'Önyüklenebilir',
 
   // Original text: 'Readonly'
-  vbdReadonly: undefined,
+  vbdReadonly: 'Yalnızca okunabilir',
 
   // Original text: 'Action'
-  vbdAction: undefined,
+  vbdAction: 'Aksiyon',
 
   // Original text: 'Create'
-  vbdCreate: undefined,
+  vbdCreate: 'Oluştur',
 
   // Original text: 'Attach'
-  vbdAttach: undefined,
+  vbdAttach: 'Tak',
 
   // Original text: 'Disk name'
-  vbdNamePlaceHolder: undefined,
+  vbdNamePlaceHolder: 'Disk adı',
 
   // Original text: 'Size'
-  vbdSizePlaceHolder: undefined,
+  vbdSizePlaceHolder: 'Boyut',
 
   // Original text: 'CD drive not completely installed'
-  cdDriveNotInstalled: undefined,
+  cdDriveNotInstalled: 'CD sürücü tamamen yüklenmedi',
 
   // Original text: 'Stop and start the VM to install the CD drive'
-  cdDriveInstallation: undefined,
+  cdDriveInstallation: "CD sürücüyü yüklemek için VM'i kapatıp açın",
 
   // Original text: 'Save'
-  saveBootOption: undefined,
+  saveBootOption: 'Kaydet',
 
   // Original text: 'Reset'
-  resetBootOption: undefined,
+  resetBootOption: 'Sıfırla',
 
   // Original text: 'Delete selected VDIs'
-  deleteSelectedVdis: undefined,
+  deleteSelectedVdis: "Seçilen VDI'ları sil",
 
   // Original text: 'Delete selected VDI'
-  deleteSelectedVdi: undefined,
+  deleteSelectedVdi: "Seçilen VDI'ı sil",
 
   // Original text: 'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)'
-  useQuotaWarning: undefined,
+  useQuotaWarning: "Disk oluşturma, kaynak setindeki disk kotasını kullanacak {resourceSet} (kalan {spaceLeft})",
 
   // Original text: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)'
-  notEnoughSpaceInResourceSet: undefined,
+  notEnoughSpaceInResourceSet: 'Kaynak setinde yeterli disk alanı yok {resourceSet} (kalan {spaceLeft})',
 
   // Original text: 'New device'
-  vifCreateDeviceButton: undefined,
+  vifCreateDeviceButton: 'Yeni cihaz',
 
   // Original text: 'No interface'
-  vifNoInterface: undefined,
+  vifNoInterface: 'Arabirim yok',
 
   // Original text: 'Device'
-  vifDeviceLabel: undefined,
+  vifDeviceLabel: 'Cihaz',
 
   // Original text: 'MAC address'
-  vifMacLabel: undefined,
+  vifMacLabel: 'MAC adresi',
 
   // Original text: 'MTU'
-  vifMtuLabel: undefined,
+  vifMtuLabel: 'MTU',
 
   // Original text: 'Network'
-  vifNetworkLabel: undefined,
+  vifNetworkLabel: 'Ağ',
 
   // Original text: 'Status'
-  vifStatusLabel: undefined,
+  vifStatusLabel: 'Status',
 
   // Original text: 'Connected'
-  vifStatusConnected: undefined,
+  vifStatusConnected: 'Bağlı',
 
   // Original text: 'Disconnected'
-  vifStatusDisconnected: undefined,
+  vifStatusDisconnected: 'Bağlı değil',
 
   // Original text: 'Connect'
-  vifConnect: undefined,
+  vifConnect: 'Bağlan',
 
   // Original text: 'Disconnect'
-  vifDisconnect: undefined,
+  vifDisconnect: 'Bağlantıyı kes',
 
   // Original text: 'Remove'
-  vifRemove: undefined,
+  vifRemove: 'Kaldır',
 
   // Original text: 'Remove selected VIFs'
-  vifsRemove: undefined,
+  vifsRemove: "Seçili VIF'ları kaldır",
 
   // Original text: 'IP addresses'
-  vifIpAddresses: undefined,
+  vifIpAddresses: 'IP adresleri',
 
   // Original text: 'Auto-generated if empty'
-  vifMacAutoGenerate: undefined,
+  vifMacAutoGenerate: 'Eğer boşsa otomatik oluştur',
 
   // Original text: 'Allowed IPs'
-  vifAllowedIps: undefined,
+  vifAllowedIps: "İzin verilen IP'ler",
 
   // Original text: 'No IPs'
-  vifNoIps: undefined,
+  vifNoIps: 'IP yok',
 
   // Original text: 'Network locked'
-  vifLockedNetwork: undefined,
+  vifLockedNetwork: 'Ağ kilitli',
 
   // Original text: 'Network locked and no IPs are allowed for this interface'
-  vifLockedNetworkNoIps: undefined,
+  vifLockedNetworkNoIps: 'Ağ kilitli ve bu arayüz için izin verilen IP yok',
 
   // Original text: 'Network not locked'
-  vifUnLockedNetwork: undefined,
+  vifUnLockedNetwork: 'Ağ kiltli değil',
 
   // Original text: 'Unknown network'
-  vifUnknownNetwork: undefined,
+  vifUnknownNetwork: 'Bilinmeyen ağ',
 
   // Original text: 'Action'
-  vifAction: undefined,
+  vifAction: 'Aksiyon',
 
   // Original text: 'Create'
-  vifCreate: undefined,
+  vifCreate: 'Oluştur',
 
   // Original text: 'No snapshots'
-  noSnapshots: undefined,
+  noSnapshots: 'Snapshot yok',
 
   // Original text: 'New snapshot'
-  snapshotCreateButton: undefined,
+  snapshotCreateButton: 'Yeni snapshot',
 
   // Original text: 'Just click on the snapshot button to create one!'
-  tipCreateSnapshotLabel: undefined,
+  tipCreateSnapshotLabel: 'Bir tane oluşturmak için snapshot butonuna tıklayın!',
 
   // Original text: 'Revert VM to this snapshot'
-  revertSnapshot: undefined,
+  revertSnapshot: "VM'i bu snapshot'a döndür",
 
   // Original text: 'Remove this snapshot'
-  deleteSnapshot: undefined,
+  deleteSnapshot: "Bu snapshot'ı kaldır",
 
   // Original text: 'Remove selected snapshots'
-  deleteSnapshots: undefined,
+  deleteSnapshots: "Seçili snapshot'ları kaldır",
 
   // Original text: 'Create a VM from this snapshot'
-  copySnapshot: undefined,
+  copySnapshot: "Bu snapshot'dan bir VM oluştur",
 
   // Original text: 'Export this snapshot'
-  exportSnapshot: undefined,
+  exportSnapshot: "Bu snapshot'ı dışa aktar",
 
   // Original text: 'Creation date'
-  snapshotDate: undefined,
+  snapshotDate: 'Oluşturma tarihi',
 
   // Original text: 'Name'
-  snapshotName: undefined,
+  snapshotName: 'Ad',
 
   // Original text: 'Description'
-  snapshotDescription: undefined,
+  snapshotDescription: 'Açıklama',
 
   // Original text: 'Action'
-  snapshotAction: undefined,
+  snapshotAction: 'Aksiyon',
 
   // Original text: 'Quiesced snapshot'
-  snapshotQuiesce: undefined,
+  snapshotQuiesce: 'Quiesced snapshot',
 
   // Original text: 'Remove all logs'
-  logRemoveAll: undefined,
+  logRemoveAll: 'Tüm günlükleri kaldır',
 
   // Original text: 'No logs so far'
-  noLogs: undefined,
+  noLogs: 'Hiç günlük yok',
 
   // Original text: 'Creation date'
-  logDate: undefined,
+  logDate: 'Oluşturma tarihi',
 
   // Original text: 'Name'
-  logName: undefined,
+  logName: 'Ad',
 
   // Original text: 'Content'
-  logContent: undefined,
+  logContent: 'İçerik',
 
   // Original text: 'Action'
-  logAction: undefined,
+  logAction: 'Aksiyon',
 
   // Original text: 'Remove'
-  vmRemoveButton: undefined,
+  vmRemoveButton: 'Kaldır',
 
   // Original text: 'Convert'
-  vmConvertButton: undefined,
+  vmConvertButton: 'Dönüştür',
 
   // Original text: 'Share'
-  vmShareButton: undefined,
+  vmShareButton: 'Paylaş',
 
   // Original text: 'Xen settings'
-  xenSettingsLabel: undefined,
+  xenSettingsLabel: 'Xen ayarları',
 
   // Original text: 'Guest OS'
-  guestOsLabel: undefined,
+  guestOsLabel: 'Konuk OS',
 
   // Original text: 'Misc'
-  miscLabel: undefined,
+  miscLabel: 'Çeşitli',
 
   // Original text: 'UUID'
-  uuid: undefined,
+  uuid: 'UUID',
 
   // Original text: 'Virtualization mode'
-  virtualizationMode: undefined,
+  virtualizationMode: 'Sanallaştırma modu',
 
   // Original text: 'CPU weight'
-  cpuWeightLabel: undefined,
+  cpuWeightLabel: 'CPU ağırlığı',
 
   // Original text: 'Default ({value, number})'
-  defaultCpuWeight: undefined,
+  defaultCpuWeight: 'Varsayılan ({value, number})',
 
   // Original text: 'CPU cap'
-  cpuCapLabel: undefined,
+  cpuCapLabel: 'CPU cap',
 
   // Original text: 'Default ({value, number})'
-  defaultCpuCap: undefined,
+  defaultCpuCap: 'Varsayılan ({value, number})',
 
   // Original text: 'PV args'
-  pvArgsLabel: undefined,
+  pvArgsLabel: 'PV argümanları',
 
   // Original text: 'Xen tools version'
-  xenToolsStatus: undefined,
+  xenToolsStatus: 'Xen tools sürümü',
 
   // Original text: 'OS name'
-  osName: undefined,
+  osName: 'OS adı',
 
   // Original text: 'OS kernel'
-  osKernel: undefined,
+  osKernel: 'OS çekirdeği',
 
   // Original text: 'Auto power on'
-  autoPowerOn: undefined,
+  autoPowerOn: 'Otomatik açılma',
 
   // Original text: 'HA'
-  ha: undefined,
+  ha: 'HA',
 
   // Original text: 'Affinity host'
-  vmAffinityHost: undefined,
+  vmAffinityHost: 'Atanmış sunucu',
 
   // Original text: 'VGA'
-  vmVga: undefined,
+  vmVga: 'VGA',
 
   // Original text: 'Video RAM'
-  vmVideoram: undefined,
+  vmVideoram: 'Video RAM',
 
   // Original text: 'None'
-  noAffinityHost: undefined,
+  noAffinityHost: 'Yok',
 
   // Original text: 'Original template'
   originalTemplate: undefined,
 
   // Original text: 'Unknown'
-  unknownOsName: undefined,
+  unknownOsName: 'Bilinmiyor',
 
   // Original text: 'Unknown'
-  unknownOsKernel: undefined,
+  unknownOsKernel: 'Bilinmiyor',
 
   // Original text: 'Unknown'
-  unknownOriginalTemplate: undefined,
+  unknownOriginalTemplate: 'Bilinmiyor',
 
   // Original text: 'VM limits'
-  vmLimitsLabel: undefined,
+  vmLimitsLabel: 'VM limitleri',
 
   // Original text: 'Resource set'
-  resourceSet: undefined,
+  resourceSet: 'Kaynak seti',
 
   // Original text: 'None'
-  resourceSetNone: undefined,
+  resourceSetNone: 'Yok',
 
   // Original text: 'CPU limits'
-  vmCpuLimitsLabel: undefined,
+  vmCpuLimitsLabel: 'CPU limitleri',
 
   // Original text: 'Topology'
-  vmCpuTopology: undefined,
+  vmCpuTopology: 'Topoloji',
 
   // Original text: 'Default behavior'
-  vmChooseCoresPerSocket: undefined,
+  vmChooseCoresPerSocket: 'Varsayılan davranış',
 
-  // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmCoresPerSocket: undefined,
+  // Original text: ' socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
+  vmCoresPerSocket: "{nSockets, number} soket ve her sokette  {nCores, number} çekirdek",
 
   // Original text: 'None'
-  vmCoresPerSocketNone: undefined,
+  vmCoresPerSocketNone: 'Yok',
 
   // Original text: 'Incorrect cores per socket value'
-  vmCoresPerSocketIncorrectValue: undefined,
+  vmCoresPerSocketIncorrectValue: 'Soket başına geçersiz çekirdek sayısı',
 
   // Original text: 'Please change the selected value to fix it.'
-  vmCoresPerSocketIncorrectValueSolution: undefined,
+  vmCoresPerSocketIncorrectValueSolution: 'Düzeltmek için lütfen seçili değeri değiştirin',
 
   // Original text: 'Memory limits (min/max)'
-  vmMemoryLimitsLabel: undefined,
+  vmMemoryLimitsLabel: "Bellek limiti (min/max)",
 
   // Original text: 'vCPUs max:'
-  vmMaxVcpus: undefined,
+  vmMaxVcpus: 'vCPUs max',
 
   // Original text: 'Memory max:'
-  vmMaxRam: undefined,
+  vmMaxRam: 'Bellek max',
 
   // Original text: 'vGPU'
-  vmVgpu: undefined,
+  vmVgpu: 'vGPU',
 
   // Original text: 'GPUs'
-  vmVgpus: undefined,
+  vmVgpus: "GPU'lar",
 
   // Original text: 'None'
-  vmVgpuNone: undefined,
+  vmVgpuNone: 'Yok',
 
   // Original text: 'Add vGPU'
-  vmAddVgpu: undefined,
+  vmAddVgpu: 'vGPU ekle',
 
   // Original text: 'Select vGPU type'
-  vmSelectVgpuType: undefined,
+  vmSelectVgpuType: 'vGPU tipini seçin',
 
   // Original text: 'Long click to add a name'
-  vmHomeNamePlaceholder: undefined,
+  vmHomeNamePlaceholder: 'İsim eklemek için uzun tıklayın',
 
   // Original text: 'Long click to add a description'
-  vmHomeDescriptionPlaceholder: undefined,
+  vmHomeDescriptionPlaceholder: 'Açıklama eklemek için uzun tıklayın',
 
   // Original text: 'Click to add a name'
-  vmViewNamePlaceholder: undefined,
+  vmViewNamePlaceholder: 'Ad eklemek için tıklayın',
 
   // Original text: 'Click to add a description'
-  vmViewDescriptionPlaceholder: undefined,
+  vmViewDescriptionPlaceholder: 'Açıklama eklemek için tıklayın',
 
   // Original text: 'Click to add a name'
-  templateHomeNamePlaceholder: undefined,
+  templateHomeNamePlaceholder: 'Ad eklemek için tıklayın',
 
   // Original text: 'Click to add a description'
-  templateHomeDescriptionPlaceholder: undefined,
+  templateHomeDescriptionPlaceholder: 'Açıklama eklemek için tıklayın',
 
   // Original text: 'Delete template'
-  templateDelete: undefined,
+  templateDelete: 'Kalıbı sil',
 
   // Original text: 'Delete VM template{templates, plural, one {} other {s}}'
-  templateDeleteModalTitle: undefined,
+  templateDeleteModalTitle: 'VM kalıbını(larını) sil',
 
   // Original text: 'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?'
-  templateDeleteModalBody: undefined,
+  templateDeleteModalBody: 'Kalıbı(ları) silmek istediğinize emin misiniz?',
 
   // Original text: 'Delete template{nTemplates, plural, one {} other {s}} failed'
-  failedToDeleteTemplatesTitle: undefined,
+  failedToDeleteTemplatesTitle: 'Kalıp silme başarısız',
 
   // Original text: 'Failed to delete {nTemplates, number} template{nTemplates, plural, one {} other {s}}.'
-  failedToDeleteTemplatesMessage: undefined,
+  failedToDeleteTemplatesMessage: 'Silme başarısız',
 
   // Original text: 'Delete default template{nDefaultTemplates, plural, one {} other {s}}'
-  deleteDefaultTemplatesTitle: undefined,
+  deleteDefaultTemplatesTitle: 'Varsayılan kalıbı(ları) sil',
 
   // Original text: 'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?'
-  deleteDefaultTemplatesMessage: undefined,
+  deleteDefaultTemplatesMessage: 'Varsayılan kalıbı(ları) silmeye çalışıyorsunuz. Devam etmek istiyor musunuz?',
 
   // Original text: 'Pool{pools, plural, one {} other {s}}'
-  poolPanel: undefined,
+  poolPanel: 'Havuz(lar)',
 
   // Original text: 'Host{hosts, plural, one {} other {s}}'
-  hostPanel: undefined,
+  hostPanel: 'Sunucu(lar)',
 
   // Original text: 'VM{vms, plural, one {} other {s}}'
-  vmPanel: undefined,
+  vmPanel: 'VM(ler)',
 
   // Original text: 'RAM Usage:'
-  memoryStatePanel: undefined,
+  memoryStatePanel: 'RAM Kullanımı',
 
   // Original text: 'Used Memory'
-  usedMemory: undefined,
+  usedMemory: 'Kullanılan Bellek',
 
   // Original text: 'Total Memory'
-  totalMemory: undefined,
+  totalMemory: 'Toplam Bellek',
 
   // Original text: 'CPUs Total'
-  totalCpus: undefined,
+  totalCpus: 'Toplam CPU',
 
   // Original text: 'Used vCPUs'
-  usedVCpus: undefined,
+  usedVCpus: 'Kullanılan vCPU',
 
   // Original text: 'Used Space'
-  usedSpace: undefined,
+  usedSpace: 'Kullanılan Alan',
 
   // Original text: 'Total Space'
-  totalSpace: undefined,
+  totalSpace: 'Toplam Alan',
 
   // Original text: 'CPUs Usage'
-  cpuStatePanel: undefined,
+  cpuStatePanel: "CPU'ların Kullanımı",
 
   // Original text: 'VMs Power state'
-  vmStatePanel: undefined,
+  vmStatePanel: "VM'lerin Güç durumu",
 
   // Original text: 'Halted'
-  vmStateHalted: undefined,
+  vmStateHalted: 'Durduruldu',
 
   // Original text: 'Other'
-  vmStateOther: undefined,
+  vmStateOther: 'Diğer',
 
   // Original text: 'Running'
-  vmStateRunning: undefined,
+  vmStateRunning: 'Çalışıyor',
 
   // Original text: 'All'
-  vmStateAll: undefined,
+  vmStateAll: 'Hepsi',
 
   // Original text: 'Pending tasks'
-  taskStatePanel: undefined,
+  taskStatePanel: 'Bekleyen görevler',
 
   // Original text: 'Users'
-  usersStatePanel: undefined,
+  usersStatePanel: 'Kullanıcılar',
 
   // Original text: 'Storage state'
-  srStatePanel: undefined,
+  srStatePanel: 'Depolama ünitesi durumu',
 
   // Original text: '{usage} (of {total})'
-  ofUsage: undefined,
+  ofUsage: "{usage} (of {total})",
 
   // Original text: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})'
-  ofCpusUsage: undefined,
+  ofCpusUsage: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
 
   // Original text: 'No storage'
-  noSrs: undefined,
+  noSrs: 'Depolama ünitesi yok',
 
   // Original text: 'Name'
-  srName: undefined,
+  srName: 'Ad',
 
   // Original text: 'Pool'
-  srPool: undefined,
+  srPool: 'Havuz',
 
   // Original text: 'Host'
-  srHost: undefined,
+  srHost: 'Sunucu',
 
   // Original text: 'Type'
-  srFormat: undefined,
+  srFormat: 'Tip',
 
   // Original text: 'Size'
-  srSize: undefined,
+  srSize: 'Boyut',
 
   // Original text: 'Usage'
-  srUsage: undefined,
+  srUsage: 'Kullanım',
 
   // Original text: 'used'
-  srUsed: undefined,
+  srUsed: 'kullnıldı',
 
   // Original text: 'free'
-  srFree: undefined,
+  srFree: 'boş',
 
   // Original text: 'Storage Usage'
-  srUsageStatePanel: undefined,
+  srUsageStatePanel: 'Depolama Ünitesi Kullanımı',
 
   // Original text: 'Top 5 SR Usage (in %)'
-  srTopUsageStatePanel: undefined,
+  srTopUsageStatePanel: 'En çok kullanılan 5 SR (% olarak)',
 
   // Original text: 'Not enough permissions!'
-  notEnoughPermissionsError: undefined,
+  notEnoughPermissionsError: 'Yetersiz yetki!',
 
   // Original text: '{running, number} running ({halted, number} halted)'
-  vmsStates: undefined,
+  vmsStates: '{running, number} çalışıyor ({halted, number} durduruldu)',
 
   // Original text: 'Clear selection'
-  dashboardStatsButtonRemoveAll: undefined,
+  dashboardStatsButtonRemoveAll: 'Seçimi temizle',
 
   // Original text: 'Add all hosts'
-  dashboardStatsButtonAddAllHost: undefined,
+  dashboardStatsButtonAddAllHost: 'Tüm sunucuları ekle',
 
   // Original text: 'Add all VMs'
-  dashboardStatsButtonAddAllVM: undefined,
+  dashboardStatsButtonAddAllVM: "Tüm VM'leri ekle",
 
   // Original text: 'Send report'
-  dashboardSendReport: undefined,
+  dashboardSendReport: 'Rapor gönder',
 
   // Original text: 'Report'
-  dashboardReport: undefined,
+  dashboardReport: 'Rapor',
 
   // Original text: 'This will send a usage report to your configured emails.'
-  dashboardSendReportMessage: undefined,
+  dashboardSendReportMessage: 'Bu işlem ayarlanmış eposta adreslerine kullanım raporu gönderecek.',
 
   // Original text: 'The usage report and transport email plugins need to be loaded!'
-  dashboardSendReportInfo: undefined,
+  dashboardSendReportInfo: "'usage report' ve 'transport email' eklentilerinin yüklenmesi gerekli!",
 
   // Original text: '{value} {date, date, medium}'
-  weekHeatmapData: undefined,
+  weekHeatmapData: '{value} {date, date, medium}',
 
   // Original text: 'No data.'
-  weekHeatmapNoData: undefined,
+  weekHeatmapNoData: 'Veri yok.',
 
   // Original text: 'Weekly Heatmap'
-  weeklyHeatmap: undefined,
+  weeklyHeatmap: 'Haftalık Sıcaklık Haritası',
 
   // Original text: 'Weekly Charts'
-  weeklyCharts: undefined,
+  weeklyCharts: 'Haftalık Grafikler',
 
   // Original text: 'Synchronize scale:'
-  weeklyChartsScaleInfo: undefined,
+  weeklyChartsScaleInfo: 'Ölçeği senkronize et:',
 
   // Original text: 'Stats error'
-  statsDashboardGenericErrorTitle: undefined,
+  statsDashboardGenericErrorTitle: 'Durum hatası',
 
   // Original text: 'There is no stats available for:'
-  statsDashboardGenericErrorMessage: undefined,
+  statsDashboardGenericErrorMessage: 'Şunun için istatistik mevcut değil:',
 
   // Original text: 'No selected metric'
-  noSelectedMetric: undefined,
+  noSelectedMetric: 'Seçilen metrik yok',
 
   // Original text: 'Select'
-  statsDashboardSelectObjects: undefined,
+  statsDashboardSelectObjects: 'Seç',
 
   // Original text: 'Loading…'
-  metricsLoading: undefined,
+  metricsLoading: 'Yükleniyor...',
 
   // Original text: 'Coming soon!'
-  comingSoon: undefined,
+  comingSoon: 'Yakında!',
 
   // Original text: 'Orphaned snapshot VDIs'
-  orphanedVdis: undefined,
+  orphanedVdis: "Yetim snapshot VDI'ları",
 
   // Original text: 'Orphaned VMs snapshot'
-  orphanedVms: undefined,
+  orphanedVms: "Yetim VM'lerin snapshot'ı",
 
   // Original text: 'No orphans'
-  noOrphanedObject: undefined,
+  noOrphanedObject: 'Yetim yok',
 
   // Original text: 'Remove all orphaned snapshot VDIs'
-  removeAllOrphanedObject: undefined,
+  removeAllOrphanedObject: "Tüm yetim snapshot VDI'larını kaldır",
 
   // Original text: 'VDIs attached to Control Domain'
-  vdisOnControlDomain: undefined,
+  vdisOnControlDomain: "Kontrol Domain'e takılı VDI'lar",
 
   // Original text: 'Name'
-  vmNameLabel: undefined,
+  vmNameLabel: 'Ad',
 
   // Original text: 'Description'
-  vmNameDescription: undefined,
+  vmNameDescription: 'Açıklama',
 
   // Original text: 'Resident on'
-  vmContainer: undefined,
+  vmContainer: 'Üzerinde',
 
   // Original text: 'Alarms'
-  alarmMessage: undefined,
+  alarmMessage: 'Alarmlar',
 
   // Original text: 'No alarms'
-  noAlarms: undefined,
+  noAlarms: 'Alarm yok',
 
   // Original text: 'Date'
-  alarmDate: undefined,
+  alarmDate: 'Tarih',
 
   // Original text: 'Content'
-  alarmContent: undefined,
+  alarmContent: 'İçerik',
 
   // Original text: 'Issue on'
-  alarmObject: undefined,
+  alarmObject: 'Sorun üzerinde',
 
   // Original text: 'Pool'
-  alarmPool: undefined,
+  alarmPool: 'Havuz',
 
   // Original text: 'Remove all alarms'
-  alarmRemoveAll: undefined,
+  alarmRemoveAll: 'Tüm alarmları kaldır',
 
   // Original text: '{used}% used ({free} left)'
-  spaceLeftTooltip: undefined,
+  spaceLeftTooltip: "{used}% kullanılıyor ({free} boş)",
 
   // Original text: 'Create a new VM on {select}'
-  newVmCreateNewVmOn: undefined,
+  newVmCreateNewVmOn: '{select} üzerinden yeni bir VM oluştur',
 
   // Original text: 'You have no permission to create a VM'
-  newVmCreateNewVmNoPermission: undefined,
+  newVmCreateNewVmNoPermission: 'Yeni VM oluşturmak için yetkiniz yok',
 
   // Original text: 'Infos'
-  newVmInfoPanel: undefined,
+  newVmInfoPanel: 'Bilgiler',
 
   // Original text: 'Name'
-  newVmNameLabel: undefined,
+  newVmNameLabel: 'Ad',
 
   // Original text: 'Template'
-  newVmTemplateLabel: undefined,
+  newVmTemplateLabel: 'Kalıp',
 
   // Original text: 'Description'
-  newVmDescriptionLabel: undefined,
+  newVmDescriptionLabel: 'Açıklama',
 
   // Original text: 'Performances'
-  newVmPerfPanel: undefined,
+  newVmPerfPanel: 'Performanslar',
 
   // Original text: 'vCPUs'
-  newVmVcpusLabel: undefined,
+  newVmVcpusLabel: "vCPU'lar",
 
   // Original text: 'RAM'
-  newVmRamLabel: undefined,
+  newVmRamLabel: 'RAM',
 
   // Original text: 'Static memory max'
-  newVmStaticMaxLabel: undefined,
+  newVmStaticMaxLabel: 'En fazla statik bellek',
 
   // Original text: 'Dynamic memory min'
-  newVmDynamicMinLabel: undefined,
+  newVmDynamicMinLabel: 'En az dinamik bellek',
 
   // Original text: 'Dynamic memory max'
-  newVmDynamicMaxLabel: undefined,
+  newVmDynamicMaxLabel: 'En fazla dinamik bellek',
 
   // Original text: 'Install settings'
-  newVmInstallSettingsPanel: undefined,
+  newVmInstallSettingsPanel: 'Ayarları yükle',
 
   // Original text: 'ISO/DVD'
-  newVmIsoDvdLabel: undefined,
+  newVmIsoDvdLabel: 'ISO/DVD',
 
   // Original text: 'Network'
-  newVmNetworkLabel: undefined,
+  newVmNetworkLabel: 'Ağ',
 
   // Original text: 'e.g: http://httpredir.debian.org/debian'
-  newVmInstallNetworkPlaceHolder: undefined,
+  newVmInstallNetworkPlaceHolder: 'örn: http://httpredir.debian.org/debian',
 
   // Original text: 'PV Args'
-  newVmPvArgsLabel: undefined,
+  newVmPvArgsLabel: 'PV Args',
 
   // Original text: 'PXE'
-  newVmPxeLabel: undefined,
+  newVmPxeLabel: 'PXE',
 
   // Original text: 'Interfaces'
-  newVmInterfacesPanel: undefined,
+  newVmInterfacesPanel: 'Arayüzler',
 
   // Original text: 'MAC'
-  newVmMacLabel: undefined,
+  newVmMacLabel: 'MAC',
 
   // Original text: 'Add interface'
-  newVmAddInterface: undefined,
+  newVmAddInterface: 'Arayüz ekle',
 
   // Original text: 'Disks'
-  newVmDisksPanel: undefined,
+  newVmDisksPanel: 'Diskler',
 
   // Original text: 'SR'
-  newVmSrLabel: undefined,
+  newVmSrLabel: 'SR',
 
   // Original text: 'Size'
-  newVmSizeLabel: undefined,
+  newVmSizeLabel: 'Boyut',
 
   // Original text: 'Add disk'
-  newVmAddDisk: undefined,
+  newVmAddDisk: 'Disk ekle',
 
   // Original text: 'Summary'
-  newVmSummaryPanel: undefined,
+  newVmSummaryPanel: 'Özet',
 
   // Original text: 'Create'
-  newVmCreate: undefined,
+  newVmCreate: 'Oluştur',
 
   // Original text: 'Reset'
-  newVmReset: undefined,
+  newVmReset: 'Sıfırla',
 
   // Original text: 'Select template'
-  newVmSelectTemplate: undefined,
+  newVmSelectTemplate: 'Kalıp seç',
 
   // Original text: 'SSH key'
-  newVmSshKey: undefined,
+  newVmSshKey: 'SSH anahtarı',
 
   // Original text: 'Config drive'
-  newVmConfigDrive: undefined,
+  newVmConfigDrive: 'Sürücü yapılandır',
 
   // Original text: 'Custom config'
-  newVmCustomConfig: undefined,
+  newVmCustomConfig: 'Özel yapılandırma',
 
   // Original text: 'Boot VM after creation'
-  newVmBootAfterCreate: undefined,
+  newVmBootAfterCreate: "Oluşturduktan sonra VM'i çalıştır",
 
   // Original text: 'Auto-generated if empty'
-  newVmMacPlaceholder: undefined,
+  newVmMacPlaceholder: 'Eğer boşsa otomatik oluştur',
 
   // Original text: 'CPU weight'
-  newVmCpuWeightLabel: undefined,
+  newVmCpuWeightLabel: 'CPU ağırlığı',
 
   // Original text: 'Default: {value, number}'
-  newVmDefaultCpuWeight: undefined,
+  newVmDefaultCpuWeight: 'Varsayılan: {value, number}',
 
   // Original text: 'CPU cap'
-  newVmCpuCapLabel: undefined,
+  newVmCpuCapLabel: 'CPU cap',
 
   // Original text: 'Default: {value, number}'
-  newVmDefaultCpuCap: undefined,
+  newVmDefaultCpuCap: 'Varsayılan: {value, number}',
 
   // Original text: 'Cloud config'
-  newVmCloudConfig: undefined,
+  newVmCloudConfig: 'Bulut yapılandırması',
 
   // Original text: 'Create VMs'
-  newVmCreateVms: undefined,
+  newVmCreateVms: 'VM oluştur',
 
   // Original text: 'Are you sure you want to create {nbVms, number} VMs?'
-  newVmCreateVmsConfirm: undefined,
+  newVmCreateVmsConfirm: '{nbVms, number} adet VM oluşturmak istediğinize emin misiniz?',
 
   // Original text: 'Multiple VMs:'
-  newVmMultipleVms: undefined,
+  newVmMultipleVms: 'Çoklu VM',
 
   // Original text: 'Select a resource set:'
-  newVmSelectResourceSet: undefined,
+  newVmSelectResourceSet: 'Bir kaynak seti seç',
 
   // Original text: 'Name pattern:'
-  newVmMultipleVmsPattern: undefined,
+  newVmMultipleVmsPattern: 'Ad deseni:',
 
   // Original text: 'e.g.: \\{name\\}_%'
-  newVmMultipleVmsPatternPlaceholder: undefined,
+  newVmMultipleVmsPatternPlaceholder: "örn: \\{name\\}_%",
 
   // Original text: 'First index:'
-  newVmFirstIndex: undefined,
+  newVmFirstIndex: 'İlk indeks',
 
   // Original text: 'Recalculate VMs number'
-  newVmNumberRecalculate: undefined,
+  newVmNumberRecalculate: 'VM sayısını tekrar hesapla',
 
   // Original text: 'Refresh VMs name'
-  newVmNameRefresh: undefined,
+  newVmNameRefresh: 'VM isimlerini yenile',
 
   // Original text: 'Affinity host'
-  newVmAffinityHost: undefined,
+  newVmAffinityHost: 'Atanmış sunucu',
 
   // Original text: 'Advanced'
-  newVmAdvancedPanel: undefined,
+  newVmAdvancedPanel: 'Gelişmiş',
 
   // Original text: 'Show advanced settings'
-  newVmShowAdvanced: undefined,
+  newVmShowAdvanced: 'Gelişmiş ayarları göster',
 
   // Original text: 'Hide advanced settings'
-  newVmHideAdvanced: undefined,
+  newVmHideAdvanced: 'Gelişmiş ayarları gizle',
 
   // Original text: 'Share this VM'
-  newVmShare: undefined,
+  newVmShare: "Bu VM'i paylaş",
 
   // Original text: 'Resource sets'
-  resourceSets: undefined,
+  resourceSets: 'Kaynak setleri',
 
   // Original text: 'No resource sets.'
-  noResourceSets: undefined,
+  noResourceSets: 'Kaynak seti yok.',
 
   // Original text: 'Loading resource sets'
-  loadingResourceSets: undefined,
+  loadingResourceSets: 'Kaynak setleri yükleniyor',
 
   // Original text: 'Resource set name'
-  resourceSetName: undefined,
+  resourceSetName: 'Kaynak seti adı',
 
   // Original text: 'Users'
-  resourceSetUsers: undefined,
+  resourceSetUsers: 'Kullanıcılar',
 
   // Original text: 'Pools'
-  resourceSetPools: undefined,
+  resourceSetPools: 'Havuzlar',
 
   // Original text: 'Templates'
-  resourceSetTemplates: undefined,
+  resourceSetTemplates: 'Kalıplar',
 
   // Original text: 'SRs'
-  resourceSetSrs: undefined,
+  resourceSetSrs: "SR'ler",
 
   // Original text: 'Networks'
-  resourceSetNetworks: undefined,
+  resourceSetNetworks: 'Ağlar',
 
   // Original text: 'Recompute all limits'
-  recomputeResourceSets: undefined,
+  recomputeResourceSets: 'Tüm limitleri tekrar hesapla',
 
   // Original text: 'Save'
-  saveResourceSet: undefined,
+  saveResourceSet: 'Kaydet',
 
   // Original text: 'Reset'
-  resetResourceSet: undefined,
+  resetResourceSet: 'Sıfırla',
 
   // Original text: 'Edit'
-  editResourceSet: undefined,
+  editResourceSet: 'Düzenle',
 
   // Original text: 'Delete'
-  deleteResourceSet: undefined,
+  deleteResourceSet: 'Sil',
 
   // Original text: 'Delete resource set'
-  deleteResourceSetWarning: undefined,
+  deleteResourceSetWarning: 'Kaynak setini sil',
 
   // Original text: 'Are you sure you want to delete this resource set?'
-  deleteResourceSetQuestion: undefined,
+  deleteResourceSetQuestion: 'Bu kaynak setini silmek istediğinize emin misiniz?',
 
   // Original text: 'Missing objects:'
-  resourceSetMissingObjects: undefined,
+  resourceSetMissingObjects: 'Eksik nesneler:',
 
   // Original text: 'vCPUs'
-  resourceSetVcpus: undefined,
+  resourceSetVcpus: "vCPU'lar",
 
   // Original text: 'Memory'
-  resourceSetMemory: undefined,
+  resourceSetMemory: 'Bellek',
 
   // Original text: 'Storage'
-  resourceSetStorage: undefined,
+  resourceSetStorage: 'Depolama Ünitesi',
 
   // Original text: 'Unknown'
-  unknownResourceSetValue: undefined,
+  unknownResourceSetValue: 'Bilinmeyen',
 
   // Original text: 'Available hosts'
-  availableHosts: undefined,
+  availableHosts: 'Uygun sunucular',
 
   // Original text: 'Excluded hosts'
-  excludedHosts: undefined,
+  excludedHosts: 'Hariç tutulan sunucular',
 
   // Original text: 'No hosts available.'
-  noHostsAvailable: undefined,
+  noHostsAvailable: 'Uygun sunucu yok',
 
   // Original text: 'VMs created from this resource set shall run on the following hosts.'
-  availableHostsDescription: undefined,
+  availableHostsDescription: 'Bu kaynak setinden oluşturulan sanal makineler aşağıdaki sunucularda çalışacak.',
 
   // Original text: 'Maximum CPUs'
-  maxCpus: undefined,
+  maxCpus: 'En fazla CPU',
 
   // Original text: 'Maximum RAM'
-  maxRam: undefined,
+  maxRam: 'En fazla RAM',
 
   // Original text: 'Maximum disk space'
-  maxDiskSpace: undefined,
+  maxDiskSpace: 'En fazla disk alanı',
 
   // Original text: 'IP pool'
-  ipPool: undefined,
+  ipPool: 'IP havuzu',
 
   // Original text: 'Quantity'
-  quantity: undefined,
+  quantity: 'Adet',
 
   // Original text: 'No limits.'
-  noResourceSetLimits: undefined,
+  noResourceSetLimits: 'Limitsiz',
 
   // Original text: 'Remaining:'
-  remainingResource: undefined,
+  remainingResource: 'Kalan:',
 
   // Original text: 'Used'
-  usedResourceLabel: undefined,
+  usedResourceLabel: 'Kullanılan',
 
   // Original text: 'Available'
-  availableResourceLabel: undefined,
+  availableResourceLabel: 'Uygun',
 
   // Original text: 'Used: {usage} (Total: {total})'
-  resourceSetQuota: undefined,
+  resourceSetQuota: 'Kullanılan: {usage} (Toplam: {total})',
 
   // Original text: 'New'
-  resourceSetNew: undefined,
+  resourceSetNew: 'Yeni',
 
   // Original text: 'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.'
-  importVmsList: undefined,
+  importVmsList: 'Buraya VM dosyaları sürüklemeyi deneyin veya tıklayarak bir VM dosyası seçin. Yalnızca .xva/.ova dosyaları kabul edilir.',
 
   // Original text: 'No selected VMs.'
-  noSelectedVms: undefined,
+  noSelectedVms: 'Seçili VM yok',
 
   // Original text: 'To Pool:'
-  vmImportToPool: undefined,
+  vmImportToPool: 'Havuz:',
 
   // Original text: 'To SR:'
-  vmImportToSr: undefined,
+  vmImportToSr: 'SR:',
 
   // Original text: 'VMs to import'
-  vmsToImport: undefined,
+  vmsToImport: "içe aktarılacak VM'ler",
 
   // Original text: 'Reset'
-  importVmsCleanList: undefined,
+  importVmsCleanList: 'Sıfırla',
 
   // Original text: 'VM import success'
-  vmImportSuccess: undefined,
+  vmImportSuccess: 'VM içe aktarma başarılı',
 
   // Original text: 'VM import failed'
-  vmImportFailed: undefined,
+  vmImportFailed: 'VM içe aktarma başarısız',
 
   // Original text: 'Error on setting the VM: {vm}'
-  setVmFailed: undefined,
+  setVmFailed: "Şu VM'in ayarlarında hata: {vm}",
 
   // Original text: 'Import starting…'
-  startVmImport: undefined,
+  startVmImport: 'İçe aktarma başlatılıyor...',
 
   // Original text: 'Export starting…'
-  startVmExport: undefined,
+  startVmExport: 'Dışa aktarma başlatılıyor...',
 
   // Original text: 'N CPUs'
-  nCpus: undefined,
+  nCpus: 'N CPU',
 
   // Original text: 'Memory'
-  vmMemory: undefined,
+  vmMemory: 'Bellek',
 
   // Original text: 'Disk {position} ({capacity})'
-  diskInfo: undefined,
+  diskInfo: 'Disk {position} ({capacity})',
 
   // Original text: 'Disk description'
-  diskDescription: undefined,
+  diskDescription: 'Disk Açıklaması',
 
   // Original text: 'No disks.'
-  noDisks: undefined,
+  noDisks: 'Disk yok.',
 
   // Original text: 'No networks.'
-  noNetworks: undefined,
+  noNetworks: 'Ağ yok.',
 
   // Original text: 'Network {name}'
-  networkInfo: undefined,
+  networkInfo: 'Ağ {name}',
 
   // Original text: 'No description available'
-  noVmImportErrorDescription: undefined,
+  noVmImportErrorDescription: 'Uygun açıklama yok',
 
   // Original text: 'Error:'
-  vmImportError: undefined,
+  vmImportError: 'Hata',
 
   // Original text: '{type} file:'
-  vmImportFileType: undefined,
+  vmImportFileType: '{type} dosyası:',
 
   // Original text: 'Please to check and/or modify the VM configuration.'
-  vmImportConfigAlert: undefined,
+  vmImportConfigAlert: 'Lütfen VM ayarlarını kontrol edin ve/veya değiştirin.',
 
   // Original text: 'No pending tasks'
-  noTasks: undefined,
+  noTasks: 'Bekleyen görev yok',
 
   // Original text: 'Currently, there are not any pending XenServer tasks'
-  xsTasks: undefined,
+  xsTasks: 'Şu anda bekleyen hiç XenServer görevi yok',
 
   // Original text: 'Cancel'
-  cancelTask: undefined,
+  cancelTask: 'İptal',
 
   // Original text: 'Destroy'
-  destroyTask: undefined,
+  destroyTask: 'İmha et',
 
   // Original text: 'Cancel selected tasks'
-  cancelTasks: undefined,
+  cancelTasks: 'Seçili işleri iptal et',
 
   // Original text: 'Destroy selected tasks'
-  destroyTasks: undefined,
+  destroyTasks: 'Seçili işleri imha et',
 
   // Original text: 'Pool'
-  pool: undefined,
+  pool: 'Havuz',
 
   // Original text: 'Task'
-  task: undefined,
+  task: 'Görev',
 
   // Original text: 'Progress'
-  progress: undefined,
+  progress: 'İlerleme',
 
   // Original text: 'Schedules'
-  backupSchedules: undefined,
+  backupSchedules: 'Zamanlamalar',
 
   // Original text: 'Saved schedules'
-  backupSavedSchedules: undefined,
+  backupSavedSchedules: 'Kayıtlı zamanlamalar',
 
   // Original text: 'New schedules'
-  backupNewSchedules: undefined,
+  backupNewSchedules: 'Yeni zamanlama',
 
   // Original text: 'Cron pattern'
-  scheduleCron: undefined,
+  scheduleCron: 'Cron kalıbı:',
 
   // Original text: 'Name'
-  scheduleName: undefined,
+  scheduleName: 'Ad',
 
   // Original text: 'Timezone'
-  scheduleTimezone: undefined,
+  scheduleTimezone: 'Saat dilimi',
 
   // Original text: 'Export ret.'
-  scheduleExportRetention: undefined,
+  scheduleExportRetention: 'Yedekleme döngüsü',
 
   // Original text: 'Snapshot ret.'
-  scheduleSnapshotRetention: undefined,
+  scheduleSnapshotRetention: 'Snaphost döngüsü',
 
   // Original text: 'Get remote'
-  getRemote: undefined,
+  getRemote: 'Hedef getir',
 
   // Original text: 'List Remote'
-  listRemote: undefined,
+  listRemote: 'Hedefleri listele',
 
   // Original text: 'simple'
-  simpleBackup: undefined,
+  simpleBackup: 'Basit',
 
   // Original text: 'delta'
-  delta: undefined,
+  delta: 'Fark',
 
   // Original text: 'Restore Backups'
-  restoreBackups: undefined,
+  restoreBackups: 'Yedeği geri yükle',
 
   // Original text: 'Click on a VM to display restore options'
-  restoreBackupsInfo: undefined,
+  restoreBackupsInfo: "Geri getirme seçenekleri için bir VM'e tıklayın",
 
   // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
-  restoreDeltaBackupsInfo: undefined,
+  restoreDeltaBackupsInfo: 'Yalnızca SMB hedefinde olmayan fark yedeklerinden dosya alınabilir',
 
   // Original text: 'Enabled'
-  remoteEnabled: undefined,
+  remoteEnabled: 'Etkin',
 
   // Original text: 'Error'
-  remoteError: undefined,
+  remoteError: 'Hata',
 
   // Original text: 'No backup available'
-  noBackup: undefined,
+  noBackup: 'Uygun yedek yok',
 
   // Original text: 'VM Name'
-  backupVmNameColumn: undefined,
+  backupVmNameColumn: 'VM adı',
 
   // Original text: 'VM Description'
-  backupVmDescriptionColumn: undefined,
+  backupVmDescriptionColumn: 'VM Açıklaması',
 
   // Original text: 'Tags'
-  backupTags: undefined,
+  backupTags: 'Etiketler',
 
   // Original text: 'Oldest backup'
-  firstBackupColumn: undefined,
+  firstBackupColumn: 'En eski yedek',
 
   // Original text: 'Latest backup'
-  lastBackupColumn: undefined,
+  lastBackupColumn: 'En yeni yedek',
 
   // Original text: 'Available Backups'
-  availableBackupsColumn: undefined,
+  availableBackupsColumn: 'Uygun Yedekler',
 
   // Original text: 'Missing parameters'
-  backupRestoreErrorTitle: undefined,
+  backupRestoreErrorTitle: 'Eksik parametreler',
 
   // Original text: 'Choose a SR and a backup'
-  backupRestoreErrorMessage: undefined,
+  backupRestoreErrorMessage: 'Bir SR ve bir yedek seçin',
 
   // Original text: 'Select default SR…'
-  backupRestoreSelectDefaultSr: undefined,
+  backupRestoreSelectDefaultSr: 'Varsayılan SR seçin...',
 
   // Original text: 'Choose a SR for each VDI'
-  backupRestoreChooseSrForEachVdis: undefined,
+  backupRestoreChooseSrForEachVdis: 'Her VDI için bir SR seçin',
 
   // Original text: 'VDI'
-  backupRestoreVdiLabel: undefined,
+  backupRestoreVdiLabel: 'VDI',
 
   // Original text: 'SR'
-  backupRestoreSrLabel: undefined,
+  backupRestoreSrLabel: 'SR',
 
   // Original text: 'Display backups'
-  displayBackup: undefined,
+  displayBackup: 'Yedekleri görüntüle',
 
   // Original text: 'Import VM'
-  importBackupTitle: undefined,
+  importBackupTitle: 'VM içe katar',
 
   // Original text: 'Starting your backup import'
-  importBackupMessage: undefined,
+  importBackupMessage: 'Yedek içe aktarma başlatılıyor',
 
   // Original text: 'VMs to backup'
-  vmsToBackup: undefined,
+  vmsToBackup: "Yedeklenecek VM'ler",
 
   // Original text: 'Refresh backup list'
-  restoreResfreshList: undefined,
+  restoreResfreshList: 'Yedek listesini yenile',
 
   // Original text: 'Restore'
-  restoreVmBackups: undefined,
+  restoreVmBackups: 'Geri yükle',
 
   // Original text: 'Restore {vm}'
-  restoreVmBackupsTitle: undefined,
+  restoreVmBackupsTitle: 'Geri yükle {vm}',
 
   // Original text: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}'
-  restoreVmBackupsBulkTitle: undefined,
+  restoreVmBackupsBulkTitle: '{nVms, number} VM geri yükle',
 
   // Original text: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.'
-  restoreVmBackupsBulkMessage: undefined,
+  restoreVmBackupsBulkMessage: "{oldestOrLatest} yedekten {nVms, number} VM geri yükle",
 
   // Original text: 'oldest'
-  oldest: undefined,
+  oldest: 'En eski',
 
   // Original text: 'latest'
-  latest: undefined,
+  latest: 'En yeni',
 
   // Original text: 'Start VM{nVms, plural, one {} other {s}} after restore'
-  restoreVmBackupsStart: undefined,
+  restoreVmBackupsStart: "Geri yüklemeden sonra VM'i(leri) başlat",
 
   // Original text: 'Multi-restore error'
-  restoreVmBackupsBulkErrorTitle: undefined,
+  restoreVmBackupsBulkErrorTitle: 'Çoklu geri yüklemede hata',
 
   // Original text: 'You need to select a destination SR'
-  restoreVmBackupsBulkErrorMessage: undefined,
+  restoreVmBackupsBulkErrorMessage: 'Bir hedef SR seçmelisiniz',
 
   // Original text: 'Delete backups…'
-  deleteVmBackups: undefined,
+  deleteVmBackups: 'Yedek sil...',
 
   // Original text: 'Delete {vm} backups'
-  deleteVmBackupsTitle: undefined,
+  deleteVmBackupsTitle: '{vm} yedeklerini sil',
 
   // Original text: 'Select backups to delete:'
-  deleteVmBackupsSelect: undefined,
+  deleteVmBackupsSelect: 'Silinecek yedekleri seçin:',
 
   // Original text: 'All'
-  deleteVmBackupsSelectAll: undefined,
+  deleteVmBackupsSelectAll: 'Hepsi',
 
   // Original text: 'Delete backups'
-  deleteVmBackupsBulkTitle: undefined,
+  deleteVmBackupsBulkTitle: 'Yedekleri sil',
 
   // Original text: 'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?'
-  deleteVmBackupsBulkMessage: undefined,
+  deleteVmBackupsBulkMessage: "{nVms, number} VM'e ait tüm yedekleri silmek istediğinize emin misiniz?",
 
   // Original text: 'delete {nBackups} backup{nBackups, plural, one {} other {s}}'
-  deleteVmBackupsBulkConfirmText: undefined,
+  deleteVmBackupsBulkConfirmText: 'Yedeği(leri) sil',
 
   // Original text: 'List remote backups'
-  listRemoteBackups: undefined,
+  listRemoteBackups: 'Uzak yedekleri listele',
 
   // Original text: 'Restore backup files'
-  restoreFiles: undefined,
+  restoreFiles: 'Yedek dosyalarını geri yükle',
 
   // Original text: 'Invalid options'
-  restoreFilesError: undefined,
+  restoreFilesError: 'Geçersiz seçenekler',
 
   // Original text: 'Restore file from {name}'
-  restoreFilesFromBackup: undefined,
+  restoreFilesFromBackup: 'Şuradan dosya al {name}',
 
   // Original text: 'Select a backup…'
-  restoreFilesSelectBackup: undefined,
+  restoreFilesSelectBackup: 'Bir yedek seç...',
 
   // Original text: 'Select a disk…'
-  restoreFilesSelectDisk: undefined,
+  restoreFilesSelectDisk: 'Bir disk seç...',
 
   // Original text: 'Select a partition…'
-  restoreFilesSelectPartition: undefined,
+  restoreFilesSelectPartition: 'Bir disk bölümü seçin...',
 
   // Original text: 'Folder path'
-  restoreFilesSelectFolderPath: undefined,
+  restoreFilesSelectFolderPath: 'Dizin yolu',
 
   // Original text: 'Select a file…'
-  restoreFilesSelectFiles: undefined,
+  restoreFilesSelectFiles: 'Bir dosya seçin...',
 
   // Original text: 'Content not found'
-  restoreFileContentNotFound: undefined,
+  restoreFileContentNotFound: 'İçerik bulunamadı',
 
   // Original text: 'No files selected'
-  restoreFilesNoFilesSelected: undefined,
+  restoreFilesNoFilesSelected: 'Hiç dosya seçilmedi',
 
   // Original text: 'Selected files ({files}):'
-  restoreFilesSelectedFiles: undefined,
+  restoreFilesSelectedFiles: 'Seçilen dosyalar ({files})',
 
   // Original text: 'Error while scanning disk'
-  restoreFilesDiskError: undefined,
+  restoreFilesDiskError: 'Disk tarama esnasında hata',
 
   // Original text: "Select all this folder's files"
-  restoreFilesSelectAllFiles: undefined,
+  restoreFilesSelectAllFiles: 'Bu dizinin tüm dosyalarını seç',
 
   // Original text: 'Unselect all files'
-  restoreFilesUnselectAll: undefined,
+  restoreFilesUnselectAll: 'Seçimi kaldır',
 
   // Original text: 'Emergency shutdown Host'
-  emergencyShutdownHostModalTitle: undefined,
+  emergencyShutdownHostModalTitle: 'Acil durum sunucu kapatması',
 
   // Original text: 'Are you sure you want to shutdown {host}?'
-  emergencyShutdownHostModalMessage: undefined,
+  emergencyShutdownHostModalMessage: 'Kapatmak istediğinize emin misiniz {host}',
 
   // Original text: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}'
-  emergencyShutdownHostsModalTitle: undefined,
+  emergencyShutdownHostsModalTitle: 'Acil durum sunucu kapatması',
 
-  // Original text: 'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  emergencyShutdownHostsModalMessage: undefined,
+  // Original text: 'Are you sure you want to shutdown  Host{nHosts, plural, one {} other {s}}?'
+  emergencyShutdownHostsModalMessage: '{nHosts, number} Sunucu kapatmak istediğinize emin misiniz?',
 
   // Original text: 'Shutdown host'
-  stopHostModalTitle: undefined,
+  stopHostModalTitle: 'Sunucuyu Kapat',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
-  stopHostModalMessage: undefined,
+  stopHostModalMessage: 'Bu sunucunuzu kapatacak. Devam etmek istiyor musunuz? Eğer havuzun master sunucusu ise, havuzunuzla bağlantınız kesilecek',
 
   // Original text: 'Add host'
-  addHostModalTitle: undefined,
+  addHostModalTitle: 'Sunucu ekle',
 
   // Original text: 'Are you sure you want to add {host} to {pool}?'
-  addHostModalMessage: undefined,
+  addHostModalMessage: '{host} sunucusunu {pool} havuzuna eklemek istediğinize emin misiniz?',
 
   // Original text: 'Restart host'
-  restartHostModalTitle: undefined,
+  restartHostModalTitle: 'Sunucuyu yenden başlat',
 
   // Original text: 'This will restart your host. Do you want to continue?'
-  restartHostModalMessage: undefined,
+  restartHostModalMessage: 'Bu işlem sunucunuzu yeniden başlatacak. Devam etmek istiyor musunuz?',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}'
-  restartHostsAgentsModalTitle: undefined,
+  restartHostsAgentsModalTitle: 'Sunucu ajanını yeniden başlat',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?'
-  restartHostsAgentsModalMessage: undefined,
+  restartHostsAgentsModalMessage: '{nHosts, number} sunucunun ajanlarını yeniden başlatmak istediğinize emin misiniz?',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}}'
-  restartHostsModalTitle: undefined,
+  restartHostsModalTitle: 'Sunucuyu(ları) yeniden başlat',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  restartHostsModalMessage: undefined,
+  restartHostsModalMessage: '{nHosts, number} sunucuyu yeniden başlatmak istediğinize emin misiniz?',
 
   // Original text: 'Start VM{vms, plural, one {} other {s}}'
-  startVmsModalTitle: undefined,
+  startVmsModalTitle: 'VM(leri) başlat',
 
   // Original text: 'Start a copy'
-  cloneAndStartVM: undefined,
+  cloneAndStartVM: 'Bir kopya başlat',
 
   // Original text: 'Force start'
-  forceStartVm: undefined,
+  forceStartVm: 'Zorla başlat',
 
   // Original text: 'Forbidden operation'
-  forceStartVmModalTitle: undefined,
+  forceStartVmModalTitle: 'Yasak işlem',
 
   // Original text: 'Start operation for this vm is blocked.'
-  blockedStartVmModalMessage: undefined,
+  blockedStartVmModalMessage: 'Başlatma işlemi bu VM için engellenmiş.',
 
   // Original text: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.'
-  blockedStartVmsModalMessage: undefined,
+  blockedStartVmsModalMessage: '{nVms, number} VM için yasak işlem başladı.',
 
   // Original text: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?'
-  startVmsModalMessage: undefined,
+  startVmsModalMessage: '{vms, number} VM başlatmak istediğinize emin misiniz?',
 
   // Original text: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information'
-  failedVmsErrorMessage: undefined,
+  failedVmsErrorMessage: '{nVms, number} VM başarısız oldu. Daha fazla bilgi almak için lütfen günlüklerinizi inceleyin',
 
   // Original text: 'Start failed'
-  failedVmsErrorTitle: undefined,
+  failedVmsErrorTitle: 'Başlatma başarısız',
 
   // Original text: 'Stop Host{nHosts, plural, one {} other {s}}'
-  stopHostsModalTitle: undefined,
+  stopHostsModalTitle: 'Sunucuyu(ları) durdur',
 
   // Original text: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  stopHostsModalMessage: undefined,
+  stopHostsModalMessage: '{nHosts, number} sunucuyu durdurmak istediğinize emin misiniz?',
 
   // Original text: 'Stop VM{vms, plural, one {} other {s}}'
-  stopVmsModalTitle: undefined,
+  stopVmsModalTitle: 'VM(leri) durdur',
 
   // Original text: 'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?'
-  stopVmsModalMessage: undefined,
+  stopVmsModalMessage: '{vms, number} VM durdurmak istediğinize emin misiniz?',
 
   // Original text: 'Restart VM'
-  restartVmModalTitle: undefined,
+  restartVmModalTitle: 'VM yeniden başlat',
 
   // Original text: 'Are you sure you want to restart {name}?'
-  restartVmModalMessage: undefined,
+  restartVmModalMessage: 'Yeniden başlatmak istediğinize emin misiniz {name}?',
 
   // Original text: 'Stop VM'
-  stopVmModalTitle: undefined,
+  stopVmModalTitle: 'VM durdur',
 
   // Original text: 'Are you sure you want to stop {name}?'
-  stopVmModalMessage: undefined,
+  stopVmModalMessage: 'Durdurmak istediğinze emin misiniz {name}?',
 
   // Original text: 'Suspend VM{vms, plural, one {} other {s}}'
-  suspendVmsModalTitle: undefined,
+  suspendVmsModalTitle: 'VM(leri) duraklat',
 
   // Original text: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?'
-  suspendVmsModalMessage: undefined,
+  suspendVmsModalMessage: '{vms, number} VM duraklatmak istediğinize emin misiniz?',
 
   // Original text: 'Restart VM{vms, plural, one {} other {s}}'
-  restartVmsModalTitle: undefined,
+  restartVmsModalTitle: 'VM(leri) yeniden başlat',
 
   // Original text: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?'
-  restartVmsModalMessage: undefined,
+  restartVmsModalMessage: '{vms, number} VM yeniden başlatmak istediğinize emin misiniz?',
 
   // Original text: 'Snapshot VM{vms, plural, one {} other {s}}'
-  snapshotVmsModalTitle: undefined,
+  snapshotVmsModalTitle: 'Snapshot VM',
 
   // Original text: 'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?'
-  snapshotVmsModalMessage: undefined,
+  snapshotVmsModalMessage: '{vms, number} VM için snapshot almak istediğinize emin misiniz?',
 
   // Original text: 'Delete VM{vms, plural, one {} other {s}}'
-  deleteVmsModalTitle: undefined,
+  deleteVmsModalTitle: 'VM sil',
 
   // Original text: 'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED'
-  deleteVmsModalMessage: undefined,
+  deleteVmsModalMessage: '{vms, number} VM silmek istediğinize emin misiniz? BÜTÜN VM DİSKLERİ KALDIRILACAK',
 
   // Original text: 'delete {nVms, number} vm{nVms, plural, one {} other {s}}'
-  deleteVmsConfirmText: undefined,
+  deleteVmsConfirmText: '{nVms, number} vm sil',
 
   // Original text: 'Delete VM'
-  deleteVmModalTitle: undefined,
+  deleteVmModalTitle: 'VM sil',
 
   // Original text: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED'
-  deleteVmModalMessage: undefined,
+  deleteVmModalMessage: "Bu VM'i silmek istediğinize emin misiniz? BÜTÜN VM DİSKLERİ KALDIRILACAK",
 
   // Original text: 'Blocked operation'
-  deleteVmBlockedModalTitle: undefined,
+  deleteVmBlockedModalTitle: 'Engellenmiş işlem',
 
   // Original text: 'Removing the VM is a blocked operation. Would you like to remove it anyway?'
-  deleteVmBlockedModalMessage: undefined,
+  deleteVmBlockedModalMessage: 'VM kaldırmak engellenmiş bir işlemdir. Yine de kaldırmak istiyor musunuz?',
 
   // Original text: 'Migrate VM'
-  migrateVmModalTitle: undefined,
+  migrateVmModalTitle: 'VM taşı',
 
   // Original text: 'Select a destination host:'
-  migrateVmSelectHost: undefined,
+  migrateVmSelectHost: 'Hedef sunucuyu seçin:',
 
   // Original text: 'Select a migration network:'
-  migrateVmSelectMigrationNetwork: undefined,
+  migrateVmSelectMigrationNetwork: 'Taşımak için kullnılacak ağı seçin:',
 
   // Original text: 'For each VIF, select a network:'
-  migrateVmSelectNetworks: undefined,
+  migrateVmSelectNetworks: 'Her VIF için bir ağ seçin',
 
   // Original text: 'Select a destination SR:'
-  migrateVmsSelectSr: undefined,
+  migrateVmsSelectSr: "Hedef SR'yi seçin",
 
   // Original text: 'Select a destination SR for local disks:'
-  migrateVmsSelectSrIntraPool: undefined,
+  migrateVmsSelectSrIntraPool: "Yerel diskler için hedef SR'yi seçin:",
 
   // Original text: 'Select a network on which to connect each VIF:'
-  migrateVmsSelectNetwork: undefined,
+  migrateVmsSelectNetwork: "Her bir VIF'in bağlanacağı bir ağ seçin:",
 
   // Original text: 'Smart mapping'
-  migrateVmsSmartMapping: undefined,
+  migrateVmsSmartMapping: 'Akıllı haritalama',
 
   // Original text: 'VIF'
-  migrateVmVif: undefined,
+  migrateVmVif: 'VIF',
 
   // Original text: 'Network'
-  migrateVmNetwork: undefined,
+  migrateVmNetwork: 'Ağ',
 
   // Original text: 'No target host'
-  migrateVmNoTargetHost: undefined,
+  migrateVmNoTargetHost: 'Hedef sunucu yok',
 
   // Original text: 'A target host is required to migrate a VM'
-  migrateVmNoTargetHostMessage: undefined,
+  migrateVmNoTargetHostMessage: 'Vm taşımak için bir hedef sunucu gereklidir',
 
   // Original text: 'No default SR'
-  migrateVmNoDefaultSrError: undefined,
+  migrateVmNoDefaultSrError: 'Varsayılan SR yok',
 
   // Original text: 'Default SR not connected to host'
-  migrateVmNotConnectedDefaultSrError: undefined,
+  migrateVmNotConnectedDefaultSrError: 'Varsayılan SR sunucuya bağlı değil',
 
   // Original text: 'For each VDI, select an SR:'
-  chooseSrForEachVdisModalSelectSr: undefined,
+  chooseSrForEachVdisModalSelectSr: 'Her bir VDI için bir SR seçin',
 
   // Original text: 'Select main SR…'
-  chooseSrForEachVdisModalMainSr: undefined,
+  chooseSrForEachVdisModalMainSr: "Ana SR'yi seçin...",
 
   // Original text: 'VDI'
-  chooseSrForEachVdisModalVdiLabel: undefined,
+  chooseSrForEachVdisModalVdiLabel: 'VDI',
 
   // Original text: 'SR*'
-  chooseSrForEachVdisModalSrLabel: undefined,
+  chooseSrForEachVdisModalSrLabel: 'SR*',
 
   // Original text: '* optional'
-  chooseSrForEachVdisModalOptionalEntry: undefined,
+  chooseSrForEachVdisModalOptionalEntry: '* opsiyonel',
 
   // Original text: 'Delete job{nJobs, plural, one {} other {s}}'
-  deleteJobsModalTitle: undefined,
+  deleteJobsModalTitle: 'İşi(leri) sil',
 
   // Original text: 'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?'
-  deleteJobsModalMessage: undefined,
+  deleteJobsModalMessage: '{nJobs, number} işi silmek istediğinize emin misiniz?',
 
   // Original text: 'Delete VBD{nVbds, plural, one {} other {s}}'
-  deleteVbdsModalTitle: undefined,
+  deleteVbdsModalTitle: 'VBD sil',
 
   // Original text: 'Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?'
-  deleteVbdsModalMessage: undefined,
+  deleteVbdsModalMessage: '{nVbds, number} VBD silmek istediğinize emin misiniz?',
 
   // Original text: 'Delete VDI'
-  deleteVdiModalTitle: undefined,
+  deleteVdiModalTitle: 'VDI sil',
 
   // Original text: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST'
-  deleteVdiModalMessage: undefined,
+  deleteVdiModalMessage: 'Bu diski silmek istediğinize emin misiniz? DİSK ÜZERİNDEKİ TÜM VERİ KAYBOLACAK',
 
   // Original text: 'Delete VDI{nVdis, plural, one {} other {s}}'
-  deleteVdisModalTitle: undefined,
+  deleteVdisModalTitle: 'VDI sil',
 
   // Original text: 'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST'
-  deleteVdisModalMessage: undefined,
+  deleteVdisModalMessage: '{nVdis, number} disk silmek istediğinize emin misiniz? DİSKLER ÜZERİNDEKİ TÜM VERİ KAYBOLACAK',
 
   // Original text: 'Delete schedule{nSchedules, plural, one {} other {s}}'
-  deleteSchedulesModalTitle: undefined,
+  deleteSchedulesModalTitle: 'Zamanlama sil',
 
   // Original text: 'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?'
-  deleteSchedulesModalMessage: undefined,
+  deleteSchedulesModalMessage: '{nSchedules, number} zamanlama silmek istediğinize emin misiniz?',
 
   // Original text: 'Delete remote{nRemotes, plural, one {} other {s}}'
-  deleteRemotesModalTitle: undefined,
+  deleteRemotesModalTitle: 'Hedef sil',
 
   // Original text: 'Are you sure you want to delete {nRemotes, number} remote{nRemotes, plural, one {} other {s}}?'
-  deleteRemotesModalMessage: undefined,
+  deleteRemotesModalMessage: '{nRemotes, number} yedekleme hedefi silmek istediğinze emin misiniz?',
 
   // Original text: 'Revert your VM'
-  revertVmModalTitle: undefined,
+  revertVmModalTitle: "VM'i eski haline döndür",
 
   // Original text: 'Share your VM'
-  shareVmInResourceSetModalTitle: undefined,
+  shareVmInResourceSetModalTitle: "VM'i paylaş",
 
   // Original text: 'This VM will be shared with all the members of the self-service {self}. Are you sure?'
-  shareVmInResourceSetModalMessage: undefined,
+  shareVmInResourceSetModalMessage: "Bu VM self-servis'in tüm üyeleri ile paylaşılacak. Emin misiniz?",
 
   // Original text: 'Delete VIF{nVifs, plural, one {} other {s}}'
-  deleteVifsModalTitle: undefined,
+  deleteVifsModalTitle: 'VIF sil',
 
   // Original text: 'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?'
-  deleteVifsModalMessage: undefined,
+  deleteVifsModalMessage: '{nVifs, number} VIF silmek istediğinize emin misiniz?',
 
   // Original text: 'Delete snapshot'
-  deleteSnapshotModalTitle: undefined,
+  deleteSnapshotModalTitle: 'Snapshot sil',
 
   // Original text: 'Are you sure you want to delete this snapshot?'
-  deleteSnapshotModalMessage: undefined,
+  deleteSnapshotModalMessage: "Bu snapshot'ı silmek istediğinize emin misiniz?",
 
   // Original text: 'Delete snapshot{nVms, plural, one {} other {s}}'
-  deleteSnapshotsModalTitle: undefined,
+  deleteSnapshotsModalTitle: 'Snapshot sil',
 
   // Original text: 'Are you sure you want to delete {nVms, number} snapshot{nVms, plural, one {} other {s}}?'
-  deleteSnapshotsModalMessage: undefined,
+  deleteSnapshotsModalMessage: "{nVms, number} snapshot silmek istediğinize emin misiniz?",
 
   // Original text: 'Disconnect VBD{nVbds, plural, one {} other {s}}'
-  disconnectVbdsModalTitle: undefined,
+  disconnectVbdsModalTitle: 'VBD bağlantısını kes',
 
   // Original text: 'Are you sure you want to disconnect {nVbds, number} VBD{nVbds, plural, one {} other {s}}?'
-  disconnectVbdsModalMessage: undefined,
+  disconnectVbdsModalMessage: '{nVbds, number} VBD bağlantısını kesmek istediğinize emin misiniz',
 
   // Original text: 'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.'
-  revertVmModalMessage: undefined,
+  revertVmModalMessage: "Bu VM'i snapshot'daki haline döndürmek istiyor musunuz? Bu işlem geri alınamaz.",
 
   // Original text: 'Snapshot before'
-  revertVmModalSnapshotBefore: undefined,
+  revertVmModalSnapshotBefore: 'Snapshot öncesi',
 
   // Original text: 'Import a {name} Backup'
-  importBackupModalTitle: undefined,
+  importBackupModalTitle: 'Bir {name} yedeği içe aktar',
 
   // Original text: 'Start VM after restore'
-  importBackupModalStart: undefined,
+  importBackupModalStart: "Geri almadan sonra VM'i çalıştır",
 
   // Original text: 'Select your backup…'
-  importBackupModalSelectBackup: undefined,
+  importBackupModalSelectBackup: 'Yedeğinizi seçin...',
 
   // Original text: 'Select a destination SR…'
-  importBackupModalSelectSr: undefined,
+  importBackupModalSelectSr: 'Bir hedef SR seçin...',
 
   // Original text: 'Are you sure you want to remove all orphaned snapshot VDIs?'
-  removeAllOrphanedModalWarning: undefined,
+  removeAllOrphanedModalWarning: "Bütün yetim VDI snapshot'larını silmek istediğinize emin misiniz?",
 
   // Original text: 'Remove all logs'
-  removeAllLogsModalTitle: undefined,
+  removeAllLogsModalTitle: 'Bütün günlükleri kaldır',
 
   // Original text: 'Are you sure you want to remove all logs?'
-  removeAllLogsModalWarning: undefined,
+  removeAllLogsModalWarning: 'Bütün günlükleri kaldırmak istediğinize emin misiniz?',
 
   // Original text: 'This operation is definitive.'
-  definitiveMessageModal: undefined,
+  definitiveMessageModal: 'Bu işlem kesindir.',
 
   // Original text: 'Previous SR Usage'
-  existingSrModalTitle: undefined,
+  existingSrModalTitle: 'Önceki SR kullanımı',
 
   // Original text: 'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.'
-  existingSrModalText: undefined,
+  existingSrModalText: 'Bu yol XenServer sunucusu tarafından bir SR olarak kullanılmış. SR oluşturmaya devam ederseniz tüm veri kaybolacak.',
 
   // Original text: 'Previous LUN Usage'
-  existingLunModalTitle: undefined,
+  existingLunModalTitle: 'Önceki LUN kullanımı',
 
   // Original text: 'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.'
-  existingLunModalText: undefined,
+  existingLunModalText: 'Bu LUN XenServer sunucusu tarafından bir SR olarak kullanılmış. SR oluşturmaya devam ederseniz tüm veri kaybolacak.',
 
   // Original text: 'Replace current registration?'
-  alreadyRegisteredModal: undefined,
+  alreadyRegisteredModal: 'Mevcut kaydı değiştir?',
 
   // Original text: 'Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?'
-  alreadyRegisteredModalText: undefined,
+  alreadyRegisteredModalText: 'XO kurulumunuz zaten {email} adresine kayıtlı, Bunu unutmak ve değiştirmek istiyor musunuz?',
 
   // Original text: 'Ready for trial?'
-  trialReadyModal: undefined,
+  trialReadyModal: 'Deneme için hazır mısınız?',
 
   // Original text: 'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!'
-  trialReadyModalText: undefined,
+  trialReadyModalText: 'Deneme sürecinde XOA bir internet bağlantısı gerektirir. Bu limit satın alınan sürümlerde yoktur!',
 
   // Original text: 'Cancel task{nTasks, plural, one {} other {s}}'
-  cancelTasksModalTitle: undefined,
+  cancelTasksModalTitle: 'Görev iptel et',
 
   // Original text: 'Are you sure you want to cancel {nTasks, number} task{nTasks, plural, one {} other {s}}?'
-  cancelTasksModalMessage: undefined,
+  cancelTasksModalMessage: '{nTasks, number} görevi iptal etmek istediğinize emin misiniz?',
 
   // Original text: 'Destroy task{nTasks, plural, one {} other {s}}'
-  destroyTasksModalTitle: undefined,
+  destroyTasksModalTitle: 'Görev imha et',
 
   // Original text: 'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?'
-  destroyTasksModalMessage: undefined,
+  destroyTasksModalMessage: '{nTasks, number} görevi imha etmek istediğinize emin misiniz?',
 
   // Original text: 'Label'
-  serverLabel: undefined,
+  serverLabel: 'Başlık',
 
   // Original text: 'Host'
-  serverHost: undefined,
+  serverHost: 'Sunucu',
 
   // Original text: 'Username'
-  serverUsername: undefined,
+  serverUsername: 'Kullanıcı adı',
 
   // Original text: 'Password'
-  serverPassword: undefined,
+  serverPassword: 'Parola',
 
   // Original text: 'Action'
-  serverAction: undefined,
+  serverAction: 'Aksiyon',
 
   // Original text: 'Read Only'
-  serverReadOnly: undefined,
+  serverReadOnly: 'Yalnızca okunabilir',
 
   // Original text: 'Unauthorized Certificates'
-  serverUnauthorizedCertificates: undefined,
+  serverUnauthorizedCertificates: 'Yetkisiz Sertifikalar',
 
   // Original text: 'Allow Unauthorized Certificates'
-  serverAllowUnauthorizedCertificates: undefined,
+  serverAllowUnauthorizedCertificates: 'Yetkisiz Sertifikalara İzin Ver',
 
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
-  serverUnauthorizedCertificatesInfo: undefined,
+  serverUnauthorizedCertificatesInfo: 'Sertifikanız reddedildiğinde bunu yapın ancak bağlantınız güvenli olmayacağı için tavsiye edilmez.',
 
   // Original text: 'Disconnect server'
-  serverDisconnect: undefined,
+  serverDisconnect: 'Sunucu bağlantısını kes',
 
   // Original text: 'username'
-  serverPlaceHolderUser: undefined,
+  serverPlaceHolderUser: 'kullanıcı adı',
 
   // Original text: 'password'
-  serverPlaceHolderPassword: undefined,
+  serverPlaceHolderPassword: 'parola',
 
   // Original text: 'address[:port]'
-  serverPlaceHolderAddress: undefined,
+  serverPlaceHolderAddress: 'adres[:port]',
 
   // Original text: 'label'
-  serverPlaceHolderLabel: undefined,
+  serverPlaceHolderLabel: 'başlık',
 
   // Original text: 'Connect'
-  serverConnect: undefined,
+  serverConnect: 'Bağlan',
 
   // Original text: 'Error'
-  serverError: undefined,
+  serverError: 'Hata',
 
   // Original text: 'Adding server failed'
-  serverAddFailed: undefined,
+  serverAddFailed: 'Server ekleme başarısız',
 
   // Original text: 'Status'
-  serverStatus: undefined,
+  serverStatus: 'Durum',
 
   // Original text: 'Connection failed. Click for more information.'
-  serverConnectionFailed: undefined,
+  serverConnectionFailed: 'Bağlantı başarısız. Bilgi için tıklayın.',
 
   // Original text: 'Connecting…'
-  serverConnecting: undefined,
+  serverConnecting: 'Bağlanıyor...',
 
   // Original text: 'Connected'
-  serverConnected: undefined,
+  serverConnected: 'Bağlandı',
 
   // Original text: 'Disconnected'
-  serverDisconnected: undefined,
+  serverDisconnected: 'Bağlantı kesildi',
 
   // Original text: 'Authentication error'
-  serverAuthFailed: undefined,
+  serverAuthFailed: 'Kimlik doğrulama hatası',
 
   // Original text: 'Unknown error'
-  serverUnknownError: undefined,
+  serverUnknownError: 'Bilinmeyen hata',
 
   // Original text: 'Invalid self-signed certificate'
-  serverSelfSignedCertError: undefined,
+  serverSelfSignedCertError: 'Geçersiz kendinden imzalı sertifika',
 
   // Original text: 'Do you want to accept self-signed certificate for this server even though it would decrease security?'
-  serverSelfSignedCertQuestion: undefined,
+  serverSelfSignedCertQuestion: 'Güvenliği azaltmasına rağmen kendinden imzalı sertifikayı kabul etmek istiyor musunuz?',
 
   // Original text: 'Copy VM'
-  copyVm: undefined,
+  copyVm: 'VM kopyala',
 
   // Original text: 'Are you sure you want to copy this VM to {SR}?'
-  copyVmConfirm: undefined,
+  copyVmConfirm: "Bu VM'i şuraya kopyalamak istediğinize emin misiniz {SR}?",
 
   // Original text: 'Name'
-  copyVmName: undefined,
+  copyVmName: 'Ad',
 
   // Original text: 'Name pattern'
-  copyVmNamePattern: undefined,
+  copyVmNamePattern: 'Ad kalıbı',
 
   // Original text: 'If empty: name of the copied VM'
-  copyVmNamePlaceholder: undefined,
+  copyVmNamePlaceholder: "Eğer boşsa: kopyalanan VM'in adı",
 
   // Original text: 'e.g.: "\\{name\\}_COPY"'
-  copyVmNamePatternPlaceholder: undefined,
+  copyVmNamePatternPlaceholder: 'örn: "\\{name\\}_COPY',
 
   // Original text: 'Select SR'
-  copyVmSelectSr: undefined,
+  copyVmSelectSr: 'SR seç',
 
   // Original text: 'Use compression'
-  copyVmCompress: undefined,
+  copyVmCompress: 'Sıkıştırma kullan',
 
   // Original text: 'No target SR'
-  copyVmsNoTargetSr: undefined,
+  copyVmsNoTargetSr: 'Hedef SR yok',
 
   // Original text: 'A target SR is required to copy a VM'
-  copyVmsNoTargetSrMessage: undefined,
+  copyVmsNoTargetSrMessage: 'VM kopyalamak için hedef bir SR gereklidir',
 
   // Original text: 'Detach host'
-  detachHostModalTitle: undefined,
+  detachHostModalTitle: 'Sunucuyu ayır',
 
   // Original text: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.'
-  detachHostModalMessage: undefined,
+  detachHostModalMessage: "{host} sunucusunu havuzundan ayırmak istediğinize emin misiniz? BU İŞLEM YEREL DİSKİNDEKİ TÜM VM'LERİ KALDIRIR VE SUNUCU YENİDEN BAŞLAR",
 
   // Original text: 'Detach'
-  detachHost: undefined,
+  detachHost: 'ayır',
 
   // Original text: 'Forget host'
-  forgetHostModalTitle: undefined,
+  forgetHostModalTitle: 'Sunucuyu unut',
 
   // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
-  forgetHostModalMessage: undefined,
+  forgetHostModalMessage: "{host} sunucusunu havuzunun unutmasını istediğinize emin misiniz? Bu sunucunun tekrar çevrimiçi olamayacağından emin olun veya bunun yerine ayırmayı deneyin.",
 
   // Original text: 'Forget'
-  forgetHost: undefined,
+  forgetHost: 'Unut',
 
   // Original text: 'Designate a new master'
-  setPoolMasterModalTitle: undefined,
+  setPoolMasterModalTitle: 'Yeni bir master tayin et',
 
   // Original text: 'This operation may take several minutes. Do you want to continue?'
-  setPoolMasterModalMessage: undefined,
+  setPoolMasterModalMessage: 'Bu işlem birkaç dakika sürebilir. Devam etmek istiyor musunuz?',
 
   // Original text: 'Create network'
-  newNetworkCreate: undefined,
+  newNetworkCreate: 'Ağ oluştur',
 
   // Original text: 'Create bonded network'
-  newBondedNetworkCreate: undefined,
+  newBondedNetworkCreate: 'Bağlı ağ oluştur',
 
   // Original text: 'Interface'
-  newNetworkInterface: undefined,
+  newNetworkInterface: 'Arayüz',
 
   // Original text: 'Name'
-  newNetworkName: undefined,
+  newNetworkName: 'Ad',
 
   // Original text: 'Description'
-  newNetworkDescription: undefined,
+  newNetworkDescription: 'Açıklama',
 
   // Original text: 'VLAN'
-  newNetworkVlan: undefined,
+  newNetworkVlan: 'VLAN',
 
   // Original text: 'No VLAN if empty'
-  newNetworkDefaultVlan: undefined,
+  newNetworkDefaultVlan: 'Boşsa VLAN yok',
 
   // Original text: 'MTU'
-  newNetworkMtu: undefined,
+  newNetworkMtu: 'MTU',
 
   // Original text: 'Default: 1500'
-  newNetworkDefaultMtu: undefined,
+  newNetworkDefaultMtu: 'Varsayılan: 1500',
 
   // Original text: 'Name required'
-  newNetworkNoNameErrorTitle: undefined,
+  newNetworkNoNameErrorTitle: 'Ad gerekli',
 
   // Original text: 'A name is required to create a network'
-  newNetworkNoNameErrorMessage: undefined,
+  newNetworkNoNameErrorMessage: 'Bir ağ oluşturmak için ad gereklidir',
 
   // Original text: 'Bond mode'
-  newNetworkBondMode: undefined,
+  newNetworkBondMode: 'Bağlı mod',
 
   // Original text: 'Delete network'
-  deleteNetwork: undefined,
+  deleteNetwork: 'Ağı sil',
 
   // Original text: 'Are you sure you want to delete this network?'
-  deleteNetworkConfirm: undefined,
+  deleteNetworkConfirm: 'Bu ağı silmek istediğinize emin misiniz?',
 
   // Original text: 'This network is currently in use'
-  networkInUse: undefined,
+  networkInUse: 'Bu ağ şu an kullanımda',
 
   // Original text: 'Bonded'
-  pillBonded: undefined,
+  pillBonded: 'Bağlı',
 
   // Original text: 'Host'
-  addHostSelectHost: undefined,
+  addHostSelectHost: 'Sunucu',
 
   // Original text: 'No host'
-  addHostNoHost: undefined,
+  addHostNoHost: 'Sunucu yok',
 
   // Original text: 'No host selected to be added'
-  addHostNoHostMessage: undefined,
+  addHostNoHostMessage: 'Eklemek için bir sunucu seçilmedi',
 
   // Original text: 'Xen Orchestra'
-  xenOrchestra: undefined,
+  xenOrchestra: 'Xen Orchestra',
 
   // Original text: 'Xen Orchestra server'
-  xenOrchestraServer: undefined,
+  xenOrchestraServer: 'Xen Orchestra sunucusu',
 
   // Original text: 'Xen Orchestra web client'
-  xenOrchestraWeb: undefined,
+  xenOrchestraWeb: 'Xen Orchestra web istemcisi',
 
   // Original text: 'No pro support provided!'
-  noProSupport: undefined,
+  noProSupport: 'Hiçbir profesyonel destek verilmez!',
 
   // Original text: 'Use in production at your own risks'
-  noProductionUse: undefined,
+  noProductionUse: 'Üretimde kendi risklerinizle kullanın.',
 
   // Original text: 'You can download our turnkey appliance at {website}'
-  downloadXoaFromWebsite: undefined,
+  downloadXoaFromWebsite: 'Bizim anahtar teslimi sunucumuzu şuradan indirebilirsiniz {website}',
 
   // Original text: 'Bug Tracker'
-  bugTracker: undefined,
+  bugTracker: 'Hata Takibi',
 
   // Original text: 'Issues? Report it!'
-  bugTrackerText: undefined,
+  bugTrackerText: 'Sorun mu var? Raporlayın!',
 
   // Original text: 'Community'
-  community: undefined,
+  community: 'Topluluk',
 
   // Original text: 'Join our community forum!'
-  communityText: undefined,
+  communityText: 'Topluluk forumumuza katılın!',
 
   // Original text: 'Free Trial for Premium Edition!'
-  freeTrial: undefined,
+  freeTrial: 'Premium Sürüm için Bedava Deneme',
 
   // Original text: 'Request your trial now!'
-  freeTrialNow: undefined,
+  freeTrialNow: 'Denemenizi hemen talep edin!',
 
   // Original text: 'Any issue?'
-  issues: undefined,
+  issues: 'Herhangi bir sorun?',
 
   // Original text: 'Problem? Contact us!'
-  issuesText: undefined,
+  issuesText: 'Problem? Bizimle iletişime geçin!',
 
   // Original text: 'Documentation'
-  documentation: undefined,
+  documentation: 'Dokümantasyon',
 
   // Original text: 'Read our official doc'
-  documentationText: undefined,
+  documentationText: 'Resmi dokümanımızı okuyun',
 
   // Original text: 'Pro support included'
-  proSupportIncluded: undefined,
+  proSupportIncluded: 'Profesyonel destek dahildir',
 
   // Original text: 'Access your XO Account'
-  xoAccount: undefined,
+  xoAccount: 'XO hesabınıza erişin',
 
   // Original text: 'Report a problem'
-  openTicket: undefined,
+  openTicket: 'Bir problemi raporlayın',
 
   // Original text: 'Problem? Open a ticket!'
-  openTicketText: undefined,
+  openTicketText: 'Problem? Bir kayıt açın!',
 
   // Original text: 'Upgrade needed'
-  upgradeNeeded: undefined,
+  upgradeNeeded: 'Yükseltme gerekli',
 
   // Original text: 'Upgrade now!'
-  upgradeNow: undefined,
+  upgradeNow: 'Şimdi yükselt!',
 
   // Original text: 'Or'
-  or: undefined,
+  or: 'Veya',
 
   // Original text: 'Try it for free!'
-  tryIt: undefined,
+  tryIt: 'Bedava dene!',
 
   // Original text: 'This feature is available starting from {plan} Edition'
-  availableIn: undefined,
+  availableIn: 'Bu özellik {plan} sürümü ile başlıyor',
 
   // Original text: 'This feature is not available in your version, contact your administrator to know more.'
-  notAvailable: undefined,
+  notAvailable: 'Bu özellik sizin sürümünüzde kullanılabilir değil. Daha fazlasını öğrenmek için yöneticiniz ile temasa geçin.',
 
   // Original text: 'Updates'
-  updateTitle: undefined,
+  updateTitle: 'Güncellemeler',
 
   // Original text: 'Registration'
-  registration: undefined,
+  registration: 'Kayıtlanma',
 
   // Original text: 'Trial'
-  trial: undefined,
+  trial: 'Deneme',
 
   // Original text: 'Settings'
-  settings: undefined,
+  settings: 'Ayarlar',
 
   // Original text: 'Proxy settings'
-  proxySettings: undefined,
+  proxySettings: 'Proxy ayarları',
 
   // Original text: 'Host (myproxy.example.org)'
-  proxySettingsHostPlaceHolder: undefined,
+  proxySettingsHostPlaceHolder: 'Sunucu (myproxy.example.org)',
 
   // Original text: 'Port (eg: 3128)'
-  proxySettingsPortPlaceHolder: undefined,
+  proxySettingsPortPlaceHolder: 'Port (örn: 3128)',
 
   // Original text: 'Username'
-  proxySettingsUsernamePlaceHolder: undefined,
+  proxySettingsUsernamePlaceHolder: 'Kullanıcı adı',
 
   // Original text: 'Password'
-  proxySettingsPasswordPlaceHolder: undefined,
+  proxySettingsPasswordPlaceHolder: 'Parola',
 
   // Original text: 'Your email account'
-  updateRegistrationEmailPlaceHolder: undefined,
+  updateRegistrationEmailPlaceHolder: 'Eposta hesabınız',
 
   // Original text: 'Your password'
-  updateRegistrationPasswordPlaceHolder: undefined,
+  updateRegistrationPasswordPlaceHolder: 'Parolanız',
 
   // Original text: 'Troubleshooting documentation'
-  updaterTroubleshootingLink: undefined,
+  updaterTroubleshootingLink: 'Sorun giderme dokümanları',
 
   // Original text: 'Update'
-  update: undefined,
+  update: 'Güncelle',
 
   // Original text: 'Refresh'
-  refresh: undefined,
+  refresh: 'Yenile',
 
   // Original text: 'Upgrade'
-  upgrade: undefined,
+  upgrade: 'Yükselt',
 
   // Original text: 'No updater available for Community Edition'
-  noUpdaterCommunity: undefined,
+  noUpdaterCommunity: 'Topluluk sürümü için güncelleştirici sunulmuyor',
 
   // Original text: 'Please consider subscribing and trying it with all the features for free during 15 days on {link}.'
-  considerSubscribe: undefined,
+  considerSubscribe: 'Lütfen {link} adresinden abone olun ve 15 gün boyunca ücretsiz olarak tüm özellikleri kullanmayı deneyin.',
 
   // Original text: 'Manual update could break your current installation due to dependencies issues, do it with caution'
-  noUpdaterWarning: undefined,
+  noUpdaterWarning: 'El ile güncelleştirme, geçerli yüklemenizi bağımlılıklar nedeniyle bozabilir, dikkatli bir şekilde yapın.',
 
   // Original text: 'Current version:'
-  currentVersion: undefined,
+  currentVersion: 'Mevcut sürüm:',
 
   // Original text: 'Register'
-  register: undefined,
+  register: 'Kaydol',
 
   // Original text: 'Edit registration'
-  editRegistration: undefined,
+  editRegistration: 'Kaydı düzenle',
 
   // Original text: 'Please, take time to register in order to enjoy your trial.'
-  trialRegistration: undefined,
+  trialRegistration: 'Lütfen, denemenizin tadını çıkarmak adına kaydolmak için zaman ayırın.',
 
   // Original text: 'Start trial'
-  trialStartButton: undefined,
+  trialStartButton: 'Denemeyi başlat',
 
   // Original text: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.'
-  trialAvailableUntil: undefined,
+  trialAvailableUntil: 'Deneme sürümünü {date, date, medium} tarihine kadar kullanabilirsiniz. Almak için cihazınızı yeni sürüme geçirin.',
 
   // Original text: 'Your trial has been ended. Contact us or downgrade to Free version'
-  trialConsumed: undefined,
+  trialConsumed: 'Denemeniz süreniz sona erdi. Bize ulaşın veya Ücretsiz sürüme geçin.',
 
   // Original text: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.'
-  trialLocked: undefined,
+  trialLocked: "Xoa-updater hizmetiniz çalışmıyor gibi görünüyor. XOA'nız bu servise ulaşmadan tamamen çalışamaz.",
 
   // Original text: 'No update information available'
-  noUpdateInfo: undefined,
+  noUpdateInfo: 'Güncelleme bilgisi mevcut değil',
 
   // Original text: 'Update information may be available'
-  waitingUpdateInfo: undefined,
+  waitingUpdateInfo: 'Güncelleme bilgileri mevcut olabilir',
 
   // Original text: 'Your XOA is up-to-date'
-  upToDate: undefined,
+  upToDate: 'XOA güncel',
 
   // Original text: 'You need to update your XOA (new version is available)'
-  mustUpgrade: undefined,
+  mustUpgrade: 'XOA güncellenmeli (yeni versiyon kullanıma hazır)',
 
   // Original text: 'Your XOA is not registered for updates'
-  registerNeeded: undefined,
+  registerNeeded: "XOA'nız güncellemeler için kayıtlı değil",
 
   // Original text: "Can't fetch update information"
-  updaterError: undefined,
+  updaterError: 'Güncelleme bilgisi alınamıyor',
 
   // Original text: 'Upgrade successful'
-  promptUpgradeReloadTitle: undefined,
+  promptUpgradeReloadTitle: 'Yükseltme başarılı',
 
   // Original text: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?'
-  promptUpgradeReloadMessage: undefined,
+  promptUpgradeReloadMessage: "XOA'nız başarıyla yükseltildi ve tarayıcınız uygulamayı yeniden yüklemelidir. Şimdi yeniden yüklemek istiyor musunuz?",
 
   // Original text: 'Upgrade warning'
-  upgradeWarningTitle: undefined,
+  upgradeWarningTitle: 'Yükseltme uyarısı',
 
   // Original text: 'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?'
-  upgradeWarningMessage: undefined,
+  upgradeWarningMessage: "Devam eden bazı yedekleme işleriniz var. Şimdi yükseltirseniz, bu işler kesilecektir! Devam etmek istediğinize emin misiniz?",
 
   // Original text: 'Xen Orchestra from the sources'
-  disclaimerTitle: undefined,
+  disclaimerTitle: 'Kaynak koddan Xen Orchestra',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1: undefined,
+  disclaimerText1: "XO'yu kaynak koddan kullanıyorsunuz! Kişisel/kar amacı gütmeyen kullanım için mükemmeldir.",
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2: undefined,
+  disclaimerText2: "Bir şirket iseniz, bizim hazır uygulamamızı kullanmanız daha iyidir + pro destek dahil:",
 
   // Original text: 'This version is not bundled with any support nor updates. Use it with caution for critical tasks.'
-  disclaimerText3: undefined,
+  disclaimerText3: "Bu sürüm herhangi bir destek veya güncellemeyle birlikte verilmez. Kritik görevler için dikkatli kullanın.",
 
   // Original text: 'Connect PIF'
-  connectPif: undefined,
+  connectPif: "PIF'e bağlan",
 
   // Original text: 'Are you sure you want to connect this PIF?'
-  connectPifConfirm: undefined,
+  connectPifConfirm: "Bu PIF'e bağlanmak istediğinize emin misiniz?",
 
   // Original text: 'Disconnect PIF'
-  disconnectPif: undefined,
+  disconnectPif: 'PIF bağlantısını kes',
 
   // Original text: 'Are you sure you want to disconnect this PIF?'
-  disconnectPifConfirm: undefined,
+  disconnectPifConfirm: 'PIF bağlantısını kesmek istediğinize emin misiniz?',
 
   // Original text: 'Delete PIF'
-  deletePif: undefined,
+  deletePif: 'PIF sil',
 
   // Original text: 'Are you sure you want to delete this PIF?'
-  deletePifConfirm: undefined,
+  deletePifConfirm: "Bu PIF'i silmek istediğinize emin misiniz?",
 
   // Original text: 'Delete PIFs'
-  deletePifs: undefined,
+  deletePifs: "PIF'leri sil",
 
   // Original text: 'Are you sure you want to delete {nPifs, number} PIF{nPifs, plural, one {} other {s}}?'
-  deletePifsConfirm: undefined,
+  deletePifsConfirm: "{nPifs, number} PIF silmek istediğinize emin misiniz?",
 
   // Original text: 'Connected'
-  pifConnected: undefined,
+  pifConnected: 'Bağlı',
 
   // Original text: 'Disconnected'
-  pifDisconnected: undefined,
+  pifDisconnected: 'Bağlı değil',
 
   // Original text: 'Physically connected'
-  pifPhysicallyConnected: undefined,
+  pifPhysicallyConnected: 'Fiziksel olarak bağlı',
 
   // Original text: 'Physically disconnected'
-  pifPhysicallyDisconnected: undefined,
+  pifPhysicallyDisconnected: 'Fiziksel olarak bağlı değil',
 
   // Original text: 'Username'
-  username: undefined,
+  username: 'Kullanıcı adı',
 
   // Original text: 'Password'
-  password: undefined,
+  password: 'Parola',
 
   // Original text: 'Language'
-  language: undefined,
+  language: 'Dil',
 
   // Original text: 'Old password'
-  oldPasswordPlaceholder: undefined,
+  oldPasswordPlaceholder: 'Eski parola',
 
   // Original text: 'New password'
-  newPasswordPlaceholder: undefined,
+  newPasswordPlaceholder: 'Yeni parola',
 
   // Original text: 'Confirm new password'
-  confirmPasswordPlaceholder: undefined,
+  confirmPasswordPlaceholder: 'Yeni parolayı onayla',
 
   // Original text: 'Confirmation password incorrect'
-  confirmationPasswordError: undefined,
+  confirmationPasswordError: 'Onay şifresi yanlış',
 
   // Original text: 'Password does not match the confirm password.'
-  confirmationPasswordErrorBody: undefined,
+  confirmationPasswordErrorBody: "Şifre, onaylama şifresiyle uyuşmuyor.",
 
   // Original text: 'Password changed'
-  pwdChangeSuccess: undefined,
+  pwdChangeSuccess: 'Parola değişti',
 
   // Original text: 'Your password has been successfully changed.'
-  pwdChangeSuccessBody: undefined,
+  pwdChangeSuccessBody: 'Parolanız başarılı bir şekilde değiştirildi',
 
   // Original text: 'Incorrect password'
-  pwdChangeError: undefined,
+  pwdChangeError: 'Yanlış parola',
 
   // Original text: 'The old password provided is incorrect. Your password has not been changed.'
-  pwdChangeErrorBody: undefined,
+  pwdChangeErrorBody: 'Girilen eski şifre yanlış. Şifreniz değiştirilmedi.',
 
   // Original text: 'OK'
-  changePasswordOk: undefined,
+  changePasswordOk: 'Tamam',
 
   // Original text: 'SSH keys'
-  sshKeys: undefined,
+  sshKeys: 'SSH anahtarları',
 
   // Original text: 'New SSH key'
-  newSshKey: undefined,
+  newSshKey: 'Yeni SSH anahtarı',
 
   // Original text: 'Delete'
-  deleteSshKey: undefined,
+  deleteSshKey: 'Sil',
 
   // Original text: 'Delete selected SSH keys'
-  deleteSshKeys: undefined,
+  deleteSshKeys: 'Seçilen SSH anahtarını sil',
 
   // Original text: 'No SSH keys'
-  noSshKeys: undefined,
+  noSshKeys: 'SSH anahtarı yok',
 
   // Original text: 'New SSH key'
-  newSshKeyModalTitle: undefined,
+  newSshKeyModalTitle: 'Yeni SSH anahtarı',
 
   // Original text: 'Invalid key'
-  sshKeyErrorTitle: undefined,
+  sshKeyErrorTitle: 'Geçersiz anahtar',
 
   // Original text: 'An SSH key requires both a title and a key.'
-  sshKeyErrorMessage: undefined,
+  sshKeyErrorMessage: 'Bir SSH anahtarı hem bir başlık hem de bir anahtar gerektirir.',
 
   // Original text: 'Title'
-  title: undefined,
+  title: 'Başlık',
 
   // Original text: 'Key'
-  key: undefined,
+  key: 'Anahtar',
 
   // Original text: 'Delete SSH key'
-  deleteSshKeyConfirm: undefined,
+  deleteSshKeyConfirm: 'SSH anahtarını sil',
 
   // Original text: 'Are you sure you want to delete the SSH key {title}?'
-  deleteSshKeyConfirmMessage: undefined,
+  deleteSshKeyConfirmMessage: 'SSH anahtarını silmek istediğinizden emin misiniz {title}?',
 
   // Original text: 'Delete SSH key{nKeys, plural, one {} other {s}}'
-  deleteSshKeysConfirm: undefined,
+  deleteSshKeysConfirm: 'SSH anahtarı sil',
 
   // Original text: 'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?'
-  deleteSshKeysConfirmMessage: undefined,
+  deleteSshKeysConfirmMessage: '{nKeys, number} SSH anahtarını silmek istediğinize emin misiniz?',
 
   // Original text: 'Others'
-  others: undefined,
+  others: 'Diğerleri',
 
   // Original text: 'Loading logs…'
-  loadingLogs: undefined,
+  loadingLogs: 'Günlükler yükleniyor...',
 
   // Original text: 'User'
-  logUser: undefined,
+  logUser: 'Kullanıcı',
 
   // Original text: 'Method'
-  logMethod: undefined,
+  logMethod: 'Metod',
 
   // Original text: 'Params'
-  logParams: undefined,
+  logParams: 'Parametreler',
 
   // Original text: 'Message'
-  logMessage: undefined,
+  logMessage: 'Mesaj',
 
   // Original text: 'Error'
-  logError: undefined,
+  logError: 'Hata',
 
   // Original text: 'Display details'
-  logDisplayDetails: undefined,
+  logDisplayDetails: 'Ayrıntıları görüntüle',
 
   // Original text: 'Date'
-  logTime: undefined,
+  logTime: 'Tarih',
 
   // Original text: 'No stack trace'
-  logNoStackTrace: undefined,
+  logNoStackTrace: 'Yığın izi yok',
 
   // Original text: 'No params'
-  logNoParams: undefined,
+  logNoParams: 'Parametre yok',
 
   // Original text: 'Delete log'
-  logDelete: undefined,
+  logDelete: 'Günlük sil',
 
   // Original text: 'Delete logs'
-  logsDelete: undefined,
+  logsDelete: 'Günlükleri sil',
 
   // Original text: 'Delete log{nLogs, plural, one {} other {s}}'
-  logDeleteMultiple: undefined,
+  logDeleteMultiple: 'Günlük(leri) sil',
 
   // Original text: 'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?'
-  logDeleteMultipleMessage: undefined,
+  logDeleteMultipleMessage: '{nLogs, number} günlük silmek istediğinize emin misiniz?',
 
   // Original text: 'Delete all logs'
-  logDeleteAll: undefined,
+  logDeleteAll: 'Bütün günlükleri sil',
 
   // Original text: 'Delete all logs'
-  logDeleteAllTitle: undefined,
+  logDeleteAllTitle: 'Bütün günlükleri sil',
 
   // Original text: 'Are you sure you want to delete all the logs?'
-  logDeleteAllMessage: undefined,
+  logDeleteAllMessage: 'Bütün günlükleri silmek istediğinizden emin misiniz?',
 
   // Original text: 'Click to enable'
-  logIndicationToEnable: undefined,
+  logIndicationToEnable: 'Açmak için tıklayın',
 
   // Original text: 'Click to disable'
-  logIndicationToDisable: undefined,
+  logIndicationToDisable: 'Kapatmak için tıklayın',
 
   // Original text: 'Report a bug'
-  reportBug: undefined,
+  reportBug: 'Bir hata raporla',
 
   // Original text: 'Job canceled to protect the VDI chain'
-  unhealthyVdiChainError: undefined,
+  unhealthyVdiChainError: 'VDI zincirini korumak için iş iptal edildi',
 
   // Original text: 'Click for more information'
-  clickForMoreInformation: undefined,
+  clickForMoreInformation: 'Daha fazla bilgi için tıklayın',
 
   // Original text: 'Name'
-  ipPoolName: undefined,
+  ipPoolName: 'Ad',
 
   // Original text: 'IPs'
-  ipPoolIps: undefined,
+  ipPoolIps: "IP'ler",
 
   // Original text: 'IPs (e.g.: 1.0.0.12-1.0.0.17;1.0.0.23)'
-  ipPoolIpsPlaceholder: undefined,
+  ipPoolIpsPlaceholder: "IP'ler (örn: 1.0.0.12-1.0.0.17;1.0.0.23)",
 
   // Original text: 'Networks'
-  ipPoolNetworks: undefined,
+  ipPoolNetworks: 'Ağlar',
 
   // Original text: 'No IP pools'
-  ipsNoIpPool: undefined,
+  ipsNoIpPool: 'IP havuzu yok',
 
   // Original text: 'Create'
-  ipsCreate: undefined,
+  ipsCreate: 'Oluştur',
 
   // Original text: 'Delete all IP pools'
-  ipsDeleteAllTitle: undefined,
+  ipsDeleteAllTitle: 'Bütün IP havuzlarını sil',
 
   // Original text: 'Are you sure you want to delete all the IP pools?'
-  ipsDeleteAllMessage: undefined,
+  ipsDeleteAllMessage: 'Bütün IP havuzlarını silmek istediğinize emin misiniz?',
 
   // Original text: 'VIFs'
-  ipsVifs: undefined,
+  ipsVifs: "VIF'ler",
 
   // Original text: 'Not used'
-  ipsNotUsed: undefined,
+  ipsNotUsed: 'Kullanılmadı',
 
   // Original text: 'unknown VIF'
-  ipPoolUnknownVif: undefined,
+  ipPoolUnknownVif: 'Bilinmeyen VIF',
 
   // Original text: 'Name already exists'
-  ipPoolNameAlreadyExists: undefined,
+  ipPoolNameAlreadyExists: 'Ad zaten var',
 
   // Original text: 'Keyboard shortcuts'
-  shortcutModalTitle: undefined,
+  shortcutModalTitle: 'Klavye kısayolu',
 
   // Original text: 'Global'
-  shortcut_XoApp: undefined,
+  shortcut_XoApp: 'Global',
 
   // Original text: 'Go to hosts list'
-  shortcut_XoApp_GO_TO_HOSTS: undefined,
+  shortcut_XoApp_GO_TO_HOSTS: 'Sunucu listesine git',
 
   // Original text: 'Go to pools list'
-  shortcut_XoApp_GO_TO_POOLS: undefined,
+  shortcut_XoApp_GO_TO_POOLS: 'Havuz listesine git',
 
   // Original text: 'Go to VMs list'
-  shortcut_XoApp_GO_TO_VMS: undefined,
+  shortcut_XoApp_GO_TO_VMS: 'VM listesine git',
 
   // Original text: 'Go to SRs list'
-  shortcut_XoApp_GO_TO_SRS: undefined,
+  shortcut_XoApp_GO_TO_SRS: 'SR listesine git',
 
   // Original text: 'Create a new VM'
-  shortcut_XoApp_CREATE_VM: undefined,
+  shortcut_XoApp_CREATE_VM: 'Yeni bir VM oluştur',
 
   // Original text: 'Unfocus field'
-  shortcut_XoApp_UNFOCUS: undefined,
+  shortcut_XoApp_UNFOCUS: 'Odaklanmamış alan',
 
   // Original text: 'Show shortcuts key bindings'
-  shortcut_XoApp_HELP: undefined,
+  shortcut_XoApp_HELP: 'Kısayol tuşlarını göster',
 
   // Original text: 'Home'
-  shortcut_Home: undefined,
+  shortcut_Home: 'Ev',
 
   // Original text: 'Focus search bar'
-  shortcut_Home_SEARCH: undefined,
+  shortcut_Home_SEARCH: 'Arama çubuğuna odaklan',
 
   // Original text: 'Next item'
-  shortcut_Home_NAV_DOWN: undefined,
+  shortcut_Home_NAV_DOWN: 'Sonraki öğe',
 
   // Original text: 'Previous item'
-  shortcut_Home_NAV_UP: undefined,
+  shortcut_Home_NAV_UP: 'Önceki öğe',
 
   // Original text: 'Select item'
-  shortcut_Home_SELECT: undefined,
+  shortcut_Home_SELECT: 'Öğe seç',
 
   // Original text: 'Open'
-  shortcut_Home_JUMP_INTO: undefined,
+  shortcut_Home_JUMP_INTO: 'Aç',
 
   // Original text: 'Supported tables'
-  shortcut_SortedTable: undefined,
+  shortcut_SortedTable: 'Desteklenen tablolar',
 
   // Original text: 'Focus the table search bar'
-  shortcut_SortedTable_SEARCH: undefined,
+  shortcut_SortedTable_SEARCH: 'Tablo arama çubuğuna odaklan',
 
   // Original text: 'Next item'
-  shortcut_SortedTable_NAV_DOWN: undefined,
+  shortcut_SortedTable_NAV_DOWN: 'Sonraki öğe',
 
   // Original text: 'Previous item'
-  shortcut_SortedTable_NAV_UP: undefined,
+  shortcut_SortedTable_NAV_UP: 'Önceki öğe',
 
   // Original text: 'Select item'
-  shortcut_SortedTable_SELECT: undefined,
+  shortcut_SortedTable_SELECT: 'Öğe seç',
 
   // Original text: 'Action'
-  shortcut_SortedTable_ROW_ACTION: undefined,
+  shortcut_SortedTable_ROW_ACTION: 'Aksiyon',
 
   // Original text: 'VM'
-  settingsAclsButtonTooltipVM: undefined,
+  settingsAclsButtonTooltipVM: 'VM',
 
   // Original text: 'Hosts'
-  settingsAclsButtonTooltiphost: undefined,
+  settingsAclsButtonTooltiphost: 'Sunucular',
 
   // Original text: 'Pool'
-  settingsAclsButtonTooltippool: undefined,
+  settingsAclsButtonTooltippool: 'Havuz',
 
   // Original text: 'SR'
-  settingsAclsButtonTooltipSR: undefined,
+  settingsAclsButtonTooltipSR: 'SR',
 
   // Original text: 'Network'
-  settingsAclsButtonTooltipnetwork: undefined,
+  settingsAclsButtonTooltipnetwork: 'Ağ',
 
   // Original text: 'No config file selected'
-  noConfigFile: undefined,
+  noConfigFile: 'Yapılandırma dosyası seçilmedi',
 
   // Original text: 'Try dropping a config file here, or click to select a config file to upload.'
-  importTip: undefined,
+  importTip: 'Bir yapılandırma dosyasını buraya sürükleyin veya seçmek için tıklayın',
 
   // Original text: 'Config'
-  config: undefined,
+  config: 'Yapılandırma',
 
   // Original text: 'Import'
-  importConfig: undefined,
+  importConfig: 'İçe aktar',
 
   // Original text: 'Config file successfully imported'
-  importConfigSuccess: undefined,
+  importConfigSuccess: 'Yapılandırma dosyası başarıyla alındı',
 
   // Original text: 'Error while importing config file'
-  importConfigError: undefined,
+  importConfigError: 'Yapılandırma dosyası içe aktarılırken hata oluştu',
 
   // Original text: 'Export'
-  exportConfig: undefined,
+  exportConfig: 'Dışa aktar',
 
   // Original text: 'Download current config'
-  downloadConfig: undefined,
+  downloadConfig: 'Mevcut yapılandırmayı indir',
 
   // Original text: 'No config import available for Community Edition'
-  noConfigImportCommunity: undefined,
+  noConfigImportCommunity: 'Topluluk Sürümünde yapılandırma içe aktarma özelliği yoktur',
 
   // Original text: 'Reconnect all hosts'
-  srReconnectAllModalTitle: undefined,
+  srReconnectAllModalTitle: 'Tüm sunuculara tekrar bağlan',
 
   // Original text: 'This will reconnect this SR to all its hosts.'
-  srReconnectAllModalMessage: undefined,
+  srReconnectAllModalMessage: "Bu işlem bu SR'yi sunucularına tekrar bağlayacak.",
 
   // Original text: 'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).'
-  srsReconnectAllModalMessage: undefined,
+  srsReconnectAllModalMessage: "Bu işlem seçili yerel SR'leri sunucularına, paylaşımlı SR'leri havuzuna tekrar bağlayacak.",
 
   // Original text: 'Disconnect all hosts'
-  srDisconnectAllModalTitle: undefined,
+  srDisconnectAllModalTitle: 'Tüm sunucuların bağlantısını kes',
 
   // Original text: 'This will disconnect this SR from all its hosts.'
-  srDisconnectAllModalMessage: undefined,
+  srDisconnectAllModalMessage: "Bu işlem bu SR'nin sunucu bağlantısını kesecek.",
 
   // Original text: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).'
-  srsDisconnectAllModalMessage: undefined,
+  srsDisconnectAllModalMessage: "Bu işlem seçili yerel SR'nin sunucu bağlantısını, paylaşımlı SR'nin havuz bağlantısını kesecek.",
 
   // Original text: 'Forget SR'
-  srForgetModalTitle: undefined,
+  srForgetModalTitle: 'SR Unut',
 
   // Original text: 'Forget selected SRs'
-  srsForgetModalTitle: undefined,
+  srsForgetModalTitle: "Seçili SR'leri unut",
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage: undefined,
+  srForgetModalMessage: "Bu SR'yi unutmak istediğinize emin misinz? Bu işlem SR üzerindeki VDI'ları silmez.",
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
-  srsForgetModalMessage: undefined,
+  srsForgetModalMessage: "Seçili SR'leri unutmak istediğinize emin misinz? Bu işlem SR'ler üzerindeki VDI'ları silmez.",
 
   // Original text: 'Disconnected'
-  srAllDisconnected: undefined,
+  srAllDisconnected: 'Bağlantıyı kes',
 
   // Original text: 'Partially connected'
-  srSomeConnected: undefined,
+  srSomeConnected: 'Kısmen bağlı',
 
   // Original text: 'Connected'
-  srAllConnected: undefined,
+  srAllConnected: 'Bağlı',
 
   // Original text: 'XOSAN'
-  xosanTitle: undefined,
+  xosanTitle: 'XOSAN',
 
   // Original text: 'Xen Orchestra SAN SR'
-  xosanSrTitle: undefined,
+  xosanSrTitle: 'Xen Orchestra SAN SR',
 
   // Original text: 'Select local SRs (lvm)'
-  xosanAvailableSrsTitle: undefined,
+  xosanAvailableSrsTitle: "Yerel SR'leri seçin (lvm)",
 
   // Original text: 'Suggestions'
-  xosanSuggestions: undefined,
+  xosanSuggestions: 'Öneriler',
 
   // Original text: 'Warning: using disperse layout is not recommended right now. Please read {link}.'
-  xosanDisperseWarning: undefined,
+  xosanDisperseWarning: "Uyarı: dağıtma düzeninin kullanılması şu anda önerilmez. Lütfen okuyun {link}.",
 
   // Original text: 'Name'
-  xosanName: undefined,
+  xosanName: 'Ad',
 
   // Original text: 'Host'
-  xosanHost: undefined,
+  xosanHost: 'Sunucu',
 
   // Original text: 'Connected Hosts'
-  xosanHosts: undefined,
+  xosanHosts: 'Bağlı Sunucular',
 
   // Original text: 'Pool'
-  xosanPool: undefined,
+  xosanPool: 'Havuz',
 
   // Original text: 'Volume ID'
-  xosanVolumeId: undefined,
+  xosanVolumeId: 'Volume ID',
 
   // Original text: 'Size'
-  xosanSize: undefined,
+  xosanSize: 'Boyut',
 
   // Original text: 'Used space'
-  xosanUsedSpace: undefined,
+  xosanUsedSpace: 'Kullanılan alan',
 
   // Original text: 'License'
-  xosanLicense: undefined,
+  xosanLicense: 'Lisans',
 
   // Original text: 'This XOSAN has more than 1 license!'
-  xosanMultipleLicenses: undefined,
+  xosanMultipleLicenses: "Bu XOSAN 1'den fazla lisansa sahip!",
 
   // Original text: 'XOSAN pack needs to be installed on each host of the pool.'
-  xosanNeedPack: undefined,
+  xosanNeedPack: 'XOSAN paketinin havuzdaki tüm sunuculara kurulması gerekir.',
 
   // Original text: 'Install it now!'
-  xosanInstallIt: undefined,
+  xosanInstallIt: 'Şimdi kur!',
 
   // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: undefined,
+  xosanNeedRestart: "XOSAN oluşturmadan önce bazı sunucuların toolstack'ı yeniden başlatılmalı",
 
   // Original text: 'Restart toolstacks'
-  xosanRestartAgents: undefined,
+  xosanRestartAgents: "toolstack'ları yeniden başlat",
 
   // Original text: 'Pool master is not running'
-  xosanMasterOffline: undefined,
+  xosanMasterOffline: "Havuzun master'ı çalışmıyor",
 
   // Original text: 'Install XOSAN pack on {pool}'
-  xosanInstallPackTitle: undefined,
+  xosanInstallPackTitle: 'XOSAN paketini şuraya kur {pool}',
 
   // Original text: 'Select at least 2 SRs'
-  xosanSelect2Srs: undefined,
+  xosanSelect2Srs: 'En az 2 SR seçin',
 
   // Original text: 'Layout'
-  xosanLayout: undefined,
+  xosanLayout: 'Düzen',
 
   // Original text: 'Redundancy'
-  xosanRedundancy: undefined,
+  xosanRedundancy: 'Fazlalık',
 
   // Original text: 'Capacity'
-  xosanCapacity: undefined,
+  xosanCapacity: 'Kapasite',
 
   // Original text: 'Available space'
-  xosanAvailableSpace: undefined,
+  xosanAvailableSpace: 'Kullanılabilir alan',
 
   // Original text: '* Can fail without data loss'
-  xosanDiskLossLegend: undefined,
+  xosanDiskLossLegend: '* Veri kaybı olmadan başarısız olabilir',
 
   // Original text: 'Create'
-  xosanCreate: undefined,
+  xosanCreate: 'Oluştur',
 
   // Original text: 'Add'
-  xosanAdd: undefined,
+  xosanAdd: 'Ekle',
 
   // Original text: 'Installing XOSAN. Please wait…'
-  xosanInstalling: undefined,
+  xosanInstalling: 'XOSAN yükleniyor. Lütfen bekleyin...',
 
   // Original text: 'No XOSAN available for Community Edition'
-  xosanCommunity: undefined,
+  xosanCommunity: 'Topluluk sürümünde XOSAN özelliği yoktur',
 
   // Original text: 'New'
-  xosanNew: undefined,
+  xosanNew: 'Yeni',
 
   // Original text: 'Advanced'
-  xosanAdvanced: undefined,
+  xosanAdvanced: 'Gelişmiş',
 
   // Original text: 'Remove subvolumes'
-  xosanRemoveSubvolumes: undefined,
+  xosanRemoveSubvolumes: "Alt volume'leri kaldır",
 
   // Original text: 'Add subvolume…'
-  xosanAddSubvolume: undefined,
+  xosanAddSubvolume: "Alt volume ekle...",
 
   // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
-  xosanWarning: undefined,
+  xosanWarning: "XOSAN SR'nin bu versiyonu ilk beta sürümünden. Kullanmaya devam edebilirsiniz, ancak değiştirmek için disklerinizi kaydetmeniz ve yeniden oluşturmanız gerekir.",
 
   // Original text: 'VLAN'
-  xosanVlan: undefined,
+  xosanVlan: 'VLAN',
 
   // Original text: 'No XOSAN found'
-  xosanNoSrs: undefined,
+  xosanNoSrs: 'XOSAN bulunamadı',
 
   // Original text: 'Some SRs are detached from the XOSAN'
-  xosanPbdsDetached: undefined,
+  xosanPbdsDetached: "Bazı SR'ler XOSAN'dan ayrıldı",
 
   // Original text: 'Something is wrong with: {badStatuses}'
-  xosanBadStatus: undefined,
+  xosanBadStatus: 'Şununla ilgili birşeyler yanlış: {badStatuses}',
 
   // Original text: 'Running'
-  xosanRunning: undefined,
+  xosanRunning: 'Çalışıyor',
 
   // Original text: 'Delete XOSAN'
-  xosanDelete: undefined,
+  xosanDelete: 'XOSAN sil',
 
   // Original text: 'Fix'
-  xosanFixIssue: undefined,
+  xosanFixIssue: 'Onar',
 
   // Original text: 'Creating XOSAN on {pool}'
-  xosanCreatingOn: undefined,
+  xosanCreatingOn: '{pool} üzerinde XOSAN oluşturuluyor',
 
   // Original text: 'Configuring network…'
-  xosanState_configuringNetwork: undefined,
+  xosanState_configuringNetwork: 'Ağ yapılandırılıyor...',
 
   // Original text: 'Importing VM…'
-  xosanState_importingVm: undefined,
+  xosanState_importingVm: 'VM içe aktarılıyor...',
 
   // Original text: 'Copying VMs…'
-  xosanState_copyingVms: undefined,
+  xosanState_copyingVms: "VM'ler kopyalanıyor...",
 
   // Original text: 'Configuring VMs…'
-  xosanState_configuringVms: undefined,
+  xosanState_configuringVms: "VM'ler yapılandırılıyor...",
 
   // Original text: 'Configuring gluster…'
-  xosanState_configuringGluster: undefined,
+  xosanState_configuringGluster: "Gluster yapılandırılıyor...",
 
   // Original text: 'Creating SR…'
-  xosanState_creatingSr: undefined,
+  xosanState_creatingSr: 'SR oluşturuluyor...',
 
   // Original text: 'Scanning SR…'
-  xosanState_scanningSr: undefined,
+  xosanState_scanningSr: 'SR taranıyor...',
 
   // Original text: 'Install cloud plugin first'
-  xosanInstallCloudPlugin: undefined,
+  xosanInstallCloudPlugin: 'Önce bulut eklentisini kurun',
 
   // Original text: 'Load cloud plugin first'
-  xosanLoadCloudPlugin: undefined,
+  xosanLoadCloudPlugin: 'Önce bulut eklentisini yükleyin',
 
   // Original text: 'Register your appliance first'
-  xosanRegister: undefined,
+  xosanRegister: "Önce XOSAN'ın kaydını yapın",
 
   // Original text: 'Loading…'
-  xosanLoading: undefined,
+  xosanLoading: 'Yükleniyor...',
 
   // Original text: 'XOSAN is not available at the moment'
-  xosanNotAvailable: undefined,
+  xosanNotAvailable: 'XOSAN şuan kullanılabilir değil',
 
   // Original text: 'Install XOSAN pack on these hosts:'
-  xosanInstallPackOnHosts: undefined,
+  xosanInstallPackOnHosts: 'XOSAN paketini şu sunuculara kur:',
 
   // Original text: 'Install {pack} v{version}?'
-  xosanInstallPack: undefined,
+  xosanInstallPack: 'Kur {pack} v{version}?',
 
   // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
-  xosanNoPackFound: undefined,
+  xosanNoPackFound: 'XenServer sürümünüz ile uyumlu XOSAN paketi bulunamadı.',
 
   // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
-  xosanPackRequirements: undefined,
+  xosanPackRequirements: "Şu sürüm gereksinimlerinden en az biri bu havuzdaki tüm ana makineler tarafından karşılanmalıdır:",
 
   // Original text: 'Some XOSAN Virtual Machines are not running'
-  xosanVmsNotRunning: undefined,
+  xosanVmsNotRunning: 'Bazı XOSAN Sanal Makinaları çalışmıyor',
 
   // Original text: 'Some XOSAN Virtual Machines could not be found'
-  xosanVmsNotFound: undefined,
+  xosanVmsNotFound: 'Bazı XOSAN Sanal Makinaları bulunamadı',
 
   // Original text: 'Files needing healing'
-  xosanFilesNeedingHealing: undefined,
+  xosanFilesNeedingHealing: 'İyileştirme ihtiyacı olan dosyalar',
 
   // Original text: 'Some XOSAN Virtual Machines have files needing healing'
-  xosanFilesNeedHealing: undefined,
+  xosanFilesNeedHealing: 'Bazı XOSAN Sanal Makinalarında iyileştirilmesi gereken dosyalar var',
 
   // Original text: 'Host {hostName} is not in XOSAN network'
-  xosanHostNotInNetwork: undefined,
+  xosanHostNotInNetwork: '{hostName} sunucusu XOSAN ağında değil',
 
   // Original text: 'VM controller'
-  xosanVm: undefined,
+  xosanVm: 'VM denetleyici',
 
   // Original text: 'SR'
-  xosanUnderlyingStorage: undefined,
+  xosanUnderlyingStorage: 'SR',
 
   // Original text: 'Replace…'
-  xosanReplace: undefined,
+  xosanReplace: 'Değiştir...',
 
   // Original text: 'On same VM'
-  xosanOnSameVm: undefined,
+  xosanOnSameVm: 'Aynı VM üzerinde',
 
   // Original text: 'Brick name'
-  xosanBrickName: undefined,
+  xosanBrickName: 'Brick adı',
 
   // Original text: 'Brick UUID'
-  xosanBrickUuid: undefined,
+  xosanBrickUuid: 'Brick UUID',
 
   // Original text: 'Brick size'
-  xosanBrickSize: undefined,
+  xosanBrickSize: 'Brick boyutu',
 
   // Original text: 'Memory size'
-  xosanMemorySize: undefined,
+  xosanMemorySize: 'Bellek boyutu',
 
   // Original text: 'Status'
-  xosanStatus: undefined,
+  xosanStatus: 'Durum',
 
   // Original text: 'Arbiter'
-  xosanArbiter: undefined,
+  xosanArbiter: 'Hakem',
 
   // Original text: 'Used Inodes'
-  xosanUsedInodes: undefined,
+  xosanUsedInodes: 'Kullanılan düğümler',
 
   // Original text: 'Block size'
-  xosanBlockSize: undefined,
+  xosanBlockSize: 'Blok boyutu',
 
   // Original text: 'Device'
-  xosanDevice: undefined,
+  xosanDevice: 'Cihaz',
 
   // Original text: 'FS name'
-  xosanFsName: undefined,
+  xosanFsName: 'FS adı',
 
   // Original text: 'Mount options'
-  xosanMountOptions: undefined,
+  xosanMountOptions: 'Mount seçenekleri',
 
   // Original text: 'Path'
-  xosanPath: undefined,
+  xosanPath: 'Yol',
 
   // Original text: 'Job'
-  xosanJob: undefined,
+  xosanJob: 'İş',
 
   // Original text: 'PID'
-  xosanPid: undefined,
+  xosanPid: 'PID',
 
   // Original text: 'Port'
-  xosanPort: undefined,
+  xosanPort: 'Port',
 
   // Original text: 'Missing values'
-  xosanReplaceBrickErrorTitle: undefined,
+  xosanReplaceBrickErrorTitle: 'Eksik değerler',
 
   // Original text: 'You need to select a SR and a size'
-  xosanReplaceBrickErrorMessage: undefined,
+  xosanReplaceBrickErrorMessage: 'Bir SR ve bir boyut seçmelisiniz',
 
   // Original text: 'Bad values'
-  xosanAddSubvolumeErrorTitle: undefined,
+  xosanAddSubvolumeErrorTitle: 'Kötü değerler',
 
   // Original text: 'You need to select {nSrs, number} and a size'
-  xosanAddSubvolumeErrorMessage: undefined,
+  xosanAddSubvolumeErrorMessage: '{nSrs, number} ve bir boyut seçmelisiniz',
 
   // Original text: 'Select {nSrs, number} SRs'
-  xosanSelectNSrs: undefined,
+  xosanSelectNSrs: '{nSrs, number} SR seç',
 
   // Original text: 'Run'
-  xosanRun: undefined,
+  xosanRun: 'Çalıştır',
 
   // Original text: 'Remove'
-  xosanRemove: undefined,
+  xosanRemove: 'Kaldır',
 
   // Original text: 'Volume'
-  xosanVolume: undefined,
+  xosanVolume: 'Volume',
 
   // Original text: 'Volume options'
-  xosanVolumeOptions: undefined,
+  xosanVolumeOptions: 'Volume seçenekleri',
 
   // Original text: 'Could not find VM'
-  xosanCouldNotFindVm: undefined,
+  xosanCouldNotFindVm: 'VM bulunamadı',
 
   // Original text: 'Using {usage}'
-  xosanUnderlyingStorageUsage: undefined,
+  xosanUnderlyingStorageUsage: 'Kullanım {usage}',
 
   // Original text: 'Custom IP network (/24)'
-  xosanCustomIpNetwork: undefined,
+  xosanCustomIpNetwork: 'Özel IP ağı (/24)',
 
   // Original text: 'Will configure the host xosan network device with a static IP address and plug it in.'
-  xosanIssueHostNotInNetwork: undefined,
+  xosanIssueHostNotInNetwork: 'Sunucu, xosan ağ cihazını statik bir IP adresiyle yapılandırır ve fişe takar.',
 
   // Original text: 'Licenses'
-  licensesTitle: undefined,
+  licensesTitle: 'Lisanslar',
 
   // Original text: 'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}'
-  xosanUnregisteredDisclaimer: undefined,
+  xosanUnregisteredDisclaimer: "Kayıtlı değilsiniz ve bu nedenle XOSAN SR oluşturamaz veya yönetemezsiniz. {Link}",
 
   // Original text: 'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.'
-  xosanSourcesDisclaimer: undefined,
+  xosanSourcesDisclaimer: "Bir XOSAN SR oluşturmak için, XOA kullanmanız ve {link} 'ten bir XOSAN lisansı satın almanız gerekir.",
 
   // Original text: 'Register now!'
-  registerNow: undefined,
+  registerNow: 'Şimdi kaydol!',
 
   // Original text: 'You need to register your appliance to manage your licenses.'
-  licensesUnregisteredDisclaimer: undefined,
+  licensesUnregisteredDisclaimer: 'Lisanlarınızı yönetmek için kaydolmalısınız.',
 
   // Original text: 'Product'
-  licenseProduct: undefined,
+  licenseProduct: 'Ürün',
 
   // Original text: 'Attached to'
-  licenseBoundObject: undefined,
+  licenseBoundObject: 'Şuraya ekli',
 
   // Original text: 'Purchaser'
-  licensePurchaser: undefined,
+  licensePurchaser: 'Müşteri',
 
   // Original text: 'Expires'
-  licenseExpires: undefined,
+  licenseExpires: 'Süre bitimi',
 
   // Original text: 'You'
-  licensePurchaserYou: undefined,
+  licensePurchaserYou: 'Siz',
 
   // Original text: 'Support'
-  productSupport: undefined,
+  productSupport: 'Destek',
 
   // Original text: 'No XOSAN attached'
-  licenseNotBoundXosan: undefined,
+  licenseNotBoundXosan: 'Ekli XOSAN yok',
 
   // Original text: 'License attached to an unknown XOSAN'
-  licenseBoundUnknownXosan: undefined,
+  licenseBoundUnknownXosan: "Lisans bilinmeyen bir XOSAN'a ekli",
 
   // Original text: 'Manage the licenses'
-  licensesManage: undefined,
+  licensesManage: 'Lisansları yönet',
 
   // Original text: 'New license'
-  newLicense: undefined,
+  newLicense: 'Yeni lisans',
 
   // Original text: 'Refresh'
-  refreshLicenses: undefined,
+  refreshLicenses: 'Yenile',
 
   // Original text: 'Limited size because XOSAN is in trial'
-  xosanLicenseRestricted: undefined,
+  xosanLicenseRestricted: 'Limitli boyut çünkü XOSAN deneme sürecinde',
 
   // Original text: 'You need a license on this SR to manage the XOSAN.'
-  xosanAdminNoLicenseDisclaimer: undefined,
+  xosanAdminNoLicenseDisclaimer: "XOSAN'ı yönetmek için bu SR üzerinde bir lisansa ihtiyacınız var.",
 
   // Original text: 'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.'
-  xosanAdminExpiredLicenseDisclaimer: undefined,
+  xosanAdminExpiredLicenseDisclaimer: "XOSAN lisansınızın süresi doldu. SR'yi hala kullanabilirsiniz ancak artık yönetemezsiniz.",
 
   // Original text: 'Could not check the license on this XOSAN SR'
-  xosanCheckLicenseError: undefined,
+  xosanCheckLicenseError: "Bu XOSAN SR'deki lisans kontrol edilemedi",
 
   // Original text: 'Could not fetch licenses'
-  xosanGetLicensesError: undefined,
+  xosanGetLicensesError: 'Lisans alınamadı',
 
   // Original text: 'License has expired.'
-  xosanLicenseHasExpired: undefined,
+  xosanLicenseHasExpired: "Lisnas'ın süresi doldu",
 
   // Original text: 'License expires on {date}.'
-  xosanLicenseExpiresDate: undefined,
+  xosanLicenseExpiresDate: 'Lisans {date} tarihinde bitecek.',
 
   // Original text: 'Update the license now!'
-  xosanUpdateLicenseMessage: undefined,
+  xosanUpdateLicenseMessage: "Lisans'ı şimdi güncelle!",
 
   // Original text: 'Unknown XOSAN SR.'
-  xosanUnknownSr: undefined,
+  xosanUnknownSr: 'Bilinmeyen XOSAN SR',
 
   // Original text: 'Contact us!'
-  contactUs: undefined,
+  contactUs: 'Bizimle iletişime geçin!',
 
   // Original text: 'No license.'
-  xosanNoLicense: undefined,
+  xosanNoLicense: 'Lisans yok.',
 
   // Original text: 'Unlock now!'
-  xosanUnlockNow: undefined,
+  xosanUnlockNow: 'Şimdi kilidi kaldır!',
 
   // Original text: 'Select a license'
-  selectLicense: undefined,
+  selectLicense: 'Bir lisans seç',
 
   // Original text: 'Bind license'
-  bindLicense: undefined,
+  bindLicense: "Lisans'ı bağla",
 
   // Original text: 'expires on {date}'
-  expiresOn: undefined,
+  expiresOn: '{date} tarihinde bitecek',
 
   // Original text: 'Install XOA plugin first'
-  xosanInstallXoaPlugin: undefined,
+  xosanInstallXoaPlugin: 'Önce XOA eklentisini kurun',
 
   // Original text: 'Load XOA plugin first'
-  xosanLoadXoaPlugin: undefined,
+  xosanLoadXoaPlugin: 'Önce XOA eklentisini yükleyin',
 
   // Original text: '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}'
-  durationFormat: undefined,
+  durationFormat: '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
