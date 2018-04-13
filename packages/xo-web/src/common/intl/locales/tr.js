@@ -300,7 +300,7 @@ export default {
   homeProSupport: 'Profesyonel Destek',
 
   // Original text: 'There are no VMs!'
-  homeNoVms: "Hiç VM yok",
+  homeNoVms: 'Hiç VM yok',
 
   // Original text: 'Or…'
   homeNoVmsOr: 'Veya...',
@@ -399,7 +399,7 @@ export default {
   homeSortByRAM: 'RAM',
 
   // Original text: 'Shared/Not shared'
-  homeSortByShared: "Paylaşımlı/Paylaşımsız",
+  homeSortByShared: 'Paylaşımlı/Paylaşımsız',
 
   // Original text: 'Size'
   homeSortBySize: 'Boyut',
@@ -417,10 +417,10 @@ export default {
   homeSortVmsBySnapshots: "Snapshot'lar",
 
   // Original text: '{displayed, number}x {icon} (on {total, number})'
-  homeDisplayedItems: "{displayed, number}x {icon} (on {total, number})",
+  homeDisplayedItems: '{displayed, number}x {icon} (on {total, number})',
 
   // Original text: '{selected, number}x {icon} selected (on {total, number})'
-  homeSelectedItems: "{selected, number}x {icon} selected (on {total, number})",
+  homeSelectedItems: '{selected, number}x {icon} selected (on {total, number})',
 
   // Original text: 'More'
   homeMore: 'Daha fazla',
@@ -453,7 +453,7 @@ export default {
   sortedTableNoItems: 'Hiç öğe bulunamadı',
 
   // Original text: '{nFiltered, number} of {nTotal, number} items'
-  sortedTableNumberOfFilteredItems: "{nTotal, number} öğeden {nFiltered, number}",
+  sortedTableNumberOfFilteredItems: '{nTotal, number} öğeden {nFiltered, number}',
 
   // Original text: '{nTotal, number} items'
   sortedTableNumberOfItems: '{nTotal, number} öğe',
@@ -831,10 +831,10 @@ export default {
   jobOwnerPlaceholder: 'işin sahibi',
 
   // Original text: "This job's creator no longer exists"
-  jobUserNotFound: "Bu işi oluşturan kullanıcı artık yok",
+  jobUserNotFound: 'Bu işi oluşturan kullanıcı artık yok',
 
   // Original text: "This backup's creator no longer exists"
-  backupUserNotFound: "Bu yedeklemeyi oluşturan kullanıcı artık yok",
+  backupUserNotFound: 'Bu yedeklemeyi oluşturan kullanıcı artık yok',
 
   // Original text: 'Click here to see the matching VMs'
   redirectToMatchingVms: "Eşleşen VM'leri görmek için tıklayın",
@@ -975,7 +975,7 @@ export default {
   remoteType: 'Tip',
 
   // Original text: 'SMB remotes are meant to work on Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.'
-  remoteSmbWarningMessage: "SMB hedefler Windows Server üzerinde çalışır. Diğer sistemler için (Linux samba, neredeyse bütün NAS cihazları anlamına gelir) lütfen NFS kullanın.",
+  remoteSmbWarningMessage: 'SMB hedefler Windows Server üzerinde çalışır. Diğer sistemler için (Linux samba, neredeyse bütün NAS cihazları anlamına gelir) lütfen NFS kullanın.',
 
   // Original text: 'Test your remote'
   remoteTestTip: 'Hedefinizi test edin',
@@ -1011,7 +1011,7 @@ export default {
   remoteConnectionFailed: 'Bağlantı başarısız',
 
   // Original text: 'Delete backup job{nJobs, plural, one {} other {s}}'
-  confirmDeleteBackupJobsTitle: "Yedekleme işini(lerini) sil",
+  confirmDeleteBackupJobsTitle: 'Yedekleme işini(lerini) sil',
 
   // Original text: 'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?'
   confirmDeleteBackupJobsBody: '{nJobs, number} yedekleme işini(lerini) silmek istediğinize emin misiniz?',
@@ -1068,13 +1068,13 @@ export default {
   remoteMyNamePlaceHolder: 'Ad *',
 
   // Original text: '/path/to/backup'
-  remoteLocalPlaceHolderPath: "/yedek/için/yol",
+  remoteLocalPlaceHolderPath: '/yedek/için/yol',
 
   // Original text: 'host *'
   remoteNfsPlaceHolderHost: 'sunucu *',
 
   // Original text: 'path/to/backup'
-  remoteNfsPlaceHolderPath: "/yedek/için/yol",
+  remoteNfsPlaceHolderPath: '/yedek/için/yol',
 
   // Original text: 'subfolder [path\\\\to\\\\backup]'
   remoteSmbPlaceHolderRemotePath: 'altdizin [yedek\\\\için\\\\yol]',
@@ -1089,7 +1089,7 @@ export default {
   remoteSmbPlaceHolderDomain: 'Domain',
 
   // Original text: '<address>\\\\<share> *'
-  remoteSmbPlaceHolderAddressShare: "<paylaşım>\\\\<adresi> *",
+  remoteSmbPlaceHolderAddressShare: '<paylaşım>\\\\<adresi> *',
 
   // Original text: 'password(fill to edit)'
   remotePlaceHolderPassword: 'parola(düzenlemek için doldurun)',
@@ -1182,7 +1182,7 @@ export default {
   newSrLvmDevicePlaceHolder: 'Cihaz, örn: /dev/sda...',
 
   // Original text: '/path/to/directory'
-  newSrLocalPathPlaceHolder: "/dizin/için/yol",
+  newSrLocalPathPlaceHolder: '/dizin/için/yol',
 
   // Original text: 'Use NFSv4'
   newSrUseNfs4: 'NFSv4 kullan',
@@ -1191,7 +1191,7 @@ export default {
   newSrNfsOptions: 'Virgülle ayrılmış NFS seçenekleri',
 
   // Original text: 'Users/Groups'
-  subjectName: "Kullanıcılar/Gruplar",
+  subjectName: 'Kullanıcılar/Gruplar',
 
   // Original text: 'Object'
   objectName: 'Nesne',
@@ -1278,7 +1278,7 @@ export default {
   noUserInGroup: 'Grupta kullanıcı yok',
 
   // Original text: '{users, number} user{users, plural, one {} other {s}}'
-  countUsers: "{users, number} kullanıcı(lar)",
+  countUsers: '{users, number} kullanıcı(lar)',
 
   // Original text: 'Select Permission'
   selectPermission: 'Yetkileri seç',
@@ -1509,7 +1509,7 @@ export default {
   noHost: 'Sunucu yok',
 
   // Original text: '{used}% used ({free} free)'
-  memoryLeftTooltip: "%{used} kullanılıyor ({free} boş)",
+  memoryLeftTooltip: '%{used} kullanılıyor ({free} boş)',
 
   // Original text: 'PIF'
   pif: 'PIF',
@@ -1563,10 +1563,10 @@ export default {
   addHostLabel: 'Sunucu ekle',
 
   // Original text: 'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.'
-  hostNeedsPatchUpdate: "Havuza eklemeden önce bu sunucuya {patches, number} yama yüklenmeli. Bu işlem uzun sürebilir.",
+  hostNeedsPatchUpdate: 'Havuza eklemeden önce bu sunucuya {patches, number} yama yüklenmeli. Bu işlem uzun sürebilir.',
 
   // Original text: "This host cannot be added to the pool because it's missing some patches."
-  hostNeedsPatchUpdateNoInstall: "Bu sunucu havuza eklenemez çünkü bazı yamaları eksik",
+  hostNeedsPatchUpdateNoInstall: 'Bu sunucu havuza eklenemez çünkü bazı yamaları eksik',
 
   // Original text: 'Adding host failed'
   addHostErrorTitle: 'Sunucu ekleme başarısız',
@@ -1608,7 +1608,7 @@ export default {
   failHostBulkRestartTitle: 'Sunucu yeniden başlatılırken hata',
 
   // Original text: '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.'
-  failHostBulkRestartMessage: "{failedHosts, number}/{totalHosts, number} sunucu yeniden başlatılamadı.",
+  failHostBulkRestartMessage: '{failedHosts, number}/{totalHosts, number} sunucu yeniden başlatılamadı.',
 
   // Original text: 'Reboot to apply updates'
   rebootUpdateHostLabel: 'Güncellemeleri uygulamak için yeniden başlat',
@@ -1701,7 +1701,7 @@ export default {
   supplementalPackPoolNew: 'Ek paketi her sunucuya yükle',
 
   // Original text: '{name} (by {author})'
-  supplementalPackTitle: "{name} (by {author})",
+  supplementalPackTitle: '{name} (by {author})',
 
   // Original text: 'Installation started'
   supplementalPackInstallStartedTitle: 'Kurulum başladı',
@@ -2175,7 +2175,7 @@ export default {
   deleteSelectedVdi: "Seçilen VDI'ı sil",
 
   // Original text: 'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)'
-  useQuotaWarning: "Disk oluşturma, kaynak setindeki disk kotasını kullanacak {resourceSet} (kalan {spaceLeft})",
+  useQuotaWarning: 'Disk oluşturma, kaynak setindeki disk kotasını kullanacak {resourceSet} (kalan {spaceLeft})',
 
   // Original text: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)'
   notEnoughSpaceInResourceSet: 'Kaynak setinde yeterli disk alanı yok {resourceSet} (kalan {spaceLeft})',
@@ -2403,7 +2403,7 @@ export default {
   vmChooseCoresPerSocket: 'Varsayılan davranış',
 
   // Original text: ' socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmCoresPerSocket: "{nSockets, number} soket ve her sokette  {nCores, number} çekirdek",
+  vmCoresPerSocket: '{nSockets, number} soket ve her sokette  {nCores, number} çekirdek',
 
   // Original text: 'None'
   vmCoresPerSocketNone: 'Yok',
@@ -2415,7 +2415,7 @@ export default {
   vmCoresPerSocketIncorrectValueSolution: 'Düzeltmek için lütfen seçili değeri değiştirin',
 
   // Original text: 'Memory limits (min/max)'
-  vmMemoryLimitsLabel: "Bellek limiti (min/max)",
+  vmMemoryLimitsLabel: 'Bellek limiti (min/max)',
 
   // Original text: 'vCPUs max:'
   vmMaxVcpus: 'vCPUs max',
@@ -2535,7 +2535,7 @@ export default {
   srStatePanel: 'Depolama ünitesi durumu',
 
   // Original text: '{usage} (of {total})'
-  ofUsage: "{usage} (of {total})",
+  ofUsage: '{usage} (of {total})',
 
   // Original text: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})'
   ofCpusUsage: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
@@ -2679,7 +2679,7 @@ export default {
   alarmRemoveAll: 'Tüm alarmları kaldır',
 
   // Original text: '{used}% used ({free} left)'
-  spaceLeftTooltip: "{used}% kullanılıyor ({free} boş)",
+  spaceLeftTooltip: '{used}% kullanılıyor ({free} boş)',
 
   // Original text: 'Create a new VM on {select}'
   newVmCreateNewVmOn: '{select} üzerinden yeni bir VM oluştur',
@@ -2814,7 +2814,7 @@ export default {
   newVmMultipleVmsPattern: 'Ad deseni:',
 
   // Original text: 'e.g.: \\{name\\}_%'
-  newVmMultipleVmsPatternPlaceholder: "örn: \\{name\\}_%",
+  newVmMultipleVmsPatternPlaceholder: 'örn: \\{name\\}_%',
 
   // Original text: 'First index:'
   newVmFirstIndex: 'İlk indeks',
@@ -3156,7 +3156,7 @@ export default {
   restoreVmBackupsBulkTitle: '{nVms, number} VM geri yükle',
 
   // Original text: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.'
-  restoreVmBackupsBulkMessage: "{oldestOrLatest} yedekten {nVms, number} VM geri yükle",
+  restoreVmBackupsBulkMessage: '{oldestOrLatest} yedekten {nVms, number} VM geri yükle',
 
   // Original text: 'oldest'
   oldest: 'En eski',
@@ -3489,7 +3489,7 @@ export default {
   deleteSnapshotsModalTitle: 'Snapshot sil',
 
   // Original text: 'Are you sure you want to delete {nVms, number} snapshot{nVms, plural, one {} other {s}}?'
-  deleteSnapshotsModalMessage: "{nVms, number} snapshot silmek istediğinize emin misiniz?",
+  deleteSnapshotsModalMessage: '{nVms, number} snapshot silmek istediğinize emin misiniz?',
 
   // Original text: 'Disconnect VBD{nVbds, plural, one {} other {s}}'
   disconnectVbdsModalTitle: 'VBD bağlantısını kes',
@@ -3684,7 +3684,7 @@ export default {
   forgetHostModalTitle: 'Sunucuyu unut',
 
   // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
-  forgetHostModalMessage: "{host} sunucusunu havuzunun unutmasını istediğinize emin misiniz? Bu sunucunun tekrar çevrimiçi olamayacağından emin olun veya bunun yerine ayırmayı deneyin.",
+  forgetHostModalMessage: '{host} sunucusunu havuzunun unutmasını istediğinize emin misiniz? Bu sunucunun tekrar çevrimiçi olamayacağından emin olun veya bunun yerine ayırmayı deneyin.',
 
   // Original text: 'Forget'
   forgetHost: 'Unut',
@@ -3936,7 +3936,7 @@ export default {
   upgradeWarningTitle: 'Yükseltme uyarısı',
 
   // Original text: 'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?'
-  upgradeWarningMessage: "Devam eden bazı yedekleme işleriniz var. Şimdi yükseltirseniz, bu işler kesilecektir! Devam etmek istediğinize emin misiniz?",
+  upgradeWarningMessage: 'Devam eden bazı yedekleme işleriniz var. Şimdi yükseltirseniz, bu işler kesilecektir! Devam etmek istediğinize emin misiniz?',
 
   // Original text: 'Xen Orchestra from the sources'
   disclaimerTitle: 'Kaynak koddan Xen Orchestra',
@@ -3945,10 +3945,10 @@ export default {
   disclaimerText1: "XO'yu kaynak koddan kullanıyorsunuz! Kişisel/kar amacı gütmeyen kullanım için mükemmeldir.",
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2: "Bir şirket iseniz, bizim hazır uygulamamızı kullanmanız daha iyidir + pro destek dahil:",
+  disclaimerText2: 'Bir şirket iseniz, bizim hazır uygulamamızı kullanmanız daha iyidir + pro destek dahil:',
 
   // Original text: 'This version is not bundled with any support nor updates. Use it with caution for critical tasks.'
-  disclaimerText3: "Bu sürüm herhangi bir destek veya güncellemeyle birlikte verilmez. Kritik görevler için dikkatli kullanın.",
+  disclaimerText3: 'Bu sürüm herhangi bir destek veya güncellemeyle birlikte verilmez. Kritik görevler için dikkatli kullanın.',
 
   // Original text: 'Connect PIF'
   connectPif: "PIF'e bağlan",
@@ -3972,7 +3972,7 @@ export default {
   deletePifs: "PIF'leri sil",
 
   // Original text: 'Are you sure you want to delete {nPifs, number} PIF{nPifs, plural, one {} other {s}}?'
-  deletePifsConfirm: "{nPifs, number} PIF silmek istediğinize emin misiniz?",
+  deletePifsConfirm: '{nPifs, number} PIF silmek istediğinize emin misiniz?',
 
   // Original text: 'Connected'
   pifConnected: 'Bağlı',
@@ -4005,10 +4005,10 @@ export default {
   confirmPasswordPlaceholder: 'Yeni parolayı onayla',
 
   // Original text: 'Confirmation password incorrect'
-  confirmationPasswordError: 'Onay şifresi yanlış',
+  confirmationPasswordError: 'Onay parola yanlış',
 
   // Original text: 'Password does not match the confirm password.'
-  confirmationPasswordErrorBody: "Şifre, onaylama şifresiyle uyuşmuyor.",
+  confirmationPasswordErrorBody: 'Parola, onaylama parolasıyla uyuşmuyor.',
 
   // Original text: 'Password changed'
   pwdChangeSuccess: 'Parola değişti',
@@ -4020,7 +4020,7 @@ export default {
   pwdChangeError: 'Yanlış parola',
 
   // Original text: 'The old password provided is incorrect. Your password has not been changed.'
-  pwdChangeErrorBody: 'Girilen eski şifre yanlış. Şifreniz değiştirilmedi.',
+  pwdChangeErrorBody: 'Girilen eski parola yanlış. Parolanız değiştirilmedi.',
 
   // Original text: 'OK'
   changePasswordOk: 'Tamam',
@@ -4329,7 +4329,7 @@ export default {
   xosanSuggestions: 'Öneriler',
 
   // Original text: 'Warning: using disperse layout is not recommended right now. Please read {link}.'
-  xosanDisperseWarning: "Uyarı: dağıtma düzeninin kullanılması şu anda önerilmez. Lütfen okuyun {link}.",
+  xosanDisperseWarning: 'Uyarı: dağıtma düzeninin kullanılması şu anda önerilmez. Lütfen okuyun {link}.',
 
   // Original text: 'Name'
   xosanName: 'Ad',
@@ -4416,7 +4416,7 @@ export default {
   xosanRemoveSubvolumes: "Alt volume'leri kaldır",
 
   // Original text: 'Add subvolume…'
-  xosanAddSubvolume: "Alt volume ekle...",
+  xosanAddSubvolume: 'Alt volume ekle...',
 
   // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
   xosanWarning: "XOSAN SR'nin bu versiyonu ilk beta sürümünden. Kullanmaya devam edebilirsiniz, ancak değiştirmek için disklerinizi kaydetmeniz ve yeniden oluşturmanız gerekir.",
@@ -4458,7 +4458,7 @@ export default {
   xosanState_configuringVms: "VM'ler yapılandırılıyor...",
 
   // Original text: 'Configuring gluster…'
-  xosanState_configuringGluster: "Gluster yapılandırılıyor...",
+  xosanState_configuringGluster: 'Gluster yapılandırılıyor...',
 
   // Original text: 'Creating SR…'
   xosanState_creatingSr: 'SR oluşturuluyor...',
@@ -4491,7 +4491,7 @@ export default {
   xosanNoPackFound: 'XenServer sürümünüz ile uyumlu XOSAN paketi bulunamadı.',
 
   // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
-  xosanPackRequirements: "Şu sürüm gereksinimlerinden en az biri bu havuzdaki tüm ana makineler tarafından karşılanmalıdır:",
+  xosanPackRequirements: 'Şu sürüm gereksinimlerinden en az biri bu havuzdaki tüm ana makineler tarafından karşılanmalıdır:',
 
   // Original text: 'Some XOSAN Virtual Machines are not running'
   xosanVmsNotRunning: 'Bazı XOSAN Sanal Makinaları çalışmıyor',
@@ -4608,7 +4608,7 @@ export default {
   licensesTitle: 'Lisanslar',
 
   // Original text: 'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}'
-  xosanUnregisteredDisclaimer: "Kayıtlı değilsiniz ve bu nedenle XOSAN SR oluşturamaz veya yönetemezsiniz. {Link}",
+  xosanUnregisteredDisclaimer: 'Kayıtlı değilsiniz ve bu nedenle XOSAN SR oluşturamaz veya yönetemezsiniz. {Link}',
 
   // Original text: 'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.'
   xosanSourcesDisclaimer: "Bir XOSAN SR oluşturmak için, XOA kullanmanız ve {link} 'ten bir XOSAN lisansı satın almanız gerekir.",
