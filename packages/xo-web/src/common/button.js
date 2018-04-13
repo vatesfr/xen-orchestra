@@ -16,7 +16,7 @@ const Button = ({
     props.className,
     'btn',
     `btn${outline ? '-outline' : ''}-${btnStyle}`,
-    active !== undefined && 'active',
+    active === true && 'active',
     block && 'btn-block',
     size === 'large' ? 'btn-lg' : size === 'small' ? 'btn-sm' : null
   )
