@@ -909,7 +909,7 @@ export default {
   backupVersionWarning: 'Uyarı: Bu özellik yalnızca Xenserver 6.5 ve daha yeni sürümlerinde çalışır.',
 
   // Original text: 'VMs'
-  editBackupVmsTitle: "VM'ler"
+  editBackupVmsTitle: "VM'ler",
 
   // Original text: 'VMs statuses'
   editBackupSmartStatusTitle: "VM'lerin durumları",
