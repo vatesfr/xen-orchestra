@@ -28,8 +28,8 @@ const required = name => {
 // -------------------------------------------------------------------
 
 const STYLES = [
-  [ vdi => vdi.is_a_snapshot, chalk.enabled ? chalk.yellow : label => `[snapshot] ${label}` ],
-  [ vdi => !vdi.managed, chalk.enabled ? chalk.red : label => `[unmanaged] ${label}` ]
+  [ vdi => !vdi.managed, chalk.enabled ? chalk.red : label => `[unmanaged] ${label}` ],
+  [ vdi => vdi.is_a_snapshot, chalk.enabled ? chalk.yellow : label => `[snapshot] ${label}` ]
 ]
 const getStyle = vdi => {
   for (let i = 0, n = STYLES.length; i < n; ++i) {
