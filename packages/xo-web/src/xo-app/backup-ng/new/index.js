@@ -96,7 +96,7 @@ const getInitialState = () => ({
   crMode: false,
   deltaMode: false,
   drMode: false,
-  editionMode: false,
+  editionMode: undefined,
   formId: getRandomId(),
   name: '',
   newSchedules: {},
