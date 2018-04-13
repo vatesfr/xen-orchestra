@@ -132,7 +132,7 @@ export const connectStore = store => {
     store.dispatch(signedIn(xo.user))
 
     _call('xo.getAllObjects', { ndjson: true })
-      .then(({ $getFrom }) => fetch($getFrom))
+      .then(({ $getFrom }) => fetch('.' + $getFrom))
       .then(response => response.text())
       .then(data => {
         const objects = Object.create(null)
