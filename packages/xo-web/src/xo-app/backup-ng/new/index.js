@@ -567,14 +567,14 @@ export default [
                 <CardBlock>
                   <div className='text-xs-center'>
                     <ActionButton
-                      active={state.snapshotMode || undefined}
+                      active={state.snapshotMode}
                       handler={effects.toggleSnapshotMode}
                       icon='rolling-snapshot'
                     >
                       {_('rollingSnapshot')}
                     </ActionButton>{' '}
                     <ActionButton
-                      active={state.backupMode || undefined}
+                      active={state.backupMode}
                       disabled={state.isDelta}
                       handler={effects.toggleBackupMode}
                       icon='backup'
@@ -582,7 +582,7 @@ export default [
                       {_('backup')}
                     </ActionButton>{' '}
                     <ActionButton
-                      active={state.deltaMode || undefined}
+                      active={state.deltaMode}
                       disabled={
                         state.isFull ||
                         (!state.deltaMode && process.env.XOA_PLAN < 3)
@@ -593,7 +593,7 @@ export default [
                       {_('deltaBackup')}
                     </ActionButton>{' '}
                     <ActionButton
-                      active={state.drMode || undefined}
+                      active={state.drMode}
                       disabled={
                         state.isDelta ||
                         (!state.drMode && process.env.XOA_PLAN < 3)
@@ -609,7 +609,7 @@ export default [
                       </Tooltip>
                     )}{' '}
                     <ActionButton
-                      active={state.crMode || undefined}
+                      active={state.crMode}
                       disabled={
                         state.isFull ||
                         (!state.crMode && process.env.XOA_PLAN < 4)
