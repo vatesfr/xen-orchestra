@@ -68,8 +68,8 @@ const getNewSettings = schedules => {
 
   for (const id in schedules) {
     newSettings[id] = {
-      exportRetention: +schedules[id].exportRetention,
-      snapshotRetention: +schedules[id].snapshotRetention,
+      exportRetention: schedules[id].exportRetention,
+      snapshotRetention: schedules[id].snapshotRetention,
     }
   }
 
@@ -91,11 +91,11 @@ const getNewSchedules = schedules => {
 
 const getInitialState = () => ({
   $pool: {},
-  backupMode: undefined,
+  backupMode: false,
   compression: true,
-  crMode: undefined,
-  deltaMode: undefined,
-  drMode: undefined,
+  crMode: false,
+  deltaMode: false,
+  drMode: false,
   editionMode: undefined,
   formId: getRandomId(),
   name: '',
@@ -106,7 +106,7 @@ const getInitialState = () => ({
   schedules: [],
   settings: {},
   smartMode: false,
-  snapshotMode: undefined,
+  snapshotMode: false,
   srs: [],
   tags: {},
   tmpSchedule: {},
@@ -156,8 +156,8 @@ export default [
                 timezone: schedule.timezone,
               })).id
               newSettings[scheduleId] = {
-                exportRetention: +schedule.exportRetention,
-                snapshotRetention: +schedule.snapshotRetention,
+                exportRetention: schedule.exportRetention,
+                snapshotRetention: schedule.snapshotRetention,
               }
             })
           )
@@ -202,8 +202,8 @@ export default [
             oldSetting.exportRetention !== newSetting.exportRetention
           ) {
             newSettings[id] = {
-              exportRetention: +newSetting.exportRetention,
-              snapshotRetention: +newSetting.snapshotRetention,
+              exportRetention: newSetting.exportRetention,
+              snapshotRetention: newSetting.snapshotRetention,
             }
           }
         }
@@ -230,31 +230,31 @@ export default [
             : constructPattern(state.vms),
         })
       },
-      setSnapshotMode: () => state => ({
+      toggleSnapshotMode: () => state => ({
         ...state,
-        snapshotMode: !state.snapshotMode || undefined,
+        snapshotMode: !state.snapshotMode,
       }),
-      setBackupMode: () => state => ({
+      toggleBackupMode: () => state => ({
         ...state,
-        backupMode: !state.backupMode || undefined,
+        backupMode: !state.backupMode,
       }),
-      setDeltaMode: () => state => ({
+      toggleDeltaMode: () => state => ({
         ...state,
-        deltaMode: !state.deltaMode || undefined,
+        deltaMode: !state.deltaMode,
       }),
-      setDrMode: () => state => ({
+      toggleDrMode: () => state => ({
         ...state,
-        drMode: !state.drMode || undefined,
+        drMode: !state.drMode,
       }),
-      setCrMode: () => state => ({
+      toggleCrMode: () => state => ({
         ...state,
-        crMode: !state.crMode || undefined,
+        crMode: !state.crMode,
       }),
       setCompression: (_, { target: { checked } }) => state => ({
         ...state,
         compression: checked,
       }),
-      setSmartMode: (_, smartMode) => state => ({
+      toggleSmartMode: (_, smartMode) => state => ({
         ...state,
         smartMode,
       }),
@@ -306,15 +306,14 @@ export default [
           name: job.name,
           paramsUpdated: true,
           smartMode: job.vms.id === undefined,
-          snapshotMode:
-            some(
-              job.settings,
-              ({ snapshotRetention }) => snapshotRetention > 0
-            ) || undefined,
-          backupMode: (job.mode === 'full' && !isEmpty(remotes)) || undefined,
-          deltaMode: (job.mode === 'delta' && !isEmpty(remotes)) || undefined,
-          drMode: (job.mode === 'full' && !isEmpty(srs)) || undefined,
-          crMode: (job.mode === 'delta' && !isEmpty(srs)) || undefined,
+          snapshotMode: some(
+            job.settings,
+            ({ snapshotRetention }) => snapshotRetention > 0
+          ),
+          backupMode: job.mode === 'full' && !isEmpty(remotes),
+          deltaMode: job.mode === 'delta' && !isEmpty(remotes),
+          drMode: job.mode === 'full' && !isEmpty(srs),
+          crMode: job.mode === 'delta' && !isEmpty(srs),
           remotes,
           srs,
           settings: job.settings,
@@ -483,20 +482,15 @@ export default [
       showCompression: state => state.isFull && state.exportRetentionExists,
       exportMode: state =>
         state.backupMode || state.deltaMode || state.drMode || state.crMode,
-      exportRetentionExists: state =>
+      exportRetentionExists: ({ newSchedules, settings }) =>
         some(
-          state.newSchedules,
-          ({ exportRetention }) => +exportRetention !== 0
-        ) ||
-        some(state.settings, ({ exportRetention }) => +exportRetention !== 0),
-      snapshotRetentionExists: state =>
+          { ...newSchedules, ...settings },
+          ({ exportRetention }) => exportRetention !== 0
+        ),
+      snapshotRetentionExists: ({ newSchedules, settings }) =>
         some(
-          state.newSchedules,
-          ({ snapshotRetention }) => +snapshotRetention !== 0
-        ) ||
-        some(
-          state.settings,
-          ({ snapshotRetention }) => +snapshotRetention !== 0
+          { ...newSchedules, ...settings },
+          ({ snapshotRetention }) => snapshotRetention !== 0
         ),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
@@ -528,7 +522,7 @@ export default [
                   <Tooltip content={_('smartBackupModeTitle')}>
                     <Toggle
                       className='pull-right'
-                      onChange={effects.setSmartMode}
+                      onChange={effects.toggleSmartMode}
                       value={state.smartMode}
                       iconSize={1}
                     />
@@ -574,7 +568,7 @@ export default [
                   <div className='text-xs-center'>
                     <ActionButton
                       active={state.snapshotMode}
-                      handler={effects.setSnapshotMode}
+                      handler={effects.toggleSnapshotMode}
                       icon='rolling-snapshot'
                     >
                       {_('rollingSnapshot')}
@@ -582,7 +576,7 @@ export default [
                     <ActionButton
                       active={state.backupMode}
                       disabled={state.isDelta}
-                      handler={effects.setBackupMode}
+                      handler={effects.toggleBackupMode}
                       icon='backup'
                     >
                       {_('backup')}
@@ -593,7 +587,7 @@ export default [
                         state.isFull ||
                         (!state.deltaMode && process.env.XOA_PLAN < 3)
                       }
-                      handler={effects.setDeltaMode}
+                      handler={effects.toggleDeltaMode}
                       icon='delta-backup'
                     >
                       {_('deltaBackup')}
@@ -604,7 +598,7 @@ export default [
                         state.isDelta ||
                         (!state.drMode && process.env.XOA_PLAN < 3)
                       }
-                      handler={effects.setDrMode}
+                      handler={effects.toggleDrMode}
                       icon='disaster-recovery'
                     >
                       {_('disasterRecovery')}
@@ -620,7 +614,7 @@ export default [
                         state.isFull ||
                         (!state.crMode && process.env.XOA_PLAN < 4)
                       }
-                      handler={effects.setCrMode}
+                      handler={effects.toggleCrMode}
                       icon='continuous-replication'
                     >
                       {_('continuousReplication')}
