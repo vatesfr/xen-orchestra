@@ -14,7 +14,7 @@
     "scheduling",
     "task"
   ],
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/@xen-orchestra/cron",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/cron",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
     "type": "git",
