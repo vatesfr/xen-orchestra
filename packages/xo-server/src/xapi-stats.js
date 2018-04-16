@@ -11,6 +11,7 @@ import {
   mapValues,
   mean,
   sum,
+  uniq,
   zipWith,
 } from 'lodash'
 
@@ -420,7 +421,7 @@ export default class XapiStats {
 
     const hostsStats = {}
     await Promise.all(
-      map(map(sr.$PBDs, 'host'), hostId =>
+      map(uniq(map(sr.$PBDs, 'host')), hostId =>
         this.getHostStats(xapi, hostId, granularity).then(stats => {
           hostsStats[xapi.getObject(hostId).name_label] = stats
         })
