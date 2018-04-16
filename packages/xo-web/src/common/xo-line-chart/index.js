@@ -4,11 +4,16 @@ import ChartistTooltip from 'chartist-plugin-tooltip'
 import React from 'react'
 import { injectIntl } from 'react-intl'
 import { messages } from 'intl'
-import { find, flatten, floor, map, max, size, sum, values } from 'lodash'
+import { find, flatten, floor, get, map, max, size, sum, values } from 'lodash'
 
 import propTypes from '../prop-types-decorator'
 import { computeArraysSum } from '../xo-stats'
-import { formatSize, getMemoryUsedMetric } from '../utils'
+import {
+  formatSize,
+  formatSpeed,
+  formatTime,
+  getMemoryUsedMetric,
+} from '../utils'
 
 import styles from './index.css'
 
@@ -548,6 +553,175 @@ export const PoolLoadLineChart = injectIntl(
             endTimestamp: firstHostData.endTimestamp,
             interval: firstHostData.interval,
             valueTransform: value => `${value.toPrecision(3)}`,
+          }),
+          ...options,
+        }}
+      />
+    )
+  })
+)
+
+const buildSrSeries = ({ stats, label, addSumSeries }) => {
+  const series = map(stats, (data, key) => ({
+    name: `${label} (${key})`,
+    data,
+  }))
+
+  if (addSumSeries) {
+    series.push({
+      name: `All ${label}`,
+      data: computeArraysSum(values(stats)),
+      className: styles.dashedLine,
+    })
+  }
+
+  return series
+}
+
+export const IopsLineChart = injectIntl(
+  propTypes({
+    addSumSeries: propTypes.bool,
+    data: propTypes.array.isRequired,
+    options: propTypes.object,
+  })(({ addSumSeries, data, options = {}, intl }) => {
+    const { endTimestamp, interval, stats: { iops } } = data
+
+    const { length } = get(iops, 'r')
+
+    if (length === 0) {
+      return templateError
+    }
+
+    return (
+      <ChartistGraph
+        type='Line'
+        data={{
+          series: buildSrSeries({ stats: iops, label: 'Iops', addSumSeries }),
+        }}
+        options={{
+          ...makeOptions({
+            intl,
+            nValues: length,
+            endTimestamp,
+            interval,
+            valueTransform: value => `${value.toPrecision(3)} /s`,
+          }),
+          ...options,
+        }}
+      />
+    )
+  })
+)
+
+export const IoThroughputChart = injectIntl(
+  propTypes({
+    addSumSeries: propTypes.bool,
+    data: propTypes.array.isRequired,
+    options: propTypes.object,
+  })(({ addSumSeries, data, options = {}, intl }) => {
+    const { endTimestamp, interval, stats: { ioThroughput } } = data
+
+    const { length } = get(ioThroughput, 'r') || []
+
+    if (length === 0) {
+      return templateError
+    }
+
+    return (
+      <ChartistGraph
+        type='Line'
+        data={{
+          series: buildSrSeries({
+            stats: ioThroughput,
+            label: 'IO throughput',
+            addSumSeries,
+          }),
+        }}
+        options={{
+          ...makeOptions({
+            intl,
+            nValues: length,
+            endTimestamp,
+            interval,
+            valueTransform: value => formatSpeed(value, 1e3),
+          }),
+          ...options,
+        }}
+      />
+    )
+  })
+)
+
+export const LatencyChart = injectIntl(
+  propTypes({
+    addSumSeries: propTypes.bool,
+    data: propTypes.array.isRequired,
+    options: propTypes.object,
+  })(({ addSumSeries, data, options = {}, intl }) => {
+    const { endTimestamp, interval, stats: { latency } } = data
+
+    const { length } = get(latency, 'r') || []
+
+    if (length === 0) {
+      return templateError
+    }
+
+    return (
+      <ChartistGraph
+        type='Line'
+        data={{
+          series: buildSrSeries({
+            stats: latency,
+            label: 'Latency',
+            addSumSeries,
+          }),
+        }}
+        options={{
+          ...makeOptions({
+            intl,
+            nValues: length,
+            endTimestamp,
+            interval,
+            valueTransform: value => formatTime(value),
+          }),
+          ...options,
+        }}
+      />
+    )
+  })
+)
+
+export const IowaitChart = injectIntl(
+  propTypes({
+    addSumSeries: propTypes.bool,
+    data: propTypes.array.isRequired,
+    options: propTypes.object,
+  })(({ addSumSeries, data, options = {}, intl }) => {
+    const { endTimestamp, interval, stats: { iowait } } = data
+
+    const { length } = iowait[Object.keys(iowait)[0]] || []
+
+    if (length === 0) {
+      return templateError
+    }
+
+    return (
+      <ChartistGraph
+        type='Line'
+        data={{
+          series: buildSrSeries({
+            stats: iowait,
+            label: 'IOwait',
+            addSumSeries,
+          }),
+        }}
+        options={{
+          ...makeOptions({
+            intl,
+            nValues: length,
+            endTimestamp,
+            interval,
+            valueTransform: value => `${value.toPrecision(2)}%`,
           }),
           ...options,
         }}

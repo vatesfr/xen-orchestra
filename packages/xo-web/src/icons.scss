@@ -237,6 +237,18 @@
     @extend .fa;
     @extend .fa-database;
   }
+  &-iops {
+    @extend .fa;
+    @extend .fa-cogs;
+  }
+  &-latency {
+    @extend .fa;
+    @extend .fa-clock-o;
+  }
+  &-iowait {
+    @extend .fa;
+    @extend .fa-pause;
+  }
   &-delete {
     @extend .fa;
     @extend .fa-trash;

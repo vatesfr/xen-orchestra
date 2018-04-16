@@ -543,6 +543,14 @@ const messages = {
   srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiTitle: 'VDI to coalesce ({total, number})',
 
+  // ----- SR stats tab -----
+
+  srNoStats: 'No stats',
+  statsIops: 'IOPS',
+  statsIoThroughput: 'IO throughput',
+  statsLatency: 'Latency',
+  statsIowait: 'IOwait',
+
   // ----- SR actions -----
   srRescan: 'Rescan all disks',
   srReconnectAll: 'Connect to all hosts',
