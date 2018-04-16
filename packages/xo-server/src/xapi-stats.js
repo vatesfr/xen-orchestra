@@ -74,8 +74,8 @@ const computeValues = (dataRow, legendIndex, transformValue = identity) =>
     transformValue(convertNanToNull(values[legendIndex]))
   )
 
-const combineStats = (stats, path, transformValues) =>
-  zipWith(...map(stats, path), (...values) => transformValues(values))
+const combineStats = (stats, path, combineValues) =>
+  zipWith(...map(stats, path), (...values) => combineValues(values))
 
 // It browse the object in depth and initialise it's properties
 // The targerPath can be a string or an array containing the depth
