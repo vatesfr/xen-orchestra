@@ -138,9 +138,13 @@ export default [
             ...getNewSettings(state.newSchedules),
           },
           remotes:
-            (state.deltaMode || state.backupMode) &&
-            constructPattern(state.remotes),
-          srs: (state.crMode || state.drMode) && constructPattern(state.srs),
+            state.deltaMode || state.backupMode
+              ? constructPattern(state.remotes)
+              : undefined,
+          srs:
+            state.crMode || state.drMode
+              ? constructPattern(state.srs)
+              : undefined,
           vms: state.smartMode
             ? state.vmsSmartPattern
             : constructPattern(state.vms),
