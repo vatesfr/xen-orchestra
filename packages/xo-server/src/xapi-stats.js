@@ -74,7 +74,7 @@ const computeValues = (dataRow, legendIndex, transformValue = identity) =>
     transformValue(convertNanToNull(values[legendIndex]))
   )
 
-const computSrStats = (stats, path, transformValues) =>
+const combineStats = (stats, path, transformValues) =>
   zipWith(...map(stats, path), (...values) => transformValues(values))
 
 // It browse the object in depth and initialise it's properties
@@ -435,24 +435,24 @@ export default class XapiStats {
       localTimestamp: Math.min(...map(hostsStats, 'localTimestamp')),
       stats: {
         iops: {
-          r: computSrStats(hostsStats, `stats.iops.r[${srShortUUID}]`, sum),
-          w: computSrStats(hostsStats, `stats.iops.w[${srShortUUID}]`, sum),
+          r: combineStats(hostsStats, `stats.iops.r[${srShortUUID}]`, sum),
+          w: combineStats(hostsStats, `stats.iops.w[${srShortUUID}]`, sum),
         },
         ioThroughput: {
-          r: computSrStats(
+          r: combineStats(
             hostsStats,
             `stats.ioThroughput.r[${srShortUUID}]`,
             sum
           ),
-          w: computSrStats(
+          w: combineStats(
             hostsStats,
             `stats.ioThroughput.w[${srShortUUID}]`,
             sum
           ),
         },
         latency: {
-          r: computSrStats(hostsStats, `stats.latency.r[${srShortUUID}]`, mean),
-          w: computSrStats(hostsStats, `stats.latency.w[${srShortUUID}]`, mean),
+          r: combineStats(hostsStats, `stats.latency.r[${srShortUUID}]`, mean),
+          w: combineStats(hostsStats, `stats.latency.w[${srShortUUID}]`, mean),
         },
         iowait: mapValues(hostsStats, `stats.iowait[${srShortUUID}]`),
       },
