@@ -7,7 +7,7 @@ import { Card, CardBlock } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
 import { isEqual } from 'lodash'
 
-import { FormGroup, getRandomId, Number } from './utils'
+import { FormFeedback, FormGroup, getRandomId, Number } from './utils'
 
 export default [
   injectState,
@@ -80,7 +80,11 @@ export default [
   injectState,
   ({ effects, state }) => (
     <form id={state.formId}>
-      <Card>
+      <FormFeedback
+        component={Card}
+        error={_('retentionNeeded')}
+        showError={state.retentionNeeded}
+      >
         <CardBlock>
           {state.exportMode && (
             <FormGroup>
@@ -134,7 +138,7 @@ export default [
             {_('formCancel')}
           </ActionButton>
         </CardBlock>
-      </Card>
+      </FormFeedback>
     </form>
   ),
 ].reduceRight((value, decorator) => decorator(value))

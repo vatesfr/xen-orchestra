@@ -20,7 +20,10 @@ export const Card = propTypes({
   shadow: propTypes.bool,
 })(({ shadow, ...props }) => {
   props.className = 'card'
-  props.style = shadow ? CARD_STYLE_WITH_SHADOW : CARD_STYLE
+  props.style = {
+    ...props.style,
+    ...(shadow ? CARD_STYLE_WITH_SHADOW : CARD_STYLE),
+  }
 
   return <div {...props} />
 })

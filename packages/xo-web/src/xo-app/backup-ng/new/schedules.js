@@ -7,7 +7,7 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { isEmpty, findKey, size } from 'lodash'
 
 import NewSchedule from './new-schedule'
-import { FormGroup } from './utils'
+import { FormFeedback, FormGroup } from './utils'
 
 // ===================================================================
 
@@ -108,9 +108,25 @@ export default [
   injectState,
   ({ effects, state }) => (
     <div>
-      <Card>
+      <FormFeedback
+        component={Card}
+        error={
+          state.missingSchedules
+            ? _('missingSchedules')
+            : state.missingExportRetention
+              ? _('missingExportRetention')
+              : _('missingSnapshotRetention')
+        }
+        showError={
+          state.showErrors
+            ? state.missingSchedules ||
+              state.missingExportRetention ||
+              state.missingSnapshotRetention
+            : undefined
+        }
+      >
         <CardHeader>
-          {_('backupSchedules')}
+          {_('backupSchedules')}*
           <ActionButton
             btnStyle='primary'
             className='pull-right'
@@ -160,7 +176,7 @@ export default [
             </FormGroup>
           )}
         </CardBlock>
-      </Card>
+      </FormFeedback>
       {state.editionMode !== undefined && (
         <NewSchedule schedule={state.tmpSchedule} />
       )}

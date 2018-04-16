@@ -1,3 +1,4 @@
+import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { injectState, provideState } from '@julien-f/freactal'
@@ -37,4 +38,35 @@ export const Number = [
 Number.propTypes = {
   onChange: PropTypes.func.isRequired,
   value: PropTypes.number.isRequired,
+}
+
+export const FormFeedback = ({
+  showError,
+  error,
+  component: Component,
+  ...props
+}) => (
+  <div>
+    <Component
+      {...props}
+      style={
+        showError === undefined
+          ? undefined
+          : {
+              borderColor: showError ? 'red' : 'green',
+            }
+      }
+    />
+    {showError && (
+      <span className='text-danger'>
+        <Icon icon='alarm' /> {error}
+      </span>
+    )}
+  </div>
+)
+
+FormFeedback.propTypes = {
+  component: PropTypes.node.isRequired,
+  error: PropTypes.node.isRequired,
+  showError: PropTypes.bool,
 }

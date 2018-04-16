@@ -322,6 +322,17 @@ const messages = {
   jobEditMessage:
     'You are editing job {name} ({id}). Saving will override previous job state.',
   scheduleEdit: 'Edit schedule',
+  missingBackupName: "A name is required to create the backup's job!",
+  missingVms: 'Missing Vms!',
+  missingBackupMode: 'You need to choose a backup mode!',
+  missingRemotes: 'Missing remotes!',
+  missingSrs: 'Missing srs!',
+  missingSchedules: 'Missing schedules!',
+  missingExportRetention:
+    'All backups mode, except the rolling snapshot mode, requires export retention to be higher than 0!',
+  missingSnapshotRetention:
+    'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
+  retentionNeeded: 'One of the retentions need to be higher than 0!',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
