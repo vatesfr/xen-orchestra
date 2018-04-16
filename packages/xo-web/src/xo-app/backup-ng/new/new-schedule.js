@@ -84,9 +84,10 @@ export default [
         snapshotMode,
         snapshotRetention,
       }) =>
-        (snapshotRetention === 0 && exportRetention === 0) ||
-        (snapshotRetention === 0 && !exportMode) ||
-        (exportRetention === 0 && !snapshotMode),
+        !(
+          (exportMode && exportRetention !== 0) ||
+          (snapshotMode && snapshotRetention !== 0)
+        ),
       scheduleNotEdited: ({
         cron,
         editionMode,
