@@ -911,7 +911,7 @@ export default class BackupNg {
               defer(async ($defer, vdi, id) => {
                 const path = `${vmDir}/${metadata.vhds[id]}`
 
-                const isDelta = 'xo:base_delta' in vdi.other_config
+                const isDelta = vdi.other_config['xo:base_delta'] !== undefined
                 let parentPath
                 if (isDelta) {
                   const vdiDir = dirname(path)
