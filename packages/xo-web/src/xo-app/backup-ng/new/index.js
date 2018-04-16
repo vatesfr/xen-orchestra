@@ -730,7 +730,7 @@ export default [
                     redirectOnSuccess='/backup-ng'
                     size='large'
                   >
-                    {_('saveBackupJob')}
+                    {_('formSave')}
                   </ActionButton>
                 ) : (
                   <ActionButton
@@ -742,7 +742,7 @@ export default [
                     redirectOnSuccess='/backup-ng'
                     size='large'
                   >
-                    {_('createBackupJob')}
+                    {_('formCreate')}
                   </ActionButton>
                 )}
                 <ActionButton
@@ -751,7 +751,7 @@ export default [
                   className='pull-right'
                   size='large'
                 >
-                  {_('resetBackupJob')}
+                  {_('formReset')}
                 </ActionButton>
               </CardBlock>
             </Card>

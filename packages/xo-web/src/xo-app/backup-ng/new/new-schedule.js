@@ -151,7 +151,7 @@ export default [
             icon='save'
             size='large'
           >
-            {_('scheduleSave')}
+            {_('formSave')}
           </ActionButton>
           <ActionButton
             className='pull-right'
@@ -159,7 +159,7 @@ export default [
             icon='cancel'
             size='large'
           >
-            {_('cancelScheduleEdition')}
+            {_('formCancel')}
           </ActionButton>
         </CardBlock>
       </Card>
