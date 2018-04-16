@@ -183,6 +183,10 @@ const messages = {
   sortedTableSelectAllItems: 'Click here to select all items',
 
   // ----- Forms -----
+  formCancel: 'Cancel',
+  formCreate: 'Create',
+  formReset: 'Reset',
+  formSave: 'Save',
   add: 'Add',
   selectAll: 'Select all',
   remove: 'Remove',
@@ -283,8 +287,6 @@ const messages = {
   jobInterrupted: 'Interrupted',
   jobStarted: 'Started',
   saveBackupJob: 'Save',
-  resetBackupJob: 'Reset',
-  createBackupJob: 'Create',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
     'Are you sure you want to delete this backup job?',
@@ -295,8 +297,6 @@ const messages = {
   jobEditMessage:
     'You are editing job {name} ({id}). Saving will override previous job state.',
   scheduleEdit: 'Edit schedule',
-  scheduleSave: 'Save',
-  cancelScheduleEdition: 'Cancel',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
