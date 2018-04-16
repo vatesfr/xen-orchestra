@@ -151,15 +151,15 @@ export default [
             icon='save'
             size='large'
           >
-            {_('scheduleSave')}
+            {_('formSave')}
           </ActionButton>
           <ActionButton
             className='pull-right'
             handler={effects.cancelSchedule}
-            icon='save'
+            icon='cancel'
             size='large'
           >
-            {_('cancelScheduleEdition')}
+            {_('formCancel')}
           </ActionButton>
         </CardBlock>
       </Card>
