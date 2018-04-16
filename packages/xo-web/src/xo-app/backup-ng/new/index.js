@@ -371,6 +371,13 @@ export default [
         _,
         { cron, timezone, exportRetention, snapshotRetention }
       ) => async (state, props) => {
+        if (!state.exportMode) {
+          exportRetention = 0
+        }
+        if (!state.snapshotMode) {
+          snapshotRetention = 0
+        }
+
         if (state.editionMode === 'creation') {
           return {
             ...state,

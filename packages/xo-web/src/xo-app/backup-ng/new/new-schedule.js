@@ -43,8 +43,8 @@ export default [
     initialState: ({
       schedule: {
         cron = '0 0 * * *',
-        exportRetention = 0,
-        snapshotRetention = 0,
+        exportRetention = 1,
+        snapshotRetention = 1,
         timezone = moment.tz.guess(),
       },
     }) => ({
@@ -76,14 +76,27 @@ export default [
       }),
     },
     computed: {
-      isScheduleInvalid: ({
-        cron,
+      isScheduleInvalid: ({ retentionNeeded, scheduleNotEdited }) =>
+        retentionNeeded || scheduleNotEdited,
+      retentionNeeded: ({
+        exportMode,
         exportRetention,
+        snapshotMode,
+        snapshotRetention,
+      }) =>
+        !(
+          (exportMode && exportRetention !== 0) ||
+          (snapshotMode && snapshotRetention !== 0)
+        ),
+      scheduleNotEdited: ({
+        cron,
+        editionMode,
+        exportRetention,
+        oldSchedule,
         snapshotRetention,
         timezone,
-        oldSchedule,
       }) =>
-        (snapshotRetention === 0 && exportRetention === 0) ||
+        editionMode !== 'creation' &&
         isEqual(oldSchedule, {
           cron,
           exportRetention,
