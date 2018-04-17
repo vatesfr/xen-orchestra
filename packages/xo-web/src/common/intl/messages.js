@@ -1233,7 +1233,7 @@ const messages = {
   noVmImportErrorDescription: 'No description available',
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
-  vmImportConfigAlert: 'Please to check and/or modify the VM configuration.',
+  vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
 
   // ---- Tasks ---
   noTasks: 'No pending tasks',
