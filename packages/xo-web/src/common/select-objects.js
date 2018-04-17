@@ -359,7 +359,7 @@ export const SelectPool = makeStoreSelect(
 
 export const SelectSr = makeStoreSelect(
   () => {
-    const getPools = createGetObjectsOfType('pools')
+    const getPools = createGetObjectsOfType('pool')
     const getHosts = createGetObjectsOfType('host')
 
     const getSrsByContainer = createSelector(
