@@ -8,6 +8,7 @@ import {
   filter,
   find,
   forEach,
+  get,
   isFinite,
   map,
   orderBy,
@@ -228,10 +229,14 @@ async function getVmsStats ({ runningVms, xo }) {
           name: vm.name_label,
           cpu: computeDoubleMean(vmStats.stats.cpus),
           ram: computeMean(getMemoryUsedMetric(vmStats.stats)) / gibPower,
-          diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
-          diskWrite: computeDoubleMean(values(vmStats.stats.xvds.w)) / mibPower,
-          netReception: computeDoubleMean(vmStats.stats.vifs.rx) / kibPower,
-          netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower,
+          diskRead:
+            computeDoubleMean(values(get(vmStats.stats.xvds, 'r'))) / mibPower,
+          diskWrite:
+            computeDoubleMean(values(get(vmStats.stats.xvds, 'w'))) / mibPower,
+          netReception:
+            computeDoubleMean(get(vmStats.stats.vifs, 'rx')) / kibPower,
+          netTransmission:
+            computeDoubleMean(get(vmStats.stats.vifs, 'tx')) / kibPower,
         }
       })
     ),
@@ -251,9 +256,10 @@ async function getHostsStats ({ runningHosts, xo }) {
           cpu: computeDoubleMean(hostStats.stats.cpus),
           ram: computeMean(getMemoryUsedMetric(hostStats.stats)) / gibPower,
           load: computeMean(hostStats.stats.load),
-          netReception: computeDoubleMean(hostStats.stats.pifs.rx) / kibPower,
+          netReception:
+            computeDoubleMean(get(hostStats.stats.pifs, 'rx')) / kibPower,
           netTransmission:
-            computeDoubleMean(hostStats.stats.pifs.tx) / kibPower,
+            computeDoubleMean(get(hostStats.stats.pifs, 'tx')) / kibPower,
         }
       })
     ),
