@@ -18,7 +18,13 @@ export const EllipsisContainer = ({ children }) => (
     {React.Children.map(
       children,
       child =>
-        child == null || child.type === Ellipsis ? child : <span>{child}</span>
+        child == null ||
+        child.type === Ellipsis ||
+        (child.type && child.type.originalRender === Ellipsis) ? (
+          child
+        ) : (
+          <span>{child}</span>
+        )
     )}
   </div>
 )

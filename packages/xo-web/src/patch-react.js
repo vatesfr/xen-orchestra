@@ -17,7 +17,7 @@ React.createElement = (createElement => {
     </p>
   )
 
-  const wrapRender = render =>
+  const wrapRender = render => {
     function patchedRender () {
       try {
         return render.apply(this, arguments)
@@ -27,6 +27,9 @@ React.createElement = (createElement => {
         return errorComponent
       }
     }
+    patchedRender.originalRender = render
+    return patchedRender
+  }
 
   return function (Component) {
     if (isFunction(Component)) {
