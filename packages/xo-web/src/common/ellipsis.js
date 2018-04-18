@@ -20,7 +20,7 @@ export const EllipsisContainer = ({ children }) => (
       child =>
         child == null ||
         child.type === Ellipsis ||
-        (child.type && child.type.originalRender === Ellipsis) ? (
+        (child.type != null && child.type.originalRender === Ellipsis) ? (
           child
         ) : (
           <span>{child}</span>
