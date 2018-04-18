@@ -162,6 +162,8 @@ const messages = {
   homeSortByUsage: 'Usage',
   homeSortByvCPUs: 'vCPUs',
   homeSortVmsBySnapshots: 'Snapshots',
+  homeSortByContainer: 'Container',
+  homeSortByPool: 'Pool',
   homeDisplayedItems: '{displayed, number}x {icon} (on {total, number})',
   homeSelectedItems: '{selected, number}x {icon} selected (on {total, number})',
   homeMore: 'More',
