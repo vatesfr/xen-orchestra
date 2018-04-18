@@ -1253,6 +1253,13 @@ async-iterator-to-stream@^1.0.1:
     "@babel/runtime" "^7.0.0-beta.42"
     readable-stream "^2.3.5"
 
+async-iterator-to-stream@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/async-iterator-to-stream/-/async-iterator-to-stream-1.0.2.tgz#7d3497e441dd2997b7e3ef15f4c367a979692543"
+  dependencies:
+    "@babel/runtime" "^7.0.0-beta.42"
+    readable-stream "^2.3.5"
+
 async-limiter@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/async-limiter/-/async-limiter-1.0.0.tgz#78faed8c3d074ab81f22b4e985d79e8738f720f8"
