@@ -138,7 +138,7 @@ Handlebars.registerHelper(
   value =>
     new Handlebars.SafeString(
       isFinite(+value) && +value !== 0
-        ? value > 0
+        ? (value = round(value, 2)) > 0
           ? `(<b style="color: green;">▲ ${value}</b>)`
           : `(<b style="color: red;">▼ ${String(value).slice(1)}</b>)`
         : ''
@@ -165,7 +165,7 @@ const computeDoubleMean = val => computeMean(map(val, computeMean))
 function computeMeans (objects, options) {
   return zipObject(
     options,
-    map(options, opt => round(computeMean(map(objects, opt)), 2))
+    map(options, opt => computeMean(map(objects, opt)), 2)
   )
 }
 
@@ -186,7 +186,7 @@ function getTop (objects, options) {
         obj => ({
           uuid: obj.uuid,
           name: obj.name,
-          value: round(obj[opt], 2),
+          value: obj[opt],
         })
       )
     )
@@ -201,7 +201,7 @@ function computePercentage (curr, prev, options) {
       opt =>
         prev[opt] === 0 || prev[opt] === null
           ? 'NONE'
-          : `${round((curr[opt] - prev[opt]) * 100 / prev[opt], 2)}`
+          : `${(curr[opt] - prev[opt]) * 100 / prev[opt]}`
     )
   )
 }
