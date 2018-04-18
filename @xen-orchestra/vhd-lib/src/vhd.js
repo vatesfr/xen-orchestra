@@ -1,7 +1,8 @@
 import assert from 'assert'
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import fu from 'struct-fu'
 import getStream from 'get-stream'
+import fu from 'struct-fu'
+import { v4 as generateUuid } from 'uuid'
 import { fromEvent } from 'promise-toolbox'
 
 import constantStream from './constant-stream'
@@ -232,7 +233,7 @@ export function computeGeometryForSize (size) {
       cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
     }
   }
-  const cylinders = Math.floor(cylinderTimesHeads / heads)
+  const cylinders = Math.ceil(cylinderTimesHeads / heads)
   const actualSize =
     cylinders * heads * sectorsPerTrackCylinder * VHD_SECTOR_SIZE
   return { cylinders, heads, sectorsPerTrackCylinder, actualSize }
@@ -926,19 +927,20 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
   }
 })
 
-export function createFooter (size, timestamp, geometry, diskType, dataOffset) {
+export function createFixedFooter (size, timestamp, geometry) {
   const footer = fuFooter.pack({
     cookie: footerCookie,
     features: 2,
     fileFormatVersion: 0x00010000,
-    dataOffset,
+    dataOffset: undefined,
     timestamp,
     creatorApplication: creatorApp,
     creatorHostOs: WIN2K_OS,
     originalSize: size,
     currentSize: size,
     diskGeometry: geometry,
-    diskType,
+    diskType: HARD_DISK_TYPE_FIXED,
+    uuid: generateUuid(null, []),
   })
   checksumStruct(footer, fuFooter)
   return footer
@@ -949,13 +951,12 @@ export const createReadableRawVHDStream = asyncIteratorToStream(async function *
   blockParser
 ) {
   const geometry = computeGeometryForSize(size)
-  const footer = createFooter(
-    size,
+  const actualSize = geometry.actualSize
+  const footer = createFixedFooter(
+    actualSize,
     Math.floor(Date.now() / 1000),
-    geometry,
-    HARD_DISK_TYPE_FIXED
+    geometry
   )
-
   let position = 0
 
   function * filePadding (paddingLength) {
@@ -963,7 +964,7 @@ export const createReadableRawVHDStream = asyncIteratorToStream(async function *
       const chunkSize = 1024 * 1024 // 1Mo
       for (
         let paddingPosition = 0;
-        paddingPosition < paddingLength;
+        paddingPosition + chunkSize < paddingLength;
         paddingPosition += chunkSize
       ) {
         yield Buffer.alloc(chunkSize)
@@ -982,6 +983,6 @@ export const createReadableRawVHDStream = asyncIteratorToStream(async function *
     yield next.data
     position = next.offsetBytes + next.data.length
   }
-  yield * filePadding(size - position)
+  yield * filePadding(actualSize - position)
   yield footer
 })
