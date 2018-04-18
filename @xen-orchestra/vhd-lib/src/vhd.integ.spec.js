@@ -1,10 +1,11 @@
 /* eslint-env jest */
+import execa from 'execa'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 import { createWriteStream } from 'fs'
 import { fromCallback as pFromCallback, fromEvent } from 'promise-toolbox'
 
-import { createFooter, createReadableRawVHDStream } from './vhd'
+import { createFixedFooter, createReadableRawVHDStream } from './vhd'
 
 const initialDir = process.cwd()
 
@@ -19,8 +20,8 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tmpDir, cb))
 })
 
-test('createFooter() does not crash', () => {
-  createFooter(104448, Math.floor(Date.now() / 1000), {
+test('createFixedFooter() does not crash', () => {
+  createFixedFooter(104448, Math.floor(Date.now() / 1000), {
     cylinders: 3,
     heads: 4,
     sectorsPerTrack: 17,
@@ -50,9 +51,11 @@ test('ReadableRawVHDStream does not crash', async () => {
       }
     },
   }
-  const stream = createReadableRawVHDStream(100000, mockParser)
-  const pipe = stream.pipe(createWriteStream('outputStream'))
+  const fileSize = 1000
+  const stream = createReadableRawVHDStream(fileSize, mockParser)
+  const pipe = stream.pipe(createWriteStream('output.vhd'))
   await fromEvent(pipe, 'finish')
+  await execa('vhd-util', ['check', '-t', '-i', '-n', 'output.vhd'])
 })
 
 test('ReadableRawVHDStream detects when blocks are out of order', async () => {
