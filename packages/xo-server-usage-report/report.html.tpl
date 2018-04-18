@@ -159,30 +159,30 @@
         </tr>
         <tr>
           <td>CPU:</td>
-          <td>{{global.vms.cpu}} % {{normaliseEvolution global.vmsEvolution.cpu}}</td>
+          <td>{{normaliseValue global.vms.cpu}} % {{normaliseEvolution global.vmsEvolution.cpu}}</td>
         <tr>
         <tr>
           <td>RAM:</td>
-          <td>{{global.vms.ram}} GiB {{normaliseEvolution global.vmsEvolution.ram}}</td>
+          <td>{{normaliseValue global.vms.ram}} GiB {{normaliseEvolution global.vmsEvolution.ram}}</td>
         <tr>
         <tr>
           <td>Disk read:</td>
-          <td>{{global.vms.diskRead}} MiB {{normaliseEvolution global.vmsEvolution.diskRead}}
+          <td>{{normaliseValue global.vms.diskRead}} MiB {{normaliseEvolution global.vmsEvolution.diskRead}}
           </td>
         <tr>
         <tr>
           <td>Disk write:</td>
-          <td>{{global.vms.diskWrite}} MiB {{normaliseEvolution global.vmsEvolution.diskWrite}}
+          <td>{{normaliseValue global.vms.diskWrite}} MiB {{normaliseEvolution global.vmsEvolution.diskWrite}}
           </td>
         <tr>
         <tr>
           <td>Network RX:</td>
-          <td>{{global.vms.netReception}} KiB {{normaliseEvolution global.vmsEvolution.netReception}}
+          <td>{{normaliseValue global.vms.netReception}} KiB {{normaliseEvolution global.vmsEvolution.netReception}}
           </td>
         <tr>
         <tr>
           <td>Network TX:</td>
-          <td>{{global.vms.netTransmission}} KiB {{normaliseEvolution global.vmsEvolution.netTransmission}}
+          <td>{{normaliseValue global.vms.netTransmission}} KiB {{normaliseEvolution global.vmsEvolution.netTransmission}}
           </td>
         <tr>
       </table>
@@ -205,7 +205,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} %</td>
+            <td>{{normaliseValue this.value}} %</td>
           </tr>
           {{/each}}
 
@@ -216,7 +216,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} GiB</td>
+            <td>{{normaliseValue this.value}} GiB</td>
           </tr>
           {{/each}}
           <tr>
@@ -226,7 +226,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} MiB</td>
+            <td>{{normaliseValue this.value}} MiB</td>
           </tr>
           {{/each}}
           <tr>
@@ -236,7 +236,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} MiB</td>
+            <td>{{normaliseValue this.value}} MiB</td>
           </tr>
           {{/each}}
           <tr>
@@ -246,7 +246,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} KiB</td>
+            <td>{{normaliseValue this.value}} KiB</td>
           </tr>
           {{/each}}
           <tr>
@@ -256,7 +256,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} KiB</td>
+            <td>{{normaliseValue this.value}} KiB</td>
           </tr>
           {{/each}}
         </table>
@@ -275,28 +275,28 @@
         </tr>
         <tr>
           <td>CPU:</td>
-          <td>{{global.hosts.cpu}} % {{normaliseEvolution global.hostsEvolution.cpu}}
+          <td>{{normaliseValue global.hosts.cpu}} % {{normaliseEvolution global.hostsEvolution.cpu}}
           </td>
         <tr>
         <tr>
           <td>RAM:</td>
-          <td>{{global.hosts.ram}} GiB {{normaliseEvolution global.hostsEvolution.ram}}
+          <td>{{normaliseValue global.hosts.ram}} GiB {{normaliseEvolution global.hostsEvolution.ram}}
           </td>
           </td>
         <tr>
         <tr>
           <td>Load average:</td>
-          <td>{{global.hosts.load}}  {{normaliseEvolution global.hostsEvolution.load}}
+          <td>{{normaliseValue global.hosts.load}}  {{normaliseEvolution global.hostsEvolution.load}}
           </td>
         <tr>
         <tr>
           <td>Network RX:</td>
-          <td>{{global.hosts.netReception}} KiB {{normaliseEvolution global.hostsEvolution.netReception}}
+          <td>{{normaliseValue global.hosts.netReception}} KiB {{normaliseEvolution global.hostsEvolution.netReception}}
           </td>
         <tr>
         <tr>
           <td>Network TX:</td>
-          <td>{{global.hosts.netTransmission}} KiB {{normaliseEvolution global.hostsEvolution.netTransmission}}
+          <td>{{normaliseValue global.hosts.netTransmission}} KiB {{normaliseEvolution global.hostsEvolution.netTransmission}}
           </td>
         <tr>
       </table>
@@ -318,7 +318,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} %</td>
+            <td>{{normaliseValue this.value}} %</td>
           </tr>
           {{/each}}
           <tr>
@@ -328,7 +328,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} GiB</td>
+            <td>{{normaliseValue this.value}} GiB</td>
           </tr>
           {{/each}}
           <tr>
@@ -338,7 +338,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} </td>
+            <td>{{normaliseValue this.value}} </td>
           </tr>
           {{/each}}
           <tr>
@@ -348,7 +348,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} KiB</td>
+            <td>{{normaliseValue this.value}} KiB</td>
           </tr>
           {{/each}}
           <tr>
@@ -358,7 +358,7 @@
           <tr>
             <td>{{shortUUID this.uuid}}</td>
             <td>{{this.name}}</td>
-            <td>{{this.value}} KiB</td>
+            <td>{{normaliseValue this.value}} KiB</td>
           </tr>
           {{/each}}
         </table>
@@ -378,7 +378,7 @@
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
-                <td>{{this.value}} GiB</td>
+                <td>{{normaliseValue this.value}} GiB</td>
               </tr>
              {{/each}}
           </table>

@@ -1495,6 +1495,9 @@ export const deleteSr = sr =>
     ),
   }).then(() => _call('sr.destroy', { id: resolveId(sr) }), noop)
 
+export const fetchSrStats = (sr, granularity) =>
+  _call('sr.stats', { id: resolveId(sr), granularity })
+
 export const forgetSr = sr =>
   confirm({
     title: _('srForgetModalTitle'),

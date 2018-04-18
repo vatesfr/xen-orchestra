@@ -205,6 +205,19 @@ export const formatSizeRaw = bytes =>
 export const formatSpeed = (bytes, milliseconds) =>
   humanFormat(bytes * 1e3 / milliseconds, { scale: 'binary', unit: 'B/s' })
 
+const timeScale = new humanFormat.Scale({
+  ns: 1e-6,
+  µs: 1e-3,
+  ms: 1,
+  s: 1e3,
+  min: 60 * 1e3,
+  h: 3600 * 1e3,
+  d: 86400 * 1e3,
+  y: 2592000 * 1e3,
+})
+export const formatTime = milliseconds =>
+  humanFormat(milliseconds, { scale: timeScale, decimals: 0 })
+
 export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
   if (bytes.unit && bytes.unit !== 'B') {

@@ -14,7 +14,7 @@ import vhdMerge, { chainVhd, createReadStream } from './vhd-merge'
 
 const initialDir = process.cwd()
 
-jest.setTimeout(10000)
+jest.setTimeout(60000)
 
 beforeEach(async () => {
   const dir = await pFromCallback(cb => tmp.dir(cb))

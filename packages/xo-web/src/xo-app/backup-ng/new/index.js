@@ -138,9 +138,13 @@ export default [
             ...getNewSettings(state.newSchedules),
           },
           remotes:
-            (state.deltaMode || state.backupMode) &&
-            constructPattern(state.remotes),
-          srs: (state.crMode || state.drMode) && constructPattern(state.srs),
+            state.deltaMode || state.backupMode
+              ? constructPattern(state.remotes)
+              : undefined,
+          srs:
+            state.crMode || state.drMode
+              ? constructPattern(state.srs)
+              : undefined,
           vms: state.smartMode
             ? state.vmsSmartPattern
             : constructPattern(state.vms),
@@ -371,6 +375,13 @@ export default [
         _,
         { cron, timezone, exportRetention, snapshotRetention }
       ) => async (state, props) => {
+        if (!state.exportMode) {
+          exportRetention = 0
+        }
+        if (!state.snapshotMode) {
+          snapshotRetention = 0
+        }
+
         if (state.editionMode === 'creation') {
           return {
             ...state,
@@ -723,7 +734,7 @@ export default [
                     redirectOnSuccess='/backup-ng'
                     size='large'
                   >
-                    {_('scheduleEdit')}
+                    {_('formSave')}
                   </ActionButton>
                 ) : (
                   <ActionButton
@@ -735,7 +746,7 @@ export default [
                     redirectOnSuccess='/backup-ng'
                     size='large'
                   >
-                    {_('createBackupJob')}
+                    {_('formCreate')}
                   </ActionButton>
                 )}
                 <ActionButton
@@ -744,7 +755,7 @@ export default [
                   className='pull-right'
                   size='large'
                 >
-                  {_('resetBackupJob')}
+                  {_('formReset')}
                 </ActionButton>
               </CardBlock>
             </Card>

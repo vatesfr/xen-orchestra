@@ -27,6 +27,10 @@ createJob.params = {
   settings: {
     type: 'object',
   },
+  srs: {
+    type: 'object',
+    optional: true,
+  },
   vms: {
     type: 'object',
   },
@@ -78,6 +82,10 @@ editJob.params = {
     optional: true,
   },
   settings: {
+    type: 'object',
+    optional: true,
+  },
+  srs: {
     type: 'object',
     optional: true,
   },

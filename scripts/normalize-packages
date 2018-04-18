@@ -17,10 +17,11 @@ const deleteProperties = (object, property, properties) => {
   }
 }
 
+
 require('exec-promise')(() =>
-  getPackages(true).map(({ dir, name, package: pkg }) => {
+  getPackages(true).map(({ dir, name, package: pkg, relativeDir }) => {
     pkg.name = name
-    pkg.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/packages/${name}`
+    pkg.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/${relativeDir}`
     pkg.bugs = `https://github.com/vatesfr/xen-orchestra/issues`
     pkg.repository = {
       type: 'git',
