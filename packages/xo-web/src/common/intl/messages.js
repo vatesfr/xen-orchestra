@@ -226,8 +226,8 @@ const messages = {
   selectIp: 'Select IP(s)…',
   selectIpPool: 'Select IP pool(s)…',
   selectVgpuType: 'Select VGPU type(s)…',
-  fillRequiredInformations: 'Fill required informations.',
-  fillOptionalInformations: 'Fill informations (optional)',
+  fillRequiredInformations: 'Fill required information.',
+  fillOptionalInformations: 'Fill information (optional)',
   selectTableReset: 'Reset',
 
   // --- Dates/Scheduler ---
