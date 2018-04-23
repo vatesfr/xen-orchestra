@@ -10,7 +10,7 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 // eslint-disable-next-line node/no-extraneous-import
-import { isIp, isIpV4 } from 'ip'
+import { isIp, isIpV4 } from 'ip-utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { XoSelect, Text } from 'editable'
