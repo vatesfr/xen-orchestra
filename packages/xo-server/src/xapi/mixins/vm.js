@@ -384,6 +384,8 @@ export default {
 
     tags: true,
 
+    hasVendorDevice: true,
+
     vga: {
       set (vga, vm) {
         if (!includes(XEN_VGA_VALUES, vga)) {

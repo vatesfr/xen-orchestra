@@ -151,10 +151,10 @@ export async function create (params) {
     await Promise.all([
       params.share
         ? Promise.all(
-          map((await this.getResourceSet(resourceSet)).subjects, subjectId =>
-            this.addAcl(subjectId, vm.id, 'admin')
+            map((await this.getResourceSet(resourceSet)).subjects, subjectId =>
+              this.addAcl(subjectId, vm.id, 'admin')
+            )
           )
-        )
         : this.addAcl(user.id, vm.id, 'admin'),
       xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet),
     ])
@@ -596,6 +596,9 @@ set.params = {
   videoram: { type: ['string', 'number'], optional: true },
 
   coresPerSocket: { type: ['string', 'number', 'null'], optional: true },
+
+  // Emulate HVM C000 PCI device for Windows Update to fetch or update PV drivers
+  hasVendorDevice: { type: 'boolean', optional: true },
 
   // Move the vm In to/Out of Self Service
   resourceSet: { type: ['string', 'null'], optional: true },

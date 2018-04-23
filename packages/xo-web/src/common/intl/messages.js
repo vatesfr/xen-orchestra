@@ -764,6 +764,7 @@ const messages = {
   started: 'Started {ago}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
+  windowsUpdateTools: 'Windows Update tools',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
