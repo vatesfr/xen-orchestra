@@ -1753,7 +1753,13 @@ export const restoreBackup = (backup, sr, startOnRestore) => {
 export const deleteBackup = backup =>
   _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
-export const deleteBackups = backups => Promise.all(map(backups, deleteBackup))
+export const deleteBackups = async backups => {
+  // delete sequentially from newest to oldest
+  backups = backups.slice().sort((b1, b2) => b2.timestamp - b1.timestamp)
+  for (let i = 0, n = backups.length; i < n; ++i) {
+    await deleteBackup(backups[i])
+  }
+}
 
 // Plugins -----------------------------------------------------------
 

@@ -327,6 +327,7 @@ const TRANSFORMS = {
       other: otherConfig,
       os_version: (guestMetrics && guestMetrics.os_version) || null,
       power_state: obj.power_state,
+      hasVendorDevice: obj.has_vendor_device,
       resourceSet,
       snapshots: link(obj, 'snapshots'),
       startTime: metrics && toTimestamp(metrics.start_time),
