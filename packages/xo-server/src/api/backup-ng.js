@@ -171,3 +171,29 @@ importVmBackup.params = {
     type: 'string',
   },
 }
+
+// -----------------------------------------------------------------------------
+
+// - [ ] list of mounted partitions
+// - [ ] partitions with unmount debounce
+// - [ ] handle disks without partitions
+// - [ ] handle disks with LVM partitions (recursive view)
+// - [ ] handle directory restore
+// - [ ] handle multiple entries restore (both dirs and files)
+//       - [ ] by default use common path as root
+// - [ ] handle LVM partitions on multiple disks
+// - [ ] find mounted disks/partitions on start (in case of interruptions)
+//
+// - [ ] manual mount/unmount (of disk) for advance file restore
+//       - could it stay mounted during the backup process?
+
+// mountDisk (VHD)
+// unmountDisk (only for manual mount)
+// listPartitions
+// listFiles
+// fetchFiles
+// getMountedDisks
+//
+// mountPartition (optional)
+// getMountedPartitions
+// unmountPartition
