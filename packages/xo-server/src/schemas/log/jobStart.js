@@ -16,12 +16,10 @@ export default {
     key: {
       type: 'string',
     },
-    mode: {
-      enum: ['full', 'delta'],
-    },
     type: {
       enum: ['backup', 'call'],
     },
+    data: {},
   },
-  required: ['event', 'userId', 'jobId', 'key'],
+  required: ['event', 'userId', 'jobId', 'type'],
 }
