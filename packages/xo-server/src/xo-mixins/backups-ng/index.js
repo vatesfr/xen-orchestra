@@ -6,7 +6,15 @@ import defer from 'golike-defer'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
-import { isEmpty, last, mapValues, noop, values } from 'lodash'
+import {
+  forEach,
+  groupBy,
+  isEmpty,
+  last,
+  mapValues,
+  noop,
+  values,
+} from 'lodash'
 import { timeout as pTimeout } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
@@ -86,6 +94,31 @@ type MetadataFull = {|
   xva: string,
 |}
 type Metadata = MetadataDelta | MetadataFull
+
+type ConsolidatedJob = {|
+  duration?: number,
+  end?: number,
+  id: string,
+  jobId: string,
+  mode: Mode,
+  start: number,
+  type: 'backup' | 'call',
+  userId: string,
+|}
+type ConsolidatedTask = {|
+  data?: Object,
+  duration?: number,
+  end?: number,
+  parentId: string,
+  result?: Object,
+  start: number,
+  status: 'canceled' | 'failure' | 'success',
+  taskId: string,
+|}
+type ConsolidatedBackupNgLog = {
+  roots: Array<ConsolidatedJob>,
+  [parentId: string]: Array<ConsolidatedTask>,
+}
 
 const compareSnapshotTime = (a: Vm, b: Vm): number =>
   a.snapshot_time < b.snapshot_time ? -1 : 1
@@ -1136,5 +1169,52 @@ export default class BackupNg {
     }
 
     return backups.sort(compareTimestamp)
+  }
+
+  async getAllBackupNgLogs (): Promise<ConsolidatedBackupNgLog> {
+    const rawLogs = await this._app.getLog('jobs')
+
+    const logs = {}
+    forEach(rawLogs, (log, id) => {
+      const { data, time } = log
+      const { event } = data
+      delete data.event
+
+      switch (event) {
+        case 'job.start':
+          if (data.type === 'backup') {
+            logs[id] = {
+              ...data,
+              id,
+              start: time,
+            }
+          }
+          break
+        case 'job.end':
+          const job = logs[data.runJobId]
+          if (job !== undefined) {
+            job.end = time
+            job.duration = time - job.start
+          }
+          break
+        case 'task.start':
+          if (logs[data.parentId] !== undefined) {
+            logs[data.taskId] = {
+              ...data,
+              start: time,
+            }
+          }
+          break
+        case 'task.end':
+          const task = logs[data.taskId]
+          if (task !== undefined) {
+            task.status = data.status
+            task.result = data.result
+            task.end = time
+            task.duration = time - task.start
+          }
+      }
+    })
+    return groupBy(logs, log => log.parentId || 'roots')
   }
 }

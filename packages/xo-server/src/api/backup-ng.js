@@ -134,6 +134,14 @@ runJob.params = {
 
 // -----------------------------------------------------------------------------
 
+export function getAllLogs () {
+  return this.getAllBackupNgLogs()
+}
+
+getAllLogs.permission = 'admin'
+
+// -----------------------------------------------------------------------------
+
 export function deleteVmBackup ({ id }) {
   return this.deleteVmBackupNg(id)
 }

@@ -1,19 +1,5 @@
-export async function get ({ namespace }) {
-  const logger = await this.getLogger(namespace)
-
-  return new Promise((resolve, reject) => {
-    const logs = {}
-
-    logger
-      .createReadStream()
-      .on('data', data => {
-        logs[data.key] = data.value
-      })
-      .on('end', () => {
-        resolve(logs)
-      })
-      .on('error', reject)
-  })
+export function get ({ namespace }) {
+  return this.getLog(namespace)
 }
 
 get.description = 'returns logs list for one namespace'

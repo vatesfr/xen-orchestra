@@ -32,11 +32,11 @@ export default class Logs {
     const onData =
       keep !== 0
         ? () => {
-          if (--keep === 0) {
-            stream.on('data', deleteEntry)
-            stream.removeListener('data', onData)
+            if (--keep === 0) {
+              stream.on('data', deleteEntry)
+              stream.removeListener('data', onData)
+            }
           }
-        }
         : deleteEntry
     stream.on('data', onData)
 
@@ -50,5 +50,23 @@ export default class Logs {
     return this._app
       .getStore('logs')
       .then(store => new LevelDbLogger(store, namespace))
+  }
+
+  async getLog (namespace) {
+    const logger = await this.getLogger(namespace)
+
+    return new Promise((resolve, reject) => {
+      const logs = {}
+
+      logger
+        .createReadStream()
+        .on('data', data => {
+          logs[data.key] = data.value
+        })
+        .on('end', () => {
+          resolve(logs)
+        })
+        .on('error', reject)
+    })
   }
 }
