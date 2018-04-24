@@ -878,12 +878,17 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
     // this the VHD we want to synthetize
     const vhd = vhds[0]
 
+    // this is the root VHD
+    const rootVhd = vhds[nVhds - 1]
+
     // data of our synthetic VHD
-    // TODO: empty parentUuid and parentLocatorEntry-s in header
+    // TODO: set parentLocatorEntry-s in header
     let header = {
       ...vhd.header,
       tableOffset: 512 + 1024,
-      parentUnicodeName: '',
+      parentTimestamp: rootVhd.header.parentTimestamp,
+      parentUnicodeName: rootVhd.header.parentUnicodeName,
+      parentUuid: rootVhd.header.parentUuid,
     }
 
     const bat = Buffer.allocUnsafe(
@@ -891,7 +896,7 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
     )
     let footer = {
       ...vhd.footer,
-      diskType: HARD_DISK_TYPE_DYNAMIC,
+      diskType: rootVhd.footer.diskType,
     }
     const sectorsPerBlockData = vhd.sectorsPerBlock
     const sectorsPerBlock =
@@ -940,7 +945,7 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
       const blocksByVhd = new Map()
       const emitBlockSectors = function * (iVhd, i, n) {
         const vhd = vhds[iVhd]
-        const isRootVhd = vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC
+        const isRootVhd = vhd === rootVhd
         if (!vhd.containsBlock(iBlock)) {
           if (isRootVhd) {
             yield Buffer.alloc((n - i) * VHD_SECTOR_SIZE)
