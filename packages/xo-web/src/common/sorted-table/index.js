@@ -221,7 +221,7 @@ class IndividualAction extends Component {
 
   _executeAction = () => {
     const p = this.props
-    return isFunction(p.handler) && p.handler(p.item, p.userData)
+    return p.handler(p.item, p.userData)
   }
 
   render () {
@@ -233,7 +233,7 @@ class IndividualAction extends Component {
         disabled={this._getIsDisabled()}
         handler={this._executeAction}
         icon={icon}
-        redirectOnSuccess={this._getRedirectOnSuccess}
+        redirectOnSuccess={this._getRedirectOnSuccess()}
         tooltip={label}
       />
     )
