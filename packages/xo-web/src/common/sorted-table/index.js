@@ -209,15 +209,23 @@ class IndividualAction extends Component {
       isFunction(disabled) ? disabled(item, userData) : disabled
   )
 
+  _getRedirectOnSuccess = createSelector(
+    () => this.props.item,
+    () => this.props.redirectOnSuccess,
+    () => this.props.userData,
+    (item, redirectOnSuccess, userData) =>
+      isFunction(redirectOnSuccess)
+        ? redirectOnSuccess(item, userData)
+        : redirectOnSuccess
+  )
+
   _executeAction = () => {
     const p = this.props
-    return p.redirectOnSuccess
-      ? { item: p.item, userData: p.userData }
-      : p.handler(p.item, p.userData)
+    return isFunction(p.handler) && p.handler(p.item, p.userData)
   }
 
   render () {
-    const { icon, label, level, redirectOnSuccess } = this.props
+    const { icon, label, level } = this.props
 
     return (
       <ActionRowButton
@@ -225,7 +233,7 @@ class IndividualAction extends Component {
         disabled={this._getIsDisabled()}
         handler={this._executeAction}
         icon={icon}
-        redirectOnSuccess={redirectOnSuccess}
+        redirectOnSuccess={this._getRedirectOnSuccess}
         tooltip={label}
       />
     )
