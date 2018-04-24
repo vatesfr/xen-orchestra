@@ -197,6 +197,7 @@ const actionsShape = propTypes.arrayOf(
     icon: propTypes.string.isRequired,
     label: propTypes.node.isRequired,
     level: propTypes.oneOf(['primary', 'warning', 'danger']),
+    redirectOnSuccess: propTypes.oneOfType([propTypes.func, propTypes.string]),
   })
 )
 
@@ -208,32 +209,23 @@ class IndividualAction extends Component {
     (disabled, item, userData) =>
       isFunction(disabled) ? disabled(item, userData) : disabled
   )
-
-  _getRedirectOnSuccess = createSelector(
-    () => this.props.item,
-    () => this.props.redirectOnSuccess,
-    () => this.props.userData,
-    (item, redirectOnSuccess, userData) =>
-      isFunction(redirectOnSuccess)
-        ? redirectOnSuccess(item, userData)
-        : redirectOnSuccess
-  )
-
   _executeAction = () => {
     const p = this.props
     return p.handler(p.item, p.userData)
   }
 
   render () {
-    const { icon, label, level } = this.props
+    const { icon, item, label, level, redirectOnSuccess, userData } = this.props
 
     return (
       <ActionRowButton
         btnStyle={level}
+        data-item={item}
+        data-userData={userData}
         disabled={this._getIsDisabled()}
         handler={this._executeAction}
         icon={icon}
-        redirectOnSuccess={this._getRedirectOnSuccess()}
+        redirectOnSuccess={redirectOnSuccess}
         tooltip={label}
       />
     )
