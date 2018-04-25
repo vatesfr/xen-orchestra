@@ -326,6 +326,11 @@ const messages = {
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
 
   // ------ New backup -----
+  newBackupAdvancedSettings: 'Advanced settings',
+  reportWhenAlways: 'Always',
+  reportWhenFailure: 'Failure',
+  reportWhenNever: 'Never',
+  reportWhen: 'Report when',
   newBackupSelection: 'Select your backup type:',
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',

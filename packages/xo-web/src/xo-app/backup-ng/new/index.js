@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import Icon from 'icon'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
+import Select from 'form/select'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, resolveId, resolveIds } from 'utils'
@@ -12,9 +13,10 @@ import {
   find,
   findKey,
   flatten,
-  keyBy,
+  get,
   includes,
   isEmpty,
+  keyBy,
   map,
   some,
 } from 'lodash'
@@ -89,6 +91,23 @@ const getNewSchedules = schedules => {
   return newSchedules
 }
 
+const REPORT_WHEN_FILTER_OPTIONS = [
+  {
+    label: 'reportWhenAlways',
+    value: 'always',
+  },
+  {
+    label: 'reportWhenFailure',
+    value: 'failure',
+  },
+  {
+    label: 'reportWhenNever',
+    value: 'Never',
+  },
+]
+
+const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
+
 const getInitialState = () => ({
   $pool: {},
   backupMode: false,
@@ -103,6 +122,7 @@ const getInitialState = () => ({
   paramsUpdated: false,
   powerState: 'All',
   remotes: [],
+  reportWhen: 'failure',
   schedules: [],
   settings: {},
   smartMode: false,
@@ -136,6 +156,9 @@ export default [
           schedules: getNewSchedules(state.newSchedules),
           settings: {
             ...getNewSettings(state.newSchedules),
+            '': {
+              reportWhen: state.reportWhen,
+            },
           },
           remotes:
             state.deltaMode || state.backupMode
@@ -199,7 +222,9 @@ export default [
           const oldSetting = oldSettings[id]
           const newSetting = settings[id]
 
-          if (!(id in settings)) {
+          if (id === '') {
+            oldSetting.reportWhen = state.reportWhen
+          } else if (!(id in settings)) {
             delete oldSettings[id]
           } else if (
             oldSetting.snapshotRetention !== newSetting.snapshotRetention ||
@@ -281,6 +306,9 @@ export default [
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
+        const globalSettings = job.settings['']
+        const settings = { ...job.settings }
+        delete settings['']
 
         return {
           ...state,
@@ -298,7 +326,8 @@ export default [
           crMode: job.mode === 'delta' && !isEmpty(srs),
           remotes,
           srs,
-          settings: job.settings,
+          reportWhen: get(globalSettings, 'reportWhen'),
+          settings,
           schedules,
           ...destructVmsPattern(job.vms),
         }
@@ -455,6 +484,10 @@ export default [
 
         return getInitialState()
       },
+      setReportWhen: (_, { value }) => state => ({
+        ...state,
+        reportWhen: value,
+      }),
     },
     computed: {
       needUpdateParams: (state, { job, schedules }) =>
@@ -698,6 +731,25 @@ export default [
                   </CardBlock>
                 </Card>
               )}
+              <Card>
+                <CardHeader>{_('newBackupAdvancedSettings')}</CardHeader>
+                <CardBlock>
+                  <FormGroup>
+                    <label>
+                      <strong>{_('reportWhen')}</strong>
+                    </label>
+                    <Select
+                      labelKey='label'
+                      onChange={effects.setReportWhen}
+                      optionRenderer={getOptionRenderer}
+                      options={REPORT_WHEN_FILTER_OPTIONS}
+                      required
+                      value={state.reportWhen}
+                      valueKey='value'
+                    />
+                  </FormGroup>
+                </CardBlock>
+              </Card>
             </Col>
             <Col mediumSize={6}>
               <Schedules />
