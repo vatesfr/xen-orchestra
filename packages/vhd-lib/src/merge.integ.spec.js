@@ -10,10 +10,10 @@ import { randomBytes } from 'crypto'
 import { fromEvent, fromCallback as pFromCallback } from 'promise-toolbox'
 
 import chainVhd from './chain'
-import createReadStream from './createReadableRawStream'
+import createReadStream from './createSyntheticStream'
 import Vhd from './vhd'
 import vhdMerge from './merge'
-import { VHD_SECTOR_SIZE } from './_constants'
+import { SECTOR_SIZE } from './_constants'
 
 const initialDir = process.cwd()
 
@@ -70,9 +70,7 @@ test('blocks can be moved', async () => {
 })
 
 test('the BAT MSB is not used for sign', async () => {
-  const randomBuffer = await pFromCallback(cb =>
-    randomBytes(VHD_SECTOR_SIZE, cb)
-  )
+  const randomBuffer = await pFromCallback(cb => randomBytes(SECTOR_SIZE, cb))
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', '1.8T'])
   const handler = getHandler({ url: 'file://' + process.cwd() })
   const vhd = new Vhd(handler, 'empty.vhd')
@@ -83,7 +81,7 @@ test('the BAT MSB is not used for sign', async () => {
   await vhd.writeData(hugeWritePositionSectors, randomBuffer)
   await checkFile('empty.vhd')
   // here we are moving the first sector very far in the VHD to prove the BAT doesn't use signed int32
-  const hugePositionBytes = hugeWritePositionSectors * VHD_SECTOR_SIZE
+  const hugePositionBytes = hugeWritePositionSectors * SECTOR_SIZE
   await vhd._freeFirstBlockSpace(hugePositionBytes)
 
   // we recover the data manually for speed reasons.
@@ -261,7 +259,7 @@ test('coalesce works in normal cases', async () => {
   await execa('cp', ['randomfile', 'randomfile2'])
   const fd = await fs.open('randomfile2', 'r+')
   try {
-    await fs.write(fd, smallRandom, 0, smallRandom.length, 5 * VHD_SECTOR_SIZE)
+    await fs.write(fd, smallRandom, 0, smallRandom.length, 5 * SECTOR_SIZE)
   } finally {
     await fs.close(fd)
   }
@@ -270,7 +268,7 @@ test('coalesce works in normal cases', async () => {
   )
 })
 
-test('createReadStream passes vhd-util check', async () => {
+test('createSyntheticStream passes vhd-util check', async () => {
   const initalSize = 4
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
