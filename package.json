@@ -40,9 +40,9 @@
     "transform": {
       "/@xen-orchestra/cron/.+\\.jsx?$": "babel-7-jest",
       "/@xen-orchestra/fs/.+\\.jsx?$": "babel-7-jest",
-      "/@xen-orchestra/vhd-lib/.+\\.jsx?$": "babel-7-jest",
       "/packages/complex-matcher/.+\\.jsx?$": "babel-7-jest",
       "/packages/value-matcher/.+\\.jsx?$": "babel-7-jest",
+      "/packages/vhd-lib/.+\\.jsx?$": "babel-7-jest",
       "/packages/xo-cli/.+\\.jsx?$": "babel-7-jest",
       "/packages/xo-server/.+\\.jsx?$": "babel-7-jest",
       "/packages/xo-vmdk-to-vhd/.+\\.jsx?$": "babel-7-jest",

@@ -1,4 +1,4 @@
-import { vhdMerge, chainVhd } from '@xen-orchestra/vhd-lib'
+import { vhdMerge, chainVhd } from 'vhd-lib'
 import deferrable from 'golike-defer'
 import escapeStringRegexp from 'escape-string-regexp'
 import execa from 'execa'
@@ -1038,13 +1038,13 @@ export default class {
             // VHD path may need to be fixed.
             return endsWith(vhdPath, '_delta.vhd')
               ? pFromCallback(cb => stat(vhdPath, cb)).then(
-                () => vhdPath,
-                error => {
-                  if (error && error.code === 'ENOENT') {
-                    return `${vhdPath.slice(0, -10)}_full.vhd`
+                  () => vhdPath,
+                  error => {
+                    if (error && error.code === 'ENOENT') {
+                      return `${vhdPath.slice(0, -10)}_full.vhd`
+                    }
                   }
-                }
-              )
+                )
               : vhdPath
           })
           .then(vhdPath => execa('vhdimount', [vhdPath, mountDir]))

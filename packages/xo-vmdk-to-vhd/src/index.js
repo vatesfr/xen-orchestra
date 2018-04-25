@@ -1,4 +1,4 @@
-import { createReadableRawVHDStream } from '@xen-orchestra/vhd-lib'
+import { createReadableRawVHDStream } from 'vhd-lib'
 
 import { VMDKDirectParser } from './vmdk-read'
 

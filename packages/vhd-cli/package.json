@@ -27,10 +27,10 @@
   },
   "dependencies": {
     "@xen-orchestra/fs": "^0.0.0",
-    "@xen-orchestra/vhd-lib": "^0.0.0",
-    "struct-fu": "^1.2.0",
     "babel-runtime": "^6.22.0",
-    "exec-promise": "^0.7.0"
+    "exec-promise": "^0.7.0",
+    "struct-fu": "^1.2.0",
+    "vhd-lib": "^0.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

@@ -12,7 +12,7 @@ import {
   chainVhd,
   createReadStream as createVhdReadStream,
   readVhdMetadata,
-} from '@xen-orchestra/vhd-lib'
+} from 'vhd-lib'
 
 import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'

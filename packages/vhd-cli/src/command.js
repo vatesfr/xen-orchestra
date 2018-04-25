@@ -1,5 +1,5 @@
 import { getHandler } from '@xen-orchestra/fs'
-import { Vhd } from '@xen-orchestra/vhd-lib'
+import { Vhd } from 'vhd-lib'
 import { resolve } from 'path'
 
 export const command = async args => {

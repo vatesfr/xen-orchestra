@@ -23,14 +23,14 @@
     "node": ">=4"
   },
   "dependencies": {
-    "@xen-orchestra/vhd-lib": "^0.0.0",
     "@babel/runtime": "^7.0.0-beta.44",
     "child-process-promise": "^2.0.3",
     "deflate-js": "^0.2.3",
     "fs-promise": "^2.0.0",
     "pipette": "^0.9.3",
     "promise-toolbox": "^0.9.5",
-    "tmp": "^0.0.33"
+    "tmp": "^0.0.33",
+    "vhd-lib": "^0.0.0"
   },
   "devDependencies": {
     "@babel/cli": "7.0.0-beta.44",
