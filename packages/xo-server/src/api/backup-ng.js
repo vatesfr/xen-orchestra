@@ -135,7 +135,7 @@ runJob.params = {
 // -----------------------------------------------------------------------------
 
 export function getAllLogs () {
-  return this.getAllBackupNgLogs()
+  return this.getBackupNgLogs()
 }
 
 getAllLogs.permission = 'admin'
