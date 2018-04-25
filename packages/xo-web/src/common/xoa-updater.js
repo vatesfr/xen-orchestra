@@ -77,13 +77,13 @@ class XoaUpdater extends EventEmitter {
     this._update(false)
   }
 
-  async upgrade (upgrade = true) {
+  async upgrade () {
     if (this._waiting) {
       return
     }
     this._waiting = true
     this.state('upgrading')
-    await this._update(upgrade)
+    await this._update(true)
   }
 
   _upgradeSuccessful () {

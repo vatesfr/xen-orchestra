@@ -51,13 +51,13 @@ const states = {
 }
 
 const update = () => xoaUpdater.update()
-const _upgrade = ({ upgrade, runningJobsExist }) =>
+const upgrade = ({ runningJobsExist }) =>
   runningJobsExist
     ? confirm({
         title: _('upgradeWarningTitle'),
         body: _('upgradeWarningMessage'),
-      }).then(() => xoaUpdater.upgrade(upgrade))
-    : xoaUpdater.upgrade(upgrade)
+      }).then(() => xoaUpdater.upgrade())
+    : xoaUpdater.upgrade()
 
 @addSubscriptions({
   backupNgJobs: subscribeBackupNgJobs,
@@ -203,11 +203,6 @@ export default class XoaUpdates extends Component {
       (configEdited = true)
 
     const { formatMessage } = this.props.intl
-    const upgrade =
-      process.env.XOA_PLAN > 1 &&
-      process.env.XOA_PLAN < 5 &&
-      trial.state !== 'untrustedTrial'
-
     return (
       <Container>
         <Row>
@@ -235,12 +230,13 @@ export default class XoaUpdates extends Component {
                 <ActionButton
                   btnStyle='success'
                   data-runningJobsExist={this._getRunningJobsExist()}
-                  data-upgrade={upgrade}
                   disabled={state !== 'upgradeNeeded'}
-                  handler={_upgrade}
+                  handler={upgrade}
                   icon='upgrade'
                 >
-                  {upgrade ? _('upgrade') : _('downgrade')}
+                  {trial.state !== 'untrustedTrial'
+                    ? _('upgrade')
+                    : _('downgrade')}
                 </ActionButton>
                 <hr />
                 <div>
