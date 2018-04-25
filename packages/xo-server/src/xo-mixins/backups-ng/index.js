@@ -8,10 +8,9 @@ import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
 import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { timeout as pTimeout } from 'promise-toolbox'
-import {
+import Vhd, {
   chainVhd,
-  createReadStream as createVhdReadStream,
-  readVhdMetadata,
+  createSyntheticStream as createVhdReadStream,
 } from 'vhd-lib'
 
 import { type CallJob, type Executor, type Job } from '../jobs'
@@ -1042,9 +1041,13 @@ export default class BackupNg {
     const vhds = await asyncMap(
       await handler.list(dirname(path), { filter: isVhd, prependDir: true }),
       async path => {
-        const metadata = await readVhdMetadata(handler, path)
-        metadata.path = path
-        return metadata
+        const vhd = new Vhd(handler, path)
+        await vhd.readHeaderAndFooter()
+        return {
+          footer: vhd.footer,
+          header: vhd.header,
+          path,
+        }
       }
     )
     const base = basename(path)

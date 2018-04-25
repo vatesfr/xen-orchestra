@@ -1,4 +1,4 @@
-import { vhdMerge, chainVhd } from 'vhd-lib'
+import { mergeVhd, chainVhd } from 'vhd-lib'
 import deferrable from 'golike-defer'
 import escapeStringRegexp from 'escape-string-regexp'
 import execa from 'execa'
@@ -551,7 +551,7 @@ export default class {
       const backup = `${dir}/${backups[j]}`
 
       try {
-        mergedDataSize += await vhdMerge(handler, parent, handler, backup)
+        mergedDataSize += await mergeVhd(handler, parent, handler, backup)
       } catch (e) {
         console.error('Unable to use vhd-util.', e)
         throw e

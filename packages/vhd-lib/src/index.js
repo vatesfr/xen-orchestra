@@ -1,8 +1,5 @@
-export {
-  default as vhdMerge,
-  chainVhd,
-  createReadStream,
-  readVhdMetadata,
-} from './vhd-merge'
-
-export { Vhd, createReadableRawVHDStream } from './vhd'
+export { default } from './vhd'
+export { default as chainVhd } from './chain'
+export { default as createReadableRawStream } from './createReadableRawStream'
+export { default as createSyntheticStream } from './createSyntheticStream'
+export { default as mergeVhd } from './merge'

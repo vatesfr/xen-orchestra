@@ -1,12 +1,19 @@
 import assert from 'assert'
-import asyncIteratorToStream from 'async-iterator-to-stream'
 import getStream from 'get-stream'
-import fu from 'struct-fu'
-import { v4 as generateUuid } from 'uuid'
 import { fromEvent } from 'promise-toolbox'
 
-import constantStream from './constant-stream'
-import { dirname, resolve } from 'path'
+import constantStream from './_constant-stream'
+import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
+import { set as mapSetBit, test as mapTestBit } from './_bitmap'
+import {
+  BLOCK_UNUSED,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  PARENT_LOCATOR_ENTRIES,
+  PLATFORM_NONE,
+  PLATFORM_W2KU,
+  SECTOR_SIZE,
+} from './_constants'
 
 const VHD_UTIL_DEBUG = 0
 const debug = VHD_UTIL_DEBUG
@@ -23,176 +30,15 @@ const debug = VHD_UTIL_DEBUG
 //
 // ===================================================================
 
-// Block allocation table entry size. (Block addr)
-const VHD_ENTRY_SIZE = 4
-
-export const VHD_PLATFORM_CODE_NONE = 0
-
-// Other.
-const BLOCK_UNUSED = 0xffffffff
-const BIT_MASK = 0x80
-
-// unused block as buffer containing a uint32BE
-const BUF_BLOCK_UNUSED = Buffer.allocUnsafe(VHD_ENTRY_SIZE)
-BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
-
-// Sizes in bytes.
-export const VHD_FOOTER_SIZE = 512
-export const VHD_HEADER_SIZE = 1024
-
-export const VHD_SECTOR_SIZE = 512
-
-// Types of backup treated. Others are not supported.
-export const HARD_DISK_TYPE_FIXED = 2 // Fixed had disk.
-export const HARD_DISK_TYPE_DYNAMIC = 3 // Full backup.
-export const HARD_DISK_TYPE_DIFFERENCING = 4 // Delta backup.
-
-export const PLATFORM_NONE = 0
-export const PLATFORM_W2RU = 0x57327275
-export const PLATFORM_W2KU = 0x57326b75
-export const PLATFORM_MAC = 0x4d616320
-export const PLATFORM_MACX = 0x4d616358
-
-const footerCookie = 'conectix'
-const creatorApp = 'xo  '
-// it looks like everybody is using Wi2k
-const WIN2K_OS = 0x5769326b
-
-export const VHD_PARENT_LOCATOR_ENTRIES = 8
-
-const SIZE_OF_32_BITS = Math.pow(2, 32)
-
-export const uint64 = fu.derive(
-  fu.uint32(2),
-  number => [Math.floor(number / SIZE_OF_32_BITS), number % SIZE_OF_32_BITS],
-  _ => _[0] * SIZE_OF_32_BITS + _[1]
-)
-export const uint64Undefinable = fu.derive(
-  fu.uint32(2),
-  number =>
-    number === undefined
-      ? [0xffffffff, 0xffffffff]
-      : [Math.floor(number / SIZE_OF_32_BITS), number % SIZE_OF_32_BITS],
-  _ =>
-    _[0] === 0xffffffff && _[1] === 0xffffffff
-      ? undefined
-      : _[0] * SIZE_OF_32_BITS + _[1]
-)
-
-export const fuFooter = fu.struct([
-  fu.char('cookie', 8), // 0
-  fu.uint32('features'), // 8
-  fu.uint32('fileFormatVersion'), // 12
-  uint64Undefinable('dataOffset'), // offset of the header
-  fu.uint32('timestamp'), // 24
-  fu.char('creatorApplication', 4), // 28
-  fu.uint32('creatorVersion'), // 32
-  fu.uint32('creatorHostOs'), // 36
-  uint64('originalSize'),
-  uint64('currentSize'),
-  fu.struct('diskGeometry', [
-    fu.uint16('cylinders'), // 56
-    fu.uint8('heads'), // 58
-    fu.uint8('sectorsPerTrackCylinder'), // 59
-  ]),
-  fu.uint32('diskType'), // 60 Disk type, must be equal to HARD_DISK_TYPE_DYNAMIC/HARD_DISK_TYPE_DIFFERENCING.
-  fu.uint32('checksum'), // 64
-  fu.uint8('uuid', 16), // 68
-  fu.char('saved'), // 84
-  fu.char('hidden'), // 85
-  fu.char('reserved', 426), // 86
-])
-
-export const fuHeader = fu.struct([
-  fu.char('cookie', 8),
-  fu.uint8('dataOffsetUnused', 8),
-  uint64('tableOffset'),
-  fu.uint32('headerVersion'),
-  fu.uint32('maxTableEntries'), // Max entries in the Block Allocation Table.
-  fu.uint32('blockSize'), // Block size in bytes. Default (2097152 => 2MB)
-  fu.uint32('checksum'),
-  fu.uint8('parentUuid', 16),
-  fu.uint32('parentTimestamp'),
-  fu.uint32('reserved1'),
-  fu.char16be('parentUnicodeName', 512),
-  fu.struct(
-    'parentLocatorEntry',
-    [
-      fu.uint32('platformCode'),
-      fu.uint32('platformDataSpace'),
-      fu.uint32('platformDataLength'),
-      fu.uint32('reserved'),
-      uint64('platformDataOffset'), // Absolute byte offset of the locator data.
-    ],
-    VHD_PARENT_LOCATOR_ENTRIES
-  ),
-  fu.char('reserved2', 256),
-])
-
-const resolveRelativeFromFile = (file, path) =>
-  resolve('/', dirname(file), path).slice(1)
-
 const computeBatSize = entries =>
-  sectorsToBytes(sectorsRoundUpNoZero(entries * VHD_ENTRY_SIZE))
+  sectorsToBytes(sectorsRoundUpNoZero(entries * 4))
 
 // Returns a 32 bits integer corresponding to a Vhd version.
 const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000ffff)
 
 // Sectors conversions.
-const sectorsRoundUpNoZero = bytes => Math.ceil(bytes / VHD_SECTOR_SIZE) || 1
-const sectorsToBytes = sectors => sectors * VHD_SECTOR_SIZE
-
-// Check/Set a bit on a vhd map.
-const mapTestBit = (map, bit) => ((map[bit >> 3] << (bit & 7)) & BIT_MASK) !== 0
-const mapSetBit = (map, bit) => {
-  map[bit >> 3] |= BIT_MASK >> (bit & 7)
-}
-
-const packField = (field, value, buf) => {
-  const { offset } = field
-
-  field.pack(
-    value,
-    buf,
-    typeof offset !== 'object' ? { bytes: offset, bits: 0 } : offset
-  )
-}
-
-const unpackField = (field, buf) => {
-  const { offset } = field
-
-  return field.unpack(
-    buf,
-    typeof offset !== 'object' ? { bytes: offset, bits: 0 } : offset
-  )
-}
-
-// Returns the checksum of a raw struct.
-// The raw struct (footer or header) is altered with the new sum.
-export function checksumStruct (buf, struct) {
-  const checksumField = struct.fields.checksum
-  let sum = 0
-
-  // Do not use the stored checksum to compute the new checksum.
-  const checksumOffset = checksumField.offset
-  for (let i = 0, n = checksumOffset; i < n; ++i) {
-    sum += buf[i]
-  }
-  for (
-    let i = checksumOffset + checksumField.size, n = struct.size;
-    i < n;
-    ++i
-  ) {
-    sum += buf[i]
-  }
-
-  sum = ~sum >>> 0
-
-  // Write new sum.
-  packField(checksumField, sum, buf)
-
-  return sum
-}
+const sectorsRoundUpNoZero = bytes => Math.ceil(bytes / SECTOR_SIZE) || 1
+const sectorsToBytes = sectors => sectors * SECTOR_SIZE
 
 const assertChecksum = (name, buf, struct) => {
   const actual = unpackField(struct.fields.checksum, buf)
@@ -202,42 +48,9 @@ const assertChecksum = (name, buf, struct) => {
   }
 }
 
-export function computeGeometryForSize (size) {
-  const totalSectors = Math.ceil(size / 512)
-  let sectorsPerTrackCylinder
-  let heads
-  let cylinderTimesHeads
-  if (totalSectors > 65535 * 16 * 255) {
-    throw Error('disk is too big')
-  }
-  // straight copypasta from the file spec appendix on CHS Calculation
-  if (totalSectors >= 65535 * 16 * 63) {
-    sectorsPerTrackCylinder = 255
-    heads = 16
-    cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
-  } else {
-    sectorsPerTrackCylinder = 17
-    cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
-    heads = Math.floor((cylinderTimesHeads + 1023) / 1024)
-    if (heads < 4) {
-      heads = 4
-    }
-    if (cylinderTimesHeads >= heads * 1024 || heads > 16) {
-      sectorsPerTrackCylinder = 31
-      heads = 16
-      cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
-    }
-    if (cylinderTimesHeads >= heads * 1024) {
-      sectorsPerTrackCylinder = 63
-      heads = 16
-      cylinderTimesHeads = totalSectors / sectorsPerTrackCylinder
-    }
-  }
-  const cylinders = Math.ceil(cylinderTimesHeads / heads)
-  const actualSize =
-    cylinders * heads * sectorsPerTrackCylinder * VHD_SECTOR_SIZE
-  return { cylinders, heads, sectorsPerTrackCylinder, actualSize }
-}
+// unused block as buffer containing a uint32BE
+const BUF_BLOCK_UNUSED = Buffer.allocUnsafe(4)
+BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 
 // ===================================================================
 
@@ -263,7 +76,7 @@ export function computeGeometryForSize (size) {
 // - parentLocatorSize(i) = header.parentLocatorEntry[i].platformDataSpace * sectorSize
 // - sectorSize = 512
 
-export class Vhd {
+export default class Vhd {
   get batSize () {
     return computeBatSize(this.header.maxTableEntries)
   }
@@ -296,15 +109,15 @@ export class Vhd {
   getEndOfHeaders () {
     const { header } = this
 
-    let end = VHD_FOOTER_SIZE + VHD_HEADER_SIZE
+    let end = FOOTER_SIZE + HEADER_SIZE
 
     // Max(end, block allocation table end)
     end = Math.max(end, header.tableOffset + this.batSize)
 
-    for (let i = 0; i < VHD_PARENT_LOCATOR_ENTRIES; i++) {
+    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
       const entry = header.parentLocatorEntry[i]
 
-      if (entry.platformCode !== VHD_PLATFORM_CODE_NONE) {
+      if (entry.platformCode !== PLATFORM_NONE) {
         end = Math.max(
           end,
           entry.platformDataOffset + sectorsToBytes(entry.platformDataSpace)
@@ -319,7 +132,7 @@ export class Vhd {
 
   // Returns the first sector after data.
   getEndOfData () {
-    let end = Math.ceil(this.getEndOfHeaders() / VHD_SECTOR_SIZE)
+    let end = Math.ceil(this.getEndOfHeaders() / SECTOR_SIZE)
 
     const fullBlockSize = this.sectorsOfBitmap + this.sectorsPerBlock
     const { maxTableEntries } = this.header
@@ -338,22 +151,22 @@ export class Vhd {
 
   // Get the beginning (footer + header) of a vhd file.
   async readHeaderAndFooter () {
-    const buf = await this._read(0, VHD_FOOTER_SIZE + VHD_HEADER_SIZE)
-    const bufFooter = buf.slice(0, VHD_FOOTER_SIZE)
-    const bufHeader = buf.slice(VHD_FOOTER_SIZE)
+    const buf = await this._read(0, FOOTER_SIZE + HEADER_SIZE)
+    const bufFooter = buf.slice(0, FOOTER_SIZE)
+    const bufHeader = buf.slice(FOOTER_SIZE)
 
     assertChecksum('footer', bufFooter, fuFooter)
     assertChecksum('header', bufHeader, fuHeader)
 
     const footer = (this.footer = fuFooter.unpack(bufFooter))
-    assert.strictEqual(footer.dataOffset, VHD_FOOTER_SIZE)
+    assert.strictEqual(footer.dataOffset, FOOTER_SIZE)
 
     const header = (this.header = fuHeader.unpack(bufHeader))
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
     const sectorsPerBlock = (this.sectorsPerBlock = Math.floor(
-      header.blockSize / VHD_SECTOR_SIZE
+      header.blockSize / SECTOR_SIZE
     ))
 
     // Compute bitmap size in sectors.
@@ -380,13 +193,13 @@ export class Vhd {
     const { header } = this
     this.blockTable = await this._read(
       header.tableOffset,
-      header.maxTableEntries * VHD_ENTRY_SIZE
+      header.maxTableEntries * 4
     )
   }
 
   // return the first sector (bitmap) of a block
   _getBatEntry (block) {
-    return this.blockTable.readUInt32BE(block * VHD_ENTRY_SIZE)
+    return this.blockTable.readUInt32BE(block * 4)
   }
 
   _readBlock (blockId, onlyBitmap = false) {
@@ -424,7 +237,7 @@ export class Vhd {
     // get first allocated block for initialization
     while ((firstSector = bat.readUInt32BE(j)) === BLOCK_UNUSED) {
       i += 1
-      j += VHD_ENTRY_SIZE
+      j += 4
 
       if (i === n) {
         const error = new Error('no allocated block found')
@@ -448,7 +261,7 @@ export class Vhd {
       }
 
       i += 1
-      j += VHD_ENTRY_SIZE
+      j += 4
     }
 
     return { first, firstSector, last, lastSector }
@@ -484,7 +297,7 @@ export class Vhd {
       const tableOffset = this.header.tableOffset
       const { batSize } = this
       const newMinSector = Math.ceil(
-        (tableOffset + batSize + spaceNeededBytes) / VHD_SECTOR_SIZE
+        (tableOffset + batSize + spaceNeededBytes) / SECTOR_SIZE
       )
       if (
         tableOffset + batSize + spaceNeededBytes >=
@@ -492,7 +305,7 @@ export class Vhd {
       ) {
         const { fullBlockSize } = this
         const newFirstSector = Math.max(
-          lastSector + fullBlockSize / VHD_SECTOR_SIZE,
+          lastSector + fullBlockSize / SECTOR_SIZE,
           newMinSector
         )
         debug(
@@ -531,7 +344,7 @@ export class Vhd {
     const prevBat = this.blockTable
     const bat = (this.blockTable = Buffer.allocUnsafe(newBatSize))
     prevBat.copy(bat)
-    bat.fill(BUF_BLOCK_UNUSED, prevMaxTableEntries * VHD_ENTRY_SIZE)
+    bat.fill(BUF_BLOCK_UNUSED, prevMaxTableEntries * 4)
     debug(
       `ensureBatSize: extend BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
     )
@@ -544,21 +357,18 @@ export class Vhd {
 
   // set the first sector (bitmap) of a block
   _setBatEntry (block, blockSector) {
-    const i = block * VHD_ENTRY_SIZE
+    const i = block * 4
     const { blockTable } = this
 
     blockTable.writeUInt32BE(blockSector, i)
 
-    return this._write(
-      blockTable.slice(i, i + VHD_ENTRY_SIZE),
-      this.header.tableOffset + i
-    )
+    return this._write(blockTable.slice(i, i + 4), this.header.tableOffset + i)
   }
 
   // Make a new empty block at vhd end.
   // Update block allocation table in context and in file.
   async createBlock (blockId) {
-    const blockAddr = Math.ceil(this.getEndOfData() / VHD_SECTOR_SIZE)
+    const blockAddr = Math.ceil(this.getEndOfData() / SECTOR_SIZE)
 
     debug(`create block ${blockId} at ${blockAddr}`)
 
@@ -700,7 +510,7 @@ export class Vhd {
     const { header } = this
     const rawHeader = fuHeader.pack(header)
     header.checksum = checksumStruct(rawHeader, fuHeader)
-    const offset = VHD_FOOTER_SIZE
+    const offset = FOOTER_SIZE
     debug(
       `Write header at: ${offset} (checksum=${
         header.checksum
@@ -710,12 +520,12 @@ export class Vhd {
   }
 
   async writeData (offsetSectors, buffer) {
-    const bufferSizeSectors = Math.ceil(buffer.length / VHD_SECTOR_SIZE)
+    const bufferSizeSectors = Math.ceil(buffer.length / SECTOR_SIZE)
     const startBlock = Math.floor(offsetSectors / this.sectorsPerBlock)
     const endBufferSectors = offsetSectors + bufferSizeSectors
     const lastBlock = Math.ceil(endBufferSectors / this.sectorsPerBlock) - 1
     await this.ensureBatSize(lastBlock)
-    const blockSizeBytes = this.sectorsPerBlock * VHD_SECTOR_SIZE
+    const blockSizeBytes = this.sectorsPerBlock * SECTOR_SIZE
     const coversWholeBlock = (offsetInBlockSectors, endInBlockSectors) =>
       offsetInBlockSectors === 0 && endInBlockSectors === this.sectorsPerBlock
 
@@ -734,11 +544,11 @@ export class Vhd {
       )
       const startInBuffer = Math.max(
         0,
-        (currentBlock * this.sectorsPerBlock - offsetSectors) * VHD_SECTOR_SIZE
+        (currentBlock * this.sectorsPerBlock - offsetSectors) * SECTOR_SIZE
       )
       const endInBuffer = Math.min(
         ((currentBlock + 1) * this.sectorsPerBlock - offsetSectors) *
-          VHD_SECTOR_SIZE,
+          SECTOR_SIZE,
         buffer.length
       )
       let inputBuffer
@@ -748,7 +558,7 @@ export class Vhd {
         inputBuffer = Buffer.alloc(blockSizeBytes, 0)
         buffer.copy(
           inputBuffer,
-          offsetInBlockSectors * VHD_SECTOR_SIZE,
+          offsetInBlockSectors * SECTOR_SIZE,
           startInBuffer,
           endInBuffer
         )
@@ -763,10 +573,10 @@ export class Vhd {
   }
 
   async ensureSpaceForParentLocators (neededSectors) {
-    const firstLocatorOffset = VHD_FOOTER_SIZE + VHD_HEADER_SIZE
+    const firstLocatorOffset = FOOTER_SIZE + HEADER_SIZE
     const currentSpace =
-      Math.floor(this.header.tableOffset / VHD_SECTOR_SIZE) -
-      firstLocatorOffset / VHD_SECTOR_SIZE
+      Math.floor(this.header.tableOffset / SECTOR_SIZE) -
+      firstLocatorOffset / SECTOR_SIZE
     if (currentSpace < neededSectors) {
       const deltaSectors = neededSectors - currentSpace
       await this._freeFirstBlockSpace(sectorsToBytes(deltaSectors))
@@ -780,209 +590,18 @@ export class Vhd {
     const { header } = this
     header.parentLocatorEntry[0].platformCode = PLATFORM_W2KU
     const encodedFilename = Buffer.from(fileNameString, 'utf16le')
-    const dataSpaceSectors = Math.ceil(encodedFilename.length / VHD_SECTOR_SIZE)
+    const dataSpaceSectors = Math.ceil(encodedFilename.length / SECTOR_SIZE)
     const position = await this.ensureSpaceForParentLocators(dataSpaceSectors)
     await this._write(encodedFilename, position)
     header.parentLocatorEntry[0].platformDataSpace =
-      dataSpaceSectors * VHD_SECTOR_SIZE
+      dataSpaceSectors * SECTOR_SIZE
     header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
     header.parentLocatorEntry[0].platformDataOffset = position
     for (let i = 1; i < 8; i++) {
-      header.parentLocatorEntry[i].platformCode = VHD_PLATFORM_CODE_NONE
+      header.parentLocatorEntry[i].platformCode = PLATFORM_NONE
       header.parentLocatorEntry[i].platformDataSpace = 0
       header.parentLocatorEntry[i].platformDataLength = 0
       header.parentLocatorEntry[i].platformDataOffset = 0
     }
   }
 }
-
-export const createReadStream = asyncIteratorToStream(function * (handler, path) {
-  const fds = []
-
-  try {
-    const vhds = []
-    while (true) {
-      const fd = yield handler.openFile(path, 'r')
-      fds.push(fd)
-      const vhd = new Vhd(handler, fd)
-      vhds.push(vhd)
-      yield vhd.readHeaderAndFooter()
-      yield vhd.readBlockTable()
-
-      if (vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC) {
-        break
-      }
-
-      path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
-    }
-    const nVhds = vhds.length
-
-    // this the VHD we want to synthetize
-    const vhd = vhds[0]
-
-    // data of our synthetic VHD
-    // TODO: empty parentUuid and parentLocatorEntry-s in header
-    let header = {
-      ...vhd.header,
-      tableOffset: 512 + 1024,
-      parentUnicodeName: '',
-    }
-
-    const bat = Buffer.allocUnsafe(
-      Math.ceil(4 * header.maxTableEntries / VHD_SECTOR_SIZE) * VHD_SECTOR_SIZE
-    )
-    let footer = {
-      ...vhd.footer,
-      diskType: HARD_DISK_TYPE_DYNAMIC,
-    }
-    const sectorsPerBlockData = vhd.sectorsPerBlock
-    const sectorsPerBlock =
-      sectorsPerBlockData + vhd.bitmapSize / VHD_SECTOR_SIZE
-
-    const nBlocks = Math.ceil(footer.currentSize / header.blockSize)
-
-    const blocksOwner = new Array(nBlocks)
-    for (
-      let iBlock = 0,
-        blockOffset = Math.ceil((512 + 1024 + bat.length) / VHD_SECTOR_SIZE);
-      iBlock < nBlocks;
-      ++iBlock
-    ) {
-      let blockSector = BLOCK_UNUSED
-      for (let i = 0; i < nVhds; ++i) {
-        if (vhds[i].containsBlock(iBlock)) {
-          blocksOwner[iBlock] = i
-          blockSector = blockOffset
-          blockOffset += sectorsPerBlock
-          break
-        }
-      }
-      bat.writeUInt32BE(blockSector, iBlock * 4)
-    }
-
-    footer = fuFooter.pack(footer)
-    checksumStruct(footer, fuFooter)
-    yield footer
-
-    header = fuHeader.pack(header)
-    checksumStruct(header, fuHeader)
-    yield header
-
-    yield bat
-
-    const bitmap = Buffer.alloc(vhd.bitmapSize, 0xff)
-    for (let iBlock = 0; iBlock < nBlocks; ++iBlock) {
-      const owner = blocksOwner[iBlock]
-      if (owner === undefined) {
-        continue
-      }
-
-      yield bitmap
-
-      const blocksByVhd = new Map()
-      const emitBlockSectors = function * (iVhd, i, n) {
-        const vhd = vhds[iVhd]
-        const isRootVhd = vhd.footer.diskType === HARD_DISK_TYPE_DYNAMIC
-        if (!vhd.containsBlock(iBlock)) {
-          if (isRootVhd) {
-            yield Buffer.alloc((n - i) * VHD_SECTOR_SIZE)
-          } else {
-            yield * emitBlockSectors(iVhd + 1, i, n)
-          }
-          return
-        }
-        let block = blocksByVhd.get(vhd)
-        if (block === undefined) {
-          block = yield vhd._readBlock(iBlock)
-          blocksByVhd.set(vhd, block)
-        }
-        const { bitmap, data } = block
-        if (isRootVhd) {
-          yield data.slice(i * VHD_SECTOR_SIZE, n * VHD_SECTOR_SIZE)
-          return
-        }
-        while (i < n) {
-          const hasData = mapTestBit(bitmap, i)
-          const start = i
-          do {
-            ++i
-          } while (i < n && mapTestBit(bitmap, i) === hasData)
-          if (hasData) {
-            yield data.slice(start * VHD_SECTOR_SIZE, i * VHD_SECTOR_SIZE)
-          } else {
-            yield * emitBlockSectors(iVhd + 1, start, i)
-          }
-        }
-      }
-      yield * emitBlockSectors(owner, 0, sectorsPerBlock)
-    }
-
-    yield footer
-  } finally {
-    for (let i = 0, n = fds.length; i < n; ++i) {
-      handler.closeFile(fds[i]).catch(error => {
-        console.warn('createReadStream, closeFd', i, error)
-      })
-    }
-  }
-})
-
-export function createFixedFooter (size, timestamp, geometry) {
-  const footer = fuFooter.pack({
-    cookie: footerCookie,
-    features: 2,
-    fileFormatVersion: 0x00010000,
-    dataOffset: undefined,
-    timestamp,
-    creatorApplication: creatorApp,
-    creatorHostOs: WIN2K_OS,
-    originalSize: size,
-    currentSize: size,
-    diskGeometry: geometry,
-    diskType: HARD_DISK_TYPE_FIXED,
-    uuid: generateUuid(null, []),
-  })
-  checksumStruct(footer, fuFooter)
-  return footer
-}
-
-export const createReadableRawVHDStream = asyncIteratorToStream(async function * (
-  size,
-  blockParser
-) {
-  const geometry = computeGeometryForSize(size)
-  const actualSize = geometry.actualSize
-  const footer = createFixedFooter(
-    actualSize,
-    Math.floor(Date.now() / 1000),
-    geometry
-  )
-  let position = 0
-
-  function * filePadding (paddingLength) {
-    if (paddingLength > 0) {
-      const chunkSize = 1024 * 1024 // 1Mo
-      for (
-        let paddingPosition = 0;
-        paddingPosition + chunkSize < paddingLength;
-        paddingPosition += chunkSize
-      ) {
-        yield Buffer.alloc(chunkSize)
-      }
-      yield Buffer.alloc(paddingLength % chunkSize)
-    }
-  }
-
-  let next
-  while ((next = await blockParser.next()) !== null) {
-    const paddingLength = next.offsetBytes - position
-    if (paddingLength < 0) {
-      throw new Error('Received out of order blocks')
-    }
-    yield * filePadding(paddingLength)
-    yield next.data
-    position = next.offsetBytes + next.data.length
-  }
-  yield * filePadding(actualSize - position)
-  yield footer
-})

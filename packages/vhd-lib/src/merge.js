@@ -2,13 +2,9 @@
 
 import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
-import { dirname, relative } from 'path'
 
-import type RemoteHandler from '@xen-orchestra/fs'
-
-import { HARD_DISK_TYPE_DIFFERENCING, Vhd } from './vhd'
-
-export { createReadStream, Vhd } from './vhd'
+import Vhd from './vhd'
+import { DISK_TYPE_DIFFERENCING } from './_constants'
 
 // Merge vhd child into vhd parent.
 //
@@ -16,7 +12,7 @@ export { createReadStream, Vhd } from './vhd'
 // Parent must be a full backup !
 //
 // TODO: update the identifier of the parent VHD.
-export default concurrency(2)(async function vhdMerge (
+export default concurrency(2)(async function merge (
   parentHandler,
   parentPath,
   childHandler,
@@ -38,7 +34,7 @@ export default concurrency(2)(async function vhdMerge (
       assert(childVhd.header.blockSize === parentVhd.header.blockSize)
 
       // Child must be a delta.
-      if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
+      if (childVhd.footer.diskType !== DISK_TYPE_DIFFERENCING) {
         throw new Error('Unable to merge, child is not a delta backup.')
       }
 
@@ -87,47 +83,3 @@ export default concurrency(2)(async function vhdMerge (
     await parentHandler.closeFile(parentFd)
   }
 })
-
-// returns true if the child was actually modified
-export async function chainVhd (
-  parentHandler,
-  parentPath,
-  childHandler,
-  childPath,
-  force = false
-) {
-  const parentVhd = new Vhd(parentHandler, parentPath)
-  const childVhd = new Vhd(childHandler, childPath)
-
-  await childVhd.readHeaderAndFooter()
-  const { header, footer } = childVhd
-
-  if (footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
-    if (!force) {
-      throw new Error('cannot chain disk of type ' + footer.diskType)
-    }
-    footer.diskType = HARD_DISK_TYPE_DIFFERENCING
-  }
-
-  await Promise.all([
-    childVhd.readBlockTable(),
-    parentVhd.readHeaderAndFooter(),
-  ])
-
-  const parentName = relative(dirname(childPath), parentPath)
-  header.parentUuid = parentVhd.footer.uuid
-  header.parentUnicodeName = parentName
-  await childVhd.setUniqueParentLocator(parentName)
-  await childVhd.writeHeader()
-  await childVhd.writeFooter()
-  return true
-}
-
-export async function readVhdMetadata (handler: RemoteHandler, path: string) {
-  const vhd = new Vhd(handler, path)
-  await vhd.readHeaderAndFooter()
-  return {
-    footer: vhd.footer,
-    header: vhd.header,
-  }
-}

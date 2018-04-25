@@ -5,7 +5,8 @@ import tmp from 'tmp'
 import { createWriteStream } from 'fs'
 import { fromCallback as pFromCallback, fromEvent } from 'promise-toolbox'
 
-import { createFixedFooter, createReadableRawVHDStream } from './vhd'
+import createFixedFooter from './_createFixedFooter'
+import createReadableRawVHDStream from './createReadableRawStream'
 
 const initialDir = process.cwd()
 
