@@ -10,14 +10,29 @@ import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import xml2js from 'xml2js'
-import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
-import { connectStore, formatSize, noop, resolveIds } from 'utils'
-import { Container, Row, Col } from 'grid'
-import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
-import { FormattedRelative, FormattedTime } from 'react-intl'
-import { fromCallback } from 'promise-toolbox'
 import { SelectPool } from 'select-objects'
+import { fromCallback } from 'promise-toolbox'
+import { Container, Row, Col } from 'grid'
+import { Card, CardHeader, CardBlock } from 'card'
+import { FormattedRelative, FormattedTime } from 'react-intl'
+import {
+  addSubscriptions,
+  connectStore,
+  formatSize,
+  noop,
+  resolveIds,
+} from 'utils'
+import {
+  flatten,
+  get,
+  includes,
+  isEmpty,
+  keyBy,
+  map,
+  mapValues,
+  some,
+} from 'lodash'
 import {
   deleteMessage,
   deleteOrphanedVdis,
@@ -26,6 +41,7 @@ import {
   deleteVdi,
   deleteVm,
   isSrWritable,
+  subscribeSchedules,
 } from 'xo'
 import {
   areObjectsFetched,
@@ -383,12 +399,31 @@ const ALARM_COLUMNS = [
   },
 ]
 
+@addSubscriptions({
+  schedules: subscribeSchedules,
+})
 @connectStore(() => {
   const getOrphanVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
     .filter([_ => !_.$snapshot_of && _.$VBDs.length === 0])
     .sort()
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
+    .sort()
+  const getVmSnapshotsRelatedToNoExistBackup = createGetObjectsOfType(
+    'VM-snapshot'
+  )
+    .filter(
+      createSelector(
+        (_, props) => props.schedules,
+        schedules => {
+          const schedulesByIds = keyBy(schedules, 'id')
+          return _ => {
+            const scheduleId = _.other['xo:backup:schedule']
+            return scheduleId !== undefined && !(scheduleId in schedulesByIds)
+          }
+        }
+      )
+    )
     .sort()
   const getUserSrs = createGetObjectsOfType('SR').filter([isSrWritable])
   const getVdiSrs = createGetObjectsOfType('SR').pick(
@@ -405,6 +440,7 @@ const ALARM_COLUMNS = [
     vdiOrphaned: getOrphanVdiSnapshots,
     vdiSr: getVdiSrs,
     vmOrphaned: getOrphanVmSnapshots,
+    vmSnapshots: getVmSnapshotsRelatedToNoExistBackup,
   }
 })
 export default class Health extends Component {
@@ -487,6 +523,11 @@ export default class Health extends Component {
 
   _getVmOrphaned = createFilter(
     () => this.props.vmOrphaned,
+    this._getPoolPredicate
+  )
+
+  _getVmSnapshots = createFilter(
+    () => this.props.vmSnapshots,
     this._getPoolPredicate
   )
 
@@ -605,6 +646,24 @@ export default class Health extends Component {
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
                   shortcutsTarget='.orphaned-vms'
+                />
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row className='snapshot-vms'>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='vm' /> {_('vmSnapshotsRelatedToNoExistBackup')}
+              </CardHeader>
+              <CardBlock>
+                <NoObjects
+                  collection={this._getVmSnapshots()}
+                  columns={VM_COLUMNS}
+                  component={SortedTable}
+                  emptyMessage={_('noSnapshots')}
+                  shortcutsTarget='.snapshot-vms'
                 />
               </CardBlock>
             </Card>

@@ -1037,6 +1037,8 @@ const messages = {
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
   vmContainer: 'Resident on',
+  vmSnapshotsRelatedToNoExistBackup:
+    'VMs snapshot related to non-existing Backup ',
   alarmMessage: 'Alarms',
   noAlarms: 'No alarms',
   alarmDate: 'Date',
