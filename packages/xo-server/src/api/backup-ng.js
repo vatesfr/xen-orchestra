@@ -1,3 +1,7 @@
+import { basename } from 'path'
+
+import { safeDateFormat } from '../utils'
+
 export function createJob ({ schedules, ...job }) {
   job.userId = this.user.id
   return this.createBackupNgJob(job, schedules)
@@ -197,3 +201,86 @@ importVmBackup.params = {
 // mountPartition (optional)
 // getMountedPartitions
 // unmountPartition
+
+export function listPartitions ({ remote, disk }) {
+  return this.listBackupNgDiskPartitions(remote, disk)
+}
+
+listPartitions.permission = 'admin'
+
+listPartitions.params = {
+  disk: {
+    type: 'string',
+  },
+  remote: {
+    type: 'string',
+  },
+}
+
+export function listFiles ({ remote, disk, partition, path }) {
+  return this.listBackupNgPartitionFiles(remote, disk, partition, path)
+}
+
+listFiles.permission = 'admin'
+
+listFiles.params = {
+  disk: {
+    type: 'string',
+  },
+  partition: {
+    type: 'string',
+    optional: true,
+  },
+  path: {
+    type: 'string',
+  },
+  remote: {
+    type: 'string',
+  },
+}
+
+async function handleFetchFiles (req, res, { remote, disk, partition, paths }) {
+  const zipStream = await this.fetchBackupNgPartitionFiles(
+    remote,
+    disk,
+    partition,
+    paths
+  )
+
+  res.setHeader('content-disposition', 'attachment')
+  res.setHeader('content-type', 'application/octet-stream')
+  return zipStream
+}
+
+export async function fetchFiles (params) {
+  const { paths } = params
+  let filename = `restore_${safeDateFormat(new Date())}`
+  if (paths.length === 1) {
+    filename += `_${basename(paths[0])}`
+  }
+  filename += '.zip'
+
+  return this.registerHttpRequest(handleFetchFiles, params, {
+    suffix: encodeURI(`/${filename}`),
+  }).then(url => ({ $getFrom: url }))
+}
+
+fetchFiles.permission = 'admin'
+
+fetchFiles.params = {
+  disk: {
+    type: 'string',
+  },
+  partition: {
+    optional: true,
+    type: 'string',
+  },
+  paths: {
+    items: { type: 'string' },
+    minLength: 1,
+    type: 'array',
+  },
+  remote: {
+    type: 'string',
+  },
+}

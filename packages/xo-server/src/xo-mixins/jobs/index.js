@@ -225,9 +225,10 @@ export default class Jobs {
 
     runningJobs[id] = runJobId
 
+    let session
     try {
       const app = this._app
-      const session = app.createUserConnection()
+      session = app.createUserConnection()
       session.set('user_id', job.userId)
 
       const status = await executor({
@@ -255,6 +256,9 @@ export default class Jobs {
       throw error
     } finally {
       delete runningJobs[id]
+      if (session !== undefined) {
+        session.close()
+      }
     }
   }
 

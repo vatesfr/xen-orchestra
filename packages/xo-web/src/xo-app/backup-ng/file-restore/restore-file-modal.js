@@ -125,7 +125,7 @@ export default class RestoreFileModalBody extends Component {
     }
 
     listPartitions(this.state.backup.remote.id, disk).then(
-      ({ partitions }) => {
+      partitions => {
         if (isEmpty(partitions)) {
           this.setState(
             {
