@@ -2,7 +2,7 @@
   "private": true,
   "name": "@xen-orchestra/babel-config",
   "version": "0.0.0",
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/@xen-orchestra/babel-config",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/babel-config",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
     "type": "git",

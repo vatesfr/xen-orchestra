@@ -8,6 +8,7 @@ import {
   filter,
   find,
   forEach,
+  get,
   isFinite,
   map,
   orderBy,
@@ -137,7 +138,7 @@ Handlebars.registerHelper(
   value =>
     new Handlebars.SafeString(
       isFinite(+value) && +value !== 0
-        ? value > 0
+        ? (value = round(value, 2)) > 0
           ? `(<b style="color: green;">▲ ${value}</b>)`
           : `(<b style="color: red;">▼ ${String(value).slice(1)}</b>)`
         : ''
@@ -164,7 +165,7 @@ const computeDoubleMean = val => computeMean(map(val, computeMean))
 function computeMeans (objects, options) {
   return zipObject(
     options,
-    map(options, opt => round(computeMean(map(objects, opt)), 2))
+    map(options, opt => computeMean(map(objects, opt)), 2)
   )
 }
 
@@ -185,7 +186,7 @@ function getTop (objects, options) {
         obj => ({
           uuid: obj.uuid,
           name: obj.name,
-          value: round(obj[opt], 2),
+          value: obj[opt],
         })
       )
     )
@@ -200,7 +201,7 @@ function computePercentage (curr, prev, options) {
       opt =>
         prev[opt] === 0 || prev[opt] === null
           ? 'NONE'
-          : `${round((curr[opt] - prev[opt]) * 100 / prev[opt], 2)}`
+          : `${(curr[opt] - prev[opt]) * 100 / prev[opt]}`
     )
   )
 }
@@ -228,10 +229,14 @@ async function getVmsStats ({ runningVms, xo }) {
           name: vm.name_label,
           cpu: computeDoubleMean(vmStats.stats.cpus),
           ram: computeMean(getMemoryUsedMetric(vmStats.stats)) / gibPower,
-          diskRead: computeDoubleMean(values(vmStats.stats.xvds.r)) / mibPower,
-          diskWrite: computeDoubleMean(values(vmStats.stats.xvds.w)) / mibPower,
-          netReception: computeDoubleMean(vmStats.stats.vifs.rx) / kibPower,
-          netTransmission: computeDoubleMean(vmStats.stats.vifs.tx) / kibPower,
+          diskRead:
+            computeDoubleMean(values(get(vmStats.stats.xvds, 'r'))) / mibPower,
+          diskWrite:
+            computeDoubleMean(values(get(vmStats.stats.xvds, 'w'))) / mibPower,
+          netReception:
+            computeDoubleMean(get(vmStats.stats.vifs, 'rx')) / kibPower,
+          netTransmission:
+            computeDoubleMean(get(vmStats.stats.vifs, 'tx')) / kibPower,
         }
       })
     ),
@@ -251,9 +256,10 @@ async function getHostsStats ({ runningHosts, xo }) {
           cpu: computeDoubleMean(hostStats.stats.cpus),
           ram: computeMean(getMemoryUsedMetric(hostStats.stats)) / gibPower,
           load: computeMean(hostStats.stats.load),
-          netReception: computeDoubleMean(hostStats.stats.pifs.rx) / kibPower,
+          netReception:
+            computeDoubleMean(get(hostStats.stats.pifs, 'rx')) / kibPower,
           netTransmission:
-            computeDoubleMean(hostStats.stats.pifs.tx) / kibPower,
+            computeDoubleMean(get(hostStats.stats.pifs, 'tx')) / kibPower,
         }
       })
     ),

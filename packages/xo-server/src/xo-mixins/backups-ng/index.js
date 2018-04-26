@@ -564,20 +564,21 @@ export default class BackupNg {
   //       1. delete (or isolate) the tainted VHD
   //       2. next run should be a full
   // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
-  // - [ ] import for delta
+  // - [ ] check merge/transfert duration/size are what we want for delta
+  // - [ ] fix backup reports
   //
   // Low:
-  // - [ ] check merge/transfert duration/size are what we want for delta
   // - [ ] jobs should be cancelable
   // - [ ] possibility to (re-)run a single VM in a backup?
   // - [ ] display queued VMs
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
   // - [ ] size of the path? (base64url(Buffer.from(uuid.split('-').join(''), 'hex')))
-  // - [ ] fix backup reports
   // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
   //       a very long time to finish if there are other VMs before…
   // - [ ] detect and gc uncomplete replications
+  // - [ ] attach VDIs ASAP to be able to clean them in case of interruption
+  // - [ ] orphan VDIs on the source side
   //
   // Triage:
   // - [ ] logs
@@ -596,6 +597,7 @@ export default class BackupNg {
   // - [x] do not create snapshot if unhealthy vdi chain
   // - [x] replicated VMs should be discriminated by VM (vatesfr/xen-orchestra#2807)
   // - [x] clones of replicated VMs should not be garbage collected
+  // - [x] import for delta
   @defer
   async _backupVm (
     $defer: any,
@@ -909,7 +911,7 @@ export default class BackupNg {
               defer(async ($defer, vdi, id) => {
                 const path = `${vmDir}/${metadata.vhds[id]}`
 
-                const isDelta = 'xo:base_delta' in vdi.other_config
+                const isDelta = vdi.other_config['xo:base_delta'] !== undefined
                 let parentPath
                 if (isDelta) {
                   const vdiDir = dirname(path)

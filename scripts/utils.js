@@ -5,11 +5,13 @@ const ROOT_DIR = `${__dirname}/..`
 
 const _getPackages = scope => {
   const inScope = scope !== undefined
-  const dir = `${ROOT_DIR}/${inScope ? scope : 'packages'}`
+  const relativeDir = inScope ? scope : 'packages'
+  const dir = `${ROOT_DIR}/${relativeDir}`
   return fromCallback(cb => fs.readdir(dir, cb)).then(names =>
     names.map(name => ({
       dir: `${dir}/${name}`,
       name: inScope ? `${scope}/${name}` : name,
+      relativeDir: `${relativeDir}/${name}`,
     }))
   )
 }
@@ -20,13 +22,13 @@ exports.getPackages = (readPackageJson = false) => {
       pkgs = [].concat(...pkgs) // flatten
       return readPackageJson
         ? Promise.all(
-          pkgs.map(pkg =>
-            readFile(`${pkg.dir}/package.json`).then(data => {
-              pkg.package = JSON.parse(data)
-              return pkg
-            }, noop)
-          )
-        ).then(pkgs => pkgs.filter(pkg => pkg !== undefined))
+            pkgs.map(pkg =>
+              readFile(`${pkg.dir}/package.json`).then(data => {
+                pkg.package = JSON.parse(data)
+                return pkg
+              }, noop)
+            )
+          ).then(pkgs => pkgs.filter(pkg => pkg !== undefined))
         : pkgs
     }
   )

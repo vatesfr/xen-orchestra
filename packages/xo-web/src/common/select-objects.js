@@ -6,6 +6,7 @@ import {
   filter,
   flatten,
   forEach,
+  get,
   groupBy,
   includes,
   isArray,
@@ -358,24 +359,52 @@ export const SelectPool = makeStoreSelect(
 
 export const SelectSr = makeStoreSelect(
   () => {
-    const getSrsByContainer = createGetObjectsOfType('SR')
-      .filter((_, { predicate }) => predicate || isSrWritable)
-      .sort()
-      .groupBy('$container')
+    const getPools = createGetObjectsOfType('pool')
+    const getHosts = createGetObjectsOfType('host')
+
+    const getSrsByContainer = createSelector(
+      createGetObjectsOfType('SR')
+        .filter((_, { predicate }) => predicate || isSrWritable)
+        .sort(),
+      createSelector(getHosts, getPools, (hosts, pools) => id =>
+        hosts[id] || pools[id]
+      ),
+      (srs, containerFinder) => {
+        const { length } = srs
+
+        if (length >= 2) {
+          let sr1, sr2
+          const srsToModify = {}
+          for (let i = 1; i < length; ++i) {
+            sr1 = srs[i]
+            for (let j = 0; j < i; ++j) {
+              sr2 = srs[j]
+              if (sr1.name_label === sr2.name_label) {
+                srsToModify[sr1.id] = sr1
+                srsToModify[sr2.id] = sr2
+              }
+            }
+          }
+          forEach(srsToModify, sr => {
+            sr.name_label = `(${get(
+              containerFinder(sr.$container),
+              'name_label'
+            )}) ${sr.name_label}`
+          })
+        }
+
+        return groupBy(srs, '$container')
+      }
+    )
 
     const getContainerIds = createSelector(getSrsByContainer, srsByContainer =>
       keys(srsByContainer)
     )
 
-    const getPools = createGetObjectsOfType('pool')
-      .pick(getContainerIds)
-      .sort()
-    const getHosts = createGetObjectsOfType('host')
-      .pick(getContainerIds)
-      .sort()
-
-    const getContainers = createSelector(getPools, getHosts, (pools, hosts) =>
-      pools.concat(hosts)
+    const getContainers = createSelector(
+      getPools.pick(getContainerIds).sort(),
+      getHosts.pick(getContainerIds).sort(),
+      (pools, hosts) => pools.concat(hosts)
     )
 
     return {

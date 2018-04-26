@@ -994,11 +994,29 @@ export default class Xapi extends XapiBase {
     // 2. Delete all VBDs which may have been created by the import.
     await asyncMap(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
 
-    // 3. Create VDIs.
-    const newVdis = await map(delta.vdis, async vdi => {
+    // 3. Create VDIs & VBDs.
+    const vbds = groupBy(delta.vbds, 'VDI')
+    const newVdis = await map(delta.vdis, async (vdi, vdiId) => {
+      let newVdi
+
       const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
-      if (!remoteBaseVdiUuid) {
-        const newVdi = await this.createVdi({
+      if (remoteBaseVdiUuid) {
+        const baseVdi = find(
+          baseVdis,
+          vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid
+        )
+        if (!baseVdi) {
+          throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid})`)
+        }
+
+        newVdi = await this._getOrWaitObject(await this._cloneVdi(baseVdi))
+        $defer.onFailure(() => this._deleteVdi(newVdi))
+
+        await this._updateObjectMapProperty(newVdi, 'other_config', {
+          [TAG_COPY_SRC]: vdi.uuid,
+        })
+      } else {
+        newVdi = await this.createVdi({
           ...vdi,
           other_config: {
             ...vdi.other_config,
@@ -1012,20 +1030,13 @@ export default class Xapi extends XapiBase {
         return newVdi
       }
 
-      const baseVdi = find(
-        baseVdis,
-        vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid
+      await asyncMap(vbds[vdiId], vbd =>
+        this.createVbd({
+          ...vbd,
+          vdi: newVdi,
+          vm,
+        })
       )
-      if (!baseVdi) {
-        throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid})`)
-      }
-
-      const newVdi = await this._getOrWaitObject(await this._cloneVdi(baseVdi))
-      $defer.onFailure(() => this._deleteVdi(newVdi))
-
-      await this._updateObjectMapProperty(newVdi, 'other_config', {
-        [TAG_COPY_SRC]: vdi.uuid,
-      })
 
       return newVdi
     })::pAll()
@@ -1051,15 +1062,6 @@ export default class Xapi extends XapiBase {
     let transferSize = 0
 
     await Promise.all([
-      // Create VBDs.
-      asyncMap(delta.vbds, vbd =>
-        this.createVbd({
-          ...vbd,
-          vdi: newVdis[vbd.VDI],
-          vm,
-        })
-      ),
-
       // Import VDI contents.
       asyncMap(newVdis, async (vdi, id) => {
         for (let stream of ensureArray(streams[`${id}.vhd`])) {

@@ -47,21 +47,6 @@ export function blockXoaAccess (xoaState) {
   return block
 }
 
-function getCurrentUrl () {
-  if (typeof window === 'undefined') {
-    throw new Error('cannot get current URL')
-  }
-  return String(window.location)
-}
-
-function adaptUrl (url, port = null) {
-  const matches = /^http(s?):\/\/([^/:]*(?::[^/]*)?)(?:[^:]*)?$/.exec(url)
-  if (!matches || !matches[2]) {
-    throw new Error('current URL not recognized')
-  }
-  return 'ws' + matches[1] + '://' + matches[2] + '/api/updater'
-}
-
 // ===================================================================
 
 export const NotRegistered = makeError('NotRegistered')
@@ -211,7 +196,7 @@ class XoaUpdater extends EventEmitter {
 
     if (!this._client) {
       try {
-        this._client = new Client(adaptUrl(getCurrentUrl()))
+        this._client = new Client('./api/updater')
         await this._client.open()
         handleOpen(this._client)
       } catch (error) {

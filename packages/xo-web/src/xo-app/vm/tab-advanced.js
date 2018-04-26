@@ -443,6 +443,15 @@ export default connectStore(() => {
               </td>
             </tr>
             <tr>
+              <th>{_('windowsUpdateTools')}</th>
+              <td>
+                <Toggle
+                  value={vm.hasVendorDevice}
+                  onChange={value => editVm(vm, { hasVendorDevice: value })}
+                />
+              </td>
+            </tr>
+            <tr>
               <th>{_('ha')}</th>
               <td>
                 <Toggle

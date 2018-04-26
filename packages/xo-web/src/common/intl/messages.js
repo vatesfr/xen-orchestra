@@ -162,6 +162,8 @@ const messages = {
   homeSortByUsage: 'Usage',
   homeSortByvCPUs: 'vCPUs',
   homeSortVmsBySnapshots: 'Snapshots',
+  homeSortByContainer: 'Container',
+  homeSortByPool: 'Pool',
   homeDisplayedItems: '{displayed, number}x {icon} (on {total, number})',
   homeSelectedItems: '{selected, number}x {icon} selected (on {total, number})',
   homeMore: 'More',
@@ -183,6 +185,10 @@ const messages = {
   sortedTableSelectAllItems: 'Click here to select all items',
 
   // ----- Forms -----
+  formCancel: 'Cancel',
+  formCreate: 'Create',
+  formReset: 'Reset',
+  formSave: 'Save',
   add: 'Add',
   selectAll: 'Select all',
   remove: 'Remove',
@@ -283,8 +289,6 @@ const messages = {
   jobInterrupted: 'Interrupted',
   jobStarted: 'Started',
   saveBackupJob: 'Save',
-  resetBackupJob: 'Reset',
-  createBackupJob: 'Create',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
     'Are you sure you want to delete this backup job?',
@@ -295,8 +299,6 @@ const messages = {
   jobEditMessage:
     'You are editing job {name} ({id}). Saving will override previous job state.',
   scheduleEdit: 'Edit schedule',
-  scheduleSave: 'Save',
-  cancelScheduleEdition: 'Cancel',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
@@ -543,6 +545,14 @@ const messages = {
   srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiTitle: 'VDI to coalesce ({total, number})',
 
+  // ----- SR stats tab -----
+
+  srNoStats: 'No stats',
+  statsIops: 'IOPS',
+  statsIoThroughput: 'IO throughput',
+  statsLatency: 'Latency',
+  statsIowait: 'IOwait',
+
   // ----- SR actions -----
   srRescan: 'Rescan all disks',
   srReconnectAll: 'Connect to all hosts',
@@ -756,6 +766,7 @@ const messages = {
   started: 'Started {ago}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
+  windowsUpdateTools: 'Windows Update tools',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',

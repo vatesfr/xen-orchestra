@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import moment from 'moment-timezone'
+import PropTypes from 'prop-types'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
@@ -9,14 +10,41 @@ import { isEqual } from 'lodash'
 
 import { FormGroup, getRandomId, Input } from './utils'
 
+const Number = [
+  provideState({
+    effects: {
+      onChange: (_, { target: { value } }) => (state, props) => {
+        if (value === '') {
+          return
+        }
+        props.onChange(+value)
+      },
+    },
+  }),
+  injectState,
+  ({ effects, state, value }) => (
+    <Input
+      type='number'
+      onChange={effects.onChange}
+      value={String(value)}
+      min='0'
+    />
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+Number.propTypes = {
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.number.isRequired,
+}
+
 export default [
   injectState,
   provideState({
     initialState: ({
       schedule: {
         cron = '0 0 * * *',
-        exportRetention = 0,
-        snapshotRetention = 0,
+        exportRetention = 1,
+        snapshotRetention = 1,
         timezone = moment.tz.guess(),
       },
     }) => ({
@@ -33,11 +61,11 @@ export default [
       timezone,
     }),
     effects: {
-      setExportRetention: (_, { target: { value } }) => state => ({
+      setExportRetention: (_, value) => state => ({
         ...state,
         exportRetention: value,
       }),
-      setSnapshotRetention: (_, { target: { value } }) => state => ({
+      setSnapshotRetention: (_, value) => state => ({
         ...state,
         snapshotRetention: value,
       }),
@@ -48,15 +76,27 @@ export default [
       }),
     },
     computed: {
-      isScheduleInvalid: ({
-        cron,
+      isScheduleInvalid: ({ retentionNeeded, scheduleNotEdited }) =>
+        retentionNeeded || scheduleNotEdited,
+      retentionNeeded: ({
+        exportMode,
         exportRetention,
+        snapshotMode,
+        snapshotRetention,
+      }) =>
+        !(
+          (exportMode && exportRetention !== 0) ||
+          (snapshotMode && snapshotRetention !== 0)
+        ),
+      scheduleNotEdited: ({
+        cron,
+        editionMode,
+        exportRetention,
+        oldSchedule,
         snapshotRetention,
         timezone,
-        oldSchedule,
       }) =>
-        ((+snapshotRetention === 0 || snapshotRetention === '') &&
-          (+exportRetention === 0 || exportRetention === '')) ||
+        editionMode !== 'creation' &&
         isEqual(oldSchedule, {
           cron,
           exportRetention,
@@ -75,8 +115,7 @@ export default [
               <label>
                 <strong>{_('exportRetention')}</strong>
               </label>
-              <Input
-                type='number'
+              <Number
                 onChange={effects.setExportRetention}
                 value={state.exportRetention}
               />
@@ -87,8 +126,7 @@ export default [
               <label>
                 <strong>{_('snapshotRetention')}</strong>
               </label>
-              <Input
-                type='number'
+              <Number
                 onChange={effects.setSnapshotRetention}
                 value={state.snapshotRetention}
               />
@@ -113,15 +151,15 @@ export default [
             icon='save'
             size='large'
           >
-            {_('scheduleSave')}
+            {_('formSave')}
           </ActionButton>
           <ActionButton
             className='pull-right'
             handler={effects.cancelSchedule}
-            icon='save'
+            icon='cancel'
             size='large'
           >
-            {_('cancelScheduleEdition')}
+            {_('formCancel')}
           </ActionButton>
         </CardBlock>
       </Card>

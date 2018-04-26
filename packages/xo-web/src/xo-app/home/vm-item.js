@@ -219,17 +219,21 @@ export default class VmItem extends Component {
               </span>
             </Col>
             <Col mediumSize={2} className='hidden-sm-down'>
-              {resourceSet && (
-                <span>
-                  {_('homeResourceSet', {
-                    resourceSet: (
-                      <Link to={`self?resourceSet=${resourceSet.id}`}>
-                        {resourceSet.name}
-                      </Link>
-                    ),
-                  })}
-                </span>
-              )}
+              <EllipsisContainer>
+                <Ellipsis>
+                  {resourceSet && (
+                    <span>
+                      {_('homeResourceSet', {
+                        resourceSet: (
+                          <Link to={`self?resourceSet=${resourceSet.id}`}>
+                            {resourceSet.name}
+                          </Link>
+                        ),
+                      })}
+                    </span>
+                  )}
+                </Ellipsis>
+              </EllipsisContainer>
             </Col>
             <Col mediumSize={6} className={styles.itemExpanded}>
               {map(vm.addresses, address => (

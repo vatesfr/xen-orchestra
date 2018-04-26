@@ -327,6 +327,7 @@ const TRANSFORMS = {
       other: otherConfig,
       os_version: (guestMetrics && guestMetrics.os_version) || null,
       power_state: obj.power_state,
+      hasVendorDevice: obj.has_vendor_device,
       resourceSet,
       snapshots: link(obj, 'snapshots'),
       startTime: metrics && toTimestamp(metrics.start_time),
@@ -510,9 +511,7 @@ const TRANSFORMS = {
       vdi.type += '-snapshot'
       vdi.snapshot_time = toTimestamp(obj.snapshot_time)
       vdi.$snapshot_of = link(obj, 'snapshot_of')
-    }
-
-    if (!obj.managed) {
+    } else if (!obj.managed) {
       vdi.type += '-unmanaged'
     }
 

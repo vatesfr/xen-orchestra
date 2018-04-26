@@ -132,7 +132,7 @@ export const connectStore = store => {
     store.dispatch(signedIn(xo.user))
 
     _call('xo.getAllObjects', { ndjson: true })
-      .then(({ $getFrom }) => fetch($getFrom))
+      .then(({ $getFrom }) => fetch('.' + $getFrom))
       .then(response => response.text())
       .then(data => {
         const objects = Object.create(null)
@@ -1495,6 +1495,9 @@ export const deleteSr = sr =>
     ),
   }).then(() => _call('sr.destroy', { id: resolveId(sr) }), noop)
 
+export const fetchSrStats = (sr, granularity) =>
+  _call('sr.stats', { id: resolveId(sr), granularity })
+
 export const forgetSr = sr =>
   confirm({
     title: _('srForgetModalTitle'),
@@ -1750,7 +1753,13 @@ export const restoreBackup = (backup, sr, startOnRestore) => {
 export const deleteBackup = backup =>
   _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
-export const deleteBackups = backups => Promise.all(map(backups, deleteBackup))
+export const deleteBackups = async backups => {
+  // delete sequentially from newest to oldest
+  backups = backups.slice().sort((b1, b2) => b2.timestamp - b1.timestamp)
+  for (let i = 0, n = backups.length; i < n; ++i) {
+    await deleteBackup(backups[i])
+  }
+}
 
 // Plugins -----------------------------------------------------------
 

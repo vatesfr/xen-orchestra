@@ -20,20 +20,22 @@ import {
 } from 'selectors'
 
 import TabAdvanced from './tab-advanced'
-import TabGeneral from './tab-general'
-import TabLogs from './tab-logs'
-import TabHosts from './tab-host'
 import TabDisks from './tab-disks'
+import TabGeneral from './tab-general'
+import TabHosts from './tab-host'
+import TabLogs from './tab-logs'
+import TabStats from './tab-stats'
 import TabXosan from './tab-xosan'
 
 // ===================================================================
 
 @routes('general', {
   advanced: TabAdvanced,
-  general: TabGeneral,
-  logs: TabLogs,
-  hosts: TabHosts,
   disks: TabDisks,
+  general: TabGeneral,
+  hosts: TabHosts,
+  logs: TabLogs,
+  stats: TabStats,
   xosan: TabXosan,
 })
 @connectStore(() => {
@@ -143,6 +145,7 @@ export default class Sr extends Component {
               <NavLink to={`/srs/${sr.id}/general`}>
                 {_('generalTabName')}
               </NavLink>
+              <NavLink to={`/srs/${sr.id}/stats`}>{_('statsTabName')}</NavLink>
               <NavLink to={`/srs/${sr.id}/disks`}>
                 {_('disksTabName', { disks: sr.VDIs.length })}
               </NavLink>

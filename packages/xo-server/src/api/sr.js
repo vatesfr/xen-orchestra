@@ -838,3 +838,23 @@ getUnhealthyVdiChainsLength.params = {
 getUnhealthyVdiChainsLength.resolve = {
   sr: ['id', 'SR', 'operate'],
 }
+
+// -------------------------------------------------------------------
+
+export function stats ({ sr, granularity }) {
+  return this.getXapiSrStats(sr._xapiId, granularity)
+}
+
+stats.description = 'returns statistic of the sr'
+
+stats.params = {
+  id: { type: 'string' },
+  granularity: {
+    type: 'string',
+    optional: true,
+  },
+}
+
+stats.resolve = {
+  sr: ['id', 'SR', 'view'],
+}

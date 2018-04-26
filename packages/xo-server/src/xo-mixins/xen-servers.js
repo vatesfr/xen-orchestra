@@ -400,6 +400,10 @@ export default class {
     return this._stats.getHostStats(this.getXapi(hostId), hostId, granularity)
   }
 
+  getXapiSrStats (srId, granularity) {
+    return this._stats.getSrStats(this.getXapi(srId), srId, granularity)
+  }
+
   async mergeXenPools (sourceId, targetId, force = false) {
     const sourceXapi = this.getXapi(sourceId)
     const { _auth: { user, password }, _url: { hostname } } = this.getXapi(
