@@ -29,6 +29,7 @@ import {
   isString,
   keys,
   map,
+  mapValues,
   pick,
   pickBy,
   size,
@@ -129,6 +130,11 @@ const OPTIONS = {
         sortBy: 'CPUs.cpu_count',
         sortOrder: 'desc',
       },
+      {
+        labelId: 'homeSortByPool',
+        sortBy: 'container.name_label',
+        sortOrder: 'asc',
+      },
     ],
   },
   VM: {
@@ -188,6 +194,11 @@ const OPTIONS = {
         sortBy: 'snapshots.length',
         sortOrder: 'desc',
       },
+      {
+        labelId: 'homeSortByContainer',
+        sortBy: 'container.name_label',
+        sortOrder: 'asc',
+      },
     ],
   },
   pool: {
@@ -215,6 +226,11 @@ const OPTIONS = {
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
       { labelId: 'homeSortByRAM', sortBy: 'memory.size', sortOrder: 'desc' },
       { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' },
+      {
+        labelId: 'homeSortByPool',
+        sortBy: 'container.name_label',
+        sortOrder: 'asc',
+      },
     ],
   },
   SR: {
@@ -251,6 +267,11 @@ const OPTIONS = {
         sortOrder: 'desc',
       },
       { labelId: 'homeSortByType', sortBy: 'SR_type', sortOrder: 'asc' },
+      {
+        labelId: 'homeSortByPool',
+        sortBy: 'container.name_label',
+        sortOrder: 'asc',
+      },
     ],
   },
 }
@@ -407,7 +428,19 @@ class NoObjects_ extends Component {
 
   return {
     isAdmin,
-    items: createGetObjectsOfType(type),
+    items: createSelector(
+      createSelector(
+        createGetObjectsOfType('host'),
+        createGetObjectsOfType('pool'),
+        (hosts, pools) => ({ ...hosts, ...pools })
+      ),
+      createGetObjectsOfType(type),
+      (containers, items) =>
+        mapValues(items, item => ({
+          ...item,
+          container: containers[item.$container || item.$pool],
+        }))
+    ),
     type,
     user: getUser,
   }
