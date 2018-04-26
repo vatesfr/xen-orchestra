@@ -352,6 +352,7 @@ export default class BackupNg {
     getXapi: (id: string) => Xapi,
     getJob: ((id: string, 'backup') => Promise<BackupJob>) &
       ((id: string, 'call') => Promise<CallJob>),
+    getLogs: (namespace: string) => Promise<{ [id: string]: Object }>,
     updateJob: (($Shape<BackupJob>, ?boolean) => Promise<BackupJob>) &
       (($Shape<CallJob>, ?boolean) => Promise<CallJob>),
     removeJob: (id: string) => Promise<void>,
