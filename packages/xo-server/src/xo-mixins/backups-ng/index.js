@@ -41,17 +41,14 @@ import {
 import { translateLegacyJob } from './migration'
 
 type Mode = 'full' | 'delta'
-
-type GlobalSettings = {|
-  reportWhen?: string,
-|}
+type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
   deleteFirst?: boolean,
   exportRetention?: number,
+  reportWhen?: ReportWhen,
   snapshotRetention?: number,
   vmTimeout?: number,
-  ''?: GlobalSettings,
 |}
 
 type SimpleIdPattern = {|
