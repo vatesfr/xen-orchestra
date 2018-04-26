@@ -52,7 +52,7 @@ export default class Logs {
       .then(store => new LevelDbLogger(store, namespace))
   }
 
-  async getLog (namespace) {
+  async getLogs (namespace) {
     const logger = await this.getLogger(namespace)
 
     return new Promise((resolve, reject) => {

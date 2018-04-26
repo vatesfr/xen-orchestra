@@ -1178,7 +1178,7 @@ export default class BackupNg {
   }
 
   async getBackupNgLogs (runId?: string): Promise<ConsolidatedBackupNgLog> {
-    const rawLogs = await this._app.getLog('jobs')
+    const rawLogs = await this._app.getLogs('jobs')
 
     const logs = {}
     forEach(rawLogs, (log, id) => {

@@ -1,5 +1,5 @@
 export function get ({ namespace }) {
-  return this.getLog(namespace)
+  return this.getLogs(namespace)
 }
 
 get.description = 'returns logs list for one namespace'
