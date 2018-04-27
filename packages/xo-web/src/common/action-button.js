@@ -90,7 +90,7 @@ export default class ActionButton extends Component {
       if (redirectOnSuccess) {
         return this.context.router.push(
           isFunction(redirectOnSuccess)
-            ? redirectOnSuccess(result)
+            ? redirectOnSuccess(result, handlerParam)
             : redirectOnSuccess
         )
       }
