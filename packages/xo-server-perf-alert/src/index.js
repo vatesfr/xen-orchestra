@@ -478,8 +478,7 @@ ${monitorBodies.join('\n')}`
               if (typeFunction.createGetter === undefined) {
                 // Stats via RRD
                 result.rrd = await this.getRrd(result.object, observationPeriod)
-                result.couldFindRrd = result.rrd !== null
-                if (result.couldFindRrd) {
+                if (result.rrd !== null) {
                   const data = parseData(result.rrd, result.object.uuid)
                   assign(result, {
                     data,
@@ -510,7 +509,6 @@ ${monitorBodies.join('\n')}`
               return {
                 uuid,
                 object: null,
-                couldFindRrd: false,
                 objectLink: `cannot find object ${uuid}`,
                 listItem: `  * ${uuid}: **Can't read performance counters**\n`,
               }
