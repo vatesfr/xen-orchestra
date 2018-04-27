@@ -61,8 +61,8 @@ const VM_FUNCTIONS = {
 }
 
 const HOST_FUNCTIONS = {
-  name: 'host CPU usage',
   cpuUsage: {
+    name: 'host CPU usage',
     description:
       'Raises an alarm when the average usage of any CPU is higher than the threshold',
     unit: '%',
