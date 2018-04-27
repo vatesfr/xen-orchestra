@@ -409,9 +409,7 @@ const ALARM_COLUMNS = [
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
     .sort()
-  const getVmSnapshotsRelatedToNoExistBackup = createGetObjectsOfType(
-    'VM-snapshot'
-  )
+  const getLoneBackupSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter(
       createSelector(
         (_, props) => props.schedules,
@@ -440,7 +438,7 @@ const ALARM_COLUMNS = [
     vdiOrphaned: getOrphanVdiSnapshots,
     vdiSr: getVdiSrs,
     vmOrphaned: getOrphanVmSnapshots,
-    vmSnapshots: getVmSnapshotsRelatedToNoExistBackup,
+    vmSnapshots: getLoneBackupSnapshots,
   }
 })
 export default class Health extends Component {
@@ -655,7 +653,7 @@ export default class Health extends Component {
           <Col>
             <Card>
               <CardHeader>
-                <Icon icon='vm' /> {_('vmSnapshotsRelatedToNoExistBackup')}
+                <Icon icon='vm' /> {_('vmSnapshotsRelatedToNonExistentBackups')}
               </CardHeader>
               <CardBlock>
                 <NoObjects
