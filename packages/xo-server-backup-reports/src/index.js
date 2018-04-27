@@ -41,9 +41,9 @@ const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
 const createDateFormater = timezone =>
   timezone !== undefined
     ? timestamp =>
-      moment(timestamp)
-        .tz(timezone)
-        .format(DATE_FORMAT)
+        moment(timestamp)
+          .tz(timezone)
+          .format(DATE_FORMAT)
     : timestamp => moment(timestamp).format(DATE_FORMAT)
 
 const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
@@ -95,9 +95,273 @@ class BackupReportsXoPlugin {
   }
 
   _wrapper (status) {
-    return new Promise(resolve => resolve(this._listener(status))).catch(
-      logError
-    )
+    return new Promise(resolve =>
+      resolve(
+        status.calls === undefined
+          ? this._backupNgListener(status)
+          : this._listener(status)
+      )
+    ).catch(logError)
+  }
+
+  async _backupNgListener ({ logs, timezone }) {
+    const xo = this._xo
+    const formatDate = createDateFormater(timezone)
+
+    const jobLog = logs['roots'][0]
+    const vmsTaskLog = logs[jobLog.id]
+
+    const { reportWhen, mode } = jobLog.data
+    if (reportWhen === 'never') {
+      return
+    }
+
+    const failedVmsText = []
+    const skippedVmsText = []
+    const successfulVmsText = []
+    const nagiosText = []
+
+    let globalMergeSize = 0
+    let globalTransferSize = 0
+    let nFailures = 0
+    let nSkipped = 0
+
+    for (const vmTaskLog of vmsTaskLog) {
+      const vmTaskStatus = vmTaskLog.status
+      if (vmTaskStatus === 'success' && reportWhen === 'failure') {
+        return
+      }
+
+      const vmId = vmTaskLog.data.id
+      let vm
+      try {
+        vm = xo.getObject(vmId)
+      } catch (e) {}
+      const text = [
+        `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
+        '',
+        `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
+        `- **Start time**: ${formatDate(vmTaskLog.start)}`,
+        `- **End time**: ${formatDate(vmTaskLog.end)}`,
+        `- **Duration**: ${formatDuration(vmTaskLog.duration)}`,
+      ]
+
+      let vmTaskDataInfos
+      const failedSubTasks = []
+      const operationsText = []
+      const srsText = []
+      const remotesText = []
+      for (const subTaskLog of logs[vmTaskLog.taskId]) {
+        const { data, status, result } = subTaskLog
+        const icon =
+          subTaskLog.status === 'success' ? ICON_SUCCESS : ICON_FAILURE
+        const errorMessage = `  **Error**: ${result.message}`
+
+        switch (data.type) {
+          case 'operation':
+            const operationName = data.name
+            operationsText.push(`- **${operationName}** ${icon}`)
+            if (status === 'failure') {
+              failedSubTasks.push(operationName)
+              operationsText.push('', errorMessage)
+            }
+            break
+          case 'remote':
+            const remoteId = data.id
+            const remote = await xo.getRemote(remoteId).catch(() => {})
+            remotesText.push(
+              `- **${
+                remote !== undefined ? remote.name : `Remote Not found`
+              }** (${remoteId}) ${icon}`
+            )
+            if (status === 'failure') {
+              failedSubTasks.push(remote !== undefined ? remote.name : remoteId)
+              remotesText.push('', errorMessage)
+            } else if (vmTaskDataInfos === undefined) {
+              vmTaskDataInfos = result
+            }
+            break
+          case 'SR':
+            const srId = data.id
+            let sr
+            try {
+              sr = xo.getObject(srId)
+            } catch (e) {}
+            const [srName, srUuid] =
+              sr !== undefined
+                ? [sr.name_label, sr.uuid]
+                : [`SR Not found`, srId]
+            srsText.push(`- **${srName}** (${srUuid}) ${icon}`)
+            if (status === 'failure') {
+              failedSubTasks.push(sr !== undefined ? sr.name_label : srId)
+              srsText.push('', errorMessage)
+            } else if (vmTaskDataInfos === undefined) {
+              vmTaskDataInfos = result
+            }
+        }
+      }
+
+      if (operationsText.length !== 0) {
+        operationsText.unshift(`#### Operations`, '')
+      }
+      if (srsText.length !== 0) {
+        srsText.unshift(`#### SRs`, '')
+      }
+      if (remotesText.length !== 0) {
+        remotesText.unshift(`#### remotes`, '')
+      }
+      const subText = [...operationsText, '', ...srsText, '', ...remotesText]
+      const result = vmTaskLog.result
+      if (vmTaskStatus === 'failure' && result !== undefined) {
+        const { message } = result
+        if (isSkippedError(result)) {
+          ++nSkipped
+          skippedVmsText.push(
+            ...text,
+            `- **Reason**: ${
+              message === UNHEALTHY_VDI_CHAIN_ERROR
+                ? UNHEALTHY_VDI_CHAIN_MESSAGE
+                : message
+            }`,
+            ''
+          )
+          nagiosText.push(
+            `[(Skipped) ${
+              vm !== undefined ? vm.name_label : 'undefined'
+            } : ${message} ]`
+          )
+        } else {
+          ++nFailures
+          failedVmsText.push(...text, `- **Error**: ${message}`, '')
+
+          nagiosText.push(
+            `[(Failed) ${
+              vm !== undefined ? vm.name_label : 'undefined'
+            } : ${message} ]`
+          )
+        }
+      } else {
+        const {
+          transferSize,
+          transferDuration,
+          mergeSize,
+          mergeDuration,
+        } = vmTaskDataInfos
+        if (transferSize !== undefined) {
+          globalTransferSize += transferSize
+          text.push(
+            `- **Transfer size**: ${formatSize(transferSize)}`,
+            `- **Transfer speed**: ${formatSpeed(
+              transferSize,
+              transferDuration
+            )}`
+          )
+        }
+        if (mergeSize !== undefined) {
+          globalMergeSize += mergeSize
+          text.push(
+            `- **Merge size**: ${formatSize(mergeSize)}`,
+            `- **Merge speed**: ${formatSpeed(mergeSize, mergeDuration)}`
+          )
+        }
+        if (vmTaskStatus === 'failure') {
+          ++nFailures
+          failedVmsText.push(...text, '', '', ...subText, '')
+          nagiosText.push(
+            `[(Failed) ${
+              vm !== undefined ? vm.name_label : 'undefined'
+            }: (failed)[${failedSubTasks.toString()}]]`
+          )
+        } else {
+          successfulVmsText.push(...text, '', '', ...subText, '')
+        }
+      }
+    }
+    const globalSuccess = nFailures === 0 && nSkipped === 0
+    if (reportWhen === 'failure' && globalSuccess) {
+      return
+    }
+
+    const nVms = vmsTaskLog.length
+    const nSuccesses = nVms - nFailures - nSkipped
+    const globalStatus = globalSuccess
+      ? `Success`
+      : nFailures !== 0 ? `Failure` : `Skipped`
+    let markdown = [
+      `##  Global status: ${globalStatus}`,
+      '',
+      `- **mode**: ${mode}`,
+      `- **Start time**: ${formatDate(jobLog.start)}`,
+      `- **End time**: ${formatDate(jobLog.end)}`,
+      `- **Duration**: ${formatDuration(jobLog.duration)}`,
+      `- **Successes**: ${nSuccesses} / ${nVms}`,
+    ]
+
+    if (globalTransferSize !== 0) {
+      markdown.push(`- **Transfer size**: ${formatSize(globalTransferSize)}`)
+    }
+    if (globalMergeSize !== 0) {
+      markdown.push(`- **Merge size**: ${formatSize(globalMergeSize)}`)
+    }
+    markdown.push('')
+
+    if (nFailures !== 0) {
+      markdown.push(
+        '---',
+        '',
+        `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`,
+        '',
+        ...failedVmsText
+      )
+    }
+
+    if (nSkipped !== 0) {
+      markdown.push('---', '', `## ${nSkipped} Skipped`, '', ...skippedVmsText)
+    }
+
+    if (nSuccesses !== 0 && reportWhen !== 'failure') {
+      markdown.push(
+        '---',
+        '',
+        `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`,
+        '',
+        ...successfulVmsText
+      )
+    }
+
+    markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
+    markdown = markdown.join('\n')
+    const jobName = (await xo.getJob(jobLog.jobId, 'backup')).name
+    return Promise.all([
+      xo.sendEmail !== undefined &&
+        xo.sendEmail({
+          to: this._mailsReceivers,
+          subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${jobName} ${
+            globalSuccess
+              ? ICON_SUCCESS
+              : nFailures !== 0 ? ICON_FAILURE : ICON_SKIPPED
+          }`,
+          markdown,
+        }),
+      xo.sendToXmppClient !== undefined &&
+        xo.sendToXmppClient({
+          to: this._xmppReceivers,
+          message: markdown,
+        }),
+      xo.sendSlackMessage !== undefined &&
+        xo.sendSlackMessage({
+          message: markdown,
+        }),
+      xo.sendPassiveCheck !== undefined &&
+        xo.sendPassiveCheck({
+          status: globalSuccess ? 0 : 2,
+          message: globalSuccess
+            ? `[Xen Orchestra] [Success] Backup report for ${jobName}`
+            : `[Xen Orchestra] [${
+                nFailures !== 0 ? 'Failure' : 'Skipped'
+              }] Backup report for ${jobName} - VMs : ${nagiosText.join(' ')}`,
+        }),
+    ])
   }
 
   _listener (status) {
@@ -312,8 +576,8 @@ class BackupReportsXoPlugin {
           message: globalSuccess
             ? `[Xen Orchestra] [Success] Backup report for ${tag}`
             : `[Xen Orchestra] [${
-              nFailures !== 0 ? 'Failure' : 'Skipped'
-            }] Backup report for ${tag} - VMs : ${nagiosText.join(' ')}`,
+                nFailures !== 0 ? 'Failure' : 'Skipped'
+              }] Backup report for ${tag} - VMs : ${nagiosText.join(' ')}`,
         }),
     ])
   }
