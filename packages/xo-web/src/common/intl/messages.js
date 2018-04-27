@@ -1532,6 +1532,7 @@ const messages = {
   update: 'Update',
   refresh: 'Refresh',
   upgrade: 'Upgrade',
+  downgrade: 'Downgrade',
   noUpdaterCommunity: 'No updater available for Community Edition',
   considerSubscribe:
     'Please consider subscribing and trying it with all the features for free during 15 days on {link}.',
