@@ -16,6 +16,7 @@ import { fromCallback } from 'promise-toolbox'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
+import { flatten, get, includes, isEmpty, keyBy, map, mapValues } from 'lodash'
 import {
   addSubscriptions,
   connectStore,
@@ -23,16 +24,6 @@ import {
   noop,
   resolveIds,
 } from 'utils'
-import {
-  flatten,
-  get,
-  includes,
-  isEmpty,
-  keyBy,
-  map,
-  mapValues,
-  some,
-} from 'lodash'
 import {
   deleteMessage,
   deleteOrphanedVdis,
@@ -409,20 +400,18 @@ const ALARM_COLUMNS = [
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
     .sort()
-  const getLoneBackupSnapshots = createGetObjectsOfType('VM-snapshot')
-    .filter(
-      createSelector(
-        (_, props) => props.schedules,
-        schedules => {
-          const schedulesByIds = keyBy(schedules, 'id')
-          return _ => {
-            const scheduleId = _.other['xo:backup:schedule']
-            return scheduleId !== undefined && !(scheduleId in schedulesByIds)
-          }
+  const getLoneBackupSnapshots = createGetObjectsOfType('VM-snapshot').filter(
+    createSelector(
+      (_, props) => props.schedules,
+      schedules => {
+        const schedulesByIds = keyBy(schedules, 'id')
+        return _ => {
+          const scheduleId = _.other['xo:backup:schedule']
+          return scheduleId !== undefined && !(scheduleId in schedulesByIds)
         }
-      )
+      }
     )
-    .sort()
+  )
   const getUserSrs = createGetObjectsOfType('SR').filter([isSrWritable])
   const getVdiSrs = createGetObjectsOfType('SR').pick(
     createSelector(getOrphanVdiSnapshots, snapshots => map(snapshots, '$SR'))
@@ -438,7 +427,7 @@ const ALARM_COLUMNS = [
     vdiOrphaned: getOrphanVdiSnapshots,
     vdiSr: getVdiSrs,
     vmOrphaned: getOrphanVmSnapshots,
-    vmSnapshots: getLoneBackupSnapshots,
+    vmBackupSnapshots: getLoneBackupSnapshots,
   }
 })
 export default class Health extends Component {
@@ -524,8 +513,8 @@ export default class Health extends Component {
     this._getPoolPredicate
   )
 
-  _getVmSnapshots = createFilter(
-    () => this.props.vmSnapshots,
+  _getVmBackupSnapshots = createFilter(
+    () => this.props.vmBackupSnapshots,
     this._getPoolPredicate
   )
 
@@ -657,7 +646,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={this._getVmSnapshots()}
+                  collection={this._getVmBackupSnapshots()}
                   columns={VM_COLUMNS}
                   component={SortedTable}
                   emptyMessage={_('noSnapshots')}
