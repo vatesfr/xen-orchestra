@@ -389,13 +389,6 @@ export default class BackupNg {
         }
         const jobId = job.id
         const scheduleId = schedule.id
-        const status: Object = {
-          calls: {},
-          runJobId,
-          start: Date.now(),
-          timezone: schedule.timezone,
-        }
-        const { calls } = status
         await asyncMap(vms, async vm => {
           const { uuid } = vm
           const method = 'backup-ng'
@@ -405,20 +398,17 @@ export default class BackupNg {
           }
 
           const name = vm.name_label
-          const runCallId = logger.notice(
+          const taskId = logger.notice(
             `Starting backup of ${name}. (${jobId})`,
             {
-              event: 'jobCall.start',
-              method,
-              params,
-              runJobId,
+              event: 'task.start',
+              parentId: runJobId,
+              data: {
+                type: 'VM',
+                id: uuid,
+              },
             }
           )
-          const call: Object = (calls[runCallId] = {
-            method,
-            params,
-            start: Date.now(),
-          })
           const vmCancel = cancelToken.fork()
           try {
             // $FlowFixMe injected $defer param
@@ -432,39 +422,30 @@ export default class BackupNg {
             if (vmTimeout !== 0) {
               p = pTimeout.call(p, vmTimeout)
             }
-            const returnedValue = await p
+            await p
             logger.notice(
               `Backuping ${name} (${runCallId}) is a success. (${jobId})`,
               {
-                event: 'jobCall.end',
-                runJobId,
-                runCallId,
-                returnedValue,
+                event: 'task.end',
+                taskId,
+                status: 'success',
               }
             )
-
-            call.returnedValue = returnedValue
-            call.end = Date.now()
           } catch (error) {
             vmCancel.cancel()
             logger.notice(
               `Backuping ${name} (${runCallId}) has failed. (${jobId})`,
               {
-                event: 'jobCall.end',
-                runJobId,
-                runCallId,
+                event: 'task.end',
+                taskId,
+                status: 'failure',
                 error: Array.isArray(error)
                   ? error.map(serializeError)
                   : serializeError(error),
               }
             )
-
-            call.error = error
-            call.end = Date.now()
           }
         })
-        status.end = Date.now()
-        return status
       }
       app.registerJobExecutor('backup', executor)
     })
@@ -1178,13 +1159,13 @@ export default class BackupNg {
     return backups.sort(compareTimestamp)
   }
 
-  async getBackupNgLogs (runId?: string): Promise<ConsolidatedBackupNgLog> {
-    const rawLogs = await this._app.getLog('jobs')
+  async getBackupNgLogs (runId?: string): Promise<$Dict<ConsolidatedBackupNgLog>> {
+    const rawLogs = await this._app.getLogs('jobs')
 
     // FOR TEST
     // const rawLogs = JSON.parse(fs.readFileSync('log.json', 'utf8'))
 
-    const logs = {}
+    const logs: $Dict<ConsolidatedBackupNgLog> = {}
     forEach(rawLogs, (log, id) => {
       const { data, time } = log
       const { event } = data

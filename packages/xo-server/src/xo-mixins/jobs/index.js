@@ -209,9 +209,10 @@ export default class Jobs {
       throw new Error(`job ${id} is already running`)
     }
 
-    const executor = this._executors[job.type]
+    const { type } = job
+    const executor = this._executors[type]
     if (executor === undefined) {
-      throw new Error(`cannot run job ${id}: no executor for type ${job.type}`)
+      throw new Error(`cannot run job ${id}: no executor for type ${type}`)
     }
 
     const logger = this._logger
@@ -221,6 +222,7 @@ export default class Jobs {
       jobId: id,
       // $FlowFixMe only defined for CallJob
       key: job.key,
+      type,
     })
 
     runningJobs[id] = runJobId
@@ -245,7 +247,6 @@ export default class Jobs {
         runJobId,
       })
 
-      session.close()
       app.emit('job:terminated', status, job, schedule)
     } catch (error) {
       logger.error(`The execution of ${id} has failed.`, {
