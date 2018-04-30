@@ -556,7 +556,7 @@ export default [
                   <div className='text-xs-center'>
                     <ActionButton
                       active={state.snapshotMode}
-                      data-mode={'snapshotMode'}
+                      data-mode='snapshotMode'
                       handler={effects.toggleMode}
                       icon='rolling-snapshot'
                     >
@@ -564,7 +564,7 @@ export default [
                     </ActionButton>{' '}
                     <ActionButton
                       active={state.backupMode}
-                      data-mode={'backupMode'}
+                      data-mode='backupMode'
                       disabled={state.isDelta}
                       handler={effects.toggleMode}
                       icon='backup'
@@ -573,7 +573,7 @@ export default [
                     </ActionButton>{' '}
                     <ActionButton
                       active={state.deltaMode}
-                      data-mode={'deltaMode'}
+                      data-mode='deltaMode'
                       disabled={
                         state.isFull ||
                         (!state.deltaMode && process.env.XOA_PLAN < 3)
@@ -585,7 +585,7 @@ export default [
                     </ActionButton>{' '}
                     <ActionButton
                       active={state.drMode}
-                      data-mode={'drMode'}
+                      data-mode='drMode'
                       disabled={
                         state.isDelta ||
                         (!state.drMode && process.env.XOA_PLAN < 3)
@@ -602,7 +602,7 @@ export default [
                     )}{' '}
                     <ActionButton
                       active={state.crMode}
-                      data-mode={'crMode'}
+                      data-mode='crMode'
                       disabled={
                         state.isFull ||
                         (!state.crMode && process.env.XOA_PLAN < 4)
