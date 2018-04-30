@@ -10,7 +10,7 @@ import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { restartHost } from 'xo'
-import { isEmpty, isString } from 'lodash'
+import { isEmpty, isString, some } from 'lodash'
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -181,16 +181,15 @@ export default class HostPatches extends Component {
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            {this.props.needsRestart &&
-              isEmpty(missingPatches) && (
-                <TabButton
-                  btnStyle='warning'
-                  handler={restartHost}
-                  handlerParam={host}
-                  icon='host-reboot'
-                  labelId='rebootUpdateHostLabel'
-                />
-              )}
+            {(this.props.needsRestart || some(missingPatches, 'upgrade')) && (
+              <TabButton
+                btnStyle='warning'
+                handler={restartHost}
+                handlerParam={host}
+                icon='host-reboot'
+                labelId='rebootUpdateHostLabel'
+              />
+            )}
             <TabButton
               disabled={!hasMissingPatches}
               btnStyle={hasMissingPatches ? 'primary' : undefined}

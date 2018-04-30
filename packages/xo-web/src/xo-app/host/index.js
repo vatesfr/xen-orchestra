@@ -22,7 +22,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { assign, isEmpty, isString, map, pick, sortBy, sum } from 'lodash'
+import { assign, isEmpty, isString, map, pick, sortBy, some, sum } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
@@ -246,6 +246,13 @@ export default class Host extends Component {
                 }
               />{' '}
               <Text value={host.name_label} onChange={this._setNameLabel} />
+              {(this.props.needsRestart || some(missingPatches, 'upgrade')) && (
+                <Tooltip content={_('rebootUpdateHostLabel')}>
+                  <Link to={`/hosts/${host.id}/patches`}>
+                    <Icon icon='alarm' />
+                  </Link>
+                </Tooltip>
+              )}
             </h2>
             <span>
               <Text
