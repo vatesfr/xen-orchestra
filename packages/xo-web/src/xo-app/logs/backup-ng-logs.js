@@ -150,7 +150,6 @@ const rowTransform = (log, { logs, jobs }) => {
         if (status !== 'failure') {
           return
         }
-        // result === undefined means the vm's children have errors
         if (result === undefined || !isSkippedError(result)) {
           hasError = true
           return false

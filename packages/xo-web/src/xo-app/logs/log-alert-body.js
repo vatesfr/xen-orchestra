@@ -235,7 +235,6 @@ export default [
                     />
                     <br />
                     {subTaskLog.status === 'failure' &&
-                      // if subTask fail the result is all time defined
                       _.keyValue(
                         _('taskError'),
                         <span className={'text-danger'}>
