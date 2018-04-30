@@ -120,7 +120,7 @@ export default [
     </Upgrade>
   ),
   addSubscriptions({
-    remotes: cb =>
+    remotesById: cb =>
       subscribeRemotes(remotes => {
         cb(keyBy(remotes, 'id'))
       }),
@@ -234,25 +234,9 @@ export default [
             : constructPattern(state.vms),
         })
       },
-      toggleSnapshotMode: () => state => ({
+      toggleMode: (_, { mode }) => state => ({
         ...state,
-        snapshotMode: !state.snapshotMode,
-      }),
-      toggleBackupMode: () => state => ({
-        ...state,
-        backupMode: !state.backupMode,
-      }),
-      toggleDeltaMode: () => state => ({
-        ...state,
-        deltaMode: !state.deltaMode,
-      }),
-      toggleDrMode: () => state => ({
-        ...state,
-        drMode: !state.drMode,
-      }),
-      toggleCrMode: () => state => ({
-        ...state,
-        crMode: !state.crMode,
+        [mode]: !state[mode],
       }),
       setCompression: (_, { target: { checked } }) => state => ({
         ...state,
@@ -267,11 +251,9 @@ export default [
         name: value,
       }),
       addRemote: (_, remote) => state => {
-        const remotes = [...state.remotes]
-        remotes.push(resolveId(remote))
         return {
           ...state,
-          remotes,
+          remotes: [...state.remotes, resolveId(remote)],
         }
       },
       deleteRemote: (_, key) => state => {
@@ -282,14 +264,10 @@ export default [
           remotes,
         }
       },
-      addSr: (_, sr) => state => {
-        const srs = [...state.srs]
-        srs.push(resolveId(sr))
-        return {
-          ...state,
-          srs,
-        }
-      },
+      addSr: (_, sr) => state => ({
+        ...state,
+        srs: [...state.srs, resolveId(sr)],
+      }),
       deleteSr: (_, key) => state => {
         const srs = [...state.srs]
         srs.splice(key, 1)
@@ -505,7 +483,6 @@ export default [
         ),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
-      storedRemotes: (state, { remotes }) => remotes,
       vmsSmartPattern: ({ $pool, powerState, tags }) => ({
         $pool: constructSmartPattern($pool, resolveIds),
         power_state: powerState === 'All' ? undefined : powerState,
@@ -517,7 +494,7 @@ export default [
     },
   }),
   injectState,
-  ({ effects, state }) => {
+  ({ effects, remotesById, state }) => {
     if (state.needUpdateParams) {
       effects.updateParams()
     }
@@ -579,37 +556,41 @@ export default [
                   <div className='text-xs-center'>
                     <ActionButton
                       active={state.snapshotMode}
-                      handler={effects.toggleSnapshotMode}
+                      data-mode='snapshotMode'
+                      handler={effects.toggleMode}
                       icon='rolling-snapshot'
                     >
                       {_('rollingSnapshot')}
                     </ActionButton>{' '}
                     <ActionButton
                       active={state.backupMode}
+                      data-mode='backupMode'
                       disabled={state.isDelta}
-                      handler={effects.toggleBackupMode}
+                      handler={effects.toggleMode}
                       icon='backup'
                     >
                       {_('backup')}
                     </ActionButton>{' '}
                     <ActionButton
                       active={state.deltaMode}
+                      data-mode='deltaMode'
                       disabled={
                         state.isFull ||
                         (!state.deltaMode && process.env.XOA_PLAN < 3)
                       }
-                      handler={effects.toggleDeltaMode}
+                      handler={effects.toggleMode}
                       icon='delta-backup'
                     >
                       {_('deltaBackup')}
                     </ActionButton>{' '}
                     <ActionButton
                       active={state.drMode}
+                      data-mode='drMode'
                       disabled={
                         state.isDelta ||
                         (!state.drMode && process.env.XOA_PLAN < 3)
                       }
-                      handler={effects.toggleDrMode}
+                      handler={effects.toggleMode}
                       icon='disaster-recovery'
                     >
                       {_('disasterRecovery')}
@@ -621,11 +602,12 @@ export default [
                     )}{' '}
                     <ActionButton
                       active={state.crMode}
+                      data-mode='crMode'
                       disabled={
                         state.isFull ||
                         (!state.crMode && process.env.XOA_PLAN < 4)
                       }
-                      handler={effects.toggleCrMode}
+                      handler={effects.toggleMode}
                       icon='continuous-replication'
                     >
                       {_('continuousReplication')}
@@ -657,10 +639,10 @@ export default [
                       <Ul>
                         {map(state.remotes, (id, key) => (
                           <Li key={id}>
-                            {state.storedRemotes &&
+                            {remotesById !== undefined &&
                               renderXoItem({
                                 type: 'remote',
-                                value: state.storedRemotes[id],
+                                value: remotesById[id],
                               })}
                             <ActionButton
                               btnStyle='danger'
