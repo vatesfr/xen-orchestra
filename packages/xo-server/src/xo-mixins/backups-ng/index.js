@@ -3,6 +3,8 @@
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
 import defer from 'golike-defer'
+// FOR TEST
+// import fs from 'fs'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
@@ -1177,7 +1179,10 @@ export default class BackupNg {
   }
 
   async getBackupNgLogs (runId?: string): Promise<ConsolidatedBackupNgLog> {
-    const rawLogs = await this._app.getLogs('jobs')
+    const rawLogs = await this._app.getLog('jobs')
+
+    // FOR TEST
+    // const rawLogs = JSON.parse(fs.readFileSync('log.json', 'utf8'))
 
     const logs = {}
     forEach(rawLogs, (log, id) => {

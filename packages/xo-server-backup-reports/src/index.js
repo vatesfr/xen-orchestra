@@ -1,6 +1,6 @@
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
-import { forEach, startCase } from 'lodash'
+import { forEach, get, startCase } from 'lodash'
 
 import pkg from '../package'
 
@@ -66,6 +66,7 @@ const logError = e => {
   console.error('backup report error:', e)
 }
 
+const NO_VMS_MATCH_THIS_PATTERN = 'no VMs match this pattern'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_MESSAGE =
@@ -88,6 +89,8 @@ class BackupReportsXoPlugin {
 
   load () {
     this._xo.on('job:terminated', this._report)
+    // FOR TEST
+    // setTimeout(this._backupNgListener.bind(this), 20 * 1e3)
   }
 
   unload () {
@@ -104,9 +107,21 @@ class BackupReportsXoPlugin {
     ).catch(logError)
   }
 
+  // FOR TEST
+  // async _backupNgListener (logs, _, { timezone } = {}) {
   async _backupNgListener (logs, _, { timezone }) {
+    // FOR TEST
+    // console.log('_backupNgListener ---- start')
     const xo = this._xo
-    const formatDate = createDateFormater(timezone)
+    // FOR TEST
+    // test1: failed job cause of failed target
+    // const run = '1523606939460'
+    // test2: failed job cause of skipped VM
+    // const run = '1523406939460'
+    // test3: failed job cause of no VMs
+    // const run = '15254606939460'
+    // logs = await xo.getBackupNgLogs(run)
+    // timezone = 'America/Los_Angeles'
 
     const jobLog = logs['roots'][0]
     const vmsTaskLog = logs[jobLog.id]
@@ -114,6 +129,39 @@ class BackupReportsXoPlugin {
     const { reportWhen, mode } = jobLog.data
     if (reportWhen === 'never') {
       return
+    }
+
+    const formatDate = createDateFormater(timezone)
+    const jobName = (await xo.getJob(jobLog.jobId, 'backup')).name
+    // FOR TEST
+    // const jobName = 'test'
+    if (jobLog.error !== undefined) {
+      const [globalStatus, icon] =
+        jobLog.error.message === NO_VMS_MATCH_THIS_PATTERN
+          ? ['Skipped', ICON_SKIPPED]
+          : ['Failure', ICON_FAILURE]
+      let markdown = [
+        `##  Global status: ${globalStatus}`,
+        '',
+        `- **mode**: ${mode}`,
+        `- **Start time**: ${formatDate(jobLog.start)}`,
+        `- **End time**: ${formatDate(jobLog.end)}`,
+        `- **Duration**: ${formatDuration(jobLog.duration)}`,
+        `- **Error**: ${jobLog.error.message}`,
+        '---',
+        '',
+        `*${pkg.name} v${pkg.version}*`,
+      ]
+
+      markdown = markdown.join('\n')
+      return this._sendReport({
+        subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${jobName} ${icon}`,
+        markdown,
+        nagiosStatus: 2,
+        nagiosMarkdown: `[Xen Orchestra] [${globalStatus}] Backup report for ${jobName} - Error : ${
+          jobLog.error.message
+        }`,
+      })
     }
 
     const failedVmsText = []
@@ -126,7 +174,7 @@ class BackupReportsXoPlugin {
     let nFailures = 0
     let nSkipped = 0
 
-    for (const vmTaskLog of vmsTaskLog) {
+    for (const vmTaskLog of vmsTaskLog || []) {
       const vmTaskStatus = vmTaskLog.status
       if (vmTaskStatus === 'success' && reportWhen === 'failure') {
         return
@@ -151,11 +199,11 @@ class BackupReportsXoPlugin {
       const operationsText = []
       const srsText = []
       const remotesText = []
-      for (const subTaskLog of logs[vmTaskLog.taskId]) {
+      for (const subTaskLog of logs[vmTaskLog.taskId] || []) {
         const { data, status, result } = subTaskLog
         const icon =
           subTaskLog.status === 'success' ? ICON_SUCCESS : ICON_FAILURE
-        const errorMessage = `  **Error**: ${result.message}`
+        const errorMessage = `  **Error**: ${get(result, 'message')}`
 
         switch (data.type) {
           case 'operation':
@@ -331,16 +379,29 @@ class BackupReportsXoPlugin {
 
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
     markdown = markdown.join('\n')
-    const jobName = (await xo.getJob(jobLog.jobId, 'backup')).name
+    return this._sendReport({
+      markdown,
+      subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${jobName} ${
+        globalSuccess
+          ? ICON_SUCCESS
+          : nFailures !== 0 ? ICON_FAILURE : ICON_SKIPPED
+      }`,
+      nagiosStatus: globalSuccess ? 0 : 2,
+      nagiosMarkdown: globalSuccess
+        ? `[Xen Orchestra] [Success] Backup report for ${jobName}`
+        : `[Xen Orchestra] [${
+            nFailures !== 0 ? 'Failure' : 'Skipped'
+          }] Backup report for ${jobName} - VMs : ${nagiosText.join(' ')}`,
+    })
+  }
+
+  _sendReport ({ markdown, subject, nagiosStatus, nagiosMarkdown }) {
+    const xo = this._xo
     return Promise.all([
       xo.sendEmail !== undefined &&
         xo.sendEmail({
           to: this._mailsReceivers,
-          subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${jobName} ${
-            globalSuccess
-              ? ICON_SUCCESS
-              : nFailures !== 0 ? ICON_FAILURE : ICON_SKIPPED
-          }`,
+          subject,
           markdown,
         }),
       xo.sendToXmppClient !== undefined &&
@@ -354,12 +415,8 @@ class BackupReportsXoPlugin {
         }),
       xo.sendPassiveCheck !== undefined &&
         xo.sendPassiveCheck({
-          status: globalSuccess ? 0 : 2,
-          message: globalSuccess
-            ? `[Xen Orchestra] [Success] Backup report for ${jobName}`
-            : `[Xen Orchestra] [${
-                nFailures !== 0 ? 'Failure' : 'Skipped'
-              }] Backup report for ${jobName} - VMs : ${nagiosText.join(' ')}`,
+          nagiosStatus,
+          message: nagiosMarkdown,
         }),
     ])
   }
@@ -549,37 +606,20 @@ class BackupReportsXoPlugin {
 
     markdown = markdown.join('\n')
 
-    const xo = this._xo
-    return Promise.all([
-      xo.sendEmail !== undefined &&
-        xo.sendEmail({
-          to: this._mailsReceivers,
-          subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${tag} ${
-            globalSuccess
-              ? ICON_SUCCESS
-              : nFailures !== 0 ? ICON_FAILURE : ICON_SKIPPED
-          }`,
-          markdown,
-        }),
-      xo.sendToXmppClient !== undefined &&
-        xo.sendToXmppClient({
-          to: this._xmppReceivers,
-          message: markdown,
-        }),
-      xo.sendSlackMessage !== undefined &&
-        xo.sendSlackMessage({
-          message: markdown,
-        }),
-      xo.sendPassiveCheck !== undefined &&
-        xo.sendPassiveCheck({
-          status: globalSuccess ? 0 : 2,
-          message: globalSuccess
-            ? `[Xen Orchestra] [Success] Backup report for ${tag}`
-            : `[Xen Orchestra] [${
-                nFailures !== 0 ? 'Failure' : 'Skipped'
-              }] Backup report for ${tag} - VMs : ${nagiosText.join(' ')}`,
-        }),
-    ])
+    return this._sendReport({
+      markdown,
+      subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${tag} ${
+        globalSuccess
+          ? ICON_SUCCESS
+          : nFailures !== 0 ? ICON_FAILURE : ICON_SKIPPED
+      }`,
+      nagiosStatus: globalSuccess ? 0 : 2,
+      nagiosMarkdown: globalSuccess
+        ? `[Xen Orchestra] [Success] Backup report for ${tag}`
+        : `[Xen Orchestra] [${
+            nFailures !== 0 ? 'Failure' : 'Skipped'
+          }] Backup report for ${tag} - VMs : ${nagiosText.join(' ')}`,
+    })
   }
 }
 

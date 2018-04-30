@@ -215,11 +215,12 @@ export default [
                       </span>
                     ) : subTaskLog.data.type === 'remote' ? (
                       <span>
-                        {remotes !== undefined &&
-                          renderXoItem({
-                            type: 'remote',
-                            value: remotes[subTaskLog.data.id],
-                          })}{' '}
+                        {get(remotes, subTaskLog.data.id) !== undefined
+                          ? renderXoItem({
+                              type: 'remote',
+                              value: remotes[subTaskLog.data.id],
+                            })
+                          : _('errorNoSuchItem')}{' '}
                         ({subTaskLog.data.id.slice(4, 8)})
                       </span>
                     ) : (
