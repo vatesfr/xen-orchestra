@@ -94,17 +94,17 @@ class BackupReportsXoPlugin {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  _wrapper (status) {
+  _wrapper (status, job, schedule) {
     return new Promise(resolve =>
       resolve(
-        status.calls === undefined
-          ? this._backupNgListener(status)
-          : this._listener(status)
+        job.type === 'backup'
+          ? this._backupNgListener(status, job, schedule)
+          : this._listener(status, job, schedule)
       )
     ).catch(logError)
   }
 
-  async _backupNgListener ({ logs, timezone }) {
+  async _backupNgListener (logs, _, { timezone }) {
     const xo = this._xo
     const formatDate = createDateFormater(timezone)
 

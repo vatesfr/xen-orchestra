@@ -246,7 +246,7 @@ export default class Jobs {
       })
 
       session.close()
-      app.emit('job:terminated', status)
+      app.emit('job:terminated', status, job, schedule)
     } catch (error) {
       logger.error(`The execution of ${id} has failed.`, {
         event: 'job.end',
