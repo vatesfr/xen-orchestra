@@ -422,7 +422,38 @@ class BackupReportsXoPlugin {
   }
 
   _listener (status) {
-    const { calls } = status
+    const { calls, timezone, error } = status
+    const formatDate = createDateFormater(timezone)
+
+    if (status.error !== undefined) {
+      const [globalStatus, icon] =
+        error.message === NO_VMS_MATCH_THIS_PATTERN
+          ? ['Skipped', ICON_SKIPPED]
+          : ['Failure', ICON_FAILURE]
+
+      let markdown = [
+        `##  Global status: ${globalStatus}`,
+        '',
+        `- **Start time**: ${formatDate(status.start)}`,
+        `- **End time**: ${formatDate(status.end)}`,
+        `- **Duration**: ${formatDuration(status.end - status.start)}`,
+        `- **Error**: ${error.message}`,
+        '---',
+        '',
+        `*${pkg.name} v${pkg.version}*`,
+      ]
+
+      markdown = markdown.join('\n')
+      return this._sendReport({
+        subject: `[Xen Orchestra] ${globalStatus} ${icon}`,
+        markdown,
+        nagiosStatus: 2,
+        nagiosMarkdown: `[Xen Orchestra] [${globalStatus}] Error : ${
+          error.message
+        }`,
+      })
+    }
+
     const callIds = Object.keys(calls)
 
     const nCalls = callIds.length
@@ -459,8 +490,6 @@ class BackupReportsXoPlugin {
     const nagiosText = []
     const skippedBackupsText = []
     const successfulBackupText = []
-
-    const formatDate = createDateFormater(status.timezone)
 
     forEach(calls, call => {
       const { id = call.params.vm } = call.params
@@ -547,9 +576,8 @@ class BackupReportsXoPlugin {
       return
     }
 
-    const { end, start } = status
     const { tag } = oneCall.params
-    const duration = end - start
+    const duration = status.end - status.start
     const nSuccesses = nCalls - nFailures - nSkipped
     const globalStatus = globalSuccess
       ? `Success`
@@ -559,8 +587,8 @@ class BackupReportsXoPlugin {
       `##  Global status: ${globalStatus}`,
       '',
       `- **Type**: ${formatMethod(method)}`,
-      `- **Start time**: ${formatDate(start)}`,
-      `- **End time**: ${formatDate(end)}`,
+      `- **Start time**: ${formatDate(status.start)}`,
+      `- **End time**: ${formatDate(status.end)}`,
       `- **Duration**: ${formatDuration(duration)}`,
       `- **Successes**: ${nSuccesses} / ${nCalls}`,
     ]

@@ -131,6 +131,7 @@ const PREDICATES = {
   success: () => call => call.end !== undefined && call.error === undefined,
 }
 
+const NO_OBJECTS_MATCH_THIS_PATTERN = 'no objects match this pattern'
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
 const UNHEALTHY_VDI_CHAIN_LINK =
@@ -173,7 +174,18 @@ class Log extends BaseComponent {
   )
 
   render () {
-    return (
+    const { error } = this.props.log
+    return error !== undefined ? (
+      <span
+        className={
+          error.message === NO_OBJECTS_MATCH_THIS_PATTERN
+            ? 'text-info'
+            : 'text-danger'
+        }
+      >
+        <Icon icon='alarm' /> {error.message}
+      </span>
+    ) : (
       <div>
         <Select
           labelKey='label'
@@ -442,6 +454,15 @@ export default [
               entry.end = time
               entry.duration = time - entry.start
               entry.status = 'finished'
+
+              if (data.error !== undefined) {
+                entry.error = data.error
+                if (data.error.message === NO_OBJECTS_MATCH_THIS_PATTERN) {
+                  entry.callSkipped = true
+                } else {
+                  entry.hasErrors = true
+                }
+              }
             } else if (data.event === 'jobCall.start') {
               entry.calls[id] = {
                 callKey: id,
