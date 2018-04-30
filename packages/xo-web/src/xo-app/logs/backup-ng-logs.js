@@ -15,7 +15,7 @@ import {
 } from 'xo'
 
 import LogAlertBody from './log-alert-body'
-import { isSkippedError } from './utils'
+import { isSkippedError, NO_VMS_MATCH_THIS_PATTERN } from './utils'
 
 const STATUS_LABELS = {
   failure: {
@@ -140,19 +140,25 @@ const LOG_FILTERS = {
 const rowTransform = (log, { logs, jobs }) => {
   let status
   if (log.end !== undefined) {
-    let hasError = false
-    let hasTaskSkipped = false
-    forEach(logs[log.id], ({ status, result }) => {
-      if (status !== 'failure') {
-        return
-      }
-      if (result === undefined || !isSkippedError(result)) {
-        hasError = true
-        return false
-      }
-      hasTaskSkipped = true
-    })
-    status = hasError ? 'failure' : hasTaskSkipped ? 'skipped' : 'success'
+    if (log.error !== undefined) {
+      status =
+        log.error.message === NO_VMS_MATCH_THIS_PATTERN ? 'skipped' : 'failure'
+    } else {
+      let hasError = false
+      let hasTaskSkipped = false
+      forEach(logs[log.id], ({ status, result }) => {
+        if (status !== 'failure') {
+          return
+        }
+        // result === undefined means the vm's children have errors
+        if (result === undefined || !isSkippedError(result)) {
+          hasError = true
+          return false
+        }
+        hasTaskSkipped = true
+      })
+      status = hasError ? 'failure' : hasTaskSkipped ? 'skipped' : 'success'
+    }
   } else {
     status =
       log.id === get(() => jobs[log.jobId].runId) ? 'started' : 'interrupted'

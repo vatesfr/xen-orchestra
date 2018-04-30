@@ -11,7 +11,11 @@ import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
 import { subscribeRemotes } from 'xo'
 
-import { isSkippedError, UNHEALTHY_VDI_CHAIN_ERROR } from './utils'
+import {
+  isSkippedError,
+  NO_VMS_MATCH_THIS_PATTERN,
+  UNHEALTHY_VDI_CHAIN_ERROR,
+} from './utils'
 
 const getTaskStatus = createSelector(
   taskLog => taskLog,
@@ -169,133 +173,145 @@ export default [
     },
   }),
   injectState,
-  ({ job, logs, remotes, state, effects }) => (
-    <div>
-      <Select
-        labelKey='label'
-        onChange={effects.setFilter}
-        optionRenderer={state.optionRenderer}
-        options={TASK_FILTER_OPTIONS}
-        required
-        value={state.filter}
-        valueKey='value'
-      />
-      <br />
-      <ul className='list-group'>
-        {map(state.filteredTaskLogs, vmTaskLog => (
-          <li key={vmTaskLog.data.id} className='list-group-item'>
-            {renderXoItemFromId(vmTaskLog.data.id)} ({vmTaskLog.data.id.slice(
-              4,
-              8
-            )}){' '}
-            <TaskStateInfos
-              status={getTaskStatus(vmTaskLog, state.isJobRunning)}
-            />
-            <ul>
-              {map(logs[vmTaskLog.taskId], subTaskLog => (
-                <li key={subTaskLog.taskId}>
-                  {subTaskLog.data.type === 'operation' ? (
-                    <span>
-                      <Icon icon='task' /> {subTaskLog.data.name}
-                    </span>
-                  ) : subTaskLog.data.type === 'remote' ? (
-                    <span>
-                      {remotes !== undefined &&
-                        renderXoItem({
-                          type: 'remote',
-                          value: remotes[subTaskLog.data.id],
-                        })}{' '}
-                      ({subTaskLog.data.id.slice(4, 8)})
-                    </span>
-                  ) : (
-                    <span>
-                      {renderXoItemFromId(subTaskLog.data.id)} ({subTaskLog.data.id.slice(
-                        4,
-                        8
-                      )})
-                    </span>
-                  )}{' '}
-                  <TaskStateInfos
-                    status={getTaskStatus(subTaskLog, state.isJobRunning)}
-                  />
-                  <br />
-                  {subTaskLog.status === 'failure' &&
-                    _.keyValue(
-                      _('taskError'),
-                      <span className={'text-danger'}>
-                        {String(subTaskLog.result.message)}
-                      </span>
-                    )}
-                </li>
-              ))}
-            </ul>
-            {_.keyValue(
-              _('taskStart'),
-              <FormattedDate
-                value={new Date(vmTaskLog.start)}
-                month='short'
-                day='numeric'
-                year='numeric'
-                hour='2-digit'
-                minute='2-digit'
-                second='2-digit'
+  ({ job, log, logs, remotes, state, effects }) =>
+    log.error !== undefined ? (
+      <span
+        className={
+          log.error.message === NO_VMS_MATCH_THIS_PATTERN
+            ? 'text-info'
+            : 'text-danger'
+        }
+      >
+        <Icon icon='alarm' /> {log.error.message}
+      </span>
+    ) : (
+      <div>
+        <Select
+          labelKey='label'
+          onChange={effects.setFilter}
+          optionRenderer={state.optionRenderer}
+          options={TASK_FILTER_OPTIONS}
+          required
+          value={state.filter}
+          valueKey='value'
+        />
+        <br />
+        <ul className='list-group'>
+          {map(state.filteredTaskLogs, vmTaskLog => (
+            <li key={vmTaskLog.data.id} className='list-group-item'>
+              {renderXoItemFromId(vmTaskLog.data.id)} ({vmTaskLog.data.id.slice(
+                4,
+                8
+              )}){' '}
+              <TaskStateInfos
+                status={getTaskStatus(vmTaskLog, state.isJobRunning)}
               />
-            )}
-            {vmTaskLog.end !== undefined && (
-              <div>
-                {_.keyValue(
-                  _('taskEnd'),
-                  <FormattedDate
-                    value={new Date(vmTaskLog.end)}
-                    month='short'
-                    day='numeric'
-                    year='numeric'
-                    hour='2-digit'
-                    minute='2-digit'
-                    second='2-digit'
-                  />
-                )}
-                <br />
-                {_.keyValue(
-                  _('taskDuration'),
-                  <FormattedDuration duration={vmTaskLog.duration} />
-                )}
-                <br />
-                {vmTaskLog.status === 'failure' &&
-                vmTaskLog.result !== undefined ? (
-                  vmTaskLog.result.message === UNHEALTHY_VDI_CHAIN_ERROR ? (
-                    <Tooltip content={_('clickForMoreInformation')}>
-                      <a
-                        className='text-info'
-                        href={UNHEALTHY_VDI_CHAIN_LINK}
-                        rel='noopener noreferrer'
-                        target='_blank'
-                      >
-                        <Icon icon='info' /> {_('unhealthyVdiChainError')}
-                      </a>
-                    </Tooltip>
-                  ) : (
-                    _.keyValue(
-                      _('taskError'),
-                      <span
-                        className={
-                          isSkippedError(vmTaskLog.result)
-                            ? 'text-info'
-                            : 'text-danger'
-                        }
-                      >
-                        {String(vmTaskLog.result.message)}
+              <ul>
+                {map(logs[vmTaskLog.taskId], subTaskLog => (
+                  <li key={subTaskLog.taskId}>
+                    {subTaskLog.data.type === 'operation' ? (
+                      <span>
+                        <Icon icon='task' /> {subTaskLog.data.name}
                       </span>
+                    ) : subTaskLog.data.type === 'remote' ? (
+                      <span>
+                        {remotes !== undefined &&
+                          renderXoItem({
+                            type: 'remote',
+                            value: remotes[subTaskLog.data.id],
+                          })}{' '}
+                        ({subTaskLog.data.id.slice(4, 8)})
+                      </span>
+                    ) : (
+                      <span>
+                        {renderXoItemFromId(subTaskLog.data.id)} ({subTaskLog.data.id.slice(
+                          4,
+                          8
+                        )})
+                      </span>
+                    )}{' '}
+                    <TaskStateInfos
+                      status={getTaskStatus(subTaskLog, state.isJobRunning)}
+                    />
+                    <br />
+                    {subTaskLog.status === 'failure' &&
+                      // if subTask fail the result is all time defined
+                      _.keyValue(
+                        _('taskError'),
+                        <span className={'text-danger'}>
+                          {String(subTaskLog.result.message)}
+                        </span>
+                      )}
+                  </li>
+                ))}
+              </ul>
+              {_.keyValue(
+                _('taskStart'),
+                <FormattedDate
+                  value={new Date(vmTaskLog.start)}
+                  month='short'
+                  day='numeric'
+                  year='numeric'
+                  hour='2-digit'
+                  minute='2-digit'
+                  second='2-digit'
+                />
+              )}
+              {vmTaskLog.end !== undefined && (
+                <div>
+                  {_.keyValue(
+                    _('taskEnd'),
+                    <FormattedDate
+                      value={new Date(vmTaskLog.end)}
+                      month='short'
+                      day='numeric'
+                      year='numeric'
+                      hour='2-digit'
+                      minute='2-digit'
+                      second='2-digit'
+                    />
+                  )}
+                  <br />
+                  {_.keyValue(
+                    _('taskDuration'),
+                    <FormattedDuration duration={vmTaskLog.duration} />
+                  )}
+                  <br />
+                  {vmTaskLog.status === 'failure' &&
+                  vmTaskLog.result !== undefined ? (
+                    vmTaskLog.result.message === UNHEALTHY_VDI_CHAIN_ERROR ? (
+                      <Tooltip content={_('clickForMoreInformation')}>
+                        <a
+                          className='text-info'
+                          href={UNHEALTHY_VDI_CHAIN_LINK}
+                          rel='noopener noreferrer'
+                          target='_blank'
+                        >
+                          <Icon icon='info' /> {_('unhealthyVdiChainError')}
+                        </a>
+                      </Tooltip>
+                    ) : (
+                      _.keyValue(
+                        _('taskError'),
+                        <span
+                          className={
+                            isSkippedError(vmTaskLog.result)
+                              ? 'text-info'
+                              : 'text-danger'
+                          }
+                        >
+                          {String(vmTaskLog.result.message)}
+                        </span>
+                      )
                     )
-                  )
-                ) : (
-                  <VmTaskDataInfos logs={logs[vmTaskLog.taskId]} />
-                )}
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
-  ),
+                  ) : (
+                    <VmTaskDataInfos logs={logs[vmTaskLog.taskId]} />
+                  )}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ),
 ].reduceRight((value, decorator) => decorator(value))

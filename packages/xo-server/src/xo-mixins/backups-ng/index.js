@@ -100,6 +100,7 @@ type Metadata = MetadataDelta | MetadataFull
 type ConsolidatedJob = {|
   duration?: number,
   end?: number,
+  error?: Object,
   id: string,
   jobId: string,
   mode: Mode,
@@ -1199,6 +1200,7 @@ export default class BackupNg {
           if (job !== undefined) {
             job.end = time
             job.duration = time - job.start
+            job.error = data.error
           }
           break
         case 'task.start':

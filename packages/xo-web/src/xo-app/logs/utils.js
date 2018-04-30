@@ -1,3 +1,4 @@
+export const NO_VMS_MATCH_THIS_PATTERN = 'no VMs match this pattern'
 export const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
 
