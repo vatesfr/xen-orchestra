@@ -1026,8 +1026,6 @@ export default class Xapi extends XapiBase {
           sr: mapVdisSrs[vdi.uuid] || srId,
         })
         $defer.onFailure(() => this._deleteVdi(newVdi))
-
-        return newVdi
       }
 
       await asyncMap(vbds[vdiId], vbd =>
