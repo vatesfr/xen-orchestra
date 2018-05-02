@@ -1,6 +1,7 @@
 import ChartistGraph from 'react-chartist'
 import ChartistLegend from 'chartist-plugin-legend'
 import ChartistTooltip from 'chartist-plugin-tooltip'
+import humanFormat from 'human-format'
 import React from 'react'
 import { injectIntl } from 'react-intl'
 import { messages } from 'intl'
@@ -87,9 +88,9 @@ const makeLabelInterpolationFnc = (intl, nValues, endTimestamp, interval) => {
   return (value, index) =>
     index % labelSpace === 0
       ? intl.formatTime(
-        (endTimestamp - (nValues - index - 1) * interval) * 1000,
-        format
-      )
+          (endTimestamp - (nValues - index - 1) * interval) * 1000,
+          format
+        )
       : null
 }
 
@@ -441,19 +442,19 @@ export const PoolPifLineChart = injectIntl(
 
     const series = addSumSeries
       ? map(ios, io => ({
-        name: `${intl.formatMessage(messages.poolAllHosts)} (${io})`,
-        data: computeArraysSum(
-          map(data, ({ stats }) => computeArraysSum(stats.pifs[io]))
-        ),
-      }))
+          name: `${intl.formatMessage(messages.poolAllHosts)} (${io})`,
+          data: computeArraysSum(
+            map(data, ({ stats }) => computeArraysSum(stats.pifs[io]))
+          ),
+        }))
       : flatten(
-        map(data, ({ stats, host }) =>
-          map(ios, io => ({
-            name: `${host} (${io})`,
-            data: computeArraysSum(stats.pifs[io]),
-          }))
+          map(data, ({ stats, host }) =>
+            map(ios, io => ({
+              name: `${host} (${io})`,
+              data: computeArraysSum(stats.pifs[io]),
+            }))
+          )
         )
-      )
 
     return (
       <ChartistGraph
@@ -604,7 +605,11 @@ export const IopsLineChart = injectIntl(
             nValues: length,
             endTimestamp,
             interval,
-            valueTransform: value => `${value.toPrecision(3)} /s`,
+            valueTransform: value =>
+              humanFormat(value, {
+                decimals: 3,
+                unit: ' /s',
+              }),
           }),
           ...options,
         }}
@@ -721,7 +726,10 @@ export const IowaitChart = injectIntl(
             nValues: length,
             endTimestamp,
             interval,
-            valueTransform: value => `${value.toPrecision(2)}%`,
+            valueTransform: value =>
+              humanFormat(value, {
+                decimals: 2,
+              }),
           }),
           ...options,
         }}
