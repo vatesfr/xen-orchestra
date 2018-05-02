@@ -246,13 +246,6 @@ export default class Host extends Component {
                 }
               />{' '}
               <Text value={host.name_label} onChange={this._setNameLabel} />
-              {this.props.needsRestart && (
-                <Tooltip content={_('rebootUpdateHostLabel')}>
-                  <Link to={`/hosts/${host.id}/patches`}>
-                    <Icon icon='alarm' />
-                  </Link>
-                </Tooltip>
-              )}
             </h2>
             <span>
               <Text
@@ -298,12 +291,11 @@ export default class Host extends Component {
                     {missingPatches.length}
                   </span>
                 )}
-                {this.props.needsRestart &&
-                  isEmpty(missingPatches) && (
-                    <Tooltip content={_('rebootUpdateHostLabel')}>
-                      <Icon icon='alarm' />
-                    </Tooltip>
-                  )}
+                {this.props.needsRestart && (
+                  <Tooltip content={_('rebootUpdateHostLabel')}>
+                    <Icon icon='alarm' />
+                  </Tooltip>
+                )}
               </NavLink>
               <NavLink to={`/hosts/${host.id}/logs`}>
                 {_('logsTabName')}
