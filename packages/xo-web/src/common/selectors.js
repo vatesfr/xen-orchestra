@@ -495,7 +495,8 @@ export const createDoesHostNeedRestart = hostSelector => {
       )
     )
     .find([
-      ({ guidance }) =>
+      ({ guidance, upgrade }) =>
+        upgrade ||
         find(
           guidance,
           action => action === 'restartHost' || action === 'restartXapi'

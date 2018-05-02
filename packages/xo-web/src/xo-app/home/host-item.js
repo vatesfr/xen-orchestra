@@ -9,7 +9,8 @@ import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import { isEmpty, map, some } from 'lodash'
+import { isEmpty, map } from 'lodash'
+import { connectStore, formatSizeShort, osFamily } from 'utils'
 import {
   addTag,
   editHost,
@@ -17,9 +18,7 @@ import {
   removeTag,
   startHost,
   stopHost,
-  subscribeHostMissingPatches,
 } from 'xo'
-import { connectStore, formatSizeShort, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetObject,
@@ -41,11 +40,6 @@ import styles from './index.css'
   ),
 }))
 export default class HostItem extends Component {
-  componentWillMount () {
-    subscribeHostMissingPatches(this.props.item, missingPatches =>
-      this.setState({ missingPatches })
-    )
-  }
   get _isRunning () {
     const host = this.props.item
     return host && host.power_state === 'Running'
@@ -65,7 +59,6 @@ export default class HostItem extends Component {
 
   render () {
     const { item: host, container, expandAll, selected, nVms } = this.props
-    const { missingPatches } = this.state || {}
     const toolTipContent =
       host.power_state === `Running` && !host.enabled
         ? `disabled`
@@ -121,8 +114,7 @@ export default class HostItem extends Component {
                     </span>
                   )}
                 &nbsp;
-                {(this.props.needsRestart ||
-                  some(missingPatches, 'upgrade')) && (
+                {this.props.needsRestart && (
                   <Tooltip content={_('rebootUpdateHostLabel')}>
                     <Link to={`/hosts/${host.id}/patches`}>
                       <Icon icon='alarm' />
