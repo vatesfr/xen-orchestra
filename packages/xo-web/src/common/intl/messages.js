@@ -933,6 +933,7 @@ const messages = {
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
   xenToolsStatus: 'Xen tools version',
+  xenToolsNotInstalled: 'Not installed',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',

@@ -227,11 +227,15 @@ const TRANSFORMS = {
         return
       }
 
-      if (!guestMetrics) {
+      if (guestMetrics === undefined) {
         return false
       }
 
       const { major, minor } = guestMetrics.PV_drivers_version
+
+      if (major === undefined || minor === undefined) {
+        return false
+      }
 
       return {
         major,

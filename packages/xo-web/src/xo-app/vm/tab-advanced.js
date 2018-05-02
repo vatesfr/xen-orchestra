@@ -585,7 +585,9 @@ export default class TabAdvanced extends Component {
                 <tr>
                   <th>{_('xenToolsStatus')}</th>
                   <td>
-                    {vm.xenTools && `${vm.xenTools.major}.${vm.xenTools.minor}`}
+                    {vm.xenTools
+                      ? `${vm.xenTools.major}.${vm.xenTools.minor}`
+                      : _('xenToolsNotInstalled')}
                   </td>
                 </tr>
                 <tr>
