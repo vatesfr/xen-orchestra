@@ -5,7 +5,18 @@ import humanFormat from 'human-format'
 import React from 'react'
 import { injectIntl } from 'react-intl'
 import { messages } from 'intl'
-import { find, flatten, floor, get, map, max, size, sum, values } from 'lodash'
+import {
+  find,
+  flatten,
+  floor,
+  get,
+  map,
+  max,
+  round,
+  size,
+  sum,
+  values,
+} from 'lodash'
 
 import propTypes from '../prop-types-decorator'
 import { computeArraysSum } from '../xo-stats'
@@ -608,7 +619,7 @@ export const IopsLineChart = injectIntl(
             valueTransform: value =>
               humanFormat(value, {
                 decimals: 3,
-                unit: ' /s',
+                unit: 'IOPS',
               }),
           }),
           ...options,
@@ -726,10 +737,7 @@ export const IowaitChart = injectIntl(
             nValues: length,
             endTimestamp,
             interval,
-            valueTransform: value =>
-              humanFormat(value, {
-                decimals: 2,
-              }),
+            valueTransform: value => `${round(value, 2)}%`,
           }),
           ...options,
         }}
