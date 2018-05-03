@@ -279,4 +279,5 @@ test('createSyntheticStream passes vhd-util check', async () => {
     'finish'
   )
   await checkFile('recovered.vhd')
+  await execa('qemu-img', ['compare', 'recovered.vhd', 'randomfile'])
 })
