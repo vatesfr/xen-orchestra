@@ -16,7 +16,7 @@ import { fromCallback } from 'promise-toolbox'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatten, get, includes, isEmpty, keyBy, map, mapValues } from 'lodash'
+import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import {
   addSubscriptions,
   connectStore,
@@ -402,13 +402,10 @@ const ALARM_COLUMNS = [
     .sort()
   const getLoneBackupSnapshots = createGetObjectsOfType('VM-snapshot').filter(
     createSelector(
-      (_, props) => props.schedules,
-      schedules => {
-        const schedulesByIds = keyBy(schedules, 'id')
-        return _ => {
-          const scheduleId = _.other['xo:backup:schedule']
-          return scheduleId !== undefined && !(scheduleId in schedulesByIds)
-        }
+      createCollectionWrapper((_, props) => map(props.schedules, 'id')),
+      scheduleIds => _ => {
+        const scheduleId = _.other['xo:backup:schedule']
+        return scheduleId !== undefined && !includes(scheduleIds, scheduleId)
       }
     )
   )
