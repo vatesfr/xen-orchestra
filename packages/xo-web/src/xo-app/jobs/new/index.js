@@ -311,6 +311,15 @@ export default class Jobs extends Component {
     const { name, method, params } = this.refs
 
     const { job, owner, timeout } = this.state
+
+    const properties = method.value.info.properties
+    const value = params.value
+    forEach(properties, ({ type }, key) => {
+      if (type === 'boolean' && value[key] === undefined) {
+        value[key] = false
+      }
+    })
+
     const _job = {
       type: 'call',
       name: name.value,
@@ -318,10 +327,7 @@ export default class Jobs extends Component {
       method: method.value.method,
       paramsVector: {
         type: 'crossProduct',
-        items: dataToParamVectorItems(
-          method.value.info.properties,
-          params.value
-        ),
+        items: dataToParamVectorItems(properties, value),
       },
       userId: owner !== undefined ? owner : this.props.currentUser.id,
       timeout: timeout ? timeout * 1e3 : undefined,
