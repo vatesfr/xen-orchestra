@@ -23,7 +23,6 @@
     "data": {
       "event": "task.start",
       "parentId": "1523606939460",
-      "taskId": "15236069874654",
       "data": {
         "id": "cae61bcb-ab31-56d9-bfd4-3ff6eaf0b90d",
         "type": "VM"
@@ -43,7 +42,6 @@
     "data": {
       "event": "task.start",
       "parentId": "15236069874654",
-      "taskId": "25236069874654",
       "data": {
         "type": "operation",
         "name": "snapshot"
@@ -63,7 +61,6 @@
     "data": {
       "event": "task.start",
       "parentId": "15236069874654",
-      "taskId": "545236069874654",
       "data": {
         "id": "ee24c70c-4e6d-b1ad-a1d7-006d336d1ba8",
         "type": "SR"
@@ -86,7 +83,6 @@
     "data": {
       "event": "task.start",
       "parentId": "15236069874654",
-      "taskId": "95236069874658",
       "data": {
         "id": "39f1278a-ccf5-46f9-862e-d90612550f12",
         "type": "remote"
@@ -112,7 +108,6 @@
     "data": {
       "event": "task.start",
       "parentId": "1523606939460",
-      "taskId": "152360698746545",
       "data": {
         "id": "fe38a554-daf7-951a-b41d-24f709bb4277",
         "type": "VM"
@@ -132,7 +127,6 @@
     "data": {
       "event": "task.start",
       "parentId": "152360698746545",
-      "taskId": "545236069874658",
       "data": {
         "id": "39f1278a-ccf5-46f9-862e-d90612550f12",
         "type": "remote"
@@ -178,7 +172,6 @@
     "data": {
       "event": "task.start",
       "parentId": "1523406939460",
-      "taskId": "1523606987465478",
       "data": {
         "id": "fe38a554-daf7-951a-b41d-24f709bb4277",
         "type": "VM"
