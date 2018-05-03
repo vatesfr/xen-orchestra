@@ -3,6 +3,7 @@
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
 import defer from 'golike-defer'
+import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
@@ -46,6 +47,7 @@ type Mode = 'full' | 'delta'
 type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
+  concurrency?: number,
   deleteFirst?: boolean,
   exportRetention?: number,
   reportWhen?: ReportWhen,
@@ -455,7 +457,7 @@ export default class BackupNg {
         }
         const jobId = job.id
         const scheduleId = schedule.id
-        await asyncMap(vms, async vm => {
+        let handleVm = async vm => {
           const { name_label: name, uuid } = vm
           const taskId: string = logger.notice(
             `Starting backup of ${name}. (${jobId})`,
@@ -507,7 +509,16 @@ export default class BackupNg {
                 : serializeError(error),
             })
           }
-        })
+        }
+        const concurrency: number | void = getSetting(
+          job.settings,
+          'concurrency',
+          ''
+        )
+        if (concurrency !== undefined) {
+          handleVm = limitConcurrency(concurrency)(handleVm)
+        }
+        await asyncMap(vms, handleVm)
       }
       app.registerJobExecutor('backup', executor)
     })
