@@ -299,9 +299,9 @@ export class Vhd {
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
-    const sectorsPerBlock = (this.sectorsPerBlock = Math.floor(
-      header.blockSize / VHD_SECTOR_SIZE
-    ))
+    const sectorsPerBlock = (this.sectorsPerBlock =
+      header.blockSize / VHD_SECTOR_SIZE)
+    assert(Number.isInteger(sectorsPerBlock))
 
     // Compute bitmap size in sectors.
     // Default: 1.
