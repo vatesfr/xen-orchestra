@@ -13,6 +13,10 @@ export default class BooleanInput extends Component {
   render () {
     const { disabled, onChange, value, ...props } = this.props
 
+    if (value === undefined) {
+      onChange(false)
+    }
+
     return (
       <PrimitiveInputWrapper {...props}>
         <div className='checkbox form-control'>
