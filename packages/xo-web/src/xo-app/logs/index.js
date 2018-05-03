@@ -13,8 +13,8 @@ import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize, formatSpeed } from 'utils'
-import { createFilter, createGetObject, createSelector } from 'selectors'
-import { forEach, includes, keyBy, map, orderBy } from 'lodash'
+import { createGetObject, createSelector } from 'selectors'
+import { filter, forEach, includes, keyBy, map, orderBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { get } from 'xo-defined'
 import {
@@ -152,36 +152,30 @@ class Log extends BaseComponent {
     (logId, runId) => logId !== runId
   )
 
-  _getCallsByState = createFilter(
+  _getCallsByState = createSelector(
     () => this.props.log.calls,
-    createSelector(
-      state => state,
-      this._getIsJobInterrupted,
-      (state, isInterrupted) => PREDICATES[state](isInterrupted)
-    )
+    this._getIsJobInterrupted,
+    (calls, isInterrupted) => {
+      const callsByState = {}
+      forEach(CALL_FILTER_OPTIONS, ({ value }) => {
+        callsByState[value] = filter(calls, PREDICATES[value](isInterrupted))
+      })
+      return callsByState
+    }
   )
 
   _getFilteredCalls = createSelector(
     () => this.state.filter.value,
-    this._getCallsByState
-  )
-
-  _filterValueRenderer = createSelector(
-    () => this._getFilteredCalls().length,
-    ({ label }) => label,
-    (size, label) => (
-      <span>
-        {_(label)} ({size})
-      </span>
-    )
+    this._getCallsByState,
+    (value, calls) => calls[value]
   )
 
   _filterOptionRenderer = createSelector(
-    ({ label }) => label,
-    ({ value }) => this._getCallsByState(value).length,
-    (label, size) => (
+    option => option,
+    this._getCallsByState,
+    ({ label, value }, calls) => (
       <span>
-        {_(label)} ({size})
+        {_(label)} ({calls[value].length})
       </span>
     )
   )
@@ -208,7 +202,6 @@ class Log extends BaseComponent {
           required
           value={this.state.filter}
           valueKey='value'
-          valueRenderer={this._filterValueRenderer}
         />
         <br />
         <ul className='list-group'>
