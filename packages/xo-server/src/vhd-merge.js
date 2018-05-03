@@ -894,6 +894,7 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
     const bat = Buffer.allocUnsafe(vhd.batSize)
     let footer = {
       ...vhd.footer,
+      dataOffset: 512,
       diskType: rootVhd.footer.diskType,
     }
     const sectorsPerBlockData = vhd.sectorsPerBlock
