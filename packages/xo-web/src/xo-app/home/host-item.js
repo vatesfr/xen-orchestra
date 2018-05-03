@@ -2,15 +2,15 @@ import _ from 'intl'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import Link, { BlockLink } from 'link'
+import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import { isEmpty, map } from 'lodash'
-import { connectStore, formatSizeShort, osFamily } from 'utils'
 import {
   addTag,
   editHost,
@@ -19,6 +19,7 @@ import {
   startHost,
   stopHost,
 } from 'xo'
+import { connectStore, formatSizeShort, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetObject,
