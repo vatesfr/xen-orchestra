@@ -906,7 +906,9 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
     const blocksOwner = new Array(nBlocks)
     for (
       let iBlock = 0,
-        blockOffset = Math.ceil((512 + 1024 + bat.length) / VHD_SECTOR_SIZE);
+        blockOffset = Math.ceil(
+          (header.tableOffset + bat.length) / VHD_SECTOR_SIZE
+        );
       iBlock < nBlocks;
       ++iBlock
     ) {
