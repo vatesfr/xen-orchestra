@@ -891,9 +891,7 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
       parentUuid: rootVhd.header.parentUuid,
     }
 
-    const bat = Buffer.allocUnsafe(
-      Math.ceil(4 * header.maxTableEntries / VHD_SECTOR_SIZE) * VHD_SECTOR_SIZE
-    )
+    const bat = Buffer.allocUnsafe(vhd.batSize)
     let footer = {
       ...vhd.footer,
       diskType: rootVhd.footer.diskType,
