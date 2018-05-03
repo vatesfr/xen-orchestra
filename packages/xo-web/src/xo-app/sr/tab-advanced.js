@@ -14,11 +14,6 @@ import { flowRight, isEmpty, keys, sum, values } from 'lodash'
 
 const COLUMNS = [
   {
-    itemRenderer: _ => <Copiable>{_.uuid}</Copiable>,
-    name: _('srUnhealthyVdiUuid'),
-    sortCriteria: 'uuid',
-  },
-  {
     itemRenderer: _ => <span>{_.name_label}</span>,
     name: _('srUnhealthyVdiNameLabel'),
     sortCriteria: 'name_label',
@@ -32,6 +27,11 @@ const COLUMNS = [
     itemRenderer: (vdi, chains) => chains[vdi.uuid],
     name: _('srUnhealthyVdiDepth'),
     sortCriteria: (vdi, chains) => chains[vdi.uuid],
+  },
+  {
+    itemRenderer: _ => <Copiable>{_.uuid}</Copiable>,
+    name: _('srUnhealthyVdiUuid'),
+    sortCriteria: 'uuid',
   },
 ]
 
