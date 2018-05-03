@@ -34,7 +34,7 @@ export default asyncIteratorToStream(function * (handler, path) {
     const vhd = vhds[0]
 
     // data of our synthetic VHD
-    // TODO: empty parentUuid and parentLocatorEntry-s in header
+    // TODO: empty parentUuid, parentTimestamp and parentLocatorEntry-s in header
     let header = {
       ...vhd.header,
       tableOffset: 512 + 1024,
