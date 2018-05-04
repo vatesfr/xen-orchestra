@@ -14,19 +14,24 @@ import { flowRight, isEmpty, keys, sum, values } from 'lodash'
 
 const COLUMNS = [
   {
+    itemRenderer: _ => <span>{_.name_label}</span>,
     name: _('srUnhealthyVdiNameLabel'),
-    itemRenderer: vdi => <span>{vdi.name_label}</span>,
-    sortCriteria: vdi => vdi.name_label,
+    sortCriteria: 'name_label',
   },
   {
-    name: _('srUnhealthyVdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
-    sortCriteria: vdi => vdi.size,
+    name: _('srUnhealthyVdiSize'),
+    sortCriteria: 'size',
   },
   {
-    name: _('srUnhealthyVdiDepth'),
     itemRenderer: (vdi, chains) => chains[vdi.uuid],
+    name: _('srUnhealthyVdiDepth'),
     sortCriteria: (vdi, chains) => chains[vdi.uuid],
+  },
+  {
+    itemRenderer: _ => <Copiable tagName='div'>{_.uuid}</Copiable>,
+    name: _('srUnhealthyVdiUuid'),
+    sortCriteria: 'uuid',
   },
 ]
 

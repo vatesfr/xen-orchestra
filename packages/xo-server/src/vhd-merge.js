@@ -977,7 +977,7 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
           }
         }
       }
-      yield * emitBlockSectors(owner, 0, sectorsPerBlock)
+      yield * emitBlockSectors(owner, 0, sectorsPerBlockData)
     }
 
     yield footer
