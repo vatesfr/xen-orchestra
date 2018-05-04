@@ -1038,6 +1038,8 @@ const messages = {
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
   vmContainer: 'Resident on',
+  vmSnapshotsRelatedToNonExistentBackups:
+    'VM snapshots related to non-existent backups',
   alarmMessage: 'Alarms',
   noAlarms: 'No alarms',
   alarmDate: 'Date',
