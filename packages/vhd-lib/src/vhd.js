@@ -173,7 +173,7 @@ export default class Vhd {
     assert.strictEqual(header.headerVersion, 1 << 16)
     assert.strictEqual(
       header.maxTableEntries,
-      footer.currentSize / header.blockSize
+      Math.ceil(footer.currentSize / header.blockSize)
     )
     assert(Number.isInteger(Math.log2(header.blockSize / SECTOR_SIZE)))
 
