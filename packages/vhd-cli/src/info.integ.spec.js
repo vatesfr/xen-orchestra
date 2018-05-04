@@ -5,7 +5,7 @@ import rimraf from 'rimraf'
 import tmp from 'tmp'
 import { fromCallback as pFromCallback } from 'promise-toolbox'
 
-import { command } from './command'
+import command from './commands/info'
 
 const initialDir = process.cwd()
 
