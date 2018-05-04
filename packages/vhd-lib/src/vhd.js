@@ -7,6 +7,8 @@ import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
 import { set as mapSetBit, test as mapTestBit } from './_bitmap'
 import {
   BLOCK_UNUSED,
+  DISK_TYPE_DIFFERENCING,
+  DISK_TYPE_DYNAMIC,
   FOOTER_SIZE,
   HEADER_SIZE,
   PARENT_LOCATOR_ENTRIES,
@@ -156,19 +158,29 @@ export default class Vhd {
     assertChecksum('header', bufHeader, fuHeader)
 
     const footer = (this.footer = fuFooter.unpack(bufFooter))
+    assert.strictEqual(footer.cookie, 'conectix', 'footer cookie')
     assert.strictEqual(footer.dataOffset, FOOTER_SIZE)
+    assert.strictEqual(footer.fileFormatVersion, 1 << 16)
+    assert(footer.originalSize <= footer.currentSize)
+    assert(
+      footer.diskType === DISK_TYPE_DIFFERENCING ||
+        footer.diskType === DISK_TYPE_DYNAMIC
+    )
 
     const header = (this.header = fuHeader.unpack(bufHeader))
-
-    // only support 1.0
-    assert.strictEqual(footer.fileFormatVersion, 1 << 16)
+    assert.strictEqual(header.cookie, 'cxsparse')
+    assert.strictEqual(header.dataOffset, undefined)
     assert.strictEqual(header.headerVersion, 1 << 16)
+    assert.strictEqual(
+      header.maxTableEntries,
+      footer.currentSize / header.blockSize
+    )
+    assert(Number.isInteger(Math.log2(header.blockSize / SECTOR_SIZE)))
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
     const sectorsPerBlock = (this.sectorsPerBlock =
       header.blockSize / SECTOR_SIZE)
-    assert(Number.isInteger(sectorsPerBlock))
 
     // Compute bitmap size in sectors.
     // Default: 1.

@@ -49,7 +49,7 @@ assert.strictEqual(fuFooter.size, FOOTER_SIZE)
 
 export const fuHeader = fu.struct([
   fu.char('cookie', 8),
-  fu.uint8('dataOffsetUnused', 8),
+  uint64Undefinable('dataOffset'),
   uint64('tableOffset'),
   fu.uint32('headerVersion'),
   fu.uint32('maxTableEntries'), // Max entries in the Block Allocation Table.
