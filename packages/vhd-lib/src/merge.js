@@ -4,12 +4,9 @@ import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
 
 import Vhd from './vhd'
-import { DISK_TYPE_DIFFERENCING } from './_constants'
+import { DISK_TYPE_DIFFERENCING, DISK_TYPE_DYNAMIC } from './_constants'
 
 // Merge vhd child into vhd parent.
-//
-// Child must be a delta backup !
-// Parent must be a full backup !
 //
 // TODO: update the identifier of the parent VHD.
 export default concurrency(2)(async function merge (
@@ -33,10 +30,12 @@ export default concurrency(2)(async function merge (
 
       assert(childVhd.header.blockSize === parentVhd.header.blockSize)
 
-      // Child must be a delta.
-      if (childVhd.footer.diskType !== DISK_TYPE_DIFFERENCING) {
-        throw new Error('Unable to merge, child is not a delta backup.')
-      }
+      const parentDiskType = parentVhd.footer.diskType
+      assert(
+        parentDiskType === DISK_TYPE_DIFFERENCING ||
+          parentDiskType === DISK_TYPE_DYNAMIC
+      )
+      assert.strictEqual(childVhd.footer.diskType, DISK_TYPE_DIFFERENCING)
 
       // Read allocation table of child/parent.
       await Promise.all([
