@@ -1,4 +1,3 @@
-import { mergeVhd, chainVhd } from 'vhd-lib'
 import deferrable from 'golike-defer'
 import escapeStringRegexp from 'escape-string-regexp'
 import execa from 'execa'
@@ -13,7 +12,6 @@ import {
   endsWith,
   filter,
   find,
-  findIndex,
   includes,
   once,
   range,
@@ -21,6 +19,11 @@ import {
   startsWith,
   trim,
 } from 'lodash'
+import {
+  chainVhd,
+  createSyntheticStream as createVhdReadStream,
+  mergeVhd,
+} from 'vhd-lib'
 
 import createSizeStream from '../size-stream'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -566,33 +569,6 @@ export default class {
     return mergedDataSize
   }
 
-  async _listDeltaVdiDependencies (handler, filePath) {
-    const dir = dirname(filePath)
-    const filename = basename(filePath)
-    const backups = await this._listVdiBackups(handler, dir)
-
-    // Search file. (delta or full backup)
-    const i = findIndex(
-      backups,
-      backup => getVdiTimestamp(backup) === getVdiTimestamp(filename)
-    )
-
-    if (i === -1) {
-      throw new Error('VDI to import not found in this remote.')
-    }
-
-    // Search full backup.
-    let j
-
-    for (j = i; j >= 0 && isDeltaVdiBackup(backups[j]); j--);
-
-    if (j === -1) {
-      throw new Error(`Unable to found full vdi backup of: ${filePath}`)
-    }
-
-    return backups.slice(j, i + 1)
-  }
-
   // -----------------------------------------------------------------
 
   async _listDeltaVmBackups (handler, dir) {
@@ -840,16 +816,9 @@ export default class {
 
       await Promise.all(
         mapToArray(delta.vdis, async (vdi, id) => {
-          const vdisFolder = `${basePath}/${dirname(vdi.xoPath)}`
-          const backups = await this._listDeltaVdiDependencies(
+          streams[`${id}.vhd`] = await createVhdReadStream(
             handler,
             `${basePath}/${vdi.xoPath}`
-          )
-
-          streams[`${id}.vhd`] = await Promise.all(
-            mapToArray(backups, async backup =>
-              handler.createReadStream(`${vdisFolder}/${backup}`)
-            )
           )
         })
       )

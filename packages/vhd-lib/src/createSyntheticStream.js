@@ -2,7 +2,13 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import { dirname, resolve } from 'path'
 
 import Vhd from './vhd'
-import { BLOCK_UNUSED, DISK_TYPE_DYNAMIC, SECTOR_SIZE } from './_constants'
+import {
+  BLOCK_UNUSED,
+  DISK_TYPE_DYNAMIC,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  SECTOR_SIZE,
+} from './_constants'
 import { fuFooter, fuHeader, checksumStruct } from './_structs'
 import { test as mapTestBit } from './_bitmap'
 
@@ -33,20 +39,24 @@ export default asyncIteratorToStream(function * (handler, path) {
     // this the VHD we want to synthetize
     const vhd = vhds[0]
 
+    // this is the root VHD
+    const rootVhd = vhds[nVhds - 1]
+
     // data of our synthetic VHD
-    // TODO: empty parentUuid, parentTimestamp and parentLocatorEntry-s in header
+    // TODO: set parentLocatorEntry-s in header
     let header = {
       ...vhd.header,
-      tableOffset: 512 + 1024,
-      parentUnicodeName: '',
+      tableOffset: FOOTER_SIZE + HEADER_SIZE,
+      parentTimestamp: rootVhd.header.parentTimestamp,
+      parentUnicodeName: rootVhd.header.parentUnicodeName,
+      parentUuid: rootVhd.header.parentUuid,
     }
 
-    const bat = Buffer.allocUnsafe(
-      Math.ceil(4 * header.maxTableEntries / SECTOR_SIZE) * SECTOR_SIZE
-    )
+    const bat = Buffer.allocUnsafe(vhd.batSize)
     let footer = {
       ...vhd.footer,
-      diskType: DISK_TYPE_DYNAMIC,
+      dataOffset: FOOTER_SIZE,
+      diskType: rootVhd.footer.diskType,
     }
     const sectorsPerBlockData = vhd.sectorsPerBlock
     const sectorsPerBlock = sectorsPerBlockData + vhd.bitmapSize / SECTOR_SIZE
@@ -56,7 +66,9 @@ export default asyncIteratorToStream(function * (handler, path) {
     const blocksOwner = new Array(nBlocks)
     for (
       let iBlock = 0,
-        blockOffset = Math.ceil((512 + 1024 + bat.length) / SECTOR_SIZE);
+        blockOffset = Math.ceil(
+          (header.tableOffset + bat.length) / SECTOR_SIZE
+        );
       iBlock < nBlocks;
       ++iBlock
     ) {
@@ -94,7 +106,7 @@ export default asyncIteratorToStream(function * (handler, path) {
       const blocksByVhd = new Map()
       const emitBlockSectors = function * (iVhd, i, n) {
         const vhd = vhds[iVhd]
-        const isRootVhd = vhd.footer.diskType === DISK_TYPE_DYNAMIC
+        const isRootVhd = vhd === rootVhd
         if (!vhd.containsBlock(iBlock)) {
           if (isRootVhd) {
             yield Buffer.alloc((n - i) * SECTOR_SIZE)
@@ -126,7 +138,7 @@ export default asyncIteratorToStream(function * (handler, path) {
           }
         }
       }
-      yield * emitBlockSectors(owner, 0, sectorsPerBlock)
+      yield * emitBlockSectors(owner, 0, sectorsPerBlockData)
     }
 
     yield footer

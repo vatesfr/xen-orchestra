@@ -234,7 +234,9 @@ export default class XoaUpdates extends Component {
                   handler={upgrade}
                   icon='upgrade'
                 >
-                  {_('upgrade')}
+                  {trial.state !== 'untrustedTrial'
+                    ? _('upgrade')
+                    : _('downgrade')}
                 </ActionButton>
                 <hr />
                 <div>

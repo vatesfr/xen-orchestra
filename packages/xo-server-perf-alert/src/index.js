@@ -1,10 +1,11 @@
 import JSON5 from 'json5'
 import { createSchedule } from '@xen-orchestra/cron'
-import { forOwn, map, mean } from 'lodash'
+import { assign, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 
 const VM_FUNCTIONS = {
   cpuUsage: {
+    name: 'VM CPU usage',
     description:
       'Raises an alarm when the average usage of any CPU is higher than the threshold',
     unit: '%',
@@ -31,6 +32,7 @@ const VM_FUNCTIONS = {
     },
   },
   memoryUsage: {
+    name: 'VM memory usage',
     description:
       'Raises an alarm when the used memory % is higher than the threshold',
     unit: '% used',
@@ -60,6 +62,7 @@ const VM_FUNCTIONS = {
 
 const HOST_FUNCTIONS = {
   cpuUsage: {
+    name: 'host CPU usage',
     description:
       'Raises an alarm when the average usage of any CPU is higher than the threshold',
     unit: '%',
@@ -86,6 +89,7 @@ const HOST_FUNCTIONS = {
     },
   },
   memoryUsage: {
+    name: 'host memory usage',
     description:
       'Raises an alarm when the used memory % is higher than the threshold',
     unit: '% used',
@@ -105,9 +109,25 @@ const HOST_FUNCTIONS = {
           )
         },
         getDisplayableValue,
-        shouldAlarm: () => {
-          return getDisplayableValue() > threshold
-        },
+        shouldAlarm: () => getDisplayableValue() > threshold,
+      }
+    },
+  },
+}
+
+const SR_FUNCTIONS = {
+  storageUsage: {
+    name: 'SR storage usage',
+    description:
+      'Raises an alarm when the used disk space % is higher than the threshold',
+    unit: '% used',
+    comparator: '>',
+    createGetter: threshold => sr => {
+      const getDisplayableValue = () =>
+        sr.physical_utilisation * 100 / sr.physical_size
+      return {
+        getDisplayableValue,
+        shouldAlarm: () => getDisplayableValue() > threshold,
       }
     },
   },
@@ -116,6 +136,7 @@ const HOST_FUNCTIONS = {
 const TYPE_FUNCTION_MAP = {
   vm: VM_FUNCTIONS,
   host: HOST_FUNCTIONS,
+  sr: SR_FUNCTIONS,
 }
 
 // list of currently ringing alarms, to avoid double notification
@@ -229,11 +250,52 @@ export const configurationSchema = {
         required: ['uuids'],
       },
     },
+    srMonitors: {
+      type: 'array',
+      title: 'SR Monitors',
+      description:
+        'Alarms checking all SRs on all pools. The selected performance counter is sampled regularly and averaged. ' +
+        'The Average is compared to the threshold and an alarm is raised upon crossing',
+      items: {
+        type: 'object',
+        properties: {
+          uuids: {
+            title: 'SRs',
+            type: 'array',
+            items: {
+              type: 'string',
+              $type: 'SR',
+            },
+          },
+          variableName: {
+            title: 'Alarm Type',
+            description: Object.keys(SR_FUNCTIONS)
+              .map(
+                k =>
+                  `  * ${k} (${SR_FUNCTIONS[k].unit}): ${
+                    SR_FUNCTIONS[k].description
+                  }`
+              )
+              .join('\n'),
+            type: 'string',
+            default: Object.keys(SR_FUNCTIONS)[0],
+            enum: Object.keys(SR_FUNCTIONS),
+          },
+          alarmTriggerLevel: {
+            title: 'Threshold',
+            description:
+              'The direction of the crossing is given by the Alarm type',
+            type: 'number',
+            default: 80,
+          },
+        },
+        required: ['uuids'],
+      },
+    },
     toEmails: {
       type: 'array',
       title: 'Email addresses',
       description: 'Email addresses of the alert recipients',
-
       items: {
         type: 'string',
       },
@@ -259,13 +321,11 @@ const raiseOrLowerAlarm = (
       currentAlarms[alarmId] = true
       raiseCallback(alarmId)
     }
-  } else {
-    if (current) {
-      try {
-        lowerCallback(alarmId)
-      } finally {
-        delete currentAlarms[alarmId]
-      }
+  } else if (current) {
+    try {
+      lowerCallback(alarmId)
+    } finally {
+      delete currentAlarms[alarmId]
     }
   }
 }
@@ -297,24 +357,38 @@ class PerfAlertXoPlugin {
     clearCurrentAlarms()
   }
 
+  load () {
+    this._job.start()
+  }
+
+  unload () {
+    this._job.stop()
+  }
+
   _generateUrl (type, object) {
-    const map = {
-      vm: () => `${this._configuration.baseUrl}#/vms/${object.uuid}/stats`,
-      host: () => `${this._configuration.baseUrl}#/hosts/${object.uuid}/stats`,
+    const { baseUrl } = this._configuration
+    const { uuid } = object
+    switch (type) {
+      case 'vm':
+        return `${baseUrl}#/vms/${uuid}/stats`
+      case 'host':
+        return `${baseUrl}#/hosts/${uuid}/stats`
+      case 'sr':
+        return `${baseUrl}#/srs/${uuid}/general`
+      default:
+        return 'unknown type'
     }
-    return map[type]()
   }
 
   async test () {
-    const hostMonitorPart2 = await Promise.all(
-      map(this._getMonitors(), async m => {
-        const tableBody = (await m.snapshot()).map(entry => entry.tableItem)
-        return `
+    const monitorBodies = await Promise.all(
+      map(
+        this._getMonitors(),
+        async m => `
 ## Monitor for ${m.title}
 
-${m.tableHeader}
-${tableBody.join('')}`
-      })
+${(await m.snapshot()).map(entry => entry.listItem).join('')}`
+      )
     )
 
     this._sendAlertEmail(
@@ -322,16 +396,8 @@ ${tableBody.join('')}`
       `
 # Performance Alert Test
 Your alarms and their current status:
-${hostMonitorPart2.join('\n')}`
+${monitorBodies.join('\n')}`
     )
-  }
-
-  load () {
-    this._job.start()
-  }
-
-  unload () {
-    this._job.stop()
   }
 
   _parseDefinition (definition) {
@@ -384,63 +450,67 @@ ${hostMonitorPart2.join('\n')}`
       definition.alarmTriggerPeriod !== undefined
         ? definition.alarmTriggerPeriod
         : 60
-    const typeText = definition.objectType === 'host' ? 'Host' : 'VM'
     return {
       ...definition,
       alarmId,
       vmFunction: typeFunction,
-      title: `${typeText} ${definition.variableName} ${
-        typeFunction.comparator
-      } ${definition.alarmTriggerLevel}${typeFunction.unit}`,
-      tableHeader: `${typeText}  | Value | Alert\n--- | -----:| ---:`,
+      title: `${typeFunction.name} ${typeFunction.comparator} ${
+        definition.alarmTriggerLevel
+      }${typeFunction.unit}`,
       snapshot: async () => {
         return Promise.all(
           map(definition.uuids, async uuid => {
             try {
-              const monitoredObject = this._xo.getXapi(uuid).getObject(uuid)
-              const objectLink = `[${
-                monitoredObject.name_label
-              }](${this._generateUrl(definition.objectType, monitoredObject)})`
-              const rrd = await this.getRrd(monitoredObject, observationPeriod)
-              const couldFindRRD = rrd !== null
               const result = {
-                object: monitoredObject,
-                couldFindRRD,
-                objectLink: objectLink,
-                listItem: `  * ${typeText} ${objectLink} ${
-                  definition.variableName
-                }: **Can't read performance counters**\n`,
-                tableItem: `${objectLink} | - | **Can't read performance counters**\n`,
+                uuid,
+                name: definition.name,
+                object: this._xo.getXapi(uuid).getObject(uuid),
               }
-              if (!couldFindRRD) {
-                return result
+
+              if (result.object === undefined) {
+                throw new Error('object not found')
               }
-              const data = parseData(rrd, monitoredObject.uuid)
-              const textValue =
-                data.getDisplayableValue().toFixed(1) + typeFunction.unit
-              const shouldAlarm = data.shouldAlarm()
-              return {
-                ...result,
-                value: data.getDisplayableValue(),
-                shouldAlarm: shouldAlarm,
-                textValue: textValue,
-                listItem: `  * ${typeText} ${objectLink} ${
-                  definition.variableName
-                }: ${textValue}\n`,
-                tableItem: `${objectLink} | ${textValue} | ${
-                  shouldAlarm ? '**Alert Ongoing**' : 'no alert'
-                }\n`,
+
+              result.objectLink = `[${
+                result.object.name_label
+              }](${this._generateUrl(definition.objectType, result.object)})`
+
+              if (typeFunction.createGetter === undefined) {
+                // Stats via RRD
+                result.rrd = await this.getRrd(result.object, observationPeriod)
+                if (result.rrd !== null) {
+                  const data = parseData(result.rrd, result.object.uuid)
+                  assign(result, {
+                    data,
+                    value: data.getDisplayableValue(),
+                    shouldAlarm: data.shouldAlarm(),
+                  })
+                }
+              } else {
+                // Stats via XAPI
+                const getter = typeFunction.createGetter(
+                  definition.alarmTriggerLevel
+                )
+                const data = getter(result.object)
+                assign(result, {
+                  value: data.getDisplayableValue(),
+                  shouldAlarm: data.shouldAlarm(),
+                })
               }
+
+              result.listItem = `  * ${result.objectLink}: ${
+                result.value === undefined
+                  ? "**Can't read performance counters**"
+                  : result.value.toFixed(1) + typeFunction.unit
+              }\n`
+
+              return result
             } catch (_) {
               return {
                 uuid,
                 object: null,
-                couldFindRRD: false,
                 objectLink: `cannot find object ${uuid}`,
-                listItem: `  * ${typeText} ${uuid} ${
-                  definition.variableName
-                }: **Can't read performance counters**\n`,
-                tableItem: `object ${uuid} | - | **Can't read performance counters**\n`,
+                listItem: `  * ${uuid}: **Can't read performance counters**\n`,
               }
             }
           })
@@ -452,11 +522,17 @@ ${hostMonitorPart2.join('\n')}`
   _getMonitors () {
     return map(this._configuration.hostMonitors, def =>
       this._parseDefinition({ ...def, objectType: 'host' })
-    ).concat(
-      map(this._configuration.vmMonitors, def =>
-        this._parseDefinition({ ...def, objectType: 'vm' })
-      )
     )
+      .concat(
+        map(this._configuration.vmMonitors, def =>
+          this._parseDefinition({ ...def, objectType: 'vm' })
+        )
+      )
+      .concat(
+        map(this._configuration.srMonitors, def =>
+          this._parseDefinition({ ...def, objectType: 'sr' })
+        )
+      )
   }
 
   async _checkMonitors () {
@@ -466,7 +542,7 @@ ${hostMonitorPart2.join('\n')}`
       for (const entry of snapshot) {
         raiseOrLowerAlarm(
           `${monitor.alarmId}|${entry.uuid}|RRD`,
-          !entry.couldFindRRD,
+          entry.value === undefined,
           () => {
             this._sendAlertEmail(
               'Secondary Issue',
@@ -477,9 +553,11 @@ ${entry.listItem}`
           },
           () => {}
         )
-        if (!entry.couldFindRRD) {
+
+        if (entry.value === undefined) {
           continue
         }
+
         const raiseAlarm = alarmId => {
           // sample XenCenter message:
           // value: 1.242087 config: <variable> <name value="mem_usage"/> </variable>
@@ -500,23 +578,24 @@ ${entry.listItem}`
           this._sendAlertEmail(
             '',
             `
-## ALERT ${monitor.title}
+## ALERT: ${monitor.title}
 ${entry.listItem}
 ### Description
   ${monitor.vmFunction.description}`
           )
         }
+
         const lowerAlarm = alarmId => {
-          console.log('lowering Alarm', alarmId)
           this._sendAlertEmail(
             'END OF ALERT',
             `
-## END OF ALERT ${monitor.title}
+## END OF ALERT: ${monitor.title}
 ${entry.listItem}
 ### Description
   ${monitor.vmFunction.description}`
           )
         }
+
         raiseOrLowerAlarm(
           `${monitor.alarmId}|${entry.uuid}`,
           entry.shouldAlarm,
