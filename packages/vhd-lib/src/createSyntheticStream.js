@@ -26,7 +26,7 @@ export default asyncIteratorToStream(function * (handler, path) {
       const vhd = new Vhd(handler, fd)
       vhds.push(vhd)
       yield vhd.readHeaderAndFooter()
-      yield vhd.readBlockTable()
+      yield vhd.readBlockAllocationTable()
 
       if (vhd.footer.diskType === DISK_TYPE_DYNAMIC) {
         break

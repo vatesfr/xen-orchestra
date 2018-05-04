@@ -24,7 +24,7 @@ export default async function chain (
   }
 
   await Promise.all([
-    childVhd.readBlockTable(),
+    childVhd.readBlockAllocationTable(),
     parentVhd.readHeaderAndFooter(),
   ])
 

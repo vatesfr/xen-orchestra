@@ -61,7 +61,7 @@ test('blocks can be moved', async () => {
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'randomfile.vhd')
   await newVhd.readHeaderAndFooter()
-  await newVhd.readBlockTable()
+  await newVhd.readBlockAllocationTable()
   await newVhd._freeFirstBlockSpace(8000000)
   await recoverRawContent('randomfile.vhd', 'recovered', originalSize)
   expect(await fs.readFile('recovered')).toEqual(
@@ -75,7 +75,7 @@ test('the BAT MSB is not used for sign', async () => {
   const handler = getHandler({ url: 'file://' + process.cwd() })
   const vhd = new Vhd(handler, 'empty.vhd')
   await vhd.readHeaderAndFooter()
-  await vhd.readBlockTable()
+  await vhd.readBlockAllocationTable()
   // we want the bit 31 to be on, to prove it's not been used for sign
   const hugeWritePositionSectors = Math.pow(2, 31) + 200
   await vhd.writeData(hugeWritePositionSectors, randomBuffer)
@@ -91,7 +91,7 @@ test('the BAT MSB is not used for sign', async () => {
   try {
     const vhd2 = new Vhd(handler, 'empty.vhd')
     await vhd2.readHeaderAndFooter()
-    await vhd2.readBlockTable()
+    await vhd2.readBlockAllocationTable()
     for (let i = 0; i < vhd.header.maxTableEntries; i++) {
       const entry = vhd._getBatEntry(i)
       if (entry !== 0xffffffff) {
@@ -126,7 +126,7 @@ test('writeData on empty file', async () => {
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
-  await newVhd.readBlockTable()
+  await newVhd.readBlockAllocationTable()
   await newVhd.writeData(0, randomData)
   await recoverRawContent('empty.vhd', 'recovered', originalSize)
   expect(await fs.readFile('recovered')).toEqual(randomData)
@@ -141,7 +141,7 @@ test('writeData in 2 non-overlaping operations', async () => {
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
-  await newVhd.readBlockTable()
+  await newVhd.readBlockAllocationTable()
   const splitPointSectors = 2
   await newVhd.writeData(0, randomData.slice(0, splitPointSectors * 512))
   await newVhd.writeData(
@@ -161,7 +161,7 @@ test('writeData in 2 overlaping operations', async () => {
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
-  await newVhd.readBlockTable()
+  await newVhd.readBlockAllocationTable()
   const endFirstWrite = 3
   const startSecondWrite = 2
   await newVhd.writeData(0, randomData.slice(0, endFirstWrite * 512))
@@ -181,7 +181,7 @@ test('BAT can be extended and blocks moved', async () => {
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'randomfile.vhd')
   await newVhd.readHeaderAndFooter()
-  await newVhd.readBlockTable()
+  await newVhd.readBlockAllocationTable()
   await newVhd.ensureBatSize(2000)
   await recoverRawContent('randomfile.vhd', 'recovered', originalSize)
   expect(await fs.readFile('recovered')).toEqual(
@@ -228,7 +228,7 @@ test('coalesce works in normal cases', async () => {
   await execa('vhd-util', ['snapshot', '-n', 'child2.vhd', '-p', 'child1.vhd'])
   const vhd = new Vhd(handler, 'child2.vhd')
   await vhd.readHeaderAndFooter()
-  await vhd.readBlockTable()
+  await vhd.readBlockAllocationTable()
   vhd.footer.creatorApplication = 'xoa'
   await vhd.writeFooter()
 
@@ -240,7 +240,7 @@ test('coalesce works in normal cases', async () => {
   const smallRandom = await fs.readFile('small_randomfile')
   const newVhd = new Vhd(handler, 'child2.vhd')
   await newVhd.readHeaderAndFooter()
-  await newVhd.readBlockTable()
+  await newVhd.readBlockAllocationTable()
   await newVhd.writeData(5, smallRandom)
   await checkFile('child2.vhd')
   await checkFile('child1.vhd')

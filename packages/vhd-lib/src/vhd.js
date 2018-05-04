@@ -185,7 +185,7 @@ export default class Vhd {
   }
 
   // Returns a buffer that contains the block allocation table of a vhd file.
-  async readBlockTable () {
+  async readBlockAllocationTable () {
     const { header } = this
     this.blockTable = await this._read(
       header.tableOffset,

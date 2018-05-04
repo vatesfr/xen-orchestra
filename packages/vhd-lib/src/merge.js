@@ -39,7 +39,10 @@ export default concurrency(2)(async function merge (
       }
 
       // Read allocation table of child/parent.
-      await Promise.all([parentVhd.readBlockTable(), childVhd.readBlockTable()])
+      await Promise.all([
+        parentVhd.readBlockAllocationTable(),
+        childVhd.readBlockAllocationTable(),
+      ])
 
       await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
