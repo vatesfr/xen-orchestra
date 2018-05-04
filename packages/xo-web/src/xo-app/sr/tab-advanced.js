@@ -29,7 +29,7 @@ const COLUMNS = [
     sortCriteria: (vdi, chains) => chains[vdi.uuid],
   },
   {
-    itemRenderer: _ => <Copiable>{_.uuid}</Copiable>,
+    itemRenderer: _ => <Copiable tagName='div'>{_.uuid}</Copiable>,
     name: _('srUnhealthyVdiUuid'),
     sortCriteria: 'uuid',
   },
