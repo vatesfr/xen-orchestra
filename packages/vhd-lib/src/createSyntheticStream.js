@@ -94,6 +94,7 @@ export default asyncIteratorToStream(function * (handler, path) {
 
     yield bat
 
+    // TODO: for generic usage the bitmap needs to be properly computed for each block
     const bitmap = Buffer.alloc(vhd.bitmapSize, 0xff)
     for (let iBlock = 0; iBlock < nBlocks; ++iBlock) {
       const owner = blocksOwner[iBlock]
