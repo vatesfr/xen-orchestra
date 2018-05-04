@@ -42,7 +42,7 @@ export const fuFooter = fu.struct([
   fu.uint32('checksum'), // 64
   fu.uint8('uuid', 16), // 68
   fu.char('saved'), // 84
-  fu.char('hidden'), // 85
+  fu.char('hidden'), // 85 TODO: should probably be merged in reserved
   fu.char('reserved', 426), // 86
 ])
 assert.strictEqual(fuFooter.size, FOOTER_SIZE)
