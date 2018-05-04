@@ -299,9 +299,9 @@ export class Vhd {
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
-    const sectorsPerBlock = (this.sectorsPerBlock = Math.floor(
-      header.blockSize / VHD_SECTOR_SIZE
-    ))
+    const sectorsPerBlock = (this.sectorsPerBlock =
+      header.blockSize / VHD_SECTOR_SIZE)
+    assert(Number.isInteger(sectorsPerBlock))
 
     // Compute bitmap size in sectors.
     // Default: 1.
@@ -891,11 +891,10 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
       parentUuid: rootVhd.header.parentUuid,
     }
 
-    const bat = Buffer.allocUnsafe(
-      Math.ceil(4 * header.maxTableEntries / VHD_SECTOR_SIZE) * VHD_SECTOR_SIZE
-    )
+    const bat = Buffer.allocUnsafe(vhd.batSize)
     let footer = {
       ...vhd.footer,
+      dataOffset: 512,
       diskType: rootVhd.footer.diskType,
     }
     const sectorsPerBlockData = vhd.sectorsPerBlock
@@ -907,7 +906,9 @@ export const createReadStream = asyncIteratorToStream(function * (handler, path)
     const blocksOwner = new Array(nBlocks)
     for (
       let iBlock = 0,
-        blockOffset = Math.ceil((512 + 1024 + bat.length) / VHD_SECTOR_SIZE);
+        blockOffset = Math.ceil(
+          (header.tableOffset + bat.length) / VHD_SECTOR_SIZE
+        );
       iBlock < nBlocks;
       ++iBlock
     ) {
