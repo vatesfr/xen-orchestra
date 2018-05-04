@@ -158,10 +158,11 @@ export default class Vhd {
     const footer = (this.footer = fuFooter.unpack(bufFooter))
     assert.strictEqual(footer.dataOffset, FOOTER_SIZE)
 
+    const header = (this.header = fuHeader.unpack(bufHeader))
+
     // only support 1.0
     assert.strictEqual(footer.fileFormatVersion, 1 << 16)
-
-    const header = (this.header = fuHeader.unpack(bufHeader))
+    assert.strictEqual(header.headerVersion, 1 << 16)
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
