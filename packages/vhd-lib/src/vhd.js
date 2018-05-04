@@ -171,10 +171,7 @@ export default class Vhd {
     assert.strictEqual(header.cookie, 'cxsparse')
     assert.strictEqual(header.dataOffset, undefined)
     assert.strictEqual(header.headerVersion, 1 << 16)
-    assert.strictEqual(
-      header.maxTableEntries,
-      Math.ceil(footer.currentSize / header.blockSize)
-    )
+    assert(header.maxTableEntries > footer.currentSize / header.blockSize)
     assert(Number.isInteger(Math.log2(header.blockSize / SECTOR_SIZE)))
 
     // Compute the number of sectors in one block.
