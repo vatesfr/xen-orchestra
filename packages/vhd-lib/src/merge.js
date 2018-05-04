@@ -38,14 +38,6 @@ export default concurrency(2)(async function merge (
         throw new Error('Unable to merge, child is not a delta backup.')
       }
 
-      // Allocation table map is not yet implemented.
-      if (
-        parentVhd.hasBlockAllocationTableMap() ||
-        childVhd.hasBlockAllocationTableMap()
-      ) {
-        throw new Error('Unsupported allocation table map.')
-      }
-
       // Read allocation table of child/parent.
       await Promise.all([parentVhd.readBlockTable(), childVhd.readBlockTable()])
 

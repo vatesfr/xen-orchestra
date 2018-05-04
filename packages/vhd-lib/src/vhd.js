@@ -33,9 +33,6 @@ const debug = VHD_UTIL_DEBUG
 const computeBatSize = entries =>
   sectorsToBytes(sectorsRoundUpNoZero(entries * 4))
 
-// Returns a 32 bits integer corresponding to a Vhd version.
-const getVhdVersion = (major, minor) => (major << 16) | (minor & 0x0000ffff)
-
 // Sectors conversions.
 const sectorsRoundUpNoZero = bytes => Math.ceil(bytes / SECTOR_SIZE) || 1
 const sectorsToBytes = sectors => sectors * SECTOR_SIZE
@@ -161,6 +158,9 @@ export default class Vhd {
     const footer = (this.footer = fuFooter.unpack(bufFooter))
     assert.strictEqual(footer.dataOffset, FOOTER_SIZE)
 
+    // only support 1.0
+    assert.strictEqual(footer.fileFormatVersion, 1 << 16)
+
     const header = (this.header = fuHeader.unpack(bufHeader))
 
     // Compute the number of sectors in one block.
@@ -181,11 +181,6 @@ export default class Vhd {
     // In bytes.
     // Default: 512.
     this.bitmapSize = sectorsToBytes(sectorsOfBitmap)
-  }
-
-  // Check if a vhd object has a block allocation table.
-  hasBlockAllocationTableMap () {
-    return this.footer.fileFormatVersion > getVhdVersion(1, 0)
   }
 
   // Returns a buffer that contains the block allocation table of a vhd file.
