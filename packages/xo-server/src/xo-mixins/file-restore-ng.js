@@ -123,8 +123,8 @@ const mountPartition = defer(async ($defer, devicePath, partition) => {
 
 // - [x] list partitions
 // - [x] list files in a partition
-// - [ ] list files in a bare partition
-// - [ ] list LVM partitions
+// - [x] list files in a bare partition
+// - [x] list LVM partitions
 //
 // - [ ] partitions with unmount debounce
 // - [ ] handle directory restore
