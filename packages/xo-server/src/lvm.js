@@ -1,16 +1,15 @@
 import execa from 'execa'
 import splitLines from 'split-lines'
 import { createParser } from 'parse-pairs'
-import { isArray, map } from 'lodash'
 
 // ===================================================================
 
 const parse = createParser({
   keyTransform: key => key.slice(5).toLowerCase(),
 })
-const makeFunction = command => (fields, ...args) =>
-  execa
-    .stdout(command, [
+const makeFunction = command => async (fields, ...args) => {
+  return splitLines(
+    await execa.stdout(command, [
       '--noheading',
       '--nosuffix',
       '--nameprefixes',
@@ -21,17 +20,8 @@ const makeFunction = command => (fields, ...args) =>
       String(fields),
       ...args,
     ])
-    .then(stdout =>
-      map(
-        splitLines(stdout),
-        isArray(fields)
-          ? parse
-          : line => {
-            const data = parse(line)
-            return data[fields]
-          }
-      )
-    )
+  ).map(Array.isArray(fields) ? parse : line => parse(line)[fields])
+}
 
 export const lvs = makeFunction('lvs')
 export const pvs = makeFunction('pvs')

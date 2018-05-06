@@ -2,10 +2,12 @@ import _ from 'intl'
 import classNames from 'classnames'
 import Component from 'base-component'
 import React from 'react'
-import { FormattedDate } from 'react-intl'
 import { forEach, map, orderBy } from 'lodash'
 import { createFilter, createSelector } from 'selectors'
 import { Toggle } from 'form'
+import { getRenderXoItemOfType } from 'render-xo-item'
+
+const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 
 const _escapeDot = id => id.replace('.', '\0')
 
@@ -61,22 +63,7 @@ export default class DeleteBackupsModalBody extends Component {
               onClick={this.toggleState(_escapeDot(backup.id))}
               type='button'
             >
-              <span
-                className='tag tag-info'
-                style={{ textTransform: 'capitalize' }}
-              >
-                {backup.mode}
-              </span>{' '}
-              <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
-              <FormattedDate
-                value={new Date(backup.timestamp)}
-                month='long'
-                day='numeric'
-                year='numeric'
-                hour='2-digit'
-                minute='2-digit'
-                second='2-digit'
-              />
+              {BACKUP_RENDERER(backup)}
             </button>
           ))}
         </div>

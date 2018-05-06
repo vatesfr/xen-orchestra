@@ -5,6 +5,7 @@ import { startsWith } from 'lodash'
 import Icon from './icon'
 import propTypes from './prop-types-decorator'
 import { createGetObject } from './selectors'
+import { FormattedDate } from 'react-intl'
 import { isSrWritable } from './xo'
 import { connectStore, formatSize } from './utils'
 
@@ -203,10 +204,29 @@ const xoItemToRender = {
         : group.name_label}
     </span>
   ),
+
+  backup: backup => (
+    <span>
+      <span className='tag tag-info' style={{ textTransform: 'capitalize' }}>
+        {backup.mode}
+      </span>{' '}
+      <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
+      <FormattedDate
+        value={new Date(backup.timestamp)}
+        month='long'
+        day='numeric'
+        year='numeric'
+        hour='2-digit'
+        minute='2-digit'
+        second='2-digit'
+      />
+    </span>
+  ),
 }
 
-const renderXoItem = (item, { className } = {}) => {
-  const { id, type, label } = item
+const renderXoItem = (item, { className, type: xoType } = {}) => {
+  const { id, label } = item
+  const type = xoType || item.type
 
   if (item.removed) {
     return (
@@ -244,6 +264,9 @@ const renderXoItem = (item, { className } = {}) => {
 }
 
 export { renderXoItem as default }
+
+export const getRenderXoItemOfType = type => (item, options = {}) =>
+  renderXoItem(item, { ...options, type })
 
 const GenericXoItem = connectStore(() => {
   const getObject = createGetObject()

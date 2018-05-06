@@ -539,6 +539,16 @@ export default class BackupNg {
             // inject an id usable by importVmBackupNg()
             backups.forEach(backup => {
               backup.id = `${remoteId}/${backup._filename}`
+
+              const { vdis, vhds } = backup
+              backup.disks = Object.keys(vhds).map(vdiId => {
+                const vdi = vdis[vdiId]
+                return {
+                  id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
+                  name: vdi.name_label,
+                  uuid: vdi.uuid,
+                }
+              })
             })
 
             backupsByVm[vmUuid] = backups
@@ -1096,7 +1106,11 @@ export default class BackupNg {
         })
       )
     } catch (error) {
-      if (error == null || error.code !== 'ENOENT') {
+      let code
+      if (
+        error == null ||
+        ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')
+      ) {
         throw error
       }
     }
