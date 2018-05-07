@@ -541,14 +541,17 @@ export default class BackupNg {
               backup.id = `${remoteId}/${backup._filename}`
 
               const { vdis, vhds } = backup
-              backup.disks = Object.keys(vhds).map(vdiId => {
-                const vdi = vdis[vdiId]
-                return {
-                  id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
-                  name: vdi.name_label,
-                  uuid: vdi.uuid,
-                }
-              })
+              backup.disks =
+                vhds === undefined
+                  ? []
+                  : Object.keys(vhds).map(vdiId => {
+                      const vdi = vdis[vdiId]
+                      return {
+                        id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
+                        name: vdi.name_label,
+                        uuid: vdi.uuid,
+                      }
+                    })
             })
 
             backupsByVm[vmUuid] = backups
