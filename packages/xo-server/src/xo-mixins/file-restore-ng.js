@@ -196,7 +196,7 @@ export default class BackupNgFileRestore {
 
     const entriesMap = {}
     await Promise.all(
-      readdir(path).map(async name => {
+      (await readdir(path)).map(async name => {
         try {
           const stats = await stat(`${path}/${name}`)
           entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
