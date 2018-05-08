@@ -1,12 +1,12 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
 
 import computeGeometryForSize from './_computeGeometryForSize'
-import createFixedFooter from './_createFixedFooter'
+import { createFooter } from './_createFooterHeader'
 
 export default asyncIteratorToStream(async function * (size, blockParser) {
   const geometry = computeGeometryForSize(size)
   const actualSize = geometry.actualSize
-  const footer = createFixedFooter(
+  const footer = createFooter(
     actualSize,
     Math.floor(Date.now() / 1000),
     geometry

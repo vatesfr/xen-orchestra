@@ -2,15 +2,16 @@
 
 import execa from 'execa'
 import eventToPromise from 'event-to-promise'
-import { createReadStream, createWriteStream } from 'fs-promise'
-import { fromCallback as pFromCallback } from 'promise-toolbox'
-
-import convertFromVMDK from '.'
+import getStream from 'get-stream'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 
+import { createReadStream, createWriteStream, stat } from 'fs-promise'
+import { fromCallback as pFromCallback } from 'promise-toolbox'
+import convertFromVMDK, { readVmdkGrainTable } from '.'
+
 const initialDir = process.cwd()
-jest.setTimeout(10000)
+jest.setTimeout(100000)
 
 beforeEach(async () => {
   const dir = await pFromCallback(cb => tmp.dir(cb))
@@ -22,6 +23,25 @@ afterEach(async () => {
   process.chdir(initialDir)
   await pFromCallback(cb => rimraf(tmpDir, cb))
 })
+
+function createFileAccessor (file) {
+  return async (start, end) => {
+    if (start < 0 || end < 0) {
+      const fileLength = (await stat(file)).size
+      start = start < 0 ? fileLength + start : start
+      end = end < 0 ? fileLength + end : end
+    }
+    const result = await getStream.buffer(
+      createReadStream(file, { start, end: end - 1 })
+    )
+    // crazy stuff to get a browser-compatible ArrayBuffer from a node buffer
+    // https://stackoverflow.com/a/31394257/72637
+    return result.buffer.slice(
+      result.byteOffset,
+      result.byteOffset + result.byteLength
+    )
+  }
+}
 
 test('VMDK to VHD can convert a random data file with VMDKDirectParser', async () => {
   const inputRawFileName = 'random-data.raw'
@@ -40,9 +60,11 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
         ' ' +
         vmdkFileName
     )
-    const pipe = (await convertFromVMDK(createReadStream(vmdkFileName))).pipe(
-      createWriteStream(vhdFileName)
-    )
+    const result = await readVmdkGrainTable(createFileAccessor(vmdkFileName))
+    const pipe = (await convertFromVMDK(
+      createReadStream(vmdkFileName),
+      result
+    )).pipe(createWriteStream(vhdFileName))
     await eventToPromise(pipe, 'finish')
     await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
     await execa('qemu-img', [
@@ -59,11 +81,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
       vhdFileName,
       reconvertedFromVhd,
     ])
-    await execa('qemu-img', [
-      'compare',
-      reconvertedFromVmdk,
-      reconvertedFromVhd,
-    ])
+    await execa('qemu-img', ['compare', inputRawFileName, vhdFileName])
   } catch (error) {
     console.error(error.stdout)
     console.error(error.stderr)

@@ -42,6 +42,7 @@
     "event-to-promise": "^0.8.0",
     "execa": "^0.10.0",
     "fs-extra": "^5.0.0",
+    "get-stream": "^3.0.0",
     "index-modules": "^0.3.0",
     "rimraf": "^2.6.2"
   },

@@ -1314,7 +1314,7 @@ export default class Xapi extends XapiBase {
   async _importOvaVm (
     $defer,
     stream,
-    { descriptionLabel, disks, memory, nameLabel, networks, nCpus },
+    { descriptionLabel, disks, memory, nameLabel, networks, nCpus, tables },
     sr
   ) {
     // 1. Create VM.
@@ -1387,8 +1387,9 @@ export default class Xapi extends XapiBase {
           return
         }
 
-        const vhdStream = await vmdkToVhd(stream)
-        await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_RAW)
+        const table = tables[entry.name]
+        const vhdStream = await vmdkToVhd(stream, table)
+        await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
 
         // See: https://github.com/mafintosh/tar-stream#extracting
         // No import parallelization.

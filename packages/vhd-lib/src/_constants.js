@@ -4,8 +4,10 @@ export const BLOCK_UNUSED = 0xffffffff
 export const FOOTER_SIZE = 512
 export const HEADER_SIZE = 1024
 export const SECTOR_SIZE = 512
+export const DEFAULT_BLOCK_SIZE = 0x00200000 // from the spec
 
-export const COOKIE = 'conectix'
+export const FOOTER_COOKIE = 'conectix'
+export const HEADER_COOKIE = 'cxsparse'
 
 export const DISK_TYPE_FIXED = 2
 export const DISK_TYPE_DYNAMIC = 3

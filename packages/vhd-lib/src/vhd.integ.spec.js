@@ -5,7 +5,7 @@ import tmp from 'tmp'
 import { createWriteStream } from 'fs'
 import { fromCallback as pFromCallback, fromEvent } from 'promise-toolbox'
 
-import createFixedFooter from './_createFixedFooter'
+import { createFooter } from './_createFooterHeader'
 import createReadableRawVHDStream from './createReadableRawStream'
 
 const initialDir = process.cwd()
@@ -21,8 +21,8 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tmpDir, cb))
 })
 
-test('createFixedFooter() does not crash', () => {
-  createFixedFooter(104448, Math.floor(Date.now() / 1000), {
+test('createFooter() does not crash', () => {
+  createFooter(104448, Math.floor(Date.now() / 1000), {
     cylinders: 3,
     heads: 4,
     sectorsPerTrack: 17,

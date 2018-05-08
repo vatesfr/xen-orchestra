@@ -305,3 +305,62 @@ export class VMDKDirectParser {
     return null
   }
 }
+
+export async function readVmdkGrainTable (fileAccessor) {
+  let headerBuffer = await fileAccessor(0, 512)
+  let grainDirAddr = headerBuffer.slice(56, 56 + 8)
+  if (
+    new Int8Array(grainDirAddr).reduce((acc, val) => acc && val === -1, true)
+  ) {
+    headerBuffer = await fileAccessor(-1024, -1024 + 512)
+    grainDirAddr = new DataView(headerBuffer.slice(56, 56 + 8)).getUint32(
+      0,
+      true
+    )
+  }
+  const grainDirPosBytes = grainDirAddr * 512
+  const capacity =
+    new DataView(headerBuffer.slice(12, 12 + 8)).getUint32(0, true) * 512
+  const grainSize =
+    new DataView(headerBuffer.slice(20, 20 + 8)).getUint32(0, true) * 512
+  const grainCount = Math.ceil(capacity / grainSize)
+  const numGTEsPerGT = new DataView(headerBuffer.slice(44, 44 + 8)).getUint32(
+    0,
+    true
+  )
+  const grainTablePhysicalSize = numGTEsPerGT * 4
+  const grainDirectoryEntries = Math.ceil(grainCount / numGTEsPerGT)
+  const grainDirectoryPhysicalSize = grainDirectoryEntries * 4
+  const grainDirBuffer = await fileAccessor(
+    grainDirPosBytes,
+    grainDirPosBytes + grainDirectoryPhysicalSize
+  )
+  const grainDir = new Uint32Array(grainDirBuffer)
+  const cachedGrainTables = []
+  for (let i = 0; i < grainDirectoryEntries; i++) {
+    const grainTableAddr = grainDir[i] * 512
+    if (grainTableAddr !== 0) {
+      cachedGrainTables[i] = new Uint32Array(
+        await fileAccessor(
+          grainTableAddr,
+          grainTableAddr + grainTablePhysicalSize
+        )
+      )
+    }
+  }
+  const extractedGrainTable = []
+  for (let i = 0; i < grainCount; i++) {
+    const directoryEntry = Math.floor(i / numGTEsPerGT)
+    const grainTable = cachedGrainTables[directoryEntry]
+    if (grainTable !== undefined) {
+      const grainAddr = grainTable[i % numGTEsPerGT]
+      if (grainAddr !== 0) {
+        extractedGrainTable.push([i, grainAddr])
+      }
+    }
+  }
+  extractedGrainTable.sort(
+    ([i1, grainAddress1], [i2, grainAddress2]) => grainAddress1 - grainAddress2
+  )
+  return extractedGrainTable.map(([index, grainAddress]) => index * grainSize)
+}
