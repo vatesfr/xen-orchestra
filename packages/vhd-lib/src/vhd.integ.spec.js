@@ -2,11 +2,12 @@
 import execa from 'execa'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
-import { createWriteStream } from 'fs'
+import { createWriteStream, readFile } from 'fs-promise'
 import { fromCallback as pFromCallback, fromEvent } from 'promise-toolbox'
 
 import { createFooter } from './_createFooterHeader'
 import createReadableRawVHDStream from './createReadableRawStream'
+import createReadableSparseVHDStream from './createReadableSparseStream'
 
 const initialDir = process.cwd()
 
@@ -91,4 +92,55 @@ test('ReadableRawVHDStream detects when blocks are out of order', async () => {
       pipe.on('error', reject)
     })
   ).rejects.toThrow('Received out of order blocks')
+})
+
+test('ReadableSparseVHDStream can handle a sparse file', async () => {
+  const blockSize = Math.pow(2, 16)
+  const blocks = [
+    {
+      offsetBytes: blockSize * 3,
+      data: Buffer.alloc(blockSize, 'azerzaerazeraze', 'ascii'),
+    },
+    {
+      offsetBytes: blockSize * 5,
+      data: Buffer.alloc(blockSize, 'gdfslkdfguer', 'ascii'),
+    },
+  ]
+  let index = 0
+  const mockParser = {
+    next: () => {
+      if (index < blocks.length) {
+        const result = blocks[index]
+        index++
+        return result
+      } else {
+        return null
+      }
+    },
+  }
+  const fileSize = blockSize * 10
+  const stream = createReadableSparseVHDStream(
+    fileSize,
+    blockSize,
+    [100, 700],
+    mockParser
+  )
+  const pipe = stream.pipe(createWriteStream('output.vhd'))
+  await fromEvent(pipe, 'finish')
+  await execa('vhd-util', ['check', '-t', '-i', '-n', 'output.vhd'])
+  await execa('qemu-img', [
+    'convert',
+    '-f',
+    'vpc',
+    '-O',
+    'raw',
+    'output.vhd',
+    'out1.raw',
+  ])
+  const out1 = await readFile('out1.raw')
+  const expected = Buffer.alloc(fileSize)
+  blocks.forEach(b => {
+    b.data.copy(expected, b.offsetBytes)
+  })
+  await expect(out1.slice(0, expected.length)).toEqual(expected)
 })
