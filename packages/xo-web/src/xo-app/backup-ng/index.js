@@ -184,7 +184,7 @@ const HEADER = (
       </Col>
       <Col mediumSize={9}>
         <NavTabs className='pull-right'>
-          <NavLink exact to='/backup-ng'>
+          <NavLink exact to='/backup-ng/overview'>
             <Icon icon='menu-backup-overview' /> {_('backupOverviewPage')}
           </NavLink>
           <NavLink to='/backup-ng/new'>
@@ -203,9 +203,10 @@ const HEADER = (
   </Container>
 )
 
-export default routes(Overview, {
+export default routes('overview', {
   ':id/edit': Edit,
   new: New,
+  overview: Overview,
   restore: Restore,
   'file-restore': FileRestore,
 })(({ children }) => (

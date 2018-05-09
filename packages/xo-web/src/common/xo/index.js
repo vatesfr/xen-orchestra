@@ -1918,6 +1918,22 @@ export const fetchFiles = (remote, disk, partition, paths, format) =>
     window.location = `.${url}`
   })
 
+// File restore NG  ----------------------------------------------------
+
+export const listPartitions = (remote, disk) =>
+  _call('backupNg.listPartitions', resolveIds({ remote, disk }))
+
+export const listFiles = (remote, disk, path, partition) =>
+  _call('backupNg.listFiles', resolveIds({ remote, disk, path, partition }))
+
+export const fetchFilesNg = (remote, disk, partition, paths, format) =>
+  _call(
+    'backupNg.fetchFiles',
+    resolveIds({ remote, disk, partition, paths, format })
+  ).then(({ $getFrom: url }) => {
+    window.location = `.${url}`
+  })
+
 // -------------------------------------------------------------------
 
 export const probeSrNfs = (host, server) =>

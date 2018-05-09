@@ -1,9 +1,9 @@
 import deferrable from 'golike-defer'
 import every from 'lodash/every'
 import find from 'lodash/find'
-import filter from 'lodash/filter'
 import includes from 'lodash/includes'
 import isObject from 'lodash/isObject'
+import pickBy from 'lodash/pickBy'
 import some from 'lodash/some'
 import sortBy from 'lodash/sortBy'
 import assign from 'lodash/assign'
@@ -445,10 +445,10 @@ export default {
     const installableByUuid =
       host.license_params.sku_type !== 'free'
         ? await this._listMissingPoolPatchesOnHost(host)
-        : filter(await this._listMissingPoolPatchesOnHost(host), {
-          paid: false,
-          upgrade: false,
-        })
+        : pickBy(await this._listMissingPoolPatchesOnHost(host), {
+            paid: false,
+            upgrade: false,
+          })
 
     // List of all installable patches sorted from the newest to the
     // oldest.
@@ -488,7 +488,7 @@ export default {
               patches =>
                 host.license_params.sku_type !== 'free'
                   ? patches
-                  : filter(patches, { paid: false, upgrade: false })
+                  : pickBy(patches, { paid: false, upgrade: false })
             )
           }
         })

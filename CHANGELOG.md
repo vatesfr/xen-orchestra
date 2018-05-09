@@ -1,9 +1,104 @@
 # ChangeLog
 
+## **5.20.0** (planned 2018-05-31)
+
+### Enhancements
+
+- Add VDI UUID in SR coalesce view [#2903](https://github.com/vatesfr/xen-orchestra/issues/2903)
+- Create new VDI from SR view not attached to any VM [#2229](https://github.com/vatesfr/xen-orchestra/issues/2229)
+- [Patches] ignore XS upgrade in missing patches counter [#2866](https://github.com/vatesfr/xen-orchestra/issues/2866)
+- [Health] List VM snapshots related to non-existing backup jobs/schedules [#2828](https://github.com/vatesfr/xen-orchestra/issues/2828)
+
+### Bugs
+
+## **5.19.0** (2018-05-01)
+
+### Enhancements
+
+- Expose vendor device in VM advanced tab [#2883](https://github.com/vatesfr/xen-orchestra/issues/2883)
+- Networks created in XO are missing the "automatic" parameter [#2818](https://github.com/vatesfr/xen-orchestra/issues/2818)
+- Performance alert disk space monitoring XS [#2737](https://github.com/vatesfr/xen-orchestra/issues/2737)
+- Add ability to create NFSv4 storage repository [#2706](https://github.com/vatesfr/xen-orchestra/issues/2706)
+- [SortedTable] Support link actions [#2691](https://github.com/vatesfr/xen-orchestra/issues/2691)
+- Additional sort option: by host name [#2680](https://github.com/vatesfr/xen-orchestra/issues/2680)
+- Expose XenTools version numbers in data model and UI [#2650](https://github.com/vatesfr/xen-orchestra/issues/2650)
+- RRDs stats for SR object [#2644](https://github.com/vatesfr/xen-orchestra/issues/2644)
+- composite jobs [#2367](https://github.com/vatesfr/xen-orchestra/issues/2367)
+- Better error message [#2344](https://github.com/vatesfr/xen-orchestra/issues/2344)
+- Avoid using backup tag with special characters [#2336](https://github.com/vatesfr/xen-orchestra/issues/2336)
+- Prefix/suffix for temporary files [#2333](https://github.com/vatesfr/xen-orchestra/issues/2333)
+- Continuous Replication - better interface matching on destination [#2093](https://github.com/vatesfr/xen-orchestra/issues/2093)
+- Creation of LVMoHBA SRs [#1992](https://github.com/vatesfr/xen-orchestra/issues/1992)
+- [Delta backup] Improve restoration by creating a virtual full VHD [#1943](https://github.com/vatesfr/xen-orchestra/issues/1943)
+- VM Backups should be done in a dedicated remote directory [#1752](https://github.com/vatesfr/xen-orchestra/issues/1752)
+- Add Pool / SR filter in backup view [#1762](https://github.com/vatesfr/xen-orchestra/issues/1762)
+- Hide/Disable upgrade button when no upgrade exists [#1594](https://github.com/vatesfr/xen-orchestra/issues/1594)
+- "Upgrade" button should display "Downgrade" when trial is over [#1483](https://github.com/vatesfr/xen-orchestra/issues/1483)
+
+### Bugs
+
+- Allowed-ips don't works displaying index.js:1 Uncaught TypeError: (0 , z.isIp) is not a function [#2891](https://github.com/vatesfr/xen-orchestra/issues/2891)
+- Error on "usage-report" [#2876](https://github.com/vatesfr/xen-orchestra/issues/2876)
+- SR selection combo only listing local storage [#2875](https://github.com/vatesfr/xen-orchestra/issues/2875)
+- [Backup NG - Delta] Issue while importing delta [#2857](https://github.com/vatesfr/xen-orchestra/issues/2857)
+- Create New SR page broken with past commit [#2853](https://github.com/vatesfr/xen-orchestra/issues/2853)
+- [Backup NG] a target should only be preset once [#2848](https://github.com/vatesfr/xen-orchestra/issues/2848)
+- Auth Method iSCSI [#2835](https://github.com/vatesfr/xen-orchestra/issues/2835)
+- [Backup NG] ENOENT with Delta Backup [#2833](https://github.com/vatesfr/xen-orchestra/issues/2833)
+- Different backup logs [#2732](https://github.com/vatesfr/xen-orchestra/issues/2732)
+- Creating network fails silently when omitting Description [#2719](https://github.com/vatesfr/xen-orchestra/issues/2719)
+- Can't create ISO NFS SR via XOA [#1845](https://github.com/vatesfr/xen-orchestra/issues/1845)
+
+## **5.18.0** (2018-03-31)
+
+### Enhancements
+
+- Support huge VHDs [#2785](https://github.com/vatesfr/xen-orchestra/issues/2785)
+- Usage report extended usage [#2770](https://github.com/vatesfr/xen-orchestra/issues/2770)
+- Improve host available RAM display [#2750](https://github.com/vatesfr/xen-orchestra/issues/2750)
+- Hide IP field during VM creation if not configured [#2739](https://github.com/vatesfr/xen-orchestra/issues/2739)
+- [Home] Delete VMs modal should autofocus the input field [#2736](https://github.com/vatesfr/xen-orchestra/issues/2736)
+- Backup restore view load icon [#2692](https://github.com/vatesfr/xen-orchestra/issues/2692)
+- Deleting default templates doesn't work [#2666](https://github.com/vatesfr/xen-orchestra/issues/2666)
+- DR clean previous "failed" snapshots [#2656](https://github.com/vatesfr/xen-orchestra/issues/2656)
+- [Home] Put sort criteria in URL like the filter [#2585](https://github.com/vatesfr/xen-orchestra/issues/2585)
+- Allow disconnect VDI in SR disk view [#2505](https://github.com/vatesfr/xen-orchestra/issues/2505)
+- Add confirmation modal for manual backup run [#2355](https://github.com/vatesfr/xen-orchestra/issues/2355)
+- Multiple schedule for backup jobs [#2286](https://github.com/vatesfr/xen-orchestra/issues/2286)
+- Checks before web update [#2250](https://github.com/vatesfr/xen-orchestra/issues/2250)
+- Backup logs should truly reflect if the job is running [#2206](https://github.com/vatesfr/xen-orchestra/issues/2206)
+- Hook/action if an export stream is cut [#1929](https://github.com/vatesfr/xen-orchestra/issues/1929)
+- Backup paths should not contain tags but job ids [#1854](https://github.com/vatesfr/xen-orchestra/issues/1854)
+- Add a button to delete a backup [#1751](https://github.com/vatesfr/xen-orchestra/issues/1751)
+- Dashboard available for Pool and Host level  [#1631](https://github.com/vatesfr/xen-orchestra/issues/1631)
+- UI Enhancement - VM list - Allways show the Toolbar  [#1581](https://github.com/vatesfr/xen-orchestra/issues/1581)
+- xoa-updater --register:  unable to define proxy using the CLI [#873](https://github.com/vatesfr/xen-orchestra/issues/873)
+
+
+### Bugs
+
+- [Backup NG] CR/DR fail with multiple VMs [#2807](https://github.com/vatesfr/xen-orchestra/issues/2807)
+- HTTPS Crash [#2803](https://github.com/vatesfr/xen-orchestra/issues/2803)
+- Backup NG "cannot fork the stream after it has been created" [#2790](https://github.com/vatesfr/xen-orchestra/issues/2790)
+- [XOSAN] Make temporary `boundObjectId` unique [#2758](https://github.com/vatesfr/xen-orchestra/issues/2758)
+- First VIF ignored at VM creation [#2794](https://github.com/vatesfr/xen-orchestra/issues/2794)
+- VM creation from snapshot does not work [#2748](https://github.com/vatesfr/xen-orchestra/issues/2748)
+- Error: no such object with CentOS 7 template [#2747](https://github.com/vatesfr/xen-orchestra/issues/2747)
+- [Tasks] Filter does not work [#2740](https://github.com/vatesfr/xen-orchestra/issues/2740)
+- Pagination broken when listing pool VMs [#2730](https://github.com/vatesfr/xen-orchestra/issues/2730)
+- All jobs show error icon with message "This backup's creator no longer exists" [#2728](https://github.com/vatesfr/xen-orchestra/issues/2728)
+- [Basic backup] Continous Replication VM names [#2727](https://github.com/vatesfr/xen-orchestra/issues/2727)
+- Continuous replication clone removed [#2724](https://github.com/vatesfr/xen-orchestra/issues/2724)
+- [Backup] "See matching VMs" issue [#2704](https://github.com/vatesfr/xen-orchestra/issues/2704)
+- How to exclude CR targets from a smart backup using tags? [#2613](https://github.com/vatesfr/xen-orchestra/issues/2613)
+- Successful VM import reported as failed [#2056](https://github.com/vatesfr/xen-orchestra/issues/2056)
+- Delta backup: issue if a disk is once again backed up [#1824](https://github.com/vatesfr/xen-orchestra/issues/1824)
+
 ## **5.17.0** (2018-03-02)
 
 ### Enhancements
 
+- Username field labeled inconsistently [#2651](https://github.com/vatesfr/xen-orchestra/issues/2651)
 - Add modal confirmation for host emergency mode [#2230](https://github.com/vatesfr/xen-orchestra/issues/2230)
 - Authorize stats fetching in RO mode [#2678](https://github.com/vatesfr/xen-orchestra/issues/2678)
 - Limit VM.export concurrency [#2669](https://github.com/vatesfr/xen-orchestra/issues/2669)
@@ -22,6 +117,9 @@
 - Cant attach XenTools on User side.  [#2503](https://github.com/vatesfr/xen-orchestra/issues/2503)
 - Pool filter for health view [#2302](https://github.com/vatesfr/xen-orchestra/issues/2302)
 - [Smart Backup] Improve feedback [#2253](https://github.com/vatesfr/xen-orchestra/issues/2253)
+- Backup jobs stuck if no space left on NFS remote [#2116](https://github.com/vatesfr/xen-orchestra/issues/2116)
+- Link between backup and XS tasks [#1193](https://github.com/vatesfr/xen-orchestra/issues/1193)
+- Move delta backup grouping to server side [#1008](https://github.com/vatesfr/xen-orchestra/issues/1008)
 
 ### Bugs
 
@@ -41,6 +139,7 @@
 - Self-service: allow VIF create [#2593](https://github.com/vatesfr/xen-orchestra/issues/2593)
 - Ghost tasks [#2579](https://github.com/vatesfr/xen-orchestra/issues/2579)
 - Autopatching: ignore 7.3 update patch for 7.2 [#2564](https://github.com/vatesfr/xen-orchestra/issues/2564)
+- Better Handling of suspending VMs from the Home screen [#2547](https://github.com/vatesfr/xen-orchestra/issues/2547)
 - Allow deleting VMs for which `destroy` is blocked [#2525](https://github.com/vatesfr/xen-orchestra/issues/2525)
 - Better confirmation on mass destructive actions [#2522](https://github.com/vatesfr/xen-orchestra/issues/2522)
 - Move VM In to/Out of Self Service Group [#1913](https://github.com/vatesfr/xen-orchestra/issues/1913)
@@ -50,6 +149,8 @@
 - Remove CoffeeScript in xo-server [#189](https://github.com/vatesfr/xen-orchestra/issues/189)
 - Better Handling of suspending VMs from the Home screen [#2547](https://github.com/vatesfr/xen-orchestra/issues/2547)
 - [xen-api] Stronger reconnection policy [#2410](https://github.com/vatesfr/xen-orchestra/issues/2410)
+- home view - allow selecting more than 25 items [#1210](https://github.com/vatesfr/xen-orchestra/issues/1210)
+- Performances alerts [#511](https://github.com/vatesfr/xen-orchestra/issues/511)
 
 ### Bugs
 
@@ -79,6 +180,7 @@
 - Graphs in VM list view [#2469](https://github.com/vatesfr/xen-orchestra/issues/2469)
 - [Delta Backups] Do not include merge duration in transfer speed stat [#2426](https://github.com/vatesfr/xen-orchestra/issues/2426)
 - Warning for disperse mode [#2537](https://github.com/vatesfr/xen-orchestra/issues/2537)
+- Select components: auto select value if only 1 choice possible [#1479](https://github.com/vatesfr/xen-orchestra/issues/1479)
 
 ### Bugs
 

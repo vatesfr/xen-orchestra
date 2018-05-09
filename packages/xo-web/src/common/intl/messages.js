@@ -540,10 +540,11 @@ const messages = {
 
   // ----- SR advanced tab -----
 
+  srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiNameLabel: 'Name',
   srUnhealthyVdiSize: 'Size',
-  srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiTitle: 'VDI to coalesce ({total, number})',
+  srUnhealthyVdiUuid: 'UUID',
 
   // ----- SR stats tab -----
 
@@ -1037,6 +1038,8 @@ const messages = {
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
   vmContainer: 'Resident on',
+  vmSnapshotsRelatedToNonExistentBackups:
+    'VM snapshots related to non-existent backups',
   alarmMessage: 'Alarms',
   noAlarms: 'No alarms',
   alarmDate: 'Date',
