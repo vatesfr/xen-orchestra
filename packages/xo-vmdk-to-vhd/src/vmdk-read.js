@@ -1,6 +1,7 @@
 'use strict'
 
 import zlib from 'zlib'
+
 import { VirtualBuffer } from './virtual-buffer'
 
 const sectorSize = 512
