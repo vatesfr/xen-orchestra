@@ -1,8 +1,9 @@
+
 # xo-cli
 
-This is another client of `xo-server`, this time in command line.
+This is another client of `xo-server` - this time in command line form.
 
-Thanks to introspection, `xo-cli` will detect all the available features exposed in `xo-server` API.
+Thanks to introspection, `xo-cli` will detect all the available features exposed in the `xo-server` API.
 
 ## Usage
 
@@ -53,7 +54,7 @@ Prints all objects:
 > xo-cli --list-objects
 ```
 
-It is possible to filter on object properties, for instance to prints
+It is possible to filter on object properties, for instance to print
 all VM templates:
 
 ```
@@ -87,7 +88,7 @@ E.g., adding a new server:
 The return value is the identifier of this new server in XO.
 
 Parameters (except `true` and `false` which are correctly parsed as
-booleans) are assumed to be strings, for other types, you may use JSON
+booleans) are assumed to be strings. For other types, you may use JSON
 encoding by prefixing with `json:`:
 
 ```

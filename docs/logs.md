@@ -1,6 +1,7 @@
+
 # Logs
 
-This section will explain how to check the XOA logs, and be able to detect issues.
+This section will explain how to check the XOA logs, and use them to detect issues.
 
 ## From the web interface
 
@@ -8,9 +9,9 @@ Go into Settings/Logs view.
 
 ## CLI
 
-All XOA logs are stored in `/var/log/syslog`.
+All XOA logs are stored in `/var/log/syslog` (on the XO Appliance).
 
-To filter only on what you need, you can use `journalctl`. Let's see some example to filter only logs for `xo-server`:
+To filter only what you need, you can use `journalctl`. Below is an example to filter only logs for `xo-server`:
 
 ```
 $ journalctl -u xo-server -f -n 50

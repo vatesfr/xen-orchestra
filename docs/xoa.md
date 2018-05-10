@@ -1,12 +1,13 @@
+
 # XOA
 
-The fastest way to install Xen Orchestra is to use our Appliance. You can deploy it by connecting into your XenServer and execute this:
+The fastest way to install Xen Orchestra is to use our Appliance. You can deploy it by connecting to your XenServer host and executing this:
 
 ```
 bash -c "$(curl -s http://xoa.io/deploy)"
 ```
 
-> This won't write or modify anything into your XenServer system: it will just import XOA VM in your default storage repository.
+> This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.
 
 XOA is a Debian VM with:
 
@@ -24,50 +25,50 @@ By default, this VM is configured with:
 * 2GB of RAM
 * 15GB of disk (10GB for `/` and 5GB for `/var`)
 
-For usage on huge infrastructure (more than 500+ VMs), feel free to raise the RAM.
+For usage on huge infrastructure (more than 500+ VMs), feel free to increase the RAM.
 
 ## Deployment
 
 ### The quickest way
 
-SSH on your XenServer, and execute this:
+SSH to your XenServer, and execute the following:
 
 ```
 bash -c "$(curl -s http://xoa.io/deploy)"
 ```
 
-And follow the instructions:
+Then follow the instructions:
 
-* Your IP configuration will be requested: it's in **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
-* If DHCP is selected, the script will continue automatically. Otherwise, a netmask, gateway and DNS should be provided.
+* Your IP configuration will be requested: it's set to **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
+* If DHCP is selected, the script will continue automatically. Otherwise a netmask, gateway, and DNS should be provided.
 * XOA will be deployed on your default storage repository. You can move it elsewhere anytime after.
 
 ### The alternative
 
-Download XOA on xen-orchestra.com. Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
+Download XOA from xen-orchestra.com. Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
 
-After the VM is imported, you just need to start it with a `xe vm-start vm="XOA Unified"` or with XenCenter.
+After the VM is imported, you just need to start it with `xe vm-start vm="XOA Unified"` or with XenCenter.
 
 ## Registration
 
-**The first thing** you need to do with your XOA, is to register. [Read the documentation on the page dedicated to the updater/register inferface](updater.md).
+**The first thing** you need to do with your XOA is register. [Read the documentation on the page dedicated to the updater/register inferface](updater.md).
 
 ### First console connection
 
-If you connect in SSH or via console, the default credentials are:
+If you connect via SSH or console, the default credentials are:
 
 * user: xoa
 * password: xoa
 
 During your first connection, the system will ask you to:
 
-* enter again the current password (`xoa`)
+* enter the current password again (`xoa`)
 * enter your new password
 * retype your new password
 
 When it's done, you'll be disconnected, so reconnect again with your new password.
 
-Here is an example when you connect in SSH for the first time:
+Here is an example when you connect via SSH for the first time:
 
 ```
 $ ssh xoa@192.168.100.146
@@ -128,7 +129,7 @@ Administrator. It usually boils down to these three things:
 
 ### Network configuration
 
-XOA is in **DHCP** by default, so if you need to configure the IP address, please run the command `xoa network static`. It will ask you network details:
+XOA uses **DHCP** by default, so if you need to configure the IP address, please run the command `xoa network static`. It will ask you network details:
 
 ```
 $ xoa network static
@@ -142,11 +143,11 @@ Xen Orchestra is now accessible in your browser on ` https://your-vm-ip`.
 
 You can access the VM console through XenCenter or using VNC through a SSH tunnel.
 
-If you want to go back in DHCP, just use `xoa network dhcp`
+If you want to go back in DHCP, just run `xoa network dhcp`
 
 ### SSH Pro Support
 
-By default, if you need support, there is a dedicated user named `xoa-support`. We are the only one with the private key. If you want our assistance on your XOA, you can open a private tunnel:
+By default, if you need support, there is a dedicated user named `xoa-support`. We are the only one with the private key. If you want our assistance on your XOA, you can open a private tunnel with the command `xoa support tunnel` like below:
 
 ```
 $ xoa support tunnel
@@ -156,13 +157,13 @@ Do not stop this command before the intervention is over!
 Give this id to the support: 40713
 ```
 
-Give us this number, we'll be able to access your XOA in a secure manner. Then, close the tunnel with `Ctrl+C` after the support fixed your issue.
+Give us this number, we'll be able to access your XOA in a secure manner. Then, close the tunnel with `Ctrl+C` after your issue has been solved by support.
 
 > If you want to deactivate this bundled user, you can type `chage -E 0 xoa-support`. To re-activate this account, you must use the `chage -E 1 xoa-support`.
 
 ### Firewall
 
-By default, XOA is firewalled, with only ports 22, 80 and 443 opened. You can see the current status of the firewall using `sudo ufw status verbose` command:
+By default XOA is firewalled, with only ports 22, 80 and 443 opened. You can see the current status of the firewall using the `sudo ufw status verbose` command:
 
 ```
 Status: active
@@ -194,13 +195,13 @@ In any case, if you lose your password, you can reset the database and get the d
 
 ## Timezone
 
-You can verify if your time is correctly set with the `date` command. To set XOA to your current timezone, use `sudo dpkg-reconfigure tzdata`.
+You can verify that your time is correctly set with the `date` command. To set XOA to your current timezone, use `sudo dpkg-reconfigure tzdata`.
 
 ## Restart the service
 
-You can restart Xen Orchestra by going in XOA on SSH (or console) and type `systemctl restart xo-server.service`.
+You can restart Xen Orchestra by accessing XOA via SSH (or console) and running `systemctl restart xo-server.service`.
 
-To check the status of `xo-server`, use `systemctl status xo-server.service`, it should display something like that:
+To check the status of `xo-server`, use `systemctl status xo-server.service`, it should display something like this:
 
 ```
 xo-server.service - XO Server
@@ -217,13 +218,13 @@ Aug 14 10:59:48 xoa xo-server[394]: WebServer listening on http://0.0.0.0:80
 
 ## Migrate from an older XOA
 
-If you still use the first XOA (which is not the "unified" version), you could migrate easily all your settings (ACLs, users, server, etc.) to the new one painlessly.
+If you still use the first XOA (which was not the "unified" version), you can easily migrate all your settings (ACLs, users, servers, etc) to the new version painlessly.
 
-To do that, go into "Settings/Config" of your old XOA. Export the configuration: you'll download a `config.json` file.
+To do so, go into "Settings/Config" of your old XOA. Export the configuration: you'll download a `config.json` file.
 
 ![](./assets/xo5_export.png)
 
-Now, go to your new unified XOA, "Settings/Config" and import the `config.json` file you downloaded previously, by doing a drag and drop:
+Now go to your new unified XOA, "Settings/Config" and import the `config.json` file you downloaded previously, by doing a drag and drop:
 
 ![](./assets/xo5_import.png)
 

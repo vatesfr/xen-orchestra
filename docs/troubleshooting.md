@@ -1,26 +1,27 @@
+
 # Troubleshooting
 
-This page recap the possible actions to perform if you have any problems with your XOA.
+This page recaps the actions you can perform if you have any problems with your XOA.
 
 ## XOA deploy error
 
 > Auto deploy failed. - No SR specified and Pool default SR is null
 
-It means you don't have a default SR set on the pool you are importing XOA to. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you got the UUID, you can set the default SR with: `xe pool-param-set default-SR=<SR_UUID>`. When this is done, re-enter the deploy script command and it will work!
+It means you don't have a default SR set on the pool you are importing XOA to. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you have the UUID, you can set the default SR with: `xe pool-param-set default-SR=<SR_UUID>`. When this is done, re-enter the deploy script command and it will work!
 
 ## XOA unreachable after boot
 
-XOA is using HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XenServer support hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
+XOA uses HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XenServer supports hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
 
 ## Empty page after login
 
-This is happening when your anti-virus or firewall is blocking websocket protocol. This is what we use to communicate between `xo-server` and `xo-web` (see the [architecture page](architecture.md)).
+This happens when your antivirus or firewall is blocking the websocket protocol. This is what we use to communicate between `xo-server` and `xo-web` (see the [architecture page](architecture.md)).
 
-The solution is to use **HTTPS**. In this way, websockets will be encapsulated in the secured protocol, avoiding interception from your firewalls or anti-virus system.
+The solution is to use **HTTPS**. When doing so, websockets will be encapsulated in the secured protocol, avoiding interception from your firewall or antivirus system.
 
 ## XOA migration issues
 
-By default, XOA got a static max memory set to 16GiB. Sometimes, you can have trouble to migrate with this error message:
+By default, XOA has a static max memory set to 16GiB. Sometimes you can have trouble migrating with this error message:
 
 ```
 "Failed","Migrating VM 'XOA' from '<origin_hostname>' to '<destination_hostname>'
@@ -32,16 +33,16 @@ In this case, it means you need to reduce the static max memory field to a lower
 
 ## XOA boot issues
 
-XOA is configured in HVM. It means you need a hardware that support HVM instructions (almost all hardware since 2011). If it's not the case, the symptom is this one:
+XOA is configured in HVM. It means you need hardware that supports HVM instructions (almost all hardware since 2011). If that's not the case, the symptom is this:
 
 1. XOA VM starts for few seconds
-2. Then shutdown itself
+2. Then it shuts down
 
 Please check that you have enabled virtualization settings in your BIOS or upgrade your hardware.
 
 ## XOA configuration
 
-XOA is a virtual appliance running Debian and Xen Orchestra. If you have any problem, the first thing to do is to use our check service by running the `xoa check` command in a terminal:
+XOA is a virtual appliance running Debian with Xen Orchestra installed. If you have any problems, the first thing to do is to use our check service by running the `xoa check` command in a terminal:
 
 ```
 $ xoa check
@@ -58,9 +59,9 @@ If you have something completely different than that, or error messages, lost pa
 
 ### Network issues
 
-You can see your current network configuration with a `ifconfig eth0`. If you have an external firewall, please check that you allow the XOA's IP.
+You can see your current network configuration by running `ifconfig eth0`. If you have an external firewall, please check that you allow the XOA's IP.
 
-You can modify the IP configuration with `xoa network static` (for a static IP address) or ` xoa network dhcp` to be in DHCP.
+You can modify the IP configuration with `xoa network static` (for a static IP address) or ` xoa network dhcp` to use DHCP.
 
 ### Memory
 
@@ -82,7 +83,7 @@ FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memo
 1: node::Abort() [node]
 ```
 
-In that case you need to do to increase the allocated memory to the
+In that case, you need to increase the memory allocated to the
 XOA VM (from 2GB to 4 or 8 GB), and then update the service file
 (`/etc/systemd/system/xo-server.service`) to increase the allocated
 memory to xo-server itself:
@@ -109,7 +110,7 @@ Then, restart the updater with `systemctl restart xoa-updater`.
 
 If the provided certificate is expired, you may want to create a new one.
 
-Connect to your appliance via SSH as root, and execute these commands:
+Connect to your appliance via SSH, then as root execute these commands:
 
 ```
 $ cd /etc/ssl
@@ -121,7 +122,7 @@ $ systemctl restart xo-server.service
 
 ## XO configuration
 
-The system logs are visible thanks to this command:
+The system logs are visible by using this command:
 
 ```
 $ tail -f /var/log/syslog
@@ -131,17 +132,16 @@ You can read more about logs [in the dedicated chapter](logs.md).
 
 ### Ghost tasks
 
-If you have ghost tasks accumulating on your XenOrchestra you can try
-the following actions in order:
+If you have ghost tasks accumulating in your XenOrchestra you can try the following actions in order:
 
 1. refresh the web page
-1. disconnect and reconnect the Xen pool/server of the tasks
+1. disconnect and reconnect the Xen pool/server owning the tasks
 1. restart the XenAPI Toolstack of the XenServer master
 1. restart xo-server
 
 ### Redownload and rebuild all the packages
 
-If a package disappear due to a build problem or a human error, you can redownload them using the updater:
+If a package disappears due to a build problem or human error, you can redownload them using the updater:
 
 1. `rm /var/lib/xoa-updater/update.json`
 2. `xoa-updater --upgrade`

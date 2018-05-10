@@ -1,12 +1,13 @@
+
 # Plugins
 
-Xen Orchestra plugins allow to extend features without rewriting the core of the application.
+Xen Orchestra plugins allow you to extend features without rewriting the core of the application.
 
-You can see your installed plugins in "Settings" then "Plugins" page:
+You can see your installed plugins in "Settings" then the "Plugins" page:
 
 ![](./assets/xo5pluginsmenu.png)
 
-Every plugin configuration should be done in the web interface:
+All plugin configuration should be done in the web interface:
 
 ![](./assets/xo5pluginspage.png)
 

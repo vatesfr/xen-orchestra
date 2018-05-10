@@ -1,6 +1,7 @@
+
 # xo-web
 
-This is probably the first thing you'll see of Xen Orchestra. The Web interface allows to interact with your virtual infrastructure. As a module for XO-web, it facilitates the everyday Xen administrator work, but also provide a solution to delegate some part of your infrastructure to other people.
+This is probably the first part of Xen Orchestra you'll see. The Web interface allows you to interact with your virtual infrastructure. As a module of XO-Web it facilitates everyday Xen administrator work, but also provides a solution to delegate parts of your infrastructure to other people.
 
 ![](https://xen-orchestra.com/blog/content/images/2015/05/tablet3-1.JPG)
 
