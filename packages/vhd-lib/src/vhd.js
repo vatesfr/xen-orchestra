@@ -97,7 +97,12 @@ export default class Vhd {
   }
 
   _read (start, n) {
-    return this._readStream(start, n).then(getStream.buffer)
+    return this._readStream(start, n)
+      .then(getStream.buffer)
+      .then(buf => {
+        assert.equal(buf.length, n)
+        return buf
+      })
   }
 
   containsBlock (id) {
