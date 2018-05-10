@@ -9,8 +9,12 @@ import {
   BLOCK_UNUSED,
   DISK_TYPE_DIFFERENCING,
   DISK_TYPE_DYNAMIC,
+  FILE_FORMAT_VERSION,
+  FOOTER_COOKIE,
   FOOTER_SIZE,
+  HEADER_COOKIE,
   HEADER_SIZE,
+  HEADER_VERSION,
   PARENT_LOCATOR_ENTRIES,
   PLATFORM_NONE,
   PLATFORM_W2KU,
@@ -173,9 +177,9 @@ export default class Vhd {
     }
 
     const footer = (this.footer = fuFooter.unpack(bufFooter))
-    assert.strictEqual(footer.cookie, 'conectix', 'footer cookie')
+    assert.strictEqual(footer.cookie, FOOTER_COOKIE, 'footer cookie')
     assert.strictEqual(footer.dataOffset, FOOTER_SIZE)
-    assert.strictEqual(footer.fileFormatVersion, 1 << 16)
+    assert.strictEqual(footer.fileFormatVersion, FILE_FORMAT_VERSION)
     assert(footer.originalSize <= footer.currentSize)
     assert(
       footer.diskType === DISK_TYPE_DIFFERENCING ||
@@ -183,9 +187,9 @@ export default class Vhd {
     )
 
     const header = (this.header = fuHeader.unpack(bufHeader))
-    assert.strictEqual(header.cookie, 'cxsparse')
+    assert.strictEqual(header.cookie, HEADER_COOKIE)
     assert.strictEqual(header.dataOffset, undefined)
-    assert.strictEqual(header.headerVersion, 1 << 16)
+    assert.strictEqual(header.headerVersion, HEADER_VERSION)
     assert(header.maxTableEntries >= footer.currentSize / header.blockSize)
     assert(Number.isInteger(Math.log2(header.blockSize / SECTOR_SIZE)))
 

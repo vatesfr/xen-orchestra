@@ -2,13 +2,16 @@ import { v4 as generateUuid } from 'uuid'
 
 import { checksumStruct, fuFooter, fuHeader } from './_structs'
 import {
-  FOOTER_COOKIE,
-  DISK_TYPE_FIXED,
-  PLATFORM_WI2K,
-  FOOTER_SIZE,
-  HEADER_SIZE,
+  CREATOR_APPLICATION,
   DEFAULT_BLOCK_SIZE as VHD_BLOCK_SIZE_BYTES,
+  DISK_TYPE_FIXED,
+  FILE_FORMAT_VERSION,
+  FOOTER_COOKIE,
+  FOOTER_SIZE,
   HEADER_COOKIE,
+  HEADER_SIZE,
+  HEADER_VERSION,
+  PLATFORM_WI2K,
 } from './_constants'
 
 export function createFooter (
@@ -21,10 +24,10 @@ export function createFooter (
   const footer = fuFooter.pack({
     cookie: FOOTER_COOKIE,
     features: 2,
-    fileFormatVersion: 0x00010000,
+    fileFormatVersion: FILE_FORMAT_VERSION,
     dataOffset,
     timestamp,
-    creatorApplication: 'xo  ',
+    creatorApplication: CREATOR_APPLICATION,
     creatorHostOs: PLATFORM_WI2K, // it looks like everybody is using Wi2k
     originalSize: size,
     currentSize: size,
@@ -44,7 +47,7 @@ export function createHeader (
   const header = fuHeader.pack({
     cookie: HEADER_COOKIE,
     tableOffset,
-    headerVersion: 0x00010000,
+    headerVersion: HEADER_VERSION,
     maxTableEntries,
     blockSize,
   })

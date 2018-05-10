@@ -1,5 +1,8 @@
 export const BLOCK_UNUSED = 0xffffffff
 
+// This lib has been extracted from the Xen Orchestra project.
+export const CREATOR_APPLICATION = 'xo  '
+
 // Sizes in bytes.
 export const FOOTER_SIZE = 512
 export const HEADER_SIZE = 1024
@@ -22,3 +25,6 @@ export const PLATFORM_W2RU = 0x57327275
 export const PLATFORM_W2KU = 0x57326b75
 export const PLATFORM_MAC = 0x4d616320
 export const PLATFORM_MACX = 0x4d616358
+
+export const FILE_FORMAT_VERSION = 1 << 16
+export const HEADER_VERSION = 1 << 16

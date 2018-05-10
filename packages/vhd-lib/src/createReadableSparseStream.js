@@ -3,11 +3,12 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import computeGeometryForSize from './_computeGeometryForSize'
 import { createFooter, createHeader } from './_createFooterHeader'
 import {
+  BLOCK_UNUSED,
   DEFAULT_BLOCK_SIZE as VHD_BLOCK_SIZE_BYTES,
-  SECTOR_SIZE,
-  HEADER_SIZE,
-  FOOTER_SIZE,
   DISK_TYPE_DYNAMIC,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  SECTOR_SIZE,
 } from './_constants'
 
 import { set as setBitmap } from './_bitmap'
@@ -29,7 +30,7 @@ function createBAT (
   blockAddressList.forEach(blockPosition => {
     const scaled = blockPosition / VHD_BLOCK_SIZE_BYTES
     const vhdTableIndex = Math.floor(scaled)
-    if (bat.readUInt32BE(vhdTableIndex * 4) === 0xffffffff) {
+    if (bat.readUInt32BE(vhdTableIndex * 4) === BLOCK_UNUSED) {
       bat.writeUInt32BE(currentVhdPositionSector, vhdTableIndex * 4)
       currentVhdPositionSector +=
         (bitmapSize + VHD_BLOCK_SIZE_BYTES) / SECTOR_SIZE
