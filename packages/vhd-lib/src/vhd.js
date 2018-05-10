@@ -148,14 +148,24 @@ export default class Vhd {
     return sectorsToBytes(end)
   }
 
-  // Get the beginning (footer + header) of a vhd file.
-  async readHeaderAndFooter () {
+  // TODO: extract the checks into reusable functions:
+  // - better human reporting
+  // - auto repair if possible
+  async readHeaderAndFooter (checkSecondFooter = true) {
     const buf = await this._read(0, FOOTER_SIZE + HEADER_SIZE)
     const bufFooter = buf.slice(0, FOOTER_SIZE)
     const bufHeader = buf.slice(FOOTER_SIZE)
 
     assertChecksum('footer', bufFooter, fuFooter)
     assertChecksum('header', bufHeader, fuHeader)
+
+    if (checkSecondFooter) {
+      const size = await this._handler.getSize(this._path)
+      assert(
+        bufFooter.equals(await this._read(size - FOOTER_SIZE, FOOTER_SIZE)),
+        'footer1 !== footer2'
+      )
+    }
 
     const footer = (this.footer = fuFooter.unpack(bufFooter))
     assert.strictEqual(footer.cookie, 'conectix', 'footer cookie')
