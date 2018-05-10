@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import path from 'path'
 import { createSyntheticStream } from 'vhd-lib'
 import { createWriteStream } from 'fs'
