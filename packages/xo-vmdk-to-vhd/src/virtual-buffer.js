@@ -13,7 +13,6 @@ export class VirtualBuffer {
     return !this.slicer.readable
   }
 
-  // length = -1 means 'until the end'
   async readChunk (length, label) {
     const _this = this
     if (this.promise !== null) {
