@@ -1,5 +1,3 @@
-
-
 # From the sources
 
 **WARNING**: we don't provide support for this installation method. We cannot guarantee anything if it's used in production. Use it at your own risk.
@@ -113,8 +111,9 @@ Then restart Xen Orchestra if it was running.
 - You can use [forever](https://github.com/nodejitsu/forever) to have the process always running:
 
 ```
-$ yarn global add forever
-$ forever start bin/xo-server
+yarn global add forever
+# Run the below as the user owning XO
+forever start bin/xo-server
 ```
 
 - Or you can use  [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
@@ -122,8 +121,9 @@ $ forever start bin/xo-server
 ```
 yarn global add forever
 yarn global add forever-service
-#Be sure to edit the path below to where your install is located!
+# Be sure to edit the path below to where your install is located!
 cd /home/username/xen-orchestra/packages/xo-server/bin/
+# Change the username below to the user owning XO
 forever-service install orchestra -r username -s xo-server
 ```
 
