@@ -1,3 +1,4 @@
+
 # Backup troubleshooting
 
 ## Backup progress
@@ -49,3 +50,9 @@ This message appears when the previous replicated VM has been deleted on the tar
 This message appears when you try to do a backup/snapshot from a VM that was previously on a host with an active commercial XenServer license and which is now on a host with a free edition of XenServer.
 
 To solve it, you have to change a parameter in your VM. `xe vm-param-set has-vendor-device=false uuid=<VM_UUID>`
+
+### ENOSPC: no space left on device
+
+This message appears when you do not have enough free space on the target remote when running a backup to it.  
+
+ To check your free space, enter your XOA and run `xoa check` to check free system space and `df -h` to check free space on your chosen remote storage.
