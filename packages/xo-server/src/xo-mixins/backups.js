@@ -823,7 +823,7 @@ export default class {
               throw error
             }
 
-            path = path.replace(/_delta\.vhd$/, '_full')
+            path = path.replace(/_delta\.vhd$/, '_full.vhd')
           }
           streams[`${id}.vhd`] = await createVhdReadStream(handler, path)
         })
