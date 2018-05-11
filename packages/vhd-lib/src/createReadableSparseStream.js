@@ -63,18 +63,14 @@ function * yieldIfNotEmpty (buffer) {
 }
 
 async function * generateFileContent (
-  blockParser,
+  blockIterator,
   bitmapSize,
   ratio,
   vhdOccupationTable
 ) {
   let currentVhdBlockIndex = -1
   let currentBlockBuffer = Buffer.alloc(0)
-  for (
-    let next = await blockParser.next();
-    next !== null;
-    next = await blockParser.next()
-  ) {
+  for await (const next of blockIterator) {
     const batEntry = Math.floor(next.offsetBytes / VHD_BLOCK_SIZE_BYTES)
     if (batEntry !== currentVhdBlockIndex) {
       yield * yieldIfNotEmpty(currentBlockBuffer)
@@ -91,7 +87,7 @@ export default asyncIteratorToStream(async function * (
   diskSize,
   incomingBlockSize,
   blockAddressList,
-  blockParser
+  blockIterator
 ) {
   const ratio = VHD_BLOCK_SIZE_BYTES / incomingBlockSize
   if (ratio % 1 !== 0) {
@@ -137,6 +133,11 @@ export default asyncIteratorToStream(async function * (
   yield footer
   yield header
   yield bat
-  yield * generateFileContent(blockParser, bitmapSize, ratio, vhdOccupationTable)
+  yield * generateFileContent(
+    blockIterator,
+    bitmapSize,
+    ratio,
+    vhdOccupationTable
+  )
   yield footer
 })

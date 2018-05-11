@@ -267,7 +267,7 @@ export class VMDKDirectParser {
     return this.header
   }
 
-  async next () {
+  async * blockIterator () {
     while (!this.virtualBuffer.isDepleted) {
       const position = this.virtualBuffer.position
       const sector = await this.virtualBuffer.readChunk(
@@ -300,10 +300,9 @@ export class VMDKDirectParser {
           this.header.compressionMethod === compressionDeflate &&
             this.header.flags.compressedGrains
         )
-        return { offsetBytes: grain.lbaBytes, data: grain.grain }
+        yield { offsetBytes: grain.lbaBytes, data: grain.grain }
       }
     }
-    return null
   }
 }
 

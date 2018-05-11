@@ -38,11 +38,7 @@ test('VMDKDirectParser reads OK', async () => {
   const parser = new VMDKDirectParser(createReadStream(fileName))
   const header = await parser.readHeader()
   const harvested = []
-  while (true) {
-    const res = await parser.next()
-    if (res === null) {
-      break
-    }
+  for await (const res of parser.blockIterator()) {
     harvested.push(res)
   }
   expect(harvested.length).toEqual(2)

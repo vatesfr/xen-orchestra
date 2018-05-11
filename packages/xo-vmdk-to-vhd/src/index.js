@@ -9,7 +9,7 @@ async function convertFromVMDK (vmdkReadStream, table) {
     header.capacitySectors * 512,
     header.grainSizeSectors * 512,
     table,
-    parser
+    parser.blockIterator()
   )
 }
 
