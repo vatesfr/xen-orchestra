@@ -1,6 +1,7 @@
 'use strict'
 
 import zlib from 'zlib'
+
 import { VirtualBuffer } from './virtual-buffer'
 
 const sectorSize = 512
@@ -266,7 +267,7 @@ export class VMDKDirectParser {
     return this.header
   }
 
-  async next () {
+  async * blockIterator () {
     while (!this.virtualBuffer.isDepleted) {
       const position = this.virtualBuffer.position
       const sector = await this.virtualBuffer.readChunk(
@@ -293,79 +294,73 @@ export class VMDKDirectParser {
           'grain remainder ' + this.virtualBuffer.position
         )
         const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
-        return readGrain(
+        const grain = await readGrain(
           0,
           grainBuffer,
           this.header.compressionMethod === compressionDeflate &&
             this.header.flags.compressedGrains
         )
+        yield { offsetBytes: grain.lbaBytes, data: grain.grain }
       }
     }
-    return new Promise(resolve => resolve(null))
   }
 }
 
-export async function readRawContent (readStream) {
-  const virtualBuffer = new VirtualBuffer(readStream)
-  const headerBuffer = await virtualBuffer.readChunk(512, 'header')
-  let header = parseHeader(headerBuffer)
-
-  // I think the multiplications are OK, because the descriptor is always at the beginning of the file
-  const descriptorLength = header.descriptorSizeSectors * sectorSize
-  const descriptorBuffer = await virtualBuffer.readChunk(
-    descriptorLength,
-    'descriptor'
-  )
-  const descriptor = parseDescriptor(descriptorBuffer)
-
-  // TODO: we concat them back for now so that the indices match, we'll have to introduce a bias later
-  const remainingBuffer = await virtualBuffer.readChunk(-1, 'remainder')
-  const buffer = Buffer.concat([
-    headerBuffer,
-    descriptorBuffer,
-    remainingBuffer,
-  ])
-  if (header.grainDirectoryOffsetSectors === -1) {
-    header = parseHeader(buffer.slice(-1024, -1024 + sectorSize))
-  }
-  const rawOutputBuffer = Buffer.alloc(header.capacitySectors * sectorSize)
-  const l1Size = Math.floor(
-    (header.capacitySectors + header.l1EntrySectors - 1) / header.l1EntrySectors
-  )
-  const l2Size = header.numGTEsPerGT
-  const l1 = []
-  for (let i = 0; i < l1Size; i++) {
-    const l1Entry = buffer.readUInt32LE(
-      header.grainDirectoryOffsetSectors * sectorSize + 4 * i
+export async function readVmdkGrainTable (fileAccessor) {
+  let headerBuffer = await fileAccessor(0, 512)
+  let grainDirAddr = headerBuffer.slice(56, 56 + 8)
+  if (
+    new Int8Array(grainDirAddr).reduce((acc, val) => acc && val === -1, true)
+  ) {
+    headerBuffer = await fileAccessor(-1024, -1024 + 512)
+    grainDirAddr = new DataView(headerBuffer.slice(56, 56 + 8)).getUint32(
+      0,
+      true
     )
-    if (l1Entry !== 0) {
-      l1.push(l1Entry)
-      const l2 = []
-      for (let j = 0; j < l2Size; j++) {
-        const l2Entry = buffer.readUInt32LE(l1Entry * sectorSize + 4 * j)
-        if (l2Entry !== 0 && l2Entry !== 1) {
-          const grain = await readGrain(
-            l2Entry,
-            buffer,
-            header['flags']['compressedGrains']
-          )
-          grain.grain.copy(rawOutputBuffer, grain.lba * sectorSize)
-          l2[j] = grain
-        }
+  }
+  const grainDirPosBytes = grainDirAddr * 512
+  const capacity =
+    new DataView(headerBuffer.slice(12, 12 + 8)).getUint32(0, true) * 512
+  const grainSize =
+    new DataView(headerBuffer.slice(20, 20 + 8)).getUint32(0, true) * 512
+  const grainCount = Math.ceil(capacity / grainSize)
+  const numGTEsPerGT = new DataView(headerBuffer.slice(44, 44 + 8)).getUint32(
+    0,
+    true
+  )
+  const grainTablePhysicalSize = numGTEsPerGT * 4
+  const grainDirectoryEntries = Math.ceil(grainCount / numGTEsPerGT)
+  const grainDirectoryPhysicalSize = grainDirectoryEntries * 4
+  const grainDirBuffer = await fileAccessor(
+    grainDirPosBytes,
+    grainDirPosBytes + grainDirectoryPhysicalSize
+  )
+  const grainDir = new Uint32Array(grainDirBuffer)
+  const cachedGrainTables = []
+  for (let i = 0; i < grainDirectoryEntries; i++) {
+    const grainTableAddr = grainDir[i] * 512
+    if (grainTableAddr !== 0) {
+      cachedGrainTables[i] = new Uint32Array(
+        await fileAccessor(
+          grainTableAddr,
+          grainTableAddr + grainTablePhysicalSize
+        )
+      )
+    }
+  }
+  const extractedGrainTable = []
+  for (let i = 0; i < grainCount; i++) {
+    const directoryEntry = Math.floor(i / numGTEsPerGT)
+    const grainTable = cachedGrainTables[directoryEntry]
+    if (grainTable !== undefined) {
+      const grainAddr = grainTable[i % numGTEsPerGT]
+      if (grainAddr !== 0) {
+        extractedGrainTable.push([i, grainAddr])
       }
     }
   }
-  const vmdkType = descriptor['descriptor']['createType']
-  if (!vmdkType || vmdkType.toLowerCase() !== 'streamOptimized'.toLowerCase()) {
-    throw new Error(
-      'unsupported VMDK type "' +
-        vmdkType +
-        '", only streamOptimized is supported'
-    )
-  }
-  return {
-    descriptor: descriptor.descriptor,
-    extents: descriptor.extents,
-    rawFile: rawOutputBuffer,
-  }
+  extractedGrainTable.sort(
+    ([i1, grainAddress1], [i2, grainAddress2]) => grainAddress1 - grainAddress2
+  )
+  return extractedGrainTable.map(([index, grainAddress]) => index * grainSize)
 }

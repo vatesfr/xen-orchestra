@@ -19,12 +19,13 @@ import {
   startsWith,
   trim,
 } from 'lodash'
+import {
+  chainVhd,
+  createSyntheticStream as createVhdReadStream,
+  mergeVhd,
+} from 'vhd-lib'
 
 import createSizeStream from '../size-stream'
-import vhdMerge, {
-  chainVhd,
-  createReadStream as createVhdReadStream,
-} from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import { lvs, pvs } from '../lvm'
 import {
@@ -553,7 +554,7 @@ export default class {
       const backup = `${dir}/${backups[j]}`
 
       try {
-        mergedDataSize += await vhdMerge(handler, parent, handler, backup)
+        mergedDataSize += await mergeVhd(handler, parent, handler, backup)
       } catch (e) {
         console.error('Unable to use vhd-util.', e)
         throw e

@@ -5,6 +5,7 @@ import RemoteHandlerLocal from './local'
 import RemoteHandlerNfs from './nfs'
 import RemoteHandlerSmb from './smb'
 
+export type { default as RemoteHandler } from './abstract'
 export type Remote = { url: string }
 
 const HANDLERS = {

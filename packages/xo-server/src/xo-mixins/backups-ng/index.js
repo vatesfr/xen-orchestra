@@ -1,17 +1,21 @@
 // @flow
 
 // $FlowFixMe
+import type RemoteHandler from '@xen-orchestra/fs'
 import defer from 'golike-defer'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
 import { isEmpty, last, mapValues, noop, values } from 'lodash'
 import { timeout as pTimeout } from 'promise-toolbox'
+import Vhd, {
+  chainVhd,
+  createSyntheticStream as createVhdReadStream,
+} from 'vhd-lib'
 
 import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
-import type RemoteHandler from '../../remote-handlers/abstract'
 import createSizeStream from '../../size-stream'
 import {
   type DeltaVmExport,
@@ -25,11 +29,6 @@ import {
   safeDateFormat,
   serializeError,
 } from '../../utils'
-import {
-  chainVhd,
-  createReadStream as createVhdReadStream,
-  readVhdMetadata,
-} from '../../vhd-merge'
 
 import { translateLegacyJob } from './migration'
 
@@ -1067,9 +1066,13 @@ export default class BackupNg {
     const vhds = await asyncMap(
       await handler.list(dirname(path), { filter: isVhd, prependDir: true }),
       async path => {
-        const metadata = await readVhdMetadata(handler, path)
-        metadata.path = path
-        return metadata
+        const vhd = new Vhd(handler, path)
+        await vhd.readHeaderAndFooter()
+        return {
+          footer: vhd.footer,
+          header: vhd.header,
+          path,
+        }
       }
     )
     const base = basename(path)

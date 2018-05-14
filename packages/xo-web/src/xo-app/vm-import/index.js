@@ -101,6 +101,7 @@ class VmData extends Component {
         return network.id ? network.id : network
       }),
       nCpus: +refs.nCpus.value,
+      tables: props.tables,
     }
   }
 
@@ -166,52 +167,52 @@ class VmData extends Component {
           <Col mediumSize={6}>
             {!isEmpty(disks)
               ? map(disks, (disk, diskId) => (
-                <Row key={diskId}>
-                  <Col mediumSize={6}>
-                    <div className='form-group'>
-                      <label>
-                        {_('diskInfo', {
-                          position: `${disk.position}`,
-                          capacity: formatSize(disk.capacity),
-                        })}
-                      </label>
-                      <input
-                        className='form-control'
-                        ref={`disk-name-${diskId}`}
-                        defaultValue={disk.nameLabel}
-                        type='text'
-                        required
-                      />
-                    </div>
-                  </Col>
-                  <Col mediumSize={6}>
-                    <div className='form-group'>
-                      <label>{_('diskDescription')}</label>
-                      <input
-                        className='form-control'
-                        ref={`disk-description-${diskId}`}
-                        defaultValue={disk.descriptionLabel}
-                        type='text'
-                        required
-                      />
-                    </div>
-                  </Col>
-                </Row>
-              ))
+                  <Row key={diskId}>
+                    <Col mediumSize={6}>
+                      <div className='form-group'>
+                        <label>
+                          {_('diskInfo', {
+                            position: `${disk.position}`,
+                            capacity: formatSize(disk.capacity),
+                          })}
+                        </label>
+                        <input
+                          className='form-control'
+                          ref={`disk-name-${diskId}`}
+                          defaultValue={disk.nameLabel}
+                          type='text'
+                          required
+                        />
+                      </div>
+                    </Col>
+                    <Col mediumSize={6}>
+                      <div className='form-group'>
+                        <label>{_('diskDescription')}</label>
+                        <input
+                          className='form-control'
+                          ref={`disk-description-${diskId}`}
+                          defaultValue={disk.descriptionLabel}
+                          type='text'
+                          required
+                        />
+                      </div>
+                    </Col>
+                  </Row>
+                ))
               : _('noDisks')}
           </Col>
           <Col mediumSize={6}>
             {networks.length > 0
               ? map(networks, (name, networkId) => (
-                <div className='form-group' key={networkId}>
-                  <label>{_('networkInfo', { name })}</label>
-                  <SelectNetwork
-                    defaultValue={defaultNetwork}
-                    ref={`network-${networkId}`}
-                    predicate={this._getNetworkPredicate()}
-                  />
-                </div>
-              ))
+                  <div className='form-group' key={networkId}>
+                    <label>{_('networkInfo', { name })}</label>
+                    <SelectNetwork
+                      defaultValue={defaultNetwork}
+                      ref={`network-${networkId}`}
+                      predicate={this._getNetworkPredicate()}
+                    />
+                  </div>
+                ))
               : _('noNetworks')}
           </Col>
         </Row>

@@ -8,6 +8,8 @@
 /packages/*/dist/
 /packages/*/node_modules/
 
+/packages/vhd-cli/src/commands/index.js
+
 /packages/xen-api/plot.dat
 
 /packages/xo-server/.xo-server.*

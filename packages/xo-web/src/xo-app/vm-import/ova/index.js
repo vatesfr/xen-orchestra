@@ -1,8 +1,9 @@
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
-import tar from 'tar-stream'
 import xml2js from 'xml2js'
-import { ensureArray, htmlFileToStream, streamToString } from 'utils'
+import { fromEvent } from 'promise-toolbox'
+import { ensureArray } from 'utils'
+import { readVmdkGrainTable } from 'xo-vmdk-to-vhd'
 
 // ===================================================================
 
@@ -82,103 +83,119 @@ const filterDisks = disks => {
 }
 
 // ===================================================================
+/* global FileReader, TextDecoder */
 
-const parseOvaFile = file =>
-  new Promise((resolve, reject) => {
-    const stream = htmlFileToStream(file)
-    const extract = tar.extract()
+async function readFileFragment (file, start = 0, end) {
+  const reader = new FileReader()
+  reader.readAsArrayBuffer(file.slice(start, end))
+  return (await fromEvent(reader, 'loadend')).target.result
+}
 
-    stream.on('error', reject)
+function parseTarHeader (header) {
+  const textDecoder = new TextDecoder('ascii')
+  const fileName = textDecoder.decode(header.slice(0, 100)).split('\0')[0]
+  if (fileName.length === 0) {
+    return null
+  }
+  const fileSize = parseInt(textDecoder.decode(header.slice(124, 124 + 11)), 8)
+  return { fileName, fileSize }
+}
 
-    // tar module can work with bad tar files...
-    // So it's necessary to reject at end of stream.
-    extract.on('finish', () => {
-      reject(new Error('No ovf file found.'))
-    })
-    extract.on('error', reject)
-    extract.on('entry', ({ name }, stream, cb) => {
-      // Not a XML file.
-      const extIndex = name.lastIndexOf('.')
-      if (extIndex === -1 || name.substring(extIndex + 1) !== 'ovf') {
-        stream.on('end', cb)
-        stream.resume()
-        return
-      }
+async function parseOVF (fileFragment) {
+  const textDecoder = new TextDecoder('utf-8')
+  const xmlString = textDecoder.decode(await readFileFragment(fileFragment))
+  return new Promise((resolve, reject) =>
+    xml2js.parseString(
+      xmlString,
+      { mergeAttrs: true, explicitArray: false },
+      (err, res) => {
+        if (err) {
+          reject(err)
+          return
+        }
 
-      // XML file.
-      streamToString(stream).then(xmlString => {
-        xml2js.parseString(
-          xmlString,
-          {
-            mergeAttrs: true,
-            explicitArray: false,
+        const {
+          Envelope: {
+            DiskSection: { Disk: disks },
+            References: { File: files },
+            VirtualSystem: system,
           },
-          (err, res) => {
-            if (err) {
-              reject(err)
-              return
-            }
+        } = res
 
-            const {
-              Envelope: {
-                DiskSection: { Disk: disks },
-                References: { File: files },
-                VirtualSystem: system,
-              },
-            } = res
+        const data = {
+          disks: {},
+          networks: [],
+        }
+        const hardware = system.VirtualHardwareSection
 
-            const data = {
-              disks: {},
-              networks: [],
-            }
-            const hardware = system.VirtualHardwareSection
+        // Get VM name/description.
+        data.nameLabel = hardware.System['vssd:VirtualSystemIdentifier']
+        data.descriptionLabel =
+          (system.AnnotationSection && system.AnnotationSection.Annotation) ||
+          (system.OperatingSystemSection &&
+            system.OperatingSystemSection.Description)
 
-            // Get VM name/description.
-            data.nameLabel = hardware.System['vssd:VirtualSystemIdentifier']
-            data.descriptionLabel =
-              (system.AnnotationSection &&
-                system.AnnotationSection.Annotation) ||
-              (system.OperatingSystemSection &&
-                system.OperatingSystemSection.Description)
+        // Get disks.
+        forEach(ensureArray(disks), disk => {
+          const file = find(
+            ensureArray(files),
+            file => file['ovf:id'] === disk['ovf:fileRef']
+          )
+          const unit = disk['ovf:capacityAllocationUnits']
 
-            // Get disks.
-            forEach(ensureArray(disks), disk => {
-              const file = find(
-                ensureArray(files),
-                file => file['ovf:id'] === disk['ovf:fileRef']
-              )
-              const unit = disk['ovf:capacityAllocationUnits']
-
-              data.disks[disk['ovf:diskId']] = {
-                capacity:
-                  disk['ovf:capacity'] *
-                  ((unit && allocationUnitsToFactor(unit)) || 1),
-                path: file && file['ovf:href'],
-              }
-            })
-
-            // Get hardware info: CPU, RAM, disks, networks...
-            forEach(ensureArray(hardware.Item), item => {
-              const handler =
-                RESOURCE_TYPE_TO_HANDLER[item['rasd:ResourceType']]
-              if (!handler) {
-                return
-              }
-              handler(data, item)
-            })
-
-            // Remove disks which not have a position.
-            // (i.e. no info in hardware.Item section.)
-            filterDisks(data.disks)
-
-            // Done!
-            resolve(data)
-            cb()
+          data.disks[disk['ovf:diskId']] = {
+            capacity:
+              disk['ovf:capacity'] *
+              ((unit && allocationUnitsToFactor(unit)) || 1),
+            path: file && file['ovf:href'],
           }
-        )
-      })
-    })
+        })
 
-    stream.pipe(extract)
-  })
+        // Get hardware info: CPU, RAM, disks, networks...
+        forEach(ensureArray(hardware.Item), item => {
+          const handler = RESOURCE_TYPE_TO_HANDLER[item['rasd:ResourceType']]
+          if (!handler) {
+            return
+          }
+          handler(data, item)
+        })
+
+        // Remove disks which not have a position.
+        // (i.e. no info in hardware.Item section.)
+        filterDisks(data.disks)
+        resolve(data)
+      }
+    )
+  )
+}
+
+async function parseTarFile (file) {
+  let offset = 0
+  const HEADER_SIZE = 512
+  let data = { tables: {} }
+  while (offset + HEADER_SIZE <= file.size) {
+    const header = parseTarHeader(
+      await readFileFragment(file, offset, offset + HEADER_SIZE)
+    )
+    offset += HEADER_SIZE
+    if (header === null) {
+      break
+    }
+    if (header.fileName.toLowerCase().endsWith('.ovf')) {
+      const res = await parseOVF(file.slice(offset, offset + header.fileSize))
+      data = { ...data, ...res }
+    }
+    if (header.fileName.toLowerCase().endsWith('.vmdk')) {
+      const fileSlice = file.slice(offset, offset + header.fileSize)
+      const readFile = async (start, end) =>
+        readFileFragment(fileSlice, start, end)
+      data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+    }
+    offset += Math.ceil(header.fileSize / 512) * 512
+  }
+  return data
+}
+
+const parseOvaFile = async file => parseTarFile(file)
+
 export { parseOvaFile as default }

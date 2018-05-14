@@ -1,19 +1,44 @@
 #!/usr/bin/env node
 
 import execPromise from 'exec-promise'
-import { RemoteHandlerLocal } from '@nraynaud/xo-fs'
-import { resolve } from 'path'
 
-import Vhd from './vhd'
+import commands from './commands'
 
-execPromise(async args => {
-  const vhd = new Vhd(
-    new RemoteHandlerLocal({ url: 'file:///' }),
-    resolve(args[0])
+function runCommand (commands, [command, ...args]) {
+  if (command === undefined || command === '-h' || command === '--help') {
+    command = 'help'
+  }
+
+  const fn = commands[command]
+
+  if (fn === undefined) {
+    if (command === 'help') {
+      return `Usage:
+
+${Object.keys(commands)
+        .filter(command => command !== 'help')
+        .map(command => `    ${this.command} ${command}`)
+        .join('\n\n')}`
+    }
+
+    throw `invalid command ${command}` // eslint-disable-line no-throw-literal
+  }
+
+  return fn.call(
+    {
+      __proto__: this,
+      command: `${this.command} ${command}`,
+    },
+    args
   )
+}
 
-  await vhd.readHeaderAndFooter()
-
-  console.log(vhd._header)
-  console.log(vhd._footer)
-})
+execPromise(
+  runCommand.bind(
+    {
+      command: 'vhd-cli',
+      runCommand,
+    },
+    commands
+  )
+)
