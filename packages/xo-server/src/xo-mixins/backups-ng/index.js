@@ -476,7 +476,14 @@ export default class BackupNg {
           const vmCancel = cancelToken.fork()
           try {
             // $FlowFixMe injected $defer param
-            let p = this._backupVm(vmCancel.token, uuid, job, schedule)
+            let p = this._backupVm(
+              vmCancel.token,
+              uuid,
+              job,
+              schedule,
+              logger,
+              taskId
+            )
             const vmTimeout: number = getSetting(
               job.settings,
               'vmTimeout',
