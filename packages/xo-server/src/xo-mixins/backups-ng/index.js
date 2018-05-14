@@ -1011,7 +1011,7 @@ export default class BackupNg {
                 message: 'export',
                 parentId: taskId,
               }),
-              async remoteId => {
+              async (taskId, remoteId) => {
                 const fork = forkExport()
 
                 const handler = await app.getRemoteHandler(remoteId)
@@ -1024,25 +1024,29 @@ export default class BackupNg {
                     _ => _.mode === 'delta' && _.scheduleId === scheduleId
                   )
                 ): any)
+                const deleteOldBackups = () =>
+                  wrapTask(
+                    {
+                      logger,
+                      message: 'merge',
+                      result: _ => _.mergeSize,
+                      parentId: taskId,
+                    },
+                    this._deleteDeltaVmBackups(handler, oldBackups)
+                  )
 
                 const deleteFirst =
                   exportRetention > 1 &&
                   getSetting(settings, 'deleteFirst', remoteId)
                 if (deleteFirst) {
-                  await wrapTask(
-                    {
-                      logger,
-                      message: 'merge',
-                      result: _ => _.mergeSize,
-                    },
-                    await this._deleteDeltaVmBackups(handler, oldBackups)
-                  )
+                  await deleteOldBackups()
                 }
 
                 await wrapTask(
                   {
                     logger,
                     message: 'transfer',
+                    parentId: taskId,
                   },
                   asyncMap(
                     fork.vdis,
@@ -1083,7 +1087,7 @@ export default class BackupNg {
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
                 if (!deleteFirst) {
-                  await this._deleteDeltaVmBackups(handler, oldBackups)
+                  await deleteOldBackups()
                 }
               }
             )
@@ -1096,7 +1100,7 @@ export default class BackupNg {
                 message: 'export',
                 parentId: taskId,
               }),
-              async srId => {
+              async (taskId, srId) => {
                 const fork = forkExport()
 
                 const xapi = app.getXapi(srId)
@@ -1112,13 +1116,20 @@ export default class BackupNg {
                   await this._deleteVms(xapi, oldVms)
                 }
 
-                const { vm } = await xapi.importDeltaVm(fork, {
-                  disableStartAfterImport: false, // we'll take care of that
-                  name_label: `${metadata.vm.name_label} (${safeDateFormat(
-                    metadata.timestamp
-                  )})`,
-                  srId: sr.$id,
-                })
+                const { vm } = await wrapTask(
+                  {
+                    logger,
+                    message: 'transfer',
+                    parentId: taskId,
+                  },
+                  xapi.importDeltaVm(fork, {
+                    disableStartAfterImport: false, // we'll take care of that
+                    name_label: `${metadata.vm.name_label} (${safeDateFormat(
+                      metadata.timestamp
+                    )})`,
+                    srId: sr.$id,
+                  })
+                )
 
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Continuous Replication'),
