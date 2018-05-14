@@ -925,7 +925,9 @@ export default class BackupNg {
               )
             ): any)
 
-            const deleteFirst = getSetting(settings, 'deleteFirst', remoteId)
+            const deleteFirst =
+              exportRetention > 1 &&
+              getSetting(settings, 'deleteFirst', remoteId)
             if (deleteFirst) {
               this._deleteDeltaVmBackups(handler, oldBackups)
             }
