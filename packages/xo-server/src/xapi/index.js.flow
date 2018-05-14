@@ -37,6 +37,8 @@ declare class XapiObject {
 type Id = string | XapiObject
 declare export class Vm extends XapiObject {
   $snapshots: Vm[];
+  is_a_snapshot: boolean;
+  is_a_template: boolean;
   name_label: string;
   other_config: $Dict<string>;
   snapshot_time: number;
