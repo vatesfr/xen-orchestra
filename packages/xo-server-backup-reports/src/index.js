@@ -1,6 +1,6 @@
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
-import { forEach, get, startCase } from 'lodash'
+import { find, forEach, get, startCase } from 'lodash'
 
 import pkg from '../package'
 
@@ -89,8 +89,6 @@ class BackupReportsXoPlugin {
 
   load () {
     this._xo.on('job:terminated', this._report)
-    // FOR TEST
-    // setTimeout(this._backupNgListener.bind(this), 20 * 1e3)
   }
 
   unload () {
@@ -107,21 +105,8 @@ class BackupReportsXoPlugin {
     ).catch(logError)
   }
 
-  // FOR TEST
-  // async _backupNgListener (logs, _, { timezone } = {}) {
   async _backupNgListener (logs, _, { timezone }) {
-    // FOR TEST
-    // console.log('_backupNgListener ---- start')
     const xo = this._xo
-    // FOR TEST
-    // test1: failed job cause of failed target
-    // const run = '1523606939460'
-    // test2: failed job cause of skipped VM
-    // const run = '1523406939460'
-    // test3: failed job cause of no VMs
-    // const run = '15254606939460'
-    // logs = await xo.getBackupNgLogs(run)
-    // timezone = 'America/Los_Angeles'
 
     const jobLog = logs['roots'][0]
     const vmsTaskLog = logs[jobLog.id]
@@ -133,8 +118,7 @@ class BackupReportsXoPlugin {
 
     const formatDate = createDateFormater(timezone)
     const jobName = (await xo.getJob(jobLog.jobId, 'backup')).name
-    // FOR TEST
-    // const jobName = 'test'
+
     if (jobLog.error !== undefined) {
       const [globalStatus, icon] =
         jobLog.error.message === NO_VMS_MATCH_THIS_PATTERN
@@ -194,58 +178,47 @@ class BackupReportsXoPlugin {
         `- **Duration**: ${formatDuration(vmTaskLog.duration)}`,
       ]
 
-      let vmTaskDataInfos
       const failedSubTasks = []
       const operationsText = []
       const srsText = []
       const remotesText = []
       for (const subTaskLog of logs[vmTaskLog.taskId] || []) {
-        const { data, status, result } = subTaskLog
+        const { data, status, result, message } = subTaskLog
         const icon =
           subTaskLog.status === 'success' ? ICON_SUCCESS : ICON_FAILURE
         const errorMessage = `  **Error**: ${get(result, 'message')}`
 
-        switch (data.type) {
-          case 'operation':
-            const operationName = data.name
-            operationsText.push(`- **${operationName}** ${icon}`)
-            if (status === 'failure') {
-              failedSubTasks.push(operationName)
-              operationsText.push('', errorMessage)
-            }
-            break
-          case 'remote':
-            const remoteId = data.id
-            const remote = await xo.getRemote(remoteId).catch(() => {})
-            remotesText.push(
-              `- **${
-                remote !== undefined ? remote.name : `Remote Not found`
-              }** (${remoteId}) ${icon}`
-            )
-            if (status === 'failure') {
-              failedSubTasks.push(remote !== undefined ? remote.name : remoteId)
-              remotesText.push('', errorMessage)
-            } else if (vmTaskDataInfos === undefined) {
-              vmTaskDataInfos = result
-            }
-            break
-          case 'SR':
-            const srId = data.id
-            let sr
-            try {
-              sr = xo.getObject(srId)
-            } catch (e) {}
-            const [srName, srUuid] =
-              sr !== undefined
-                ? [sr.name_label, sr.uuid]
-                : [`SR Not found`, srId]
-            srsText.push(`- **${srName}** (${srUuid}) ${icon}`)
-            if (status === 'failure') {
-              failedSubTasks.push(sr !== undefined ? sr.name_label : srId)
-              srsText.push('', errorMessage)
-            } else if (vmTaskDataInfos === undefined) {
-              vmTaskDataInfos = result
-            }
+        if (message === 'snapshot') {
+          operationsText.push(`- **Snapshot** ${icon}`)
+          if (status === 'failure') {
+            failedSubTasks.push('Snapshot')
+            operationsText.push('', errorMessage)
+          }
+        } else if (data.type === 'remote') {
+          const remoteId = data.id
+          const remote = await xo.getRemote(remoteId).catch(() => {})
+          remotesText.push(
+            `- **${
+              remote !== undefined ? remote.name : `Remote Not found`
+            }** (${remoteId}) ${icon}`
+          )
+          if (status === 'failure') {
+            failedSubTasks.push(remote !== undefined ? remote.name : remoteId)
+            remotesText.push('', errorMessage)
+          }
+        } else {
+          const srId = data.id
+          let sr
+          try {
+            sr = xo.getObject(srId)
+          } catch (e) {}
+          const [srName, srUuid] =
+            sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, srId]
+          srsText.push(`- **${srName}** (${srUuid}) ${icon}`)
+          if (status === 'failure') {
+            failedSubTasks.push(sr !== undefined ? sr.name_label : srId)
+            srsText.push('', errorMessage)
+          }
         }
       }
 
@@ -289,12 +262,25 @@ class BackupReportsXoPlugin {
           )
         }
       } else {
-        const {
-          transferSize,
-          transferDuration,
-          mergeSize,
-          mergeDuration,
-        } = vmTaskDataInfos
+        let transferSize, transferDuration, mergeSize, mergeDuration
+
+        forEach(logs[vmTaskLog.taskId], ({ taskId }) => {
+          if (transferSize !== undefined) {
+            return false
+          }
+
+          const transferTask = find(logs[taskId], { message: 'transfer' })
+          if (transferTask !== undefined) {
+            transferSize = transferTask.result.size
+            transferDuration = transferTask.end - transferTask.start
+          }
+
+          const mergeTask = find(logs[taskId], { message: 'merge' })
+          if (mergeTask !== undefined) {
+            mergeSize = mergeTask.result.size
+            mergeDuration = mergeTask.end - mergeTask.start
+          }
+        })
         if (transferSize !== undefined) {
           globalTransferSize += transferSize
           text.push(

@@ -67,13 +67,13 @@ const VmTaskDataInfos = ({ logs, vmTaskId }) => {
       return false
     }
 
-    const transferTask = find(logs(taskId), { message: 'transfer' })
+    const transferTask = find(logs[taskId], { message: 'transfer' })
     if (transferTask !== undefined) {
       transferSize = transferTask.result.size
       transferDuration = transferTask.end - transferTask.start
     }
 
-    const mergeTask = find(logs(taskId), { message: 'merge' })
+    const mergeTask = find(logs[taskId], { message: 'merge' })
     if (mergeTask !== undefined) {
       mergeSize = mergeTask.result.size
       mergeDuration = mergeTask.end - mergeTask.start
