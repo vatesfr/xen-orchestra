@@ -105,9 +105,9 @@ class BackupReportsXoPlugin {
     ).catch(logError)
   }
 
-  async _backupNgListener (logs, _, { timezone }) {
+  async _backupNgListener (runJobId, _, { timezone }) {
     const xo = this._xo
-
+    const logs = await xo.getBackupNgLogs(runJobId)
     const jobLog = logs['roots'][0]
     const vmsTaskLog = logs[jobLog.id]
 
