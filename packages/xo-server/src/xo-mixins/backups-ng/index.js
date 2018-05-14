@@ -929,7 +929,7 @@ export default class BackupNg {
               exportRetention > 1 &&
               getSetting(settings, 'deleteFirst', remoteId)
             if (deleteFirst) {
-              this._deleteDeltaVmBackups(handler, oldBackups)
+              await this._deleteDeltaVmBackups(handler, oldBackups)
             }
 
             await asyncMap(
@@ -964,7 +964,7 @@ export default class BackupNg {
             await handler.outputFile(metadataFilename, jsonMetadata)
 
             if (!deleteFirst) {
-              this._deleteDeltaVmBackups(handler, oldBackups)
+              await this._deleteDeltaVmBackups(handler, oldBackups)
             }
           }),
           ...srs.map(async srId => {
