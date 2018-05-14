@@ -215,23 +215,26 @@ export default class Jobs {
       throw new Error(`cannot run job ${id}: no executor for type ${type}`)
     }
 
+    let data
+    if (type === 'backup') {
+      // $FlowFixMe only defined for BackupJob
+      const settings = job.settings['']
+      data = {
+        // $FlowFixMe only defined for BackupJob
+        mode: job.mode,
+        reportWhen: settings && settings.reportWhen,
+      }
+    }
+
     const logger = this._logger
     const runJobId = logger.notice(`Starting execution of ${id}.`, {
+      data,
       event: 'job.start',
       userId: job.userId,
       jobId: id,
       // $FlowFixMe only defined for CallJob
       key: job.key,
       type,
-      data:
-        type !== 'backup'
-          ? undefined
-          : {
-              // $FlowFixMe only defined for BackupJob
-              mode: job.mode,
-              // $FlowFixMe only defined for BackupJob
-              reportWhen: job.settings[''].reportWhen,
-            },
     })
 
     runningJobs[id] = runJobId
