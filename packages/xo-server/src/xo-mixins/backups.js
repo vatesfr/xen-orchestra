@@ -816,10 +816,17 @@ export default class {
 
       await Promise.all(
         mapToArray(delta.vdis, async (vdi, id) => {
-          streams[`${id}.vhd`] = await createVhdReadStream(
-            handler,
-            `${basePath}/${vdi.xoPath}`
-          )
+          let path = `${basePath}/${vdi.xoPath}`
+          try {
+            await handler.getSize(path)
+          } catch (error) {
+            if (error == null || error.code !== 'ENOENT') {
+              throw error
+            }
+
+            path = path.replace(/_delta\.vhd$/, '_full.vhd')
+          }
+          streams[`${id}.vhd`] = await createVhdReadStream(handler, path)
         })
       )
 
