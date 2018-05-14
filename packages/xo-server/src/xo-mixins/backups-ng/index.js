@@ -500,7 +500,7 @@ export default class BackupNg {
               event: 'task.end',
               taskId,
               status: 'failure',
-              error: Array.isArray(error)
+              result: Array.isArray(error)
                 ? error.map(serializeError)
                 : serializeError(error),
             })
@@ -1055,8 +1055,10 @@ export default class BackupNg {
                     {
                       logger,
                       message: 'merge',
-                      result: _ => _.mergeSize,
                       parentId: taskId,
+                      result: {
+                        size: 0,
+                      },
                     },
                     this._deleteDeltaVmBackups(handler, oldBackups)
                   )
