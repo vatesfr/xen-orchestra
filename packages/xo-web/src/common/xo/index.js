@@ -1206,10 +1206,10 @@ export const importVm = (file, type = 'xva', data = undefined, sr) => {
           success(_('vmImportSuccess'), name)
           return res.json()
         })
+        .then(body => body.result)
         .catch(() => {
           error(_('vmImportFailed'), name)
         })
-        .then(body => body.result)
   )
 }
 

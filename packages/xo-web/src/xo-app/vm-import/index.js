@@ -235,6 +235,13 @@ const parseFile = async (file, type, func) => {
   }
 }
 
+const getRedirectionUrl = vms => {
+  const query = `id:|(${vms.join(' ')})`
+  return vms.length === 1
+    ? `/vms/${vms[0]}`
+    : `/home?s=${encodeURIComponent(query)}&t=VM`
+}
+
 export default class Import extends Component {
   constructor (props) {
     super(props)
@@ -243,7 +250,7 @@ export default class Import extends Component {
 
   _import = () => {
     const { state } = this
-    const importVms1 = importVms(
+    return importVms(
       mapPlus(state.vms, (vm, push, vmIndex) => {
         if (!vm.error) {
           const ref = this.refs[`vm-data-${vmIndex}`]
@@ -254,10 +261,7 @@ export default class Import extends Component {
         }
       }),
       state.sr
-    ).then(res => {
-      return res
-    })
-    return importVms1
+    )
   }
 
   _handleDrop = async files => {
@@ -310,13 +314,6 @@ export default class Import extends Component {
     this.setState({
       sr: sr === '' ? undefined : sr,
     })
-  }
-
-  _getRedirectionUrl = vms => {
-    const query = `id:|(${vms.join(' ')})`
-    return vms.length === 1
-      ? `/vms/${vms[0]}`
-      : `/home?s=${encodeURIComponent(query)}&t=VM`
   }
 
   render () {
@@ -407,7 +404,7 @@ export default class Import extends Component {
                       form='import-form'
                       handler={this._import}
                       icon='import'
-                      redirectOnSuccess={this._getRedirectionUrl}
+                      redirectOnSuccess={getRedirectionUrl}
                       type='submit'
                     >
                       {_('newImport')}
