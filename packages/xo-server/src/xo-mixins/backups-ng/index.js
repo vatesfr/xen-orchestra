@@ -323,7 +323,7 @@ const writeStream = async (
 }
 
 const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
-  const { data, logger, message, parentId } = opts
+  const { data, logger, message, parentId, result } = opts
 
   const taskId = logger.notice(message, {
     event: 'task.start',
@@ -332,14 +332,17 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
   })
 
   return task.then(
-    result => {
+    value => {
       logger.notice(message, {
         event: 'task.end',
-        result,
+        result:
+          result === undefined
+            ? value
+            : typeof result === 'function' ? result(value) : result,
         status: 'success',
         taskId,
       })
-      return task
+      return taskId
     },
     result => {
       logger.error(message, {
@@ -348,7 +351,7 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
         status: 'failure',
         taskId,
       })
-      return task
+      return taskId
     }
   )
 }
@@ -358,7 +361,7 @@ const wrapTaskFn = <T>(
   task: (...any) => Promise<T>
 ): ((taskId: string, ...any) => Promise<T>) =>
   async function () {
-    const { data, logger, message, parentId } =
+    const { data, logger, message, parentId, result } =
       typeof opts === 'function' ? opts.apply(this, arguments) : opts
 
     const taskId = logger.notice(message, {
@@ -368,14 +371,16 @@ const wrapTaskFn = <T>(
     })
 
     try {
-      const result = await task.apply(this, [taskId, ...arguments])
+      const value = await task.apply(this, [taskId, ...arguments])
       logger.notice(message, {
         event: 'task.end',
-        result,
+        result:
+          result === undefined
+            ? value
+            : typeof result === 'function' ? result(value) : result,
         status: 'success',
         taskId,
       })
-      return result
     } catch (result) {
       logger.error(message, {
         event: 'task.end',
@@ -383,8 +388,8 @@ const wrapTaskFn = <T>(
         status: 'failure',
         taskId,
       })
-      throw result
     }
+    return taskId
   }
 
 // File structure on remotes:
@@ -859,7 +864,17 @@ export default class BackupNg {
                   await this._deleteFullVmBackups(handler, oldBackups)
                 }
 
-                await writeStream(fork, handler, dataFilename)
+                await wrapTask(
+                  {
+                    logger,
+                    message: 'transfer',
+                    parentId: taskId,
+                    result: {
+                      size: 0,
+                    },
+                  },
+                  writeStream(fork, handler, dataFilename)
+                )
 
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
@@ -894,12 +909,22 @@ export default class BackupNg {
                 }
 
                 const vm = await xapi.barrier(
-                  await xapi._importVm($cancelToken, fork, sr, vm =>
-                    xapi._setObjectProperties(vm, {
-                      nameLabel: `${metadata.vm.name_label} (${safeDateFormat(
-                        metadata.timestamp
-                      )})`,
-                    })
+                  await wrapTask(
+                    {
+                      logger,
+                      message: 'transfer',
+                      parentId: taskId,
+                      result: {
+                        size: 0,
+                      },
+                    },
+                    xapi._importVm($cancelToken, fork, sr, vm =>
+                      xapi._setObjectProperties(vm, {
+                        nameLabel: `${metadata.vm.name_label} (${safeDateFormat(
+                          metadata.timestamp
+                        )})`,
+                      })
+                    )
                   )
                 )
 
@@ -1047,6 +1072,9 @@ export default class BackupNg {
                     logger,
                     message: 'transfer',
                     parentId: taskId,
+                    result: {
+                      size: 0,
+                    },
                   },
                   asyncMap(
                     fork.vdis,
@@ -1121,6 +1149,9 @@ export default class BackupNg {
                     logger,
                     message: 'transfer',
                     parentId: taskId,
+                    result: {
+                      size: 0,
+                    },
                   },
                   xapi.importDeltaVm(fork, {
                     disableStartAfterImport: false, // we'll take care of that
