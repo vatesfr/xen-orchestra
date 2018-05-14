@@ -831,7 +831,6 @@ export default class BackupNg {
 
       const jsonMetadata = JSON.stringify(metadata)
 
-      const errors = []
       await waitAll(
         [
           ...remotes.map(
@@ -947,14 +946,8 @@ export default class BackupNg {
             )
           ),
         ],
-        error => {
-          console.warn(error)
-          errors.push(error)
-        }
+        noop // errors are handled in logs
       )
-      if (errors.length !== 0) {
-        throw errors
-      }
     } else if (job.mode === 'delta') {
       if (snapshotRetention === 0) {
         // only keep the snapshot in case of success
@@ -1026,7 +1019,6 @@ export default class BackupNg {
               }
             })()
 
-      const errors = []
       await waitAll(
         [
           ...remotes.map(
@@ -1183,14 +1175,8 @@ export default class BackupNg {
             )
           ),
         ],
-        error => {
-          console.warn(error)
-          errors.push(error)
-        }
+        noop // errors are handled in logs
       )
-      if (errors.length !== 0) {
-        throw errors
-      }
     } else {
       throw new Error(`no exporter for backup mode ${job.mode}`)
     }
