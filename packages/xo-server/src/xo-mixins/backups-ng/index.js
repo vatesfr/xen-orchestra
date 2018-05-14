@@ -625,6 +625,16 @@ export default class BackupNg {
     const xapi = app.getXapi(vmUuid)
     const vm: Vm = (xapi.getObject(vmUuid): any)
 
+    // ensure the VM itself does not have any backup metadata which would be
+    // copied on manual snapshots and interfere with the backup jobs
+    if ('xo:backup:job' in vm.other_config) {
+      await xapi._updateObjectMapProperty(vm, 'other_config', {
+        'xo:backup:job': null,
+        'xo:backup:schedule': null,
+        'xo:backup:vm': null,
+      })
+    }
+
     const { id: jobId, settings } = job
     const { id: scheduleId } = schedule
 
