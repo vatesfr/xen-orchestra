@@ -1,4 +1,5 @@
 import _ from 'intl'
+import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
@@ -91,6 +92,11 @@ const INDIVIDUAL_ACTIONS = [
     icon: 'snapshot-revert',
     label: _('revertSnapshot'),
     level: 'warning',
+  },
+  {
+    handler: snapshot => copy(snapshot.uuid),
+    icon: 'clipboard',
+    label: snapshot => _('copyUuid', { uuid: snapshot.uuid }),
   },
   {
     handler: deleteSnapshot,

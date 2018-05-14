@@ -41,6 +41,7 @@ const messages = {
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
+  copyUuid: 'Copy {uuid}',
 
   // ----- Pills -----
   pillMaster: 'Master',
