@@ -326,7 +326,7 @@ export default [
           crMode: job.mode === 'delta' && !isEmpty(srs),
           remotes,
           srs,
-          reportWhen: get(globalSettings, 'reportWhen'),
+          reportWhen: get(globalSettings, 'reportWhen') || 'failure',
           settings,
           schedules,
           ...destructVmsPattern(job.vms),
