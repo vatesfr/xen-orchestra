@@ -68,13 +68,6 @@ export type BackupJob = {|
   vms: Pattern,
 |}
 
-type BackupResult = {|
-  mergeDuration: number,
-  mergeSize: number,
-  transferDuration: number,
-  transferSize: number,
-|}
-
 type MetadataBase = {|
   _filename?: string,
   jobId: string,
@@ -343,7 +336,7 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
         status: 'success',
         taskId,
       })
-      return taskId
+      return task
     },
     result => {
       logger.error(message, {
@@ -352,7 +345,7 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
         status: 'failure',
         taskId,
       })
-      return taskId
+      return task
     }
   )
 }
@@ -382,6 +375,7 @@ const wrapTaskFn = <T>(
         status: 'success',
         taskId,
       })
+      return value
     } catch (result) {
       logger.error(message, {
         event: 'task.end',
@@ -389,8 +383,8 @@ const wrapTaskFn = <T>(
         status: 'failure',
         taskId,
       })
+      throw result
     }
-    return taskId
   }
 
 // File structure on remotes:
@@ -709,7 +703,7 @@ export default class BackupNg {
     schedule: Schedule,
     logger: any,
     taskId: string
-  ): Promise<BackupResult> {
+  ): Promise<void> {
     const app = this._app
     const xapi = app.getXapi(vmUuid)
     const vm: Vm = (xapi.getObject(vmUuid): any)
@@ -755,6 +749,7 @@ export default class BackupNg {
         parentId: taskId,
         logger,
         message: 'snapshot',
+        result: _ => _.uuid,
       },
       xapi._snapshotVm(
         $cancelToken,

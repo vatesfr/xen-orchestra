@@ -223,6 +223,15 @@ export default class Jobs {
       // $FlowFixMe only defined for CallJob
       key: job.key,
       type,
+      data:
+        type !== 'backup'
+          ? undefined
+          : {
+              // $FlowFixMe only defined for BackupJob
+              mode: job.mode,
+              // $FlowFixMe only defined for BackupJob
+              reportWhen: job.settings[''].reportWhen,
+            },
     })
 
     runningJobs[id] = runJobId
