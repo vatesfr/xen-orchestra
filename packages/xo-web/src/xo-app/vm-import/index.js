@@ -235,6 +235,10 @@ const parseFile = async (file, type, func) => {
   }
 }
 
+const getRedirectionUrl = vms => vms.length === 1
+  ? `/vms/${vms[0]}`
+  : `/home?s=${encodeURIComponent(`id:|(${vms.join(' ')})`)}&t=VM`
+
 export default class Import extends Component {
   constructor (props) {
     super(props)
@@ -397,7 +401,7 @@ export default class Import extends Component {
                       form='import-form'
                       handler={this._import}
                       icon='import'
-                      redirectOnSuccess='/'
+                      redirectOnSuccess={getRedirectionUrl}
                       type='submit'
                     >
                       {_('newImport')}
