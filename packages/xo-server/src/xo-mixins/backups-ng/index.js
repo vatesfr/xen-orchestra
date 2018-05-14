@@ -1310,7 +1310,7 @@ export default class BackupNg {
 
     const logs: $Dict<ConsolidatedBackupNgLog> = {}
     forEach(rawLogs, (log, id) => {
-      const { data = {}, time, message } = log
+      const { data, time, message } = log
       const { event } = data
       delete data.event
 

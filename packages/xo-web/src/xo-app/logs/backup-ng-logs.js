@@ -48,8 +48,8 @@ const LOG_COLUMNS = [
   },
   {
     name: _('jobMode'),
-    itemRenderer: log => log.data.mode,
-    sortCriteria: log => log.data.mode,
+    itemRenderer: log => get(log.data, 'mode'),
+    sortCriteria: log => get(log.data, 'mode'),
   },
   {
     name: _('jobName'),
