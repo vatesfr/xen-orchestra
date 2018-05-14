@@ -6,7 +6,7 @@ import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
 import { createSelector } from 'selectors'
-import { find, filter, isEmpty, get, keyBy, map } from 'lodash'
+import { find, filter, isEmpty, get, keyBy, map, forEach } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
 import { subscribeRemotes } from 'xo'
@@ -60,21 +60,29 @@ const TaskStateInfos = ({ status }) => {
   )
 }
 
-const VmTaskDataInfos = ({ logs }) => {
-  const log = find(
-    logs,
-    ({ result }) => get(result, 'transferSize') !== undefined
-  )
-  if (log === undefined) {
+const VmTaskDataInfos = ({ logs, vmTaskId }) => {
+  let transferSize, transferDuration, mergeSize, mergeDuration
+  forEach(logs[vmTaskId], ({ taskId }) => {
+    if (transferSize !== undefined) {
+      return false
+    }
+
+    const transferTask = find(logs(taskId), { message: 'transfer' })
+    if (transferTask !== undefined) {
+      transferSize = transferTask.result.size
+      transferDuration = transferTask.end - transferTask.start
+    }
+
+    const mergeTask = find(logs(taskId), { message: 'merge' })
+    if (mergeTask !== undefined) {
+      mergeSize = mergeTask.result.size
+      mergeDuration = mergeTask.end - mergeTask.start
+    }
+  })
+
+  if (transferSize === undefined) {
     return null
   }
-
-  const {
-    transferSize,
-    transferDuration,
-    mergeSize,
-    mergeDuration,
-  } = log.result
 
   return (
     <div>
@@ -182,7 +190,7 @@ export default [
             : 'text-danger'
         }
       >
-        <Icon icon='alarm' /> {log.error.message}
+        <Icon icon='alarm' /> {log.error.message || JSON.stringify(log.error)}
       </span>
     ) : (
       <div>
@@ -209,9 +217,9 @@ export default [
               <ul>
                 {map(logs[vmTaskLog.taskId], subTaskLog => (
                   <li key={subTaskLog.taskId}>
-                    {subTaskLog.data.type === 'operation' ? (
+                    {subTaskLog.message === 'snapshot' ? (
                       <span>
-                        <Icon icon='task' /> {subTaskLog.data.name}
+                        <Icon icon='task' /> {_('snapshotVmLabel')}
                       </span>
                     ) : subTaskLog.data.type === 'remote' ? (
                       <span>
@@ -239,7 +247,8 @@ export default [
                       _.keyValue(
                         _('taskError'),
                         <span className={'text-danger'}>
-                          {String(subTaskLog.result.message)}
+                          {String(subTaskLog.result.message) ||
+                            JSON.stringify(subTaskLog.result)}
                         </span>
                       )}
                   </li>
@@ -300,12 +309,13 @@ export default [
                               : 'text-danger'
                           }
                         >
-                          {String(vmTaskLog.result.message)}
+                          {String(vmTaskLog.result.message) ||
+                            JSON.stringify(vmTaskLog.result)}
                         </span>
                       )
                     )
                   ) : (
-                    <VmTaskDataInfos logs={logs[vmTaskLog.taskId]} />
+                    <VmTaskDataInfos logs={logs} vmTaskId={vmTaskLog.taskId} />
                   )}
                 </div>
               )}

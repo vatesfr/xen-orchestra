@@ -115,6 +115,7 @@ type ConsolidatedTask = {|
   duration?: number,
   end?: number,
   parentId: string,
+  message: string,
   result?: Object,
   start: number,
   status: 'canceled' | 'failure' | 'success',
@@ -1310,7 +1311,7 @@ export default class BackupNg {
 
     const logs: $Dict<ConsolidatedBackupNgLog> = {}
     forEach(rawLogs, (log, id) => {
-      const { data, time } = log
+      const { data, time, message } = log
       const { event } = data
       delete data.event
 
@@ -1337,6 +1338,7 @@ export default class BackupNg {
             logs[id] = {
               ...data,
               start: time,
+              message,
             }
           }
           break
