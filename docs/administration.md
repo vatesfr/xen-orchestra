@@ -1,6 +1,6 @@
 # Administration
 
-This part is about everyday XenServer administration tasks.
+This section contains everyday XenServer administration tasks.
 
 * [Home view](user_interface.md)
 * [Search and filters](search.md)
