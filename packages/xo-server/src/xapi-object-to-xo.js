@@ -292,8 +292,15 @@ const TRANSFORMS = {
         }
       })(),
 
-      // TODO: there is two possible value: "best-effort" and "restart"
-      high_availability: Boolean(obj.ha_restart_priority),
+      high_availability: (function () {
+        if (obj.ha_restart_priority === 'best-effort') {
+          return 'Restart if possible'
+        } else if (obj.ha_restart_priority === 'restart') {
+          return 'Restart'
+        } else {
+          return 'Disable'
+        }
+      })(),
 
       memory: (function () {
         const dynamicMin = +obj.memory_dynamic_min

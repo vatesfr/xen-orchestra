@@ -46,6 +46,7 @@ import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
 const SHARE_BUTTON_STYLE = { height: '38px' }
+const HA_VALUES = ['Restart', 'Restart if possible', 'Disable']
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -454,10 +455,15 @@ export default connectStore(() => {
             <tr>
               <th>{_('ha')}</th>
               <td>
-                <Toggle
+                <select
+                  className='form-control'
+                  onChange={event =>
+                    editVm(vm, { high_availability: getEventValue(event) })
+                  }
                   value={vm.high_availability}
-                  onChange={value => editVm(vm, { high_availability: value })}
-                />
+                >
+                  {map(HA_VALUES, haValue => <option>{haValue}</option>)}
+                </select>
               </td>
             </tr>
             <tr>
