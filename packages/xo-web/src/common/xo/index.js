@@ -1705,6 +1705,10 @@ export const subscribeBackupNgJobs = createSubscription(() =>
   _call('backupNg.getAllJobs')
 )
 
+export const subscribeBackupNgLogs = createSubscription(() =>
+  _call('backupNg.getAllLogs')
+)
+
 export const createBackupNgJob = props =>
   _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 

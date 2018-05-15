@@ -21,7 +21,7 @@ import {
   subscribeSchedules,
 } from 'xo'
 
-import LogsTable from '../logs'
+import LogsTable from '../logs/backup-ng-logs'
 import Page from '../page'
 
 import Edit from './edit'
