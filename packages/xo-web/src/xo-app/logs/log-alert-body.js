@@ -1,4 +1,5 @@
 import _, { FormattedDuration } from 'intl'
+import Copiable from 'copiable'
 import Icon from 'icon'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
@@ -25,6 +26,15 @@ const getTaskStatus = createSelector(
       ? status === 'success'
         ? 'success'
         : result !== undefined && isSkippedError(result) ? 'skipped' : 'failure'
+      : isJobRunning ? 'started' : 'interrupted'
+)
+
+const getSubTaskStatus = createSelector(
+  taskLog => taskLog,
+  isJobRunning => isJobRunning,
+  ({ end, status, result }, isJobRunning) =>
+    end !== undefined
+      ? status === 'success' ? 'success' : 'failure'
       : isJobRunning ? 'started' : 'interrupted'
 )
 
@@ -190,7 +200,9 @@ export default [
             : 'text-danger'
         }
       >
-        <Icon icon='alarm' /> {log.error.message || JSON.stringify(log.error)}
+        <Copiable data={JSON.stringify(log.error)}>
+          <Icon icon='alarm' /> {log.error.message}
+        </Copiable>
       </span>
     ) : (
       <div>
@@ -240,17 +252,19 @@ export default [
                       </span>
                     )}{' '}
                     <TaskStateInfos
-                      status={getTaskStatus(subTaskLog, state.isJobRunning)}
+                      status={getSubTaskStatus(subTaskLog, state.isJobRunning)}
                     />
                     <br />
-                    {subTaskLog.status === 'failure' &&
-                      _.keyValue(
-                        _('taskError'),
-                        <span className={'text-danger'}>
-                          {String(subTaskLog.result.message) ||
-                            JSON.stringify(subTaskLog.result)}
-                        </span>
-                      )}
+                    {subTaskLog.status === 'failure' && (
+                      <Copiable data={JSON.stringify(subTaskLog.result)}>
+                        {_.keyValue(
+                          _('taskError'),
+                          <span className={'text-danger'}>
+                            {subTaskLog.result.message}
+                          </span>
+                        )}
+                      </Copiable>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -300,19 +314,20 @@ export default [
                         </a>
                       </Tooltip>
                     ) : (
-                      _.keyValue(
-                        _('taskError'),
-                        <span
-                          className={
-                            isSkippedError(vmTaskLog.result)
-                              ? 'text-info'
-                              : 'text-danger'
-                          }
-                        >
-                          {String(vmTaskLog.result.message) ||
-                            JSON.stringify(vmTaskLog.result)}
-                        </span>
-                      )
+                      <Copiable data={JSON.stringify(vmTaskLog.result)}>
+                        {_.keyValue(
+                          _('taskError'),
+                          <span
+                            className={
+                              isSkippedError(vmTaskLog.result)
+                                ? 'text-info'
+                                : 'text-danger'
+                            }
+                          >
+                            {vmTaskLog.result.message}
+                          </span>
+                        )}
+                      </Copiable>
                     )
                   ) : (
                     <VmTaskDataInfos logs={logs} vmTaskId={vmTaskLog.taskId} />

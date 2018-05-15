@@ -218,6 +218,9 @@ export default [
 
         const oldSettings = props.job.settings
         const settings = state.settings
+        if (!('' in oldSettings)) {
+          oldSettings[''] = {}
+        }
         for (const id in oldSettings) {
           const oldSetting = oldSettings[id]
           const newSetting = settings[id]
