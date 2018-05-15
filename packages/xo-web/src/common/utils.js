@@ -20,6 +20,7 @@ import {
   mapValues,
   replace,
   sample,
+  some,
   startsWith,
 } from 'lodash'
 
@@ -28,6 +29,7 @@ import * as actions from './store/actions'
 import invoke from './invoke'
 import store from './store'
 import { getObject } from './selectors'
+import { satisfies as versionSatisfies } from 'semver'
 
 export const EMPTY_ARRAY = Object.freeze([])
 export const EMPTY_OBJECT = Object.freeze({})
@@ -522,6 +524,40 @@ export const createFakeProgress = (() => {
 export const ShortDate = ({ timestamp }) => (
   <FormattedDate value={timestamp} month='short' day='numeric' year='numeric' />
 )
+
+export const findLatestPack = (packs, hostsVersions) => {
+  const checkVersion = version =>
+    !version ||
+    every(hostsVersions, hostVersion => versionSatisfies(hostVersion, version))
+
+  let latestPack = { version: '0' }
+  forEach(packs, pack => {
+    if (
+      pack.type === 'iso' &&
+      compareVersions(pack.version, '>', latestPack.version) &&
+      checkVersion(pack.requirements && pack.requirements.xenserver)
+    ) {
+      latestPack = pack
+    }
+  })
+
+  if (latestPack.version === '0') {
+    // No compatible pack was found
+    return
+  }
+
+  return latestPack
+}
+
+export const isLatestXosanPackInstalled = (latestXosanPack, hosts) =>
+  latestXosanPack !== undefined &&
+  every(hosts, host =>
+    some(
+      host.supplementalPacks,
+      ({ name, version }) =>
+        name === 'XOSAN' && version === latestXosanPack.version
+    )
+  )
 
 // ===================================================================
 
