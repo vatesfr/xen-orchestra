@@ -1328,11 +1328,19 @@ export default class BackupNg {
         case 'task.end':
           const task = logs[data.taskId]
           if (task !== undefined) {
-            task.status = data.status
-            task.taskId = data.taskId
-            task.result = data.result
-            task.end = time
-            task.duration = time - task.start
+            // work-around
+            if (
+              time === task.start &&
+              (message === 'merge' || message === 'transfert')
+            ) {
+              delete logs[data.taskId]
+            } else {
+              task.status = data.status
+              task.taskId = data.taskId
+              task.result = data.result
+              task.end = time
+              task.duration = time - task.start
+            }
           }
       }
     })
