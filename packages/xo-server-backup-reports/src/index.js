@@ -111,7 +111,7 @@ class BackupReportsXoPlugin {
     const jobLog = logs['roots'][0]
     const vmsTaskLog = logs[jobLog.id]
 
-    const { reportWhen, mode } = jobLog.data
+    const { reportWhen, mode } = jobLog.data || {}
     if (reportWhen === 'never') {
       return
     }
