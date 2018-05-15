@@ -6,8 +6,9 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
+import { forEach, keyBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
-import { forEach, get, keyBy } from 'lodash'
+import { get } from 'xo-defined'
 import {
   deleteJobsLogs,
   subscribeBackupNgJobs,
