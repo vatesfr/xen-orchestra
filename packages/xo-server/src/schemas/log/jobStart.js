@@ -17,9 +17,10 @@ export default {
       type: 'string',
     },
     type: {
+      default: 'call',
       enum: ['backup', 'call'],
     },
     data: {},
   },
-  required: ['event', 'userId', 'jobId', 'type'],
+  required: ['event', 'userId', 'jobId'],
 }
