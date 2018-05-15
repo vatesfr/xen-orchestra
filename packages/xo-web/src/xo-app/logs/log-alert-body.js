@@ -200,7 +200,7 @@ export default [
             : 'text-danger'
         }
       >
-        <Copiable tagName='p' data={JSON.stringify(log.error)}>
+        <Copiable tagName='p' data={JSON.stringify(log.error, null, 2)}>
           <Icon icon='alarm' /> {log.error.message}
         </Copiable>
       </span>
@@ -258,7 +258,7 @@ export default [
                     {subTaskLog.status === 'failure' && (
                       <Copiable
                         tagName='p'
-                        data={JSON.stringify(subTaskLog.result)}
+                        data={JSON.stringify(subTaskLog.result, null, 2)}
                       >
                         {_.keyValue(
                           _('taskError'),
@@ -319,7 +319,7 @@ export default [
                     ) : (
                       <Copiable
                         tagName='p'
-                        data={JSON.stringify(vmTaskLog.result)}
+                        data={JSON.stringify(vmTaskLog.result, null, 2)}
                       >
                         {_.keyValue(
                           _('taskError'),
