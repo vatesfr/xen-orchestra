@@ -15,7 +15,7 @@ import {
   noop,
   values,
 } from 'lodash'
-import { timeout as pTimeout } from 'promise-toolbox'
+import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -304,6 +304,7 @@ const writeStream = async (
   const output = await handler.createOutputStream(tmpPath, { checksum })
   try {
     input.pipe(output)
+    await pFromEvent(output, 'finish')
     await output.checksumWritten
     // $FlowFixMe
     await input.task
