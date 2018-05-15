@@ -1289,12 +1289,10 @@ export default class BackupNg {
     return backups.sort(compareTimestamp)
   }
 
-  async getBackupNgLogs (
-    runId?: string
-  ): Promise<$Dict<ConsolidatedBackupNgLog>> {
+  async getBackupNgLogs (runId?: string): Promise<ConsolidatedBackupNgLog> {
     const rawLogs = await this._app.getLogs('jobs')
 
-    const logs: $Dict<ConsolidatedBackupNgLog> = {}
+    const logs: $Dict<ConsolidatedJob & ConsolidatedTask> = {}
     forEach(rawLogs, (log, id) => {
       const { data, time, message } = log
       const { event } = data
