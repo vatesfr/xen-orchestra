@@ -892,7 +892,7 @@ export default class BackupNg {
                 message: 'export',
                 parentId: taskId,
               }),
-              async srId => {
+              async (taskId, srId) => {
                 const fork = forkExport()
 
                 const xapi = app.getXapi(srId)
