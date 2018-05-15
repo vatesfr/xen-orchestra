@@ -183,7 +183,7 @@ export default [
       <CardBlock>
         <NoObjects
           actions={LOG_ACTIONS}
-          collection={get(logs, 'roots')}
+          collection={get(() => logs['roots'])}
           columns={LOG_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}
