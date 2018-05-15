@@ -4,12 +4,7 @@ import Component from 'base-component'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { map } from 'lodash'
 import { subscribeResourceCatalog } from 'xo'
-import {
-  addSubscriptions,
-  isLatestXosanPackInstalled,
-  connectStore,
-  findLatestPack,
-} from 'utils'
+import { isLatestXosanPackInstalled, connectStore, findLatestPack } from 'utils'
 
 @connectStore(
   {
@@ -19,20 +14,19 @@ import {
   },
   { withRef: true }
 )
-@addSubscriptions(() => ({
-  catalog: subscribeResourceCatalog,
-}))
 export default class UpdateXosanPacksModal extends Component {
-  state = {
-    status: 'checking',
+  componentDidMount () {
+    this.componentWillUnmount = subscribeResourceCatalog(catalog =>
+      this.setState({ catalog })
+    )
   }
 
   get value () {
-    return this.state.pack
+    return this._getStatus().pack
   }
 
   _getStatus = createSelector(
-    () => this.props.catalog,
+    () => this.state.catalog,
     () => this.props.hosts,
     (catalog, hosts) => {
       if (catalog === undefined) {
