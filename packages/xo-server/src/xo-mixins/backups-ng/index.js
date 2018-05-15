@@ -659,7 +659,7 @@ export default class BackupNg {
   //       2. next run should be a full
   // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
   // - [ ] check merge/transfert duration/size are what we want for delta
-  // - [ ] fix backup reports
+  // - [ ] in case of failure, correctly clean VHDs for all VDIs
   //
   // Low:
   // - [ ] jobs should be cancelable
@@ -692,6 +692,7 @@ export default class BackupNg {
   // - [x] replicated VMs should be discriminated by VM (vatesfr/xen-orchestra#2807)
   // - [x] clones of replicated VMs should not be garbage collected
   // - [x] import for delta
+  // - [x] fix backup reports
   @defer
   async _backupVm (
     $defer: any,
