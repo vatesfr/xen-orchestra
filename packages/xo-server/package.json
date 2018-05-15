@@ -16,6 +16,9 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "preferGlobal": true,
+  "bin": {
+    "xo-server": "dist/cli"
+  },
   "files": [
     "better-stacks.js",
     "bin/",
