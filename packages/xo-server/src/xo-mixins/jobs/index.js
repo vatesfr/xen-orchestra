@@ -222,7 +222,7 @@ export default class Jobs {
       data = {
         // $FlowFixMe only defined for BackupJob
         mode: job.mode,
-        reportWhen: settings && settings.reportWhen,
+        reportWhen: (settings && settings.reportWhen) || 'failure',
       }
     }
 
