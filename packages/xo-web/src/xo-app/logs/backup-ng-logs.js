@@ -49,13 +49,13 @@ const LOG_COLUMNS = [
   },
   {
     name: _('jobMode'),
-    itemRenderer: log => get(log.data, 'mode'),
-    sortCriteria: log => get(log.data, 'mode'),
+    itemRenderer: log => get(() => log.data.mode),
+    sortCriteria: log => get(() => log.data.mode),
   },
   {
     name: _('jobName'),
-    itemRenderer: (log, { jobs }) => get(jobs, `${log.jobId}.name`),
-    sortCriteria: (log, { jobs }) => get(jobs, `${log.jobId}.name`),
+    itemRenderer: (log, { jobs }) => get(() => jobs[log.jobId].name),
+    sortCriteria: (log, { jobs }) => get(() => jobs[log.jobId].name),
   },
   {
     name: _('jobStart'),
@@ -111,7 +111,7 @@ const LOG_COLUMNS = [
 const showCalls = (log, { logs, jobs }) =>
   alert(
     _('jobModalTitle', { job: log.jobId.slice(4, 8) }),
-    <LogAlertBody log={log} job={get(jobs, log.jobId)} logs={logs} />
+    <LogAlertBody log={log} job={get(() => jobs[log.jobId])} logs={logs} />
   )
 
 const LOG_INDIVIDUAL_ACTIONS = [
