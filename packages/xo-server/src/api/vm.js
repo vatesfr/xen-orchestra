@@ -12,6 +12,10 @@ import { forEach, map, mapFilter, parseSize } from '../utils'
 
 // ===================================================================
 
+export function getVmsHaValues () {
+  return ['Restart', 'Restart if possible', 'Disable']
+}
+
 function checkPermissionOnSrs (vm, permission = 'operate') {
   const permissions = []
   forEach(vm.$VBDs, vbdId => {
