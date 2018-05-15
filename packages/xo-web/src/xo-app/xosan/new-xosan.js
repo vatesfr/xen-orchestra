@@ -92,7 +92,7 @@ export default class NewXosan extends Component {
         const hosts = filter(this.props.hosts, { $pool: pool.id })
         const pack = findLatestPack(catalog.xosan, map(hosts, 'version'))
 
-        if (isLatestXosanPackInstalled(pack, hosts)) {
+        if (!isLatestXosanPackInstalled(pack, hosts)) {
           this.setState({
             needsUpdate: true,
           })
