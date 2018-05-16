@@ -170,12 +170,22 @@ const INDIVIDUAL_ACTIONS = [
 })
 @injectIntl
 export default class Servers extends Component {
+  state = {
+    allowUnauthorized: false,
+  }
+
   _addServer = async () => {
-    const { label, host, password, username } = this.state
+    const { label, host, password, username, allowUnauthorized } = this.state
 
-    await addServer(host, username, password, label)
+    await addServer(host, username, password, label, allowUnauthorized)
 
-    this.setState({ label: '', host: '', password: '', username: '' })
+    this.setState({
+      allowUnauthorized: false,
+      host: '',
+      label: '',
+      password: '',
+      username: '',
+    })
   }
 
   render () {
@@ -227,6 +237,14 @@ export default class Servers extends Component {
               required
               value={state.password}
             />
+          </div>{' '}
+          <div className='form-group'>
+            <Tooltip content={_('serverAllowUnauthorizedCertificates')}>
+              <Toggle
+                onChange={this.linkState('allowUnauthorized')}
+                value={state.allowUnauthorized}
+              />
+            </Tooltip>
           </div>{' '}
           <ActionButton
             btnStyle='primary'
