@@ -1221,17 +1221,26 @@ export default class BackupNg {
     const vhds = await asyncMap(
       await handler.list(dirname(path), { filter: isVhd, prependDir: true }),
       async path => {
-        const vhd = new Vhd(handler, path)
-        await vhd.readHeaderAndFooter()
-        return {
-          footer: vhd.footer,
-          header: vhd.header,
-          path,
+        try {
+          const vhd = new Vhd(handler, path)
+          await vhd.readHeaderAndFooter()
+          return {
+            footer: vhd.footer,
+            header: vhd.header,
+            path,
+          }
+        } catch (error) {
+          // Do not fail on corrupted VHDs (usually uncleaned temporary files),
+          // they are probably inconsequent to the backup process and should not
+          // fail it.
+          console.warn('BackupNg#_deleteVhd', path, error)
         }
       }
     )
     const base = basename(path)
-    const child = vhds.find(_ => _.header.parentUnicodeName === base)
+    const child = vhds.find(
+      _ => _ !== undefined && _.header.parentUnicodeName === base
+    )
     if (child === undefined) {
       return handler.unlink(path)
     }
