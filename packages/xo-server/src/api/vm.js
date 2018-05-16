@@ -12,6 +12,10 @@ import { forEach, map, mapFilter, parseSize } from '../utils'
 
 // ===================================================================
 
+export function getHaValues () {
+  return ['best-effort', 'restart', '']
+}
+
 function checkPermissionOnSrs (vm, permission = 'operate') {
   const permissions = []
   forEach(vm.$VBDs, vbdId => {
@@ -556,11 +560,11 @@ set.params = {
 
   name_description: { type: 'string', optional: true },
 
-  // TODO: provides better filtering of values for HA possible values: "best-
-  // effort" meaning "try to restart this VM if possible but don't consider the
-  // Pool to be overcommitted if this is not possible"; "restart" meaning "this
-  // VM should be restarted"; "" meaning "do not try to restart this VM"
-  high_availability: { type: 'boolean', optional: true },
+  high_availability: {
+    optional: true,
+    pattern: new RegExp(`^(${getHaValues().join('|')})$`),
+    type: 'string',
+  },
 
   // Number of virtual CPUs to allocate.
   CPUs: { type: 'integer', optional: true },

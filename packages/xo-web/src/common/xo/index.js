@@ -1191,6 +1191,8 @@ export const editVm = (vm, props) =>
 export const fetchVmStats = (vm, granularity) =>
   _call('vm.stats', { id: resolveId(vm), granularity })
 
+export const getVmsHaValues = () => _call('vm.getHaValues')
+
 export const importVm = (file, type = 'xva', data = undefined, sr) => {
   const { name } = file
 
