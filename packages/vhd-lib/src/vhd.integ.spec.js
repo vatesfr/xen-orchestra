@@ -102,15 +102,15 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
       data: Buffer.alloc(blockSize, 'azerzaerazeraze', 'ascii'),
     },
     {
-      offsetBytes: blockSize * 5,
+      offsetBytes: blockSize * 100,
       data: Buffer.alloc(blockSize, 'gdfslkdfguer', 'ascii'),
     },
   ]
-  const fileSize = blockSize * 10
+  const fileSize = blockSize * 110
   const stream = createReadableSparseVHDStream(
     fileSize,
     blockSize,
-    [100, 700],
+    blocks.map(b => b.offsetBytes),
     blocks
   )
   const pipe = stream.pipe(createWriteStream('output.vhd'))

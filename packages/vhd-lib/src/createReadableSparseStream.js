@@ -1,3 +1,4 @@
+import assert from 'assert'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 
 import computeGeometryForSize from './_computeGeometryForSize'
@@ -28,59 +29,21 @@ function createBAT (
   const vhdOccupationTable = []
   let currentVhdPositionSector = firstBlockPosition / SECTOR_SIZE
   blockAddressList.forEach(blockPosition => {
-    const scaled = blockPosition / VHD_BLOCK_SIZE_BYTES
-    const vhdTableIndex = Math.floor(scaled)
+    assert.strictEqual(blockPosition % 512, 0)
+    const vhdTableIndex = Math.floor(blockPosition / VHD_BLOCK_SIZE_BYTES)
     if (bat.readUInt32BE(vhdTableIndex * 4) === BLOCK_UNUSED) {
       bat.writeUInt32BE(currentVhdPositionSector, vhdTableIndex * 4)
       currentVhdPositionSector +=
         (bitmapSize + VHD_BLOCK_SIZE_BYTES) / SECTOR_SIZE
     }
-    // not using bit operators to avoid the int32 coercion, that way we can go to 53 bits
     vhdOccupationTable[vhdTableIndex] =
-      (vhdOccupationTable[vhdTableIndex] || 0) +
-      Math.pow(2, (scaled % 1) * ratio)
+      vhdOccupationTable[vhdTableIndex] || Buffer.alloc(bitmapSize)
+    const blockOffset = (blockPosition / 512) % VHD_BLOCK_SIZE_SECTORS
+    for (let bitPos = 0; bitPos < VHD_BLOCK_SIZE_SECTORS / ratio; bitPos++) {
+      setBitmap(vhdOccupationTable[vhdTableIndex], blockOffset + bitPos)
+    }
   })
   return vhdOccupationTable
-}
-
-function createBitmap (bitmapSize, ratio, vhdOccupationBucket) {
-  const bitmap = Buffer.alloc(bitmapSize)
-  for (let i = 0; i < VHD_BLOCK_SIZE_SECTORS / ratio; i++) {
-    // do not shift to avoid int32 coercion
-    if ((vhdOccupationBucket * Math.pow(2, -i)) & 1) {
-      for (let j = 0; j < ratio; j++) {
-        setBitmap(bitmap, i * ratio + j)
-      }
-    }
-  }
-  return bitmap
-}
-
-function * yieldIfNotEmpty (buffer) {
-  if (buffer.length > 0) {
-    yield buffer
-  }
-}
-
-async function * generateFileContent (
-  blockIterator,
-  bitmapSize,
-  ratio,
-  vhdOccupationTable
-) {
-  let currentVhdBlockIndex = -1
-  let currentBlockBuffer = Buffer.alloc(0)
-  for await (const next of blockIterator) {
-    const batEntry = Math.floor(next.offsetBytes / VHD_BLOCK_SIZE_BYTES)
-    if (batEntry !== currentVhdBlockIndex) {
-      yield * yieldIfNotEmpty(currentBlockBuffer)
-      currentBlockBuffer = Buffer.alloc(VHD_BLOCK_SIZE_BYTES)
-      currentVhdBlockIndex = batEntry
-      yield createBitmap(bitmapSize, ratio, vhdOccupationTable[batEntry])
-    }
-    next.data.copy(currentBlockBuffer, next.offsetBytes % VHD_BLOCK_SIZE_BYTES)
-  }
-  yield * yieldIfNotEmpty(currentBlockBuffer)
 }
 
 export default asyncIteratorToStream(async function * (
@@ -130,14 +93,52 @@ export default asyncIteratorToStream(async function * (
     bat,
     bitmapSize
   )
-  yield footer
-  yield header
-  yield bat
+  let position = 0
+  function * yieldAndTrack (buffer, expectedPosition) {
+    if (expectedPosition !== undefined) {
+      assert.strictEqual(position, expectedPosition)
+    }
+    if (buffer.length > 0) {
+      yield buffer
+      position += buffer.length
+    }
+  }
+  async function * generateFileContent (
+    blockIterator,
+    bitmapSize,
+    ratio,
+    vhdOccupationTable
+  ) {
+    let currentBlock = -1
+    let currentVhdBlockIndex = -1
+    let currentBlockBuffer = Buffer.alloc(0)
+    for await (const next of blockIterator) {
+      currentBlock++
+      assert.strictEqual(blockAddressList[currentBlock], next.offsetBytes)
+      const batIndex = Math.floor(next.offsetBytes / VHD_BLOCK_SIZE_BYTES)
+      if (batIndex !== currentVhdBlockIndex) {
+        yield * yieldAndTrack(currentBlockBuffer)
+        currentBlockBuffer = Buffer.alloc(VHD_BLOCK_SIZE_BYTES)
+        currentVhdBlockIndex = batIndex
+        const vhdPosition = bat.readUInt32BE(batIndex * 4) * 512
+        const bitmap = vhdOccupationTable[batIndex]
+        yield * yieldAndTrack(bitmap, vhdPosition)
+      }
+      next.data.copy(
+        currentBlockBuffer,
+        next.offsetBytes % VHD_BLOCK_SIZE_BYTES
+      )
+    }
+    yield * yieldAndTrack(currentBlockBuffer)
+  }
+  yield * yieldAndTrack(footer, 0)
+  yield * yieldAndTrack(header, FOOTER_SIZE)
+  yield * yieldAndTrack(bat, FOOTER_SIZE + HEADER_SIZE)
   yield * generateFileContent(
     blockIterator,
     bitmapSize,
     ratio,
     vhdOccupationTable
   )
-  yield footer
+  yield * yieldAndTrack(footer)
 })
