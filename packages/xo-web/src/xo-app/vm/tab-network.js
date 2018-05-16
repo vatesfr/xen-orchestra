@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
+import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
@@ -351,6 +352,11 @@ const GROUPED_ACTIONS = [
   },
 ]
 const INDIVIDUAL_ACTIONS = [
+  {
+    handler: vif => copy(vif.uuid),
+    icon: 'clipboard',
+    label: vif => _('copyUuid', { uuid: vif.uuid }),
+  },
   {
     disabled: vif => vif.attached,
     handler: deleteVif,

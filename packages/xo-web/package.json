@@ -33,7 +33,6 @@
     "@julien-f/freactal": "0.1.0",
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.3",
-    "xo-vmdk-to-vhd": "0.1.0",
     "ansi_up": "^3.0.0",
     "asap": "^2.0.6",
     "babel-core": "^6.26.0",
@@ -60,6 +59,7 @@
     "classnames": "^2.2.3",
     "complex-matcher": "^0.3.0",
     "cookies-js": "^1.2.2",
+    "copy-to-clipboard": "^3.0.8",
     "d3": "^5.0.0",
     "debounce-input-decorator": "^0.1.0",
     "enzyme": "^3.3.0",
@@ -137,7 +137,8 @@
     "xo-acl-resolver": "^0.2.3",
     "xo-common": "^0.1.1",
     "xo-lib": "^0.8.0",
-    "xo-remote-parser": "^0.3"
+    "xo-remote-parser": "^0.3",
+    "xo-vmdk-to-vhd": "0.1.0"
   },
   "scripts": {
     "build": "NODE_ENV=production gulp build",

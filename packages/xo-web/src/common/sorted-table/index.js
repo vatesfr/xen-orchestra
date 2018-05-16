@@ -209,13 +209,21 @@ class IndividualAction extends Component {
     (disabled, item, userData) =>
       isFunction(disabled) ? disabled(item, userData) : disabled
   )
+  _getLabel = createSelector(
+    () => this.props.label,
+    () => this.props.item,
+    () => this.props.userData,
+    (label, item, userData) =>
+      isFunction(label) ? label(item, userData) : label
+  )
+
   _executeAction = () => {
     const p = this.props
     return p.handler(p.item, p.userData)
   }
 
   render () {
-    const { icon, item, label, level, redirectOnSuccess, userData } = this.props
+    const { icon, item, level, redirectOnSuccess, userData } = this.props
 
     return (
       <ActionRowButton
@@ -226,7 +234,7 @@ class IndividualAction extends Component {
         handler={this._executeAction}
         icon={icon}
         redirectOnSuccess={redirectOnSuccess}
-        tooltip={label}
+        tooltip={this._getLabel()}
       />
     )
   }
@@ -240,6 +248,13 @@ class GroupedAction extends Component {
     (disabled, selectedItems, userData) =>
       isFunction(disabled) ? disabled(selectedItems, userData) : disabled
   )
+  _getLabel = createSelector(
+    () => this.props.label,
+    () => this.props.selectedItems,
+    () => this.props.userData,
+    (label, selectedItems, userData) =>
+      isFunction(label) ? label(selectedItems, userData) : label
+  )
 
   _executeAction = () => {
     const p = this.props
@@ -247,7 +262,7 @@ class GroupedAction extends Component {
   }
 
   render () {
-    const { icon, label, level } = this.props
+    const { icon, level } = this.props
 
     return (
       <ActionRowButton
@@ -255,7 +270,7 @@ class GroupedAction extends Component {
         disabled={this._getIsDisabled()}
         handler={this._executeAction}
         icon={icon}
-        tooltip={label}
+        tooltip={this._getLabel()}
       />
     )
   }
