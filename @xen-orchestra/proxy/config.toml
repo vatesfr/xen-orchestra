@@ -1,0 +1,13 @@
+# Vendor config: DO NOT TOUCH!
+#
+# See sample.config.toml to override.
+
+datadir = "/var/lib/xo-proxy/data"
+
+[[http.listen]]
+
+port = 80
+
+[jwt]
+
+expiresIn = "7d"

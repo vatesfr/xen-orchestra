@@ -1,0 +1,81 @@
+{
+  "private": true,
+  "name": "@xen-orchestra/proxy",
+  "version": "0.0.0",
+  "license": "ISC",
+  "description": "",
+  "keywords": [
+    "backup",
+    "proxy",
+    "xen-orchestra",
+    "xo"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/proxy",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "preferGlobal": true,
+  "main": "dist/",
+  "bin": {
+    "xo-proxy": "dist/server.js",
+    "xo-proxy-cli": "dist/cli.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=8"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.0",
+    "@xen-orchestra/async-map": "^0.0.0",
+    "@xen-orchestra/defined": "^0.0.0",
+    "@xen-orchestra/emit-async": "^0.0.0",
+    "@xen-orchestra/fs": "^0.4.1",
+    "@xen-orchestra/log": "^0.1.4",
+    "app-conf": "^0.6.0",
+    "base64url": "^3.0.0",
+    "better-sqlite3": "^4.1.1",
+    "get-stream": "^4.1.0",
+    "getopts": "^2.2.3",
+    "http-request-plus": "^0.6.0",
+    "http-server-plus": "^0.10.0",
+    "jest-worker": "^23.0.1",
+    "json-rpc-protocol": "^0.13.1",
+    "jsonwebtoken": "^8.2.1",
+    "julien-f-source-map-support": "^0.1.0",
+    "koa": "^2.5.1",
+    "koa-router": "^7.4.0",
+    "lodash": "^4.17.10",
+    "messagepack": "^1.1.7",
+    "promise-toolbox": "^0.11.0",
+    "proxy-agent": "^3.0.3",
+    "stoppable": "^1.0.6",
+    "vhd-lib": "^0.4.0",
+    "xen-api": "^0.21.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-decorators": "^7.0.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-flow": "^7.0.0",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-plugin-lodash": "^3.3.2",
+    "cross-env": "^5.1.5",
+    "index-modules": "^0.3.0",
+    "rimraf": "^2.6.2"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "prebuild": "yarn run clean && index-modules --cjs-lazy src/main/mixins",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build",
+    "start": "./dist/server.js"
+  }
+}
