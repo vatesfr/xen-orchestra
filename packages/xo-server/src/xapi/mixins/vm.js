@@ -310,14 +310,7 @@ export default {
 
     highAvailability: {
       set (ha, vm) {
-        let haValue = ''
-        if (ha === 'Restart if possible') {
-          haValue = 'best-effort'
-        } else if (ha === 'Restart') {
-          haValue = 'restart'
-        }
-
-        return this.call('VM.set_ha_restart_priority', vm.$ref, haValue)
+        return this.call('VM.set_ha_restart_priority', vm.$ref, ha)
       },
     },
 

@@ -292,7 +292,7 @@ class CoresPerSocket extends Component {
   }
 })
 export default class TabAdvanced extends Component {
-  componentWillMount () {
+  componentDidMount () {
     getVmsHaValues().then(vmsHaValues => this.setState({ vmsHaValues }))
   }
 
@@ -468,7 +468,7 @@ export default class TabAdvanced extends Component {
                     >
                       {map(this.state.vmsHaValues, vmsHaValue => (
                         <option key={vmsHaValue} value={vmsHaValue}>
-                          {vmsHaValue}
+                          {vmsHaValue === '' ? 'disabled' : vmsHaValue}
                         </option>
                       ))}
                     </select>

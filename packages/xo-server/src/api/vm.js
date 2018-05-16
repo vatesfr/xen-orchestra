@@ -12,8 +12,8 @@ import { forEach, map, mapFilter, parseSize } from '../utils'
 
 // ===================================================================
 
-export function getVmsHaValues () {
-  return ['Restart', 'Restart if possible', 'Disable']
+export function getHaValues () {
+  return ['best-effort', 'restart', '']
 }
 
 function checkPermissionOnSrs (vm, permission = 'operate') {
@@ -560,7 +560,11 @@ set.params = {
 
   name_description: { type: 'string', optional: true },
 
-  high_availability: { type: 'string', optional: true },
+  high_availability: {
+    optional: true,
+    pattern: new RegExp(`^(${getHaValues().join('|')})$`),
+    type: 'string',
+  },
 
   // Number of virtual CPUs to allocate.
   CPUs: { type: 'integer', optional: true },
