@@ -956,6 +956,7 @@ const messages = {
   vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
   vmCoresPerSocketIncorrectValueSolution:
     'Please change the selected value to fix it.',
+  vmHaDisabled: 'disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmMaxVcpus: 'vCPUs max:',
   vmMaxRam: 'Memory max:',

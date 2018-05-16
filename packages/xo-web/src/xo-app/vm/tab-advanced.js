@@ -468,7 +468,7 @@ export default class TabAdvanced extends Component {
                     >
                       {map(this.state.vmsHaValues, vmsHaValue => (
                         <option key={vmsHaValue} value={vmsHaValue}>
-                          {vmsHaValue === '' ? 'disabled' : vmsHaValue}
+                          {vmsHaValue === '' ? _('vmHaDisabled') : vmsHaValue}
                         </option>
                       ))}
                     </select>
