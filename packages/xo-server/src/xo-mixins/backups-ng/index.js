@@ -1340,7 +1340,10 @@ export default class BackupNg {
           const task = logs[data.taskId]
           if (task !== undefined) {
             // work-around
-            if (time === task.start && message === 'merge') {
+            if (
+              time === task.start &&
+              (message === 'merge' || message === 'tranfer')
+            ) {
               delete logs[data.taskId]
             } else {
               task.status = data.status
