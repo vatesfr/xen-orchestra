@@ -740,7 +740,10 @@ export default class BackupNg {
     }
 
     if (
-      !some(vm.$VBDs, vbd => vbd.type !== 'CD' && vbd.VDI !== 'OpaqueRef:NULL')
+      !some(
+        vm.$VBDs,
+        vbd => vbd.type === 'Disk' && vbd.VDI !== 'OpaqueRef:NULL'
+      )
     ) {
       throw new Error('no disks found')
     }
