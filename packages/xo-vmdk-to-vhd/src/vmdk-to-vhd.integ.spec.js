@@ -6,7 +6,7 @@ import getStream from 'get-stream'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 
-import { createReadStream, createWriteStream, stat } from 'fs-promise'
+import { createReadStream, createWriteStream, stat } from 'fs-extra'
 import { fromCallback as pFromCallback } from 'promise-toolbox'
 import convertFromVMDK, { readVmdkGrainTable } from '.'
 
@@ -49,7 +49,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
   const vhdFileName = 'from-vmdk-VMDKDirectParser.vhd'
   const reconvertedFromVhd = 'from-vhd.raw'
   const reconvertedFromVmdk = 'from-vhd-by-vbox.raw'
-  const dataSize = 8355840 // this number is an integer head/cylinder/count equation solution
+  const dataSize = 100 * 1024 * 1024 // this number is an integer head/cylinder/count equation solution
   try {
     await execa.shell(
       'base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName
@@ -82,6 +82,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
       reconvertedFromVhd,
     ])
     await execa('qemu-img', ['compare', inputRawFileName, vhdFileName])
+    await execa('qemu-img', ['compare', vmdkFileName, vhdFileName])
   } catch (error) {
     console.error(error.stdout)
     console.error(error.stderr)
