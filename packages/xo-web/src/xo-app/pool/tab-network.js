@@ -3,6 +3,7 @@ import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import Button from 'button'
 import ButtonGroup from 'button-group'
+import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -280,6 +281,11 @@ class NetworkActions extends Component {
 
     return (
       <ButtonGroup>
+        <ActionRowButton
+          handler={() => copy(network.uuid)}
+          icon='clipboard'
+          tooltip={_('copyUuid', { uuid: network.uuid })}
+        />
         <ActionRowButton
           disabled={disableNetworkDelete}
           handler={deleteNetwork}

@@ -235,12 +235,10 @@ const parseFile = async (file, type, func) => {
   }
 }
 
-const getRedirectionUrl = vms => {
-  const query = `id:|(${vms.join(' ')})`
-  return vms.length === 1
+const getRedirectionUrl = vms =>
+  vms.length === 1
     ? `/vms/${vms[0]}`
-    : `/home?s=${encodeURIComponent(query)}&t=VM`
-}
+    : `/home?s=${encodeURIComponent(`id:|(${vms.join(' ')})`)}&t=VM`
 
 export default class Import extends Component {
   constructor (props) {

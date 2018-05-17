@@ -209,18 +209,32 @@ export default class Jobs {
       throw new Error(`job ${id} is already running`)
     }
 
-    const executor = this._executors[job.type]
+    const { type } = job
+    const executor = this._executors[type]
     if (executor === undefined) {
-      throw new Error(`cannot run job ${id}: no executor for type ${job.type}`)
+      throw new Error(`cannot run job ${id}: no executor for type ${type}`)
+    }
+
+    let data
+    if (type === 'backup') {
+      // $FlowFixMe only defined for BackupJob
+      const settings = job.settings['']
+      data = {
+        // $FlowFixMe only defined for BackupJob
+        mode: job.mode,
+        reportWhen: (settings && settings.reportWhen) || 'failure',
+      }
     }
 
     const logger = this._logger
     const runJobId = logger.notice(`Starting execution of ${id}.`, {
+      data,
       event: 'job.start',
       userId: job.userId,
       jobId: id,
       // $FlowFixMe only defined for CallJob
       key: job.key,
+      type,
     })
 
     runningJobs[id] = runJobId
@@ -231,7 +245,7 @@ export default class Jobs {
       session = app.createUserConnection()
       session.set('user_id', job.userId)
 
-      const status = await executor({
+      await executor({
         app,
         cancelToken,
         job,
@@ -245,8 +259,7 @@ export default class Jobs {
         runJobId,
       })
 
-      session.close()
-      app.emit('job:terminated', status)
+      app.emit('job:terminated', runJobId, job, schedule)
     } catch (error) {
       logger.error(`The execution of ${id} has failed.`, {
         event: 'job.end',

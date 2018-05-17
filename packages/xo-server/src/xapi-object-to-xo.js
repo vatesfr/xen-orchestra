@@ -292,8 +292,7 @@ const TRANSFORMS = {
         }
       })(),
 
-      // TODO: there is two possible value: "best-effort" and "restart"
-      high_availability: Boolean(obj.ha_restart_priority),
+      high_availability: obj.ha_restart_priority,
 
       memory: (function () {
         const dynamicMin = +obj.memory_dynamic_min

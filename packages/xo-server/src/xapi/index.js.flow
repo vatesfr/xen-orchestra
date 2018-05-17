@@ -58,7 +58,7 @@ declare export class Xapi {
   _updateObjectMapProperty(
     object: XapiObject,
     property: string,
-    entries: $Dict<string>
+    entries: $Dict<null | string>
   ): Promise<void>;
   _setObjectProperties(
     object: XapiObject,

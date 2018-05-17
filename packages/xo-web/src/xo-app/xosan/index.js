@@ -10,24 +10,13 @@ import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
 import { get } from 'xo-defined'
 import { ignoreErrors } from 'promise-toolbox'
-import {
-  every,
-  filter,
-  find,
-  flatten,
-  forEach,
-  isEmpty,
-  map,
-  mapValues,
-  some,
-} from 'lodash'
+import { every, filter, find, flatten, forEach, isEmpty, map } from 'lodash'
 import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import {
   addSubscriptions,
   connectStore,
   cowSet,
   formatSize,
-  isXosanPack,
   ShortDate,
 } from 'utils'
 import {
@@ -37,6 +26,7 @@ import {
   subscribePlugins,
   subscribeResourceCatalog,
   subscribeVolumeInfo,
+  updateXosanPacks,
 } from 'xo'
 
 import NewXosan from './new-xosan'
@@ -209,6 +199,12 @@ const XOSAN_COLUMNS = [
 
 const XOSAN_INDIVIDUAL_ACTIONS = [
   {
+    handler: (xosan, { pools }) => updateXosanPacks(pools[xosan.$pool]),
+    icon: 'host-patch-update',
+    label: _('xosanUpdatePacks'),
+    level: 'primary',
+  },
+  {
     handler: deleteSr,
     icon: 'delete',
     label: _('xosanDelete'),
@@ -220,14 +216,6 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   const getHosts = createGetObjectsOfType('host')
   const getHostsByPool = getHosts.groupBy('$pool')
   const getPools = createGetObjectsOfType('pool')
-
-  const noPacksByPool = createSelector(getHostsByPool, hostsByPool =>
-    mapValues(
-      hostsByPool,
-      (poolHosts, poolId) =>
-        !every(poolHosts, host => some(host.supplementalPacks, isXosanPack))
-    )
-  )
 
   const getPbdsBySr = createGetObjectsOfType('PBD').groupBy('SR')
   const getXosanSrs = createSelector(
@@ -291,7 +279,6 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     isAdmin,
     isMasterOfflineByPool: getIsMasterOfflineByPool,
     hostsNeedRestartByPool: getHostsNeedRestartByPool,
-    noPacksByPool,
     poolPredicate: getPoolPredicate,
     pools: getPools,
     xoaRegistration: state => state.xoaRegisterState,
@@ -419,8 +406,8 @@ export default class Xosan extends Component {
     const {
       hostsNeedRestartByPool,
       isAdmin,
-      noPacksByPool,
       poolPredicate,
+      pools,
       xoaRegistration,
       xosanSrs,
     } = this.props
@@ -456,7 +443,6 @@ export default class Xosan extends Component {
                       (this._isXosanRegistered() ? (
                         <NewXosan
                           hostsNeedRestartByPool={hostsNeedRestartByPool}
-                          noPacksByPool={noPacksByPool}
                           poolPredicate={poolPredicate}
                           onSrCreationFinished={this._updateLicenses}
                           onSrCreationStarted={this._onSrCreationStarted}
@@ -498,6 +484,7 @@ export default class Xosan extends Component {
                           isAdmin,
                           licensesByXosan: this._getLicensesByXosan(),
                           licenseError,
+                          pools,
                           status: this.state.status,
                         }}
                       />

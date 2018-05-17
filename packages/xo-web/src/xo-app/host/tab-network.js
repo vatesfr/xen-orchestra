@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import copy from 'copy-to-clipboard'
 import React from 'react'
 import Icon from 'icon'
 import pick from 'lodash/pick'
@@ -284,6 +285,11 @@ const COLUMNS = [
 ]
 
 const INDIVIDUAL_ACTIONS = [
+  {
+    handler: pif => copy(pif.uuid),
+    icon: 'clipboard',
+    label: pif => _('copyUuid', { uuid: pif.uuid }),
+  },
   {
     handler: deletePif,
     icon: 'delete',

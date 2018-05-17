@@ -1,6 +1,7 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import copy from 'copy-to-clipboard'
 import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
@@ -655,6 +656,11 @@ export default class TabDisks extends Component {
       handler: this._migrateVdi,
       icon: 'vdi-migrate',
       label: _('vdiMigrate'),
+    },
+    {
+      handler: vdi => copy(vdi.uuid),
+      icon: 'clipboard',
+      label: vdi => _('copyUuid', { uuid: vdi.uuid }),
     },
   ]
 

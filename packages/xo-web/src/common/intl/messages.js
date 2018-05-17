@@ -41,6 +41,7 @@ const messages = {
 
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
+  copyUuid: 'Copy {uuid}',
 
   // ----- Pills -----
   pillMaster: 'Master',
@@ -288,6 +289,23 @@ const messages = {
   jobFinished: 'Finished',
   jobInterrupted: 'Interrupted',
   jobStarted: 'Started',
+  jobFailed: 'Failed',
+  jobSkipped: 'Skipped',
+  jobSuccess: 'Successful',
+  allTasks: 'All',
+  taskStart: 'Start',
+  taskEnd: 'End',
+  taskDuration: 'Duration',
+  taskSuccess: 'Successful',
+  taskFailed: 'Failed',
+  taskSkipped: 'Skipped',
+  taskStarted: 'Started',
+  taskInterrupted: 'Interrupted',
+  taskTransferredDataSize: 'Transfer size',
+  taskTransferredDataSpeed: 'Transfer speed',
+  taskMergedDataSize: 'Merge size',
+  taskMergedDataSpeed: 'Merge speed',
+  taskError: 'Error',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
@@ -326,6 +344,11 @@ const messages = {
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
 
   // ------ New backup -----
+  newBackupAdvancedSettings: 'Advanced settings',
+  reportWhenAlways: 'Always',
+  reportWhenFailure: 'Failure',
+  reportWhenNever: 'Never',
+  reportWhen: 'Report when',
   newBackupSelection: 'Select your backup type:',
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',
@@ -934,6 +957,7 @@ const messages = {
   vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
   vmCoresPerSocketIncorrectValueSolution:
     'Please change the selected value to fix it.',
+  vmHaDisabled: 'disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmMaxVcpus: 'vCPUs max:',
   vmMaxRam: 'Memory max:',
@@ -1633,6 +1657,7 @@ const messages = {
   logParams: 'Params',
   logMessage: 'Message',
   logError: 'Error',
+  logTitle: 'Logs',
   logDisplayDetails: 'Display details',
   logTime: 'Date',
   logNoStackTrace: 'No stack trace',
@@ -1743,7 +1768,8 @@ const messages = {
   xosanUsedSpace: 'Used space',
   xosanLicense: 'License',
   xosanMultipleLicenses: 'This XOSAN has more than 1 license!',
-  xosanNeedPack: 'XOSAN pack needs to be installed on each host of the pool.',
+  xosanNeedPack:
+    'XOSAN pack needs to be installed and up to date on each host of the pool.',
   xosanInstallIt: 'Install it now!',
   xosanNeedRestart:
     'Some hosts need their toolstack to be restarted before you can create an XOSAN',
@@ -1771,6 +1797,14 @@ const messages = {
   xosanPbdsDetached: 'Some SRs are detached from the XOSAN',
   xosanBadStatus: 'Something is wrong with: {badStatuses}',
   xosanRunning: 'Running',
+  xosanUpdatePacks: 'Update packs',
+  xosanPackUpdateChecking: 'Checking for updates',
+  xosanPackUpdateError:
+    'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded and that the updater is reachable.',
+  xosanPackUpdateUnavailable: 'XOSAN resources are unavailable',
+  xosanPackUpdateUnregistered: 'Not registered for XOSAN resources',
+  xosanPackUpdateUpToDate: "✓ This pool's XOSAN packs are up to date!",
+  xosanPackUpdateVersion: 'Update pool with latest pack v{version}',
   xosanDelete: 'Delete XOSAN',
   xosanFixIssue: 'Fix',
   xosanCreatingOn: 'Creating XOSAN on {pool}',
@@ -1787,12 +1821,8 @@ const messages = {
   xosanRegister: 'Register your appliance first',
   xosanLoading: 'Loading…',
   xosanNotAvailable: 'XOSAN is not available at the moment',
-  xosanInstallPackOnHosts: 'Install XOSAN pack on these hosts:',
-  xosanInstallPack: 'Install {pack} v{version}?',
   xosanNoPackFound:
     'No compatible XOSAN pack found for your XenServer versions.',
-  xosanPackRequirements:
-    'At least one of these version requirements must be satisfied by all the hosts in this pool:',
   // SR tab XOSAN
   xosanVmsNotRunning: 'Some XOSAN Virtual Machines are not running',
   xosanVmsNotFound: 'Some XOSAN Virtual Machines could not be found',
