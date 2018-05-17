@@ -1,9 +1,13 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
+import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import Copiable from 'copiable'
+import propTypes from 'prop-types-decorator'
 import React from 'react'
 import TabButton from 'tab-button'
 import SelectFiles from 'select-files'
+import SingleLineRow from 'single-line-row'
 import Upgrade from 'xoa-upgrade'
 import { compareVersions, connectStore } from 'utils'
 import { Toggle } from 'form'
@@ -12,13 +16,14 @@ import {
   detachHost,
   disableHost,
   forgetHost,
+  setRemoteSyslogHost,
   restartHost,
   installSupplementalPack,
 } from 'xo'
-import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType, createSelector } from 'selectors'
 import { forEach, map, noop } from 'lodash'
+import { createGetObjectsOfType, createSelector } from 'selectors'
+import { FormattedRelative, FormattedTime, injectIntl } from 'react-intl'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 
@@ -33,6 +38,47 @@ const formatPack = ({ name, author, description, version }, key) => (
 )
 
 const getPackId = ({ author, name }) => `${author}\0${name}`
+
+@injectIntl
+@propTypes({
+  onClose: propTypes.func,
+  host: propTypes.object.isRequired,
+})
+class EditRemoteSyslog extends Component {
+  _setRemoteSyslogHost = ({ host, syslogDestination }) =>
+    setRemoteSyslogHost(host, syslogDestination).then(this.props.onClose)
+
+  render () {
+    const { host, intl } = this.props
+    return (
+      <form id='formRemoteSyslog' className='form-inline mt-1'>
+        <div className='form-group'>
+          <input
+            className='form-control'
+            onChange={this.linkState('syslogDestination')}
+            placeholder={intl.formatMessage(
+              messages.hostRemoteSyslogPlaceHolder
+            )}
+            type='text'
+          />
+        </div>
+        <div className='form-group ml-1'>
+          <ActionButton
+            btnStyle='primary'
+            data-host={host}
+            data-syslogDestination={this.state.syslogDestination}
+            form='formRemoteSyslog'
+            handler={this._setRemoteSyslogHost}
+            icon='save'
+            tooltip={_('hostRemoteSyslogTooltip')}
+          >
+            {_('changeHostRemoteSyslogOK')}
+          </ActionButton>
+        </div>
+      </form>
+    )
+  }
+}
 
 @connectStore(() => {
   const getPgpus = createGetObjectsOfType('PGPU')
@@ -67,8 +113,12 @@ export default class extends Component {
     }
   )
 
+  _closeEditRemoteSyslogForm = () => this.setState({ editRemoteSyslog: false })
+
   render () {
     const { host, pcis, pgpus } = this.props
+    const { editRemoteSyslog } = this.state
+
     return (
       <Container>
         <Row>
@@ -181,6 +231,32 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostIscsiName')}</th>
                   <Copiable tagName='td'>{host.iSCSI_name}</Copiable>
+                </tr>
+                <tr>
+                  <th>{_('hostRemoteSyslog')}</th>
+                  <td>
+                    <SingleLineRow>
+                      <Col>
+                        <span>{host.logging['syslog_destination']} </span>
+                        <ActionRowButton
+                          btnStyle={editRemoteSyslog ? 'info' : 'primary'}
+                          handler={this.toggleState('editRemoteSyslog')}
+                          icon='edit'
+                          tooltip={_('editRemoteSyslog')}
+                        />
+                      </Col>
+                    </SingleLineRow>
+                    {editRemoteSyslog && (
+                      <Row>
+                        <Col>
+                          <EditRemoteSyslog
+                            host={host}
+                            onClose={this._closeEditRemoteSyslogForm}
+                          />
+                        </Col>
+                      </Row>
+                    )}
+                  </td>
                 </tr>
               </tbody>
             </table>

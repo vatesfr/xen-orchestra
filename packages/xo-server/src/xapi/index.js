@@ -426,6 +426,14 @@ export default class Xapi extends XapiBase {
     await this.call('host.restart_agent', this.getObject(hostId).$ref)
   }
 
+  async reconfigSyslogHost (hostId, syslogDestination) {
+    const host = this.getObject(hostId)
+    await this.call('host.set_logging', host.$ref, {
+      syslog_destination: syslogDestination,
+    })
+    await this.call('host.syslog_reconfigure', host.$ref)
+  }
+
   async shutdownHost (hostId, force = false) {
     const host = this.getObject(hostId)
 

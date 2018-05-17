@@ -146,6 +146,7 @@ const TRANSFORMS = {
       license_params: obj.license_params,
       license_server: obj.license_server,
       license_expiry: toTimestamp(obj.license_params.expiry),
+      logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
       memory: (function () {
