@@ -7,6 +7,7 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
 import {
+  find,
   forEach,
   groupBy,
   isEmpty,
@@ -738,6 +739,10 @@ export default class BackupNg {
       }
     }
 
+    if (find(vm.$VBDs, { is_cd_drive: false }) === undefined) {
+      throw new Error('no disks found')
+    }
+
     const snapshots = vm.$snapshots
       .filter(_ => _.other_config['xo:backup:job'] === jobId)
       .sort(compareSnapshotTime)
@@ -1062,10 +1067,6 @@ export default class BackupNg {
                   getSetting(settings, 'deleteFirst', remoteId)
                 if (deleteFirst) {
                   await deleteOldBackups()
-                }
-
-                if (isEmpty(fork.vdis)) {
-                  throw new Error('no disks found')
                 }
 
                 await wrapTask(
