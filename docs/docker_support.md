@@ -1,12 +1,12 @@
 # Docker support
 
-> This feature is available since 4.10
+> This feature is available in XOA 4.10 and above
 
-Basic container lifecycle is documented [in the Administration section](https://xen-orchestra.com/docs/administration.html#docker-management).
+The basic container lifecycle is documented [in the Administration section](https://xen-orchestra.com/docs/administration.html#docker-management).
 
-This category is dedicated on creating VM with Docker support.
+This category is dedicated to creating a VM with Docker support.
 
-## Prerequisite
+## Prerequisites
 
 * XenServer 6.5 or higher
 * Plugin installation (see below)
@@ -15,49 +15,54 @@ This category is dedicated on creating VM with Docker support.
 
 ## Docker plugin installation
 
-This first step is needed until Docker is supported nativly in the XenServer API (XAPI).
+This first step is needed until Docker is supported natively in the XenServer API (XAPI).
 
-> The plugin should be installed in every hosts, even if they are on the same pool.
+> The plugin should be installed on every host you will be using, even if they are on the same pool.
 
 #### For XenServer 6.5
 
-1. SSH on your XenServer
+1. SSH to your XenServer
 1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/10343/XenServer-6.5.0-SP1-xscontainer.iso`
 1. Install it: `xe-install-supplemental-pack XenServer-6.5.0-SP1-xscontainer.iso`
 
 #### For XenServer 7.0
 
-1. SSH on your XenServer
+1. SSH to your XenServer
 1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11621/XenServer-7.0.0-xscontainer.iso`
 1. Install it: `xe-install-supplemental-pack XenServer-7.0.0-xscontainer.iso`
 
 #### For XenServer 7.1
 
-1. SSH on your XenServer
+1. SSH to your XenServer
 1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11993/XenServer-7.1.0-xscontainer.iso`
 1. Install it: `xe-install-supplemental-pack XenServer-7.1.0-xscontainer.iso`
 
+#### For XenServer 7.2
 
-That's it! You are ready for enjoying Docker support!
+1. SSH to your XenServer
+1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/12641/XenServer-7.2.0-xscontainer.iso`
+1. Install it: `xe-install-supplemental-pack XenServer-7.2.0-xscontainer.iso`
+
+That's it! You can now enjoy Docker support!
 
 ## Docker managed VMs
 
-There is two ways to use the newest exposed Docker features:
+There are two ways to use the newly exposed Docker features:
 
-* install a CoreOS VM
-* transform an existing VM in supported Docker VM
+* Install a CoreOS VM
+* Transform an existing VM into a supported Docker VM
 
 ### CoreOS
 
-[CoreOS](https://coreos.com/) is a Linux distribution with bundled software, like `etcd`, `rkt`, `fleet` etc. The ISO install CD is also using `CloudInit` (which is the interesting thing here).
+[CoreOS](https://coreos.com/) is a Linux distribution with bundled software, like `etcd`, `rkt`, `fleet` etc. The ISO install CD also uses `CloudInit` (which is the interesting thing here).
 
 ![](https://xen-orchestra.com/blog/content/images/2015/11/coreos-logo.png)
 
 #### Create the VM
 
-First thing first, [create a new VM as usual](vm_creation.md).
+First things first, [create a new VM as usual](vm_creation.md).
 
-Then, select the "CoreOS" template in the list and name it as you want:
+Then, select the "CoreOS" template in the list and name it as you wish:
 
 ![](./assets/xo5coreos.png)
 
@@ -76,7 +81,7 @@ And replace it with your actual SSH public key:
 `- ssh-rsa AAAA....kuGgQ me@mypc`
 
 
-The rest of the configuration is identical to any other VM. Just click on "Create VM" and you are done. After few seconds, your VM is ready. Nothing else to do!
+The rest of the configuration is identical to any other VM. Just click on "Create VM" and you are done. After a few seconds, your VM will be ready. Nothing else to do!
 
 You can see it thanks to the docker logo in the main view:
 
@@ -86,9 +91,9 @@ But also in the VM view, you'll have a container tab:
 
 ![](./assets/xo5dockerempty.png)
 
-It's empty obviously, because you don't have any Docker container running. So now, let's boot the VM, and create some Docker containers!
+It's empty obviously, because you don't have any Docker containers running. So now, let's boot the VM, and create some Docker containers!
 
-You should be able to access the VM with the user `core` and your SSH key (so no password to write!). Oh and the good news: because Xen tools are installed automatically, you already have the IP address displayed in Xen Orchetra.
+You should be able to access the VM with the user `core` and your SSH key (so no password to write!). And good news: because Xen Tools are installed automatically, you already have the IP address displayed in Xen Orchestra.
 
 So in our example (use the `core` user):
 
@@ -106,7 +111,7 @@ Update Strategy: No Reboots
 core@core1 ~ $
 ```
 
-You are now connected! Let's make some tests before installing it on the disks, with a container named "hello" (doing just a small infinite loop):
+You are now connected! Let's run some tests before installing it on the disks, with a container named "hello" (just doing a small infinite loop):
 
 ```
 core@core1 ~ $ docker run --name nginx -d hello /bin/sh -c "while true; do echo Hello World; sleep 1; done"
@@ -119,7 +124,7 @@ Status: Downloaded newer image for busybox:latest
 
 ```
 
-You can create any number of those!
+You can create any number of these!
 
 Guess what? Check in Xen Orchestra, in the VM view:
 
@@ -133,7 +138,7 @@ Don't forget that you can sort the table and even search inside it:
 
 #### CoreOS installation
 
-Now it works, you can make a persistent installation of your CoreOS VM. In the same SSH terminal used before, just type:
+Now that it works, you can make a persistent installation of your CoreOS VM. In the same SSH terminal used before, just type:
 
 ```
 core@core1 ~ $ sudo coreos-install -d /dev/xvda -o xen -C stable
@@ -156,22 +161,22 @@ During the VM creation, the XSContainer plugin will create an extra disk: "Autom
 
 #### What is CloudInit?
 
-`CloudInit` is a software created to simplify VM provisioning for Cloud instances: it was originally developed for the Amazon Cloud, but works with all major Cloud ready systems, like OpenStack for example.
+`CloudInit` is software created to simplify VM provisioning for Cloud instances: it was originally developed for the Amazon Cloud, but works with all major Cloud ready systems, like OpenStack for example.
 
 Basically, it reads configuration during the boot, allowing:
 
-* SSH keys management for newly created VM/instances
+* SSH key management for newly created VM/instances
 * Root disk filesystem growing
 * User/group management
-* Arbitrary commands execution (system update, custom scripts etc.)
+* Arbitrary command execution (system update, custom scripts etc.)
 
-In our case, it's used by the XSContainer plugin to allow host communication to the Docker daemon running in the VM, thus exposing Docker commands outside it.
+In our case, it's used by the XSContainer plugin to allow host communication to the Docker daemon running in the VM, thus exposing Docker commands outside of the VM.
 
 ### Existing VMs
 
-You can also use the XSContainer plugin to "transform" an existing VM into a "Docker" managed one.
+You can also use the XSContainer plugin to "transform" an existing VM into a "Docker" managed VM.
 
-You need to have this installed inside the VM:
+You need to have the following installed inside the VM:
 
 * Docker
 * openssh-server
@@ -179,12 +184,12 @@ You need to have this installed inside the VM:
 
 For Debian/Ubuntu like distro: `apt-get install docker.io openssh-server nmap`. For RHEL and derived (CentOS...): `yum install docker openssh-server nmap-ncat`.
 
-To use Docker as non-root, please add the user you want inside the "Docker" group.
+To run Docker as non-root, please add the user you want inside the "Docker" group.
 
-Now, you need to access to your host (Dom0) and use the following command:
+Now you need to access your host (Dom0) and use the following command:
 
 ```
 xscontainer-prepare-vm -v <VM_UUID> -u <username>
 ```
 
-> Because "prepare-vm" is not exposed outside the Dom0 (yet?), we can't use Xen Orchestra to give you a one-click solution so far.
+> Because "prepare-vm" is not exposed outside of the Dom0 (yet?), we can't use Xen Orchestra to give you a one-click solution as of now.

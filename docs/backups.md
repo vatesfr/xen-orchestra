@@ -1,15 +1,15 @@
 # Backups
 
-This section is dedicated to all existing means to rollback or backup your VMs in Xen Orchestra.
+This section is dedicated to all existing methods of rolling back or backing up your VMs in Xen Orchestra.
 
-There are different ways to protect your VMs:
+There are several ways to protect your VMs:
 
-* [full backups](full_backups.md) [*Starter Edition*]
-* [rolling snapshots](rolling_snapshots.md) [*Starter Edition*]
-* [delta backups](delta_backups.md) (best of both previous ones) [*Enterprise Edition*]
-* [disaster recovery](disaster_recovery.md) [*Enterprise Edition*]
-* [continuous replication](continuous_replication.md) [*Premium Edition*]
-* [file level restore](file_level_restore.md) [*Premium Edition*]
+* [Full Backups](full_backups.md) [*Starter Edition*]
+* [Rolling Snapshots](rolling_snapshots.md) [*Starter Edition*]
+* [Delta Backups](delta_backups.md) (best of both previous ones) [*Enterprise Edition*]
+* [Disaster Recovery](disaster_recovery.md) [*Enterprise Edition*]
+* [Continuous Replication](continuous_replication.md) [*Premium Edition*]
+* [File Level Restore](file_level_restore.md) [*Premium Edition*]
 
 > Don't forget to take a look at the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look at the [backup reports](backup_reports.md) section for configuring notifications.
 
@@ -17,25 +17,25 @@ There is also a way to automatically select the VMs to backup: **[smart backup](
 
 ## Overview
 
-This is the welcome panel on the backup view. It recaps all existing scheduled jobs. This is also where the backup logs are displayed.
+This is the welcome panel for the backup view. It recaps all existing scheduled jobs. This is also where the backup logs are displayed.
 
 ## Logs
 
 All the scheduled operations (backup, snapshots and even DR) are displayed in the main backup view.
 
-A successful backup task will be displayed in green, a faulty one in red. You can click on the arrow to see each entry detail:
+A successful backup task will be displayed in green, a faulty one in red. You can click on the arrow to see each entry detail.
 
 You also have a filter to search anything related to these logs.
 
-> Logs are not "live" tasks. If you restart XOA during a backup, the log associated with the job will stay in orange (in progress), because it wasn't finished. It will stay forever not finished because the job was cut in the middle.
+> Logs are not "live" tasks. If you restart XOA during a backup, the log associated with the job will stay in orange (in progress), because it wasn't finished. It will stay forever unfinished because the job was cut in the middle.
 
 ## Consistent backup (with quiesce snapshots)
 
-All backup are relying on snapshots. But what about data consistency? By default, Xen Orchestra will try to make a **quiesce snapshot** everytime a snapshot is done (and fallback to normal snapshot if it's not possible).
+All backup rely on snapshots. But what about data consistency? By default, Xen Orchestra will try to make a **quiesce snapshot** every time a snapshot is done (and fallback to normal snapshot if it's not possible).
 
-All your Windows VMs can be protected (especially MS SQL or Exchange services) after you have installed Xen tools in your VMs. A quiesce snapshots means the operating system will be notified and the cache will be flushed on disks. This way, your backups will be always consistent.
+All your Windows VMs can be protected (especially MS SQL or Exchange services) after you have installed Xen Tools in your VMs. A quiesce snapshots means the operating system will be notified and the cache will be flushed to disks. This way, your backups will always be consistent.
 
-To see if you have quiesced snapshots for a VM, just go into its anapshot tab, the "info" icons means it is a quiesced snapshot:
+To see if you have quiesced snapshots for a VM, just go into its snapshot tab, the "info" icon means it is a quiesced snapshot:
 
 ![](./assets/quiesced1.png)
 
@@ -47,11 +47,11 @@ The tooltip confirms this:
 
 > Remotes are places where your *backup* and *delta backup* files will be stored.
 
-To add a *remote*, go in the **Settings/Remotes** menu.
+To add a *remote*, go to the **Settings/Remotes** menu.
 
-Supported stores:
+Supported remote types:
 
-* local (any folder in XOA filesystem)
+* Local (any folder in XOA filesystem)
 * NFS
 * SMB (CIFS)
 
@@ -66,9 +66,9 @@ On your NFS server, authorize XOA's IP address and permissions for subfolders. T
 
 We support SMB storage on *Windows Server 2012 R2*.
 
-> WARNING: In continuous delta backup, SMB is **NOT** recommended (or only for small VMs, eg < 50GB)
+> WARNING: For continuous delta backup, SMB is **NOT** recommended (or only for small VMs, eg < 50GB)
 
-Also, read twice the UI when you add a SMB store. If you have:
+Also, read the UI twice when you add an SMB store. If you have:
 
 * `192.168.1.99` as SMB host
 * `Backups` as folder
@@ -82,11 +82,11 @@ You'll have to fill it like this:
 
 ### Local
 
-> **This is for advanced users**. Using local XOA filesystem without extra mount/disk will **use the default system disk of XOA**.
+> **This is for advanced users**. Using the local XOA filesystem without extra mounts/disks will **use the default system disk of XOA**.
 
-If you need to mount an unsupported store, you could always do it manually:
+If you need to mount an unsupported store (FTP for example), you can always do it manually:
 
-1. mount your store inside XOA manually, e.g in `/media/myStore`
+1. mount your remote store inside the XOA filesystem manually, e.g in `/media/myStore`
 2. in the web interface, select a "local" store and point it to your `/media/myStore` folder.
 
 Any Debian Linux mount point could be supported this way, until we add further options directly in the web interface.
@@ -99,23 +99,23 @@ All your scheduled backups are acccessible in the "Restore" view in the backup s
 2. Choose the backup you want to restore
 3. Select the SR where you want to restore it
 
-> Note: You can restore your backup even on a brand new XenServer and on a brand new hardware.
+> Note: You can restore your backup even on a brand new XenServer and on brand new hardware.
 
 ## About backup compression
 
-By default, *Backups* are compressed (using GZIP, done on XenServer side). There is no absolute rule but in general not compressed backups are faster.
+By default, *Backups* are compressed (using GZIP, done on XenServer side). There is no absolute rule but in general uncompressed backups are faster (but sometimes much larger).
 
 XenServer uses Gzip compression, which is:
 
-* slow
+* slow (single threaded)
 * space efficient
-* consumes less bandwidth (if your NFS share is far)
+* consumes less bandwidth (helpful if your NFS share is far away)
 
-If you have compression on your NFS share (or destination file-system like ZFS), you can disable compression in Xen Orchestra.
+If you have compression on your NFS share (or destination filesystem like ZFS), you can disable compression in Xen Orchestra.
 
 ## Add a disk for local backups
 
-If you want to use XOA to store all your backups, you need to attach a large disk to it. This can be done live.
+If you want to use XOA to locally store all your backups, you need to attach a large disk to it. This can be done live.
 
 First, after your disk is attached to XOA, you'll have to find the new disk name with `fdisk -l`. It's probably `xvdb`.
 
@@ -134,4 +134,4 @@ To make the mount point persistent in XOA, edit the `/etc/fstab` file, and add:
 /dev/xvdb /var/lib/xoa-backups ext4 defaults 0 0
 ```
 
-This way, without modifying your previous scheduled snapshot, they will be written in this local mountpoint!
+This way, without modifying your previous scheduled snapshot, they will be written to this new local mountpoint!
