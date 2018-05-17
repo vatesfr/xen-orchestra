@@ -7,13 +7,13 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
 import {
-  find,
   forEach,
   groupBy,
   isEmpty,
   last,
   mapValues,
   noop,
+  some,
   values,
 } from 'lodash'
 import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
@@ -739,7 +739,7 @@ export default class BackupNg {
       }
     }
 
-    if (find(vm.$VBDs, { is_cd_drive: false }) === undefined) {
+    if (!some(vm.$VBDs, { is_cd_drive: false })) {
       throw new Error('no disks found')
     }
 
