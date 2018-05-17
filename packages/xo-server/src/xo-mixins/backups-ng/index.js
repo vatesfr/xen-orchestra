@@ -739,7 +739,9 @@ export default class BackupNg {
       }
     }
 
-    if (!some(vm.$VBDs, { is_cd_drive: false })) {
+    if (
+      !some(vm.$VBDs, vbd => vbd.type !== 'CD' && vbd.VDI !== 'OpaqueRef:NULL')
+    ) {
       throw new Error('no disks found')
     }
 
