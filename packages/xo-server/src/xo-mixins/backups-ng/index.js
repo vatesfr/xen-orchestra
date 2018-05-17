@@ -1063,52 +1063,55 @@ export default class BackupNg {
                 if (deleteFirst) {
                   await deleteOldBackups()
                 }
-                if (!isEmpty(fork.vdis)) {
-                  await wrapTask(
-                    {
-                      logger,
-                      message: 'transfer',
-                      parentId: taskId,
-                      result: {
-                        size: 0,
-                      },
-                    },
-                    asyncMap(
-                      fork.vdis,
-                      defer(async ($defer, vdi, id) => {
-                        const path = `${vmDir}/${metadata.vhds[id]}`
 
-                        const isDelta =
-                          vdi.other_config['xo:base_delta'] !== undefined
-                        let parentPath
-                        if (isDelta) {
-                          const vdiDir = dirname(path)
-                          const parent = (await handler.list(vdiDir))
-                            .filter(isVhd)
-                            .sort()
-                            .pop()
-                          parentPath = `${vdiDir}/${parent}`
-                        }
-
-                        await writeStream(
-                          fork.streams[`${id}.vhd`](),
-                          handler,
-                          path,
-                          {
-                            // no checksum for VHDs, because they will be invalidated by
-                            // merges and chainings
-                            checksum: false,
-                          }
-                        )
-                        $defer.onFailure.call(handler, 'unlink', path)
-
-                        if (isDelta) {
-                          await chainVhd(handler, parentPath, handler, path)
-                        }
-                      })
-                    )
-                  )
+                if (isEmpty(fork.vdis)) {
+                  throw new Error('no disks found')
                 }
+
+                await wrapTask(
+                  {
+                    logger,
+                    message: 'transfer',
+                    parentId: taskId,
+                    result: {
+                      size: 0,
+                    },
+                  },
+                  asyncMap(
+                    fork.vdis,
+                    defer(async ($defer, vdi, id) => {
+                      const path = `${vmDir}/${metadata.vhds[id]}`
+
+                      const isDelta =
+                        vdi.other_config['xo:base_delta'] !== undefined
+                      let parentPath
+                      if (isDelta) {
+                        const vdiDir = dirname(path)
+                        const parent = (await handler.list(vdiDir))
+                          .filter(isVhd)
+                          .sort()
+                          .pop()
+                        parentPath = `${vdiDir}/${parent}`
+                      }
+
+                      await writeStream(
+                        fork.streams[`${id}.vhd`](),
+                        handler,
+                        path,
+                        {
+                          // no checksum for VHDs, because they will be invalidated by
+                          // merges and chainings
+                          checksum: false,
+                        }
+                      )
+                      $defer.onFailure.call(handler, 'unlink', path)
+
+                      if (isDelta) {
+                        await chainVhd(handler, parentPath, handler, path)
+                      }
+                    })
+                  )
+                )
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
                 if (!deleteFirst) {
