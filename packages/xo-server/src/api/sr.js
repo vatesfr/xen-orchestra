@@ -204,8 +204,8 @@ export async function createNfs ({
   }
 
   //  if NFS options given
-  if (nfsVersion) {
-    deviceConfig.options = nfsVersion
+  if (nfsOptions) {
+    deviceConfig.options = nfsOptions
   }
 
   const srRef = await xapi.call(
