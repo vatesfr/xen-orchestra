@@ -13,6 +13,7 @@ import {
   last,
   mapValues,
   noop,
+  some,
   values,
 } from 'lodash'
 import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
@@ -738,6 +739,15 @@ export default class BackupNg {
       }
     }
 
+    if (
+      !some(
+        vm.$VBDs,
+        vbd => vbd.type === 'Disk' && vbd.VDI !== 'OpaqueRef:NULL'
+      )
+    ) {
+      throw new Error('no disks found')
+    }
+
     const snapshots = vm.$snapshots
       .filter(_ => _.other_config['xo:backup:job'] === jobId)
       .sort(compareSnapshotTime)
@@ -1108,7 +1118,6 @@ export default class BackupNg {
                     })
                   )
                 )
-
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
                 if (!deleteFirst) {
@@ -1340,7 +1349,10 @@ export default class BackupNg {
           const task = logs[data.taskId]
           if (task !== undefined) {
             // work-around
-            if (time === task.start && message === 'merge') {
+            if (
+              time === task.start &&
+              (message === 'merge' || message === 'tranfer')
+            ) {
               delete logs[data.taskId]
             } else {
               task.status = data.status
