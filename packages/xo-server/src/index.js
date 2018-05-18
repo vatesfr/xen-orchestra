@@ -7,6 +7,7 @@ import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
 import proxyConsole from './proxy-console'
+import pw from 'pw'
 import serveStatic from 'serve-static'
 import startsWith from 'lodash/startsWith'
 import stoppable from 'stoppable'
@@ -227,12 +228,12 @@ async function registerPlugin (pluginPath, pluginName) {
   // instance.
   const instance = isFunction(factory)
     ? factory({
-      xo: this,
-      getDataDir: () => {
-        const dir = `${this._config.datadir}/${pluginName}`
-        return ensureDir(dir).then(() => dir)
-      },
-    })
+        xo: this,
+        getDataDir: () => {
+          const dir = `${this._config.datadir}/${pluginName}`
+          return ensureDir(dir).then(() => dir)
+        },
+      })
     : factory
 
   await this.registerPlugin(
@@ -311,6 +312,13 @@ async function makeWebServerListen (
 ) {
   if (cert && key) {
     ;[opts.cert, opts.key] = await Promise.all([readFile(cert), readFile(key)])
+    if (opts.key.includes('ENCRYPTED')) {
+      opts.passphrase = await new Promise(resolve => {
+        console.log('Encrypted key %s', key)
+        process.stdout.write(`Enter pass phrase: `)
+        pw(resolve)
+      })
+    }
   }
   try {
     const niceAddress = await webServer.listen(opts)
