@@ -1197,7 +1197,6 @@ export default class BackupNg {
     handler: RemoteHandler,
     backups: MetadataDelta[]
   ): Promise<void> {
-    // TODO: remove VHD as well
     await asyncMap(backups, async backup => {
       const filename = ((backup._filename: any): string)
 
