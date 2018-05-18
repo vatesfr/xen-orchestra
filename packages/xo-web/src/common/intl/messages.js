@@ -1905,6 +1905,8 @@ const messages = {
   xosanLoadXoaPlugin: 'Load XOA plugin first',
 
   // ----- Utils -----
+  secondsFormat:
+    '{seconds, plural, =0 {# seconds} one {# second} other {# seconds}}',
   durationFormat:
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
