@@ -14,6 +14,7 @@ import {
   mapValues,
   noop,
   some,
+  sum,
   values,
 } from 'lodash'
 import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
@@ -881,9 +882,7 @@ export default class BackupNg {
                     logger,
                     message: 'transfer',
                     parentId: taskId,
-                    result: {
-                      size: 0,
-                    },
+                    result: () => ({ size: xva.size }),
                   },
                   writeStream(fork, handler, dataFilename)
                 )
@@ -926,9 +925,7 @@ export default class BackupNg {
                       logger,
                       message: 'transfer',
                       parentId: taskId,
-                      result: {
-                        size: 0,
-                      },
+                      result: () => ({ size: xva.size }),
                     },
                     xapi._importVm($cancelToken, fork, sr, vm =>
                       xapi._setObjectProperties(vm, {
@@ -1060,9 +1057,7 @@ export default class BackupNg {
                       logger,
                       message: 'merge',
                       parentId: taskId,
-                      result: {
-                        size: 0,
-                      },
+                      result: size => ({ size }),
                     },
                     this._deleteDeltaVmBackups(handler, oldBackups)
                   )
@@ -1079,9 +1074,7 @@ export default class BackupNg {
                     logger,
                     message: 'transfer',
                     parentId: taskId,
-                    result: {
-                      size: 0,
-                    },
+                    result: size => ({ size }),
                   },
                   asyncMap(
                     fork.vdis,
@@ -1115,8 +1108,10 @@ export default class BackupNg {
                       if (isDelta) {
                         await chainVhd(handler, parentPath, handler, path)
                       }
+
+                      return handler.getSize(path)
                     })
-                  )
+                  ).then(sum)
                 )
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
@@ -1155,9 +1150,7 @@ export default class BackupNg {
                     logger,
                     message: 'transfer',
                     parentId: taskId,
-                    result: {
-                      size: 0,
-                    },
+                    result: ({ transferSize }) => ({ size: transferSize }),
                   },
                   xapi.importDeltaVm(fork, {
                     disableStartAfterImport: false, // we'll take care of that
@@ -1196,18 +1189,17 @@ export default class BackupNg {
   async _deleteDeltaVmBackups (
     handler: RemoteHandler,
     backups: MetadataDelta[]
-  ): Promise<void> {
-    await asyncMap(backups, async backup => {
+  ): Promise<number> {
+    return asyncMap(backups, async backup => {
       const filename = ((backup._filename: any): string)
 
-      return Promise.all([
-        handler.unlink(filename),
-        asyncMap(backup.vhds, _ =>
-          // $FlowFixMe injected $defer param
-          this._deleteVhd(handler, resolveRelativeFromFile(filename, _))
-        ),
-      ])
-    })
+      await handler.unlink(filename)
+
+      return asyncMap(backup.vhds, _ =>
+        // $FlowFixMe injected $defer param
+        this._deleteVhd(handler, resolveRelativeFromFile(filename, _))
+      ).then(sum)
+    }).then(sum)
   }
 
   async _deleteFullVmBackups (
@@ -1225,7 +1217,11 @@ export default class BackupNg {
 
   // FIXME: synchronize by job/VDI, otherwise it can cause issues with the merge
   @defer
-  async _deleteVhd ($defer: any, handler: RemoteHandler, path: string) {
+  async _deleteVhd (
+    $defer: any,
+    handler: RemoteHandler,
+    path: string
+  ): Promise<number> {
     const vhds = await asyncMap(
       await handler.list(dirname(path), { filter: isVhd, prependDir: true }),
       async path => {
@@ -1250,19 +1246,21 @@ export default class BackupNg {
       _ => _ !== undefined && _.header.parentUnicodeName === base
     )
     if (child === undefined) {
-      return handler.unlink(path)
+      await handler.unlink(path)
+      return 0
     }
 
     $defer.onFailure.call(handler, 'unlink', path)
 
     const childPath = child.path
-    await this._app.worker.mergeVhd(
+    const mergedDataSize: number = await this._app.worker.mergeVhd(
       handler._remote,
       path,
       handler._remote,
       childPath
     )
     await handler.rename(path, childPath)
+    return mergedDataSize
   }
 
   async _deleteVms (xapi: Xapi, vms: Vm[]): Promise<void> {

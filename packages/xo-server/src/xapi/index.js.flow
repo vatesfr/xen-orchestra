@@ -35,8 +35,15 @@ declare class XapiObject {
 }
 
 type Id = string | XapiObject
+
+declare export class Vbd extends XapiObject {
+  type: string;
+  VDI: string;
+}
+
 declare export class Vm extends XapiObject {
   $snapshots: Vm[];
+  $VBDs: Vbd[];
   is_a_snapshot: boolean;
   is_a_template: boolean;
   name_label: string;
