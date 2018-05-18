@@ -1,10 +1,9 @@
-import isFunction from 'lodash/isFunction'
-import isString from 'lodash/isString'
 import moment from 'moment'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
+import { every, isFunction, isString } from 'lodash'
 
 import locales from './locales'
 import messages from './messages'
@@ -102,8 +101,16 @@ export class FormattedDuration extends Component {
   )
 
   render () {
+    const parsedDuration = this._parseDuration()
     return (
-      <Tooltip content={getMessage('durationFormat', this._parseDuration())}>
+      <Tooltip
+        content={getMessage(
+          every(parsedDuration, n => n === 0)
+            ? 'secondsFormat'
+            : 'durationFormat',
+          parsedDuration
+        )}
+      >
         <span>{this._humanizeDuration()}</span>
       </Tooltip>
     )
