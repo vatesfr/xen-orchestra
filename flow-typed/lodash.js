@@ -20,5 +20,10 @@ declare module 'lodash' {
     iteratee: (V1, K) => V2
   ): { [K]: V2 }
   declare export function noop(...args: mixed[]): void
+  declare export function some<T>(
+    collection: T[],
+    iteratee: (T, number) => boolean
+  ): boolean
+  declare export function sum(values: number[]): number
   declare export function values<K, V>(object: { [K]: V }): V[]
 }
