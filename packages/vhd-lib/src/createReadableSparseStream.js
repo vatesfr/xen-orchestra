@@ -28,7 +28,7 @@ function createBAT (
 ) {
   let currentVhdPositionSector = firstBlockPosition / SECTOR_SIZE
   blockAddressList.forEach(blockPosition => {
-    assert.strictEqual(blockPosition % 512, 0)
+    assert.strictEqual(blockPosition % SECTOR_SIZE, 0)
     const vhdTableIndex = Math.floor(blockPosition / VHD_BLOCK_SIZE_BYTES)
     if (bat.readUInt32BE(vhdTableIndex * 4) === BLOCK_UNUSED) {
       bat.writeUInt32BE(currentVhdPositionSector, vhdTableIndex * 4)
@@ -57,7 +57,8 @@ export default asyncIteratorToStream(async function * (
   }
 
   const maxTableEntries = Math.ceil(diskSize / VHD_BLOCK_SIZE_BYTES) + 1
-  const tablePhysicalSizeBytes = Math.ceil(maxTableEntries * 4 / 512) * 512
+  const tablePhysicalSizeBytes =
+    Math.ceil(maxTableEntries * 4 / SECTOR_SIZE) * SECTOR_SIZE
 
   const batPosition = FOOTER_SIZE + HEADER_SIZE
   const firstBlockPosition = batPosition + tablePhysicalSizeBytes
@@ -101,13 +102,14 @@ export default asyncIteratorToStream(async function * (
         if (currentVhdBlockIndex >= 0) {
           yield * yieldAndTrack(
             currentBlockWithBitmap,
-            bat.readUInt32BE(currentVhdBlockIndex * 4) * 512
+            bat.readUInt32BE(currentVhdBlockIndex * 4) * SECTOR_SIZE
           )
         }
         currentBlockWithBitmap = Buffer.alloc(bitmapSize + VHD_BLOCK_SIZE_BYTES)
         currentVhdBlockIndex = batIndex
       }
-      const blockOffset = (next.offsetBytes / 512) % VHD_BLOCK_SIZE_SECTORS
+      const blockOffset =
+        (next.offsetBytes / SECTOR_SIZE) % VHD_BLOCK_SIZE_SECTORS
       for (let bitPos = 0; bitPos < VHD_BLOCK_SIZE_SECTORS / ratio; bitPos++) {
         setBitmap(currentBlockWithBitmap, blockOffset + bitPos)
       }
