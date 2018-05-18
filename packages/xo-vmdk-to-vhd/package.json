@@ -25,7 +25,6 @@
   "dependencies": {
     "@babel/runtime": "^7.0.0-beta.44",
     "child-process-promise": "^2.0.3",
-    "fs-promise": "^2.0.0",
     "pipette": "^0.9.3",
     "promise-toolbox": "^0.9.5",
     "tmp": "^0.0.33",

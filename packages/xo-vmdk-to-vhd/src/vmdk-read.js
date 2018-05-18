@@ -308,17 +308,15 @@ export class VMDKDirectParser {
 
 export async function readVmdkGrainTable (fileAccessor) {
   let headerBuffer = await fileAccessor(0, 512)
-  let grainDirAddr = headerBuffer.slice(56, 56 + 8)
+  let grainAddrBuffer = headerBuffer.slice(56, 56 + 8)
   if (
-    new Int8Array(grainDirAddr).reduce((acc, val) => acc && val === -1, true)
+    new Int8Array(grainAddrBuffer).reduce((acc, val) => acc && val === -1, true)
   ) {
     headerBuffer = await fileAccessor(-1024, -1024 + 512)
-    grainDirAddr = new DataView(headerBuffer.slice(56, 56 + 8)).getUint32(
-      0,
-      true
-    )
+    grainAddrBuffer = headerBuffer.slice(56, 56 + 8)
   }
-  const grainDirPosBytes = grainDirAddr * 512
+  const grainDirPosBytes =
+    new DataView(grainAddrBuffer).getUint32(0, true) * 512
   const capacity =
     new DataView(headerBuffer.slice(12, 12 + 8)).getUint32(0, true) * 512
   const grainSize =

@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { createReadStream } from 'fs-promise'
+import { createReadStream } from 'fs-extra'
 import { exec } from 'child-process-promise'
 import { fromCallback as pFromCallback } from 'promise-toolbox'
 import rimraf from 'rimraf'
