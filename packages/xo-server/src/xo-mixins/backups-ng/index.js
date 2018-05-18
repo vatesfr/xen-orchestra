@@ -1074,9 +1074,7 @@ export default class BackupNg {
                     logger,
                     message: 'transfer',
                     parentId: taskId,
-                    result: {
-                      size: 0,
-                    },
+                    result: size => ({ size }),
                   },
                   asyncMap(
                     fork.vdis,
@@ -1110,8 +1108,10 @@ export default class BackupNg {
                       if (isDelta) {
                         await chainVhd(handler, parentPath, handler, path)
                       }
+
+                      return handler.getSize(path)
                     })
-                  )
+                  ).then(sum)
                 )
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
