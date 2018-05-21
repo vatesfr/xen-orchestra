@@ -1088,7 +1088,7 @@ export const migrateVm = (vm, host) =>
         _('migrateVmNoTargetHostMessage')
       )
     }
-    _call('vm.migrate', { vm: vm.id, ...params })
+    return _call('vm.migrate', { vm: vm.id, ...params })
   }, noop)
 
 import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line import/first
