@@ -1,8 +1,8 @@
 # LDAP
 
-XO currently support connection to LDAP directories, like *Open LDAP* or *Active Directory*.
+XO currently supports connections to LDAP directories, like *Open LDAP* or *Active Directory*.
 
-To configure your LDAP, go need to go in the *Plugins* section in the "Settings" view. Then configure it:
+To configure your LDAP, you need to go into the *Plugins* section in the "Settings" view. Then configure it:
 
 ![LDAP plugin settings](./assets/ldapconfig.png)
 
@@ -10,7 +10,7 @@ Don't forget to save the configuration, and also check if the plugin is activate
 
 ## Filters
 
-LDAP Filters allow you to match properly your user. It's not an easy task to always find the right filter, and it's entirely depending of your LDAP configuration. Still, here is a list of common filters:
+LDAP Filters allow you to properly match your user. It's not an easy task to always find the right filter, and it entirely depends on your LDAP configuration. Still, here is a list of common filters:
 
 * `'(uid={{name}})'` is usually the default filter for *Open LDAP*
 * `'(cn={{name}})'`, `'(sAMAccountName={{name}})'`, `'(sAMAccountName={{name}}@<domain>)'` or even `'(userPrincipalName={{name}})'` are widely used for *Active Directory*. Please check with your AD Admin to find the right one.
