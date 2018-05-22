@@ -1348,7 +1348,7 @@ export default class BackupNg {
             // work-around
             if (
               time === task.start &&
-              (message === 'merge' || message === 'tranfer')
+              (message === 'merge' || message === 'transfer')
             ) {
               delete logs[data.taskId]
             } else {
