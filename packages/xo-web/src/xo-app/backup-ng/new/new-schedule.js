@@ -8,7 +8,7 @@ import { Card, CardBlock } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
 import { isEqual } from 'lodash'
 
-import { FormGroup, getRandomId, Input } from './utils'
+import { FormGroup, getRandomId } from './utils'
 
 const Number = [
   provideState({
@@ -23,7 +23,8 @@ const Number = [
   }),
   injectState,
   ({ effects, state, value }) => (
-    <Input
+    <input
+      className='form-control'
       type='number'
       onChange={effects.onChange}
       value={String(value)}
