@@ -76,17 +76,17 @@ export { restartAgent as restart_agent } // eslint-disable-line camelcase
 
 // -------------------------------------------------------------------
 
-export function reconfigSyslog ({ host, syslogDestination }) {
-  return this.getXapi(host).reconfigSyslogHost(host._xapiId, syslogDestination)
+export function setRemoteSyslogHost ({ host, syslogDestination }) {
+  return this.getXapi(host).setRemoteSyslogHost(host._xapiId, syslogDestination)
 }
 
-reconfigSyslog.params = {
+setRemoteSyslogHost.params = {
   id: { type: 'string' },
   syslogDestination: { type: 'string' },
 }
 
-reconfigSyslog.resolve = {
-  host: ['id', 'host'],
+setRemoteSyslogHost.resolve = {
+  host: ['id', 'host', 'administrate'],
 }
 
 // -------------------------------------------------------------------

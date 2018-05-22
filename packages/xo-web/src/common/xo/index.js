@@ -577,7 +577,7 @@ export const fetchHostStats = (host, granularity) =>
   _call('host.stats', { host: resolveId(host), granularity })
 
 export const setRemoteSyslogHost = (host, syslogDestination) =>
-  _call('host.reconfigSyslog', {
+  _call('host.setRemoteSyslogHost', {
     id: resolveId(host),
     syslogDestination,
   })
@@ -585,7 +585,7 @@ export const setRemoteSyslogHost = (host, syslogDestination) =>
 export const setRemoteSyslogHosts = (hosts, syslogDestination) =>
   Promise.all(
     map(hosts, host =>
-      _call('host.reconfigSyslog', {
+      _call('host.setRemoteSyslogHost', {
         id: resolveId(host),
         syslogDestination,
       })
