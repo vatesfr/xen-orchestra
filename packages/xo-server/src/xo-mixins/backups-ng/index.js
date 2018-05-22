@@ -43,6 +43,7 @@ export type ReportWhen = 'always' | 'failure' | 'never'
 type Settings = {|
   concurrency?: number,
   deleteFirst?: boolean,
+  copyRetention?: number,
   exportRetention?: number,
   offlineSnapshot?: boolean,
   reportWhen?: ReportWhen,
@@ -114,11 +115,12 @@ const defaultSettings: Settings = {
   snapshotRetention: 0,
   vmTimeout: 0,
 }
-const getSetting = (
+const getSetting = <T>(
   settings: $Dict<Settings>,
   name: $Keys<Settings>,
-  ...keys: string[]
-): any => {
+  keys: string[],
+  defaultValue?: T
+): T | any => {
   for (let i = 0, n = keys.length; i < n; ++i) {
     const objectSettings = settings[keys[i]]
     if (objectSettings !== undefined) {
@@ -451,14 +453,10 @@ export default class BackupNg {
               logger,
               taskId
             )
-            const vmTimeout: number = getSetting(
-              job.settings,
-              'vmTimeout',
+            const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
               uuid,
               scheduleId,
-              logger,
-              taskId
-            )
+            ])
             if (vmTimeout !== 0) {
               p = pTimeout.call(p, vmTimeout)
             }
@@ -719,18 +717,31 @@ export default class BackupNg {
     const exportRetention: number = getSetting(
       settings,
       'exportRetention',
-      scheduleId
+      [scheduleId],
+      0
     )
     const snapshotRetention: number = getSetting(
       settings,
       'snapshotRetention',
-      scheduleId
+      [scheduleId],
+      0
     )
 
     if (exportRetention === 0) {
       if (snapshotRetention === 0) {
         throw new Error('export and snapshots retentions cannot both be 0')
       }
+    }
+
+    const copyRetention: number = getSetting(
+      settings,
+      'copyRetention',
+      [scheduleId],
+      exportRetention
+    )
+
+    if ((copyRetention === 0) !== (exportRetention === 0)) {
+      throw new Error('both or neither copy and export rententions should be 0')
     }
 
     if (
@@ -947,7 +958,7 @@ export default class BackupNg {
                 const sr = xapi.getObject(srId)
 
                 const oldVms = getOldEntries(
-                  exportRetention,
+                  copyRetention,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
@@ -1186,7 +1197,7 @@ export default class BackupNg {
                 const sr = xapi.getObject(srId)
 
                 const oldVms = getOldEntries(
-                  exportRetention,
+                  copyRetention,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
