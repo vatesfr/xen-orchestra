@@ -1,10 +1,10 @@
 # ACLs
 
-> ACLs are currently working for existing objects. Only a super admin (XO administrator) can create objects.
+> ACLs are permissions that apply to pre-existing objects. Only a super admin (XO administrator) can create objects.
 
-ACLs are the permissions for your users or groups. The ACLs view can be accessed in the "Settings".
+ACLs are the permissions for your users or groups. The ACLs view can be accessed in the "Settings" panel.
 
-1. Select the user or group you want to apply permissions on it
+1. Select the user or group you want to apply permissions on
 2. Select the object on which the permission will apply
 3. Choose the role for this ACL
 4. Click on "Create"
@@ -21,7 +21,7 @@ You can edit/remove existing ACLs here.
 
 ## Roles
 
-There is 3 different roles for your users:
+There are 3 different roles for your users:
 
 * Admin
 * Operator
@@ -66,7 +66,7 @@ If you give a *view* permission to a user (or a group) on a pool, he will automa
 
 ### Allow a user to install an OS
 
-If the OS install needs a ISO, you need to give this user 2 permissions:
+If the OS install needs an ISO, you need to give this user 2 permissions:
 
 * *Operate* on the VM (e.g to start it)
 * *View* on the ISO Storage containing the needed ISO.

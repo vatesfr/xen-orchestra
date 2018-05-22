@@ -2,7 +2,7 @@
 
 This plugin allows Google users to authenticate to Xen-Orchestra.
 
-The first time a user signs in, XO will create a new XO user with the same identifier, without any permission.
+The first time a user signs in, XO will create a new XO user with the same identifier, without any permissions.
 
 
 ## Creating the Google project
@@ -32,7 +32,7 @@ In Settings, then Plugins, expand the Google plugin detail and provide:
 
 Be sure to activate the plugin after you save the configuration (button on top).
 
-You can now connect with your Google account in the log in page:
+You can now connect with your Google account in the login page:
 
 ![Google log in]()
 
