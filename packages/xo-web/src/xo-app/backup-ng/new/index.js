@@ -9,7 +9,6 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, resolveId, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Col, Row } from 'grid'
-import { Input } from 'debounce-input-decorator'
 import {
   find,
   findKey,
@@ -36,7 +35,7 @@ import {
 
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
-import { FormGroup, getRandomId, Ul, Li } from './utils'
+import { FormGroup, getRandomId, Input, Ul, Li } from './utils'
 
 // ===================================================================
 
@@ -558,11 +557,7 @@ export default [
                     <label>
                       <strong>{_('backupName')}</strong>
                     </label>
-                    <Input
-                      className='form-control'
-                      onChange={effects.setName}
-                      value={state.name}
-                    />
+                    <Input onChange={effects.setName} value={state.name} />
                   </FormGroup>
                   {state.smartMode ? (
                     <Upgrade place='newBackup' required={3}>
