@@ -305,9 +305,29 @@ export class VMDKDirectParser {
   }
 }
 
+/**
+ *
+ * the grain table is the array of LBAs (in byte, not in sector) ordered by their position in the VDMK file
+ * THIS CODE RUNS ON THE BROWSER
+ */
 export async function readVmdkGrainTable (fileAccessor) {
-  const getLongLong = (buffer, offset) =>
-    new DataView(buffer.slice(offset, offset + 8)).getUint32(0, true)
+  const getLongLong = (buffer, offset, name) => {
+    if (buffer.length < offset + 8) {
+      throw new Error(
+        `buffer ${name} is too short, expecting ${offset + 8} minimum, got ${
+          buffer.length
+        }`
+      )
+    }
+    const res = new DataView(buffer).getUint32(offset, true)
+    const highBits = new DataView(buffer).getUint32(offset + 4, true)
+    if (highBits > Math.pow(2, 53 - 32)) {
+      throw new Error(
+        'Unsupported file, high order bits are to high in field ' + name
+      )
+    }
+    return res + highBits * Math.pow(2, 32)
+  }
   let headerBuffer = await fileAccessor(0, HEADER_SIZE)
   let grainAddrBuffer = headerBuffer.slice(
     GRAIN_ADDRESS_OFFSET,
@@ -325,11 +345,18 @@ export async function readVmdkGrainTable (fileAccessor) {
       GRAIN_ADDRESS_OFFSET + 8
     )
   }
-  const grainDirPosBytes = getLongLong(grainAddrBuffer, 0) * SECTOR_SIZE
-  const capacity = getLongLong(headerBuffer, DISK_CAPACITY_OFFSET) * SECTOR_SIZE
-  const grainSize = getLongLong(headerBuffer, GRAIN_SIZE_OFFSET) * SECTOR_SIZE
+  const grainDirPosBytes =
+    getLongLong(grainAddrBuffer, 0, 'grain directory address') * SECTOR_SIZE
+  const capacity =
+    getLongLong(headerBuffer, DISK_CAPACITY_OFFSET, 'capacity') * SECTOR_SIZE
+  const grainSize =
+    getLongLong(headerBuffer, GRAIN_SIZE_OFFSET, 'grain size') * SECTOR_SIZE
   const grainCount = Math.ceil(capacity / grainSize)
-  const numGTEsPerGT = getLongLong(headerBuffer, NUM_GTE_PER_GT_OFFSET)
+  const numGTEsPerGT = getLongLong(
+    headerBuffer,
+    NUM_GTE_PER_GT_OFFSET,
+    'num GTE per GT'
+  )
   const grainTablePhysicalSize = numGTEsPerGT * 4
   const grainDirectoryEntries = Math.ceil(grainCount / numGTEsPerGT)
   const grainDirectoryPhysicalSize = grainDirectoryEntries * 4
