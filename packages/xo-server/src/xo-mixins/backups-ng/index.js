@@ -486,7 +486,7 @@ export default class BackupNg {
         const concurrency: number | void = getSetting(
           job.settings,
           'concurrency',
-          ''
+          ['']
         )
         if (concurrency !== undefined) {
           handleVm = limitConcurrency(concurrency)(handleVm)
