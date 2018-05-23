@@ -597,11 +597,15 @@ const messages = {
   vmsTabName: 'Vms',
   srsTabName: 'Srs',
   // ----- Pool advanced tab -----
+  poolEditAll: 'Edit all',
   poolEditRemoteSyslog: 'Edit remote syslog for all hosts',
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',
   poolHaDisabled: 'Disabled',
   poolGpuGroups: 'GPU groups',
+  poolRemoteSyslogPlaceHolder: 'Logging host',
+  poolRemoteSyslogTooltip: 'Save remote syslog host',
+  changeHostRemoteSyslogOK: 'OK',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   // ----- Pool host tab -----

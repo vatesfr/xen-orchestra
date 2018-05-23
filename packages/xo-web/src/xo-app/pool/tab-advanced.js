@@ -1,19 +1,22 @@
 import React from 'react'
 
-import _ from 'intl'
+import _, { messages } from 'intl'
+import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import Copiable from 'copiable'
+import propTypes from 'prop-types-decorator'
 import renderXoItem from 'render-xo-item'
 import SelectFiles from 'select-files'
 import SingleLineRow from 'single-line-row'
 import Upgrade from 'xoa-upgrade'
+import { map } from 'lodash'
 import { connectStore } from 'utils'
+import { injectIntl } from 'react-intl'
 import { createGetObjectsOfType } from 'selectors'
 import { Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
-import { map, sortBy, uniq } from 'lodash'
 import {
-  editHost,
   installSupplementalPackOnAllHosts,
   setPoolMaster,
   setRemoteSyslogHost,
@@ -46,30 +49,58 @@ class PoolMaster extends Component {
   }
 }
 
+@injectIntl
+@propTypes({
+  onClose: propTypes.func,
+  hosts: propTypes.object.isRequired,
+})
+class EditRemoteSyslog extends Component {
+  _setRemoteSyslogHosts = ({ syslogDestination }) => {
+    const { hosts, onClose } = this.props
+    return setRemoteSyslogHosts(hosts, syslogDestination).then(onClose)
+  }
+
+  render () {
+    return (
+      <form id='formRemoteSyslog' className='form-inline mt-1'>
+        <div className='form-group'>
+          <input
+            className='form-control'
+            onChange={this.linkState('syslogDestination')}
+            placeholder={this.props.intl.formatMessage(
+              messages.poolRemoteSyslogPlaceHolder
+            )}
+            type='text'
+          />
+        </div>
+        <div className='form-group ml-1'>
+          <ActionButton
+            btnStyle='primary'
+            data-syslogDestination={this.state.syslogDestination}
+            form='formRemoteSyslog'
+            handler={this._setRemoteSyslogHosts}
+            icon='save'
+            tooltip={_('poolRemoteSyslogTooltip')}
+          >
+            {_('changeHostRemoteSyslogOK')}
+          </ActionButton>
+        </div>
+      </form>
+    )
+  }
+}
+
 @connectStore({
-  hostsByPool: createGetObjectsOfType('host').groupBy('$pool'),
+  hosts: createGetObjectsOfType('host')
+    .filter((_, { pool }) => ({ $pool: pool.id }))
+    .sort(),
   gpuGroups: createGetObjectsOfType('gpuGroup'),
 })
 export default class TabAdvanced extends Component {
-  _setNameLabel = (host, nameLabel) => editHost(host, { name_label: nameLabel })
-  _setRemoteSyslogHost = (host, syslogDestination) =>
-    setRemoteSyslogHost(host, syslogDestination)
-  _setRemoteSyslogHosts = (hosts, syslogDestination) =>
-    setRemoteSyslogHosts(hosts, syslogDestination)
-
+  _closeEditRemoteSyslogForm = () => this.setState({ editRemoteSyslog: false })
   render () {
-    const { hostsByPool, gpuGroups, pool } = this.props
-    const hostsOfPool = sortBy(hostsByPool[pool.uuid], 'name_label')
-    const syslogRemoteHost =
-      uniq(
-        map(
-          hostsOfPool,
-          host => host.logging && host.logging.syslog_destination
-        )
-      ).length === 1
-        ? hostsOfPool[0].logging && hostsOfPool[0].logging.syslog_destination
-        : ''
-
+    const { hosts, gpuGroups, pool } = this.props
+    const { editRemoteSyslog } = this.state
     return (
       <div>
         <Container>
@@ -98,45 +129,47 @@ export default class TabAdvanced extends Component {
                   </tr>
                   <tr>
                     <th>{_('syslogRemoteHost')}</th>
-                    {syslogRemoteHost !== '' ? (
-                      <td>
-                        <Text
-                          value={syslogRemoteHost}
-                          onChange={value =>
-                            this._setRemoteSyslogHosts(hostsOfPool, value)
-                          }
-                        />
-                      </td>
-                    ) : (
-                      <td>
-                        {map(hostsOfPool, host => (
-                          <div key={host.id} className='mb-1'>
-                            <SingleLineRow>
-                              <Col size={1}>
-                                <Text
-                                  value={host.name_label}
-                                  onChange={value =>
-                                    this._setNameLabel(host, value)
-                                  }
-                                />
-                              </Col>
-                              <Col>
-                                <Text
-                                  value={
-                                    (host.logging &&
-                                      host.logging.syslog_destination) ||
-                                    ''
-                                  }
-                                  onChange={value =>
-                                    this._setRemoteSyslogHost(host, value)
-                                  }
-                                />
-                              </Col>
-                            </SingleLineRow>
-                          </div>
-                        ))}
-                      </td>
-                    )}
+                    <td>
+                      {map(hosts, host => (
+                        <div key={host.id} className='mb-1'>
+                          <SingleLineRow>
+                            <Col size={1}>
+                              <span>{host.name_label}</span>
+                            </Col>
+                            <Col>
+                              <Text
+                                value={host.logging.syslog_destination || ''}
+                                onChange={value =>
+                                  setRemoteSyslogHost(host, value)
+                                }
+                              />
+                            </Col>
+                          </SingleLineRow>
+                        </div>
+                      ))}
+                      <Row>
+                        <Col>
+                          <ActionRowButton
+                            btnStyle={editRemoteSyslog ? 'info' : 'primary'}
+                            handler={this.toggleState('editRemoteSyslog')}
+                            icon='edit'
+                            tooltip={_('poolEditRemoteSyslog')}
+                          >
+                            {_('poolEditAll')}
+                          </ActionRowButton>
+                        </Col>
+                      </Row>
+                      {editRemoteSyslog && (
+                        <Row className='mb-1'>
+                          <Col>
+                            <EditRemoteSyslog
+                              hosts={hosts}
+                              onClose={this._closeEditRemoteSyslogForm}
+                            />
+                          </Col>
+                        </Row>
+                      )}
+                    </td>
                   </tr>
                 </tbody>
               </table>

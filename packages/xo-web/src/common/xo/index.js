@@ -583,14 +583,7 @@ export const setRemoteSyslogHost = (host, syslogDestination) =>
   })
 
 export const setRemoteSyslogHosts = (hosts, syslogDestination) =>
-  Promise.all(
-    map(hosts, host =>
-      _call('host.setRemoteSyslogHost', {
-        id: resolveId(host),
-        syslogDestination,
-      })
-    )
-  )
+  Promise.all(map(hosts, host => setRemoteSyslogHost(host, syslogDestination)))
 
 export const restartHost = (host, force = false) =>
   confirm({
