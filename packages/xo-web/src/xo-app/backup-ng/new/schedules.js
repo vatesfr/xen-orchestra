@@ -28,6 +28,11 @@ const SCHEDULES_COLUMNS = [
     name: _('scheduleExportRetention'),
   },
   {
+    itemRenderer: _ => _.copyRetention,
+    sortCriteria: _ => _.copyRetention,
+    name: _('scheduleCopyRetention'),
+  },
+  {
     itemRenderer: _ => _.snapshotRetention,
     sortCriteria: _ => _.snapshotRetention,
     name: _('scheduleSnapshotRetention'),
@@ -45,11 +50,13 @@ const SAVED_SCHEDULES_COLUMNS = [
 ]
 
 const rowTransform = (schedule, { settings }) => {
-  const { exportRetention, snapshotRetention } = settings[schedule.id] || {}
+  const { exportRetention, copyRetention, snapshotRetention } =
+    settings[schedule.id] || {}
 
   return {
     ...schedule,
     exportRetention,
+    copyRetention,
     snapshotRetention,
   }
 }
@@ -102,7 +109,7 @@ export default [
         state.schedules.length + size(state.newSchedules) <= 1,
       disabledEdition: state =>
         state.editionMode !== undefined ||
-        (!state.exportMode && !state.snapshotMode),
+        (!state.exportMode && !state.copyMode && !state.snapshotMode),
     },
   }),
   injectState,

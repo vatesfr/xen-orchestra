@@ -44,6 +44,7 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
       <th>{_('scheduleCron')}</th>
       <th>{_('scheduleTimezone')}</th>
       <th>{_('scheduleExportRetention')}</th>
+      <th>{_('scheduleCopyRetention')}</th>
       <th>{_('scheduleSnapshotRetention')}</th>
       <th>{_('scheduleRun')}</th>
     </tr>
@@ -52,6 +53,7 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
         <td>{schedule.cron}</td>
         <td>{schedule.timezone}</td>
         <td>{job.settings[schedule.id].exportRetention}</td>
+        <td>{job.settings[schedule.id].copyRetention}</td>
         <td>{job.settings[schedule.id].snapshotRetention}</td>
         <td>
           <StateButton

@@ -16,6 +16,7 @@ export default [
       schedule: {
         cron = '0 0 * * *',
         exportRetention = 1,
+        copyRetention = 1,
         snapshotRetention = 1,
         timezone = moment.tz.guess(),
       },
@@ -23,11 +24,13 @@ export default [
       oldSchedule: {
         cron,
         exportRetention,
+        copyRetention,
         snapshotRetention,
         timezone,
       },
       cron,
       exportRetention,
+      copyRetention,
       formId: getRandomId(),
       snapshotRetention,
       timezone,
@@ -36,6 +39,10 @@ export default [
       setExportRetention: (_, value) => state => ({
         ...state,
         exportRetention: value,
+      }),
+      setCopyRetention: (_, value) => state => ({
+        ...state,
+        copyRetention: value,
       }),
       setSnapshotRetention: (_, value) => state => ({
         ...state,
@@ -53,17 +60,21 @@ export default [
       retentionNeeded: ({
         exportMode,
         exportRetention,
+        copyMode,
+        copyRetention,
         snapshotMode,
         snapshotRetention,
       }) =>
         !(
           (exportMode && exportRetention !== 0) ||
+          (copyMode && copyRetention !== 0) ||
           (snapshotMode && snapshotRetention !== 0)
         ),
       scheduleNotEdited: ({
         cron,
         editionMode,
         exportRetention,
+        copyRetention,
         oldSchedule,
         snapshotRetention,
         timezone,
@@ -72,6 +83,7 @@ export default [
         isEqual(oldSchedule, {
           cron,
           exportRetention,
+          copyRetention,
           snapshotRetention,
           timezone,
         }),
@@ -97,6 +109,17 @@ export default [
               />
             </FormGroup>
           )}
+          {state.copyMode && (
+            <FormGroup>
+              <label>
+                <strong>{_('copyRetention')}</strong>
+              </label>
+              <Number
+                onChange={effects.setCopyRetention}
+                value={state.copyRetention}
+              />
+            </FormGroup>
+          )}
           {state.snapshotMode && (
             <FormGroup>
               <label>
@@ -119,6 +142,7 @@ export default [
             btnStyle='primary'
             data-cron={state.cron}
             data-exportRetention={state.exportRetention}
+            data-copyRetention={state.copyRetention}
             data-snapshotRetention={state.snapshotRetention}
             data-timezone={state.timezone}
             disabled={state.isScheduleInvalid}
