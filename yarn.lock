@@ -756,9 +756,9 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@julien-f/freactal@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@julien-f/freactal/-/freactal-0.1.0.tgz#c3c97c1574ed82de6989f7f3c6110f34b0da3866"
+"@julien-f/freactal@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@julien-f/freactal/-/freactal-0.1.1.tgz#39c74173da2f9e290fd44fc67c25ec13ef3565b7"
 
 "@marsaud/smb2-promise@^0.2.1":
   version "0.2.1"

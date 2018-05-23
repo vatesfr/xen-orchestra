@@ -30,7 +30,7 @@
     "node": ">=6"
   },
   "devDependencies": {
-    "@julien-f/freactal": "0.1.0",
+    "@julien-f/freactal": "0.1.1",
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.3",
     "ansi_up": "^3.0.0",
