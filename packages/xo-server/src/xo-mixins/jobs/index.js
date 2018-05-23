@@ -245,7 +245,7 @@ export default class Jobs {
       session = app.createUserConnection()
       session.set('user_id', job.userId)
 
-      await executor({
+      const status = await executor({
         app,
         cancelToken,
         job,
@@ -259,7 +259,7 @@ export default class Jobs {
         runJobId,
       })
 
-      app.emit('job:terminated', runJobId, job, schedule)
+      app.emit('job:terminated', status, job, schedule, runJobId)
     } catch (error) {
       logger.error(`The execution of ${id} has failed.`, {
         event: 'job.end',
