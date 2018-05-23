@@ -35,7 +35,7 @@ import {
 
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
-import { FormGroup, getRandomId, Input, Ul, Li } from './utils'
+import { FormGroup, getRandomId, Input, Number, Ul, Li } from './utils'
 
 // ===================================================================
 
@@ -112,6 +112,7 @@ const getInitialState = () => ({
   $pool: {},
   backupMode: false,
   compression: true,
+  concurrency: 0,
   crMode: false,
   deltaMode: false,
   drMode: false,
@@ -158,6 +159,7 @@ export default [
             ...getNewSettings(state.newSchedules),
             '': {
               reportWhen: state.reportWhen,
+              concurrency: state.concurrency || undefined,
             },
           },
           remotes:
@@ -227,6 +229,7 @@ export default [
 
           if (id === '') {
             oldSetting.reportWhen = state.reportWhen
+            oldSetting.concurrency = state.concurrency || undefined
           } else if (!(id in settings)) {
             delete oldSettings[id]
           } else if (
@@ -330,6 +333,7 @@ export default [
           remotes,
           srs,
           reportWhen: get(globalSettings, 'reportWhen') || 'failure',
+          concurrency: get(globalSettings, 'concurrency') || 0,
           settings,
           schedules,
           ...destructVmsPattern(job.vms),
@@ -490,6 +494,10 @@ export default [
       setReportWhen: (_, { value }) => state => ({
         ...state,
         reportWhen: value,
+      }),
+      setConcurrency: (_, concurrency) => state => ({
+        ...state,
+        concurrency,
       }),
     },
     computed: {
@@ -749,6 +757,15 @@ export default [
                       required
                       value={state.reportWhen}
                       valueKey='value'
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <label>
+                      <strong>{_('concurrency')}</strong>
+                    </label>
+                    <Number
+                      onChange={effects.setConcurrency}
+                      value={state.concurrency}
                     />
                   </FormGroup>
                 </CardBlock>

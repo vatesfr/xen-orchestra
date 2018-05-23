@@ -349,6 +349,7 @@ const messages = {
   reportWhenFailure: 'Failure',
   reportWhenNever: 'Never',
   reportWhen: 'Report when',
+  concurrency: 'Concurrency',
   newBackupSelection: 'Select your backup type:',
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',

@@ -1,41 +1,13 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import moment from 'moment-timezone'
-import PropTypes from 'prop-types'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
 import { isEqual } from 'lodash'
 
-import { FormGroup, getRandomId, Input } from './utils'
-
-const Number = [
-  provideState({
-    effects: {
-      onChange: (_, { target: { value } }) => (state, props) => {
-        if (value === '') {
-          return
-        }
-        props.onChange(+value)
-      },
-    },
-  }),
-  injectState,
-  ({ effects, state, value }) => (
-    <Input
-      type='number'
-      onChange={effects.onChange}
-      value={String(value)}
-      min='0'
-    />
-  ),
-].reduceRight((value, decorator) => decorator(value))
-
-Number.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.number.isRequired,
-}
+import { FormGroup, getRandomId, Number } from './utils'
 
 export default [
   injectState,
