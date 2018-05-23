@@ -189,7 +189,7 @@ export default [
             ...getNewSettings(state.newSchedules),
             '': {
               reportWhen: state.reportWhen,
-              concurrency: state.concurrency || undefined,
+              concurrency: state.concurrency,
               offlineSnapshot: state.offlineSnapshot,
             },
           },
@@ -268,7 +268,7 @@ export default [
 
           if (id === '') {
             oldSetting.reportWhen = state.reportWhen
-            oldSetting.concurrency = state.concurrency || undefined
+            oldSetting.concurrency = state.concurrency
             oldSetting.offlineSnapshot = state.offlineSnapshot
           } else if (!(id in settings)) {
             delete oldSettings[id]
