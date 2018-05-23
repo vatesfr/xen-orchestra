@@ -321,7 +321,7 @@ export async function readVmdkGrainTable (fileAccessor) {
     }
     const res = new DataView(buffer).getUint32(offset, true)
     const highBits = new DataView(buffer).getUint32(offset + 4, true)
-    if (highBits > Math.pow(2, 53 - 32)) {
+    if (highBits >= Math.pow(2, 53 - 32)) {
       throw new Error(
         'Unsupported file, high order bits are to high in field ' + name
       )
