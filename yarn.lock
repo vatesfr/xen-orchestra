@@ -5603,9 +5603,9 @@ hash.js@^1.0.0, hash.js@^1.0.3:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.0"
 
-hashy@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/hashy/-/hashy-0.7.0.tgz#d18c9d023422ba8b629f8c99679ae93535468315"
+hashy@^0.7.1:
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/hashy/-/hashy-0.7.1.tgz#6caffa9182e46219482d2da468ad0ef0d7eab8a7"
   dependencies:
     bcryptjs "^2.4.3"
     exec-promise "^0.7.0"
