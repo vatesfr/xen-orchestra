@@ -9,6 +9,7 @@ import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
 import {
   forEach,
+  get,
   groupBy,
   isEmpty,
   last,
@@ -94,32 +95,73 @@ type MetadataFull = {|
 |}
 type Metadata = MetadataDelta | MetadataFull
 
-type ConsolidatedJob = {|
-  duration?: number,
+type TaskStatus = 'failure' | 'interrupted' | 'pending' | 'skipped' | 'success'
+
+type ConsolidatedOperationTask = {|
+  parentId: string,
+  id: string,
+  start: string,
+  message: 'transger' | 'merge',
+  status: TaskStatus,
+  result?:
+    | {|
+        size: number,
+      |}
+    | Object,
+  end?: number,
+|}
+
+type ConsolidatedSubTask = {
+  data?: {
+    type: 'SR' | 'remote',
+    id: string,
+  },
+  message: 'snapshot' | 'export',
+  id: string,
+  parentId: string,
+  start: number,
+  status: TaskStatus,
+  result?: string | Object,
+  end?: number,
+  tasks?: Array<ConsolidatedOperationTask>,
+}
+
+type ConsolidatedTask = {
+  data: {|
+    type: 'VM',
+    id: string,
+  |},
+  parentId: string,
+  id: string,
+  start: number,
+  status: TaskStatus,
+  message: string,
+  end?: number,
+  tasks?: Array<ConsolidatedSubTask>,
+  transfer?: {|
+    duration: number,
+    size: number,
+  |},
+  merge?: {|
+    duration: number,
+    size: number,
+  |},
+  result?: Object,
+}
+
+type ConsolidatedBackupNgLog = {|
+  data?: {|
+    reportWhen?: ReportWhen,
+    mode?: Mode,
+  |},
   end?: number,
   error?: Object,
   id: string,
   jobId: string,
-  mode: Mode,
   start: number,
-  type: 'backup' | 'call',
-  userId: string,
+  status: TaskStatus,
+  tasks: Array<ConsolidatedTask>,
 |}
-type ConsolidatedTask = {|
-  data?: Object,
-  duration?: number,
-  end?: number,
-  parentId: string,
-  message: string,
-  result?: Object,
-  start: number,
-  status: 'canceled' | 'failure' | 'success',
-  taskId: string,
-|}
-type ConsolidatedBackupNgLog = {
-  roots: Array<ConsolidatedJob>,
-  [parentId: string]: Array<ConsolidatedTask>,
-}
 
 const compareSnapshotTime = (a: Vm, b: Vm): number =>
   a.snapshot_time < b.snapshot_time ? -1 : 1
@@ -389,6 +431,16 @@ const wrapTaskFn = <T>(
       throw result
     }
   }
+
+const NO_VMS_MATCH_THIS_PATTERN = 'no VMs match this pattern'
+const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
+const NO_SUCH_OBJECT_ERROR = 'no such object'
+const NO_DISKS_FOUND = 'no disks found'
+
+const isSkippedError = error =>
+  error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
+  error.message === NO_SUCH_OBJECT_ERROR ||
+  error.message === NO_DISKS_FOUND
 
 // File structure on remotes:
 //
@@ -757,7 +809,7 @@ export default class BackupNg {
         vbd => vbd.type === 'Disk' && vbd.VDI !== 'OpaqueRef:NULL'
       )
     ) {
-      throw new Error('no disks found')
+      throw new Error(NO_DISKS_FOUND)
     }
 
     const snapshots = vm.$snapshots
@@ -1317,61 +1369,182 @@ export default class BackupNg {
     return backups.sort(compareTimestamp)
   }
 
-  async getBackupNgLogs (runId?: string): Promise<ConsolidatedBackupNgLog> {
+  async getBackupNgLogs (
+    runId?: string
+  ): Promise<$Dict<ConsolidatedBackupNgLog>> {
     const rawLogs = await this._app.getLogs('jobs')
+    let groupedLogs = {}
+    for (const id in rawLogs) {
+      const { data, time, message } = rawLogs[id]
 
-    const logs: $Dict<ConsolidatedJob & ConsolidatedTask> = {}
-    forEach(rawLogs, (log, id) => {
-      const { data, time, message } = log
-      const { event } = data
-      delete data.event
-
-      switch (event) {
+      switch (data.event) {
         case 'job.start':
-          if (data.type === 'backup' && (runId === undefined || runId === id)) {
-            logs[id] = {
-              ...data,
+          if (data.type === 'backup' || data.key === undefined) {
+            groupedLogs[id] = {
               id,
+              jobId: data.jobId,
+              data: data.data,
               start: time,
             }
           }
           break
         case 'job.end':
-          const job = logs[data.runJobId]
-          if (job !== undefined) {
-            job.end = time
-            job.duration = time - job.start
-            job.error = data.error
+          const jobLog = groupedLogs[data.runJobId]
+          if (jobLog !== undefined) {
+            jobLog.end = time
+            jobLog.error = data.error
           }
           break
         case 'task.start':
-          if (logs[data.parentId] !== undefined) {
-            logs[id] = {
-              ...data,
+          const parentLog = groupedLogs[data.parentId]
+          if (parentLog !== undefined) {
+            groupedLogs[id] = {
+              parentId: data.parentId,
+              data: data.data,
+              id,
               start: time,
               message,
             }
           }
           break
         case 'task.end':
-          const task = logs[data.taskId]
+          const task = groupedLogs[data.taskId]
           if (task !== undefined) {
             // work-around
             if (
               time === task.start &&
               (message === 'merge' || message === 'transfer')
             ) {
-              delete logs[data.taskId]
+              delete groupedLogs[data.taskId]
             } else {
               task.status = data.status
-              task.taskId = data.taskId
               task.result = data.result
               task.end = time
-              task.duration = time - task.start
             }
           }
+          break
+        case 'jobCall.start':
+          if (groupedLogs[data.runJobId] !== undefined) {
+            groupedLogs[id] = {
+              parentId: data.runJobId,
+              data: {
+                type: 'VM',
+                id: data.params.id,
+              },
+              id,
+              start: time,
+            }
+          }
+          break
+        case 'jobCall.end':
+          const call = groupedLogs[data.runCallId]
+          if (call !== undefined) {
+            call.status = data.error === undefined ? 'success' : 'failure'
+            call.result = data.error
+            const returnedValue = data.returnedValue
+            if (returnedValue !== undefined) {
+              if (returnedValue.transferDuration > 0) {
+                call.transfer = {
+                  duration: returnedValue.transferDuration,
+                  size: returnedValue.transferSize,
+                }
+              }
+              if (returnedValue.mergeDuration > 0) {
+                call.merge = {
+                  duration: returnedValue.mergeDuration,
+                  size: returnedValue.mergeSize,
+                }
+              }
+            }
+            call.end = time
+          }
       }
-    })
-    return groupBy(logs, log => log.parentId || 'roots')
+    }
+
+    if (isEmpty(groupedLogs)) {
+      return {}
+    }
+
+    groupedLogs = groupBy(groupedLogs, log => log.parentId || 'roots')
+    const consolidatedLogs: $Dict<ConsolidatedBackupNgLog> = {}
+    for (const jobLog of groupedLogs['roots']) {
+      const jobLogId = jobLog.id
+      consolidatedLogs[jobLogId] = jobLog
+      let job
+      try {
+        job = await this._app.getJob(jobLog.jobId, 'backup')
+      } catch (e) {}
+      const taskWithNoEndStatus =
+        get(job, 'runId') === jobLog.id ? 'pending' : 'interrupted'
+
+      if (jobLog.error !== undefined) {
+        jobLog.status =
+          jobLog.error.message === NO_VMS_MATCH_THIS_PATTERN
+            ? 'skipped'
+            : 'failure'
+        continue
+      }
+
+      let jobFailed = false
+      let hasTaskSkipped = false
+      jobLog.tasks = []
+      forEach(groupedLogs[jobLogId], taskLog => {
+        const taskLogId = taskLog.id
+        jobLog.tasks.push(taskLog)
+
+        if (taskLog.result !== undefined) {
+          if (isSkippedError(taskLog.result)) {
+            taskLog.status = 'skipped'
+            hasTaskSkipped = true
+          } else {
+            taskLog.status = 'failure'
+            jobFailed = true
+          }
+          return
+        }
+
+        let taskFailed = false
+        taskLog.tasks = []
+        forEach(groupedLogs[taskLogId], subTaskLog => {
+          const subTaskLogId = subTaskLog.id
+          taskLog.tasks.push(subTaskLog)
+
+          if (subTaskLog.end === undefined) {
+            subTaskLog.status = taskWithNoEndStatus
+          }
+
+          if (subTaskLog.status === 'failure') {
+            jobFailed = true
+            taskFailed = true
+            return
+          }
+
+          if (subTaskLog.message !== 'snapshot') {
+            subTaskLog.tasks = []
+            forEach(groupedLogs[subTaskLogId], operationLog => {
+              subTaskLog.tasks.push(operationLog)
+              if (operationLog.end === undefined) {
+                operationLog.status = taskWithNoEndStatus
+              }
+            })
+          }
+        })
+
+        if (taskLog.end === undefined) {
+          taskLog.status = taskWithNoEndStatus
+        } else {
+          taskLog.status = taskFailed ? 'failure' : 'success'
+        }
+      })
+      if (jobLog.end === undefined) {
+        jobLog.status = taskWithNoEndStatus
+      } else {
+        jobLog.status = jobFailed
+          ? 'failure'
+          : hasTaskSkipped ? 'skipped' : 'success'
+      }
+    }
+
+    return runId !== undefined ? consolidatedLogs[runId] : consolidatedLogs
   }
 }
