@@ -903,6 +903,8 @@ export default class {
     const xapi = this._xo.getXapi(vm)
     vm = xapi.getObject(vm._xapiId)
 
+    await xapi._assertHealthyVdiChains(vm)
+
     const reg = new RegExp(
       '^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag) + '_'
     )
