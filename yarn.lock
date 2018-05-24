@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"@babel/cli@7.0.0-beta.49":
+"@babel/cli@7.0.0-beta.49", "@babel/cli@^7.0.0-beta.49":
   version "7.0.0-beta.49"
   resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.0.0-beta.49.tgz#c8c3135f7bc48428436faf5e3f274227a99ef2a8"
   dependencies:
@@ -29,7 +29,7 @@
   dependencies:
     "@babel/highlight" "7.0.0-beta.49"
 
-"@babel/core@7.0.0-beta.49":
+"@babel/core@7.0.0-beta.49", "@babel/core@^7.0.0-beta.49":
   version "7.0.0-beta.49"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.0.0-beta.49.tgz#73de2081dd652489489f0cb4aa97829a1133314e"
   dependencies:
@@ -609,7 +609,7 @@
     core-js "^2.5.6"
     regenerator-runtime "^0.11.1"
 
-"@babel/preset-env@7.0.0-beta.49":
+"@babel/preset-env@7.0.0-beta.49", "@babel/preset-env@^7.0.0-beta.49":
   version "7.0.0-beta.49"
   resolved "https://registry.yarnpkg.com/@babel/preset-env/-/preset-env-7.0.0-beta.49.tgz#4a8a8b92139f51fa2f90fbf6f1fad7597532aebc"
   dependencies:
