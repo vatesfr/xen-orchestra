@@ -958,7 +958,9 @@ export default class Xapi extends XapiBase {
         )
 
         if (!baseVm) {
-          throw new Error('could not find the base VM')
+          throw new Error(
+            `could not find the base VM (copy of ${remoteBaseVmUuid})`
+          )
         }
       }
     }
@@ -1142,7 +1144,9 @@ export default class Xapi extends XapiBase {
         vdis[vdi.$ref] =
           mapVdisSrs && mapVdisSrs[vdi.$id]
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
-            : sr !== undefined ? hostXapi.getObject(sr).$ref : defaultSr.$ref // Will error if there are no default SR.
+            : sr !== undefined
+              ? hostXapi.getObject(sr).$ref
+              : defaultSr.$ref // Will error if there are no default SR.
       }
     }
 
