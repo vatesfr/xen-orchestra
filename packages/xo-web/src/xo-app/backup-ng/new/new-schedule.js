@@ -13,21 +13,17 @@ export default [
   injectState,
   provideState({
     initialState: ({
+      copyMode,
+      exportMode,
+      snapshotMode,
       schedule: {
         cron = '0 0 * * *',
-        exportRetention = 1,
-        copyRetention = 1,
-        snapshotRetention = 1,
+        exportRetention = exportMode ? 1 : undefined,
+        copyRetention = copyMode ? 1 : undefined,
+        snapshotRetention = snapshotMode ? 1 : undefined,
         timezone = moment.tz.guess(),
       },
     }) => ({
-      oldSchedule: {
-        cron,
-        exportRetention,
-        copyRetention,
-        snapshotRetention,
-        timezone,
-      },
       cron,
       exportRetention,
       copyRetention,
@@ -66,27 +62,38 @@ export default [
         snapshotRetention,
       }) =>
         !(
-          (exportMode && exportRetention !== 0) ||
-          (copyMode && copyRetention !== 0) ||
-          (snapshotMode && snapshotRetention !== 0)
+          (exportMode && exportRetention > 0) ||
+          (copyMode && copyRetention > 0) ||
+          (snapshotMode && snapshotRetention > 0)
         ),
-      scheduleNotEdited: ({
-        cron,
-        editionMode,
-        exportRetention,
-        copyRetention,
-        oldSchedule,
-        snapshotRetention,
-        timezone,
-      }) =>
-        editionMode !== 'creation' &&
-        isEqual(oldSchedule, {
+      scheduleNotEdited: (
+        {
           cron,
+          editionMode,
           exportRetention,
           copyRetention,
           snapshotRetention,
           timezone,
-        }),
+        },
+        { schedule }
+      ) =>
+        editionMode !== 'creation' &&
+        isEqual(
+          {
+            cron: schedule.cron,
+            exportRetention: schedule.exportRetention,
+            copyRetention: schedule.copyRetention,
+            snapshotRetention: schedule.snapshotRetention,
+            timezone: schedule.timezone,
+          },
+          {
+            cron,
+            exportRetention,
+            copyRetention,
+            snapshotRetention,
+            timezone,
+          }
+        ),
     },
   }),
   injectState,
@@ -106,6 +113,7 @@ export default [
               <Number
                 onChange={effects.setExportRetention}
                 value={state.exportRetention}
+                optional
               />
             </FormGroup>
           )}
@@ -117,6 +125,7 @@ export default [
               <Number
                 onChange={effects.setCopyRetention}
                 value={state.copyRetention}
+                optional
               />
             </FormGroup>
           )}
@@ -128,6 +137,7 @@ export default [
               <Number
                 onChange={effects.setSnapshotRetention}
                 value={state.snapshotRetention}
+                optional
               />
             </FormGroup>
           )}
