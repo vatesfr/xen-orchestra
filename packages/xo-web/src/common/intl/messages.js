@@ -259,8 +259,6 @@ const messages = {
   jobCallInProgess: 'In progress',
   jobTransferredDataSize: 'Transfer size:',
   jobTransferredDataSpeed: 'Transfer speed:',
-  operationSize: 'Size',
-  operationSpeed: 'Speed',
   jobMergedDataSize: 'Merge size:',
   jobMergedDataSpeed: 'Merge speed:',
   allJobCalls: 'All',
@@ -308,7 +306,6 @@ const messages = {
   taskMergedDataSize: 'Merge size',
   taskMergedDataSpeed: 'Merge speed',
   taskError: 'Error',
-  taskReason: 'Reason',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:

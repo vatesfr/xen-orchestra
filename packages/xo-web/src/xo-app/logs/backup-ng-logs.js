@@ -6,7 +6,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
-import { keyBy } from 'lodash'
+import { forEach, keyBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { get } from 'xo-defined'
 import {
@@ -16,6 +16,7 @@ import {
 } from 'xo'
 
 import LogAlertBody from './log-alert-body'
+import { isSkippedError, NO_VMS_MATCH_THIS_PATTERN } from './utils'
 
 const STATUS_LABELS = {
   failure: {
@@ -30,7 +31,7 @@ const STATUS_LABELS = {
     className: 'success',
     label: 'jobSuccess',
   },
-  pending: {
+  started: {
     className: 'warning',
     label: 'jobStarted',
   },
@@ -93,10 +94,10 @@ const LOG_COLUMNS = [
   {
     name: _('jobDuration'),
     itemRenderer: log =>
-      log.end !== undefined && (
-        <FormattedDuration duration={log.end - log.start} />
+      log.duration !== undefined && (
+        <FormattedDuration duration={log.duration} />
       ),
-    sortCriteria: log => log.end - log.start,
+    sortCriteria: log => log.duration,
   },
   {
     name: _('jobStatus'),
@@ -107,10 +108,10 @@ const LOG_COLUMNS = [
   },
 ]
 
-const showCalls = log =>
+const showCalls = (log, { logs, jobs }) =>
   alert(
     _('jobModalTitle', { job: log.jobId.slice(4, 8) }),
-    <LogAlertBody log={log} />
+    <LogAlertBody log={log} job={get(() => jobs[log.jobId])} logs={logs} />
   )
 
 const LOG_INDIVIDUAL_ACTIONS = [
@@ -137,6 +138,38 @@ const LOG_FILTERS = {
   jobSuccess: 'status: success',
 }
 
+const rowTransform = (log, { logs, jobs }) => {
+  let status
+  if (log.end !== undefined) {
+    if (log.error !== undefined) {
+      status =
+        log.error.message === NO_VMS_MATCH_THIS_PATTERN ? 'skipped' : 'failure'
+    } else {
+      let hasError = false
+      let hasTaskSkipped = false
+      forEach(logs[log.id], ({ status, result }) => {
+        if (status !== 'failure') {
+          return
+        }
+        if (result === undefined || !isSkippedError(result)) {
+          hasError = true
+          return false
+        }
+        hasTaskSkipped = true
+      })
+      status = hasError ? 'failure' : hasTaskSkipped ? 'skipped' : 'success'
+    }
+  } else {
+    status =
+      log.id === get(() => jobs[log.jobId].runId) ? 'started' : 'interrupted'
+  }
+
+  return {
+    ...log,
+    status,
+  }
+}
+
 export default [
   addSubscriptions({
     logs: subscribeBackupNgLogs,
@@ -150,13 +183,15 @@ export default [
       <CardBlock>
         <NoObjects
           actions={LOG_ACTIONS}
-          collection={logs}
+          collection={get(() => logs['roots'])}
           columns={LOG_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}
+          data-logs={logs}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           individualActions={LOG_INDIVIDUAL_ACTIONS}
+          rowTransform={rowTransform}
         />
       </CardBlock>
     </Card>
