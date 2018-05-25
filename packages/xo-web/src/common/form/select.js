@@ -142,15 +142,15 @@ export default class Select extends React.PureComponent {
       simpleValue,
       value,
     } = props
+    let option
     if (
       autoSelectSingleOption &&
       options != null &&
-      options.length === 1 &&
+      ([option] = options.filter(_ => !_.disabled)).length === 1 &&
       (value == null ||
         (simpleValue && value === '') ||
         (multi && value.length === 0))
     ) {
-      const option = options[0]
       props.onChange(
         simpleValue ? option[props.valueKey] : multi ? [option] : option
       )
