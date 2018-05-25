@@ -1,7 +1,6 @@
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
-import { find, forEach, get, startCase } from 'lodash'
-
+import { forEach, get, startCase } from 'lodash'
 import pkg from '../package'
 
 export const configurationSchema = {
@@ -36,6 +35,12 @@ export const configurationSchema = {
 const ICON_FAILURE = '🚨'
 const ICON_SKIPPED = '⏩'
 const ICON_SUCCESS = '✔'
+
+const STATUS_ICON = {
+  skipped: ICON_SKIPPED,
+  success: ICON_SUCCESS,
+  failure: ICON_FAILURE,
+}
 
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
 const createDateFormater = timezone =>
@@ -107,31 +112,29 @@ class BackupReportsXoPlugin {
 
   async _backupNgListener (_1, _2, { timezone }, runJobId) {
     const xo = this._xo
-    const logs = await xo.getBackupNgLogs(runJobId)
-    const jobLog = logs['roots'][0]
-    const vmsTaskLog = logs[jobLog.id]
+    const log = await xo.getBackupNgLogs(runJobId)
 
-    const { reportWhen, mode } = jobLog.data || {}
+    const { reportWhen, mode } = log.data || {}
     if (reportWhen === 'never') {
       return
     }
 
     const formatDate = createDateFormater(timezone)
-    const jobName = (await xo.getJob(jobLog.jobId, 'backup')).name
 
-    if (jobLog.error !== undefined) {
-      const [globalStatus, icon] =
-        jobLog.error.message === NO_VMS_MATCH_THIS_PATTERN
-          ? ['Skipped', ICON_SKIPPED]
-          : ['Failure', ICON_FAILURE]
+    if (log.status === 'success' && reportWhen === 'failure') {
+      return
+    }
+
+    const jobName = (await xo.getJob(log.jobId, 'backup')).name
+    if (log.error !== undefined) {
       let markdown = [
-        `##  Global status: ${globalStatus}`,
+        `##  Global status: ${log.status}`,
         '',
         `- **mode**: ${mode}`,
-        `- **Start time**: ${formatDate(jobLog.start)}`,
-        `- **End time**: ${formatDate(jobLog.end)}`,
-        `- **Duration**: ${formatDuration(jobLog.duration)}`,
-        `- **Error**: ${jobLog.error.message}`,
+        `- **Start time**: ${formatDate(log.start)}`,
+        `- **End time**: ${formatDate(log.end)}`,
+        `- **Duration**: ${formatDuration(log.end - log.start)}`,
+        `- **Error**: ${log.error.message}`,
         '---',
         '',
         `*${pkg.name} v${pkg.version}*`,
@@ -139,12 +142,14 @@ class BackupReportsXoPlugin {
 
       markdown = markdown.join('\n')
       return this._sendReport({
-        subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${jobName} ${icon}`,
+        subject: `[Xen Orchestra] ${
+          log.status
+        } − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
         markdown,
         nagiosStatus: 2,
-        nagiosMarkdown: `[Xen Orchestra] [${globalStatus}] Backup report for ${jobName} - Error : ${
-          jobLog.error.message
-        }`,
+        nagiosMarkdown: `[Xen Orchestra] [${
+          log.status
+        }] Backup report for ${jobName} - Error : ${log.error.message}`,
       })
     }
 
@@ -157,14 +162,12 @@ class BackupReportsXoPlugin {
     let globalTransferSize = 0
     let nFailures = 0
     let nSkipped = 0
-
-    for (const vmTaskLog of vmsTaskLog || []) {
-      const vmTaskStatus = vmTaskLog.status
-      if (vmTaskStatus === 'success' && reportWhen === 'failure') {
+    for (const taskLog of log.tasks) {
+      if (taskLog.status === 'success' && reportWhen === 'failure') {
         return
       }
 
-      const vmId = vmTaskLog.data.id
+      const vmId = taskLog.data.id
       let vm
       try {
         vm = xo.getObject(vmId)
@@ -173,132 +176,143 @@ class BackupReportsXoPlugin {
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
         `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
-        `- **Start time**: ${formatDate(vmTaskLog.start)}`,
-        `- **End time**: ${formatDate(vmTaskLog.end)}`,
-        `- **Duration**: ${formatDuration(vmTaskLog.duration)}`,
+        `- **Start time**: ${formatDate(taskLog.start)}`,
+        `- **End time**: ${formatDate(taskLog.end)}`,
+        `- **Duration**: ${formatDuration(taskLog.end - taskLog.start)}`,
       ]
 
       const failedSubTasks = []
-      const operationsText = []
+      const snapshotText = []
       const srsText = []
       const remotesText = []
-      for (const subTaskLog of logs[vmTaskLog.taskId] || []) {
-        const { data, status, result, message } = subTaskLog
-        const icon =
-          subTaskLog.status === 'success' ? ICON_SUCCESS : ICON_FAILURE
-        const errorMessage = `  **Error**: ${get(result, 'message')}`
 
-        if (message === 'snapshot') {
-          operationsText.push(`- **Snapshot** ${icon}`)
-          if (status === 'failure') {
-            failedSubTasks.push('Snapshot')
-            operationsText.push('', errorMessage)
-          }
-        } else if (data.type === 'remote') {
-          const remoteId = data.id
-          const remote = await xo.getRemote(remoteId).catch(() => {})
-          remotesText.push(
-            `- **${
-              remote !== undefined ? remote.name : `Remote Not found`
-            }** (${remoteId}) ${icon}`
+      for (const subTaskLog of taskLog.tasks || []) {
+        const icon = STATUS_ICON[subTaskLog.status]
+        const errorMessage = `    - **Error**: ${get(
+          subTaskLog.result,
+          'message'
+        )}`
+
+        if (subTaskLog.message === 'snapshot') {
+          snapshotText.push(
+            `- **Snapshot** ${icon}`,
+            `  - **Start time**: ${formatDate(subTaskLog.start)}`,
+            `  - **End time**: ${formatDate(subTaskLog.end)}`
           )
-          if (status === 'failure') {
-            failedSubTasks.push(remote !== undefined ? remote.name : remoteId)
+        } else if (subTaskLog.data.type === 'remote') {
+          const id = subTaskLog.data.id
+          const remote = await xo.getRemote(id).catch(() => {})
+          remotesText.push(
+            `  - **${
+              remote !== undefined ? remote.name : `Remote Not found`
+            }** (${id}) ${icon}`,
+            `    - **Start time**: ${formatDate(subTaskLog.start)}`,
+            `    - **End time**: ${formatDate(subTaskLog.end)}`,
+            `    - **Duration**: ${formatDuration(
+              subTaskLog.end - subTaskLog.start
+            )}`
+          )
+          if (subTaskLog.status === 'failure') {
+            failedSubTasks.push(remote !== undefined ? remote.name : id)
             remotesText.push('', errorMessage)
           }
         } else {
-          const srId = data.id
+          const id = subTaskLog.data.id
           let sr
           try {
-            sr = xo.getObject(srId)
+            sr = xo.getObject(id)
           } catch (e) {}
           const [srName, srUuid] =
-            sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, srId]
-          srsText.push(`- **${srName}** (${srUuid}) ${icon}`)
-          if (status === 'failure') {
-            failedSubTasks.push(sr !== undefined ? sr.name_label : srId)
+            sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, id]
+          srsText.push(
+            `  - **${srName}** (${srUuid}) ${icon}`,
+            `    - **Start time**: ${formatDate(subTaskLog.start)}`,
+            `    - **End time**: ${formatDate(subTaskLog.end)}`,
+            `    - **Duration**: ${formatDuration(
+              subTaskLog.end - subTaskLog.start
+            )}`
+          )
+          if (subTaskLog.status === 'failure') {
+            failedSubTasks.push(sr !== undefined ? sr.name_label : id)
             srsText.push('', errorMessage)
           }
         }
+
+        forEach(subTaskLog.tasks, operationLog => {
+          const size = operationLog.result.size
+          if (operationLog.message === 'merge') {
+            globalMergeSize += size
+          } else {
+            globalTransferSize += size
+          }
+          const operationText = [
+            `    - **${operationLog.message}** ${
+              STATUS_ICON[operationLog.status]
+            }`,
+            `      - **Start time**: ${formatDate(operationLog.start)}`,
+            `      - **End time**: ${formatDate(operationLog.end)}`,
+            `      - **Duration**: ${formatDuration(
+              operationLog.end - operationLog.start
+            )}`,
+            operationLog.status === 'failure'
+              ? `- **Error**: ${get(operationLog.result, 'message')}`
+              : `      - **Size**: ${formatSize(size)}`,
+            `      - **Speed**: ${formatSpeed(
+              size,
+              operationLog.end - operationLog.start
+            )}`,
+          ].join('\n')
+          if (get(subTaskLog, 'data.type') === 'remote') {
+            remotesText.push(operationText)
+            remotesText.join('\n')
+          }
+          if (get(subTaskLog, 'data.type') === 'SR') {
+            srsText.push(operationText)
+            srsText.join('\n')
+          }
+        })
       }
 
-      if (operationsText.length !== 0) {
-        operationsText.unshift(`#### Operations`, '')
-      }
       if (srsText.length !== 0) {
-        srsText.unshift(`#### SRs`, '')
+        srsText.unshift(`- **SRs**`)
       }
       if (remotesText.length !== 0) {
-        remotesText.unshift(`#### remotes`, '')
+        remotesText.unshift(`- **Remotes**`)
       }
-      const subText = [...operationsText, '', ...srsText, '', ...remotesText]
-      const result = vmTaskLog.result
-      if (vmTaskStatus === 'failure' && result !== undefined) {
-        const { message } = result
-        if (isSkippedError(result)) {
+      const subText = [...snapshotText, '', ...srsText, '', ...remotesText]
+      if (taskLog.result !== undefined) {
+        if (taskLog.status === 'skipped') {
           ++nSkipped
           skippedVmsText.push(
             ...text,
             `- **Reason**: ${
-              message === UNHEALTHY_VDI_CHAIN_ERROR
+              taskLog.result.message === UNHEALTHY_VDI_CHAIN_ERROR
                 ? UNHEALTHY_VDI_CHAIN_MESSAGE
-                : message
+                : taskLog.result.message
             }`,
             ''
           )
           nagiosText.push(
-            `[(Skipped) ${
-              vm !== undefined ? vm.name_label : 'undefined'
-            } : ${message} ]`
+            `[(Skipped) ${vm !== undefined ? vm.name_label : 'undefined'} : ${
+              taskLog.result.message
+            } ]`
           )
         } else {
           ++nFailures
-          failedVmsText.push(...text, `- **Error**: ${message}`, '')
+          failedVmsText.push(
+            ...text,
+            `- **Error**: ${taskLog.result.message}`,
+            ''
+          )
 
           nagiosText.push(
-            `[(Failed) ${
-              vm !== undefined ? vm.name_label : 'undefined'
-            } : ${message} ]`
+            `[(Failed) ${vm !== undefined ? vm.name_label : 'undefined'} : ${
+              taskLog.result.message
+            } ]`
           )
         }
       } else {
-        let transferSize, transferDuration, mergeSize, mergeDuration
-
-        forEach(logs[vmTaskLog.taskId], ({ taskId }) => {
-          if (transferSize !== undefined) {
-            return false
-          }
-
-          const transferTask = find(logs[taskId], { message: 'transfer' })
-          if (transferTask !== undefined) {
-            transferSize = transferTask.result.size
-            transferDuration = transferTask.end - transferTask.start
-          }
-
-          const mergeTask = find(logs[taskId], { message: 'merge' })
-          if (mergeTask !== undefined) {
-            mergeSize = mergeTask.result.size
-            mergeDuration = mergeTask.end - mergeTask.start
-          }
-        })
-        if (transferSize !== undefined) {
-          globalTransferSize += transferSize
-          text.push(
-            `- **Transfer size**: ${formatSize(transferSize)}`,
-            `- **Transfer speed**: ${formatSpeed(
-              transferSize,
-              transferDuration
-            )}`
-          )
-        }
-        if (mergeSize !== undefined) {
-          globalMergeSize += mergeSize
-          text.push(
-            `- **Merge size**: ${formatSize(mergeSize)}`,
-            `- **Merge speed**: ${formatSpeed(mergeSize, mergeDuration)}`
-          )
-        }
-        if (vmTaskStatus === 'failure') {
+        if (taskLog.status === 'failure') {
           ++nFailures
           failedVmsText.push(...text, '', '', ...subText, '')
           nagiosText.push(
@@ -311,25 +325,16 @@ class BackupReportsXoPlugin {
         }
       }
     }
-    const globalSuccess = nFailures === 0 && nSkipped === 0
-    if (reportWhen === 'failure' && globalSuccess) {
-      return
-    }
 
-    const nVms = vmsTaskLog.length
+    const nVms = log.tasks.length
     const nSuccesses = nVms - nFailures - nSkipped
-    const globalStatus = globalSuccess
-      ? `Success`
-      : nFailures !== 0
-        ? `Failure`
-        : `Skipped`
     let markdown = [
-      `##  Global status: ${globalStatus}`,
+      `##  Global status: ${log.status}`,
       '',
       `- **mode**: ${mode}`,
-      `- **Start time**: ${formatDate(jobLog.start)}`,
-      `- **End time**: ${formatDate(jobLog.end)}`,
-      `- **Duration**: ${formatDuration(jobLog.duration)}`,
+      `- **Start time**: ${formatDate(log.start)}`,
+      `- **End time**: ${formatDate(log.end)}`,
+      `- **Duration**: ${formatDuration(log.start - log.end)}`,
       `- **Successes**: ${nSuccesses} / ${nVms}`,
     ]
 
@@ -369,19 +374,16 @@ class BackupReportsXoPlugin {
     markdown = markdown.join('\n')
     return this._sendReport({
       markdown,
-      subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${jobName} ${
-        globalSuccess
-          ? ICON_SUCCESS
-          : nFailures !== 0
-            ? ICON_FAILURE
-            : ICON_SKIPPED
+      subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${
+        STATUS_ICON[log.status]
       }`,
-      nagiosStatus: globalSuccess ? 0 : 2,
-      nagiosMarkdown: globalSuccess
-        ? `[Xen Orchestra] [Success] Backup report for ${jobName}`
-        : `[Xen Orchestra] [${
-            nFailures !== 0 ? 'Failure' : 'Skipped'
-          }] Backup report for ${jobName} - VMs : ${nagiosText.join(' ')}`,
+      nagiosStatus: log.status === 'success' ? 0 : 2,
+      nagiosMarkdown:
+        log.status === 'success'
+          ? `[Xen Orchestra] [Success] Backup report for ${jobName}`
+          : `[Xen Orchestra] [${
+              nFailures !== 0 ? 'Failure' : 'Skipped'
+            }] Backup report for ${jobName} - VMs : ${nagiosText.join(' ')}`,
     })
   }
 
