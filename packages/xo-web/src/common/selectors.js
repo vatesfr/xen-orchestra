@@ -5,6 +5,7 @@ import {
   filter,
   find,
   forEach,
+  get,
   groupBy,
   isArray,
   isArrayLike,
@@ -15,6 +16,7 @@ import {
   pickBy,
   size,
   slice,
+  some,
 } from 'lodash'
 
 import invoke from './invoke'
@@ -147,7 +149,9 @@ export const createFilter = (collection, predicate) =>
     _createCollectionWrapper(
       (collection, predicate) =>
         predicate === false
-          ? isArrayLike(collection) ? EMPTY_ARRAY : EMPTY_OBJECT
+          ? isArrayLike(collection)
+            ? EMPTY_ARRAY
+            : EMPTY_OBJECT
           : predicate
             ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
             : collection
@@ -269,6 +273,19 @@ export const isAdmin = (...args) => {
 
   return user && user.permission === 'admin'
 }
+
+export const getIsPoolAdmin = state =>
+  create(
+    state => state.permissions,
+    state => state.objects,
+    (permissions, objects) =>
+      some(
+        permissions,
+        (permission, id) =>
+          get(objects.all[id], 'type') === 'pool' &&
+          permission.administrate === 1
+      )
+  )
 
 // ===================================================================
 // Common selector creators.

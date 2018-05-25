@@ -50,11 +50,17 @@ const extract = (obj, prop) => {
 export async function create (params) {
   const { user } = this
   const resourceSet = extract(params, 'resourceSet')
-  if (resourceSet === undefined && user.permission !== 'admin') {
+  const template = extract(params, 'template')
+  if (
+    resourceSet === undefined &&
+    user.permission !== 'admin' &&
+    !(await this.hasPermissions(this.user.id, [
+      [template.$pool, 'administrate'],
+    ]))
+  ) {
     throw unauthorized()
   }
 
-  const template = extract(params, 'template')
   params.template = template._xapiId
 
   const xapi = this.getXapi(template)
@@ -467,7 +473,7 @@ export async function migrate ({
     })
   }
 
-  if (!await this.hasPermissions(this.session.get('user_id'), permissions)) {
+  if (!(await this.hasPermissions(this.session.get('user_id'), permissions))) {
     throw unauthorized()
   }
 
@@ -707,9 +713,9 @@ copy.resolve = {
 export async function convertToTemplate ({ vm }) {
   // Convert to a template requires pool admin permission.
   if (
-    !await this.hasPermissions(this.session.get('user_id'), [
+    !(await this.hasPermissions(this.session.get('user_id'), [
       [vm.$pool, 'administrate'],
-    ])
+    ]))
   ) {
     throw unauthorized()
   }
@@ -1269,7 +1275,9 @@ export async function createInterface ({
     await this.checkResourceSetConstraints(resourceSet, this.user.id, [
       network.id,
     ])
-  } else if (!await this.hasPermissions(this.user.id, [[network.id, 'view']])) {
+  } else if (
+    !(await this.hasPermissions(this.user.id, [[network.id, 'view']]))
+  ) {
     throw unauthorized()
   }
 
