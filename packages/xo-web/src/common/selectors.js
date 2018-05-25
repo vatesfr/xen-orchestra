@@ -5,7 +5,6 @@ import {
   filter,
   find,
   forEach,
-  get,
   groupBy,
   isArray,
   isArrayLike,
@@ -21,7 +20,7 @@ import {
 
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
-import { EMPTY_ARRAY, EMPTY_OBJECT } from './utils'
+import { EMPTY_ARRAY, EMPTY_OBJECT, resolveIds } from './utils'
 
 // ===================================================================
 
@@ -276,15 +275,9 @@ export const isAdmin = (...args) => {
 
 export const getIsPoolAdmin = state =>
   create(
-    state => state.permissions,
-    state => state.objects,
-    (permissions, objects) =>
-      some(
-        permissions,
-        (permission, id) =>
-          get(objects.all[id], 'type') === 'pool' &&
-          permission.administrate === 1
-      )
+    args => resolveIds(createGetObjectsOfType('pool')(args)),
+    getCheckPermissions,
+    (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
   )
 
 // ===================================================================
