@@ -1,6 +1,6 @@
 # Health
 
-This view will help you to find any bottleneck or to compare the metrics of your infrastructure.
+This view will help you find any bottlenecks and compare the metrics of your infrastructure.
 
 ### Heatmap
 
