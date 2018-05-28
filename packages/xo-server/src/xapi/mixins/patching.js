@@ -534,7 +534,7 @@ export default {
       'check_update',
       {}
     )
-    return updates
+    return JSON.parse(updates)
   },
 
   // install all yum updates for a XCP-ng host
