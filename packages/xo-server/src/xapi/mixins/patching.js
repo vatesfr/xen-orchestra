@@ -519,7 +519,7 @@ export default {
     }
   },
 
-  async xcpHostUpdates (hostId) {
+  async xcpListHostUpdates (hostId) {
     const hostRef = this.getObject(hostId).$ref
     console.log(hostRef)
     const updates = await this.call(
@@ -527,6 +527,20 @@ export default {
       hostRef,
       'updater.py',
       'check_update',
+      {}
+    )
+    console.log(updates)
+    return updates
+  },
+
+  async xcpInstallHostUpdates (hostId) {
+    const hostRef = this.getObject(hostId).$ref
+    console.log(hostRef)
+    const updates = await this.call(
+      'host.call_plugin',
+      hostRef,
+      'updater.py',
+      'update',
       {}
     )
     console.log(updates)
