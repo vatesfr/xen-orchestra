@@ -189,7 +189,7 @@ const TRANSFORMS = {
       rebootRequired:
         softwareVersion.product_brand === 'XCP-ng'
           ? toTimestamp(otherConfig.boot_time) <
-            otherConfig.rpm_patch_installation_time
+            +otherConfig.rpm_patch_installation_time
           : !isEmpty(obj.updates_requiring_reboot),
       tags: obj.tags,
       version: softwareVersion.product_version,

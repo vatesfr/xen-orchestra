@@ -553,7 +553,7 @@ export default {
       throw new Error('Update install failed')
     } else {
       await this._updateObjectMapProperty(host, 'other_config', {
-        rpm_patch_installation_time: Date.now(),
+        rpm_patch_installation_time: Date.now() / 1000,
       })
     }
   },
