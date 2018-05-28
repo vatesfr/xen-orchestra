@@ -189,6 +189,7 @@ const TRANSFORMS = {
       rebootRequired: !isEmpty(obj.updates_requiring_reboot),
       tags: obj.tags,
       version: softwareVersion.product_version,
+      productBrand: softwareVersion.product_brand,
 
       // TODO: dedupe.
       PIFs: link(obj, 'PIFs'),

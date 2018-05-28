@@ -176,7 +176,13 @@ forget.resolve = {
 // Returns an empty array if up-to-date
 // Throws an error if the host is not running the latest XS version
 export function listMissingPatches ({ host }) {
-  return this.getXapi(host).listMissingPoolPatchesOnHost(host._xapiId)
+  console.log(host.productBrand)
+  // XCP-ng handles update differently than XenServer
+  if (host.productBrand === 'XCP-ng') {
+    return this.getXapi(host).xcpListHostUpdates(host._xapiId)
+  } else {
+    return this.getXapi(host).listMissingPoolPatchesOnHost(host._xapiId)
+  }
 }
 
 listMissingPatches.description =
@@ -210,7 +216,9 @@ installPatch.resolve = {
 // -------------------------------------------------------------------
 
 export function installAllPatches ({ host }) {
-  return this.getXapi(host).installAllPoolPatchesOnHost(host._xapiId)
+  if (host.productBrand === 'XCP-ng') {
+    return this.getXapi(host).xcpInstallHostUpdates(host._xapiId)
+  } else return this.getXapi(host).installAllPoolPatchesOnHost(host._xapiId)
 }
 
 installAllPatches.description = 'install all the missing patches on a host'
