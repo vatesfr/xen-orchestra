@@ -179,7 +179,7 @@ export function listMissingPatches ({ host }) {
   console.log(host.productBrand)
   // XCP-ng handles update differently than XenServer
   if (host.productBrand === 'XCP-ng') {
-    return this.getXapi(host).xcpHostUpdates(host._xapiId)
+    return this.getXapi(host).xcpListHostUpdates(host._xapiId)
   } else {
     return this.getXapi(host).listMissingPoolPatchesOnHost(host._xapiId)
   }
