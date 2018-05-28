@@ -146,14 +146,6 @@ class XcpPatches extends Component {
     return installAllHostPatches(host)
   }
 
-  _installPatch = patch => {
-    const { host } = this.props
-    return installHostPatch(host, patch)
-  }
-
-  _installPatchWarning = (patch, installPatch) =>
-    this._chooseActionPatch(() => installPatch(patch))
-
   _installAllPatchesWarning = installAllPatches =>
     this._chooseActionPatch(installAllPatches)
 
