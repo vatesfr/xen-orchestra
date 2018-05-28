@@ -8,13 +8,7 @@ import React, { cloneElement, Component } from 'react'
 import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
-import {
-  editHost,
-  fetchHostStats,
-  installAllHostPatches,
-  installHostPatch,
-  subscribeHostMissingPatches,
-} from 'xo'
+import { editHost, fetchHostStats, subscribeHostMissingPatches } from 'xo'
 import { connectStore, routes } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -110,7 +104,8 @@ const isRunning = host => host && host.power_state === 'Running'
 
     return {
       host,
-      hostPatches: getHostPatches(state, props),
+      hostPatches:
+        host.productBrand !== 'XCP-ng' && getHostPatches(state, props),
       logs: getLogs(state, props),
       memoryUsed: getMemoryUsed(state, props),
       needsRestart: doesNeedRestart(state, props),
@@ -210,16 +205,6 @@ export default class Host extends Component {
           missingPatches: sortBy(missingPatches, patch => -patch.time),
         })
     )
-  }
-
-  _installAllPatches = () => {
-    const { host } = this.props
-    return installAllHostPatches(host)
-  }
-
-  _installPatch = patch => {
-    const { host } = this.props
-    return installHostPatch(host, patch)
   }
 
   _setNameDescription = nameDescription =>
@@ -331,11 +316,7 @@ export default class Host extends Component {
         'vmController',
         'vms',
       ]),
-      pick(this.state, ['missingPatches', 'statsOverview']),
-      {
-        installAllPatches: this._installAllPatches,
-        installPatch: this._installPatch,
-      }
+      pick(this.state, ['missingPatches', 'statsOverview'])
     )
     return (
       <Page

@@ -9,7 +9,7 @@ import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart, createSelector } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { restartHost } from 'xo'
+import { restartHost, installAllHostPatches, installHostPatch } from 'xo'
 import { isEmpty, isString } from 'lodash'
 
 const MISSING_PATCH_COLUMNS = [
@@ -57,6 +57,28 @@ const MISSING_PATCH_COLUMNS = [
         icon='host-patch-update'
       />
     ),
+  },
+]
+
+const MISSING_PATCH_COLUMNS_XCP = [
+  {
+    name: _('patchNameLabel'),
+    itemRenderer: patch => patch.name,
+    sortCriteria: 'name',
+  },
+  {
+    name: _('patchDescription'),
+    itemRenderer: patch => patch.description,
+    sortCriteria: 'description',
+  },
+  {
+    name: 'Release',
+    itemRenderer: patch => patch.release,
+  },
+  {
+    name: _('patchSize'),
+    itemRenderer: patch => formatSize(patch.size),
+    sortCriteria: patch => patch.size,
   },
 ]
 
@@ -118,10 +140,66 @@ const INSTALLED_PATCH_COLUMNS_2 = [
   },
 ]
 
+class XcpPatches extends Component {
+  _installAllPatches = () => {
+    const { host } = this.props
+    return installAllHostPatches(host)
+  }
+
+  _installPatch = patch => {
+    const { host } = this.props
+    return installHostPatch(host, patch)
+  }
+
+  _installPatchWarning = (patch, installPatch) =>
+    this._chooseActionPatch(() => installPatch(patch))
+
+  _installAllPatchesWarning = installAllPatches =>
+    this._chooseActionPatch(installAllPatches)
+
+  render () {
+    const { missingPatches, host } = this.props
+    const hasMissingPatches = !isEmpty(missingPatches)
+    return (
+      <Container>
+        <Row>
+          <Col className='text-xs-right'>
+            {this.props.needsRestart && (
+              <TabButton
+                btnStyle='warning'
+                handler={restartHost}
+                handlerParam={host}
+                icon='host-reboot'
+                labelId='rebootUpdateHostLabel'
+              />
+            )}
+            <TabButton
+              disabled={!hasMissingPatches}
+              btnStyle={hasMissingPatches ? 'primary' : undefined}
+              handler={this._installAllPatchesWarning}
+              handlerParam={this._installAllPatches}
+              icon={hasMissingPatches ? 'host-patch-update' : 'success'}
+              labelId={hasMissingPatches ? 'patchUpdateButton' : 'hostUpToDate'}
+            />
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <SortedTable
+              columns={MISSING_PATCH_COLUMNS_XCP}
+              collection={missingPatches}
+            />
+          </Col>
+        </Row>
+      </Container>
+    )
+  }
+}
+
 @connectStore(() => ({
   needsRestart: createDoesHostNeedRestart((_, props) => props.host),
 }))
-export default class HostPatches extends Component {
+class XenServerPatches extends Component {
   static contextTypes = {
     router: React.PropTypes.object,
   }
@@ -143,6 +221,16 @@ export default class HostPatches extends Component {
     return choice === 'install'
       ? doInstall()
       : this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
+  }
+
+  _installAllPatches = () => {
+    const { host } = this.props
+    return installAllHostPatches(host)
+  }
+
+  _installPatch = patch => {
+    const { host } = this.props
+    return installHostPatch(host, patch)
   }
 
   _installPatchWarning = (patch, installPatch) =>
@@ -174,7 +262,7 @@ export default class HostPatches extends Component {
   )
 
   render () {
-    const { host, missingPatches, installAllPatches, installPatch } = this.props
+    const { host, missingPatches } = this.props
     const { patches, columns } = this._getPatches()
     const hasMissingPatches = !isEmpty(missingPatches)
     return process.env.XOA_PLAN > 1 ? (
@@ -194,7 +282,7 @@ export default class HostPatches extends Component {
               disabled={!hasMissingPatches}
               btnStyle={hasMissingPatches ? 'primary' : undefined}
               handler={this._installAllPatchesWarning}
-              handlerParam={installAllPatches}
+              handlerParam={this._installAllPatches}
               icon={hasMissingPatches ? 'host-patch-update' : 'success'}
               labelId={hasMissingPatches ? 'patchUpdateButton' : 'hostUpToDate'}
             />
@@ -207,7 +295,7 @@ export default class HostPatches extends Component {
               <SortedTable
                 collection={missingPatches}
                 userData={{
-                  installPatch,
+                  installPatch: this._installPatch,
                   _installPatchWarning: this._installPatchWarning,
                 }}
                 columns={MISSING_PATCH_COLUMNS}
@@ -232,6 +320,16 @@ export default class HostPatches extends Component {
       <Container>
         <Upgrade place='hostPatches' available={2} />
       </Container>
+    )
+  }
+}
+
+export default class TabPatches extends Component {
+  render () {
+    return this.props.host.productBrand === 'XCP-ng' ? (
+      <XcpPatches {...this.props} />
+    ) : (
+      <XenServerPatches {...this.props} />
     )
   }
 }

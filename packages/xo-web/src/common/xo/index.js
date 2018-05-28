@@ -656,13 +656,16 @@ export const disableHost = host =>
   _call('host.disable', { id: resolveId(host) })
 
 export const getHostMissingPatches = host =>
-  _call('host.listMissingPatches', { host: resolveId(host) }).then(
-    patches =>
-      // Hide paid patches to XS-free users
-      host.license_params.sku_type !== 'free'
-        ? patches
-        : filter(patches, ['paid', false])
-  )
+  _call('host.listMissingPatches', { host: resolveId(host) }).then(patches => {
+    if (host.productBrand === 'XCP-ng') {
+      // FIXME: should receive an object, not a string
+      return JSON.parse(patches)
+    }
+    // Hide paid patches to XS-free users
+    return host.license_params.sku_type !== 'free'
+      ? patches
+      : filter(patches, ['paid', false])
+  })
 
 export const emergencyShutdownHost = host =>
   confirm({
