@@ -216,7 +216,9 @@ installPatch.resolve = {
 // -------------------------------------------------------------------
 
 export function installAllPatches ({ host }) {
-  return this.getXapi(host).installAllPoolPatchesOnHost(host._xapiId)
+  if (host.productBrand === 'XCP-ng') {
+    return this.getXapi(host).xcpInstallHostUpdates(host._xapiId)
+  } else return this.getXapi(host).installAllPoolPatchesOnHost(host._xapiId)
 }
 
 installAllPatches.description = 'install all the missing patches on a host'
