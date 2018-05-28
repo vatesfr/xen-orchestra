@@ -519,6 +519,11 @@ export default {
     }
   },
 
+  // ----------------------------------
+  // XCP-ng dedicated zone for patching
+  // ----------------------------------
+
+  // list all yum updates available for a XCP-ng host
   async xcpListHostUpdates (hostId) {
     const hostRef = this.getObject(hostId).$ref
     console.log(hostRef)
@@ -529,21 +534,28 @@ export default {
       'check_update',
       {}
     )
-    console.log(updates)
     return updates
   },
 
+  // install all yum updates for a XCP-ng host
   async xcpInstallHostUpdates (hostId) {
     const hostRef = this.getObject(hostId).$ref
     console.log(hostRef)
-    const updates = await this.call(
+    const update = await this.call(
       'host.call_plugin',
       hostRef,
       'updater.py',
       'update',
       {}
     )
-    console.log(updates)
-    return updates
+    return update.exit
+  },
+
+  // install all yum updates for all XCP-ng hosts in a give pool
+  async xcpInstallAllPoolUpdatesOnHost (pool) {
+    const host = this.getObject(pool.master)
+    console.log(host)
+    // TODO: call xcpInstallHostUpdates for each pool member
+    return true
   },
 }
