@@ -1,8 +1,10 @@
 import deferrable from 'golike-defer'
 import every from 'lodash/every'
+import filter from 'lodash/filter'
 import find from 'lodash/find'
 import includes from 'lodash/includes'
 import isObject from 'lodash/isObject'
+import map from 'lodash/map'
 import pickBy from 'lodash/pickBy'
 import some from 'lodash/some'
 import sortBy from 'lodash/sortBy'
@@ -539,23 +541,30 @@ export default {
 
   // install all yum updates for a XCP-ng host
   async xcpInstallHostUpdates (hostId) {
-    const hostRef = this.getObject(hostId).$ref
-    console.log(hostRef)
+    const host = this.getObject(hostId)
     const update = await this.call(
       'host.call_plugin',
-      hostRef,
+      host.$ref,
       'updater.py',
       'update',
       {}
     )
-    return update.exit
+
+    if (update.exit !== 0) {
+      throw new Error('Update install failed')
+    } else {
+      this._updateObjectMapProperty(host, 'other_config', {
+        rpm_patch_installation_time: Date.now(),
+      })
+    }
   },
 
   // install all yum updates for all XCP-ng hosts in a give pool
   async xcpInstallAllPoolUpdatesOnHost (pool) {
-    const host = this.getObject(pool.master)
-    console.log(host)
-    // TODO: call xcpInstallHostUpdates for each pool member
-    return true
+    return Promise.all(
+      map(filter(this.objects.all, { type: 'host' }), host =>
+        this.xcpInstallHostUpdates(host.$id)
+      )
+    )
   },
 }
