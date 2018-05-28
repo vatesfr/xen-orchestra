@@ -549,7 +549,7 @@ export default {
       {}
     )
 
-    if (update.exit !== 0) {
+    if (JSON.parse(update).exit !== 0) {
       throw new Error('Update install failed')
     } else {
       await this._updateObjectMapProperty(host, 'other_config', {
