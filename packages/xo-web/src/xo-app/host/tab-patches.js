@@ -4,7 +4,7 @@ import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
-import { chooseAction } from 'modal'
+import { alert, chooseAction } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart, createSelector } from 'selectors'
@@ -72,13 +72,44 @@ const MISSING_PATCH_COLUMNS_XCP = [
     sortCriteria: 'description',
   },
   {
-    name: 'Release',
+    name: _('patchRelease'),
     itemRenderer: patch => patch.release,
   },
   {
     name: _('patchSize'),
     itemRenderer: patch => formatSize(patch.size),
     sortCriteria: patch => patch.size,
+  },
+]
+
+const INDIVIDUAL_ACTIONS_XCP = [
+  {
+    handler: patch =>
+      alert(
+        _('changelog'),
+        <Container>
+          <Row className='mb-1'>
+            <Col size={3}>
+              <strong>{_('changelogPatch')}</strong>
+            </Col>
+            <Col size={9}>{patch.name}</Col>
+          </Row>
+          <Row className='mb-1'>
+            <Col size={3}>
+              <strong>{_('changelogAuthor')}</strong>
+            </Col>
+            <Col size={9}>{patch.author}</Col>
+          </Row>
+          <Row>
+            <Col size={3}>
+              <strong>{_('changelogDescription')}</strong>
+            </Col>
+            <Col size={9}>{patch.description}</Col>
+          </Row>
+        </Container>
+      ),
+    icon: 'preview',
+    label: _('showChangelog'),
   },
 ]
 
@@ -204,6 +235,7 @@ class XcpPatches extends Component {
               <SortedTable
                 columns={MISSING_PATCH_COLUMNS_XCP}
                 collection={missingPatches}
+                individualActions={INDIVIDUAL_ACTIONS_XCP}
               />
             </Col>
           </Row>
