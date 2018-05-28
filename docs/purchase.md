@@ -1,6 +1,6 @@
 # Purchase
 
-You can buy XOA in multiple way, depending of you need. Click on the following links to have more documentation:
+You can buy XOA in multiple ways, depending on your needs. Click on the following links for more documentation:
 
 * [for your company (direct purchase)](directpurchase.md)
 * [through your purchase department (purchaser)](through_purchase_department.md)
@@ -8,24 +8,24 @@ You can buy XOA in multiple way, depending of you need. Click on the following l
 
 ## XOA Editions
 
-To find which XOA Edition fits your needs, please read the [dedicated page about it](editions.md).
+To find which XOA Edition fits your needs, please read the [dedicated editions page](editions.md).
 
 ## Invoices
 
 Invoices are available in PDF format. [Details here](invoices.md).
 
-## Quotation
+## Receiving a quote
 
-You can ask for an automatic quote on our website on the pricing page or directely from you personal space. 
+You can ask for an automatic quote on our website via the pricing page or directly from you personal account page. 
 
 ![button-quotation](./assets/quotation.png)
 
-Choose the plan you want, the number of year of commitment that suits you and fill the informations required (prefilled with your account informations. 
+Choose the plan you want, the years of commitment that suits you, then fill out the information required (it should be prefilled with your account information). 
 
-If you want to purchase XO using the quote you got, you just have to enter the quote number on the purchase menu, on your personal space. 
+If you want to purchase XO using the quote you receive, you just have to enter the quote number into the purchase menu, on your personal account page. 
 
-## Edit your card informations
+## Edit your card information
 
-If you choose a Stripe payment, you can always edit the credit card informations in case you need it. To do so, you only have to connect on your personal space and go on the *profile* menu. 
+If you choose a Stripe payment, you can always edit the credit card information in case it changes. To do so, you only have to login to your personal account page and access the *profile* menu. 
 
 ![](./assets/updatecreditcard.png)

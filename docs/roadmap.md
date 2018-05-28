@@ -1,6 +1,6 @@
 # Roadmap
 
- > Our roadmap is very flexible, you can check the milestones repository for a complete overview of all the features we are working on.
+ > Our roadmap is very flexible - you can check the **milestones** repository for a complete overview of all the features we are currently working on.
 
 ## Features
 

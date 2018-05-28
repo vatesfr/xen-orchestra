@@ -1,3 +1,3 @@
 # Recipes
 
-Here is some configuration example to leverage possibilities with Xen Orchestra.
+Here are some configuration examples to leverage the possibilities in Xen Orchestra.

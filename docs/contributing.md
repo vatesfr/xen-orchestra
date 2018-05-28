@@ -8,7 +8,7 @@ You can [open bug reports here](https://github.com/vatesfr/xen-orchestra/issues)
 
 ## Documentation / Code
 
-Using GitHub fork/pull-request feature, you may send us some fixes or enhancements.
+Using the GitHub fork/pull-request feature, you may send us fixes or enhancements.
 
 Please, do explain:
 * what you are fixing (issue number if available);
@@ -16,10 +16,10 @@ Please, do explain:
 
 ### Pull requests
 
-The best way to propose a change on the documentation or the code is
+The best way to propose a change to the documentation or code is
 to create a [GitHub pull request](https://help.github.com/articles/using-pull-requests/).
 
-> Your pull request should always been against the `master`
+> Your pull request should always be against the `master`
 > branch and not against `stable` which is the stable branch!
 
 
@@ -41,7 +41,7 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 - meta: points to other issues and is used to manage long term goals (similar but orthogonal to milestones)
 - question
 
-> All issues MUST have one of this label!
+> All issues MUST have one of these labels!
 
 **Difficulty**
 
