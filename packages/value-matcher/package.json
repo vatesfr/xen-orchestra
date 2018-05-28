@@ -28,10 +28,10 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@babel/cli": "7.0.0-beta.47",
-    "@babel/core": "7.0.0-beta.47",
-    "@babel/preset-env": "7.0.0-beta.47",
-    "@babel/preset-flow": "7.0.0-beta.47",
+    "@babel/cli": "7.0.0-beta.49",
+    "@babel/core": "7.0.0-beta.49",
+    "@babel/preset-env": "7.0.0-beta.49",
+    "@babel/preset-flow": "7.0.0-beta.49",
     "cross-env": "^5.1.3",
     "rimraf": "^2.6.2"
   },
