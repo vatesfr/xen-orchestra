@@ -198,14 +198,16 @@ class XcpPatches extends Component {
             />
           </Col>
         </Row>
-        <Row>
-          <Col>
-            <SortedTable
-              columns={MISSING_PATCH_COLUMNS_XCP}
-              collection={missingPatches}
-            />
-          </Col>
-        </Row>
+        {hasMissingPatches && (
+          <Row>
+            <Col>
+              <SortedTable
+                columns={MISSING_PATCH_COLUMNS_XCP}
+                collection={missingPatches}
+              />
+            </Col>
+          </Row>
+        )}
       </Container>
     )
   }
