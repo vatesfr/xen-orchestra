@@ -176,7 +176,6 @@ forget.resolve = {
 // Returns an empty array if up-to-date
 // Throws an error if the host is not running the latest XS version
 export function listMissingPatches ({ host }) {
-  console.log(host.productBrand)
   // XCP-ng handles update differently than XenServer
   if (host.productBrand === 'XCP-ng') {
     return this.getXapi(host).xcpListHostUpdates(host._xapiId)

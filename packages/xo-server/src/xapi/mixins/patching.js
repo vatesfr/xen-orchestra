@@ -528,7 +528,6 @@ export default {
   // list all yum updates available for a XCP-ng host
   async xcpListHostUpdates (hostId) {
     const hostRef = this.getObject(hostId).$ref
-    console.log(hostRef)
     const updates = await this.call(
       'host.call_plugin',
       hostRef,
@@ -553,16 +552,16 @@ export default {
     if (update.exit !== 0) {
       throw new Error('Update install failed')
     } else {
-      this._updateObjectMapProperty(host, 'other_config', {
+      await this._updateObjectMapProperty(host, 'other_config', {
         rpm_patch_installation_time: Date.now(),
       })
     }
   },
 
   // install all yum updates for all XCP-ng hosts in a give pool
-  async xcpInstallAllPoolUpdatesOnHost (pool) {
+  async xcpInstallAllPoolUpdatesOnHost () {
     return Promise.all(
-      map(filter(this.objects.all, { type: 'host' }), host =>
+      map(filter(this.objects.all, { $type: 'host' }), host =>
         this.xcpInstallHostUpdates(host.$id)
       )
     )
