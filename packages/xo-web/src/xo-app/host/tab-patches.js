@@ -141,6 +141,29 @@ const INSTALLED_PATCH_COLUMNS_2 = [
 ]
 
 class XcpPatches extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object,
+  }
+
+  _chooseActionPatch = async doInstall => {
+    const choice = await chooseAction({
+      body: <p>{_('installPatchWarningContent')}</p>,
+      buttons: [
+        {
+          label: _('installPatchWarningResolve'),
+          value: 'install',
+          btnStyle: 'primary',
+        },
+        { label: _('installPatchWarningReject'), value: 'goToPool' },
+      ],
+      title: _('installPatchWarningTitle'),
+    })
+
+    return choice === 'install'
+      ? doInstall()
+      : this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
+  }
+
   _installAllPatches = () => {
     const { host } = this.props
     return installAllHostPatches(host)
