@@ -433,7 +433,7 @@ class NoObjects_ extends Component {
 
   return {
     isAdmin,
-    isPoolAdmin: getIsPoolAdmin(),
+    isPoolAdmin: getIsPoolAdmin,
     items: createSelector(
       createSelector(
         createGetObjectsOfType('host'),

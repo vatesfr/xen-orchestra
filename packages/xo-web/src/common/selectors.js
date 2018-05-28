@@ -273,13 +273,6 @@ export const isAdmin = (...args) => {
   return user && user.permission === 'admin'
 }
 
-export const getIsPoolAdmin = state =>
-  create(
-    create(createGetObjectsOfType('pool'), Object.keys),
-    getCheckPermissions,
-    (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
-  )
-
 // ===================================================================
 // Common selector creators.
 
@@ -551,3 +544,9 @@ export const createGetVmDisks = vmSelector =>
       )
     )
   )
+
+export const getIsPoolAdmin = create(
+  create(createGetObjectsOfType('pool'), Object.keys),
+  getCheckPermissions,
+  (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
+)

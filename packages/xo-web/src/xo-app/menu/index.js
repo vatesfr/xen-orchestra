@@ -32,7 +32,7 @@ const returnTrue = () => true
 @connectStore(
   () => ({
     isAdmin,
-    isPoolAdmin: getIsPoolAdmin(),
+    isPoolAdmin: getIsPoolAdmin,
     nTasks: createGetObjectsOfType('task').count([
       task => task.status === 'pending',
     ]),

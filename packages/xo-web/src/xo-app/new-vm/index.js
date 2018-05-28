@@ -211,7 +211,7 @@ class Vif extends BaseComponent {
 })
 @connectStore(() => ({
   isAdmin: createSelector(getUser, user => user && user.permission === 'admin'),
-  isPoolAdmin: getIsPoolAdmin(),
+  isPoolAdmin: getIsPoolAdmin,
   networks: createGetObjectsOfType('network').sort(),
   pool: createGetObject((_, props) => props.location.query.pool),
   pools: createGetObjectsOfType('pool'),
