@@ -170,10 +170,9 @@ class Log extends BaseComponent {
     (value, calls) => calls[value]
   )
 
-  _filterOptionRenderer = createSelector(
-    option => option,
+  _getFilterOptionRenderer = createSelector(
     this._getCallsByState,
-    ({ label, value }, calls) => (
+    calls => ({ label, value }) => (
       <span>
         {_(label)} ({calls[value].length})
       </span>
@@ -197,7 +196,7 @@ class Log extends BaseComponent {
         <Select
           labelKey='label'
           onChange={this.linkState('filter')}
-          optionRenderer={this._filterOptionRenderer}
+          optionRenderer={this._getFilterOptionRenderer()}
           options={CALL_FILTER_OPTIONS}
           required
           value={this.state.filter}
@@ -400,7 +399,9 @@ const LOG_COLUMNS = [
               'tag',
               log.hasErrors
                 ? 'tag-danger'
-                : log.callSkipped ? 'tag-info' : 'tag-success'
+                : log.callSkipped
+                  ? 'tag-info'
+                  : 'tag-success'
             )}
           >
             {_('jobFinished')}
