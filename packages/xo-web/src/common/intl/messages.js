@@ -758,6 +758,7 @@ const messages = {
   changelog: 'Changelog',
   changelogPatch: 'Patch',
   changelogAuthor: 'Author',
+  changelogDate: 'Date',
   changelogDescription: 'Description',
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',

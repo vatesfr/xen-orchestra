@@ -96,15 +96,28 @@ const INDIVIDUAL_ACTIONS_XCP = [
           </Row>
           <Row className='mb-1'>
             <Col size={3}>
+              <strong>{_('changelogDate')}</strong>
+            </Col>
+            <Col size={9}>
+              <FormattedTime
+                value={patch.changelog.date}
+                day='numeric'
+                month='long'
+                year='numeric'
+              />
+            </Col>
+          </Row>
+          <Row className='mb-1'>
+            <Col size={3}>
               <strong>{_('changelogAuthor')}</strong>
             </Col>
-            <Col size={9}>{patch.author}</Col>
+            <Col size={9}>{patch.changelog.author}</Col>
           </Row>
           <Row>
             <Col size={3}>
               <strong>{_('changelogDescription')}</strong>
             </Col>
-            <Col size={9}>{patch.description}</Col>
+            <Col size={9}>{patch.changelog.description}</Col>
           </Row>
         </Container>
       ),
