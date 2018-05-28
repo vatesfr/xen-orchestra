@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@babel/register": "^7.0.0-beta.44",
+    "@babel/register": "^7.0.0-beta.49",
     "babel-7-jest": "^21.3.2",
     "babel-eslint": "^8.1.2",
     "benchmark": "^2.1.4",
@@ -16,7 +16,7 @@
     "flow-bin": "^0.73.0",
     "globby": "^8.0.0",
     "husky": "^0.14.3",
-    "jest": "^22.0.4",
+    "jest": "^23.0.1",
     "lodash": "^4.17.4",
     "prettier": "^1.10.2",
     "promise-toolbox": "^0.9.5",
