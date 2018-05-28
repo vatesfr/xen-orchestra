@@ -20,7 +20,7 @@ import {
 
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
-import { EMPTY_ARRAY, EMPTY_OBJECT, resolveIds } from './utils'
+import { EMPTY_ARRAY, EMPTY_OBJECT } from './utils'
 
 // ===================================================================
 
@@ -275,7 +275,7 @@ export const isAdmin = (...args) => {
 
 export const getIsPoolAdmin = state =>
   create(
-    args => resolveIds(createGetObjectsOfType('pool')(args)),
+    create(createGetObjectsOfType('pool'), Object.keys),
     getCheckPermissions,
     (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
   )
