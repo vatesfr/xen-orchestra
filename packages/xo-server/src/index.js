@@ -507,7 +507,7 @@ const setUpConsoleProxy = (webServer, xo) => {
         const { token } = parseCookies(req.headers.cookie)
 
         const user = await xo.authenticateUser({ token })
-        if (!await xo.hasPermissions(user.id, [[id, 'operate']])) {
+        if (!(await xo.hasPermissions(user.id, [[id, 'operate']]))) {
           throw invalidCredentials()
         }
 
@@ -551,7 +551,7 @@ export default async function main (args) {
         debug('blocked for %sms', ms | 0)
       },
       {
-        threshold: 50,
+        threshold: 500,
       }
     )
   }
