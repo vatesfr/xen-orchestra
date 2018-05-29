@@ -84,6 +84,7 @@ const MISSING_PATCH_COLUMNS_XCP = [
 
 const INDIVIDUAL_ACTIONS_XCP = [
   {
+    disabled: patch => patch.changelog === null,
     handler: patch =>
       alert(
         _('changelog'),
