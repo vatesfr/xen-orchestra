@@ -153,7 +153,9 @@ export default {
   async listMissingPoolPatchesOnHost (hostId) {
     // Returns an array to not break compatibility.
     return mapToArray(
-      await this._listMissingPoolPatchesOnHost(this.getObject(hostId))
+      await (this.getObject(hostId).productBrand === 'XCP-ng'
+        ? this._xcpListHostUpdates(hostId)
+        : this._listMissingPoolPatchesOnHost(hostId))
     )
   },
 
@@ -442,6 +444,13 @@ export default {
   },
 
   async installAllPoolPatchesOnHost (hostId) {
+    if (this.getObject(hostId).product_brand === 'XCP-ng') {
+      return this._xcpInstallHostUpdates(hostId)
+    }
+    return this._installAllPoolPatchesOnHost(hostId)
+  },
+
+  async _installAllPoolPatchesOnHost (hostId) {
     let host = this.getObject(hostId)
 
     const installableByUuid =
@@ -481,6 +490,13 @@ export default {
   },
 
   async installAllPoolPatchesOnAllHosts () {
+    if (this.pool.$master.product_brand === 'XCP-ng') {
+      return this._xcpInstallAllPoolUpdatesOnHost()
+    }
+    return this._installAllPoolPatchesOnAllHosts()
+  },
+
+  async _installAllPoolPatchesOnAllHosts () {
     const installableByUuid = assign(
       {},
       ...(await Promise.all(
@@ -526,7 +542,7 @@ export default {
   // ----------------------------------
 
   // list all yum updates available for a XCP-ng host
-  async xcpListHostUpdates (hostId) {
+  async _xcpListHostUpdates (hostId) {
     const hostRef = this.getObject(hostId).$ref
     const updates = await this.call(
       'host.call_plugin',
@@ -539,7 +555,7 @@ export default {
   },
 
   // install all yum updates for a XCP-ng host
-  async xcpInstallHostUpdates (hostId) {
+  async _xcpInstallHostUpdates (hostId) {
     const host = this.getObject(hostId)
     const update = await this.call(
       'host.call_plugin',
@@ -559,10 +575,10 @@ export default {
   },
 
   // install all yum updates for all XCP-ng hosts in a give pool
-  async xcpInstallAllPoolUpdatesOnHost () {
+  async _xcpInstallAllPoolUpdatesOnHost () {
     return Promise.all(
       map(filter(this.objects.all, { $type: 'host' }), host =>
-        this.xcpInstallHostUpdates(host.$id)
+        this._xcpInstallHostUpdates(host.$id)
       )
     )
   },

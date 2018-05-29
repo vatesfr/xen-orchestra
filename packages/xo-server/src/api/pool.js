@@ -94,11 +94,7 @@ installPatch.resolve = {
 // -------------------------------------------------------------------
 
 export async function installAllPatches ({ pool }) {
-  if (this.getObject(pool.master).productBrand === 'XCP-ng') {
-    await this.getXapi(pool).xcpInstallAllPoolUpdatesOnHost()
-  } else {
-    await this.getXapi(pool).installAllPoolPatchesOnAllHosts()
-  }
+  await this.getXapi(pool).installAllPoolPatchesOnAllHosts()
 }
 
 installAllPatches.params = {
