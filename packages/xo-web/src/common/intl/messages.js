@@ -604,8 +604,6 @@ const messages = {
   poolHaDisabled: 'Disabled',
   poolGpuGroups: 'GPU groups',
   poolRemoteSyslogPlaceHolder: 'Logging host',
-  poolRemoteSyslogTooltip: 'Save remote syslog host',
-  changeHostRemoteSyslogOK: 'OK',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   // ----- Pool host tab -----

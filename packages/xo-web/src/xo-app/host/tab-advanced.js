@@ -68,6 +68,7 @@ export default class extends Component {
       return uniqPacks
     }
   )
+  _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
   render () {
     const { host, pcis, pgpus } = this.props
@@ -189,7 +190,7 @@ export default class extends Component {
                   <td>
                     <Text
                       value={host.logging.syslog_destination || ''}
-                      onChange={value => setRemoteSyslogHost(host, value)}
+                      onChange={this._setRemoteSyslogHost}
                     />
                   </td>
                 </tr>
