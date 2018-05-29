@@ -754,6 +754,7 @@ const messages = {
   installPatchWarningReject: 'Go to pool',
   installPatchWarningResolve: 'Install',
   patchRelease: 'Release',
+  updatePluginNotInstalled: 'Update plugin is not installed on this host',
   showChangelog: 'Show changelog',
   changelog: 'Changelog',
   changelogPatch: 'Patch',

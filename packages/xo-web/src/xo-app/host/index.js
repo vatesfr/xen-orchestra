@@ -202,7 +202,8 @@ export default class Host extends Component {
       host,
       missingPatches =>
         this.setState({
-          missingPatches: sortBy(missingPatches, patch => -patch.time),
+          missingPatches:
+            missingPatches && sortBy(missingPatches, patch => -patch.time),
         })
     )
   }
