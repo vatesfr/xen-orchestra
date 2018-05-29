@@ -754,7 +754,8 @@ const messages = {
   installPatchWarningReject: 'Go to pool',
   installPatchWarningResolve: 'Install',
   patchRelease: 'Release',
-  updatePluginNotInstalled: 'Update plugin is not installed on this host',
+  updatePluginNotInstalled:
+    'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first',
   showChangelog: 'Show changelog',
   changelog: 'Changelog',
   changelogPatch: 'Patch',
