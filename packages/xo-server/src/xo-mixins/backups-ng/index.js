@@ -134,7 +134,9 @@ const compareTimestamp = (a: Metadata, b: Metadata): number =>
 const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
   entries === undefined
     ? []
-    : --retention > 0 ? entries.slice(0, -retention) : entries
+    : --retention > 0
+      ? entries.slice(0, -retention)
+      : entries
 
 const defaultSettings: Settings = {
   deleteFirst: false,
@@ -163,6 +165,7 @@ const getSetting = (
 const BACKUP_DIR = 'xo-vm-backups'
 const getVmBackupDir = (uuid: string) => `${BACKUP_DIR}/${uuid}`
 
+const isHiddenFile = (filename: string) => filename[0] === '.'
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
 
@@ -335,7 +338,9 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
         result:
           result === undefined
             ? value
-            : typeof result === 'function' ? result(value) : result,
+            : typeof result === 'function'
+              ? result(value)
+              : result,
         status: 'success',
         taskId,
       })
@@ -374,7 +379,9 @@ const wrapTaskFn = <T>(
         result:
           result === undefined
             ? value
-            : typeof result === 'function' ? result(value) : result,
+            : typeof result === 'function'
+              ? result(value)
+              : result,
         status: 'success',
         taskId,
       })
@@ -1097,11 +1104,13 @@ export default class BackupNg {
                       let parentPath
                       if (isDelta) {
                         const vdiDir = dirname(path)
-                        const parent = (await handler.list(vdiDir))
-                          .filter(isVhd)
+                        parentPath = (await handler.list(vdiDir, {
+                          filter: filename =>
+                            !isHiddenFile(filename) && isVhd(filename),
+                          prependDir: true,
+                        }))
                           .sort()
                           .pop()
-                        parentPath = `${vdiDir}/${parent}`
                       }
 
                       await writeStream(
