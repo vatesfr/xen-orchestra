@@ -736,6 +736,7 @@ const messages = {
   patchNameLabel: 'Name',
   patchUpdateButton: 'Install all patches',
   patchDescription: 'Description',
+  patchVersion: 'Version',
   patchApplied: 'Applied date',
   patchSize: 'Size',
   patchStatus: 'Status',

@@ -72,6 +72,10 @@ const MISSING_PATCH_COLUMNS_XCP = [
     sortCriteria: 'description',
   },
   {
+    name: _('patchVersion'),
+    itemRenderer: patch => patch.version,
+  },
+  {
     name: _('patchRelease'),
     itemRenderer: patch => patch.release,
   },
@@ -101,7 +105,7 @@ const INDIVIDUAL_ACTIONS_XCP = [
             </Col>
             <Col size={9}>
               <FormattedTime
-                value={patch.changelog.date}
+                value={patch.changelog.date * 1000}
                 day='numeric'
                 month='long'
                 year='numeric'
