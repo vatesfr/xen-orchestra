@@ -328,7 +328,7 @@ class XenServerPatches extends Component {
     const { host, missingPatches } = this.props
     const { patches, columns } = this._getPatches()
     const hasMissingPatches = !isEmpty(missingPatches)
-    return process.env.XOA_PLAN > 1 ? (
+    return (
       <Container>
         <Row>
           <Col className='text-xs-right'>
@@ -379,16 +379,19 @@ class XenServerPatches extends Component {
           </Col>
         </Row>
       </Container>
-    ) : (
-      <Container>
-        <Upgrade place='hostPatches' available={2} />
-      </Container>
     )
   }
 }
 
 export default class TabPatches extends Component {
   render () {
+    if (process.env.XOA_PLAN < 2) {
+      return (
+        <Container>
+          <Upgrade place='hostPatches' available={2} />
+        </Container>
+      )
+    }
     if (this.props.missingPatches === null) {
       return <em>{_('updatePluginNotInstalled')}</em>
     }
