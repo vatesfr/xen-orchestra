@@ -23,7 +23,7 @@ class CreateNetworkModalBody extends Component {
       pool: container.$pool,
       name: refs.name.value,
       description: refs.description.value,
-      pif: refs.pif.value.id,
+      pif: refs.pif.value && refs.pif.value.id,
       mtu: refs.mtu.value,
       vlan: refs.vlan.value,
     }
