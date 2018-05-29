@@ -25,7 +25,7 @@
     "sorted-object": "^2.0.1"
   },
   "engines": {
-    "yarn": "^1.2.1"
+    "yarn": "^1.7.0"
   },
   "jest": {
     "collectCoverage": true,
