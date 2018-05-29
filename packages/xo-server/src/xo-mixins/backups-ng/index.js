@@ -1111,6 +1111,9 @@ export default class BackupNg {
                         }))
                           .sort()
                           .pop()
+
+                        // ensure parent exists and is a valid VHD
+                        await new Vhd(handler, parentPath).readHeaderAndFooter()
                       }
 
                       await writeStream(
