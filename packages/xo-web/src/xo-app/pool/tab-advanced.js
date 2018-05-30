@@ -55,10 +55,9 @@ class PoolMaster extends Component {
   gpuGroups: createGetObjectsOfType('gpuGroup'),
 })
 export default class TabAdvanced extends Component {
-  _closeEditRemoteSyslogForm = () => this.setState({ editRemoteSyslog: false })
   _setRemoteSyslogHosts = ({ syslogDestination }) =>
     setRemoteSyslogHosts(this.props.hosts, syslogDestination).then(
-      this._closeEditRemoteSyslogForm
+      this.setState({ editRemoteSyslog: false })
     )
 
   render () {
@@ -95,10 +94,8 @@ export default class TabAdvanced extends Component {
                     <td>
                       <ul className='pl-0'>
                         {map(hosts, host => (
-                          <li key={host.id} className='mb-1'>
-                            <span className='mr-1'>{`${
-                              host.name_label
-                            }:`}</span>
+                          <li key={host.id}>
+                            <span>{`${host.name_label}: `}</span>
                             <Text
                               value={host.logging.syslog_destination || ''}
                               onChange={value =>
