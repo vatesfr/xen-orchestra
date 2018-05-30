@@ -476,12 +476,12 @@ export default class Vhd {
 
     // For each sector of block data...
     const { sectorsPerBlock } = child
+    let parentBitmap = null
     for (let i = 0; i < sectorsPerBlock; i++) {
       // If no changes on one sector, skip.
       if (!mapTestBit(bitmap, i)) {
         continue
       }
-      let parentBitmap = null
       let endSector = i + 1
 
       // Count changed sectors.

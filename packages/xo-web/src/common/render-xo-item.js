@@ -50,19 +50,17 @@ const SrItem = propTypes({
     return (state, props) => ({
       container: getContainer(state, props),
     })
-  })(({ sr, container }) => {
-    let label = `${sr.name_label || sr.id}`
-
-    if (isSrWritable(sr)) {
-      label += ` (${formatSize(sr.size - sr.physical_usage)} free)`
-    }
-
-    return (
-      <span>
-        <Icon icon='sr' /> {label}
-      </span>
-    )
-  })
+  })(({ sr, container }) => (
+    <span>
+      <Icon icon='sr' /> {sr.name_label || sr.id}
+      {container !== undefined && (
+        <span className='text-muted'> - {container.name_label}</span>
+      )}
+      {isSrWritable(sr) && (
+        <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
+      )}
+    </span>
+  ))
 )
 
 // VM.
