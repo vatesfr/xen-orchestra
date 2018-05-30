@@ -78,7 +78,7 @@ const COLUMNS = [
         .sort()
       const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
       const getVms = createGetObjectsOfType('VM').pick(getVmIds)
-      const getVmsController = createGetObjectsOfType('VM-controller').pick(
+      const getVmControllers = createGetObjectsOfType('VM-controller').pick(
         getVmIds
       )
       const getVmSnapshots = createGetObjectsOfType('VM-snapshot').pick(
@@ -86,11 +86,11 @@ const COLUMNS = [
       )
       const getAllVms = createSelector(
         getVms,
-        getVmsController,
+        getVmControllers,
         getVmSnapshots,
-        (vms, vmsController, vmSnapshots) => ({
+        (vms, vmControllers, vmSnapshots) => ({
           ...vms,
-          ...vmsController,
+          ...vmControllers,
           ...vmSnapshots,
         })
       )
