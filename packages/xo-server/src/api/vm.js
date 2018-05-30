@@ -53,7 +53,6 @@ export async function create (params) {
   const template = extract(params, 'template')
   if (
     resourceSet === undefined &&
-    user.permission !== 'admin' &&
     !(await this.hasPermissions(this.user.id, [
       [template.$pool, 'administrate'],
     ]))

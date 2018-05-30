@@ -546,7 +546,7 @@ export const createGetVmDisks = vmSelector =>
   )
 
 export const getIsPoolAdmin = create(
-  create(createGetObjectsOfType('pool'), Object.keys),
+  create(createGetObjectsOfType('pool'), _createCollectionWrapper(Object.keys)),
   getCheckPermissions,
   (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
 )
