@@ -10,7 +10,7 @@ import { addSubscriptions, formatSize, formatSpeed } from 'utils'
 import { find, filter, isEmpty, get, keyBy, map, forEach } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
-import { subscribeRemotes, restartVmBackupNgJob } from 'xo'
+import { runBackupNgJob, subscribeRemotes } from 'xo'
 
 import {
   isSkippedError,
@@ -191,8 +191,15 @@ export default [
         ...state,
         filter,
       }),
-      restartVmJob: (_, { vmId }) => async (_, { job: { id } }) => {
-        await restartVmBackupNgJob(vmId, id)
+      restartVmJob: (_, { vm }) => async (
+        _,
+        { log: { scheduleId }, job: { id } }
+      ) => {
+        await runBackupNgJob({
+          id,
+          vm,
+          schedule: scheduleId,
+        })
       },
     },
     computed: {
@@ -255,8 +262,8 @@ export default [
                     handler={effects.restartVmJob}
                     icon='run'
                     size='small'
-                    tooltip={_('restartFailedVm')}
-                    data-vmId={vmTaskLog.data.id}
+                    tooltip={_('backupRestartVm')}
+                    data-vm={vmTaskLog.data.id}
                   />
                 )}
                 <ul>

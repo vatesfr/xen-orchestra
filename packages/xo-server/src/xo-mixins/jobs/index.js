@@ -3,7 +3,7 @@
 import type { Pattern } from 'value-matcher'
 
 import { cancelable } from 'promise-toolbox'
-import { find, map as mapToArray } from 'lodash'
+import { get, map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../../collection/redis'
@@ -232,6 +232,7 @@ export default class Jobs {
       event: 'job.start',
       userId: job.userId,
       jobId: id,
+      scheduleId: get(schedule, 'id'),
       // $FlowFixMe only defined for CallJob
       key: job.key,
       type,
@@ -279,10 +280,18 @@ export default class Jobs {
   async runJobSequence (
     $cancelToken: any,
     idSequence: Array<string>,
-    schedule?: Schedule
+    schedule?: Schedule,
+    // Only works with backup NG jobs
+    vmId?: string
   ) {
     const jobs = await Promise.all(
-      mapToArray(idSequence, id => this.getJob(id))
+      mapToArray(idSequence, async id => {
+        const job = await this.getJob(id)
+        if (vmId !== undefined) {
+          job.vms.id = vmId
+        }
+        return job
+      })
     )
 
     for (const job of jobs) {
@@ -291,18 +300,5 @@ export default class Jobs {
       }
       await this._runJob($cancelToken, job, schedule)
     }
-  }
-
-  @cancelable
-  async restartVmBackupJob ($cancelToken: any, vmId: string, jobId: string) {
-    const job = await this.getJob(jobId)
-    if (job.type === 'backup') {
-      job.vms.id = vmId
-    } else {
-      job.paramsVector.items[0].values = [{ id: vmId }]
-    }
-
-    const schedule = find(await this._app.getAllSchedules(), { jobId })
-    await this._runJob($cancelToken, job, schedule)
   }
 }

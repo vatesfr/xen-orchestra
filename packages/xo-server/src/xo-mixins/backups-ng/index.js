@@ -100,6 +100,7 @@ type ConsolidatedJob = {|
   error?: Object,
   id: string,
   jobId: string,
+  scheduleId: string,
   mode: Mode,
   start: number,
   type: 'backup' | 'call',

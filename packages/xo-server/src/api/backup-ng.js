@@ -117,8 +117,8 @@ getJob.params = {
   },
 }
 
-export async function runJob ({ id, schedule }) {
-  return this.runJobSequence([id], await this.getSchedule(schedule))
+export async function runJob ({ id, schedule, vm }) {
+  return this.runJobSequence([id], await this.getSchedule(schedule), vm)
 }
 
 runJob.permission = 'admin'
@@ -130,20 +130,9 @@ runJob.params = {
   schedule: {
     type: 'string',
   },
-}
-
-export async function restartVmJob ({ vmId, jobId }) {
-  return this.restartVmBackupJob(vmId, jobId)
-}
-
-restartVmJob.permission = 'admin'
-
-restartVmJob.params = {
-  vmId: {
+  vm: {
     type: 'string',
-  },
-  jobId: {
-    type: 'string',
+    optional: true,
   },
 }
 
