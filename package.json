@@ -1,8 +1,10 @@
 {
   "devDependencies": {
-    "@babel/register": "^7.0.0-beta.44",
-    "babel-7-jest": "^21.3.2",
+    "@babel/core": "^7.0.0-beta.49",
+    "@babel/register": "^7.0.0-beta.49",
+    "babel-core": "^7.0.0-0",
     "babel-eslint": "^8.1.2",
+    "babel-jest": "^23.0.1",
     "benchmark": "^2.1.4",
     "eslint": "^4.14.0",
     "eslint-config-standard": "^11.0.0-beta.0",
@@ -16,20 +18,19 @@
     "flow-bin": "^0.73.0",
     "globby": "^8.0.0",
     "husky": "^0.14.3",
-    "jest": "^22.0.4",
+    "jest": "^23.0.1",
     "lodash": "^4.17.4",
     "prettier": "^1.10.2",
     "promise-toolbox": "^0.9.5",
     "sorted-object": "^2.0.1"
   },
   "engines": {
-    "yarn": "^1.2.1"
+    "yarn": "^1.7.0"
   },
   "jest": {
     "collectCoverage": true,
     "projects": [
-      "<rootDir>",
-      "<rootDir>/packages/xo-web"
+      "<rootDir>"
     ],
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
@@ -38,14 +39,6 @@
     ],
     "testRegex": "\\.spec\\.js$",
     "transform": {
-      "/@xen-orchestra/cron/.+\\.jsx?$": "babel-7-jest",
-      "/@xen-orchestra/fs/.+\\.jsx?$": "babel-7-jest",
-      "/packages/complex-matcher/.+\\.jsx?$": "babel-7-jest",
-      "/packages/value-matcher/.+\\.jsx?$": "babel-7-jest",
-      "/packages/vhd-lib/.+\\.jsx?$": "babel-7-jest",
-      "/packages/xo-cli/.+\\.jsx?$": "babel-7-jest",
-      "/packages/xo-server/.+\\.jsx?$": "babel-7-jest",
-      "/packages/xo-vmdk-to-vhd/.+\\.jsx?$": "babel-7-jest",
       "\\.jsx?$": "babel-jest"
     }
   },
