@@ -73,6 +73,7 @@ import {
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
   noop,
+  resolveIds,
   resolveResourceSet,
 } from 'utils'
 import {
@@ -241,7 +242,9 @@ export default class NewVm extends BaseComponent {
 
   _getResourceSet = () => {
     const {
-      location: { query: { resourceSet: resourceSetId } },
+      location: {
+        query: { resourceSet: resourceSetId },
+      },
       resourceSets,
     } = this.props
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
@@ -673,6 +676,12 @@ export default class NewVm extends BaseComponent {
   _addVdi = () => {
     const { state } = this.state
     const { pool } = this.props
+    const resourceSet = this._getResolvedResourceSet()
+    const srsReourceSet = resourceSet.objectsByType['SR']
+    const predicate = this._getSrPredicate()
+    const srs = predicate ? filter(srsReourceSet, predicate) : srsReourceSet
+    const defaultSr = getObject(store.getState(), srs[0].$pool, resourceSet)
+      .default_SR
 
     this._setState({
       VDIs: [
@@ -683,7 +692,11 @@ export default class NewVm extends BaseComponent {
             (state.name_label || 'disk') +
             '_' +
             generateReadableRandomString(5),
-          SR: pool && pool.default_SR,
+          SR: pool
+            ? pool.default_SR
+            : includes(resolveIds(srs), defaultSr)
+              ? defaultSr
+              : null,
           type: 'system',
         },
       ],
@@ -1158,7 +1171,9 @@ export default class NewVm extends BaseComponent {
   // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const { state: { VIFs } } = this.state
+    const {
+      state: { VIFs },
+    } = this.state
 
     return (
       <Section
@@ -1199,7 +1214,9 @@ export default class NewVm extends BaseComponent {
   // DISKS -----------------------------------------------------------------------
 
   _renderDisks = () => {
-    const { state: { configDrive, existingDisks, VDIs } } = this.state
+    const {
+      state: { configDrive, existingDisks, VDIs },
+    } = this.state
     const { pool } = this.props
     let i = 0
     const resourceSet = this._getResolvedResourceSet()
