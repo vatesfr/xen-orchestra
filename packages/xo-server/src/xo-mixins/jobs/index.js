@@ -285,7 +285,7 @@ export default class Jobs {
     data?: any
   ) {
     const jobs = await Promise.all(
-      mapToArray(idSequence, async id => this.getJob(id))
+      mapToArray(idSequence, id => this.getJob(id))
     )
 
     for (const job of jobs) {
