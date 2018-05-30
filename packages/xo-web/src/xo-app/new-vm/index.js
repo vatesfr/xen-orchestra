@@ -13,6 +13,7 @@ import store from 'store'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
+import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import {
@@ -30,8 +31,9 @@ import {
   isEmpty,
   join,
   map,
-  slice,
   size,
+  slice,
+  startsWith,
   sum,
   sumBy,
 } from 'lodash'
@@ -87,6 +89,36 @@ import styles from './index.css'
 
 const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
+
+const AVAILABLE_TEMPLATE_VARS = [
+  '{affinityHost}',
+  '{description}',
+  '{name}',
+  '{resourceSet}',
+  '{template}',
+  '{topology}',
+  '{vCpus}',
+  '%',
+]
+
+const showAvailableTemplateVars = () =>
+  alert(
+    _('availableTemplateVarsTitle'),
+    <ul>
+      {map(AVAILABLE_TEMPLATE_VARS, (value, key) => <li key={key}>{value}</li>)}
+    </ul>
+  )
+
+const AvailableTemplateVarsInfos = () => (
+  <Tooltip content={_('availableTemplateVarsInfos')}>
+    <a
+      className={classNames('text-info', styles.availableTemplateVars)}
+      onClick={showAvailableTemplateVars}
+    >
+      <Icon icon='info' />
+    </a>
+  </Tooltip>
+)
 
 /* eslint-disable camelcase */
 
@@ -348,7 +380,9 @@ export default class NewVm extends BaseComponent {
           ''
         )}`
       } else {
-        cloudConfig = state.customConfig
+        cloudConfig = this._buildTemplate(this.state.state.customConfig)(
+          this.state.state
+        )
       }
     } else if (state.template.name_label === 'CoreOS') {
       cloudConfig = state.cloudConfig
@@ -468,7 +502,7 @@ export default class NewVm extends BaseComponent {
       state.name_description === '' || !state.name_descriptionHasChanged
         ? template.name_description || ''
         : state.name_description
-    const replacer = this._buildTemplate()
+    const replacer = this._buildVMsNameTemplate()
     this._setState({
       // infos
       name_label,
@@ -596,14 +630,23 @@ export default class NewVm extends BaseComponent {
     })
     return network && network.id
   }
-  _buildTemplate = createSelector(
+
+  _buildVMsNameTemplate = createSelector(
     () => this.state.state.namePattern,
-    namePattern =>
-      buildTemplate(namePattern, {
-        '{name}': state => state.name_label || '',
-        '%': (_, i) => i,
-      })
+    namePattern => this._buildTemplate(namePattern)
   )
+
+  _buildTemplate = pattern =>
+    buildTemplate(pattern, {
+      '{name}': state => state.name_label || '',
+      '%': (_, i) => i,
+      '{description}': state => state.name_description || '',
+      '{affinityHost}': state => get(() => state.affinityHost.id) || '',
+      '{template}': state => get(() => state.template.id) || '',
+      '{resourceSet}': state => get(() => state.resourceSet.id) || '',
+      '{topology}': state => state.coresPerSocket || '',
+      '{vCpus}': state => state.CPUs || '',
+    })
 
   _getVgpuTypePredicate = createSelector(
     () => this.props.pool,
@@ -634,7 +677,7 @@ export default class NewVm extends BaseComponent {
     if (nbVmsClamped < nameLabels.length) {
       this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
     } else {
-      const replacer = this._buildTemplate()
+      const replacer = this._buildVMsNameTemplate()
       for (
         let i = +seqStart + nameLabels.length;
         i <= +seqStart + nbVmsClamped - 1;
@@ -649,7 +692,7 @@ export default class NewVm extends BaseComponent {
     const { nameLabels, seqStart } = this.state.state
     const nbVms = nameLabels.length
     const newNameLabels = []
-    const replacer = this._buildTemplate()
+    const replacer = this._buildVMsNameTemplate()
 
     for (let i = +seqStart; i <= +seqStart + nbVms - 1; i++) {
       newNameLabels.push(replacer(this.state.state, i))
@@ -947,6 +990,22 @@ export default class NewVm extends BaseComponent {
 
   // INSTALL SETTINGS ------------------------------------------------------------
 
+  _refreshCusomConfigPreview = () => {
+    const customConfig = this._buildTemplate(this.state.state.customConfig)(
+      this.state.state
+    )
+    let configPreview = ''
+    forEach(customConfig.split('\n'), line => {
+      if (!startsWith(line, '#')) {
+        configPreview += `${line}\n`
+      }
+    })
+
+    this._setState({
+      configPreview,
+    })
+  }
+
   _renderInstallSettings = () => {
     const { template } = this.state.state
     if (!template) {
@@ -955,6 +1014,7 @@ export default class NewVm extends BaseComponent {
     const {
       cloudConfig,
       configDrive,
+      configPreview,
       customConfig,
       installIso,
       installMethod,
@@ -1034,13 +1094,34 @@ export default class NewVm extends BaseComponent {
                 value='customConfig'
               />
               &nbsp;
-              <span>{_('newVmCustomConfig')}</span>
+              <span>
+                {_('newVmCustomConfig')}
+                &nbsp;
+                <AvailableTemplateVarsInfos />
+              </span>
               &nbsp;
               <DebounceTextarea
                 className={classNames('form-control', styles.customConfig)}
                 disabled={!configDrive || installMethod !== 'customConfig'}
                 onChange={this._linkState('customConfig')}
                 value={customConfig}
+              />
+              &nbsp;
+              <Tooltip content={_('refreshCustomConfigPreview')}>
+                <a
+                  className={styles.refreshPreview}
+                  onClick={this._refreshCusomConfigPreview}
+                >
+                  <Icon icon='refresh' />
+                </a>
+              </Tooltip>
+              &nbsp;
+              <span>{_('preview')}</span>
+              &nbsp;
+              <DebounceTextarea
+                className={classNames('form-control', styles.customConfig)}
+                disabled
+                value={configPreview}
               />
             </LineItem>
           </SectionContent>
@@ -1492,6 +1573,8 @@ export default class NewVm extends BaseComponent {
                 )}
                 value={namePattern}
               />
+              &nbsp;
+              <AvailableTemplateVarsInfos />
             </Item>
             <Item label={_('newVmFirstIndex')}>
               <DebounceInput
@@ -1501,6 +1584,16 @@ export default class NewVm extends BaseComponent {
                 type='number'
                 value={seqStart}
               />
+            </Item>
+            <Item>
+              <Tooltip content={_('newVmNameRefresh')}>
+                <a
+                  className={styles.refreshNames}
+                  onClick={this._updateNameLabels}
+                >
+                  <Icon icon='refresh' />
+                </a>
+              </Tooltip>
             </Item>
             <Item className='input-group'>
               <DebounceInput
@@ -1519,16 +1612,6 @@ export default class NewVm extends BaseComponent {
                   </Button>
                 </Tooltip>
               </span>
-            </Item>
-            <Item>
-              <Tooltip content={_('newVmNameRefresh')}>
-                <a
-                  className={styles.refreshNames}
-                  onClick={this._updateNameLabels}
-                >
-                  <Icon icon='refresh' />
-                </a>
-              </Tooltip>
             </Item>
             {multipleVms && (
               <LineItem>

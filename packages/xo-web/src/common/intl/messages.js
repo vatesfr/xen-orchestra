@@ -1118,6 +1118,10 @@ const messages = {
   newVmSshKey: 'SSH key',
   newVmConfigDrive: 'Config drive',
   newVmCustomConfig: 'Custom config',
+  availableTemplateVarsInfos:
+    'Click here to see the available template variables',
+  availableTemplateVarsTitle: 'Available template variables',
+  refreshCustomConfigPreview: 'Reresh the preview',
   newVmBootAfterCreate: 'Boot VM after creation',
   newVmMacPlaceholder: 'Auto-generated if empty',
   newVmCpuWeightLabel: 'CPU weight',
