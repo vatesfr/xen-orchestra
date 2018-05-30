@@ -85,7 +85,7 @@ export default ({
         </Col>
         <Col mediumSize={3}>
           <p>
-            {host.productBrand} {host.version} ({host.license_params.sku_type
+            {host.productBrand} {host.version} ({host.productBrand !== 'XCP-ng'
               ? host.license_params.sku_type
               : 'GPLv2'})
           </p>

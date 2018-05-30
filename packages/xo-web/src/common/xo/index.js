@@ -655,7 +655,7 @@ export const enableHost = host => _call('host.enable', { id: resolveId(host) })
 export const disableHost = host =>
   _call('host.disable', { id: resolveId(host) })
 
-const missingUpdatePluginByHost = {}
+const missingUpdatePluginByHost = { __proto__: null }
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
   if (host.productBrand !== 'XCP-ng') {
@@ -663,7 +663,7 @@ export const getHostMissingPatches = async host => {
     // Hide paid patches to XS-free users
     return host.license_params.sku_type !== 'free'
       ? patches
-      : filter(patches, ['paid', false])
+      : filter(patches, { paid: false })
   }
   if (missingUpdatePluginByHost[hostId]) {
     return null

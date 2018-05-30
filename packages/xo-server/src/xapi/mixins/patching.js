@@ -4,7 +4,6 @@ import filter from 'lodash/filter'
 import find from 'lodash/find'
 import includes from 'lodash/includes'
 import isObject from 'lodash/isObject'
-import map from 'lodash/map'
 import pickBy from 'lodash/pickBy'
 import some from 'lodash/some'
 import sortBy from 'lodash/sortBy'
@@ -13,6 +12,7 @@ import unzip from 'julien-f-unzip'
 
 import { debounce } from '../../decorators'
 import {
+  asyncMap,
   ensureArray,
   forEach,
   mapFilter,
@@ -151,11 +151,12 @@ export default {
   },
 
   async listMissingPoolPatchesOnHost (hostId) {
+    const host = this.getObject(hostId)
     // Returns an array to not break compatibility.
     return mapToArray(
-      await (this.getObject(hostId).productBrand === 'XCP-ng'
-        ? this._xcpListHostUpdates(hostId)
-        : this._listMissingPoolPatchesOnHost(hostId))
+      await (host.software_version.product_brand === 'XCP-ng'
+        ? this._xcpListHostUpdates(host)
+        : this._listMissingPoolPatchesOnHost(host))
     )
   },
 
@@ -444,15 +445,14 @@ export default {
   },
 
   async installAllPoolPatchesOnHost (hostId) {
-    if (this.getObject(hostId).product_brand === 'XCP-ng') {
-      return this._xcpInstallHostUpdates(hostId)
+    const host = this.getObject(hostId)
+    if (host.software_version.product_brand === 'XCP-ng') {
+      return this._xcpInstallHostUpdates(host)
     }
-    return this._installAllPoolPatchesOnHost(hostId)
+    return this._installAllPoolPatchesOnHost(host)
   },
 
-  async _installAllPoolPatchesOnHost (hostId) {
-    let host = this.getObject(hostId)
-
+  async _installAllPoolPatchesOnHost (host) {
     const installableByUuid =
       host.license_params.sku_type !== 'free'
         ? await this._listMissingPoolPatchesOnHost(host)
@@ -490,7 +490,7 @@ export default {
   },
 
   async installAllPoolPatchesOnAllHosts () {
-    if (this.pool.$master.product_brand === 'XCP-ng') {
+    if (this.pool.$master.software_version.product_brand === 'XCP-ng') {
       return this._xcpInstallAllPoolUpdatesOnHost()
     }
     return this._installAllPoolPatchesOnAllHosts()
@@ -542,21 +542,20 @@ export default {
   // ----------------------------------
 
   // list all yum updates available for a XCP-ng host
-  async _xcpListHostUpdates (hostId) {
-    const hostRef = this.getObject(hostId).$ref
-    const updates = await this.call(
-      'host.call_plugin',
-      hostRef,
-      'updater.py',
-      'check_update',
-      {}
+  async _xcpListHostUpdates (host) {
+    return JSON.parse(
+      await this.call(
+        'host.call_plugin',
+        host.$ref,
+        'updater.py',
+        'check_update',
+        {}
+      )
     )
-    return JSON.parse(updates)
   },
 
   // install all yum updates for a XCP-ng host
-  async _xcpInstallHostUpdates (hostId) {
-    const host = this.getObject(hostId)
+  async _xcpInstallHostUpdates (host) {
     const update = await this.call(
       'host.call_plugin',
       host.$ref,
@@ -576,10 +575,8 @@ export default {
 
   // install all yum updates for all XCP-ng hosts in a give pool
   async _xcpInstallAllPoolUpdatesOnHost () {
-    return Promise.all(
-      map(filter(this.objects.all, { $type: 'host' }), host =>
-        this._xcpInstallHostUpdates(host.$id)
-      )
+    await asyncMap(filter(this.objects.all, { $type: 'host' }), host =>
+      this._xcpInstallHostUpdates(host)
     )
   },
 }
