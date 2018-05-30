@@ -3,7 +3,7 @@
 import type { Pattern } from 'value-matcher'
 
 import { cancelable } from 'promise-toolbox'
-import { get, map as mapToArray } from 'lodash'
+import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../../collection/redis'
@@ -201,7 +201,7 @@ export default class Jobs {
     return /* await */ this._jobs.remove(id)
   }
 
-  async _runJob (cancelToken: any, job: Job, schedule?: Schedule) {
+  async _runJob (cancelToken: any, job: Job, schedule?: Schedule, data_?: any) {
     const { id } = job
 
     const runningJobs = this._runningJobs
@@ -232,7 +232,7 @@ export default class Jobs {
       event: 'job.start',
       userId: job.userId,
       jobId: id,
-      scheduleId: get(schedule, 'id'),
+      scheduleId: schedule?.id,
       // $FlowFixMe only defined for CallJob
       key: job.key,
       type,
@@ -249,6 +249,7 @@ export default class Jobs {
       const status = await executor({
         app,
         cancelToken,
+        data: data_,
         job,
         logger,
         runJobId,
@@ -281,24 +282,17 @@ export default class Jobs {
     $cancelToken: any,
     idSequence: Array<string>,
     schedule?: Schedule,
-    // Only works with backup NG jobs
-    vmId?: string
+    data?: any
   ) {
     const jobs = await Promise.all(
-      mapToArray(idSequence, async id => {
-        const job = await this.getJob(id)
-        if (vmId !== undefined) {
-          job.vms.id = vmId
-        }
-        return job
-      })
+      mapToArray(idSequence, async id => this.getJob(id))
     )
 
     for (const job of jobs) {
       if ($cancelToken.requested) {
         break
       }
-      await this._runJob($cancelToken, job, schedule)
+      await this._runJob($cancelToken, job, schedule, data)
     }
   }
 }

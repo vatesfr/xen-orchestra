@@ -15,7 +15,7 @@ export default {
     },
     scheduleId: {
       type: 'string',
-      description: 'identifier of this schedule',
+      description: 'identifier of the schedule which ran the job',
     },
     key: {
       type: 'string',
