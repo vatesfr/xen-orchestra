@@ -132,6 +132,21 @@ runJob.params = {
   },
 }
 
+export async function restartVmJob ({ vmId, jobId }) {
+  return this.restartVmBackupJob(vmId, jobId)
+}
+
+restartVmJob.permission = 'admin'
+
+restartVmJob.params = {
+  vmId: {
+    type: 'string',
+  },
+  jobId: {
+    type: 'string',
+  },
+}
+
 // -----------------------------------------------------------------------------
 
 export function getAllLogs () {

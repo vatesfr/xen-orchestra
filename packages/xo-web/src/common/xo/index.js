@@ -1731,6 +1731,12 @@ export const subscribeBackupNgLogs = createSubscription(() =>
 export const createBackupNgJob = props =>
   _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 
+export const restartVmBackupNgJob = (vmId, jobId) =>
+  _call('backupNg.restartVmJob', {
+    vmId: resolveId(vmId),
+    jobId: resolveId(jobId),
+  })
+
 export const deleteBackupNgJobs = async ids => {
   const { length } = ids
   if (length === 0) {
