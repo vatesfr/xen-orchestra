@@ -201,7 +201,7 @@ export default class Jobs {
     return /* await */ this._jobs.remove(id)
   }
 
-  async _runJob (cancelToken: any, job: Job, schedule?: Schedule) {
+  async _runJob (cancelToken: any, job: Job, schedule?: Schedule, data_?: any) {
     const { id } = job
 
     const runningJobs = this._runningJobs
@@ -232,6 +232,7 @@ export default class Jobs {
       event: 'job.start',
       userId: job.userId,
       jobId: id,
+      scheduleId: schedule?.id,
       // $FlowFixMe only defined for CallJob
       key: job.key,
       type,
@@ -248,6 +249,7 @@ export default class Jobs {
       const status = await executor({
         app,
         cancelToken,
+        data: data_,
         job,
         logger,
         runJobId,
@@ -279,7 +281,8 @@ export default class Jobs {
   async runJobSequence (
     $cancelToken: any,
     idSequence: Array<string>,
-    schedule?: Schedule
+    schedule?: Schedule,
+    data?: any
   ) {
     const jobs = await Promise.all(
       mapToArray(idSequence, id => this.getJob(id))
@@ -289,7 +292,7 @@ export default class Jobs {
       if ($cancelToken.requested) {
         break
       }
-      await this._runJob($cancelToken, job, schedule)
+      await this._runJob($cancelToken, job, schedule, data)
     }
   }
 }

@@ -1686,6 +1686,7 @@ const messages = {
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
   unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
+  backupRestartVm: "Restart VM's backup",
   clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------
