@@ -21,7 +21,7 @@ When it's done exporting, we'll remove the snapshot. Note: this operation will t
 
 Let's say you want to backup 50 VMs (each with 1x disk) at 3:00 AM. There are **2 different strategies**:
 
-1. backup VM°1 (snapshot, export, delete snapshots) **then** backup VM°2 -> *fully sequential strategy*
+1. backup VM #1 (snapshot, export, delete snapshots) **then** backup VM #2 -> *fully sequential strategy*
 2. snapshot all VMs, **then** export all snapshots, **then** delete all snapshots for finished exports -> *fully parallel strategy*
 
 The first purely sequential strategy will lead to a big problem: **you can't predict when a snapshot of your data will occur**. Because you can't predict the first VM export time (let's say 3 hours), then your second VM will have its snapshot taken 3 hours later, at 6 AM. We assume that's not what you meant when you specified "backup everything at 3 AM". You would end up with data from 6 AM (and later) for other VMs.
