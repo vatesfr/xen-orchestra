@@ -33,6 +33,7 @@ export default {
   async getBackupNgLogs (runId?: string) {
     const { runningJobs } = this
     const consolidated = {}
+    const started = {}
     forEach(await this.getLogs('jobs'), ({ data, time, message }, id) => {
       const { event } = data
       if (event === 'job.start') {
@@ -41,7 +42,7 @@ export default {
           (runId === undefined || runId === id)
         ) {
           const { jobId } = data
-          consolidated[id] = {
+          consolidated[id] = started[id] = {
             data: data.data,
             id,
             jobId,
@@ -50,8 +51,10 @@ export default {
           }
         }
       } else if (event === 'job.end') {
-        const log = consolidated[data.runJobId]
+        const { runJobId } = data
+        const log = started[runJobId]
         if (log !== undefined) {
+          delete started[runJobId]
           log.end = time
           log.status = computeStatus(
             getStatus((log.result = data.error)),
@@ -59,10 +62,10 @@ export default {
           )
         }
       } else if (event === 'task.start') {
-        const parent = consolidated[data.parentId]
+        const parent = started[data.parentId]
         if (parent !== undefined) {
           ;(parent.tasks || (parent.tasks = [])).push(
-            (consolidated[id] = {
+            (started[id] = {
               data: data.data,
               id,
               message,
@@ -72,10 +75,11 @@ export default {
           )
         }
       } else if (event === 'task.end') {
-        const log = consolidated[data.taskId]
+        const { taskId } = data
+        const log = started[taskId]
         if (log !== undefined) {
           // TODO: merge/transfer work-around
-          delete consolidated[data.taskId]
+          delete started[taskId]
           log.end = time
           log.status = computeStatus(
             getStatus((log.result = data.result), data.status),
@@ -83,10 +87,10 @@ export default {
           )
         }
       } else if (event === 'jobCall.start') {
-        const parent = consolidated[data.runJobId]
+        const parent = started[data.runJobId]
         if (parent !== undefined) {
           ;(parent.tasks || (parent.tasks = [])).push(
-            (consolidated[id] = {
+            (started[id] = {
               data: {
                 type: 'VM',
                 id: data.params.id,
@@ -98,9 +102,10 @@ export default {
           )
         }
       } else if (event === 'jobCall.end') {
-        const log = consolidated[data.runCallId]
+        const { runCallId } = data
+        const log = started[runCallId]
         if (log !== undefined) {
-          delete consolidated[data.runCallId]
+          delete started[runCallId]
           log.end = time
           log.status = computeStatus(
             getStatus((log.result = data.error)),
