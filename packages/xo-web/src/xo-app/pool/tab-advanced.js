@@ -1,17 +1,25 @@
 import React from 'react'
 
-import _ from 'intl'
+import _, { messages } from 'intl'
+import ActionButton from 'action-button'
+import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import renderXoItem from 'render-xo-item'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
-import { connectStore } from 'utils'
-import { createGetObjectsOfType } from 'selectors'
-import { XoSelect } from 'editable'
-import { installSupplementalPackOnAllHosts, setPoolMaster } from 'xo'
 import { map } from 'lodash'
+import { connectStore } from 'utils'
+import { injectIntl } from 'react-intl'
+import { createGetObjectsOfType } from 'selectors'
+import { Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
+import {
+  installSupplementalPackOnAllHosts,
+  setPoolMaster,
+  setRemoteSyslogHost,
+  setRemoteSyslogHosts,
+} from 'xo'
 
 @connectStore(() => ({
   master: createGetObjectsOfType('host').find((_, { pool }) => ({
@@ -39,56 +47,128 @@ class PoolMaster extends Component {
   }
 }
 
-export default connectStore({
+@injectIntl
+@connectStore({
+  hosts: createGetObjectsOfType('host')
+    .filter((_, { pool }) => ({ $pool: pool.id }))
+    .sort(),
   gpuGroups: createGetObjectsOfType('gpuGroup'),
-})(({ gpuGroups, pool }) => (
-  <div>
-    <h3 className='mb-1'>{_('xenSettingsLabel')}</h3>
-    <Container>
-      <Row>
-        <Col size={3}>
-          <strong>{_('uuid')}</strong>
-        </Col>
-        <Col size={9}>
-          <Copiable tagName='div'>{pool.uuid}</Copiable>
-        </Col>
-      </Row>
-      <Row>
-        <Col size={3}>
-          <strong>{_('poolHaStatus')}</strong>
-        </Col>
-        <Col size={9}>
-          {pool.HA_enabled ? _('poolHaEnabled') : _('poolHaDisabled')}
-        </Col>
-      </Row>
-      <Row>
-        <Col size={3}>
-          <strong>{_('setpoolMaster')}</strong>
-        </Col>
-        <Col size={9}>
-          <PoolMaster pool={pool} />
-        </Col>
-      </Row>
-    </Container>
-    <h3 className='mt-1 mb-1'>{_('poolGpuGroups')}</h3>
-    <Container>
-      <Row>
-        <Col size={9}>
-          <ul className='list-group'>
-            {map(gpuGroups, gpuGroup => (
-              <li key={gpuGroup.id} className='list-group-item'>
-                {renderXoItem(gpuGroup)}
-              </li>
-            ))}
-          </ul>
-        </Col>
-      </Row>
-    </Container>
-    <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>
-    <Upgrade place='poolSupplementalPacks' required={2}>
-      <SelectFiles
-        onChange={file => installSupplementalPackOnAllHosts(pool, file)}
-      />
-    </Upgrade>
-  </div>
-))
+})
+export default class TabAdvanced extends Component {
+  _setRemoteSyslogHosts = () =>
+    setRemoteSyslogHosts(this.props.hosts, this.state.syslogDestination).then(
+      () => this.setState({ editRemoteSyslog: false, syslogDestination: '' })
+    )
+
+  render () {
+    const { hosts, gpuGroups, pool } = this.props
+    const { state } = this
+    const { editRemoteSyslog } = state
+    return (
+      <div>
+        <Container>
+          <Row>
+            <Col>
+              <h3>{_('xenSettingsLabel')}</h3>
+              <table className='table'>
+                <tbody>
+                  <tr>
+                    <th>{_('uuid')}</th>
+                    <Copiable tagName='td'>{pool.uuid}</Copiable>
+                  </tr>
+                  <tr>
+                    <th>{_('poolHaStatus')}</th>
+                    <td>
+                      {pool.HA_enabled
+                        ? _('poolHaEnabled')
+                        : _('poolHaDisabled')}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('setpoolMaster')}</th>
+                    <td>
+                      <PoolMaster pool={pool} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('syslogRemoteHost')}</th>
+                    <td>
+                      <ul className='pl-0'>
+                        {map(hosts, host => (
+                          <li key={host.id}>
+                            <span>{`${host.name_label}: `}</span>
+                            <Text
+                              value={host.logging.syslog_destination || ''}
+                              onChange={value =>
+                                setRemoteSyslogHost(host, value)
+                              }
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                      <ActionRowButton
+                        btnStyle={editRemoteSyslog ? 'info' : 'primary'}
+                        handler={this.toggleState('editRemoteSyslog')}
+                        icon='edit'
+                      >
+                        {_('poolEditAll')}
+                      </ActionRowButton>
+                      {editRemoteSyslog && (
+                        <form
+                          id='formRemoteSyslog'
+                          className='form-inline mt-1'
+                        >
+                          <div className='form-group'>
+                            <input
+                              className='form-control'
+                              onChange={this.linkState('syslogDestination')}
+                              placeholder={this.props.intl.formatMessage(
+                                messages.poolRemoteSyslogPlaceHolder
+                              )}
+                              type='text'
+                              value={state.syslogDestination}
+                            />
+                          </div>
+                          <div className='form-group ml-1'>
+                            <ActionButton
+                              btnStyle='primary'
+                              form='formRemoteSyslog'
+                              handler={this._setRemoteSyslogHosts}
+                              icon='save'
+                            >
+                              {_('confirmOk')}
+                            </ActionButton>
+                          </div>
+                        </form>
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </Col>
+          </Row>
+        </Container>
+        <h3 className='mt-1 mb-1'>{_('poolGpuGroups')}</h3>
+        <Container>
+          <Row>
+            <Col size={9}>
+              <ul className='list-group'>
+                {map(gpuGroups, gpuGroup => (
+                  <li key={gpuGroup.id} className='list-group-item'>
+                    {renderXoItem(gpuGroup)}
+                  </li>
+                ))}
+              </ul>
+            </Col>
+          </Row>
+        </Container>
+        <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>
+        <Upgrade place='poolSupplementalPacks' required={2}>
+          <SelectFiles
+            onChange={file => installSupplementalPackOnAllHosts(pool, file)}
+          />
+        </Upgrade>
+      </div>
+    )
+  }
+}
