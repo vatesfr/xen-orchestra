@@ -57,12 +57,13 @@ class PoolMaster extends Component {
 export default class TabAdvanced extends Component {
   _setRemoteSyslogHosts = () =>
     setRemoteSyslogHosts(this.props.hosts, this.state.syslogDestination).then(
-      () => this.setState({ editRemoteSyslog: false })
+      () => this.setState({ editRemoteSyslog: false, syslogDestination: '' })
     )
 
   render () {
     const { hosts, gpuGroups, pool } = this.props
-    const { editRemoteSyslog } = this.state
+    const { state } = this
+    const { editRemoteSyslog } = state
     return (
       <div>
         <Container>
@@ -125,6 +126,7 @@ export default class TabAdvanced extends Component {
                                 messages.poolRemoteSyslogPlaceHolder
                               )}
                               type='text'
+                              value={state.syslogDestination}
                             />
                           </div>
                           <div className='form-group ml-1'>
