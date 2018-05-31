@@ -1,5 +1,6 @@
 import deferrable from 'golike-defer'
 import every from 'lodash/every'
+import filter from 'lodash/filter'
 import find from 'lodash/find'
 import includes from 'lodash/includes'
 import isObject from 'lodash/isObject'
@@ -11,6 +12,7 @@ import unzip from 'julien-f-unzip'
 
 import { debounce } from '../../decorators'
 import {
+  asyncMap,
   ensureArray,
   forEach,
   mapFilter,
@@ -149,9 +151,12 @@ export default {
   },
 
   async listMissingPoolPatchesOnHost (hostId) {
+    const host = this.getObject(hostId)
     // Returns an array to not break compatibility.
     return mapToArray(
-      await this._listMissingPoolPatchesOnHost(this.getObject(hostId))
+      await (host.software_version.product_brand === 'XCP-ng'
+        ? this._xcpListHostUpdates(host)
+        : this._listMissingPoolPatchesOnHost(host))
     )
   },
 
@@ -440,8 +445,14 @@ export default {
   },
 
   async installAllPoolPatchesOnHost (hostId) {
-    let host = this.getObject(hostId)
+    const host = this.getObject(hostId)
+    if (host.software_version.product_brand === 'XCP-ng') {
+      return this._xcpInstallHostUpdates(host)
+    }
+    return this._installAllPoolPatchesOnHost(host)
+  },
 
+  async _installAllPoolPatchesOnHost (host) {
     const installableByUuid =
       host.license_params.sku_type !== 'free'
         ? await this._listMissingPoolPatchesOnHost(host)
@@ -479,6 +490,13 @@ export default {
   },
 
   async installAllPoolPatchesOnAllHosts () {
+    if (this.pool.$master.software_version.product_brand === 'XCP-ng') {
+      return this._xcpInstallAllPoolUpdatesOnHost()
+    }
+    return this._installAllPoolPatchesOnAllHosts()
+  },
+
+  async _installAllPoolPatchesOnAllHosts () {
     const installableByUuid = assign(
       {},
       ...(await Promise.all(
@@ -517,5 +535,48 @@ export default {
         }
       })
     }
+  },
+
+  // ----------------------------------
+  // XCP-ng dedicated zone for patching
+  // ----------------------------------
+
+  // list all yum updates available for a XCP-ng host
+  async _xcpListHostUpdates (host) {
+    return JSON.parse(
+      await this.call(
+        'host.call_plugin',
+        host.$ref,
+        'updater.py',
+        'check_update',
+        {}
+      )
+    )
+  },
+
+  // install all yum updates for a XCP-ng host
+  async _xcpInstallHostUpdates (host) {
+    const update = await this.call(
+      'host.call_plugin',
+      host.$ref,
+      'updater.py',
+      'update',
+      {}
+    )
+
+    if (JSON.parse(update).exit !== 0) {
+      throw new Error('Update install failed')
+    } else {
+      await this._updateObjectMapProperty(host, 'other_config', {
+        rpm_patch_installation_time: String(Date.now() / 1000),
+      })
+    }
+  },
+
+  // install all yum updates for all XCP-ng hosts in a give pool
+  async _xcpInstallAllPoolUpdatesOnHost () {
+    await asyncMap(filter(this.objects.all, { $type: 'host' }), host =>
+      this._xcpInstallHostUpdates(host)
+    )
   },
 }

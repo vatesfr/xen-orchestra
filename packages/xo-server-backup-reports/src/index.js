@@ -95,17 +95,17 @@ class BackupReportsXoPlugin {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  _wrapper (status, job, schedule) {
+  _wrapper (status, job, schedule, runJobId) {
     return new Promise(resolve =>
       resolve(
         job.type === 'backup'
-          ? this._backupNgListener(status, job, schedule)
-          : this._listener(status, job, schedule)
+          ? this._backupNgListener(status, job, schedule, runJobId)
+          : this._listener(status, job, schedule, runJobId)
       )
     ).catch(logError)
   }
 
-  async _backupNgListener (runJobId, _, { timezone }) {
+  async _backupNgListener (_1, _2, { timezone }, runJobId) {
     const xo = this._xo
     const logs = await xo.getBackupNgLogs(runJobId)
     const jobLog = logs['roots'][0]
@@ -320,7 +320,9 @@ class BackupReportsXoPlugin {
     const nSuccesses = nVms - nFailures - nSkipped
     const globalStatus = globalSuccess
       ? `Success`
-      : nFailures !== 0 ? `Failure` : `Skipped`
+      : nFailures !== 0
+        ? `Failure`
+        : `Skipped`
     let markdown = [
       `##  Global status: ${globalStatus}`,
       '',
@@ -370,7 +372,9 @@ class BackupReportsXoPlugin {
       subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${jobName} ${
         globalSuccess
           ? ICON_SUCCESS
-          : nFailures !== 0 ? ICON_FAILURE : ICON_SKIPPED
+          : nFailures !== 0
+            ? ICON_FAILURE
+            : ICON_SKIPPED
       }`,
       nagiosStatus: globalSuccess ? 0 : 2,
       nagiosMarkdown: globalSuccess
@@ -567,7 +571,9 @@ class BackupReportsXoPlugin {
     const nSuccesses = nCalls - nFailures - nSkipped
     const globalStatus = globalSuccess
       ? `Success`
-      : nFailures !== 0 ? `Failure` : `Skipped`
+      : nFailures !== 0
+        ? `Failure`
+        : `Skipped`
 
     let markdown = [
       `##  Global status: ${globalStatus}`,
@@ -625,7 +631,9 @@ class BackupReportsXoPlugin {
       subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${tag} ${
         globalSuccess
           ? ICON_SUCCESS
-          : nFailures !== 0 ? ICON_FAILURE : ICON_SKIPPED
+          : nFailures !== 0
+            ? ICON_FAILURE
+            : ICON_SKIPPED
       }`,
       nagiosStatus: globalSuccess ? 0 : 2,
       nagiosMarkdown: globalSuccess

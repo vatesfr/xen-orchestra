@@ -19,6 +19,7 @@ import {
   createFilter,
   createGetObjectsOfType,
   createSelector,
+  getIsPoolAdmin,
   getStatus,
   getUser,
   isAdmin,
@@ -31,6 +32,7 @@ const returnTrue = () => true
 @connectStore(
   () => ({
     isAdmin,
+    isPoolAdmin: getIsPoolAdmin,
     nTasks: createGetObjectsOfType('task').count([
       task => task.status === 'pending',
     ]),
@@ -80,11 +82,6 @@ export default class Menu extends Component {
     isEmpty
   )
 
-  _getNoOperatableSrs = createSelector(
-    createFilter(() => this.props.srs, this._checkPermissions),
-    isEmpty
-  )
-
   _getNoResourceSets = createSelector(() => this.props.resourceSets, isEmpty)
 
   get height () {
@@ -108,9 +105,17 @@ export default class Menu extends Component {
   }
 
   render () {
-    const { isAdmin, nTasks, status, user, pools, nHosts } = this.props
+    const {
+      isAdmin,
+      isPoolAdmin,
+      nTasks,
+      status,
+      user,
+      pools,
+      nHosts,
+      srs,
+    } = this.props
     const noOperatablePools = this._getNoOperatablePools()
-    const noOperatableSrs = this._getNoOperatableSrs()
     const noResourceSets = this._getNoResourceSets()
 
     /* eslint-disable object-property-newline */
@@ -136,7 +141,7 @@ export default class Menu extends Component {
             icon: 'template',
             label: 'homeTemplatePage',
           },
-          !noOperatableSrs && {
+          !isEmpty(srs) && {
             to: '/home?t=SR',
             icon: 'sr',
             label: 'homeSrPage',
@@ -313,7 +318,9 @@ export default class Menu extends Component {
         icon: 'menu-new',
         label: 'newMenu',
         subMenu: [
-          (isAdmin || !noResourceSets) && {
+          (isAdmin ||
+            (isPoolAdmin && process.env.XOA_PLAN > 3) ||
+            !noResourceSets) && {
             to: '/vms/new',
             icon: 'menu-new-vm',
             label: 'newVmPage',

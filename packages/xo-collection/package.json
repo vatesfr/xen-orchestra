@@ -25,17 +25,16 @@
     "node": ">=4"
   },
   "dependencies": {
-    "babel-runtime": "^6.18.0",
+    "@babel/runtime": "^7.0.0-beta.49",
     "kindof": "^2.0.0",
     "lodash": "^4.17.2",
     "make-error": "^1.0.2"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-plugin-lodash": "^3.3.2",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-env": "^1.5.2",
-    "babel-preset-stage-3": "^6.24.1",
+    "@babel/cli": "^7.0.0-beta.49",
+    "@babel/core": "^7.0.0-beta.49",
+    "@babel/plugin-transform-runtime": "^7.0.0-beta.49",
+    "@babel/preset-env": "^7.0.0-beta.49",
     "cross-env": "^5.1.3",
     "event-to-promise": "^0.8.0",
     "rimraf": "^2.6.1"
@@ -46,22 +45,5 @@
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
-  },
-  "babel": {
-    "plugins": [
-      "lodash",
-      "transform-runtime"
-    ],
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "node": 4
-          }
-        }
-      ],
-      "stage-3"
-    ]
   }
 }

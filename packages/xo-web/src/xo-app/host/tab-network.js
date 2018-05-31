@@ -15,6 +15,7 @@ import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
+import { get } from 'xo-defined'
 import { Select, Number } from 'editable'
 import { Toggle } from 'form'
 import {
@@ -192,12 +193,18 @@ class PifItemLock extends Component {
 
   render () {
     const { networks, pif, vifsByNetwork } = this.props
+
+    const network = networks[pif.$network]
+    if (network === undefined) {
+      return null
+    }
+
     const pifInUse = some(vifsByNetwork[pif.$network], vif => vif.attached)
     return _toggleDefaultLockingMode(
       <Toggle
         disabled={pifInUse}
         onChange={this._editNetwork}
-        value={networks[pif.$network].defaultIsLocked}
+        value={network.defaultIsLocked}
       />,
       pifInUse && _('pifInUse')
     )
@@ -212,9 +219,11 @@ const COLUMNS = [
     sortCriteria: 'device',
   },
   {
-    itemRenderer: (pif, userData) => userData.networks[pif.$network].name_label,
+    itemRenderer: (pif, userData) =>
+      get(() => userData.networks[pif.$network].name_label),
     name: _('pifNetworkLabel'),
-    sortCriteria: (pif, userData) => userData.networks[pif.$network].name_label,
+    sortCriteria: (pif, userData) =>
+      get(() => userData.networks[pif.$network].name_label),
   },
   {
     component: PifItemVlan,

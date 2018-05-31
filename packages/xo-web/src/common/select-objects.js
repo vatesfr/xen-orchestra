@@ -6,7 +6,6 @@ import {
   filter,
   flatten,
   forEach,
-  get,
   groupBy,
   includes,
   isArray,
@@ -362,40 +361,10 @@ export const SelectSr = makeStoreSelect(
     const getPools = createGetObjectsOfType('pool')
     const getHosts = createGetObjectsOfType('host')
 
-    const getSrsByContainer = createSelector(
-      createGetObjectsOfType('SR')
-        .filter((_, { predicate }) => predicate || isSrWritable)
-        .sort(),
-      createSelector(getHosts, getPools, (hosts, pools) => id =>
-        hosts[id] || pools[id]
-      ),
-      (srs, containerFinder) => {
-        const { length } = srs
-
-        if (length >= 2) {
-          let sr1, sr2
-          const srsToModify = {}
-          for (let i = 1; i < length; ++i) {
-            sr1 = srs[i]
-            for (let j = 0; j < i; ++j) {
-              sr2 = srs[j]
-              if (sr1.name_label === sr2.name_label) {
-                srsToModify[sr1.id] = sr1
-                srsToModify[sr2.id] = sr2
-              }
-            }
-          }
-          forEach(srsToModify, sr => {
-            sr.name_label = `(${get(
-              containerFinder(sr.$container),
-              'name_label'
-            )}) ${sr.name_label}`
-          })
-        }
-
-        return groupBy(srs, '$container')
-      }
-    )
+    const getSrsByContainer = createGetObjectsOfType('SR')
+      .filter((_, { predicate }) => predicate || isSrWritable)
+      .sort()
+      .groupBy('$container')
 
     const getContainerIds = createSelector(getSrsByContainer, srsByContainer =>
       keys(srsByContainer)

@@ -187,9 +187,14 @@ const TRANSFORMS = {
           }
         }),
       agentStartTime: toTimestamp(otherConfig.agent_start_time),
-      rebootRequired: !isEmpty(obj.updates_requiring_reboot),
+      rebootRequired:
+        softwareVersion.product_brand === 'XCP-ng'
+          ? toTimestamp(otherConfig.boot_time) <
+            +otherConfig.rpm_patch_installation_time
+          : !isEmpty(obj.updates_requiring_reboot),
       tags: obj.tags,
       version: softwareVersion.product_version,
+      productBrand: softwareVersion.product_brand,
 
       // TODO: dedupe.
       PIFs: link(obj, 'PIFs'),

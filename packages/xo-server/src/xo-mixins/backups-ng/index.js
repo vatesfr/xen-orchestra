@@ -3,6 +3,7 @@
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
 import defer from 'golike-defer'
+import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
@@ -46,6 +47,7 @@ type Mode = 'full' | 'delta'
 type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
+  concurrency?: number,
   deleteFirst?: boolean,
   exportRetention?: number,
   reportWhen?: ReportWhen,
@@ -98,6 +100,7 @@ type ConsolidatedJob = {|
   error?: Object,
   id: string,
   jobId: string,
+  scheduleId: string,
   mode: Mode,
   start: number,
   type: 'backup' | 'call',
@@ -132,7 +135,9 @@ const compareTimestamp = (a: Metadata, b: Metadata): number =>
 const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
   entries === undefined
     ? []
-    : --retention > 0 ? entries.slice(0, -retention) : entries
+    : --retention > 0
+      ? entries.slice(0, -retention)
+      : entries
 
 const defaultSettings: Settings = {
   deleteFirst: false,
@@ -161,6 +166,7 @@ const getSetting = (
 const BACKUP_DIR = 'xo-vm-backups'
 const getVmBackupDir = (uuid: string) => `${BACKUP_DIR}/${uuid}`
 
+const isHiddenFile = (filename: string) => filename[0] === '.'
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
 
@@ -333,7 +339,9 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
         result:
           result === undefined
             ? value
-            : typeof result === 'function' ? result(value) : result,
+            : typeof result === 'function'
+              ? result(value)
+              : result,
         status: 'success',
         taskId,
       })
@@ -372,7 +380,9 @@ const wrapTaskFn = <T>(
         result:
           result === undefined
             ? value
-            : typeof result === 'function' ? result(value) : result,
+            : typeof result === 'function'
+              ? result(value)
+              : result,
         status: 'success',
         taskId,
       })
@@ -434,6 +444,7 @@ export default class BackupNg {
     app.on('start', () => {
       const executor: Executor = async ({
         cancelToken,
+        data: vmId,
         job: job_,
         logger,
         runJobId,
@@ -444,18 +455,21 @@ export default class BackupNg {
         }
 
         const job: BackupJob = (job_: any)
-        const vms: $Dict<Vm> = app.getObjects({
-          filter: createPredicate({
-            type: 'VM',
-            ...job.vms,
-          }),
-        })
-        if (isEmpty(vms)) {
-          throw new Error('no VMs match this pattern')
+        let vms: $Dict<Vm>
+        if (vmId === undefined) {
+          vms = app.getObjects({
+            filter: createPredicate({
+              type: 'VM',
+              ...job.vms,
+            }),
+          })
+          if (isEmpty(vms)) {
+            throw new Error('no VMs match this pattern')
+          }
         }
         const jobId = job.id
         const scheduleId = schedule.id
-        await asyncMap(vms, async vm => {
+        let handleVm = async vm => {
           const { name_label: name, uuid } = vm
           const taskId: string = logger.notice(
             `Starting backup of ${name}. (${jobId})`,
@@ -507,7 +521,21 @@ export default class BackupNg {
                 : serializeError(error),
             })
           }
-        })
+        }
+
+        if (vmId !== undefined) {
+          return handleVm(await app.getObject(vmId))
+        }
+
+        const concurrency: number | void = getSetting(
+          job.settings,
+          'concurrency',
+          ''
+        )
+        if (concurrency !== undefined) {
+          handleVm = limitConcurrency(concurrency)(handleVm)
+        }
+        await asyncMap(vms, handleVm)
       }
       app.registerJobExecutor('backup', executor)
     })
@@ -1086,11 +1114,16 @@ export default class BackupNg {
                       let parentPath
                       if (isDelta) {
                         const vdiDir = dirname(path)
-                        const parent = (await handler.list(vdiDir))
-                          .filter(isVhd)
+                        parentPath = (await handler.list(vdiDir, {
+                          filter: filename =>
+                            !isHiddenFile(filename) && isVhd(filename),
+                          prependDir: true,
+                        }))
                           .sort()
                           .pop()
-                        parentPath = `${vdiDir}/${parent}`
+
+                        // ensure parent exists and is a valid VHD
+                        await new Vhd(handler, parentPath).readHeaderAndFooter()
                       }
 
                       await writeStream(

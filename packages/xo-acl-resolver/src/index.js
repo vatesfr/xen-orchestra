@@ -50,7 +50,9 @@ const checkAuthorizationByTypes = {
 
   network: or(checkSelf, checkMember('$pool')),
 
-  SR: or(checkSelf, checkMember('$pool')),
+  PIF: checkMember('$host'),
+
+  SR: or(checkSelf, checkMember('$container')),
 
   task: checkMember('$host'),
 
