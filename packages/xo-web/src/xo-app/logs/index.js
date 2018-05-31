@@ -13,8 +13,8 @@ import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize, formatSpeed } from 'utils'
-import { createFilter, createGetObject, createSelector } from 'selectors'
-import { forEach, includes, keyBy, map, orderBy } from 'lodash'
+import { createGetObject, createSelector } from 'selectors'
+import { filter, forEach, includes, keyBy, map, orderBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { get } from 'xo-defined'
 import {
@@ -141,8 +141,6 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
-const filterOptionRenderer = ({ label }) => _(label)
-
 class Log extends BaseComponent {
   state = {
     filter: DEFAULT_CALL_FILTER,
@@ -154,21 +152,29 @@ class Log extends BaseComponent {
     (logId, runId) => logId !== runId
   )
 
-  _getFilteredCalls = createFilter(
+  _getCallsByState = createSelector(
     () => this.props.log.calls,
-    createSelector(
-      () => this.state.filter.value,
-      this._getIsJobInterrupted,
-      (value, isInterrupted) => PREDICATES[value](isInterrupted)
-    )
+    this._getIsJobInterrupted,
+    (calls, isInterrupted) => {
+      const callsByState = {}
+      forEach(CALL_FILTER_OPTIONS, ({ value }) => {
+        callsByState[value] = filter(calls, PREDICATES[value](isInterrupted))
+      })
+      return callsByState
+    }
   )
 
-  _filterValueRenderer = createSelector(
-    () => this._getFilteredCalls().length,
-    ({ label }) => label,
-    (size, label) => (
+  _getFilteredCalls = createSelector(
+    () => this.state.filter.value,
+    this._getCallsByState,
+    (value, calls) => calls[value]
+  )
+
+  _getFilterOptionRenderer = createSelector(
+    this._getCallsByState,
+    calls => ({ label, value }) => (
       <span>
-        {_(label)} ({size})
+        {_(label)} ({calls[value].length})
       </span>
     )
   )
@@ -190,12 +196,11 @@ class Log extends BaseComponent {
         <Select
           labelKey='label'
           onChange={this.linkState('filter')}
-          optionRenderer={filterOptionRenderer}
+          optionRenderer={this._getFilterOptionRenderer()}
           options={CALL_FILTER_OPTIONS}
           required
           value={this.state.filter}
           valueKey='value'
-          valueRenderer={this._filterValueRenderer}
         />
         <br />
         <ul className='list-group'>
@@ -394,7 +399,9 @@ const LOG_COLUMNS = [
               'tag',
               log.hasErrors
                 ? 'tag-danger'
-                : log.callSkipped ? 'tag-info' : 'tag-success'
+                : log.callSkipped
+                  ? 'tag-info'
+                  : 'tag-success'
             )}
           >
             {_('jobFinished')}

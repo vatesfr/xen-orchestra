@@ -816,12 +816,14 @@ export default class Xapi extends XapiBase {
     } = {}
   ): Promise<DeltaVmExport> {
     let vm = this.getObject(vmId)
-    if (!bypassVdiChainsCheck) {
-      this._assertHealthyVdiChains(vm)
-    }
+
     // do not use the snapshot name in the delta export
     const exportedNameLabel = vm.name_label
     if (!vm.is_a_snapshot) {
+      if (!bypassVdiChainsCheck) {
+        this._assertHealthyVdiChains(vm)
+      }
+
       vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
       $defer.onFailure(() => this._deleteVm(vm))
     }

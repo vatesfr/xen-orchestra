@@ -736,6 +736,7 @@ const messages = {
   patchNameLabel: 'Name',
   patchUpdateButton: 'Install all patches',
   patchDescription: 'Description',
+  patchVersion: 'Version',
   patchApplied: 'Applied date',
   patchSize: 'Size',
   patchStatus: 'Status',
@@ -753,6 +754,15 @@ const messages = {
     'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
   installPatchWarningReject: 'Go to pool',
   installPatchWarningResolve: 'Install',
+  patchRelease: 'Release',
+  updatePluginNotInstalled:
+    'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first.',
+  showChangelog: 'Show changelog',
+  changelog: 'Changelog',
+  changelogPatch: 'Patch',
+  changelogAuthor: 'Author',
+  changelogDate: 'Date',
+  changelogDescription: 'Description',
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
   installPoolPatches: 'Install pool patches',
@@ -1676,6 +1686,7 @@ const messages = {
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
   unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
+  backupRestartVm: "Restart VM's backup",
   clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------

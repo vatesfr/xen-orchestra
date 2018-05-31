@@ -126,7 +126,10 @@ export default class RemoteHandlerAbstract {
       prependDir = false,
     }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
   ): Promise<string[]> {
-    const entries = await this._list(dir)
+    let entries = await this._list(dir)
+    if (filter !== undefined) {
+      entries = entries.filter(filter)
+    }
 
     if (prependDir) {
       entries.forEach((entry, i) => {
@@ -134,7 +137,7 @@ export default class RemoteHandlerAbstract {
       })
     }
 
-    return filter === undefined ? entries : entries.filter(filter)
+    return entries
   }
 
   async _list (dir: string): Promise<string[]> {
