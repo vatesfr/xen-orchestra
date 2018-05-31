@@ -503,7 +503,7 @@ export default class NewVm extends BaseComponent {
       state.name_description === '' || !state.name_descriptionHasChanged
         ? template.name_description || ''
         : state.name_description
-    const replacer = this._buildVMsNameTemplate()
+    const replacer = this._buildVmsNameTemplate()
     this._setState({
       // infos
       name_label,
@@ -632,7 +632,7 @@ export default class NewVm extends BaseComponent {
     return network && network.id
   }
 
-  _buildVMsNameTemplate = createSelector(
+  _buildVmsNameTemplate = createSelector(
     () => this.state.state.namePattern,
     namePattern => this._buildTemplate(namePattern)
   )
@@ -672,7 +672,7 @@ export default class NewVm extends BaseComponent {
     if (nbVmsClamped < nameLabels.length) {
       this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
     } else {
-      const replacer = this._buildVMsNameTemplate()
+      const replacer = this._buildVmsNameTemplate()
       for (
         let i = +seqStart + nameLabels.length;
         i <= +seqStart + nbVmsClamped - 1;
@@ -687,7 +687,7 @@ export default class NewVm extends BaseComponent {
     const { nameLabels, seqStart } = this.state.state
     const nbVms = nameLabels.length
     const newNameLabels = []
-    const replacer = this._buildVMsNameTemplate()
+    const replacer = this._buildVmsNameTemplate()
 
     for (let i = +seqStart; i <= +seqStart + nbVms - 1; i++) {
       newNameLabels.push(replacer(this.state.state, i))
