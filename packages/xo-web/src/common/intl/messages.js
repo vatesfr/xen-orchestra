@@ -1121,8 +1121,8 @@ const messages = {
   availableTemplateVarsInfo:
     'Click here to see the available template variables',
   availableTemplateVarsTitle: 'Available template variables',
-  templateNameInfo: "The VM's name",
-  templateIndexInfo: "The VM's index, it will take 0 in case of single VM",
+  templateNameInfo: "the VM's name. It must not contains '_'",
+  templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
   newVmBootAfterCreate: 'Boot VM after creation',
   newVmMacPlaceholder: 'Auto-generated if empty',
   newVmCpuWeightLabel: 'CPU weight',

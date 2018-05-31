@@ -323,7 +323,7 @@ export default class NewVm extends BaseComponent {
       name_label: '',
       name_description: '',
       nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
-      namePattern: '{name}_%',
+      namePattern: '{name}%',
       nbVms: NB_VMS_MIN,
       VDIs: [],
       VIFs: [],
@@ -522,7 +522,7 @@ export default class NewVm extends BaseComponent {
         'SSH',
       sshKeys: this.props.userSshKeys && this.props.userSshKeys.length && [0],
       customConfig:
-        '#cloud-config\n#hostname: {name}_%\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
+        '#cloud-config\n#hostname: {name}%\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
       // interfaces
       VIFs,
       // disks
