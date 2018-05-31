@@ -379,8 +379,9 @@ export default class NewVm extends BaseComponent {
         const replacer = this._buildTemplate(state.customConfig)
         cloudConfig = replacer(this.state.state, 0)
         if (state.multipleVms) {
+          const seqStart = state.seqStart
           cloudConfigs = map(state.nameLabels, (_, i) =>
-            replacer(this.state.state, i + +this.state.state.seqStart)
+            replacer(state, i + +seqStart)
           )
         }
       }
