@@ -74,6 +74,7 @@ import {
   createPager,
   createSelector,
   createSort,
+  getIsPoolAdmin,
   getUser,
   isAdmin,
 } from 'selectors'
@@ -302,6 +303,7 @@ const DEFAULT_TYPE = 'VM'
 })
 @propTypes({
   isAdmin: propTypes.bool.isRequired,
+  isPoolAdmin: propTypes.bool.isRequired,
   noResourceSets: propTypes.bool.isRequired,
 })
 class NoObjects_ extends Component {
@@ -309,6 +311,7 @@ class NoObjects_ extends Component {
     const {
       areObjectsFetched,
       isAdmin,
+      isPoolAdmin,
       noRegisteredServers,
       noResourceSets,
       noServersConnected,
@@ -378,7 +381,9 @@ class NoObjects_ extends Component {
       <CenterPanel>
         <Card shadow>
           <CardHeader>{_('homeNoVms')}</CardHeader>
-          {(isAdmin || !noResourceSets) && (
+          {(isAdmin ||
+            (isPoolAdmin && process.env.XOA_PLAN > 3) ||
+            !noResourceSets) && (
             <CardBlock>
               <Row>
                 <Col>
@@ -428,6 +433,7 @@ class NoObjects_ extends Component {
 
   return {
     isAdmin,
+    isPoolAdmin: getIsPoolAdmin,
     items: createSelector(
       createSelector(
         createGetObjectsOfType('host'),
@@ -818,7 +824,7 @@ export default class Home extends Component {
     const customFilters = this._getCustomFilters()
     const filteredItems = this._getFilteredItems()
     const nItems = this._getNumberOfItems()
-    const { isAdmin, items, noResourceSets, type } = this.props
+    const { isAdmin, isPoolAdmin, items, noResourceSets, type } = this.props
 
     const {
       selectedHosts,
@@ -906,7 +912,9 @@ export default class Home extends Component {
               </span>
             </div>
           </Col>
-          {(isAdmin || !noResourceSets) && (
+          {(isAdmin ||
+            (isPoolAdmin && process.env.XOA_PLAN > 3) ||
+            !noResourceSets) && (
             <Col mediumSize={3} className='text-xs-right'>
               <Link className='btn btn-success' to='/vms/new'>
                 <Icon icon='vm-new' /> {_('homeNewVm')}
@@ -1105,12 +1113,18 @@ export default class Home extends Component {
   // ---------------------------------------------------------------------------
 
   render () {
-    const { isAdmin, noResourceSets } = this.props
+    const { isAdmin, isPoolAdmin, noResourceSets } = this.props
 
     const nItems = this._getNumberOfItems()
 
     if (nItems < 1) {
-      return <NoObjects_ isAdmin={isAdmin} noResourceSets={noResourceSets} />
+      return (
+        <NoObjects_
+          isAdmin={isAdmin}
+          isPoolAdmin={isPoolAdmin}
+          noResourceSets={noResourceSets}
+        />
+      )
     }
 
     const filteredItems = this._getFilteredItems()
