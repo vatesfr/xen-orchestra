@@ -1,4 +1,4 @@
-import { forEach, get, groupBy, isEmpty } from 'lodash'
+import { forEach, groupBy, isEmpty } from 'lodash'
 
 import { type CallJob } from './jobs'
 import { type BackupJob, Mode, ReportWhen } from './backups-ng'
@@ -66,6 +66,7 @@ type ConsolidatedBackupNgLog = {|
   error?: Object,
   id: string,
   jobId: string,
+  scheduleId: string,
   start: number,
   status: TaskStatus,
   tasks: Array<ConsolidatedTask>,
@@ -106,6 +107,7 @@ export default class BackupNgLogs {
             groupedLogs[id] = {
               id,
               jobId: data.jobId,
+              scheduleId: data.scheduleId,
               data: data.data,
               start: time,
             }
@@ -198,7 +200,7 @@ export default class BackupNgLogs {
         job = await this._app.getJob(jobLog.jobId, 'backup')
       } catch (e) {}
       const taskWithNoEndStatus =
-        get(job, 'runId') === jobLog.id ? 'pending' : 'interrupted'
+        job?.runId === jobLog.id ? 'pending' : 'interrupted'
 
       if (jobLog.error !== undefined) {
         jobLog.status =
