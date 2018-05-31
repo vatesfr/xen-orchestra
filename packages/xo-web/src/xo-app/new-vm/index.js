@@ -242,9 +242,7 @@ export default class NewVm extends BaseComponent {
 
   _getResourceSet = () => {
     const {
-      location: {
-        query: { resourceSet: resourceSetId },
-      },
+      location: { query: { resourceSet: resourceSetId } },
       resourceSets,
     } = this.props
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
@@ -498,7 +496,7 @@ export default class NewVm extends BaseComponent {
           name_description: disk.name_description || 'Created by XO',
           name_label:
             (name_label || 'disk') + '_' + generateReadableRandomString(5),
-          SR: pool ? pool.default_SR : resourceSet.objectsByType['SR'][0].id,
+          SR: this._getDefaultSr(template),
         }
       }),
     })
@@ -673,15 +671,28 @@ export default class NewVm extends BaseComponent {
     })
     this._reset()
   }
+  _getDefaultSr = template => {
+    const { pool } = this.props
+
+    if (pool !== undefined) {
+      return pool.default_SR
+    }
+
+    if (template === undefined) {
+      return
+    }
+
+    const resourceSet = this._getResolvedResourceSet()
+    const defaultSr = getObject(store.getState(), template.$pool, resourceSet)
+      .default_SR
+    const resourceSetSr = resourceSet.objectsByType.SR
+    const predicate = this._getSrPredicate()
+    const srs = predicate ? filter(resourceSetSr, predicate) : resourceSetSr
+
+    return includes(resolveIds(srs), defaultSr) ? defaultSr : null
+  }
   _addVdi = () => {
     const { state } = this.state
-    const { pool } = this.props
-    const resourceSet = this._getResolvedResourceSet()
-    const srsReourceSet = resourceSet.objectsByType['SR']
-    const predicate = this._getSrPredicate()
-    const srs = predicate ? filter(srsReourceSet, predicate) : srsReourceSet
-    const defaultSr = getObject(store.getState(), srs[0].$pool, resourceSet)
-      .default_SR
 
     this._setState({
       VDIs: [
@@ -692,11 +703,7 @@ export default class NewVm extends BaseComponent {
             (state.name_label || 'disk') +
             '_' +
             generateReadableRandomString(5),
-          SR: pool
-            ? pool.default_SR
-            : includes(resolveIds(srs), defaultSr)
-              ? defaultSr
-              : null,
+          SR: this._getDefaultSr(state.template),
           type: 'system',
         },
       ],
@@ -1171,9 +1178,7 @@ export default class NewVm extends BaseComponent {
   // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const {
-      state: { VIFs },
-    } = this.state
+    const { state: { VIFs } } = this.state
 
     return (
       <Section
@@ -1214,9 +1219,7 @@ export default class NewVm extends BaseComponent {
   // DISKS -----------------------------------------------------------------------
 
   _renderDisks = () => {
-    const {
-      state: { configDrive, existingDisks, VDIs },
-    } = this.state
+    const { state: { configDrive, existingDisks, VDIs } } = this.state
     const { pool } = this.props
     let i = 0
     const resourceSet = this._getResolvedResourceSet()
