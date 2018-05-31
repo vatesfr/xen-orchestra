@@ -111,10 +111,10 @@ export default [
       }),
       restartVmJob: (_, { vm }) => async (
         _,
-        { log: { scheduleId }, job: { id } }
+        { log: { scheduleId, jobId } }
       ) => {
         await runBackupNgJob({
-          id,
+          id: jobId,
           vm,
           schedule: scheduleId,
         })
@@ -157,7 +157,7 @@ export default [
                 4,
                 8
               )}) <TaskStateInfos status={taskLog.status} />{' '}
-              {taskLog.status === 'failure' &&(
+              {taskLog.status === 'failure' && (
                 <ActionButton
                   handler={effects.restartVmJob}
                   icon='run'
@@ -165,7 +165,7 @@ export default [
                   tooltip={_('backupRestartVm')}
                   data-vm={taskLog.data.id}
                 />
-	      )}
+              )}
               <ul>
                 {map(taskLog.tasks, subTaskLog => (
                   <li key={subTaskLog.id}>

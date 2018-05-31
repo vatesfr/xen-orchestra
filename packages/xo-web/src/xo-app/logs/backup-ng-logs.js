@@ -107,15 +107,20 @@ const LOG_COLUMNS = [
   },
 ]
 
-const showCalls = log =>
+const showTasks = log =>
   alert(
-    _('jobModalTitle', { job: log.jobId.slice(4, 8) }),
+    <span>
+      {_('jobModalTitle', { job: log.jobId.slice(4, 8) })}{' '}
+      <span style={{ fontSize: '0.5em' }} className='text-muted'>
+        {log.id}
+      </span>
+    </span>,
     <LogAlertBody log={log} />
   )
 
 const LOG_INDIVIDUAL_ACTIONS = [
   {
-    handler: showCalls,
+    handler: showTasks,
     icon: 'preview',
     label: _('logDisplayDetails'),
   },
