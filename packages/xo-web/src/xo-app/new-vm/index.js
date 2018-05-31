@@ -436,7 +436,7 @@ export default class NewVm extends BaseComponent {
           $SR:
             pool || isInResourceSet(vdi.$SR)
               ? vdi.$SR
-              : resourceSet.objectsByType['SR'][0].id,
+              : this._getDefaultSr(template),
         }
       }
     })
