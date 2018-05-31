@@ -246,20 +246,22 @@ export default [
                                   )}
                                 </Copiable>
                               ) : (
-                                <div>
-                                  {_.keyValue(
-                                    _('operationSize'),
-                                    formatSize(operationLog.result.size)
-                                  )}
-                                  <br />
-                                  {_.keyValue(
-                                    _('operationSpeed'),
-                                    formatSpeed(
-                                      operationLog.result.size,
-                                      operationLog.end - operationLog.start
-                                    )
-                                  )}
-                                </div>
+                                operationLog.result.size > 0 && (
+                                  <div>
+                                    {_.keyValue(
+                                      _('operationSize'),
+                                      formatSize(operationLog.result.size)
+                                    )}
+                                    <br />
+                                    {_.keyValue(
+                                      _('operationSpeed'),
+                                      formatSpeed(
+                                        operationLog.result.size,
+                                        operationLog.end - operationLog.start
+                                      )
+                                    )}
+                                  </div>
+                                )
                               )}
                             </div>
                           )}
