@@ -132,10 +132,10 @@ export default [
   }),
   injectState,
   ({ log, remotes, state, effects }) =>
-    log.error !== undefined ? (
+    log.result !== undefined ? (
       <span className={log.status === 'skipped' ? 'text-info' : 'text-danger'}>
-        <Copiable tagName='p' data={JSON.stringify(log.error, null, 2)}>
-          <Icon icon='alarm' /> {log.error.message}
+        <Copiable tagName='p' data={JSON.stringify(log.result, null, 2)}>
+          <Icon icon='alarm' /> {log.result.message}
         </Copiable>
       </span>
     ) : (
@@ -157,15 +157,16 @@ export default [
                 4,
                 8
               )}) <TaskStateInfos status={taskLog.status} />{' '}
-              {taskLog.status === 'failure' && (
-                <ActionButton
-                  handler={effects.restartVmJob}
-                  icon='run'
-                  size='small'
-                  tooltip={_('backupRestartVm')}
-                  data-vm={taskLog.data.id}
-                />
-              )}
+              {log.scheduleId !== undefined &&
+                taskLog.status === 'failure' && (
+                  <ActionButton
+                    handler={effects.restartVmJob}
+                    icon='run'
+                    size='small'
+                    tooltip={_('backupRestartVm')}
+                    data-vm={taskLog.data.id}
+                  />
+                )}
               <ul>
                 {map(taskLog.tasks, subTaskLog => (
                   <li key={subTaskLog.id}>
