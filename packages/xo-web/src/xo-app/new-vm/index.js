@@ -682,12 +682,16 @@ export default class NewVm extends BaseComponent {
       return
     }
 
-    const resourceSet = this._getResolvedResourceSet()
-    const defaultSr = getObject(store.getState(), template.$pool, resourceSet)
+    const defaultSr = getObject(store.getState(), template.$pool, true)
       .default_SR
 
     return includes(
-      resolveIds(filter(resourceSet.objectsByType.SR, this._getSrPredicate())),
+      resolveIds(
+        filter(
+          this._getResolvedResourceSet().objectsByType.SR,
+          this._getSrPredicate()
+        )
+      ),
       defaultSr
     )
       ? defaultSr
