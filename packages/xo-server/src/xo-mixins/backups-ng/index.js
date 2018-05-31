@@ -7,17 +7,7 @@ import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
-import {
-  forEach,
-  groupBy,
-  isEmpty,
-  last,
-  mapValues,
-  noop,
-  some,
-  sum,
-  values,
-} from 'lodash'
+import { isEmpty, last, mapValues, noop, some, sum, values } from 'lodash'
 import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
@@ -43,8 +33,8 @@ import {
 
 import { translateLegacyJob } from './migration'
 
-type Mode = 'full' | 'delta'
-type ReportWhen = 'always' | 'failure' | 'never'
+export type Mode = 'full' | 'delta'
+export type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
   concurrency?: number,
@@ -93,34 +83,6 @@ type MetadataFull = {|
   xva: string,
 |}
 type Metadata = MetadataDelta | MetadataFull
-
-type ConsolidatedJob = {|
-  duration?: number,
-  end?: number,
-  error?: Object,
-  id: string,
-  jobId: string,
-  scheduleId: string,
-  mode: Mode,
-  start: number,
-  type: 'backup' | 'call',
-  userId: string,
-|}
-type ConsolidatedTask = {|
-  data?: Object,
-  duration?: number,
-  end?: number,
-  parentId: string,
-  message: string,
-  result?: Object,
-  start: number,
-  status: 'canceled' | 'failure' | 'success',
-  taskId: string,
-|}
-type ConsolidatedBackupNgLog = {
-  roots: Array<ConsolidatedJob>,
-  [parentId: string]: Array<ConsolidatedTask>,
-}
 
 const compareSnapshotTime = (a: Vm, b: Vm): number =>
   a.snapshot_time < b.snapshot_time ? -1 : 1
@@ -1337,63 +1299,5 @@ export default class BackupNg {
     }
 
     return backups.sort(compareTimestamp)
-  }
-
-  async getBackupNgLogs (runId?: string): Promise<ConsolidatedBackupNgLog> {
-    const rawLogs = await this._app.getLogs('jobs')
-
-    const logs: $Dict<ConsolidatedJob & ConsolidatedTask> = {}
-    forEach(rawLogs, (log, id) => {
-      const { data, time, message } = log
-      const { event } = data
-      delete data.event
-
-      switch (event) {
-        case 'job.start':
-          if (data.type === 'backup' && (runId === undefined || runId === id)) {
-            logs[id] = {
-              ...data,
-              id,
-              start: time,
-            }
-          }
-          break
-        case 'job.end':
-          const job = logs[data.runJobId]
-          if (job !== undefined) {
-            job.end = time
-            job.duration = time - job.start
-            job.error = data.error
-          }
-          break
-        case 'task.start':
-          if (logs[data.parentId] !== undefined) {
-            logs[id] = {
-              ...data,
-              start: time,
-              message,
-            }
-          }
-          break
-        case 'task.end':
-          const task = logs[data.taskId]
-          if (task !== undefined) {
-            // work-around
-            if (
-              time === task.start &&
-              (message === 'merge' || message === 'transfer')
-            ) {
-              delete logs[data.taskId]
-            } else {
-              task.status = data.status
-              task.taskId = data.taskId
-              task.result = data.result
-              task.end = time
-              task.duration = time - task.start
-            }
-          }
-      }
-    })
-    return groupBy(logs, log => log.parentId || 'roots')
   }
 }

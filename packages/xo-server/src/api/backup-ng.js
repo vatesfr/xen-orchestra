@@ -1,4 +1,5 @@
 import { basename } from 'path'
+import { isEmpty, pickBy } from 'lodash'
 
 import { safeDateFormat } from '../utils'
 
@@ -138,8 +139,9 @@ runJob.params = {
 
 // -----------------------------------------------------------------------------
 
-export function getAllLogs () {
-  return this.getBackupNgLogs()
+export async function getAllLogs (filter) {
+  const logs = await this.getBackupNgLogs()
+  return isEmpty(filter) ? logs : pickBy(logs, filter)
 }
 
 getAllLogs.permission = 'admin'

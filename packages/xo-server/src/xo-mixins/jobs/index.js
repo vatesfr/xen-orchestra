@@ -120,7 +120,11 @@ export default class Jobs {
   _executors: { __proto__: null, [string]: Executor }
   _jobs: JobsDb
   _logger: Logger
-  _runningJobs: { __proto__: null, [string]: boolean }
+  _runningJobs: { __proto__: null, [string]: string }
+
+  get runningJobs () {
+    return this._runningJobs
+  }
 
   constructor (xo: any) {
     this._app = xo
