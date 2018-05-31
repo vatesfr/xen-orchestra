@@ -55,9 +55,9 @@ class PoolMaster extends Component {
   gpuGroups: createGetObjectsOfType('gpuGroup'),
 })
 export default class TabAdvanced extends Component {
-  _setRemoteSyslogHosts = ({ syslogDestination }) =>
-    setRemoteSyslogHosts(this.props.hosts, syslogDestination).then(
-      this.setState({ editRemoteSyslog: false })
+  _setRemoteSyslogHosts = () =>
+    setRemoteSyslogHosts(this.props.hosts, this.state.syslogDestination).then(
+      () => this.setState({ editRemoteSyslog: false })
     )
 
   render () {
@@ -130,9 +130,6 @@ export default class TabAdvanced extends Component {
                           <div className='form-group ml-1'>
                             <ActionButton
                               btnStyle='primary'
-                              data-syslogDestination={
-                                this.state.syslogDestination
-                              }
                               form='formRemoteSyslog'
                               handler={this._setRemoteSyslogHosts}
                               icon='save'
