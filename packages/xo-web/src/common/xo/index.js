@@ -577,6 +577,15 @@ export const editHost = (host, props) =>
 export const fetchHostStats = (host, granularity) =>
   _call('host.stats', { host: resolveId(host), granularity })
 
+export const setRemoteSyslogHost = (host, syslogDestination) =>
+  _call('host.setRemoteSyslogHost', {
+    id: resolveId(host),
+    syslogDestination,
+  })
+
+export const setRemoteSyslogHosts = (hosts, syslogDestination) =>
+  Promise.all(map(hosts, host => setRemoteSyslogHost(host, syslogDestination)))
+
 export const restartHost = (host, force = false) =>
   confirm({
     title: _('restartHostModalTitle'),

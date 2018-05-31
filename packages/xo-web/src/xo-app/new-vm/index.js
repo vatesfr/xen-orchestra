@@ -74,6 +74,7 @@ import {
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
   noop,
+  resolveIds,
   resolveResourceSet,
 } from 'utils'
 import {
@@ -474,7 +475,7 @@ export default class NewVm extends BaseComponent {
           $SR:
             pool || isInResourceSet(vdi.$SR)
               ? vdi.$SR
-              : resourceSet.objectsByType['SR'][0].id,
+              : this._getDefaultSr(template),
         }
       }
     })
@@ -534,7 +535,7 @@ export default class NewVm extends BaseComponent {
           name_description: disk.name_description || 'Created by XO',
           name_label:
             (name_label || 'disk') + '_' + generateReadableRandomString(5),
-          SR: pool ? pool.default_SR : resourceSet.objectsByType['SR'][0].id,
+          SR: this._getDefaultSr(template),
         }
       }),
     })
@@ -712,9 +713,34 @@ export default class NewVm extends BaseComponent {
     })
     this._reset()
   }
+  _getDefaultSr = template => {
+    const { pool } = this.props
+
+    if (pool !== undefined) {
+      return pool.default_SR
+    }
+
+    if (template === undefined) {
+      return
+    }
+
+    const defaultSr = getObject(store.getState(), template.$pool, true)
+      .default_SR
+
+    return includes(
+      resolveIds(
+        filter(
+          this._getResolvedResourceSet().objectsByType.SR,
+          this._getSrPredicate()
+        )
+      ),
+      defaultSr
+    )
+      ? defaultSr
+      : undefined
+  }
   _addVdi = () => {
     const { state } = this.state
-    const { pool } = this.props
 
     this._setState({
       VDIs: [
@@ -725,7 +751,7 @@ export default class NewVm extends BaseComponent {
             (state.name_label || 'disk') +
             '_' +
             generateReadableRandomString(5),
-          SR: pool && pool.default_SR,
+          SR: this._getDefaultSr(state.template),
           type: 'system',
         },
       ],
