@@ -33,7 +33,6 @@ import {
   map,
   size,
   slice,
-  startsWith,
   sum,
   sumBy,
 } from 'lodash'
@@ -90,27 +89,23 @@ import styles from './index.css'
 const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
 
-const AVAILABLE_TEMPLATE_VARS = [
-  '{affinityHost}',
-  '{description}',
-  '{name}',
-  '{resourceSet}',
-  '{template}',
-  '{topology}',
-  '{vCpus}',
-  '%',
-]
+const AVAILABLE_TEMPLATE_VARS = {
+  '{name}': 'templateNameInfo',
+  '%': 'templateIndexInfo',
+}
 
 const showAvailableTemplateVars = () =>
   alert(
     _('availableTemplateVarsTitle'),
     <ul>
-      {map(AVAILABLE_TEMPLATE_VARS, (value, key) => <li key={key}>{value}</li>)}
+      {map(AVAILABLE_TEMPLATE_VARS, (value, key) => (
+        <li key={key}>{_.keyValue(key, _(value))}</li>
+      ))}
     </ul>
   )
 
-const AvailableTemplateVarsInfos = () => (
-  <Tooltip content={_('availableTemplateVarsInfos')}>
+const AvailableTemplateVarsInfo = () => (
+  <Tooltip content={_('availableTemplateVarsInfo')}>
     <a
       className={classNames('text-info', styles.availableTemplateVars)}
       onClick={showAvailableTemplateVars}
@@ -366,6 +361,7 @@ export default class NewVm extends BaseComponent {
     }
 
     let cloudConfig
+    let cloudConfigs
     if (state.configDrive) {
       const hostname = state.name_label
         .replace(/^\s+|\s+$/g, '')
@@ -380,9 +376,13 @@ export default class NewVm extends BaseComponent {
           ''
         )}`
       } else {
-        cloudConfig = this._buildTemplate(this.state.state.customConfig)(
-          this.state.state
-        )
+        const replacer = this._buildTemplate(state.customConfig)
+        cloudConfig = replacer(this.state.state, 0)
+        if (state.multipleVms) {
+          cloudConfigs = map(state.nameLabels, (_, i) =>
+            replacer(this.state.state, i + +this.state.state.seqStart)
+          )
+        }
       }
     } else if (state.template.name_label === 'CoreOS') {
       cloudConfig = state.cloudConfig
@@ -441,7 +441,7 @@ export default class NewVm extends BaseComponent {
     }
 
     return state.multipleVms
-      ? createVms(data, state.nameLabels)
+      ? createVms(data, state.nameLabels, cloudConfigs)
       : createVm(data)
   }
 
@@ -522,7 +522,7 @@ export default class NewVm extends BaseComponent {
         'SSH',
       sshKeys: this.props.userSshKeys && this.props.userSshKeys.length && [0],
       customConfig:
-        '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
+        '#cloud-config\n#hostname: {name}_%\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
       // interfaces
       VIFs,
       // disks
@@ -640,12 +640,6 @@ export default class NewVm extends BaseComponent {
     buildTemplate(pattern, {
       '{name}': state => state.name_label || '',
       '%': (_, i) => i,
-      '{description}': state => state.name_description || '',
-      '{affinityHost}': state => get(() => state.affinityHost.id) || '',
-      '{template}': state => get(() => state.template.id) || '',
-      '{resourceSet}': state => get(() => state.resourceSet.id) || '',
-      '{topology}': state => state.coresPerSocket || '',
-      '{vCpus}': state => state.CPUs || '',
     })
 
   _getVgpuTypePredicate = createSelector(
@@ -990,22 +984,6 @@ export default class NewVm extends BaseComponent {
 
   // INSTALL SETTINGS ------------------------------------------------------------
 
-  _refreshCusomConfigPreview = () => {
-    const customConfig = this._buildTemplate(this.state.state.customConfig)(
-      this.state.state
-    )
-    let configPreview = ''
-    forEach(customConfig.split('\n'), line => {
-      if (!startsWith(line, '#')) {
-        configPreview += `${line}\n`
-      }
-    })
-
-    this._setState({
-      configPreview,
-    })
-  }
-
   _renderInstallSettings = () => {
     const { template } = this.state.state
     if (!template) {
@@ -1014,7 +992,6 @@ export default class NewVm extends BaseComponent {
     const {
       cloudConfig,
       configDrive,
-      configPreview,
       customConfig,
       installIso,
       installMethod,
@@ -1097,7 +1074,7 @@ export default class NewVm extends BaseComponent {
               <span>
                 {_('newVmCustomConfig')}
                 &nbsp;
-                <AvailableTemplateVarsInfos />
+                <AvailableTemplateVarsInfo />
               </span>
               &nbsp;
               <DebounceTextarea
@@ -1105,23 +1082,6 @@ export default class NewVm extends BaseComponent {
                 disabled={!configDrive || installMethod !== 'customConfig'}
                 onChange={this._linkState('customConfig')}
                 value={customConfig}
-              />
-              &nbsp;
-              <Tooltip content={_('refreshCustomConfigPreview')}>
-                <a
-                  className={styles.refreshPreview}
-                  onClick={this._refreshCusomConfigPreview}
-                >
-                  <Icon icon='refresh' />
-                </a>
-              </Tooltip>
-              &nbsp;
-              <span>{_('preview')}</span>
-              &nbsp;
-              <DebounceTextarea
-                className={classNames('form-control', styles.customConfig)}
-                disabled
-                value={configPreview}
               />
             </LineItem>
           </SectionContent>
@@ -1574,7 +1534,7 @@ export default class NewVm extends BaseComponent {
                 value={namePattern}
               />
               &nbsp;
-              <AvailableTemplateVarsInfos />
+              <AvailableTemplateVarsInfo />
             </Item>
             <Item label={_('newVmFirstIndex')}>
               <DebounceInput

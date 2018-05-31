@@ -63,7 +63,7 @@
   margin: auto;
 }
 
-.refreshNames, .refreshPreview, .availableTemplateVars {
+.refreshNames, .availableTemplateVars {
   cursor: pointer;
 }
 
