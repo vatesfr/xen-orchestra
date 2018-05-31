@@ -114,6 +114,6 @@ export default {
         }
       }
     })
-    return consolidated
+    return runId === undefined ? consolidated : consolidated[runId]
   },
 }

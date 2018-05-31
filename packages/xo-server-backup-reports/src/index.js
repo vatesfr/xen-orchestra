@@ -126,7 +126,7 @@ class BackupReportsXoPlugin {
     }
 
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
-    if (log.error !== undefined) {
+    if (log.result !== undefined) {
       let markdown = [
         `##  Global status: ${log.status}`,
         '',
@@ -134,7 +134,7 @@ class BackupReportsXoPlugin {
         `- **Start time**: ${formatDate(log.start)}`,
         `- **End time**: ${formatDate(log.end)}`,
         `- **Duration**: ${formatDuration(log.end - log.start)}`,
-        `- **Error**: ${log.error.message}`,
+        `- **Error**: ${log.result.message}`,
         '---',
         '',
         `*${pkg.name} v${pkg.version}*`,
@@ -149,7 +149,7 @@ class BackupReportsXoPlugin {
         nagiosStatus: 2,
         nagiosMarkdown: `[Xen Orchestra] [${
           log.status
-        }] Backup report for ${jobName} - Error : ${log.error.message}`,
+        }] Backup report for ${jobName} - Error : ${log.result.message}`,
       })
     }
 
