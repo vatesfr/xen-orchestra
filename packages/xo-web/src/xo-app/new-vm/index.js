@@ -80,6 +80,7 @@ import {
   createSelector,
   createGetObject,
   createGetObjectsOfType,
+  getIsPoolAdmin,
   getUser,
 } from 'selectors'
 
@@ -211,6 +212,7 @@ class Vif extends BaseComponent {
 })
 @connectStore(() => ({
   isAdmin: createSelector(getUser, user => user && user.permission === 'admin'),
+  isPoolAdmin: getIsPoolAdmin,
   networks: createGetObjectsOfType('network').sort(),
   pool: createGetObject((_, props) => props.location.query.pool),
   pools: createGetObjectsOfType('pool'),
@@ -242,7 +244,9 @@ export default class NewVm extends BaseComponent {
 
   _getResourceSet = () => {
     const {
-      location: { query: { resourceSet: resourceSetId } },
+      location: {
+        query: { resourceSet: resourceSetId },
+      },
       resourceSets,
     } = this.props
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
@@ -770,7 +774,7 @@ export default class NewVm extends BaseComponent {
   // MAIN ------------------------------------------------------------------------
 
   _renderHeader = () => {
-    const { isAdmin, pool, resourceSets } = this.props
+    const { isAdmin, isPoolAdmin, pool, resourceSets } = this.props
     const selectPool = (
       <span className={styles.inlineSelect}>
         <SelectPool onChange={this._selectPool} value={pool} />
@@ -789,9 +793,12 @@ export default class NewVm extends BaseComponent {
         <Row>
           <Col mediumSize={12}>
             <h2>
-              {isAdmin || !isEmpty(resourceSets)
+              {isAdmin ||
+              (isPoolAdmin && process.env.XOA_PLAN > 3) ||
+              !isEmpty(resourceSets)
                 ? _('newVmCreateNewVmOn', {
-                    select: isAdmin ? selectPool : selectResourceSet,
+                    select:
+                      isAdmin || isPoolAdmin ? selectPool : selectResourceSet,
                   })
                 : _('newVmCreateNewVmNoPermission')}
             </h2>
@@ -1184,7 +1191,9 @@ export default class NewVm extends BaseComponent {
   // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const { state: { VIFs } } = this.state
+    const {
+      state: { VIFs },
+    } = this.state
 
     return (
       <Section
@@ -1225,7 +1234,9 @@ export default class NewVm extends BaseComponent {
   // DISKS -----------------------------------------------------------------------
 
   _renderDisks = () => {
-    const { state: { configDrive, existingDisks, VDIs } } = this.state
+    const {
+      state: { configDrive, existingDisks, VDIs },
+    } = this.state
     const { pool } = this.props
     let i = 0
     const resourceSet = this._getResolvedResourceSet()

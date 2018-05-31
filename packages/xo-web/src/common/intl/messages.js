@@ -598,11 +598,15 @@ const messages = {
   vmsTabName: 'Vms',
   srsTabName: 'Srs',
   // ----- Pool advanced tab -----
+  poolEditAll: 'Edit all',
+  poolEditRemoteSyslog: 'Edit remote syslog for all hosts',
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',
   poolHaDisabled: 'Disabled',
-  setpoolMaster: 'Master',
   poolGpuGroups: 'GPU groups',
+  poolRemoteSyslogPlaceHolder: 'Logging host',
+  setpoolMaster: 'Master',
+  syslogRemoteHost: 'Remote syslog host',
   // ----- Pool host tab -----
   hostNameLabel: 'Name',
   hostDescription: 'Description',
@@ -682,6 +686,7 @@ const messages = {
   hostLicenseType: 'Type',
   hostLicenseSocket: 'Socket',
   hostLicenseExpiry: 'Expiry',
+  hostRemoteSyslog: 'Remote syslog',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
   supplementalPackPoolNew: 'Install supplemental pack on every host',
@@ -736,6 +741,7 @@ const messages = {
   patchNameLabel: 'Name',
   patchUpdateButton: 'Install all patches',
   patchDescription: 'Description',
+  patchVersion: 'Version',
   patchApplied: 'Applied date',
   patchSize: 'Size',
   patchStatus: 'Status',
@@ -753,6 +759,15 @@ const messages = {
     'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
   installPatchWarningReject: 'Go to pool',
   installPatchWarningResolve: 'Install',
+  patchRelease: 'Release',
+  updatePluginNotInstalled:
+    'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first.',
+  showChangelog: 'Show changelog',
+  changelog: 'Changelog',
+  changelogPatch: 'Patch',
+  changelogAuthor: 'Author',
+  changelogDate: 'Date',
+  changelogDescription: 'Description',
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
   installPoolPatches: 'Install pool patches',
@@ -1676,6 +1691,7 @@ const messages = {
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
   unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
+  backupRestartVm: "Restart VM's backup",
   clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------
