@@ -685,11 +685,13 @@ export default class NewVm extends BaseComponent {
     const resourceSet = this._getResolvedResourceSet()
     const defaultSr = getObject(store.getState(), template.$pool, resourceSet)
       .default_SR
-    const resourceSetSr = resourceSet.objectsByType.SR
-    const predicate = this._getSrPredicate()
-    const srs = predicate ? filter(resourceSetSr, predicate) : resourceSetSr
 
-    return includes(resolveIds(srs), defaultSr) ? defaultSr : null
+    return includes(
+      resolveIds(filter(resourceSet.objectsByType.SR, this._getSrPredicate())),
+      defaultSr
+    )
+      ? defaultSr
+      : undefined
   }
   _addVdi = () => {
     const { state } = this.state
