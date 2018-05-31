@@ -15,6 +15,7 @@ import {
   pickBy,
   size,
   slice,
+  some,
 } from 'lodash'
 
 import invoke from './invoke'
@@ -147,7 +148,9 @@ export const createFilter = (collection, predicate) =>
     _createCollectionWrapper(
       (collection, predicate) =>
         predicate === false
-          ? isArrayLike(collection) ? EMPTY_ARRAY : EMPTY_OBJECT
+          ? isArrayLike(collection)
+            ? EMPTY_ARRAY
+            : EMPTY_OBJECT
           : predicate
             ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
             : collection
@@ -541,3 +544,9 @@ export const createGetVmDisks = vmSelector =>
       )
     )
   )
+
+export const getIsPoolAdmin = create(
+  create(createGetObjectsOfType('pool'), _createCollectionWrapper(Object.keys)),
+  getCheckPermissions,
+  (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
+)

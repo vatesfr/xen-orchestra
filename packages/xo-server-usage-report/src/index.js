@@ -139,8 +139,8 @@ Handlebars.registerHelper(
     new Handlebars.SafeString(
       isFinite(+value) && +value !== 0
         ? (value = round(value, 2)) > 0
-          ? `(<b style="color: green;">▲ ${value}</b>)`
-          : `(<b style="color: red;">▼ ${String(value).slice(1)}</b>)`
+          ? `(<b style="color: green;">▲ ${value}%</b>)`
+          : `(<b style="color: red;">▼ ${String(value).slice(1)}%</b>)`
         : ''
     )
 )
@@ -270,12 +270,16 @@ async function getHostsStats ({ runningHosts, xo }) {
 
 function getSrsStats (xoObjects) {
   return orderBy(
-    map(filter(xoObjects, { type: 'SR' }), sr => {
+    map(filter(xoObjects, obj => obj.type === 'SR' && obj.size > 0), sr => {
       const total = sr.size / gibPower
       const used = sr.physical_usage / gibPower
+      let name = sr.name_label
+      if (!sr.shared) {
+        name += ` (${find(xoObjects, { id: sr.$container }).name_label})`
+      }
       return {
         uuid: sr.uuid,
-        name: sr.name_label,
+        name,
         total,
         used,
         free: total - used,

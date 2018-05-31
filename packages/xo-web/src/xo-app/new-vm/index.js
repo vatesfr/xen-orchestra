@@ -13,6 +13,7 @@ import store from 'store'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
+import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import {
@@ -30,8 +31,8 @@ import {
   isEmpty,
   join,
   map,
-  slice,
   size,
+  slice,
   sum,
   sumBy,
 } from 'lodash'
@@ -73,12 +74,14 @@ import {
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
   noop,
+  resolveIds,
   resolveResourceSet,
 } from 'utils'
 import {
   createSelector,
   createGetObject,
   createGetObjectsOfType,
+  getIsPoolAdmin,
   getUser,
 } from 'selectors'
 
@@ -86,6 +89,32 @@ import styles from './index.css'
 
 const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
+
+const AVAILABLE_TEMPLATE_VARS = {
+  '{name}': 'templateNameInfo',
+  '%': 'templateIndexInfo',
+}
+
+const showAvailableTemplateVars = () =>
+  alert(
+    _('availableTemplateVarsTitle'),
+    <ul>
+      {map(AVAILABLE_TEMPLATE_VARS, (value, key) => (
+        <li key={key}>{_.keyValue(key, _(value))}</li>
+      ))}
+    </ul>
+  )
+
+const AvailableTemplateVarsInfo = () => (
+  <Tooltip content={_('availableTemplateVarsInfo')}>
+    <a
+      className={classNames('text-info', styles.availableTemplateVars)}
+      onClick={showAvailableTemplateVars}
+    >
+      <Icon icon='info' />
+    </a>
+  </Tooltip>
+)
 
 /* eslint-disable camelcase */
 
@@ -210,6 +239,7 @@ class Vif extends BaseComponent {
 })
 @connectStore(() => ({
   isAdmin: createSelector(getUser, user => user && user.permission === 'admin'),
+  isPoolAdmin: getIsPoolAdmin,
   networks: createGetObjectsOfType('network').sort(),
   pool: createGetObject((_, props) => props.location.query.pool),
   pools: createGetObjectsOfType('pool'),
@@ -241,7 +271,9 @@ export default class NewVm extends BaseComponent {
 
   _getResourceSet = () => {
     const {
-      location: { query: { resourceSet: resourceSetId } },
+      location: {
+        query: { resourceSet: resourceSetId },
+      },
       resourceSets,
     } = this.props
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
@@ -292,7 +324,7 @@ export default class NewVm extends BaseComponent {
       name_label: '',
       name_description: '',
       nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
-      namePattern: '{name}_%',
+      namePattern: '{name}%',
       nbVms: NB_VMS_MIN,
       VDIs: [],
       VIFs: [],
@@ -330,6 +362,7 @@ export default class NewVm extends BaseComponent {
     }
 
     let cloudConfig
+    let cloudConfigs
     if (state.configDrive) {
       const hostname = state.name_label
         .replace(/^\s+|\s+$/g, '')
@@ -344,7 +377,14 @@ export default class NewVm extends BaseComponent {
           ''
         )}`
       } else {
-        cloudConfig = state.customConfig
+        const replacer = this._buildTemplate(state.customConfig)
+        cloudConfig = replacer(this.state.state, 0)
+        if (state.multipleVms) {
+          const seqStart = state.seqStart
+          cloudConfigs = map(state.nameLabels, (_, i) =>
+            replacer(state, i + +seqStart)
+          )
+        }
       }
     } else if (state.template.name_label === 'CoreOS') {
       cloudConfig = state.cloudConfig
@@ -403,7 +443,7 @@ export default class NewVm extends BaseComponent {
     }
 
     return state.multipleVms
-      ? createVms(data, state.nameLabels)
+      ? createVms(data, state.nameLabels, cloudConfigs)
       : createVm(data)
   }
 
@@ -435,7 +475,7 @@ export default class NewVm extends BaseComponent {
           $SR:
             pool || isInResourceSet(vdi.$SR)
               ? vdi.$SR
-              : resourceSet.objectsByType['SR'][0].id,
+              : this._getDefaultSr(template),
         }
       }
     })
@@ -464,7 +504,7 @@ export default class NewVm extends BaseComponent {
       state.name_description === '' || !state.name_descriptionHasChanged
         ? template.name_description || ''
         : state.name_description
-    const replacer = this._buildTemplate()
+    const replacer = this._buildVmsNameTemplate()
     this._setState({
       // infos
       name_label,
@@ -484,7 +524,7 @@ export default class NewVm extends BaseComponent {
         'SSH',
       sshKeys: this.props.userSshKeys && this.props.userSshKeys.length && [0],
       customConfig:
-        '#cloud-config\n#hostname: myhostname\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
+        '#cloud-config\n#hostname: {name}%\n#ssh_authorized_keys:\n#  - ssh-rsa <myKey>\n#packages:\n#  - htop\n',
       // interfaces
       VIFs,
       // disks
@@ -495,7 +535,7 @@ export default class NewVm extends BaseComponent {
           name_description: disk.name_description || 'Created by XO',
           name_label:
             (name_label || 'disk') + '_' + generateReadableRandomString(5),
-          SR: pool ? pool.default_SR : resourceSet.objectsByType['SR'][0].id,
+          SR: this._getDefaultSr(template),
         }
       }),
     })
@@ -592,14 +632,17 @@ export default class NewVm extends BaseComponent {
     })
     return network && network.id
   }
-  _buildTemplate = createSelector(
+
+  _buildVmsNameTemplate = createSelector(
     () => this.state.state.namePattern,
-    namePattern =>
-      buildTemplate(namePattern, {
-        '{name}': state => state.name_label || '',
-        '%': (_, i) => i,
-      })
+    namePattern => this._buildTemplate(namePattern)
   )
+
+  _buildTemplate = pattern =>
+    buildTemplate(pattern, {
+      '{name}': state => state.name_label || '',
+      '%': (_, i) => i,
+    })
 
   _getVgpuTypePredicate = createSelector(
     () => this.props.pool,
@@ -630,7 +673,7 @@ export default class NewVm extends BaseComponent {
     if (nbVmsClamped < nameLabels.length) {
       this._setState({ nameLabels: slice(newNameLabels, 0, nbVmsClamped) })
     } else {
-      const replacer = this._buildTemplate()
+      const replacer = this._buildVmsNameTemplate()
       for (
         let i = +seqStart + nameLabels.length;
         i <= +seqStart + nbVmsClamped - 1;
@@ -645,7 +688,7 @@ export default class NewVm extends BaseComponent {
     const { nameLabels, seqStart } = this.state.state
     const nbVms = nameLabels.length
     const newNameLabels = []
-    const replacer = this._buildTemplate()
+    const replacer = this._buildVmsNameTemplate()
 
     for (let i = +seqStart; i <= +seqStart + nbVms - 1; i++) {
       newNameLabels.push(replacer(this.state.state, i))
@@ -670,9 +713,34 @@ export default class NewVm extends BaseComponent {
     })
     this._reset()
   }
+  _getDefaultSr = template => {
+    const { pool } = this.props
+
+    if (pool !== undefined) {
+      return pool.default_SR
+    }
+
+    if (template === undefined) {
+      return
+    }
+
+    const defaultSr = getObject(store.getState(), template.$pool, true)
+      .default_SR
+
+    return includes(
+      resolveIds(
+        filter(
+          this._getResolvedResourceSet().objectsByType.SR,
+          this._getSrPredicate()
+        )
+      ),
+      defaultSr
+    )
+      ? defaultSr
+      : undefined
+  }
   _addVdi = () => {
     const { state } = this.state
-    const { pool } = this.props
 
     this._setState({
       VDIs: [
@@ -683,7 +751,7 @@ export default class NewVm extends BaseComponent {
             (state.name_label || 'disk') +
             '_' +
             generateReadableRandomString(5),
-          SR: pool && pool.default_SR,
+          SR: this._getDefaultSr(state.template),
           type: 'system',
         },
       ],
@@ -744,7 +812,7 @@ export default class NewVm extends BaseComponent {
   // MAIN ------------------------------------------------------------------------
 
   _renderHeader = () => {
-    const { isAdmin, pool, resourceSets } = this.props
+    const { isAdmin, isPoolAdmin, pool, resourceSets } = this.props
     const selectPool = (
       <span className={styles.inlineSelect}>
         <SelectPool onChange={this._selectPool} value={pool} />
@@ -763,9 +831,12 @@ export default class NewVm extends BaseComponent {
         <Row>
           <Col mediumSize={12}>
             <h2>
-              {isAdmin || !isEmpty(resourceSets)
+              {isAdmin ||
+              (isPoolAdmin && process.env.XOA_PLAN > 3) ||
+              !isEmpty(resourceSets)
                 ? _('newVmCreateNewVmOn', {
-                    select: isAdmin ? selectPool : selectResourceSet,
+                    select:
+                      isAdmin || isPoolAdmin ? selectPool : selectResourceSet,
                   })
                 : _('newVmCreateNewVmNoPermission')}
             </h2>
@@ -1027,7 +1098,11 @@ export default class NewVm extends BaseComponent {
                 value='customConfig'
               />
               &nbsp;
-              <span>{_('newVmCustomConfig')}</span>
+              <span>
+                {_('newVmCustomConfig')}
+                &nbsp;
+                <AvailableTemplateVarsInfo />
+              </span>
               &nbsp;
               <DebounceTextarea
                 className={classNames('form-control', styles.customConfig)}
@@ -1158,7 +1233,9 @@ export default class NewVm extends BaseComponent {
   // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const { state: { VIFs } } = this.state
+    const {
+      state: { VIFs },
+    } = this.state
 
     return (
       <Section
@@ -1199,7 +1276,9 @@ export default class NewVm extends BaseComponent {
   // DISKS -----------------------------------------------------------------------
 
   _renderDisks = () => {
-    const { state: { configDrive, existingDisks, VDIs } } = this.state
+    const {
+      state: { configDrive, existingDisks, VDIs },
+    } = this.state
     const { pool } = this.props
     let i = 0
     const resourceSet = this._getResolvedResourceSet()
@@ -1481,6 +1560,8 @@ export default class NewVm extends BaseComponent {
                 )}
                 value={namePattern}
               />
+              &nbsp;
+              <AvailableTemplateVarsInfo />
             </Item>
             <Item label={_('newVmFirstIndex')}>
               <DebounceInput
@@ -1490,6 +1571,16 @@ export default class NewVm extends BaseComponent {
                 type='number'
                 value={seqStart}
               />
+            </Item>
+            <Item>
+              <Tooltip content={_('newVmNameRefresh')}>
+                <a
+                  className={styles.refreshNames}
+                  onClick={this._updateNameLabels}
+                >
+                  <Icon icon='refresh' />
+                </a>
+              </Tooltip>
             </Item>
             <Item className='input-group'>
               <DebounceInput
@@ -1508,16 +1599,6 @@ export default class NewVm extends BaseComponent {
                   </Button>
                 </Tooltip>
               </span>
-            </Item>
-            <Item>
-              <Tooltip content={_('newVmNameRefresh')}>
-                <a
-                  className={styles.refreshNames}
-                  onClick={this._updateNameLabels}
-                >
-                  <Icon icon='refresh' />
-                </a>
-              </Tooltip>
             </Item>
             {multipleVms && (
               <LineItem>

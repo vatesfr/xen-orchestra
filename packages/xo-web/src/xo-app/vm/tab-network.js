@@ -218,7 +218,6 @@ class VifAllowedIps extends BaseComponent {
                     containerPredicate={this._getIsNetworkAllowed()}
                     onChange={this._addIp}
                     predicate={this._getIpPredicate()}
-                    required
                     resourceSetId={resourceSet}
                   />
                 ) : (
@@ -227,7 +226,6 @@ class VifAllowedIps extends BaseComponent {
                     containerPredicate={this._getIsNetworkAllowed()}
                     onChange={this._addIp}
                     predicate={this._getIpPredicate()}
-                    required
                   />
                 )}
               </span>

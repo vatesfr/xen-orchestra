@@ -78,13 +78,26 @@ const COLUMNS = [
         .sort()
       const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
       const getVms = createGetObjectsOfType('VM').pick(getVmIds)
+      const getVmControllers = createGetObjectsOfType('VM-controller').pick(
+        getVmIds
+      )
       const getVmSnapshots = createGetObjectsOfType('VM-snapshot').pick(
+        getVmIds
+      )
+      const getVmTemplates = createGetObjectsOfType('VM-template').pick(
         getVmIds
       )
       const getAllVms = createSelector(
         getVms,
+        getVmControllers,
         getVmSnapshots,
-        (vms, vmSnapshots) => ({ ...vms, ...vmSnapshots })
+        getVmTemplates,
+        (vms, vmControllers, vmSnapshots, vmTemplates) => ({
+          ...vms,
+          ...vmControllers,
+          ...vmSnapshots,
+          ...vmTemplates,
+        })
       )
 
       return (state, props) => ({
@@ -105,12 +118,18 @@ const COLUMNS = [
               return null
             }
 
-            const link =
-              vm.type === 'VM'
-                ? `/vms/${vm.id}`
-                : vm.$snapshot_of === undefined
+            const type = vm.type
+            let link
+            if (type === 'VM') {
+              link = `/vms/${vm.id}`
+            } else if (type === 'VM-template') {
+              link = `/home?s=${vm.id}&t=VM-template`
+            } else {
+              link =
+                vm.$snapshot_of === undefined
                   ? '/dashboard/health'
                   : `/vms/${vm.$snapshot_of}/snapshots`
+            }
 
             return (
               <Row className={index > 0 && 'mt-1'}>

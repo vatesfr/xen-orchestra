@@ -9,6 +9,7 @@ import {
   assign,
   filter,
   forEach,
+  get,
   includes,
   isEmpty,
   isEqual,
@@ -576,6 +577,15 @@ export const editHost = (host, props) =>
 export const fetchHostStats = (host, granularity) =>
   _call('host.stats', { host: resolveId(host), granularity })
 
+export const setRemoteSyslogHost = (host, syslogDestination) =>
+  _call('host.setRemoteSyslogHost', {
+    id: resolveId(host),
+    syslogDestination,
+  })
+
+export const setRemoteSyslogHosts = (hosts, syslogDestination) =>
+  Promise.all(map(hosts, host => setRemoteSyslogHost(host, syslogDestination)))
+
 export const restartHost = (host, force = false) =>
   confirm({
     title: _('restartHostModalTitle'),
@@ -655,14 +665,26 @@ export const enableHost = host => _call('host.enable', { id: resolveId(host) })
 export const disableHost = host =>
   _call('host.disable', { id: resolveId(host) })
 
-export const getHostMissingPatches = host =>
-  _call('host.listMissingPatches', { host: resolveId(host) }).then(
-    patches =>
-      // Hide paid patches to XS-free users
-      host.license_params.sku_type !== 'free'
-        ? patches
-        : filter(patches, ['paid', false])
-  )
+const missingUpdatePluginByHost = { __proto__: null }
+export const getHostMissingPatches = async host => {
+  const hostId = resolveId(host)
+  if (host.productBrand !== 'XCP-ng') {
+    const patches = await _call('host.listMissingPatches', { host: hostId })
+    // Hide paid patches to XS-free users
+    return host.license_params.sku_type !== 'free'
+      ? patches
+      : filter(patches, { paid: false })
+  }
+  if (missingUpdatePluginByHost[hostId]) {
+    return null
+  }
+  try {
+    return await _call('host.listMissingPatches', { host: hostId })
+  } catch (_) {
+    missingUpdatePluginByHost[hostId] = true
+    return null
+  }
+}
 
 export const emergencyShutdownHost = host =>
   confirm({
@@ -1107,7 +1129,7 @@ export const migrateVms = vms =>
 
 export const createVm = args => _call('vm.create', args)
 
-export const createVms = (args, nameLabels) =>
+export const createVms = (args, nameLabels, cloudConfigs) =>
   confirm({
     title: _('newVmCreateVms'),
     body: _('newVmCreateVmsConfirm', { nbVms: nameLabels.length }),
@@ -1115,8 +1137,15 @@ export const createVms = (args, nameLabels) =>
     () =>
       Promise.all(
         map(nameLabels, (
-          name_label // eslint-disable-line camelcase
-        ) => _call('vm.create', { ...args, name_label }))
+          name_label, // eslint-disable-line camelcase
+          i
+        ) =>
+          _call('vm.create', {
+            ...args,
+            name_label,
+            cloudConfig: get(cloudConfigs, i),
+          })
+        )
       ),
     noop
   )

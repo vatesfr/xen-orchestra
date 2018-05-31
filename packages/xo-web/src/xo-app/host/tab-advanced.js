@@ -5,20 +5,22 @@ import React from 'react'
 import TabButton from 'tab-button'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
-import { compareVersions, connectStore } from 'utils'
+import { Text } from 'editable'
 import { Toggle } from 'form'
+import { compareVersions, connectStore } from 'utils'
+import { FormattedRelative, FormattedTime } from 'react-intl'
+import { Container, Row, Col } from 'grid'
+import { forEach, map, noop } from 'lodash'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import {
   enableHost,
   detachHost,
   disableHost,
   forgetHost,
+  setRemoteSyslogHost,
   restartHost,
   installSupplementalPack,
 } from 'xo'
-import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType, createSelector } from 'selectors'
-import { forEach, map, noop } from 'lodash'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 
@@ -66,6 +68,7 @@ export default class extends Component {
       return uniqPacks
     }
   )
+  _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
   render () {
     const { host, pcis, pgpus } = this.props
@@ -181,6 +184,15 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostIscsiName')}</th>
                   <Copiable tagName='td'>{host.iSCSI_name}</Copiable>
+                </tr>
+                <tr>
+                  <th>{_('hostRemoteSyslog')}</th>
+                  <td>
+                    <Text
+                      value={host.logging.syslog_destination || ''}
+                      onChange={this._setRemoteSyslogHost}
+                    />
+                  </td>
                 </tr>
               </tbody>
             </table>

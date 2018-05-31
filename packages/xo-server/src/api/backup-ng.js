@@ -1,4 +1,5 @@
 import { basename } from 'path'
+import { isEmpty, pickBy } from 'lodash'
 
 import { safeDateFormat } from '../utils'
 
@@ -117,8 +118,8 @@ getJob.params = {
   },
 }
 
-export async function runJob ({ id, schedule }) {
-  return this.runJobSequence([id], await this.getSchedule(schedule))
+export async function runJob ({ id, schedule, vm }) {
+  return this.runJobSequence([id], await this.getSchedule(schedule), vm)
 }
 
 runJob.permission = 'admin'
@@ -130,12 +131,17 @@ runJob.params = {
   schedule: {
     type: 'string',
   },
+  vm: {
+    type: 'string',
+    optional: true,
+  },
 }
 
 // -----------------------------------------------------------------------------
 
-export function getAllLogs () {
-  return this.getBackupNgLogs()
+export async function getAllLogs (filter) {
+  const logs = await this.getBackupNgLogs()
+  return isEmpty(filter) ? logs : pickBy(logs, filter)
 }
 
 getAllLogs.permission = 'admin'

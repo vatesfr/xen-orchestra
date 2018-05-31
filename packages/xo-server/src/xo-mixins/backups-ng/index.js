@@ -3,20 +3,11 @@
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
 import defer from 'golike-defer'
+import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
-import {
-  forEach,
-  groupBy,
-  isEmpty,
-  last,
-  mapValues,
-  noop,
-  some,
-  sum,
-  values,
-} from 'lodash'
+import { isEmpty, last, mapValues, noop, some, sum, values } from 'lodash'
 import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
@@ -42,10 +33,11 @@ import {
 
 import { translateLegacyJob } from './migration'
 
-type Mode = 'full' | 'delta'
-type ReportWhen = 'always' | 'failure' | 'never'
+export type Mode = 'full' | 'delta'
+export type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
+  concurrency?: number,
   deleteFirst?: boolean,
   exportRetention?: number,
   reportWhen?: ReportWhen,
@@ -92,33 +84,6 @@ type MetadataFull = {|
 |}
 type Metadata = MetadataDelta | MetadataFull
 
-type ConsolidatedJob = {|
-  duration?: number,
-  end?: number,
-  error?: Object,
-  id: string,
-  jobId: string,
-  mode: Mode,
-  start: number,
-  type: 'backup' | 'call',
-  userId: string,
-|}
-type ConsolidatedTask = {|
-  data?: Object,
-  duration?: number,
-  end?: number,
-  parentId: string,
-  message: string,
-  result?: Object,
-  start: number,
-  status: 'canceled' | 'failure' | 'success',
-  taskId: string,
-|}
-type ConsolidatedBackupNgLog = {
-  roots: Array<ConsolidatedJob>,
-  [parentId: string]: Array<ConsolidatedTask>,
-}
-
 const compareSnapshotTime = (a: Vm, b: Vm): number =>
   a.snapshot_time < b.snapshot_time ? -1 : 1
 
@@ -132,7 +97,9 @@ const compareTimestamp = (a: Metadata, b: Metadata): number =>
 const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
   entries === undefined
     ? []
-    : --retention > 0 ? entries.slice(0, -retention) : entries
+    : --retention > 0
+      ? entries.slice(0, -retention)
+      : entries
 
 const defaultSettings: Settings = {
   deleteFirst: false,
@@ -161,6 +128,7 @@ const getSetting = (
 const BACKUP_DIR = 'xo-vm-backups'
 const getVmBackupDir = (uuid: string) => `${BACKUP_DIR}/${uuid}`
 
+const isHiddenFile = (filename: string) => filename[0] === '.'
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
 
@@ -333,7 +301,9 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
         result:
           result === undefined
             ? value
-            : typeof result === 'function' ? result(value) : result,
+            : typeof result === 'function'
+              ? result(value)
+              : result,
         status: 'success',
         taskId,
       })
@@ -372,7 +342,9 @@ const wrapTaskFn = <T>(
         result:
           result === undefined
             ? value
-            : typeof result === 'function' ? result(value) : result,
+            : typeof result === 'function'
+              ? result(value)
+              : result,
         status: 'success',
         taskId,
       })
@@ -434,6 +406,7 @@ export default class BackupNg {
     app.on('start', () => {
       const executor: Executor = async ({
         cancelToken,
+        data: vmId,
         job: job_,
         logger,
         runJobId,
@@ -444,18 +417,21 @@ export default class BackupNg {
         }
 
         const job: BackupJob = (job_: any)
-        const vms: $Dict<Vm> = app.getObjects({
-          filter: createPredicate({
-            type: 'VM',
-            ...job.vms,
-          }),
-        })
-        if (isEmpty(vms)) {
-          throw new Error('no VMs match this pattern')
+        let vms: $Dict<Vm>
+        if (vmId === undefined) {
+          vms = app.getObjects({
+            filter: createPredicate({
+              type: 'VM',
+              ...job.vms,
+            }),
+          })
+          if (isEmpty(vms)) {
+            throw new Error('no VMs match this pattern')
+          }
         }
         const jobId = job.id
         const scheduleId = schedule.id
-        await asyncMap(vms, async vm => {
+        let handleVm = async vm => {
           const { name_label: name, uuid } = vm
           const taskId: string = logger.notice(
             `Starting backup of ${name}. (${jobId})`,
@@ -507,7 +483,21 @@ export default class BackupNg {
                 : serializeError(error),
             })
           }
-        })
+        }
+
+        if (vmId !== undefined) {
+          return handleVm(await app.getObject(vmId))
+        }
+
+        const concurrency: number | void = getSetting(
+          job.settings,
+          'concurrency',
+          ''
+        )
+        if (concurrency !== undefined) {
+          handleVm = limitConcurrency(concurrency)(handleVm)
+        }
+        await asyncMap(vms, handleVm)
       }
       app.registerJobExecutor('backup', executor)
     })
@@ -1086,11 +1076,16 @@ export default class BackupNg {
                       let parentPath
                       if (isDelta) {
                         const vdiDir = dirname(path)
-                        const parent = (await handler.list(vdiDir))
-                          .filter(isVhd)
+                        parentPath = (await handler.list(vdiDir, {
+                          filter: filename =>
+                            !isHiddenFile(filename) && isVhd(filename),
+                          prependDir: true,
+                        }))
                           .sort()
                           .pop()
-                        parentPath = `${vdiDir}/${parent}`
+
+                        // ensure parent exists and is a valid VHD
+                        await new Vhd(handler, parentPath).readHeaderAndFooter()
                       }
 
                       await writeStream(
@@ -1304,63 +1299,5 @@ export default class BackupNg {
     }
 
     return backups.sort(compareTimestamp)
-  }
-
-  async getBackupNgLogs (runId?: string): Promise<ConsolidatedBackupNgLog> {
-    const rawLogs = await this._app.getLogs('jobs')
-
-    const logs: $Dict<ConsolidatedJob & ConsolidatedTask> = {}
-    forEach(rawLogs, (log, id) => {
-      const { data, time, message } = log
-      const { event } = data
-      delete data.event
-
-      switch (event) {
-        case 'job.start':
-          if (data.type === 'backup' && (runId === undefined || runId === id)) {
-            logs[id] = {
-              ...data,
-              id,
-              start: time,
-            }
-          }
-          break
-        case 'job.end':
-          const job = logs[data.runJobId]
-          if (job !== undefined) {
-            job.end = time
-            job.duration = time - job.start
-            job.error = data.error
-          }
-          break
-        case 'task.start':
-          if (logs[data.parentId] !== undefined) {
-            logs[id] = {
-              ...data,
-              start: time,
-              message,
-            }
-          }
-          break
-        case 'task.end':
-          const task = logs[data.taskId]
-          if (task !== undefined) {
-            // work-around
-            if (
-              time === task.start &&
-              (message === 'merge' || message === 'tranfer')
-            ) {
-              delete logs[data.taskId]
-            } else {
-              task.status = data.status
-              task.taskId = data.taskId
-              task.result = data.result
-              task.end = time
-              task.duration = time - task.start
-            }
-          }
-      }
-    })
-    return groupBy(logs, log => log.parentId || 'roots')
   }
 }

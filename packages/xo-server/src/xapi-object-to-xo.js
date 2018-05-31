@@ -146,6 +146,7 @@ const TRANSFORMS = {
       license_params: obj.license_params,
       license_server: obj.license_server,
       license_expiry: toTimestamp(obj.license_params.expiry),
+      logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
       memory: (function () {
@@ -186,9 +187,14 @@ const TRANSFORMS = {
           }
         }),
       agentStartTime: toTimestamp(otherConfig.agent_start_time),
-      rebootRequired: !isEmpty(obj.updates_requiring_reboot),
+      rebootRequired:
+        softwareVersion.product_brand === 'XCP-ng'
+          ? toTimestamp(otherConfig.boot_time) <
+            +otherConfig.rpm_patch_installation_time
+          : !isEmpty(obj.updates_requiring_reboot),
       tags: obj.tags,
       version: softwareVersion.product_version,
+      productBrand: softwareVersion.product_brand,
 
       // TODO: dedupe.
       PIFs: link(obj, 'PIFs'),
@@ -227,11 +233,15 @@ const TRANSFORMS = {
         return
       }
 
-      if (!guestMetrics) {
+      if (guestMetrics === undefined) {
         return false
       }
 
       const { major, minor } = guestMetrics.PV_drivers_version
+
+      if (major === undefined || minor === undefined) {
+        return false
+      }
 
       return {
         major,

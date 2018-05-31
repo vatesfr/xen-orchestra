@@ -426,6 +426,14 @@ export default class Xapi extends XapiBase {
     await this.call('host.restart_agent', this.getObject(hostId).$ref)
   }
 
+  async setRemoteSyslogHost (hostId, syslogDestination) {
+    const host = this.getObject(hostId)
+    await this.call('host.set_logging', host.$ref, {
+      syslog_destination: syslogDestination,
+    })
+    await this.call('host.syslog_reconfigure', host.$ref)
+  }
+
   async shutdownHost (hostId, force = false) {
     const host = this.getObject(hostId)
 
@@ -816,12 +824,14 @@ export default class Xapi extends XapiBase {
     } = {}
   ): Promise<DeltaVmExport> {
     let vm = this.getObject(vmId)
-    if (!bypassVdiChainsCheck) {
-      this._assertHealthyVdiChains(vm)
-    }
+
     // do not use the snapshot name in the delta export
     const exportedNameLabel = vm.name_label
     if (!vm.is_a_snapshot) {
+      if (!bypassVdiChainsCheck) {
+        this._assertHealthyVdiChains(vm)
+      }
+
       vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
       $defer.onFailure(() => this._deleteVm(vm))
     }
@@ -958,7 +968,9 @@ export default class Xapi extends XapiBase {
         )
 
         if (!baseVm) {
-          throw new Error('could not find the base VM')
+          throw new Error(
+            `could not find the base VM (copy of ${remoteBaseVmUuid})`
+          )
         }
       }
     }
@@ -1142,7 +1154,9 @@ export default class Xapi extends XapiBase {
         vdis[vdi.$ref] =
           mapVdisSrs && mapVdisSrs[vdi.$id]
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
-            : sr !== undefined ? hostXapi.getObject(sr).$ref : defaultSr.$ref // Will error if there are no default SR.
+            : sr !== undefined
+              ? hostXapi.getObject(sr).$ref
+              : defaultSr.$ref // Will error if there are no default SR.
       }
     }
 
