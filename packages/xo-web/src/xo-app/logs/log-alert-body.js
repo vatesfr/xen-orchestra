@@ -64,11 +64,15 @@ const UNHEALTHY_VDI_CHAIN_LINK =
 const ALL_FILTER_OPTION = { label: 'allTasks', value: 'all' }
 const FAILURE_FILTER_OPTION = { label: 'taskFailed', value: 'failure' }
 const PENDING_FILTER_OPTION = { label: 'taskStarted', value: 'pending' }
+const INTERRUPTED_FILTER_OPTION = {
+  label: 'taskInterrupted',
+  value: 'interrupted',
+}
 const TASK_FILTER_OPTIONS = [
   ALL_FILTER_OPTION,
   FAILURE_FILTER_OPTION,
   PENDING_FILTER_OPTION,
-  { label: 'taskInterrupted', value: 'interrupted' },
+  INTERRUPTED_FILTER_OPTION,
   { label: 'taskSkipped', value: 'skipped' },
   { label: 'taskSuccess', value: 'success' },
 ]
@@ -88,6 +92,10 @@ const getInitialFilter = tasks => {
 
   if (!isEmptyFilter('failure')) {
     return FAILURE_FILTER_OPTION
+  }
+
+  if (!isEmptyFilter('interrupted')) {
+    return INTERRUPTED_FILTER_OPTION
   }
 
   return ALL_FILTER_OPTION
