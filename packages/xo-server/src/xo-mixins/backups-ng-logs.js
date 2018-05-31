@@ -70,7 +70,7 @@ export default {
               id,
               message,
               start: time,
-              status: 'pending',
+              status: parent.status,
             })
           )
         }
@@ -97,7 +97,7 @@ export default {
               },
               id,
               start: time,
-              status: 'pending',
+              status: parent.status,
             })
           )
         }
