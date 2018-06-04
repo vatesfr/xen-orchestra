@@ -266,6 +266,7 @@ const messages = {
   allJobCalls: 'All',
   job: 'Job',
   jobModalTitle: 'Job {job}',
+  backupNgJobModalTitle: '{mode}Job {job}',
   jobId: 'ID',
   jobType: 'Type',
   jobName: 'Name',
