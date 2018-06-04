@@ -11,6 +11,8 @@
 
 ### Bugs
 
+- Nagios plugin [#2991](https://github.com/vatesfr/xen-orchestra/issues/2991)
+
 ## **5.19.0** (2018-05-01)
 
 ### Enhancements
