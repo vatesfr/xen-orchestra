@@ -407,7 +407,7 @@ class BackupReportsXoPlugin {
         }),
       xo.sendPassiveCheck !== undefined &&
         xo.sendPassiveCheck({
-          nagiosStatus,
+          status: nagiosStatus,
           message: nagiosMarkdown,
         }),
     ])
