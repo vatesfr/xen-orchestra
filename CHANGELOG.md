@@ -12,6 +12,7 @@
 ### Bugs
 
 - update the xentools search item to return the version number of installed xentools [#3015](https://github.com/vatesfr/xen-orchestra/issues/3015)
+- Fix Nagios backup reports [#2991](https://github.com/vatesfr/xen-orchestra/issues/2991)
 
 ## **5.19.0** (2018-05-01)
 
