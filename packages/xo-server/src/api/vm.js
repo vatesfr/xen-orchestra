@@ -25,8 +25,10 @@ function checkPermissionOnSrs (vm, permission = 'operate') {
     if (vbd.is_cd_drive || !vdiId) {
       return
     }
-
-    return permissions.push([this.getObject(vdiId, 'VDI').$SR, permission])
+    return permissions.push([
+      this.getObject(vdiId, ['VDI', 'VDI-snapshot']).$SR,
+      permission,
+    ])
   })
 
   return this.hasPermissions(this.session.get('user_id'), permissions).then(
@@ -661,8 +663,7 @@ clone.params = {
 }
 
 clone.resolve = {
-  // TODO: is it necessary for snapshots?
-  vm: ['id', 'VM', 'administrate'],
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate'],
 }
 
 // -------------------------------------------------------------------
