@@ -124,7 +124,7 @@ class BackupReportsXoPlugin {
 
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
     const formatDate = createDateFormater(timezone)
-    if (log.result !== undefined) {
+    if (log.status === 'failure' && log.result !== undefined) {
       let markdown = [
         `##  Global status: ${log.status}`,
         '',
