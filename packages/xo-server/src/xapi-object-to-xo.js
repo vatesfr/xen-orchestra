@@ -244,8 +244,9 @@ const TRANSFORMS = {
       }
 
       return {
-        major,
-        minor,
+        major: +major,
+        minor: +minor,
+        version: +`${major}.${minor}`,
       }
     })()
 
