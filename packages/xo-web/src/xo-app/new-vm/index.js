@@ -272,7 +272,9 @@ export default class NewVm extends BaseComponent {
 
   _getResourceSet = () => {
     const {
-      location: { query: { resourceSet: resourceSetId } },
+      location: {
+        query: { resourceSet: resourceSetId },
+      },
       resourceSets,
     } = this.props
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
@@ -628,10 +630,9 @@ export default class NewVm extends BaseComponent {
       return
     }
     if (resourceSet) {
-      const network = filter(resourceSet.objectsByType.network, {
+      return find(resourceSet.objectsByType.network, {
         $pool: template.$pool,
       })
-      return !isEmpty(network) && network[0].id
     }
     const network = find(this._getPoolNetworks(), network => {
       const pif = getObject(store.getState(), network.PIFs[0])
@@ -1240,7 +1241,9 @@ export default class NewVm extends BaseComponent {
   // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const { state: { VIFs } } = this.state
+    const {
+      state: { VIFs },
+    } = this.state
 
     return (
       <Section
@@ -1281,7 +1284,9 @@ export default class NewVm extends BaseComponent {
   // DISKS -----------------------------------------------------------------------
 
   _renderDisks = () => {
-    const { state: { configDrive, existingDisks, VDIs } } = this.state
+    const {
+      state: { configDrive, existingDisks, VDIs },
+    } = this.state
     const { pool } = this.props
     let i = 0
     const resourceSet = this._getResolvedResourceSet()
