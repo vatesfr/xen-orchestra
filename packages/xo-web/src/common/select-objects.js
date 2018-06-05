@@ -859,8 +859,8 @@ export class SelectResourceSetsNetwork extends React.PureComponent {
 
   _getNetworks = createSelector(
     () => this.props.resourceSet,
-    ({ objectsByType }) => {
-      const { predicate } = this.props
+    () => this.props.predicate,
+    ({ objectsByType }, predicate) => {
       const networks = objectsByType['network']
       return sortBy(
         predicate ? filter(networks, predicate) : networks,

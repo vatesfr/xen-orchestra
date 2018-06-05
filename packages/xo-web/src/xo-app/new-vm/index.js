@@ -155,6 +155,11 @@ class Vif extends BaseComponent {
     () => this.props.vif,
     vif => ipPool => includes(ipPool.networks, vif.network)
   )
+  _getNetworkPredicate = createSelector(
+    () => this.props.template,
+    template => network =>
+      template !== undefined && template.$pool === network.$pool
+  )
 
   render () {
     const {
@@ -192,6 +197,7 @@ class Vif extends BaseComponent {
             ) : (
               <SelectResourceSetsNetwork
                 onChange={onChangeNetwork}
+                predicate={this._getNetworkPredicate()}
                 resourceSet={resourceSet}
                 value={vif.network}
               />
@@ -271,9 +277,7 @@ export default class NewVm extends BaseComponent {
 
   _getResourceSet = () => {
     const {
-      location: {
-        query: { resourceSet: resourceSetId },
-      },
+      location: { query: { resourceSet: resourceSetId } },
       resourceSets,
     } = this.props
     return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
@@ -487,11 +491,11 @@ export default class NewVm extends BaseComponent {
         network:
           pool || isInResourceSet(vif.$network)
             ? vif.$network
-            : resourceSet.objectsByType['network'][0].id,
+            : this._getDefaultNetworkId(template),
       })
     })
     if (VIFs.length === 0) {
-      const networkId = this._getDefaultNetworkId()
+      const networkId = this._getDefaultNetworkId(template)
       VIFs.push({
         network: networkId,
       })
@@ -620,10 +624,16 @@ export default class NewVm extends BaseComponent {
         )
     }
   )
-  _getDefaultNetworkId = () => {
+  _getDefaultNetworkId = template => {
     const resourceSet = this._getResolvedResourceSet()
+
+    if (template === undefined) {
+      return
+    }
     if (resourceSet) {
-      const { network } = resourceSet.objectsByType
+      const network = filter(resourceSet.objectsByType.network, {
+        $pool: template.$pool,
+      })
       return !isEmpty(network) && network[0].id
     }
     const network = find(this._getPoolNetworks(), network => {
@@ -765,13 +775,13 @@ export default class NewVm extends BaseComponent {
     })
   }
   _addInterface = () => {
-    const networkId = this._getDefaultNetworkId()
+    const { state } = this.state
 
     this._setState({
       VIFs: [
-        ...this.state.state.VIFs,
+        ...state.VIFs,
         {
-          network: networkId,
+          network: this._getDefaultNetworkId(state.template),
         },
       ],
     })
@@ -1233,9 +1243,8 @@ export default class NewVm extends BaseComponent {
   // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const {
-      state: { VIFs },
-    } = this.state
+    const { state } = this.state
+    const { VIFs } = state
 
     return (
       <Section
@@ -1258,6 +1267,7 @@ export default class NewVm extends BaseComponent {
                 pool={this.props.pool}
                 resourceSet={this._getResolvedResourceSet()}
                 vif={vif}
+                template={state.template}
               />
               {index < VIFs.length - 1 && <hr />}
             </div>
@@ -1276,9 +1286,7 @@ export default class NewVm extends BaseComponent {
   // DISKS -----------------------------------------------------------------------
 
   _renderDisks = () => {
-    const {
-      state: { configDrive, existingDisks, VDIs },
-    } = this.state
+    const { state: { configDrive, existingDisks, VDIs } } = this.state
     const { pool } = this.props
     let i = 0
     const resourceSet = this._getResolvedResourceSet()
