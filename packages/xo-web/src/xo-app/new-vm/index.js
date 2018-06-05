@@ -155,11 +155,6 @@ class Vif extends BaseComponent {
     () => this.props.vif,
     vif => ipPool => includes(ipPool.networks, vif.network)
   )
-  _getNetworkPredicate = createSelector(
-    () => this.props.template,
-    template => network =>
-      template !== undefined && template.$pool === network.$pool
-  )
 
   render () {
     const {
@@ -197,7 +192,7 @@ class Vif extends BaseComponent {
             ) : (
               <SelectResourceSetsNetwork
                 onChange={onChangeNetwork}
-                predicate={this._getNetworkPredicate()}
+                predicate={networkPredicate}
                 resourceSet={resourceSet}
                 value={vif.network}
               />
@@ -495,9 +490,8 @@ export default class NewVm extends BaseComponent {
       })
     })
     if (VIFs.length === 0) {
-      const networkId = this._getDefaultNetworkId(template)
       VIFs.push({
-        network: networkId,
+        network: this._getDefaultNetworkId(template),
       })
     }
     const name_label =
@@ -590,8 +584,11 @@ export default class NewVm extends BaseComponent {
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => network =>
-      isInResourceSet(network.id) || isInPool(network)
+    () => this.state.state.template,
+    (isInPool, isInResourceSet, template) => network =>
+      (isInResourceSet(network.id) || isInPool(network)) &&
+      template !== undefined &&
+      template.$pool === network.$pool
   )
   _getPoolNetworks = createSelector(
     () => this.props.networks,
@@ -1243,8 +1240,7 @@ export default class NewVm extends BaseComponent {
   // INTERFACES ------------------------------------------------------------------
 
   _renderInterfaces = () => {
-    const { state } = this.state
-    const { VIFs } = state
+    const { state: { VIFs } } = this.state
 
     return (
       <Section
@@ -1267,7 +1263,6 @@ export default class NewVm extends BaseComponent {
                 pool={this.props.pool}
                 resourceSet={this._getResolvedResourceSet()}
                 vif={vif}
-                template={state.template}
               />
               {index < VIFs.length - 1 && <hr />}
             </div>
