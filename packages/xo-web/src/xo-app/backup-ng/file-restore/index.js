@@ -206,7 +206,7 @@ export default class Restore extends Component {
 
   render () {
     return (
-      <Upgrade place='restoreBackup' available={2}>
+      <Upgrade place='restoreBackup' available={4}>
         <div>
           <div className='mb-1'>
             <ActionButton
