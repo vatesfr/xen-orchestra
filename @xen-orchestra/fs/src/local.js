@@ -52,9 +52,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _read (file, buffer, position) {
     const needsClose = typeof file === 'string'
-    if (needsClose) {
-      file = await fs.open(this._getFilePath(file), 'r')
-    }
+    file = needsClose ? await fs.open(this._getFilePath(file), 'r') : file.fd
     try {
       return await fs.read(
         file,

@@ -1,5 +1,4 @@
 import assert from 'assert'
-import getStream from 'get-stream'
 import { fromEvent } from 'promise-toolbox'
 
 import constantStream from './_constant-stream'
@@ -93,20 +92,14 @@ export default class Vhd {
   // Read functions.
   // =================================================================
 
-  _readStream (start, n) {
-    return this._handler.createReadStream(this._path, {
-      start,
-      end: start + n - 1, // end is inclusive
-    })
-  }
-
-  _read (start, n) {
-    return this._readStream(start, n)
-      .then(getStream.buffer)
-      .then(buf => {
-        assert.equal(buf.length, n)
-        return buf
-      })
+  async _read (start, n) {
+    const { bytesRead, buffer } = await this._handler.read(
+      this._path,
+      Buffer.alloc(n),
+      start
+    )
+    assert.equal(bytesRead, n)
+    return buffer
   }
 
   containsBlock (id) {
@@ -336,11 +329,11 @@ export default class Vhd {
           `freeFirstBlockSpace: move first block ${firstSector} -> ${newFirstSector}`
         )
         // copy the first block at the end
-        const stream = await this._readStream(
+        const block = await this._read(
           sectorsToBytes(firstSector),
           fullBlockSize
         )
-        await this._write(stream, sectorsToBytes(newFirstSector))
+        await this._write(block, sectorsToBytes(newFirstSector))
         await this._setBatEntry(first, newFirstSector)
         await this.writeFooter(true)
         spaceNeededBytes -= this.fullBlockSize
