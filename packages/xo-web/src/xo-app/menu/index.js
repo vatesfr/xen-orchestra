@@ -2,12 +2,11 @@ import _ from 'intl'
 import classNames from 'classnames'
 import Component from 'base-component'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
-import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { UpdateTag } from '../xoa/update'
+import { filter, isEmpty, map } from 'lodash'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
@@ -15,7 +14,6 @@ import {
   subscribeJobs,
   subscribePermissions,
   subscribeResourceSets,
-  subscribeSchedules,
 } from 'xo'
 import {
   createFilter,
@@ -52,7 +50,6 @@ const returnTrue = () => true
   jobs: subscribeJobs,
   permissions: subscribePermissions,
   resourceSets: subscribeResourceSets,
-  schedules: subscribeSchedules,
 })
 export default class Menu extends Component {
   componentWillMount () {
@@ -119,7 +116,6 @@ export default class Menu extends Component {
       pools,
       nHosts,
       srs,
-      schedules,
     } = this.props
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = this._getNoResourceSets()
@@ -186,7 +182,9 @@ export default class Menu extends Component {
         icon: 'menu-self-service',
         label: 'selfServicePage',
       },
-      !(isEmpty(jobs) || isEmpty(schedules)) &&
+      !(
+        isEmpty(jobs) || isEmpty(filter(jobs, job => job.key !== 'genericTask'))
+      ) &&
         isAdmin && {
           to: '/backup/overview',
           icon: 'menu-backup',
@@ -196,11 +194,6 @@ export default class Menu extends Component {
               to: '/backup/overview',
               icon: 'menu-backup-overview',
               label: 'backupOverviewPage',
-            },
-            {
-              to: '/backup-ng/new',
-              icon: 'menu-backup-new',
-              label: 'backupNewPage',
             },
             {
               to: '/backup/restore',
