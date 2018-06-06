@@ -124,7 +124,10 @@ class BackupReportsXoPlugin {
 
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
     const formatDate = createDateFormater(timezone)
-    if (log.status === 'failure' && log.result !== undefined) {
+    if (
+      (log.status === 'failure' || log.status === 'skipped') &&
+      log.result !== undefined
+    ) {
       let markdown = [
         `##  Global status: ${log.status}`,
         '',
@@ -237,7 +240,7 @@ class BackupReportsXoPlugin {
         }
 
         forEach(subTaskLog.tasks, operationLog => {
-          let operationInfoText
+          const operationInfoText = []
           if (operationLog.status === 'success') {
             const size = operationLog.result.size
             if (operationLog.message === 'merge') {
@@ -246,17 +249,17 @@ class BackupReportsXoPlugin {
               globalTransferSize += size
             }
 
-            operationInfoText = [
+            operationInfoText.push(
               `      - **Size**: ${formatSize(size)}`,
               `      - **Speed**: ${formatSpeed(
                 size,
                 operationLog.end - operationLog.start
-              )}`,
-            ]
+              )}`
+            )
           } else {
-            operationInfoText = [
-              `      - **Error**: ${get(operationLog.result, 'message')}`,
-            ]
+            operationInfoText.push(
+              `      - **Error**: ${get(operationLog.result, 'message')}`
+            )
           }
           const operationText = [
             `    - **${operationLog.message}** ${
