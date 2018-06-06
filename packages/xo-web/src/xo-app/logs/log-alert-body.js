@@ -116,10 +116,7 @@ export default [
         value === 'all'
           ? log.tasks
           : filter(log.tasks, ({ status }) => status === value),
-      optionRenderer: ({ countByStatus }, { log = {} }) => ({
-        label,
-        value,
-      }) => (
+      optionRenderer: ({ countByStatus }) => ({ label, value }) => (
         <span>
           {_(label)} ({countByStatus[value] || 0})
         </span>
