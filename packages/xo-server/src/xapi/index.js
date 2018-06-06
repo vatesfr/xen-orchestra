@@ -1083,7 +1083,7 @@ export default class Xapi extends XapiBase {
             .once('finish', () => {
               transferSize += sizeStream.size
             })
-          stream.task = sizeStream.task
+          sizeStream.task = stream.task
           await this._importVdiContent(vdi, sizeStream, VDI_FORMAT_VHD)
         }
       }),
