@@ -92,6 +92,22 @@ export default class RemoteHandlerAbstract {
     await promise
   }
 
+  async read (
+    file: File,
+    buffer: Buffer,
+    position?: number
+  ): Promise<{| bytesRead: number, buffer: Buffer |}> {
+    return this._read(file, buffer, position)
+  }
+
+  _read (
+    file: File,
+    buffer: Buffer,
+    position?: number
+  ): Promise<{| bytesRead: number, buffer: Buffer |}> {
+    throw new Error('Not implemented')
+  }
+
   async readFile (file: string, options?: Object): Promise<Buffer> {
     return this._readFile(file, options)
   }
