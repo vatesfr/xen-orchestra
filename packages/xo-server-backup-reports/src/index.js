@@ -115,18 +115,19 @@ class BackupReportsXoPlugin {
     const log = await xo.getBackupNgLogs(runJobId)
 
     const { reportWhen, mode } = log.data || {}
-    if (reportWhen === 'never') {
-      return
-    }
-
-    const formatDate = createDateFormater(timezone)
-
-    if (log.status === 'success' && reportWhen === 'failure') {
+    if (
+      reportWhen === 'never' ||
+      (log.status === 'success' && reportWhen === 'failure')
+    ) {
       return
     }
 
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
-    if (log.result !== undefined) {
+    const formatDate = createDateFormater(timezone)
+    if (
+      (log.status === 'failure' || log.status === 'skipped') &&
+      log.result !== undefined
+    ) {
       let markdown = [
         `##  Global status: ${log.status}`,
         '',
@@ -239,11 +240,26 @@ class BackupReportsXoPlugin {
         }
 
         forEach(subTaskLog.tasks, operationLog => {
-          const size = operationLog.result.size
-          if (operationLog.message === 'merge') {
-            globalMergeSize += size
+          const operationInfoText = []
+          if (operationLog.status === 'success') {
+            const size = operationLog.result.size
+            if (operationLog.message === 'merge') {
+              globalMergeSize += size
+            } else {
+              globalTransferSize += size
+            }
+
+            operationInfoText.push(
+              `      - **Size**: ${formatSize(size)}`,
+              `      - **Speed**: ${formatSpeed(
+                size,
+                operationLog.end - operationLog.start
+              )}`
+            )
           } else {
-            globalTransferSize += size
+            operationInfoText.push(
+              `      - **Error**: ${get(operationLog.result, 'message')}`
+            )
           }
           const operationText = [
             `    - **${operationLog.message}** ${
@@ -254,13 +270,7 @@ class BackupReportsXoPlugin {
             `      - **Duration**: ${formatDuration(
               operationLog.end - operationLog.start
             )}`,
-            operationLog.status === 'failure'
-              ? `- **Error**: ${get(operationLog.result, 'message')}`
-              : `      - **Size**: ${formatSize(size)}`,
-            `      - **Speed**: ${formatSpeed(
-              size,
-              operationLog.end - operationLog.start
-            )}`,
+            ...operationInfoText,
           ].join('\n')
           if (get(subTaskLog, 'data.type') === 'remote') {
             remotesText.push(operationText)
@@ -316,7 +326,7 @@ class BackupReportsXoPlugin {
           ++nFailures
           failedVmsText.push(...text, '', '', ...subText, '')
           nagiosText.push(
-            `[(Failed) ${
+            `[${
               vm !== undefined ? vm.name_label : 'undefined'
             }: (failed)[${failedSubTasks.toString()}]]`
           )
