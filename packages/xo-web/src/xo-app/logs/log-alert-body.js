@@ -114,8 +114,7 @@ export default [
   })),
   provideState({
     initialState: () => ({
-      defaultFilter: false,
-      filter: ALL_FILTER_OPTION,
+      filter: undefined,
     }),
     effects: {
       setFilter: (_, filter) => state => ({
@@ -132,21 +131,22 @@ export default [
           schedule: scheduleId,
         })
       },
-      setDefaultFilter: (_, tasks) => () => ({
-        filter: getInitialFilter(tasks),
-        defaultFilter: true,
-      }),
     },
     computed: {
-      filteredTaskLogs: ({ filter: { value } }, { log = {} }) =>
-        getFilteredTaskLogs(log.tasks, value),
-      optionRenderer: (state, { log = {} }) => ({ label, value }) => (
+      filteredTaskLogs: ({ filter = {}, defaultFilter = {} }, { log = {} }) =>
+        getFilteredTaskLogs(log.tasks, filter.value || defaultFilter.value),
+      optionRenderer: ({ countByStatus }, { log = {} }) => ({
+        label,
+        value,
+      }) => (
         <span>
           {_(label)} ({(value === 'all'
             ? get(log.tasks, 'length')
-            : countBy(log.tasks, 'status')[value]) || 0})
+            : countByStatus[value]) || 0})
         </span>
       ),
+      countByStatus: (_, { log = {} }) => countBy(log.tasks, 'status'),
+      defaultFilter: (_, { log = {} }) => getInitialFilter(log.tasks),
     },
   }),
   injectState,
@@ -156,7 +156,8 @@ export default [
     }
 
     const { status, result, scheduleId } = log || {}
-    return status === 'failure' && result !== undefined ? (
+    return (status === 'failure' || status === 'skipped') &&
+      result !== undefined ? (
       <span className={status === 'skipped' ? 'text-info' : 'text-danger'}>
         <Copiable tagName='p' data={JSON.stringify(result, null, 2)}>
           <Icon icon='alarm' /> {result.message}
@@ -170,7 +171,7 @@ export default [
           optionRenderer={state.optionRenderer}
           options={TASK_FILTER_OPTIONS}
           required
-          value={state.filter}
+          value={state.filter || state.defaultFilter}
           valueKey='value'
         />
         <br />
