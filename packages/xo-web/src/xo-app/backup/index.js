@@ -25,7 +25,7 @@ const HEADER = (
           <NavLink to='/backup/overview'>
             <Icon icon='menu-backup-overview' /> {_('backupOverviewPage')}
           </NavLink>
-          <NavLink to='/backup/new'>
+          <NavLink to='/backup-ng/new'>
             <Icon icon='menu-backup-new' /> {_('backupNewPage')}
           </NavLink>
           <NavLink to='/backup/restore'>

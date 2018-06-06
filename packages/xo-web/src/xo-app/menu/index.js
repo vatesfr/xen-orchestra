@@ -12,8 +12,10 @@ import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
   signOut,
+  subscribeJobs,
   subscribePermissions,
   subscribeResourceSets,
+  subscribeSchedules,
 } from 'xo'
 import {
   createFilter,
@@ -47,8 +49,10 @@ const returnTrue = () => true
   }
 )
 @addSubscriptions({
+  jobs: subscribeJobs,
   permissions: subscribePermissions,
   resourceSets: subscribeResourceSets,
+  schedules: subscribeSchedules,
 })
 export default class Menu extends Component {
   componentWillMount () {
@@ -108,12 +112,14 @@ export default class Menu extends Component {
     const {
       isAdmin,
       isPoolAdmin,
+      jobs,
       nTasks,
       status,
       user,
       pools,
       nHosts,
       srs,
+      schedules,
     } = this.props
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = this._getNoResourceSets()
@@ -180,33 +186,34 @@ export default class Menu extends Component {
         icon: 'menu-self-service',
         label: 'selfServicePage',
       },
-      isAdmin && {
-        to: '/backup/overview',
-        icon: 'menu-backup',
-        label: 'backupPage',
-        subMenu: [
-          {
-            to: '/backup/overview',
-            icon: 'menu-backup-overview',
-            label: 'backupOverviewPage',
-          },
-          {
-            to: '/backup/new',
-            icon: 'menu-backup-new',
-            label: 'backupNewPage',
-          },
-          {
-            to: '/backup/restore',
-            icon: 'menu-backup-restore',
-            label: 'backupRestorePage',
-          },
-          {
-            to: '/backup/file-restore',
-            icon: 'menu-backup-file-restore',
-            label: 'backupFileRestorePage',
-          },
-        ],
-      },
+      !(isEmpty(jobs) || isEmpty(schedules)) &&
+        isAdmin && {
+          to: '/backup/overview',
+          icon: 'menu-backup',
+          label: 'backupPage',
+          subMenu: [
+            {
+              to: '/backup/overview',
+              icon: 'menu-backup-overview',
+              label: 'backupOverviewPage',
+            },
+            {
+              to: '/backup-ng/new',
+              icon: 'menu-backup-new',
+              label: 'backupNewPage',
+            },
+            {
+              to: '/backup/restore',
+              icon: 'menu-backup-restore',
+              label: 'backupRestorePage',
+            },
+            {
+              to: '/backup/file-restore',
+              icon: 'menu-backup-file-restore',
+              label: 'backupFileRestorePage',
+            },
+          ],
+        },
       isAdmin && {
         to: '/backup-ng/overview',
         icon: 'menu-backup',
