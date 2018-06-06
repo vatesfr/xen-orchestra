@@ -7,7 +7,7 @@ import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
-import { countBy, filter as lFilter, get, keyBy, map } from 'lodash'
+import { countBy, filter, get, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
@@ -110,12 +110,12 @@ export default [
     },
     computed: {
       filteredTaskLogs: (
-        { defaultFilter, filter = defaultFilter },
+        { defaultFilter, filter: { value } = defaultFilter },
         { log = {} }
       ) =>
-        filter.value === 'all'
+        value === 'all'
           ? log.tasks
-          : lFilter(log.tasks, ({ status }) => status === filter.value),
+          : filter(log.tasks, ({ status }) => status === value),
       optionRenderer: ({ countByStatus }, { log = {} }) => ({
         label,
         value,
