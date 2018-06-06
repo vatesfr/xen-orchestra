@@ -115,7 +115,7 @@ const showTasks = log =>
         {log.id}
       </span>
     </span>,
-    <LogAlertBody log={log} />
+    <LogAlertBody id={log.id} />
   )
 
 const LOG_INDIVIDUAL_ACTIONS = [

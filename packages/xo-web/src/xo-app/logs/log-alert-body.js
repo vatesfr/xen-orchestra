@@ -7,10 +7,10 @@ import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
-import { filter, isEmpty, get, keyBy, map } from 'lodash'
+import { countBy, filter, isEmpty, get, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
-import { runBackupNgJob, subscribeRemotes } from 'xo'
+import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
 
 const TASK_STATUS = {
   failure: {
@@ -102,15 +102,20 @@ const getInitialFilter = tasks => {
 }
 
 export default [
-  addSubscriptions({
+  addSubscriptions(({ id }) => ({
     remotes: cb =>
       subscribeRemotes(remotes => {
         cb(keyBy(remotes, 'id'))
       }),
-  }),
+    log: cb =>
+      subscribeBackupNgLogs(logs => {
+        cb(logs[id])
+      }),
+  })),
   provideState({
-    initialState: ({ log }) => ({
-      filter: getInitialFilter(log.tasks),
+    initialState: () => ({
+      defaultFilter: false,
+      filter: ALL_FILTER_OPTION,
     }),
     effects: {
       setFilter: (_, filter) => state => ({
@@ -127,23 +132,34 @@ export default [
           schedule: scheduleId,
         })
       },
+      setDefaultFilter: (_, tasks) => () => ({
+        filter: getInitialFilter(tasks),
+        defaultFilter: true,
+      }),
     },
     computed: {
-      filteredTaskLogs: ({ filter: { value } }, { log }) =>
+      filteredTaskLogs: ({ filter: { value } }, { log = {} }) =>
         getFilteredTaskLogs(log.tasks, value),
-      optionRenderer: (state, { log }) => ({ label, value }) => (
+      optionRenderer: (state, { log = {} }) => ({ label, value }) => (
         <span>
-          {_(label)} ({getFilteredTaskLogs(log.tasks, value).length})
+          {_(label)} ({(value === 'all'
+            ? get(log.tasks, 'length')
+            : countBy(log.tasks, 'status')[value]) || 0})
         </span>
       ),
     },
   }),
   injectState,
-  ({ log, remotes, state, effects }) =>
-    log.result !== undefined ? (
-      <span className={log.status === 'skipped' ? 'text-info' : 'text-danger'}>
-        <Copiable tagName='p' data={JSON.stringify(log.result, null, 2)}>
-          <Icon icon='alarm' /> {log.result.message}
+  ({ log, remotes, state, effects }) => {
+    if (log !== undefined && state.defaultFilter === false) {
+      effects.setDefaultFilter(log.tasks)
+    }
+
+    const { status, result, scheduleId } = log || {}
+    return status === 'failure' && result !== undefined ? (
+      <span className={status === 'skipped' ? 'text-info' : 'text-danger'}>
+        <Copiable tagName='p' data={JSON.stringify(result, null, 2)}>
+          <Icon icon='alarm' /> {result.message}
         </Copiable>
       </span>
     ) : (
@@ -165,7 +181,7 @@ export default [
                 4,
                 8
               )}) <TaskStateInfos status={taskLog.status} />{' '}
-              {log.scheduleId !== undefined &&
+              {scheduleId !== undefined &&
                 taskLog.status === 'failure' && (
                   <ActionButton
                     handler={effects.restartVmJob}
@@ -385,5 +401,6 @@ export default [
           ))}
         </ul>
       </div>
-    ),
+    )
+  },
 ].reduceRight((value, decorator) => decorator(value))
