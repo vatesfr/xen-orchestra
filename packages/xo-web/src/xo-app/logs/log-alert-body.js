@@ -7,7 +7,7 @@ import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
-import { countBy, filter, isEmpty, get, keyBy, map } from 'lodash'
+import { countBy, filter as lFilter, get, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
@@ -77,11 +77,6 @@ const TASK_FILTER_OPTIONS = [
   { label: 'taskSuccess', value: 'success' },
 ]
 
-const getFilteredTaskLogs = (logs, filterValue) =>
-  filterValue === 'all'
-    ? logs
-    : filter(logs, ({ status }) => status === filterValue)
-
 export default [
   addSubscriptions(({ id }) => ({
     remotes: cb =>
@@ -117,7 +112,10 @@ export default [
       filteredTaskLogs: (
         { defaultFilter, filter = defaultFilter },
         { log = {} }
-      ) => getFilteredTaskLogs(log.tasks, filter.value),
+      ) =>
+        filter.value === 'all'
+          ? log.tasks
+          : lFilter(log.tasks, ({ status }) => status === filter.value),
       optionRenderer: ({ countByStatus }, { log = {} }) => ({
         label,
         value,
@@ -130,19 +128,16 @@ export default [
         all: get(log.tasks, 'length'),
         ...countBy(log.tasks, 'status'),
       }),
-      defaultFilter: (_, { log = {} }) => {
-        const isEmptyFilter = filterValue =>
-          isEmpty(getFilteredTaskLogs(log.tasks, filterValue))
-
-        if (!isEmptyFilter('pending')) {
+      defaultFilter: ({ countByStatus }) => {
+        if (countByStatus.pending > 0) {
           return PENDING_FILTER_OPTION
         }
 
-        if (!isEmptyFilter('failure')) {
+        if (countByStatus.failure > 0) {
           return FAILURE_FILTER_OPTION
         }
 
-        if (!isEmptyFilter('interrupted')) {
+        if (countByStatus.interrupted > 0) {
           return INTERRUPTED_FILTER_OPTION
         }
 
