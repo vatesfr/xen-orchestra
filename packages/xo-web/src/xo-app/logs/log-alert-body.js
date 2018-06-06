@@ -252,22 +252,31 @@ export default [
                                   )}
                                 </Copiable>
                               ) : (
-                                operationLog.result.size > 0 && (
-                                  <div>
-                                    {_.keyValue(
-                                      _('operationSize'),
-                                      formatSize(operationLog.result.size)
+                                <div>
+                                  {operationLog.result.size > 0 && (
+                                    <div>
+                                      {_.keyValue(
+                                        _('operationSize'),
+                                        formatSize(operationLog.result.size)
+                                      )}
+                                      <br />
+                                      {_.keyValue(
+                                        _('operationSpeed'),
+                                        formatSpeed(
+                                          operationLog.result.size,
+                                          operationLog.end - operationLog.start
+                                        )
+                                      )}
+                                    </div>
+                                  )}
+                                  {operationLog.result.isFull !== undefined &&
+                                    _.keyValue(
+                                      _('exportType'),
+                                      operationLog.result.isFull
+                                        ? 'full'
+                                        : 'delta'
                                     )}
-                                    <br />
-                                    {_.keyValue(
-                                      _('operationSpeed'),
-                                      formatSpeed(
-                                        operationLog.result.size,
-                                        operationLog.end - operationLog.start
-                                      )
-                                    )}
-                                  </div>
-                                )
+                                </div>
                               )}
                             </div>
                           )}

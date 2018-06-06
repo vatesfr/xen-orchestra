@@ -107,21 +107,16 @@ const LOG_COLUMNS = [
   },
 ]
 
-const showTasks = log => {
-  const mode = get(() => log.data.mode)
+const showTasks = log =>
   alert(
     <span>
-      {_('backupNgJobModalTitle', {
-        mode: mode !== undefined ? `(${mode}) ` : undefined,
-        job: log.jobId.slice(4, 8),
-      })}{' '}
+      {_('jobModalTitle', { job: log.jobId.slice(4, 8) })}{' '}
       <span style={{ fontSize: '0.5em' }} className='text-muted'>
         {log.id}
       </span>
     </span>,
     <LogAlertBody id={log.id} />
   )
-}
 
 const LOG_INDIVIDUAL_ACTIONS = [
   {

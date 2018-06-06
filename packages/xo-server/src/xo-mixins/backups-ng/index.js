@@ -7,7 +7,16 @@ import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
-import { isEmpty, last, mapValues, noop, some, sum, values } from 'lodash'
+import {
+  isEmpty,
+  last,
+  mapValues,
+  noop,
+  some,
+  sum,
+  sumBy,
+  values,
+} from 'lodash'
 import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
@@ -1064,7 +1073,6 @@ export default class BackupNg {
                     logger,
                     message: 'transfer',
                     parentId: taskId,
-                    result: size => ({ size }),
                   },
                   asyncMap(
                     fork.vdis,
@@ -1104,9 +1112,15 @@ export default class BackupNg {
                         await chainVhd(handler, parentPath, handler, path)
                       }
 
-                      return handler.getSize(path)
+                      return {
+                        isDelta,
+                        size: await handler.getSize(path),
+                      }
                     })
-                  ).then(sum)
+                  ).then(result => ({
+                    size: sumBy(result, 'size'),
+                    isFull: some(result, { isDelta: false }),
+                  }))
                 )
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
