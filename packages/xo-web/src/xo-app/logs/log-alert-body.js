@@ -7,10 +7,10 @@ import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
-import { filter, isEmpty, get, keyBy, map } from 'lodash'
+import { countBy, filter, get, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
-import { runBackupNgJob, subscribeRemotes } from 'xo'
+import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
 
 const TASK_STATUS = {
   failure: {
@@ -77,40 +77,20 @@ const TASK_FILTER_OPTIONS = [
   { label: 'taskSuccess', value: 'success' },
 ]
 
-const getFilteredTaskLogs = (logs, filterValue) =>
-  filterValue === 'all'
-    ? logs
-    : filter(logs, ({ status }) => status === filterValue)
-
-const getInitialFilter = tasks => {
-  const isEmptyFilter = filterValue =>
-    isEmpty(getFilteredTaskLogs(tasks, filterValue))
-
-  if (!isEmptyFilter('pending')) {
-    return PENDING_FILTER_OPTION
-  }
-
-  if (!isEmptyFilter('failure')) {
-    return FAILURE_FILTER_OPTION
-  }
-
-  if (!isEmptyFilter('interrupted')) {
-    return INTERRUPTED_FILTER_OPTION
-  }
-
-  return ALL_FILTER_OPTION
-}
-
 export default [
-  addSubscriptions({
+  addSubscriptions(({ id }) => ({
     remotes: cb =>
       subscribeRemotes(remotes => {
         cb(keyBy(remotes, 'id'))
       }),
-  }),
+    log: cb =>
+      subscribeBackupNgLogs(logs => {
+        cb(logs[id])
+      }),
+  })),
   provideState({
-    initialState: ({ log }) => ({
-      filter: getInitialFilter(log.tasks),
+    initialState: () => ({
+      filter: undefined,
     }),
     effects: {
       setFilter: (_, filter) => state => ({
@@ -129,21 +109,47 @@ export default [
       },
     },
     computed: {
-      filteredTaskLogs: ({ filter: { value } }, { log }) =>
-        getFilteredTaskLogs(log.tasks, value),
-      optionRenderer: (state, { log }) => ({ label, value }) => (
+      filteredTaskLogs: (
+        { defaultFilter, filter: { value } = defaultFilter },
+        { log = {} }
+      ) =>
+        value === 'all'
+          ? log.tasks
+          : filter(log.tasks, ({ status }) => status === value),
+      optionRenderer: ({ countByStatus }) => ({ label, value }) => (
         <span>
-          {_(label)} ({getFilteredTaskLogs(log.tasks, value).length})
+          {_(label)} ({countByStatus[value] || 0})
         </span>
       ),
+      countByStatus: (_, { log = {} }) => ({
+        all: get(log.tasks, 'length'),
+        ...countBy(log.tasks, 'status'),
+      }),
+      defaultFilter: ({ countByStatus }) => {
+        if (countByStatus.pending > 0) {
+          return PENDING_FILTER_OPTION
+        }
+
+        if (countByStatus.failure > 0) {
+          return FAILURE_FILTER_OPTION
+        }
+
+        if (countByStatus.interrupted > 0) {
+          return INTERRUPTED_FILTER_OPTION
+        }
+
+        return ALL_FILTER_OPTION
+      },
     },
   }),
   injectState,
-  ({ log, remotes, state, effects }) =>
-    log.result !== undefined ? (
-      <span className={log.status === 'skipped' ? 'text-info' : 'text-danger'}>
-        <Copiable tagName='p' data={JSON.stringify(log.result, null, 2)}>
-          <Icon icon='alarm' /> {log.result.message}
+  ({ log = {}, remotes, state, effects }) => {
+    const { status, result, scheduleId } = log
+    return (status === 'failure' || status === 'skipped') &&
+      result !== undefined ? (
+      <span className={status === 'skipped' ? 'text-info' : 'text-danger'}>
+        <Copiable tagName='p' data={JSON.stringify(result, null, 2)}>
+          <Icon icon='alarm' /> {result.message}
         </Copiable>
       </span>
     ) : (
@@ -154,7 +160,7 @@ export default [
           optionRenderer={state.optionRenderer}
           options={TASK_FILTER_OPTIONS}
           required
-          value={state.filter}
+          value={state.filter || state.defaultFilter}
           valueKey='value'
         />
         <br />
@@ -165,7 +171,7 @@ export default [
                 4,
                 8
               )}) <TaskStateInfos status={taskLog.status} />{' '}
-              {log.scheduleId !== undefined &&
+              {scheduleId !== undefined &&
                 taskLog.status === 'failure' && (
                   <ActionButton
                     handler={effects.restartVmJob}
@@ -385,5 +391,6 @@ export default [
           ))}
         </ul>
       </div>
-    ),
+    )
+  },
 ].reduceRight((value, decorator) => decorator(value))
