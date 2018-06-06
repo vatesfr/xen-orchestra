@@ -82,25 +82,6 @@ const getFilteredTaskLogs = (logs, filterValue) =>
     ? logs
     : filter(logs, ({ status }) => status === filterValue)
 
-const getInitialFilter = tasks => {
-  const isEmptyFilter = filterValue =>
-    isEmpty(getFilteredTaskLogs(tasks, filterValue))
-
-  if (!isEmptyFilter('pending')) {
-    return PENDING_FILTER_OPTION
-  }
-
-  if (!isEmptyFilter('failure')) {
-    return FAILURE_FILTER_OPTION
-  }
-
-  if (!isEmptyFilter('interrupted')) {
-    return INTERRUPTED_FILTER_OPTION
-  }
-
-  return ALL_FILTER_OPTION
-}
-
 export default [
   addSubscriptions(({ id }) => ({
     remotes: cb =>
@@ -133,29 +114,45 @@ export default [
       },
     },
     computed: {
-      filteredTaskLogs: ({ filter = {}, defaultFilter = {} }, { log = {} }) =>
-        getFilteredTaskLogs(log.tasks, filter.value || defaultFilter.value),
+      filteredTaskLogs: (
+        { defaultFilter, filter = defaultFilter },
+        { log = {} }
+      ) => getFilteredTaskLogs(log.tasks, filter.value),
       optionRenderer: ({ countByStatus }, { log = {} }) => ({
         label,
         value,
       }) => (
         <span>
-          {_(label)} ({(value === 'all'
-            ? get(log.tasks, 'length')
-            : countByStatus[value]) || 0})
+          {_(label)} ({countByStatus[value] || 0})
         </span>
       ),
-      countByStatus: (_, { log = {} }) => countBy(log.tasks, 'status'),
-      defaultFilter: (_, { log = {} }) => getInitialFilter(log.tasks),
+      countByStatus: (_, { log = {} }) => ({
+        all: get(log.tasks, 'length'),
+        ...countBy(log.tasks, 'status'),
+      }),
+      defaultFilter: (_, { log = {} }) => {
+        const isEmptyFilter = filterValue =>
+          isEmpty(getFilteredTaskLogs(log.tasks, filterValue))
+
+        if (!isEmptyFilter('pending')) {
+          return PENDING_FILTER_OPTION
+        }
+
+        if (!isEmptyFilter('failure')) {
+          return FAILURE_FILTER_OPTION
+        }
+
+        if (!isEmptyFilter('interrupted')) {
+          return INTERRUPTED_FILTER_OPTION
+        }
+
+        return ALL_FILTER_OPTION
+      },
     },
   }),
   injectState,
-  ({ log, remotes, state, effects }) => {
-    if (log !== undefined && state.defaultFilter === false) {
-      effects.setDefaultFilter(log.tasks)
-    }
-
-    const { status, result, scheduleId } = log || {}
+  ({ log = {}, remotes, state, effects }) => {
+    const { status, result, scheduleId } = log
     return (status === 'failure' || status === 'skipped') &&
       result !== undefined ? (
       <span className={status === 'skipped' ? 'text-info' : 'text-danger'}>
