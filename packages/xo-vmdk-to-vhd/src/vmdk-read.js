@@ -4,7 +4,9 @@ import zlib from 'zlib'
 
 import { VirtualBuffer } from './virtual-buffer'
 
-const sectorSize = 512
+const SECTOR_SIZE = 512
+const HEADER_SIZE = 512
+const VERSION_OFFSET = 4
 const compressionDeflate = 'COMPRESSION_DEFLATE'
 const compressionNone = 'COMPRESSION_NONE'
 const compressionMap = [compressionNone, compressionDeflate]
@@ -119,7 +121,7 @@ function parseHeader (buffer) {
   }
 }
 async function readGrain (offsetSectors, buffer, compressed) {
-  const offset = offsetSectors * sectorSize
+  const offset = offsetSectors * SECTOR_SIZE
   const size = buffer.readUInt32LE(offset + 8)
   const grainBuffer = buffer.slice(offset + 12, offset + 12 + size)
   const grainContent = compressed
@@ -130,7 +132,7 @@ async function readGrain (offsetSectors, buffer, compressed) {
     offsetSectors: offsetSectors,
     offset,
     lba,
-    lbaBytes: lba * sectorSize,
+    lbaBytes: lba * SECTOR_SIZE,
     size,
     buffer: grainBuffer,
     grain: grainContent,
@@ -146,10 +148,10 @@ function tryToParseMarker (buffer) {
 }
 
 function alignSectors (number) {
-  return Math.ceil(number / sectorSize) * sectorSize
+  return Math.ceil(number / SECTOR_SIZE) * SECTOR_SIZE
 }
 
-export class VMDKDirectParser {
+export default class VMDKDirectParser {
   constructor (readStream) {
     this.virtualBuffer = new VirtualBuffer(readStream)
     this.header = null
@@ -177,9 +179,9 @@ export class VMDKDirectParser {
         l2IsContiguous = l2IsContiguous && l1Entry - previousL1Entry === 4
       } else {
         l2IsContiguous =
-          l1Entry * sectorSize === this.virtualBuffer.position ||
-          l1Entry * sectorSize === this.virtualBuffer.position + 512
-        l2Start = l1Entry * sectorSize
+          l1Entry * SECTOR_SIZE === this.virtualBuffer.position ||
+          l1Entry * SECTOR_SIZE === this.virtualBuffer.position + SECTOR_SIZE
+        l2Start = l1Entry * SECTOR_SIZE
       }
     }
     if (!l2IsContiguous) {
@@ -200,37 +202,29 @@ export class VMDKDirectParser {
       l2ByteSize,
       'L2 table ' + position
     )
-    let grainsAreInAscendingOrder = true
-    let previousL2Entry = 0
     let firstGrain = null
     for (let i = 0; i < l2entries; i++) {
       const l2Entry = l2Buffer.readUInt32LE(i * 4)
-      if (i > 0 && previousL2Entry !== 0 && l2Entry !== 0) {
-        grainsAreInAscendingOrder =
-          grainsAreInAscendingOrder && previousL2Entry < l2Entry
-      }
-      previousL2Entry = l2Entry
       if (firstGrain === null) {
         firstGrain = l2Entry
       }
     }
-    if (!grainsAreInAscendingOrder) {
-      // TODO: here we could transform the file to a sparse VHD on the fly because we have the complete table
-      throw new Error('Unsupported file format')
-    }
-    const freeSpace = firstGrain * sectorSize - this.virtualBuffer.position
+    const freeSpace = firstGrain * SECTOR_SIZE - this.virtualBuffer.position
     if (freeSpace > 0) {
       await this.virtualBuffer.readChunk(freeSpace, 'freeSpace after L2')
     }
   }
 
   async readHeader () {
-    const headerBuffer = await this.virtualBuffer.readChunk(512, 'readHeader')
+    const headerBuffer = await this.virtualBuffer.readChunk(
+      HEADER_SIZE,
+      'readHeader'
+    )
     const magicString = headerBuffer.slice(0, 4).toString('ascii')
     if (magicString !== 'KDMV') {
       throw new Error('not a VMDK file')
     }
-    const version = headerBuffer.readUInt32LE(4)
+    const version = headerBuffer.readUInt32LE(VERSION_OFFSET)
     if (version !== 1 && version !== 3) {
       throw new Error(
         'unsupported VMDK version ' +
@@ -240,7 +234,7 @@ export class VMDKDirectParser {
     }
     this.header = parseHeader(headerBuffer)
     // I think the multiplications are OK, because the descriptor is always at the beginning of the file
-    const descriptorLength = this.header.descriptorSizeSectors * sectorSize
+    const descriptorLength = this.header.descriptorSizeSectors * SECTOR_SIZE
     const descriptorBuffer = await this.virtualBuffer.readChunk(
       descriptorLength,
       'descriptor'
@@ -251,16 +245,16 @@ export class VMDKDirectParser {
       this.header.grainDirectoryOffsetSectors !== -1 &&
       this.header.grainDirectoryOffsetSectors !== 0
     ) {
-      l1PositionBytes = this.header.grainDirectoryOffsetSectors * sectorSize
+      l1PositionBytes = this.header.grainDirectoryOffsetSectors * SECTOR_SIZE
     }
     const endOfDescriptor = this.virtualBuffer.position
     if (
       l1PositionBytes !== null &&
       (l1PositionBytes === endOfDescriptor ||
-        l1PositionBytes === endOfDescriptor + sectorSize)
+        l1PositionBytes === endOfDescriptor + SECTOR_SIZE)
     ) {
-      if (l1PositionBytes === endOfDescriptor + sectorSize) {
-        await this.virtualBuffer.readChunk(sectorSize, 'skipping L1 marker')
+      if (l1PositionBytes === endOfDescriptor + SECTOR_SIZE) {
+        await this.virtualBuffer.readChunk(SECTOR_SIZE, 'skipping L1 marker')
       }
       await this._readL1()
     }
@@ -271,7 +265,7 @@ export class VMDKDirectParser {
     while (!this.virtualBuffer.isDepleted) {
       const position = this.virtualBuffer.position
       const sector = await this.virtualBuffer.readChunk(
-        512,
+        SECTOR_SIZE,
         'marker start ' + position
       )
       if (sector.length === 0) {
@@ -281,14 +275,14 @@ export class VMDKDirectParser {
       if (marker.size === 0) {
         if (marker.value !== 0) {
           await this.virtualBuffer.readChunk(
-            marker.value * sectorSize,
+            marker.value * SECTOR_SIZE,
             'other marker value ' + this.virtualBuffer.position
           )
         }
       } else if (marker.size > 10) {
         const grainDiskSize = marker.size + 12
         const alignedGrainDiskSize = alignSectors(grainDiskSize)
-        const remainOfBufferSize = alignedGrainDiskSize - sectorSize
+        const remainOfBufferSize = alignedGrainDiskSize - SECTOR_SIZE
         const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(
           remainOfBufferSize,
           'grain remainder ' + this.virtualBuffer.position
@@ -304,61 +298,4 @@ export class VMDKDirectParser {
       }
     }
   }
-}
-
-export async function readVmdkGrainTable (fileAccessor) {
-  let headerBuffer = await fileAccessor(0, 512)
-  let grainAddrBuffer = headerBuffer.slice(56, 56 + 8)
-  if (
-    new Int8Array(grainAddrBuffer).reduce((acc, val) => acc && val === -1, true)
-  ) {
-    headerBuffer = await fileAccessor(-1024, -1024 + 512)
-    grainAddrBuffer = headerBuffer.slice(56, 56 + 8)
-  }
-  const grainDirPosBytes =
-    new DataView(grainAddrBuffer).getUint32(0, true) * 512
-  const capacity =
-    new DataView(headerBuffer.slice(12, 12 + 8)).getUint32(0, true) * 512
-  const grainSize =
-    new DataView(headerBuffer.slice(20, 20 + 8)).getUint32(0, true) * 512
-  const grainCount = Math.ceil(capacity / grainSize)
-  const numGTEsPerGT = new DataView(headerBuffer.slice(44, 44 + 8)).getUint32(
-    0,
-    true
-  )
-  const grainTablePhysicalSize = numGTEsPerGT * 4
-  const grainDirectoryEntries = Math.ceil(grainCount / numGTEsPerGT)
-  const grainDirectoryPhysicalSize = grainDirectoryEntries * 4
-  const grainDirBuffer = await fileAccessor(
-    grainDirPosBytes,
-    grainDirPosBytes + grainDirectoryPhysicalSize
-  )
-  const grainDir = new Uint32Array(grainDirBuffer)
-  const cachedGrainTables = []
-  for (let i = 0; i < grainDirectoryEntries; i++) {
-    const grainTableAddr = grainDir[i] * 512
-    if (grainTableAddr !== 0) {
-      cachedGrainTables[i] = new Uint32Array(
-        await fileAccessor(
-          grainTableAddr,
-          grainTableAddr + grainTablePhysicalSize
-        )
-      )
-    }
-  }
-  const extractedGrainTable = []
-  for (let i = 0; i < grainCount; i++) {
-    const directoryEntry = Math.floor(i / numGTEsPerGT)
-    const grainTable = cachedGrainTables[directoryEntry]
-    if (grainTable !== undefined) {
-      const grainAddr = grainTable[i % numGTEsPerGT]
-      if (grainAddr !== 0) {
-        extractedGrainTable.push([i, grainAddr])
-      }
-    }
-  }
-  extractedGrainTable.sort(
-    ([i1, grainAddress1], [i2, grainAddress2]) => grainAddress1 - grainAddress2
-  )
-  return extractedGrainTable.map(([index, grainAddress]) => index * grainSize)
 }

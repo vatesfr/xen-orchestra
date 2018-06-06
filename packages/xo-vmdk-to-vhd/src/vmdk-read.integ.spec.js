@@ -6,7 +6,7 @@ import { fromCallback as pFromCallback } from 'promise-toolbox'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 
-import { VMDKDirectParser } from './vmdk-read'
+import VMDKDirectParser from './vmdk-read'
 
 jest.setTimeout(10000)
 
