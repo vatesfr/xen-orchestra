@@ -243,19 +243,21 @@ class BackupReportsXoPlugin {
           const operationInfoText = []
           if (operationLog.status === 'success') {
             const size = operationLog.result.size
-            if (operationLog.message === 'merge') {
-              globalMergeSize += size
-            } else {
-              globalTransferSize += size
-            }
+            if (size > 0) {
+              if (operationLog.message === 'merge') {
+                globalMergeSize += size
+              } else {
+                globalTransferSize += size
+              }
 
-            operationInfoText.push(
-              `      - **Size**: ${formatSize(size)}`,
-              `      - **Speed**: ${formatSpeed(
-                size,
-                operationLog.end - operationLog.start
-              )}`
-            )
+              operationInfoText.push(
+                `      - **Size**: ${formatSize(size)}`,
+                `      - **Speed**: ${formatSpeed(
+                  size,
+                  operationLog.end - operationLog.start
+                )}`
+              )
+            }
           } else {
             operationInfoText.push(
               `      - **Error**: ${get(operationLog.result, 'message')}`
