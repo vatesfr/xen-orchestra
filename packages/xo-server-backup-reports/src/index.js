@@ -62,10 +62,12 @@ const formatSize = bytes =>
   })
 
 const formatSpeed = (bytes, milliseconds) =>
-  humanFormat(bytes * 1e3 / milliseconds, {
-    scale: 'binary',
-    unit: 'B/s',
-  })
+  milliseconds > 0
+    ? humanFormat(bytes * 1e3 / milliseconds, {
+        scale: 'binary',
+        unit: 'B/s',
+      })
+    : 'N/A'
 
 const logError = e => {
   console.error('backup report error:', e)
