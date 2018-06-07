@@ -34,13 +34,13 @@ const computeStatusAndSortTasks = (status, tasks) => {
 const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
   if (e1 !== undefined) {
     if (e2 !== undefined) {
-      // finished tasks are ordered by their start times
+      // finished tasks are ordered by their end times
       return e1 - e2
     }
     // finished task before unfinished tasks
     return -1
   } else if (e2 === undefined) {
-    // unfinished tasks are ordered by their end times
+    // unfinished tasks are ordered by their start times
     return s1 - s2
   }
   // unfinished task after finished tasks
