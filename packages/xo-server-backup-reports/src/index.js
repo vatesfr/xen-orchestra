@@ -62,10 +62,12 @@ const formatSize = bytes =>
   })
 
 const formatSpeed = (bytes, milliseconds) =>
-  humanFormat(bytes * 1e3 / milliseconds, {
-    scale: 'binary',
-    unit: 'B/s',
-  })
+  milliseconds > 0
+    ? humanFormat(bytes * 1e3 / milliseconds, {
+        scale: 'binary',
+        unit: 'B/s',
+      })
+    : 0
 
 const logError = e => {
   console.error('backup report error:', e)
@@ -243,21 +245,19 @@ class BackupReportsXoPlugin {
           const operationInfoText = []
           if (operationLog.status === 'success') {
             const size = operationLog.result.size
-            if (size > 0) {
-              if (operationLog.message === 'merge') {
-                globalMergeSize += size
-              } else {
-                globalTransferSize += size
-              }
-
-              operationInfoText.push(
-                `      - **Size**: ${formatSize(size)}`,
-                `      - **Speed**: ${formatSpeed(
-                  size,
-                  operationLog.end - operationLog.start
-                )}`
-              )
+            if (operationLog.message === 'merge') {
+              globalMergeSize += size
+            } else {
+              globalTransferSize += size
             }
+
+            operationInfoText.push(
+              `      - **Size**: ${formatSize(size)}`,
+              `      - **Speed**: ${formatSpeed(
+                size,
+                operationLog.end - operationLog.start
+              )}`
+            )
           } else {
             operationInfoText.push(
               `      - **Error**: ${get(operationLog.result, 'message')}`
