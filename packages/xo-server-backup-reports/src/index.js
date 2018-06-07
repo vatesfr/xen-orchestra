@@ -67,7 +67,7 @@ const formatSpeed = (bytes, milliseconds) =>
         scale: 'binary',
         unit: 'B/s',
       })
-    : 0
+    : 'N/A'
 
 const logError = e => {
   console.error('backup report error:', e)
