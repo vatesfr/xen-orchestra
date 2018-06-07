@@ -7,16 +7,7 @@ import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
-import {
-  isEmpty,
-  last,
-  mapValues,
-  noop,
-  some,
-  sum,
-  sumBy,
-  values,
-} from 'lodash'
+import { isEmpty, last, mapValues, noop, some, sum, values } from 'lodash'
 import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
@@ -1027,12 +1018,14 @@ export default class BackupNg {
               }
             })()
 
+      const getIsDelta = vdi => vdi.other_config['xo:base_delta'] !== undefined
+      const isFull = some(deltaExport.vdis, vdi => !getIsDelta(vdi))
       await waitAll(
         [
           ...remotes.map(
             wrapTaskFn(
               id => ({
-                data: { id, type: 'remote' },
+                data: { id, isFull, type: 'remote' },
                 logger,
                 message: 'export',
                 parentId: taskId,
@@ -1073,14 +1066,14 @@ export default class BackupNg {
                     logger,
                     message: 'transfer',
                     parentId: taskId,
+                    result: size => ({ size }),
                   },
                   asyncMap(
                     fork.vdis,
                     defer(async ($defer, vdi, id) => {
                       const path = `${vmDir}/${metadata.vhds[id]}`
 
-                      const isDelta =
-                        vdi.other_config['xo:base_delta'] !== undefined
+                      const isDelta = getIsDelta(vdi)
                       let parentPath
                       if (isDelta) {
                         const vdiDir = dirname(path)
@@ -1112,15 +1105,9 @@ export default class BackupNg {
                         await chainVhd(handler, parentPath, handler, path)
                       }
 
-                      return {
-                        isDelta,
-                        size: await handler.getSize(path),
-                      }
+                      return handler.getSize(path)
                     })
-                  ).then(result => ({
-                    size: sumBy(result, 'size'),
-                    isFull: some(result, { isDelta: false }),
-                  }))
+                  ).then(sum)
                 )
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
@@ -1133,7 +1120,7 @@ export default class BackupNg {
           ...srs.map(
             wrapTaskFn(
               id => ({
-                data: { id, type: 'SR' },
+                data: { id, isFull, type: 'SR' },
                 logger,
                 message: 'export',
                 parentId: taskId,
