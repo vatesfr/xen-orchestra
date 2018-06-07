@@ -11,7 +11,7 @@ const getStatus = (
   status = error === undefined ? 'success' : 'failure'
 ) => (status === 'failure' && isSkippedError(error) ? 'skipped' : status)
 
-const computeStatus = (status, tasks) => {
+const computeStatusAndSortTasks = (status, tasks) => {
   if (status === 'failure' || tasks === undefined) {
     return status
   }
@@ -26,7 +26,25 @@ const computeStatus = (status, tasks) => {
     }
   }
 
+  tasks.sort(taskTimeComparator)
+
   return status
+}
+
+const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
+  if (e1 !== undefined) {
+    if (e2 !== undefined) {
+      // finished tasks are ordered by their end times
+      return e1 - e2
+    }
+    // finished task before unfinished tasks
+    return -1
+  } else if (e2 === undefined) {
+    // unfinished tasks are ordered by their start times
+    return s1 - s2
+  }
+  // unfinished task after finished tasks
+  return 1
 }
 
 export default {
@@ -56,7 +74,7 @@ export default {
         if (log !== undefined) {
           delete started[runJobId]
           log.end = time
-          log.status = computeStatus(
+          log.status = computeStatusAndSortTasks(
             getStatus((log.result = data.error)),
             log.tasks
           )
@@ -81,7 +99,7 @@ export default {
           // TODO: merge/transfer work-around
           delete started[taskId]
           log.end = time
-          log.status = computeStatus(
+          log.status = computeStatusAndSortTasks(
             getStatus((log.result = data.result), data.status),
             log.tasks
           )
@@ -107,7 +125,7 @@ export default {
         if (log !== undefined) {
           delete started[runCallId]
           log.end = time
-          log.status = computeStatus(
+          log.status = computeStatusAndSortTasks(
             getStatus((log.result = data.error)),
             log.tasks
           )
