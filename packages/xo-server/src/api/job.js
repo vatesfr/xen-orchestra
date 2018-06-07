@@ -1,5 +1,12 @@
 // FIXME so far, no acls for jobs
 
+export function cancel ({ runId }) {
+  return this.cancelJobRun(runId)
+}
+
+cancel.permission = 'admin'
+cancel.description = 'Cancel a current run'
+
 export async function getAll () {
   return /* await */ this.getAllJobs('call')
 }
