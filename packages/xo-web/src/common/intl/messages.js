@@ -188,6 +188,7 @@ const messages = {
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
+  formEdit: 'Edit',
   formReset: 'Reset',
   formSave: 'Save',
   add: 'Add',
@@ -314,7 +315,6 @@ const messages = {
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion:
     'Are you sure you want to delete this backup job?',
-  editBackupSchedule: 'Edit backup job',
   deleteSelectedJobs: 'Delete selected jobs',
   scheduleEnableAfterCreation: 'Enable immediately after creation',
   scheduleEditMessage:
