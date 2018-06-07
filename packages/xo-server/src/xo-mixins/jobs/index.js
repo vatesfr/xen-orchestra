@@ -2,7 +2,7 @@
 
 import type { Pattern } from 'value-matcher'
 
-import { cancelable } from 'promise-toolbox'
+import { CancelToken } from 'promise-toolbox'
 import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
@@ -121,6 +121,7 @@ export default class Jobs {
   _jobs: JobsDb
   _logger: Logger
   _runningJobs: { __proto__: null, [string]: string }
+  _runs: { __proto__: null, [string]: () => void }
 
   get runningJobs () {
     return this._runningJobs
@@ -136,6 +137,7 @@ export default class Jobs {
     }))
     this._logger = undefined
     this._runningJobs = { __proto__: null }
+    this._runs = { __proto__: null }
 
     executors.call = executeCall
 
@@ -152,6 +154,13 @@ export default class Jobs {
         this._logger = logger
       })
     })
+  }
+
+  cancelJobRun (id: string) {
+    const run = this._runs[id]
+    if (run !== undefined) {
+      return run.cancel()
+    }
   }
 
   async getAllJobs (type?: string): Promise<Array<Job>> {
@@ -205,7 +214,7 @@ export default class Jobs {
     return /* await */ this._jobs.remove(id)
   }
 
-  async _runJob (cancelToken: any, job: Job, schedule?: Schedule, data_?: any) {
+  async _runJob (job: Job, schedule?: Schedule, data_?: any) {
     const { id } = job
 
     const runningJobs = this._runningJobs
@@ -244,6 +253,11 @@ export default class Jobs {
 
     runningJobs[id] = runJobId
 
+    const runs = this._runs
+
+    const { cancel, token } = CancelToken.source()
+    runs[runJobId] = { cancel }
+
     let session
     try {
       const app = this._app
@@ -252,7 +266,7 @@ export default class Jobs {
 
       const status = await executor({
         app,
-        cancelToken,
+        token,
         data: data_,
         job,
         logger,
@@ -275,15 +289,14 @@ export default class Jobs {
       throw error
     } finally {
       delete runningJobs[id]
+      delete runs[runJobId]
       if (session !== undefined) {
         session.close()
       }
     }
   }
 
-  @cancelable
   async runJobSequence (
-    $cancelToken: any,
     idSequence: Array<string>,
     schedule?: Schedule,
     data?: any
@@ -293,10 +306,7 @@ export default class Jobs {
     )
 
     for (const job of jobs) {
-      if ($cancelToken.requested) {
-        break
-      }
-      await this._runJob($cancelToken, job, schedule, data)
+      await this._runJob(job, schedule, data)
     }
   }
 }
