@@ -266,7 +266,7 @@ export default class Jobs {
 
       const status = await executor({
         app,
-        token,
+        cancelToken: token,
         data: data_,
         job,
         logger,
