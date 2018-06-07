@@ -1018,12 +1018,16 @@ export default class BackupNg {
               }
             })()
 
+      const isFull = some(
+        deltaExport.vdis,
+        vdi => vdi.other_config['xo:base_delta'] === undefined
+      )
       await waitAll(
         [
           ...remotes.map(
             wrapTaskFn(
               id => ({
-                data: { id, type: 'remote' },
+                data: { id, isFull, type: 'remote' },
                 logger,
                 message: 'export',
                 parentId: taskId,
@@ -1119,7 +1123,7 @@ export default class BackupNg {
           ...srs.map(
             wrapTaskFn(
               id => ({
-                data: { id, type: 'SR' },
+                data: { id, isFull, type: 'SR' },
                 logger,
                 message: 'export',
                 parentId: taskId,

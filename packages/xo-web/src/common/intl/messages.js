@@ -261,6 +261,7 @@ const messages = {
   jobTransferredDataSpeed: 'Transfer speed:',
   operationSize: 'Size',
   operationSpeed: 'Speed',
+  exportType: 'Type',
   jobMergedDataSize: 'Merge size:',
   jobMergedDataSpeed: 'Merge speed:',
   allJobCalls: 'All',

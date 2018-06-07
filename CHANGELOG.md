@@ -8,6 +8,7 @@
 - Create new VDI from SR view not attached to any VM [#2229](https://github.com/vatesfr/xen-orchestra/issues/2229)
 - [Patches] ignore XS upgrade in missing patches counter [#2866](https://github.com/vatesfr/xen-orchestra/issues/2866)
 - [Health] List VM snapshots related to non-existing backup jobs/schedules [#2828](https://github.com/vatesfr/xen-orchestra/issues/2828)
+- [Delta Backup NG logs] Display wether the export is a full or a delta [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711)
 
 ### Bugs
 
