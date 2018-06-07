@@ -137,7 +137,7 @@ class JobsTable extends React.Component {
       },
       {
         handler: (job, { goTo }) => goTo(`/backup-ng/${job.id}/edit`),
-        label: '',
+        label: _('formEdit'),
         icon: 'edit',
         level: 'primary',
       },

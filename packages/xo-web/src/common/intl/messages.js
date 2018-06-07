@@ -188,6 +188,7 @@ const messages = {
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
+  formEdit: 'Edit',
   formReset: 'Reset',
   formSave: 'Save',
   add: 'Add',
