@@ -1,5 +1,8 @@
 ### Check list
 
+> Check items when done or if not relevant
+
+- [ ] PR reference the relevant issue (e.g. `Fixes #007`)
 - [ ] if UI changes, a screenshot has been added to the PR
 - [ ] CHANGELOG updated
 - [ ] documentation updated
