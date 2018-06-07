@@ -1018,8 +1018,10 @@ export default class BackupNg {
               }
             })()
 
-      const getIsDelta = vdi => vdi.other_config['xo:base_delta'] !== undefined
-      const isFull = some(deltaExport.vdis, vdi => !getIsDelta(vdi))
+      const isFull = some(
+        deltaExport.vdis,
+        vdi => vdi.other_config['xo:base_delta'] === undefined
+      )
       await waitAll(
         [
           ...remotes.map(
@@ -1073,7 +1075,8 @@ export default class BackupNg {
                     defer(async ($defer, vdi, id) => {
                       const path = `${vmDir}/${metadata.vhds[id]}`
 
-                      const isDelta = getIsDelta(vdi)
+                      const isDelta =
+                        vdi.other_config['xo:base_delta'] !== undefined
                       let parentPath
                       if (isDelta) {
                         const vdiDir = dirname(path)
