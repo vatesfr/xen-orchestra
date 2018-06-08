@@ -34,7 +34,15 @@ import {
 
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
-import { FormFeedback, FormGroup, getRandomId, Input, Number, Ul, Li } from './utils'
+import {
+  FormFeedback,
+  FormGroup,
+  getRandomId,
+  Input,
+  Number,
+  Ul,
+  Li,
+} from './utils'
 
 // ===================================================================
 
@@ -599,11 +607,9 @@ export default [
                     </label>
                     <FormFeedback
                       component={Input}
-                      error={_('missingBackupName')}
+                      message={_('missingBackupName')}
                       onChange={effects.setName}
-                      showError={
-                        state.showErrors ? state.missingName : undefined
-                      }
+                      error={state.showErrors ? state.missingName : undefined}
                       value={state.name}
                     />
                   </FormGroup>
@@ -618,12 +624,10 @@ export default [
                       </label>
                       <FormFeedback
                         component={SelectVm}
-                        error={_('missingVms')}
+                        message={_('missingVms')}
                         multi
                         onChange={effects.setVms}
-                        showError={
-                          state.showErrors ? state.missingVms : undefined
-                        }
+                        error={state.showErrors ? state.missingVms : undefined}
                         value={state.vms}
                       />
                     </FormGroup>
@@ -643,10 +647,8 @@ export default [
               </Card>
               <FormFeedback
                 component={Card}
-                error={_('missingBackupMode')}
-                showError={
-                  state.showErrors ? state.missingBackupMode : undefined
-                }
+                error={state.showErrors ? state.missingBackupMode : undefined}
+                message={_('missingBackupMode')}
               >
                 <CardBlock>
                   <div className='text-xs-center'>
@@ -729,10 +731,10 @@ export default [
                       </label>
                       <FormFeedback
                         component={SelectRemote}
-                        error={_('missingRemotes')}
+                        message={_('missingRemotes')}
                         onChange={effects.addRemote}
                         predicate={state.remotePredicate}
-                        showError={
+                        error={
                           state.showErrors ? state.missingRemotes : undefined
                         }
                         value={null}
@@ -777,12 +779,10 @@ export default [
                       </label>
                       <FormFeedback
                         component={SelectSr}
-                        error={_('missingSrs')}
+                        message={_('missingSrs')}
                         onChange={effects.addSr}
                         predicate={state.srPredicate}
-                        showError={
-                          state.showErrors ? state.missingSrs : undefined
-                        }
+                        error={state.showErrors ? state.missingSrs : undefined}
                         value={null}
                       />
                       <br />

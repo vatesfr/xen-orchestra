@@ -82,8 +82,8 @@ export default [
     <form id={state.formId}>
       <FormFeedback
         component={Card}
-        error={_('retentionNeeded')}
-        showError={state.retentionNeeded}
+        error={state.retentionNeeded}
+        message={_('retentionNeeded')}
       >
         <CardBlock>
           {state.exportMode && (

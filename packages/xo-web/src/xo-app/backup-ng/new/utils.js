@@ -41,26 +41,26 @@ Number.propTypes = {
 }
 
 export const FormFeedback = ({
-  showError,
-  error,
   component: Component,
+  error,
+  message,
   ...props
 }) => (
   <div>
     <Component
       {...props}
       style={
-        showError === undefined
+        error === undefined
           ? undefined
           : {
-              borderColor: showError ? 'red' : 'green',
+              borderColor: error ? 'red' : 'green',
               ...props.style,
             }
       }
     />
-    {showError && (
+    {error && (
       <span className='text-danger'>
-        <Icon icon='alarm' /> {error}
+        <Icon icon='alarm' /> {message}
       </span>
     )}
   </div>
@@ -68,6 +68,6 @@ export const FormFeedback = ({
 
 FormFeedback.propTypes = {
   component: PropTypes.node.isRequired,
-  error: PropTypes.node.isRequired,
-  showError: PropTypes.bool,
+  error: PropTypes.bool,
+  message: PropTypes.node.isRequired,
 }

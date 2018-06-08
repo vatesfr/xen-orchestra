@@ -111,18 +111,18 @@ export default [
       <FormFeedback
         component={Card}
         error={
-          state.missingSchedules
-            ? _('missingSchedules')
-            : state.missingExportRetention
-              ? _('missingExportRetention')
-              : _('missingSnapshotRetention')
-        }
-        showError={
           state.showErrors
             ? state.missingSchedules ||
               state.missingExportRetention ||
               state.missingSnapshotRetention
             : undefined
+        }
+        message={
+          state.missingSchedules
+            ? _('missingSchedules')
+            : state.missingExportRetention
+              ? _('missingExportRetention')
+              : _('missingSnapshotRetention')
         }
       >
         <CardHeader>
