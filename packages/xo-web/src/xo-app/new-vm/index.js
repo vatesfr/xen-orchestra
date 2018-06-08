@@ -624,20 +624,19 @@ export default class NewVm extends BaseComponent {
     }
   )
   _getDefaultNetworkId = template => {
-    const resourceSet = this._getResolvedResourceSet()
-
     if (template === undefined) {
       return
     }
-    if (resourceSet) {
-      return find(resourceSet.objectsByType.network, {
-        $pool: template.$pool,
-      })
-    }
-    const network = find(this._getPoolNetworks(), network => {
-      const pif = getObject(store.getState(), network.PIFs[0])
-      return pif && pif.management
-    })
+
+    const resourceSet = this._getResolvedResourceSet()
+    const network = resourceSet
+      ? find(resourceSet.objectsByType.network, {
+          $pool: template.$pool,
+        })
+      : find(this._getPoolNetworks(), network => {
+          const pif = getObject(store.getState(), network.PIFs[0])
+          return pif && pif.management
+        })
     return network && network.id
   }
 

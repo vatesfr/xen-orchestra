@@ -60,7 +60,9 @@ const ADDON_BUTTON_STYLE = { lineHeight: '1.4' }
 const getIds = value =>
   value == null || isString(value) || isInteger(value)
     ? value
-    : isArray(value) ? map(value, getIds) : value.id
+    : isArray(value)
+      ? map(value, getIds)
+      : value.id
 
 const getOption = (object, container) => ({
   label: container
@@ -858,15 +860,10 @@ export class SelectResourceSetsNetwork extends React.PureComponent {
   }
 
   _getNetworks = createSelector(
-    () => this.props.resourceSet,
+    () => this.props.resourceSet.objectsByType.network,
     () => this.props.predicate,
-    ({ objectsByType }, predicate) => {
-      const networks = objectsByType['network']
-      return sortBy(
-        predicate ? filter(networks, predicate) : networks,
-        'name_label'
-      )
-    }
+    (networks, predicate) =>
+      sortBy(predicate ? filter(networks, predicate) : networks, 'name_label')
   )
 
   render () {
