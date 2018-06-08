@@ -13,6 +13,7 @@ import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
 import {
+  cancelJob,
   deleteBackupNgJobs,
   disableSchedule,
   enableSchedule,
@@ -37,6 +38,15 @@ const _runBackupNgJob = ({ id, name, schedule }) =>
       name: <strong>{name}</strong>,
     }),
   }).then(() => runBackupNgJob({ id, schedule }))
+
+const cancelBackupNgJob = ({ id, name, runId }) =>
+  confirm({
+    title: _('cancelJob'),
+    body: _('cancelBackupNgJobConfirm', {
+      id: id.slice(0, 5),
+      name: <strong>{name}</strong>,
+    }),
+  }).then(() => cancelJob(runId))
 
 const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
   <table>
@@ -68,15 +78,28 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
           />
         </td>
         <td>
-          <ActionButton
-            btnStyle='primary'
-            data-id={job.id}
-            data-name={job.name}
-            data-schedule={schedule.id}
-            handler={_runBackupNgJob}
-            icon='run-schedule'
-            size='small'
-          />
+          {job.runId !== undefined ? (
+            <ActionButton
+              btnStyle='danger'
+              data-id={job.id}
+              data-name={job.name}
+              data-runId={job.runId}
+              handler={cancelBackupNgJob}
+              icon='cancel'
+              size='small'
+              tooltip={_('formCancel')}
+            />
+          ) : (
+            <ActionButton
+              btnStyle='primary'
+              data-id={job.id}
+              data-name={job.name}
+              data-schedule={schedule.id}
+              handler={_runBackupNgJob}
+              icon='run-schedule'
+              size='small'
+            />
+          )}
         </td>
       </tr>
     ))}

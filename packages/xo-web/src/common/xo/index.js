@@ -1679,6 +1679,8 @@ export const runJob = job => {
   return _call('job.runSequence', { idSequence: [resolveId(job)] })
 }
 
+export const cancelJob = runId => _call('job.cancel', { runId })
+
 // Backup/Schedule ---------------------------------------------------------
 
 export const createSchedule = (
