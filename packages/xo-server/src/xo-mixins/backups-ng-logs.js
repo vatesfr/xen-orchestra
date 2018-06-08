@@ -59,11 +59,12 @@ export default {
           (data.type === 'backup' || data.key === undefined) &&
           (runId === undefined || runId === id)
         ) {
-          const { jobId } = data
+          const { scheduleId, jobId } = data
           consolidated[id] = started[id] = {
             data: data.data,
             id,
             jobId,
+            scheduleId,
             start: time,
             status: runningJobs[jobId] === id ? 'pending' : 'interrupted',
           }

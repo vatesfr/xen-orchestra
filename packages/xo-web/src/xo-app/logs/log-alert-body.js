@@ -174,7 +174,8 @@ export default [
                   8
                 )}) <TaskStateInfos status={taskLog.status} />{' '}
                 {scheduleId !== undefined &&
-                  taskLog.status === 'failure' && (
+                  (taskLog.status === 'failure' ||
+                    taskLog.status === 'interrupted') && (
                     <ActionButton
                       handler={effects.restartVmJob}
                       icon='run'
@@ -320,6 +321,7 @@ export default [
                   })}
                 </ul>
                 <TaskDate label='taskStart' value={taskLog.start} />
+                <br />
                 {taskLog.end !== undefined && (
                   <div>
                     <TaskDate label='taskEnd' value={taskLog.end} />
