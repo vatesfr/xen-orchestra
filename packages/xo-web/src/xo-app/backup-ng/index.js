@@ -72,10 +72,8 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
           {job.runId !== undefined ? (
             <ActionButton
               btnStyle='danger'
-              data-id={job.id}
-              data-name={job.name}
-              data-runId={job.runId}
               handler={cancelJob}
+              handlerParam={job}
               icon='cancel'
               size='small'
               tooltip={_('formCancel')}
