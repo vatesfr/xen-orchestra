@@ -174,8 +174,8 @@ export default [
                   8
                 )}) <TaskStateInfos status={taskLog.status} />{' '}
                 {scheduleId !== undefined &&
-                  (taskLog.status === 'failure' ||
-                    taskLog.status === 'interrupted') && (
+                  taskLog.status !== 'success' &&
+                  taskLog.status !== 'pending' && (
                     <ActionButton
                       handler={effects.restartVmJob}
                       icon='run'
