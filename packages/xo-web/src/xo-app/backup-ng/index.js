@@ -39,15 +39,6 @@ const _runBackupNgJob = ({ id, name, schedule }) =>
     }),
   }).then(() => runBackupNgJob({ id, schedule }))
 
-const cancelBackupNgJob = ({ id, name, runId }) =>
-  confirm({
-    title: _('cancelJob'),
-    body: _('cancelBackupNgJobConfirm', {
-      id: id.slice(0, 5),
-      name: <strong>{name}</strong>,
-    }),
-  }).then(() => cancelJob(runId))
-
 const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
   <table>
     <tr className='text-muted'>
@@ -84,7 +75,7 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
               data-id={job.id}
               data-name={job.name}
               data-runId={job.runId}
-              handler={cancelBackupNgJob}
+              handler={cancelJob}
               icon='cancel'
               size='small'
               tooltip={_('formCancel')}
