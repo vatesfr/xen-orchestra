@@ -10,6 +10,7 @@
 
 /packages/vhd-cli/src/commands/index.js
 
+/packages/xen-api/examples/node_modules/
 /packages/xen-api/plot.dat
 
 /packages/xo-server/.xo-server.*
