@@ -1,43 +1,35 @@
-
 # XOA
 
-The fastest way to install Xen Orchestra is to use our Appliance. You can deploy it by connecting to your XenServer host and executing this:
-
-```
-bash -c "$(curl -s http://xoa.io/deploy)"
-```
-
-> This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.
-
-XOA is a Debian VM with:
+XOA is the Xen Orchestra Appliance. XOA is a Debian VM with:
 
 * Xen Orchestra already installed (nothing to do!)
 * Tested with all bundled dependencies (QA)
 * The web updater (update in one click)
-* Support (+SSH support, tooling…)
+* Support (+SSH support, tooling)
 * Secured system (sudo, firewall)
 
 ## Specifications
 
-By default, this VM is configured with:
+By default, the VM is configured with:
 
 * 2 vCPUs
 * 2GB of RAM
 * 15GB of disk (10GB for `/` and 5GB for `/var`)
 
-For usage on huge infrastructure (more than 500+ VMs), feel free to increase the RAM.
+For use on huge infrastructure (more than 500+ VMs), feel free to increase the RAM.
 
 ## Deployment
 
 ### The quickest way
 
-SSH to your XenServer, and execute the following:
+The fastest way to install Xen Orchestra is to use our appliance deploy script. You can deploy it by connecting to your XenServer host and executing the following:
 
 ```
 bash -c "$(curl -s http://xoa.io/deploy)"
 ```
+**Note:** This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.  
 
-Then follow the instructions:
+Now follow the instructions:
 
 * Your IP configuration will be requested: it's set to **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
 * If DHCP is selected, the script will continue automatically. Otherwise a netmask, gateway, and DNS should be provided.
@@ -47,7 +39,16 @@ Then follow the instructions:
 
 Download XOA from xen-orchestra.com. Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
 
-After the VM is imported, you just need to start it with `xe vm-start vm="XOA Unified"` or with XenCenter.
+After the VM is imported, you just need to start it with `xe vm-start vm="XOA"` or with XenCenter.
+
+## First Login
+Once you have started the VM, you can access the web UI by putting the IP you configured during deployment into your web browser. If you did not configure an IP or are unsure, try one of the following methods to find it:  
+
+* Run `xe vm-list params=name-label,networks | grep -A 1 XOA` on your host
+* Check your router's DHCP leases for an `xoa` lease
+
+**Note:** The default Web UI credentials are `admin@admin.net` / `admin`
+
 
 ## Registration
 
@@ -139,7 +140,7 @@ $ xoa network static
 ? IP of the DNS server 192.168.100.254
 ```
 
-Xen Orchestra is now accessible in your browser on ` https://your-vm-ip`.
+Xen Orchestra is now accessible in your browser at ` https://your-vm-ip`.
 
 You can access the VM console through XenCenter or using VNC through a SSH tunnel.
 
