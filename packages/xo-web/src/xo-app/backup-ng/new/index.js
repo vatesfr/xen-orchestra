@@ -13,7 +13,6 @@ import {
   find,
   findKey,
   flatten,
-  get,
   includes,
   isEmpty,
   keyBy,
@@ -120,6 +119,7 @@ const getInitialState = () => ({
   formId: getRandomId(),
   name: '',
   newSchedules: {},
+  offlineSnapshot: false,
   paramsUpdated: false,
   powerState: 'All',
   remotes: [],
@@ -160,6 +160,7 @@ export default [
             '': {
               reportWhen: state.reportWhen,
               concurrency: state.concurrency || undefined,
+              offlineSnapshot: state.offlineSnapshot,
             },
           },
           remotes:
@@ -230,6 +231,7 @@ export default [
           if (id === '') {
             oldSetting.reportWhen = state.reportWhen
             oldSetting.concurrency = state.concurrency || undefined
+            oldSetting.offlineSnapshot = state.offlineSnapshot
           } else if (!(id in settings)) {
             delete oldSettings[id]
           } else if (
@@ -269,9 +271,9 @@ export default [
         ...state,
         [mode]: !state[mode],
       }),
-      setCompression: (_, { target: { checked } }) => state => ({
+      setCheckboxValue: (_, { target: { checked, name } }) => state => ({
         ...state,
-        compression: checked,
+        [name]: checked,
       }),
       toggleSmartMode: (_, smartMode) => state => ({
         ...state,
@@ -312,7 +314,8 @@ export default [
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
-        const globalSettings = job.settings['']
+        const { concurrency, reportWhen, offlineSnapshot } =
+          job.settings[''] || {}
         const settings = { ...job.settings }
         delete settings['']
 
@@ -332,8 +335,9 @@ export default [
           crMode: job.mode === 'delta' && !isEmpty(srs),
           remotes,
           srs,
-          reportWhen: get(globalSettings, 'reportWhen') || 'failure',
-          concurrency: get(globalSettings, 'concurrency') || 0,
+          reportWhen: reportWhen || 'failure',
+          concurrency: concurrency || 0,
+          offlineSnapshot,
           settings,
           schedules,
           ...destructVmsPattern(job.vms),
@@ -586,9 +590,10 @@ export default [
                   {state.showCompression && (
                     <label>
                       <input
-                        type='checkbox'
-                        onChange={effects.setCompression}
                         checked={state.compression}
+                        name='compression'
+                        onChange={effects.setCheckboxValue}
+                        type='checkbox'
                       />{' '}
                       <strong>{_('useCompression')}</strong>
                     </label>
@@ -767,6 +772,17 @@ export default [
                       onChange={effects.setConcurrency}
                       value={state.concurrency}
                     />
+                  </FormGroup>
+                  <FormGroup>
+                    <label>
+                      <strong>{_('offlineSnapshot')}</strong>{' '}
+                      <input
+                        checked={state.offlineSnapshot}
+                        name='offlineSnapshot'
+                        onChange={effects.setCheckboxValue}
+                        type='checkbox'
+                      />
+                    </label>
                   </FormGroup>
                 </CardBlock>
               </Card>
