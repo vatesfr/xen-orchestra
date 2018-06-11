@@ -595,7 +595,10 @@ export class Xapi extends EventEmitter {
                 if (error != null && (response = error.response) != null) {
                   response.req.abort()
 
-                  const { headers: { location }, statusCode } = response
+                  const {
+                    headers: { location },
+                    statusCode,
+                  } = response
                   if (statusCode === 302 && location !== undefined) {
                     return doRequest(location)
                   }
@@ -777,15 +780,13 @@ export class Xapi extends EventEmitter {
       this._pool = object
 
       const eventWatchers = this._eventWatchers
-      if (eventWatchers !== undefined) {
-        forEach(object.other_config, (_, key) => {
-          const eventWatcher = eventWatchers[key]
-          if (eventWatcher !== undefined) {
-            delete eventWatchers[key]
-            eventWatcher(object)
-          }
-        })
-      }
+      forEach(object.other_config, (_, key) => {
+        const eventWatcher = eventWatchers[key]
+        if (eventWatcher !== undefined) {
+          delete eventWatchers[key]
+          eventWatcher(object)
+        }
+      })
     } else if (type === 'task') {
       if (prev === undefined) {
         ++this._nTasks
