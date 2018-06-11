@@ -780,7 +780,7 @@ export class Xapi extends EventEmitter {
       this._pool = object
 
       const eventWatchers = this._eventWatchers
-      forEach(object.other_config, (_, key) => {
+      Object.keys(object.other_config).forEach(key => {
         const eventWatcher = eventWatchers[key]
         if (eventWatcher !== undefined) {
           delete eventWatchers[key]
