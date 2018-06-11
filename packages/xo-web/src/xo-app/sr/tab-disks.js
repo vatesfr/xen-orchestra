@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
+import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import Link from 'link'
 import propTypes from 'prop-types-decorator'
@@ -184,6 +185,11 @@ const GROUPED_ACTIONS = [
 ]
 
 const INDIVIDUAL_ACTIONS = [
+  {
+    handler: vdi => copy(vdi.uuid),
+    icon: 'clipboard',
+    label: vdi => _('copyUuid', { uuid: vdi.uuid }),
+  },
   {
     handler: deleteVdi,
     icon: 'delete',
