@@ -1,6 +1,6 @@
 import deferrable from 'golike-defer'
 import { catchPlus as pCatch, ignoreErrors } from 'promise-toolbox'
-import { find, gte, includes, isEmpty, lte } from 'lodash'
+import { find, gte, includes, isEmpty, lte, noop } from 'lodash'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
 
@@ -434,6 +434,6 @@ export default {
     return this.call(
       `VM.${hard ? 'hard' : 'clean'}_shutdown`,
       this.getObject(vmId).$ref
-    )
+    ).then(noop)
   },
 }
