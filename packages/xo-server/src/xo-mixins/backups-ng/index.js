@@ -777,7 +777,7 @@ export default class BackupNg {
     ): any)
 
     if (startAfterSnapshot) {
-      ignoreErrors.call(xapi.start(vm))
+      ignoreErrors.call(xapi.startVm(vm))
     }
 
     await xapi._updateObjectMapProperty(snapshot, 'other_config', {
