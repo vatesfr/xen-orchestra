@@ -107,11 +107,6 @@ const REPORT_WHEN_FILTER_OPTIONS = [
 
 const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
-const setCheckboxValue = property => (_, { target: { checked } }) => state => ({
-  ...state,
-  [property]: checked,
-})
-
 const getInitialState = () => ({
   $pool: {},
   backupMode: false,
@@ -276,8 +271,10 @@ export default [
         ...state,
         [mode]: !state[mode],
       }),
-      setCompression: setCheckboxValue('compression'),
-      setOfflineSnapshot: setCheckboxValue('offlineSnapshot'),
+      setCheckboxValue: (_, { target: { checked, name } }) => state => ({
+        ...state,
+        [name]: checked,
+      }),
       toggleSmartMode: (_, smartMode) => state => ({
         ...state,
         smartMode,
@@ -593,9 +590,10 @@ export default [
                   {state.showCompression && (
                     <label>
                       <input
-                        type='checkbox'
-                        onChange={effects.setCompression}
                         checked={state.compression}
+                        name='compression'
+                        onChange={effects.setCheckboxValue}
+                        type='checkbox'
                       />{' '}
                       <strong>{_('useCompression')}</strong>
                     </label>
@@ -777,13 +775,14 @@ export default [
                   </FormGroup>
                   <FormGroup>
                     <label>
-                      <strong>{_('offlineSnapshot')}</strong>
-                    </label>{' '}
-                    <input
-                      type='checkbox'
-                      onChange={effects.setOfflineSnapshot}
-                      checked={state.offlineSnapshot}
-                    />
+                      <strong>{_('offlineSnapshot')}</strong>{' '}
+                      <input
+                        checked={state.offlineSnapshot}
+                        name='offlineSnapshot'
+                        onChange={effects.setCheckboxValue}
+                        type='checkbox'
+                      />
+                    </label>
                   </FormGroup>
                 </CardBlock>
               </Card>
