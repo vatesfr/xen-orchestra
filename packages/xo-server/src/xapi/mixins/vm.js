@@ -204,7 +204,7 @@ export default {
 
     if (cloudConfig != null) {
       // Refresh the record.
-      await this.barrier('VM', vm.$ref)
+      await this.barrier(vm.$ref)
       vm = this.getObjectByRef(vm.$ref)
 
       // Find the SR of the first VDI.
@@ -224,7 +224,7 @@ export default {
     }
 
     // wait for the record with all the VBDs and VIFs
-    return this.barrier('VM', vm.$ref)
+    return this.barrier(vm.$ref)
   },
 
   // High level method to edit a VM.
