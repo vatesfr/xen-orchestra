@@ -429,4 +429,11 @@ export default {
     // the force parameter is always true
     return this.call('VM.resume', this.getObject(vmId).$ref, false, true)
   },
+
+  shutdownVm (vmId, { hard = false } = {}) {
+    return this.call(
+      `VM.${hard ? 'hard' : 'clean'}_shutdown`,
+      this.getObject(vmId).$ref
+    )
+  },
 }

@@ -8,7 +8,11 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
 import { isEmpty, last, mapValues, noop, some, sum, values } from 'lodash'
-import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
+import {
+  fromEvent as pFromEvent,
+  ignoreErrors,
+  timeout as pTimeout,
+} from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -40,6 +44,7 @@ type Settings = {|
   concurrency?: number,
   deleteFirst?: boolean,
   exportRetention?: number,
+  offlineSnapshot?: boolean,
   reportWhen?: ReportWhen,
   snapshotRetention?: number,
   vmTimeout?: number,
@@ -104,6 +109,7 @@ const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
 const defaultSettings: Settings = {
   deleteFirst: false,
   exportRetention: 0,
+  offlineSnapshot: false,
   reportWhen: 'failure',
   snapshotRetention: 0,
   vmTimeout: 0,
@@ -745,6 +751,17 @@ export default class BackupNg {
 
     await xapi._assertHealthyVdiChains(vm)
 
+    const offlineSnapshot: boolean = getSetting(
+      settings,
+      'offlineSnapshot',
+      vmUuid,
+      ''
+    )
+    const startAfterSnapshot = offlineSnapshot && vm.power_state === 'Running'
+    if (startAfterSnapshot) {
+      await xapi.shutdownVm(vm)
+    }
+
     let snapshot: Vm = (await wrapTask(
       {
         parentId: taskId,
@@ -758,6 +775,11 @@ export default class BackupNg {
         `[XO Backup ${job.name}] ${vm.name_label}`
       )
     ): any)
+
+    if (startAfterSnapshot) {
+      ignoreErrors.call(xapi.start(vm))
+    }
+
     await xapi._updateObjectMapProperty(snapshot, 'other_config', {
       'xo:backup:job': jobId,
       'xo:backup:schedule': scheduleId,
