@@ -1114,6 +1114,7 @@ export default class BackupNg {
                         await new Vhd(handler, parentPath).readHeaderAndFooter()
                       }
 
+                      // FIXME: should only be renamed after the metadata file has been written
                       await writeStream(
                         fork.streams[`${id}.vhd`](),
                         handler,
