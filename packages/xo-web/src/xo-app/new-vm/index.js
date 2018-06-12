@@ -586,9 +586,10 @@ export default class NewVm extends BaseComponent {
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
+    () => this.props.pool,
     () => this.state.state.template,
-    (isInPool, isInResourceSet, template) => network =>
-      (isInResourceSet(network.id) || isInPool(network)) &&
+    (isInPool, isInResourceSet, pool, template) => network =>
+      (pool === undefined ? isInResourceSet(network.id) : isInPool(network)) &&
       template !== undefined &&
       template.$pool === network.$pool
   )
@@ -628,15 +629,15 @@ export default class NewVm extends BaseComponent {
       return
     }
 
-    const resourceSet = this._getResolvedResourceSet()
-    const network = resourceSet
-      ? find(resourceSet.objectsByType.network, {
-          $pool: template.$pool,
-        })
-      : find(this._getPoolNetworks(), network => {
-          const pif = getObject(store.getState(), network.PIFs[0])
-          return pif && pif.management
-        })
+    const network =
+      this.props.pool === undefined
+        ? find(this._getResolvedResourceSet().objectsByType.network, {
+            $pool: template.$pool,
+          })
+        : find(this._getPoolNetworks(), network => {
+            const pif = getObject(store.getState(), network.PIFs[0])
+            return pif && pif.management
+          })
     return network && network.id
   }
 

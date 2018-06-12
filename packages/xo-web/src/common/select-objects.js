@@ -35,6 +35,7 @@ import {
   createGetObjectsOfType,
   createGetTags,
   createSelector,
+  createSort,
   getObject,
 } from './selectors'
 import { addSubscriptions, connectStore, resolveResourceSets } from './utils'
@@ -859,11 +860,15 @@ export class SelectResourceSetsNetwork extends React.PureComponent {
     this.refs.select.value = value
   }
 
-  _getNetworks = createSelector(
-    () => this.props.resourceSet.objectsByType.network,
-    () => this.props.predicate,
-    (networks, predicate) =>
-      sortBy(predicate ? filter(networks, predicate) : networks, 'name_label')
+  _getNetworks = createSort(
+    createFilter(
+      () => this.props.resourceSet.objectsByType.network,
+      createSelector(
+        () => this.props.predicate,
+        predicate => predicate || (() => true)
+      )
+    ),
+    'name_label'
   )
 
   render () {
