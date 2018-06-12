@@ -63,7 +63,7 @@ const formatSize = bytes =>
 
 const formatSpeed = (bytes, milliseconds) =>
   milliseconds > 0
-    ? humanFormat(bytes * 1e3 / milliseconds, {
+    ? humanFormat((bytes * 1e3) / milliseconds, {
         scale: 'binary',
         unit: 'B/s',
       })
@@ -190,6 +190,13 @@ class BackupReportsXoPlugin {
       const remotesText = []
 
       for (const subTaskLog of taskLog.tasks || []) {
+        if (
+          subTaskLog.message !== 'export' &&
+          subTaskLog.message !== 'snapshot'
+        ) {
+          continue
+        }
+
         const icon = STATUS_ICON[subTaskLog.status]
         const errorMessage = `    - **Error**: ${get(
           subTaskLog.result,
@@ -242,6 +249,13 @@ class BackupReportsXoPlugin {
         }
 
         forEach(subTaskLog.tasks, operationLog => {
+          if (
+            operationLog.message !== 'merge' &&
+            operationLog.message !== 'transfer'
+          ) {
+            return
+          }
+
           const operationInfoText = []
           if (operationLog.status === 'success') {
             const size = operationLog.result.size
