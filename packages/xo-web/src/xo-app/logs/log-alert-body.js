@@ -186,6 +186,13 @@ export default [
                   )}
                 <ul>
                   {map(taskLog.tasks, subTaskLog => {
+                    if (
+                      subTaskLog.message !== 'export' &&
+                      subTaskLog.message !== 'snapshot'
+                    ) {
+                      return
+                    }
+
                     const isFull = get(subTaskLog.data, 'isFull')
                     if (isFull !== undefined && globalIsFull === undefined) {
                       globalIsFull = isFull
@@ -216,72 +223,81 @@ export default [
                         )}{' '}
                         <TaskStateInfos status={subTaskLog.status} />
                         <ul>
-                          {map(subTaskLog.tasks, operationLog => (
-                            <li key={operationLog.id}>
-                              <span>
-                                <Icon icon='task' /> {operationLog.message}
-                              </span>{' '}
-                              <TaskStateInfos status={operationLog.status} />
-                              <br />
-                              <TaskDate
-                                label='taskStart'
-                                value={operationLog.start}
-                              />
-                              {operationLog.end !== undefined && (
-                                <div>
-                                  <TaskDate
-                                    label='taskEnd'
-                                    value={operationLog.end}
-                                  />
-                                  <br />
-                                  {_.keyValue(
-                                    _('taskDuration'),
-                                    <FormattedDuration
-                                      duration={
-                                        operationLog.end - operationLog.start
-                                      }
+                          {map(subTaskLog.tasks, operationLog => {
+                            if (
+                              operationLog.message !== 'merge' &&
+                              operationLog.message !== 'transfer'
+                            ) {
+                              return
+                            }
+
+                            return (
+                              <li key={operationLog.id}>
+                                <span>
+                                  <Icon icon='task' /> {operationLog.message}
+                                </span>{' '}
+                                <TaskStateInfos status={operationLog.status} />
+                                <br />
+                                <TaskDate
+                                  label='taskStart'
+                                  value={operationLog.start}
+                                />
+                                {operationLog.end !== undefined && (
+                                  <div>
+                                    <TaskDate
+                                      label='taskEnd'
+                                      value={operationLog.end}
                                     />
-                                  )}
-                                  <br />
-                                  {operationLog.status === 'failure' ? (
-                                    <Copiable
-                                      tagName='p'
-                                      data={JSON.stringify(
-                                        operationLog.result,
-                                        null,
-                                        2
-                                      )}
-                                    >
-                                      {_.keyValue(
-                                        _('taskError'),
-                                        <span className='text-danger'>
-                                          {operationLog.result.message}
-                                        </span>
-                                      )}
-                                    </Copiable>
-                                  ) : (
-                                    operationLog.result.size > 0 && (
-                                      <div>
-                                        {_.keyValue(
-                                          _('operationSize'),
-                                          formatSize(operationLog.result.size)
+                                    <br />
+                                    {_.keyValue(
+                                      _('taskDuration'),
+                                      <FormattedDuration
+                                        duration={
+                                          operationLog.end - operationLog.start
+                                        }
+                                      />
+                                    )}
+                                    <br />
+                                    {operationLog.status === 'failure' ? (
+                                      <Copiable
+                                        tagName='p'
+                                        data={JSON.stringify(
+                                          operationLog.result,
+                                          null,
+                                          2
                                         )}
-                                        <br />
+                                      >
                                         {_.keyValue(
-                                          _('operationSpeed'),
-                                          formatSpeed(
-                                            operationLog.result.size,
-                                            operationLog.end -
-                                              operationLog.start
-                                          )
+                                          _('taskError'),
+                                          <span className='text-danger'>
+                                            {operationLog.result.message}
+                                          </span>
                                         )}
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              )}
-                            </li>
-                          ))}
+                                      </Copiable>
+                                    ) : (
+                                      operationLog.result.size > 0 && (
+                                        <div>
+                                          {_.keyValue(
+                                            _('operationSize'),
+                                            formatSize(operationLog.result.size)
+                                          )}
+                                          <br />
+                                          {_.keyValue(
+                                            _('operationSpeed'),
+                                            formatSpeed(
+                                              operationLog.result.size,
+                                              operationLog.end -
+                                                operationLog.start
+                                            )
+                                          )}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                              </li>
+                            )
+                          })}
                         </ul>
                         <TaskDate label='taskStart' value={subTaskLog.start} />
                         {subTaskLog.end !== undefined && (
