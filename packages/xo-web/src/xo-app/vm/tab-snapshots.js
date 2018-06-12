@@ -5,16 +5,15 @@ import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { addSubscriptions, connectStore } from 'utils'
+import { connectStore } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
-import { find, includes, isEmpty } from 'lodash'
+import { includes, isEmpty } from 'lodash'
 import {
   createSelector,
   createGetObjectsOfType,
   getCheckPermissions,
-  getUser,
 } from 'selectors'
 import {
   cloneVm,
@@ -25,7 +24,6 @@ import {
   editVm,
   revertSnapshot,
   snapshotVm,
-  subscribeResourceSets,
 } from 'xo'
 
 const COLUMNS = [
@@ -90,8 +88,7 @@ const INDIVIDUAL_ACTIONS = [
     label: _('copySnapshot'),
   },
   {
-    disabled: (snapshot, { canAdministrate, isSelfUser }) =>
-      !canAdministrate(snapshot) || isSelfUser,
+    disabled: (snapshot, { canAdministrate }) => !canAdministrate(snapshot),
     handler: snapshot => cloneVm(snapshot, false),
     icon: 'vm-fast-clone',
     label: _('fastCloneVmLabel'),
@@ -120,32 +117,16 @@ const INDIVIDUAL_ACTIONS = [
   },
 ]
 
-@addSubscriptions(() => ({
-  resourceSets: subscribeResourceSets,
-}))
 @connectStore(() => ({
   checkPermissions: getCheckPermissions,
   snapshots: createGetObjectsOfType('VM-snapshot')
     .pick((_, props) => props.vm.snapshots)
     .sort(),
-  userId: createSelector(getUser, user => user.id),
 }))
 export default class TabSnapshot extends Component {
   _getCanAdministrate = createSelector(
     () => this.props.checkPermissions,
     check => vm => check(vm.id, 'administrate')
-  )
-
-  _getIsSelfUser = createSelector(
-    () => this.props.resourceSets,
-    resourceSets => {
-      const { vm } = this.props
-      const vmResourceSet =
-        vm.resourceSet && find(resourceSets, { id: vm.resourceSet })
-      return (
-        vmResourceSet && includes(vmResourceSet.subjects, this.props.userId)
-      )
-    }
   )
 
   render () {
@@ -182,8 +163,7 @@ export default class TabSnapshot extends Component {
               <SortedTable
                 collection={snapshots}
                 columns={COLUMNS}
-                data-canAdministrate={this._getCanAdministrate}
-                data-isSelfUser={this._getIsSelfUser()}
+                data-canAdministrate={this._getCanAdministrate()}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
               />
