@@ -6,7 +6,7 @@ import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { UpdateTag } from '../xoa/update'
-import { filter, isEmpty, map } from 'lodash'
+import { isEmpty, map } from 'lodash'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
@@ -16,6 +16,7 @@ import {
   subscribeResourceSets,
 } from 'xo'
 import {
+  createCounter,
   createFilter,
   createGetObjectsOfType,
   createSelector,
@@ -85,6 +86,10 @@ export default class Menu extends Component {
 
   _getNoResourceSets = createSelector(() => this.props.resourceSets, isEmpty)
 
+  _getNumberOfJobs = createCounter(
+    createFilter(() => this.props.jobs, [job => job.key !== 'genericTask'])
+  )
+
   get height () {
     return this.refs.content.offsetHeight
   }
@@ -109,7 +114,6 @@ export default class Menu extends Component {
     const {
       isAdmin,
       isPoolAdmin,
-      jobs,
       nTasks,
       status,
       user,
@@ -182,9 +186,7 @@ export default class Menu extends Component {
         icon: 'menu-self-service',
         label: 'selfServicePage',
       },
-      !(
-        isEmpty(jobs) || isEmpty(filter(jobs, job => job.key !== 'genericTask'))
-      ) &&
+      this._getNumberOfJobs() !== 0 &&
         isAdmin && {
           to: '/backup/overview',
           icon: 'menu-backup',

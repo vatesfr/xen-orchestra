@@ -7,7 +7,6 @@ import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 
 import Edit from './edit'
-import New from './new'
 import Overview from './overview'
 import Restore from './restore'
 import FileRestore from './file-restore'
@@ -43,7 +42,6 @@ const HEADER = (
 
 const Backup = routes('overview', {
   ':id/edit': Edit,
-  new: New,
   overview: Overview,
   restore: Restore,
   'file-restore': FileRestore,
