@@ -17,6 +17,7 @@ import {
   find,
   findKey,
   flatten,
+  forEach,
   includes,
   isEmpty,
   keyBy,
@@ -48,6 +49,36 @@ import {
 
 const normaliseTagValues = values => resolveIds(values).map(value => [value])
 
+const normaliseCopyRentention = settings => {
+  forEach(settings, schedule => {
+    if (schedule.copyRetention === undefined) {
+      schedule.copyRetention = schedule.exportRetention
+    }
+  })
+}
+
+const normaliseSettings = ({
+  settings,
+  exportMode,
+  copyMode,
+  snapshotMode,
+}) => {
+  forEach(settings, setting => {
+    if (!exportMode) {
+      setting.exportRetention = undefined
+    }
+
+    if (!copyMode) {
+      setting.copyRetention = undefined
+    }
+
+    if (!snapshotMode) {
+      setting.snapshotRetention = undefined
+    }
+  })
+  return settings
+}
+
 const constructPattern = values =>
   values.length === 1
     ? {
@@ -72,13 +103,16 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
-const getNewSettings = schedules => {
+const getNewSettings = ({ schedules, exportMode, copyMode, snapshotMode }) => {
   const newSettings = {}
 
   for (const id in schedules) {
     newSettings[id] = {
-      exportRetention: schedules[id].exportRetention,
-      snapshotRetention: schedules[id].snapshotRetention,
+      exportRetention: exportMode ? schedules[id].exportRetention : undefined,
+      copyRetention: copyMode ? schedules[id].copyRetention : undefined,
+      snapshotRetention: snapshotMode
+        ? schedules[id].snapshotRetention
+        : undefined,
     }
   }
 
@@ -172,10 +206,15 @@ export default [
           compression: state.compression ? 'native' : '',
           schedules: getNewSchedules(state.newSchedules),
           settings: {
-            ...getNewSettings(state.newSchedules),
+            ...getNewSettings({
+              schedules: state.newSchedules,
+              exportMode: state.exportMode,
+              copyMode: state.copyMode,
+              snapshotMode: state.snapshotMode,
+            }),
             '': {
               reportWhen: state.reportWhen,
-              concurrency: state.concurrency || undefined,
+              concurrency: state.concurrency,
               offlineSnapshot: state.offlineSnapshot,
             },
           },
@@ -210,6 +249,7 @@ export default [
               })).id
               newSettings[scheduleId] = {
                 exportRetention: schedule.exportRetention,
+                copyRetention: schedule.copyRetention,
                 snapshotRetention: schedule.snapshotRetention,
               }
             })
@@ -253,16 +293,18 @@ export default [
 
           if (id === '') {
             oldSetting.reportWhen = state.reportWhen
-            oldSetting.concurrency = state.concurrency || undefined
+            oldSetting.concurrency = state.concurrency
             oldSetting.offlineSnapshot = state.offlineSnapshot
           } else if (!(id in settings)) {
             delete oldSettings[id]
           } else if (
             oldSetting.snapshotRetention !== newSetting.snapshotRetention ||
-            oldSetting.exportRetention !== newSetting.exportRetention
+            oldSetting.exportRetention !== newSetting.exportRetention ||
+            oldSetting.copyRetention !== newSetting.copyRetention
           ) {
             newSettings[id] = {
               exportRetention: newSetting.exportRetention,
+              copyRetention: newSetting.copyRetention,
               snapshotRetention: newSetting.snapshotRetention,
             }
           }
@@ -273,10 +315,15 @@ export default [
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          settings: {
-            ...oldSettings,
-            ...newSettings,
-          },
+          settings: normaliseSettings({
+            settings: {
+              ...oldSettings,
+              ...newSettings,
+            },
+            exportMode: state.exportMode,
+            copyMode: state.copyMode,
+            snapshotMode: state.snapshotMode,
+          }),
           remotes:
             state.deltaMode || state.backupMode
               ? constructPattern(state.remotes)
@@ -341,6 +388,12 @@ export default [
           job.settings[''] || {}
         const settings = { ...job.settings }
         delete settings['']
+        const drMode = job.mode === 'full' && !isEmpty(srs)
+        const crMode = job.mode === 'delta' && !isEmpty(srs)
+
+        if (drMode || crMode) {
+          normaliseCopyRentention(settings)
+        }
 
         return {
           ...state,
@@ -354,8 +407,8 @@ export default [
           ),
           backupMode: job.mode === 'full' && !isEmpty(remotes),
           deltaMode: job.mode === 'delta' && !isEmpty(remotes),
-          drMode: job.mode === 'full' && !isEmpty(srs),
-          crMode: job.mode === 'delta' && !isEmpty(srs),
+          drMode,
+          crMode,
           remotes,
           srs,
           reportWhen: reportWhen || 'failure',
@@ -376,13 +429,14 @@ export default [
         editionMode: undefined,
       }),
       editSchedule: (_, schedule) => state => {
-        const { snapshotRetention, exportRetention } =
+        const { snapshotRetention, exportRetention, copyRetention } =
           state.settings[schedule.id] || {}
         return {
           ...state,
           editionMode: 'editSchedule',
           tmpSchedule: {
             exportRetention,
+            copyRetention,
             snapshotRetention,
             ...schedule,
           },
@@ -414,15 +468,8 @@ export default [
       },
       saveSchedule: (
         _,
-        { cron, timezone, exportRetention, snapshotRetention }
+        { cron, timezone, exportRetention, copyRetention, snapshotRetention }
       ) => async (state, props) => {
-        if (!state.exportMode) {
-          exportRetention = 0
-        }
-        if (!state.snapshotMode) {
-          snapshotRetention = 0
-        }
-
         if (state.editionMode === 'creation') {
           return {
             ...state,
@@ -433,6 +480,7 @@ export default [
                 cron,
                 timezone,
                 exportRetention,
+                copyRetention,
                 snapshotRetention,
               },
             },
@@ -452,6 +500,7 @@ export default [
           const settings = { ...state.settings }
           settings[id] = {
             exportRetention,
+            copyRetention,
             snapshotRetention,
           }
 
@@ -474,6 +523,7 @@ export default [
               cron,
               timezone,
               exportRetention,
+              copyRetention,
               snapshotRetention,
             },
           },
@@ -538,6 +588,7 @@ export default [
         state.missingRemotes ||
         state.missingSrs ||
         state.missingExportRetention ||
+        state.missingCopyRetention ||
         state.missingSnapshotRetention,
       missingName: state => state.name.trim() === '',
       missingVms: state => isEmpty(state.vms) && !state.smartMode,
@@ -550,20 +601,29 @@ export default [
         isEmpty(state.schedules) && isEmpty(state.newSchedules),
       missingExportRetention: state =>
         state.exportMode && !state.exportRetentionExists,
+      missingCopyRetention: state =>
+        state.copyMode && !state.copyRetentionExists,
       missingSnapshotRetention: state =>
         state.snapshotMode && !state.snapshotRetentionExists,
-      showCompression: state => state.isFull && state.exportRetentionExists,
-      exportMode: state =>
-        state.backupMode || state.deltaMode || state.drMode || state.crMode,
+      showCompression: state =>
+        state.isFull &&
+        (state.exportRetentionExists || state.copyRetentionExists),
+      exportMode: state => state.backupMode || state.deltaMode,
+      copyMode: state => state.drMode || state.crMode,
       exportRetentionExists: ({ newSchedules, settings }) =>
         some(
           { ...newSchedules, ...settings },
-          ({ exportRetention }) => exportRetention !== 0
+          ({ exportRetention }) => exportRetention > 0
+        ),
+      copyRetentionExists: ({ newSchedules, settings }) =>
+        some(
+          { ...newSchedules, ...settings },
+          ({ copyRetention }) => copyRetention > 0
         ),
       snapshotRetentionExists: ({ newSchedules, settings }) =>
         some(
           { ...newSchedules, ...settings },
-          ({ snapshotRetention }) => snapshotRetention !== 0
+          ({ snapshotRetention }) => snapshotRetention > 0
         ),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,

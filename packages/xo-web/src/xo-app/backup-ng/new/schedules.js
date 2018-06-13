@@ -4,52 +4,21 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { Card, CardBlock, CardHeader } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
-import { isEmpty, findKey, size } from 'lodash'
+import { isEmpty, find, findKey, size } from 'lodash'
 
 import NewSchedule from './new-schedule'
 import { FormFeedback, FormGroup } from './utils'
 
 // ===================================================================
 
-const SCHEDULES_COLUMNS = [
-  {
-    itemRenderer: _ => _.cron,
-    sortCriteria: 'cron',
-    name: _('scheduleCron'),
-  },
-  {
-    itemRenderer: _ => _.timezone,
-    sortCriteria: 'timezone',
-    name: _('scheduleTimezone'),
-  },
-  {
-    itemRenderer: _ => _.exportRetention,
-    sortCriteria: _ => _.exportRetention,
-    name: _('scheduleExportRetention'),
-  },
-  {
-    itemRenderer: _ => _.snapshotRetention,
-    sortCriteria: _ => _.snapshotRetention,
-    name: _('scheduleSnapshotRetention'),
-  },
-]
-
-const SAVED_SCHEDULES_COLUMNS = [
-  {
-    itemRenderer: _ => _.name,
-    sortCriteria: 'name',
-    name: _('scheduleName'),
-    default: true,
-  },
-  ...SCHEDULES_COLUMNS,
-]
-
 const rowTransform = (schedule, { settings }) => {
-  const { exportRetention, snapshotRetention } = settings[schedule.id] || {}
+  const { exportRetention, copyRetention, snapshotRetention } =
+    settings[schedule.id] || {}
 
   return {
     ...schedule,
     exportRetention,
+    copyRetention,
     snapshotRetention,
   }
 }
@@ -94,6 +63,13 @@ const NEW_SCHEDULES_INDIVIDUAL_ACTIONS = [
 
 // ===================================================================
 
+const FEEDBACK_ERRORS = [
+  'missingSchedules',
+  'missingCopyRetention',
+  'missingExportRetention',
+  'missingSnapshotRetention',
+]
+
 export default [
   injectState,
   provideState({
@@ -102,7 +78,56 @@ export default [
         state.schedules.length + size(state.newSchedules) <= 1,
       disabledEdition: state =>
         state.editionMode !== undefined ||
-        (!state.exportMode && !state.snapshotMode),
+        (!state.exportMode && !state.copyMode && !state.snapshotMode),
+      error: state => find(FEEDBACK_ERRORS, error => state[error]),
+      schedulesColumns: state => {
+        const columns = [
+          {
+            itemRenderer: _ => _.cron,
+            sortCriteria: 'cron',
+            name: _('scheduleCron'),
+          },
+          {
+            itemRenderer: _ => _.timezone,
+            sortCriteria: 'timezone',
+            name: _('scheduleTimezone'),
+          },
+        ]
+
+        if (state.exportMode) {
+          columns.push({
+            itemRenderer: _ => _.exportRetention,
+            sortCriteria: _ => _.exportRetention,
+            name: _('scheduleExportRetention'),
+          })
+        }
+
+        if (state.copyMode) {
+          columns.push({
+            itemRenderer: _ => _.copyRetention,
+            sortCriteria: _ => _.copyRetention,
+            name: _('scheduleCopyRetention'),
+          })
+        }
+
+        if (state.snapshotMode) {
+          columns.push({
+            itemRenderer: _ => _.snapshotRetention,
+            sortCriteria: _ => _.snapshotRetention,
+            name: _('scheduleSnapshotRetention'),
+          })
+        }
+        return columns
+      },
+      savedSchedulesColumns: state => [
+        {
+          itemRenderer: _ => _.name,
+          sortCriteria: 'name',
+          name: _('scheduleName'),
+          default: true,
+        },
+        ...state.schedulesColumns,
+      ],
     },
   }),
   injectState,
@@ -110,20 +135,8 @@ export default [
     <div>
       <FormFeedback
         component={Card}
-        error={
-          state.showErrors
-            ? state.missingSchedules ||
-              state.missingExportRetention ||
-              state.missingSnapshotRetention
-            : undefined
-        }
-        message={
-          state.missingSchedules
-            ? _('missingSchedules')
-            : state.missingExportRetention
-              ? _('missingExportRetention')
-              : _('missingSnapshotRetention')
-        }
+        error={state.showErrors ? state.error !== undefined : undefined}
+        message={state.error !== undefined && _(state.error)}
       >
         <CardHeader>
           {_('backupSchedules')}*
@@ -148,7 +161,7 @@ export default [
               </label>
               <SortedTable
                 collection={state.schedules}
-                columns={SAVED_SCHEDULES_COLUMNS}
+                columns={state.savedSchedulesColumns}
                 data-deleteSchedule={effects.deleteSchedule}
                 data-disabledDeletion={state.disabledDeletion}
                 data-disabledEdition={state.disabledEdition}
@@ -166,7 +179,7 @@ export default [
               </label>
               <SortedTable
                 collection={state.newSchedules}
-                columns={SCHEDULES_COLUMNS}
+                columns={state.schedulesColumns}
                 data-deleteNewSchedule={effects.deleteNewSchedule}
                 data-disabledEdition={state.disabledEdition}
                 data-editNewSchedule={effects.editNewSchedule}
@@ -178,7 +191,12 @@ export default [
         </CardBlock>
       </FormFeedback>
       {state.editionMode !== undefined && (
-        <NewSchedule schedule={state.tmpSchedule} />
+        <NewSchedule
+          copyMode={state.copyMode}
+          exportMode={state.exportMode}
+          schedule={state.tmpSchedule}
+          snapshotMode={state.snapshotMode}
+        />
       )}
     </div>
   ),

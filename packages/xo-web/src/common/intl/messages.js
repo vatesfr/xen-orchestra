@@ -329,7 +329,9 @@ const messages = {
   missingSrs: 'Missing SRs!',
   missingSchedules: 'Missing schedules!',
   missingExportRetention:
-    'All backup modes, except the rolling snapshot mode, require export retention to be higher than 0!',
+    'The Backup mode and The Delta Backup mode require export retention to be higher than 0!',
+  missingCopyRetention:
+    'The CR mode and The DR mode require copy retention to be higher than 0!',
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
   retentionNeeded: 'One of the retentions needs to be higher than 0!',
@@ -371,6 +373,7 @@ const messages = {
   normalBackup: 'Normal backup',
   smartBackup: 'Smart backup',
   exportRetention: 'Export retention',
+  copyRetention: 'Copy retention',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
   useDelta: 'Use delta',
@@ -1251,6 +1254,7 @@ const messages = {
   scheduleName: 'Name',
   scheduleTimezone: 'Timezone',
   scheduleExportRetention: 'Export ret.',
+  scheduleCopyRetention: 'Copy ret.',
   scheduleSnapshotRetention: 'Snapshot ret.',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
