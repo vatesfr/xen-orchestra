@@ -2,21 +2,20 @@ import _ from 'intl'
 import classNames from 'classnames'
 import Component from 'base-component'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
+import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { UpdateTag } from '../xoa/update'
-import { isEmpty, map } from 'lodash'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
   signOut,
-  subscribeJobs,
   subscribePermissions,
   subscribeResourceSets,
 } from 'xo'
 import {
-  createCounter,
   createFilter,
   createGetObjectsOfType,
   createSelector,
@@ -48,7 +47,6 @@ const returnTrue = () => true
   }
 )
 @addSubscriptions({
-  jobs: subscribeJobs,
   permissions: subscribePermissions,
   resourceSets: subscribeResourceSets,
 })
@@ -85,10 +83,6 @@ export default class Menu extends Component {
   )
 
   _getNoResourceSets = createSelector(() => this.props.resourceSets, isEmpty)
-
-  _getNumberOfJobs = createCounter(
-    createFilter(() => this.props.jobs, [job => job.key !== 'genericTask'])
-  )
 
   get height () {
     return this.refs.content.offsetHeight
@@ -186,34 +180,33 @@ export default class Menu extends Component {
         icon: 'menu-self-service',
         label: 'selfServicePage',
       },
-      this._getNumberOfJobs() !== 0 &&
-        isAdmin && {
-          to: '/backup/overview',
-          icon: 'menu-backup',
-          label: 'backupPage',
-          subMenu: [
-            {
-              to: '/backup/overview',
-              icon: 'menu-backup-overview',
-              label: 'backupOverviewPage',
-            },
-            {
-              to: '/backup/new',
-              icon: 'menu-backup-new',
-              label: 'backupNewPage',
-            },
-            {
-              to: '/backup/restore',
-              icon: 'menu-backup-restore',
-              label: 'backupRestorePage',
-            },
-            {
-              to: '/backup/file-restore',
-              icon: 'menu-backup-file-restore',
-              label: 'backupFileRestorePage',
-            },
-          ],
-        },
+      isAdmin && {
+        to: '/backup/overview',
+        icon: 'menu-backup',
+        label: 'backupPage',
+        subMenu: [
+          {
+            to: '/backup/overview',
+            icon: 'menu-backup-overview',
+            label: 'backupOverviewPage',
+          },
+          {
+            to: '/backup/new',
+            icon: 'menu-backup-new',
+            label: 'backupNewPage',
+          },
+          {
+            to: '/backup/restore',
+            icon: 'menu-backup-restore',
+            label: 'backupRestorePage',
+          },
+          {
+            to: '/backup/file-restore',
+            icon: 'menu-backup-file-restore',
+            label: 'backupFileRestorePage',
+          },
+        ],
+      },
       isAdmin && {
         to: '/backup-ng/overview',
         icon: 'menu-backup',

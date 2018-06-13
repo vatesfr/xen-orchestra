@@ -12,7 +12,7 @@ import Overview from './overview'
 import Restore from './restore'
 import FileRestore from './file-restore'
 
-const deprecatedMsg = () => (
+const DeprecatedMsg = () => (
   <div>
     <em>{_('backupDeprecatedMessage')}</em>
     <br />
@@ -51,7 +51,7 @@ const HEADER = (
 
 const Backup = routes('overview', {
   ':id/edit': Edit,
-  new: deprecatedMsg,
+  new: DeprecatedMsg,
   overview: Overview,
   restore: Restore,
   'file-restore': FileRestore,
