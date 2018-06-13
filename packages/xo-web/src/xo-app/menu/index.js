@@ -198,6 +198,11 @@ export default class Menu extends Component {
               label: 'backupOverviewPage',
             },
             {
+              to: '/backup/new',
+              icon: 'menu-backup-new',
+              label: 'backupNewPage',
+            },
+            {
               to: '/backup/restore',
               icon: 'menu-backup-restore',
               label: 'backupRestorePage',
