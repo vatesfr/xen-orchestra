@@ -141,7 +141,9 @@ const listPartitions = (() => {
     valueTransform: (value, key) =>
       key === 'start' || key === 'size'
         ? +value
-        : key === 'type' ? TYPES[+value] || value : value,
+        : key === 'type'
+          ? TYPES[+value] || value
+          : value,
   })
 
   return device =>
@@ -903,7 +905,7 @@ export default class {
     const xapi = this._xo.getXapi(vm)
     vm = xapi.getObject(vm._xapiId)
 
-    await xapi._assertHealthyVdiChains(vm)
+    xapi._assertHealthyVdiChains(vm)
 
     const reg = new RegExp(
       '^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag) + '_'

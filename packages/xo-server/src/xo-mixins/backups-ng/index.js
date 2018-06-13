@@ -749,7 +749,7 @@ export default class BackupNg {
       .filter(_ => _.other_config['xo:backup:job'] === jobId)
       .sort(compareSnapshotTime)
 
-    await xapi._assertHealthyVdiChains(vm)
+    xapi._assertHealthyVdiChains(vm)
 
     const offlineSnapshot: boolean = getSetting(
       settings,
