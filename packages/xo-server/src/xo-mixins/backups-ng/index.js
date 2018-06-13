@@ -304,12 +304,7 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
     value => {
       logger.notice(message, {
         event: 'task.end',
-        result:
-          result === undefined
-            ? value
-            : typeof result === 'function'
-              ? result(value)
-              : result,
+        result: typeof result === 'function' ? result(value) : result,
         status: 'success',
         taskId,
       })
@@ -345,12 +340,7 @@ const wrapTaskFn = <T>(
       const value = await task.apply(this, [taskId, ...arguments])
       logger.notice(message, {
         event: 'task.end',
-        result:
-          result === undefined
-            ? value
-            : typeof result === 'function'
-              ? result(value)
-              : result,
+        result: typeof result === 'function' ? result(value) : result,
         status: 'success',
         taskId,
       })
@@ -709,11 +699,18 @@ export default class BackupNg {
     // ensure the VM itself does not have any backup metadata which would be
     // copied on manual snapshots and interfere with the backup jobs
     if ('xo:backup:job' in vm.other_config) {
-      await xapi._updateObjectMapProperty(vm, 'other_config', {
-        'xo:backup:job': null,
-        'xo:backup:schedule': null,
-        'xo:backup:vm': null,
-      })
+      await wrapTask(
+        {
+          logger,
+          message: 'clean backup metadata on VM',
+          parentId: taskId,
+        },
+        xapi._updateObjectMapProperty(vm, 'other_config', {
+          'xo:backup:job': null,
+          'xo:backup:schedule': null,
+          'xo:backup:vm': null,
+        })
+      )
     }
 
     const { id: jobId, settings } = job
@@ -759,14 +756,21 @@ export default class BackupNg {
     )
     const startAfterSnapshot = offlineSnapshot && vm.power_state === 'Running'
     if (startAfterSnapshot) {
-      await xapi.shutdownVm(vm)
+      await wrapTask(
+        {
+          logger,
+          message: 'shutdown VM',
+          parentId: taskId,
+        },
+        xapi.shutdownVm(vm)
+      )
     }
 
     let snapshot: Vm = (await wrapTask(
       {
-        parentId: taskId,
         logger,
         message: 'snapshot',
+        parentId: taskId,
         result: _ => _.uuid,
       },
       xapi._snapshotVm(
@@ -780,11 +784,18 @@ export default class BackupNg {
       ignoreErrors.call(xapi.startVm(vm))
     }
 
-    await xapi._updateObjectMapProperty(snapshot, 'other_config', {
-      'xo:backup:job': jobId,
-      'xo:backup:schedule': scheduleId,
-      'xo:backup:vm': vmUuid,
-    })
+    await wrapTask(
+      {
+        logger,
+        message: 'add metadata to snapshot',
+        parentId: taskId,
+      },
+      xapi._updateObjectMapProperty(snapshot, 'other_config', {
+        'xo:backup:job': jobId,
+        'xo:backup:schedule': scheduleId,
+        'xo:backup:vm': vmUuid,
+      })
+    )
 
     $defer(() =>
       asyncMap(
@@ -798,7 +809,14 @@ export default class BackupNg {
       )
     )
 
-    snapshot = ((await xapi.barrier(snapshot.$ref): any): Vm)
+    snapshot = ((await wrapTask(
+      {
+        logger,
+        message: 'waiting for uptodate snapshot record',
+        parentId: taskId,
+      },
+      xapi.barrier(snapshot.$ref)
+    ): any): Vm)
 
     if (exportRetention === 0) {
       return
@@ -825,9 +843,16 @@ export default class BackupNg {
         $defer.call(xapi, 'deleteVm', snapshot)
       }
 
-      let xva: any = await xapi.exportVm($cancelToken, snapshot, {
-        compress: job.compression === 'native',
-      })
+      let xva: any = await wrapTask(
+        {
+          logger,
+          message: 'start snapshot export',
+          parentId: taskId,
+        },
+        xapi.exportVm($cancelToken, snapshot, {
+          compress: job.compression === 'native',
+        })
+      )
       const exportTask = xva.task
       xva = xva.pipe(createSizeStream())
 
@@ -982,10 +1007,13 @@ export default class BackupNg {
         // await Promise.all([asyncMap(remotes, remoteId => {})])
       }
 
-      const deltaExport = await xapi.exportDeltaVm(
-        $cancelToken,
-        snapshot,
-        baseSnapshot
+      const deltaExport = await wrapTask(
+        {
+          logger,
+          message: 'start snapshot export',
+          parentId: taskId,
+        },
+        xapi.exportDeltaVm($cancelToken, snapshot, baseSnapshot)
       )
 
       const metadata: MetadataDelta = {
