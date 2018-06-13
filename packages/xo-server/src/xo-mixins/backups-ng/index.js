@@ -701,9 +701,9 @@ export default class BackupNg {
     if ('xo:backup:job' in vm.other_config) {
       await wrapTask(
         {
-          parentId: taskId,
           logger,
           message: 'clean backup metadata on VM',
+          parentId: taskId,
         },
         xapi._updateObjectMapProperty(vm, 'other_config', {
           'xo:backup:job': null,
@@ -758,9 +758,9 @@ export default class BackupNg {
     if (startAfterSnapshot) {
       await wrapTask(
         {
-          parentId: taskId,
           logger,
           message: 'shutdown VM',
+          parentId: taskId,
         },
         xapi.shutdownVm(vm)
       )
@@ -768,9 +768,9 @@ export default class BackupNg {
 
     let snapshot: Vm = (await wrapTask(
       {
-        parentId: taskId,
         logger,
         message: 'snapshot',
+        parentId: taskId,
         result: _ => _.uuid,
       },
       xapi._snapshotVm(
@@ -786,9 +786,9 @@ export default class BackupNg {
 
     await wrapTask(
       {
-        parentId: taskId,
         logger,
         message: 'add metadata to snapshot',
+        parentId: taskId,
       },
       xapi._updateObjectMapProperty(snapshot, 'other_config', {
         'xo:backup:job': jobId,
@@ -811,9 +811,9 @@ export default class BackupNg {
 
     snapshot = ((await wrapTask(
       {
-        parentId: taskId,
         logger,
         message: 'waiting for uptodate snapshot record',
+        parentId: taskId,
       },
       xapi.barrier(snapshot.$ref)
     ): any): Vm)
@@ -845,9 +845,9 @@ export default class BackupNg {
 
       let xva: any = await wrapTask(
         {
-          parentId: taskId,
           logger,
           message: 'start snapshot export',
+          parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
           compress: job.compression === 'native',
@@ -1009,9 +1009,9 @@ export default class BackupNg {
 
       const deltaExport = await wrapTask(
         {
-          parentId: taskId,
           logger,
           message: 'start snapshot export',
+          parentId: taskId,
         },
         xapi.exportDeltaVm($cancelToken, snapshot, baseSnapshot)
       )
