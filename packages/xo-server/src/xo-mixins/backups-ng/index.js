@@ -6,6 +6,7 @@ import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
+import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { isEmpty, last, mapValues, noop, some, sum, values } from 'lodash'
 import {
@@ -28,6 +29,7 @@ import {
   type Vm,
   type Xapi,
 } from '../../xapi'
+import { getVmDisks } from '../../xapi/utils'
 import {
   asyncMap,
   resolveRelativeFromFile,
@@ -419,6 +421,7 @@ export default class BackupNg {
         }
 
         const job: BackupJob = (job_: any)
+
         let vms: $Dict<Vm>
         if (vmId === undefined) {
           vms = app.getObjects({
@@ -433,6 +436,20 @@ export default class BackupNg {
         }
         const jobId = job.id
         const scheduleId = schedule.id
+        const srs = unboxIds(job.srs).map(id => {
+          const xapi = app.getXapi(id)
+          return {
+            __proto__: xapi.getObject(id),
+            xapi,
+          }
+        })
+        const remotes = await Promise.all(
+          unboxIds(job.remotes).map(async id => ({
+            id,
+            handler: await app.getRemoteHandler(id),
+          }))
+        )
+
         let handleVm = async vm => {
           const { name_label: name, uuid } = vm
           const taskId: string = logger.notice(
@@ -455,7 +472,9 @@ export default class BackupNg {
               job,
               schedule,
               logger,
-              taskId
+              taskId,
+              remotes,
+              srs
             )
             const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
               uuid,
@@ -692,7 +711,9 @@ export default class BackupNg {
     job: BackupJob,
     schedule: Schedule,
     logger: any,
-    taskId: string
+    taskId: string,
+    srs,
+    remotes
   ): Promise<void> {
     const app = this._app
     const xapi = app.getXapi(vmUuid)
@@ -910,16 +931,14 @@ export default class BackupNg {
         [
           ...remotes.map(
             wrapTaskFn(
-              id => ({
+              ({ id }) => ({
                 data: { id, type: 'remote' },
                 logger,
                 message: 'export',
                 parentId: taskId,
               }),
-              async (taskId, remoteId) => {
+              async (taskId, { handler, id: remoteId }) => {
                 const fork = forkExport()
-
-                const handler = await app.getRemoteHandler(remoteId)
 
                 const oldBackups: MetadataFull[] = (getOldEntries(
                   exportRetention,
@@ -957,17 +976,16 @@ export default class BackupNg {
           ),
           ...srs.map(
             wrapTaskFn(
-              id => ({
+              ({ $id: id }) => ({
                 data: { id, type: 'SR' },
                 logger,
                 message: 'export',
                 parentId: taskId,
               }),
-              async (taskId, srId) => {
+              async (taskId, sr) => {
                 const fork = forkExport()
 
-                const xapi = app.getXapi(srId)
-                const sr = xapi.getObject(srId)
+                const { $id: srId, xapi } = sr
 
                 const oldVms = getOldEntries(
                   copyRetention,
@@ -1025,9 +1043,36 @@ export default class BackupNg {
 
       const baseSnapshot = last(snapshots)
       if (baseSnapshot !== undefined) {
-        console.log(baseSnapshot.$id) // TODO: remove
-        // check current state
-        // await Promise.all([asyncMap(remotes, remoteId => {})])
+        const vdis = getVmDisks(baseSnapshot)
+        await Promise.all([
+          asyncMap(remotes, ({ handler }) => {
+            return asyncMap(vdis, async vdi => {
+              const dir = `${vmDir}/vdis/${jobId}/${vdi.$snapshot_of.uuid}`
+              const files = await handler.list(dir, { filter: isVhd })
+              return asyncMap(files, async file => {
+                if (file[0] !== '.') {
+                  try {
+                    await new Vhd(
+                      handler,
+                      `${dir}/${file}`
+                    ).readHeaderAndFooter()
+                    return
+                  } catch (error) {
+                    if (!(error instanceof AssertionError)) {
+                      throw error
+                    }
+                  }
+                }
+
+                // either a temporary file or an invalid VHD
+                await handler.unlink(`${dir}/${file}`)
+              })
+            })
+          }),
+          // asyncMap(srs, srId => {
+          //
+          // })
+        ])
       }
 
       const deltaExport = await wrapTask(
@@ -1099,16 +1144,14 @@ export default class BackupNg {
         [
           ...remotes.map(
             wrapTaskFn(
-              id => ({
+              ({ id }) => ({
                 data: { id, isFull, type: 'remote' },
                 logger,
                 message: 'export',
                 parentId: taskId,
               }),
-              async (taskId, remoteId) => {
+              async (taskId, { handler, id: remoteId }) => {
                 const fork = forkExport()
-
-                const handler = await app.getRemoteHandler(remoteId)
 
                 const oldBackups: MetadataDelta[] = (getOldEntries(
                   exportRetention,
@@ -1196,17 +1239,16 @@ export default class BackupNg {
           ),
           ...srs.map(
             wrapTaskFn(
-              id => ({
+              ({ $id: id }) => ({
                 data: { id, isFull, type: 'SR' },
                 logger,
                 message: 'export',
                 parentId: taskId,
               }),
-              async (taskId, srId) => {
+              async (taskId, sr) => {
                 const fork = forkExport()
 
-                const xapi = app.getXapi(srId)
-                const sr = xapi.getObject(srId)
+                const { $id: srId, xapi } = sr
 
                 const oldVms = getOldEntries(
                   copyRetention,
@@ -1230,7 +1272,7 @@ export default class BackupNg {
                     name_label: `${metadata.vm.name_label} (${safeDateFormat(
                       metadata.timestamp
                     )})`,
-                    srId: sr.$id,
+                    srId,
                   })
                 )
 
