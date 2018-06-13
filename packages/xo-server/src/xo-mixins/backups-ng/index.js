@@ -759,12 +759,10 @@ export default class BackupNg {
 
     xapi._assertHealthyVdiChains(vm)
 
-    const offlineSnapshot: boolean = getSetting(
-      settings,
-      'offlineSnapshot',
+    const offlineSnapshot: boolean = getSetting(settings, 'offlineSnapshot', [
       vmUuid,
-      ''
-    )
+      '',
+    ])
     const startAfterSnapshot = offlineSnapshot && vm.power_state === 'Running'
     if (startAfterSnapshot) {
       await wrapTask(
