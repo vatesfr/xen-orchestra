@@ -586,10 +586,10 @@ export default class NewVm extends BaseComponent {
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    () => this.props.pool,
+    () => this.props.pool === undefined,
     () => this.state.state.template,
-    (isInPool, isInResourceSet, pool, template) => network =>
-      (pool === undefined ? isInResourceSet(network.id) : isInPool(network)) &&
+    (isInPool, isInResourceSet, self, template) => network =>
+      (self ? isInResourceSet(network.id) : isInPool(network)) &&
       template !== undefined &&
       template.$pool === network.$pool
   )
