@@ -192,6 +192,7 @@ class Vif extends BaseComponent {
             ) : (
               <SelectResourceSetsNetwork
                 onChange={onChangeNetwork}
+                predicate={networkPredicate}
                 resourceSet={resourceSet}
                 value={vif.network}
               />
@@ -487,13 +488,12 @@ export default class NewVm extends BaseComponent {
         network:
           pool || isInResourceSet(vif.$network)
             ? vif.$network
-            : resourceSet.objectsByType['network'][0].id,
+            : this._getDefaultNetworkId(template),
       })
     })
     if (VIFs.length === 0) {
-      const networkId = this._getDefaultNetworkId()
       VIFs.push({
-        network: networkId,
+        network: this._getDefaultNetworkId(template),
       })
     }
     const name_label =
@@ -586,8 +586,12 @@ export default class NewVm extends BaseComponent {
   _getNetworkPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => network =>
-      isInResourceSet(network.id) || isInPool(network)
+    () => this.props.pool === undefined,
+    () => this.state.state.template,
+    (isInPool, isInResourceSet, self, template) => network =>
+      (self ? isInResourceSet(network.id) : isInPool(network)) &&
+      template !== undefined &&
+      template.$pool === network.$pool
   )
   _getPoolNetworks = createSelector(
     () => this.props.networks,
@@ -620,16 +624,20 @@ export default class NewVm extends BaseComponent {
         )
     }
   )
-  _getDefaultNetworkId = () => {
-    const resourceSet = this._getResolvedResourceSet()
-    if (resourceSet) {
-      const { network } = resourceSet.objectsByType
-      return !isEmpty(network) && network[0].id
+  _getDefaultNetworkId = template => {
+    if (template === undefined) {
+      return
     }
-    const network = find(this._getPoolNetworks(), network => {
-      const pif = getObject(store.getState(), network.PIFs[0])
-      return pif && pif.management
-    })
+
+    const network =
+      this.props.pool === undefined
+        ? find(this._getResolvedResourceSet().objectsByType.network, {
+            $pool: template.$pool,
+          })
+        : find(this._getPoolNetworks(), network => {
+            const pif = getObject(store.getState(), network.PIFs[0])
+            return pif && pif.management
+          })
     return network && network.id
   }
 
@@ -765,13 +773,13 @@ export default class NewVm extends BaseComponent {
     })
   }
   _addInterface = () => {
-    const networkId = this._getDefaultNetworkId()
+    const { state } = this.state
 
     this._setState({
       VIFs: [
-        ...this.state.state.VIFs,
+        ...state.VIFs,
         {
-          network: networkId,
+          network: this._getDefaultNetworkId(state.template),
         },
       ],
     })

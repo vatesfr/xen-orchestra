@@ -4,6 +4,7 @@
 
 ### Enhancements
 
+- Hide legacy backup creation view [#2956](https://github.com/vatesfr/xen-orchestra/issues/2956)
 - [Delta Backup NG logs] Display wether the export is a full or a delta [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711)
 - Copy VDIs' UUID from SR/disks view [#3051](https://github.com/vatesfr/xen-orchestra/issues/3051)
 - [Backup NG] New option to shutdown VMs before snapshotting them [#3058](https://github.com/vatesfr/xen-orchestra/issues/3058#event-1673756438)
@@ -16,6 +17,7 @@
 - update the xentools search item to return the version number of installed xentools [#3015](https://github.com/vatesfr/xen-orchestra/issues/3015)
 - Fix Nagios backup reports [#2991](https://github.com/vatesfr/xen-orchestra/issues/2991)
 - Fix the retry of a single failed/interrupted VM backup [#2912](https://github.com/vatesfr/xen-orchestra/issues/2912#issuecomment-395480321)
+- New VM with Self: filter out networks that are not in the template's pool [#3011](https://github.com/vatesfr/xen-orchestra/issues/3011)
 
 ## **5.20.0** (2018-05-31)
 
