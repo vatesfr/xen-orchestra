@@ -126,10 +126,11 @@ const JOB_COLUMNS = [
               icon='run-schedule'
             />
             <ActionRowButton
-              icon='migrate-job'
               btnStyle='danger'
               handler={migrateBackupSchedule}
               handlerParam={schedule.jobId}
+              icon='migrate-job'
+              tooltip={_('migrateToBackupNg')}
             />
             <ActionRowButton
               btnStyle='danger'
@@ -164,12 +165,12 @@ export default class Overview extends Component {
       jobs === undefined || schedules === undefined
         ? []
         : orderBy(
-          filter(schedules, schedule => {
-            const job = jobs[schedule.jobId]
-            return job && jobKeyToLabel[job.key]
-          }),
-          'id'
-        )
+            filter(schedules, schedule => {
+              const job = jobs[schedule.jobId]
+              return job && jobKeyToLabel[job.key]
+            }),
+            'id'
+          )
   )
 
   _redirectToMatchingVms = pattern => {
