@@ -35,6 +35,7 @@ import {
   createGetObjectsOfType,
   createGetTags,
   createSelector,
+  createSort,
   getObject,
 } from './selectors'
 import { addSubscriptions, connectStore, resolveResourceSets } from './utils'
@@ -60,7 +61,9 @@ const ADDON_BUTTON_STYLE = { lineHeight: '1.4' }
 const getIds = value =>
   value == null || isString(value) || isInteger(value)
     ? value
-    : isArray(value) ? map(value, getIds) : value.id
+    : isArray(value)
+      ? map(value, getIds)
+      : value.id
 
 const getOption = (object, container) => ({
   label: container
@@ -857,16 +860,15 @@ export class SelectResourceSetsNetwork extends React.PureComponent {
     this.refs.select.value = value
   }
 
-  _getNetworks = createSelector(
-    () => this.props.resourceSet,
-    ({ objectsByType }) => {
-      const { predicate } = this.props
-      const networks = objectsByType['network']
-      return sortBy(
-        predicate ? filter(networks, predicate) : networks,
-        'name_label'
+  _getNetworks = createSort(
+    createFilter(
+      () => this.props.resourceSet.objectsByType.network,
+      createSelector(
+        () => this.props.predicate,
+        predicate => predicate || (() => true)
       )
-    }
+    ),
+    'name_label'
   )
 
   render () {
