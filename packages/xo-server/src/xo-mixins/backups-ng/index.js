@@ -1068,7 +1068,7 @@ export default class BackupNg {
             scheduleId,
             srId,
             vmUuid
-          ).find(vm => vm.other_config[TAG_COPY_SRC])
+          ).find(vm => vm.other_config[TAG_COPY_SRC] === baseSnapshot.uuid)
           if (replicatedVm === undefined) {
             baseSnapshot = undefined
             return
