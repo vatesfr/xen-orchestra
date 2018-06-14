@@ -353,6 +353,7 @@ const messages = {
   jobUserNotFound: "This job's creator no longer exists",
   backupUserNotFound: "This backup's creator no longer exists",
   redirectToMatchingVms: 'Click here to see the matching VMs',
+  migrateToBackupNg: 'Migrate to backup NG',
   noMatchingVms: 'There are no matching VMs!',
   allMatchingVms: '{icon} See the matching VMs ({nMatchingVms, number})',
   backupOwner: 'Backup owner',
