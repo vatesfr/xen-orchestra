@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "golike-defer": "^0.1.0",
-    "pump": "^1.0.2"
+    "golike-defer": "^0.4.1",
+    "pump": "^3.0.0"
   }
 }

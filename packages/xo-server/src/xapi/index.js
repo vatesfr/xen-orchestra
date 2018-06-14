@@ -664,7 +664,7 @@ export default class Xapi extends XapiBase {
     }
 
     // ensure the vm record is up-to-date
-    vm = await this.barrier('VM', $ref)
+    vm = await this.barrier($ref)
 
     return Promise.all([
       forceDeleteDefaultTemplate &&

@@ -3,6 +3,7 @@
 process.env.DEBUG = '*'
 
 const defer = require('golike-defer').default
+const { CancelToken } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
@@ -22,8 +23,11 @@ defer(async ($defer, args) => {
   await xapi.connect()
   $defer(() => xapi.disconnect())
 
+  const { cancel, token } = CancelToken.source()
+  process.on('SIGINT', cancel)
+
   // https://xapi-project.github.io/xen-api/importexport.html
-  await xapi.putResource(createInputStream(args[1]), '/import/', {
+  await xapi.putResource(token, createInputStream(args[1]), '/import/', {
     query: args[2] && { sr_id: await resolveRef(xapi, 'SR', args[2]) }
   })
 })(process.argv.slice(2)).catch(

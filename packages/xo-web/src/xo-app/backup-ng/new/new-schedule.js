@@ -7,27 +7,26 @@ import { Card, CardBlock } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
 import { isEqual } from 'lodash'
 
-import { FormGroup, getRandomId, Number } from './utils'
+import { FormFeedback, FormGroup, getRandomId, Number } from './utils'
 
 export default [
   injectState,
   provideState({
     initialState: ({
+      copyMode,
+      exportMode,
+      snapshotMode,
       schedule: {
         cron = '0 0 * * *',
-        exportRetention = 1,
-        snapshotRetention = 1,
+        exportRetention = exportMode ? 1 : undefined,
+        copyRetention = copyMode ? 1 : undefined,
+        snapshotRetention = snapshotMode ? 1 : undefined,
         timezone = moment.tz.guess(),
       },
     }) => ({
-      oldSchedule: {
-        cron,
-        exportRetention,
-        snapshotRetention,
-        timezone,
-      },
       cron,
       exportRetention,
+      copyRetention,
       formId: getRandomId(),
       snapshotRetention,
       timezone,
@@ -36,6 +35,10 @@ export default [
       setExportRetention: (_, value) => state => ({
         ...state,
         exportRetention: value,
+      }),
+      setCopyRetention: (_, value) => state => ({
+        ...state,
+        copyRetention: value,
       }),
       setSnapshotRetention: (_, value) => state => ({
         ...state,
@@ -53,34 +56,54 @@ export default [
       retentionNeeded: ({
         exportMode,
         exportRetention,
+        copyMode,
+        copyRetention,
         snapshotMode,
         snapshotRetention,
       }) =>
         !(
-          (exportMode && exportRetention !== 0) ||
-          (snapshotMode && snapshotRetention !== 0)
+          (exportMode && exportRetention > 0) ||
+          (copyMode && copyRetention > 0) ||
+          (snapshotMode && snapshotRetention > 0)
         ),
-      scheduleNotEdited: ({
-        cron,
-        editionMode,
-        exportRetention,
-        oldSchedule,
-        snapshotRetention,
-        timezone,
-      }) =>
-        editionMode !== 'creation' &&
-        isEqual(oldSchedule, {
+      scheduleNotEdited: (
+        {
           cron,
+          editionMode,
           exportRetention,
+          copyRetention,
           snapshotRetention,
           timezone,
-        }),
+        },
+        { schedule }
+      ) =>
+        editionMode !== 'creation' &&
+        isEqual(
+          {
+            cron: schedule.cron,
+            exportRetention: schedule.exportRetention,
+            copyRetention: schedule.copyRetention,
+            snapshotRetention: schedule.snapshotRetention,
+            timezone: schedule.timezone,
+          },
+          {
+            cron,
+            exportRetention,
+            copyRetention,
+            snapshotRetention,
+            timezone,
+          }
+        ),
     },
   }),
   injectState,
   ({ effects, state }) => (
     <form id={state.formId}>
-      <Card>
+      <FormFeedback
+        component={Card}
+        error={state.retentionNeeded}
+        message={_('retentionNeeded')}
+      >
         <CardBlock>
           {state.exportMode && (
             <FormGroup>
@@ -90,6 +113,19 @@ export default [
               <Number
                 onChange={effects.setExportRetention}
                 value={state.exportRetention}
+                optional
+              />
+            </FormGroup>
+          )}
+          {state.copyMode && (
+            <FormGroup>
+              <label>
+                <strong>{_('copyRetention')}</strong>
+              </label>
+              <Number
+                onChange={effects.setCopyRetention}
+                value={state.copyRetention}
+                optional
               />
             </FormGroup>
           )}
@@ -101,6 +137,7 @@ export default [
               <Number
                 onChange={effects.setSnapshotRetention}
                 value={state.snapshotRetention}
+                optional
               />
             </FormGroup>
           )}
@@ -115,6 +152,7 @@ export default [
             btnStyle='primary'
             data-cron={state.cron}
             data-exportRetention={state.exportRetention}
+            data-copyRetention={state.copyRetention}
             data-snapshotRetention={state.snapshotRetention}
             data-timezone={state.timezone}
             disabled={state.isScheduleInvalid}
@@ -134,7 +172,7 @@ export default [
             {_('formCancel')}
           </ActionButton>
         </CardBlock>
-      </Card>
+      </FormFeedback>
     </form>
   ),
 ].reduceRight((value, decorator) => decorator(value))

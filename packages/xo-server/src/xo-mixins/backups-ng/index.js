@@ -8,7 +8,11 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { basename, dirname } from 'path'
 import { isEmpty, last, mapValues, noop, some, sum, values } from 'lodash'
-import { fromEvent as pFromEvent, timeout as pTimeout } from 'promise-toolbox'
+import {
+  fromEvent as pFromEvent,
+  ignoreErrors,
+  timeout as pTimeout,
+} from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -39,7 +43,9 @@ export type ReportWhen = 'always' | 'failure' | 'never'
 type Settings = {|
   concurrency?: number,
   deleteFirst?: boolean,
+  copyRetention?: number,
   exportRetention?: number,
+  offlineSnapshot?: boolean,
   reportWhen?: ReportWhen,
   snapshotRetention?: number,
   vmTimeout?: number,
@@ -102,17 +108,20 @@ const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
       : entries
 
 const defaultSettings: Settings = {
+  concurrency: 0,
   deleteFirst: false,
   exportRetention: 0,
+  offlineSnapshot: false,
   reportWhen: 'failure',
   snapshotRetention: 0,
   vmTimeout: 0,
 }
-const getSetting = (
+const getSetting = <T>(
   settings: $Dict<Settings>,
   name: $Keys<Settings>,
-  ...keys: string[]
-): any => {
+  keys: string[],
+  defaultValue?: T
+): T | any => {
   for (let i = 0, n = keys.length; i < n; ++i) {
     const objectSettings = settings[keys[i]]
     if (objectSettings !== undefined) {
@@ -121,6 +130,9 @@ const getSetting = (
         return setting
       }
     }
+  }
+  if (defaultValue !== undefined) {
+    return defaultValue
   }
   return defaultSettings[name]
 }
@@ -298,12 +310,7 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
     value => {
       logger.notice(message, {
         event: 'task.end',
-        result:
-          result === undefined
-            ? value
-            : typeof result === 'function'
-              ? result(value)
-              : result,
+        result: typeof result === 'function' ? result(value) : result,
         status: 'success',
         taskId,
       })
@@ -339,12 +346,7 @@ const wrapTaskFn = <T>(
       const value = await task.apply(this, [taskId, ...arguments])
       logger.notice(message, {
         event: 'task.end',
-        result:
-          result === undefined
-            ? value
-            : typeof result === 'function'
-              ? result(value)
-              : result,
+        result: typeof result === 'function' ? result(value) : result,
         status: 'success',
         taskId,
       })
@@ -455,14 +457,10 @@ export default class BackupNg {
               logger,
               taskId
             )
-            const vmTimeout: number = getSetting(
-              job.settings,
-              'vmTimeout',
+            const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
               uuid,
               scheduleId,
-              logger,
-              taskId
-            )
+            ])
             if (vmTimeout !== 0) {
               p = pTimeout.call(p, vmTimeout)
             }
@@ -492,9 +490,9 @@ export default class BackupNg {
         const concurrency: number | void = getSetting(
           job.settings,
           'concurrency',
-          ''
+          ['']
         )
-        if (concurrency !== undefined) {
+        if (concurrency !== 0) {
           handleVm = limitConcurrency(concurrency)(handleVm)
         }
         await asyncMap(vms, handleVm)
@@ -703,31 +701,47 @@ export default class BackupNg {
     // ensure the VM itself does not have any backup metadata which would be
     // copied on manual snapshots and interfere with the backup jobs
     if ('xo:backup:job' in vm.other_config) {
-      await xapi._updateObjectMapProperty(vm, 'other_config', {
-        'xo:backup:job': null,
-        'xo:backup:schedule': null,
-        'xo:backup:vm': null,
-      })
+      await wrapTask(
+        {
+          logger,
+          message: 'clean backup metadata on VM',
+          parentId: taskId,
+        },
+        xapi._updateObjectMapProperty(vm, 'other_config', {
+          'xo:backup:job': null,
+          'xo:backup:schedule': null,
+          'xo:backup:vm': null,
+        })
+      )
     }
 
     const { id: jobId, settings } = job
     const { id: scheduleId } = schedule
 
-    const exportRetention: number = getSetting(
-      settings,
-      'exportRetention',
-      scheduleId
-    )
+    const exportRetention: number = getSetting(settings, 'exportRetention', [
+      scheduleId,
+    ])
     const snapshotRetention: number = getSetting(
       settings,
       'snapshotRetention',
-      scheduleId
+      [scheduleId]
     )
 
     if (exportRetention === 0) {
       if (snapshotRetention === 0) {
         throw new Error('export and snapshots retentions cannot both be 0')
       }
+    }
+
+    const copyRetention: number = getSetting(
+      settings,
+      'copyRetention',
+      [scheduleId],
+      exportRetention
+    )
+
+    if ((copyRetention === 0) !== (exportRetention === 0)) {
+      throw new Error('both or neither copy and export rententions should be 0')
     }
 
     if (
@@ -743,13 +757,29 @@ export default class BackupNg {
       .filter(_ => _.other_config['xo:backup:job'] === jobId)
       .sort(compareSnapshotTime)
 
-    await xapi._assertHealthyVdiChains(vm)
+    xapi._assertHealthyVdiChains(vm)
+
+    const offlineSnapshot: boolean = getSetting(settings, 'offlineSnapshot', [
+      vmUuid,
+      '',
+    ])
+    const startAfterSnapshot = offlineSnapshot && vm.power_state === 'Running'
+    if (startAfterSnapshot) {
+      await wrapTask(
+        {
+          logger,
+          message: 'shutdown VM',
+          parentId: taskId,
+        },
+        xapi.shutdownVm(vm)
+      )
+    }
 
     let snapshot: Vm = (await wrapTask(
       {
-        parentId: taskId,
         logger,
         message: 'snapshot',
+        parentId: taskId,
         result: _ => _.uuid,
       },
       xapi._snapshotVm(
@@ -758,11 +788,23 @@ export default class BackupNg {
         `[XO Backup ${job.name}] ${vm.name_label}`
       )
     ): any)
-    await xapi._updateObjectMapProperty(snapshot, 'other_config', {
-      'xo:backup:job': jobId,
-      'xo:backup:schedule': scheduleId,
-      'xo:backup:vm': vmUuid,
-    })
+
+    if (startAfterSnapshot) {
+      ignoreErrors.call(xapi.startVm(vm))
+    }
+
+    await wrapTask(
+      {
+        logger,
+        message: 'add metadata to snapshot',
+        parentId: taskId,
+      },
+      xapi._updateObjectMapProperty(snapshot, 'other_config', {
+        'xo:backup:job': jobId,
+        'xo:backup:schedule': scheduleId,
+        'xo:backup:vm': vmUuid,
+      })
+    )
 
     $defer(() =>
       asyncMap(
@@ -776,7 +818,14 @@ export default class BackupNg {
       )
     )
 
-    snapshot = ((await xapi.barrier(snapshot.$ref): any): Vm)
+    snapshot = ((await wrapTask(
+      {
+        logger,
+        message: 'waiting for uptodate snapshot record',
+        parentId: taskId,
+      },
+      xapi.barrier(snapshot.$ref)
+    ): any): Vm)
 
     if (exportRetention === 0) {
       return
@@ -803,9 +852,16 @@ export default class BackupNg {
         $defer.call(xapi, 'deleteVm', snapshot)
       }
 
-      let xva: any = await xapi.exportVm($cancelToken, snapshot, {
-        compress: job.compression === 'native',
-      })
+      let xva: any = await wrapTask(
+        {
+          logger,
+          message: 'start snapshot export',
+          parentId: taskId,
+        },
+        xapi.exportVm($cancelToken, snapshot, {
+          compress: job.compression === 'native',
+        })
+      )
       const exportTask = xva.task
       xva = xva.pipe(createSizeStream())
 
@@ -858,11 +914,9 @@ export default class BackupNg {
                   )
                 ): any)
 
-                const deleteFirst = getSetting(
-                  settings,
-                  'deleteFirst',
-                  remoteId
-                )
+                const deleteFirst = getSetting(settings, 'deleteFirst', [
+                  remoteId,
+                ])
                 if (deleteFirst) {
                   await this._deleteFullVmBackups(handler, oldBackups)
                 }
@@ -900,11 +954,11 @@ export default class BackupNg {
                 const sr = xapi.getObject(srId)
 
                 const oldVms = getOldEntries(
-                  exportRetention,
+                  copyRetention,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
-                const deleteFirst = getSetting(settings, 'deleteFirst', srId)
+                const deleteFirst = getSetting(settings, 'deleteFirst', [srId])
                 if (deleteFirst) {
                   await this._deleteVms(xapi, oldVms)
                 }
@@ -960,10 +1014,13 @@ export default class BackupNg {
         // await Promise.all([asyncMap(remotes, remoteId => {})])
       }
 
-      const deltaExport = await xapi.exportDeltaVm(
-        $cancelToken,
-        snapshot,
-        baseSnapshot
+      const deltaExport = await wrapTask(
+        {
+          logger,
+          message: 'start snapshot export',
+          parentId: taskId,
+        },
+        xapi.exportDeltaVm($cancelToken, snapshot, baseSnapshot)
       )
 
       const metadata: MetadataDelta = {
@@ -1058,7 +1115,7 @@ export default class BackupNg {
 
                 const deleteFirst =
                   exportRetention > 1 &&
-                  getSetting(settings, 'deleteFirst', remoteId)
+                  getSetting(settings, 'deleteFirst', [remoteId])
                 if (deleteFirst) {
                   await deleteOldBackups()
                 }
@@ -1092,6 +1149,7 @@ export default class BackupNg {
                         await new Vhd(handler, parentPath).readHeaderAndFooter()
                       }
 
+                      // FIXME: should only be renamed after the metadata file has been written
                       await writeStream(
                         fork.streams[`${id}.vhd`](),
                         handler,
@@ -1135,11 +1193,11 @@ export default class BackupNg {
                 const sr = xapi.getObject(srId)
 
                 const oldVms = getOldEntries(
-                  exportRetention,
+                  copyRetention,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
-                const deleteFirst = getSetting(settings, 'deleteFirst', srId)
+                const deleteFirst = getSetting(settings, 'deleteFirst', [srId])
                 if (deleteFirst) {
                   await this._deleteVms(xapi, oldVms)
                 }

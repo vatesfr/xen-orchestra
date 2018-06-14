@@ -1017,13 +1017,12 @@ export async function stop ({ vm, force }) {
 
   // Hard shutdown
   if (force) {
-    await xapi.call('VM.hard_shutdown', vm._xapiRef)
-    return
+    return xapi.shutdownVm(vm._xapiRef, { hard: true })
   }
 
   // Clean shutdown
   try {
-    await xapi.call('VM.clean_shutdown', vm._xapiRef)
+    await xapi.shutdownVm(vm._xapiRef)
   } catch (error) {
     const { code } = error
     if (

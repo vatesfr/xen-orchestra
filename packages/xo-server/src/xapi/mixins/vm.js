@@ -1,6 +1,6 @@
 import deferrable from 'golike-defer'
 import { catchPlus as pCatch, ignoreErrors } from 'promise-toolbox'
-import { find, gte, includes, isEmpty, lte } from 'lodash'
+import { find, gte, includes, isEmpty, lte, noop } from 'lodash'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
 
@@ -204,7 +204,7 @@ export default {
 
     if (cloudConfig != null) {
       // Refresh the record.
-      await this.barrier('VM', vm.$ref)
+      await this.barrier(vm.$ref)
       vm = this.getObjectByRef(vm.$ref)
 
       // Find the SR of the first VDI.
@@ -224,7 +224,7 @@ export default {
     }
 
     // wait for the record with all the VBDs and VIFs
-    return this.barrier('VM', vm.$ref)
+    return this.barrier(vm.$ref)
   },
 
   // High level method to edit a VM.
@@ -428,5 +428,12 @@ export default {
   async resumeVm (vmId) {
     // the force parameter is always true
     return this.call('VM.resume', this.getObject(vmId).$ref, false, true)
+  },
+
+  shutdownVm (vmId, { hard = false } = {}) {
+    return this.call(
+      `VM.${hard ? 'hard' : 'clean'}_shutdown`,
+      this.getObject(vmId).$ref
+    ).then(noop)
   },
 }

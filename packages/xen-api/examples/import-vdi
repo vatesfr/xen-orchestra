@@ -3,6 +3,7 @@
 process.env.DEBUG = '*'
 
 const defer = require('golike-defer').default
+const { CancelToken } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
@@ -28,8 +29,11 @@ defer(async ($defer, args) => {
   await xapi.connect()
   $defer(() => xapi.disconnect())
 
+  const { cancel, token } = CancelToken.source()
+  process.on('SIGINT', cancel)
+
   // https://xapi-project.github.io/xen-api/snapshots.html#uploading-a-disk-or-snapshot
-  await xapi.putResource(createInputStream(args[2]), '/import_raw_vdi/', {
+  await xapi.putResource(token, createInputStream(args[2]), '/import_raw_vdi/', {
     query: {
       format: raw ? 'raw' : 'vhd',
       vdi: await resolveRef(xapi, 'VDI', args[1])
