@@ -10,8 +10,13 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
 import { includes, isEmpty } from 'lodash'
-import { createGetObjectsOfType } from 'selectors'
 import {
+  createSelector,
+  createGetObjectsOfType,
+  getCheckPermissions,
+} from 'selectors'
+import {
+  cloneVm,
   copyVm,
   deleteSnapshot,
   deleteSnapshots,
@@ -83,6 +88,13 @@ const INDIVIDUAL_ACTIONS = [
     label: _('copySnapshot'),
   },
   {
+    disabled: (snapshot, { canAdministrate }) => !canAdministrate(snapshot),
+    handler: snapshot => cloneVm(snapshot, false),
+    icon: 'vm-fast-clone',
+    label: _('fastCloneVmLabel'),
+    redirectOnSuccess: snapshot => `/vms/${snapshot}/general`,
+  },
+  {
     handler: exportVm,
     icon: 'export',
     label: _('exportSnapshot'),
@@ -107,11 +119,17 @@ const INDIVIDUAL_ACTIONS = [
 ]
 
 @connectStore(() => ({
+  checkPermissions: getCheckPermissions,
   snapshots: createGetObjectsOfType('VM-snapshot')
     .pick((_, props) => props.vm.snapshots)
     .sort(),
 }))
 export default class TabSnapshot extends Component {
+  _getCanAdministrate = createSelector(
+    () => this.props.checkPermissions,
+    check => vm => check(vm.id, 'administrate')
+  )
+
   render () {
     const { snapshots, vm } = this.props
     return (
@@ -146,6 +164,7 @@ export default class TabSnapshot extends Component {
               <SortedTable
                 collection={snapshots}
                 columns={COLUMNS}
+                data-canAdministrate={this._getCanAdministrate()}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
               />
