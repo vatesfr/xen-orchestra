@@ -92,6 +92,7 @@ const INDIVIDUAL_ACTIONS = [
     handler: snapshot => cloneVm(snapshot, false),
     icon: 'vm-fast-clone',
     label: _('fastCloneVmLabel'),
+    redirectOnSuccess: snapshot => `/vms/${snapshot}/general`,
   },
   {
     handler: exportVm,
