@@ -1095,7 +1095,7 @@ export default class BackupNg {
             await asyncMap(files, async file => {
               if (file[0] !== '.') {
                 try {
-                  const vhd = await new Vhd(handler, `${dir}/${file}`)
+                  const vhd = new Vhd(handler, `${dir}/${file}`)
                   await vhd.readHeaderAndFooter()
 
                   if (
