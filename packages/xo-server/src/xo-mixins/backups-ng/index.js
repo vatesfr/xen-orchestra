@@ -1091,13 +1091,19 @@ export default class BackupNg {
             const files = await handler
               .list(dir, { filter: isVhd })
               .catch(_ => [])
-            const full = true
+            let full = true
             await asyncMap(files, async file => {
               if (file[0] !== '.') {
                 try {
-                  await new Vhd(handler, `${dir}/${file}`).readHeaderAndFooter()
+                  const vhd = await new Vhd(handler, `${dir}/${file}`)
+                  await vhd.readHeaderAndFooter()
 
-                  // TODO: check identity
+                  if (
+                    Buffer.from(vhd.footer.uuid).toString('hex') ===
+                    vdi.uuid.split('-').join('')
+                  ) {
+                    full = false
+                  }
 
                   return
                 } catch (error) {
@@ -1269,6 +1275,15 @@ export default class BackupNg {
                       if (isDelta) {
                         await chainVhd(handler, parentPath, handler, path)
                       }
+
+                      // set the correct UUID in the VHD
+                      const vhd = new Vhd(handler, path)
+                      await vhd.readHeaderAndFooter()
+                      vhd.footer.uuid = Buffer.from(
+                        vdi.uuid.split('-').join(''),
+                        'hex'
+                      )
+                      await vhd.writeFooter()
 
                       return handler.getSize(path)
                     })
