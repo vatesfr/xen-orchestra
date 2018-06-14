@@ -8,7 +8,17 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
-import { isEmpty, last, mapValues, noop, some, sum, values } from 'lodash'
+import {
+  forEach,
+  indexBy,
+  isEmpty,
+  last,
+  mapValues,
+  noop,
+  some,
+  sum,
+  values,
+} from 'lodash'
 import {
   fromEvent as pFromEvent,
   ignoreErrors,
@@ -28,6 +38,7 @@ import {
   type DeltaVmImport,
   type Vm,
   type Xapi,
+  TAG_COPY_SRC,
 } from '../../xapi'
 import { getVmDisks } from '../../xapi/utils'
 import {
@@ -1041,39 +1052,71 @@ export default class BackupNg {
         $defer.onFailure.call(xapi, 'deleteVm', snapshot)
       }
 
-      const baseSnapshot = last(snapshots)
-      if (baseSnapshot !== undefined) {
+      let baseSnapshot, fullVdisRequired
+      await (async () => {
+        baseSnapshot = last(snapshots)
+        if (baseSnapshot === undefined) {
+          return
+        }
+
+        const fullRequired = { __proto__: null }
         const vdis = getVmDisks(baseSnapshot)
-        await Promise.all([
-          asyncMap(remotes, ({ handler }) => {
-            return asyncMap(vdis, async vdi => {
-              const dir = `${vmDir}/vdis/${jobId}/${vdi.$snapshot_of.uuid}`
-              const files = await handler.list(dir, { filter: isVhd })
-              return asyncMap(files, async file => {
-                if (file[0] !== '.') {
-                  try {
-                    await new Vhd(
-                      handler,
-                      `${dir}/${file}`
-                    ).readHeaderAndFooter()
-                    return
-                  } catch (error) {
-                    if (!(error instanceof AssertionError)) {
-                      throw error
-                    }
+
+        for (const { $id: srId, xapi } of srs) {
+          const replicatedVm = listReplicatedVms(
+            xapi,
+            scheduleId,
+            srId,
+            vmUuid
+          ).find(vm => vm.other_config[TAG_COPY_SRC])
+          if (replicatedVm === undefined) {
+            baseSnapshot = undefined
+            return
+          }
+
+          const replicatedVdis = indexBy(
+            getVmDisks(replicatedVm),
+            vdi => vdi.other_config[TAG_COPY_SRC]
+          )
+          forEach(vdis, vdi => {
+            if (!(vdi.uuid in replicatedVdis)) {
+              fullRequired[vdi.$id] = true
+            }
+          })
+        }
+
+        await asyncMap(remotes, ({ handler }) => {
+          return asyncMap(vdis, async vdi => {
+            const dir = `${vmDir}/vdis/${jobId}/${vdi.$snapshot_of.uuid}`
+            const files = await handler
+              .list(dir, { filter: isVhd })
+              .catch(_ => [])
+            const full = true
+            await asyncMap(files, async file => {
+              if (file[0] !== '.') {
+                try {
+                  await new Vhd(handler, `${dir}/${file}`).readHeaderAndFooter()
+
+                  // TODO: check identity
+
+                  return
+                } catch (error) {
+                  if (!(error instanceof AssertionError)) {
+                    throw error
                   }
                 }
+              }
 
-                // either a temporary file or an invalid VHD
-                await handler.unlink(`${dir}/${file}`)
-              })
+              // either a temporary file or an invalid VHD
+              await handler.unlink(`${dir}/${file}`)
             })
-          }),
-          // asyncMap(srs, srId => {
-          //
-          // })
-        ])
-      }
+            if (full) {
+              fullRequired[vdi.$id] = true
+            }
+          })
+        })
+        fullVdisRequired = Object.keys(fullRequired)
+      })()
 
       const deltaExport = await wrapTask(
         {
@@ -1081,7 +1124,9 @@ export default class BackupNg {
           message: 'start snapshot export',
           parentId: taskId,
         },
-        xapi.exportDeltaVm($cancelToken, snapshot, baseSnapshot)
+        xapi.exportDeltaVm($cancelToken, snapshot, baseSnapshot, {
+          fullVdisRequired,
+        })
       )
 
       const metadata: MetadataDelta = {

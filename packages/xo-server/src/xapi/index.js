@@ -70,7 +70,7 @@ import {
 // ===================================================================
 
 const TAG_BASE_DELTA = 'xo:base_delta'
-const TAG_COPY_SRC = 'xo:copy_of'
+export const TAG_COPY_SRC = 'xo:copy_of'
 
 // ===================================================================
 
