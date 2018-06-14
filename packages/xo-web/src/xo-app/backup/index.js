@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Icon from 'icon'
+import Link from 'link'
 import Page from '../page'
 import React from 'react'
 import { routes } from 'utils'
@@ -7,10 +8,17 @@ import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 
 import Edit from './edit'
-import New from './new'
 import Overview from './overview'
 import Restore from './restore'
 import FileRestore from './file-restore'
+
+const DeprecatedMsg = () => (
+  <div>
+    <em>{_('backupDeprecatedMessage')}</em>
+    <br />
+    <Link to='/backup-ng/new'>{_('backupNgNewPage')}</Link>
+  </div>
+)
 
 const HEADER = (
   <Container>
@@ -43,7 +51,7 @@ const HEADER = (
 
 const Backup = routes('overview', {
   ':id/edit': Edit,
-  new: New,
+  new: DeprecatedMsg,
   overview: Overview,
   restore: Restore,
   'file-restore': FileRestore,
