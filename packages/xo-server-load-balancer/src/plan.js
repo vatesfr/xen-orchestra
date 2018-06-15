@@ -47,15 +47,15 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
 
   for (const object of objects) {
     const { id } = object
-    const { stats } = objectsStats[id]
+    const { cpus, memory, memoryFree = memory } = objectsStats[id].stats
 
     averages[id] = {
       cpu: computeAverage(
-        mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
+        mapToArray(cpus, cpu => computeAverage(cpu, nPoints))
       ),
-      nCpus: stats.cpus.length,
-      memoryFree: computeAverage(stats.memoryFree, nPoints),
-      memory: computeAverage(stats.memory, nPoints),
+      nCpus: cpus.length,
+      memoryFree: computeAverage(memoryFree, nPoints),
+      memory: computeAverage(memory, nPoints),
     }
   }
 
