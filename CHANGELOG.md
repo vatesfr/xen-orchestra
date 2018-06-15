@@ -18,6 +18,7 @@
 - Fix Nagios backup reports [#2991](https://github.com/vatesfr/xen-orchestra/issues/2991)
 - Fix the retry of a single failed/interrupted VM backup [#2912](https://github.com/vatesfr/xen-orchestra/issues/2912#issuecomment-395480321)
 - New VM with Self: filter out networks that are not in the template's pool [#3011](https://github.com/vatesfr/xen-orchestra/issues/3011)
+- [Backup NG] Auto-detect when a full export is necessary.
 
 ## **5.20.0** (2018-05-31)
 
