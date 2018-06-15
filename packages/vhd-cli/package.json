@@ -26,7 +26,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^0.0.1",
+    "@xen-orchestra/fs": "^0.1.0",
     "exec-promise": "^0.7.0",
     "struct-fu": "^1.2.0",
     "vhd-lib": "^0.1.1"
