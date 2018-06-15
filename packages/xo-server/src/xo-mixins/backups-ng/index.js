@@ -9,8 +9,8 @@ import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import {
+  countBy,
   forEach,
-  indexBy,
   isEmpty,
   last,
   mapValues,
@@ -1071,20 +1071,21 @@ export default class BackupNg {
             return
           }
 
-          const replicatedVdis = indexBy(
+          const replicatedVdis = countBy(
             getVmDisks(replicatedVm),
             vdi => vdi.other_config[TAG_COPY_SRC]
           )
           forEach(vdis, vdi => {
             if (!(vdi.uuid in replicatedVdis)) {
-              fullRequired[vdi.$id] = true
+              fullRequired[vdi.$snapshot_of.$id] = true
             }
           })
         }
 
         await asyncMap(remotes, ({ handler }) => {
           return asyncMap(vdis, async vdi => {
-            const dir = `${vmDir}/vdis/${jobId}/${vdi.$snapshot_of.uuid}`
+            const snapshotOf = vdi.$snapshot_of
+            const dir = `${vmDir}/vdis/${jobId}/${snapshotOf.uuid}`
             const files = await handler
               .list(dir, { filter: isVhd })
               .catch(_ => [])
@@ -1114,7 +1115,7 @@ export default class BackupNg {
               await handler.unlink(`${dir}/${file}`)
             })
             if (full) {
-              fullRequired[vdi.$id] = true
+              fullRequired[snapshotOf.$id] = true
             }
           })
         })
@@ -1280,6 +1281,7 @@ export default class BackupNg {
                         vdi.uuid.split('-').join(''),
                         'hex'
                       )
+                      await vhd.readBlockAllocationTable() // required by writeFooter()
                       await vhd.writeFooter()
 
                       return handler.getSize(path)
