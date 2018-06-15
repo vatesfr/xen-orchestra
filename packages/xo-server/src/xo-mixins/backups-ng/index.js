@@ -755,7 +755,6 @@ export default class BackupNg {
       scheduleId,
     ])
 
-    const remotes = unboxIds(job.remotes)
     if (copyRetention === undefined) {
       // if copyRetention is not defined, it uses exportRetention's value due to
       // previous implementation which did not support copyRetention
@@ -768,7 +767,6 @@ export default class BackupNg {
       throw new Error('export retention must be 0 without remotes')
     }
 
-    const srs = unboxIds(job.srs)
     if (copyRetention !== 0 && srs.length === 0) {
       throw new Error('copy retention must be 0 without SRs')
     }
