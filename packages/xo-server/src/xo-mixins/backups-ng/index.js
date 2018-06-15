@@ -36,6 +36,7 @@ import createSizeStream from '../../size-stream'
 import {
   type DeltaVmExport,
   type DeltaVmImport,
+  type Vdi,
   type Vm,
   type Xapi,
   TAG_COPY_SRC,
@@ -484,8 +485,8 @@ export default class BackupNg {
               schedule,
               logger,
               taskId,
-              remotes,
-              srs
+              srs,
+              remotes
             )
             const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
               uuid,
@@ -758,7 +759,7 @@ export default class BackupNg {
     if (copyRetention === undefined) {
       // if copyRetention is not defined, it uses exportRetention's value due to
       // previous implementation which did not support copyRetention
-      copyRetention = exportRetention
+      copyRetention = srs.length === 0 ? 0 : exportRetention
 
       if (remotes.length === 0) {
         exportRetention = 0
@@ -876,7 +877,7 @@ export default class BackupNg {
       xapi.barrier(snapshot.$ref)
     ): any): Vm)
 
-    if (exportRetention === 0) {
+    if (copyRetention === 0 && exportRetention === 0) {
       return
     }
 
@@ -1056,7 +1057,7 @@ export default class BackupNg {
         }
 
         const fullRequired = { __proto__: null }
-        const vdis = getVmDisks(baseSnapshot)
+        const vdis: $Dict<Vdi> = getVmDisks(baseSnapshot)
 
         for (const { $id: srId, xapi } of srs) {
           const replicatedVm = listReplicatedVms(
