@@ -41,12 +41,18 @@ declare export class Vbd extends XapiObject {
   VDI: string;
 }
 
+declare export class Vdi extends XapiObject {
+  $snapshot_of: Vdi;
+  uuid: string;
+}
+
 declare export class Vm extends XapiObject {
   $snapshots: Vm[];
   $VBDs: Vbd[];
   is_a_snapshot: boolean;
   is_a_template: boolean;
   name_label: string;
+  power_state: 'Running' | 'Halted' | 'Paused' | 'Suspended';
   other_config: $Dict<string>;
   snapshot_time: number;
   uuid: string;
@@ -74,21 +80,24 @@ declare export class Xapi {
   _snapshotVm(cancelToken: mixed, vm: Vm, nameLabel?: string): Promise<Vm>;
 
   addTag(object: Id, tag: string): Promise<void>;
-  barrier(): void;
-  barrier(ref: string): XapiObject;
+  barrier(): Promise<void>;
+  barrier(ref: string): Promise<XapiObject>;
   deleteVm(vm: Id): Promise<void>;
   editVm(vm: Id, $Dict<mixed>): Promise<void>;
-exportDeltaVm(
-  cancelToken: mixed,
-  snapshot: Id,
-  baseSnapshot ?: Id
-): Promise<DeltaVmExport>;
-exportVm(
-  cancelToken: mixed,
-  vm: Vm,
-  options ?: Object
-): Promise<AugmentedReadable>;
-getObject(object: Id): XapiObject;
-importDeltaVm(data: DeltaVmImport, options: Object): Promise<{ vm: Vm }>;
-importVm(stream: AugmentedReadable, options: Object): Promise<Vm>;
+  exportDeltaVm(
+    cancelToken: mixed,
+    snapshot: Id,
+    baseSnapshot ?: Id,
+    opts?: { fullVdisRequired?: string[] }
+  ): Promise<DeltaVmExport>;
+  exportVm(
+    cancelToken: mixed,
+    vm: Vm,
+    options ?: Object
+  ): Promise<AugmentedReadable>;
+  getObject(object: Id): XapiObject;
+  importDeltaVm(data: DeltaVmImport, options: Object): Promise<{ vm: Vm }>;
+  importVm(stream: AugmentedReadable, options: Object): Promise<Vm>;
+  shutdownVm(object: Id): Promise<void>;
+  startVm(object: Id): Promise<void>;
 }

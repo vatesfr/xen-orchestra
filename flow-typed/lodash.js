@@ -1,4 +1,8 @@
 declare module 'lodash' {
+  declare export function countBy<K, V>(
+    object: { [K]: V },
+    iteratee: K | ((V, K) => string)
+  ): { [string]: number }
   declare export function forEach<K, V>(
     object: { [K]: V },
     iteratee: (V, K) => void
