@@ -915,7 +915,7 @@ export default class BackupNg {
       xva = xva.pipe(createSizeStream())
 
       const forkExport =
-        nTargets === 0
+        nTargets === 1
           ? () => xva
           : () => {
               const fork = xva.pipe(new PassThrough())
