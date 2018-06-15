@@ -734,7 +734,7 @@ export default class BackupNg {
       if (remotes.length === 0) {
         exportRetention = 0
       }
-    } else if (remotes.length === 0) {
+    } else if (exportRetention === 0 && remotes.length === 0) {
       throw new Error('export retention must be 0 without remotes')
     }
 
