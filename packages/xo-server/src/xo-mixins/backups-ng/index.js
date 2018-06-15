@@ -433,7 +433,7 @@ export default class BackupNg {
 
         const job: BackupJob = (job_: any)
 
-        let vms: $Dict<Vm>
+        let vms: $Dict<Vm> | void
         if (vmId === undefined) {
           vms = app.getObjects({
             filter: createPredicate({
@@ -513,15 +513,13 @@ export default class BackupNg {
           }
         }
 
-        if (vmId !== undefined) {
+        if (vms === undefined) {
           return handleVm(await app.getObject(vmId))
         }
 
-        const concurrency: number | void = getSetting(
-          job.settings,
-          'concurrency',
-          ['']
-        )
+        const concurrency: number = getSetting(job.settings, 'concurrency', [
+          '',
+        ])
         if (concurrency !== 0) {
           handleVm = limitConcurrency(concurrency)(handleVm)
         }
@@ -723,8 +721,8 @@ export default class BackupNg {
     schedule: Schedule,
     logger: any,
     taskId: string,
-    srs,
-    remotes
+    srs: any[],
+    remotes: any[]
   ): Promise<void> {
     const app = this._app
     const xapi = app.getXapi(vmUuid)
@@ -1054,7 +1052,7 @@ export default class BackupNg {
 
       let baseSnapshot, fullVdisRequired
       await (async () => {
-        baseSnapshot = last(snapshots)
+        baseSnapshot = (last(snapshots): Vm | void)
         if (baseSnapshot === undefined) {
           return
         }

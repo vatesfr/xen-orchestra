@@ -7,6 +7,10 @@ declare module 'lodash' {
     object: { [K]: V },
     iteratee: K | ((V, K) => string)
   ): { [string]: V[] }
+  declare export function indexBy<K, V>(
+    object: { [K]: V },
+    iteratee: K | ((V, K) => string)
+  ): { [string]: V }
   declare export function invert<K, V>(object: { [K]: V }): { [V]: K }
   declare export function isEmpty(mixed): boolean
   declare export function keyBy<T>(array: T[], iteratee: string): boolean

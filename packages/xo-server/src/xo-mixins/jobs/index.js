@@ -60,6 +60,7 @@ export type CallJob = {|
 export type Executor = ({|
   app: Object,
   cancelToken: any,
+  data: any,
   job: Job,
   logger: Logger,
   runJobId: string,
