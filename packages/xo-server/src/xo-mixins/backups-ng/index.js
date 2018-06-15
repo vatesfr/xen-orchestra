@@ -762,7 +762,7 @@ export default class BackupNg {
       exportRetention === 0 &&
       snapshotRetention === 0
     ) {
-      throw new Error('export and snapshot retentions cannot both be 0')
+      throw new Error('copy, export and snapshot retentions cannot both be 0')
     }
 
     if (
