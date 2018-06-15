@@ -718,30 +718,51 @@ export default class BackupNg {
     const { id: jobId, settings } = job
     const { id: scheduleId } = schedule
 
-    const exportRetention: number = getSetting(settings, 'exportRetention', [
+    let exportRetention: number = getSetting(settings, 'exportRetention', [
       scheduleId,
     ])
+    let copyRetention: number | void = getSetting(settings, 'copyRetention', [
+      scheduleId,
+    ])
+
+    const remotes = unboxIds(job.remotes)
+    if (copyRetention === undefined) {
+      // if copyRetention is not defined, it uses exportRetention's value due to
+      // previous implementation which did not support copyRetention
+      copyRetention = exportRetention
+
+      if (remotes.length === 0) {
+        exportRetention = 0
+      }
+    } else if (exportRetention !== 0 && remotes.length === 0) {
+      throw new Error('export retention must be 0 without remotes')
+    }
+
+    const srs = unboxIds(job.srs)
+    if (copyRetention !== 0 && srs.length === 0) {
+      throw new Error('copy retention must be 0 without SRs')
+    }
+
+    if (
+      remotes.length !== 0 &&
+      srs.length !== 0 &&
+      (copyRetention === 0) !== (exportRetention === 0)
+    ) {
+      throw new Error('both or neither copy and export retentions must be 0')
+    }
+
     const snapshotRetention: number = getSetting(
       settings,
       'snapshotRetention',
       [scheduleId]
     )
 
-    if (exportRetention === 0) {
-      if (snapshotRetention === 0) {
-        throw new Error('export and snapshots retentions cannot both be 0')
-      }
-    }
-
-    const copyRetention: number = getSetting(
-      settings,
-      'copyRetention',
-      [scheduleId],
-      exportRetention
-    )
-
-    if ((copyRetention === 0) !== (exportRetention === 0)) {
-      throw new Error('both or neither copy and export rententions should be 0')
+    if (
+      copyRetention === 0 &&
+      exportRetention === 0 &&
+      snapshotRetention === 0
+    ) {
+      throw new Error('copy, export and snapshot retentions cannot both be 0')
     }
 
     if (
@@ -831,12 +852,7 @@ export default class BackupNg {
       return
     }
 
-    const remotes = unboxIds(job.remotes)
-    const srs = unboxIds(job.srs)
     const nTargets = remotes.length + srs.length
-    if (nTargets === 0) {
-      throw new Error('export retention must be 0 without remotes and SRs')
-    }
 
     const now = Date.now()
     const vmDir = getVmBackupDir(vmUuid)
