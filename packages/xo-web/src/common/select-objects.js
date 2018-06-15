@@ -41,6 +41,7 @@ import {
 import { addSubscriptions, connectStore, resolveResourceSets } from './utils'
 import {
   isSrWritable,
+  subscribeCloudConfigs,
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
@@ -1037,4 +1038,22 @@ export const SelectIpPool = makeSubscriptionSelect(
     return unsubscribeIpPools
   },
   { placeholder: _('selectIpPool') }
+)
+
+// ===================================================================
+
+export const SelectCloudConfig = makeSubscriptionSelect(
+  subscriber => {
+    const unsubscribeCloudConfig = subscribeCloudConfigs(cloudConfigs => {
+      subscriber({
+        xoObjects: map(sortBy(cloudConfigs, 'name'), cloudConfig => ({
+          ...cloudConfig,
+          type: 'cloudConfig',
+        })),
+      })
+    })
+
+    return unsubscribeCloudConfig
+  },
+  { placeholder: _('selectCloudConfigs') }
 )

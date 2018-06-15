@@ -1,5 +1,8 @@
 // @flow
+import { noSuchObject } from 'xo-common/api-errors'
+
 import Collection from '../collection/redis'
+import patch from '../patch'
 
 type CloudConfig = {|
   id: string,
@@ -44,8 +47,10 @@ export default class {
     return this._db.add(cloudConfig).properties
   }
 
-  updateCloudConfig (props: $Shape<CloudConfig>) {
-    return this._db.update(props)
+  async updateCloudConfig ({ id, name, template }: $Shape<CloudConfig>) {
+    const cloudConfig = await this.getCloudConfig(id)
+    patch(cloudConfig, { name, template })
+    return this._db.update(cloudConfig)
   }
 
   deleteCloudConfig (id: string) {
@@ -54,5 +59,13 @@ export default class {
 
   getAllCloudConfigs (): Promise<Array<CloudConfig>> {
     return this._db.get()
+  }
+
+  async getCloudConfig (id: string): Promise<CloudConfig> {
+    const cloudConfig = await this._db.first(id)
+    if (cloudConfig === null) {
+      throw noSuchObject(id, 'cloud config')
+    }
+    return cloudConfig.properties
   }
 }

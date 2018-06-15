@@ -286,6 +286,11 @@ export default class Menu extends Component {
           },
           { to: '/settings/ips', icon: 'ip', label: 'settingsIpsPage' },
           {
+            to: '/settings/cloud-configs',
+            icon: 'template',
+            label: 'settingsCloudConfigsPage',
+          },
+          {
             to: '/settings/config',
             icon: 'menu-settings-config',
             label: 'settingsConfigPage',
