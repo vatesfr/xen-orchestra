@@ -255,6 +255,10 @@ const importers: $Dict<
   },
 }
 
+const PARSE_UUID_RE = /-/g
+const parseUuid = (uuid: string) =>
+  Buffer.from(uuid.replace(PARSE_UUID_RE, ''), 'hex')
+
 const parseVmBackupId = (id: string) => {
   const i = id.indexOf('/')
   return {
@@ -687,7 +691,7 @@ export default class BackupNg {
   // - [ ] display queued VMs
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
-  // - [ ] size of the path? (base64url(Buffer.from(uuid.split('-').join(''), 'hex')))
+  // - [ ] size of the path? (base64url(parseUuid(uuid)))
   // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
   //       a very long time to finish if there are other VMs before…
   // - [ ] detect and gc uncomplete replications
@@ -1096,10 +1100,7 @@ export default class BackupNg {
                   const vhd = new Vhd(handler, `${dir}/${file}`)
                   await vhd.readHeaderAndFooter()
 
-                  if (
-                    vhd.footer.uuid.toString('hex') ===
-                    vdi.uuid.split('-').join('')
-                  ) {
+                  if (vhd.footer.uuid.equals(parseUuid(vdi.uuid))) {
                     full = false
                   }
 
@@ -1277,10 +1278,7 @@ export default class BackupNg {
                       // set the correct UUID in the VHD
                       const vhd = new Vhd(handler, path)
                       await vhd.readHeaderAndFooter()
-                      vhd.footer.uuid = Buffer.from(
-                        vdi.uuid.split('-').join(''),
-                        'hex'
-                      )
+                      vhd.footer.uuid = parseUuid(vdi.uuid)
                       await vhd.readBlockAllocationTable() // required by writeFooter()
                       await vhd.writeFooter()
 
