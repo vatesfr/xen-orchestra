@@ -96,6 +96,7 @@ class XapiError extends BaseError {
     // slots than can be assigned later
     this.method = undefined
     this.url = undefined
+    this.task = undefined
   }
 }
 
@@ -188,7 +189,9 @@ const getTaskResult = task => {
     return Promise.reject(new Cancel('task canceled'))
   }
   if (status === 'failure') {
-    return Promise.reject(wrapError(task.error_info))
+    const error = wrapError(task.error_info)
+    error.task = task
+    return Promise.reject(error)
   }
   if (status === 'success') {
     // the result might be:
