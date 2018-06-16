@@ -28,7 +28,7 @@
     "pipette": "^0.9.3",
     "promise-toolbox": "^0.9.5",
     "tmp": "^0.0.33",
-    "vhd-lib": "^0.1.2"
+    "vhd-lib": "^0.1.3"
   },
   "devDependencies": {
     "@babel/cli": "7.0.0-beta.49",
