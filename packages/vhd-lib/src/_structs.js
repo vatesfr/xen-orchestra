@@ -40,7 +40,7 @@ export const fuFooter = fu.struct([
   ]),
   fu.uint32('diskType'), // 60 Disk type, must be equal to HARD_DISK_TYPE_DYNAMIC/HARD_DISK_TYPE_DIFFERENCING.
   fu.uint32('checksum'), // 64
-  fu.uint8('uuid', 16), // 68
+  fu.byte('uuid', 16), // 68
   fu.char('saved'), // 84
   fu.char('hidden'), // 85 TODO: should probably be merged in reserved
   fu.char('reserved', 426), // 86
@@ -55,7 +55,7 @@ export const fuHeader = fu.struct([
   fu.uint32('maxTableEntries'), // Max entries in the Block Allocation Table.
   fu.uint32('blockSize'), // Block size in bytes. Default (2097152 => 2MB)
   fu.uint32('checksum'),
-  fu.uint8('parentUuid', 16),
+  fu.byte('parentUuid', 16),
   fu.uint32('parentTimestamp'),
   fu.uint32('reserved1'),
   fu.char16be('parentUnicodeName', 512),

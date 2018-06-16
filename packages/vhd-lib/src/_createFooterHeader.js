@@ -33,7 +33,7 @@ export function createFooter (
     currentSize: size,
     diskGeometry: geometry,
     diskType,
-    uuid: generateUuid(null, []),
+    uuid: generateUuid(null, Buffer.allocUnsafe(16)),
   })
   checksumStruct(footer, fuFooter)
   return footer

@@ -1097,7 +1097,7 @@ export default class BackupNg {
                   await vhd.readHeaderAndFooter()
 
                   if (
-                    Buffer.from(vhd.footer.uuid).toString('hex') ===
+                    vhd.footer.uuid.toString('hex') ===
                     vdi.uuid.split('-').join('')
                   ) {
                     full = false
