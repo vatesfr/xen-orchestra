@@ -98,7 +98,9 @@ const getValuesFromDepth = (obj, targetPath) => {
 const testMetric = (test, type) =>
   typeof test === 'string'
     ? test === type
-    : typeof test === 'function' ? test(type) : test.exec(type)
+    : typeof test === 'function'
+      ? test(type)
+      : test.exec(type)
 
 const findMetric = (metrics, metricType) => {
   let testResult
@@ -242,13 +244,14 @@ export default class XapiStats {
   // Execute one http request on a XenServer for get stats
   // Return stats (Json format) or throws got exception
   @limitConcurrency(3)
-  _getJson (xapi, host, timestamp) {
+  _getJson (xapi, host, timestamp, step) {
     return xapi
       .getResource('/rrd_updates', {
         host,
         query: {
           cf: 'AVERAGE',
           host: 'true',
+          interval: step,
           json: 'true',
           start: timestamp,
         },
@@ -316,7 +319,7 @@ export default class XapiStats {
     }
 
     const timestamp = await this._getNextTimestamp(xapi, host, step)
-    const json = await this._getJson(xapi, host, timestamp)
+    const json = await this._getJson(xapi, host, timestamp, step)
     if (json.meta.step !== step) {
       throw new FaultyGranularity(
         `Unable to get the true granularity: ${json.meta.step}`
