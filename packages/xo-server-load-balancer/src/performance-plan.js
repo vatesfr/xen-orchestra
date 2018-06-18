@@ -56,7 +56,7 @@ export default class PerformancePlan extends Plan {
     }
 
     const { averages, toOptimize } = results
-    let { hosts } = results
+    const { hosts } = results
 
     toOptimize.sort((a, b) => {
       a = averages[a.id]
@@ -69,12 +69,12 @@ export default class PerformancePlan extends Plan {
       const { id } = exceededHost
 
       debug(`Try to optimize Host (${exceededHost.id}).`)
-      hosts = filter(hosts, host => host.id !== id)
+      const availableHosts = filter(hosts, host => host.id !== id)
 
       // Search bests combinations for the worst host.
       await this._optimize({
         exceededHost,
-        hosts,
+        hosts: availableHosts,
         hostsAverages: averages,
       })
     }
