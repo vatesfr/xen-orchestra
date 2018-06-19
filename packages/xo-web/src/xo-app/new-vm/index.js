@@ -1214,7 +1214,11 @@ export default class NewVm extends BaseComponent {
     } = this.state.state
     switch (installMethod) {
       case 'customConfig':
-        return customConfig !== '' || installMethod === 'noConfigDrive'
+        return (
+          customConfig === undefined ||
+          customConfig.trim() !== '' ||
+          installMethod === 'noConfigDrive'
+        )
       case 'ISO':
         return installIso
       case 'network':
