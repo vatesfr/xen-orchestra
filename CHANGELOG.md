@@ -20,7 +20,7 @@
 - New VM with Self: filter out networks that are not in the template's pool [#3011](https://github.com/vatesfr/xen-orchestra/issues/3011)
 - [Backup NG] Auto-detect when a full export is necessary.
 - Fix Load Balancer [#3075](https://github.com/vatesfr/xen-orchestra/issues/3075#event-1685469551) [#3026](https://github.com/vatesfr/xen-orchestra/issues/3026)
-- [SR stats] Do not scale the xenAPI values [#2969](https://github.com/vatesfr/xen-orchestra/issues/2969)
+- [SR stats] Don't scale XAPI iowait values [#2969](https://github.com/vatesfr/xen-orchestra/issues/2969)
 
 ## **5.20.0** (2018-05-31)
 
