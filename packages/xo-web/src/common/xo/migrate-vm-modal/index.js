@@ -1,19 +1,17 @@
 import BaseComponent from 'base-component'
-import every from 'lodash/every'
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
-import map from 'lodash/map'
 import React from 'react'
 import store from 'store'
+import { every, find, flatMap, forEach, isEmpty, map } from 'lodash'
 
 import _ from '../../intl'
 import ChooseSrForEachVdisModal from '../choose-sr-for-each-vdis-modal'
+import Collapse from 'collapse'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
-import { Col } from '../../grid'
+import { Col, Row } from '../../grid'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
 import { getDefaultNetworkForVif } from '../utils'
-import { SelectHost, SelectNetwork } from '../../select-objects'
+import { SelectHost, SelectNetwork, SelectSr } from '../../select-objects'
 import {
   createGetObjectsOfType,
   createPicker,
@@ -25,16 +23,137 @@ import { isSrShared, isSrWritable } from '../'
 
 import styles from './index.css'
 
+@connectStore(() => {
+  const getSnapshot = (_, props) => props.snapshot
+
+  const getVbds = createGetObjectsOfType('VBD')
+    .pick(createSelector(getSnapshot, snapshot => snapshot.$VBDs))
+    .filter([vbd => !vbd.is_cd_drive && vbd.VDI !== undefined])
+
+  const getVdis = createGetObjectsOfType('VDI-snapshot').pick(
+    createSelector(getVbds, vbds => map(vbds, 'VDI'))
+  )
+
+  const getVifs = createGetObjectsOfType('VIF').pick(
+    createSelector(getSnapshot, snapshot => snapshot.VIFs)
+  )
+
+  const getNetworks = createGetObjectsOfType('network')
+
+  return {
+    networks: getNetworks,
+    vdis: getVdis,
+    vifs: getVifs,
+    snapshot: getSnapshot,
+  }
+})
+class Snapshot extends BaseComponent {
+  _onChange = newValues => {
+    this.props.onChange({
+      ...this.props,
+      ...newValues,
+    })
+  }
+
+  render () {
+    const {
+      displayVdis,
+      displayVifs,
+      vdis,
+      vifs,
+      mapVdisSrs,
+      mapVifsNetworks,
+      networks,
+      networkPredicate,
+      snapshot,
+      srPredicate,
+    } = this.props
+
+    return (
+      <div className={styles.groupBlock} key={snapshot.id}>
+        {displayVdis &&
+          !isEmpty(vdis) && (
+            <div>
+              <SingleLineRow>
+                <Col size={6}>
+                  <strong>{_('chooseSrForEachVdisModalVdiLabel')}</strong>
+                </Col>
+                <Col size={6}>
+                  <strong>{_('chooseSrForEachVdisModalSrLabel')}</strong>
+                </Col>
+              </SingleLineRow>
+              {map(vdis, vdi => (
+                <SingleLineRow key={vdi.uuid}>
+                  <Col size={6}>{vdi.name_label || vdi.name}</Col>
+                  <Col size={6}>
+                    <SelectSr
+                      onChange={sr =>
+                        this._onChange({
+                          mapVdisSrs: { ...mapVdisSrs, [vdi.uuid]: sr },
+                        })
+                      }
+                      predicate={srPredicate}
+                      value={mapVdisSrs !== undefined && mapVdisSrs[vdi.uuid]}
+                    />
+                  </Col>
+                </SingleLineRow>
+              ))}
+              <i>{_('chooseSrForEachVdisModalOptionalEntry')}</i>
+            </div>
+          )}
+        {displayVifs &&
+          !isEmpty(vifs) && (
+            <div>
+              <Row className='mt-1'>
+                <Col size={6}>
+                  <span className={styles.listTitle}>{_('migrateVmVif')}</span>
+                </Col>
+                <Col size={6}>
+                  <span className={styles.listTitle}>
+                    {_('migrateVmNetwork')}
+                  </span>
+                </Col>
+              </Row>
+              {map(vifs, vif => (
+                <div className={styles.listItem} key={vif.id}>
+                  <SingleLineRow>
+                    <Col size={6}>
+                      {vif.MAC} ({networks[vif.$network].name_label})
+                    </Col>
+                    <Col size={6}>
+                      <SelectNetwork
+                        onChange={network =>
+                          this._onChange({
+                            mapVifsNetworks: {
+                              ...mapVifsNetworks,
+                              [vif]: network.id,
+                            },
+                          })
+                        }
+                        predicate={networkPredicate}
+                        value={mapVifsNetworks[vif.id]}
+                      />
+                    </Col>
+                  </SingleLineRow>
+                </div>
+              ))}
+            </div>
+          )}
+      </div>
+    )
+  }
+}
+
 @connectStore(
   () => {
     const getVm = (_, props) => props.vm
 
-    const getVbds = createGetObjectsOfType('VBD')
+    const getVmVbds = createGetObjectsOfType('VBD')
       .pick((state, props) => getVm(state, props).$VBDs)
       .sort()
 
-    const getVdis = createGetObjectsOfType('VDI').pick(
-      createSelector(getVbds, vbds =>
+    const getVmVdis = createGetObjectsOfType('VDI').pick(
+      createSelector(getVmVbds, vbds =>
         mapPlus(vbds, (vbd, push) => {
           if (!vbd.is_cd_drive && vbd.VDI) {
             push(vbd.VDI)
@@ -43,9 +162,33 @@ import styles from './index.css'
       )
     )
 
-    const getVifs = createGetObjectsOfType('VIF')
+    const getSnapshots = createGetObjectsOfType('VM-snapshot').pick(
+      createSelector(getVm, vm => vm.snapshots)
+    )
+
+    const getSnapshotsVbds = createGetObjectsOfType('VBD').pick(
+      createSelector(getSnapshots, snapshots => flatMap(snapshots, '$VBDs'))
+    )
+
+    const getVbds = createSelector(
+      getVmVbds,
+      getSnapshotsVbds,
+      (vbds, snapshotsVbds) => vbds.concat(snapshotsVbds)
+    )
+
+    const getVmVifs = createGetObjectsOfType('VIF')
       .pick(createSelector(getVm, vm => vm.VIFs))
       .sort()
+
+    const getSnapshotsVifs = createGetObjectsOfType('VIF')
+      .pick(createSelector(getSnapshots, vms => flatMap(vms, 'VIFs')))
+      .sort()
+
+    const getVifs = createSelector(
+      getVmVifs,
+      getSnapshotsVifs,
+      (vmVifs, snapshotsVifs) => vmVifs.concat(snapshotsVifs)
+    )
 
     const getPifs = createGetObjectsOfType('PIF')
     const getNetworks = createGetObjectsOfType('network')
@@ -56,8 +199,10 @@ import styles from './index.css'
       pifs: getPifs,
       pools: getPools,
       vbds: getVbds,
-      vdis: getVdis,
       vifs: getVifs,
+      vmVdis: getVmVdis,
+      vmVifs: getVmVifs,
+      snapshots: getSnapshots,
     }
   },
   { withRef: true }
@@ -211,7 +356,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     this.setState({ migrationNetworkId: migrationNetwork.id })
 
   render () {
-    const { vdis, vifs, networks } = this.props
+    const { vmVdis, vmVifs, networks, snapshots } = this.props
     const {
       doNotMigrateVdis,
       host,
@@ -220,6 +365,10 @@ export default class MigrateVmModalBody extends BaseComponent {
       migrationNetworkId,
       targetSrs,
     } = this.state
+
+    const displayVdis = host !== undefined && !doNotMigrateVdis
+    const displayVifs = intraPool === false
+
     return (
       <div>
         <div className={styles.block}>
@@ -234,81 +383,110 @@ export default class MigrateVmModalBody extends BaseComponent {
               />
             </Col>
           </SingleLineRow>
+
+          {displayVifs && (
+            <SingleLineRow className='mt-1'>
+              <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
+              <Col size={6}>
+                <SelectNetwork
+                  onChange={this._selectMigrationNetwork}
+                  predicate={this._getMigrationNetworkPredicate()}
+                  value={migrationNetworkId}
+                />
+              </Col>
+            </SingleLineRow>
+          )}
         </div>
-        {host &&
-          !doNotMigrateVdis && (
+        {displayVdis && (
+          <div className={styles.groupBlock}>
+            <SingleLineRow>
+              <Col size={12}>
+                <ChooseSrForEachVdisModal
+                  mainSrPredicate={this._getSrPredicate()}
+                  onChange={this.linkState('targetSrs')}
+                  value={targetSrs}
+                  vdis={vmVdis}
+                />
+              </Col>
+            </SingleLineRow>
+          </div>
+        )}
+        {displayVifs && (
+          <div>
             <div className={styles.groupBlock}>
+              <Row>
+                <Col>{_('migrateVmSelectNetworks')}</Col>
+              </Row>
               <SingleLineRow>
-                <Col size={12}>
-                  <ChooseSrForEachVdisModal
-                    mainSrPredicate={this._getSrPredicate()}
-                    onChange={this.linkState('targetSrs')}
-                    required
-                    value={targetSrs}
-                    vdis={vdis}
-                  />
+                <Col size={6}>
+                  <span className={styles.listTitle}>{_('migrateVmVif')}</span>
+                </Col>
+                <Col size={6}>
+                  <span className={styles.listTitle}>
+                    {_('migrateVmNetwork')}
+                  </span>
                 </Col>
               </SingleLineRow>
+              {map(vmVifs, vif => (
+                <div className={styles.listItem} key={vif.id}>
+                  <SingleLineRow>
+                    <Col size={6}>
+                      {vif.MAC} ({networks[vif.$network].name_label})
+                    </Col>
+                    <Col size={6}>
+                      <SelectNetwork
+                        onChange={this.linkState(`mapVifsNetworks.${vif.id}`)}
+                        predicate={this._getTargetNetworkPredicate()}
+                        value={mapVifsNetworks[vif.id]}
+                      />
+                    </Col>
+                  </SingleLineRow>
+                </div>
+              ))}
             </div>
-          )}
-        {intraPool !== undefined &&
-          (!intraPool && (
-            <div>
-              <div className={styles.groupBlock}>
-                <SingleLineRow>
-                  <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
-                  <Col size={6}>
-                    <SelectNetwork
-                      onChange={this._selectMigrationNetwork}
-                      predicate={this._getMigrationNetworkPredicate()}
-                      value={migrationNetworkId}
-                    />
+          </div>
+        )}
+        {!isEmpty(snapshots) &&
+          (displayVdis || displayVifs) && (
+            <div className={styles.groupBlock}>
+              <div>
+                <Row>
+                  <Col>
+                    <strong>{_('IndividualSnapshotConfiguration')}:</strong>
                   </Col>
-                </SingleLineRow>
+                </Row>
               </div>
-              <div className={styles.groupBlock}>
-                <SingleLineRow>
-                  <Col>{_('migrateVmSelectNetworks')}</Col>
-                </SingleLineRow>
-                <br />
-                <SingleLineRow>
-                  <Col size={6}>
-                    <span className={styles.listTitle}>
-                      {_('migrateVmVif')}
-                    </span>
-                  </Col>
-                  <Col size={6}>
-                    <span className={styles.listTitle}>
-                      {_('migrateVmNetwork')}
-                    </span>
-                  </Col>
-                </SingleLineRow>
-                {map(vifs, vif => (
-                  <div className={styles.listItem} key={vif.id}>
-                    <SingleLineRow>
-                      <Col size={6}>
-                        {vif.MAC} ({networks[vif.$network].name_label})
-                      </Col>
-                      <Col size={6}>
-                        <SelectNetwork
-                          onChange={network =>
-                            this.setState({
-                              mapVifsNetworks: {
-                                ...mapVifsNetworks,
-                                [vif.id]: network.id,
-                              },
-                            })
-                          }
-                          predicate={this._getTargetNetworkPredicate()}
-                          value={mapVifsNetworks[vif.id]}
-                        />
-                      </Col>
-                    </SingleLineRow>
-                  </div>
+              <div>
+                {map(snapshots, snapshot => (
+                  <Collapse
+                    buttonText={snapshot.name_label}
+                    size='small'
+                    className='mb-1'
+                  >
+                    <Snapshot
+                      displayVdis={displayVdis}
+                      displayVifs={displayVifs}
+                      key={snapshot.id}
+                      mapVdisSrs={targetSrs.mapVdisSrs}
+                      mapVifsNetworks={mapVifsNetworks}
+                      networkPredicate={this._getTargetNetworkPredicate()}
+                      onChange={props => {
+                        this.setState({
+                          mapVifsNetworks: props.mapVifsNetworks,
+                          targetSrs: {
+                            ...targetSrs,
+                            mapVdisSrs: props.mapVdisSrs,
+                          },
+                        })
+                      }}
+                      snapshot={snapshot}
+                      srPredicate={this._getSrPredicate()}
+                    />
+                  </Collapse>
                 ))}
               </div>
             </div>
-          ))}
+          )}
       </div>
     )
   }
