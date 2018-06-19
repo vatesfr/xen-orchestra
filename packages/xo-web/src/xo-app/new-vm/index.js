@@ -356,7 +356,9 @@ export default class NewVm extends BaseComponent {
           ''
         )}`
       } else {
-        const replacer = this._buildTemplate(state.customConfig)
+        const replacer = this._buildTemplate(
+          defined(state.customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)
+        )
         cloudConfig = replacer(this.state.state, 0)
         if (state.multipleVms) {
           const seqStart = state.seqStart
@@ -1212,7 +1214,7 @@ export default class NewVm extends BaseComponent {
     } = this.state.state
     switch (installMethod) {
       case 'customConfig':
-        return customConfig || installMethod === 'noConfigDrive'
+        return customConfig !== '' || installMethod === 'noConfigDrive'
       case 'ISO':
         return installIso
       case 'network':

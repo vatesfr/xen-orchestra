@@ -1043,17 +1043,14 @@ export const SelectIpPool = makeSubscriptionSelect(
 // ===================================================================
 
 export const SelectCloudConfig = makeSubscriptionSelect(
-  subscriber => {
-    const unsubscribeCloudConfig = subscribeCloudConfigs(cloudConfigs => {
+  subscriber =>
+    subscribeCloudConfigs(cloudConfigs => {
       subscriber({
         xoObjects: map(sortBy(cloudConfigs, 'name'), cloudConfig => ({
           ...cloudConfig,
           type: 'cloudConfig',
         })),
       })
-    })
-
-    return unsubscribeCloudConfig
-  },
+    }),
   { placeholder: _('selectCloudConfigs') }
 )
