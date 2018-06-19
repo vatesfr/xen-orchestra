@@ -596,7 +596,11 @@ export const IopsLineChart = injectIntl(
     data: propTypes.array.isRequired,
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
-    const { endTimestamp, interval, stats: { iops } } = data
+    const {
+      endTimestamp,
+      interval,
+      stats: { iops },
+    } = data
 
     const { length } = get(iops, 'r')
 
@@ -635,7 +639,11 @@ export const IoThroughputChart = injectIntl(
     data: propTypes.array.isRequired,
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
-    const { endTimestamp, interval, stats: { ioThroughput } } = data
+    const {
+      endTimestamp,
+      interval,
+      stats: { ioThroughput },
+    } = data
 
     const { length } = get(ioThroughput, 'r') || []
 
@@ -674,7 +682,11 @@ export const LatencyChart = injectIntl(
     data: propTypes.array.isRequired,
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
-    const { endTimestamp, interval, stats: { latency } } = data
+    const {
+      endTimestamp,
+      interval,
+      stats: { latency },
+    } = data
 
     const { length } = get(latency, 'r') || []
 
@@ -713,7 +725,11 @@ export const IowaitChart = injectIntl(
     data: propTypes.array.isRequired,
     options: propTypes.object,
   })(({ addSumSeries, data, options = {}, intl }) => {
-    const { endTimestamp, interval, stats: { iowait } } = data
+    const {
+      endTimestamp,
+      interval,
+      stats: { iowait },
+    } = data
 
     const { length } = iowait[Object.keys(iowait)[0]] || []
 
@@ -737,7 +753,7 @@ export const IowaitChart = injectIntl(
             nValues: length,
             endTimestamp,
             interval,
-            valueTransform: value => `${round(value, 2)}%`,
+            valueTransform: value => `${round(value, 3)}%`,
           }),
           ...options,
         }}

@@ -195,7 +195,6 @@ const STATS = {
     iowait: {
       test: /^iowait_(\w+)$/,
       getPath: matches => ['iowait', matches[1]],
-      transformValue: value => value * 1e2,
     },
   },
   vm: {
