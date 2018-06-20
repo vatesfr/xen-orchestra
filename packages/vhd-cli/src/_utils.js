@@ -1,17 +1,5 @@
-const { createReadStream, createWriteStream, statSync } = require('fs')
+const { createWriteStream } = require('fs')
 const { PassThrough } = require('stream')
-
-export const createInputStream = path => {
-  if (path === undefined || path === '-') {
-    return process.stdin
-  }
-
-  const { size } = statSync(path)
-
-  const stream = createReadStream(path)
-  stream.length = size
-  return stream
-}
 
 const createOutputStream = path => {
   if (path !== undefined && path !== '-') {
