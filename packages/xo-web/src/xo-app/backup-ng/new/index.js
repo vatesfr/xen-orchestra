@@ -30,6 +30,7 @@ import {
   deleteSchedule,
   editBackupNgJob,
   editSchedule,
+  isSrWritable,
   subscribeRemotes,
 } from 'xo'
 
@@ -633,7 +634,7 @@ export default [
         tags: constructSmartPattern(tags, normaliseTagValues),
         type: 'VM',
       }),
-      srPredicate: ({ srs }) => ({ id }) => !includes(srs, id),
+      srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
     },
   }),
