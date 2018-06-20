@@ -75,6 +75,7 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
               handler={cancelJob}
               handlerParam={job}
               icon='cancel'
+              key='cancel'
               size='small'
               tooltip={_('formCancel')}
             />
@@ -86,6 +87,7 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
               data-schedule={schedule.id}
               handler={_runBackupNgJob}
               icon='run-schedule'
+              key='run'
               size='small'
             />
           )}
