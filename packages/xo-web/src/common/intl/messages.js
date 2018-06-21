@@ -85,8 +85,9 @@ const messages = {
   newImport: 'Import',
   xosan: 'XOSAN',
   backupDeprecatedMessage:
-    'Backup is deprecated, use Backup NG instead to create new backups.',
-  backupNgNewPage: 'New backup NG',
+    'Warning: Backup is deprecated, use Backup NG instead.',
+  backupMigrationLink: 'How to migrate to Backup NG',
+  backupNgNewPage: 'Create a new backup with Backup NG',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
