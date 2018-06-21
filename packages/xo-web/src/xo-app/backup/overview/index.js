@@ -242,11 +242,16 @@ export default class Overview extends Component {
               emptyMessage={_('noScheduledJobs')}
             >
               {() => (
-                <SortedTable
-                  columns={JOB_COLUMNS}
-                  collection={this._getScheduleCollection()}
-                  userData={isScheduleUserMissing}
-                />
+                <div>
+                  <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
+                    {_('backupMigrationLink')}
+                  </a>
+                  <SortedTable
+                    columns={JOB_COLUMNS}
+                    collection={this._getScheduleCollection()}
+                    userData={isScheduleUserMissing}
+                  />
+                </div>
               )}
             </NoObjects>
           </CardBlock>
