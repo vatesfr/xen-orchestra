@@ -243,9 +243,13 @@ export default class Overview extends Component {
             >
               {() => (
                 <div>
-                  <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
-                    {_('backupMigrationLink')}
-                  </a>
+                  <div className='alert alert-warning'>
+                    {_('backupDeprecatedMessage')}
+                    <br />
+                    <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
+                      {_('backupMigrationLink')}
+                    </a>
+                  </div>
                   <SortedTable
                     columns={JOB_COLUMNS}
                     collection={this._getScheduleCollection()}

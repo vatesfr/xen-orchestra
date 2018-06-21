@@ -13,12 +13,8 @@ import Restore from './restore'
 import FileRestore from './file-restore'
 
 const DeprecatedMsg = () => (
-  <div>
-    <em>{_('backupDeprecatedMessage')}</em>
-    <br />
-    <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
-      {_('backupMigrationLink')}
-    </a>
+  <div className='alert alert-warning'>
+    {_('backupDeprecatedMessage')}
     <br />
     <Link to='/backup-ng/new'>{_('backupNgNewPage')}</Link>
   </div>
