@@ -6,7 +6,12 @@ import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, resolveId, resolveIds } from 'utils'
+import {
+  addSubscriptions,
+  generateRandomId,
+  resolveId,
+  resolveIds,
+} from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
@@ -35,15 +40,7 @@ import {
 
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
-import {
-  FormFeedback,
-  FormGroup,
-  getRandomId,
-  Input,
-  Number,
-  Ul,
-  Li,
-} from './utils'
+import { FormFeedback, FormGroup, Input, Number, Ul, Li } from './utils'
 
 // ===================================================================
 
@@ -158,7 +155,7 @@ const getInitialState = () => ({
   deltaMode: false,
   drMode: false,
   editionMode: undefined,
-  formId: getRandomId(),
+  formId: generateRandomId(),
   name: '',
   newSchedules: {},
   offlineSnapshot: false,
@@ -476,7 +473,7 @@ export default [
             editionMode: undefined,
             newSchedules: {
               ...state.newSchedules,
-              [getRandomId()]: {
+              [generateRandomId()]: {
                 cron,
                 timezone,
                 exportRetention,

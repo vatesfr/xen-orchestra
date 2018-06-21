@@ -205,7 +205,7 @@ export const formatSizeRaw = bytes =>
   humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSpeed = (bytes, milliseconds) =>
-  humanFormat(bytes * 1e3 / milliseconds, { scale: 'binary', unit: 'B/s' })
+  humanFormat((bytes * 1e3) / milliseconds, { scale: 'binary', unit: 'B/s' })
 
 const timeScale = new humanFormat.Scale({
   ns: 1e-6,
@@ -516,7 +516,7 @@ export const createFakeProgress = (() => {
     const startTime = Date.now() / 1e3
     return () => {
       const x = Date.now() / 1e3 - startTime
-      return -Math.exp(x * Math.log(1 - S) / d) + 1
+      return -Math.exp((x * Math.log(1 - S)) / d) + 1
     }
   }
 })()
@@ -563,3 +563,10 @@ export const isLatestXosanPackInstalled = (latestXosanPack, hosts) =>
 
 export const getMemoryUsedMetric = ({ memory, memoryFree = memory }) =>
   map(memory, (value, key) => value - memoryFree[key])
+
+// ===================================================================
+
+export const generateRandomId = () =>
+  Math.random()
+    .toString(36)
+    .slice(2)

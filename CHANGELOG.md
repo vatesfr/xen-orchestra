@@ -11,6 +11,7 @@
 - [Backup NG form] Improve feedback [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711)
 - [Backup NG] Different retentions for backup and replication [#2895](https://github.com/vatesfr/xen-orchestra/issues/2895)
 - Possibility to use a fast clone when creating a VM from a snapshot [#2937](https://github.com/vatesfr/xen-orchestra/issues/2937)
+- Ability to customize cloud config templates [#2984](https://github.com/vatesfr/xen-orchestra/issues/2984)
 
 ### Bugs
 

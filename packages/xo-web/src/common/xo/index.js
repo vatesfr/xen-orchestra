@@ -2393,6 +2393,39 @@ export const setIpPool = (ipPool, { name, addresses, networks }) =>
     networks: resolveIds(networks),
   })::tap(subscribeIpPools.forceRefresh)
 
+// Cloud configs --------------------------------------------------------------------
+
+export const subscribeCloudConfigs = createSubscription(() =>
+  _call('cloudConfig.getAll')
+)
+
+export const createCloudConfig = props =>
+  _call('cloudConfig.create', props)::tap(subscribeCloudConfigs.forceRefresh)
+
+export const deleteCloudConfigs = ids => {
+  const { length } = ids
+  if (length === 0) {
+    return
+  }
+
+  const vars = { nCloudConfigs: length }
+  return confirm({
+    title: _('confirmDeleteCloudConfigsTitle', vars),
+    body: <p>{_('confirmDeleteCloudConfigsBody', vars)}</p>,
+  }).then(
+    () =>
+      Promise.all(
+        ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) }))
+      )::tap(subscribeCloudConfigs.forceRefresh),
+    noop
+  )
+}
+
+export const editCloudConfig = (cloudConfig, props) =>
+  _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(
+    subscribeCloudConfigs.forceRefresh
+  )
+
 // XO SAN ----------------------------------------------------------------------
 
 export const getVolumeInfo = (xosanSr, infoType) =>

@@ -4,10 +4,11 @@ import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
+import { generateRandomId } from 'utils'
 import { injectState, provideState } from '@julien-f/freactal'
 import { isEqual } from 'lodash'
 
-import { FormFeedback, FormGroup, getRandomId, Number } from './utils'
+import { FormFeedback, FormGroup, Number } from './utils'
 
 export default [
   injectState,
@@ -27,7 +28,7 @@ export default [
       cron,
       exportRetention,
       copyRetention,
-      formId: getRandomId(),
+      formId: generateRandomId(),
       snapshotRetention,
       timezone,
     }),

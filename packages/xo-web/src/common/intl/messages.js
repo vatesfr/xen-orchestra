@@ -71,6 +71,7 @@ const messages = {
   settingsAclsPage: 'ACLs',
   settingsPluginsPage: 'Plugins',
   settingsLogsPage: 'Logs',
+  settingsCloudConfigsPage: 'Cloud configs',
   settingsIpsPage: 'IPs',
   settingsConfigPage: 'Config',
   aboutPage: 'About',
@@ -192,6 +193,8 @@ const messages = {
   formCancel: 'Cancel',
   formCreate: 'Create',
   formEdit: 'Edit',
+  formId: 'ID',
+  formName: 'Name',
   formReset: 'Reset',
   formSave: 'Save',
   add: 'Add',
@@ -229,6 +232,7 @@ const messages = {
   fillRequiredInformations: 'Fill required information.',
   fillOptionalInformations: 'Fill information (optional)',
   selectTableReset: 'Reset',
+  selectCloudConfigs: 'Select Cloud Config(s)…',
 
   // --- Dates/Scheduler ---
 
@@ -1141,7 +1145,7 @@ const messages = {
   newVmReset: 'Reset',
   newVmSelectTemplate: 'Select template',
   newVmSshKey: 'SSH key',
-  newVmConfigDrive: 'Config drive',
+  noConfigDrive: 'No config drive',
   newVmCustomConfig: 'Custom config',
   availableTemplateVarsInfo:
     'Click here to see the available template variables',
@@ -1763,6 +1767,16 @@ const messages = {
   settingsAclsButtonTooltippool: 'Pool',
   settingsAclsButtonTooltipSR: 'SR',
   settingsAclsButtonTooltipnetwork: 'Network',
+
+  // ----- Settings/Cloud configs -----
+  settingsCloudConfigTemplate: 'Template',
+  confirmDeleteCloudConfigsTitle:
+    'Delete cloud config{nCloudConfigs, plural, one {} other {s}}',
+  confirmDeleteCloudConfigsBody:
+    'Are you sure you want to delete {nCloudConfigs, number} cloud config{nCloudConfigs, plural, one {} other {s}}?',
+  deleteCloudConfig: 'Delete cloud config',
+  editCloudConfig: 'Edit cloud config',
+  deleteSelectedCloudConfigs: 'Delete selected cloud configs',
 
   // ----- Config -----
   noConfigFile: 'No config file selected',
