@@ -1088,7 +1088,7 @@ export const migrateVm = (vm, host) =>
         _('migrateVmNoTargetHostMessage')
       )
     }
-    _call('vm.migrate', { vm: vm.id, ...params })
+    return _call('vm.migrate', { vm: vm.id, ...params })
   }, noop)
 
 import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line import/first
@@ -1843,7 +1843,7 @@ export const purgePluginConfiguration = async id => {
   subscribePlugins.forceRefresh()
 }
 
-export const testPlugin = async (id, data) => _call('plugin.test', { id, data })
+export const testPlugin = (id, data) => _call('plugin.test', { id, data })
 
 export const sendUsageReport = () => _call('plugin.usageReport.send')
 

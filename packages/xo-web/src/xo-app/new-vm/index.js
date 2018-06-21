@@ -43,7 +43,6 @@ import {
   getCloudInitConfig,
   subscribeCurrentUser,
   subscribeIpPools,
-  subscribePermissions,
   subscribeResourceSets,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -235,7 +234,6 @@ class Vif extends BaseComponent {
 
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
-  permissions: subscribePermissions,
   user: subscribeCurrentUser,
 })
 @connectStore(() => ({

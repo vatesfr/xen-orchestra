@@ -16,7 +16,11 @@ export default class BooleanInput extends Component {
     return (
       <PrimitiveInputWrapper {...props}>
         <div className='checkbox form-control'>
-          <Toggle disabled={disabled} onChange={onChange} value={value} />
+          <Toggle
+            disabled={disabled}
+            onChange={onChange}
+            value={value || false}
+          />
         </div>
       </PrimitiveInputWrapper>
     )

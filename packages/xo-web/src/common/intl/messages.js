@@ -226,8 +226,8 @@ const messages = {
   selectIp: 'Select IP(s)…',
   selectIpPool: 'Select IP pool(s)…',
   selectVgpuType: 'Select VGPU type(s)…',
-  fillRequiredInformations: 'Fill required informations.',
-  fillOptionalInformations: 'Fill informations (optional)',
+  fillRequiredInformations: 'Fill required information.',
+  fillOptionalInformations: 'Fill information (optional)',
   selectTableReset: 'Reset',
 
   // --- Dates/Scheduler ---
@@ -815,10 +815,6 @@ const messages = {
   powerStateSuspended: 'suspended',
 
   // ----- VM home -----
-  vmStatus: 'No Xen tools detected',
-  vmName: 'No IPv4 record',
-  vmDescription: 'No IP record',
-  vmSettings: 'Started {ago}',
   vmCurrentStatus: 'Current status:',
   vmNotRunning: 'Not running',
   vmHaltedSince: 'Halted {ago}',
@@ -1237,7 +1233,7 @@ const messages = {
   noVmImportErrorDescription: 'No description available',
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
-  vmImportConfigAlert: 'Please to check and/or modify the VM configuration.',
+  vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
 
   // ---- Tasks ---
   noTasks: 'No pending tasks',
