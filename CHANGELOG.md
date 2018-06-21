@@ -12,6 +12,7 @@
 - [Backup NG] Different retentions for backup and replication [#2895](https://github.com/vatesfr/xen-orchestra/issues/2895)
 - Possibility to use a fast clone when creating a VM from a snapshot [#2937](https://github.com/vatesfr/xen-orchestra/issues/2937)
 - Ability to customize cloud config templates [#2984](https://github.com/vatesfr/xen-orchestra/issues/2984)
+- Add Backup deprecation message and link to Backup NG migration blog post [#3089](https://github.com/vatesfr/xen-orchestra/issues/3089)
 
 ### Bugs
 
