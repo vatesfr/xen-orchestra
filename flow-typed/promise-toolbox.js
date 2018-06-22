@@ -1,4 +1,7 @@
 declare module 'promise-toolbox' {
+  declare export class CancelToken {
+    static source(): { cancel: (message: any) => void, token: CancelToken };
+  }
   declare export function cancelable(Function): Function
   declare export function defer<T>(): {|
     promise: Promise<T>,

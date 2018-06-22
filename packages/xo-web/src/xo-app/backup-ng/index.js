@@ -13,6 +13,7 @@ import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
 import {
+  cancelJob,
   deleteBackupNgJobs,
   disableSchedule,
   enableSchedule,
@@ -68,15 +69,28 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
           />
         </td>
         <td>
-          <ActionButton
-            btnStyle='primary'
-            data-id={job.id}
-            data-name={job.name}
-            data-schedule={schedule.id}
-            handler={_runBackupNgJob}
-            icon='run-schedule'
-            size='small'
-          />
+          {job.runId !== undefined ? (
+            <ActionButton
+              btnStyle='danger'
+              handler={cancelJob}
+              handlerParam={job}
+              icon='cancel'
+              key='cancel'
+              size='small'
+              tooltip={_('formCancel')}
+            />
+          ) : (
+            <ActionButton
+              btnStyle='primary'
+              data-id={job.id}
+              data-name={job.name}
+              data-schedule={schedule.id}
+              handler={_runBackupNgJob}
+              icon='run-schedule'
+              key='run'
+              size='small'
+            />
+          )}
         </td>
       </tr>
     ))}

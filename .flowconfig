@@ -9,6 +9,7 @@
 
 [options]
 esproposal.decorators=ignore
+esproposal.optional_chaining=enable
 include_warnings=true
 module.use_strict=true
 

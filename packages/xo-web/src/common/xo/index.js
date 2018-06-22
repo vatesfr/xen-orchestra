@@ -1679,6 +1679,15 @@ export const runJob = job => {
   return _call('job.runSequence', { idSequence: [resolveId(job)] })
 }
 
+export const cancelJob = ({ id, name, runId }) =>
+  confirm({
+    title: _('cancelJob'),
+    body: _('cancelJobConfirm', {
+      id: id.slice(0, 5),
+      name: <strong>{name}</strong>,
+    }),
+  }).then(() => _call('job.cancel', { runId }))
+
 // Backup/Schedule ---------------------------------------------------------
 
 export const createSchedule = (
