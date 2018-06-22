@@ -225,7 +225,6 @@ export default [
             ) {
               return editSchedule({
                 id,
-                jobId: props.job.id,
                 cron: newSchedule.cron,
                 timezone: newSchedule.timezone,
               })
@@ -234,8 +233,8 @@ export default [
         )
 
         const settings = cloneDeep(state.settings)
-        await Promise.all([
-          ...map(state.schedules, async schedule => {
+        await Promise.all(
+          map(state.schedules, async schedule => {
             const tmpId = schedule.id
             if (props.schedules[tmpId] === undefined) {
               const { id } = await createSchedule(props.job.id, {
@@ -246,8 +245,8 @@ export default [
               settings[id] = settings[tmpId]
               delete settings[tmpId]
             }
-          }),
-        ])
+          })
+        )
 
         settings[''] = {
           ...props.job.settings[''],
