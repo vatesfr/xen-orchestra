@@ -26,6 +26,7 @@ import {
   isEmpty,
   keyBy,
   map,
+  mapValues,
   some,
 } from 'lodash'
 import {
@@ -52,13 +53,6 @@ const normalizeCopyRetention = settings => {
       schedule.copyRetention = schedule.exportRetention
     }
   })
-}
-
-const normalizeSchedules = schedules => {
-  forEach(schedules, schedule => {
-    delete schedule.id
-  })
-  return schedules
 }
 
 const normalizeSettings = ({
@@ -178,7 +172,10 @@ export default [
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          schedules: normalizeSchedules(cloneDeep(state.schedules)),
+          schedules: mapValues(
+            state.schedules,
+            ({ id, ...schedule }) => schedule
+          ),
           settings: {
             ...normalizeSettings({
               settings: cloneDeep(state.settings),
