@@ -7,9 +7,13 @@ import { debug } from './utils'
 
 export default class DensityPlan extends Plan {
   _checkRessourcesThresholds (objects, averages) {
+    const { low } = this._thresholds.memoryFree
     return filter(
       objects,
-      object => averages[object.id].memoryFree > this._thresholds.memoryFree.low
+      object => {
+        const { memory, memoryFree = memory } = averages[object.id]
+        return memoryFree > low
+      }
     )
   }
 
@@ -145,7 +149,9 @@ export default class DensityPlan extends Plan {
 
   // Test if a VM migration on a destination (of a destinations set) is possible.
   _testMigration ({ vm, destinations, hostsAverages, vmsAverages }) {
-    const { _thresholds: { critical: criticalThreshold } } = this
+    const {
+      _thresholds: { critical: criticalThreshold },
+    } = this
 
     // Sort the destinations by available memory. (- -> +)
     destinations.sort(

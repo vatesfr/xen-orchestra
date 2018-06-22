@@ -1,4 +1,4 @@
-import { filter, includes, map as mapToArray } from 'lodash'
+import { filter, includes, map as mapToArray, size } from 'lodash'
 
 import { EXECUTION_DELAY, debug } from './utils'
 
@@ -23,13 +23,18 @@ const numberOrDefault = (value, def) => (value >= 0 ? value : def)
 // Averages.
 // ===================================================================
 
-function computeAverage (values, nPoints = values.length) {
+function computeAverage (values, nPoints) {
+  if (values === undefined) {
+    return
+  }
+
   let sum = 0
   let tot = 0
 
   const { length } = values
+  const start = nPoints !== undefined ? length - nPoints : 0
 
-  for (let i = length - nPoints; i < length; i++) {
+  for (let i = start; i < length; i++) {
     const value = values[i]
 
     sum += value || 0
@@ -53,7 +58,7 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
       cpu: computeAverage(
         mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
       ),
-      nCpus: stats.cpus.length,
+      nCpus: size(stats.cpus),
       memoryFree: computeAverage(stats.memoryFree, nPoints),
       memory: computeAverage(stats.memory, nPoints),
     }
@@ -69,9 +74,13 @@ function computeRessourcesAverageWithWeight (averages1, averages2, ratio) {
     const objectAverages = (averages[id] = {})
 
     for (const averageName in averages1[id]) {
+      const average1 = averages1[id][averageName]
+      if (average1 === undefined) {
+        continue
+      }
+
       objectAverages[averageName] =
-        averages1[id][averageName] * ratio +
-        averages2[id][averageName] * (1 - ratio)
+        average1 * ratio + averages2[id][averageName] * (1 - ratio)
     }
   }
 
