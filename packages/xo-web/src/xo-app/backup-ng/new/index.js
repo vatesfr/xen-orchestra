@@ -55,13 +55,6 @@ const normalizeCopyRetention = settings => {
   })
 }
 
-const normaliseSchedules = schedules => {
-  forEach(schedules, schedule => {
-    delete schedule.id
-  })
-  return schedules
-}
-
 const normalizeSettings = ({
   settings,
   exportMode,
