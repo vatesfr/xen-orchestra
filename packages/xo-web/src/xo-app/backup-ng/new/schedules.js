@@ -69,9 +69,9 @@ export default [
           {
             itemRenderer: schedule => (
               <StateButton
-                disabledLabel={_('scheduleStateDisabled')}
+                disabledLabel={_('stateDisabled')}
                 disabledTooltip={_('logIndicationToEnable')}
-                enabledLabel={_('scheduleStateEnabled')}
+                enabledLabel={_('stateEnabled')}
                 enabledTooltip={_('logIndicationToDisable')}
                 handler={toggleScheduleState}
                 handlerParam={schedule.id}
@@ -79,7 +79,7 @@ export default [
               />
             ),
             sortCriteria: 'enabled',
-            name: _('scheduleState'),
+            name: _('state'),
           },
           {
             itemRenderer: _ => _.cron,

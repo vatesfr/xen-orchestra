@@ -58,10 +58,10 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
         <td>{job.settings[schedule.id].snapshotRetention}</td>
         <td>
           <StateButton
-            disabledLabel={_('jobStateDisabled')}
+            disabledLabel={_('stateDisabled')}
             disabledHandler={enableSchedule}
             disabledTooltip={_('logIndicationToEnable')}
-            enabledLabel={_('jobStateEnabled')}
+            enabledLabel={_('stateEnabled')}
             enabledHandler={disableSchedule}
             enabledTooltip={_('logIndicationToDisable')}
             handlerParam={schedule.id}

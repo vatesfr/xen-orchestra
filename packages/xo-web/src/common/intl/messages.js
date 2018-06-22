@@ -190,6 +190,11 @@ const messages = {
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
   sortedTableSelectAllItems: 'Click here to select all items',
 
+  // ----- state -----
+  state: 'State',
+  stateDisabled: 'Disabled',
+  stateEnabled: 'Enabled',
+
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
@@ -1258,9 +1263,6 @@ const messages = {
   scheduleCron: 'Cron pattern',
   scheduleName: 'Name',
   scheduleTimezone: 'Timezone',
-  scheduleState: 'State',
-  scheduleStateEnabled: 'Enabled',
-  scheduleStateDisabled: 'Disabled',
   scheduleExportRetention: 'Export ret.',
   scheduleCopyRetention: 'Copy ret.',
   scheduleSnapshotRetention: 'Snapshot ret.',
