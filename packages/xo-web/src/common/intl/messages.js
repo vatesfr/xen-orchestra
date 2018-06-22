@@ -71,6 +71,7 @@ const messages = {
   settingsAclsPage: 'ACLs',
   settingsPluginsPage: 'Plugins',
   settingsLogsPage: 'Logs',
+  settingsCloudConfigsPage: 'Cloud configs',
   settingsIpsPage: 'IPs',
   settingsConfigPage: 'Config',
   aboutPage: 'About',
@@ -84,8 +85,9 @@ const messages = {
   newImport: 'Import',
   xosan: 'XOSAN',
   backupDeprecatedMessage:
-    'Backup is deprecated, use Backup NG instead to create new backups.',
-  backupNgNewPage: 'New backup NG',
+    'Warning: Backup is deprecated, use Backup NG instead.',
+  backupMigrationLink: 'How to migrate to Backup NG',
+  backupNgNewPage: 'Create a new backup with Backup NG',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
@@ -192,6 +194,8 @@ const messages = {
   formCancel: 'Cancel',
   formCreate: 'Create',
   formEdit: 'Edit',
+  formId: 'ID',
+  formName: 'Name',
   formReset: 'Reset',
   formSave: 'Save',
   add: 'Add',
@@ -226,9 +230,10 @@ const messages = {
   selectIp: 'Select IP(s)…',
   selectIpPool: 'Select IP pool(s)…',
   selectVgpuType: 'Select VGPU type(s)…',
-  fillRequiredInformations: 'Fill required informations.',
-  fillOptionalInformations: 'Fill informations (optional)',
+  fillRequiredInformations: 'Fill required information.',
+  fillOptionalInformations: 'Fill information (optional)',
   selectTableReset: 'Reset',
+  selectCloudConfigs: 'Select Cloud Config(s)…',
 
   // --- Dates/Scheduler ---
 
@@ -817,10 +822,6 @@ const messages = {
   powerStateSuspended: 'suspended',
 
   // ----- VM home -----
-  vmStatus: 'No Xen tools detected',
-  vmName: 'No IPv4 record',
-  vmDescription: 'No IP record',
-  vmSettings: 'Started {ago}',
   vmCurrentStatus: 'Current status:',
   vmNotRunning: 'Not running',
   vmHaltedSince: 'Halted {ago}',
@@ -1147,7 +1148,7 @@ const messages = {
   newVmReset: 'Reset',
   newVmSelectTemplate: 'Select template',
   newVmSshKey: 'SSH key',
-  newVmConfigDrive: 'Config drive',
+  noConfigDrive: 'No config drive',
   newVmCustomConfig: 'Custom config',
   availableTemplateVarsInfo:
     'Click here to see the available template variables',
@@ -1239,7 +1240,7 @@ const messages = {
   noVmImportErrorDescription: 'No description available',
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
-  vmImportConfigAlert: 'Please to check and/or modify the VM configuration.',
+  vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
 
   // ---- Tasks ---
   noTasks: 'No pending tasks',
@@ -1769,6 +1770,16 @@ const messages = {
   settingsAclsButtonTooltippool: 'Pool',
   settingsAclsButtonTooltipSR: 'SR',
   settingsAclsButtonTooltipnetwork: 'Network',
+
+  // ----- Settings/Cloud configs -----
+  settingsCloudConfigTemplate: 'Template',
+  confirmDeleteCloudConfigsTitle:
+    'Delete cloud config{nCloudConfigs, plural, one {} other {s}}',
+  confirmDeleteCloudConfigsBody:
+    'Are you sure you want to delete {nCloudConfigs, number} cloud config{nCloudConfigs, plural, one {} other {s}}?',
+  deleteCloudConfig: 'Delete cloud config',
+  editCloudConfig: 'Edit cloud config',
+  deleteSelectedCloudConfigs: 'Delete selected cloud configs',
 
   // ----- Config -----
   noConfigFile: 'No config file selected',

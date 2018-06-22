@@ -198,7 +198,7 @@ const actionsShape = propTypes.arrayOf(
     disabled: propTypes.oneOfType([propTypes.bool, propTypes.func]),
     handler: propTypes.func.isRequired,
     icon: propTypes.string.isRequired,
-    label: propTypes.node.isRequired,
+    label: propTypes.oneOfType([propTypes.node, propTypes.func]).isRequired,
     level: propTypes.oneOf(['primary', 'warning', 'danger']),
     redirectOnSuccess: propTypes.oneOfType([propTypes.func, propTypes.string]),
   })

@@ -7,6 +7,7 @@ import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 
 import Acls from './acls'
+import CloudConfigs from './cloud-configs'
 import Config from './config'
 import Groups from './groups'
 import Ips from './ips'
@@ -50,6 +51,9 @@ const HEADER = (
           <NavLink to='/settings/ips'>
             <Icon icon='ip' /> {_('settingsIpsPage')}
           </NavLink>
+          <NavLink to='/settings/cloud-configs'>
+            <Icon icon='template' /> {_('settingsCloudConfigsPage')}
+          </NavLink>
           <NavLink to='/settings/config'>
             <Icon icon='menu-settings-config' /> {_('settingsConfigPage')}
           </NavLink>
@@ -61,6 +65,7 @@ const HEADER = (
 
 const Settings = routes('servers', {
   acls: Acls,
+  'cloud-configs': CloudConfigs,
   config: Config,
   groups: Groups,
   ips: Ips,

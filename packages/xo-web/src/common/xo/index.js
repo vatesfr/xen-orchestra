@@ -1088,7 +1088,7 @@ export const migrateVm = (vm, host) =>
         _('migrateVmNoTargetHostMessage')
       )
     }
-    _call('vm.migrate', { vm: vm.id, ...params })
+    return _call('vm.migrate', { vm: vm.id, ...params })
   }, noop)
 
 import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line import/first
@@ -1852,7 +1852,7 @@ export const purgePluginConfiguration = async id => {
   subscribePlugins.forceRefresh()
 }
 
-export const testPlugin = async (id, data) => _call('plugin.test', { id, data })
+export const testPlugin = (id, data) => _call('plugin.test', { id, data })
 
 export const sendUsageReport = () => _call('plugin.usageReport.send')
 
@@ -2401,6 +2401,39 @@ export const setIpPool = (ipPool, { name, addresses, networks }) =>
     addresses,
     networks: resolveIds(networks),
   })::tap(subscribeIpPools.forceRefresh)
+
+// Cloud configs --------------------------------------------------------------------
+
+export const subscribeCloudConfigs = createSubscription(() =>
+  _call('cloudConfig.getAll')
+)
+
+export const createCloudConfig = props =>
+  _call('cloudConfig.create', props)::tap(subscribeCloudConfigs.forceRefresh)
+
+export const deleteCloudConfigs = ids => {
+  const { length } = ids
+  if (length === 0) {
+    return
+  }
+
+  const vars = { nCloudConfigs: length }
+  return confirm({
+    title: _('confirmDeleteCloudConfigsTitle', vars),
+    body: <p>{_('confirmDeleteCloudConfigsBody', vars)}</p>,
+  }).then(
+    () =>
+      Promise.all(
+        ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) }))
+      )::tap(subscribeCloudConfigs.forceRefresh),
+    noop
+  )
+}
+
+export const editCloudConfig = (cloudConfig, props) =>
+  _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(
+    subscribeCloudConfigs.forceRefresh
+  )
 
 // XO SAN ----------------------------------------------------------------------
 

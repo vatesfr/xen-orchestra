@@ -94,6 +94,11 @@ const VgpuItem = connectStore(() => ({
 
 const xoItemToRender = {
   // Subscription objects.
+  cloudConfig: template => (
+    <span>
+      <Icon icon='template' /> {template.name}
+    </span>
+  ),
   group: group => (
     <span>
       <Icon icon='group' /> {group.name}

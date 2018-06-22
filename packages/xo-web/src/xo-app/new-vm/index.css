@@ -52,18 +52,7 @@
   justify-content: space-around;
 }
 
-.configDrive {
-  display: flex;
-  background-color: #eee;
-  padding: 1em;
-  margin-bottom: 0.5em;
-}
-
-.configDriveToggle {
-  margin: auto;
-}
-
-.refreshNames, .availableTemplateVars {
+.refreshNames {
   cursor: pointer;
 }
 

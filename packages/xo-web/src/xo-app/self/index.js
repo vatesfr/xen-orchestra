@@ -617,7 +617,7 @@ class ResourceSet extends Component {
             const available = ipPoolLimits && ipPoolLimits.available
             const total = ipPoolLimits && ipPoolLimits.total
             return (
-              <span className='mr-1'>
+              <span className='mr-1' key={pool}>
                 {renderXoItem({
                   name: resolvedIpPool && resolvedIpPool.name,
                   type: 'ipPool',
@@ -743,12 +743,12 @@ export default class Self extends Component {
               ? isEmpty(resourceSets)
                 ? _('noResourceSets')
                 : map(resourceSets, resourceSet => (
-                  <ResourceSet
-                    autoExpand={location.query.resourceSet === resourceSet.id}
-                    key={resourceSet.id}
-                    resourceSet={resourceSet}
-                  />
-                ))
+                    <ResourceSet
+                      autoExpand={location.query.resourceSet === resourceSet.id}
+                      key={resourceSet.id}
+                      resourceSet={resourceSet}
+                    />
+                  ))
               : _('loadingResourceSets')}
           </div>
         ) : (
