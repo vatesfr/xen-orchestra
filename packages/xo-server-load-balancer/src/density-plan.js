@@ -7,11 +7,13 @@ import { debug } from './utils'
 
 export default class DensityPlan extends Plan {
   _checkRessourcesThresholds (objects, averages) {
+    const { low } = this._thresholds.memoryFree
     return filter(
       objects,
-      object =>
-        (averages[object.id].memoryFree || averages[object.id].memory) >
-        this._thresholds.memoryFree.low
+      object => {
+        const { memory, memoryFree = memory } = averages[object.id]
+        return memoryFree > low
+      }
     )
   }
 
