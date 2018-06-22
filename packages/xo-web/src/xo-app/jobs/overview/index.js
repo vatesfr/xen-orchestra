@@ -76,17 +76,17 @@ const SCHEDULES_COLUMNS = [
   {
     itemRenderer: schedule => (
       <StateButton
-        disabledLabel={_('jobStateDisabled')}
+        disabledLabel={_('stateDisabled')}
         disabledHandler={enableSchedule}
         disabledTooltip={_('logIndicationToEnable')}
-        enabledLabel={_('jobStateEnabled')}
+        enabledLabel={_('stateEnabled')}
         enabledHandler={disableSchedule}
         enabledTooltip={_('logIndicationToDisable')}
         handlerParam={schedule.id}
         state={schedule.enabled}
       />
     ),
-    name: _('jobState'),
+    name: _('state'),
   },
 ]
 

@@ -190,6 +190,11 @@ const messages = {
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
   sortedTableSelectAllItems: 'Click here to select all items',
 
+  // ----- state -----
+  state: 'State',
+  stateDisabled: 'Disabled',
+  stateEnabled: 'Enabled',
+
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
@@ -288,9 +293,6 @@ const messages = {
   jobAction: 'Action',
   jobTag: 'Tag',
   jobScheduling: 'Scheduling',
-  jobState: 'State',
-  jobStateEnabled: 'Enabled',
-  jobStateDisabled: 'Disabled',
   jobTimezone: 'Timezone',
   jobServerTimezone: 'Server',
   runJob: 'Run job',

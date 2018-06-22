@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import StateButton from 'state-button'
 import { Card, CardBlock, CardHeader } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
 import { isEmpty, find, size } from 'lodash'
@@ -57,13 +58,28 @@ export default [
           snapshotRetention,
         }
       },
-      schedulesColumns: state => {
+      schedulesColumns: (state, { effects: { toggleScheduleState } }) => {
         const columns = [
           {
             itemRenderer: _ => _.name,
             sortCriteria: 'name',
             name: _('scheduleName'),
             default: true,
+          },
+          {
+            itemRenderer: schedule => (
+              <StateButton
+                disabledLabel={_('stateDisabled')}
+                disabledTooltip={_('logIndicationToEnable')}
+                enabledLabel={_('stateEnabled')}
+                enabledTooltip={_('logIndicationToDisable')}
+                handler={toggleScheduleState}
+                handlerParam={schedule.id}
+                state={schedule.enabled}
+              />
+            ),
+            sortCriteria: 'enabled',
+            name: _('state'),
           },
           {
             itemRenderer: _ => _.cron,

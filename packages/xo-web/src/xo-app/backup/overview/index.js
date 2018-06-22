@@ -75,13 +75,13 @@ const JOB_COLUMNS = [
     sortCriteria: ({ schedule }) => schedule.timezone,
   },
   {
-    name: _('jobState'),
+    name: _('state'),
     itemRenderer: ({ schedule }) => (
       <StateButton
-        disabledLabel={_('jobStateDisabled')}
+        disabledLabel={_('stateDisabled')}
         disabledHandler={enableSchedule}
         disabledTooltip={_('logIndicationToEnable')}
-        enabledLabel={_('jobStateEnabled')}
+        enabledLabel={_('stateEnabled')}
         enabledHandler={disableSchedule}
         enabledTooltip={_('logIndicationToDisable')}
         handlerParam={schedule.id}

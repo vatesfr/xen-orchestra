@@ -288,6 +288,16 @@ export default [
         ...state,
         [name]: checked,
       }),
+      toggleScheduleState: (_, id) => state => ({
+        ...state,
+        schedules: {
+          ...state.schedules,
+          [id]: {
+            ...state.schedules[id],
+            enabled: !state.schedules[id].enabled,
+          },
+        },
+      }),
       toggleSmartMode: (_, smartMode) => state => ({
         ...state,
         smartMode,
