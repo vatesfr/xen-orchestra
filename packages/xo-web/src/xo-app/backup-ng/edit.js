@@ -2,7 +2,7 @@ import addSubscriptions from 'add-subscriptions'
 import React from 'react'
 import { injectState, provideState } from '@julien-f/freactal'
 import { subscribeBackupNgJobs, subscribeSchedules } from 'xo'
-import { find, groupBy } from 'lodash'
+import { find, groupBy, keyBy } from 'lodash'
 
 import New from './new'
 
@@ -18,7 +18,7 @@ export default [
     computed: {
       job: (_, { jobs, routeParams: { id } }) => find(jobs, { id }),
       schedules: (_, { schedulesByJob, routeParams: { id } }) =>
-        schedulesByJob && schedulesByJob[id],
+        schedulesByJob && keyBy(schedulesByJob[id], 'id'),
     },
   }),
   injectState,

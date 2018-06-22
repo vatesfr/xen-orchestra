@@ -19,14 +19,14 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import { Toggle } from 'form'
 import {
-  find,
-  findKey,
+  cloneDeep,
   flatten,
   forEach,
   includes,
   isEmpty,
   keyBy,
   map,
+  mapValues,
   some,
 } from 'lodash'
 import {
@@ -45,9 +45,9 @@ import { FormFeedback, FormGroup, Input, Number, Ul, Li } from './utils'
 
 // ===================================================================
 
-const normaliseTagValues = values => resolveIds(values).map(value => [value])
+const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
-const normaliseCopyRentention = settings => {
+const normalizeCopyRetention = settings => {
   forEach(settings, schedule => {
     if (schedule.copyRetention === undefined) {
       schedule.copyRetention = schedule.exportRetention
@@ -55,7 +55,7 @@ const normaliseCopyRentention = settings => {
   })
 }
 
-const normaliseSettings = ({
+const normalizeSettings = ({
   settings,
   exportMode,
   copyMode,
@@ -101,35 +101,6 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
-const getNewSettings = ({ schedules, exportMode, copyMode, snapshotMode }) => {
-  const newSettings = {}
-
-  for (const id in schedules) {
-    newSettings[id] = {
-      exportRetention: exportMode ? schedules[id].exportRetention : undefined,
-      copyRetention: copyMode ? schedules[id].copyRetention : undefined,
-      snapshotRetention: snapshotMode
-        ? schedules[id].snapshotRetention
-        : undefined,
-    }
-  }
-
-  return newSettings
-}
-
-const getNewSchedules = schedules => {
-  const newSchedules = {}
-
-  for (const id in schedules) {
-    newSchedules[id] = {
-      cron: schedules[id].cron,
-      timezone: schedules[id].timezone,
-    }
-  }
-
-  return newSchedules
-}
-
 const REPORT_WHEN_FILTER_OPTIONS = [
   {
     label: 'reportWhenAlways',
@@ -158,13 +129,12 @@ const getInitialState = () => ({
   editionMode: undefined,
   formId: generateRandomId(),
   name: '',
-  newSchedules: {},
   offlineSnapshot: false,
   paramsUpdated: false,
   powerState: 'All',
   remotes: [],
   reportWhen: 'failure',
-  schedules: [],
+  schedules: {},
   settings: {},
   showErrors: false,
   smartMode: false,
@@ -202,10 +172,13 @@ export default [
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          schedules: getNewSchedules(state.newSchedules),
+          schedules: mapValues(
+            state.schedules,
+            ({ id, ...schedule }) => schedule
+          ),
           settings: {
-            ...getNewSettings({
-              schedules: state.newSchedules,
+            ...normalizeSettings({
+              settings: cloneDeep(state.settings),
               exportMode: state.exportMode,
               copyMode: state.copyMode,
               snapshotMode: state.snapshotMode,
@@ -237,75 +210,50 @@ export default [
           }
         }
 
-        const newSettings = {}
-        if (!isEmpty(state.newSchedules)) {
-          await Promise.all(
-            map(state.newSchedules, async schedule => {
-              const scheduleId = (await createSchedule(props.job.id, {
-                cron: schedule.cron,
-                timezone: schedule.timezone,
-              })).id
-              newSettings[scheduleId] = {
-                exportRetention: schedule.exportRetention,
-                copyRetention: schedule.copyRetention,
-                snapshotRetention: schedule.snapshotRetention,
-              }
-            })
-          )
-        }
-
         await Promise.all(
           map(props.schedules, oldSchedule => {
-            const scheduleId = oldSchedule.id
-            const newSchedule = find(state.schedules, { id: scheduleId })
-
-            if (
-              newSchedule !== undefined &&
-              newSchedule.cron === oldSchedule.cron &&
-              newSchedule.timezone === oldSchedule.timezone
-            ) {
-              return
-            }
+            const id = oldSchedule.id
+            const newSchedule = state.schedules[id]
 
             if (newSchedule === undefined) {
-              return deleteSchedule(scheduleId)
+              return deleteSchedule(id)
             }
 
-            return editSchedule({
-              id: scheduleId,
-              jobId: props.job.id,
-              cron: newSchedule.cron,
-              timezone: newSchedule.timezone,
-            })
+            if (
+              newSchedule.cron !== oldSchedule.cron ||
+              newSchedule.timezone !== oldSchedule.timezone
+            ) {
+              return editSchedule({
+                id,
+                jobId: props.job.id,
+                cron: newSchedule.cron,
+                timezone: newSchedule.timezone,
+              })
+            }
           })
         )
 
-        const oldSettings = props.job.settings
-        const settings = state.settings
-        if (!('' in oldSettings)) {
-          oldSettings[''] = {}
-        }
-        for (const id in oldSettings) {
-          const oldSetting = oldSettings[id]
-          const newSetting = settings[id]
+        const settings = cloneDeep(state.settings)
+        await Promise.all([
+          ...map(state.schedules, async schedule => {
+            const tmpId = schedule.id
+            if (props.schedules[tmpId] === undefined) {
+              const { id } = await createSchedule(props.job.id, {
+                cron: schedule.cron,
+                timezone: schedule.timezone,
+              })
 
-          if (id === '') {
-            oldSetting.reportWhen = state.reportWhen
-            oldSetting.concurrency = state.concurrency
-            oldSetting.offlineSnapshot = state.offlineSnapshot
-          } else if (!(id in settings)) {
-            delete oldSettings[id]
-          } else if (
-            oldSetting.snapshotRetention !== newSetting.snapshotRetention ||
-            oldSetting.exportRetention !== newSetting.exportRetention ||
-            oldSetting.copyRetention !== newSetting.copyRetention
-          ) {
-            newSettings[id] = {
-              exportRetention: newSetting.exportRetention,
-              copyRetention: newSetting.copyRetention,
-              snapshotRetention: newSetting.snapshotRetention,
+              settings[id] = settings[tmpId]
+              delete settings[tmpId]
             }
-          }
+          }),
+        ])
+
+        settings[''] = {
+          ...props.job.settings[''],
+          reportWhen: state.reportWhen,
+          concurrency: state.concurrency,
+          offlineSnapshot: state.offlineSnapshot,
         }
 
         await editBackupNgJob({
@@ -313,11 +261,8 @@ export default [
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          settings: normaliseSettings({
-            settings: {
-              ...oldSettings,
-              ...newSettings,
-            },
+          settings: normalizeSettings({
+            settings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
             snapshotMode: state.snapshotMode,
@@ -384,13 +329,13 @@ export default [
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
         const { concurrency, reportWhen, offlineSnapshot } =
           job.settings[''] || {}
-        const settings = { ...job.settings }
+        const settings = cloneDeep(job.settings)
         delete settings['']
         const drMode = job.mode === 'full' && !isEmpty(srs)
         const crMode = job.mode === 'delta' && !isEmpty(srs)
 
         if (drMode || crMode) {
-          normaliseCopyRentention(settings)
+          normalizeCopyRetention(settings)
         }
 
         return {
@@ -426,42 +371,24 @@ export default [
         tmpSchedule: {},
         editionMode: undefined,
       }),
-      editSchedule: (_, schedule) => state => {
-        const { snapshotRetention, exportRetention, copyRetention } =
-          state.settings[schedule.id] || {}
-        return {
-          ...state,
-          editionMode: 'editSchedule',
-          tmpSchedule: {
-            exportRetention,
-            copyRetention,
-            snapshotRetention,
-            ...schedule,
-          },
-        }
-      },
-      deleteSchedule: (_, id) => async (state, props) => {
-        const schedules = [...state.schedules]
-        schedules.splice(findKey(state.schedules, { id }), 1)
-
-        return {
-          ...state,
-          schedules,
-        }
-      },
-      editNewSchedule: (_, schedule) => state => ({
+      editSchedule: (_, schedule) => state => ({
         ...state,
-        editionMode: 'editNewSchedule',
+        editionMode: 'editSchedule',
         tmpSchedule: {
           ...schedule,
         },
       }),
-      deleteNewSchedule: (_, id) => async (state, props) => {
-        const newSchedules = { ...state.newSchedules }
-        delete newSchedules[id]
+      deleteSchedule: (_, schedule) => state => {
+        const id = resolveId(schedule)
+        const schedules = { ...state.schedules }
+        const settings = { ...state.settings }
+
+        delete schedules[id]
+        delete settings[id]
         return {
           ...state,
-          newSchedules,
+          schedules,
+          settings,
         }
       },
       saveSchedule: (
@@ -469,14 +396,21 @@ export default [
         { cron, timezone, exportRetention, copyRetention, snapshotRetention }
       ) => async (state, props) => {
         if (state.editionMode === 'creation') {
+          const id = generateRandomId()
           return {
             ...state,
             editionMode: undefined,
-            newSchedules: {
-              ...state.newSchedules,
-              [generateRandomId()]: {
+            schedules: {
+              ...state.schedules,
+              [id]: {
+                id,
                 cron,
                 timezone,
+              },
+            },
+            settings: {
+              ...state.settings,
+              [id]: {
                 exportRetention,
                 copyRetention,
                 snapshotRetention,
@@ -486,45 +420,27 @@ export default [
         }
 
         const id = state.tmpSchedule.id
-        if (state.editionMode === 'editSchedule') {
-          const scheduleKey = findKey(state.schedules, { id })
-          const schedules = [...state.schedules]
-          schedules[scheduleKey] = {
-            ...schedules[scheduleKey],
-            cron,
-            timezone,
-          }
+        const schedules = { ...state.schedules }
+        const settings = { ...state.settings }
 
-          const settings = { ...state.settings }
-          settings[id] = {
-            exportRetention,
-            copyRetention,
-            snapshotRetention,
-          }
-
-          return {
-            ...state,
-            editionMode: undefined,
-            schedules,
-            settings,
-            tmpSchedule: {},
-          }
+        schedules[id] = {
+          ...schedules[id],
+          cron,
+          timezone,
+        }
+        settings[id] = {
+          ...settings[id],
+          exportRetention,
+          copyRetention,
+          snapshotRetention,
         }
 
         return {
           ...state,
           editionMode: undefined,
+          schedules,
+          settings,
           tmpSchedule: {},
-          newSchedules: {
-            ...state.newSchedules,
-            [id]: {
-              cron,
-              timezone,
-              exportRetention,
-              copyRetention,
-              snapshotRetention,
-            },
-          },
         }
       },
       setPowerState: (_, powerState) => state => ({
@@ -628,7 +544,7 @@ export default [
       vmsSmartPattern: ({ $pool, powerState, tags }) => ({
         $pool: constructSmartPattern($pool, resolveIds),
         power_state: powerState === 'All' ? undefined : powerState,
-        tags: constructSmartPattern(tags, normaliseTagValues),
+        tags: constructSmartPattern(tags, normalizeTagValues),
         type: 'VM',
       }),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
