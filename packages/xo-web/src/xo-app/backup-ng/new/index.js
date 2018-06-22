@@ -44,9 +44,9 @@ import { FormFeedback, FormGroup, Input, Number, Ul, Li } from './utils'
 
 // ===================================================================
 
-const normaliseTagValues = values => resolveIds(values).map(value => [value])
+const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
-const normaliseCopyRetention = settings => {
+const normalizeCopyRetention = settings => {
   forEach(settings, schedule => {
     if (schedule.copyRetention === undefined) {
       schedule.copyRetention = schedule.exportRetention
@@ -54,14 +54,14 @@ const normaliseCopyRetention = settings => {
   })
 }
 
-const normaliseSchedules = schedules => {
+const normalizeSchedules = schedules => {
   forEach(schedules, schedule => {
     delete schedule.id
   })
   return schedules
 }
 
-const normaliseSettings = ({
+const normalizeSettings = ({
   settings,
   exportMode,
   copyMode,
@@ -178,9 +178,9 @@ export default [
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          schedules: normaliseSchedules(cloneDeep(state.schedules)),
+          schedules: normalizeSchedules(cloneDeep(state.schedules)),
           settings: {
-            ...normaliseSettings({
+            ...normalizeSettings({
               settings: cloneDeep(state.settings),
               exportMode: state.exportMode,
               copyMode: state.copyMode,
@@ -264,7 +264,7 @@ export default [
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          settings: normaliseSettings({
+          settings: normalizeSettings({
             settings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
@@ -338,7 +338,7 @@ export default [
         const crMode = job.mode === 'delta' && !isEmpty(srs)
 
         if (drMode || crMode) {
-          normaliseCopyRetention(settings)
+          normalizeCopyRetention(settings)
         }
 
         return {
@@ -547,7 +547,7 @@ export default [
       vmsSmartPattern: ({ $pool, powerState, tags }) => ({
         $pool: constructSmartPattern($pool, resolveIds),
         power_state: powerState === 'All' ? undefined : powerState,
-        tags: constructSmartPattern(tags, normaliseTagValues),
+        tags: constructSmartPattern(tags, normalizeTagValues),
         type: 'VM',
       }),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
