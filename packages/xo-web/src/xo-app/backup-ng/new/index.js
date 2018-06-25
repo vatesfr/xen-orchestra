@@ -118,8 +118,10 @@ const REPORT_WHEN_FILTER_OPTIONS = [
 
 const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
-const doesRetentionExist = (settings, retention) =>
-  some(settings, setting => setting[retention] > 0)
+const createDoesRetentionExist = name => {
+  const predicate = setting => setting[name] > 0
+  return ({ settings }) => some(settings, predicate)
+}
 
 const getInitialState = () => ({
   $pool: {},
@@ -535,12 +537,9 @@ export default [
         (state.exportRetentionExists || state.copyRetentionExists),
       exportMode: state => state.backupMode || state.deltaMode,
       copyMode: state => state.drMode || state.crMode,
-      exportRetentionExists: ({ settings }) =>
-        doesRetentionExist(settings, 'exportRetention'),
-      copyRetentionExists: ({ settings }) =>
-        doesRetentionExist(settings, 'copyRetention'),
-      snapshotRetentionExists: ({ settings }) =>
-        doesRetentionExist(settings, 'snapshotRetention'),
+      exportRetentionExists: createDoesRetentionExist('exportRetention'),
+      copyRetentionExists: createDoesRetentionExist('copyRetention'),
+      snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
       vmsSmartPattern: ({ $pool, powerState, tags }) => ({
