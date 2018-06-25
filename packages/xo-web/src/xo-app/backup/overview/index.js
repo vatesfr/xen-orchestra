@@ -239,7 +239,14 @@ export default class Overview extends Component {
           <CardBlock>
             <NoObjects
               collection={schedules}
-              emptyMessage={_('noScheduledJobs')}
+              emptyMessage={
+                <span>
+                  {_('noScheduledJobs')}{' '}
+                  <Link to='/backup-ng/health#legacy-snapshots'>
+                    {_('legacySnapshotsLink')}
+                  </Link>
+                </span>
+              }
             >
               {() => (
                 <div>

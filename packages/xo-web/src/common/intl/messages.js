@@ -351,6 +351,7 @@ const messages = {
   scheduleRun: 'Run schedule',
   deleteSelectedSchedules: 'Delete selected schedules',
   noScheduledJobs: 'No scheduled jobs.',
+  legacySnapshotsLink: 'You can delete all your legacy backup snapshots.',
   newSchedule: 'New schedule',
   noJobs: 'No jobs found.',
   noSchedules: 'No schedules found',
@@ -1111,6 +1112,7 @@ const messages = {
   vmSnapshotsRelatedToNonExistentBackups:
     'VM snapshots related to non-existent backups',
   snapshotOf: 'Snapshot of',
+  legacySnapshots: 'Legacy backups snapshots',
   alarmMessage: 'Alarms',
   noAlarms: 'No alarms',
   alarmDate: 'Date',

@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import Hash from 'hash'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
@@ -95,6 +96,15 @@ const ACTIONS = [
             : false
       )
     ),
+    legacySnapshots: getSnapshots.filter([
+      (() => {
+        const RE = /^(XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
+        const predicate = RE.test.bind(RE)
+        return (
+          { name_label } // eslint-disable-line camelcase
+        ) => predicate(name_label)
+      })(),
+    ]),
     vms: createGetObjectsOfType('VM'),
   }
 })
@@ -120,6 +130,28 @@ export default class Health extends Component {
                 />
               </CardBlock>
             </Card>
+          </Col>
+        </Row>
+        <Row className='legacy-snapshots'>
+          <Col>
+            <Hash hash='legacy-snapshots'>
+              <Card>
+                <CardHeader>
+                  <Icon icon='vm' /> {_('legacySnapshots')}
+                </CardHeader>
+                <CardBlock>
+                  <NoObjects
+                    actions={ACTIONS}
+                    collection={this.props.legacySnapshots}
+                    columns={SNAPSHOT_COLUMNS}
+                    component={SortedTable}
+                    data-vms={this.props.vms}
+                    emptyMessage={_('noSnapshots')}
+                    shortcutsTarget='.legacy-snapshots'
+                  />
+                </CardBlock>
+              </Card>
+            </Hash>
           </Col>
         </Row>
       </Container>
