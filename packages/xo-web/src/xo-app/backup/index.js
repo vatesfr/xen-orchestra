@@ -11,6 +11,7 @@ import Edit from './edit'
 import Overview from './overview'
 import Restore from './restore'
 import FileRestore from './file-restore'
+import Health from './health'
 
 const DeprecatedMsg = () => (
   <div className='alert alert-warning'>
@@ -43,6 +44,10 @@ const HEADER = (
             <Icon icon='menu-backup-file-restore' />{' '}
             {_('backupFileRestorePage')}
           </NavLink>
+          <NavLink to='/backup/health'>
+            <Icon icon='menu-dashboard-health' />{' '}
+            {_('overviewHealthDashboardPage')}
+          </NavLink>
         </NavTabs>
       </Col>
     </Row>
@@ -55,6 +60,7 @@ const Backup = routes('overview', {
   overview: Overview,
   restore: Restore,
   'file-restore': FileRestore,
+  health: Health,
 })(({ children }) => (
   <Page header={HEADER} title='backupPage' formatTitle>
     {children}
