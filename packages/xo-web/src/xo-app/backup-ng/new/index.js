@@ -118,6 +118,11 @@ const REPORT_WHEN_FILTER_OPTIONS = [
 
 const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
+const createDoesRetentionExist = name => {
+  const predicate = setting => setting[name] > 0
+  return ({ settings }) => some(settings, predicate)
+}
+
 const getInitialState = () => ({
   $pool: {},
   backupMode: false,
@@ -225,7 +230,6 @@ export default [
             ) {
               return editSchedule({
                 id,
-                jobId: props.job.id,
                 cron: newSchedule.cron,
                 timezone: newSchedule.timezone,
               })
@@ -234,8 +238,8 @@ export default [
         )
 
         const settings = cloneDeep(state.settings)
-        await Promise.all([
-          ...map(state.schedules, async schedule => {
+        await Promise.all(
+          map(state.schedules, async schedule => {
             const tmpId = schedule.id
             if (props.schedules[tmpId] === undefined) {
               const { id } = await createSchedule(props.job.id, {
@@ -246,8 +250,8 @@ export default [
               settings[id] = settings[tmpId]
               delete settings[tmpId]
             }
-          }),
-        ])
+          })
+        )
 
         settings[''] = {
           ...props.job.settings[''],
@@ -521,8 +525,7 @@ export default [
       missingRemotes: state =>
         (state.backupMode || state.deltaMode) && isEmpty(state.remotes),
       missingSrs: state => (state.drMode || state.crMode) && isEmpty(state.srs),
-      missingSchedules: state =>
-        isEmpty(state.schedules) && isEmpty(state.newSchedules),
+      missingSchedules: state => isEmpty(state.schedules),
       missingExportRetention: state =>
         state.exportMode && !state.exportRetentionExists,
       missingCopyRetention: state =>
@@ -534,21 +537,9 @@ export default [
         (state.exportRetentionExists || state.copyRetentionExists),
       exportMode: state => state.backupMode || state.deltaMode,
       copyMode: state => state.drMode || state.crMode,
-      exportRetentionExists: ({ newSchedules, settings }) =>
-        some(
-          { ...newSchedules, ...settings },
-          ({ exportRetention }) => exportRetention > 0
-        ),
-      copyRetentionExists: ({ newSchedules, settings }) =>
-        some(
-          { ...newSchedules, ...settings },
-          ({ copyRetention }) => copyRetention > 0
-        ),
-      snapshotRetentionExists: ({ newSchedules, settings }) =>
-        some(
-          { ...newSchedules, ...settings },
-          ({ snapshotRetention }) => snapshotRetention > 0
-        ),
+      exportRetentionExists: createDoesRetentionExist('exportRetention'),
+      copyRetentionExists: createDoesRetentionExist('copyRetention'),
+      snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
       vmsSmartPattern: ({ $pool, powerState, tags }) => ({
