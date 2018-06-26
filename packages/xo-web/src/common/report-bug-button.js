@@ -9,7 +9,9 @@ export const CAN_REPORT_BUG = process.env.XOA_PLAN > 1
 
 const reportBug = ({ title, message }) => {
   const encodedTitle = encodeURIComponent(title)
-  const encodedMessage = encodeURIComponent(message)
+  const encodedMessage = encodeURIComponent(
+    typeof message === 'function' ? message() : message
+  )
 
   window.open(
     process.env.XOA_PLAN < 5

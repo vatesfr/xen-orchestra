@@ -17,6 +17,13 @@ import { alert, confirm } from 'modal'
 import { createSelector } from 'selectors'
 import { subscribeApiLogs, subscribeUsers, deleteApiLog } from 'xo'
 
+const getReportMessage = data => () =>
+  `\`\`\`\n${data.method}\n${JSON.stringify(
+    data.params,
+    null,
+    2
+  )}\n${JSON.stringify(data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``
+
 const COLUMNS = [
   {
     name: _('logUser'),
@@ -82,14 +89,7 @@ const COLUMNS = [
           />
           {CAN_REPORT_BUG && (
             <ReportBugButton
-              message={`\`\`\`\n${log.data.method}\n${JSON.stringify(
-                log.data.params,
-                null,
-                2
-              )}\n${JSON.stringify(log.data.error, null, 2).replace(
-                /\\n/g,
-                '\n'
-              )}\n\`\`\``}
+              message={getReportMessage(log.data)}
               rowButton
               title={`Error on ${log.data.method}`}
             />
