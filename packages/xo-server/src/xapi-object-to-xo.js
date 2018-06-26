@@ -595,6 +595,7 @@ const TRANSFORMS = {
 
   task (obj) {
     return {
+      allowedOperations: obj.allowed_operations,
       created: toTimestamp(obj.created),
       current_operations: obj.current_operations,
       finished: toTimestamp(obj.finished),

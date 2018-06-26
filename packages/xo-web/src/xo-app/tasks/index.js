@@ -10,7 +10,7 @@ import { SelectPool } from 'select-objects'
 import { connectStore, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Container, Row } from 'grid'
-import { flatMap, flatten, isEmpty, keys, toArray } from 'lodash'
+import { flatMap, flatten, isEmpty, keys, some, toArray } from 'lodash'
 import {
   createGetObject,
   createGetObjectsOfType,
@@ -94,14 +94,19 @@ const COLUMNS = [
   },
 ]
 
+const isNotCancelable = task => !task.allowedOperations.includes('cancel')
+const isNotDestroyable = task => !task.allowedOperations.includes('destroy')
+
 const INDIVIDUAL_ACTIONS = [
   {
+    disabled: isNotCancelable,
     handler: cancelTask,
     icon: 'task-cancel',
     label: _('cancelTask'),
     level: 'danger',
   },
   {
+    disabled: isNotDestroyable,
     handler: destroyTask,
     icon: 'task-destroy',
     label: _('destroyTask'),
@@ -111,12 +116,14 @@ const INDIVIDUAL_ACTIONS = [
 
 const GROUPED_ACTIONS = [
   {
+    disabled: tasks => some(tasks, isNotCancelable),
     handler: cancelTasks,
     icon: 'task-cancel',
     label: _('cancelTasks'),
     level: 'danger',
   },
   {
+    disabled: tasks => some(tasks, isNotDestroyable),
     handler: destroyTasks,
     icon: 'task-destroy',
     label: _('destroyTasks'),
