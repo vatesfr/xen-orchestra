@@ -1,9 +1,14 @@
 import _, { FormattedDuration } from 'intl'
 import addSubscriptions from 'add-subscriptions'
+import Button from 'button'
+import ButtonGroup from 'button-group'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
 import React from 'react'
+import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { keyBy } from 'lodash'
@@ -108,7 +113,25 @@ const showTasks = (log, { jobs }) =>
       {get(() => jobs[log.jobId].name) || 'Job'} ({log.jobId.slice(4, 8)}){' '}
       <span style={{ fontSize: '0.5em' }} className='text-muted'>
         {log.id}
-      </span>
+      </span>{' '}
+      {CAN_REPORT_BUG &&
+        log.status !== 'success' &&
+        log.status !== 'pending' && (
+          <ButtonGroup>
+            <Tooltip content={_('copyToClipboard')}>
+              <CopyToClipboard text={JSON.stringify(log, null, 2)}>
+                <Button size='small'>
+                  <Icon icon='clipboard' />
+                </Button>
+              </CopyToClipboard>
+            </Tooltip>
+            <ReportBugButton
+              title='Backup job failed'
+              message={`\`\`\`json\n${JSON.stringify(log, null, 2)}\n\`\`\``}
+              size='small'
+            />
+          </ButtonGroup>
+        )}
     </span>,
     <LogAlertBody id={log.id} />
   )
