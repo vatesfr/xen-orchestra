@@ -21,6 +21,7 @@
 - Add legacy backups snapshots to backup/health [#3082](https://github.com/vatesfr/xen-orchestra/issues/3082) (PR [#3111](https://github.com/vatesfr/xen-orchestra/pull/3111))
 - [Backup NG logs] Add the job's name to the modal's title [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3115](https://github.com/vatesfr/xen-orchestra/pull/3115))
 - Adding a XCP-ng host to a XS pool now fails fast [#3061](https://github.com/vatesfr/xen-orchestra/issues/3061) (PR [#3118](https://github.com/vatesfr/xen-orchestra/pull/3118))
+- [Backup NG logs] Ability to report a failed job and to copy to clipboard its log (PR: [#3110](https://github.com/vatesfr/xen-orchestra/pull/3110)) [#3100](https://github.com/vatesfr/xen-orchestra/issues/3100)
 
 ### Bugs
 
