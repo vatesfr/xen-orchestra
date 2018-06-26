@@ -5,11 +5,11 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { Card, CardHeader, CardBlock } from 'card'
-import { connectStore } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { includes, map } from 'lodash'
-import { deleteSnapshot, deleteSnapshots } from 'xo'
+import { deleteSnapshot, deleteSnapshots, subscribeSchedules } from 'xo'
 import {
   createGetObject,
   createSelector,
@@ -67,6 +67,9 @@ const ACTIONS = [
   },
 ]
 
+@addSubscriptions({
+  schedules: subscribeSchedules,
+})
 @connectStore(() => {
   const getSnapshots = createGetObjectsOfType('VM-snapshot')
 
