@@ -1,8 +1,9 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
-import ActionButton from 'action-button'
-import propTypes from './prop-types-decorator'
 import React from 'react'
+
+import ActionButton from './action-button'
+import ActionRowButton from './action-row-button'
+import propTypes from './prop-types-decorator'
 
 export const CAN_REPORT_BUG = process.env.XOA_PLAN > 1
 
@@ -22,9 +23,9 @@ const ReportBugButton = ({ title, message, rowButton, ...props }) => {
   return (
     <Button
       {...props}
-      handler={reportBug}
-      data-title={title}
       data-message={message}
+      data-title={title}
+      handler={reportBug}
       icon='bug'
       tooltip={_('reportBug')}
     />
@@ -32,9 +33,9 @@ const ReportBugButton = ({ title, message, rowButton, ...props }) => {
 }
 
 propTypes(ReportBugButton)({
-  title: propTypes.string.isRequired,
   message: propTypes.string.isRequired,
   rowButton: propTypes.bool,
+  title: propTypes.string.isRequired,
 })
 
 export default ReportBugButton

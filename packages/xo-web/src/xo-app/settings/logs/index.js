@@ -82,8 +82,6 @@ const COLUMNS = [
           />
           {CAN_REPORT_BUG && (
             <ReportBugButton
-              rowButton
-              title={`Error on ${log.data.method}`}
               message={`\`\`\`\n${log.data.method}\n${JSON.stringify(
                 log.data.params,
                 null,
@@ -92,6 +90,8 @@ const COLUMNS = [
                 /\\n/g,
                 '\n'
               )}\n\`\`\``}
+              rowButton
+              title={`Error on ${log.data.method}`}
             />
           )}
         </ButtonGroup>

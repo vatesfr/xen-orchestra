@@ -107,34 +107,37 @@ const LOG_COLUMNS = [
   },
 ]
 
-const showTasks = (log, { jobs }) =>
+const showTasks = (log, { jobs }) => {
+  const formatedLog = JSON.stringify(log, null, 2)
   alert(
     <span>
       {get(() => jobs[log.jobId].name) || 'Job'} ({log.jobId.slice(4, 8)}){' '}
       <span style={{ fontSize: '0.5em' }} className='text-muted'>
         {log.id}
       </span>{' '}
-      {CAN_REPORT_BUG &&
-        log.status !== 'success' &&
+      {log.status !== 'success' &&
         log.status !== 'pending' && (
           <ButtonGroup>
             <Tooltip content={_('copyToClipboard')}>
-              <CopyToClipboard text={JSON.stringify(log, null, 2)}>
+              <CopyToClipboard text={formatedLog}>
                 <Button size='small'>
                   <Icon icon='clipboard' />
                 </Button>
               </CopyToClipboard>
             </Tooltip>
-            <ReportBugButton
-              title='Backup job failed'
-              message={`\`\`\`json\n${JSON.stringify(log, null, 2)}\n\`\`\``}
-              size='small'
-            />
+            {CAN_REPORT_BUG && (
+              <ReportBugButton
+                message={`\`\`\`json\n${formatedLog}\n\`\`\``}
+                size='small'
+                title='Backup job failed'
+              />
+            )}
           </ButtonGroup>
         )}
     </span>,
     <LogAlertBody id={log.id} />
   )
+}
 
 const LOG_INDIVIDUAL_ACTIONS = [
   {
