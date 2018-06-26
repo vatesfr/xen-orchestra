@@ -94,8 +94,8 @@ const COLUMNS = [
   },
 ]
 
-const isNotCancelable = task => task.allowedOperations.includes('cancel')
-const isNotDestroyable = task => task.allowedOperations.includes('destroy')
+const isNotCancelable = task => !task.allowedOperations.includes('cancel')
+const isNotDestroyable = task => !task.allowedOperations.includes('destroy')
 
 const INDIVIDUAL_ACTIONS = [
   {
