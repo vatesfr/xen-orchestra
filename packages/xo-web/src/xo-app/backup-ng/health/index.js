@@ -53,7 +53,10 @@ const SNAPSHOT_COLUMNS = [
       const vm = vms[snapshot.$snapshot_of]
       return vm && <Link to={`/vms/${vm.id}`}>{renderXoItem(vm)}</Link>
     },
-    sortCriteria: 'name_label',
+    sortCriteria: (snapshot, { vms }) => {
+      const vm = vms[snapshot.$snapshot_of]
+      return vm && vm.name_label
+    },
   },
 ]
 
@@ -89,7 +92,7 @@ const ACTIONS = [
                   scheduleId !== undefined && !includes(scheduleIds, scheduleId)
                 )
               }
-            : () => false
+            : false
       )
     ),
     vms: createGetObjectsOfType('VM'),
