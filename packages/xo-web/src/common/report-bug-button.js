@@ -31,12 +31,9 @@ const ReportBugButton = ({ title, message, rowButton, ...props }) => {
   )
 }
 
-const commonPropType = propTypes.oneOfType([propTypes.string, propTypes.node])
-  .isRequired
-
 propTypes(ReportBugButton)({
-  title: commonPropType,
-  message: commonPropType,
+  title: propTypes.string.isRequired,
+  message: propTypes.string.isRequired,
   rowButton: propTypes.bool,
 })
 
