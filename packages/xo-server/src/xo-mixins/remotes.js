@@ -23,7 +23,6 @@ export default class {
           Promise.all(mapToArray(remotes, remote => this._remotes.save(remote)))
       )
 
-      await this.initRemotes()
       await this.syncAllRemotes()
     })
     xo.on('stop', () => this.forgetAllRemotes())
@@ -109,17 +108,6 @@ export default class {
       try {
         ;(await this.getRemoteHandler(remote, true)).forget()
       } catch (_) {}
-    }
-  }
-
-  // TODO: Should it be private?
-  async initRemotes () {
-    const remotes = await this.getAllRemotes()
-    if (!remotes || !remotes.length) {
-      await this.createRemote({
-        name: 'default',
-        url: 'file://var/lib/xoa-backups',
-      })
     }
   }
 }
