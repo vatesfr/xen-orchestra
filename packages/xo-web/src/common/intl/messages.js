@@ -1110,6 +1110,7 @@ const messages = {
   vmContainer: 'Resident on',
   vmSnapshotsRelatedToNonExistentBackups:
     'VM snapshots related to non-existent backups',
+  snapshotOf: 'Snapshot of',
   alarmMessage: 'Alarms',
   noAlarms: 'No alarms',
   alarmDate: 'Date',

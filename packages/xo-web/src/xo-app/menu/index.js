@@ -205,11 +205,6 @@ export default class Menu extends Component {
             icon: 'menu-backup-file-restore',
             label: 'backupFileRestorePage',
           },
-          {
-            to: '/backup/health',
-            icon: 'menu-dashboard-health',
-            label: 'overviewHealthDashboardPage',
-          },
         ],
       },
       isAdmin && {
@@ -236,6 +231,11 @@ export default class Menu extends Component {
             to: '/backup-ng/file-restore',
             icon: 'menu-backup-file-restore',
             label: 'backupFileRestorePage',
+          },
+          {
+            to: '/backup-ng/health',
+            icon: 'menu-dashboard-health',
+            label: 'overviewHealthDashboardPage',
           },
         ],
       },

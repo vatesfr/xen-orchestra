@@ -29,6 +29,7 @@ import Edit from './edit'
 import New from './new'
 import FileRestore from './file-restore'
 import Restore from './restore'
+import Health from './health'
 
 const _runBackupNgJob = ({ id, name, schedule }) =>
   confirm({
@@ -213,6 +214,10 @@ const HEADER = (
             <Icon icon='menu-backup-file-restore' />{' '}
             {_('backupFileRestorePage')}
           </NavLink>
+          <NavLink to='/backup-ng/health'>
+            <Icon icon='menu-dashboard-health' />{' '}
+            {_('overviewHealthDashboardPage')}
+          </NavLink>
         </NavTabs>
       </Col>
     </Row>
@@ -225,6 +230,7 @@ export default routes('overview', {
   overview: Overview,
   restore: Restore,
   'file-restore': FileRestore,
+  health: Health,
 })(({ children }) => (
   <Page header={HEADER} title='backupPage' formatTitle>
     {children}

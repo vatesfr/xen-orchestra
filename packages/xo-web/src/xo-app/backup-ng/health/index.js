@@ -1,8 +1,10 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Icon from 'icon'
+import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { Card, CardHeader, CardBlock } from 'card'
 import { addSubscriptions, connectStore } from 'utils'
@@ -11,48 +13,47 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { includes, map } from 'lodash'
 import { deleteSnapshot, deleteSnapshots, subscribeSchedules } from 'xo'
 import {
-  createGetObject,
   createSelector,
   createGetObjectsOfType,
   createCollectionWrapper,
 } from 'selectors'
 
-const VmColContainer = connectStore(() => ({
-  container: createGetObject(),
-}))(({ container }) => <span>{container.name_label}</span>)
-
 const SNAPSHOT_COLUMNS = [
   {
     name: _('snapshotDate'),
-    itemRenderer: vm => (
+    itemRenderer: snapshot => (
       <span>
         <FormattedTime
           day='numeric'
           hour='numeric'
           minute='numeric'
           month='long'
-          value={vm.snapshot_time * 1000}
+          value={snapshot.snapshot_time * 1000}
           year='numeric'
         />{' '}
-        (<FormattedRelative value={vm.snapshot_time * 1000} />)
+        (<FormattedRelative value={snapshot.snapshot_time * 1000} />)
       </span>
     ),
-    sortCriteria: vm => vm.snapshot_time,
+    sortCriteria: 'snapshot_time',
     sortOrder: 'desc',
   },
   {
     name: _('vmNameLabel'),
-    itemRenderer: vm => vm.name_label,
-    sortCriteria: vm => vm.name_label,
+    itemRenderer: renderXoItem,
+    sortCriteria: 'name_label',
   },
   {
     name: _('vmNameDescription'),
-    itemRenderer: vm => vm.name_description,
-    sortCriteria: vm => vm.name_description,
+    itemRenderer: snapshot => snapshot.name_description,
+    sortCriteria: 'name_description',
   },
   {
-    name: _('vmContainer'),
-    itemRenderer: vm => <VmColContainer id={vm.$container} />,
+    name: _('snapshotOf'),
+    itemRenderer: (snapshot, { vms }) => {
+      const vm = vms[snapshot.$snapshot_of]
+      return vm && <Link to={`/vms/${vm.id}`}>{renderXoItem(vm)}</Link>
+    },
+    sortCriteria: 'name_label',
   },
 ]
 
@@ -76,13 +77,22 @@ const ACTIONS = [
   return {
     loneSnapshots: getSnapshots.filter(
       createSelector(
-        createCollectionWrapper((_, props) => map(props.schedules, 'id')),
-        scheduleIds => _ => {
-          const scheduleId = _.other['xo:backup:schedule']
-          return scheduleId !== undefined && !includes(scheduleIds, scheduleId)
-        }
+        createCollectionWrapper(
+          (_, props) =>
+            props.schedules !== undefined && map(props.schedules, 'id')
+        ),
+        scheduleIds =>
+          scheduleIds
+            ? _ => {
+                const scheduleId = _.other['xo:backup:schedule']
+                return (
+                  scheduleId !== undefined && !includes(scheduleIds, scheduleId)
+                )
+              }
+            : () => false
       )
     ),
+    vms: createGetObjectsOfType('VM'),
   }
 })
 export default class Health extends Component {
@@ -101,6 +111,7 @@ export default class Health extends Component {
                   collection={this.props.loneSnapshots}
                   columns={SNAPSHOT_COLUMNS}
                   component={SortedTable}
+                  data-vms={this.props.vms}
                   emptyMessage={_('noSnapshots')}
                   shortcutsTarget='.lone-snapshots'
                 />
