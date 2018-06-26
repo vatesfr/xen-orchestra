@@ -595,8 +595,10 @@ const TRANSFORMS = {
 
   task (obj) {
     return {
+      cancellable: obj.allowed_operations.includes('cancel'),
       created: toTimestamp(obj.created),
       current_operations: obj.current_operations,
+      destroyable: obj.allowed_operations.includes('destroy'),
       finished: toTimestamp(obj.finished),
       name_description: obj.name_description,
       name_label: obj.name_label,
