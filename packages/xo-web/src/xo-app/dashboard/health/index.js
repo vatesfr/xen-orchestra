@@ -17,13 +17,7 @@ import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
-import {
-  addSubscriptions,
-  connectStore,
-  formatSize,
-  noop,
-  resolveIds,
-} from 'utils'
+import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
   deleteOrphanedVdis,
@@ -32,7 +26,6 @@ import {
   deleteVdi,
   deleteVm,
   isSrWritable,
-  subscribeSchedules,
 } from 'xo'
 import {
   areObjectsFetched,
@@ -390,9 +383,6 @@ const ALARM_COLUMNS = [
   },
 ]
 
-@addSubscriptions({
-  schedules: subscribeSchedules,
-})
 @connectStore(() => {
   const getOrphanVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
     .filter([_ => !_.$snapshot_of && _.$VBDs.length === 0])
