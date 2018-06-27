@@ -1,6 +1,5 @@
 import _ from 'intl'
 import Component from 'base-component'
-import Hash from 'hash'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
@@ -134,24 +133,22 @@ export default class Health extends Component {
         </Row>
         <Row className='legacy-snapshots'>
           <Col>
-            <Hash hash='legacy-snapshots'>
-              <Card>
-                <CardHeader>
-                  <Icon icon='vm' /> {_('legacySnapshots')}
-                </CardHeader>
-                <CardBlock>
-                  <NoObjects
-                    actions={ACTIONS}
-                    collection={this.props.legacySnapshots}
-                    columns={SNAPSHOT_COLUMNS}
-                    component={SortedTable}
-                    data-vms={this.props.vms}
-                    emptyMessage={_('noSnapshots')}
-                    shortcutsTarget='.legacy-snapshots'
-                  />
-                </CardBlock>
-              </Card>
-            </Hash>
+            <Card>
+              <CardHeader>
+                <Icon icon='vm' /> {_('legacySnapshots')}
+              </CardHeader>
+              <CardBlock>
+                <NoObjects
+                  actions={ACTIONS}
+                  collection={this.props.legacySnapshots}
+                  columns={SNAPSHOT_COLUMNS}
+                  component={SortedTable}
+                  data-vms={this.props.vms}
+                  emptyMessage={_('noSnapshots')}
+                  shortcutsTarget='.legacy-snapshots'
+                />
+              </CardBlock>
+            </Card>
           </Col>
         </Row>
       </Container>

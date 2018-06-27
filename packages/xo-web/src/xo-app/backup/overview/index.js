@@ -242,9 +242,7 @@ export default class Overview extends Component {
               emptyMessage={
                 <span>
                   {_('noScheduledJobs')}{' '}
-                  <Link to='/backup-ng/health#legacy-snapshots'>
-                    {_('legacySnapshotsLink')}
-                  </Link>
+                  <Link to='/backup-ng/health'>{_('legacySnapshotsLink')}</Link>
                 </span>
               }
             >
