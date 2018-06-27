@@ -216,26 +216,26 @@ const INDIVIDUAL_ACTIONS = [
         answer =>
           answer.success
             ? alert(
-              <span>
-                <Icon icon='success' />{' '}
-                {_('remoteTestSuccess', { name: remote.name })}
-              </span>,
-              _('remoteTestSuccessMessage')
-            )
+                <span>
+                  <Icon icon='success' />{' '}
+                  {_('remoteTestSuccess', { name: remote.name })}
+                </span>,
+                _('remoteTestSuccessMessage')
+              )
             : alert(
-              <span>
-                <Icon icon='error' />{' '}
-                {_('remoteTestFailure', { name: remote.name })}
-              </span>,
-              <p>
-                <dl className='dl-horizontal'>
-                  <dt>{_('remoteTestError')}</dt>
-                  <dd>{answer.error}</dd>
-                  <dt>{_('remoteTestStep')}</dt>
-                  <dd>{answer.step}</dd>
-                </dl>
-              </p>
-            )
+                <span>
+                  <Icon icon='error' />{' '}
+                  {_('remoteTestFailure', { name: remote.name })}
+                </span>,
+                <p>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('remoteTestError')}</dt>
+                    <dd>{answer.error}</dd>
+                    <dt>{_('remoteTestStep')}</dt>
+                    <dd>{answer.step}</dd>
+                  </dl>
+                </p>
+              )
       ),
     icon: 'diagnosis',
     label: _('remoteTestTip'),
@@ -272,7 +272,7 @@ export default class Remotes extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      type: 'file',
+      type: 'nfs',
     }
   }
 
@@ -283,11 +283,11 @@ export default class Remotes extends Component {
       some(values, ['name', this.refs.name.value])
     )
       ? alert(
-        <span>
-          <Icon icon='error' /> {_('remoteTestName')}
-        </span>,
-        <p>{_('remoteTestNameFailure')}</p>
-      )
+          <span>
+            <Icon icon='error' /> {_('remoteTestName')}
+          </span>,
+          <p>{_('remoteTestNameFailure')}</p>
+        )
       : this._createRemote()
 
   _createRemote = async () => {
@@ -306,7 +306,7 @@ export default class Remotes extends Component {
     const url = format(urlParams)
     return createRemote(name && name.value, url).then(
       () => {
-        this.setState({ type: 'file' })
+        this.setState({ type: 'nfs' })
         path && (path.value = '')
         username && (username.value = '')
         password && (password.value = '')
