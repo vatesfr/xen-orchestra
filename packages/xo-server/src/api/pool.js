@@ -146,8 +146,18 @@ export { uploadPatch as patch }
 
 export async function mergeInto ({ source, target, force }) {
   const sourceHost = this.getObject(source.master)
+  const targetHost = this.getObject(target.master)
+
+  if (sourceHost.productBrand !== targetHost.productBrand) {
+    throw new Error(
+      `a ${sourceHost.productBrand} pool cannot be merged into a ${
+        targetHost.productBrand
+      } pool`
+    )
+  }
+
   const sourcePatches = sourceHost.patches
-  const targetPatches = this.getObject(target.master).patches
+  const targetPatches = targetHost.patches
   const counterDiff = differenceBy(sourcePatches, targetPatches, 'name')
 
   if (counterDiff.length > 0) {
