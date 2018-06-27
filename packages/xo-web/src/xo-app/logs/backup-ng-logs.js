@@ -102,10 +102,10 @@ const LOG_COLUMNS = [
   },
 ]
 
-const showTasks = log =>
+const showTasks = (log, { jobs }) =>
   alert(
     <span>
-      {_('jobModalTitle', { job: log.jobId.slice(4, 8) })}{' '}
+      {get(() => jobs[log.jobId].name) || 'Job'} ({log.jobId.slice(4, 8)}){' '}
       <span style={{ fontSize: '0.5em' }} className='text-muted'>
         {log.id}
       </span>
