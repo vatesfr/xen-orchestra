@@ -7,10 +7,10 @@ import propTypes from './prop-types-decorator'
 
 export const CAN_REPORT_BUG = process.env.XOA_PLAN > 1
 
-const reportBug = ({ title, message }) => {
+const reportBug = ({ formatMessage, message, title }) => {
   const encodedTitle = encodeURIComponent(title)
   const encodedMessage = encodeURIComponent(
-    typeof message === 'function' ? message() : message
+    formatMessage !== undefined ? formatMessage(message) : message
   )
 
   window.open(
@@ -20,11 +20,18 @@ const reportBug = ({ title, message }) => {
   )
 }
 
-const ReportBugButton = ({ title, message, rowButton, ...props }) => {
+const ReportBugButton = ({
+  formatMessage,
+  message,
+  rowButton,
+  title,
+  ...props
+}) => {
   const Button = rowButton ? ActionRowButton : ActionButton
   return (
     <Button
       {...props}
+      data-formatMessage={formatMessage}
       data-message={message}
       data-title={title}
       handler={reportBug}
@@ -35,6 +42,7 @@ const ReportBugButton = ({ title, message, rowButton, ...props }) => {
 }
 
 propTypes(ReportBugButton)({
+  formatMessage: propTypes.func,
   message: propTypes.string.isRequired,
   rowButton: propTypes.bool,
   title: propTypes.string.isRequired,
