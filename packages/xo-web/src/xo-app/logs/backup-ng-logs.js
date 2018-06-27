@@ -47,6 +47,11 @@ const LOG_COLUMNS = [
     sortCriteria: log => log.jobId,
   },
   {
+    name: _('jobMode'),
+    itemRenderer: log => get(() => log.data.mode),
+    sortCriteria: log => get(() => log.data.mode),
+  },
+  {
     name: _('jobName'),
     itemRenderer: (log, { jobs }) => get(() => jobs[log.jobId].name),
     sortCriteria: (log, { jobs }) => get(() => jobs[log.jobId].name),
