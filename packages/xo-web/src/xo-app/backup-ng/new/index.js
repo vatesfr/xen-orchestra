@@ -1,23 +1,24 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import defined, { get } from 'xo-defined'
 import Icon from 'icon'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import {
-  addSubscriptions,
-  generateRandomId,
-  resolveId,
-  resolveIds,
-} from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from '@julien-f/freactal'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import { Toggle } from 'form'
+import {
+  addSubscriptions,
+  generateRandomId,
+  resolveId,
+  resolveIds,
+} from 'utils'
 import {
   cloneDeep,
   flatten,
@@ -47,20 +48,10 @@ import { FormFeedback, FormGroup, Input, Number, Ul, Li } from './utils'
 
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
-const normalizeCopyRetention = settings => {
-  forEach(settings, schedule => {
-    if (schedule.copyRetention === undefined) {
-      schedule.copyRetention = schedule.exportRetention
-    }
-  })
-}
-
-const normalizeSettings = ({
+const normalizeSettings = (
   settings,
-  exportMode,
-  copyMode,
-  snapshotMode,
-}) => {
+  { copyMode, exportMode, snapshotMode }
+) => {
   forEach(settings, setting => {
     if (!exportMode) {
       setting.exportRetention = undefined
@@ -68,6 +59,8 @@ const normalizeSettings = ({
 
     if (!copyMode) {
       setting.copyRetention = undefined
+    } else if (setting.copyRetention === undefined) {
+      setting.copyRetention = setting.exportRetention
     }
 
     if (!snapshotMode) {
@@ -120,27 +113,50 @@ const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
 const createDoesRetentionExist = name => {
   const predicate = setting => setting[name] > 0
-  return ({ settings }) => some(settings, predicate)
+  return ({ computedSettings }) => some(computedSettings, predicate)
+}
+
+const createGetValue = (name, fn) => (state, props) =>
+  defined(
+    state[name],
+    fn !== undefined ? get(fn, props) : props[name],
+    DEFAULT_VALUES[name]
+  )
+
+const createGetGlobalSettingsValue = name =>
+  createGetValue(name, ({ job }) => job.settings[''][name])
+
+const DEFAULT_VALUES = {
+  // Schedules
+  schedules: {},
+  settings: {},
+  // Advanced settings
+  concurrency: 0,
+  offlineSnapshot: false,
+  reportWhen: 'failure',
+}
+
+const initValues = () => {
+  const values = {}
+  for (const name in DEFAULT_VALUES) {
+    values[name] = undefined
+  }
+  return values
 }
 
 const getInitialState = () => ({
   $pool: {},
   backupMode: false,
   compression: true,
-  concurrency: 0,
   crMode: false,
   deltaMode: false,
   drMode: false,
   editionMode: undefined,
   formId: generateRandomId(),
   name: '',
-  offlineSnapshot: false,
   paramsUpdated: false,
   powerState: 'All',
   remotes: [],
-  reportWhen: 'failure',
-  schedules: {},
-  settings: {},
   showErrors: false,
   smartMode: false,
   snapshotMode: false,
@@ -148,6 +164,7 @@ const getInitialState = () => ({
   tags: {},
   tmpSchedule: {},
   vms: [],
+  ...initValues(),
 })
 
 export default [
@@ -178,20 +195,19 @@ export default [
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
           schedules: mapValues(
-            state.schedules,
+            state.computedSchedules,
             ({ id, ...schedule }) => schedule
           ),
           settings: {
-            ...normalizeSettings({
-              settings: cloneDeep(state.settings),
+            ...normalizeSettings(cloneDeep(state.computedSettings), {
               exportMode: state.exportMode,
               copyMode: state.copyMode,
               snapshotMode: state.snapshotMode,
             }),
             '': {
-              reportWhen: state.reportWhen,
-              concurrency: state.concurrency,
-              offlineSnapshot: state.offlineSnapshot,
+              concurrency: state.computedConcurrency,
+              offlineSnapshot: state.computedOfflineSnapshot,
+              reportWhen: state.computedReportWhen,
             },
           },
           remotes:
@@ -218,7 +234,7 @@ export default [
         await Promise.all(
           map(props.schedules, oldSchedule => {
             const id = oldSchedule.id
-            const newSchedule = state.schedules[id]
+            const newSchedule = state.computedSchedules[id]
 
             if (newSchedule === undefined) {
               return deleteSchedule(id)
@@ -237,14 +253,14 @@ export default [
           })
         )
 
-        const settings = cloneDeep(state.settings)
+        const settings = cloneDeep(state.computedSettings)
         await Promise.all(
-          map(state.schedules, async schedule => {
-            const tmpId = schedule.id
+          map(state.computedSchedules, async newSchedule => {
+            const tmpId = newSchedule.id
             if (props.schedules[tmpId] === undefined) {
               const { id } = await createSchedule(props.job.id, {
-                cron: schedule.cron,
-                timezone: schedule.timezone,
+                cron: newSchedule.cron,
+                timezone: newSchedule.timezone,
               })
 
               settings[id] = settings[tmpId]
@@ -253,24 +269,23 @@ export default [
           })
         )
 
-        settings[''] = {
-          ...props.job.settings[''],
-          reportWhen: state.reportWhen,
-          concurrency: state.concurrency,
-          offlineSnapshot: state.offlineSnapshot,
-        }
-
         await editBackupNgJob({
           id: props.job.id,
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
-          settings: normalizeSettings({
-            settings,
-            exportMode: state.exportMode,
-            copyMode: state.copyMode,
-            snapshotMode: state.snapshotMode,
-          }),
+          settings: {
+            ...normalizeSettings(settings, {
+              exportMode: state.exportMode,
+              copyMode: state.copyMode,
+              snapshotMode: state.snapshotMode,
+            }),
+            '': {
+              concurrency: state.computedConcurrency,
+              offlineSnapshot: state.computedOfflineSnapshot,
+              reportWhen: state.computedReportWhen,
+            },
+          },
           remotes:
             state.deltaMode || state.backupMode
               ? constructPattern(state.remotes)
@@ -337,20 +352,12 @@ export default [
         }
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
-      updateParams: () => (state, { job, schedules }) => {
+      updateParams: () => (state, { job }) => {
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
-        const { concurrency, reportWhen, offlineSnapshot } =
-          job.settings[''] || {}
-        const settings = cloneDeep(job.settings)
-        delete settings['']
         const drMode = job.mode === 'full' && !isEmpty(srs)
         const crMode = job.mode === 'delta' && !isEmpty(srs)
-
-        if (drMode || crMode) {
-          normalizeCopyRetention(settings)
-        }
 
         return {
           ...state,
@@ -368,11 +375,6 @@ export default [
           crMode,
           remotes,
           srs,
-          reportWhen: reportWhen || 'failure',
-          concurrency: concurrency || 0,
-          offlineSnapshot,
-          settings,
-          schedules,
           ...destructVmsPattern(job.vms),
         }
       },
@@ -394,8 +396,8 @@ export default [
       }),
       deleteSchedule: (_, schedule) => state => {
         const id = resolveId(schedule)
-        const schedules = { ...state.schedules }
-        const settings = { ...state.settings }
+        const schedules = { ...state.computedSchedules }
+        const settings = { ...state.computedSettings }
 
         delete schedules[id]
         delete settings[id]
@@ -408,52 +410,30 @@ export default [
       saveSchedule: (
         _,
         { cron, timezone, exportRetention, copyRetention, snapshotRetention }
-      ) => async (state, props) => {
-        if (state.editionMode === 'creation') {
-          const id = generateRandomId()
-          return {
-            ...state,
-            editionMode: undefined,
-            schedules: {
-              ...state.schedules,
-              [id]: {
-                id,
-                cron,
-                timezone,
-              },
-            },
-            settings: {
-              ...state.settings,
-              [id]: {
-                exportRetention,
-                copyRetention,
-                snapshotRetention,
-              },
-            },
-          }
-        }
-
-        const id = state.tmpSchedule.id
-        const schedules = { ...state.schedules }
-        const settings = { ...state.settings }
-
-        schedules[id] = {
-          ...schedules[id],
-          cron,
-          timezone,
-        }
-        settings[id] = {
-          ...settings[id],
-          exportRetention,
-          copyRetention,
-          snapshotRetention,
-        }
-
+      ) => async state => {
+        const id =
+          state.editionMode === 'creation'
+            ? generateRandomId()
+            : state.tmpSchedule.id
         return {
           ...state,
           editionMode: undefined,
-          schedules,
-          settings,
+          schedules: {
+            ...state.computedSchedules,
+            [id]: {
+              id,
+              cron,
+              timezone,
+            },
+          },
+          settings: {
+            ...state.computedSettings,
+            [id]: {
+              exportRetention,
+              copyRetention,
+              snapshotRetention,
+            },
+          },
           tmpSchedule: {},
         }
       },
@@ -525,11 +505,13 @@ export default [
       missingRemotes: state =>
         (state.backupMode || state.deltaMode) && isEmpty(state.remotes),
       missingSrs: state => (state.drMode || state.crMode) && isEmpty(state.srs),
-      missingSchedules: state => isEmpty(state.schedules),
+      missingSchedules: state => isEmpty(state.computedSchedules),
       missingExportRetention: state =>
         state.exportMode && !state.exportRetentionExists,
       missingCopyRetention: state =>
-        state.copyMode && !state.copyRetentionExists,
+        state.copyMode &&
+        !state.copyRetentionExists &&
+        !state.exportRetentionExists,
       missingSnapshotRetention: state =>
         state.snapshotMode && !state.snapshotRetentionExists,
       showCompression: state =>
@@ -548,12 +530,17 @@ export default [
         tags: constructSmartPattern(tags, normalizeTagValues),
         type: 'VM',
       }),
+      computedSchedules: createGetValue('schedules'),
+      computedSettings: createGetValue('settings', ({ job }) => job.settings),
+      computedConcurrency: createGetGlobalSettingsValue('concurrency'),
+      computedOfflineSnapshot: createGetGlobalSettingsValue('offlineSnapshot'),
+      computedReportWhen: createGetGlobalSettingsValue('reportWhen'),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
     },
   }),
   injectState,
-  ({ effects, remotesById, state }) => {
+  ({ effects, state, ...props }) => {
     if (state.needUpdateParams) {
       effects.updateParams()
     }
@@ -718,10 +705,10 @@ export default [
                       <Ul>
                         {map(state.remotes, (id, key) => (
                           <Li key={id}>
-                            {remotesById !== undefined &&
+                            {props.remotesById !== undefined &&
                               renderXoItem({
                                 type: 'remote',
-                                value: remotesById[id],
+                                value: props.remotesById[id],
                               })}
                             <ActionButton
                               btnStyle='danger'
@@ -793,7 +780,7 @@ export default [
                       optionRenderer={getOptionRenderer}
                       options={REPORT_WHEN_FILTER_OPTIONS}
                       required
-                      value={state.reportWhen}
+                      value={state.computedReportWhen}
                       valueKey='value'
                     />
                   </FormGroup>
@@ -803,14 +790,14 @@ export default [
                     </label>
                     <Number
                       onChange={effects.setConcurrency}
-                      value={state.concurrency}
+                      value={state.computedConcurrency}
                     />
                   </FormGroup>
                   <FormGroup>
                     <label>
                       <strong>{_('offlineSnapshot')}</strong>{' '}
                       <input
-                        checked={state.offlineSnapshot}
+                        checked={state.computedOfflineSnapshot}
                         name='offlineSnapshot'
                         onChange={effects.setCheckboxValue}
                         type='checkbox'

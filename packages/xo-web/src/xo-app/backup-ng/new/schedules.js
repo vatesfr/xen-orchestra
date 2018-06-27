@@ -23,7 +23,7 @@ export default [
   injectState,
   provideState({
     computed: {
-      disabledDeletion: state => size(state.schedules) <= 1,
+      disabledDeletion: ({ computedSchedules }) => size(computedSchedules) <= 1,
       disabledEdition: state =>
         state.editionMode !== undefined ||
         (!state.exportMode && !state.copyMode && !state.snapshotMode),
@@ -47,17 +47,10 @@ export default [
           level: 'danger',
         },
       ],
-      rowTransform: ({ settings }) => schedule => {
-        const { exportRetention, copyRetention, snapshotRetention } =
-          settings[schedule.id] || {}
-
-        return {
-          ...schedule,
-          exportRetention,
-          copyRetention,
-          snapshotRetention,
-        }
-      },
+      rowTransform: ({ computedSettings }) => schedule => ({
+        ...schedule,
+        ...computedSettings[schedule.id],
+      }),
       schedulesColumns: (state, { effects: { toggleScheduleState } }) => {
         const columns = [
           {
@@ -103,8 +96,14 @@ export default [
 
         if (state.copyMode) {
           columns.push({
-            itemRenderer: _ => _.copyRetention,
-            sortCriteria: _ => _.copyRetention,
+            itemRenderer: ({
+              exportRetention,
+              copyRetention = exportRetention,
+            }) => copyRetention,
+            sortCriteria: ({
+              exportRetention,
+              copyRetention = exportRetention,
+            }) => copyRetention,
             name: _('scheduleCopyRetention'),
           })
         }
@@ -140,11 +139,11 @@ export default [
           />
         </CardHeader>
         <CardBlock>
-          {isEmpty(state.schedules) ? (
+          {isEmpty(state.computedSchedules) ? (
             <p className='text-md-center'>{_('noSchedules')}</p>
           ) : (
             <SortedTable
-              collection={state.schedules}
+              collection={state.computedSchedules}
               columns={state.schedulesColumns}
               individualActions={state.individualActions}
               rowTransform={state.rowTransform}
