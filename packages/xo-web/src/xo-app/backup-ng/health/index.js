@@ -97,11 +97,10 @@ const ACTIONS = [
     ),
     legacySnapshots: getSnapshots.filter([
       (() => {
-        const RE = /^(XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
-        const predicate = RE.test.bind(RE)
+        const RE = /^(?:XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
         return (
           { name_label } // eslint-disable-line camelcase
-        ) => predicate(name_label)
+        ) => RE.test(name_label)
       })(),
     ]),
     vms: createGetObjectsOfType('VM'),
