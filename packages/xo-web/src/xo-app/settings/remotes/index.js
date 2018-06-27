@@ -306,7 +306,7 @@ export default class Remotes extends Component {
     const url = format(urlParams)
     return createRemote(name && name.value, url).then(
       () => {
-        this.setState({ type: 'file' })
+        this.setState({ type: 'nfs' })
         path && (path.value = '')
         username && (username.value = '')
         password && (password.value = '')
