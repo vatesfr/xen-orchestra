@@ -95,6 +95,14 @@ const ACTIONS = [
             : false
       )
     ),
+    legacySnapshots: getSnapshots.filter([
+      (() => {
+        const RE = /^(?:XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
+        return (
+          { name_label } // eslint-disable-line camelcase
+        ) => RE.test(name_label)
+      })(),
+    ]),
     vms: createGetObjectsOfType('VM'),
   }
 })
@@ -117,6 +125,26 @@ export default class Health extends Component {
                   data-vms={this.props.vms}
                   emptyMessage={_('noSnapshots')}
                   shortcutsTarget='.lone-snapshots'
+                />
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row className='legacy-snapshots'>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='vm' /> {_('legacySnapshots')}
+              </CardHeader>
+              <CardBlock>
+                <NoObjects
+                  actions={ACTIONS}
+                  collection={this.props.legacySnapshots}
+                  columns={SNAPSHOT_COLUMNS}
+                  component={SortedTable}
+                  data-vms={this.props.vms}
+                  emptyMessage={_('noSnapshots')}
+                  shortcutsTarget='.legacy-snapshots'
                 />
               </CardBlock>
             </Card>
