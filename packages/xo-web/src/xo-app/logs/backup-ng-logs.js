@@ -47,11 +47,6 @@ const LOG_COLUMNS = [
     sortCriteria: log => log.jobId,
   },
   {
-    name: _('jobMode'),
-    itemRenderer: log => get(() => log.data.mode),
-    sortCriteria: log => get(() => log.data.mode),
-  },
-  {
     name: _('jobName'),
     itemRenderer: (log, { jobs }) => get(() => jobs[log.jobId].name),
     sortCriteria: (log, { jobs }) => get(() => jobs[log.jobId].name),
@@ -107,10 +102,10 @@ const LOG_COLUMNS = [
   },
 ]
 
-const showTasks = log =>
+const showTasks = (log, { jobs }) =>
   alert(
     <span>
-      {_('jobModalTitle', { job: log.jobId.slice(4, 8) })}{' '}
+      {get(() => jobs[log.jobId].name)}{' '}
       <span style={{ fontSize: '0.5em' }} className='text-muted'>
         {log.id}
       </span>
