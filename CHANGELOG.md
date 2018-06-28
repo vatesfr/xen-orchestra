@@ -4,7 +4,12 @@
 
 ### Enhancements
 
-### Bugs
+### Bug fixes
+
+### Released packages
+
+- xo-server v5.22.0
+- xo-web v5.22.0
 
 ## **5.21.0** (2018-06-28)
 
