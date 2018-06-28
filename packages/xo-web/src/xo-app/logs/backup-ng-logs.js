@@ -108,7 +108,7 @@ const LOG_COLUMNS = [
 ]
 
 const showTasks = (log, { jobs }) => {
-  const formatedLog = JSON.stringify(log, null, 2)
+  const formattedLog = JSON.stringify(log, null, 2)
   alert(
     <span>
       {get(() => jobs[log.jobId].name) || 'Job'} ({log.jobId.slice(4, 8)}){' '}
@@ -119,7 +119,7 @@ const showTasks = (log, { jobs }) => {
         log.status !== 'pending' && (
           <ButtonGroup>
             <Tooltip content={_('copyToClipboard')}>
-              <CopyToClipboard text={formatedLog}>
+              <CopyToClipboard text={formattedLog}>
                 <Button size='small'>
                   <Icon icon='clipboard' />
                 </Button>
@@ -127,7 +127,7 @@ const showTasks = (log, { jobs }) => {
             </Tooltip>
             {CAN_REPORT_BUG && (
               <ReportBugButton
-                message={`\`\`\`json\n${formatedLog}\n\`\`\``}
+                message={`\`\`\`json\n${formattedLog}\n\`\`\``}
                 size='small'
                 title='Backup job failed'
               />
