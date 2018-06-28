@@ -8,6 +8,7 @@ import BaseComponent from 'base-component'
 import ButtonGroup from 'button-group'
 import Copiable from 'copiable'
 import NoObjects from 'no-objects'
+import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import SortedTable from 'sorted-table'
 import styles from './index.css'
 import TabButton from 'tab-button'
@@ -16,27 +17,12 @@ import { alert, confirm } from 'modal'
 import { createSelector } from 'selectors'
 import { subscribeApiLogs, subscribeUsers, deleteApiLog } from 'xo'
 
-const CAN_REPORT_BUG = process.env.XOA_PLAN > 1
-
-const reportBug = log => {
-  const title = encodeURIComponent(`Error on ${log.data.method}`)
-  const message = encodeURIComponent(
-    `\`\`\`\n${log.data.method}\n${JSON.stringify(
-      log.data.params,
-      null,
-      2
-    )}\n${JSON.stringify(log.data.error, null, 2).replace(
-      /\\n/g,
-      '\n'
-    )}\n\`\`\``
-  )
-
-  window.open(
-    process.env.XOA_PLAN < 5
-      ? `https://xen-orchestra.com/#!/member/support?title=${title}&message=${message}`
-      : `https://github.com/vatesfr/xen-orchestra/issues/new?title=${title}&body=${message}`
-  )
-}
+const formatMessage = data =>
+  `\`\`\`\n${data.method}\n${JSON.stringify(
+    data.params,
+    null,
+    2
+  )}\n${JSON.stringify(data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``
 
 const COLUMNS = [
   {
@@ -102,10 +88,11 @@ const COLUMNS = [
             tooltip={_('logDelete')}
           />
           {CAN_REPORT_BUG && (
-            <ActionRowButton
-              handler={() => reportBug(log)}
-              icon='bug'
-              tooltip={_('reportBug')}
+            <ReportBugButton
+              message={log.data}
+              formatMessage={formatMessage}
+              rowButton
+              title={`Error on ${log.data.method}`}
             />
           )}
         </ButtonGroup>

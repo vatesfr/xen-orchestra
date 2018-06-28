@@ -1,6 +1,5 @@
 import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
-import Copiable from 'copiable'
 import Icon from 'icon'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
@@ -148,9 +147,7 @@ export default [
     return (status === 'failure' || status === 'skipped') &&
       result !== undefined ? (
       <span className={status === 'skipped' ? 'text-info' : 'text-danger'}>
-        <Copiable tagName='p' data={JSON.stringify(result, null, 2)}>
-          <Icon icon='alarm' /> {result.message}
-        </Copiable>
+        <Icon icon='alarm' /> {result.message}
       </span>
     ) : (
       <div>
@@ -258,41 +255,32 @@ export default [
                                       />
                                     )}
                                     <br />
-                                    {operationLog.status === 'failure' ? (
-                                      <Copiable
-                                        tagName='p'
-                                        data={JSON.stringify(
-                                          operationLog.result,
-                                          null,
-                                          2
-                                        )}
-                                      >
-                                        {_.keyValue(
+                                    {operationLog.status === 'failure'
+                                      ? _.keyValue(
                                           _('taskError'),
                                           <span className='text-danger'>
                                             {operationLog.result.message}
                                           </span>
+                                        )
+                                      : operationLog.result.size > 0 && (
+                                          <div>
+                                            {_.keyValue(
+                                              _('operationSize'),
+                                              formatSize(
+                                                operationLog.result.size
+                                              )
+                                            )}
+                                            <br />
+                                            {_.keyValue(
+                                              _('operationSpeed'),
+                                              formatSpeed(
+                                                operationLog.result.size,
+                                                operationLog.end -
+                                                  operationLog.start
+                                              )
+                                            )}
+                                          </div>
                                         )}
-                                      </Copiable>
-                                    ) : (
-                                      operationLog.result.size > 0 && (
-                                        <div>
-                                          {_.keyValue(
-                                            _('operationSize'),
-                                            formatSize(operationLog.result.size)
-                                          )}
-                                          <br />
-                                          {_.keyValue(
-                                            _('operationSpeed'),
-                                            formatSpeed(
-                                              operationLog.result.size,
-                                              operationLog.end -
-                                                operationLog.start
-                                            )
-                                          )}
-                                        </div>
-                                      )
-                                    )}
                                   </div>
                                 )}
                               </li>
@@ -313,22 +301,12 @@ export default [
                               )}
                             <br />
                             {subTaskLog.status === 'failure' &&
-                              subTaskLog.result !== undefined && (
-                                <Copiable
-                                  tagName='p'
-                                  data={JSON.stringify(
-                                    subTaskLog.result,
-                                    null,
-                                    2
-                                  )}
-                                >
-                                  {_.keyValue(
-                                    _('taskError'),
-                                    <span className='text-danger'>
-                                      {subTaskLog.result.message}
-                                    </span>
-                                  )}
-                                </Copiable>
+                              subTaskLog.result !== undefined &&
+                              _.keyValue(
+                                _('taskError'),
+                                <span className='text-danger'>
+                                  {subTaskLog.result.message}
+                                </span>
                               )}
                           </div>
                         )}
@@ -362,25 +340,20 @@ export default [
                           </a>
                         </Tooltip>
                       ) : (
-                        <Copiable
-                          tagName='p'
-                          data={JSON.stringify(taskLog.result, null, 2)}
-                        >
-                          {_.keyValue(
-                            taskLog.status === 'skipped'
-                              ? _('taskReason')
-                              : _('taskError'),
-                            <span
-                              className={
-                                taskLog.status === 'skipped'
-                                  ? 'text-info'
-                                  : 'text-danger'
-                              }
-                            >
-                              {taskLog.result.message}
-                            </span>
-                          )}
-                        </Copiable>
+                        _.keyValue(
+                          taskLog.status === 'skipped'
+                            ? _('taskReason')
+                            : _('taskError'),
+                          <span
+                            className={
+                              taskLog.status === 'skipped'
+                                ? 'text-info'
+                                : 'text-danger'
+                            }
+                          >
+                            {taskLog.result.message}
+                          </span>
+                        )
                       )
                     ) : (
                       <div>
