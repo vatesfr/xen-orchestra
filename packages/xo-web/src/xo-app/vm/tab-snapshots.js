@@ -83,7 +83,7 @@ const GROUPED_ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: copyVm,
+    handler: snapshot => copyVm(snapshot),
     icon: 'vm-copy',
     label: _('copySnapshot'),
   },
