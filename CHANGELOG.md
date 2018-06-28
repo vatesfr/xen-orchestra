@@ -31,6 +31,7 @@
 - Fix Load Balancer [#3075](https://github.com/vatesfr/xen-orchestra/issues/3075#event-1685469551) [#3026](https://github.com/vatesfr/xen-orchestra/issues/3026)
 - [SR stats] Don't scale XAPI iowait values [#2969](https://github.com/vatesfr/xen-orchestra/issues/2969)
 - [Backup NG] Don't list unusable SRs for CR/DR [#3050](https://github.com/vatesfr/xen-orchestra/issues/3050)
+- Fix creating VM from snapshot (PR [3117](https://github.com/vatesfr/xen-orchestra/pull/3117))
 
 ## **5.20.0** (2018-05-31)
 
