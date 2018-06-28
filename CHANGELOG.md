@@ -4,6 +4,12 @@
 
 ### Enhancements
 
+### Bugs
+
+## **5.21.0** (2018-06-28)
+
+### Enhancements
+
 - Hide legacy backup creation view [#2956](https://github.com/vatesfr/xen-orchestra/issues/2956)
 - [Delta Backup NG logs] Display wether the export is a full or a delta [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711)
 - Copy VDIs' UUID from SR/disks view [#3051](https://github.com/vatesfr/xen-orchestra/issues/3051)
