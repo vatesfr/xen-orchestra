@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- Delete schedules with their job [#3108](https://github.com/vatesfr/xen-orchestra/issues/3108) (PR [3124](https://github.com/vatesfr/xen-orchestra/pull/3124))
+
 ### Released packages
 
 - xo-server v5.22.0
@@ -34,7 +36,7 @@
 - Adding a XCP-ng host to a XS pool now fails fast [#3061](https://github.com/vatesfr/xen-orchestra/issues/3061) (PR [#3118](https://github.com/vatesfr/xen-orchestra/pull/3118))
 - [Backup NG logs] Ability to report a failed job and copy its log to the clipboard [#3100](https://github.com/vatesfr/xen-orchestra/issues/3100) (PR [#3110](https://github.com/vatesfr/xen-orchestra/pull/3110))
 
-### Bugs
+### Bug fixes
 
 - update the xentools search item to return the version number of installed xentools [#3015](https://github.com/vatesfr/xen-orchestra/issues/3015)
 - Fix Nagios backup reports [#2991](https://github.com/vatesfr/xen-orchestra/issues/2991)

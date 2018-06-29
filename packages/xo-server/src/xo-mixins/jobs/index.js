@@ -212,7 +212,13 @@ export default class Jobs {
   }
 
   async removeJob (id: string) {
-    return /* await */ this._jobs.remove(id)
+    const promises = [this._jobs.remove(id)]
+    ;(await this._app.getAllSchedules()).forEach(schedule => {
+      if (schedule.jobId === id) {
+        promises.push(this._app.deleteSchedule(schedule.id))
+      }
+    })
+    return Promise.all(promises)
   }
 
   async _runJob (job: Job, schedule?: Schedule, data_?: any) {
