@@ -83,17 +83,6 @@ const constructPattern = values =>
 
 const destructPattern = pattern => pattern.id.__or || [pattern.id]
 
-const destructVmsPattern = pattern =>
-  pattern.id === undefined
-    ? {
-        powerState: pattern.power_state || 'All',
-        $pool: destructSmartPattern(pattern.$pool),
-        tags: destructSmartPattern(pattern.tags, flatten),
-      }
-    : {
-        vms: destructPattern(pattern),
-      }
-
 const REPORT_WHEN_FILTER_OPTIONS = [
   {
     label: 'reportWhenAlways',
@@ -127,9 +116,17 @@ const createGetGlobalSettingsValue = name =>
   createGetValue(name, ({ job }) => job.settings[''][name])
 
 const DEFAULT_VALUES = {
+  // Modes
+  smartMode: false,
   // Schedules
   schedules: {},
   settings: {},
+  // Name
+  vms: [],
+  // Smart mode
+  $pool: {},
+  powerState: 'All',
+  tags: {},
   // Advanced settings
   concurrency: 0,
   offlineSnapshot: false,
@@ -145,7 +142,6 @@ const initValues = () => {
 }
 
 const getInitialState = () => ({
-  $pool: {},
   backupMode: false,
   compression: true,
   crMode: false,
@@ -155,15 +151,11 @@ const getInitialState = () => ({
   formId: generateRandomId(),
   name: '',
   paramsUpdated: false,
-  powerState: 'All',
   remotes: [],
   showErrors: false,
-  smartMode: false,
   snapshotMode: false,
   srs: [],
-  tags: {},
   tmpSchedule: {},
-  vms: [],
   ...initValues(),
 })
 
@@ -218,9 +210,9 @@ export default [
             state.crMode || state.drMode
               ? constructPattern(state.srs)
               : undefined,
-          vms: state.smartMode
+          vms: state.computedSmartMode
             ? state.vmsSmartPattern
-            : constructPattern(state.vms),
+            : constructPattern(state.computedVms),
         })
       },
       editJob: () => async (state, props) => {
@@ -294,9 +286,9 @@ export default [
             state.crMode || state.drMode
               ? constructPattern(state.srs)
               : constructPattern([]),
-          vms: state.smartMode
+          vms: state.computedSmartMode
             ? state.vmsSmartPattern
-            : constructPattern(state.vms),
+            : constructPattern(state.computedVms),
         })
       },
       toggleMode: (_, { mode }) => state => ({
@@ -364,7 +356,6 @@ export default [
           compression: job.compression === 'native',
           name: job.name,
           paramsUpdated: true,
-          smartMode: job.vms.id === undefined,
           snapshotMode: some(
             job.settings,
             ({ snapshotRetention }) => snapshotRetention > 0
@@ -375,7 +366,6 @@ export default [
           crMode,
           remotes,
           srs,
-          ...destructVmsPattern(job.vms),
         }
       },
       addSchedule: () => state => ({
@@ -499,7 +489,8 @@ export default [
         state.missingCopyRetention ||
         state.missingSnapshotRetention,
       missingName: state => state.name.trim() === '',
-      missingVms: state => isEmpty(state.vms) && !state.smartMode,
+      missingVms: state =>
+        !state.computedSmartMode && isEmpty(state.computedVms),
       missingBackupMode: state =>
         !state.isDelta && !state.isFull && !state.snapshotMode,
       missingRemotes: state =>
@@ -524,14 +515,29 @@ export default [
       snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
-      vmsSmartPattern: ({ $pool, powerState, tags }) => ({
-        $pool: constructSmartPattern($pool, resolveIds),
-        power_state: powerState === 'All' ? undefined : powerState,
-        tags: constructSmartPattern(tags, normalizeTagValues),
+      vmsSmartPattern: state => ({
+        $pool: constructSmartPattern(state.computedPools, resolveIds),
+        power_state: state.computedPowerState,
+        tags: constructSmartPattern(state.computedTags, normalizeTagValues),
         type: 'VM',
       }),
       computedSchedules: createGetValue('schedules'),
       computedSettings: createGetValue('settings', ({ job }) => job.settings),
+      computedSmartMode: createGetValue(
+        'smartMode',
+        ({ vms }) => vms.id === undefined
+      ),
+      computedVms: createGetValue('vms', ({ vms }) => destructPattern(vms)),
+      computedPowerState: createGetValue(
+        'powerState',
+        ({ vms }) => vms.power_state
+      ),
+      computedPools: createGetValue('$pool', ({ vms }) =>
+        destructSmartPattern(vms.$pool)
+      ),
+      computedTags: createGetValue('tags', ({ vms }) =>
+        destructSmartPattern(vms.tags, flatten)
+      ),
       computedConcurrency: createGetGlobalSettingsValue('concurrency'),
       computedOfflineSnapshot: createGetGlobalSettingsValue('offlineSnapshot'),
       computedReportWhen: createGetGlobalSettingsValue('reportWhen'),
@@ -557,7 +563,7 @@ export default [
                     <Toggle
                       className='pull-right'
                       onChange={effects.toggleSmartMode}
-                      value={state.smartMode}
+                      value={state.computedSmartMode}
                       iconSize={1}
                     />
                   </Tooltip>
@@ -575,7 +581,7 @@ export default [
                       value={state.name}
                     />
                   </FormGroup>
-                  {state.smartMode ? (
+                  {state.computedSmartMode ? (
                     <Upgrade place='newBackup' required={3}>
                       <SmartBackup />
                     </Upgrade>
@@ -590,7 +596,7 @@ export default [
                         multi
                         onChange={effects.setVms}
                         error={state.showErrors ? state.missingVms : undefined}
-                        value={state.vms}
+                        value={state.computedVms}
                       />
                     </FormGroup>
                   )}
