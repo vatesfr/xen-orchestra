@@ -1,0 +1,9 @@
+{
+  "gitbook": ">=3.0.0",
+  "root": "./docs",
+  "plugins": [
+      "anchors",
+      "-edit-link"
+  ],
+  "pluginsConfig": {}
+}
