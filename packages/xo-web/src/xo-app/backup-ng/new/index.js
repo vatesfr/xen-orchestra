@@ -46,6 +46,49 @@ import { FormFeedback, FormGroup, Input, Number, Ul, Li } from './utils'
 
 // ===================================================================
 
+const REPORT_WHEN_FILTER_OPTIONS = [
+  {
+    label: 'reportWhenAlways',
+    value: 'always',
+  },
+  {
+    label: 'reportWhenFailure',
+    value: 'failure',
+  },
+  {
+    label: 'reportWhenNever',
+    value: 'Never',
+  },
+]
+
+const DEFAULT_VALUES = {
+  // Modes
+  backupMode: false,
+  crMode: false,
+  deltaMode: false,
+  drMode: false,
+  smartMode: false,
+  snapshotMode: false,
+  // Schedules
+  schedules: {},
+  settings: {},
+  // Name
+  compression: true,
+  vms: [],
+  name: '',
+  // Smart mode
+  $pool: {},
+  powerState: 'All',
+  tags: {},
+  // Advanced settings
+  concurrency: 0,
+  offlineSnapshot: false,
+  reportWhen: 'failure',
+  // Targets
+  remotes: [],
+  srs: [],
+}
+
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
 const normalizeSettings = (
@@ -83,21 +126,6 @@ const constructPattern = values =>
 
 const destructPattern = pattern => pattern.id.__or || [pattern.id]
 
-const REPORT_WHEN_FILTER_OPTIONS = [
-  {
-    label: 'reportWhenAlways',
-    value: 'always',
-  },
-  {
-    label: 'reportWhenFailure',
-    value: 'failure',
-  },
-  {
-    label: 'reportWhenNever',
-    value: 'Never',
-  },
-]
-
 const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
 const createDoesRetentionExist = name => {
@@ -115,23 +143,8 @@ const createGetValue = (name, fn) => (state, props) =>
 const createGetGlobalSettingsValue = name =>
   createGetValue(name, ({ job }) => job.settings[''][name])
 
-const DEFAULT_VALUES = {
-  // Modes
-  smartMode: false,
-  // Schedules
-  schedules: {},
-  settings: {},
-  // Name
-  vms: [],
-  // Smart mode
-  $pool: {},
-  powerState: 'All',
-  tags: {},
-  // Advanced settings
-  concurrency: 0,
-  offlineSnapshot: false,
-  reportWhen: 'failure',
-}
+const createGetSelectValue = name =>
+  createGetValue(name, ({ job }) => destructPattern(job[name]))
 
 const initValues = () => {
   const values = {}
@@ -142,19 +155,9 @@ const initValues = () => {
 }
 
 const getInitialState = () => ({
-  backupMode: false,
-  compression: true,
-  crMode: false,
-  deltaMode: false,
-  drMode: false,
   editionMode: undefined,
   formId: generateRandomId(),
-  name: '',
-  paramsUpdated: false,
-  remotes: [],
   showErrors: false,
-  snapshotMode: false,
-  srs: [],
   tmpSchedule: {},
   ...initValues(),
 })
@@ -183,9 +186,9 @@ export default [
         }
 
         await createBackupNgJob({
-          name: state.name,
+          name: state.computedName,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression ? 'native' : '',
+          compression: state.computedCompression ? 'native' : '',
           schedules: mapValues(
             state.computedSchedules,
             ({ id, ...schedule }) => schedule
@@ -263,9 +266,9 @@ export default [
 
         await editBackupNgJob({
           id: props.job.id,
-          name: state.name,
+          name: state.computedName,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression ? 'native' : '',
+          compression: state.computedCompression ? 'native' : '',
           settings: {
             ...normalizeSettings(settings, {
               exportMode: state.exportMode,
@@ -344,30 +347,6 @@ export default [
         }
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
-      updateParams: () => (state, { job }) => {
-        const remotes =
-          job.remotes !== undefined ? destructPattern(job.remotes) : []
-        const srs = job.srs !== undefined ? destructPattern(job.srs) : []
-        const drMode = job.mode === 'full' && !isEmpty(srs)
-        const crMode = job.mode === 'delta' && !isEmpty(srs)
-
-        return {
-          ...state,
-          compression: job.compression === 'native',
-          name: job.name,
-          paramsUpdated: true,
-          snapshotMode: some(
-            job.settings,
-            ({ snapshotRetention }) => snapshotRetention > 0
-          ),
-          backupMode: job.mode === 'full' && !isEmpty(remotes),
-          deltaMode: job.mode === 'delta' && !isEmpty(remotes),
-          drMode,
-          crMode,
-          remotes,
-          srs,
-        }
-      },
       addSchedule: () => state => ({
         ...state,
         editionMode: 'creation',
@@ -476,8 +455,6 @@ export default [
       }),
     },
     computed: {
-      needUpdateParams: (state, { job, schedules }) =>
-        job !== undefined && schedules !== undefined && !state.paramsUpdated,
       isJobInvalid: state =>
         state.missingName ||
         state.missingVms ||
@@ -492,10 +469,13 @@ export default [
       missingVms: state =>
         !state.computedSmartMode && isEmpty(state.computedVms),
       missingBackupMode: state =>
-        !state.isDelta && !state.isFull && !state.snapshotMode,
+        !state.isDelta && !state.isFull && !state.computedSnapshotMode,
       missingRemotes: state =>
-        (state.backupMode || state.deltaMode) && isEmpty(state.remotes),
-      missingSrs: state => (state.drMode || state.crMode) && isEmpty(state.srs),
+        (state.computedBackupMode || state.computedDeltaMode) &&
+        isEmpty(state.computedRemotes),
+      missingSrs: state =>
+        (state.computedDrMode || state.computedCrMode) &&
+        isEmpty(state.computedSrs),
       missingSchedules: state => isEmpty(state.computedSchedules),
       missingExportRetention: state =>
         state.exportMode && !state.exportRetentionExists,
@@ -504,17 +484,17 @@ export default [
         !state.copyRetentionExists &&
         !state.exportRetentionExists,
       missingSnapshotRetention: state =>
-        state.snapshotMode && !state.snapshotRetentionExists,
+        state.computedSnapshotMode && !state.snapshotRetentionExists,
       showCompression: state =>
         state.isFull &&
         (state.exportRetentionExists || state.copyRetentionExists),
-      exportMode: state => state.backupMode || state.deltaMode,
-      copyMode: state => state.drMode || state.crMode,
+      exportMode: state => state.computedBackupMode || state.computedDeltaMode,
+      copyMode: state => state.computedDrMode || state.computedCrMode,
       exportRetentionExists: createDoesRetentionExist('exportRetention'),
       copyRetentionExists: createDoesRetentionExist('copyRetention'),
       snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
-      isDelta: state => state.deltaMode || state.crMode,
-      isFull: state => state.backupMode || state.drMode,
+      isDelta: state => state.computedDeltaMode || state.computedCrMode,
+      isFull: state => state.computedBackupMode || state.computedDrMode,
       vmsSmartPattern: state => ({
         $pool: constructSmartPattern(state.computedPools, resolveIds),
         power_state: state.computedPowerState,
@@ -527,7 +507,9 @@ export default [
         'smartMode',
         ({ vms }) => vms.id === undefined
       ),
-      computedVms: createGetValue('vms', ({ vms }) => destructPattern(vms)),
+      computedVms: createGetSelectValue('vms'),
+      computedRemotes: createGetSelectValue('remotes'),
+      computedSrs: createGetSelectValue('srs'),
       computedPowerState: createGetValue(
         'powerState',
         ({ vms }) => vms.power_state
@@ -541,325 +523,347 @@ export default [
       computedConcurrency: createGetGlobalSettingsValue('concurrency'),
       computedOfflineSnapshot: createGetGlobalSettingsValue('offlineSnapshot'),
       computedReportWhen: createGetGlobalSettingsValue('reportWhen'),
-      srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
-      remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
+      computedBackupMode: createGetValue(
+        'backupMode',
+        ({ mode, remotes }) =>
+          mode === 'full' && !isEmpty(destructPattern(remotes))
+      ),
+      computedDeltaMode: createGetValue(
+        'deltaMode',
+        ({ mode, remotes }) =>
+          mode === 'delta' && !isEmpty(destructPattern(remotes))
+      ),
+      computedDrMode: createGetValue(
+        'drMode',
+        ({ mode, srs }) => mode === 'full' && !isEmpty(destructPattern(srs))
+      ),
+      computedCrMode: createGetValue(
+        'crMode',
+        ({ mode, srs }) => mode === 'delta' && !isEmpty(destructPattern(srs))
+      ),
+      computedSnapshotMode: createGetValue('snapshotMode', ({ settings }) =>
+        some(settings, ({ snapshotRetention }) => snapshotRetention > 0)
+      ),
+      computedCompression: createGetValue(
+        'compression',
+        ({ compression }) => compression === 'native'
+      ),
+      computedName: createGetValue('name'),
+      srPredicate: ({ computedSrs }) => sr =>
+        isSrWritable(sr) && !includes(computedSrs, sr.id),
+      remotePredicate: ({ computedRemotes }) => ({ id }) =>
+        !includes(computedRemotes, id),
     },
   }),
   injectState,
-  ({ effects, state, ...props }) => {
-    if (state.needUpdateParams) {
-      effects.updateParams()
-    }
-
-    return (
-      <form id={state.formId}>
-        <Container>
-          <Row>
-            <Col mediumSize={6}>
+  ({ effects, state, ...props }) => (
+    <form id={state.formId}>
+      <Container>
+        <Row>
+          <Col mediumSize={6}>
+            <Card>
+              <CardHeader>
+                {_('backupName')}*
+                <Tooltip content={_('smartBackupModeTitle')}>
+                  <Toggle
+                    className='pull-right'
+                    onChange={effects.toggleSmartMode}
+                    value={state.computedSmartMode}
+                    iconSize={1}
+                  />
+                </Tooltip>
+              </CardHeader>
+              <CardBlock>
+                <FormGroup>
+                  <label>
+                    <strong>{_('backupName')}</strong>
+                  </label>
+                  <FormFeedback
+                    component={Input}
+                    message={_('missingBackupName')}
+                    onChange={effects.setName}
+                    error={state.showErrors ? state.missingName : undefined}
+                    value={state.computedName}
+                  />
+                </FormGroup>
+                {state.computedSmartMode ? (
+                  <Upgrade place='newBackup' required={3}>
+                    <SmartBackup />
+                  </Upgrade>
+                ) : (
+                  <FormGroup>
+                    <label>
+                      <strong>{_('vmsToBackup')}</strong>
+                    </label>
+                    <FormFeedback
+                      component={SelectVm}
+                      message={_('missingVms')}
+                      multi
+                      onChange={effects.setVms}
+                      error={state.showErrors ? state.missingVms : undefined}
+                      value={state.computedVms}
+                    />
+                  </FormGroup>
+                )}
+                {state.showCompression && (
+                  <label>
+                    <input
+                      checked={state.computedCompression}
+                      name='compression'
+                      onChange={effects.setCheckboxValue}
+                      type='checkbox'
+                    />{' '}
+                    <strong>{_('useCompression')}</strong>
+                  </label>
+                )}
+              </CardBlock>
+            </Card>
+            <FormFeedback
+              component={Card}
+              error={state.showErrors ? state.missingBackupMode : undefined}
+              message={_('missingBackupMode')}
+            >
+              <CardBlock>
+                <div className='text-xs-center'>
+                  <ActionButton
+                    active={state.computedSnapshotMode}
+                    data-mode='snapshotMode'
+                    handler={effects.toggleMode}
+                    icon='rolling-snapshot'
+                  >
+                    {_('rollingSnapshot')}
+                  </ActionButton>{' '}
+                  <ActionButton
+                    active={state.computedBackupMode}
+                    data-mode='backupMode'
+                    disabled={state.isDelta}
+                    handler={effects.toggleMode}
+                    icon='backup'
+                  >
+                    {_('backup')}
+                  </ActionButton>{' '}
+                  <ActionButton
+                    active={state.computedDeltaMode}
+                    data-mode='deltaMode'
+                    disabled={
+                      state.isFull ||
+                      (!state.deltaMode && process.env.XOA_PLAN < 3)
+                    }
+                    handler={effects.toggleMode}
+                    icon='delta-backup'
+                  >
+                    {_('deltaBackup')}
+                  </ActionButton>{' '}
+                  <ActionButton
+                    active={state.computedDrMode}
+                    data-mode='drMode'
+                    disabled={
+                      state.isDelta ||
+                      (!state.drMode && process.env.XOA_PLAN < 3)
+                    }
+                    handler={effects.toggleMode}
+                    icon='disaster-recovery'
+                  >
+                    {_('disasterRecovery')}
+                  </ActionButton>{' '}
+                  {process.env.XOA_PLAN < 3 && (
+                    <Tooltip content={_('dbAndDrRequireEntreprisePlan')}>
+                      <Icon icon='info' />
+                    </Tooltip>
+                  )}{' '}
+                  <ActionButton
+                    active={state.computedCrMode}
+                    data-mode='crMode'
+                    disabled={
+                      state.isFull ||
+                      (!state.crMode && process.env.XOA_PLAN < 4)
+                    }
+                    handler={effects.toggleMode}
+                    icon='continuous-replication'
+                  >
+                    {_('continuousReplication')}
+                  </ActionButton>{' '}
+                  {process.env.XOA_PLAN < 4 && (
+                    <Tooltip content={_('crRequiresPremiumPlan')}>
+                      <Icon icon='info' />
+                    </Tooltip>
+                  )}
+                </div>
+              </CardBlock>
+            </FormFeedback>
+            <br />
+            {(state.computedBackupMode || state.computedDeltaMode) && (
               <Card>
                 <CardHeader>
-                  {_('backupName')}*
-                  <Tooltip content={_('smartBackupModeTitle')}>
-                    <Toggle
-                      className='pull-right'
-                      onChange={effects.toggleSmartMode}
-                      value={state.computedSmartMode}
-                      iconSize={1}
-                    />
-                  </Tooltip>
+                  {_(state.computedBackupMode ? 'backup' : 'deltaBackup')}
                 </CardHeader>
                 <CardBlock>
                   <FormGroup>
                     <label>
-                      <strong>{_('backupName')}</strong>
+                      <strong>{_('backupTargetRemotes')}</strong>
                     </label>
                     <FormFeedback
-                      component={Input}
-                      message={_('missingBackupName')}
-                      onChange={effects.setName}
-                      error={state.showErrors ? state.missingName : undefined}
-                      value={state.name}
+                      component={SelectRemote}
+                      message={_('missingRemotes')}
+                      onChange={effects.addRemote}
+                      predicate={state.remotePredicate}
+                      error={
+                        state.showErrors ? state.missingRemotes : undefined
+                      }
+                      value={null}
                     />
+                    <br />
+                    <Ul>
+                      {map(state.computedRemotes, (id, key) => (
+                        <Li key={id}>
+                          {props.remotesById !== undefined &&
+                            renderXoItem({
+                              type: 'remote',
+                              value: props.remotesById[id],
+                            })}
+                          <ActionButton
+                            btnStyle='danger'
+                            className='pull-right'
+                            handler={effects.deleteRemote}
+                            handlerParam={key}
+                            icon='delete'
+                            size='small'
+                          />
+                        </Li>
+                      ))}
+                    </Ul>
                   </FormGroup>
-                  {state.computedSmartMode ? (
-                    <Upgrade place='newBackup' required={3}>
-                      <SmartBackup />
-                    </Upgrade>
-                  ) : (
-                    <FormGroup>
-                      <label>
-                        <strong>{_('vmsToBackup')}</strong>
-                      </label>
-                      <FormFeedback
-                        component={SelectVm}
-                        message={_('missingVms')}
-                        multi
-                        onChange={effects.setVms}
-                        error={state.showErrors ? state.missingVms : undefined}
-                        value={state.computedVms}
-                      />
-                    </FormGroup>
-                  )}
-                  {state.showCompression && (
-                    <label>
-                      <input
-                        checked={state.compression}
-                        name='compression'
-                        onChange={effects.setCheckboxValue}
-                        type='checkbox'
-                      />{' '}
-                      <strong>{_('useCompression')}</strong>
-                    </label>
-                  )}
                 </CardBlock>
               </Card>
-              <FormFeedback
-                component={Card}
-                error={state.showErrors ? state.missingBackupMode : undefined}
-                message={_('missingBackupMode')}
-              >
-                <CardBlock>
-                  <div className='text-xs-center'>
-                    <ActionButton
-                      active={state.snapshotMode}
-                      data-mode='snapshotMode'
-                      handler={effects.toggleMode}
-                      icon='rolling-snapshot'
-                    >
-                      {_('rollingSnapshot')}
-                    </ActionButton>{' '}
-                    <ActionButton
-                      active={state.backupMode}
-                      data-mode='backupMode'
-                      disabled={state.isDelta}
-                      handler={effects.toggleMode}
-                      icon='backup'
-                    >
-                      {_('backup')}
-                    </ActionButton>{' '}
-                    <ActionButton
-                      active={state.deltaMode}
-                      data-mode='deltaMode'
-                      disabled={
-                        state.isFull ||
-                        (!state.deltaMode && process.env.XOA_PLAN < 3)
-                      }
-                      handler={effects.toggleMode}
-                      icon='delta-backup'
-                    >
-                      {_('deltaBackup')}
-                    </ActionButton>{' '}
-                    <ActionButton
-                      active={state.drMode}
-                      data-mode='drMode'
-                      disabled={
-                        state.isDelta ||
-                        (!state.drMode && process.env.XOA_PLAN < 3)
-                      }
-                      handler={effects.toggleMode}
-                      icon='disaster-recovery'
-                    >
-                      {_('disasterRecovery')}
-                    </ActionButton>{' '}
-                    {process.env.XOA_PLAN < 3 && (
-                      <Tooltip content={_('dbAndDrRequireEntreprisePlan')}>
-                        <Icon icon='info' />
-                      </Tooltip>
-                    )}{' '}
-                    <ActionButton
-                      active={state.crMode}
-                      data-mode='crMode'
-                      disabled={
-                        state.isFull ||
-                        (!state.crMode && process.env.XOA_PLAN < 4)
-                      }
-                      handler={effects.toggleMode}
-                      icon='continuous-replication'
-                    >
-                      {_('continuousReplication')}
-                    </ActionButton>{' '}
-                    {process.env.XOA_PLAN < 4 && (
-                      <Tooltip content={_('crRequiresPremiumPlan')}>
-                        <Icon icon='info' />
-                      </Tooltip>
-                    )}
-                  </div>
-                </CardBlock>
-              </FormFeedback>
-              <br />
-              {(state.backupMode || state.deltaMode) && (
-                <Card>
-                  <CardHeader>
-                    {_(state.backupMode ? 'backup' : 'deltaBackup')}
-                  </CardHeader>
-                  <CardBlock>
-                    <FormGroup>
-                      <label>
-                        <strong>{_('backupTargetRemotes')}</strong>
-                      </label>
-                      <FormFeedback
-                        component={SelectRemote}
-                        message={_('missingRemotes')}
-                        onChange={effects.addRemote}
-                        predicate={state.remotePredicate}
-                        error={
-                          state.showErrors ? state.missingRemotes : undefined
-                        }
-                        value={null}
-                      />
-                      <br />
-                      <Ul>
-                        {map(state.remotes, (id, key) => (
-                          <Li key={id}>
-                            {props.remotesById !== undefined &&
-                              renderXoItem({
-                                type: 'remote',
-                                value: props.remotesById[id],
-                              })}
-                            <ActionButton
-                              btnStyle='danger'
-                              className='pull-right'
-                              handler={effects.deleteRemote}
-                              handlerParam={key}
-                              icon='delete'
-                              size='small'
-                            />
-                          </Li>
-                        ))}
-                      </Ul>
-                    </FormGroup>
-                  </CardBlock>
-                </Card>
-              )}
-              {(state.drMode || state.crMode) && (
-                <Card>
-                  <CardHeader>
-                    {_(
-                      state.drMode
-                        ? 'disasterRecovery'
-                        : 'continuousReplication'
-                    )}
-                  </CardHeader>
-                  <CardBlock>
-                    <FormGroup>
-                      <label>
-                        <strong>{_('backupTargetSrs')}</strong>
-                      </label>
-                      <FormFeedback
-                        component={SelectSr}
-                        message={_('missingSrs')}
-                        onChange={effects.addSr}
-                        predicate={state.srPredicate}
-                        error={state.showErrors ? state.missingSrs : undefined}
-                        value={null}
-                      />
-                      <br />
-                      <Ul>
-                        {map(state.srs, (id, key) => (
-                          <Li key={id}>
-                            {renderXoItemFromId(id)}
-                            <ActionButton
-                              btnStyle='danger'
-                              className='pull-right'
-                              icon='delete'
-                              size='small'
-                              handler={effects.deleteSr}
-                              handlerParam={key}
-                            />
-                          </Li>
-                        ))}
-                      </Ul>
-                    </FormGroup>
-                  </CardBlock>
-                </Card>
-              )}
+            )}
+            {(state.computedDrMode || state.computedCrMode) && (
               <Card>
-                <CardHeader>{_('newBackupAdvancedSettings')}</CardHeader>
+                <CardHeader>
+                  {_(
+                    state.drMcomputedDrModeode
+                      ? 'disasterRecovery'
+                      : 'continuousReplication'
+                  )}
+                </CardHeader>
                 <CardBlock>
                   <FormGroup>
                     <label>
-                      <strong>{_('reportWhen')}</strong>
+                      <strong>{_('backupTargetSrs')}</strong>
                     </label>
-                    <Select
-                      labelKey='label'
-                      onChange={effects.setReportWhen}
-                      optionRenderer={getOptionRenderer}
-                      options={REPORT_WHEN_FILTER_OPTIONS}
-                      required
-                      value={state.computedReportWhen}
-                      valueKey='value'
+                    <FormFeedback
+                      component={SelectSr}
+                      message={_('missingSrs')}
+                      onChange={effects.addSr}
+                      predicate={state.srPredicate}
+                      error={state.showErrors ? state.missingSrs : undefined}
+                      value={null}
                     />
-                  </FormGroup>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('concurrency')}</strong>
-                    </label>
-                    <Number
-                      onChange={effects.setConcurrency}
-                      value={state.computedConcurrency}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('offlineSnapshot')}</strong>{' '}
-                      <input
-                        checked={state.computedOfflineSnapshot}
-                        name='offlineSnapshot'
-                        onChange={effects.setCheckboxValue}
-                        type='checkbox'
-                      />
-                    </label>
+                    <br />
+                    <Ul>
+                      {map(state.computedSrs, (id, key) => (
+                        <Li key={id}>
+                          {renderXoItemFromId(id)}
+                          <ActionButton
+                            btnStyle='danger'
+                            className='pull-right'
+                            icon='delete'
+                            size='small'
+                            handler={effects.deleteSr}
+                            handlerParam={key}
+                          />
+                        </Li>
+                      ))}
+                    </Ul>
                   </FormGroup>
                 </CardBlock>
               </Card>
-            </Col>
-            <Col mediumSize={6}>
-              <Schedules />
-            </Col>
-          </Row>
-          <Row>
+            )}
             <Card>
+              <CardHeader>{_('newBackupAdvancedSettings')}</CardHeader>
               <CardBlock>
-                {state.paramsUpdated ? (
-                  <ActionButton
-                    btnStyle='primary'
-                    form={state.formId}
-                    handler={effects.editJob}
-                    icon='save'
-                    redirectOnSuccess={
-                      state.isJobInvalid ? undefined : '/backup-ng'
-                    }
-                    size='large'
-                  >
-                    {_('formSave')}
-                  </ActionButton>
-                ) : (
-                  <ActionButton
-                    btnStyle='primary'
-                    form={state.formId}
-                    handler={effects.createJob}
-                    icon='save'
-                    redirectOnSuccess={
-                      state.isJobInvalid ? undefined : '/backup-ng'
-                    }
-                    size='large'
-                  >
-                    {_('formCreate')}
-                  </ActionButton>
-                )}
-                <ActionButton
-                  handler={effects.resetJob}
-                  icon='undo'
-                  className='pull-right'
-                  size='large'
-                >
-                  {_('formReset')}
-                </ActionButton>
+                <FormGroup>
+                  <label>
+                    <strong>{_('reportWhen')}</strong>
+                  </label>
+                  <Select
+                    labelKey='label'
+                    onChange={effects.setReportWhen}
+                    optionRenderer={getOptionRenderer}
+                    options={REPORT_WHEN_FILTER_OPTIONS}
+                    required
+                    value={state.computedReportWhen}
+                    valueKey='value'
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <label>
+                    <strong>{_('concurrency')}</strong>
+                  </label>
+                  <Number
+                    onChange={effects.setConcurrency}
+                    value={state.computedConcurrency}
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <label>
+                    <strong>{_('offlineSnapshot')}</strong>{' '}
+                    <input
+                      checked={state.computedOfflineSnapshot}
+                      name='offlineSnapshot'
+                      onChange={effects.setCheckboxValue}
+                      type='checkbox'
+                    />
+                  </label>
+                </FormGroup>
               </CardBlock>
             </Card>
-          </Row>
-        </Container>
-      </form>
-    )
-  },
+          </Col>
+          <Col mediumSize={6}>
+            <Schedules />
+          </Col>
+        </Row>
+        <Row>
+          <Card>
+            <CardBlock>
+              {state.paramsUpdated ? (
+                <ActionButton
+                  btnStyle='primary'
+                  form={state.formId}
+                  handler={effects.editJob}
+                  icon='save'
+                  redirectOnSuccess={
+                    state.isJobInvalid ? undefined : '/backup-ng'
+                  }
+                  size='large'
+                >
+                  {_('formSave')}
+                </ActionButton>
+              ) : (
+                <ActionButton
+                  btnStyle='primary'
+                  form={state.formId}
+                  handler={effects.createJob}
+                  icon='save'
+                  redirectOnSuccess={
+                    state.isJobInvalid ? undefined : '/backup-ng'
+                  }
+                  size='large'
+                >
+                  {_('formCreate')}
+                </ActionButton>
+              )}
+              <ActionButton
+                handler={effects.resetJob}
+                icon='undo'
+                className='pull-right'
+                size='large'
+              >
+                {_('formReset')}
+              </ActionButton>
+            </CardBlock>
+          </Card>
+        </Row>
+      </Container>
+    </form>
+  ),
 ].reduceRight((value, decorator) => decorator(value))
