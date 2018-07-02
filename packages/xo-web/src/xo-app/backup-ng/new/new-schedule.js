@@ -131,7 +131,7 @@ export default [
               />
             </FormGroup>
           )}
-          {state.snapshotMode && (
+          {state.computedSnapshotMode && (
             <FormGroup>
               <label>
                 <strong>{_('snapshotRetention')}</strong>

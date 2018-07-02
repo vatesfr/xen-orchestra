@@ -3,8 +3,7 @@ import React from 'react'
 import SmartBackupPreview from 'smart-backup'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { get } from 'lodash'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState } from '@julien-f/freactal'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
 
@@ -18,15 +17,10 @@ const VMS_STATUSES_OPTIONS = [
 
 export default [
   connectStore({
-    storedVms: createGetObjectsOfType('VM'),
-  }),
-  provideState({
-    computed: {
-      storedVms: (state, { storedVms }) => storedVms,
-    },
+    vms: createGetObjectsOfType('VM'),
   }),
   injectState,
-  ({ state, effects }) => (
+  ({ state, effects, ...props }) => (
     <div>
       <FormGroup>
         <label>
@@ -35,7 +29,7 @@ export default [
         <Select
           options={VMS_STATUSES_OPTIONS}
           onChange={effects.setPowerState}
-          value={state.powerState}
+          value={state.computedPowerState}
           simpleValue
           required
         />
@@ -49,7 +43,7 @@ export default [
         <SelectPool
           multi
           onChange={effects.setPoolValues}
-          value={get(state.$pool, 'values')}
+          value={state.computedPools.values}
         />
       </FormGroup>
       <FormGroup>
@@ -59,7 +53,7 @@ export default [
         <SelectPool
           multi
           onChange={effects.setPoolNotValues}
-          value={get(state.$pool, 'notValues')}
+          value={state.computedPools.notValues}
         />
       </FormGroup>
       <h3>{_('editBackupSmartTags')}</h3>
@@ -71,7 +65,7 @@ export default [
         <SelectTag
           multi
           onChange={effects.setTagValues}
-          value={get(state.tags, 'values')}
+          value={state.computedTags.values}
         />
       </FormGroup>
       <FormGroup>
@@ -81,13 +75,10 @@ export default [
         <SelectTag
           multi
           onChange={effects.setTagNotValues}
-          value={get(state.tags, 'notValues')}
+          value={state.computedTags.notValues}
         />
       </FormGroup>
-      <SmartBackupPreview
-        vms={state.storedVms}
-        pattern={state.vmsSmartPattern}
-      />
+      <SmartBackupPreview vms={props.vms} pattern={state.vmsSmartPattern} />
     </div>
   ),
 ].reduceRight((value, decorator) => decorator(value))
