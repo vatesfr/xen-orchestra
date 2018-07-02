@@ -2,16 +2,20 @@
 
 import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
+import noop from './_noop'
 
 import Vhd from './vhd'
 import { DISK_TYPE_DIFFERENCING, DISK_TYPE_DYNAMIC } from './_constants'
 
 // Merge vhd child into vhd parent.
+//
+// TODO: rename the VHD file during the merge
 export default concurrency(2)(async function merge (
   parentHandler,
   parentPath,
   childHandler,
-  childPath
+  childPath,
+  { onProgress = noop } = {}
 ) {
   const parentFd = await parentHandler.openFile(parentPath, 'r+')
   try {
@@ -41,17 +45,38 @@ export default concurrency(2)(async function merge (
         childVhd.readBlockAllocationTable(),
       ])
 
+      const { maxTableEntries } = childVhd.header
+
       await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
-      let mergedDataSize = 0
-      for (
-        let blockId = 0;
-        blockId < childVhd.header.maxTableEntries;
-        blockId++
-      ) {
-        if (childVhd.containsBlock(blockId)) {
-          mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+      // finds first allocated block for the 2 following loops
+      let firstBlock = 0
+      while (firstBlock < maxTableEntries && !childVhd.containsBlock(firstBlock)) {
+        ++firstBlock
+      }
+
+      // counts number of allocated blocks
+      let nBlocks = 0
+      for (let block = firstBlock; block < maxTableEntries; block++) {
+        if (childVhd.containsBlock(block)) {
+          nBlocks += 1
         }
+      }
+
+      onProgress({ total: nBlocks, done: 0 })
+
+      // merges blocks
+      let mergedDataSize = 0
+      for (let i = 0, block = firstBlock; i < nBlocks; ++i, ++block) {
+        while (!childVhd.containsBlock(block)) {
+          ++block
+        }
+
+        mergedDataSize += await parentVhd.coalesceBlock(childVhd, block)
+        onProgress({
+          total: nBlocks,
+          done: i + 1,
+        })
       }
 
       const cFooter = childVhd.footer

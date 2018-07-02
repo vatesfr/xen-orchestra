@@ -8,6 +8,7 @@
 
 ### Released packages
 
+- vhd-lib 0.3.0
 - xo-server v5.22.0
 - xo-web v5.22.0
 
