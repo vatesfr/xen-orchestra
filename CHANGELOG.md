@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+- [Backup NG form] Add a link to the remotes' settings [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) [#3106](https://github.com/vatesfr/xen-orchestra/issues/3106) (PR [#3128](https://github.com/vatesfr/xen-orchestra/pull/3128))
+
 ### Bug fixes
 
 - Delete schedules with their job [#3108](https://github.com/vatesfr/xen-orchestra/issues/3108) (PR [3124](https://github.com/vatesfr/xen-orchestra/pull/3124))

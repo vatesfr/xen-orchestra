@@ -1,6 +1,8 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import Icon from 'icon'
+import Link from 'link'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
@@ -698,6 +700,16 @@ export default [
                 <Card>
                   <CardHeader>
                     {_(state.backupMode ? 'backup' : 'deltaBackup')}
+                    <Link
+                      className='pull-right'
+                      target='_blank'
+                      to='/settings/remotes'
+                    >
+                      <Button btnStyle='primary' size='small'>
+                        <Icon icon='settings' />{' '}
+                        <strong>{_('remotesSettings')}</strong>
+                      </Button>
+                    </Link>
                   </CardHeader>
                   <CardBlock>
                     <FormGroup>
@@ -714,6 +726,11 @@ export default [
                         }
                         value={null}
                       />
+                      {isEmpty(remotesById) && (
+                        <span className='text-warning'>
+                          <Icon icon='alarm' /> {_('createRemoteMessage')}
+                        </span>
+                      )}
                       <br />
                       <Ul>
                         {map(state.remotes, (id, key) => (
