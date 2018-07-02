@@ -11,6 +11,7 @@
 ### Released packages
 
 - vhd-lib 0.3.0
+- vhd-cli 0.1.0
 - xo-server v5.22.0
 - xo-web v5.22.0
 
