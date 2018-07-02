@@ -103,8 +103,14 @@ export default [
 
         if (state.copyMode) {
           columns.push({
-            itemRenderer: _ => _.copyRetention,
-            sortCriteria: _ => _.copyRetention,
+            itemRenderer: ({
+              exportRetention,
+              copyRetention = exportRetention,
+            }) => copyRetention,
+            sortCriteria: ({
+              exportRetention,
+              copyRetention = exportRetention,
+            }) => copyRetention,
             name: _('scheduleCopyRetention'),
           })
         }

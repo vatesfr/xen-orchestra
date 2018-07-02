@@ -1,23 +1,24 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import defined, { get } from 'xo-defined'
 import Icon from 'icon'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import {
-  addSubscriptions,
-  generateRandomId,
-  resolveId,
-  resolveIds,
-} from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from '@julien-f/freactal'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import { Toggle } from 'form'
+import {
+  addSubscriptions,
+  generateRandomId,
+  resolveId,
+  resolveIds,
+} from 'utils'
 import {
   cloneDeep,
   flatten,
@@ -68,6 +69,8 @@ const normalizeSettings = ({
 
     if (!copyMode) {
       setting.copyRetention = undefined
+    } else if (setting.copyRetention === undefined) {
+      setting.copyRetention = setting.exportRetention
     }
 
     if (!snapshotMode) {
@@ -529,7 +532,9 @@ export default [
       missingExportRetention: state =>
         state.exportMode && !state.exportRetentionExists,
       missingCopyRetention: state =>
-        state.copyMode && !state.copyRetentionExists,
+        state.copyMode &&
+        !state.copyRetentionExists &&
+        !state.exportRetentionExists,
       missingSnapshotRetention: state =>
         state.snapshotMode && !state.snapshotRetentionExists,
       showCompression: state =>
