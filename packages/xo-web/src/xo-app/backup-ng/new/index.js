@@ -1,6 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import Button from 'button'
+import classNames from 'classnames'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
@@ -701,14 +701,12 @@ export default [
                   <CardHeader>
                     {_(state.backupMode ? 'backup' : 'deltaBackup')}
                     <Link
-                      className='pull-right'
+                      className={classNames('pull-right', 'btn btn-primary')}
                       target='_blank'
                       to='/settings/remotes'
                     >
-                      <Button btnStyle='primary' size='small'>
-                        <Icon icon='settings' />{' '}
-                        <strong>{_('remotesSettings')}</strong>
-                      </Button>
+                      <Icon icon='settings' />{' '}
+                      <strong>{_('remotesSettings')}</strong>
                     </Link>
                   </CardHeader>
                   <CardBlock>
