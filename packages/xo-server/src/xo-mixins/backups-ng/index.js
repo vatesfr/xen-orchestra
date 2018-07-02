@@ -62,6 +62,7 @@ type Settings = {|
   offlineSnapshot?: boolean,
   reportWhen?: ReportWhen,
   snapshotRetention?: number,
+  timeout?: number,
   vmTimeout?: number,
 |}
 
@@ -128,6 +129,7 @@ const defaultSettings: Settings = {
   offlineSnapshot: false,
   reportWhen: 'failure',
   snapshotRetention: 0,
+  timeout: 0,
   vmTimeout: 0,
 }
 const getSetting = <T>(
@@ -466,6 +468,13 @@ export default class BackupNg {
           }))
         )
 
+        const timeout = getSetting(job.settings, 'timeout', [''])
+        if (timeout !== 0) {
+          cancelToken = cancelToken.fork(cancel => {
+            setTimeout(cancel, timeout)
+          })
+        }
+
         let handleVm = async vm => {
           const { name_label: name, uuid } = vm
           const taskId: string = logger.notice(
@@ -479,8 +488,11 @@ export default class BackupNg {
               },
             }
           )
-          const vmCancel = cancelToken.fork()
+          let vmCancel
           try {
+            cancelToken.throwIfRequested()
+            vmCancel = cancelToken.fork()
+
             // $FlowFixMe injected $defer param
             let p = this._backupVm(
               vmCancel.token,
@@ -506,7 +518,9 @@ export default class BackupNg {
               status: 'success',
             })
           } catch (error) {
-            vmCancel.cancel()
+            if (vmCancel !== undefined) {
+              vmCancel.cancel()
+            }
             logger.error(`Backuping ${name} has failed. (${jobId})`, {
               event: 'task.end',
               taskId,
