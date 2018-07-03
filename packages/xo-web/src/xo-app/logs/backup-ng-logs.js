@@ -115,25 +115,22 @@ const showTasks = (log, { jobs }) => {
       <span style={{ fontSize: '0.5em' }} className='text-muted'>
         {log.id}
       </span>{' '}
-      {log.status !== 'success' &&
-        log.status !== 'pending' && (
-          <ButtonGroup>
-            <Tooltip content={_('copyToClipboard')}>
-              <CopyToClipboard text={formattedLog}>
-                <Button size='small'>
-                  <Icon icon='clipboard' />
-                </Button>
-              </CopyToClipboard>
-            </Tooltip>
-            {CAN_REPORT_BUG && (
-              <ReportBugButton
-                message={`\`\`\`json\n${formattedLog}\n\`\`\``}
-                size='small'
-                title='Backup job failed'
-              />
-            )}
-          </ButtonGroup>
+      <ButtonGroup>
+        <Tooltip content={_('copyToClipboard')}>
+          <CopyToClipboard text={formattedLog}>
+            <Button size='small'>
+              <Icon icon='clipboard' />
+            </Button>
+          </CopyToClipboard>
+        </Tooltip>
+        {CAN_REPORT_BUG && (
+          <ReportBugButton
+            message={`\`\`\`json\n${formattedLog}\n\`\`\``}
+            size='small'
+            title='Backup job failed'
+          />
         )}
+      </ButtonGroup>
     </span>,
     <LogAlertBody id={log.id} />
   )
