@@ -958,11 +958,14 @@ export const copyVm = (vm, sr, name, compress) => {
         title: _('copyVm'),
         body: <CopyVmModalBody vm={vm} />,
       }).then(params => {
-        if (!params.sr) {
+        const fullCopy = params.copyMode === 'fullCopy'
+        if (fullCopy && !params.sr) {
           error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
           return
         }
-        return _call('vm.copy', { vm: vmId, ...params })
+        return fullCopy
+          ? _call('vm.copy', { vm: vmId, ...params })
+          : cloneVm({ id: vmId, name_label: params.name })
       }, noop)
 }
 

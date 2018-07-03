@@ -9,50 +9,105 @@ import { Toggle } from '../../form'
 import { injectIntl } from 'react-intl'
 
 class CopyVmModalBody extends Component {
-  state = { compress: false }
+  state = {
+    compress: false,
+    copyMode: 'fastClone',
+  }
 
   get value () {
-    const { state } = this
+    const { props, state } = this
     return {
       compress: state.compress,
-      name: this.state.name || this.props.vm.name_label,
-      sr: state.sr.id,
+      copyMode: state.copyMode,
+      name: state.name || props.vm.name_label,
+      sr: state.sr && state.sr.id,
     }
   }
 
-  _onChangeSr = sr => this.setState({ sr })
-  _onChangeName = event => this.setState({ name: event.target.value })
   _onChangeCompress = compress => this.setState({ compress })
+  _onChangeCopyMode = event =>
+    this.setState({
+      compress: false,
+      copyMode: event.target.value,
+      name: '',
+      sr: '',
+    })
+  _onChangeName = event => this.setState({ name: event.target.value })
+  _onChangeSr = sr => this.setState({ sr })
 
   render () {
     const { formatMessage } = this.props.intl
+    const { compress, copyMode, name, sr } = this.state
+
     return process.env.XOA_PLAN > 2 ? (
       <div>
-        <SingleLineRow>
-          <Col size={6}>{_('copyVmSelectSr')}</Col>
-          <Col size={6}>
-            <SelectSr onChange={this._onChangeSr} />
-          </Col>
-        </SingleLineRow>
-        &nbsp;
-        <SingleLineRow>
-          <Col size={6}>{_('copyVmName')}</Col>
-          <Col size={6}>
-            <input
-              className='form-control'
-              onChange={this._onChangeName}
-              placeholder={formatMessage(messages.copyVmNamePlaceholder)}
-              type='text'
-            />
-          </Col>
-        </SingleLineRow>
-        &nbsp;
-        <SingleLineRow>
-          <Col size={6}>{_('copyVmCompress')}</Col>
-          <Col size={6}>
-            <Toggle onChange={this._onChangeCompress} />
-          </Col>
-        </SingleLineRow>
+        <div>
+          <SingleLineRow>
+            <Col>
+              <input
+                checked={copyMode === 'fastClone'}
+                name='copyMode'
+                onChange={this._onChangeCopyMode}
+                type='radio'
+                value='fastClone'
+              />
+              <span> {_('fastCloneMode')} </span>
+            </Col>
+          </SingleLineRow>
+        </div>
+        <div className='mt-1'>
+          <SingleLineRow>
+            <Col>
+              <input
+                checked={copyMode === 'fullCopy'}
+                name='copyMode'
+                onChange={this._onChangeCopyMode}
+                type='radio'
+                value='fullCopy'
+              />
+              <span> {_('fullCopyMode')} </span>
+            </Col>
+          </SingleLineRow>
+          <SingleLineRow className='mt-1'>
+            <Col size={4} className='ml-2'>
+              {_('copyVmSelectSr')}
+            </Col>
+            <Col size={6}>
+              <SelectSr
+                disabled={copyMode !== 'fullCopy'}
+                onChange={this._onChangeSr}
+                value={sr}
+              />
+            </Col>
+          </SingleLineRow>
+          <SingleLineRow className='mt-1'>
+            <Col size={4} className='ml-2'>
+              {_('copyVmName')}
+            </Col>
+            <Col size={6}>
+              <input
+                className='form-control'
+                disabled={copyMode !== 'fullCopy'}
+                onChange={this._onChangeName}
+                placeholder={formatMessage(messages.copyVmNamePlaceholder)}
+                type='text'
+                value={name}
+              />
+            </Col>
+          </SingleLineRow>
+          <SingleLineRow className='mt-1'>
+            <Col size={4} className='ml-2'>
+              {_('copyVmCompress')}
+            </Col>
+            <Col size={6}>
+              <Toggle
+                disabled={copyMode !== 'fullCopy'}
+                onChange={this._onChangeCompress}
+                value={compress}
+              />
+            </Col>
+          </SingleLineRow>
+        </div>
       </div>
     ) : (
       <div>
