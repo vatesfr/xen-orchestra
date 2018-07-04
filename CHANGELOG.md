@@ -10,7 +10,7 @@
 ### Bug fixes
 
 - Delete schedules with their job [#3108](https://github.com/vatesfr/xen-orchestra/issues/3108) (PR [3124](https://github.com/vatesfr/xen-orchestra/pull/3124))
-- Remote creation: correctly reset form [#3140](https://github.com/vatesfr/xen-orchestra/issues/3140)
+- Remote creation: correctly reset form [#3140](https://github.com/vatesfr/xen-orchestra/issues/3140) (PR [3141](https://github.com/vatesfr/xen-orchestra/pull/3141))
 
 ### Released packages
 
