@@ -17,11 +17,9 @@ export const parse = string => {
     object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
   } else if (type === 'nfs') {
     object.type = 'nfs'
-    const [host, port, path = port] = rest.split(':')
+    const [, host, port, path] = /^([^:]+):(\d+)?:?([^:]+)$/.exec(rest)
     object.host = host
-    if (path !== port) {
-      object.port = port
-    }
+    object.port = port
     object.path = `/${trimStart(path, '/')}` // takes care of a missing leading slash coming from previous version format
   } else if (type === 'smb') {
     object.type = 'smb'

@@ -36,8 +36,21 @@ const data = deepFreeze({
   },
 })
 
+const NFS_WITH_PORT_DATA = {
+  'nfs with port': {
+    string: 'nfs://192.168.100.225:20:/media/nfs',
+    object: {
+      type: 'nfs',
+      host: '192.168.100.225',
+      port: '20',
+      path: '/media/nfs',
+    },
+  },
+}
+
 const parseData = deepFreeze({
   ...data,
+  ...NFS_WITH_PORT_DATA,
 
   'file with missing leading slash (#7)': {
     string: 'file://var/lib/xoa/backup',
@@ -58,6 +71,7 @@ const parseData = deepFreeze({
 
 const formatData = deepFreeze({
   ...data,
+  ...NFS_WITH_PORT_DATA,
 
   'file with local type': {
     string: 'file:///var/lib/xoa/backup',
