@@ -1,10 +1,11 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import Component from 'base-component'
 import filter from 'lodash/filter'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import React from 'react'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
@@ -272,16 +273,18 @@ export default class Remotes extends Component {
   constructor (props) {
     super(props)
     this.state = {
+      domain: '',
+      host: '',
+      name: '',
+      password: '',
+      path: '',
       type: 'nfs',
+      username: '',
     }
   }
 
-  _handleRemoteTypeSelection = type => this.setState({ type })
-
   _checkNameExists = () =>
-    some(this.props.remotes, values =>
-      some(values, ['name', this.refs.name.value])
-    )
+    some(this.props.remotes, values => some(values, ['name', this.state.name]))
       ? alert(
           <span>
             <Icon icon='error' /> {_('remoteTestName')}
@@ -291,26 +294,29 @@ export default class Remotes extends Component {
       : this._createRemote()
 
   _createRemote = async () => {
-    const { name, host, path, username, password, domain } = this.refs
-    const { type } = this.state
+    const { type, name, host, path, username, password, domain } = this.state
 
     const urlParams = {
       type,
-      host: host && host.value,
-      path: path && path.value,
+      host,
+      path,
     }
-    username && (urlParams.username = username.value)
-    password && (urlParams.password = password.value)
-    domain && (urlParams.domain = domain.value)
+    username && (urlParams.username = username)
+    password && (urlParams.password = password)
+    domain && (urlParams.domain = domain)
 
     const url = format(urlParams)
-    return createRemote(name && name.value, url).then(
+    return createRemote(name, url).then(
       () => {
-        this.setState({ type: 'nfs' })
-        path && (path.value = '')
-        username && (username.value = '')
-        password && (password.value = '')
-        domain && (domain.value = '')
+        this.setState({
+          domain: '',
+          host: '',
+          name: '',
+          password: '',
+          path: '',
+          type: 'nfs',
+          username: '',
+        })
       },
       err => error('Create Remote', err.message || String(err))
     )
@@ -318,7 +324,7 @@ export default class Remotes extends Component {
 
   render () {
     const { remotes = {} } = this.props
-    const { type } = this.state
+    const { type, name, host, path, username, password, domain } = this.state
 
     return (
       <div>
@@ -371,11 +377,9 @@ export default class Remotes extends Component {
             <select
               id='newRemoteType'
               className='form-control'
-              defaultValue={type}
-              onChange={event => {
-                this._handleRemoteTypeSelection(event.target.value)
-              }}
+              onChange={this.linkState('type')}
               required
+              value={type}
             >
               {map(remoteTypes, (label, key) =>
                 _({ key }, label, message => (
@@ -389,13 +393,14 @@ export default class Remotes extends Component {
           </div>
           <div className='form-group'>
             <input
-              type='text'
-              ref='name'
               className='form-control'
+              onChange={this.linkState('name')}
               placeholder={this.props.intl.formatMessage(
                 messages.remoteMyNamePlaceHolder
               )}
               required
+              type='text'
+              value={name}
             />
           </div>
           {type === 'file' && (
@@ -403,13 +408,14 @@ export default class Remotes extends Component {
               <div className='input-group'>
                 <span className='input-group-addon'>/</span>
                 <input
-                  type='text'
-                  ref='path'
-                  pattern='^(([^/]+)+(/[^/]+)*)?$'
                   className='form-control'
+                  onChange={this.linkState('path')}
+                  pattern='^(([^/]+)+(/[^/]+)*)?$'
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteLocalPlaceHolderPath
                   )}
+                  type='text'
+                  value={path}
                 />
               </div>
             </fieldset>
@@ -418,25 +424,27 @@ export default class Remotes extends Component {
             <fieldset>
               <div className='form-group'>
                 <input
-                  type='text'
-                  ref='host'
                   className='form-control'
+                  onChange={this.linkState('host')}
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteNfsPlaceHolderHost
                   )}
+                  type='text'
+                  value={host}
                   required
                 />
               </div>
               <div className='input-group form-group'>
                 <span className='input-group-addon'>/</span>
                 <input
-                  type='text'
-                  ref='path'
-                  pattern='^(([^/]+)+(/[^/]+)*)?$'
                   className='form-control'
+                  onChange={this.linkState('path')}
+                  pattern='^(([^/]+)+(/[^/]+)*)?$'
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteNfsPlaceHolderPath
                   )}
+                  type='text'
+                  value={path}
                 />
               </div>
             </fieldset>
@@ -446,55 +454,60 @@ export default class Remotes extends Component {
               <div className='input-group form-group'>
                 <span className='input-group-addon'>\\</span>
                 <input
-                  type='text'
-                  ref='host'
-                  pattern='^([^\\/]+)\\([^\\/]+)$'
                   className='form-control'
+                  onChange={this.linkState('host')}
+                  pattern='^([^\\/]+)\\([^\\/]+)$'
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteSmbPlaceHolderAddressShare
                   )}
+                  type='text'
+                  value={host}
                   required
                 />
                 <span className='input-group-addon'>\</span>
                 <input
-                  type='text'
-                  ref='path'
-                  pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
                   className='form-control'
+                  onChange={this.linkState('path')}
+                  pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteSmbPlaceHolderRemotePath
                   )}
+                  type='text'
+                  value={path}
                 />
               </div>
               <div className='form-group'>
                 <input
-                  type='text'
-                  ref='username'
                   className='form-control'
+                  onChange={this.linkState('username')}
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteSmbPlaceHolderUsername
                   )}
+                  type='text'
+                  value={username}
                 />
               </div>
               <div className='form-group'>
                 <input
-                  type='text'
-                  ref='password'
                   className='form-control'
+                  onChange={this.linkState('password')}
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteSmbPlaceHolderPassword
                   )}
+                  type='text'
+                  value={password}
                 />
               </div>
               <div className='form-group'>
                 <input
-                  type='text'
-                  ref='domain'
                   className='form-control'
+                  onChange={this.linkState('domain')}
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteSmbPlaceHolderDomain
                   )}
                   required
+                  type='text'
+                  value={domain}
                 />
               </div>
             </fieldset>
