@@ -11,7 +11,7 @@ import { injectIntl } from 'react-intl'
 class CopyVmModalBody extends Component {
   state = {
     compress: false,
-    copyMode: 'fastClone',
+    copyMode: 'fullCopy',
   }
 
   get value () {
@@ -29,7 +29,6 @@ class CopyVmModalBody extends Component {
     this.setState({
       compress: false,
       copyMode: event.target.value,
-      name: '',
       sr: '',
     })
   _onChangeName = event => this.setState({ name: event.target.value })
@@ -43,15 +42,15 @@ class CopyVmModalBody extends Component {
       <div>
         <div>
           <SingleLineRow>
-            <Col>
+            <Col size={4}>{_('copyVmName')}</Col>
+            <Col size={6} className='ml-2'>
               <input
-                checked={copyMode === 'fastClone'}
-                name='copyMode'
-                onChange={this._onChangeCopyMode}
-                type='radio'
-                value='fastClone'
+                className='form-control'
+                onChange={this._onChangeName}
+                placeholder={formatMessage(messages.copyVmNamePlaceholder)}
+                type='text'
+                value={name}
               />
-              <span> {_('fastCloneMode')} </span>
             </Col>
           </SingleLineRow>
         </div>
@@ -82,21 +81,6 @@ class CopyVmModalBody extends Component {
           </SingleLineRow>
           <SingleLineRow className='mt-1'>
             <Col size={4} className='ml-2'>
-              {_('copyVmName')}
-            </Col>
-            <Col size={6}>
-              <input
-                className='form-control'
-                disabled={copyMode !== 'fullCopy'}
-                onChange={this._onChangeName}
-                placeholder={formatMessage(messages.copyVmNamePlaceholder)}
-                type='text'
-                value={name}
-              />
-            </Col>
-          </SingleLineRow>
-          <SingleLineRow className='mt-1'>
-            <Col size={4} className='ml-2'>
               {_('copyVmCompress')}
             </Col>
             <Col size={6}>
@@ -105,6 +89,20 @@ class CopyVmModalBody extends Component {
                 onChange={this._onChangeCompress}
                 value={compress}
               />
+            </Col>
+          </SingleLineRow>
+        </div>
+        <div>
+          <SingleLineRow className='mt-1'>
+            <Col>
+              <input
+                checked={copyMode === 'fastClone'}
+                name='copyMode'
+                onChange={this._onChangeCopyMode}
+                type='radio'
+                value='fastClone'
+              />
+              <span> {_('fastCloneMode')} </span>
             </Col>
           </SingleLineRow>
         </div>
