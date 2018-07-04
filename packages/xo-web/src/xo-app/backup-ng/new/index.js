@@ -442,13 +442,7 @@ export default [
           notValues,
         },
       }),
-      resetJob: ({ updateParams }) => (state, { job }) => {
-        if (job !== undefined) {
-          updateParams()
-        }
-
-        return getInitialState()
-      },
+      resetJob: () => () => getInitialState(),
       setReportWhen: (_, { value }) => state => ({
         ...state,
         reportWhen: value,
