@@ -16,6 +16,7 @@ import { error } from 'notification'
 import { format, parse } from 'xo-remote-parser'
 import { injectIntl } from 'react-intl'
 import { Number, Password, Text } from 'editable'
+import { Number as InputNumber } from 'form'
 
 import {
   createRemote,
@@ -289,6 +290,7 @@ export default class Remotes extends Component {
       name: '',
       password: '',
       path: '',
+      port: '',
       type: 'nfs',
       username: '',
     }
@@ -305,13 +307,22 @@ export default class Remotes extends Component {
       : this._createRemote()
 
   _createRemote = async () => {
-    const { type, name, host, port, path, username, password, domain } = this.state
+    const {
+      domain,
+      host,
+      name,
+      password,
+      path,
+      port,
+      type,
+      username,
+    } = this.state
 
     const urlParams = {
-      type,
       host,
       path,
-      port: +port.value !== 0 ? port.value : undefined,
+      port,
+      type,
     }
     username && (urlParams.username = username)
     password && (urlParams.password = password)
@@ -333,6 +344,7 @@ export default class Remotes extends Component {
           name: '',
           password: '',
           path: '',
+          port: '',
           type: 'nfs',
           username: '',
         })
@@ -343,7 +355,16 @@ export default class Remotes extends Component {
 
   render () {
     const { remotes = {} } = this.props
-    const { type, name, host, path, username, password, domain } = this.state
+    const {
+      domain,
+      host,
+      name,
+      password,
+      path,
+      port,
+      type,
+      username,
+    } = this.state
 
     return (
       <div>
@@ -453,13 +474,13 @@ export default class Remotes extends Component {
                   required
                 />
                 <br />
-                <input
-                  className='form-control'
-                  ref='port'
+                <InputNumber
+                  onChange={this.linkState('port')}
+                  optional
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteNfsPlaceHolderPort
                   )}
-                  type='number'
+                  value={port}
                 />
               </div>
               <div className='input-group form-group'>

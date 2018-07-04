@@ -18,7 +18,7 @@ import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from '@julien-f/freactal'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
-import { Toggle } from 'form'
+import { Number, Toggle } from 'form'
 import {
   cloneDeep,
   flatten,
@@ -42,7 +42,7 @@ import {
 
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
-import { FormFeedback, FormGroup, Input, Number, Ul, Li } from './utils'
+import { FormFeedback, FormGroup, Input, Ul, Li } from './utils'
 
 // ===================================================================
 
