@@ -705,84 +705,57 @@ export default [
               <Card>
                 <CardHeader>
                   {_(state.computedBackupMode ? 'backup' : 'deltaBackup')}
+                  <Link
+                    className='btn btn-primary pull-right'
+                    target='_blank'
+                    to='/settings/remotes'
+                  >
+                    <Icon icon='settings' />{' '}
+                    <strong>{_('remotesSettings')}</strong>
+                  </Link>
                 </CardHeader>
                 <CardBlock>
-{isEmpty(remotesById) ? (
-                      <span className='text-warning'>
-                        <Icon icon='alarm' /> {_('createRemoteMessage')}
-                      </span>
-                    ) : (
-                      <FormGroup>
-                        <label>
-                          <strong>{_('backupTargetRemotes')}</strong>
-                        </label>
-                        <FormFeedback
-                          component={SelectRemote}
-                          message={_('missingRemotes')}
-                          onChange={effects.addRemote}
-                          predicate={state.remotePredicate}
-                          error={
-                            state.showErrors ? state.missingRemotes : undefined
-                          }
-                          value={null}
-                        />
-                        <br />
-                        <Ul>
-                          {map(state.remotes, (id, key) => (
-                            <Li key={id}>
-                              {remotesById !== undefined &&
-                                renderXoItem({
-                                  type: 'remote',
-                                  value: remotesById[id],
-                                })}
-                              <ActionButton
-                                btnStyle='danger'
-                                className='pull-right'
-                                handler={effects.deleteRemote}
-                                handlerParam={key}
-                                icon='delete'
-                                size='small'
-                              />
-                            </Li>
-                          ))}
-                        </Ul>
-                      </FormGroup>
-                    )}
-                  <FormGroup>
-                    <label>
-                      <strong>{_('backupTargetRemotes')}</strong>
-                    </label>
-                    <FormFeedback
-                      component={SelectRemote}
-                      message={_('missingRemotes')}
-                      onChange={effects.addRemote}
-                      predicate={state.remotePredicate}
-                      error={
-                        state.showErrors ? state.missingRemotes : undefined
-                      }
-                      value={null}
-                    />
-                    <br />
-                    <Ul>
-                      {map(state.computedRemotes, (id, key) => (
-                        <Li key={id}>
-                          {props.remotesById !== undefined &&
-                            renderXoItem({
-                              type: 'remote',
-                              value: props.remotesById[id],
-                            })}
-                          <ActionButton
-                            btnStyle='danger'
-                            className='pull-right'
-                            handler={effects.deleteRemote}
-                            handlerParam={key}
-                            icon='delete'
-                            size='small'
-                          />
-                        </Li>
-                      ))}
-                    </Ul>
-                  </FormGroup>
+                  {isEmpty(props.remotesById) ? (
+                    <span className='text-warning'>
+                      <Icon icon='alarm' /> {_('createRemoteMessage')}
+                    </span>
+                  ) : (
+                    <FormGroup>
+                      <label>
+                        <strong>{_('backupTargetRemotes')}</strong>
+                      </label>
+                      <FormFeedback
+                        component={SelectRemote}
+                        message={_('missingRemotes')}
+                        onChange={effects.addRemote}
+                        predicate={state.remotePredicate}
+                        error={
+                          state.showErrors ? state.missingRemotes : undefined
+                        }
+                        value={null}
+                      />
+                      <br />
+                      <Ul>
+                        {map(state.computedRemotes, (id, key) => (
+                          <Li key={id}>
+                            {props.remotesById !== undefined &&
+                              renderXoItem({
+                                type: 'remote',
+                                value: props.remotesById[id],
+                              })}
+                            <ActionButton
+                              btnStyle='danger'
+                              className='pull-right'
+                              handler={effects.deleteRemote}
+                              handlerParam={key}
+                              icon='delete'
+                              size='small'
+                            />
+                          </Li>
+                        ))}
+                      </Ul>
+                    </FormGroup>
+                  )}
                 </CardBlock>
               </Card>
             )}
