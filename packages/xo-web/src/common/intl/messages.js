@@ -203,6 +203,7 @@ const messages = {
   formName: 'Name',
   formReset: 'Reset',
   formSave: 'Save',
+  formNotes: 'Notes',
   add: 'Add',
   selectAll: 'Select all',
   remove: 'Remove',

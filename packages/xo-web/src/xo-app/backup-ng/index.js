@@ -141,6 +141,28 @@ class JobsTable extends React.Component {
         component: SchedulePreviewBody,
         name: _('jobSchedules'),
       },
+      {
+        itemRenderer: job => {
+          const { concurrency, offlineSnapshot } = job.settings[''] || {}
+
+          return (
+            <ul style={{ listStyleType: 'none' }}>
+              {concurrency > 0 && (
+                <li>{_.keyValue(_('concurrency'), concurrency)}</li>
+              )}
+              {offlineSnapshot && (
+                <li>
+                  {_.keyValue(
+                    _('offlineSnapshot'),
+                    <span className='text-success'>{_('stateEnabled')}</span>
+                  )}
+                </li>
+              )}
+            </ul>
+          )
+        },
+        name: _('formNotes'),
+      },
     ],
     individualActions: [
       {
