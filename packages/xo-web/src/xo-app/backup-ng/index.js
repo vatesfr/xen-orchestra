@@ -146,27 +146,22 @@ class JobsTable extends React.Component {
           const { concurrency, offlineSnapshot } = job.settings[''] || {}
 
           return (
-            <div>
+            <ul style={{ listStyleType: 'none' }}>
               {concurrency > 0 && (
-                <span>
-                  <label>
-                    <strong>{_('concurrency')}</strong>
-                  </label>
+                <li>
+                  <strong>{_('concurrency')}</strong>
                   <span className='pull-right'>{concurrency}</span>
-                  {offlineSnapshot && <hr />}
-                </span>
+                </li>
               )}
               {offlineSnapshot && (
-                <span>
-                  <label>
-                    <strong>{_('offlineSnapshot')}</strong>
-                  </label>
+                <li>
+                  <strong>{_('offlineSnapshot')}</strong>
                   <span className='text-success pull-right'>
                     {_('stateEnabled')}
                   </span>
-                </span>
+                </li>
               )}
-            </div>
+            </ul>
           )
         },
         name: _('formNotes'),
