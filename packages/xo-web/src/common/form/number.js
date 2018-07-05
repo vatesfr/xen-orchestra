@@ -15,18 +15,10 @@ const Number_ = [
     },
   }),
   injectState,
-  ({
-    state,
-    effects,
-    value,
-    className = 'form-control',
-    min = 0,
-    ...props
-  }) => (
+  ({ state, effects, value, className = 'form-control', ...props }) => (
     <input
       {...props}
       className={className}
-      min={min}
       onChange={effects.onChange}
       type='number'
       value={value === undefined ? '' : String(value)}
