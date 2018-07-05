@@ -148,17 +148,14 @@ class JobsTable extends React.Component {
           return (
             <ul style={{ listStyleType: 'none' }}>
               {concurrency > 0 && (
-                <li>
-                  <strong>{_('concurrency')}</strong>
-                  <span className='pull-right'>{concurrency}</span>
-                </li>
+                <li>{_.keyValue(_('concurrency'), concurrency)}</li>
               )}
               {offlineSnapshot && (
                 <li>
-                  <strong>{_('offlineSnapshot')}</strong>
-                  <span className='text-success pull-right'>
-                    {_('stateEnabled')}
-                  </span>
+                  {_.keyValue(
+                    _('offlineSnapshot'),
+                    <span className='text-success'>{_('stateEnabled')}</span>
+                  )}
                 </li>
               )}
             </ul>
