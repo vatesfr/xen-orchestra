@@ -817,7 +817,9 @@ export default [
                       <strong>{_('concurrency')}</strong>
                     </label>
                     <Number
+                      min='0'
                       onChange={effects.setConcurrency}
+                      required
                       value={state.concurrency}
                     />
                   </FormGroup>
