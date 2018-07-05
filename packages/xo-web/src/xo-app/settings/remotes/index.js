@@ -11,7 +11,7 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
-import { alert } from 'modal'
+import { alert, confirm } from 'modal'
 import { error } from 'notification'
 import { format, parse } from 'xo-remote-parser'
 import { Password, Text } from 'editable'
@@ -304,6 +304,13 @@ export default class Remotes extends Component {
     username && (urlParams.username = username)
     password && (urlParams.password = password)
     domain && (urlParams.domain = domain)
+
+    if (type === 'file') {
+      await confirm({
+        title: _('localRemoteWarningTitle'),
+        body: _('localRemoteWarningMessage'),
+      })
+    }
 
     const url = format(urlParams)
     return createRemote(name, url).then(
