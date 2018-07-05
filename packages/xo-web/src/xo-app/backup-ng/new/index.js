@@ -824,6 +824,9 @@ export default [
                   <FormGroup>
                     <label>
                       <strong>{_('offlineSnapshot')}</strong>{' '}
+                      <Tooltip content={_('offlineSnapshotInfo')}>
+                        <Icon icon='info' />
+                      </Tooltip>{' '}
                       <input
                         checked={state.offlineSnapshot}
                         name='offlineSnapshot'
