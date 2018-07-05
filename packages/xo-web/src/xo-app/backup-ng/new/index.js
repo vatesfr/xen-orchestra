@@ -818,6 +818,7 @@ export default [
                     </label>
                     <Number
                       onChange={effects.setConcurrency}
+                      required
                       value={state.concurrency}
                     />
                   </FormGroup>

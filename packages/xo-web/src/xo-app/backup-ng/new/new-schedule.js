@@ -115,7 +115,6 @@ export default [
               <Number
                 onChange={effects.setExportRetention}
                 value={state.exportRetention}
-                optional
               />
             </FormGroup>
           )}
@@ -127,7 +126,6 @@ export default [
               <Number
                 onChange={effects.setCopyRetention}
                 value={state.copyRetention}
-                optional
               />
             </FormGroup>
           )}
@@ -139,7 +137,6 @@ export default [
               <Number
                 onChange={effects.setSnapshotRetention}
                 value={state.snapshotRetention}
-                optional
               />
             </FormGroup>
           )}

@@ -6,15 +6,7 @@ const Number = [
   provideState({
     effects: {
       onChange: (_, { target: { value } }) => (state, props) => {
-        if (value === '') {
-          if (!props.optional) {
-            return
-          }
-
-          props.onChange(undefined)
-          return
-        }
-        props.onChange(+value)
+        props.onChange(value === '' ? undefined : +value)
       },
     },
   }),
@@ -31,9 +23,9 @@ const Number = [
       {...props}
       className={className}
       min={min}
-      value={value === undefined ? undefined : String(value)}
-      type='number'
       onChange={effects.onChange}
+      type='number'
+      value={value === undefined ? '' : String(value)}
     />
   ),
 ].reduceRight((value, decorator) => decorator(value))
@@ -41,7 +33,6 @@ const Number = [
 Number.propTypes = {
   onChange: PropTypes.func.isRequired,
   value: PropTypes.number.isRequired,
-  optional: PropTypes.bool,
 }
 
 export default Number

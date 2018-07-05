@@ -476,7 +476,6 @@ export default class Remotes extends Component {
                 <br />
                 <InputNumber
                   onChange={this.linkState('port')}
-                  optional
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteNfsPlaceHolderPort
                   )}
