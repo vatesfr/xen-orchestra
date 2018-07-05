@@ -471,6 +471,7 @@ const messages = {
   remoteMyNamePlaceHolder: 'Name *',
   remoteLocalPlaceHolderPath: '/path/to/backup',
   remoteNfsPlaceHolderHost: 'host *',
+  remoteNfsPlaceHolderPort: 'Port',
   remoteNfsPlaceHolderPath: 'path/to/backup',
   remoteSmbPlaceHolderRemotePath: 'subfolder [path\\\\to\\\\backup]',
   remoteSmbPlaceHolderUsername: 'Username',

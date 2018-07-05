@@ -7,6 +7,7 @@
 - [Backup NG form] Add a link to the remotes' settings [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) [#3106](https://github.com/vatesfr/xen-orchestra/issues/3106) [#2299](https://github.com/vatesfr/xen-orchestra/issues/2299) (PR [#3128](https://github.com/vatesfr/xen-orchestra/pull/3128))
 - [Backup NG logs] Make copy to clipboard and report buttons always available [#3130](https://github.com/vatesfr/xen-orchestra/issues/3130) (PR [#3133](https://github.com/vatesfr/xen-orchestra/pull/3133))
 - Warning message when creating a local remote [#3105](https://github.com/vatesfr/xen-orchestra/issues/3105) (PR [3142](https://github.com/vatesfr/xen-orchestra/pull/3142))
+- [Remotes] Allow optional port for NFS remote [2299](https://github.com/vatesfr/xen-orchestra/issues/2299) (PR [#3131](https://github.com/vatesfr/xen-orchestra/pull/3131))
 
 ### Bug fixes
 
@@ -15,6 +16,8 @@
 
 ### Released packages
 
+- xo-remote-parser 0.4.0
+- @xen-orchestra/fs 0.2.0
 - vhd-lib 0.3.0
 - vhd-cli 0.1.0
 - xo-server v5.22.0

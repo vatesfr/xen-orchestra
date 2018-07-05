@@ -16,6 +16,7 @@ import getEventValue from '../get-event-value'
 import propTypes from '../prop-types-decorator'
 import { formatSizeRaw, parseSize } from '../utils'
 
+export Number from './number'
 export Select from './select'
 
 // ===================================================================

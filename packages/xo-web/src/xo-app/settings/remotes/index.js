@@ -14,8 +14,9 @@ import { addSubscriptions } from 'utils'
 import { alert, confirm } from 'modal'
 import { error } from 'notification'
 import { format, parse } from 'xo-remote-parser'
-import { Password, Text } from 'editable'
 import { injectIntl } from 'react-intl'
+import { Number, Password, Text } from 'editable'
+import { Number as InputNumber } from 'form'
 
 import {
   createRemote,
@@ -34,7 +35,9 @@ const remoteTypes = {
   smb: 'remoteTypeSmb',
 }
 const _changeUrlElement = (remote, value, element) =>
-  editRemote(remote, { url: format({ ...remote, [element]: value }) })
+  editRemote(remote, {
+    url: format({ ...remote, [element]: value === null ? undefined : value }),
+  })
 const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const COLUMN_NAME = {
   component: @injectIntl
@@ -120,6 +123,15 @@ const COLUMNS_NFS_REMOTE = [
                 messages.remoteNfsPlaceHolderHost
               )}
               value={remote.host}
+            />
+            :
+            <Number
+              nullable
+              onChange={v => _changeUrlElement(remote, v, 'port')}
+              placeholder={intl.formatMessage(
+                messages.remoteNfsPlaceHolderPort
+              )}
+              value={remote.port || ''}
             />
             :
             <Text
@@ -278,6 +290,7 @@ export default class Remotes extends Component {
       name: '',
       password: '',
       path: '',
+      port: '',
       type: 'nfs',
       username: '',
     }
@@ -294,12 +307,22 @@ export default class Remotes extends Component {
       : this._createRemote()
 
   _createRemote = async () => {
-    const { type, name, host, path, username, password, domain } = this.state
+    const {
+      domain,
+      host,
+      name,
+      password,
+      path,
+      port,
+      type,
+      username,
+    } = this.state
 
     const urlParams = {
-      type,
       host,
       path,
+      port,
+      type,
     }
     username && (urlParams.username = username)
     password && (urlParams.password = password)
@@ -321,6 +344,7 @@ export default class Remotes extends Component {
           name: '',
           password: '',
           path: '',
+          port: '',
           type: 'nfs',
           username: '',
         })
@@ -331,7 +355,16 @@ export default class Remotes extends Component {
 
   render () {
     const { remotes = {} } = this.props
-    const { type, name, host, path, username, password, domain } = this.state
+    const {
+      domain,
+      host,
+      name,
+      password,
+      path,
+      port,
+      type,
+      username,
+    } = this.state
 
     return (
       <div>
@@ -439,6 +472,15 @@ export default class Remotes extends Component {
                   type='text'
                   value={host}
                   required
+                />
+                <br />
+                <InputNumber
+                  onChange={this.linkState('port')}
+                  optional
+                  placeholder={this.props.intl.formatMessage(
+                    messages.remoteNfsPlaceHolderPort
+                  )}
+                  value={port}
                 />
               </div>
               <div className='input-group form-group'>

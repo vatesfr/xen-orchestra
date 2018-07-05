@@ -3,6 +3,8 @@ import map from 'lodash/map'
 import trim from 'lodash/trim'
 import trimStart from 'lodash/trimStart'
 
+const NFS_RE = /^([^:]+):(?:(\d+):)?([^:]+)$/
+
 const sanitizePath = (...paths) =>
   filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join(
     '/'
@@ -17,8 +19,9 @@ export const parse = string => {
     object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
   } else if (type === 'nfs') {
     object.type = 'nfs'
-    const [host, path] = rest.split(':')
+    const [, host, port, path] = NFS_RE.exec(rest)
     object.host = host
+    object.port = port
     object.path = `/${trimStart(path, '/')}` // takes care of a missing leading slash coming from previous version format
   } else if (type === 'smb') {
     object.type = 'smb'
@@ -39,11 +42,19 @@ export const parse = string => {
   return object
 }
 
-export const format = ({ type, host, path, username, password, domain }) => {
+export const format = ({
+  type,
+  host,
+  path,
+  port,
+  username,
+  password,
+  domain,
+}) => {
   type === 'local' && (type = 'file')
   let string = `${type}://`
   if (type === 'nfs') {
-    string += `${host}:`
+    string += `${host}:${port !== undefined ? port + ':' : ''}`
   }
   if (type === 'smb') {
     string += `${username}:${password}@${domain}\\\\${host}`

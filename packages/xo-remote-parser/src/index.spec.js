@@ -31,6 +31,16 @@ const data = deepFreeze({
     object: {
       type: 'nfs',
       host: '192.168.100.225',
+      port: undefined,
+      path: '/media/nfs',
+    },
+  },
+  'nfs with port': {
+    string: 'nfs://192.168.100.225:20:/media/nfs',
+    object: {
+      type: 'nfs',
+      host: '192.168.100.225',
+      port: '20',
       path: '/media/nfs',
     },
   },

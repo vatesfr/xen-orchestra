@@ -7,8 +7,9 @@ import { Card, CardBlock } from 'card'
 import { generateRandomId } from 'utils'
 import { injectState, provideState } from '@julien-f/freactal'
 import { isEqual } from 'lodash'
+import { Number } from 'form'
 
-import { FormFeedback, FormGroup, Number } from './utils'
+import { FormFeedback, FormGroup } from './utils'
 
 export default [
   injectState,
