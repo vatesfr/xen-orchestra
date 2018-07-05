@@ -15,7 +15,7 @@ const Number_ = [
             return
           }
         }
-        
+
         props.onChange(value)
       },
     },
