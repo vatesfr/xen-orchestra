@@ -10,7 +10,7 @@ const Number_ = [
           // Firefox allows putting alphabetical characters in the input number
           return
         }
-        props.onChange(value === '' ? undefined : +value)
+        props.onChange(value.trim() === '' ? undefined : +value)
       },
     },
   }),
@@ -26,7 +26,7 @@ const Number_ = [
   ),
 ].reduceRight((value, decorator) => decorator(value))
 
-Number.propTypes = {
+Number_.propTypes = {
   onChange: PropTypes.func.isRequired,
   value: PropTypes.number.isRequired,
 }
