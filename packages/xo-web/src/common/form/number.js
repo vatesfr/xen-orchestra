@@ -6,11 +6,17 @@ const Number_ = [
   provideState({
     effects: {
       onChange: (_, { target: { value } }) => (state, props) => {
-        if (Number.isNaN(+value)) {
-          // Firefox allows putting alphabetical characters in the input number
-          return
+        value = value.trim()
+        if (value === '') {
+          value = undefined
+        } else {
+          value = +value
+          if (Number.isNaN(value)) {
+            return
+          }
         }
-        props.onChange(value.trim() === '' ? undefined : +value)
+        
+        props.onChange(value)
       },
     },
   }),
