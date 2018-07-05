@@ -790,13 +790,16 @@ export class SelectResourceSetsSr extends React.PureComponent {
   set value (value) {
     this.refs.select.value = value
   }
-  _getSrs = createSelector(
-    () => this.props.resourceSet,
-    ({ objectsByType }) => {
-      const { predicate } = this.props
-      const srs = objectsByType['SR']
-      return sortBy(predicate ? filter(srs, predicate) : srs, 'name_label')
-    }
+
+  _getSrs = createSort(
+    createFilter(
+      () => this.props.resourceSet.objectsByType.SR,
+      createSelector(
+        () => this.props.predicate,
+        predicate => predicate || (() => true)
+      )
+    ),
+    'name_label'
   )
 
   render () {
