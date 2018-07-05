@@ -141,6 +141,36 @@ class JobsTable extends React.Component {
         component: SchedulePreviewBody,
         name: _('jobSchedules'),
       },
+      {
+        itemRenderer: job => {
+          const { concurrency, offlineSnapshot } = job.settings[''] || {}
+
+          return (
+            <div>
+              {concurrency > 0 && (
+                <span>
+                  <label>
+                    <strong>{_('concurrency')}</strong>
+                  </label>
+                  <span className='pull-right'>{concurrency}</span>
+                  {offlineSnapshot && <hr />}
+                </span>
+              )}
+              {offlineSnapshot && (
+                <span>
+                  <label>
+                    <strong>{_('offlineSnapshot')}</strong>
+                  </label>
+                  <span className='text-success pull-right'>
+                    {_('stateEnabled')}
+                  </span>
+                </span>
+              )}
+            </div>
+          )
+        },
+        name: _('formNotes'),
+      },
     ],
     individualActions: [
       {
