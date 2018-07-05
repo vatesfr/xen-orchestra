@@ -3,7 +3,7 @@ import map from 'lodash/map'
 import trim from 'lodash/trim'
 import trimStart from 'lodash/trimStart'
 
-const URL_RE = /^([^:]+):(?:(\d+):)?([^:]+)$/
+const NFS_RE = /^([^:]+):(?:(\d+):)?([^:]+)$/
 
 const sanitizePath = (...paths) =>
   filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join(
@@ -19,7 +19,7 @@ export const parse = string => {
     object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
   } else if (type === 'nfs') {
     object.type = 'nfs'
-    const [, host, port, path] = URL_RE.exec(rest)
+    const [, host, port, path] = NFS_RE.exec(rest)
     object.host = host
     object.port = port
     object.path = `/${trimStart(path, '/')}` // takes care of a missing leading slash coming from previous version format
