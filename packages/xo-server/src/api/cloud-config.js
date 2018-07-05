@@ -2,7 +2,6 @@ export function getAll () {
   return this.getAllCloudConfigs()
 }
 
-getAll.permission = 'admin'
 getAll.description = 'Gets all existing cloud configs templates'
 
 export function create (props) {
