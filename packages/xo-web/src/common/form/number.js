@@ -2,10 +2,14 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { injectState, provideState } from '@julien-f/freactal'
 
-const Number = [
+const Number_ = [
   provideState({
     effects: {
       onChange: (_, { target: { value } }) => (state, props) => {
+        if (Number.isNaN(+value)) {
+          // Firefox allows putting alphabetical characters in the input number
+          return
+        }
         props.onChange(value === '' ? undefined : +value)
       },
     },
@@ -35,4 +39,4 @@ Number.propTypes = {
   value: PropTypes.number.isRequired,
 }
 
-export default Number
+export default Number_

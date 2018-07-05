@@ -113,6 +113,7 @@ export default [
                 <strong>{_('exportRetention')}</strong>
               </label>
               <Number
+                min='0'
                 onChange={effects.setExportRetention}
                 value={state.exportRetention}
               />
@@ -124,6 +125,7 @@ export default [
                 <strong>{_('copyRetention')}</strong>
               </label>
               <Number
+                min='0'
                 onChange={effects.setCopyRetention}
                 value={state.copyRetention}
               />
@@ -135,6 +137,7 @@ export default [
                 <strong>{_('snapshotRetention')}</strong>
               </label>
               <Number
+                min='0'
                 onChange={effects.setSnapshotRetention}
                 value={state.snapshotRetention}
               />
