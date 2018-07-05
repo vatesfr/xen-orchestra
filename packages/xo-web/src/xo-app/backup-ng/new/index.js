@@ -817,14 +817,13 @@ export default [
                     <strong>{_('concurrency')}</strong>
                   </label>
                   <Number
-		    min='0'
+                    min='0'
                     onChange={effects.setConcurrency}
                     required
                     value={state.computedConcurrency}
                   />
                 </FormGroup>
                 <FormGroup>
-		<FormGroup>
                   <label>
                     <strong>{_('offlineSnapshot')}</strong>{' '}
                     <Tooltip content={_('offlineSnapshotInfo')}>
@@ -836,8 +835,8 @@ export default [
                       onChange={effects.setCheckboxValue}
                       type='checkbox'
                     />
-                    </label>
-              </FormGroup>
+                  </label>
+                </FormGroup>
               </CardBlock>
             </Card>
           </Col>
