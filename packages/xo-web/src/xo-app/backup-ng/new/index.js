@@ -74,7 +74,7 @@ const DEFAULT_VALUES = {
   schedules: {},
   settings: {},
   // Name
-  compression: true,
+  compression: false,
   name: '',
   vms: [],
   // Smart mode
