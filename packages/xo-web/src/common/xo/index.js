@@ -1211,15 +1211,10 @@ export const revertSnapshot = snapshot =>
   }).then(
     snapshotBefore =>
       _call('vm.revert', {
-        snapshot: resolveId(snapshot),
         snapshotBefore,
-      }).then(
-        () =>
-          success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage')),
-        err => {
-          error(_('vmRevertFailedTitle'), _('vmRevertFailedMessage'))
-          throw err
-        }
+        snapshot: resolveId(snapshot),
+      }).then(() =>
+        success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
       ),
     noop
   )
