@@ -83,6 +83,24 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
+const createGetTemporalDataMarkdown = formatDate => (
+  start,
+  end,
+  nbIndent = 0,
+  displayDuration = true
+) => {
+  const indent = '  '.repeat(nbIndent)
+
+  const markdown = [`${indent}- **Start time**: ${formatDate(start)}`]
+  if (end !== undefined) {
+    markdown.push(`${indent}- **End time**: ${formatDate(end)}`)
+    if (displayDuration) {
+      markdown.push(`${indent}- **Duration**: ${formatDuration(end - start)}`)
+    }
+  }
+  return markdown
+}
+
 class BackupReportsXoPlugin {
   constructor (xo) {
     this._xo = xo
@@ -126,6 +144,8 @@ class BackupReportsXoPlugin {
 
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
     const formatDate = createDateFormater(timezone)
+    const getTemporalDataMarkdown = createGetTemporalDataMarkdown(formatDate)
+
     if (
       (log.status === 'failure' || log.status === 'skipped') &&
       log.result !== undefined
@@ -134,9 +154,7 @@ class BackupReportsXoPlugin {
         `##  Global status: ${log.status}`,
         '',
         `- **mode**: ${mode}`,
-        `- **Start time**: ${formatDate(log.start)}`,
-        `- **End time**: ${formatDate(log.end)}`,
-        `- **Duration**: ${formatDuration(log.end - log.start)}`,
+        ...getTemporalDataMarkdown(log.start, log.end),
         `- **Error**: ${log.result.message}`,
         '---',
         '',
@@ -179,9 +197,7 @@ class BackupReportsXoPlugin {
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
         `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
-        `- **Start time**: ${formatDate(taskLog.start)}`,
-        `- **End time**: ${formatDate(taskLog.end)}`,
-        `- **Duration**: ${formatDuration(taskLog.end - taskLog.start)}`,
+        ...getTemporalDataMarkdown(taskLog.start, taskLog.end),
       ]
 
       const failedSubTasks = []
@@ -206,8 +222,12 @@ class BackupReportsXoPlugin {
         if (subTaskLog.message === 'snapshot') {
           snapshotText.push(
             `- **Snapshot** ${icon}`,
-            `  - **Start time**: ${formatDate(subTaskLog.start)}`,
-            `  - **End time**: ${formatDate(subTaskLog.end)}`
+            ...getTemporalDataMarkdown(
+              subTaskLog.start,
+              subTaskLog.end,
+              1,
+              false
+            )
           )
         } else if (subTaskLog.data.type === 'remote') {
           const id = subTaskLog.data.id
@@ -216,11 +236,7 @@ class BackupReportsXoPlugin {
             `  - **${
               remote !== undefined ? remote.name : `Remote Not found`
             }** (${id}) ${icon}`,
-            `    - **Start time**: ${formatDate(subTaskLog.start)}`,
-            `    - **End time**: ${formatDate(subTaskLog.end)}`,
-            `    - **Duration**: ${formatDuration(
-              subTaskLog.end - subTaskLog.start
-            )}`
+            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
           )
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(remote !== undefined ? remote.name : id)
@@ -236,11 +252,7 @@ class BackupReportsXoPlugin {
             sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, id]
           srsText.push(
             `  - **${srName}** (${srUuid}) ${icon}`,
-            `    - **Start time**: ${formatDate(subTaskLog.start)}`,
-            `    - **End time**: ${formatDate(subTaskLog.end)}`,
-            `    - **Duration**: ${formatDuration(
-              subTaskLog.end - subTaskLog.start
-            )}`
+            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
           )
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(sr !== undefined ? sr.name_label : id)
@@ -281,11 +293,7 @@ class BackupReportsXoPlugin {
             `    - **${operationLog.message}** ${
               STATUS_ICON[operationLog.status]
             }`,
-            `      - **Start time**: ${formatDate(operationLog.start)}`,
-            `      - **End time**: ${formatDate(operationLog.end)}`,
-            `      - **Duration**: ${formatDuration(
-              operationLog.end - operationLog.start
-            )}`,
+            ...getTemporalDataMarkdown(operationLog.start, operationLog.end, 3),
             ...operationInfoText,
           ].join('\n')
           if (get(subTaskLog, 'data.type') === 'remote') {
@@ -358,9 +366,7 @@ class BackupReportsXoPlugin {
       `##  Global status: ${log.status}`,
       '',
       `- **mode**: ${mode}`,
-      `- **Start time**: ${formatDate(log.start)}`,
-      `- **End time**: ${formatDate(log.end)}`,
-      `- **Duration**: ${formatDuration(log.start - log.end)}`,
+      ...getTemporalDataMarkdown(log.start, log.end),
       `- **Successes**: ${nSuccesses} / ${nVms}`,
     ]
 
