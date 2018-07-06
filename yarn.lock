@@ -4147,6 +4147,13 @@ create-react-class@^15.5.1, create-react-class@^15.6.0:
     loose-envify "^1.3.1"
     object-assign "^4.1.1"
 
+cross-env@^5.1.3:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-5.2.1.tgz#b2c76c1ca7add66dc874d11798466094f551b34d"
+  integrity sha512-1yHhtcfAd1r4nwQgknowuUNfIT9E8dOMMspC36g45dN+iD1blloi7xp8X/xAIDnjHWyt1uQ8PHk2fkNaym7soQ==
+  dependencies:
+    cross-spawn "^6.0.5"
+
 cross-env@^6.0.3:
   version "6.0.3"
   resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-6.0.3.tgz#4256b71e49b3a40637a0ce70768a6ef5c72ae941"
@@ -6627,10 +6634,15 @@ golike-defer@^0.4.1:
   resolved "https://registry.yarnpkg.com/golike-defer/-/golike-defer-0.4.1.tgz#7a1cd435d61e461305805d980b133a0f3db4e1cc"
   integrity sha512-x8cq/Fvu32T8cnco3CBDRF+/M2LFmfSIysKfecX09uIK3cFdHcEKBTPlPnEO6lwrdxfjkOIU6dIw3EIlEJeS1A==
 
-graceful-fs@4.X, graceful-fs@^4.0.0, graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0:
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.3.tgz#4a12ff1b60376ef09862c2093edd908328be8423"
-  integrity sha512-a30VEBm4PEdx1dRB7MFK7BejejvCvBronbLjht+sHuGYj8PHs7M/5Z+rt5lw551vZ7yfTCj4Vuyy3mSJytDWRQ==
+graceful-fs@4.X, graceful-fs@^4.0.0, graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6:
+  version "4.1.15"
+  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.15.tgz#ffb703e1066e8a0eeaa4c8b80ba9253eeefbfb00"
+  integrity sha512-6uHUhOPEBgQ24HM+r6b/QwWfZq+yiFcipKFrOFiBEnWdy5sdzYoi+pJeQaPI5qOLRFqWmAXUPQNsielzdLoecA==
+
+graceful-fs@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.0.tgz#8d8fdc73977cb04104721cb53666c1ca64cd328b"
+  integrity sha512-jpSvDPV4Cq/bgtpndIWbI5hmYxhQGHPC4d4cqBPb4DLniCfhJokdXhwhaDuLBGLQdvvRum/UiX6ECVIPvDXqdg==
 
 graceful-fs@~3.0.2:
   version "3.0.12"
@@ -7184,6 +7196,15 @@ http-proxy@^1.16.2:
     eventemitter3 "^4.0.0"
     follow-redirects "^1.0.0"
     requires-port "^1.0.0"
+
+http-request-plus@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.5.0.tgz#70f93ad514b77c4d31bbfa877f802ad267c15d34"
+  integrity sha512-N1vk8OIKVCOG0xYtMTIIqy75GNUSp0vqX1bbVOczrLVUbEv6zybELlzx0d6SVZt/IHfkk19OKbNEZcmdj6lfBg==
+  dependencies:
+    is-redirect "^1.0.0"
+    lodash "^4.17.4"
+    promise-toolbox "^0.9.5"
 
 http-request-plus@^0.9.0:
   version "0.9.0"

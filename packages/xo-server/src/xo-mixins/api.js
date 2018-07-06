@@ -250,19 +250,15 @@ export default class Api {
     const userName = context.user ? context.user.email : '(unknown user)'
 
     const data = {
+      callId: Math.random()
+        .toString(36)
+        .slice(2),
       userId,
       method: name,
       params: sensitiveValues.replace(params, '* obfuscated *'),
     }
 
-    const callId = Math.random()
-      .toString(36)
-      .slice(2)
-
-    xo.emit('xo:preCall', {
-      ...data,
-      callId,
-    })
+    xo.emit('xo:preCall', data)
 
     try {
       await checkPermission.call(context, method)
@@ -306,8 +302,7 @@ export default class Api {
       )
 
       xo.emit('xo:postCall', {
-        callId,
-        method: name,
+        ...data,
         result,
       })
 
@@ -316,9 +311,8 @@ export default class Api {
       const serializedError = serializeError(error)
 
       xo.emit('xo:postCall', {
-        callId,
+        ...data,
         error: serializedError,
-        method: name,
       })
 
       const message = `${userName} | ${name}(${JSON.stringify(

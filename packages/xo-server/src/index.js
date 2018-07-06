@@ -28,7 +28,13 @@ import { ensureDir, readdir, readFile } from 'fs-extra'
 
 import parseDuration from './_parseDuration'
 import Xo from './xo'
-import { forEach, mapToArray, pFromCallback } from './utils'
+import {
+  forEach,
+  isArray,
+  isFunction,
+  mapToArray,
+  pFromCallback,
+} from './utils'
 
 import bodyParser from 'body-parser'
 import connectFlash from 'connect-flash'
@@ -272,10 +278,8 @@ async function registerPlugin(pluginPath, pluginName) {
     testSchema,
   } = plugin
 
-  // The default export can be either a factory or directly a plugin
-  // instance.
-  const instance =
-    typeof factory === 'function'
+  const handleFactory = factory =>
+    isFunction(factory)
       ? factory({
           xo: this,
           getDataDir: () => {
@@ -284,6 +288,17 @@ async function registerPlugin(pluginPath, pluginName) {
           },
         })
       : factory
+  ;[
+    instance,
+    configurationSchema,
+    configurationPresets,
+    testSchema,
+  ] = await Promise.all([
+    handleFactory(instance),
+    handleFactory(configurationSchema),
+    handleFactory(configurationPresets),
+    handleFactory(testSchema),
+  ])
 
   await this.registerPlugin(
     pluginName,
@@ -474,7 +489,7 @@ const setUpProxies = (express, opts, xo) => {
 
 const setUpStaticFiles = (express, opts) => {
   forEach(opts, (paths, url) => {
-    if (!Array.isArray(paths)) {
+    if (!isArray(paths)) {
       paths = [paths]
     }
 
