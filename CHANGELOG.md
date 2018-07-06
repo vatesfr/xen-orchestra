@@ -10,6 +10,7 @@
 - [Remotes] Allow optional port for NFS remote [2299](https://github.com/vatesfr/xen-orchestra/issues/2299) (PR [#3131](https://github.com/vatesfr/xen-orchestra/pull/3131))
 - [Backup NG form] Add offline snapshot info (PR [#3144](https://github.com/vatesfr/xen-orchestra/pull/3144))
 - [Backup NG overview] Display concurrency and offline snapshot value [3087](https://github.com/vatesfr/xen-orchestra/issues/3087) (PR [3145](https://github.com/vatesfr/xen-orchestra/pull/3145))
+- [VM revert] notify the result of reverting a VM [3095](https://github.com/vatesfr/xen-orchestra/issues/3095) (PR [3150](https://github.com/vatesfr/xen-orchestra/pull/3150))
 
 ### Bug fixes
 
