@@ -961,6 +961,10 @@ const messages = {
   snapshotDescription: 'Description',
   snapshotAction: 'Action',
   snapshotQuiesce: 'Quiesced snapshot',
+  vmRevertSuccessfulTitle: 'Revert successful',
+  vmRevertSuccessfulMessage: 'VM successfully reverted',
+  vmRevertFailedTitle: 'Revert failed',
+  vmRevertFailedMessage: 'Error on reverting the VM',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
