@@ -71,7 +71,6 @@
     * [Replicated](xosan_replicated.md)
     * [Disperse](xosan_disperse.md)
   * [Creation](xosan_create.md)
-  * [Management](xosan_management.md)
   * [Trial](xosan_trial.md)
 * [General Troubleshooting](general-troubleshooting.md)
 * [Glossary](glossary.md)
