@@ -46,9 +46,14 @@
 - [Backup NG form] Add offline snapshot info (PR [#3144](https://github.com/vatesfr/xen-orchestra/pull/3144))
 - [Backup NG overview] Display concurrency and offline snapshot value [3087](https://github.com/vatesfr/xen-orchestra/issues/3087) (PR [3145](https://github.com/vatesfr/xen-orchestra/pull/3145))
 - [VM revert] notify the result of reverting a VM [3095](https://github.com/vatesfr/xen-orchestra/issues/3095) (PR [3150](https://github.com/vatesfr/xen-orchestra/pull/3150))
+<<<<<<< HEAD
 - [Backup NG logs] Link XO items in the details modal [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3171](https://github.com/vatesfr/xen-orchestra/pull/3171))
 - [VM/Snapshots] Add fast clone option when creating a VM [#3120](https://github.com/vatesfr/xen-orchestra/issues/3120) (PR [#3136](https://github.com/vatesfr/xen-orchestra/pull/3136))
 - Add the Turkish translation (PR [#3174](https://github.com/vatesfr/xen-orchestra/pull/3174) [#2870](https://github.com/vatesfr/xen-orchestra/pull/2870) [#2871](https://github.com/vatesfr/xen-orchestra/pull/2871))
+||||||| merged common ancestors
+=======
+- Contextualize objects [#3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3151](https://github.com/vatesfr/xen-orchestra/pull/3151))
+>>>>>>> contextualize objects
 
 ### Bug fixes
 

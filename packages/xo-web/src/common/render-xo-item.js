@@ -1,6 +1,6 @@
 import _ from 'intl'
 import PropTypes from 'prop-types'
-import React from 'react'
+import React, { Component } from 'react'
 import { startsWith } from 'lodash'
 
 import Icon from './icon'
@@ -48,6 +48,50 @@ const XO_ITEM_PROP_TYPES = {
   ...COMMON_PROP_TYPES,
   id: PropTypes.string.isRequired,
 }
+
+@propTypes({
+  vdi: propTypes.object.isRequired,
+})
+@connectStore(() => {
+  const getSr = createGetObject((_, props) => props.vdi.$SR)
+  const getContainer = createGetObject(
+    createSelector(getSr, sr => sr.$container)
+  )
+
+  return {
+    checkPermissions: getCheckPermissions,
+    container: getContainer,
+    sr: getSr,
+  }
+})
+export class VdiItem extends Component {
+  _getCheckPermission = createSelector(
+    () => this.props.checkPermissions,
+    () => this.props.container,
+    (check, container) =>
+      check(container.id, ['view', 'operate', 'administrate'])
+)
+
+  render () {
+    const { props } = this
+    const { container, sr, vdi } = props
+    return (
+      <XoItem item={vdi} {...props}>
+      {() => (
+        <span>
+          <Icon icon='disk' /> {vdi.name_label}
+          {sr !== undefined && (
+            <span className='text-muted'> - {sr.name_label} </span>
+          )}
+           {this._getCheckPermission() && (
+             <span className='text-muted'> ({container.name_label}) </span>
+           )}
+        </span>
+      )}
+      </XoItem>
+     )
+   }
+ }
 
 export const VmItem = [
   connectStore(() => {
@@ -223,12 +267,7 @@ const xoItemToRender = {
   // XO objects.
   pool: ({ id }) => <PoolItem id={id} />,
 
-  VDI: vdi => (
-    <span>
-      <Icon icon='disk' /> {vdi.name_label}{' '}
-      {vdi.name_description && <span> ({vdi.name_description})</span>}
-    </span>
-  ),
+  VDI: vdi => <VdiItem vdi={vdi} />,
 
   // Pool objects.
   'VM-template': vmTemplate => <PoolObjectItem object={vmTemplate} />,

@@ -889,7 +889,7 @@ const messages = {
   vdiDisconnect: 'Disconnect',
   vdiTags: 'Tags',
   vdiSize: 'Size',
-  vdiSr: 'SR',
+  vdiSr: 'SR container',
   vdiVms: 'VMs',
   vdiMigrate: 'Migrate VDI',
   vdiMigrateSelectSr: 'Destination SR:',
