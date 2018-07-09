@@ -290,7 +290,7 @@ export default class Remotes extends Component {
       name: '',
       password: '',
       path: '',
-      port: '',
+      port: undefined,
       type: 'nfs',
       username: '',
     }
@@ -344,7 +344,7 @@ export default class Remotes extends Component {
           name: '',
           password: '',
           path: '',
-          port: '',
+          port: undefined,
           type: 'nfs',
           username: '',
         })
