@@ -1,4 +1,5 @@
-import React, { Component } from 'react'
+import BaseComponent from 'base-component'
+import React from 'react'
 
 import _, { messages } from '../../intl'
 import SingleLineRow from '../../single-line-row'
@@ -8,7 +9,7 @@ import { SelectSr } from '../../select-objects'
 import { Toggle } from '../../form'
 import { injectIntl } from 'react-intl'
 
-class CopyVmModalBody extends Component {
+class CopyVmModalBody extends BaseComponent {
   state = {
     compress: false,
     copyMode: 'fullCopy',
@@ -24,16 +25,6 @@ class CopyVmModalBody extends Component {
     }
   }
 
-  _onChangeCompress = compress => this.setState({ compress })
-  _onChangeCopyMode = event =>
-    this.setState({
-      compress: false,
-      copyMode: event.target.value,
-      sr: '',
-    })
-  _onChangeName = event => this.setState({ name: event.target.value })
-  _onChangeSr = sr => this.setState({ sr })
-
   render () {
     const { formatMessage } = this.props.intl
     const { compress, copyMode, name, sr } = this.state
@@ -46,7 +37,7 @@ class CopyVmModalBody extends Component {
             <Col size={6} className='ml-2'>
               <input
                 className='form-control'
-                onChange={this._onChangeName}
+                onChange={this.linkState('name')}
                 placeholder={formatMessage(messages.copyVmNamePlaceholder)}
                 type='text'
                 value={name}
@@ -60,7 +51,7 @@ class CopyVmModalBody extends Component {
               <input
                 checked={copyMode === 'fullCopy'}
                 name='copyMode'
-                onChange={this._onChangeCopyMode}
+                onChange={this.linkState('copyMode')}
                 type='radio'
                 value='fullCopy'
               />
@@ -74,7 +65,7 @@ class CopyVmModalBody extends Component {
             <Col size={6}>
               <SelectSr
                 disabled={copyMode !== 'fullCopy'}
-                onChange={this._onChangeSr}
+                onChange={this.linkState('sr')}
                 value={sr}
               />
             </Col>
@@ -86,7 +77,7 @@ class CopyVmModalBody extends Component {
             <Col size={6}>
               <Toggle
                 disabled={copyMode !== 'fullCopy'}
-                onChange={this._onChangeCompress}
+                onChange={this.linkState('compress')}
                 value={compress}
               />
             </Col>
@@ -98,7 +89,7 @@ class CopyVmModalBody extends Component {
               <input
                 checked={copyMode === 'fastClone'}
                 name='copyMode'
-                onChange={this._onChangeCopyMode}
+                onChange={this.linkState('copyMode')}
                 type='radio'
                 value='fastClone'
               />

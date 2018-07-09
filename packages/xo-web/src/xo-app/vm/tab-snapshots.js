@@ -81,6 +81,10 @@ const INDIVIDUAL_ACTIONS = [
     handler: snapshot => copyVm(snapshot),
     icon: 'vm-copy',
     label: _('copySnapshot'),
+    redirectOnSuccess: (snapshot, { userData }) =>
+      snapshot !== undefined
+        ? `/vms/${snapshot}/general`
+        : `/vms/${userData.vm.id}/snapshots`,
   },
   {
     handler: exportVm,
@@ -146,6 +150,7 @@ export default class TabSnapshot extends Component {
               <SortedTable
                 collection={snapshots}
                 columns={COLUMNS}
+                data-vm={vm}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
               />
