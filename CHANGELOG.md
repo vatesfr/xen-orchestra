@@ -18,6 +18,7 @@
 - Remote creation: correctly reset form [#3140](https://github.com/vatesfr/xen-orchestra/issues/3140) (PR [3141](https://github.com/vatesfr/xen-orchestra/pull/3141))
 - Make cloud config templates available for all users [3147](https://github.com/vatesfr/xen-orchestra/issues/3147) (PR [3148](https://github.com/vatesfr/xen-orchestra/pull/3148))
 - [New VM] Only create the cloud config drive when its option is enabled [3161](https://github.com/vatesfr/xen-orchestra/issues/3161) (PR [3162](https://github.com/vatesfr/xen-orchestra/pull/3162))
+- Fix SR param in Xapi#createTemporaryVdiOnSr
 
 ### Released packages
 
