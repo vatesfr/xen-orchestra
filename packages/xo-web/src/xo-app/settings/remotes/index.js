@@ -270,25 +270,18 @@ const FILTERS = {
   remotes: cb =>
     subscribeRemotes(rawRemotes => {
       rawRemotes = map(rawRemotes, remote => {
-        let parsedUrl
         try {
-          parsedUrl = parse(remote.url)
+          return {
+            ...remote,
+            ...parse(remote.url),
+          }
         } catch (err) {
           console.error('Remote parsing error:', remote, '\n', err)
-          return
         }
-
-        return {
-          ...remote,
-          ...parsedUrl,
-        }
-      })
+      }).filter(r => r !== undefined)
       const remotes = {}
       for (const remoteType in remoteTypes) {
-        remotes[remoteType] = filter(
-          rawRemotes,
-          r => r !== undefined && r.type === remoteType
-        )
+        remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)
       }
       cb(remotes)
     }),
