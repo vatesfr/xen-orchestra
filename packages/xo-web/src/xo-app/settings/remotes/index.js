@@ -273,7 +273,9 @@ const FILTERS = {
         let parsedUrl
         try {
           parsedUrl = parse(remote.url)
-        } catch (_) {}
+        } catch (err) {
+          console.error(err)
+        }
 
         return {
           ...remote,
