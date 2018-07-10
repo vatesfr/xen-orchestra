@@ -2,13 +2,13 @@
 
 import type { Pattern } from 'value-matcher'
 
-import { CancelToken } from 'promise-toolbox'
+import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../../collection/redis'
 import patch from '../../patch'
-import { serializeError } from '../../utils'
+import { asyncMap, serializeError } from '../../utils'
 
 import type Logger from '../logs/loggers/abstract'
 import { type Schedule } from '../scheduling'
@@ -154,6 +154,28 @@ export default class Jobs {
       xo.getLogger('jobs').then(logger => {
         this._logger = logger
       })
+
+      this._app.on('plugins:registered', () => {
+        ;this._jobs
+          .get()
+          .then(jobs =>
+            asyncMap(jobs, async job => {
+              if (job.runId === undefined) {
+                return
+              }
+
+              this._app.emit(
+                'job:terminated',
+                undefined,
+                job,
+                await this._app.getSchedule(job.scheduleId),
+                String(job.runId)
+              )
+              this.updateJob({ id: job.id, runId: null })
+            })
+          )
+          ::ignoreErrors()
+      })
     })
   }
 
@@ -258,6 +280,8 @@ export default class Jobs {
       type,
     })
 
+    // runId is a temporal property used to check if the report is sent after the server interruption
+    this.updateJob({ id, runId: runJobId })
     runningJobs[id] = runJobId
 
     const runs = this._runs
@@ -295,6 +319,7 @@ export default class Jobs {
       })
       throw error
     } finally {
+      this.updateJob({ id, runId: null })
       delete runningJobs[id]
       delete runs[runJobId]
       if (session !== undefined) {
