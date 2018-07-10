@@ -33,13 +33,15 @@ export const configurationSchema = {
 // ===================================================================
 
 const ICON_FAILURE = '🚨'
+const ICON_INTERRUPTED = '⚠️'
 const ICON_SKIPPED = '⏩'
 const ICON_SUCCESS = '✔'
 
 const STATUS_ICON = {
+  failure: ICON_FAILURE,
+  interrupted: ICON_INTERRUPTED,
   skipped: ICON_SKIPPED,
   success: ICON_SUCCESS,
-  failure: ICON_FAILURE,
 }
 
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
@@ -86,16 +88,16 @@ const isSkippedError = error =>
 const createGetTemporalDataMarkdown = formatDate => (
   start,
   end,
-  nbIndent = 0,
-  displayDuration = true
+  nbIndent = 0
 ) => {
   const indent = '  '.repeat(nbIndent)
 
   const markdown = [`${indent}- **Start time**: ${formatDate(start)}`]
   if (end !== undefined) {
     markdown.push(`${indent}- **End time**: ${formatDate(end)}`)
-    if (displayDuration) {
-      markdown.push(`${indent}- **Duration**: ${formatDuration(end - start)}`)
+    const duration = end - start
+    if (duration >= 1) {
+      markdown.push(`${indent}- **Duration**: ${formatDuration(duration)}`)
     }
   }
   return markdown
@@ -177,12 +179,14 @@ class BackupReportsXoPlugin {
     const failedVmsText = []
     const skippedVmsText = []
     const successfulVmsText = []
+    const interruptedVmsText = []
     const nagiosText = []
 
     let globalMergeSize = 0
     let globalTransferSize = 0
     let nFailures = 0
     let nSkipped = 0
+    let nInterrupted = 0
     for (const taskLog of log.tasks) {
       if (taskLog.status === 'success' && reportWhen === 'failure') {
         return
@@ -222,12 +226,7 @@ class BackupReportsXoPlugin {
         if (subTaskLog.message === 'snapshot') {
           snapshotText.push(
             `- **Snapshot** ${icon}`,
-            ...getTemporalDataMarkdown(
-              subTaskLog.start,
-              subTaskLog.end,
-              1,
-              false
-            )
+            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 1)
           )
         } else if (subTaskLog.data.type === 'remote') {
           const id = subTaskLog.data.id
@@ -284,7 +283,7 @@ class BackupReportsXoPlugin {
                 operationLog.end - operationLog.start
               )}`
             )
-          } else {
+          } else if (get(operationLog.result, 'message') !== undefined) {
             operationInfoText.push(
               `      - **Error**: ${get(operationLog.result, 'message')}`
             )
@@ -354,6 +353,12 @@ class BackupReportsXoPlugin {
               vm !== undefined ? vm.name_label : 'undefined'
             }: (failed)[${failedSubTasks.toString()}]]`
           )
+        } else if (taskLog.status === 'interrupted') {
+          ++nInterrupted
+          interruptedVmsText.push(...text, '', '', ...subText, '')
+          nagiosText.push(
+            `[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`
+          )
         } else {
           successfulVmsText.push(...text, '', '', ...subText, '')
         }
@@ -361,7 +366,7 @@ class BackupReportsXoPlugin {
     }
 
     const nVms = log.tasks.length
-    const nSuccesses = nVms - nFailures - nSkipped
+    const nSuccesses = nVms - nFailures - nSkipped - nInterrupted
     let markdown = [
       `##  Global status: ${log.status}`,
       '',
@@ -390,6 +395,16 @@ class BackupReportsXoPlugin {
 
     if (nSkipped !== 0) {
       markdown.push('---', '', `## ${nSkipped} Skipped`, '', ...skippedVmsText)
+    }
+
+    if (nInterrupted !== 0) {
+      markdown.push(
+        '---',
+        '',
+        `## ${nInterrupted} Interrupted`,
+        '',
+        ...interruptedVmsText
+      )
     }
 
     if (nSuccesses !== 0 && reportWhen !== 'failure') {
