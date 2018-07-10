@@ -2302,7 +2302,7 @@ export default class Xapi extends XapiBase {
 
     return this.createTemporaryVdiOnSr(
       stream,
-      pbd.SR,
+      pbd.$SR,
       name_label,
       name_description
     )
