@@ -274,7 +274,8 @@ const FILTERS = {
         try {
           parsedUrl = parse(remote.url)
         } catch (err) {
-          console.error(err)
+          console.error('Remote parsing error:', remote, '\n', err)
+          return
         }
 
         return {
@@ -284,7 +285,10 @@ const FILTERS = {
       })
       const remotes = {}
       for (const remoteType in remoteTypes) {
-        remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)
+        remotes[remoteType] = filter(
+          rawRemotes,
+          r => r !== undefined && r.type === remoteType
+        )
       }
       cb(remotes)
     }),
