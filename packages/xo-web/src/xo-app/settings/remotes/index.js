@@ -442,7 +442,6 @@ export default class Remotes extends Component {
             <input
               className='form-control'
               onChange={this.linkState('name')}
-              pattern='^[^:]+$'
               placeholder={this.props.intl.formatMessage(
                 messages.remoteMyNamePlaceHolder
               )}
@@ -474,7 +473,6 @@ export default class Remotes extends Component {
                 <input
                   className='form-control'
                   onChange={this.linkState('host')}
-                  pattern='^[^:]+$'
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteNfsPlaceHolderHost
                   )}
@@ -496,7 +494,7 @@ export default class Remotes extends Component {
                 <input
                   className='form-control'
                   onChange={this.linkState('path')}
-                  pattern='^(([^/:]+)+(/[^/:]+)*)?$'
+                  pattern='^(([^/]+)+(/[^/]+)*)?$'
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteNfsPlaceHolderPath
                   )}
