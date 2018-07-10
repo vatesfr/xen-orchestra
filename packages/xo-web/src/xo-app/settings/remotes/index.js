@@ -269,10 +269,17 @@ const FILTERS = {
 @addSubscriptions({
   remotes: cb =>
     subscribeRemotes(rawRemotes => {
-      rawRemotes = map(rawRemotes, remote => ({
-        ...remote,
-        ...parse(remote.url),
-      }))
+      rawRemotes = map(rawRemotes, remote => {
+        let parsedUrl
+        try {
+          parsedUrl = parse(remote.url)
+        } catch (_) {}
+
+        return {
+          ...remote,
+          ...parsedUrl,
+        }
+      })
       const remotes = {}
       for (const remoteType in remoteTypes) {
         remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)
@@ -435,6 +442,7 @@ export default class Remotes extends Component {
             <input
               className='form-control'
               onChange={this.linkState('name')}
+              pattern='^[^:]+$'
               placeholder={this.props.intl.formatMessage(
                 messages.remoteMyNamePlaceHolder
               )}
@@ -466,6 +474,7 @@ export default class Remotes extends Component {
                 <input
                   className='form-control'
                   onChange={this.linkState('host')}
+                  pattern='^[^:]+$'
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteNfsPlaceHolderHost
                   )}
@@ -487,7 +496,7 @@ export default class Remotes extends Component {
                 <input
                   className='form-control'
                   onChange={this.linkState('path')}
-                  pattern='^(([^/]+)+(/[^/]+)*)?$'
+                  pattern='^(([^/:]+)+(/[^/:]+)*)?$'
                   placeholder={this.props.intl.formatMessage(
                     messages.remoteNfsPlaceHolderPath
                   )}
