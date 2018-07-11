@@ -53,9 +53,9 @@ const VdiColSrContainer = connectStore(() => {
     createSelector(getSr, sr => sr.$container)
   )
 
-  return (state, props) => ({
-    container: getContainer(state, props),
-  })
+  return {
+    container: getContainer,
+  }
 })(
   ({ container }) =>
     container !== undefined && (
@@ -293,13 +293,13 @@ const AttachedVdisTable = [
       {
         name: _('vdiSrContainer'),
         itemRenderer: ({ srContainer }) =>
-          srContainer !== undefined && (
+          srContainer && (
             <Link to={`${srContainer.type}s/${srContainer.id}`}>
               {renderXoItem(srContainer)}
             </Link>
           ),
         sortCriteria: ({ srContainer }) =>
-          srContainer !== undefined && srContainer.name_label,
+          srContainer && srContainer.name_label,
       },
     ],
     rowTransform: (vbd, { hosts, pools, srs, vdis, vdiSnapshots }) => {

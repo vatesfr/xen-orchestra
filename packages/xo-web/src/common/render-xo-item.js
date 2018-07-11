@@ -6,11 +6,15 @@ import { startsWith } from 'lodash'
 import Icon from './icon'
 import Link from './link'
 import propTypes from './prop-types-decorator'
-import { addSubscriptions, connectStore, formatSize } from './utils'
-import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
 import { get } from './xo-defined'
 import { isSrWritable, subscribeRemotes } from './xo'
+import { addSubscriptions, connectStore, formatSize } from './utils'
+import {
+  createGetObject,
+  createSelector,
+  getCheckPermissions,
+} from './selectors'
 
 // ===================================================================
 
@@ -49,11 +53,9 @@ const XO_ITEM_PROP_TYPES = {
   id: PropTypes.string.isRequired,
 }
 
-@propTypes({
-  vdi: propTypes.object.isRequired,
-})
 @connectStore(() => {
-  const getSr = createGetObject((_, props) => props.vdi.$SR)
+  const getVdi = createGetObject()
+  const getSr = createGetObject(createSelector(getVdi, vdi => vdi.$SR))
   const getContainer = createGetObject(
     createSelector(getSr, sr => sr.$container)
   )
@@ -62,6 +64,7 @@ const XO_ITEM_PROP_TYPES = {
     checkPermissions: getCheckPermissions,
     container: getContainer,
     sr: getSr,
+    vdi: getVdi,
   }
 })
 export class VdiItem extends Component {
@@ -70,28 +73,30 @@ export class VdiItem extends Component {
     () => this.props.container,
     (check, container) =>
       check(container.id, ['view', 'operate', 'administrate'])
-)
+  )
 
   render () {
     const { props } = this
     const { container, sr, vdi } = props
     return (
       <XoItem item={vdi} {...props}>
-      {() => (
-        <span>
-          <Icon icon='disk' /> {vdi.name_label}
-          {sr !== undefined && (
-            <span className='text-muted'> - {sr.name_label} </span>
-          )}
-           {this._getCheckPermission() && (
-             <span className='text-muted'> ({container.name_label}) </span>
-           )}
-        </span>
-      )}
+        {() => (
+          <span>
+            <Icon icon='disk' /> {vdi.name_label}
+            {sr !== undefined && (
+              <span className='text-muted'> - {sr.name_label} </span>
+            )}
+            {this._getCheckPermission() && (
+              <span className='text-muted'> ({container.name_label}) </span>
+            )}
+          </span>
+        )}
       </XoItem>
-     )
-   }
- }
+    )
+  }
+}
+
+VdiItem.propTypes = XO_ITEM_PROP_TYPES
 
 export const VmItem = [
   connectStore(() => {
@@ -267,7 +272,7 @@ const xoItemToRender = {
   // XO objects.
   pool: ({ id }) => <PoolItem id={id} />,
 
-  VDI: vdi => <VdiItem vdi={vdi} />,
+  VDI: ({ id }) => <VdiItem id={id} />,
 
   // Pool objects.
   'VM-template': vmTemplate => <PoolObjectItem object={vmTemplate} />,

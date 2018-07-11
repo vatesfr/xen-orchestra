@@ -124,9 +124,8 @@ const COLUMNS_VM_PV = [
     },
   },
   {
-    itemRenderer: (vdi, { containersBySr, srs }) => {
-      const sr = srs[vdi.$SR]
-      const container = sr !== undefined && containersBySr[sr.id]
+    itemRenderer: (vdi, { containerBySr }) => {
+      const container = containerBySr[vdi.$SR]
       return (
         container !== undefined && (
           <Link to={`${container.type}s/${container.id}`}>
@@ -136,9 +135,8 @@ const COLUMNS_VM_PV = [
       )
     },
     name: _('vdiSrContainer'),
-    sortCriteria: (vdi, { containersBySr, srs }) => {
-      const sr = srs[vdi.$SR]
-      const container = sr !== undefined && containersBySr[sr.id]
+    sortCriteria: (vdi, { containerBySr }) => {
+      const container = containerBySr[vdi.$SR]
       return container !== undefined && container.name_label
     },
   },
@@ -619,19 +617,17 @@ class MigrateVdiModalBody extends Component {
   const getSrs = (_, props) => props.srs
   const getVm = (_, props) => props.vm
   const getHosts = createGetObjectsOfType('host').pick(
-    createSelector(getSrs, srs =>
-      map(srs, sr => sr !== undefined && sr.$container)
-    )
+    createSelector(getSrs, srs => map(srs, '$container'))
   )
   const getPool = createGetObject(createSelector(getVm, vm => vm.$pool))
 
-  return (state, props) => ({
+  return {
     allVbds: createGetObjectsOfType('VBD'),
     checkPermissions: getCheckPermissions,
-    hosts: getHosts(state, props),
+    hosts: getHosts,
     isAdmin,
-    pool: getPool(state, props),
-  })
+    pool: getPool,
+  }
 })
 export default class TabDisks extends Component {
   constructor (props) {
@@ -698,15 +694,19 @@ export default class TabDisks extends Component {
     () => this.props.vm,
     (vdis, vbds, vm) => mapValues(vdis, vdi => find(vbds, { VDI: vdi.id }))
   )
-  _getContainersBySr = createSelector(
+
+  _getContainerBySr = createSelector(
     () => this.props.hosts,
     () => this.props.pool,
     () => this.props.srs,
-    (hosts, pool, srs) =>
-      mapValues(srs, sr => {
-        const container = sr !== undefined && sr.$container
-        return container === pool.id ? pool : find(hosts, { id: container })
+    (hosts, pool, srs) => {
+      const poolId = pool.id
+      let container
+      return mapValues(srs, sr => {
+        container = sr.$container
+        return container === poolId ? pool : hosts[container]
       })
+    }
   )
 
   _getIsVdiAttached = createSelector(
