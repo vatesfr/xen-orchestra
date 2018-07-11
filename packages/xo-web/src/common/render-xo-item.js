@@ -1,13 +1,16 @@
 import _ from 'intl'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { startsWith } from 'lodash'
 
 import Icon from './icon'
+import Link from './link'
 import propTypes from './prop-types-decorator'
-import { createGetObject } from './selectors'
+import { addSubscriptions, connectStore, formatSize } from './utils'
+import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
-import { isSrWritable } from './xo'
-import { connectStore, formatSize } from './utils'
+import { get } from './xo-defined'
+import { isSrWritable, subscribeRemotes } from './xo'
 
 // ===================================================================
 
@@ -16,6 +19,104 @@ const OBJECT_TYPE_TO_ICON = {
   host: 'host',
   network: 'network',
 }
+
+const XoItem = ({ children, item, link, redirect, to }) =>
+  item !== undefined ? (
+    link ? (
+      <Link to={to} target={redirect ? undefined : '_blank'}>
+        {children()}
+      </Link>
+    ) : (
+      children()
+    )
+  ) : (
+    <span className='text-muted'>{_('errorNoSuchItem')}</span>
+  )
+
+// ===================================================================
+
+const XO_ITEM_PROP_TYPES = {
+  id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  redirect: PropTypes.bool,
+}
+
+export const VmItem = [
+  connectStore(() => {
+    const getVm = createGetObject((_, { id }) => id)
+    return {
+      vm: getVm,
+      container: createGetObject(
+        createSelector(getVm, vm => get(() => vm.$container))
+      ),
+    }
+  }),
+  ({ vm, container, ...props }) => (
+    <XoItem item={vm} to={`/vms/${vm.id}`} {...props}>
+      {() => (
+        <span>
+          <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />{' '}
+          {vm.name_label || vm.id}
+          {container !== undefined &&
+            ` (${container.name_label || container.id})`}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+VmItem.propTypes = XO_ITEM_PROP_TYPES
+
+export const SrItem = [
+  connectStore(() => {
+    const getSr = createGetObject((_, { id }) => id)
+    return {
+      sr: getSr,
+      container: createGetObject(
+        createSelector(getSr, sr => get(() => sr.$container))
+      ),
+    }
+  }),
+  ({ sr, container, ...props }) => (
+    <XoItem item={sr} to={`/srs/${sr.id}`} {...props}>
+      {() => (
+        <span>
+          <Icon icon='sr' /> {sr.name_label || sr.id}
+          {container !== undefined && (
+            <span className='text-muted'> - {container.name_label}</span>
+          )}
+          {isSrWritable(sr) && (
+            <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
+          )}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+SrItem.propTypes = XO_ITEM_PROP_TYPES
+
+export const RemoteItem = [
+  addSubscriptions(({ id }) => ({
+    remote: cb =>
+      subscribeRemotes(remotes => {
+        cb(get(() => remotes.find(remote => remote.id === id)))
+      }),
+  })),
+  ({ remote, ...props }) => (
+    <XoItem item={remote} to={`/settings/remotes`} {...props}>
+      {() => (
+        <span>
+          <Icon icon='remote' /> {remote.name}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+RemoteItem.propTypes = XO_ITEM_PROP_TYPES
+
+// ===================================================================
 
 // Host, Network, VM-template.
 const PoolObjectItem = propTypes({
@@ -40,48 +141,6 @@ const PoolObjectItem = propTypes({
   })
 )
 
-// SR.
-const SrItem = propTypes({
-  sr: propTypes.object.isRequired,
-})(
-  connectStore(() => {
-    const getContainer = createGetObject((_, props) => props.sr.$container)
-
-    return (state, props) => ({
-      container: getContainer(state, props),
-    })
-  })(({ sr, container }) => (
-    <span>
-      <Icon icon='sr' /> {sr.name_label || sr.id}
-      {container !== undefined && (
-        <span className='text-muted'> - {container.name_label}</span>
-      )}
-      {isSrWritable(sr) && (
-        <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
-      )}
-    </span>
-  ))
-)
-
-// VM.
-const VmItem = propTypes({
-  vm: propTypes.object.isRequired,
-})(
-  connectStore(() => {
-    const getContainer = createGetObject((_, props) => props.vm.$container)
-
-    return (state, props) => ({
-      container: getContainer(state, props),
-    })
-  })(({ vm, container }) => (
-    <span>
-      <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />{' '}
-      {vm.name_label || vm.id}
-      {container && ` (${container.name_label || container.id})`}
-    </span>
-  ))
-)
-
 const VgpuItem = connectStore(() => ({
   vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
 }))(({ vgpu, vgpuType }) => (
@@ -104,11 +163,7 @@ const xoItemToRender = {
       <Icon icon='group' /> {group.name}
     </span>
   ),
-  remote: remote => (
-    <span>
-      <Icon icon='remote' /> {remote.value.name}
-    </span>
-  ),
+  remote: ({ value: { id } }) => <RemoteItem id={id} />,
   role: role => <span>{role.name}</span>,
   user: user => (
     <span>
@@ -160,14 +215,14 @@ const xoItemToRender = {
   network: network => <PoolObjectItem object={network} />,
 
   // SR.
-  SR: sr => <SrItem sr={sr} />,
+  SR: ({ id }) => <SrItem id={id} />,
 
   // VM.
-  VM: vm => <VmItem vm={vm} />,
-  'VM-snapshot': vm => <VmItem vm={vm} />,
-  'VM-controller': vm => (
+  VM: ({ id }) => <VmItem id={id} />,
+  'VM-snapshot': ({ id }) => <VmItem id={id} />,
+  'VM-controller': ({ id }) => (
     <span>
-      <Icon icon='host' /> <VmItem vm={vm} />
+      <Icon icon='host' /> <VmItem id={id} />
     </span>
   ),
 
