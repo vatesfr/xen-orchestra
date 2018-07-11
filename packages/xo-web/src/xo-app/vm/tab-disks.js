@@ -8,15 +8,17 @@ import IsoDevice from 'iso-device'
 import Link from 'link'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SingleLineRow from 'single-line-row'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import { Container, Row, Col } from 'grid'
 import {
+  createFinder,
+  createGetObject,
   createGetObjectsOfType,
   createSelector,
-  createFinder,
   getCheckPermissions,
   isAdmin,
 } from 'selectors'
@@ -119,6 +121,25 @@ const COLUMNS_VM_PV = [
     sortCriteria: (vdi, userData) => {
       const sr = userData.srs[vdi.$SR]
       return sr !== undefined && sr.name_label
+    },
+  },
+  {
+    itemRenderer: (vdi, { containersBySr, srs }) => {
+      const sr = srs[vdi.$SR]
+      const container = sr !== undefined && containersBySr[sr.id]
+      return (
+        container !== undefined && (
+          <Link to={`${container.type}s/${container.id}`}>
+            {renderXoItem(container)}
+          </Link>
+        )
+      )
+    },
+    name: _('vdiSrContainer'),
+    sortCriteria: (vdi, { containersBySr, srs }) => {
+      const sr = srs[vdi.$SR]
+      const container = sr !== undefined && containersBySr[sr.id]
+      return container !== undefined && container.name_label
     },
   },
   {
@@ -594,11 +615,24 @@ class MigrateVdiModalBody extends Component {
   }
 }
 
-@connectStore(() => ({
-  checkPermissions: getCheckPermissions,
-  isAdmin,
-  allVbds: createGetObjectsOfType('VBD'),
-}))
+@connectStore(() => {
+  const getSrs = (_, props) => props.srs
+  const getVm = (_, props) => props.vm
+  const getHosts = createGetObjectsOfType('host').pick(
+    createSelector(getSrs, srs =>
+      map(srs, sr => sr !== undefined && sr.$container)
+    )
+  )
+  const getPool = createGetObject(createSelector(getVm, vm => vm.$pool))
+
+  return (state, props) => ({
+    allVbds: createGetObjectsOfType('VBD'),
+    checkPermissions: getCheckPermissions,
+    hosts: getHosts(state, props),
+    isAdmin,
+    pool: getPool(state, props),
+  })
+})
 export default class TabDisks extends Component {
   constructor (props) {
     super(props)
@@ -664,6 +698,16 @@ export default class TabDisks extends Component {
     () => this.props.vm,
     (vdis, vbds, vm) => mapValues(vdis, vdi => find(vbds, { VDI: vdi.id }))
   )
+  _getContainersBySr = createSelector(
+    () => this.props.hosts,
+    () => this.props.pool,
+    () => this.props.srs,
+    (hosts, pool, srs) =>
+      mapValues(srs, sr => {
+        const container = sr !== undefined && sr.$container
+        return container === pool.id ? pool : find(hosts, { id: container })
+      })
+  )
 
   _getIsVdiAttached = createSelector(
     createSelector(
@@ -700,7 +744,6 @@ export default class TabDisks extends Component {
 
   render () {
     const { srs, vbds, vdis, vm } = this.props
-
     const { attachDisk, bootOrder, newDisk } = this.state
 
     return (
@@ -763,6 +806,7 @@ export default class TabDisks extends Component {
               actions={ACTIONS}
               collection={vdis}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
+              data-containersBySr={this._getContainersBySr()}
               data-isVdiAttached={this._getIsVdiAttached()}
               data-srs={srs}
               data-vbdsByVdi={this._getVbdsByVdi()}
