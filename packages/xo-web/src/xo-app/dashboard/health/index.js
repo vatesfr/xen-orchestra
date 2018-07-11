@@ -5,6 +5,7 @@ import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
@@ -45,6 +46,24 @@ const SrColContainer = connectStore(() => ({
 const VdiColSr = connectStore(() => ({
   sr: createGetObject(),
 }))(({ sr }) => <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>)
+
+const VdiColSrContainer = connectStore(() => {
+  const getSr = createGetObject((_, props) => props.id)
+  const getContainer = createGetObject(
+    createSelector(getSr, sr => sr.$container)
+  )
+
+  return (state, props) => ({
+    container: getContainer(state, props),
+  })
+})(
+  ({ container }) =>
+    container !== undefined && (
+      <Link to={`${container.type}s/${container.id}`}>
+        {renderXoItem(container)}
+      </Link>
+    )
+)
 
 const VmColContainer = connectStore(() => ({
   container: createGetObject(),
@@ -163,6 +182,10 @@ const ORPHANED_VDI_COLUMNS = [
     itemRenderer: vdi => <VdiColSr id={vdi.$SR} />,
   },
   {
+    name: _('vdiSrContainer'),
+    itemRenderer: vdi => <VdiColSrContainer id={vdi.$SR} />,
+  },
+  {
     name: _('logAction'),
     itemRenderer: vdi => (
       <ActionRowButton
@@ -187,6 +210,7 @@ const CONTROL_DOMAIN_VDIS_ACTIONS = [
 
 const AttachedVdisTable = [
   connectStore({
+    hosts: createGetObjectsOfType('hosts'),
     pools: createGetObjectsOfType('pool'),
     srs: createGetObjectsOfType('SR'),
     vbds: createGetObjectsOfType('VBD').pick(
@@ -203,12 +227,20 @@ const AttachedVdisTable = [
     vdis: createGetObjectsOfType('VDI'),
     vdiSnapshots: createGetObjectsOfType('VDI-snapshot'),
   }),
-  ({ columns, rowTransform }) => ({ pools, srs, vbds, vdis, vdiSnapshots }) => (
+  ({ columns, rowTransform }) => ({
+    hosts,
+    pools,
+    srs,
+    vbds,
+    vdis,
+    vdiSnapshots,
+  }) => (
     <NoObjects
       actions={CONTROL_DOMAIN_VDIS_ACTIONS}
       collection={vbds}
       columns={columns}
       component={SortedTable}
+      data-hosts={hosts}
       data-pools={pools}
       data-srs={srs}
       data-vdis={vdis}
@@ -258,15 +290,29 @@ const AttachedVdisTable = [
           ),
         sortCriteria: ({ sr }) => sr != null && sr.name_label,
       },
+      {
+        name: _('vdiSrContainer'),
+        itemRenderer: ({ srContainer }) =>
+          srContainer !== undefined && (
+            <Link to={`${srContainer.type}s/${srContainer.id}`}>
+              {renderXoItem(srContainer)}
+            </Link>
+          ),
+        sortCriteria: ({ srContainer }) =>
+          srContainer !== undefined && srContainer.name_label,
+      },
     ],
-    rowTransform: (vbd, { pools, srs, vdis, vdiSnapshots }) => {
+    rowTransform: (vbd, { hosts, pools, srs, vdis, vdiSnapshots }) => {
       const vdi = vdis[vbd.VDI] || vdiSnapshots[vbd.VDI]
-
+      const sr = srs[vdi.$SR]
+      const srContainer =
+        sr !== undefined && (pools[sr.$container] || hosts[sr.$container])
       return {
         id: vbd.id,
         vbd,
         vdi,
-        sr: srs[vdi.$SR],
+        sr,
+        srContainer,
         pool: pools[vbd.$poolId],
       }
     },
