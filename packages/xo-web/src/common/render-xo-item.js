@@ -60,7 +60,7 @@ export const VmItem = [
     }
   }),
   ({ vm, container, ...props }) => (
-    <XoItem item={vm} to={`/vms/${vm.id}`} {...props}>
+    <XoItem item={vm} to={`/vms/${get(() => vm.id)}`} {...props}>
       {() => (
         <span>
           <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />{' '}
@@ -86,7 +86,7 @@ export const SrItem = [
     }
   }),
   ({ sr, container, ...props }) => (
-    <XoItem item={sr} to={`/srs/${sr.id}`} {...props}>
+    <XoItem item={sr} to={`/srs/${get(() => sr.id)}`} {...props}>
       {() => (
         <span>
           <Icon icon='sr' /> {sr.name_label || sr.id}
