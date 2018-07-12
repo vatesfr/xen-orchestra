@@ -48,14 +48,16 @@ class CopyVmModalBody extends BaseComponent {
         <div className='mt-1'>
           <SingleLineRow>
             <Col>
-              <input
-                checked={copyMode === 'fullCopy'}
-                name='copyMode'
-                onChange={this.linkState('copyMode')}
-                type='radio'
-                value='fullCopy'
-              />
-              <span> {_('fullCopyMode')} </span>
+              <label>
+                <input
+                  checked={copyMode === 'fullCopy'}
+                  name='copyMode'
+                  onChange={this.linkState('copyMode')}
+                  type='radio'
+                  value='fullCopy'
+                />
+                <span> {_('fullCopyMode')} </span>
+              </label>
             </Col>
           </SingleLineRow>
           <SingleLineRow className='mt-1'>
@@ -86,14 +88,16 @@ class CopyVmModalBody extends BaseComponent {
         <div>
           <SingleLineRow className='mt-1'>
             <Col>
-              <input
-                checked={copyMode === 'fastClone'}
-                name='copyMode'
-                onChange={this.linkState('copyMode')}
-                type='radio'
-                value='fastClone'
-              />
-              <span> {_('fastCloneMode')} </span>
+              <label>
+                <input
+                  checked={copyMode === 'fastClone'}
+                  name='copyMode'
+                  onChange={this.linkState('copyMode')}
+                  type='radio'
+                  value='fastClone'
+                />
+                <span> {_('fastCloneMode')} </span>
+              </label>
             </Col>
           </SingleLineRow>
         </div>

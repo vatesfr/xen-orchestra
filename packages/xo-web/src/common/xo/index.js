@@ -960,7 +960,7 @@ export const copyVm = (vm, sr, name, compress) => {
       }).then(params => {
         if (params.copyMode === 'fullCopy') {
           if (!params.sr) {
-            error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
+            error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
             return
           }
           return _copyVm({ vm, ...params })
