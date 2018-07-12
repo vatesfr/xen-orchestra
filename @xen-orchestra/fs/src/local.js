@@ -81,15 +81,13 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _createReadStream (file, options) {
-    if (typeof file === 'string') {
-      return fs.createReadStream(this._getFilePath(file), options)
-    } else {
-      return fs.createReadStream('', {
-        autoClose: false,
-        ...options,
-        fd: file.fd,
-      })
-    }
+    return typeof file === 'string'
+      ? fs.createReadStream(this._getFilePath(file), options)
+      : fs.createReadStream('', {
+          autoClose: false,
+          ...options,
+          fd: file.fd,
+        })
   }
 
   async _createOutputStream (file, options) {
@@ -97,13 +95,12 @@ export default class LocalHandler extends RemoteHandlerAbstract {
       const path = this._getFilePath(file)
       await fs.ensureDir(dirname(path))
       return fs.createWriteStream(path, options)
-    } else {
-      return fs.createWriteStream('', {
-        autoClose: false,
-        ...options,
-        fd: file.fd,
-      })
     }
+    return fs.createWriteStream('', {
+      autoClose: false,
+      ...options,
+      fd: file.fd,
+    })
   }
 
   async _unlink (file) {
