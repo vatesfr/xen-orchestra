@@ -29,7 +29,7 @@
     "promise-toolbox": "^0.9.5",
     "through2": "^2.0.3",
     "tmp": "^0.0.33",
-    "xo-remote-parser": "^0.3"
+    "xo-remote-parser": "^0.4.0"
   },
   "devDependencies": {
     "@babel/cli": "7.0.0-beta.49",
