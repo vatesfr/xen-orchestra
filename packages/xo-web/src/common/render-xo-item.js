@@ -33,6 +33,11 @@ const XoItem = ({ children, item, link, to }) =>
     <span className='text-muted'>{_('errorNoSuchItem')}</span>
   )
 
+XoItem.propTypes = {
+  item: propTypes.object,
+  link: propTypes.bool,
+  to: propTypes.oneOfType([propTypes.string, propTypes.object]),
+}
 // ===================================================================
 
 const XO_ITEM_PROP_TYPES = {
