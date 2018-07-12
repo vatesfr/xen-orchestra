@@ -1,4 +1,3 @@
-
 # Troubleshooting
 
 This page recaps the actions you can perform if you have any problems with your XOA.
@@ -7,7 +6,7 @@ This page recaps the actions you can perform if you have any problems with your 
 
 > Auto deploy failed. - No SR specified and Pool default SR is null
 
-It means you don't have a default SR set on the pool you are importing XOA to. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you have the UUID, you can set the default SR with: `xe pool-param-set default-SR=<SR_UUID>`. When this is done, re-enter the deploy script command and it will work!
+It means you don't have a default SR set on the pool you are importing XOA on. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you have the UUID, you can set the default SR with: `xe pool-param-set uuid=<pool-uuid> default-SR=<sr-uuid>`. For the pool UUID, just press tab after `xe pool-param-set uuid=` and it will autofill your pool UUID. When this is done, re-enter the deploy script command and it will work!
 
 ## XOA unreachable after boot
 
@@ -128,11 +127,11 @@ The system logs are visible by using this command:
 $ tail -f /var/log/syslog
 ```
 
-You can read more about logs [in the dedicated chapter](logs.md).
+You can read more about logs [in the dedicated logs chapter](logs.md).
 
 ### Ghost tasks
 
-If you have ghost tasks accumulating in your XenOrchestra you can try the following actions in order:
+If you have ghost tasks accumulating in your Xen Orchestra you can try the following actions in order:
 
 1. refresh the web page
 1. disconnect and reconnect the Xen pool/server owning the tasks
@@ -150,7 +149,7 @@ If a package disappears due to a build problem or human error, you can redownloa
 
 ### Reset XO configuration
 
-If you have problems with your `xo-server` configuration, you can reset the database. **This operation will delete all your configured users and servers**:
+If you have problems with your `xo-server` configuration, you can reset the database. **This operation will delete all your configured users and servers, plus any backup jobs**:
 
 1. `redis-cli`
 2. `FLUSHALL`
