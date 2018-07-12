@@ -33,13 +33,15 @@ export const configurationSchema = {
 // ===================================================================
 
 const ICON_FAILURE = '🚨'
+const ICON_INTERRUPTED = '⚠️'
 const ICON_SKIPPED = '⏩'
 const ICON_SUCCESS = '✔'
 
 const STATUS_ICON = {
+  failure: ICON_FAILURE,
+  interrupted: ICON_INTERRUPTED,
   skipped: ICON_SKIPPED,
   success: ICON_SUCCESS,
-  failure: ICON_FAILURE,
 }
 
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
@@ -82,6 +84,24 @@ const UNHEALTHY_VDI_CHAIN_MESSAGE =
 const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
+
+const createGetTemporalDataMarkdown = formatDate => (
+  start,
+  end,
+  nbIndent = 0
+) => {
+  const indent = '  '.repeat(nbIndent)
+
+  const markdown = [`${indent}- **Start time**: ${formatDate(start)}`]
+  if (end !== undefined) {
+    markdown.push(`${indent}- **End time**: ${formatDate(end)}`)
+    const duration = end - start
+    if (duration >= 1) {
+      markdown.push(`${indent}- **Duration**: ${formatDuration(duration)}`)
+    }
+  }
+  return markdown
+}
 
 class BackupReportsXoPlugin {
   constructor (xo) {
@@ -126,6 +146,8 @@ class BackupReportsXoPlugin {
 
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
     const formatDate = createDateFormater(timezone)
+    const getTemporalDataMarkdown = createGetTemporalDataMarkdown(formatDate)
+
     if (
       (log.status === 'failure' || log.status === 'skipped') &&
       log.result !== undefined
@@ -134,9 +156,7 @@ class BackupReportsXoPlugin {
         `##  Global status: ${log.status}`,
         '',
         `- **mode**: ${mode}`,
-        `- **Start time**: ${formatDate(log.start)}`,
-        `- **End time**: ${formatDate(log.end)}`,
-        `- **Duration**: ${formatDuration(log.end - log.start)}`,
+        ...getTemporalDataMarkdown(log.start, log.end),
         `- **Error**: ${log.result.message}`,
         '---',
         '',
@@ -159,12 +179,15 @@ class BackupReportsXoPlugin {
     const failedVmsText = []
     const skippedVmsText = []
     const successfulVmsText = []
+    const interruptedVmsText = []
     const nagiosText = []
 
     let globalMergeSize = 0
     let globalTransferSize = 0
     let nFailures = 0
     let nSkipped = 0
+    let nInterrupted = 0
+    let nSuccesses = 0
     for (const taskLog of log.tasks) {
       if (taskLog.status === 'success' && reportWhen === 'failure') {
         return
@@ -179,9 +202,7 @@ class BackupReportsXoPlugin {
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
         `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
-        `- **Start time**: ${formatDate(taskLog.start)}`,
-        `- **End time**: ${formatDate(taskLog.end)}`,
-        `- **Duration**: ${formatDuration(taskLog.end - taskLog.start)}`,
+        ...getTemporalDataMarkdown(taskLog.start, taskLog.end),
       ]
 
       const failedSubTasks = []
@@ -206,8 +227,7 @@ class BackupReportsXoPlugin {
         if (subTaskLog.message === 'snapshot') {
           snapshotText.push(
             `- **Snapshot** ${icon}`,
-            `  - **Start time**: ${formatDate(subTaskLog.start)}`,
-            `  - **End time**: ${formatDate(subTaskLog.end)}`
+            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 1)
           )
         } else if (subTaskLog.data.type === 'remote') {
           const id = subTaskLog.data.id
@@ -216,11 +236,7 @@ class BackupReportsXoPlugin {
             `  - **${
               remote !== undefined ? remote.name : `Remote Not found`
             }** (${id}) ${icon}`,
-            `    - **Start time**: ${formatDate(subTaskLog.start)}`,
-            `    - **End time**: ${formatDate(subTaskLog.end)}`,
-            `    - **Duration**: ${formatDuration(
-              subTaskLog.end - subTaskLog.start
-            )}`
+            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
           )
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(remote !== undefined ? remote.name : id)
@@ -236,11 +252,7 @@ class BackupReportsXoPlugin {
             sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, id]
           srsText.push(
             `  - **${srName}** (${srUuid}) ${icon}`,
-            `    - **Start time**: ${formatDate(subTaskLog.start)}`,
-            `    - **End time**: ${formatDate(subTaskLog.end)}`,
-            `    - **Duration**: ${formatDuration(
-              subTaskLog.end - subTaskLog.start
-            )}`
+            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
           )
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(sr !== undefined ? sr.name_label : id)
@@ -272,7 +284,7 @@ class BackupReportsXoPlugin {
                 operationLog.end - operationLog.start
               )}`
             )
-          } else {
+          } else if (get(operationLog.result, 'message') !== undefined) {
             operationInfoText.push(
               `      - **Error**: ${get(operationLog.result, 'message')}`
             )
@@ -281,11 +293,7 @@ class BackupReportsXoPlugin {
             `    - **${operationLog.message}** ${
               STATUS_ICON[operationLog.status]
             }`,
-            `      - **Start time**: ${formatDate(operationLog.start)}`,
-            `      - **End time**: ${formatDate(operationLog.end)}`,
-            `      - **Duration**: ${formatDuration(
-              operationLog.end - operationLog.start
-            )}`,
+            ...getTemporalDataMarkdown(operationLog.start, operationLog.end, 3),
             ...operationInfoText,
           ].join('\n')
           if (get(subTaskLog, 'data.type') === 'remote') {
@@ -346,21 +354,25 @@ class BackupReportsXoPlugin {
               vm !== undefined ? vm.name_label : 'undefined'
             }: (failed)[${failedSubTasks.toString()}]]`
           )
+        } else if (taskLog.status === 'interrupted') {
+          ++nInterrupted
+          interruptedVmsText.push(...text, '', '', ...subText, '')
+          nagiosText.push(
+            `[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`
+          )
         } else {
+          ++nSuccesses
           successfulVmsText.push(...text, '', '', ...subText, '')
         }
       }
     }
 
     const nVms = log.tasks.length
-    const nSuccesses = nVms - nFailures - nSkipped
     let markdown = [
       `##  Global status: ${log.status}`,
       '',
       `- **mode**: ${mode}`,
-      `- **Start time**: ${formatDate(log.start)}`,
-      `- **End time**: ${formatDate(log.end)}`,
-      `- **Duration**: ${formatDuration(log.start - log.end)}`,
+      ...getTemporalDataMarkdown(log.start, log.end),
       `- **Successes**: ${nSuccesses} / ${nVms}`,
     ]
 
@@ -384,6 +396,16 @@ class BackupReportsXoPlugin {
 
     if (nSkipped !== 0) {
       markdown.push('---', '', `## ${nSkipped} Skipped`, '', ...skippedVmsText)
+    }
+
+    if (nInterrupted !== 0) {
+      markdown.push(
+        '---',
+        '',
+        `## ${nInterrupted} Interrupted`,
+        '',
+        ...interruptedVmsText
+      )
     }
 
     if (nSuccesses !== 0 && reportWhen !== 'failure') {
