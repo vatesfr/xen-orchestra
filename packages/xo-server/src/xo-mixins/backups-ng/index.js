@@ -691,17 +691,13 @@ export default class BackupNg {
   }
 
   // High:
-  // - [ ] validate VHDs after exports and before imports, how?
   // - [ ] in case of merge failure
   //       1. delete (or isolate) the tainted VHD
   //       2. next run should be a full
   // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
-  // - [ ] check merge/transfert duration/size are what we want for delta
   // - [ ] in case of failure, correctly clean VHDs for all VDIs
   //
   // Low:
-  // - [ ] jobs should be cancelable
-  // - [ ] possibility to (re-)run a single VM in a backup?
   // - [ ] display queued VMs
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
@@ -731,6 +727,10 @@ export default class BackupNg {
   // - [x] clones of replicated VMs should not be garbage collected
   // - [x] import for delta
   // - [x] fix backup reports
+  // - [x] jobs should be cancelable
+  // - [x] possibility to (re-)run a single VM in a backup?
+  // - [x] validate VHDs after exports and before imports, how?
+  // - [x] check merge/transfert duration/size are what we want for delta
   @defer
   async _backupVm (
     $defer: any,
