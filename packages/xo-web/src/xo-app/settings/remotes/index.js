@@ -269,10 +269,16 @@ const FILTERS = {
 @addSubscriptions({
   remotes: cb =>
     subscribeRemotes(rawRemotes => {
-      rawRemotes = map(rawRemotes, remote => ({
-        ...remote,
-        ...parse(remote.url),
-      }))
+      rawRemotes = map(rawRemotes, remote => {
+        try {
+          return {
+            ...remote,
+            ...parse(remote.url),
+          }
+        } catch (err) {
+          console.error('Remote parsing error:', remote, '\n', err)
+        }
+      }).filter(r => r !== undefined)
       const remotes = {}
       for (const remoteType in remoteTypes) {
         remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)
@@ -290,7 +296,7 @@ export default class Remotes extends Component {
       name: '',
       password: '',
       path: '',
-      port: '',
+      port: undefined,
       type: 'nfs',
       username: '',
     }
@@ -344,7 +350,7 @@ export default class Remotes extends Component {
           name: '',
           password: '',
           path: '',
-          port: '',
+          port: undefined,
           type: 'nfs',
           username: '',
         })

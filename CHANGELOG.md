@@ -4,6 +4,17 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+- xo-server v5.23.0
+- xo-web v5.23.0
+
+## **5.22.0** (2018-07-12)
+
+### Enhancements
+
 - [Backup NG form] Add a link to the remotes' settings [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) [#3106](https://github.com/vatesfr/xen-orchestra/issues/3106) [#2299](https://github.com/vatesfr/xen-orchestra/issues/2299) (PR [#3128](https://github.com/vatesfr/xen-orchestra/pull/3128))
 - [Backup NG logs] Make copy to clipboard and report buttons always available [#3130](https://github.com/vatesfr/xen-orchestra/issues/3130) (PR [#3133](https://github.com/vatesfr/xen-orchestra/pull/3133))
 - Warning message when creating a local remote [#3105](https://github.com/vatesfr/xen-orchestra/issues/3105) (PR [3142](https://github.com/vatesfr/xen-orchestra/pull/3142))
@@ -11,12 +22,18 @@
 - [Backup NG form] Add offline snapshot info (PR [#3144](https://github.com/vatesfr/xen-orchestra/pull/3144))
 - [Backup NG overview] Display concurrency and offline snapshot value [3087](https://github.com/vatesfr/xen-orchestra/issues/3087) (PR [3145](https://github.com/vatesfr/xen-orchestra/pull/3145))
 - [VM revert] notify the result of reverting a VM [3095](https://github.com/vatesfr/xen-orchestra/issues/3095) (PR [3150](https://github.com/vatesfr/xen-orchestra/pull/3150))
+- [Backup NG logs] Link XO items in the details modal [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3171](https://github.com/vatesfr/xen-orchestra/pull/3171))
+- [VM/Snapshots] Add fast clone option when creating a VM [#3120](https://github.com/vatesfr/xen-orchestra/issues/3120) (PR [#3136](https://github.com/vatesfr/xen-orchestra/pull/3136))
+- Add the Turkish translation (PR [#3174](https://github.com/vatesfr/xen-orchestra/pull/3174) [#2870](https://github.com/vatesfr/xen-orchestra/pull/2870) [#2871](https://github.com/vatesfr/xen-orchestra/pull/2871))
 
 ### Bug fixes
 
 - Delete schedules with their job [#3108](https://github.com/vatesfr/xen-orchestra/issues/3108) (PR [3124](https://github.com/vatesfr/xen-orchestra/pull/3124))
 - Remote creation: correctly reset form [#3140](https://github.com/vatesfr/xen-orchestra/issues/3140) (PR [3141](https://github.com/vatesfr/xen-orchestra/pull/3141))
 - Make cloud config templates available for all users [3147](https://github.com/vatesfr/xen-orchestra/issues/3147) (PR [3148](https://github.com/vatesfr/xen-orchestra/pull/3148))
+- [New VM] Only create the cloud config drive when its option is enabled [3161](https://github.com/vatesfr/xen-orchestra/issues/3161) (PR [3162](https://github.com/vatesfr/xen-orchestra/pull/3162))
+- Fix error when installing patches from the host or without a default SR (PR [3166](https://github.com/vatesfr/xen-orchestra/pull/3166))
+- [Backup NG] Fix SMB *Not implemented* issue [#3149](](https://github.com/vatesfr/xen-orchestra/issues/3149) (PR [3175](https://github.com/vatesfr/xen-orchestra/pull/3175))
 
 ### Released packages
 

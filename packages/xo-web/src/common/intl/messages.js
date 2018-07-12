@@ -12,6 +12,7 @@ const messages = {
   statusLoading: 'Loading…',
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'no such item',
+  errorUnknownItem: 'unknown item',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -1531,6 +1532,8 @@ const messages = {
   copyVmCompress: 'Use compression',
   copyVmsNoTargetSr: 'No target SR',
   copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
+  fastCloneMode: 'Fast clone',
+  fullCopyMode: 'Full copy',
 
   // ----- Detach host -----
   detachHostModalTitle: 'Detach host',

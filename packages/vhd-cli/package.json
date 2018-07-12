@@ -1,6 +1,6 @@
 {
   "name": "vhd-cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "license": "ISC",
   "description": "",
   "keywords": [],
@@ -26,11 +26,11 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^0.1.0",
+    "@xen-orchestra/fs": "^0.2.0",
     "cli-progress": "^2.0.0",
     "exec-promise": "^0.7.0",
     "struct-fu": "^1.2.0",
-    "vhd-lib": "^0.2.0"
+    "vhd-lib": "^0.3.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.49",

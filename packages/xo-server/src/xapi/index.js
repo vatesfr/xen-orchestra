@@ -1930,7 +1930,8 @@ export default class Xapi extends XapiBase {
   @concurrency(12, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
   _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
-    const host = vdi.$SR.$PBDs[0].$host
+    const sr = vdi.$SR
+    const host = sr.$PBDs[0].$host
 
     const query = {
       format,
@@ -1950,29 +1951,46 @@ export default class Xapi extends XapiBase {
       host,
       query,
       task: this.createTask('VDI Export', vdi.name_label),
+    }).catch(error => {
+      // augment the error with as much relevant info as possible
+      error.host = host
+      error.SR = sr
+      error.VDI = vdi
+
+      throw error
     })
   }
 
   // -----------------------------------------------------------------
 
   async _importVdiContent (vdi, body, format = VDI_FORMAT_VHD) {
-    const pbd = find(vdi.$SR.$PBDs, 'currently_attached')
+    const sr = vdi.$SR
+    const pbd = find(sr.$PBDs, 'currently_attached')
     if (pbd === undefined) {
       throw new Error('no valid PBDs found')
     }
+
+    const host = pbd.$HOST
 
     await Promise.all([
       body.task,
       body.checksumVerified,
       this.putResource(body, '/import_raw_vdi/', {
-        host: pbd.host,
+        host,
         query: {
           format,
           vdi: vdi.$ref,
         },
         task: this.createTask('VDI Content Import', vdi.name_label),
       }),
-    ])
+    ]).catch(error => {
+      // augment the error with as much relevant info as possible
+      error.host = host
+      error.SR = sr
+      error.VDI = vdi
+
+      throw error
+    })
   }
 
   importVdiContent (vdiId, body, { format } = {}) {
@@ -2302,7 +2320,7 @@ export default class Xapi extends XapiBase {
 
     return this.createTemporaryVdiOnSr(
       stream,
-      pbd.SR,
+      pbd.$SR,
       name_label,
       name_description
     )

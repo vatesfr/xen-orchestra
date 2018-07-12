@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/fs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "AGPL-3.0",
   "description": "The File System for Xen Orchestra backups.",
   "keywords": [],
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.0.0-beta.49",
-    "@marsaud/smb2-promise": "^0.2.1",
+    "@marsaud/smb2": "^0.8.0",
     "execa": "^0.10.0",
     "fs-extra": "^6.0.1",
     "get-stream": "^3.0.0",
@@ -29,7 +29,7 @@
     "promise-toolbox": "^0.9.5",
     "through2": "^2.0.3",
     "tmp": "^0.0.33",
-    "xo-remote-parser": "^0.3"
+    "xo-remote-parser": "^0.4.0"
   },
   "devDependencies": {
     "@babel/cli": "7.0.0-beta.49",

@@ -353,7 +353,7 @@ export default class NewVm extends BaseComponent {
           }),
           ''
         )}`
-      } else {
+      } else if (state.installMethod === 'customConfig') {
         const replacer = this._buildTemplate(
           defined(state.customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)
         )

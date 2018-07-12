@@ -1,4 +1,4 @@
-import Smb2 from '@marsaud/smb2-promise'
+import Smb2 from '@marsaud/smb2'
 import { lastly as pFinally } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
@@ -12,13 +12,13 @@ const normalizeError = error => {
   return code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
     code === 'STATUS_OBJECT_PATH_NOT_FOUND'
     ? Object.create(error, {
-      code: {
-        configurable: true,
-        readable: true,
-        value: 'ENOENT',
-        writable: true,
-      },
-    })
+        code: {
+          configurable: true,
+          readable: true,
+          value: 'ENOENT',
+          writable: true,
+        },
+      })
     : error
 }
 
@@ -32,7 +32,9 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return 'smb'
   }
 
-  _getClient (remote) {
+  _getClient () {
+    const remote = this._remote
+
     return new Smb2({
       share: `\\\\${remote.host}`,
       domain: remote.domain,
@@ -81,7 +83,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   async _outputFile (file, data, options = {}) {
-    const client = this._getClient(this._remote)
+    const client = this._getClient()
     const path = this._getFilePath(file)
     const dir = this._dirname(path)
 
@@ -90,19 +92,40 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
 
     return client.writeFile(path, data, options)::pFinally(() => {
-      client.close()
+      client.disconnect()
     })
   }
 
+  async _read (file, buffer, position) {
+    const needsClose = typeof file === 'string'
+
+    let client
+    if (needsClose) {
+      client = this._getClient()
+      file = await client.open(this._getFilePath(file))
+    } else {
+      ;({ client, file } = file.fd)
+    }
+
+    try {
+      return await client.read(file, buffer, 0, buffer.length, position)
+    } finally {
+      if (needsClose) {
+        await client.close(file)
+        client.disconnect()
+      }
+    }
+  }
+
   async _readFile (file, options = {}) {
-    const client = this._getClient(this._remote)
+    const client = this._getClient()
     let content
 
     try {
       content = await client
         .readFile(this._getFilePath(file), options)
         ::pFinally(() => {
-          client.close()
+          client.disconnect()
         })
     } catch (error) {
       throw normalizeError(error)
@@ -112,13 +135,13 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   async _rename (oldPath, newPath) {
-    const client = this._getClient(this._remote)
+    const client = this._getClient()
 
     try {
       await client
         .rename(this._getFilePath(oldPath), this._getFilePath(newPath))
         ::pFinally(() => {
-          client.close()
+          client.disconnect()
         })
     } catch (error) {
       throw normalizeError(error)
@@ -126,12 +149,12 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   async _list (dir = '.') {
-    const client = this._getClient(this._remote)
+    const client = this._getClient()
     let list
 
     try {
       list = await client.readdir(this._getFilePath(dir))::pFinally(() => {
-        client.close()
+        client.disconnect()
       })
     } catch (error) {
       throw normalizeError(error)
@@ -144,13 +167,13 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.path
     }
-    const client = this._getClient(this._remote)
+    const client = this._getClient()
     let stream
 
     try {
       // FIXME ensure that options are properly handled by @marsaud/smb2
       stream = await client.createReadStream(this._getFilePath(file), options)
-      stream.on('end', () => client.close())
+      stream.on('end', () => client.disconnect())
     } catch (error) {
       throw normalizeError(error)
     }
@@ -162,7 +185,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.path
     }
-    const client = this._getClient(this._remote)
+    const client = this._getClient()
     const path = this._getFilePath(file)
     const dir = this._dirname(path)
     let stream
@@ -172,19 +195,19 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       }
       stream = await client.createWriteStream(path, options) // FIXME ensure that options are properly handled by @marsaud/smb2
     } catch (err) {
-      client.close()
+      client.disconnect()
       throw err
     }
-    stream.on('finish', () => client.close())
+    stream.on('finish', () => client.disconnect())
     return stream
   }
 
   async _unlink (file) {
-    const client = this._getClient(this._remote)
+    const client = this._getClient()
 
     try {
       await client.unlink(this._getFilePath(file))::pFinally(() => {
-        client.close()
+        client.disconnect()
       })
     } catch (error) {
       throw normalizeError(error)
@@ -192,14 +215,14 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   async _getSize (file) {
-    const client = await this._getClient(this._remote)
+    const client = await this._getClient()
     let size
 
     try {
       size = await client
         .getSize(this._getFilePath(typeof file === 'string' ? file : file.path))
         ::pFinally(() => {
-          client.close()
+          client.disconnect()
         })
     } catch (error) {
       throw normalizeError(error)
@@ -208,10 +231,17 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return size
   }
 
-  // this is a fake
+  // TODO: add flags
   async _openFile (path) {
-    return this._getFilePath(path)
+    const client = this._getClient()
+    return {
+      client,
+      file: await client.open(this._getFilePath(path)),
+    }
   }
 
-  async _closeFile (fd) {}
+  async _closeFile ({ client, file }) {
+    await client.close(file)
+    client.disconnect()
+  }
 }
