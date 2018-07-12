@@ -20,6 +20,10 @@ const OBJECT_TYPE_TO_ICON = {
   network: 'network',
 }
 
+const COMMON_PROP_TYPES = {
+  link: PropTypes.bool,
+}
+
 const XoItem = ({ children, item, link, to }) =>
   item !== undefined ? (
     link ? (
@@ -34,15 +38,15 @@ const XoItem = ({ children, item, link, to }) =>
   )
 
 XoItem.propTypes = {
-  item: propTypes.object,
-  link: propTypes.bool,
-  to: propTypes.oneOfType([propTypes.string, propTypes.object]),
+  ...COMMON_PROP_TYPES,
+  item: PropTypes.object,
+  to: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 }
 // ===================================================================
 
 const XO_ITEM_PROP_TYPES = {
+  ...COMMON_PROP_TYPES,
   id: PropTypes.string.isRequired,
-  link: PropTypes.bool,
 }
 
 export const VmItem = [
