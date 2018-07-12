@@ -34,7 +34,7 @@ const XoItem = ({ children, item, link, to }) =>
       children()
     )
   ) : (
-    <span className='text-muted'>{_('errorNoSuchItem')}</span>
+    <span className='text-muted'>{_('errorUnknownItem')}</span>
   )
 
 XoItem.propTypes = {
