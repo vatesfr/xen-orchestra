@@ -20,10 +20,10 @@ const OBJECT_TYPE_TO_ICON = {
   network: 'network',
 }
 
-const XoItem = ({ children, item, link, redirect, to }) =>
+const XoItem = ({ children, item, link, to }) =>
   item !== undefined ? (
     link ? (
-      <Link to={to} target={redirect ? undefined : '_blank'}>
+      <Link to={to} target='_blank'>
         {children()}
       </Link>
     ) : (
@@ -38,12 +38,11 @@ const XoItem = ({ children, item, link, redirect, to }) =>
 const XO_ITEM_PROP_TYPES = {
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
-  redirect: PropTypes.bool,
 }
 
 export const VmItem = [
   connectStore(() => {
-    const getVm = createGetObject((_, { id }) => id)
+    const getVm = createGetObject()
     return {
       vm: getVm,
       container: createGetObject(
@@ -69,7 +68,7 @@ VmItem.propTypes = XO_ITEM_PROP_TYPES
 
 export const SrItem = [
   connectStore(() => {
-    const getSr = createGetObject((_, { id }) => id)
+    const getSr = createGetObject()
     return {
       sr: getSr,
       container: createGetObject(
@@ -104,7 +103,7 @@ export const RemoteItem = [
       }),
   })),
   ({ remote, ...props }) => (
-    <XoItem item={remote} to={`/settings/remotes`} {...props}>
+    <XoItem item={remote} to='/settings/remotes' {...props}>
       {() => (
         <span>
           <Icon icon='remote' /> {remote.name}
