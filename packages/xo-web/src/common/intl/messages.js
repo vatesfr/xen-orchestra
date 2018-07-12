@@ -1532,6 +1532,8 @@ const messages = {
   copyVmCompress: 'Use compression',
   copyVmsNoTargetSr: 'No target SR',
   copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
+  fastCloneMode: 'Fast clone',
+  fullCopyMode: 'Full copy',
 
   // ----- Detach host -----
   detachHostModalTitle: 'Detach host',

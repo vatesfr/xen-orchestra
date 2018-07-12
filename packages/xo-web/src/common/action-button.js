@@ -87,12 +87,13 @@ export default class ActionButton extends Component {
       const result = await handler(handlerParam)
 
       const { redirectOnSuccess } = props
-      if (redirectOnSuccess) {
-        return this.context.router.push(
-          isFunction(redirectOnSuccess)
-            ? redirectOnSuccess(result, handlerParam)
-            : redirectOnSuccess
-        )
+      if (redirectOnSuccess !== undefined) {
+        const to = isFunction(redirectOnSuccess)
+          ? redirectOnSuccess(result, handlerParam)
+          : redirectOnSuccess
+        if (to !== undefined) {
+          return this.context.router.push(to)
+        }
       }
 
       this.setState({

@@ -939,30 +939,33 @@ export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) =>
     full_copy: fullCopy,
   })
 
+const _copyVm = ({ vm, sr, name, compress }) =>
+  _call('vm.copy', {
+    vm: resolveId(vm),
+    sr,
+    name: name || vm.name_label + '_COPY',
+    compress,
+  })
+
 import CopyVmModalBody from './copy-vm-modal' // eslint-disable-line import/first
 export const copyVm = (vm, sr, name, compress) => {
-  const vmId = resolveId(vm)
   return sr !== undefined
     ? confirm({
         title: _('copyVm'),
         body: _('copyVmConfirm', { SR: sr.name_label }),
-      }).then(() =>
-        _call('vm.copy', {
-          vm: vmId,
-          sr: sr.id,
-          name: name || vm.name_label + '_COPY',
-          compress,
-        })
-      )
+      }).then(() => _copyVm({ vm, sr: sr.id, name, compress }))
     : confirm({
         title: _('copyVm'),
         body: <CopyVmModalBody vm={vm} />,
       }).then(params => {
-        if (!params.sr) {
-          error('copyVmsNoTargetSr', 'copyVmsNoTargetSrMessage')
-          return
+        if (params.copyMode === 'fullCopy') {
+          if (!params.sr) {
+            error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
+            return
+          }
+          return _copyVm({ vm, ...params })
         }
-        return _call('vm.copy', { vm: vmId, ...params })
+        return cloneVm({ id: vm.id, name_label: params.name })
       }, noop)
 }
 
