@@ -12,6 +12,7 @@ const messages = {
   statusLoading: 'Loading…',
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'no such item',
+  errorUnknownItem: 'unknown item',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',

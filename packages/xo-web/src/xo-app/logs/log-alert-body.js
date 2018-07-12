@@ -2,7 +2,6 @@ import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
 import Icon from 'icon'
 import React from 'react'
-import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
@@ -10,6 +9,7 @@ import { countBy, filter, get, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
+import { VmItem, SrItem, RemoteItem } from 'render-xo-item'
 
 const TASK_STATUS = {
   failure: {
@@ -166,7 +166,7 @@ export default [
             let globalIsFull
             return (
               <li key={taskLog.data.id} className='list-group-item'>
-                {renderXoItemFromId(taskLog.data.id)} ({taskLog.data.id.slice(
+                <VmItem id={taskLog.data.id} link /> ({taskLog.data.id.slice(
                   4,
                   8
                 )}) <TaskStateInfos status={taskLog.status} />{' '}
@@ -202,17 +202,14 @@ export default [
                           </span>
                         ) : subTaskLog.data.type === 'remote' ? (
                           <span>
-                            {get(remotes, subTaskLog.data.id) !== undefined
-                              ? renderXoItem({
-                                  type: 'remote',
-                                  value: remotes[subTaskLog.data.id],
-                                })
-                              : _('errorNoSuchItem')}{' '}
-                            ({subTaskLog.data.id.slice(4, 8)})
+                            <RemoteItem id={subTaskLog.data.id} link /> ({subTaskLog.data.id.slice(
+                              4,
+                              8
+                            )})
                           </span>
                         ) : (
                           <span>
-                            {renderXoItemFromId(subTaskLog.data.id)} ({subTaskLog.data.id.slice(
+                            <SrItem id={subTaskLog.data.id} link /> ({subTaskLog.data.id.slice(
                               4,
                               8
                             )})
