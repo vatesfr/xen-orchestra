@@ -19,6 +19,7 @@
 - Make cloud config templates available for all users [3147](https://github.com/vatesfr/xen-orchestra/issues/3147) (PR [3148](https://github.com/vatesfr/xen-orchestra/pull/3148))
 - [New VM] Only create the cloud config drive when its option is enabled [3161](https://github.com/vatesfr/xen-orchestra/issues/3161) (PR [3162](https://github.com/vatesfr/xen-orchestra/pull/3162))
 - Fix error when installing patches from the host or without a default SR (PR [3166](https://github.com/vatesfr/xen-orchestra/pull/3166))
+- [Backup NG] Fix SMB *Not implemented* issue [#3149](](https://github.com/vatesfr/xen-orchestra/issues/3149) (PR [3175](https://github.com/vatesfr/xen-orchestra/pull/3175))
 
 ### Released packages
 
