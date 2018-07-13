@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- [Remote select] Gracefully ignore remotes with invalid URL (PR [#3178](https://github.com/vatesfr/xen-orchestra/pull/3178))
+
 ### Released packages
 
 - xo-server v5.23.0
