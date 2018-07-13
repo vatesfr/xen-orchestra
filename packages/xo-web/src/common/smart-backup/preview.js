@@ -8,10 +8,10 @@ import { filter, map, pickBy } from 'lodash'
 import Component from './../base-component'
 import Icon from './../icon'
 import Link from './../link'
-import renderXoItem from './../render-xo-item'
 import Tooltip from './../tooltip'
 import { Card, CardBlock, CardHeader } from './../card'
 import { constructQueryString } from './index'
+import { VmItem } from './../render-xo-item'
 
 const SAMPLE_SIZE_OF_MATCHING_VMS = 3
 
@@ -55,7 +55,7 @@ export default class SmartBackupPreview extends Component {
               <ul className='list-group'>
                 {map(sampleOfMatchingVms, vm => (
                   <li className='list-group-item' key={vm.id}>
-                    {renderXoItem(vm)}
+                    <VmItem id={vm.id} />
                   </li>
                 ))}
               </ul>
