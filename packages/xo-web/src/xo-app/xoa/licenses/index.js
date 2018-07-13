@@ -3,14 +3,14 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import { addSubscriptions, connectStore, ShortDate } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
 import { find, forEach } from 'lodash'
-import { addSubscriptions, connectStore, ShortDate } from 'utils'
-import { subscribePlugins, getLicenses } from 'xo'
 import { get } from 'xo-defined'
+import { SrItem } from 'render-xo-item'
+import { subscribePlugins, getLicenses } from 'xo'
 
 import Xosan from './xosan'
 
@@ -73,7 +73,7 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
     return () => _('licenseBoundUnknownXosan')
   }
 
-  return () => <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>
+  return () => <SrItem id={sr.id} link />
 }
 
 @connectStore({
