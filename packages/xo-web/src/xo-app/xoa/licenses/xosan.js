@@ -1,16 +1,15 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import Link from 'link'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
-import { unlockXosan } from 'xo'
-import { get } from 'xo-defined'
 import { filter, forEach, includes, map } from 'lodash'
+import { get } from 'xo-defined'
 import { injectIntl } from 'react-intl'
+import { PoolItem, SrItem } from 'render-xo-item'
+import { unlockXosan } from 'xo'
 
 @injectIntl
 class SelectLicense extends Component {
@@ -32,10 +31,10 @@ class SelectLicense extends Component {
                 date:
                   license.expires !== undefined
                     ? this.props.intl.formatTime(license.expires, {
-                      day: 'numeric',
-                      month: 'numeric',
-                      year: 'numeric',
-                    })
+                        day: 'numeric',
+                        month: 'numeric',
+                        year: 'numeric',
+                      })
                     : '',
               },
               message => (
@@ -64,15 +63,14 @@ class SelectLicense extends Component {
 const XOSAN_COLUMNS = [
   {
     name: _('xosanName'),
-    itemRenderer: sr => <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>,
+    itemRenderer: ({ id }) => <SrItem id={id} link />,
     sortCriteria: 'name_label',
   },
   {
     name: _('xosanPool'),
-    itemRenderer: (sr, { poolsBySr }) => {
-      const pool = poolsBySr[sr.id]
-      return <Link to={`pools/${pool.id}`}>{renderXoItem(pool)}</Link>
-    },
+    itemRenderer: (sr, { poolsBySr }) => (
+      <PoolItem id={poolsBySr[sr.id].id} link />
+    ),
   },
   {
     name: _('xosanLicense'),
