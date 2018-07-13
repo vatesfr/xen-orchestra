@@ -5,12 +5,11 @@ import { startsWith } from 'lodash'
 
 import Icon from './icon'
 import Link from './link'
-import propTypes from './prop-types-decorator'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
 import { get } from './xo-defined'
-import { isSrWritable, subscribeRemotes } from './xo'
+import { isSrWritable, subscribeRemotes, subscribeResourceSets } from './xo'
 
 // ===================================================================
 
@@ -104,6 +103,102 @@ export const SrItem = [
 
 SrItem.propTypes = XO_ITEM_PROP_TYPES
 
+// Host, Network, VM-template.
+export const PoolObjectItem = [
+  connectStore(() => {
+    const getObject = createGetObject()
+    return {
+      object: getObject,
+      pool: createGetObject(
+        createSelector(getObject, obj => get(() => obj.$pool))
+      ),
+      to: createSelector(
+        getObject,
+        obj =>
+          obj !== undefined &&
+          (obj.type === 'VM-template'
+            ? {
+                pathname: '/home',
+                query: {
+                  t: 'VM-template',
+                  s: `id:"${obj.id}"`,
+                },
+              }
+            : obj.type === 'host'
+              ? `/hosts/${obj.id}`
+              : `/pools/${obj.$pool}/network`)
+      ),
+    }
+  }),
+  ({ object, pool, to, ...props }) => (
+    <XoItem item={object} to={to} {...props}>
+      {() => (
+        <span>
+          <Icon icon={OBJECT_TYPE_TO_ICON[object.type]} />{' '}
+          {`${object.name_label || object.id} `}
+          {pool && `(${pool.name_label || pool.id})`}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+PoolObjectItem.propTypes = XO_ITEM_PROP_TYPES
+
+export const PoolItem = [
+  connectStore(() => ({
+    pool: createGetObject(),
+  })),
+  ({ pool, ...props }) => (
+    <XoItem item={pool} to={`/pools/${get(() => pool.id)}`} {...props}>
+      {() => (
+        <span>
+          <Icon icon='pool' /> {pool.name_label || pool.id}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+PoolItem.propTypes = XO_ITEM_PROP_TYPES
+
+export const VgpuTypeItem = [
+  connectStore(() => ({
+    type: createGetObject(),
+  })),
+  ({ type }) => (
+    <XoItem item={type}>
+      {() => (
+        <span>
+          <Icon icon='gpu' /> {type.modelName} ({type.vendorName}){' '}
+          {type.maxResolutionX}x{type.maxResolutionY}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+VgpuTypeItem.propTypes = XO_ITEM_PROP_TYPES
+
+export const VgpuItem = [
+  connectStore(() => ({
+    type: createGetObject(
+      createSelector(createGetObject(), vgpu => get(() => vgpu.vgpuType))
+    ),
+  })),
+  ({ type }) => (
+    <XoItem item={type}>
+      {() => (
+        <span>
+          <Icon icon='vgpu' /> {type.modelName}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+VgpuItem.propTypes = XO_ITEM_PROP_TYPES
+
 export const RemoteItem = [
   addSubscriptions(({ id }) => ({
     remote: cb =>
@@ -124,38 +219,28 @@ export const RemoteItem = [
 
 RemoteItem.propTypes = XO_ITEM_PROP_TYPES
 
-// ===================================================================
+export const ResourceSetItem = [
+  addSubscriptions(({ id }) => ({
+    resourceSet: cb =>
+      subscribeResourceSets(resourceSets => {
+        cb(get(() => resourceSets.find(resourceSet => resourceSet.id === id)))
+      }),
+  })),
+  ({ resourceSet, ...props }) => (
+    <XoItem item={resourceSet} to='/self' {...props}>
+      {() => (
+        <span>
+          <strong>
+            <Icon icon='resource-set' /> {resourceSet.name}
+          </strong>{' '}
+          ({resourceSet.id})
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
 
-// Host, Network, VM-template.
-const PoolObjectItem = propTypes({
-  object: propTypes.object.isRequired,
-})(
-  connectStore(() => {
-    const getPool = createGetObject((_, props) => props.object.$pool)
-
-    return (state, props) => ({
-      pool: getPool(state, props),
-    })
-  })(({ object, pool }) => {
-    const icon = OBJECT_TYPE_TO_ICON[object.type]
-    const { id } = object
-
-    return (
-      <span>
-        <Icon icon={icon} /> {`${object.name_label || id} `}
-        {pool && `(${pool.name_label || pool.id})`}
-      </span>
-    )
-  })
-)
-
-const VgpuItem = connectStore(() => ({
-  vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
-}))(({ vgpu, vgpuType }) => (
-  <span>
-    <Icon icon='vgpu' /> {vgpuType.modelName}
-  </span>
-))
+ResourceSetItem.propTypes = XO_ITEM_PROP_TYPES
 
 // ===================================================================
 
@@ -178,14 +263,7 @@ const xoItemToRender = {
       <Icon icon='user' /> {user.email}
     </span>
   ),
-  resourceSet: resourceSet => (
-    <span>
-      <strong>
-        <Icon icon='resource-set' /> {resourceSet.name}
-      </strong>{' '}
-      ({resourceSet.id})
-    </span>
-  ),
+  resourceSet: ({ id }) => <ResourceSetItem id={id} />,
   sshKey: key => (
     <span>
       <Icon icon='ssh-key' /> {key.label}
@@ -204,11 +282,7 @@ const xoItemToRender = {
   },
 
   // XO objects.
-  pool: pool => (
-    <span>
-      <Icon icon='pool' /> {pool.name_label || pool.id}
-    </span>
-  ),
+  pool: ({ id }) => <PoolItem id={id} />,
 
   VDI: vdi => (
     <span>
@@ -218,9 +292,9 @@ const xoItemToRender = {
   ),
 
   // Pool objects.
-  'VM-template': vmTemplate => <PoolObjectItem object={vmTemplate} />,
-  host: host => <PoolObjectItem object={host} />,
-  network: network => <PoolObjectItem object={network} />,
+  'VM-template': ({ id }) => <PoolObjectItem id={id} />,
+  host: ({ id }) => <PoolObjectItem id={id} />,
+  network: ({ id }) => <PoolObjectItem id={id} />,
 
   // SR.
   SR: ({ id }) => <SrItem id={id} />,
@@ -254,14 +328,9 @@ const xoItemToRender = {
 
   // GPUs
 
-  vgpu: vgpu => <VgpuItem vgpu={vgpu} />,
+  vgpu: ({ id }) => <VgpuItem id={id} />,
 
-  vgpuType: type => (
-    <span>
-      <Icon icon='gpu' /> {type.modelName} ({type.vendorName}){' '}
-      {type.maxResolutionX}x{type.maxResolutionY}
-    </span>
-  ),
+  vgpuType: ({ id }) => <VgpuTypeItem id={id} />,
 
   gpuGroup: group => (
     <span>
