@@ -6,13 +6,13 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import HomeTags from 'home-tags'
-import renderXoItem from 'render-xo-item'
 import Tooltip from 'tooltip'
 import { addTag, editVm, removeTag } from 'xo'
 import { BlockLink } from 'link'
-import { FormattedRelative } from 'react-intl'
 import { Container, Row, Col } from 'grid'
+import { FormattedRelative } from 'react-intl'
 import { Number, Size } from 'editable'
+import { VgpuTypeItem } from 'render-xo-item'
 import {
   createFinder,
   createGetObjectsOfType,
@@ -131,7 +131,7 @@ export default connectStore(() => {
               : _('hardwareVirtualizedMode')}
           </p>
           {vgpu !== undefined && (
-            <p>{renderXoItem(vgpuTypes[vgpu.vgpuType])}</p>
+            <VgpuTypeItem id={vgpuTypes[vgpu.vgpuType].id} />
           )}
         </Col>
         <Col mediumSize={3}>
