@@ -187,10 +187,9 @@ class BackupReportsXoPlugin {
     let nFailures = 0
     let nSkipped = 0
     let nInterrupted = 0
-    let nSuccesses = 0
     for (const taskLog of log.tasks) {
       if (taskLog.status === 'success' && reportWhen === 'failure') {
-        return
+        continue
       }
 
       const vmId = taskLog.data.id
@@ -361,13 +360,13 @@ class BackupReportsXoPlugin {
             `[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`
           )
         } else {
-          ++nSuccesses
           successfulVmsText.push(...text, '', '', ...subText, '')
         }
       }
     }
 
     const nVms = log.tasks.length
+    const nSuccesses = nVms - nFailures - nSkipped - nInterrupted
     let markdown = [
       `##  Global status: ${log.status}`,
       '',
