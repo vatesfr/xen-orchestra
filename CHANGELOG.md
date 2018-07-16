@@ -6,8 +6,11 @@
 
 ### Bug fixes
 
+- Fix Backup Reports [#3181](https://github.com/vatesfr/xen-orchestra/issues/3181) (PR [#3185](https://github.com/vatesfr/xen-orchestra/pull/3185))
+
 ### Released packages
 
+- xo-server-backup-reports v0.12.3
 - xo-server v5.23.0
 - xo-web v5.23.0
 
