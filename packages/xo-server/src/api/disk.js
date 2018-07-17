@@ -1,4 +1,5 @@
 import pump from 'pump'
+import { format } from 'json-rpc-peer'
 import { unauthorized } from 'xo-common/api-errors'
 
 import { parseSize } from '../utils'
@@ -93,6 +94,39 @@ exportContent.params = {
 }
 exportContent.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'view'],
+}
+
+// -------------------------------------------------------------------
+
+async function handleImportContent (req, res, { xapi, id }) {
+  // Timeout seems to be broken in Node 4.
+  // See https://github.com/nodejs/node/issues/3319
+  req.setTimeout(43200000) // 12 hours
+
+  try {
+    await xapi.importVdiContent(id, req)
+    res.end(format.response(0, true))
+  } catch (e) {
+    res.writeHead(500)
+    res.end(format.error(0, new Error(e.message)))
+  }
+}
+
+export async function importContent ({ vdi }) {
+  return {
+    $sendTo: await this.registerHttpRequest(handleImportContent, {
+      id: vdi._xapiId,
+      xapi: this.getXapi(vdi),
+    }),
+  }
+}
+
+exportContent.description = 'import contents into a VDI'
+exportContent.params = {
+  id: { type: 'string' },
+}
+exportContent.resolve = {
+  vdi: ['id', ['VDI'], 'operate'],
 }
 
 // -------------------------------------------------------------------
