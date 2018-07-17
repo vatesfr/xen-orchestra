@@ -44,6 +44,7 @@ import {
   deleteVdis,
   disconnectVbd,
   editVdi,
+  exportVdi,
   isSrWritable,
   isVmRunning,
   migrateVdi,
@@ -652,6 +653,11 @@ export default class TabDisks extends Component {
   )
 
   individualActions = [
+    {
+      handler: exportVdi,
+      icon: 'export',
+      label: _('exportVdi'),
+    },
     {
       handler: this._migrateVdi,
       icon: 'vdi-migrate',

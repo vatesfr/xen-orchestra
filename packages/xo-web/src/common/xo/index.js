@@ -1270,6 +1270,15 @@ export const exportVm = vm => {
   })
 }
 
+export const exportVdi = vdi => {
+  info(_('startVdiExport'), vdi.id)
+  return _call('disk.exportContent', { id: resolveId(vdi) }).then(
+    ({ $getFrom: url }) => {
+      window.location = `.${url}`
+    }
+  )
+}
+
 export const insertCd = (vm, cd, force = false) =>
   _call('vm.insertCd', {
     id: resolveId(vm),
