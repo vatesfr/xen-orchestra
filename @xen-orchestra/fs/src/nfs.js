@@ -52,12 +52,12 @@ export default class NfsHandler extends LocalHandler {
 
   async _mount () {
     await fs.ensureDir(this._getRealPath())
-    const { host, path, port } = this._remote
+    const { host, path, port, options = 'vers=3' } = this._remote
     return execa('mount', [
       '-t',
       'nfs',
       '-o',
-      'vers=3',
+      options,
       `${host}${port !== undefined ? ':' + port : ''}:${path}`,
       this._getRealPath(),
     ])

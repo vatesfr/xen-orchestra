@@ -30,12 +30,14 @@ const _changeUrlElement = (value, { remote, element }) =>
     url: format({ ...remote, [element]: value === null ? undefined : value }),
   })
 const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
-const _editRemote = (name, { remote }) => editRemote(remote, { name })
+const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
+const _editRemoteOptions = (options, { remote }) =>
+  editRemote(remote, { options: options !== '' ? options : null })
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
     <Text
       data-remote={remote}
-      onChange={_editRemote}
+      onChange={_editRemoteName}
       placeholder={formatMessage(messages.remoteMyNamePlaceHolder)}
       value={remote.name}
     />
@@ -136,6 +138,16 @@ const COLUMNS_NFS_REMOTE = [
     ),
 
     name: _('remoteDevice'),
+  },
+  {
+    name: _('remoteOptions'),
+    itemRenderer: remote => (
+      <Text
+        data-remote={remote}
+        onChange={_editRemoteOptions}
+        value={remote.options || ''}
+      />
+    ),
   },
   COLUMN_STATE,
 ]

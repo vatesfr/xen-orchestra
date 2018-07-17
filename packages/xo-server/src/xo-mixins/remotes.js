@@ -88,17 +88,18 @@ export default class {
     return remote.properties
   }
 
-  async createRemote ({ name, url }) {
+  async createRemote ({ name, url, options }) {
     const remote = await this._remotes.add({
       name,
       url,
+      options,
       enabled: false,
       error: '',
     })
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote (id, { name, url, enabled }) {
+  updateRemote (id, { name, url, options, enabled }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -106,7 +107,12 @@ export default class {
       ignoreErrors.call(handler.forget())
     }
 
-    return this._updateRemote(id, { name, url, enabled })
+    return this._updateRemote(id, {
+      name,
+      url,
+      options,
+      enabled,
+    })
   }
 
   @synchronized()
