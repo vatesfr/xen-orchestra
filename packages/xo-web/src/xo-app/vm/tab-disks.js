@@ -14,6 +14,7 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import { Container, Row, Col } from 'grid'
 import {
+  createGetObjectsOfType,
   createSelector,
   createFinder,
   getCheckPermissions,
@@ -33,7 +34,17 @@ import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { filter, find, forEach, get, map, mapValues, some } from 'lodash'
+import {
+  filter,
+  find,
+  forEach,
+  get,
+  groupBy,
+  map,
+  mapValues,
+  pick,
+  some,
+} from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -45,6 +56,7 @@ import {
   disconnectVbd,
   editVdi,
   exportVdi,
+  importVdi,
   isSrWritable,
   isVmRunning,
   migrateVdi,
@@ -585,6 +597,7 @@ class MigrateVdiModalBody extends Component {
 @connectStore(() => ({
   checkPermissions: getCheckPermissions,
   isAdmin,
+  allVbds: createGetObjectsOfType('VBD'),
 }))
 export default class TabDisks extends Component {
   constructor (props) {
@@ -652,11 +665,26 @@ export default class TabDisks extends Component {
     (vdis, vbds, vm) => mapValues(vdis, vdi => find(vbds, { VDI: vdi.id }))
   )
 
+  _getIsVdiAttached = createSelector(
+    createSelector(
+      () => this.props.allVbds,
+      () => Object.keys(this.props.vdis),
+      (vbds, vdis) => pick(groupBy(vbds, 'VDI'), vdis)
+    ),
+    vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
+  )
+
   individualActions = [
     {
       handler: exportVdi,
       icon: 'export',
       label: _('exportVdi'),
+    },
+    {
+      disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
+      handler: importVdi,
+      icon: 'import',
+      label: _('importVdi'),
     },
     {
       handler: this._migrateVdi,
@@ -735,6 +763,7 @@ export default class TabDisks extends Component {
               actions={ACTIONS}
               collection={vdis}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
+              data-isVdiAttached={this._getIsVdiAttached()}
               data-srs={srs}
               data-vbdsByVdi={this._getVbdsByVdi()}
               data-vm={vm}
