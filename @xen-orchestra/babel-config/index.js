@@ -11,6 +11,9 @@ const configs = {
   '@babel/plugin-proposal-decorators': {
     legacy: true,
   },
+  '@babel/plugin-proposal-pipeline-operator': {
+    proposal: 'minimal',
+  },
   '@babel/preset-env' (pkg) {
     return {
       debug: !__TEST__,

@@ -20,21 +20,21 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@babel/runtime": "^7.0.0-beta.49",
+    "@babel/runtime": "7.0.0-beta.54",
     "async-iterator-to-stream": "^1.0.2",
     "from2": "^2.3.0",
-    "fs-extra": "^6.0.1",
+    "fs-extra": "^7.0.0",
     "limit-concurrency-decorator": "^0.4.0",
     "promise-toolbox": "^0.9.5",
     "struct-fu": "^1.2.0",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
-    "@babel/cli": "7.0.0-beta.49",
-    "@babel/core": "7.0.0-beta.49",
-    "@babel/plugin-transform-runtime": "^7.0.0-beta.49",
-    "@babel/preset-env": "7.0.0-beta.49",
-    "@babel/preset-flow": "7.0.0-beta.49",
+    "@babel/cli": "7.0.0-beta.54",
+    "@babel/core": "7.0.0-beta.54",
+    "@babel/plugin-transform-runtime": "7.0.0-beta.54",
+    "@babel/preset-env": "7.0.0-beta.54",
+    "@babel/preset-flow": "7.0.0-beta.54",
     "@xen-orchestra/fs": "^0.2.0",
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^5.1.3",
