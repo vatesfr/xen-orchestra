@@ -74,12 +74,16 @@ async function handleExportContent (req, res, { xapi, id }) {
 
 export async function exportContent ({ vdi }) {
   return {
-    $getFrom: await this.registerHttpRequest(handleExportContent, {
-      id: vdi._xapiId,
-      xapi: this.getXapi(vdi),
-    }, {
-      suffix: `/${encodeURIComponent(vdi.name_label)}.vhd`
-    }),
+    $getFrom: await this.registerHttpRequest(
+      handleExportContent,
+      {
+        id: vdi._xapiId,
+        xapi: this.getXapi(vdi),
+      },
+      {
+        suffix: `/${encodeURIComponent(vdi.name_label)}.vhd`,
+      }
+    ),
   }
 }
 
