@@ -1961,6 +1961,11 @@ export default class Xapi extends XapiBase {
     })
   }
 
+  @cancelable
+  exportVdiContent ($cancelToken, vdi, { format } = {}) {
+    return this._exportVdi($cancelToken, this.getObject(vdi), undefined, format)
+  }
+
   // -----------------------------------------------------------------
 
   async _importVdiContent (vdi, body, format = VDI_FORMAT_VHD) {
