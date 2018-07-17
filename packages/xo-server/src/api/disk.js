@@ -77,6 +77,8 @@ export async function exportContent ({ vdi }) {
     $getFrom: await this.registerHttpRequest(handleExportContent, {
       id: vdi._xapiId,
       xapi: this.getXapi(vdi),
+    }, {
+      suffix: `/${encodeURIComponent(vdi.name_label)}.vhd`
     }),
   }
 }
