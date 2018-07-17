@@ -5,7 +5,12 @@ import { resolve } from 'path'
 export default async args => {
   const vhd = new Vhd(getHandler({ url: 'file:///' }), resolve(args[0]))
 
-  await vhd.readHeaderAndFooter()
+  try {
+    await vhd.readHeaderAndFooter()
+  } catch (error) {
+    console.warn(error)
+    await vhd.readHeaderAndFooter(false)
+  }
 
   console.log(vhd.header)
   console.log(vhd.footer)
