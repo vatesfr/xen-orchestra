@@ -96,6 +96,7 @@
     "promise-toolbox": "^0.9.5",
     "proxy-agent": "^3.0.0",
     "pug": "^2.0.0-rc.4",
+    "pump": "^3.0.0",
     "pw": "^0.0.4",
     "redis": "^2.8.0",
     "schema-inspector": "^1.6.8",
