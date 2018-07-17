@@ -6,17 +6,16 @@ import defined from 'xo-defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { Toggle } from 'form'
-import { Number, Size, Text, XoSelect } from 'editable'
-import { Container, Row, Col } from 'grid'
-import { SelectResourceSet, SelectVgpuType } from 'select-objects'
 import { confirm } from 'modal'
-import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
+import { Container, Row, Col } from 'grid'
+import { every, includes, isEmpty, map, uniq } from 'lodash'
+import { Number, Size, Text, XoSelect } from 'editable'
+import { PoolObjectItem, ResourceSetItem, VgpuItem } from 'render-xo-item'
+import { SelectResourceSet, SelectVgpuType } from 'select-objects'
 import {
-  addSubscriptions,
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
@@ -36,7 +35,6 @@ import {
   resumeVm,
   shareVm,
   stopVm,
-  subscribeResourceSets,
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -98,7 +96,11 @@ class AffinityHost extends Component {
           value={affinityHost}
           xoType='host'
         >
-          {affinityHost ? renderXoItem(affinityHost) : _('noAffinityHost')}
+          {affinityHost ? (
+            <PoolObjectItem id={affinityHost.id} />
+          ) : (
+            _('noAffinityHost')
+          )}
         </XoSelect>{' '}
         {affinityHost && (
           <a role='button' onClick={this._editAffinityHost}>
@@ -107,24 +109,6 @@ class AffinityHost extends Component {
         )}
       </span>
     )
-  }
-}
-
-@addSubscriptions({
-  resourceSets: subscribeResourceSets,
-})
-class ResourceSetItem extends Component {
-  _getResourceSet = createSelector(
-    () => this.props.resourceSets,
-    () => this.props.id,
-    (resourceSets, id) =>
-      assign(find(resourceSets, { id }), { type: 'resourceSet' })
-  )
-
-  render () {
-    return this.props.resourceSets === undefined
-      ? null
-      : renderXoItem(this._getResourceSet())
   }
 }
 
@@ -180,7 +164,7 @@ class Vgpus extends Component {
                 size='small'
               />
             )}{' '}
-            {renderXoItem(vgpu)}
+            <VgpuItem id={vgpu.id} />
           </span>
         ))}
         {isEmpty(vgpus) && (
