@@ -917,6 +917,7 @@ const messages = {
   resetBootOption: 'Reset',
   deleteSelectedVdis: 'Delete selected VDIs',
   deleteSelectedVdi: 'Delete selected VDI',
+  exportVdi: 'Export VDI content',
   useQuotaWarning:
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet:
@@ -1244,6 +1245,7 @@ const messages = {
   setVmFailed: 'Error on setting the VM: {vm}',
   startVmImport: 'Import starting…',
   startVmExport: 'Export starting…',
+  startVdiExport: 'VDI export starting…',
   nCpus: 'N CPUs',
   vmMemory: 'Memory',
   diskInfo: 'Disk {position} ({capacity})',

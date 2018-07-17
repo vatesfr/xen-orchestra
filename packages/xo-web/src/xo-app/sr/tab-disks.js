@@ -30,6 +30,7 @@ import {
   deleteVdis,
   disconnectVbd,
   editVdi,
+  exportVdi,
   isVmRunning,
 } from 'xo'
 
@@ -185,6 +186,11 @@ const GROUPED_ACTIONS = [
 ]
 
 const INDIVIDUAL_ACTIONS = [
+  {
+    handler: exportVdi,
+    icon: 'export',
+    label: _('exportVdi'),
+  },
   {
     handler: vdi => copy(vdi.uuid),
     icon: 'clipboard',

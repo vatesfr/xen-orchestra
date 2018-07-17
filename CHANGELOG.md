@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+- Export VDI content [#2432](https://github.com/vatesfr/xen-orchestra/issues/2432) (PR [#3194](https://github.com/vatesfr/xen-orchestra/pull/3194))
+
 ### Bug fixes
 
 - [Backup Reports] Report not sent if reportWhen failure and at least a VM is successfull [#3181](https://github.com/vatesfr/xen-orchestra/issues/3181) (PR [#3185](https://github.com/vatesfr/xen-orchestra/pull/3185))
