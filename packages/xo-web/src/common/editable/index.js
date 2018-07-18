@@ -7,7 +7,6 @@ import {
   isString,
   map,
   pick,
-  reduce,
   startsWith,
 } from 'lodash'
 
@@ -63,7 +62,10 @@ class Hover extends Component {
   }
 }
 
-// use `data-*` to add params to the handler
+// To add params to the 'onChange' function, you can use 'data-*' on the inheriting component
+// Example:
+//  <Text data-toto='toto' onChange='onTextChange' />
+// const onTextChange = (value, { toto }) => {}
 @propTypes({
   onChange: propTypes.func.isRequired,
   onUndo: propTypes.oneOfType([propTypes.bool, propTypes.func]),
@@ -127,19 +129,14 @@ class Editable extends Component {
 
       this.setState({ saving: true })
 
-      const handlerParams = reduce(
-        props,
-        (res, _, key) =>
-          startsWith(key, 'data-')
-            ? {
-                ...res,
-                [key.slice(5)]: props[key],
-              }
-            : res,
-        {}
-      )
+      const params = Object.keys(props).reduce((res, val) => {
+        if (startsWith(val, 'data-')) {
+          res[val.slice(5)] = props[val]
+        }
+        return res
+      }, {})
 
-      await saveValue(value, isEmpty(handlerParams) ? undefined : handlerParams)
+      await saveValue(value, isEmpty(params) ? undefined : params)
 
       this.setState({ previous })
       this._closeEdition()
