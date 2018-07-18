@@ -12,6 +12,7 @@
 
 ### Released packages
 
+- complex-matcher v0.4.0
 - xo-server-backup-reports v0.12.3
 - xo-server v5.23.0
 - xo-web v5.23.0
