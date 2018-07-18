@@ -1,4 +1,4 @@
-import { isPlainObject, some } from 'lodash'
+import { escapeRegExp, isPlainObject, some } from 'lodash'
 
 // ===================================================================
 
@@ -178,6 +178,48 @@ const formatString = value =>
       : `"${value.replace(/\\|"/g, escapeChar)}"`
     : `"${value}"`
 
+export class GlobPattern extends Node {
+  constructor (value) {
+    // fallback to string node if no wildcard
+    if (value.indexOf('*') === -1) {
+      return new StringNode(value)
+    }
+
+    super()
+
+    this.value = value
+
+    // should not be enumerable for the tests
+    Object.defineProperty(this, 'match', {
+      value: this.match.bind(
+        this,
+        new RegExp(
+          value
+            .split('*')
+            .map(escapeRegExp)
+            .join('.*'),
+          'i'
+        )
+      ),
+    })
+  }
+
+  match (re, value) {
+    if (typeof value === 'string') {
+      return re.test(value)
+    }
+
+    if (Array.isArray(value) || isPlainObject(value)) {
+      return some(value, this.match)
+    }
+
+    return false
+  }
+
+  toString () {
+    return formatString(this.value)
+  }
+}
 export class StringNode extends Node {
   constructor (value) {
     super()
@@ -389,6 +431,17 @@ const parser = P.grammar({
     P.seq(r.ws, r.term.repeat(), P.eof).map(
       ([, terms]) => (terms.length === 0 ? new Null() : new And(terms))
     ),
+  globPattern: new P((input, pos, end) => {
+    let value = ''
+    let c
+    while (pos < end && ((c = input[pos]) === '*' || c in RAW_STRING_CHARS)) {
+      ++pos
+      value += c
+    }
+    return value.length === 0
+      ? new Failure(pos, 'a raw string')
+      : new Success(pos, value)
+  }),
   quotedString: new P((input, pos, end) => {
     if (input[pos] !== '"') {
       return new Failure(pos, '"')
@@ -406,6 +459,7 @@ const parser = P.grammar({
 
     return new Success(pos, value.join(''))
   }),
+  property: r => P.alt(r.quotedString, r.rawString),
   rawString: new P((input, pos, end) => {
     let value = ''
     let c
@@ -417,7 +471,6 @@ const parser = P.grammar({
       ? new Failure(pos, 'a raw string')
       : new Success(pos, value)
   }),
-  string: r => P.alt(r.quotedString, r.rawString),
   term: r =>
     P.alt(
       P.seq(P.text('('), r.ws, r.term.repeat(1), P.text(')')).map(
@@ -439,20 +492,22 @@ const parser = P.grammar({
         }
         return new Comparison(op, val)
       }),
-      P.seq(r.string, r.ws, P.text(':'), r.ws, r.term).map(
+      P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(
         _ => new Property(_[0], _[4])
       ),
-      P.seq(r.string, P.text('?')).map(_ => new TruthyProperty(_[0])),
-      P.alt(
-        r.quotedString.map(_ => new StringNode(_)),
-        r.rawString.map(str => {
-          const asNum = +str
-          return Number.isNaN(asNum)
-            ? new StringNode(str)
-            : new NumberNode(asNum)
-        })
-      )
+      P.seq(r.property, P.text('?')).map(_ => new TruthyProperty(_[0])),
+      r.value
     ).skip(r.ws),
+  value: r =>
+    P.alt(
+      r.quotedString.map(_ => new StringNode(_)),
+      r.globPattern.map(str => {
+        const asNum = +str
+        return Number.isNaN(asNum)
+          ? new GlobPattern(str)
+          : new NumberNode(asNum)
+      })
+    ),
   ws: P.regex(/\s*/),
 }).default
 export const parse = parser.parse.bind(parser)
