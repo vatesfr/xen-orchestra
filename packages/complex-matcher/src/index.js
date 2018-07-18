@@ -217,7 +217,7 @@ export class GlobPattern extends Node {
   }
 
   toString () {
-    return formatString(this.value)
+    return this.value
   }
 }
 export class StringNode extends Node {
