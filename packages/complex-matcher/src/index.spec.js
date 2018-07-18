@@ -3,6 +3,7 @@
 import { ast, pattern } from './index.fixtures'
 import {
   getPropertyClausesStrings,
+  GlobPattern,
   Null,
   NumberNode,
   parse,
@@ -38,6 +39,12 @@ describe('parse', () => {
     expect(node.match(32)).toBe(false)
     expect(node.match('32')).toBe(true)
     expect(node.toString()).toBe('"32"')
+  })
+})
+
+describe('GlobPattern', () => {
+  it('matches a glob pattern recursively', () => {
+    expect(new GlobPattern('b*r').match({ foo: 'bar' })).toBe(true)
   })
 })
 
@@ -82,5 +89,5 @@ describe('setPropertyClause', () => {
 })
 
 it('toString', () => {
-  expect(pattern).toBe(ast.toString())
+  expect(ast.toString()).toBe(pattern)
 })
