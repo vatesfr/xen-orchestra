@@ -220,6 +220,37 @@ export class GlobPattern extends Node {
     return this.value
   }
 }
+
+export class RegExpNode extends Node {
+  constructor (pattern, flags) {
+    super()
+
+    this.re = new RegExp(pattern, flags)
+
+    // should not be enumerable for the tests
+    Object.defineProperty(this, 'match', {
+      value: this.match.bind(this),
+    })
+  }
+
+  match (value) {
+    if (typeof value === 'string') {
+      return this.re.test(value)
+    }
+
+    if (Array.isArray(value) || isPlainObject(value)) {
+      return some(value, this.match)
+    }
+
+    return false
+  }
+
+  toString () {
+    return this.re.toString()
+  }
+}
+export { RegExpNode as RegExp }
+
 export class StringNode extends Node {
   constructor (value) {
     super()
@@ -471,6 +502,33 @@ const parser = P.grammar({
       ? new Failure(pos, 'a raw string')
       : new Success(pos, value)
   }),
+  regex: new P((input, pos, end) => {
+    if (input[pos] !== '/') {
+      return new Failure(pos, '/')
+    }
+    ++pos
+
+    let c
+
+    let pattern = ''
+    let escaped = false
+    while (pos < end && ((c = input[pos++]) !== '/' || escaped)) {
+      escaped = c === '\\'
+      pattern += c
+    }
+
+    if (c !== '/') {
+      return new Failure(pos, '/')
+    }
+
+    let flags = ''
+    if (pos < end && (c = input[pos]) === 'i') {
+      ++pos
+      flags += c
+    }
+
+    return new Success(pos, new RegExpNode(pattern, flags))
+  }),
   term: r =>
     P.alt(
       P.seq(P.text('('), r.ws, r.term.repeat(1), P.text(')')).map(
@@ -501,6 +559,7 @@ const parser = P.grammar({
   value: r =>
     P.alt(
       r.quotedString.map(_ => new StringNode(_)),
+      r.regex,
       r.globPattern.map(str => {
         const asNum = +str
         return Number.isNaN(asNum)
