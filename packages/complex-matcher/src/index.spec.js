@@ -82,5 +82,5 @@ describe('setPropertyClause', () => {
 })
 
 it('toString', () => {
-  expect(pattern).toBe(ast.toString())
+  expect(ast.toString()).toBe(pattern)
 })
