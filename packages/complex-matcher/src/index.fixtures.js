@@ -1,7 +1,7 @@
 import * as CM from './'
 
 export const pattern =
-  'foo !"\\\\ \\"" name:|(wonderwoman batman) hasCape? age:32'
+  'foo !"\\\\ \\"" name:|(wonderwoman batman) hasCape? age:32 chi*go'
 
 export const ast = new CM.And([
   new CM.String('foo'),
@@ -12,4 +12,5 @@ export const ast = new CM.And([
   ),
   new CM.TruthyProperty('hasCape'),
   new CM.Property('age', new CM.Number(32)),
+  new CM.GlobPattern('chi*go'),
 ])
