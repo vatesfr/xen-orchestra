@@ -121,11 +121,11 @@ export async function importContent ({ vdi }) {
   }
 }
 
-exportContent.description = 'import contents into a VDI'
-exportContent.params = {
+importContent.description = 'import contents into a VDI'
+importContent.params = {
   id: { type: 'string' },
 }
-exportContent.resolve = {
+importContent.resolve = {
   vdi: ['id', ['VDI'], 'operate'],
 }
 
