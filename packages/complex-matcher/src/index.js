@@ -173,25 +173,26 @@ export class Property extends Node {
 const escapeChar = char => '\\' + char
 const formatString = value =>
   Number.isNaN(+value)
-    ? isRawString(value) ? value : `"${value.replace(/\\|"/g, escapeChar)}"`
+    ? isRawString(value)
+      ? value
+      : `"${value.replace(/\\|"/g, escapeChar)}"`
     : `"${value}"`
 
 export class StringNode extends Node {
   constructor (value) {
     super()
 
-    this.lcValue = value.toLowerCase()
     this.value = value
 
     // should not be enumerable for the tests
     Object.defineProperty(this, 'match', {
-      value: this.match.bind(this),
+      value: this.match.bind(this, value.toLowerCase()),
     })
   }
 
-  match (value) {
+  match (lcValue, value) {
     if (typeof value === 'string') {
-      return value.toLowerCase().indexOf(this.lcValue) !== -1
+      return value.toLowerCase().indexOf(lcValue) !== -1
     }
 
     if (Array.isArray(value) || isPlainObject(value)) {
