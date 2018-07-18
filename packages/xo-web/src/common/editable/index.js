@@ -1,10 +1,15 @@
 import classNames from 'classnames'
-import findKey from 'lodash/findKey'
-import isFunction from 'lodash/isFunction'
-import isString from 'lodash/isString'
-import map from 'lodash/map'
-import pick from 'lodash/pick'
 import React from 'react'
+import {
+  findKey,
+  isEmpty,
+  isFunction,
+  isString,
+  map,
+  pick,
+  reduce,
+  startsWith,
+} from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
@@ -58,6 +63,7 @@ class Hover extends Component {
   }
 }
 
+// use `data-*` to add params to the handler
 @propTypes({
   onChange: propTypes.func.isRequired,
   onUndo: propTypes.oneOfType([propTypes.bool, propTypes.func]),
@@ -121,7 +127,19 @@ class Editable extends Component {
 
       this.setState({ saving: true })
 
-      await saveValue(value)
+      const handlerParams = reduce(
+        props,
+        (res, _, key) =>
+          startsWith(key, 'data-')
+            ? {
+                ...res,
+                [key.slice(5)]: props[key],
+              }
+            : res,
+        {}
+      )
+
+      await saveValue(value, isEmpty(handlerParams) ? undefined : handlerParams)
 
       this.setState({ previous })
       this._closeEdition()
@@ -298,7 +316,7 @@ export class Number extends Component {
     return +this.refs.input.value
   }
 
-  _onChange = value => {
+  _onChange = (value, params) => {
     if (value === '') {
       if (this.props.nullable) {
         value = null
@@ -309,7 +327,7 @@ export class Number extends Component {
       value = +value
     }
 
-    this.props.onChange(value)
+    this.props.onChange(value, params)
   }
 
   render () {
