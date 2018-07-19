@@ -34,6 +34,16 @@ import Collection, { ModelAlreadyExists } from '../collection'
 
 const VERSION = '20170905'
 
+const serialize = JSON.stringify
+const unserialize = JSON.parse
+const tryUnserialize = value => {
+  try {
+    return unserialize(value)
+  } catch (_) {
+    return value
+  }
+}
+
 export default class Redis extends Collection {
   constructor({ connection, indexes = [], prefix, uri }) {
     super()
@@ -108,6 +118,10 @@ export default class Redis extends Collection {
             return
           }
 
+          Object.keys(model).forEach(key => {
+            model[key] = tryUnserialize(model[key])
+          })
+
           // Mix the identifier in.
           model.id = id
 
@@ -161,7 +175,7 @@ export default class Redis extends Collection {
           }
 
           if (value !== undefined) {
-            params.push(name, value)
+            params.push(name, serialize(value))
           }
         })
 
