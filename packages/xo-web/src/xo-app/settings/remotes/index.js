@@ -1,22 +1,18 @@
 import _, { messages } from 'intl'
-import ActionButton from 'action-button'
-import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { addSubscriptions } from 'utils'
-import { alert, confirm } from 'modal'
-import { error } from 'notification'
+import { addSubscriptions, generateRandomId } from 'utils'
+import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
-import { groupBy, map, isEmpty, some } from 'lodash'
+import { groupBy, map, isEmpty } from 'lodash'
 import { injectIntl } from 'react-intl'
-import { Number as InputNumber } from 'form'
+import { injectState, provideState } from '@julien-f/freactal'
 import { Number, Password, Text } from 'editable'
 
 import {
-  createRemote,
   deleteRemote,
   deleteRemotes,
   disableRemote,
@@ -26,11 +22,8 @@ import {
   testRemote,
 } from 'xo'
 
-const remoteTypes = {
-  file: 'remoteTypeLocal',
-  nfs: 'remoteTypeNfs',
-  smb: 'remoteTypeSmb',
-}
+import Remote from './remote'
+
 const _changeUrlElement = (value, { remote, element }) =>
   editRemote(remote, {
     url: format({ ...remote, [element]: value === null ? undefined : value }),
@@ -231,6 +224,12 @@ const INDIVIDUAL_ACTIONS = [
     level: 'primary',
   },
   {
+    handler: ({ id }, { editRemote }) => editRemote(id),
+    icon: 'edit',
+    label: _('formEdit'),
+    level: 'primary',
+  },
+  {
     handler: deleteRemote,
     icon: 'delete',
     label: _('remoteDeleteTip'),
@@ -242,317 +241,94 @@ const FILTERS = {
   filterRemotesOnlyDisconnected: '!enabled?',
 }
 
-@addSubscriptions({
-  remotes: cb =>
-    subscribeRemotes(remotes => {
-      cb(
-        groupBy(
-          map(remotes, remote => {
-            try {
-              return {
-                ...remote,
-                ...parse(remote.url),
+export default [
+  addSubscriptions({
+    remotes: cb =>
+      subscribeRemotes(remotes => {
+        cb(
+          groupBy(
+            map(remotes, remote => {
+              try {
+                return {
+                  ...remote,
+                  ...parse(remote.url),
+                }
+              } catch (err) {
+                console.error('Remote parsing error:', remote, '\n', err)
               }
-            } catch (err) {
-              console.error('Remote parsing error:', remote, '\n', err)
-            }
-          }).filter(r => r !== undefined),
-          'type'
+            }).filter(r => r !== undefined),
+            'type'
+          )
         )
-      )
+      }),
+  }),
+  injectIntl,
+  provideState({
+    initialState: () => ({
+      formId: generateRandomId(),
+      remoteId: undefined,
     }),
-})
-@injectIntl
-export default class Remotes extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      domain: '',
-      host: '',
-      name: '',
-      password: '',
-      path: '',
-      port: undefined,
-      type: 'nfs',
-      username: '',
-    }
-  }
+    effects: {
+      reset: () => () => ({
+        formId: generateRandomId(),
+        remoteId: undefined,
+      }),
+      editRemote: (_, remoteId) => () => ({
+        remoteId,
+      }),
+    },
+  }),
+  injectState,
+  ({ state, effects, remotes = {}, intl: { formatMessage } }) => (
+    <div>
+      {!isEmpty(remotes.file) && (
+        <div>
+          <h2>{_('remoteTypeLocal')}</h2>
+          <SortedTable
+            collection={remotes.file}
+            columns={COLUMNS_LOCAL_REMOTE}
+            data-editRemote={effects.editRemote}
+            data-formatMessage={formatMessage}
+            filters={FILTERS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='l'
+          />
+        </div>
+      )}
 
-  _checkNameExists = () =>
-    some(this.props.remotes, values => some(values, ['name', this.state.name]))
-      ? alert(
-          <span>
-            <Icon icon='error' /> {_('remoteTestName')}
-          </span>,
-          <p>{_('remoteTestNameFailure')}</p>
-        )
-      : this._createRemote()
+      {!isEmpty(remotes.nfs) && (
+        <div>
+          <h2>{_('remoteTypeNfs')}</h2>
+          <SortedTable
+            collection={remotes.nfs}
+            columns={COLUMNS_NFS_REMOTE}
+            data-editRemote={effects.editRemote}
+            data-formatMessage={formatMessage}
+            filters={FILTERS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='nfs'
+          />
+        </div>
+      )}
 
-  _createRemote = async () => {
-    const {
-      domain,
-      host,
-      name,
-      password,
-      path,
-      port,
-      type,
-      username,
-    } = this.state
-
-    const urlParams = {
-      host,
-      path,
-      port,
-      type,
-    }
-    username && (urlParams.username = username)
-    password && (urlParams.password = password)
-    domain && (urlParams.domain = domain)
-
-    if (type === 'file') {
-      await confirm({
-        title: _('localRemoteWarningTitle'),
-        body: _('localRemoteWarningMessage'),
-      })
-    }
-
-    const url = format(urlParams)
-    return createRemote(name, url).then(
-      () => {
-        this.setState({
-          domain: '',
-          host: '',
-          name: '',
-          password: '',
-          path: '',
-          port: undefined,
-          type: 'nfs',
-          username: '',
-        })
-      },
-      err => error('Create Remote', err.message || String(err))
-    )
-  }
-
-  render () {
-    const {
-      intl: { formatMessage },
-      remotes = {},
-    } = this.props
-    const {
-      domain,
-      host,
-      name,
-      password,
-      path,
-      port,
-      type,
-      username,
-    } = this.state
-
-    return (
-      <div>
-        {!isEmpty(remotes.file) && (
-          <div>
-            <h2>{_('remoteTypeLocal')}</h2>
-            <SortedTable
-              collection={remotes.file}
-              columns={COLUMNS_LOCAL_REMOTE}
-              data-formatMessage={formatMessage}
-              filters={FILTERS}
-              groupedActions={GROUPED_ACTIONS}
-              individualActions={INDIVIDUAL_ACTIONS}
-              stateUrlParam='l'
-            />
-          </div>
-        )}
-
-        {!isEmpty(remotes.nfs) && (
-          <div>
-            <h2>{_('remoteTypeNfs')}</h2>
-            <SortedTable
-              collection={remotes.nfs}
-              columns={COLUMNS_NFS_REMOTE}
-              data-formatMessage={formatMessage}
-              filters={FILTERS}
-              groupedActions={GROUPED_ACTIONS}
-              individualActions={INDIVIDUAL_ACTIONS}
-              stateUrlParam='nfs'
-            />
-          </div>
-        )}
-
-        {!isEmpty(remotes.smb) && (
-          <div>
-            <h2>{_('remoteTypeSmb')}</h2>
-            <SortedTable
-              collection={remotes.smb}
-              columns={COLUMNS_SMB_REMOTE}
-              data-formatMessage={formatMessage}
-              filters={FILTERS}
-              groupedActions={GROUPED_ACTIONS}
-              individualActions={INDIVIDUAL_ACTIONS}
-              stateUrlParam='smb'
-            />
-          </div>
-        )}
-
-        <h2>{_('newRemote')}</h2>
-        <form id='newRemoteForm'>
-          <div className='form-group'>
-            <label htmlFor='newRemoteType'>{_('remoteType')}</label>
-            <select
-              id='newRemoteType'
-              className='form-control'
-              onChange={this.linkState('type')}
-              required
-              value={type}
-            >
-              {map(remoteTypes, (label, key) =>
-                _({ key }, label, message => (
-                  <option value={key}>{message}</option>
-                ))
-              )}
-            </select>
-            {type === 'smb' && (
-              <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>
-            )}
-          </div>
-          <div className='form-group'>
-            <input
-              className='form-control'
-              onChange={this.linkState('name')}
-              placeholder={formatMessage(messages.remoteMyNamePlaceHolder)}
-              required
-              type='text'
-              value={name}
-            />
-          </div>
-          {type === 'file' && (
-            <fieldset className='form-group'>
-              <div className='input-group'>
-                <span className='input-group-addon'>/</span>
-                <input
-                  className='form-control'
-                  onChange={this.linkState('path')}
-                  pattern='^(([^/]+)+(/[^/]+)*)?$'
-                  placeholder={formatMessage(
-                    messages.remoteLocalPlaceHolderPath
-                  )}
-                  type='text'
-                  value={path}
-                />
-              </div>
-            </fieldset>
-          )}
-          {type === 'nfs' && (
-            <fieldset>
-              <div className='form-group'>
-                <input
-                  className='form-control'
-                  onChange={this.linkState('host')}
-                  placeholder={formatMessage(messages.remoteNfsPlaceHolderHost)}
-                  type='text'
-                  value={host}
-                  required
-                />
-                <br />
-                <InputNumber
-                  onChange={this.linkState('port')}
-                  placeholder={formatMessage(messages.remoteNfsPlaceHolderPort)}
-                  value={port}
-                />
-              </div>
-              <div className='input-group form-group'>
-                <span className='input-group-addon'>/</span>
-                <input
-                  className='form-control'
-                  onChange={this.linkState('path')}
-                  pattern='^(([^/]+)+(/[^/]+)*)?$'
-                  placeholder={formatMessage(messages.remoteNfsPlaceHolderPath)}
-                  type='text'
-                  value={path}
-                />
-              </div>
-            </fieldset>
-          )}
-          {type === 'smb' && (
-            <fieldset>
-              <div className='input-group form-group'>
-                <span className='input-group-addon'>\\</span>
-                <input
-                  className='form-control'
-                  onChange={this.linkState('host')}
-                  pattern='^([^\\/]+)\\([^\\/]+)$'
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderAddressShare
-                  )}
-                  type='text'
-                  value={host}
-                  required
-                />
-                <span className='input-group-addon'>\</span>
-                <input
-                  className='form-control'
-                  onChange={this.linkState('path')}
-                  pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderRemotePath
-                  )}
-                  type='text'
-                  value={path}
-                />
-              </div>
-              <div className='form-group'>
-                <input
-                  className='form-control'
-                  onChange={this.linkState('username')}
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderUsername
-                  )}
-                  type='text'
-                  value={username}
-                />
-              </div>
-              <div className='form-group'>
-                <input
-                  className='form-control'
-                  onChange={this.linkState('password')}
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderPassword
-                  )}
-                  type='text'
-                  value={password}
-                />
-              </div>
-              <div className='form-group'>
-                <input
-                  className='form-control'
-                  onChange={this.linkState('domain')}
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderDomain
-                  )}
-                  required
-                  type='text'
-                  value={domain}
-                />
-              </div>
-            </fieldset>
-          )}
-          <div className='form-group'>
-            <ActionButton
-              type='submit'
-              form='newRemoteForm'
-              icon='save'
-              btnStyle='primary'
-              handler={this._checkNameExists}
-            >
-              {_('savePluginConfiguration')}
-            </ActionButton>
-          </div>
-        </form>
-      </div>
-    )
-  }
-}
+      {!isEmpty(remotes.smb) && (
+        <div>
+          <h2>{_('remoteTypeSmb')}</h2>
+          <SortedTable
+            collection={remotes.smb}
+            columns={COLUMNS_SMB_REMOTE}
+            data-editRemote={effects.editRemote}
+            data-formatMessage={formatMessage}
+            filters={FILTERS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='smb'
+          />
+        </div>
+      )}
+      <Remote formatMessage={formatMessage} key={state.formId} />
+    </div>
+  ),
+].reduceRight((value, decorator) => decorator(value))
