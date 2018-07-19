@@ -37,19 +37,13 @@ const _changeUrlElement = (remote, value, element) =>
   })
 const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const COLUMN_NAME = {
-  component: @injectIntl
-  class RemoteName extends Component {
-    render () {
-      const { item: remote, intl } = this.props
-      return (
-        <Text
-          onChange={name => editRemote(remote, { name })}
-          placeholder={intl.formatMessage(messages.remoteMyNamePlaceHolder)}
-          value={remote.name}
-        />
-      )
-    }
-  },
+  itemRenderer: (remote, { formatMessage }) => (
+    <Text
+      onChange={name => editRemote(remote, { name })}
+      placeholder={formatMessage(messages.remoteMyNamePlaceHolder)}
+      value={remote.name}
+    />
+  ),
   name: _('remoteName'),
   sortCriteria: 'name',
 }
@@ -85,21 +79,13 @@ const COLUMN_STATE = {
 const COLUMNS_LOCAL_REMOTE = [
   COLUMN_NAME,
   {
-    component: @injectIntl
-    class LocalRemotePath extends Component {
-      render () {
-        const { item: remote, intl } = this.props
-        return (
-          <Text
-            onChange={v => _changeUrlElement(remote, v, 'path')}
-            placeholder={intl.formatMessage(
-              messages.remoteLocalPlaceHolderPath
-            )}
-            value={remote.path}
-          />
-        )
-      }
-    },
+    itemRenderer: (remote, { formatMessage }) => (
+      <Text
+        onChange={v => _changeUrlElement(remote, v, 'path')}
+        placeholder={formatMessage(messages.remoteLocalPlaceHolderPath)}
+        value={remote.path}
+      />
+    ),
     name: _('remotePath'),
   },
   COLUMN_STATE,
@@ -107,41 +93,30 @@ const COLUMNS_LOCAL_REMOTE = [
 const COLUMNS_NFS_REMOTE = [
   COLUMN_NAME,
   {
-    component: @injectIntl
-    class NfsRemoteInfo extends Component {
-      render () {
-        const { item: remote, intl } = this.props
-        return (
-          <span>
-            <strong className='text-info'>\\</strong>
-            <Text
-              onChange={v => _changeUrlElement(remote, v, 'host')}
-              placeholder={intl.formatMessage(
-                messages.remoteNfsPlaceHolderHost
-              )}
-              value={remote.host}
-            />
-            :
-            <Number
-              nullable
-              onChange={v => _changeUrlElement(remote, v, 'port')}
-              placeholder={intl.formatMessage(
-                messages.remoteNfsPlaceHolderPort
-              )}
-              value={remote.port || ''}
-            />
-            :
-            <Text
-              onChange={v => _changeUrlElement(remote, v, 'path')}
-              placeholder={intl.formatMessage(
-                messages.remoteNfsPlaceHolderPath
-              )}
-              value={remote.path}
-            />
-          </span>
-        )
-      }
-    },
+    itemRenderer: (remote, { formatMessage }) => (
+      <span>
+        <strong className='text-info'>\\</strong>
+        <Text
+          onChange={v => _changeUrlElement(remote, v, 'host')}
+          placeholder={formatMessage(messages.remoteNfsPlaceHolderHost)}
+          value={remote.host}
+        />
+        :
+        <Number
+          nullable
+          onChange={v => _changeUrlElement(remote, v, 'port')}
+          placeholder={formatMessage(messages.remoteNfsPlaceHolderPort)}
+          value={remote.port || ''}
+        />
+        :
+        <Text
+          onChange={v => _changeUrlElement(remote, v, 'path')}
+          placeholder={formatMessage(messages.remoteNfsPlaceHolderPath)}
+          value={remote.path}
+        />
+      </span>
+    ),
+
     name: _('remoteDevice'),
   },
   COLUMN_STATE,
@@ -149,62 +124,46 @@ const COLUMNS_NFS_REMOTE = [
 const COLUMNS_SMB_REMOTE = [
   COLUMN_NAME,
   {
-    component: @injectIntl
-    class SmbRemoteInfo extends Component {
-      render () {
-        const { item: remote, intl } = this.props
-        return (
-          <span>
-            <strong className='text-info'>\\</strong>
-            <Text
-              value={remote.host}
-              onChange={v => _changeUrlElement(remote, v, 'host')}
-            />
-            <strong className='text-info'>\</strong>
-            <span>
-              <Text
-                onChange={v => _changeUrlElement(remote, v, 'path')}
-                placeholder={intl.formatMessage(
-                  messages.remoteSmbPlaceHolderRemotePath
-                )}
-                value={remote.path}
-              />
-            </span>
-          </span>
-        )
-      }
-    },
+    itemRenderer: (remote, { formatMessage }) => (
+      <span>
+        <strong className='text-info'>\\</strong>
+        <Text
+          value={remote.host}
+          onChange={v => _changeUrlElement(remote, v, 'host')}
+        />
+        <strong className='text-info'>\</strong>
+        <span>
+          <Text
+            onChange={v => _changeUrlElement(remote, v, 'path')}
+            placeholder={formatMessage(messages.remoteSmbPlaceHolderRemotePath)}
+            value={remote.path}
+          />
+        </span>
+      </span>
+    ),
     name: _('remoteShare'),
   },
   COLUMN_STATE,
   {
-    component: @injectIntl
-    class SmbRemoteAuthInfo extends Component {
-      render () {
-        const { item: remote, intl } = this.props
-        return (
-          <span>
-            <Text
-              value={remote.username}
-              onChange={v => _changeUrlElement(remote, v, 'username')}
-            />
-            :
-            <Password
-              value=''
-              onChange={v => _changeUrlElement(remote, v, 'password')}
-              placeholder={intl.formatMessage(
-                messages.remotePlaceHolderPassword
-              )}
-            />
-            @
-            <Text
-              value={remote.domain}
-              onChange={v => _changeUrlElement(remote, v, 'domain')}
-            />
-          </span>
-        )
-      }
-    },
+    itemRenderer: (remote, { formatMessage }) => (
+      <span>
+        <Text
+          value={remote.username}
+          onChange={v => _changeUrlElement(remote, v, 'username')}
+        />
+        :
+        <Password
+          value=''
+          onChange={v => _changeUrlElement(remote, v, 'password')}
+          placeholder={formatMessage(messages.remotePlaceHolderPassword)}
+        />
+        @
+        <Text
+          value={remote.domain}
+          onChange={v => _changeUrlElement(remote, v, 'domain')}
+        />
+      </span>
+    ),
     name: _('remoteAuth'),
   },
 ]
@@ -357,7 +316,10 @@ export default class Remotes extends Component {
   }
 
   render () {
-    const { remotes = {} } = this.props
+    const {
+      intl: { formatMessage },
+      remotes = {},
+    } = this.props
     const {
       domain,
       host,
@@ -377,6 +339,7 @@ export default class Remotes extends Component {
             <SortedTable
               collection={remotes.file}
               columns={COLUMNS_LOCAL_REMOTE}
+              data-formatMessage={formatMessage}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
@@ -391,6 +354,7 @@ export default class Remotes extends Component {
             <SortedTable
               collection={remotes.nfs}
               columns={COLUMNS_NFS_REMOTE}
+              data-formatMessage={formatMessage}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
@@ -405,6 +369,7 @@ export default class Remotes extends Component {
             <SortedTable
               collection={remotes.smb}
               columns={COLUMNS_SMB_REMOTE}
+              data-formatMessage={formatMessage}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
@@ -438,9 +403,7 @@ export default class Remotes extends Component {
             <input
               className='form-control'
               onChange={this.linkState('name')}
-              placeholder={this.props.intl.formatMessage(
-                messages.remoteMyNamePlaceHolder
-              )}
+              placeholder={formatMessage(messages.remoteMyNamePlaceHolder)}
               required
               type='text'
               value={name}
@@ -454,7 +417,7 @@ export default class Remotes extends Component {
                   className='form-control'
                   onChange={this.linkState('path')}
                   pattern='^(([^/]+)+(/[^/]+)*)?$'
-                  placeholder={this.props.intl.formatMessage(
+                  placeholder={formatMessage(
                     messages.remoteLocalPlaceHolderPath
                   )}
                   type='text'
@@ -469,9 +432,7 @@ export default class Remotes extends Component {
                 <input
                   className='form-control'
                   onChange={this.linkState('host')}
-                  placeholder={this.props.intl.formatMessage(
-                    messages.remoteNfsPlaceHolderHost
-                  )}
+                  placeholder={formatMessage(messages.remoteNfsPlaceHolderHost)}
                   type='text'
                   value={host}
                   required
@@ -479,9 +440,7 @@ export default class Remotes extends Component {
                 <br />
                 <InputNumber
                   onChange={this.linkState('port')}
-                  placeholder={this.props.intl.formatMessage(
-                    messages.remoteNfsPlaceHolderPort
-                  )}
+                  placeholder={formatMessage(messages.remoteNfsPlaceHolderPort)}
                   value={port}
                 />
               </div>
@@ -491,9 +450,7 @@ export default class Remotes extends Component {
                   className='form-control'
                   onChange={this.linkState('path')}
                   pattern='^(([^/]+)+(/[^/]+)*)?$'
-                  placeholder={this.props.intl.formatMessage(
-                    messages.remoteNfsPlaceHolderPath
-                  )}
+                  placeholder={formatMessage(messages.remoteNfsPlaceHolderPath)}
                   type='text'
                   value={path}
                 />
@@ -508,7 +465,7 @@ export default class Remotes extends Component {
                   className='form-control'
                   onChange={this.linkState('host')}
                   pattern='^([^\\/]+)\\([^\\/]+)$'
-                  placeholder={this.props.intl.formatMessage(
+                  placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderAddressShare
                   )}
                   type='text'
@@ -520,7 +477,7 @@ export default class Remotes extends Component {
                   className='form-control'
                   onChange={this.linkState('path')}
                   pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
-                  placeholder={this.props.intl.formatMessage(
+                  placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderRemotePath
                   )}
                   type='text'
@@ -531,7 +488,7 @@ export default class Remotes extends Component {
                 <input
                   className='form-control'
                   onChange={this.linkState('username')}
-                  placeholder={this.props.intl.formatMessage(
+                  placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderUsername
                   )}
                   type='text'
@@ -542,7 +499,7 @@ export default class Remotes extends Component {
                 <input
                   className='form-control'
                   onChange={this.linkState('password')}
-                  placeholder={this.props.intl.formatMessage(
+                  placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderPassword
                   )}
                   type='text'
@@ -553,7 +510,7 @@ export default class Remotes extends Component {
                 <input
                   className='form-control'
                   onChange={this.linkState('domain')}
-                  placeholder={this.props.intl.formatMessage(
+                  placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderDomain
                   )}
                   required
