@@ -70,7 +70,11 @@ async function handleExportContent (req, res, { xapi, id }) {
     stream.statusMessage != null ? stream.statusMessage : '',
     stream.headers
   )
-  pump(stream, res)
+  pump(stream, res, error => {
+    if (error != null) {
+      console.warn('disk.exportContent', error)
+    }
+  })
 }
 
 export async function exportContent ({ vdi }) {
