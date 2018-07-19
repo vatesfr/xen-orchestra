@@ -18,7 +18,7 @@ const methods = {
     mode: 'delta',
     settings: {
       [schedule.id]: {
-        exportRetention: retention,
+        copyRetention: retention,
         vmTimeout: job.timeout,
       },
     },
@@ -50,7 +50,7 @@ const methods = {
     settings: {
       [schedule.id]: {
         deleteFirst: deleteOldBackupsFirst,
-        exportRetention: retention,
+        copyRetention: retention,
         vmTimeout: job.timeout,
       },
     },
