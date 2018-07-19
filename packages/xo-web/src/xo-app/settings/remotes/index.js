@@ -1,12 +1,8 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import filter from 'lodash/filter'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import React from 'react'
-import some from 'lodash/some'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
@@ -14,9 +10,10 @@ import { addSubscriptions } from 'utils'
 import { alert, confirm } from 'modal'
 import { error } from 'notification'
 import { format, parse } from 'xo-remote-parser'
+import { groupBy, map, isEmpty, some } from 'lodash'
 import { injectIntl } from 'react-intl'
-import { Number, Password, Text } from 'editable'
 import { Number as InputNumber } from 'form'
+import { Number, Password, Text } from 'editable'
 
 import {
   createRemote,
@@ -268,22 +265,22 @@ const FILTERS = {
 
 @addSubscriptions({
   remotes: cb =>
-    subscribeRemotes(rawRemotes => {
-      rawRemotes = map(rawRemotes, remote => {
-        try {
-          return {
-            ...remote,
-            ...parse(remote.url),
-          }
-        } catch (err) {
-          console.error('Remote parsing error:', remote, '\n', err)
-        }
-      }).filter(r => r !== undefined)
-      const remotes = {}
-      for (const remoteType in remoteTypes) {
-        remotes[remoteType] = filter(rawRemotes, r => r.type === remoteType)
-      }
-      cb(remotes)
+    subscribeRemotes(remotes => {
+      cb(
+        groupBy(
+          map(remotes, remote => {
+            try {
+              return {
+                ...remote,
+                ...parse(remote.url),
+              }
+            } catch (err) {
+              console.error('Remote parsing error:', remote, '\n', err)
+            }
+          }).filter(r => r !== undefined),
+          'type'
+        )
+      )
     }),
 })
 @injectIntl
