@@ -90,10 +90,7 @@ const normalize = job => {
 
 const serialize = (job: {| [string]: any |}) => {
   Object.keys(job).forEach(key => {
-    const value = job[key]
-    if (typeof value !== 'string') {
-      job[key] = JSON.stringify(job[key])
-    }
+    job[key] = JSON.stringify(job[key])
   })
   return job
 }
