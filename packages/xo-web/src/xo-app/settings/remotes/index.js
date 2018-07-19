@@ -31,15 +31,17 @@ const remoteTypes = {
   nfs: 'remoteTypeNfs',
   smb: 'remoteTypeSmb',
 }
-const _changeUrlElement = (remote, value, element) =>
+const _changeUrlElement = (value, { remote, element }) =>
   editRemote(remote, {
     url: format({ ...remote, [element]: value === null ? undefined : value }),
   })
 const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
+const _editRemote = (name, { remote }) => editRemote(remote, { name })
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
     <Text
-      onChange={name => editRemote(remote, { name })}
+      data-remote={remote}
+      onChange={_editRemote}
       placeholder={formatMessage(messages.remoteMyNamePlaceHolder)}
       value={remote.name}
     />
@@ -81,7 +83,9 @@ const COLUMNS_LOCAL_REMOTE = [
   {
     itemRenderer: (remote, { formatMessage }) => (
       <Text
-        onChange={v => _changeUrlElement(remote, v, 'path')}
+        data-element='path'
+        data-remote={remote}
+        onChange={_changeUrlElement}
         placeholder={formatMessage(messages.remoteLocalPlaceHolderPath)}
         value={remote.path}
       />
@@ -97,20 +101,26 @@ const COLUMNS_NFS_REMOTE = [
       <span>
         <strong className='text-info'>\\</strong>
         <Text
-          onChange={v => _changeUrlElement(remote, v, 'host')}
+          data-element='host'
+          data-remote={remote}
+          onChange={_changeUrlElement}
           placeholder={formatMessage(messages.remoteNfsPlaceHolderHost)}
           value={remote.host}
         />
         :
         <Number
+          data-element='port'
+          data-remote={remote}
           nullable
-          onChange={v => _changeUrlElement(remote, v, 'port')}
+          onChange={_changeUrlElement}
           placeholder={formatMessage(messages.remoteNfsPlaceHolderPort)}
           value={remote.port || ''}
         />
         :
         <Text
-          onChange={v => _changeUrlElement(remote, v, 'path')}
+          data-element='path'
+          data-remote={remote}
+          onChange={_changeUrlElement}
           placeholder={formatMessage(messages.remoteNfsPlaceHolderPath)}
           value={remote.path}
         />
@@ -128,13 +138,17 @@ const COLUMNS_SMB_REMOTE = [
       <span>
         <strong className='text-info'>\\</strong>
         <Text
+          data-element='host'
+          data-remote={remote}
+          onChange={_changeUrlElement}
           value={remote.host}
-          onChange={v => _changeUrlElement(remote, v, 'host')}
         />
         <strong className='text-info'>\</strong>
         <span>
           <Text
-            onChange={v => _changeUrlElement(remote, v, 'path')}
+            data-element='path'
+            data-remote={remote}
+            onChange={_changeUrlElement}
             placeholder={formatMessage(messages.remoteSmbPlaceHolderRemotePath)}
             value={remote.path}
           />
@@ -148,19 +162,25 @@ const COLUMNS_SMB_REMOTE = [
     itemRenderer: (remote, { formatMessage }) => (
       <span>
         <Text
+          data-element='username'
+          data-remote={remote}
+          onChange={_changeUrlElement}
           value={remote.username}
-          onChange={v => _changeUrlElement(remote, v, 'username')}
         />
         :
         <Password
-          value=''
-          onChange={v => _changeUrlElement(remote, v, 'password')}
+          data-element='password'
+          data-remote={remote}
+          onChange={_changeUrlElement}
           placeholder={formatMessage(messages.remotePlaceHolderPassword)}
+          value=''
         />
         @
         <Text
+          data-element='domain'
+          data-remote={remote}
+          onChange={_changeUrlElement}
           value={remote.domain}
-          onChange={v => _changeUrlElement(remote, v, 'domain')}
         />
       </span>
     ),
