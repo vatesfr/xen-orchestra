@@ -52,6 +52,19 @@ Simply type the string, if it contains special characters just surround it with 
 
 > The search is recursive, case insensitive and non-anchored (i.e. matches if the pattern is contained in a string).
 
+A simple string can also contain a wildcard character (`*`) to match any character in a portion of the string:
+
+- `foo*bar`: matches `foobar`, `foo - bar`, etc.
+
+#### Regular expression
+
+For more advanced string matching, you can use regular expressions:
+
+- `/^DNS server \d+$/`: matches `DNS server 1`, `DNS server 05` but not `DNS server`
+- `/foo/i`: with the `i` flag, it ignores the case, therefore it matches `Foo` and `FOO`
+
+[More information about supported regular expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions).
+
 #### Searching a specific property
 
 Type the property name, followed by a colon `:` and a subfilter:
