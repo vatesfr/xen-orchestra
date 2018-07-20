@@ -19,11 +19,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import {
-  fromEvent as pFromEvent,
-  ignoreErrors,
-  timeout as pTimeout,
-} from 'promise-toolbox'
+import { fromEvent as pFromEvent, ignoreErrors } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -453,7 +449,6 @@ export default class BackupNg {
           }
         }
         const jobId = job.id
-        const scheduleId = schedule.id
         const srs = unboxIds(job.srs).map(id => {
           const xapi = app.getXapi(id)
           return {
@@ -494,7 +489,7 @@ export default class BackupNg {
             vmCancel = cancelToken.fork()
 
             // $FlowFixMe injected $defer param
-            let p = this._backupVm(
+            const p = this._backupVm(
               vmCancel.token,
               uuid,
               job,
@@ -504,13 +499,18 @@ export default class BackupNg {
               srs,
               remotes
             )
-            const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
-              uuid,
-              scheduleId,
-            ])
-            if (vmTimeout !== 0) {
-              p = pTimeout.call(p, vmTimeout)
-            }
+
+            // 2018-07-20, JFT: vmTimeout is disabled for the time being until
+            // we figure out exactly how it should behave.
+            //
+            // const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
+            //   uuid,
+            //   scheduleId,
+            // ])
+            // if (vmTimeout !== 0) {
+            //   p = pTimeout.call(p, vmTimeout)
+            // }
+
             await p
             logger.notice(`Backuping ${name} is a success. (${jobId})`, {
               event: 'task.end',
