@@ -166,6 +166,7 @@ export default class Jobs {
             undefined,
             job,
             undefined,
+            // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
             String(job.runId)
           )
           return this.updateJob({ id: job.id, runId: null })
