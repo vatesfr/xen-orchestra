@@ -53,8 +53,8 @@ export default [
     }),
     effects: {
       linkState,
-      setPort: (_, port) => () => ({
-        port,
+      setPort: (_, port) => state => ({
+        port: port === undefined && state.remoteId !== undefined ? '' : port,
       }),
       editRemote: ({ reset }) => (state, { remotes }) => {
         const remote = remotes[state.remoteId]
@@ -75,7 +75,7 @@ export default [
             host,
             password,
             path,
-            port,
+            port: port || undefined,
             type,
             username,
           }),
