@@ -570,21 +570,3 @@ export const generateRandomId = () =>
   Math.random()
     .toString(36)
     .slice(2)
-
-// ===================================================================
-
-// Dedicated to Freactal
-// It only supports native inputs
-export const linkState = (_, { target }) => state => ({
-  ...state,
-  [target.name]:
-    target.nodeName.toLowerCase() === 'input' &&
-    target.type.toLowerCase() === 'checkbox'
-      ? target.checked
-      : target.value,
-})
-
-export const toggleState = (_, { target: { name } }) => state => ({
-  ...state,
-  [name]: !state[name],
-})
