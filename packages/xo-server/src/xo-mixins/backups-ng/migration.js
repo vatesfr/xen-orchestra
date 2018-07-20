@@ -12,11 +12,12 @@ const createOr = (children: Array<any>): any =>
 const methods = {
   'vm.deltaCopy': (
     job: CallJob,
-    { retention = 1, sr, vms },
+    { _reportWhen: reportWhen, retention = 1, sr, vms },
     schedule: Schedule
   ) => ({
     mode: 'delta',
     settings: {
+      '': reportWhen === undefined ? undefined : { reportWhen },
       [schedule.id]: {
         copyRetention: retention,
         vmTimeout: job.timeout,
@@ -28,12 +29,13 @@ const methods = {
   }),
   'vm.rollingDeltaBackup': (
     job: CallJob,
-    { depth = 1, retention = depth, remote, vms },
+    { _reportWhen: reportWhen, depth = 1, retention = depth, remote, vms },
     schedule: Schedule
   ) => ({
     mode: 'delta',
     remotes: { id: remote },
     settings: {
+      '': reportWhen === undefined ? undefined : { reportWhen },
       [schedule.id]: {
         exportRetention: retention,
         vmTimeout: job.timeout,
@@ -43,11 +45,19 @@ const methods = {
   }),
   'vm.rollingDrCopy': (
     job: CallJob,
-    { deleteOldBackupsFirst, depth = 1, retention = depth, sr, vms },
+    {
+      _reportWhen: reportWhen,
+      deleteOldBackupsFirst,
+      depth = 1,
+      retention = depth,
+      sr,
+      vms,
+    },
     schedule: Schedule
   ) => ({
     mode: 'full',
     settings: {
+      '': reportWhen === undefined ? undefined : { reportWhen },
       [schedule.id]: {
         deleteFirst: deleteOldBackupsFirst,
         copyRetention: retention,
@@ -59,13 +69,21 @@ const methods = {
   }),
   'vm.rollingBackup': (
     job: CallJob,
-    { compress, depth = 1, retention = depth, remoteId, vms },
+    {
+      _reportWhen: reportWhen,
+      compress,
+      depth = 1,
+      retention = depth,
+      remoteId,
+      vms,
+    },
     schedule: Schedule
   ) => ({
     compression: compress ? 'native' : undefined,
     mode: 'full',
     remotes: { id: remoteId },
     settings: {
+      '': reportWhen === undefined ? undefined : { reportWhen },
       [schedule.id]: {
         exportRetention: retention,
         vmTimeout: job.timeout,
@@ -75,11 +93,12 @@ const methods = {
   }),
   'vm.rollingSnapshot': (
     job: CallJob,
-    { depth = 1, retention = depth, vms },
+    { _reportWhen: reportWhen, depth = 1, retention = depth, vms },
     schedule: Schedule
   ) => ({
     mode: 'full',
     settings: {
+      '': reportWhen === undefined ? undefined : { reportWhen },
       [schedule.id]: {
         snapshotRetention: retention,
         vmTimeout: job.timeout,
