@@ -155,27 +155,22 @@ export default class Jobs {
         this._logger = logger
       })
 
-      this._app.on('plugins:registered', () => {
-        ;this._jobs
-          .get()
-          .then(jobs =>
-            asyncMap(jobs, async job => {
-              if (job.runId === undefined) {
-                return
-              }
+      this._app.on('plugins:registered', () =>
+        asyncMap(this._jobs.get(), job => {
+          if (job.runId === undefined) {
+            return
+          }
 
-              this._app.emit(
-                'job:terminated',
-                undefined,
-                job,
-                await this._app.getSchedule(job.scheduleId),
-                String(job.runId)
-              )
-              this.updateJob({ id: job.id, runId: null })
-            })
+          this._app.emit(
+            'job:terminated',
+            undefined,
+            job,
+            undefined,
+            String(job.runId)
           )
-          ::ignoreErrors()
-      })
+          return this.updateJob({ id: job.id, runId: null })
+        })
+      )
     })
   }
 
@@ -280,8 +275,8 @@ export default class Jobs {
       type,
     })
 
-    // runId is a temporal property used to check if the report is sent after the server interruption
-    this.updateJob({ id, runId: runJobId })
+    // runId is a temporary property used to check if the report is sent after the server interruption
+    this.updateJob({ id, runId: runJobId })::ignoreErrors()
     runningJobs[id] = runJobId
 
     const runs = this._runs
@@ -319,7 +314,7 @@ export default class Jobs {
       })
       throw error
     } finally {
-      this.updateJob({ id, runId: null })
+      ;this.updateJob({ id, runId: null })::ignoreErrors()
       delete runningJobs[id]
       delete runs[runJobId]
       if (session !== undefined) {

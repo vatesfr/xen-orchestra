@@ -132,7 +132,7 @@ class BackupReportsXoPlugin {
     ).catch(logError)
   }
 
-  async _backupNgListener (_1, _2, { timezone }, runJobId) {
+  async _backupNgListener (_1, _2, schedule, runJobId) {
     const xo = this._xo
     const log = await xo.getBackupNgLogs(runJobId)
 
@@ -144,8 +144,12 @@ class BackupReportsXoPlugin {
       return
     }
 
+    if (schedule === undefined) {
+      schedule = await xo.getSchedule(log.scheduleId)
+    }
+
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
-    const formatDate = createDateFormater(timezone)
+    const formatDate = createDateFormater(schedule.timezone)
     const getTemporalDataMarkdown = createGetTemporalDataMarkdown(formatDate)
 
     if (
