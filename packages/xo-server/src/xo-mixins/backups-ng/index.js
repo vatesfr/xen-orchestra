@@ -155,6 +155,7 @@ const getVmBackupDir = (uuid: string) => `${BACKUP_DIR}/${uuid}`
 const isHiddenFile = (filename: string) => filename[0] === '.'
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
+const isXva = (filename: string) => filename.endsWith('.xva')
 
 const listReplicatedVms = (
   xapi: Xapi,
@@ -965,6 +966,16 @@ export default class BackupNg {
               }),
               async (taskId, { handler, id: remoteId }) => {
                 const fork = forkExport()
+
+                // remove incomplete XVAs
+                await asyncMap(
+                  handler.list(vmDir, {
+                    filter: filename =>
+                      isHiddenFile(filename) && isXva(filename),
+                    prependDir: true,
+                  }),
+                  file => handler.unlink(file)
+                )::ignoreErrors()
 
                 const oldBackups: MetadataFull[] = (getOldEntries(
                   exportRetention,
