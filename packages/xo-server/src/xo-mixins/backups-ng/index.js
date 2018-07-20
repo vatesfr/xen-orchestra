@@ -969,7 +969,7 @@ export default class BackupNg {
 
                 // remove incomplete XVAs
                 await asyncMap(
-                  handler.list({
+                  handler.list(vmDir, {
                     filter: filename =>
                       isHiddenFile(filename) && isXva(filename),
                     prependDir: true,
