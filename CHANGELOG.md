@@ -19,9 +19,11 @@
 - [Backup NG] Correctly migrate report setting from legacy jobs [#3180](https://github.com/vatesfr/xen-orchestra/issues/3180) (PR [#3206](https://github.com/vatesfr/xen-orchestra/pull/3206))
 - [Backup NG] remove incomplete XVA files [#3159](https://github.com/vatesfr/xen-orchestra/issues/3159) (PR [#3215](https://github.com/vatesfr/xen-orchestra/pull/3215))
 - [Backup NG form] Ability to edit a schedule's state [#3223](https://github.com/vatesfr/xen-orchestra/issues/3223) (PR [#3228](https://github.com/vatesfr/xen-orchestra/pull/3228))
+- Workaround to prevent XenServer 7.5 VDI\_IO\_ERROR during backup [#3205](https://github.com/vatesfr/xen-orchestra/issues/3205)
 
 ### Released packages
 
+- xen-api v0.16.12
 - xo-remote-parser v0.5.0
 - complex-matcher v0.4.0
 - xo-server-backup-reports v0.12.3
