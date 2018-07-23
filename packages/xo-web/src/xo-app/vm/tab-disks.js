@@ -8,11 +8,11 @@ import IsoDevice from 'iso-device'
 import Link from 'link'
 import propTypes from 'prop-types-decorator'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
 import SingleLineRow from 'single-line-row'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import { PoolItem, PoolObjectItem } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
   createFinder,
@@ -126,15 +126,14 @@ const COLUMNS_VM_PV = [
   {
     itemRenderer: (vdi, { containerBySr }) => {
       const container = containerBySr[vdi.$SR]
-      return (
-        container !== undefined && (
-          <Link to={`${container.type}s/${container.id}`}>
-            {renderXoItem(container)}
-          </Link>
-        )
-      )
+      if (container === undefined) {
+        return
+      }
+      const { id, type } = container
+      const VdiContainer = type === 'pool' ? PoolItem : PoolObjectItem
+      return <VdiContainer id={id} link />
     },
-    name: _('vdiSrContainer'),
+    name: _('vdiContainer'),
     sortCriteria: (vdi, { containerBySr }) => {
       const container = containerBySr[vdi.$SR]
       return container !== undefined && container.name_label
@@ -701,10 +700,10 @@ export default class TabDisks extends Component {
     () => this.props.srs,
     (hosts, pool, srs) => {
       const poolId = pool.id
-      let container
+      let containerId
       return mapValues(srs, sr => {
-        container = sr.$container
-        return container === poolId ? pool : hosts[container]
+        containerId = sr.$container
+        return containerId === poolId ? pool : hosts[containerId]
       })
     }
   )
@@ -806,7 +805,7 @@ export default class TabDisks extends Component {
               actions={ACTIONS}
               collection={vdis}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
-              data-containersBySr={this._getContainersBySr()}
+              data-containerBySr={this._getContainerBySr()}
               data-isVdiAttached={this._getIsVdiAttached()}
               data-srs={srs}
               data-vbdsByVdi={this._getVbdsByVdi()}

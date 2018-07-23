@@ -5,7 +5,6 @@ import { startsWith } from 'lodash'
 
 import Icon from './icon'
 import Link from './link'
-import propTypes from './prop-types-decorator'
 import { FormattedDate } from 'react-intl'
 import { get } from './xo-defined'
 import { isSrWritable, subscribeRemotes } from './xo'
@@ -84,10 +83,10 @@ export class VdiItem extends Component {
           <span>
             <Icon icon='disk' /> {vdi.name_label}
             {sr !== undefined && (
-              <span className='text-muted'> - {sr.name_label} </span>
+              <span className='text-muted'> - {sr.name_label}</span>
             )}
             {this._getCheckPermission() && (
-              <span className='text-muted'> ({container.name_label}) </span>
+              <span className='text-muted'> ({container.name_label})</span>
             )}
           </span>
         )}
@@ -190,30 +189,36 @@ export const PoolItem = [
 
 PoolItem.propTypes = XO_ITEM_PROP_TYPES
 
-// ===================================================================
-
 // Host, Network, VM-template.
-const PoolObjectItem = propTypes({
-  object: propTypes.object.isRequired,
-})(
+export const PoolObjectItem = [
   connectStore(() => {
-    const getPool = createGetObject((_, props) => props.object.$pool)
+    const getObject = createGetObject()
 
-    return (state, props) => ({
-      pool: getPool(state, props),
-    })
-  })(({ object, pool }) => {
-    const icon = OBJECT_TYPE_TO_ICON[object.type]
-    const { id } = object
-
+    return {
+      object: getObject,
+      pool: createGetObject(createSelector(getObject, object => object.$pool)),
+    }
+  }),
+  ({ object, pool, ...props }) => {
+    const type = object.type
+    const icon = OBJECT_TYPE_TO_ICON[type]
+    const { id, name_label: nameLabel } = object
     return (
-      <span>
-        <Icon icon={icon} /> {`${object.name_label || id} `}
-        {pool && `(${pool.name_label || pool.id})`}
-      </span>
+      <XoItem item={type} to={`${type}s/${get(() => id)}`} {...props}>
+        {() => (
+          <span>
+            <Icon icon={icon} /> {`${nameLabel || id} `}
+            {pool && `(${pool.name_label || pool.id})`}
+          </span>
+        )}
+      </XoItem>
     )
-  })
-)
+  },
+].reduceRight((value, decorator) => decorator(value))
+
+PoolObjectItem.propTypes = XO_ITEM_PROP_TYPES
+
+// ===================================================================
 
 const VgpuItem = connectStore(() => ({
   vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
@@ -275,9 +280,9 @@ const xoItemToRender = {
   VDI: ({ id }) => <VdiItem id={id} />,
 
   // Pool objects.
-  'VM-template': vmTemplate => <PoolObjectItem object={vmTemplate} />,
-  host: host => <PoolObjectItem object={host} />,
-  network: network => <PoolObjectItem object={network} />,
+  'VM-template': ({ id }) => <PoolObjectItem id={id} />,
+  host: ({ id }) => <PoolObjectItem id={id} />,
+  network: ({ id }) => <PoolObjectItem id={id} />,
 
   // SR.
   SR: ({ id }) => <SrItem id={id} />,
