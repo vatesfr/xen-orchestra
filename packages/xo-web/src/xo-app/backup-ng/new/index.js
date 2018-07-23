@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import defined from 'xo-defined'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
@@ -17,8 +18,8 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from '@julien-f/freactal'
-import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import { Number, Toggle } from 'form'
+import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   cloneDeep,
   flatten,
@@ -134,6 +135,7 @@ const getInitialState = () => ({
   drMode: false,
   editionMode: undefined,
   formId: generateRandomId(),
+  inputTimeoutId: generateRandomId(),
   name: '',
   offlineSnapshot: false,
   paramsUpdated: false,
@@ -147,6 +149,7 @@ const getInitialState = () => ({
   snapshotMode: false,
   srs: [],
   tags: {},
+  timeout: undefined,
   tmpSchedule: {},
   vms: [],
 })
@@ -190,9 +193,10 @@ export default [
               snapshotMode: state.snapshotMode,
             }),
             '': {
-              reportWhen: state.reportWhen,
               concurrency: state.concurrency,
               offlineSnapshot: state.offlineSnapshot,
+              reportWhen: state.reportWhen,
+              timeout: state.timeout && state.timeout * 1e3,
             },
           },
           remotes:
@@ -254,11 +258,16 @@ export default [
           })
         )
 
+        const globalSettings = props.job.settings['']
         settings[''] = {
-          ...props.job.settings[''],
+          ...globalSettings,
           reportWhen: state.reportWhen,
           concurrency: state.concurrency,
           offlineSnapshot: state.offlineSnapshot,
+          timeout:
+            state.timeout === ''
+              ? undefined
+              : state.timeout * 1e3 || globalSettings.timeout,
         }
 
         await editBackupNgJob({
@@ -338,6 +347,9 @@ export default [
         }
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
+      setTimeout: (_, timeout) => (_, { job }) => ({
+        timeout: timeout === undefined && job !== undefined ? '' : timeout,
+      }),
       updateParams: () => (state, { job, schedules }) => {
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
@@ -554,7 +566,7 @@ export default [
     },
   }),
   injectState,
-  ({ effects, remotesById, state }) => {
+  ({ state, effects, remotesById, job }) => {
     if (state.needUpdateParams) {
       effects.updateParams()
     }
@@ -821,6 +833,22 @@ export default [
                       onChange={effects.setConcurrency}
                       required
                       value={state.concurrency}
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <label htmlFor={state.inputTimeoutId}>
+                      <strong>{_('timeout')}</strong>
+                    </label>{' '}
+                    <Tooltip content={_('timeoutInfo')}>
+                      <Icon icon='info' />
+                    </Tooltip>
+                    <Number
+                      id={state.inputTimeoutId}
+                      onChange={effects.setTimeout}
+                      value={defined(
+                        state.timeout,
+                        () => job.settings[''].timeout / 1e3 || undefined
+                      )}
                     />
                   </FormGroup>
                   <FormGroup>
