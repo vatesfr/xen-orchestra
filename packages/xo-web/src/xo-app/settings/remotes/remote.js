@@ -1,6 +1,5 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import defined from 'xo-defined'
 import Icon from 'icon'
 import React from 'react'
 import { addSubscriptions, generateRandomId } from 'utils'
@@ -110,201 +109,207 @@ export default [
       },
     },
     computed: {
-      effectiveDomain: state =>
-        defined(state.domain, () => state.remote.domain, ''),
-      effectiveHost: state => defined(state.host, () => state.remote.host, ''),
-      effectiveName: state => defined(state.name, () => state.remote.name, ''),
-      effectivePassword: state =>
-        defined(state.password, () => state.remote.password, ''),
-      effectivePath: state =>
-        defined(state.path, () => trimStart(state.remote.path, '/'), ''),
-      effectivePort: state => defined(state.port, () => state.remote.port),
-      effectiveType: state =>
-        defined(state.type, () => state.remote.type, 'nfs'),
-      effectiveUsername: state =>
-        defined(state.username, () => state.remote.username, ''),
+      parsedPath: ({ remote }) => remote && trimStart(remote.path, '/'),
     },
   }),
   injectState,
-  ({ state, effects, formatMessage }) => (
-    <div>
-      <h2>{_('newRemote')}</h2>
-      <form id={state.formId}>
-        <div className='form-group'>
-          <label htmlFor={state.inputTypeId}>{_('remoteType')}</label>
-          <select
-            className='form-control'
-            id={state.inputTypeId}
-            name='type'
-            onChange={effects.linkState}
-            required
-            value={state.effectiveType}
-          >
-            {map(remoteTypes, (label, key) =>
-              _({ key }, label, message => (
-                <option value={key}>{message}</option>
-              ))
+  ({ state, effects, formatMessage }) => {
+    const {
+      remote = {},
+      domain = remote.domain || '',
+      host = remote.host || '',
+      name = remote.name || '',
+      password = remote.password || '',
+      parsedPath,
+      path = parsedPath || '',
+      port = remote.port,
+      type = remote.type || 'nfs',
+      username = remote.username || '',
+    } = state
+    return (
+      <div>
+        <h2>{_('newRemote')}</h2>
+        <form id={state.formId}>
+          <div className='form-group'>
+            <label htmlFor={state.inputTypeId}>{_('remoteType')}</label>
+            <select
+              className='form-control'
+              id={state.inputTypeId}
+              name='type'
+              onChange={effects.linkState}
+              required
+              value={type}
+            >
+              {map(remoteTypes, (label, key) =>
+                _({ key }, label, message => (
+                  <option value={key}>{message}</option>
+                ))
+              )}
+            </select>
+            {type === 'smb' && (
+              <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>
             )}
-          </select>
-          {state.effectiveType === 'smb' && (
-            <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>
+          </div>
+          <div className='form-group'>
+            <input
+              className='form-control'
+              name='name'
+              onChange={effects.linkState}
+              placeholder={formatMessage(messages.remoteMyNamePlaceHolder)}
+              required
+              type='text'
+              value={name}
+            />
+          </div>
+          {type === 'file' && (
+            <fieldset className='form-group'>
+              <div className='input-group'>
+                <span className='input-group-addon'>/</span>
+                <input
+                  className='form-control'
+                  name='path'
+                  onChange={effects.linkState}
+                  pattern='^(([^/]+)+(/[^/]+)*)?$'
+                  placeholder={formatMessage(
+                    messages.remoteLocalPlaceHolderPath
+                  )}
+                  required
+                  type='text'
+                  value={path}
+                />
+              </div>
+            </fieldset>
           )}
-        </div>
-        <div className='form-group'>
-          <input
-            className='form-control'
-            name='name'
-            onChange={effects.linkState}
-            placeholder={formatMessage(messages.remoteMyNamePlaceHolder)}
-            required
-            type='text'
-            value={state.effectiveName}
-          />
-        </div>
-        {state.effectiveType === 'file' && (
-          <fieldset className='form-group'>
-            <div className='input-group'>
-              <span className='input-group-addon'>/</span>
-              <input
-                className='form-control'
-                name='path'
-                onChange={effects.linkState}
-                pattern='^(([^/]+)+(/[^/]+)*)?$'
-                placeholder={formatMessage(messages.remoteLocalPlaceHolderPath)}
-                required
-                type='text'
-                value={state.effectivePath}
-              />
-            </div>
-          </fieldset>
-        )}
-        {state.effectiveType === 'nfs' && (
-          <fieldset>
-            <div className='form-group'>
-              <input
-                className='form-control'
-                name='host'
-                onChange={effects.linkState}
-                placeholder={formatMessage(messages.remoteNfsPlaceHolderHost)}
-                required
-                type='text'
-                value={state.effectiveHost}
-              />
-              <br />
-              <Number
-                onChange={effects.setPort}
-                placeholder={formatMessage(messages.remoteNfsPlaceHolderPort)}
-                value={state.effectivePort}
-              />
-            </div>
-            <div className='input-group form-group'>
-              <span className='input-group-addon'>/</span>
-              <input
-                className='form-control'
-                name='path'
-                onChange={effects.linkState}
-                pattern='^(([^/]+)+(/[^/]+)*)?$'
-                placeholder={formatMessage(messages.remoteNfsPlaceHolderPath)}
-                required
-                type='text'
-                value={state.effectivePath}
-              />
-            </div>
-          </fieldset>
-        )}
-        {state.effectiveType === 'smb' && (
-          <fieldset>
-            <div className='input-group form-group'>
-              <span className='input-group-addon'>\\</span>
-              <input
-                className='form-control'
-                name='host'
-                onChange={effects.linkState}
-                pattern='^([^\\/]+)\\([^\\/]+)$'
-                placeholder={formatMessage(
-                  messages.remoteSmbPlaceHolderAddressShare
-                )}
-                required
-                type='text'
-                value={state.effectiveHost}
-              />
-              <span className='input-group-addon'>\</span>
-              <input
-                className='form-control'
-                name='path'
-                onChange={effects.linkState}
-                pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
-                placeholder={formatMessage(
-                  messages.remoteSmbPlaceHolderRemotePath
-                )}
-                required
-                type='text'
-                value={state.effectivePath}
-              />
-            </div>
-            <div className='form-group'>
-              <input
-                className='form-control'
-                name='username'
-                onChange={effects.linkState}
-                placeholder={formatMessage(
-                  messages.remoteSmbPlaceHolderUsername
-                )}
-                required
-                type='text'
-                value={state.effectiveUsername}
-              />
-            </div>
-            <div className='form-group'>
-              <input
-                className='form-control'
-                name='password'
-                onChange={effects.linkState}
-                placeholder={formatMessage(
-                  messages.remoteSmbPlaceHolderPassword
-                )}
-                required
-                type='text'
-                value={state.effectivePassword}
-              />
-            </div>
-            <div className='form-group'>
-              <input
-                className='form-control'
-                onChange={effects.linkState}
-                name='domain'
-                placeholder={formatMessage(messages.remoteSmbPlaceHolderDomain)}
-                required
-                type='text'
-                value={state.effectiveDomain}
-              />
-            </div>
-          </fieldset>
-        )}
-        <div className='form-group'>
-          <ActionButton
-            btnStyle='primary'
-            form={state.formId}
-            handler={
-              state.remote === undefined
-                ? effects.createRemote
-                : effects.editRemote
-            }
-            icon='save'
-            type='submit'
-          >
-            {_('savePluginConfiguration')}
-          </ActionButton>
-          <ActionButton
-            className='pull-right'
-            handler={effects.reset}
-            icon='reset'
-            type='reset'
-          >
-            {_('formReset')}
-          </ActionButton>
-        </div>
-      </form>
-    </div>
-  ),
+          {type === 'nfs' && (
+            <fieldset>
+              <div className='form-group'>
+                <input
+                  className='form-control'
+                  name='host'
+                  onChange={effects.linkState}
+                  placeholder={formatMessage(messages.remoteNfsPlaceHolderHost)}
+                  required
+                  type='text'
+                  value={host}
+                />
+                <br />
+                <Number
+                  onChange={effects.setPort}
+                  placeholder={formatMessage(messages.remoteNfsPlaceHolderPort)}
+                  value={port}
+                />
+              </div>
+              <div className='input-group form-group'>
+                <span className='input-group-addon'>/</span>
+                <input
+                  className='form-control'
+                  name='path'
+                  onChange={effects.linkState}
+                  pattern='^(([^/]+)+(/[^/]+)*)?$'
+                  placeholder={formatMessage(messages.remoteNfsPlaceHolderPath)}
+                  required
+                  type='text'
+                  value={path}
+                />
+              </div>
+            </fieldset>
+          )}
+          {type === 'smb' && (
+            <fieldset>
+              <div className='input-group form-group'>
+                <span className='input-group-addon'>\\</span>
+                <input
+                  className='form-control'
+                  name='host'
+                  onChange={effects.linkState}
+                  pattern='^([^\\/]+)\\([^\\/]+)$'
+                  placeholder={formatMessage(
+                    messages.remoteSmbPlaceHolderAddressShare
+                  )}
+                  required
+                  type='text'
+                  value={host}
+                />
+                <span className='input-group-addon'>\</span>
+                <input
+                  className='form-control'
+                  name='path'
+                  onChange={effects.linkState}
+                  pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
+                  placeholder={formatMessage(
+                    messages.remoteSmbPlaceHolderRemotePath
+                  )}
+                  required
+                  type='text'
+                  value={path}
+                />
+              </div>
+              <div className='form-group'>
+                <input
+                  className='form-control'
+                  name='username'
+                  onChange={effects.linkState}
+                  placeholder={formatMessage(
+                    messages.remoteSmbPlaceHolderUsername
+                  )}
+                  required
+                  type='text'
+                  value={username}
+                />
+              </div>
+              <div className='form-group'>
+                <input
+                  className='form-control'
+                  name='password'
+                  onChange={effects.linkState}
+                  placeholder={formatMessage(
+                    messages.remoteSmbPlaceHolderPassword
+                  )}
+                  required
+                  type='text'
+                  value={password}
+                />
+              </div>
+              <div className='form-group'>
+                <input
+                  className='form-control'
+                  onChange={effects.linkState}
+                  name='domain'
+                  placeholder={formatMessage(
+                    messages.remoteSmbPlaceHolderDomain
+                  )}
+                  required
+                  type='text'
+                  value={domain}
+                />
+              </div>
+            </fieldset>
+          )}
+          <div className='form-group'>
+            <ActionButton
+              btnStyle='primary'
+              form={state.formId}
+              handler={
+                state.remote === undefined
+                  ? effects.createRemote
+                  : effects.editRemote
+              }
+              icon='save'
+              type='submit'
+            >
+              {_('savePluginConfiguration')}
+            </ActionButton>
+            <ActionButton
+              className='pull-right'
+              handler={effects.reset}
+              icon='reset'
+              type='reset'
+            >
+              {_('formReset')}
+            </ActionButton>
+          </div>
+        </form>
+      </div>
+    )
+  },
 ].reduceRight((value, decorator) => decorator(value))
