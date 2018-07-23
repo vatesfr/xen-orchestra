@@ -918,6 +918,9 @@ const messages = {
   deleteSelectedVdis: 'Delete selected VDIs',
   deleteSelectedVdi: 'Delete selected VDI',
   exportVdi: 'Export VDI content',
+  importVdi: 'Import VDI content',
+  importVdiNoFile: 'No file selected',
+  selectVdiMessage: 'Drop VHD file here',
   useQuotaWarning:
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet:
@@ -1242,8 +1245,11 @@ const messages = {
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
+  vdiImportSuccess: 'VDI import success',
+  vdiImportFailed: 'VDI import failed',
   setVmFailed: 'Error on setting the VM: {vm}',
   startVmImport: 'Import starting…',
+  startVdiImport: 'VDI import starting…',
   startVmExport: 'Export starting…',
   startVdiExport: 'VDI export starting…',
   nCpus: 'N CPUs',
