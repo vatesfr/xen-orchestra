@@ -224,7 +224,7 @@ const INDIVIDUAL_ACTIONS = [
     level: 'primary',
   },
   {
-    handler: ({ id }, { editRemote }) => editRemote(id),
+    handler: (remote, { editRemote }) => editRemote(remote),
     icon: 'edit',
     label: _('formEdit'),
     level: 'primary',
@@ -266,15 +266,15 @@ export default [
   provideState({
     initialState: () => ({
       formId: generateRandomId(),
-      remoteId: undefined,
+      remote: undefined,
     }),
     effects: {
       reset: () => () => ({
         formId: generateRandomId(),
-        remoteId: undefined,
+        remote: undefined,
       }),
-      editRemote: (_, remoteId) => () => ({
-        remoteId,
+      editRemote: (_, remote) => () => ({
+        remote,
       }),
     },
   }),

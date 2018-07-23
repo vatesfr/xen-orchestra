@@ -7,10 +7,10 @@ import { addSubscriptions, generateRandomId } from 'utils'
 import { alert, confirm } from 'modal'
 import { createRemote, editRemote, subscribeRemotes } from 'xo'
 import { error } from 'notification'
-import { format, parse } from 'xo-remote-parser'
+import { format } from 'xo-remote-parser'
 import { injectState, provideState } from '@julien-f/freactal'
 import { linkState } from 'freactal-utils'
-import { map, some, trimStart, keyBy } from 'lodash'
+import { map, some, trimStart } from 'lodash'
 import { Number } from 'form'
 
 const remoteTypes = {
@@ -21,24 +21,7 @@ const remoteTypes = {
 
 export default [
   addSubscriptions({
-    remotes: cb =>
-      subscribeRemotes(remotes => {
-        cb(
-          keyBy(
-            map(remotes, remote => {
-              try {
-                return {
-                  ...remote,
-                  ...parse(remote.url),
-                }
-              } catch (err) {
-                console.error('Remote parsing error:', remote, '\n', err)
-              }
-            }).filter(r => r !== undefined),
-            'id'
-          )
-        )
-      }),
+    remotes: subscribeRemotes,
   }),
   provideState({
     initialState: () => ({
@@ -55,11 +38,11 @@ export default [
     effects: {
       linkState,
       setPort: (_, port) => state => ({
-        port: port === undefined && state.remoteId !== undefined ? '' : port,
+        port: port === undefined && state.remote !== undefined ? '' : port,
       }),
-      editRemote: ({ reset }) => (state, { remotes }) => {
-        const remote = remotes[state.remoteId]
+      editRemote: ({ reset }) => state => {
         const {
+          remote,
           domain = remote.domain,
           host = remote.host,
           name,
@@ -127,30 +110,23 @@ export default [
       },
     },
     computed: {
-      effectiveDomain: (state, { remotes }) =>
-        defined(state.domain, () => remotes[state.remoteId].domain, ''),
-      effectiveHost: (state, { remotes }) =>
-        defined(state.host, () => remotes[state.remoteId].host, ''),
-      effectiveName: (state, { remotes }) =>
-        defined(state.name, () => remotes[state.remoteId].name, ''),
-      effectivePassword: (state, { remotes }) =>
-        defined(state.password, () => remotes[state.remoteId].password, ''),
-      effectivePath: (state, { remotes }) =>
-        defined(
-          state.path,
-          () => trimStart(remotes[state.remoteId].path, '/'),
-          ''
-        ),
-      effectivePort: (state, { remotes }) =>
-        defined(state.port, () => remotes[state.remoteId].port),
-      effectiveType: (state, { remotes }) =>
-        defined(state.type, () => remotes[state.remoteId].type, 'nfs'),
-      effectiveUsername: (state, { remotes }) =>
-        defined(state.username, () => remotes[state.remoteId].username, ''),
+      effectiveDomain: state =>
+        defined(state.domain, () => state.remote.domain, ''),
+      effectiveHost: state => defined(state.host, () => state.remote.host, ''),
+      effectiveName: state => defined(state.name, () => state.remote.name, ''),
+      effectivePassword: state =>
+        defined(state.password, () => state.remote.password, ''),
+      effectivePath: state =>
+        defined(state.path, () => trimStart(state.remote.path, '/'), ''),
+      effectivePort: state => defined(state.port, () => state.remote.port),
+      effectiveType: state =>
+        defined(state.type, () => state.remote.type, 'nfs'),
+      effectiveUsername: state =>
+        defined(state.username, () => state.remote.username, ''),
     },
   }),
   injectState,
-  ({ state, effects, formatMessage, remotes = {} }) => (
+  ({ state, effects, formatMessage }) => (
     <div>
       <h2>{_('newRemote')}</h2>
       <form id={state.formId}>
@@ -310,7 +286,7 @@ export default [
             btnStyle='primary'
             form={state.formId}
             handler={
-              state.remoteId === undefined
+              state.remote === undefined
                 ? effects.createRemote
                 : effects.editRemote
             }
