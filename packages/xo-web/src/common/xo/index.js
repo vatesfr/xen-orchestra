@@ -30,12 +30,12 @@ import _ from '../intl'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import logError from '../log-error'
-import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
 import { noop, resolveId, resolveIds } from '../utils'
+import { VmItem, ResourceSetItem } from '../render-xo-item'
 import {
   connected,
   disconnected,
@@ -1224,10 +1224,7 @@ export const revertSnapshot = snapshot =>
 
 export const editVm = (vm, props) =>
   _call('vm.set', { ...props, id: resolveId(vm) }).catch(err => {
-    error(
-      _('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }),
-      err.message
-    )
+    error(_('setVmFailed', { vm: <VmItem id={resolveId(vm)} /> }), err.message)
   })
 
 export const fetchVmStats = (vm, granularity) =>
@@ -1344,10 +1341,7 @@ export const shareVm = async (vm, resourceSet) =>
   confirm({
     title: _('shareVmInResourceSetModalTitle'),
     body: _('shareVmInResourceSetModalMessage', {
-      self: renderXoItem({
-        ...(await getResourceSet(resourceSet)),
-        type: 'resourceSet',
-      }),
+      self: <ResourceSetItem id={resolveId(resourceSet)} />,
     }),
   }).then(() => editVm(vm, { share: true }), noop)
 

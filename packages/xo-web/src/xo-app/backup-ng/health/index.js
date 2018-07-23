@@ -1,17 +1,16 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Icon from 'icon'
-import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { Card, CardHeader, CardBlock } from 'card'
 import { addSubscriptions, connectStore } from 'utils'
+import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
+import { deleteSnapshot, deleteSnapshots, subscribeSchedules } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { includes, map } from 'lodash'
-import { deleteSnapshot, deleteSnapshots, subscribeSchedules } from 'xo'
+import { VmItem } from 'render-xo-item'
 import {
   createSelector,
   createGetObjectsOfType,
@@ -39,7 +38,7 @@ const SNAPSHOT_COLUMNS = [
   },
   {
     name: _('vmNameLabel'),
-    itemRenderer: renderXoItem,
+    itemRenderer: ({ id }) => <VmItem id={id} />,
     sortCriteria: 'name_label',
   },
   {
@@ -51,7 +50,7 @@ const SNAPSHOT_COLUMNS = [
     name: _('snapshotOf'),
     itemRenderer: (snapshot, { vms }) => {
       const vm = vms[snapshot.$snapshot_of]
-      return vm && <Link to={`/vms/${vm.id}`}>{renderXoItem(vm)}</Link>
+      return vm && <VmItem id={vm.id} link />
     },
     sortCriteria: (snapshot, { vms }) => {
       const vm = vms[snapshot.$snapshot_of]
