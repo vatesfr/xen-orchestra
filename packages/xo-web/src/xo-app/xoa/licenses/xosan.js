@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
+import renderXoItem, { PoolItem } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
@@ -32,10 +32,10 @@ class SelectLicense extends Component {
                 date:
                   license.expires !== undefined
                     ? this.props.intl.formatTime(license.expires, {
-                      day: 'numeric',
-                      month: 'numeric',
-                      year: 'numeric',
-                    })
+                        day: 'numeric',
+                        month: 'numeric',
+                        year: 'numeric',
+                      })
                     : '',
               },
               message => (
@@ -69,10 +69,9 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanPool'),
-    itemRenderer: (sr, { poolsBySr }) => {
-      const pool = poolsBySr[sr.id]
-      return <Link to={`pools/${pool.id}`}>{renderXoItem(pool)}</Link>
-    },
+    itemRenderer: (sr, { poolsBySr }) => (
+      <PoolItem id={poolsBySr[sr.id].id} link />
+    ),
   },
   {
     name: _('xosanLicense'),
