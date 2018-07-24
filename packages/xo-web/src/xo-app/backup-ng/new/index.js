@@ -228,13 +228,15 @@ export default [
             if (
               newSchedule.cron !== oldSchedule.cron ||
               newSchedule.name !== oldSchedule.name ||
-              newSchedule.timezone !== oldSchedule.timezone
+              newSchedule.timezone !== oldSchedule.timezone ||
+              newSchedule.enabled !== oldSchedule.enabled
             ) {
               return editSchedule({
                 id,
                 cron: newSchedule.cron,
                 name: newSchedule.name,
                 timezone: newSchedule.timezone,
+                enabled: newSchedule.enabled,
               })
             }
           })
@@ -249,6 +251,7 @@ export default [
                 cron: schedule.cron,
                 name: schedule.name,
                 timezone: schedule.timezone,
+                enabled: schedule.enabled,
               })
 
               settings[id] = settings[tmpId]
