@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import defined from 'xo-defined'
 import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
@@ -9,7 +10,7 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { isEqual } from 'lodash'
 import { Number } from 'form'
 
-import { FormFeedback, FormGroup } from './utils'
+import { FormFeedback, FormGroup, Input } from './utils'
 
 export default [
   injectState,
@@ -26,10 +27,12 @@ export default [
         timezone = moment.tz.guess(),
       },
     }) => ({
+      copyRetention,
       cron,
       exportRetention,
-      copyRetention,
       formId: generateRandomId(),
+      idInputName: generateRandomId(),
+      name: undefined,
       snapshotRetention,
       timezone,
     }),
@@ -51,6 +54,9 @@ export default [
         cron: cronPattern,
         timezone,
       }),
+      setName: (_, { target: { value } }) => () => ({
+        name: value,
+      }),
     },
     computed: {
       isScheduleInvalid: ({ retentionNeeded, scheduleNotEdited }) =>
@@ -70,10 +76,11 @@ export default [
         ),
       scheduleNotEdited: (
         {
+          copyRetention,
           cron,
           editionMode,
           exportRetention,
-          copyRetention,
+          name,
           snapshotRetention,
           timezone,
         },
@@ -82,16 +89,18 @@ export default [
         editionMode !== 'creation' &&
         isEqual(
           {
+            copyRetention: schedule.copyRetention,
             cron: schedule.cron,
             exportRetention: schedule.exportRetention,
-            copyRetention: schedule.copyRetention,
+            name: schedule.name,
             snapshotRetention: schedule.snapshotRetention,
             timezone: schedule.timezone,
           },
           {
+            copyRetention,
             cron,
             exportRetention,
-            copyRetention,
+            name,
             snapshotRetention,
             timezone,
           }
@@ -107,6 +116,16 @@ export default [
         message={_('retentionNeeded')}
       >
         <CardBlock>
+          <FormGroup>
+            <label htmlFor={state.idInputName}>
+              <strong>{_('formName')}</strong>
+            </label>
+            <Input
+              id={state.idInputName}
+              onChange={effects.setName}
+              value={defined(state.name, state.tmpSchedule.name, '')}
+            />
+          </FormGroup>
           {state.exportMode && (
             <FormGroup>
               <label>
@@ -152,9 +171,10 @@ export default [
           <br />
           <ActionButton
             btnStyle='primary'
+            data-copyRetention={state.copyRetention}
             data-cron={state.cron}
             data-exportRetention={state.exportRetention}
-            data-copyRetention={state.copyRetention}
+            data-name={state.name}
             data-snapshotRetention={state.snapshotRetention}
             data-timezone={state.timezone}
             disabled={state.isScheduleInvalid}
