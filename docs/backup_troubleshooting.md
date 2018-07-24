@@ -27,7 +27,7 @@ In the end, this message is a **protection mechanism against damaging your SR**.
 
 > You can read more on this on our dedicated blog post regarding [XenServer coalesce detection](https://xen-orchestra.com/blog/xenserver-coalesce-detection-in-xen-orchestra/).
 
-### Troubleshooting  a constant VDI Chain Protection message (XenServer failure to coalesce)
+### Troubleshooting a constant VDI Chain Protection message (XenServer failure to coalesce)
 
  As previously mentioned, this message can be normal and it just means XenServer needs to perform a coalesce to merge old snapshots. However if you repeatedly get this message and it seems XenServer is not coalescing, You can take a few steps to determine why.  
 
