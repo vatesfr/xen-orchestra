@@ -1295,6 +1295,8 @@ const messages = {
     'Only the files of Delta Backup which are not on a SMB remote can be restored',
   remoteEnabled: 'Enabled',
   remoteError: 'Error',
+  remoteErrorMessage:
+    'This remote has an invalid URL ({url}). Please click on this button to keep this URL params or edit them!',
   noBackup: 'No backup available',
   backupVmNameColumn: 'VM Name',
   backupVmDescriptionColumn: 'VM Description',

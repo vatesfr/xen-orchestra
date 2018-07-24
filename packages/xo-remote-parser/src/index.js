@@ -19,7 +19,14 @@ export const parse = string => {
     object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
   } else if (type === 'nfs') {
     object.type = 'nfs'
-    const [, host, port, path] = NFS_RE.exec(rest)
+    let host, port, path
+    try {
+      ;[, host, port, path] = NFS_RE.exec(rest)
+    } catch (err) {
+      ;[host, path] = rest.split(':')
+      object.invalid = true
+      console.error('Invalid remote URL:', string, '\n', err)
+    }
     object.host = host
     object.port = port
     object.path = `/${trimStart(path, '/')}` // takes care of a missing leading slash coming from previous version format
