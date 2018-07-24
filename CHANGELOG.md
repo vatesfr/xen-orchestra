@@ -4,12 +4,32 @@
 
 ### Enhancements
 
+- Export VDI content [#2432](https://github.com/vatesfr/xen-orchestra/issues/2432) (PR [#3194](https://github.com/vatesfr/xen-orchestra/pull/3194))
+- Search syntax support wildcard (`*`) and regular expressions [#3190](https://github.com/vatesfr/xen-orchestra/issues/3190) (PRs [#3198](https://github.com/vatesfr/xen-orchestra/pull/3198) & [#3199](https://github.com/vatesfr/xen-orchestra/pull/3199))
+- Import VDI content [#2432](https://github.com/vatesfr/xen-orchestra/issues/2432) (PR [#3216](https://github.com/vatesfr/xen-orchestra/pull/3216))
+
 ### Bug fixes
+
+- [Backup Reports] Report not sent if reportWhen failure and at least a VM is successfull [#3181](https://github.com/vatesfr/xen-orchestra/issues/3181) (PR [#3185](https://github.com/vatesfr/xen-orchestra/pull/3185))
+- [Backup NG] Correctly migrate report setting from legacy jobs [#3180](https://github.com/vatesfr/xen-orchestra/issues/3180) (PR [#3206](https://github.com/vatesfr/xen-orchestra/pull/3206))
+- [Backup NG] remove incomplete XVA files [#3159](https://github.com/vatesfr/xen-orchestra/issues/3159) (PR [#3215](https://github.com/vatesfr/xen-orchestra/pull/3215))
 
 ### Released packages
 
+- complex-matcher v0.4.0
+- xo-server-backup-reports v0.12.3
 - xo-server v5.23.0
 - xo-web v5.23.0
+
+## **5.22.1** (2018-07-13)
+
+### Bug fixes
+
+- [Remote select] Gracefully ignore remotes with invalid URL (PR [#3178](https://github.com/vatesfr/xen-orchestra/pull/3178))
+
+### Released packages
+
+- xo-web v5.22.1
 
 ## **5.22.0** (2018-07-12)
 

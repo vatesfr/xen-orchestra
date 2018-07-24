@@ -19,11 +19,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import {
-  fromEvent as pFromEvent,
-  ignoreErrors,
-  timeout as pTimeout,
-} from 'promise-toolbox'
+import { fromEvent as pFromEvent, ignoreErrors } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -159,6 +155,7 @@ const getVmBackupDir = (uuid: string) => `${BACKUP_DIR}/${uuid}`
 const isHiddenFile = (filename: string) => filename[0] === '.'
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
+const isXva = (filename: string) => filename.endsWith('.xva')
 
 const listReplicatedVms = (
   xapi: Xapi,
@@ -453,7 +450,6 @@ export default class BackupNg {
           }
         }
         const jobId = job.id
-        const scheduleId = schedule.id
         const srs = unboxIds(job.srs).map(id => {
           const xapi = app.getXapi(id)
           return {
@@ -494,7 +490,7 @@ export default class BackupNg {
             vmCancel = cancelToken.fork()
 
             // $FlowFixMe injected $defer param
-            let p = this._backupVm(
+            const p = this._backupVm(
               vmCancel.token,
               uuid,
               job,
@@ -504,13 +500,18 @@ export default class BackupNg {
               srs,
               remotes
             )
-            const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
-              uuid,
-              scheduleId,
-            ])
-            if (vmTimeout !== 0) {
-              p = pTimeout.call(p, vmTimeout)
-            }
+
+            // 2018-07-20, JFT: vmTimeout is disabled for the time being until
+            // we figure out exactly how it should behave.
+            //
+            // const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
+            //   uuid,
+            //   scheduleId,
+            // ])
+            // if (vmTimeout !== 0) {
+            //   p = pTimeout.call(p, vmTimeout)
+            // }
+
             await p
             logger.notice(`Backuping ${name} is a success. (${jobId})`, {
               event: 'task.end',
@@ -965,6 +966,16 @@ export default class BackupNg {
               }),
               async (taskId, { handler, id: remoteId }) => {
                 const fork = forkExport()
+
+                // remove incomplete XVAs
+                await asyncMap(
+                  handler.list(vmDir, {
+                    filter: filename =>
+                      isHiddenFile(filename) && isXva(filename),
+                    prependDir: true,
+                  }),
+                  file => handler.unlink(file)
+                )::ignoreErrors()
 
                 const oldBackups: MetadataFull[] = (getOldEntries(
                   exportRetention,

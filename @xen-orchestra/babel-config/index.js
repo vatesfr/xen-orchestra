@@ -11,10 +11,16 @@ const configs = {
   '@babel/plugin-proposal-decorators': {
     legacy: true,
   },
+  '@babel/plugin-proposal-pipeline-operator': {
+    proposal: 'minimal',
+  },
   '@babel/preset-env' (pkg) {
     return {
       debug: !__TEST__,
-      loose: true,
+
+      // disabled until https://github.com/babel/babel/issues/8323 is resolved
+      // loose: true,
+
       shippedProposals: true,
       targets: __PROD__
         ? (() => {

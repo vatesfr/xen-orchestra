@@ -1256,6 +1256,38 @@ export const importVm = (file, type = 'xva', data = undefined, sr) => {
   )
 }
 
+import ImportVdiModalBody from './import-vdi-modal' // eslint-disable-line import/first
+export const importVdi = async vdi => {
+  const file = await confirm({
+    body: <ImportVdiModalBody />,
+    icon: 'import',
+    title: _('importVdi'),
+  })
+
+  if (file === undefined) {
+    error(_('importVdi'), _('importVdiNoFile'))
+    return
+  }
+
+  const { name } = file
+  info(_('startVdiImport'), name)
+
+  return _call('disk.importContent', { id: resolveId(vdi) }).then(
+    ({ $sendTo }) =>
+      post($sendTo, file)
+        .then(res => {
+          if (res.status !== 200) {
+            throw res.status
+          }
+          success(_('vdiImportSuccess'), name)
+          return res.json().then(body => body.result)
+        })
+        .catch(err => {
+          error(_('vdiImportFailed'), err)
+        })
+  )
+}
+
 export const importVms = (vms, sr) =>
   Promise.all(
     map(vms, ({ file, type, data }) =>
@@ -1268,6 +1300,15 @@ export const exportVm = vm => {
   return _call('vm.export', { vm: resolveId(vm) }).then(({ $getFrom: url }) => {
     window.location = `.${url}`
   })
+}
+
+export const exportVdi = vdi => {
+  info(_('startVdiExport'), vdi.id)
+  return _call('disk.exportContent', { id: resolveId(vdi) }).then(
+    ({ $getFrom: url }) => {
+      window.location = `.${url}`
+    }
+  )
 }
 
 export const insertCd = (vm, cd, force = false) =>

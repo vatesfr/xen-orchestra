@@ -1,4 +1,4 @@
-import { isPlainObject, some } from 'lodash'
+import { escapeRegExp, isPlainObject, some } from 'lodash'
 
 // ===================================================================
 
@@ -173,15 +173,59 @@ export class Property extends Node {
 const escapeChar = char => '\\' + char
 const formatString = value =>
   Number.isNaN(+value)
-    ? isRawString(value) ? value : `"${value.replace(/\\|"/g, escapeChar)}"`
+    ? isRawString(value)
+      ? value
+      : `"${value.replace(/\\|"/g, escapeChar)}"`
     : `"${value}"`
 
-export class StringNode extends Node {
+export class GlobPattern extends Node {
   constructor (value) {
+    // fallback to string node if no wildcard
+    if (value.indexOf('*') === -1) {
+      return new StringNode(value)
+    }
+
     super()
 
-    this.lcValue = value.toLowerCase()
     this.value = value
+
+    // should not be enumerable for the tests
+    Object.defineProperty(this, 'match', {
+      value: this.match.bind(
+        this,
+        new RegExp(
+          value
+            .split('*')
+            .map(escapeRegExp)
+            .join('.*'),
+          'i'
+        )
+      ),
+    })
+  }
+
+  match (re, value) {
+    if (typeof value === 'string') {
+      return re.test(value)
+    }
+
+    if (Array.isArray(value) || isPlainObject(value)) {
+      return some(value, this.match)
+    }
+
+    return false
+  }
+
+  toString () {
+    return this.value
+  }
+}
+
+export class RegExpNode extends Node {
+  constructor (pattern, flags) {
+    super()
+
+    this.re = new RegExp(pattern, flags)
 
     // should not be enumerable for the tests
     Object.defineProperty(this, 'match', {
@@ -191,7 +235,37 @@ export class StringNode extends Node {
 
   match (value) {
     if (typeof value === 'string') {
-      return value.toLowerCase().indexOf(this.lcValue) !== -1
+      return this.re.test(value)
+    }
+
+    if (Array.isArray(value) || isPlainObject(value)) {
+      return some(value, this.match)
+    }
+
+    return false
+  }
+
+  toString () {
+    return this.re.toString()
+  }
+}
+export { RegExpNode as RegExp }
+
+export class StringNode extends Node {
+  constructor (value) {
+    super()
+
+    this.value = value
+
+    // should not be enumerable for the tests
+    Object.defineProperty(this, 'match', {
+      value: this.match.bind(this, value.toLowerCase()),
+    })
+  }
+
+  match (lcValue, value) {
+    if (typeof value === 'string') {
+      return value.toLowerCase().indexOf(lcValue) !== -1
     }
 
     if (Array.isArray(value) || isPlainObject(value)) {
@@ -388,6 +462,17 @@ const parser = P.grammar({
     P.seq(r.ws, r.term.repeat(), P.eof).map(
       ([, terms]) => (terms.length === 0 ? new Null() : new And(terms))
     ),
+  globPattern: new P((input, pos, end) => {
+    let value = ''
+    let c
+    while (pos < end && ((c = input[pos]) === '*' || c in RAW_STRING_CHARS)) {
+      ++pos
+      value += c
+    }
+    return value.length === 0
+      ? new Failure(pos, 'a raw string')
+      : new Success(pos, value)
+  }),
   quotedString: new P((input, pos, end) => {
     if (input[pos] !== '"') {
       return new Failure(pos, '"')
@@ -405,6 +490,7 @@ const parser = P.grammar({
 
     return new Success(pos, value.join(''))
   }),
+  property: r => P.alt(r.quotedString, r.rawString),
   rawString: new P((input, pos, end) => {
     let value = ''
     let c
@@ -416,7 +502,33 @@ const parser = P.grammar({
       ? new Failure(pos, 'a raw string')
       : new Success(pos, value)
   }),
-  string: r => P.alt(r.quotedString, r.rawString),
+  regex: new P((input, pos, end) => {
+    if (input[pos] !== '/') {
+      return new Failure(pos, '/')
+    }
+    ++pos
+
+    let c
+
+    let pattern = ''
+    let escaped = false
+    while (pos < end && ((c = input[pos++]) !== '/' || escaped)) {
+      escaped = c === '\\'
+      pattern += c
+    }
+
+    if (c !== '/') {
+      return new Failure(pos, '/')
+    }
+
+    let flags = ''
+    if (pos < end && (c = input[pos]) === 'i') {
+      ++pos
+      flags += c
+    }
+
+    return new Success(pos, new RegExpNode(pattern, flags))
+  }),
   term: r =>
     P.alt(
       P.seq(P.text('('), r.ws, r.term.repeat(1), P.text(')')).map(
@@ -438,20 +550,23 @@ const parser = P.grammar({
         }
         return new Comparison(op, val)
       }),
-      P.seq(r.string, r.ws, P.text(':'), r.ws, r.term).map(
+      P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(
         _ => new Property(_[0], _[4])
       ),
-      P.seq(r.string, P.text('?')).map(_ => new TruthyProperty(_[0])),
-      P.alt(
-        r.quotedString.map(_ => new StringNode(_)),
-        r.rawString.map(str => {
-          const asNum = +str
-          return Number.isNaN(asNum)
-            ? new StringNode(str)
-            : new NumberNode(asNum)
-        })
-      )
+      P.seq(r.property, P.text('?')).map(_ => new TruthyProperty(_[0])),
+      r.value
     ).skip(r.ws),
+  value: r =>
+    P.alt(
+      r.quotedString.map(_ => new StringNode(_)),
+      r.regex,
+      r.globPattern.map(str => {
+        const asNum = +str
+        return Number.isNaN(asNum)
+          ? new GlobPattern(str)
+          : new NumberNode(asNum)
+      })
+    ),
   ws: P.regex(/\s*/),
 }).default
 export const parse = parser.parse.bind(parser)

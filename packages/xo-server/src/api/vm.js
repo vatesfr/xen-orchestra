@@ -1091,7 +1091,7 @@ revert.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function handleExport (req, res, { xapi, id, compress }) {
+async function handleExport (req, res, { xapi, id, compress }) {
   const stream = await xapi.exportVm(id, {
     compress: compress != null ? compress : true,
   })
@@ -1139,7 +1139,7 @@ export { export_ as export }
 
 // -------------------------------------------------------------------
 
-export async function handleVmImport (req, res, { data, srId, type, xapi }) {
+async function handleVmImport (req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours

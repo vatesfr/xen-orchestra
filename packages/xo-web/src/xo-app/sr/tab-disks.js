@@ -16,7 +16,7 @@ import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
-import { concat, isEmpty, map, some } from 'lodash'
+import { concat, groupBy, isEmpty, map, mapValues, pick, some } from 'lodash'
 import {
   createGetObjectsOfType,
   createSelector,
@@ -30,6 +30,8 @@ import {
   deleteVdis,
   disconnectVbd,
   editVdi,
+  exportVdi,
+  importVdi,
   isVmRunning,
 } from 'xo'
 
@@ -186,6 +188,17 @@ const GROUPED_ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
+    handler: exportVdi,
+    icon: 'export',
+    label: _('exportVdi'),
+  },
+  {
+    disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
+    handler: importVdi,
+    icon: 'import',
+    label: _('importVdi'),
+  },
+  {
     handler: vdi => copy(vdi.uuid),
     icon: 'clipboard',
     label: vdi => _('copyUuid', { uuid: vdi.uuid }),
@@ -270,6 +283,7 @@ class NewDisk extends Component {
 
 @connectStore(() => ({
   checkPermissions: getCheckPermissions,
+  vbds: createGetObjectsOfType('VBD'),
 }))
 export default class SrDisks extends Component {
   _closeNewDiskForm = () => this.setState({ newDisk: false })
@@ -285,6 +299,15 @@ export default class SrDisks extends Component {
     () => this.props.checkPermissions,
     () => this.props.sr.id,
     (check, id) => check(id, 'administrate')
+  )
+
+  _getIsVdiAttached = createSelector(
+    createSelector(
+      () => this.props.vbds,
+      () => map(this.props.vdis, 'id'),
+      (vbds, vdis) => pick(groupBy(vbds, 'VDI'), vdis)
+    ),
+    vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
   )
 
   render () {
@@ -319,6 +342,7 @@ export default class SrDisks extends Component {
               <SortedTable
                 collection={vdis}
                 columns={COLUMNS}
+                data-isVdiAttached={this._getIsVdiAttached()}
                 defaultFilter='filterOnlyManaged'
                 filters={FILTERS}
                 groupedActions={GROUPED_ACTIONS}
