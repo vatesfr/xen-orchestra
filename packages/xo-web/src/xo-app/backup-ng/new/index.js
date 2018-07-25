@@ -1,6 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import defined from 'xo-defined'
+import defined, { get } from 'xo-defined'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
@@ -347,9 +347,6 @@ export default [
         }
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
-      setTimeout: (_, timeout) => (_, { job }) => ({
-        timeout: timeout === undefined && job !== undefined ? '' : timeout,
-      }),
       updateParams: () => (state, { job, schedules }) => {
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
@@ -517,6 +514,9 @@ export default [
         ...state,
         concurrency,
       }),
+      setTimeout: (_, timeout) => (_, { job }) => ({
+        timeout: timeout === undefined && job !== undefined ? '' : timeout,
+      }),
     },
     computed: {
       needUpdateParams: (state, { job, schedules }) =>
@@ -567,6 +567,8 @@ export default [
   }),
   injectState,
   ({ state, effects, remotesById, job }) => {
+    const { timeout: jobTimeout } = get(() => job.settings['']) || {}
+
     if (state.needUpdateParams) {
       effects.updateParams()
     }
@@ -847,7 +849,7 @@ export default [
                       onChange={effects.setTimeout}
                       value={defined(
                         state.timeout,
-                        () => job.settings[''].timeout / 1e3 || undefined
+                        jobTimeout && jobTimeout / 1e3
                       )}
                     />
                   </FormGroup>
