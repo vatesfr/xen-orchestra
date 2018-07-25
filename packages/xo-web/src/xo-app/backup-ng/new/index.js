@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import defined, { get } from 'xo-defined'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
@@ -17,8 +18,8 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from '@julien-f/freactal'
-import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import { Number, Toggle } from 'form'
+import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   cloneDeep,
   flatten,
@@ -134,6 +135,7 @@ const getInitialState = () => ({
   drMode: false,
   editionMode: undefined,
   formId: generateRandomId(),
+  inputTimeoutId: generateRandomId(),
   name: '',
   offlineSnapshot: false,
   paramsUpdated: false,
@@ -147,6 +149,7 @@ const getInitialState = () => ({
   snapshotMode: false,
   srs: [],
   tags: {},
+  timeout: undefined,
   tmpSchedule: {},
   vms: [],
 })
@@ -190,9 +193,10 @@ export default [
               snapshotMode: state.snapshotMode,
             }),
             '': {
-              reportWhen: state.reportWhen,
               concurrency: state.concurrency,
               offlineSnapshot: state.offlineSnapshot,
+              reportWhen: state.reportWhen,
+              timeout: state.timeout && state.timeout * 1e3,
             },
           },
           remotes:
@@ -227,12 +231,16 @@ export default [
 
             if (
               newSchedule.cron !== oldSchedule.cron ||
-              newSchedule.timezone !== oldSchedule.timezone
+              newSchedule.name !== oldSchedule.name ||
+              newSchedule.timezone !== oldSchedule.timezone ||
+              newSchedule.enabled !== oldSchedule.enabled
             ) {
               return editSchedule({
                 id,
                 cron: newSchedule.cron,
+                name: newSchedule.name,
                 timezone: newSchedule.timezone,
+                enabled: newSchedule.enabled,
               })
             }
           })
@@ -245,7 +253,9 @@ export default [
             if (props.schedules[tmpId] === undefined) {
               const { id } = await createSchedule(props.job.id, {
                 cron: schedule.cron,
+                name: schedule.name,
                 timezone: schedule.timezone,
+                enabled: schedule.enabled,
               })
 
               settings[id] = settings[tmpId]
@@ -254,11 +264,16 @@ export default [
           })
         )
 
+        const globalSettings = props.job.settings['']
         settings[''] = {
-          ...props.job.settings[''],
+          ...globalSettings,
           reportWhen: state.reportWhen,
           concurrency: state.concurrency,
           offlineSnapshot: state.offlineSnapshot,
+          timeout:
+            state.timeout === ''
+              ? undefined
+              : state.timeout * 1e3 || globalSettings.timeout,
         }
 
         await editBackupNgJob({
@@ -408,8 +423,16 @@ export default [
       },
       saveSchedule: (
         _,
-        { cron, timezone, exportRetention, copyRetention, snapshotRetention }
+        {
+          copyRetention,
+          cron,
+          exportRetention,
+          name,
+          snapshotRetention,
+          timezone,
+        }
       ) => async (state, props) => {
+        name = name !== undefined && name.trim() === '' ? undefined : name
         if (state.editionMode === 'creation') {
           const id = generateRandomId()
           return {
@@ -418,8 +441,9 @@ export default [
             schedules: {
               ...state.schedules,
               [id]: {
-                id,
                 cron,
+                id,
+                name,
                 timezone,
               },
             },
@@ -441,6 +465,7 @@ export default [
         schedules[id] = {
           ...schedules[id],
           cron,
+          name,
           timezone,
         }
         settings[id] = {
@@ -505,6 +530,9 @@ export default [
         ...state,
         concurrency,
       }),
+      setTimeout: (_, timeout) => (_, { job }) => ({
+        timeout: timeout === undefined && job !== undefined ? '' : timeout,
+      }),
     },
     computed: {
       needUpdateParams: (state, { job, schedules }) =>
@@ -554,7 +582,9 @@ export default [
     },
   }),
   injectState,
-  ({ effects, remotesById, state }) => {
+  ({ state, effects, remotesById, job }) => {
+    const { timeout: jobTimeout } = get(() => job.settings['']) || {}
+
     if (state.needUpdateParams) {
       effects.updateParams()
     }
@@ -821,6 +851,22 @@ export default [
                       onChange={effects.setConcurrency}
                       required
                       value={state.concurrency}
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <label htmlFor={state.inputTimeoutId}>
+                      <strong>{_('timeout')}</strong>
+                    </label>{' '}
+                    <Tooltip content={_('timeoutInfo')}>
+                      <Icon icon='info' />
+                    </Tooltip>
+                    <Number
+                      id={state.inputTimeoutId}
+                      onChange={effects.setTimeout}
+                      value={defined(
+                        state.timeout,
+                        jobTimeout && jobTimeout / 1e3
+                      )}
                     />
                   </FormGroup>
                   <FormGroup>

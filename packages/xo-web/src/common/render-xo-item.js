@@ -124,6 +124,23 @@ export const RemoteItem = [
 
 RemoteItem.propTypes = XO_ITEM_PROP_TYPES
 
+export const PoolItem = [
+  connectStore(() => ({
+    pool: createGetObject(),
+  })),
+  ({ pool, ...props }) => (
+    <XoItem item={pool} to={`/pools/${get(() => pool.id)}`} {...props}>
+      {() => (
+        <span>
+          <Icon icon='pool' /> {pool.name_label || pool.id}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+PoolItem.propTypes = XO_ITEM_PROP_TYPES
+
 // ===================================================================
 
 // Host, Network, VM-template.
@@ -204,11 +221,7 @@ const xoItemToRender = {
   },
 
   // XO objects.
-  pool: pool => (
-    <span>
-      <Icon icon='pool' /> {pool.name_label || pool.id}
-    </span>
-  ),
+  pool: ({ id }) => <PoolItem id={id} />,
 
   VDI: vdi => (
     <span>

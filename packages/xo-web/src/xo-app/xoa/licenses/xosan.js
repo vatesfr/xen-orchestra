@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
+import renderXoItem, { PoolItem } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
@@ -32,10 +32,10 @@ class SelectLicense extends Component {
                 date:
                   license.expires !== undefined
                     ? this.props.intl.formatTime(license.expires, {
-                      day: 'numeric',
-                      month: 'numeric',
-                      year: 'numeric',
-                    })
+                        day: 'numeric',
+                        month: 'numeric',
+                        year: 'numeric',
+                      })
                     : '',
               },
               message => (
@@ -69,10 +69,7 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanPool'),
-    itemRenderer: (sr, { poolsBySr }) => {
-      const pool = poolsBySr[sr.id]
-      return <Link to={`pools/${pool.id}`}>{renderXoItem(pool)}</Link>
-    },
+    itemRenderer: sr => <PoolItem id={sr.$pool} link />,
   },
   {
     name: _('xosanLicense'),
@@ -113,28 +110,11 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   },
 ]
 
-@connectStore(() => {
-  const getXosanSrs = createGetObjectsOfType('SR').filter([
+@connectStore(() => ({
+  xosanSrs: createGetObjectsOfType('SR').filter([
     ({ SR_type }) => SR_type === 'xosan', // eslint-disable-line camelcase
-  ])
-  const getPoolsBySr = createSelector(
-    getXosanSrs,
-    createGetObjectsOfType('pool'),
-    (srs, pools) => {
-      const poolsBySr = {}
-      forEach(srs, sr => {
-        poolsBySr[sr.id] = pools[sr.$pool]
-      })
-
-      return poolsBySr
-    }
-  )
-
-  return {
-    xosanSrs: getXosanSrs,
-    poolsBySr: getPoolsBySr,
-  }
-})
+  ]),
+}))
 export default class Xosan extends Component {
   _getLicensesByXosan = createSelector(
     () => this.props.xosanLicenses,
@@ -182,7 +162,6 @@ export default class Xosan extends Component {
         userData={{
           availableLicenses: this._getAvailableLicenses(),
           licensesByXosan: this._getLicensesByXosan(),
-          poolsBySr: this.props.poolsBySr,
           xosanSrs: this.props.xosanSrs,
           updateLicenses: this.props.updateLicenses,
         }}
