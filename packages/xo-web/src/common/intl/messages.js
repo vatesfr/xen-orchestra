@@ -309,6 +309,7 @@ const messages = {
   jobFailed: 'Failed',
   jobSkipped: 'Skipped',
   jobSuccess: 'Successful',
+  sendBackupReport: 'Send report',
   allTasks: 'All',
   taskStart: 'Start',
   taskEnd: 'End',

@@ -7,6 +7,7 @@
 - Export VDI content [#2432](https://github.com/vatesfr/xen-orchestra/issues/2432) (PR [#3194](https://github.com/vatesfr/xen-orchestra/pull/3194))
 - Search syntax support wildcard (`*`) and regular expressions [#3190](https://github.com/vatesfr/xen-orchestra/issues/3190) (PRs [#3198](https://github.com/vatesfr/xen-orchestra/pull/3198) & [#3199](https://github.com/vatesfr/xen-orchestra/pull/3199))
 - Import VDI content [#2432](https://github.com/vatesfr/xen-orchestra/issues/2432) (PR [#3216](https://github.com/vatesfr/xen-orchestra/pull/3216))
+- Ability to send manually a backup report [#3018](https://github.com/vatesfr/xen-orchestra/issues/3018) (PR [#3232](https://github.com/vatesfr/xen-orchestra/pull/3232))
 
 ### Bug fixes
 
@@ -17,7 +18,7 @@
 ### Released packages
 
 - complex-matcher v0.4.0
-- xo-server-backup-reports v0.12.3
+- xo-server-backup-reports v0.13.0
 - xo-server v5.23.0
 - xo-web v5.23.0
 

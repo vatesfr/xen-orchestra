@@ -1905,6 +1905,9 @@ export const testPlugin = (id, data) => _call('plugin.test', { id, data })
 
 export const sendUsageReport = () => _call('plugin.usageReport.send')
 
+export const sendBackupNgReport = props =>
+  _call('plugin.backupReport.send', props)
+
 // Resource set ------------------------------------------------------
 
 export const createResourceSet = (name, { subjects, objects, limits } = {}) =>

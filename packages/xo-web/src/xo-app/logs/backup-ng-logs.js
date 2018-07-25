@@ -1,5 +1,6 @@
 import _, { FormattedDuration } from 'intl'
 import addSubscriptions from 'add-subscriptions'
+import ActionButton from 'action-button'
 import Button from 'button'
 import ButtonGroup from 'button-group'
 import CopyToClipboard from 'react-copy-to-clipboard'
@@ -16,6 +17,7 @@ import { FormattedDate } from 'react-intl'
 import { get } from 'xo-defined'
 import {
   deleteJobsLogs,
+  sendBackupNgReport,
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
 } from 'xo'
@@ -128,6 +130,15 @@ const showTasks = (log, { jobs }) => {
             message={`\`\`\`json\n${formattedLog}\n\`\`\``}
             size='small'
             title='Backup job failed'
+          />
+        )}
+        {log.scheduleId !== undefined && (
+          <ActionButton
+            data-runJobId={log.id}
+            handler={sendBackupNgReport}
+            icon='file'
+            size='small'
+            tooltip={_('sendBackupReport')}
           />
         )}
       </ButtonGroup>
