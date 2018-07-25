@@ -12,6 +12,15 @@ It means you don't have a default SR set on the pool you are importing XOA on. T
 
 XOA uses HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XenServer supports hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
 
+
+## Recover XOA Web-UI login password
+
+If you have lost your password to log in to the XOA webpage, you can reset it. From the XOA CLI (for login/access info for the CLI, [see here](xoa.md#first-console-connection)), use the following command and insert the email/account you wish to recover:  
+
+`xo-server-recover-account youremail@here.com`
+
+It will prompt you to set a new password. If you provide an email here that does not exist in XOA yet, it will create a new account using it, with admin permissions - you can use that new account to log in as well.
+
 ## Empty page after login
 
 This happens when your antivirus or firewall is blocking the websocket protocol. This is what we use to communicate between `xo-server` and `xo-web` (see the [architecture page](architecture.md)).
@@ -119,7 +128,7 @@ $ openssl req -x509 -newkey rsa:2048 -keyout server.key -out server.crt -nodes -
 $ systemctl restart xo-server.service
 ```
 
-## XO configuration
+## XO Configuration
 
 The system logs are visible by using this command:
 
