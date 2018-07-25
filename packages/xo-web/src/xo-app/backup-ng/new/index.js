@@ -231,11 +231,13 @@ export default [
 
             if (
               newSchedule.cron !== oldSchedule.cron ||
+              newSchedule.name !== oldSchedule.name ||
               newSchedule.timezone !== oldSchedule.timezone
             ) {
               return editSchedule({
                 id,
                 cron: newSchedule.cron,
+                name: newSchedule.name,
                 timezone: newSchedule.timezone,
               })
             }
@@ -249,6 +251,7 @@ export default [
             if (props.schedules[tmpId] === undefined) {
               const { id } = await createSchedule(props.job.id, {
                 cron: schedule.cron,
+                name: schedule.name,
                 timezone: schedule.timezone,
               })
 
@@ -417,8 +420,16 @@ export default [
       },
       saveSchedule: (
         _,
-        { cron, timezone, exportRetention, copyRetention, snapshotRetention }
+        {
+          copyRetention,
+          cron,
+          exportRetention,
+          name,
+          snapshotRetention,
+          timezone,
+        }
       ) => async (state, props) => {
+        name = name !== undefined && name.trim() === '' ? undefined : name
         if (state.editionMode === 'creation') {
           const id = generateRandomId()
           return {
@@ -427,8 +438,9 @@ export default [
             schedules: {
               ...state.schedules,
               [id]: {
-                id,
                 cron,
+                id,
+                name,
                 timezone,
               },
             },
@@ -450,6 +462,7 @@ export default [
         schedules[id] = {
           ...schedules[id],
           cron,
+          name,
           timezone,
         }
         settings[id] = {
