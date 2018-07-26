@@ -119,7 +119,7 @@ const COLUMNS_NFS_REMOTE = [
           placeholder={formatMessage(messages.remoteNfsPlaceHolderPath)}
           value={remote.path}
         />{' '}
-        {remote.invalid && (
+        {remote.invalidUrl && (
           <ActionButton
             btnStyle='danger'
             handler={fixRemoteUrl}

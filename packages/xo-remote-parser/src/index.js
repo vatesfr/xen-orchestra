@@ -20,12 +20,12 @@ export const parse = string => {
   } else if (type === 'nfs') {
     object.type = 'nfs'
     let host, port, path
-    // some users have a remote with invalid URL which was working before merging the PR https://github.com/vatesfr/xen-orchestra/issues/2299
+    // Some users have a remote with a colon in the URL, which breaks the parsing since this commit: https://github.com/vatesfr/xen-orchestra/commit/fb1bf6a1e748b457f2d2b89ba02fa104554c03df
     try {
       ;[, host, port, path] = NFS_RE.exec(rest)
     } catch (err) {
       ;[host, path] = rest.split(':')
-      object.invalid = true
+      object.invalidUrl = true
     }
     object.host = host
     object.port = port
