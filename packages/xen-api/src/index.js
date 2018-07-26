@@ -6,6 +6,7 @@ import httpRequest from 'http-request-plus'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
 import { fibonacci } from 'iterable-backoff'
+import { PassThrough, Writable } from 'stream'
 import {
   filter,
   forEach,
@@ -33,6 +34,90 @@ import {
 import autoTransport from './transports/auto'
 
 const debug = createDebug('xen-api')
+
+// ===================================================================
+// XS 7.5 export bug workaround
+
+function Queue () {
+  this._s1 = [] // stack to push to
+  this._s2 = [] // stack to pop from
+}
+
+Queue.prototype.push = function (value) {
+  this._s1.push(value)
+}
+
+Queue.prototype.pop = function () {
+  let s2 = this._s2
+  if (s2.length === 0) {
+    const s1 = this._s1
+    if (s1.length === 0) {
+      return
+    }
+    this._s1 = s2
+    s2 = this._s2 = s1.reverse()
+  }
+  return s2.pop()
+}
+
+const makeXs75WorkAround = stream => {
+  const cache = new Queue()
+  let canContinue = true
+  let finished = false
+
+  const drain = () => {
+    const next = cache.pop()
+    if (next === undefined) {
+      if (finished) {
+        stream.end()
+      } else {
+        canContinue = true
+      }
+      return
+    }
+    const { chunk, encoding, callback, timeout } = next
+    const canDrain = stream.write(chunk, encoding)
+    if (!timeout._called) {
+      clearTimeout(timeout)
+      callback()
+    }
+    if (canDrain) {
+      drain()
+    }
+  }
+
+  stream.on('drain', drain)
+
+  const cacheStream = new Writable({
+    final (callback) {
+      callback()
+      if (canContinue) {
+        stream.end()
+      } else {
+        // We need to empty the queue before calling stream.end
+        finished = true
+      }
+    },
+    write (chunk, encoding, callback) {
+      if (canContinue) {
+        canContinue = stream.write(chunk, encoding)
+        callback()
+      } else {
+        // wait AMAP without breaking the export
+        cache.push({
+          chunk,
+          encoding,
+          callback,
+          timeout: setTimeout(callback, 1e2),
+        })
+      }
+    },
+  })
+
+  cacheStream.readAll = stream.readAll
+
+  return cacheStream
+}
 
 // ===================================================================
 
@@ -515,7 +600,12 @@ export class Xapi extends EventEmitter {
             query,
             rejectUnauthorized: !this._allowUnauthorized,
           }
-        )
+        ).then(exportStream => {
+          const stream = new PassThrough()
+          exportStream.pipe(makeXs75WorkAround(stream))
+          stream.readAll = exportStream.readAll
+          return stream
+        })
 
         if (taskResult !== undefined) {
           promise = promise.then(response => {
