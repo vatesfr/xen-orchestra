@@ -1,6 +1,6 @@
 {
   "name": "xo-server-backup-reports",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "license": "AGPL-3.0",
   "description": "Backup reports plugin for XO-Server",
   "keywords": [
