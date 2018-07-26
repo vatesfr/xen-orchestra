@@ -11,6 +11,7 @@
 - [Remotes] Ability to change the type of a remote [#2423](https://github.com/vatesfr/xen-orchestra/issues/2423) (PR [#3207](https://github.com/vatesfr/xen-orchestra/pull/3207))
 - [Backup NG new] Ability to set a job's timeout [#2978](https://github.com/vatesfr/xen-orchestra/issues/2978) (PR [#3222](https://github.com/vatesfr/xen-orchestra/pull/3222))
 - [Remotes] Ability to edit/delete a remote with an invalid URL [#3182](https://github.com/vatesfr/xen-orchestra/issues/3182) (PR [#3226](https://github.com/vatesfr/xen-orchestra/pull/3226))
+- [Backup NG logs] Prevent user from deleting logs to help resolving issues [#3153](https://github.com/vatesfr/xen-orchestra/issues/3153) (PR [#3235](https://github.com/vatesfr/xen-orchestra/pull/3235))
 
 ### Bug fixes
 

@@ -14,11 +14,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import { keyBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { get } from 'xo-defined'
-import {
-  deleteJobsLogs,
-  subscribeBackupNgJobs,
-  subscribeBackupNgLogs,
-} from 'xo'
+import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
 
@@ -104,6 +100,7 @@ const LOG_COLUMNS = [
       const { className, label } = STATUS_LABELS[log.status]
       return <span className={`tag tag-${className}`}>{_(label)}</span>
     },
+    sortCriteria: 'status',
   },
 ]
 
@@ -144,14 +141,6 @@ const LOG_INDIVIDUAL_ACTIONS = [
   },
 ]
 
-const LOG_ACTIONS = [
-  {
-    handler: deleteJobsLogs,
-    icon: 'delete',
-    label: _('remove'),
-  },
-]
-
 const LOG_FILTERS = {
   jobFailed: 'status: failure',
   jobInterrupted: 'status: interrupted',
@@ -172,7 +161,6 @@ export default [
       </CardHeader>
       <CardBlock>
         <NoObjects
-          actions={LOG_ACTIONS}
           collection={logs}
           columns={LOG_COLUMNS}
           component={SortedTable}
