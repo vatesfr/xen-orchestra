@@ -126,7 +126,10 @@ const COLUMNS_NFS_REMOTE = [
             handlerParam={remote}
             icon='alarm'
             size='small'
-            tooltip={_('remoteErrorMessage', { url: remote.url })}
+            tooltip={_('remoteErrorMessage', {
+              url: remote.url,
+              newUrl: format(remote),
+            })}
           />
         )}
       </span>

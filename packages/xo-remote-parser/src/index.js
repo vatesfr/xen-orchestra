@@ -20,12 +20,12 @@ export const parse = string => {
   } else if (type === 'nfs') {
     object.type = 'nfs'
     let host, port, path
+    // some users have a remote with invalid URL which was working before merging the PR https://github.com/vatesfr/xen-orchestra/issues/2299
     try {
       ;[, host, port, path] = NFS_RE.exec(rest)
     } catch (err) {
       ;[host, path] = rest.split(':')
       object.invalid = true
-      console.error('Invalid remote URL:', string, '\n', err)
     }
     object.host = host
     object.port = port

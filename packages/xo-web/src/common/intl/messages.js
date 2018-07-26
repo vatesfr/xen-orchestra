@@ -1296,7 +1296,7 @@ const messages = {
   remoteEnabled: 'Enabled',
   remoteError: 'Error',
   remoteErrorMessage:
-    'This remote has an invalid URL ({url}). Please click on this button to keep this URL params or edit them!',
+    'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.',
   noBackup: 'No backup available',
   backupVmNameColumn: 'VM Name',
   backupVmDescriptionColumn: 'VM Description',
