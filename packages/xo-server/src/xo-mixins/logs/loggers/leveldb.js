@@ -1,4 +1,5 @@
 import highland from 'highland'
+import { ignoreErrors } from 'promise-toolbox'
 
 import AbstractLogger from './abstract'
 
@@ -24,7 +25,7 @@ export default class LevelDbLogger extends AbstractLogger {
     this._namespace = namespace
   }
 
-  _add (level, message, data) {
+  _add (level, message, data, sync) {
     const time = Date.now()
 
     const log = {
@@ -36,7 +37,11 @@ export default class LevelDbLogger extends AbstractLogger {
     }
 
     const key = generateUniqueKey(time)
-    this._db.putSync(key, log)
+    const promise = this._db.put(key, log)
+    if (sync) {
+      return promise.then(() => key)
+    }
+    ;promise::ignoreErrors()
     return key
   }
 
