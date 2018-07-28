@@ -38,7 +38,7 @@ XO needs the following packages to be installed. Redis is used as a database by 
 For example, on Debian:
 
 ```
-apt-get install build-essential redis-server libpng-dev git python-minimal
+apt-get install build-essential redis-server libpng-dev git python-minimal libvhdi-utils lvm2
 ```
 
 ## Fetching the Code
