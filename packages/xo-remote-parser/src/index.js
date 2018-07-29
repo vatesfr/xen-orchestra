@@ -19,7 +19,14 @@ export const parse = string => {
     object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
   } else if (type === 'nfs') {
     object.type = 'nfs'
-    const [, host, port, path] = NFS_RE.exec(rest)
+    let host, port, path
+    // Some users have a remote with a colon in the URL, which breaks the parsing since this commit: https://github.com/vatesfr/xen-orchestra/commit/fb1bf6a1e748b457f2d2b89ba02fa104554c03df
+    try {
+      ;[, host, port, path] = NFS_RE.exec(rest)
+    } catch (err) {
+      ;[host, path] = rest.split(':')
+      object.invalidUrl = true
+    }
     object.host = host
     object.port = port
     object.path = `/${trimStart(path, '/')}` // takes care of a missing leading slash coming from previous version format

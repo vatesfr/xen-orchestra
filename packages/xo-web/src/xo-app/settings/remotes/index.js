@@ -1,4 +1,5 @@
 import _, { messages } from 'intl'
+import ActionButton from 'action-button'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
@@ -71,6 +72,7 @@ const COLUMN_STATE = {
   name: _('remoteState'),
 }
 
+const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
 const COLUMNS_LOCAL_REMOTE = [
   COLUMN_NAME,
   {
@@ -116,7 +118,20 @@ const COLUMNS_NFS_REMOTE = [
           onChange={_changeUrlElement}
           placeholder={formatMessage(messages.remoteNfsPlaceHolderPath)}
           value={remote.path}
-        />
+        />{' '}
+        {remote.invalidUrl && (
+          <ActionButton
+            btnStyle='danger'
+            handler={fixRemoteUrl}
+            handlerParam={remote}
+            icon='alarm'
+            size='small'
+            tooltip={_('remoteErrorMessage', {
+              url: remote.url,
+              newUrl: format(remote),
+            })}
+          />
+        )}
       </span>
     ),
 
@@ -247,16 +262,10 @@ export default [
       subscribeRemotes(remotes => {
         cb(
           groupBy(
-            map(remotes, remote => {
-              try {
-                return {
-                  ...remote,
-                  ...parse(remote.url),
-                }
-              } catch (err) {
-                console.error('Remote parsing error:', remote, '\n', err)
-              }
-            }).filter(r => r !== undefined),
+            map(remotes, remote => ({
+              ...parse(remote.url),
+              ...remote,
+            })),
             'type'
           )
         )

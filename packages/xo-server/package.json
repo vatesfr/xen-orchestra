@@ -1,6 +1,6 @@
 {
   "name": "xo-server",
-  "version": "5.22.0",
+  "version": "5.23.0",
   "license": "AGPL-3.0",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -113,12 +113,12 @@
     "value-matcher": "^0.2.0",
     "vhd-lib": "^0.3.0",
     "ws": "^5.0.0",
-    "xen-api": "^0.16.11",
+    "xen-api": "^0.16.12",
     "xml2js": "^0.4.19",
     "xo-acl-resolver": "^0.2.4",
     "xo-collection": "^0.4.1",
     "xo-common": "^0.1.1",
-    "xo-remote-parser": "^0.4.0",
+    "xo-remote-parser": "^0.5.0",
     "xo-vmdk-to-vhd": "^0.1.3",
     "yazl": "^2.4.3"
   },

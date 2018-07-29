@@ -705,14 +705,11 @@ export const SelectRemote = makeSubscriptionSelect(
   subscriber => {
     const unsubscribeRemotes = subscribeRemotes(remotes => {
       const xoObjects = groupBy(
-        map(sortBy(remotes, 'name'), remote => {
-          try {
-            remote = { ...remote, ...parseRemote(remote.url) }
-            return { id: remote.id, type: 'remote', value: remote }
-          } catch (err) {
-            console.error('Remote parsing error:', remote, '\n', err)
-          }
-        }).filter(r => r !== undefined),
+        map(sortBy(remotes, 'name'), remote => ({
+          id: remote.id,
+          type: 'remote',
+          value: { ...remote, ...parseRemote(remote.url) },
+        })).filter(r => !r.value.invalid),
         remote => remote.value.type
       )
 

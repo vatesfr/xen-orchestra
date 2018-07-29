@@ -4,12 +4,25 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+- xo-server v5.24.0
+- xo-web v5.24.0
+
+## **5.23.0** (2018-07-26)
+
+### Enhancements
+
 - Export VDI content [#2432](https://github.com/vatesfr/xen-orchestra/issues/2432) (PR [#3194](https://github.com/vatesfr/xen-orchestra/pull/3194))
 - Search syntax support wildcard (`*`) and regular expressions [#3190](https://github.com/vatesfr/xen-orchestra/issues/3190) (PRs [#3198](https://github.com/vatesfr/xen-orchestra/pull/3198) & [#3199](https://github.com/vatesfr/xen-orchestra/pull/3199))
 - Import VDI content [#2432](https://github.com/vatesfr/xen-orchestra/issues/2432) (PR [#3216](https://github.com/vatesfr/xen-orchestra/pull/3216))
 - [Backup NG form] Ability to edit a schedule's name [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) [#3071](https://github.com/vatesfr/xen-orchestra/issues/3071) (PR [#3143](https://github.com/vatesfr/xen-orchestra/pull/3143))
 - [Remotes] Ability to change the type of a remote [#2423](https://github.com/vatesfr/xen-orchestra/issues/2423) (PR [#3207](https://github.com/vatesfr/xen-orchestra/pull/3207))
 - [Backup NG new] Ability to set a job's timeout [#2978](https://github.com/vatesfr/xen-orchestra/issues/2978) (PR [#3222](https://github.com/vatesfr/xen-orchestra/pull/3222))
+- [Remotes] Ability to edit/delete a remote with an invalid URL [#3182](https://github.com/vatesfr/xen-orchestra/issues/3182) (PR [#3226](https://github.com/vatesfr/xen-orchestra/pull/3226))
+- [Backup NG logs] Prevent user from deleting logs to help resolving issues [#3153](https://github.com/vatesfr/xen-orchestra/issues/3153) (PR [#3235](https://github.com/vatesfr/xen-orchestra/pull/3235))
 
 ### Bug fixes
 
@@ -17,9 +30,12 @@
 - [Backup NG] Correctly migrate report setting from legacy jobs [#3180](https://github.com/vatesfr/xen-orchestra/issues/3180) (PR [#3206](https://github.com/vatesfr/xen-orchestra/pull/3206))
 - [Backup NG] remove incomplete XVA files [#3159](https://github.com/vatesfr/xen-orchestra/issues/3159) (PR [#3215](https://github.com/vatesfr/xen-orchestra/pull/3215))
 - [Backup NG form] Ability to edit a schedule's state [#3223](https://github.com/vatesfr/xen-orchestra/issues/3223) (PR [#3228](https://github.com/vatesfr/xen-orchestra/pull/3228))
+- Workaround to prevent XenServer 7.5 VDI\_IO\_ERROR during backup [#3205](https://github.com/vatesfr/xen-orchestra/issues/3205) (PR [#3234](https://github.com/vatesfr/xen-orchestra/pull/3234))
 
 ### Released packages
 
+- xen-api v0.16.12
+- xo-remote-parser v0.5.0
 - complex-matcher v0.4.0
 - xo-server-backup-reports v0.12.3
 - xo-server v5.23.0
