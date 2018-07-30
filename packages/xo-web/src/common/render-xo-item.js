@@ -78,11 +78,13 @@ VmItem.propTypes = XO_ITEM_PROP_TYPES
 export const SrItem = [
   connectStore(() => {
     const getSr = createGetObject((_, props, useResourceSet) => props.id)
+    const getContainer = createGetObject((_, props, useResourceSet) => {
+      const sr = getSr(_, props, useResourceSet)
+      return sr && sr.$container
+    })
     return (state, props) => ({
       sr: getSr(state, props, props.useResourceSet),
-      container: createGetObject(
-        createSelector(getSr, sr => get(() => sr.$container))
-      ),
+      container: getContainer(state, props, props.useResourceSet),
     })
   }),
   ({ sr, container, ...props }) => (
