@@ -77,13 +77,13 @@ VmItem.propTypes = XO_ITEM_PROP_TYPES
 
 export const SrItem = [
   connectStore(() => {
-    const getSr = createGetObject()
-    return {
-      sr: getSr,
+    const getSr = createGetObject((_, props, useResourceSet) => props.id)
+    return (state, props) => ({
+      sr: getSr(state, props, props.useResourceSet),
       container: createGetObject(
         createSelector(getSr, sr => get(() => sr.$container))
       ),
-    }
+    })
   }),
   ({ sr, container, ...props }) => (
     <XoItem item={sr} to={`/srs/${get(() => sr.id)}`} {...props}>
@@ -236,7 +236,9 @@ const xoItemToRender = {
   network: network => <PoolObjectItem object={network} />,
 
   // SR.
-  SR: ({ id }) => <SrItem id={id} />,
+  SR: ({ id }, useResourceSet) => (
+    <SrItem id={id} useResourceSet={useResourceSet} />
+  ),
 
   // VM.
   VM: ({ id }) => <VmItem id={id} />,

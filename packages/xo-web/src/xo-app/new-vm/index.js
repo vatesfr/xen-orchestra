@@ -549,8 +549,9 @@ export default class NewVm extends BaseComponent {
   _getSrPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => disk =>
-      (isInResourceSet(disk.id) || isInPool(disk)) &&
+    () => this.props.pool === undefined,
+    (isInPool, isInResourceSet, self) => disk =>
+      (self ? isInResourceSet(disk.id) : isInPool(disk)) &&
       disk.content_type !== 'iso' &&
       disk.size > 0
   )
