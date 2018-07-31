@@ -287,7 +287,7 @@ export const createGetObject = (idSelector = _getId) => (
     return
   }
 
-  if (useResourceSet) {
+  if (useResourceSet || props.resourceSet) {
     return object
   }
 

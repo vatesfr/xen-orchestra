@@ -229,7 +229,7 @@ class GenericSelect extends React.Component {
           : undefined
       }
     >
-      {renderXoItem(option.xoItem, this.props.useResourceSet)}
+      {renderXoItem(option.xoItem, this.props.resourceSet)}
     </span>
   )
 
@@ -805,10 +805,9 @@ export class SelectResourceSetsSr extends React.PureComponent {
   render () {
     return (
       <GenericSelect
-        {...this.props}
-        placeholder={_('selectResourceSetsSr')}
         ref='select'
-        useResourceSet
+        placeholder={_('selectResourceSetsSr')}
+        {...this.props}
         xoObjects={this._getSrs()}
       />
     )
