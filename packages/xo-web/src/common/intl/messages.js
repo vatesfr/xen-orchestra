@@ -1071,6 +1071,8 @@ const messages = {
   guestOsLabel: 'Guest OS',
   miscLabel: 'Misc',
   virtualizationMode: 'Virtualization mode',
+  cpuMaskLabel: 'CPU mask',
+  selectCpuMask: 'Select core(s)…',
   cpuWeightLabel: 'CPU weight',
   defaultCpuWeight: 'Default ({value, number})',
   cpuCapLabel: 'CPU cap',

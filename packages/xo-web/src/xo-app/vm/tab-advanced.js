@@ -14,7 +14,13 @@ import { error } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
-import { Number, Size, Text, XoSelect } from 'editable'
+import {
+  Number,
+  Select as EditableSelect,
+  Size,
+  Text,
+  XoSelect,
+} from 'editable'
 import { Select, Toggle } from 'form'
 import {
   SelectResourceSet,
@@ -40,6 +46,7 @@ import {
   isEmpty,
   keyBy,
   map,
+  times,
   some,
   uniq,
 } from 'lodash'
@@ -482,6 +489,31 @@ export default class TabAdvanced extends Component {
     getVmsHaValues().then(vmsHaValues => this.setState({ vmsHaValues }))
   }
 
+  _getCpuMask = createSelector(
+    () => this.props.vm.cpuMask,
+    cpuMask => {
+      if (cpuMask === undefined) {
+        return
+      }
+      return cpuMask.map(number => ({
+        value: number,
+        label: `Core ${number} `,
+      }))
+    }
+  )
+
+  _getCpuMaskOptions = createSelector(
+    () => this.props.vm,
+    vm =>
+      times(vm.CPUs.max, number => ({
+        value: number,
+        label: `Core ${number} `,
+      }))
+  )
+
+  _onChangeCpuMask = cpuMask =>
+    editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
+
   _onNicTypeChange = value =>
     editVm(this.props.vm, { nicType: value === '' ? null : value })
 
@@ -641,6 +673,20 @@ export default class TabAdvanced extends Component {
                       <Text
                         value={vm.PV_args}
                         onChange={value => editVm(vm, { PV_args: value })}
+                      />
+                    </td>
+                  </tr>
+                )}
+                {isVmRunning(vm) && (
+                  <tr>
+                    <th>{_('cpuMaskLabel')}</th>
+                    <td>
+                      <EditableSelect
+                        multi
+                        onChange={this._onChangeCpuMask}
+                        options={this._getCpuMaskOptions()}
+                        placeholder={_('selectCpuMask')}
+                        value={this._getCpuMask()}
                       />
                     </td>
                   </tr>
