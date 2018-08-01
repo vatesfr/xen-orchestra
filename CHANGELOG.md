@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- [Pools] GPU groups not filtered by pool [#3176](https://github.com/vatesfr/xen-orchestra/issues/3176) (PR [#3253](https://github.com/vatesfr/xen-orchestra/pull/3253))
+
 ### Released packages
 
 - xo-server v5.24.0
