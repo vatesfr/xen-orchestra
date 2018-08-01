@@ -18,7 +18,7 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from '@julien-f/freactal'
-import { Number, Toggle } from 'form'
+import { Number } from 'form'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   cloneDeep,
@@ -318,10 +318,6 @@ export default [
           },
         },
       }),
-      toggleSmartMode: (_, smartMode) => state => ({
-        ...state,
-        smartMode,
-      }),
       setName: (_, { target: { value } }) => state => ({
         ...state,
         name: value,
@@ -597,14 +593,16 @@ export default [
               <Card>
                 <CardHeader>
                   {_('backupName')}*
-                  <Tooltip content={_('smartBackupModeTitle')}>
-                    <Toggle
-                      className='pull-right'
-                      onChange={effects.toggleSmartMode}
-                      value={state.smartMode}
-                      iconSize={1}
-                    />
-                  </Tooltip>
+                  <ActionButton
+                    active={state.smartMode}
+                    className='pull-right'
+                    data-mode='smartMode'
+                    handler={effects.toggleMode}
+                    icon={state.smartMode ? 'toggle-on' : 'toggle-off'}
+                    size='small'
+                  >
+                    {_('smartBackupModeTitle')}
+                  </ActionButton>
                 </CardHeader>
                 <CardBlock>
                   <FormGroup>
