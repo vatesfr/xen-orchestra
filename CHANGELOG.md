@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+- [Backup NG form] Make the smart mode's toggle more visible [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3255](https://github.com/vatesfr/xen-orchestra/pull/3255))
+
 ### Bug fixes
 
 ### Released packages
