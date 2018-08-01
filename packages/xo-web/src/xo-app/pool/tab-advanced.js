@@ -52,7 +52,9 @@ class PoolMaster extends Component {
   hosts: createGetObjectsOfType('host')
     .filter((_, { pool }) => ({ $pool: pool.id }))
     .sort(),
-  gpuGroups: createGetObjectsOfType('gpuGroup'),
+  gpuGroups: createGetObjectsOfType('gpuGroup')
+    .filter((_, { pool }) => ({ $pool: pool.id }))
+    .sort(),
 })
 export default class TabAdvanced extends Component {
   _setRemoteSyslogHosts = () =>
