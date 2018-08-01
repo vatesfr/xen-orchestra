@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+- Move the copy clipboard of the VM's UUID to the header [#3221](https://github.com/vatesfr/xen-orchestra/issues/3221) (PR [#3248](https://github.com/vatesfr/xen-orchestra/pull/3248))
+
 ### Bug fixes
 
 ### Released packages
