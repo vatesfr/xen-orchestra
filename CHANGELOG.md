@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+- [Remotes] Make SMB subfolder field optional [#3249](https://github.com/vatesfr/xen-orchestra/issues/3249) (PR [#3250](https://github.com/vatesfr/xen-orchestra/pull/3250))
+
 ### Bug fixes
 
 ### Released packages
