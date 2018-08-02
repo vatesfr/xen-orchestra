@@ -8,29 +8,20 @@ import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
+import { Card, CardBlock, CardHeader } from 'card'
+import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
+import { Container, Col, Row } from 'grid'
+import { flatten, includes, isEmpty, keyBy, map, mapValues, some } from 'lodash'
+import { injectState, provideState } from '@julien-f/freactal'
+import { Map } from 'immutable'
+import { Number } from 'form'
+import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
   generateRandomId,
   resolveId,
   resolveIds,
 } from 'utils'
-import { Card, CardBlock, CardHeader } from 'card'
-import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
-import { Container, Col, Row } from 'grid'
-import { injectState, provideState } from '@julien-f/freactal'
-import { Number } from 'form'
-import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
-import {
-  cloneDeep,
-  flatten,
-  forEach,
-  includes,
-  isEmpty,
-  keyBy,
-  map,
-  mapValues,
-  some,
-} from 'lodash'
 import {
   createBackupNgJob,
   createSchedule,
@@ -56,35 +47,23 @@ import {
 
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
-const normalizeCopyRetention = settings => {
-  forEach(settings, schedule => {
-    if (schedule.copyRetention === undefined) {
-      schedule.copyRetention = schedule.exportRetention
-    }
-  })
-}
-
-const normalizeSettings = ({
-  settings,
-  exportMode,
-  copyMode,
-  snapshotMode,
-}) => {
-  forEach(settings, setting => {
-    if (!exportMode) {
-      setting.exportRetention = undefined
-    }
-
-    if (!copyMode) {
-      setting.copyRetention = undefined
-    }
-
-    if (!snapshotMode) {
-      setting.snapshotRetention = undefined
-    }
-  })
-  return settings
-}
+const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
+  settings.map(
+    setting =>
+      defined(
+        setting.copyRetention,
+        setting.exportRetention,
+        setting.snapshotRetention
+      ) !== undefined
+        ? {
+            copyRetention: copyMode ? setting.copyRetention : undefined,
+            exportRetention: exportMode ? setting.exportRetention : undefined,
+            snapshotRetention: snapshotMode
+              ? setting.snapshotRetention
+              : undefined,
+          }
+        : setting
+  )
 
 const constructPattern = values =>
   values.length === 1
@@ -127,14 +106,13 @@ const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
 const createDoesRetentionExist = name => {
   const predicate = setting => setting[name] > 0
-  return ({ settings }) => some(settings, predicate)
+  return ({ propSettings, settings = propSettings }) => settings.some(predicate)
 }
 
 const getInitialState = () => ({
   $pool: {},
   backupMode: false,
   compression: true,
-  concurrency: undefined,
   crMode: false,
   deltaMode: false,
   drMode: false,
@@ -144,19 +122,16 @@ const getInitialState = () => ({
   inputReportWhenId: generateRandomId(),
   inputTimeoutId: generateRandomId(),
   name: '',
-  offlineSnapshot: undefined,
   paramsUpdated: false,
   powerState: 'All',
   remotes: [],
-  reportWhen: undefined,
   schedules: {},
-  settings: {},
+  settings: undefined,
   showErrors: false,
   smartMode: false,
   snapshotMode: false,
   srs: [],
   tags: {},
-  timeout: undefined,
   tmpSchedule: {},
   vms: [],
 })
@@ -192,20 +167,12 @@ export default [
             state.schedules,
             ({ id, ...schedule }) => schedule
           ),
-          settings: {
-            ...normalizeSettings({
-              settings: cloneDeep(state.settings),
-              exportMode: state.exportMode,
-              copyMode: state.copyMode,
-              snapshotMode: state.snapshotMode,
-            }),
-            '': {
-              concurrency: state.concurrency,
-              offlineSnapshot: state.offlineSnapshot,
-              reportWhen: state.reportWhen,
-              timeout: state.timeout && state.timeout * 1e3,
-            },
-          },
+          settings: normalizeSettings({
+            settings: state.settings,
+            exportMode: state.exportMode,
+            copyMode: state.copyMode,
+            snapshotMode: state.snapshotMode,
+          }).toObject(),
           remotes:
             state.deltaMode || state.backupMode
               ? constructPattern(state.remotes)
@@ -253,7 +220,7 @@ export default [
           })
         )
 
-        const settings = cloneDeep(state.settings)
+        let settings = state.settings
         await Promise.all(
           map(state.schedules, async schedule => {
             const tmpId = schedule.id
@@ -265,29 +232,13 @@ export default [
                 enabled: schedule.enabled,
               })
 
-              settings[id] = settings[tmpId]
-              delete settings[tmpId]
+              settings = settings.withMutations(settings => {
+                settings.set(id, settings.get(tmpId))
+                settings.delete(tmpId)
+              })
             }
           })
         )
-
-        const globalSettings = props.job.settings[''] || {}
-        const {
-          concurrency = globalSettings.concurrency,
-          offlineSnapshot = globalSettings.offlineSnapshot,
-          reportWhen = globalSettings.reportWhen,
-          timeout,
-        } = state
-        settings[''] = {
-          ...globalSettings,
-          reportWhen,
-          concurrency: state.concurrency === '' ? undefined : concurrency,
-          offlineSnapshot,
-          timeout:
-            timeout === ''
-              ? undefined
-              : timeout * 1e3 || globalSettings.timeout,
-        }
 
         await editBackupNgJob({
           id: props.job.id,
@@ -295,11 +246,11 @@ export default [
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression ? 'native' : '',
           settings: normalizeSettings({
-            settings,
+            settings: settings || state.propSettings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
             snapshotMode: state.snapshotMode,
-          }),
+          }).toObject(),
           remotes:
             state.deltaMode || state.backupMode
               ? constructPattern(state.remotes)
@@ -366,14 +317,6 @@ export default [
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
-        const settings = cloneDeep(job.settings)
-        delete settings['']
-        const drMode = job.mode === 'full' && !isEmpty(srs)
-        const crMode = job.mode === 'delta' && !isEmpty(srs)
-
-        if (drMode || crMode) {
-          normalizeCopyRetention(settings)
-        }
 
         return {
           ...state,
@@ -387,11 +330,10 @@ export default [
           ),
           backupMode: job.mode === 'full' && !isEmpty(remotes),
           deltaMode: job.mode === 'delta' && !isEmpty(remotes),
-          drMode,
-          crMode,
+          drMode: job.mode === 'full' && !isEmpty(srs),
+          crMode: job.mode === 'delta' && !isEmpty(srs),
           remotes,
           srs,
-          settings,
           schedules,
           ...destructVmsPattern(job.vms),
         }
@@ -412,38 +354,33 @@ export default [
           ...schedule,
         },
       }),
-      deleteSchedule: (_, schedule) => state => {
+      deleteSchedule: (_, schedule) => ({
+        schedules: oldSchedules,
+        propSettings,
+        settings = propSettings,
+      }) => {
         const id = resolveId(schedule)
-        const schedules = { ...state.schedules }
-        const settings = { ...state.settings }
-
+        const schedules = { ...oldSchedules }
         delete schedules[id]
-        delete settings[id]
         return {
-          ...state,
           schedules,
-          settings,
+          settings: settings.delete(id),
         }
       },
-      saveSchedule: (
-        _,
-        {
-          copyRetention,
-          cron,
-          exportRetention,
-          name,
-          snapshotRetention,
-          timezone,
-        }
-      ) => async (state, props) => {
+      saveSchedule: (_, { cron, timezone, name, ...setting }) => ({
+        editionMode,
+        propSettings,
+        schedules: oldSchedules,
+        settings = propSettings,
+        tmpSchedule,
+      }) => {
         name = name !== undefined && name.trim() === '' ? undefined : name
-        if (state.editionMode === 'creation') {
+        if (editionMode === 'creation') {
           const id = generateRandomId()
           return {
-            ...state,
             editionMode: undefined,
             schedules: {
-              ...state.schedules,
+              ...oldSchedules,
               [id]: {
                 cron,
                 id,
@@ -451,20 +388,12 @@ export default [
                 timezone,
               },
             },
-            settings: {
-              ...state.settings,
-              [id]: {
-                exportRetention,
-                copyRetention,
-                snapshotRetention,
-              },
-            },
+            settings: settings.set(id, setting),
           }
         }
 
-        const id = state.tmpSchedule.id
-        const schedules = { ...state.schedules }
-        const settings = { ...state.settings }
+        const id = tmpSchedule.id
+        const schedules = { ...oldSchedules }
 
         schedules[id] = {
           ...schedules[id],
@@ -472,18 +401,11 @@ export default [
           name,
           timezone,
         }
-        settings[id] = {
-          ...settings[id],
-          exportRetention,
-          copyRetention,
-          snapshotRetention,
-        }
 
         return {
-          ...state,
           editionMode: undefined,
           schedules,
-          settings,
+          settings: settings.set(id, setting),
           tmpSchedule: {},
         }
       },
@@ -526,16 +448,42 @@ export default [
 
         return getInitialState()
       },
-      setReportWhen: (_, { value }) => () => ({
-        reportWhen: value,
+      setGlobalSettings: (_, { name, value }) => ({
+        propSettings,
+        settings = propSettings,
+      }) => ({
+        settings: settings.update('', setting => ({
+          ...setting,
+          [name]: value,
+        })),
       }),
-      setConcurrency: (_, concurrency) => (_, { job }) => ({
-        concurrency:
-          concurrency === undefined && job !== undefined ? '' : concurrency,
-      }),
-      setTimeout: (_, timeout) => (_, { job }) => ({
-        timeout: timeout === undefined && job !== undefined ? '' : timeout,
-      }),
+      setReportWhen: ({ setGlobalSettings }, { value }) => () => {
+        setGlobalSettings({
+          name: 'reportWhen',
+          value,
+        })
+      },
+      setConcurrency: ({ setGlobalSettings }, value) => () => {
+        setGlobalSettings({
+          name: 'concurrency',
+          value,
+        })
+      },
+      setTimeout: ({ setGlobalSettings }, value) => () => {
+        setGlobalSettings({
+          name: 'timeout',
+          value: value && value * 1e3,
+        })
+      },
+      setOfflineSnapshot: (
+        { setGlobalSettings },
+        { target: { checked: value } }
+      ) => () => {
+        setGlobalSettings({
+          name: 'offlineSnapshot',
+          value,
+        })
+      },
     },
     computed: {
       needUpdateParams: (state, { job, schedules }) =>
@@ -582,17 +530,14 @@ export default [
       }),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
+      propSettings: (_, { job }) => Map(get(() => job.settings)),
     },
   }),
   injectState,
   ({ state, effects, remotesById, job }) => {
-    const {
-      concurrency: jobConcurrency,
-      offlineSnapshot: jobOfflineSnapshot,
-      reportWhen: jobReportWhen = 'failure',
-      timeout: jobTimeout,
-    } =
-      get(() => job.settings['']) || {}
+    const { propSettings, settings = propSettings } = state
+    const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
+      settings.get('') || {}
 
     if (state.needUpdateParams) {
       effects.updateParams()
@@ -850,7 +795,7 @@ export default [
                       optionRenderer={getOptionRenderer}
                       options={REPORT_WHEN_FILTER_OPTIONS}
                       required
-                      value={state.reportWhen || jobReportWhen}
+                      value={reportWhen}
                       valueKey='value'
                     />
                   </FormGroup>
@@ -861,7 +806,7 @@ export default [
                     <Number
                       id={state.inputConcurrencyId}
                       onChange={effects.setConcurrency}
-                      value={defined(state.concurrency, jobConcurrency)}
+                      value={concurrency}
                     />
                   </FormGroup>
                   <FormGroup>
@@ -874,10 +819,7 @@ export default [
                     <Number
                       id={state.inputTimeoutId}
                       onChange={effects.setTimeout}
-                      value={defined(
-                        state.timeout,
-                        jobTimeout && jobTimeout / 1e3
-                      )}
+                      value={timeout && timeout / 1e3}
                     />
                   </FormGroup>
                   <FormGroup>
@@ -887,12 +829,8 @@ export default [
                         <Icon icon='info' />
                       </Tooltip>{' '}
                       <input
-                        checked={defined(
-                          state.offlineSnapshot,
-                          jobOfflineSnapshot
-                        )}
-                        name='offlineSnapshot'
-                        onChange={effects.setCheckboxValue}
+                        checked={offlineSnapshot}
+                        onChange={effects.setOfflineSnapshot}
                         type='checkbox'
                       />
                     </label>
