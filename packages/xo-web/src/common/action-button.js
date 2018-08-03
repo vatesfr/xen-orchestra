@@ -147,7 +147,7 @@ export default class ActionButton extends Component {
 
   render () {
     const {
-      props: { children, icon, pending, tooltip, ...props },
+      props: { children, icon, iconColor, pending, tooltip, ...props },
       state: { error, working },
     } = this
 
@@ -167,7 +167,7 @@ export default class ActionButton extends Component {
     const button = (
       <Button {...props}>
         <Icon
-          color={props.iconColor}
+          color={iconColor}
           fixedWidth
           icon={pending || working ? 'loading' : icon}
         />
