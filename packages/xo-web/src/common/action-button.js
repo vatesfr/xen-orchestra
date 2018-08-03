@@ -35,6 +35,8 @@ import { error as _error } from './notification'
   // XO icon to use for this button
   icon: propTypes.string.isRequired,
 
+  iconColor: propTypes.string,
+
   // whether the action of this action is already underway
   pending: propTypes.bool,
 
@@ -163,7 +165,11 @@ export default class ActionButton extends Component {
 
     const button = (
       <Button {...props}>
-        <Icon icon={pending || working ? 'loading' : icon} fixedWidth />
+        <Icon
+          icon={pending || working ? 'loading' : icon}
+          fixedWidth
+          color={props.iconColor}
+        />
         {children && ' '}
         {children}
       </Button>
