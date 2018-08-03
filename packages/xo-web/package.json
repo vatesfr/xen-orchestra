@@ -81,7 +81,7 @@
     "gulp-uglify": "^3.0.0",
     "gulp-watch": "^5.0.0",
     "human-format": "^0.10.0",
-    "immutable": "^3.8.2",
+    "immutable": "^4.0.0-rc.9",
     "index-modules": "^0.3.0",
     "is-ip": "^2.0.0",
     "jsonrpc-websocket-client": "^0.3.0",
