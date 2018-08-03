@@ -594,11 +594,11 @@ export default [
                 <CardHeader>
                   {_('backupName')}*
                   <ActionButton
-                    active={state.smartMode}
                     className='pull-right'
                     data-mode='smartMode'
                     handler={effects.toggleMode}
                     icon={state.smartMode ? 'toggle-on' : 'toggle-off'}
+                    iconColor={state.smartMode ? 'text-success' : undefined}
                     size='small'
                   >
                     {_('smartBackupModeTitle')}
