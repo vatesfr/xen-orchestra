@@ -35,6 +35,7 @@ import { error as _error } from './notification'
   // XO icon to use for this button
   icon: propTypes.string.isRequired,
 
+  // the color of the xo icon
   iconColor: propTypes.string,
 
   // whether the action of this action is already underway
