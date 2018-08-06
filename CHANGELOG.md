@@ -5,7 +5,7 @@
 ### Enhancements
 
 - [Remotes] Make SMB subfolder field optional [#3249](https://github.com/vatesfr/xen-orchestra/issues/3249) (PR [#3250](https://github.com/vatesfr/xen-orchestra/pull/3250))
-- [Backup NG form] Make the smart mode's toggle more visible [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3255](https://github.com/vatesfr/xen-orchestra/pull/3255))
+- [Backup NG form] Make the smart mode's toggle more visible [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3263](https://github.com/vatesfr/xen-orchestra/pull/3263))
 
 ### Bug fixes
 
