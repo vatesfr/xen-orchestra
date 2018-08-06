@@ -239,7 +239,6 @@ export default [
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderRemotePath
                   )}
-                  required
                   type='text'
                   value={path}
                 />
