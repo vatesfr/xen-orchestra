@@ -129,19 +129,21 @@ const getInitialState = () => ({
   $pool: {},
   backupMode: false,
   compression: true,
-  concurrency: 0,
+  concurrency: undefined,
   crMode: false,
   deltaMode: false,
   drMode: false,
   editionMode: undefined,
   formId: generateRandomId(),
+  inputConcurrencyId: generateRandomId(),
+  inputReportWhenId: generateRandomId(),
   inputTimeoutId: generateRandomId(),
   name: '',
-  offlineSnapshot: false,
+  offlineSnapshot: undefined,
   paramsUpdated: false,
   powerState: 'All',
   remotes: [],
-  reportWhen: 'failure',
+  reportWhen: undefined,
   schedules: {},
   settings: {},
   showErrors: false,
@@ -265,15 +267,21 @@ export default [
         )
 
         const globalSettings = props.job.settings['']
+        const {
+          concurrency = globalSettings.concurrency,
+          offlineSnapshot = globalSettings.offlineSnapshot,
+          reportWhen = globalSettings.reportWhen,
+          timeout,
+        } = state
         settings[''] = {
           ...globalSettings,
-          reportWhen: state.reportWhen,
-          concurrency: state.concurrency,
-          offlineSnapshot: state.offlineSnapshot,
+          reportWhen,
+          concurrency: state.concurrency === '' ? undefined : concurrency,
+          offlineSnapshot,
           timeout:
-            state.timeout === ''
+            timeout === ''
               ? undefined
-              : state.timeout * 1e3 || globalSettings.timeout,
+              : timeout * 1e3 || globalSettings.timeout,
         }
 
         await editBackupNgJob({
@@ -357,8 +365,6 @@ export default [
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
-        const { concurrency, reportWhen, offlineSnapshot } =
-          job.settings[''] || {}
         const settings = cloneDeep(job.settings)
         delete settings['']
         const drMode = job.mode === 'full' && !isEmpty(srs)
@@ -384,9 +390,6 @@ export default [
           crMode,
           remotes,
           srs,
-          reportWhen: reportWhen || 'failure',
-          concurrency: concurrency || 0,
-          offlineSnapshot,
           settings,
           schedules,
           ...destructVmsPattern(job.vms),
@@ -522,13 +525,12 @@ export default [
 
         return getInitialState()
       },
-      setReportWhen: (_, { value }) => state => ({
-        ...state,
+      setReportWhen: (_, { value }) => () => ({
         reportWhen: value,
       }),
-      setConcurrency: (_, concurrency) => state => ({
-        ...state,
-        concurrency,
+      setConcurrency: (_, concurrency) => (_, { job }) => ({
+        concurrency:
+          concurrency === undefined && job !== undefined ? '' : concurrency,
       }),
       setTimeout: (_, timeout) => (_, { job }) => ({
         timeout: timeout === undefined && job !== undefined ? '' : timeout,
@@ -583,7 +585,13 @@ export default [
   }),
   injectState,
   ({ state, effects, remotesById, job }) => {
-    const { timeout: jobTimeout } = get(() => job.settings['']) || {}
+    const {
+      concurrency: jobConcurrency,
+      offlineSnapshot: jobOfflineSnapshot,
+      reportWhen: jobReportWhen = 'failure',
+      timeout: jobTimeout,
+    } =
+      get(() => job.settings['']) || {}
 
     if (state.needUpdateParams) {
       effects.updateParams()
@@ -829,28 +837,28 @@ export default [
                 <CardHeader>{_('newBackupAdvancedSettings')}</CardHeader>
                 <CardBlock>
                   <FormGroup>
-                    <label>
+                    <label htmlFor={state.inputReportWhenId}>
                       <strong>{_('reportWhen')}</strong>
                     </label>
                     <Select
+                      id={state.inputReportWhenId}
                       labelKey='label'
                       onChange={effects.setReportWhen}
                       optionRenderer={getOptionRenderer}
                       options={REPORT_WHEN_FILTER_OPTIONS}
                       required
-                      value={state.reportWhen}
+                      value={state.reportWhen || jobReportWhen}
                       valueKey='value'
                     />
                   </FormGroup>
                   <FormGroup>
-                    <label>
+                    <label htmlFor={state.inputConcurrencyId}>
                       <strong>{_('concurrency')}</strong>
                     </label>
                     <Number
-                      min='0'
+                      id={state.inputConcurrencyId}
                       onChange={effects.setConcurrency}
-                      required
-                      value={state.concurrency}
+                      value={defined(state.concurrency, jobConcurrency)}
                     />
                   </FormGroup>
                   <FormGroup>
@@ -876,7 +884,10 @@ export default [
                         <Icon icon='info' />
                       </Tooltip>{' '}
                       <input
-                        checked={state.offlineSnapshot}
+                        checked={defined(
+                          state.offlineSnapshot,
+                          jobOfflineSnapshot
+                        )}
                         name='offlineSnapshot'
                         onChange={effects.setCheckboxValue}
                         type='checkbox'
