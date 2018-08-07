@@ -266,7 +266,7 @@ export default [
           })
         )
 
-        const globalSettings = props.job.settings['']
+        const globalSettings = props.job.settings[''] || {}
         const {
           concurrency = globalSettings.concurrency,
           offlineSnapshot = globalSettings.offlineSnapshot,
