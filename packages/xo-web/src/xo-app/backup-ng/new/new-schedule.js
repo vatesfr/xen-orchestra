@@ -10,7 +10,7 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { isEqual } from 'lodash'
 import { Number } from 'form'
 
-import { FormFeedback, FormGroup, Input } from './utils'
+import { FormFeedback, FormGroup, Input } from './../utils'
 
 export default [
   injectState,

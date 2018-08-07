@@ -8,7 +8,7 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
 
-import { FormGroup } from './utils'
+import { FormGroup } from './../utils'
 
 const VMS_STATUSES_OPTIONS = [
   { value: 'All', label: _('vmStateAll') },

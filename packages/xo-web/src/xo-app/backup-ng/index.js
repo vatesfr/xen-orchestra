@@ -5,11 +5,12 @@ import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
-import { confirm } from 'modal'
-import { map, groupBy } from 'lodash'
 import { Card, CardHeader, CardBlock } from 'card'
+import { confirm } from 'modal'
 import { constructQueryString } from 'smart-backup'
 import { Container, Row, Col } from 'grid'
+import { get } from 'xo-defined'
+import { isEmpty, map, groupBy, some } from 'lodash'
 import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
 import {
@@ -30,6 +31,7 @@ import New from './new'
 import FileRestore from './file-restore'
 import Restore from './restore'
 import Health from './health'
+import { destructPattern } from './utils'
 
 const _runBackupNgJob = ({ id, name, schedule }) =>
   confirm({
@@ -98,6 +100,34 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
   </table>
 )
 
+const MODES = [
+  {
+    label: 'rollingSnapshot',
+    test: job =>
+      some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
+  },
+  {
+    label: 'backup',
+    test: job =>
+      job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
+  },
+  {
+    label: 'deltaBackup',
+    test: job =>
+      job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
+  },
+  {
+    label: 'continuousReplication',
+    test: job =>
+      job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
+  },
+  {
+    label: 'disasterRecovery',
+    test: job =>
+      job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
+  },
+]
+
 @addSubscriptions({
   jobs: subscribeBackupNgJobs,
   schedulesByJob: cb =>
@@ -131,11 +161,15 @@ class JobsTable extends React.Component {
         default: true,
       },
       {
-        itemRenderer: _ => (
-          <span style={{ textTransform: 'capitalize' }}>{_.mode}</span>
+        itemRenderer: job => (
+          <ul style={{ listStyleType: 'none' }}>
+            {MODES.filter(({ test }) => test(job)).map(({ label }) => (
+              <li key={label}>{_(label)}</li>
+            ))}
+          </ul>
         ),
         sortCriteria: 'mode',
-        name: _('jobMode'),
+        name: _('jobModes'),
       },
       {
         component: SchedulePreviewBody,
