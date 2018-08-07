@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@babel/runtime": "7.0.0-beta.54",
-    "@marsaud/smb2": "^0.8.0",
+    "@marsaud/smb2": "^0.9.0",
     "execa": "^0.10.0",
     "fs-extra": "^7.0.0",
     "get-stream": "^3.0.0",
