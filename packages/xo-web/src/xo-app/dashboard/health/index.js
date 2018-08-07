@@ -169,9 +169,9 @@ const ORPHANED_VDI_ACTIONS = [
   {
     handler: deleteOrphanedVdis,
     individualHandler: deleteVdi,
-    individualLabel: _('DeleteOrphanedVdis'),
+    individualLabel: _('deleteOrphanedVdis'),
     icon: 'delete',
-    label: _('DeleteSelectedOrphanedVdis'),
+    label: _('deleteSelectedOrphanedVdis'),
     level: 'danger',
   },
 ]
