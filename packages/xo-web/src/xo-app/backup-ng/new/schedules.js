@@ -47,10 +47,10 @@ export default [
           level: 'danger',
         },
       ],
-      rowTransform: (
-        { propSettings, settings = propSettings },
-        props
-      ) => schedule => ({
+      rowTransform: ({
+        propSettings,
+        settings = propSettings,
+      }) => schedule => ({
         ...schedule,
         ...settings.get(schedule.id),
       }),
