@@ -1389,10 +1389,10 @@ export const deleteVdis = vdis =>
 
 export const deleteOrphanedVdis = vdis =>
   confirm({
-    title: _('removeAllOrphanedObject'),
+    title: _('removeOrphanedSnapshotVdis'),
     body: (
       <div>
-        <p>{_('removeAllOrphanedModalWarning')}</p>
+        <p>{_('removeSelectedOrphanedModalWarning', { nVdis: vdis.length })}</p>
         <p>{_('definitiveMessageModal')}</p>
       </div>
     ),

@@ -1120,7 +1120,9 @@ const messages = {
   orphanedVdis: 'Orphaned snapshot VDIs',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
-  removeAllOrphanedObject: 'Remove all orphaned snapshot VDIs',
+  removeOrphanedSnapshotVdis: 'Remove orphaned snapshot VDIs',
+  DeleteOrphanedVdis: 'Delete orphaned snapshot VDIs',
+  DeleteSelectedOrphanedVdis: 'Delete selected orphaned snapshot VDIs',
   vdisOnControlDomain: 'VDIs attached to Control Domain',
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
@@ -1480,8 +1482,8 @@ const messages = {
   importBackupModalStart: 'Start VM after restore',
   importBackupModalSelectBackup: 'Select your backup…',
   importBackupModalSelectSr: 'Select a destination SR…',
-  removeAllOrphanedModalWarning:
-    'Are you sure you want to remove all orphaned snapshot VDIs?',
+  removeSelectedOrphanedModalWarning:
+    'Are you sure you want to remove {nVdis, number} orphaned snapshot VDIs?',
   removeAllLogsModalTitle: 'Remove all logs',
   removeAllLogsModalWarning: 'Are you sure you want to remove all logs?',
   definitiveMessageModal: 'This operation is definitive.',
