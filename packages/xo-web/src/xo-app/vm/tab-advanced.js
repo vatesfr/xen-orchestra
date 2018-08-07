@@ -1,7 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import Copiable from 'copiable'
 import defined from 'xo-defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
@@ -385,10 +384,6 @@ export default class TabAdvanced extends Component {
             <h3>{_('xenSettingsLabel')}</h3>
             <table className='table'>
               <tbody>
-                <tr>
-                  <th>{_('uuid')}</th>
-                  <Copiable tagName='td'>{vm.uuid}</Copiable>
-                </tr>
                 <tr>
                   <th>{_('virtualizationMode')}</th>
                   <td>
