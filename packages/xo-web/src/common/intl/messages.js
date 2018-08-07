@@ -595,6 +595,7 @@ const messages = {
   rebootVmLabel: 'Reboot',
   forceRebootVmLabel: 'Force reboot',
   deleteVmLabel: 'Delete',
+  deleteSelectedVmsLabel: 'Delete selected VMs',
   migrateVmLabel: 'Migrate',
   snapshotVmLabel: 'Snapshot',
   exportVmLabel: 'Export',
