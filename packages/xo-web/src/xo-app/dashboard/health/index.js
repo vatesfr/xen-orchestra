@@ -163,16 +163,16 @@ const ORPHANED_VDI_COLUMNS = [
     name: _('vdiSr'),
     itemRenderer: vdi => <VdiColSr id={vdi.$SR} />,
   },
+]
+
+const ORPHANED_VDI_ACTIONS = [
   {
-    name: _('logAction'),
-    itemRenderer: vdi => (
-      <ActionRowButton
-        btnStyle='danger'
-        handler={deleteVdi}
-        handlerParam={vdi}
-        icon='delete'
-      />
-    ),
+    handler: deleteOrphanedVdis,
+    individualHandler: deleteVdi,
+    individualLabel: _('deleteOrphanedVdi'),
+    icon: 'delete',
+    label: _('deleteSelectedOrphanedVdis'),
+    level: 'danger',
   },
 ]
 
@@ -455,8 +455,6 @@ export default class Health extends Component {
     }, noop)
   }
 
-  _deleteOrphanedVdis = () => deleteOrphanedVdis(this.props.vdiOrphaned)
-
   _deleteAllLogs = () =>
     confirm({
       title: _('removeAllLogsModalTitle'),
@@ -553,26 +551,11 @@ export default class Health extends Component {
                   emptyMessage={_('noOrphanedObject')}
                 >
                   {() => (
-                    <div>
-                      <Row>
-                        <Col className='text-xs-right'>
-                          <TabButton
-                            btnStyle='danger'
-                            handler={this._deleteOrphanedVdis}
-                            icon='delete'
-                            labelId='removeAllOrphanedObject'
-                          />
-                        </Col>
-                      </Row>
-                      <Row>
-                        <Col>
-                          <SortedTable
-                            collection={vdiOrphaned}
-                            columns={ORPHANED_VDI_COLUMNS}
-                          />
-                        </Col>
-                      </Row>
-                    </div>
+                    <SortedTable
+                      actions={ORPHANED_VDI_ACTIONS}
+                      collection={vdiOrphaned}
+                      columns={ORPHANED_VDI_COLUMNS}
+                    />
                   )}
                 </NoObjects>
               </CardBlock>
