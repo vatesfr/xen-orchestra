@@ -33,6 +33,16 @@ import Restore from './restore'
 import Health from './health'
 import { destructPattern } from './utils'
 
+const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
+const Li = props => (
+  <li
+    {...props}
+    style={{
+      whiteSpace: 'nowrap',
+    }}
+  />
+)
+
 const _runBackupNgJob = ({ id, name, schedule }) =>
   confirm({
     title: _('runJob'),
@@ -162,11 +172,11 @@ class JobsTable extends React.Component {
       },
       {
         itemRenderer: job => (
-          <ul style={{ listStyleType: 'none' }}>
+          <Ul>
             {MODES.filter(({ test }) => test(job)).map(({ label }) => (
-              <li key={label}>{_(label)}</li>
+              <Li key={label}>{_(label)}</Li>
             ))}
-          </ul>
+          </Ul>
         ),
         sortCriteria: 'mode',
         name: _('jobModes'),
@@ -180,19 +190,19 @@ class JobsTable extends React.Component {
           const { concurrency, offlineSnapshot } = job.settings[''] || {}
 
           return (
-            <ul style={{ listStyleType: 'none' }}>
+            <Ul>
               {concurrency > 0 && (
-                <li>{_.keyValue(_('concurrency'), concurrency)}</li>
+                <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
               )}
               {offlineSnapshot && (
-                <li>
+                <Li>
                   {_.keyValue(
                     _('offlineSnapshot'),
                     <span className='text-success'>{_('stateEnabled')}</span>
                   )}
-                </li>
+                </Li>
               )}
-            </ul>
+            </Ul>
           )
         },
         name: _('formNotes'),
