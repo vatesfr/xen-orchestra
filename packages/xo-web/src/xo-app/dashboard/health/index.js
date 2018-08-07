@@ -1,16 +1,13 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import xml2js from 'xml2js'
-import { confirm } from 'modal'
 import { SelectPool } from 'select-objects'
 import { fromCallback } from 'promise-toolbox'
 import { Container, Row, Col } from 'grid'
@@ -20,6 +17,7 @@ import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
+  deleteMessages,
   deleteOrphanedVdis,
   deleteVbd,
   deleteVbds,
@@ -371,16 +369,16 @@ const ALARM_COLUMNS = [
     name: _('alarmPool'),
     itemRenderer: message => <AlarmColPool id={message.$pool} />,
   },
+]
+
+const ALARM_ACTIONS = [
   {
-    name: _('logAction'),
-    itemRenderer: message => (
-      <ActionRowButton
-        btnStyle='danger'
-        handler={deleteMessage}
-        handlerParam={message}
-        icon='delete'
-      />
-    ),
+    handler: deleteMessages,
+    individualHandler: deleteMessage,
+    individualLabel: _('logDelete'),
+    icon: 'delete',
+    label: _('logsDelete'),
+    level: 'danger',
   },
 ]
 
@@ -454,20 +452,6 @@ export default class Health extends Component {
       })
     }, noop)
   }
-
-  _deleteAllLogs = () =>
-    confirm({
-      title: _('removeAllLogsModalTitle'),
-      body: (
-        <div>
-          <p>{_('removeAllLogsModalWarning')}</p>
-          <p>{_('definitiveMessageModal')}</p>
-        </div>
-      ),
-    }).then(
-      () => Promise.all(map(this.props.alertMessages, deleteMessage)),
-      noop
-    )
 
   _getSrUrl = sr => `srs/${sr.id}`
 
@@ -609,26 +593,11 @@ export default class Health extends Component {
                   emptyMessage={_('noAlarms')}
                 >
                   {() => (
-                    <div>
-                      <Row>
-                        <Col className='text-xs-right'>
-                          <TabButton
-                            btnStyle='danger'
-                            handler={this._deleteAllLogs}
-                            icon='delete'
-                            labelId='logRemoveAll'
-                          />
-                        </Col>
-                      </Row>
-                      <Row>
-                        <Col>
-                          <SortedTable
-                            collection={this._getMessages()}
-                            columns={ALARM_COLUMNS}
-                          />
-                        </Col>
-                      </Row>
-                    </div>
+                    <SortedTable
+                      actions={ALARM_ACTIONS}
+                      collection={this._getMessages()}
+                      columns={ALARM_COLUMNS}
+                    />
                   )}
                 </NoObjects>
               </CardBlock>
