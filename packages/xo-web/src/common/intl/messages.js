@@ -5,7 +5,7 @@ const forEach = require('lodash/forEach')
 const isString = require('lodash/isString')
 
 const messages = {
-  keyValue: '{key}: {value}',
+  keyValue: '{key}:\u00A0{value}',
 
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
