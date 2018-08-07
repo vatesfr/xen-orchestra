@@ -8,7 +8,7 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { isEmpty, find, size } from 'lodash'
 
 import NewSchedule from './new-schedule'
-import { FormFeedback } from './utils'
+import { FormFeedback } from './../utils'
 
 // ===================================================================
 

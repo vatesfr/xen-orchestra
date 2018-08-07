@@ -286,7 +286,7 @@ const messages = {
   jobId: 'ID',
   jobType: 'Type',
   jobName: 'Name',
-  jobMode: 'Mode',
+  jobModes: 'Modes',
   jobNamePlaceholder: 'Name of your job (forbidden: "_")',
   jobStart: 'Start',
   jobEnd: 'End',

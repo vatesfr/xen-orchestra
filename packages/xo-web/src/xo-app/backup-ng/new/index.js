@@ -43,7 +43,14 @@ import {
 
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
-import { FormFeedback, FormGroup, Input, Ul, Li } from './utils'
+import {
+  destructPattern,
+  FormFeedback,
+  FormGroup,
+  Input,
+  Li,
+  Ul,
+} from './../utils'
 
 // ===================================================================
 
@@ -89,8 +96,6 @@ const constructPattern = values =>
           __or: resolveIds(values),
         },
       }
-
-const destructPattern = pattern => pattern.id.__or || [pattern.id]
 
 const destructVmsPattern = pattern =>
   pattern.id === undefined

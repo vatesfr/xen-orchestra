@@ -7,6 +7,8 @@ export const Input = props => <input {...props} className='form-control' />
 export const Ul = props => <ul {...props} className='list-group' />
 export const Li = props => <li {...props} className='list-group-item' />
 
+export const destructPattern = pattern => pattern.id.__or || [pattern.id]
+
 export const FormFeedback = ({
   component: Component,
   error,
