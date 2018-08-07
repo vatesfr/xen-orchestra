@@ -25,6 +25,7 @@ import {
   deleteVbds,
   deleteVdi,
   deleteVm,
+  deleteVms,
   isSrWritable,
 } from 'xo'
 import {
@@ -306,16 +307,16 @@ const VM_COLUMNS = [
     name: _('vmContainer'),
     itemRenderer: vm => <VmColContainer id={vm.$container} />,
   },
+]
+
+const VM_ACTIONS = [
   {
-    name: _('logAction'),
-    itemRenderer: vm => (
-      <ActionRowButton
-        btnStyle='danger'
-        handler={deleteVm}
-        handlerParam={vm}
-        icon='delete'
-      />
-    ),
+    handler: deleteVms,
+    individualHandler: deleteVm,
+    individualLabel: _('deleteVmLabel'),
+    icon: 'delete',
+    label: _('deleteSelectedVmsLabel'),
+    level: 'danger',
   },
 ]
 
@@ -598,6 +599,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
+                  actions={VM_ACTIONS}
                   collection={
                     props.areObjectsFetched ? this._getVmOrphaned() : null
                   }
