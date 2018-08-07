@@ -452,7 +452,10 @@ export default [
         propSettings,
         settings = propSettings,
       }) => ({
-        settings: settings.setIn(['', name], value),
+        settings: settings.update('', setting => ({
+          ...setting,
+          [name]: value,
+        })),
       }),
       setReportWhen: ({ setGlobalSettings }, { value }) => () => {
         setGlobalSettings({
