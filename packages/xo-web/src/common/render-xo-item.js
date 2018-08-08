@@ -47,7 +47,6 @@ XoItem.propTypes = {
 const XO_ITEM_PROP_TYPES = {
   ...COMMON_PROP_TYPES,
   id: PropTypes.string.isRequired,
-  resourceSet: PropTypes.object,
 }
 
 export const VmItem = [
@@ -144,6 +143,37 @@ PoolItem.propTypes = XO_ITEM_PROP_TYPES
 
 // ===================================================================
 
+export const SrResourceSetItem = [
+  connectStore(() => {
+    const getSr = createGetObject((_, props, resourceSet) => props.id)
+    const getContainer = createGetObject(
+      (_, props, resourceSet) => getSr(_, props, true).$container
+    )
+
+    return (state, props) => ({
+      sr: getSr(state, props, true),
+      container: getContainer(state, props, true),
+    })
+  }),
+  ({ sr, container, ...props }) => (
+    <XoItem item={sr} to={`/srs/${get(() => sr.id)}`} {...props}>
+      {() => (
+        <span>
+          <Icon icon='sr' /> {sr.name_label || sr.id}
+          <span className='text-muted'> - {container.name_label}</span>
+          {isSrWritable(sr) && (
+            <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
+          )}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+SrResourceSetItem.propTypes = XO_ITEM_PROP_TYPES
+
+// ===================================================================
+
 // Host, Network, VM-template.
 const PoolObjectItem = propTypes({
   object: propTypes.object.isRequired,
@@ -237,7 +267,8 @@ const xoItemToRender = {
   network: network => <PoolObjectItem object={network} />,
 
   // SR.
-  SR: ({ id }, resourceSet) => <SrItem id={id} resourceSet={resourceSet} />,
+  SR: ({ id }) => <SrItem id={id} />,
+  'SR-resourceSet': ({ id }) => <SrResourceSetItem id={id} />,
 
   // VM.
   VM: ({ id }) => <VmItem id={id} />,

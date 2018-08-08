@@ -1291,6 +1291,7 @@ export default class NewVm extends BaseComponent {
     const { pool } = this.props
     let i = 0
     const resourceSet = this._getResolvedResourceSet()
+
     return (
       <Section
         icon='new-vm-disks'
