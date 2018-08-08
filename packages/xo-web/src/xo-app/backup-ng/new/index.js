@@ -112,7 +112,7 @@ const createDoesRetentionExist = name => {
 const getInitialState = () => ({
   $pool: {},
   backupMode: false,
-  compression: true,
+  compression: undefined,
   crMode: false,
   deltaMode: false,
   drMode: false,
@@ -244,7 +244,12 @@ export default [
           id: props.job.id,
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression ? 'native' : '',
+          compression:
+            state.compression === undefined
+              ? undefined
+              : state.compression
+                ? 'native'
+                : '',
           settings: normalizeSettings({
             settings: settings || state.propSettings,
             exportMode: state.exportMode,
@@ -313,14 +318,12 @@ export default [
         }
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
-      updateParams: () => (state, { job, schedules }) => {
+      updateParams: () => (_, { job, schedules }) => {
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
 
         return {
-          ...state,
-          compression: job.compression === 'native',
           name: job.name,
           paramsUpdated: true,
           smartMode: job.vms.id === undefined,
@@ -534,10 +537,12 @@ export default [
     },
   }),
   injectState,
-  ({ state, effects, remotesById, job }) => {
+  ({ state, effects, remotesById, job = {} }) => {
     const { propSettings, settings = propSettings } = state
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
+
+    const { compression = job.compression === 'native' } = state
 
     if (state.needUpdateParams) {
       effects.updateParams()
@@ -597,7 +602,7 @@ export default [
                   {state.showCompression && (
                     <label>
                       <input
-                        checked={state.compression}
+                        checked={compression}
                         name='compression'
                         onChange={effects.setCheckboxValue}
                         type='checkbox'
