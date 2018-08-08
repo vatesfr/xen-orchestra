@@ -49,7 +49,7 @@ set.params = {
   enabled: { type: 'boolean', optional: true },
   id: { type: 'string' },
   jobId: { type: 'string', optional: true },
-  name: { type: 'string', optional: true },
+  name: { type: ['string', 'null'], optional: true },
   timezone: { type: 'string', optional: true },
 }
 

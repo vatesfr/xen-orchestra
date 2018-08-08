@@ -1,6 +1,5 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import defined from 'xo-defined'
 import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
@@ -32,11 +31,20 @@ export default [
       exportRetention,
       formId: generateRandomId(),
       idInputName: generateRandomId(),
-      name: undefined,
+      schedule: undefined,
       snapshotRetention,
       timezone,
     }),
     effects: {
+      setSchedule: (_, { name, value }) => ({
+        tmpSchedule,
+        schedule = tmpSchedule,
+      }) => ({
+        schedule: {
+          ...schedule,
+          [name]: value,
+        },
+      }),
       setExportRetention: (_, value) => state => ({
         ...state,
         exportRetention: value,
@@ -49,14 +57,17 @@ export default [
         ...state,
         snapshotRetention: value,
       }),
-      setSchedule: (_, { cronPattern, timezone }) => state => ({
+      setCronTimezone: (_, { cronPattern, timezone }) => state => ({
         ...state,
         cron: cronPattern,
         timezone,
       }),
-      setName: (_, { target: { value } }) => () => ({
-        name: value,
-      }),
+      setName: ({ setSchedule }, { target: { value } }) => () => {
+        setSchedule({
+          name: 'name',
+          value: value.trim() === '' ? null : value,
+        })
+      },
     },
     computed: {
       isScheduleInvalid: ({ retentionNeeded, scheduleNotEdited }) =>
@@ -80,27 +91,26 @@ export default [
           cron,
           editionMode,
           exportRetention,
-          name,
+          schedule,
           snapshotRetention,
           timezone,
         },
-        { schedule }
+        { schedule: propSchedule }
       ) =>
         editionMode !== 'creation' &&
+        schedule === undefined &&
         isEqual(
           {
-            copyRetention: schedule.copyRetention,
-            cron: schedule.cron,
-            exportRetention: schedule.exportRetention,
-            name: schedule.name,
-            snapshotRetention: schedule.snapshotRetention,
-            timezone: schedule.timezone,
+            copyRetention: propSchedule.copyRetention,
+            cron: propSchedule.cron,
+            exportRetention: propSchedule.exportRetention,
+            snapshotRetention: propSchedule.snapshotRetention,
+            timezone: propSchedule.timezone,
           },
           {
             copyRetention,
             cron,
             exportRetention,
-            name,
             snapshotRetention,
             timezone,
           }
@@ -108,93 +118,101 @@ export default [
     },
   }),
   injectState,
-  ({ effects, state }) => (
-    <form id={state.formId}>
-      <FormFeedback
-        component={Card}
-        error={state.retentionNeeded}
-        message={_('retentionNeeded')}
-      >
-        <CardBlock>
-          <FormGroup>
-            <label htmlFor={state.idInputName}>
-              <strong>{_('formName')}</strong>
-            </label>
-            <Input
-              id={state.idInputName}
-              onChange={effects.setName}
-              value={defined(state.name, state.tmpSchedule.name, '')}
+  ({ effects, state }) => {
+    const { tmpSchedule = {}, schedule = tmpSchedule } = state
+    const { name } = schedule
+
+    return (
+      <form id={state.formId}>
+        <FormFeedback
+          component={Card}
+          error={state.retentionNeeded}
+          message={_('retentionNeeded')}
+        >
+          <CardBlock>
+            <FormGroup>
+              <label htmlFor={state.idInputName}>
+                <strong>{_('formName')}</strong>
+              </label>
+              <Input
+                id={state.idInputName}
+                onChange={effects.setName}
+                value={name}
+              />
+            </FormGroup>
+            {state.exportMode && (
+              <FormGroup>
+                <label>
+                  <strong>{_('exportRetention')}</strong>
+                </label>
+                <Number
+                  min='0'
+                  onChange={effects.setExportRetention}
+                  value={state.exportRetention}
+                />
+              </FormGroup>
+            )}
+            {state.copyMode && (
+              <FormGroup>
+                <label>
+                  <strong>{_('copyRetention')}</strong>
+                </label>
+                <Number
+                  min='0'
+                  onChange={effects.setCopyRetention}
+                  value={state.copyRetention}
+                />
+              </FormGroup>
+            )}
+            {state.snapshotMode && (
+              <FormGroup>
+                <label>
+                  <strong>{_('snapshotRetention')}</strong>
+                </label>
+                <Number
+                  min='0'
+                  onChange={effects.setSnapshotRetention}
+                  value={state.snapshotRetention}
+                />
+              </FormGroup>
+            )}
+            <Scheduler
+              onChange={effects.setCronTimezone}
+              cronPattern={state.cron}
+              timezone={state.timezone}
             />
-          </FormGroup>
-          {state.exportMode && (
-            <FormGroup>
-              <label>
-                <strong>{_('exportRetention')}</strong>
-              </label>
-              <Number
-                min='0'
-                onChange={effects.setExportRetention}
-                value={state.exportRetention}
-              />
-            </FormGroup>
-          )}
-          {state.copyMode && (
-            <FormGroup>
-              <label>
-                <strong>{_('copyRetention')}</strong>
-              </label>
-              <Number
-                min='0'
-                onChange={effects.setCopyRetention}
-                value={state.copyRetention}
-              />
-            </FormGroup>
-          )}
-          {state.snapshotMode && (
-            <FormGroup>
-              <label>
-                <strong>{_('snapshotRetention')}</strong>
-              </label>
-              <Number
-                min='0'
-                onChange={effects.setSnapshotRetention}
-                value={state.snapshotRetention}
-              />
-            </FormGroup>
-          )}
-          <Scheduler
-            onChange={effects.setSchedule}
-            cronPattern={state.cron}
-            timezone={state.timezone}
-          />
-          <SchedulePreview cronPattern={state.cron} timezone={state.timezone} />
-          <br />
-          <ActionButton
-            btnStyle='primary'
-            data-copyRetention={state.copyRetention}
-            data-cron={state.cron}
-            data-exportRetention={state.exportRetention}
-            data-name={state.name}
-            data-snapshotRetention={state.snapshotRetention}
-            data-timezone={state.timezone}
-            disabled={state.isScheduleInvalid}
-            form={state.formId}
-            handler={effects.saveSchedule}
-            icon='save'
-            size='large'
-          >
-            {_('formSave')}
-          </ActionButton>
-          <ActionButton
-            className='pull-right'
-            handler={effects.cancelSchedule}
-            icon='cancel'
-            size='large'
-          >
-            {_('formCancel')}
-          </ActionButton>
-        </CardBlock>
-      </FormFeedback>
-    </form>
-  ),
+            <SchedulePreview
+              cronPattern={state.cron}
+              timezone={state.timezone}
+            />
+            <br />
+            <ActionButton
+              btnStyle='primary'
+              data-copyRetention={state.copyRetention}
+              data-cron={state.cron}
+              data-exportRetention={state.exportRetention}
+              data-name={name}
+              data-snapshotRetention={state.snapshotRetention}
+              data-timezone={state.timezone}
+              disabled={state.isScheduleInvalid}
+              form={state.formId}
+              handler={effects.saveSchedule}
+              icon='save'
+              size='large'
+            >
+              {_('formSave')}
+            </ActionButton>
+            <ActionButton
+              className='pull-right'
+              handler={effects.cancelSchedule}
+              icon='cancel'
+              size='large'
+            >
+              {_('formCancel')}
+            </ActionButton>
+          </CardBlock>
+        </FormFeedback>
+      </form>
+    )
+  },
 ].reduceRight((value, decorator) => decorator(value))

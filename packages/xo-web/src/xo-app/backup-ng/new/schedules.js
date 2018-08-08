@@ -152,7 +152,7 @@ export default [
         <NewSchedule
           copyMode={state.copyMode}
           exportMode={state.exportMode}
-          schedule={state.tmpSchedule}
+          schedule={state.tmpSchedule || {}}
           snapshotMode={state.snapshotMode}
         />
       )}

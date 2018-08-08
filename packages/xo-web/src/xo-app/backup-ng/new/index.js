@@ -132,7 +132,7 @@ const getInitialState = () => ({
   snapshotMode: false,
   srs: [],
   tags: {},
-  tmpSchedule: {},
+  tmpSchedule: undefined,
   vms: [],
 })
 
@@ -368,7 +368,7 @@ export default [
       }),
       cancelSchedule: () => state => ({
         ...state,
-        tmpSchedule: {},
+        tmpSchedule: undefined,
         editionMode: undefined,
       }),
       editSchedule: (_, schedule) => state => ({
@@ -398,7 +398,6 @@ export default [
         settings = propSettings,
         tmpSchedule,
       }) => {
-        name = name !== undefined && name.trim() === '' ? undefined : name
         if (editionMode === 'creation') {
           const id = generateRandomId()
           return {
@@ -430,7 +429,7 @@ export default [
           editionMode: undefined,
           schedules,
           settings: settings.set(id, setting),
-          tmpSchedule: {},
+          tmpSchedule: undefined,
         }
       },
       setPowerState: (_, powerState) => state => ({
