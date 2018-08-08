@@ -5,8 +5,8 @@ Xen Orchestra is designed to work exclusively on [XCP-ng](https://xcp-ng.org/) a
 ## Citrix XenServer (Citrix hypervisor)
 
 * XenServer 7.5
-  * VDI I/O error affecting XS 7.5: https://bugs.xenserver.org/browse/XSO-873
-  * VHD >1TiB affecting all versions of XS and XCP-ng before 7.5: https://bugs.xenserver.org/browse/XSO-868
+  * [VDI I/O error affecting XS 7.5](https://bugs.xenserver.org/browse/XSO-873)
+  * [VHD >1TiB affecting all versions of XS and XCP-ng before 7.5](https://bugs.xenserver.org/browse/XSO-868)
 
 * XenServer 7.4
 * XenServer 7.3 
