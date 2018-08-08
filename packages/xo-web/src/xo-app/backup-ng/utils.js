@@ -2,6 +2,8 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 
+export const DEFAULT_RETENTION = 1
+
 export const FormGroup = props => <div {...props} className='form-group' />
 export const Input = props => <input {...props} className='form-control' />
 export const Ul = props => <ul {...props} className='list-group' />

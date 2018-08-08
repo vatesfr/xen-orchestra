@@ -149,12 +149,7 @@ export default [
         </CardBlock>
       </FormFeedback>
       {state.editionMode !== undefined && (
-        <NewSchedule
-          copyMode={state.copyMode}
-          exportMode={state.exportMode}
-          schedule={state.tmpSchedule || {}}
-          snapshotMode={state.snapshotMode}
-        />
+        <NewSchedule schedule={state.tmpSchedule || {}} />
       )}
     </div>
   ),
