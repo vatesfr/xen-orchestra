@@ -9,6 +9,8 @@
 
 ### Bug fixes
 
+- [Backup NG form] Schedule's name overrode with undefined if it's not been edited [#3286](https://github.com/vatesfr/xen-orchestra/issues/3286) (PR [#3288](https://github.com/vatesfr/xen-orchestra/pull/3288))
+
 ### Released packages
 
 - xo-server v5.25.0
