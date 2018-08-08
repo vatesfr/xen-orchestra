@@ -176,7 +176,7 @@ export default class Vm extends BaseComponent {
       <Container>
         <Row>
           <Col mediumSize={6} className='header-title'>
-            <Copiable tagName='div'>
+            <Copiable tagName='div' data={vm.uuid}>
               <h2 style={{ display: 'inline' }}>
                 {isEmpty(vm.current_operations) ? (
                   <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
