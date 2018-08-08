@@ -12,8 +12,6 @@ Another good way to check if there is activity is the XOA VM stats view (on the 
 
 ### VDI chain protection
 
-> This message is relevant for *Continuous Delta Backup* or *Continuous Replication* only.
-
 This means your previous VM disks and snapshots should be "merged" (*coalesced* in the XenServer world) before we can take a new snapshot. This mechanism is handled by XenServer itself, not Xen Orchestra. But we can check your existing VDI chain and avoid creating more snapshots than your storage can merge. Otherwise, this will lead to catastrophic consequences. Xen Orchestra is the **only** XenServer/XCP backup product dealing with this.
 
 Without this detection, you could have 2 potential issues:
@@ -23,7 +21,9 @@ Without this detection, you could have 2 potential issues:
 
 The first issue is a chain that contains more than 30 elements (fixed XenServer limit), and the other one means it's full because the "coalesce" process couldn't keep up the pace and the storage filled up.
 
-In the end, this message is a **protection mechanism against damaging your SR**. The backup job will fail, but XenServer itself should eventually automatically coalesce the snapshot chain, and the the next time the backup job should complete.  
+In the end, this message is a **protection mechanism against damaging your SR**. The backup job will fail, but XenServer itself should eventually automatically coalesce the snapshot chain, and the the next time the backup job should complete.
+
+Just remember this: **coalesce will happen every time a snapshot is removed**.
 
 > You can read more on this on our dedicated blog post regarding [XenServer coalesce detection](https://xen-orchestra.com/blog/xenserver-coalesce-detection-in-xen-orchestra/).
 
