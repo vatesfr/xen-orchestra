@@ -20,6 +20,7 @@ Backup restore for large VM disks (>1TiB usage) is [broken on all XenServer vers
 * XenServer 5.x
   * Basic administration features
 
+![](https://xen-orchestra.com/blog/content/images/2018/08/Xen-Server.jpeg)
 
 ## XCP-ng
 
@@ -27,3 +28,5 @@ All the pending fixes are already integrated in the latest XCP-ng version. We st
 
 * XCP-ng 7.5
 * XCP-ng 7.4.1
+
+![](https://xen-orchestra.com/blog/content/images/2018/02/logo1glossy.png)
