@@ -2,7 +2,7 @@
 
 Xen Orchestra is designed to work exclusively on XCP-ng and Citrix XenServer hypervisor. Theorically, Xen Orchestra is fully functionnal with any version of these two hypervisor. However, to benefit from the best support quality, our product is tested to work the best with the following versions:
 
-## XenServer
+## Citrix XenServer (Citrix hypervisor)
 
 * XenServer 7.4 (standard & enterprise edition)
 * XenServer 7.3 (standard & enterprise edition)
