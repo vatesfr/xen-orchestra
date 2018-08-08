@@ -342,14 +342,6 @@ export default class TabAdvanced extends Component {
                   icon='vm-clone'
                   labelId='cloneVmLabel'
                 />
-                <TabButton
-                  btnStyle='danger'
-                  handler={convertVmToTemplate}
-                  handlerParam={vm}
-                  icon='vm-create-template'
-                  labelId='vmConvertButton'
-                  redirectOnSuccess='/'
-                />
               </span>
             )}
             {vm.power_state === 'Suspended' && (
@@ -370,6 +362,15 @@ export default class TabAdvanced extends Component {
                 />
               </span>
             )}
+            <TabButton
+              btnStyle='danger'
+              disabled={vm.power_state !== 'Halted'}
+              handler={convertVmToTemplate}
+              handlerParam={vm}
+              icon='vm-create-template'
+              labelId='vmConvertToTemplateButton'
+              redirectOnSuccess='/'
+            />
             <TabButton
               btnStyle='danger'
               handler={deleteVm}
