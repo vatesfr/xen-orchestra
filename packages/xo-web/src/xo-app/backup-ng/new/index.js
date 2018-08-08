@@ -136,6 +136,19 @@ const getInitialState = () => ({
   vms: [],
 })
 
+const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
+  <ActionButton
+    handler={handler}
+    handlerParam={handlerParam}
+    icon={value ? 'toggle-on' : 'toggle-off'}
+    iconColor={value ? 'text-success' : undefined}
+    size='small'
+    tooltip={_('deleteOldBackupsFirstMessage')}
+  >
+    {_('deleteOldBackupsFirst')}
+  </ActionButton>
+)
+
 export default [
   New => props => (
     <Upgrade place='newBackup' required={2}>
@@ -290,6 +303,14 @@ export default [
       setName: (_, { target: { value } }) => state => ({
         ...state,
         name: value,
+      }),
+      setTargetDeleteFirst: (_, id) => ({
+        propSettings,
+        settings = propSettings,
+      }) => ({
+        settings: settings.set(id, {
+          deleteFirst: !settings.getIn([id, 'deleteFirst']),
+        }),
       }),
       addRemote: (_, remote) => state => {
         return {
@@ -717,14 +738,20 @@ export default [
                                   type: 'remote',
                                   value: remotesById[id],
                                 })}
-                              <ActionButton
-                                btnStyle='danger'
-                                className='pull-right'
-                                handler={effects.deleteRemote}
-                                handlerParam={key}
-                                icon='delete'
-                                size='small'
-                              />
+                              <div className='pull-right'>
+                                <DeleteOldBackupsFirst
+                                  handler={effects.setTargetDeleteFirst}
+                                  handlerParam={id}
+                                  value={settings.getIn([id, 'deleteFirst'])}
+                                />{' '}
+                                <ActionButton
+                                  btnStyle='danger'
+                                  handler={effects.deleteRemote}
+                                  handlerParam={key}
+                                  icon='delete'
+                                  size='small'
+                                />
+                              </div>
                             </Li>
                           ))}
                         </Ul>
@@ -760,14 +787,20 @@ export default [
                         {map(state.srs, (id, key) => (
                           <Li key={id}>
                             {renderXoItemFromId(id)}
-                            <ActionButton
-                              btnStyle='danger'
-                              className='pull-right'
-                              icon='delete'
-                              size='small'
-                              handler={effects.deleteSr}
-                              handlerParam={key}
-                            />
+                            <div className='pull-right'>
+                              <DeleteOldBackupsFirst
+                                handler={effects.setTargetDeleteFirst}
+                                handlerParam={id}
+                                value={settings.getIn([id, 'deleteFirst'])}
+                              />{' '}
+                              <ActionButton
+                                btnStyle='danger'
+                                icon='delete'
+                                size='small'
+                                handler={effects.deleteSr}
+                                handlerParam={key}
+                              />
+                            </div>
                           </Li>
                         ))}
                       </Ul>

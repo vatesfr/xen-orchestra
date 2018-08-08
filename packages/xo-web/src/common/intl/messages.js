@@ -426,7 +426,9 @@ const messages = {
   editBackupScheduleEnabled: 'Automatically run as scheduled',
   editBackupRetentionTitle: 'Retention',
   editBackupRemoteTitle: 'Remote',
-  deleteOldBackupsFirst: 'Delete the old backups first',
+  deleteOldBackupsFirst: 'Delete first',
+  deleteOldBackupsFirstMessage:
+    'Delete old backups before backuping the VMs. If the new backup fails, you will lose your old backups.',
 
   // ------ New Remote -----
   remoteList: 'Remote stores for backup',
