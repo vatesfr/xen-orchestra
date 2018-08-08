@@ -47,17 +47,13 @@ export default [
           level: 'danger',
         },
       ],
-      rowTransform: ({ settings }) => schedule => {
-        const { exportRetention, copyRetention, snapshotRetention } =
-          settings[schedule.id] || {}
-
-        return {
-          ...schedule,
-          exportRetention,
-          copyRetention,
-          snapshotRetention,
-        }
-      },
+      rowTransform: ({
+        propSettings,
+        settings = propSettings,
+      }) => schedule => ({
+        ...schedule,
+        ...settings.get(schedule.id),
+      }),
       schedulesColumns: (state, { effects: { toggleScheduleState } }) => {
         const columns = [
           {
