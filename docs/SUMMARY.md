@@ -12,6 +12,7 @@
        * [Trial activation](trial_activation.md)
        * [Plugins](plugins.md)
        * [Logs](logs.md)
+       * [Compatibility](supported-version.md)
        * [Troubleshooting](troubleshooting.md)
    * [From the sources](from_the_sources.md)
 * [Configuration](configuration.md)
