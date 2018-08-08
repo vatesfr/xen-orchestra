@@ -139,7 +139,9 @@ export default class SmbHandler extends RemoteHandlerAbstract {
 
     try {
       await client
-        .rename(this._getFilePath(oldPath), this._getFilePath(newPath))
+        .rename(this._getFilePath(oldPath), this._getFilePath(newPath), {
+          replace: true,
+        })
         ::pFinally(() => {
           client.disconnect()
         })
