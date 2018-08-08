@@ -428,7 +428,7 @@ const messages = {
   editBackupRemoteTitle: 'Remote',
   deleteOldBackupsFirst: 'Delete first',
   deleteOldBackupsFirstMessage:
-    'Delete the old backups before backup the vms. If the backup fails, you will lose your old backups.',
+    'Delete old backups before backuping the VMs. If the new backup fails, you will lose your old backups.',
 
   // ------ New Remote -----
   remoteList: 'Remote stores for backup',
