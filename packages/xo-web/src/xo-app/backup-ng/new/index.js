@@ -599,17 +599,6 @@ export default [
                       />
                     </FormGroup>
                   )}
-                  {state.showCompression && (
-                    <label>
-                      <input
-                        checked={compression}
-                        name='compression'
-                        onChange={effects.setCheckboxValue}
-                        type='checkbox'
-                      />{' '}
-                      <strong>{_('useCompression')}</strong>
-                    </label>
-                  )}
                 </CardBlock>
               </Card>
               <FormFeedback
@@ -840,6 +829,19 @@ export default [
                       />
                     </label>
                   </FormGroup>
+                  {state.showCompression && (
+                    <FormGroup>
+                      <label>
+                        <strong>{_('useCompression')}</strong>{' '}
+                        <input
+                          checked={compression}
+                          name='compression'
+                          onChange={effects.setCheckboxValue}
+                          type='checkbox'
+                        />
+                      </label>
+                    </FormGroup>
+                  )}
                 </CardBlock>
               </Card>
             </Col>
