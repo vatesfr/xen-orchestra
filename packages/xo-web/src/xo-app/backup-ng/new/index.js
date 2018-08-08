@@ -307,12 +307,11 @@ export default [
       setTargetDeleteFirst: (_, id) => ({
         propSettings,
         settings = propSettings,
-      }) => {
-        const path = [id, 'deleteFirst']
-        return {
-          settings: settings.setIn(path, !settings.getIn(path)),
-        }
-      },
+      }) => ({
+        settings: settings.set(id, {
+          deleteFirst: !settings.getIn([id, 'deleteFirst']),
+        }),
+      }),
       addRemote: (_, remote) => state => {
         return {
           ...state,
