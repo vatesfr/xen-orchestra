@@ -1284,6 +1284,8 @@ const messages = {
   pool: 'Pool',
   task: 'Task',
   progress: 'Progress',
+  previousTasks: 'Previous tasks',
+  taskLastSeen: 'Last seen',
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',
