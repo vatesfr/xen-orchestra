@@ -51,7 +51,7 @@
 
 - xo-remote-parser v0.5.0
 - complex-matcher v0.4.0
-- xo-server-backup-reports v0.12.3
+- xo-server-backup-reports v0.13.0
 - xo-server v5.23.0
 - xo-web v5.23.0
 
