@@ -572,10 +572,10 @@ export class Xapi extends EventEmitter {
               body,
               headers,
               pathname,
-              query,
               rejectUnauthorized: !this._allowUnauthorized,
             },
-            override
+            override,
+            { query }
           )
 
         // if a stream, sends a dummy request to probe for a
