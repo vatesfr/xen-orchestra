@@ -2,13 +2,13 @@
 
 import type { Pattern } from 'value-matcher'
 
-import { CancelToken } from 'promise-toolbox'
+import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../../collection/redis'
 import patch from '../../patch'
-import { serializeError } from '../../utils'
+import { asyncMap, serializeError } from '../../utils'
 
 import type Logger from '../logs/loggers/abstract'
 import { type Schedule } from '../scheduling'
@@ -154,6 +154,26 @@ export default class Jobs {
       xo.getLogger('jobs').then(logger => {
         this._logger = logger
       })
+
+      // it sends a report for the interrupted backup jobs
+      this._app.on('plugins:registered', () =>
+        asyncMap(this._jobs.get(), job => {
+          // only the interrupted backup jobs have the runId property
+          if (job.runId === undefined) {
+            return
+          }
+
+          this._app.emit(
+            'job:terminated',
+            undefined,
+            job,
+            undefined,
+            // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
+            String(job.runId)
+          )
+          return this.updateJob({ id: job.id, runId: null })
+        })
+      )
     })
   }
 
@@ -258,6 +278,8 @@ export default class Jobs {
       type,
     })
 
+    // runId is a temporary property used to check if the report is sent after the server interruption
+    this.updateJob({ id, runId: runJobId })::ignoreErrors()
     runningJobs[id] = runJobId
 
     const runs = this._runs
@@ -295,6 +317,7 @@ export default class Jobs {
       })
       throw error
     } finally {
+      ;this.updateJob({ id, runId: null })::ignoreErrors()
       delete runningJobs[id]
       delete runs[runJobId]
       if (session !== undefined) {

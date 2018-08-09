@@ -637,6 +637,7 @@ export default async function main (args) {
 
   if (!includes(args, '--safe-mode')) {
     await registerPlugins(xo)
+    xo.emit('plugins:registered')
   }
 
   // Gracefully shutdown on signals.
