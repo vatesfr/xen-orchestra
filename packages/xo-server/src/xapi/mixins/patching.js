@@ -320,7 +320,7 @@ export default {
     patchUuid,
     host
   ) {
-    await this._checkDateConsistency(host.$ref)
+    await this._assertConsistentHostServerTime(host.$ref)
 
     const [vdi] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid, host.$id),
@@ -363,7 +363,7 @@ export default {
 
   // platform_version >= 2.1.1
   _installPatchUpdateOnAllHosts: deferrable(async function ($defer, patchUuid) {
-    await this._checkDateConsistency(this.pool.master)
+    await this._assertConsistentHostServerTime(this.pool.master)
 
     let [vdi] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid),

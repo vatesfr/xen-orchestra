@@ -2340,7 +2340,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _checkDateConsistency (hostRef) {
+  async _assertConsistentHostServerTime (hostRef) {
     if (
       Math.abs(
         parseDateTime(
@@ -2349,7 +2349,7 @@ export default class Xapi extends XapiBase {
       ) > 2e3
     ) {
       throw new Error(
-        'pool date and XOA date are not consistent with each other'
+        'host server time and XOA date are not consistent with each other'
       )
     }
   }
