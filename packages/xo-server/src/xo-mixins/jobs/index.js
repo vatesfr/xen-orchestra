@@ -158,7 +158,7 @@ export default class Jobs {
       // it sends a report for the interrupted backup jobs
       this._app.on('plugins:registered', () =>
         asyncMap(this._jobs.get(), job => {
-          // only the interrupted backup jobs has the runId property
+          // only the interrupted backup jobs have the runId property
           if (job.runId === undefined) {
             return
           }
