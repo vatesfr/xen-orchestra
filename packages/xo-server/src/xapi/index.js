@@ -64,6 +64,7 @@ import {
   isVmRunning,
   NULL_REF,
   optional,
+  parseDateTime,
   prepareXapiParam,
 } from './utils'
 
@@ -2339,5 +2340,17 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  // =================================================================
+  async _assertConsistentHostServerTime (hostRef) {
+    if (
+      Math.abs(
+        parseDateTime(
+          await this.call('host.get_servertime', hostRef)
+        ).getTime() - Date.now()
+      ) > 2e3
+    ) {
+      throw new Error(
+        'host server time and XOA date are not consistent with each other'
+      )
+    }
+  }
 }

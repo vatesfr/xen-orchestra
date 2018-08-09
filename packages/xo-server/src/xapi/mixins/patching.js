@@ -320,6 +320,8 @@ export default {
     patchUuid,
     host
   ) {
+    await this._assertConsistentHostServerTime(host.$ref)
+
     const [vdi] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid, host.$id),
       this._ejectToolsIsos(host.$ref),
@@ -361,6 +363,8 @@ export default {
 
   // platform_version >= 2.1.1
   _installPatchUpdateOnAllHosts: deferrable(async function ($defer, patchUuid) {
+    await this._assertConsistentHostServerTime(this.pool.master)
+
     let [vdi] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid),
       this._ejectToolsIsos(),
