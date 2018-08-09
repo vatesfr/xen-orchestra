@@ -572,10 +572,10 @@ export class Xapi extends EventEmitter {
               body,
               headers,
               pathname,
-              query,
               rejectUnauthorized: !this._allowUnauthorized,
             },
-            override
+            override,
+            { query }
           )
 
         // if a stream, sends a dummy request to probe for a
@@ -603,11 +603,7 @@ export class Xapi extends EventEmitter {
                     statusCode,
                   } = response
                   if (statusCode === 302 && location !== undefined) {
-                    return doRequest(
-                      `${location}${
-                        taskRef !== undefined ? `&task_id=${taskRef}` : ''
-                      }`
-                    )
+                    return doRequest(location)
                   }
                 }
 
