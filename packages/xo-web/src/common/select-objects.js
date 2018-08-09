@@ -231,9 +231,9 @@ class GenericSelect extends React.Component {
     >
       {renderXoItem(option.xoItem, {
         type:
-          this.props.resourceSet &&
-          option.xoItem.type === 'SR' &&
-          `${option.xoItem.type}-resourceSet`,
+          this.props.resourceSet && option.xoItem.type === 'SR'
+            ? 'SR-resourceSet'
+            : undefined,
       })}
     </span>
   )

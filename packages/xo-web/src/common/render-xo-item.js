@@ -146,8 +146,8 @@ PoolItem.propTypes = XO_ITEM_PROP_TYPES
 export const SrResourceSetItem = [
   connectStore(() => {
     const getSr = createGetObject()
-    const getContainer = createGetObject((_, props, resourceSet) => {
-      const sr = getSr(_, props, true) // true to bypass view permissions
+    const getContainer = createGetObject((state, props) => {
+      const sr = getSr(state, props, true) // true to bypass view permissions
       return sr && sr.$container
     })
 
