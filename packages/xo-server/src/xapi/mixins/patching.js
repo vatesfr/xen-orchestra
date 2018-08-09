@@ -20,7 +20,12 @@ import {
   parseXml,
 } from '../../utils'
 
-import { debug, extractOpaqueRef, useUpdateSystem } from '../utils'
+import {
+  checkDateConsistency,
+  debug,
+  extractOpaqueRef,
+  useUpdateSystem,
+} from '../utils'
 
 export default {
   // FIXME: should be static
@@ -320,6 +325,8 @@ export default {
     patchUuid,
     host
   ) {
+    await checkDateConsistency(this)
+
     const [vdi] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid, host.$id),
       this._ejectToolsIsos(host.$ref),
@@ -361,6 +368,8 @@ export default {
 
   // platform_version >= 2.1.1
   _installPatchUpdateOnAllHosts: deferrable(async function ($defer, patchUuid) {
+    await checkDateConsistency(this)
+
     let [vdi] = await Promise.all([
       this._getUpdateVdi($defer, patchUuid),
       this._ejectToolsIsos(),

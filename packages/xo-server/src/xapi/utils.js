@@ -381,3 +381,15 @@ export const canSrHaveNewVdiOfSize = (sr, minSize) =>
   sr.content_type !== 'disk' && // removable
   sr.content_type !== 'iso' && // read only
   sr.physical_size - sr.physical_utilisation >= minSize
+
+export async function checkDateConsistency (xapi) {
+  if (
+    Math.abs(
+      parseDateTime(
+        await xapi.call('host.get_servertime', xapi.pool.master)
+      ).getTime() - Date.now()
+    ) > 2e3
+  ) {
+    throw new Error('pool date and XOA date are not consistent with each other')
+  }
+}
