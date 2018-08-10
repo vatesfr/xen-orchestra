@@ -98,7 +98,7 @@ export default class Vhd {
       Buffer.alloc(n),
       start
     )
-    assert.equal(bytesRead, n)
+    assert.strictEqual(bytesRead, n)
     return buffer
   }
 
