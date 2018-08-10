@@ -561,7 +561,7 @@ export class Xapi extends EventEmitter {
           headers['content-length'] = '1125899906842624'
         }
 
-        const doRequest = override =>
+        const doRequest = (...opts) =>
           httpRequest.put(
             $cancelToken,
             this._url,
@@ -571,11 +571,12 @@ export class Xapi extends EventEmitter {
             {
               body,
               headers,
+              query,
               pathname,
+              maxRedirects: 0,
               rejectUnauthorized: !this._allowUnauthorized,
             },
-            override,
-            { query }
+            ...opts
           )
 
         // if a stream, sends a dummy request to probe for a
@@ -586,8 +587,6 @@ export class Xapi extends EventEmitter {
 
               // omit task_id because this request will fail on purpose
               query: 'task_id' in query ? omit(query, 'task_id') : query,
-
-              maxRedirects: 0,
             }).then(
               response => {
                 response.req.abort()
@@ -603,7 +602,8 @@ export class Xapi extends EventEmitter {
                     statusCode,
                   } = response
                   if (statusCode === 302 && location !== undefined) {
-                    return doRequest(location)
+                    // ensure the original query is sent
+                    return doRequest(location, { query })
                   }
                 }
 
