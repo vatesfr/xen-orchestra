@@ -70,6 +70,6 @@ To check your free space, enter your XOA and run `xoa check` to check free syste
 
 ### Error: no VMs match this pattern
 
-This is happening when you have a *smart backup job* doesn't match any VMs. For example: you created a job to backup all running VMs. If no VMs are running on backup schedule, you'll have this message. This could also happens if you lost connection with your pool master (the VMs aren't visible anymore from Xen Orchestra).
+This is happening when you have a *smart backup job* that doesn't match any VMs. For example: you created a job to backup all running VMs. If no VMs are running on backup schedule, you'll have this message. This could also happen if you lost connection with your pool master (the VMs aren't visible anymore from Xen Orchestra).
 
 Edit your job and try to see matching VMs or check if your pool is connected to XOA.
