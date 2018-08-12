@@ -66,7 +66,7 @@ To solve it, you have to change a parameter in your VM. `xe vm-param-set has-ven
 
 This message appears when you do not have enough free space on the target remote when running a backup to it.  
 
- To check your free space, enter your XOA and run `xoa check` to check free system space and `df -h` to check free space on your chosen remote storage.
+To check your free space, enter your XOA and run `xoa check` to check free system space and `df -h` to check free space on your chosen remote storage.
 
 ### Error: no VMs match this pattern
 
