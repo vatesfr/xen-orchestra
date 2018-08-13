@@ -1,5 +1,6 @@
 import { getHandler } from '@xen-orchestra/fs'
 import { noSuchObject } from 'xo-common/api-errors'
+import { ignoreErrors } from 'promise-toolbox'
 
 import { mapToArray } from '../utils'
 import { Remotes } from '../models/remote'
@@ -25,7 +26,7 @@ export default class {
 
       const remotes = await this.getAllRemotes()
       remotes.forEach(remote => {
-        this.updateRemote(remote.id, {})
+        ignoreErrors.call(this.updateRemote(remote.id, {}))
       })
     })
     xo.on('stop', async () => {
