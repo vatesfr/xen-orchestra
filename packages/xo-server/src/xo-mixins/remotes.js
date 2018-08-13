@@ -23,9 +23,19 @@ export default class {
           Promise.all(mapToArray(remotes, remote => this._remotes.save(remote)))
       )
 
-      await this.syncAllRemotes()
+      const remotes = await this.getAllRemotes()
+      forEach(remotes, remote => {
+        this.updateRemote(remote.id, {})
+      })
     })
-    xo.on('stop', () => this.forgetAllRemotes())
+    xo.on('stop', async () => {
+      const remotes = await this.getAllRemotes()
+      for (const remote of remotes) {
+        try {
+          ;(await this.getRemoteHandler(remote, true)).forget()
+        } catch (_) {}
+      }
+    })
   }
 
   async getRemoteHandler (remote, ignoreDisabled) {
@@ -91,23 +101,5 @@ export default class {
     const handler = await this.getRemoteHandler(id, true)
     await handler.forget()
     await this._remotes.remove(id)
-  }
-
-  // TODO: Should it be private?
-  async syncAllRemotes () {
-    const remotes = await this.getAllRemotes()
-    forEach(remotes, remote => {
-      this.updateRemote(remote.id, {})
-    })
-  }
-
-  // TODO: Should it be private?
-  async forgetAllRemotes () {
-    const remotes = await this.getAllRemotes()
-    for (const remote of remotes) {
-      try {
-        ;(await this.getRemoteHandler(remote, true)).forget()
-      } catch (_) {}
-    }
   }
 }
