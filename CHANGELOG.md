@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+- [Tables] Filter input now always shows up even if the table is empty [#3295](https://github.com/vatesfr/xen-orchestra/issues/3295) (PR [#3296](https://github.com/vatesfr/xen-orchestra/pull/3296))
+
 ### Bug fixes
 
 ### Released packages
