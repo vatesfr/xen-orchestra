@@ -100,24 +100,6 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
-const createGetTemporalDataMarkdown = formatDate => (
-  start,
-  end,
-  nbIndent = 0
-) => {
-  const indent = '  '.repeat(nbIndent)
-
-  const markdown = [`${indent}- **Start time**: ${formatDate(start)}`]
-  if (end !== undefined) {
-    markdown.push(`${indent}- **End time**: ${formatDate(end)}`)
-    const duration = end - start
-    if (duration >= 1) {
-      markdown.push(`${indent}- **Duration**: ${formatDuration(duration)}`)
-    }
-  }
-  return markdown
-}
-
 class BackupReportsXoPlugin {
   constructor (xo) {
     this._xo = xo
@@ -135,6 +117,7 @@ class BackupReportsXoPlugin {
 
   unload () {
     this._xo.removeListener('job:terminated', this._report)
+    this._formatDate = null
   }
 
   _wrapper (status, job, schedule, runJobId) {
@@ -150,6 +133,20 @@ class BackupReportsXoPlugin {
   // to remove
   test ({ runId }) {
     return this._backupNgListener(undefined, undefined, undefined, runId)
+  }
+
+  _getTemporalDataMarkdown (start, end, nbIndent = 0) {
+    const indent = '  '.repeat(nbIndent)
+
+    const markdown = [`${indent}- **Start time**: ${this._formatDate(start)}`]
+    if (end !== undefined) {
+      markdown.push(`${indent}- **End time**: ${this._formatDate(end)}`)
+      const duration = end - start
+      if (duration >= 1) {
+        markdown.push(`${indent}- **Duration**: ${formatDuration(duration)}`)
+      }
+    }
+    return markdown
   }
 
   async _backupNgListener (_1, _2, schedule, runJobId) {
@@ -169,8 +166,7 @@ class BackupReportsXoPlugin {
     }
 
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
-    const formatDate = createDateFormater(schedule.timezone)
-    const getTemporalDataMarkdown = createGetTemporalDataMarkdown(formatDate)
+    this._formatDate = createDateFormater(schedule.timezone)
 
     if (
       (log.status === 'failure' || log.status === 'skipped') &&
@@ -180,7 +176,7 @@ class BackupReportsXoPlugin {
         `##  Global status: ${log.status}`,
         '',
         `- **mode**: ${mode}`,
-        ...getTemporalDataMarkdown(log.start, log.end),
+        ...this._getTemporalDataMarkdown(log.start, log.end),
         `- **Error**: ${log.result.message}`,
         '---',
         '',
@@ -225,7 +221,7 @@ class BackupReportsXoPlugin {
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
         `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
-        ...getTemporalDataMarkdown(taskLog.start, taskLog.end),
+        ...this._getTemporalDataMarkdown(taskLog.start, taskLog.end),
       ]
 
       const failedSubTasks = []
@@ -250,7 +246,11 @@ class BackupReportsXoPlugin {
         if (subTaskLog.message === 'snapshot') {
           snapshotText.push(
             `- **Snapshot** ${icon}`,
-            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 1)
+            ...this._getTemporalDataMarkdown(
+              subTaskLog.start,
+              subTaskLog.end,
+              1
+            )
           )
         } else if (subTaskLog.data.type === 'remote') {
           const id = subTaskLog.data.id
@@ -259,7 +259,11 @@ class BackupReportsXoPlugin {
             `  - **${
               remote !== undefined ? remote.name : `Remote Not found`
             }** (${id}) ${icon}`,
-            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
+            ...this._getTemporalDataMarkdown(
+              subTaskLog.start,
+              subTaskLog.end,
+              2
+            )
           )
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(remote !== undefined ? remote.name : id)
@@ -275,7 +279,11 @@ class BackupReportsXoPlugin {
             sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, id]
           srsText.push(
             `  - **${srName}** (${srUuid}) ${icon}`,
-            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
+            ...this._getTemporalDataMarkdown(
+              subTaskLog.start,
+              subTaskLog.end,
+              2
+            )
           )
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(sr !== undefined ? sr.name_label : id)
@@ -316,7 +324,11 @@ class BackupReportsXoPlugin {
             `    - **${operationLog.message}** ${
               STATUS_ICON[operationLog.status]
             }`,
-            ...getTemporalDataMarkdown(operationLog.start, operationLog.end, 3),
+            ...this._getTemporalDataMarkdown(
+              operationLog.start,
+              operationLog.end,
+              3
+            ),
             ...operationInfoText,
           ].join('\n')
           if (get(subTaskLog, 'data.type') === 'remote') {
@@ -395,7 +407,7 @@ class BackupReportsXoPlugin {
       `##  Global status: ${log.status}`,
       '',
       `- **mode**: ${mode}`,
-      ...getTemporalDataMarkdown(log.start, log.end),
+      ...this._getTemporalDataMarkdown(log.start, log.end),
       `- **Successes**: ${nSuccesses} / ${nVms}`,
     ]
 
