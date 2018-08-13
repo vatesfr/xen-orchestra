@@ -141,6 +141,37 @@ export const PoolItem = [
 
 PoolItem.propTypes = XO_ITEM_PROP_TYPES
 
+export const VmTemplateItem = [
+  connectStore(() => {
+    const getTemplate = createGetObject()
+    return {
+      template: getTemplate,
+      pool: createGetObject(
+        createSelector(getTemplate, template => template.$pool)
+      ),
+    }
+  }),
+  ({ template, pool, ...props }) => {
+    const { id, name_label: nameLabel } = template
+    return (
+      <XoItem
+        item={template}
+        to={id !== undefined && `templates/${id}`}
+        {...props}
+      >
+        {() => (
+          <span>
+            <Icon icon={'template'} /> {`${nameLabel || id} `}
+            {pool && `(${pool.name_label || pool.id})`}
+          </span>
+        )}
+      </XoItem>
+    )
+  },
+].reduceRight((value, decorator) => decorator(value))
+
+VmTemplateItem.propTypes = XO_ITEM_PROP_TYPES
+
 // ===================================================================
 
 // Host, Network, VM-template.
@@ -231,7 +262,7 @@ const xoItemToRender = {
   ),
 
   // Pool objects.
-  'VM-template': vmTemplate => <PoolObjectItem object={vmTemplate} />,
+  'VM-template': ({ id }) => <VmTemplateItem id={id} />,
   host: host => <PoolObjectItem object={host} />,
   network: network => <PoolObjectItem object={network} />,
 
