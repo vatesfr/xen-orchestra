@@ -1,7 +1,7 @@
 import { getHandler } from '@xen-orchestra/fs'
 import { noSuchObject } from 'xo-common/api-errors'
 
-import { forEach, mapToArray } from '../utils'
+import { mapToArray } from '../utils'
 import { Remotes } from '../models/remote'
 
 // ===================================================================
@@ -24,7 +24,7 @@ export default class {
       )
 
       const remotes = await this.getAllRemotes()
-      forEach(remotes, remote => {
+      remotes.forEach(remote => {
         this.updateRemote(remote.id, {})
       })
     })
