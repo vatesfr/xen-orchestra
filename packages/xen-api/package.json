@@ -39,6 +39,7 @@
     "exec-promise": "^0.7.0",
     "http-request-plus": "^0.5.0",
     "iterable-backoff": "^0.0.0",
+    "jest-diff": "^23.5.0",
     "json-rpc-protocol": "^0.12.0",
     "kindof": "^2.0.0",
     "lodash": "^4.17.4",

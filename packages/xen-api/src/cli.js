@@ -4,6 +4,7 @@ import 'babel-polyfill'
 
 import blocked from 'blocked'
 import createDebug from 'debug'
+import diff from 'jest-diff'
 import eventToPromise from 'event-to-promise'
 import execPromise from 'exec-promise'
 import minimist from 'minimist'
@@ -81,6 +82,7 @@ const main = async args => {
   })
   repl.context.xapi = xapi
 
+  repl.context.diff = (a, b) => console.log('%s', diff(a, b))
   repl.context.find = predicate => find(xapi.objects.all, predicate)
   repl.context.findAll = predicate => filter(xapi.objects.all, predicate)
 
