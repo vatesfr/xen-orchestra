@@ -1,5 +1,4 @@
 import _, { messages } from 'intl'
-import CenterPanel from 'center-panel'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
@@ -8,7 +7,6 @@ import SortedTable from 'sorted-table'
 import { injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { connectStore, resolveIds } from 'utils'
-import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Container, Row } from 'grid'
 import { flatMap, flatten, isEmpty, keys, some, toArray } from 'lodash'
 import {
@@ -45,14 +43,15 @@ export class TaskItem extends Component {
 
     return (
       <div>
-        {task.name_label} ({task.name_description &&
-          `${task.name_description} `}on{' '}
+        {task.name_label} (
+        {task.name_description && `${task.name_description} `}
+        on{' '}
         {host ? (
           <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
         ) : (
           `unknown host − ${task.$host}`
-        )})
-        {' ' + Math.round(task.progress * 100)}%
+        )}
+        ){' ' + Math.round(task.progress * 100)}%
       </div>
     )
   }
@@ -163,27 +162,7 @@ export default class Tasks extends Component {
 
   render () {
     const { props } = this
-    const { intl, nTasks, pendingTasksByPool, pools } = props
-
-    if (isEmpty(pendingTasksByPool)) {
-      return (
-        <Page header={HEADER} title='taskPage' formatTitle>
-          <CenterPanel>
-            <Card>
-              <CardHeader>{_('noTasks')}</CardHeader>
-              <CardBlock>
-                <Row>
-                  <Col>
-                    <p className='text-muted'>{_('xsTasks')}</p>
-                  </Col>
-                </Row>
-              </CardBlock>
-            </Card>
-          </CenterPanel>
-        </Page>
-      )
-    }
-
+    const { intl, nTasks, pools } = props
     const { formatMessage } = intl
 
     return (

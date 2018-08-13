@@ -1271,8 +1271,6 @@ const messages = {
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
 
   // ---- Tasks ---
-  noTasks: 'No pending tasks',
-  xsTasks: 'Currently, there are not any pending XenServer tasks',
   cancelTask: 'Cancel',
   destroyTask: 'Destroy',
   cancelTasks: 'Cancel selected tasks',
