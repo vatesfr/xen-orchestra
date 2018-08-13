@@ -9,7 +9,7 @@ export default class Logs {
     app.on('clean', () => this._gc())
   }
 
-  async _gc (keep = 1e4) {
+  async _gc (keep = 2e4) {
     const db = await this._app.getStore('logs')
 
     let count = 1
