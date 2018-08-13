@@ -19,6 +19,7 @@ import {
   every,
   find,
   filter,
+  flatMap,
   flatten,
   groupBy,
   includes,
@@ -1149,7 +1150,12 @@ export default class Xapi extends XapiBase {
     // VDIs/SRs mapping
     const vdis = {}
     const defaultSr = host.$pool.$default_SR
-    for (const vbd of vm.$VBDs) {
+    const vbds = flatMap(
+      mapToArray(vm.$snapshots, snapshotId => this.getObject(snapshotId)),
+      '$VBDs'
+    ).concat(vm.$VBDs)
+
+    for (const vbd of vbds) {
       const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
         vdis[vdi.$ref] =
