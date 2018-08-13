@@ -291,6 +291,14 @@
     @extend .fa;
     @extend .fa-map-signs;
   }
+  &-files {
+    @extend .fa;
+    @extend .fa-object-group;
+  }
+  &-folder {
+    @extend .fa;
+    @extend .fa-folder;
+  }
 
   // Jobs
   &-jobs {
