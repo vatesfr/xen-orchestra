@@ -146,14 +146,8 @@ PoolItem.propTypes = XO_ITEM_PROP_TYPES
 export const SrResourceSetItem = [
   connectStore(() => {
     const getSr = createGetObject()
-    const getContainer = createGetObject((state, props) => {
-      const sr = getSr(state, props, true) // true to bypass view permissions
-      return sr && sr.$container
-    })
-
     return (state, props) => ({
       sr: getSr(state, props, true),
-      container: getContainer(state, props, true),
     })
   }),
   ({ sr, container, ...props }) => (
@@ -161,7 +155,6 @@ export const SrResourceSetItem = [
       {() => (
         <span>
           <Icon icon='sr' /> {sr.name_label || sr.id}
-          <span className='text-muted'> - {container.name_label}</span>
           {isSrWritable(sr) && (
             <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
           )}
