@@ -1,15 +1,12 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import TabButton from 'tab-button'
-import { deleteMessage } from 'xo'
 import { createPager } from 'selectors'
+import { Row, Col } from 'grid'
+import { deleteMessage, deleteMessages } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Container, Row, Col } from 'grid'
 
 const LOG_COLUMNS = [
   {
@@ -40,16 +37,16 @@ const LOG_COLUMNS = [
     itemRenderer: log => log.body,
     sortCriteria: log => log.body,
   },
+]
+
+const LOG_ACTIONS = [
   {
-    name: _('logAction'),
-    itemRenderer: log => (
-      <ActionRowButton
-        btnStyle='danger'
-        handler={deleteMessage}
-        handlerParam={log}
-        icon='delete'
-      />
-    ),
+    handler: deleteMessages,
+    individualHandler: deleteMessage,
+    individualLabel: _('logDelete'),
+    icon: 'delete',
+    label: _('logsDelete'),
+    level: 'danger',
   },
 ]
 
@@ -64,7 +61,6 @@ export default class TabLogs extends Component {
     }
   }
 
-  _deleteAllLogs = () => map(this.props.logs, deleteMessage)
   _nextPage = () => this.setState({ page: this.state.page + 1 })
   _previousPage = () => this.setState({ page: this.state.page - 1 })
 
@@ -83,23 +79,11 @@ export default class TabLogs extends Component {
     }
 
     return (
-      <Container>
-        <Row>
-          <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='danger'
-              handler={this._deleteAllLogs}
-              icon='delete'
-              labelId='logRemoveAll'
-            />
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <SortedTable collection={logs} columns={LOG_COLUMNS} />
-          </Col>
-        </Row>
-      </Container>
+      <SortedTable
+        actions={LOG_ACTIONS}
+        collection={logs}
+        columns={LOG_COLUMNS}
+      />
     )
   }
 }
