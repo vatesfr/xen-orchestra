@@ -80,9 +80,9 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  async updateRemote (id, { name, url, enabled, error }) {
+  async updateRemote (id, { name, url, enabled }) {
     const remote = await this._getRemote(id)
-    this._updateRemote(remote, { name, url, enabled, error })
+    this._updateRemote(remote, { name, url, enabled })
     const handler = await this.getRemoteHandler(remote.properties, true)
     const props = await handler.sync()
     this._updateRemote(remote, props)
