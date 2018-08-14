@@ -549,10 +549,14 @@ export default class NewVm extends BaseComponent {
   _getSrPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => disk =>
-      (isInResourceSet(disk.id) || isInPool(disk)) &&
+    () => this.state.state.template,
+    () => this.props.pool === undefined,
+    (isInPool, isInResourceSet, template, self) => disk =>
+      (self ? isInResourceSet(disk.id) : isInPool(disk)) &&
       disk.content_type !== 'iso' &&
-      disk.size > 0
+      disk.size > 0 &&
+      template !== undefined &&
+      template.$pool === disk.$pool
   )
   _getIsoPredicate = createSelector(
     () => this.props.pool && this.props.pool.id,
@@ -715,7 +719,10 @@ export default class NewVm extends BaseComponent {
       resolveIds(
         filter(
           this._getResolvedResourceSet().objectsByType.SR,
-          this._getSrPredicate()
+          sr =>
+            sr.$pool === template.$pool &&
+            sr.content_type !== 'iso' &&
+            sr.size > 0
         )
       ),
       defaultSr

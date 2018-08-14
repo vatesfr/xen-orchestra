@@ -143,6 +143,32 @@ PoolItem.propTypes = XO_ITEM_PROP_TYPES
 
 // ===================================================================
 
+export const SrResourceSetItem = [
+  connectStore(() => {
+    const getSr = createGetObject()
+    return (state, props) => ({
+      // true to bypass permissions as a self user
+      sr: getSr(state, props, true),
+    })
+  }),
+  ({ sr, ...props }) => (
+    <XoItem item={sr} to={sr !== undefined && `/srs/${sr.id}`} {...props}>
+      {() => (
+        <span>
+          <Icon icon='sr' /> {sr.name_label || sr.id}
+          {isSrWritable(sr) && (
+            <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
+          )}
+        </span>
+      )}
+    </XoItem>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+SrResourceSetItem.propTypes = XO_ITEM_PROP_TYPES
+
+// ===================================================================
+
 // Host, Network, VM-template.
 const PoolObjectItem = propTypes({
   object: propTypes.object.isRequired,
@@ -237,6 +263,7 @@ const xoItemToRender = {
 
   // SR.
   SR: ({ id }) => <SrItem id={id} />,
+  'SR-resourceSet': ({ id }) => <SrResourceSetItem id={id} />,
 
   // VM.
   VM: ({ id }) => <VmItem id={id} />,

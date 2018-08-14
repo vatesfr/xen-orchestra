@@ -221,6 +221,11 @@ class GenericSelect extends React.Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
+  /* TODO: When all item components are implemented, change type to this:
+      type: this.props.resourceSet !== undefined && option.xoItem.type !== undefined
+        ? `${option.xoItem.type}-resourceSet`
+        : undefined
+  */
   _renderOption = option => (
     <span
       className={
@@ -229,7 +234,12 @@ class GenericSelect extends React.Component {
           : undefined
       }
     >
-      {renderXoItem(option.xoItem)}
+      {renderXoItem(option.xoItem, {
+        type:
+          this.props.resourceSet && option.xoItem.type === 'SR'
+            ? 'SR-resourceSet'
+            : undefined,
+      })}
     </span>
   )
 
@@ -790,13 +800,16 @@ export class SelectResourceSetsSr extends React.PureComponent {
   set value (value) {
     this.refs.select.value = value
   }
-  _getSrs = createSelector(
-    () => this.props.resourceSet,
-    ({ objectsByType }) => {
-      const { predicate } = this.props
-      const srs = objectsByType['SR']
-      return sortBy(predicate ? filter(srs, predicate) : srs, 'name_label')
-    }
+
+  _getSrs = createSort(
+    createFilter(
+      () => this.props.resourceSet.objectsByType.SR,
+      createSelector(
+        () => this.props.predicate,
+        predicate => predicate || (() => true)
+      )
+    ),
+    'name_label'
   )
 
   render () {
