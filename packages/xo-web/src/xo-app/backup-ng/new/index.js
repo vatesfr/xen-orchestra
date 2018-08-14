@@ -131,7 +131,9 @@ const getInitialState = () => ({
   smartMode: false,
   snapshotMode: false,
   srs: [],
-  tags: {},
+  tags: {
+    notValues: ['Continuous Replication', 'Disaster Recovery'],
+  },
   tmpSchedule: undefined,
   vms: [],
 })
