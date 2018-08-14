@@ -83,7 +83,12 @@ export default class {
   }
 
   async createRemote ({ name, url }) {
-    const remote = await this._remotes.create(name, url)
+    const remote = await this._remotes.add({
+      name,
+      url,
+      enabled: false,
+      error: '',
+    })
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
