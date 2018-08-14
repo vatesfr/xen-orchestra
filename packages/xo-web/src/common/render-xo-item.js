@@ -147,10 +147,11 @@ export const SrResourceSetItem = [
   connectStore(() => {
     const getSr = createGetObject()
     return (state, props) => ({
+      // true to bypass permissions as a self user
       sr: getSr(state, props, true),
     })
   }),
-  ({ sr, container, ...props }) => (
+  ({ sr, ...props }) => (
     <XoItem item={sr} to={sr !== undefined && `/srs/${sr.id}`} {...props}>
       {() => (
         <span>
