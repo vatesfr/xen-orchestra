@@ -15,9 +15,6 @@ export default class Model extends EventEmitter {
     }
   }
 
-  // Initialize the model after construction.
-  initialize () {}
-
   // Validate the defined properties.
   //
   // Returns the error if any.
