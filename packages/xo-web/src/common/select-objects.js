@@ -86,6 +86,9 @@ const options = props => ({
   defaultValue: props.multi ? [] : undefined,
 })
 
+const getObjectsById = objects =>
+  keyBy(isArray(objects) ? objects : flatten(toArray(objects)), 'id')
+
 // ===================================================================
 
 /*
@@ -126,15 +129,43 @@ class GenericSelect extends React.Component {
     ]).isRequired,
   }
 
-  _getObjectsById = createSelector(
+  _getObjectsById = createSelector(() => this._getObjects(), getObjectsById)
+
+  _getObjects = createSelector(
+    () => this.props.xoContainers !== undefined,
     () => this.props.xoObjects,
-    objects =>
-      keyBy(isArray(objects) ? objects : flatten(toArray(objects)), 'id')
+    () => this._getSelectedIds(),
+    (containers, objects, ids) => {
+      const objectsById = getObjectsById(objects)
+      const missingObjects = []
+      const addIfMissing = id => {
+        if (id != null && !(id in objectsById)) {
+          missingObjects.push({
+            id,
+            label: id,
+            value: id,
+            removed: true,
+          })
+        }
+      }
+      if (isArray(ids)) {
+        ids.forEach(addIfMissing)
+      } else {
+        addIfMissing(ids)
+      }
+
+      return containers
+        ? {
+            ...objects,
+            ...groupBy(missingObjects, () => 'missingObjects'),
+          }
+        : [...objects, ...missingObjects]
+    }
   )
 
   _getOptions = createSelector(
     () => this.props.xoContainers,
-    () => this.props.xoObjects,
+    this._getObjects,
     (containers, objects) => {
       // createCollectionWrapper with a depth?
       const { name } = this.constructor
@@ -166,31 +197,22 @@ class GenericSelect extends React.Component {
             options.push(getOption(object, container))
           })
         })
-      }
 
-      const objectsById = this._getObjectsById()
-      const addIfMissing = val => {
-        if (val != null && !(val in objectsById)) {
-          options.push({
-            disabled: true,
-            id: val,
-            label: val,
-            value: val,
-            xoItem: {
-              id: val,
-              removed: true,
-            },
+        // missing objects don't have a container
+        const missingObjects = objects['missingObjects']
+        if (missingObjects !== undefined) {
+          missingObjects.forEach(object => {
+            options.push(getOption(object))
           })
         }
       }
 
-      const values = this._getSelectedIds()
-      if (isArray(values)) {
-        forEach(values, addIfMissing)
-      } else {
-        addIfMissing(values)
-      }
-
+      options.map(option => {
+        if (option.xoItem.removed) {
+          option.disabled = true
+        }
+        return option
+      })
       return options
     }
   )
