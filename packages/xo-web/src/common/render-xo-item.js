@@ -141,6 +141,37 @@ export const PoolItem = [
 
 PoolItem.propTypes = XO_ITEM_PROP_TYPES
 
+export const NetworkItem = [
+  connectStore(() => {
+    const getNetwork = createGetObject()
+    return {
+      network: getNetwork,
+      pool: createGetObject(
+        createSelector(getNetwork, network => network.$pool)
+      ),
+    }
+  }),
+  ({ network, pool, ...props }) => {
+    const { id, name_label: nameLabel } = network
+    return (
+      <XoItem
+        item={network}
+        to={id !== undefined && `networks/${id}`}
+        {...props}
+      >
+        {() => (
+          <span>
+            <Icon icon={'network'} /> {`${nameLabel || id} `}
+            {pool && `(${pool.name_label || pool.id})`}
+          </span>
+        )}
+      </XoItem>
+    )
+  },
+].reduceRight((value, decorator) => decorator(value))
+
+NetworkItem.propTypes = XO_ITEM_PROP_TYPES
+
 // ===================================================================
 
 // Host, Network, VM-template.
@@ -233,7 +264,7 @@ const xoItemToRender = {
   // Pool objects.
   'VM-template': vmTemplate => <PoolObjectItem object={vmTemplate} />,
   host: host => <PoolObjectItem object={host} />,
-  network: network => <PoolObjectItem object={network} />,
+  network: ({ id }) => <NetworkItem id={id} />,
 
   // SR.
   SR: ({ id }) => <SrItem id={id} />,
