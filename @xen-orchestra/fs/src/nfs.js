@@ -66,19 +66,9 @@ export default class NfsHandler extends LocalHandler {
   async _sync () {
     await this._loadRealMounts()
     if (this._matchesRealMount() && !this._remote.enabled) {
-      try {
-        await this._umount(this._remote)
-      } catch (exc) {
-        this._remote.enabled = true
-        this._remote.error = exc.message
-      }
+      await this._umount(this._remote)
     } else if (!this._matchesRealMount() && this._remote.enabled) {
-      try {
-        await this._mount()
-      } catch (exc) {
-        this._remote.enabled = false
-        this._remote.error = exc.message
-      }
+      await this._mount()
     }
     return this._remote
   }

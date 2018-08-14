@@ -28,14 +28,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _sync () {
     if (this._remote.enabled) {
-      try {
-        const path = this._getRealPath()
-        await fs.ensureDir(path)
-        await fs.access(path, fs.R_OK | fs.W_OK)
-      } catch (exc) {
-        this._remote.enabled = false
-        this._remote.error = exc.message
-      }
+      const path = this._getRealPath()
+      await fs.ensureDir(path)
+      await fs.access(path, fs.R_OK | fs.W_OK)
     }
     return this._remote
   }
