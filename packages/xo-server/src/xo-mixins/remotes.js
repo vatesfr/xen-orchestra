@@ -69,17 +69,12 @@ export default class {
     return this._remotes.get()
   }
 
-  async _getRemote (id) {
+  async getRemote (id) {
     const remote = await this._remotes.first(id)
-    if (!remote) {
+    if (remote === undefined) {
       throw noSuchObject(id, 'remote')
     }
-
-    return remote
-  }
-
-  async getRemote (id) {
-    return (await this._getRemote(id)).properties
+    return remote.properties
   }
 
   async createRemote ({ name, url }) {
@@ -93,7 +88,7 @@ export default class {
   }
 
   async updateRemote (id, { name, url, enabled }) {
-    const remote = await this._getRemote(id)
+    const remote = await this.getRemote(id)
     this._updateRemote(remote, { name, url, enabled })
     const handler = await this.getRemoteHandler(remote.properties, true)
     const props = await handler.sync()
