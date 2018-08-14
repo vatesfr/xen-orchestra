@@ -15,6 +15,7 @@
 
 ### Released packages
 
+- @xen-orchestra/fs 0.3.0
 - xo-server v5.25.0
 - xo-web v5.25.0
 
