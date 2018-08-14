@@ -12,20 +12,6 @@ const DEFAULT_ACTION = 'admin'
 
 export default class Acl extends Model {}
 
-Acl.create = (subject, object, action) => {
-  return Acl.hash(subject, object, action).then(
-    hash =>
-      new Acl({
-        id: hash,
-        subject,
-        object,
-        action,
-      })
-  )
-}
-
-Acl.hash = (subject, object, action) => multiKeyHash(subject, object, action)
-
 // -------------------------------------------------------------------
 
 export class Acls extends Collection {
@@ -34,15 +20,25 @@ export class Acls extends Collection {
   }
 
   create (subject, object, action) {
-    return Acl.create(subject, object, action).then(acl => this.add(acl))
+    return multiKeyHash(subject, object, action)
+      .then(
+        hash =>
+          new Acl({
+            id: hash,
+            subject,
+            object,
+            action,
+          })
+      )
+      .then(acl => this.add(acl))
   }
 
   delete (subject, object, action) {
-    return Acl.hash(subject, object, action).then(hash => this.remove(hash))
+    return multiKeyHash(subject, object, action).then(hash => this.remove(hash))
   }
 
   aclExists (subject, object, action) {
-    return Acl.hash(subject, object, action).then(hash => this.exists(hash))
+    return multiKeyHash(subject, object, action).then(hash => this.exists(hash))
   }
 
   async get (properties) {
@@ -61,10 +57,9 @@ export class Acls extends Collection {
       await this.remove(mapToArray(toUpdate, 'id'))
 
       // Compute the new ids (new hashes).
-      const { hash } = Acl
       await Promise.all(
         mapToArray(toUpdate, acl =>
-          hash(acl.subject, acl.object, acl.action).then(id => {
+          multiKeyHash(acl.subject, acl.object, acl.action).then(id => {
             acl.id = id
           })
         )
