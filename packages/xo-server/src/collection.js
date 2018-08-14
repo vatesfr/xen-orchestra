@@ -38,19 +38,7 @@ export default class Collection extends EventEmitter {
     const { Model } = this
     map(
       models,
-      model => {
-        if (!(model instanceof Model)) {
-          model = new Model(model)
-        }
-
-        const error = model.validate()
-        if (error) {
-          // TODO: Better system inspired by Backbone.js
-          throw error
-        }
-
-        return model.properties
-      },
+      model => (model instanceof Model ? model.properties : model),
       models
     )
 
@@ -110,12 +98,6 @@ export default class Collection extends EventEmitter {
         if (id === undefined) {
           // FIXME: should not throw an exception but return a rejected promise.
           throw new Error('a model without an id cannot be updated')
-        }
-
-        const error = model.validate()
-        if (error !== undefined) {
-          // TODO: Better system inspired by Backbone.js.
-          throw error
         }
 
         return model.properties

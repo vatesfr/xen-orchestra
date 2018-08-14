@@ -15,11 +15,6 @@ export default class Model extends EventEmitter {
     }
   }
 
-  // Validate the defined properties.
-  //
-  // Returns the error if any.
-  validate (properties) {}
-
   // Get a property.
   get (name, def) {
     const value = this.properties[name]
