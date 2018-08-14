@@ -1,7 +1,9 @@
+import synchronized from 'decorator-synchronized'
 import { getHandler } from '@xen-orchestra/fs'
 import { noSuchObject } from 'xo-common/api-errors'
 import { ignoreErrors } from 'promise-toolbox'
 
+import patch from '../patch'
 import { mapToArray } from '../utils'
 import { Remotes } from '../models/remote'
 
@@ -88,23 +90,26 @@ export default class {
   }
 
   async updateRemote (id, { name, url, enabled }) {
-    const remote = await this.getRemote(id)
-    this._updateRemote(remote, { name, url, enabled })
-    const handler = await this.getRemoteHandler(remote.properties, true)
-    const props = await handler.sync()
-    this._updateRemote(remote, props)
-    return (await this._remotes.update(remote)).properties
+    const remote = await this._updateRemote(id, { name, url, enabled })
+
+    // force refreshing the handler
+    delete this._handlers[id]
+    const handler = await this.getRemoteHandler(remote, true)
+
+    let error = ''
+    try {
+      await handler.sync()
+    } catch (error_) {
+      error = error_.message
+    }
+    return this._updateRemote(id, { error })
   }
 
-  _updateRemote (remote, { name, url, enabled, error }) {
-    if (name) remote.set('name', name)
-    if (url) remote.set('url', url)
-    if (enabled !== undefined) remote.set('enabled', enabled)
-    if (error) {
-      remote.set('error', error)
-    } else {
-      remote.set('error', '')
-    }
+  @synchronized()
+  async _updateRemote (id, props) {
+    const remote = await this.getRemote(id)
+    patch(remote, props)
+    return (await this._remotes.update(remote)).properties
   }
 
   async removeRemote (id) {

@@ -71,13 +71,8 @@ export default class SmbHandler extends RemoteHandlerAbstract {
 
   async _sync () {
     if (this._remote.enabled) {
-      try {
-        // Check access (smb2 does not expose connect in public so far...)
-        await this.list()
-      } catch (error) {
-        this._remote.enabled = false
-        this._remote.error = error.message
-      }
+      // Check access (smb2 does not expose connect in public so far...)
+      await this.list()
     }
     return this._remote
   }
