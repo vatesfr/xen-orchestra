@@ -4,7 +4,7 @@ import SmartBackupPreview from 'smart-backup'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { get } from 'lodash'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState } from '@julien-f/freactal'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
 
@@ -18,15 +18,10 @@ const VMS_STATUSES_OPTIONS = [
 
 export default [
   connectStore({
-    storedVms: createGetObjectsOfType('VM'),
-  }),
-  provideState({
-    computed: {
-      storedVms: (state, { storedVms }) => storedVms,
-    },
+    vms: createGetObjectsOfType('VM'),
   }),
   injectState,
-  ({ state, effects }) => (
+  ({ state, effects, vms }) => (
     <div>
       <FormGroup>
         <label>
@@ -84,10 +79,7 @@ export default [
           value={get(state.tags, 'notValues')}
         />
       </FormGroup>
-      <SmartBackupPreview
-        vms={state.storedVms}
-        pattern={state.vmsSmartPattern}
-      />
+      <SmartBackupPreview vms={vms} pattern={state.vmsSmartPattern} />
     </div>
   ),
 ].reduceRight((value, decorator) => decorator(value))
