@@ -1150,11 +1150,7 @@ export default class Xapi extends XapiBase {
     // VDIs/SRs mapping
     const vdis = {}
     const defaultSr = host.$pool.$default_SR
-    const vbds = flatMap(
-      mapToArray(vm.$snapshots, snapshotId => this.getObject(snapshotId)),
-      '$VBDs'
-    ).concat(vm.$VBDs)
-
+    const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
       const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
