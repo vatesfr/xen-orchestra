@@ -14,6 +14,7 @@ export default class {
       prefix: 'xo:remote',
       indexes: ['enabled'],
     })
+    this._handlers = { __proto__: null }
 
     xo.on('clean', () => this._remotes.rebuildIndexes())
     xo.on('start', async () => {
@@ -32,10 +33,10 @@ export default class {
       })
     })
     xo.on('stop', async () => {
-      const remotes = await this.getAllRemotes()
-      for (const remote of remotes) {
+      const handlers = this._handlers
+      for (const id in handlers) {
         try {
-          ;(await this.getRemoteHandler(remote, true)).forget()
+          await handlers[id].forget()
         } catch (_) {}
       }
     })
@@ -50,7 +51,13 @@ export default class {
       throw new Error('remote is disabled')
     }
 
-    return getHandler(remote)
+    const { id } = remote
+    const handlers = this._handlers
+    let handler = handlers[id]
+    if (handler === undefined) {
+      handler = handlers[id] = getHandler(remote)
+    }
+    return handler
   }
 
   async testRemote (remote) {
