@@ -129,12 +129,15 @@ class GenericSelect extends React.Component {
     ]).isRequired,
   }
 
-  _getObjectsById = createSelector(() => this._getObjects(), getObjectsById)
+  _getSelectedIds = createSelector(
+    () => this.props.value,
+    createCollectionWrapper(getIds)
+  )
 
   _getObjects = createSelector(
     () => this.props.xoContainers !== undefined,
     () => this.props.xoObjects,
-    () => this._getSelectedIds(),
+    this._getSelectedIds,
     (containers, objects, ids) => {
       const objectsById = getObjectsById(objects)
       const missingObjects = []
@@ -162,6 +165,8 @@ class GenericSelect extends React.Component {
         : [...objects, ...missingObjects]
     }
   )
+
+  _getObjectsById = createSelector(this._getObjects, getObjectsById)
 
   _getOptions = createSelector(
     () => this.props.xoContainers,
@@ -215,11 +220,6 @@ class GenericSelect extends React.Component {
       })
       return options
     }
-  )
-
-  _getSelectedIds = createSelector(
-    () => this.props.value,
-    createCollectionWrapper(getIds)
   )
 
   _getSelectedObjects = (() => {
