@@ -984,7 +984,7 @@ const messages = {
 
   // ----- VM advanced tab -----
   vmRemoveButton: 'Remove',
-  vmConvertButton: 'Convert',
+  vmConvertToTemplateButton: 'Convert to template',
   vmShareButton: 'Share',
   xenSettingsLabel: 'Xen settings',
   guestOsLabel: 'Guest OS',
