@@ -96,7 +96,7 @@ export default class Scheduling {
     cron,
     enabled,
     jobId,
-    name,
+    name = '',
     timezone,
     userId,
   }: $Diff<Schedule, {| id: string |}>) {
