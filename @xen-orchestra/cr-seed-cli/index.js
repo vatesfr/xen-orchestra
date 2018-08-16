@@ -1,0 +1,113 @@
+#!/usr/bin/env node
+
+const defer = require('golike-defer').default
+const { NULL_REF, Xapi } = require('xen-api')
+
+const pkg = require('./package.json')
+
+Xapi.prototype.getVmDisks = async function (vm) {
+  const disks = { __proto__: null }
+  await Promise.all([
+    ...vm.VBDs.map(async vbdRef => {
+      const vbd = await this.getRecord('VBD', vbdRef)
+      let vdiRef
+      if (vbd.type === 'Disk' && (vdiRef = vbd.VDI) !== NULL_REF) {
+        disks[vbd.userdevice] = await this.getRecord('VDI', vdiRef)
+      }
+    }),
+  ])
+  return disks
+}
+
+defer(async function main ($defer, args) {
+  if (args.length === 0 || args.includes('-h') || args.includes('--help')) {
+    const cliName = Object.keys(pkg.bin)[0]
+    return console.error(
+      '%s',
+      `
+Usage: ${cliName} <source XAPI URL> <source snapshot UUID> <target XAPI URL> <target VM UUID> <backup job id> <backup schedule id>
+
+${cliName} v${pkg.version}
+`
+    )
+  }
+
+  const [
+    srcXapiUrl,
+    srcSnapshotUuid,
+    tgtXapiUrl,
+    tgtVmUuid,
+    jobId,
+    scheduleId,
+  ] = args
+
+  const srcXapi = new Xapi({
+    allowUnauthorized: true,
+    url: srcXapiUrl,
+    watchEvents: false,
+  })
+  await srcXapi.connect()
+  defer.call(srcXapi, 'disconnect')
+
+  const tgtXapi = new Xapi({
+    allowUnauthorized: true,
+    url: tgtXapiUrl,
+    watchEvents: false,
+  })
+  await tgtXapi.connect()
+  defer.call(tgtXapi, 'disconnect')
+
+  const [srcSnapshot, tgtVm] = await Promise.all([
+    srcXapi.getRecordByUuid('VM', srcSnapshotUuid),
+    tgtXapi.getRecordByUuid('VM', tgtVmUuid),
+  ])
+  const srcVm = await srcXapi.getRecord('VM', srcSnapshot.snapshot_of)
+
+  const metadata = {
+    'xo:backup:job': jobId,
+    'xo:backup:schedule': scheduleId,
+    'xo:backup:vm': srcVm.uuid,
+  }
+
+  const [srcDisks, tgtDisks] = await Promise.all([
+    srcXapi.getVmDisks(srcSnapshot),
+    tgtXapi.getVmDisks(tgtVm),
+  ])
+  const userDevices = Object.keys(tgtDisks)
+
+  const tgtSr = await tgtXapi.getRecord(
+    'SR',
+    tgtDisks[Object.keys(tgtDisks)[0]].SR
+  )
+
+  await Promise.all([
+    srcXapi.setFieldEntries(srcSnapshot, 'other_config', metadata),
+    tgtXapi.setField(
+      tgtVm,
+      'name_label',
+      `${srcVm.name_label} (${srcSnapshot.snapshot_time})`
+    ),
+    tgtXapi.setFieldEntries(tgtVm, 'other_config', metadata),
+    tgtXapi.setFieldEntries(tgtVm, 'other_config', {
+      'xo:backup:sr': tgtSr.uuid,
+      'xo:copy_of': srcSnapshotUuid,
+    }),
+    tgtXapi.setFieldEntries(tgtVm, 'blocked_operations', {
+      start:
+        'Start operation for this vm is blocked, clone it if you want to use it.',
+    }),
+    Promise.all(
+      userDevices.map(userDevice => {
+        const srcDisk = srcDisks[userDevice]
+        const tgtDisk = tgtDisks[userDevice]
+
+        return tgtXapi.setFieldEntry(
+          tgtDisk,
+          'other_config',
+          'xo:copy_of',
+          srcDisk.uuid
+        )
+      })
+    ),
+  ])
+})(process.argv.slice(2)).catch(console.error.bind(console, 'Fatal error:'))
