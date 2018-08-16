@@ -59,6 +59,15 @@ export default class {
     if (handler === undefined) {
       handler = handlers[id] = getHandler(remote)
     }
+
+    try {
+      await handler.sync()
+      ignoreErrors.call(this._updateRemote(id, { error: '' }))
+    } catch (error) {
+      ignoreErrors.call(this._updateRemote(id, { error: error.message }))
+      throw error
+    }
+
     return handler
   }
 
@@ -89,20 +98,15 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  async updateRemote (id, { name, url, enabled }) {
-    const remote = await this._updateRemote(id, { name, url, enabled })
-
-    // force refreshing the handler
-    delete this._handlers[id]
-    const handler = await this.getRemoteHandler(remote, true)
-
-    let error = ''
-    try {
-      await handler.sync()
-    } catch (error_) {
-      error = error_.message
+  updateRemote (id, { name, url, enabled }) {
+    const handlers = this._handlers
+    const handler = handlers[id]
+    if (handler !== undefined) {
+      delete this._handlers[id]
+      ignoreErrors.call(handler.forget())
     }
-    return this._updateRemote(id, { error })
+
+    return this._updateRemote(id, { name, url, enabled })
   }
 
   @synchronized()
