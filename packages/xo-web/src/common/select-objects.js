@@ -138,7 +138,7 @@ class GenericSelect extends React.Component {
     () => this.props.xoContainers !== undefined,
     () => this.props.xoObjects,
     this._getSelectedIds,
-    (containers, objects, ids) => {
+    (withContainers, objects, ids) => {
       const objectsById = getObjectsById(objects)
       const missingObjects = []
       const addIfMissing = id => {
@@ -157,12 +157,14 @@ class GenericSelect extends React.Component {
         addIfMissing(ids)
       }
 
-      return containers
-        ? {
-            ...objects,
-            ...groupBy(missingObjects, () => 'missingObjects'),
-          }
-        : [...objects, ...missingObjects]
+      return isEmpty(missingObjects)
+        ? objects
+        : withContainers
+          ? {
+              ...objects,
+              missingObjects,
+            }
+          : [...objects, ...missingObjects]
     }
   )
 
@@ -203,8 +205,8 @@ class GenericSelect extends React.Component {
           })
         })
 
-        // missing objects don't have a container
-        const missingObjects = objects['missingObjects']
+        // missing objects have "missingObjects" as container
+        const { missingObjects } = objects
         if (missingObjects !== undefined) {
           missingObjects.forEach(object => {
             options.push(getOption(object))
