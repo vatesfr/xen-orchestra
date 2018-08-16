@@ -1,5 +1,4 @@
 import _ from 'intl'
-import Component from 'base-component'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { get } from '@xen-orchestra/defined'
@@ -225,57 +224,22 @@ Sr.defaultProps = {
   self: false,
 }
 
-@connectStore(() => {
-  // true to bypass view permissions
-  const getVdi = createGetObject()
-  const getSr = createGetObject((state, props) => {
-    const vdi = getVdi(state, props, true)
-    return vdi && vdi.$SR
-  })
-
-  return (state, props) => ({
-    sr: getSr(state, props),
-    vdi: getVdi(state, props, true),
-  })
-})
-export class VdiResourceSetItem extends Component {
-  render () {
-    const { props } = this
-    const { sr, vdi } = props
-    return (
-      <XoItem item={vdi} {...props}>
-        {() => (
-          <span>
-            <Icon icon='disk' /> {vdi.name_label}
-            {sr !== undefined && (
-              <span className='text-muted'> - {sr.name_label}</span>
-            )}
-          </span>
-        )}
-      </XoItem>
-    )
-  }
-}
-
-VdiResourceSetItem.propTypes = XO_ITEM_PROP_TYPES
-
 // ===================================================================
 
 export const Vdi = decorate([
   connectStore(() => {
     const getObject = createGetObject()
     const getSr = createGetObject((state, props) => {
-     // true to bypass view permissions
-     const vdi = getObject(state, props, true)
-     return vdi && vdi.$SR
-   })
+      const vdi = getObject(state, props, props.self)
+      return vdi && vdi.$SR
+    })
     // FIXME: props.self ugly workaround to get object as a self user
     return (state, props) => ({
       vdi: getObject(state, props, props.self),
-      sr: getSr(state, props)
+      sr: getSr(state, props, props.self),
     })
   }),
-  ({ vdi }) => {
+  ({ sr, vdi }) => {
     if (vdi === undefined) {
       return UNKNOWN_ITEM
     }
@@ -283,7 +247,9 @@ export const Vdi = decorate([
     return (
       <span>
         <Icon icon='disk' /> {vdi.name_label}
-        {sr !== undefined && (<span className='text-muted'> - {sr.name_label}</span>)}
+        {sr !== undefined && (
+          <span className='text-muted'> - {sr.name_label}</span>
+        )}
       </span>
     )
   },

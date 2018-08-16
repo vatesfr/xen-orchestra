@@ -5,6 +5,7 @@
 ### Enhancements
 
 - [Users] Display user groups [#3719](https://github.com/vatesfr/xen-orchestra/issues/3719) (PR [#3740](https://github.com/vatesfr/xen-orchestra/pull/3740))
+- [VDI] Display VDI's SR and container [3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3281](https://github.com/vatesfr/xen-orchestra/pull/3285))
 
 ### Bug fixes
 
@@ -319,7 +320,6 @@
 - [Backup NG form] Move "Use compression" checkbox in the advanced settings [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3281](https://github.com/vatesfr/xen-orchestra/pull/3281))
 - [Backup NG form] Ability to remove previous backups first before backup the VMs [#3212](https://github.com/vatesfr/xen-orchestra/issues/3212) (PR [#3260](https://github.com/vatesfr/xen-orchestra/pull/3260))
 - [Patching] Check date consistency before patching to avoid error on install [#3056](https://github.com/vatesfr/xen-orchestra/issues/3056)
-- [VDI] Display VDI's SR and container [3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3281](https://github.com/vatesfr/xen-orchestra/pull/3285))
 
 ### Bug fixes
 
