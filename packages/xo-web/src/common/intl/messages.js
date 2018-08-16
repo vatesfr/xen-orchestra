@@ -1551,6 +1551,9 @@ const messages = {
   destroyTasksModalTitle: 'Destroy task{nTasks, plural, one {} other {s}}',
   destroyTasksModalMessage:
     'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?',
+  deletePbdsModalTitle: 'Delete PBD{nPbds, plural, one {} other {s}}',
+  deletePbdsModalMessage:
+    'Are you sure you want to delete {nPbds, number} PBD{nPbds, plural, one {} other {s}}?',
 
   // ----- Servers -----
   serverLabel: 'Label',

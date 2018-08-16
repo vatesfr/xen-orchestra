@@ -1,18 +1,17 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
-import map from 'lodash/map'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { connectPbd, disconnectPbd, deletePbd, editSr, isSrShared } from 'xo'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
+import { map, some } from 'lodash'
 import { TabButtonLink } from 'tab-button'
 import { Text } from 'editable'
+import { connectPbd, disconnectPbd, deletePbds, editSr, isSrShared } from 'xo'
 
 const SR_COLUMNS = [
   {
@@ -83,18 +82,15 @@ const SR_COLUMNS = [
       />
     ),
   },
+]
+
+const SR_ACTIONS = [
   {
-    name: _('pbdAction'),
-    itemRenderer: storage =>
-      !storage.attached && (
-        <ActionRowButton
-          handler={deletePbd}
-          handlerParam={storage.pbdId}
-          icon='sr-forget'
-          tooltip={_('pbdForget')}
-        />
-      ),
-    textAlign: 'right',
+    disabled: selectedItems => some(selectedItems, 'attached'),
+    handler: selectedItems => deletePbds(map(selectedItems, 'pbdId')),
+    icon: 'sr-forget',
+    label: _('pbdForget'),
+    level: 'danger',
   },
 ]
 
@@ -142,7 +138,11 @@ export default connectStore(() => {
         {isEmpty(storages) ? (
           <h4 className='text-xs-center'>{_('pbdNoSr')}</h4>
         ) : (
-          <SortedTable columns={SR_COLUMNS} collection={storages} />
+          <SortedTable
+            actions={SR_ACTIONS}
+            columns={SR_COLUMNS}
+            collection={storages}
+          />
         )}
       </Col>
     </Row>
