@@ -119,6 +119,7 @@ const getObjectsById = objects =>
  */
 class GenericSelect extends React.Component {
   static propTypes = {
+    allowMissingObjects: PropTypes.bool,
     hasSelectAll: PropTypes.bool,
     multi: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
@@ -138,7 +139,8 @@ class GenericSelect extends React.Component {
     () => this.props.xoContainers !== undefined,
     () => this.props.xoObjects,
     this._getSelectedIds,
-    (withContainers, objects, ids) => {
+    () => !this.props.allowMissingObjects,
+    (withContainers, objects, ids, removed) => {
       const objectsById = getObjectsById(objects)
       const missingObjects = []
       const addIfMissing = id => {
@@ -146,8 +148,8 @@ class GenericSelect extends React.Component {
           missingObjects.push({
             id,
             label: id,
+            removed,
             value: id,
-            removed: true,
           })
         }
       }
@@ -579,6 +581,7 @@ export const SelectTag = makeStoreSelect(
         .sort(),
       tags => map(tags, tag => ({ id: tag, type: 'tag', value: tag }))
     ),
+    allowMissingObjects: () => true,
   }),
   { placeholder: _('selectTags') }
 )
