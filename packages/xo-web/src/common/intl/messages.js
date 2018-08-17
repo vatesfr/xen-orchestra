@@ -407,6 +407,8 @@ const messages = {
   backupTargetRemotes: 'Target remotes (for Export)',
   backupTargetSrs: 'Target SRs (for Replication)',
   localRemoteWarningTitle: 'Local remote selected',
+  crOnThickProvisionedSrWarning:
+    'Doing a CR on a thick provisioned SR can exceed its limit size. Please click on the icon to get more information',
   localRemoteWarningMessage:
     'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
