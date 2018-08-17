@@ -581,9 +581,8 @@ export const SelectTag = makeStoreSelect(
         .sort(),
       tags => map(tags, tag => ({ id: tag, type: 'tag', value: tag }))
     ),
-    allowMissingObjects: () => true,
   }),
-  { placeholder: _('selectTags') }
+  { allowMissingObjects: true, placeholder: _('selectTags') }
 )
 
 export const SelectHighLevelObject = makeStoreSelect(
