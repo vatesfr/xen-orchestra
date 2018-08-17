@@ -801,12 +801,12 @@ export default [
                                   content={_('crOnThickProvisionedSrWarning')}
                                 >
                                   <a
-                                    className='text-warning'
+                                    className='text-info'
                                     href={SR_BACKEND_FAILURE_LINK}
                                     rel='noopener noreferrer'
                                     target='_blank'
                                   >
-                                    <Icon icon='alarm' />
+                                    <Icon icon='info' />
                                   </a>
                                 </Tooltip>
                               )}
