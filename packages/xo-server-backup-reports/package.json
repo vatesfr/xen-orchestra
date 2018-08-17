@@ -38,6 +38,7 @@
     "babel-runtime": "^6.26.0",
     "human-format": "^0.10.0",
     "lodash": "^4.13.1",
+    "marked": "^0.4.0",
     "moment-timezone": "^0.5.13"
   },
   "devDependencies": {

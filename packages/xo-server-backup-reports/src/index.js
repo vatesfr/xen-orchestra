@@ -1,6 +1,7 @@
 import humanFormat from 'human-format'
+import marked from 'marked'
 import moment from 'moment-timezone'
-import { forEach, get, startCase } from 'lodash'
+import { forEach, groupBy, get, startCase, isEmpty } from 'lodash'
 import pkg from '../package'
 
 export const configurationSchema = {
@@ -44,6 +45,16 @@ export const testSchema = {
   additionalProperties: false,
   required: ['runId'],
 }
+
+// ===================================================================
+
+const renderer = new marked.Renderer()
+renderer.table = (header, body) =>
+  `<table style="border-collapse: collapse; border: 0.1em solid black;"><thead>${header}</thead><tbody>${body}</tbody></table>`
+renderer.tablerow = content =>
+  `<tr style="border: 0.1em solid black;">${content}</tr>`
+renderer.tablecell = content =>
+  `<td style="border: 0.1em solid black;">${content}</td>`
 
 // ===================================================================
 
@@ -149,6 +160,156 @@ class BackupReportsXoPlugin {
     return markdown
   }
 
+  async _addSuccessfulVmsMarkdown ({
+    compactMarkdown,
+    detailedMarkdown,
+    size,
+    tasks,
+  }) {
+    compactMarkdown.push(
+      '---',
+      '',
+      `## ${size} Success${size === 1 ? '' : 'es'}`
+    )
+
+    detailedMarkdown.push(
+      `**${size} Success${size === 1 ? '' : 'es'}**`,
+      '',
+      '| Vms | Snapshot | Targets | Data |',
+      '| --- | --- | --- | --- |'
+    )
+
+    let globalTransferSize = 0
+    let globalMergeSize = 0
+    for (const task of tasks) {
+      const vmId = task.data.id
+      let vm
+      try {
+        vm = this._xo.getObject(vmId)
+      } catch (e) {}
+      const [name, uuid] =
+        vm !== undefined ? [vm.name_label, vm.uuid] : ['VM not found', vmId]
+      const temporalDataMarkdown = this._getTemporalDataMarkdown(
+        task.start,
+        task.end
+      )
+
+      compactMarkdown.push(
+        '',
+        `### ${name}`,
+        '',
+        `- **UUID**: ${uuid}`,
+        ...temporalDataMarkdown
+      )
+      const vmCol = [
+        '',
+        `- **Name**: ${name}`,
+        `- **UUID**: ${uuid}`,
+        ...temporalDataMarkdown,
+      ].join('<br />')
+
+      const subTaskByMessage = groupBy(task.tasks, 'message')
+
+      const snapshotTask = subTaskByMessage.snapshot[0]
+      const snapshotCol = [
+        '',
+        ...this._getTemporalDataMarkdown(snapshotTask.start, snapshotTask.end),
+      ].join('<br />')
+
+      let targetsTemporalData
+      const targetsMarkdownByType = {
+        sr: [],
+        remote: [],
+      }
+      let transferTask
+      let mergeTask
+      for (const subTask of subTaskByMessage.export) {
+        if (targetsTemporalData === undefined) {
+          targetsTemporalData = this._getTemporalDataMarkdown(
+            subTask.start,
+            subTask.end
+          )
+        }
+
+        const { type, id } = subTask.data
+        let name, uuid
+        if (type === 'remote') {
+          const remote = await this._xo.getRemote(id).catch(() => {
+            name = 'Remote Not found'
+          })
+          remote !== undefined && (name = remote.name)
+        } else {
+          let sr
+          try {
+            sr = this._xo.getObject(id)
+          } catch (e) {
+            name = `SR Not found`
+          }
+          if (sr !== undefined) {
+            name = sr.name_label
+            uuid = sr.uuid
+          }
+        }
+        targetsMarkdownByType[type.toLowerCase()].push(
+          [`- **Name**: ${name}`, `- **ID**: ${uuid || id}`].join('<br />')
+        )
+
+        if (transferTask === undefined) {
+          const { transfer, merge } = groupBy(subTask.tasks, 'message')
+          transferTask = transfer[0]
+          mergeTask = get(merge, 0)
+        }
+      }
+      let targetsCol = ['', ...targetsTemporalData]
+      const { remote, sr } = targetsMarkdownByType
+      if (!isEmpty(remote)) {
+        targetsCol.push('', '**Remotes**', remote.join('<hr />'))
+      }
+      if (!isEmpty(sr)) {
+        targetsCol.push('', '**SRs**', sr.join('<hr />'))
+      }
+      targetsCol = targetsCol.join('<br />')
+
+      const transferSize = transferTask.result.size
+      globalTransferSize += transferSize
+      let dataCol = [
+        '',
+        '**Transfer**',
+        ...this._getTemporalDataMarkdown(transferTask.start, transferTask.end),
+        `- **Size**: ${formatSize(transferSize)}`,
+        `- **Speed**: ${formatSpeed(
+          transferSize,
+          transferTask.end - transferTask.start
+        )}`,
+      ]
+
+      let mergeDuration
+      if (
+        mergeTask !== undefined &&
+        (mergeDuration = mergeTask.end - mergeTask.start) > 0
+      ) {
+        const mergeSize = mergeTask.result.size
+        globalMergeSize += mergeSize
+        dataCol.push(
+          '',
+          '**Merge**',
+          ...this._getTemporalDataMarkdown(mergeTask.start, mergeTask.end),
+          `- **Size**: ${formatSize(mergeSize)}`,
+          `- **Speed**: ${formatSpeed(mergeSize, mergeDuration)}`
+        )
+      }
+      dataCol = dataCol.join('<br />')
+
+      detailedMarkdown.push(
+        `| ${vmCol} | ${snapshotCol} | ${targetsCol} | ${dataCol} |`
+      )
+    }
+    return {
+      globalTransferSize,
+      globalMergeSize,
+    }
+  }
+
   async _backupNgListener (_1, _2, schedule, runJobId) {
     const xo = this._xo
     const log = await xo.getBackupNgLogs(runJobId)
@@ -198,7 +359,6 @@ class BackupReportsXoPlugin {
 
     const failedVmsText = []
     const skippedVmsText = []
-    const successfulVmsText = []
     const interruptedVmsText = []
     const nagiosText = []
 
@@ -208,7 +368,7 @@ class BackupReportsXoPlugin {
     let nSkipped = 0
     let nInterrupted = 0
     for (const taskLog of log.tasks) {
-      if (taskLog.status === 'success' && reportWhen === 'failure') {
+      if (taskLog.status === 'success') {
         continue
       }
 
@@ -395,29 +555,45 @@ class BackupReportsXoPlugin {
           nagiosText.push(
             `[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`
           )
-        } else {
-          successfulVmsText.push(...text, '', '', ...subText, '')
         }
       }
     }
 
     const nVms = log.tasks.length
-    const nSuccesses = nVms - nFailures - nSkipped - nInterrupted
-    let markdown = [
+    const { success: successfulVms } = groupBy(log.tasks, 'status')
+    const nSuccessfulVms =
+      successfulVms !== undefined ? successfulVms.length : 0
+
+    const detailedMarkdown = []
+    const markdown = []
+    if (nSuccessfulVms !== 0 && reportWhen !== 'failure') {
+      const {
+        globalTransferSize: successfulVmsTransferSize,
+        globalMergeSize: successfulVmsMergeSize,
+      } = await this._addSuccessfulVmsMarkdown({
+        compactMarkdown: markdown,
+        detailedMarkdown,
+        size: nSuccessfulVms,
+        tasks: successfulVms,
+      })
+      globalTransferSize += successfulVmsTransferSize
+      successfulVmsMergeSize !== undefined &&
+        (globalMergeSize += successfulVmsMergeSize)
+    }
+
+    if (globalMergeSize !== 0) {
+      markdown.unshift(`- **Merge size**: ${formatSize(globalMergeSize)}`)
+    }
+    if (globalTransferSize !== 0) {
+      markdown.unshift(`- **Transfer size**: ${formatSize(globalTransferSize)}`)
+    }
+    markdown.unshift(
       `##  Global status: ${log.status}`,
       '',
       `- **mode**: ${mode}`,
       ...this._getTemporalDataMarkdown(log.start, log.end),
-      `- **Successes**: ${nSuccesses} / ${nVms}`,
-    ]
-
-    if (globalTransferSize !== 0) {
-      markdown.push(`- **Transfer size**: ${formatSize(globalTransferSize)}`)
-    }
-    if (globalMergeSize !== 0) {
-      markdown.push(`- **Merge size**: ${formatSize(globalMergeSize)}`)
-    }
-    markdown.push('')
+      `- **Successes**: ${nSuccessfulVms} / ${nVms}`
+    )
 
     if (nFailures !== 0) {
       markdown.push(
@@ -443,20 +619,17 @@ class BackupReportsXoPlugin {
       )
     }
 
-    if (nSuccesses !== 0 && reportWhen !== 'failure') {
-      markdown.push(
-        '---',
-        '',
-        `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`,
-        '',
-        ...successfulVmsText
-      )
-    }
-
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
-    markdown = markdown.join('\n')
     return this._sendReport({
-      markdown,
+      attachments: [
+        {
+          filename: `xoBackupReport-${new Date()
+            .toISOString()
+            .slice(0, 10)}.html`,
+          content: marked(detailedMarkdown.join('\n'), { renderer }),
+        },
+      ],
+      markdown: markdown.join('\n'),
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${
         STATUS_ICON[log.status]
       }`,
@@ -470,7 +643,13 @@ class BackupReportsXoPlugin {
     })
   }
 
-  _sendReport ({ markdown, subject, nagiosStatus, nagiosMarkdown }) {
+  _sendReport ({
+    attachments,
+    markdown,
+    subject,
+    nagiosStatus,
+    nagiosMarkdown,
+  }) {
     const xo = this._xo
     return Promise.all([
       xo.sendEmail !== undefined &&
@@ -478,6 +657,7 @@ class BackupReportsXoPlugin {
           to: this._mailsReceivers,
           subject,
           markdown,
+          attachments,
         }),
       xo.sendToXmppClient !== undefined &&
         xo.sendToXmppClient({
