@@ -407,6 +407,8 @@ const messages = {
   backupTargetRemotes: 'Target remotes (for Export)',
   backupTargetSrs: 'Target SRs (for Replication)',
   localRemoteWarningTitle: 'Local remote selected',
+  crOnThickProvisionedSrWarning:
+    'Tip: using a thin-provisioned storage will consume less space. Please click on the icon to get more information',
   localRemoteWarningMessage:
     'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
