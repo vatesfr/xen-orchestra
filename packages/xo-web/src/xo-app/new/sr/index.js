@@ -27,6 +27,7 @@ import {
   getObject,
 } from 'selectors'
 import {
+  createSrExt,
   createSrIso,
   createSrIscsi,
   createSrLvm,
@@ -189,6 +190,7 @@ class SelectLun extends Component {
 // ===================================================================
 
 const SR_TYPE_TO_LABEL = {
+  ext: 'Local Ext',
   hba: 'HBA',
   iscsi: 'iSCSI',
   local: 'Local',
@@ -204,7 +206,7 @@ const SR_GROUP_TO_LABEL = {
 }
 
 const typeGroups = {
-  vdisr: ['hba', 'iscsi', 'lvm', 'nfs'],
+  vdisr: ['ext', 'hba', 'iscsi', 'lvm', 'nfs'],
   isosr: ['local', 'nfsiso', 'smb'],
 }
 
@@ -335,6 +337,8 @@ export default class New extends Component {
       },
       lvm: () =>
         createSrLvm(host.id, name.value, description.value, device.value),
+      ext: () =>
+        createSrExt(host.id, name.value, description.value, device.value),
       local: () =>
         createSrIso(
           host.id,
@@ -383,7 +387,7 @@ export default class New extends Component {
       hbaDevices: undefined,
       iqns: undefined,
       paths: undefined,
-      summary: includes(['lvm', 'local', 'smb', 'hba'], type),
+      summary: includes(['ext', 'lvm', 'local', 'smb', 'hba'], type),
       type,
       unused: undefined,
       usage: undefined,
@@ -726,7 +730,8 @@ export default class New extends Component {
                           onChange={event => {
                             this._handleAuthChoice()
                           }}
-                        />)
+                        />
+                        )
                       </label>
                       <div className='form-inline'>
                         <input
@@ -833,21 +838,22 @@ export default class New extends Component {
                       />
                     </fieldset>
                   )}
-                  {type === 'lvm' && (
-                    <fieldset>
-                      <label htmlFor='srDevice'>{_('newSrDevice')}</label>
-                      <input
-                        id='srDevice'
-                        className='form-control'
-                        placeholder={formatMessage(
-                          messages.newSrLvmDevicePlaceHolder
-                        )}
-                        ref='device'
-                        required
-                        type='text'
-                      />
-                    </fieldset>
-                  )}
+                  {type === 'lvm' ||
+                    (type === 'ext' && (
+                      <fieldset>
+                        <label htmlFor='srDevice'>{_('newSrDevice')}</label>
+                        <input
+                          id='srDevice'
+                          className='form-control'
+                          placeholder={formatMessage(
+                            messages.newSrLvmDevicePlaceHolder
+                          )}
+                          ref='device'
+                          required
+                          type='text'
+                        />
+                      </fieldset>
+                    ))}
                   {type === 'local' && (
                     <fieldset>
                       <label htmlFor='srPath'>{_('newSrPath')}</label>

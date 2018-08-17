@@ -2149,6 +2149,9 @@ export const createSrIso = (
 export const createSrLvm = (host, nameLabel, nameDescription, device) =>
   _call('sr.createLvm', { host, nameLabel, nameDescription, device })
 
+export const createSrExt = (host, nameLabel, nameDescription, device) =>
+  _call('sr.createExt', { host, nameLabel, nameDescription, device })
+
 // Job logs ----------------------------------------------------------
 
 export const deleteJobsLogs = async ids => {
