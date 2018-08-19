@@ -12,433 +12,434 @@ export default {
   keyValue: undefined,
 
   // Original text: 'Connecting'
-  statusConnecting: undefined,
+  statusConnecting: 'در حال اتصال',
 
   // Original text: 'Disconnected'
-  statusDisconnected: undefined,
+  statusDisconnected: 'قطع شد',
 
   // Original text: 'Loading…'
-  statusLoading: undefined,
+  statusLoading: 'در حال بارگذاری...',
 
   // Original text: 'Page not found'
-  errorPageNotFound: undefined,
+  errorPageNotFound: 'صفحه پیدا نشد',
 
   // Original text: 'no such item'
-  errorNoSuchItem: undefined,
+  errorNoSuchItem: 'هیچ موردی وجود ندارد',
 
   // Original text: 'unknown item'
-  errorUnknownItem: undefined,
+  errorUnknownItem: 'مورد ناشناخته',
 
   // Original text: 'Long click to edit'
-  editableLongClickPlaceholder: undefined,
+  editableLongClickPlaceholder: 'برای ویرایش کلیک کرده و کلیک را نگه دارید',
 
   // Original text: 'Click to edit'
-  editableClickPlaceholder: undefined,
+  editableClickPlaceholder: 'برای ویرایش کلیک کنید',
 
   // Original text: 'Browse files'
-  browseFiles: undefined,
+  browseFiles: 'مرور فایل ها',
 
   // Original text: 'Show logs'
-  showLogs: undefined,
+  showLogs: 'نمایش گزارش ها',
 
   // Original text: 'OK'
-  alertOk: undefined,
+  alertOk: 'اوکی',
 
   // Original text: 'OK'
-  confirmOk: undefined,
+  confirmOk: 'اوکی',
 
   // Original text: 'Cancel'
-  genericCancel: undefined,
+  genericCancel: 'لغو',
 
   // Original text: 'Enter the following text to confirm:'
-  enterConfirmText: undefined,
+  enterConfirmText: 'به منظور تایید، متن زیر را وارد کنید',
 
   // Original text: 'On error'
-  onError: undefined,
+  onError: 'خطا',
 
   // Original text: 'Successful'
-  successful: undefined,
+  successful: 'موفق',
 
   // Original text: 'Managed disks'
-  filterOnlyManaged: undefined,
+  filterOnlyManaged: 'دیسک های مدیریت شده',
 
   // Original text: 'Orphaned disks'
-  filterOnlyOrphaned: undefined,
+  filterOnlyOrphaned: 'دیسک های بدون سرپرست',
 
   // Original text: 'Normal disks'
-  filterOnlyRegular: undefined,
+  filterOnlyRegular: 'دیسک های عادی',
 
   // Original text: 'Snapshot disks'
-  filterOnlySnapshots: undefined,
+  filterOnlySnapshots: 'دیسک های اسنپ شات',
 
   // Original text: 'Unmanaged disks'
-  filterOnlyUnmanaged: undefined,
+  filterOnlyUnmanaged: 'دیسک های مدیریت نشده',
 
   // Original text: 'Save…'
-  filterSaveAs: undefined,
+  filterSaveAs: 'ذخیره...',
 
   // Original text: 'Explore the search syntax in the documentation'
-  filterSyntaxLinkTooltip: undefined,
+  filterSyntaxLinkTooltip: 'نحوه جستجو در اسناد را کاوش کنید',
 
   // Original text: 'Connected VIFs'
-  filterVifsOnlyConnected: undefined,
+  filterVifsOnlyConnected: 'VIF متصل شده',
 
   // Original text: 'Disconnected VIFs'
-  filterVifsOnlyDisconnected: undefined,
+  filterVifsOnlyDisconnected: 'VIF قطع شده',
 
   // Original text: 'Connected remotes'
-  filterRemotesOnlyConnected: undefined,
+  filterRemotesOnlyConnected: 'از راه دور وصل شده',
 
   // Original text: 'Disconnected remotes'
-  filterRemotesOnlyDisconnected: undefined,
+  filterRemotesOnlyDisconnected: 'از راه دور قطع شده',
 
   // Original text: 'Copy to clipboard'
-  copyToClipboard: undefined,
+  copyToClipboard: 'کپی در حافظه',
 
   // Original text: 'Copy {uuid}'
-  copyUuid: undefined,
+  copyUuid: 'کپی uuid',
 
   // Original text: 'Master'
-  pillMaster: undefined,
+  pillMaster: 'اصلی',
 
   // Original text: 'Home'
-  homePage: undefined,
+  homePage: 'خانه',
 
   // Original text: 'VMs'
-  homeVmPage: undefined,
+  homeVmPage: 'ماشین های مجازی',
 
   // Original text: 'Hosts'
-  homeHostPage: undefined,
+  homeHostPage: 'میزبان ها',
 
   // Original text: 'Pools'
-  homePoolPage: undefined,
+  homePoolPage: 'انبار',
 
   // Original text: 'Templates'
-  homeTemplatePage: undefined,
+  homeTemplatePage: 'قالب ها',
 
   // Original text: 'Storages'
-  homeSrPage: undefined,
+  homeSrPage: 'ذخیره سازها',
 
   // Original text: 'Dashboard'
-  dashboardPage: undefined,
+  dashboardPage: 'داشبورد',
 
   // Original text: 'Overview'
-  overviewDashboardPage: undefined,
+  overviewDashboardPage: 'مرور کلی',
 
   // Original text: 'Visualizations'
-  overviewVisualizationDashboardPage: undefined,
+  overviewVisualizationDashboardPage: 'تصویر سازی',
 
   // Original text: 'Statistics'
-  overviewStatsDashboardPage: undefined,
+  overviewStatsDashboardPage: 'آمار',
 
   // Original text: 'Health'
-  overviewHealthDashboardPage: undefined,
+  overviewHealthDashboardPage: 'سلامت',
 
   // Original text: 'Self service'
-  selfServicePage: undefined,
+  selfServicePage: 'سلف سرویس',
 
   // Original text: 'Backup'
-  backupPage: undefined,
+  backupPage: 'پشتیبان گیری',
 
   // Original text: 'Jobs'
-  jobsPage: undefined,
+  jobsPage: 'کارها',
 
   // Original text: 'XOA'
-  xoaPage: undefined,
+  xoaPage: 'XOA',
 
   // Original text: 'Updates'
-  updatePage: undefined,
+  updatePage: 'به روز رسانی ها',
 
   // Original text: 'Licenses'
-  licensesPage: undefined,
+  licensesPage: 'مجوزها',
 
   // Original text: 'Settings'
-  settingsPage: undefined,
+  settingsPage: 'تنظیمات',
 
   // Original text: 'Servers'
-  settingsServersPage: undefined,
+  settingsServersPage: 'سرورها',
 
   // Original text: 'Users'
-  settingsUsersPage: undefined,
+  settingsUsersPage: 'کاربران',
 
   // Original text: 'Groups'
-  settingsGroupsPage: undefined,
+  settingsGroupsPage: 'گروه ها',
 
   // Original text: 'ACLs'
-  settingsAclsPage: undefined,
+  settingsAclsPage: 'لیست های کنترل دسترسی',
 
   // Original text: 'Plugins'
-  settingsPluginsPage: undefined,
+  settingsPluginsPage: 'پلاگین ها',
 
   // Original text: 'Logs'
-  settingsLogsPage: undefined,
+  settingsLogsPage: 'گزارش ها',
 
   // Original text: 'Cloud configs'
-  settingsCloudConfigsPage: undefined,
+  settingsCloudConfigsPage: 'تنظیمات ابر',
 
   // Original text: 'IPs'
-  settingsIpsPage: undefined,
+  settingsIpsPage: 'آدرس های آی پی',
 
   // Original text: 'Config'
-  settingsConfigPage: undefined,
+  settingsConfigPage: 'پیکربندی',
 
   // Original text: 'About'
-  aboutPage: undefined,
+  aboutPage: 'درباره',
 
   // Original text: 'About XO {xoaPlan}'
-  aboutXoaPlan: undefined,
+  aboutXoaPlan: 'درباره XO',
 
   // Original text: 'New'
-  newMenu: undefined,
+  newMenu: 'جدید',
 
   // Original text: 'Tasks'
-  taskMenu: undefined,
+  taskMenu: 'وظایف',
 
   // Original text: 'Tasks'
-  taskPage: undefined,
+  taskPage: 'وظایف',
 
   // Original text: 'VM'
-  newVmPage: undefined,
+  newVmPage: 'ماشین مجازی',
 
   // Original text: 'Storage'
-  newSrPage: undefined,
+  newSrPage: 'ذخیره ساز',
 
   // Original text: 'Server'
-  newServerPage: undefined,
+  newServerPage: 'سرور',
 
   // Original text: 'Import'
-  newImport: undefined,
+  newImport: 'وارد کردن',
 
   // Original text: 'XOSAN'
-  xosan: undefined,
+  xosan: 'XOSAN',
 
   // Original text: 'Warning: Backup is deprecated, use Backup NG instead.'
-  backupDeprecatedMessage: undefined,
+  backupDeprecatedMessage:
+    'هشدار: پشتیبان گیری منسوخ شده است، به جای آن Backup NG استفاده کنید.',
 
   // Original text: 'How to migrate to Backup NG'
-  backupMigrationLink: undefined,
+  backupMigrationLink: 'چگونه به Backup NG مهاجرت کنیم',
 
   // Original text: 'Create a new backup with Backup NG'
-  backupNgNewPage: undefined,
+  backupNgNewPage: 'ساخت یک پشتبان گیری جدید با Backup NG',
 
   // Original text: 'Overview'
-  backupOverviewPage: undefined,
+  backupOverviewPage: 'مرور کلی',
 
   // Original text: 'New'
-  backupNewPage: undefined,
+  backupNewPage: 'جدید',
 
   // Original text: 'Remotes'
-  backupRemotesPage: undefined,
+  backupRemotesPage: 'از راه دور',
 
   // Original text: 'Restore'
-  backupRestorePage: undefined,
+  backupRestorePage: 'بازیابی',
 
   // Original text: 'File restore'
-  backupFileRestorePage: undefined,
+  backupFileRestorePage: 'بازیابی فایل',
 
   // Original text: 'Schedule'
-  schedule: undefined,
+  schedule: 'زمان بندی',
 
   // Original text: 'New VM backup'
-  newVmBackup: undefined,
+  newVmBackup: 'پشتیبان گیری جدید از ماشین مجازی',
 
   // Original text: 'Edit VM backup'
-  editVmBackup: undefined,
+  editVmBackup: 'ویرایش نسخه پشتیبان ماشین مجازی',
 
   // Original text: 'Backup'
-  backup: undefined,
+  backup: 'پشتیبان گیری',
 
   // Original text: 'Rolling Snapshot'
-  rollingSnapshot: undefined,
+  rollingSnapshot: 'گردش اسنپ شات',
 
   // Original text: 'Delta Backup'
-  deltaBackup: undefined,
+  deltaBackup: 'پشتیبان گیری دلتا',
 
   // Original text: 'Disaster Recovery'
-  disasterRecovery: undefined,
+  disasterRecovery: 'بازیابی بعد از حادثه',
 
   // Original text: 'Continuous Replication'
-  continuousReplication: undefined,
+  continuousReplication: 'تکثیر مداوم',
 
   // Original text: 'Overview'
-  jobsOverviewPage: undefined,
+  jobsOverviewPage: 'مرور کلی',
 
   // Original text: 'New'
-  jobsNewPage: undefined,
+  jobsNewPage: 'جدید',
 
   // Original text: 'Scheduling'
-  jobsSchedulingPage: undefined,
+  jobsSchedulingPage: 'زمان بندی کردن',
 
   // Original text: 'Custom Job'
-  customJob: undefined,
+  customJob: 'کار سفارشی',
 
   // Original text: 'User'
-  userPage: undefined,
+  userPage: 'کاربر',
 
   // Original text: 'XOA'
-  xoa: undefined,
+  xoa: 'XOA',
 
   // Original text: 'No support'
-  noSupport: undefined,
+  noSupport: 'بدون پشتیبانی',
 
   // Original text: 'Free upgrade!'
-  freeUpgrade: undefined,
+  freeUpgrade: 'ارتقاء رایگان',
 
   // Original text: 'Sign out'
-  signOut: undefined,
+  signOut: 'خروج',
 
   // Original text: 'Edit my settings {username}'
-  editUserProfile: undefined,
+  editUserProfile: 'ویرایش تنظیمات من {نام کاربری}',
 
   // Original text: 'Fetching data…'
-  homeFetchingData: undefined,
+  homeFetchingData: 'واکشی داده...',
 
   // Original text: 'Welcome to Xen Orchestra!'
-  homeWelcome: undefined,
+  homeWelcome: 'به Xen Orchestra خوش آمدید!',
 
   // Original text: 'Add your XenServer hosts or pools'
-  homeWelcomeText: undefined,
+  homeWelcomeText: 'میزبان های XenServer یا انبارها را اضافه کنید',
 
   // Original text: 'Some XenServers have been registered but are not connected'
-  homeConnectServerText: undefined,
+  homeConnectServerText: 'بر خی از XenServer رجیستر شده اند اما متصل نیستند',
 
   // Original text: 'Want some help?'
-  homeHelp: undefined,
+  homeHelp: 'احتیاج به کمک دارید؟',
 
   // Original text: 'Add server'
-  homeAddServer: undefined,
+  homeAddServer: 'اضافه کردن سرور',
 
   // Original text: 'Connect servers'
-  homeConnectServer: undefined,
+  homeConnectServer: 'وصل شدن به سرورها',
 
   // Original text: 'Online Doc'
-  homeOnlineDoc: undefined,
+  homeOnlineDoc: 'اسناد آنلاین',
 
   // Original text: 'Pro Support'
-  homeProSupport: undefined,
+  homeProSupport: 'پشتیبانی حرفه ای',
 
   // Original text: 'There are no VMs!'
-  homeNoVms: undefined,
+  homeNoVms: 'هیچ ماشین مجازی وجود ندارد!',
 
   // Original text: 'Or…'
-  homeNoVmsOr: undefined,
+  homeNoVmsOr: 'یا...',
 
   // Original text: 'Import VM'
-  homeImportVm: undefined,
+  homeImportVm: 'وارد کردن ماشین مجازی',
 
   // Original text: 'Import an existing VM in xva format'
-  homeImportVmMessage: undefined,
+  homeImportVmMessage: 'وارد کردن یک ماشین مجازی موجود در فرمت xva',
 
   // Original text: 'Restore a backup'
-  homeRestoreBackup: undefined,
+  homeRestoreBackup: 'بازگرداندن پشتیبان',
 
   // Original text: 'Restore a backup from a remote store'
-  homeRestoreBackupMessage: undefined,
+  homeRestoreBackupMessage: 'بازگرداندن یک پشتیبان از یک ذخیره ساز راه دور',
 
   // Original text: 'This will create a new VM'
-  homeNewVmMessage: undefined,
+  homeNewVmMessage: 'این یک ماشین مجازی جدید را ایجاد خواهد کرد',
 
   // Original text: 'Filters'
-  homeFilters: undefined,
+  homeFilters: 'فیلترها',
 
   // Original text: 'No results! Click here to reset your filters'
-  homeNoMatches: undefined,
+  homeNoMatches: 'بدون نتیجه! برای ریست کردن فیلترهایتان اینجا کلیک کنید',
 
   // Original text: 'Pool'
-  homeTypePool: undefined,
+  homeTypePool: 'انبار',
 
   // Original text: 'Host'
-  homeTypeHost: undefined,
+  homeTypeHost: 'میزبان',
 
   // Original text: 'VM'
-  homeTypeVm: undefined,
+  homeTypeVm: 'ماشین مجازی',
 
   // Original text: 'SR'
-  homeTypeSr: undefined,
+  homeTypeSr: 'SR',
 
   // Original text: 'Template'
-  homeTypeVmTemplate: undefined,
+  homeTypeVmTemplate: 'قالب',
 
   // Original text: 'Sort'
-  homeSort: undefined,
+  homeSort: 'مرتب سازی',
 
   // Original text: 'Pools'
-  homeAllPools: undefined,
+  homeAllPools: 'انبارها',
 
   // Original text: 'Hosts'
-  homeAllHosts: undefined,
+  homeAllHosts: 'میزبان ها',
 
   // Original text: 'Tags'
-  homeAllTags: undefined,
+  homeAllTags: 'برچسب ها',
 
   // Original text: 'Resource sets'
-  homeAllResourceSets: undefined,
+  homeAllResourceSets: 'مجموعه منابع',
 
   // Original text: 'New VM'
-  homeNewVm: undefined,
+  homeNewVm: 'ماشین مجازی جدید',
 
   // Original text: 'None'
-  homeFilterNone: undefined,
+  homeFilterNone: 'هیچ',
 
   // Original text: 'Running hosts'
-  homeFilterRunningHosts: undefined,
+  homeFilterRunningHosts: 'میزبان های در حال اجرا',
 
   // Original text: 'Disabled hosts'
-  homeFilterDisabledHosts: undefined,
+  homeFilterDisabledHosts: 'میزبان های غیرفعال',
 
   // Original text: 'Running VMs'
-  homeFilterRunningVms: undefined,
+  homeFilterRunningVms: 'ماشین های مجازی در حال اجرا',
 
   // Original text: 'Non running VMs'
-  homeFilterNonRunningVms: undefined,
+  homeFilterNonRunningVms: 'ماشین های مجازی که در حال اجرا نیستند',
 
   // Original text: 'Pending VMs'
-  homeFilterPendingVms: undefined,
+  homeFilterPendingVms: 'ماشین های مجازی معلق',
 
   // Original text: 'HVM guests'
-  homeFilterHvmGuests: undefined,
+  homeFilterHvmGuests: 'مهمان های HVM',
 
   // Original text: 'Tags'
-  homeFilterTags: undefined,
+  homeFilterTags: 'برچسب ها',
 
   // Original text: 'Sort by'
-  homeSortBy: undefined,
+  homeSortBy: 'مرتب سازی بر اساس',
 
   // Original text: 'CPUs'
-  homeSortByCpus: undefined,
+  homeSortByCpus: 'پردازنده ها',
 
   // Original text: 'Name'
-  homeSortByName: undefined,
+  homeSortByName: 'نام',
 
   // Original text: 'Power state'
-  homeSortByPowerstate: undefined,
+  homeSortByPowerstate: 'حالت نیرو',
 
   // Original text: 'RAM'
-  homeSortByRAM: undefined,
+  homeSortByRAM: 'حافظه',
 
   // Original text: 'Shared/Not shared'
-  homeSortByShared: undefined,
+  homeSortByShared: 'به اشتراک گذاشته شده/ به اشتراک گذاشته نشده',
 
   // Original text: 'Size'
-  homeSortBySize: undefined,
+  homeSortBySize: 'اندازه',
 
   // Original text: 'Type'
-  homeSortByType: undefined,
+  homeSortByType: 'نوع',
 
   // Original text: 'Usage'
-  homeSortByUsage: undefined,
+  homeSortByUsage: 'استفاده',
 
   // Original text: 'vCPUs'
-  homeSortByvCPUs: undefined,
+  homeSortByvCPUs: 'پردازنده های مجازی',
 
   // Original text: 'Snapshots'
-  homeSortVmsBySnapshots: undefined,
+  homeSortVmsBySnapshots: 'اسنپ شات ها',
 
   // Original text: 'Container'
-  homeSortByContainer: undefined,
+  homeSortByContainer: 'کانتینر',
 
   // Original text: 'Pool'
-  homeSortByPool: undefined,
+  homeSortByPool: 'انبار',
 
   // Original text: '{displayed, number}x {icon} (on {total, number})'
   homeDisplayedItems: undefined,
@@ -447,34 +448,34 @@ export default {
   homeSelectedItems: undefined,
 
   // Original text: 'More'
-  homeMore: undefined,
+  homeMore: 'بیشتر',
 
   // Original text: 'Migrate to…'
-  homeMigrateTo: undefined,
+  homeMigrateTo: 'مهاجرت به',
 
   // Original text: 'Missing patches'
-  homeMissingPaths: undefined,
+  homeMissingPaths: 'وصله هایی که موجود نیستند',
 
   // Original text: 'Master:'
-  homePoolMaster: undefined,
+  homePoolMaster: 'اصلی',
 
   // Original text: 'Resource set: {resourceSet}'
-  homeResourceSet: undefined,
+  homeResourceSet: 'مجموعه منابع : }resourceSet{',
 
   // Original text: 'High Availability'
-  highAvailability: undefined,
+  highAvailability: 'قابلیت دسترسی بالا (HA)',
 
   // Original text: 'Shared {type}'
-  srSharedType: undefined,
+  srSharedType: 'به اشتراک گذاشته شده {type}',
 
   // Original text: 'Not shared {type}'
-  srNotSharedType: undefined,
+  srNotSharedType: 'به اشتراک گذاشته نشده {type}',
 
   // Original text: 'All of them are selected'
-  sortedTableAllItemsSelected: undefined,
+  sortedTableAllItemsSelected: 'همه آن ها انتخاب شده اند',
 
   // Original text: 'No items found'
-  sortedTableNoItems: undefined,
+  sortedTableNoItems: 'موردی یافت نشد',
 
   // Original text: '{nFiltered, number} of {nTotal, number} items'
   sortedTableNumberOfFilteredItems: undefined,
@@ -486,130 +487,130 @@ export default {
   sortedTableNumberOfSelectedItems: undefined,
 
   // Original text: 'Click here to select all items'
-  sortedTableSelectAllItems: undefined,
+  sortedTableSelectAllItems: 'برای انتخاب همه موارد اینجا کلیک کنید',
 
   // Original text: 'State'
-  state: undefined,
+  state: 'حالت',
 
   // Original text: 'Disabled'
-  stateDisabled: undefined,
+  stateDisabled: 'غیرفعال شده',
 
   // Original text: 'Enabled'
-  stateEnabled: undefined,
+  stateEnabled: 'فعال شده',
 
   // Original text: 'Cancel'
-  formCancel: undefined,
+  formCancel: 'لغو',
 
   // Original text: 'Create'
-  formCreate: undefined,
+  formCreate: 'ایجاد',
 
   // Original text: 'Edit'
-  formEdit: undefined,
+  formEdit: 'ویرایش',
 
   // Original text: 'ID'
-  formId: undefined,
+  formId: 'شناسه',
 
   // Original text: 'Name'
-  formName: undefined,
+  formName: 'نام',
 
   // Original text: 'Reset'
-  formReset: undefined,
+  formReset: 'ریست',
 
   // Original text: 'Save'
-  formSave: undefined,
+  formSave: 'ذخیره',
 
   // Original text: 'Notes'
-  formNotes: undefined,
+  formNotes: 'یادداشت',
 
   // Original text: 'Add'
-  add: undefined,
+  add: 'اضافه',
 
   // Original text: 'Select all'
-  selectAll: undefined,
+  selectAll: 'انتخاب همه',
 
   // Original text: 'Remove'
-  remove: undefined,
+  remove: 'حذف',
 
   // Original text: 'Preview'
-  preview: undefined,
+  preview: 'پیش نمایش',
 
   // Original text: 'Action'
-  action: undefined,
+  action: 'عمل',
 
   // Original text: 'Item'
-  item: undefined,
+  item: 'مورد',
 
   // Original text: 'No selected value'
-  noSelectedValue: undefined,
+  noSelectedValue: 'هیچ مقدار انتخاب شده ای وجود ندارد',
 
   // Original text: 'Choose user(s) and/or group(s)'
-  selectSubjects: undefined,
+  selectSubjects: 'کاربر(ها) و/یا گروه(ها) را انتخاب کنید',
 
   // Original text: 'Select Object(s)…'
-  selectObjects: undefined,
+  selectObjects: 'انتخاب شی(ها)',
 
   // Original text: 'Choose a role'
-  selectRole: undefined,
+  selectRole: 'یک رل را انتخاب کنید',
 
   // Original text: 'Select Host(s)…'
-  selectHosts: undefined,
+  selectHosts: 'انتخاب میزبان(ها)...',
 
   // Original text: 'Select object(s)…'
-  selectHostsVms: undefined,
+  selectHostsVms: 'انتخاب شی(ها)...',
 
   // Original text: 'Select Network(s)…'
-  selectNetworks: undefined,
+  selectNetworks: 'انتخاب شبکه(ها)...',
 
   // Original text: 'Select PIF(s)…'
-  selectPifs: undefined,
+  selectPifs: 'انتخاب کارت (های) شبکه',
 
   // Original text: 'Select Pool(s)…'
-  selectPools: undefined,
+  selectPools: 'انتخاب انبار (ها)...',
 
   // Original text: 'Select Remote(s)…'
-  selectRemotes: undefined,
+  selectRemotes: 'انتخاب ریموت...',
 
   // Original text: 'Select resource set(s)…'
-  selectResourceSets: undefined,
+  selectResourceSets: 'انتخاب مجموعه منابع...',
 
   // Original text: 'Select template(s)…'
-  selectResourceSetsVmTemplate: undefined,
+  selectResourceSetsVmTemplate: 'انتخاب قالب(ها)...',
 
   // Original text: 'Select SR(s)…'
-  selectResourceSetsSr: undefined,
+  selectResourceSetsSr: 'انتخاب مخزن(های) ذخیره سازی...',
 
   // Original text: 'Select network(s)…'
-  selectResourceSetsNetwork: undefined,
+  selectResourceSetsNetwork: 'انتخاب شبکه(ها)...',
 
   // Original text: 'Select disk(s)…'
-  selectResourceSetsVdi: undefined,
+  selectResourceSetsVdi: 'انتخاب دیسک(ها)...',
 
   // Original text: 'Select SSH key(s)…'
-  selectSshKey: undefined,
+  selectSshKey: 'انتخاب کلید(های) SSH',
 
   // Original text: 'Select SR(s)…'
-  selectSrs: undefined,
+  selectSrs: 'انتخاب مخزن(های) ذخیره سازی...',
 
   // Original text: 'Select VM(s)…'
-  selectVms: undefined,
+  selectVms: 'انتخاب ماشین(های) مجازی...',
 
   // Original text: 'Select snapshot(s)…'
-  selectVmSnapshots: undefined,
+  selectVmSnapshots: 'انتخاب اسنپ شات(ها)...',
 
   // Original text: 'Select VM template(s)…'
-  selectVmTemplates: undefined,
+  selectVmTemplates: 'انتخاب قالب(های) ماشین مجازی...',
 
   // Original text: 'Select tag(s)…'
-  selectTags: undefined,
+  selectTags: 'انتخاب برچسب(ها)...',
 
   // Original text: 'Select disk(s)…'
-  selectVdis: undefined,
+  selectVdis: 'انتخاب دیسک(ها)',
 
   // Original text: 'Select timezone…'
-  selectTimezone: undefined,
+  selectTimezone: 'انتخاب منطقه زمانی...',
 
   // Original text: 'Select IP(s)…'
-  selectIp: undefined,
+  selectIp: 'انتخاب آدرس(های) آی پی...',
 
   // Original text: 'Select IP pool(s)…'
   selectIpPool: undefined,
