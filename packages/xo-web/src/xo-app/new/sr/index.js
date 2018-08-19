@@ -838,22 +838,21 @@ export default class New extends Component {
                       />
                     </fieldset>
                   )}
-                  {type === 'lvm' ||
-                    (type === 'ext' && (
-                      <fieldset>
-                        <label htmlFor='srDevice'>{_('newSrDevice')}</label>
-                        <input
-                          id='srDevice'
-                          className='form-control'
-                          placeholder={formatMessage(
-                            messages.newSrLvmDevicePlaceHolder
-                          )}
-                          ref='device'
-                          required
-                          type='text'
-                        />
-                      </fieldset>
-                    ))}
+                  {(type === 'lvm' || type === 'ext') && (
+                    <fieldset>
+                      <label htmlFor='srDevice'>{_('newSrDevice')}</label>
+                      <input
+                        id='srDevice'
+                        className='form-control'
+                        placeholder={formatMessage(
+                          messages.newSrLvmDevicePlaceHolder
+                        )}
+                        ref='device'
+                        required
+                        type='text'
+                      />
+                    </fieldset>
+                  )}
                   {type === 'local' && (
                     <fieldset>
                       <label htmlFor='srPath'>{_('newSrPath')}</label>
