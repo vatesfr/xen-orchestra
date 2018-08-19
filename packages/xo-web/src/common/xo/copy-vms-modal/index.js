@@ -32,12 +32,12 @@ class CopyVmsModalBody extends BaseComponent {
 
     const names = namePattern
       ? map(
-        vms,
-        buildTemplate(namePattern, {
-          '{name}': vm => vm.name_label,
-          '{id}': vm => vm.id,
-        })
-      )
+          vms,
+          buildTemplate(namePattern, {
+            '{name}': vm => vm.name_label,
+            '{id}': vm => vm.id,
+          })
+        )
       : map(vms, vm => vm.name_label)
     return {
       compress: state.compress,

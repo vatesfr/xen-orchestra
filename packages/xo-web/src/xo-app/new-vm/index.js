@@ -117,7 +117,12 @@ const LineItem = ({ children }) => (
 
 const Item = ({ label, children, className }) => (
   <span className={styles.item}>
-    {label && <span>{label}&nbsp;</span>}
+    {label && (
+      <span>
+        {label}
+        &nbsp;
+      </span>
+    )}
     <span className={classNames(styles.input, className)}>{children}</span>
   </span>
 )
@@ -221,10 +226,13 @@ class Vif extends BaseComponent {
   pool: createGetObject((_, props) => props.location.query.pool),
   pools: createGetObjectsOfType('pool'),
   templates: createGetObjectsOfType('VM-template').sort(),
-  userSshKeys: createSelector((_, props) => {
-    const user = props.user
-    return user && user.preferences && user.preferences.sshKeys
-  }, keys => keys),
+  userSshKeys: createSelector(
+    (_, props) => {
+      const user = props.user
+      return user && user.preferences && user.preferences.sshKeys
+    },
+    keys => keys
+  ),
   srs: createGetObjectsOfType('SR'),
 }))
 @injectIntl

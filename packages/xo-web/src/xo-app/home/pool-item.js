@@ -200,7 +200,7 @@ export default class PoolItem extends Component {
                 <Tooltip
                   content={_('memoryLeftTooltip', {
                     used: Math.round(
-                      hostMetrics.memoryUsage / hostMetrics.memoryTotal * 100
+                      (hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100
                     ),
                     free: formatSizeShort(
                       hostMetrics.memoryTotal - hostMetrics.memoryUsage
@@ -211,7 +211,7 @@ export default class PoolItem extends Component {
                     style={{ margin: 0 }}
                     className='progress'
                     value={
-                      hostMetrics.memoryUsage / hostMetrics.memoryTotal * 100
+                      (hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100
                     }
                     max='100'
                   />
@@ -223,7 +223,8 @@ export default class PoolItem extends Component {
                 className={styles.itemExpandButton}
                 onClick={this._toggleExpanded}
               >
-                <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
+                <Icon icon='nav' fixedWidth />
+                &nbsp;&nbsp;&nbsp;
               </a>
             </Col>
           </SingleLineRow>
@@ -233,8 +234,8 @@ export default class PoolItem extends Component {
             <Col mediumSize={3} className={styles.itemExpanded}>
               <span>
                 {hostMetrics.count}x <Icon icon='host' /> {nVms}x{' '}
-                <Icon icon='vm' /> {nSrs}x <Icon icon='sr' /> {hostMetrics.cpus}x{' '}
-                <Icon icon='cpu' /> {formatSizeShort(hostMetrics.memoryTotal)}
+                <Icon icon='vm' /> {nSrs}x <Icon icon='sr' /> {hostMetrics.cpus}
+                x <Icon icon='cpu' /> {formatSizeShort(hostMetrics.memoryTotal)}
               </span>
             </Col>
             <Col mediumSize={4} className={styles.itemExpanded}>

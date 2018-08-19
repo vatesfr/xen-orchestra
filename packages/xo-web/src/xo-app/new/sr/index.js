@@ -726,7 +726,8 @@ export default class New extends Component {
                           onChange={event => {
                             this._handleAuthChoice()
                           }}
-                        />)
+                        />
+                        )
                       </label>
                       <div className='form-inline'>
                         <input

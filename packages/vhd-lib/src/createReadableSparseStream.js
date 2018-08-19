@@ -58,7 +58,7 @@ export default asyncIteratorToStream(async function * (
 
   const maxTableEntries = Math.ceil(diskSize / VHD_BLOCK_SIZE_BYTES) + 1
   const tablePhysicalSizeBytes =
-    Math.ceil(maxTableEntries * 4 / SECTOR_SIZE) * SECTOR_SIZE
+    Math.ceil((maxTableEntries * 4) / SECTOR_SIZE) * SECTOR_SIZE
 
   const batPosition = FOOTER_SIZE + HEADER_SIZE
   const firstBlockPosition = batPosition + tablePhysicalSizeBytes
@@ -115,7 +115,7 @@ export default asyncIteratorToStream(async function * (
       }
       next.data.copy(
         currentBlockWithBitmap,
-        bitmapSize + next.offsetBytes % VHD_BLOCK_SIZE_BYTES
+        bitmapSize + (next.offsetBytes % VHD_BLOCK_SIZE_BYTES)
       )
     }
     yield * yieldAndTrack(currentBlockWithBitmap)

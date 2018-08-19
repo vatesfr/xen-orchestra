@@ -43,7 +43,9 @@ export default class EnumInput extends Component {
           required={required}
           value={this._getSelectedIndex()}
         >
-          {_('noSelectedValue', message => <option value=''>{message}</option>)}
+          {_('noSelectedValue', message => (
+            <option value=''>{message}</option>
+          ))}
           {map(enumNames, (name, index) => (
             <option value={index} key={index}>
               {name}

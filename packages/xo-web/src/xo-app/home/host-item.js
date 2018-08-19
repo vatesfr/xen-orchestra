@@ -180,7 +180,7 @@ export default class HostItem extends Component {
                 <Tooltip
                   content={_('memoryLeftTooltip', {
                     used: Math.round(
-                      host.memory.usage / host.memory.size * 100
+                      (host.memory.usage / host.memory.size) * 100
                     ),
                     free: formatSizeShort(host.memory.size - host.memory.usage),
                   })}
@@ -188,7 +188,7 @@ export default class HostItem extends Component {
                   <progress
                     style={{ margin: 0 }}
                     className='progress'
-                    value={host.memory.usage / host.memory.size * 100}
+                    value={(host.memory.usage / host.memory.size) * 100}
                     max='100'
                   />
                 </Tooltip>
@@ -213,7 +213,8 @@ export default class HostItem extends Component {
                 className={styles.itemExpandButton}
                 onClick={this._toggleExpanded}
               >
-                <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
+                <Icon icon='nav' fixedWidth />
+                &nbsp;&nbsp;&nbsp;
               </a>
             </Col>
           </SingleLineRow>

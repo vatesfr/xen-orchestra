@@ -61,7 +61,8 @@ export default connectStore(() => {
             <Number
               value={vm.CPUs.number}
               onChange={vcpus => editVm(vm, { CPUs: vcpus })}
-            />x <Icon icon='cpu' size='lg' />
+            />
+            x <Icon icon='cpu' size='lg' />
           </h2>
           <BlockLink to={`/vms/${vm.id}/stats`}>
             {statsOverview && <CpuSparkLines data={statsOverview} />}
@@ -73,7 +74,8 @@ export default connectStore(() => {
               value={defined(vm.memory.dynamic[1], null)}
               onChange={memory => editVm(vm, { memory })}
             />
-            &nbsp;<span>
+            &nbsp;
+            <span>
               <Icon icon='memory' size='lg' />
             </span>
           </h2>

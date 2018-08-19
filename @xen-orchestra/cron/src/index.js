@@ -44,7 +44,9 @@ class Schedule {
     this._createDate =
       zone.toLowerCase() === 'utc'
         ? moment.utc
-        : zone === 'local' ? moment : () => moment.tz(zone)
+        : zone === 'local'
+          ? moment
+          : () => moment.tz(zone)
   }
 
   createJob (fn) {

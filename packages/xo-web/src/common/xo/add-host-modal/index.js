@@ -64,7 +64,7 @@ export default class AddHostModal extends BaseComponent {
       host,
       nMissingPatches: host
         ? differenceBy(this.props.poolMasterPatches, host.patches, 'name')
-          .length
+            .length
         : undefined,
     })
   }

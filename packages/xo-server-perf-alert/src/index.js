@@ -124,7 +124,7 @@ const SR_FUNCTIONS = {
     comparator: '>',
     createGetter: threshold => sr => {
       const getDisplayableValue = () =>
-        sr.physical_utilisation * 100 / sr.physical_size
+        (sr.physical_utilisation * 100) / sr.physical_size
       return {
         getDisplayableValue,
         shouldAlarm: () => getDisplayableValue() > threshold,

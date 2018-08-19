@@ -120,7 +120,7 @@ export default connectStore(() => {
         pbdId: pbd.id,
         shared: isSrShared(sr),
         size: size > 0 ? size : 0,
-        usagePercentage: size > 0 && Math.round(100 * usage / size),
+        usagePercentage: size > 0 && Math.round((100 * usage) / size),
       }
     })
   )

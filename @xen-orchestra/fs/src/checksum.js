@@ -85,8 +85,8 @@ export const validChecksumOfReadStream = (
         callback(
           checksum !== expectedChecksum
             ? new Error(
-              `Bad checksum (${checksum}), expected: ${expectedChecksum}`
-            )
+                `Bad checksum (${checksum}), expected: ${expectedChecksum}`
+              )
             : null
         )
       }

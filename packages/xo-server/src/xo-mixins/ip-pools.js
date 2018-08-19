@@ -175,8 +175,8 @@ export default class IpPools {
           Promise.all(mapToArray(updatedIpPools, ipPool => this._save(ipPool)))
         return resourseSetId
           ? this._xo
-            .allocateLimitsInResourceSet(limits, resourseSetId)
-            .then(saveIpPools)
+              .allocateLimitsInResourceSet(limits, resourseSetId)
+              .then(saveIpPools)
           : saveIpPools()
       }
     })()

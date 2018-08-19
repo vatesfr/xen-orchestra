@@ -506,7 +506,8 @@ const MenuLinkItem = props => {
         />
         <span className={styles.hiddenCollapsed}>
           {' '}
-          {typeof label === 'string' ? _(label) : label}&nbsp;
+          {typeof label === 'string' ? _(label) : label}
+          &nbsp;
         </span>
         {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
         {extra}

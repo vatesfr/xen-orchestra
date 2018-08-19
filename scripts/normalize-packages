@@ -17,7 +17,6 @@ const deleteProperties = (object, property, properties) => {
   }
 }
 
-
 require('exec-promise')(() =>
   getPackages(true).map(({ dir, name, package: pkg, relativeDir }) => {
     pkg.name = name

@@ -248,7 +248,9 @@ class PifsItem extends BaseComponent {
               </tr>
             </thead>
             <tbody>
-              {map(network.PIFs, pifId => <PifItem key={pifId} id={pifId} />)}
+              {map(network.PIFs, pifId => (
+                <PifItem key={pifId} id={pifId} />
+              ))}
             </tbody>
           </table>
         )}

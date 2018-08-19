@@ -242,7 +242,8 @@ export default class XoaUpdates extends Component {
                 <div>
                   {map(log, (log, key) => (
                     <p key={key}>
-                      <span className={textClasses[log.level]}>{log.date}</span>:{' '}
+                      <span className={textClasses[log.level]}>{log.date}</span>
+                      :{' '}
                       <span
                         dangerouslySetInnerHTML={{
                           __html: ansiUp.ansi_to_html(log.message),

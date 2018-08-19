@@ -38,7 +38,7 @@ const Element = ({ highlight, href, others, tooltip, total, value }) => (
         highlight && 'usage-element-highlight',
         others && 'usage-element-others'
       )}
-      style={{ width: value / total * 100 + '%' }}
+      style={{ width: (value / total) * 100 + '%' }}
     />
   </Tooltip>
 )
@@ -58,14 +58,14 @@ export const Limits = ({ used, toBeUsed, limit }) => {
     <span className='limits'>
       <span
         className='limits-used'
-        style={{ width: (used || 0) / limit * 100 + '%' }}
+        style={{ width: ((used || 0) / limit) * 100 + '%' }}
       />
       <span
         className={
           toBeUsed > available ? 'limits-over-used' : 'limits-to-be-used'
         }
         style={{
-          width: Math.min(toBeUsed || 0, available) / limit * 100 + '%',
+          width: (Math.min(toBeUsed || 0, available) / limit) * 100 + '%',
         }}
       />
     </span>

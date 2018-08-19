@@ -191,7 +191,7 @@ class SelectMetric extends Component {
       objects,
       predicate: objects.length
         ? object =>
-          runningObjectsPredicate(object) && object.type === objects[0].type
+            runningObjectsPredicate(object) && object.type === objects[0].type
         : runningObjectsPredicate,
     })
   }
