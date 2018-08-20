@@ -420,6 +420,8 @@ const messages = {
   editBackupSmartPools: 'Pools',
   editBackupSmartTags: 'Tags',
   sampleOfMatchingVms: 'Sample of matching Vms',
+  backupReplicatedVmsInfo:
+    'Replicated VMs (VMs with Continuous Replication or Disaster Recovery tag) must be excluded!',
   editBackupSmartTagsTitle: 'VMs Tags',
   editBackupSmartExcludedTagsTitle: 'Excluded VMs tags',
   editBackupNot: 'Reverse',
