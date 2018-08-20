@@ -142,6 +142,8 @@ export const isOpaqueRef = value =>
 
 // -------------------------------------------------------------------
 
+const isGetAllRecordsMethod = RegExp.prototype.test.bind(/\.get_all_records$/)
+
 const RE_READ_ONLY_METHOD = /^[^.]+\.get_/
 const isReadOnlyCall = (method, args) =>
   args.length === 1 &&
@@ -417,7 +419,7 @@ export class Xapi extends EventEmitter {
             this._sessionCall('task.cancel', [taskRef]).catch(noop)
           })
 
-          return this.watchTask(taskRef)::lastly(() => {
+          return lastly.call(this.watchTask(taskRef), () => {
             this._sessionCall('task.destroy', [taskRef]).catch(noop)
           })
         })
@@ -695,7 +697,8 @@ export class Xapi extends EventEmitter {
         newArgs.push.apply(newArgs, args)
       }
 
-      return this._transportCall(method, newArgs)::pCatch(
+      return pCatch.call(
+        this._transportCall(method, newArgs),
         isSessionInvalid,
         () => {
           // XAPI is sometimes reinitialized and sessions are lost.
@@ -844,12 +847,15 @@ export class Xapi extends EventEmitter {
   _watchEvents () {
     const loop = () =>
       this.status === CONNECTED &&
-      this._sessionCall('event.from', [
-        ['*'],
-        this._fromToken,
-        EVENT_TIMEOUT + 0.1, // Force float.
-      ])
-        ::pTimeout(EVENT_TIMEOUT * 1.1e3) // 10% longer than the XenAPI timeout
+      pTimeout
+        .call(
+          this._sessionCall('event.from', [
+            ['*'],
+            this._fromToken,
+            EVENT_TIMEOUT + 0.1, // Force float.
+          ]),
+          EVENT_TIMEOUT * 1.1e3 // 10% longer than the XenAPI timeout
+        )
         .then(onSuccess, onFailure)
 
     const onSuccess = ({ events, token, valid_ref_counts: { task } }) => {
@@ -894,7 +900,8 @@ export class Xapi extends EventEmitter {
       throw error
     }
 
-    return loop()::pCatch(
+    return pCatch.call(
+      loop(),
       isMethodUnknown,
 
       // If the server failed, it is probably due to an excessively
@@ -915,10 +922,7 @@ export class Xapi extends EventEmitter {
       return this._sessionCall('system.listMethods').then(methods => {
         // Uses introspection to determine the methods to use to get
         // all objects.
-        const getAllRecordsMethods = filter(
-          methods,
-          ::/\.get_all_records$/.test
-        )
+        const getAllRecordsMethods = filter(methods, isGetAllRecordsMethod)
 
         return Promise.all(
           map(getAllRecordsMethods, method =>
@@ -982,9 +986,11 @@ Xapi.prototype._transportCall = reduce(
       function () {
         let iterator // lazily created
         const loop = () =>
-          call
-            .apply(this, arguments)
-            ::pCatch(isNetworkError, isXapiNetworkError, error => {
+          pCatch.call(
+            call.apply(this, arguments),
+            isNetworkError,
+            isXapiNetworkError,
+            error => {
               if (iterator === undefined) {
                 iterator = fibonacci()
                   .clamp(undefined, 60)
@@ -1010,17 +1016,19 @@ Xapi.prototype._transportCall = reduce(
               debug('%s: network error %s, aborting', this._humanId, error.code)
 
               // mark as disconnected
-              this.disconnect()::pCatch(noop)
+              pCatch.call(this.disconnect(), noop)
 
               throw error
-            })
+            }
+          )
         return loop()
       },
     call =>
       function loop () {
-        return call
-          .apply(this, arguments)
-          ::pCatch(isHostSlave, ({ params: [master] }) => {
+        return pCatch.call(
+          call.apply(this, arguments),
+          isHostSlave,
+          ({ params: [master] }) => {
             debug(
               '%s: host is slave, attempting to connect at %s',
               this._humanId,
@@ -1035,7 +1043,8 @@ Xapi.prototype._transportCall = reduce(
             this._url = newUrl
 
             return loop.apply(this, arguments)
-          })
+          }
+        )
       },
     call =>
       function (method) {

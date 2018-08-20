@@ -23,9 +23,11 @@ xapi
   // Injects lots of events.
   .then(([poolRef]) => {
     const loop = () =>
-      xapi
-        .call('event.inject', 'pool', poolRef)
-        ::pDelay(10) // A small delay is required to avoid overloading the Xen API.
+      pDelay
+        .call(
+          xapi.call('event.inject', 'pool', poolRef),
+          10 // A small delay is required to avoid overloading the Xen API.
+        )
         .then(loop)
 
     return loop()
