@@ -166,9 +166,9 @@ export default class XoWeekHeatmap extends Component {
                   content={
                     hour
                       ? _('weekHeatmapData', {
-                        date: hour.date,
-                        value: this.props.cellRenderer(hour.value),
-                      })
+                          date: hour.date,
+                          value: this.props.cellRenderer(hour.value),
+                        })
                       : _('weekHeatmapNoData')
                   }
                   key={key}

@@ -10,8 +10,7 @@ const xo = new Xo({
   url: 'localhost:9000',
 })
 
-xo
-  .open()
+xo.open()
   .then(function () {
     return xo
       .call('acl.get', {})

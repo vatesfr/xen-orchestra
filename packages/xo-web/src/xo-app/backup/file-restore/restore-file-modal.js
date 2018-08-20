@@ -16,7 +16,8 @@ import { scanDisk, scanFiles } from 'xo'
 
 const backupOptionRenderer = backup => (
   <span>
-    {backup.tag} - {backup.remoteName} (<FormattedDate
+    {backup.tag} - {backup.remoteName} (
+    <FormattedDate
       value={backup.datetime * 1e3}
       month='long'
       day='numeric'
@@ -24,7 +25,8 @@ const backupOptionRenderer = backup => (
       hour='2-digit'
       minute='2-digit'
       second='2-digit'
-    />)
+    />
+    )
   </span>
 )
 

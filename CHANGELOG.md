@@ -8,6 +8,9 @@
 - [Tasks] The table is now still shown when there are no tasks (PR [#3305](https://github.com/vatesfr/xen-orchestra/pull/3305))
 - [Host / Logs] Homogenize action buttons in table and enable bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3313](https://github.com/vatesfr/xen-orchestra/pull/3313))
 - [VM/Advanced] Change "Convert" to "Convert to template" and always show the button [#3201](https://github.com/vatesfr/xen-orchestra/issues/3201) (PR [#3319](https://github.com/vatesfr/xen-orchestra/pull/3319))
+- [Backup NG form] Display a tip when doing a CR on a thick-provisioned SR [#3291](https://github.com/vatesfr/xen-orchestra/issues/3291) (PR [#3333](https://github.com/vatesfr/xen-orchestra/pull/3333))
+- [SR/new] Add local ext SR type [#3332](https://github.com/vatesfr/xen-orchestra/issues/3332) (PR [#3335](https://github.com/vatesfr/xen-orchestra/pull/3335))
+- [Backup reports] Send report for the interrupted backup jobs on the server startup [#2998](https://github.com/vatesfr/xen-orchestra/issues/#2998) (PR [3164](https://github.com/vatesfr/xen-orchestra/pull/3164) [3154](https://github.com/vatesfr/xen-orchestra/pull/3154))
 - [Backup NG smart mode] Exclude replicated VMs [#2338](https://github.com/vatesfr/xen-orchestra/issues/2338) (PR [#3312](https://github.com/vatesfr/xen-orchestra/pull/3312))
 
 ### Bug fixes
@@ -19,6 +22,7 @@
 
 ### Released packages
 
+- xo-server-backup-reports v0.13.0
 - @xen-orchestra/fs 0.3.0
 - xo-server v5.25.0
 - xo-web v5.25.0
@@ -36,7 +40,6 @@
 - [Backup NG Overview] List the Backup NG job's modes [#3169](https://github.com/vatesfr/xen-orchestra/issues/3169) (PR [#3277](https://github.com/vatesfr/xen-orchestra/pull/3277))
 - [Backup NG form] Move "Use compression" checkbox in the advanced settings [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3281](https://github.com/vatesfr/xen-orchestra/pull/3281))
 - [Backup NG form] Ability to remove previous backups first before backup the VMs [#3212](https://github.com/vatesfr/xen-orchestra/issues/3212) (PR [#3260](https://github.com/vatesfr/xen-orchestra/pull/3260))
-- [Backup reports] Send report for the interrupted backup jobs on the server startup [#2998](https://github.com/vatesfr/xen-orchestra/issues/#2998) (PR [3164](https://github.com/vatesfr/xen-orchestra/pull/3164) [3154](https://github.com/vatesfr/xen-orchestra/pull/3154))
 - [Patching] Check date consistency before patching to avoid error on install [#3056](https://github.com/vatesfr/xen-orchestra/issues/3056)
 
 ### Bug fixes
@@ -78,7 +81,7 @@
 
 - xo-remote-parser v0.5.0
 - complex-matcher v0.4.0
-- xo-server-backup-reports v0.13.0
+- xo-server-backup-reports v0.12.3
 - xo-server v5.23.0
 - xo-web v5.23.0
 

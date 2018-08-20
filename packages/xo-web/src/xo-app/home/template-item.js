@@ -88,7 +88,8 @@ export default class TemplateItem extends Component {
               className={styles.itemExpandButton}
               onClick={this.toggleState('expanded')}
             >
-              <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
+              <Icon icon='nav' fixedWidth />
+              &nbsp;&nbsp;&nbsp;
             </a>
           </Col>
         </SingleLineRow>

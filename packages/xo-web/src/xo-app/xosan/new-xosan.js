@@ -416,7 +416,7 @@ export default class NewXosan extends Component {
                                   content={_('spaceLeftTooltip', {
                                     used: String(
                                       Math.round(
-                                        sr.physical_usage / sr.size * 100
+                                        (sr.physical_usage / sr.size) * 100
                                       )
                                     ),
                                     free: formatSize(
@@ -427,7 +427,7 @@ export default class NewXosan extends Component {
                                   <progress
                                     className='progress'
                                     max='100'
-                                    value={sr.physical_usage / sr.size * 100}
+                                    value={(sr.physical_usage / sr.size) * 100}
                                   />
                                 </Tooltip>
                               )}

@@ -376,7 +376,10 @@ export default class XoWeekCharts extends Component {
   }
 
   render () {
-    const { props, state: { chartsWidth, maxValue, tooltipX } } = this
+    const {
+      props,
+      state: { chartsWidth, maxValue, tooltipX },
+    } = this
 
     return (
       <div>

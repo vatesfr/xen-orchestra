@@ -100,7 +100,7 @@ describe('formatXml()', function () {
 
 describe('generateToken()', () => {
   it('generates a string', async () => {
-    expect(typeof await generateToken()).toBe('string')
+    expect(typeof (await generateToken())).toBe('string')
   })
 })
 

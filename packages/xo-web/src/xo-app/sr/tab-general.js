@@ -61,10 +61,8 @@ export default class TabGeneral extends Component {
         <Row>
           <Col className='text-xs-center'>
             <h5>
-              {formatSize(sr.physical_usage)} {_('srUsed')} ({formatSize(
-                sr.size - sr.physical_usage
-              )}{' '}
-              {_('srFree')})
+              {formatSize(sr.physical_usage)} {_('srUsed')} (
+              {formatSize(sr.size - sr.physical_usage)} {_('srFree')})
             </h5>
           </Col>
         </Row>

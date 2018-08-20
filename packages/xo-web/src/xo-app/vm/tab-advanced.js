@@ -553,7 +553,8 @@ export default class TabAdvanced extends Component {
                   <th>{_('vmMemoryLimitsLabel')}</th>
                   <td>
                     <p>
-                      Static: {formatSize(vm.memory.static[0])}/<Size
+                      Static: {formatSize(vm.memory.static[0])}/
+                      <Size
                         value={defined(vm.memory.static[1], null)}
                         onChange={memoryStaticMax =>
                           editVm(vm, { memoryStaticMax })
@@ -565,7 +566,9 @@ export default class TabAdvanced extends Component {
                       <Size
                         value={defined(vm.memory.dynamic[0], null)}
                         onChange={memoryMin => editVm(vm, { memoryMin })}
-                      />/<Size
+                      />
+                      /
+                      <Size
                         value={defined(vm.memory.dynamic[1], null)}
                         onChange={memoryMax => editVm(vm, { memoryMax })}
                       />
@@ -596,7 +599,9 @@ export default class TabAdvanced extends Component {
                         <Icon
                           className='text-info'
                           icon={osFamily(vm.os_version.distro)}
-                        />&nbsp;{vm.os_version.name}
+                        />
+                        &nbsp;
+                        {vm.os_version.name}
                       </span>
                     )}
                   </td>

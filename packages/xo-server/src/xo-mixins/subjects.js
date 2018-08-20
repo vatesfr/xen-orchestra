@@ -64,7 +64,7 @@ export default class {
           )
       )
 
-      if (!await usersDb.exists()) {
+      if (!(await usersDb.exists())) {
         const email = 'admin@admin.net'
         const password = 'admin'
 
@@ -229,7 +229,7 @@ export default class {
   }
 
   async changeUserPassword (userId, oldPassword, newPassword) {
-    if (!await this.checkUserPassword(userId, oldPassword, false)) {
+    if (!(await this.checkUserPassword(userId, oldPassword, false))) {
       throw invalidCredentials()
     }
 

@@ -51,7 +51,10 @@ export default concurrency(2)(async function merge (
 
       // finds first allocated block for the 2 following loops
       let firstBlock = 0
-      while (firstBlock < maxTableEntries && !childVhd.containsBlock(firstBlock)) {
+      while (
+        firstBlock < maxTableEntries &&
+        !childVhd.containsBlock(firstBlock)
+      ) {
         ++firstBlock
       }
 

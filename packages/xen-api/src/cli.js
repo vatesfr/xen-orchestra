@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import 'babel-polyfill'
-
 import blocked from 'blocked'
 import createDebug from 'debug'
 import diff from 'jest-diff'
@@ -88,11 +86,12 @@ const main = async args => {
 
   // Make the REPL waits for promise completion.
   repl.eval = (evaluate => (cmd, context, filename, cb) => {
-    ;fromCallback(cb => {
-      evaluate.call(repl, cmd, context, filename, cb)
-    })
-      .then(value => (isArray(value) ? Promise.all(value) : value))
-      ::asCallback(cb)
+    asCallback.call(
+      fromCallback(cb => {
+        evaluate.call(repl, cmd, context, filename, cb)
+      }).then(value => (isArray(value) ? Promise.all(value) : value)),
+      cb
+    )
   })(repl.eval)
 
   await eventToPromise(repl, 'exit')

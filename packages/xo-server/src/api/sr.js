@@ -320,6 +320,46 @@ createLvm.resolve = {
 }
 
 // -------------------------------------------------------------------
+// Local ext SR
+
+// This functions creates a local ext SR
+
+export async function createExt ({ host, nameLabel, nameDescription, device }) {
+  const xapi = this.getXapi(host)
+
+  const deviceConfig = {
+    device,
+  }
+
+  const srRef = await xapi.call(
+    'SR.create',
+    host._xapiRef,
+    deviceConfig,
+    '0',
+    nameLabel,
+    nameDescription,
+    'ext', // SR ext
+    'user', // recommended by Citrix
+    false,
+    {}
+  )
+
+  const sr = await xapi.call('SR.get_record', srRef)
+  return sr.uuid
+}
+
+createExt.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  device: { type: 'string' },
+}
+
+createExt.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
 

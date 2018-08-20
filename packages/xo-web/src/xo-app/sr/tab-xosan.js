@@ -110,7 +110,9 @@ class Node extends Component {
     () => this.props.node.statusDetail,
     statusDetail => ({
       used: String(
-        Math.round(100 - +statusDetail.sizeFree / +statusDetail.sizeTotal * 100)
+        Math.round(
+          100 - (+statusDetail.sizeFree / +statusDetail.sizeTotal) * 100
+        )
       ),
       free: formatSize(+statusDetail.sizeFree),
     })
@@ -121,7 +123,7 @@ class Node extends Component {
     statusDetail => ({
       used: String(
         Math.round(
-          100 - +statusDetail.inodesFree / +statusDetail.inodesTotal * 100
+          100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100
         )
       ),
       free: formatSize(+statusDetail.inodesFree),
@@ -215,7 +217,7 @@ class Node extends Component {
                       max='100'
                       value={
                         100 -
-                        +statusDetail.sizeFree / +statusDetail.sizeTotal * 100
+                        (+statusDetail.sizeFree / +statusDetail.sizeTotal) * 100
                       }
                     />
                   </Tooltip>
@@ -272,8 +274,8 @@ class Node extends Component {
                           max='100'
                           value={
                             100 -
-                            +statusDetail.inodesFree /
-                              +statusDetail.inodesTotal *
+                            (+statusDetail.inodesFree /
+                              +statusDetail.inodesTotal) *
                               100
                           }
                         />
@@ -689,7 +691,9 @@ export default class TabXosan extends Component {
                 size='lg'
                 color={
                   status_
-                    ? status_.commandStatus ? 'text-success' : status_.error
+                    ? status_.commandStatus
+                      ? 'text-success'
+                      : status_.error
                     : 'text-info'
                 }
               />
@@ -702,7 +706,9 @@ export default class TabXosan extends Component {
                 size='lg'
                 color={
                   heal_
-                    ? heal_.commandStatus ? 'text-success' : heal_.error
+                    ? heal_.commandStatus
+                      ? 'text-success'
+                      : heal_.error
                     : 'text-info'
                 }
               />
@@ -730,7 +736,9 @@ export default class TabXosan extends Component {
                 size='lg'
                 color={
                   info_
-                    ? info_.commandStatus ? 'text-success' : info_.error
+                    ? info_.commandStatus
+                      ? 'text-success'
+                      : info_.error
                     : 'text-info'
                 }
               />

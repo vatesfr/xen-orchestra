@@ -11,6 +11,7 @@ import Upgrade from 'xoa-upgrade'
 import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
+import { createGetObjectsOfType } from 'selectors'
 import { flatten, includes, isEmpty, keyBy, map, mapValues, some } from 'lodash'
 import { injectState, provideState } from '@julien-f/freactal'
 import { Map } from 'immutable'
@@ -18,6 +19,7 @@ import { Number } from 'form'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
+  connectStore,
   generateRandomId,
   resolveId,
   resolveIds,
@@ -44,6 +46,9 @@ import {
 } from './../utils'
 
 // ===================================================================
+
+const SR_BACKEND_FAILURE_LINK =
+  'https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space'
 
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
@@ -163,6 +168,9 @@ export default [
         cb(keyBy(remotes, 'id'))
       }),
   }),
+  connectStore(() => ({
+    srsById: createGetObjectsOfType('SR'),
+  })),
   provideState({
     initialState: getInitialState,
     effects: {
@@ -559,7 +567,7 @@ export default [
     },
   }),
   injectState,
-  ({ state, effects, remotesById, job = {} }) => {
+  ({ state, effects, remotesById, srsById, job = {} }) => {
     const { propSettings, settings = propSettings } = state
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
@@ -787,7 +795,23 @@ export default [
                       <Ul>
                         {map(state.srs, (id, key) => (
                           <Li key={id}>
-                            {renderXoItemFromId(id)}
+                            {renderXoItemFromId(id)}{' '}
+                            {srsById !== undefined &&
+                              state.crMode &&
+                              srsById[id].SR_type === 'lvm' && (
+                                <Tooltip
+                                  content={_('crOnThickProvisionedSrWarning')}
+                                >
+                                  <a
+                                    className='text-info'
+                                    href={SR_BACKEND_FAILURE_LINK}
+                                    rel='noopener noreferrer'
+                                    target='_blank'
+                                  >
+                                    <Icon icon='info' />
+                                  </a>
+                                </Tooltip>
+                              )}
                             <div className='pull-right'>
                               <DeleteOldBackupsFirst
                                 handler={effects.setTargetDeleteFirst}

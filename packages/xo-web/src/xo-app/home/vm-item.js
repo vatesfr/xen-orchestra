@@ -197,7 +197,8 @@ export default class VmItem extends Component {
                 className={styles.itemExpandButton}
                 onClick={this._toggleExpanded}
               >
-                <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
+                <Icon icon='nav' fixedWidth />
+                &nbsp;&nbsp;&nbsp;
               </a>
             </Col>
           </SingleLineRow>

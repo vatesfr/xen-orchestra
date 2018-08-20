@@ -50,7 +50,8 @@ const backupOptionRenderer = backup => (
         <span className='tag tag-info'>{_('delta')}</span>{' '}
       </span>
     )}
-    {backup.tag} - {backup.remoteName} (<FormattedDate
+    {backup.tag} - {backup.remoteName} (
+    <FormattedDate
       value={new Date(backup.date)}
       month='long'
       day='numeric'
@@ -58,7 +59,8 @@ const backupOptionRenderer = backup => (
       hour='2-digit'
       minute='2-digit'
       second='2-digit'
-    />)
+    />
+    )
   </span>
 )
 

@@ -165,7 +165,7 @@ export default class {
   }
 
   async deleteAuthenticationToken (id) {
-    if (!await this._tokens.remove(id)) {
+    if (!(await this._tokens.remove(id))) {
       throw noSuchAuthenticationToken(id)
     }
   }

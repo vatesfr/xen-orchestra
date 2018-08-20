@@ -164,14 +164,16 @@ export default class SrItem extends Component {
               {sr.size > 0 && (
                 <Tooltip
                   content={_('spaceLeftTooltip', {
-                    used: String(Math.round(sr.physical_usage / sr.size * 100)),
+                    used: String(
+                      Math.round((sr.physical_usage / sr.size) * 100)
+                    ),
                     free: formatSizeShort(sr.size - sr.physical_usage),
                   })}
                 >
                   <progress
                     style={{ margin: 0 }}
                     className='progress'
-                    value={sr.physical_usage / sr.size * 100}
+                    value={(sr.physical_usage / sr.size) * 100}
                     max='100'
                   />
                 </Tooltip>
@@ -189,7 +191,8 @@ export default class SrItem extends Component {
                 className={styles.itemExpandButton}
                 onClick={this._toggleExpanded}
               >
-                <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
+                <Icon icon='nav' fixedWidth />
+                &nbsp;&nbsp;&nbsp;
               </a>
             </Col>
           </SingleLineRow>
