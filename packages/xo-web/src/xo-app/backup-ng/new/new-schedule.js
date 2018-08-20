@@ -143,7 +143,7 @@ export default [
             {state.exportMode && (
               <FormGroup>
                 <label>
-                  <strong>{_('exportRetention')}</strong>
+                  <strong>{_('scheduleExportRetention')}</strong>
                 </label>
                 <Number
                   min='0'
@@ -155,7 +155,7 @@ export default [
             {state.copyMode && (
               <FormGroup>
                 <label>
-                  <strong>{_('copyRetention')}</strong>
+                  <strong>{_('scheduleCopyRetention')}</strong>
                 </label>
                 <Number
                   min='0'

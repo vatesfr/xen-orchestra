@@ -391,8 +391,6 @@ const messages = {
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',
   smartBackup: 'Smart backup',
-  exportRetention: 'Export retention',
-  copyRetention: 'Copy retention',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
   useDelta: 'Use delta',
@@ -420,6 +418,8 @@ const messages = {
   editBackupSmartPools: 'Pools',
   editBackupSmartTags: 'Tags',
   sampleOfMatchingVms: 'Sample of matching Vms',
+  backupReplicatedVmsInfo:
+    'Replicated VMs (VMs with Continuous Replication or Disaster Recovery tag) must be excluded!',
   editBackupSmartTagsTitle: 'VMs Tags',
   editBackupSmartExcludedTagsTitle: 'Excluded VMs tags',
   editBackupNot: 'Reverse',

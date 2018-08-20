@@ -1,6 +1,8 @@
 import _ from 'intl'
+import Icon from 'icon'
 import React from 'react'
 import SmartBackupPreview from 'smart-backup'
+import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { get } from 'lodash'
@@ -72,7 +74,10 @@ export default [
       <FormGroup>
         <label>
           <strong>{_('editBackupSmartExcludedTagsTitle')}</strong>
-        </label>
+        </label>{' '}
+        <Tooltip content={_('backupReplicatedVmsInfo')}>
+          <Icon icon='info' />
+        </Tooltip>
         <SelectTag
           multi
           onChange={effects.setTagNotValues}
