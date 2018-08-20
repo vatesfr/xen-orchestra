@@ -584,51 +584,15 @@ export default [
           <Row>
             <Col mediumSize={6}>
               <Card>
-                <CardHeader>
-                  {_('backupName')}*
-                  <ActionButton
-                    className='pull-right'
-                    data-mode='smartMode'
-                    handler={effects.toggleMode}
-                    icon={state.smartMode ? 'toggle-on' : 'toggle-off'}
-                    iconColor={state.smartMode ? 'text-success' : undefined}
-                    size='small'
-                  >
-                    {_('smartBackupModeTitle')}
-                  </ActionButton>
-                </CardHeader>
+                <CardHeader>{_('backupName')}*</CardHeader>
                 <CardBlock>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('backupName')}</strong>
-                    </label>
-                    <FormFeedback
-                      component={Input}
-                      message={_('missingBackupName')}
-                      onChange={effects.setName}
-                      error={state.showErrors ? state.missingName : undefined}
-                      value={state.name}
-                    />
-                  </FormGroup>
-                  {state.smartMode ? (
-                    <Upgrade place='newBackup' required={3}>
-                      <SmartBackup />
-                    </Upgrade>
-                  ) : (
-                    <FormGroup>
-                      <label>
-                        <strong>{_('vmsToBackup')}</strong>
-                      </label>
-                      <FormFeedback
-                        component={SelectVm}
-                        message={_('missingVms')}
-                        multi
-                        onChange={effects.setVms}
-                        error={state.showErrors ? state.missingVms : undefined}
-                        value={state.vms}
-                      />
-                    </FormGroup>
-                  )}
+                  <FormFeedback
+                    component={Input}
+                    message={_('missingBackupName')}
+                    onChange={effects.setName}
+                    error={state.showErrors ? state.missingName : undefined}
+                    value={state.name}
+                  />
                 </CardBlock>
               </Card>
               <FormFeedback
@@ -904,6 +868,37 @@ export default [
               </Card>
             </Col>
             <Col mediumSize={6}>
+              <Card>
+                <CardHeader>
+                  {_('vmsToBackup')}*
+                  <ActionButton
+                    className='pull-right'
+                    data-mode='smartMode'
+                    handler={effects.toggleMode}
+                    icon={state.smartMode ? 'toggle-on' : 'toggle-off'}
+                    iconColor={state.smartMode ? 'text-success' : undefined}
+                    size='small'
+                  >
+                    {_('smartBackupModeTitle')}
+                  </ActionButton>
+                </CardHeader>
+                <CardBlock>
+                  {state.smartMode ? (
+                    <Upgrade place='newBackup' required={3}>
+                      <SmartBackup />
+                    </Upgrade>
+                  ) : (
+                    <FormFeedback
+                      component={SelectVm}
+                      message={_('missingVms')}
+                      multi
+                      onChange={effects.setVms}
+                      error={state.showErrors ? state.missingVms : undefined}
+                      value={state.vms}
+                    />
+                  )}
+                </CardBlock>
+              </Card>
               <Schedules />
             </Col>
           </Row>
