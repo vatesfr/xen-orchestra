@@ -391,8 +391,6 @@ const messages = {
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',
   smartBackup: 'Smart backup',
-  exportRetention: 'Export retention',
-  copyRetention: 'Copy retention',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
   useDelta: 'Use delta',
