@@ -25,7 +25,7 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "dependencies": {
     "jsonrpc-websocket-client": "^0.4.1",

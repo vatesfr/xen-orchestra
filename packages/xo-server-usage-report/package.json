@@ -31,7 +31,7 @@
     "report.html.tpl"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "dependencies": {
     "@xen-orchestra/cron": "^1.0.3",

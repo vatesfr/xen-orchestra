@@ -22,7 +22,7 @@
     "*.js"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "dependencies": {
     "@babel/runtime": "7.0.0-rc.1",
