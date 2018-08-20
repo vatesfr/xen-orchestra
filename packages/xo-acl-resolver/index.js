@@ -1,3 +1,5 @@
+'use strict'
+
 // These global variables are not a problem because the algorithm is
 // synchronous.
 let permissionsByObject
@@ -103,7 +105,12 @@ function checkAuthorization (objectId, permission) {
 
 // -------------------------------------------------------------------
 
-export default (permissionsByObject_, getObject_, permissions, permission) => {
+module.exports = (
+  permissionsByObject_,
+  getObject_,
+  permissions,
+  permission
+) => {
   // Assign global variables.
   permissionsByObject = permissionsByObject_
   getObject = getObject_
