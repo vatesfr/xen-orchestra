@@ -185,7 +185,7 @@ export default [
         await createBackupNgJob({
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.isFull && state.compression ? 'native' : '',
+          compression: state.compression ? 'native' : '',
           schedules: mapValues(
             state.schedules,
             ({ id, ...schedule }) => schedule
@@ -270,7 +270,7 @@ export default [
           compression:
             state.compression === undefined
               ? undefined
-              : state.isFull && state.compression
+              : state.compression
                 ? 'native'
                 : '',
           settings: normalizeSettings({
