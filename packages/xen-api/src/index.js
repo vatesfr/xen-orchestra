@@ -143,6 +143,8 @@ const {
 
 // -------------------------------------------------------------------
 
+export const NULL_REF = 'OpaqueRef:NULL'
+
 const OPAQUE_REF_PREFIX = 'OpaqueRef:'
 export const isOpaqueRef = value =>
   typeof value === 'string' && startsWith(value, OPAQUE_REF_PREFIX)
@@ -258,7 +260,7 @@ export class Xapi extends EventEmitter {
       objects.getKey = getKey
 
       this._objectsByRefs = createObject(null)
-      this._objectsByRefs['OpaqueRef:NULL'] = undefined
+      this._objectsByRefs[NULL_REF] = undefined
 
       this._taskWatchers = Object.create(null)
 
