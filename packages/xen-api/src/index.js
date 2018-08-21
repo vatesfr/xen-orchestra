@@ -122,7 +122,14 @@ const parseUrl = url => {
   }
 
   const [, protocol = 'https:', username, password, hostname, port] = matches
-  return { protocol, username, password, hostname, port }
+  const parsedUrl = { protocol, hostname, port }
+  if (username !== undefined) {
+    parsedUrl.username = decodeURIComponent(username)
+  }
+  if (password !== undefined) {
+    parsedUrl.password = decodeURIComponent(password)
+  }
+  return parsedUrl
 }
 
 // -------------------------------------------------------------------
