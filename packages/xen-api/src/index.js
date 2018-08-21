@@ -509,6 +509,13 @@ export class Xapi extends EventEmitter {
     return record
   }
 
+  async getRecordByUuid (type, uuid) {
+    return this.getRecord(
+      type,
+      await this._sessionCall(`${type}.get_by_uuid`, [uuid])
+    )
+  }
+
   @cancelable
   getResource ($cancelToken, pathname, { host, query, task }) {
     return this._autoTask(task, `Xapi#getResource ${pathname}`).then(
