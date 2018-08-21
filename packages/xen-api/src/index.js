@@ -496,8 +496,17 @@ export class Xapi extends EventEmitter {
     throw new Error('no object with UUID: ' + uuid)
   }
 
-  getRecord (type, ref) {
-    return this._sessionCall(`${type}.get_record`, [ref])
+  async getRecord (type, ref) {
+    const record = await this._sessionCall(`${type}.get_record`, [ref])
+
+    // All custom properties are read-only and non enumerable.
+    defineProperties(record, {
+      $id: { value: record.uuid || ref },
+      $ref: { value: ref },
+      $type: { value: type },
+    })
+
+    return record
   }
 
   @cancelable
