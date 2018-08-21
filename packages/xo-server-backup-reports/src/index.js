@@ -30,6 +30,21 @@ export const configurationSchema = {
   },
 }
 
+// to remove
+export const testSchema = {
+  type: 'object',
+
+  properties: {
+    runId: {
+      type: 'string',
+      description: "job's runId",
+    },
+  },
+
+  additionalProperties: false,
+  required: ['runId'],
+}
+
 // ===================================================================
 
 const ICON_FAILURE = '🚨'
@@ -130,6 +145,11 @@ class BackupReportsXoPlugin {
           : this._listener(status, job, schedule, runJobId)
       )
     ).catch(logError)
+  }
+
+  // to remove
+  test ({ runId }) {
+    return this._backupNgListener(undefined, undefined, undefined, runId)
   }
 
   async _backupNgListener (_1, _2, schedule, runJobId) {
