@@ -185,7 +185,7 @@ export default [
         await createBackupNgJob({
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression ? 'native' : '',
+          compression: state.isFull && state.compression ? 'native' : '',
           schedules: mapValues(
             state.schedules,
             ({ id, ...schedule }) => schedule
@@ -270,7 +270,7 @@ export default [
           compression:
             state.compression === undefined
               ? undefined
-              : state.compression
+              : state.isFull && state.compression
                 ? 'native'
                 : '',
           settings: normalizeSettings({
@@ -545,9 +545,6 @@ export default [
         state.copyMode && !state.copyRetentionExists,
       missingSnapshotRetention: state =>
         state.snapshotMode && !state.snapshotRetentionExists,
-      showCompression: state =>
-        state.isFull &&
-        (state.exportRetentionExists || state.copyRetentionExists),
       exportMode: state => state.backupMode || state.deltaMode,
       copyMode: state => state.drMode || state.crMode,
       exportRetentionExists: createDoesRetentionExist('exportRetention'),
@@ -851,7 +848,7 @@ export default [
                       />
                     </label>
                   </FormGroup>
-                  {state.showCompression && (
+                  {state.isFull && (
                     <FormGroup>
                       <label>
                         <strong>{_('useCompression')}</strong>{' '}
