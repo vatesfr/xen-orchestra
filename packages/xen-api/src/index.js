@@ -663,6 +663,41 @@ export class Xapi extends EventEmitter {
     )
   }
 
+  setField ({ $type, $ref }, field, value) {
+    return this.call(`${$type}.set_${field}`, $ref, value).then(noop)
+  }
+
+  setFieldEntries (record, field, entries) {
+    return Promise.all(
+      Object.keys(entries).map(entry => {
+        const value = entries[entry]
+        if (value !== undefined) {
+          return value === null
+            ? this.unsetFieldEntry(record, field, entry)
+            : this.setFieldEntry(record, field, entry, value)
+        }
+      })
+    ).then(noop)
+  }
+
+  async setFieldEntry ({ $type, $ref }, field, entry, value) {
+    while (true) {
+      try {
+        await this.call(`${$type}.add_to_${field}`, $ref, entry, value)
+        return
+      } catch (error) {
+        if (error == null || error.code !== 'MAP_DUPLICATE_KEY') {
+          throw error
+        }
+      }
+      await this.unsetFieldEntry({ $type, $ref }, field, entry)
+    }
+  }
+
+  unsetFieldEntry ({ $type, $ref }, field, entry) {
+    return this.call(`${$type}.remove_from_${field}`, $ref, entry)
+  }
+
   watchTask (ref) {
     const watchers = this._taskWatchers
     if (watchers === undefined) {
