@@ -1985,7 +1985,7 @@ export default class Xapi extends XapiBase {
       throw new Error('no valid PBDs found')
     }
 
-    const host = pbd.$HOST
+    const host = pbd.$host
 
     await Promise.all([
       body.task,
