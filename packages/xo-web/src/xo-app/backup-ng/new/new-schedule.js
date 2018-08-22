@@ -6,7 +6,6 @@ import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
 import { generateRandomId } from 'utils'
 import { injectState, provideState } from '@julien-f/freactal'
-import { isEqual } from 'lodash'
 import { Number } from 'form'
 
 import { DEFAULT_RETENTION, FormFeedback, FormGroup, Input } from './../utils'
@@ -15,19 +14,17 @@ const DEFAULT_SCHEDULE = {
   copyRetention: DEFAULT_RETENTION,
   exportRetention: DEFAULT_RETENTION,
   snapshotRetention: DEFAULT_RETENTION,
+  cron: '0 0 * * *',
+  timezone: moment.tz.guess(),
 }
 
 export default [
   injectState,
   provideState({
-    initialState: ({
-      schedule: { cron = '0 0 * * *', timezone = moment.tz.guess() },
-    }) => ({
-      cron,
+    initialState: () => ({
       formId: generateRandomId(),
       idInputName: generateRandomId(),
       schedule: undefined,
-      timezone,
     }),
     effects: {
       setSchedule: (_, { name, value }) => ({
@@ -57,11 +54,17 @@ export default [
           value,
         })
       },
-      setCronTimezone: (_, { cronPattern, timezone }) => state => ({
-        ...state,
-        cron: cronPattern,
-        timezone,
-      }),
+      setCronTimezone: ({ setSchedule }, { cronPattern, timezone }) => () => {
+        setSchedule({
+          name: 'cron',
+          value: cronPattern,
+        }).then(() =>
+          setSchedule({
+            name: 'timezone',
+            value: timezone,
+          })
+        )
+      },
       setName: ({ setSchedule }, { target: { value } }) => () => {
         setSchedule({
           name: 'name',
@@ -79,28 +82,21 @@ export default [
           (copyMode && schedule.copyRetention > 0) ||
           (snapshotMode && schedule.snapshotRetention > 0)
         ),
-      scheduleNotEdited: (
-        { cron, editionMode, schedule, timezone },
-        { schedule: propSchedule }
-      ) =>
-        editionMode !== 'creation' &&
-        schedule === undefined &&
-        isEqual(
-          {
-            cron: propSchedule.cron,
-            timezone: propSchedule.timezone,
-          },
-          {
-            cron,
-            timezone,
-          }
-        ),
+      scheduleNotEdited: ({ editionMode, schedule }) =>
+        editionMode !== 'creation' && schedule === undefined,
     },
   }),
   injectState,
   ({ effects, state }) => {
     const { tmpSchedule = DEFAULT_SCHEDULE, schedule = tmpSchedule } = state
-    const { name, copyRetention, snapshotRetention, exportRetention } = schedule
+    const {
+      copyRetention,
+      cron,
+      exportRetention,
+      name,
+      snapshotRetention,
+      timezone,
+    } = schedule
 
     return (
       <form id={state.formId}>
@@ -158,22 +154,19 @@ export default [
             )}
             <Scheduler
               onChange={effects.setCronTimezone}
-              cronPattern={state.cron}
-              timezone={state.timezone}
+              cronPattern={cron}
+              timezone={timezone}
             />
-            <SchedulePreview
-              cronPattern={state.cron}
-              timezone={state.timezone}
-            />
+            <SchedulePreview cronPattern={cron} timezone={timezone} />
             <br />
             <ActionButton
               btnStyle='primary'
               data-copyRetention={copyRetention}
-              data-cron={state.cron}
+              data-cron={cron}
               data-exportRetention={exportRetention}
               data-name={name}
               data-snapshotRetention={snapshotRetention}
-              data-timezone={state.timezone}
+              data-timezone={timezone}
               disabled={state.isScheduleInvalid}
               form={state.formId}
               handler={effects.saveSchedule}

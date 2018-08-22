@@ -148,9 +148,7 @@ export default [
           )}
         </CardBlock>
       </FormFeedback>
-      {state.editionMode !== undefined && (
-        <NewSchedule schedule={state.tmpSchedule || {}} />
-      )}
+      {state.editionMode !== undefined && <NewSchedule />}
     </div>
   ),
 ].reduceRight((value, decorator) => decorator(value))
