@@ -1,6 +1,6 @@
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
-import { forEach, get, startCase } from 'lodash'
+import { capitalize, forEach, get, groupBy, startCase, isEmpty } from 'lodash'
 import pkg from '../package'
 
 export const configurationSchema = {
@@ -46,6 +46,8 @@ export const testSchema = {
 }
 
 // ===================================================================
+
+const INDENT = '  '
 
 const ICON_FAILURE = '🚨'
 const ICON_INTERRUPTED = '⚠️'
@@ -100,6 +102,31 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
+// ===================================================================
+
+const MARKDOWN = {
+  success: async function (vmTasks, markdown, ...args) {
+    const size = vmTasks.length
+    markdown.push('---', '', `## ${size} Success${size === 1 ? '' : 'es'}`, '')
+    await this._addVmsMarkdown(vmTasks, markdown, ...args)
+  },
+  failure: async function (vmTasks, markdown, ...args) {
+    const size = vmTasks.length
+    markdown.push('---', '', `## ${size} Failure${size === 1 ? '' : 's'}`, '')
+    await this._addVmsMarkdown(vmTasks, markdown, ...args)
+  },
+  interrupted: async function (vmTasks, markdown, ...args) {
+    const size = vmTasks.length
+    markdown.push('---', '', `## ${size} Interrupted'}`, '')
+    await this._addVmsMarkdown(vmTasks, markdown, ...args)
+  },
+  skipped: async function (vmTasks, markdown, ...args) {
+    const size = vmTasks.length
+    markdown.push('---', '', `## ${size} Skipped`, '')
+    await this._addVmsMarkdown(vmTasks, markdown, ...args)
+  },
+}
+
 class BackupReportsXoPlugin {
   constructor (xo) {
     this._xo = xo
@@ -136,7 +163,7 @@ class BackupReportsXoPlugin {
   }
 
   _getTemporalDataMarkdown (start, end, nbIndent = 0) {
-    const indent = '  '.repeat(nbIndent)
+    const indent = INDENT.repeat(nbIndent)
 
     const markdown = [`${indent}- **Start time**: ${this._formatDate(start)}`]
     if (end !== undefined) {
@@ -147,6 +174,196 @@ class BackupReportsXoPlugin {
       }
     }
     return markdown
+  }
+
+  _addOperationMarkdown (
+    operationTask,
+    type,
+    markdown,
+    globalTransferMergeSize
+  ) {
+    const size = get(operationTask.result, 'size')
+    const status = operationTask.status
+    if (status === 'success' && !(size > 0)) {
+      return
+    }
+
+    markdown.push(
+      `${INDENT.repeat(2)}- **${capitalize(type)}** ${
+        STATUS_ICON[operationTask.status]
+      }`,
+      ...this._getTemporalDataMarkdown(
+        operationTask.start,
+        operationTask.end,
+        3
+      )
+    )
+
+    if (status === 'success') {
+      markdown.push(
+        `${INDENT.repeat(3)}- **Size**: ${formatSize(size)}`,
+        `${INDENT.repeat(3)}- **Speed**: ${formatSpeed(
+          size,
+          operationTask.end - operationTask.start
+        )}`
+      )
+      globalTransferMergeSize[type] += size
+      return
+    }
+
+    const message = get(operationTask.result, 'message')
+    if (message !== undefined) {
+      markdown.push(`${INDENT.repeat(3)}- **Error**: ${message}`)
+    }
+  }
+
+  async _getTargetInfo (type, id) {
+    const xo = this._xo
+    if (type === 'sr') {
+      let sr
+      try {
+        sr = xo.getObject(id)
+      } catch (e) {}
+      return sr !== undefined
+        ? {
+            name: sr.name_label,
+            id: sr.uuid,
+          }
+        : {
+            name: 'SR Not found',
+            id,
+          }
+    }
+    const remote = await this._xo.getRemote(id).catch(() => {})
+    return {
+      name: remote !== undefined ? remote.name : `Remote Not found`,
+      id,
+    }
+  }
+
+  async _addTargetsMarkdown (
+    targetTasks,
+    type,
+    markdown,
+    globalTransferMergeSize
+  ) {
+    markdown.push(type === 'remote' ? '- **Remotes**' : '- **SRs**')
+    for (const targetTask of targetTasks) {
+      const { name, id } = await this._getTargetInfo(type, targetTask.data.id)
+      markdown.push(
+        `${INDENT}- **${name}** (${id}) ${STATUS_ICON[targetTask.status]}`,
+        ...this._getTemporalDataMarkdown(targetTask.start, targetTask.end, 2)
+      )
+      const message = get(targetTask.result, 'message')
+      if (message !== undefined) {
+        markdown.push(`${INDENT.repeat(2)}- **Error**: ${message}}`)
+      }
+
+      const { transfer: transferTasks, merge: mergeTasks } = groupBy(
+        targetTask.tasks,
+        'message'
+      )
+      if (transferTasks !== undefined) {
+        this._addOperationMarkdown(
+          transferTasks[0],
+          'transfer',
+          markdown,
+          globalTransferMergeSize
+        )
+      }
+      if (mergeTasks !== undefined) {
+        this._addOperationMarkdown(
+          mergeTasks[0],
+          'merge',
+          markdown,
+          globalTransferMergeSize
+        )
+      }
+    }
+  }
+
+  _addSnapshotMarkdown (task, markdown) {
+    markdown.push(
+      `- **Snapshot** ${ICON_SUCCESS}`,
+      ...this._getTemporalDataMarkdown(task.start, task.end, 1)
+    )
+  }
+
+  async _addVmsMarkdown (
+    vmTasks,
+    markdown,
+    nagiosText,
+    globalTransferMergeSize
+  ) {
+    for (const vmTask of vmTasks) {
+      const id = vmTask.data.id
+      let vm
+      try {
+        vm = this._xo.getObject(id)
+      } catch (e) {}
+      const [name, uuid] =
+        vm !== undefined ? [vm.name_label, vm.uuid] : ['VM not found', id]
+      markdown.push(
+        '',
+        `### ${name}`,
+        '',
+        `- **UUID**: ${uuid}`,
+        ...this._getTemporalDataMarkdown(vmTask.start, vmTask.end)
+      )
+
+      const message = get(vmTask.result, 'message')
+      if (message !== undefined) {
+        if (vmTask.status === 'skipped') {
+          markdown.push(
+            `- **Reason**: ${
+              message === UNHEALTHY_VDI_CHAIN_ERROR
+                ? UNHEALTHY_VDI_CHAIN_MESSAGE
+                : message
+            }`
+          )
+          nagiosText.push(`[(Skipped) ${name} : ${message}]`)
+        } else {
+          markdown.push(`- **Error**: ${message}`)
+          nagiosText.push(
+            `[(${
+              vmTask.status === 'interrupted' ? 'Interrupted' : 'Failed'
+            }) ${name} : ${message}]`
+          )
+        }
+      }
+
+      const snapshotAndTargetsTasks = vmTask.tasks
+      if (isEmpty(snapshotAndTargetsTasks)) {
+        continue
+      }
+
+      const { snapshot: snapshotTasks, export: exportTasks = [] } = groupBy(
+        snapshotAndTargetsTasks,
+        'message'
+      )
+      this._addSnapshotMarkdown(snapshotTasks[0], markdown)
+
+      const { remote: remoteTasks, SR: srTasks } = groupBy(
+        exportTasks,
+        'data.type'
+      )
+      if (remoteTasks !== undefined) {
+        await this._addTargetsMarkdown(
+          remoteTasks,
+          'remote',
+          markdown,
+          globalTransferMergeSize
+        )
+      }
+      if (srTasks !== undefined) {
+        await this._addTargetsMarkdown(
+          srTasks,
+          'sr',
+          markdown,
+          globalTransferMergeSize
+        )
+      }
+    }
   }
 
   async _backupNgListener (_1, _2, schedule, runJobId) {
@@ -196,267 +413,56 @@ class BackupReportsXoPlugin {
       })
     }
 
-    const failedVmsText = []
-    const skippedVmsText = []
-    const successfulVmsText = []
-    const interruptedVmsText = []
     const nagiosText = []
-
-    let globalMergeSize = 0
-    let globalTransferSize = 0
-    let nFailures = 0
-    let nSkipped = 0
-    let nInterrupted = 0
-    for (const taskLog of log.tasks) {
-      if (taskLog.status === 'success' && reportWhen === 'failure') {
-        continue
+    const markdown = []
+    let nSuccesses = 0
+    const globalTransferMergeSize = {
+      transfer: 0,
+      merge: 0,
+    }
+    const vmsTasksByStatus = groupBy(log.tasks, 'status')
+    for (const status in vmsTasksByStatus) {
+      const tasks = vmsTasksByStatus[status]
+      if (status === 'success') {
+        if (reportWhen === 'failure') {
+          return
+        }
+        nSuccesses = tasks.length
       }
 
-      const vmId = taskLog.data.id
-      let vm
-      try {
-        vm = xo.getObject(vmId)
-      } catch (e) {}
-      const text = [
-        `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
-        '',
-        `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
-        ...this._getTemporalDataMarkdown(taskLog.start, taskLog.end),
-      ]
-
-      const failedSubTasks = []
-      const snapshotText = []
-      const srsText = []
-      const remotesText = []
-
-      for (const subTaskLog of taskLog.tasks || []) {
-        if (
-          subTaskLog.message !== 'export' &&
-          subTaskLog.message !== 'snapshot'
-        ) {
-          continue
-        }
-
-        const icon = STATUS_ICON[subTaskLog.status]
-        const errorMessage = `    - **Error**: ${get(
-          subTaskLog.result,
-          'message'
-        )}`
-
-        if (subTaskLog.message === 'snapshot') {
-          snapshotText.push(
-            `- **Snapshot** ${icon}`,
-            ...this._getTemporalDataMarkdown(
-              subTaskLog.start,
-              subTaskLog.end,
-              1
-            )
-          )
-        } else if (subTaskLog.data.type === 'remote') {
-          const id = subTaskLog.data.id
-          const remote = await xo.getRemote(id).catch(() => {})
-          remotesText.push(
-            `  - **${
-              remote !== undefined ? remote.name : `Remote Not found`
-            }** (${id}) ${icon}`,
-            ...this._getTemporalDataMarkdown(
-              subTaskLog.start,
-              subTaskLog.end,
-              2
-            )
-          )
-          if (subTaskLog.status === 'failure') {
-            failedSubTasks.push(remote !== undefined ? remote.name : id)
-            remotesText.push('', errorMessage)
-          }
-        } else {
-          const id = subTaskLog.data.id
-          let sr
-          try {
-            sr = xo.getObject(id)
-          } catch (e) {}
-          const [srName, srUuid] =
-            sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, id]
-          srsText.push(
-            `  - **${srName}** (${srUuid}) ${icon}`,
-            ...this._getTemporalDataMarkdown(
-              subTaskLog.start,
-              subTaskLog.end,
-              2
-            )
-          )
-          if (subTaskLog.status === 'failure') {
-            failedSubTasks.push(sr !== undefined ? sr.name_label : id)
-            srsText.push('', errorMessage)
-          }
-        }
-
-        forEach(subTaskLog.tasks, operationLog => {
-          if (
-            operationLog.message !== 'merge' &&
-            operationLog.message !== 'transfer'
-          ) {
-            return
-          }
-
-          const operationInfoText = []
-          if (operationLog.status === 'success') {
-            const size = operationLog.result.size
-            if (operationLog.message === 'merge') {
-              globalMergeSize += size
-            } else {
-              globalTransferSize += size
-            }
-
-            operationInfoText.push(
-              `      - **Size**: ${formatSize(size)}`,
-              `      - **Speed**: ${formatSpeed(
-                size,
-                operationLog.end - operationLog.start
-              )}`
-            )
-          } else if (get(operationLog.result, 'message') !== undefined) {
-            operationInfoText.push(
-              `      - **Error**: ${get(operationLog.result, 'message')}`
-            )
-          }
-          const operationText = [
-            `    - **${operationLog.message}** ${
-              STATUS_ICON[operationLog.status]
-            }`,
-            ...this._getTemporalDataMarkdown(
-              operationLog.start,
-              operationLog.end,
-              3
-            ),
-            ...operationInfoText,
-          ].join('\n')
-          if (get(subTaskLog, 'data.type') === 'remote') {
-            remotesText.push(operationText)
-            remotesText.join('\n')
-          }
-          if (get(subTaskLog, 'data.type') === 'SR') {
-            srsText.push(operationText)
-            srsText.join('\n')
-          }
-        })
-      }
-
-      if (srsText.length !== 0) {
-        srsText.unshift(`- **SRs**`)
-      }
-      if (remotesText.length !== 0) {
-        remotesText.unshift(`- **Remotes**`)
-      }
-      const subText = [...snapshotText, '', ...srsText, '', ...remotesText]
-      if (taskLog.result !== undefined) {
-        if (taskLog.status === 'skipped') {
-          ++nSkipped
-          skippedVmsText.push(
-            ...text,
-            `- **Reason**: ${
-              taskLog.result.message === UNHEALTHY_VDI_CHAIN_ERROR
-                ? UNHEALTHY_VDI_CHAIN_MESSAGE
-                : taskLog.result.message
-            }`,
-            ''
-          )
-          nagiosText.push(
-            `[(Skipped) ${vm !== undefined ? vm.name_label : 'undefined'} : ${
-              taskLog.result.message
-            } ]`
-          )
-        } else {
-          ++nFailures
-          failedVmsText.push(
-            ...text,
-            `- **Error**: ${taskLog.result.message}`,
-            ''
-          )
-
-          nagiosText.push(
-            `[(Failed) ${vm !== undefined ? vm.name_label : 'undefined'} : ${
-              taskLog.result.message
-            } ]`
-          )
-        }
-      } else {
-        if (taskLog.status === 'failure') {
-          ++nFailures
-          failedVmsText.push(...text, '', '', ...subText, '')
-          nagiosText.push(
-            `[${
-              vm !== undefined ? vm.name_label : 'undefined'
-            }: (failed)[${failedSubTasks.toString()}]]`
-          )
-        } else if (taskLog.status === 'interrupted') {
-          ++nInterrupted
-          interruptedVmsText.push(...text, '', '', ...subText, '')
-          nagiosText.push(
-            `[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`
-          )
-        } else {
-          successfulVmsText.push(...text, '', '', ...subText, '')
-        }
+      const addMarkdownFn = MARKDOWN[status]
+      if (addMarkdownFn !== undefined) {
+        await addMarkdownFn.call(
+          this,
+          tasks,
+          markdown,
+          nagiosText,
+          globalTransferMergeSize
+        )
       }
     }
 
+    if (globalTransferMergeSize.transfer !== 0) {
+      markdown.unshift(
+        `- **Transfer size**: ${formatSize(globalTransferMergeSize.transfer)}`
+      )
+    }
+    if (globalTransferMergeSize.merge !== 0) {
+      markdown.unshift(
+        `- **Merge size**: ${formatSize(globalTransferMergeSize.merge)}`
+      )
+    }
     const nVms = log.tasks.length
-    const nSuccesses = nVms - nFailures - nSkipped - nInterrupted
-    let markdown = [
+    markdown.unshift(
       `##  Global status: ${log.status}`,
       '',
       `- **mode**: ${mode}`,
       ...this._getTemporalDataMarkdown(log.start, log.end),
-      `- **Successes**: ${nSuccesses} / ${nVms}`,
-    ]
-
-    if (globalTransferSize !== 0) {
-      markdown.push(`- **Transfer size**: ${formatSize(globalTransferSize)}`)
-    }
-    if (globalMergeSize !== 0) {
-      markdown.push(`- **Merge size**: ${formatSize(globalMergeSize)}`)
-    }
-    markdown.push('')
-
-    if (nFailures !== 0) {
-      markdown.push(
-        '---',
-        '',
-        `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`,
-        '',
-        ...failedVmsText
-      )
-    }
-
-    if (nSkipped !== 0) {
-      markdown.push('---', '', `## ${nSkipped} Skipped`, '', ...skippedVmsText)
-    }
-
-    if (nInterrupted !== 0) {
-      markdown.push(
-        '---',
-        '',
-        `## ${nInterrupted} Interrupted`,
-        '',
-        ...interruptedVmsText
-      )
-    }
-
-    if (nSuccesses !== 0 && reportWhen !== 'failure') {
-      markdown.push(
-        '---',
-        '',
-        `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`,
-        '',
-        ...successfulVmsText
-      )
-    }
-
+      `- **Successes**: ${nSuccesses} / ${nVms}`
+    )
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
-    markdown = markdown.join('\n')
     return this._sendReport({
-      markdown,
+      markdown: markdown.join('\n'),
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${
         STATUS_ICON[log.status]
       }`,
@@ -464,9 +470,9 @@ class BackupReportsXoPlugin {
       nagiosMarkdown:
         log.status === 'success'
           ? `[Xen Orchestra] [Success] Backup report for ${jobName}`
-          : `[Xen Orchestra] [${
-              nFailures !== 0 ? 'Failure' : 'Skipped'
-            }] Backup report for ${jobName} - VMs : ${nagiosText.join(' ')}`,
+          : `[Xen Orchestra] [${capitalize(
+              log.status
+            )}] Backup report for ${jobName} - VMs : ${nagiosText.join(' ')}`,
     })
   }
 
