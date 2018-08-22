@@ -1489,25 +1489,31 @@ export default class Xapi extends XapiBase {
     )
 
     let ref
-    try {
-      ref = await this.callAsync(
-        $cancelToken,
-        'VM.snapshot_with_quiesce',
-        vm.$ref,
-        nameLabel
-      ).then(extractOpaqueRef)
-      this.addTag(ref, 'quiesce')::ignoreErrors()
-    } catch (error) {
-      const { code } = error
-      if (
-        code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-        // quiesce only work on a running VM
-        code !== 'VM_BAD_POWER_STATE' &&
-        // quiesce failed, fallback on standard snapshot
-        // TODO: emit warning
-        code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
-      ) {
-        throw error
+    do {
+      if (!vm.tags.includes('xo-disable-quiesce')) {
+        try {
+          ref = await this.callAsync(
+            $cancelToken,
+            'VM.snapshot_with_quiesce',
+            vm.$ref,
+            nameLabel
+          ).then(extractOpaqueRef)
+          this.addTag(ref, 'quiesce')::ignoreErrors()
+
+          break
+        } catch (error) {
+          const { code } = error
+          if (
+            code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
+            // quiesce only work on a running VM
+            code !== 'VM_BAD_POWER_STATE' &&
+            // quiesce failed, fallback on standard snapshot
+            // TODO: emit warning
+            code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
+          ) {
+            throw error
+          }
+        }
       }
       ref = await this.callAsync(
         $cancelToken,
@@ -1515,7 +1521,8 @@ export default class Xapi extends XapiBase {
         vm.$ref,
         nameLabel
       ).then(extractOpaqueRef)
-    }
+    } while (false)
+
     // Convert the template to a VM and wait to have receive the up-
     // to-date object.
     const [, snapshot] = await Promise.all([
