@@ -11,7 +11,6 @@ import {
   forEach,
   isArray,
   isInteger,
-  isObject,
   map,
   noop,
   omit,
@@ -137,8 +136,8 @@ const parseUrl = url => {
 const {
   create: createObject,
   defineProperties,
-  defineProperty,
   freeze: freezeObject,
+  keys: getKeys,
 } = Object
 
 // -------------------------------------------------------------------
@@ -187,10 +186,6 @@ const prepareParam = param => {
 // -------------------------------------------------------------------
 
 const getKey = o => o.$id
-
-// -------------------------------------------------------------------
-
-const EMPTY_ARRAY = freezeObject([])
 
 // -------------------------------------------------------------------
 
@@ -259,8 +254,8 @@ export class Xapi extends EventEmitter {
       const objects = (this._objects = new Collection())
       objects.getKey = getKey
 
-      this._objectsByRefs = createObject(null)
-      this._objectsByRefs[NULL_REF] = undefined
+      this._objectsByRef = createObject(null)
+      this._objectsByRef[NULL_REF] = undefined
 
       this._taskWatchers = Object.create(null)
 
@@ -462,7 +457,7 @@ export class Xapi extends EventEmitter {
     }
 
     const object =
-      this._objects.all[idOrUuidOrRef] || this._objectsByRefs[idOrUuidOrRef]
+      this._objects.all[idOrUuidOrRef] || this._objectsByRef[idOrUuidOrRef]
 
     if (object !== undefined) return object
 
@@ -474,7 +469,7 @@ export class Xapi extends EventEmitter {
   // Returns the object for a given opaque reference (internal to
   // XAPI).
   getObjectByRef (ref, defaultValue) {
-    const object = this._objectsByRefs[ref]
+    const object = this._objectsByRef[ref]
 
     if (object !== undefined) return object
 
@@ -497,16 +492,9 @@ export class Xapi extends EventEmitter {
   }
 
   async getRecord (type, ref) {
-    const record = await this._sessionCall(`${type}.get_record`, [ref])
-
-    // All custom properties are read-only and non enumerable.
-    defineProperties(record, {
-      $id: { value: record.uuid || ref },
-      $ref: { value: ref },
-      $type: { value: type },
-    })
-
-    return record
+    return this._wrapRecord(
+      await this._sessionCall(`${type}.get_record`, [ref])
+    )
   }
 
   async getRecordByUuid (type, uuid) {
@@ -669,7 +657,7 @@ export class Xapi extends EventEmitter {
 
   setFieldEntries (record, field, entries) {
     return Promise.all(
-      Object.keys(entries).map(entry => {
+      getKeys(entries).map(entry => {
         const value = entries[entry]
         if (value !== undefined) {
           return value === null
@@ -710,7 +698,7 @@ export class Xapi extends EventEmitter {
     let watcher = watchers[ref]
     if (watcher === undefined) {
       // sync check if the task is already settled
-      const task = this._objectsByRefs[ref]
+      const task = this._objectsByRef[ref]
       if (task !== undefined) {
         const result = getTaskResult(task)
         if (result !== undefined) {
@@ -775,78 +763,29 @@ export class Xapi extends EventEmitter {
   }
 
   _addObject (type, ref, object) {
-    const { _objectsByRefs: objectsByRefs } = this
-
-    const reservedKeys = {
-      id: true,
-      pool: true,
-      ref: true,
-      type: true,
-    }
-    const getKey = (key, obj) =>
-      reservedKeys[key] && obj === object ? `$$${key}` : `$${key}`
-
-    // Creates resolved properties.
-    forEach(object, function resolveObject (value, key, object) {
-      if (isArray(value)) {
-        if (!value.length) {
-          // If the array is empty, it isn't possible to be sure that
-          // it is not supposed to contain links, therefore, in
-          // benefice of the doubt, a resolved property is defined.
-          defineProperty(object, getKey(key, object), {
-            value: EMPTY_ARRAY,
-          })
-
-          // Minor memory optimization, use the same empty array for
-          // everyone.
-          object[key] = EMPTY_ARRAY
-        } else if (isOpaqueRef(value[0])) {
-          // This is an array of refs.
-          defineProperty(object, getKey(key, object), {
-            get: () => freezeObject(map(value, ref => objectsByRefs[ref])),
-          })
-
-          freezeObject(value)
-        }
-      } else if (isObject(value)) {
-        forEach(value, resolveObject)
-
-        freezeObject(value)
-      } else if (isOpaqueRef(value)) {
-        defineProperty(object, getKey(key, object), {
-          get: () => objectsByRefs[value],
-        })
-      }
-    })
-
-    // All custom properties are read-only and non enumerable.
-    defineProperties(object, {
-      $id: { value: object.uuid || ref },
-      $pool: { get: this._getPool },
-      $ref: { value: ref },
-      $type: { value: type },
-    })
+    object = this._wrapRecord(type, ref, object)
 
     // Finally freezes the object.
     freezeObject(object)
 
     const objects = this._objects
+    const objectsByRef = this._objectsByRef
 
     // An object's UUID can change during its life.
-    const prev = objectsByRefs[ref]
+    const prev = objectsByRef[ref]
     let prevUuid
     if (prev && (prevUuid = prev.uuid) && prevUuid !== object.uuid) {
       objects.remove(prevUuid)
     }
 
     this._objects.set(object)
-    objectsByRefs[ref] = object
+    objectsByRef[ref] = object
 
     if (type === 'pool') {
       this._pool = object
 
       const eventWatchers = this._eventWatchers
-      Object.keys(object.other_config).forEach(key => {
+      getKeys(object.other_config).forEach(key => {
         const eventWatcher = eventWatchers[key]
         if (eventWatcher !== undefined) {
           delete eventWatchers[key]
@@ -871,7 +810,7 @@ export class Xapi extends EventEmitter {
   }
 
   _removeObject (type, ref) {
-    const byRefs = this._objectsByRefs
+    const byRefs = this._objectsByRef
     const object = byRefs[ref]
     if (object !== undefined) {
       this._objects.unset(object.$id)
@@ -1027,6 +966,90 @@ export class Xapi extends EventEmitter {
     }
 
     return getAllObjects().then(watchEvents)
+  }
+
+  _wrapRecord (type, ref, data) {
+    let RecordsByType = this._RecordsByType
+    if (RecordsByType === undefined) {
+      RecordsByType = this._RecordsByType = { __proto__: null }
+    }
+
+    let Record = RecordsByType[type]
+    if (Record === undefined) {
+      const fields = getKeys(data)
+      const xapi = this
+
+      const objectsByRef = this._objectsByRef
+      const getObjectByRef = ref => objectsByRef[ref]
+
+      Record = function (ref, data) {
+        defineProperties(this, {
+          $id: { value: data.uuid || ref },
+          $ref: { value: ref },
+        })
+        fields.forEach(field => {
+          this[field] = data[field]
+        })
+      }
+
+      const getters = { $pool: this._getPool }
+      const props = { $type: type }
+      fields.forEach(field => {
+        props[`set_${field}`] = function (value) {
+          return xapi.setField(this, field, value)
+        }
+
+        const value = data[field]
+        if (isArray(value)) {
+          if (value.length === 0 || isOpaqueRef(value[0])) {
+            getters[`$${field}`] = function () {
+              const value = this[field]
+              return value.length === 0 ? value : value.map(getObjectByRef)
+            }
+          }
+
+          props[`add_to_${field}`] = function (...values) {
+            return xapi
+              .call(`${type}.add_${field}`, this.$ref, values)
+              .then(noop)
+          }
+        } else if (value !== null && typeof value === 'object') {
+          getters[`$${field}`] = function () {
+            const value = this[field]
+            const result = {}
+            getKeys(value).forEach(key => {
+              result[key] = objectsByRef[value[key]]
+            })
+            return result
+          }
+          props[`update_${field}`] = function (entries) {
+            return xapi.setFieldEntries(this, field, entries)
+          }
+        } else if (isOpaqueRef(value)) {
+          getters[`$${field}`] = function () {
+            return objectsByRef[this[field]]
+          }
+        }
+      })
+      const descriptors = {}
+      getKeys(getters).forEach(key => {
+        descriptors[key] = {
+          configurable: true,
+          get: getters[key],
+        }
+      })
+      getKeys(props).forEach(key => {
+        descriptors[key] = {
+          configurable: true,
+          value: props[key],
+          writable: true,
+        }
+      })
+      defineProperties(Record.prototype, descriptors)
+
+      RecordsByType[type] = Record
+    }
+    return new Record(ref, data)
   }
 }
 
