@@ -4,6 +4,8 @@ import { forEach } from 'lodash'
 
 import LocalHandler from './local'
 
+const DEFAULT_NFS_OPTION = 'vers=3'
+
 export default class NfsHandler extends LocalHandler {
   get type () {
     return 'nfs'
@@ -52,12 +54,12 @@ export default class NfsHandler extends LocalHandler {
 
   async _mount () {
     await fs.ensureDir(this._getRealPath())
-    const { host, path, port, options = 'vers=3' } = this._remote
+    const { host, path, port, options } = this._remote
     return execa('mount', [
       '-t',
       'nfs',
       '-o',
-      options,
+      DEFAULT_NFS_OPTION + (options !== undefined ? `,${options}` : ''),
       `${host}${port !== undefined ? ':' + port : ''}:${path}`,
       this._getRealPath(),
     ])

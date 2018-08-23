@@ -483,7 +483,6 @@ const messages = {
   remoteNfsPlaceHolderHost: 'host *',
   remoteNfsPlaceHolderPort: 'Port',
   remoteNfsPlaceHolderPath: 'path/to/backup',
-  remoteNfsPlaceHolderOptions: 'vers=3',
   remoteSmbPlaceHolderRemotePath: 'subfolder [path\\\\to\\\\backup]',
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',
