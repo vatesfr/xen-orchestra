@@ -304,19 +304,14 @@ export default class Jobs {
         schedule,
         session,
       })
-      // await logger.notice(
-      //   `Execution terminated for ${job.id}.`,
-      //   {
-      //     event: 'job.end',
-      //     runJobId,
-      //   },
-      //   true
-      // )
-
-      logger.notice(`Execution terminated for ${job.id}.`, {
-        event: 'job.end',
-        runJobId,
-      })
+      await logger.notice(
+        `Execution terminated for ${job.id}.`,
+        {
+          event: 'job.end',
+          runJobId,
+        },
+        true
+      )
 
       app.emit('job:terminated', status, job, schedule, runJobId)
     } catch (error) {
