@@ -16,6 +16,7 @@
 - [Backup NG form] Show the compression checkbox when the full mode is active [#3236](https://github.com/vatesfr/xen-orchestra/issues/3236) (PR [#3345](https://github.com/vatesfr/xen-orchestra/pull/3345))
 - [New VM] Display an error when the getting of the coreOS default template fails [#3227](https://github.com/vatesfr/xen-orchestra/issues/3227) (PR [#3343](https://github.com/vatesfr/xen-orchestra/pull/3343))
 - [Backup NG form] Set default retention to 1 [#3134](https://github.com/vatesfr/xen-orchestra/issues/3134) (PR [#3290](https://github.com/vatesfr/xen-orchestra/pull/3290))
+- [Backup NG] New logs are searchable by job name [#3272](https://github.com/vatesfr/xen-orchestra/issues/3272) (PR [#3351](https://github.com/vatesfr/xen-orchestra/pull/3351))
 
 ### Bug fixes
 

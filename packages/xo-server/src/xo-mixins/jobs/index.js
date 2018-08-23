@@ -272,6 +272,7 @@ export default class Jobs {
       event: 'job.start',
       userId: job.userId,
       jobId: id,
+      jobName: job.name,
       scheduleId: schedule?.id,
       // $FlowFixMe only defined for CallJob
       key: job.key,
