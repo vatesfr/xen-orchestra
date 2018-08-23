@@ -37,6 +37,7 @@ import {
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
 import {
+  DEFAULT_RETENTION,
   destructPattern,
   FormFeedback,
   FormGroup,
@@ -560,7 +561,22 @@ export default [
       }),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
-      propSettings: (_, { job }) => Map(get(() => job.settings)),
+      propSettings: (_, { job }) =>
+        Map(get(() => job.settings)).map(
+          setting =>
+            defined(
+              setting.copyRetention,
+              setting.exportRetention,
+              setting.snapshotRetention
+            )
+              ? {
+                  copyRetention: setting.copyRetention || DEFAULT_RETENTION,
+                  exportRetention: setting.exportRetention || DEFAULT_RETENTION,
+                  snapshotRetention:
+                    setting.snapshotRetention || DEFAULT_RETENTION,
+                }
+              : setting
+        ),
     },
   }),
   injectState,

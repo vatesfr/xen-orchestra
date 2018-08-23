@@ -9,35 +9,29 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { isEqual } from 'lodash'
 import { Number } from 'form'
 
-import { FormFeedback, FormGroup, Input } from './../utils'
+import { DEFAULT_RETENTION, FormFeedback, FormGroup, Input } from './../utils'
+
+const DEFAULT_SCHEDULE = {
+  copyRetention: DEFAULT_RETENTION,
+  exportRetention: DEFAULT_RETENTION,
+  snapshotRetention: DEFAULT_RETENTION,
+}
 
 export default [
   injectState,
   provideState({
     initialState: ({
-      copyMode,
-      exportMode,
-      snapshotMode,
-      schedule: {
-        cron = '0 0 * * *',
-        exportRetention = exportMode ? 1 : undefined,
-        copyRetention = copyMode ? 1 : undefined,
-        snapshotRetention = snapshotMode ? 1 : undefined,
-        timezone = moment.tz.guess(),
-      },
+      schedule: { cron = '0 0 * * *', timezone = moment.tz.guess() },
     }) => ({
-      copyRetention,
       cron,
-      exportRetention,
       formId: generateRandomId(),
       idInputName: generateRandomId(),
       schedule: undefined,
-      snapshotRetention,
       timezone,
     }),
     effects: {
       setSchedule: (_, { name, value }) => ({
-        tmpSchedule,
+        tmpSchedule = DEFAULT_SCHEDULE,
         schedule = tmpSchedule,
       }) => ({
         schedule: {
@@ -45,18 +39,24 @@ export default [
           [name]: value,
         },
       }),
-      setExportRetention: (_, value) => state => ({
-        ...state,
-        exportRetention: value,
-      }),
-      setCopyRetention: (_, value) => state => ({
-        ...state,
-        copyRetention: value,
-      }),
-      setSnapshotRetention: (_, value) => state => ({
-        ...state,
-        snapshotRetention: value,
-      }),
+      setExportRetention: ({ setSchedule }, value) => () => {
+        setSchedule({
+          name: 'exportRetention',
+          value,
+        })
+      },
+      setCopyRetention: ({ setSchedule }, value) => () => {
+        setSchedule({
+          name: 'copyRetention',
+          value,
+        })
+      },
+      setSnapshotRetention: ({ setSchedule }, value) => () => {
+        setSchedule({
+          name: 'snapshotRetention',
+          value,
+        })
+      },
       setCronTimezone: (_, { cronPattern, timezone }) => state => ({
         ...state,
         cron: cronPattern,
@@ -72,46 +72,26 @@ export default [
     computed: {
       isScheduleInvalid: ({ retentionNeeded, scheduleNotEdited }) =>
         retentionNeeded || scheduleNotEdited,
-      retentionNeeded: ({
-        exportMode,
-        exportRetention,
-        copyMode,
-        copyRetention,
-        snapshotMode,
-        snapshotRetention,
-      }) =>
+      retentionNeeded: ({ copyMode, exportMode, schedule, snapshotMode }) =>
+        schedule !== undefined &&
         !(
-          (exportMode && exportRetention > 0) ||
-          (copyMode && copyRetention > 0) ||
-          (snapshotMode && snapshotRetention > 0)
+          (exportMode && schedule.exportRetention > 0) ||
+          (copyMode && schedule.copyRetention > 0) ||
+          (snapshotMode && schedule.snapshotRetention > 0)
         ),
       scheduleNotEdited: (
-        {
-          copyRetention,
-          cron,
-          editionMode,
-          exportRetention,
-          schedule,
-          snapshotRetention,
-          timezone,
-        },
+        { cron, editionMode, schedule, timezone },
         { schedule: propSchedule }
       ) =>
         editionMode !== 'creation' &&
         schedule === undefined &&
         isEqual(
           {
-            copyRetention: propSchedule.copyRetention,
             cron: propSchedule.cron,
-            exportRetention: propSchedule.exportRetention,
-            snapshotRetention: propSchedule.snapshotRetention,
             timezone: propSchedule.timezone,
           },
           {
-            copyRetention,
             cron,
-            exportRetention,
-            snapshotRetention,
             timezone,
           }
         ),
@@ -119,8 +99,8 @@ export default [
   }),
   injectState,
   ({ effects, state }) => {
-    const { tmpSchedule = {}, schedule = tmpSchedule } = state
-    const { name } = schedule
+    const { tmpSchedule = DEFAULT_SCHEDULE, schedule = tmpSchedule } = state
+    const { name, copyRetention, snapshotRetention, exportRetention } = schedule
 
     return (
       <form id={state.formId}>
@@ -148,7 +128,7 @@ export default [
                 <Number
                   min='0'
                   onChange={effects.setExportRetention}
-                  value={state.exportRetention}
+                  value={exportRetention}
                 />
               </FormGroup>
             )}
@@ -160,7 +140,7 @@ export default [
                 <Number
                   min='0'
                   onChange={effects.setCopyRetention}
-                  value={state.copyRetention}
+                  value={copyRetention}
                 />
               </FormGroup>
             )}
@@ -172,7 +152,7 @@ export default [
                 <Number
                   min='0'
                   onChange={effects.setSnapshotRetention}
-                  value={state.snapshotRetention}
+                  value={snapshotRetention}
                 />
               </FormGroup>
             )}
@@ -188,11 +168,11 @@ export default [
             <br />
             <ActionButton
               btnStyle='primary'
-              data-copyRetention={state.copyRetention}
+              data-copyRetention={copyRetention}
               data-cron={state.cron}
-              data-exportRetention={state.exportRetention}
+              data-exportRetention={exportRetention}
               data-name={name}
-              data-snapshotRetention={state.snapshotRetention}
+              data-snapshotRetention={snapshotRetention}
               data-timezone={state.timezone}
               disabled={state.isScheduleInvalid}
               form={state.formId}
