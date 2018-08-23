@@ -25,7 +25,7 @@ export default class LevelDbLogger extends AbstractLogger {
     this._namespace = namespace
   }
 
-  _add (level, message, data, sync) {
+  _add (level, message, data, returnPromise = false) {
     const time = Date.now()
 
     const log = {
@@ -37,10 +37,13 @@ export default class LevelDbLogger extends AbstractLogger {
     }
 
     const key = generateUniqueKey(time)
+
     const promise = this._db.put(key, log)
-    if (sync) {
+
+    if (returnPromise) {
       return promise.then(() => key)
     }
+
     ;promise::ignoreErrors()
     return key
   }
