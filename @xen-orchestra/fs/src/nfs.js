@@ -4,7 +4,7 @@ import { forEach } from 'lodash'
 
 import LocalHandler from './local'
 
-const DEFAULT_NFS_OPTION = 'vers=3'
+const DEFAULT_NFS_OPTIONS = 'vers=3'
 
 export default class NfsHandler extends LocalHandler {
   get type () {
@@ -59,7 +59,7 @@ export default class NfsHandler extends LocalHandler {
       '-t',
       'nfs',
       '-o',
-      DEFAULT_NFS_OPTION + (options !== undefined ? `,${options}` : ''),
+      DEFAULT_NFS_OPTIONS + (options !== undefined ? `,${options}` : ''),
       `${host}${port !== undefined ? ':' + port : ''}:${path}`,
       this._getRealPath(),
     ])
