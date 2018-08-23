@@ -757,9 +757,9 @@ export default [
                         {map(state.srs, (id, key) => (
                           <Li key={id}>
                             {renderXoItemFromId(id)}{' '}
-                            {srsById !== undefined &&
+                            {!isEmpty(srsById) &&
                               state.crMode &&
-                              srsById[id].SR_type === 'lvm' && (
+                              get(() => srsById[id].SR_type) === 'lvm' && (
                                 <Tooltip
                                   content={_('crOnThickProvisionedSrWarning')}
                                 >
