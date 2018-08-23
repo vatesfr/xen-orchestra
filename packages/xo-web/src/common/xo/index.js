@@ -1948,8 +1948,10 @@ export const getRemote = remote =>
     error(_('getRemote'), err.message || String(err))
   )
 
-export const createRemote = (name, url) =>
-  _call('remote.create', { name, url })::tap(subscribeRemotes.forceRefresh)
+export const createRemote = (name, url, options) =>
+  _call('remote.create', { name, url, options })::tap(
+    subscribeRemotes.forceRefresh
+  )
 
 export const deleteRemote = remote =>
   _call('remote.delete', { id: resolveId(remote) })::tap(
@@ -1980,8 +1982,8 @@ export const disableRemote = remote =>
     subscribeRemotes.forceRefresh
   )
 
-export const editRemote = (remote, { name, url }) =>
-  _call('remote.set', resolveIds({ remote, name, url }))::tap(
+export const editRemote = (remote, { name, url, options }) =>
+  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(
     subscribeRemotes.forceRefresh
   )
 
