@@ -14,6 +14,8 @@
 - [Backup NG form] Move VMs' selection to a dedicated card [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3338](https://github.com/vatesfr/xen-orchestra/pull/3338))
 - [Backup NG smart mode] Exclude replicated VMs [#2338](https://github.com/vatesfr/xen-orchestra/issues/2338) (PR [#3312](https://github.com/vatesfr/xen-orchestra/pull/3312))
 - [Backup NG form] Show the compression checkbox when the full mode is active [#3236](https://github.com/vatesfr/xen-orchestra/issues/3236) (PR [#3345](https://github.com/vatesfr/xen-orchestra/pull/3345))
+- [New VM] Display an error when the getting of the coreOS default template fails [#3227](https://github.com/vatesfr/xen-orchestra/issues/3227) (PR [#3343](https://github.com/vatesfr/xen-orchestra/pull/3343))
+- [Backup NG form] Set default retention to 1 [#3134](https://github.com/vatesfr/xen-orchestra/issues/3134) (PR [#3290](https://github.com/vatesfr/xen-orchestra/pull/3290))
 - [Remotes] Add a field for NFS remotes to set mount options [#1793](https://github.com/vatesfr/xen-orchestra/issues/1793) (PR [#3353](https://github.com/vatesfr/xen-orchestra/pull/3353))
 
 ### Bug fixes
