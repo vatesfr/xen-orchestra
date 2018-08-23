@@ -38,7 +38,11 @@ export default class LevelDbLogger extends AbstractLogger {
 
     const key = generateUniqueKey(time)
 
-    const promise = this._db.put(key, log)
+    const promise = new Promise(resolve => {
+      setTimeout(() => {
+        resolve(this._db.put(key, log))
+      }, 3)
+    })
 
     if (returnPromise) {
       return promise.then(() => key)
