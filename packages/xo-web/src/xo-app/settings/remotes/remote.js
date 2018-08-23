@@ -223,6 +223,9 @@ export default [
                   className='form-control'
                   name='options'
                   onChange={effects.linkState}
+                  placeholder={formatMessage(
+                    messages.remoteNfsPlaceHolderOptions
+                  )}
                   type='text'
                   value={options}
                 />
