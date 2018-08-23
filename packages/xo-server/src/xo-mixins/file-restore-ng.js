@@ -180,13 +180,15 @@ export default class BackupNgFileRestore {
     $defer.onFailure(partition.unmount)
 
     const zip = new ZipFile()
-    paths.forEach(file => {
-      addDirectory(
-        zip,
-        resolveSubpath(partition.path, file),
-        normalize('./' + file)
+    await Promise.all(
+      paths.map(file =>
+        addDirectory(
+          zip,
+          resolveSubpath(partition.path, file),
+          normalize('./' + file)
+        )
       )
-    })
+    )
     zip.end()
     return zip.outputStream.on('end', () =>
       partition.unmount().then(disk.unmount)
