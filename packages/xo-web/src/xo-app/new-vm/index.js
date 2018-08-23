@@ -6,6 +6,7 @@ import classNames from 'classnames'
 import defined, { get } from 'xo-defined'
 import Icon from 'icon'
 import isIp from 'is-ip'
+import Link from 'link'
 import Page from '../page'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -76,7 +77,6 @@ import {
   formatSize,
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
-  noop,
   resolveIds,
   resolveResourceSet,
 } from 'utils'
@@ -526,8 +526,9 @@ export default class NewVm extends BaseComponent {
 
     if (template.name_label === 'CoreOS') {
       getCloudInitConfig(template.id).then(
-        cloudConfig => this._setState({ cloudConfig }),
-        noop
+        cloudConfig =>
+          this._setState({ cloudConfig, coreOsDefaultTemplateError: false }),
+        () => this._setState({ coreOsDefaultTemplateError: true })
       )
     }
   }
@@ -1017,7 +1018,7 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderInstallSettings = () => {
-    const { template } = this.state.state
+    const { template, coreOsDefaultTemplateError } = this.state.state
     if (!template) {
       return
     }
@@ -1204,13 +1205,19 @@ export default class NewVm extends BaseComponent {
         )}
         {template.name_label === 'CoreOS' && (
           <div>
-            <label>{_('newVmCloudConfig')}</label>
-            <DebounceTextarea
-              className='form-control'
-              onChange={this._linkState('cloudConfig')}
-              rows={7}
-              value={cloudConfig}
-            />
+            <label>{_('newVmCloudConfig')}</label>{' '}
+            {!coreOsDefaultTemplateError ? (
+              <DebounceTextarea
+                className='form-control'
+                onChange={this._linkState('cloudConfig')}
+                rows={7}
+                value={cloudConfig}
+              />
+            ) : (
+              <Link to='settings/logs' target='_blank' className='text-danger'>
+                <Icon icon='alarm' /> {_('coreOsDefaultTemplateError')}
+              </Link>
+            )}
           </div>
         )}
       </Section>
