@@ -13,6 +13,10 @@ export default {
       type: 'string',
       description: 'identifier of this job',
     },
+    jobName: {
+      type: 'string',
+      description: 'name of this job when it was started',
+    },
     scheduleId: {
       type: 'string',
       description: 'identifier of the schedule which ran the job',

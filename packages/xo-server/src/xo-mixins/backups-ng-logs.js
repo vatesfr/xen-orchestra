@@ -64,6 +64,7 @@ export default {
             data: data.data,
             id,
             jobId,
+            jobName: data.jobName,
             scheduleId,
             start: time,
             status: runningJobs[jobId] === id ? 'pending' : 'interrupted',
