@@ -36,6 +36,8 @@
 - [Remotes] Don't change `enabled` state on errors (PR [#3318](https://github.com/vatesfr/xen-orchestra/pull/3318))
 - [Remotes] Auto-reconnect on use if necessary [#2852](https://github.com/vatesfr/xen-orchestra/issues/2852) (PR [#3320](https://github.com/vatesfr/xen-orchestra/pull/3320))
 - [XO items' select] Fix adding or removing a XO item from a select make the missing XO items disappear [#3322](https://github.com/vatesfr/xen-orchestra/issues/3322) (PR [#3315](https://github.com/vatesfr/xen-orchestra/pull/3315))
+- [New VM / Self] Filter out SRs that are not in the template's pool [#3068](https://github.com/vatesfr/xen-orchestra/issues/3068) (PR [#3070](https://github.com/vatesfr/xen-orchestra/pull/3070))
+- [New VM / Self] Fix 'unknown item' displayed in SR selector [#3267](https://github.com/vatesfr/xen-orchestra/issues/3267) (PR [#3070](https://github.com/vatesfr/xen-orchestra/pull/3070))
 
 ### Released packages
 
@@ -64,8 +66,6 @@
 - [Pools] Filter GPU groups by pool [#3176](https://github.com/vatesfr/xen-orchestra/issues/3176) (PR [#3253](https://github.com/vatesfr/xen-orchestra/pull/3253))
 - [Backup NG] Fix delta backups with SMB remotes [#3224](https://github.com/vatesfr/xen-orchestra/issues/3224) (PR [#3278](https://github.com/vatesfr/xen-orchestra/pull/3278))
 - Fix VM restoration getting stuck on local SRs [#3245](https://github.com/vatesfr/xen-orchestra/issues/3245) (PR [#3243](https://github.com/vatesfr/xen-orchestra/pull/3243))
-- [New VM / Self] Filter out SRs that are not in the template's pool [#3068](https://github.com/vatesfr/xen-orchestra/issues/3068) (PR [#3070](https://github.com/vatesfr/xen-orchestra/pull/3070))
-- [New VM / Self] Fix 'unknown item' displayed in SR selector [#3267](https://github.com/vatesfr/xen-orchestra/issues/3267) (PR [#3070](https://github.com/vatesfr/xen-orchestra/pull/3070))
 
 ### Released packages
 
