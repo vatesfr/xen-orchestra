@@ -168,34 +168,45 @@ const LOG_COLUMNS = [
   },
 ]
 
-const showTasks = (log, { jobs }) => {
-  const formattedLog = JSON.stringify(log, null, 2)
-  alert(
-    <span>
-      {get(() => jobs[log.jobId].name) || 'Job'} ({log.jobId.slice(4, 8)}){' '}
-      <span style={{ fontSize: '0.5em' }} className='text-muted'>
-        {log.id}
-      </span>{' '}
-      <ButtonGroup>
-        <Tooltip content={_('copyToClipboard')}>
-          <CopyToClipboard text={formattedLog}>
-            <Button size='small'>
-              <Icon icon='clipboard' />
-            </Button>
-          </CopyToClipboard>
-        </Tooltip>
-        {CAN_REPORT_BUG && (
-          <ReportBugButton
-            message={`\`\`\`json\n${formattedLog}\n\`\`\``}
-            size='small'
-            title='Backup job failed'
-          />
-        )}
-      </ButtonGroup>
-    </span>,
-    <LogAlertBody id={log.id} />
-  )
-}
+const LogAlertHeader = [
+  addSubscriptions(({ id }) => ({
+    log: cb =>
+      subscribeBackupNgLogs(logs => {
+        cb(logs[id])
+      }),
+  })),
+  ({ log = {}, jobs }) => {
+    const formattedLog = JSON.stringify(log, null, 2)
+    return (
+      <span>
+        {get(() => jobs[log.jobId].name) || 'Job'} (
+        {get(() => log.jobId.slice(4, 8))}){' '}
+        <span style={{ fontSize: '0.5em' }} className='text-muted'>
+          {log.id}
+        </span>{' '}
+        <ButtonGroup>
+          <Tooltip content={_('copyToClipboard')}>
+            <CopyToClipboard text={formattedLog}>
+              <Button size='small'>
+                <Icon icon='clipboard' />
+              </Button>
+            </CopyToClipboard>
+          </Tooltip>
+          {CAN_REPORT_BUG && (
+            <ReportBugButton
+              message={`\`\`\`json\n${formattedLog}\n\`\`\``}
+              size='small'
+              title='Backup job failed'
+            />
+          )}
+        </ButtonGroup>
+      </span>
+    )
+  },
+].reduceRight((value, decorator) => decorator(value))
+
+const showTasks = ({ id }, { jobs }) =>
+  alert(<LogAlertHeader id={id} jobs={jobs} />, <LogAlertBody id={id} />)
 
 const LOG_INDIVIDUAL_ACTIONS = [
   {
