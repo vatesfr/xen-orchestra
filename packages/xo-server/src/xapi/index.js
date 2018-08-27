@@ -738,10 +738,8 @@ export default class Xapi extends XapiBase {
   async exportVm ($cancelToken, vmId, { compress = true } = {}) {
     const vm = this.getObject(vmId)
 
-    let host
     let snapshotRef
     if (isVmRunning(vm)) {
-      host = vm.$resident_on
       snapshotRef = (await this._snapshotVm(
         $cancelToken,
         vm,
@@ -750,7 +748,6 @@ export default class Xapi extends XapiBase {
     }
 
     const promise = this.getResource($cancelToken, '/export/', {
-      host,
       query: {
         ref: snapshotRef || vm.$ref,
         use_compression: compress ? 'true' : 'false',
@@ -1301,9 +1298,7 @@ export default class Xapi extends XapiBase {
     const taskRef = await this.createTask('VM import')
     const query = {}
 
-    let host
     if (sr != null) {
-      host = sr.$PBDs[0].$host
       query.sr_id = sr.$ref
     }
 
@@ -1319,7 +1314,6 @@ export default class Xapi extends XapiBase {
     }
 
     const vmRef = await this.putResource($cancelToken, stream, '/import/', {
-      host,
       query,
       task: taskRef,
     }).then(extractOpaqueRef)
