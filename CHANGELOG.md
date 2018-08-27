@@ -11,7 +11,7 @@
 - xo-server v5.26.0
 - xo-web v5.26.0
 
-## **5.25.1** (2018-08-27)
+## **5.25.2** (2018-08-27)
 
 ### Enhancements
 
@@ -24,7 +24,7 @@
 
 ### Released packages
 
-- xo-server v5.25.1
+- xo-server v5.25.2
 - xo-web v5.25.1
 
 ## **5.25.0** (2018-08-23)
