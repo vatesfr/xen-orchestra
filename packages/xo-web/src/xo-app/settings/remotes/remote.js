@@ -46,7 +46,7 @@ export default [
           domain = remote.domain,
           host = remote.host,
           name,
-          options = remote.options,
+          options = remote.options || '',
           password = remote.password,
           path = remote.path,
           port = remote.port,
@@ -64,7 +64,7 @@ export default [
             type,
             username,
           }),
-          options,
+          options: options !== '' ? options : null,
         }).then(reset)
       },
       createRemote: ({ reset }) => async (state, { remotes }) => {
@@ -107,7 +107,7 @@ export default [
         }
 
         const url = format(urlParams)
-        return createRemote(name, url, options)
+        return createRemote(name, url, options !== '' ? options : undefined)
           .then(reset)
           .catch(err => error('Create Remote', err.message || String(err)))
       },

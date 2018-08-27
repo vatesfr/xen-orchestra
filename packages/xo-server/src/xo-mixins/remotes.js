@@ -89,13 +89,16 @@ export default class {
   }
 
   async createRemote ({ name, url, options }) {
-    const remote = await this._remotes.add({
+    const params = {
       name,
       url,
-      options,
       enabled: false,
       error: '',
-    })
+    }
+    if (options !== undefined) {
+      params.options = options
+    }
+    const remote = await this._remotes.add(params)
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
