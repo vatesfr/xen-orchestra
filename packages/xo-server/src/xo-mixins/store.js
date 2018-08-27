@@ -43,7 +43,6 @@ const levelPromise = db => {
     if (endsWith(name, 'Stream') || startsWith(name, 'is')) {
       dbP[name] = db::value
     } else {
-      dbP[`${name}Sync`] = db::value
       dbP[name] = promisify(value, db)
     }
   })
