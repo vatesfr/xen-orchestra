@@ -6,6 +6,17 @@
 
 ### Bug fixes
 
+### Released packages
+
+- xo-server v5.26.0
+- xo-web v5.26.0
+
+## **5.25.1** (2018-08-27)
+
+### Enhancements
+
+### Bug fixes
+
 - [Remotes] Fix "undefined" mount option issue [#3361](https://github.com/vatesfr/xen-orchestra/issues/3361) (PR [#3363](https://github.com/vatesfr/xen-orchestra/pull/3363))
 - [Continuous Replication] Don't try to import/export VDIs on halted host [#3354](https://github.com/vatesfr/xen-orchestra/issues/3354) (PR [#3355](https://github.com/vatesfr/xen-orchestra/pull/3355))
 - [Disaster Recovery] Don't try to import/export VMs on halted host (PR [#3364](https://github.com/vatesfr/xen-orchestra/pull/3364))
@@ -13,8 +24,8 @@
 
 ### Released packages
 
-- xo-server v5.26.0
-- xo-web v5.26.0
+- xo-server v5.25.1
+- xo-web v5.25.1
 
 ## **5.25.0** (2018-08-23)
 
