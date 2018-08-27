@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- [Remotes] Fix "undefined" mount option issue [#3361](https://github.com/vatesfr/xen-orchestra/issues/3361)
+
 ### Released packages
 
 - xo-server v5.26.0
