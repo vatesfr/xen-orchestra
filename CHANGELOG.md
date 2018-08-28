@@ -7,6 +7,7 @@
 ### Bug fixes
 
 - [Self] Fix Self Service quotas not being correctly updated when deleting multiple VMs at a time (PR [#3368](https://github.com/vatesfr/xen-orchestra/pull/3368))
+- [Backup NG] Don't fail listing backups when a remote is broken [#3365](https://github.com/vatesfr/xen-orchestra/issues/3365) (PR [#3367](https://github.com/vatesfr/xen-orchestra/pull/3367))
 
 ### Released packages
 
