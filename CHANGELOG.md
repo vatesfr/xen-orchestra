@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- [Self] Fix Self Service quotas not being correctly updated when deleting multiple VMs at a time (PR [#3368](https://github.com/vatesfr/xen-orchestra/pull/3368))
+
 ### Released packages
 
 - xo-server v5.26.0
