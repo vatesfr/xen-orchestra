@@ -21,6 +21,8 @@ import {
 
 // ===================================================================
 
+const synchronizedResourceSets = synchronized()
+
 const VM_RESOURCES = {
   cpus: true,
   disk: true,
@@ -286,7 +288,7 @@ export default class {
     await this._save(set)
   }
 
-  @synchronized
+  @synchronizedResourceSets
   async allocateLimitsInResourceSet (limits, setId) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
@@ -302,7 +304,7 @@ export default class {
     await this._save(set)
   }
 
-  @synchronized
+  @synchronizedResourceSets
   async releaseLimitsInResourceSet (limits, setId) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
