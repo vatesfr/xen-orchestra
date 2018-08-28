@@ -825,7 +825,6 @@ export default class SortedTable extends Component {
 
     const displayPagination =
       paginationContainer === undefined && itemsPerPage < nAllItems
-    const displayFilter = nAllItems !== 0
 
     const paginationInstance = displayPagination && (
       <Pagination
@@ -835,7 +834,7 @@ export default class SortedTable extends Component {
       />
     )
 
-    const filterInstance = displayFilter && (
+    const filterInstance = (
       <TableFilter
         filters={props.filters}
         onChange={this._setFilter}
@@ -956,33 +955,30 @@ export default class SortedTable extends Component {
             )}
           </tbody>
         </table>
-        {(displayFilter || displayPagination) && (
-          <Container>
-            <SingleLineRow>
-              <Col mediumSize={8}>
-                {displayPagination &&
-                  (paginationContainer !== undefined ? (
-                    // Rebuild container function to refresh Portal component.
-                    <Portal container={() => paginationContainer()}>
-                      {paginationInstance}
-                    </Portal>
-                  ) : (
-                    paginationInstance
-                  ))}
-              </Col>
-              <Col mediumSize={4}>
-                {displayFilter &&
-                  (filterContainer ? (
-                    <Portal container={() => filterContainer()}>
-                      {filterInstance}
-                    </Portal>
-                  ) : (
-                    filterInstance
-                  ))}
-              </Col>
-            </SingleLineRow>
-          </Container>
-        )}
+        <Container>
+          <SingleLineRow>
+            <Col mediumSize={8}>
+              {displayPagination &&
+                (paginationContainer !== undefined ? (
+                  // Rebuild container function to refresh Portal component.
+                  <Portal container={() => paginationContainer()}>
+                    {paginationInstance}
+                  </Portal>
+                ) : (
+                  paginationInstance
+                ))}
+            </Col>
+            <Col mediumSize={4}>
+              {filterContainer ? (
+                <Portal container={() => filterContainer()}>
+                  {filterInstance}
+                </Portal>
+              ) : (
+                filterInstance
+              )}
+            </Col>
+          </SingleLineRow>
+        </Container>
       </div>
     )
   }

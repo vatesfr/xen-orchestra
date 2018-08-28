@@ -45,7 +45,9 @@ export default class ResourceSetQuotas extends Component {
   )
 
   render () {
-    const { intl: { formatMessage } } = this.props
+    const {
+      intl: { formatMessage },
+    } = this.props
     const labels = [
       formatMessage(messages.availableResourceLabel),
       formatMessage(messages.usedResourceLabel),

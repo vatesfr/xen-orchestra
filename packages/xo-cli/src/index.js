@@ -308,8 +308,8 @@ async function listObjects (args) {
   const properties = getKeys(extractFlags(args))
   const filterProperties = properties.length
     ? function (object) {
-      return pick(object, properties)
-    }
+        return pick(object, properties)
+      }
     : identity
 
   const filter = args.length ? parseParameters(args) : undefined

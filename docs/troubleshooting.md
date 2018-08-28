@@ -101,6 +101,13 @@ memory to xo-server itself:
 + ExecStart=/usr/local/bin/node --max-old-space-size=8192 /usr/local/bin/xo-server
 ```
 
+The last step is to refresh and restart the service:
+
+```
+$ systemctl daemon-reload
+$ systemctl restart xo-server
+```
+
 ### Behind a transparent proxy
 
 If your are behind a transparent proxy, you'll probably have issues with the updater (SSL/TLS issues).

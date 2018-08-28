@@ -189,7 +189,13 @@ export default class Servers extends Component {
   }
 
   render () {
-    const { props: { intl: { formatMessage }, servers }, state } = this
+    const {
+      props: {
+        intl: { formatMessage },
+        servers,
+      },
+      state,
+    } = this
 
     return (
       <Container>

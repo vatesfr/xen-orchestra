@@ -8,7 +8,10 @@ import isObject from './is-object'
 
 // ===================================================================
 
-const { create: createObject, prototype: { hasOwnProperty } } = Object
+const {
+  create: createObject,
+  prototype: { hasOwnProperty },
+} = Object
 
 export const ACTION_ADD = 'add'
 export const ACTION_UPDATE = 'update'

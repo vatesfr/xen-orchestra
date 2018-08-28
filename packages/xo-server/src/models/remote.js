@@ -11,21 +11,6 @@ export class Remotes extends Collection {
     return Remote
   }
 
-  create (name, url) {
-    return this.add(
-      new Remote({
-        name,
-        url,
-        enabled: false,
-        error: '',
-      })
-    )
-  }
-
-  async save (remote) {
-    return /* await */ this.update(remote)
-  }
-
   async get (properties) {
     const remotes = await super.get(properties)
     forEach(remotes, remote => {

@@ -15,21 +15,11 @@
     "email": "julien.fontanet@vates.fr"
   },
   "preferGlobal": false,
-  "main": "dist/",
   "bin": {},
   "files": [
-    "dist/"
+    "index.js"
   ],
   "engines": {
-    "node": ">=0.12"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-preset-env": "^1.6.1"
-  },
-  "scripts": {
-    "build": "babel --source-maps --out-dir=dist/ src/",
-    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
-    "prepublishOnly": "yarn run build"
+    "node": ">=6"
   }
 }

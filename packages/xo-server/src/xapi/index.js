@@ -19,6 +19,7 @@ import {
   every,
   find,
   filter,
+  flatMap,
   flatten,
   groupBy,
   includes,
@@ -64,6 +65,7 @@ import {
   isVmRunning,
   NULL_REF,
   optional,
+  parseDateTime,
   prepareXapiParam,
 } from './utils'
 
@@ -736,10 +738,8 @@ export default class Xapi extends XapiBase {
   async exportVm ($cancelToken, vmId, { compress = true } = {}) {
     const vm = this.getObject(vmId)
 
-    let host
     let snapshotRef
     if (isVmRunning(vm)) {
-      host = vm.$resident_on
       snapshotRef = (await this._snapshotVm(
         $cancelToken,
         vm,
@@ -748,7 +748,6 @@ export default class Xapi extends XapiBase {
     }
 
     const promise = this.getResource($cancelToken, '/export/', {
-      host,
       query: {
         ref: snapshotRef || vm.$ref,
         use_compression: compress ? 'true' : 'false',
@@ -1148,7 +1147,8 @@ export default class Xapi extends XapiBase {
     // VDIs/SRs mapping
     const vdis = {}
     const defaultSr = host.$pool.$default_SR
-    for (const vbd of vm.$VBDs) {
+    const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
+    for (const vbd of vbds) {
       const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
         vdis[vdi.$ref] =
@@ -1298,9 +1298,7 @@ export default class Xapi extends XapiBase {
     const taskRef = await this.createTask('VM import')
     const query = {}
 
-    let host
     if (sr != null) {
-      host = sr.$PBDs[0].$host
       query.sr_id = sr.$ref
     }
 
@@ -1316,7 +1314,6 @@ export default class Xapi extends XapiBase {
     }
 
     const vmRef = await this.putResource($cancelToken, stream, '/import/', {
-      host,
       query,
       task: taskRef,
     }).then(extractOpaqueRef)
@@ -1486,25 +1483,31 @@ export default class Xapi extends XapiBase {
     )
 
     let ref
-    try {
-      ref = await this.callAsync(
-        $cancelToken,
-        'VM.snapshot_with_quiesce',
-        vm.$ref,
-        nameLabel
-      ).then(extractOpaqueRef)
-      this.addTag(ref, 'quiesce')::ignoreErrors()
-    } catch (error) {
-      const { code } = error
-      if (
-        code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-        // quiesce only work on a running VM
-        code !== 'VM_BAD_POWER_STATE' &&
-        // quiesce failed, fallback on standard snapshot
-        // TODO: emit warning
-        code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
-      ) {
-        throw error
+    do {
+      if (!vm.tags.includes('xo-disable-quiesce')) {
+        try {
+          ref = await this.callAsync(
+            $cancelToken,
+            'VM.snapshot_with_quiesce',
+            vm.$ref,
+            nameLabel
+          ).then(extractOpaqueRef)
+          this.addTag(ref, 'quiesce')::ignoreErrors()
+
+          break
+        } catch (error) {
+          const { code } = error
+          if (
+            code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
+            // quiesce only work on a running VM
+            code !== 'VM_BAD_POWER_STATE' &&
+            // quiesce failed, fallback on standard snapshot
+            // TODO: emit warning
+            code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
+          ) {
+            throw error
+          }
+        }
       }
       ref = await this.callAsync(
         $cancelToken,
@@ -1512,7 +1515,8 @@ export default class Xapi extends XapiBase {
         vm.$ref,
         nameLabel
       ).then(extractOpaqueRef)
-    }
+    } while (false)
+
     // Convert the template to a VM and wait to have receive the up-
     // to-date object.
     const [, snapshot] = await Promise.all([
@@ -1930,9 +1934,6 @@ export default class Xapi extends XapiBase {
   @concurrency(12, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
   _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
-    const sr = vdi.$SR
-    const host = sr.$PBDs[0].$host
-
     const query = {
       format,
       vdi: vdi.$ref,
@@ -1948,13 +1949,12 @@ export default class Xapi extends XapiBase {
     )
 
     return this.getResource($cancelToken, '/export_raw_vdi/', {
-      host,
       query,
       task: this.createTask('VDI Export', vdi.name_label),
     }).catch(error => {
       // augment the error with as much relevant info as possible
-      error.host = host
-      error.SR = sr
+      error.pool_master = vdi.$pool.$master
+      error.SR = vdi.$SR
       error.VDI = vdi
 
       throw error
@@ -1969,19 +1969,10 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async _importVdiContent (vdi, body, format = VDI_FORMAT_VHD) {
-    const sr = vdi.$SR
-    const pbd = find(sr.$PBDs, 'currently_attached')
-    if (pbd === undefined) {
-      throw new Error('no valid PBDs found')
-    }
-
-    const host = pbd.$HOST
-
     await Promise.all([
       body.task,
       body.checksumVerified,
       this.putResource(body, '/import_raw_vdi/', {
-        host,
         query: {
           format,
           vdi: vdi.$ref,
@@ -1990,8 +1981,8 @@ export default class Xapi extends XapiBase {
       }),
     ]).catch(error => {
       // augment the error with as much relevant info as possible
-      error.host = host
-      error.SR = sr
+      error.pool_master = vdi.$pool.$master
+      error.SR = vdi.$SR
       error.VDI = vdi
 
       throw error
@@ -2339,5 +2330,17 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  // =================================================================
+  async _assertConsistentHostServerTime (hostRef) {
+    if (
+      Math.abs(
+        parseDateTime(
+          await this.call('host.get_servertime', hostRef)
+        ).getTime() - Date.now()
+      ) > 2e3
+    ) {
+      throw new Error(
+        'host server time and XOA date are not consistent with each other'
+      )
+    }
+  }
 }

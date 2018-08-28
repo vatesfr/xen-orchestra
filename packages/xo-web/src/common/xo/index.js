@@ -1389,10 +1389,10 @@ export const deleteVdis = vdis =>
 
 export const deleteOrphanedVdis = vdis =>
   confirm({
-    title: _('removeAllOrphanedObject'),
+    title: _('deleteOrphanedVdisModalTitle'),
     body: (
       <div>
-        <p>{_('removeAllOrphanedModalWarning')}</p>
+        <p>{_('deleteOrphanedVdisModalMessage', { nVdis: vdis.length })}</p>
         <p>{_('definitiveMessageModal')}</p>
       </div>
     ),
@@ -1948,8 +1948,10 @@ export const getRemote = remote =>
     error(_('getRemote'), err.message || String(err))
   )
 
-export const createRemote = (name, url) =>
-  _call('remote.create', { name, url })::tap(subscribeRemotes.forceRefresh)
+export const createRemote = (name, url, options) =>
+  _call('remote.create', { name, url, options })::tap(
+    subscribeRemotes.forceRefresh
+  )
 
 export const deleteRemote = remote =>
   _call('remote.delete', { id: resolveId(remote) })::tap(
@@ -1980,8 +1982,8 @@ export const disableRemote = remote =>
     subscribeRemotes.forceRefresh
   )
 
-export const editRemote = (remote, { name, url }) =>
-  _call('remote.set', resolveIds({ remote, name, url }))::tap(
+export const editRemote = (remote, { name, url, options }) =>
+  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(
     subscribeRemotes.forceRefresh
   )
 
@@ -2148,6 +2150,9 @@ export const createSrIso = (
 
 export const createSrLvm = (host, nameLabel, nameDescription, device) =>
   _call('sr.createLvm', { host, nameLabel, nameDescription, device })
+
+export const createSrExt = (host, nameLabel, nameDescription, device) =>
+  _call('sr.createExt', { host, nameLabel, nameDescription, device })
 
 // Job logs ----------------------------------------------------------
 

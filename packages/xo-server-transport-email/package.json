@@ -28,7 +28,7 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "dependencies": {
     "nodemailer": "^4.4.1",

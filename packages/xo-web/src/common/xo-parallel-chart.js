@@ -23,7 +23,7 @@ const TOOLTIP_PADDING = 10
 const DEFAULT_STROKE_WIDTH_FACTOR = 500
 const HIGHLIGHT_STROKE_WIDTH_FACTOR = 200
 
-const BRUSH_SELECTION_WIDTH = 2 * CHART_WIDTH / 100
+const BRUSH_SELECTION_WIDTH = (2 * CHART_WIDTH) / 100
 
 // ===================================================================
 

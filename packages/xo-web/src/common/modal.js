@@ -233,24 +233,24 @@ const CONFIRM_BUTTONS = [{ btnStyle: 'primary', label: _('confirmOk') }]
 export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
   strongConfirm
     ? new Promise((resolve, reject) => {
-      modal(
-        <StrongConfirm
-          body={body}
-          icon={icon}
-          reject={reject}
-          resolve={resolve}
-          strongConfirm={strongConfirm}
-          title={title}
-        />,
-        reject
-      )
-    })
+        modal(
+          <StrongConfirm
+            body={body}
+            icon={icon}
+            reject={reject}
+            resolve={resolve}
+            strongConfirm={strongConfirm}
+            title={title}
+          />,
+          reject
+        )
+      })
     : chooseAction({
-      body,
-      buttons: CONFIRM_BUTTONS,
-      icon,
-      title,
-    })
+        body,
+        buttons: CONFIRM_BUTTONS,
+        icon,
+        title,
+      })
 
 // -----------------------------------------------------------------------------
 

@@ -1,14 +1,16 @@
 import _ from 'intl'
+import Icon from 'icon'
 import React from 'react'
 import SmartBackupPreview from 'smart-backup'
+import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { get } from 'lodash'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState } from '@julien-f/freactal'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
 
-import { FormGroup } from './utils'
+import { FormGroup } from './../utils'
 
 const VMS_STATUSES_OPTIONS = [
   { value: 'All', label: _('vmStateAll') },
@@ -18,15 +20,10 @@ const VMS_STATUSES_OPTIONS = [
 
 export default [
   connectStore({
-    storedVms: createGetObjectsOfType('VM'),
-  }),
-  provideState({
-    computed: {
-      storedVms: (state, { storedVms }) => storedVms,
-    },
+    vms: createGetObjectsOfType('VM'),
   }),
   injectState,
-  ({ state, effects }) => (
+  ({ state, effects, vms }) => (
     <div>
       <FormGroup>
         <label>
@@ -77,17 +74,17 @@ export default [
       <FormGroup>
         <label>
           <strong>{_('editBackupSmartExcludedTagsTitle')}</strong>
-        </label>
+        </label>{' '}
+        <Tooltip content={_('backupReplicatedVmsInfo')}>
+          <Icon icon='info' />
+        </Tooltip>
         <SelectTag
           multi
           onChange={effects.setTagNotValues}
           value={get(state.tags, 'notValues')}
         />
       </FormGroup>
-      <SmartBackupPreview
-        vms={state.storedVms}
-        pattern={state.vmsSmartPattern}
-      />
+      <SmartBackupPreview vms={vms} pattern={state.vmsSmartPattern} />
     </div>
   ),
 ].reduceRight((value, decorator) => decorator(value))

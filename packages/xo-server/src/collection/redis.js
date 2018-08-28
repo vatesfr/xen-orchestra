@@ -83,14 +83,14 @@ export default class Redis extends Collection {
             values == null
               ? redis.srem(idsIndex, id) // entry no longer exists
               : asyncMap(indexes, index => {
-                const value = values[index]
-                if (value !== undefined) {
-                  return redis.sadd(
-                    `${prefix}_${index}:${String(value).toLowerCase()}`,
-                    id
-                  )
-                }
-              })
+                  const value = values[index]
+                  if (value !== undefined) {
+                    return redis.sadd(
+                      `${prefix}_${index}:${String(value).toLowerCase()}`,
+                      id
+                    )
+                  }
+                })
         )
       )
     )

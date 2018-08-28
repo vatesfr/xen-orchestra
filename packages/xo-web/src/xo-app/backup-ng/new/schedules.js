@@ -8,7 +8,7 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { isEmpty, find, size } from 'lodash'
 
 import NewSchedule from './new-schedule'
-import { FormFeedback } from './utils'
+import { FormFeedback } from './../utils'
 
 // ===================================================================
 
@@ -47,17 +47,13 @@ export default [
           level: 'danger',
         },
       ],
-      rowTransform: ({ settings }) => schedule => {
-        const { exportRetention, copyRetention, snapshotRetention } =
-          settings[schedule.id] || {}
-
-        return {
-          ...schedule,
-          exportRetention,
-          copyRetention,
-          snapshotRetention,
-        }
-      },
+      rowTransform: ({
+        propSettings,
+        settings = propSettings,
+      }) => schedule => ({
+        ...schedule,
+        ...settings.get(schedule.id),
+      }),
       schedulesColumns: (state, { effects: { toggleScheduleState } }) => {
         const columns = [
           {
@@ -153,12 +149,7 @@ export default [
         </CardBlock>
       </FormFeedback>
       {state.editionMode !== undefined && (
-        <NewSchedule
-          copyMode={state.copyMode}
-          exportMode={state.exportMode}
-          schedule={state.tmpSchedule}
-          snapshotMode={state.snapshotMode}
-        />
+        <NewSchedule schedule={state.tmpSchedule || {}} />
       )}
     </div>
   ),

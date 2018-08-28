@@ -120,9 +120,13 @@ class XoServerNagios {
 
       const client = new net.Socket()
 
-      client.connect(this._conf.port, this._conf.server, () => {
-        console.log('Successful connection')
-      })
+      client.connect(
+        this._conf.port,
+        this._conf.server,
+        () => {
+          console.log('Successful connection')
+        }
+      )
 
       client.on('data', data => {
         const timestamp = data.readInt32BE(128)

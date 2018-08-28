@@ -1,7 +1,10 @@
+import synchronized from 'decorator-synchronized'
 import { getHandler } from '@xen-orchestra/fs'
 import { noSuchObject } from 'xo-common/api-errors'
+import { ignoreErrors } from 'promise-toolbox'
 
-import { forEach, mapToArray } from '../utils'
+import patch from '../patch'
+import { mapToArray } from '../utils'
 import { Remotes } from '../models/remote'
 
 // ===================================================================
@@ -13,6 +16,7 @@ export default class {
       prefix: 'xo:remote',
       indexes: ['enabled'],
     })
+    this._handlers = { __proto__: null }
 
     xo.on('clean', () => this._remotes.rebuildIndexes())
     xo.on('start', async () => {
@@ -20,12 +24,24 @@ export default class {
         'remotes',
         () => this._remotes.get(),
         remotes =>
-          Promise.all(mapToArray(remotes, remote => this._remotes.save(remote)))
+          Promise.all(
+            mapToArray(remotes, remote => this._remotes.update(remote))
+          )
       )
 
-      await this.syncAllRemotes()
+      const remotes = await this.getAllRemotes()
+      remotes.forEach(remote => {
+        ignoreErrors.call(this.updateRemote(remote.id, {}))
+      })
     })
-    xo.on('stop', () => this.forgetAllRemotes())
+    xo.on('stop', async () => {
+      const handlers = this._handlers
+      for (const id in handlers) {
+        try {
+          await handlers[id].forget()
+        } catch (_) {}
+      }
+    })
   }
 
   async getRemoteHandler (remote, ignoreDisabled) {
@@ -37,7 +53,22 @@ export default class {
       throw new Error('remote is disabled')
     }
 
-    return getHandler(remote)
+    const { id } = remote
+    const handlers = this._handlers
+    let handler = handlers[id]
+    if (handler === undefined) {
+      handler = handlers[id] = getHandler(remote)
+    }
+
+    try {
+      await handler.sync()
+      ignoreErrors.call(this._updateRemote(id, { error: '' }))
+    } catch (error) {
+      ignoreErrors.call(this._updateRemote(id, { error: error.message }))
+      throw error
+    }
+
+    return handler
   }
 
   async testRemote (remote) {
@@ -49,65 +80,54 @@ export default class {
     return this._remotes.get()
   }
 
-  async _getRemote (id) {
+  async getRemote (id) {
     const remote = await this._remotes.first(id)
-    if (!remote) {
+    if (remote === undefined) {
       throw noSuchObject(id, 'remote')
     }
-
-    return remote
+    return remote.properties
   }
 
-  async getRemote (id) {
-    return (await this._getRemote(id)).properties
-  }
-
-  async createRemote ({ name, url }) {
-    const remote = await this._remotes.create(name, url)
+  async createRemote ({ name, url, options }) {
+    const params = {
+      name,
+      url,
+      enabled: false,
+      error: '',
+    }
+    if (options !== undefined) {
+      params.options = options
+    }
+    const remote = await this._remotes.add(params)
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  async updateRemote (id, { name, url, enabled, error }) {
-    const remote = await this._getRemote(id)
-    this._updateRemote(remote, { name, url, enabled, error })
-    const handler = await this.getRemoteHandler(remote.properties, true)
-    const props = await handler.sync()
-    this._updateRemote(remote, props)
-    return (await this._remotes.save(remote)).properties
+  updateRemote (id, { name, url, options, enabled }) {
+    const handlers = this._handlers
+    const handler = handlers[id]
+    if (handler !== undefined) {
+      delete this._handlers[id]
+      ignoreErrors.call(handler.forget())
+    }
+
+    return this._updateRemote(id, {
+      name,
+      url,
+      options,
+      enabled,
+    })
   }
 
-  _updateRemote (remote, { name, url, enabled, error }) {
-    if (name) remote.set('name', name)
-    if (url) remote.set('url', url)
-    if (enabled !== undefined) remote.set('enabled', enabled)
-    if (error) {
-      remote.set('error', error)
-    } else {
-      remote.set('error', '')
-    }
+  @synchronized()
+  async _updateRemote (id, props) {
+    const remote = await this.getRemote(id)
+    patch(remote, props)
+    return (await this._remotes.update(remote)).properties
   }
 
   async removeRemote (id) {
     const handler = await this.getRemoteHandler(id, true)
     await handler.forget()
     await this._remotes.remove(id)
-  }
-
-  // TODO: Should it be private?
-  async syncAllRemotes () {
-    const remotes = await this.getAllRemotes()
-    forEach(remotes, remote => {
-      this.updateRemote(remote.id, {})
-    })
-  }
-
-  // TODO: Should it be private?
-  async forgetAllRemotes () {
-    const remotes = await this.getAllRemotes()
-    for (const remote of remotes) {
-      try {
-        ;(await this.getRemoteHandler(remote, true)).forget()
-      } catch (_) {}
-    }
   }
 }

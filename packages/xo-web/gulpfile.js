@@ -94,32 +94,32 @@ const src = lazyFn(function () {
 
   return PRODUCTION
     ? function src (pattern, opts) {
-      const base = resolve(opts && opts.base)
+        const base = resolve(opts && opts.base)
 
-      return gulp.src(pattern, {
-        base: base,
-        cwd: base,
-        passthrough: opts && opts.passthrough,
-        sourcemaps: opts && opts.sourcemaps,
-      })
-    }
-    : function src (pattern, opts) {
-      const base = resolve(opts && opts.base)
-
-      return pipe(
-        gulp.src(pattern, {
+        return gulp.src(pattern, {
           base: base,
           cwd: base,
           passthrough: opts && opts.passthrough,
           sourcemaps: opts && opts.sourcemaps,
-        }),
-        require('gulp-watch')(pattern, {
-          base: base,
-          cwd: base,
-        }),
-        require('gulp-plumber')()
-      )
-    }
+        })
+      }
+    : function src (pattern, opts) {
+        const base = resolve(opts && opts.base)
+
+        return pipe(
+          gulp.src(pattern, {
+            base: base,
+            cwd: base,
+            passthrough: opts && opts.passthrough,
+            sourcemaps: opts && opts.sourcemaps,
+          }),
+          require('gulp-watch')(pattern, {
+            base: base,
+            cwd: base,
+          }),
+          require('gulp-plumber')()
+        )
+      }
 })
 
 // Similar to `gulp.dest()` but the output directory is relative to
@@ -136,13 +136,13 @@ const dest = lazyFn(function () {
 
   return PRODUCTION
     ? function dest (path) {
-      return gulp.dest(resolve(path), opts)
-    }
+        return gulp.dest(resolve(path), opts)
+      }
     : function dest (path) {
-      const stream = gulp.dest(resolve(path), opts)
-      stream.pipe(livereload())
-      return stream
-    }
+        const stream = gulp.dest(resolve(path), opts)
+        stream.pipe(livereload())
+        return stream
+      }
 })
 
 // ===================================================================

@@ -637,46 +637,50 @@ export default class BackupNg {
     const app = this._app
     await Promise.all(
       remotes.map(async remoteId => {
-        const handler = await app.getRemoteHandler(remoteId)
+        try {
+          const handler = await app.getRemoteHandler(remoteId)
 
-        const entries = (await handler.list(BACKUP_DIR).catch(error => {
-          if (error == null || error.code !== 'ENOENT') {
-            throw error
-          }
-          return []
-        })).filter(name => name !== 'index.json')
-
-        const backupsByVm = (backupsByVmByRemote[remoteId] = {})
-        await Promise.all(
-          entries.map(async vmUuid => {
-            // $FlowFixMe don't know what is the problem (JFT)
-            const backups = await this._listVmBackups(handler, vmUuid)
-
-            if (backups.length === 0) {
-              return
+          const entries = (await handler.list(BACKUP_DIR).catch(error => {
+            if (error == null || error.code !== 'ENOENT') {
+              throw error
             }
+            return []
+          })).filter(name => name !== 'index.json')
 
-            // inject an id usable by importVmBackupNg()
-            backups.forEach(backup => {
-              backup.id = `${remoteId}/${backup._filename}`
+          const backupsByVm = (backupsByVmByRemote[remoteId] = {})
+          await Promise.all(
+            entries.map(async vmUuid => {
+              // $FlowFixMe don't know what is the problem (JFT)
+              const backups = await this._listVmBackups(handler, vmUuid)
 
-              const { vdis, vhds } = backup
-              backup.disks =
-                vhds === undefined
-                  ? []
-                  : Object.keys(vhds).map(vdiId => {
-                      const vdi = vdis[vdiId]
-                      return {
-                        id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
-                        name: vdi.name_label,
-                        uuid: vdi.uuid,
-                      }
-                    })
+              if (backups.length === 0) {
+                return
+              }
+
+              // inject an id usable by importVmBackupNg()
+              backups.forEach(backup => {
+                backup.id = `${remoteId}/${backup._filename}`
+
+                const { vdis, vhds } = backup
+                backup.disks =
+                  vhds === undefined
+                    ? []
+                    : Object.keys(vhds).map(vdiId => {
+                        const vdi = vdis[vdiId]
+                        return {
+                          id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
+                          name: vdi.name_label,
+                          uuid: vdi.uuid,
+                        }
+                      })
+              })
+
+              backupsByVm[vmUuid] = backups
             })
-
-            backupsByVm[vmUuid] = backups
-          })
-        )
+          )
+        } catch (error) {
+          console.warn('[Warn] listVmBackups for remote %s:', remoteId, error)
+        }
       })
     )
 

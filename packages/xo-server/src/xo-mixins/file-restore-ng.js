@@ -34,12 +34,30 @@ const PARTITION_TYPE_NAMES = {
 
 const RE_VHDI = /^vhdi(\d+)$/
 
+async function addDirectory (zip, realPath, metadataPath) {
+  try {
+    const files = await readdir(realPath)
+    await Promise.all(
+      files.map(file =>
+        addDirectory(zip, realPath + '/' + file, metadataPath + '/' + file)
+      )
+    )
+  } catch (error) {
+    if (error == null || error.code !== 'ENOTDIR') {
+      throw error
+    }
+    zip.addFile(realPath, metadataPath)
+  }
+}
+
 const parsePartxLine = createPairsParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
   valueTransform: (value, key) =>
     key === 'start' || key === 'size'
       ? +value
-      : key === 'type' ? PARTITION_TYPE_NAMES[+value] || value : value,
+      : key === 'type'
+        ? PARTITION_TYPE_NAMES[+value] || value
+        : value,
 })
 
 const listLvmLogicalVolumes = defer(
@@ -162,9 +180,15 @@ export default class BackupNgFileRestore {
     $defer.onFailure(partition.unmount)
 
     const zip = new ZipFile()
-    paths.forEach(file => {
-      zip.addFile(resolveSubpath(partition.path, file), normalize('./' + file))
-    })
+    await Promise.all(
+      paths.map(file =>
+        addDirectory(
+          zip,
+          resolveSubpath(partition.path, file),
+          normalize('./' + file)
+        )
+      )
+    )
     zip.end()
     return zip.outputStream.on('end', () =>
       partition.unmount().then(disk.unmount)

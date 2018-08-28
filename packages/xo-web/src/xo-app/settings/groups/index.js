@@ -43,7 +43,11 @@ class UserDisplay extends Component {
     return (
       <span>
         {(id && users && users[id] && users[id].email) || (
-          <em>&lt;{_('unknownUser')}&gt;</em>
+          <em>
+            &lt;
+            {_('unknownUser')}
+            &gt;
+          </em>
         )}{' '}
         <ActionButton
           className='pull-right'

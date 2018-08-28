@@ -81,7 +81,7 @@ export default class {
   async unregisterXenServer (id) {
     ;this.disconnectXenServer(id)::ignoreErrors()
 
-    if (!await this._servers.remove(id)) {
+    if (!(await this._servers.remove(id))) {
       throw noSuchObject(id, 'xenServer')
     }
   }
@@ -406,9 +406,10 @@ export default class {
 
   async mergeXenPools (sourceId, targetId, force = false) {
     const sourceXapi = this.getXapi(sourceId)
-    const { _auth: { user, password }, _url: { hostname } } = this.getXapi(
-      targetId
-    )
+    const {
+      _auth: { user, password },
+      _url: { hostname },
+    } = this.getXapi(targetId)
 
     // We don't want the events of the source XAPI to interfere with
     // the events of the new XAPI.

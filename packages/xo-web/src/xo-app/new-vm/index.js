@@ -6,6 +6,7 @@ import classNames from 'classnames'
 import defined, { get } from 'xo-defined'
 import Icon from 'icon'
 import isIp from 'is-ip'
+import Link from 'link'
 import Page from '../page'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -76,7 +77,6 @@ import {
   formatSize,
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
-  noop,
   resolveIds,
   resolveResourceSet,
 } from 'utils'
@@ -117,7 +117,12 @@ const LineItem = ({ children }) => (
 
 const Item = ({ label, children, className }) => (
   <span className={styles.item}>
-    {label && <span>{label}&nbsp;</span>}
+    {label && (
+      <span>
+        {label}
+        &nbsp;
+      </span>
+    )}
     <span className={classNames(styles.input, className)}>{children}</span>
   </span>
 )
@@ -221,10 +226,13 @@ class Vif extends BaseComponent {
   pool: createGetObject((_, props) => props.location.query.pool),
   pools: createGetObjectsOfType('pool'),
   templates: createGetObjectsOfType('VM-template').sort(),
-  userSshKeys: createSelector((_, props) => {
-    const user = props.user
-    return user && user.preferences && user.preferences.sshKeys
-  }, keys => keys),
+  userSshKeys: createSelector(
+    (_, props) => {
+      const user = props.user
+      return user && user.preferences && user.preferences.sshKeys
+    },
+    keys => keys
+  ),
   srs: createGetObjectsOfType('SR'),
 }))
 @injectIntl
@@ -518,8 +526,9 @@ export default class NewVm extends BaseComponent {
 
     if (template.name_label === 'CoreOS') {
       getCloudInitConfig(template.id).then(
-        cloudConfig => this._setState({ cloudConfig }),
-        noop
+        cloudConfig =>
+          this._setState({ cloudConfig, coreOsDefaultTemplateError: false }),
+        () => this._setState({ coreOsDefaultTemplateError: true })
       )
     }
   }
@@ -549,10 +558,14 @@ export default class NewVm extends BaseComponent {
   _getSrPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    (isInPool, isInResourceSet) => disk =>
-      (isInResourceSet(disk.id) || isInPool(disk)) &&
+    () => this.state.state.template,
+    () => this.props.pool === undefined,
+    (isInPool, isInResourceSet, template, self) => disk =>
+      (self ? isInResourceSet(disk.id) : isInPool(disk)) &&
       disk.content_type !== 'iso' &&
-      disk.size > 0
+      disk.size > 0 &&
+      template !== undefined &&
+      template.$pool === disk.$pool
   )
   _getIsoPredicate = createSelector(
     () => this.props.pool && this.props.pool.id,
@@ -715,7 +728,10 @@ export default class NewVm extends BaseComponent {
       resolveIds(
         filter(
           this._getResolvedResourceSet().objectsByType.SR,
-          this._getSrPredicate()
+          sr =>
+            sr.$pool === template.$pool &&
+            sr.content_type !== 'iso' &&
+            sr.size > 0
         )
       ),
       defaultSr
@@ -1002,7 +1018,7 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderInstallSettings = () => {
-    const { template } = this.state.state
+    const { template, coreOsDefaultTemplateError } = this.state.state
     if (!template) {
       return
     }
@@ -1189,13 +1205,19 @@ export default class NewVm extends BaseComponent {
         )}
         {template.name_label === 'CoreOS' && (
           <div>
-            <label>{_('newVmCloudConfig')}</label>
-            <DebounceTextarea
-              className='form-control'
-              onChange={this._linkState('cloudConfig')}
-              rows={7}
-              value={cloudConfig}
-            />
+            <label>{_('newVmCloudConfig')}</label>{' '}
+            {!coreOsDefaultTemplateError ? (
+              <DebounceTextarea
+                className='form-control'
+                onChange={this._linkState('cloudConfig')}
+                rows={7}
+                value={cloudConfig}
+              />
+            ) : (
+              <Link to='settings/logs' target='_blank' className='text-danger'>
+                <Icon icon='alarm' /> {_('coreOsDefaultTemplateError')}
+              </Link>
+            )}
           </div>
         )}
       </Section>

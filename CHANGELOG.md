@@ -6,8 +6,90 @@
 
 ### Bug fixes
 
+- [Self] Fix Self Service quotas not being correctly updated when deleting multiple VMs at a time (PR [#3368](https://github.com/vatesfr/xen-orchestra/pull/3368))
+- [Backup NG] Don't fail listing backups when a remote is broken [#3365](https://github.com/vatesfr/xen-orchestra/issues/3365) (PR [#3367](https://github.com/vatesfr/xen-orchestra/pull/3367))
+
 ### Released packages
 
+- xo-server v5.26.0
+- xo-web v5.26.0
+
+## **5.25.2** (2018-08-27)
+
+### Enhancements
+
+### Bug fixes
+
+- [Remotes] Fix "undefined" mount option issue [#3361](https://github.com/vatesfr/xen-orchestra/issues/3361) (PR [#3363](https://github.com/vatesfr/xen-orchestra/pull/3363))
+- [Continuous Replication] Don't try to import/export VDIs on halted host [#3354](https://github.com/vatesfr/xen-orchestra/issues/3354) (PR [#3355](https://github.com/vatesfr/xen-orchestra/pull/3355))
+- [Disaster Recovery] Don't try to import/export VMs on halted host (PR [#3364](https://github.com/vatesfr/xen-orchestra/pull/3364))
+- [Backup NG] A successful backup job reported as Interrupted [#3018](https://github.com/vatesfr/xen-orchestra/issues/3018) (PR [#3238](https://github.com/vatesfr/xen-orchestra/pull/3238))
+
+### Released packages
+
+- xo-server v5.25.2
+- xo-web v5.25.1
+
+## **5.25.0** (2018-08-23)
+
+### Enhancements
+
+- [Tables] Filter input now always shows up even if the table is empty [#3295](https://github.com/vatesfr/xen-orchestra/issues/3295) (PR [#3296](https://github.com/vatesfr/xen-orchestra/pull/3296))
+- [Tasks] The table is now still shown when there are no tasks (PR [#3305](https://github.com/vatesfr/xen-orchestra/pull/3305))
+- [Host / Logs] Homogenize action buttons in table and enable bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3313](https://github.com/vatesfr/xen-orchestra/pull/3313))
+- [VM/Advanced] Change "Convert" to "Convert to template" and always show the button [#3201](https://github.com/vatesfr/xen-orchestra/issues/3201) (PR [#3319](https://github.com/vatesfr/xen-orchestra/pull/3319))
+- [Backup NG form] Display a tip when doing a CR on a thick-provisioned SR [#3291](https://github.com/vatesfr/xen-orchestra/issues/3291) (PR [#3333](https://github.com/vatesfr/xen-orchestra/pull/3333))
+- [SR/new] Add local ext SR type [#3332](https://github.com/vatesfr/xen-orchestra/issues/3332) (PR [#3335](https://github.com/vatesfr/xen-orchestra/pull/3335))
+- [Backup reports] Send report for the interrupted backup jobs on the server startup [#2998](https://github.com/vatesfr/xen-orchestra/issues/#2998) (PR [3164](https://github.com/vatesfr/xen-orchestra/pull/3164) [3154](https://github.com/vatesfr/xen-orchestra/pull/3154))
+- [Backup NG form] Move VMs' selection to a dedicated card [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3338](https://github.com/vatesfr/xen-orchestra/pull/3338))
+- [Backup NG smart mode] Exclude replicated VMs [#2338](https://github.com/vatesfr/xen-orchestra/issues/2338) (PR [#3312](https://github.com/vatesfr/xen-orchestra/pull/3312))
+- [Backup NG form] Show the compression checkbox when the full mode is active [#3236](https://github.com/vatesfr/xen-orchestra/issues/3236) (PR [#3345](https://github.com/vatesfr/xen-orchestra/pull/3345))
+- [New VM] Display an error when the getting of the coreOS default template fails [#3227](https://github.com/vatesfr/xen-orchestra/issues/3227) (PR [#3343](https://github.com/vatesfr/xen-orchestra/pull/3343))
+- [Backup NG form] Set default retention to 1 [#3134](https://github.com/vatesfr/xen-orchestra/issues/3134) (PR [#3290](https://github.com/vatesfr/xen-orchestra/pull/3290))
+- [Backup NG] New logs are searchable by job name [#3272](https://github.com/vatesfr/xen-orchestra/issues/3272) (PR [#3351](https://github.com/vatesfr/xen-orchestra/pull/3351))
+- [Remotes] Add a field for NFS remotes to set mount options [#1793](https://github.com/vatesfr/xen-orchestra/issues/1793) (PR [#3353](https://github.com/vatesfr/xen-orchestra/pull/3353))
+
+### Bug fixes
+
+- [Backup NG form] Fix schedule's name overridden with undefined if it's not been edited [#3286](https://github.com/vatesfr/xen-orchestra/issues/3286) (PR [#3288](https://github.com/vatesfr/xen-orchestra/pull/3288))
+- [Remotes] Don't change `enabled` state on errors (PR [#3318](https://github.com/vatesfr/xen-orchestra/pull/3318))
+- [Remotes] Auto-reconnect on use if necessary [#2852](https://github.com/vatesfr/xen-orchestra/issues/2852) (PR [#3320](https://github.com/vatesfr/xen-orchestra/pull/3320))
+- [XO items' select] Fix adding or removing a XO item from a select make the missing XO items disappear [#3322](https://github.com/vatesfr/xen-orchestra/issues/3322) (PR [#3315](https://github.com/vatesfr/xen-orchestra/pull/3315))
+- [New VM / Self] Filter out SRs that are not in the template's pool [#3068](https://github.com/vatesfr/xen-orchestra/issues/3068) (PR [#3070](https://github.com/vatesfr/xen-orchestra/pull/3070))
+- [New VM / Self] Fix 'unknown item' displayed in SR selector [#3267](https://github.com/vatesfr/xen-orchestra/issues/3267) (PR [#3070](https://github.com/vatesfr/xen-orchestra/pull/3070))
+
+### Released packages
+
+- xo-server-backup-reports v0.13.0
+- @xen-orchestra/fs 0.3.0
+- xo-server v5.25.0
+- xo-web v5.25.0
+
+## **5.24.0** (2018-08-09)
+
+### Enhancements
+
+- [Remotes] Make SMB subfolder field optional [#3249](https://github.com/vatesfr/xen-orchestra/issues/3249) (PR [#3250](https://github.com/vatesfr/xen-orchestra/pull/3250))
+- [Backup NG form] Make the smart mode's toggle more visible [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3263](https://github.com/vatesfr/xen-orchestra/pull/3263))
+- Move the copy clipboard of the VM's UUID to the header [#3221](https://github.com/vatesfr/xen-orchestra/issues/3221) (PR [#3248](https://github.com/vatesfr/xen-orchestra/pull/3248))
+- [Health / Orphaned VMs] Homogenize action buttons in table and enable bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3274](https://github.com/vatesfr/xen-orchestra/pull/3274))
+- [Health / Orphaned snapshot VDIs] Homogenize action buttons in table and enable bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3270](https://github.com/vatesfr/xen-orchestra/pull/3270))
+- [Health / Alarms] Homogenize action buttons in table and enable bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3271](https://github.com/vatesfr/xen-orchestra/pull/3271))
+- [Backup NG Overview] List the Backup NG job's modes [#3169](https://github.com/vatesfr/xen-orchestra/issues/3169) (PR [#3277](https://github.com/vatesfr/xen-orchestra/pull/3277))
+- [Backup NG form] Move "Use compression" checkbox in the advanced settings [#2711](https://github.com/vatesfr/xen-orchestra/issues/2711) (PR [#3281](https://github.com/vatesfr/xen-orchestra/pull/3281))
+- [Backup NG form] Ability to remove previous backups first before backup the VMs [#3212](https://github.com/vatesfr/xen-orchestra/issues/3212) (PR [#3260](https://github.com/vatesfr/xen-orchestra/pull/3260))
+- [Patching] Check date consistency before patching to avoid error on install [#3056](https://github.com/vatesfr/xen-orchestra/issues/3056)
+
+### Bug fixes
+
+- [Pools] Filter GPU groups by pool [#3176](https://github.com/vatesfr/xen-orchestra/issues/3176) (PR [#3253](https://github.com/vatesfr/xen-orchestra/pull/3253))
+- [Backup NG] Fix delta backups with SMB remotes [#3224](https://github.com/vatesfr/xen-orchestra/issues/3224) (PR [#3278](https://github.com/vatesfr/xen-orchestra/pull/3278))
+- Fix VM restoration getting stuck on local SRs [#3245](https://github.com/vatesfr/xen-orchestra/issues/3245) (PR [#3243](https://github.com/vatesfr/xen-orchestra/pull/3243))
+
+### Released packages
+
+- xen-api v0.17.0
+- @xen-orchestra/fs 0.2.1
 - xo-server v5.24.0
 - xo-web v5.24.0
 
@@ -30,11 +112,9 @@
 - [Backup NG] Correctly migrate report setting from legacy jobs [#3180](https://github.com/vatesfr/xen-orchestra/issues/3180) (PR [#3206](https://github.com/vatesfr/xen-orchestra/pull/3206))
 - [Backup NG] remove incomplete XVA files [#3159](https://github.com/vatesfr/xen-orchestra/issues/3159) (PR [#3215](https://github.com/vatesfr/xen-orchestra/pull/3215))
 - [Backup NG form] Ability to edit a schedule's state [#3223](https://github.com/vatesfr/xen-orchestra/issues/3223) (PR [#3228](https://github.com/vatesfr/xen-orchestra/pull/3228))
-- Workaround to prevent XenServer 7.5 VDI\_IO\_ERROR during backup [#3205](https://github.com/vatesfr/xen-orchestra/issues/3205) (PR [#3234](https://github.com/vatesfr/xen-orchestra/pull/3234))
 
 ### Released packages
 
-- xen-api v0.16.12
 - xo-remote-parser v0.5.0
 - complex-matcher v0.4.0
 - xo-server-backup-reports v0.12.3

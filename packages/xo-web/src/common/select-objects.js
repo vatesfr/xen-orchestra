@@ -86,6 +86,9 @@ const options = props => ({
   defaultValue: props.multi ? [] : undefined,
 })
 
+const getObjectsById = objects =>
+  keyBy(isArray(objects) ? objects : flatten(toArray(objects)), 'id')
+
 // ===================================================================
 
 /*
@@ -116,6 +119,7 @@ const options = props => ({
  */
 class GenericSelect extends React.Component {
   static propTypes = {
+    allowMissingObjects: PropTypes.bool,
     hasSelectAll: PropTypes.bool,
     multi: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
@@ -126,15 +130,51 @@ class GenericSelect extends React.Component {
     ]).isRequired,
   }
 
-  _getObjectsById = createSelector(
-    () => this.props.xoObjects,
-    objects =>
-      keyBy(isArray(objects) ? objects : flatten(toArray(objects)), 'id')
+  _getSelectedIds = createSelector(
+    () => this.props.value,
+    createCollectionWrapper(getIds)
   )
+
+  _getObjects = createSelector(
+    () => this.props.xoContainers !== undefined,
+    () => this.props.xoObjects,
+    this._getSelectedIds,
+    () => !this.props.allowMissingObjects,
+    (withContainers, objects, ids, removed) => {
+      const objectsById = getObjectsById(objects)
+      const missingObjects = []
+      const addIfMissing = id => {
+        if (id != null && !(id in objectsById)) {
+          missingObjects.push({
+            id,
+            label: id,
+            removed,
+            value: id,
+          })
+        }
+      }
+      if (isArray(ids)) {
+        ids.forEach(addIfMissing)
+      } else {
+        addIfMissing(ids)
+      }
+
+      return isEmpty(missingObjects)
+        ? objects
+        : withContainers
+          ? {
+              ...objects,
+              missingObjects,
+            }
+          : [...objects, ...missingObjects]
+    }
+  )
+
+  _getObjectsById = createSelector(this._getObjects, getObjectsById)
 
   _getOptions = createSelector(
     () => this.props.xoContainers,
-    () => this.props.xoObjects,
+    this._getObjects,
     (containers, objects) => {
       // createCollectionWrapper with a depth?
       const { name } = this.constructor
@@ -166,38 +206,24 @@ class GenericSelect extends React.Component {
             options.push(getOption(object, container))
           })
         })
-      }
 
-      const objectsById = this._getObjectsById()
-      const addIfMissing = val => {
-        if (val != null && !(val in objectsById)) {
-          options.push({
-            disabled: true,
-            id: val,
-            label: val,
-            value: val,
-            xoItem: {
-              id: val,
-              removed: true,
-            },
+        // missing objects have "missingObjects" as container
+        const { missingObjects } = objects
+        if (missingObjects !== undefined) {
+          missingObjects.forEach(object => {
+            options.push(getOption(object))
           })
         }
       }
 
-      const values = this._getSelectedIds()
-      if (isArray(values)) {
-        forEach(values, addIfMissing)
-      } else {
-        addIfMissing(values)
-      }
-
+      options.map(option => {
+        if (option.xoItem.removed) {
+          option.disabled = true
+        }
+        return option
+      })
       return options
     }
-  )
-
-  _getSelectedIds = createSelector(
-    () => this.props.value,
-    createCollectionWrapper(getIds)
   )
 
   _getSelectedObjects = (() => {
@@ -221,6 +247,11 @@ class GenericSelect extends React.Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
+  /* TODO: When all item components are implemented, change type to this:
+      type: this.props.resourceSet !== undefined && option.xoItem.type !== undefined
+        ? `${option.xoItem.type}-resourceSet`
+        : undefined
+  */
   _renderOption = option => (
     <span
       className={
@@ -229,7 +260,12 @@ class GenericSelect extends React.Component {
           : undefined
       }
     >
-      {renderXoItem(option.xoItem)}
+      {renderXoItem(option.xoItem, {
+        type:
+          this.props.resourceSet && option.xoItem.type === 'SR'
+            ? 'SR-resourceSet'
+            : undefined,
+      })}
     </span>
   )
 
@@ -546,7 +582,7 @@ export const SelectTag = makeStoreSelect(
       tags => map(tags, tag => ({ id: tag, type: 'tag', value: tag }))
     ),
   }),
-  { placeholder: _('selectTags') }
+  { allowMissingObjects: true, placeholder: _('selectTags') }
 )
 
 export const SelectHighLevelObject = makeStoreSelect(
@@ -790,13 +826,16 @@ export class SelectResourceSetsSr extends React.PureComponent {
   set value (value) {
     this.refs.select.value = value
   }
-  _getSrs = createSelector(
-    () => this.props.resourceSet,
-    ({ objectsByType }) => {
-      const { predicate } = this.props
-      const srs = objectsByType['SR']
-      return sortBy(predicate ? filter(srs, predicate) : srs, 'name_label')
-    }
+
+  _getSrs = createSort(
+    createFilter(
+      () => this.props.resourceSet.objectsByType.SR,
+      createSelector(
+        () => this.props.predicate,
+        predicate => predicate || (() => true)
+      )
+    ),
+    'name_label'
   )
 
   render () {

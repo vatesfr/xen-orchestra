@@ -456,7 +456,7 @@ export async function migrate ({
   if (mapVdisSrs) {
     mapVdisSrsXapi = {}
     forEach(mapVdisSrs, (srId, vdiId) => {
-      const vdiXapiId = this.getObject(vdiId, 'VDI')._xapiId
+      const vdiXapiId = this.getObject(vdiId, ['VDI', 'VDI-snapshot'])._xapiId
       mapVdisSrsXapi[vdiXapiId] = this.getObject(srId, 'SR')._xapiId
       return permissions.push([srId, 'administrate'])
     })

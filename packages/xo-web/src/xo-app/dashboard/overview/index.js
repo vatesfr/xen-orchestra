@@ -467,7 +467,7 @@ class DefaultCard extends Component {
                       labels: map(topSrs, 'name_label'),
                       series: map(
                         topSrs,
-                        sr => sr.physical_usage / sr.size * 100
+                        sr => (sr.physical_usage / sr.size) * 100
                       ),
                     }}
                     options={{

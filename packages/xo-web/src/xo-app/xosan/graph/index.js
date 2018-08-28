@@ -47,9 +47,9 @@ const fork = (n, x, y, w, h, nDisksLoss) => [
   stroke(w / (2 * n), 0, w - w / (2 * n), 0, x, y),
   // vertical lines (and disks icons)
   map(new Array(n), (_, i) => [
-    stroke(i * w / n + w / (2 * n), 0, i * w / n + w / (2 * n), h, x, y),
+    stroke((i * w) / n + w / (2 * n), 0, (i * w) / n + w / (2 * n), h, x, y),
     nDisksLoss !== undefined &&
-      disk(x + i * w / n + w / (2 * n), y + h, i >= n - nDisksLoss),
+      disk(x + (i * w) / n + w / (2 * n), y + h, i >= n - nDisksLoss),
   ]),
 ]
 
@@ -63,18 +63,18 @@ const graph = (nGroups, nPerGroup, w, h, disksLoss) => {
       {nGroups === 1
         ? fork(nPerGroup, 0, 2 * hUnit, w, hUnit, disksLoss)
         : [
-          fork(nGroups, 0, 2 * hUnit, w, hUnit),
-          map(new Array(nGroups), (_, i) =>
-            fork(
-              nPerGroup,
-              i * w / nGroups,
-              3 * hUnit,
-              w / nGroups,
-              hUnit,
-              disksLoss
-            )
-          ),
-        ]}
+            fork(nGroups, 0, 2 * hUnit, w, hUnit),
+            map(new Array(nGroups), (_, i) =>
+              fork(
+                nPerGroup,
+                (i * w) / nGroups,
+                3 * hUnit,
+                w / nGroups,
+                hUnit,
+                disksLoss
+              )
+            ),
+          ]}
     </svg>
   )
 }
@@ -109,11 +109,11 @@ export default class Graph extends Component {
             {layout === 'disperse'
               ? disperseGraph(nSrs, redundancy, width, height)
               : replicationGraph(
-                nSrs,
-                redundancy - (layout === 'replica_arbiter' ? 1 : 0),
-                width,
-                height
-              )}
+                  nSrs,
+                  redundancy - (layout === 'replica_arbiter' ? 1 : 0),
+                  width,
+                  height
+                )}
           </div>
         </div>
         <div>

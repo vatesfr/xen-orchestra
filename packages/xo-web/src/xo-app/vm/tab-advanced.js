@@ -1,7 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import Copiable from 'copiable'
 import defined from 'xo-defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
@@ -343,14 +342,6 @@ export default class TabAdvanced extends Component {
                   icon='vm-clone'
                   labelId='cloneVmLabel'
                 />
-                <TabButton
-                  btnStyle='danger'
-                  handler={convertVmToTemplate}
-                  handlerParam={vm}
-                  icon='vm-create-template'
-                  labelId='vmConvertButton'
-                  redirectOnSuccess='/'
-                />
               </span>
             )}
             {vm.power_state === 'Suspended' && (
@@ -373,6 +364,15 @@ export default class TabAdvanced extends Component {
             )}
             <TabButton
               btnStyle='danger'
+              disabled={vm.power_state !== 'Halted'}
+              handler={convertVmToTemplate}
+              handlerParam={vm}
+              icon='vm-create-template'
+              labelId='vmConvertToTemplateButton'
+              redirectOnSuccess='/'
+            />
+            <TabButton
+              btnStyle='danger'
               handler={deleteVm}
               handlerParam={vm}
               icon='vm-delete'
@@ -385,10 +385,6 @@ export default class TabAdvanced extends Component {
             <h3>{_('xenSettingsLabel')}</h3>
             <table className='table'>
               <tbody>
-                <tr>
-                  <th>{_('uuid')}</th>
-                  <Copiable tagName='td'>{vm.uuid}</Copiable>
-                </tr>
                 <tr>
                   <th>{_('virtualizationMode')}</th>
                   <td>
@@ -557,7 +553,8 @@ export default class TabAdvanced extends Component {
                   <th>{_('vmMemoryLimitsLabel')}</th>
                   <td>
                     <p>
-                      Static: {formatSize(vm.memory.static[0])}/<Size
+                      Static: {formatSize(vm.memory.static[0])}/
+                      <Size
                         value={defined(vm.memory.static[1], null)}
                         onChange={memoryStaticMax =>
                           editVm(vm, { memoryStaticMax })
@@ -569,7 +566,9 @@ export default class TabAdvanced extends Component {
                       <Size
                         value={defined(vm.memory.dynamic[0], null)}
                         onChange={memoryMin => editVm(vm, { memoryMin })}
-                      />/<Size
+                      />
+                      /
+                      <Size
                         value={defined(vm.memory.dynamic[1], null)}
                         onChange={memoryMax => editVm(vm, { memoryMax })}
                       />
@@ -600,7 +599,9 @@ export default class TabAdvanced extends Component {
                         <Icon
                           className='text-info'
                           icon={osFamily(vm.os_version.distro)}
-                        />&nbsp;{vm.os_version.name}
+                        />
+                        &nbsp;
+                        {vm.os_version.name}
                       </span>
                     )}
                   </td>

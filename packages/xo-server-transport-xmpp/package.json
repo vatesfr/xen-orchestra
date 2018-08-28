@@ -29,7 +29,7 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "dependencies": {
     "babel-runtime": "^6.11.6",

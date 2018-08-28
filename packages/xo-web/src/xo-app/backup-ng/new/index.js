@@ -8,29 +8,22 @@ import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
+import { Card, CardBlock, CardHeader } from 'card'
+import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
+import { Container, Col, Row } from 'grid'
+import { createGetObjectsOfType } from 'selectors'
+import { flatten, includes, isEmpty, keyBy, map, mapValues, some } from 'lodash'
+import { injectState, provideState } from '@julien-f/freactal'
+import { Map } from 'immutable'
+import { Number } from 'form'
+import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
+  connectStore,
   generateRandomId,
   resolveId,
   resolveIds,
 } from 'utils'
-import { Card, CardBlock, CardHeader } from 'card'
-import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
-import { Container, Col, Row } from 'grid'
-import { injectState, provideState } from '@julien-f/freactal'
-import { Number, Toggle } from 'form'
-import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
-import {
-  cloneDeep,
-  flatten,
-  forEach,
-  includes,
-  isEmpty,
-  keyBy,
-  map,
-  mapValues,
-  some,
-} from 'lodash'
 import {
   createBackupNgJob,
   createSchedule,
@@ -43,41 +36,40 @@ import {
 
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
-import { FormFeedback, FormGroup, Input, Ul, Li } from './utils'
+import {
+  DEFAULT_RETENTION,
+  destructPattern,
+  FormFeedback,
+  FormGroup,
+  Input,
+  Li,
+  Ul,
+} from './../utils'
 
 // ===================================================================
 
+const SR_BACKEND_FAILURE_LINK =
+  'https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space'
+
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
-const normalizeCopyRetention = settings => {
-  forEach(settings, schedule => {
-    if (schedule.copyRetention === undefined) {
-      schedule.copyRetention = schedule.exportRetention
-    }
-  })
-}
-
-const normalizeSettings = ({
-  settings,
-  exportMode,
-  copyMode,
-  snapshotMode,
-}) => {
-  forEach(settings, setting => {
-    if (!exportMode) {
-      setting.exportRetention = undefined
-    }
-
-    if (!copyMode) {
-      setting.copyRetention = undefined
-    }
-
-    if (!snapshotMode) {
-      setting.snapshotRetention = undefined
-    }
-  })
-  return settings
-}
+const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
+  settings.map(
+    setting =>
+      defined(
+        setting.copyRetention,
+        setting.exportRetention,
+        setting.snapshotRetention
+      ) !== undefined
+        ? {
+            copyRetention: copyMode ? setting.copyRetention : undefined,
+            exportRetention: exportMode ? setting.exportRetention : undefined,
+            snapshotRetention: snapshotMode
+              ? setting.snapshotRetention
+              : undefined,
+          }
+        : setting
+  )
 
 const constructPattern = values =>
   values.length === 1
@@ -89,8 +81,6 @@ const constructPattern = values =>
           __or: resolveIds(values),
         },
       }
-
-const destructPattern = pattern => pattern.id.__or || [pattern.id]
 
 const destructVmsPattern = pattern =>
   pattern.id === undefined
@@ -122,37 +112,50 @@ const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
 const createDoesRetentionExist = name => {
   const predicate = setting => setting[name] > 0
-  return ({ settings }) => some(settings, predicate)
+  return ({ propSettings, settings = propSettings }) => settings.some(predicate)
 }
 
 const getInitialState = () => ({
   $pool: {},
   backupMode: false,
-  compression: true,
-  concurrency: 0,
+  compression: undefined,
   crMode: false,
   deltaMode: false,
   drMode: false,
   editionMode: undefined,
   formId: generateRandomId(),
+  inputConcurrencyId: generateRandomId(),
+  inputReportWhenId: generateRandomId(),
   inputTimeoutId: generateRandomId(),
   name: '',
-  offlineSnapshot: false,
   paramsUpdated: false,
   powerState: 'All',
   remotes: [],
-  reportWhen: 'failure',
   schedules: {},
-  settings: {},
+  settings: undefined,
   showErrors: false,
   smartMode: false,
   snapshotMode: false,
   srs: [],
-  tags: {},
-  timeout: undefined,
-  tmpSchedule: {},
+  tags: {
+    notValues: ['Continuous Replication', 'Disaster Recovery'],
+  },
+  tmpSchedule: undefined,
   vms: [],
 })
+
+const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
+  <ActionButton
+    handler={handler}
+    handlerParam={handlerParam}
+    icon={value ? 'toggle-on' : 'toggle-off'}
+    iconColor={value ? 'text-success' : undefined}
+    size='small'
+    tooltip={_('deleteOldBackupsFirstMessage')}
+  >
+    {_('deleteOldBackupsFirst')}
+  </ActionButton>
+)
 
 export default [
   New => props => (
@@ -166,6 +169,9 @@ export default [
         cb(keyBy(remotes, 'id'))
       }),
   }),
+  connectStore(() => ({
+    srsById: createGetObjectsOfType('SR'),
+  })),
   provideState({
     initialState: getInitialState,
     effects: {
@@ -185,20 +191,12 @@ export default [
             state.schedules,
             ({ id, ...schedule }) => schedule
           ),
-          settings: {
-            ...normalizeSettings({
-              settings: cloneDeep(state.settings),
-              exportMode: state.exportMode,
-              copyMode: state.copyMode,
-              snapshotMode: state.snapshotMode,
-            }),
-            '': {
-              concurrency: state.concurrency,
-              offlineSnapshot: state.offlineSnapshot,
-              reportWhen: state.reportWhen,
-              timeout: state.timeout && state.timeout * 1e3,
-            },
-          },
+          settings: normalizeSettings({
+            settings: state.settings,
+            exportMode: state.exportMode,
+            copyMode: state.copyMode,
+            snapshotMode: state.snapshotMode,
+          }).toObject(),
           remotes:
             state.deltaMode || state.backupMode
               ? constructPattern(state.remotes)
@@ -246,7 +244,7 @@ export default [
           })
         )
 
-        const settings = cloneDeep(state.settings)
+        let settings = state.settings
         await Promise.all(
           map(state.schedules, async schedule => {
             const tmpId = schedule.id
@@ -258,35 +256,30 @@ export default [
                 enabled: schedule.enabled,
               })
 
-              settings[id] = settings[tmpId]
-              delete settings[tmpId]
+              settings = settings.withMutations(settings => {
+                settings.set(id, settings.get(tmpId))
+                settings.delete(tmpId)
+              })
             }
           })
         )
-
-        const globalSettings = props.job.settings['']
-        settings[''] = {
-          ...globalSettings,
-          reportWhen: state.reportWhen,
-          concurrency: state.concurrency,
-          offlineSnapshot: state.offlineSnapshot,
-          timeout:
-            state.timeout === ''
-              ? undefined
-              : state.timeout * 1e3 || globalSettings.timeout,
-        }
 
         await editBackupNgJob({
           id: props.job.id,
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression ? 'native' : '',
+          compression:
+            state.compression === undefined
+              ? undefined
+              : state.compression
+                ? 'native'
+                : '',
           settings: normalizeSettings({
-            settings,
+            settings: settings || state.propSettings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
             snapshotMode: state.snapshotMode,
-          }),
+          }).toObject(),
           remotes:
             state.deltaMode || state.backupMode
               ? constructPattern(state.remotes)
@@ -318,13 +311,17 @@ export default [
           },
         },
       }),
-      toggleSmartMode: (_, smartMode) => state => ({
-        ...state,
-        smartMode,
-      }),
       setName: (_, { target: { value } }) => state => ({
         ...state,
         name: value,
+      }),
+      setTargetDeleteFirst: (_, id) => ({
+        propSettings,
+        settings = propSettings,
+      }) => ({
+        settings: settings.set(id, {
+          deleteFirst: !settings.getIn([id, 'deleteFirst']),
+        }),
       }),
       addRemote: (_, remote) => state => {
         return {
@@ -353,24 +350,12 @@ export default [
         }
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
-      updateParams: () => (state, { job, schedules }) => {
+      updateParams: () => (_, { job, schedules }) => {
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
-        const { concurrency, reportWhen, offlineSnapshot } =
-          job.settings[''] || {}
-        const settings = cloneDeep(job.settings)
-        delete settings['']
-        const drMode = job.mode === 'full' && !isEmpty(srs)
-        const crMode = job.mode === 'delta' && !isEmpty(srs)
-
-        if (drMode || crMode) {
-          normalizeCopyRetention(settings)
-        }
 
         return {
-          ...state,
-          compression: job.compression === 'native',
           name: job.name,
           paramsUpdated: true,
           smartMode: job.vms.id === undefined,
@@ -380,14 +365,10 @@ export default [
           ),
           backupMode: job.mode === 'full' && !isEmpty(remotes),
           deltaMode: job.mode === 'delta' && !isEmpty(remotes),
-          drMode,
-          crMode,
+          drMode: job.mode === 'full' && !isEmpty(srs),
+          crMode: job.mode === 'delta' && !isEmpty(srs),
           remotes,
           srs,
-          reportWhen: reportWhen || 'failure',
-          concurrency: concurrency || 0,
-          offlineSnapshot,
-          settings,
           schedules,
           ...destructVmsPattern(job.vms),
         }
@@ -398,7 +379,7 @@ export default [
       }),
       cancelSchedule: () => state => ({
         ...state,
-        tmpSchedule: {},
+        tmpSchedule: undefined,
         editionMode: undefined,
       }),
       editSchedule: (_, schedule) => state => ({
@@ -408,38 +389,32 @@ export default [
           ...schedule,
         },
       }),
-      deleteSchedule: (_, schedule) => state => {
+      deleteSchedule: (_, schedule) => ({
+        schedules: oldSchedules,
+        propSettings,
+        settings = propSettings,
+      }) => {
         const id = resolveId(schedule)
-        const schedules = { ...state.schedules }
-        const settings = { ...state.settings }
-
+        const schedules = { ...oldSchedules }
         delete schedules[id]
-        delete settings[id]
         return {
-          ...state,
           schedules,
-          settings,
+          settings: settings.delete(id),
         }
       },
-      saveSchedule: (
-        _,
-        {
-          copyRetention,
-          cron,
-          exportRetention,
-          name,
-          snapshotRetention,
-          timezone,
-        }
-      ) => async (state, props) => {
-        name = name !== undefined && name.trim() === '' ? undefined : name
-        if (state.editionMode === 'creation') {
+      saveSchedule: (_, { cron, timezone, name, ...setting }) => ({
+        editionMode,
+        propSettings,
+        schedules: oldSchedules,
+        settings = propSettings,
+        tmpSchedule,
+      }) => {
+        if (editionMode === 'creation') {
           const id = generateRandomId()
           return {
-            ...state,
             editionMode: undefined,
             schedules: {
-              ...state.schedules,
+              ...oldSchedules,
               [id]: {
                 cron,
                 id,
@@ -447,20 +422,12 @@ export default [
                 timezone,
               },
             },
-            settings: {
-              ...state.settings,
-              [id]: {
-                exportRetention,
-                copyRetention,
-                snapshotRetention,
-              },
-            },
+            settings: settings.set(id, setting),
           }
         }
 
-        const id = state.tmpSchedule.id
-        const schedules = { ...state.schedules }
-        const settings = { ...state.settings }
+        const id = tmpSchedule.id
+        const schedules = { ...oldSchedules }
 
         schedules[id] = {
           ...schedules[id],
@@ -468,19 +435,12 @@ export default [
           name,
           timezone,
         }
-        settings[id] = {
-          ...settings[id],
-          exportRetention,
-          copyRetention,
-          snapshotRetention,
-        }
 
         return {
-          ...state,
           editionMode: undefined,
           schedules,
-          settings,
-          tmpSchedule: {},
+          settings: settings.set(id, setting),
+          tmpSchedule: undefined,
         }
       },
       setPowerState: (_, powerState) => state => ({
@@ -522,17 +482,42 @@ export default [
 
         return getInitialState()
       },
-      setReportWhen: (_, { value }) => state => ({
-        ...state,
-        reportWhen: value,
+      setGlobalSettings: (_, { name, value }) => ({
+        propSettings,
+        settings = propSettings,
+      }) => ({
+        settings: settings.update('', setting => ({
+          ...setting,
+          [name]: value,
+        })),
       }),
-      setConcurrency: (_, concurrency) => state => ({
-        ...state,
-        concurrency,
-      }),
-      setTimeout: (_, timeout) => (_, { job }) => ({
-        timeout: timeout === undefined && job !== undefined ? '' : timeout,
-      }),
+      setReportWhen: ({ setGlobalSettings }, { value }) => () => {
+        setGlobalSettings({
+          name: 'reportWhen',
+          value,
+        })
+      },
+      setConcurrency: ({ setGlobalSettings }, value) => () => {
+        setGlobalSettings({
+          name: 'concurrency',
+          value,
+        })
+      },
+      setTimeout: ({ setGlobalSettings }, value) => () => {
+        setGlobalSettings({
+          name: 'timeout',
+          value: value && value * 1e3,
+        })
+      },
+      setOfflineSnapshot: (
+        { setGlobalSettings },
+        { target: { checked: value } }
+      ) => () => {
+        setGlobalSettings({
+          name: 'offlineSnapshot',
+          value,
+        })
+      },
     },
     computed: {
       needUpdateParams: (state, { job, schedules }) =>
@@ -561,9 +546,6 @@ export default [
         state.copyMode && !state.copyRetentionExists,
       missingSnapshotRetention: state =>
         state.snapshotMode && !state.snapshotRetentionExists,
-      showCompression: state =>
-        state.isFull &&
-        (state.exportRetentionExists || state.copyRetentionExists),
       exportMode: state => state.backupMode || state.deltaMode,
       copyMode: state => state.drMode || state.crMode,
       exportRetentionExists: createDoesRetentionExist('exportRetention'),
@@ -579,11 +561,31 @@ export default [
       }),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
+      propSettings: (_, { job }) =>
+        Map(get(() => job.settings)).map(
+          setting =>
+            defined(
+              setting.copyRetention,
+              setting.exportRetention,
+              setting.snapshotRetention
+            )
+              ? {
+                  copyRetention: setting.copyRetention || DEFAULT_RETENTION,
+                  exportRetention: setting.exportRetention || DEFAULT_RETENTION,
+                  snapshotRetention:
+                    setting.snapshotRetention || DEFAULT_RETENTION,
+                }
+              : setting
+        ),
     },
   }),
   injectState,
-  ({ state, effects, remotesById, job }) => {
-    const { timeout: jobTimeout } = get(() => job.settings['']) || {}
+  ({ state, effects, remotesById, srsById, job = {} }) => {
+    const { propSettings, settings = propSettings } = state
+    const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
+      settings.get('') || {}
+
+    const { compression = job.compression === 'native' } = state
 
     if (state.needUpdateParams) {
       effects.updateParams()
@@ -595,60 +597,15 @@ export default [
           <Row>
             <Col mediumSize={6}>
               <Card>
-                <CardHeader>
-                  {_('backupName')}*
-                  <Tooltip content={_('smartBackupModeTitle')}>
-                    <Toggle
-                      className='pull-right'
-                      onChange={effects.toggleSmartMode}
-                      value={state.smartMode}
-                      iconSize={1}
-                    />
-                  </Tooltip>
-                </CardHeader>
+                <CardHeader>{_('backupName')}*</CardHeader>
                 <CardBlock>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('backupName')}</strong>
-                    </label>
-                    <FormFeedback
-                      component={Input}
-                      message={_('missingBackupName')}
-                      onChange={effects.setName}
-                      error={state.showErrors ? state.missingName : undefined}
-                      value={state.name}
-                    />
-                  </FormGroup>
-                  {state.smartMode ? (
-                    <Upgrade place='newBackup' required={3}>
-                      <SmartBackup />
-                    </Upgrade>
-                  ) : (
-                    <FormGroup>
-                      <label>
-                        <strong>{_('vmsToBackup')}</strong>
-                      </label>
-                      <FormFeedback
-                        component={SelectVm}
-                        message={_('missingVms')}
-                        multi
-                        onChange={effects.setVms}
-                        error={state.showErrors ? state.missingVms : undefined}
-                        value={state.vms}
-                      />
-                    </FormGroup>
-                  )}
-                  {state.showCompression && (
-                    <label>
-                      <input
-                        checked={state.compression}
-                        name='compression'
-                        onChange={effects.setCheckboxValue}
-                        type='checkbox'
-                      />{' '}
-                      <strong>{_('useCompression')}</strong>
-                    </label>
-                  )}
+                  <FormFeedback
+                    component={Input}
+                    message={_('missingBackupName')}
+                    onChange={effects.setName}
+                    error={state.showErrors ? state.missingName : undefined}
+                    value={state.name}
+                  />
                 </CardBlock>
               </Card>
               <FormFeedback
@@ -767,14 +724,20 @@ export default [
                                   type: 'remote',
                                   value: remotesById[id],
                                 })}
-                              <ActionButton
-                                btnStyle='danger'
-                                className='pull-right'
-                                handler={effects.deleteRemote}
-                                handlerParam={key}
-                                icon='delete'
-                                size='small'
-                              />
+                              <div className='pull-right'>
+                                <DeleteOldBackupsFirst
+                                  handler={effects.setTargetDeleteFirst}
+                                  handlerParam={id}
+                                  value={settings.getIn([id, 'deleteFirst'])}
+                                />{' '}
+                                <ActionButton
+                                  btnStyle='danger'
+                                  handler={effects.deleteRemote}
+                                  handlerParam={key}
+                                  icon='delete'
+                                  size='small'
+                                />
+                              </div>
                             </Li>
                           ))}
                         </Ul>
@@ -809,15 +772,37 @@ export default [
                       <Ul>
                         {map(state.srs, (id, key) => (
                           <Li key={id}>
-                            {renderXoItemFromId(id)}
-                            <ActionButton
-                              btnStyle='danger'
-                              className='pull-right'
-                              icon='delete'
-                              size='small'
-                              handler={effects.deleteSr}
-                              handlerParam={key}
-                            />
+                            {renderXoItemFromId(id)}{' '}
+                            {!isEmpty(srsById) &&
+                              state.crMode &&
+                              get(() => srsById[id].SR_type) === 'lvm' && (
+                                <Tooltip
+                                  content={_('crOnThickProvisionedSrWarning')}
+                                >
+                                  <a
+                                    className='text-info'
+                                    href={SR_BACKEND_FAILURE_LINK}
+                                    rel='noopener noreferrer'
+                                    target='_blank'
+                                  >
+                                    <Icon icon='info' />
+                                  </a>
+                                </Tooltip>
+                              )}
+                            <div className='pull-right'>
+                              <DeleteOldBackupsFirst
+                                handler={effects.setTargetDeleteFirst}
+                                handlerParam={id}
+                                value={settings.getIn([id, 'deleteFirst'])}
+                              />{' '}
+                              <ActionButton
+                                btnStyle='danger'
+                                icon='delete'
+                                size='small'
+                                handler={effects.deleteSr}
+                                handlerParam={key}
+                              />
+                            </div>
                           </Li>
                         ))}
                       </Ul>
@@ -829,28 +814,28 @@ export default [
                 <CardHeader>{_('newBackupAdvancedSettings')}</CardHeader>
                 <CardBlock>
                   <FormGroup>
-                    <label>
+                    <label htmlFor={state.inputReportWhenId}>
                       <strong>{_('reportWhen')}</strong>
                     </label>
                     <Select
+                      id={state.inputReportWhenId}
                       labelKey='label'
                       onChange={effects.setReportWhen}
                       optionRenderer={getOptionRenderer}
                       options={REPORT_WHEN_FILTER_OPTIONS}
                       required
-                      value={state.reportWhen}
+                      value={reportWhen}
                       valueKey='value'
                     />
                   </FormGroup>
                   <FormGroup>
-                    <label>
+                    <label htmlFor={state.inputConcurrencyId}>
                       <strong>{_('concurrency')}</strong>
                     </label>
                     <Number
-                      min='0'
+                      id={state.inputConcurrencyId}
                       onChange={effects.setConcurrency}
-                      required
-                      value={state.concurrency}
+                      value={concurrency}
                     />
                   </FormGroup>
                   <FormGroup>
@@ -863,10 +848,7 @@ export default [
                     <Number
                       id={state.inputTimeoutId}
                       onChange={effects.setTimeout}
-                      value={defined(
-                        state.timeout,
-                        jobTimeout && jobTimeout / 1e3
-                      )}
+                      value={timeout && timeout / 1e3}
                     />
                   </FormGroup>
                   <FormGroup>
@@ -876,17 +858,60 @@ export default [
                         <Icon icon='info' />
                       </Tooltip>{' '}
                       <input
-                        checked={state.offlineSnapshot}
-                        name='offlineSnapshot'
-                        onChange={effects.setCheckboxValue}
+                        checked={offlineSnapshot}
+                        onChange={effects.setOfflineSnapshot}
                         type='checkbox'
                       />
                     </label>
                   </FormGroup>
+                  {state.isFull && (
+                    <FormGroup>
+                      <label>
+                        <strong>{_('useCompression')}</strong>{' '}
+                        <input
+                          checked={compression}
+                          name='compression'
+                          onChange={effects.setCheckboxValue}
+                          type='checkbox'
+                        />
+                      </label>
+                    </FormGroup>
+                  )}
                 </CardBlock>
               </Card>
             </Col>
             <Col mediumSize={6}>
+              <Card>
+                <CardHeader>
+                  {_('vmsToBackup')}*
+                  <ActionButton
+                    className='pull-right'
+                    data-mode='smartMode'
+                    handler={effects.toggleMode}
+                    icon={state.smartMode ? 'toggle-on' : 'toggle-off'}
+                    iconColor={state.smartMode ? 'text-success' : undefined}
+                    size='small'
+                  >
+                    {_('smartBackupModeTitle')}
+                  </ActionButton>
+                </CardHeader>
+                <CardBlock>
+                  {state.smartMode ? (
+                    <Upgrade place='newBackup' required={3}>
+                      <SmartBackup />
+                    </Upgrade>
+                  ) : (
+                    <FormFeedback
+                      component={SelectVm}
+                      message={_('missingVms')}
+                      multi
+                      onChange={effects.setVms}
+                      error={state.showErrors ? state.missingVms : undefined}
+                      value={state.vms}
+                    />
+                  )}
+                </CardBlock>
+              </Card>
               <Schedules />
             </Col>
           </Row>

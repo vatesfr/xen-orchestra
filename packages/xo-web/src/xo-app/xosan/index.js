@@ -62,7 +62,9 @@ const XOSAN_COLUMNS = [
         : _('xosanBadStatus', {
             badStatuses: (
               <ul>
-                {map(status, (_, status) => <li key={status}>{status}</li>)}
+                {map(status, (_, status) => (
+                  <li key={status}>{status}</li>
+                ))}
               </ul>
             ),
           })
@@ -117,18 +119,18 @@ const XOSAN_COLUMNS = [
       sr.size > 0 ? (
         <Tooltip
           content={_('spaceLeftTooltip', {
-            used: String(Math.round(sr.physical_usage * 100 / sr.size)),
+            used: String(Math.round((sr.physical_usage * 100) / sr.size)),
             free: formatSize(sr.size - sr.physical_usage),
           })}
         >
           <progress
             className='progress'
             max='100'
-            value={sr.physical_usage * 100 / sr.size}
+            value={(sr.physical_usage * 100) / sr.size}
           />
         </Tooltip>
       ) : null,
-    sortCriteria: sr => sr.physical_usage * 100 / sr.size,
+    sortCriteria: sr => (sr.physical_usage * 100) / sr.size,
   },
   {
     name: _('xosanLicense'),

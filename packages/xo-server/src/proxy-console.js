@@ -58,16 +58,15 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
           ws.close()
         })
 
-      ws
-        .on('error', error => {
-          closed = true
-          debug(
-            'error from the XO client: %s',
-            error.stack || error.message || error
-          )
+      ws.on('error', error => {
+        closed = true
+        debug(
+          'error from the XO client: %s',
+          error.stack || error.message || error
+        )
 
-          socket.end()
-        })
+        socket.end()
+      })
         .on('message', data => {
           if (!closed) {
             socket.write(data)

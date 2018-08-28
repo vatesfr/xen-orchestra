@@ -58,7 +58,10 @@ export default class Xo extends EventEmitter {
 
   // Returns an object from its key or UUID.
   getObject (key, type) {
-    const { all, indexes: { byRef } } = this._objects
+    const {
+      all,
+      indexes: { byRef },
+    } = this._objects
 
     const obj = all[key] || byRef[key]
     if (!obj) {

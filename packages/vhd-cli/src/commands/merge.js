@@ -14,7 +14,8 @@ export default async function main (args) {
     onProgress ({ done, total }) {
       if (bar === undefined) {
         bar = new Bar({
-          format: 'merging [{bar}] {percentage}% | ETA: {eta}s | {value}/{total}',
+          format:
+            'merging [{bar}] {percentage}% | ETA: {eta}s | {value}/{total}',
         })
         bar.start(total, done)
       } else {

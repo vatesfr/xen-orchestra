@@ -172,9 +172,8 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostXenServerVersion')}</th>
                   <Copiable tagName='td' data={host.version}>
-                    {host.license_params.sku_marketing_name} {host.version} ({
-                      host.license_params.sku_type
-                    })
+                    {host.license_params.sku_marketing_name} {host.version} (
+                    {host.license_params.sku_type})
                   </Copiable>
                 </tr>
                 <tr>
@@ -219,17 +218,15 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostManufacturerinfo')}</th>
                   <Copiable tagName='td'>
-                    {host.bios_strings['system-manufacturer']} ({
-                      host.bios_strings['system-product-name']
-                    })
+                    {host.bios_strings['system-manufacturer']} (
+                    {host.bios_strings['system-product-name']})
                   </Copiable>
                 </tr>
                 <tr>
                   <th>{_('hostBiosinfo')}</th>
                   <td>
-                    {host.bios_strings['bios-vendor']} ({
-                      host.bios_strings['bios-version']
-                    })
+                    {host.bios_strings['bios-vendor']} (
+                    {host.bios_strings['bios-version']})
                   </td>
                 </tr>
               </tbody>

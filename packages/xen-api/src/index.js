@@ -6,7 +6,6 @@ import httpRequest from 'http-request-plus'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
 import { fibonacci } from 'iterable-backoff'
-import { PassThrough, Writable } from 'stream'
 import {
   filter,
   forEach,
@@ -34,90 +33,6 @@ import {
 import autoTransport from './transports/auto'
 
 const debug = createDebug('xen-api')
-
-// ===================================================================
-// XS 7.5 export bug workaround
-
-function Queue () {
-  this._s1 = [] // stack to push to
-  this._s2 = [] // stack to pop from
-}
-
-Queue.prototype.push = function (value) {
-  this._s1.push(value)
-}
-
-Queue.prototype.pop = function () {
-  let s2 = this._s2
-  if (s2.length === 0) {
-    const s1 = this._s1
-    if (s1.length === 0) {
-      return
-    }
-    this._s1 = s2
-    s2 = this._s2 = s1.reverse()
-  }
-  return s2.pop()
-}
-
-const makeXs75WorkAround = stream => {
-  const cache = new Queue()
-  let canContinue = true
-  let finished = false
-
-  const drain = () => {
-    const next = cache.pop()
-    if (next === undefined) {
-      if (finished) {
-        stream.end()
-      } else {
-        canContinue = true
-      }
-      return
-    }
-    const { chunk, encoding, callback, timeout } = next
-    const canDrain = stream.write(chunk, encoding)
-    if (!timeout._called) {
-      clearTimeout(timeout)
-      callback()
-    }
-    if (canDrain) {
-      drain()
-    }
-  }
-
-  stream.on('drain', drain)
-
-  const cacheStream = new Writable({
-    final (callback) {
-      callback()
-      if (canContinue) {
-        stream.end()
-      } else {
-        // We need to empty the queue before calling stream.end
-        finished = true
-      }
-    },
-    write (chunk, encoding, callback) {
-      if (canContinue) {
-        canContinue = stream.write(chunk, encoding)
-        callback()
-      } else {
-        // wait AMAP without breaking the export
-        cache.push({
-          chunk,
-          encoding,
-          callback,
-          timeout: setTimeout(callback, 1e2),
-        })
-      }
-    },
-  })
-
-  cacheStream.readAll = stream.readAll
-
-  return cacheStream
-}
 
 // ===================================================================
 
@@ -207,7 +122,14 @@ const parseUrl = url => {
   }
 
   const [, protocol = 'https:', username, password, hostname, port] = matches
-  return { protocol, username, password, hostname, port }
+  const parsedUrl = { protocol, hostname, port }
+  if (username !== undefined) {
+    parsedUrl.username = decodeURIComponent(username)
+  }
+  if (password !== undefined) {
+    parsedUrl.password = decodeURIComponent(password)
+  }
+  return parsedUrl
 }
 
 // -------------------------------------------------------------------
@@ -221,11 +143,15 @@ const {
 
 // -------------------------------------------------------------------
 
+export const NULL_REF = 'OpaqueRef:NULL'
+
 const OPAQUE_REF_PREFIX = 'OpaqueRef:'
 export const isOpaqueRef = value =>
   typeof value === 'string' && startsWith(value, OPAQUE_REF_PREFIX)
 
 // -------------------------------------------------------------------
+
+const isGetAllRecordsMethod = RegExp.prototype.test.bind(/\.get_all_records$/)
 
 const RE_READ_ONLY_METHOD = /^[^.]+\.get_/
 const isReadOnlyCall = (method, args) =>
@@ -334,7 +260,7 @@ export class Xapi extends EventEmitter {
       objects.getKey = getKey
 
       this._objectsByRefs = createObject(null)
-      this._objectsByRefs['OpaqueRef:NULL'] = undefined
+      this._objectsByRefs[NULL_REF] = undefined
 
       this._taskWatchers = Object.create(null)
 
@@ -502,7 +428,7 @@ export class Xapi extends EventEmitter {
             this._sessionCall('task.cancel', [taskRef]).catch(noop)
           })
 
-          return this.watchTask(taskRef)::lastly(() => {
+          return lastly.call(this.watchTask(taskRef), () => {
             this._sessionCall('task.destroy', [taskRef]).catch(noop)
           })
         })
@@ -570,8 +496,24 @@ export class Xapi extends EventEmitter {
     throw new Error('no object with UUID: ' + uuid)
   }
 
-  getRecord (type, ref) {
-    return this._sessionCall(`${type}.get_record`, [ref])
+  async getRecord (type, ref) {
+    const record = await this._sessionCall(`${type}.get_record`, [ref])
+
+    // All custom properties are read-only and non enumerable.
+    defineProperties(record, {
+      $id: { value: record.uuid || ref },
+      $ref: { value: ref },
+      $type: { value: type },
+    })
+
+    return record
+  }
+
+  async getRecordByUuid (type, uuid) {
+    return this.getRecord(
+      type,
+      await this._sessionCall(`${type}.get_by_uuid`, [uuid])
+    )
   }
 
   @cancelable
@@ -600,12 +542,7 @@ export class Xapi extends EventEmitter {
             query,
             rejectUnauthorized: !this._allowUnauthorized,
           }
-        ).then(exportStream => {
-          const stream = new PassThrough()
-          exportStream.pipe(makeXs75WorkAround(stream))
-          stream.readAll = exportStream.readAll
-          return stream
-        })
+        )
 
         if (taskResult !== undefined) {
           promise = promise.then(response => {
@@ -651,7 +588,7 @@ export class Xapi extends EventEmitter {
           headers['content-length'] = '1125899906842624'
         }
 
-        const doRequest = override =>
+        const doRequest = (...opts) =>
           httpRequest.put(
             $cancelToken,
             this._url,
@@ -661,11 +598,12 @@ export class Xapi extends EventEmitter {
             {
               body,
               headers,
-              pathname,
               query,
+              pathname,
+              maxRedirects: 0,
               rejectUnauthorized: !this._allowUnauthorized,
             },
-            override
+            ...opts
           )
 
         // if a stream, sends a dummy request to probe for a
@@ -676,8 +614,6 @@ export class Xapi extends EventEmitter {
 
               // omit task_id because this request will fail on purpose
               query: 'task_id' in query ? omit(query, 'task_id') : query,
-
-              maxRedirects: 0,
             }).then(
               response => {
                 response.req.abort()
@@ -693,7 +629,8 @@ export class Xapi extends EventEmitter {
                     statusCode,
                   } = response
                   if (statusCode === 302 && location !== undefined) {
-                    return doRequest(location)
+                    // ensure the original query is sent
+                    return doRequest(location, { query })
                   }
                 }
 
@@ -724,6 +661,41 @@ export class Xapi extends EventEmitter {
         })
       }
     )
+  }
+
+  setField ({ $type, $ref }, field, value) {
+    return this.call(`${$type}.set_${field}`, $ref, value).then(noop)
+  }
+
+  setFieldEntries (record, field, entries) {
+    return Promise.all(
+      Object.keys(entries).map(entry => {
+        const value = entries[entry]
+        if (value !== undefined) {
+          return value === null
+            ? this.unsetFieldEntry(record, field, entry)
+            : this.setFieldEntry(record, field, entry, value)
+        }
+      })
+    ).then(noop)
+  }
+
+  async setFieldEntry ({ $type, $ref }, field, entry, value) {
+    while (true) {
+      try {
+        await this.call(`${$type}.add_to_${field}`, $ref, entry, value)
+        return
+      } catch (error) {
+        if (error == null || error.code !== 'MAP_DUPLICATE_KEY') {
+          throw error
+        }
+      }
+      await this.unsetFieldEntry({ $type, $ref }, field, entry)
+    }
+  }
+
+  unsetFieldEntry ({ $type, $ref }, field, entry) {
+    return this.call(`${$type}.remove_from_${field}`, $ref, entry)
   }
 
   watchTask (ref) {
@@ -785,7 +757,8 @@ export class Xapi extends EventEmitter {
         newArgs.push.apply(newArgs, args)
       }
 
-      return this._transportCall(method, newArgs)::pCatch(
+      return pCatch.call(
+        this._transportCall(method, newArgs),
         isSessionInvalid,
         () => {
           // XAPI is sometimes reinitialized and sessions are lost.
@@ -934,12 +907,15 @@ export class Xapi extends EventEmitter {
   _watchEvents () {
     const loop = () =>
       this.status === CONNECTED &&
-      this._sessionCall('event.from', [
-        ['*'],
-        this._fromToken,
-        EVENT_TIMEOUT + 0.1, // Force float.
-      ])
-        ::pTimeout(EVENT_TIMEOUT * 1.1e3) // 10% longer than the XenAPI timeout
+      pTimeout
+        .call(
+          this._sessionCall('event.from', [
+            ['*'],
+            this._fromToken,
+            EVENT_TIMEOUT + 0.1, // Force float.
+          ]),
+          EVENT_TIMEOUT * 1.1e3 // 10% longer than the XenAPI timeout
+        )
         .then(onSuccess, onFailure)
 
     const onSuccess = ({ events, token, valid_ref_counts: { task } }) => {
@@ -984,7 +960,8 @@ export class Xapi extends EventEmitter {
       throw error
     }
 
-    return loop()::pCatch(
+    return pCatch.call(
+      loop(),
       isMethodUnknown,
 
       // If the server failed, it is probably due to an excessively
@@ -1005,10 +982,7 @@ export class Xapi extends EventEmitter {
       return this._sessionCall('system.listMethods').then(methods => {
         // Uses introspection to determine the methods to use to get
         // all objects.
-        const getAllRecordsMethods = filter(
-          methods,
-          ::/\.get_all_records$/.test
-        )
+        const getAllRecordsMethods = filter(methods, isGetAllRecordsMethod)
 
         return Promise.all(
           map(getAllRecordsMethods, method =>
@@ -1072,9 +1046,11 @@ Xapi.prototype._transportCall = reduce(
       function () {
         let iterator // lazily created
         const loop = () =>
-          call
-            .apply(this, arguments)
-            ::pCatch(isNetworkError, isXapiNetworkError, error => {
+          pCatch.call(
+            call.apply(this, arguments),
+            isNetworkError,
+            isXapiNetworkError,
+            error => {
               if (iterator === undefined) {
                 iterator = fibonacci()
                   .clamp(undefined, 60)
@@ -1100,17 +1076,19 @@ Xapi.prototype._transportCall = reduce(
               debug('%s: network error %s, aborting', this._humanId, error.code)
 
               // mark as disconnected
-              this.disconnect()::pCatch(noop)
+              pCatch.call(this.disconnect(), noop)
 
               throw error
-            })
+            }
+          )
         return loop()
       },
     call =>
       function loop () {
-        return call
-          .apply(this, arguments)
-          ::pCatch(isHostSlave, ({ params: [master] }) => {
+        return pCatch.call(
+          call.apply(this, arguments),
+          isHostSlave,
+          ({ params: [master] }) => {
             debug(
               '%s: host is slave, attempting to connect at %s',
               this._humanId,
@@ -1125,7 +1103,8 @@ Xapi.prototype._transportCall = reduce(
             this._url = newUrl
 
             return loop.apply(this, arguments)
-          })
+          }
+        )
       },
     call =>
       function (method) {

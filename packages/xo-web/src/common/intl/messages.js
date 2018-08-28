@@ -286,7 +286,7 @@ const messages = {
   jobId: 'ID',
   jobType: 'Type',
   jobName: 'Name',
-  jobMode: 'Mode',
+  jobModes: 'Modes',
   jobNamePlaceholder: 'Name of your job (forbidden: "_")',
   jobStart: 'Start',
   jobEnd: 'End',
@@ -342,9 +342,9 @@ const messages = {
   missingSrs: 'Missing SRs!',
   missingSchedules: 'Missing schedules!',
   missingExportRetention:
-    'The Backup mode and The Delta Backup mode require export retention to be higher than 0!',
+    'The Backup mode and The Delta Backup mode require backup retention to be higher than 0!',
   missingCopyRetention:
-    'The CR mode and The DR mode require copy retention to be higher than 0!',
+    'The CR mode and The DR mode require replication retention to be higher than 0!',
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
   retentionNeeded: 'One of the retentions needs to be higher than 0!',
@@ -391,8 +391,6 @@ const messages = {
   smartBackupModeSelection: 'Select backup mode:',
   normalBackup: 'Normal backup',
   smartBackup: 'Smart backup',
-  exportRetention: 'Export retention',
-  copyRetention: 'Copy retention',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
   useDelta: 'Use delta',
@@ -407,6 +405,8 @@ const messages = {
   backupTargetRemotes: 'Target remotes (for Export)',
   backupTargetSrs: 'Target SRs (for Replication)',
   localRemoteWarningTitle: 'Local remote selected',
+  crOnThickProvisionedSrWarning:
+    'Tip: using a thin-provisioned storage will consume less space. Please click on the icon to get more information',
   localRemoteWarningMessage:
     'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
@@ -418,6 +418,8 @@ const messages = {
   editBackupSmartPools: 'Pools',
   editBackupSmartTags: 'Tags',
   sampleOfMatchingVms: 'Sample of matching Vms',
+  backupReplicatedVmsInfo:
+    'Replicated VMs (VMs with Continuous Replication or Disaster Recovery tag) must be excluded!',
   editBackupSmartTagsTitle: 'VMs Tags',
   editBackupSmartExcludedTagsTitle: 'Excluded VMs tags',
   editBackupNot: 'Reverse',
@@ -426,7 +428,9 @@ const messages = {
   editBackupScheduleEnabled: 'Automatically run as scheduled',
   editBackupRetentionTitle: 'Retention',
   editBackupRemoteTitle: 'Remote',
-  deleteOldBackupsFirst: 'Delete the old backups first',
+  deleteOldBackupsFirst: 'Delete first',
+  deleteOldBackupsFirstMessage:
+    'Delete old backups before backuping the VMs. If the new backup fails, you will lose your old backups.',
 
   // ------ New Remote -----
   remoteList: 'Remote stores for backup',
@@ -461,6 +465,7 @@ const messages = {
   remotePath: 'Path',
   remoteState: 'State',
   remoteDevice: 'Device',
+  remoteOptions: 'Options',
   remoteShare: 'Share',
   remoteAction: 'Action',
   remoteAuth: 'Auth',
@@ -478,6 +483,7 @@ const messages = {
   remoteNfsPlaceHolderHost: 'host *',
   remoteNfsPlaceHolderPort: 'Port',
   remoteNfsPlaceHolderPath: 'path/to/backup',
+  remoteNfsPlaceHolderOptions: 'Custom mount options',
   remoteSmbPlaceHolderRemotePath: 'subfolder [path\\\\to\\\\backup]',
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',
@@ -595,6 +601,7 @@ const messages = {
   rebootVmLabel: 'Reboot',
   forceRebootVmLabel: 'Force reboot',
   deleteVmLabel: 'Delete',
+  deleteSelectedVmsLabel: 'Delete selected VMs',
   migrateVmLabel: 'Migrate',
   snapshotVmLabel: 'Snapshot',
   exportVmLabel: 'Export',
@@ -981,7 +988,7 @@ const messages = {
 
   // ----- VM advanced tab -----
   vmRemoveButton: 'Remove',
-  vmConvertButton: 'Convert',
+  vmConvertToTemplateButton: 'Convert to template',
   vmShareButton: 'Share',
   xenSettingsLabel: 'Xen settings',
   guestOsLabel: 'Guest OS',
@@ -1119,7 +1126,8 @@ const messages = {
   orphanedVdis: 'Orphaned snapshot VDIs',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
-  removeAllOrphanedObject: 'Remove all orphaned snapshot VDIs',
+  deleteOrphanedVdi: 'Delete orphaned snapshot VDI',
+  deleteSelectedOrphanedVdis: 'Delete selected orphaned snapshot VDIs',
   vdisOnControlDomain: 'VDIs attached to Control Domain',
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
@@ -1175,6 +1183,8 @@ const messages = {
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  coreOsDefaultTemplateError:
+    'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
   newVmMacPlaceholder: 'Auto-generated if empty',
   newVmCpuWeightLabel: 'CPU weight',
@@ -1267,8 +1277,6 @@ const messages = {
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
 
   // ---- Tasks ---
-  noTasks: 'No pending tasks',
-  xsTasks: 'Currently, there are not any pending XenServer tasks',
   cancelTask: 'Cancel',
   destroyTask: 'Destroy',
   cancelTasks: 'Cancel selected tasks',
@@ -1282,8 +1290,8 @@ const messages = {
   scheduleCron: 'Cron pattern',
   scheduleName: 'Name',
   scheduleTimezone: 'Timezone',
-  scheduleExportRetention: 'Export ret.',
-  scheduleCopyRetention: 'Copy ret.',
+  scheduleExportRetention: 'Backup ret.',
+  scheduleCopyRetention: 'Replication ret.',
   scheduleSnapshotRetention: 'Snapshot ret.',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
@@ -1479,8 +1487,9 @@ const messages = {
   importBackupModalStart: 'Start VM after restore',
   importBackupModalSelectBackup: 'Select your backup…',
   importBackupModalSelectSr: 'Select a destination SR…',
-  removeAllOrphanedModalWarning:
-    'Are you sure you want to remove all orphaned snapshot VDIs?',
+  deleteOrphanedVdisModalTitle: 'Delete orphaned snapshot VDIs',
+  deleteOrphanedVdisModalMessage:
+    'Are you sure you want to delete {nVdis, number} orphaned snapshot VDI{nVdis, plural, one {} other {s}}?',
   removeAllLogsModalTitle: 'Remove all logs',
   removeAllLogsModalWarning: 'Are you sure you want to remove all logs?',
   definitiveMessageModal: 'This operation is definitive.',

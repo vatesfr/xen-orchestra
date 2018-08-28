@@ -5,17 +5,17 @@ const createAction = (() => {
     defineProperty(
       payloadCreator
         ? (...args) => ({
-          type,
-          payload: payloadCreator(...args),
-        })
+            type,
+            payload: payloadCreator(...args),
+          })
         : (action =>
-          function () {
-            if (arguments.length) {
-              throw new Error('this action expects no payload!')
-            }
+            function () {
+              if (arguments.length) {
+                throw new Error('this action expects no payload!')
+              }
 
-            return action
-          })({ type }),
+              return action
+            })({ type }),
       'toString',
       { value: () => type }
     )

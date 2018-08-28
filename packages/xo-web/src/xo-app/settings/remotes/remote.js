@@ -28,6 +28,7 @@ export default [
       host: undefined,
       inputTypeId: generateRandomId(),
       name: undefined,
+      options: undefined,
       password: undefined,
       path: undefined,
       port: undefined,
@@ -45,6 +46,7 @@ export default [
           domain = remote.domain,
           host = remote.host,
           name,
+          options = remote.options || '',
           password = remote.password,
           path = remote.path,
           port = remote.port,
@@ -62,6 +64,7 @@ export default [
             type,
             username,
           }),
+          options: options !== '' ? options : null,
         }).then(reset)
       },
       createRemote: ({ reset }) => async (state, { remotes }) => {
@@ -78,6 +81,7 @@ export default [
           domain,
           host,
           name,
+          options,
           password,
           path,
           port,
@@ -103,7 +107,7 @@ export default [
         }
 
         const url = format(urlParams)
-        return createRemote(name, url)
+        return createRemote(name, url, options !== '' ? options : undefined)
           .then(reset)
           .catch(err => error('Create Remote', err.message || String(err)))
       },
@@ -119,6 +123,7 @@ export default [
       domain = remote.domain || '',
       host = remote.host || '',
       name = remote.name || '',
+      options = remote.options || '',
       password = remote.password || '',
       parsedPath,
       path = parsedPath || '',
@@ -212,6 +217,19 @@ export default [
                   value={path}
                 />
               </div>
+              <div className='input-group form-group'>
+                <span className='input-group-addon'>-o</span>
+                <input
+                  className='form-control'
+                  name='options'
+                  onChange={effects.linkState}
+                  placeholder={formatMessage(
+                    messages.remoteNfsPlaceHolderOptions
+                  )}
+                  type='text'
+                  value={options}
+                />
+              </div>
             </fieldset>
           )}
           {type === 'smb' && (
@@ -239,7 +257,6 @@ export default [
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderRemotePath
                   )}
-                  required
                   type='text'
                   value={path}
                 />

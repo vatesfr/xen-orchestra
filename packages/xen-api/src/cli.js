@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
-import 'babel-polyfill'
-
 import blocked from 'blocked'
 import createDebug from 'debug'
+import diff from 'jest-diff'
 import eventToPromise from 'event-to-promise'
 import execPromise from 'exec-promise'
 import minimist from 'minimist'
@@ -81,16 +80,18 @@ const main = async args => {
   })
   repl.context.xapi = xapi
 
+  repl.context.diff = (a, b) => console.log('%s', diff(a, b))
   repl.context.find = predicate => find(xapi.objects.all, predicate)
   repl.context.findAll = predicate => filter(xapi.objects.all, predicate)
 
   // Make the REPL waits for promise completion.
   repl.eval = (evaluate => (cmd, context, filename, cb) => {
-    ;fromCallback(cb => {
-      evaluate.call(repl, cmd, context, filename, cb)
-    })
-      .then(value => (isArray(value) ? Promise.all(value) : value))
-      ::asCallback(cb)
+    asCallback.call(
+      fromCallback(cb => {
+        evaluate.call(repl, cmd, context, filename, cb)
+      }).then(value => (isArray(value) ? Promise.all(value) : value)),
+      cb
+    )
   })(repl.eval)
 
   await eventToPromise(repl, 'exit')

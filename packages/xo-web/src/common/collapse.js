@@ -6,10 +6,11 @@ import Icon from './icon'
 import propTypes from './prop-types-decorator'
 
 @propTypes({
+  buttonText: propTypes.any.isRequired,
   children: propTypes.any.isRequired,
   className: propTypes.string,
-  buttonText: propTypes.any.isRequired,
   defaultOpen: propTypes.bool,
+  size: propTypes.string,
 })
 export default class Collapse extends Component {
   state = {
@@ -28,7 +29,12 @@ export default class Collapse extends Component {
 
     return (
       <div className={props.className}>
-        <Button block btnStyle='primary' size='large' onClick={this._onClick}>
+        <Button
+          block
+          btnStyle='primary'
+          onClick={this._onClick}
+          size={props.size || 'large'}
+        >
           {props.buttonText}{' '}
           <Icon icon={`chevron-${isOpened ? 'up' : 'down'}`} />
         </Button>

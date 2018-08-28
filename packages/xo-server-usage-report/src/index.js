@@ -201,7 +201,7 @@ function computePercentage (curr, prev, options) {
       opt =>
         prev[opt] === 0 || prev[opt] === null
           ? 'NONE'
-          : `${(curr[opt] - prev[opt]) * 100 / prev[opt]}`
+          : `${((curr[opt] - prev[opt]) * 100) / prev[opt]}`
     )
   )
 }

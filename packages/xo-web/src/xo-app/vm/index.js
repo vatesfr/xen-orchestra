@@ -1,5 +1,6 @@
 import _ from 'intl'
 import BaseComponent from 'base-component'
+import Copiable from 'copiable'
 import Icon from 'icon'
 import Link from 'link'
 import { NavLink, NavTabs } from 'nav'
@@ -175,14 +176,17 @@ export default class Vm extends BaseComponent {
       <Container>
         <Row>
           <Col mediumSize={6} className='header-title'>
-            <h2>
-              {isEmpty(vm.current_operations) ? (
-                <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
-              ) : (
-                <Icon icon='vm-busy' />
-              )}{' '}
-              <Text value={vm.name_label} onChange={this._setNameLabel} />
-            </h2>
+            <Copiable tagName='div' data={vm.uuid}>
+              <h2 style={{ display: 'inline' }}>
+                {isEmpty(vm.current_operations) ? (
+                  <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
+                ) : (
+                  <Icon icon='vm-busy' />
+                )}{' '}
+                <Text value={vm.name_label} onChange={this._setNameLabel} />
+              </h2>{' '}
+              (<strong>{_('uuid')}</strong>: {vm.uuid})
+            </Copiable>
             <span>
               <Text
                 value={vm.name_description}

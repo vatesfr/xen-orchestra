@@ -21,6 +21,8 @@ import {
 
 // ===================================================================
 
+const synchronizedResourceSets = synchronized()
+
 const VM_RESOURCES = {
   cpus: true,
   disk: true,
@@ -61,15 +63,15 @@ const normalize = set => ({
   ipPools: set.ipPools || [],
   limits: set.limits
     ? map(
-      set.limits,
-      limit =>
-        isObject(limit)
-          ? limit
-          : {
-            available: limit,
-            total: limit,
-          }
-    )
+        set.limits,
+        limit =>
+          isObject(limit)
+            ? limit
+            : {
+                available: limit,
+                total: limit,
+              }
+      )
     : {},
   name: set.name || '',
   objects: set.objects || [],
@@ -286,7 +288,7 @@ export default class {
     await this._save(set)
   }
 
-  @synchronized
+  @synchronizedResourceSets
   async allocateLimitsInResourceSet (limits, setId) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
@@ -302,7 +304,7 @@ export default class {
     await this._save(set)
   }
 
-  @synchronized
+  @synchronizedResourceSets
   async releaseLimitsInResourceSet (limits, setId) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
