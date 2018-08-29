@@ -22,6 +22,7 @@ import {
   forEach,
   keyBy,
   map,
+  orderBy,
   reduce,
   toArray,
 } from 'lodash'
@@ -136,6 +137,11 @@ export default class Restore extends Component {
 
       assign(data, { first, last, count, id: vmId })
     })
+
+    forEach(backupDataByVm, ({ backups }, vmId) => {
+      backupDataByVm[vmId].backups = orderBy(backups, 'timestamp', 'desc')
+    })
+
     this.setState({ backupDataByVm })
   }
 
