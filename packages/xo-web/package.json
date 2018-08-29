@@ -119,7 +119,7 @@
     "react-sparklines": "1.6.0",
     "react-test-renderer": "^15.6.2",
     "react-virtualized": "^9.15.0",
-    "readable-stream": "^2.3.3",
+    "readable-stream": "^3.0.2",
     "redux": "^4.0.0",
     "redux-thunk": "^2.0.1",
     "reselect": "^2.5.4",

@@ -31,7 +31,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@babel/polyfill": "7.0.0-rc.1",
+    "@babel/polyfill": "7.0.0",
     "@xen-orchestra/cron": "^1.0.3",
     "@xen-orchestra/fs": "^0.3.0",
     "ajv": "^6.1.1",
