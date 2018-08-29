@@ -149,12 +149,14 @@ export default class NewXosan extends Component {
 
   _getPbdsBySr = createSelector(
     () => this.props.pbds,
-    pbds => groupBy(filter(pbds, this._getIsInPool), 'SR')
+    this._getIsInPool,
+    (pbds, isInPool) => groupBy(filter(pbds, isInPool), 'SR')
   )
 
   _getHosts = createSelector(
     () => this.props.hosts,
-    hosts => filter(hosts, this._getIsInPool)
+    this._getIsInPool,
+    (hosts, isInPool) => filter(hosts, isInPool)
   )
 
   // LVM SRs that are connected
@@ -162,15 +164,14 @@ export default class NewXosan extends Component {
     createSelector(
       createFilter(
         () => this.props.srs,
-        createSelector(
-          this._getHosts,
-          this._getIsInPool,
-          (hosts, isInPool) => sr =>
-            isInPool(sr) &&
-            !sr.shared &&
+        createSelector(this._getHosts, hosts => sr => {
+          let host
+          return (
             sr.SR_type === 'lvm' &&
-            find(hosts, { id: sr.$container }).power_state === 'Running'
-        )
+            (host = find(hosts, { id: sr.$container })) !== undefined &&
+            host.power_state === 'Running'
+          )
+        })
       ),
       this._getPbdsBySr,
       (srs, pbdsBySr) =>
