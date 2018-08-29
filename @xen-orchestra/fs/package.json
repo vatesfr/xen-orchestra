@@ -20,7 +20,6 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@babel/runtime": "7.0.0",
     "@marsaud/smb2": "^0.9.0",
     "execa": "^1.0.0",
     "fs-extra": "^7.0.0",
@@ -35,7 +34,6 @@
     "@babel/cli": "7.0.0",
     "@babel/core": "7.0.0",
     "@babel/plugin-proposal-function-bind": "7.0.0",
-    "@babel/plugin-transform-runtime": "7.0.0",
     "@babel/preset-env": "7.0.0",
     "@babel/preset-flow": "7.0.0",
     "babel-plugin-lodash": "^3.3.2",
