@@ -594,6 +594,9 @@ const messages = {
 
   // ----- VM actions ------
   startVmLabel: 'Start',
+  startVmOnLabel: 'Start on…',
+  startVmOnMissingHostTitle: 'No host selected',
+  startVmOnMissingHostMessage: 'You must select a host',
   recoveryModeLabel: 'Recovery start',
   suspendVmLabel: 'Suspend',
   stopVmLabel: 'Stop',
