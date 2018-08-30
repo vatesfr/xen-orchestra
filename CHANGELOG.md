@@ -4,7 +4,7 @@
 
 ### Enhancements
 
-- [Backup (file) restore] Order backups by date in selector [#3294](https://github.com/vatesfr/xen-orchestra/issues/3294)
+- [Backup (file) restore] Order backups by date in selector [#3294](https://github.com/vatesfr/xen-orchestra/issues/3294) (PR [#3374](https://github.com/vatesfr/xen-orchestra/pull/3374))
 
 ### Bug fixes
 
