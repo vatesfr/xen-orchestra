@@ -4,6 +4,7 @@
 
 ### Enhancements
 
+- [Backup (file) restore] Order backups by date in selector [#3294](https://github.com/vatesfr/xen-orchestra/issues/3294) (PR [#3374](https://github.com/vatesfr/xen-orchestra/pull/3374))
 - [Self] Hide Tasks entry in menu for self users [#3311](https://github.com/vatesfr/xen-orchestra/issues/3311) (PR [#3373](https://github.com/vatesfr/xen-orchestra/pull/3373))
 
 ### Bug fixes
