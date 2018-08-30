@@ -10,6 +10,11 @@ module.exports = {
     $Shape: true,
   },
   parser: 'babel-eslint',
+  parserOptions: {
+    ecmaFeatures: {
+      legacyDecorators: true,
+    },
+  },
   rules: {
     'comma-dangle': ['error', 'always-multiline'],
     indent: 'off',
