@@ -166,7 +166,7 @@ export default [
             let globalIsFull
             return (
               <li key={taskLog.data.id} className='list-group-item'>
-                <VmItem id={taskLog.data.id} link /> (
+                <VmItem id={taskLog.data.id} link newTab /> (
                 {taskLog.data.id.slice(4, 8)}){' '}
                 <TaskStateInfos status={taskLog.status} />{' '}
                 {scheduleId !== undefined &&
@@ -201,12 +201,12 @@ export default [
                           </span>
                         ) : subTaskLog.data.type === 'remote' ? (
                           <span>
-                            <RemoteItem id={subTaskLog.data.id} link /> (
+                            <RemoteItem id={subTaskLog.data.id} link newTab /> (
                             {subTaskLog.data.id.slice(4, 8)})
                           </span>
                         ) : (
                           <span>
-                            <SrItem id={subTaskLog.data.id} link /> (
+                            <SrItem id={subTaskLog.data.id} link newTab /> (
                             {subTaskLog.data.id.slice(4, 8)})
                           </span>
                         )}{' '}
