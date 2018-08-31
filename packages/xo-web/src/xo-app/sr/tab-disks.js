@@ -187,17 +187,21 @@ const GROUPED_ACTIONS = [
 ]
 
 const INDIVIDUAL_ACTIONS = [
-  {
-    handler: exportVdi,
-    icon: 'export',
-    label: _('exportVdi'),
-  },
-  {
-    disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
-    handler: importVdi,
-    icon: 'import',
-    label: _('importVdi'),
-  },
+  ...(process.env.XOA_PLAN > 1
+    ? [
+        {
+          disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
+          handler: importVdi,
+          icon: 'import',
+          label: _('importVdi'),
+        },
+        {
+          handler: exportVdi,
+          icon: 'export',
+          label: _('exportVdi'),
+        },
+      ]
+    : []),
   {
     handler: vdi => copy(vdi.uuid),
     icon: 'clipboard',

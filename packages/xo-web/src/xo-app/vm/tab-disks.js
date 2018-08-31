@@ -191,6 +191,34 @@ const ACTIONS = [
   },
 ]
 
+const INDIVIDUAL_ACTIONS = [
+  ...(process.env.XOA_PLAN > 1
+    ? [
+        {
+          handler: exportVdi,
+          icon: 'export',
+          label: _('exportVdi'),
+        },
+        {
+          disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
+          handler: importVdi,
+          icon: 'import',
+          label: _('importVdi'),
+        },
+      ]
+    : []),
+  {
+    handler: this._migrateVdi,
+    icon: 'vdi-migrate',
+    label: _('vdiMigrate'),
+  },
+  {
+    handler: vdi => copy(vdi.uuid),
+    icon: 'clipboard',
+    label: vdi => _('copyUuid', { uuid: vdi.uuid }),
+  },
+]
+
 const parseBootOrder = bootOrder => {
   // FIXME missing translation
   const bootOptions = {
@@ -674,30 +702,6 @@ export default class TabDisks extends Component {
     vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
   )
 
-  individualActions = [
-    {
-      handler: exportVdi,
-      icon: 'export',
-      label: _('exportVdi'),
-    },
-    {
-      disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
-      handler: importVdi,
-      icon: 'import',
-      label: _('importVdi'),
-    },
-    {
-      handler: this._migrateVdi,
-      icon: 'vdi-migrate',
-      label: _('vdiMigrate'),
-    },
-    {
-      handler: vdi => copy(vdi.uuid),
-      icon: 'clipboard',
-      label: vdi => _('copyUuid', { uuid: vdi.uuid }),
-    },
-  ]
-
   render () {
     const { srs, vbds, vdis, vm } = this.props
 
@@ -767,7 +771,7 @@ export default class TabDisks extends Component {
               data-srs={srs}
               data-vbdsByVdi={this._getVbdsByVdi()}
               data-vm={vm}
-              individualActions={this.individualActions}
+              individualActions={INDIVIDUAL_ACTIONS}
               shortcutsTarget='body'
               stateUrlParam='s'
             />
