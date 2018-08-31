@@ -4,10 +4,15 @@
 
 ### Enhancements
 
+- [Backup (file) restore] Order backups by date in selector [#3294](https://github.com/vatesfr/xen-orchestra/issues/3294) (PR [#3374](https://github.com/vatesfr/xen-orchestra/pull/3374))
+- [Self] Hide Tasks entry in menu for self users [#3311](https://github.com/vatesfr/xen-orchestra/issues/3311) (PR [#3373](https://github.com/vatesfr/xen-orchestra/pull/3373))
+
 ### Bug fixes
 
 - [Self] Fix Self Service quotas not being correctly updated when deleting multiple VMs at a time (PR [#3368](https://github.com/vatesfr/xen-orchestra/pull/3368))
 - [Backup NG] Don't fail listing backups when a remote is broken [#3365](https://github.com/vatesfr/xen-orchestra/issues/3365) (PR [#3367](https://github.com/vatesfr/xen-orchestra/pull/3367))
+- [New XOSAN] Fix error sometimes occurring when selecting the pool (PR [#3370](https://github.com/vatesfr/xen-orchestra/pull/3370))
+- [New VM] Selecting multiple VMs and clicking Create then Cancel used to redirect to Home [#3268](https://github.com/vatesfr/xen-orchestra/issues/3268) (PR [#3371](https://github.com/vatesfr/xen-orchestra/pull/3371))
 
 ### Released packages
 

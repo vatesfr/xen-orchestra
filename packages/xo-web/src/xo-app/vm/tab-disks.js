@@ -675,17 +675,21 @@ export default class TabDisks extends Component {
   )
 
   individualActions = [
-    {
-      handler: exportVdi,
-      icon: 'export',
-      label: _('exportVdi'),
-    },
-    {
-      disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
-      handler: importVdi,
-      icon: 'import',
-      label: _('importVdi'),
-    },
+    ...(process.env.XOA_PLAN > 1
+      ? [
+          {
+            handler: exportVdi,
+            icon: 'export',
+            label: _('exportVdi'),
+          },
+          {
+            disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
+            handler: importVdi,
+            icon: 'import',
+            label: _('importVdi'),
+          },
+        ]
+      : []),
     {
       handler: this._migrateVdi,
       icon: 'vdi-migrate',
