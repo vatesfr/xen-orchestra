@@ -1,15 +1,26 @@
 import _, { messages } from 'intl'
+import Collapse from 'collapse'
 import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { injectIntl } from 'react-intl'
+import { FormattedDate, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { connectStore, resolveIds } from 'utils'
 import { Col, Container, Row } from 'grid'
-import { flatMap, flatten, isEmpty, keys, some, toArray } from 'lodash'
 import {
+  differenceBy,
+  flatMap,
+  flatten,
+  isEmpty,
+  keys,
+  some,
+  toArray,
+} from 'lodash'
+import { PoolItem } from 'render-xo-item'
+import {
+  createFilter,
   createGetObject,
   createGetObjectsOfType,
   createSelector,
@@ -51,7 +62,9 @@ export class TaskItem extends Component {
         ) : (
           `unknown host − ${task.$host}`
         )}
-        ){' ' + Math.round(task.progress * 100)}%
+        )
+        {task.disappeared === undefined &&
+          ` ${Math.round(task.progress * 100)}%`}
       </div>
     )
   }
@@ -60,14 +73,7 @@ export class TaskItem extends Component {
 const COLUMNS = [
   {
     default: true,
-    itemRenderer: (task, userData) => {
-      const pool = userData.pools[task.$poolId]
-      return (
-        pool !== undefined && (
-          <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-        )
-      )
-    },
+    itemRenderer: ({ $poolId }) => <PoolItem id={$poolId} link />,
     name: _('pool'),
     sortCriteria: (task, userData) => {
       const pool = userData.pools[task.$poolId]
@@ -90,6 +96,31 @@ const COLUMNS = [
     ),
     name: _('progress'),
     sortCriteria: 'progress',
+  },
+]
+
+const FINISHED_TASKS_COLUMNS = [
+  {
+    itemRenderer: ({ $poolId }) => <PoolItem id={$poolId} link />,
+    name: _('pool'),
+  },
+  {
+    component: TaskItem,
+    name: _('task'),
+  },
+  {
+    default: true,
+    itemRenderer: task => (
+      <FormattedDate
+        value={task.disappeared}
+        hour='2-digit'
+        minute='2-digit'
+        second='2-digit'
+      />
+    ),
+    name: _('taskLastSeen'),
+    sortCriteria: task => task.disappeared,
+    sortOrder: 'desc',
   },
 ]
 
@@ -151,6 +182,25 @@ const GROUPED_ACTIONS = [
 })
 @injectIntl
 export default class Tasks extends Component {
+  state = {
+    finishedTasks: [],
+  }
+
+  componentWillReceiveProps (props) {
+    const finishedTasks = differenceBy(
+      flatten(toArray(this.props.pendingTasksByPool)),
+      flatten(toArray(props.pendingTasksByPool)),
+      'id'
+    )
+    if (!isEmpty(finishedTasks)) {
+      this.setState({
+        finishedTasks: finishedTasks
+          .map(task => ({ ...task, disappeared: Date.now() }))
+          .concat(this.state.finishedTasks),
+      })
+    }
+  }
+
   _getTasks = createSelector(
     createSelector(() => this.state.pools, resolveIds),
     () => this.props.pendingTasksByPool,
@@ -158,6 +208,15 @@ export default class Tasks extends Component {
       isEmpty(poolIds)
         ? flatten(toArray(pendingTasksByPool))
         : flatMap(poolIds, poolId => pendingTasksByPool[poolId] || [])
+  )
+
+  _getFinishedTasks = createFilter(
+    () => this.state.finishedTasks,
+    createSelector(
+      createSelector(() => this.state.pools, resolveIds),
+      poolIds =>
+        isEmpty(poolIds) ? null : ({ $poolId }) => poolIds.includes($poolId)
+    )
   )
 
   render () {
@@ -190,6 +249,16 @@ export default class Tasks extends Component {
                 stateUrlParam='s'
                 userData={{ pools }}
               />
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <Collapse buttonText={_('previousTasks')}>
+                <SortedTable
+                  collection={this._getFinishedTasks()}
+                  columns={FINISHED_TASKS_COLUMNS}
+                />
+              </Collapse>
             </Col>
           </Row>
         </Container>
