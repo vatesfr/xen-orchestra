@@ -143,6 +143,6 @@ export default class Collection extends EventEmitter {
   async _first (properties) {
     const models = await this.get(properties)
 
-    return models.length ? models[0] : null
+    return models.length ? models[0] : undefined
   }
 }
