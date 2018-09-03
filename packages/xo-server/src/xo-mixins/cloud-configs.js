@@ -63,7 +63,7 @@ export default class {
 
   async getCloudConfig (id: string): Promise<CloudConfig> {
     const cloudConfig = await this._db.first(id)
-    if (cloudConfig === null) {
+    if (cloudConfig === undefined) {
       throw noSuchObject(id, 'cloud config')
     }
     return cloudConfig.properties

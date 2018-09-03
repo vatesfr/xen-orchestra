@@ -114,7 +114,7 @@ export default class Scheduling {
 
   async getSchedule (id: string): Promise<Schedule> {
     const schedule = await this._db.first(id)
-    if (schedule === null) {
+    if (schedule === undefined) {
       throw noSuchObject(id, 'schedule')
     }
     return schedule.properties

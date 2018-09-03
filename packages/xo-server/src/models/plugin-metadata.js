@@ -23,7 +23,7 @@ export class PluginsMetadata extends Collection {
 
   async merge (id, data) {
     const pluginMetadata = await this.first(id)
-    if (!pluginMetadata) {
+    if (pluginMetadata === undefined) {
       throw new Error('no such plugin metadata')
     }
 

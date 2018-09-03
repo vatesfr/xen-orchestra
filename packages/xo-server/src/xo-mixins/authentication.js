@@ -172,7 +172,7 @@ export default class {
 
   async getAuthenticationToken (id) {
     let token = await this._tokens.first(id)
-    if (!token) {
+    if (token === undefined) {
       throw noSuchAuthenticationToken(id)
     }
 
