@@ -40,7 +40,7 @@ export default class {
 
   async _getPluginMetadata (id) {
     const metadata = await this._pluginsMetadata.first(id)
-    return metadata ? metadata.properties : null
+    return metadata?.properties
   }
 
   async registerPlugin (
@@ -70,7 +70,7 @@ export default class {
     const metadata = await this._getPluginMetadata(id)
     let autoload = true
     let configuration
-    if (metadata) {
+    if (metadata !== undefined) {
       ;({ autoload, configuration } = metadata)
     } else {
       console.log(`[NOTICE] register plugin ${name} for the first time`)

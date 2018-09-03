@@ -200,7 +200,10 @@ export default class Jobs {
 
   async getJob (id: string, type?: string): Promise<Job> {
     let job = await this._jobs.first(id)
-    if (job === null || (type !== undefined && job.properties.type !== type)) {
+    if (
+      job === undefined ||
+      (type !== undefined && job.properties.type !== type)
+    ) {
       throw noSuchObject(id, 'job')
     }
 
