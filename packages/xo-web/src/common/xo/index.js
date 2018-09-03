@@ -2025,10 +2025,10 @@ export const listPartitions = (remote, disk) =>
 export const listFiles = (remote, disk, path, partition) =>
   _call('backupNg.listFiles', resolveIds({ remote, disk, path, partition }))
 
-export const fetchFilesNg = (remote, disk, partition, paths, format) =>
+export const fetchFilesNg = (remote, disk, partition, paths) =>
   _call(
     'backupNg.fetchFiles',
-    resolveIds({ remote, disk, partition, paths, format })
+    resolveIds({ remote, disk, partition, paths })
   ).then(({ $getFrom: url }) => {
     window.location = `.${url}`
   })

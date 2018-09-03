@@ -55,16 +55,11 @@ const getParentPath = path => replace(path, /^(\/+.+)*(\/+.+)/, '$1/')
 // -----------------------------------------------------------------------------
 
 export default class RestoreFileModalBody extends Component {
-  state = {
-    format: 'zip',
-  }
-
   get value () {
     const { state } = this
 
     return {
       disk: state.disk,
-      format: state.format,
       partition: state.partition,
       paths: state.selectedFiles && map(state.selectedFiles, 'path'),
       remote: state.backup.remote.id,
@@ -225,7 +220,6 @@ export default class RestoreFileModalBody extends Component {
     const {
       backup,
       disk,
-      format,
       partition,
       partitions,
       path,
@@ -310,29 +304,6 @@ export default class RestoreFileModalBody extends Component {
             value={null}
             valueKey='id'
           />,
-          <br />,
-          <div>
-            <span className='mr-1'>
-              <input
-                checked={format === 'zip'}
-                name='format'
-                onChange={this.linkState('format')}
-                type='radio'
-                value='zip'
-              />{' '}
-              ZIP
-            </span>
-            <span>
-              <input
-                checked={format === 'tar'}
-                name='format'
-                onChange={this.linkState('format')}
-                type='radio'
-                value='tar'
-              />{' '}
-              TAR
-            </span>
-          </div>,
           <br />,
           selectedFiles && selectedFiles.length ? (
             <Container>
