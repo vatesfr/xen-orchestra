@@ -397,7 +397,7 @@ const wrapTaskFn = <T>(
 //
 // Attributes of created VMs:
 //
-// - name: `${original name} (${safeDateFormat(backup timestamp)})`
+// - name: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
 // - tag:
 //    - copy in delta mode: `Continuous Replication`
 //    - copy in full mode: `Disaster Recovery`
@@ -1048,9 +1048,9 @@ export default class BackupNg {
                     },
                     xapi._importVm($cancelToken, fork, sr, vm =>
                       xapi._setObjectProperties(vm, {
-                        nameLabel: `${metadata.vm.name_label} (${safeDateFormat(
-                          metadata.timestamp
-                        )})`,
+                        nameLabel: `${metadata.vm.name_label} - ${
+                          job.name
+                        } - (${safeDateFormat(metadata.timestamp)})`,
                       })
                     )
                   )
@@ -1378,9 +1378,9 @@ export default class BackupNg {
                   },
                   xapi.importDeltaVm(fork, {
                     disableStartAfterImport: false, // we'll take care of that
-                    name_label: `${metadata.vm.name_label} (${safeDateFormat(
-                      metadata.timestamp
-                    )})`,
+                    name_label: `${metadata.vm.name_label} - ${
+                      job.name
+                    } - (${safeDateFormat(metadata.timestamp)})`,
                     srId,
                   })
                 )
