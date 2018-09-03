@@ -185,7 +185,7 @@ export default class BackupNgFileRestore {
         addDirectory(
           zip,
           resolveSubpath(partition.path, file),
-          normalize('./' + file)
+          normalize('./' + file).replace(/\/+$/, '')
         )
       )
     )
