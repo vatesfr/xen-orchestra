@@ -22,18 +22,16 @@ const configs = {
       // loose: true,
 
       shippedProposals: true,
-      targets: __PROD__
-        ? (() => {
-            let node = (pkg.engines || {}).node
-            if (node !== undefined) {
-              const trimChars = '^=>~'
-              while (trimChars.includes(node[0])) {
-                node = node.slice(1)
-              }
-              return { browsers: pkg.browserslist, node: node }
-            }
-          })()
-        : { browsers: '', node: 'current' },
+      targets: (() => {
+        let node = (pkg.engines || {}).node
+        if (node !== undefined) {
+          const trimChars = '^=>~'
+          while (trimChars.includes(node[0])) {
+            node = node.slice(1)
+          }
+        }
+        return { browsers: pkg.browserslist, node }
+      })(),
       useBuiltIns: '@babel/polyfill' in (pkg.dependencies || {}) && 'usage',
     }
   },
