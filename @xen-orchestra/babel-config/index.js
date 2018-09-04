@@ -30,7 +30,7 @@ const configs = {
               while (trimChars.includes(node[0])) {
                 node = node.slice(1)
               }
-              return { node: node }
+              return { browsers: pkg.browserslist, node: node }
             }
           })()
         : { browsers: '', node: 'current' },
