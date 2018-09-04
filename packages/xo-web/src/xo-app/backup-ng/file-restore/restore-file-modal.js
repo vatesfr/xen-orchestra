@@ -6,6 +6,7 @@ import Icon from 'icon'
 import React from 'react'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
+import { dirname } from 'path'
 import { Container, Col, Row } from 'grid'
 import { createSelector } from 'reselect'
 import { formatSize } from 'utils'
@@ -17,7 +18,6 @@ import {
   includes,
   isEmpty,
   map,
-  replace,
   startsWith,
 } from 'lodash'
 import { getRenderXoItemOfType } from 'render-xo-item'
@@ -56,7 +56,7 @@ const formatFilesOptions = (rawFiles, path) => {
             id: '..',
             isFile: false,
             name: '..',
-            path: replace(path, /^(\/+.+)*(\/+.+)/, '$1/'),
+            path: dirname(path),
           },
         ]
       : []
