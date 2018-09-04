@@ -1,10 +1,10 @@
 # File level restore
 
-You can also restore individual files inside a VM. It works with all your existing delta backups.
+You can also restore specific files and directories inside a VM. It works with all your existing delta backups.
 
 > You must use the latest XOA release. When you connect with the console, you should see `Build number: 16.12.20`. If you have this or higher (eg `17.*`), it means that's OK! Otherwise, please update your XOA.
 
-> Restoring individual files from an SMB remote is not yet possible, but it's planned for the future!
+> Restoring individual files from an SMB remote is not possible yet, but it's planned for the future!
 
 > File level restore **is only possible on delta backups**
 

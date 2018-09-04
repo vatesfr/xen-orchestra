@@ -1,20 +1,37 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import ButtonGroup from 'button-group'
 import Component from 'base-component'
-import endsWith from 'lodash/endsWith'
 import Icon from 'icon'
 import React from 'react'
-import replace from 'lodash/replace'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
+import { dirname } from 'path'
 import { Container, Col, Row } from 'grid'
 import { createSelector } from 'reselect'
 import { formatSize } from 'utils'
-import { filter, includes, isEmpty, map } from 'lodash'
+import {
+  endsWith,
+  filter,
+  find,
+  forEach,
+  includes,
+  isEmpty,
+  map,
+  startsWith,
+} from 'lodash'
 import { getRenderXoItemOfType } from 'render-xo-item'
 import { listPartitions, listFiles } from 'xo'
 
+// -----------------------------------------------------------------------------
+
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
+
+const diskOptionRenderer = disk => (
+  <span>
+    <Icon icon='disk' /> {disk.name}
+  </span>
+)
 
 const partitionOptionRenderer = partition => (
   <span>
@@ -23,46 +40,56 @@ const partitionOptionRenderer = partition => (
   </span>
 )
 
-const diskOptionRenderer = disk => <span>{disk.name}</span>
+const fileOptionRenderer = ({ isFile, name }) => (
+  <span>
+    <Icon icon={isFile ? 'file' : 'folder'} /> {name}
+  </span>
+)
 
-const fileOptionRenderer = file => <span>{file.name}</span>
+// -----------------------------------------------------------------------------
 
 const formatFilesOptions = (rawFiles, path) => {
   const files =
     path !== '/'
       ? [
           {
-            name: '..',
             id: '..',
-            path: getParentPath(path),
-            content: {},
+            isFile: false,
+            name: '..',
+            path: dirname(path),
           },
         ]
       : []
 
   return files.concat(
-    map(rawFiles, (file, name) => ({
-      name,
+    map(rawFiles, (_, name) => ({
       id: `${path}${name}`,
+      isFile: !endsWith(name, '/'),
+      name,
       path: `${path}${name}`,
-      content: file,
     }))
   )
 }
 
-const getParentPath = path => replace(path, /^(\/+.+)*(\/+.+)/, '$1/')
-
 // -----------------------------------------------------------------------------
 
 export default class RestoreFileModalBody extends Component {
+  state = {
+    selectedFiles: [],
+  }
+
   get value () {
-    const { state } = this
+    const { disk, partition, selectedFiles, backup } = this.state
+    const redundantFiles = this._getRedundantFiles()
 
     return {
-      disk: state.disk,
-      partition: state.partition,
-      paths: state.selectedFiles && map(state.selectedFiles, 'path'),
-      remote: state.backup.remote.id,
+      disk,
+      partition,
+      paths: map(
+        selectedFiles.filter(({ path }) => !redundantFiles[path]),
+        'path'
+      ),
+      remote: backup.remote.id,
     }
   }
 
@@ -100,7 +127,7 @@ export default class RestoreFileModalBody extends Component {
       disk: undefined,
       partition: undefined,
       file: undefined,
-      selectedFiles: undefined,
+      selectedFiles: [],
       scanDiskError: false,
       listFilesError: false,
     })
@@ -110,7 +137,7 @@ export default class RestoreFileModalBody extends Component {
     this.setState({
       partition: undefined,
       file: undefined,
-      selectedFiles: undefined,
+      selectedFiles: [],
       scanDiskError: false,
       listFilesError: false,
     })
@@ -154,7 +181,7 @@ export default class RestoreFileModalBody extends Component {
         partition,
         path: '/',
         file: undefined,
-        selectedFiles: undefined,
+        selectedFiles: [],
       },
       partition && this._listFiles
     )
@@ -172,23 +199,35 @@ export default class RestoreFileModalBody extends Component {
     select.blur()
     select.focus()
 
-    const isFile = file.id !== '..' && !endsWith(file.path, '/')
-    if (isFile) {
+    if (file.isFile) {
       const { selectedFiles } = this.state
       if (!includes(selectedFiles, file)) {
         this.setState({
-          selectedFiles: (selectedFiles || []).concat(file),
+          selectedFiles: selectedFiles.concat(file),
         })
       }
     } else {
       this.setState(
         {
-          path: file.id === '..' ? getParentPath(this.state.path) : file.path,
+          path: file.path,
         },
         this._listFiles
       )
     }
   }
+
+  _selectFolder = () => {
+    const { selectedFiles, path } = this.state
+    this.setState({
+      selectedFiles: selectedFiles.concat({ id: path, path }),
+    })
+  }
+
+  _getFolderAlreadySelected = createSelector(
+    () => this.state.path,
+    () => this.state.selectedFiles,
+    (path, selectedFiles) => find(selectedFiles, { path }) !== undefined
+  )
 
   _unselectFile = file => {
     this.setState({
@@ -201,17 +240,30 @@ export default class RestoreFileModalBody extends Component {
 
   _unselectAllFiles = () => {
     this.setState({
-      selectedFiles: undefined,
+      selectedFiles: [],
     })
   }
 
   _selectAllFolderFiles = () => {
     this.setState({
-      selectedFiles: (this.state.selectedFiles || []).concat(
-        filter(this._getSelectableFiles(), ({ path }) => !endsWith(path, '/'))
+      selectedFiles: this.state.selectedFiles.concat(
+        filter(this._getSelectableFiles(), 'isFile')
       ),
     })
   }
+
+  _getRedundantFiles = createSelector(
+    () => this.state.selectedFiles,
+    files => {
+      const redundantFiles = {}
+      forEach(files, file => {
+        redundantFiles[file.path] =
+          find(files, f => f !== file && startsWith(file.path, f.path)) !==
+          undefined
+      })
+      return redundantFiles
+    }
+  )
 
   // ---------------------------------------------------------------------------
 
@@ -229,6 +281,7 @@ export default class RestoreFileModalBody extends Component {
       selectedFiles,
     } = this.state
     const noPartitions = isEmpty(partitions)
+    const redundantFiles = this._getRedundantFiles()
 
     return (
       <div>
@@ -276,21 +329,31 @@ export default class RestoreFileModalBody extends Component {
           <br />,
           <Container>
             <Row>
-              <Col size={10}>
+              <Col size={9}>
                 <pre>
                   {path} {scanningFiles && <Icon icon='loading' />}
                   {listFilesError && <Icon icon='error' />}
                 </pre>
               </Col>
-              <Col size={2}>
+              <Col size={3}>
                 <span className='pull-right'>
-                  <Tooltip content={_('restoreFilesSelectAllFiles')}>
-                    <ActionButton
-                      handler={this._selectAllFolderFiles}
-                      icon='add'
-                      size='small'
-                    />
-                  </Tooltip>
+                  <ButtonGroup>
+                    <Tooltip content={_('restoreFilesSelectFolder')}>
+                      <ActionButton
+                        disabled={this._getFolderAlreadySelected()}
+                        handler={this._selectFolder}
+                        icon='folder'
+                        size='small'
+                      />
+                    </Tooltip>
+                    <Tooltip content={_('restoreFilesSelectAllFiles')}>
+                      <ActionButton
+                        handler={this._selectAllFolderFiles}
+                        icon='files'
+                        size='small'
+                      />
+                    </Tooltip>
+                  </ButtonGroup>
                 </span>
               </Col>
             </Row>
@@ -305,12 +368,12 @@ export default class RestoreFileModalBody extends Component {
             valueKey='id'
           />,
           <br />,
-          selectedFiles && selectedFiles.length ? (
+          selectedFiles.length ? (
             <Container>
               <Row>
                 <Col className='pl-0 pb-1' size={10}>
                   <em>
-                    {_('restoreFilesSelectedFiles', {
+                    {_('restoreFilesSelectedFilesAndFolders', {
                       files: selectedFiles.length,
                     })}
                   </em>
@@ -327,7 +390,15 @@ export default class RestoreFileModalBody extends Component {
               {map(selectedFiles, file => (
                 <Row key={file.id}>
                   <Col size={10}>
-                    <pre>{file.path}</pre>
+                    <pre
+                      style={{
+                        textDecoration:
+                          redundantFiles[file.path] && 'line-through',
+                      }}
+                    >
+                      <Icon icon={file.isFile ? 'file' : 'folder'} />{' '}
+                      {file.path}
+                    </pre>
                   </Col>
                   <Col size={2} className='text-xs-right'>
                     <ActionButton
