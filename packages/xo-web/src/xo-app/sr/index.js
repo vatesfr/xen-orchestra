@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import Copiable from 'copiable'
 import Icon from 'icon'
 import Link from 'link'
 import Page from '../page'
@@ -118,6 +119,9 @@ export default class Sr extends Component {
                 onChange={nameLabel => editSr(sr, { nameLabel })}
               />
             </h2>
+            <Copiable tagName='pre' className='text-muted mb-0'>
+              {sr.uuid}
+            </Copiable>
             <span>
               <Text
                 value={sr.name_description}
