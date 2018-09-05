@@ -9,7 +9,7 @@
 - [Tasks] Show previous tasks [#3266](https://github.com/vatesfr/xen-orchestra/issues/3266) (PR [#3377](https://github.com/vatesfr/xen-orchestra/pull/3377))
 - [Backup NG] Add job name in names of replicated VMs (PR [#3379](https://github.com/vatesfr/xen-orchestra/pull/3379))
 - [Backup NG] Restore directories [#1924](https://github.com/vatesfr/xen-orchestra/issues/1924) (PR [#3384](https://github.com/vatesfr/xen-orchestra/pull/3384))
-- [VM] Start a VM on a specific host [#3191](https://github.com/vatesfr/xen-orchestra/issues/3191)
+- [VM] Start a VM on a specific host [#3191](https://github.com/vatesfr/xen-orchestra/issues/3191) (PR [#3389](https://github.com/vatesfr/xen-orchestra/pull/3389))
 
 ### Bug fixes
 
