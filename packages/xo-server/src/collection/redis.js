@@ -161,7 +161,9 @@ export default class Redis extends Collection {
             return
           }
 
-          params.push(name, value)
+          if (value !== undefined) {
+            params.push(name, value)
+          }
         })
 
         const key = `${prefix}:${id}`
