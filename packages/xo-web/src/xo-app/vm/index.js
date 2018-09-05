@@ -176,16 +176,16 @@ export default class Vm extends BaseComponent {
       <Container>
         <Row>
           <Col mediumSize={6} className='header-title'>
-            <Copiable tagName='div' data={vm.uuid}>
-              <h2 style={{ display: 'inline' }}>
-                {isEmpty(vm.current_operations) ? (
-                  <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
-                ) : (
-                  <Icon icon='vm-busy' />
-                )}{' '}
-                <Text value={vm.name_label} onChange={this._setNameLabel} />
-              </h2>{' '}
-              (<strong>{_('uuid')}</strong>: {vm.uuid})
+            <h2>
+              {isEmpty(vm.current_operations) ? (
+                <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
+              ) : (
+                <Icon icon='vm-busy' />
+              )}{' '}
+              <Text value={vm.name_label} onChange={this._setNameLabel} />
+            </h2>{' '}
+            <Copiable tagName='pre' className='text-muted mb-0'>
+              {vm.uuid}
             </Copiable>
             <span>
               <Text
