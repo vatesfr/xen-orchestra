@@ -5,6 +5,7 @@ import React from 'react'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { SelectHost } from 'select-objects'
 import {
   assign,
   filter,
@@ -804,10 +805,28 @@ const chooseActionToUnblockForbiddenStartVm = props =>
     ...props,
   })
 
-const cloneAndStartVM = async vm => _call('vm.start', { id: await cloneVm(vm) })
+const cloneAndStartVm = async (vm, host) =>
+  _call('vm.start', { id: await cloneVm(vm), host: resolveId(host) })
 
-export const startVm = vm =>
-  _call('vm.start', { id: resolveId(vm) }).catch(async reason => {
+export const startVm = async (vm, host) => {
+  if (host === true) {
+    host = await confirm({
+      icon: 'vm-start',
+      title: _('startVmOnLabel'),
+      body: <SelectHost predicate={({ $pool }) => $pool === vm.$pool} />,
+    })
+    if (host === undefined) {
+      error(_('startVmOnMissingHostTitle'), _('startVmOnMissingHostMessage'))
+      return
+    }
+  }
+
+  const id = resolveId(vm)
+  const hostId = resolveId(host)
+  return _call('vm.start', {
+    id,
+    host: hostId,
+  }).catch(async reason => {
     if (!forbiddenOperation.is(reason)) {
       throw reason
     }
@@ -818,11 +837,16 @@ export const startVm = vm =>
     })
 
     if (choice === 'clone') {
-      return cloneAndStartVM(vm)
+      return cloneAndStartVm(vm, host)
     }
 
-    return _call('vm.start', { id: resolveId(vm), force: true })
+    return _call('vm.start', {
+      id,
+      force: true,
+      host: hostId,
+    })
   })
+}
 
 export const startVms = vms =>
   confirm({
@@ -870,7 +894,7 @@ export const startVms = vms =>
     if (choice === 'clone') {
       return Promise.all(
         map(forbiddenStart, async id =>
-          cloneAndStartVM(getObject(store.getState(), id))
+          cloneAndStartVm(getObject(store.getState(), id))
         )
       )
     }

@@ -34,6 +34,7 @@ import {
   restartVm,
   resumeVm,
   shareVm,
+  startVm,
   stopVm,
   subscribeResourceSets,
   suspendVm,
@@ -334,6 +335,12 @@ export default class TabAdvanced extends Component {
                   handlerParam={vm}
                   icon='vm-recovery-mode'
                   labelId='recoveryModeLabel'
+                />
+                <TabButton
+                  btnStyle='primary'
+                  handler={() => startVm(vm, true)}
+                  icon='vm-start'
+                  labelId='startVmOnLabel'
                 />
                 <TabButton
                   btnStyle='primary'
