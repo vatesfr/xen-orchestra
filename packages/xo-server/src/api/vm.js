@@ -995,7 +995,7 @@ rollingDrCopy.description =
 // -------------------------------------------------------------------
 
 export function start ({ vm, force, host }) {
-  return this.getXapi(vm).startVm(vm._xapiId, host && host._xapiId, force)
+  return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, force)
 }
 
 start.params = {
