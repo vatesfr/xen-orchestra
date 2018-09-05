@@ -996,7 +996,6 @@ const messages = {
   xenSettingsLabel: 'Xen settings',
   guestOsLabel: 'Guest OS',
   miscLabel: 'Misc',
-  uuid: 'UUID',
   virtualizationMode: 'Virtualization mode',
   cpuWeightLabel: 'CPU weight',
   defaultCpuWeight: 'Default ({value, number})',

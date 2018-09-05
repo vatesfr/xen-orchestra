@@ -69,19 +69,6 @@ export default ({ sr }) => (
     </Row>
     <Row>
       <Col>
-        <h3>{_('xenSettingsLabel')}</h3>
-        <table className='table'>
-          <tbody>
-            <tr>
-              <th>{_('uuid')}</th>
-              <Copiable tagName='td'>{sr.uuid}</Copiable>
-            </tr>
-          </tbody>
-        </table>
-      </Col>
-    </Row>
-    <Row>
-      <Col>
         <UnhealthyVdiChains sr={sr} />
       </Col>
     </Row>

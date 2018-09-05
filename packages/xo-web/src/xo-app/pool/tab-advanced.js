@@ -4,7 +4,6 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
-import Copiable from 'copiable'
 import renderXoItem from 'render-xo-item'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
@@ -74,10 +73,6 @@ export default class TabAdvanced extends Component {
               <h3>{_('xenSettingsLabel')}</h3>
               <table className='table'>
                 <tbody>
-                  <tr>
-                    <th>{_('uuid')}</th>
-                    <Copiable tagName='td'>{pool.uuid}</Copiable>
-                  </tr>
                   <tr>
                     <th>{_('poolHaStatus')}</th>
                     <td>

@@ -126,10 +126,6 @@ export default class extends Component {
             <table className='table'>
               <tbody>
                 <tr>
-                  <th>{_('uuid')}</th>
-                  <Copiable tagName='td'>{host.uuid}</Copiable>
-                </tr>
-                <tr>
                   <th>{_('hostAddress')}</th>
                   <Copiable tagName='td'>{host.address}</Copiable>
                 </tr>
