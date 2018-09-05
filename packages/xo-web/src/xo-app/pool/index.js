@@ -1,5 +1,6 @@
 import _ from 'intl'
 import assign from 'lodash/assign'
+import Copiable from 'copiable'
 import Icon from 'icon'
 import PoolActionBar from './action-bar'
 import Page from '../page'
@@ -97,6 +98,9 @@ export default class Pool extends Component {
               <Icon icon='pool' />{' '}
               <Text value={pool.name_label} onChange={this._setNameLabel} />
             </h2>
+            <Copiable tagName='pre' className='text-muted mb-0'>
+              {pool.uuid}
+            </Copiable>
             <span>
               <Text
                 value={pool.name_description}

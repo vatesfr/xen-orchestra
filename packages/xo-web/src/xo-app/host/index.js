@@ -1,4 +1,5 @@
 import _ from 'intl'
+import Copiable from 'copiable'
 import HostActionBar from './action-bar'
 import Icon from 'icon'
 import Link from 'link'
@@ -240,6 +241,9 @@ export default class Host extends Component {
                 </Tooltip>
               )}
             </h2>
+            <Copiable tagName='pre' className='text-muted mb-0'>
+              {host.uuid}
+            </Copiable>
             <span>
               <Text
                 value={host.name_description}
