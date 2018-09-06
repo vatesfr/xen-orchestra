@@ -69,6 +69,7 @@ const messages = {
   xoaPage: 'XOA',
   updatePage: 'Updates',
   licensesPage: 'Licenses',
+  notificationsPage: 'Notifications',
   settingsPage: 'Settings',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',

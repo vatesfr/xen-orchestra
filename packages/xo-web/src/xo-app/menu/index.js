@@ -250,6 +250,11 @@ export default class Menu extends Component {
         subMenu: [
           { to: 'xoa/update', icon: 'menu-update', label: 'updatePage' },
           { to: 'xoa/licenses', icon: 'menu-license', label: 'licensesPage' },
+          {
+            to: 'xoa/notifications',
+            icon: 'menu-notification',
+            label: 'notificationsPage',
+          },
         ],
       },
       isAdmin && {
