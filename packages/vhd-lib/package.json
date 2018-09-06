@@ -24,7 +24,7 @@
     "from2": "^2.3.0",
     "fs-extra": "^7.0.0",
     "limit-concurrency-decorator": "^0.4.0",
-    "promise-toolbox": "^0.9.5",
+    "promise-toolbox": "^0.10.1",
     "struct-fu": "^1.2.0",
     "uuid": "^3.0.1"
   },

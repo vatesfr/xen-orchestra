@@ -7,7 +7,7 @@ import rimraf from 'rimraf'
 import tmp from 'tmp'
 
 import { createReadStream, createWriteStream, stat } from 'fs-extra'
-import { fromCallback as pFromCallback } from 'promise-toolbox'
+import { pFromCallback } from 'promise-toolbox'
 import convertFromVMDK, { readVmdkGrainTable } from '.'
 
 const initialDir = process.cwd()

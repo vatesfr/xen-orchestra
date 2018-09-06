@@ -19,7 +19,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import { fromEvent as pFromEvent, ignoreErrors } from 'promise-toolbox'
+import { pFromEvent, ignoreErrors } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,

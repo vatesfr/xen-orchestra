@@ -2,8 +2,8 @@
 
 import rimraf from 'rimraf'
 import tmp from 'tmp'
+import { pFromCallback } from 'promise-toolbox'
 
-import { fromCallback as pFromCallback } from 'promise-toolbox'
 import { getHandler } from '.'
 
 const initialDir = process.cwd()

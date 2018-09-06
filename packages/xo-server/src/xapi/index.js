@@ -7,10 +7,10 @@ import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
 import {
   cancelable,
-  catchPlus as pCatch,
   defer,
   fromEvent,
   ignoreErrors,
+  pCatch,
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
@@ -1548,23 +1548,21 @@ export default class Xapi extends XapiBase {
 
     return host === undefined
       ? this.call(
-        'VM.start',
-        vm.$ref,
-        false, // Start paused?
-        false // Skip pre-boot checks?
-      )
-      : this.call(
-        'VM.start_on',
-        vm.$ref,
-        host.$ref,
-        false,
-        false
-      )
+          'VM.start',
+          vm.$ref,
+          false, // Start paused?
+          false // Skip pre-boot checks?
+        )
+      : this.call('VM.start_on', vm.$ref, host.$ref, false, false)
   }
 
   async startVm (vmId, hostId, force) {
     try {
-      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), force)
+      await this._startVm(
+        this.getObject(vmId),
+        hostId && this.getObject(hostId),
+        force
+      )
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])

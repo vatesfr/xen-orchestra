@@ -1,5 +1,5 @@
 import Smb2 from '@marsaud/smb2'
-import { lastly as pFinally } from 'promise-toolbox'
+import { pFinally } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
 

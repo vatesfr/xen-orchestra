@@ -94,7 +94,7 @@
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.14",
     "notifyjs": "^3.0.0",
-    "promise-toolbox": "^0.9.5",
+    "promise-toolbox": "^0.10.1",
     "prop-types": "^15.6.0",
     "random-password": "^0.1.2",
     "react": "^15.4.1",

@@ -7,13 +7,13 @@ import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import size from 'lodash/size'
 import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
-import { lastly } from 'promise-toolbox'
 import { Row, Col } from 'grid'
 import {
   configurePlugin,
@@ -55,7 +55,7 @@ class Plugin extends Component {
     const method = event.target.checked
       ? enablePluginAutoload
       : disablePluginAutoload
-    method(this.props.id)::lastly(() => {
+    method(this.props.id)::pFinally(() => {
       this._updateAutoload = false
     })
   }

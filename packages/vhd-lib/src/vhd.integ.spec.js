@@ -3,7 +3,7 @@ import execa from 'execa'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 import { createWriteStream, readFile } from 'fs-promise'
-import { fromCallback as pFromCallback, fromEvent } from 'promise-toolbox'
+import { fromEvent, pFromCallback } from 'promise-toolbox'
 
 import { createFooter } from './_createFooterHeader'
 import createReadableRawVHDStream from './createReadableRawStream'

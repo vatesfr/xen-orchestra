@@ -9071,6 +9071,12 @@ promise-polyfill@^6.0.1:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/promise-polyfill/-/promise-polyfill-6.1.0.tgz#dfa96943ea9c121fca4de9b5868cb39d3472e057"
 
+promise-toolbox@^0.10.1:
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.10.1.tgz#1049bab6b20fad9b8ad217d22fa91d680b4305b9"
+  dependencies:
+    make-error "^1.3.2"
+
 promise-toolbox@^0.8.0:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.8.3.tgz#b757232a21d246d8702df50da6784932dd0f5348"

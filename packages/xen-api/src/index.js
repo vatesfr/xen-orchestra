@@ -21,12 +21,12 @@ import {
 import {
   Cancel,
   cancelable,
-  catchPlus as pCatch,
   defer,
-  delay as pDelay,
   fromEvents,
-  lastly,
-  timeout as pTimeout,
+  pCatch,
+  pDelay,
+  pFinally,
+  pTimeout,
   TimeoutError,
 } from 'promise-toolbox'
 
@@ -428,7 +428,7 @@ export class Xapi extends EventEmitter {
             this._sessionCall('task.cancel', [taskRef]).catch(noop)
           })
 
-          return lastly.call(this.watchTask(taskRef), () => {
+          return pFinally.call(this.watchTask(taskRef), () => {
             this._sessionCall('task.destroy', [taskRef]).catch(noop)
           })
         })
