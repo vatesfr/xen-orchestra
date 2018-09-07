@@ -19,6 +19,7 @@
 - [New VM] Selecting multiple VMs and clicking Create then Cancel used to redirect to Home [#3268](https://github.com/vatesfr/xen-orchestra/issues/3268) (PR [#3371](https://github.com/vatesfr/xen-orchestra/pull/3371))
 - [Remotes] `cannot read 'properties' of undefined` error (PR [#3382](https://github.com/vatesfr/xen-orchestra/pull/3382))
 - [Servers] Various issues when adding a new server [#3385](https://github.com/vatesfr/xen-orchestra/issues/3385) (PR [#3388](https://github.com/vatesfr/xen-orchestra/pull/3388))
+- [Backup NG] Always delete the correct old replications [#3391](https://github.com/vatesfr/xen-orchestra/issues/3391) (PR [#3394](https://github.com/vatesfr/xen-orchestra/pull/3394))
 
 ### Released packages
 

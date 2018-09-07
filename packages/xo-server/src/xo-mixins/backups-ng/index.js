@@ -104,6 +104,16 @@ type Metadata = MetadataDelta | MetadataFull
 const compareSnapshotTime = (a: Vm, b: Vm): number =>
   a.snapshot_time < b.snapshot_time ? -1 : 1
 
+const getReplicatedVmDatetime = (vm: Vm) => {
+  const {
+    'xo:backup:datetime': datetime = vm.name_label.slice(-17, -1),
+  } = vm.other_config
+  return datetime
+}
+
+const compareReplicatedVmDatetime = (a: Vm, b: Vm): number =>
+  getReplicatedVmDatetime(a) < getReplicatedVmDatetime(b) ? -1 : 1
+
 const compareTimestamp = (a: Metadata, b: Metadata): number =>
   a.timestamp - b.timestamp
 
@@ -183,9 +193,7 @@ const listReplicatedVms = (
     }
   }
 
-  // the replicated VMs have been created from a snapshot, therefore we can use
-  // `snapshot_time` as the creation time
-  return values(vms).sort(compareSnapshotTime)
+  return values(vms).sort(compareReplicatedVmDatetime)
 }
 
 const importers: $Dict<
@@ -762,6 +770,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi._updateObjectMapProperty(vm, 'other_config', {
+          'xo:backup:datetime': null,
           'xo:backup:job': null,
           'xo:backup:schedule': null,
           'xo:backup:vm': null,
@@ -873,6 +882,7 @@ export default class BackupNg {
         parentId: taskId,
       },
       xapi._updateObjectMapProperty(snapshot, 'other_config', {
+        'xo:backup:datetime': snapshot.snapshot_time,
         'xo:backup:job': jobId,
         'xo:backup:schedule': scheduleId,
         'xo:backup:vm': vmUuid,
