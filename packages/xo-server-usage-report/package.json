@@ -38,7 +38,7 @@
     "handlebars": "^4.0.6",
     "html-minifier": "^3.5.8",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.9.5"
+    "promise-toolbox": "^0.10.1"
   },
   "devDependencies": {
     "@babel/cli": "7.0.0",

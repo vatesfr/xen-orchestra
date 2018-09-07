@@ -1,7 +1,10 @@
 import asap from 'asap'
 import cookies from 'cookies-js'
 import fpSortBy from 'lodash/fp/sortBy'
+import pFinally from 'promise-toolbox/finally'
 import React from 'react'
+import reflect from 'promise-toolbox/reflect'
+import tap from 'promise-toolbox/tap'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
@@ -20,7 +23,6 @@ import {
   sortBy,
   throttle,
 } from 'lodash'
-import { lastly, reflect, tap } from 'promise-toolbox'
 import {
   forbiddenOperation,
   noHostsAvailable,
@@ -480,7 +482,7 @@ export const editServer = (server, props) =>
   )
 
 export const connectServer = server =>
-  _call('server.connect', { id: resolveId(server) })::lastly(
+  _call('server.connect', { id: resolveId(server) })::pFinally(
     subscribeServers.forceRefresh
   )
 

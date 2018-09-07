@@ -1,5 +1,5 @@
 import { forEach, isFinite, isInteger } from 'lodash'
-import { forOwn as forOwnAsync } from 'promise-toolbox'
+import { pforOwn } from 'promise-toolbox'
 import { prompt } from 'inquirer'
 
 // ===================================================================
@@ -160,7 +160,7 @@ const promptByType = {
       }
     }
 
-    await forOwnAsync.call(schema.properties || {}, promptProperty)
+    await pforOwn.call(schema.properties || {}, promptProperty)
 
     return value
   },

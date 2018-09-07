@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { delay as pDelay } from 'promise-toolbox'
+import { pDelay } from 'promise-toolbox'
 
 import { createClient } from './'
 

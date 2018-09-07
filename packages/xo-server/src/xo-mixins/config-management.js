@@ -1,7 +1,7 @@
 import createDebug from 'debug'
 import DepTree from 'deptree'
-import { all as pAll } from 'promise-toolbox'
 import { mapValues } from 'lodash'
+import { pAll } from 'promise-toolbox'
 
 const debug = createDebug('xo:config-management')
 

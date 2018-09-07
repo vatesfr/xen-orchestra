@@ -25,7 +25,7 @@
   "dependencies": {
     "child-process-promise": "^2.0.3",
     "pipette": "^0.9.3",
-    "promise-toolbox": "^0.9.5",
+    "promise-toolbox": "^0.10.1",
     "tmp": "^0.0.33",
     "vhd-lib": "^0.3.0"
   },

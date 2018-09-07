@@ -16,11 +16,11 @@ import { randomBytes } from 'crypto'
 import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
-  all as pAll,
   fromCallback,
   isPromise,
+  pAll,
+  pReflect,
   promisify,
-  reflect as pReflect,
 } from 'promise-toolbox'
 
 // ===================================================================
@@ -267,19 +267,19 @@ export function pDebug (promise, name) {
 //
 // Usage: pSettle(promises) or promises::pSettle()
 export function pSettle (promises) {
-  return (this || promises)::pAll(p => p::pReflect())
+  return (this || promises)::pAll(p => Promise.resolve(p)::pReflect())
 }
 
 // -------------------------------------------------------------------
 
 export {
-  all as pAll,
-  delay as pDelay,
-  fromCallback as pFromCallback,
-  lastly as pFinally,
+  pAll,
+  pDelay,
+  pFinally,
+  pFromCallback,
+  pReflect,
   promisify,
   promisifyAll,
-  reflect as pReflect,
 } from 'promise-toolbox'
 
 // -------------------------------------------------------------------
