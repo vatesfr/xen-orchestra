@@ -4,6 +4,17 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+- xo-server v5.27.0
+- xo-web v5.27.0
+
+## **5.26.0** (2018-09-07)
+
+### Enhancements
+
 - [Backup (file) restore] Order backups by date in selector [#3294](https://github.com/vatesfr/xen-orchestra/issues/3294) (PR [#3374](https://github.com/vatesfr/xen-orchestra/pull/3374))
 - [Self] Hide Tasks entry in menu for self users [#3311](https://github.com/vatesfr/xen-orchestra/issues/3311) (PR [#3373](https://github.com/vatesfr/xen-orchestra/pull/3373))
 - [Tasks] Show previous tasks [#3266](https://github.com/vatesfr/xen-orchestra/issues/3266) (PR [#3377](https://github.com/vatesfr/xen-orchestra/pull/3377))
