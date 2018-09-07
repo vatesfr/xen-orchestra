@@ -104,6 +104,13 @@ type Metadata = MetadataDelta | MetadataFull
 const compareSnapshotTime = (a: Vm, b: Vm): number =>
   a.snapshot_time < b.snapshot_time ? -1 : 1
 
+// 2018-09-07, JFT: this is a work-around, we used to use `snapshot_time` for
+// this, but this value is not always kept in VM imported from snapshots.
+//
+// We should use a specific value set in `other_config`.
+const compareNameLabelTimestamp = (a: Vm, b: Vm): number =>
+  a.name_label.slice(-17, -1) < b.name_label.slice(-17, -1) ? -1 : 1
+
 const compareTimestamp = (a: Metadata, b: Metadata): number =>
   a.timestamp - b.timestamp
 
@@ -183,9 +190,7 @@ const listReplicatedVms = (
     }
   }
 
-  // the replicated VMs have been created from a snapshot, therefore we can use
-  // `snapshot_time` as the creation time
-  return values(vms).sort(compareSnapshotTime)
+  return values(vms).sort(compareNameLabelTimestamp)
 }
 
 const importers: $Dict<
