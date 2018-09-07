@@ -111,7 +111,7 @@ const getReplicatedVmDatetime = (vm: Vm) => {
   return datetime
 }
 
-const compareNameLabelTimestamp = (a: Vm, b: Vm): number =>
+const compareReplicatedVmDatetime = (a: Vm, b: Vm): number =>
   getReplicatedVmDatetime(a) < getReplicatedVmDatetime(b) ? -1 : 1
 
 const compareTimestamp = (a: Metadata, b: Metadata): number =>
@@ -193,7 +193,7 @@ const listReplicatedVms = (
     }
   }
 
-  return values(vms).sort(compareNameLabelTimestamp)
+  return values(vms).sort(compareReplicatedVmDatetime)
 }
 
 const importers: $Dict<
