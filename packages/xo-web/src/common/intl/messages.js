@@ -349,6 +349,7 @@ const messages = {
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
   retentionNeeded: 'One of the retentions needs to be higher than 0!',
+  newScheduleError: 'Invalid schedule',
   createRemoteMessage:
     'No remotes found, please click on the remotes settings button to create one!',
   remotesSettings: 'Remotes settings',
