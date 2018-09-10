@@ -49,12 +49,12 @@ const COLUMN_STATE = {
   itemRenderer: remote => (
     <div>
       <StateButton
-        disabledLabel={_('remoteDisconnected')}
+        disabledLabel={_('remoteDisabled')}
         disabledHandler={enableRemote}
-        disabledTooltip={_('remoteConnectTip')}
-        enabledLabel={_('remoteConnected')}
+        disabledTooltip={_('enableRemote')}
+        enabledLabel={_('remoteEnabled')}
         enabledHandler={disableRemote}
-        enabledTooltip={_('remoteDisconnectTip')}
+        enabledTooltip={_('disableRemote')}
         handlerParam={remote}
         state={remote.enabled}
       />{' '}
