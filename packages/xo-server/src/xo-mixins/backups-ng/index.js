@@ -495,7 +495,7 @@ export default class BackupNg {
           let vmCancel
           try {
             cancelToken.throwIfRequested()
-            vmCancel = CancelToken.race([cancelToken]).token
+            vmCancel = CancelToken.source([cancelToken]).token
 
             // $FlowFixMe injected $defer param
             const p = this._backupVm(
