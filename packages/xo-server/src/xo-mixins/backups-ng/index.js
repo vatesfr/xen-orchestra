@@ -19,7 +19,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import { pFromEvent, ignoreErrors } from 'promise-toolbox'
+import { CancelToken, pFromEvent, ignoreErrors } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -495,7 +495,7 @@ export default class BackupNg {
           let vmCancel
           try {
             cancelToken.throwIfRequested()
-            vmCancel = cancelToken.fork()
+            vmCancel = CancelToken.race([cancelToken]).token
 
             // $FlowFixMe injected $defer param
             const p = this._backupVm(
