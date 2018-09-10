@@ -1973,8 +1973,10 @@ export const getRemote = remote =>
   )
 
 export const createRemote = (name, url, options) =>
-  _call('remote.create', { name, url, options })::tap(
-    subscribeRemotes.forceRefresh
+  _call('remote.create', { name, url, options })::tap(remote =>
+    testRemote(remote)
+      .catch(noop)
+      ::pFinally(subscribeRemotes.forceRefresh)
   )
 
 export const deleteRemote = remote =>
@@ -1997,8 +1999,10 @@ export const deleteRemotes = remotes =>
   )
 
 export const enableRemote = remote =>
-  _call('remote.set', { id: resolveId(remote), enabled: true })::tap(
-    subscribeRemotes.forceRefresh
+  _call('remote.set', { id: resolveId(remote), enabled: true })::tap(() =>
+    testRemote(remote)
+      .catch(noop)
+      ::pFinally(subscribeRemotes.forceRefresh)
   )
 
 export const disableRemote = remote =>
@@ -2007,8 +2011,10 @@ export const disableRemote = remote =>
   )
 
 export const editRemote = (remote, { name, url, options }) =>
-  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(
-    subscribeRemotes.forceRefresh
+  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(() =>
+    testRemote(remote)
+      .catch(noop)
+      ::pFinally(subscribeRemotes.forceRefresh)
   )
 
 export const listRemote = remote =>
