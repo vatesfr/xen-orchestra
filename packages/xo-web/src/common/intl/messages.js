@@ -471,10 +471,6 @@ const messages = {
   remoteAuth: 'Auth',
   remoteMounted: 'Mounted',
   remoteUnmounted: 'Unmounted',
-  remoteConnectTip: 'Connect',
-  remoteDisconnectTip: 'Disconnect',
-  remoteConnected: 'Connected',
-  remoteDisconnected: 'Disconnected',
   remoteDeleteTip: 'Delete',
   remoteDeleteSelected: 'Delete selected remotes',
   remoteNamePlaceHolder: 'remote name *',
@@ -1306,6 +1302,9 @@ const messages = {
   restoreDeltaBackupsInfo:
     'Only the files of Delta Backup which are not on a SMB remote can be restored',
   remoteEnabled: 'Enabled',
+  remoteDisabled: 'Disabled',
+  enableRemote: 'Enable',
+  disableRemote: 'Disable',
   remoteError: 'Error',
   remoteErrorMessage:
     'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.',
