@@ -474,9 +474,9 @@ export default class BackupNg {
 
         const timeout = getSetting(job.settings, 'timeout', [''])
         if (timeout !== 0) {
-          cancelToken = cancelToken.fork(cancel => {
-            setTimeout(cancel, timeout)
-          })
+          const source = CancelToken.source([cancelToken])
+          cancelToken = source.token
+          setTimeout(source.cancel, timeout)
         }
 
         let handleVm = async vm => {
@@ -495,7 +495,7 @@ export default class BackupNg {
           let vmCancel
           try {
             cancelToken.throwIfRequested()
-            vmCancel = CancelToken.source([cancelToken]).token
+            vmCancel = CancelToken.source([cancelToken])
 
             // $FlowFixMe injected $defer param
             const p = this._backupVm(
