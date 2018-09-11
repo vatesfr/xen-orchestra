@@ -47,31 +47,44 @@ const COLUMN_NAME = {
 }
 const COLUMN_STATE = {
   itemRenderer: remote => (
-    <div>
-      <StateButton
-        disabledLabel={_('remoteDisabled')}
-        disabledHandler={enableRemote}
-        disabledTooltip={_('enableRemote')}
-        enabledLabel={_('remoteEnabled')}
-        enabledHandler={disableRemote}
-        enabledTooltip={_('disableRemote')}
-        handlerParam={remote}
-        state={remote.enabled}
-      />{' '}
-      {remote.error && (
-        <Tooltip content={_('remoteConnectionFailed')}>
-          <a
-            className='text-danger btn btn-link'
-            onClick={() => _showError(remote)}
-            style={{ padding: '0px' }}
-          >
-            <Icon icon='alarm' size='lg' />
-          </a>
-        </Tooltip>
-      )}
-    </div>
+    <StateButton
+      disabledLabel={_('remoteDisabled')}
+      disabledHandler={enableRemote}
+      disabledTooltip={_('enableRemote')}
+      enabledLabel={_('remoteEnabled')}
+      enabledHandler={disableRemote}
+      enabledTooltip={_('disableRemote')}
+      handlerParam={remote}
+      state={remote.enabled}
+    />
   ),
   name: _('remoteState'),
+}
+const COLUMN_STATUS = {
+  itemRenderer: remote => {
+    const [className, label] =
+      remote.error === ''
+        ? ['success', 'formConnected']
+        : ['danger', 'formDisconnected']
+    return (
+      <div>
+        <span className={`tag tag-${className}`}>{_(label)}</span>{' '}
+        {remote.error !== '' && (
+          <Tooltip content={_('remoteConnectionFailed')}>
+            <a
+              className='text-danger btn btn-link'
+              onClick={() => _showError(remote)}
+              style={{ padding: '0px' }}
+            >
+              <Icon icon='alarm' size='lg' />
+            </a>
+          </Tooltip>
+        )}
+      </div>
+    )
+  },
+  name: _('formStatus'),
+  sortCriteria: remote => remote.error === '',
 }
 
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
@@ -90,6 +103,7 @@ const COLUMNS_LOCAL_REMOTE = [
     name: _('remotePath'),
   },
   COLUMN_STATE,
+  COLUMN_STATUS,
 ]
 const COLUMNS_NFS_REMOTE = [
   COLUMN_NAME,
@@ -150,6 +164,7 @@ const COLUMNS_NFS_REMOTE = [
     ),
   },
   COLUMN_STATE,
+  COLUMN_STATUS,
 ]
 const COLUMNS_SMB_REMOTE = [
   COLUMN_NAME,
@@ -178,6 +193,7 @@ const COLUMNS_SMB_REMOTE = [
     name: _('remoteShare'),
   },
   COLUMN_STATE,
+  COLUMN_STATUS,
   {
     itemRenderer: (remote, { formatMessage }) => (
       <span>
