@@ -5,7 +5,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { addSubscriptions, generateRandomId } from 'utils'
+import { addSubscriptions, generateRandomId, noop } from 'utils'
 import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
 import { groupBy, map, isEmpty } from 'lodash'
@@ -244,7 +244,8 @@ const INDIVIDUAL_ACTIONS = [
                     <dd>{answer.step}</dd>
                   </dl>
                 </p>
-              )
+              ),
+        noop
       ),
     icon: 'diagnosis',
     label: _('remoteTestTip'),
