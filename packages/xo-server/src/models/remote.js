@@ -15,6 +15,7 @@ export class Remotes extends Collection {
     const remotes = await super.get(properties)
     forEach(remotes, remote => {
       remote.enabled = remote.enabled === 'true'
+      remote.connected = remote.error === ''
     })
     return remotes
   }

@@ -62,10 +62,9 @@ const COLUMN_STATE = {
 }
 const COLUMN_STATUS = {
   itemRenderer: remote => {
-    const [className, label] =
-      remote.error === ''
-        ? ['success', 'formConnected']
-        : ['danger', 'formDisconnected']
+    const [className, label] = remote.connected
+      ? ['success', 'formConnected']
+      : ['danger', 'formDisconnected']
     return (
       <div>
         <span className={`tag tag-${className}`}>{_(label)}</span>{' '}
