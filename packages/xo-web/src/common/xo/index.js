@@ -1974,9 +1974,7 @@ export const getRemote = remote =>
 
 export const createRemote = (name, url, options) =>
   _call('remote.create', { name, url, options })::tap(remote =>
-    testRemote(remote)
-      .catch(noop)
-      ::pFinally(subscribeRemotes.forceRefresh)
+    testRemote(remote).catch(noop)
   )
 
 export const deleteRemote = remote =>
@@ -2000,9 +1998,7 @@ export const deleteRemotes = remotes =>
 
 export const enableRemote = remote =>
   _call('remote.set', { id: resolveId(remote), enabled: true })::tap(() =>
-    testRemote(remote)
-      .catch(noop)
-      ::pFinally(subscribeRemotes.forceRefresh)
+    testRemote(remote).catch(noop)
   )
 
 export const disableRemote = remote =>
@@ -2012,9 +2008,7 @@ export const disableRemote = remote =>
 
 export const editRemote = (remote, { name, url, options }) =>
   _call('remote.set', resolveIds({ remote, name, url, options }))::tap(() =>
-    testRemote(remote)
-      .catch(noop)
-      ::pFinally(subscribeRemotes.forceRefresh)
+    testRemote(remote).catch(noop)
   )
 
 export const listRemote = remote =>
@@ -2029,9 +2023,9 @@ export const listRemoteBackups = remote =>
   )
 
 export const testRemote = remote =>
-  _call('remote.test', resolveIds({ id: remote }))::tap(null, err =>
-    error(_('testRemote'), err.message || String(err))
-  )
+  _call('remote.test', resolveIds({ id: remote }))
+    ::tap(null, err => error(_('testRemote'), err.message || String(err)))
+    ::pFinally(subscribeRemotes.forceRefresh)
 
 // File restore  ----------------------------------------------------
 
