@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+- [Remotes] Test the remote automatically on changes [#3323](https://github.com/vatesfr/xen-orchestra/issues/3323) (PR [#3397](https://github.com/vatesfr/xen-orchestra/pull/3397))
+
 ### Bug fixes
 
 - [Remotes] Rename connect(ed)/disconnect(ed) to enable(d)/disable(d) [#3323](https://github.com/vatesfr/xen-orchestra/issues/3323) (PR [#3396](https://github.com/vatesfr/xen-orchestra/pull/3396))
