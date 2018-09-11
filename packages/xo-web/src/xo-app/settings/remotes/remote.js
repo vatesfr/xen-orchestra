@@ -78,7 +78,7 @@ export default [
         }
 
         const {
-          domain,
+          domain = 'WORKGROUP',
           host,
           name,
           options,
@@ -120,7 +120,7 @@ export default [
   ({ state, effects, formatMessage }) => {
     const {
       remote = {},
-      domain = remote.domain || '',
+      domain = remote.domain || 'WORKGROUP',
       host = remote.host || '',
       name = remote.name || '',
       options = remote.options || '',
