@@ -7,10 +7,12 @@ import { injectIntl } from 'react-intl'
 import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 
 import _, { messages } from './intl'
+import BaseComponent from './base-component'
 import Button from './button'
 import Icon from './icon'
 import propTypes from './prop-types-decorator'
 import Tooltip from './tooltip'
+import { generateRandomId } from './utils'
 import {
   disable as disableShortcuts,
   enable as enableShortcuts,
@@ -19,13 +21,16 @@ import {
 // -----------------------------------------------------------------------------
 
 let instance
-const modal = (content, onClose) => {
+const modal = (content, onClose, props) => {
   if (!instance) {
     throw new Error('No modal instance.')
   } else if (instance.state.showModal) {
     throw new Error('Other modal still open.')
   }
-  instance.setState({ content, onClose, showModal: true }, disableShortcuts)
+  instance.setState(
+    { content, onClose, showModal: true, props },
+    disableShortcuts
+  )
 }
 
 const _addRef = (component, ref) => {
@@ -254,6 +259,57 @@ export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
 
 // -----------------------------------------------------------------------------
 
+class FormModal extends BaseComponent {
+  state = {
+    value: this.props.defaultValue,
+  }
+
+  get value () {
+    return this.state.value
+  }
+
+  render () {
+    const { body, formId } = this.props
+    return (
+      <form id={formId}>
+        {cloneElement(body, {
+          value: this.state.value,
+          onChange: this.linkState('value'),
+        })}
+      </form>
+    )
+  }
+}
+
+export const form = ({ body, defaultValue, title, size }) => {
+  const formId = generateRandomId()
+  const buttons = [
+    {
+      btnStyle: 'primary',
+      label: _('formOk'),
+      form: formId,
+    },
+  ]
+  return new Promise((resolve, reject) => {
+    modal(
+      <GenericModal
+        buttons={buttons}
+        title={title}
+        reject={reject}
+        resolve={resolve}
+      >
+        <FormModal body={body} defaultValue={defaultValue} formId={formId} />
+      </GenericModal>,
+      reject,
+      {
+        bsSize: size,
+      }
+    )
+  })
+}
+
+// -----------------------------------------------------------------------------
+
 export default class Modal extends Component {
   constructor () {
     super()
@@ -284,9 +340,10 @@ export default class Modal extends Component {
   }
 
   render () {
+    const { content, showModal, props } = this.state
     return (
-      <ReactModal show={this.state.showModal} onHide={this._onHide}>
-        {this.state.content}
+      <ReactModal show={showModal} onHide={this._onHide} {...props}>
+        {content}
       </ReactModal>
     )
   }

@@ -22,6 +22,7 @@ const messages = {
   // ----- Modals -----
   alertOk: 'OK',
   confirmOk: 'OK',
+  formOk: 'OK',
   genericCancel: 'Cancel',
   enterConfirmText: 'Enter the following text to confirm:',
 
