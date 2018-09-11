@@ -259,38 +259,38 @@ export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
 
 // -----------------------------------------------------------------------------
 
-export const form = ({ body, defaultValue, title, size }) =>
-  new Promise((resolve, reject) => {
-    const formId = generateRandomId()
-    const buttons = [
-      {
-        btnStyle: 'primary',
-        label: _('formSave'),
-        form: formId,
-      },
-    ]
+class FormModal extends BaseComponent {
+  state = {
+    value: this.props.defaultValue,
+  }
 
-    const Modal = class extends BaseComponent {
-      state = {
-        value: defaultValue,
-      }
+  get value () {
+    return this.state.value
+  }
 
-      get value () {
-        return this.state.value
-      }
+  render () {
+    const { body, formId } = this.props
+    return (
+      <form id={formId}>
+        {cloneElement(body, {
+          value: this.state.value,
+          onChange: this.linkState('value'),
+        })}
+      </form>
+    )
+  }
+}
 
-      render () {
-        return (
-          <form id={formId}>
-            {cloneElement(body, {
-              value: this.state.value,
-              onChange: this.linkState('value'),
-            })}
-          </form>
-        )
-      }
-    }
-
+export const form = ({ body, defaultValue, title, size }) => {
+  const formId = generateRandomId()
+  const buttons = [
+    {
+      btnStyle: 'primary',
+      label: _('formOk'),
+      form: formId,
+    },
+  ]
+  return new Promise((resolve, reject) => {
     modal(
       <GenericModal
         buttons={buttons}
@@ -298,7 +298,7 @@ export const form = ({ body, defaultValue, title, size }) =>
         reject={reject}
         resolve={resolve}
       >
-        <Modal />
+        <FormModal body={body} defaultValue={defaultValue} formId={formId} />
       </GenericModal>,
       reject,
       {
@@ -306,6 +306,7 @@ export const form = ({ body, defaultValue, title, size }) =>
       }
     )
   })
+}
 
 // -----------------------------------------------------------------------------
 
