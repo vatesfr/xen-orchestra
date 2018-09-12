@@ -51,16 +51,14 @@ export default [
           snapshotRetention,
         })
       },
-      setCronTimezone: ({ setSchedule }, { cronPattern, timezone }) => () => {
+      setCronTimezone: (
+        { setSchedule },
+        { cronPattern: cron, timezone }
+      ) => () => {
         setSchedule({
-          name: 'cron',
-          value: cronPattern,
-        }).then(() =>
-          setSchedule({
-            name: 'timezone',
-            value: timezone,
-          })
-        )
+          cron,
+          timezone,
+        })
       },
       setName: ({ setSchedule }, { target: { value } }) => () => {
         setSchedule({
