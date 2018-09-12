@@ -27,31 +27,28 @@ export default [
       schedule: undefined,
     }),
     effects: {
-      setSchedule: (_, { name, value }) => ({
+      setSchedule: (_, params) => ({
         tmpSchedule = DEFAULT_SCHEDULE,
         schedule = tmpSchedule,
       }) => ({
         schedule: {
           ...schedule,
-          [name]: value,
+          ...params,
         },
       }),
-      setExportRetention: ({ setSchedule }, value) => () => {
+      setExportRetention: ({ setSchedule }, exportRetention) => () => {
         setSchedule({
-          name: 'exportRetention',
-          value,
+          exportRetention,
         })
       },
-      setCopyRetention: ({ setSchedule }, value) => () => {
+      setCopyRetention: ({ setSchedule }, copyRetention) => () => {
         setSchedule({
-          name: 'copyRetention',
-          value,
+          copyRetention,
         })
       },
-      setSnapshotRetention: ({ setSchedule }, value) => () => {
+      setSnapshotRetention: ({ setSchedule }, snapshotRetention) => () => {
         setSchedule({
-          name: 'snapshotRetention',
-          value,
+          snapshotRetention,
         })
       },
       setCronTimezone: ({ setSchedule }, { cronPattern, timezone }) => () => {
@@ -67,8 +64,7 @@ export default [
       },
       setName: ({ setSchedule }, { target: { value } }) => () => {
         setSchedule({
-          name: 'name',
-          value: value.trim() === '' ? null : value,
+          name: value.trim() === '' ? null : value,
         })
       },
     },
