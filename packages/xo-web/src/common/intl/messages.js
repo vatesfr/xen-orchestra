@@ -197,6 +197,11 @@ const messages = {
   stateDisabled: 'Disabled',
   stateEnabled: 'Enabled',
 
+  // ----- Labels -----
+  labelMerge: 'Merge',
+  labelSize: 'Size',
+  labelTransfer: 'Transfer',
+
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',

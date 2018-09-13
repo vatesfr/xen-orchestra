@@ -11,12 +11,22 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
-import { keyBy } from 'lodash'
+import { formatSize } from 'utils'
 import { FormattedDate } from 'react-intl'
 import { get } from 'xo-defined'
+import { isEmpty, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
+
+const Li = ({ ...props }) => (
+  <li
+    {...props}
+    style={{
+      whiteSpace: 'nowrap',
+    }}
+  />
+)
 
 const STATUS_LABELS = {
   failure: {
@@ -101,6 +111,59 @@ const LOG_COLUMNS = [
       return <span className={`tag tag-${className}`}>{_(label)}</span>
     },
     sortCriteria: 'status',
+  },
+  {
+    name: _('labelSize'),
+    itemRenderer: ({ tasks: vmTasks }) => {
+      if (isEmpty(vmTasks)) {
+        return null
+      }
+
+      let transferSize = 0
+      let mergeSize = 0
+      vmTasks.forEach(({ tasks: targetSnapshotTasks = [] }) => {
+        let vmTransferSize
+        let vmMergeSize
+        targetSnapshotTasks.forEach(({ message, tasks: operationTasks }) => {
+          if (message !== 'export' || isEmpty(operationTasks)) {
+            return
+          }
+          operationTasks.forEach(operationTask => {
+            if (operationTask.status !== 'success') {
+              return
+            }
+            if (
+              operationTask.message === 'transfer' &&
+              vmTransferSize === undefined
+            ) {
+              vmTransferSize = operationTask.result.size
+            }
+            if (
+              operationTask.message === 'merge' &&
+              vmMergeSize === undefined
+            ) {
+              vmMergeSize = operationTask.result.size
+            }
+
+            if (vmTransferSize !== undefined && vmMergeSize !== undefined) {
+              return false
+            }
+          })
+        })
+        vmTransferSize !== undefined && (transferSize += vmTransferSize)
+        vmMergeSize !== undefined && (mergeSize += vmMergeSize)
+      })
+      return (
+        <ul style={{ listStyleType: 'none' }}>
+          {transferSize > 0 && (
+            <Li>{_.keyValue(_('labelTransfer'), formatSize(transferSize))}</Li>
+          )}
+          {mergeSize > 0 && (
+            <Li>{_.keyValue(_('labelMerge'), formatSize(mergeSize))}</Li>
+          )}
+        </ul>
+      )
+    },
   },
 ]
 
