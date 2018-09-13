@@ -64,6 +64,7 @@ ${cliName} v${pkg.version}
   const srcVm = await srcXapi.getRecord('VM', srcSnapshot.snapshot_of)
 
   const metadata = {
+    'xo:backup:datetime': srcSnapshot.snapshot_time,
     'xo:backup:job': jobId,
     'xo:backup:schedule': scheduleId,
     'xo:backup:vm': srcVm.uuid,
