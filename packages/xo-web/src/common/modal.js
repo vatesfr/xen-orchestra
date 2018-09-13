@@ -281,7 +281,7 @@ class FormModal extends BaseComponent {
   }
 }
 
-export const form = ({ body, defaultValue, title, size }) => {
+export const form = ({ body, defaultValue, icon, title, size }) => {
   const formId = generateRandomId()
   const buttons = [
     {
@@ -294,9 +294,10 @@ export const form = ({ body, defaultValue, title, size }) => {
     modal(
       <GenericModal
         buttons={buttons}
-        title={title}
+        icon={icon}
         reject={reject}
         resolve={resolve}
+        title={title}
       >
         <FormModal body={body} defaultValue={defaultValue} formId={formId} />
       </GenericModal>,
