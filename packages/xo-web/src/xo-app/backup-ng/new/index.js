@@ -401,14 +401,11 @@ export default [
         storedSchedule = DEFAULT_SCHEDULE
       ) => async ({ copyMode, exportMode, snapshotMode }) => {
         const schedule = await form({
-          title: (
-            <span>
-              <Icon icon='schedule' /> {_('schedule')}
-            </span>
-          ),
           body: <NewSchedule modes={{ copyMode, exportMode, snapshotMode }} />,
           defaultValue: storedSchedule,
+          icon: 'schedule',
           size: 'large',
+          title: _('schedule'),
         })
         if (
           !(
