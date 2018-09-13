@@ -981,7 +981,10 @@ export default class Xapi extends XapiBase {
     const baseVdis = {}
     baseVm &&
       forEach(baseVm.$VBDs, vbd => {
-        baseVdis[vbd.VDI] = vbd.$VDI
+        const vdi = vbd.$VDI
+        if (vdi !== undefined) {
+          baseVdis[vbd.VDI] = vbd.$VDI
+        }
       })
 
     // 1. Create the VMs.
