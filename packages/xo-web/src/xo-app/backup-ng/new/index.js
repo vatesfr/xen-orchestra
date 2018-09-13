@@ -51,6 +51,19 @@ import {
 const SR_BACKEND_FAILURE_LINK =
   'https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space'
 
+const ThinProvisionedTip = ({ label }) => (
+  <Tooltip content={_(label)}>
+    <a
+      className='text-info'
+      href={SR_BACKEND_FAILURE_LINK}
+      rel='noopener noreferrer'
+      target='_blank'
+    >
+      <Icon icon='info' />
+    </a>
+  </Tooltip>
+)
+
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
 const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
@@ -776,18 +789,7 @@ export default [
                             {!isEmpty(srsById) &&
                               state.crMode &&
                               get(() => srsById[id].SR_type) === 'lvm' && (
-                                <Tooltip
-                                  content={_('crOnThickProvisionedSrWarning')}
-                                >
-                                  <a
-                                    className='text-info'
-                                    href={SR_BACKEND_FAILURE_LINK}
-                                    rel='noopener noreferrer'
-                                    target='_blank'
-                                  >
-                                    <Icon icon='info' />
-                                  </a>
-                                </Tooltip>
+                                <ThinProvisionedTip label='crOnThickProvisionedSrWarning' />
                               )}
                             <div className='pull-right'>
                               <DeleteOldBackupsFirst
@@ -883,7 +885,8 @@ export default [
             <Col mediumSize={6}>
               <Card>
                 <CardHeader>
-                  {_('vmsToBackup')}*
+                  {_('vmsToBackup')}*{' '}
+                  <ThinProvisionedTip label='vmsOnThinProvisionedSrTip' />
                   <ActionButton
                     className='pull-right'
                     data-mode='smartMode'
