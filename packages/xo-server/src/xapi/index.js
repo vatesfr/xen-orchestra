@@ -653,6 +653,9 @@ export default class Xapi extends XapiBase {
 
     const { $ref } = vm
 
+    // ensure the vm record is up-to-date
+    vm = await this.barrier($ref)
+
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
@@ -665,16 +668,17 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    // ensure the vm record is up-to-date
-    vm = await this.barrier($ref)
+    if (forceDeleteDefaultTemplate) {
+      await this._updateObjectMapProperty(vm, 'other_config', {
+        default_template: null,
+      })
+    }
+
+    // this cannot be done in parallel, otherwise disks and snapshots will be
+    // destroyed even if this fails
+    await this.call('VM.destroy', $ref)
 
     return Promise.all([
-      forceDeleteDefaultTemplate &&
-        this._updateObjectMapProperty(vm, 'other_config', {
-          default_template: null,
-        }),
-      this.call('VM.destroy', $ref),
-
       asyncMap(vm.$snapshots, snapshot =>
         this._deleteVm(snapshot)
       )::ignoreErrors(),
