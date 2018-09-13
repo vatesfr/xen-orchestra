@@ -408,7 +408,7 @@ const messages = {
   crOnThickProvisionedSrWarning:
     'Tip: using a thin-provisioned storage will consume less space. Please click on the icon to get more information',
   vmsOnThinProvisionedSrTip:
-    'Tip: creating vms on a thin-provisioned storage will consume less space when backuping them. Please click on the icon to get more information',
+    'Tip: creating VMs on a thin-provisioned storage will consume less space when backuping them. Please click on the icon to get more information',
   localRemoteWarningMessage:
     'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
