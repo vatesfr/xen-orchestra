@@ -1,14 +1,9 @@
 import _, { FormattedDuration } from 'intl'
 import addSubscriptions from 'add-subscriptions'
-import Button from 'button'
-import ButtonGroup from 'button-group'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
 import React from 'react'
-import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import SortedTable from 'sorted-table'
-import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { formatSize } from 'utils'
@@ -18,6 +13,7 @@ import { isEmpty, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
+import LogAlertHeader from './log-alert-header'
 
 const UL_STYLE = { listStyleType: 'none' }
 
@@ -167,43 +163,6 @@ const LOG_COLUMNS = [
     },
   },
 ]
-
-const LogAlertHeader = [
-  addSubscriptions(({ id }) => ({
-    log: cb =>
-      subscribeBackupNgLogs(logs => {
-        cb(logs[id])
-      }),
-  })),
-  ({ log = {}, jobs }) => {
-    const formattedLog = JSON.stringify(log, null, 2)
-    return (
-      <span>
-        {get(() => jobs[log.jobId].name) || 'Job'} (
-        {get(() => log.jobId.slice(4, 8))}){' '}
-        <span style={{ fontSize: '0.5em' }} className='text-muted'>
-          {log.id}
-        </span>{' '}
-        <ButtonGroup>
-          <Tooltip content={_('copyToClipboard')}>
-            <CopyToClipboard text={formattedLog}>
-              <Button size='small'>
-                <Icon icon='clipboard' />
-              </Button>
-            </CopyToClipboard>
-          </Tooltip>
-          {CAN_REPORT_BUG && (
-            <ReportBugButton
-              message={`\`\`\`json\n${formattedLog}\n\`\`\``}
-              size='small'
-              title='Backup job failed'
-            />
-          )}
-        </ButtonGroup>
-      </span>
-    )
-  },
-].reduceRight((value, decorator) => decorator(value))
 
 const showTasks = ({ id }, { jobs }) =>
   alert(<LogAlertHeader id={id} jobs={jobs} />, <LogAlertBody id={id} />)
