@@ -435,11 +435,18 @@ export default [
           settings: settings.delete(id),
         }
       },
-      saveSchedule: (_, { id, cron, timezone, name, ...setting }) => ({
-        propSettings,
-        schedules,
-        settings = propSettings,
-      }) => ({
+      saveSchedule: (
+        _,
+        {
+          copyRetention,
+          cron,
+          exportRetention,
+          id,
+          name,
+          snapshotRetention,
+          timezone,
+        }
+      ) => ({ propSettings, schedules, settings = propSettings }) => ({
         schedules: {
           ...schedules,
           [id]: {
@@ -450,7 +457,11 @@ export default [
             timezone,
           },
         },
-        settings: settings.set(id, setting),
+        settings: settings.set(id, {
+          exportRetention,
+          copyRetention,
+          snapshotRetention,
+        }),
       }),
       setPowerState: (_, powerState) => state => ({
         ...state,
