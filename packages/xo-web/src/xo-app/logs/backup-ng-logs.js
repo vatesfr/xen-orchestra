@@ -19,14 +19,13 @@ import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
 
-const Li = ({ ...props }) => (
-  <li
-    {...props}
-    style={{
-      whiteSpace: 'nowrap',
-    }}
-  />
-)
+const UL_STYLE = { listStyleType: 'none' }
+
+const LI_STYLE = {
+  whiteSpace: 'nowrap',
+}
+
+const Li = ({ ...props }) => <li {...props} style={LI_STYLE} />
 
 const STATUS_LABELS = {
   failure: {
@@ -154,7 +153,7 @@ const LOG_COLUMNS = [
         vmMergeSize !== undefined && (mergeSize += vmMergeSize)
       })
       return (
-        <ul style={{ listStyleType: 'none' }}>
+        <ul style={UL_STYLE}>
           {transferSize > 0 && (
             <Li>{_.keyValue(_('labelTransfer'), formatSize(transferSize))}</Li>
           )}
