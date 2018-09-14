@@ -13,7 +13,7 @@
 - [Remotes] Rename connect(ed)/disconnect(ed) to enable(d)/disable(d) [#3323](https://github.com/vatesfr/xen-orchestra/issues/3323) (PR [#3396](https://github.com/vatesfr/xen-orchestra/pull/3396))
 - [Remotes] Fix error appears twice on testing (PR [#3399](https://github.com/vatesfr/xen-orchestra/pull/3399))
 - [Backup NG] Don't fail on VMs with empty VBDs (like CDs or floppy disks) (PR [#3410](https://github.com/vatesfr/xen-orchestra/pull/3410))
-- [XOA updater] Fix issue where trial request would fail [#3407](https://github.com/vatesfr/xen-orchestra/issues/3407)
+- [XOA updater] Fix issue where trial request would fail [#3407](https://github.com/vatesfr/xen-orchestra/issues/3407) (PR [#3412](https://github.com/vatesfr/xen-orchestra/pull/3412))
 
 ### Released packages
 
