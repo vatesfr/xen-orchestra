@@ -282,7 +282,7 @@ class XoaUpdater extends EventEmitter {
     try {
       return await this._call('requestTrial', { trialPlan: 'premium' })
     } finally {
-      this.xoaState()
+      await this.xoaState()
     }
   }
 
