@@ -860,6 +860,8 @@ const messages = {
   started: 'Started {ago}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
+  hvmModeWithPvDrivers:
+    'Hardware virtualization with paravirtualization drivers (PVHVM)',
   windowsUpdateTools: 'Windows Update tools',
 
   // ----- VM stat tab -----

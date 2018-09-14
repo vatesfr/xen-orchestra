@@ -19,7 +19,12 @@ import {
   createGetVmLastShutdownTime,
   createSelector,
 } from 'selectors'
-import { connectStore, formatSize, osFamily } from 'utils'
+import {
+  VIRTUALIZATION_MODE_LABEL,
+  connectStore,
+  formatSize,
+  osFamily,
+} from 'utils'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -127,11 +132,7 @@ export default connectStore(() => {
           )}
         </Col>
         <Col mediumSize={3}>
-          <p>
-            {vm.virtualizationMode === 'pv'
-              ? _('paraVirtualizedMode')
-              : _('hardwareVirtualizedMode')}
-          </p>
+          <p>{_(VIRTUALIZATION_MODE_LABEL[vm.virtualizationMode])}</p>
           {vgpu !== undefined && (
             <p>{renderXoItem(vgpuTypes[vgpu.vgpuType])}</p>
           )}
