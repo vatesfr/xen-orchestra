@@ -25,8 +25,6 @@ const LI_STYLE = {
   whiteSpace: 'nowrap',
 }
 
-const Li = ({ ...props }) => <li {...props} style={LI_STYLE} />
-
 const STATUS_LABELS = {
   failure: {
     className: 'danger',
@@ -155,10 +153,14 @@ const LOG_COLUMNS = [
       return (
         <ul style={UL_STYLE}>
           {transferSize > 0 && (
-            <Li>{_.keyValue(_('labelTransfer'), formatSize(transferSize))}</Li>
+            <li style={LI_STYLE}>
+              {_.keyValue(_('labelTransfer'), formatSize(transferSize))}
+            </li>
           )}
           {mergeSize > 0 && (
-            <Li>{_.keyValue(_('labelMerge'), formatSize(mergeSize))}</Li>
+            <li style={LI_STYLE}>
+              {_.keyValue(_('labelMerge'), formatSize(mergeSize))}
+            </li>
           )}
         </ul>
       )
