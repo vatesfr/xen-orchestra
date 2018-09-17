@@ -9,6 +9,7 @@
 - [Backup NG form] Display a tip to encourage users to create vms on a thin-provisioned storage [#3334](https://github.com/vatesfr/xen-orchestra/issues/3334) (PR [#3402](https://github.com/vatesfr/xen-orchestra/pull/3402))
 - [Backup NG form] improve schedule's form [#3138](https://github.com/vatesfr/xen-orchestra/issues/3138) (PR [#3359](https://github.com/vatesfr/xen-orchestra/pull/3359))
 - [Backup NG Overview] Display transferred and merged data size for backup jobs [#3340](https://github.com/vatesfr/xen-orchestra/issues/3340) (PR [#3408](https://github.com/vatesfr/xen-orchestra/pull/3408))
+- [VM] Display the PVHVM status [#3014](https://github.com/vatesfr/xen-orchestra/issues/3014) (PR [#3418](https://github.com/vatesfr/xen-orchestra/pull/3418))
 
 ### Bug fixes
 

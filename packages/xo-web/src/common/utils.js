@@ -34,6 +34,12 @@ import { satisfies as versionSatisfies } from 'semver'
 export const EMPTY_ARRAY = Object.freeze([])
 export const EMPTY_OBJECT = Object.freeze({})
 
+export const VIRTUALIZATION_MODE_LABEL = {
+  hvm: 'hardwareVirtualizedMode',
+  pv: 'paraVirtualizedMode',
+  pvhvm: 'hvmModeWithPvDriversEnabled',
+}
+
 // ===================================================================
 
 export addSubscriptions from './add-subscriptions'

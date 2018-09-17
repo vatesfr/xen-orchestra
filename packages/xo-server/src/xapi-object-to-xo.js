@@ -343,7 +343,11 @@ const TRANSFORMS = {
       startTime: metrics && toTimestamp(metrics.start_time),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
-      virtualizationMode: isHvm ? 'hvm' : 'pv',
+      virtualizationMode: isHvm
+        ? guestMetrics !== undefined && guestMetrics.PV_drivers_detected
+          ? 'pvhvm'
+          : 'hvm'
+        : 'pv',
 
       // <=> Are the Xen Server tools installed?
       //
