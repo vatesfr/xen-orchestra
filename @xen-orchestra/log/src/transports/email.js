@@ -1,6 +1,6 @@
+import fromCallback from 'promise-toolbox/fromCallback'
 import prettyFormat from 'pretty-format' // eslint-disable-line node/no-extraneous-import
 import { createTransport } from 'nodemailer' // eslint-disable-line node/no-extraneous-import
-import { fromCallback } from 'promise-toolbox'
 
 import { evalTemplate, required } from '../utils'
 import { NAMES } from '../levels'
