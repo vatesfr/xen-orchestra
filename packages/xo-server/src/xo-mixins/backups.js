@@ -1,3 +1,4 @@
+import asyncMap from '@xen-orchestra/async-map'
 import deferrable from 'golike-defer'
 import escapeStringRegexp from 'escape-string-regexp'
 import execa from 'execa'
@@ -29,7 +30,6 @@ import createSizeStream from '../size-stream'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import { lvs, pvs } from '../lvm'
 import {
-  asyncMap,
   forEach,
   getFirstPropertyName,
   mapFilter,

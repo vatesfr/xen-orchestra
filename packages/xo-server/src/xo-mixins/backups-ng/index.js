@@ -2,6 +2,7 @@
 
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
+import asyncMap from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
@@ -39,7 +40,6 @@ import {
 } from '../../xapi'
 import { getVmDisks } from '../../xapi/utils'
 import {
-  asyncMap,
   resolveRelativeFromFile,
   safeDateFormat,
   serializeError,

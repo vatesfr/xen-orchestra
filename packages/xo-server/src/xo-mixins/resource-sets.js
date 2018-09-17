@@ -1,3 +1,4 @@
+import asyncMap from '@xen-orchestra/async-map'
 import synchronized from 'decorator-synchronized'
 import {
   assign,
@@ -11,13 +12,7 @@ import {
 } from 'lodash'
 import { noSuchObject, unauthorized } from 'xo-common/api-errors'
 
-import {
-  asyncMap,
-  generateUnsecureToken,
-  lightSet,
-  map,
-  streamToArray,
-} from '../utils'
+import { generateUnsecureToken, lightSet, map, streamToArray } from '../utils'
 
 // ===================================================================
 

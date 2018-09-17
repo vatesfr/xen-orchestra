@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import asyncMap from '@xen-orchestra/async-map'
 import concurrency from 'limit-concurrency-decorator'
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
@@ -34,7 +35,6 @@ import { satisfies as versionSatisfies } from 'semver'
 import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import {
-  asyncMap,
   camelToSnakeCase,
   ensureArray,
   forEach,
