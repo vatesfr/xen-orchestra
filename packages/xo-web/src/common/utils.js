@@ -37,7 +37,7 @@ export const EMPTY_OBJECT = Object.freeze({})
 export const VIRTUALIZATION_MODE_LABEL = {
   hvm: 'hardwareVirtualizedMode',
   pv: 'paraVirtualizedMode',
-  pvHvm: 'hvmModeWithPvDrivers',
+  pvhvm: 'hvmModeWithPvDriversEnabled',
 }
 
 // ===================================================================

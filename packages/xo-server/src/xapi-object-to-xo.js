@@ -345,7 +345,7 @@ const TRANSFORMS = {
       VIFs: link(obj, 'VIFs'),
       virtualizationMode: isHvm
         ? guestMetrics !== undefined && guestMetrics.PV_drivers_detected
-          ? 'pvHvm'
+          ? 'pvhvm'
           : 'hvm'
         : 'pv',
 
