@@ -20,6 +20,7 @@
 
 ### Released packages
 
+- @xen-orchestra/mixin v0.0.0
 - @xen-orchestra/emit-async v0.0.0
 - xo-server v5.27.0
 - xo-web v5.27.0

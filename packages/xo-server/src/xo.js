@@ -1,5 +1,6 @@
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
+import mixin from '@xen-orchestra/mixin'
 import { createClient as createRedisClient } from 'redis'
 import { EventEmitter } from 'events'
 import { noSuchObject } from 'xo-common/api-errors'
@@ -16,7 +17,6 @@ import {
 
 import mixins from './xo-mixins'
 import Connection from './connection'
-import { mixin } from './decorators'
 import { generateToken, noop } from './utils'
 
 // ===================================================================
