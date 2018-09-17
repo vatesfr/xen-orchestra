@@ -1,9 +1,10 @@
+import asyncMap from '@xen-orchestra/async-map'
 import { createPredicate } from 'value-matcher'
 import { timeout } from 'promise-toolbox'
 import { assign, filter, isEmpty, map, mapValues } from 'lodash'
 
 import { crossProduct } from '../../math'
-import { asyncMap, serializeError, thunkToArray } from '../../utils'
+import { serializeError, thunkToArray } from '../../utils'
 
 // ===================================================================
 

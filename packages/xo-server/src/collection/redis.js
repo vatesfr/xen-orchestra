@@ -1,3 +1,4 @@
+import asyncMap from '@xen-orchestra/async-map'
 import { createClient as createRedisClient } from 'redis'
 import {
   difference,
@@ -11,7 +12,6 @@ import { ignoreErrors, promisifyAll } from 'promise-toolbox'
 import { v4 as generateUuid } from 'uuid'
 
 import Collection, { ModelAlreadyExists } from '../collection'
-import { asyncMap } from '../utils'
 
 // ===================================================================
 

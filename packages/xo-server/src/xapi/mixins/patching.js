@@ -1,3 +1,4 @@
+import asyncMap from '@xen-orchestra/async-map'
 import deferrable from 'golike-defer'
 import every from 'lodash/every'
 import filter from 'lodash/filter'
@@ -12,7 +13,6 @@ import unzip from 'julien-f-unzip'
 
 import { debounce } from '../../decorators'
 import {
-  asyncMap,
   ensureArray,
   forEach,
   mapFilter,
