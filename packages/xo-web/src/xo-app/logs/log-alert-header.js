@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
 import ButtonGroup from 'button-group'
@@ -9,7 +10,11 @@ import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import Tooltip from 'tooltip'
 import { get } from 'xo-defined'
 import { injectState, provideState } from '@julien-f/freactal'
-import { subscribeBackupNgLogs } from 'xo'
+import { isEmpty } from 'lodash'
+import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
+
+const isFailureTask = ({ status }) =>
+  status !== 'success' && status !== 'pending'
 
 export default [
   addSubscriptions(({ id }) => ({
@@ -19,12 +24,32 @@ export default [
       }),
   })),
   provideState({
+    effects: {
+      restartFailedVms: () => async (
+        { failedVmsIds: vms },
+        { log: { jobId: id, scheduleId: schedule } }
+      ) => {
+        await runBackupNgJob({
+          id,
+          schedule,
+          vms,
+        })
+      },
+    },
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
+      failedVmsIds: (_, { log }) =>
+        log === undefined || !isFailureTask(log) || isEmpty(log.tasks)
+          ? []
+          : log.tasks
+              .map(
+                vmTask => (isFailureTask(vmTask) ? vmTask.data.id : undefined)
+              )
+              .filter(vmId => vmId !== undefined),
     },
   }),
   injectState,
-  ({ state, log = {}, jobs }) => (
+  ({ state, effects, log = {}, jobs }) => (
     <span>
       {get(() => jobs[log.jobId].name) || 'Job'} (
       {get(() => log.jobId.slice(4, 8))}){' '}
@@ -46,6 +71,15 @@ export default [
             title='Backup job failed'
           />
         )}
+        {!isEmpty(state.failedVmsIds) &&
+          log.scheduleId !== undefined && (
+            <ActionButton
+              handler={effects.restartFailedVms}
+              icon='run'
+              size='small'
+              tooltip={_('backupRestartFailedVms')}
+            />
+          )}
       </ButtonGroup>
     </span>
   ),

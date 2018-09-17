@@ -433,7 +433,7 @@ export default class BackupNg {
     app.on('start', () => {
       const executor: Executor = async ({
         cancelToken,
-        data: vmId,
+        data: vmsId,
         job: job_,
         logger,
         runJobId,
@@ -445,17 +445,20 @@ export default class BackupNg {
 
         const job: BackupJob = (job_: any)
 
-        let vms: $Dict<Vm> | void
-        if (vmId === undefined) {
-          vms = app.getObjects({
-            filter: createPredicate({
-              type: 'VM',
-              ...job.vms,
-            }),
-          })
-          if (isEmpty(vms)) {
-            throw new Error('no VMs match this pattern')
-          }
+        const vms: $Dict<Vm> | void = app.getObjects({
+          filter: createPredicate({
+            type: 'VM',
+            ...(vmsId !== undefined
+              ? {
+                  id: {
+                    __or: vmsId,
+                  },
+                }
+              : job.vms),
+          }),
+        })
+        if (isEmpty(vms)) {
+          throw new Error('no VMs match this pattern')
         }
         const jobId = job.id
         const srs = unboxIds(job.srs).map(id => {
@@ -539,10 +542,6 @@ export default class BackupNg {
                 : serializeError(error),
             })
           }
-        }
-
-        if (vms === undefined) {
-          return handleVm(await app.getObject(vmId))
         }
 
         const concurrency: number = getSetting(job.settings, 'concurrency', [

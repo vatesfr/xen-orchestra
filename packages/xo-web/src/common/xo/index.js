@@ -1855,7 +1855,12 @@ export const editBackupNgJob = props =>
 
 export const getBackupNgJob = id => _call('backupNg.getJob', { id })
 
-export const runBackupNgJob = params => _call('backupNg.runJob', params)
+export const runBackupNgJob = ({
+  id,
+  schedule,
+  vm,
+  vms = vm !== undefined ? [vm] : undefined,
+}) => _call('backupNg.runJob', { id, schedule, vms })
 
 export const listVmBackups = remotes =>
   _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
