@@ -24,7 +24,7 @@ export default target => {
       opts.transport = Transport.Tcp
     } else if (startsWith(target, 'udp://')) {
       target = target.slice(6)
-      opts.transport = Transport.Ucp
+      opts.transport = Transport.Udp
     }
 
     ;({ host: target, port: opts.port } = splitHost(target))
