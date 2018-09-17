@@ -30,6 +30,20 @@ export const configurationSchema = {
   },
 }
 
+export const testSchema = {
+  type: 'object',
+
+  properties: {
+    runId: {
+      type: 'string',
+      description: `<a href="https://xen-orchestra.com/docs/backups.html#backups-execution" rel="noopener noreferrer" target="_blank">job's runId</a>`,
+    },
+  },
+
+  additionalProperties: false,
+  required: ['runId'],
+}
+
 // ===================================================================
 
 const ICON_FAILURE = '🚨'
@@ -116,6 +130,10 @@ class BackupReportsXoPlugin {
 
   load () {
     this._xo.on('job:terminated', this._report)
+  }
+
+  test ({ runId }) {
+    return this._backupNgListener(undefined, undefined, undefined, runId)
   }
 
   unload () {
