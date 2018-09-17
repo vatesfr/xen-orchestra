@@ -7,6 +7,9 @@
 - [Remotes] Test the remote automatically on changes [#3323](https://github.com/vatesfr/xen-orchestra/issues/3323) (PR [#3397](https://github.com/vatesfr/xen-orchestra/pull/3397))
 - [Remotes] Use *WORKGROUP* as default domain for new SMB remote (PR [#3398](https://github.com/vatesfr/xen-orchestra/pull/3398))
 - [Backup NG form] Display a tip to encourage users to create vms on a thin-provisioned storage [#3334](https://github.com/vatesfr/xen-orchestra/issues/3334) (PR [#3402](https://github.com/vatesfr/xen-orchestra/pull/3402))
+- [Backup NG form] improve schedule's form [#3138](https://github.com/vatesfr/xen-orchestra/issues/3138) (PR [#3359](https://github.com/vatesfr/xen-orchestra/pull/3359))
+- [Backup NG Overview] Display transferred and merged data size for backup jobs [#3340](https://github.com/vatesfr/xen-orchestra/issues/3340) (PR [#3408](https://github.com/vatesfr/xen-orchestra/pull/3408))
+- [VM] Display the PVHVM status [#3014](https://github.com/vatesfr/xen-orchestra/issues/3014) (PR [#3418](https://github.com/vatesfr/xen-orchestra/pull/3418))
 
 ### Bug fixes
 
@@ -18,6 +21,7 @@
 ### Released packages
 
 - @xen-orchestra/mixin v0.0.0
+- @xen-orchestra/emit-async v0.0.0
 - xo-server v5.27.0
 - xo-web v5.27.0
 

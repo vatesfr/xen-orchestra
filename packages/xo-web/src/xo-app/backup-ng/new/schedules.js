@@ -7,7 +7,6 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { injectState, provideState } from '@julien-f/freactal'
 import { isEmpty, find, size } from 'lodash'
 
-import NewSchedule from './new-schedule'
 import { FormFeedback } from './../utils'
 
 // ===================================================================
@@ -25,16 +24,15 @@ export default [
     computed: {
       disabledDeletion: state => size(state.schedules) <= 1,
       disabledEdition: state =>
-        state.editionMode !== undefined ||
-        (!state.exportMode && !state.copyMode && !state.snapshotMode),
+        !state.exportMode && !state.copyMode && !state.snapshotMode,
       error: state => find(FEEDBACK_ERRORS, error => state[error]),
       individualActions: (
         { disabledDeletion, disabledEdition },
-        { effects: { deleteSchedule, editSchedule } }
+        { effects: { deleteSchedule, showScheduleModal } }
       ) => [
         {
           disabled: disabledEdition,
-          handler: editSchedule,
+          handler: showScheduleModal,
           icon: 'edit',
           label: _('scheduleEdit'),
           level: 'primary',
@@ -129,7 +127,7 @@ export default [
           <ActionButton
             btnStyle='primary'
             className='pull-right'
-            handler={effects.addSchedule}
+            handler={effects.showScheduleModal}
             disabled={state.disabledEdition}
             icon='add'
             tooltip={_('scheduleAdd')}
@@ -148,7 +146,6 @@ export default [
           )}
         </CardBlock>
       </FormFeedback>
-      {state.editionMode !== undefined && <NewSchedule />}
     </div>
   ),
 ].reduceRight((value, decorator) => decorator(value))
