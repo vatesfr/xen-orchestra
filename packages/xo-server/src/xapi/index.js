@@ -3,6 +3,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import concurrency from 'limit-concurrency-decorator'
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
+import mixin from '@xen-orchestra/mixin'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
@@ -33,7 +34,6 @@ import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import { mixin } from '../decorators'
 import {
   camelToSnakeCase,
   ensureArray,
