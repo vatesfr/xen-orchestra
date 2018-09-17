@@ -20,10 +20,10 @@ import {
   createSelector,
 } from 'selectors'
 import {
-  VIRTUALIZATION_MODE_LABEL,
   connectStore,
   formatSize,
   osFamily,
+  VIRTUALIZATION_MODE_LABEL,
 } from 'utils'
 import {
   CpuSparkLines,
