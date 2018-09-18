@@ -118,7 +118,12 @@ getJob.params = {
   },
 }
 
-export async function runJob ({ id, schedule, vms }) {
+export async function runJob ({
+  id,
+  schedule,
+  vm,
+  vms = vm !== undefined ? [vm] : undefined,
+}) {
   return this.runJobSequence([id], await this.getSchedule(schedule), vms)
 }
 
@@ -130,6 +135,10 @@ runJob.params = {
   },
   schedule: {
     type: 'string',
+  },
+  vm: {
+    type: 'string',
+    optional: true,
   },
   vms: {
     type: 'array',

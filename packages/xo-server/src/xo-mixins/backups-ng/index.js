@@ -445,7 +445,7 @@ export default class BackupNg {
 
         const job: BackupJob = (job_: any)
 
-        const vms: $Dict<Vm> | void = app.getObjects({
+        const vms: $Dict<Vm> = app.getObjects({
           filter: createPredicate({
             type: 'VM',
             ...(vmsId !== undefined
