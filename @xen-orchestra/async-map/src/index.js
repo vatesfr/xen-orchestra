@@ -1,5 +1,3 @@
-// @flow
-
 // type MaybePromise<T> = Promise<T> | T
 //
 // declare export function asyncMap<T1, T2>(
@@ -15,12 +13,10 @@ import map from 'lodash/map'
 
 // Similar to map() + Promise.all() but wait for all promises to
 // settle before rejecting (with the first error)
-const asyncMap = <T1, T2>(
-  collection: Array<T1> | Promise<Array<T1>>,
-  iteratee: (value: T1, key: number, collection: Array<T1>) => T2
-): Promise<Array<T2>> => {
-  if (!Array.isArray(collection)) {
-    return collection.then(collection => asyncMap(collection, iteratee))
+const asyncMap = (collection, iteratee) => {
+  let then
+  if (collection != null && typeof (then = collection.then) === 'function') {
+    return then.apply(collection, collection => asyncMap(collection, iteratee))
   }
 
   let errorContainer
