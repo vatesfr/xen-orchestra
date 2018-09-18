@@ -38,9 +38,11 @@ export default [
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
       failedVmsIds: (_, { log }) =>
-        log === undefined || !isFailureTask(log) || log.tasks === undefined
+        log === undefined || !isFailureTask(log)
           ? []
-          : log.tasks.filter(isFailureTask).map(vmTask => vmTask.data.id),
+          : get(() =>
+              log.tasks.filter(isFailureTask).map(vmTask => vmTask.data.id)
+            ),
     },
   }),
   injectState,
@@ -66,7 +68,7 @@ export default [
             title='Backup job failed'
           />
         )}
-        {state.failedVmsIds.length > 0 &&
+        {(state.failedVmsIds === undefined || state.failedVmsIds.length > 0) &&
           log.scheduleId !== undefined && (
             <ActionButton
               handler={effects.restartFailedVms}
