@@ -18,6 +18,7 @@
 - [Remotes] Fix error appears twice on testing (PR [#3399](https://github.com/vatesfr/xen-orchestra/pull/3399))
 - [Backup NG] Don't fail on VMs with empty VBDs (like CDs or floppy disks) (PR [#3410](https://github.com/vatesfr/xen-orchestra/pull/3410))
 - [XOA updater] Fix issue where trial request would fail [#3407](https://github.com/vatesfr/xen-orchestra/issues/3407) (PR [#3412](https://github.com/vatesfr/xen-orchestra/pull/3412))
+- [Backup NG logs] Fix log's value not being updated in the copy and report button [#3273](https://github.com/vatesfr/xen-orchestra/issues/3273) (PR [#3360](https://github.com/vatesfr/xen-orchestra/pull/3360))
 
 ### Released packages
 
