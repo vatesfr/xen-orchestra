@@ -11,7 +11,7 @@
 //   (V1, K) => MaybePromise<V2>
 // ): Promise<V2[]>
 
-import { map } from 'lodash'
+import map from 'lodash/map'
 
 // Similar to map() + Promise.all() but wait for all promises to
 // settle before rejecting (with the first error)
