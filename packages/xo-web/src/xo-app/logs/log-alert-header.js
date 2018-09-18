@@ -10,7 +10,6 @@ import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import Tooltip from 'tooltip'
 import { get } from 'xo-defined'
 import { injectState, provideState } from '@julien-f/freactal'
-import { isEmpty } from 'lodash'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 
 const isFailureTask = ({ status }) =>
@@ -39,13 +38,9 @@ export default [
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
       failedVmsIds: (_, { log }) =>
-        log === undefined || !isFailureTask(log) || isEmpty(log.tasks)
+        log === undefined || !isFailureTask(log) || log.tasks === undefined
           ? []
-          : log.tasks
-              .map(
-                vmTask => (isFailureTask(vmTask) ? vmTask.data.id : undefined)
-              )
-              .filter(vmId => vmId !== undefined),
+          : log.tasks.filter(isFailureTask).map(vmTask => vmTask.data.id),
     },
   }),
   injectState,
@@ -71,7 +66,7 @@ export default [
             title='Backup job failed'
           />
         )}
-        {!isEmpty(state.failedVmsIds) &&
+        {state.failedVmsIds.length > 0 &&
           log.scheduleId !== undefined && (
             <ActionButton
               handler={effects.restartFailedVms}
