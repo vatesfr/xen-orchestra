@@ -25,24 +25,24 @@ export default [
   provideState({
     effects: {
       restartFailedVms: () => async (
-        { failedVmsIds: vms },
+        state,
         { log: { jobId: id, scheduleId: schedule } }
       ) => {
         await runBackupNgJob({
           id,
           schedule,
-          vms,
+          vms: state.globalFailure ? undefined : state.failedVmsIds,
         })
       },
     },
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
+      globalFailure: (_, { log }) =>
+        log !== undefined && isFailureTask(log) && log.tasks === undefined,
       failedVmsIds: (_, { log }) =>
         log === undefined || !isFailureTask(log)
           ? []
-          : get(() =>
-              log.tasks.filter(isFailureTask).map(vmTask => vmTask.data.id)
-            ),
+          : log.tasks.filter(isFailureTask).map(vmTask => vmTask.data.id),
     },
   }),
   injectState,
@@ -68,7 +68,7 @@ export default [
             title='Backup job failed'
           />
         )}
-        {(state.failedVmsIds === undefined || state.failedVmsIds.length > 0) &&
+        {(state.globalFailure || state.failedVmsIds.length > 0) &&
           log.scheduleId !== undefined && (
             <ActionButton
               handler={effects.restartFailedVms}
