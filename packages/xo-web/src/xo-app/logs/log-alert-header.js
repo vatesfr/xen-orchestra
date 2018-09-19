@@ -38,7 +38,7 @@ export default [
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
       globalFailure: (_, { log }) =>
-        log !== undefined && isFailureTask(log) && log.tasks === undefined,
+        log !== undefined && log.tasks === undefined,
       failedVmsIds: (_, { log }) =>
         log === undefined || !isFailureTask(log)
           ? []
