@@ -152,10 +152,11 @@ class BackupReportsXoPlugin {
 
   async _backupNgListener (_1, _2, schedule, runJobId) {
     const xo = this._xo
-    const log = await xo.getBackupNgLogs(runJobId.trim())
+    const trimmedRunId = runJobId.trim()
+    const log = await xo.getBackupNgLogs(trimmedRunId)
 
     if (log === undefined) {
-      throw new Error(`the log with the runId (${runJobId}) is not found`)
+      throw new Error(`the log with the runId (${trimmedRunId}) is not found`)
     }
 
     const { reportWhen, mode } = log.data || {}
