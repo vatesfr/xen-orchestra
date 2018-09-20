@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
 import ButtonGroup from 'button-group'
@@ -9,7 +10,10 @@ import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import Tooltip from 'tooltip'
 import { get } from 'xo-defined'
 import { injectState, provideState } from '@julien-f/freactal'
-import { subscribeBackupNgLogs } from 'xo'
+import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
+
+const isFailureTask = ({ status }) =>
+  status !== 'success' && status !== 'pending'
 
 export default [
   addSubscriptions(({ id }) => ({
@@ -19,12 +23,26 @@ export default [
       }),
   })),
   provideState({
+    effects: {
+      restartFailedVms: () => async (
+        _,
+        { log: { jobId: id, scheduleId: schedule, tasks } }
+      ) => {
+        await runBackupNgJob({
+          id,
+          schedule,
+          vms:
+            tasks && tasks.filter(isFailureTask).map(vmTask => vmTask.data.id),
+        })
+      },
+    },
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
+      jobFailed: (_, { log }) => log !== undefined && isFailureTask(log),
     },
   }),
   injectState,
-  ({ state, log = {}, jobs }) => (
+  ({ state, effects, log = {}, jobs }) => (
     <span>
       {get(() => jobs[log.jobId].name) || 'Job'} (
       {get(() => log.jobId.slice(4, 8))}){' '}
@@ -46,6 +64,15 @@ export default [
             title='Backup job failed'
           />
         )}
+        {state.jobFailed &&
+          log.scheduleId !== undefined && (
+            <ActionButton
+              handler={effects.restartFailedVms}
+              icon='run'
+              size='small'
+              tooltip={_('backupRestartFailedVms')}
+            />
+          )}
       </ButtonGroup>
     </span>
   ),
