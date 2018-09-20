@@ -16,7 +16,7 @@ import map from 'lodash/map'
 const asyncMap = (collection, iteratee) => {
   let then
   if (collection != null && typeof (then = collection.then) === 'function') {
-    return then.apply(collection, collection => asyncMap(collection, iteratee))
+    return then.call(collection, collection => asyncMap(collection, iteratee))
   }
 
   let errorContainer
