@@ -20,6 +20,8 @@
 - [XOA updater] Fix issue where trial request would fail [#3407](https://github.com/vatesfr/xen-orchestra/issues/3407) (PR [#3412](https://github.com/vatesfr/xen-orchestra/pull/3412))
 - [Backup NG logs] Fix log's value not being updated in the copy and report button [#3273](https://github.com/vatesfr/xen-orchestra/issues/3273) (PR [#3360](https://github.com/vatesfr/xen-orchestra/pull/3360))
 - [VM/host consoles] Work around a XenServer/XCP-ng issue which lead to some consoles not working [#3432](https://github.com/vatesfr/xen-orchestra/issues/3432) (PR [#3435](https://github.com/vatesfr/xen-orchestra/pull/3435))
+- [Backup NG] Fix issue when *Delete first* was enabled for some of the remotes [#3424](https://github.com/vatesfr/xen-orchestra/issues/3424) (PR [#3427](https://github.com/vatesfr/xen-orchestra/pull/3427))
+- [VM/host consoles] Work around a XenServer/XCP-ng issue which lead to some consoles not working [#3432](https://github.com/vatesfr/xen-orchestra/issues/3432) (PR [#3435](https://github.com/vatesfr/xen-orchestra/pull/3435))
 
 ### Released packages
 

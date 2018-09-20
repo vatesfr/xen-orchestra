@@ -1227,17 +1227,28 @@ export default class BackupNg {
               const streams: any = mapValues(
                 deltaExport.streams,
                 lazyStream => {
-                  const pStream = lazyStream()
-                  const forks = Array.from({ length: nTargets }, _ => {
-                    const promise = pStream.then(stream => {
-                      const fork: any = stream.pipe(new PassThrough())
-                      fork.task = stream.task
-                      return fork
-                    })
-                    promise.catch(noop) // prevent unhandled rejection
-                    return promise
-                  })
-                  return () => forks.pop()
+                  // wait for all targets to require the stream and then starts
+                  // the real export and create the forks.
+                  const resolves = []
+                  function resolver (resolve) {
+                    resolves.push(resolve)
+
+                    if (resolves.length === nTargets) {
+                      const pStream = lazyStream()
+                      resolves.forEach(resolve => {
+                        resolve(
+                          pStream.then(stream => {
+                            const fork: any = stream.pipe(new PassThrough())
+                            fork.task = stream.task
+                            return fork
+                          })
+                        )
+                      })
+                      resolves.length = 0
+                    }
+                  }
+
+                  return () => new Promise(resolver)
                 }
               )
               return () => {
