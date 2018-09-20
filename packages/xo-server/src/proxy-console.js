@@ -12,7 +12,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
 
   const socket = connect(
     {
-      host: url.host,
+      host: url.hostname,
       port: url.port || 443,
       rejectUnauthorized: false,
     },
