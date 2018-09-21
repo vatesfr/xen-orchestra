@@ -382,6 +382,14 @@ export default {
 
     hasVendorDevice: true,
 
+    nicType: {
+      set (nicType, vm) {
+        return this._updateObjectMapProperty(vm, 'platform', {
+          nic_type: nicType,
+        })
+      },
+    },
+
     vga: {
       set (vga, vm) {
         if (!includes(XEN_VGA_VALUES, vga)) {

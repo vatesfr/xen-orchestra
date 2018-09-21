@@ -615,6 +615,9 @@ set.params = {
   resourceSet: { type: ['string', 'null'], optional: true },
 
   share: { type: 'boolean', optional: true },
+
+  // set the VM network interface controller
+  nicType: { type: ['string', 'null'], optional: true },
 }
 
 set.resolve = {
