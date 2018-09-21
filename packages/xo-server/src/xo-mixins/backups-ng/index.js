@@ -776,7 +776,7 @@ export default class BackupNg {
       )
     }
 
-    const { id: jobId, settings } = job
+    const { id: jobId, mode, settings } = job
     const { id: scheduleId } = schedule
 
     let exportRetention: number = getSetting(settings, 'exportRetention', [
@@ -887,23 +887,28 @@ export default class BackupNg {
       })
     )
 
-    $defer(() =>
-      asyncMap(
-        flatMap(
-          groupBy(snapshots, _ => _.other_config['xo:backup:schedule']),
-          (snapshots, schedule) => {
-            let retention = getSetting(settings, 'snapshotRetention', [
-              scheduleId,
-            ])
-            if (schedule === scheduleId) {
-              --retention // take newly created snapshot into account
-            }
-            return getOldEntries(retention, snapshots)
-          }
-        ),
-        _ => xapi.deleteVm(_)
-      )
+    snapshot = await xapi.barrier(snapshot.$ref)
+
+    let baseSnapshot = mode === 'delta' ? last(snapshots) : undefined
+    snapshots.push(snapshot)
+
+    // snapshots to delete due to the snapshot retention settings
+    const snapshotsToDelete = flatMap(
+      groupBy(snapshots, _ => _.other_config['xo:backup:schedule']),
+      (snapshots, scheduleId) =>
+        getOldEntries(
+          getSetting(settings, 'snapshotRetention', [scheduleId]),
+          snapshots
+        )
     )
+
+    // delete unused snapshots
+    await asyncMap(snapshotsToDelete, vm => {
+      // snapshot and baseSnapshot should not be deleted right now
+      if (vm !== snapshot && vm !== baseSnapshot) {
+        return xapi.deleteVm(vm)
+      }
+    })
 
     snapshot = ((await wrapTask(
       {
@@ -927,10 +932,10 @@ export default class BackupNg {
 
     const metadataFilename = `${vmDir}/${basename}.json`
 
-    if (job.mode === 'full') {
+    if (mode === 'full') {
       // TODO: do not create the snapshot if there are no snapshotRetention and
       // the VM is not running
-      if (snapshotRetention === 0) {
+      if (snapshotsToDelete.includes(snapshot)) {
         $defer.call(xapi, 'deleteVm', snapshot)
       }
 
@@ -1090,10 +1095,12 @@ export default class BackupNg {
         ],
         noop // errors are handled in logs
       )
-    } else if (job.mode === 'delta') {
-      if (snapshotRetention === 0) {
-        // only keep the snapshot in case of success
+    } else if (mode === 'delta') {
+      if (snapshotsToDelete.includes(snapshot)) {
         $defer.onFailure.call(xapi, 'deleteVm', snapshot)
+      }
+      if (snapshotsToDelete.includes(baseSnapshot)) {
+        $defer.onSuccess.call(xapi, 'deleteVm', baseSnapshot)
       }
 
       // JFT: TODO: remove when enough time has passed (~2018-09)
@@ -1119,9 +1126,8 @@ export default class BackupNg {
         )
       )
 
-      let baseSnapshot, fullVdisRequired
+      let fullVdisRequired
       await (async () => {
-        baseSnapshot = (last(snapshots): Vm | void)
         if (baseSnapshot === undefined) {
           return
         }
@@ -1431,7 +1437,7 @@ export default class BackupNg {
         noop // errors are handled in logs
       )
     } else {
-      throw new Error(`no exporter for backup mode ${job.mode}`)
+      throw new Error(`no exporter for backup mode ${mode}`)
     }
   }
 
