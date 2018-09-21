@@ -11,7 +11,9 @@ import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import {
   countBy,
+  flatMap,
   forEach,
+  groupBy,
   isEmpty,
   last,
   mapValues,
@@ -117,14 +119,11 @@ const compareReplicatedVmDatetime = (a: Vm, b: Vm): number =>
 const compareTimestamp = (a: Metadata, b: Metadata): number =>
   a.timestamp - b.timestamp
 
-// returns all entries but the last (retention - 1)-th
-//
-// the “-1” is because this code is usually run with entries computed before the
-// new entry is created
+// returns all entries but the last retention-th
 const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
   entries === undefined
     ? []
-    : --retention > 0
+    : retention > 0
       ? entries.slice(0, -retention)
       : entries
 
@@ -890,11 +889,14 @@ export default class BackupNg {
 
     $defer(() =>
       asyncMap(
-        getOldEntries(
-          snapshotRetention,
-          snapshots.filter(
-            _ => _.other_config['xo:backup:schedule'] === scheduleId
-          )
+        flatMap(
+          groupBy(snapshots, _ => _.other_config['xo:backup:schedule']),
+          (snapshots, scheduleId) => {
+            return getOldEntries(
+              getSetting(settings, 'snapshotRetention', [scheduleId]),
+              snapshots
+            )
+          }
         ),
         _ => xapi.deleteVm(_)
       )
@@ -991,7 +993,7 @@ export default class BackupNg {
                 )::ignoreErrors()
 
                 const oldBackups: MetadataFull[] = (getOldEntries(
-                  exportRetention,
+                  exportRetention - 1,
                   await this._listVmBackups(
                     handler,
                     vm,
@@ -1038,7 +1040,7 @@ export default class BackupNg {
                 const { $id: srId, xapi } = sr
 
                 const oldVms = getOldEntries(
-                  copyRetention,
+                  copyRetention - 1,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
@@ -1276,7 +1278,7 @@ export default class BackupNg {
                 const fork = forkExport()
 
                 const oldBackups: MetadataDelta[] = (getOldEntries(
-                  exportRetention,
+                  exportRetention - 1,
                   await this._listVmBackups(
                     handler,
                     vm,
@@ -1380,7 +1382,7 @@ export default class BackupNg {
                 const { $id: srId, xapi } = sr
 
                 const oldVms = getOldEntries(
-                  copyRetention,
+                  copyRetention - 1,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
