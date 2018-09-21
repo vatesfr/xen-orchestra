@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@xen-orchestra/async-map",
   "version": "0.0.0",
   "license": "ISC",
