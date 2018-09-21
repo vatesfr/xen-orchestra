@@ -23,6 +23,7 @@
 - [Backup NG logs] Fix log's value not being updated in the copy and report button [#3273](https://github.com/vatesfr/xen-orchestra/issues/3273) (PR [#3360](https://github.com/vatesfr/xen-orchestra/pull/3360))
 - [Backup NG] Fix issue when *Delete first* was enabled for some of the remotes [#3424](https://github.com/vatesfr/xen-orchestra/issues/3424) (PR [#3427](https://github.com/vatesfr/xen-orchestra/pull/3427))
 - [VM/host consoles] Work around a XenServer/XCP-ng issue which lead to some consoles not working [#3432](https://github.com/vatesfr/xen-orchestra/issues/3432) (PR [#3435](https://github.com/vatesfr/xen-orchestra/pull/3435))
+- [Backup NG] Remove extraneous snapshots in case of multiple schedules [#3132](https://github.com/vatesfr/xen-orchestra/issues/3132) (PR [#3439](https://github.com/vatesfr/xen-orchestra/pull/3439))
 
 ### Released packages
 
