@@ -1,6 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import defined, { get } from 'xo-defined'
+import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import moment from 'moment-timezone'

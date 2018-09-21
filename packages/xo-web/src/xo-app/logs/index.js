@@ -16,7 +16,7 @@ import { connectStore, formatSize, formatSpeed } from 'utils'
 import { createGetObject, createSelector } from 'selectors'
 import { filter, forEach, includes, keyBy, map, orderBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
-import { get } from 'xo-defined'
+import { get } from '@xen-orchestra/defined'
 import {
   deleteJobsLogs,
   subscribeJobs,

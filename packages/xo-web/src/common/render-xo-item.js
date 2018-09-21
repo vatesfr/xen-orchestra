@@ -1,6 +1,7 @@
 import _ from 'intl'
 import PropTypes from 'prop-types'
 import React from 'react'
+import { get } from '@xen-orchestra/defined'
 import { startsWith } from 'lodash'
 
 import Icon from './icon'
@@ -9,7 +10,6 @@ import propTypes from './prop-types-decorator'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
-import { get } from './xo-defined'
 import { isSrWritable, subscribeRemotes } from './xo'
 
 // ===================================================================

@@ -1,6 +1,7 @@
 import * as CM from 'complex-matcher'
 import _ from 'intl'
 import classNames from 'classnames'
+import defined, { get } from '@xen-orchestra/defined'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import React from 'react'
@@ -25,7 +26,6 @@ import ActionRowButton from '../action-row-button'
 import Button from '../button'
 import ButtonGroup from '../button-group'
 import Component from '../base-component'
-import defined, { get } from '../xo-defined'
 import Icon from '../icon'
 import Pagination from '../pagination'
 import propTypes from '../prop-types-decorator'

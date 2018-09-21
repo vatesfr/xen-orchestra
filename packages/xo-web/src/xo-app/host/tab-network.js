@@ -15,7 +15,7 @@ import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
-import { get } from 'xo-defined'
+import { get } from '@xen-orchestra/defined'
 import { Select, Number } from 'editable'
 import { Toggle } from 'form'
 import {

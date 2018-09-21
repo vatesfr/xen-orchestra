@@ -1,6 +1,6 @@
 import _ from 'intl'
 import Copiable from 'copiable'
-import defined from 'xo-defined'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'

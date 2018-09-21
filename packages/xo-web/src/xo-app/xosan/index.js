@@ -9,9 +9,9 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
-import { get } from 'xo-defined'
-import { every, filter, find, flatten, forEach, isEmpty, map } from 'lodash'
 import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
+import { every, filter, find, flatten, forEach, isEmpty, map } from 'lodash'
+import { get } from '@xen-orchestra/defined'
 import {
   addSubscriptions,
   connectStore,

@@ -1,6 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
-import defined from 'xo-defined'
+import defined from '@xen-orchestra/defined'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import Link from 'link'
