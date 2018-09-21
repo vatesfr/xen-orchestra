@@ -891,11 +891,14 @@ export default class BackupNg {
       asyncMap(
         flatMap(
           groupBy(snapshots, _ => _.other_config['xo:backup:schedule']),
-          (snapshots, scheduleId) => {
-            return getOldEntries(
-              getSetting(settings, 'snapshotRetention', [scheduleId]),
-              snapshots
-            )
+          (snapshots, schedule) => {
+            let retention = getSetting(settings, 'snapshotRetention', [
+              scheduleId,
+            ])
+            if (schedule === scheduleId) {
+              --retention // take newly created snapshot into account
+            }
+            return getOldEntries(retention, snapshots)
           }
         ),
         _ => xapi.deleteVm(_)
