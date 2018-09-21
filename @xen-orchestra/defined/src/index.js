@@ -46,7 +46,7 @@ export const get = (accessor: (input: ?any) => any, arg: ?any) => {
     return accessor(arg)
   } catch (error) {
     if (!(error instanceof TypeError)) {
-      // avoid hidding other errors
+      // avoid hiding other errors
       throw error
     }
   }
