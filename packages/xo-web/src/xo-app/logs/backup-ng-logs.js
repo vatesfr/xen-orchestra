@@ -8,7 +8,7 @@ import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { formatSize } from 'utils'
 import { FormattedDate } from 'react-intl'
-import { get } from 'xo-defined'
+import { get } from '@xen-ochestra/defined'
 import { isEmpty, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 

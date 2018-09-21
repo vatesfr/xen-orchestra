@@ -27,8 +27,9 @@
 
 - xo-server-backup-reports v0.14.0
 - @xen-orchestra/async-map v0.0.0
-- @xen-orchestra/mixin v0.0.0
+- @xen-orchestra/defined v0.0.0
 - @xen-orchestra/emit-async v0.0.0
+- @xen-orchestra/mixin v0.0.0
 - xo-server v5.27.0
 - xo-web v5.27.0
 
