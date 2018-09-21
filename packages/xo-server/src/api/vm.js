@@ -616,8 +616,8 @@ set.params = {
 
   share: { type: 'boolean', optional: true },
 
-  // Switch from the Realtek RTL819 network interface to the Intel e1000 network interface
-  intelNic: { type: 'boolean', optional: true },
+  // set the VM network interface controller
+  nicType: { type: ['string', 'null'], optional: true },
 }
 
 set.resolve = {

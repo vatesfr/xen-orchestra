@@ -364,6 +364,7 @@ const TRANSFORMS = {
       // TODO: dedupe
       VGPUs: link(obj, 'VGPUs'),
       $VGPUs: link(obj, 'VGPUs'),
+      nicType: obj.platform.nic_type,
     }
 
     if (isHvm) {

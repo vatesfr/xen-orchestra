@@ -382,10 +382,10 @@ export default {
 
     hasVendorDevice: true,
 
-    intelNic: {
-      set (intelNic, vm) {
+    nicType: {
+      set (nicType, vm) {
         return this._updateObjectMapProperty(vm, 'platform', {
-          nic_type: intelNic ? 'e1000' : null,
+          nic_type: nicType,
         })
       },
     },
