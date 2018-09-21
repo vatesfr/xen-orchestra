@@ -139,6 +139,8 @@ export default [
 
         return ALL_FILTER_OPTION
       },
+      isOptionDisabled: ({ countByStatus }) => ({ value = 0 }) =>
+        countByStatus[value] === 0,
     },
   }),
   injectState,
@@ -152,6 +154,7 @@ export default [
     ) : (
       <div>
         <Select
+          isOptionDisabled={state.isOptionDisabled}
           labelKey='label'
           onChange={effects.setFilter}
           optionRenderer={state.optionRenderer}
