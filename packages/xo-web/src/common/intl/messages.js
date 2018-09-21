@@ -1018,6 +1018,7 @@ const messages = {
   vmAffinityHost: 'Affinity host',
   vmVga: 'VGA',
   vmVideoram: 'Video RAM',
+  vmNicType: 'NIC type',
   noAffinityHost: 'None',
   originalTemplate: 'Original template',
   unknownOsName: 'Unknown',

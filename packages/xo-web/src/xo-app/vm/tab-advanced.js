@@ -8,12 +8,12 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { Toggle } from 'form'
-import { Number, Size, Text, XoSelect } from 'editable'
-import { Container, Row, Col } from 'grid'
-import { SelectResourceSet, SelectVgpuType } from 'select-objects'
-import { confirm } from 'modal'
 import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
+import { confirm } from 'modal'
+import { Container, Row, Col } from 'grid'
+import { Number, Size, Text, XoSelect } from 'editable'
+import { Select, Toggle } from 'form'
+import { SelectResourceSet, SelectVgpuType } from 'select-objects'
 import {
   addSubscriptions,
   connectStore,
@@ -280,6 +280,17 @@ class CoresPerSocket extends Component {
   }
 }
 
+const NIC_TYPE_OPTIONS = [
+  {
+    label: 'Realtek RTL819',
+    value: '',
+  },
+  {
+    label: 'Intel e1000',
+    value: 'e1000',
+  },
+]
+
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
   const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
@@ -296,6 +307,9 @@ export default class TabAdvanced extends Component {
   componentDidMount () {
     getVmsHaValues().then(vmsHaValues => this.setState({ vmsHaValues }))
   }
+
+  _onNicTypeChange = value =>
+    editVm(this.props.vm, { nicType: value === '' ? null : value })
 
   render () {
     const { container, isAdmin, vgpus, vm } = this.props
@@ -488,6 +502,20 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
+                <tr>
+                  <th>{_('vmNicType')}</th>
+                  <td>
+                    <Select
+                      labelKey='label'
+                      onChange={this._onNicTypeChange}
+                      options={NIC_TYPE_OPTIONS}
+                      required
+                      simpleValue
+                      value={vm.nicType || ''}
+                      valueKey='value'
+                    />
+                  </td>
+                </tr>
                 {vm.virtualizationMode === 'hvm' && (
                   <tr>
                     <th>{_('vmVga')}</th>
