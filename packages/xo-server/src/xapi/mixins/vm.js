@@ -382,6 +382,14 @@ export default {
 
     hasVendorDevice: true,
 
+    intelNic: {
+      set (intelNic, vm) {
+        return this._updateObjectMapProperty(vm, 'platform', {
+          nic_type: intelNic ? 'e1000' : null,
+        })
+      },
+    },
+
     vga: {
       set (vga, vm) {
         if (!includes(XEN_VGA_VALUES, vga)) {

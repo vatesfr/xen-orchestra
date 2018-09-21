@@ -615,6 +615,9 @@ set.params = {
   resourceSet: { type: ['string', 'null'], optional: true },
 
   share: { type: 'boolean', optional: true },
+
+  // Switch from the Realtek RTL819 network interface to the Intel e1000 network interface
+  intelNic: { type: 'boolean', optional: true },
 }
 
 set.resolve = {
