@@ -5749,13 +5749,13 @@ http-proxy@^1.16.2:
     follow-redirects "^1.0.0"
     requires-port "^1.0.0"
 
-http-request-plus@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.5.0.tgz#70f93ad514b77c4d31bbfa877f802ad267c15d34"
+http-request-plus@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.6.0.tgz#0c94535f4e5a0c108a805470eeddf7abf18d5849"
   dependencies:
     is-redirect "^1.0.0"
     lodash "^4.17.4"
-    promise-toolbox "^0.9.5"
+    promise-toolbox "^0.10.1"
 
 http-server-plus@^0.10.0:
   version "0.10.0"
