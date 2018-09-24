@@ -224,6 +224,7 @@ export class Xapi extends EventEmitter {
     this._auth = opts.auth
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
+    this._RecordsByType = createObject(null)
     this._sessionId = null
     const url = (this._url = parseUrl(opts.url))
 
@@ -969,11 +970,7 @@ export class Xapi extends EventEmitter {
   }
 
   _wrapRecord (type, ref, data) {
-    let RecordsByType = this._RecordsByType
-    if (RecordsByType === undefined) {
-      RecordsByType = this._RecordsByType = { __proto__: null }
-    }
-
+    const RecordsByType = this._RecordsByType
     let Record = RecordsByType[type]
     if (Record === undefined) {
       const fields = getKeys(data)
