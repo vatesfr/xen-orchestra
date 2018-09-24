@@ -6,7 +6,7 @@
 
 ### Bug fixes
 
-[File restore] Fix a path issue when going back to the parent folder
+[File restore] Fix a path issue when going back to the parent folder (PR [#3446](https://github.com/vatesfr/xen-orchestra/pull/3446))
 
 ### Released packages
 
