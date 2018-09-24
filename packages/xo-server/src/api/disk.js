@@ -10,12 +10,17 @@ export async function create ({ name, size, sr, vm, bootable, position, mode }) 
   const attach = vm !== undefined
 
   let resourceSet
+  const permissionsParams = [this.user.id, [[sr.id, 'administrate']]]
   if (attach && (resourceSet = vm.resourceSet) != null) {
-    await this.checkResourceSetConstraints(resourceSet, this.user.id, [sr.id])
-    await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
-  } else if (
-    !(await this.hasPermissions(this.user.id, [[sr.id, 'administrate']]))
-  ) {
+    try {
+      await this.checkResourceSetConstraints(resourceSet, this.user.id, [sr.id])
+      await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
+    } catch (e) {
+      if (!(await this.hasPermissions(...permissionsParams))) {
+        throw unauthorized()
+      }
+    }
+  } else if (!(await this.hasPermissions(...permissionsParams))) {
     throw unauthorized()
   }
 
