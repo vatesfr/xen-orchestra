@@ -974,6 +974,7 @@ export class Xapi extends EventEmitter {
     let Record = RecordsByType[type]
     if (Record === undefined) {
       const fields = getKeys(data)
+      const nFields = fields.length
       const xapi = this
 
       const objectsByRef = this._objectsByRef
@@ -984,9 +985,10 @@ export class Xapi extends EventEmitter {
           $id: { value: data.uuid || ref },
           $ref: { value: ref },
         })
-        fields.forEach(field => {
+        for (let i = 0; i < nFields; ++i) {
+          const field = fields[i]
           this[field] = data[field]
-        })
+        }
       }
 
       const getters = { $pool: this._getPool }
