@@ -210,6 +210,15 @@ const getTaskResult = task => {
 
 // -------------------------------------------------------------------
 
+const RESERVED_FIELDS = {
+  id: true,
+  pool: true,
+  ref: true,
+  type: true,
+}
+
+// -------------------------------------------------------------------
+
 const CONNECTED = 'connected'
 const CONNECTING = 'connecting'
 const DISCONNECTED = 'disconnected'
@@ -998,10 +1007,12 @@ export class Xapi extends EventEmitter {
           return xapi.setField(this, field, value)
         }
 
+        const $field = (field in RESERVED_FIELDS ? '$$' : '$') + field
+
         const value = data[field]
         if (isArray(value)) {
           if (value.length === 0 || isOpaqueRef(value[0])) {
-            getters[`$${field}`] = function () {
+            getters[$field] = function () {
               const value = this[field]
               return value.length === 0 ? value : value.map(getObjectByRef)
             }
@@ -1013,7 +1024,7 @@ export class Xapi extends EventEmitter {
               .then(noop)
           }
         } else if (value !== null && typeof value === 'object') {
-          getters[`$${field}`] = function () {
+          getters[$field] = function () {
             const value = this[field]
             const result = {}
             getKeys(value).forEach(key => {
@@ -1025,7 +1036,7 @@ export class Xapi extends EventEmitter {
             return xapi.setFieldEntries(this, field, entries)
           }
         } else if (isOpaqueRef(value)) {
-          getters[`$${field}`] = function () {
+          getters[$field] = function () {
             return objectsByRef[this[field]]
           }
         }
