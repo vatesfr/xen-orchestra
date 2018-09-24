@@ -1,13 +1,10 @@
 import { SECTOR_SIZE } from './_constants'
 
 export default function computeGeometryForSize (size) {
-  const totalSectors = Math.ceil(size / 512)
+  const totalSectors = Math.min(Math.ceil(size / 512), 65535 * 16 * 255)
   let sectorsPerTrackCylinder
   let heads
   let cylinderTimesHeads
-  if (totalSectors > 65535 * 16 * 255) {
-    throw Error('disk is too big')
-  }
   // straight copypasta from the file spec appendix on CHS Calculation
   if (totalSectors >= 65535 * 16 * 63) {
     sectorsPerTrackCylinder = 255
