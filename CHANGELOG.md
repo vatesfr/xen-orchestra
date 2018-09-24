@@ -4,6 +4,17 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+- xo-server v5.28.0
+- xo-web v5.28.0
+
+## **5.27.0** (2018-09-24)
+
+### Enhancements
+
 - [Remotes] Test the remote automatically on changes [#3323](https://github.com/vatesfr/xen-orchestra/issues/3323) (PR [#3397](https://github.com/vatesfr/xen-orchestra/pull/3397))
 - [Remotes] Use *WORKGROUP* as default domain for new SMB remote (PR [#3398](https://github.com/vatesfr/xen-orchestra/pull/3398))
 - [Backup NG form] Display a tip to encourage users to create vms on a thin-provisioned storage [#3334](https://github.com/vatesfr/xen-orchestra/issues/3334) (PR [#3402](https://github.com/vatesfr/xen-orchestra/pull/3402))
