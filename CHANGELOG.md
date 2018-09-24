@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+[File restore] Fix a path issue when going back to the parent folder
+
 ### Released packages
 
 - xo-server v5.28.0
