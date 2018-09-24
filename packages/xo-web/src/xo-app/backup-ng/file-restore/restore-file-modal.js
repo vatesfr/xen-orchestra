@@ -260,8 +260,10 @@ export default class RestoreFileModalBody extends Component {
       const redundantFiles = {}
       forEach(files, file => {
         redundantFiles[file.path] =
-          find(files, f => f !== file && startsWith(file.path, f.path)) !==
-          undefined
+          find(
+            files,
+            f => !f.isFile && f !== file && startsWith(file.path, f.path)
+          ) !== undefined
       })
       return redundantFiles
     }
