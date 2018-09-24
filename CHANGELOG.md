@@ -7,6 +7,7 @@
 ### Bug fixes
 
 [File restore] Fix a path issue when going back to the parent folder (PR [#3446](https://github.com/vatesfr/xen-orchestra/pull/3446))
+[File restore] Fix a minor issue when showing which selected files are redundant (PR [#3447](https://github.com/vatesfr/xen-orchestra/pull/3447))
 
 ### Released packages
 
