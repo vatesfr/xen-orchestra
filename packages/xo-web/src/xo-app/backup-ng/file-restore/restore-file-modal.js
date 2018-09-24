@@ -46,6 +46,8 @@ const fileOptionRenderer = ({ isFile, name }) => (
   </span>
 )
 
+const ensureTrailingSlash = path => path + (endsWith(path, '/') ? '' : '/')
+
 // -----------------------------------------------------------------------------
 
 const formatFilesOptions = (rawFiles, path) => {
@@ -56,7 +58,7 @@ const formatFilesOptions = (rawFiles, path) => {
             id: '..',
             isFile: false,
             name: '..',
-            path: dirname(path),
+            path: ensureTrailingSlash(dirname(path)),
           },
         ]
       : []
