@@ -12,6 +12,8 @@
 
 ### Released packages
 
+- vhd-lib v0.3.1
+- xo-vmdk-to-vhd v0.1.4
 - xo-server v5.28.0
 - xo-web v5.28.0
 
