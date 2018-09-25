@@ -1,4 +1,5 @@
 import appConf from 'app-conf'
+import assert from 'assert'
 import bind from 'lodash/bind'
 import blocked from 'blocked'
 import createExpress from 'express'
@@ -540,6 +541,9 @@ ${name} v${version}`)(require('../package.json'))
 // ===================================================================
 
 export default async function main (args) {
+  // makes sure the global Promise has not been changed by a lib
+  assert(global.Promise === require('bluebird'))
+
   if (includes(args, '--help') || includes(args, '-h')) {
     return USAGE
   }
