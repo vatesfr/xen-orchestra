@@ -16,18 +16,20 @@ import {
   groupBy,
   isEmpty,
   last,
+  map,
   mapValues,
   noop,
   some,
   sum,
   values,
 } from 'lodash'
-import { CancelToken, pFromEvent, ignoreErrors } from 'promise-toolbox'
+import { CancelToken, pFromEvent, pFinally, ignoreErrors } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
 } from 'vhd-lib'
 
+import type Logger from '../logs/loggers/abstract'
 import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
@@ -201,20 +203,22 @@ const importers: $Dict<
     metadataFilename: string,
     metadata: Metadata,
     xapi: Xapi,
-    sr: { $id: string }
+    sr: { $id: string },
+    taskId: string,
+    logger: Logger
   ) => Promise<string>,
   Mode
 > = {
-  async delta (handler, metadataFilename, metadata, xapi, sr) {
+  async delta (handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
     metadata = ((metadata: any): MetadataDelta)
     const { vdis, vhds, vm } = metadata
 
     const streams = {}
     await asyncMap(vdis, async (vdi, id) => {
-      streams[`${id}.vhd`] = await createVhdReadStream(
+      streams[`${id}.vhd`] = (await createVhdReadStream(
         handler,
         resolveRelativeFromFile(metadataFilename, vhds[id])
-      )
+      )).pipe(createSizeStream())
     })
 
     const delta: DeltaVmImport = {
@@ -230,25 +234,45 @@ const importers: $Dict<
       },
     }
 
-    const { vm: newVm } = await xapi.importDeltaVm(delta, {
-      detectBase: false,
-      disableStartAfterImport: false,
-      srId: sr,
-      // TODO: support mapVdisSrs
-    })
+    const { vm: newVm } = await wrapTask(
+      {
+        logger,
+        message: 'transfer',
+        parentId: taskId,
+        result: ({ vm: { $id: id } }) => ({
+          size: sum(map(streams, 'size')),
+          id,
+        }),
+      },
+      xapi.importDeltaVm(delta, {
+        detectBase: false,
+        disableStartAfterImport: false,
+        srId: sr,
+        // TODO: support mapVdisSrs
+      })
+    )
     return newVm.$id
   },
-  async full (handler, metadataFilename, metadata, xapi, sr) {
+  async full (handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
     metadata = ((metadata: any): MetadataFull)
 
-    const xva = await handler.createReadStream(
+    const xva = (await handler.createReadStream(
       resolveRelativeFromFile(metadataFilename, metadata.xva),
       {
         checksum: true,
         ignoreMissingChecksum: true, // provide an easy way to opt-out
       }
+    )).pipe(createSizeStream())
+
+    const vm = await wrapTask(
+      {
+        logger,
+        message: 'transfer',
+        parentId: taskId,
+        result: ({ $id: id }) => ({ size: xva.size, id }),
+      },
+      xapi.importVm(xva, { srId: sr.$id })
     )
-    const vm = await xapi.importVm(xva, { srId: sr.$id })
     await Promise.all([
       xapi.addTag(vm.$id, 'restored from backup'),
       xapi.editVm(vm.$id, {
@@ -425,9 +449,17 @@ export default class BackupNg {
     removeJob: (id: string) => Promise<void>,
     worker: $Dict<any>,
   }
+  _logger: Logger
+  _runningRestores: Array<string>
+
+  get runningRestores () {
+    return this._runningRestores
+  }
 
   constructor (app: any) {
     this._app = app
+    this._logger = undefined
+    this._runningRestores = []
 
     app.on('start', () => {
       const executor: Executor = async ({
@@ -551,6 +583,11 @@ export default class BackupNg {
         }
         await asyncMap(vms, handleVm)
       }
+
+      app.getLogger('restore').then(logger => {
+        this._logger = logger
+      })
+
       app.registerJobExecutor('backup', executor)
     })
   }
@@ -627,14 +664,33 @@ export default class BackupNg {
     }
 
     const xapi = app.getXapi(srId)
-
-    return importer(
-      handler,
-      metadataFilename,
-      metadata,
-      xapi,
-      xapi.getObject(srId)
-    )
+    const { uuid: vmUuid, name_label: vmName } = metadata.vm
+    const logger = this._logger
+    return wrapTaskFn(
+      {
+        data: {
+          srId,
+          vmUuid,
+          vmName,
+        },
+        logger,
+        message: 'restore',
+      },
+      taskId => {
+       this._runningRestores.push(taskId)
+        return importer(
+          handler,
+          metadataFilename,
+          metadata,
+          xapi,
+          xapi.getObject(srId),
+          taskId,
+          logger
+        )::pFinally(() => {
+          delete this._runningRestores[taskId]
+        })
+      }
+    )()
   }
 
   async listVmBackupsNg (remotes: string[]) {
