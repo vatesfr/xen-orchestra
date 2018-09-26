@@ -1,7 +1,9 @@
-import humanFormat from 'human-format'
 import moment from 'moment-timezone'
-import { forEach, get, startCase } from 'lodash'
+import { forEach, get, groupBy, startCase } from 'lodash'
 import pkg from '../package'
+
+import MessageGenerator from './message-generator'
+import { INDENT, STATUS_ICON, formatSize, formatSpeed } from './utils'
 
 export const configurationSchema = {
   type: 'object',
@@ -46,18 +48,6 @@ export const testSchema = {
 
 // ===================================================================
 
-const ICON_FAILURE = '🚨'
-const ICON_INTERRUPTED = '⚠️'
-const ICON_SKIPPED = '⏩'
-const ICON_SUCCESS = '✔'
-
-const STATUS_ICON = {
-  failure: ICON_FAILURE,
-  interrupted: ICON_INTERRUPTED,
-  skipped: ICON_SKIPPED,
-  success: ICON_SUCCESS,
-}
-
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
 const createDateFormater = timezone =>
   timezone !== undefined
@@ -70,20 +60,6 @@ const createDateFormater = timezone =>
 const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
 
 const formatMethod = method => startCase(method.slice(method.indexOf('.') + 1))
-
-const formatSize = bytes =>
-  humanFormat(bytes, {
-    scale: 'binary',
-    unit: 'B',
-  })
-
-const formatSpeed = (bytes, milliseconds) =>
-  milliseconds > 0
-    ? humanFormat((bytes * 1e3) / milliseconds, {
-        scale: 'binary',
-        unit: 'B/s',
-      })
-    : 'N/A'
 
 const logError = e => {
   console.error('backup report error:', e)
@@ -99,12 +75,24 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
+const GENERATORS_BY_VM_STATUS = {
+  success: async (tasks, message) => {
+    const size = tasks.length
+    message
+      .generate()
+      .push('---', '', `## ${size} Success${size === 1 ? '' : 'es'}`, '')
+    for (const task of tasks) {
+      await message.handleVmTask(task)
+    }
+  },
+}
+
 const createGetTemporalDataMarkdown = formatDate => (
   start,
   end,
   nbIndent = 0
 ) => {
-  const indent = '  '.repeat(nbIndent)
+  const indent = INDENT.repeat(nbIndent)
 
   const markdown = [`${indent}- **Start time**: ${formatDate(start)}`]
   if (end !== undefined) {
@@ -203,7 +191,6 @@ class BackupReportsXoPlugin {
 
     const failedVmsText = []
     const skippedVmsText = []
-    const successfulVmsText = []
     const interruptedVmsText = []
     const nagiosText = []
 
@@ -213,7 +200,7 @@ class BackupReportsXoPlugin {
     let nSkipped = 0
     let nInterrupted = 0
     for (const taskLog of log.tasks) {
-      if (taskLog.status === 'success' && reportWhen === 'failure') {
+      if (taskLog.status === 'success') {
         continue
       }
 
@@ -384,14 +371,20 @@ class BackupReportsXoPlugin {
           nagiosText.push(
             `[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`
           )
-        } else {
-          successfulVmsText.push(...text, '', '', ...subText, '')
         }
       }
     }
 
+    const vmTasksByStatus = groupBy(log.tasks, 'status')
+    const message = new MessageGenerator(xo, log, getTemporalDataMarkdown)
+    for (const status in vmTasksByStatus) {
+      const vmTasksGenerator = GENERATORS_BY_VM_STATUS[status]
+      vmTasksGenerator !== undefined &&
+        (await vmTasksGenerator(vmTasksByStatus[status], message))
+    }
+
     const nVms = log.tasks.length
-    const nSuccesses = nVms - nFailures - nSkipped - nInterrupted
+    const nSuccesses = get(vmTasksByStatus.success, 'length') || 0
     let markdown = [
       `##  Global status: ${log.status}`,
       '',
@@ -400,13 +393,16 @@ class BackupReportsXoPlugin {
       `- **Successes**: ${nSuccesses} / ${nVms}`,
     ]
 
+    globalTransferSize += message.getGlobalTransferSize()
     if (globalTransferSize !== 0) {
       markdown.push(`- **Transfer size**: ${formatSize(globalTransferSize)}`)
     }
+
+    globalMergeSize += message.getGlobalMergeSize()
     if (globalMergeSize !== 0) {
       markdown.push(`- **Merge size**: ${formatSize(globalMergeSize)}`)
     }
-    markdown.push('')
+    markdown.push('', ...message.generate())
 
     if (nFailures !== 0) {
       markdown.push(
@@ -429,16 +425,6 @@ class BackupReportsXoPlugin {
         `## ${nInterrupted} Interrupted`,
         '',
         ...interruptedVmsText
-      )
-    }
-
-    if (nSuccesses !== 0 && reportWhen !== 'failure') {
-      markdown.push(
-        '---',
-        '',
-        `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`,
-        '',
-        ...successfulVmsText
       )
     }
 
@@ -492,8 +478,8 @@ class BackupReportsXoPlugin {
     if (status.error !== undefined) {
       const [globalStatus, icon] =
         error.message === NO_VMS_MATCH_THIS_PATTERN
-          ? ['Skipped', ICON_SKIPPED]
-          : ['Failure', ICON_FAILURE]
+          ? ['Skipped', STATUS_ICON.skipped]
+          : ['Failure', STATUS_ICON.failure]
 
       let markdown = [
         `##  Global status: ${globalStatus}`,
@@ -704,10 +690,10 @@ class BackupReportsXoPlugin {
       markdown,
       subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${tag} ${
         globalSuccess
-          ? ICON_SUCCESS
+          ? STATUS_ICON.success
           : nFailures !== 0
-            ? ICON_FAILURE
-            : ICON_SKIPPED
+            ? STATUS_ICON.failure
+            : STATUS_ICON.skipped
       }`,
       nagiosStatus: globalSuccess ? 0 : 2,
       nagiosMarkdown: globalSuccess
