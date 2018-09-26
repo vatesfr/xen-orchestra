@@ -68,7 +68,7 @@ export default class NfsHandler extends LocalHandler {
   async _sync () {
     await this._loadRealMounts()
     if (this._matchesRealMount() && !this._remote.enabled) {
-      await this._umount(this._remote)
+      await this._umount()
     } else if (!this._matchesRealMount() && this._remote.enabled) {
       await this._mount()
     }
@@ -83,7 +83,7 @@ export default class NfsHandler extends LocalHandler {
     }
   }
 
-  async _umount (remote) {
+  async _umount () {
     await execa('umount', ['--force', this._getRealPath()])
   }
 }
