@@ -28,7 +28,6 @@
     "node": ">=4"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.0.0",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.10.1"
   },
