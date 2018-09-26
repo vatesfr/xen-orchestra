@@ -15,43 +15,6 @@ export default class NfsHandler extends LocalHandler {
     return `/run/xo-server/mounts/${this._remote.id}`
   }
 
-  async _loadRealMounts () {
-    let stdout
-    const mounted = {}
-    try {
-      stdout = await execa.stdout('findmnt', [
-        '-P',
-        '-t',
-        'nfs,nfs4',
-        '--output',
-        'SOURCE,TARGET',
-        '--noheadings',
-      ])
-      const regex = /^SOURCE="([^:]*):(.*)" TARGET="(.*)"$/
-      forEach(stdout.split('\n'), m => {
-        if (m) {
-          const match = regex.exec(m)
-          mounted[match[3]] = {
-            host: match[1],
-            share: match[2],
-          }
-        }
-      })
-    } catch (exc) {
-      // When no mounts are found, the call pretends to fail...
-      if (exc.stderr !== '') {
-        throw exc
-      }
-    }
-
-    this._realMounts = mounted
-    return mounted
-  }
-
-  _matchesRealMount () {
-    return this._getRealPath() in this._realMounts
-  }
-
   async _mount () {
     await fs.ensureDir(this._getRealPath())
     const { host, path, port, options } = this._remote
@@ -66,12 +29,45 @@ export default class NfsHandler extends LocalHandler {
   }
 
   async _sync () {
-    await this._loadRealMounts()
-    if (this._matchesRealMount() && !this._remote.enabled) {
-      await this._umount()
-    } else if (!this._matchesRealMount() && this._remote.enabled) {
-      await this._mount()
+    const mounts = {}
+    try {
+      const stdout = await execa.stdout('findmnt', [
+        '-P',
+        '-t',
+        'nfs,nfs4',
+        '--output',
+        'SOURCE,TARGET',
+        '--noheadings',
+      ])
+      const regex = /^SOURCE="([^:]*):(.*)" TARGET="(.*)"$/
+      forEach(stdout.split('\n'), m => {
+        if (m) {
+          const match = regex.exec(m)
+          mounts[match[3]] = {
+            host: match[1],
+            share: match[2],
+          }
+        }
+      })
+    } catch (exc) {
+      // When no mounts are found, the call pretends to fail...
+      if (exc.stderr !== '') {
+        throw exc
+      }
     }
+
+    const isMounted = this._getRealPath() in mounts
+    const shouldBeMounted = this._remote.enabled
+    if (isMounted) {
+      if (!shouldBeMounted) {
+        await this._umount()
+      }
+    } else {
+      if (shouldBeMounted) {
+        await this._mount()
+      }
+    }
+
     return this._remote
   }
 
