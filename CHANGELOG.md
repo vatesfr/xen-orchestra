@@ -10,6 +10,7 @@
 [File restore] Fix a path issue when going back to the parent folder (PR [#3446](https://github.com/vatesfr/xen-orchestra/pull/3446))
 [File restore] Fix a minor issue when showing which selected files are redundant (PR [#3447](https://github.com/vatesfr/xen-orchestra/pull/3447))
 [Memory] Fix a major leak [#2580](https://github.com/vatesfr/xen-orchestra/issues/2580) [#2820](https://github.com/vatesfr/xen-orchestra/issues/2820)  (PR [#3453](https://github.com/vatesfr/xen-orchestra/pull/3453))
+[NFS Remotes] Fix `already mounted` race condition [#3380](https://github.com/vatesfr/xen-orchestra/issues/3380)  (PR [#3460](https://github.com/vatesfr/xen-orchestra/pull/3460))
 
 ### Released packages
 
