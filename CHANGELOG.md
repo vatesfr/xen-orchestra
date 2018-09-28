@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+- [Host/Networks] Remove "Add network" button [#3386](https://github.com/vatesfr/xen-orchestra/issues/3386)
+
 ### Bug fixes
 
 ### Released packages
