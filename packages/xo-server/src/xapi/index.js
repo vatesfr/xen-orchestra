@@ -674,6 +674,7 @@ export default class Xapi extends XapiBase {
       })
     }
 
+    // must be done before destroying the VM
     const disks = getVmDisks(vm)
 
     // this cannot be done in parallel, otherwise disks and snapshots will be
