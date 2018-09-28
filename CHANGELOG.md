@@ -6,6 +6,17 @@
 
 ### Bug fixes
 
+### Released packages
+
+- xo-server v5.28.0
+- xo-web v5.28.0
+
+## **5.27.1** (2018-09-28)
+
+### Enhancements
+
+### Bug fixes
+
 - [OVA Import] Allow import of files bigger than 127GB (PR [#3451](https://github.com/vatesfr/xen-orchestra/pull/3451))
 - [File restore] Fix a path issue when going back to the parent folder (PR [#3446](https://github.com/vatesfr/xen-orchestra/pull/3446))
 - [File restore] Fix a minor issue when showing which selected files are redundant (PR [#3447](https://github.com/vatesfr/xen-orchestra/pull/3447))
@@ -18,8 +29,8 @@
 - @xen-orchestra/fs v0.3.1
 - vhd-lib v0.3.1
 - xo-vmdk-to-vhd v0.1.4
-- xo-server v5.28.0
-- xo-web v5.28.0
+- xo-server v5.27.2
+- xo-web v5.27.1
 
 ## **5.27.0** (2018-09-24)
 
