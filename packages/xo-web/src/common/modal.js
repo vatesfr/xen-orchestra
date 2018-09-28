@@ -264,6 +264,8 @@ class FormModal extends BaseComponent {
     value: this.props.defaultValue,
   }
 
+  _preventDefault = event => event.preventDefault()
+
   get value () {
     return this.state.value
   }
@@ -271,7 +273,7 @@ class FormModal extends BaseComponent {
   render () {
     const { body, formId } = this.props
     return (
-      <form id={formId}>
+      <form id={formId} onSubmit={this._preventDefault}>
         {cloneElement(body, {
           value: this.state.value,
           onChange: this.linkState('value'),
