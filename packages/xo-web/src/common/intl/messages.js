@@ -831,9 +831,17 @@ const messages = {
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
   installPoolPatches: 'Install pool patches',
+  confirmPoolPatch:
+    'Are you sure you want to install all the patches on this pool?',
+  poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
+  selectDefaultSr: 'Select a default SR',
+  vmsHaveCds:
+    '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
+  ejectCds: 'Eject CDs',
   // ----- Pool storage tabs -----
   defaultSr: 'Default SR',
   setAsDefaultSr: 'Set as default SR',
+  setDefaultSr: 'Set default SR:',
 
   // ----- VM tabs -----
   generalTabName: 'General',
