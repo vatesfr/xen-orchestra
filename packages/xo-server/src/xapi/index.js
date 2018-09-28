@@ -674,6 +674,8 @@ export default class Xapi extends XapiBase {
       })
     }
 
+    const disks = getVmDisks(vm)
+
     // this cannot be done in parallel, otherwise disks and snapshots will be
     // destroyed even if this fails
     await this.call('VM.destroy', $ref)
@@ -684,7 +686,7 @@ export default class Xapi extends XapiBase {
       )::ignoreErrors(),
 
       deleteDisks &&
-        asyncMap(getVmDisks(vm), ({ $ref: vdiRef }) => {
+        asyncMap(disks, ({ $ref: vdiRef }) => {
           let onFailure = () => {
             onFailure = vdi => {
               console.error(
