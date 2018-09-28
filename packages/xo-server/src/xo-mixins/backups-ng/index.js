@@ -884,12 +884,20 @@ export default class BackupNg {
         'xo:backup:job': jobId,
         'xo:backup:schedule': scheduleId,
         'xo:backup:vm': vmUuid,
+        'xo:backup:status': 'running',
       })
     )
 
     snapshot = await xapi.barrier(snapshot.$ref)
 
-    let baseSnapshot = mode === 'delta' ? last(snapshots) : undefined
+    let baseSnapshot =
+      mode === 'delta'
+        ? last(
+            snapshots.filter(
+              _ => _.other_config['xo:backup:status'] !== 'running'
+            )
+          )
+        : undefined
     snapshots.push(snapshot)
 
     // snapshots to delete due to the snapshot retention settings
@@ -1439,6 +1447,17 @@ export default class BackupNg {
     } else {
       throw new Error(`no exporter for backup mode ${mode}`)
     }
+
+    await wrapTask(
+      {
+        logger,
+        message: 'modify metadata of snapshot',
+        parentId: taskId,
+      },
+      xapi._updateObjectMapProperty(snapshot, 'other_config', {
+        'xo:backup:status': 'done',
+      })
+    )
   }
 
   async _deleteDeltaVmBackups (
