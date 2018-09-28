@@ -259,6 +259,8 @@ export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
 
 // -----------------------------------------------------------------------------
 
+const preventDefault = event => event.preventDefault()
+
 class FormModal extends BaseComponent {
   state = {
     value: this.props.defaultValue,
@@ -271,7 +273,7 @@ class FormModal extends BaseComponent {
   render () {
     const { body, formId } = this.props
     return (
-      <form id={formId}>
+      <form id={formId} onSubmit={preventDefault}>
         {cloneElement(body, {
           value: this.state.value,
           onChange: this.linkState('value'),
