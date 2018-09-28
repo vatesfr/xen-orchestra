@@ -1,6 +1,5 @@
 import execa from 'execa'
 import fs from 'fs-extra'
-import { forEach } from 'lodash'
 
 import LocalHandler from './local'
 
@@ -18,54 +17,33 @@ export default class NfsHandler extends LocalHandler {
   async _mount () {
     await fs.ensureDir(this._getRealPath())
     const { host, path, port, options } = this._remote
-    return execa('mount', [
-      '-t',
-      'nfs',
-      '-o',
-      DEFAULT_NFS_OPTIONS + (options !== undefined ? `,${options}` : ''),
-      `${host}${port !== undefined ? ':' + port : ''}:${path}`,
-      this._getRealPath(),
-    ])
+    return execa(
+      'mount',
+      [
+        '-t',
+        'nfs',
+        '-o',
+        DEFAULT_NFS_OPTIONS + (options !== undefined ? `,${options}` : ''),
+        `${host}${port !== undefined ? ':' + port : ''}:${path}`,
+        this._getRealPath(),
+      ],
+      {
+        env: {
+          LANG: 'C',
+        },
+      }
+    ).catch(error => {
+      if (!error.stderr.includes('already mounted')) {
+        throw error
+      }
+    })
   }
 
   async _sync () {
-    const mounts = {}
-    try {
-      const stdout = await execa.stdout('findmnt', [
-        '-P',
-        '-t',
-        'nfs,nfs4',
-        '--output',
-        'SOURCE,TARGET',
-        '--noheadings',
-      ])
-      const regex = /^SOURCE="([^:]*):(.*)" TARGET="(.*)"$/
-      forEach(stdout.split('\n'), m => {
-        if (m) {
-          const match = regex.exec(m)
-          mounts[match[3]] = {
-            host: match[1],
-            share: match[2],
-          }
-        }
-      })
-    } catch (exc) {
-      // When no mounts are found, the call pretends to fail...
-      if (exc.stderr !== '') {
-        throw exc
-      }
-    }
-
-    const isMounted = this._getRealPath() in mounts
-    const shouldBeMounted = this._remote.enabled
-    if (isMounted) {
-      if (!shouldBeMounted) {
-        await this._umount()
-      }
+    if (this._remote.enabled) {
+      await this._mount()
     } else {
-      if (shouldBeMounted) {
-        await this._mount()
-      }
+      await this._umount()
     }
 
     return this._remote
@@ -80,6 +58,14 @@ export default class NfsHandler extends LocalHandler {
   }
 
   async _umount () {
-    await execa('umount', ['--force', this._getRealPath()])
+    await execa('umount', ['--force', this._getRealPath()], {
+      env: {
+        LANG: 'C',
+      },
+    }).catch(error => {
+      if (!error.stderr.includes('not mounted')) {
+        throw error
+      }
+    })
   }
 }
