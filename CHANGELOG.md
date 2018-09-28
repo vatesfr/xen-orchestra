@@ -14,6 +14,7 @@
 
 ### Released packages
 
+- @xen-orchestra/fs v0.3.1
 - vhd-lib v0.3.1
 - xo-vmdk-to-vhd v0.1.4
 - xo-server v5.28.0
