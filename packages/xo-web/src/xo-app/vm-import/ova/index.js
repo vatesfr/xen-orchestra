@@ -1,7 +1,7 @@
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import fromEvent from 'promise-toolbox/fromEvent'
 import xml2js from 'xml2js'
-import { fromEvent } from 'promise-toolbox'
 import { ensureArray } from 'utils'
 import { readVmdkGrainTable } from 'xo-vmdk-to-vhd'
 

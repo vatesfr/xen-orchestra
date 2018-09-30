@@ -4,8 +4,81 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+- xo-server v5.28.0
+- xo-web v5.28.0
+
+## **5.27.1** (2018-09-28)
+
+### Enhancements
+
+### Bug fixes
+
+- [OVA Import] Allow import of files bigger than 127GB (PR [#3451](https://github.com/vatesfr/xen-orchestra/pull/3451))
+- [File restore] Fix a path issue when going back to the parent folder (PR [#3446](https://github.com/vatesfr/xen-orchestra/pull/3446))
+- [File restore] Fix a minor issue when showing which selected files are redundant (PR [#3447](https://github.com/vatesfr/xen-orchestra/pull/3447))
+- [Memory] Fix a major leak [#2580](https://github.com/vatesfr/xen-orchestra/issues/2580) [#2820](https://github.com/vatesfr/xen-orchestra/issues/2820) (PR [#3453](https://github.com/vatesfr/xen-orchestra/pull/3453))
+- [NFS Remotes] Fix `already mounted` race condition [#3380](https://github.com/vatesfr/xen-orchestra/issues/3380) (PR [#3460](https://github.com/vatesfr/xen-orchestra/pull/3460))
+- Fix `Cannot read property 'type' of undefined` when deleting a VM (PR [#3465](https://github.com/vatesfr/xen-orchestra/pull/3465))
+
+### Released packages
+
+- @xen-orchestra/fs v0.3.1
+- vhd-lib v0.3.1
+- xo-vmdk-to-vhd v0.1.4
+- xo-server v5.27.2
+- xo-web v5.27.1
+
+## **5.27.0** (2018-09-24)
+
+### Enhancements
+
+- [Remotes] Test the remote automatically on changes [#3323](https://github.com/vatesfr/xen-orchestra/issues/3323) (PR [#3397](https://github.com/vatesfr/xen-orchestra/pull/3397))
+- [Remotes] Use *WORKGROUP* as default domain for new SMB remote (PR [#3398](https://github.com/vatesfr/xen-orchestra/pull/3398))
+- [Backup NG form] Display a tip to encourage users to create vms on a thin-provisioned storage [#3334](https://github.com/vatesfr/xen-orchestra/issues/3334) (PR [#3402](https://github.com/vatesfr/xen-orchestra/pull/3402))
+- [Backup NG form] improve schedule's form [#3138](https://github.com/vatesfr/xen-orchestra/issues/3138) (PR [#3359](https://github.com/vatesfr/xen-orchestra/pull/3359))
+- [Backup NG Overview] Display transferred and merged data size for backup jobs [#3340](https://github.com/vatesfr/xen-orchestra/issues/3340) (PR [#3408](https://github.com/vatesfr/xen-orchestra/pull/3408))
+- [VM] Display the PVHVM status [#3014](https://github.com/vatesfr/xen-orchestra/issues/3014) (PR [#3418](https://github.com/vatesfr/xen-orchestra/pull/3418))
+- [Backup reports] Ability to test the plugin (PR [#3421](https://github.com/vatesfr/xen-orchestra/pull/3421))
+- [Backup NG] Ability to restart failed VMs' backup [#3339](https://github.com/vatesfr/xen-orchestra/issues/3339) (PR [#3420](https://github.com/vatesfr/xen-orchestra/pull/3420))
+- [VM] Ability to change the NIC type [#3423](https://github.com/vatesfr/xen-orchestra/issues/3423) (PR [#3440](https://github.com/vatesfr/xen-orchestra/pull/3440))
+- [Backup NG Overview] Display the schedule's name [#3444](https://github.com/vatesfr/xen-orchestra/issues/3444) (PR [#3445](https://github.com/vatesfr/xen-orchestra/pull/3445))
+
+### Bug fixes
+
+- [Remotes] Rename connect(ed)/disconnect(ed) to enable(d)/disable(d) [#3323](https://github.com/vatesfr/xen-orchestra/issues/3323) (PR [#3396](https://github.com/vatesfr/xen-orchestra/pull/3396))
+- [Remotes] Fix error appears twice on testing (PR [#3399](https://github.com/vatesfr/xen-orchestra/pull/3399))
+- [Backup NG] Don't fail on VMs with empty VBDs (like CDs or floppy disks) (PR [#3410](https://github.com/vatesfr/xen-orchestra/pull/3410))
+- [XOA updater] Fix issue where trial request would fail [#3407](https://github.com/vatesfr/xen-orchestra/issues/3407) (PR [#3412](https://github.com/vatesfr/xen-orchestra/pull/3412))
+- [Backup NG logs] Fix log's value not being updated in the copy and report button [#3273](https://github.com/vatesfr/xen-orchestra/issues/3273) (PR [#3360](https://github.com/vatesfr/xen-orchestra/pull/3360))
+- [Backup NG] Fix issue when *Delete first* was enabled for some of the remotes [#3424](https://github.com/vatesfr/xen-orchestra/issues/3424) (PR [#3427](https://github.com/vatesfr/xen-orchestra/pull/3427))
+- [VM/host consoles] Work around a XenServer/XCP-ng issue which lead to some consoles not working [#3432](https://github.com/vatesfr/xen-orchestra/issues/3432) (PR [#3435](https://github.com/vatesfr/xen-orchestra/pull/3435))
+- [Backup NG] Remove extraneous snapshots in case of multiple schedules [#3132](https://github.com/vatesfr/xen-orchestra/issues/3132) (PR [#3439](https://github.com/vatesfr/xen-orchestra/pull/3439))
+- [Backup NG] Fix page reloaded on creating a schedule [#3461](https://github.com/vatesfr/xen-orchestra/issues/3461) (PR [#3462](https://github.com/vatesfr/xen-orchestra/pull/3462))
+
+### Released packages
+
+- xo-server-backup-reports v0.14.0
+- @xen-orchestra/async-map v0.0.0
+- @xen-orchestra/defined v0.0.0
+- @xen-orchestra/emit-async v0.0.0
+- @xen-orchestra/mixin v0.0.0
+- xo-server v5.27.0
+- xo-web v5.27.0
+
+## **5.26.0** (2018-09-07)
+
+### Enhancements
+
 - [Backup (file) restore] Order backups by date in selector [#3294](https://github.com/vatesfr/xen-orchestra/issues/3294) (PR [#3374](https://github.com/vatesfr/xen-orchestra/pull/3374))
 - [Self] Hide Tasks entry in menu for self users [#3311](https://github.com/vatesfr/xen-orchestra/issues/3311) (PR [#3373](https://github.com/vatesfr/xen-orchestra/pull/3373))
+- [Tasks] Show previous tasks [#3266](https://github.com/vatesfr/xen-orchestra/issues/3266) (PR [#3377](https://github.com/vatesfr/xen-orchestra/pull/3377))
+- [Backup NG] Add job name in names of replicated VMs (PR [#3379](https://github.com/vatesfr/xen-orchestra/pull/3379))
+- [Backup NG] Restore directories [#1924](https://github.com/vatesfr/xen-orchestra/issues/1924) (PR [#3384](https://github.com/vatesfr/xen-orchestra/pull/3384))
+- [VM] Start a VM on a specific host [#3191](https://github.com/vatesfr/xen-orchestra/issues/3191) (PR [#3389](https://github.com/vatesfr/xen-orchestra/pull/3389))
 
 ### Bug fixes
 
@@ -13,6 +86,9 @@
 - [Backup NG] Don't fail listing backups when a remote is broken [#3365](https://github.com/vatesfr/xen-orchestra/issues/3365) (PR [#3367](https://github.com/vatesfr/xen-orchestra/pull/3367))
 - [New XOSAN] Fix error sometimes occurring when selecting the pool (PR [#3370](https://github.com/vatesfr/xen-orchestra/pull/3370))
 - [New VM] Selecting multiple VMs and clicking Create then Cancel used to redirect to Home [#3268](https://github.com/vatesfr/xen-orchestra/issues/3268) (PR [#3371](https://github.com/vatesfr/xen-orchestra/pull/3371))
+- [Remotes] `cannot read 'properties' of undefined` error (PR [#3382](https://github.com/vatesfr/xen-orchestra/pull/3382))
+- [Servers] Various issues when adding a new server [#3385](https://github.com/vatesfr/xen-orchestra/issues/3385) (PR [#3388](https://github.com/vatesfr/xen-orchestra/pull/3388))
+- [Backup NG] Always delete the correct old replications [#3391](https://github.com/vatesfr/xen-orchestra/issues/3391) (PR [#3394](https://github.com/vatesfr/xen-orchestra/pull/3394))
 
 ### Released packages
 

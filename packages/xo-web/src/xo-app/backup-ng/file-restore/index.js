@@ -153,16 +153,11 @@ export default class Restore extends Component {
       body: (
         <RestoreFileModalBody vmName={last.vm.name_label} backups={backups} />
       ),
-    }).then(({ remote, disk, partition, paths, format }) => {
-      if (
-        remote === undefined ||
-        disk === undefined ||
-        paths === undefined ||
-        paths.length === 0
-      ) {
+    }).then(({ remote, disk, partition, paths }) => {
+      if (remote === undefined || disk === undefined || paths.length === 0) {
         return error(_('restoreFiles'), _('restoreFilesError'))
       }
-      return fetchFiles(remote, disk, partition, paths, format)
+      return fetchFiles(remote, disk, partition, paths)
     }, noop)
 
   _delete = data =>

@@ -1,10 +1,14 @@
 import asap from 'asap'
 import cookies from 'cookies-js'
 import fpSortBy from 'lodash/fp/sortBy'
+import pFinally from 'promise-toolbox/finally'
 import React from 'react'
+import reflect from 'promise-toolbox/reflect'
+import tap from 'promise-toolbox/tap'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { SelectHost } from 'select-objects'
 import {
   assign,
   filter,
@@ -19,7 +23,6 @@ import {
   sortBy,
   throttle,
 } from 'lodash'
-import { lastly, reflect, tap } from 'promise-toolbox'
 import {
   forbiddenOperation,
   noHostsAvailable,
@@ -479,7 +482,7 @@ export const editServer = (server, props) =>
   )
 
 export const connectServer = server =>
-  _call('server.connect', { id: resolveId(server) })::lastly(
+  _call('server.connect', { id: resolveId(server) })::pFinally(
     subscribeServers.forceRefresh
   )
 
@@ -804,10 +807,28 @@ const chooseActionToUnblockForbiddenStartVm = props =>
     ...props,
   })
 
-const cloneAndStartVM = async vm => _call('vm.start', { id: await cloneVm(vm) })
+const cloneAndStartVm = async (vm, host) =>
+  _call('vm.start', { id: await cloneVm(vm), host: resolveId(host) })
 
-export const startVm = vm =>
-  _call('vm.start', { id: resolveId(vm) }).catch(async reason => {
+export const startVm = async (vm, host) => {
+  if (host === true) {
+    host = await confirm({
+      icon: 'vm-start',
+      title: _('startVmOnLabel'),
+      body: <SelectHost predicate={({ $pool }) => $pool === vm.$pool} />,
+    })
+    if (host === undefined) {
+      error(_('startVmOnMissingHostTitle'), _('startVmOnMissingHostMessage'))
+      return
+    }
+  }
+
+  const id = resolveId(vm)
+  const hostId = resolveId(host)
+  return _call('vm.start', {
+    id,
+    host: hostId,
+  }).catch(async reason => {
     if (!forbiddenOperation.is(reason)) {
       throw reason
     }
@@ -818,11 +839,16 @@ export const startVm = vm =>
     })
 
     if (choice === 'clone') {
-      return cloneAndStartVM(vm)
+      return cloneAndStartVm(vm, host)
     }
 
-    return _call('vm.start', { id: resolveId(vm), force: true })
+    return _call('vm.start', {
+      id,
+      force: true,
+      host: hostId,
+    })
   })
+}
 
 export const startVms = vms =>
   confirm({
@@ -870,7 +896,7 @@ export const startVms = vms =>
     if (choice === 'clone') {
       return Promise.all(
         map(forbiddenStart, async id =>
-          cloneAndStartVM(getObject(store.getState(), id))
+          cloneAndStartVm(getObject(store.getState(), id))
         )
       )
     }
@@ -1947,8 +1973,8 @@ export const getRemote = remote =>
   )
 
 export const createRemote = (name, url, options) =>
-  _call('remote.create', { name, url, options })::tap(
-    subscribeRemotes.forceRefresh
+  _call('remote.create', { name, url, options })::tap(remote =>
+    testRemote(remote).catch(noop)
   )
 
 export const deleteRemote = remote =>
@@ -1971,8 +1997,8 @@ export const deleteRemotes = remotes =>
   )
 
 export const enableRemote = remote =>
-  _call('remote.set', { id: resolveId(remote), enabled: true })::tap(
-    subscribeRemotes.forceRefresh
+  _call('remote.set', { id: resolveId(remote), enabled: true })::tap(() =>
+    testRemote(remote).catch(noop)
   )
 
 export const disableRemote = remote =>
@@ -1981,8 +2007,8 @@ export const disableRemote = remote =>
   )
 
 export const editRemote = (remote, { name, url, options }) =>
-  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(
-    subscribeRemotes.forceRefresh
+  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(() =>
+    testRemote(remote).catch(noop)
   )
 
 export const listRemote = remote =>
@@ -1997,9 +2023,9 @@ export const listRemoteBackups = remote =>
   )
 
 export const testRemote = remote =>
-  _call('remote.test', resolveIds({ id: remote }))::tap(null, err =>
-    error(_('testRemote'), err.message || String(err))
-  )
+  _call('remote.test', resolveIds({ id: remote }))
+    ::tap(null, err => error(_('testRemote'), err.message || String(err)))
+    ::pFinally(subscribeRemotes.forceRefresh)
 
 // File restore  ----------------------------------------------------
 
@@ -2025,10 +2051,10 @@ export const listPartitions = (remote, disk) =>
 export const listFiles = (remote, disk, path, partition) =>
   _call('backupNg.listFiles', resolveIds({ remote, disk, path, partition }))
 
-export const fetchFilesNg = (remote, disk, partition, paths, format) =>
+export const fetchFilesNg = (remote, disk, partition, paths) =>
   _call(
     'backupNg.fetchFiles',
-    resolveIds({ remote, disk, partition, paths, format })
+    resolveIds({ remote, disk, partition, paths })
   ).then(({ $getFrom: url }) => {
     window.location = `.${url}`
   })

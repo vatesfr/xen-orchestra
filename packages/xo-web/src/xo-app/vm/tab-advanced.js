@@ -1,25 +1,26 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import defined from 'xo-defined'
+import defined from '@xen-orchestra/defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { Toggle } from 'form'
-import { Number, Size, Text, XoSelect } from 'editable'
-import { Container, Row, Col } from 'grid'
-import { SelectResourceSet, SelectVgpuType } from 'select-objects'
-import { confirm } from 'modal'
 import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
+import { confirm } from 'modal'
+import { Container, Row, Col } from 'grid'
+import { Number, Size, Text, XoSelect } from 'editable'
+import { Select, Toggle } from 'form'
+import { SelectResourceSet, SelectVgpuType } from 'select-objects'
 import {
   addSubscriptions,
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
   osFamily,
+  VIRTUALIZATION_MODE_LABEL,
 } from 'utils'
 import {
   cloneVm,
@@ -34,6 +35,7 @@ import {
   restartVm,
   resumeVm,
   shareVm,
+  startVm,
   stopVm,
   subscribeResourceSets,
   suspendVm,
@@ -278,6 +280,17 @@ class CoresPerSocket extends Component {
   }
 }
 
+const NIC_TYPE_OPTIONS = [
+  {
+    label: 'Realtek RTL819',
+    value: '',
+  },
+  {
+    label: 'Intel e1000',
+    value: 'e1000',
+  },
+]
+
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
   const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
@@ -294,6 +307,9 @@ export default class TabAdvanced extends Component {
   componentDidMount () {
     getVmsHaValues().then(vmsHaValues => this.setState({ vmsHaValues }))
   }
+
+  _onNicTypeChange = value =>
+    editVm(this.props.vm, { nicType: value === '' ? null : value })
 
   render () {
     const { container, isAdmin, vgpus, vm } = this.props
@@ -334,6 +350,12 @@ export default class TabAdvanced extends Component {
                   handlerParam={vm}
                   icon='vm-recovery-mode'
                   labelId='recoveryModeLabel'
+                />
+                <TabButton
+                  btnStyle='primary'
+                  handler={() => startVm(vm, true)}
+                  icon='vm-start'
+                  labelId='startVmOnLabel'
                 />
                 <TabButton
                   btnStyle='primary'
@@ -387,11 +409,7 @@ export default class TabAdvanced extends Component {
               <tbody>
                 <tr>
                   <th>{_('virtualizationMode')}</th>
-                  <td>
-                    {vm.virtualizationMode === 'pv'
-                      ? _('paraVirtualizedMode')
-                      : _('hardwareVirtualizedMode')}
-                  </td>
+                  <td>{_(VIRTUALIZATION_MODE_LABEL[vm.virtualizationMode])}</td>
                 </tr>
                 {vm.virtualizationMode === 'pv' && (
                   <tr>
@@ -484,6 +502,20 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
+                <tr>
+                  <th>{_('vmNicType')}</th>
+                  <td>
+                    <Select
+                      labelKey='label'
+                      onChange={this._onNicTypeChange}
+                      options={NIC_TYPE_OPTIONS}
+                      required
+                      simpleValue
+                      value={vm.nicType || ''}
+                      valueKey='value'
+                    />
+                  </td>
+                </tr>
                 {vm.virtualizationMode === 'hvm' && (
                   <tr>
                     <th>{_('vmVga')}</th>

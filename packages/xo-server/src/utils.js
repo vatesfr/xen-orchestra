@@ -7,7 +7,6 @@ import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import keys from 'lodash/keys'
 import kindOf from 'kindof'
-import mapToArray from 'lodash/map'
 import multiKeyHashInt from 'multikey-hash'
 import pick from 'lodash/pick'
 import tmp from 'tmp'
@@ -15,45 +14,9 @@ import xml2js from 'xml2js'
 import { randomBytes } from 'crypto'
 import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
-import {
-  all as pAll,
-  fromCallback,
-  isPromise,
-  promisify,
-  reflect as pReflect,
-} from 'promise-toolbox'
+import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
 
 // ===================================================================
-
-// Similar to map() + Promise.all() but wait for all promises to
-// settle before rejecting (with the first error)
-export const asyncMap = (collection, iteratee) => {
-  if (isPromise(collection)) {
-    return collection.then(collection => asyncMap(collection, iteratee))
-  }
-
-  let errorContainer
-  const onError = error => {
-    if (errorContainer === undefined) {
-      errorContainer = { error }
-    }
-  }
-
-  return Promise.all(
-    mapToArray(collection, (item, key, collection) =>
-      new Promise(resolve => {
-        resolve(iteratee(item, key, collection))
-      }).catch(onError)
-    )
-  ).then(values => {
-    if (errorContainer !== undefined) {
-      throw errorContainer.error
-    }
-    return values
-  })
-}
-
-// -------------------------------------------------------------------
 
 export function camelToSnakeCase (string) {
   return string.replace(
@@ -267,19 +230,19 @@ export function pDebug (promise, name) {
 //
 // Usage: pSettle(promises) or promises::pSettle()
 export function pSettle (promises) {
-  return (this || promises)::pAll(p => p::pReflect())
+  return (this || promises)::pAll(p => Promise.resolve(p)::pReflect())
 }
 
 // -------------------------------------------------------------------
 
 export {
-  all as pAll,
-  delay as pDelay,
-  fromCallback as pFromCallback,
-  lastly as pFinally,
+  pAll,
+  pDelay,
+  pFinally,
+  pFromCallback,
+  pReflect,
   promisify,
   promisifyAll,
-  reflect as pReflect,
 } from 'promise-toolbox'
 
 // -------------------------------------------------------------------

@@ -137,12 +137,12 @@ export default class Collection extends EventEmitter {
 
   exists (properties) {
     /* jshint eqnull: true */
-    return this.first(properties).then(model => model != null)
+    return this.first(properties).then(model => model !== undefined)
   }
 
   async _first (properties) {
     const models = await this.get(properties)
 
-    return models.length ? models[0] : null
+    return models.length ? models[0] : undefined
   }
 }

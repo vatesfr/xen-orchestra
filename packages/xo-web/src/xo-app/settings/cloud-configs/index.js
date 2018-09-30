@@ -1,6 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import defined from 'xo-defined'
+import defined from '@xen-orchestra/defined'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, generateRandomId } from 'utils'

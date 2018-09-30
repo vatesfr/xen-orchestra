@@ -170,7 +170,7 @@ export default class {
   // Merge this method in getUser() when plain objects.
   async _getUser (id) {
     const user = await this._users.first(id)
-    if (!user) {
+    if (user === undefined) {
       throw noSuchObject(id, 'user')
     }
 
@@ -196,7 +196,7 @@ export default class {
   async getUserByName (username, returnNullIfMissing) {
     // TODO: change `email` by `username`.
     const user = await this._users.first({ email: username })
-    if (user) {
+    if (user !== undefined) {
       return user.properties
     }
 
@@ -288,7 +288,7 @@ export default class {
 
   async getGroup (id) {
     const group = await this._groups.first(id)
-    if (!group) {
+    if (group === undefined) {
       throw noSuchObject(id, 'group')
     }
 

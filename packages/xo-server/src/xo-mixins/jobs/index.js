@@ -2,13 +2,14 @@
 
 import type { Pattern } from 'value-matcher'
 
+import asyncMap from '@xen-orchestra/async-map'
 import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../../collection/redis'
 import patch from '../../patch'
-import { asyncMap, serializeError } from '../../utils'
+import { serializeError } from '../../utils'
 
 import type Logger from '../logs/loggers/abstract'
 import { type Schedule } from '../scheduling'
@@ -200,7 +201,10 @@ export default class Jobs {
 
   async getJob (id: string, type?: string): Promise<Job> {
     let job = await this._jobs.first(id)
-    if (job === null || (type !== undefined && job.properties.type !== type)) {
+    if (
+      job === undefined ||
+      (type !== undefined && job.properties.type !== type)
+    ) {
       throw noSuchObject(id, 'job')
     }
 

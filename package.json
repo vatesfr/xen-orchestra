@@ -1,7 +1,7 @@
 {
   "devDependencies": {
-    "@babel/core": "7.0.0",
-    "@babel/register": "7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/register": "^7.0.0",
     "babel-core": "^7.0.0-0",
     "babel-eslint": "^9.0.0",
     "babel-jest": "^23.0.1",
@@ -15,17 +15,22 @@
     "eslint-plugin-react": "^7.6.1",
     "eslint-plugin-standard": "^4.0.0",
     "exec-promise": "^0.7.0",
-    "flow-bin": "^0.79.1",
+    "flow-bin": "^0.81.0",
     "globby": "^8.0.0",
-    "husky": "^0.14.3",
+    "husky": "^1.0.0-rc.15",
     "jest": "^23.0.1",
     "lodash": "^4.17.4",
     "prettier": "^1.10.2",
-    "promise-toolbox": "^0.9.5",
+    "promise-toolbox": "^0.10.1",
     "sorted-object": "^2.0.1"
   },
   "engines": {
     "yarn": "^1.7.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "scripts/lint-staged"
+    }
   },
   "jest": {
     "collectCoverage": true,
@@ -49,7 +54,6 @@
     "dev": "scripts/run-script --parallel dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "posttest": "scripts/run-script test",
-    "precommit": "scripts/lint-staged",
     "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
     "test": "jest \"^(?!.*\\.integ\\.spec\\.js$)\"",

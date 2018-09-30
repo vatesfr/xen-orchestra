@@ -1,5 +1,5 @@
 import deferrable from 'golike-defer'
-import { catchPlus as pCatch, ignoreErrors } from 'promise-toolbox'
+import { ignoreErrors, pCatch } from 'promise-toolbox'
 import { find, gte, includes, isEmpty, lte, noop } from 'lodash'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
@@ -381,6 +381,14 @@ export default {
     tags: true,
 
     hasVendorDevice: true,
+
+    nicType: {
+      set (nicType, vm) {
+        return this._updateObjectMapProperty(vm, 'platform', {
+          nic_type: nicType,
+        })
+      },
+    },
 
     vga: {
       set (vga, vm) {

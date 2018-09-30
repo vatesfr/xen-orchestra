@@ -1,6 +1,7 @@
 import _ from 'intl'
 import PropTypes from 'prop-types'
 import React from 'react'
+import { get } from '@xen-orchestra/defined'
 import { startsWith } from 'lodash'
 
 import Icon from './icon'
@@ -9,7 +10,6 @@ import propTypes from './prop-types-decorator'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
-import { get } from './xo-defined'
 import { isSrWritable, subscribeRemotes } from './xo'
 
 // ===================================================================
@@ -24,10 +24,10 @@ const COMMON_PROP_TYPES = {
   link: PropTypes.bool,
 }
 
-const XoItem = ({ children, item, link, to }) =>
+const XoItem = ({ children, item, link, to, newTab }) =>
   item !== undefined ? (
     link ? (
-      <Link to={to} target='_blank'>
+      <Link to={to} target={newTab && '_blank'}>
         {children()}
       </Link>
     ) : (
@@ -40,6 +40,7 @@ const XoItem = ({ children, item, link, to }) =>
 XoItem.propTypes = {
   ...COMMON_PROP_TYPES,
   item: PropTypes.object,
+  newTab: PropTypes.bool,
   to: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 }
 // ===================================================================

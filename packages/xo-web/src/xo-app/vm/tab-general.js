@@ -1,6 +1,6 @@
 import _ from 'intl'
 import Copiable from 'copiable'
-import defined from 'xo-defined'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -19,7 +19,12 @@ import {
   createGetVmLastShutdownTime,
   createSelector,
 } from 'selectors'
-import { connectStore, formatSize, osFamily } from 'utils'
+import {
+  connectStore,
+  formatSize,
+  osFamily,
+  VIRTUALIZATION_MODE_LABEL,
+} from 'utils'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -127,11 +132,7 @@ export default connectStore(() => {
           )}
         </Col>
         <Col mediumSize={3}>
-          <p>
-            {vm.virtualizationMode === 'pv'
-              ? _('paraVirtualizedMode')
-              : _('hardwareVirtualizedMode')}
-          </p>
+          <p>{_(VIRTUALIZATION_MODE_LABEL[vm.virtualizationMode])}</p>
           {vgpu !== undefined && (
             <p>{renderXoItem(vgpuTypes[vgpu.vgpuType])}</p>
           )}

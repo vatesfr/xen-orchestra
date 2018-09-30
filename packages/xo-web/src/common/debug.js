@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import { isPromise } from 'promise-toolbox'
+import isPromise from 'promise-toolbox/isPromise'
 
 const toString = value =>
   value === undefined ? 'undefined' : JSON.stringify(value, null, 2)

@@ -1,12 +1,12 @@
 // @flow
 
+import asyncMap from '@xen-orchestra/async-map'
 import { createSchedule } from '@xen-orchestra/cron'
 import { keyBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../collection/redis'
 import patch from '../patch'
-import { asyncMap } from '../utils'
 
 export type Schedule = {|
   cron: string,
@@ -114,7 +114,7 @@ export default class Scheduling {
 
   async getSchedule (id: string): Promise<Schedule> {
     const schedule = await this._db.first(id)
-    if (schedule === null) {
+    if (schedule === undefined) {
       throw noSuchObject(id, 'schedule')
     }
     return schedule.properties

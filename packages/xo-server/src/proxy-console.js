@@ -7,12 +7,23 @@ const debug = createDebug('xo:proxy-console')
 
 export default function proxyConsole (ws, vmConsole, sessionId) {
   const url = parse(vmConsole.location)
+  let { hostname } = url
+  if (hostname === null || hostname === '') {
+    console.warn(
+      'host is missing in console (%s) URI (%s)',
+      vmConsole.uuid,
+      vmConsole.location
+    )
+    const { address } = vmConsole.$VM.$resident_on
+    console.warn('  using host address (%s) as fallback', address)
+    hostname = address
+  }
 
   let closed = false
 
   const socket = connect(
     {
-      host: url.host,
+      host: hostname,
       port: url.port || 443,
       rejectUnauthorized: false,
     },
@@ -21,7 +32,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
       socket.write(
         [
           `CONNECT ${url.path} HTTP/1.0`,
-          `Host: ${url.hostname}`,
+          `Host: ${hostname}`,
           `Cookie: session_id=${sessionId}`,
           '',
           '',

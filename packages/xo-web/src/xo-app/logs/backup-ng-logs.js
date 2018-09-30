@@ -1,22 +1,25 @@
 import _, { FormattedDuration } from 'intl'
 import addSubscriptions from 'add-subscriptions'
-import Button from 'button'
-import ButtonGroup from 'button-group'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
 import React from 'react'
-import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import SortedTable from 'sorted-table'
-import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
-import { keyBy } from 'lodash'
+import { formatSize } from 'utils'
 import { FormattedDate } from 'react-intl'
-import { get } from 'xo-defined'
+import { get } from '@xen-orchestra/defined'
+import { isEmpty, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
+import LogAlertHeader from './log-alert-header'
+
+const UL_STYLE = { listStyleType: 'none' }
+
+const LI_STYLE = {
+  whiteSpace: 'nowrap',
+}
 
 const STATUS_LABELS = {
   failure: {
@@ -102,36 +105,67 @@ const LOG_COLUMNS = [
     },
     sortCriteria: 'status',
   },
+  {
+    name: _('labelSize'),
+    itemRenderer: ({ tasks: vmTasks }) => {
+      if (isEmpty(vmTasks)) {
+        return null
+      }
+
+      let transferSize = 0
+      let mergeSize = 0
+      vmTasks.forEach(({ tasks: targetSnapshotTasks = [] }) => {
+        let vmTransferSize
+        let vmMergeSize
+        targetSnapshotTasks.forEach(({ message, tasks: operationTasks }) => {
+          if (message !== 'export' || isEmpty(operationTasks)) {
+            return
+          }
+          operationTasks.forEach(operationTask => {
+            if (operationTask.status !== 'success') {
+              return
+            }
+            if (
+              operationTask.message === 'transfer' &&
+              vmTransferSize === undefined
+            ) {
+              vmTransferSize = operationTask.result.size
+            }
+            if (
+              operationTask.message === 'merge' &&
+              vmMergeSize === undefined
+            ) {
+              vmMergeSize = operationTask.result.size
+            }
+
+            if (vmTransferSize !== undefined && vmMergeSize !== undefined) {
+              return false
+            }
+          })
+        })
+        vmTransferSize !== undefined && (transferSize += vmTransferSize)
+        vmMergeSize !== undefined && (mergeSize += vmMergeSize)
+      })
+      return (
+        <ul style={UL_STYLE}>
+          {transferSize > 0 && (
+            <li style={LI_STYLE}>
+              {_.keyValue(_('labelTransfer'), formatSize(transferSize))}
+            </li>
+          )}
+          {mergeSize > 0 && (
+            <li style={LI_STYLE}>
+              {_.keyValue(_('labelMerge'), formatSize(mergeSize))}
+            </li>
+          )}
+        </ul>
+      )
+    },
+  },
 ]
 
-const showTasks = (log, { jobs }) => {
-  const formattedLog = JSON.stringify(log, null, 2)
-  alert(
-    <span>
-      {get(() => jobs[log.jobId].name) || 'Job'} ({log.jobId.slice(4, 8)}){' '}
-      <span style={{ fontSize: '0.5em' }} className='text-muted'>
-        {log.id}
-      </span>{' '}
-      <ButtonGroup>
-        <Tooltip content={_('copyToClipboard')}>
-          <CopyToClipboard text={formattedLog}>
-            <Button size='small'>
-              <Icon icon='clipboard' />
-            </Button>
-          </CopyToClipboard>
-        </Tooltip>
-        {CAN_REPORT_BUG && (
-          <ReportBugButton
-            message={`\`\`\`json\n${formattedLog}\n\`\`\``}
-            size='small'
-            title='Backup job failed'
-          />
-        )}
-      </ButtonGroup>
-    </span>,
-    <LogAlertBody id={log.id} />
-  )
-}
+const showTasks = ({ id }, { jobs }) =>
+  alert(<LogAlertHeader id={id} jobs={jobs} />, <LogAlertBody id={id} />)
 
 const LOG_INDIVIDUAL_ACTIONS = [
   {

@@ -22,6 +22,7 @@ const messages = {
   // ----- Modals -----
   alertOk: 'OK',
   confirmOk: 'OK',
+  formOk: 'OK',
   genericCancel: 'Cancel',
   enterConfirmText: 'Enter the following text to confirm:',
 
@@ -196,6 +197,11 @@ const messages = {
   stateDisabled: 'Disabled',
   stateEnabled: 'Enabled',
 
+  // ----- Labels -----
+  labelMerge: 'Merge',
+  labelSize: 'Size',
+  labelTransfer: 'Transfer',
+
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
@@ -348,6 +354,7 @@ const messages = {
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
   retentionNeeded: 'One of the retentions needs to be higher than 0!',
+  newScheduleError: 'Invalid schedule',
   createRemoteMessage:
     'No remotes found, please click on the remotes settings button to create one!',
   remotesSettings: 'Remotes settings',
@@ -407,6 +414,8 @@ const messages = {
   localRemoteWarningTitle: 'Local remote selected',
   crOnThickProvisionedSrWarning:
     'Tip: using a thin-provisioned storage will consume less space. Please click on the icon to get more information',
+  vmsOnThinProvisionedSrTip:
+    'Tip: creating VMs on a thin-provisioned storage will consume less space when backuping them. Please click on the icon to get more information',
   localRemoteWarningMessage:
     'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
@@ -471,10 +480,6 @@ const messages = {
   remoteAuth: 'Auth',
   remoteMounted: 'Mounted',
   remoteUnmounted: 'Unmounted',
-  remoteConnectTip: 'Connect',
-  remoteDisconnectTip: 'Disconnect',
-  remoteConnected: 'Connected',
-  remoteDisconnected: 'Disconnected',
   remoteDeleteTip: 'Delete',
   remoteDeleteSelected: 'Delete selected remotes',
   remoteNamePlaceHolder: 'remote name *',
@@ -594,6 +599,9 @@ const messages = {
 
   // ----- VM actions ------
   startVmLabel: 'Start',
+  startVmOnLabel: 'Start on…',
+  startVmOnMissingHostTitle: 'No host selected',
+  startVmOnMissingHostMessage: 'You must select a host',
   recoveryModeLabel: 'Recovery start',
   suspendVmLabel: 'Suspend',
   stopVmLabel: 'Stop',
@@ -852,6 +860,8 @@ const messages = {
   started: 'Started {ago}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
+  hvmModeWithPvDriversEnabled:
+    'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   windowsUpdateTools: 'Windows Update tools',
 
   // ----- VM stat tab -----
@@ -993,7 +1003,6 @@ const messages = {
   xenSettingsLabel: 'Xen settings',
   guestOsLabel: 'Guest OS',
   miscLabel: 'Misc',
-  uuid: 'UUID',
   virtualizationMode: 'Virtualization mode',
   cpuWeightLabel: 'CPU weight',
   defaultCpuWeight: 'Default ({value, number})',
@@ -1009,6 +1018,7 @@ const messages = {
   vmAffinityHost: 'Affinity host',
   vmVga: 'VGA',
   vmVideoram: 'Video RAM',
+  vmNicType: 'NIC type',
   noAffinityHost: 'None',
   originalTemplate: 'Original template',
   unknownOsName: 'Unknown',
@@ -1284,6 +1294,8 @@ const messages = {
   pool: 'Pool',
   task: 'Task',
   progress: 'Progress',
+  previousTasks: 'Previous tasks',
+  taskLastSeen: 'Last seen',
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',
@@ -1302,6 +1314,9 @@ const messages = {
   restoreDeltaBackupsInfo:
     'Only the files of Delta Backup which are not on a SMB remote can be restored',
   remoteEnabled: 'Enabled',
+  remoteDisabled: 'Disabled',
+  enableRemote: 'Enable',
+  disableRemote: 'Disable',
   remoteError: 'Error',
   remoteErrorMessage:
     'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.',
@@ -1357,9 +1372,10 @@ const messages = {
   restoreFilesSelectFiles: 'Select a file…',
   restoreFileContentNotFound: 'Content not found',
   restoreFilesNoFilesSelected: 'No files selected',
-  restoreFilesSelectedFiles: 'Selected files ({files}):',
+  restoreFilesSelectedFilesAndFolders: 'Selected files/folders ({files}):',
   restoreFilesDiskError: 'Error while scanning disk',
   restoreFilesSelectAllFiles: "Select all this folder's files",
+  restoreFilesSelectFolder: 'Select this folder',
   restoreFilesUnselectAll: 'Unselect all files',
 
   // ----- Modals -----
@@ -1760,6 +1776,7 @@ const messages = {
   reportBug: 'Report a bug',
   unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
   backupRestartVm: "Restart VM's backup",
+  backupRestartFailedVms: "Restart failed VMs' backup",
   clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------

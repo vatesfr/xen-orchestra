@@ -29,6 +29,12 @@ You also have a filter to search anything related to these logs.
 
 > Logs are not "live" tasks. If you restart XOA during a backup, the log associated with the job will stay in orange (in progress), because it wasn't finished. It will stay forever unfinished because the job was cut in the middle.
 
+## Backups execution
+
+Each backups' job execution is identified by a `runId`. You can find this `runId` in its detailed log.
+
+![](./assets/log-runId.png)
+
 ## Consistent backup (with quiesce snapshots)
 
 All backup types rely on snapshots. But what about data consistency? By default, Xen Orchestra will try to take a **quiesced snapshot** every time a snapshot is done (and fall back to normal snapshots if it's not possible).

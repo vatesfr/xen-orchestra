@@ -1,3 +1,4 @@
+import asyncMap from '@xen-orchestra/async-map'
 import createLogger from 'debug'
 import defer from 'golike-defer'
 import execa from 'execa'
@@ -9,7 +10,7 @@ import { v4 as generateUuid } from 'uuid'
 import { includes, remove, filter, find, range } from 'lodash'
 
 import { asInteger } from '../xapi/utils'
-import { asyncMap, parseXml, ensureArray } from '../utils'
+import { parseXml, ensureArray } from '../utils'
 
 const debug = createLogger('xo:xosan')
 

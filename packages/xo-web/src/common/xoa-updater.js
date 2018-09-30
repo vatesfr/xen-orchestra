@@ -280,9 +280,9 @@ class XoaUpdater extends EventEmitter {
       throw new Error('You are already under trial')
     }
     try {
-      return this._call('requestTrial', { trialPlan: 'premium' })
+      return await this._call('requestTrial', { trialPlan: 'premium' })
     } finally {
-      this.xoaState()
+      await this.xoaState()
     }
   }
 

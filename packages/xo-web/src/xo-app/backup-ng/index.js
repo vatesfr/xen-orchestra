@@ -9,7 +9,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
 import { constructQueryString } from 'smart-backup'
 import { Container, Row, Col } from 'grid'
-import { get } from 'xo-defined'
+import { get } from '@xen-orchestra/defined'
 import { isEmpty, map, groupBy, some } from 'lodash'
 import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
@@ -55,6 +55,7 @@ const _runBackupNgJob = ({ id, name, schedule }) =>
 const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
   <table>
     <tr className='text-muted'>
+      <th>{_('scheduleName')}</th>
       <th>{_('scheduleCron')}</th>
       <th>{_('scheduleTimezone')}</th>
       <th>{_('scheduleExportRetention')}</th>
@@ -64,6 +65,7 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
     </tr>
     {map(schedulesByJob && schedulesByJob[job.id], schedule => (
       <tr key={schedule.id}>
+        <td>{schedule.name}</td>
         <td>{schedule.cron}</td>
         <td>{schedule.timezone}</td>
         <td>{job.settings[schedule.id].exportRetention}</td>

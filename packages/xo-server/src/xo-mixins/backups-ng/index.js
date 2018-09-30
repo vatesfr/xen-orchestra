@@ -2,6 +2,7 @@
 
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
+import asyncMap from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
@@ -10,7 +11,9 @@ import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import {
   countBy,
+  flatMap,
   forEach,
+  groupBy,
   isEmpty,
   last,
   mapValues,
@@ -19,7 +22,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import { fromEvent as pFromEvent, ignoreErrors } from 'promise-toolbox'
+import { CancelToken, pFromEvent, ignoreErrors } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -39,7 +42,6 @@ import {
 } from '../../xapi'
 import { getVmDisks } from '../../xapi/utils'
 import {
-  asyncMap,
   resolveRelativeFromFile,
   safeDateFormat,
   serializeError,
@@ -104,17 +106,24 @@ type Metadata = MetadataDelta | MetadataFull
 const compareSnapshotTime = (a: Vm, b: Vm): number =>
   a.snapshot_time < b.snapshot_time ? -1 : 1
 
+const getReplicatedVmDatetime = (vm: Vm) => {
+  const {
+    'xo:backup:datetime': datetime = vm.name_label.slice(-17, -1),
+  } = vm.other_config
+  return datetime
+}
+
+const compareReplicatedVmDatetime = (a: Vm, b: Vm): number =>
+  getReplicatedVmDatetime(a) < getReplicatedVmDatetime(b) ? -1 : 1
+
 const compareTimestamp = (a: Metadata, b: Metadata): number =>
   a.timestamp - b.timestamp
 
-// returns all entries but the last (retention - 1)-th
-//
-// the “-1” is because this code is usually run with entries computed before the
-// new entry is created
+// returns all entries but the last retention-th
 const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
   entries === undefined
     ? []
-    : --retention > 0
+    : retention > 0
       ? entries.slice(0, -retention)
       : entries
 
@@ -183,9 +192,7 @@ const listReplicatedVms = (
     }
   }
 
-  // the replicated VMs have been created from a snapshot, therefore we can use
-  // `snapshot_time` as the creation time
-  return values(vms).sort(compareSnapshotTime)
+  return values(vms).sort(compareReplicatedVmDatetime)
 }
 
 const importers: $Dict<
@@ -397,7 +404,7 @@ const wrapTaskFn = <T>(
 //
 // Attributes of created VMs:
 //
-// - name: `${original name} (${safeDateFormat(backup timestamp)})`
+// - name: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
 // - tag:
 //    - copy in delta mode: `Continuous Replication`
 //    - copy in full mode: `Disaster Recovery`
@@ -425,7 +432,7 @@ export default class BackupNg {
     app.on('start', () => {
       const executor: Executor = async ({
         cancelToken,
-        data: vmId,
+        data: vmsId,
         job: job_,
         logger,
         runJobId,
@@ -437,17 +444,20 @@ export default class BackupNg {
 
         const job: BackupJob = (job_: any)
 
-        let vms: $Dict<Vm> | void
-        if (vmId === undefined) {
-          vms = app.getObjects({
-            filter: createPredicate({
-              type: 'VM',
-              ...job.vms,
-            }),
-          })
-          if (isEmpty(vms)) {
-            throw new Error('no VMs match this pattern')
-          }
+        const vms: $Dict<Vm> = app.getObjects({
+          filter: createPredicate({
+            type: 'VM',
+            ...(vmsId !== undefined
+              ? {
+                  id: {
+                    __or: vmsId,
+                  },
+                }
+              : job.vms),
+          }),
+        })
+        if (isEmpty(vms)) {
+          throw new Error('no VMs match this pattern')
         }
         const jobId = job.id
         const srs = unboxIds(job.srs).map(id => {
@@ -466,9 +476,9 @@ export default class BackupNg {
 
         const timeout = getSetting(job.settings, 'timeout', [''])
         if (timeout !== 0) {
-          cancelToken = cancelToken.fork(cancel => {
-            setTimeout(cancel, timeout)
-          })
+          const source = CancelToken.source([cancelToken])
+          cancelToken = source.token
+          setTimeout(source.cancel, timeout)
         }
 
         let handleVm = async vm => {
@@ -487,7 +497,7 @@ export default class BackupNg {
           let vmCancel
           try {
             cancelToken.throwIfRequested()
-            vmCancel = cancelToken.fork()
+            vmCancel = CancelToken.source([cancelToken])
 
             // $FlowFixMe injected $defer param
             const p = this._backupVm(
@@ -531,10 +541,6 @@ export default class BackupNg {
                 : serializeError(error),
             })
           }
-        }
-
-        if (vms === undefined) {
-          return handleVm(await app.getObject(vmId))
         }
 
         const concurrency: number = getSetting(job.settings, 'concurrency', [
@@ -762,6 +768,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi._updateObjectMapProperty(vm, 'other_config', {
+          'xo:backup:datetime': null,
           'xo:backup:job': null,
           'xo:backup:schedule': null,
           'xo:backup:vm': null,
@@ -769,7 +776,7 @@ export default class BackupNg {
       )
     }
 
-    const { id: jobId, settings } = job
+    const { id: jobId, mode, settings } = job
     const { id: scheduleId } = schedule
 
     let exportRetention: number = getSetting(settings, 'exportRetention', [
@@ -873,23 +880,35 @@ export default class BackupNg {
         parentId: taskId,
       },
       xapi._updateObjectMapProperty(snapshot, 'other_config', {
+        'xo:backup:datetime': snapshot.snapshot_time,
         'xo:backup:job': jobId,
         'xo:backup:schedule': scheduleId,
         'xo:backup:vm': vmUuid,
       })
     )
 
-    $defer(() =>
-      asyncMap(
+    snapshot = await xapi.barrier(snapshot.$ref)
+
+    let baseSnapshot = mode === 'delta' ? last(snapshots) : undefined
+    snapshots.push(snapshot)
+
+    // snapshots to delete due to the snapshot retention settings
+    const snapshotsToDelete = flatMap(
+      groupBy(snapshots, _ => _.other_config['xo:backup:schedule']),
+      (snapshots, scheduleId) =>
         getOldEntries(
-          snapshotRetention,
-          snapshots.filter(
-            _ => _.other_config['xo:backup:schedule'] === scheduleId
-          )
-        ),
-        _ => xapi.deleteVm(_)
-      )
+          getSetting(settings, 'snapshotRetention', [scheduleId]),
+          snapshots
+        )
     )
+
+    // delete unused snapshots
+    await asyncMap(snapshotsToDelete, vm => {
+      // snapshot and baseSnapshot should not be deleted right now
+      if (vm !== snapshot && vm !== baseSnapshot) {
+        return xapi.deleteVm(vm)
+      }
+    })
 
     snapshot = ((await wrapTask(
       {
@@ -913,10 +932,10 @@ export default class BackupNg {
 
     const metadataFilename = `${vmDir}/${basename}.json`
 
-    if (job.mode === 'full') {
+    if (mode === 'full') {
       // TODO: do not create the snapshot if there are no snapshotRetention and
       // the VM is not running
-      if (snapshotRetention === 0) {
+      if (snapshotsToDelete.includes(snapshot)) {
         $defer.call(xapi, 'deleteVm', snapshot)
       }
 
@@ -982,7 +1001,7 @@ export default class BackupNg {
                 )::ignoreErrors()
 
                 const oldBackups: MetadataFull[] = (getOldEntries(
-                  exportRetention,
+                  exportRetention - 1,
                   await this._listVmBackups(
                     handler,
                     vm,
@@ -1029,7 +1048,7 @@ export default class BackupNg {
                 const { $id: srId, xapi } = sr
 
                 const oldVms = getOldEntries(
-                  copyRetention,
+                  copyRetention - 1,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
@@ -1048,9 +1067,9 @@ export default class BackupNg {
                     },
                     xapi._importVm($cancelToken, fork, sr, vm =>
                       xapi._setObjectProperties(vm, {
-                        nameLabel: `${metadata.vm.name_label} (${safeDateFormat(
-                          metadata.timestamp
-                        )})`,
+                        nameLabel: `${metadata.vm.name_label} - ${
+                          job.name
+                        } - (${safeDateFormat(metadata.timestamp)})`,
                       })
                     )
                   )
@@ -1076,10 +1095,12 @@ export default class BackupNg {
         ],
         noop // errors are handled in logs
       )
-    } else if (job.mode === 'delta') {
-      if (snapshotRetention === 0) {
-        // only keep the snapshot in case of success
+    } else if (mode === 'delta') {
+      if (snapshotsToDelete.includes(snapshot)) {
         $defer.onFailure.call(xapi, 'deleteVm', snapshot)
+      }
+      if (snapshotsToDelete.includes(baseSnapshot)) {
+        $defer.onSuccess.call(xapi, 'deleteVm', baseSnapshot)
       }
 
       // JFT: TODO: remove when enough time has passed (~2018-09)
@@ -1105,9 +1126,8 @@ export default class BackupNg {
         )
       )
 
-      let baseSnapshot, fullVdisRequired
+      let fullVdisRequired
       await (async () => {
-        baseSnapshot = (last(snapshots): Vm | void)
         if (baseSnapshot === undefined) {
           return
         }
@@ -1217,17 +1237,28 @@ export default class BackupNg {
               const streams: any = mapValues(
                 deltaExport.streams,
                 lazyStream => {
-                  const pStream = lazyStream()
-                  const forks = Array.from({ length: nTargets }, _ => {
-                    const promise = pStream.then(stream => {
-                      const fork: any = stream.pipe(new PassThrough())
-                      fork.task = stream.task
-                      return fork
-                    })
-                    promise.catch(noop) // prevent unhandled rejection
-                    return promise
-                  })
-                  return () => forks.pop()
+                  // wait for all targets to require the stream and then starts
+                  // the real export and create the forks.
+                  const resolves = []
+                  function resolver (resolve) {
+                    resolves.push(resolve)
+
+                    if (resolves.length === nTargets) {
+                      const pStream = lazyStream()
+                      resolves.forEach(resolve => {
+                        resolve(
+                          pStream.then(stream => {
+                            const fork: any = stream.pipe(new PassThrough())
+                            fork.task = stream.task
+                            return fork
+                          })
+                        )
+                      })
+                      resolves.length = 0
+                    }
+                  }
+
+                  return () => new Promise(resolver)
                 }
               )
               return () => {
@@ -1256,7 +1287,7 @@ export default class BackupNg {
                 const fork = forkExport()
 
                 const oldBackups: MetadataDelta[] = (getOldEntries(
-                  exportRetention,
+                  exportRetention - 1,
                   await this._listVmBackups(
                     handler,
                     vm,
@@ -1360,7 +1391,7 @@ export default class BackupNg {
                 const { $id: srId, xapi } = sr
 
                 const oldVms = getOldEntries(
-                  copyRetention,
+                  copyRetention - 1,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
@@ -1378,9 +1409,9 @@ export default class BackupNg {
                   },
                   xapi.importDeltaVm(fork, {
                     disableStartAfterImport: false, // we'll take care of that
-                    name_label: `${metadata.vm.name_label} (${safeDateFormat(
-                      metadata.timestamp
-                    )})`,
+                    name_label: `${metadata.vm.name_label} - ${
+                      job.name
+                    } - (${safeDateFormat(metadata.timestamp)})`,
                     srId,
                   })
                 )
@@ -1406,7 +1437,7 @@ export default class BackupNg {
         noop // errors are handled in logs
       )
     } else {
-      throw new Error(`no exporter for backup mode ${job.mode}`)
+      throw new Error(`no exporter for backup mode ${mode}`)
     }
   }
 

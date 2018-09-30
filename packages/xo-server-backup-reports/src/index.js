@@ -30,6 +30,20 @@ export const configurationSchema = {
   },
 }
 
+export const testSchema = {
+  type: 'object',
+
+  properties: {
+    runId: {
+      type: 'string',
+      description: `<a href="https://xen-orchestra.com/docs/backups.html#backups-execution" rel="noopener noreferrer" target="_blank">job's runId</a>`,
+    },
+  },
+
+  additionalProperties: false,
+  required: ['runId'],
+}
+
 // ===================================================================
 
 const ICON_FAILURE = '🚨'
@@ -118,6 +132,10 @@ class BackupReportsXoPlugin {
     this._xo.on('job:terminated', this._report)
   }
 
+  test ({ runId }) {
+    return this._backupNgListener(undefined, undefined, undefined, runId)
+  }
+
   unload () {
     this._xo.removeListener('job:terminated', this._report)
   }
@@ -135,6 +153,9 @@ class BackupReportsXoPlugin {
   async _backupNgListener (_1, _2, schedule, runJobId) {
     const xo = this._xo
     const log = await xo.getBackupNgLogs(runJobId)
+    if (log === undefined) {
+      throw new Error(`no log found with runId=${JSON.stringify(runJobId)}`)
+    }
 
     const { reportWhen, mode } = log.data || {}
     if (

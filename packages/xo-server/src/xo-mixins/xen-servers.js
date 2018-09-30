@@ -148,7 +148,7 @@ export default class {
   // integrated to the main collection.
   async _getXenServer (id) {
     const server = await this._servers.first(id)
-    if (!server) {
+    if (server === undefined) {
       throw noSuchObject(id, 'xenServer')
     }
 

@@ -1,16 +1,18 @@
 /* eslint-disable camelcase */
+import asyncMap from '@xen-orchestra/async-map'
 import concurrency from 'limit-concurrency-decorator'
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
+import mixin from '@xen-orchestra/mixin'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
 import {
   cancelable,
-  catchPlus as pCatch,
   defer,
   fromEvent,
   ignoreErrors,
+  pCatch,
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
@@ -32,9 +34,7 @@ import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import { mixin } from '../decorators'
 import {
-  asyncMap,
   camelToSnakeCase,
   ensureArray,
   forEach,
@@ -653,6 +653,9 @@ export default class Xapi extends XapiBase {
 
     const { $ref } = vm
 
+    // ensure the vm record is up-to-date
+    vm = await this.barrier($ref)
+
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
@@ -665,22 +668,26 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    // ensure the vm record is up-to-date
-    vm = await this.barrier($ref)
+    if (forceDeleteDefaultTemplate) {
+      await this._updateObjectMapProperty(vm, 'other_config', {
+        default_template: null,
+      })
+    }
+
+    // must be done before destroying the VM
+    const disks = getVmDisks(vm)
+
+    // this cannot be done in parallel, otherwise disks and snapshots will be
+    // destroyed even if this fails
+    await this.call('VM.destroy', $ref)
 
     return Promise.all([
-      forceDeleteDefaultTemplate &&
-        this._updateObjectMapProperty(vm, 'other_config', {
-          default_template: null,
-        }),
-      this.call('VM.destroy', $ref),
-
       asyncMap(vm.$snapshots, snapshot =>
         this._deleteVm(snapshot)
       )::ignoreErrors(),
 
       deleteDisks &&
-        asyncMap(getVmDisks(vm), ({ $ref: vdiRef }) => {
+        asyncMap(disks, ({ $ref: vdiRef }) => {
           let onFailure = () => {
             onFailure = vdi => {
               console.error(
@@ -977,7 +984,10 @@ export default class Xapi extends XapiBase {
     const baseVdis = {}
     baseVm &&
       forEach(baseVm.$VBDs, vbd => {
-        baseVdis[vbd.VDI] = vbd.$VDI
+        const vdi = vbd.$VDI
+        if (vdi !== undefined) {
+          baseVdis[vbd.VDI] = vbd.$VDI
+        }
       })
 
     // 1. Create the VMs.
@@ -1537,7 +1547,7 @@ export default class Xapi extends XapiBase {
     await this._updateObjectMapProperty(vm, 'VCPUs_params', { weight })
   }
 
-  async _startVm (vm, force) {
+  async _startVm (vm, host, force) {
     debug(`Starting VM ${vm.name_label}`)
 
     if (force) {
@@ -1546,17 +1556,23 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    return this.call(
-      'VM.start',
-      vm.$ref,
-      false, // Start paused?
-      false // Skip pre-boot checks?
-    )
+    return host === undefined
+      ? this.call(
+          'VM.start',
+          vm.$ref,
+          false, // Start paused?
+          false // Skip pre-boot checks?
+        )
+      : this.call('VM.start_on', vm.$ref, host.$ref, false, false)
   }
 
-  async startVm (vmId, force) {
+  async startVm (vmId, hostId, force) {
     try {
-      await this._startVm(this.getObject(vmId), force)
+      await this._startVm(
+        this.getObject(vmId),
+        hostId && this.getObject(hostId),
+        force
+      )
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])
