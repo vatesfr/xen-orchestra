@@ -238,6 +238,7 @@ function getMemoryUsedMetric ({ memory, memoryFree = memory }) {
 const METRICS_MEAN = {
   cpu: computeDoubleMean,
   disk: value => computeDoubleMean(values(value)) / mibPower,
+  iops: value => computeDoubleMean(values(value)),
   load: computeMean,
   net: value => computeDoubleMean(value) / kibPower,
   ram: stats => computeMean(getMemoryUsedMetric(stats)) / gibPower,
@@ -250,6 +251,8 @@ async function getVmsStats ({ runningVms, xo }) {
     await Promise.all(
       map(runningVms, async vm => {
         const { stats } = await xo.getXapiVmStats(vm, 'days')
+        const iopsRead = METRICS_MEAN.iops(get(stats.iops, 'r'))
+        const iopsWrite = METRICS_MEAN.iops(get(stats.iops, 'w'))
         return {
           uuid: vm.uuid,
           name: vm.name_label,
@@ -257,6 +260,9 @@ async function getVmsStats ({ runningVms, xo }) {
           ram: METRICS_MEAN.ram(stats),
           diskRead: METRICS_MEAN.disk(get(stats.xvds, 'r')),
           diskWrite: METRICS_MEAN.disk(get(stats.xvds, 'w')),
+          iopsRead,
+          iopsWrite,
+          iopsTotal: iopsRead + iopsWrite,
           netReception: METRICS_MEAN.net(get(stats.vifs, 'rx')),
           netTransmission: METRICS_MEAN.net(get(stats.vifs, 'tx')),
         }
@@ -437,6 +443,9 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
         'ram',
         'diskRead',
         'diskWrite',
+        'iopsRead',
+        'iopsWrite',
+        'iopsTotal',
         'netReception',
         'netTransmission',
       ],
