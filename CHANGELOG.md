@@ -6,6 +6,7 @@
 
 - [Usage Report] Add IOPS read/write/total per VM [#3309](https://github.com/vatesfr/xen-orchestra/issues/3309) (PR [#3455](https://github.com/vatesfr/xen-orchestra/pull/3455))
 - [Usage Report] Add top 3 VMs which use the most IOPS [#3308](https://github.com/vatesfr/xen-orchestra/issues/3308) (PR [#3463](https://github.com/vatesfr/xen-orchestra/pull/3463))
+- [Usage Report] Add global VMs usage of IOPS (PR [#3474](https://github.com/vatesfr/xen-orchestra/pull/3474))
 
 ### Bug fixes
 
