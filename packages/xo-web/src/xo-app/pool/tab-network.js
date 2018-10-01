@@ -376,7 +376,11 @@ export default class TabNetworks extends Component {
         <Row>
           <Col>
             {!isEmpty(networks) ? (
-              <SortedTable collection={networks} columns={NETWORKS_COLUMNS} />
+              <SortedTable
+                collection={networks}
+                columns={NETWORKS_COLUMNS}
+                stateUrlParam='s'
+              />
             ) : (
               <h4 className='text-xs-center'>{_('poolNoNetwork')}</h4>
             )}

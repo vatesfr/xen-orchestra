@@ -13,6 +13,7 @@ import { editHost, fetchHostStats, subscribeHostMissingPatches } from 'xo'
 import { connectStore, routes } from 'utils'
 import {
   createDoesHostNeedRestart,
+  createFilter,
   createGetObject,
   createGetObjectsOfType,
   createSelector,
@@ -76,6 +77,13 @@ const isRunning = host => host && host.power_state === 'Running'
     createSelector(getPifs, pifs => map(pifs, pif => pif.$network))
   )
 
+  const getPrivateNetworks = createFilter(
+    createGetObjectsOfType('network'),
+    createSelector(getPool, pool => network =>
+      network.$pool === pool.id && isEmpty(network.PIFs)
+    )
+  )
+
   const getHostPatches = createSelector(
     createGetObjectsOfType('pool_patch'),
     createGetObjectsOfType('host_patch').pick(
@@ -114,6 +122,7 @@ const isRunning = host => host && host.power_state === 'Running'
       nVms: getNumberOfVms(state, props),
       pifs: getPifs(state, props),
       pool: getPool(state, props),
+      privateNetworks: getPrivateNetworks(state, props),
       vmController: getVmController(state, props),
       vms: getHostVms(state, props),
     }
@@ -317,6 +326,7 @@ export default class Host extends Component {
         'nVms',
         'pbds',
         'pifs',
+        'privateNetworks',
         'srs',
         'vmController',
         'vms',

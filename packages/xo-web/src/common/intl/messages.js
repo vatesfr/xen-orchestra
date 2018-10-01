@@ -676,6 +676,8 @@ const messages = {
   poolNetworkNameLabel: 'Name',
   poolNetworkDescription: 'Description',
   poolNetworkPif: 'PIFs',
+  privateNetworks: 'Private networks',
+  manage: 'Manage',
   poolNoNetwork: 'No networks',
   poolNetworkMTU: 'MTU',
   poolNetworkPifAttached: 'Connected',
