@@ -334,6 +334,8 @@ function computeGlobalVmsStats ({ haltedVms, vmsStats, xo }) {
       'ram',
       'diskRead',
       'diskWrite',
+      'iopsRead',
+      'iopsWrite',
       'netReception',
       'netTransmission',
     ]),

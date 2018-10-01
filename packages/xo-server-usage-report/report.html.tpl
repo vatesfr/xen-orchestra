@@ -151,7 +151,7 @@
 
       <table class ="global">
         <tr>
-          <td id="title" rowspan="8">VMs</td>
+          <td id="title" rowspan="10">VMs</td>
         </tr>
         <tr>
           <td>Number:</td>
@@ -173,6 +173,16 @@
         <tr>
           <td>Disk write:</td>
           <td>{{formatValue global.vms.diskWrite 'B' 'M'}} {{normaliseEvolution global.vmsEvolution.diskWrite}}
+          </td>
+        </tr>
+        <tr>
+          <td>IOPS read:</td>
+          <td>{{formatValue global.vms.iopsRead 'IOPS'}} {{normaliseEvolution global.vmsEvolution.iopsRead}}
+          </td>
+        </tr>
+        <tr>
+          <td>IOPS write:</td>
+          <td>{{formatValue global.vms.iopsWrite 'IOPS'}} {{normaliseEvolution global.vmsEvolution.iopsWrite}}
           </td>
         </tr>
         <tr>
