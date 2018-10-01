@@ -509,6 +509,18 @@ export class Xapi extends EventEmitter {
     return record
   }
 
+
+  async clone_vm(ref_form , name , type ) {
+    // return 
+    const clone_opa = await this._sessionCall(`${type}.clone` , [ref_form , name])
+    return clone_opa
+  }
+
+  /**
+   * 
+   * @param {*} type type of method
+   * @param {*} uuid 
+   */
   async getRecordByUuid (type, uuid) {
     return this.getRecord(
       type,
@@ -666,6 +678,8 @@ export class Xapi extends EventEmitter {
   setField ({ $type, $ref }, field, value) {
     return this.call(`${$type}.set_${field}`, $ref, value).then(noop)
   }
+
+ 
 
   setFieldEntries (record, field, entries) {
     return Promise.all(
