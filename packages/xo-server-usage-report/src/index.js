@@ -1,4 +1,5 @@
 import Handlebars from 'handlebars'
+import humanFormat from 'human-format'
 import { createSchedule } from '@xen-orchestra/cron'
 import { minify } from 'html-minifier'
 import {
@@ -131,6 +132,24 @@ Handlebars.registerHelper('shortUUID', uuid => {
 Handlebars.registerHelper(
   'normaliseValue',
   value => (isFinite(value) ? round(value, 2) : '-')
+)
+
+const BYTE_CONVERSION_COEF = {
+  G: gibPower,
+  M: mibPower,
+  K: kibPower,
+}
+
+Handlebars.registerHelper(
+  'formatValue',
+  (value, unit, format) =>
+    isFinite(value)
+      ? humanFormat(value * (BYTE_CONVERSION_COEF[format] || 1), {
+          decimals: 2,
+          unit,
+          ...(unit === 'B' ? { scale: 'binary' } : {}),
+        })
+      : '-'
 )
 
 Handlebars.registerHelper(

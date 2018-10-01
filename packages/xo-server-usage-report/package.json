@@ -37,6 +37,7 @@
     "@xen-orchestra/cron": "^1.0.3",
     "handlebars": "^4.0.6",
     "html-minifier": "^3.5.8",
+    "human-format": "^0.10.0",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.10.1"
   },
