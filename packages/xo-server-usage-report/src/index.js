@@ -377,6 +377,7 @@ function getTopVms ({ vmsStats, xo }) {
     'ram',
     'diskRead',
     'diskWrite',
+    'iopsTotal',
     'netReception',
     'netTransmission',
   ])

@@ -239,6 +239,18 @@
             <td>{{formatValue this.value 'B' 'M'}}</td>
           </tr>
           {{/each}}
+
+          <tr>
+            <td rowspan='{{math topVms.iopsTotal.length "+" 1}}' class="tableHeader">IOPS</td>
+          </tr>
+          {{#each topVms.iopsTotal}}
+          <tr>
+            <td>{{shortUUID this.uuid}}</td>
+            <td>{{this.name}}</td>
+            <td>{{formatValue this.value 'IOPS'}}</td>
+          </tr>
+          {{/each}}
+
           <tr>
             <td rowspan='{{math topVms.netReception.length "+" 1}}' class="tableHeader">Network RX</td>
           </tr>
