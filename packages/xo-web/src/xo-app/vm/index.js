@@ -153,11 +153,7 @@ export default class Vm extends BaseComponent {
     () => this.props.checkPermissions,
     () => this.props.vm,
     () => this.props.srs,
-    (checkPermissions, vm, srs) =>
-      checkPermissions([
-        [vm.id, 'administrate'],
-        ...map(srs, sr => [sr.id, 'operate']),
-      ])
+    (checkPermissions, vm, srs) => checkPermissions(vm.id, 'administrate')
   )
 
   _setNameDescription = nameDescription =>
