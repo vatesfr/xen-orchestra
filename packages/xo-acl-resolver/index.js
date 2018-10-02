@@ -86,7 +86,7 @@ const checkAuthorizationByTypes = {
 
   'VM-controller': checkMember('$container'),
 
-  'VM-snapshot': checkMember('$snapshot_of'),
+  'VM-snapshot': or(checkSelf, checkMember('$snapshot_of')),
 
   'VM-template': or(checkSelf, checkMember('$pool')),
 }
