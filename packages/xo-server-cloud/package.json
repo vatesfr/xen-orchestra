@@ -31,9 +31,8 @@
     "node": ">=6"
   },
   "dependencies": {
-    "event-to-promise": "^0.8.0",
-    "jsonrpc-websocket-client": "^0.4.1",
-    "superagent": "^3.8.2"
+    "http-request-plus": "^0.6.0",
+    "jsonrpc-websocket-client": "^0.4.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
