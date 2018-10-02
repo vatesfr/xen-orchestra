@@ -16,7 +16,7 @@ import {
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
-import { Xapi as XapiBase } from 'xen-api'
+import { Xapi as XapiBase, NULL_REF } from 'xen-api'
 import {
   every,
   find,
@@ -63,7 +63,6 @@ import {
   canSrHaveNewVdiOfSize,
   isVmHvm,
   isVmRunning,
-  NULL_REF,
   optional,
   parseDateTime,
   prepareXapiParam,

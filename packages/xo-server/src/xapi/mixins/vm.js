@@ -1,10 +1,11 @@
 import deferrable from 'golike-defer'
-import { ignoreErrors, pCatch } from 'promise-toolbox'
 import { find, gte, includes, isEmpty, lte, noop } from 'lodash'
+import { ignoreErrors, pCatch } from 'promise-toolbox'
+import { NULL_REF } from 'xen-api'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
 
-import { isVmHvm, isVmRunning, makeEditObject, NULL_REF } from '../utils'
+import { isVmHvm, isVmRunning, makeEditObject } from '../utils'
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
 const XEN_VGA_VALUES = ['std', 'cirrus']

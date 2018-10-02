@@ -1,4 +1,4 @@
-import { NULL_REF } from './utils'
+import { NULL_REF } from 'xen-api'
 
 const OTHER_CONFIG_TEMPLATE = {
   actions_after_crash: 'restart',
