@@ -11,10 +11,10 @@ const resolveUrl = require('url').resolve
 const stat = require('fs-promise').stat
 
 const chalk = require('chalk')
-const eventToPromise = require('event-to-promise')
 const forEach = require('lodash/forEach')
+const fromCallback = require('promise-toolbox/fromCallback')
 const getKeys = require('lodash/keys')
-const got = require('got')
+const hrp = require('http-request-plus').default
 const humanFormat = require('human-format')
 const identity = require('lodash/identity')
 const isArray = require('lodash/isArray')
@@ -23,6 +23,7 @@ const micromatch = require('micromatch')
 const nicePipe = require('nice-pipe')
 const pairs = require('lodash/toPairs')
 const pick = require('lodash/pick')
+const pump = require('pump')
 const startsWith = require('lodash/startsWith')
 const prettyMs = require('pretty-ms')
 const progressStream = require('progress-stream')
@@ -362,50 +363,43 @@ async function call (args) {
       ensurePathParam(method, file)
       url = resolveUrl(baseUrl, result[key])
       const output = createWriteStream(file)
+      const response = await hrp(url)
 
-      const progress = progressStream({ time: 1e3 }, printProgress)
-
-      return eventToPromise(
-        nicePipe([
-          got.stream(url).on('response', function (response) {
-            const length = response.headers['content-length']
-            if (length !== undefined) {
-              progress.length(length)
-            }
-          }),
-          progress,
-          output,
-        ]),
-        'finish'
+      const progress = progressStream(
+        {
+          length: response.headers['content-length'],
+          time: 1e3,
+        },
+        printProgress
       )
+
+      return fromCallback(cb => pump(response, progress, output, cb))
     }
 
     if (key === '$sendTo') {
       ensurePathParam(method, file)
       url = resolveUrl(baseUrl, result[key])
 
-      const stats = await stat(file)
-      const length = stats.size
-
+      const { size: length } = await stat(file)
       const input = nicePipe([
         createReadStream(file),
         progressStream(
           {
-            length: length,
+            length,
             time: 1e3,
           },
           printProgress
         ),
       ])
 
-      const response = await got.post(url, {
-        body: input,
-        headers: {
-          'content-length': length,
-        },
-        method: 'POST',
-      })
-      return response.body
+      return hrp
+        .post(url, {
+          body: input,
+          headers: {
+            'content-length': length,
+          },
+        })
+        .readAll('utf-8')
     }
   }
 
