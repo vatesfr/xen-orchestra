@@ -9,10 +9,11 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
+import { NULL_REF } from 'xen-api'
 import {
   countBy,
   flatMap,
-  forEach,
+  forOwn,
   groupBy,
   isEmpty,
   last,
@@ -1135,6 +1136,13 @@ export default class BackupNg {
         const fullRequired = { __proto__: null }
         const vdis: $Dict<Vdi> = getVmDisks(baseSnapshot)
 
+        // ignore VDI snapshots which no longer have a parent
+        forOwn(vdis, (vdi, key, vdis) => {
+          if (vdi.snapshot_of === NULL_REF) {
+            delete vdis[key]
+          }
+        })
+
         for (const { $id: srId, xapi } of srs) {
           const replicatedVm = listReplicatedVms(
             xapi,
@@ -1151,7 +1159,7 @@ export default class BackupNg {
             getVmDisks(replicatedVm),
             vdi => vdi.other_config[TAG_COPY_SRC]
           )
-          forEach(vdis, vdi => {
+          forOwn(vdis, vdi => {
             if (!(vdi.uuid in replicatedVdis)) {
               fullRequired[vdi.$snapshot_of.$id] = true
             }
