@@ -8,11 +8,10 @@ import SingleLineRow from 'single-line-row'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
-import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
-import { Container, Row, Col } from 'grid'
+import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
 import { get } from '@xen-orchestra/defined'
@@ -20,7 +19,6 @@ import { Select, Number } from 'editable'
 import { Toggle } from 'form'
 import {
   connectPif,
-  createNetwork,
   deletePif,
   deletePifs,
   disconnectPif,
@@ -316,34 +314,19 @@ const GROUPED_ACTIONS = [
   },
 ]
 
-export default class TabNetwork extends Component {
-  render () {
-    return (
-      <Container>
-        <Row>
-          <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='primary'
-              handler={createNetwork}
-              handlerParam={this.props.host}
-              icon='add'
-              labelId='networkCreateButton'
-            />
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <SortedTable
-              collection={this.props.pifs}
-              columns={COLUMNS}
-              groupedActions={GROUPED_ACTIONS}
-              individualActions={INDIVIDUAL_ACTIONS}
-              stateUrlParam='s'
-              userData={{ networks: this.props.networks }}
-            />
-          </Col>
-        </Row>
-      </Container>
-    )
-  }
-}
+export default ({ networks, pifs }) => (
+  <Container>
+    <Row>
+      <Col>
+        <SortedTable
+          collection={pifs}
+          columns={COLUMNS}
+          data-networks={networks}
+          groupedActions={GROUPED_ACTIONS}
+          individualActions={INDIVIDUAL_ACTIONS}
+          stateUrlParam='s'
+        />
+      </Col>
+    </Row>
+  </Container>
+)
