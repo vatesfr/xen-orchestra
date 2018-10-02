@@ -746,7 +746,9 @@ export async function snapshot ({
 }) {
   await checkPermissionOnSrs.call(this, vm)
 
-  return (await this.getXapi(vm).snapshotVm(vm._xapiRef, name)).$id
+  const snapshotId = (await this.getXapi(vm).snapshotVm(vm._xapiRef, name)).$id
+  await this.addAcl(this.user.id, snapshotId, 'admin')
+  return snapshotId
 }
 
 snapshot.params = {
@@ -755,7 +757,7 @@ snapshot.params = {
 }
 
 snapshot.resolve = {
-  vm: ['id', 'VM', 'administrate'],
+  vm: ['id', 'VM', 'operate'],
 }
 
 // -------------------------------------------------------------------
