@@ -1,22 +1,22 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
 import React from 'react'
 import Icon from 'icon'
-import pick from 'lodash/pick'
 import SingleLineRow from 'single-line-row'
-import some from 'lodash/some'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
-import { Container, Col, Row } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
 import { get } from '@xen-orchestra/defined'
 import { Select, Number } from 'editable'
 import { Toggle } from 'form'
+import { isEmpty, pick, some } from 'lodash'
 import {
   connectPif,
   deletePif,
@@ -209,7 +209,7 @@ class PifItemLock extends Component {
   }
 }
 
-const COLUMNS = [
+const PIF_COLUMNS = [
   {
     default: true,
     itemRenderer: pif => pif.device,
@@ -291,7 +291,7 @@ const COLUMNS = [
   },
 ]
 
-const INDIVIDUAL_ACTIONS = [
+const PIF_INDIVIDUAL_ACTIONS = [
   {
     handler: pif => copy(pif.uuid),
     icon: 'clipboard',
@@ -305,7 +305,7 @@ const INDIVIDUAL_ACTIONS = [
   },
 ]
 
-const GROUPED_ACTIONS = [
+const PIF_GROUPED_ACTIONS = [
   {
     handler: deletePifs,
     icon: 'delete',
@@ -314,19 +314,79 @@ const GROUPED_ACTIONS = [
   },
 ]
 
-export default ({ networks, pifs }) => (
+const PVT_NETWORK_COLUMNS = [
+  {
+    name: _('poolNetworkNameLabel'),
+    itemRenderer: network => network.name_label,
+  },
+  {
+    name: _('poolNetworkDescription'),
+    itemRenderer: network => network.name_description,
+  },
+  {
+    name: _('poolNetworkMTU'),
+    itemRenderer: network => network.MTU,
+  },
+  {
+    name: (
+      <div className='text-xs-center'>
+        <Tooltip content={_('defaultLockingMode')}>
+          <Icon size='lg' icon='lock' />
+        </Tooltip>
+      </div>
+    ),
+    itemRenderer: network => (
+      <Icon icon={network.defaultIsLocked ? 'lock' : 'unlock'} />
+    ),
+  },
+]
+
+const PVT_NETWORK_ACTIONS = [
+  {
+    handler: network => copy(network.uuid),
+    icon: 'clipboard',
+    label: network => _('copyUuid', { uuid: network.uuid }),
+  },
+]
+
+export default ({ host, networks, pifs, privateNetworks }) => (
   <Container>
     <Row>
       <Col>
+        <h1>{_('poolNetworkPif')}</h1>
         <SortedTable
           collection={pifs}
-          columns={COLUMNS}
+          columns={PIF_COLUMNS}
           data-networks={networks}
-          groupedActions={GROUPED_ACTIONS}
-          individualActions={INDIVIDUAL_ACTIONS}
+          groupedActions={PIF_GROUPED_ACTIONS}
+          individualActions={PIF_INDIVIDUAL_ACTIONS}
           stateUrlParam='s'
         />
       </Col>
     </Row>
+    {!isEmpty(privateNetworks) && (
+      <Row>
+        <Col>
+          <h1>
+            {_('privateNetworks')}
+            <ActionButton
+              className='ml-1'
+              handler={noop}
+              icon='edit'
+              redirectOnSuccess={`/pools/${
+                host.$pool
+              }/network?s=${encodeURIComponent('!PIFs:length?')}`}
+            >
+              {_('manage')}
+            </ActionButton>
+          </h1>
+          <SortedTable
+            collection={privateNetworks}
+            columns={PVT_NETWORK_COLUMNS}
+            individualActions={PVT_NETWORK_ACTIONS}
+          />
+        </Col>
+      </Row>
+    )}
   </Container>
 )
