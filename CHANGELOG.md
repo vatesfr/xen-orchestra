@@ -12,6 +12,7 @@
 
 ### Released packages
 
+- xo-acl-resolver v0.3.0
 - xo-server v5.28.0
 - xo-web v5.28.0
 
