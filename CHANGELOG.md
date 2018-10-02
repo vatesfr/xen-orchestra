@@ -9,7 +9,7 @@
 ### Bug fixes
 
 - [Backup NG] Fix `Cannot read property 'uuid' of undefined` when a disk is removed from a VM to backup (PR [#3479](https://github.com/vatesfr/xen-orchestra/pull/3479))
-- [ACL] Fix user with ACLs on a snapshot should be able to manage it (PR [#3480](https://github.com/vatesfr/xen-orchestra/pull/3480))
+- [ACL] Fix user with ACLs on a snapshot should be able to manage it, related to [#3443](https://github.com/vatesfr/xen-orchestra/issues/3443) (PR [#3480](https://github.com/vatesfr/xen-orchestra/pull/3480))
 
 ### Released packages
 
