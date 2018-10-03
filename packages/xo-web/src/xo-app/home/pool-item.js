@@ -1,12 +1,9 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
-import flatMap from 'lodash/flatMap'
 import Icon from 'icon'
-import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
-import size from 'lodash/size'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import Link, { BlockLink } from 'link'
@@ -14,6 +11,7 @@ import { Col } from 'grid'
 import { Text } from 'editable'
 import { addTag, editPool, getHostMissingPatches, removeTag } from 'xo'
 import { connectStore, formatSizeShort } from 'utils'
+import { flatten, map, size, uniq } from 'lodash'
 import {
   createGetObjectsOfType,
   createGetHostMetrics,
@@ -32,7 +30,7 @@ import styles from './index.css'
 
   const getMissingPatches = createSelector(getPoolHosts, hosts => {
     return Promise.all(map(hosts, host => getHostMissingPatches(host))).then(
-      patches => flatMap(patches)
+      patches => uniq(map(flatten(patches), 'name'))
     )
   })
 
