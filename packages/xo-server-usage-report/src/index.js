@@ -141,13 +141,13 @@ const BYTE_CONVERSION_COEF = {
 }
 
 Handlebars.registerHelper(
-  'formatValue',
-  (value, unit, format) =>
+  'formatBytes',
+  (value, format) =>
     isFinite(value)
-      ? humanFormat(value * (BYTE_CONVERSION_COEF[format] || 1), {
+      ? humanFormat(value * BYTE_CONVERSION_COEF[format], {
           decimals: 2,
-          unit,
-          ...(unit === 'B' ? { scale: 'binary' } : {}),
+          unit: 'B',
+          scale: 'binary',
         })
       : '-'
 )
