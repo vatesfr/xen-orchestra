@@ -5,9 +5,9 @@ import tmp from 'tmp'
 import { createWriteStream, readFile } from 'fs-promise'
 import { fromEvent, pFromCallback } from 'promise-toolbox'
 
-import { createFooter } from './_createFooterHeader'
-import createReadableRawVHDStream from './createReadableRawStream'
-import createReadableSparseVHDStream from './createReadableSparseStream'
+import { createReadableRawVHDStream, createReadableSparseVHDStream } from './'
+
+import { createFooter } from './src/_createFooterHeader'
 
 const initialDir = process.cwd()
 
