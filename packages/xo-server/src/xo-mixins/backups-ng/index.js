@@ -901,7 +901,7 @@ export default class BackupNg {
 
       // JFT 2018-10-02: support previous snapshots which did not have this
       // entry, can be removed after 2018-12.
-      if (baseSnapshot !== undefined) {
+      if (baseSnapshot === undefined) {
         baseSnapshot = last(snapshots)
       }
     }
