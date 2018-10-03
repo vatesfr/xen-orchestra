@@ -9,7 +9,7 @@ import { fromEvent, pFromCallback } from 'promise-toolbox'
 import { getHandler } from '@xen-orchestra/fs'
 import { randomBytes } from 'crypto'
 
-import { chainVhd, createReadStream, Vhd, mergeVhd as vhdMerge } from './'
+import Vhd, { chainVhd, createReadStream, mergeVhd as vhdMerge } from './'
 
 import { SECTOR_SIZE } from './src/_constants'
 
