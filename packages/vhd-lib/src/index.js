@@ -1,3 +1,5 @@
+import 'core-js/features/symbol/async-iterator'
+
 export { default } from './vhd'
 export { default as chainVhd } from './chain'
 export { default as createContentStream } from './createContentStream'
