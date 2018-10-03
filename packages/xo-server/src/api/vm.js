@@ -1,4 +1,5 @@
 import concat from 'lodash/concat'
+import defer from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import {
@@ -740,16 +741,23 @@ export { convertToTemplate as convert }
 // -------------------------------------------------------------------
 
 // TODO: implement resource sets
-export async function snapshot ({
-  vm,
-  name = `${vm.name_label}_${new Date().toISOString()}`,
-}) {
+export const snapshot = defer(async function (
+  $defer,
+  { vm, name = `${vm.name_label}_${new Date().toISOString()}` }
+) {
   await checkPermissionOnSrs.call(this, vm)
 
-  const snapshotId = (await this.getXapi(vm).snapshotVm(vm._xapiRef, name)).$id
-  await this.addAcl(this.user.id, snapshotId, 'admin')
+  const xapi = this.getXapi(vm)
+  const snapshotId = (await xapi.snapshotVm(vm._xapiRef, name)).$id
+  $defer.onFailure(() => xapi.deleteVm(snapshotId))
+
+  const userId = this.user.id
+  // It test if the snapshot is created using ACLs
+  if ((await this.getPermissionsForUser(userId))[vm.id] !== undefined) {
+    await this.addAcl(userId, snapshotId, 'admin')
+  }
   return snapshotId
-}
+})
 
 snapshot.params = {
   id: { type: 'string' },
