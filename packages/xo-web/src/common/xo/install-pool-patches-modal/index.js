@@ -3,20 +3,20 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { Container, Col } from 'grid'
 import { connectStore } from 'utils'
 import {
+  createCollectionWrapper,
   createCounter,
-  createFilter,
   createGetObject,
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { map, some } from 'lodash'
+import { forEach } from 'lodash'
 import { SelectSr } from 'select-objects'
+import { VmItem } from 'render-xo-item'
 import { ejectCd, isSrWritable, setDefaultSr } from 'xo'
 
 @connectStore(() => {
@@ -26,37 +26,37 @@ import { ejectCd, isSrWritable, setDefaultSr } from 'xo'
     poolMaster: createGetObject(
       createSelector(getPool, ({ master }) => master)
     ),
-    vms: createGetObjectsOfType('VM'),
-    vbds: createGetObjectsOfType('VBD'),
+    vbds: createGetObjectsOfType('VBD').filter(
+      createSelector(getPool, ({ id }) => vbd => vbd.$pool === id)
+    ),
   }
 })
 export default class InstallPoolPatchesModalBody extends Component {
-  _getVmsWithCds = createFilter(
-    () => this.props.vms,
-    createSelector(
-      () => this.props.vbds,
-      () => this.props.pool.id,
-      (vbds, poolId) => vm => {
-        let vbd
-        return (
-          vm.$pool === poolId &&
-          some(
-            vm.$VBDs,
-            vbdId => (vbd = vbds[vbdId]).is_cd_drive && vbd.VDI !== undefined
-          )
-        )
-      }
-    )
+  _getVmsWithCds = createSelector(
+    () => this.props.vbds,
+    createCollectionWrapper(vbds => {
+      const vmIds = []
+      forEach(vbds, vbd => {
+        if (
+          vbd.is_cd_drive &&
+          vbd.VDI !== undefined &&
+          !vmIds.includes(vbd.VM)
+        ) {
+          vmIds.push(vbd.VM)
+        }
+      })
+      return vmIds
+    })
   )
 
   _getNVmsWithCds = createCounter(this._getVmsWithCds)
 
-  _ejectCds = () => Promise.all(Object.keys(this._getVmsWithCds()).map(ejectCd))
+  _ejectCds = () => Promise.all(this._getVmsWithCds().map(ejectCd))
 
-  _getTooltip = createSelector(this._getVmsWithCds, vms =>
-    map(vms, vm => (
-      <p className='m-0' key={vm.id}>
-        {renderXoItem(vm)}
+  _getTooltip = createSelector(this._getVmsWithCds, vmIds =>
+    vmIds.map(vmId => (
+      <p className='m-0' key={vmId}>
+        <VmItem id={vmId} />
       </p>
     ))
   )
