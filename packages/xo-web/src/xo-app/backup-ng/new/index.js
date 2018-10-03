@@ -590,10 +590,18 @@ export default [
               setting.snapshotRetention
             )
               ? {
-                  copyRetention: setting.copyRetention || DEFAULT_RETENTION,
-                  exportRetention: setting.exportRetention || DEFAULT_RETENTION,
-                  snapshotRetention:
-                    setting.snapshotRetention || DEFAULT_RETENTION,
+                  copyRetention: defined(
+                    setting.copyRetention,
+                    DEFAULT_RETENTION
+                  ),
+                  exportRetention: defined(
+                    setting.exportRetention,
+                    DEFAULT_RETENTION
+                  ),
+                  snapshotRetention: defined(
+                    setting.snapshotRetention,
+                    DEFAULT_RETENTION
+                  ),
                 }
               : setting
         ),
