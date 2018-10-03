@@ -11,6 +11,7 @@
 ### Bug fixes
 
 - [Backup NG] Fix `Cannot read property 'uuid' of undefined` when a disk is removed from a VM to backup (PR [#3479](https://github.com/vatesfr/xen-orchestra/pull/3479))
+- [Backup NG] Fix unexpected full after failure, interruption or basic rolling snapshot (PR [#3485](https://github.com/vatesfr/xen-orchestra/pull/3485))
 
 ### Released packages
 
