@@ -7,6 +7,7 @@
 - [Host/Networks] Remove "Add network" button [#3386](https://github.com/vatesfr/xen-orchestra/issues/3386) (PR [#3478](https://github.com/vatesfr/xen-orchestra/pull/3478))
 - [Host/networks] Private networks table [#3387](https://github.com/vatesfr/xen-orchestra/issues/3387) (PR [#3481](https://github.com/vatesfr/xen-orchestra/pull/3481))
 - [Home/pool] Patch count pill now shows the number of unique patches in the pool [#3321](https://github.com/vatesfr/xen-orchestra/issues/3321) (PR [#3483](https://github.com/vatesfr/xen-orchestra/pull/3483))
+- [Patches] Pre-install checks to avoid errors [#3252](https://github.com/vatesfr/xen-orchestra/issues/3252)
 
 ### Bug fixes
 

@@ -715,10 +715,21 @@ export const installAllHostPatches = host =>
     subscribeHostMissingPatches.forceRefresh(host)
   )
 
-export const installAllPatchesOnPool = pool =>
-  _call('pool.installAllPatches', { pool: resolveId(pool) })::tap(() =>
-    subscribeHostMissingPatches.forceRefresh()
+import InstallPoolPatchesModalBody from './install-pool-patches-modal' // eslint-disable-line import/first
+export const installAllPatchesOnPool = pool => {
+  const poolId = resolveId(pool)
+  return confirm({
+    body: <InstallPoolPatchesModalBody pool={poolId} />,
+    title: _('installPoolPatches'),
+    icon: 'host-patch-update',
+  }).then(
+    () =>
+      _call('pool.installAllPatches', { pool: poolId })::tap(() =>
+        subscribeHostMissingPatches.forceRefresh()
+      ),
+    noop
   )
+}
 
 export const installSupplementalPack = (host, file) => {
   info(
