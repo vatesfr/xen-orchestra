@@ -12,6 +12,7 @@ import { basename, dirname } from 'path'
 import { NULL_REF } from 'xen-api'
 import {
   countBy,
+  findLast,
   flatMap,
   forOwn,
   groupBy,
@@ -770,6 +771,7 @@ export default class BackupNg {
         },
         xapi._updateObjectMapProperty(vm, 'other_config', {
           'xo:backup:datetime': null,
+          'xo:backup:exported': null,
           'xo:backup:job': null,
           'xo:backup:schedule': null,
           'xo:backup:vm': null,
@@ -890,7 +892,19 @@ export default class BackupNg {
 
     snapshot = await xapi.barrier(snapshot.$ref)
 
-    let baseSnapshot = mode === 'delta' ? last(snapshots) : undefined
+    let baseSnapshot
+    if (mode === 'delta') {
+      baseSnapshot = findLast(
+        snapshots,
+        _ => 'xo:backup:exported' in _.other_config
+      )
+
+      // JFT 2018-10-02: support previous snapshots which did not have this
+      // entry, can be removed after 2018-12.
+      if (baseSnapshot !== undefined) {
+        baseSnapshot = last(snapshots)
+      }
+    }
     snapshots.push(snapshot)
 
     // snapshots to delete due to the snapshot retention settings
@@ -1447,6 +1461,17 @@ export default class BackupNg {
     } else {
       throw new Error(`no exporter for backup mode ${mode}`)
     }
+
+    await wrapTask(
+      {
+        logger,
+        message: 'set snapshot.other_config[xo:backup:exported]',
+        parentId: taskId,
+      },
+      xapi._updateObjectMapProperty(snapshot, 'other_config', {
+        'xo:backup:exported': 'true',
+      })
+    )
   }
 
   async _deleteDeltaVmBackups (
