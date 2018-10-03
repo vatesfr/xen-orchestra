@@ -17,7 +17,7 @@ import {
 } from 'selectors'
 import { map, some } from 'lodash'
 import { SelectSr } from 'select-objects'
-import { ejectCd, setDefaultSr } from 'xo'
+import { ejectCd, isSrWritable, setDefaultSr } from 'xo'
 
 @connectStore(() => {
   const getPool = createGetObject((_, props) => props.pool)
@@ -30,7 +30,7 @@ import { ejectCd, setDefaultSr } from 'xo'
     vbds: createGetObjectsOfType('VBD'),
   }
 })
-export default class InstallPoolModalBody extends Component {
+export default class InstallPoolPatchesModalBody extends Component {
   _getVmsWithCds = createFilter(
     () => this.props.vms,
     createSelector(
@@ -87,7 +87,7 @@ export default class InstallPoolModalBody extends Component {
               <div className='input-group'>
                 <SelectSr
                   onChange={this.linkState('sr')}
-                  predicate={({ $pool }) => $pool === pool.id}
+                  predicate={sr => sr.$pool === pool.id && isSrWritable(sr)}
                   value={this.state.sr}
                 />
                 <span className='input-group-btn'>

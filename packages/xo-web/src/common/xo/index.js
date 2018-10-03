@@ -715,11 +715,11 @@ export const installAllHostPatches = host =>
     subscribeHostMissingPatches.forceRefresh(host)
   )
 
-import InstallPoolModalBody from './install-pool-modal' // eslint-disable-line import/first
+import InstallPoolPatchesModalBody from './install-pool-patches-modal' // eslint-disable-line import/first
 export const installAllPatchesOnPool = pool => {
   const poolId = resolveId(pool)
   return confirm({
-    body: <InstallPoolModalBody pool={poolId} />,
+    body: <InstallPoolPatchesModalBody pool={poolId} />,
     title: _('installPoolPatches'),
     icon: 'host-patch-update',
   }).then(
