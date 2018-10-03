@@ -5,7 +5,7 @@ import tmp from 'tmp'
 import { createWriteStream, readFile } from 'fs-promise'
 import { fromEvent, pFromCallback } from 'promise-toolbox'
 
-import { createReadableRawVHDStream, createReadableSparseVHDStream } from './'
+import { createReadableRawStream, createReadableSparseStream } from './'
 
 import { createFooter } from './src/_createFooterHeader'
 
@@ -54,7 +54,7 @@ test('ReadableRawVHDStream does not crash', async () => {
     },
   }
   const fileSize = 1000
-  const stream = createReadableRawVHDStream(fileSize, mockParser)
+  const stream = createReadableRawStream(fileSize, mockParser)
   const pipe = stream.pipe(createWriteStream('output.vhd'))
   await fromEvent(pipe, 'finish')
   await execa('vhd-util', ['check', '-t', '-i', '-n', 'output.vhd'])
@@ -85,7 +85,7 @@ test('ReadableRawVHDStream detects when blocks are out of order', async () => {
   }
   return expect(
     new Promise((resolve, reject) => {
-      const stream = createReadableRawVHDStream(100000, mockParser)
+      const stream = createReadableRawStream(100000, mockParser)
       stream.on('error', reject)
       const pipe = stream.pipe(createWriteStream('outputStream'))
       pipe.on('finish', resolve)
@@ -107,7 +107,7 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
     },
   ]
   const fileSize = blockSize * 110
-  const stream = createReadableSparseVHDStream(
+  const stream = createReadableSparseStream(
     fileSize,
     blockSize,
     blocks.map(b => b.offsetBytes),

@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "child-process-promise": "^2.0.3",
+    "core-js": "3.0.0-beta.3",
     "pipette": "^0.9.3",
     "promise-toolbox": "^0.10.1",
     "tmp": "^0.0.33",
