@@ -13,9 +13,11 @@
 
 - [Backup NG] Fix `Cannot read property 'uuid' of undefined` when a disk is removed from a VM to backup (PR [#3479](https://github.com/vatesfr/xen-orchestra/pull/3479))
 - [Backup NG] Fix unexpected full after failure, interruption or basic rolling snapshot (PR [#3485](https://github.com/vatesfr/xen-orchestra/pull/3485))
+- [Usage report] Display top 3 used SRs instead of top 3 biggest SRs [#3307](https://github.com/vatesfr/xen-orchestra/issues/3307) (PR [#3475](https://github.com/vatesfr/xen-orchestra/pull/3475))
 
 ### Released packages
 
+- xo-server-usage-report v0.6.0
 - xo-acl-resolver v0.3.0
 - xo-server v5.28.0
 - xo-web v5.28.0
