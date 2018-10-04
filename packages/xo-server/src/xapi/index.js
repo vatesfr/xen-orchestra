@@ -743,33 +743,28 @@ export default class Xapi extends XapiBase {
   @cancelable
   async exportVm ($cancelToken, vmId, { compress = true } = {}) {
     const vm = this.getObject(vmId)
-
-    let snapshotRef
-    if (isVmRunning(vm)) {
-      snapshotRef = (await this._snapshotVm(
-        $cancelToken,
-        vm,
-        `[XO Export] ${vm.name_label}`
-      )).$ref
-    }
+    const useSnapshot = isVmRunning(vm)
+    const exportedVm = useSnapshot
+      ? await this._snapshotVm($cancelToken, vm, `[XO Export] ${vm.name_label}`)
+      : vm
 
     const promise = this.getResource($cancelToken, '/export/', {
       query: {
-        ref: snapshotRef || vm.$ref,
+        ref: exportedVm.$ref,
         use_compression: compress ? 'true' : 'false',
       },
       task: this.createTask('VM export', vm.name_label),
     }).catch(error => {
       // augment the error with as much relevant info as possible
       error.pool_master = this.pool.$master
-      error.VM = snapshotRef || vm
+      error.VM = exportedVm
 
       throw error
     })
 
-    if (snapshotRef !== undefined) {
+    if (useSnapshot) {
       promise.then(_ =>
-        _.task::pFinally(() => this.deleteVm(snapshotRef)::ignoreErrors())
+        _.task::pFinally(() => this.deleteVm(exportedVm)::ignoreErrors())
       )
     }
 
