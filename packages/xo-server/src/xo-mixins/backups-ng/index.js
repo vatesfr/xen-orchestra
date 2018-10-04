@@ -9,7 +9,6 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
-import { NULL_REF } from 'xen-api'
 import {
   countBy,
   findLast,
@@ -1152,7 +1151,9 @@ export default class BackupNg {
 
         // ignore VDI snapshots which no longer have a parent
         forOwn(vdis, (vdi, key, vdis) => {
-          if (vdi.snapshot_of === NULL_REF) {
+          // `vdi.snapshot_of` is not always set to the null ref, it can contain
+          // an invalid ref, that's why the test is on `vdi.$snapshot_of`
+          if (vdi.$snapshot_of === undefined) {
             delete vdis[key]
           }
         })
