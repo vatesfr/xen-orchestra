@@ -759,6 +759,12 @@ export default class Xapi extends XapiBase {
         use_compression: compress ? 'true' : 'false',
       },
       task: this.createTask('VM export', vm.name_label),
+    }).catch(error => {
+      // augment the error with as much relevant info as possible
+      error.pool_master = this.pool.$master
+      error.VM = snapshotRef || vm
+
+      throw error
     })
 
     if (snapshotRef !== undefined) {
@@ -1325,7 +1331,13 @@ export default class Xapi extends XapiBase {
     const vmRef = await this.putResource($cancelToken, stream, '/import/', {
       query,
       task: taskRef,
-    }).then(extractOpaqueRef)
+    }).then(extractOpaqueRef, error => {
+      // augment the error with as much relevant info as possible
+      error.pool_master = this.pool.$master
+      error.SR = sr
+
+      throw error
+    })
 
     return vmRef
   }
