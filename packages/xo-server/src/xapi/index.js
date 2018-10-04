@@ -763,9 +763,8 @@ export default class Xapi extends XapiBase {
     })
 
     if (useSnapshot) {
-      promise.then(_ =>
-        _.task::pFinally(() => this.deleteVm(exportedVm)::ignoreErrors())
-      )
+      const destroySnapshot = () => this.deleteVm(exportedVm)::ignoreErrors()
+      promise.then(_ => _.task::pFinally(destroySnapshot), destroySnapshot)
     }
 
     return promise
