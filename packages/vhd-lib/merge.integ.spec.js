@@ -9,7 +9,7 @@ import { fromEvent, pFromCallback } from 'promise-toolbox'
 import { getHandler } from '@xen-orchestra/fs'
 import { randomBytes } from 'crypto'
 
-import Vhd, { chainVhd, createReadStream, mergeVhd as vhdMerge } from './'
+import Vhd, { chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './'
 
 import { SECTOR_SIZE } from './src/_constants'
 
@@ -107,7 +107,7 @@ test('the BAT MSB is not used for sign', async () => {
     fs.close(recoveredFile)
   }
   const recovered = await getStream.buffer(
-    await fs.createReadStream('recovered', {
+    await fs.createSyntheticStream('recovered', {
       start: hugePositionBytes,
       end: hugePositionBytes + randomBuffer.length - 1,
     })
@@ -271,7 +271,7 @@ test('createSyntheticStream passes vhd-util check', async () => {
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
   const handler = getHandler({ url: 'file://' + process.cwd() })
-  const stream = createReadStream(handler, 'randomfile.vhd')
+  const stream = createSyntheticStream(handler, 'randomfile.vhd')
   await fromEvent(
     stream.pipe(await fs.createWriteStream('recovered.vhd')),
     'finish'
