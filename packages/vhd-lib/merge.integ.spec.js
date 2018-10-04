@@ -107,7 +107,7 @@ test('the BAT MSB is not used for sign', async () => {
     fs.close(recoveredFile)
   }
   const recovered = await getStream.buffer(
-    await fs.createSyntheticStream('recovered', {
+    await fs.createReadStream('recovered', {
       start: hugePositionBytes,
       end: hugePositionBytes + randomBuffer.length - 1,
     })
