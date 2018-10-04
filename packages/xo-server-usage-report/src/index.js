@@ -396,7 +396,7 @@ function getTopHosts ({ hostsStats, xo }) {
 }
 
 function getTopSrs ({ srsStats, xo }) {
-  return getTop(srsStats, ['total']).total
+  return getTop(srsStats, ['used']).used
 }
 
 async function getHostsMissingPatches ({ runningHosts, xo }) {
