@@ -1,4 +1,5 @@
 import concat from 'lodash/concat'
+import deferrable from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import {
@@ -647,17 +648,34 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-// TODO: implement resource sets
-export async function clone ({ vm, name, full_copy: fullCopy }) {
+export const clone = deferrable(async function (
+  $defer,
+  { vm, name, full_copy: fullCopy }
+) {
   await checkPermissionOnSrs.call(this, vm)
+  const xapi = this.getXapi(vm)
 
-  return this.getXapi(vm)
-    .cloneVm(vm._xapiRef, {
-      nameLabel: name,
-      fast: !fullCopy,
-    })
-    .then(vm => vm.$id)
-}
+  const { $id: cloneId } = await xapi.cloneVm(vm._xapiRef, {
+    nameLabel: name,
+    fast: !fullCopy,
+  })
+  $defer.onFailure(() => xapi.deleteVm(cloneId))
+
+  await Promise.all(
+    map(await this.getAclsForObject(vm.id), ({ subject, action }) =>
+      this.addAcl(subject, cloneId, action)
+    )
+  )
+
+  if (vm.resourceSet !== undefined) {
+    await this.allocateLimitsInResourceSet(
+      await this.computeVmResourcesUsage(vm),
+      vm.resourceSet
+    )
+  }
+
+  return cloneId
+})
 
 clone.params = {
   id: { type: 'string' },
