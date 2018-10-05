@@ -83,7 +83,7 @@
       border-top: 1px solid #95a5a6;
     }
 
-    .page .global tr:nth-last-child(2) td {
+    .page .global tr:nth-last-child(1) td {
       border-bottom: 1px solid #95a5a6;
     }
 
@@ -151,7 +151,7 @@
 
       <table class ="global">
         <tr>
-          <td id="title" rowspan="13">VMs</td>
+          <td id="title" rowspan="8">VMs</td>
         </tr>
         <tr>
           <td>Number:</td>
@@ -160,31 +160,31 @@
         <tr>
           <td>CPU:</td>
           <td>{{normaliseValue global.vms.cpu}} % {{normaliseEvolution global.vmsEvolution.cpu}}</td>
-        <tr>
+        </tr>
         <tr>
           <td>RAM:</td>
           <td>{{normaliseValue global.vms.ram}} GiB {{normaliseEvolution global.vmsEvolution.ram}}</td>
-        <tr>
+        </tr>
         <tr>
           <td>Disk read:</td>
           <td>{{normaliseValue global.vms.diskRead}} MiB {{normaliseEvolution global.vmsEvolution.diskRead}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Disk write:</td>
           <td>{{normaliseValue global.vms.diskWrite}} MiB {{normaliseEvolution global.vmsEvolution.diskWrite}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Network RX:</td>
           <td>{{normaliseValue global.vms.netReception}} KiB {{normaliseEvolution global.vmsEvolution.netReception}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Network TX:</td>
           <td>{{normaliseValue global.vms.netTransmission}} KiB {{normaliseEvolution global.vmsEvolution.netTransmission}}
           </td>
-        <tr>
+        </tr>
       </table>
 
       <div class="top">
@@ -266,7 +266,7 @@
     <div class="page">
       <table class ="global">
         <tr>
-          <td id="title" rowspan="13">Hosts</td>
+          <td id="title" rowspan="7">Hosts</td>
         </tr>
         <tr>
           <td>Number:</td>
@@ -277,28 +277,27 @@
           <td>CPU:</td>
           <td>{{normaliseValue global.hosts.cpu}} % {{normaliseEvolution global.hostsEvolution.cpu}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>RAM:</td>
           <td>{{normaliseValue global.hosts.ram}} GiB {{normaliseEvolution global.hostsEvolution.ram}}
           </td>
-          </td>
-        <tr>
+        </tr>
         <tr>
           <td>Load average:</td>
           <td>{{normaliseValue global.hosts.load}}  {{normaliseEvolution global.hostsEvolution.load}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Network RX:</td>
           <td>{{normaliseValue global.hosts.netReception}} KiB {{normaliseEvolution global.hostsEvolution.netReception}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Network TX:</td>
           <td>{{normaliseValue global.hosts.netTransmission}} KiB {{normaliseEvolution global.hostsEvolution.netTransmission}}
           </td>
-        <tr>
+        </tr>
       </table>
 
       <div class="top">
