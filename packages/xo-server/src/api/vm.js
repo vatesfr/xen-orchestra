@@ -751,10 +751,9 @@ export const snapshot = defer(async function (
   const { $id: snapshotId } = await xapi.snapshotVm(vm._xapiRef, name)
   $defer.onFailure(() => xapi.deleteVm(snapshotId))
 
-  const userId = this.user.id
-  // It test if the snapshot is created using ACLs
-  if ((await this.getPermissionsForUser(userId))[vm.id] !== undefined) {
-    await this.addAcl(userId, snapshotId, 'admin')
+  const { user } = this
+  if (user.permission !== 'admin') {
+    await this.addAcl(user.id, snapshotId, 'admin')
   }
   return snapshotId
 })
