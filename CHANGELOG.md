@@ -4,6 +4,17 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+- xo-server v5.29.0
+- xo-web v5.29.0
+
+## **5.28.0** (2018-10-05)
+
+### Enhancements
+
 - [Host/Networks] Remove "Add network" button [#3386](https://github.com/vatesfr/xen-orchestra/issues/3386) (PR [#3478](https://github.com/vatesfr/xen-orchestra/pull/3478))
 - [Host/networks] Private networks table [#3387](https://github.com/vatesfr/xen-orchestra/issues/3387) (PR [#3481](https://github.com/vatesfr/xen-orchestra/pull/3481))
 - [Home/pool] Patch count pill now shows the number of unique patches in the pool [#3321](https://github.com/vatesfr/xen-orchestra/issues/3321) (PR [#3483](https://github.com/vatesfr/xen-orchestra/pull/3483))
