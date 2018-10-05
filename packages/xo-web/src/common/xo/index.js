@@ -974,7 +974,7 @@ export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) =>
     id,
     name: `${nameLabel}_clone`,
     full_copy: fullCopy,
-  })
+  })::tap(subscribeResourceSets.forceRefresh)
 
 const _copyVm = ({ vm, sr, name, compress }) =>
   _call('vm.copy', {
