@@ -648,17 +648,34 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-// TODO: implement resource sets
-export async function clone ({ vm, name, full_copy: fullCopy }) {
+export const clone = defer(async function (
+  $defer,
+  { vm, name, full_copy: fullCopy }
+) {
   await checkPermissionOnSrs.call(this, vm)
+  const xapi = this.getXapi(vm)
 
-  return this.getXapi(vm)
-    .cloneVm(vm._xapiRef, {
-      nameLabel: name,
-      fast: !fullCopy,
-    })
-    .then(vm => vm.$id)
-}
+  const { $id: cloneId } = await xapi.cloneVm(vm._xapiRef, {
+    nameLabel: name,
+    fast: !fullCopy,
+  })
+  $defer.onFailure(() => xapi.deleteVm(cloneId))
+
+  const isAdmin = this.user.permission === 'admin'
+  if (!isAdmin) {
+    await this.addAcl(this.user.id, cloneId, 'admin')
+  }
+
+  if (vm.resourceSet !== undefined) {
+    await this.allocateLimitsInResourceSet(
+      await this.computeVmResourcesUsage(vm),
+      vm.resourceSet,
+      isAdmin
+    )
+  }
+
+  return cloneId
+})
 
 clone.params = {
   id: { type: 'string' },

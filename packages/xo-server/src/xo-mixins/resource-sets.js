@@ -284,7 +284,7 @@ export default class {
   }
 
   @synchronizedResourceSets
-  async allocateLimitsInResourceSet (limits, setId) {
+  async allocateLimitsInResourceSet (limits, setId, force = false) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
       const limit = set.limits[id]
@@ -292,7 +292,7 @@ export default class {
         return
       }
 
-      if ((limit.available -= quantity) < 0) {
+      if ((limit.available -= quantity) < 0 && !force) {
         throw new Error(`not enough ${id} available in the set ${setId}`)
       }
     })
