@@ -198,9 +198,16 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
+  labelBackup: 'Backup',
+  labelDetails: 'Details',
   labelMerge: 'Merge',
+  labelName: 'Name',
+  labelRestore: 'Restore',
   labelSize: 'Size',
+  labelSpeed: 'Speed',
+  labelSr: 'SR',
   labelTransfer: 'Transfer',
+  labelVm: 'VM',
 
   // ----- Forms -----
   formCancel: 'Cancel',
@@ -995,6 +1002,8 @@ const messages = {
   logName: 'Name',
   logContent: 'Content',
   logAction: 'Action',
+  restoredVm: 'Restored VM',
+  restoreRunId: 'Run ID',
 
   // ----- VM advanced tab -----
   vmRemoveButton: 'Remove',

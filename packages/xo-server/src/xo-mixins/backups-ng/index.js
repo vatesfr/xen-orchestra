@@ -23,7 +23,12 @@ import {
   sum,
   values,
 } from 'lodash'
-import { CancelToken, pFromEvent, ignoreErrors } from 'promise-toolbox'
+import {
+  CancelToken,
+  pFromEvent,
+  pFinally,
+  ignoreErrors,
+} from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -450,10 +455,16 @@ export default class BackupNg {
     worker: $Dict<any>,
   }
   _logger: Logger
+  _runningRestores: Array<string>
+
+  get runningRestores () {
+    return this._runningRestores
+  }
 
   constructor (app: any) {
     this._app = app
     this._logger = undefined
+    this._runningRestores = []
 
     app.on('start', () => {
       const executor: Executor = async ({
@@ -670,8 +681,9 @@ export default class BackupNg {
         logger,
         message: 'restore',
       },
-      taskId =>
-        importer(
+      taskId => {
+        this._runningRestores.push(taskId)
+        return importer(
           handler,
           metadataFilename,
           metadata,
@@ -679,7 +691,10 @@ export default class BackupNg {
           xapi.getObject(srId),
           taskId,
           logger
-        )
+        )::pFinally(() => {
+          delete this._runningRestores[taskId]
+        })
+      }
     )()
   }
 

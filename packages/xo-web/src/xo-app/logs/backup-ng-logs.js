@@ -6,10 +6,11 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
-import { formatSize } from 'utils'
+import { formatSize, formatSpeed } from 'utils'
 import { FormattedDate } from 'react-intl'
 import { get } from '@xen-orchestra/defined'
-import { isEmpty, keyBy } from 'lodash'
+import { isEmpty, keyBy, groupBy } from 'lodash'
+import { SrItem, VmItem } from 'render-xo-item'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
@@ -44,17 +45,7 @@ const STATUS_LABELS = {
   },
 }
 
-const LOG_COLUMNS = [
-  {
-    name: _('jobId'),
-    itemRenderer: log => log.jobId.slice(4, 8),
-    sortCriteria: log => log.jobId,
-  },
-  {
-    name: _('jobName'),
-    itemRenderer: (log, { jobs }) => get(() => jobs[log.jobId].name),
-    sortCriteria: (log, { jobs }) => get(() => jobs[log.jobId].name),
-  },
+const LOG_COMMON_COLUMNS = [
   {
     name: _('jobStart'),
     itemRenderer: log => (
@@ -105,6 +96,20 @@ const LOG_COLUMNS = [
     },
     sortCriteria: 'status',
   },
+]
+
+const LOG_BACKUP_COLUMNS = [
+  {
+    name: _('jobId'),
+    itemRenderer: log => get(() => log.jobId.slice(4, 8)),
+    sortCriteria: log => log.jobId,
+  },
+  {
+    name: _('jobName'),
+    itemRenderer: (log, { jobs }) => get(() => jobs[log.jobId].name),
+    sortCriteria: (log, { jobs }) => get(() => jobs[log.jobId].name),
+  },
+  ...LOG_COMMON_COLUMNS,
   {
     name: _('labelSize'),
     itemRenderer: ({ tasks: vmTasks }) => {
@@ -164,6 +169,55 @@ const LOG_COLUMNS = [
   },
 ]
 
+const LOG_RESTORE_COLUMNS = [
+  {
+    name: _('labelVm'),
+    itemRenderer: ({ data }) => (
+      <ul style={UL_STYLE}>
+        <li style={LI_STYLE}>{_.keyValue(_('labelName'), data.vmName)}</li>
+        <li style={LI_STYLE}>{_.keyValue('UUID', data.vmUuid)}</li>
+      </ul>
+    ),
+    sortCriteria: 'data.vmUuid',
+  },
+  {
+    name: _('labelSr'),
+    itemRenderer: ({ data }) => <SrItem id={data.srId} link newTab />,
+    sortCriteria: 'data.srId',
+  },
+  {
+    name: _('labelDetails'),
+    itemRenderer: task => {
+      if (task.status === 'success' && task.tasks !== undefined) {
+        const result = task.tasks.find(({ message }) => message === 'transfer')
+          .result
+        return (
+          <ul style={UL_STYLE}>
+            <li style={LI_STYLE}>
+              {_.keyValue(
+                _('restoredVm'),
+                <VmItem id={result.id} link newTab />
+              )}
+            </li>
+            <li style={LI_STYLE}>
+              {_.keyValue(_('labelSize'), formatSize(result.size))}
+            </li>
+            <li style={LI_STYLE}>
+              {_.keyValue(
+                _('labelSpeed'),
+                formatSpeed(result.size, task.end - task.start)
+              )}
+            </li>
+            <li style={LI_STYLE}>{_.keyValue(_('restoreRunId'), task.id)}</li>
+          </ul>
+        )
+      }
+      return null
+    },
+  },
+  ...LOG_COMMON_COLUMNS,
+]
+
 const showTasks = ({ id }, { jobs }) =>
   alert(<LogAlertHeader id={id} jobs={jobs} />, <LogAlertBody id={id} />)
 
@@ -185,7 +239,15 @@ const LOG_FILTERS = {
 
 export default [
   addSubscriptions({
-    logs: subscribeBackupNgLogs,
+    logs: cb =>
+      subscribeBackupNgLogs(logs =>
+        cb(
+          groupBy(
+            logs,
+            log => (log.message === 'restore' ? 'restore' : 'backup')
+          )
+        )
+      ),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
   ({ logs, jobs }) => (
@@ -194,15 +256,28 @@ export default [
         <Icon icon='log' /> {_('logTitle')}
       </CardHeader>
       <CardBlock>
-        <NoObjects
-          collection={logs}
-          columns={LOG_COLUMNS}
-          component={SortedTable}
-          data-jobs={jobs}
-          emptyMessage={_('noLogs')}
-          filters={LOG_FILTERS}
-          individualActions={LOG_INDIVIDUAL_ACTIONS}
-        />
+        <div>
+          <h2>{_('labelBackup')}</h2>
+          <NoObjects
+            collection={get(() => logs.backup) || {}}
+            columns={LOG_BACKUP_COLUMNS}
+            component={SortedTable}
+            data-jobs={jobs}
+            emptyMessage={_('noLogs')}
+            filters={LOG_FILTERS}
+            individualActions={LOG_INDIVIDUAL_ACTIONS}
+          />
+        </div>
+        <div>
+          <h2>{_('labelRestore')}</h2>
+          <NoObjects
+            collection={get(() => logs.restore) || {}}
+            columns={LOG_RESTORE_COLUMNS}
+            component={SortedTable}
+            emptyMessage={_('noLogs')}
+            filters={LOG_FILTERS}
+          />
+        </div>
       </CardBlock>
     </Card>
   ),
