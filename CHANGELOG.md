@@ -8,6 +8,7 @@
 - [Host/networks] Private networks table [#3387](https://github.com/vatesfr/xen-orchestra/issues/3387) (PR [#3481](https://github.com/vatesfr/xen-orchestra/pull/3481))
 - [Home/pool] Patch count pill now shows the number of unique patches in the pool [#3321](https://github.com/vatesfr/xen-orchestra/issues/3321) (PR [#3483](https://github.com/vatesfr/xen-orchestra/pull/3483))
 - [Patches] Pre-install checks to avoid errors [#3252](https://github.com/vatesfr/xen-orchestra/issues/3252) (PR [#3484](https://github.com/vatesfr/xen-orchestra/pull/3484))
+- [Vm/Snapshots] Allow VM operators to create snapshots and delete those they created [#3443](https://github.com/vatesfr/xen-orchestra/issues/3443) (PR [#3482](https://github.com/vatesfr/xen-orchestra/pull/3482))
 - [VM/clone] Handle ACLs and Self Service [#3139](https://github.com/vatesfr/xen-orchestra/issues/3139) (PR [#3493](https://github.com/vatesfr/xen-orchestra/pull/3493))
 
 ### Bug fixes
@@ -18,6 +19,8 @@
 
 ### Released packages
 
+- vhd-lib v0.3.2
+- xo-vmdk-to-vhd v0.1.5
 - xo-server-usage-report v0.6.0
 - xo-acl-resolver v0.3.0
 - xo-server v5.28.0

@@ -1,5 +1,5 @@
 import concat from 'lodash/concat'
-import deferrable from 'golike-defer'
+import defer from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import {
@@ -648,7 +648,7 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export const clone = deferrable(async function (
+export const clone = defer(async function (
   $defer,
   { vm, name, full_copy: fullCopy }
 ) {
@@ -758,14 +758,22 @@ export { convertToTemplate as convert }
 // -------------------------------------------------------------------
 
 // TODO: implement resource sets
-export async function snapshot ({
-  vm,
-  name = `${vm.name_label}_${new Date().toISOString()}`,
-}) {
+export const snapshot = defer(async function (
+  $defer,
+  { vm, name = `${vm.name_label}_${new Date().toISOString()}` }
+) {
   await checkPermissionOnSrs.call(this, vm)
 
-  return (await this.getXapi(vm).snapshotVm(vm._xapiRef, name)).$id
-}
+  const xapi = this.getXapi(vm)
+  const { $id: snapshotId } = await xapi.snapshotVm(vm._xapiRef, name)
+  $defer.onFailure(() => xapi.deleteVm(snapshotId))
+
+  const { user } = this
+  if (user.permission !== 'admin') {
+    await this.addAcl(user.id, snapshotId, 'admin')
+  }
+  return snapshotId
+})
 
 snapshot.params = {
   id: { type: 'string' },
@@ -773,7 +781,7 @@ snapshot.params = {
 }
 
 snapshot.resolve = {
-  vm: ['id', 'VM', 'administrate'],
+  vm: ['id', 'VM', 'operate'],
 }
 
 // -------------------------------------------------------------------
