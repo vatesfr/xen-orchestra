@@ -75,6 +75,7 @@ export default [
               min='0'
               onChange={effects.setExportRetention}
               value={schedule.exportRetention}
+              required
             />
           </FormGroup>
         )}
@@ -87,6 +88,7 @@ export default [
               min='0'
               onChange={effects.setCopyRetention}
               value={schedule.copyRetention}
+              required
             />
           </FormGroup>
         )}
@@ -99,6 +101,7 @@ export default [
               min='0'
               onChange={effects.setSnapshotRetention}
               value={schedule.snapshotRetention}
+              required
             />
           </FormGroup>
         )}
