@@ -8,6 +8,7 @@
 
 ### Released packages
 
+- xo-server-usage-report v0.7.0
 - xo-server v5.29.0
 - xo-web v5.29.0
 
