@@ -133,17 +133,16 @@ Handlebars.registerHelper(
   value => (isFinite(value) ? round(value, 2) : '-')
 )
 
-Handlebars.registerHelper(
-  'normaliseEvolution',
-  value =>
-    new Handlebars.SafeString(
-      isFinite(+value) && +value !== 0
-        ? (value = round(value, 2)) > 0
-          ? `(<b style="color: green;">▲ ${value}%</b>)`
-          : `(<b style="color: red;">▼ ${String(value).slice(1)}%</b>)`
-        : ''
-    )
-)
+Handlebars.registerHelper('normaliseEvolution', value => {
+  value = round(value, 2)
+  return new Handlebars.SafeString(
+    isFinite(+value) && +value !== 0
+      ? value > 0
+        ? `(<b style="color: green;">▲ ${value}%</b>)`
+        : `(<b style="color: red;">▼ ${String(value).slice(1)}%</b>)`
+      : ''
+  )
+})
 
 // ===================================================================
 
