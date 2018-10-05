@@ -12,6 +12,9 @@ export const STATUS_ICON = {
 }
 
 export const INDENT = '  '
+export const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
+export const UNHEALTHY_VDI_CHAIN_MESSAGE =
+  '[(unhealthy VDI chain) Job canceled to protect the VDI chain](https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection)'
 
 export const formatSize = bytes =>
   humanFormat(bytes, {
