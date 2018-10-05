@@ -79,10 +79,6 @@ export default class {
     return this._acls.get({ subject: subjectId })
   }
 
-  async getAclsForObject (objectId) {
-    return this._acls.get({ object: objectId })
-  }
-
   async getPermissionsForUser (userId) {
     const [acls, permissionsByRole] = await Promise.all([
       this._getAclsForUser(userId),

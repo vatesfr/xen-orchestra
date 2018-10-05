@@ -661,11 +661,7 @@ export const clone = deferrable(async function (
   })
   $defer.onFailure(() => xapi.deleteVm(cloneId))
 
-  await Promise.all(
-    map(await this.getAclsForObject(vm.id), ({ subject, action }) =>
-      this.addAcl(subject, cloneId, action)
-    )
-  )
+  await this.addAcl(this.user.id, cloneId, 'admin')
 
   if (vm.resourceSet !== undefined) {
     await this.allocateLimitsInResourceSet(
