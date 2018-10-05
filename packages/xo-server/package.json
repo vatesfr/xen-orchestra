@@ -120,7 +120,7 @@
     "xo-collection": "^0.4.1",
     "xo-common": "^0.1.1",
     "xo-remote-parser": "^0.5.0",
-    "xo-vmdk-to-vhd": "^0.1.4",
+    "xo-vmdk-to-vhd": "^0.1.5",
     "yazl": "^2.4.3"
   },
   "devDependencies": {
