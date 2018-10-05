@@ -83,10 +83,6 @@
       border-top: 1px solid #95a5a6;
     }
 
-    .page .global tr:nth-last-child(1) td {
-      border-bottom: 1px solid #95a5a6;
-    }
-
     .top table{
       margin: auto;
       margin-top: 20px;
@@ -149,7 +145,7 @@
 
     <div class="page">
 
-      <table class ="global">
+      <table class="global">
         <tr>
           <td id="title" rowspan="8">VMs</td>
         </tr>
@@ -264,7 +260,7 @@
     </div>
 
     <div class="page">
-      <table class ="global">
+      <table class="global">
         <tr>
           <td id="title" rowspan="7">Hosts</td>
         </tr>
