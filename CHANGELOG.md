@@ -17,6 +17,8 @@
 
 ### Released packages
 
+- vhd-lib v0.3.2
+- xo-vmdk-to-vhd v0.1.5
 - xo-server-usage-report v0.6.0
 - xo-acl-resolver v0.3.0
 - xo-server v5.28.0

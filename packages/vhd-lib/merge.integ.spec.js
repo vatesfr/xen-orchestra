@@ -9,11 +9,9 @@ import { fromEvent, pFromCallback } from 'promise-toolbox'
 import { getHandler } from '@xen-orchestra/fs'
 import { randomBytes } from 'crypto'
 
-import chainVhd from './chain'
-import createReadStream from './createSyntheticStream'
-import Vhd from './vhd'
-import vhdMerge from './merge'
-import { SECTOR_SIZE } from './_constants'
+import Vhd, { chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './'
+
+import { SECTOR_SIZE } from './src/_constants'
 
 const initialDir = process.cwd()
 
@@ -273,7 +271,7 @@ test('createSyntheticStream passes vhd-util check', async () => {
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
   const handler = getHandler({ url: 'file://' + process.cwd() })
-  const stream = createReadStream(handler, 'randomfile.vhd')
+  const stream = createSyntheticStream(handler, 'randomfile.vhd')
   await fromEvent(
     stream.pipe(await fs.createWriteStream('recovered.vhd')),
     'finish'
