@@ -217,26 +217,30 @@ function getMemoryUsedMetric ({ memory, memoryFree = memory }) {
   return map(memory, (value, key) => value - memoryFree[key])
 }
 
+const METRICS_MEAN = {
+  cpu: computeDoubleMean,
+  disk: value => computeDoubleMean(values(value)) / mibPower,
+  load: computeMean,
+  net: value => computeDoubleMean(value) / kibPower,
+  ram: stats => computeMean(getMemoryUsedMetric(stats)) / gibPower,
+}
+
 // ===================================================================
 
 async function getVmsStats ({ runningVms, xo }) {
   return orderBy(
     await Promise.all(
       map(runningVms, async vm => {
-        const vmStats = await xo.getXapiVmStats(vm, 'days')
+        const { stats } = await xo.getXapiVmStats(vm, 'days')
         return {
           uuid: vm.uuid,
           name: vm.name_label,
-          cpu: computeDoubleMean(vmStats.stats.cpus),
-          ram: computeMean(getMemoryUsedMetric(vmStats.stats)) / gibPower,
-          diskRead:
-            computeDoubleMean(values(get(vmStats.stats.xvds, 'r'))) / mibPower,
-          diskWrite:
-            computeDoubleMean(values(get(vmStats.stats.xvds, 'w'))) / mibPower,
-          netReception:
-            computeDoubleMean(get(vmStats.stats.vifs, 'rx')) / kibPower,
-          netTransmission:
-            computeDoubleMean(get(vmStats.stats.vifs, 'tx')) / kibPower,
+          cpu: METRICS_MEAN.cpu(stats.cpus),
+          ram: METRICS_MEAN.ram(stats),
+          diskRead: METRICS_MEAN.disk(get(stats.xvds, 'r')),
+          diskWrite: METRICS_MEAN.disk(get(stats.xvds, 'w')),
+          netReception: METRICS_MEAN.net(get(stats.vifs, 'rx')),
+          netTransmission: METRICS_MEAN.net(get(stats.vifs, 'tx')),
         }
       })
     ),
@@ -249,17 +253,15 @@ async function getHostsStats ({ runningHosts, xo }) {
   return orderBy(
     await Promise.all(
       map(runningHosts, async host => {
-        const hostStats = await xo.getXapiHostStats(host, 'days')
+        const { stats } = await xo.getXapiHostStats(host, 'days')
         return {
           uuid: host.uuid,
           name: host.name_label,
-          cpu: computeDoubleMean(hostStats.stats.cpus),
-          ram: computeMean(getMemoryUsedMetric(hostStats.stats)) / gibPower,
-          load: computeMean(hostStats.stats.load),
-          netReception:
-            computeDoubleMean(get(hostStats.stats.pifs, 'rx')) / kibPower,
-          netTransmission:
-            computeDoubleMean(get(hostStats.stats.pifs, 'tx')) / kibPower,
+          cpu: METRICS_MEAN.cpu(stats.cpus),
+          ram: METRICS_MEAN.ram(stats),
+          load: METRICS_MEAN.load(stats.load),
+          netReception: METRICS_MEAN.net(get(stats.pifs, 'rx')),
+          netTransmission: METRICS_MEAN.net(get(stats.pifs, 'tx')),
         }
       })
     ),
