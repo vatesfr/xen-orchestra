@@ -88,7 +88,7 @@ const formatSpeed = (bytes, milliseconds) =>
 const logError = e => {
   console.error('backup report error:', e)
 }
-// to remove
+
 const NO_VMS_MATCH_THIS_PATTERN = 'no VMs match this pattern'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
