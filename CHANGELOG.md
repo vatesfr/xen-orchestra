@@ -93,9 +93,11 @@
 ### Bug fixes
 
 - [Servers] Fix deleting server on joining a pool [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3728](https://github.com/vatesfr/xen-orchestra/pull/3728))
+- [OVA import] allow import of big files  [#3468](https://github.com/vatesfr/xen-orchestra/issues/3468) (PR [#3504](https://github.com/vatesfr/xen-orchestra/pull/3504))
 
 ### Released packages
 
+- xo-vmdk-to-vhd v0.1.6
 - xen-api v0.22.0
 - xo-server-perf-alert v0.2.0
 - xo-server-usage-report v0.7.1
