@@ -235,6 +235,40 @@
             <td>{{normaliseValue this.value}} MiB</td>
           </tr>
           {{/each}}
+
+          <tr>
+            <td rowspan='{{math topVms.iopsRead.length "+" 1}}' class="tableHeader">IOPS read</td>
+          </tr>
+          {{#each topVms.iopsRead}}
+          <tr>
+            <td>{{shortUUID this.uuid}}</td>
+            <td>{{this.name}}</td>
+            <td>{{formatIops this.value}}</td>
+          </tr>
+          {{/each}}
+
+          <tr>
+            <td rowspan='{{math topVms.iopsWrite.length "+" 1}}' class="tableHeader">IOPS write</td>
+          </tr>
+          {{#each topVms.iopsWrite}}
+          <tr>
+            <td>{{shortUUID this.uuid}}</td>
+            <td>{{this.name}}</td>
+            <td>{{formatIops this.value}}</td>
+          </tr>
+          {{/each}}
+
+          <tr>
+            <td rowspan='{{math topVms.iopsTotal.length "+" 1}}' class="tableHeader">IOPS total</td>
+          </tr>
+          {{#each topVms.iopsTotal}}
+          <tr>
+            <td>{{shortUUID this.uuid}}</td>
+            <td>{{this.name}}</td>
+            <td>{{formatIops this.value}}</td>
+          </tr>
+          {{/each}}
+
           <tr>
             <td rowspan='{{math topVms.netReception.length "+" 1}}' class="tableHeader">Network RX</td>
           </tr>
