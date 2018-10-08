@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+- [Usage Report] Add IOPS read/write/total per VM [#3309](https://github.com/vatesfr/xen-orchestra/issues/3309) (PR [#3455](https://github.com/vatesfr/xen-orchestra/pull/3455))
+
 ### Bug fixes
 
 ### Released packages
