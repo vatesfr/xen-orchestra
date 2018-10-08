@@ -102,7 +102,7 @@ const VM_SUB_TASKS_GENERATORS = {
   },
 }
 
-export default class {
+export default class MessageGenerator {
   constructor (xo, log, getTemporalDataMarkdown) {
     this._xo = xo
     this._log = log

@@ -1,14 +1,10 @@
 import humanFormat from 'human-format'
 
-const ICON_FAILURE = '🚨'
-const ICON_INTERRUPTED = '⚠️'
-const ICON_SKIPPED = '⏩'
-const ICON_SUCCESS = '✔'
 export const STATUS_ICON = {
-  failure: ICON_FAILURE,
-  interrupted: ICON_INTERRUPTED,
-  skipped: ICON_SKIPPED,
-  success: ICON_SUCCESS,
+  failure: '🚨',
+  interrupted: '⚠️',
+  skipped: '⏩',
+  success: '✔',
 }
 
 export const INDENT = '  '
