@@ -284,7 +284,10 @@ export const FormModal = [
     initialState: getInitialState,
     effects: {
       initialize () {
-        formModalState === undefined && (formModalState = this.state)
+        if (formModalState !== undefined) {
+          throw new Error('FormModal is a singleton!')
+        }
+        formModalState = this.state
       },
       finalize: () => {
         formModalState = undefined
