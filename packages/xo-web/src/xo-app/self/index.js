@@ -694,6 +694,8 @@ class ResourceSet extends Component {
 
 // ===================================================================
 
+const compareName = (a, b) => (a.name < b.name ? -1 : 1)
+
 export default class Self extends Component {
   constructor (props) {
     super(props)
@@ -703,7 +705,7 @@ export default class Self extends Component {
   componentWillMount () {
     this.componentWillUnmount = subscribeResourceSets(resourceSets => {
       this.setState({
-        resourceSets: resolveResourceSets(resourceSets),
+        resourceSets: resolveResourceSets(resourceSets).sort(compareName),
       })
     })
   }
