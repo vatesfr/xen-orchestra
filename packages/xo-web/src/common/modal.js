@@ -283,8 +283,8 @@ export const FormModal = [
   provideState({
     initialState: getInitialState,
     effects: {
-      initialize: function () {
-        formModalState = this.state
+      initialize () {
+        formModalState === undefined && (formModalState = this.state)
       },
       finalize: () => {
         formModalState = undefined
@@ -293,11 +293,11 @@ export const FormModal = [
         enableShortcuts()
         return getInitialState()
       },
-      cancel: function ({ close }) {
+      cancel ({ close }) {
         this.state.props.reject()
         close()
       },
-      submit: function ({ close }) {
+      submit ({ close }) {
         const {
           props: { resolve },
           value,
