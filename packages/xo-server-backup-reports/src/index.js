@@ -180,6 +180,8 @@ class BackupReportsXoPlugin {
       let markdown = [
         `##  Global status: ${log.status}`,
         '',
+        `- **Job ID**: ${log.jobId}`,
+        `- **Run ID**: ${runJobId}`,
         `- **mode**: ${mode}`,
         ...getTemporalDataMarkdown(log.start, log.end),
         `- **Error**: ${log.result.message}`,
@@ -395,6 +397,8 @@ class BackupReportsXoPlugin {
     let markdown = [
       `##  Global status: ${log.status}`,
       '',
+      `- **Job ID**: ${log.jobId}`,
+      `- **Run ID**: ${runJobId}`,
       `- **mode**: ${mode}`,
       ...getTemporalDataMarkdown(log.start, log.end),
       `- **Successes**: ${nSuccesses} / ${nVms}`,
