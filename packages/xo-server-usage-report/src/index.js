@@ -456,6 +456,13 @@ async function getHostsMissingPatches ({ runningHosts, xo }) {
       let hostsPatches = await xo
         .getXapi(host)
         .listMissingPoolPatchesOnHost(host._xapiId)
+        .catch(error => {
+          console.error(
+            '[WARN] error on fetching hosts missing patches:',
+            JSON.stringify(error)
+          )
+          return []
+        })
 
       if (host.license_params.sku_type === 'free') {
         hostsPatches = filter(hostsPatches, { paid: false })

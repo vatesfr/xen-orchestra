@@ -950,7 +950,13 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderPerformances = () => {
-    const { CPUs, memoryDynamicMax, coresPerSocket } = this.state.state
+    const {
+      coresPerSocket,
+      CPUs,
+      memoryDynamicMax,
+      template,
+    } = this.state.state
+    const memoryThreshold = get(() => template.memory.static[0])
 
     return (
       <Section
@@ -973,7 +979,16 @@ export default class NewVm extends BaseComponent {
               className={styles.sizeInput}
               onChange={this._linkState('memoryDynamicMax')}
               value={defined(memoryDynamicMax, null)}
-            />
+            />{' '}
+            {memoryDynamicMax < memoryThreshold && (
+              <Tooltip
+                content={_('newVmRamWarning', {
+                  threshold: formatSize(memoryThreshold),
+                })}
+              >
+                <Icon icon='alarm' className='text-warning' size='lg' />
+              </Tooltip>
+            )}
           </Item>
           <Item label={_('vmCpuTopology')}>
             <select
