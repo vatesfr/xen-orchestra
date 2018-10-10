@@ -1,3 +1,4 @@
+import asyncMap from '@xen-orchestra/async-map'
 import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
 import { createSchedule } from '@xen-orchestra/cron'
@@ -21,6 +22,8 @@ import { promisify } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
 // ===================================================================
+
+const GRANULARITY = 'days'
 
 const pReadFile = promisify(readFile)
 const pWriteFile = promisify(writeFile)
@@ -88,6 +91,24 @@ export const configurationSchema = {
 
 // ===================================================================
 
+const shortUuid = uuid => {
+  if (typeof uuid === 'string') {
+    return uuid.split('-')[0]
+  }
+}
+
+const formatIops = value =>
+  isFinite(value)
+    ? humanFormat(value, {
+        unit: 'IOPS',
+        decimals: 2,
+      })
+    : '-'
+
+const normaliseValue = value => (isFinite(value) ? round(value, 2) : '-')
+
+// ===================================================================
+
 Handlebars.registerHelper('compare', function (
   lvalue,
   operator,
@@ -123,16 +144,9 @@ Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
   return mathOperators[operator](+lvalue, +rvalue)
 })
 
-Handlebars.registerHelper('shortUUID', uuid => {
-  if (typeof uuid === 'string') {
-    return uuid.split('-')[0]
-  }
-})
+Handlebars.registerHelper('shortUUID', shortUuid)
 
-Handlebars.registerHelper(
-  'normaliseValue',
-  value => (isFinite(value) ? round(value, 2) : '-')
-)
+Handlebars.registerHelper('normaliseValue', normaliseValue)
 
 Handlebars.registerHelper(
   'normaliseEvolution',
@@ -146,15 +160,35 @@ Handlebars.registerHelper(
     )
 )
 
+Handlebars.registerHelper('formatIops', formatIops)
+
+const getHeader = (label, size) => `
+  <tr>
+    <td rowspan='${size + 1}' class="tableHeader">${label}</td>
+  </tr>
+`
+
+const getBody = ({ uuid, name, value }, transformValue, unit) => `
+  <tr>
+    <td>${shortUuid(uuid)}</td>
+    <td>${name}</td>
+    <td>${transformValue(value)}${unit !== undefined ? ` ${unit}` : ''}</td>
+  </tr>
+`
+
 Handlebars.registerHelper(
-  'formatIops',
-  value =>
-    isFinite(value)
-      ? humanFormat(value, {
-          unit: 'IOPS',
-          decimals: 2,
-        })
-      : '-'
+  'getTopSrs',
+  ({ usedSpace, iopsRead, iopsWrite, iopsTotal }) =>
+    new Handlebars.SafeString(`
+      ${getHeader('Used space', usedSpace.length)}
+      ${usedSpace.map(obj => getBody(obj, normaliseValue, 'GiB')).join('')}
+      ${getHeader('IOPS read', iopsRead.length)}
+      ${iopsRead.map(obj => getBody(obj, formatIops)).join('')}
+      ${getHeader('IOPS write', iopsWrite.length)}
+      ${iopsWrite.map(obj => getBody(obj, formatIops)).join('')}
+      ${getHeader('IOPS total', iopsTotal.length)}
+      ${iopsTotal.map(obj => getBody(obj, formatIops)).join('')}
+    `)
 )
 
 // ===================================================================
@@ -244,7 +278,7 @@ async function getVmsStats ({ runningVms, xo }) {
   return orderBy(
     await Promise.all(
       map(runningVms, async vm => {
-        const { stats } = await xo.getXapiVmStats(vm, 'days')
+        const { stats } = await xo.getXapiVmStats(vm, GRANULARITY)
         const iopsRead = METRICS_MEAN.iops(get(stats.iops, 'r'))
         const iopsWrite = METRICS_MEAN.iops(get(stats.iops, 'w'))
         return {
@@ -271,7 +305,7 @@ async function getHostsStats ({ runningHosts, xo }) {
   return orderBy(
     await Promise.all(
       map(runningHosts, async host => {
-        const { stats } = await xo.getXapiHostStats(host, 'days')
+        const { stats } = await xo.getXapiHostStats(host, GRANULARITY)
         return {
           uuid: host.uuid,
           name: host.name_label,
@@ -288,24 +322,38 @@ async function getHostsStats ({ runningHosts, xo }) {
   )
 }
 
-function getSrsStats (xoObjects) {
+async function getSrsStats ({ xo, xoObjects }) {
   return orderBy(
-    map(filter(xoObjects, obj => obj.type === 'SR' && obj.size > 0), sr => {
-      const total = sr.size / gibPower
-      const used = sr.physical_usage / gibPower
-      let name = sr.name_label
-      if (!sr.shared) {
-        name += ` (${find(xoObjects, { id: sr.$container }).name_label})`
+    await asyncMap(
+      filter(
+        xoObjects,
+        obj => obj.type === 'SR' && obj.size > 0 && obj.$PBDs.length > 0
+      ),
+      async sr => {
+        const totalSpace = sr.size / gibPower
+        const usedSpace = sr.physical_usage / gibPower
+        let name = sr.name_label
+        if (!sr.shared) {
+          name += ` (${find(xoObjects, { id: sr.$container }).name_label})`
+        }
+
+        const { stats } = await xo.getXapiSrStats(sr.id, GRANULARITY)
+        const iopsRead = computeMean(get(stats.iops, 'r'))
+        const iopsWrite = computeMean(get(stats.iops, 'w'))
+
+        return {
+          uuid: sr.uuid,
+          name,
+          totalSpace,
+          usedSpace,
+          freeSpace: totalSpace - usedSpace,
+          iopsRead,
+          iopsWrite,
+          iopsTotal: iopsRead + iopsWrite,
+        }
       }
-      return {
-        uuid: sr.uuid,
-        name,
-        total,
-        used,
-        free: total - used,
-      }
-    }),
-    'total',
+    ),
+    'name',
     'desc'
   )
 }
@@ -386,8 +434,8 @@ function getTopHosts ({ hostsStats, xo }) {
   ])
 }
 
-function getTopSrs ({ srsStats, xo }) {
-  return getTop(srsStats, ['used']).used
+function getTopSrs (srsStats) {
+  return getTop(srsStats, ['usedSpace', 'iopsRead', 'iopsWrite', 'iopsTotal'])
 }
 
 async function getHostsMissingPatches ({ runningHosts, xo }) {
@@ -529,7 +577,7 @@ async function dataBuilder ({ xo, storedStatsPath, all }) {
     xo.getAllUsers(),
     getVmsStats({ xo, runningVms }),
     getHostsStats({ xo, runningHosts }),
-    getSrsStats(xoObjects),
+    getSrsStats({ xo, xoObjects }),
     getHostsMissingPatches({ xo, runningHosts }),
   ])
 
@@ -545,7 +593,7 @@ async function dataBuilder ({ xo, storedStatsPath, all }) {
     computeGlobalHostsStats({ xo, hostsStats, haltedHosts }),
     getTopVms({ xo, vmsStats }),
     getTopHosts({ xo, hostsStats }),
-    getTopSrs({ xo, srsStats }),
+    getTopSrs(srsStats),
     getAllUsersEmail(users),
   ])
 

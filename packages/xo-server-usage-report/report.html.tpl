@@ -363,19 +363,14 @@
     <div class="page">
       <div class="top">
         <table>
-          <caption>Most used storages </caption>
+          <caption>Top SRs</caption>
             <tr>
+              <th />
               <th>UUID</th>
               <th>Name</th>
               <th>value</th>
             </tr>
-            {{#each topSrs}}
-              <tr>
-                <td>{{shortUUID this.uuid}}</td>
-                <td>{{this.name}}</td>
-                <td>{{normaliseValue this.value}} GiB</td>
-              </tr>
-             {{/each}}
+            {{getTopSrs topSrs}}
           </table>
           <table>
              <caption>Hosts missing patches</caption>
