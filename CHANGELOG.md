@@ -7,7 +7,7 @@
 - [Usage Report] Add IOPS read/write/total per VM [#3309](https://github.com/vatesfr/xen-orchestra/issues/3309) (PR [#3455](https://github.com/vatesfr/xen-orchestra/pull/3455))
 - [Self service] Sort resource sets by name (PR [#3507](https://github.com/vatesfr/xen-orchestra/pull/3507))
 - [Usage Report] Add top 3 SRs which use the most IOPS read/write/total [#3306](https://github.com/vatesfr/xen-orchestra/issues/3306) (PR [#3508](https://github.com/vatesfr/xen-orchestra/pull/3508))
-- [New VM] Display a warning when the memory is below than the template memory static min [#3496](https://github.com/vatesfr/xen-orchestra/issues/3496) (PR [#3513](https://github.com/vatesfr/xen-orchestra/pull/3513))
+- [New VM] Display a warning when the memory is below the template memory static min [#3496](https://github.com/vatesfr/xen-orchestra/issues/3496) (PR [#3513](https://github.com/vatesfr/xen-orchestra/pull/3513))
 
 ### Bug fixes
 
