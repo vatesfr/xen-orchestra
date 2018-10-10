@@ -235,6 +235,9 @@
             <td>{{normaliseValue this.value}} MiB</td>
           </tr>
           {{/each}}
+
+          {{getTopIops topVms}}
+
           <tr>
             <td rowspan='{{math topVms.netReception.length "+" 1}}' class="tableHeader">Network RX</td>
           </tr>

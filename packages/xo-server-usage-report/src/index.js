@@ -176,19 +176,28 @@ const getBody = ({ uuid, name, value }, transformValue, unit) => `
   </tr>
 `
 
+const getTopIops = ({ iopsRead, iopsWrite, iopsTotal }) => `
+  ${getHeader('IOPS read', iopsRead.length)}
+  ${iopsRead.map(obj => getBody(obj, formatIops)).join('')}
+  ${getHeader('IOPS write', iopsWrite.length)}
+  ${iopsWrite.map(obj => getBody(obj, formatIops)).join('')}
+  ${getHeader('IOPS total', iopsTotal.length)}
+  ${iopsTotal.map(obj => getBody(obj, formatIops)).join('')}
+`
+
 Handlebars.registerHelper(
   'getTopSrs',
   ({ usedSpace, iopsRead, iopsWrite, iopsTotal }) =>
     new Handlebars.SafeString(`
       ${getHeader('Used space', usedSpace.length)}
       ${usedSpace.map(obj => getBody(obj, normaliseValue, 'GiB')).join('')}
-      ${getHeader('IOPS read', iopsRead.length)}
-      ${iopsRead.map(obj => getBody(obj, formatIops)).join('')}
-      ${getHeader('IOPS write', iopsWrite.length)}
-      ${iopsWrite.map(obj => getBody(obj, formatIops)).join('')}
-      ${getHeader('IOPS total', iopsTotal.length)}
-      ${iopsTotal.map(obj => getBody(obj, formatIops)).join('')}
+      ${getTopIops({ iopsRead, iopsWrite, iopsTotal })}
     `)
+)
+
+Handlebars.registerHelper(
+  'getTopIops',
+  props => new Handlebars.SafeString(getTopIops(props))
 )
 
 // ===================================================================
@@ -419,6 +428,9 @@ function getTopVms ({ vmsStats, xo }) {
     'ram',
     'diskRead',
     'diskWrite',
+    'iopsRead',
+    'iopsWrite',
+    'iopsTotal',
     'netReception',
     'netTransmission',
   ])
