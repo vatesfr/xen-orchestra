@@ -360,7 +360,7 @@ const messages = {
   remotesSettings: 'Remotes settings',
   pluginsSettings: 'Plugins settings',
   pluginsWarning:
-    'To receive the report, the plugins Backup reports and Transport email need to be loaded.',
+    'To receive the report, the plugins backup-reports and transport-email need to be loaded.',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
