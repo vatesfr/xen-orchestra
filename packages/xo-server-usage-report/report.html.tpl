@@ -186,7 +186,7 @@
       <div class="top">
 
         <table>
-          <caption>3rd top usages</caption>
+          <caption>Top VMs</caption>
           <tr>
             <th></th>
             <th>UUID</th>
@@ -299,7 +299,7 @@
       <div class="top">
 
         <table>
-          <caption>3rd top usages</caption>
+          <caption>Top hosts</caption>
           <tr>
             <th></th>
             <th>UUID</th>
