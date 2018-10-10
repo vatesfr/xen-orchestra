@@ -358,6 +358,9 @@ const messages = {
   createRemoteMessage:
     'No remotes found, please click on the remotes settings button to create one!',
   remotesSettings: 'Remotes settings',
+  pluginsSettings: 'Plugins settings',
+  pluginsWarning:
+    'To receive the report, the plugins backup-reports and transport-email need to be loaded.',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',

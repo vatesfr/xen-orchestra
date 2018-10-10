@@ -833,7 +833,17 @@ export default [
                   <FormGroup>
                     <label htmlFor={state.inputReportWhenId}>
                       <strong>{_('reportWhen')}</strong>
-                    </label>
+                    </label>{' '}
+                    <Tooltip content={_('pluginsWarning')}>
+                      <Link
+                        className='btn btn-primary btn-sm'
+                        target='_blank'
+                        to='/settings/plugins'
+                      >
+                        <Icon icon='menu-settings-plugins' />{' '}
+                        <strong>{_('pluginsSettings')}</strong>
+                      </Link>
+                    </Tooltip>
                     <Select
                       id={state.inputReportWhenId}
                       labelKey='label'
