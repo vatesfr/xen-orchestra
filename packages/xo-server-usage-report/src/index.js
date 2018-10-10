@@ -449,13 +449,14 @@ async function getHostsMissingPatches ({ runningHosts, xo }) {
             '[WARN] error on fetching hosts missing patches:',
             JSON.stringify(error)
           )
+          return []
         })
 
       if (host.license_params.sku_type === 'free') {
         hostsPatches = filter(hostsPatches, { paid: false })
       }
 
-      if (get(hostsPatches, 'length') > 0) {
+      if (hostsPatches.length > 0) {
         return {
           uuid: host.uuid,
           name: host.name_label,
