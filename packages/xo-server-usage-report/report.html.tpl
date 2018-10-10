@@ -363,7 +363,7 @@
     <div class="page">
       <div class="top">
         <table>
-          <caption>3rd top SR usages</caption>
+          <caption>Top SRs</caption>
             <tr>
               <th />
               <th>UUID</th>
