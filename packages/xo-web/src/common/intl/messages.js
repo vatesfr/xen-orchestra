@@ -1175,6 +1175,7 @@ const messages = {
   newVmPerfPanel: 'Performances',
   newVmVcpusLabel: 'vCPUs',
   newVmRamLabel: 'RAM',
+  newVmRamWarning: 'The memory is below the threshold ({threshold})',
   newVmStaticMaxLabel: 'Static memory max',
   newVmDynamicMinLabel: 'Dynamic memory min',
   newVmDynamicMaxLabel: 'Dynamic memory max',
