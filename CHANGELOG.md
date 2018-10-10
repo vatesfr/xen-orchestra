@@ -6,6 +6,7 @@
 
 - [Usage Report] Add IOPS read/write/total per VM [#3309](https://github.com/vatesfr/xen-orchestra/issues/3309) (PR [#3455](https://github.com/vatesfr/xen-orchestra/pull/3455))
 - [Self service] Sort resource sets by name (PR [#3507](https://github.com/vatesfr/xen-orchestra/pull/3507))
+- [VHD] expose the file size on the VHD stream, necessary to be compatible with a future version of vhd-tool ( https://github.com/xapi-project/vhd-tool/commit/f978789dc45e9339ef2c6a4248984d54714043a7 )
 
 ### Bug fixes
 
