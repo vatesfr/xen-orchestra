@@ -10,7 +10,7 @@ import { countBy, filter, get, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
-import { VmItem, SrItem, RemoteItem } from 'render-xo-item'
+import { Vm, Sr, Remote } from 'render-xo-item'
 
 const TASK_STATUS = {
   failure: {
@@ -195,7 +195,7 @@ export default decorate([
             let globalIsFull
             return (
               <li key={taskLog.data.id} className='list-group-item'>
-                <VmItem id={taskLog.data.id} link newTab /> (
+                <Vm id={taskLog.data.id} link newTab /> (
                 {taskLog.data.id.slice(4, 8)}){' '}
                 <TaskStateInfos status={taskLog.status} />{' '}
                 {scheduleId !== undefined &&
@@ -231,12 +231,12 @@ export default decorate([
                           </span>
                         ) : subTaskLog.data.type === 'remote' ? (
                           <span>
-                            <RemoteItem id={subTaskLog.data.id} link newTab /> (
+                            <Remote id={subTaskLog.data.id} link newTab /> (
                             {subTaskLog.data.id.slice(4, 8)})
                           </span>
                         ) : (
                           <span>
-                            <SrItem id={subTaskLog.data.id} link newTab /> (
+                            <Sr id={subTaskLog.data.id} link newTab /> (
                             {subTaskLog.data.id.slice(4, 8)})
                           </span>
                         )}{' '}

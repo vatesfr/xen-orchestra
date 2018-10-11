@@ -18,7 +18,7 @@ import {
   some,
   toArray,
 } from 'lodash'
-import { PoolItem } from 'render-xo-item'
+import { Pool } from 'render-xo-item'
 import {
   createFilter,
   createGetObject,
@@ -73,7 +73,7 @@ export class TaskItem extends Component {
 const COLUMNS = [
   {
     default: true,
-    itemRenderer: ({ $poolId }) => <PoolItem id={$poolId} link />,
+    itemRenderer: ({ $poolId }) => <Pool id={$poolId} link />,
     name: _('pool'),
     sortCriteria: (task, userData) => {
       const pool = userData.pools[task.$poolId]
@@ -101,7 +101,7 @@ const COLUMNS = [
 
 const FINISHED_TASKS_COLUMNS = [
   {
-    itemRenderer: ({ $poolId }) => <PoolItem id={$poolId} link />,
+    itemRenderer: ({ $poolId }) => <Pool id={$poolId} link />,
     name: _('pool'),
   },
   {

@@ -21,7 +21,7 @@ import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
 import { Number } from 'form'
-import { renderXoItemFromId, RemoteItem } from 'render-xo-item'
+import { renderXoItemFromId, Remote } from 'render-xo-item'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
@@ -762,7 +762,7 @@ export default decorate([
                         <Ul>
                           {map(state.remotes, (id, key) => (
                             <Li key={id}>
-                              <RemoteItem id={id} />
+                              <Remote id={id} />
                               <div className='pull-right'>
                                 <DeleteOldBackupsFirst
                                   handler={effects.setTargetDeleteFirst}
