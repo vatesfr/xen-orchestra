@@ -16,6 +16,7 @@
 
 ### Released packages
 
+- vhd-lib v0.4.0
 - xen-api v0.20.0
 - xo-server-usage-report v0.7.0
 - xo-server v5.29.0

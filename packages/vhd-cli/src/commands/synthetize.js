@@ -9,13 +9,12 @@ export default async function main (args) {
   }
 
   const handler = getHandler({ url: 'file:///' })
+  const stream = await createSyntheticStream(handler, path.resolve(args[0]))
   return new Promise((resolve, reject) => {
-    createSyntheticStream(handler, path.resolve(args[0]))
-      .on('error', reject)
-      .pipe(
-        createWriteStream(args[1])
-          .on('error', reject)
-          .on('finish', resolve)
-      )
+    stream.on('error', reject).pipe(
+      createWriteStream(args[1])
+        .on('error', reject)
+        .on('finish', resolve)
+    )
   })
 }
