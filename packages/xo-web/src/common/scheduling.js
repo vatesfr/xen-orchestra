@@ -2,8 +2,9 @@ import classNames from 'classnames'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
-import { forEach, includes, isArray, map, sortedIndex } from 'lodash'
+import { flatten, forEach, includes, isArray, map, sortedIndex } from 'lodash'
 import { FormattedDate, FormattedTime } from 'react-intl'
+import { injectState, provideState } from '@julien-f/freactal'
 
 import _ from './intl'
 import Button from './button'
@@ -264,128 +265,82 @@ class TableSelect extends Component {
 
 // ===================================================================
 
-// "2,7" => [2,7]   "*/2" => 2   "*" => []
-const cronToValue = (cron, range) => {
-  if (cron.indexOf('/') === 1) {
-    return +cron.split('/')[1]
-  }
+const TimePicker = [
+  provideState({
+    effects: {
+      onChange: (_, value) => (_, { onChange }) => {
+        if (isArray(value)) {
+          value = value.length === 0 ? '*' : value.join(',')
+        } else {
+          value = `*/${value}`
+        }
 
-  if (cron === '*') {
-    return []
-  }
+        onChange(value)
+      },
+    },
+    computed: {
+      // '*' => []
+      // '2,7' => [2,7]
+      // '*/2' => [min + 2 * 0, min + 2 * 1, ..., min + 2 * n <= max]
+      tableValue: (_, { options, value }) => {
+        if (value === '*') {
+          return []
+        }
 
-  return map(cron.split(','), Number)
-}
+        if (value.indexOf('/') === 1) {
+          const flatOptions = flatten(options)
+          const min = flatOptions[0]
+          const step = +value.split('/')[1]
 
-// [2,7] => "2,7"   2 => "*/2"   [] => "*"
-const valueToCron = value => {
-  if (!isArray(value)) {
-    return `*/${value}`
-  }
+          return flatOptions.filter(value => (value - min) % step === 0)
+        }
 
-  if (!value.length) {
-    return '*'
-  }
-
-  return value.join(',')
-}
-
-class TimePicker extends Component {
-  static propTypes = {
-    headerAddon: PropTypes.node,
-    optionRenderer: PropTypes.func,
-    onChange: PropTypes.func.isRequired,
-    range: PropTypes.array,
-    labelId: PropTypes.string.isRequired,
-    value: PropTypes.any.isRequired,
-  }
-
-  _update = cron => {
-    const { tableValue, rangeValue } = this.state
-
-    const newValue = cronToValue(cron)
-    const periodic = !isArray(newValue)
-
-    this.setState({
-      periodic,
-      tableValue: periodic ? tableValue : newValue,
-      rangeValue: periodic ? newValue : rangeValue,
-    })
-  }
-
-  componentWillReceiveProps (props) {
-    if (props.value !== this.props.value) {
-      this._update(props.value)
-    }
-  }
-
-  componentDidMount () {
-    this._update(this.props.value)
-  }
-
-  _onChange = value => {
-    this.props.onChange(valueToCron(value))
-  }
-
-  _tableTab = () => this._onChange(this.state.tableValue || [])
-  _periodicTab = () =>
-    this._onChange(this.state.rangeValue || this.props.range[0])
-
-  render () {
-    const { headerAddon, labelId, options, optionRenderer, range } = this.props
-
-    const { periodic, tableValue, rangeValue } = this.state
-
-    return (
-      <Card>
-        <CardHeader>
-          {_(`scheduling${labelId}`)}
-          {headerAddon}
-        </CardHeader>
-        <CardBlock>
-          {range && (
-            <ul className='nav nav-tabs mb-1'>
-              <li className='nav-item'>
-                <a
-                  onClick={this._tableTab}
-                  className={classNames('nav-link', !periodic && 'active')}
-                  style={CLICKABLE}
-                >
-                  {_(`schedulingEachSelected${labelId}`)}
-                </a>
-              </li>
-              <li className='nav-item'>
-                <a
-                  onClick={this._periodicTab}
-                  className={classNames('nav-link', periodic && 'active')}
-                  style={CLICKABLE}
-                >
-                  {_(`schedulingEveryN${labelId}`)}
-                </a>
-              </li>
-            </ul>
-          )}
-          {periodic ? (
+        return value.split(',').map(Number)
+      },
+      // '*/2' => 2
+      rangeValue: (_, { value }) =>
+        value.indexOf('/') === 1 ? +value.split('/')[1] : undefined,
+    },
+  }),
+  injectState,
+  ({ state, effects, ...props }) => (
+    <Card>
+      <CardHeader>
+        {_(`scheduling${props.labelId}`)}
+        {props.headerAddon}
+      </CardHeader>
+      <CardBlock>
+        <TableSelect
+          labelId={props.labelId}
+          onChange={effects.onChange}
+          optionRenderer={props.optionRenderer}
+          options={props.options}
+          value={state.tableValue}
+        />
+        {props.range !== undefined &&
+          !props.weekDayMode && (
             <Range
-              ref='range'
-              min={range[0]}
-              max={range[1]}
-              onChange={this._onChange}
-              value={rangeValue}
-            />
-          ) : (
-            <TableSelect
-              labelId={labelId}
-              onChange={this._onChange}
-              options={options}
-              optionRenderer={optionRenderer}
-              value={tableValue || []}
+              max={props.range[1]}
+              min={props.range[0]}
+              onChange={effects.onChange}
+              optional
+              value={state.rangeValue}
             />
           )}
-        </CardBlock>
-      </Card>
-    )
-  }
+      </CardBlock>
+    </Card>
+  ),
+].reduceRight((value, decorator) => decorator(value))
+
+TimePicker.propTypes = {
+  headerAddon: PropTypes.node,
+  labelId: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  optionRenderer: PropTypes.func,
+  options: PropTypes.array.isRequired,
+  range: PropTypes.array,
+  value: PropTypes.string.isRequired,
+  weekDayMode: PropTypes.bool,
 }
 
 const isWeekDayMode = ({ monthDayPattern, weekDayPattern }) => {
@@ -453,12 +408,12 @@ class DayPicker extends Component {
         headerAddon={dayModeToggle}
         key={weekDayMode ? 'week' : 'month'}
         labelId='Day'
+        onChange={this._onChange}
         optionRenderer={weekDayMode ? getDayName : undefined}
         options={weekDayMode ? WEEK_DAYS : DAYS}
-        onChange={this._onChange}
         range={MONTH_DAYS_RANGE}
-        setWeekDayMode={this._setWeekDayMode}
         value={weekDayMode ? weekDayPattern : monthDayPattern}
+        weekDayMode={weekDayMode}
       />
     )
   }

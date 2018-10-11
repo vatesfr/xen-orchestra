@@ -97,9 +97,9 @@ export class Range extends Component {
   }
 
   componentDidMount () {
-    const { min, onChange, value } = this.props
+    const { min, onChange, optional, value } = this.props
 
-    if (!value) {
+    if (!value && !optional) {
       onChange && onChange(min)
     }
   }
