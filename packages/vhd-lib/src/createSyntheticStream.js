@@ -83,7 +83,7 @@ export default async function createSyntheticStream (handler, path) {
       }
       bat.writeUInt32BE(blockSector, iBlock * 4)
     }
-    const fileSize = (blockOffset + Math.ceil(FOOTER_SIZE / SECTOR_SIZE)) * SECTOR_SIZE
+    const fileSize = blockOffset * SECTOR_SIZE + FOOTER_SIZE
 
     const iterator = function * () {
       try {
