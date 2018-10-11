@@ -26,10 +26,10 @@ const PREVIEW_SLIDER_STYLE = { width: '400px' }
 
 const UNITS = ['minute', 'hour', 'monthDay', 'month', 'weekDay']
 
-const MINUTES_RANGE = [2, 30]
-const HOURS_RANGE = [2, 12]
-const MONTH_DAYS_RANGE = [2, 15]
-const MONTHS_RANGE = [2, 6]
+const MINUTES_RANGE = [1, 30]
+const HOURS_RANGE = [1, 12]
+const MONTH_DAYS_RANGE = [1, 15]
+const MONTHS_RANGE = [1, 6]
 
 const MIN_PREVIEWS = 5
 const MAX_PREVIEWS = 20
@@ -194,6 +194,7 @@ class ToggleTd extends Component {
 
 // ===================================================================
 
+// Empty array => all selected
 class TableSelect extends Component {
   static propTypes = {
     labelId: PropTypes.string.isRequired,
@@ -247,7 +248,7 @@ class TableSelect extends Component {
                     tdId={tdOption}
                     key={tdOption}
                     onChange={this._handleChange}
-                    value={includes(value, tdOption)}
+                    value={value.length === 0 || includes(value, tdOption)}
                   />
                 ))}
               </tr>
@@ -256,7 +257,7 @@ class TableSelect extends Component {
         </table>
         <Button className='pull-right' onClick={this._reset}>
           {_(`selectTableAll${labelId}`)}{' '}
-          {value && !value.length && <Icon icon='success' />}
+          {value.length === 0 && <Icon icon='success' />}
         </Button>
       </div>
     )
@@ -279,27 +280,27 @@ const TimePicker = [
       },
     },
     computed: {
-      // '*' => []
+      step: (_, { value }) =>
+        value.indexOf('/') === 1 ? +value.split('/')[1] : undefined,
+      // '*' or '*/1' => []
       // '2,7' => [2,7]
       // '*/2' => [min + 2 * 0, min + 2 * 1, ..., min + 2 * n <= max]
-      tableValue: (_, { options, value }) => {
-        if (value === '*') {
+      tableValue: ({ step }, { options, value }) => {
+        if (value === '*' || step === 1) {
           return []
         }
 
-        if (value.indexOf('/') === 1) {
+        if (step !== undefined) {
           const flatOptions = flatten(options)
           const min = flatOptions[0]
-          const step = +value.split('/')[1]
-
           return flatOptions.filter(value => (value - min) % step === 0)
         }
 
         return value.split(',').map(Number)
       },
+      // '*' => 1
       // '*/2' => 2
-      rangeValue: (_, { value }) =>
-        value.indexOf('/') === 1 ? +value.split('/')[1] : undefined,
+      rangeValue: ({ step }, { value }) => (value === '*' ? 1 : step),
     },
   }),
   injectState,
@@ -317,16 +318,15 @@ const TimePicker = [
           options={props.options}
           value={state.tableValue}
         />
-        {props.range !== undefined &&
-          !props.weekDayMode && (
-            <Range
-              max={props.range[1]}
-              min={props.range[0]}
-              onChange={effects.onChange}
-              optional
-              value={state.rangeValue}
-            />
-          )}
+        {props.range !== undefined && (
+          <Range
+            max={props.range[1]}
+            min={props.range[0]}
+            onChange={effects.onChange}
+            optional
+            value={state.rangeValue}
+          />
+        )}
       </CardBlock>
     </Card>
   ),
@@ -340,7 +340,6 @@ TimePicker.propTypes = {
   options: PropTypes.array.isRequired,
   range: PropTypes.array,
   value: PropTypes.string.isRequired,
-  weekDayMode: PropTypes.bool,
 }
 
 const isWeekDayMode = ({ monthDayPattern, weekDayPattern }) => {
@@ -375,12 +374,7 @@ class DayPicker extends Component {
   }
 
   _onChange = cron => {
-    const isMonthDayPattern = !this.state.weekDayMode || includes(cron, '/')
-
-    this.props.onChange([
-      isMonthDayPattern ? cron : '*',
-      isMonthDayPattern ? '*' : cron,
-    ])
+    this.props.onChange(this.state.weekDayMode ? ['*', cron] : [cron, '*'])
   }
 
   render () {
@@ -413,7 +407,6 @@ class DayPicker extends Component {
         options={weekDayMode ? WEEK_DAYS : DAYS}
         range={MONTH_DAYS_RANGE}
         value={weekDayMode ? weekDayPattern : monthDayPattern}
-        weekDayMode={weekDayMode}
       />
     )
   }
