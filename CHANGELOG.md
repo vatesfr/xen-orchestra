@@ -6,7 +6,6 @@
 
 - [Usage Report] Add IOPS read/write/total per VM [#3309](https://github.com/vatesfr/xen-orchestra/issues/3309) (PR [#3455](https://github.com/vatesfr/xen-orchestra/pull/3455))
 - [Self service] Sort resource sets by name (PR [#3507](https://github.com/vatesfr/xen-orchestra/pull/3507))
-- [VHD] expose the file size on the VHD stream, necessary to be compatible with a future version of vhd-tool ( https://github.com/xapi-project/vhd-tool/commit/f978789dc45e9339ef2c6a4248984d54714043a7 )
 - [Usage Report] Add top 3 SRs which use the most IOPS read/write/total [#3306](https://github.com/vatesfr/xen-orchestra/issues/3306) (PR [#3508](https://github.com/vatesfr/xen-orchestra/pull/3508))
 - [New VM] Display a warning when the memory is below the template memory static min [#3496](https://github.com/vatesfr/xen-orchestra/issues/3496) (PR [#3513](https://github.com/vatesfr/xen-orchestra/pull/3513))
 - [Backup NG form] Add link to plugins setting [#3457](https://github.com/vatesfr/xen-orchestra/issues/3457) (PR [#3514](https://github.com/vatesfr/xen-orchestra/pull/3514))
