@@ -271,7 +271,7 @@ test('createSyntheticStream passes vhd-util check', async () => {
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
   const handler = getHandler({ url: 'file://' + process.cwd() })
-  const stream = createSyntheticStream(handler, 'randomfile.vhd')
+  const stream = await createSyntheticStream(handler, 'randomfile.vhd')
   await fromEvent(
     stream.pipe(await fs.createWriteStream('recovered.vhd')),
     'finish'
