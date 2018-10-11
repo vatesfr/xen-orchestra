@@ -21,7 +21,7 @@
 - xo-server-usage-report v0.7.0
 - xo-server v5.29.0
 - xo-web v5.29.0
--
+- vhd-lib v0.3.3
 
 ## **5.28.0** (2018-10-05)
 
