@@ -472,32 +472,26 @@ export default class BackupNg {
 
         const job: BackupJob = (job_: any)
 
-        let ids
+        let ids, vms: $Dict<Vm>
         if (vmsId !== undefined || (ids = job.vms.id) !== undefined) {
           ids = vmsId || ids.__or || [ids]
-          ids.forEach(id => {
+          vms = ids.map(id => {
             try {
-              app.getObject(id)
+              return app.getObject(id)
             } catch (err) {
               throw new Error(`the VM ${id} is not found`)
             }
           })
-        }
-
-        const vms: $Dict<Vm> = app.getObjects({
-          filter: createPredicate({
-            type: 'VM',
-            ...(vmsId !== undefined
-              ? {
-                  id: {
-                    __or: vmsId,
-                  },
-                }
-              : job.vms),
-          }),
-        })
-        if (isEmpty(vms)) {
-          throw new Error('no VMs match this pattern')
+        } else {
+          vms = app.getObjects({
+            filter: createPredicate({
+              type: 'VM',
+              ...job.vms,
+            }),
+          })
+          if (isEmpty(vms)) {
+            throw new Error('no VMs match this pattern')
+          }
         }
         const jobId = job.id
         const srs = unboxIds(job.srs).map(id => {
