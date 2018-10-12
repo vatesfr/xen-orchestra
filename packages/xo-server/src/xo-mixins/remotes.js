@@ -126,8 +126,11 @@ export default class {
   }
 
   async removeRemote (id) {
-    const handler = await this.getRemoteHandler(id, true)
-    await handler.forget()
+    const handler = this._handlers[id]
+    if (handler !== undefined) {
+      ignoreErrors.call(handler.forget())
+    }
+
     await this._remotes.remove(id)
   }
 }
