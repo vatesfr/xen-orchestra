@@ -15,6 +15,7 @@
 - [Settings/acls] Add bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3536](https://github.com/vatesfr/xen-orchestra/pull/3536))
 - [Home] Improve search usage: raw numbers also match in names [#2906](https://github.com/vatesfr/xen-orchestra/issues/2906) (PR [#3552](https://github.com/vatesfr/xen-orchestra/pull/3552))
 - [Backup NG] Timeout of a job is now in hours [#3550](https://github.com/vatesfr/xen-orchestra/issues/3550) (PR [#3553](https://github.com/vatesfr/xen-orchestra/pull/3553))
+- [Backup NG] Make the Backup NG job fail when it contains a not existent VM [#3434](https://github.com/vatesfr/xen-orchestra/issues/3434) (PR [#3522](https://github.com/vatesfr/xen-orchestra/pull/3522))
 
 ### Bug fixes
 
