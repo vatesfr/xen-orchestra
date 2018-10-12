@@ -17,7 +17,6 @@ import {
   groupBy,
   isEmpty,
   last,
-  map,
   mapValues,
   noop,
   some,
@@ -216,10 +215,10 @@ const importers: $Dict<
 
     const streams = {}
     await asyncMap(vdis, async (vdi, id) => {
-      streams[`${id}.vhd`] = (await createVhdReadStream(
+      streams[`${id}.vhd`] = await createVhdReadStream(
         handler,
         resolveRelativeFromFile(metadataFilename, vhds[id])
-      )).pipe(createSizeStream())
+      )
     })
 
     const delta: DeltaVmImport = {
@@ -240,8 +239,8 @@ const importers: $Dict<
         logger,
         message: 'transfer',
         parentId: taskId,
-        result: ({ vm: { $id: id } }) => ({
-          size: sum(map(streams, 'size')),
+        result: ({ transferSize, vm: { $id: id } }) => ({
+          size: transferSize,
           id,
         }),
       },
@@ -456,7 +455,9 @@ export default class BackupNg {
     this._app = app
     this._logger = undefined
 
-    app.on('start', () => {
+    app.on('start', async () => {
+      this._logger = await app.getLogger('restore')
+
       const executor: Executor = async ({
         cancelToken,
         data: vmsId,
@@ -578,11 +579,6 @@ export default class BackupNg {
         }
         await asyncMap(vms, handleVm)
       }
-
-      app.getLogger('restore').then(logger => {
-        this._logger = logger
-      })
-
       app.registerJobExecutor('backup', executor)
     })
   }
