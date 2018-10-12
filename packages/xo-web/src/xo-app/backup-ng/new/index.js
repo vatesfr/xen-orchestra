@@ -5,7 +5,6 @@ import Icon from 'icon'
 import Link from 'link'
 import moment from 'moment-timezone'
 import React from 'react'
-import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
@@ -14,11 +13,12 @@ import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
-import { flatten, includes, isEmpty, keyBy, map, mapValues, some } from 'lodash'
+import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
 import { form } from 'modal'
 import { injectState, provideState } from '@julien-f/freactal'
 import { Map } from 'immutable'
 import { Number } from 'form'
+import { renderXoItemFromId, RemoteItem } from 'render-xo-item'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
@@ -187,10 +187,7 @@ export default [
     </Upgrade>
   ),
   addSubscriptions({
-    remotesById: cb =>
-      subscribeRemotes(remotes => {
-        cb(keyBy(remotes, 'id'))
-      }),
+    remotes: subscribeRemotes,
   }),
   connectStore(() => ({
     srsById: createGetObjectsOfType('SR'),
@@ -608,7 +605,7 @@ export default [
     },
   }),
   injectState,
-  ({ state, effects, remotesById, srsById, job = {} }) => {
+  ({ state, effects, remotes, srsById, job = {} }) => {
     const { propSettings, settings = propSettings } = state
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
@@ -724,7 +721,7 @@ export default [
                     </Link>
                   </CardHeader>
                   <CardBlock>
-                    {isEmpty(remotesById) ? (
+                    {isEmpty(remotes) ? (
                       <span className='text-warning'>
                         <Icon icon='alarm' /> {_('createRemoteMessage')}
                       </span>
@@ -747,11 +744,7 @@ export default [
                         <Ul>
                           {map(state.remotes, (id, key) => (
                             <Li key={id}>
-                              {remotesById !== undefined &&
-                                renderXoItem({
-                                  type: 'remote',
-                                  value: remotesById[id],
-                                })}
+                              <RemoteItem id={id} />
                               <div className='pull-right'>
                                 <DeleteOldBackupsFirst
                                   handler={effects.setTargetDeleteFirst}
