@@ -317,7 +317,7 @@ export const FormModal = [
     },
   }),
   injectState,
-  ({ state: { id, props = {}, value }, effects }) => (
+  ({ state: { props = {}, ...state }, effects }) => (
     <ReactModal
       bsSize={props.size}
       onHide={effects.cancel}
@@ -336,10 +336,12 @@ export const FormModal = [
       </ReactModal.Header>
 
       <ReactModal.Body>
-        <form id={id}>
+        <form id={state.id}>
+          {/* It should be better to use a computed to avoid cloning the body on each render,
+            but Freactal(v0.4.0) not allow us to access to the effects from a computed */}
           {props.body !== undefined &&
             cloneElement(props.body, {
-              value,
+              value: state.value,
               onChange: effects.onChange,
             })}
         </form>
@@ -348,7 +350,7 @@ export const FormModal = [
       <ReactModal.Footer>
         <ActionButton
           btnStyle='primary'
-          form={id}
+          form={state.id}
           handler={effects.submit}
           icon='save'
           size='large'
