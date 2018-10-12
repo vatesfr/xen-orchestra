@@ -153,26 +153,26 @@ export default class Jobs {
         jobs => Promise.all(mapToArray(jobs, job => jobsDb.save(job))),
         ['users']
       )
-      // it sends a report for the interrupted backup jobs
-      this._app.on('plugins:registered', () =>
-        asyncMap(this._jobs.get(), job => {
-          // only the interrupted backup jobs have the runId property
-          if (job.runId === undefined) {
-            return
-          }
-
-          this._app.emit(
-            'job:terminated',
-            undefined,
-            job,
-            undefined,
-            // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
-            String(job.runId)
-          )
-          return this.updateJob({ id: job.id, runId: null })
-        })
-      )
     })
+    // it sends a report for the interrupted backup jobs
+    xo.on('plugins:registered', () =>
+      asyncMap(this._jobs.get(), job => {
+        // only the interrupted backup jobs have the runId property
+        if (job.runId === undefined) {
+          return
+        }
+
+        xo.emit(
+          'job:terminated',
+          undefined,
+          job,
+          undefined,
+          // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
+          String(job.runId)
+        )
+        return this.updateJob({ id: job.id, runId: null })
+      })
+    )
   }
 
   cancelJobRun (id: string) {
