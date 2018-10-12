@@ -14,6 +14,8 @@
 
 ### Bug fixes
 
+- [Remotes] Fix removal of broken remotes
+
 ### Released packages
 
 - vhd-lib v0.4.0
