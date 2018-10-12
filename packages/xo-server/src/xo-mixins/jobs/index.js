@@ -144,18 +144,15 @@ export default class Jobs {
     executors.call = executeCall
 
     xo.on('clean', () => jobsDb.rebuildIndexes())
-    xo.on('start', () => {
+    xo.on('start', async () => {
+      this._logger = await xo.getLogger('jobs')
+
       xo.addConfigManager(
         'jobs',
         () => jobsDb.get(),
         jobs => Promise.all(mapToArray(jobs, job => jobsDb.save(job))),
         ['users']
       )
-
-      xo.getLogger('jobs').then(logger => {
-        this._logger = logger
-      })
-
       // it sends a report for the interrupted backup jobs
       this._app.on('plugins:registered', () =>
         asyncMap(this._jobs.get(), job => {
