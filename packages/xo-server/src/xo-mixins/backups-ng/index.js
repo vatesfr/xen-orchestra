@@ -472,14 +472,17 @@ export default class BackupNg {
 
         const job: BackupJob = (job_: any)
 
-        const ids = vmsId || job.vms.id.__or || [job.vms.id]
-        ids.forEach(id => {
-          try {
-            app.getObject(id)
-          } catch (err) {
-            throw new Error(`the VM ${id} is not found`)
-          }
-        })
+        let ids
+        if (vmsId !== undefined || (ids = job.vms.id) !== undefined) {
+          ids = vmsId || ids.__or || [ids]
+          ids.forEach(id => {
+            try {
+              app.getObject(id)
+            } catch (err) {
+              throw new Error(`the VM ${id} is not found`)
+            }
+          })
+        }
 
         const vms: $Dict<Vm> = app.getObjects({
           filter: createPredicate({
