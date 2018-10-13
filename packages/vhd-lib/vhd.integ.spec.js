@@ -107,12 +107,13 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
     },
   ]
   const fileSize = blockSize * 110
-  const stream = createReadableSparseStream(
+  const stream = await createReadableSparseStream(
     fileSize,
     blockSize,
     blocks.map(b => b.offsetBytes),
     blocks
   )
+  expect(stream.length).toEqual(4197888)
   const pipe = stream.pipe(createWriteStream('output.vhd'))
   await fromEvent(pipe, 'finish')
   await execa('vhd-util', ['check', '-t', '-i', '-n', 'output.vhd'])
