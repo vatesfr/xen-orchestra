@@ -2,9 +2,17 @@ import classNames from 'classnames'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
-import { flatten, forEach, includes, isArray, map, sortedIndex } from 'lodash'
 import { FormattedDate, FormattedTime } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
+import {
+  flatten,
+  forEach,
+  identity,
+  includes,
+  isArray,
+  map,
+  sortedIndex,
+} from 'lodash'
 
 import _ from './intl'
 import Button from './button'
@@ -194,74 +202,69 @@ class ToggleTd extends Component {
 
 // ===================================================================
 
-// Empty array => all selected
-class TableSelect extends Component {
-  static propTypes = {
-    labelId: PropTypes.string.isRequired,
-    options: PropTypes.array.isRequired,
-    optionRenderer: PropTypes.func,
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.array.isRequired,
-  }
+const TableSelect = [
+  provideState({
+    effects: {
+      onChange: (_, tdId, tdValue) => (_, { value, onChange }) => {
+        const newValue = [...value]
+        const index = sortedIndex(newValue, tdId)
 
-  static defaultProps = {
-    optionRenderer: value => value,
-  }
+        if (tdValue) {
+          // Add
+          if (newValue[index] !== tdId) {
+            newValue.splice(index, 0, tdId)
+          }
+        } else {
+          // Remove
+          if (newValue[index] === tdId) {
+            newValue.splice(index, 1)
+          }
+        }
 
-  _reset = () => {
-    this.props.onChange([])
-  }
+        onChange(newValue)
+      },
+      selectAll: () => ({ optionsValues }, { onChange }) => {
+        onChange(optionsValues)
+      },
+    },
+    computed: {
+      optionsValues: (_, { options }) => flatten(options),
+    },
+  }),
+  injectState,
+  ({ state, effects, labelId, options, optionRenderer = identity, value }) => (
+    <div>
+      <table className='table table-bordered table-sm'>
+        <tbody>
+          {map(options, (line, i) => (
+            <tr key={i}>
+              {map(line, tdOption => (
+                <ToggleTd
+                  children={optionRenderer(tdOption)}
+                  tdId={tdOption}
+                  key={tdOption}
+                  onChange={effects.onChange}
+                  value={includes(value, tdOption)}
+                />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <Button className='pull-right' onClick={effects.selectAll}>
+        {_(`selectTableAll${labelId}`)}{' '}
+        {value.length === state.optionsValues.length && <Icon icon='success' />}
+      </Button>
+    </div>
+  ),
+].reduceRight((value, decorator) => decorator(value))
 
-  _handleChange = (tdId, tdValue) => {
-    const { props } = this
-
-    const newValue = props.value.slice()
-    const index = sortedIndex(newValue, tdId)
-
-    if (tdValue) {
-      // Add
-      if (newValue[index] !== tdId) {
-        newValue.splice(index, 0, tdId)
-      }
-    } else {
-      // Remove
-      if (newValue[index] === tdId) {
-        newValue.splice(index, 1)
-      }
-    }
-
-    props.onChange(newValue)
-  }
-
-  render () {
-    const { labelId, options, optionRenderer, value } = this.props
-
-    return (
-      <div>
-        <table className='table table-bordered table-sm'>
-          <tbody>
-            {map(options, (line, i) => (
-              <tr key={i}>
-                {map(line, tdOption => (
-                  <ToggleTd
-                    children={optionRenderer(tdOption)}
-                    tdId={tdOption}
-                    key={tdOption}
-                    onChange={this._handleChange}
-                    value={value.length === 0 || includes(value, tdOption)}
-                  />
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <Button className='pull-right' onClick={this._reset}>
-          {_(`selectTableAll${labelId}`)}{' '}
-          {value.length === 0 && <Icon icon='success' />}
-        </Button>
-      </div>
-    )
-  }
+TableSelect.propTypes = {
+  labelId: propTypes.string.isRequired,
+  options: propTypes.array.isRequired,
+  optionRenderer: propTypes.func,
+  onChange: propTypes.func.isRequired,
+  value: propTypes.array.isRequired,
 }
 
 // ===================================================================
@@ -269,9 +272,9 @@ class TableSelect extends Component {
 const TimePicker = [
   provideState({
     effects: {
-      onChange: (_, value) => (_, { onChange }) => {
+      onChange: (_, value) => ({ optionsValues }, { onChange }) => {
         if (isArray(value)) {
-          value = value.length === 0 ? '*' : value.join(',')
+          value = value.length === optionsValues.length ? '*' : value.join(',')
         } else {
           value = `*/${value}`
         }
@@ -282,24 +285,18 @@ const TimePicker = [
     computed: {
       step: (_, { value }) =>
         value.indexOf('/') === 1 ? +value.split('/')[1] : undefined,
-      // '*' or '*/1' => []
+      optionsValues: (_, { options }) => flatten(options),
+      // '*' or '*/1' => all values
       // '2,7' => [2,7]
       // '*/2' => [min + 2 * 0, min + 2 * 1, ..., min + 2 * n <= max]
-      tableValue: ({ step }, { options, value }) => {
-        if (value === '*' || step === 1) {
-          return []
-        }
-
-        if (step !== undefined) {
-          const flatOptions = flatten(options)
-          const min = flatOptions[0]
-          return flatOptions.filter(value => (value - min) % step === 0)
-        }
-
-        return value.split(',').map(Number)
-      },
-      // '*' => 1
-      // '*/2' => 2
+      tableValue: ({ optionsValues, step }, { value }) =>
+        value === '*' || step === 1
+          ? optionsValues
+          : step !== undefined
+            ? optionsValues.filter(
+                value => (value - optionsValues[0]) % step === 0
+              )
+            : value.split(',').map(Number),
       rangeValue: ({ step }, { value }) => (value === '*' ? 1 : step),
     },
   }),
