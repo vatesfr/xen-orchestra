@@ -7,7 +7,7 @@ import propTypes from './prop-types-decorator'
 
 export const CAN_REPORT_BUG = process.env.XOA_PLAN > 1
 
-const reportBug = ({ formatMessage, message, title }) => {
+export const reportBug = ({ formatMessage, message, title }) => {
   const encodedTitle = encodeURIComponent(title)
   const encodedMessage = encodeURIComponent(
     formatMessage !== undefined ? formatMessage(message) : message

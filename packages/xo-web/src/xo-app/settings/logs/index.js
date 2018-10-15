@@ -3,19 +3,21 @@ import { FormattedDate } from 'react-intl'
 import { find, map } from 'lodash'
 
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
-import ButtonGroup from 'button-group'
 import Copiable from 'copiable'
 import NoObjects from 'no-objects'
-import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import SortedTable from 'sorted-table'
 import styles from './index.css'
-import TabButton from 'tab-button'
 import { addSubscriptions } from 'utils'
-import { alert, confirm } from 'modal'
+import { alert } from 'modal'
 import { createSelector } from 'selectors'
-import { subscribeApiLogs, subscribeUsers, deleteApiLog } from 'xo'
+import { CAN_REPORT_BUG, reportBug } from 'report-bug-button'
+import {
+  deleteApiLog,
+  deleteApiLogs,
+  subscribeApiLogs,
+  subscribeUsers,
+} from 'xo'
 
 const formatMessage = data =>
   `\`\`\`\n${data.method}\n${JSON.stringify(
@@ -23,6 +25,25 @@ const formatMessage = data =>
     null,
     2
   )}\n${JSON.stringify(data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``
+
+const _reportBug = log =>
+  reportBug({
+    formatMessage,
+    message: log.data,
+    title: `Error on ${log.data.method}`,
+  })
+
+const showError = log =>
+  alert(
+    _('logError'),
+    <Copiable tagName='pre'>
+      {`${log.data.method}\n${JSON.stringify(
+        log.data.params,
+        null,
+        2
+      )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`}
+    </Copiable>
+  )
 
 const COLUMNS = [
   {
@@ -69,35 +90,30 @@ const COLUMNS = [
     sortCriteria: log => log.time,
     sortOrder: 'desc',
   },
+]
+
+const ACTIONS = [
   {
-    name: '',
-    itemRenderer: (log, { showError }) => (
-      <div className='text-xs-right'>
-        <ButtonGroup>
-          <ActionRowButton
-            handler={showError}
-            handlerParam={log}
-            icon='preview'
-            tooltip={_('logDisplayDetails')}
-          />
-          <ActionRowButton
-            btnStyle='danger'
-            handler={deleteApiLog}
-            handlerParam={log.id}
-            icon='delete'
-            tooltip={_('logDelete')}
-          />
-          {CAN_REPORT_BUG && (
-            <ReportBugButton
-              message={log.data}
-              formatMessage={formatMessage}
-              rowButton
-              title={`Error on ${log.data.method}`}
-            />
-          )}
-        </ButtonGroup>
-      </div>
-    ),
+    handler: deleteApiLogs,
+    individualHandler: deleteApiLog,
+    individualLabel: _('logDelete'),
+    icon: 'delete',
+    label: _('logsDelete'),
+    level: 'danger',
+  },
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: showError,
+    icon: 'preview',
+    label: _('logDisplayDetails'),
+  },
+  {
+    disabled: !CAN_REPORT_BUG,
+    handler: _reportBug,
+    icon: 'bug',
+    label: _('reportBug'),
   },
 ]
 
@@ -106,36 +122,12 @@ const COLUMNS = [
   users: subscribeUsers,
 })
 export default class Logs extends BaseComponent {
-  _deleteAllLogs = () =>
-    confirm({
-      title: _('logDeleteAllTitle'),
-      body: _('logDeleteAllMessage'),
-    }).then(() =>
-      Promise.all(map(this.props.logs, (log, id) => deleteApiLog(id)))
-    )
-
   _getLogs = createSelector(
     () => this.props.logs,
     logs => logs && map(logs, (log, id) => ({ ...log, id }))
   )
 
-  _showError = log =>
-    alert(
-      _('logError'),
-      <Copiable tagName='pre'>
-        {`${log.data.method}\n${JSON.stringify(
-          log.data.params,
-          null,
-          2
-        )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`}
-      </Copiable>
-    )
-
-  _getData = createSelector(
-    () => this.props.users,
-    () => this._showError,
-    (users, showError) => ({ users, showError })
-  )
+  _getData = createSelector(() => this.props.users, users => ({ users }))
 
   _getPredicate = logs => logs != null
 
@@ -149,21 +141,13 @@ export default class Logs extends BaseComponent {
         predicate={this._getPredicate}
       >
         {() => (
-          <div>
-            <span className='pull-right'>
-              <TabButton
-                btnStyle='danger'
-                handler={this._deleteAllLogs}
-                icon='delete'
-                labelId='logDeleteAll'
-              />
-            </span>{' '}
-            <SortedTable
-              collection={logs}
-              columns={COLUMNS}
-              userData={this._getData()}
-            />
-          </div>
+          <SortedTable
+            actions={ACTIONS}
+            collection={logs}
+            columns={COLUMNS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            userData={this._getData()}
+          />
         )}
       </NoObjects>
     )

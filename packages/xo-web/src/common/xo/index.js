@@ -2216,10 +2216,16 @@ export const deleteJobsLogs = async ids => {
 
 // Logs
 
-export const deleteApiLog = id =>
-  _call('log.delete', { namespace: 'api', id })::tap(
+export const deleteApiLog = log =>
+  _call('log.delete', { namespace: 'api', id: resolveId(log) })::tap(
     subscribeApiLogs.forceRefresh
   )
+
+export const deleteApiLogs = logs =>
+  confirm({
+    title: _('logDeleteMultiple', { nLogs: logs.length }),
+    body: _('logDeleteMultipleMessage', { nLogs: logs.length }),
+  }).then(() => Promise.all(map(logs, deleteApiLog)), noop)
 
 // Acls, users, groups ----------------------------------------------------------
 
