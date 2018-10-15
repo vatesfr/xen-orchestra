@@ -14,7 +14,7 @@
 
 ### Bug fixes
 
-- [Remotes] Fix removal of broken remotes
+- [Remotes] Fix removal of broken remotes (PR [#3521](https://github.com/vatesfr/xen-orchestra/pull/3521))
 
 ### Released packages
 
