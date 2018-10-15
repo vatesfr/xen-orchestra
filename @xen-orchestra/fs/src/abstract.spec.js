@@ -1,7 +1,8 @@
 /* eslint-env jest */
 
-import AbstractHandler, { DEFAULT_TIMEOUT } from './abstract'
 import { TimeoutError } from 'promise-toolbox'
+
+import AbstractHandler, { DEFAULT_TIMEOUT } from './abstract'
 
 class TestHandler extends AbstractHandler {
   constructor (impl) {
