@@ -19,18 +19,21 @@ import { SelectSr } from 'select-objects'
 import { VmItem } from 'render-xo-item'
 import { ejectCd, isSrWritable, setDefaultSr } from 'xo'
 
-@connectStore(() => {
-  const getPool = createGetObject((_, props) => props.pool)
-  return {
-    pool: getPool,
-    poolMaster: createGetObject(
-      createSelector(getPool, ({ master }) => master)
-    ),
-    vbds: createGetObjectsOfType('VBD').filter(
-      createSelector(getPool, ({ id }) => vbd => vbd.$pool === id)
-    ),
-  }
-})
+@connectStore(
+  () => {
+    const getPool = createGetObject((_, props) => props.pool)
+    return {
+      pool: getPool,
+      poolMaster: createGetObject(
+        createSelector(getPool, ({ master }) => master)
+      ),
+      vbds: createGetObjectsOfType('VBD').filter(
+        createSelector(getPool, ({ id }) => vbd => vbd.$pool === id)
+      ),
+    }
+  },
+  { withRef: true }
+)
 export default class InstallPoolPatchesModalBody extends Component {
   _getVmsWithCds = createSelector(
     () => this.props.vbds,
