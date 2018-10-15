@@ -26,25 +26,6 @@ const formatMessage = data =>
     2
   )}\n${JSON.stringify(data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``
 
-const _reportBug = log =>
-  reportBug({
-    formatMessage,
-    message: log.data,
-    title: `Error on ${log.data.method}`,
-  })
-
-const showError = log =>
-  alert(
-    _('logError'),
-    <Copiable tagName='pre'>
-      {`${log.data.method}\n${JSON.stringify(
-        log.data.params,
-        null,
-        2
-      )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`}
-    </Copiable>
-  )
-
 const COLUMNS = [
   {
     name: _('logUser'),
@@ -105,13 +86,28 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: showError,
+    handler: log =>
+      alert(
+        _('logError'),
+        <Copiable tagName='pre'>
+          {`${log.data.method}\n${JSON.stringify(
+            log.data.params,
+            null,
+            2
+          )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`}
+        </Copiable>
+      ),
     icon: 'preview',
     label: _('logDisplayDetails'),
   },
   {
     disabled: !CAN_REPORT_BUG,
-    handler: _reportBug,
+    handler: log =>
+      reportBug({
+        formatMessage,
+        message: log.data,
+        title: `Error on ${log.data.method}`,
+      }),
     icon: 'bug',
     label: _('reportBug'),
   },
@@ -127,7 +123,7 @@ export default class Logs extends BaseComponent {
     logs => logs && map(logs, (log, id) => ({ ...log, id }))
   )
 
-  _getData = createSelector(() => this.props.users, users => ({ users }))
+  _getUsers = createSelector(() => this.props.users, users => users)
 
   _getPredicate = logs => logs != null
 
@@ -146,7 +142,7 @@ export default class Logs extends BaseComponent {
             collection={logs}
             columns={COLUMNS}
             individualActions={INDIVIDUAL_ACTIONS}
-            userData={this._getData()}
+            data-users={this._getUsers()}
           />
         )}
       </NoObjects>
