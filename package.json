@@ -33,6 +33,7 @@
     }
   },
   "jest": {
+    "timers": "fake",
     "collectCoverage": true,
     "projects": [
       "<rootDir>"
