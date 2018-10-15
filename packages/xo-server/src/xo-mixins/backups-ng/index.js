@@ -256,20 +256,20 @@ const importers: $Dict<
   async full (handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
     metadata = ((metadata: any): MetadataFull)
 
-    const xva = (await handler.createReadStream(
+    const xva = await handler.createReadStream(
       resolveRelativeFromFile(metadataFilename, metadata.xva),
       {
         checksum: true,
         ignoreMissingChecksum: true, // provide an easy way to opt-out
       }
-    )).pipe(createSizeStream())
+    )
 
     const vm = await wrapTask(
       {
         logger,
         message: 'transfer',
         parentId: taskId,
-        result: ({ $id: id }) => ({ size: xva.size, id }),
+        result: ({ $id: id }) => ({ size: xva.length, id }),
       },
       xapi.importVm(xva, { srId: sr.$id })
     )
