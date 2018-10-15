@@ -313,56 +313,59 @@ export const FormModal = [
       }),
     },
     computed: {
-      value: ({ props = {}, localValue = props.defaultValue }) => localValue,
+      value: ({ props, localValue = props.defaultValue }) => localValue,
     },
   }),
   injectState,
-  ({ state: { props = {}, ...state }, effects }) => (
-    <ReactModal
-      bsSize={props.size}
-      onHide={effects.cancel}
-      show={props.showModal}
-    >
-      <ReactModal.Header closeButton>
-        <ReactModal.Title>
-          {props.icon !== undefined ? (
-            <span>
-              <Icon icon={props.icon} /> {props.title}
-            </span>
-          ) : (
-            props.title
-          )}
-        </ReactModal.Title>
-      </ReactModal.Header>
+  ({ state, effects }) => {
+    const { props = {} } = state
+    return (
+      <ReactModal
+        bsSize={props.size}
+        onHide={effects.cancel}
+        show={props.showModal}
+      >
+        <ReactModal.Header closeButton>
+          <ReactModal.Title>
+            {props.icon !== undefined ? (
+              <span>
+                <Icon icon={props.icon} /> {props.title}
+              </span>
+            ) : (
+              props.title
+            )}
+          </ReactModal.Title>
+        </ReactModal.Header>
 
-      <ReactModal.Body>
-        <form id={state.id}>
-          {/* It should be better to use a computed to avoid cloning the body on each render,
+        <ReactModal.Body>
+          <form id={state.id}>
+            {/* It should be better to use a computed to avoid cloning the body on each render,
             but Freactal(v0.4.0) not allow us to access to the effects from a computed */}
-          {props.body !== undefined &&
-            cloneElement(props.body, {
-              value: state.value,
-              onChange: effects.onChange,
-            })}
-        </form>
-      </ReactModal.Body>
+            {props.body !== undefined &&
+              cloneElement(props.body, {
+                value: state.value,
+                onChange: effects.onChange,
+              })}
+          </form>
+        </ReactModal.Body>
 
-      <ReactModal.Footer>
-        <ActionButton
-          btnStyle='primary'
-          form={state.id}
-          handler={effects.submit}
-          icon='save'
-          size='large'
-        >
-          {_('formOk')}
-        </ActionButton>{' '}
-        <ActionButton handler={effects.cancel} icon='cancel' size='large'>
-          {_('formCancel')}
-        </ActionButton>
-      </ReactModal.Footer>
-    </ReactModal>
-  ),
+        <ReactModal.Footer>
+          <ActionButton
+            btnStyle='primary'
+            form={state.id}
+            handler={effects.submit}
+            icon='save'
+            size='large'
+          >
+            {_('formOk')}
+          </ActionButton>{' '}
+          <ActionButton handler={effects.cancel} icon='cancel' size='large'>
+            {_('formCancel')}
+          </ActionButton>
+        </ReactModal.Footer>
+      </ReactModal>
+    )
+  },
 ].reduceRight((value, decorator) => decorator(value))
 
 // -----------------------------------------------------------------------------
