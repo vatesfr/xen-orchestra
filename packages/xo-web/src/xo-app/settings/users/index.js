@@ -1,7 +1,6 @@
 import * as Editable from 'editable'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
@@ -12,7 +11,13 @@ import { addSubscriptions } from 'utils'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 
-import { createUser, deleteUser, editUser, subscribeUsers } from 'xo'
+import {
+  createUser,
+  deleteUser,
+  deleteUsers,
+  editUser,
+  subscribeUsers,
+} from 'xo'
 
 const permissions = {
   none: {
@@ -60,16 +65,14 @@ const USER_COLUMNS = [
       />
     ),
   },
+]
+
+const USER_ACTIONS = [
   {
-    name: '',
-    itemRenderer: user => (
-      <ActionRowButton
-        icon='delete'
-        handler={deleteUser}
-        handlerParam={user}
-        btnStyle='danger'
-      />
-    ),
+    handler: deleteUsers,
+    icon: 'delete',
+    individualHandler: deleteUser,
+    level: 'danger',
   },
 ]
 
@@ -143,7 +146,11 @@ export default class Users extends Component {
             <em>{_('noUserFound')}</em>
           </p>
         ) : (
-          <SortedTable collection={users} columns={USER_COLUMNS} />
+          <SortedTable
+            actions={USER_ACTIONS}
+            collection={users}
+            columns={USER_COLUMNS}
+          />
         )}
       </div>
     )
