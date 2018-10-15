@@ -127,7 +127,7 @@ export default class RemoteHandlerAbstract {
     newPath: string,
     { checksum = false }: Object = {}
   ) {
-    let p = timeout.call(this._rename(oldPath, newPath), 10000)
+    let p = timeout.call(this._rename(oldPath, newPath), DEFAULT_TIMEOUT)
     if (checksum) {
       p = Promise.all([
         p,
