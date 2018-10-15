@@ -410,6 +410,27 @@ const wrapTaskFn = <T>(
     }
   }
 
+const extractIdsFromSimplePattern = (pattern: mixed) => {
+  if (pattern === null || typeof pattern !== 'object') {
+    return
+  }
+
+  const keys = Object.keys(pattern)
+  // keys === ['id']
+  if (keys.length !== 1 || keys[0] !== 'id') {
+    return
+  }
+
+  pattern = pattern.id
+  if (typeof pattern === 'string') {
+    return [pattern]
+  }
+
+  if (pattern !== null && typeof pattern === 'object') {
+    return pattern.__or || pattern.__and
+  }
+}
+
 // File structure on remotes:
 //
 // <remote>
@@ -471,11 +492,14 @@ export default class BackupNg {
         }
 
         const job: BackupJob = (job_: any)
+        const vmsPattern = job.vms
 
-        let ids, vms: $Dict<Vm>
-        if (vmsId !== undefined || (ids = job.vms.id) !== undefined) {
-          ids = vmsId || ids.__or || [ids]
-          vms = ids.map(id => {
+        let vms: $Dict<Vm>
+        if (
+          vmsId !== undefined ||
+          (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
+        ) {
+          vms = vmsId.map(id => {
             try {
               return app.getObject(id)
             } catch (err) {
@@ -486,13 +510,14 @@ export default class BackupNg {
           vms = app.getObjects({
             filter: createPredicate({
               type: 'VM',
-              ...job.vms,
+              ...vmsPattern,
             }),
           })
           if (isEmpty(vms)) {
             throw new Error('no VMs match this pattern')
           }
         }
+
         const jobId = job.id
         const srs = unboxIds(job.srs).map(id => {
           const xapi = app.getXapi(id)
