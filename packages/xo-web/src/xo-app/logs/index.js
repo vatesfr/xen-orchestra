@@ -427,7 +427,7 @@ const LOG_FILTERS = {
   jobCallSkipped: '!hasErrors? callSkipped?',
 }
 
-const LogsCard = [
+const Logs = [
   addSubscriptions(({ jobKeys }) => ({
     logs: cb =>
       subscribeJobsLogs(rawLogs => {
@@ -529,8 +529,8 @@ const LogsCard = [
   ),
 ].reduceRight((value, decorator) => decorator(value))
 
-LogsCard.propTypes = {
+Logs.propTypes = {
   jobKeys: PropTypes.array,
 }
 
-export { LogsCard as default }
+export { Logs as default }
