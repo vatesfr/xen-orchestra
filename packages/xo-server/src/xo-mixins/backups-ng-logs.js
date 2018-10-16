@@ -50,10 +50,15 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 
 export default {
   async getBackupNgLogs (runId?: string) {
-    const { runningJobs } = this
+    const { runningJobs, runningRestores } = this
     const consolidated = {}
     const started = {}
-    forEach(await this.getLogs('jobs'), ({ data, time, message }, id) => {
+    const [jobLogs, restoreLogs] = await Promise.all([
+      this.getLogs('jobs'),
+      this.getLogs('restore'),
+    ])
+
+    forEach({ ...jobLogs, ...restoreLogs }, ({ data, time, message }, id) => {
       const { event } = data
       if (event === 'job.start') {
         if (
@@ -94,6 +99,16 @@ export default {
               status: parent.status,
             })
           )
+        } else if (message === 'restore') {
+          consolidated[id] = started[id] = {
+            data: data.data,
+            id,
+            message,
+            start: time,
+            status: runningRestores.some(runId => runId === id)
+              ? 'pending'
+              : 'interrupted',
+          }
         }
       } else if (event === 'task.end') {
         const { taskId } = data
