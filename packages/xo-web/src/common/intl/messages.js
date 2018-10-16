@@ -803,6 +803,10 @@ const messages = {
   srShared: 'Shared',
   srNotShared: 'Not shared',
   pbdNoSr: 'No storage detected',
+  deletePbdsModalTitle: 'Delete pbd{nPbds, plural, one {} other {s}}',
+  deletePbdsModalMessage:
+    'Are you sure you want to delete {nPbds, number} pbd{nPbds, plural, one {} other {s}}?',
+
   // ----- Host patch tabs -----
   patchNameLabel: 'Name',
   patchUpdateButton: 'Install all patches',

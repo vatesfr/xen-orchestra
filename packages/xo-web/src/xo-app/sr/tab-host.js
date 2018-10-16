@@ -1,13 +1,13 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import React from 'react'
+import some from 'lodash/some'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import { Container, Row, Col } from 'grid'
-import { editHost, connectPbd, disconnectPbd, deletePbd } from 'xo'
 import { Text } from 'editable'
+import { editHost, connectPbd, disconnectPbd, deletePbd, deletePbds } from 'xo'
 
 const HOST_COLUMNS = [
   {
@@ -55,18 +55,16 @@ const HOST_COLUMNS = [
     ),
     sortCriteria: 'attached',
   },
+]
+
+const HOST_ACTIONS = [
   {
-    name: _('pbdAction'),
-    itemRenderer: pbd =>
-      !pbd.attached && (
-        <ActionRowButton
-          handler={deletePbd}
-          handlerParam={pbd}
-          icon='sr-forget'
-          tooltip={_('pbdForget')}
-        />
-      ),
-    textAlign: 'right',
+    disabled: pbds => some(pbds, 'attached'),
+    handler: deletePbds,
+    icon: 'sr-forget',
+    individualDisabled: pbd => pbd.attached,
+    individualHandler: deletePbd,
+    label: _('pbdForget'),
   },
 ]
 
@@ -76,6 +74,7 @@ export default ({ hosts, pbds }) => (
       <Col>
         {!isEmpty(hosts) ? (
           <SortedTable
+            actions={HOST_ACTIONS}
             collection={pbds}
             userData={hosts}
             columns={HOST_COLUMNS}

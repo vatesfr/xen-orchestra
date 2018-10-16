@@ -1682,6 +1682,17 @@ export const disconnectPbd = pbd =>
   _call('pbd.disconnect', { id: resolveId(pbd) })
 
 export const deletePbd = pbd => _call('pbd.delete', { id: resolveId(pbd) })
+export const deletePbds = pbds =>
+  confirm({
+    title: _('deletePbdsModalTitle', { nPbds: pbds.length }),
+    body: _('deletePbdsModalMessage', { nPbds: pbds.length }),
+  }).then(
+    () =>
+      Promise.all(
+        map(pbds, pbd => _call('pbd.delete', { id: resolveId(pbd) }))
+      ),
+    noop
+  )
 
 // Messages ----------------------------------------------------------
 
