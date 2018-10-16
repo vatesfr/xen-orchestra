@@ -37,6 +37,18 @@ describe('list()', () => {
   })
 })
 
+describe('createReadStream()', () => {
+  it(`return TimeoutError after ${DEFAULT_TIMEOUT} ms`, async () => {
+    const testHandler = new TestHandler({
+      createReadStream: () => new Promise(() => {}),
+    })
+
+    const promise = testHandler.createReadStream('file')
+    jest.advanceTimersByTime(DEFAULT_TIMEOUT)
+    await expect(promise).rejects.toThrowError(TimeoutError)
+  })
+})
+
 describe('openFile()', () => {
   it(`return TimeoutError after ${DEFAULT_TIMEOUT} ms`, async () => {
     const testHandler = new TestHandler({
@@ -56,6 +68,18 @@ describe('closeFile()', () => {
     })
 
     const promise = testHandler.closeFile({ fd: undefined, path: '' })
+    jest.advanceTimersByTime(DEFAULT_TIMEOUT)
+    await expect(promise).rejects.toThrowError(TimeoutError)
+  })
+})
+
+describe('createOutputStream()', () => {
+  it(`return TimeoutError after ${DEFAULT_TIMEOUT} ms`, async () => {
+    const testHandler = new TestHandler({
+      createOutputStream: () => new Promise(() => {}),
+    })
+
+    const promise = testHandler.createOutputStream('File')
     jest.advanceTimersByTime(DEFAULT_TIMEOUT)
     await expect(promise).rejects.toThrowError(TimeoutError)
   })

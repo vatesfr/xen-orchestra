@@ -171,28 +171,30 @@ export default class RemoteHandlerAbstract {
     { checksum = false, ignoreMissingChecksum = false, ...options }: Object = {}
   ): Promise<LaxReadable> {
     const path = typeof file === 'string' ? file : file.path
-    const streamP = this._createReadStream(file, options).then(stream => {
-      // detect early errors
-      let promise = fromEvent(stream, 'readable')
+    const streamP = timeout
+      .call(this._createReadStream(file, options), DEFAULT_TIMEOUT)
+      .then(stream => {
+        // detect early errors
+        let promise = fromEvent(stream, 'readable')
 
-      // try to add the length prop if missing and not a range stream
-      if (
-        stream.length === undefined &&
-        options.end === undefined &&
-        options.start === undefined
-      ) {
-        promise = Promise.all([
-          promise,
-          ignoreErrors.call(
-            this.getSize(file).then(size => {
-              stream.length = size
-            })
-          ),
-        ])
-      }
+        // try to add the length prop if missing and not a range stream
+        if (
+          stream.length === undefined &&
+          options.end === undefined &&
+          options.start === undefined
+        ) {
+          promise = Promise.all([
+            promise,
+            ignoreErrors.call(
+              this.getSize(file).then(size => {
+                stream.length = size
+              })
+            ),
+          ])
+        }
 
-      return promise.then(() => stream)
-    })
+        return promise.then(() => stream)
+      })
 
     if (!checksum) {
       return streamP
@@ -261,10 +263,13 @@ export default class RemoteHandlerAbstract {
     { checksum = false, ...options }: Object = {}
   ): Promise<LaxWritable> {
     const path = typeof file === 'string' ? file : file.path
-    const streamP = this._createOutputStream(file, {
-      flags: 'wx',
-      ...options,
-    })
+    const streamP = timeout.call(
+      this._createOutputStream(file, {
+        flags: 'wx',
+        ...options,
+      }),
+      DEFAULT_TIMEOUT
+    )
 
     if (!checksum) {
       return streamP
