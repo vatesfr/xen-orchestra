@@ -2310,6 +2310,20 @@ export const deleteUser = user =>
     )
   )
 
+export const deleteUsers = users =>
+  confirm({
+    title: _('deleteUsersModalTitle', { nUsers: users.length }),
+    body: <p>{_('deleteUsersModalMessage', { nUsers: users.length })}</p>,
+  }).then(
+    () =>
+      Promise.all(
+        map(resolveIds(users), id => _call('user.delete', { id }))
+      )::tap(subscribeUsers.forceRefresh, err =>
+        error(_('deleteUser'), err.message || String(err))
+      ),
+    noop
+  )
+
 export const editUser = (user, { email, password, permission }) =>
   _call('user.set', { id: resolveId(user), email, password, permission })::tap(
     subscribeUsers.forceRefresh
