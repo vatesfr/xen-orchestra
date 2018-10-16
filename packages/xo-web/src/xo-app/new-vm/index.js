@@ -349,18 +349,30 @@ export default class NewVm extends BaseComponent {
     let cloudConfig
     let cloudConfigs
     if (state.installMethod !== 'noConfigDrive') {
-      const hostname = state.name_label
-        .replace(/^\s+|\s+$/g, '')
-        .replace(/\s+/g, '-')
       if (state.installMethod === 'SSH') {
-        cloudConfig = `#cloud-config\nhostname: ${hostname}\nssh_authorized_keys:\n${join(
+        const format = hostname =>
+          hostname.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
+        const stringifiedKeys = join(
           map(state.sshKeys, keyId => {
             return this.props.userSshKeys[keyId]
               ? `  - ${this.props.userSshKeys[keyId].key}\n`
               : ''
           }),
           ''
-        )}`
+        )
+
+        cloudConfig = `#cloud-config\nhostname: ${format(
+          state.name_label
+        )}\nssh_authorized_keys:\n${stringifiedKeys}`
+        if (state.multipleVms) {
+          cloudConfigs = map(
+            state.nameLabels,
+            nameLabel =>
+              `#cloud-config\nhostname: ${format(
+                nameLabel
+              )}\nssh_authorized_keys:\n${stringifiedKeys}`
+          )
+        }
       } else if (state.installMethod === 'customConfig') {
         const replacer = this._buildTemplate(
           defined(state.customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)
@@ -375,6 +387,9 @@ export default class NewVm extends BaseComponent {
       }
     } else if (state.template.name_label === 'CoreOS') {
       cloudConfig = state.cloudConfig
+      if (state.multipleVms) {
+        cloudConfigs = new Array(state.nbVms).fill(state.cloudConfig)
+      }
     }
 
     // Split allowed IPs into IPv4 and IPv6
