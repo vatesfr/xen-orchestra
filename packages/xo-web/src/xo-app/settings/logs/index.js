@@ -123,8 +123,6 @@ export default class Logs extends BaseComponent {
     logs => logs && map(logs, (log, id) => ({ ...log, id }))
   )
 
-  _getUsers = createSelector(() => this.props.users, users => users)
-
   _getPredicate = logs => logs != null
 
   render () {
@@ -142,7 +140,7 @@ export default class Logs extends BaseComponent {
             collection={logs}
             columns={COLUMNS}
             individualActions={INDIVIDUAL_ACTIONS}
-            data-users={this._getUsers()}
+            data-users={this.props.users}
           />
         )}
       </NoObjects>
