@@ -139,8 +139,8 @@ export default class Logs extends BaseComponent {
             actions={ACTIONS}
             collection={logs}
             columns={COLUMNS}
-            individualActions={INDIVIDUAL_ACTIONS}
             data-users={this.props.users}
+            individualActions={INDIVIDUAL_ACTIONS}
           />
         )}
       </NoObjects>
