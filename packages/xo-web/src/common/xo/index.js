@@ -2241,6 +2241,22 @@ export const removeAcl = ({ subject, object, action }) =>
     err => error('Remove ACL', err.message || String(err))
   )
 
+export const removeAcls = acls =>
+  confirm({
+    title: _('deleteAclsModalTitle', { nAcls: acls.length }),
+    body: <p>{_('deleteAclsModalMessage', { nAcls: acls.length })}</p>,
+  }).then(
+    () =>
+      Promise.all(
+        map(acls, ({ subject, object, action }) =>
+          _call('acl.remove', resolveIds({ subject, object, action }))
+        )
+      )::tap(subscribeAcls.forceRefresh, err =>
+        error('Remove ACL', err.message || String(err))
+      ),
+    noop
+  )
+
 export const editAcl = (
   { subject, object, action },
   {
