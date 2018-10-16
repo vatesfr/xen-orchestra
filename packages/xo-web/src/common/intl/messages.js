@@ -803,9 +803,9 @@ const messages = {
   srShared: 'Shared',
   srNotShared: 'Not shared',
   pbdNoSr: 'No storage detected',
-  deletePbdsModalTitle: 'Delete pbd{nPbds, plural, one {} other {s}}',
+  deletePbdsModalTitle: 'Delete PBD{nPbds, plural, one {} other {s}}',
   deletePbdsModalMessage:
-    'Are you sure you want to delete {nPbds, number} pbd{nPbds, plural, one {} other {s}}?',
+    'Are you sure you want to delete {nPbds, number} PBD{nPbds, plural, one {} other {s}}?',
 
   // ----- Host patch tabs -----
   patchNameLabel: 'Name',

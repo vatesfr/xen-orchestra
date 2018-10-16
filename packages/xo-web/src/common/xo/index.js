@@ -1686,13 +1686,7 @@ export const deletePbds = pbds =>
   confirm({
     title: _('deletePbdsModalTitle', { nPbds: pbds.length }),
     body: _('deletePbdsModalMessage', { nPbds: pbds.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(pbds, pbd => _call('pbd.delete', { id: resolveId(pbd) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(pbds, deletePbd)), noop)
 
 // Messages ----------------------------------------------------------
 

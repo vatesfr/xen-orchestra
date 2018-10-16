@@ -1,12 +1,11 @@
 import _ from 'intl'
-import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import React from 'react'
-import some from 'lodash/some'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
-import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
+import { isEmpty, some } from 'lodash'
+import { Container, Row, Col } from 'grid'
 import { editHost, connectPbd, disconnectPbd, deletePbd, deletePbds } from 'xo'
 
 const HOST_COLUMNS = [
