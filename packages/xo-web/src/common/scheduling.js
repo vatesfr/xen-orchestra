@@ -11,7 +11,7 @@ import {
   includes,
   isArray,
   map,
-  sortedIndex,
+  sortedUniq,
 } from 'lodash'
 
 import _ from './intl'
@@ -205,22 +205,15 @@ class ToggleTd extends Component {
 const TableSelect = [
   provideState({
     effects: {
-      onChange: (_, tdId, tdValue) => (_, { value, onChange }) => {
-        const newValue = [...value]
-        const index = sortedIndex(newValue, tdId)
-
-        if (tdValue) {
-          // Add
-          if (newValue[index] !== tdId) {
-            newValue.splice(index, 0, tdId)
-          }
+      onChange: (_, tdId, add) => (_, { value, onChange }) => {
+        let newValue = [...value]
+        if (add) {
+          newValue.push(tdId)
+          newValue = sortedUniq(newValue)
         } else {
-          // Remove
-          if (newValue[index] === tdId) {
-            newValue.splice(index, 1)
-          }
+          const index = newValue.indexOf(tdId)
+          index !== -1 && newValue.splice(index, 1)
         }
-
         onChange(newValue)
       },
       selectAll: () => ({ optionsValues }, { onChange }) => {
@@ -297,6 +290,8 @@ const TimePicker = [
                 value => (value - optionsValues[0]) % step === 0
               )
             : value.split(',').map(Number),
+      // '*' => 1
+      // '*/2' => 2
       rangeValue: ({ step }, { value }) => (value === '*' ? 1 : step),
     },
   }),
