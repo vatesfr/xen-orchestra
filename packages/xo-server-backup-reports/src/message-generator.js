@@ -97,7 +97,7 @@ const VM_SUB_TASKS_GENERATORS = {
     for (const type in tasksByType) {
       const generator = TARGET_TASKS_GENERATORS[type.toLowerCase()]
       generator !== undefined &&
-        (await this::generator(tasksByType[type], vmSize))
+        (await generator.call(this, tasksByType[type], vmSize))
     }
   },
 }
@@ -139,7 +139,7 @@ export default class MessageGenerator {
     for (const message in vmSubTasksByType) {
       const generator = VM_SUB_TASKS_GENERATORS[message]
       generator !== undefined &&
-        (await this::generator(vmSubTasksByType[message], vmSize))
+        (await generator.call(this, vmSubTasksByType[message], vmSize))
     }
     const globalSize = this._globalSize
     const { transfer, merge } = vmSize
