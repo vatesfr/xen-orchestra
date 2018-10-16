@@ -356,7 +356,6 @@ export default class {
             let set
             if (
               object.$type !== 'VM' ||
-              object.is_a_snapshot ||
               ('start' in object.blocked_operations &&
                 (object.tags.includes('Disaster Recovery') ||
                   object.tags.includes('Continuous Replication'))) ||
