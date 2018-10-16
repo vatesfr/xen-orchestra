@@ -154,7 +154,7 @@ export class SchedulePreview extends Component {
             min={MIN_PREVIEWS}
             max={MAX_PREVIEWS}
             onChange={this.linkState('value')}
-            value={+value}
+            value={value && +value}
           />
         </div>
         <ul className='list-group'>
