@@ -18,7 +18,6 @@ import _ from './intl'
 import Button from './button'
 import Component from './base-component'
 import TimezonePicker from './timezone-picker'
-import Icon from './icon'
 import Tooltip from './tooltip'
 import { Card, CardHeader, CardBlock } from './card'
 import { Col, Row } from './grid'
@@ -245,8 +244,7 @@ const TableSelect = [
         </tbody>
       </table>
       <Button className='pull-right' onClick={effects.selectAll}>
-        {_(`selectTableAll${labelId}`)}{' '}
-        {value.length === state.optionsValues.length && <Icon icon='success' />}
+        {_(`selectTableAll${labelId}`)}
       </Button>
     </div>
   ),
