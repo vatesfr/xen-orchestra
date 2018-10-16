@@ -546,7 +546,11 @@ const messages = {
   deleteGroupConfirm: 'Are you sure you want to delete this group?',
   removeUserFromGroup: 'Remove user from Group',
   deleteUserConfirm: 'Are you sure you want to delete this user?',
-  deleteUser: 'Delete User',
+  deleteUser: 'Delete user',
+  deleteSelectedUsers: 'Delete selected users',
+  deleteUsersModalTitle: 'Delete user{nUsers, plural, one {} other {s}}',
+  deleteUsersModalMessage:
+    'Are you sure you want to delete {nUsers, number} user{nUsers, plural, one {} other {s}}?',
   noUser: 'no user',
   unknownUser: 'unknown user',
   noGroupFound: 'No group found',
@@ -1782,9 +1786,6 @@ const messages = {
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
   logDeleteMultipleMessage:
     'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?',
-  logDeleteAll: 'Delete all logs',
-  logDeleteAllTitle: 'Delete all logs',
-  logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
   logIndicationToEnable: 'Click to enable',
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
