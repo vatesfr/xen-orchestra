@@ -67,6 +67,22 @@ const HORIZON_AREA_PATH_STYLE = {
   return { label }
 })
 class XoWeekChart extends Component {
+  static propTypes = {
+    chartHeight: PropTypes.number,
+    chartWidth: PropTypes.number,
+    data: PropTypes.arrayOf(
+      PropTypes.shape({
+        date: PropTypes.number.isRequired,
+        value: PropTypes.number.isRequired,
+      })
+    ).isRequired,
+    maxValue: PropTypes.number,
+    objectId: PropTypes.string.isRequired,
+    onTooltipChange: PropTypes.func.isRequired,
+    tooltipX: PropTypes.number.isRequired,
+    valueRenderer: PropTypes.func,
+  }
+
   static defaultProps = {
     chartHeight: 70,
     chartWidth: 300,
@@ -290,25 +306,25 @@ class XoWeekChart extends Component {
   }
 }
 
-XoWeekChart.propTypes = {
-  chartHeight: PropTypes.number,
-  chartWidth: PropTypes.number,
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      date: PropTypes.number.isRequired,
-      value: PropTypes.number.isRequired,
-    })
-  ).isRequired,
-  maxValue: PropTypes.number,
-  objectId: PropTypes.string.isRequired,
-  onTooltipChange: PropTypes.func.isRequired,
-  tooltipX: PropTypes.number.isRequired,
-  valueRenderer: PropTypes.func,
-}
-
 // ===================================================================
 
 export default class XoWeekCharts extends Component {
+  static propTypes = {
+    chartHeight: PropTypes.number,
+    series: PropTypes.arrayOf(
+      PropTypes.shape({
+        data: PropTypes.arrayOf(
+          PropTypes.shape({
+            date: PropTypes.number.isRequired,
+            value: PropTypes.number.isRequired,
+          })
+        ).isRequired,
+        objectId: PropTypes.string.isRequired,
+      })
+    ).isRequired,
+    valueRenderer: PropTypes.func,
+  }
+
   _handleResize = () => {
     const { container } = this.refs
     this.setState({
@@ -392,20 +408,4 @@ export default class XoWeekCharts extends Component {
       </div>
     )
   }
-}
-
-XoWeekCharts.propTypes = {
-  chartHeight: PropTypes.number,
-  series: PropTypes.arrayOf(
-    PropTypes.shape({
-      data: PropTypes.arrayOf(
-        PropTypes.shape({
-          date: PropTypes.number.isRequired,
-          value: PropTypes.number.isRequired,
-        })
-      ).isRequired,
-      objectId: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  valueRenderer: PropTypes.func,
 }

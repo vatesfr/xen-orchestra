@@ -302,6 +302,12 @@ const DEFAULT_TYPE = 'VM'
   }
 })
 class NoObjects_ extends Component {
+  static propTypes = {
+    isAdmin: PropTypes.bool.isRequired,
+    isPoolAdmin: PropTypes.bool.isRequired,
+    noResourceSets: PropTypes.bool.isRequired,
+  }
+
   render () {
     const {
       areObjectsFetched,
@@ -418,12 +424,6 @@ class NoObjects_ extends Component {
       </CenterPanel>
     )
   }
-}
-
-NoObjects_.propTypes = {
-  isAdmin: PropTypes.bool.isRequired,
-  isPoolAdmin: PropTypes.bool.isRequired,
-  noResourceSets: PropTypes.bool.isRequired,
 }
 
 @addSubscriptions({

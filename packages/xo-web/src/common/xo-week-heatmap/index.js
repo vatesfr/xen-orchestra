@@ -73,6 +73,16 @@ const computeMissingDays = days => {
 // ===================================================================
 
 export default class XoWeekHeatmap extends Component {
+  static propTypes = {
+    cellRenderer: PropTypes.func,
+    data: PropTypes.arrayOf(
+      PropTypes.shape({
+        date: PropTypes.number.isRequired,
+        value: PropTypes.number.isRequired,
+      })
+    ).isRequired,
+  }
+
   static defaultProps = {
     cellRenderer: value => value,
   }
@@ -176,14 +186,4 @@ export default class XoWeekHeatmap extends Component {
       </table>
     )
   }
-}
-
-XoWeekHeatmap.propTypes = {
-  cellRenderer: PropTypes.func,
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      date: PropTypes.number.isRequired,
-      value: PropTypes.number.isRequired,
-    })
-  ).isRequired,
 }

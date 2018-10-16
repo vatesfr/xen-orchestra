@@ -66,6 +66,23 @@ const HEADER = (
   { withRef: true }
 )
 class VmData extends Component {
+  static propTypes = {
+    descriptionLabel: PropTypes.string,
+    disks: PropTypes.objectOf(
+      PropTypes.shape({
+        capacity: PropTypes.number.isRequired,
+        descriptionLabel: PropTypes.string.isRequired,
+        nameLabel: PropTypes.string.isRequired,
+        path: PropTypes.string.isRequired,
+      })
+    ),
+    memory: PropTypes.number,
+    nameLabel: PropTypes.string,
+    nCpus: PropTypes.number,
+    networks: PropTypes.array,
+    pool: PropTypes.object.isRequired,
+  }
+
   get value () {
     const { props, refs } = this
     return {
@@ -202,23 +219,6 @@ class VmData extends Component {
       </div>
     )
   }
-}
-
-VmData.propTypes = {
-  descriptionLabel: PropTypes.string,
-  disks: PropTypes.objectOf(
-    PropTypes.shape({
-      capacity: PropTypes.number.isRequired,
-      descriptionLabel: PropTypes.string.isRequired,
-      nameLabel: PropTypes.string.isRequired,
-      path: PropTypes.string.isRequired,
-    })
-  ),
-  memory: PropTypes.number,
-  nameLabel: PropTypes.string,
-  nCpus: PropTypes.number,
-  networks: PropTypes.array,
-  pool: PropTypes.object.isRequired,
 }
 
 // ===================================================================

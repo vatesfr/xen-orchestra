@@ -16,6 +16,10 @@ import { subscribeGroups, subscribeUsers } from 'xo'
 // ===================================================================
 
 export class Subjects extends Component {
+  static propTypes = {
+    subjects: PropTypes.array.isRequired,
+  }
+
   constructor (props) {
     super(props)
     this.state = {
@@ -75,10 +79,6 @@ export class Subjects extends Component {
       </div>
     )
   }
-}
-
-Subjects.propTypes = {
-  subjects: PropTypes.array.isRequired,
 }
 
 export const computeAvailableHosts = (pools, srs, hostsByPool) => {

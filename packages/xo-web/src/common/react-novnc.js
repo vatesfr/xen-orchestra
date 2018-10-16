@@ -20,6 +20,11 @@ const fixProtocol = url => {
 }
 
 export default class NoVnc extends Component {
+  static propTypes = {
+    onClipboardChange: PropTypes.func,
+    url: PropTypes.string.isRequired,
+  }
+
   constructor (props) {
     super(props)
     this._rfb = null
@@ -166,9 +171,4 @@ export default class NoVnc extends Component {
       />
     )
   }
-}
-
-NoVnc.propTypes = {
-  onClipboardChange: PropTypes.func,
-  url: PropTypes.string.isRequired,
 }

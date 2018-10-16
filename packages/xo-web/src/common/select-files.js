@@ -6,6 +6,12 @@ import React from 'react'
 import { omit } from 'lodash'
 
 export default class SelectFiles extends Component {
+  static propTypes = {
+    multi: PropTypes.bool,
+    label: PropTypes.node,
+    onChange: PropTypes.func.isRequired,
+  }
+
   _onChange = e => {
     const { multi, onChange } = this.props
     const { files } = e.target
@@ -26,10 +32,4 @@ export default class SelectFiles extends Component {
       </label>
     )
   }
-}
-
-SelectFiles.propTypes = {
-  multi: PropTypes.bool,
-  label: PropTypes.node,
-  onChange: PropTypes.func.isRequired,
 }

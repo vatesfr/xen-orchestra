@@ -8,6 +8,16 @@ import Icon from '../icon'
 
 @uncontrollableInput()
 export default class Toggle extends Component {
+  static propTypes = {
+    className: PropTypes.string,
+    onChange: PropTypes.func.isRequired,
+    icon: PropTypes.string,
+    iconOn: PropTypes.string,
+    iconOff: PropTypes.string,
+    iconSize: PropTypes.number,
+    value: PropTypes.bool.isRequired,
+  }
+
   static defaultProps = {
     iconOn: 'toggle-on',
     iconOff: 'toggle-off',
@@ -34,14 +44,4 @@ export default class Toggle extends Component {
       />
     )
   }
-}
-
-Toggle.propTypes = {
-  className: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  icon: PropTypes.string,
-  iconOn: PropTypes.string,
-  iconOff: PropTypes.string,
-  iconSize: PropTypes.number,
-  value: PropTypes.bool.isRequired,
 }

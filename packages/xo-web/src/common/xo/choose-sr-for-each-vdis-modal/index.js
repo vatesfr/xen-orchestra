@@ -27,6 +27,19 @@ Collapsible.propTypes = {
 }
 
 export default class ChooseSrForEachVdisModal extends Component {
+  static propTypes = {
+    mainSrPredicate: PropTypes.func,
+    onChange: PropTypes.func.isRequired,
+    srPredicate: PropTypes.func,
+    value: PropTypes.objectOf(
+      PropTypes.shape({
+        mainSr: PropTypes.object,
+        mapVdisSrs: PropTypes.object,
+      })
+    ).isRequired,
+    vdis: PropTypes.object.isRequired,
+  }
+
   _onChange = newValues => {
     this.props.onChange({
       ...this.props.value,
@@ -92,17 +105,4 @@ export default class ChooseSrForEachVdisModal extends Component {
       </div>
     )
   }
-}
-
-ChooseSrForEachVdisModal.propTypes = {
-  mainSrPredicate: PropTypes.func,
-  onChange: PropTypes.func.isRequired,
-  srPredicate: PropTypes.func,
-  value: PropTypes.objectOf(
-    PropTypes.shape({
-      mainSr: PropTypes.object,
-      mapVdisSrs: PropTypes.object,
-    })
-  ).isRequired,
-  vdis: PropTypes.object.isRequired,
 }

@@ -94,6 +94,12 @@ const replicationGraph = (nSrs, redundancy, w, h) => {
 }
 
 export default class Graph extends Component {
+  static propTypes = {
+    layout: PropTypes.string.isRequired,
+    redundancy: PropTypes.number.isRequired,
+    nSrs: PropTypes.number,
+  }
+
   render () {
     const { layout, redundancy, nSrs, width, height } = this.props
 
@@ -117,10 +123,4 @@ export default class Graph extends Component {
       </div>
     )
   }
-}
-
-Graph.propTypes = {
-  layout: PropTypes.string.isRequired,
-  redundancy: PropTypes.number.isRequired,
-  nSrs: PropTypes.number,
 }

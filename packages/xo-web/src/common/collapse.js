@@ -6,6 +6,14 @@ import Component from './base-component'
 import Icon from './icon'
 
 export default class Collapse extends Component {
+  static propTypes = {
+    buttonText: PropTypes.any.isRequired,
+    children: PropTypes.any.isRequired,
+    className: PropTypes.string,
+    defaultOpen: PropTypes.bool,
+    size: PropTypes.string,
+  }
+
   state = {
     isOpened: this.props.defaultOpen,
   }
@@ -35,12 +43,4 @@ export default class Collapse extends Component {
       </div>
     )
   }
-}
-
-Collapse.propTypes = {
-  buttonText: PropTypes.any.isRequired,
-  children: PropTypes.any.isRequired,
-  className: PropTypes.string,
-  defaultOpen: PropTypes.bool,
-  size: PropTypes.string,
 }

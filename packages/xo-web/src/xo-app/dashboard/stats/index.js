@@ -173,6 +173,10 @@ const STATS_TYPE_TO_COMPUTE_FNC = {
   }
 })
 class SelectMetric extends Component {
+  static propTypes = {
+    onChange: PropTypes.func.isRequired,
+  }
+
   constructor (props) {
     super(props)
     this.state = {
@@ -346,13 +350,14 @@ class SelectMetric extends Component {
   }
 }
 
-SelectMetric.propTypes = {
-  onChange: PropTypes.func.isRequired,
-}
-
 // ===================================================================
 
 class MetricViewer extends Component {
+  static propTypes = {
+    metricRenderer: PropTypes.func.isRequired,
+    title: PropTypes.any.isRequired,
+  }
+
   _handleSelectedMetric = (selectedMetric, objects) => {
     this.setState({ selectedMetric, objects })
   }
@@ -385,11 +390,6 @@ class MetricViewer extends Component {
       </div>
     )
   }
-}
-
-MetricViewer.propTypes = {
-  metricRenderer: PropTypes.func.isRequired,
-  title: PropTypes.any.isRequired,
 }
 
 // ===================================================================

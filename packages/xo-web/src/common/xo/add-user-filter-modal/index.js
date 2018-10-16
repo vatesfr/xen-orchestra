@@ -9,6 +9,12 @@ import Component from '../../base-component'
 import { createSelector } from '../../selectors'
 
 export default class SaveNewUserFilterModalBody extends Component {
+  static propTypes = {
+    type: PropTypes.string.isRequired,
+    user: PropTypes.object.isRequired,
+    value: PropTypes.string.isRequired,
+  }
+
   get value () {
     return this.state.name || ''
   }
@@ -52,10 +58,4 @@ export default class SaveNewUserFilterModalBody extends Component {
       </div>
     )
   }
-}
-
-SaveNewUserFilterModalBody.propTypes = {
-  type: PropTypes.string.isRequired,
-  user: PropTypes.object.isRequired,
-  value: PropTypes.string.isRequired,
 }

@@ -34,6 +34,14 @@ const REMOVE_TAG_STYLE = {
 }
 
 export default class Tags extends Component {
+  static propTypes = {
+    labels: PropTypes.arrayOf(PropTypes.string).isRequired,
+    onAdd: PropTypes.func,
+    onChange: PropTypes.func,
+    onClick: PropTypes.func,
+    onDelete: PropTypes.func,
+  }
+
   componentWillMount () {
     this.setState({ editing: false })
   }
@@ -113,14 +121,6 @@ export default class Tags extends Component {
       </span>
     )
   }
-}
-
-Tags.propTypes = {
-  labels: PropTypes.arrayOf(PropTypes.string).isRequired,
-  onAdd: PropTypes.func,
-  onChange: PropTypes.func,
-  onClick: PropTypes.func,
-  onDelete: PropTypes.func,
 }
 
 export const Tag = ({ type, label, onDelete, onClick }) => (

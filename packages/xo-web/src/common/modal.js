@@ -47,6 +47,21 @@ const _addRef = (component, ref) => {
 // -----------------------------------------------------------------------------
 
 class GenericModal extends Component {
+  static propTypes = {
+    buttons: PropTypes.arrayOf(
+      PropTypes.shape({
+        btnStyle: PropTypes.string,
+        icon: PropTypes.string,
+        label: PropTypes.node.isRequired,
+        tooltip: PropTypes.node,
+        value: PropTypes.any,
+      })
+    ).isRequired,
+    children: PropTypes.node.isRequired,
+    icon: PropTypes.string,
+    title: PropTypes.node.isRequired,
+  }
+
   _getBodyValue = () => {
     const { body } = this.refs
     if (body !== undefined) {
@@ -112,21 +127,6 @@ class GenericModal extends Component {
   }
 }
 
-GenericModal.propTypes = {
-  buttons: PropTypes.arrayOf(
-    PropTypes.shape({
-      btnStyle: PropTypes.string,
-      icon: PropTypes.string,
-      label: PropTypes.node.isRequired,
-      tooltip: PropTypes.node,
-      value: PropTypes.any,
-    })
-  ).isRequired,
-  children: PropTypes.node.isRequired,
-  icon: PropTypes.string,
-  title: PropTypes.node.isRequired,
-}
-
 export const chooseAction = ({ body, buttons, icon, title }) => {
   return new Promise((resolve, reject) => {
     modal(
@@ -146,6 +146,15 @@ export const chooseAction = ({ body, buttons, icon, title }) => {
 
 @injectIntl
 class StrongConfirm extends Component {
+  static propTypes = {
+    body: PropTypes.node,
+    strongConfirm: PropTypes.object.isRequired,
+    icon: PropTypes.string,
+    reject: PropTypes.func,
+    resolve: PropTypes.func,
+    title: PropTypes.node.isRequired,
+  }
+
   state = {
     buttons: [{ btnStyle: 'danger', label: _('confirmOk'), disabled: true }],
   }
@@ -208,15 +217,6 @@ class StrongConfirm extends Component {
       </GenericModal>
     )
   }
-}
-
-StrongConfirm.propTypes = {
-  body: PropTypes.node,
-  strongConfirm: PropTypes.object.isRequired,
-  icon: PropTypes.string,
-  reject: PropTypes.func,
-  resolve: PropTypes.func,
-  title: PropTypes.node.isRequired,
 }
 
 // -----------------------------------------------------------------------------

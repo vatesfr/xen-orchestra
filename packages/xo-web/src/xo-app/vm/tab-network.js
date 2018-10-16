@@ -392,6 +392,11 @@ const FILTERS = {
 })
 @injectIntl
 class NewVif extends BaseComponent {
+  static propTypes = {
+    onClose: PropTypes.func,
+    vm: PropTypes.object.isRequired,
+  }
+
   componentWillMount () {
     this._autoFill(this.props)
   }
@@ -487,11 +492,6 @@ class NewVif extends BaseComponent {
       </form>
     )
   }
-}
-
-NewVif.propTypes = {
-  onClose: PropTypes.func,
-  vm: PropTypes.object.isRequired,
 }
 
 @connectStore(() => {

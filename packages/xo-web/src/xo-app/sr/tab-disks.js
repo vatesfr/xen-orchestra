@@ -227,6 +227,11 @@ const FILTERS = {
 
 @injectIntl
 class NewDisk extends Component {
+  static propTypes = {
+    onClose: PropTypes.func,
+    sr: PropTypes.object.isRequired,
+  }
+
   _createDisk = () => {
     const { sr, onClose = noop } = this.props
     const { name, readOnly, size } = this.state
@@ -279,11 +284,6 @@ class NewDisk extends Component {
       </form>
     )
   }
-}
-
-NewDisk.propTypes = {
-  onClose: PropTypes.func,
-  sr: PropTypes.object.isRequired,
 }
 
 @connectStore(() => ({

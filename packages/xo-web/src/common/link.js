@@ -19,6 +19,11 @@ const _IGNORED_TAGNAMES = {
 }
 
 export class BlockLink extends Component {
+  static propTypes = {
+    className: PropTypes.string,
+    tagName: PropTypes.string,
+  }
+
   static contextTypes = {
     router: routerShape,
   }
@@ -64,9 +69,4 @@ export class BlockLink extends Component {
       </Component>
     )
   }
-}
-
-BlockLink.propTypes = {
-  className: PropTypes.string,
-  tagName: PropTypes.string,
 }

@@ -67,6 +67,13 @@ const getUserPreferences = user => user.preferences || {}
 // ===================================================================
 
 class DefaultFilterPicker extends Component {
+  static propTypes = {
+    customFilters: PropTypes.object,
+    defaultFilter: PropTypes.string.isRequired,
+    filters: PropTypes.object.isRequired,
+    type: PropTypes.string.isRequired,
+  }
+
   _computeOptions (props) {
     const { customFilters, filters } = props
 
@@ -136,16 +143,13 @@ class DefaultFilterPicker extends Component {
   }
 }
 
-DefaultFilterPicker.propTypes = {
-  customFilters: PropTypes.object,
-  defaultFilter: PropTypes.string.isRequired,
-  filters: PropTypes.object.isRequired,
-  type: PropTypes.string.isRequired,
-}
-
 // ===================================================================
 
 class UserFilters extends Component {
+  static propTypes = {
+    user: PropTypes.object.isRequired,
+  }
+
   _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
 
   render () {
@@ -222,10 +226,6 @@ class UserFilters extends Component {
       </Container>
     )
   }
-}
-
-UserFilters.propTypes = {
-  user: PropTypes.object.isRequired,
 }
 
 // ===================================================================

@@ -74,6 +74,18 @@ const TOOLTIP_STYLE = {
 // ===================================================================
 
 export default class XoParallelChart extends Component {
+  static propTypes = {
+    dataSet: PropTypes.arrayOf(
+      PropTypes.shape({
+        data: PropTypes.object.isRequired,
+        label: PropTypes.string.isRequired,
+        objectId: PropTypes.string.isRequired,
+      })
+    ).isRequired,
+    labels: PropTypes.object.isRequired,
+    renderers: PropTypes.object,
+  }
+
   _line = d3.line()
 
   _color = d3.scaleOrdinal(d3.schemeCategory10)
@@ -301,16 +313,4 @@ export default class XoParallelChart extends Component {
   render () {
     return <div ref='chart' />
   }
-}
-
-XoParallelChart.propTypes = {
-  dataSet: PropTypes.arrayOf(
-    PropTypes.shape({
-      data: PropTypes.object.isRequired,
-      label: PropTypes.string.isRequired,
-      objectId: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  labels: PropTypes.object.isRequired,
-  renderers: PropTypes.object,
 }

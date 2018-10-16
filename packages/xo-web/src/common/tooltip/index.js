@@ -57,6 +57,14 @@ export class TooltipViewer extends Component {
 // ===================================================================
 
 export default class Tooltip extends Component {
+  static propTypes = {
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
+    className: PropTypes.string,
+    content: PropTypes.node,
+    style: PropTypes.object,
+    tagName: PropTypes.string,
+  }
+
   componentDidMount () {
     this._addListeners()
   }
@@ -150,12 +158,4 @@ export default class Tooltip extends Component {
 
     return children
   }
-}
-
-Tooltip.propTypes = {
-  children: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
-  className: PropTypes.string,
-  content: PropTypes.node,
-  style: PropTypes.object,
-  tagName: PropTypes.string,
 }

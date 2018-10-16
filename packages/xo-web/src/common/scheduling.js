@@ -118,6 +118,11 @@ const getDayName = dayNum => (
 // ===================================================================
 
 export class SchedulePreview extends Component {
+  static propTypes = {
+    cronPattern: PropTypes.string.isRequired,
+    timezone: PropTypes.string,
+  }
+
   componentDidMount () {
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
@@ -157,14 +162,16 @@ export class SchedulePreview extends Component {
   }
 }
 
-SchedulePreview.propTypes = {
-  cronPattern: PropTypes.string.isRequired,
-  timezone: PropTypes.string,
-}
-
 // ===================================================================
 
 class ToggleTd extends Component {
+  static propTypes = {
+    children: PropTypes.any.isRequired,
+    onChange: PropTypes.func.isRequired,
+    tdId: PropTypes.number.isRequired,
+    value: PropTypes.bool.isRequired,
+  }
+
   _onClick = () => {
     const { props } = this
     props.onChange(props.tdId, !props.value)
@@ -184,16 +191,17 @@ class ToggleTd extends Component {
   }
 }
 
-ToggleTd.propTypes = {
-  children: PropTypes.any.isRequired,
-  onChange: PropTypes.func.isRequired,
-  tdId: PropTypes.number.isRequired,
-  value: PropTypes.bool.isRequired,
-}
-
 // ===================================================================
 
 class TableSelect extends Component {
+  static propTypes = {
+    labelId: PropTypes.string.isRequired,
+    options: PropTypes.array.isRequired,
+    optionRenderer: PropTypes.func,
+    onChange: PropTypes.func.isRequired,
+    value: PropTypes.array.isRequired,
+  }
+
   static defaultProps = {
     optionRenderer: value => value,
   }
@@ -254,14 +262,6 @@ class TableSelect extends Component {
   }
 }
 
-TableSelect.propTypes = {
-  labelId: PropTypes.string.isRequired,
-  options: PropTypes.array.isRequired,
-  optionRenderer: PropTypes.func,
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.array.isRequired,
-}
-
 // ===================================================================
 
 // "2,7" => [2,7]   "*/2" => 2   "*" => []
@@ -291,6 +291,15 @@ const valueToCron = value => {
 }
 
 class TimePicker extends Component {
+  static propTypes = {
+    headerAddon: PropTypes.node,
+    optionRenderer: PropTypes.func,
+    onChange: PropTypes.func.isRequired,
+    range: PropTypes.array,
+    labelId: PropTypes.string.isRequired,
+    value: PropTypes.any.isRequired,
+  }
+
   _update = cron => {
     const { tableValue, rangeValue } = this.state
 
@@ -379,15 +388,6 @@ class TimePicker extends Component {
   }
 }
 
-TimePicker.propTypes = {
-  headerAddon: PropTypes.node,
-  optionRenderer: PropTypes.func,
-  onChange: PropTypes.func.isRequired,
-  range: PropTypes.array,
-  labelId: PropTypes.string.isRequired,
-  value: PropTypes.any.isRequired,
-}
-
 const isWeekDayMode = ({ monthDayPattern, weekDayPattern }) => {
   if (monthDayPattern === '*' && weekDayPattern === '*') {
     return
@@ -397,6 +397,11 @@ const isWeekDayMode = ({ monthDayPattern, weekDayPattern }) => {
 }
 
 class DayPicker extends Component {
+  static propTypes = {
+    monthDayPattern: PropTypes.string.isRequired,
+    weekDayPattern: PropTypes.string.isRequired,
+  }
+
   state = {
     weekDayMode: isWeekDayMode(this.props),
   }
@@ -459,14 +464,19 @@ class DayPicker extends Component {
   }
 }
 
-DayPicker.propTypes = {
-  monthDayPattern: PropTypes.string.isRequired,
-  weekDayPattern: PropTypes.string.isRequired,
-}
-
 // ===================================================================
 
 export default class Scheduler extends Component {
+  static propTypes = {
+    cronPattern: PropTypes.string,
+    onChange: PropTypes.func,
+    timezone: PropTypes.string,
+    value: PropTypes.shape({
+      cronPattern: PropTypes.string.isRequired,
+      timezone: PropTypes.string,
+    }),
+  }
+
   constructor (props) {
     super(props)
 
@@ -563,14 +573,4 @@ export default class Scheduler extends Component {
       </div>
     )
   }
-}
-
-Scheduler.propTypes = {
-  cronPattern: PropTypes.string,
-  onChange: PropTypes.func,
-  timezone: PropTypes.string,
-  value: PropTypes.shape({
-    cronPattern: PropTypes.string.isRequired,
-    timezone: PropTypes.string,
-  }),
 }

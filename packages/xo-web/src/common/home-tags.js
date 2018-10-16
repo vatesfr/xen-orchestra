@@ -6,6 +6,14 @@ import Component from './base-component'
 import Tags from './tags'
 
 export default class HomeTags extends Component {
+  static propTypes = {
+    labels: PropTypes.arrayOf(PropTypes.string).isRequired,
+    onAdd: PropTypes.func,
+    onChange: PropTypes.func,
+    onDelete: PropTypes.func,
+    type: PropTypes.string,
+  }
+
   static contextTypes = {
     router: PropTypes.object,
   }
@@ -30,12 +38,4 @@ export default class HomeTags extends Component {
       />
     )
   }
-}
-
-HomeTags.propTypes = {
-  labels: PropTypes.arrayOf(PropTypes.string).isRequired,
-  onAdd: PropTypes.func,
-  onChange: PropTypes.func,
-  onDelete: PropTypes.func,
-  type: PropTypes.string,
 }

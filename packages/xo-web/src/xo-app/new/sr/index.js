@@ -47,6 +47,11 @@ import {
 // ===================================================================
 
 class SelectScsiId extends Component {
+  static propTypes = {
+    onChange: PropTypes.func.isRequired,
+    options: PropTypes.array.isRequired,
+  }
+
   _getOptions = createSelector(
     () => this.props.options,
     options =>
@@ -88,11 +93,6 @@ class SelectScsiId extends Component {
       />
     )
   }
-}
-
-SelectScsiId.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  options: PropTypes.array.isRequired,
 }
 
 class SelectIqn extends Component {
@@ -140,6 +140,11 @@ class SelectIqn extends Component {
 }
 
 class SelectLun extends Component {
+  static propTypes = {
+    onChange: PropTypes.func.isRequired,
+    options: PropTypes.array.isRequired,
+  }
+
   _getOptions = createSelector(
     () => this.props.options,
     options =>
@@ -182,11 +187,6 @@ class SelectLun extends Component {
       />
     )
   }
-}
-
-SelectLun.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  options: PropTypes.array.isRequired,
 }
 
 // ===================================================================

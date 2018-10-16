@@ -10,6 +10,16 @@ import Component from './base-component'
   defaultValue: '',
 })
 export default class Combobox extends Component {
+  static propTypes = {
+    disabled: PropTypes.bool,
+    options: PropTypes.oneOfType([
+      PropTypes.arrayOf(PropTypes.string),
+      PropTypes.objectOf(PropTypes.string),
+    ]),
+    onChange: PropTypes.func.isRequired,
+    value: PropTypes.string.isRequired,
+  }
+
   _handleChange = event => {
     this.props.onChange(event.target.value)
   }
@@ -49,14 +59,4 @@ export default class Combobox extends Component {
       </div>
     )
   }
-}
-
-Combobox.propTypes = {
-  disabled: PropTypes.bool,
-  options: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.string),
-    PropTypes.objectOf(PropTypes.string),
-  ]),
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.string.isRequired,
 }

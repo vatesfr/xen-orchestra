@@ -13,6 +13,13 @@ const SERVER_TIMEZONE_TAG = 'server'
 const LOCAL_TIMEZONE = moment.tz.guess()
 
 export default class TimezonePicker extends Component {
+  static propTypes = {
+    defaultValue: PropTypes.string,
+    onChange: PropTypes.func.isRequired,
+    required: PropTypes.bool,
+    value: PropTypes.string,
+  }
+
   componentDidMount () {
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
@@ -90,11 +97,4 @@ export default class TimezonePicker extends Component {
       </div>
     )
   }
-}
-
-TimezonePicker.propTypes = {
-  defaultValue: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  required: PropTypes.bool,
-  value: PropTypes.string,
 }

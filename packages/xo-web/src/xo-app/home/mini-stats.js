@@ -19,6 +19,10 @@ const MINI_STATS_PROPS = {
 }
 
 export default class MiniStats extends Component {
+  static propTypes = {
+    fetchStats: PropTypes.func.isRequired,
+  }
+
   _fetch = () => {
     this.props.fetch().then(stats => {
       this.setState({ stats })
@@ -59,8 +63,4 @@ export default class MiniStats extends Component {
       </Row>
     )
   }
-}
-
-MiniStats.propTypes = {
-  fetchStats: PropTypes.func.isRequired,
 }

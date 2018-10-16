@@ -22,6 +22,10 @@ export Select from './select'
 // ===================================================================
 
 export class Password extends Component {
+  static propTypes = {
+    enableGenerator: PropTypes.bool,
+  }
+
   get value () {
     return this.refs.field.value
   }
@@ -81,13 +85,17 @@ export class Password extends Component {
   }
 }
 
-Password.propTypes = {
-  enableGenerator: PropTypes.bool,
-}
-
 // ===================================================================
 
 export class Range extends Component {
+  static propTypes = {
+    max: PropTypes.number.isRequired,
+    min: PropTypes.number.isRequired,
+    onChange: PropTypes.func,
+    step: PropTypes.number,
+    value: PropTypes.number,
+  }
+
   componentDidMount () {
     const { min, onChange, value } = this.props
 
@@ -124,20 +132,25 @@ export class Range extends Component {
   }
 }
 
-Range.propTypes = {
-  max: PropTypes.number.isRequired,
-  min: PropTypes.number.isRequired,
-  onChange: PropTypes.func,
-  step: PropTypes.number,
-  value: PropTypes.number,
-}
-
 export Toggle from './toggle'
 
 const UNITS = ['kiB', 'MiB', 'GiB']
 const DEFAULT_UNIT = 'GiB'
 
 export class SizeInput extends BaseComponent {
+  static propTypes = {
+    autoFocus: PropTypes.bool,
+    className: PropTypes.string,
+    defaultUnit: PropTypes.oneOf(UNITS),
+    defaultValue: PropTypes.number,
+    onChange: PropTypes.func,
+    placeholder: PropTypes.string,
+    readOnly: PropTypes.bool,
+    required: PropTypes.bool,
+    style: PropTypes.object,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
+  }
+
   constructor (props) {
     super(props)
 
@@ -293,17 +306,4 @@ export class SizeInput extends BaseComponent {
       </span>
     )
   }
-}
-
-SizeInput.propTypes = {
-  autoFocus: PropTypes.bool,
-  className: PropTypes.string,
-  defaultUnit: PropTypes.oneOf(UNITS),
-  defaultValue: PropTypes.number,
-  onChange: PropTypes.func,
-  placeholder: PropTypes.string,
-  readOnly: PropTypes.bool,
-  required: PropTypes.bool,
-  style: PropTypes.object,
-  value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
 }

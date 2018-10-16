@@ -221,6 +221,11 @@ const parseBootOrder = bootOrder => {
   isAdmin,
 })
 class NewDisk extends Component {
+  static propTypes = {
+    onClose: PropTypes.func,
+    vm: PropTypes.object.isRequired,
+  }
+
   _createDisk = () => {
     const { vm, onClose = noop } = this.props
     const { bootable, name, readOnly, size, sr } = this.state
@@ -351,12 +356,13 @@ class NewDisk extends Component {
   }
 }
 
-NewDisk.propTypes = {
-  onClose: PropTypes.func,
-  vm: PropTypes.object.isRequired,
-}
-
 class AttachDisk extends Component {
+  static propTypes = {
+    onClose: PropTypes.func,
+    vbds: PropTypes.array.isRequired,
+    vm: PropTypes.object.isRequired,
+  }
+
   _getVdiPredicate = createSelector(
     () => {
       const { vm } = this.props
@@ -434,12 +440,6 @@ class AttachDisk extends Component {
   }
 }
 
-AttachDisk.propTypes = {
-  onClose: PropTypes.func,
-  vbds: PropTypes.array.isRequired,
-  vm: PropTypes.object.isRequired,
-}
-
 const orderItemSource = {
   beginDrag: props => ({
     id: props.id,
@@ -469,6 +469,16 @@ const orderItemTarget = {
   isDragging: monitor.isDragging(),
 }))
 class OrderItem extends Component {
+  static propTypes = {
+    connectDragSource: PropTypes.func.isRequired,
+    connectDropTarget: PropTypes.func.isRequired,
+    index: PropTypes.number.isRequired,
+    isDragging: PropTypes.bool.isRequired,
+    id: PropTypes.any.isRequired,
+    item: PropTypes.object.isRequired,
+    move: PropTypes.func.isRequired,
+  }
+
   _toggle = checked => {
     const { item } = this.props
     item.active = checked
@@ -490,18 +500,13 @@ class OrderItem extends Component {
   }
 }
 
-OrderItem.propTypes = {
-  connectDragSource: PropTypes.func.isRequired,
-  connectDropTarget: PropTypes.func.isRequired,
-  index: PropTypes.number.isRequired,
-  isDragging: PropTypes.bool.isRequired,
-  id: PropTypes.any.isRequired,
-  item: PropTypes.object.isRequired,
-  move: PropTypes.func.isRequired,
-}
-
 @DragDropContext(HTML5Backend)
 class BootOrder extends Component {
+  static propTypes = {
+    onClose: PropTypes.func,
+    vm: PropTypes.object.isRequired,
+  }
+
   constructor (props) {
     super(props)
     const { vm } = props
@@ -564,11 +569,6 @@ class BootOrder extends Component {
       </form>
     )
   }
-}
-
-BootOrder.propTypes = {
-  onClose: PropTypes.func,
-  vm: PropTypes.object.isRequired,
 }
 
 class MigrateVdiModalBody extends Component {

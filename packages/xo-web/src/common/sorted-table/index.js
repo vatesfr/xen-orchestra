@@ -47,6 +47,12 @@ import styles from './index.css'
 // ===================================================================
 
 class TableFilter extends Component {
+  static propTypes = {
+    filters: PropTypes.object,
+    onChange: PropTypes.func.isRequired,
+    value: PropTypes.string.isRequired,
+  }
+
   _cleanFilter = () => this._setFilter('')
 
   _setFilter = filterValue => {
@@ -114,15 +120,16 @@ class TableFilter extends Component {
   }
 }
 
-TableFilter.propTypes = {
-  filters: PropTypes.object,
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.string.isRequired,
-}
-
 // ===================================================================
 
 class ColumnHead extends Component {
+  static propTypes = {
+    columnId: PropTypes.number.isRequired,
+    name: PropTypes.node,
+    sort: PropTypes.func,
+    sortIcon: PropTypes.string,
+  }
+
   _sort = () => {
     const { props } = this
     props.sort(props.columnId)
@@ -155,16 +162,13 @@ class ColumnHead extends Component {
   }
 }
 
-ColumnHead.propTypes = {
-  columnId: PropTypes.number.isRequired,
-  name: PropTypes.node,
-  sort: PropTypes.func,
-  sortIcon: PropTypes.string,
-}
-
 // ===================================================================
 
 class Checkbox extends Component {
+  static propTypes = {
+    indeterminate: PropTypes.bool.isRequired,
+  }
+
   componentDidUpdate () {
     const {
       props: { indeterminate },
@@ -186,10 +190,6 @@ class Checkbox extends Component {
     props.type = 'checkbox'
     return <input {...props} />
   }
-}
-
-Checkbox.propTypes = {
-  indeterminate: PropTypes.bool.isRequired,
 }
 
 // ===================================================================
@@ -286,6 +286,56 @@ class GroupedAction extends Component {
 const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
 
 export default class SortedTable extends Component {
+  static propTypes = {
+    defaultColumn: PropTypes.number,
+    defaultFilter: PropTypes.string,
+    collection: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
+      .isRequired,
+    columns: PropTypes.arrayOf(
+      PropTypes.shape({
+        component: PropTypes.func,
+        default: PropTypes.bool,
+        name: PropTypes.node,
+        itemRenderer: PropTypes.func,
+        sortCriteria: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+        sortOrder: PropTypes.string,
+        textAlign: PropTypes.string,
+      })
+    ).isRequired,
+    filterContainer: PropTypes.func,
+    filters: PropTypes.object,
+    actions: PropTypes.arrayOf(
+      PropTypes.shape({
+        // regroup individual actions and grouped actions
+        disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
+        handler: PropTypes.func.isRequired,
+        icon: PropTypes.string.isRequired,
+        individualDisabled: PropTypes.oneOfType([
+          PropTypes.bool,
+          PropTypes.func,
+        ]),
+        individualHandler: PropTypes.func,
+        individualLabel: PropTypes.node,
+        label: PropTypes.node.isRequired,
+        level: PropTypes.oneOf(['primary', 'warning', 'danger']),
+      })
+    ),
+    groupedActions: actionsShape,
+    individualActions: actionsShape,
+    itemsPerPage: PropTypes.number,
+    paginationContainer: PropTypes.func,
+    rowAction: PropTypes.func,
+    rowLink: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    rowTransform: PropTypes.func,
+    // DOM node selector like body or .my-class
+    // The shortcuts will be enabled when the node is focused
+    shortcutsTarget: PropTypes.string,
+    stateUrlParam: PropTypes.string,
+
+    // @deprecated, use `data-${key}` instead
+    userData: PropTypes.any,
+  }
+
   static defaultProps = {
     itemsPerPage: 10,
   }
@@ -935,51 +985,4 @@ export default class SortedTable extends Component {
       </div>
     )
   }
-}
-
-SortedTable.propTypes = {
-  defaultColumn: PropTypes.number,
-  defaultFilter: PropTypes.string,
-  collection: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
-    .isRequired,
-  columns: PropTypes.arrayOf(
-    PropTypes.shape({
-      component: PropTypes.func,
-      default: PropTypes.bool,
-      name: PropTypes.node,
-      itemRenderer: PropTypes.func,
-      sortCriteria: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
-      sortOrder: PropTypes.string,
-      textAlign: PropTypes.string,
-    })
-  ).isRequired,
-  filterContainer: PropTypes.func,
-  filters: PropTypes.object,
-  actions: PropTypes.arrayOf(
-    PropTypes.shape({
-      // regroup individual actions and grouped actions
-      disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
-      handler: PropTypes.func.isRequired,
-      icon: PropTypes.string.isRequired,
-      individualDisabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
-      individualHandler: PropTypes.func,
-      individualLabel: PropTypes.node,
-      label: PropTypes.node.isRequired,
-      level: PropTypes.oneOf(['primary', 'warning', 'danger']),
-    })
-  ),
-  groupedActions: actionsShape,
-  individualActions: actionsShape,
-  itemsPerPage: PropTypes.number,
-  paginationContainer: PropTypes.func,
-  rowAction: PropTypes.func,
-  rowLink: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
-  rowTransform: PropTypes.func,
-  // DOM node selector like body or .my-class
-  // The shortcuts will be enabled when the node is focused
-  shortcutsTarget: PropTypes.string,
-  stateUrlParam: PropTypes.string,
-
-  // @deprecated, use `data-${key}` instead
-  userData: PropTypes.any,
 }

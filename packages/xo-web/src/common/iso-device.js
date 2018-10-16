@@ -41,6 +41,10 @@ import {
   }
 })
 export default class IsoDevice extends Component {
+  static propTypes = {
+    vm: PropTypes.object.isRequired,
+  }
+
   _getPredicate = createSelector(
     () => this.props.vm.$pool,
     () => this.props.vm.$container,
@@ -117,8 +121,4 @@ export default class IsoDevice extends Component {
       </div>
     )
   }
-}
-
-IsoDevice.propTypes = {
-  vm: PropTypes.object.isRequired,
 }

@@ -28,6 +28,11 @@ import {
   users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
 })
 class UserDisplay extends Component {
+  static propTypes = {
+    id: PropTypes.string.isRequired, // user id
+    group: PropTypes.object.isRequired, // group
+  }
+
   _removeUser = () => {
     const { id, group } = this.props
     return removeUserFromGroup(id, group)
@@ -55,11 +60,6 @@ class UserDisplay extends Component {
       </span>
     )
   }
-}
-
-UserDisplay.propTypes = {
-  id: PropTypes.string.isRequired, // user id
-  group: PropTypes.object.isRequired, // group
 }
 
 class GroupMembersDisplay extends Component {

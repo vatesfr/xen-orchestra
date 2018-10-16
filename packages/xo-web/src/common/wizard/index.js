@@ -26,6 +26,11 @@ const Wizard = ({ children }) => {
 export { Wizard as default }
 
 export class Section extends Component {
+  static propTypes = {
+    icon: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+  }
+
   componentWillMount () {
     this.setState({ isActive: false })
   }
@@ -69,9 +74,4 @@ export class Section extends Component {
       </li>
     )
   }
-}
-
-Section.propTypes = {
-  icon: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
 }

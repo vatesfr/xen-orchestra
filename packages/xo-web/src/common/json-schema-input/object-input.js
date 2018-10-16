@@ -13,6 +13,15 @@ import { descriptionRender, forceDisplayOptionalAttr } from './helpers'
 
 @uncontrollableInput()
 export default class ObjectInput extends Component {
+  static propTypes = {
+    depth: PropTypes.number,
+    disabled: PropTypes.bool,
+    label: PropTypes.any.isRequired,
+    required: PropTypes.bool,
+    schema: PropTypes.object.isRequired,
+    uiSchema: PropTypes.object,
+  }
+
   state = {
     use: this.props.required || forceDisplayOptionalAttr(this.props),
   }
@@ -87,13 +96,4 @@ export default class ObjectInput extends Component {
       </div>
     )
   }
-}
-
-ObjectInput.propTypes = {
-  depth: PropTypes.number,
-  disabled: PropTypes.bool,
-  label: PropTypes.any.isRequired,
-  required: PropTypes.bool,
-  schema: PropTypes.object.isRequired,
-  uiSchema: PropTypes.object,
 }

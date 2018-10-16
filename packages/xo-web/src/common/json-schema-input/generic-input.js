@@ -30,6 +30,15 @@ const InputByType = {
 
 @uncontrollableInput()
 export default class GenericInput extends Component {
+  static propTypes = {
+    depth: PropTypes.number,
+    disabled: PropTypes.bool,
+    label: PropTypes.any.isRequired,
+    required: PropTypes.bool,
+    schema: PropTypes.object.isRequired,
+    uiSchema: PropTypes.object,
+  }
+
   _onChange = event => {
     const { name, onChange } = this.props
     onChange && onChange(getEventValue(event), name)
@@ -60,13 +69,4 @@ export default class GenericInput extends Component {
 
     return <Input {...props} {...uiSchema.config} />
   }
-}
-
-GenericInput.propTypes = {
-  depth: PropTypes.number,
-  disabled: PropTypes.bool,
-  label: PropTypes.any.isRequired,
-  required: PropTypes.bool,
-  schema: PropTypes.object.isRequired,
-  uiSchema: PropTypes.object,
 }

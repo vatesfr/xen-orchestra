@@ -12,6 +12,10 @@ import { PrimitiveInputWrapper } from './helpers'
 
 @uncontrollableInput()
 export default class StringInput extends Component {
+  static propTypes = {
+    password: PropTypes.bool,
+  }
+
   // the value of this input  is undefined not '' when empty to make
   // it homogenous with when the user has never touched this input
   _onChange = event => {
@@ -44,8 +48,4 @@ export default class StringInput extends Component {
       </PrimitiveInputWrapper>
     )
   }
-}
-
-StringInput.propTypes = {
-  password: PropTypes.bool,
 }
