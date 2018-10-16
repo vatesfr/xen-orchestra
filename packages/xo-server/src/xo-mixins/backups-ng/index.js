@@ -745,7 +745,7 @@ export default class BackupNg {
           taskId,
           logger
         )::pFinally(() => {
-          delete this._runningRestores[taskId]
+          this._runningRestores.splice(this._runningRestores.indexOf(taskId), 1)
         })
       }
     )()
