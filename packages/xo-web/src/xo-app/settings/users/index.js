@@ -72,6 +72,8 @@ const USER_ACTIONS = [
     handler: deleteUsers,
     icon: 'delete',
     individualHandler: deleteUser,
+    individualLabel: _('deleteUser'),
+    label: _('deleteSelectedUsers'),
     level: 'danger',
   },
 ]
