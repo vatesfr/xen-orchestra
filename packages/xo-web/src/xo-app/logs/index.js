@@ -4,7 +4,7 @@ import BaseComponent from 'base-component'
 import classnames from 'classnames'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import renderXoItem from 'render-xo-item'
 import Select from 'form/select'
@@ -427,10 +427,7 @@ const LOG_FILTERS = {
   jobCallSkipped: '!hasErrors? callSkipped?',
 }
 
-export default [
-  propTypes({
-    jobKeys: propTypes.array,
-  }),
+const LogsCard = [
   addSubscriptions(({ jobKeys }) => ({
     logs: cb =>
       subscribeJobsLogs(rawLogs => {
@@ -531,3 +528,9 @@ export default [
     </Card>
   ),
 ].reduceRight((value, decorator) => decorator(value))
+
+LogsCard.propTypes = {
+  jobKeys: PropTypes.array,
+}
+
+export { LogsCard as default }

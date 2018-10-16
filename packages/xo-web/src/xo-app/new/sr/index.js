@@ -9,7 +9,7 @@ import info, { error } from 'notification'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import Page from '../../page'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import store from 'store'
 import trim from 'lodash/trim'
@@ -46,10 +46,6 @@ import {
 
 // ===================================================================
 
-@propTypes({
-  onChange: propTypes.func.isRequired,
-  options: propTypes.array.isRequired,
-})
 class SelectScsiId extends Component {
   _getOptions = createSelector(
     () => this.props.options,
@@ -92,6 +88,11 @@ class SelectScsiId extends Component {
       />
     )
   }
+}
+
+SelectScsiId.propTypes = {
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.array.isRequired,
 }
 
 class SelectIqn extends Component {
@@ -138,10 +139,6 @@ class SelectIqn extends Component {
   }
 }
 
-@propTypes({
-  onChange: propTypes.func.isRequired,
-  options: propTypes.array.isRequired,
-})
 class SelectLun extends Component {
   _getOptions = createSelector(
     () => this.props.options,
@@ -185,6 +182,11 @@ class SelectLun extends Component {
       />
     )
   }
+}
+
+SelectLun.propTypes = {
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.array.isRequired,
 }
 
 // ===================================================================

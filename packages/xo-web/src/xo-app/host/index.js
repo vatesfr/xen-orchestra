@@ -5,6 +5,7 @@ import Icon from 'icon'
 import Link from 'link'
 import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
+import PropTypes from 'prop-types'
 import React, { cloneElement, Component } from 'react'
 import Tooltip from 'tooltip'
 import { Text } from 'editable'
@@ -130,7 +131,7 @@ const isRunning = host => host && host.power_state === 'Running'
 })
 export default class Host extends Component {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   loop (host = this.props.host) {

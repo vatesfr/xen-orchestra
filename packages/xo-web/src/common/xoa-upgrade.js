@@ -1,22 +1,16 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 
 import _ from './intl'
 import Icon from './icon'
 import Link from './link'
-import propTypes from './prop-types-decorator'
 import { Card, CardHeader, CardBlock } from './card'
 import { connectStore, getXoaPlan } from './utils'
 import { isAdmin } from 'selectors'
 
-const Upgrade = propTypes({
-  available: propTypes.number,
-  place: propTypes.string.isRequired,
-  required: propTypes.number,
+const Upgrade = connectStore({
+  isAdmin,
 })(
-  connectStore({
-    isAdmin,
-  })
-)(
   ({ available, children, isAdmin, place, required = available }) =>
     process.env.XOA_PLAN < required ? (
       <Card>
@@ -48,5 +42,11 @@ const Upgrade = propTypes({
       children
     )
 )
+
+Upgrade.propTypes = {
+  available: PropTypes.number,
+  place: PropTypes.string.isRequired,
+  required: PropTypes.number,
+}
 
 export { Upgrade as default }

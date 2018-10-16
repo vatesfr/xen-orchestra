@@ -5,7 +5,7 @@ import includes from 'lodash/includes'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import size from 'lodash/size'
 import SortedTable from 'sorted-table'
@@ -26,10 +26,6 @@ import {
 
 @addSubscriptions({
   users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
-})
-@propTypes({
-  id: propTypes.string.isRequired, // user id
-  group: propTypes.object.isRequired, // group
 })
 class UserDisplay extends Component {
   _removeUser = () => {
@@ -59,6 +55,11 @@ class UserDisplay extends Component {
       </span>
     )
   }
+}
+
+UserDisplay.propTypes = {
+  id: PropTypes.string.isRequired, // user id
+  group: PropTypes.object.isRequired, // group
 }
 
 class GroupMembersDisplay extends Component {

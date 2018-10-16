@@ -1,15 +1,10 @@
 import Component from 'base-component'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDropzone from 'react-dropzone'
 
 import styles from './index.css'
 
-@propTypes({
-  onDrop: propTypes.func,
-  message: propTypes.node,
-  multiple: propTypes.bool,
-})
 export default class Dropzone extends Component {
   render () {
     const { onDrop, message, multiple } = this.props
@@ -25,4 +20,10 @@ export default class Dropzone extends Component {
       </ReactDropzone>
     )
   }
+}
+
+Dropzone.propTypes = {
+  onDrop: PropTypes.func,
+  message: PropTypes.node,
+  multiple: PropTypes.bool,
 }

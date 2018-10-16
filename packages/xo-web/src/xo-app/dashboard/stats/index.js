@@ -5,7 +5,7 @@ import Component from 'base-component'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import map from 'lodash/map'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import sortBy from 'lodash/sortBy'
@@ -159,9 +159,6 @@ const STATS_TYPE_TO_COMPUTE_FNC = {
   memoryUsed: computeMemoryUsedMetric,
 }
 
-@propTypes({
-  onChange: propTypes.func.isRequired,
-})
 @connectStore(() => {
   const getRunningHosts = createGetObjectsOfType('host')
     .filter([runningObjectsPredicate])
@@ -349,12 +346,12 @@ class SelectMetric extends Component {
   }
 }
 
+SelectMetric.propTypes = {
+  onChange: PropTypes.func.isRequired,
+}
+
 // ===================================================================
 
-@propTypes({
-  metricRenderer: propTypes.func.isRequired,
-  title: propTypes.any.isRequired,
-})
 class MetricViewer extends Component {
   _handleSelectedMetric = (selectedMetric, objects) => {
     this.setState({ selectedMetric, objects })
@@ -388,6 +385,11 @@ class MetricViewer extends Component {
       </div>
     )
   }
+}
+
+MetricViewer.propTypes = {
+  metricRenderer: PropTypes.func.isRequired,
+  title: PropTypes.any.isRequired,
 }
 
 // ===================================================================

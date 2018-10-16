@@ -1,7 +1,7 @@
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 
 import getEventValue from '../get-event-value'
-import propTypes from '../prop-types-decorator'
 import uncontrollableInput from 'uncontrollable-input'
 import { EMPTY_OBJECT } from '../utils'
 
@@ -28,14 +28,6 @@ const InputByType = {
 
 // ===================================================================
 
-@propTypes({
-  depth: propTypes.number,
-  disabled: propTypes.bool,
-  label: propTypes.any.isRequired,
-  required: propTypes.bool,
-  schema: propTypes.object.isRequired,
-  uiSchema: propTypes.object,
-})
 @uncontrollableInput()
 export default class GenericInput extends Component {
   _onChange = event => {
@@ -68,4 +60,13 @@ export default class GenericInput extends Component {
 
     return <Input {...props} {...uiSchema.config} />
   }
+}
+
+GenericInput.propTypes = {
+  depth: PropTypes.number,
+  disabled: PropTypes.bool,
+  label: PropTypes.any.isRequired,
+  required: PropTypes.bool,
+  schema: PropTypes.object.isRequired,
+  uiSchema: PropTypes.object,
 }

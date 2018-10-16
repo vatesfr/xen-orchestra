@@ -6,6 +6,7 @@ import Icon from 'icon'
 import Link from 'link'
 import LogList from '../../logs'
 import NoObjects from 'no-objects'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
@@ -155,7 +156,7 @@ const JOB_COLUMNS = [
 })
 export default class Overview extends Component {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   _getSchedules = createSelector(

@@ -1,23 +1,17 @@
 import ActionButton from 'action-button'
 import map from 'lodash/map'
 import moment from 'moment-timezone'
+import PropTypes from 'prop-types'
 import React from 'react'
 
 import _ from './intl'
 import Component from './base-component'
-import propTypes from './prop-types-decorator'
 import { getXoServerTimezone } from './xo'
 import { Select } from './form'
 
 const SERVER_TIMEZONE_TAG = 'server'
 const LOCAL_TIMEZONE = moment.tz.guess()
 
-@propTypes({
-  defaultValue: propTypes.string,
-  onChange: propTypes.func.isRequired,
-  required: propTypes.bool,
-  value: propTypes.string,
-})
 export default class TimezonePicker extends Component {
   componentDidMount () {
     getXoServerTimezone.then(serverTimezone => {
@@ -96,4 +90,11 @@ export default class TimezonePicker extends Component {
       </div>
     )
   }
+}
+
+TimezonePicker.propTypes = {
+  defaultValue: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  required: PropTypes.bool,
+  value: PropTypes.string,
 }

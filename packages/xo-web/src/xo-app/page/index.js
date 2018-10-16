@@ -1,5 +1,6 @@
 import { messages } from 'intl'
 import DocumentTitle from 'react-document-title'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { injectIntl } from 'react-intl'
 
@@ -34,11 +35,11 @@ const Page = ({
 }
 
 Page.propTypes = {
-  children: React.PropTypes.node,
-  collapsedHeader: React.PropTypes.bool,
-  formatTitle: React.PropTypes.bool,
-  header: React.PropTypes.node,
-  title: React.PropTypes.string,
+  children: PropTypes.node,
+  collapsedHeader: PropTypes.bool,
+  formatTitle: PropTypes.bool,
+  header: PropTypes.node,
+  title: PropTypes.string,
 }
 
 export default injectIntl(Page)

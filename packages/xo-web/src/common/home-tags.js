@@ -1,20 +1,13 @@
 import * as CM from 'complex-matcher'
+import PropTypes from 'prop-types'
 import React from 'react'
 
 import Component from './base-component'
-import propTypes from './prop-types-decorator'
 import Tags from './tags'
 
-@propTypes({
-  labels: propTypes.arrayOf(React.PropTypes.string).isRequired,
-  onAdd: propTypes.func,
-  onChange: propTypes.func,
-  onDelete: propTypes.func,
-  type: propTypes.string,
-})
 export default class HomeTags extends Component {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   _onClick = label => {
@@ -37,4 +30,12 @@ export default class HomeTags extends Component {
       />
     )
   }
+}
+
+HomeTags.propTypes = {
+  labels: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onAdd: PropTypes.func,
+  onChange: PropTypes.func,
+  onDelete: PropTypes.func,
+  type: PropTypes.string,
 }

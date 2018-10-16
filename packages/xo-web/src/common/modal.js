@@ -1,6 +1,7 @@
 import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
+import PropTypes from 'prop-types'
 import React, { Component, cloneElement } from 'react'
 import { createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
@@ -10,7 +11,6 @@ import _, { messages } from './intl'
 import BaseComponent from './base-component'
 import Button from './button'
 import Icon from './icon'
-import propTypes from './prop-types-decorator'
 import Tooltip from './tooltip'
 import { generateRandomId } from './utils'
 import {
@@ -46,20 +46,6 @@ const _addRef = (component, ref) => {
 
 // -----------------------------------------------------------------------------
 
-@propTypes({
-  buttons: propTypes.arrayOf(
-    propTypes.shape({
-      btnStyle: propTypes.string,
-      icon: propTypes.string,
-      label: propTypes.node.isRequired,
-      tooltip: propTypes.node,
-      value: propTypes.any,
-    })
-  ).isRequired,
-  children: propTypes.node.isRequired,
-  icon: propTypes.string,
-  title: propTypes.node.isRequired,
-})
 class GenericModal extends Component {
   _getBodyValue = () => {
     const { body } = this.refs
@@ -126,6 +112,21 @@ class GenericModal extends Component {
   }
 }
 
+GenericModal.propTypes = {
+  buttons: PropTypes.arrayOf(
+    PropTypes.shape({
+      btnStyle: PropTypes.string,
+      icon: PropTypes.string,
+      label: PropTypes.node.isRequired,
+      tooltip: PropTypes.node,
+      value: PropTypes.any,
+    })
+  ).isRequired,
+  children: PropTypes.node.isRequired,
+  icon: PropTypes.string,
+  title: PropTypes.node.isRequired,
+}
+
 export const chooseAction = ({ body, buttons, icon, title }) => {
   return new Promise((resolve, reject) => {
     modal(
@@ -143,14 +144,6 @@ export const chooseAction = ({ body, buttons, icon, title }) => {
   })
 }
 
-@propTypes({
-  body: propTypes.node,
-  strongConfirm: propTypes.object.isRequired,
-  icon: propTypes.string,
-  reject: propTypes.func,
-  resolve: propTypes.func,
-  title: propTypes.node.isRequired,
-})
 @injectIntl
 class StrongConfirm extends Component {
   state = {
@@ -215,6 +208,15 @@ class StrongConfirm extends Component {
       </GenericModal>
     )
   }
+}
+
+StrongConfirm.propTypes = {
+  body: PropTypes.node,
+  strongConfirm: PropTypes.object.isRequired,
+  icon: PropTypes.string,
+  reject: PropTypes.func,
+  resolve: PropTypes.func,
+  title: PropTypes.node.isRequired,
 }
 
 // -----------------------------------------------------------------------------

@@ -1,21 +1,12 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import classNames from 'classnames'
 import uncontrollableInput from 'uncontrollable-input'
 
 import Component from '../base-component'
 import Icon from '../icon'
-import propTypes from '../prop-types-decorator'
 
 @uncontrollableInput()
-@propTypes({
-  className: propTypes.string,
-  onChange: propTypes.func.isRequired,
-  icon: propTypes.string,
-  iconOn: propTypes.string,
-  iconOff: propTypes.string,
-  iconSize: propTypes.number,
-  value: propTypes.bool.isRequired,
-})
 export default class Toggle extends Component {
   static defaultProps = {
     iconOn: 'toggle-on',
@@ -43,4 +34,14 @@ export default class Toggle extends Component {
       />
     )
   }
+}
+
+Toggle.propTypes = {
+  className: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  icon: PropTypes.string,
+  iconOn: PropTypes.string,
+  iconOff: PropTypes.string,
+  iconSize: PropTypes.number,
+  value: PropTypes.bool.isRequired,
 }

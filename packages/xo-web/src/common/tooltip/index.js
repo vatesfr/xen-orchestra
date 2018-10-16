@@ -1,11 +1,11 @@
 import classNames from 'classnames'
 import isString from 'lodash/isString'
+import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
 
 import Component from '../base-component'
 import getPosition from './get-position'
-import propTypes from '../prop-types-decorator'
 
 import styles from './index.css'
 
@@ -56,13 +56,6 @@ export class TooltipViewer extends Component {
 
 // ===================================================================
 
-@propTypes({
-  children: propTypes.oneOfType([propTypes.element, propTypes.string]),
-  className: propTypes.string,
-  content: propTypes.node,
-  style: propTypes.object,
-  tagName: propTypes.string,
-})
 export default class Tooltip extends Component {
   componentDidMount () {
     this._addListeners()
@@ -157,4 +150,12 @@ export default class Tooltip extends Component {
 
     return children
   }
+}
+
+Tooltip.propTypes = {
+  children: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
+  className: PropTypes.string,
+  content: PropTypes.node,
+  style: PropTypes.object,
+  tagName: PropTypes.string,
 }

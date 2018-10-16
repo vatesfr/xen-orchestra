@@ -1,9 +1,9 @@
 import _ from 'intl'
+import PropTypes from 'prop-types'
 import React from 'react'
 
 import ActionButton from './action-button'
 import ActionRowButton from './action-row-button'
-import propTypes from './prop-types-decorator'
 
 export const CAN_REPORT_BUG = process.env.XOA_PLAN > 1
 
@@ -41,11 +41,11 @@ const ReportBugButton = ({
   )
 }
 
-propTypes(ReportBugButton)({
-  formatMessage: propTypes.func,
-  message: propTypes.string.isRequired,
-  rowButton: propTypes.bool,
-  title: propTypes.string.isRequired,
-})
+ReportBugButton.propTypes = {
+  formatMessage: PropTypes.func,
+  message: PropTypes.string.isRequired,
+  rowButton: PropTypes.bool,
+  title: PropTypes.string.isRequired,
+}
 
-export default ReportBugButton
+export { ReportBugButton as default }

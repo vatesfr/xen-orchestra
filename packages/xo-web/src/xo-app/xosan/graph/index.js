@@ -1,7 +1,7 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Icon from 'icon'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { isInteger, map } from 'lodash'
 
@@ -93,11 +93,6 @@ const replicationGraph = (nSrs, redundancy, w, h) => {
   return graph(nGroups, redundancy, w, h, redundancy - 1)
 }
 
-@propTypes({
-  layout: propTypes.string.isRequired,
-  redundancy: propTypes.number.isRequired,
-  nSrs: propTypes.number,
-})
 export default class Graph extends Component {
   render () {
     const { layout, redundancy, nSrs, width, height } = this.props
@@ -122,4 +117,10 @@ export default class Graph extends Component {
       </div>
     )
   }
+}
+
+Graph.propTypes = {
+  layout: PropTypes.string.isRequired,
+  redundancy: PropTypes.number.isRequired,
+  nSrs: PropTypes.number,
 }

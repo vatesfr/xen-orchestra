@@ -2,6 +2,7 @@ import ChartistGraph from 'react-chartist'
 import ChartistLegend from 'chartist-plugin-legend'
 import ChartistTooltip from 'chartist-plugin-tooltip'
 import humanFormat from 'human-format'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { injectIntl } from 'react-intl'
 import { messages } from 'intl'
@@ -18,7 +19,6 @@ import {
   values,
 } from 'lodash'
 
-import propTypes from '../prop-types-decorator'
 import { computeArraysSum } from '../xo-stats'
 import {
   formatSize,
@@ -140,11 +140,7 @@ const templateError = <div>No stats.</div>
 // ===================================================================
 
 export const CpuLineChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.object.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const stats = data.stats.cpus
     const length = getStatsLength(stats)
 
@@ -184,15 +180,16 @@ export const CpuLineChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
+CpuLineChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.object.isRequired,
+  options: PropTypes.object,
+}
 
 export const PoolCpuLineChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.array.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const firstHostData = data[0]
     const length = getStatsLength(firstHostData.stats.cpus)
 
@@ -234,54 +231,55 @@ export const PoolCpuLineChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
+PoolCpuLineChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  options: PropTypes.object,
+}
 
-export const MemoryLineChart = injectIntl(
-  propTypes({
-    data: propTypes.object.isRequired,
-    options: propTypes.object,
-  })(({ data, options = {}, intl }) => {
-    const { memory } = data.stats
-    const memoryUsed = getMemoryUsedMetric(data.stats)
+export const MemoryLineChart = injectIntl(({ data, options = {}, intl }) => {
+  const { memory } = data.stats
+  const memoryUsed = getMemoryUsedMetric(data.stats)
 
-    if (!memory || !memoryUsed) {
-      return templateError
-    }
+  if (!memory || !memoryUsed) {
+    return templateError
+  }
 
-    return (
-      <ChartistGraph
-        type='Line'
-        data={{
-          series: [
-            {
-              name: 'RAM',
-              data: memoryUsed,
-            },
-          ],
-        }}
-        options={{
-          ...makeOptions({
-            intl,
-            nValues: memoryUsed.length,
-            endTimestamp: data.endTimestamp,
-            interval: data.interval,
-            valueTransform: formatSize,
-          }),
-          high: memory[memory.length - 1],
-          ...options,
-        }}
-      />
-    )
-  })
-)
+  return (
+    <ChartistGraph
+      type='Line'
+      data={{
+        series: [
+          {
+            name: 'RAM',
+            data: memoryUsed,
+          },
+        ],
+      }}
+      options={{
+        ...makeOptions({
+          intl,
+          nValues: memoryUsed.length,
+          endTimestamp: data.endTimestamp,
+          interval: data.interval,
+          valueTransform: formatSize,
+        }),
+        high: memory[memory.length - 1],
+        ...options,
+      }}
+    />
+  )
+})
+
+MemoryLineChart.propTypes = {
+  data: PropTypes.object.isRequired,
+  options: PropTypes.object,
+}
 
 export const PoolMemoryLineChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.array.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const firstHostData = data[0]
     const { memory } = firstHostData.stats
     const memoryUsed = getMemoryUsedMetric(firstHostData.stats)
@@ -331,15 +329,17 @@ export const PoolMemoryLineChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
 
+PoolMemoryLineChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  options: PropTypes.object,
+}
+
 export const XvdLineChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.object.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const stats = data.stats.xvds
     const length = stats && getStatsLength(stats.r)
 
@@ -365,15 +365,17 @@ export const XvdLineChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
 
+XvdLineChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.object.isRequired,
+  options: PropTypes.object,
+}
+
 export const VifLineChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.object.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const stats = data.stats.vifs
     const length = stats && getStatsLength(stats.rx)
 
@@ -399,15 +401,17 @@ export const VifLineChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
 
+VifLineChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.object.isRequired,
+  options: PropTypes.object,
+}
+
 export const PifLineChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.array.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const stats = data.stats.pifs
     const length = stats && getStatsLength(stats.rx)
 
@@ -433,16 +437,18 @@ export const PifLineChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
+
+PifLineChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  options: PropTypes.object,
+}
 
 const ios = ['rx', 'tx']
 export const PoolPifLineChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.array.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const firstHostData = data[0]
     const length =
       firstHostData.stats && getStatsLength(firstHostData.stats.pifs.rx)
@@ -485,53 +491,55 @@ export const PoolPifLineChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
 
-export const LoadLineChart = injectIntl(
-  propTypes({
-    data: propTypes.object.isRequired,
-    options: propTypes.object,
-  })(({ data, options = {}, intl }) => {
-    const stats = data.stats.load
-    const { length } = stats || {}
+PoolPifLineChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  options: PropTypes.object,
+}
 
-    if (!length) {
-      return templateError
-    }
+export const LoadLineChart = injectIntl(({ data, options = {}, intl }) => {
+  const stats = data.stats.load
+  const { length } = stats || {}
 
-    return (
-      <ChartistGraph
-        type='Line'
-        data={{
-          series: [
-            {
-              name: 'Load average',
-              data: stats,
-            },
-          ],
-        }}
-        options={{
-          ...makeOptions({
-            intl,
-            nValues: length,
-            endTimestamp: data.endTimestamp,
-            interval: data.interval,
-            valueTransform: value => `${value.toPrecision(3)}`,
-          }),
-          ...options,
-        }}
-      />
-    )
-  })
-)
+  if (!length) {
+    return templateError
+  }
+
+  return (
+    <ChartistGraph
+      type='Line'
+      data={{
+        series: [
+          {
+            name: 'Load average',
+            data: stats,
+          },
+        ],
+      }}
+      options={{
+        ...makeOptions({
+          intl,
+          nValues: length,
+          endTimestamp: data.endTimestamp,
+          interval: data.interval,
+          valueTransform: value => `${value.toPrecision(3)}`,
+        }),
+        ...options,
+      }}
+    />
+  )
+})
+
+LoadLineChart.propTypes = {
+  data: PropTypes.object.isRequired,
+  options: PropTypes.object,
+}
 
 export const PoolLoadLineChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.array.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const firstHostData = data[0]
     const length = firstHostData.stats && firstHostData.stats.load.length
 
@@ -570,8 +578,14 @@ export const PoolLoadLineChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
+
+PoolLoadLineChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  options: PropTypes.object,
+}
 
 const buildSrSeries = ({ stats, label, addSumSeries }) => {
   const series = map(stats, (data, key) => ({
@@ -591,11 +605,7 @@ const buildSrSeries = ({ stats, label, addSumSeries }) => {
 }
 
 export const IopsLineChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.array.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const {
       endTimestamp,
       interval,
@@ -630,15 +640,17 @@ export const IopsLineChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
 
+IopsLineChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  options: PropTypes.object,
+}
+
 export const IoThroughputChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.array.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const {
       endTimestamp,
       interval,
@@ -673,15 +685,17 @@ export const IoThroughputChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
 
+IoThroughputChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  options: PropTypes.object,
+}
+
 export const LatencyChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.array.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const {
       endTimestamp,
       interval,
@@ -716,15 +730,17 @@ export const LatencyChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
 
+LatencyChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  options: PropTypes.object,
+}
+
 export const IowaitChart = injectIntl(
-  propTypes({
-    addSumSeries: propTypes.bool,
-    data: propTypes.array.isRequired,
-    options: propTypes.object,
-  })(({ addSumSeries, data, options = {}, intl }) => {
+  ({ addSumSeries, data, options = {}, intl }) => {
     const {
       endTimestamp,
       interval,
@@ -759,5 +775,11 @@ export const IowaitChart = injectIntl(
         }}
       />
     )
-  })
+  }
 )
+
+IowaitChart.propTypes = {
+  addSumSeries: PropTypes.bool,
+  data: PropTypes.array.isRequired,
+  options: PropTypes.object,
+}

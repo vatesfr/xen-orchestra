@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import map from 'lodash/map'
+import PropTypes from 'prop-types'
 import randomPassword from 'random-password'
 import React from 'react'
 import round from 'lodash/round'
@@ -13,7 +14,6 @@ import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import Button from '../button'
 import Component from '../base-component'
 import getEventValue from '../get-event-value'
-import propTypes from '../prop-types-decorator'
 import { formatSizeRaw, parseSize } from '../utils'
 
 export Number from './number'
@@ -21,9 +21,6 @@ export Select from './select'
 
 // ===================================================================
 
-@propTypes({
-  enableGenerator: propTypes.bool,
-})
 export class Password extends Component {
   get value () {
     return this.refs.field.value
@@ -84,15 +81,12 @@ export class Password extends Component {
   }
 }
 
+Password.propTypes = {
+  enableGenerator: PropTypes.bool,
+}
+
 // ===================================================================
 
-@propTypes({
-  max: propTypes.number.isRequired,
-  min: propTypes.number.isRequired,
-  onChange: propTypes.func,
-  step: propTypes.number,
-  value: propTypes.number,
-})
 export class Range extends Component {
   componentDidMount () {
     const { min, onChange, value } = this.props
@@ -130,22 +124,19 @@ export class Range extends Component {
   }
 }
 
+Range.propTypes = {
+  max: PropTypes.number.isRequired,
+  min: PropTypes.number.isRequired,
+  onChange: PropTypes.func,
+  step: PropTypes.number,
+  value: PropTypes.number,
+}
+
 export Toggle from './toggle'
 
 const UNITS = ['kiB', 'MiB', 'GiB']
 const DEFAULT_UNIT = 'GiB'
-@propTypes({
-  autoFocus: propTypes.bool,
-  className: propTypes.string,
-  defaultUnit: propTypes.oneOf(UNITS),
-  defaultValue: propTypes.number,
-  onChange: propTypes.func,
-  placeholder: propTypes.string,
-  readOnly: propTypes.bool,
-  required: propTypes.bool,
-  style: propTypes.object,
-  value: propTypes.oneOfType([propTypes.number, propTypes.oneOf([null])]),
-})
+
 export class SizeInput extends BaseComponent {
   constructor (props) {
     super(props)
@@ -302,4 +293,17 @@ export class SizeInput extends BaseComponent {
       </span>
     )
   }
+}
+
+SizeInput.propTypes = {
+  autoFocus: PropTypes.bool,
+  className: PropTypes.string,
+  defaultUnit: PropTypes.oneOf(UNITS),
+  defaultValue: PropTypes.number,
+  onChange: PropTypes.func,
+  placeholder: PropTypes.string,
+  readOnly: PropTypes.bool,
+  required: PropTypes.bool,
+  style: PropTypes.object,
+  value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
 }

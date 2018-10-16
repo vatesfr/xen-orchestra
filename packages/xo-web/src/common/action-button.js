@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import { isFunction, startsWith } from 'lodash'
 
@@ -5,54 +6,12 @@ import Button from './button'
 import Component from './base-component'
 import Icon from './icon'
 import logError from './log-error'
-import propTypes from './prop-types-decorator'
 import Tooltip from './tooltip'
 import { error as _error } from './notification'
 
-@propTypes({
-  // React element to use as button content
-  children: propTypes.node,
-
-  // whether this button is disabled (default to false)
-  disabled: propTypes.bool,
-
-  // form identifier
-  //
-  // if provided, this button and its action are associated to this
-  // form for the submit event
-  form: propTypes.string,
-
-  // function to call when the action is triggered (via a clik on the
-  // button or submit on the form)
-  handler: propTypes.func.isRequired,
-
-  // optional value which will be passed as first param to the handler
-  //
-  // if you need multiple values, you can provide `data-*` props instead of
-  // `handlerParam`
-  handlerParam: propTypes.any,
-
-  // XO icon to use for this button
-  icon: propTypes.string.isRequired,
-
-  // the color of the xo icon
-  iconColor: propTypes.string,
-
-  // whether the action of this action is already underway
-  pending: propTypes.bool,
-
-  // path to redirect to when the triggered action finish successfully
-  //
-  // if a function, it will be called with the result of the action to
-  // compute the path
-  redirectOnSuccess: propTypes.oneOfType([propTypes.func, propTypes.string]),
-
-  // React element to use tooltip for the component
-  tooltip: propTypes.node,
-})
 export default class ActionButton extends Component {
   static contextTypes = {
-    router: propTypes.object,
+    router: PropTypes.object,
   }
 
   async _execute () {
@@ -178,4 +137,46 @@ export default class ActionButton extends Component {
 
     return tooltip ? <Tooltip content={tooltip}>{button}</Tooltip> : button
   }
+}
+
+ActionButton.propTypes = {
+  // React element to use as button content
+  children: PropTypes.node,
+
+  // whether this button is disabled (default to false)
+  disabled: PropTypes.bool,
+
+  // form identifier
+  //
+  // if provided, this button and its action are associated to this
+  // form for the submit event
+  form: PropTypes.string,
+
+  // function to call when the action is triggered (via a clik on the
+  // button or submit on the form)
+  handler: PropTypes.func.isRequired,
+
+  // optional value which will be passed as first param to the handler
+  //
+  // if you need multiple values, you can provide `data-*` props instead of
+  // `handlerParam`
+  handlerParam: PropTypes.any,
+
+  // XO icon to use for this button
+  icon: PropTypes.string.isRequired,
+
+  // the color of the xo icon
+  iconColor: PropTypes.string,
+
+  // whether the action of this action is already underway
+  pending: PropTypes.bool,
+
+  // path to redirect to when the triggered action finish successfully
+  //
+  // if a function, it will be called with the result of the action to
+  // compute the path
+  redirectOnSuccess: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+
+  // React element to use tooltip for the component
+  tooltip: PropTypes.node,
 }

@@ -1,15 +1,10 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Icon from 'icon'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { omit } from 'lodash'
 
-@propTypes({
-  multi: propTypes.bool,
-  label: propTypes.node,
-  onChange: propTypes.func.isRequired,
-})
 export default class SelectFiles extends Component {
   _onChange = e => {
     const { multi, onChange } = this.props
@@ -31,4 +26,10 @@ export default class SelectFiles extends Component {
       </label>
     )
   }
+}
+
+SelectFiles.propTypes = {
+  multi: PropTypes.bool,
+  label: PropTypes.node,
+  onChange: PropTypes.func.isRequired,
 }

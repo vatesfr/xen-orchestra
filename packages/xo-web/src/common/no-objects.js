@@ -1,7 +1,6 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import { isEmpty } from 'lodash'
-
-import propTypes from './prop-types-decorator'
 
 // This component returns :
 //  - A loading icon when the objects are not fetched
@@ -32,10 +31,10 @@ const NoObjects = props => {
   )
 }
 
-propTypes(NoObjects)({
-  children: propTypes.func,
-  collection: propTypes.oneOfType([propTypes.array, propTypes.object]),
-  component: propTypes.func,
-  emptyMessage: propTypes.node.isRequired,
-})
-export default NoObjects
+NoObjects.propTypes = {
+  children: PropTypes.func,
+  collection: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
+  component: PropTypes.func,
+  emptyMessage: PropTypes.node.isRequired,
+}
+export { NoObjects as default }

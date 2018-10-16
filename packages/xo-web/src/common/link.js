@@ -1,9 +1,9 @@
 import Link from 'react-router/lib/Link'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { routerShape } from 'react-router/lib/PropTypes'
 
 import Component from './base-component'
-import propTypes from './prop-types-decorator'
 
 // ===================================================================
 
@@ -18,10 +18,6 @@ const _IGNORED_TAGNAMES = {
   SELECT: true,
 }
 
-@propTypes({
-  className: propTypes.string,
-  tagName: propTypes.string,
-})
 export class BlockLink extends Component {
   static contextTypes = {
     router: routerShape,
@@ -68,4 +64,9 @@ export class BlockLink extends Component {
       </Component>
     )
   }
+}
+
+BlockLink.propTypes = {
+  className: PropTypes.string,
+  tagName: PropTypes.string,
 }

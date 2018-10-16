@@ -4,7 +4,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { Text } from 'editable'
@@ -66,12 +66,6 @@ const getUserPreferences = user => user.preferences || {}
 
 // ===================================================================
 
-@propTypes({
-  customFilters: propTypes.object,
-  defaultFilter: propTypes.string.isRequired,
-  filters: propTypes.object.isRequired,
-  type: propTypes.string.isRequired,
-})
 class DefaultFilterPicker extends Component {
   _computeOptions (props) {
     const { customFilters, filters } = props
@@ -142,11 +136,15 @@ class DefaultFilterPicker extends Component {
   }
 }
 
+DefaultFilterPicker.propTypes = {
+  customFilters: PropTypes.object,
+  defaultFilter: PropTypes.string.isRequired,
+  filters: PropTypes.object.isRequired,
+  type: PropTypes.string.isRequired,
+}
+
 // ===================================================================
 
-@propTypes({
-  user: propTypes.object.isRequired,
-})
 class UserFilters extends Component {
   _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
 
@@ -224,6 +222,10 @@ class UserFilters extends Component {
       </Container>
     )
   }
+}
+
+UserFilters.propTypes = {
+  user: PropTypes.object.isRequired,
 }
 
 // ===================================================================
