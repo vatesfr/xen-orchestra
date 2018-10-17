@@ -1,4 +1,4 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -15,6 +15,7 @@ import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
 import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
 import { form } from 'modal'
+import { injectIntl } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
 import { Map } from 'immutable'
 import { Number } from 'form'
@@ -604,8 +605,10 @@ export default [
         ),
     },
   }),
+  injectIntl,
   injectState,
-  ({ state, effects, remotes, srsById, job = {} }) => {
+  ({ state, effects, remotes, srsById, job = {}, intl }) => {
+    const { formatMessage } = intl
     const { propSettings, settings = propSettings } = state
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
@@ -869,6 +872,7 @@ export default [
                       id={state.inputTimeoutId}
                       onChange={effects.setTimeout}
                       value={timeout && timeout / 1e3}
+                      placeholder={formatMessage(messages.timeoutUnit)}
                     />
                   </FormGroup>
                   <FormGroup>
