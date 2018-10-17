@@ -484,7 +484,7 @@ export default class BackupNg {
     worker: $Dict<any>,
   }
   _logger: Logger
-  _runningRestores: Array<string>
+  _runningRestores: Set<string>
 
   get runningRestores () {
     return this._runningRestores
@@ -493,7 +493,7 @@ export default class BackupNg {
   constructor (app: any) {
     this._app = app
     this._logger = undefined
-    this._runningRestores = []
+    this._runningRestores = new Set()
 
     app.on('start', async () => {
       this._logger = await app.getLogger('restore')
@@ -735,7 +735,7 @@ export default class BackupNg {
         message: 'restore',
       },
       taskId => {
-        this._runningRestores.push(taskId)
+        this._runningRestores.add(taskId)
         return importer(
           handler,
           metadataFilename,
@@ -745,7 +745,7 @@ export default class BackupNg {
           taskId,
           logger
         )::pFinally(() => {
-          this._runningRestores.splice(this._runningRestores.indexOf(taskId), 1)
+          this._runningRestores.delete(taskId)
         })
       }
     )()

@@ -105,9 +105,7 @@ export default {
             id,
             message,
             start: time,
-            status: runningRestores.some(runId => runId === id)
-              ? 'pending'
-              : 'interrupted',
+            status: runningRestores.has(id) ? 'pending' : 'interrupted',
           }
         }
       } else if (event === 'task.end') {
