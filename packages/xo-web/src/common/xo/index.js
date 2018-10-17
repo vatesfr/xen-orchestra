@@ -2252,7 +2252,7 @@ export const removeAcls = acls =>
           _call('acl.remove', resolveIds({ subject, object, action }))
         )
       )::tap(subscribeAcls.forceRefresh, err =>
-        error('Remove ACL', err.message || String(err))
+        error('Remove ACLs', err.message || String(err))
       ),
     noop
   )
