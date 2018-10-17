@@ -108,6 +108,9 @@ class AclTable extends Component {
       const { acls, roles } = this.state
       const resolvedAcls = filter(
         map(acls, ({ subject, object, action }) => ({
+          id: Math.random()
+            .toString(36)
+            .slice(2),
           subject: subjects[subject] || subject,
           object: xoObjects[object] || object,
           action: roles[action] || action,
