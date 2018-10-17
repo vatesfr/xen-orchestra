@@ -6,6 +6,7 @@ import {
   GlobPattern,
   Null,
   NumberNode,
+  NumberOrStringNode,
   parse,
   setPropertyClause,
 } from './'
@@ -32,7 +33,7 @@ describe('parse', () => {
 
     node = parse('32')
     expect(node.match(32)).toBe(true)
-    expect(node.match('32')).toBe(false)
+    expect(node.match('32')).toBe(true)
     expect(node.toString()).toBe('32')
 
     node = parse('"32"')
@@ -51,6 +52,12 @@ describe('GlobPattern', () => {
 describe('Number', () => {
   it('match a number recursively', () => {
     expect(new NumberNode(3).match([{ foo: 3 }])).toBe(true)
+  })
+})
+
+describe('NumberOrStringNode', () => {
+  it('match a string', () => {
+    expect(new NumberOrStringNode('123').match([{ foo: '123' }])).toBe(true)
   })
 })
 

@@ -11,7 +11,7 @@ export const ast = new CM.And([
     new CM.Or([new CM.String('wonderwoman'), new CM.String('batman')])
   ),
   new CM.TruthyProperty('hasCape'),
-  new CM.Property('age', new CM.Number(32)),
+  new CM.Property('age', new CM.NumberOrStringNode('32')),
   new CM.GlobPattern('chi*go'),
   new CM.RegExp('^foo/bar\\.', 'i'),
 ])
