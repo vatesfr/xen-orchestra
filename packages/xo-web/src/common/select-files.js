@@ -1,16 +1,17 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Icon from 'icon'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { omit } from 'lodash'
 
-@propTypes({
-  multi: propTypes.bool,
-  label: propTypes.node,
-  onChange: propTypes.func.isRequired,
-})
 export default class SelectFiles extends Component {
+  static propTypes = {
+    multi: PropTypes.bool,
+    label: PropTypes.node,
+    onChange: PropTypes.func.isRequired,
+  }
+
   _onChange = e => {
     const { multi, onChange } = this.props
     const { files } = e.target

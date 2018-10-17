@@ -1,24 +1,25 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import uncontrollableInput from 'uncontrollable-input'
 import { isEmpty, map } from 'lodash'
 import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 
 import Component from './base-component'
-import propTypes from './prop-types-decorator'
 
 @uncontrollableInput({
   defaultValue: '',
 })
-@propTypes({
-  disabled: propTypes.bool,
-  options: propTypes.oneOfType([
-    propTypes.arrayOf(propTypes.string),
-    propTypes.objectOf(propTypes.string),
-  ]),
-  onChange: propTypes.func.isRequired,
-  value: propTypes.string.isRequired,
-})
 export default class Combobox extends Component {
+  static propTypes = {
+    disabled: PropTypes.bool,
+    options: PropTypes.oneOfType([
+      PropTypes.arrayOf(PropTypes.string),
+      PropTypes.objectOf(PropTypes.string),
+    ]),
+    onChange: PropTypes.func.isRequired,
+    value: PropTypes.string.isRequired,
+  }
+
   _handleChange = event => {
     this.props.onChange(event.target.value)
   }

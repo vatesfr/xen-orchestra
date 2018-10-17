@@ -1,7 +1,7 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import { Sparklines, SparklinesLine } from 'react-sparklines'
 
-import propTypes from './prop-types-decorator'
 import { computeArraysAvg, computeObjectsAvg } from './xo-stats'
 import { getMemoryUsedMetric } from './utils'
 
@@ -17,9 +17,12 @@ const templateError = <div>No stats.</div>
 
 // ===================================================================
 
-export const CpuSparkLines = propTypes({
-  data: propTypes.object.isRequired,
-})(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
+export const CpuSparkLines = ({
+  data,
+  width = WIDTH,
+  height = HEIGHT,
+  strokeWidth = STROKE_WIDTH,
+}) => {
   const { cpus } = data.stats
 
   if (!cpus) {
@@ -46,11 +49,18 @@ export const CpuSparkLines = propTypes({
       />
     </Sparklines>
   )
-})
+}
 
-export const MemorySparkLines = propTypes({
-  data: propTypes.object.isRequired,
-})(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
+CpuSparkLines.propTypes = {
+  data: PropTypes.object.isRequired,
+}
+
+export const MemorySparkLines = ({
+  data,
+  width = WIDTH,
+  height = HEIGHT,
+  strokeWidth = STROKE_WIDTH,
+}) => {
   const { memory } = data.stats
   const memoryUsed = getMemoryUsedMetric(data.stats)
   if (!memory || !memoryUsed) {
@@ -77,11 +87,18 @@ export const MemorySparkLines = propTypes({
       />
     </Sparklines>
   )
-})
+}
 
-export const XvdSparkLines = propTypes({
-  data: propTypes.object.isRequired,
-})(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
+MemorySparkLines.propTypes = {
+  data: PropTypes.object.isRequired,
+}
+
+export const XvdSparkLines = ({
+  data,
+  width = WIDTH,
+  height = HEIGHT,
+  strokeWidth = STROKE_WIDTH,
+}) => {
   const { xvds } = data.stats
 
   if (!xvds) {
@@ -107,11 +124,18 @@ export const XvdSparkLines = propTypes({
       />
     </Sparklines>
   )
-})
+}
 
-export const NetworkSparkLines = propTypes({
-  data: propTypes.object.isRequired,
-})(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
+XvdSparkLines.propTypes = {
+  data: PropTypes.object.isRequired,
+}
+
+export const NetworkSparkLines = ({
+  data,
+  width = WIDTH,
+  height = HEIGHT,
+  strokeWidth = STROKE_WIDTH,
+}) => {
   const { pifs, vifs: ifs = pifs } = data.stats
 
   return ifs === undefined ? (
@@ -135,11 +159,18 @@ export const NetworkSparkLines = propTypes({
       />
     </Sparklines>
   )
-})
+}
 
-export const LoadSparkLines = propTypes({
-  data: propTypes.object.isRequired,
-})(({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
+NetworkSparkLines.propTypes = {
+  data: PropTypes.object.isRequired,
+}
+
+export const LoadSparkLines = ({
+  data,
+  width = WIDTH,
+  height = HEIGHT,
+  strokeWidth = STROKE_WIDTH,
+}) => {
   const { load } = data.stats
 
   if (!load) {
@@ -159,4 +190,8 @@ export const LoadSparkLines = propTypes({
       />
     </Sparklines>
   )
-})
+}
+
+LoadSparkLines.propTypes = {
+  data: PropTypes.object.isRequired,
+}

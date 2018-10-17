@@ -1,8 +1,8 @@
 import React from 'react'
 import { routerShape } from 'react-router/lib/PropTypes'
+import PropTypes from 'prop-types'
 
 import Button from './button'
-import propTypes from './prop-types-decorator'
 
 const ButtonLink = ({ to, ...props }, { router }) => {
   props.onClick = () => {
@@ -12,17 +12,12 @@ const ButtonLink = ({ to, ...props }, { router }) => {
   return <Button {...props} />
 }
 
-propTypes(
-  {
-    to: propTypes.oneOfType([
-      propTypes.func,
-      propTypes.object,
-      propTypes.string,
-    ]),
-  },
-  {
-    router: routerShape,
-  }
-)(ButtonLink)
+ButtonLink.contextTypes = {
+  router: routerShape,
+}
+
+ButtonLink.propTypes = {
+  to: PropTypes.oneOfType([PropTypes.func, PropTypes.object, PropTypes.string]),
+}
 
 export { ButtonLink as default }

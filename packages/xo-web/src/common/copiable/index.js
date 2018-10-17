@@ -1,19 +1,16 @@
 import CopyToClipboard from 'react-copy-to-clipboard'
 import classNames from 'classnames'
 import React, { createElement } from 'react'
+import PropTypes from 'prop-types'
 
 import _ from '../intl'
 import Button from '../button'
 import Icon from '../icon'
-import propTypes from '../prop-types-decorator'
 import Tooltip from '../tooltip'
 
 import styles from './index.css'
 
-const Copiable = propTypes({
-  data: propTypes.string,
-  tagName: propTypes.string,
-})(({ className, tagName = 'span', ...props }) =>
+const Copiable = ({ className, tagName = 'span', ...props }) =>
   createElement(
     tagName,
     {
@@ -30,5 +27,10 @@ const Copiable = propTypes({
       </CopyToClipboard>
     </Tooltip>
   )
-)
+
+Copiable.propTypes = {
+  data: PropTypes.string,
+  tagName: PropTypes.string,
+}
+
 export { Copiable as default }

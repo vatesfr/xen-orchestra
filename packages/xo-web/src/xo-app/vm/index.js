@@ -5,6 +5,7 @@ import Icon from 'icon'
 import Link from 'link'
 import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
+import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
 import VmActionBar from './action-bar'
 import { Select, Text } from 'editable'
@@ -88,7 +89,7 @@ import TabAdvanced from './tab-advanced'
 })
 export default class Vm extends BaseComponent {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   loop (vm = this.props.vm) {

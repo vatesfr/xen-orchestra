@@ -1,18 +1,19 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 import Button from './button'
 import Component from './base-component'
 import Icon from './icon'
-import propTypes from './prop-types-decorator'
 
-@propTypes({
-  buttonText: propTypes.any.isRequired,
-  children: propTypes.any.isRequired,
-  className: propTypes.string,
-  defaultOpen: propTypes.bool,
-  size: propTypes.string,
-})
 export default class Collapse extends Component {
+  static propTypes = {
+    buttonText: PropTypes.any.isRequired,
+    children: PropTypes.any.isRequired,
+    className: PropTypes.string,
+    defaultOpen: PropTypes.bool,
+    size: PropTypes.string,
+  }
+
   state = {
     isOpened: this.props.defaultOpen,
   }

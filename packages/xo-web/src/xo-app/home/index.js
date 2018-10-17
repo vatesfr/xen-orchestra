@@ -12,7 +12,7 @@ import invoke from 'invoke'
 import Link from 'link'
 import Page from '../page'
 import Pagination from 'pagination'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
 import Tooltip from 'tooltip'
@@ -301,12 +301,13 @@ const DEFAULT_TYPE = 'VM'
     noServersConnected,
   }
 })
-@propTypes({
-  isAdmin: propTypes.bool.isRequired,
-  isPoolAdmin: propTypes.bool.isRequired,
-  noResourceSets: propTypes.bool.isRequired,
-})
 class NoObjects_ extends Component {
+  static propTypes = {
+    isAdmin: PropTypes.bool.isRequired,
+    isPoolAdmin: PropTypes.bool.isRequired,
+    noResourceSets: PropTypes.bool.isRequired,
+  }
+
   render () {
     const {
       areObjectsFetched,
@@ -453,7 +454,7 @@ class NoObjects_ extends Component {
 })
 export default class Home extends Component {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   state = {

@@ -1,5 +1,5 @@
 import ActionButton from 'action-button'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
 import { noop } from 'lodash'
 
@@ -28,12 +28,12 @@ export const Action = ({
 )
 
 Action.propTypes = {
-  display: propTypes.oneOf(['icon', 'both']),
-  handler: propTypes.func.isRequired,
-  icon: propTypes.string.isRequired,
-  label: propTypes.node,
-  pending: propTypes.bool,
-  redirectOnSuccess: propTypes.string,
+  display: PropTypes.oneOf(['icon', 'both']),
+  handler: PropTypes.func.isRequired,
+  icon: PropTypes.string.isRequired,
+  label: PropTypes.node,
+  pending: PropTypes.bool,
+  redirectOnSuccess: PropTypes.string,
 }
 
 const ActionBar = ({ children, handlerParam = noop, display = 'both' }) => (
@@ -54,7 +54,7 @@ const ActionBar = ({ children, handlerParam = noop, display = 'both' }) => (
 )
 
 ActionBar.propTypes = {
-  display: propTypes.oneOf(['icon', 'both']),
-  handlerParam: propTypes.any,
+  display: PropTypes.oneOf(['icon', 'both']),
+  handlerParam: PropTypes.any,
 }
 export { ActionBar as default }

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import uncontrollableInput from 'uncontrollable-input'
 import { createSelector } from 'reselect'
@@ -5,22 +6,22 @@ import { keyBy, map } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
-import propTypes from '../prop-types-decorator'
 import { EMPTY_OBJECT } from '../utils'
 
 import GenericInput from './generic-input'
 import { descriptionRender, forceDisplayOptionalAttr } from './helpers'
 
-@propTypes({
-  depth: propTypes.number,
-  disabled: propTypes.bool,
-  label: propTypes.any.isRequired,
-  required: propTypes.bool,
-  schema: propTypes.object.isRequired,
-  uiSchema: propTypes.object,
-})
 @uncontrollableInput()
 export default class ObjectInput extends Component {
+  static propTypes = {
+    depth: PropTypes.number,
+    disabled: PropTypes.bool,
+    label: PropTypes.any.isRequired,
+    required: PropTypes.bool,
+    schema: PropTypes.object.isRequired,
+    uiSchema: PropTypes.object,
+  }
+
   state = {
     use: this.props.required || forceDisplayOptionalAttr(this.props),
   }

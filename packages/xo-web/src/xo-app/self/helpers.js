@@ -5,7 +5,7 @@ import includes from 'lodash/includes'
 import intersection from 'lodash/intersection'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import reduce from 'lodash/reduce'
 import renderXoItem from 'render-xo-item'
@@ -15,10 +15,11 @@ import { subscribeGroups, subscribeUsers } from 'xo'
 
 // ===================================================================
 
-@propTypes({
-  subjects: propTypes.array.isRequired,
-})
 export class Subjects extends Component {
+  static propTypes = {
+    subjects: PropTypes.array.isRequired,
+  }
+
   constructor (props) {
     super(props)
     this.state = {

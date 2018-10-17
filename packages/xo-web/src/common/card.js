@@ -1,6 +1,5 @@
 import React from 'react'
-
-import propTypes from './prop-types-decorator'
+import PropTypes from 'prop-types'
 
 const CARD_STYLE = {
   minHeight: '100%',
@@ -16,9 +15,7 @@ const CARD_HEADER_STYLE = {
   textAlign: 'center',
 }
 
-export const Card = propTypes({
-  shadow: propTypes.bool,
-})(({ shadow, ...props }) => {
+export const Card = ({ shadow, ...props }) => {
   props.className = 'card'
   props.style = {
     ...props.style,
@@ -26,18 +23,26 @@ export const Card = propTypes({
   }
 
   return <div {...props} />
-})
+}
 
-export const CardHeader = propTypes({
-  className: propTypes.string,
-})(({ children, className }) => (
+Card.propTypes = {
+  shadow: PropTypes.bool,
+}
+
+export const CardHeader = ({ children, className }) => (
   <h4 className={`card-header ${className || ''}`} style={CARD_HEADER_STYLE}>
     {children}
   </h4>
-))
+)
 
-export const CardBlock = propTypes({
-  className: propTypes.string,
-})(({ children, className }) => (
+CardHeader.propTypes = {
+  className: PropTypes.string,
+}
+
+export const CardBlock = ({ children, className }) => (
   <div className={`card-block ${className || ''}`}>{children}</div>
-))
+)
+
+CardBlock.propTypes = {
+  className: PropTypes.string,
+}

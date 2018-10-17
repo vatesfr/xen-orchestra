@@ -1,5 +1,6 @@
 import classNames from 'classnames'
 import React from 'react'
+import PropTypes from 'prop-types'
 import {
   findKey,
   isEmpty,
@@ -15,7 +16,6 @@ import Component from '../base-component'
 import getEventValue from '../get-event-value'
 import Icon from '../icon'
 import logError from '../log-error'
-import propTypes from '../prop-types-decorator'
 import Tooltip from '../tooltip'
 import { formatSize } from '../utils'
 import { SizeInput } from '../form'
@@ -38,10 +38,11 @@ import styles from './index.css'
 
 const LONG_CLICK = 400
 
-@propTypes({
-  alt: propTypes.node.isRequired,
-})
 class Hover extends Component {
+  static propTypes = {
+    alt: PropTypes.node.isRequired,
+  }
+
   constructor () {
     super()
 
@@ -64,13 +65,14 @@ class Hover extends Component {
 
 // it supports 'data-*': optional params,
 // wich will be passed as an object to the 'onChange' and the 'onUndo' functions
-@propTypes({
-  onChange: propTypes.func.isRequired,
-  onUndo: propTypes.oneOfType([propTypes.bool, propTypes.func]),
-  useLongClick: propTypes.bool,
-  value: propTypes.any.isRequired,
-})
 class Editable extends Component {
+  static propTypes = {
+    onChange: PropTypes.func.isRequired,
+    onUndo: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
+    useLongClick: PropTypes.bool,
+    value: PropTypes.any.isRequired,
+  }
+
   get value () {
     throw new Error('not implemented')
   }
@@ -221,14 +223,15 @@ class Editable extends Component {
   }
 }
 
-@propTypes({
-  autoComplete: propTypes.string,
-  maxLength: propTypes.number,
-  minLength: propTypes.number,
-  pattern: propTypes.string,
-  value: propTypes.string.isRequired,
-})
 export class Text extends Editable {
+  static propTypes = {
+    autoComplete: PropTypes.string,
+    maxLength: PropTypes.number,
+    minLength: PropTypes.number,
+    pattern: PropTypes.string,
+    value: PropTypes.string.isRequired,
+  }
+
   get value () {
     const { input } = this.refs
 
@@ -302,11 +305,12 @@ export class Password extends Text {
   _isPassword = true
 }
 
-@propTypes({
-  nullable: propTypes.bool,
-  value: propTypes.number,
-})
 export class Number extends Component {
+  static propTypes = {
+    nullable: PropTypes.bool,
+    value: PropTypes.number,
+  }
+
   get value () {
     return +this.refs.input.value
   }
@@ -337,11 +341,13 @@ export class Number extends Component {
   }
 }
 
-@propTypes({
-  options: propTypes.oneOfType([propTypes.array, propTypes.object]).isRequired,
-  renderer: propTypes.func,
-})
 export class Select extends Editable {
+  static propTypes = {
+    options: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
+      .isRequired,
+    renderer: PropTypes.func,
+  }
+
   componentWillReceiveProps (props) {
     if (
       props.value !== this.props.value ||
@@ -418,10 +424,11 @@ const MAP_TYPE_SELECT = {
   'VM-template': SelectVmTemplate,
 }
 
-@propTypes({
-  value: propTypes.oneOfType([propTypes.string, propTypes.object]),
-})
 export class XoSelect extends Editable {
+  static propTypes = {
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  }
+
   get value () {
     return this.state.value
   }
@@ -461,10 +468,11 @@ export class XoSelect extends Editable {
   }
 }
 
-@propTypes({
-  value: propTypes.number.isRequired,
-})
 export class Size extends Editable {
+  static propTypes = {
+    value: PropTypes.number.isRequired,
+  }
+
   get value () {
     return this.refs.input.value
   }

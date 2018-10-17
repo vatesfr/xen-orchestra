@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import { Portal } from 'react-overlays'
 import { forEach, isEmpty, keys, map } from 'lodash'
@@ -6,7 +7,6 @@ import _ from './intl'
 import ActionButton from './action-button'
 import Component from './base-component'
 import Link from './link'
-import propTypes from './prop-types-decorator'
 import SortedTable from './sorted-table'
 import TabButton from './tab-button'
 import { connectStore } from './utils'
@@ -203,21 +203,22 @@ class HostsPatchesTableByPool extends Component {
 }
 
 // ===================================================================
+const HostsPatches = props =>
+  props.displayPools ? (
+    <HostsPatchesTableByPool {...props} />
+  ) : (
+    <HostsPatchesTable {...props} />
+  )
 
-export default propTypes({
-  buttonsGroupContainer: propTypes.func.isRequired,
-  container: propTypes.any,
-  displayPools: propTypes.bool,
-  hosts: propTypes.oneOfType([
-    propTypes.arrayOf(propTypes.object),
-    propTypes.objectOf(propTypes.object),
+HostsPatches.propTypes = {
+  buttonsGroupContainer: PropTypes.func.isRequired,
+  container: PropTypes.any,
+  displayPools: PropTypes.bool,
+  hosts: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.object),
+    PropTypes.objectOf(PropTypes.object),
   ]).isRequired,
-  useTabButton: propTypes.bool,
-})(
-  props =>
-    props.displayPools ? (
-      <HostsPatchesTableByPool {...props} />
-    ) : (
-      <HostsPatchesTable {...props} />
-    )
-)
+  useTabButton: PropTypes.bool,
+}
+
+export { HostsPatches as default }

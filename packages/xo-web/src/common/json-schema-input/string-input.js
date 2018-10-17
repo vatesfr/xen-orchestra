@@ -1,20 +1,21 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import uncontrollableInput from 'uncontrollable-input'
 
 import Combobox from '../combobox'
 import Component from '../base-component'
 import getEventValue from '../get-event-value'
-import propTypes from '../prop-types-decorator'
 
 import { PrimitiveInputWrapper } from './helpers'
 
 // ===================================================================
 
-@propTypes({
-  password: propTypes.bool,
-})
 @uncontrollableInput()
 export default class StringInput extends Component {
+  static propTypes = {
+    password: PropTypes.bool,
+  }
+
   // the value of this input  is undefined not '' when empty to make
   // it homogenous with when the user has never touched this input
   _onChange = event => {

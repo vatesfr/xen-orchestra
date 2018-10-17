@@ -1,7 +1,6 @@
 import classNames from 'classnames'
 import React from 'react'
-
-import propTypes from './prop-types-decorator'
+import PropTypes from 'prop-types'
 
 const Button = ({
   active,
@@ -27,9 +26,9 @@ const Button = ({
   return <button {...props}>{children}</button>
 }
 
-propTypes({
-  active: propTypes.bool,
-  block: propTypes.bool,
+Button.propTypes = {
+  active: PropTypes.bool,
+  block: PropTypes.bool,
 
   // Bootstrap button style
   //
@@ -37,7 +36,7 @@ propTypes({
   //
   // The default value (secondary) is not listed here because it does
   // not make sense to explicit it.
-  btnStyle: propTypes.oneOf([
+  btnStyle: PropTypes.oneOf([
     'danger',
     'info',
     'link',
@@ -46,8 +45,8 @@ propTypes({
     'warning',
   ]),
 
-  outline: propTypes.bool,
-  size: propTypes.oneOf(['large', 'small']),
-})(Button)
+  outline: PropTypes.bool,
+  size: PropTypes.oneOf(['large', 'small']),
+}
 
 export { Button as default }

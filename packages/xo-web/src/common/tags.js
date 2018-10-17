@@ -1,11 +1,11 @@
 import filter from 'lodash/filter'
 import includes from 'lodash/includes'
 import map from 'lodash/map'
+import PropTypes from 'prop-types'
 import React from 'react'
 
 import Component from './base-component'
 import Icon from './icon'
-import propTypes from './prop-types-decorator'
 
 const INPUT_STYLE = {
   margin: '2px',
@@ -33,14 +33,15 @@ const REMOVE_TAG_STYLE = {
   cursor: 'pointer',
 }
 
-@propTypes({
-  labels: propTypes.arrayOf(React.PropTypes.string).isRequired,
-  onAdd: propTypes.func,
-  onChange: propTypes.func,
-  onClick: propTypes.func,
-  onDelete: propTypes.func,
-})
 export default class Tags extends Component {
+  static propTypes = {
+    labels: PropTypes.arrayOf(PropTypes.string).isRequired,
+    onAdd: PropTypes.func,
+    onChange: PropTypes.func,
+    onClick: PropTypes.func,
+    onDelete: PropTypes.func,
+  }
+
   componentWillMount () {
     this.setState({ editing: false })
   }
@@ -143,5 +144,5 @@ export const Tag = ({ type, label, onDelete, onClick }) => (
   </span>
 )
 Tag.propTypes = {
-  label: React.PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
 }

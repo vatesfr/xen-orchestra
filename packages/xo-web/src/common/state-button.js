@@ -1,9 +1,9 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import styled from 'styled-components'
 import { omit } from 'lodash'
 
 import ActionButton from './action-button'
-import propTypes from './prop-types-decorator'
 
 // do not forward `state` to ActionButton
 const Button = styled(p => <ActionButton {...omit(p, 'state')} />)`
@@ -41,6 +41,8 @@ const StateButton = ({
   </Button>
 )
 
-export default propTypes({
-  state: propTypes.bool.isRequired,
-})(StateButton)
+StateButton.propTypes = {
+  state: PropTypes.bool.isRequired,
+}
+
+export { StateButton as default }

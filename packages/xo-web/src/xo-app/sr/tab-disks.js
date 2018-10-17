@@ -6,7 +6,7 @@ import Component from 'base-component'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import Link from 'link'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
@@ -226,11 +226,12 @@ const FILTERS = {
 // ===================================================================
 
 @injectIntl
-@propTypes({
-  onClose: propTypes.func,
-  sr: propTypes.object.isRequired,
-})
 class NewDisk extends Component {
+  static propTypes = {
+    onClose: PropTypes.func,
+    sr: PropTypes.object.isRequired,
+  }
+
   _createDisk = () => {
     const { sr, onClose = noop } = this.props
     const { name, readOnly, size } = this.state
