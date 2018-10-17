@@ -21,7 +21,6 @@ import {
   isFunction,
   map,
   startsWith,
-  union,
 } from 'lodash'
 
 import ActionRowButton from '../action-row-button'
@@ -705,46 +704,50 @@ export default class SortedTable extends Component {
     this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
   }
 
+  _getSortedActionsByLevel = actions => {
+    if (actions === undefined) {
+      return
+    }
+
+    let current
+    for (let i = 1; i < actions.length; i++) {
+      current = actions[i]
+      let j = i
+      while (
+        j > 0 &&
+        ((actions[j - 1].level !== undefined && current.level === undefined) ||
+          (actions[j - 1].level < current.level &&
+            actions[j - 1].level === 'danger') ||
+          (actions[j - 1].level === 'warning' && current.level === 'primary'))
+      ) {
+        actions[j] = actions[j - 1]
+        j--
+      }
+      actions[j] = current
+    }
+    return actions
+  }
+
   _getGroupedActions = createSelector(
     () => this.props.groupedActions,
     () => this.props.actions,
     (groupedActions, actions) =>
-      groupedActions !== undefined && actions !== undefined
-        ? groupedActions.concat(actions)
-        : groupedActions || actions
+      this._getSortedActionsByLevel(
+        groupedActions !== undefined && actions !== undefined
+          ? groupedActions.concat(actions)
+          : groupedActions || actions
+      )
   )
 
-  _getIndividualActionsSorted = createSelector(
+  _getSortedIndividualActions = createSelector(
     () => this.props.individualActions,
     () => this.props.actions,
-    (individualActions, actions) => {
-      const allActions =
+    (individualActions, actions) =>
+      this._getSortedActionsByLevel(
         individualActions !== undefined && actions !== undefined
           ? individualActions.concat(actions)
           : individualActions || actions
-
-      const warningActions = filter(
-        allActions,
-        action => action.level === 'warning'
       )
-      const dangerActions = filter(
-        allActions,
-        action => action.level === 'danger'
-      )
-      const primaryActions = filter(
-        allActions,
-        action => action.level === 'primary'
-      )
-      const actionsWithoutLevel = filter(
-        allActions,
-        action => action.level === undefined
-      )
-
-      return union(
-        actionsWithoutLevel,
-        union(union(primaryActions, warningActions), dangerActions)
-      )
-    }
   )
 
   _renderItem = (item, i) => {
@@ -781,12 +784,11 @@ export default class SortedTable extends Component {
         />
       </td>
     )
-
     const actionsColumn = hasIndividualActions && (
       <td>
         <div className='pull-right'>
           <ButtonGroup>
-            {map(this._getIndividualActionsSorted(), (props, key) => (
+            {map(this._getSortedIndividualActions(), (props, key) => (
               <IndividualAction
                 {...props}
                 disabled={props.individualDisabled || props.disabled}
