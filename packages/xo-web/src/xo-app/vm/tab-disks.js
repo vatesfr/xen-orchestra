@@ -327,7 +327,7 @@ class NewDisk extends Component {
               icon='add'
               btnStyle='primary'
               handler={this._createDisk}
-              disabled={diskLimit < size}
+              disabled={!isAdmin && diskLimit < size}
             >
               {_('vbdCreate')}
             </ActionButton>

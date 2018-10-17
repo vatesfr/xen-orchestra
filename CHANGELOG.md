@@ -11,14 +11,21 @@
 - [Backup NG form] Add link to plugins setting [#3457](https://github.com/vatesfr/xen-orchestra/issues/3457) (PR [#3514](https://github.com/vatesfr/xen-orchestra/pull/3514))
 - [Backup reports] Add job and run ID [#3488](https://github.com/vatesfr/xen-orchestra/issues/3488) (PR [#3516](https://github.com/vatesfr/xen-orchestra/pull/3516))
 - [Usage Report] Add top 3 VMs which use the most IOPS read/write/total [#3308](https://github.com/vatesfr/xen-orchestra/issues/3308) (PR [#3463](https://github.com/vatesfr/xen-orchestra/pull/3463))
+- [Settings/logs] Homogenize action buttons in table and enable bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3528](https://github.com/vatesfr/xen-orchestra/pull/3528))
+- [Settings/acls] Add bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3536](https://github.com/vatesfr/xen-orchestra/pull/3536))
 
 ### Bug fixes
 
 - [Remotes] Fix removal of broken remotes [#3327](https://github.com/vatesfr/xen-orchestra/issues/3327) (PR [#3521](https://github.com/vatesfr/xen-orchestra/pull/3521))
+- [Backups] Fix stuck backups due to broken NFS remotes [#3467](https://github.com/vatesfr/xen-orchestra/issues/3467) (PR [#3534](https://github.com/vatesfr/xen-orchestra/pull/3534))
+- [New VM] Fix missing cloud config when creating multiple VMs at once in some cases [#3532](https://github.com/vatesfr/xen-orchestra/issues/3532) (PR [#3535](https://github.com/vatesfr/xen-orchestra/pull/3535))
+- [VM] Fix an error when an admin tried to add a disk on a Self VM whose resource set had been deleted [#2814](https://github.com/vatesfr/xen-orchestra/issues/2814)
+- [Self/Create VM] Fix some quotas based on the template instead of the user inputs [#2683](https://github.com/vatesfr/xen-orchestra/issues/2683)
 
 ### Released packages
 
 - xo-common v0.1.2
+- @xen-orchestra/fs v0.4.0
 - vhd-lib v0.4.0
 - xen-api v0.20.0
 - xo-server-usage-report v0.7.0

@@ -68,10 +68,12 @@ export async function create (params) {
   const xapi = this.getXapi(template)
 
   const objectIds = [template.id]
+  const cpus = extract(params, 'CPUs')
+  const memoryMax = extract(params, 'memoryMax')
   const limits = {
-    cpus: template.CPUs.number,
+    cpus: cpus !== undefined ? cpus : template.CPUs.number,
     disk: 0,
-    memory: template.memory.dynamic[1],
+    memory: memoryMax !== undefined ? memoryMax : template.memory.dynamic[1],
     vms: 1,
   }
   const vdiSizesByDevice = {}

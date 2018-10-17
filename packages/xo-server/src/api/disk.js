@@ -1,6 +1,6 @@
 import pump from 'pump'
 import { format } from 'json-rpc-peer'
-import { unauthorized } from 'xo-common/api-errors'
+import { noSuchObject, unauthorized } from 'xo-common/api-errors'
 
 import { parseSize } from '../utils'
 
@@ -9,15 +9,29 @@ import { parseSize } from '../utils'
 export async function create ({ name, size, sr, vm, bootable, position, mode }) {
   const attach = vm !== undefined
 
-  let resourceSet
-  if (attach && (resourceSet = vm.resourceSet) != null) {
-    await this.checkResourceSetConstraints(resourceSet, this.user.id, [sr.id])
-    await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
-  } else if (
-    !(await this.hasPermissions(this.user.id, [[sr.id, 'administrate']]))
-  ) {
-    throw unauthorized()
-  }
+  do {
+    let resourceSet
+    if (attach && (resourceSet = vm.resourceSet) != null) {
+      try {
+        await this.checkResourceSetConstraints(resourceSet, this.user.id, [
+          sr.id,
+        ])
+        await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
+
+        break
+      } catch (error) {
+        if (!noSuchObject.is(error, { data: { id: resourceSet } })) {
+          throw error
+        }
+      }
+
+      // the resource set does not exist, falls back to normal check
+    }
+
+    if (!(await this.hasPermissions(this.user.id, [[sr.id, 'administrate']]))) {
+      throw unauthorized()
+    }
+  } while (false)
 
   const xapi = this.getXapi(sr)
   const vdi = await xapi.createVdi({
