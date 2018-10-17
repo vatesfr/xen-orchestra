@@ -408,7 +408,7 @@ const messages = {
   offlineSnapshot: 'Offline snapshot',
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   timeout: 'Timeout',
-  timeoutInfo: 'Number of seconds after which a job is considered failed',
+  timeoutInfo: 'Number of hours after which a job is considered failed',
   dbAndDrRequireEntreprisePlan: 'Delta Backup and DR require Entreprise plan',
   crRequiresPremiumPlan: 'CR requires Premium plan',
   smartBackupModeTitle: 'Smart mode',

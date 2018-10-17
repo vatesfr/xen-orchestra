@@ -869,6 +869,7 @@ export default [
                       id={state.inputTimeoutId}
                       onChange={effects.setTimeout}
                       value={timeout && timeout / 1e3}
+                      placeholder='in hours'
                     />
                   </FormGroup>
                   <FormGroup>
