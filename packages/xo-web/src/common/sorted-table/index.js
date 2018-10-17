@@ -21,6 +21,7 @@ import {
   isFunction,
   map,
   startsWith,
+  union,
 } from 'lodash'
 
 import ActionRowButton from '../action-row-button'
@@ -713,6 +714,39 @@ export default class SortedTable extends Component {
         : groupedActions || actions
   )
 
+  _getIndividualActionsSorted = createSelector(
+    () => this.props.individualActions,
+    () => this.props.actions,
+    (individualActions, actions) => {
+      const allActions =
+        individualActions !== undefined && actions !== undefined
+          ? individualActions.concat(actions)
+          : individualActions || actions
+
+      const warningActions = filter(
+        allActions,
+        action => action.level === 'warning'
+      )
+      const dangerActions = filter(
+        allActions,
+        action => action.level === 'danger'
+      )
+      const primaryActions = filter(
+        allActions,
+        action => action.level === 'primary'
+      )
+      const actionsWithoutLevel = filter(
+        allActions,
+        action => action.level === undefined
+      )
+
+      return union(
+        actionsWithoutLevel,
+        union(union(primaryActions, warningActions), dangerActions)
+      )
+    }
+  )
+
   _renderItem = (item, i) => {
     const { props, state } = this
     const { actions, individualActions, rowAction, rowLink } = props
@@ -747,19 +781,12 @@ export default class SortedTable extends Component {
         />
       </td>
     )
+
     const actionsColumn = hasIndividualActions && (
       <td>
         <div className='pull-right'>
           <ButtonGroup>
-            {map(individualActions, (props, key) => (
-              <IndividualAction
-                {...props}
-                item={item}
-                key={key}
-                userData={userData}
-              />
-            ))}
-            {map(actions, (props, key) => (
+            {map(this._getIndividualActionsSorted(), (props, key) => (
               <IndividualAction
                 {...props}
                 disabled={props.individualDisabled || props.disabled}
