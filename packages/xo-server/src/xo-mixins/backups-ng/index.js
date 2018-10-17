@@ -507,7 +507,7 @@ export default class BackupNg {
           vmsId !== undefined ||
           (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
         ) {
-          vms = vmsId.map(id => app.getObject(id))
+          vms = vmsId.map(id => app.getObject(id, 'VM'))
         } else {
           vms = app.getObjects({
             filter: createPredicate({
