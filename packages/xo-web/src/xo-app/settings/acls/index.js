@@ -1,6 +1,5 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
 import filter from 'lodash/filter'
@@ -31,6 +30,7 @@ import {
   addAcl,
   editAcl,
   removeAcl,
+  removeAcls,
   subscribeAcls,
   subscribeGroups,
   subscribeRoles,
@@ -67,16 +67,16 @@ const ACL_COLUMNS = [
     ),
     sortCriteria: acl => (acl.action.name || '').toLowerCase(),
   },
+]
+
+const ACL_ACTIONS = [
   {
-    name: '',
-    itemRenderer: acl => (
-      <ActionRowButton
-        icon='delete'
-        btnStyle='danger'
-        handler={removeAcl}
-        handlerParam={acl}
-      />
-    ),
+    handler: removeAcls,
+    icon: 'delete',
+    individualHandler: removeAcl,
+    individualLabel: _('deleteAcl'),
+    label: _('deleteSelectedAcls'),
+    level: 'danger',
   },
 ]
 
@@ -107,7 +107,8 @@ class AclTable extends Component {
       const { xoObjects } = this.props
       const { acls, roles } = this.state
       const resolvedAcls = filter(
-        map(acls, ({ subject, object, action }) => ({
+        map(acls, ({ id, subject, object, action }) => ({
+          id,
           subject: subjects[subject] || subject,
           object: xoObjects[object] || object,
           action: roles[action] || action,
@@ -157,7 +158,11 @@ class AclTable extends Component {
         <em>{_('aclNoneFound')}</em>
       </p>
     ) : (
-      <SortedTable collection={resolvedAcls} columns={ACL_COLUMNS} />
+      <SortedTable
+        actions={ACL_ACTIONS}
+        collection={resolvedAcls}
+        columns={ACL_COLUMNS}
+      />
     )
   }
 }

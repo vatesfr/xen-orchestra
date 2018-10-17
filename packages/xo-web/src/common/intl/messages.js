@@ -569,6 +569,11 @@ const messages = {
   noUserInGroup: 'No user in group',
   countUsers: '{users, number} user{users, plural, one {} other {s}}',
   selectPermission: 'Select Permission',
+  deleteAcl: 'Delete ACL',
+  deleteSelectedAcls: 'Delete selected ACLs',
+  deleteAclsModalTitle: 'Delete ACL{nAcls, plural, one {} other {s}}',
+  deleteAclsModalMessage:
+    'Are you sure you want to delete {nAcls, number} ACL{nAcls, plural, one {} other {s}}?',
 
   // ----- Plugins ------
   noPlugins: 'No plugins found',
