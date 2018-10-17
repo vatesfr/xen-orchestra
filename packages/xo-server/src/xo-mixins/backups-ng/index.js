@@ -415,8 +415,7 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
     return
   }
 
-  const keys = Object.keys(pattern)
-  // keys === ['id']
+  let keys = Object.keys(pattern)
   if (keys.length !== 1 || keys[0] !== 'id') {
     return
   }
@@ -425,9 +424,18 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
   if (typeof pattern === 'string') {
     return [pattern]
   }
+  if (pattern === null || typeof pattern !== 'object') {
+    return
+  }
 
-  if (pattern !== null && typeof pattern === 'object') {
-    return pattern.__or || pattern.__and
+  keys = Object.keys(pattern)
+  if (
+    keys.length === 1 &&
+    keys[0] === '__or' &&
+    Array.isArray((pattern = pattern.__or)) &&
+    pattern.every(_ => typeof _ === 'string')
+  ) {
+    return pattern
   }
 }
 
@@ -499,13 +507,7 @@ export default class BackupNg {
           vmsId !== undefined ||
           (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
         ) {
-          vms = vmsId.map(id => {
-            try {
-              return app.getObject(id)
-            } catch (err) {
-              throw new Error(`the VM ${id} is not found`)
-            }
-          })
+          vms = vmsId.map(id => app.getObject(id))
         } else {
           vms = app.getObjects({
             filter: createPredicate({

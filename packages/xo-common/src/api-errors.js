@@ -34,7 +34,7 @@ export const notImplemented = create(0, () => ({
 
 export const noSuchObject = create(1, (id, type) => ({
   data: { id, type },
-  message: 'no such object',
+  message: `no such ${type || 'object'} ${id}`,
 }))
 
 export const unauthorized = create(2, () => ({
