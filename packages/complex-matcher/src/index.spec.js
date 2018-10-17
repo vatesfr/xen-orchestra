@@ -32,7 +32,7 @@ describe('parse', () => {
     let node
 
     node = parse('32')
-    expect(node.match(32)).toBe(false)
+    expect(node.match(32)).toBe(true)
     expect(node.match('32')).toBe(true)
     expect(node.toString()).toBe('32')
 

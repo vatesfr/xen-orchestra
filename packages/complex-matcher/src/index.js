@@ -166,24 +166,17 @@ export class NumberOrStringNode extends Node {
   }
 
   match (lcValue, numValue, value) {
-    if (typeof value === 'string') {
-      return value.toLowerCase().indexOf(lcValue) !== -1
-    }
-
-    if (Array.isArray(value) || isPlainObject(value)) {
-      return some(value, this.match)
-    }
-
     return (
-      numValue === this.value ||
-      (numValue !== null &&
-        typeof numValue === 'object' &&
-        some(numValue, this.match))
+      value === numValue ||
+      (typeof value === 'string'
+        ? value.toLowerCase().indexOf(lcValue) !== -1
+        : (Array.isArray(value) || isPlainObject(value)) &&
+          some(value, this.match))
     )
   }
 
   toString () {
-    return String(this.value)
+    return this.value
   }
 }
 export { NumberOrStringNode as NumberOrString }
