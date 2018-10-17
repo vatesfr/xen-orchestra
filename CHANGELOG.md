@@ -24,6 +24,7 @@
 
 ### Released packages
 
+- xo-common v0.1.2
 - @xen-orchestra/fs v0.4.0
 - vhd-lib v0.4.0
 - xen-api v0.20.0
