@@ -13,6 +13,7 @@
 - [Usage Report] Add top 3 VMs which use the most IOPS read/write/total [#3308](https://github.com/vatesfr/xen-orchestra/issues/3308) (PR [#3463](https://github.com/vatesfr/xen-orchestra/pull/3463))
 - [Settings/logs] Homogenize action buttons in table and enable bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3528](https://github.com/vatesfr/xen-orchestra/pull/3528))
 - [Settings/acls] Add bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3536](https://github.com/vatesfr/xen-orchestra/pull/3536))
+- [Home] Improve search usage: raw numbers also match in names [#2906](https://github.com/vatesfr/xen-orchestra/issues/2906) (PR [#3552](https://github.com/vatesfr/xen-orchestra/pull/3552))
 
 ### Bug fixes
 
@@ -26,6 +27,7 @@
 
 - xo-common v0.1.2
 - @xen-orchestra/fs v0.4.0
+- complex-matcher v0.5.0
 - vhd-lib v0.4.0
 - xen-api v0.20.0
 - xo-server-usage-report v0.7.0
