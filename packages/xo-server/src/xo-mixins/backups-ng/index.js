@@ -507,7 +507,33 @@ export default class BackupNg {
           vmsId !== undefined ||
           (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
         ) {
-          vms = vmsId.map(id => app.getObject(id, 'VM'))
+          vms = vmsId
+            .map(id => {
+              try {
+                return app.getObject(id, 'VM')
+              } catch (e) {
+                const taskId: string = logger.notice(
+                  `Starting backup of ${id}. (${job.id})`,
+                  {
+                    event: 'task.start',
+                    parentId: runJobId,
+                    data: {
+                      type: 'VM',
+                      id,
+                    },
+                  }
+                )
+                logger.error(`Backuping ${id} has failed. (${job.id})`, {
+                  event: 'task.end',
+                  taskId,
+                  status: 'failure',
+                  result: {
+                    message: 'no such object',
+                  },
+                })
+              }
+            })
+            .filter(vm => vm !== undefined)
         } else {
           vms = app.getObjects({
             filter: createPredicate({
@@ -519,7 +545,6 @@ export default class BackupNg {
             throw new Error('no VMs match this pattern')
           }
         }
-
         const jobId = job.id
         const srs = unboxIds(job.srs).map(id => {
           const xapi = app.getXapi(id)
