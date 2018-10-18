@@ -87,7 +87,6 @@ const AclTable = [
     pools: createGetObjectsOfType('pool'),
     srs: createGetObjectsOfType('SR'),
     vms: createGetObjectsOfType('VM'),
-    snapshots: createGetObjectsOfType('VM-snapshot'),
   }),
   addSubscriptions({
     acls: subscribeAcls,
@@ -96,13 +95,10 @@ const AclTable = [
     users: subscribeUsers,
   }),
   provideState({
-    initialState: () => ({
-      acls: [],
-    }),
     computed: {
       acls: (
         { groups, roles, users },
-        { acls, hosts, networks, pools, srs, vms, snapshots }
+        { acls, hosts, networks, pools, srs, vms }
       ) =>
         filter(
           map(acls, ({ id, subject, object, action }) => ({
@@ -113,15 +109,13 @@ const AclTable = [
               networks[object] ||
               pools[object] ||
               srs[object] ||
-              vms[object] ||
-              snapshots[object],
+              vms[object],
             action: roles[action],
           })),
           ({ subject, object, action }) =>
             subject !== undefined &&
             object !== undefined &&
-            action !== undefined &&
-            object.type !== 'VM-snapshot'
+            action !== undefined
         ),
       groups: (_, { groups }) => keyBy(groups, 'id'),
       roles: (_, { roles }) => keyBy(roles, 'id'),
