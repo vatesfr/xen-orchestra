@@ -147,6 +147,7 @@ const getInitialState = () => ({
   compression: undefined,
   crMode: false,
   deltaMode: false,
+  displayAdvancedSettings: undefined,
   drMode: false,
   formId: generateRandomId(),
   inputConcurrencyId: generateRandomId(),
@@ -612,6 +613,10 @@ export default [
     const { propSettings, settings = propSettings } = state
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
+    const displayAdvancedSettings = defined(
+      state.displayAdvancedSettings,
+      concurrency > 0 || timeout > 0 || offlineSnapshot
+    )
 
     const { compression = job.compression === 'native' } = state
 
@@ -824,7 +829,21 @@ export default [
                 </Card>
               )}
               <Card>
-                <CardHeader>{_('newBackupAdvancedSettings')}</CardHeader>
+                <CardHeader>
+                  {_('newBackupSettings')}
+                  <ActionButton
+                    className='pull-right'
+                    data-mode='displayAdvancedSettings'
+                    handler={effects.toggleMode}
+                    icon={displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
+                    iconColor={
+                      displayAdvancedSettings ? 'text-success' : undefined
+                    }
+                    size='small'
+                  >
+                    {_('newBackupAdvancedSettings')}
+                  </ActionButton>
+                </CardHeader>
                 <CardBlock>
                   <FormGroup>
                     <label htmlFor={state.inputReportWhenId}>
@@ -851,55 +870,59 @@ export default [
                       valueKey='value'
                     />
                   </FormGroup>
-                  <FormGroup>
-                    <label htmlFor={state.inputConcurrencyId}>
-                      <strong>{_('concurrency')}</strong>
-                    </label>
-                    <Number
-                      id={state.inputConcurrencyId}
-                      onChange={effects.setConcurrency}
-                      value={concurrency}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <label htmlFor={state.inputTimeoutId}>
-                      <strong>{_('timeout')}</strong>
-                    </label>{' '}
-                    <Tooltip content={_('timeoutInfo')}>
-                      <Icon icon='info' />
-                    </Tooltip>
-                    <Number
-                      id={state.inputTimeoutId}
-                      onChange={effects.setTimeout}
-                      value={timeout && timeout / 1e3}
-                      placeholder={formatMessage(messages.timeoutUnit)}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('offlineSnapshot')}</strong>{' '}
-                      <Tooltip content={_('offlineSnapshotInfo')}>
-                        <Icon icon='info' />
-                      </Tooltip>{' '}
-                      <input
-                        checked={offlineSnapshot}
-                        onChange={effects.setOfflineSnapshot}
-                        type='checkbox'
-                      />
-                    </label>
-                  </FormGroup>
-                  {state.isFull && (
-                    <FormGroup>
-                      <label>
-                        <strong>{_('useCompression')}</strong>{' '}
-                        <input
-                          checked={compression}
-                          name='compression'
-                          onChange={effects.setCheckboxValue}
-                          type='checkbox'
+                  {displayAdvancedSettings && (
+                    <div>
+                      <FormGroup>
+                        <label htmlFor={state.inputConcurrencyId}>
+                          <strong>{_('concurrency')}</strong>
+                        </label>
+                        <Number
+                          id={state.inputConcurrencyId}
+                          onChange={effects.setConcurrency}
+                          value={concurrency}
                         />
-                      </label>
-                    </FormGroup>
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputTimeoutId}>
+                          <strong>{_('timeout')}</strong>
+                        </label>{' '}
+                        <Tooltip content={_('timeoutInfo')}>
+                          <Icon icon='info' />
+                        </Tooltip>
+                        <Number
+                          id={state.inputTimeoutId}
+                          onChange={effects.setTimeout}
+                          value={timeout && timeout / 1e3}
+                          placeholder={formatMessage(messages.timeoutUnit)}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label>
+                          <strong>{_('offlineSnapshot')}</strong>{' '}
+                          <Tooltip content={_('offlineSnapshotInfo')}>
+                            <Icon icon='info' />
+                          </Tooltip>{' '}
+                          <input
+                            checked={offlineSnapshot}
+                            onChange={effects.setOfflineSnapshot}
+                            type='checkbox'
+                          />
+                        </label>
+                      </FormGroup>
+                      {state.isFull && (
+                        <FormGroup>
+                          <label>
+                            <strong>{_('useCompression')}</strong>{' '}
+                            <input
+                              checked={compression}
+                              name='compression'
+                              onChange={effects.setCheckboxValue}
+                              type='checkbox'
+                            />
+                          </label>
+                        </FormGroup>
+                      )}
+                    </div>
                   )}
                 </CardBlock>
               </Card>

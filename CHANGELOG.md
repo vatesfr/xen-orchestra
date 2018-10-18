@@ -17,6 +17,7 @@
 - [Backup NG] Timeout of a job is now in hours [#3550](https://github.com/vatesfr/xen-orchestra/issues/3550) (PR [#3553](https://github.com/vatesfr/xen-orchestra/pull/3553))
 - [Backup NG] Explicit error if a VM is missing [#3434](https://github.com/vatesfr/xen-orchestra/issues/3434) (PR [#3522](https://github.com/vatesfr/xen-orchestra/pull/3522))
 - [Backup NG] Show all advanced settings with non-default values in overview [#3549](https://github.com/vatesfr/xen-orchestra/issues/3549) (PR [#3554](https://github.com/vatesfr/xen-orchestra/pull/3554))
+- [Backup NG] Collapse advanced settings by default [#3551](https://github.com/vatesfr/xen-orchestra/issues/3551) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3559))
 
 ### Bug fixes
 
