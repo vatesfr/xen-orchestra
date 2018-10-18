@@ -190,12 +190,17 @@ class JobsTable extends React.Component {
       },
       {
         itemRenderer: job => {
-          const { concurrency, offlineSnapshot } = job.settings[''] || {}
+          const { concurrency, offlineSnapshot, reportWhen, timeout } =
+            job.settings[''] || {}
 
           return (
             <Ul>
+              {reportWhen && <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>}
               {concurrency > 0 && (
                 <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
+              )}
+              {timeout > 0 && (
+                <Li>{_.keyValue(_('timeout'), timeout / 1e3)} hours</Li>
               )}
               {offlineSnapshot && (
                 <Li>
