@@ -410,6 +410,35 @@ const wrapTaskFn = <T>(
     }
   }
 
+const extractIdsFromSimplePattern = (pattern: mixed) => {
+  if (pattern === null || typeof pattern !== 'object') {
+    return
+  }
+
+  let keys = Object.keys(pattern)
+  if (keys.length !== 1 || keys[0] !== 'id') {
+    return
+  }
+
+  pattern = pattern.id
+  if (typeof pattern === 'string') {
+    return [pattern]
+  }
+  if (pattern === null || typeof pattern !== 'object') {
+    return
+  }
+
+  keys = Object.keys(pattern)
+  if (
+    keys.length === 1 &&
+    keys[0] === '__or' &&
+    Array.isArray((pattern = pattern.__or)) &&
+    pattern.every(_ => typeof _ === 'string')
+  ) {
+    return pattern
+  }
+}
+
 // File structure on remotes:
 //
 // <remote>
@@ -471,21 +500,48 @@ export default class BackupNg {
         }
 
         const job: BackupJob = (job_: any)
+        const vmsPattern = job.vms
 
-        const vms: $Dict<Vm> = app.getObjects({
-          filter: createPredicate({
-            type: 'VM',
-            ...(vmsId !== undefined
-              ? {
-                  id: {
-                    __or: vmsId,
-                  },
-                }
-              : job.vms),
-          }),
-        })
-        if (isEmpty(vms)) {
-          throw new Error('no VMs match this pattern')
+        let vms: $Dict<Vm>
+        if (
+          vmsId !== undefined ||
+          (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
+        ) {
+          vms = vmsId
+            .map(id => {
+              try {
+                return app.getObject(id, 'VM')
+              } catch (error) {
+                const taskId: string = logger.notice(
+                  `Starting backup of ${id}. (${job.id})`,
+                  {
+                    event: 'task.start',
+                    parentId: runJobId,
+                    data: {
+                      type: 'VM',
+                      id,
+                    },
+                  }
+                )
+                logger.error(`Backuping ${id} has failed. (${job.id})`, {
+                  event: 'task.end',
+                  taskId,
+                  status: 'failure',
+                  result: serializeError(error),
+                })
+              }
+            })
+            .filter(vm => vm !== undefined)
+        } else {
+          vms = app.getObjects({
+            filter: createPredicate({
+              type: 'VM',
+              ...vmsPattern,
+            }),
+          })
+          if (isEmpty(vms)) {
+            throw new Error('no VMs match this pattern')
+          }
         }
         const jobId = job.id
         const srs = unboxIds(job.srs).map(id => {
