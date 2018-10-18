@@ -160,7 +160,7 @@ const getInitialState = () => ({
   snapshotMode: false,
   srs: [],
   tags: {
-    notValues: ['Continuous Replication', 'Disaster Recovery'],
+    notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
   },
   vms: [],
 })
