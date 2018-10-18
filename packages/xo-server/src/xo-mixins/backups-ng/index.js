@@ -511,7 +511,7 @@ export default class BackupNg {
             .map(id => {
               try {
                 return app.getObject(id, 'VM')
-              } catch (e) {
+              } catch (error) {
                 const taskId: string = logger.notice(
                   `Starting backup of ${id}. (${job.id})`,
                   {
@@ -527,9 +527,7 @@ export default class BackupNg {
                   event: 'task.end',
                   taskId,
                   status: 'failure',
-                  result: {
-                    message: 'no such object',
-                  },
+                  result: serializeError(error),
                 })
               }
             })
