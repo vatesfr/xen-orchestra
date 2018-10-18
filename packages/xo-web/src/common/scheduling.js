@@ -4,15 +4,7 @@ import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
 import { FormattedDate, FormattedTime } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
-import {
-  flatten,
-  forEach,
-  identity,
-  includes,
-  isArray,
-  map,
-  sortedUniq,
-} from 'lodash'
+import { flatten, forEach, identity, isArray, map, sortedIndex } from 'lodash'
 
 import _ from './intl'
 import Button from './button'
@@ -155,6 +147,7 @@ export class SchedulePreview extends Component {
             max={MAX_PREVIEWS}
             onChange={this.linkState('value')}
             value={value && +value}
+            required
           />
         </div>
         <ul className='list-group'>
@@ -205,13 +198,12 @@ const TableSelect = [
   provideState({
     effects: {
       onChange: (_, tdId, add) => (_, { value, onChange }) => {
-        let newValue = [...value]
+        const newValue = [...value]
+        const index = sortedIndex(newValue, tdId)
         if (add) {
-          newValue.push(tdId)
-          newValue = sortedUniq(newValue)
+          newValue[index] !== tdId && newValue.splice(index, 0, tdId)
         } else {
-          const index = newValue.indexOf(tdId)
-          index !== -1 && newValue.splice(index, 1)
+          newValue[index] === tdId && newValue.splice(index, 1)
         }
         onChange(newValue)
       },
@@ -224,38 +216,41 @@ const TableSelect = [
     },
   }),
   injectState,
-  ({ state, effects, labelId, options, optionRenderer = identity, value }) => (
-    <div>
-      <table className='table table-bordered table-sm'>
-        <tbody>
-          {map(options, (line, i) => (
-            <tr key={i}>
-              {map(line, tdOption => (
-                <ToggleTd
-                  children={optionRenderer(tdOption)}
-                  tdId={tdOption}
-                  key={tdOption}
-                  onChange={effects.onChange}
-                  value={includes(value, tdOption)}
-                />
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <Button className='pull-right' onClick={effects.selectAll}>
-        {_(`selectTableAll${labelId}`)}
-      </Button>
-    </div>
-  ),
+  ({ state, effects, labelId, options, optionRenderer = identity, value }) => {
+    let k = 0
+    return (
+      <div>
+        <table className='table table-bordered table-sm'>
+          <tbody>
+            {map(options, (line, i) => (
+              <tr key={i}>
+                {map(line, tdOption => (
+                  <ToggleTd
+                    children={optionRenderer(tdOption)}
+                    tdId={tdOption}
+                    key={tdOption}
+                    onChange={effects.onChange}
+                    value={k < value.length && value[k] === tdOption && ++k}
+                  />
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <Button className='pull-right' onClick={effects.selectAll}>
+          {_(`selectTableAll${labelId}`)}
+        </Button>
+      </div>
+    )
+  },
 ].reduceRight((value, decorator) => decorator(value))
 
 TableSelect.propTypes = {
-  labelId: propTypes.string.isRequired,
-  options: propTypes.array.isRequired,
-  optionRenderer: propTypes.func,
-  onChange: propTypes.func.isRequired,
-  value: propTypes.array.isRequired,
+  labelId: PropTypes.string.isRequired,
+  options: PropTypes.array.isRequired,
+  optionRenderer: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.array.isRequired,
 }
 
 // ===================================================================
@@ -277,6 +272,7 @@ const TimePicker = [
       step: (_, { value }) =>
         value.indexOf('/') === 1 ? +value.split('/')[1] : undefined,
       optionsValues: (_, { options }) => flatten(options),
+
       // '*' or '*/1' => all values
       // '2,7' => [2,7]
       // '*/2' => [min + 2 * 0, min + 2 * 1, ..., min + 2 * n <= max]
@@ -284,10 +280,9 @@ const TimePicker = [
         value === '*' || step === 1
           ? optionsValues
           : step !== undefined
-            ? optionsValues.filter(
-                value => (value - optionsValues[0]) % step === 0
-              )
+            ? optionsValues.filter((_, i) => i % step === 0)
             : value.split(',').map(Number),
+
       // '*' => 1
       // '*/2' => 2
       rangeValue: ({ step }, { value }) => (value === '*' ? 1 : step),
@@ -313,7 +308,6 @@ const TimePicker = [
             max={props.range[1]}
             min={props.range[0]}
             onChange={effects.onChange}
-            optional
             value={state.rangeValue}
           />
         )}

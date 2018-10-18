@@ -92,14 +92,15 @@ export class Range extends Component {
     max: PropTypes.number.isRequired,
     min: PropTypes.number.isRequired,
     onChange: PropTypes.func,
+    required: PropTypes.boolean,
     step: PropTypes.number,
     value: PropTypes.number,
   }
 
   componentDidMount () {
-    const { min, onChange, optional, value } = this.props
+    const { min, onChange, required, value } = this.props
 
-    if (value === undefined && !optional) {
+    if (value === undefined && required) {
       onChange !== undefined && onChange(min)
     }
   }
