@@ -803,9 +803,12 @@ const messages = {
   srShared: 'Shared',
   srNotShared: 'Not shared',
   pbdNoSr: 'No storage detected',
+  deletePbdModalTitle: 'Delete PBD',
+  deletePbdModalMessage:
+    'Are you sure you want to forget this PBD? This will disconnect the SR from all their hosts by removing their links to them (PBDs)',
   deletePbdsModalTitle: 'Delete PBD{nPbds, plural, one {} other {s}}',
   deletePbdsModalMessage:
-    'Are you sure you want to delete {nPbds, number} PBD{nPbds, plural, one {} other {s}}?',
+    'Are you sure you want to forget {nPbds, number} PBD{nPbds, plural, one {} other {s}}? This will disconnect the SR from all their hosts by removing their links to them (PBDs)',
 
   // ----- Host patch tabs -----
   patchNameLabel: 'Name',
