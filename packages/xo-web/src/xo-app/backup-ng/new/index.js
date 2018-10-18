@@ -147,7 +147,7 @@ const getInitialState = () => ({
   compression: undefined,
   crMode: false,
   deltaMode: false,
-  displayAdvancedSettings: false,
+  displayAdvancedSettings: undefined,
   drMode: false,
   formId: generateRandomId(),
   inputConcurrencyId: generateRandomId(),
@@ -376,15 +376,11 @@ export default [
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
-        const { concurrency, offlineSnapshot, timeout } = job.settings['']
-        const showAdvancedSettings =
-          concurrency > 0 || timeout > 0 || offlineSnapshot
 
         return {
           name: job.name,
           paramsUpdated: true,
           smartMode: job.vms.id === undefined,
-          displayAdvancedSettings: showAdvancedSettings,
           snapshotMode: some(
             job.settings,
             ({ snapshotRetention }) => snapshotRetention > 0
@@ -617,6 +613,10 @@ export default [
     const { propSettings, settings = propSettings } = state
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
+    const displayAdvancedSettings = defined(
+      state.displayAdvancedSettings,
+      concurrency > 0 || timeout > 0 || offlineSnapshot
+    )
 
     const { compression = job.compression === 'native' } = state
 
@@ -835,11 +835,9 @@ export default [
                     className='pull-right'
                     data-mode='displayAdvancedSettings'
                     handler={effects.toggleMode}
-                    icon={
-                      state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'
-                    }
+                    icon={displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
                     iconColor={
-                      state.displayAdvancedSettings ? 'text-success' : undefined
+                      displayAdvancedSettings ? 'text-success' : undefined
                     }
                     size='small'
                   >
@@ -872,7 +870,7 @@ export default [
                       valueKey='value'
                     />
                   </FormGroup>
-                  {state.displayAdvancedSettings && (
+                  {displayAdvancedSettings && (
                     <div>
                       <FormGroup>
                         <label htmlFor={state.inputConcurrencyId}>
