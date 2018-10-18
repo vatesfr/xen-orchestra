@@ -143,6 +143,7 @@ const createDoesRetentionExist = name => {
 
 const getInitialState = () => ({
   $pool: {},
+  advancedSettings: false,
   backupMode: false,
   compression: undefined,
   crMode: false,
@@ -375,11 +376,15 @@ export default [
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
+        const { concurrency, offlineSnapshot, timeout } = job.settings['']
+        const showAdvancedSettings =
+          concurrency > 0 || timeout > 0 || offlineSnapshot
 
         return {
           name: job.name,
           paramsUpdated: true,
           smartMode: job.vms.id === undefined,
+          advancedSettings: showAdvancedSettings,
           snapshotMode: some(
             job.settings,
             ({ snapshotRetention }) => snapshotRetention > 0
@@ -824,7 +829,21 @@ export default [
                 </Card>
               )}
               <Card>
-                <CardHeader>{_('newBackupAdvancedSettings')}</CardHeader>
+                <CardHeader>
+                  {_('newBackupSettings')}
+                  <ActionButton
+                    className='pull-right'
+                    data-mode='advancedSettings'
+                    handler={effects.toggleMode}
+                    icon={state.advancedSettings ? 'toggle-on' : 'toggle-off'}
+                    iconColor={
+                      state.advancedSettings ? 'text-success' : undefined
+                    }
+                    size='small'
+                  >
+                    {_('newBackupAdvancedSettings')}
+                  </ActionButton>
+                </CardHeader>
                 <CardBlock>
                   <FormGroup>
                     <label htmlFor={state.inputReportWhenId}>
@@ -851,55 +870,59 @@ export default [
                       valueKey='value'
                     />
                   </FormGroup>
-                  <FormGroup>
-                    <label htmlFor={state.inputConcurrencyId}>
-                      <strong>{_('concurrency')}</strong>
-                    </label>
-                    <Number
-                      id={state.inputConcurrencyId}
-                      onChange={effects.setConcurrency}
-                      value={concurrency}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <label htmlFor={state.inputTimeoutId}>
-                      <strong>{_('timeout')}</strong>
-                    </label>{' '}
-                    <Tooltip content={_('timeoutInfo')}>
-                      <Icon icon='info' />
-                    </Tooltip>
-                    <Number
-                      id={state.inputTimeoutId}
-                      onChange={effects.setTimeout}
-                      value={timeout && timeout / 1e3}
-                      placeholder={formatMessage(messages.timeoutUnit)}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('offlineSnapshot')}</strong>{' '}
-                      <Tooltip content={_('offlineSnapshotInfo')}>
-                        <Icon icon='info' />
-                      </Tooltip>{' '}
-                      <input
-                        checked={offlineSnapshot}
-                        onChange={effects.setOfflineSnapshot}
-                        type='checkbox'
-                      />
-                    </label>
-                  </FormGroup>
-                  {state.isFull && (
-                    <FormGroup>
-                      <label>
-                        <strong>{_('useCompression')}</strong>{' '}
-                        <input
-                          checked={compression}
-                          name='compression'
-                          onChange={effects.setCheckboxValue}
-                          type='checkbox'
+                  {state.advancedSettings && (
+                    <div>
+                      <FormGroup>
+                        <label htmlFor={state.inputConcurrencyId}>
+                          <strong>{_('concurrency')}</strong>
+                        </label>
+                        <Number
+                          id={state.inputConcurrencyId}
+                          onChange={effects.setConcurrency}
+                          value={concurrency}
                         />
-                      </label>
-                    </FormGroup>
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputTimeoutId}>
+                          <strong>{_('timeout')}</strong>
+                        </label>{' '}
+                        <Tooltip content={_('timeoutInfo')}>
+                          <Icon icon='info' />
+                        </Tooltip>
+                        <Number
+                          id={state.inputTimeoutId}
+                          onChange={effects.setTimeout}
+                          value={timeout && timeout / 1e3}
+                          placeholder={formatMessage(messages.timeoutUnit)}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label>
+                          <strong>{_('offlineSnapshot')}</strong>{' '}
+                          <Tooltip content={_('offlineSnapshotInfo')}>
+                            <Icon icon='info' />
+                          </Tooltip>{' '}
+                          <input
+                            checked={offlineSnapshot}
+                            onChange={effects.setOfflineSnapshot}
+                            type='checkbox'
+                          />
+                        </label>
+                      </FormGroup>
+                      {state.isFull && (
+                        <FormGroup>
+                          <label>
+                            <strong>{_('useCompression')}</strong>{' '}
+                            <input
+                              checked={compression}
+                              name='compression'
+                              onChange={effects.setCheckboxValue}
+                              type='checkbox'
+                            />
+                          </label>
+                        </FormGroup>
+                      )}
+                    </div>
                   )}
                 </CardBlock>
               </Card>

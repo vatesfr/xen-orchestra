@@ -392,6 +392,7 @@ const messages = {
 
   // ------ New backup -----
   newBackupAdvancedSettings: 'Advanced settings',
+  newBackupSettings: 'Settings',
   reportWhenAlways: 'Always',
   reportWhenFailure: 'Failure',
   reportWhenNever: 'Never',
