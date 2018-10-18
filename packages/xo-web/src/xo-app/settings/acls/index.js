@@ -100,12 +100,21 @@ const AclTable = [
       acls: [],
     }),
     computed: {
-      acls: ({ groups, roles, users, xoObjects }, { acls }) =>
+      acls: (
+        { groups, roles, users },
+        { acls, hosts, networks, pools, srs, vms, snapshots }
+      ) =>
         filter(
           map(acls, ({ id, subject, object, action }) => ({
             id,
             subject: users[subject] || groups[subject],
-            object: xoObjects[object],
+            object:
+              hosts[object] ||
+              networks[object] ||
+              pools[object] ||
+              srs[object] ||
+              vms[object] ||
+              snapshots[object],
             action: roles[action],
           })),
           ({ subject, object, action }) =>
@@ -117,8 +126,6 @@ const AclTable = [
       groups: (_, { groups }) => keyBy(groups, 'id'),
       roles: (_, { roles }) => keyBy(roles, 'id'),
       users: (_, { users }) => keyBy(users, 'id'),
-      xoObjects: (_, { hosts, networks, pools, srs, vms, snapshots }) =>
-        Object.assign({}, hosts, networks, pools, srs, vms, snapshots),
     },
   }),
   injectState,
