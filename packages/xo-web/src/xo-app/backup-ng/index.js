@@ -199,7 +199,7 @@ class JobsTable extends React.Component {
               {concurrency > 0 && (
                 <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
               )}
-              {timeout && (
+              {timeout > 0 && (
                 <Li>{_.keyValue(_('timeout'), timeout / 1e3)} hours</Li>
               )}
               {offlineSnapshot && (
