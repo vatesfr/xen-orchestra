@@ -6,7 +6,6 @@ import humanFormat from 'human-format'
 import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import keys from 'lodash/keys'
-import kindOf from 'kindof'
 import multiKeyHashInt from 'multikey-hash'
 import pick from 'lodash/pick'
 import tmp from 'tmp'
@@ -191,35 +190,6 @@ export const lightSet = collection => {
 export const noop = () => {}
 
 // -------------------------------------------------------------------
-
-// Usage: pDebug(promise, name) or promise::pDebug(name)
-export function pDebug (promise, name) {
-  if (arguments.length === 1) {
-    name = promise
-    promise = this
-  }
-
-  Promise.resolve(promise).then(
-    value => {
-      console.log(
-        '%s',
-        `Promise ${name} resolved${
-          value !== undefined ? ` with ${kindOf(value)}` : ''
-        }`
-      )
-    },
-    reason => {
-      console.log(
-        '%s',
-        `Promise ${name} rejected${
-          reason !== undefined ? ` with ${kindOf(reason)}` : ''
-        }`
-      )
-    }
-  )
-
-  return promise
-}
 
 // Given a collection (array or object) which contains promises,
 // return a promise that is fulfilled when all the items in the
