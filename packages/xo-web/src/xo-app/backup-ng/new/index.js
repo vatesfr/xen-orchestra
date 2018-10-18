@@ -143,11 +143,11 @@ const createDoesRetentionExist = name => {
 
 const getInitialState = () => ({
   $pool: {},
-  advancedSettings: false,
   backupMode: false,
   compression: undefined,
   crMode: false,
   deltaMode: false,
+  displayAdvancedSettings: false,
   drMode: false,
   formId: generateRandomId(),
   inputConcurrencyId: generateRandomId(),
@@ -384,7 +384,7 @@ export default [
           name: job.name,
           paramsUpdated: true,
           smartMode: job.vms.id === undefined,
-          advancedSettings: showAdvancedSettings,
+          displayAdvancedSettings: showAdvancedSettings,
           snapshotMode: some(
             job.settings,
             ({ snapshotRetention }) => snapshotRetention > 0
@@ -833,11 +833,13 @@ export default [
                   {_('newBackupSettings')}
                   <ActionButton
                     className='pull-right'
-                    data-mode='advancedSettings'
+                    data-mode='displayAdvancedSettings'
                     handler={effects.toggleMode}
-                    icon={state.advancedSettings ? 'toggle-on' : 'toggle-off'}
+                    icon={
+                      state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'
+                    }
                     iconColor={
-                      state.advancedSettings ? 'text-success' : undefined
+                      state.displayAdvancedSettings ? 'text-success' : undefined
                     }
                     size='small'
                   >
@@ -870,7 +872,7 @@ export default [
                       valueKey='value'
                     />
                   </FormGroup>
-                  {state.advancedSettings && (
+                  {state.displayAdvancedSettings && (
                     <div>
                       <FormGroup>
                         <label htmlFor={state.inputConcurrencyId}>
