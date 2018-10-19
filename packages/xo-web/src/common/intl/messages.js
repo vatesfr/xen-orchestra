@@ -1376,6 +1376,7 @@ const messages = {
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',
   deleteVmBackupsBulkConfirmText:
     'delete {nBackups} backup{nBackups, plural, one {} other {s}}',
+  unknownJob: 'Unknown job',
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',

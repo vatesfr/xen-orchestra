@@ -318,7 +318,7 @@ const xoItemToRender = {
       </span>{' '}
       <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
       <span className='tag tag-success'>
-        {backup.jobName !== undefined ? backup.jobName : '?'}
+        {backup.jobName !== undefined ? backup.jobName : _('unknownJob')}
       </span>{' '}
       <FormattedDate
         value={new Date(backup.timestamp)}
