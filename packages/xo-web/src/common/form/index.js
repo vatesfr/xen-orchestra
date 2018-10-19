@@ -92,7 +92,7 @@ export class Range extends Component {
     max: PropTypes.number.isRequired,
     min: PropTypes.number.isRequired,
     onChange: PropTypes.func,
-    required: PropTypes.boolean,
+    required: PropTypes.bool,
     step: PropTypes.number,
     value: PropTypes.number,
   }
