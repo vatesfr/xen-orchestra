@@ -25,11 +25,6 @@ const PREVIEW_SLIDER_STYLE = { width: '400px' }
 
 const UNITS = ['minute', 'hour', 'monthDay', 'month', 'weekDay']
 
-const MINUTES_RANGE = [1, 30]
-const HOURS_RANGE = [1, 12]
-const MONTH_DAYS_RANGE = [1, 15]
-const MONTHS_RANGE = [1, 6]
-
 const MIN_PREVIEWS = 5
 const MAX_PREVIEWS = 20
 
@@ -271,8 +266,7 @@ const TimePicker = [
       },
     },
     computed: {
-      step: (_, { value }) =>
-        value.indexOf('/') === 1 ? +value.split('/')[1] : undefined,
+      maxStep: ({ optionsValues }) => Math.floor(optionsValues.length / 2),
       optionsValues: (_, { options }) => flatten(options),
 
       // '*' or '*/1' => all values
@@ -287,7 +281,13 @@ const TimePicker = [
 
       // '*' => 1
       // '*/2' => 2
-      rangeValue: ({ step }, { value }) => (value === '*' ? 1 : step),
+      // otherwise => undefined
+      step: (_, { value }) =>
+        value === '*'
+          ? 1
+          : value.indexOf('/') === 1
+            ? +value.split('/')[1]
+            : undefined,
     },
   }),
   injectState,
@@ -305,14 +305,12 @@ const TimePicker = [
           options={props.options}
           value={state.tableValue}
         />
-        {props.range !== undefined && (
-          <Range
-            max={props.range[1]}
-            min={props.range[0]}
-            onChange={effects.onChange}
-            value={state.rangeValue}
-          />
-        )}
+        <Range
+          max={state.maxStep}
+          min={1}
+          onChange={effects.onChange}
+          value={state.step}
+        />
       </CardBlock>
     </Card>
   ),
@@ -324,7 +322,6 @@ TimePicker.propTypes = {
   onChange: PropTypes.func.isRequired,
   optionRenderer: PropTypes.func,
   options: PropTypes.array.isRequired,
-  range: PropTypes.array,
   value: PropTypes.string.isRequired,
 }
 
@@ -391,7 +388,6 @@ class DayPicker extends Component {
         onChange={this._onChange}
         optionRenderer={weekDayMode ? getDayName : undefined}
         options={weekDayMode ? WEEK_DAYS : DAYS}
-        range={MONTH_DAYS_RANGE}
         value={weekDayMode ? weekDayPattern : monthDayPattern}
       />
     )
@@ -463,7 +459,6 @@ export default class Scheduler extends Component {
               optionRenderer={getMonthName}
               options={MONTHS}
               onChange={this._monthChange}
-              range={MONTHS_RANGE}
               value={cronPatternArr[PICKTIME_TO_ID['month']]}
             />
           </Col>
@@ -480,7 +475,6 @@ export default class Scheduler extends Component {
             <TimePicker
               labelId='Hour'
               options={HOURS}
-              range={HOURS_RANGE}
               onChange={this._hourChange}
               value={cronPatternArr[PICKTIME_TO_ID['hour']]}
             />
@@ -489,7 +483,6 @@ export default class Scheduler extends Component {
             <TimePicker
               labelId='Minute'
               options={MINS}
-              range={MINUTES_RANGE}
               onChange={this._minuteChange}
               value={cronPatternArr[PICKTIME_TO_ID['minute']]}
             />
