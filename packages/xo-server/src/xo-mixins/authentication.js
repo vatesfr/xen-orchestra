@@ -1,3 +1,4 @@
+import createLogger from '@xen-orchestra/log'
 import ms from 'ms'
 import { noSuchObject } from 'xo-common/api-errors'
 import { ignoreErrors } from 'promise-toolbox'
@@ -6,6 +7,7 @@ import Token, { Tokens } from '../models/token'
 import { forEach, generateToken } from '../utils'
 
 // ===================================================================
+const log = createLogger('xo:authentification')
 
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
@@ -103,7 +105,7 @@ export default class {
         // DEPRECATED: Authentication providers may just throw `null`
         // to indicate they could not authenticate the user without
         // any special errors.
-        if (error) console.error(error.stack || error)
+        if (error) log.error(error.stack || error)
       }
     }
 

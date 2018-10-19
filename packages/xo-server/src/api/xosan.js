@@ -1,5 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
-import createLogger from 'debug'
+import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import execa from 'execa'
 import fs from 'fs-extra'
@@ -12,7 +12,7 @@ import { includes, remove, filter, find, range } from 'lodash'
 import { asInteger } from '../xapi/utils'
 import { parseXml, ensureArray } from '../utils'
 
-const debug = createLogger('xo:xosan')
+const log = createLogger('xo:xosan')
 
 const SSH_KEY_FILE = 'id_rsa_xosan'
 const DEFAULT_NETWORK_PREFIX = '172.31.100.'
@@ -73,7 +73,7 @@ async function rateLimitedRetry (action, shouldRetry, retryCount = 20) {
   let result
   while (retryCount > 0 && (result = await action()) && shouldRetry(result)) {
     retryDelay *= 1.1
-    debug('waiting ' + retryDelay + 'ms and retrying')
+    log.debug(`waiting ${retryDelay} ms and retrying`)
     await delay(retryDelay)
     retryCount--
   }
@@ -305,7 +305,7 @@ async function copyVm (xapi, originalVm, sr) {
 }
 
 async function callPlugin (xapi, host, command, params) {
-  debug('calling plugin', host.address, command)
+  log.debug(`calling plugin ${host.address} ${command}`)
   return JSON.parse(
     await xapi.call('host.call_plugin', host.$ref, 'xosan.py', command, params)
   )
@@ -346,15 +346,10 @@ async function remoteSsh (glusterEndpoint, cmd, ignoreError = false) {
         }
       }
     }
-    debug(
-      result.command.join(' '),
-      '\n  =>exit:',
-      result.exit,
-      '\n  =>err :',
-      result.stderr,
-      '\n  =>out (1000 chars) :',
-      result.stdout.substring(0, 1000)
-    )
+    log.debug(result.command.join(' '))
+    log.debug(`=>exit: ${result.exit}`)
+    log.debug(`=>err: ${result.stderr}`)
+    log.debug(`=>out (1000 chars) : ${result.stdout.substring(0, 1000)}`)
     // 255 seems to be ssh's own error codes.
     if (result.exit !== 255) {
       if (!ignoreError && result.exit !== 0) {
@@ -552,7 +547,7 @@ async function configureGluster (
     creation +
     ' ' +
     brickVms.map(ipAndHost => ipAndHost.brickName).join(' ')
-  debug('creating volume: ', volumeCreation)
+  log.debug(`creating volume: ${volumeCreation}`)
   await glusterCmd(glusterEndpoint, volumeCreation)
   await glusterCmd(
     glusterEndpoint,
@@ -762,7 +757,7 @@ export const createSR = defer(async function (
       glusterType,
       arbiter
     )
-    debug('xosan gluster volume started')
+    log.debug('xosan gluster volume started')
     // We use 10 IPs of the gluster VM range as backup, in the hope that even if the first VM gets destroyed we find at least
     // one VM to give mount the volfile.
     // It is not possible to edit the device_config after the SR is created and this data is only used at mount time when rebooting
@@ -785,7 +780,7 @@ export const createSR = defer(async function (
       true,
       {}
     )
-    debug('sr created')
+    log.debug('sr created')
     // we just forget because the cleanup actions are stacked in the $onFailure system
     $defer.onFailure(() => xapi.forgetSr(xosanSrRef))
     if (arbiter) {
@@ -809,7 +804,7 @@ export const createSR = defer(async function (
       redundancy,
     })
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 6 }
-    debug('scanning new SR')
+    log.debug('scanning new SR')
     await xapi.call('SR.scan', xosanSrRef)
     await this.rebindLicense({
       licenseId: license.id,
@@ -1139,12 +1134,12 @@ async function _prepareGlusterVm (
     .find(vdi => vdi && vdi.name_label === 'xosan_root')
   const rootDiskSize = rootDisk.virtual_size
   await xapi.startVm(newVM)
-  debug('waiting for boot of ', ip)
+  log.debug(`waiting for boot of ${ip}`)
   // wait until we find the assigned IP in the networks, we are just checking the boot is complete
   const vmIsUp = vm =>
     Boolean(vm.$guest_metrics && includes(vm.$guest_metrics.networks, ip))
   const vm = await xapi._waitObjectState(newVM.$id, vmIsUp)
-  debug('booted ', ip)
+  log.debug(`booted ${ip}`)
   const localEndpoint = { xapi: xapi, hosts: [host], addresses: [ip] }
   const srFreeSpace = sr.physical_size - sr.physical_utilisation
   // we use a percentage because it looks like the VDI overhead is proportional

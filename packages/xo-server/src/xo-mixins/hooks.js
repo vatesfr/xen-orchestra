@@ -1,7 +1,7 @@
-import createLogger from 'debug'
+import createLogger from '@xen-orchestra/log'
 import emitAsync from '@xen-orchestra/emit-async'
 
-const debug = createLogger('xo:hooks')
+const log = createLogger('xo:xo-mixins:hooks')
 
 const makeSingletonHook = (hook, postEvent) => {
   let promise
@@ -19,20 +19,19 @@ const makeSingletonHook = (hook, postEvent) => {
 }
 
 const runHook = (app, hook) => {
-  debug(`${hook} start…`)
+  log.debug(`${hook} start…`)
   const promise = emitAsync.call(
     app,
     {
       onError: error =>
-        console.error(
-          `[WARN] hook ${hook} failure:`,
-          (error != null && error.stack) || error
+        log.warn(
+          `hook ${hook} failure: ${(error != null && error.stack) || error}`
         ),
     },
     hook
   )
   promise.then(() => {
-    debug(`${hook} finished`)
+    log.debug(`${hook} finished`)
   })
   return promise
 }

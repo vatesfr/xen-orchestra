@@ -1,4 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import escapeStringRegexp from 'escape-string-regexp'
 import execa from 'execa'
@@ -51,6 +52,7 @@ const TAG_SOURCE_VM = 'xo:source_vm'
 const TAG_EXPORT_TIME = 'xo:export_time'
 
 const shortDate = utcFormat('%Y-%m-%d')
+const log = createLogger('xo:xo-mixins:backups')
 
 // Test if a file is a vdi backup. (full or delta)
 const isVdiBackup = name => /^\d+T\d+Z_(?:full|delta)\.vhd$/.test(name)
@@ -225,7 +227,7 @@ const mountPartition = (device, partitionId) =>
             unmount: once(() => execa('umount', ['--lazy', path])),
           }),
           error => {
-            console.log(error)
+            log.error(error)
 
             throw error
           }
@@ -550,7 +552,7 @@ export default class {
       try {
         mergedDataSize += await mergeVhd(handler, parent, handler, backup)
       } catch (e) {
-        console.error('Unable to use vhd-util.', e)
+        log.error(`Unable to use vhd-util. ${e}`)
         throw e
       }
 
@@ -723,7 +725,7 @@ export default class {
         fulFilledVdiBackups.push(vdiBackup)
       } else {
         error = vdiBackup.reason()
-        console.error('Rejected backup:', error)
+        log.error(`Rejected backup: ${error}`)
       }
     }
 

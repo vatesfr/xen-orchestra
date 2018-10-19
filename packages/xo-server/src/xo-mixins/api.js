@@ -1,4 +1,4 @@
-import createDebug from 'debug'
+import createLogger from '@xen-orchestra/log'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
@@ -12,7 +12,7 @@ import * as errors from 'xo-common/api-errors'
 
 // ===================================================================
 
-const debug = createDebug('xo:api')
+const log = createLogger('xo:api')
 
 const PERMISSIONS = {
   none: 0,
@@ -284,12 +284,10 @@ export default class Api {
         result = true
       }
 
-      debug(
-        '%s | %s(...) [%s] ==> %s',
-        userName,
-        name,
-        ms(Date.now() - startTime),
-        kindOf(result)
+      log.debug(
+        `${userName} | ${name}(...) [${ms(
+          Date.now() - startTime
+        )}] ==> ${kindOf(result)}`
       )
 
       return result
@@ -308,19 +306,17 @@ export default class Api {
       this._logger.error(message, data)
 
       if (this._xo._config.verboseLogsOnErrors) {
-        debug(message)
+        log.debug(message)
 
         const stack = error && error.stack
         if (stack) {
-          console.error(stack)
+          log.error(stack)
         }
       } else {
-        debug(
-          '%s | %s(...) [%s] =!> %s',
-          userName,
-          name,
-          ms(Date.now() - startTime),
-          error
+        log.debug(
+          `${userName} | ${name}(...) [${ms(
+            Date.now() - startTime
+          )}] =!> ${error}`
         )
       }
 

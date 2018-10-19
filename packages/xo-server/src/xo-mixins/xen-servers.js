@@ -1,3 +1,4 @@
+import createLogger from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
@@ -15,6 +16,8 @@ import {
 import { Servers } from '../models/server'
 
 // ===================================================================
+
+const log = createLogger('xo:xo-mixins:xen-servers')
 
 export default class {
   constructor (xo) {
@@ -42,9 +45,11 @@ export default class {
       for (const server of servers) {
         if (server.enabled) {
           this.connectXenServer(server.id).catch(error => {
-            console.error(
-              `[WARN] ${server.host}:`,
-              error[0] || error.stack || error.code || error
+            log.warn(
+              `${server.host}: ${error[0] ||
+                error.stack ||
+                error.code ||
+                error}`
             )
           })
         }
@@ -178,7 +183,7 @@ export default class {
           objects.set(xoId, xoObject)
         }
       } catch (error) {
-        console.error('ERROR: xapiObjectToXo', error)
+        log.error(`ERROR: xapiObjectToXo ${error}`)
 
         toRetry[xapiId] = xapiObject
       }

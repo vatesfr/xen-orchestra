@@ -1,3 +1,4 @@
+import createLogger from '@xen-orchestra/log'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import mixin from '@xen-orchestra/mixin'
@@ -20,6 +21,8 @@ import Connection from './connection'
 import { generateToken, noop } from './utils'
 
 // ===================================================================
+
+const log = createLogger('xo:xo')
 
 @mixin(mapToArray(mixins))
 export default class Xo extends EventEmitter {
@@ -151,7 +154,7 @@ export default class Xo extends EventEmitter {
         }
       },
       error => {
-        console.error('HTTP request error', error.stack || error)
+        log.error(`HTTP request error ${error.stack || error}`)
 
         if (!res.headersSent) {
           res.writeHead(500)

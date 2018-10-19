@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import asyncMap from '@xen-orchestra/async-map'
 import concurrency from 'limit-concurrency-decorator'
+import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
 import mixin from '@xen-orchestra/mixin'
@@ -55,7 +56,6 @@ import { type DeltaVmExport } from './'
 import {
   asBoolean,
   asInteger,
-  debug,
   extractOpaqueRef,
   filterUndefineds,
   getNamespaceForType,
@@ -67,6 +67,8 @@ import {
   parseDateTime,
   prepareXapiParam,
 } from './utils'
+
+const log = createLogger('xo:xapi')
 
 // ===================================================================
 
@@ -364,7 +366,7 @@ export default class Xapi extends XapiBase {
   async emergencyShutdownHost (hostId) {
     const host = this.getObject(hostId)
     const vms = host.$resident_VMs
-    debug(`Emergency shutdown: ${host.name_label}`)
+    log.debug(`Emergency shutdown: ${host.name_label}`)
     await pSettle(
       mapToArray(vms, vm => {
         if (!vm.is_control_domain) {
@@ -447,7 +449,7 @@ export default class Xapi extends XapiBase {
   // Clone a VM: make a fast copy by fast copying each of its VDIs
   // (using snapshots where possible) on the same SRs.
   _cloneVm (vm, nameLabel = vm.name_label) {
-    debug(
+    log.debug(
       `Cloning VM ${vm.name_label}${
         nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''
       }`
@@ -466,7 +468,7 @@ export default class Xapi extends XapiBase {
       snapshot = await this._snapshotVm(vm)
     }
 
-    debug(
+    log.debug(
       `Copying VM ${vm.name_label}${
         nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''
       }${sr ? ` on ${sr.name_label}` : ''}`
@@ -587,7 +589,7 @@ export default class Xapi extends XapiBase {
     version,
     xenstore_data,
   }) {
-    debug(`Creating VM ${name_label}`)
+    log.debug(`Creating VM ${name_label}`)
 
     return this.call(
       'VM.create',
@@ -648,7 +650,7 @@ export default class Xapi extends XapiBase {
     force = false,
     forceDeleteDefaultTemplate = false
   ) {
-    debug(`Deleting VM ${vm.name_label}`)
+    log.debug(`Deleting VM ${vm.name_label}`)
 
     const { $ref } = vm
 
@@ -689,13 +691,13 @@ export default class Xapi extends XapiBase {
         asyncMap(disks, ({ $ref: vdiRef }) => {
           let onFailure = () => {
             onFailure = vdi => {
-              console.error(
+              log.error(
                 `cannot delete VDI ${vdi.name_label} (from VM ${vm.name_label})`
               )
               forEach(vdi.$VBDs, vbd => {
                 if (vbd.VM !== $ref) {
                   const vm = vbd.$VM
-                  console.error('- %s (%s)', vm.name_label, vm.uuid)
+                  log.error(`- ${vm.name_label} (${vm.uuid})`)
                 }
               })
             }
@@ -1218,7 +1220,7 @@ export default class Xapi extends XapiBase {
       { vdi }
     ).catch(error => {
       if (error.code !== 'XENAPI_PLUGIN_FAILURE') {
-        console.warn('_callInstallationPlugin', error)
+        log.warn(`_callInstallationPlugin ${error}`)
         throw error
       }
     })
@@ -1492,7 +1494,7 @@ export default class Xapi extends XapiBase {
   @concurrency(2)
   @cancelable
   async _snapshotVm ($cancelToken, vm, nameLabel = vm.name_label) {
-    debug(
+    log.debug(
       `Snapshotting VM ${vm.name_label}${
         nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''
       }`
@@ -1554,7 +1556,7 @@ export default class Xapi extends XapiBase {
   }
 
   async _startVm (vm, host, force) {
-    debug(`Starting VM ${vm.name_label}`)
+    log.debug(`Starting VM ${vm.name_label}`)
 
     if (force) {
       await this._updateObjectMapProperty(vm, 'blocked_operations', {
@@ -1702,7 +1704,7 @@ export default class Xapi extends XapiBase {
     vdi = this.getObject(vdi)
     vm = this.getObject(vm)
 
-    debug(`Creating VBD for VDI ${vdi.name_label} on VM ${vm.name_label}`)
+    log.debug(`Creating VBD for VDI ${vdi.name_label} on VM ${vm.name_label}`)
 
     if (userdevice == null) {
       const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
@@ -1745,7 +1747,7 @@ export default class Xapi extends XapiBase {
   }
 
   _cloneVdi (vdi) {
-    debug(`Cloning VDI ${vdi.name_label}`)
+    log.debug(`Cloning VDI ${vdi.name_label}`)
 
     return this.call('VDI.clone', vdi.$ref)
   }
@@ -1767,7 +1769,7 @@ export default class Xapi extends XapiBase {
     sr = SR !== undefined && SR !== NULL_REF ? SR : this.pool.default_SR,
   }) {
     sr = this.getObject(sr)
-    debug(`Creating VDI ${name_label} on ${sr.name_label}`)
+    log.debug(`Creating VDI ${name_label} on ${sr.name_label}`)
 
     return this._getOrWaitObject(
       await this.call('VDI.create', {
@@ -1794,7 +1796,7 @@ export default class Xapi extends XapiBase {
       return // nothing to do
     }
 
-    debug(
+    log.debug(
       `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${
         sr.name_label
       }`
@@ -1827,13 +1829,15 @@ export default class Xapi extends XapiBase {
 
   // TODO: check whether the VDI is attached.
   async _deleteVdi (vdi) {
-    debug(`Deleting VDI ${vdi.name_label}`)
+    log.debug(`Deleting VDI ${vdi.name_label}`)
 
     await this.call('VDI.destroy', vdi.$ref)
   }
 
   _resizeVdi (vdi, size) {
-    debug(`Resizing VDI ${vdi.name_label} from ${vdi.virtual_size} to ${size}`)
+    log.debug(
+      `Resizing VDI ${vdi.name_label} from ${vdi.virtual_size} to ${size}`
+    )
 
     return this.call('VDI.resize', vdi.$ref, size)
   }
@@ -1964,7 +1968,7 @@ export default class Xapi extends XapiBase {
       query.base = base.$ref
     }
 
-    debug(
+    log.debug(
       `exporting VDI ${vdi.name_label}${
         base ? ` (from base ${vdi.name_label})` : ''
       }`
@@ -2035,7 +2039,7 @@ export default class Xapi extends XapiBase {
       qos_algorithm_type = '',
     } = {}
   ) {
-    debug(
+    log.debug(
       `Creating VIF for VM ${vm.name_label} on network ${network.name_label}`
     )
 
@@ -2298,9 +2302,7 @@ export default class Xapi extends XapiBase {
 
     // ignore errors, I (JFT) don't understand why they are emitted
     // because it works
-    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW).catch(
-      console.warn
-    )
+    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW).catch(log.warn)
 
     await this.createVbd({ vdi, vm })
   }

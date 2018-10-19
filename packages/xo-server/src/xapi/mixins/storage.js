@@ -1,6 +1,9 @@
+import createLogger from '@xen-orchestra/log'
 import { forEach, groupBy } from 'lodash'
 
 import { mapToArray } from '../../utils'
+
+const log = createLogger('xo:storage')
 
 export default {
   _connectAllSrPbds (sr) {
@@ -58,7 +61,7 @@ export default {
           length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
         }
       } catch (error) {
-        console.warn('Xapi#_getUnhealthyVdiChainLength(%s)', uuid, error)
+        log.warn(`Xapi#_getUnhealthyVdiChainLength(${uuid}) ${error}`)
       }
       cache[uuid] = length
     }

@@ -1,8 +1,11 @@
+import createLogger from '@xen-orchestra/log'
 import pump from 'pump'
 import { format } from 'json-rpc-peer'
 import { noSuchObject, unauthorized } from 'xo-common/api-errors'
 
 import { parseSize } from '../utils'
+
+const log = createLogger('xo:disk')
 
 // ===================================================================
 
@@ -86,7 +89,7 @@ async function handleExportContent (req, res, { xapi, id }) {
   )
   pump(stream, res, error => {
     if (error != null) {
-      console.warn('disk.exportContent', error)
+      log.warn(`disk.exportContent ${error}`)
     }
   })
 }

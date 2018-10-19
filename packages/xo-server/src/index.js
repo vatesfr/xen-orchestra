@@ -3,7 +3,7 @@ import assert from 'assert'
 import bind from 'lodash/bind'
 import blocked from 'blocked'
 import createExpress from 'express'
-import createLogger from 'debug'
+import createLogger from '@xen-orchestra/log'
 import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
@@ -40,13 +40,26 @@ import passport from 'passport'
 import { parse as parseCookies } from 'cookie'
 import { Strategy as LocalStrategy } from 'passport-local'
 
+import { configure } from '@xen-orchestra/log/configure'
+import transportConsole from '@xen-orchestra/log/transports/console'
+
 // ===================================================================
 
-const debug = createLogger('xo:main')
+configure([
+  {
+    filter: process.env.DEBUG,
 
-const warn = (...args) => {
-  console.warn('[Warn]', ...args)
-}
+    transport: transportConsole(),
+  },
+])
+
+// ===================================================================
+
+const log = createLogger('xo:main')
+
+// const warn = (...args) => {
+//   log.warn(...args)
+// }
 
 // ===================================================================
 
@@ -58,12 +71,12 @@ async function loadConfiguration () {
     ignoreUnknownFormats: true,
   })
 
-  debug('Configuration loaded.')
+  log.info('Configuration loaded.')
 
   // Print a message if deprecated entries are specified.
   forEach(DEPRECATED_ENTRIES, entry => {
     if (has(config, entry)) {
-      warn(`${entry} configuration is deprecated.`)
+      log.warn(`${entry} configuration is deprecated.`)
     }
   })
 
@@ -248,18 +261,18 @@ async function registerPlugin (pluginPath, pluginName) {
   )
 }
 
-const debugPlugin = createLogger('xo:plugin')
+const logPlugin = createLogger('xo:plugin')
 
 function registerPluginWrapper (pluginPath, pluginName) {
-  debugPlugin('register %s', pluginName)
+  logPlugin.debug(`register ${pluginName}`)
 
   return registerPlugin.call(this, pluginPath, pluginName).then(
     () => {
-      debugPlugin(`successfully register ${pluginName}`)
+      logPlugin.debug(`successfully register ${pluginName}`)
     },
     error => {
-      debugPlugin(`failed register ${pluginName}`)
-      debugPlugin(error)
+      logPlugin.debug(`failed register ${pluginName}`)
+      logPlugin.debug(error)
     }
   )
 }
@@ -323,20 +336,20 @@ async function makeWebServerListen (
   }
   try {
     const niceAddress = await webServer.listen(opts)
-    debug(`Web server listening on ${niceAddress}`)
+    log.debug(`Web server listening on ${niceAddress}`)
   } catch (error) {
     if (error.niceAddress) {
-      warn(`Web server could not listen on ${error.niceAddress}`)
+      log.warn(`Web server could not listen on ${error.niceAddress}`)
 
       const { code } = error
       if (code === 'EACCES') {
-        warn('  Access denied.')
-        warn('  Ports < 1024 are often reserved to privileges users.')
+        log.warn('  Access denied.')
+        log.warn('  Ports < 1024 are often reserved to privileges users.')
       } else if (code === 'EADDRINUSE') {
-        warn('  Address already in use.')
+        log.warn('  Address already in use.')
       }
     } else {
-      warn('Web server could not listen:', error.message)
+      log.warn(`Web server could not listen: ${error.message}`)
     }
   }
 }
@@ -417,7 +430,7 @@ const setUpStaticFiles = (express, opts) => {
     }
 
     forEach(paths, path => {
-      debug('Setting up %s → %s', url, path)
+      log.debug(`Setting up ${url} → ${path}`)
 
       express.use(url, serveStatic(path))
     })
@@ -435,7 +448,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   const onConnection = (socket, upgradeReq) => {
     const { remoteAddress } = upgradeReq.socket
 
-    debug('+ WebSocket connection (%s)', remoteAddress)
+    log.debug(`+ WebSocket connection (${remoteAddress})`)
 
     // Create the abstract XO object for this connection.
     const connection = xo.createUserConnection()
@@ -453,7 +466,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
 
     // Close the XO connection with this WebSocket.
     socket.once('close', () => {
-      debug('- WebSocket connection (%s)', remoteAddress)
+      log.debug(`- WebSocket connection (${remoteAddress})`)
 
       connection.close()
     })
@@ -465,7 +478,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
 
     const onSend = error => {
       if (error) {
-        warn('WebSocket send:', error.stack)
+        log.warn(`WebSocket send: ${error.stack}`)
       }
     }
     jsonRpc.on('data', data => {
@@ -513,9 +526,9 @@ const setUpConsoleProxy = (webServer, xo) => {
         }
 
         const { remoteAddress } = socket
-        debug('+ Console proxy (%s - %s)', user.name, remoteAddress)
+        log.debug(`+ Console proxy (${user.name} - ${remoteAddress})`)
         socket.on('close', () => {
-          debug('- Console proxy (%s - %s)', user.name, remoteAddress)
+          log.debug(`- Console proxy (${user.name} - ${remoteAddress})`)
         })
       }
 
@@ -549,10 +562,10 @@ export default async function main (args) {
   }
 
   {
-    const debug = createLogger('xo:perf')
+    const logPerf = createLogger('xo:perf')
     blocked(
       ms => {
-        debug('blocked for %sms', ms | 0)
+        logPerf.debug(`blocked for ${ms | 0}ms`)
       },
       {
         threshold: 500,
@@ -569,14 +582,14 @@ export default async function main (args) {
     const { user, group } = config
     if (group) {
       process.setgid(group)
-      debug('Group changed to', group)
+      log.debug(`Group changed to ${group}`)
     }
     if (user) {
       process.setuid(user)
-      debug('User changed to', user)
+      log.debug(`User changed to ${user}`)
     }
   } catch (error) {
-    warn('Failed to change user/group:', error)
+    log.warn(`Failed to change user/group: ${error}`)
   }
 
   // Creates main object.
@@ -604,7 +617,7 @@ export default async function main (args) {
     })
 
     if (port === undefined) {
-      warn('Could not setup HTTPs redirection: no HTTPs port found')
+      log.warn('Could not setup HTTPs redirection: no HTTPs port found')
     } else {
       express.use((req, res, next) => {
         if (req.secure) {
@@ -653,17 +666,17 @@ export default async function main (args) {
 
     process.on(signal, () => {
       if (alreadyCalled) {
-        warn('forced exit')
+        log.warn('forced exit')
         process.exit(1)
       }
       alreadyCalled = true
 
-      debug('%s caught, closing…', signal)
+      log.debug(`${signal} caught, closing…`)
       xo.stop()
     })
   })
 
   await fromEvent(xo, 'stopped')
 
-  debug('bye :-)')
+  log.debug('bye :-)')
 }

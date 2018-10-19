@@ -1,6 +1,9 @@
 import Collection from '../collection/redis'
+import createLogger from '@xen-orchestra/log'
 import Model from '../model'
 import { forEach } from '../utils'
+
+const log = createLogger('xo:plugin-metadata')
 
 // ===================================================================
 
@@ -44,10 +47,7 @@ export class PluginsMetadata extends Collection {
         pluginMetadata.configuration =
           configuration && JSON.parse(configuration)
       } catch (error) {
-        console.warn(
-          'cannot parse pluginMetadata.configuration:',
-          configuration
-        )
+        log.warn(`cannot parse pluginMetadata.configuration: ${configuration}`)
         pluginMetadata.configuration = []
       }
     })
