@@ -273,7 +273,7 @@ const TimePicker = [
       // '2,7' => [2,7]
       // '*/2' => [min + 2 * 0, min + 2 * 1, ..., min + 2 * n <= max]
       tableValue: ({ optionsValues, step }, { value }) =>
-        value === '*' || step === 1
+        step === 1
           ? optionsValues
           : step !== undefined
             ? optionsValues.filter((_, i) => i % step === 0)
