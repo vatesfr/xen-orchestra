@@ -333,6 +333,9 @@ export default class {
         if (
           object.$type !== 'vm' ||
           object.is_a_snapshot ||
+          ('start' in object.blocked_operations &&
+            (object.tags.includes('Disaster Recovery') ||
+              object.tags.includes('Continuous Replication'))) ||
           // No set for this VM.
           !(id = xapi.xo.getData(object, 'resourceSet')) ||
           // Not our set.
