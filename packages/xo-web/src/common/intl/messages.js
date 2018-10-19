@@ -803,13 +803,6 @@ const messages = {
   srShared: 'Shared',
   srNotShared: 'Not shared',
   pbdNoSr: 'No storage detected',
-  deletePbdModalTitle: 'Delete PBD',
-  deletePbdModalMessage:
-    'Are you sure you want to forget this PBD? This will disconnect the SR from all their hosts by removing their links to them (PBDs)',
-  deletePbdsModalTitle: 'Delete PBD{nPbds, plural, one {} other {s}}',
-  deletePbdsModalMessage:
-    'Are you sure you want to forget {nPbds, number} PBD{nPbds, plural, one {} other {s}}? This will disconnect the SR from all their hosts by removing their links to them (PBDs)',
-
   // ----- Host patch tabs -----
   patchNameLabel: 'Name',
   patchUpdateButton: 'Install all patches',
@@ -1552,6 +1545,18 @@ const messages = {
   destroyTasksModalTitle: 'Destroy task{nTasks, plural, one {} other {s}}',
   destroyTasksModalMessage:
     'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?',
+  forgetHostFromSrModalTitle: 'Forget host',
+  forgetHostFromSrModalMessage:
+    'Are you sure you want to forget this host? This will disconnect the SR from the host by removing the link between the SR and the host (PBD).',
+  forgetHostsModalTitle: 'Forget host{nPbds, plural, one {} other {s}}',
+  forgetHostsModalMessage:
+    'Are you sure you want to forget {nPbds, number} host{nPbds, plural, one {} other {s}}? This will disconnect the SR from these hosts by removing the links between the SR and the hosts (PBDs)',
+  forgetSrModalTitle: 'Forget SR',
+  forgetSrModalMessage:
+    'Are you sure you want to forget this SR? This will disconnect the host from the SR by removing the link between the SR and the host (PBD).',
+  forgetSrsModalTitle: 'Forget SR{nPbds, plural, one {} other {s}}',
+  forgetSrsModalMessage:
+    'Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? This will disconnect the host from these SRs by removing the links between the host and the SRs (PBDs)',
 
   // ----- Servers -----
   serverLabel: 'Label',
