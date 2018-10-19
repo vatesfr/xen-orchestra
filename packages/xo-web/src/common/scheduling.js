@@ -230,7 +230,9 @@ const TableSelect = [
                     tdId={tdOption}
                     key={tdOption}
                     onChange={effects.onChange}
-                    value={k < value.length && value[k] === tdOption && ++k}
+                    value={
+                      k < value.length && value[k] === tdOption && (++k, true)
+                    }
                   />
                 ))}
               </tr>
