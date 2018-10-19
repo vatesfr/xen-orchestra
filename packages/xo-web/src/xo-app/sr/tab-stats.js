@@ -6,7 +6,7 @@ import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { fetchSrStats } from 'xo'
-import { get } from 'lodash'
+import { get, isEmpty } from 'lodash'
 import { Toggle } from 'form'
 import {
   IopsLineChart,
@@ -82,7 +82,7 @@ export default class SrStats extends Component {
       useCombinedValues,
     } = this.state
 
-    return data === undefined ? (
+    return isEmpty(data) ? (
       <span>{_('srNoStats')}</span>
     ) : (
       <Upgrade place='srStats' available={3}>

@@ -430,6 +430,9 @@ export default class XapiStats {
 
   async getSrStats (xapi, srId, granularity) {
     const sr = xapi.getObject(srId)
+    if (sr.$PBDs.length === 0) {
+      return {}
+    }
 
     const hostsStats = {}
     await Promise.all(
