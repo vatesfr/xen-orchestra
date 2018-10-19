@@ -114,7 +114,7 @@ export class Range extends Component {
       <Container>
         <SingleLineRow>
           <Col size={2}>
-            <span className='pull-right'>{value}</span>
+            {value !== undefined && <span className='pull-right'>{value}</span>}
           </Col>
           <Col size={10}>
             <input
@@ -124,7 +124,7 @@ export class Range extends Component {
               onChange={this._onChange}
               step={step}
               type='range'
-              value={value}
+              value={value !== undefined ? value : min}
             />
           </Col>
         </SingleLineRow>
