@@ -1,19 +1,18 @@
-import isArray from 'lodash/isArray'
-import isString from 'lodash/isString'
-import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React, { Component, cloneElement } from 'react'
 import { createSelector } from 'selectors'
+import { identity, isArray, isString, map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from '@julien-f/freactal'
 import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 
 import _, { messages } from './intl'
+import { generateRandomId } from './utils'
 import ActionButton from './action-button'
 import Button from './button'
+import getEventValue from './get-event-value'
 import Icon from './icon'
 import Tooltip from './tooltip'
-import { generateRandomId } from './utils'
 import {
   disable as disableShortcuts,
   enable as enableShortcuts,
@@ -263,21 +262,38 @@ export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
 // -----------------------------------------------------------------------------
 
 let formModalState
-export const form = props =>
+export const form = ({
+  component,
+  defaultValue,
+  handler = identity,
+  header,
+  render,
+  size,
+}) =>
   new Promise((resolve, reject) => {
-    formModalState.props = {
-      reject,
-      resolve,
-      showModal: true,
-      ...props,
-    }
+    formModalState.component = component
+    formModalState.handler = handler
+    formModalState.header = header
+    formModalState.opened = true
+    formModalState.reject = reject
+    formModalState.render = render
+    formModalState.resolve = resolve
+    formModalState.size = size
+    formModalState.value = defaultValue
     disableShortcuts()
   })
 
 const getInitialState = () => ({
-  id: generateRandomId(),
-  localValue: undefined,
-  props: undefined,
+  component: undefined,
+  handler: undefined,
+  header: undefined,
+  isHandlerRunning: false,
+  opened: false,
+  reject: undefined,
+  render: undefined,
+  resolve: undefined,
+  size: undefined,
+  value: undefined,
 })
 export const FormModal = [
   provideState({
@@ -292,80 +308,79 @@ export const FormModal = [
       finalize: () => {
         formModalState = undefined
       },
-      close: () => () => {
+      onChange: (_, value) => () => ({
+        value: getEventValue(value),
+      }),
+      onCancel () {
+        const { state } = this
+        if (!state.isHandlerRunning) {
+          state.opened = false
+          state.reject()
+        }
+      },
+      async onSubmit ({ close }) {
+        const { state } = this
+        state.isHandlerRunning = true
+
+        let result
+        try {
+          result = await state.handler(state.value)
+        } finally {
+          state.isHandlerRunning = false
+        }
+        state.opened = false
+        state.resolve(result)
+      },
+      reset: () => () => {
         enableShortcuts()
         return getInitialState()
       },
-      cancel ({ close }) {
-        this.state.props.reject()
-        close()
-      },
-      submit ({ close }) {
-        const {
-          props: { resolve },
-          value,
-        } = this.state
-        resolve(value)
-        close()
-      },
-      onChange: (_, localValue) => () => ({
-        localValue,
-      }),
     },
     computed: {
-      value: ({ props, localValue = props.defaultValue }) => localValue,
+      formId: generateRandomId,
     },
   }),
   injectState,
-  ({ state, effects }) => {
-    const { props = {} } = state
-    return (
-      <ReactModal
-        bsSize={props.size}
-        onHide={effects.cancel}
-        show={props.showModal}
-      >
-        <ReactModal.Header closeButton>
-          <ReactModal.Title>
-            {props.icon !== undefined ? (
-              <span>
-                <Icon icon={props.icon} /> {props.title}
-              </span>
-            ) : (
-              props.title
-            )}
-          </ReactModal.Title>
-        </ReactModal.Header>
+  ({ state, effects }) => (
+    <ReactModal
+      bsSize={state.size}
+      onHide={effects.onCancel}
+      show={state.opened}
+      onExited={effects.reset}
+    >
+      <ReactModal.Header closeButton>
+        <ReactModal.Title>{state.header}</ReactModal.Title>
+      </ReactModal.Header>
 
-        <ReactModal.Body>
-          <form id={state.id}>
-            {/* It should be better to use a computed to avoid cloning the body on each render,
+      <ReactModal.Body>
+        <form id={state.formId}>
+          {/* It should be better to use a computed to avoid calling the render function on each render,
             but Freactal(v0.4.0) not allow us to access to the effects from a computed */}
-            {props.body !== undefined &&
-              cloneElement(props.body, {
-                value: state.value,
+          {state.component ||
+            (state.render !== undefined &&
+              state.render({
                 onChange: effects.onChange,
-              })}
-          </form>
-        </ReactModal.Body>
+                value: state.value,
+              }))}
+        </form>
+      </ReactModal.Body>
 
-        <ReactModal.Footer>
-          <ActionButton
-            btnStyle='primary'
-            form={state.id}
-            handler={effects.submit}
-            icon='save'
-            size='large'
-          >
-            {_('formOk')}
-          </ActionButton>{' '}
-          <ActionButton handler={effects.cancel} icon='cancel' size='large'>
-            {_('formCancel')}
-          </ActionButton>
-        </ReactModal.Footer>
-      </ReactModal>
-    )
-  },
+      <ReactModal.Footer>
+        <ActionButton
+          btnStyle='primary'
+          form={state.formId}
+          handler={effects.onSubmit}
+          icon='save'
+          size='large'
+        >
+          {_('formOk')}
+        </ActionButton>{' '}
+        <ActionButton handler={effects.onCancel} icon='cancel' size='large'>
+          {_('formCancel')}
+        </ActionButton>
+      </ReactModal.Footer>
+    </ReactModal>
+  ),
 ].reduceRight((value, decorator) => decorator(value))
 
 // -----------------------------------------------------------------------------

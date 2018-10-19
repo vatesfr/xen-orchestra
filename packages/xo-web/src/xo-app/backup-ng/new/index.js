@@ -12,7 +12,6 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { error } from 'notification'
 import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
 import { form } from 'modal'
 import { injectIntl } from 'react-intl'
@@ -194,6 +193,7 @@ export default [
   connectStore(() => ({
     srsById: createGetObjectsOfType('SR'),
   })),
+  injectIntl,
   provideState({
     initialState: getInitialState,
     effects: {
@@ -398,28 +398,42 @@ export default [
       showScheduleModal: (
         { saveSchedule },
         storedSchedule = DEFAULT_SCHEDULE
-      ) => async ({ copyMode, exportMode, snapshotMode }) => {
+      ) => async (
+        { copyMode, exportMode, snapshotMode },
+        { intl: { formatMessage } }
+      ) => {
         const schedule = await form({
-          body: <NewSchedule modes={{ copyMode, exportMode, snapshotMode }} />,
           defaultValue: storedSchedule,
-          icon: 'schedule',
+          render: props => (
+            <NewSchedule
+              modes={{ copyMode, exportMode, snapshotMode }}
+              {...props}
+            />
+          ),
+          header: (
+            <span>
+              <Icon icon='schedule' /> {_('schedule')}
+            </span>
+          ),
           size: 'large',
-          title: _('schedule'),
+          handler: value => {
+            if (
+              !(
+                (exportMode && value.exportRetention > 0) ||
+                (copyMode && value.copyRetention > 0) ||
+                (snapshotMode && value.snapshotRetention > 0)
+              )
+            ) {
+              throw new Error(formatMessage(messages.retentionNeeded))
+            }
+            return value
+          },
         })
-        if (
-          !(
-            (exportMode && schedule.exportRetention > 0) ||
-            (copyMode && schedule.copyRetention > 0) ||
-            (snapshotMode && schedule.snapshotRetention > 0)
-          )
-        ) {
-          error(_('newScheduleError'), _('retentionNeeded'))
-        } else {
-          saveSchedule({
-            ...schedule,
-            id: storedSchedule.id || generateRandomId(),
-          })
-        }
+
+        saveSchedule({
+          ...schedule,
+          id: storedSchedule.id || generateRandomId(),
+        })
       },
       deleteSchedule: (_, schedule) => ({
         schedules: oldSchedules,
@@ -606,7 +620,6 @@ export default [
         ),
     },
   }),
-  injectIntl,
   injectState,
   ({ state, effects, remotes, srsById, job = {}, intl }) => {
     const { formatMessage } = intl
