@@ -525,7 +525,7 @@ export default [
       setTimeout: ({ setGlobalSettings }, value) => () => {
         setGlobalSettings({
           name: 'timeout',
-          value: value && value * 1e3,
+          value: value && value * 3600e3,
         })
       },
       setOfflineSnapshot: (
@@ -892,7 +892,7 @@ export default [
                         <Number
                           id={state.inputTimeoutId}
                           onChange={effects.setTimeout}
-                          value={timeout && timeout / 1e3}
+                          value={timeout && timeout / 3600e3}
                           placeholder={formatMessage(messages.timeoutUnit)}
                         />
                       </FormGroup>
