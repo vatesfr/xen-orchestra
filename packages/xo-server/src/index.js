@@ -40,8 +40,8 @@ import passport from 'passport'
 import { parse as parseCookies } from 'cookie'
 import { Strategy as LocalStrategy } from 'passport-local'
 
+import transportConsoleColor from '@xen-orchestra/log/transports/consoleColor'
 import { configure } from '@xen-orchestra/log/configure'
-import transportConsole from '@xen-orchestra/log/transports/console'
 
 // ===================================================================
 
@@ -49,7 +49,7 @@ configure([
   {
     filter: process.env.DEBUG,
 
-    transport: transportConsole(),
+    transport: transportConsoleColor(),
   },
 ])
 
