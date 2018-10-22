@@ -192,13 +192,17 @@ class ToggleTd extends Component {
 const TableSelect = [
   provideState({
     effects: {
-      onChange: (_, tdId, add) => (_, { value, onChange }) => {
-        const newValue = [...value]
+      onChange: (_, tdId, add) => (_, { value, onChange, options }) => {
+        let newValue = [...value]
         const index = sortedIndex(newValue, tdId)
         if (add) {
           newValue[index] !== tdId && newValue.splice(index, 0, tdId)
-        } else {
-          newValue[index] === tdId && newValue.splice(index, 1)
+        } else if (newValue[index] === tdId) {
+          if (newValue.length > 1) {
+            newValue.splice(index, 1)
+          } else {
+            newValue = [options[0][0]]
+          }
         }
         onChange(newValue)
       },
