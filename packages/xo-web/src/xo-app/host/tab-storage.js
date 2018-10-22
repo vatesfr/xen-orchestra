@@ -23,14 +23,14 @@ import { Text } from 'editable'
 
 const forgetSr = ({ pbdId }) =>
   confirm({
-    title: _('forgetSrModalTitle'),
-    body: _('forgetSrModalMessage'),
+    title: _('forgetSrFromHostModalTitle'),
+    body: _('forgetSrFromHostModalMessage'),
   }).then(() => deletePbd(pbdId), noop)
 
 const forgetSrs = pbds =>
   confirm({
-    title: _('forgetSrsModalTitle', { nPbds: pbds.length }),
-    body: _('forgetSrsModalMessage', { nPbds: pbds.length }),
+    title: _('forgetSrsFromHostModalTitle', { nPbds: pbds.length }),
+    body: _('forgetSrsFromHostModalMessage', { nPbds: pbds.length }),
   }).then(() => deletePbds(pbds), noop)
 
 const SR_COLUMNS = [

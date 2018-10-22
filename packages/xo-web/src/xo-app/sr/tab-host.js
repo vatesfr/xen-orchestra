@@ -18,8 +18,8 @@ const forgetHost = pbd =>
 
 const forgetHosts = pbds =>
   confirm({
-    title: _('forgetHostsModalTitle', { nPbds: pbds.length }),
-    body: _('forgetHostsModalMessage', { nPbds: pbds.length }),
+    title: _('forgetHostsFromSrModalTitle', { nPbds: pbds.length }),
+    body: _('forgetHostsFromSrModalMessage', { nPbds: pbds.length }),
   }).then(() => deletePbds(pbds), noop)
 
 const HOST_COLUMNS = [
