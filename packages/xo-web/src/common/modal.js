@@ -355,7 +355,7 @@ export const FormModal = [
       <ReactModal.Body>
         <form id={state.formId}>
           {/* It should be better to use a computed to avoid calling the render function on each render,
-            but Freactal(v0.4.0) not allow us to access to the effects from a computed */}
+            but reaclette(v0.4.0) not allow us to access to the effects from a computed */}
           {state.component ||
             (state.render !== undefined &&
               state.render({
