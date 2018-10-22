@@ -28,6 +28,7 @@
     "node": ">=4"
   },
   "dependencies": {
+    "colors": "^1.3.2",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.10.1"
   },
