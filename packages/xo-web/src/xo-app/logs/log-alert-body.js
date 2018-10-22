@@ -108,34 +108,47 @@ export default [
         ...countBy(log.tasks, 'status'),
       }),
       // use isOptionDisabled after updating react-select to v2 (issue: https://github.com/vatesfr/xen-orchestra/issues/3284)
-      options: ({ countByStatus }) => [
-        { label: 'allTasks', value: 'all' },
-        {
-          disabled: countByStatus.failure === undefined,
-          label: 'taskFailed',
-          value: 'failure',
-        },
-        {
-          disabled: countByStatus.pending === undefined,
-          label: 'taskStarted',
-          value: 'pending',
-        },
-        {
-          disabled: countByStatus.interrupted === undefined,
-          label: 'taskInterrupted',
-          value: 'interrupted',
-        },
-        {
-          disabled: countByStatus.skipped === undefined,
-          label: 'taskSkipped',
-          value: 'skipped',
-        },
-        {
-          disabled: countByStatus.success === undefined,
-          label: 'taskSuccess',
-          value: 'success',
-        },
-      ],
+      options: ({ countByStatus }) =>
+        [
+          { label: 'allTasks', value: 'all' },
+          {
+            disabled: countByStatus.failure === undefined,
+            label: 'taskFailed',
+            value: 'failure',
+          },
+          {
+            disabled: countByStatus.pending === undefined,
+            label: 'taskStarted',
+            value: 'pending',
+          },
+          {
+            disabled: countByStatus.interrupted === undefined,
+            label: 'taskInterrupted',
+            value: 'interrupted',
+          },
+          {
+            disabled: countByStatus.skipped === undefined,
+            label: 'taskSkipped',
+            value: 'skipped',
+          },
+          {
+            disabled: countByStatus.success === undefined,
+            label: 'taskSuccess',
+            value: 'success',
+          },
+        ].sort(({ value: v1 }, { value: v2 }) => {
+          const size2 = countByStatus[v2]
+          if (size2 === undefined) {
+            return -1
+          }
+
+          const size1 = countByStatus[v1]
+          if (size1 === undefined) {
+            return size2
+          }
+
+          return size2 - size1
+        }),
       defaultFilter: ({ countByStatus }) => {
         if (countByStatus.pending > 0) {
           return 'pending'
