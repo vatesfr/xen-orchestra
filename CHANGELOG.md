@@ -21,6 +21,7 @@
 - [Scheduling] Merge selection and interval tabs [#1902](https://github.com/vatesfr/xen-orchestra/issues/1902) (PR [#3519](https://github.com/vatesfr/xen-orchestra/pull/3519))
 - [Backup NG/Restore] The backup selector now also shows the job name [#3366](https://github.com/vatesfr/xen-orchestra/issues/3366) (PR [#3564](https://github.com/vatesfr/xen-orchestra/pull/3564))
 - Sort buttons by criticality in tables [#3168](https://github.com/vatesfr/xen-orchestra/issues/3168) (PR [#3545](https://github.com/vatesfr/xen-orchestra/pull/3545))
+- [Usage Report] Ability to send a daily report [#3544](https://github.com/vatesfr/xen-orchestra/issues/3544) (PR [#3582](https://github.com/vatesfr/xen-orchestra/pull/3582))
 
 ### Bug fixes
 
