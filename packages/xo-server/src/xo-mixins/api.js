@@ -306,12 +306,7 @@ export default class Api {
       this._logger.error(message, data)
 
       if (this._xo._config.verboseLogsOnErrors) {
-        log.debug(message)
-
-        const stack = error && error.stack
-        if (stack) {
-          log.error(stack)
-        }
+        log.error({ error })
       } else {
         log.debug(
           `${userName} | ${name}(...) [${ms(

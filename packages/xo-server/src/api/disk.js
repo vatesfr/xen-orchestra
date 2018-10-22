@@ -89,7 +89,7 @@ async function handleExportContent (req, res, { xapi, id }) {
   )
   pump(stream, res, error => {
     if (error != null) {
-      log.warn(`disk.exportContent ${error}`)
+      log.warn('disk.exportContent', { error })
     }
   })
 }

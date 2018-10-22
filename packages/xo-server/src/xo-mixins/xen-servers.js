@@ -183,7 +183,7 @@ export default class {
           objects.set(xoId, xoObject)
         }
       } catch (error) {
-        log.error(`ERROR: xapiObjectToXo ${error}`)
+        log.error('ERROR: xapiObjectToXo', { error })
 
         toRetry[xapiId] = xapiObject
       }

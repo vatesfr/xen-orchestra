@@ -23,10 +23,7 @@ const runHook = (app, hook) => {
   const promise = emitAsync.call(
     app,
     {
-      onError: error =>
-        log.warn(
-          `hook ${hook} failure: ${(error != null && error.stack) || error}`
-        ),
+      onError: error => log.warn(`hook ${hook} failure:`, { error }),
     },
     hook
   )

@@ -41,11 +41,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
 
       const onSend = error => {
         if (error) {
-          log.debug(
-            `error sending to the XO client: ${error.stack ||
-              error.message ||
-              error}`
-          )
+          log.debug('error sending to the XO client:', { error })
         }
       }
 
@@ -72,9 +68,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
 
       ws.on('error', error => {
         closed = true
-        log.debug(
-          `error from the XO client: ${error.stack || error.message || error}`
-        )
+        log.debug('error from the XO client:', { error })
 
         socket.end()
       })
@@ -94,9 +88,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
     }
   ).on('error', error => {
     closed = true
-    log.debug(
-      `error from the console: ${error.stack || error.message || error}`
-    )
+    log.debug('error from the console:', { error })
 
     ws.close()
   })

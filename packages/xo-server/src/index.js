@@ -40,7 +40,7 @@ import passport from 'passport'
 import { parse as parseCookies } from 'cookie'
 import { Strategy as LocalStrategy } from 'passport-local'
 
-import transportConsoleColor from '@xen-orchestra/log/transports/consoleColor'
+import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
 
 // ===================================================================
@@ -49,7 +49,7 @@ configure([
   {
     filter: process.env.DEBUG,
 
-    transport: transportConsoleColor(),
+    transport: transportConsole(),
   },
 ])
 
@@ -333,7 +333,7 @@ async function makeWebServerListen (
     log.debug(`Web server listening on ${niceAddress}`)
   } catch (error) {
     if (error.niceAddress) {
-      log.warn(`Web server could not listen on ${error.niceAddress}`)
+      log.warn('Web server could not listen on', { error })
 
       const { code } = error
       if (code === 'EACCES') {
@@ -343,7 +343,7 @@ async function makeWebServerListen (
         log.warn('  Address already in use.')
       }
     } else {
-      log.warn(`Web server could not listen: ${error.message}`)
+      log.warn('Web server could not listen:', { error })
     }
   }
 }
@@ -472,7 +472,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
 
     const onSend = error => {
       if (error) {
-        log.warn(`WebSocket send: ${error.stack}`)
+        log.warn('WebSocket send:', { error })
       }
     }
     jsonRpc.on('data', data => {
