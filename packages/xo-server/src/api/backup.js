@@ -65,7 +65,7 @@ function handleFetchFiles (
 
       const archive = archiver(archiveFormat)
       archive.on('error', error => {
-        log.error(error)
+        log.error({ error })
         res.end(format.error(0, error))
       })
 
@@ -77,7 +77,7 @@ function handleFetchFiles (
       archive.pipe(res)
     })
     .catch(error => {
-      log.error(error)
+      log.error({ error })
       res.writeHead(500)
       res.end(format.error(0, error))
     })

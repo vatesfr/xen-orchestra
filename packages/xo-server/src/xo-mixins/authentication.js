@@ -105,7 +105,7 @@ export default class {
         // DEPRECATED: Authentication providers may just throw `null`
         // to indicate they could not authenticate the user without
         // any special errors.
-        if (error) log.error(error.stack || error)
+        if (error) log.error({ error })
       }
     }
 

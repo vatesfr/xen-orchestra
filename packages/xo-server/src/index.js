@@ -583,7 +583,7 @@ export default async function main (args) {
       log.debug(`User changed to ${user}`)
     }
   } catch (error) {
-    log.warn(`Failed to change user/group: ${error}`)
+    log.warn('Failed to change user/group:', { error })
   }
 
   // Creates main object.

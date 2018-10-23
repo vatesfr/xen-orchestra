@@ -1220,7 +1220,7 @@ export default class Xapi extends XapiBase {
       { vdi }
     ).catch(error => {
       if (error.code !== 'XENAPI_PLUGIN_FAILURE') {
-        log.warn(`_callInstallationPlugin ${error}`)
+        log.warn('_callInstallationPlugin', { error })
         throw error
       }
     })

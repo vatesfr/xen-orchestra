@@ -61,7 +61,7 @@ export default {
           length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
         }
       } catch (error) {
-        log.warn(`Xapi#_getUnhealthyVdiChainLength(${uuid}) ${error}`)
+        log.warn(`Xapi#_getUnhealthyVdiChainLength(${uuid})`, { error })
       }
       cache[uuid] = length
     }

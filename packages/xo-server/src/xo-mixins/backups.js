@@ -227,7 +227,7 @@ const mountPartition = (device, partitionId) =>
             unmount: once(() => execa('umount', ['--lazy', path])),
           }),
           error => {
-            log.error(error)
+            log.error({ error })
 
             throw error
           }
@@ -725,7 +725,7 @@ export default class {
         fulFilledVdiBackups.push(vdiBackup)
       } else {
         error = vdiBackup.reason()
-        log.error(`Rejected backup: ${error}`)
+        log.error('Rejected backup:', { error })
       }
     }
 
