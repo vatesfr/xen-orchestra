@@ -344,9 +344,9 @@ export const FormModal = [
   ({ state, effects }) => (
     <ReactModal
       bsSize={state.size}
+      onExited={effects.reset}
       onHide={effects.onCancel}
       show={state.opened}
-      onExited={effects.reset}
     >
       <ReactModal.Header closeButton>
         <ReactModal.Title>{state.header}</ReactModal.Title>
