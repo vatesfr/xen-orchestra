@@ -30,7 +30,6 @@
     "node": ">=6"
   },
   "devDependencies": {
-    "@julien-f/freactal": "0.4.0",
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.3",
     "@xen-orchestra/defined": "^0.0.0",
@@ -98,6 +97,7 @@
     "promise-toolbox": "^0.10.1",
     "prop-types": "^15.6.0",
     "random-password": "^0.1.2",
+    "reaclette": "^0.6.0",
     "react": "^15.4.1",
     "react-addons-shallow-compare": "^15.6.2",
     "react-addons-test-utils": "^15.6.2",

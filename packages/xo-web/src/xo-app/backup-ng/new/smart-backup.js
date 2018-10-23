@@ -6,7 +6,7 @@ import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { get } from 'lodash'
-import { injectState } from '@julien-f/freactal'
+import { injectState } from 'reaclette'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
 

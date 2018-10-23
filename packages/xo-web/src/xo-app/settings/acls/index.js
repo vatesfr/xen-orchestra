@@ -17,7 +17,7 @@ import store from 'store'
 import { addSubscriptions, connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import {
   SelectHighLevelObject,
   SelectRole,

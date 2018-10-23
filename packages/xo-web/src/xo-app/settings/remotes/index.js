@@ -10,7 +10,7 @@ import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
 import { groupBy, map, isEmpty } from 'lodash'
 import { injectIntl } from 'react-intl'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { Number, Password, Text } from 'editable'
 
 import {

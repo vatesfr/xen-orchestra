@@ -4,7 +4,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import { Card, CardBlock, CardHeader } from 'card'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { isEmpty, find, size } from 'lodash'
 
 import { FormFeedback } from './../utils'

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
 import { FormattedDate, FormattedTime } from 'react-intl'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { flatten, forEach, identity, isArray, map, sortedIndex } from 'lodash'
 
 import _ from './intl'
