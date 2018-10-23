@@ -48,7 +48,7 @@ import { configure } from '@xen-orchestra/log/configure'
 configure([
   {
     filter: process.env.DEBUG,
-
+    level: 'warn',
     transport: transportConsole(),
   },
 ])

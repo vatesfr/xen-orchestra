@@ -306,7 +306,7 @@ export default class Api {
       this._logger.error(message, data)
 
       if (this._xo._config.verboseLogsOnErrors) {
-        log.error({ error })
+        log.error('', { error })
       } else {
         log.debug(
           `${userName} | ${name}(...) [${ms(

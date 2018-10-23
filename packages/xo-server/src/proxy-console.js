@@ -9,14 +9,14 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
   const url = parse(vmConsole.location)
   let { hostname } = url
   if (hostname === null || hostname === '') {
+    const { address } = vmConsole.$VM.$resident_on
+    hostname = address
+
     log.warn(
       `host is missing in console (${vmConsole.uuid}) URI (${
         vmConsole.location
-      })`
+      }) using host address (${address}) as fallback`
     )
-    const { address } = vmConsole.$VM.$resident_on
-    log.warn(`  using host address (${address}) as fallback`)
-    hostname = address
   }
 
   let closed = false
