@@ -22,6 +22,7 @@
 - [Backup NG/Restore] The backup selector now also shows the job name [#3366](https://github.com/vatesfr/xen-orchestra/issues/3366) (PR [#3564](https://github.com/vatesfr/xen-orchestra/pull/3564))
 - Sort buttons by criticality in tables [#3168](https://github.com/vatesfr/xen-orchestra/issues/3168) (PR [#3545](https://github.com/vatesfr/xen-orchestra/pull/3545))
 - [Usage Report] Ability to send a daily report [#3544](https://github.com/vatesfr/xen-orchestra/issues/3544) (PR [#3582](https://github.com/vatesfr/xen-orchestra/pull/3582))
+- [Backup NG logs] Disable state filters with no entries [#3438](https://github.com/vatesfr/xen-orchestra/issues/3438) (PR [#3442](https://github.com/vatesfr/xen-orchestra/pull/3442))
 
 ### Bug fixes
 
