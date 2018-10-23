@@ -20,6 +20,7 @@
 - [Backup NG] Collapse advanced settings by default [#3551](https://github.com/vatesfr/xen-orchestra/issues/3551) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3559))
 - [Scheduling] Merge selection and interval tabs [#1902](https://github.com/vatesfr/xen-orchestra/issues/1902) (PR [#3519](https://github.com/vatesfr/xen-orchestra/pull/3519))
 - [Backup NG/Restore] The backup selector now also shows the job name [#3366](https://github.com/vatesfr/xen-orchestra/issues/3366) (PR [#3564](https://github.com/vatesfr/xen-orchestra/pull/3564))
+- [ACLs] Global performance improvement on UI for non-admin users [#3584](https://github.com/vatesfr/xen-orchestra/issues/3584) (PR [#3578](https://github.com/vatesfr/xen-orchestra/pull/3578))
 
 ### Bug fixes
 
