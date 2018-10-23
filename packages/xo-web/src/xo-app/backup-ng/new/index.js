@@ -1,11 +1,10 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import moment from 'moment-timezone'
 import React from 'react'
-import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
@@ -14,11 +13,13 @@ import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { error } from 'notification'
-import { flatten, includes, isEmpty, keyBy, map, mapValues, some } from 'lodash'
+import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
 import { form } from 'modal'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectIntl } from 'react-intl'
+import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
 import { Number } from 'form'
+import { renderXoItemFromId, RemoteItem } from 'render-xo-item'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
@@ -146,6 +147,7 @@ const getInitialState = () => ({
   compression: undefined,
   crMode: false,
   deltaMode: false,
+  displayAdvancedSettings: undefined,
   drMode: false,
   formId: generateRandomId(),
   inputConcurrencyId: generateRandomId(),
@@ -187,10 +189,7 @@ export default [
     </Upgrade>
   ),
   addSubscriptions({
-    remotesById: cb =>
-      subscribeRemotes(remotes => {
-        cb(keyBy(remotes, 'id'))
-      }),
+    remotes: subscribeRemotes,
   }),
   connectStore(() => ({
     srsById: createGetObjectsOfType('SR'),
@@ -526,7 +525,7 @@ export default [
       setTimeout: ({ setGlobalSettings }, value) => () => {
         setGlobalSettings({
           name: 'timeout',
-          value: value && value * 1e3,
+          value: value && value * 3600e3,
         })
       },
       setOfflineSnapshot: (
@@ -590,20 +589,34 @@ export default [
               setting.snapshotRetention
             )
               ? {
-                  copyRetention: setting.copyRetention || DEFAULT_RETENTION,
-                  exportRetention: setting.exportRetention || DEFAULT_RETENTION,
-                  snapshotRetention:
-                    setting.snapshotRetention || DEFAULT_RETENTION,
+                  copyRetention: defined(
+                    setting.copyRetention,
+                    DEFAULT_RETENTION
+                  ),
+                  exportRetention: defined(
+                    setting.exportRetention,
+                    DEFAULT_RETENTION
+                  ),
+                  snapshotRetention: defined(
+                    setting.snapshotRetention,
+                    DEFAULT_RETENTION
+                  ),
                 }
               : setting
         ),
     },
   }),
+  injectIntl,
   injectState,
-  ({ state, effects, remotesById, srsById, job = {} }) => {
+  ({ state, effects, remotes, srsById, job = {}, intl }) => {
+    const { formatMessage } = intl
     const { propSettings, settings = propSettings } = state
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
+    const displayAdvancedSettings = defined(
+      state.displayAdvancedSettings,
+      concurrency > 0 || timeout > 0 || offlineSnapshot
+    )
 
     const { compression = job.compression === 'native' } = state
 
@@ -716,7 +729,7 @@ export default [
                     </Link>
                   </CardHeader>
                   <CardBlock>
-                    {isEmpty(remotesById) ? (
+                    {isEmpty(remotes) ? (
                       <span className='text-warning'>
                         <Icon icon='alarm' /> {_('createRemoteMessage')}
                       </span>
@@ -739,11 +752,7 @@ export default [
                         <Ul>
                           {map(state.remotes, (id, key) => (
                             <Li key={id}>
-                              {remotesById !== undefined &&
-                                renderXoItem({
-                                  type: 'remote',
-                                  value: remotesById[id],
-                                })}
+                              <RemoteItem id={id} />
                               <div className='pull-right'>
                                 <DeleteOldBackupsFirst
                                   handler={effects.setTargetDeleteFirst}
@@ -820,12 +829,36 @@ export default [
                 </Card>
               )}
               <Card>
-                <CardHeader>{_('newBackupAdvancedSettings')}</CardHeader>
+                <CardHeader>
+                  {_('newBackupSettings')}
+                  <ActionButton
+                    className='pull-right'
+                    data-mode='displayAdvancedSettings'
+                    handler={effects.toggleMode}
+                    icon={displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
+                    iconColor={
+                      displayAdvancedSettings ? 'text-success' : undefined
+                    }
+                    size='small'
+                  >
+                    {_('newBackupAdvancedSettings')}
+                  </ActionButton>
+                </CardHeader>
                 <CardBlock>
                   <FormGroup>
                     <label htmlFor={state.inputReportWhenId}>
                       <strong>{_('reportWhen')}</strong>
-                    </label>
+                    </label>{' '}
+                    <Tooltip content={_('pluginsWarning')}>
+                      <Link
+                        className='btn btn-primary btn-sm'
+                        target='_blank'
+                        to='/settings/plugins'
+                      >
+                        <Icon icon='menu-settings-plugins' />{' '}
+                        <strong>{_('pluginsSettings')}</strong>
+                      </Link>
+                    </Tooltip>
                     <Select
                       id={state.inputReportWhenId}
                       labelKey='label'
@@ -837,54 +870,59 @@ export default [
                       valueKey='value'
                     />
                   </FormGroup>
-                  <FormGroup>
-                    <label htmlFor={state.inputConcurrencyId}>
-                      <strong>{_('concurrency')}</strong>
-                    </label>
-                    <Number
-                      id={state.inputConcurrencyId}
-                      onChange={effects.setConcurrency}
-                      value={concurrency}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <label htmlFor={state.inputTimeoutId}>
-                      <strong>{_('timeout')}</strong>
-                    </label>{' '}
-                    <Tooltip content={_('timeoutInfo')}>
-                      <Icon icon='info' />
-                    </Tooltip>
-                    <Number
-                      id={state.inputTimeoutId}
-                      onChange={effects.setTimeout}
-                      value={timeout && timeout / 1e3}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <label>
-                      <strong>{_('offlineSnapshot')}</strong>{' '}
-                      <Tooltip content={_('offlineSnapshotInfo')}>
-                        <Icon icon='info' />
-                      </Tooltip>{' '}
-                      <input
-                        checked={offlineSnapshot}
-                        onChange={effects.setOfflineSnapshot}
-                        type='checkbox'
-                      />
-                    </label>
-                  </FormGroup>
-                  {state.isFull && (
-                    <FormGroup>
-                      <label>
-                        <strong>{_('useCompression')}</strong>{' '}
-                        <input
-                          checked={compression}
-                          name='compression'
-                          onChange={effects.setCheckboxValue}
-                          type='checkbox'
+                  {displayAdvancedSettings && (
+                    <div>
+                      <FormGroup>
+                        <label htmlFor={state.inputConcurrencyId}>
+                          <strong>{_('concurrency')}</strong>
+                        </label>
+                        <Number
+                          id={state.inputConcurrencyId}
+                          onChange={effects.setConcurrency}
+                          value={concurrency}
                         />
-                      </label>
-                    </FormGroup>
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputTimeoutId}>
+                          <strong>{_('timeout')}</strong>
+                        </label>{' '}
+                        <Tooltip content={_('timeoutInfo')}>
+                          <Icon icon='info' />
+                        </Tooltip>
+                        <Number
+                          id={state.inputTimeoutId}
+                          onChange={effects.setTimeout}
+                          value={timeout && timeout / 3600e3}
+                          placeholder={formatMessage(messages.timeoutUnit)}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label>
+                          <strong>{_('offlineSnapshot')}</strong>{' '}
+                          <Tooltip content={_('offlineSnapshotInfo')}>
+                            <Icon icon='info' />
+                          </Tooltip>{' '}
+                          <input
+                            checked={offlineSnapshot}
+                            onChange={effects.setOfflineSnapshot}
+                            type='checkbox'
+                          />
+                        </label>
+                      </FormGroup>
+                      {state.isFull && (
+                        <FormGroup>
+                          <label>
+                            <strong>{_('useCompression')}</strong>{' '}
+                            <input
+                              checked={compression}
+                              name='compression'
+                              onChange={effects.setCheckboxValue}
+                              type='checkbox'
+                            />
+                          </label>
+                        </FormGroup>
+                      )}
+                    </div>
                   )}
                 </CardBlock>
               </Card>

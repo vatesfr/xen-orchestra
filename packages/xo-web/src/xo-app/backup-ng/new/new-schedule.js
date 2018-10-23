@@ -3,7 +3,7 @@ import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
 import { generateRandomId } from 'utils'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { Number } from 'form'
 
 import { FormGroup, Input } from './../utils'

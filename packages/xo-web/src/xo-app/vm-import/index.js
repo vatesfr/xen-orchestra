@@ -8,7 +8,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { Container, Col, Row } from 'grid'
 import { importVms, isSrWritable } from 'xo'
@@ -48,22 +48,6 @@ const HEADER = (
 
 // ===================================================================
 
-@propTypes({
-  descriptionLabel: propTypes.string,
-  disks: propTypes.objectOf(
-    propTypes.shape({
-      capacity: propTypes.number.isRequired,
-      descriptionLabel: propTypes.string.isRequired,
-      nameLabel: propTypes.string.isRequired,
-      path: propTypes.string.isRequired,
-    })
-  ),
-  memory: propTypes.number,
-  nameLabel: propTypes.string,
-  nCpus: propTypes.number,
-  networks: propTypes.array,
-  pool: propTypes.object.isRequired,
-})
 @connectStore(
   () => {
     const getHostMaster = createGetObject((_, props) => props.pool.master)
@@ -82,6 +66,23 @@ const HEADER = (
   { withRef: true }
 )
 class VmData extends Component {
+  static propTypes = {
+    descriptionLabel: PropTypes.string,
+    disks: PropTypes.objectOf(
+      PropTypes.shape({
+        capacity: PropTypes.number.isRequired,
+        descriptionLabel: PropTypes.string.isRequired,
+        nameLabel: PropTypes.string.isRequired,
+        path: PropTypes.string.isRequired,
+      })
+    ),
+    memory: PropTypes.number,
+    nameLabel: PropTypes.string,
+    nCpus: PropTypes.number,
+    networks: PropTypes.array,
+    pool: PropTypes.object.isRequired,
+  }
+
   get value () {
     const { props, refs } = this
     return {

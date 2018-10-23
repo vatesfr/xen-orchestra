@@ -9,7 +9,7 @@ import React from 'react'
 import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import Tooltip from 'tooltip'
 import { get } from '@xen-orchestra/defined'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 
 const isFailureTask = ({ status }) =>

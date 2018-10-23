@@ -13,11 +13,13 @@ import {
   deleteBackups,
   fetchFilesNg as fetchFiles,
   listVmBackups,
+  subscribeBackupNgJobs,
   subscribeRemotes,
 } from 'xo'
 import {
   assign,
   filter,
+  find,
   flatMap,
   forEach,
   keyBy,
@@ -86,6 +88,7 @@ const BACKUPS_COLUMNS = [
 // -----------------------------------------------------------------------------
 
 @addSubscriptions({
+  jobs: subscribeBackupNgJobs,
   remotes: subscribeRemotes,
 })
 export default class Restore extends Component {
@@ -94,13 +97,19 @@ export default class Restore extends Component {
   }
 
   componentWillReceiveProps (props) {
-    if (props.remotes !== this.props.remotes) {
-      this._refreshBackupList(props.remotes)
+    if (
+      props.remotes !== this.props.remotes ||
+      props.jobs !== this.props.jobs
+    ) {
+      this._refreshBackupList(props.remotes, props.jobs)
     }
   }
 
-  _refreshBackupList = async (_ = this.props.remotes) => {
-    const remotes = keyBy(filter(_, { enabled: true }), 'id')
+  _refreshBackupList = async (
+    _remotes = this.props.remotes,
+    jobs = this.props.jobs
+  ) => {
+    const remotes = keyBy(filter(_remotes, { enabled: true }), 'id')
     const backupsByRemote = await listVmBackups(toArray(remotes))
 
     const backupDataByVm = {}
@@ -116,7 +125,10 @@ export default class Restore extends Component {
         }
 
         backupDataByVm[vmId].backups.push(
-          ...map(vmBackups, bkp => ({ ...bkp, remote }))
+          ...map(vmBackups, bkp => {
+            const job = find(jobs, { id: bkp.jobId })
+            return { ...bkp, remote, jobName: job && job.name }
+          })
         )
       })
     })

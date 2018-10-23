@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import * as d3 from 'd3'
 import forEach from 'lodash/forEach'
@@ -5,7 +6,6 @@ import map from 'lodash/map'
 
 import Component from '../base-component'
 import _ from '../intl'
-import propTypes from '../prop-types-decorator'
 import { Toggle } from '../form'
 import { setStyles } from '../d3-utils'
 import { createGetObject, createSelector } from '../selectors'
@@ -58,21 +58,6 @@ const HORIZON_AREA_PATH_STYLE = {
 
 // ===================================================================
 
-@propTypes({
-  chartHeight: propTypes.number,
-  chartWidth: propTypes.number,
-  data: propTypes.arrayOf(
-    propTypes.shape({
-      date: propTypes.number.isRequired,
-      value: propTypes.number.isRequired,
-    })
-  ).isRequired,
-  maxValue: propTypes.number,
-  objectId: propTypes.string.isRequired,
-  onTooltipChange: propTypes.func.isRequired,
-  tooltipX: propTypes.number.isRequired,
-  valueRenderer: propTypes.func,
-})
 @connectStore(() => {
   const label = createSelector(
     createGetObject((_, props) => props.objectId),
@@ -82,6 +67,22 @@ const HORIZON_AREA_PATH_STYLE = {
   return { label }
 })
 class XoWeekChart extends Component {
+  static propTypes = {
+    chartHeight: PropTypes.number,
+    chartWidth: PropTypes.number,
+    data: PropTypes.arrayOf(
+      PropTypes.shape({
+        date: PropTypes.number.isRequired,
+        value: PropTypes.number.isRequired,
+      })
+    ).isRequired,
+    maxValue: PropTypes.number,
+    objectId: PropTypes.string.isRequired,
+    onTooltipChange: PropTypes.func.isRequired,
+    tooltipX: PropTypes.number.isRequired,
+    valueRenderer: PropTypes.func,
+  }
+
   static defaultProps = {
     chartHeight: 70,
     chartWidth: 300,
@@ -307,22 +308,23 @@ class XoWeekChart extends Component {
 
 // ===================================================================
 
-@propTypes({
-  chartHeight: propTypes.number,
-  series: propTypes.arrayOf(
-    propTypes.shape({
-      data: propTypes.arrayOf(
-        propTypes.shape({
-          date: propTypes.number.isRequired,
-          value: propTypes.number.isRequired,
-        })
-      ).isRequired,
-      objectId: propTypes.string.isRequired,
-    })
-  ).isRequired,
-  valueRenderer: propTypes.func,
-})
 export default class XoWeekCharts extends Component {
+  static propTypes = {
+    chartHeight: PropTypes.number,
+    series: PropTypes.arrayOf(
+      PropTypes.shape({
+        data: PropTypes.arrayOf(
+          PropTypes.shape({
+            date: PropTypes.number.isRequired,
+            value: PropTypes.number.isRequired,
+          })
+        ).isRequired,
+        objectId: PropTypes.string.isRequired,
+      })
+    ).isRequired,
+    valueRenderer: PropTypes.func,
+  }
+
   _handleResize = () => {
     const { container } = this.refs
     this.setState({

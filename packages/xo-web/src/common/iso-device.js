@@ -1,10 +1,10 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 
 import _ from 'intl'
 import ActionButton from './action-button'
 import Component from './base-component'
 import Icon from 'icon'
-import propTypes from './prop-types-decorator'
 import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { isAdmin } from 'selectors'
@@ -18,9 +18,6 @@ import {
   createSelector,
 } from './selectors'
 
-@propTypes({
-  vm: propTypes.object.isRequired,
-})
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
 })
@@ -44,6 +41,10 @@ import {
   }
 })
 export default class IsoDevice extends Component {
+  static propTypes = {
+    vm: PropTypes.object.isRequired,
+  }
+
   _getPredicate = createSelector(
     () => this.props.vm.$pool,
     () => this.props.vm.$container,

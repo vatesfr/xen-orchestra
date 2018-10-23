@@ -1,10 +1,10 @@
 import Collapse from 'collapse'
 import Component from 'base-component'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { map } from 'lodash'
 
 import _ from '../../intl'
-import propTypes from '../../prop-types-decorator'
 import SingleLineRow from '../../single-line-row'
 import { Container, Col } from 'grid'
 import { isSrWritable } from 'xo'
@@ -22,23 +22,24 @@ const Collapsible = ({ collapsible, children, ...props }) =>
   )
 
 Collapsible.propTypes = {
-  collapsible: propTypes.bool.isRequired,
-  children: propTypes.node.isRequired,
+  collapsible: PropTypes.bool.isRequired,
+  children: PropTypes.node.isRequired,
 }
 
-@propTypes({
-  mainSrPredicate: propTypes.func,
-  onChange: propTypes.func.isRequired,
-  srPredicate: propTypes.func,
-  value: propTypes.objectOf(
-    propTypes.shape({
-      mainSr: propTypes.object,
-      mapVdisSrs: propTypes.object,
-    })
-  ).isRequired,
-  vdis: propTypes.object.isRequired,
-})
 export default class ChooseSrForEachVdisModal extends Component {
+  static propTypes = {
+    mainSrPredicate: PropTypes.func,
+    onChange: PropTypes.func.isRequired,
+    srPredicate: PropTypes.func,
+    value: PropTypes.objectOf(
+      PropTypes.shape({
+        mainSr: PropTypes.object,
+        mapVdisSrs: PropTypes.object,
+      })
+    ).isRequired,
+    vdis: PropTypes.object.isRequired,
+  }
+
   _onChange = newValues => {
     this.props.onChange({
       ...this.props.value,

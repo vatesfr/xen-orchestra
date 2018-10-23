@@ -15,18 +15,24 @@ import { test as mapTestBit } from './_bitmap'
 const resolveRelativeFromFile = (file, path) =>
   resolve('/', dirname(file), path).slice(1)
 
-export default asyncIteratorToStream(function * (handler, path) {
+export default async function createSyntheticStream (handler, path) {
   const fds = []
-
+  const cleanup = () => {
+    for (let i = 0, n = fds.length; i < n; ++i) {
+      handler.closeFile(fds[i]).catch(error => {
+        console.warn('createReadStream, closeFd', i, error)
+      })
+    }
+  }
   try {
     const vhds = []
     while (true) {
-      const fd = yield handler.openFile(path, 'r')
+      const fd = await handler.openFile(path, 'r')
       fds.push(fd)
       const vhd = new Vhd(handler, fd)
       vhds.push(vhd)
-      yield vhd.readHeaderAndFooter()
-      yield vhd.readBlockAllocationTable()
+      await vhd.readHeaderAndFooter()
+      await vhd.readBlockAllocationTable()
 
       if (vhd.footer.diskType === DISK_TYPE_DYNAMIC) {
         break
@@ -64,14 +70,8 @@ export default asyncIteratorToStream(function * (handler, path) {
     const nBlocks = Math.ceil(footer.currentSize / header.blockSize)
 
     const blocksOwner = new Array(nBlocks)
-    for (
-      let iBlock = 0,
-        blockOffset = Math.ceil(
-          (header.tableOffset + bat.length) / SECTOR_SIZE
-        );
-      iBlock < nBlocks;
-      ++iBlock
-    ) {
+    let blockOffset = Math.ceil((header.tableOffset + bat.length) / SECTOR_SIZE)
+    for (let iBlock = 0; iBlock < nBlocks; ++iBlock) {
       let blockSector = BLOCK_UNUSED
       for (let i = 0; i < nVhds; ++i) {
         if (vhds[i].containsBlock(iBlock)) {
@@ -83,71 +83,78 @@ export default asyncIteratorToStream(function * (handler, path) {
       }
       bat.writeUInt32BE(blockSector, iBlock * 4)
     }
+    const fileSize = blockOffset * SECTOR_SIZE + FOOTER_SIZE
 
-    footer = fuFooter.pack(footer)
-    checksumStruct(footer, fuFooter)
-    yield footer
+    const iterator = function * () {
+      try {
+        footer = fuFooter.pack(footer)
+        checksumStruct(footer, fuFooter)
+        yield footer
 
-    header = fuHeader.pack(header)
-    checksumStruct(header, fuHeader)
-    yield header
+        header = fuHeader.pack(header)
+        checksumStruct(header, fuHeader)
+        yield header
 
-    yield bat
+        yield bat
 
-    // TODO: for generic usage the bitmap needs to be properly computed for each block
-    const bitmap = Buffer.alloc(vhd.bitmapSize, 0xff)
-    for (let iBlock = 0; iBlock < nBlocks; ++iBlock) {
-      const owner = blocksOwner[iBlock]
-      if (owner === undefined) {
-        continue
-      }
-
-      yield bitmap
-
-      const blocksByVhd = new Map()
-      const emitBlockSectors = function * (iVhd, i, n) {
-        const vhd = vhds[iVhd]
-        const isRootVhd = vhd === rootVhd
-        if (!vhd.containsBlock(iBlock)) {
-          if (isRootVhd) {
-            yield Buffer.alloc((n - i) * SECTOR_SIZE)
-          } else {
-            yield * emitBlockSectors(iVhd + 1, i, n)
+        // TODO: for generic usage the bitmap needs to be properly computed for each block
+        const bitmap = Buffer.alloc(vhd.bitmapSize, 0xff)
+        for (let iBlock = 0; iBlock < nBlocks; ++iBlock) {
+          const owner = blocksOwner[iBlock]
+          if (owner === undefined) {
+            continue
           }
-          return
-        }
-        let block = blocksByVhd.get(vhd)
-        if (block === undefined) {
-          block = yield vhd._readBlock(iBlock)
-          blocksByVhd.set(vhd, block)
-        }
-        const { bitmap, data } = block
-        if (isRootVhd) {
-          yield data.slice(i * SECTOR_SIZE, n * SECTOR_SIZE)
-          return
-        }
-        while (i < n) {
-          const hasData = mapTestBit(bitmap, i)
-          const start = i
-          do {
-            ++i
-          } while (i < n && mapTestBit(bitmap, i) === hasData)
-          if (hasData) {
-            yield data.slice(start * SECTOR_SIZE, i * SECTOR_SIZE)
-          } else {
-            yield * emitBlockSectors(iVhd + 1, start, i)
+
+          yield bitmap
+
+          const blocksByVhd = new Map()
+          const emitBlockSectors = function * (iVhd, i, n) {
+            const vhd = vhds[iVhd]
+            const isRootVhd = vhd === rootVhd
+            if (!vhd.containsBlock(iBlock)) {
+              if (isRootVhd) {
+                yield Buffer.alloc((n - i) * SECTOR_SIZE)
+              } else {
+                yield * emitBlockSectors(iVhd + 1, i, n)
+              }
+              return
+            }
+            let block = blocksByVhd.get(vhd)
+            if (block === undefined) {
+              block = yield vhd._readBlock(iBlock)
+              blocksByVhd.set(vhd, block)
+            }
+            const { bitmap, data } = block
+            if (isRootVhd) {
+              yield data.slice(i * SECTOR_SIZE, n * SECTOR_SIZE)
+              return
+            }
+            while (i < n) {
+              const hasData = mapTestBit(bitmap, i)
+              const start = i
+              do {
+                ++i
+              } while (i < n && mapTestBit(bitmap, i) === hasData)
+              if (hasData) {
+                yield data.slice(start * SECTOR_SIZE, i * SECTOR_SIZE)
+              } else {
+                yield * emitBlockSectors(iVhd + 1, start, i)
+              }
+            }
           }
+          yield * emitBlockSectors(owner, 0, sectorsPerBlockData)
         }
+        yield footer
+      } finally {
+        cleanup()
       }
-      yield * emitBlockSectors(owner, 0, sectorsPerBlockData)
     }
 
-    yield footer
-  } finally {
-    for (let i = 0, n = fds.length; i < n; ++i) {
-      handler.closeFile(fds[i]).catch(error => {
-        console.warn('createReadStream, closeFd', i, error)
-      })
-    }
+    const stream = asyncIteratorToStream(iterator())
+    stream.length = fileSize
+    return stream
+  } catch (e) {
+    cleanup()
+    throw e
   }
-})
+}

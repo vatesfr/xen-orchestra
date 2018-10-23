@@ -16,7 +16,7 @@ import {
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
-import { Xapi as XapiBase } from 'xen-api'
+import { Xapi as XapiBase, NULL_REF } from 'xen-api'
 import {
   every,
   find,
@@ -63,7 +63,6 @@ import {
   canSrHaveNewVdiOfSize,
   isVmHvm,
   isVmRunning,
-  NULL_REF,
   optional,
   parseDateTime,
   prepareXapiParam,
@@ -744,28 +743,28 @@ export default class Xapi extends XapiBase {
   @cancelable
   async exportVm ($cancelToken, vmId, { compress = true } = {}) {
     const vm = this.getObject(vmId)
-
-    let snapshotRef
-    if (isVmRunning(vm)) {
-      snapshotRef = (await this._snapshotVm(
-        $cancelToken,
-        vm,
-        `[XO Export] ${vm.name_label}`
-      )).$ref
-    }
+    const useSnapshot = isVmRunning(vm)
+    const exportedVm = useSnapshot
+      ? await this._snapshotVm($cancelToken, vm, `[XO Export] ${vm.name_label}`)
+      : vm
 
     const promise = this.getResource($cancelToken, '/export/', {
       query: {
-        ref: snapshotRef || vm.$ref,
+        ref: exportedVm.$ref,
         use_compression: compress ? 'true' : 'false',
       },
       task: this.createTask('VM export', vm.name_label),
+    }).catch(error => {
+      // augment the error with as much relevant info as possible
+      error.pool_master = this.pool.$master
+      error.VM = exportedVm
+
+      throw error
     })
 
-    if (snapshotRef !== undefined) {
-      promise.then(_ =>
-        _.task::pFinally(() => this.deleteVm(snapshotRef)::ignoreErrors())
-      )
+    if (useSnapshot) {
+      const destroySnapshot = () => this.deleteVm(exportedVm)::ignoreErrors()
+      promise.then(_ => _.task::pFinally(destroySnapshot), destroySnapshot)
     }
 
     return promise
@@ -1093,6 +1092,7 @@ export default class Xapi extends XapiBase {
               transferSize += sizeStream.size
             })
           sizeStream.task = stream.task
+          sizeStream.length = stream.length
           await this._importVdiContent(vdi, sizeStream, VDI_FORMAT_VHD)
         }
       }),
@@ -1326,7 +1326,13 @@ export default class Xapi extends XapiBase {
     const vmRef = await this.putResource($cancelToken, stream, '/import/', {
       query,
       task: taskRef,
-    }).then(extractOpaqueRef)
+    }).then(extractOpaqueRef, error => {
+      // augment the error with as much relevant info as possible
+      error.pool_master = this.pool.$master
+      error.SR = sr
+
+      throw error
+    })
 
     return vmRef
   }

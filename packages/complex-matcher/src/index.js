@@ -153,6 +153,34 @@ export class NumberNode extends Node {
 }
 export { NumberNode as Number }
 
+export class NumberOrStringNode extends Node {
+  constructor (value) {
+    super()
+
+    this.value = value
+
+    // should not be enumerable for the tests
+    Object.defineProperty(this, 'match', {
+      value: this.match.bind(this, value.toLowerCase(), +value),
+    })
+  }
+
+  match (lcValue, numValue, value) {
+    return (
+      value === numValue ||
+      (typeof value === 'string'
+        ? value.toLowerCase().indexOf(lcValue) !== -1
+        : (Array.isArray(value) || isPlainObject(value)) &&
+          some(value, this.match))
+    )
+  }
+
+  toString () {
+    return this.value
+  }
+}
+export { NumberOrStringNode as NumberOrString }
+
 export class Property extends Node {
   constructor (name, child) {
     super()
@@ -564,7 +592,7 @@ const parser = P.grammar({
         const asNum = +str
         return Number.isNaN(asNum)
           ? new GlobPattern(str)
-          : new NumberNode(asNum)
+          : new NumberOrStringNode(str)
       })
     ),
   ws: P.regex(/\s*/),

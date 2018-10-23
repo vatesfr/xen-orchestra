@@ -4,10 +4,70 @@
 
 ### Enhancements
 
+- [Usage Report] Add IOPS read/write/total per VM [#3309](https://github.com/vatesfr/xen-orchestra/issues/3309) (PR [#3455](https://github.com/vatesfr/xen-orchestra/pull/3455))
+- [Self service] Sort resource sets by name (PR [#3507](https://github.com/vatesfr/xen-orchestra/pull/3507))
+- [Usage Report] Add top 3 SRs which use the most IOPS read/write/total [#3306](https://github.com/vatesfr/xen-orchestra/issues/3306) (PR [#3508](https://github.com/vatesfr/xen-orchestra/pull/3508))
+- [New VM] Display a warning when the memory is below the template memory static min [#3496](https://github.com/vatesfr/xen-orchestra/issues/3496) (PR [#3513](https://github.com/vatesfr/xen-orchestra/pull/3513))
+- [Backup NG form] Add link to plugins setting [#3457](https://github.com/vatesfr/xen-orchestra/issues/3457) (PR [#3514](https://github.com/vatesfr/xen-orchestra/pull/3514))
+- [Backup reports] Add job and run ID [#3488](https://github.com/vatesfr/xen-orchestra/issues/3488) (PR [#3516](https://github.com/vatesfr/xen-orchestra/pull/3516))
+- [Usage Report] Add top 3 VMs which use the most IOPS read/write/total [#3308](https://github.com/vatesfr/xen-orchestra/issues/3308) (PR [#3463](https://github.com/vatesfr/xen-orchestra/pull/3463))
+- [Settings/logs] Homogenize action buttons in table and enable bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3528](https://github.com/vatesfr/xen-orchestra/pull/3528))
+- [Settings/acls] Add bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3536](https://github.com/vatesfr/xen-orchestra/pull/3536))
+- [Home] Improve search usage: raw numbers also match in names [#2906](https://github.com/vatesfr/xen-orchestra/issues/2906) (PR [#3552](https://github.com/vatesfr/xen-orchestra/pull/3552))
+- [Backup NG] Timeout of a job is now in hours [#3550](https://github.com/vatesfr/xen-orchestra/issues/3550) (PR [#3553](https://github.com/vatesfr/xen-orchestra/pull/3553))
+- [Backup NG] Explicit error if a VM is missing [#3434](https://github.com/vatesfr/xen-orchestra/issues/3434) (PR [#3522](https://github.com/vatesfr/xen-orchestra/pull/3522))
+- [Backup NG] Show all advanced settings with non-default values in overview [#3549](https://github.com/vatesfr/xen-orchestra/issues/3549) (PR [#3554](https://github.com/vatesfr/xen-orchestra/pull/3554))
+- [Backup NG] Collapse advanced settings by default [#3551](https://github.com/vatesfr/xen-orchestra/issues/3551) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3559))
+- [Scheduling] Merge selection and interval tabs [#1902](https://github.com/vatesfr/xen-orchestra/issues/1902) (PR [#3519](https://github.com/vatesfr/xen-orchestra/pull/3519))
+- [Backup NG/Restore] The backup selector now also shows the job name [#3366](https://github.com/vatesfr/xen-orchestra/issues/3366) (PR [#3564](https://github.com/vatesfr/xen-orchestra/pull/3564))
+- Sort buttons by criticality in tables [#3168](https://github.com/vatesfr/xen-orchestra/issues/3168) (PR [#3545](https://github.com/vatesfr/xen-orchestra/pull/3545))
+- [Usage Report] Ability to send a daily report [#3544](https://github.com/vatesfr/xen-orchestra/issues/3544) (PR [#3582](https://github.com/vatesfr/xen-orchestra/pull/3582))
+- [Backup NG logs] Disable state filters with no entries [#3438](https://github.com/vatesfr/xen-orchestra/issues/3438) (PR [#3442](https://github.com/vatesfr/xen-orchestra/pull/3442))
+- [ACLs] Global performance improvement on UI for non-admin users [#3578](https://github.com/vatesfr/xen-orchestra/issues/3578) (PR [#3584](https://github.com/vatesfr/xen-orchestra/pull/3584))
+
 ### Bug fixes
+
+- [Remotes] Fix removal of broken remotes [#3327](https://github.com/vatesfr/xen-orchestra/issues/3327) (PR [#3521](https://github.com/vatesfr/xen-orchestra/pull/3521))
+- [Backups] Fix stuck backups due to broken NFS remotes [#3467](https://github.com/vatesfr/xen-orchestra/issues/3467) (PR [#3534](https://github.com/vatesfr/xen-orchestra/pull/3534))
+- [New VM] Fix missing cloud config when creating multiple VMs at once in some cases [#3532](https://github.com/vatesfr/xen-orchestra/issues/3532) (PR [#3535](https://github.com/vatesfr/xen-orchestra/pull/3535))
+- [VM] Fix an error when an admin tried to add a disk on a Self VM whose resource set had been deleted [#2814](https://github.com/vatesfr/xen-orchestra/issues/2814) (PR [#3530](https://github.com/vatesfr/xen-orchestra/pull/3530))
+- [Self/Create VM] Fix some quotas based on the template instead of the user inputs [#2683](https://github.com/vatesfr/xen-orchestra/issues/2683) (PR [#3546](https://github.com/vatesfr/xen-orchestra/pull/3546))
+- [Self] Ignore DR and CR VMs when computing quotas [#3064](https://github.com/vatesfr/xen-orchestra/issues/3064) (PR [#3561](https://github.com/vatesfr/xen-orchestra/pull/3561))
 
 ### Released packages
 
+- xo-common v0.1.2
+- @xen-orchestra/fs v0.4.0
+- complex-matcher v0.5.0
+- vhd-lib v0.4.0
+- xen-api v0.20.0
+- xo-server-usage-report v0.7.0
+- xo-server v5.29.0
+- xo-web v5.29.0
+
+## **5.28.0** (2018-10-05)
+
+### Enhancements
+
+- [Host/Networks] Remove "Add network" button [#3386](https://github.com/vatesfr/xen-orchestra/issues/3386) (PR [#3478](https://github.com/vatesfr/xen-orchestra/pull/3478))
+- [Host/networks] Private networks table [#3387](https://github.com/vatesfr/xen-orchestra/issues/3387) (PR [#3481](https://github.com/vatesfr/xen-orchestra/pull/3481))
+- [Home/pool] Patch count pill now shows the number of unique patches in the pool [#3321](https://github.com/vatesfr/xen-orchestra/issues/3321) (PR [#3483](https://github.com/vatesfr/xen-orchestra/pull/3483))
+- [Patches] Pre-install checks to avoid errors [#3252](https://github.com/vatesfr/xen-orchestra/issues/3252) (PR [#3484](https://github.com/vatesfr/xen-orchestra/pull/3484))
+- [Vm/Snapshots] Allow VM operators to create snapshots and delete those they created [#3443](https://github.com/vatesfr/xen-orchestra/issues/3443) (PR [#3482](https://github.com/vatesfr/xen-orchestra/pull/3482))
+- [VM/clone] Handle ACLs and Self Service [#3139](https://github.com/vatesfr/xen-orchestra/issues/3139) (PR [#3493](https://github.com/vatesfr/xen-orchestra/pull/3493))
+
+### Bug fixes
+
+- [Backup NG] Fix `Cannot read property 'uuid' of undefined` when a disk is removed from a VM to backup (PR [#3479](https://github.com/vatesfr/xen-orchestra/pull/3479))
+- [Backup NG] Fix unexpected full after failure, interruption or basic rolling snapshot (PR [#3485](https://github.com/vatesfr/xen-orchestra/pull/3485))
+- [Usage report] Display top 3 used SRs instead of top 3 biggest SRs [#3307](https://github.com/vatesfr/xen-orchestra/issues/3307) (PR [#3475](https://github.com/vatesfr/xen-orchestra/pull/3475))
+
+### Released packages
+
+- vhd-lib v0.3.2
+- xo-vmdk-to-vhd v0.1.5
+- xo-server-usage-report v0.6.0
+- xo-acl-resolver v0.3.0
 - xo-server v5.28.0
 - xo-web v5.28.0
 

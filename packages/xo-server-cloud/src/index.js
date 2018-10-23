@@ -1,7 +1,5 @@
 import Client, { createBackoff } from 'jsonrpc-websocket-client'
-import eventToPromise from 'event-to-promise'
-import request from 'superagent'
-import { PassThrough } from 'stream'
+import hrp from 'http-request-plus'
 
 const UPDATER_URL = 'localhost'
 const WS_PORT = 9001
@@ -145,17 +143,16 @@ class XoServerCloud {
       throw new Error('cannot get download token')
     }
 
-    const req = request
-      .get(`${UPDATER_URL}:${HTTP_PORT}/`)
-      .set('Authorization', `Bearer ${downloadToken}`)
+    const response = await hrp(`${UPDATER_URL}:${HTTP_PORT}/`, {
+      headers: {
+        Authorization: `Bearer ${downloadToken}`,
+      },
+    })
 
-    // Impossible to pipe the response directly: https://github.com/visionmedia/superagent/issues/1187
-    const pt = new PassThrough()
-    req.pipe(pt)
-    const { headers } = await eventToPromise(req, 'response')
-    pt.length = headers['content-length']
+    // currently needed for XenApi#putResource()
+    response.length = response.headers['content-length']
 
-    return pt
+    return response
   }
 }
 

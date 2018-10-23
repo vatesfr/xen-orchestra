@@ -230,6 +230,16 @@ const STATS = {
         getPath: matches => ['xvds', 'w', matches[1]],
       },
     },
+    iops: {
+      r: {
+        test: /^vbd_xvd(.)_iops_read$/,
+        getPath: matches => ['iops', 'r', matches[1]],
+      },
+      w: {
+        test: /^vbd_xvd(.)_iops_write$/,
+        getPath: matches => ['iops', 'w', matches[1]],
+      },
+    },
   },
 }
 

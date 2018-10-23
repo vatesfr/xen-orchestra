@@ -2,6 +2,7 @@ import _ from 'intl'
 import Icon from 'icon'
 import Link from 'link'
 import LogList from '../../logs'
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
@@ -108,7 +109,7 @@ const ACTIONS = [
 })
 export default class Overview extends Component {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   constructor (props) {

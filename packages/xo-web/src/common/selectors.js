@@ -6,6 +6,7 @@ import {
   find,
   forEach,
   groupBy,
+  identity,
   isArray,
   isArrayLike,
   isFunction,
@@ -242,14 +243,31 @@ export const getCheckPermissions = invoke(() => {
 })
 
 const _getPermissionsPredicate = invoke(() => {
+  const getCache = create(identity, () => ({ __proto__: null }))
+
   const getPredicate = create(
     state => state.permissions,
     state => state.objects,
     (permissions, objects) => {
+      const cache = getCache(permissions)
       objects = objects.all
       const getObject = id => objects[id] || EMPTY_OBJECT
 
-      return id => checkPermissions(permissions, getObject, id.id || id, 'view')
+      return id => {
+        if (typeof id !== 'string') {
+          id = id.id
+        }
+        let allowed = cache[id]
+        if (allowed === undefined) {
+          allowed = cache[id] = checkPermissions(
+            permissions,
+            getObject,
+            id,
+            'view'
+          )
+        }
+        return allowed
+      }
     }
   )
 

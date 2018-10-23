@@ -144,38 +144,35 @@ export default class Jobs {
     executors.call = executeCall
 
     xo.on('clean', () => jobsDb.rebuildIndexes())
-    xo.on('start', () => {
+    xo.on('start', async () => {
+      this._logger = await xo.getLogger('jobs')
+
       xo.addConfigManager(
         'jobs',
         () => jobsDb.get(),
         jobs => Promise.all(mapToArray(jobs, job => jobsDb.save(job))),
         ['users']
       )
-
-      xo.getLogger('jobs').then(logger => {
-        this._logger = logger
-      })
-
-      // it sends a report for the interrupted backup jobs
-      this._app.on('plugins:registered', () =>
-        asyncMap(this._jobs.get(), job => {
-          // only the interrupted backup jobs have the runId property
-          if (job.runId === undefined) {
-            return
-          }
-
-          this._app.emit(
-            'job:terminated',
-            undefined,
-            job,
-            undefined,
-            // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
-            String(job.runId)
-          )
-          return this.updateJob({ id: job.id, runId: null })
-        })
-      )
     })
+    // it sends a report for the interrupted backup jobs
+    xo.on('plugins:registered', () =>
+      asyncMap(this._jobs.get(), job => {
+        // only the interrupted backup jobs have the runId property
+        if (job.runId === undefined) {
+          return
+        }
+
+        xo.emit(
+          'job:terminated',
+          undefined,
+          job,
+          undefined,
+          // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
+          String(job.runId)
+        )
+        return this.updateJob({ id: job.id, runId: null })
+      })
+    )
   }
 
   cancelJobRun (id: string) {

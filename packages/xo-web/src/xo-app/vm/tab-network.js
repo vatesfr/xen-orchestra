@@ -4,7 +4,7 @@ import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
@@ -368,10 +368,6 @@ const FILTERS = {
   filterVifsOnlyDisconnected: '!attached?',
 }
 
-@propTypes({
-  onClose: propTypes.func,
-  vm: propTypes.object.isRequired,
-})
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
 })
@@ -396,6 +392,11 @@ const FILTERS = {
 })
 @injectIntl
 class NewVif extends BaseComponent {
+  static propTypes = {
+    onClose: PropTypes.func,
+    vm: PropTypes.object.isRequired,
+  }
+
   componentWillMount () {
     this._autoFill(this.props)
   }

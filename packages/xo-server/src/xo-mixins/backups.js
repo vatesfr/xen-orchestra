@@ -300,14 +300,6 @@ const mountLvmPv = (device, partition) => {
 export default class {
   constructor (xo) {
     this._xo = xo
-
-    // clean any LVM volumes that might have not been properly
-    // unmounted
-    xo.on('start', () =>
-      Promise.all([execa('losetup', ['-D']), execa('vgchange', ['-an'])]).then(
-        () => execa('pvscan', ['--cache'])
-      )
-    )
   }
 
   async listRemoteBackups (remoteId) {

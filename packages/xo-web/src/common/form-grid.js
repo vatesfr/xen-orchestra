@@ -1,18 +1,28 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 import * as Grid from './grid'
-import propTypes from './prop-types-decorator'
 
-export const LabelCol = propTypes({
-  children: propTypes.any.isRequired,
-})(({ children }) => (
+export const LabelCol = ({ children }) => (
   <label className='col-md-2 form-control-label'>{children}</label>
-))
+)
 
-export const InputCol = propTypes({
-  children: propTypes.any.isRequired,
-})(({ children }) => <Grid.Col mediumSize={10}>{children}</Grid.Col>)
+LabelCol.propTypes = {
+  children: PropTypes.any.isRequired,
+}
 
-export const Row = propTypes({
-  children: propTypes.arrayOf(propTypes.element).isRequired,
-})(({ children }) => <Grid.Row className='form-group'>{children}</Grid.Row>)
+export const InputCol = ({ children }) => (
+  <Grid.Col mediumSize={10}>{children}</Grid.Col>
+)
+
+InputCol.propTypes = {
+  children: PropTypes.any.isRequired,
+}
+
+export const Row = ({ children }) => (
+  <Grid.Row className='form-group'>{children}</Grid.Row>
+)
+
+Row.propTypes = {
+  children: PropTypes.arrayOf(PropTypes.element).isRequired,
+}

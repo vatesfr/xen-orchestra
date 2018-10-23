@@ -1,6 +1,6 @@
 import Component from 'base-component'
 import Icon from 'icon'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { Col, Row } from 'grid'
 import {
@@ -18,10 +18,11 @@ const MINI_STATS_PROPS = {
   width: 50,
 }
 
-@propTypes({
-  fetchStats: propTypes.func.isRequired,
-})
 export default class MiniStats extends Component {
+  static propTypes = {
+    fetchStats: PropTypes.func.isRequired,
+  }
+
   _fetch = () => {
     this.props.fetch().then(stats => {
       this.setState({ stats })

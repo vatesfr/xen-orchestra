@@ -83,10 +83,6 @@
       border-top: 1px solid #95a5a6;
     }
 
-    .page .global tr:nth-last-child(2) td {
-      border-bottom: 1px solid #95a5a6;
-    }
-
     .top table{
       margin: auto;
       margin-top: 20px;
@@ -149,9 +145,9 @@
 
     <div class="page">
 
-      <table class ="global">
+      <table class="global">
         <tr>
-          <td id="title" rowspan="13">VMs</td>
+          <td id="title" rowspan="8">VMs</td>
         </tr>
         <tr>
           <td>Number:</td>
@@ -160,37 +156,37 @@
         <tr>
           <td>CPU:</td>
           <td>{{normaliseValue global.vms.cpu}} % {{normaliseEvolution global.vmsEvolution.cpu}}</td>
-        <tr>
+        </tr>
         <tr>
           <td>RAM:</td>
           <td>{{normaliseValue global.vms.ram}} GiB {{normaliseEvolution global.vmsEvolution.ram}}</td>
-        <tr>
+        </tr>
         <tr>
           <td>Disk read:</td>
           <td>{{normaliseValue global.vms.diskRead}} MiB {{normaliseEvolution global.vmsEvolution.diskRead}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Disk write:</td>
           <td>{{normaliseValue global.vms.diskWrite}} MiB {{normaliseEvolution global.vmsEvolution.diskWrite}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Network RX:</td>
           <td>{{normaliseValue global.vms.netReception}} KiB {{normaliseEvolution global.vmsEvolution.netReception}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Network TX:</td>
           <td>{{normaliseValue global.vms.netTransmission}} KiB {{normaliseEvolution global.vmsEvolution.netTransmission}}
           </td>
-        <tr>
+        </tr>
       </table>
 
       <div class="top">
 
         <table>
-          <caption>3rd top usages</caption>
+          <caption>Top VMs</caption>
           <tr>
             <th></th>
             <th>UUID</th>
@@ -239,6 +235,9 @@
             <td>{{normaliseValue this.value}} MiB</td>
           </tr>
           {{/each}}
+
+          {{getTopIops topVms}}
+
           <tr>
             <td rowspan='{{math topVms.netReception.length "+" 1}}' class="tableHeader">Network RX</td>
           </tr>
@@ -264,9 +263,9 @@
     </div>
 
     <div class="page">
-      <table class ="global">
+      <table class="global">
         <tr>
-          <td id="title" rowspan="13">Hosts</td>
+          <td id="title" rowspan="7">Hosts</td>
         </tr>
         <tr>
           <td>Number:</td>
@@ -277,34 +276,33 @@
           <td>CPU:</td>
           <td>{{normaliseValue global.hosts.cpu}} % {{normaliseEvolution global.hostsEvolution.cpu}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>RAM:</td>
           <td>{{normaliseValue global.hosts.ram}} GiB {{normaliseEvolution global.hostsEvolution.ram}}
           </td>
-          </td>
-        <tr>
+        </tr>
         <tr>
           <td>Load average:</td>
           <td>{{normaliseValue global.hosts.load}}  {{normaliseEvolution global.hostsEvolution.load}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Network RX:</td>
           <td>{{normaliseValue global.hosts.netReception}} KiB {{normaliseEvolution global.hostsEvolution.netReception}}
           </td>
-        <tr>
+        </tr>
         <tr>
           <td>Network TX:</td>
           <td>{{normaliseValue global.hosts.netTransmission}} KiB {{normaliseEvolution global.hostsEvolution.netTransmission}}
           </td>
-        <tr>
+        </tr>
       </table>
 
       <div class="top">
 
         <table>
-          <caption>3rd top usages</caption>
+          <caption>Top hosts</caption>
           <tr>
             <th></th>
             <th>UUID</th>
@@ -368,19 +366,14 @@
     <div class="page">
       <div class="top">
         <table>
-          <caption>Most used storages </caption>
+          <caption>Top SRs</caption>
             <tr>
+              <th />
               <th>UUID</th>
               <th>Name</th>
               <th>value</th>
             </tr>
-            {{#each topSrs}}
-              <tr>
-                <td>{{shortUUID this.uuid}}</td>
-                <td>{{this.name}}</td>
-                <td>{{normaliseValue this.value}} GiB</td>
-              </tr>
-             {{/each}}
+            {{getTopSrs topSrs}}
           </table>
           <table>
              <caption>Hosts missing patches</caption>
@@ -531,6 +524,9 @@
               <th>RAM (GiB)</th>
               <th>Disk read (MiB)</th>
               <th>Disk write (MiB)</th>
+              <th>IOPS read</th>
+              <th>IOPS write</th>
+              <th>IOPS total</th>
               <th>Network RX (KiB)</th>
               <th>Network TX (KiB)</th>
             </tr>
@@ -542,6 +538,9 @@
                 <td>{{normaliseValue this.ram}} {{normaliseEvolution this.evolution.ram}}</td>
                 <td>{{normaliseValue this.diskRead}} {{normaliseEvolution this.evolution.diskRead}}</td>
                 <td>{{normaliseValue this.diskWrite}} {{normaliseEvolution this.evolution.diskWrite}}</td>
+                <td>{{formatIops this.iopsRead}} {{normaliseEvolution this.evolution.iopsRead}}</td>
+                <td>{{formatIops this.iopsWrite}} {{normaliseEvolution this.evolution.iopsWrite}}</td>
+                <td>{{formatIops this.iopsTotal}} {{normaliseEvolution this.evolution.iopsTotal}}</td>
                 <td>{{normaliseValue this.netReception}} {{normaliseEvolution this.evolution.netReception}}</td>
                 <td>{{normaliseValue this.netTransmission}} {{normaliseEvolution this.evolution.netTransmission}}</td>
               </tr>

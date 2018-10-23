@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-web",
-  "version": "5.27.1",
+  "version": "5.28.0",
   "license": "AGPL-3.0",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -30,7 +30,6 @@
     "node": ">=6"
   },
   "devDependencies": {
-    "@julien-f/freactal": "0.4.0",
     "@nraynaud/novnc": "0.6.1",
     "@xen-orchestra/cron": "^1.0.3",
     "@xen-orchestra/defined": "^0.0.0",
@@ -98,6 +97,7 @@
     "promise-toolbox": "^0.10.1",
     "prop-types": "^15.6.0",
     "random-password": "^0.1.2",
+    "reaclette": "^0.6.0",
     "react": "^15.4.1",
     "react-addons-shallow-compare": "^15.6.2",
     "react-addons-test-utils": "^15.6.2",
@@ -135,11 +135,11 @@
     "watchify": "^3.7.0",
     "whatwg-fetch": "^2.0.3",
     "xml2js": "^0.4.19",
-    "xo-acl-resolver": "^0.2.4",
+    "xo-acl-resolver": "^0.3.0",
     "xo-common": "^0.1.1",
     "xo-lib": "^0.8.0",
     "xo-remote-parser": "^0.5.0",
-    "xo-vmdk-to-vhd": "^0.1.4"
+    "xo-vmdk-to-vhd": "^0.1.5"
   },
   "scripts": {
     "build": "NODE_ENV=production gulp build",

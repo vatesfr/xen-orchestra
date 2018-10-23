@@ -715,10 +715,21 @@ export const installAllHostPatches = host =>
     subscribeHostMissingPatches.forceRefresh(host)
   )
 
-export const installAllPatchesOnPool = pool =>
-  _call('pool.installAllPatches', { pool: resolveId(pool) })::tap(() =>
-    subscribeHostMissingPatches.forceRefresh()
+import InstallPoolPatchesModalBody from './install-pool-patches-modal' // eslint-disable-line import/first
+export const installAllPatchesOnPool = pool => {
+  const poolId = resolveId(pool)
+  return confirm({
+    body: <InstallPoolPatchesModalBody pool={poolId} />,
+    title: _('installPoolPatches'),
+    icon: 'host-patch-update',
+  }).then(
+    () =>
+      _call('pool.installAllPatches', { pool: poolId })::tap(() =>
+        subscribeHostMissingPatches.forceRefresh()
+      ),
+    noop
   )
+}
 
 export const installSupplementalPack = (host, file) => {
   info(
@@ -963,7 +974,7 @@ export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) =>
     id,
     name: `${nameLabel}_clone`,
     full_copy: fullCopy,
-  })
+  })::tap(subscribeResourceSets.forceRefresh)
 
 const _copyVm = ({ vm, sr, name, compress }) =>
   _call('vm.copy', {
@@ -2205,10 +2216,16 @@ export const deleteJobsLogs = async ids => {
 
 // Logs
 
-export const deleteApiLog = id =>
-  _call('log.delete', { namespace: 'api', id })::tap(
+export const deleteApiLog = log =>
+  _call('log.delete', { namespace: 'api', id: resolveId(log) })::tap(
     subscribeApiLogs.forceRefresh
   )
+
+export const deleteApiLogs = logs =>
+  confirm({
+    title: _('logDeleteMultiple', { nLogs: logs.length }),
+    body: _('logDeleteMultipleMessage', { nLogs: logs.length }),
+  }).then(() => Promise.all(map(logs, deleteApiLog)), noop)
 
 // Acls, users, groups ----------------------------------------------------------
 
@@ -2222,6 +2239,22 @@ export const removeAcl = ({ subject, object, action }) =>
   _call('acl.remove', resolveIds({ subject, object, action }))::tap(
     subscribeAcls.forceRefresh,
     err => error('Remove ACL', err.message || String(err))
+  )
+
+export const removeAcls = acls =>
+  confirm({
+    title: _('deleteAclsModalTitle', { nAcls: acls.length }),
+    body: <p>{_('deleteAclsModalMessage', { nAcls: acls.length })}</p>,
+  }).then(
+    () =>
+      Promise.all(
+        map(acls, ({ subject, object, action }) =>
+          _call('acl.remove', resolveIds({ subject, object, action }))
+        )
+      )::tap(subscribeAcls.forceRefresh, err =>
+        error('Remove ACLs', err.message || String(err))
+      ),
+    noop
   )
 
 export const editAcl = (
@@ -2297,6 +2330,20 @@ export const deleteUser = user =>
       subscribeUsers.forceRefresh,
       err => error(_('deleteUser'), err.message || String(err))
     )
+  )
+
+export const deleteUsers = users =>
+  confirm({
+    title: _('deleteUsersModalTitle', { nUsers: users.length }),
+    body: <p>{_('deleteUsersModalMessage', { nUsers: users.length })}</p>,
+  }).then(
+    () =>
+      Promise.all(
+        map(resolveIds(users), id => _call('user.delete', { id }))
+      )::tap(subscribeUsers.forceRefresh, err =>
+        error(_('deleteUser'), err.message || String(err))
+      ),
+    noop
   )
 
 export const editUser = (user, { email, password, permission }) =>

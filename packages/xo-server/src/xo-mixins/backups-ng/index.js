@@ -11,8 +11,9 @@ import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import {
   countBy,
+  findLast,
   flatMap,
-  forEach,
+  forOwn,
   groupBy,
   isEmpty,
   last,
@@ -28,6 +29,7 @@ import Vhd, {
   createSyntheticStream as createVhdReadStream,
 } from 'vhd-lib'
 
+import type Logger from '../logs/loggers/abstract'
 import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
@@ -201,11 +203,13 @@ const importers: $Dict<
     metadataFilename: string,
     metadata: Metadata,
     xapi: Xapi,
-    sr: { $id: string }
+    sr: { $id: string },
+    taskId: string,
+    logger: Logger
   ) => Promise<string>,
   Mode
 > = {
-  async delta (handler, metadataFilename, metadata, xapi, sr) {
+  async delta (handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
     metadata = ((metadata: any): MetadataDelta)
     const { vdis, vhds, vm } = metadata
 
@@ -230,15 +234,26 @@ const importers: $Dict<
       },
     }
 
-    const { vm: newVm } = await xapi.importDeltaVm(delta, {
-      detectBase: false,
-      disableStartAfterImport: false,
-      srId: sr,
-      // TODO: support mapVdisSrs
-    })
+    const { vm: newVm } = await wrapTask(
+      {
+        logger,
+        message: 'transfer',
+        parentId: taskId,
+        result: ({ transferSize, vm: { $id: id } }) => ({
+          size: transferSize,
+          id,
+        }),
+      },
+      xapi.importDeltaVm(delta, {
+        detectBase: false,
+        disableStartAfterImport: false,
+        srId: sr,
+        // TODO: support mapVdisSrs
+      })
+    )
     return newVm.$id
   },
-  async full (handler, metadataFilename, metadata, xapi, sr) {
+  async full (handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
     metadata = ((metadata: any): MetadataFull)
 
     const xva = await handler.createReadStream(
@@ -248,7 +263,16 @@ const importers: $Dict<
         ignoreMissingChecksum: true, // provide an easy way to opt-out
       }
     )
-    const vm = await xapi.importVm(xva, { srId: sr.$id })
+
+    const vm = await wrapTask(
+      {
+        logger,
+        message: 'transfer',
+        parentId: taskId,
+        result: ({ $id: id }) => ({ size: xva.length, id }),
+      },
+      xapi.importVm(xva, { srId: sr.$id })
+    )
     await Promise.all([
       xapi.addTag(vm.$id, 'restored from backup'),
       xapi.editVm(vm.$id, {
@@ -386,6 +410,35 @@ const wrapTaskFn = <T>(
     }
   }
 
+const extractIdsFromSimplePattern = (pattern: mixed) => {
+  if (pattern === null || typeof pattern !== 'object') {
+    return
+  }
+
+  let keys = Object.keys(pattern)
+  if (keys.length !== 1 || keys[0] !== 'id') {
+    return
+  }
+
+  pattern = pattern.id
+  if (typeof pattern === 'string') {
+    return [pattern]
+  }
+  if (pattern === null || typeof pattern !== 'object') {
+    return
+  }
+
+  keys = Object.keys(pattern)
+  if (
+    keys.length === 1 &&
+    keys[0] === '__or' &&
+    Array.isArray((pattern = pattern.__or)) &&
+    pattern.every(_ => typeof _ === 'string')
+  ) {
+    return pattern
+  }
+}
+
 // File structure on remotes:
 //
 // <remote>
@@ -425,11 +478,15 @@ export default class BackupNg {
     removeJob: (id: string) => Promise<void>,
     worker: $Dict<any>,
   }
+  _logger: Logger
 
   constructor (app: any) {
     this._app = app
+    this._logger = undefined
 
-    app.on('start', () => {
+    app.on('start', async () => {
+      this._logger = await app.getLogger('restore')
+
       const executor: Executor = async ({
         cancelToken,
         data: vmsId,
@@ -443,21 +500,48 @@ export default class BackupNg {
         }
 
         const job: BackupJob = (job_: any)
+        const vmsPattern = job.vms
 
-        const vms: $Dict<Vm> = app.getObjects({
-          filter: createPredicate({
-            type: 'VM',
-            ...(vmsId !== undefined
-              ? {
-                  id: {
-                    __or: vmsId,
-                  },
-                }
-              : job.vms),
-          }),
-        })
-        if (isEmpty(vms)) {
-          throw new Error('no VMs match this pattern')
+        let vms: $Dict<Vm>
+        if (
+          vmsId !== undefined ||
+          (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
+        ) {
+          vms = vmsId
+            .map(id => {
+              try {
+                return app.getObject(id, 'VM')
+              } catch (error) {
+                const taskId: string = logger.notice(
+                  `Starting backup of ${id}. (${job.id})`,
+                  {
+                    event: 'task.start',
+                    parentId: runJobId,
+                    data: {
+                      type: 'VM',
+                      id,
+                    },
+                  }
+                )
+                logger.error(`Backuping ${id} has failed. (${job.id})`, {
+                  event: 'task.end',
+                  taskId,
+                  status: 'failure',
+                  result: serializeError(error),
+                })
+              }
+            })
+            .filter(vm => vm !== undefined)
+        } else {
+          vms = app.getObjects({
+            filter: createPredicate({
+              type: 'VM',
+              ...vmsPattern,
+            }),
+          })
+          if (isEmpty(vms)) {
+            throw new Error('no VMs match this pattern')
+          }
         }
         const jobId = job.id
         const srs = unboxIds(job.srs).map(id => {
@@ -627,14 +711,29 @@ export default class BackupNg {
     }
 
     const xapi = app.getXapi(srId)
-
-    return importer(
-      handler,
-      metadataFilename,
-      metadata,
-      xapi,
-      xapi.getObject(srId)
-    )
+    const { uuid: vmUuid, name_label: vmName } = metadata.vm
+    const logger = this._logger
+    return wrapTaskFn(
+      {
+        data: {
+          srId,
+          vmUuid,
+          vmName,
+        },
+        logger,
+        message: 'restore',
+      },
+      taskId =>
+        importer(
+          handler,
+          metadataFilename,
+          metadata,
+          xapi,
+          xapi.getObject(srId),
+          taskId,
+          logger
+        )
+    )()
   }
 
   async listVmBackupsNg (remotes: string[]) {
@@ -769,6 +868,7 @@ export default class BackupNg {
         },
         xapi._updateObjectMapProperty(vm, 'other_config', {
           'xo:backup:datetime': null,
+          'xo:backup:exported': null,
           'xo:backup:job': null,
           'xo:backup:schedule': null,
           'xo:backup:vm': null,
@@ -889,7 +989,19 @@ export default class BackupNg {
 
     snapshot = await xapi.barrier(snapshot.$ref)
 
-    let baseSnapshot = mode === 'delta' ? last(snapshots) : undefined
+    let baseSnapshot
+    if (mode === 'delta') {
+      baseSnapshot = findLast(
+        snapshots,
+        _ => 'xo:backup:exported' in _.other_config
+      )
+
+      // JFT 2018-10-02: support previous snapshots which did not have this
+      // entry, can be removed after 2018-12.
+      if (baseSnapshot === undefined) {
+        baseSnapshot = last(snapshots)
+      }
+    }
     snapshots.push(snapshot)
 
     // snapshots to delete due to the snapshot retention settings
@@ -1135,6 +1247,15 @@ export default class BackupNg {
         const fullRequired = { __proto__: null }
         const vdis: $Dict<Vdi> = getVmDisks(baseSnapshot)
 
+        // ignore VDI snapshots which no longer have a parent
+        forOwn(vdis, (vdi, key, vdis) => {
+          // `vdi.snapshot_of` is not always set to the null ref, it can contain
+          // an invalid ref, that's why the test is on `vdi.$snapshot_of`
+          if (vdi.$snapshot_of === undefined) {
+            delete vdis[key]
+          }
+        })
+
         for (const { $id: srId, xapi } of srs) {
           const replicatedVm = listReplicatedVms(
             xapi,
@@ -1151,7 +1272,7 @@ export default class BackupNg {
             getVmDisks(replicatedVm),
             vdi => vdi.other_config[TAG_COPY_SRC]
           )
-          forEach(vdis, vdi => {
+          forOwn(vdis, vdi => {
             if (!(vdi.uuid in replicatedVdis)) {
               fullRequired[vdi.$snapshot_of.$id] = true
             }
@@ -1439,6 +1560,17 @@ export default class BackupNg {
     } else {
       throw new Error(`no exporter for backup mode ${mode}`)
     }
+
+    await wrapTask(
+      {
+        logger,
+        message: 'set snapshot.other_config[xo:backup:exported]',
+        parentId: taskId,
+      },
+      xapi._updateObjectMapProperty(snapshot, 'other_config', {
+        'xo:backup:exported': 'true',
+      })
+    )
   }
 
   async _deleteDeltaVmBackups (

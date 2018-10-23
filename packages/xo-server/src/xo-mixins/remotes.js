@@ -44,12 +44,12 @@ export default class {
     })
   }
 
-  async getRemoteHandler (remote, ignoreDisabled) {
+  async getRemoteHandler (remote) {
     if (typeof remote === 'string') {
       remote = await this.getRemote(remote)
     }
 
-    if (!(ignoreDisabled || remote.enabled)) {
+    if (!remote.enabled) {
       throw new Error('remote is disabled')
     }
 
@@ -72,7 +72,7 @@ export default class {
   }
 
   async testRemote (remote) {
-    const handler = await this.getRemoteHandler(remote, true)
+    const handler = await this.getRemoteHandler(remote)
     return handler.test()
   }
 
@@ -126,8 +126,11 @@ export default class {
   }
 
   async removeRemote (id) {
-    const handler = await this.getRemoteHandler(id, true)
-    await handler.forget()
+    const handler = this._handlers[id]
+    if (handler !== undefined) {
+      ignoreErrors.call(handler.forget())
+    }
+
     await this._remotes.remove(id)
   }
 }

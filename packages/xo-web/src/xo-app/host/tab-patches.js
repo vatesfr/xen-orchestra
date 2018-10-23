@@ -1,4 +1,5 @@
 import _ from 'intl'
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
@@ -312,7 +313,7 @@ class XenServerPatches extends Component {
 
 export default class TabPatches extends Component {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   _chooseActionPatch = async doInstall => {

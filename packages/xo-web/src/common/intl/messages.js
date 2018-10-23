@@ -251,19 +251,11 @@ const messages = {
   // --- Dates/Scheduler ---
 
   schedulingMonth: 'Month',
-  schedulingEveryNMonth: 'Every N month',
-  schedulingEachSelectedMonth: 'Each selected month',
   schedulingDay: 'Day',
-  schedulingEveryNDay: 'Every N day',
-  schedulingEachSelectedDay: 'Each selected day',
   schedulingSetWeekDayMode: 'Switch to week days',
   schedulingSetMonthDayMode: 'Switch to month days',
   schedulingHour: 'Hour',
-  schedulingEachSelectedHour: 'Each selected hour',
-  schedulingEveryNHour: 'Every N hour',
   schedulingMinute: 'Minute',
-  schedulingEachSelectedMinute: 'Each selected minute',
-  schedulingEveryNMinute: 'Every N minute',
   selectTableAllMonth: 'Every month',
   selectTableAllDay: 'Every day',
   selectTableAllHour: 'Every hour',
@@ -358,6 +350,9 @@ const messages = {
   createRemoteMessage:
     'No remotes found, please click on the remotes settings button to create one!',
   remotesSettings: 'Remotes settings',
+  pluginsSettings: 'Plugins settings',
+  pluginsWarning:
+    'To receive the report, the plugins backup-reports and transport-email need to be loaded.',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
@@ -389,6 +384,7 @@ const messages = {
 
   // ------ New backup -----
   newBackupAdvancedSettings: 'Advanced settings',
+  newBackupSettings: 'Settings',
   reportWhenAlways: 'Always',
   reportWhenFailure: 'Failure',
   reportWhenNever: 'Never',
@@ -405,7 +401,8 @@ const messages = {
   offlineSnapshot: 'Offline snapshot',
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   timeout: 'Timeout',
-  timeoutInfo: 'Number of seconds after which a job is considered failed',
+  timeoutInfo: 'Number of hours after which a job is considered failed',
+  timeoutUnit: 'in hours',
   dbAndDrRequireEntreprisePlan: 'Delta Backup and DR require Entreprise plan',
   crRequiresPremiumPlan: 'CR requires Premium plan',
   smartBackupModeTitle: 'Smart mode',
@@ -543,7 +540,11 @@ const messages = {
   deleteGroupConfirm: 'Are you sure you want to delete this group?',
   removeUserFromGroup: 'Remove user from Group',
   deleteUserConfirm: 'Are you sure you want to delete this user?',
-  deleteUser: 'Delete User',
+  deleteUser: 'Delete user',
+  deleteSelectedUsers: 'Delete selected users',
+  deleteUsersModalTitle: 'Delete user{nUsers, plural, one {} other {s}}',
+  deleteUsersModalMessage:
+    'Are you sure you want to delete {nUsers, number} user{nUsers, plural, one {} other {s}}?',
   noUser: 'no user',
   unknownUser: 'unknown user',
   noGroupFound: 'No group found',
@@ -562,6 +563,11 @@ const messages = {
   noUserInGroup: 'No user in group',
   countUsers: '{users, number} user{users, plural, one {} other {s}}',
   selectPermission: 'Select Permission',
+  deleteAcl: 'Delete ACL',
+  deleteSelectedAcls: 'Delete selected ACLs',
+  deleteAclsModalTitle: 'Delete ACL{nAcls, plural, one {} other {s}}',
+  deleteAclsModalMessage:
+    'Are you sure you want to delete {nAcls, number} ACL{nAcls, plural, one {} other {s}}?',
 
   // ----- Plugins ------
   noPlugins: 'No plugins found',
@@ -676,6 +682,8 @@ const messages = {
   poolNetworkNameLabel: 'Name',
   poolNetworkDescription: 'Description',
   poolNetworkPif: 'PIFs',
+  privateNetworks: 'Private networks',
+  manage: 'Manage',
   poolNoNetwork: 'No networks',
   poolNetworkMTU: 'MTU',
   poolNetworkPifAttached: 'Connected',
@@ -829,9 +837,17 @@ const messages = {
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
   installPoolPatches: 'Install pool patches',
+  confirmPoolPatch:
+    'Are you sure you want to install all the patches on this pool?',
+  poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
+  selectDefaultSr: 'Select a default SR',
+  vmsHaveCds:
+    '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
+  ejectCds: 'Eject CDs',
   // ----- Pool storage tabs -----
   defaultSr: 'Default SR',
   setAsDefaultSr: 'Set as default SR',
+  setDefaultSr: 'Set default SR:',
 
   // ----- VM tabs -----
   generalTabName: 'General',
@@ -1165,6 +1181,7 @@ const messages = {
   newVmPerfPanel: 'Performances',
   newVmVcpusLabel: 'vCPUs',
   newVmRamLabel: 'RAM',
+  newVmRamWarning: 'The memory is below the threshold ({threshold})',
   newVmStaticMaxLabel: 'Static memory max',
   newVmDynamicMinLabel: 'Dynamic memory min',
   newVmDynamicMaxLabel: 'Dynamic memory max',
@@ -1359,6 +1376,7 @@ const messages = {
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',
   deleteVmBackupsBulkConfirmText:
     'delete {nBackups} backup{nBackups, plural, one {} other {s}}',
+  unknownJob: 'Unknown job',
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
@@ -1768,9 +1786,6 @@ const messages = {
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
   logDeleteMultipleMessage:
     'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?',
-  logDeleteAll: 'Delete all logs',
-  logDeleteAllTitle: 'Delete all logs',
-  logDeleteAllMessage: 'Are you sure you want to delete all the logs?',
   logIndicationToEnable: 'Click to enable',
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',

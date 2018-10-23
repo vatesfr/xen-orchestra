@@ -83,6 +83,9 @@ ${cliName} v${pkg.version}
 
   await Promise.all([
     srcXapi.setFieldEntries(srcSnapshot, 'other_config', metadata),
+    srcXapi.setFieldEntries(srcSnapshot, 'other_config', {
+      'xo:backup:exported': 'true',
+    }),
     tgtXapi.setField(
       tgtVm,
       'name_label',

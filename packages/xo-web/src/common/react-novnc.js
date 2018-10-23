@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import RFB from '@nraynaud/novnc/lib/rfb'
 import URL from 'url-parse'
@@ -6,8 +7,6 @@ import {
   enable as enableShortcuts,
   disable as disableShortcuts,
 } from 'shortcuts'
-
-import propTypes from './prop-types-decorator'
 
 const PROTOCOL_ALIASES = {
   'http:': 'ws:',
@@ -20,11 +19,12 @@ const fixProtocol = url => {
   }
 }
 
-@propTypes({
-  onClipboardChange: propTypes.func,
-  url: propTypes.string.isRequired,
-})
 export default class NoVnc extends Component {
+  static propTypes = {
+    onClipboardChange: PropTypes.func,
+    url: PropTypes.string.isRequired,
+  }
+
   constructor (props) {
     super(props)
     this._rfb = null

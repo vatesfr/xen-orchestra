@@ -1,6 +1,6 @@
 {
   "name": "vhd-lib",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "license": "AGPL-3.0",
   "description": "Primitives for VHD file handling",
   "keywords": [],
@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "async-iterator-to-stream": "^1.0.2",
+    "core-js": "3.0.0-beta.3",
     "from2": "^2.3.0",
     "fs-extra": "^7.0.0",
     "limit-concurrency-decorator": "^0.4.0",

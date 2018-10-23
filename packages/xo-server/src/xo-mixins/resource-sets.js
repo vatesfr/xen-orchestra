@@ -284,7 +284,7 @@ export default class {
   }
 
   @synchronizedResourceSets
-  async allocateLimitsInResourceSet (limits, setId) {
+  async allocateLimitsInResourceSet (limits, setId, force = false) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
       const limit = set.limits[id]
@@ -292,7 +292,7 @@ export default class {
         return
       }
 
-      if ((limit.available -= quantity) < 0) {
+      if ((limit.available -= quantity) < 0 && !force) {
         throw new Error(`not enough ${id} available in the set ${setId}`)
       }
     })
@@ -333,6 +333,9 @@ export default class {
         if (
           object.$type !== 'vm' ||
           object.is_a_snapshot ||
+          ('start' in object.blocked_operations &&
+            (object.tags.includes('Disaster Recovery') ||
+              object.tags.includes('Continuous Replication'))) ||
           // No set for this VM.
           !(id = xapi.xo.getData(object, 'resourceSet')) ||
           // Not our set.

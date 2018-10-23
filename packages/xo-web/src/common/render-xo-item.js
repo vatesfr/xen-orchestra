@@ -6,7 +6,6 @@ import { startsWith } from 'lodash'
 
 import Icon from './icon'
 import Link from './link'
-import propTypes from './prop-types-decorator'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
@@ -171,27 +170,27 @@ SrResourceSetItem.propTypes = XO_ITEM_PROP_TYPES
 // ===================================================================
 
 // Host, Network, VM-template.
-const PoolObjectItem = propTypes({
-  object: propTypes.object.isRequired,
-})(
-  connectStore(() => {
-    const getPool = createGetObject((_, props) => props.object.$pool)
+const PoolObjectItem = connectStore(() => {
+  const getPool = createGetObject((_, props) => props.object.$pool)
 
-    return (state, props) => ({
-      pool: getPool(state, props),
-    })
-  })(({ object, pool }) => {
-    const icon = OBJECT_TYPE_TO_ICON[object.type]
-    const { id } = object
-
-    return (
-      <span>
-        <Icon icon={icon} /> {`${object.name_label || id} `}
-        {pool && `(${pool.name_label || pool.id})`}
-      </span>
-    )
+  return (state, props) => ({
+    pool: getPool(state, props),
   })
-)
+})(({ object, pool }) => {
+  const icon = OBJECT_TYPE_TO_ICON[object.type]
+  const { id } = object
+
+  return (
+    <span>
+      <Icon icon={icon} /> {`${object.name_label || id} `}
+      {pool && `(${pool.name_label || pool.id})`}
+    </span>
+  )
+})
+
+PoolObjectItem.propTypes = {
+  object: PropTypes.object.isRequired,
+}
 
 const VgpuItem = connectStore(() => ({
   vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
@@ -318,6 +317,9 @@ const xoItemToRender = {
         {backup.mode}
       </span>{' '}
       <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
+      <span className='tag tag-success'>
+        {backup.jobName !== undefined ? backup.jobName : _('unknownJob')}
+      </span>{' '}
       <FormattedDate
         value={new Date(backup.timestamp)}
         month='long'

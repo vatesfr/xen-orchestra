@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import PropTypes from 'prop-types'
 import React from 'react'
 import forEach from 'lodash/forEach'
 import keys from 'lodash/keys'
@@ -6,7 +7,6 @@ import map from 'lodash/map'
 import times from 'lodash/times'
 
 import Component from './base-component'
-import propTypes from './prop-types-decorator'
 import { setStyles } from './d3-utils'
 
 // ===================================================================
@@ -73,18 +73,19 @@ const TOOLTIP_STYLE = {
 
 // ===================================================================
 
-@propTypes({
-  dataSet: propTypes.arrayOf(
-    propTypes.shape({
-      data: propTypes.object.isRequired,
-      label: propTypes.string.isRequired,
-      objectId: propTypes.string.isRequired,
-    })
-  ).isRequired,
-  labels: propTypes.object.isRequired,
-  renderers: propTypes.object,
-})
 export default class XoParallelChart extends Component {
+  static propTypes = {
+    dataSet: PropTypes.arrayOf(
+      PropTypes.shape({
+        data: PropTypes.object.isRequired,
+        label: PropTypes.string.isRequired,
+        objectId: PropTypes.string.isRequired,
+      })
+    ).isRequired,
+    labels: PropTypes.object.isRequired,
+    renderers: PropTypes.object,
+  }
+
   _line = d3.line()
 
   _color = d3.scaleOrdinal(d3.schemeCategory10)

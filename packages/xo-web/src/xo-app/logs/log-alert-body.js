@@ -7,7 +7,7 @@ import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
 import { countBy, filter, get, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
 import { VmItem, SrItem, RemoteItem } from 'render-xo-item'
 
@@ -60,22 +60,6 @@ const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_LINK =
   'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
 
-const ALL_FILTER_OPTION = { label: 'allTasks', value: 'all' }
-const FAILURE_FILTER_OPTION = { label: 'taskFailed', value: 'failure' }
-const PENDING_FILTER_OPTION = { label: 'taskStarted', value: 'pending' }
-const INTERRUPTED_FILTER_OPTION = {
-  label: 'taskInterrupted',
-  value: 'interrupted',
-}
-const TASK_FILTER_OPTIONS = [
-  ALL_FILTER_OPTION,
-  FAILURE_FILTER_OPTION,
-  PENDING_FILTER_OPTION,
-  INTERRUPTED_FILTER_OPTION,
-  { label: 'taskSkipped', value: 'skipped' },
-  { label: 'taskSuccess', value: 'success' },
-]
-
 export default [
   addSubscriptions(({ id }) => ({
     remotes: cb =>
@@ -92,8 +76,7 @@ export default [
       filter: undefined,
     }),
     effects: {
-      setFilter: (_, filter) => state => ({
-        ...state,
+      setFilter: (_, filter) => () => ({
         filter,
       }),
       restartVmJob: (_, { vm }) => async (
@@ -109,7 +92,7 @@ export default [
     },
     computed: {
       filteredTaskLogs: (
-        { defaultFilter, filter: { value } = defaultFilter },
+        { defaultFilter, filter: value = defaultFilter },
         { log = {} }
       ) =>
         value === 'all'
@@ -124,20 +107,48 @@ export default [
         all: get(log.tasks, 'length'),
         ...countBy(log.tasks, 'status'),
       }),
+      options: ({ countByStatus }) => [
+        { label: 'allTasks', value: 'all' },
+        {
+          disabled: countByStatus.failure === undefined,
+          label: 'taskFailed',
+          value: 'failure',
+        },
+        {
+          disabled: countByStatus.pending === undefined,
+          label: 'taskStarted',
+          value: 'pending',
+        },
+        {
+          disabled: countByStatus.interrupted === undefined,
+          label: 'taskInterrupted',
+          value: 'interrupted',
+        },
+        {
+          disabled: countByStatus.skipped === undefined,
+          label: 'taskSkipped',
+          value: 'skipped',
+        },
+        {
+          disabled: countByStatus.success === undefined,
+          label: 'taskSuccess',
+          value: 'success',
+        },
+      ],
       defaultFilter: ({ countByStatus }) => {
         if (countByStatus.pending > 0) {
-          return PENDING_FILTER_OPTION
+          return 'pending'
         }
 
         if (countByStatus.failure > 0) {
-          return FAILURE_FILTER_OPTION
+          return 'failure'
         }
 
         if (countByStatus.interrupted > 0) {
-          return INTERRUPTED_FILTER_OPTION
+          return 'interrupted'
         }
 
-        return ALL_FILTER_OPTION
+        return 'all'
       },
     },
   }),
@@ -155,8 +166,9 @@ export default [
           labelKey='label'
           onChange={effects.setFilter}
           optionRenderer={state.optionRenderer}
-          options={TASK_FILTER_OPTIONS}
+          options={state.options}
           required
+          simpleValue
           value={state.filter || state.defaultFilter}
           valueKey='value'
         />

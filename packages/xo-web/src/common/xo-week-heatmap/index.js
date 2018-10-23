@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
@@ -9,7 +10,6 @@ import { FormattedTime } from 'react-intl'
 
 import _ from '../intl'
 import Component from '../base-component'
-import propTypes from '../prop-types-decorator'
 import Tooltip from '../tooltip'
 
 import styles from './index.css'
@@ -72,16 +72,17 @@ const computeMissingDays = days => {
 
 // ===================================================================
 
-@propTypes({
-  cellRenderer: propTypes.func,
-  data: propTypes.arrayOf(
-    propTypes.shape({
-      date: propTypes.number.isRequired,
-      value: propTypes.number.isRequired,
-    })
-  ).isRequired,
-})
 export default class XoWeekHeatmap extends Component {
+  static propTypes = {
+    cellRenderer: PropTypes.func,
+    data: PropTypes.arrayOf(
+      PropTypes.shape({
+        date: PropTypes.number.isRequired,
+        value: PropTypes.number.isRequired,
+      })
+    ).isRequired,
+  }
+
   static defaultProps = {
     cellRenderer: value => value,
   }

@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
 import Icon from 'icon'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
@@ -149,7 +150,7 @@ const MODES = [
 })
 class JobsTable extends React.Component {
   static contextTypes = {
-    router: React.PropTypes.object,
+    router: PropTypes.object,
   }
 
   static tableProps = {
@@ -189,12 +190,17 @@ class JobsTable extends React.Component {
       },
       {
         itemRenderer: job => {
-          const { concurrency, offlineSnapshot } = job.settings[''] || {}
+          const { concurrency, offlineSnapshot, reportWhen, timeout } =
+            job.settings[''] || {}
 
           return (
             <Ul>
+              {reportWhen && <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>}
               {concurrency > 0 && (
                 <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
+              )}
+              {timeout > 0 && (
+                <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>
               )}
               {offlineSnapshot && (
                 <Li>

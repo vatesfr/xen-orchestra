@@ -1,6 +1,5 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import ActionRowButton from 'action-row-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
 import filter from 'lodash/filter'
@@ -8,7 +7,6 @@ import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
-import pickBy from 'lodash/pickBy'
 import React from 'react'
 import renderXoItem, { renderXoItemFromId } from 'render-xo-item'
 import some from 'lodash/some'
@@ -16,9 +14,10 @@ import SortedTable from 'sorted-table'
 import toArray from 'lodash/toArray'
 import Upgrade from 'xoa-upgrade'
 import store from 'store'
-import { connectStore } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
+import { injectState, provideState } from 'reaclette'
 import {
   SelectHighLevelObject,
   SelectRole,
@@ -31,6 +30,7 @@ import {
   addAcl,
   editAcl,
   removeAcl,
+  removeAcls,
   subscribeAcls,
   subscribeGroups,
   subscribeRoles,
@@ -67,100 +67,70 @@ const ACL_COLUMNS = [
     ),
     sortCriteria: acl => (acl.action.name || '').toLowerCase(),
   },
+]
+
+const ACL_ACTIONS = [
   {
-    name: '',
-    itemRenderer: acl => (
-      <ActionRowButton
-        icon='delete'
-        btnStyle='danger'
-        handler={removeAcl}
-        handlerParam={acl}
-      />
-    ),
+    handler: removeAcls,
+    icon: 'delete',
+    individualHandler: removeAcl,
+    individualLabel: _('deleteAcl'),
+    label: _('deleteSelectedAcls'),
+    level: 'danger',
   },
 ]
 
-@connectStore(() => {
-  const getHighLevelObjects = createSelector(
-    createGetObjectsOfType('host'),
-    createGetObjectsOfType('network'),
-    createGetObjectsOfType('pool'),
-    createGetObjectsOfType('SR'),
-    createGetObjectsOfType('VM'),
-    createGetObjectsOfType('VM-snapshot'),
-    (hosts, networks, pools, srs, vms, snapshots) => ({
-      ...keyBy(hosts, 'id'),
-      ...keyBy(networks, 'id'),
-      ...keyBy(pools, 'id'),
-      ...keyBy(snapshots, 'id'),
-      ...keyBy(srs, 'id'),
-      ...keyBy(vms, 'id'),
-    })
-  )
-  return { xoObjects: getHighLevelObjects }
-})
-class AclTable extends Component {
-  componentWillMount () {
-    let subjects = {}
-    const refresh = (newSubjects = undefined) => {
-      newSubjects && (subjects = newSubjects)
-      const { xoObjects } = this.props
-      const { acls, roles } = this.state
-      const resolvedAcls = filter(
-        map(acls, ({ subject, object, action }) => ({
-          subject: subjects[subject] || subject,
-          object: xoObjects[object] || object,
-          action: roles[action] || action,
-        })),
-        ({ subject, object, action }) =>
-          subject && object && action && object.type !== 'VM-snapshot'
-      )
-      this.setState({
-        resolvedAcls,
-      })
-    }
-
-    const unsubscribeAcls = subscribeAcls(acls =>
-      this.setState({ acls }, refresh)
-    )
-    const unsubscribeRoles = subscribeRoles(roles =>
-      this.setState({ roles: keyBy(roles, 'id') }, refresh)
-    )
-    const unsubscribeGroups = subscribeGroups(groups => {
-      groups = keyBy(groups, 'id')
-      refresh({
-        ...pickBy(subjects, subject => subject.type === 'user'),
-        ...groups,
-      })
-    })
-    const unsubscribeUsers = subscribeUsers(users => {
-      users = keyBy(users, 'id')
-      refresh({
-        ...pickBy(subjects, subject => subject.type === 'group'),
-        ...users,
-      })
-    })
-
-    this.componentWillUnmount = () => {
-      unsubscribeAcls()
-      unsubscribeGroups()
-      unsubscribeRoles()
-      unsubscribeUsers()
-    }
-  }
-
-  render () {
-    const { resolvedAcls = [] } = this.state
-
-    return isEmpty(resolvedAcls) ? (
-      <p>
-        <em>{_('aclNoneFound')}</em>
-      </p>
-    ) : (
-      <SortedTable collection={resolvedAcls} columns={ACL_COLUMNS} />
-    )
-  }
-}
+const AclTable = [
+  connectStore({
+    hosts: createGetObjectsOfType('host'),
+    networks: createGetObjectsOfType('network'),
+    pools: createGetObjectsOfType('pool'),
+    srs: createGetObjectsOfType('SR'),
+    vms: createGetObjectsOfType('VM'),
+  }),
+  addSubscriptions({
+    acls: subscribeAcls,
+    roles: subscribeRoles,
+    groups: subscribeGroups,
+    users: subscribeUsers,
+  }),
+  provideState({
+    computed: {
+      acls: (
+        { groups, roles, users },
+        { acls, hosts, networks, pools, srs, vms }
+      ) =>
+        filter(
+          map(acls, ({ id, subject, object, action }) => ({
+            id,
+            subject: users[subject] || groups[subject],
+            object:
+              hosts[object] ||
+              networks[object] ||
+              pools[object] ||
+              srs[object] ||
+              vms[object],
+            action: roles[action],
+          })),
+          ({ subject, object, action }) =>
+            subject !== undefined &&
+            object !== undefined &&
+            action !== undefined
+        ),
+      groups: (_, { groups }) => keyBy(groups, 'id'),
+      roles: (_, { roles }) => keyBy(roles, 'id'),
+      users: (_, { users }) => keyBy(users, 'id'),
+    },
+  }),
+  injectState,
+  ({ state }) => (
+    <SortedTable
+      actions={ACL_ACTIONS}
+      collection={state.acls}
+      columns={ACL_COLUMNS}
+    />
+  ),
+].reduceRight((value, decorator) => decorator(value))
 
 export default class Acls extends Component {
   constructor (props) {

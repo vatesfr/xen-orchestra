@@ -4,6 +4,7 @@ import classNames from 'classnames'
 import defined, { get } from '@xen-orchestra/defined'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
+import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
 import { Input as DebouncedInput } from 'debounce-input-decorator'
@@ -19,6 +20,7 @@ import {
   isEmpty,
   isFunction,
   map,
+  sortBy,
   startsWith,
 } from 'lodash'
 
@@ -28,7 +30,6 @@ import ButtonGroup from '../button-group'
 import Component from '../base-component'
 import Icon from '../icon'
 import Pagination from '../pagination'
-import propTypes from '../prop-types-decorator'
 import SingleLineRow from '../single-line-row'
 import Tooltip from '../tooltip'
 import { BlockLink } from '../link'
@@ -46,12 +47,13 @@ import styles from './index.css'
 
 // ===================================================================
 
-@propTypes({
-  filters: propTypes.object,
-  onChange: propTypes.func.isRequired,
-  value: propTypes.string.isRequired,
-})
 class TableFilter extends Component {
+  static propTypes = {
+    filters: PropTypes.object,
+    onChange: PropTypes.func.isRequired,
+    value: PropTypes.string.isRequired,
+  }
+
   _cleanFilter = () => this._setFilter('')
 
   _setFilter = filterValue => {
@@ -121,13 +123,14 @@ class TableFilter extends Component {
 
 // ===================================================================
 
-@propTypes({
-  columnId: propTypes.number.isRequired,
-  name: propTypes.node,
-  sort: propTypes.func,
-  sortIcon: propTypes.string,
-})
 class ColumnHead extends Component {
+  static propTypes = {
+    columnId: PropTypes.number.isRequired,
+    name: PropTypes.node,
+    sort: PropTypes.func,
+    sortIcon: PropTypes.string,
+  }
+
   _sort = () => {
     const { props } = this
     props.sort(props.columnId)
@@ -162,10 +165,11 @@ class ColumnHead extends Component {
 
 // ===================================================================
 
-@propTypes({
-  indeterminate: propTypes.bool.isRequired,
-})
 class Checkbox extends Component {
+  static propTypes = {
+    indeterminate: PropTypes.bool.isRequired,
+  }
+
   componentDidUpdate () {
     const {
       props: { indeterminate },
@@ -191,16 +195,16 @@ class Checkbox extends Component {
 
 // ===================================================================
 
-const actionsShape = propTypes.arrayOf(
-  propTypes.shape({
+const actionsShape = PropTypes.arrayOf(
+  PropTypes.shape({
     // groupedActions: the function will be called with an array of the selected items in parameters
     // individualActions: the function will be called with the related item in parameters
-    disabled: propTypes.oneOfType([propTypes.bool, propTypes.func]),
-    handler: propTypes.func.isRequired,
-    icon: propTypes.string.isRequired,
-    label: propTypes.oneOfType([propTypes.node, propTypes.func]).isRequired,
-    level: propTypes.oneOf(['primary', 'warning', 'danger']),
-    redirectOnSuccess: propTypes.oneOfType([propTypes.func, propTypes.string]),
+    disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
+    handler: PropTypes.func.isRequired,
+    icon: PropTypes.string.isRequired,
+    label: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
+    level: PropTypes.oneOf(['primary', 'warning', 'danger']),
+    redirectOnSuccess: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
   })
 )
 
@@ -279,66 +283,67 @@ class GroupedAction extends Component {
   }
 }
 
+const LEVELS = [undefined, 'primary', 'warning', 'danger']
 // page number and sort info are optional for backward compatibility
 const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
 
-@propTypes(
-  {
-    defaultColumn: propTypes.number,
-    defaultFilter: propTypes.string,
-    collection: propTypes.oneOfType([propTypes.array, propTypes.object])
+export default class SortedTable extends Component {
+  static propTypes = {
+    defaultColumn: PropTypes.number,
+    defaultFilter: PropTypes.string,
+    collection: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
       .isRequired,
-    columns: propTypes.arrayOf(
-      propTypes.shape({
-        component: propTypes.func,
-        default: propTypes.bool,
-        name: propTypes.node,
-        itemRenderer: propTypes.func,
-        sortCriteria: propTypes.oneOfType([propTypes.func, propTypes.string]),
-        sortOrder: propTypes.string,
-        textAlign: propTypes.string,
+    columns: PropTypes.arrayOf(
+      PropTypes.shape({
+        component: PropTypes.func,
+        default: PropTypes.bool,
+        name: PropTypes.node,
+        itemRenderer: PropTypes.func,
+        sortCriteria: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+        sortOrder: PropTypes.string,
+        textAlign: PropTypes.string,
       })
     ).isRequired,
-    filterContainer: propTypes.func,
-    filters: propTypes.object,
-    actions: propTypes.arrayOf(
-      propTypes.shape({
+    filterContainer: PropTypes.func,
+    filters: PropTypes.object,
+    actions: PropTypes.arrayOf(
+      PropTypes.shape({
         // regroup individual actions and grouped actions
-        disabled: propTypes.oneOfType([propTypes.bool, propTypes.func]),
-        handler: propTypes.func.isRequired,
-        icon: propTypes.string.isRequired,
-        individualDisabled: propTypes.oneOfType([
-          propTypes.bool,
-          propTypes.func,
+        disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
+        handler: PropTypes.func.isRequired,
+        icon: PropTypes.string.isRequired,
+        individualDisabled: PropTypes.oneOfType([
+          PropTypes.bool,
+          PropTypes.func,
         ]),
-        individualHandler: propTypes.func,
-        individualLabel: propTypes.node,
-        label: propTypes.node.isRequired,
-        level: propTypes.oneOf(['primary', 'warning', 'danger']),
+        individualHandler: PropTypes.func,
+        individualLabel: PropTypes.node,
+        label: PropTypes.node.isRequired,
+        level: PropTypes.oneOf(['primary', 'warning', 'danger']),
       })
     ),
     groupedActions: actionsShape,
     individualActions: actionsShape,
-    itemsPerPage: propTypes.number,
-    paginationContainer: propTypes.func,
-    rowAction: propTypes.func,
-    rowLink: propTypes.oneOfType([propTypes.func, propTypes.string]),
-    rowTransform: propTypes.func,
+    itemsPerPage: PropTypes.number,
+    paginationContainer: PropTypes.func,
+    rowAction: PropTypes.func,
+    rowLink: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    rowTransform: PropTypes.func,
     // DOM node selector like body or .my-class
     // The shortcuts will be enabled when the node is focused
-    shortcutsTarget: propTypes.string,
-    stateUrlParam: propTypes.string,
+    shortcutsTarget: PropTypes.string,
+    stateUrlParam: PropTypes.string,
 
     // @deprecated, use `data-${key}` instead
-    userData: propTypes.any,
-  },
-  {
-    router: routerShape,
+    userData: PropTypes.any,
   }
-)
-export default class SortedTable extends Component {
+
   static defaultProps = {
     itemsPerPage: 10,
+  }
+
+  static contextTypes = {
+    router: routerShape,
   }
 
   constructor (props, context) {
@@ -705,9 +710,24 @@ export default class SortedTable extends Component {
     () => this.props.groupedActions,
     () => this.props.actions,
     (groupedActions, actions) =>
-      groupedActions !== undefined && actions !== undefined
-        ? groupedActions.concat(actions)
-        : groupedActions || actions
+      sortBy(
+        groupedActions !== undefined && actions !== undefined
+          ? groupedActions.concat(actions)
+          : groupedActions || actions,
+        action => LEVELS.indexOf(action.level)
+      )
+  )
+
+  _getIndividualActions = createSelector(
+    () => this.props.individualActions,
+    () => this.props.actions,
+    (individualActions, actions) =>
+      sortBy(
+        individualActions !== undefined && actions !== undefined
+          ? individualActions.concat(actions)
+          : individualActions || actions,
+        action => LEVELS.indexOf(action.level)
+      )
   )
 
   _renderItem = (item, i) => {
@@ -748,15 +768,7 @@ export default class SortedTable extends Component {
       <td>
         <div className='pull-right'>
           <ButtonGroup>
-            {map(individualActions, (props, key) => (
-              <IndividualAction
-                {...props}
-                item={item}
-                key={key}
-                userData={userData}
-              />
-            ))}
-            {map(actions, (props, key) => (
+            {map(this._getIndividualActions(), (props, key) => (
               <IndividualAction
                 {...props}
                 disabled={props.individualDisabled || props.disabled}

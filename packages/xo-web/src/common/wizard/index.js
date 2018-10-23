@@ -1,10 +1,10 @@
 import classNames from 'classnames'
 import every from 'lodash/every'
+import PropTypes from 'prop-types'
 import React, { Component, cloneElement } from 'react'
 
 import _ from '../intl'
 import Icon from '../icon'
-import propTypes from '../prop-types-decorator'
 
 import styles from './index.css'
 
@@ -25,11 +25,12 @@ const Wizard = ({ children }) => {
 }
 export { Wizard as default }
 
-@propTypes({
-  icon: propTypes.string.isRequired,
-  title: propTypes.string.isRequired,
-})
 export class Section extends Component {
+  static propTypes = {
+    icon: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+  }
+
   componentWillMount () {
     this.setState({ isActive: false })
   }

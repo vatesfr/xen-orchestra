@@ -6,7 +6,7 @@ import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
 import Link from 'link'
-import propTypes from 'prop-types-decorator'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import StateButton from 'state-button'
@@ -214,10 +214,6 @@ const parseBootOrder = bootOrder => {
 }
 
 @injectIntl
-@propTypes({
-  onClose: propTypes.func,
-  vm: propTypes.object.isRequired,
-})
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
 })
@@ -225,6 +221,11 @@ const parseBootOrder = bootOrder => {
   isAdmin,
 })
 class NewDisk extends Component {
+  static propTypes = {
+    onClose: PropTypes.func,
+    vm: PropTypes.object.isRequired,
+  }
+
   _createDisk = () => {
     const { vm, onClose = noop } = this.props
     const { bootable, name, readOnly, size, sr } = this.state
@@ -327,7 +328,7 @@ class NewDisk extends Component {
               icon='add'
               btnStyle='primary'
               handler={this._createDisk}
-              disabled={diskLimit < size}
+              disabled={!isAdmin && diskLimit < size}
             >
               {_('vbdCreate')}
             </ActionButton>
@@ -355,12 +356,13 @@ class NewDisk extends Component {
   }
 }
 
-@propTypes({
-  onClose: propTypes.func,
-  vbds: propTypes.array.isRequired,
-  vm: propTypes.object.isRequired,
-})
 class AttachDisk extends Component {
+  static propTypes = {
+    onClose: PropTypes.func,
+    vbds: PropTypes.array.isRequired,
+    vm: PropTypes.object.isRequired,
+  }
+
   _getVdiPredicate = createSelector(
     () => {
       const { vm } = this.props
@@ -466,16 +468,17 @@ const orderItemTarget = {
   connectDragSource: connect.dragSource(),
   isDragging: monitor.isDragging(),
 }))
-@propTypes({
-  connectDragSource: propTypes.func.isRequired,
-  connectDropTarget: propTypes.func.isRequired,
-  index: propTypes.number.isRequired,
-  isDragging: propTypes.bool.isRequired,
-  id: propTypes.any.isRequired,
-  item: propTypes.object.isRequired,
-  move: propTypes.func.isRequired,
-})
 class OrderItem extends Component {
+  static propTypes = {
+    connectDragSource: PropTypes.func.isRequired,
+    connectDropTarget: PropTypes.func.isRequired,
+    index: PropTypes.number.isRequired,
+    isDragging: PropTypes.bool.isRequired,
+    id: PropTypes.any.isRequired,
+    item: PropTypes.object.isRequired,
+    move: PropTypes.func.isRequired,
+  }
+
   _toggle = checked => {
     const { item } = this.props
     item.active = checked
@@ -497,12 +500,13 @@ class OrderItem extends Component {
   }
 }
 
-@propTypes({
-  onClose: propTypes.func,
-  vm: propTypes.object.isRequired,
-})
 @DragDropContext(HTML5Backend)
 class BootOrder extends Component {
+  static propTypes = {
+    onClose: PropTypes.func,
+    vm: PropTypes.object.isRequired,
+  }
+
   constructor (props) {
     super(props)
     const { vm } = props

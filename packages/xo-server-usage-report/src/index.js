@@ -1,4 +1,6 @@
+import asyncMap from '@xen-orchestra/async-map'
 import Handlebars from 'handlebars'
+import humanFormat from 'human-format'
 import { createSchedule } from '@xen-orchestra/cron'
 import { minify } from 'html-minifier'
 import {
@@ -20,6 +22,8 @@ import { promisify } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
 // ===================================================================
+
+const GRANULARITY = 'days'
 
 const pReadFile = promisify(readFile)
 const pWriteFile = promisify(writeFile)
@@ -75,7 +79,7 @@ export const configurationSchema = {
     },
     periodicity: {
       type: 'string',
-      enum: ['monthly', 'weekly'],
+      enum: ['monthly', 'weekly', 'daily'],
       description:
         'If you choose weekly you will receive the report every sunday and if you choose monthly you will receive it every first day of the month.',
     },
@@ -84,6 +88,24 @@ export const configurationSchema = {
   additionalProperties: false,
   required: ['emails', 'periodicity'],
 }
+
+// ===================================================================
+
+const shortUuid = uuid => {
+  if (typeof uuid === 'string') {
+    return uuid.split('-')[0]
+  }
+}
+
+const formatIops = value =>
+  isFinite(value)
+    ? humanFormat(value, {
+        unit: 'IOPS',
+        decimals: 2,
+      })
+    : '-'
+
+const normaliseValue = value => (isFinite(value) ? round(value, 2) : '-')
 
 // ===================================================================
 
@@ -122,27 +144,60 @@ Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
   return mathOperators[operator](+lvalue, +rvalue)
 })
 
-Handlebars.registerHelper('shortUUID', uuid => {
-  if (typeof uuid === 'string') {
-    return uuid.split('-')[0]
-  }
-})
+Handlebars.registerHelper('shortUUID', shortUuid)
 
-Handlebars.registerHelper(
-  'normaliseValue',
-  value => (isFinite(value) ? round(value, 2) : '-')
-)
+Handlebars.registerHelper('normaliseValue', normaliseValue)
 
 Handlebars.registerHelper(
   'normaliseEvolution',
   value =>
     new Handlebars.SafeString(
-      isFinite(+value) && +value !== 0
-        ? (value = round(value, 2)) > 0
+      isFinite((value = round(value, 2))) && value !== 0
+        ? value > 0
           ? `(<b style="color: green;">▲ ${value}%</b>)`
           : `(<b style="color: red;">▼ ${String(value).slice(1)}%</b>)`
         : ''
     )
+)
+
+Handlebars.registerHelper('formatIops', formatIops)
+
+const getHeader = (label, size) => `
+  <tr>
+    <td rowspan='${size + 1}' class="tableHeader">${label}</td>
+  </tr>
+`
+
+const getBody = ({ uuid, name, value }, transformValue, unit) => `
+  <tr>
+    <td>${shortUuid(uuid)}</td>
+    <td>${name}</td>
+    <td>${transformValue(value)}${unit !== undefined ? ` ${unit}` : ''}</td>
+  </tr>
+`
+
+const getTopIops = ({ iopsRead, iopsWrite, iopsTotal }) => `
+  ${getHeader('IOPS read', iopsRead.length)}
+  ${iopsRead.map(obj => getBody(obj, formatIops)).join('')}
+  ${getHeader('IOPS write', iopsWrite.length)}
+  ${iopsWrite.map(obj => getBody(obj, formatIops)).join('')}
+  ${getHeader('IOPS total', iopsTotal.length)}
+  ${iopsTotal.map(obj => getBody(obj, formatIops)).join('')}
+`
+
+Handlebars.registerHelper(
+  'getTopSrs',
+  ({ usedSpace, iopsRead, iopsWrite, iopsTotal }) =>
+    new Handlebars.SafeString(`
+      ${getHeader('Used space', usedSpace.length)}
+      ${usedSpace.map(obj => getBody(obj, normaliseValue, 'GiB')).join('')}
+      ${getTopIops({ iopsRead, iopsWrite, iopsTotal })}
+    `)
+)
+
+Handlebars.registerHelper(
+  'getTopIops',
+  props => new Handlebars.SafeString(getTopIops(props))
 )
 
 // ===================================================================
@@ -217,26 +272,36 @@ function getMemoryUsedMetric ({ memory, memoryFree = memory }) {
   return map(memory, (value, key) => value - memoryFree[key])
 }
 
+const METRICS_MEAN = {
+  cpu: computeDoubleMean,
+  disk: value => computeDoubleMean(values(value)) / mibPower,
+  iops: value => computeDoubleMean(values(value)),
+  load: computeMean,
+  net: value => computeDoubleMean(value) / kibPower,
+  ram: stats => computeMean(getMemoryUsedMetric(stats)) / gibPower,
+}
+
 // ===================================================================
 
 async function getVmsStats ({ runningVms, xo }) {
   return orderBy(
     await Promise.all(
       map(runningVms, async vm => {
-        const vmStats = await xo.getXapiVmStats(vm, 'days')
+        const { stats } = await xo.getXapiVmStats(vm, GRANULARITY)
+        const iopsRead = METRICS_MEAN.iops(get(stats.iops, 'r'))
+        const iopsWrite = METRICS_MEAN.iops(get(stats.iops, 'w'))
         return {
           uuid: vm.uuid,
           name: vm.name_label,
-          cpu: computeDoubleMean(vmStats.stats.cpus),
-          ram: computeMean(getMemoryUsedMetric(vmStats.stats)) / gibPower,
-          diskRead:
-            computeDoubleMean(values(get(vmStats.stats.xvds, 'r'))) / mibPower,
-          diskWrite:
-            computeDoubleMean(values(get(vmStats.stats.xvds, 'w'))) / mibPower,
-          netReception:
-            computeDoubleMean(get(vmStats.stats.vifs, 'rx')) / kibPower,
-          netTransmission:
-            computeDoubleMean(get(vmStats.stats.vifs, 'tx')) / kibPower,
+          cpu: METRICS_MEAN.cpu(stats.cpus),
+          ram: METRICS_MEAN.ram(stats),
+          diskRead: METRICS_MEAN.disk(get(stats.xvds, 'r')),
+          diskWrite: METRICS_MEAN.disk(get(stats.xvds, 'w')),
+          iopsRead,
+          iopsWrite,
+          iopsTotal: iopsRead + iopsWrite,
+          netReception: METRICS_MEAN.net(get(stats.vifs, 'rx')),
+          netTransmission: METRICS_MEAN.net(get(stats.vifs, 'tx')),
         }
       })
     ),
@@ -249,17 +314,15 @@ async function getHostsStats ({ runningHosts, xo }) {
   return orderBy(
     await Promise.all(
       map(runningHosts, async host => {
-        const hostStats = await xo.getXapiHostStats(host, 'days')
+        const { stats } = await xo.getXapiHostStats(host, GRANULARITY)
         return {
           uuid: host.uuid,
           name: host.name_label,
-          cpu: computeDoubleMean(hostStats.stats.cpus),
-          ram: computeMean(getMemoryUsedMetric(hostStats.stats)) / gibPower,
-          load: computeMean(hostStats.stats.load),
-          netReception:
-            computeDoubleMean(get(hostStats.stats.pifs, 'rx')) / kibPower,
-          netTransmission:
-            computeDoubleMean(get(hostStats.stats.pifs, 'tx')) / kibPower,
+          cpu: METRICS_MEAN.cpu(stats.cpus),
+          ram: METRICS_MEAN.ram(stats),
+          load: METRICS_MEAN.load(stats.load),
+          netReception: METRICS_MEAN.net(get(stats.pifs, 'rx')),
+          netTransmission: METRICS_MEAN.net(get(stats.pifs, 'tx')),
         }
       })
     ),
@@ -268,24 +331,38 @@ async function getHostsStats ({ runningHosts, xo }) {
   )
 }
 
-function getSrsStats (xoObjects) {
+async function getSrsStats ({ xo, xoObjects }) {
   return orderBy(
-    map(filter(xoObjects, obj => obj.type === 'SR' && obj.size > 0), sr => {
-      const total = sr.size / gibPower
-      const used = sr.physical_usage / gibPower
-      let name = sr.name_label
-      if (!sr.shared) {
-        name += ` (${find(xoObjects, { id: sr.$container }).name_label})`
+    await asyncMap(
+      filter(
+        xoObjects,
+        obj => obj.type === 'SR' && obj.size > 0 && obj.$PBDs.length > 0
+      ),
+      async sr => {
+        const totalSpace = sr.size / gibPower
+        const usedSpace = sr.physical_usage / gibPower
+        let name = sr.name_label
+        if (!sr.shared) {
+          name += ` (${find(xoObjects, { id: sr.$container }).name_label})`
+        }
+
+        const { stats } = await xo.getXapiSrStats(sr.id, GRANULARITY)
+        const iopsRead = computeMean(get(stats.iops, 'r'))
+        const iopsWrite = computeMean(get(stats.iops, 'w'))
+
+        return {
+          uuid: sr.uuid,
+          name,
+          totalSpace,
+          usedSpace,
+          freeSpace: totalSpace - usedSpace,
+          iopsRead,
+          iopsWrite,
+          iopsTotal: iopsRead + iopsWrite,
+        }
       }
-      return {
-        uuid: sr.uuid,
-        name,
-        total,
-        used,
-        free: total - used,
-      }
-    }),
-    'total',
+    ),
+    'name',
     'desc'
   )
 }
@@ -351,6 +428,9 @@ function getTopVms ({ vmsStats, xo }) {
     'ram',
     'diskRead',
     'diskWrite',
+    'iopsRead',
+    'iopsWrite',
+    'iopsTotal',
     'netReception',
     'netTransmission',
   ])
@@ -366,8 +446,8 @@ function getTopHosts ({ hostsStats, xo }) {
   ])
 }
 
-function getTopSrs ({ srsStats, xo }) {
-  return getTop(srsStats, ['total']).total
+function getTopSrs (srsStats) {
+  return getTop(srsStats, ['usedSpace', 'iopsRead', 'iopsWrite', 'iopsTotal'])
 }
 
 async function getHostsMissingPatches ({ runningHosts, xo }) {
@@ -376,6 +456,13 @@ async function getHostsMissingPatches ({ runningHosts, xo }) {
       let hostsPatches = await xo
         .getXapi(host)
         .listMissingPoolPatchesOnHost(host._xapiId)
+        .catch(error => {
+          console.error(
+            '[WARN] error on fetching hosts missing patches:',
+            JSON.stringify(error)
+          )
+          return []
+        })
 
       if (host.license_params.sku_type === 'free') {
         hostsPatches = filter(hostsPatches, { paid: false })
@@ -417,6 +504,9 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
         'ram',
         'diskRead',
         'diskWrite',
+        'iopsRead',
+        'iopsWrite',
+        'iopsTotal',
         'netReception',
         'netTransmission',
       ],
@@ -506,7 +596,7 @@ async function dataBuilder ({ xo, storedStatsPath, all }) {
     xo.getAllUsers(),
     getVmsStats({ xo, runningVms }),
     getHostsStats({ xo, runningHosts }),
-    getSrsStats(xoObjects),
+    getSrsStats({ xo, xoObjects }),
     getHostsMissingPatches({ xo, runningHosts }),
   ])
 
@@ -522,7 +612,7 @@ async function dataBuilder ({ xo, storedStatsPath, all }) {
     computeGlobalHostsStats({ xo, hostsStats, haltedHosts }),
     getTopVms({ xo, vmsStats }),
     getTopHosts({ xo, hostsStats }),
-    getTopSrs({ xo, srsStats }),
+    getTopSrs(srsStats),
     getAllUsersEmail(users),
   ])
 
@@ -571,6 +661,12 @@ async function dataBuilder ({ xo, storedStatsPath, all }) {
 
 // ===================================================================
 
+const CRON_BY_PERIODICITY = {
+  monthly: '0 6 1 * *',
+  weekly: '0 6 * * 0',
+  daily: '0 6 * * *',
+}
+
 class UsageReportPlugin {
   constructor ({ xo, getDataDir }) {
     this._xo = xo
@@ -591,7 +687,7 @@ class UsageReportPlugin {
     }
 
     this._job = createSchedule(
-      configuration.periodicity === 'monthly' ? '00 06 1 * *' : '00 06 * * 0'
+      CRON_BY_PERIODICITY[configuration.periodicity]
     ).createJob(async () => {
       try {
         await this._sendReport(true)

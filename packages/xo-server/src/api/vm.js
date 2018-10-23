@@ -1,4 +1,5 @@
 import concat from 'lodash/concat'
+import defer from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import {
@@ -67,10 +68,12 @@ export async function create (params) {
   const xapi = this.getXapi(template)
 
   const objectIds = [template.id]
+  const cpus = extract(params, 'CPUs')
+  const memoryMax = extract(params, 'memoryMax')
   const limits = {
-    cpus: template.CPUs.number,
+    cpus: cpus !== undefined ? cpus : template.CPUs.number,
     disk: 0,
-    memory: template.memory.dynamic[1],
+    memory: memoryMax !== undefined ? memoryMax : template.memory.dynamic[1],
     vms: 1,
   }
   const vdiSizesByDevice = {}
@@ -647,17 +650,34 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-// TODO: implement resource sets
-export async function clone ({ vm, name, full_copy: fullCopy }) {
+export const clone = defer(async function (
+  $defer,
+  { vm, name, full_copy: fullCopy }
+) {
   await checkPermissionOnSrs.call(this, vm)
+  const xapi = this.getXapi(vm)
 
-  return this.getXapi(vm)
-    .cloneVm(vm._xapiRef, {
-      nameLabel: name,
-      fast: !fullCopy,
-    })
-    .then(vm => vm.$id)
-}
+  const { $id: cloneId } = await xapi.cloneVm(vm._xapiRef, {
+    nameLabel: name,
+    fast: !fullCopy,
+  })
+  $defer.onFailure(() => xapi.deleteVm(cloneId))
+
+  const isAdmin = this.user.permission === 'admin'
+  if (!isAdmin) {
+    await this.addAcl(this.user.id, cloneId, 'admin')
+  }
+
+  if (vm.resourceSet !== undefined) {
+    await this.allocateLimitsInResourceSet(
+      await this.computeVmResourcesUsage(vm),
+      vm.resourceSet,
+      isAdmin
+    )
+  }
+
+  return cloneId
+})
 
 clone.params = {
   id: { type: 'string' },
@@ -740,14 +760,22 @@ export { convertToTemplate as convert }
 // -------------------------------------------------------------------
 
 // TODO: implement resource sets
-export async function snapshot ({
-  vm,
-  name = `${vm.name_label}_${new Date().toISOString()}`,
-}) {
+export const snapshot = defer(async function (
+  $defer,
+  { vm, name = `${vm.name_label}_${new Date().toISOString()}` }
+) {
   await checkPermissionOnSrs.call(this, vm)
 
-  return (await this.getXapi(vm).snapshotVm(vm._xapiRef, name)).$id
-}
+  const xapi = this.getXapi(vm)
+  const { $id: snapshotId } = await xapi.snapshotVm(vm._xapiRef, name)
+  $defer.onFailure(() => xapi.deleteVm(snapshotId))
+
+  const { user } = this
+  if (user.permission !== 'admin') {
+    await this.addAcl(user.id, snapshotId, 'admin')
+  }
+  return snapshotId
+})
 
 snapshot.params = {
   id: { type: 'string' },
@@ -755,7 +783,7 @@ snapshot.params = {
 }
 
 snapshot.resolve = {
-  vm: ['id', 'VM', 'administrate'],
+  vm: ['id', 'VM', 'operate'],
 }
 
 // -------------------------------------------------------------------

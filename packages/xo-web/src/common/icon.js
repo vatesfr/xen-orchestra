@@ -1,8 +1,7 @@
 import classNames from 'classnames'
 import isInteger from 'lodash/isInteger'
+import PropTypes from 'prop-types'
 import React from 'react'
-
-import propTypes from './prop-types-decorator'
 
 const Icon = ({ icon, size = 1, color, fixedWidth, ...props }) => {
   props.className = classNames(
@@ -15,10 +14,12 @@ const Icon = ({ icon, size = 1, color, fixedWidth, ...props }) => {
 
   return <i {...props} />
 }
-propTypes(Icon)({
-  color: propTypes.string,
-  fixedWidth: propTypes.bool,
-  icon: propTypes.string,
-  size: propTypes.oneOfType([propTypes.string, propTypes.number]),
-})
-export default Icon
+
+Icon.propTypes = {
+  color: PropTypes.string,
+  fixedWidth: PropTypes.bool,
+  icon: PropTypes.string,
+  size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+}
+
+export { Icon as default }

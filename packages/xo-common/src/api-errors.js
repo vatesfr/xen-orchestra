@@ -20,7 +20,8 @@ class XoError extends BaseError {
 const create = (code, getProps) => {
   const factory = (...args) => new XoError({ ...getProps(...args), code })
   factory.is = (error, predicate) =>
-    error.code === code && iteratee(predicate)(error)
+    error.code === code &&
+    (predicate === undefined || iteratee(predicate)(error))
 
   return factory
 }
@@ -33,7 +34,7 @@ export const notImplemented = create(0, () => ({
 
 export const noSuchObject = create(1, (id, type) => ({
   data: { id, type },
-  message: 'no such object',
+  message: `no such ${type || 'object'} ${id}`,
 }))
 
 export const unauthorized = create(2, () => ({
