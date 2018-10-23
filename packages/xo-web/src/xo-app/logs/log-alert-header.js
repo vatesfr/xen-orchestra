@@ -12,8 +12,8 @@ import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 
-const isFailureTask = ({ status }) =>
-  status !== 'success' && status !== 'pending'
+const isFailureTask = ({ status, data }) =>
+  status !== 'success' && status !== 'pending' && data.id !== undefined
 
 export default [
   addSubscriptions(({ id }) => ({

@@ -444,6 +444,40 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
   }
 }
 
+const logNonExistentPools = ({ app, jobId, logger, pattern, runId }) => {
+  const poolPattern = pattern.$pool
+  if (poolPattern === undefined) {
+    return
+  }
+
+  let poolIds
+  if ((poolIds = poolPattern.__or || poolPattern.__and?.__or) !== undefined) {
+    const nonExistentPools = poolIds.filter(id => {
+      try {
+        app.getObject(id, 'pool')
+      } catch (err) {
+        return true
+      }
+    })
+
+    if (nonExistentPools.length !== 0) {
+      const taskId: string = logger.notice(`Starting smart backup (${jobId})`, {
+        event: 'task.start',
+        parentId: runId,
+        data: {},
+      })
+      logger.error(`Smart backup failed. (${jobId})`, {
+        event: 'task.end',
+        taskId,
+        status: 'failure',
+        result: {
+          message: `Non-existent pools (${nonExistentPools.join(', ')})`,
+        },
+      })
+    }
+  }
+}
+
 // File structure on remotes:
 //
 // <remote>
@@ -544,6 +578,14 @@ export default class BackupNg {
             })
             .filter(vm => vm !== undefined)
         } else {
+          logNonExistentPools({
+            app,
+            jobId: job.id,
+            logger,
+            pattern: vmsPattern,
+            runId: runJobId,
+          })
+
           vms = app.getObjects({
             filter: createPredicate({
               type: 'VM',
