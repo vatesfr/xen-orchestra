@@ -20,6 +20,7 @@ import {
   isEmpty,
   isFunction,
   map,
+  sortBy,
   startsWith,
 } from 'lodash'
 
@@ -282,6 +283,7 @@ class GroupedAction extends Component {
   }
 }
 
+const LEVELS = [undefined, 'primary', 'warning', 'danger']
 // page number and sort info are optional for backward compatibility
 const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
 
@@ -708,9 +710,24 @@ export default class SortedTable extends Component {
     () => this.props.groupedActions,
     () => this.props.actions,
     (groupedActions, actions) =>
-      groupedActions !== undefined && actions !== undefined
-        ? groupedActions.concat(actions)
-        : groupedActions || actions
+      sortBy(
+        groupedActions !== undefined && actions !== undefined
+          ? groupedActions.concat(actions)
+          : groupedActions || actions,
+        action => LEVELS.indexOf(action.level)
+      )
+  )
+
+  _getIndividualActions = createSelector(
+    () => this.props.individualActions,
+    () => this.props.actions,
+    (individualActions, actions) =>
+      sortBy(
+        individualActions !== undefined && actions !== undefined
+          ? individualActions.concat(actions)
+          : individualActions || actions,
+        action => LEVELS.indexOf(action.level)
+      )
   )
 
   _renderItem = (item, i) => {
@@ -751,15 +768,7 @@ export default class SortedTable extends Component {
       <td>
         <div className='pull-right'>
           <ButtonGroup>
-            {map(individualActions, (props, key) => (
-              <IndividualAction
-                {...props}
-                item={item}
-                key={key}
-                userData={userData}
-              />
-            ))}
-            {map(actions, (props, key) => (
+            {map(this._getIndividualActions(), (props, key) => (
               <IndividualAction
                 {...props}
                 disabled={props.individualDisabled || props.disabled}
