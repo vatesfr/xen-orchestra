@@ -2302,7 +2302,9 @@ export default class Xapi extends XapiBase {
 
     // ignore errors, I (JFT) don't understand why they are emitted
     // because it works
-    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW).catch(log.warn)
+    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW).catch(error => {
+      log.warn('importVdiContent: ', { error })
+    })
 
     await this.createVbd({ vdi, vm })
   }
