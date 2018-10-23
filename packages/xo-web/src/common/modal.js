@@ -7,12 +7,12 @@ import { injectState, provideState } from '@julien-f/freactal'
 import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 
 import _, { messages } from './intl'
-import { generateRandomId } from './utils'
 import ActionButton from './action-button'
 import Button from './button'
 import getEventValue from './get-event-value'
 import Icon from './icon'
 import Tooltip from './tooltip'
+import { generateRandomId } from './utils'
 import {
   disable as disableShortcuts,
   enable as enableShortcuts,
