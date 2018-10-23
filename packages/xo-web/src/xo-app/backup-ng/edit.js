@@ -1,6 +1,6 @@
 import addSubscriptions from 'add-subscriptions'
 import React from 'react'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { subscribeBackupNgJobs, subscribeSchedules } from 'xo'
 import { find, groupBy, keyBy } from 'lodash'
 

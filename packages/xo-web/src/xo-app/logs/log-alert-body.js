@@ -7,7 +7,7 @@ import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
 import { countBy, filter, get, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
 import { VmItem, SrItem, RemoteItem } from 'render-xo-item'
 

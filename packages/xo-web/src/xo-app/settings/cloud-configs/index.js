@@ -10,7 +10,7 @@ import {
 } from 'cloud-config'
 import { Container, Col } from 'grid'
 import { find } from 'lodash'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { Text } from 'editable'
 import { Textarea as DebounceTextarea } from 'debounce-input-decorator'
 import {
