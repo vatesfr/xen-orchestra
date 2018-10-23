@@ -39,6 +39,10 @@ You can check if a coalesce job is currently active by running `ps axf | grep vh
 
 If you don't see any running coalesce jobs, and can't find any other reason that XenServer has not started one, you can attempt to make it start a coalesce job by rescanning the SR. This is harmless to try, but will not always result in a coalesce. Visit the problematic SR in the XOA UI, then click the "Rescan All Disks" button towards the top right: it looks like a refresh circle icon. This should begin the coalesce process - if you click the Advanced tab in the SR view, the "disks needing to be coalesced" list should become smaller and smaller.
 
+### Parse Error
+
+This is most likely due to running a backup job that uses Delta functionality (eg: delta backups, or continuous replication) on a version of XenServer older than 6.5. To use delta functionality you must run XenServer 6.5 or later.
+
 ### SR_BACKEND_FAILURE_44 (insufficient space)
 
 > This message can be triggered by any backup method.
