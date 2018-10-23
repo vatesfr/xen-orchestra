@@ -79,7 +79,7 @@ export const configurationSchema = {
     },
     periodicity: {
       type: 'string',
-      enum: ['monthly', 'weekly'],
+      enum: ['monthly', 'weekly', 'daily'],
       description:
         'If you choose weekly you will receive the report every sunday and if you choose monthly you will receive it every first day of the month.',
     },
@@ -661,6 +661,12 @@ async function dataBuilder ({ xo, storedStatsPath, all }) {
 
 // ===================================================================
 
+const CRON_BY_PERIODICITY = {
+  monthly: '0 6 1 * *',
+  weekly: '0 6 * * 0',
+  daily: '0 6 * * *',
+}
+
 class UsageReportPlugin {
   constructor ({ xo, getDataDir }) {
     this._xo = xo
@@ -681,7 +687,7 @@ class UsageReportPlugin {
     }
 
     this._job = createSchedule(
-      configuration.periodicity === 'monthly' ? '00 06 1 * *' : '00 06 * * 0'
+      CRON_BY_PERIODICITY[configuration.periodicity]
     ).createJob(async () => {
       try {
         await this._sendReport(true)
