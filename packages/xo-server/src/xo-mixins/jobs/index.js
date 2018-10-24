@@ -316,11 +316,13 @@ export default class Jobs {
 
       app.emit('job:terminated', status, job, schedule, runJobId)
     } catch (error) {
-      logger.error(`The execution of ${id} has failed.`, {
+      const app = this._app
+      await logger.error(`The execution of ${id} has failed.`, {
         event: 'job.end',
         runJobId,
         error: serializeError(error),
       })
+      app.emit('job:failed', undefined, job, schedule, runJobId)
       throw error
     } finally {
       ;this.updateJob({ id, runId: null })::ignoreErrors()
