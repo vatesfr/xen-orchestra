@@ -5,7 +5,7 @@ export default {
     event: {
       enum: ['task.warning'],
     },
-    parentId: {
+    taskId: {
       type: 'string',
       description: 'identifier of the parent task or job',
     },
