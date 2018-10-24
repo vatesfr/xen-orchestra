@@ -209,7 +209,7 @@ const actionsShape = PropTypes.arrayOf(
   })
 )
 
-const Action = [
+const IndividualAction = [
   provideState({
     computed: {
       disabled: ({ item }, { disabled, userData }) =>
@@ -772,7 +772,12 @@ export default class SortedTable extends Component {
         <div className='pull-right'>
           <ButtonGroup>
             {map(this._getIndividualActions(), (props, key) => (
-              <Action {...props} item={item} key={key} userData={userData} />
+              <IndividualAction
+                {...props}
+                item={item}
+                key={key}
+                userData={userData}
+              />
             ))}
           </ButtonGroup>
         </div>
