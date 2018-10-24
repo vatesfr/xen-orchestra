@@ -9,10 +9,7 @@ export default {
       type: 'string',
       description: 'identifier of the parent task or job',
     },
-    error: {
-      type: 'object',
-      description: 'warning error',
-    },
+    data: {},
   },
-  required: ['event', 'parentId'],
+  required: ['event', 'taskId'],
 }
