@@ -316,11 +316,15 @@ export default class Jobs {
 
       app.emit('job:terminated', status, job, schedule, runJobId)
     } catch (error) {
-      await logger.error(`The execution of ${id} has failed.`, {
-        event: 'job.end',
-        runJobId,
-        error: serializeError(error),
-      })
+      await logger.error(
+        `The execution of ${id} has failed.`,
+        {
+          event: 'job.end',
+          runJobId,
+          error: serializeError(error),
+        },
+        true
+      )
       app.emit('job:failed', undefined, job, schedule, runJobId)
       throw error
     } finally {
