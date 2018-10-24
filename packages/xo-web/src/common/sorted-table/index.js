@@ -721,13 +721,23 @@ export default class SortedTable extends Component {
   _getIndividualActions = createSelector(
     () => this.props.individualActions,
     () => this.props.actions,
-    (individualActions, actions) =>
-      sortBy(
+    (individualActions, actions) => {
+      const onlyIndividualActions = map(actions, action => ({
+        disabled: action.individualDisabled || action.disabled,
+        handler: action.individualHandler || action.handler,
+        icon: action.icon,
+        label: action.individualLabel || action.label,
+        level: action.level,
+        useGroupedHandler: action.individualHandler === undefined,
+      }))
+
+      return sortBy(
         individualActions !== undefined && actions !== undefined
-          ? individualActions.concat(actions)
-          : individualActions || actions,
+          ? individualActions.concat(onlyIndividualActions)
+          : individualActions || onlyIndividualActions,
         action => LEVELS.indexOf(action.level)
       )
+    }
   )
 
   _renderItem = (item, i) => {
@@ -771,16 +781,8 @@ export default class SortedTable extends Component {
             {map(this._getIndividualActions(), (props, key) => (
               <IndividualAction
                 {...props}
-                disabled={props.individualDisabled || props.disabled}
-                handler={props.individualHandler || props.handler}
-                item={
-                  props.actions === undefined ||
-                  props.individualHandler !== undefined
-                    ? item
-                    : [item]
-                }
+                item={props.useGroupedHandler ? [item] : item}
                 key={key}
-                label={props.individualLabel || props.label}
                 userData={userData}
               />
             ))}
