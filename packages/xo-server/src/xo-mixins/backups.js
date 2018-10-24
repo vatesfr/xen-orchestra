@@ -227,7 +227,7 @@ const mountPartition = (device, partitionId) =>
             unmount: once(() => execa('umount', ['--lazy', path])),
           }),
           error => {
-            log.error({ error })
+            log.error(error)
 
             throw error
           }
