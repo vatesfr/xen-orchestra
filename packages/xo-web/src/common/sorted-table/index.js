@@ -715,13 +715,17 @@ export default class SortedTable extends Component {
     () => this.props.individualActions,
     () => this.props.actions,
     (individualActions, actions) => {
-      const normalizedActions = map(actions, action => ({
-        disabled: action.individualDisabled || action.disabled,
-        grouped: action.individualHandler === undefined,
-        handler: action.individualHandler || action.handler,
-        icon: action.icon,
-        label: action.individualLabel || action.label,
-        level: action.level,
+      const normalizedActions = map(actions, a => ({
+        disabled:
+          a.individualDisabled !== undefined
+            ? a.individualDisabled
+            : a.disabled,
+        grouped: a.individualHandler === undefined,
+        handler:
+          a.individualHandler !== undefined ? a.individualHandler : a.handler,
+        icon: a.icon,
+        label: a.individualLabel !== undefined ? a.individualLabel : a.label,
+        level: a.level,
       }))
 
       return sortBy(
