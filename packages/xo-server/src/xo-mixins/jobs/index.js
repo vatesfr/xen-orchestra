@@ -290,8 +290,8 @@ export default class Jobs {
     runs[runJobId] = { cancel }
 
     let session
+    const app = this._app
     try {
-      const app = this._app
       session = app.createUserConnection()
       session.set('user_id', job.userId)
 
@@ -316,7 +316,6 @@ export default class Jobs {
 
       app.emit('job:terminated', status, job, schedule, runJobId)
     } catch (error) {
-      const app = this._app
       await logger.error(`The execution of ${id} has failed.`, {
         event: 'job.end',
         runJobId,
