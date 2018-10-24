@@ -12,6 +12,7 @@ import { Portal } from 'react-overlays'
 import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
 import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
+import { injectState, provideState } from 'reaclette'
 import {
   ceil,
   filter,
@@ -208,44 +209,36 @@ const actionsShape = PropTypes.arrayOf(
   })
 )
 
-class IndividualAction extends Component {
-  _getIsDisabled = createSelector(
-    () => this.props.disabled,
-    () => this.props.item,
-    () => this.props.userData,
-    (disabled, item, userData) =>
-      isFunction(disabled) ? disabled(item, userData) : disabled
-  )
-  _getLabel = createSelector(
-    () => this.props.label,
-    () => this.props.item,
-    () => this.props.userData,
-    (label, item, userData) =>
-      isFunction(label) ? label(item, userData) : label
-  )
-
-  _executeAction = () => {
-    const p = this.props
-    return p.handler(p.item, p.userData)
-  }
-
-  render () {
-    const { icon, item, level, redirectOnSuccess, userData } = this.props
-
-    return (
-      <ActionRowButton
-        btnStyle={level}
-        data-item={item}
-        data-userData={userData}
-        disabled={this._getIsDisabled()}
-        handler={this._executeAction}
-        icon={icon}
-        redirectOnSuccess={redirectOnSuccess}
-        tooltip={this._getLabel()}
-      />
-    )
-  }
-}
+const Action = [
+  provideState({
+    computed: {
+      disabled: ({ item }, { disabled, userData }) =>
+        isFunction(disabled) ? disabled(item, userData) : disabled,
+      handler: ({ item }, { handler, userData }) => () =>
+        handler(item, userData),
+      icon: ({ item }, { icon, userData }) =>
+        isFunction(icon) ? icon(item, userData) : icon,
+      item: (_, { item, grouped }) => (grouped ? [item] : item),
+      label: ({ item }, { label, userData }) =>
+        isFunction(label) ? label(item, userData) : label,
+      level: ({ item }, { level, userData }) =>
+        isFunction(level) ? level(item, userData) : level,
+    },
+  }),
+  injectState,
+  ({ state, redirectOnSuccess, userData }) => (
+    <ActionRowButton
+      btnStyle={state.level}
+      data-item={state.item}
+      data-userData={userData}
+      disabled={state.disabled}
+      handler={state.handler}
+      icon={state.icon}
+      redirectOnSuccess={redirectOnSuccess}
+      tooltip={state.label}
+    />
+  ),
+].reduceRight((value, decorator) => decorator(value))
 
 class GroupedAction extends Component {
   _getIsDisabled = createSelector(
@@ -722,19 +715,19 @@ export default class SortedTable extends Component {
     () => this.props.individualActions,
     () => this.props.actions,
     (individualActions, actions) => {
-      const onlyIndividualActions = map(actions, action => ({
+      const normalizedActions = map(actions, action => ({
         disabled: action.individualDisabled || action.disabled,
+        grouped: action.individualHandler === undefined,
         handler: action.individualHandler || action.handler,
         icon: action.icon,
         label: action.individualLabel || action.label,
         level: action.level,
-        useGroupedHandler: action.individualHandler === undefined,
       }))
 
       return sortBy(
         individualActions !== undefined && actions !== undefined
-          ? individualActions.concat(onlyIndividualActions)
-          : individualActions || onlyIndividualActions,
+          ? individualActions.concat(normalizedActions)
+          : individualActions || normalizedActions,
         action => LEVELS.indexOf(action.level)
       )
     }
@@ -779,12 +772,7 @@ export default class SortedTable extends Component {
         <div className='pull-right'>
           <ButtonGroup>
             {map(this._getIndividualActions(), (props, key) => (
-              <IndividualAction
-                {...props}
-                item={props.useGroupedHandler ? [item] : item}
-                key={key}
-                userData={userData}
-              />
+              <Action {...props} item={item} key={key} userData={userData} />
             ))}
           </ButtonGroup>
         </div>
