@@ -37,6 +37,7 @@
 
 ### Released packages
 
+- xo-server-backup-reports v0.15.0
 - xo-common v0.1.2
 - @xen-orchestra/fs v0.4.0
 - complex-matcher v0.5.0
