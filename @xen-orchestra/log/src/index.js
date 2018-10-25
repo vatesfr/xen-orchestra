@@ -42,6 +42,16 @@ for (const name in LEVELS) {
       const error = message
       data = error
       message = error.message || 'an error as occured'
+    if (typeof message !== 'string') {
+      if (message instanceof Error) {
+        data = { error: message }
+        ;({ message = 'an error has occured' } = message)
+      } else {
+        return this.warn('incorrect value passed to logger', {
+          level,
+          value: message
+        })
+      }
     }
     global[symbol](new Log(data, level, this._namespace, message, new Date()))
   }
