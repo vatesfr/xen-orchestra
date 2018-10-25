@@ -50,6 +50,7 @@ const ICON_FAILURE = '🚨'
 const ICON_INTERRUPTED = '⚠️'
 const ICON_SKIPPED = '⏩'
 const ICON_SUCCESS = '✔'
+const ICON_WARNING = '⚠️'
 
 const STATUS_ICON = {
   failure: ICON_FAILURE,
@@ -124,11 +125,9 @@ const addWarnings = (text, warnings, nbIndent = 0) => {
   }
 
   const indent = INDENT.repeat(nbIndent)
-  const warningsText = warnings
-    .map(({ message }) => `- **${ICON_INTERRUPTED} ${message}**`)
-    .join(`\n${indent}`)
-
-  text.push(`${indent}${warningsText}`)
+  warnings.forEach(({ message }) => {
+    text.push(`${indent}- **${ICON_WARNING} ${message}**`)
+  })
 }
 
 class BackupReportsXoPlugin {
