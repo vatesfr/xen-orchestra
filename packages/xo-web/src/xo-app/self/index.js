@@ -344,8 +344,11 @@ export class Edit extends Component {
   }
 
   _getIpPoolPredicate = createSelector(
-    () => map(this.state.ipPools, 'id'),
-    ipPoolsIds => ipPool => !includes(ipPoolsIds, ipPool.id)
+    () => this.state.ipPools,
+    ipPools => {
+      const ipPoolsIds = map(ipPools, 'id')
+      return ipPool => !includes(ipPoolsIds, ipPool.id)
+    }
   )
 
   // -----------------------------------------------------------------------------
