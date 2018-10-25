@@ -9,9 +9,9 @@ sudo: false
 addons:
   apt:
     packages:
-    - qemu-utils
-    - blktap-utils
-    - vmdk-stream-converter
+      - qemu-utils
+      - blktap-utils
+      - vmdk-stream-converter
 
 before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash
@@ -21,5 +21,6 @@ cache:
   yarn: true
 
 script:
-  - yarn run test
-  - yarn run test-integration
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then yarn run test; fi
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then yarn run test-integration; fi
+  - if [ "$TRAVIS_BRANCH" != "master" ]; then yarn run test-branch; fi

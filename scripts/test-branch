@@ -1,0 +1,51 @@
+#!/usr/bin/env node
+
+const { execFileSync, spawnSync } = require('child_process')
+
+const run = (command, args) => {
+  const { status } = spawnSync(command, args, { stdio: 'inherit' })
+  if (status !== 0) {
+    process.exit(status)
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+const getSha1 = () =>
+  execFileSync(
+    'git',
+    [
+      'merge-base',
+      'origin/master',
+      'HEAD',
+    ],
+    { encoding: 'utf8' }
+  )
+
+const getFiles = (sha1) =>
+  execFileSync(
+    'git',
+    [
+      'diff',
+      '--name-only',
+      `${sha1}`,
+    ],
+    { encoding: 'utf8' }
+  )
+    .split('\n')
+    .filter(_ => _ !== '')
+
+const sha1 = getSha1().replace(/\s+/g, '')
+const files = getFiles(sha1).filter(_ => _.endsWith('.js'))
+if (files.length === 0) {
+  return
+}
+
+run(
+  './node_modules/.bin/jest',
+  [
+    '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
+    '--findRelatedTests',
+    '--passWithNoTests',
+  ].concat(files)
+  )
