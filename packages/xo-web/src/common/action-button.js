@@ -7,6 +7,7 @@ import Component from './base-component'
 import Icon from './icon'
 import logError from './log-error'
 import Tooltip from './tooltip'
+import UserError from './user-error'
 import { error as _error } from './notification'
 
 export default class ActionButton extends Component {
@@ -111,11 +112,15 @@ export default class ActionButton extends Component {
 
       // ignore when undefined because it usually means that the action has been canceled
       if (error !== undefined) {
-        logError(error)
-        _error(
-          children || tooltip || error.name,
-          error.message || String(error)
-        )
+        if (error instanceof UserError) {
+          _error(error.title, error.body)
+        } else {
+          logError(error)
+          _error(
+            children || tooltip || error.name,
+            error.message || String(error)
+          )
+        }
       }
     }
   }
