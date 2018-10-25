@@ -107,6 +107,13 @@ export default {
             log.tasks
           )
         }
+      } else if (event === 'task.warning') {
+        const parent = started[data.taskId]
+        parent !== undefined &&
+          (parent.warnings || (parent.warnings = [])).push({
+            data: data.data,
+            message,
+          })
       } else if (event === 'jobCall.start') {
         const parent = started[data.runJobId]
         if (parent !== undefined) {
