@@ -192,12 +192,11 @@ export default [
             return (
               <li key={taskLog.data.id} className='list-group-item'>
                 <VmItem id={taskLog.data.id} link newTab /> (
-                {taskLog.data.id !== undefined && taskLog.data.id.slice(4, 8)}){' '}
+                {taskLog.data.id.slice(4, 8)}){' '}
                 <TaskStateInfos status={taskLog.status} />{' '}
                 {scheduleId !== undefined &&
                   taskLog.status !== 'success' &&
-                  taskLog.status !== 'pending' &&
-                  taskLog.data.id !== undefined && (
+                  taskLog.status !== 'pending' && (
                     <ActionButton
                       handler={effects.restartVmJob}
                       icon='run'

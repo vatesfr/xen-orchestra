@@ -415,17 +415,17 @@ const wrapTaskFn = <T>(
     }
   }
 
-const extractIdsFromSimplePattern = (pattern: mixed) => {
+const extractIdsFromSimplePattern = (pattern: mixed, property: string) => {
   if (pattern === null || typeof pattern !== 'object') {
     return
   }
 
   let keys = Object.keys(pattern)
-  if (keys.length !== 1 || keys[0] !== 'id') {
+  if (property === 'id' && (keys.length !== 1 || keys[0] !== property)) {
     return
   }
 
-  pattern = pattern.id
+  pattern = pattern[property]
   if (typeof pattern === 'string') {
     return [pattern]
   }
@@ -433,14 +433,23 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
     return
   }
 
-  keys = Object.keys(pattern)
   if (
-    keys.length === 1 &&
+    property === 'id' &&
+    (keys = Object.keys(pattern)).length === 1 &&
     keys[0] === '__or' &&
     Array.isArray((pattern = pattern.__or)) &&
     pattern.every(_ => typeof _ === 'string')
   ) {
     return pattern
+  }
+
+  if (property === '$pool') {
+    pattern =
+      pattern.__or || pattern.__and?.find(obj => obj.__or !== undefined)?.__or
+
+    if (Array.isArray(pattern) && pattern.every(_ => typeof _ === 'string')) {
+      return pattern
+    }
   }
 }
 
@@ -513,49 +522,10 @@ export default class BackupNg {
         const job: BackupJob = (job_: any)
         const vmsPattern = job.vms
 
-        const logNonExistentPools = () => {
-          const pattern = vmsPattern.$pool
-          if (pattern === undefined) {
-            return
-          }
-
-          let poolIds
-          if ((poolIds = pattern.__or || pattern.__and?.__or) !== undefined) {
-            const nonExistentPools = poolIds.filter(id => {
-              try {
-                app.getObject(id, 'pool')
-              } catch (err) {
-                return true
-              }
-            })
-
-            if (nonExistentPools.length !== 0) {
-              const taskId: string = logger.notice(
-                `Starting smart backup (${job.id})`,
-                {
-                  event: 'task.start',
-                  parentId: runJobId,
-                  data: {},
-                }
-              )
-              logger.error(`Smart backup failed. (${job.id})`, {
-                event: 'task.end',
-                taskId,
-                status: 'failure',
-                result: {
-                  message: `Non-existent pools (${nonExistentPools.join(
-                    ', '
-                  )})`,
-                },
-              })
-            }
-          }
-        }
-
         let vms: $Dict<Vm>
         if (
           vmsId !== undefined ||
-          (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
+          (vmsId = extractIdsFromSimplePattern(vmsPattern, 'id')) !== undefined
         ) {
           vms = vmsId
             .map(id => {
@@ -583,7 +553,22 @@ export default class BackupNg {
             })
             .filter(vm => vm !== undefined)
         } else {
-          logNonExistentPools()
+          const missingPools = extractIdsFromSimplePattern(
+            vmsPattern,
+            '$pool'
+          )?.filter(id => {
+            try {
+              app.getObject(id, 'pool')
+            } catch (error) {
+              return true
+            }
+          })
+
+          !isEmpty(missingPools) &&
+            logger.notice(`Missing pools (${missingPools.join(', ')})`, {
+              event: 'task.warning',
+              taskId: runJobId,
+            })
 
           vms = app.getObjects({
             filter: createPredicate({
