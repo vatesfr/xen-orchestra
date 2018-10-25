@@ -3,7 +3,7 @@ import React, { Component, cloneElement } from 'react'
 import { createSelector } from 'selectors'
 import { identity, isArray, isString, map } from 'lodash'
 import { injectIntl } from 'react-intl'
-import { injectState, provideState } from '@julien-f/freactal'
+import { injectState, provideState } from 'reaclette'
 import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 
 import _, { messages } from './intl'

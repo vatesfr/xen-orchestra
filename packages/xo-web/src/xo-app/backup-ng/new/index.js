@@ -6,6 +6,7 @@ import Link from 'link'
 import moment from 'moment-timezone'
 import React from 'react'
 import Select from 'form/select'
+import UserError from 'user-error'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -424,7 +425,7 @@ export default [
                 (snapshotMode && value.snapshotRetention > 0)
               )
             ) {
-              throw new Error(formatMessage(messages.retentionNeeded))
+              throw new UserError(_('newScheduleError'), _('retentionNeeded'))
             }
             return value
           },
