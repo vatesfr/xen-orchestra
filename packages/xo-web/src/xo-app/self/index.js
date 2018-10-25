@@ -11,6 +11,7 @@ import Icon from 'icon'
 import includes from 'lodash/includes'
 import intersection from 'lodash/intersection'
 import isEmpty from 'lodash/isEmpty'
+import keyBy from 'lodash/keyBy'
 import keys from 'lodash/keys'
 import map from 'lodash/map'
 import mapKeys from 'lodash/mapKeys'
@@ -346,8 +347,9 @@ export class Edit extends Component {
   _getIpPoolPredicate = createSelector(
     () => this.state.ipPools,
     ipPools => {
-      const ipPoolsIds = map(ipPools, 'id')
-      return ipPool => !includes(ipPoolsIds, ipPool.id)
+      const ipPoolsById = keyBy(ipPools, 'id')
+      const { hasOwnProperty } = Object.prototype
+      return ipPool => !hasOwnProperty.call(ipPoolsById, ipPool.id)
     }
   )
 
