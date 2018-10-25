@@ -50,62 +50,16 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 
 export default {
   async getBackupNgLogs (runId?: string) {
-    const { runningJobs, runningRestores } = this
-    const consolidated = {}
-    const started = {}
     const [jobLogs, restoreLogs] = await Promise.all([
       this.getLogs('jobs'),
       this.getLogs('restore'),
     ])
 
-    const handleTask = ({ data, time, message }, id) => {
-      const { event } = data
-      if (event !== 'task.start' && event !== 'task.end') {
-        return
-      }
+    const { runningJobs, runningRestores } = this
+    const consolidated = {}
+    const started = {}
 
-      if (event === 'task.start') {
-        const parent = started[data.parentId]
-        if (parent !== undefined) {
-          ;(parent.tasks || (parent.tasks = [])).push(
-            (started[id] = {
-              data: data.data,
-              id,
-              message,
-              start: time,
-              status: parent.status,
-            })
-          )
-          return
-        }
-
-        if (message === 'restore') {
-          consolidated[id] = started[id] = {
-            data: data.data,
-            id,
-            message,
-            start: time,
-            status: runningRestores.has(id) ? 'pending' : 'interrupted',
-          }
-        }
-      } else {
-        const { taskId } = data
-        const log = started[taskId]
-        if (log !== undefined) {
-          // TODO: merge/transfer work-around
-          delete started[taskId]
-          log.end = time
-          log.status = computeStatusAndSortTasks(
-            getStatus((log.result = data.result), data.status),
-            log.tasks
-          )
-        }
-      }
-    }
-
-    forEach(restoreLogs, handleTask)
-
-    forEach(jobLogs, ({ data, time, message }, id) => {
+    const handleLog = ({ data, time, message }, id) => {
       const { event } = data
       if (event === 'job.start') {
         if (
@@ -134,6 +88,47 @@ export default {
             log.tasks
           )
         }
+      } else if (event === 'task.start') {
+        const task = {
+          data: data.data,
+          id,
+          message,
+          start: time,
+        }
+        const { parentId } = data
+        let parent
+        if (parentId === undefined && (runId === undefined || runId === id)) {
+          // top level task
+          task.status =
+            message === 'restore' && !runningRestores.has(id)
+              ? 'interrupted'
+              : 'pending'
+          consolidated[id] = started[id] = task
+        } else if ((parent = started[parentId]) !== undefined) {
+          // sub-task for which the parent exists
+          task.status = parent.status
+          started[id] = task
+          ;(parent.tasks || (parent.tasks = [])).push(task)
+        }
+      } else if (event === 'task.end') {
+        const { taskId } = data
+        const log = started[taskId]
+        if (log !== undefined) {
+          // TODO: merge/transfer work-around
+          delete started[taskId]
+          log.end = time
+          log.status = computeStatusAndSortTasks(
+            getStatus((log.result = data.result), data.status),
+            log.tasks
+          )
+        }
+      } else if (event === 'task.warning') {
+        const parent = started[data.taskId]
+        parent !== undefined &&
+          (parent.warnings || (parent.warnings = [])).push({
+            data: data.data,
+            message,
+          })
       } else if (event === 'jobCall.start') {
         const parent = started[data.runJobId]
         if (parent !== undefined) {
@@ -160,10 +155,12 @@ export default {
             log.tasks
           )
         }
-      } else {
-        handleTask({ data, time, message }, id)
       }
-    })
+    }
+
+    forEach(jobLogs, handleLog)
+    forEach(restoreLogs, handleLog)
+
     return runId === undefined ? consolidated : consolidated[runId]
   },
 }
