@@ -56,6 +56,18 @@ const TaskDate = ({ label, value }) =>
       second='2-digit'
     />
   )
+
+const Warnings = ({ warnings }) =>
+  warnings !== undefined ? (
+    <div>
+      {warnings.map(({ message }) => (
+        <div className='text-warning'>
+          <Icon icon='alarm' /> {message}
+        </div>
+      ))}
+    </div>
+  ) : null
+
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_LINK =
   'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
@@ -172,6 +184,7 @@ export default [
           value={state.filter || state.defaultFilter}
           valueKey='value'
         />
+        <Warnings warnings={log.warnings} />
         <br />
         <ul className='list-group'>
           {map(state.filteredTaskLogs, taskLog => {
@@ -192,6 +205,7 @@ export default [
                       data-vm={taskLog.data.id}
                     />
                   )}
+                <Warnings warnings={taskLog.warnings} />
                 <ul>
                   {map(taskLog.tasks, subTaskLog => {
                     if (
@@ -223,6 +237,7 @@ export default [
                           </span>
                         )}{' '}
                         <TaskStateInfos status={subTaskLog.status} />
+                        <Warnings warnings={subTaskLog.warnings} />
                         <ul>
                           {map(subTaskLog.tasks, operationLog => {
                             if (
@@ -238,6 +253,7 @@ export default [
                                   <Icon icon='task' /> {operationLog.message}
                                 </span>{' '}
                                 <TaskStateInfos status={operationLog.status} />
+                                <Warnings warnings={operationLog.warnings} />
                                 <br />
                                 <TaskDate
                                   label='taskStart'

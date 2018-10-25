@@ -1545,6 +1545,18 @@ const messages = {
   destroyTasksModalTitle: 'Destroy task{nTasks, plural, one {} other {s}}',
   destroyTasksModalMessage:
     'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?',
+  forgetHostFromSrModalTitle: 'Forget host',
+  forgetHostFromSrModalMessage:
+    'Are you sure you want to forget this host? This will disconnect the SR from the host by removing the link between them (PBD).',
+  forgetHostsFromSrModalTitle: 'Forget host{nPbds, plural, one {} other {s}}',
+  forgetHostsFromSrModalMessage:
+    'Are you sure you want to forget {nPbds, number} host{nPbds, plural, one {} other {s}}? This will disconnect the SR from these hosts by removing the links between the SR and the hosts (PBDs).',
+  forgetSrFromHostModalTitle: 'Forget SR',
+  forgetSrFromHostModalMessage:
+    'Are you sure you want to forget this SR? This will disconnect the SR from the host by removing the link between them (PBD).',
+  forgetSrsFromHostModalTitle: 'Forget SR{nPbds, plural, one {} other {s}}',
+  forgetSrsFromHostModalMessage:
+    'Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? This will disconnect the SRs from the host by removing the links between the host and the SRs (PBDs).',
 
   // ----- Servers -----
   serverLabel: 'Label',

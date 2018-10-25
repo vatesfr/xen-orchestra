@@ -1683,6 +1683,8 @@ export const disconnectPbd = pbd =>
 
 export const deletePbd = pbd => _call('pbd.delete', { id: resolveId(pbd) })
 
+export const deletePbds = pbds => Promise.all(map(pbds, deletePbd))
+
 // Messages ----------------------------------------------------------
 
 export const deleteMessage = message =>

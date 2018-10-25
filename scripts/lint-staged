@@ -74,6 +74,8 @@ if (unstaged.length !== 0) {
   }
 }
 
-testFiles(files)
-
+// add formatting changes so that even if the test fails, there won't be
+// stylistic diffs between files and index
 run('git', ['add'].concat(files))
+
+testFiles(files)

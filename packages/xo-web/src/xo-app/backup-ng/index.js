@@ -54,25 +54,15 @@ const _runBackupNgJob = ({ id, name, schedule }) =>
   }).then(() => runBackupNgJob({ id, schedule }))
 
 const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
-  <table>
-    <tr className='text-muted'>
-      <th>{_('scheduleName')}</th>
-      <th>{_('scheduleCron')}</th>
-      <th>{_('scheduleTimezone')}</th>
-      <th>{_('scheduleExportRetention')}</th>
-      <th>{_('scheduleCopyRetention')}</th>
-      <th>{_('scheduleSnapshotRetention')}</th>
-      <th>{_('scheduleRun')}</th>
-    </tr>
+  <div>
     {map(schedulesByJob && schedulesByJob[job.id], schedule => (
-      <tr key={schedule.id}>
-        <td>{schedule.name}</td>
-        <td>{schedule.cron}</td>
-        <td>{schedule.timezone}</td>
-        <td>{job.settings[schedule.id].exportRetention}</td>
-        <td>{job.settings[schedule.id].copyRetention}</td>
-        <td>{job.settings[schedule.id].snapshotRetention}</td>
-        <td>
+      <Ul key={schedule.id}>
+        {schedule.name ? (
+          <Li>{_.keyValue(_('scheduleName'), schedule.name)}</Li>
+        ) : (
+          <Li>{_.keyValue(_('scheduleCron'), schedule.cron)}</Li>
+        )}
+        <Li>
           <StateButton
             disabledLabel={_('stateDisabled')}
             disabledHandler={enableSchedule}
@@ -82,9 +72,8 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
             enabledTooltip={_('logIndicationToDisable')}
             handlerParam={schedule.id}
             state={schedule.enabled}
+            style={{ marginRight: '0.5em' }}
           />
-        </td>
-        <td>
           {job.runId !== undefined ? (
             <ActionButton
               btnStyle='danger'
@@ -107,10 +96,10 @@ const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
               size='small'
             />
           )}
-        </td>
-      </tr>
+        </Li>
+      </Ul>
     ))}
-  </table>
+  </div>
 )
 
 const MODES = [

@@ -1,15 +1,15 @@
-import isArray from 'lodash/isArray'
-import isString from 'lodash/isString'
-import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React, { Component, cloneElement } from 'react'
 import { createSelector } from 'selectors'
+import { identity, isArray, isString, map } from 'lodash'
 import { injectIntl } from 'react-intl'
+import { injectState, provideState } from 'reaclette'
 import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 
 import _, { messages } from './intl'
-import BaseComponent from './base-component'
+import ActionButton from './action-button'
 import Button from './button'
+import getEventValue from './get-event-value'
 import Icon from './icon'
 import Tooltip from './tooltip'
 import { generateRandomId } from './utils'
@@ -261,57 +261,127 @@ export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
 
 // -----------------------------------------------------------------------------
 
-const preventDefault = event => event.preventDefault()
-
-class FormModal extends BaseComponent {
-  state = {
-    value: this.props.defaultValue,
-  }
-
-  get value () {
-    return this.state.value
-  }
-
-  render () {
-    const { body, formId } = this.props
-    return (
-      <form id={formId} onSubmit={preventDefault}>
-        {cloneElement(body, {
-          value: this.state.value,
-          onChange: this.linkState('value'),
-        })}
-      </form>
-    )
-  }
-}
-
-export const form = ({ body, defaultValue, icon, title, size }) => {
-  const formId = generateRandomId()
-  const buttons = [
-    {
-      btnStyle: 'primary',
-      label: _('formOk'),
-      form: formId,
-    },
-  ]
-  return new Promise((resolve, reject) => {
-    modal(
-      <GenericModal
-        buttons={buttons}
-        icon={icon}
-        reject={reject}
-        resolve={resolve}
-        title={title}
-      >
-        <FormModal body={body} defaultValue={defaultValue} formId={formId} />
-      </GenericModal>,
-      reject,
-      {
-        bsSize: size,
-      }
-    )
+let formModalState
+export const form = ({
+  component,
+  defaultValue,
+  handler = identity,
+  header,
+  render,
+  size,
+}) =>
+  new Promise((resolve, reject) => {
+    formModalState.component = component
+    formModalState.handler = handler
+    formModalState.header = header
+    formModalState.opened = true
+    formModalState.reject = reject
+    formModalState.render = render
+    formModalState.resolve = resolve
+    formModalState.size = size
+    formModalState.value = defaultValue
+    disableShortcuts()
   })
-}
+
+const getInitialState = () => ({
+  component: undefined,
+  handler: undefined,
+  header: undefined,
+  isHandlerRunning: false,
+  opened: false,
+  reject: undefined,
+  render: undefined,
+  resolve: undefined,
+  size: undefined,
+  value: undefined,
+})
+export const FormModal = [
+  provideState({
+    initialState: getInitialState,
+    effects: {
+      initialize () {
+        if (formModalState !== undefined) {
+          throw new Error('FormModal is a singleton!')
+        }
+        formModalState = this.state
+      },
+      finalize: () => {
+        formModalState = undefined
+      },
+      onChange: (_, value) => () => ({
+        value: getEventValue(value),
+      }),
+      onCancel () {
+        const { state } = this
+        if (!state.isHandlerRunning) {
+          state.opened = false
+          state.reject()
+        }
+      },
+      async onSubmit ({ close }) {
+        const { state } = this
+        state.isHandlerRunning = true
+
+        let result
+        try {
+          result = await state.handler(state.value)
+        } finally {
+          state.isHandlerRunning = false
+        }
+        state.opened = false
+        state.resolve(result)
+      },
+      reset: () => () => {
+        enableShortcuts()
+        return getInitialState()
+      },
+    },
+    computed: {
+      formId: generateRandomId,
+    },
+  }),
+  injectState,
+  ({ state, effects }) => (
+    <ReactModal
+      bsSize={state.size}
+      onExited={effects.reset}
+      onHide={effects.onCancel}
+      show={state.opened}
+    >
+      <ReactModal.Header closeButton>
+        <ReactModal.Title>{state.header}</ReactModal.Title>
+      </ReactModal.Header>
+
+      <ReactModal.Body>
+        <form id={state.formId}>
+          {/* It should be better to use a computed to avoid calling the render function on each render,
+            but reaclette(v0.4.0) not allow us to access to the effects from a computed */}
+          {state.component ||
+            (state.render !== undefined &&
+              state.render({
+                onChange: effects.onChange,
+                value: state.value,
+              }))}
+        </form>
+      </ReactModal.Body>
+
+      <ReactModal.Footer>
+        <ActionButton
+          btnStyle='primary'
+          form={state.formId}
+          handler={effects.onSubmit}
+          icon='save'
+          size='large'
+        >
+          {_('formOk')}
+        </ActionButton>{' '}
+        <ActionButton handler={effects.onCancel} icon='cancel' size='large'>
+          {_('formCancel')}
+        </ActionButton>
+      </ReactModal.Footer>
+    </ReactModal>
+  ),
+].reduceRight((value, decorator) => decorator(value))
 
 // -----------------------------------------------------------------------------
 

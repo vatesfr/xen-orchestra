@@ -12,6 +12,7 @@ import { Portal } from 'react-overlays'
 import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
 import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
+import { injectState, provideState } from 'reaclette'
 import {
   ceil,
   filter,
@@ -208,44 +209,36 @@ const actionsShape = PropTypes.arrayOf(
   })
 )
 
-class IndividualAction extends Component {
-  _getIsDisabled = createSelector(
-    () => this.props.disabled,
-    () => this.props.item,
-    () => this.props.userData,
-    (disabled, item, userData) =>
-      isFunction(disabled) ? disabled(item, userData) : disabled
-  )
-  _getLabel = createSelector(
-    () => this.props.label,
-    () => this.props.item,
-    () => this.props.userData,
-    (label, item, userData) =>
-      isFunction(label) ? label(item, userData) : label
-  )
-
-  _executeAction = () => {
-    const p = this.props
-    return p.handler(p.item, p.userData)
-  }
-
-  render () {
-    const { icon, item, level, redirectOnSuccess, userData } = this.props
-
-    return (
-      <ActionRowButton
-        btnStyle={level}
-        data-item={item}
-        data-userData={userData}
-        disabled={this._getIsDisabled()}
-        handler={this._executeAction}
-        icon={icon}
-        redirectOnSuccess={redirectOnSuccess}
-        tooltip={this._getLabel()}
-      />
-    )
-  }
-}
+const IndividualAction = [
+  provideState({
+    computed: {
+      disabled: ({ item }, { disabled, userData }) =>
+        isFunction(disabled) ? disabled(item, userData) : disabled,
+      handler: ({ item }, { handler, userData }) => () =>
+        handler(item, userData),
+      icon: ({ item }, { icon, userData }) =>
+        isFunction(icon) ? icon(item, userData) : icon,
+      item: (_, { item, grouped }) => (grouped ? [item] : item),
+      label: ({ item }, { label, userData }) =>
+        isFunction(label) ? label(item, userData) : label,
+      level: ({ item }, { level, userData }) =>
+        isFunction(level) ? level(item, userData) : level,
+    },
+  }),
+  injectState,
+  ({ state, redirectOnSuccess, userData }) => (
+    <ActionRowButton
+      btnStyle={state.level}
+      data-item={state.item}
+      data-userData={userData}
+      disabled={state.disabled}
+      handler={state.handler}
+      icon={state.icon}
+      redirectOnSuccess={redirectOnSuccess}
+      tooltip={state.label}
+    />
+  ),
+].reduceRight((value, decorator) => decorator(value))
 
 class GroupedAction extends Component {
   _getIsDisabled = createSelector(
@@ -721,13 +714,27 @@ export default class SortedTable extends Component {
   _getIndividualActions = createSelector(
     () => this.props.individualActions,
     () => this.props.actions,
-    (individualActions, actions) =>
-      sortBy(
+    (individualActions, actions) => {
+      const normalizedActions = map(actions, a => ({
+        disabled:
+          a.individualDisabled !== undefined
+            ? a.individualDisabled
+            : a.disabled,
+        grouped: a.individualHandler === undefined,
+        handler:
+          a.individualHandler !== undefined ? a.individualHandler : a.handler,
+        icon: a.icon,
+        label: a.individualLabel !== undefined ? a.individualLabel : a.label,
+        level: a.level,
+      }))
+
+      return sortBy(
         individualActions !== undefined && actions !== undefined
-          ? individualActions.concat(actions)
-          : individualActions || actions,
+          ? individualActions.concat(normalizedActions)
+          : individualActions || normalizedActions,
         action => LEVELS.indexOf(action.level)
       )
+    }
   )
 
   _renderItem = (item, i) => {
@@ -771,11 +778,8 @@ export default class SortedTable extends Component {
             {map(this._getIndividualActions(), (props, key) => (
               <IndividualAction
                 {...props}
-                disabled={props.individualDisabled || props.disabled}
-                handler={props.individualHandler || props.handler}
-                item={props.individualHandler !== undefined ? item : [item]}
+                item={item}
                 key={key}
-                label={props.individualLabel || props.label}
                 userData={userData}
               />
             ))}
