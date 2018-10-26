@@ -17,7 +17,7 @@ const getFiles = () =>
       '--diff-filter=AM',
       '--ignore-submodules',
       '--name-only',
-      `origin/HEAD...${process.env.TRAVIS_BRANCH}`,
+      'master',
     ],
     { encoding: 'utf8' }
   )
@@ -43,7 +43,10 @@ if (process.env.TRAVIS_PULL_REQUEST) {
   )
 }
 
-if (!process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_BRANCH) {
+if (
+  !process.env.TRAVIS_PULL_REQUEST &&
+  process.env.TRAVIS_BRANCH === 'master'
+) {
   run('yarn', ['test'])
   run('yarn', ['test-integration'])
 }
