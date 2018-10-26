@@ -22,4 +22,5 @@ cache:
   yarn: true
 
 script:
-  - node scripts/test-branch.js
+  - yarn test-branch
+  # - node scripts/test-branch.js

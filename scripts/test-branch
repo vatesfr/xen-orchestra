@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const { execFileSync, spawnSync } = require('child_process')
 
 const run = (command, args) => {
