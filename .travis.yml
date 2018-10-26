@@ -22,4 +22,4 @@ cache:
   yarn: true
 
 script:
-  - node scripts/test-branch.js TEST=123
+  - node scripts/test-branch.js

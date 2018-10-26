@@ -13,12 +13,11 @@ const getFiles = () =>
   execFileSync(
     'git',
     [
-      'diff-index',
+      'diff',
       '--diff-filter=AM',
       '--ignore-submodules',
       '--name-only',
-      '--cached',
-      `master`,
+      `origin/HEAD...${process.env.TRAVIS_BRANCH}`,
     ],
     { encoding: 'utf8' }
   )
