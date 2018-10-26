@@ -8,7 +8,7 @@ import { createRemote, editRemote, subscribeRemotes } from 'xo'
 import { error } from 'notification'
 import { format } from 'xo-remote-parser'
 import { injectState, provideState } from 'reaclette'
-import { linkState } from 'freactal-utils'
+import { linkState } from 'reaclette-utils'
 import { map, some, trimStart } from 'lodash'
 import { Number } from 'form'
 
