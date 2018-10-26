@@ -10,6 +10,9 @@ export const debounce = duration => (target, name, descriptor) => {
   // current object.
   const s = Symbol(`debounced ${name} data`)
 
+  const test = () => {}
+  console.log('decorators', '13', test)
+
   function debounced () {
     const data =
       this[s] ||

@@ -11,32 +11,48 @@ const run = (command, args) => {
 
 // -----------------------------------------------------------------------------
 
-const getSha1 = () =>
-  execFileSync(
-    'git',
-    [
-      'merge-base',
-      'origin/master',
-      'HEAD',
-    ],
-    { encoding: 'utf8' }
-  )
+// const getSha1 = () =>
+//   execFileSync(
+//     'git',
+//     [
+//       'merge-base',
+//       'origin/master',
+//       'HEAD',
+//     ],
+//     { encoding: 'utf8' }
+//   )
 
-const getFiles = (sha1) =>
+// const getFiles = (sha1) =>
+//   execFileSync(
+//     'git',
+//     [
+//       'diff',
+//       '--name-only',
+//       `${sha1}`,
+//     ],
+//     { encoding: 'utf8' }
+//   )
+//     .split('\n')
+//     .filter(_ => _ !== '')
+
+const getFiles = () =>
   execFileSync(
     'git',
     [
-      'diff',
+      'diff-index',
+      '--diff-filter=AM',
+      '--ignore-submodules',
       '--name-only',
-      `${sha1}`,
+      '--cached',
+      `master`,
     ],
     { encoding: 'utf8' }
   )
     .split('\n')
     .filter(_ => _ !== '')
 
-const sha1 = getSha1().replace(/\s+/g, '')
-const files = getFiles(sha1).filter(_ => _.endsWith('.js'))
+// const sha1 = getSha1().replace(/\s+/g, '')
+const files = getFiles().filter(_ => _.endsWith('.js'))
 if (files.length === 0) {
   return
 }
