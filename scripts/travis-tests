@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+const { execFileSync, spawnSync } = require('child_process')
+
+const run = (command, args) => {
+  const { status } = spawnSync(command, args, { stdio: 'inherit' })
+  if (status !== 0) {
+    process.exit(status)
+  }
+}
+
+const getFiles = () =>
+  execFileSync(
+    'git',
+    [
+      'diff',
+      '--diff-filter=AM',
+      '--ignore-submodules',
+      '--name-only',
+      'master',
+    ],
+    { encoding: 'utf8' }
+  )
+    .split('\n')
+    .filter(_ => _ !== '')
+
+// -----------------------------------------------------------------------------
+
+if (process.env.TRAVIS_PULL_REQUEST) {
+  const files = getFiles().filter(_ => _.endsWith('.js'))
+  if (files.length !== 0) {
+    run(
+      './node_modules/.bin/jest',
+      [
+        '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
+        '--findRelatedTests',
+        '--passWithNoTests',
+      ].concat(files)
+    )
+  }
+} else {
+  run('yarn', ['test'])
+  run('yarn', ['test-integration'])
+}
