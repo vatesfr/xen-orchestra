@@ -1,4 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import every from 'lodash/every'
 import filter from 'lodash/filter'
@@ -20,7 +21,9 @@ import {
   parseXml,
 } from '../../utils'
 
-import { debug, extractOpaqueRef, useUpdateSystem } from '../utils'
+import { extractOpaqueRef, useUpdateSystem } from '../utils'
+
+const log = createLogger('xo:xapi')
 
 export default {
   // FIXME: should be static
@@ -227,7 +230,7 @@ export default {
       return this.getObjectByUuid(uuid)
     } catch (error) {}
 
-    debug('downloading patch %s', uuid)
+    log.debug(`downloading patch ${uuid}`)
 
     const patchInfo = (await this._getXenUpdates()).patches[uuid]
     if (!patchInfo) {
@@ -255,7 +258,7 @@ export default {
 
   // patform_version >= 2.1.1 ----------------------------------------
   async _getUpdateVdi ($defer, patchUuid, hostId) {
-    debug('downloading patch %s', patchUuid)
+    log.debug(`downloading patch ${patchUuid}`)
 
     const patchInfo = (await this._getXenUpdates()).patches[patchUuid]
     if (!patchInfo) {
@@ -339,7 +342,7 @@ export default {
   // -----------------------------------------------------------------
 
   async installPoolPatchOnHost (patchUuid, host) {
-    debug('installing patch %s', patchUuid)
+    log.debug(`installing patch ${patchUuid}`)
     if (!isObject(host)) {
       host = this.getObject(host)
     }
@@ -380,7 +383,7 @@ export default {
   }),
 
   async installPoolPatchOnAllHosts (patchUuid) {
-    debug('installing patch %s on all hosts', patchUuid)
+    log.debug(`installing patch ${patchUuid} on all hosts`)
 
     return useUpdateSystem(this.pool.$master)
       ? this._installPatchUpdateOnAllHosts(patchUuid)

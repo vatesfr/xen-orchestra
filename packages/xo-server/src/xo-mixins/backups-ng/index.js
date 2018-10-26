@@ -3,6 +3,7 @@
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
 import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
@@ -55,6 +56,8 @@ import {
 } from '../../utils'
 
 import { translateLegacyJob } from './migration'
+
+const log = createLogger('xo:xo-mixins:backups-ng')
 
 export type Mode = 'full' | 'delta'
 export type ReportWhen = 'always' | 'failure' | 'never'
@@ -799,7 +802,7 @@ export default class BackupNg {
             })
           )
         } catch (error) {
-          console.warn('[Warn] listVmBackups for remote %s:', remoteId, error)
+          log.warn(`listVmBackups for remote ${remoteId}:`, { error })
         }
       })
     )
@@ -1639,7 +1642,7 @@ export default class BackupNg {
           // Do not fail on corrupted VHDs (usually uncleaned temporary files),
           // they are probably inconsequent to the backup process and should not
           // fail it.
-          console.warn('BackupNg#_deleteVhd', path, error)
+          log.warn(`BackupNg#_deleteVhd ${path}`, { error })
         }
       }
     )
@@ -1691,7 +1694,7 @@ export default class BackupNg {
               backups.push(metadata)
             }
           } catch (error) {
-            console.warn('_listVmBackups', path, error)
+            log.warn(`_listVmBackups ${path}`, { error })
           }
         })
       )

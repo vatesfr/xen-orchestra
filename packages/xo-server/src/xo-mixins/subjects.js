@@ -1,3 +1,4 @@
+import createLogger from '@xen-orchestra/log'
 import { filter, includes } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
@@ -8,6 +9,8 @@ import { Users } from '../models/user'
 import { forEach, isEmpty, lightSet, mapToArray } from '../utils'
 
 // ===================================================================
+
+const log = createLogger('xo:xo-mixins:subjects')
 
 const addToArraySet = (set, value) =>
   set && !includes(set, value) ? set.concat(value) : [value]
@@ -69,12 +72,7 @@ export default class {
         const password = 'admin'
 
         await this.createUser({ email, password, permission: 'admin' })
-        console.log(
-          '[INFO] Default user created:',
-          email,
-          ' with password',
-          password
-        )
+        log.info(`Default user created: ${email} with password ${password}`)
       }
     })
   }

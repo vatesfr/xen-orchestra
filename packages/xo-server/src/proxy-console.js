@@ -1,22 +1,22 @@
-import createDebug from 'debug'
+import createLogger from '@xen-orchestra/log'
 import partialStream from 'partial-stream'
 import { connect } from 'tls'
 import { parse } from 'url'
 
-const debug = createDebug('xo:proxy-console')
+const log = createLogger('xo:proxy-console')
 
 export default function proxyConsole (ws, vmConsole, sessionId) {
   const url = parse(vmConsole.location)
   let { hostname } = url
   if (hostname === null || hostname === '') {
-    console.warn(
-      'host is missing in console (%s) URI (%s)',
-      vmConsole.uuid,
-      vmConsole.location
-    )
     const { address } = vmConsole.$VM.$resident_on
-    console.warn('  using host address (%s) as fallback', address)
     hostname = address
+
+    log.warn(
+      `host is missing in console (${vmConsole.uuid}) URI (${
+        vmConsole.location
+      }) using host address (${address}) as fallback`
+    )
   }
 
   let closed = false
@@ -41,10 +41,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
 
       const onSend = error => {
         if (error) {
-          debug(
-            'error sending to the XO client: %s',
-            error.stack || error.message || error
-          )
+          log.debug('error sending to the XO client:', { error })
         }
       }
 
@@ -52,7 +49,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
         .pipe(
           partialStream('\r\n\r\n', headers => {
             // TODO: check status code 200.
-            debug('connected')
+            log.debug('connected')
           })
         )
         .on('data', data => {
@@ -63,7 +60,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
         .on('end', () => {
           if (!closed) {
             closed = true
-            debug('disconnected from the console')
+            log.debug('disconnected from the console')
           }
 
           ws.close()
@@ -71,10 +68,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
 
       ws.on('error', error => {
         closed = true
-        debug(
-          'error from the XO client: %s',
-          error.stack || error.message || error
-        )
+        log.debug('error from the XO client:', { error })
 
         socket.end()
       })
@@ -86,7 +80,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
         .on('close', () => {
           if (!closed) {
             closed = true
-            debug('disconnected from the XO client')
+            log.debug('disconnected from the XO client')
           }
 
           socket.end()
@@ -94,7 +88,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
     }
   ).on('error', error => {
     closed = true
-    debug('error from the console: %s', error.stack || error.message || error)
+    log.debug('error from the console:', { error })
 
     ws.close()
   })
