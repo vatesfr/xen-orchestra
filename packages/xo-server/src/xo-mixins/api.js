@@ -306,9 +306,9 @@ export default class Api {
       this._logger.error(message, data)
 
       if (this._xo._config.verboseLogsOnErrors) {
-        log.error(error)
+        log.warn(message, { error })
       } else {
-        log.debug(
+        log.warn(
           `${userName} | ${name}(...) [${ms(
             Date.now() - startTime
           )}] =!> ${error}`

@@ -48,7 +48,7 @@ import { configure } from '@xen-orchestra/log/configure'
 configure([
   {
     filter: process.env.DEBUG,
-    level: 'warn',
+    level: 'info',
     transport: transportConsole(),
   },
 ])
@@ -258,15 +258,15 @@ async function registerPlugin (pluginPath, pluginName) {
 const logPlugin = createLogger('xo:plugin')
 
 function registerPluginWrapper (pluginPath, pluginName) {
-  logPlugin.debug(`register ${pluginName}`)
+  logPlugin.info(`register ${pluginName}`)
 
   return registerPlugin.call(this, pluginPath, pluginName).then(
     () => {
-      logPlugin.debug(`successfully register ${pluginName}`)
+      logPlugin.info(`successfully register ${pluginName}`)
     },
     error => {
-      logPlugin.debug(`failed register ${pluginName}`)
-      logPlugin.debug(error)
+      logPlugin.info(`failed register ${pluginName}`)
+      logPlugin.info(error)
     }
   )
 }
@@ -330,10 +330,10 @@ async function makeWebServerListen (
   }
   try {
     const niceAddress = await webServer.listen(opts)
-    log.debug(`Web server listening on ${niceAddress}`)
+    log.info(`Web server listening on ${niceAddress}`)
   } catch (error) {
     if (error.niceAddress) {
-      log.warn('Web server could not listen on', { error })
+      log.warn(`Web server could not listen on ${error.niceAddress}`, { error })
 
       const { code } = error
       if (code === 'EACCES') {
@@ -424,7 +424,7 @@ const setUpStaticFiles = (express, opts) => {
     }
 
     forEach(paths, path => {
-      log.debug(`Setting up ${url} → ${path}`)
+      log.info(`Setting up ${url} → ${path}`)
 
       express.use(url, serveStatic(path))
     })
@@ -442,7 +442,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   const onConnection = (socket, upgradeReq) => {
     const { remoteAddress } = upgradeReq.socket
 
-    log.debug(`+ WebSocket connection (${remoteAddress})`)
+    log.info(`+ WebSocket connection (${remoteAddress})`)
 
     // Create the abstract XO object for this connection.
     const connection = xo.createUserConnection()
@@ -460,7 +460,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
 
     // Close the XO connection with this WebSocket.
     socket.once('close', () => {
-      log.debug(`- WebSocket connection (${remoteAddress})`)
+      log.info(`- WebSocket connection (${remoteAddress})`)
 
       connection.close()
     })
@@ -520,9 +520,9 @@ const setUpConsoleProxy = (webServer, xo) => {
         }
 
         const { remoteAddress } = socket
-        log.debug(`+ Console proxy (${user.name} - ${remoteAddress})`)
+        log.info(`+ Console proxy (${user.name} - ${remoteAddress})`)
         socket.on('close', () => {
-          log.debug(`- Console proxy (${user.name} - ${remoteAddress})`)
+          log.info(`- Console proxy (${user.name} - ${remoteAddress})`)
         })
       }
 
@@ -559,7 +559,7 @@ export default async function main (args) {
     const logPerf = createLogger('xo:perf')
     blocked(
       ms => {
-        logPerf.debug(`blocked for ${ms | 0}ms`)
+        logPerf.info(`blocked for ${ms | 0}ms`)
       },
       {
         threshold: 500,
@@ -576,11 +576,11 @@ export default async function main (args) {
     const { user, group } = config
     if (group) {
       process.setgid(group)
-      log.debug(`Group changed to ${group}`)
+      log.info(`Group changed to ${group}`)
     }
     if (user) {
       process.setuid(user)
-      log.debug(`User changed to ${user}`)
+      log.info(`User changed to ${user}`)
     }
   } catch (error) {
     log.warn('Failed to change user/group:', { error })
@@ -665,12 +665,12 @@ export default async function main (args) {
       }
       alreadyCalled = true
 
-      log.debug(`${signal} caught, closing…`)
+      log.info(`${signal} caught, closing…`)
       xo.stop()
     })
   })
 
   await fromEvent(xo, 'stopped')
 
-  log.debug('bye :-)')
+  log.info('bye :-)')
 }

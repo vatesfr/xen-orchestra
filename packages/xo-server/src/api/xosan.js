@@ -347,12 +347,11 @@ async function remoteSsh (glusterEndpoint, cmd, ignoreError = false) {
       }
     }
 
-    log.debug(
-      `${result.command.join(' ')} =>exit: ${result.exit} =>err: ${
-        result.stderr
-      } =>out (1000 chars) : ${result.stdout.substring(0, 1000)}`,
-      { result }
-    )
+    log.debug(`result of ${result.command.join(' ')}`, {
+      exit: result.exit,
+      err: result.stderr,
+      out: result.stdout.substring(0, 1000),
+    })
     // 255 seems to be ssh's own error codes.
     if (result.exit !== 255) {
       if (!ignoreError && result.exit !== 0) {

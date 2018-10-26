@@ -552,7 +552,7 @@ export default class {
       try {
         mergedDataSize += await mergeVhd(handler, parent, handler, backup)
       } catch (e) {
-        log.error(`Unable to use vhd-util. ${e}`)
+        log.error('unable to use vhd-util', { e })
         throw e
       }
 

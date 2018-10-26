@@ -45,12 +45,10 @@ export default class {
       for (const server of servers) {
         if (server.enabled) {
           this.connectXenServer(server.id).catch(error => {
-            log.warn(
-              `${server.host}: ${error[0] ||
-                error.stack ||
-                error.code ||
-                error}`
-            )
+            log.warn('failed to connect to XenServer', {
+              host: server.host,
+              error,
+            })
           })
         }
       }
