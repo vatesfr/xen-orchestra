@@ -38,10 +38,6 @@ for (const name in LEVELS) {
   const level = LEVELS[name]
 
   prototype[name.toLowerCase()] = function (message, data) {
-    if (!data && (message instanceof Error || typeof message === 'object')) {
-      const error = message
-      data = error
-      message = error.message || 'an error as occured'
     if (typeof message !== 'string') {
       if (message instanceof Error) {
         data = { error: message }
