@@ -1,7 +1,5 @@
 const { execFileSync, spawnSync } = require('child_process')
 
-console.log(process.env)
-
 const run = (command, args) => {
   const { status } = spawnSync(command, args, { stdio: 'inherit' })
   if (status !== 0) {
@@ -29,18 +27,16 @@ const getFiles = () =>
 // Test branch
 if (process.env.TRAVIS_PULL_REQUEST) {
   const files = getFiles().filter(_ => _.endsWith('.js'))
-  if (files.length === 0) {
-    return
+  if (files.length !== 0) {
+    run(
+      './node_modules/.bin/jest',
+      [
+        '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
+        '--findRelatedTests',
+        '--passWithNoTests',
+      ].concat(files)
+    )
   }
-
-  run(
-    './node_modules/.bin/jest',
-    [
-      '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
-      '--findRelatedTests',
-      '--passWithNoTests',
-    ].concat(files)
-  )
 }
 
 if (
