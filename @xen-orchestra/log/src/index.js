@@ -45,7 +45,7 @@ for (const name in LEVELS) {
       } else {
         return this.warn('incorrect value passed to logger', {
           level,
-          value: message
+          value: message,
         })
       }
     }
