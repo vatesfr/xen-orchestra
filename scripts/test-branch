@@ -9,7 +9,55 @@ const run = (command, args) => {
   }
 }
 
+const getFiles = () =>
+  execFileSync(
+    'git',
+    [
+      'diff-index',
+      '--diff-filter=AM',
+      '--ignore-submodules',
+      '--name-only',
+      '--cached',
+      `master`,
+    ],
+    { encoding: 'utf8' }
+  )
+    .split('\n')
+    .filter(_ => _ !== '')
+
 // -----------------------------------------------------------------------------
+
+// Test branch
+if (process.env.TRAVIS_PULL_REQUEST) {
+  const files = getFiles().filter(_ => _.endsWith('.js'))
+  if (files.length === 0) {
+    return
+  }
+
+  run(
+  './node_modules/.bin/jest',
+  [
+    '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
+    '--findRelatedTests',
+    '--passWithNoTests',
+  ].concat(files)
+  )
+}
+
+if (!process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_BRANCH) {
+run(
+  'yarn',
+  [
+    'test',
+  ]
+  )
+run(
+  'yarn',
+  [
+    'test-integration',
+  ]
+  )
+}
 
 // const getSha1 = () =>
 //   execFileSync(
@@ -51,27 +99,27 @@ const run = (command, args) => {
 //     .split('\n')
 //     .filter(_ => _ !== '')
 
-    const currentBranch = () => execFileSync(
-      'git',
-      [
-        'symbolic-ref',
-        '--short',
-        'HEAD',
-      ],
-      { encoding: 'utf8' }
-    )
+    // const currentBranch = () => execFileSync(
+    //   'git',
+    //   [
+    //     'symbolic-ref',
+    //     '--short',
+    //     'HEAD',
+    //   ],
+    //   { encoding: 'utf8' }
+    // )
 
 // const sha1 = getSha1().replace(/\s+/g, '')
 // const files = getFiles().filter(_ => _.endsWith('.js'))
 // if (files.length === 0) {
 //   return
 // }
-const test = currentBranch()
-console.log("test-branch", "69", currentBranch())
-run(
-  'echo',
-  ['$test']
-)
+// const test = currentBranch()
+// console.log("test-branch", "69", currentBranch())
+// run(
+//   'echo',
+//   ['$test']
+// )
 // run(
 //   './node_modules/.bin/jest',
 //   [
