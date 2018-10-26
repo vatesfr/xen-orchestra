@@ -1,6 +1,6 @@
-#!/usr/bin/env node
-
 const { execFileSync, spawnSync } = require('child_process')
+
+console.log(process.env)
 
 const run = (command, args) => {
   const { status } = spawnSync(command, args, { stdio: 'inherit' })
@@ -35,28 +35,18 @@ if (process.env.TRAVIS_PULL_REQUEST) {
   }
 
   run(
-  './node_modules/.bin/jest',
-  [
-    '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
-    '--findRelatedTests',
-    '--passWithNoTests',
-  ].concat(files)
+    './node_modules/.bin/jest',
+    [
+      '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
+      '--findRelatedTests',
+      '--passWithNoTests',
+    ].concat(files)
   )
 }
 
 if (!process.env.TRAVIS_PULL_REQUEST && process.env.TRAVIS_BRANCH) {
-run(
-  'yarn',
-  [
-    'test',
-  ]
-  )
-run(
-  'yarn',
-  [
-    'test-integration',
-  ]
-  )
+  run('yarn', ['test'])
+  run('yarn', ['test-integration'])
 }
 
 // const getSha1 = () =>
@@ -99,15 +89,15 @@ run(
 //     .split('\n')
 //     .filter(_ => _ !== '')
 
-    // const currentBranch = () => execFileSync(
-    //   'git',
-    //   [
-    //     'symbolic-ref',
-    //     '--short',
-    //     'HEAD',
-    //   ],
-    //   { encoding: 'utf8' }
-    // )
+// const currentBranch = () => execFileSync(
+//   'git',
+//   [
+//     'symbolic-ref',
+//     '--short',
+//     'HEAD',
+//   ],
+//   { encoding: 'utf8' }
+// )
 
 // const sha1 = getSha1().replace(/\s+/g, '')
 // const files = getFiles().filter(_ => _.endsWith('.js'))

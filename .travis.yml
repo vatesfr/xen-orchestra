@@ -22,4 +22,4 @@ cache:
   yarn: true
 
 script:
-  - node scripts/test-branch TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST
+  - node scripts/test-branch.js TEST=123
