@@ -11,7 +11,7 @@ export const debounce = duration => (target, name, descriptor) => {
   const s = Symbol(`debounced ${name} data`)
 
   const test = () => {}
-  console.log('decorators', '13', test)
+  console.log('decorators', '14', test)
 
   function debounced () {
     const data =

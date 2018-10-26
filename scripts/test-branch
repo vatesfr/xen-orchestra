@@ -35,33 +35,48 @@ const run = (command, args) => {
 //     .split('\n')
 //     .filter(_ => _ !== '')
 
-const getFiles = () =>
-  execFileSync(
-    'git',
-    [
-      'diff-index',
-      '--diff-filter=AM',
-      '--ignore-submodules',
-      '--name-only',
-      '--cached',
-      `master`,
-    ],
-    { encoding: 'utf8' }
-  )
-    .split('\n')
-    .filter(_ => _ !== '')
+// const getFiles = () =>
+//   execFileSync(
+//     'git',
+//     [
+//       'diff-index',
+//       '--diff-filter=AM',
+//       '--ignore-submodules',
+//       '--name-only',
+//       '--cached',
+//       `master`,
+//     ],
+//     { encoding: 'utf8' }
+//   )
+//     .split('\n')
+//     .filter(_ => _ !== '')
+
+    const currentBranch = () => execFileSync(
+      'git',
+      [
+        'symbolic-ref',
+        '--short',
+        'HEAD',
+      ],
+      { encoding: 'utf8' }
+    )
 
 // const sha1 = getSha1().replace(/\s+/g, '')
-const files = getFiles().filter(_ => _.endsWith('.js'))
-if (files.length === 0) {
-  return
-}
-
+// const files = getFiles().filter(_ => _.endsWith('.js'))
+// if (files.length === 0) {
+//   return
+// }
+const test = currentBranch()
+console.log("test-branch", "69", currentBranch())
 run(
-  './node_modules/.bin/jest',
-  [
-    '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
-    '--findRelatedTests',
-    '--passWithNoTests',
-  ].concat(files)
-  )
+  'echo',
+  ['$test']
+)
+// run(
+//   './node_modules/.bin/jest',
+//   [
+//     '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
+//     '--findRelatedTests',
+//     '--passWithNoTests',
+//   ].concat(files)
+//   )

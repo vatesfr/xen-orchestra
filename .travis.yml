@@ -22,6 +22,6 @@ cache:
   yarn: true
 
 script:
-  - if [ "$TRAVIS_BRANCH" != "master" ]; then yarn run test; fi
-  - if [ "$TRAVIS_BRANCH" != "master" ]; then yarn run test-integration; fi
-  - if [ "$TRAVIS_BRANCH" = "master" ]; then yarn run test-branch; fi
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then yarn run test; fi
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then yarn run test-integration; fi
+  - if [ "$TRAVIS_BRANCH" != "master" ]; then yarn run test-branch; fi
