@@ -304,7 +304,7 @@ export default class SortedTable extends Component {
         // itemRenderer: (item, userData) => <span />
         itemRenderer: PropTypes.func,
 
-        // the path to the value, its also the sort criteria default value
+        // the path to the value, it's also the sort criteria default value
         // valuePath: 'a.b.c'
         valuePath: PropTypes.string,
       })
