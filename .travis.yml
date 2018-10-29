@@ -9,9 +9,9 @@ sudo: false
 addons:
   apt:
     packages:
-    - qemu-utils
-    - blktap-utils
-    - vmdk-stream-converter
+      - qemu-utils
+      - blktap-utils
+      - vmdk-stream-converter
 
 before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash
