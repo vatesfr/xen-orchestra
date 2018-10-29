@@ -30,7 +30,9 @@ import Page from '../page'
 import Edit from './edit'
 import New from './new'
 import FileRestore from './file-restore'
+import FileRestoreLegacy from './file-restore-legacy'
 import Restore from './restore'
+import RestoreLegacy from './restore-legacy'
 import Health from './health'
 import { destructPattern } from './utils'
 
@@ -280,6 +282,13 @@ const HEADER = (
             <Icon icon='menu-dashboard-health' />{' '}
             {_('overviewHealthDashboardPage')}
           </NavLink>
+          <NavLink to='/backup-ng/restore-legacy'>
+            <Icon icon='menu-backup-restore' /> {_('backupRestoreLegacyPage')}
+          </NavLink>
+          <NavLink to='/backup-ng/file-restore-legacy'>
+            <Icon icon='menu-backup-file-restore' />{' '}
+            {_('backupFileRestoreLegacyPage')}
+          </NavLink>
         </NavTabs>
       </Col>
     </Row>
@@ -291,7 +300,9 @@ export default routes('overview', {
   new: New,
   overview: Overview,
   restore: Restore,
+  'restore-legacy': RestoreLegacy,
   'file-restore': FileRestore,
+  'file-restore-legacy': FileRestoreLegacy,
   health: Health,
 })(({ children }) => (
   <Page header={HEADER} title='backupPage' formatTitle>

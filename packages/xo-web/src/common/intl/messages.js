@@ -88,13 +88,19 @@ const messages = {
   xosan: 'XOSAN',
   backupDeprecatedMessage:
     'Warning: Backup is deprecated, use Backup NG instead.',
+  moveRestoreLegacyMessage:
+    "Warning: The backup's restoration is moved to the Backup NG view",
+  moveFileRestoreLegacyMessage:
+    "Warning: The backup's file restoration is moved to the Backup NG view",
   backupMigrationLink: 'How to migrate to Backup NG',
   backupNgNewPage: 'Create a new backup with Backup NG',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
   backupRestorePage: 'Restore',
+  backupRestoreLegacyPage: 'Restore legacy',
   backupFileRestorePage: 'File restore',
+  backupFileRestoreLegacyPage: 'File restore legacy',
   schedule: 'Schedule',
   newVmBackup: 'New VM backup',
   editVmBackup: 'Edit VM backup',
