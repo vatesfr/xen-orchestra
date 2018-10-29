@@ -270,7 +270,7 @@ const LOG_FILTERS = {
   jobSuccess: 'status: success',
 }
 
-const ShowMoreLogs = ({ name, handler, value }) => (
+const TenPerPage = ({ name, handler, value }) => (
   <ActionButton
     className='pull-right'
     data-name={name}
@@ -279,7 +279,7 @@ const ShowMoreLogs = ({ name, handler, value }) => (
     iconColor={value ? 'text-success' : undefined}
     size='small'
   >
-    {_('logsShowMore')}
+    {_(value ? 'logsTenPerPage' : 'logsThreePerPage')}
   </ActionButton>
 )
 
@@ -302,11 +302,11 @@ export default [
   }),
   provideState({
     initialState: () => ({
-      showMoreLogsBackup: false,
-      showMoreLogsRestore: false,
+      tenPerPageBackup: false,
+      tenPerPageRestore: false,
     }),
     effects: {
-      toggleShowMoreLogs: (_, { name }) => state => ({
+      toggleTenPerPage: (_, { name }) => state => ({
         [name]: !state[name],
       }),
     },
@@ -320,10 +320,10 @@ export default [
       <CardBlock>
         <h2>
           {_('labelBackup')}
-          <ShowMoreLogs
-            name='showMoreLogsBackup'
-            handler={effects.toggleShowMoreLogs}
-            value={state.showMoreLogsBackup}
+          <TenPerPage
+            name='tenPerPageBackup'
+            handler={effects.toggleTenPerPage}
+            value={state.tenPerPageBackup}
           />
         </h2>
         <NoObjects
@@ -334,14 +334,14 @@ export default [
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           individualActions={LOG_INDIVIDUAL_ACTIONS}
-          itemsPerPage={state.showMoreLogsBackup ? undefined : 3}
+          itemsPerPage={state.tenPerPageBackup ? undefined : 3}
         />
         <h2>
           {_('labelRestore')}
-          <ShowMoreLogs
-            name='showMoreLogsRestore'
-            handler={effects.toggleShowMoreLogs}
-            value={state.showMoreLogsRestore}
+          <TenPerPage
+            name='tenPerPageRestore'
+            handler={effects.toggleTenPerPage}
+            value={state.tenPerPageRestore}
           />
         </h2>
         <NoObjects
@@ -353,7 +353,7 @@ export default [
           data-vms={vms}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
-          itemsPerPage={state.showMoreLogsRestore ? undefined : 3}
+          itemsPerPage={state.tenPerPageRestore ? undefined : 3}
         />
       </CardBlock>
     </Card>
