@@ -725,14 +725,14 @@ export default class BackupNg {
     }
 
     const xapi = app.getXapi(srId)
-    const { uuid: vmUuid, name_label: vmName } = metadata.vm
+    const { jobId, timestamp: time } = metadata
     const logger = this._logger
     return wrapTaskFn(
       {
         data: {
+          jobId,
           srId,
-          vmUuid,
-          vmName,
+          time,
         },
         logger,
         message: 'restore',
