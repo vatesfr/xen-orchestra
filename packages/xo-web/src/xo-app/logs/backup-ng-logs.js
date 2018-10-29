@@ -334,7 +334,7 @@ export default [
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           individualActions={LOG_INDIVIDUAL_ACTIONS}
-          itemsPerPage={state.tenPerPageBackup ? undefined : 3}
+          itemsPerPage={state.tenPerPageBackup ? 10 : 3}
         />
         <h2>
           {_('labelRestore')}
@@ -353,7 +353,7 @@ export default [
           data-vms={vms}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
-          itemsPerPage={state.tenPerPageRestore ? undefined : 3}
+          itemsPerPage={state.tenPerPageRestore ? 10 : 3}
         />
       </CardBlock>
     </Card>
