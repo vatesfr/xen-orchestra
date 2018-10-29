@@ -18,6 +18,7 @@ import {
   filter,
   findIndex,
   forEach,
+  get as lGet,
   isEmpty,
   isFunction,
   map,
@@ -295,6 +296,7 @@ export default class SortedTable extends Component {
         sortCriteria: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
         sortOrder: PropTypes.string,
         textAlign: PropTypes.string,
+        valuePath: PropTypes.string,
       })
     ).isRequired,
     filterContainer: PropTypes.func,
@@ -426,6 +428,13 @@ export default class SortedTable extends Component {
         )
       ),
       createSelector(
+        () => {
+          const {
+            valuePath,
+            sortCriteria = valuePath,
+          } = this._getSelectedColumn()
+          return sortCriteria
+        },
         () => this._getSelectedColumn().sortCriteria,
         this._getUserData,
         (sortCriteria, userData) =>
@@ -748,10 +757,12 @@ export default class SortedTable extends Component {
 
     const columns = map(
       props.columns,
-      ({ component: Component, itemRenderer, textAlign }, key) => (
+      ({ component: Component, itemRenderer, valuePath, textAlign }, key) => (
         <td className={textAlign && `text-xs-${textAlign}`} key={key}>
           {Component !== undefined ? (
             <Component item={item} userData={userData} />
+          ) : valuePath !== undefined ? (
+            lGet(item, valuePath)
           ) : (
             itemRenderer(item, userData)
           )}
@@ -950,7 +961,7 @@ export default class SortedTable extends Component {
                   columnId={key}
                   key={key}
                   name={column.name}
-                  sort={column.sortCriteria && this._sort}
+                  sort={(column.sortCriteria || column.valuePath) && this._sort}
                   sortIcon={
                     state.selectedColumn === key ? state.sortOrder : 'sort'
                   }
