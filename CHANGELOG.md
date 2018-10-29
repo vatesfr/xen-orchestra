@@ -36,6 +36,7 @@
 - [VM] Fix an error when an admin tried to add a disk on a Self VM whose resource set had been deleted [#2814](https://github.com/vatesfr/xen-orchestra/issues/2814) (PR [#3530](https://github.com/vatesfr/xen-orchestra/pull/3530))
 - [Self/Create VM] Fix some quotas based on the template instead of the user inputs [#2683](https://github.com/vatesfr/xen-orchestra/issues/2683) (PR [#3546](https://github.com/vatesfr/xen-orchestra/pull/3546))
 - [Self] Ignore DR and CR VMs when computing quotas [#3064](https://github.com/vatesfr/xen-orchestra/issues/3064) (PR [#3561](https://github.com/vatesfr/xen-orchestra/pull/3561))
+- [Patches] Fix check for inserted CDs (PR [#3611](https://github.com/vatesfr/xen-orchestra/pull/3611))
 
 ### Released packages
 
