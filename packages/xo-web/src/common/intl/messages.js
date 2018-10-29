@@ -201,7 +201,6 @@ const messages = {
   labelBackup: 'Backup',
   labelMerge: 'Merge',
   labelRestore: 'Restore',
-  labelRunId: 'Run id',
   labelSize: 'Size',
   labelSpeed: 'Speed',
   labelSr: 'SR',

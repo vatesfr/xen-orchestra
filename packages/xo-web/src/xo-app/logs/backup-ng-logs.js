@@ -198,7 +198,9 @@ const LOG_RESTORE_COLUMNS = [
     },
     sortCriteria: ({ tasks }, { vms }) =>
       get(
-        () => vms[tasks.find(({ message }) => message === 'transfer').result.id]
+        () =>
+          vms[tasks.find(({ message }) => message === 'transfer').result.id]
+            .name_label
       ),
   },
   {
@@ -212,7 +214,7 @@ const LOG_RESTORE_COLUMNS = [
   {
     name: _('labelSr'),
     itemRenderer: ({ data: { srId } }) => <SrItem id={srId} link newTab />,
-    sortCriteria: ({ data: { srId } }, { srs }) => srs[srId],
+    sortCriteria: ({ data: { srId } }, { srs }) => srs[srId].name_label,
   },
   STATUS_COLUMN,
   {
