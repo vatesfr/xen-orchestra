@@ -1,5 +1,6 @@
 import _, { FormattedDuration } from 'intl'
 import addSubscriptions from 'add-subscriptions'
+import Button from 'button'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
@@ -7,10 +8,14 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
-import { formatSize } from 'utils'
+import { connectStore, formatSize, formatSpeed } from 'utils'
+import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
+import { injectState, provideState } from 'reaclette'
 import { isEmpty, groupBy, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
+import { toggleState } from 'reaclette-utils'
+import { VmItem, SrItem } from 'render-xo-item'
 
 import LogAlertBody from './log-alert-body'
 import LogAlertHeader from './log-alert-header'
@@ -44,7 +49,37 @@ const STATUS_LABELS = {
   },
 }
 
-const LOG_COLUMNS = [
+const LogDate = ({ time }) => (
+  <FormattedDate
+    value={new Date(time)}
+    month='short'
+    day='numeric'
+    year='numeric'
+    hour='2-digit'
+    minute='2-digit'
+    second='2-digit'
+  />
+)
+
+const DURATION_COLUMN = {
+  name: _('jobDuration'),
+  itemRenderer: log =>
+    log.end !== undefined && (
+      <FormattedDuration duration={log.end - log.start} />
+    ),
+  sortCriteria: log => log.end - log.start,
+}
+
+const STATUS_COLUMN = {
+  name: _('jobStatus'),
+  itemRenderer: log => {
+    const { className, label } = STATUS_LABELS[log.status]
+    return <span className={`tag tag-${className}`}>{_(label)}</span>
+  },
+  sortCriteria: 'status',
+}
+
+const LOG_BACKUP_COLUMNS = [
   {
     name: _('jobId'),
     itemRenderer: log => log.jobId.slice(4, 8),
@@ -57,54 +92,19 @@ const LOG_COLUMNS = [
   },
   {
     name: _('jobStart'),
-    itemRenderer: log => (
-      <FormattedDate
-        value={new Date(log.start)}
-        month='short'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    ),
-    sortCriteria: log => log.start,
+    itemRenderer: log => <LogDate time={log.start} />,
+    sortCriteria: 'start',
     sortOrder: 'desc',
   },
   {
     default: true,
     name: _('jobEnd'),
-    itemRenderer: log =>
-      log.end !== undefined && (
-        <FormattedDate
-          value={new Date(log.end)}
-          month='short'
-          day='numeric'
-          year='numeric'
-          hour='2-digit'
-          minute='2-digit'
-          second='2-digit'
-        />
-      ),
+    itemRenderer: log => log.end !== undefined && <LogDate time={log.end} />,
     sortCriteria: log => log.end || log.start,
     sortOrder: 'desc',
   },
-  {
-    name: _('jobDuration'),
-    itemRenderer: log =>
-      log.end !== undefined && (
-        <FormattedDuration duration={log.end - log.start} />
-      ),
-    sortCriteria: log => log.end - log.start,
-  },
-  {
-    name: _('jobStatus'),
-    itemRenderer: log => {
-      const { className, label } = STATUS_LABELS[log.status]
-      return <span className={`tag tag-${className}`}>{_(label)}</span>
-    },
-    sortCriteria: 'status',
-  },
+  DURATION_COLUMN,
+  STATUS_COLUMN,
   {
     name: _('labelSize'),
     itemRenderer: ({ tasks: vmTasks }) => {
@@ -164,6 +164,87 @@ const LOG_COLUMNS = [
   },
 ]
 
+const LOG_RESTORE_COLUMNS = [
+  {
+    name: _('logsJobId'),
+    itemRenderer: ({ data: { jobId } }) => jobId.slice(4, 8),
+    sortCriteria: 'data.jobId',
+  },
+  {
+    name: _('logsJobName'),
+    itemRenderer: ({ data: { jobId } }, { jobs }) =>
+      get(() => jobs[jobId].name),
+    sortCriteria: ({ data: { jobId } }, { jobs }) =>
+      get(() => jobs[jobId].name),
+  },
+  {
+    name: _('logsJobTime'),
+    itemRenderer: ({ data: { time } }) => <LogDate time={time} />,
+    sortCriteria: 'data.time',
+  },
+  {
+    name: _('labelVm'),
+    itemRenderer: ({ id, vm, status }) => (
+      <div>
+        {vm !== undefined && <VmItem id={vm.id} link newTab />}
+        {vm === undefined &&
+          status === 'success' && (
+            <span className='text-warning'>{_('logsVmNotFound')}</span>
+          )}{' '}
+        <span style={{ fontSize: '0.5em' }} className='text-muted'>
+          {id}
+        </span>
+      </div>
+    ),
+    sortCriteria: ({ vm }) => vm !== undefined && vm.name_label,
+  },
+  {
+    default: true,
+    name: _('jobStart'),
+    itemRenderer: log => <LogDate time={log.start} />,
+    sortCriteria: 'start',
+    sortOrder: 'desc',
+  },
+  DURATION_COLUMN,
+  {
+    name: _('labelSr'),
+    itemRenderer: ({ data: { srId } }) => <SrItem id={srId} link newTab />,
+    sortCriteria: ({ data: { srId } }, { srs }) =>
+      get(() => srs[srId].name_label),
+  },
+  STATUS_COLUMN,
+  {
+    name: _('labelSize'),
+    itemRenderer: ({ dataSize }) =>
+      dataSize !== undefined && formatSize(dataSize),
+    sortCriteria: 'dataSize',
+  },
+  {
+    name: _('labelSpeed'),
+    itemRenderer: task => {
+      const duration = task.end - task.start
+      return duration > 0 && formatSpeed(task.dataSize, duration)
+    },
+    sortCriteria: task => {
+      const duration = task.end - task.start
+      return duration > 0 && task.dataSize / duration
+    },
+  },
+]
+
+const ROW_TRANSFORM = (task, { vms }) => {
+  const { id, size: dataSize } =
+    get(
+      () => task.tasks.find(({ message }) => message === 'transfer').result
+    ) || {}
+
+  return {
+    ...task,
+    dataSize,
+    vm: vms && vms[id],
+  }
+}
+
 const showTasks = ({ id }, { jobs }) =>
   alert(<LogAlertHeader id={id} jobs={jobs} />, <LogAlertBody id={id} />)
 
@@ -183,7 +264,17 @@ const LOG_FILTERS = {
   jobSuccess: 'status: success',
 }
 
+const TenPerPage = ({ name, handler, value }) => (
+  <Button className='pull-right' name={name} onClick={handler} size='small'>
+    {_(value ? 'logsThreePerPage' : 'logsTenPerPage')}
+  </Button>
+)
+
 export default [
+  connectStore({
+    srs: createGetObjectsOfType('SR'),
+    vms: createGetObjectsOfType('VM'),
+  }),
   addSubscriptions({
     logs: cb =>
       subscribeBackupNgLogs(logs =>
@@ -196,20 +287,59 @@ export default [
       ),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
-  ({ logs, jobs }) => (
+  provideState({
+    initialState: () => ({
+      tenPerPageBackup: false,
+      tenPerPageRestore: false,
+    }),
+    effects: {
+      toggleState,
+    },
+  }),
+  injectState,
+  ({ state, effects, logs, jobs, srs, vms }) => (
     <Card>
       <CardHeader>
         <Icon icon='log' /> {_('logTitle')}
       </CardHeader>
       <CardBlock>
+        <h2>
+          {_('labelBackup')}
+          <TenPerPage
+            name='tenPerPageBackup'
+            handler={effects.toggleState}
+            value={state.tenPerPageBackup}
+          />
+        </h2>
         <NoObjects
           collection={defined(() => logs.backup, [])}
-          columns={LOG_COLUMNS}
+          columns={LOG_BACKUP_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           individualActions={LOG_INDIVIDUAL_ACTIONS}
+          itemsPerPage={state.tenPerPageBackup ? 10 : 3}
+        />
+        <h2>
+          {_('labelRestore')}
+          <TenPerPage
+            name='tenPerPageRestore'
+            handler={effects.toggleState}
+            value={state.tenPerPageRestore}
+          />
+        </h2>
+        <NoObjects
+          collection={defined(() => logs.restore, [])}
+          columns={LOG_RESTORE_COLUMNS}
+          component={SortedTable}
+          data-jobs={jobs}
+          data-srs={srs}
+          data-vms={vms}
+          emptyMessage={_('noLogs')}
+          filters={LOG_FILTERS}
+          itemsPerPage={state.tenPerPageRestore ? 10 : 3}
+          rowTransform={ROW_TRANSFORM}
         />
       </CardBlock>
     </Card>

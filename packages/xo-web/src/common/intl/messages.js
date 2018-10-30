@@ -198,9 +198,14 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
+  labelBackup: 'Backup',
   labelMerge: 'Merge',
+  labelRestore: 'Restore',
   labelSize: 'Size',
+  labelSpeed: 'Speed',
+  labelSr: 'SR',
   labelTransfer: 'Transfer',
+  labelVm: 'VM',
 
   // ----- Forms -----
   formCancel: 'Cancel',
@@ -1795,6 +1800,12 @@ const messages = {
   logNoParams: 'No params',
   logDelete: 'Delete log',
   logsDelete: 'Delete logs',
+  logsThreePerPage: '3 / page',
+  logsTenPerPage: '10 / page',
+  logsJobId: 'Job ID',
+  logsJobName: 'Job name',
+  logsJobTime: 'Job time',
+  logsVmNotFound: 'VM not found!',
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
   logDeleteMultipleMessage:
     'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?',
