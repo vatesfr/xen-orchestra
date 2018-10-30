@@ -13,7 +13,7 @@ const getFiles = () =>
   execFileSync(
     'git',
     [
-      'diff',
+      'diff-index',
       '--diff-filter=AM',
       '--ignore-submodules',
       '--name-only',
@@ -26,7 +26,8 @@ const getFiles = () =>
 
 // -----------------------------------------------------------------------------
 
-if (process.env.TRAVIS_PULL_REQUEST) {
+// Travis vars : https://docs.travis-ci.com/user/environment-variables#default-environment-variables.
+if (process.env.TRAVIS_PULL_REQUEST !== 'false') {
   const files = getFiles().filter(_ => _.endsWith('.js'))
   if (files.length !== 0) {
     run(
