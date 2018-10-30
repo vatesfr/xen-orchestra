@@ -40,6 +40,7 @@
 - [Self] Ignore DR and CR VMs when computing quotas [#3064](https://github.com/vatesfr/xen-orchestra/issues/3064) (PR [#3561](https://github.com/vatesfr/xen-orchestra/pull/3561))
 - [Patches] Wrongly requiring to eject CDs from halted VMs and snapshots before installing patches (PR [#3611](https://github.com/vatesfr/xen-orchestra/pull/3611))
 - [Jobs] Ensure the scheduling is not interrupted in rare cases (PR [#3617](https://github.com/vatesfr/xen-orchestra/pull/3617))
+- [Home] Fix `server.getAll` error at login when user is not admin [#2335](https://github.com/vatesfr/xen-orchestra/issues/2335) (PR [#3613](https://github.com/vatesfr/xen-orchestra/pull/3613))
 
 ### Released packages
 
