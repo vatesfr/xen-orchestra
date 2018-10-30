@@ -342,7 +342,7 @@ async function getSrsStats ({ xo, xoObjects }) {
         const totalSpace = sr.size / gibPower
         const usedSpace = sr.physical_usage / gibPower
         let name = sr.name_label
-        // in certain case, a SR is attached to a PBD with no host attached
+        // [Bug in XO] a SR with not container can be found (SR attached to a PBD with no host attached)
         let container
         if (
           !sr.shared &&
