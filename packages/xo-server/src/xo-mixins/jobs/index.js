@@ -325,7 +325,7 @@ export default class Jobs {
         },
         true
       )
-      app.emit('job:failed', undefined, job, schedule, runJobId)
+      app.emit('job:terminated', undefined, job, schedule, runJobId)
       throw error
     } finally {
       ;this.updateJob({ id, runId: null })::ignoreErrors()
