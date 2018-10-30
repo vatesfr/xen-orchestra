@@ -32,7 +32,7 @@ import {
 import DeleteBackupsModalBody from '../restore/delete-backups-modal-body'
 import RestoreFileModalBody from './restore-file-modal'
 
-import FileRestoreLegacy from '../file-restore-legacy'
+import RestoreFileLegacy from '../file-restore-legacy'
 
 // -----------------------------------------------------------------------------
 
@@ -243,7 +243,7 @@ export default class Restore extends Component {
             individualActions={this._individualActions}
           />
           <h3>{_('restoreFileLegacy')}</h3>
-          <FileRestoreLegacy />
+          <RestoreFileLegacy />
         </div>
       </Upgrade>
     )
