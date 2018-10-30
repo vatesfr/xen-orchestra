@@ -39,14 +39,17 @@ export const updatePermissions = createAction(
 export const signedIn = createAction('SIGNED_IN', user => user)
 export const signedOut = createAction('SIGNED_OUT')
 
-export const xoaUpdaterState = createAction('XOA_UPDATER_STATE', state => state)
-export const xoaTrialState = createAction('XOA_TRIAL_STATE', state => state)
-export const xoaUpdaterLog = createAction('XOA_UPDATER_LOG', log => log)
-export const xoaRegisterState = createAction(
+export const setXoaUpdaterState = createAction(
+  'XOA_UPDATER_STATE',
+  state => state
+)
+export const setXoaTrialState = createAction('XOA_TRIAL_STATE', state => state)
+export const setXoaUpdaterLog = createAction('XOA_UPDATER_LOG', log => log)
+export const setXoaRegisterState = createAction(
   'XOA_REGISTER_STATE',
   registration => registration
 )
-export const xoaConfiguration = createAction(
+export const setXoaConfiguration = createAction(
   'XOA_CONFIGURATION',
   configuration => configuration
 )
