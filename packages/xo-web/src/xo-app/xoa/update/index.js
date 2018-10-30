@@ -258,7 +258,7 @@ const Updates = decorate([
                   <div className='form-group'>
                     <input
                       className='form-control'
-                      name='proxUser'
+                      name='proxyUser'
                       onChange={effects.linkState}
                       placeholder={formatMessage(
                         messages.proxySettingsUsernamePlaceHolder
