@@ -184,15 +184,15 @@ const LOG_RESTORE_COLUMNS = [
   },
   {
     name: _('labelVm'),
-    itemRenderer: ({ id, vmId }) => (
+    itemRenderer: ({ id, vm }) => (
       <div>
-        {vmId !== undefined && <VmItem id={vmId} link newTab />}{' '}
+        {vm !== undefined && <VmItem id={vm.id} link newTab />}{' '}
         <span style={{ fontSize: '0.5em' }} className='text-muted'>
           {id}
         </span>
       </div>
     ),
-    sortCriteria: ({ vmId }, { vms }) => get(() => vms[vmId].name_label),
+    sortCriteria: ({ vm }) => vm !== undefined && vm.name_label,
   },
   {
     default: true,
@@ -228,8 +228,8 @@ const LOG_RESTORE_COLUMNS = [
   },
 ]
 
-const ROW_TRANSFORM = task => {
-  const { id: vmId, size: dataSize } =
+const ROW_TRANSFORM = (task, { vms }) => {
+  const { id, size: dataSize } =
     get(
       () => task.tasks.find(({ message }) => message === 'transfer').result
     ) || {}
@@ -237,7 +237,7 @@ const ROW_TRANSFORM = task => {
   return {
     ...task,
     dataSize,
-    vmId,
+    vm: vms && vms[id],
   }
 }
 
