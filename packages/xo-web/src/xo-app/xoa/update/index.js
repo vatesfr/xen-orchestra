@@ -12,10 +12,11 @@ import { addSubscriptions, connectStore } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { linkState, toggleState } from 'reaclette-utils'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
+import { linkState, toggleState } from 'reaclette-utils'
 import { Password } from 'form'
 import { serverVersion, subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
@@ -86,6 +87,7 @@ const Updates = decorate([
     initialState: () => ({
       ...initialProxyState(),
       ...initialRegistrationState(),
+      askRegisterAgain: false,
     }),
     effects: {
       async configure () {
@@ -98,6 +100,9 @@ const Updates = decorate([
           ])
         )
         return this.effects.resetProxyConfig()
+      },
+      initialize () {
+        return this.effects.update()
       },
       linkState,
       async register () {
@@ -116,7 +121,7 @@ const Updates = decorate([
                 </p>
               ),
             })
-          } catch (error) {
+          } catch (_) {
             return
           }
         }
@@ -128,6 +133,22 @@ const Updates = decorate([
         return initialRegistrationState()
       },
       resetProxyConfig: initialProxyState,
+      async startTrial () {
+        try {
+          await confirm({
+            title: _('trialReadyModal'),
+            body: <p>{_('trialReadyModalText')}</p>,
+          })
+        } catch (_) {
+          return
+        }
+        try {
+          await xoaUpdater.requestTrial()
+          await xoaUpdater.update()
+        } catch (err) {
+          error('Request Trial', err.message || String(err))
+        }
+      },
       toggleState,
       update: () => xoaUpdater.update(),
       upgrade: () => xoaUpdater.upgrade(),
@@ -364,7 +385,7 @@ const Updates = decorate([
                       {xoaRegisterState.state === 'registered' && (
                         <ActionButton
                           btnStyle='success'
-                          handler={this._startTrial}
+                          handler={effects.startTrial}
                           icon='trial'
                         >
                           {_('trialStartButton')}
