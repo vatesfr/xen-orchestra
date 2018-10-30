@@ -1,10 +1,6 @@
 #!/usr/bin/env node
 
 'use strict'
-import catchGlobalErrors from '@xen-orchestra/log/configure'
-import createLogger from '@xen-orchestra/log'
-
-const log = createLogger('xo:xo-server')
 
 // ===================================================================
 
@@ -15,6 +11,8 @@ require('../better-stacks')
 // less memory usage.
 global.Promise = require('bluebird')
 
-catchGlobalErrors(log)
+require('@xen-orchestra/log/configure').catchGlobalErrors(
+  require('@xen-orchestra/log').default('xo:xo-server')
+)
 
 require('exec-promise')(require('../'))
