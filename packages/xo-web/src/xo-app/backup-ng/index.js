@@ -282,13 +282,6 @@ const HEADER = (
             <Icon icon='menu-dashboard-health' />{' '}
             {_('overviewHealthDashboardPage')}
           </NavLink>
-          <NavLink to='/backup-ng/restore-legacy'>
-            <Icon icon='menu-backup-restore' /> {_('backupRestoreLegacyPage')}
-          </NavLink>
-          <NavLink to='/backup-ng/file-restore-legacy'>
-            <Icon icon='menu-backup-file-restore' />{' '}
-            {_('backupFileRestoreLegacyPage')}
-          </NavLink>
         </NavTabs>
       </Col>
     </Row>

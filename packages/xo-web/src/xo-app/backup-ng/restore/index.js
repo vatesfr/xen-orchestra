@@ -33,6 +33,8 @@ import RestoreBackupsModalBody, {
 } from './restore-backups-modal-body'
 import DeleteBackupsModalBody from './delete-backups-modal-body'
 
+import RestoreLegacy from '../restore-legacy'
+
 // -----------------------------------------------------------------------------
 
 const BACKUPS_COLUMNS = [
@@ -263,11 +265,14 @@ export default class Restore extends Component {
               {_('restoreResfreshList')}
             </ActionButton>
           </div>
+          <h3>{_('restoreNg')}</h3>
           <SortedTable
             actions={this._actions}
             collection={this.state.backupDataByVm}
             columns={BACKUPS_COLUMNS}
           />
+          <h3>{_('restoreLegacy')}</h3>
+          <RestoreLegacy />
         </div>
       </Upgrade>
     )

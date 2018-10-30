@@ -3,7 +3,6 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { addSubscriptions, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -14,7 +13,6 @@ import {
   filter,
   forEach,
   groupBy,
-  isEmpty,
   map,
   mapValues,
   reduce,
@@ -23,7 +21,6 @@ import {
 import { fetchFiles, listRemoteBackups, subscribeRemotes } from 'xo'
 
 import RestoreFileModalBody from './restore-file-modal'
-import styles from './index.css'
 
 const VM_COLUMNS = [
   {
@@ -131,46 +128,19 @@ export default class FileRestore extends Component {
       return <h2>{_('statusLoading')}</h2>
     }
 
-    return process.env.XOA_PLAN > 3 ? (
-      <Container>
-        <h2>{_('restoreFiles')}</h2>
-        {isEmpty(backupInfoByVm) ? (
-          <div>
-            <em>
-              <Icon icon='info' /> {_('restoreDeltaBackupsInfo')}
-            </em>
-            <div>
-              <a>{_('noBackup')}</a>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <ul className={styles.listRestoreBackupInfos}>
-              <li>
-                <em>
-                  <Icon icon='info' /> {_('restoreBackupsInfo')}
-                </em>
-              </li>
-              <li>
-                <em>
-                  <Icon icon='info' /> {_('restoreDeltaBackupsInfo')}
-                </em>
-              </li>
-            </ul>
+    return (
+      <div>
+        <em>
+          <Icon icon='info' /> {_('restoreBackupsInfo')}
+        </em>
 
-            <SortedTable
-              collection={backupInfoByVm}
-              columns={VM_COLUMNS}
-              rowAction={openImportModal}
-              defaultColumn={2}
-            />
-          </div>
-        )}
-      </Container>
-    ) : (
-      <Container>
-        <Upgrade place='restoreFiles' available={4} />
-      </Container>
+        <SortedTable
+          collection={backupInfoByVm}
+          columns={VM_COLUMNS}
+          rowAction={openImportModal}
+          defaultColumn={2}
+        />
+      </div>
     )
   }
 }

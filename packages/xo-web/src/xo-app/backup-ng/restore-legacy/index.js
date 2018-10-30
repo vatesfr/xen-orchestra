@@ -1,11 +1,9 @@
 import _, { messages } from 'intl'
 import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
-import Icon from 'icon'
 import moment from 'moment'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { createSelector } from 'selectors'
 import { addSubscriptions, noop } from 'utils'
@@ -20,7 +18,6 @@ import {
   find,
   forEach,
   groupBy,
-  isEmpty,
   map,
   mapValues,
   reduce,
@@ -331,35 +328,13 @@ export default class Restore extends Component {
   }
 
   render () {
-    const { backupInfoByVm } = this.state
-
-    if (!backupInfoByVm) {
-      return <h2>{_('statusLoading')}</h2>
-    }
-
-    return process.env.XOA_PLAN > 1 ? (
-      <Container>
-        <h2>{_('restoreBackups')}</h2>
-        {isEmpty(backupInfoByVm) ? (
-          _('noBackup')
-        ) : (
-          <div>
-            <em>
-              <Icon icon='info' /> {_('restoreBackupsInfo')}
-            </em>
-            <SortedTable
-              collection={backupInfoByVm}
-              columns={VM_COLUMNS}
-              rowAction={openImportModal}
-              defaultColumn={2}
-            />
-          </div>
-        )}
-      </Container>
-    ) : (
-      <Container>
-        <Upgrade place='restoreBackup' available={2} />
-      </Container>
+    return (
+      <SortedTable
+        collection={this.state.backupInfoByVm}
+        columns={VM_COLUMNS}
+        defaultColumn={2}
+        rowAction={openImportModal}
+      />
     )
   }
 }

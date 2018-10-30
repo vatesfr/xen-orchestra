@@ -32,6 +32,8 @@ import {
 import DeleteBackupsModalBody from '../restore/delete-backups-modal-body'
 import RestoreFileModalBody from './restore-file-modal'
 
+import FileRestoreLegacy from '../file-restore-legacy'
+
 // -----------------------------------------------------------------------------
 
 const BACKUPS_COLUMNS = [
@@ -233,12 +235,15 @@ export default class Restore extends Component {
           <em>
             <Icon icon='info' /> {_('restoreDeltaBackupsInfo')}
           </em>
+          <h3>{_('restoreFileNg')}</h3>
           <SortedTable
             actions={this._actions}
             collection={this.state.backupDataByVm}
             columns={BACKUPS_COLUMNS}
             individualActions={this._individualActions}
           />
+          <h3>{_('restoreFileLegacy')}</h3>
+          <FileRestoreLegacy />
         </div>
       </Upgrade>
     )

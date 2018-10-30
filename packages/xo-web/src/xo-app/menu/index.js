@@ -237,16 +237,6 @@ export default class Menu extends Component {
             icon: 'menu-dashboard-health',
             label: 'overviewHealthDashboardPage',
           },
-          {
-            to: '/backup-ng/restore-legacy',
-            icon: 'menu-backup-restore',
-            label: 'backupRestoreLegacyPage',
-          },
-          {
-            to: '/backup-ng/file-restore-legacy',
-            icon: 'menu-backup-file-restore',
-            label: 'backupFileRestoreLegacyPage',
-          },
         ],
       },
       isAdmin && {

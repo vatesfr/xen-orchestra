@@ -98,9 +98,7 @@ const messages = {
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
   backupRestorePage: 'Restore',
-  backupRestoreLegacyPage: 'Restore legacy',
   backupFileRestorePage: 'File restore',
-  backupFileRestoreLegacyPage: 'File restore legacy',
   schedule: 'Schedule',
   newVmBackup: 'New VM backup',
   editVmBackup: 'Edit VM backup',
@@ -1349,7 +1347,6 @@ const messages = {
   remoteError: 'Error',
   remoteErrorMessage:
     'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.',
-  noBackup: 'No backup available',
   backupVmNameColumn: 'VM Name',
   backupVmDescriptionColumn: 'VM Description',
   backupTags: 'Tags',
@@ -1367,6 +1364,10 @@ const messages = {
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
   restoreResfreshList: 'Refresh backup list',
+  restoreNg: 'Restore NG',
+  restoreLegacy: 'Restore legacy',
+  restoreFileNg: 'Restore file NG',
+  restoreFileLegacy: 'Restore file legacy',
   restoreVmBackups: 'Restore',
   restoreVmBackupsTitle: 'Restore {vm}',
   restoreVmBackupsBulkTitle:
