@@ -30,9 +30,7 @@ import Page from '../page'
 import Edit from './edit'
 import New from './new'
 import FileRestore from './file-restore'
-import FileRestoreLegacy from './file-restore-legacy'
 import Restore from './restore'
-import RestoreLegacy from './restore-legacy'
 import Health from './health'
 import { destructPattern } from './utils'
 
@@ -293,9 +291,7 @@ export default routes('overview', {
   new: New,
   overview: Overview,
   restore: Restore,
-  'restore-legacy': RestoreLegacy,
   'file-restore': FileRestore,
-  'file-restore-legacy': FileRestoreLegacy,
   health: Health,
 })(({ children }) => (
   <Page header={HEADER} title='backupPage' formatTitle>
