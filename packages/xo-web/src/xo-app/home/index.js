@@ -287,9 +287,16 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
+const NoObjects = props => {
+  if (props.isAdmin) {
+    return <NoObjectsWithServers {...props} />
+  }
+  return <NoObjectsWithoutServers {...props} />
+}
+
 const NoObjectsWithServers = addSubscriptions(props => ({
   noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data))),
-}))(props => <NoObjects_ {...props} />)
+}))(props => <NoObjectsWithoutServers {...props} />)
 
 @connectStore(() => {
   const noServersConnected = invoke(
@@ -302,7 +309,7 @@ const NoObjectsWithServers = addSubscriptions(props => ({
     noServersConnected,
   }
 })
-class NoObjects_ extends Component {
+class NoObjectsWithoutServers extends Component {
   static propTypes = {
     isAdmin: PropTypes.bool.isRequired,
     isPoolAdmin: PropTypes.bool.isRequired,
@@ -1120,17 +1127,8 @@ export default class Home extends Component {
     const nItems = this._getNumberOfItems()
 
     if (nItems < 1) {
-      if (isAdmin) {
-        return (
-          <NoObjectsWithServers
-            isAdmin={isAdmin}
-            isPoolAdmin={isPoolAdmin}
-            noResourceSets={noResourceSets}
-          />
-        )
-      }
       return (
-        <NoObjects_
+        <NoObjects
           isAdmin={isAdmin}
           isPoolAdmin={isPoolAdmin}
           noResourceSets={noResourceSets}
