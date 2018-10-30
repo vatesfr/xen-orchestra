@@ -235,7 +235,6 @@ export default class Restore extends Component {
           <em>
             <Icon icon='info' /> {_('restoreDeltaBackupsInfo')}
           </em>
-          <h3>{_('restoreFileNg')}</h3>
           <SortedTable
             actions={this._actions}
             collection={this.state.backupDataByVm}

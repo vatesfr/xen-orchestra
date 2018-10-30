@@ -88,10 +88,7 @@ const messages = {
   xosan: 'XOSAN',
   backupDeprecatedMessage:
     'Warning: Backup is deprecated, use Backup NG instead.',
-  moveRestoreLegacyMessage:
-    "Warning: The backup's restoration is moved to the Backup NG view",
-  moveFileRestoreLegacyMessage:
-    "Warning: The backup's file restoration is moved to the Backup NG view",
+  moveRestoreLegacyMessage: 'Warning: Your legacy backups can be found here',
   backupMigrationLink: 'How to migrate to Backup NG',
   backupNgNewPage: 'Create a new backup with Backup NG',
   backupOverviewPage: 'Overview',
@@ -1364,10 +1361,8 @@ const messages = {
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
   restoreResfreshList: 'Refresh backup list',
-  restoreNg: 'Restore NG',
-  restoreLegacy: 'Restore legacy',
-  restoreFileNg: 'Restore file NG',
-  restoreFileLegacy: 'Restore file legacy',
+  restoreLegacy: 'Legacy restore',
+  restoreFileLegacy: 'Legacy file restore',
   restoreVmBackups: 'Restore',
   restoreVmBackupsTitle: 'Restore {vm}',
   restoreVmBackupsBulkTitle:

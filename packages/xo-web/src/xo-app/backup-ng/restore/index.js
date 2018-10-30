@@ -265,7 +265,6 @@ export default class Restore extends Component {
               {_('restoreResfreshList')}
             </ActionButton>
           </div>
-          <h3>{_('restoreNg')}</h3>
           <SortedTable
             actions={this._actions}
             collection={this.state.backupDataByVm}
