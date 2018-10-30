@@ -86,7 +86,7 @@ export const catchGlobalErrors = logger => {
   const { prototype } = EventEmitter
   const { emit } = prototype
   function patchedEmit (event, error) {
-    if (event === 'error' && !this.listenerCount(event)) {
+    if (event === 'error' && this.listenerCount(event) === 0) {
       logger.error('unhandled error event', { error })
       return false
     }
