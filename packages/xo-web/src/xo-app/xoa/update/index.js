@@ -19,6 +19,8 @@ import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { Password } from 'form'
 import { serverVersion, subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
+import pkg from '../../../../package'
+
 const ansiUp = new AnsiUp()
 
 if (+process.env.XOA_PLAN < 5) {
@@ -177,7 +179,7 @@ const Updates = decorate([
             <CardBlock>
               <p>
                 {_('currentVersion')} {`xo-server ${state.serverVersion}`} /{' '}
-                {`xo-web plop`}
+                {`xo-web ${pkg.version}`}
               </p>
               {state.isDisconnected && (
                 <p>
