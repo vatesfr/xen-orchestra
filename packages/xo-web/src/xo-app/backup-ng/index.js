@@ -157,8 +157,7 @@ class JobsTable extends React.Component {
         name: _('jobId'),
       },
       {
-        itemRenderer: _ => _.name,
-        sortCriteria: 'name',
+        valuePath: 'name',
         name: _('jobName'),
         default: true,
       },

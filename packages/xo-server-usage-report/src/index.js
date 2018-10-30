@@ -342,8 +342,13 @@ async function getSrsStats ({ xo, xoObjects }) {
         const totalSpace = sr.size / gibPower
         const usedSpace = sr.physical_usage / gibPower
         let name = sr.name_label
-        if (!sr.shared) {
-          name += ` (${find(xoObjects, { id: sr.$container }).name_label})`
+        // [Bug in XO] a SR with not container can be found (SR attached to a PBD with no host attached)
+        let container
+        if (
+          !sr.shared &&
+          (container = find(xoObjects, { id: sr.$container })) !== undefined
+        ) {
+          name += ` (${container.name_label})`
         }
 
         const { stats } = await xo.getXapiSrStats(sr.id, GRANULARITY)
@@ -353,7 +358,7 @@ async function getSrsStats ({ xo, xoObjects }) {
         return {
           uuid: sr.uuid,
           name,
-          totalSpace,
+          total: totalSpace,
           usedSpace,
           freeSpace: totalSpace - usedSpace,
           iopsRead,
