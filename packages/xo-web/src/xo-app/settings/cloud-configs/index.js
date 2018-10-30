@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import React from 'react'
 import SortedTable from 'sorted-table'
@@ -63,7 +64,7 @@ const initialParams = {
   template: undefined,
 }
 
-export default [
+export default decorate([
   addSubscriptions({
     cloudConfigs: subscribeCloudConfigs,
   }),
@@ -189,4 +190,4 @@ export default [
       </Col>
     </Container>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])

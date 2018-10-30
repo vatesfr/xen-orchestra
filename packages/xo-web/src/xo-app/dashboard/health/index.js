@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
 import fromCallback from 'promise-toolbox/fromCallback'
 import Icon from 'icon'
 import Link from 'link'
@@ -184,7 +185,7 @@ const CONTROL_DOMAIN_VDIS_ACTIONS = [
   },
 ]
 
-const AttachedVdisTable = [
+const AttachedVdisTable = decorate([
   connectStore({
     pools: createGetObjectsOfType('pool'),
     srs: createGetObjectsOfType('SR'),
@@ -270,7 +271,7 @@ const AttachedVdisTable = [
       }
     },
   },
-].reduceRight((value, decorator) => decorator(value))
+])
 
 const VM_COLUMNS = [
   {

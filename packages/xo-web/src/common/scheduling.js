@@ -9,6 +9,7 @@ import { flatten, forEach, identity, isArray, map, sortedIndex } from 'lodash'
 import _ from './intl'
 import Button from './button'
 import Component from './base-component'
+import decorate from './apply-decorators'
 import TimezonePicker from './timezone-picker'
 import Tooltip from './tooltip'
 import { Card, CardHeader, CardBlock } from './card'
@@ -189,7 +190,7 @@ class ToggleTd extends Component {
 
 // ===================================================================
 
-const TableSelect = [
+const TableSelect = decorate([
   provideState({
     effects: {
       onChange: (_, tdId, add) => (_, { value, onChange, options }) => {
@@ -244,7 +245,7 @@ const TableSelect = [
       </div>
     )
   },
-].reduceRight((value, decorator) => decorator(value))
+])
 
 TableSelect.propTypes = {
   labelId: PropTypes.string.isRequired,
@@ -256,7 +257,7 @@ TableSelect.propTypes = {
 
 // ===================================================================
 
-const TimePicker = [
+const TimePicker = decorate([
   provideState({
     effects: {
       onChange: (_, value) => ({ optionsValues }, { onChange }) => {
@@ -318,7 +319,7 @@ const TimePicker = [
       </CardBlock>
     </Card>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 TimePicker.propTypes = {
   headerAddon: PropTypes.node,

@@ -1,4 +1,5 @@
 import addSubscriptions from 'add-subscriptions'
+import decorate from 'apply-decorators'
 import React from 'react'
 import { injectState, provideState } from 'reaclette'
 import { subscribeBackupNgJobs, subscribeSchedules } from 'xo'
@@ -6,7 +7,7 @@ import { find, groupBy, keyBy } from 'lodash'
 
 import New from './new'
 
-export default [
+export default decorate([
   addSubscriptions({
     jobs: subscribeBackupNgJobs,
     schedulesByJob: cb =>
@@ -23,4 +24,4 @@ export default [
   }),
   injectState,
   ({ state: { job, schedules } }) => <New job={job} schedules={schedules} />,
-].reduceRight((value, decorator) => decorator(value))
+])

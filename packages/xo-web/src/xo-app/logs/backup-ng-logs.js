@@ -1,6 +1,7 @@
 import _, { FormattedDuration } from 'intl'
 import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
+import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
@@ -270,7 +271,7 @@ const TenPerPage = ({ name, handler, value }) => (
   </Button>
 )
 
-export default [
+export default decorate([
   connectStore({
     srs: createGetObjectsOfType('SR'),
     vms: createGetObjectsOfType('VM'),
@@ -344,4 +345,4 @@ export default [
       </CardBlock>
     </Card>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])

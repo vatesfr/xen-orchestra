@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
@@ -269,7 +270,7 @@ const FILTERS = {
   filterRemotesOnlyDisconnected: '!enabled?',
 }
 
-export default [
+export default decorate([
   addSubscriptions({
     remotes: cb =>
       subscribeRemotes(remotes => {
@@ -353,4 +354,4 @@ export default [
       <Remote formatMessage={formatMessage} key={state.formId} />
     </div>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])

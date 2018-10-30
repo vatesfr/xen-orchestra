@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
@@ -182,7 +183,7 @@ const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   </ActionButton>
 )
 
-export default [
+export default decorate([
   New => props => (
     <Upgrade place='newBackup' required={2}>
       <New {...props} />
@@ -1022,4 +1023,4 @@ export default [
       </form>
     )
   },
-].reduceRight((value, decorator) => decorator(value))
+])

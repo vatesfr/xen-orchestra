@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import { addSubscriptions, generateRandomId } from 'utils'
@@ -18,7 +19,7 @@ const remoteTypes = {
   smb: 'remoteTypeSmb',
 }
 
-export default [
+export default decorate([
   addSubscriptions({
     remotes: subscribeRemotes,
   }),
@@ -329,4 +330,4 @@ export default [
       </div>
     )
   },
-].reduceRight((value, decorator) => decorator(value))
+])

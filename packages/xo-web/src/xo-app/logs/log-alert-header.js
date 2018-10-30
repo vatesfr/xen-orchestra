@@ -4,6 +4,7 @@ import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
 import ButtonGroup from 'button-group'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
@@ -15,7 +16,7 @@ import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 const isFailureTask = ({ status }) =>
   status !== 'success' && status !== 'pending'
 
-export default [
+export default decorate([
   addSubscriptions(({ id }) => ({
     log: cb =>
       subscribeBackupNgLogs(logs => {
@@ -76,4 +77,4 @@ export default [
       </ButtonGroup>
     </span>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])

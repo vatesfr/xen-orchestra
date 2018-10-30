@@ -2,6 +2,7 @@ import _, { FormattedDuration } from 'intl'
 import addSubscriptions from 'add-subscriptions'
 import BaseComponent from 'base-component'
 import classnames from 'classnames'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
 import PropTypes from 'prop-types'
@@ -427,7 +428,7 @@ const LOG_FILTERS = {
   jobCallSkipped: '!hasErrors? callSkipped?',
 }
 
-const Logs = [
+const Logs = decorate([
   addSubscriptions(({ jobKeys }) => ({
     logs: cb =>
       subscribeJobsLogs(rawLogs => {
@@ -527,7 +528,7 @@ const Logs = [
       </CardBlock>
     </Card>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 Logs.propTypes = {
   jobKeys: PropTypes.array,

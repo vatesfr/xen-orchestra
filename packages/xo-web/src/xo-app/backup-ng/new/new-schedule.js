@@ -1,4 +1,5 @@
 import _ from 'intl'
+import decorate from 'apply-decorators'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
@@ -8,7 +9,7 @@ import { Number } from 'form'
 
 import { FormGroup, Input } from './../utils'
 
-export default [
+export default decorate([
   provideState({
     initialState: () => ({
       formId: generateRandomId(),
@@ -117,4 +118,4 @@ export default [
       </CardBlock>
     </Card>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])

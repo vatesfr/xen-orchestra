@@ -9,6 +9,7 @@ import { Modal as ReactModal } from 'react-bootstrap-4/lib'
 import _, { messages } from './intl'
 import ActionButton from './action-button'
 import Button from './button'
+import decorate from './apply-decorators'
 import getEventValue from './get-event-value'
 import Icon from './icon'
 import Tooltip from './tooltip'
@@ -295,7 +296,7 @@ const getInitialState = () => ({
   size: undefined,
   value: undefined,
 })
-export const FormModal = [
+export const FormModal = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
@@ -381,7 +382,7 @@ export const FormModal = [
       </ReactModal.Footer>
     </ReactModal>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 // -----------------------------------------------------------------------------
 

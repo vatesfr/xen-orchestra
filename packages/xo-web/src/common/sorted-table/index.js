@@ -30,6 +30,7 @@ import ActionRowButton from '../action-row-button'
 import Button from '../button'
 import ButtonGroup from '../button-group'
 import Component from '../base-component'
+import decorate from '../apply-decorators'
 import Icon from '../icon'
 import Pagination from '../pagination'
 import SingleLineRow from '../single-line-row'
@@ -210,7 +211,7 @@ const actionsShape = PropTypes.arrayOf(
   })
 )
 
-const IndividualAction = [
+const IndividualAction = decorate([
   provideState({
     computed: {
       disabled: ({ item }, { disabled, userData }) =>
@@ -239,7 +240,7 @@ const IndividualAction = [
       tooltip={state.label}
     />
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 class GroupedAction extends Component {
   _getIsDisabled = createSelector(
