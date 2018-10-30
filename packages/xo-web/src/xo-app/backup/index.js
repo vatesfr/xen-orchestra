@@ -30,7 +30,6 @@ const MovingRestoreMessage = () => (
 const MovingFileRestoreMessage = () => (
   <div className='alert alert-warning'>
     <Link to='/backup-ng/file-restore-legacy'>
-      {' '}
       {_('moveFileRestoreLegacyMessage')}
     </Link>
   </div>
