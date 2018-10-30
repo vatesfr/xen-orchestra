@@ -21,4 +21,4 @@ cache:
   yarn: true
 
 script:
-  - yarn travis-tests
+  - yarn run travis-tests
