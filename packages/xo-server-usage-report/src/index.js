@@ -339,7 +339,7 @@ async function getSrsStats ({ xo, xoObjects }) {
         obj => obj.type === 'SR' && obj.size > 0 && obj.$PBDs.length > 0
       ),
       async sr => {
-        const total = sr.size / gibPower
+        const totalSpace = sr.size / gibPower
         const usedSpace = sr.physical_usage / gibPower
         let name = sr.name_label
         if (!sr.shared) {
@@ -353,10 +353,9 @@ async function getSrsStats ({ xo, xoObjects }) {
         return {
           uuid: sr.uuid,
           name,
-          // total space
-          total,
+          total: totalSpace,
           usedSpace,
-          freeSpace: total - usedSpace,
+          freeSpace: totalSpace - usedSpace,
           iopsRead,
           iopsWrite,
           iopsTotal: iopsRead + iopsWrite,
