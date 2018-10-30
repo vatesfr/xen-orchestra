@@ -58,7 +58,8 @@
     "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
     "test": "jest \"^(?!.*\\.integ\\.spec\\.js$)\"",
-    "test-integration": "jest \".integ\\.spec\\.js$\""
+    "test-integration": "jest \".integ\\.spec\\.js$\"",
+    "travis-tests": "scripts/travis-tests"
   },
   "workspaces": [
     "@xen-orchestra/*",
