@@ -184,9 +184,13 @@ const LOG_RESTORE_COLUMNS = [
   },
   {
     name: _('labelVm'),
-    itemRenderer: ({ id, vm }) => (
+    itemRenderer: ({ id, vm, status }) => (
       <div>
-        {vm !== undefined && <VmItem id={vm.id} link newTab />}{' '}
+        {vm !== undefined && <VmItem id={vm.id} link newTab />}
+        {vm === undefined &&
+          status === 'success' && (
+            <span className='text-warning'>{_('logsVmNotFound')}</span>
+          )}{' '}
         <span style={{ fontSize: '0.5em' }} className='text-muted'>
           {id}
         </span>
