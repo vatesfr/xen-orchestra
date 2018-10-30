@@ -287,6 +287,10 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
+const NoObjectsWithServers = addSubscriptions(props => ({
+  noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data))),
+}))(props => <NoObjects_ {...props} />)
+
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -1114,9 +1118,6 @@ export default class Home extends Component {
     const { isAdmin, isPoolAdmin, noResourceSets } = this.props
 
     const nItems = this._getNumberOfItems()
-    const NoObjectsWithServers = addSubscriptions(props => ({
-      noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data))),
-    }))(props => <NoObjects_ {...props} />)
 
     if (nItems < 1) {
       if (isAdmin) {
