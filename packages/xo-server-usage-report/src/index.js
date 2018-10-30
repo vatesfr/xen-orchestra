@@ -353,7 +353,7 @@ async function getSrsStats ({ xo, xoObjects }) {
         return {
           uuid: sr.uuid,
           name,
-          totalSpace,
+          total: totalSpace,
           usedSpace,
           freeSpace: totalSpace - usedSpace,
           iopsRead,
