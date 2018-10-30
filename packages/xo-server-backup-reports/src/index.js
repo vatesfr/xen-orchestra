@@ -50,6 +50,7 @@ const ICON_FAILURE = '🚨'
 const ICON_INTERRUPTED = '⚠️'
 const ICON_SKIPPED = '⏩'
 const ICON_SUCCESS = '✔'
+const ICON_WARNING = '⚠️'
 
 const STATUS_ICON = {
   failure: ICON_FAILURE,
@@ -99,12 +100,13 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
+const INDENT = '  '
 const createGetTemporalDataMarkdown = formatDate => (
   start,
   end,
   nbIndent = 0
 ) => {
-  const indent = '  '.repeat(nbIndent)
+  const indent = INDENT.repeat(nbIndent)
 
   const markdown = [`${indent}- **Start time**: ${formatDate(start)}`]
   if (end !== undefined) {
@@ -115,6 +117,17 @@ const createGetTemporalDataMarkdown = formatDate => (
     }
   }
   return markdown
+}
+
+const addWarnings = (text, warnings, nbIndent = 0) => {
+  if (warnings === undefined) {
+    return
+  }
+
+  const indent = INDENT.repeat(nbIndent)
+  warnings.forEach(({ message }) => {
+    text.push(`${indent}- **${ICON_WARNING} ${message}**`)
+  })
 }
 
 class BackupReportsXoPlugin {
@@ -185,10 +198,9 @@ class BackupReportsXoPlugin {
         `- **mode**: ${mode}`,
         ...getTemporalDataMarkdown(log.start, log.end),
         `- **Error**: ${log.result.message}`,
-        '---',
-        '',
-        `*${pkg.name} v${pkg.version}*`,
       ]
+      addWarnings(markdown, log.warnings)
+      markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
 
       markdown = markdown.join('\n')
       return this._sendReport({
@@ -230,6 +242,7 @@ class BackupReportsXoPlugin {
         `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
         ...getTemporalDataMarkdown(taskLog.start, taskLog.end),
       ]
+      addWarnings(text, taskLog.warnings)
 
       const failedSubTasks = []
       const snapshotText = []
@@ -264,6 +277,7 @@ class BackupReportsXoPlugin {
             }** (${id}) ${icon}`,
             ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
           )
+          addWarnings(remotesText, subTaskLog.warnings, 2)
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(remote !== undefined ? remote.name : id)
             remotesText.push('', errorMessage)
@@ -280,6 +294,7 @@ class BackupReportsXoPlugin {
             `  - **${srName}** (${srUuid}) ${icon}`,
             ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
           )
+          addWarnings(srsText, subTaskLog.warnings, 2)
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(sr !== undefined ? sr.name_label : id)
             srsText.push('', errorMessage)
@@ -295,6 +310,7 @@ class BackupReportsXoPlugin {
           }
 
           const operationInfoText = []
+          addWarnings(operationInfoText, operationLog.warnings, 3)
           if (operationLog.status === 'success') {
             const size = operationLog.result.size
             if (operationLog.message === 'merge') {
@@ -410,6 +426,7 @@ class BackupReportsXoPlugin {
     if (globalMergeSize !== 0) {
       markdown.push(`- **Merge size**: ${formatSize(globalMergeSize)}`)
     }
+    addWarnings(markdown, log.warnings)
     markdown.push('')
 
     if (nFailures !== 0) {

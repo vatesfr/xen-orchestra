@@ -50,10 +50,16 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 
 export default {
   async getBackupNgLogs (runId?: string) {
-    const { runningJobs } = this
+    const [jobLogs, restoreLogs] = await Promise.all([
+      this.getLogs('jobs'),
+      this.getLogs('restore'),
+    ])
+
+    const { runningJobs, runningRestores } = this
     const consolidated = {}
     const started = {}
-    forEach(await this.getLogs('jobs'), ({ data, time, message }, id) => {
+
+    const handleLog = ({ data, time, message }, id) => {
       const { event } = data
       if (event === 'job.start') {
         if (
@@ -83,17 +89,26 @@ export default {
           )
         }
       } else if (event === 'task.start') {
-        const parent = started[data.parentId]
-        if (parent !== undefined) {
-          ;(parent.tasks || (parent.tasks = [])).push(
-            (started[id] = {
-              data: data.data,
-              id,
-              message,
-              start: time,
-              status: parent.status,
-            })
-          )
+        const task = {
+          data: data.data,
+          id,
+          message,
+          start: time,
+        }
+        const { parentId } = data
+        let parent
+        if (parentId === undefined && (runId === undefined || runId === id)) {
+          // top level task
+          task.status =
+            message === 'restore' && !runningRestores.has(id)
+              ? 'interrupted'
+              : 'pending'
+          consolidated[id] = started[id] = task
+        } else if ((parent = started[parentId]) !== undefined) {
+          // sub-task for which the parent exists
+          task.status = parent.status
+          started[id] = task
+          ;(parent.tasks || (parent.tasks = [])).push(task)
         }
       } else if (event === 'task.end') {
         const { taskId } = data
@@ -107,6 +122,13 @@ export default {
             log.tasks
           )
         }
+      } else if (event === 'task.warning') {
+        const parent = started[data.taskId]
+        parent !== undefined &&
+          (parent.warnings || (parent.warnings = [])).push({
+            data: data.data,
+            message,
+          })
       } else if (event === 'jobCall.start') {
         const parent = started[data.runJobId]
         if (parent !== undefined) {
@@ -134,7 +156,11 @@ export default {
           )
         }
       }
-    })
+    }
+
+    forEach(jobLogs, handleLog)
+    forEach(restoreLogs, handleLog)
+
     return runId === undefined ? consolidated : consolidated[runId]
   },
 }

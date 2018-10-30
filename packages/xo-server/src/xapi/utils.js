@@ -1,6 +1,5 @@
 // import isFinite from 'lodash/isFinite'
 import camelCase from 'lodash/camelCase'
-import createDebug from 'debug'
 import isEqual from 'lodash/isEqual'
 import isPlainObject from 'lodash/isPlainObject'
 import pickBy from 'lodash/pickBy'
@@ -58,10 +57,6 @@ export const prepareXapiParam = param => {
 
   return param
 }
-
-// -------------------------------------------------------------------
-
-export const debug = createDebug('xo:xapi')
 
 // -------------------------------------------------------------------
 

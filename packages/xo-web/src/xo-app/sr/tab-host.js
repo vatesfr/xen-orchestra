@@ -1,13 +1,26 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
-import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
-import { Container, Row, Col } from 'grid'
-import { editHost, connectPbd, disconnectPbd, deletePbd } from 'xo'
 import { Text } from 'editable'
+import { noop } from 'utils'
+import { confirm } from 'modal'
+import { isEmpty, some } from 'lodash'
+import { Container, Row, Col } from 'grid'
+import { editHost, connectPbd, disconnectPbd, deletePbd, deletePbds } from 'xo'
+
+const forgetHost = pbd =>
+  confirm({
+    title: _('forgetHostFromSrModalTitle'),
+    body: _('forgetHostFromSrModalMessage'),
+  }).then(() => deletePbd(pbd), noop)
+
+const forgetHosts = pbds =>
+  confirm({
+    title: _('forgetHostsFromSrModalTitle', { nPbds: pbds.length }),
+    body: _('forgetHostsFromSrModalMessage', { nPbds: pbds.length }),
+  }).then(() => deletePbds(pbds), noop)
 
 const HOST_COLUMNS = [
   {
@@ -55,18 +68,16 @@ const HOST_COLUMNS = [
     ),
     sortCriteria: 'attached',
   },
+]
+
+const HOST_ACTIONS = [
   {
-    name: _('pbdAction'),
-    itemRenderer: pbd =>
-      !pbd.attached && (
-        <ActionRowButton
-          handler={deletePbd}
-          handlerParam={pbd}
-          icon='sr-forget'
-          tooltip={_('pbdForget')}
-        />
-      ),
-    textAlign: 'right',
+    disabled: pbds => some(pbds, 'attached'),
+    handler: forgetHosts,
+    icon: 'sr-forget',
+    individualDisabled: pbd => pbd.attached,
+    individualHandler: forgetHost,
+    label: _('pbdForget'),
   },
 ]
 
@@ -76,6 +87,7 @@ export default ({ hosts, pbds }) => (
       <Col>
         {!isEmpty(hosts) ? (
           <SortedTable
+            actions={HOST_ACTIONS}
             collection={pbds}
             userData={hosts}
             columns={HOST_COLUMNS}

@@ -1,5 +1,6 @@
 import _, { FormattedDuration } from 'intl'
 import addSubscriptions from 'add-subscriptions'
+import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
 import React from 'react'
@@ -8,8 +9,7 @@ import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { formatSize } from 'utils'
 import { FormattedDate } from 'react-intl'
-import { get } from '@xen-orchestra/defined'
-import { isEmpty, keyBy } from 'lodash'
+import { isEmpty, groupBy, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
@@ -185,7 +185,15 @@ const LOG_FILTERS = {
 
 export default [
   addSubscriptions({
-    logs: subscribeBackupNgLogs,
+    logs: cb =>
+      subscribeBackupNgLogs(logs =>
+        cb(
+          groupBy(
+            logs,
+            log => (log.message === 'restore' ? 'restore' : 'backup')
+          )
+        )
+      ),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
   ({ logs, jobs }) => (
@@ -195,7 +203,7 @@ export default [
       </CardHeader>
       <CardBlock>
         <NoObjects
-          collection={logs}
+          collection={defined(() => logs.backup, [])}
           columns={LOG_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}

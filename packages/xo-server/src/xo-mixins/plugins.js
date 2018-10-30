@@ -1,10 +1,13 @@
 import Ajv from 'ajv'
+import createLogger from '@xen-orchestra/log'
 
 import { PluginsMetadata } from '../models/plugin-metadata'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
 import { isFunction, mapToArray } from '../utils'
 
 // ===================================================================
+
+const log = createLogger('xo:xo-mixins:plugins')
 
 export default class {
   constructor (xo) {
@@ -73,7 +76,7 @@ export default class {
     if (metadata !== undefined) {
       ;({ autoload, configuration } = metadata)
     } else {
-      console.log(`[NOTICE] register plugin ${name} for the first time`)
+      log.info(`[NOTICE] register plugin ${name} for the first time`)
       await this._pluginsMetadata.save({
         id,
         autoload,

@@ -39,7 +39,12 @@ function createBAT (
   return currentVhdPositionSector
 }
 
-export default async function createReadableStream (diskSize, incomingBlockSize, blockAddressList, blockIterator) {
+export default async function createReadableStream (
+  diskSize,
+  incomingBlockSize,
+  blockAddressList,
+  blockIterator
+) {
   const ratio = VHD_BLOCK_SIZE_BYTES / incomingBlockSize
   if (ratio % 1 !== 0) {
     throw new Error(
@@ -75,7 +80,13 @@ export default async function createReadableStream (diskSize, incomingBlockSize,
   const bitmapSize =
     Math.ceil(VHD_BLOCK_SIZE_SECTORS / 8 / SECTOR_SIZE) * SECTOR_SIZE
   const bat = Buffer.alloc(tablePhysicalSizeBytes, 0xff)
-  const endOfData = createBAT(firstBlockPosition, blockAddressList, ratio, bat, bitmapSize)
+  const endOfData = createBAT(
+    firstBlockPosition,
+    blockAddressList,
+    ratio,
+    bat,
+    bitmapSize
+  )
   const fileSize = endOfData * SECTOR_SIZE + FOOTER_SIZE
   let position = 0
   function * yieldAndTrack (buffer, expectedPosition) {

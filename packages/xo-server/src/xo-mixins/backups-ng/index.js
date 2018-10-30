@@ -3,6 +3,7 @@
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
 import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
@@ -23,7 +24,12 @@ import {
   sum,
   values,
 } from 'lodash'
-import { CancelToken, pFromEvent, ignoreErrors } from 'promise-toolbox'
+import {
+  CancelToken,
+  ignoreErrors,
+  pFinally,
+  pFromEvent,
+} from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -50,6 +56,8 @@ import {
 } from '../../utils'
 
 import { translateLegacyJob } from './migration'
+
+const log = createLogger('xo:xo-mixins:backups-ng')
 
 export type Mode = 'full' | 'delta'
 export type ReportWhen = 'always' | 'failure' | 'never'
@@ -479,10 +487,16 @@ export default class BackupNg {
     worker: $Dict<any>,
   }
   _logger: Logger
+  _runningRestores: Set<string>
+
+  get runningRestores () {
+    return this._runningRestores
+  }
 
   constructor (app: any) {
     this._app = app
     this._logger = undefined
+    this._runningRestores = new Set()
 
     app.on('start', async () => {
       this._logger = await app.getLogger('restore')
@@ -723,8 +737,9 @@ export default class BackupNg {
         logger,
         message: 'restore',
       },
-      taskId =>
-        importer(
+      taskId => {
+        this._runningRestores.add(taskId)
+        return importer(
           handler,
           metadataFilename,
           metadata,
@@ -732,7 +747,10 @@ export default class BackupNg {
           xapi.getObject(srId),
           taskId,
           logger
-        )
+        )::pFinally(() => {
+          this._runningRestores.delete(taskId)
+        })
+      }
     )()
   }
 
@@ -784,7 +802,7 @@ export default class BackupNg {
             })
           )
         } catch (error) {
-          console.warn('[Warn] listVmBackups for remote %s:', remoteId, error)
+          log.warn(`listVmBackups for remote ${remoteId}:`, { error })
         }
       })
     )
@@ -1624,7 +1642,7 @@ export default class BackupNg {
           // Do not fail on corrupted VHDs (usually uncleaned temporary files),
           // they are probably inconsequent to the backup process and should not
           // fail it.
-          console.warn('BackupNg#_deleteVhd', path, error)
+          log.warn(`BackupNg#_deleteVhd ${path}`, { error })
         }
       }
     )
@@ -1676,7 +1694,7 @@ export default class BackupNg {
               backups.push(metadata)
             }
           } catch (error) {
-            console.warn('_listVmBackups', path, error)
+            log.warn(`_listVmBackups ${path}`, { error })
           }
         })
       )

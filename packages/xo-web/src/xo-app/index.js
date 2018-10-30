@@ -28,7 +28,7 @@ import Home from './home'
 import Host from './host'
 import Jobs from './jobs'
 import Menu from './menu'
-import Modal, { alert } from 'modal'
+import Modal, { alert, FormModal } from 'modal'
 import New from './new'
 import NewVm from './new-vm'
 import Pool from './pool'
@@ -224,6 +224,7 @@ export default class XoApp extends Component {
                 </div>
               </div>
               <Modal />
+              <FormModal />
               <Notification />
               <TooltipViewer />
             </div>
