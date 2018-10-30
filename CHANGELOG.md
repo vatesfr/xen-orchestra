@@ -27,6 +27,7 @@
 - [Backup NG] Improve the Schedule's view (Replace table by list) [#3491](https://github.com/vatesfr/xen-orchestra/issues/3491) (PR [#3586](https://github.com/vatesfr/xen-orchestra/pull/3586))
 - ([Host/Storage], [Sr/hosts]) add bulk deletion [#3179](https://github.com/vatesfr/xen-orchestra/issues/3179) (PR [#3539](https://github.com/vatesfr/xen-orchestra/pull/3539))
 - [xo-server] Use @xen-orchestra/log for basic logging [#3555](https://github.com/vatesfr/xen-orchestra/issues/3555) (PR [#3579](https://github.com/vatesfr/xen-orchestra/pull/3579))
+- [Backup Report] Log error when job failed [#3458](https://github.com/vatesfr/xen-orchestra/issues/3458) (PR [#3593](https://github.com/vatesfr/xen-orchestra/pull/3593))
 
 ### Bug fixes
 
