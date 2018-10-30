@@ -287,17 +287,6 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
-const NoObjects = props => {
-  if (props.isAdmin) {
-    return <NoObjectsWithServers {...props} />
-  }
-  return <NoObjectsWithoutServers {...props} />
-}
-
-const NoObjectsWithServers = addSubscriptions(props => ({
-  noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data))),
-}))(props => <NoObjectsWithoutServers {...props} />)
-
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -433,6 +422,17 @@ class NoObjectsWithoutServers extends Component {
     )
   }
 }
+
+const NoObjectsWithServers = addSubscriptions({
+  noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data))),
+})(NoObjectsWithoutServers)
+
+const NoObjects = props =>
+  props.isAdmin ? (
+    <NoObjectsWithServers {...props} />
+  ) : (
+    <NoObjectsWithoutServers {...props} />
+  )
 
 @addSubscriptions({
   noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data))),
