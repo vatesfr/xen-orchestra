@@ -1,6 +1,6 @@
 import _, { FormattedDuration } from 'intl'
-import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
+import Button from 'button'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
@@ -14,6 +14,7 @@ import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, groupBy, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
+import { toggleState } from 'reaclette-utils'
 import { VmItem, SrItem } from 'render-xo-item'
 
 import LogAlertBody from './log-alert-body'
@@ -183,25 +184,15 @@ const LOG_RESTORE_COLUMNS = [
   },
   {
     name: _('labelVm'),
-    itemRenderer: ({ id, tasks }) => {
-      const vmId = get(
-        () => tasks.find(({ message }) => message === 'transfer').result.id
-      )
-      return (
-        <div>
-          {vmId !== undefined && <VmItem id={vmId} link newTab />}{' '}
-          <span style={{ fontSize: '0.5em' }} className='text-muted'>
-            {id}
-          </span>
-        </div>
-      )
-    },
-    sortCriteria: ({ tasks }, { vms }) =>
-      get(
-        () =>
-          vms[tasks.find(({ message }) => message === 'transfer').result.id]
-            .name_label
-      ),
+    itemRenderer: ({ id, vmId }) => (
+      <div>
+        {vmId !== undefined && <VmItem id={vmId} link newTab />}{' '}
+        <span style={{ fontSize: '0.5em' }} className='text-muted'>
+          {id}
+        </span>
+      </div>
+    ),
+    sortCriteria: ({ vmId }, { vms }) => get(() => vms[vmId].name_label),
   },
   {
     default: true,
@@ -214,42 +205,41 @@ const LOG_RESTORE_COLUMNS = [
   {
     name: _('labelSr'),
     itemRenderer: ({ data: { srId } }) => <SrItem id={srId} link newTab />,
-    sortCriteria: ({ data: { srId } }, { srs }) => srs[srId].name_label,
+    sortCriteria: ({ data: { srId } }, { srs }) =>
+      get(() => srs[srId].name_label),
   },
   STATUS_COLUMN,
   {
     name: _('labelSize'),
-    itemRenderer: task => {
-      const size = get(
-        () =>
-          task.tasks.find(({ message }) => message === 'transfer').result.size
-      )
-      return size !== undefined && formatSize(size)
-    },
-    sortCriteria: task =>
-      get(
-        () =>
-          task.tasks.find(({ message }) => message === 'transfer').result.size
-      ),
+    itemRenderer: ({ dataSize }) =>
+      dataSize !== undefined && formatSize(dataSize),
+    sortCriteria: 'dataSize',
   },
   {
     name: _('labelSpeed'),
     itemRenderer: task => {
-      const size = get(
-        () =>
-          task.tasks.find(({ message }) => message === 'transfer').result.size
-      )
-      return size > 0 && formatSpeed(size, task.end - task.start)
+      const duration = task.end - task.start
+      return duration > 0 && formatSpeed(task.dataSize, duration)
     },
     sortCriteria: task => {
-      const size = get(
-        () =>
-          task.tasks.find(({ message }) => message === 'transfer').result.size
-      )
-      return size > 0 && size / (task.end - task.start)
+      const duration = task.end - task.start
+      return duration > 0 && task.dataSize / duration
     },
   },
 ]
+
+const ROW_TRANSFORM = task => {
+  const { id: vmId, size: dataSize } =
+    get(
+      () => task.tasks.find(({ message }) => message === 'transfer').result
+    ) || {}
+
+  return {
+    ...task,
+    dataSize,
+    vmId,
+  }
+}
 
 const showTasks = ({ id }, { jobs }) =>
   alert(<LogAlertHeader id={id} jobs={jobs} />, <LogAlertBody id={id} />)
@@ -271,16 +261,9 @@ const LOG_FILTERS = {
 }
 
 const TenPerPage = ({ name, handler, value }) => (
-  <ActionButton
-    className='pull-right'
-    data-name={name}
-    handler={handler}
-    icon={value ? 'toggle-on' : 'toggle-off'}
-    iconColor={value ? 'text-success' : undefined}
-    size='small'
-  >
-    {_(value ? 'logsTenPerPage' : 'logsThreePerPage')}
-  </ActionButton>
+  <Button className='pull-right' name={name} onClick={handler} size='small'>
+    {_(value ? 'logsThreePerPage' : 'logsTenPerPage')}
+  </Button>
 )
 
 export default [
@@ -306,9 +289,7 @@ export default [
       tenPerPageRestore: false,
     }),
     effects: {
-      toggleTenPerPage: (_, { name }) => state => ({
-        [name]: !state[name],
-      }),
+      toggleState,
     },
   }),
   injectState,
@@ -322,7 +303,7 @@ export default [
           {_('labelBackup')}
           <TenPerPage
             name='tenPerPageBackup'
-            handler={effects.toggleTenPerPage}
+            handler={effects.toggleState}
             value={state.tenPerPageBackup}
           />
         </h2>
@@ -340,7 +321,7 @@ export default [
           {_('labelRestore')}
           <TenPerPage
             name='tenPerPageRestore'
-            handler={effects.toggleTenPerPage}
+            handler={effects.toggleState}
             value={state.tenPerPageRestore}
           />
         </h2>
@@ -354,6 +335,7 @@ export default [
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           itemsPerPage={state.tenPerPageRestore ? 10 : 3}
+          rowTransform={ROW_TRANSFORM}
         />
       </CardBlock>
     </Card>

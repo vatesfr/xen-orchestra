@@ -8,6 +8,6 @@ export const linkState = (_, { target }) => () => ({
       : target.value,
 })
 
-export const toggleState = (_, { target: { name } }) => state => ({
+export const toggleState = (_, { currentTarget: { name } }) => state => ({
   [name]: !state[name],
 })
