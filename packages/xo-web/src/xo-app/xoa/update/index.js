@@ -379,10 +379,7 @@ const Updates = decorate([
                   <h2>{_('trial')}</h2>
                   {state.isTrialAllowed && (
                     <div>
-                      {xoaRegisterState.state !== 'registered' && (
-                        <p>{_('trialRegistration')}</p>
-                      )}
-                      {xoaRegisterState.state === 'registered' && (
+                      {state.isRegistered ? (
                         <ActionButton
                           btnStyle='success'
                           handler={effects.startTrial}
@@ -390,6 +387,8 @@ const Updates = decorate([
                         >
                           {_('trialStartButton')}
                         </ActionButton>
+                      ) : (
+                        <p>{_('trialRegistration')}</p>
                       )}
                     </div>
                   )}
