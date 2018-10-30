@@ -15,11 +15,6 @@ require('../better-stacks')
 // less memory usage.
 global.Promise = require('bluebird')
 
-// Make unhandled rejected promises visible.
-process.on('unhandledRejection', function (reason) {
-  console.warn('[Warn] Possibly unhandled rejection:', reason && reason.stack || reason)
-})
-
 catchGlobalErrors(log)
 
 require('exec-promise')(require('../'))
