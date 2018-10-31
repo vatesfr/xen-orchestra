@@ -359,13 +359,13 @@ class XoaUpdater extends EventEmitter {
   log (level, message) {
     message = (message != null && message.message) || String(message)
     const date = new Date()
-    this._log.unshift({
+    this._log.push({
       date: date.toLocaleString(),
       level,
       message,
     })
     while (this._log.length > 10) {
-      this._log.pop()
+      this._log.shift()
     }
     this.emit('log', map(this._log, item => assign({}, item)))
   }
