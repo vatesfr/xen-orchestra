@@ -388,14 +388,13 @@ const Updates = decorate([
                   </ActionButton>
                 </form>
               ) : (
-                <ActionButton
+                <Button
                   btnStyle='primary'
-                  handler={effects.toggleState}
-                  icon='edit'
                   name='askRegisterAgain'
+                  onClick={effects.toggleState}
                 >
-                  {_('editRegistration')}
-                </ActionButton>
+                  <Icon fixedWidth icon='edit' /> {_('editRegistration')}
+                </Button>
               )}
               {+process.env.XOA_PLAN === 1 && (
                 <div>
