@@ -251,9 +251,9 @@ const Updates = decorate([
                   : _('downgrade')}
               </ActionButton>
               <hr />
-              <div>
+              <pre>
                 {map(xoaUpdaterLog, (log, key) => (
-                  <p key={key}>
+                  <div key={key}>
                     <span className={LEVELS_TO_CLASSES[log.level]}>
                       {log.date}
                     </span>
@@ -263,9 +263,9 @@ const Updates = decorate([
                         __html: ansiUp.ansi_to_html(log.message),
                       }}
                     />
-                  </p>
+                  </div>
                 ))}
-              </div>
+              </pre>
             </CardBlock>
           </Card>
         </Col>
