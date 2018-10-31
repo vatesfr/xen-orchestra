@@ -47,7 +47,7 @@ export function init () {
       Reserved1: 0,
       BootSig: 41,
       VolID: 895111106,
-      VolLab: 'NO NAME    ',
+      VolLab: 'config-2   ',
       FilSysType: 'FAT16   ',
     },
     buf
