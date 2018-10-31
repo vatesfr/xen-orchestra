@@ -164,7 +164,7 @@ const Updates = decorate([
       isProxyConfigEdited: state =>
         PROXY_ENTRIES.some(entry => state[entry] !== undefined),
       isRegistered: (_, { xoaRegisterState }) =>
-        xoaRegisterState.state === 'register',
+        xoaRegisterState.state === 'registered',
       isTrialAllowed: (_, { xoaTrialState }) =>
         xoaTrialState.state === 'default' && exposeTrial(xoaTrialState.trial),
       isTrialAvailable: (_, { xoaTrialState }) =>
