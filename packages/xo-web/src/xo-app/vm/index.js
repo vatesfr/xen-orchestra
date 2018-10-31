@@ -9,7 +9,8 @@ import Page from '../page'
 import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
 import VmActionBar from './action-bar'
-import { Select, Text } from 'editable'
+import { Host } from 'render-xo-item'
+import { Text, XoSelect } from 'editable'
 import { assign, isEmpty, map, pick } from 'lodash'
 import { editVm, fetchVmStats, isVmRunning, migrateVm } from 'xo'
 import { Container, Row, Col } from 'grid'
@@ -69,8 +70,6 @@ import TabAdvanced from './tab-advanced'
 
   const getVmTotalDiskSpace = createSumBy(createGetVmDisks(getVm), 'size')
 
-  const getHosts = createGetObjectsOfType('host')
-
   return (state, props) => {
     const vm = getVm(state, props)
     if (!vm) {
@@ -80,7 +79,6 @@ import TabAdvanced from './tab-advanced'
     return {
       checkPermissions: getCheckPermissions(state, props),
       container: getContainer(state, props),
-      hosts: getHosts(state, props),
       isAdmin: isAdmin(state, props),
       pool: getPool(state, props),
       srs: getSrs(state, props),
@@ -166,10 +164,8 @@ export default class Vm extends BaseComponent {
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
   _migrateVm = host => migrateVm(this.props.vm, host)
 
-  _selectOptionRenderer = option => option.name_label
-
   header() {
-    const { vm, container, pool, hosts } = this.props
+    const { vm, container, pool } = this.props
     if (!vm) {
       return <Icon icon='loading' />
     }
@@ -198,17 +194,14 @@ export default class Vm extends BaseComponent {
                 {vm.power_state === 'Running' && container && (
                   <span>
                     <span> - </span>
-                    <Select
+                    <XoSelect
                       onChange={this._migrateVm}
-                      options={hosts}
-                      renderer={this._selectOptionRenderer}
                       useLongClick
                       value={container}
+                      xoType='host'
                     >
-                      <Link to={`/${container.type}s/${container.id}`}>
-                        {container.name_label}
-                      </Link>
-                    </Select>
+                      <Host id={container.id} pool={false} link />
+                    </XoSelect>
                   </span>
                 )}{' '}
                 {pool && (

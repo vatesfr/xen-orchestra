@@ -1,24 +1,15 @@
 import classNames from 'classnames'
 import React from 'react'
 import PropTypes from 'prop-types'
-import {
-  findKey,
-  isEmpty,
-  isFunction,
-  isString,
-  map,
-  pick,
-  startsWith,
-} from 'lodash'
+import { isEmpty, isFunction, isString, pick, startsWith } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
-import getEventValue from '../get-event-value'
 import Icon from '../icon'
 import logError from '../log-error'
 import Tooltip from '../tooltip'
 import { formatSize } from '../utils'
-import { SizeInput } from '../form'
+import { Select as FormSelect, SizeInput } from '../form'
 import {
   SelectHost,
   SelectIp,
@@ -341,73 +332,81 @@ export class Number extends Component {
   }
 }
 
-export class Select extends Editable {
+class SimpleSelect_ extends Editable {
   static propTypes = {
-    options: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
-      .isRequired,
     renderer: PropTypes.func,
-  }
-
-  componentWillReceiveProps(props) {
-    if (
-      props.value !== this.props.value ||
-      props.options !== this.props.options
-    ) {
-      this.setState({
-        valueKey: findKey(props.options, option => option === props.value),
-      })
-    }
+    value: PropTypes.oneOfType([PropTypes.oneOf([null]), PropTypes.object]),
   }
 
   get value() {
-    return this.props.options[this.state.valueKey]
+    return this.state.value
   }
 
-  _onChange = event => {
-    this.setState({ valueKey: getEventValue(event) }, this._save)
-  }
-
-  _optionToJsx = (option, key) => {
-    const { renderer } = this.props
-
-    return (
-      <option key={key} value={key}>
-        {renderer ? renderer(option) : option}
-      </option>
-    )
-  }
-
-  _onEditionMount = ref => {
-    // Seems to work in Google Chrome (not in Firefox)
-    ref && ref.dispatchEvent(new window.MouseEvent('mousedown'))
-  }
+  _onChange = value => this.setState({ value }, value && this._save)
 
   _renderDisplay() {
     const { children, renderer, value } = this.props
-
-    return children || <span>{renderer ? renderer(value) : value}</span>
-  }
-
-  _renderEdition() {
-    const { saving, valueKey } = this.state
-    const { options } = this.props
-
     return (
-      <select
-        autoFocus
-        className={classNames('form-control', styles.select)}
-        onBlur={this._closeEdition}
-        onChange={this._onChange}
-        onKeyDown={this._onKeyDown}
-        readOnly={saving}
-        ref={this._onEditionMount}
-        value={valueKey}
-      >
-        {map(options, this._optionToJsx)}
-      </select>
+      children || (
+        <span>{renderer !== undefined ? renderer(value) : value}</span>
+      )
     )
   }
+
+  _renderEdition = () => (
+    <FormSelect
+      {...this.props}
+      autoFocus
+      onBlur={this._closeEdition}
+      onChange={this._onChange}
+      onKeyDown={this._onKeyDown}
+      openOnFocus
+    />
+  )
 }
+
+class MultiSelect_ extends Editable {
+  static propTypes = {
+    renderer: PropTypes.func,
+    value: PropTypes.oneOfType([PropTypes.oneOf([null]), PropTypes.array]),
+  }
+
+  get value() {
+    return this.state.nextValue === undefined
+      ? this.props.value
+      : this.state.nextValue
+  }
+
+  _onChange = nextValue => this.setState({ nextValue })
+
+  _renderDisplay() {
+    const { children, renderer, value } = this.props
+    return (
+      children || (
+        <span>{renderer !== undefined ? renderer(value) : value}</span>
+      )
+    )
+  }
+
+  _onBlur = () => {
+    this._save().then(() => this.setState({ nextValue: undefined }))
+  }
+
+  _renderEdition = () => (
+    <FormSelect
+      {...this.props}
+      autoFocus
+      multi
+      onBlur={this._onBlur}
+      onChange={this.linkState('nextValue')}
+      openOnFocus
+      value={this.state.nextValue || this.props.value}
+    />
+  )
+}
+
+export const Select = ({ multi, ...props }) =>
+  multi ? <MultiSelect_ {...props} /> : <SimpleSelect_ {...props} />
 
 const MAP_TYPE_SELECT = {
   host: SelectHost,
