@@ -4,6 +4,17 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+- xo-server v5.30.0
+- xo-web v5.30.0
+
+## **5.28.0** (2018-10-31)
+
+### Enhancements
+
 - [Usage Report] Add IOPS read/write/total per VM [#3309](https://github.com/vatesfr/xen-orchestra/issues/3309) (PR [#3455](https://github.com/vatesfr/xen-orchestra/pull/3455))
 - [Self service] Sort resource sets by name (PR [#3507](https://github.com/vatesfr/xen-orchestra/pull/3507))
 - [Usage Report] Add top 3 SRs which use the most IOPS read/write/total [#3306](https://github.com/vatesfr/xen-orchestra/issues/3306) (PR [#3508](https://github.com/vatesfr/xen-orchestra/pull/3508))
@@ -56,7 +67,7 @@
 - xo-server v5.29.0
 - xo-web v5.29.0
 
-## **5.28.0** (2018-10-05)
+## **5.27.2** (2018-10-05)
 
 ### Enhancements
 
