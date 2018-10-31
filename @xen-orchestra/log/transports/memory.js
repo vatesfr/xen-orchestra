@@ -1,1 +1,1 @@
-module.exports = require('./dist/transports/memory.js')
+module.exports = require('../dist/transports/memory.js')

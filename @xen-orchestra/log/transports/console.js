@@ -1,1 +1,1 @@
-module.exports = require('./dist/transports/console.js')
+module.exports = require('../dist/transports/console.js')

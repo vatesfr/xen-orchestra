@@ -1,1 +1,1 @@
-module.exports = require('./dist/transports/email.js')
+module.exports = require('../dist/transports/email.js')

@@ -1,1 +1,1 @@
-module.exports = require('./dist/transports/syslog.js')
+module.exports = require('../dist/transports/syslog.js')
