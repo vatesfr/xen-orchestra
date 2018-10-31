@@ -383,6 +383,14 @@ export default {
 
     hasVendorDevice: true,
 
+    expNestedHvm: {
+      set (expNestedHvm, vm) {
+        return this._updateObjectMapProperty(vm, 'platform', {
+          'exp-nested-hvm': expNestedHvm,
+        })
+      },
+    },
+
     nicType: {
       set (nicType, vm) {
         return this._updateObjectMapProperty(vm, 'platform', {

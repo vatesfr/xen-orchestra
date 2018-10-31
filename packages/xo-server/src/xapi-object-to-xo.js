@@ -302,7 +302,7 @@ const TRANSFORMS = {
           version: version && parseXml(version).docker_version,
         }
       })(),
-
+      expNestedHvm: obj.platform['exp-nested-hvm'],
       high_availability: obj.ha_restart_priority,
 
       memory: (function () {

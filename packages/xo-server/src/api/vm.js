@@ -614,6 +614,8 @@ set.params = {
   // Emulate HVM C000 PCI device for Windows Update to fetch or update PV drivers
   hasVendorDevice: { type: 'boolean', optional: true },
 
+  expNestedHvm: { type: 'boolean', optional: true },
+
   // Move the vm In to/Out of Self Service
   resourceSet: { type: ['string', 'null'], optional: true },
 

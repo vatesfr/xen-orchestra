@@ -471,6 +471,16 @@ export default class TabAdvanced extends Component {
                   </td>
                 </tr>
                 <tr>
+                  <th>{_('nestedVM')}</th>
+                  <td>
+                    <Toggle
+                      disabled={vm.power_state !== 'Halted'}
+                      value={Boolean(vm.expNestedHvm)}
+                      onChange={value => editVm(vm, { expNestedHvm: value })}
+                    />
+                  </td>
+                </tr>
+                <tr>
                   <th>{_('ha')}</th>
                   <td>
                     <select
