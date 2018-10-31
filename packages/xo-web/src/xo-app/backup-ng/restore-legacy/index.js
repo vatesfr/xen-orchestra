@@ -18,6 +18,7 @@ import {
   find,
   forEach,
   groupBy,
+  isEmpty,
   map,
   mapValues,
   reduce,
@@ -328,13 +329,17 @@ export default class Restore extends Component {
   }
 
   render () {
-    return (
-      <SortedTable
-        collection={this.state.backupInfoByVm}
-        columns={VM_COLUMNS}
-        defaultColumn={2}
-        rowAction={openImportModal}
-      />
-    )
+    const { backupInfoByVm } = this.state
+    return !isEmpty(backupInfoByVm) ? (
+      <div>
+        <h3>{_('restoreLegacy')}</h3>
+        <SortedTable
+          collection={backupInfoByVm}
+          columns={VM_COLUMNS}
+          defaultColumn={2}
+          rowAction={openImportModal}
+        />
+      </div>
+    ) : null
   }
 }

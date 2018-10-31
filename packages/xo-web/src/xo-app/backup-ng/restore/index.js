@@ -270,7 +270,6 @@ export default class Restore extends Component {
             collection={this.state.backupDataByVm}
             columns={BACKUPS_COLUMNS}
           />
-          <h3>{_('restoreLegacy')}</h3>
           <RestoreLegacy />
         </div>
       </Upgrade>

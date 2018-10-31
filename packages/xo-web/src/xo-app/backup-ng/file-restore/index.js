@@ -241,7 +241,6 @@ export default class Restore extends Component {
             columns={BACKUPS_COLUMNS}
             individualActions={this._individualActions}
           />
-          <h3>{_('restoreFileLegacy')}</h3>
           <RestoreFileLegacy />
         </div>
       </Upgrade>

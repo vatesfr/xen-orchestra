@@ -9,10 +9,11 @@ import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
 import {
-  find,
   filter,
+  find,
   forEach,
   groupBy,
+  isEmpty,
   map,
   mapValues,
   reduce,
@@ -124,12 +125,9 @@ export default class FileRestore extends Component {
   render () {
     const { backupInfoByVm } = this.props
 
-    if (!backupInfoByVm) {
-      return <h2>{_('statusLoading')}</h2>
-    }
-
-    return (
+    return !isEmpty(backupInfoByVm) ? (
       <div>
+        <h3>{_('restoreFileLegacy')}</h3>
         <em>
           <Icon icon='info' /> {_('restoreBackupsInfo')}
         </em>
@@ -141,6 +139,6 @@ export default class FileRestore extends Component {
           defaultColumn={2}
         />
       </div>
-    )
+    ) : null
   }
 }
