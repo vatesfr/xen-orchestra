@@ -30,7 +30,7 @@
     "cli-progress": "^2.0.0",
     "exec-promise": "^0.7.0",
     "struct-fu": "^1.2.0",
-    "vhd-lib": "^0.3.0"
+    "vhd-lib": "^0.4.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
