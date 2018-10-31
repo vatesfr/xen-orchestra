@@ -18,7 +18,9 @@
   "main": "dist/",
   "bin": {},
   "files": [
-    "dist/"
+    "configure.js",
+    "dist/",
+    "transports/"
   ],
   "browserslist": [
     ">2%"
