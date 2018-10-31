@@ -242,6 +242,10 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
+  getLocalManifest () {
+    return this._call('getLocalManifest')
+  }
+
   async register (email, password, renew = false) {
     try {
       const token = await this._call('register', { email, password, renew })

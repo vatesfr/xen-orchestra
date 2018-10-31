@@ -29,6 +29,7 @@
 - [xo-server] Use @xen-orchestra/log for basic logging [#3555](https://github.com/vatesfr/xen-orchestra/issues/3555) (PR [#3579](https://github.com/vatesfr/xen-orchestra/pull/3579))
 - [Backup Report] Log error when job failed [#3458](https://github.com/vatesfr/xen-orchestra/issues/3458) (PR [#3593](https://github.com/vatesfr/xen-orchestra/pull/3593))
 - [Backup NG] Display logs for backup restoration [#2511](https://github.com/vatesfr/xen-orchestra/issues/2511) (PR [#3609](https://github.com/vatesfr/xen-orchestra/pull/3609))
+- [XOA] Display product version and list of all installed packages [#3560](https://github.com/vatesfr/xen-orchestra/issues/3560) (PR [#3621](https://github.com/vatesfr/xen-orchestra/pull/3621))
 
 ### Bug fixes
 

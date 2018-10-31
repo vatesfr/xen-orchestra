@@ -18,9 +18,7 @@ import { injectState, provideState } from 'reaclette'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { linkState, toggleState } from 'reaclette-utils'
 import { Password } from 'form'
-import { serverVersion, subscribeBackupNgJobs, subscribeJobs } from 'xo'
-
-import pkg from '../../../../package'
+import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
 const ansiUp = new AnsiUp()
 
@@ -86,6 +84,7 @@ const Updates = decorate([
       ...initialProxyState(),
       ...initialRegistrationState(),
       askRegisterAgain: false,
+      showPackagesList: false,
     }),
     effects: {
       async configure () {
@@ -156,6 +155,10 @@ const Updates = decorate([
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
+      async installedPackages () {
+        const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
+        return { ...installer, ...updater, ...npm }
+      },
       isDisconnected: (_, { xoaUpdaterState }) =>
         xoaUpdater === 'disconnected' || xoaUpdaterState === 'error',
       isProxyConfigEdited: state =>
@@ -173,7 +176,12 @@ const Updates = decorate([
         !exposeTrial(xoaTrialState.trial),
       isUpdaterDown: (_, { xoaTrialState }) =>
         isEmpty(xoaTrialState) || xoaTrialState.state === 'ERROR',
-      serverVersion: () => serverVersion,
+      packagesList: ({ installedPackages }) =>
+        Object.keys(installedPackages)
+          .filter(_ => _ !== 'xen-orchestra')
+          .sort()
+          .map(name => `- ${name}: ${installedPackages[name]}`)
+          .join('\n'),
     },
   }),
   injectState,
@@ -197,9 +205,26 @@ const Updates = decorate([
             </CardHeader>
             <CardBlock>
               <p>
-                {_('currentVersion')} {`xo-server ${state.serverVersion}`} /{' '}
-                {`xo-web ${pkg.version}`}
+                {_('currentVersion')}{' '}
+                {defined(
+                  () => state.installedPackages['xen-orchestra'],
+                  'unknown'
+                )}{' '}
+                {state.installedPackages !== undefined && (
+                  <Button
+                    name='showPackagesList'
+                    onClick={effects.toggleState}
+                    size='small'
+                  >
+                    <Icon icon={state.showPackagesList ? 'minus' : 'plus'} />
+                  </Button>
+                )}
               </p>
+              {state.showPackagesList && (
+                <p>
+                  <pre>{state.packagesList}</pre>
+                </p>
+              )}
               {state.isDisconnected && (
                 <p>
                   <a href='https://xen-orchestra.com/docs/updater.html#troubleshooting'>
