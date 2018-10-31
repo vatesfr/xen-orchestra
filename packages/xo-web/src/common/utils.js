@@ -18,6 +18,7 @@ import {
   keys,
   map,
   mapValues,
+  pick,
   replace,
   sample,
   some,
@@ -69,6 +70,11 @@ export const propsEqual = (o1, o2, props) => {
 // ===================================================================
 
 const _normalizeMapStateToProps = mapper => {
+  // accept a list of entries to extract from the state
+  if (Array.isArray(mapper)) {
+    return state => pick(state, mapper)
+  }
+
   if (isFunction(mapper)) {
     const factoryOrMapper = (state, props) => {
       const result = mapper(state, props)

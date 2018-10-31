@@ -74,15 +74,13 @@ const Updates = decorate([
     backupNgJobs: subscribeBackupNgJobs,
     jobs: subscribeJobs,
   }),
-  connectStore(state =>
-    pick(state, [
-      'xoaConfiguration',
-      'xoaRegisterState',
-      'xoaTrialState',
-      'xoaUpdaterLog',
-      'xoaUpdaterState',
-    ])
-  ),
+  connectStore([
+    'xoaConfiguration',
+    'xoaRegisterState',
+    'xoaTrialState',
+    'xoaUpdaterLog',
+    'xoaUpdaterState',
+  ]),
   provideState({
     initialState: () => ({
       ...initialProxyState(),
