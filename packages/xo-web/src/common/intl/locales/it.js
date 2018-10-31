@@ -12,70 +12,70 @@ export default {
   keyValue: undefined,
 
   // Original text: 'Connecting'
-  statusConnecting: undefined,
+  statusConnecting: Connessione,
 
   // Original text: 'Disconnected'
-  statusDisconnected: undefined,
+  statusDisconnected: Disconnesso,
 
   // Original text: 'Loading…'
-  statusLoading: undefined,
+  statusLoading: Caricamento...,
 
   // Original text: 'Page not found'
-  errorPageNotFound: undefined,
+  errorPageNotFound: Pagina non trovata,
 
   // Original text: 'no such item'
-  errorNoSuchItem: undefined,
+  errorNoSuchItem: non ci sono abbastanza elementi,
 
   // Original text: 'Long click to edit'
-  editableLongClickPlaceholder: undefined,
+  editableLongClickPlaceholder: Tieni premuto per modificare,
 
   // Original text: 'Click to edit'
-  editableClickPlaceholder: undefined,
+  editableClickPlaceholder: Clicca per modificare,
 
   // Original text: 'Browse files'
-  browseFiles: undefined,
+  browseFiles: Sfoglia i file,
 
   // Original text: 'Show logs'
-  showLogs: undefined,
+  showLogs: Mostra i log,
 
   // Original text: 'OK'
-  alertOk: undefined,
+  alertOk: OK,
 
   // Original text: 'OK'
-  confirmOk: undefined,
+  confirmOk: OK,
 
   // Original text: 'Cancel'
-  genericCancel: undefined,
+  genericCancel: Cancella,
 
   // Original text: 'Enter the following text to confirm:'
-  enterConfirmText: undefined,
+  enterConfirmText: Inserisci questo testo per confermare:,
 
   // Original text: 'On error'
-  onError: undefined,
+  onError: C'è un errore,
 
   // Original text: 'Successful'
-  successful: undefined,
+  successful: Eseguito con successo,
 
   // Original text: 'Managed disks'
-  filterOnlyManaged: undefined,
+  filterOnlyManaged: Dischi Gestiti,
 
   // Original text: 'Orphaned disks'
-  filterOnlyOrphaned: undefined,
+  filterOnlyOrphaned: Dischi orfani,
 
   // Original text: 'Normal disks'
-  filterOnlyRegular: undefined,
+  filterOnlyRegular: Dischi normali,
 
   // Original text: 'Snapshot disks'
-  filterOnlySnapshots: undefined,
+  filterOnlySnapshots: Dischi snapshot,
 
   // Original text: 'Unmanaged disks'
-  filterOnlyUnmanaged: undefined,
+  filterOnlyUnmanaged: Dischi non gestiti,
 
   // Original text: 'Save…'
-  filterSaveAs: undefined,
+  filterSaveAs: Salva...,
 
   // Original text: 'Explore the search syntax in the documentation'
-  filterSyntaxLinkTooltip: undefined,
+  filterSyntaxLinkTooltip: Esplora la sintassi di ricerca nella documentazione,
 
   // Original text: 'Connected VIFs'
   filterVifsOnlyConnected: undefined,
