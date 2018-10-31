@@ -11,23 +11,21 @@ import UserError from 'user-error'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { Card, CardBlock, CardHeader } from 'card'
-import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
+import { includes, isEmpty, map, mapValues, some } from 'lodash'
 import { form } from 'modal'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
 import { Number } from 'form'
 import { renderXoItemFromId, RemoteItem } from 'render-xo-item'
-import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
+import { SelectRemote, SelectSr } from 'select-objects'
 import {
   addSubscriptions,
   connectStore,
   generateRandomId,
   resolveId,
-  resolveIds,
 } from 'utils'
 import {
   createBackupNgJob,
@@ -41,13 +39,17 @@ import {
 
 import NewSchedule from './new-schedule'
 import Schedules from './schedules'
-import SmartBackup from './smart-backup'
+import Vms from './vms'
+
 import {
+  constructPattern,
   destructPattern,
   FormFeedback,
   FormGroup,
+  getValue,
   Input,
   Li,
+  ThinProvisionedTip,
   Ul,
 } from './../utils'
 
@@ -61,24 +63,6 @@ const DEFAULT_SCHEDULE = {
   cron: '0 0 * * *',
   timezone: moment.tz.guess(),
 }
-
-const SR_BACKEND_FAILURE_LINK =
-  'https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space'
-
-const ThinProvisionedTip = ({ label }) => (
-  <Tooltip content={_(label)}>
-    <a
-      className='text-info'
-      href={SR_BACKEND_FAILURE_LINK}
-      rel='noopener noreferrer'
-      target='_blank'
-    >
-      <Icon icon='info' />
-    </a>
-  </Tooltip>
-)
-
-const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
 const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
   settings.map(
@@ -97,28 +81,6 @@ const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
           }
         : setting
   )
-
-const constructPattern = values =>
-  values.length === 1
-    ? {
-        id: resolveId(values[0]),
-      }
-    : {
-        id: {
-          __or: resolveIds(values),
-        },
-      }
-
-const destructVmsPattern = pattern =>
-  pattern.id === undefined
-    ? {
-        powerState: pattern.power_state || 'All',
-        $pool: destructSmartPattern(pattern.$pool),
-        tags: destructSmartPattern(pattern.tags, flatten),
-      }
-    : {
-        vms: destructPattern(pattern),
-      }
 
 const REPORT_WHEN_FILTER_OPTIONS = [
   {
@@ -143,7 +105,8 @@ const createDoesRetentionExist = name => {
 }
 
 const getInitialState = () => ({
-  $pool: {},
+  _vmsPattern: undefined,
+  invalidVms: false,
   backupMode: false,
   compression: undefined,
   crMode: false,
@@ -156,18 +119,12 @@ const getInitialState = () => ({
   inputTimeoutId: generateRandomId(),
   name: '',
   paramsUpdated: false,
-  powerState: 'All',
   remotes: [],
   schedules: {},
   settings: undefined,
   showErrors: false,
-  smartMode: false,
   snapshotMode: false,
   srs: [],
-  tags: {
-    notValues: ['Continuous Replication', 'Disaster Recovery'],
-  },
-  vms: [],
 })
 
 const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
@@ -229,9 +186,7 @@ export default decorate([
             state.crMode || state.drMode
               ? constructPattern(state.srs)
               : undefined,
-          vms: state.smartMode
-            ? state.vmsSmartPattern
-            : constructPattern(state.vms),
+          vms: state._vmsPattern,
         })
       },
       editJob: () => async (state, props) => {
@@ -312,9 +267,7 @@ export default decorate([
             state.crMode || state.drMode
               ? constructPattern(state.srs)
               : constructPattern([]),
-          vms: state.smartMode
-            ? state.vmsSmartPattern
-            : constructPattern(state.vms),
+          vms: state._vmsPattern,
         })
       },
       toggleMode: (_, { mode }) => state => ({
@@ -373,7 +326,10 @@ export default decorate([
           srs,
         }
       },
-      setVms: (_, vms) => state => ({ ...state, vms }),
+      onVmsChange: (_, _vmsPattern, invalidVms) => ({
+        _vmsPattern,
+        invalidVms,
+      }),
       updateParams: () => (_, { job, schedules }) => {
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
@@ -394,7 +350,6 @@ export default decorate([
           remotes,
           srs,
           schedules,
-          ...destructVmsPattern(job.vms),
         }
       },
       showScheduleModal: (
@@ -478,38 +433,6 @@ export default decorate([
           snapshotRetention,
         }),
       }),
-      setPowerState: (_, powerState) => state => ({
-        ...state,
-        powerState,
-      }),
-      setPoolValues: (_, values) => state => ({
-        ...state,
-        $pool: {
-          ...state.$pool,
-          values,
-        },
-      }),
-      setPoolNotValues: (_, notValues) => state => ({
-        ...state,
-        $pool: {
-          ...state.$pool,
-          notValues,
-        },
-      }),
-      setTagValues: (_, values) => state => ({
-        ...state,
-        tags: {
-          ...state.tags,
-          values,
-        },
-      }),
-      setTagNotValues: (_, notValues) => state => ({
-        ...state,
-        tags: {
-          ...state.tags,
-          notValues,
-        },
-      }),
       resetJob: ({ updateParams }) => (state, { job }) => {
         if (job !== undefined) {
           updateParams()
@@ -555,20 +478,20 @@ export default decorate([
       },
     },
     computed: {
+      vmsPattern: getValue('_vmsPattern', 'job.vms'),
       needUpdateParams: (state, { job, schedules }) =>
         job !== undefined && schedules !== undefined && !state.paramsUpdated,
       isJobInvalid: state =>
         state.missingName ||
-        state.missingVms ||
         state.missingBackupMode ||
         state.missingSchedules ||
         state.missingRemotes ||
         state.missingSrs ||
         state.missingExportRetention ||
         state.missingCopyRetention ||
-        state.missingSnapshotRetention,
+        state.missingSnapshotRetention ||
+        state.invalidVms,
       missingName: state => state.name.trim() === '',
-      missingVms: state => isEmpty(state.vms) && !state.smartMode,
       missingBackupMode: state =>
         !state.isDelta && !state.isFull && !state.snapshotMode,
       missingRemotes: state =>
@@ -588,12 +511,6 @@ export default decorate([
       snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
-      vmsSmartPattern: ({ $pool, powerState, tags }) => ({
-        $pool: constructSmartPattern($pool, resolveIds),
-        power_state: powerState === 'All' ? undefined : powerState,
-        tags: constructSmartPattern(tags, normalizeTagValues),
-        type: 'VM',
-      }),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
       propSettings: (_, { job }) =>
@@ -943,38 +860,11 @@ export default decorate([
               </Card>
             </Col>
             <Col mediumSize={6}>
-              <Card>
-                <CardHeader>
-                  {_('vmsToBackup')}*{' '}
-                  <ThinProvisionedTip label='vmsOnThinProvisionedSrTip' />
-                  <ActionButton
-                    className='pull-right'
-                    data-mode='smartMode'
-                    handler={effects.toggleMode}
-                    icon={state.smartMode ? 'toggle-on' : 'toggle-off'}
-                    iconColor={state.smartMode ? 'text-success' : undefined}
-                    size='small'
-                  >
-                    {_('smartBackupModeTitle')}
-                  </ActionButton>
-                </CardHeader>
-                <CardBlock>
-                  {state.smartMode ? (
-                    <Upgrade place='newBackup' required={3}>
-                      <SmartBackup />
-                    </Upgrade>
-                  ) : (
-                    <FormFeedback
-                      component={SelectVm}
-                      message={_('missingVms')}
-                      multi
-                      onChange={effects.setVms}
-                      error={state.showErrors ? state.missingVms : undefined}
-                      value={state.vms}
-                    />
-                  )}
-                </CardBlock>
-              </Card>
+              <Vms
+                onChange={effects.onVmsChange}
+                pattern={state.vmsPattern}
+                showErrors={state.showErrors}
+              />
               <Schedules />
             </Col>
           </Row>
