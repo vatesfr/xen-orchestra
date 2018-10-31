@@ -9,11 +9,11 @@ import makeError from 'make-error'
 import map from 'lodash/map'
 import { EventEmitter } from 'events'
 import {
-  xoaConfiguration,
-  xoaRegisterState,
-  xoaTrialState,
-  xoaUpdaterLog,
-  xoaUpdaterState,
+  setXoaConfiguration,
+  setXoaRegisterState,
+  setXoaTrialState,
+  setXoaUpdaterLog,
+  setXoaUpdaterState,
 } from 'store/actions'
 
 // ===================================================================
@@ -406,14 +406,14 @@ export default xoaUpdater
 
 export const connectStore = store => {
   forEach(states, state =>
-    xoaUpdater.on(state, () => store.dispatch(xoaUpdaterState(state)))
+    xoaUpdater.on(state, () => store.dispatch(setXoaUpdaterState(state)))
   )
-  xoaUpdater.on('trialState', state => store.dispatch(xoaTrialState(state)))
-  xoaUpdater.on('log', log => store.dispatch(xoaUpdaterLog(log)))
+  xoaUpdater.on('trialState', state => store.dispatch(setXoaTrialState(state)))
+  xoaUpdater.on('log', log => store.dispatch(setXoaUpdaterLog(log)))
   xoaUpdater.on('registerState', registration =>
-    store.dispatch(xoaRegisterState(registration))
+    store.dispatch(setXoaRegisterState(registration))
   )
   xoaUpdater.on('configuration', configuration =>
-    store.dispatch(xoaConfiguration(configuration))
+    store.dispatch(setXoaConfiguration(configuration))
   )
 }

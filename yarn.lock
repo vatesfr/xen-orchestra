@@ -10797,10 +10797,10 @@ rc@^1.1.6, rc@^1.1.7, rc@^1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-reaclette@^0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/reaclette/-/reaclette-0.6.0.tgz#7f3d84d51c9461dde7d92e445fa48a43d728967c"
-  integrity sha512-GkUENuI56UTXboaGHIjlVc/FIGeX4GaIaVguKH3kiGJOevDbwicTuZHF/86cpIktNRJY4u2SI8tH+ygJC1v+wg==
+reaclette@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/reaclette/-/reaclette-0.7.0.tgz#ff69aacb2c18747630f386f4627771e9fe584d54"
+  integrity sha512-6mk0s9u9hmLsrSLuOdmzaBazUI8bLbrptiXqe8pqYJiw4Gw1wtMhFkt/Qvu1way8qykq7h54V/TDvAuSzH5AKA==
 
 react-addons-shallow-compare@^15.0.2, react-addons-shallow-compare@^15.6.2:
   version "15.6.2"
