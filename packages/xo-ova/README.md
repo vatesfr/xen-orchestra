@@ -1,6 +1,8 @@
-# xo-vmdk-to-vhd [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-ova [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> JS lib streaming a vmdk file to a vhd
+> JS lib streaming a vmdk file to a vhd.
+
+This package used to be called 'xo-vmdk-to-vhd'
 
 ## Install
 
@@ -15,10 +17,10 @@ Installation of the [npm package](https://npmjs.org/package/xo-vmdk-to-vhd):
 To convert a VMDK stream to a Fixed VHD stream without buffering the entire input or output:
 
 ```js
-import convertFromVMDK from 'xo-vmdk-to-vhd'
-import { createReadStream, createWriteStream } from 'fs'
+import convertFromVMDK from xo-ova
+import {createReadStream, createWriteStream} from 'fs'
 
-;(async () => {
+(async () => {
   const stream = await convertFromVMDK(fs.createReadStream(vmdkFileName))
 
   stream.pipe(fs.createWriteStream(vhdFileName))
@@ -28,11 +30,11 @@ import { createReadStream, createWriteStream } from 'fs'
 or:
 
 ```js
-var convertFromVMDK = require('xo-vmdk-to-vhd').default
+var convertFromVMDK = require(xo-ova).default
 var createReadStream = require('fs').createReadStream
 var createWriteStream = require('fs').createWriteStream
 
-convertFromVMDK(fs.createReadStream(vmdkFileName)).then(function(stream) {
+convertFromVMDK(fs.createReadStream(vmdkFileName)).then(function (stream) {
   stream.pipe(fs.createWriteStream(vhdFileName))
 })
 ```
@@ -58,7 +60,7 @@ convertFromVMDK(fs.createReadStream(vmdkFileName)).then(function(stream) {
 
 ## Contributions
 
-Contributions are _very_ welcomed, either on the documentation or on
+Contributions are *very* welcomed, either on the documentation or on
 the code.
 
 You may:

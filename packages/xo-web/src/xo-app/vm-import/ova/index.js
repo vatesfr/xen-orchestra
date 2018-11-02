@@ -3,7 +3,7 @@ import forEach from 'lodash/forEach'
 import fromEvent from 'promise-toolbox/fromEvent'
 import xml2js, { processors } from 'xml2js'
 import { ensureArray } from 'utils'
-import { readVmdkGrainTable } from 'xo-vmdk-to-vhd'
+import { readVmdkGrainTable } from 'xo-ova'
 
 // ===================================================================
 
