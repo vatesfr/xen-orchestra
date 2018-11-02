@@ -17,7 +17,7 @@ type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
 
-export const DEFAULT_TIMEOUT = 10000
+const DEFAULT_TIMEOUT = 6e5 // 10 min
 
 export default class RemoteHandlerAbstract {
   _remote: Object
