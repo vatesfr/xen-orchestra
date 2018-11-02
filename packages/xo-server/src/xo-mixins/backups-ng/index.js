@@ -646,7 +646,7 @@ export default class BackupNg {
         ])
         if (concurrency !== 0) {
           handleVm = limitConcurrency(concurrency)(handleVm)
-          logger.notice('List of VMs that will be backed-up', {
+          logger.notice('vms', {
             event: 'task.info',
             taskId: runJobId,
             data: {
