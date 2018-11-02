@@ -18,6 +18,7 @@ import {
   groupBy,
   isEmpty,
   last,
+  map,
   mapValues,
   noop,
   some,
@@ -650,7 +651,7 @@ export default class BackupNg {
             event: 'task.info',
             taskId: runJobId,
             data: {
-              vms: vms.map(vm => vm.id),
+              vms: map(vms, 'id'),
             },
           })
         }
