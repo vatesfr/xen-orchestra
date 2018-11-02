@@ -18,7 +18,6 @@ import {
   groupBy,
   isEmpty,
   last,
-  map,
   mapValues,
   noop,
   some,
@@ -522,31 +521,30 @@ export default class BackupNg {
           vmsId !== undefined ||
           (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
         ) {
-          vms = vmsId
-            .map(id => {
-              try {
-                return app.getObject(id, 'VM')
-              } catch (error) {
-                const taskId: string = logger.notice(
-                  `Starting backup of ${id}. (${job.id})`,
-                  {
-                    event: 'task.start',
-                    parentId: runJobId,
-                    data: {
-                      type: 'VM',
-                      id,
-                    },
-                  }
-                )
-                logger.error(`Backuping ${id} has failed. (${job.id})`, {
-                  event: 'task.end',
-                  taskId,
-                  status: 'failure',
-                  result: serializeError(error),
-                })
-              }
-            })
-            .filter(vm => vm !== undefined)
+          vms = {}
+          vmsId.forEach(id => {
+            try {
+              vms[id] = app.getObject(id, 'VM')
+            } catch (error) {
+              const taskId: string = logger.notice(
+                `Starting backup of ${id}. (${job.id})`,
+                {
+                  event: 'task.start',
+                  parentId: runJobId,
+                  data: {
+                    type: 'VM',
+                    id,
+                  },
+                }
+              )
+              logger.error(`Backuping ${id} has failed. (${job.id})`, {
+                event: 'task.end',
+                taskId,
+                status: 'failure',
+                result: serializeError(error),
+              })
+            }
+          })
         } else {
           vms = app.getObjects({
             filter: createPredicate({
@@ -651,7 +649,7 @@ export default class BackupNg {
             event: 'task.info',
             taskId: runJobId,
             data: {
-              vms: map(vms, 'id'),
+              vms: Object.keys(vms),
             },
           })
         }
