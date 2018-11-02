@@ -21,7 +21,7 @@
     "jest": "^23.0.1",
     "lodash": "^4.17.4",
     "prettier": "^1.10.2",
-    "promise-toolbox": "^0.10.1",
+    "promise-toolbox": "^0.11.0",
     "sorted-object": "^2.0.1"
   },
   "engines": {
