@@ -8,8 +8,11 @@ import LocalHandler from './local'
 const DEFAULT_NFS_OPTIONS = 'vers=3'
 
 export default class NfsHandler extends LocalHandler {
-  constructor (remote, { mountsDir = join(tmpdir(), 'xo-fs-mounts') } = {}) {
-    super(remote)
+  constructor (
+    remote,
+    { mountsDir = join(tmpdir(), 'xo-fs-mounts'), ...opts } = {}
+  ) {
+    super(remote, opts)
 
     this._realPath = join(mountsDir, remote.id)
   }

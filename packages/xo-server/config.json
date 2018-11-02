@@ -34,6 +34,12 @@
   // Necessary for external authentication providers.
   "createUserOnFirstSignin": true,
 
+  "remoteOptions": {
+    "mountsDir": "/run/xo-server/mounts",
+
+    "timeout": 600e3
+  },
+
   // Whether API logs should contains the full request/response on
   // errors.
   //
