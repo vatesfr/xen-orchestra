@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- [Backup ng logs] Fix restarting VMs with concurrency issue [#3603](https://github.com/vatesfr/xen-orchestra/issues/3603) (PR [#3634](https://github.com/vatesfr/xen-orchestra/pull/3634))
+
 ### Released packages
 
 - xo-server v5.30.0
