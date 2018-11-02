@@ -23,8 +23,8 @@ const normalizeError = error => {
 }
 
 export default class SmbHandler extends RemoteHandlerAbstract {
-  constructor (remote) {
-    super(remote)
+  constructor (remote, opts) {
+    super(remote, opts)
     this._forget = noop
   }
 
