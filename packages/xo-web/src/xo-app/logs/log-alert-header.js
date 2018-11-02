@@ -30,13 +30,12 @@ export default decorate([
         _,
         { log: { jobId: id, scheduleId: schedule, tasks, infos } }
       ) => {
-        let vms, successfulVmsIds
+        let vms
         const scheduledVms = get(
           () => infos.find(({ message }) => message === 'vms').data.vms
         )
-
         if (scheduledVms !== undefined) {
-          successfulVmsIds = []
+          const successfulVmsIds = []
           tasks.forEach(task => {
             if (task.status === 'success') {
               successfulVmsIds.push(task.data.id)
