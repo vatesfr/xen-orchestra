@@ -33,7 +33,7 @@
   "dependencies": {
     "nodemailer": "^4.4.1",
     "nodemailer-markdown": "^1.0.1",
-    "promise-toolbox": "^0.10.1"
+    "promise-toolbox": "^0.11.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
