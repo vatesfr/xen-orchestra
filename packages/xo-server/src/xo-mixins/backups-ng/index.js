@@ -646,6 +646,13 @@ export default class BackupNg {
         ])
         if (concurrency !== 0) {
           handleVm = limitConcurrency(concurrency)(handleVm)
+          logger.notice('List of VMs that will be backed-up', {
+            event: 'task.info',
+            taskId: runJobId,
+            data: {
+              vms: vms.map(vm => vm.id),
+            },
+          })
         }
         await asyncMap(vms, handleVm)
       }
