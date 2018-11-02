@@ -9,6 +9,7 @@ import Icon from 'icon'
 import React from 'react'
 import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import Tooltip from 'tooltip'
+import { difference } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
@@ -27,13 +28,31 @@ export default decorate([
     effects: {
       restartFailedVms: () => async (
         _,
-        { log: { jobId: id, scheduleId: schedule, tasks } }
+        { log: { jobId: id, scheduleId: schedule, tasks, infos } }
       ) => {
+        let vms, successfulVmsIds
+        const scheduledVms = get(
+          () => infos.find(({ message }) => message === 'vms').data.vms
+        )
+
+        if (scheduledVms !== undefined) {
+          successfulVmsIds = []
+          tasks.forEach(task => {
+            if (task.status === 'success') {
+              successfulVmsIds.push(task.data.id)
+            }
+          })
+          vms = difference(scheduledVms, successfulVmsIds)
+        }
+
         await runBackupNgJob({
           id,
           schedule,
           vms:
-            tasks && tasks.filter(isFailureTask).map(vmTask => vmTask.data.id),
+            vms ||
+            get(() =>
+              tasks.filter(isFailureTask).map(vmTask => vmTask.data.id)
+            ),
         })
       },
     },
