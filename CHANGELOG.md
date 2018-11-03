@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- [Backup NG] Increase timeout in stale remotes detection to limit false positives (PR [#3632](https://github.com/vatesfr/xen-orchestra/pull/3632))
+
 ### Released packages
 
 - xo-server v5.30.0
