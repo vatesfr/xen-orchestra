@@ -44,7 +44,11 @@ export default class NfsHandler extends LocalHandler {
         },
       }
     ).catch(error => {
-      if (!error.stderr.includes('already mounted')) {
+      if (
+        error == null ||
+        typeof error.stderr !== 'string' ||
+        !error.stderr.includes('already mounted')
+      ) {
         throw error
       }
     })
@@ -74,7 +78,11 @@ export default class NfsHandler extends LocalHandler {
         LANG: 'C',
       },
     }).catch(error => {
-      if (!error.stderr.includes('not mounted')) {
+      if (
+        error == null ||
+        typeof error.stderr !== 'string' ||
+        !error.stderr.includes('not mounted')
+      ) {
         throw error
       }
     })
