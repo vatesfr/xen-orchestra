@@ -426,14 +426,14 @@ ejectCd.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function insertCd ({ vm, vdi, force }) {
+export async function insertCd ({ vm, vdi, force = true }) {
   await this.getXapi(vm).insertCdIntoVm(vdi._xapiId, vm._xapiId, { force })
 }
 
 insertCd.params = {
   id: { type: 'string' },
   cd_id: { type: 'string' },
-  force: { type: 'boolean' },
+  force: { type: 'boolean', optional: true },
 }
 
 insertCd.resolve = {
@@ -629,7 +629,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function restart ({ vm, force }) {
+export async function restart ({ vm, force = false }) {
   const xapi = this.getXapi(vm)
 
   if (force) {
@@ -641,7 +641,7 @@ export async function restart ({ vm, force }) {
 
 restart.params = {
   id: { type: 'string' },
-  force: { type: 'boolean' },
+  force: { type: 'boolean', optional: true },
 }
 
 restart.resolve = {
