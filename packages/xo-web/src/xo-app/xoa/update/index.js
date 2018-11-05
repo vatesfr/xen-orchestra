@@ -113,7 +113,7 @@ const Updates = decorate([
               body: (
                 <p>
                   {_('alreadyRegisteredModalText', {
-                    email: this.props.registration.email,
+                    email: this.props.xoaRegisterState.email,
                   })}
                 </p>
               ),
