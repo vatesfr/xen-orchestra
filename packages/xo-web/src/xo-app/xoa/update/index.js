@@ -118,8 +118,11 @@ const Updates = decorate([
                 </p>
               ),
             })
-          } catch (_) {
-            return
+          } catch (error) {
+            if (error === null) {
+              return
+            }
+            throw error
           }
         }
 
