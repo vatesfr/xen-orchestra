@@ -386,7 +386,6 @@ export default {
     expNestedHvm: {
       set (expNestedHvm, vm) {
         return this._updateObjectMapProperty(vm, 'platform', {
-          // null will remove the property
           'exp-nested-hvm': expNestedHvm ? 'true' : null,
         })
       },
