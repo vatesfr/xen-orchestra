@@ -471,7 +471,7 @@ export default class TabAdvanced extends Component {
                   </td>
                 </tr>
                 <tr>
-                  <th>{_('nestedVM')}</th>
+                  <th>{_('nestedVirt')}</th>
                   <td>
                     <Toggle
                       disabled={vm.power_state !== 'Halted'}

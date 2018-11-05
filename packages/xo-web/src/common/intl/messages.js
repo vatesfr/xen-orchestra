@@ -1036,7 +1036,7 @@ const messages = {
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
   ha: 'HA',
-  nestedVM: 'Nested VM',
+  nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
   vmVga: 'VGA',
   vmVideoram: 'Video RAM',
