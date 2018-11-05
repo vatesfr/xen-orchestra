@@ -470,6 +470,126 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
 //    - copy in delta mode: `Continuous Replication`
 //    - copy in full mode: `Disaster Recovery`
 //    - imported from backup: `restored from backup`
+//
+// Started tasks Emitted in a backup execution:
+//
+// job.start (Job task)
+// ├─ task.info (Scheduled VMs task)
+// └─ task.start (VM task)
+//   ├─ task.start (Snapshot task)
+//   └─ task.start (SR/Remote task)
+//     ├─ task.start (Transfer task)
+//     └─ task.start (Merge task)
+//
+// Job task
+//
+// [id: string]: {
+//   level: 'notice',
+//   message: string,
+//   data: {
+//     data: {
+//       mode: Mode,
+//       reportWhen: ReportWhen,
+//     },
+//     event: 'job.start',
+//     userId: string,
+//     jobId: string,
+//     jobName: string,
+//     scheduleId: string,
+//     type: 'backup',
+//   },
+//   namespace: 'jobs',
+//   time: number
+// }
+//
+// Scheduled VMs task
+//
+// [id: string]: {
+//   level: 'notice',
+//   message: string,
+//   data: {
+//     event: 'task.info',
+//     taskId: string, // job task id
+//     data: {
+//       vms: Array<string>
+//     }
+//   },
+//   namespace: 'jobs',
+//   time: number
+// }
+//
+// VM task
+//
+// [id: string]: {
+//   level: 'notice',
+//   message: string,
+//   data: {
+//     event: 'task.start',
+//     parentId: string, // job task id
+//     data: {
+//       type: 'VM',
+//       id: string,
+//     }
+//   },
+//   namespace: 'jobs',
+//   time: number
+// }
+//
+// Snapshot task
+//
+// [id: string]: {
+//   level: 'notice',
+//   message: 'snapshot',
+//   data: {
+//     event: 'task.start',
+//     parentId: string, // VM task id
+//   },
+//   namespace: 'jobs',
+//   time: number
+// }
+//
+// SR/Remote task
+//
+// [id: string]: {
+//   level: 'notice',
+//   message: 'export',
+//   data: {
+//     event: 'task.start',
+//     parentId: string, // VM task id
+//     data: {
+//       id: string,
+//       type: 'SR' | 'remote'
+//     }
+//   },
+//   namespace: 'jobs',
+//   time: number
+// }
+//
+// Transfer task
+//
+// [id: string]: {
+//   level: 'notice',
+//   message: 'transfer',
+//   data: {
+//     event: 'task.start',
+//     parentId: string, // SR/Remote task id
+//   },
+//   namespace: 'jobs',
+//   time: number
+// }
+//
+// Merge task
+//
+// [id: string]: {
+//   level: 'notice',
+//   message: 'merge',
+//   data: {
+//     event: 'task.start',
+//     parentId: string, // SR/Remote task id
+//   },
+//   namespace: 'jobs',
+//   time: number
+// }
 export default class BackupNg {
   _app: {
     createJob: ($Diff<BackupJob, {| id: string |}>) => Promise<BackupJob>,
