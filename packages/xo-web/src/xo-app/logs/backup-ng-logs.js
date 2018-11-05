@@ -261,7 +261,7 @@ const LOG_FILTERS = {
   jobFailed: 'status: failure',
   jobInterrupted: 'status: interrupted',
   jobSkipped: 'status: skipped',
-  jobStarted: 'status: started',
+  jobStarted: 'status: pending',
   jobSuccess: 'status: success',
 }
 
