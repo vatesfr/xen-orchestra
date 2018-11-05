@@ -475,13 +475,18 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
 //
 // job.start(data: { mode: Mode, reportWhen: ReportWhen })
 // ├─ task.info(message: 'vms', data: { vms: string[] })
+// ├─ task.warning(message: string)
 // └─ task.start(data: { type: 'VM', id: string })
+//   ├─ task.warning(message: string)
 //   ├─ task.start(message: 'snapshot')
 //   ├─ task.end
 //   └─ task.start(message: 'export', data: { type: 'SR' | 'remote', id: string })
+//     ├─ task.warning(message: string)
 //     ├─ task.start(message: 'transfer')
+//       ├─ task.warning(message: string)
 //     ├─ task.end(result: { size: number })
 //     ├─ task.start(message: 'merge')
+//       ├─ task.warning(message: string)
 //     └─ task.end(result: { size: number })
 //   └─ task.end
 //  └─ task.end
