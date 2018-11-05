@@ -475,7 +475,7 @@ export default class TabAdvanced extends Component {
                   <td>
                     <Toggle
                       disabled={vm.power_state !== 'Halted'}
-                      value={Boolean(vm.expNestedHvm)}
+                      value={vm.expNestedHvm}
                       onChange={value => editVm(vm, { expNestedHvm: value })}
                     />
                   </td>
