@@ -27,8 +27,8 @@
 ### Released packages
 
 - @xen-orchestra/fs v0.4.1
-- xo-server v5.29.3
-- xo-web v5.29.2
+- xo-server v5.29.4
+- xo-web v5.29.3
 
 ## **5.28.0** (2018-10-31)
 
