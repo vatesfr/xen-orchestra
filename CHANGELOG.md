@@ -18,6 +18,7 @@
 - [Backup NG] Increase timeout in stale remotes detection to limit false positives (PR [#3632](https://github.com/vatesfr/xen-orchestra/pull/3632))
 - Fix re-registration issue ([4e35b19ac](https://github.com/vatesfr/xen-orchestra/commit/4e35b19ac56c60f61c0e771cde70a50402797b8a))
 - [Backup NG logs] Fix started jobs filter [#3636](https://github.com/vatesfr/xen-orchestra/issues/3636) (PR [#3641](https://github.com/vatesfr/xen-orchestra/pull/3641))
+- [New VM] CPU and memory user inputs were ignored since previous release [#3644](https://github.com/vatesfr/xen-orchestra/issues/3644)
 
 ### Released packages
 
