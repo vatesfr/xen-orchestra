@@ -16,9 +16,9 @@ export function mergeVhd (
   childPath: string
 ) {
   return mergeVhd_(
-    getHandler(parentRemote),
+    getHandler(parentRemote, config.remoteOptions),
     parentPath,
-    getHandler(childRemote),
+    getHandler(childRemote, config.remoteOptions),
     childPath
   )
 }
