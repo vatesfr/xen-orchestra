@@ -14,9 +14,6 @@ import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 
-const isFailureTask = ({ status }) =>
-  status !== 'success' && status !== 'pending'
-
 export default decorate([
   addSubscriptions(({ id }) => ({
     log: cb =>
@@ -50,14 +47,17 @@ export default decorate([
           vms:
             vms ||
             get(() =>
-              tasks.filter(isFailureTask).map(vmTask => vmTask.data.id)
+              tasks
+                .filter(({ status }) => status !== 'success')
+                .map(vmTask => vmTask.data.id)
             ),
         })
       },
     },
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
-      jobFailed: (_, { log }) => log !== undefined && isFailureTask(log),
+      jobFailed: (_, { log = {} }) =>
+        log.status !== 'success' && log.status !== 'pending',
     },
   }),
   injectState,
