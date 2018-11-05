@@ -21,6 +21,8 @@ const DeprecatedMsg = () => (
   </div>
 )
 
+const DEVELOPMENT = process.env.NODE_ENV === 'development'
+
 const HEADER = (
   <Container>
     <Row>
@@ -52,8 +54,7 @@ const HEADER = (
 
 const Backup = routes('overview', {
   ':id/edit': Edit,
-  new: DeprecatedMsg,
-  'force-new': New,
+  new: DEVELOPMENT ? New : DeprecatedMsg,
   overview: Overview,
   restore: Restore,
   'file-restore': FileRestore,
