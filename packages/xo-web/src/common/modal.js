@@ -195,7 +195,13 @@ class StrongConfirm extends Component {
 
   _focusAndAddEventListener = ref => {
     if (ref !== null) {
-      ref.focus()
+      /*
+      * input lose focus when using Dropdown of react-bootstrap and to resolve this we used setTimeout
+      * See https://github.com/react-bootstrap/react-bootstrap/issues/2553#issuecomment-324356126
+      */
+      setTimeout(() => {
+        ref.focus()
+      })
       ref.addEventListener('keydown', this._handleKeyDown)
       this.componentWillUnmount = () =>
         ref.removeEventListener('keydown', this._handleKeyDown)
