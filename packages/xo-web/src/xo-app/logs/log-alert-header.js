@@ -37,6 +37,7 @@ export default decorate([
             tasks.forEach(({ status, data: { id } }) => {
               status === 'success' && vms.delete(id)
             })
+            vms = Array.from(vms)
           } else {
             vms = []
             tasks.forEach(({ status, data: { id } }) => {
