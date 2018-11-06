@@ -9,7 +9,6 @@ import Icon from 'icon'
 import React from 'react'
 import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import Tooltip from 'tooltip'
-import { difference } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
@@ -28,29 +27,28 @@ export default decorate([
         { log: { jobId: id, scheduleId: schedule, tasks, infos } }
       ) => {
         let vms
-        const scheduledVms = get(
-          () => infos.find(({ message }) => message === 'vms').data.vms
-        )
-        if (scheduledVms !== undefined) {
-          const successfulVmsIds = []
-          tasks.forEach(task => {
-            if (task.status === 'success') {
-              successfulVmsIds.push(task.data.id)
-            }
-          })
-          vms = difference(scheduledVms, successfulVmsIds)
+        if (tasks !== undefined) {
+          const scheduledVms = get(
+            () => infos.find(({ message }) => message === 'vms').data.vms
+          )
+
+          if (scheduledVms !== undefined) {
+            vms = new Set(scheduledVms)
+            tasks.forEach(({ status, data: { id } }) => {
+              status === 'success' && vms.delete(id)
+            })
+          } else {
+            vms = []
+            tasks.forEach(({ status, data: { id } }) => {
+              status !== 'success' && vms.push(id)
+            })
+          }
         }
 
         await runBackupNgJob({
           id,
           schedule,
-          vms:
-            vms ||
-            get(() =>
-              tasks
-                .filter(({ status }) => status !== 'success')
-                .map(vmTask => vmTask.data.id)
-            ),
+          vms,
         })
       },
     },
