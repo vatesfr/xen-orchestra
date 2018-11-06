@@ -182,6 +182,26 @@ class StrongConfirm extends Component {
     }
   }
 
+  _confirm = () => {
+    this.props.resolve()
+    instance.close()
+  }
+
+  _handleKeyDown = event => {
+    if (event.keyCode === 13 && !this.state.buttons[0].disabled) {
+      this._confirm()
+    }
+  }
+
+  _focusAndAddEventListener = ref => {
+    if (ref !== null) {
+      ref.focus()
+      ref.addEventListener('keydown', this._handleKeyDown)
+      this.componentWillUnmount = () =>
+        ref.removeEventListener('keydown', this._handleKeyDown)
+    }
+  }
+
   render () {
     const {
       body,
@@ -209,9 +229,7 @@ class StrongConfirm extends Component {
         <div>
           <input
             className='form-control'
-            ref={ref => {
-              ref && ref.focus()
-            }}
+            ref={this._focusAndAddEventListener}
             onChange={this._onInputChange}
           />
         </div>
