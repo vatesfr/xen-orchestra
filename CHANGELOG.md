@@ -7,6 +7,7 @@
 ### Bug fixes
 
 - [Backup ng logs] Fix restarting VMs with concurrency issue [#3603](https://github.com/vatesfr/xen-orchestra/issues/3603) (PR [#3634](https://github.com/vatesfr/xen-orchestra/pull/3634))
+- Validate modal containing a confirm text input by pressing the Enter key issue [#2735](https://github.com/vatesfr/xen-orchestra/issues/2735) (PR [#2890](https://github.com/vatesfr/xen-orchestra/pull/2890))
 
 ### Released packages
 
