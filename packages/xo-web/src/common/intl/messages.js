@@ -1398,6 +1398,7 @@ const messages = {
   restoreFilesSelectFiles: 'Select a file…',
   restoreFileContentNotFound: 'Content not found',
   restoreFilesNoFilesSelected: 'No files selected',
+  restoreFilesSelectedFiles: 'Selected files ({files}):',
   restoreFilesSelectedFilesAndFolders: 'Selected files/folders ({files}):',
   restoreFilesDiskError: 'Error while scanning disk',
   restoreFilesSelectAllFiles: "Select all this folder's files",
