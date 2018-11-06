@@ -22,6 +22,7 @@
 ### Enhancements
 
 - [VM] Ability to set nested virtualization in settings [#3619](https://github.com/vatesfr/xen-orchestra/issues/3619) (PR [#3625](https://github.com/vatesfr/xen-orchestra/pull/3625))
+- [Backup NG logs] Display warning in case of missing VMs instead of a ghosts VMs tasks (PR [#3647](https://github.com/vatesfr/xen-orchestra/pull/3647))
 
 ### Bug fixes
 
