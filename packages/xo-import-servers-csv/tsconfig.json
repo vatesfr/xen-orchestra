@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "newLine": "lf",
+    "noImplicitAny": true,
+    "outDir": "dist/",
+    "removeComments": true,
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "target": "es2015"
+  },
+  "includes": "src/**/*"
+}
