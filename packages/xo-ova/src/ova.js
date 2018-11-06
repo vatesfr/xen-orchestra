@@ -14,8 +14,6 @@ import { readVmdkGrainTable } from '.'
 // See: http://www.dmtf.org/sites/default/files/standards/documents/DSP0243_1.0.0.pdf
 // See: http://www.dmtf.org/sites/default/files/standards/documents/DSP0243_2.1.0.pdf
 
-/* global TextDecoder  */
-
 const MEMORY_UNIT_TO_FACTOR = {
   k: 1024,
   m: 1048576,
@@ -67,13 +65,17 @@ const RESOURCE_TYPE_TO_HANDLER = {
   },
 }
 
-function parseTarHeader (header) {
-  const textDecoder = new TextDecoder('ascii')
-  const fileName = textDecoder.decode(header.slice(0, 100)).split('\0')[0]
+function parseTarHeader (header, stringDeserializer) {
+  const fileName = stringDeserializer(header.slice(0, 100), 'ascii').split(
+    '\0'
+  )[0]
   if (fileName.length === 0) {
     return null
   }
-  const fileSize = parseInt(textDecoder.decode(header.slice(124, 124 + 11)), 8)
+  const fileSize = parseInt(
+    stringDeserializer(header.slice(124, 124 + 11), 'ascii'),
+    8
+  )
   return { fileName, fileSize }
 }
 
@@ -115,9 +117,8 @@ const filterDisks = disks => {
   }
 }
 
-async function parseOVF (fileFragment) {
-  const textDecoder = new TextDecoder('utf-8')
-  const xmlString = textDecoder.decode(await fileFragment.read())
+async function parseOVF (fileFragment, stringDeserializer) {
+  const xmlString = stringDeserializer(await fileFragment.read(), 'utf-8')
   return new Promise((resolve, reject) =>
     xml2js.parseString(
       xmlString,
@@ -186,15 +187,17 @@ async function parseOVF (fileFragment) {
 /**
  *
  * @param parsableFile: ParsableFile
+ * @param stringDeserializer function (ArrayBuffer, encoding) => String
  * @returns {Promise<{tables: {}}>}
  */
-export async function parseOVAFile (parsableFile) {
+export async function parseOVAFile (parsableFile, stringDeserializer) {
   let offset = 0
   const HEADER_SIZE = 512
   let data = { tables: {} }
   while (true) {
     const header = parseTarHeader(
-      await parsableFile.slice(offset, offset + HEADER_SIZE).read()
+      await parsableFile.slice(offset, offset + HEADER_SIZE).read(),
+      stringDeserializer
     )
     offset += HEADER_SIZE
     if (header === null) {
@@ -202,7 +205,8 @@ export async function parseOVAFile (parsableFile) {
     }
     if (header.fileName.toLowerCase().endsWith('.ovf')) {
       const res = await parseOVF(
-        parsableFile.slice(offset, offset + header.fileSize)
+        parsableFile.slice(offset, offset + header.fileSize),
+        stringDeserializer
       )
       data = { ...data, ...res }
     }
