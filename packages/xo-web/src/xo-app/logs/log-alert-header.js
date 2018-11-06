@@ -13,9 +13,6 @@ import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 
-const isFailureTask = ({ status }) =>
-  status !== 'success' && status !== 'pending'
-
 export default decorate([
   addSubscriptions(({ id }) => ({
     log: cb =>
@@ -27,19 +24,39 @@ export default decorate([
     effects: {
       restartFailedVms: () => async (
         _,
-        { log: { jobId: id, scheduleId: schedule, tasks } }
+        { log: { jobId: id, scheduleId: schedule, tasks, infos } }
       ) => {
+        let vms
+        if (tasks !== undefined) {
+          const scheduledVms = get(
+            () => infos.find(({ message }) => message === 'vms').data.vms
+          )
+
+          if (scheduledVms !== undefined) {
+            vms = new Set(scheduledVms)
+            tasks.forEach(({ status, data: { id } }) => {
+              status === 'success' && vms.delete(id)
+            })
+            vms = Array.from(vms)
+          } else {
+            vms = []
+            tasks.forEach(({ status, data: { id } }) => {
+              status !== 'success' && vms.push(id)
+            })
+          }
+        }
+
         await runBackupNgJob({
           id,
           schedule,
-          vms:
-            tasks && tasks.filter(isFailureTask).map(vmTask => vmTask.data.id),
+          vms,
         })
       },
     },
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
-      jobFailed: (_, { log }) => log !== undefined && isFailureTask(log),
+      jobFailed: (_, { log = {} }) =>
+        log.status !== 'success' && log.status !== 'pending',
     },
   }),
   injectState,
