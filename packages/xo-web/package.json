@@ -133,7 +133,7 @@
     "value-matcher": "^0.2.0",
     "vinyl": "^2.1.0",
     "watchify": "^3.7.0",
-    "whatwg-fetch": "^2.0.3",
+    "whatwg-fetch": "^3.0.0",
     "xml2js": "^0.4.19",
     "xo-acl-resolver": "^0.3.0",
     "xo-common": "^0.1.2",
