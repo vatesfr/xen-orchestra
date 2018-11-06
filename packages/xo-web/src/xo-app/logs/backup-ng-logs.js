@@ -224,11 +224,17 @@ const LOG_RESTORE_COLUMNS = [
     name: _('labelSpeed'),
     itemRenderer: task => {
       const duration = task.end - task.start
-      return duration > 0 && formatSpeed(task.dataSize, duration)
+      return (
+        task.dataSize !== undefined &&
+        duration > 0 &&
+        formatSpeed(task.dataSize, duration)
+      )
     },
     sortCriteria: task => {
       const duration = task.end - task.start
-      return duration > 0 && task.dataSize / duration
+      return (
+        task.dataSize !== undefined && duration > 0 && task.dataSize / duration
+      )
     },
   },
 ]
