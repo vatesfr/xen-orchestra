@@ -1,4 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
 import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
 import { createSchedule } from '@xen-orchestra/cron'
@@ -22,6 +23,8 @@ import { promisify } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
 // ===================================================================
+
+const log = createLogger('xo:xo-server-usage-report')
 
 const GRANULARITY = 'days'
 
@@ -285,7 +288,13 @@ async function getVmsStats ({ runningVms, xo }) {
   return orderBy(
     await Promise.all(
       map(runningVms, async vm => {
-        const { stats } = await xo.getXapiVmStats(vm, GRANULARITY)
+        const vmStats = await xo
+          .getXapiVmStats(vm, GRANULARITY)
+          .catch(error => {
+            log.warn(`Error on fetching VM stats (${vm.id})`, error)
+          })
+        const stats = vmStats !== undefined ? vmStats.stats : {}
+
         const iopsRead = METRICS_MEAN.iops(get(stats.iops, 'r'))
         const iopsWrite = METRICS_MEAN.iops(get(stats.iops, 'w'))
         return {
@@ -312,7 +321,13 @@ async function getHostsStats ({ runningHosts, xo }) {
   return orderBy(
     await Promise.all(
       map(runningHosts, async host => {
-        const { stats } = await xo.getXapiHostStats(host, GRANULARITY)
+        const hostStats = await xo
+          .getXapiHostStats(host, GRANULARITY)
+          .catch(error => {
+            log.warn(`Error on fetching host stats (${host.id})`, error)
+          })
+        const stats = hostStats !== undefined ? hostStats.stats : {}
+
         return {
           uuid: host.uuid,
           name: host.name_label,
@@ -349,7 +364,13 @@ async function getSrsStats ({ xo, xoObjects }) {
           name += ` (${container.name_label})`
         }
 
-        const { stats } = await xo.getXapiSrStats(sr.id, GRANULARITY)
+        const srStats = await xo
+          .getXapiSrStats(sr.id, GRANULARITY)
+          .catch(error => {
+            log.warn(`Error on fetching SR stats (${sr.id})`, error)
+          })
+        const stats = srStats !== undefined ? srStats.stats : {}
+
         const iopsRead = computeMean(get(stats.iops, 'r'))
         const iopsWrite = computeMean(get(stats.iops, 'w'))
 
