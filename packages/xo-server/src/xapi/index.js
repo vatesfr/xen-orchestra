@@ -2362,7 +2362,7 @@ export default class Xapi extends XapiBase {
         parseDateTime(
           await this.call('host.get_servertime', hostRef)
         ).getTime() - Date.now()
-      ) > 2e3
+      ) > 30e3
     ) {
       throw new Error(
         'host server time and XOA date are not consistent with each other'
