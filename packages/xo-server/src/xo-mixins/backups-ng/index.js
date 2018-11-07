@@ -475,6 +475,7 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
 //
 // job.start(data: { mode: Mode, reportWhen: ReportWhen })
 // ├─ task.info(message: 'vms', data: { vms: string[] })
+// ├─ task.warning(message: 'missingVms', data: { vms: string[] })
 // ├─ task.warning(message: string)
 // ├─ task.start(data: { type: 'VM', id: string })
 // │  ├─ task.warning(message: string)
@@ -543,29 +544,24 @@ export default class BackupNg {
           (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
         ) {
           vms = {}
+          const missingVms = []
           vmsId.forEach(id => {
             try {
               vms[id] = app.getObject(id, 'VM')
             } catch (error) {
-              const taskId: string = logger.notice(
-                `Starting backup of ${id}. (${job.id})`,
-                {
-                  event: 'task.start',
-                  parentId: runJobId,
-                  data: {
-                    type: 'VM',
-                    id,
-                  },
-                }
-              )
-              logger.error(`Backuping ${id} has failed. (${job.id})`, {
-                event: 'task.end',
-                taskId,
-                status: 'failure',
-                result: serializeError(error),
-              })
+              missingVms.push(id)
             }
           })
+
+          if (missingVms.length !== 0) {
+            logger.warning('missingVms', {
+              event: 'task.warning',
+              taskId: runJobId,
+              data: {
+                vms: missingVms,
+              },
+            })
+          }
         } else {
           vms = app.getObjects({
             filter: createPredicate({
