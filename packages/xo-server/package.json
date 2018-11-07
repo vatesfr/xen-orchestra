@@ -109,7 +109,7 @@
     "stoppable": "^1.0.5",
     "struct-fu": "^1.2.0",
     "tar-stream": "^1.5.5",
-    "through2": "^2.0.3",
+    "through2": "^3.0.0",
     "tmp": "^0.0.33",
     "uuid": "^3.0.1",
     "value-matcher": "^0.2.0",

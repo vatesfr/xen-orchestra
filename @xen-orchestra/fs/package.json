@@ -26,7 +26,7 @@
     "get-stream": "^4.0.0",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.11.0",
-    "through2": "^2.0.3",
+    "through2": "^3.0.0",
     "tmp": "^0.0.33",
     "xo-remote-parser": "^0.5.0"
   },
