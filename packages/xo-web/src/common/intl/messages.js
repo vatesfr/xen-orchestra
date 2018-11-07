@@ -1810,7 +1810,7 @@ const messages = {
   logsJobName: 'Job name',
   logsJobTime: 'Job time',
   logsVmNotFound: 'VM not found!',
-  logsSkippedVms: 'Missing VMs skipped ({ vms })',
+  logsMissingVms: 'Missing VMs skipped ({ vms })',
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
   logDeleteMultipleMessage:
     'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?',

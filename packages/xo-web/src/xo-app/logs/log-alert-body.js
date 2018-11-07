@@ -64,8 +64,8 @@ const Warnings = ({ warnings }) =>
       {warnings.map(({ message, data }) => (
         <div className='text-warning'>
           <Icon icon='alarm' />{' '}
-          {message === 'skippedVms'
-            ? _('logsSkippedVms', { vms: data.vms.join(', ') })
+          {message === 'missingVms'
+            ? _('logsMissingVms', { vms: data.vms.join(', ') })
             : message}
         </div>
       ))}
