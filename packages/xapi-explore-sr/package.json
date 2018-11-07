@@ -53,17 +53,8 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "dev-test": "jest --bail --watch",
-    "posttest": "standard && dependency-check ./package.json",
     "prebuild": "rimraf dist/",
     "predev": "npm run prebuild",
-    "prepublishOnly": "npm run build",
-    "test": "jest"
-  },
-  "jest": {
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "testRegex": "\\.spec\\.js$"
+    "prepublishOnly": "npm run build"
   }
 }
