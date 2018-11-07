@@ -227,9 +227,9 @@ export default class MigrateVmModalBody extends BaseComponent {
             <Col size={6}>{_('migrateVmSelectHost')}</Col>
             <Col size={6}>
               <SelectHost
-                required
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
+                required
                 value={host}
               />
             </Col>
@@ -241,9 +241,9 @@ export default class MigrateVmModalBody extends BaseComponent {
               <SingleLineRow>
                 <Col size={12}>
                   <ChooseSrForEachVdisModal
-                    required
                     mainSrPredicate={this._getSrPredicate()}
                     onChange={this.linkState('targetSrs')}
+                    required
                     value={targetSrs}
                     vdis={vdis}
                   />
