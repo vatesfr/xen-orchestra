@@ -165,14 +165,13 @@ const LOG_BACKUP_COLUMNS = [
   },
 ]
 
-const showRestoreError = ({ currentTarget: { dataset } }) => {
+const showRestoreError = ({ currentTarget: { dataset } }) =>
   alert(
     _('logsFailedRestoreTitle'),
     <Copiable data={dataset.error} className='text-danger' tagName='div'>
       <Icon icon='alarm' /> {dataset.message}
     </Copiable>
   )
-}
 
 const LOG_RESTORE_COLUMNS = [
   {
