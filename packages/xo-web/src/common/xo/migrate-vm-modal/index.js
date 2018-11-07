@@ -69,6 +69,8 @@ export default class MigrateVmModalBody extends BaseComponent {
     this.state = {
       mapVifsNetworks: {},
       targetSrs: {},
+      host: props.host || undefined,
+      intraPool: props.host ? props.vm.$pool === props.host.$pool : undefined,
     }
 
     this._getHostPredicate = createSelector(
@@ -117,10 +119,6 @@ export default class MigrateVmModalBody extends BaseComponent {
         return network => networks[network.id]
       }
     )
-  }
-
-  componentDidMount () {
-    this._selectHost(this.props.host)
   }
 
   get value () {
@@ -229,6 +227,7 @@ export default class MigrateVmModalBody extends BaseComponent {
             <Col size={6}>{_('migrateVmSelectHost')}</Col>
             <Col size={6}>
               <SelectHost
+                autoSelectSingleOption
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 value={host}
@@ -236,20 +235,21 @@ export default class MigrateVmModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-        {host && !doNotMigrateVdis && (
-          <div className={styles.groupBlock}>
-            <SingleLineRow>
-              <Col size={12}>
-                <ChooseSrForEachVdisModal
-                  mainSrPredicate={this._getSrPredicate()}
-                  onChange={this.linkState('targetSrs')}
-                  value={targetSrs}
-                  vdis={vdis}
-                />
-              </Col>
-            </SingleLineRow>
-          </div>
-        )}
+        {host &&
+          !doNotMigrateVdis && (
+            <div className={styles.groupBlock}>
+              <SingleLineRow>
+                <Col size={12}>
+                  <ChooseSrForEachVdisModal
+                    mainSrPredicate={this._getSrPredicate()}
+                    onChange={this.linkState('targetSrs')}
+                    value={targetSrs}
+                    vdis={vdis}
+                  />
+                </Col>
+              </SingleLineRow>
+            </div>
+          )}
         {intraPool !== undefined &&
           (!intraPool && (
             <div>
