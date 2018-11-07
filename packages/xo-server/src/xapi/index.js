@@ -5,6 +5,7 @@ import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
 import mixin from '@xen-orchestra/mixin'
+import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import vmdkToVhd from 'xo-vmdk-to-vhd'
@@ -2357,15 +2358,14 @@ export default class Xapi extends XapiBase {
   }
 
   async _assertConsistentHostServerTime (hostRef) {
-    if (
-      Math.abs(
-        parseDateTime(
-          await this.call('host.get_servertime', hostRef)
-        ).getTime() - Date.now()
-      ) > 30e3
-    ) {
+    const delta =
+      parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -
+      Date.now()
+    if (Math.abs(delta) > 30e3) {
       throw new Error(
-        'host server time and XOA date are not consistent with each other'
+        `host server time and XOA date are not consistent with each other (${ms(
+          delta
+        )})`
       )
     }
   }
