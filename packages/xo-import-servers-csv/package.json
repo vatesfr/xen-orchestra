@@ -52,8 +52,8 @@
     "build": "tsc",
     "dev": "tsc -w",
     "lint": "tslint 'src/*.ts'",
-    "posttest": "npm run lint",
-    "prepublishOnly": "npm run build",
+    "posttest": "yarn run lint",
+    "prepublishOnly": "yarn run build",
     "start": "node dist/index.js"
   }
 }
