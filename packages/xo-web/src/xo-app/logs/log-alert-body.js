@@ -61,9 +61,12 @@ const TaskDate = ({ label, value }) =>
 const Warnings = ({ warnings }) =>
   warnings !== undefined ? (
     <div>
-      {warnings.map(({ message }) => (
+      {warnings.map(({ message, data }) => (
         <div className='text-warning'>
-          <Icon icon='alarm' /> {message}
+          <Icon icon='alarm' />{' '}
+          {message === 'skippedVms'
+            ? _('logsSkippedVms', { vms: data.vms.join(', ') })
+            : message}
         </div>
       ))}
     </div>

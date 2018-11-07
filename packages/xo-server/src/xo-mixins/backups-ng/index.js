@@ -475,6 +475,7 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
 //
 // job.start(data: { mode: Mode, reportWhen: ReportWhen })
 // ├─ task.info(message: 'vms', data: { vms: string[] })
+// ├─ task.warning(message: 'skippedVms', data: { vms: string[] })
 // ├─ task.warning(message: string)
 // ├─ task.start(data: { type: 'VM', id: string })
 // │  ├─ task.warning(message: string)
@@ -553,9 +554,12 @@ export default class BackupNg {
           })
 
           if (missingVms.length !== 0) {
-            logger.notice(`Missing VMs skipped (${missingVms.join(', ')})`, {
+            logger.notice('skippedVms', {
               event: 'task.warning',
               taskId: runJobId,
+              data: {
+                vms: missingVms,
+              },
             })
           }
         } else {
