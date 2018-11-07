@@ -1,12 +1,14 @@
 import _, { FormattedDuration } from 'intl'
 import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
+import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize, formatSpeed } from 'utils'
@@ -71,15 +73,6 @@ const DURATION_COLUMN = {
   sortCriteria: log => log.end - log.start,
 }
 
-const STATUS_COLUMN = {
-  name: _('jobStatus'),
-  itemRenderer: log => {
-    const { className, label } = STATUS_LABELS[log.status]
-    return <span className={`tag tag-${className}`}>{_(label)}</span>
-  },
-  sortCriteria: 'status',
-}
-
 const LOG_BACKUP_COLUMNS = [
   {
     name: _('jobId'),
@@ -105,7 +98,14 @@ const LOG_BACKUP_COLUMNS = [
     sortOrder: 'desc',
   },
   DURATION_COLUMN,
-  STATUS_COLUMN,
+  {
+    name: _('jobStatus'),
+    itemRenderer: log => {
+      const { className, label } = STATUS_LABELS[log.status]
+      return <span className={`tag tag-${className}`}>{_(label)}</span>
+    },
+    sortCriteria: 'status',
+  },
   {
     name: _('labelSize'),
     itemRenderer: ({ tasks: vmTasks }) => {
@@ -165,6 +165,14 @@ const LOG_BACKUP_COLUMNS = [
   },
 ]
 
+const showRestoreError = ({ currentTarget: { dataset } }) =>
+  alert(
+    _('logsFailedRestoreTitle'),
+    <Copiable data={dataset.error} className='text-danger' tagName='div'>
+      <Icon icon='alarm' /> {dataset.message}
+    </Copiable>
+  )
+
 const LOG_RESTORE_COLUMNS = [
   {
     name: _('logsJobId'),
@@ -213,7 +221,31 @@ const LOG_RESTORE_COLUMNS = [
     sortCriteria: ({ data: { srId } }, { srs }) =>
       get(() => srs[srId].name_label),
   },
-  STATUS_COLUMN,
+  {
+    name: _('jobStatus'),
+    itemRenderer: task => {
+      const { className, label } = STATUS_LABELS[task.status]
+      return (
+        <div>
+          <span className={`tag tag-${className}`}>{_(label)}</span>{' '}
+          {task.status === 'failure' && (
+            <Tooltip content={_('logsFailedRestoreError')}>
+              <a
+                className='text-danger'
+                onClick={showRestoreError}
+                data-message={task.result.message}
+                data-error={JSON.stringify(task.result)}
+                style={{ cursor: 'pointer' }}
+              >
+                <Icon icon='alarm' />
+              </a>
+            </Tooltip>
+          )}
+        </div>
+      )
+    },
+    sortCriteria: 'status',
+  },
   {
     name: _('labelSize'),
     itemRenderer: ({ dataSize }) =>
@@ -224,25 +256,34 @@ const LOG_RESTORE_COLUMNS = [
     name: _('labelSpeed'),
     itemRenderer: task => {
       const duration = task.end - task.start
-      return duration > 0 && formatSpeed(task.dataSize, duration)
+      return (
+        task.dataSize !== undefined &&
+        duration > 0 &&
+        formatSpeed(task.dataSize, duration)
+      )
     },
     sortCriteria: task => {
       const duration = task.end - task.start
-      return duration > 0 && task.dataSize / duration
+      return (
+        task.dataSize !== undefined && duration > 0 && task.dataSize / duration
+      )
     },
   },
 ]
 
 const ROW_TRANSFORM = (task, { vms }) => {
-  const { id, size: dataSize } =
-    get(
-      () => task.tasks.find(({ message }) => message === 'transfer').result
-    ) || {}
+  let vm, dataSize
+  if (task.status === 'success') {
+    const result = task.tasks.find(({ message }) => message === 'transfer')
+      .result
+    dataSize = result.size
+    vm = vms && vms[result.id]
+  }
 
   return {
     ...task,
     dataSize,
-    vm: vms && vms[id],
+    vm,
   }
 }
 

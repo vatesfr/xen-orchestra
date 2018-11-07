@@ -1811,6 +1811,8 @@ const messages = {
   logsJobTime: 'Job time',
   logsVmNotFound: 'VM not found!',
   logsMissingVms: 'Missing VMs skipped ({ vms })',
+  logsFailedRestoreError: 'Click to show error',
+  logsFailedRestoreTitle: 'Restore error',
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
   logDeleteMultipleMessage:
     'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?',
