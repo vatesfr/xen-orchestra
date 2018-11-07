@@ -60,7 +60,7 @@ export default class ChooseSrForEachVdisModal extends Component {
     return (
       <div>
         <SelectSr
-          autoSelectSingleOption
+          required
           onChange={this._onChangeMainSr}
           placeholder={_('chooseSrForEachVdisModalMainSr')}
           predicate={mainSrPredicate}
