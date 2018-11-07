@@ -12,7 +12,7 @@
 - [Backup ng logs] Fix restarting VMs with concurrency issue [#3603](https://github.com/vatesfr/xen-orchestra/issues/3603) (PR [#3634](https://github.com/vatesfr/xen-orchestra/pull/3634))
 - Validate modal containing a confirm text input by pressing the Enter key [#2735](https://github.com/vatesfr/xen-orchestra/issues/2735) (PR [#2890](https://github.com/vatesfr/xen-orchestra/pull/2890))
 - [Patches] Bulk install correctly ignores upgrade patches on licensed hosts (PR [#3651](https://github.com/vatesfr/xen-orchestra/pull/3651))
-- [Backup ng logs] Fix failure restore issue (PR [#3648](https://github.com/vatesfr/xen-orchestra/pull/3648))
+- [Backup NG logs] Handle failed restores (PR [#3648](https://github.com/vatesfr/xen-orchestra/pull/3648))
 
 ### Released packages
 
