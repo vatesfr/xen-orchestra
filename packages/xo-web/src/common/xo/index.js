@@ -214,39 +214,41 @@ const createSubscription = cb => {
     }
 
     running = true
-    _signIn.then(() => cb()).then(
-      result => {
-        running = false
+    _signIn
+      .then(() => cb())
+      .then(
+        result => {
+          running = false
 
-        if (n === 0) {
-          return uninstall()
+          if (n === 0) {
+            return uninstall()
+          }
+
+          timeout = setTimeout(loop, delay)
+
+          if (!isEqual(result, cache)) {
+            cache = result
+
+            forEach(subscribers, subscriber => {
+              // A subscriber might have disappeared during iteration.
+              //
+              // E.g.: if a subscriber triggers the subscription of another.
+              if (subscriber) {
+                subscriber(result)
+              }
+            })
+          }
+        },
+        error => {
+          running = false
+
+          if (n === 0) {
+            return uninstall()
+          }
+
+          console.error(error)
         }
-
-        timeout = setTimeout(loop, delay)
-
-        if (!isEqual(result, cache)) {
-          cache = result
-
-          forEach(subscribers, subscriber => {
-            // A subscriber might have disappeared during iteration.
-            //
-            // E.g.: if a subscriber triggers the subscription of another.
-            if (subscriber) {
-              subscriber(result)
-            }
-          })
-        }
-      },
-      error => {
-        running = false
-
-        if (n === 0) {
-          return uninstall()
-        }
-
-        console.error(error)
-      }
-    )
+      )
   }
 
   const subscribe = cb => {

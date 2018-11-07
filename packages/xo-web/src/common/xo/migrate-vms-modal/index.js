@@ -287,70 +287,66 @@ export default class MigrateVmsModalBody extends BaseComponent {
             </SingleLineRow>
           </div>
         )}
-        {host &&
-          (!intraPool || !noVdisMigration) && (
-            <div key='sr' style={LINE_STYLE}>
-              <SingleLineRow>
-                <Col size={6}>
-                  {!intraPool
-                    ? _('migrateVmsSelectSr')
-                    : _('migrateVmsSelectSrIntraPool')}{' '}
-                  {(defaultSrId === undefined || !defaultSrConnectedToHost) && (
-                    <Tooltip
-                      content={
-                        defaultSrId !== undefined
-                          ? _('migrateVmNotConnectedDefaultSrError')
-                          : _('migrateVmNoDefaultSrError')
+        {host && (!intraPool || !noVdisMigration) && (
+          <div key='sr' style={LINE_STYLE}>
+            <SingleLineRow>
+              <Col size={6}>
+                {!intraPool
+                  ? _('migrateVmsSelectSr')
+                  : _('migrateVmsSelectSrIntraPool')}{' '}
+                {(defaultSrId === undefined || !defaultSrConnectedToHost) && (
+                  <Tooltip
+                    content={
+                      defaultSrId !== undefined
+                        ? _('migrateVmNotConnectedDefaultSrError')
+                        : _('migrateVmNoDefaultSrError')
+                    }
+                  >
+                    <Icon
+                      icon={defaultSrId !== undefined ? 'alarm' : 'info'}
+                      className={
+                        defaultSrId !== undefined ? 'text-warning' : 'text-info'
                       }
-                    >
-                      <Icon
-                        icon={defaultSrId !== undefined ? 'alarm' : 'info'}
-                        className={
-                          defaultSrId !== undefined
-                            ? 'text-warning'
-                            : 'text-info'
-                        }
-                        size='lg'
-                      />
-                    </Tooltip>
-                  )}
-                </Col>
-                <Col size={6}>
-                  <SelectSr
-                    onChange={this._selectSr}
-                    predicate={this._getSrPredicate()}
-                    value={srId}
-                  />
-                </Col>
-              </SingleLineRow>
-            </div>
-          )}
-        {host &&
-          !intraPool && (
-            <div key='network' style={LINE_STYLE}>
-              <SingleLineRow>
-                <Col size={6}>{_('migrateVmsSelectNetwork')}</Col>
-                <Col size={6}>
-                  <SelectNetwork
-                    disabled={smartVifMapping}
-                    onChange={this._selectNetwork}
-                    predicate={this._getTargetNetworkPredicate()}
-                    value={networkId}
-                  />
-                </Col>
-              </SingleLineRow>
-              <SingleLineRow>
-                <Col size={6} offset={6}>
-                  <input
-                    type='checkbox'
-                    onChange={this._toggleSmartVifMapping}
-                    checked={smartVifMapping}
-                  />{' '}
-                  {_('migrateVmsSmartMapping')}
-                </Col>
-              </SingleLineRow>
-            </div>
-          )}
+                      size='lg'
+                    />
+                  </Tooltip>
+                )}
+              </Col>
+              <Col size={6}>
+                <SelectSr
+                  onChange={this._selectSr}
+                  predicate={this._getSrPredicate()}
+                  value={srId}
+                />
+              </Col>
+            </SingleLineRow>
+          </div>
+        )}
+        {host && !intraPool && (
+          <div key='network' style={LINE_STYLE}>
+            <SingleLineRow>
+              <Col size={6}>{_('migrateVmsSelectNetwork')}</Col>
+              <Col size={6}>
+                <SelectNetwork
+                  disabled={smartVifMapping}
+                  onChange={this._selectNetwork}
+                  predicate={this._getTargetNetworkPredicate()}
+                  value={networkId}
+                />
+              </Col>
+            </SingleLineRow>
+            <SingleLineRow>
+              <Col size={6} offset={6}>
+                <input
+                  type='checkbox'
+                  onChange={this._toggleSmartVifMapping}
+                  checked={smartVifMapping}
+                />{' '}
+                {_('migrateVmsSmartMapping')}
+              </Col>
+            </SingleLineRow>
+          </div>
+        )}
       </div>
     )
   }

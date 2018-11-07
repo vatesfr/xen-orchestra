@@ -149,18 +149,15 @@ export default ({
         </Col>
       </Row>
       <Row>
-        {pool &&
-          host.id === pool.master && (
-            <Row className='text-xs-center'>
-              <Col>
-                <h3>
-                  <span className='tag tag-pill tag-info'>
-                    {_('pillMaster')}
-                  </span>
-                </h3>
-              </Col>
-            </Row>
-          )}
+        {pool && host.id === pool.master && (
+          <Row className='text-xs-center'>
+            <Col>
+              <h3>
+                <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>
+              </h3>
+            </Col>
+          </Row>
+        )}
       </Row>
       <Row>
         <Col>

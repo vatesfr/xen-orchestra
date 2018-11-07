@@ -78,19 +78,18 @@ export default class Redis extends Collection {
         .then(keys => keys.length !== 0 && redis.del(keys))
     ).then(() =>
       asyncMap(redis.smembers(idsIndex), id =>
-        redis.hgetall(`${prefix}:${id}`).then(
-          values =>
-            values == null
-              ? redis.srem(idsIndex, id) // entry no longer exists
-              : asyncMap(indexes, index => {
-                  const value = values[index]
-                  if (value !== undefined) {
-                    return redis.sadd(
-                      `${prefix}_${index}:${String(value).toLowerCase()}`,
-                      id
-                    )
-                  }
-                })
+        redis.hgetall(`${prefix}:${id}`).then(values =>
+          values == null
+            ? redis.srem(idsIndex, id) // entry no longer exists
+            : asyncMap(indexes, index => {
+                const value = values[index]
+                if (value !== undefined) {
+                  return redis.sadd(
+                    `${prefix}_${index}:${String(value).toLowerCase()}`,
+                    id
+                  )
+                }
+              })
         )
       )
     )

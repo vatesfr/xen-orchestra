@@ -196,10 +196,9 @@ const LOG_RESTORE_COLUMNS = [
     itemRenderer: ({ id, vm, status }) => (
       <div>
         {vm !== undefined && <VmItem id={vm.id} link newTab />}
-        {vm === undefined &&
-          status === 'success' && (
-            <span className='text-warning'>{_('logsVmNotFound')}</span>
-          )}{' '}
+        {vm === undefined && status === 'success' && (
+          <span className='text-warning'>{_('logsVmNotFound')}</span>
+        )}{' '}
         <span style={{ fontSize: '0.5em' }} className='text-muted'>
           {id}
         </span>
@@ -321,9 +320,8 @@ export default decorate([
     logs: cb =>
       subscribeBackupNgLogs(logs =>
         cb(
-          groupBy(
-            logs,
-            log => (log.message === 'restore' ? 'restore' : 'backup')
+          groupBy(logs, log =>
+            log.message === 'restore' ? 'restore' : 'backup'
           )
         )
       ),

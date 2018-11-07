@@ -251,12 +251,10 @@ function getTop (objects, options) {
 function computePercentage (curr, prev, options) {
   return zipObject(
     options,
-    map(
-      options,
-      opt =>
-        prev[opt] === 0 || prev[opt] === null
-          ? 'NONE'
-          : `${((curr[opt] - prev[opt]) * 100) / prev[opt]}`
+    map(options, opt =>
+      prev[opt] === 0 || prev[opt] === null
+        ? 'NONE'
+        : `${((curr[opt] - prev[opt]) * 100) / prev[opt]}`
     )
   )
 }

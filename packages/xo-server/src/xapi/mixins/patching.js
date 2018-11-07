@@ -511,11 +511,10 @@ export default {
       ...(await Promise.all(
         mapFilter(this.objects.all, host => {
           if (host.$type === 'host') {
-            return this._listMissingPoolPatchesOnHost(host).then(
-              patches =>
-                host.license_params.sku_type !== 'free'
-                  ? pickBy(patches, { upgrade: false })
-                  : pickBy(patches, { paid: false, upgrade: false })
+            return this._listMissingPoolPatchesOnHost(host).then(patches =>
+              host.license_params.sku_type !== 'free'
+                ? pickBy(patches, { upgrade: false })
+                : pickBy(patches, { paid: false, upgrade: false })
             )
           }
         })

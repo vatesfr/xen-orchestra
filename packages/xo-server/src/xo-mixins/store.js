@@ -10,10 +10,8 @@ import { forEach, isFunction, promisify } from '../utils'
 
 const _levelHas = function has (key, cb) {
   if (cb) {
-    return this.get(
-      key,
-      (error, value) =>
-        error ? (error.notFound ? cb(null, false) : cb(error)) : cb(null, true)
+    return this.get(key, (error, value) =>
+      error ? (error.notFound ? cb(null, false) : cb(error)) : cb(null, true)
     )
   }
 

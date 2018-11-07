@@ -67,35 +67,34 @@ export default class TabConsole extends Component {
 
     return (
       <Container>
-        {!minimalLayout &&
-          statsOverview && (
-            <Row className='text-xs-center'>
-              <Col mediumSize={3}>
-                <p>
-                  <Icon icon='cpu' size={2} />{' '}
-                  <CpuSparkLines data={statsOverview} />
-                </p>
-              </Col>
-              <Col mediumSize={3}>
-                <p>
-                  <Icon icon='memory' size={2} />{' '}
-                  <MemorySparkLines data={statsOverview} />
-                </p>
-              </Col>
-              <Col mediumSize={3}>
-                <p>
-                  <Icon icon='network' size={2} />{' '}
-                  <NetworkSparkLines data={statsOverview} />
-                </p>
-              </Col>
-              <Col mediumSize={3}>
-                <p>
-                  <Icon icon='disk' size={2} />{' '}
-                  <XvdSparkLines data={statsOverview} />
-                </p>
-              </Col>
-            </Row>
-          )}
+        {!minimalLayout && statsOverview && (
+          <Row className='text-xs-center'>
+            <Col mediumSize={3}>
+              <p>
+                <Icon icon='cpu' size={2} />{' '}
+                <CpuSparkLines data={statsOverview} />
+              </p>
+            </Col>
+            <Col mediumSize={3}>
+              <p>
+                <Icon icon='memory' size={2} />{' '}
+                <MemorySparkLines data={statsOverview} />
+              </p>
+            </Col>
+            <Col mediumSize={3}>
+              <p>
+                <Icon icon='network' size={2} />{' '}
+                <NetworkSparkLines data={statsOverview} />
+              </p>
+            </Col>
+            <Col mediumSize={3}>
+              <p>
+                <Icon icon='disk' size={2} />{' '}
+                <XvdSparkLines data={statsOverview} />
+              </p>
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col mediumSize={3}>
             <IsoDevice vm={vm} />

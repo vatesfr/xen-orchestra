@@ -427,17 +427,16 @@ const Updates = decorate([
                   {state.isTrialConsumed && <p>{_('trialConsumed')}</p>}
                 </div>
               )}
-              {process.env.XOA_PLAN > 1 &&
-                process.env.XOA_PLAN < 5 && (
-                  <div>
-                    {xoaTrialState.state === 'trustedTrial' && (
-                      <p>{xoaTrialState.message}</p>
-                    )}
-                    {xoaTrialState.state === 'untrustedTrial' && (
-                      <p className='text-danger'>{xoaTrialState.message}</p>
-                    )}
-                  </div>
-                )}
+              {process.env.XOA_PLAN > 1 && process.env.XOA_PLAN < 5 && (
+                <div>
+                  {xoaTrialState.state === 'trustedTrial' && (
+                    <p>{xoaTrialState.message}</p>
+                  )}
+                  {xoaTrialState.state === 'untrustedTrial' && (
+                    <p className='text-danger'>{xoaTrialState.message}</p>
+                  )}
+                </div>
+              )}
               {process.env.XOA_PLAN < 5 && (
                 <div>
                   {state.isUpdaterDown && (

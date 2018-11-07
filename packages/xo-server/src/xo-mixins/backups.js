@@ -144,8 +144,8 @@ const listPartitions = (() => {
       key === 'start' || key === 'size'
         ? +value
         : key === 'type'
-          ? TYPES[+value] || value
-          : value,
+        ? TYPES[+value] || value
+        : value,
   })
 
   return device =>
@@ -445,17 +445,17 @@ export default class {
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
       if (localBaseUuid) {
-        ;promise.then(() => srcXapi.deleteVm(localBaseUuid))::ignoreErrors()
+        promise.then(() => srcXapi.deleteVm(localBaseUuid))::ignoreErrors()
       }
 
       if (toRemove !== undefined) {
-        ;promise
+        promise
           .then(() => asyncMap(toRemove, _ => targetXapi.deleteVm(_.$id)))
           ::ignoreErrors()
       }
 
       // (Asynchronously) Identify snapshot as future base.
-      ;promise
+      promise
         .then(() => {
           return srcXapi._updateObjectMapProperty(srcVm, 'other_config', {
             [TAG_LAST_BASE_DELTA]: delta.vm.uuid,
@@ -593,7 +593,7 @@ export default class {
       base => base.snapshot_time
     )
     forEach(bases, base => {
-      ;xapi.deleteVdi(base.$id)::ignoreErrors()
+      xapi.deleteVdi(base.$id)::ignoreErrors()
     })
 
     // Export full or delta backup.
@@ -652,7 +652,7 @@ export default class {
     )
     const baseVm = bases.pop()
     forEach(bases, base => {
-      ;xapi.deleteVm(base.$id)::ignoreErrors()
+      xapi.deleteVm(base.$id)::ignoreErrors()
     })
 
     // Check backup dirs.
@@ -780,7 +780,7 @@ export default class {
     await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, retention })
 
     if (baseVm) {
-      ;xapi.deleteVm(baseVm.$id)::ignoreErrors()
+      xapi.deleteVm(baseVm.$id)::ignoreErrors()
     }
 
     return {

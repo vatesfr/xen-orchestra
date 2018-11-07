@@ -107,17 +107,16 @@ export default class IsoDevice extends Component {
             icon='vm-eject'
           />
         </span>
-        {mountedIso &&
-          !cdDrive.device && (
-            <Tooltip content={_('cdDriveNotInstalled')}>
-              <a
-                className='text-warning btn btn-link'
-                onClick={this._showWarning}
-              >
-                <Icon icon='alarm' size='lg' />
-              </a>
-            </Tooltip>
-          )}
+        {mountedIso && !cdDrive.device && (
+          <Tooltip content={_('cdDriveNotInstalled')}>
+            <a
+              className='text-warning btn btn-link'
+              onClick={this._showWarning}
+            >
+              <Icon icon='alarm' size='lg' />
+            </a>
+          </Tooltip>
+        )}
       </div>
     )
   }

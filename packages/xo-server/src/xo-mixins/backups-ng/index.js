@@ -134,8 +134,8 @@ const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
   entries === undefined
     ? []
     : retention > 0
-      ? entries.slice(0, -retention)
-      : entries
+    ? entries.slice(0, -retention)
+    : entries
 
 const defaultSettings: Settings = {
   concurrency: 0,

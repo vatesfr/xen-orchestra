@@ -82,15 +82,14 @@ export default decorate([
             title='Backup job failed'
           />
         )}
-        {state.jobFailed &&
-          log.scheduleId !== undefined && (
-            <ActionButton
-              handler={effects.restartFailedVms}
-              icon='run'
-              size='small'
-              tooltip={_('backupRestartFailedVms')}
-            />
-          )}
+        {state.jobFailed && log.scheduleId !== undefined && (
+          <ActionButton
+            handler={effects.restartFailedVms}
+            icon='run'
+            size='small'
+            tooltip={_('backupRestartFailedVms')}
+          />
+        )}
       </ButtonGroup>
     </span>
   ),

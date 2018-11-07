@@ -384,9 +384,8 @@ const GenericXoItem = connectStore(() => {
   return (state, props) => ({
     xoItem: getObject(state, props),
   })
-})(
-  ({ xoItem, ...props }) =>
-    xoItem ? renderXoItem(xoItem, props) : renderXoUnknownItem()
+})(({ xoItem, ...props }) =>
+  xoItem ? renderXoItem(xoItem, props) : renderXoUnknownItem()
 )
 
 export const renderXoItemFromId = (id, props) => (

@@ -181,7 +181,7 @@ export default class {
     token = token.properties
 
     if (!(token.expiration > Date.now())) {
-      ;this._tokens.remove(id)::ignoreErrors()
+      this._tokens.remove(id)::ignoreErrors()
 
       throw noSuchAuthenticationToken(id)
     }

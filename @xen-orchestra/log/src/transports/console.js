@@ -13,10 +13,10 @@ const consoleTransport = ({ data, level, namespace, message, time }) => {
     level < INFO
       ? debugConsole
       : level < WARN
-        ? infoConsole
-        : level < ERROR
-          ? warnConsole
-          : errorConsole
+      ? infoConsole
+      : level < ERROR
+      ? warnConsole
+      : errorConsole
 
   fn('%s - %s - [%s] %s', time.toISOString(), namespace, NAMES[level], message)
   data != null && fn(data)

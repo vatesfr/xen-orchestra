@@ -208,8 +208,8 @@ export default class Xapi extends XapiBase {
     }
 
     const loop = () =>
-      this._waitObject(idOrUuidOrRef).then(
-        object => (predicate(object) ? object : loop())
+      this._waitObject(idOrUuidOrRef).then(object =>
+        predicate(object) ? object : loop()
       )
 
     return loop()
@@ -877,7 +877,7 @@ export default class Xapi extends XapiBase {
         //
         // The snapshot must not exist otherwise it could break the
         // next export.
-        ;this._deleteVdi(vdi)::ignoreErrors()
+        this._deleteVdi(vdi)::ignoreErrors()
         return
       }
 
@@ -1128,7 +1128,7 @@ export default class Xapi extends XapiBase {
     ])
 
     if (deleteBase && baseVm) {
-      ;this._deleteVm(baseVm)::ignoreErrors()
+      this._deleteVm(baseVm)::ignoreErrors()
     }
 
     await Promise.all([
@@ -1168,8 +1168,8 @@ export default class Xapi extends XapiBase {
           mapVdisSrs && mapVdisSrs[vdi.$id]
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
             : sr !== undefined
-              ? hostXapi.getObject(sr).$ref
-              : defaultSr.$ref // Will error if there are no default SR.
+            ? hostXapi.getObject(sr).$ref
+            : defaultSr.$ref // Will error if there are no default SR.
       }
     }
 
@@ -1316,7 +1316,7 @@ export default class Xapi extends XapiBase {
     }
 
     if (onVmCreation != null) {
-      ;this._waitObject(
+      this._waitObject(
         obj =>
           obj != null &&
           obj.current_operations != null &&
@@ -1654,12 +1654,12 @@ export default class Xapi extends XapiBase {
 
         await this._startVm(vm)
       } finally {
-        ;this._setObjectProperties(vm, {
+        this._setObjectProperties(vm, {
           PV_bootloader: bootloader,
         })::ignoreErrors()
 
         forEach(bootables, ([vbd, bootable]) => {
-          ;this._setObjectProperties(vbd, { bootable })::ignoreErrors()
+          this._setObjectProperties(vbd, { bootable })::ignoreErrors()
         })
       }
     }

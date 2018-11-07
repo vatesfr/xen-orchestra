@@ -502,8 +502,8 @@ export default class SortedTable extends Component {
             ) {
               this.setState({
                 highlighted:
-                  (itemIndex + visibleItems.length + 1) %
-                  visibleItems.length || 0,
+                  (itemIndex + visibleItems.length + 1) % visibleItems.length ||
+                  0,
               })
             }
             break
@@ -515,8 +515,8 @@ export default class SortedTable extends Component {
             ) {
               this.setState({
                 highlighted:
-                  (itemIndex + visibleItems.length - 1) %
-                  visibleItems.length || 0,
+                  (itemIndex + visibleItems.length - 1) % visibleItems.length ||
+                  0,
               })
             }
             break

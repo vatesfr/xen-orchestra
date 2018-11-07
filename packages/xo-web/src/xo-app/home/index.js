@@ -1056,32 +1056,30 @@ export default class Home extends Component {
                     <Icon icon='tags' /> {_('homeAllTags')}
                   </Button>
                 </OverlayTrigger>
-                {showResourceSetsSelector &&
-                  isAdmin &&
-                  !noResourceSets && (
-                    <OverlayTrigger
-                      trigger='click'
-                      rootClose
-                      placement='bottom'
-                      overlay={
-                        <Popover
-                          className={styles.selectObject}
-                          id='resourceSetPopover'
-                        >
-                          <SelectResourceSet
-                            autoFocus
-                            multi
-                            onChange={this._updateSelectedResourceSets}
-                            value={selectedResourceSets}
-                          />
-                        </Popover>
-                      }
-                    >
-                      <Button btnStyle='link'>
-                        <Icon icon='resource-set' /> {_('homeAllResourceSets')}
-                      </Button>
-                    </OverlayTrigger>
-                  )}
+                {showResourceSetsSelector && isAdmin && !noResourceSets && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover
+                        className={styles.selectObject}
+                        id='resourceSetPopover'
+                      >
+                        <SelectResourceSet
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedResourceSets}
+                          value={selectedResourceSets}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button btnStyle='link'>
+                      <Icon icon='resource-set' /> {_('homeAllResourceSets')}
+                    </Button>
+                  </OverlayTrigger>
+                )}
                 <DropdownButton
                   bsStyle='link'
                   id='sort'

@@ -228,16 +228,15 @@ export default class Vhd {
     return this._read(
       sectorsToBytes(blockAddr),
       onlyBitmap ? this.bitmapSize : this.fullBlockSize
-    ).then(
-      buf =>
-        onlyBitmap
-          ? { id: blockId, bitmap: buf }
-          : {
-              id: blockId,
-              bitmap: buf.slice(0, this.bitmapSize),
-              data: buf.slice(this.bitmapSize),
-              buffer: buf,
-            }
+    ).then(buf =>
+      onlyBitmap
+        ? { id: blockId, bitmap: buf }
+        : {
+            id: blockId,
+            bitmap: buf.slice(0, this.bitmapSize),
+            data: buf.slice(this.bitmapSize),
+            buffer: buf,
+          }
     )
   }
 

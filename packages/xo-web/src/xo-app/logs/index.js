@@ -69,10 +69,10 @@ const JobCallStateInfos = ({ end, error, isJobInterrupted }) => {
         ? ['skipped', 'jobCallSkipped']
         : ['halted', 'failedJobCall']
       : end !== undefined
-        ? ['running', 'successfulJobCall']
-        : isJobInterrupted
-          ? ['halted', 'jobInterrupted']
-          : ['busy', 'jobCallInProgess']
+      ? ['running', 'successfulJobCall']
+      : isJobInterrupted
+      ? ['halted', 'jobInterrupted']
+      : ['busy', 'jobCallInProgess']
 
   return (
     <Tooltip content={_(tooltip)}>
@@ -401,8 +401,8 @@ const LOG_COLUMNS = [
               log.hasErrors
                 ? 'tag-danger'
                 : log.callSkipped
-                  ? 'tag-info'
-                  : 'tag-success'
+                ? 'tag-info'
+                : 'tag-success'
             )}
           >
             {_('jobFinished')}

@@ -44,14 +44,13 @@ const UnhealthyVdiChains = flowRight(
       createSelector((_, props) => props.chains, keys)
     ),
   }))
-)(
-  ({ chains, vdis }) =>
-    isEmpty(vdis) ? null : (
-      <div>
-        <h3>{_('srUnhealthyVdiTitle', { total: sum(values(chains)) })}</h3>
-        <SortedTable collection={vdis} columns={COLUMNS} userData={chains} />
-      </div>
-    )
+)(({ chains, vdis }) =>
+  isEmpty(vdis) ? null : (
+    <div>
+      <h3>{_('srUnhealthyVdiTitle', { total: sum(values(chains)) })}</h3>
+      <SortedTable collection={vdis} columns={COLUMNS} userData={chains} />
+    </div>
+  )
 )
 
 export default ({ sr }) => (

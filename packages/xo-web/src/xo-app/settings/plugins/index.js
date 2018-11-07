@@ -223,30 +223,29 @@ class Plugin extends Component {
             </div>
           </form>
         )}
-        {expanded &&
-          props.testable && (
-            <form id={this.testFormId}>
-              {props.testSchema && (
-                <GenericInput
-                  label='Test data'
-                  schema={props.testSchema}
-                  uiSchema={generateUiSchema(props.testSchema)}
-                  required
-                  ref='testInput'
-                />
-              )}
-              <div className='form-group pull-right'>
-                <ActionButton
-                  btnStyle='primary'
-                  form={this.testFormId}
-                  handler={this._test}
-                  icon='diagnosis'
-                >
-                  Test plugin
-                </ActionButton>
-              </div>
-            </form>
-          )}
+        {expanded && props.testable && (
+          <form id={this.testFormId}>
+            {props.testSchema && (
+              <GenericInput
+                label='Test data'
+                schema={props.testSchema}
+                uiSchema={generateUiSchema(props.testSchema)}
+                required
+                ref='testInput'
+              />
+            )}
+            <div className='form-group pull-right'>
+              <ActionButton
+                btnStyle='primary'
+                form={this.testFormId}
+                handler={this._test}
+                icon='diagnosis'
+              >
+                Test plugin
+              </ActionButton>
+            </div>
+          </form>
+        )}
       </div>
     )
   }

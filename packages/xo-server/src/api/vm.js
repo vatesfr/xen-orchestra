@@ -374,7 +374,7 @@ async function delete_ ({
     vm.type === 'VM' && // only regular VMs
     xapi.xo.getData(vm._xapiId, 'resourceSet') != null
   ) {
-    ;this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
+    this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
   }
 
   return xapi.deleteVm(

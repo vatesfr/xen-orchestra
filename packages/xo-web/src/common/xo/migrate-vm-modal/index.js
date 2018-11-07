@@ -236,21 +236,20 @@ export default class MigrateVmModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-        {host &&
-          !doNotMigrateVdis && (
-            <div className={styles.groupBlock}>
-              <SingleLineRow>
-                <Col size={12}>
-                  <ChooseSrForEachVdisModal
-                    mainSrPredicate={this._getSrPredicate()}
-                    onChange={this.linkState('targetSrs')}
-                    value={targetSrs}
-                    vdis={vdis}
-                  />
-                </Col>
-              </SingleLineRow>
-            </div>
-          )}
+        {host && !doNotMigrateVdis && (
+          <div className={styles.groupBlock}>
+            <SingleLineRow>
+              <Col size={12}>
+                <ChooseSrForEachVdisModal
+                  mainSrPredicate={this._getSrPredicate()}
+                  onChange={this.linkState('targetSrs')}
+                  value={targetSrs}
+                  vdis={vdis}
+                />
+              </Col>
+            </SingleLineRow>
+          </div>
+        )}
         {intraPool !== undefined &&
           (!intraPool && (
             <div>

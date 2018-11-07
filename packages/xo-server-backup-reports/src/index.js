@@ -667,8 +667,8 @@ class BackupReportsXoPlugin {
     const globalStatus = globalSuccess
       ? `Success`
       : nFailures !== 0
-        ? `Failure`
-        : `Skipped`
+      ? `Failure`
+      : `Skipped`
 
     let markdown = [
       `##  Global status: ${globalStatus}`,
@@ -727,8 +727,8 @@ class BackupReportsXoPlugin {
         globalSuccess
           ? ICON_SUCCESS
           : nFailures !== 0
-            ? ICON_FAILURE
-            : ICON_SKIPPED
+          ? ICON_FAILURE
+          : ICON_SKIPPED
       }`,
       nagiosStatus: globalSuccess ? 0 : 2,
       nagiosMarkdown: globalSuccess

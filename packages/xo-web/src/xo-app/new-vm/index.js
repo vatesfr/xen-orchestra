@@ -1111,17 +1111,16 @@ export default class NewVm extends BaseComponent {
                   </Button>
                 </span>
               </span>
-              {this.props.userSshKeys &&
-                this.props.userSshKeys.length > 0 && (
-                  <span className={styles.fixedWidth}>
-                    <SelectSshKey
-                      disabled={installMethod !== 'SSH'}
-                      onChange={this._onChangeSshKeys}
-                      multi
-                      value={sshKeys || []}
-                    />
-                  </span>
-                )}
+              {this.props.userSshKeys && this.props.userSshKeys.length > 0 && (
+                <span className={styles.fixedWidth}>
+                  <SelectSshKey
+                    disabled={installMethod !== 'SSH'}
+                    onChange={this._onChangeSshKeys}
+                    multi
+                    value={sshKeys || []}
+                  />
+                </span>
+              )}
             </LineItem>
             <br />
             <LineItem>
@@ -1680,17 +1679,16 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
-          template &&
-            template.virtualizationMode === 'hvm' && (
-              <SectionContent>
-                <Item label={_('vmVgpu')}>
-                  <SelectVgpuType
-                    onChange={this._linkState('vgpuType')}
-                    predicate={this._getVgpuTypePredicate()}
-                  />
-                </Item>
-              </SectionContent>
-            ),
+          template && template.virtualizationMode === 'hvm' && (
+            <SectionContent>
+              <Item label={_('vmVgpu')}>
+                <SelectVgpuType
+                  onChange={this._linkState('vgpuType')}
+                  predicate={this._getVgpuTypePredicate()}
+                />
+              </Item>
+            </SectionContent>
+          ),
         ]}
       </Section>
     )

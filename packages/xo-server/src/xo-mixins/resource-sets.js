@@ -57,15 +57,13 @@ const normalize = set => ({
   id: set.id,
   ipPools: set.ipPools || [],
   limits: set.limits
-    ? map(
-        set.limits,
-        limit =>
-          isObject(limit)
-            ? limit
-            : {
-                available: limit,
-                total: limit,
-              }
+    ? map(set.limits, limit =>
+        isObject(limit)
+          ? limit
+          : {
+              available: limit,
+              total: limit,
+            }
       )
     : {},
   name: set.name || '',

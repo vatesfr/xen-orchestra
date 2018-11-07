@@ -190,23 +190,22 @@ export default class Vm extends BaseComponent {
                 onChange={this._setNameDescription}
               />
               <span className='text-muted'>
-                {vm.power_state === 'Running' &&
-                  container && (
-                    <span>
-                      <span> - </span>
-                      <Select
-                        onChange={this._migrateVm}
-                        options={hosts}
-                        renderer={this._selectOptionRenderer}
-                        useLongClick
-                        value={container}
-                      >
-                        <Link to={`/${container.type}s/${container.id}`}>
-                          {container.name_label}
-                        </Link>
-                      </Select>
-                    </span>
-                  )}{' '}
+                {vm.power_state === 'Running' && container && (
+                  <span>
+                    <span> - </span>
+                    <Select
+                      onChange={this._migrateVm}
+                      options={hosts}
+                      renderer={this._selectOptionRenderer}
+                      useLongClick
+                      value={container}
+                    >
+                      <Link to={`/${container.type}s/${container.id}`}>
+                        {container.name_label}
+                      </Link>
+                    </Select>
+                  </span>
+                )}{' '}
                 {pool && (
                   <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
                 )}

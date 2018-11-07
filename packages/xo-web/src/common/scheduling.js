@@ -281,8 +281,8 @@ const TimePicker = decorate([
         step === 1
           ? optionsValues
           : step !== undefined
-            ? optionsValues.filter((_, i) => i % step === 0)
-            : value.split(',').map(Number),
+          ? optionsValues.filter((_, i) => i % step === 0)
+          : value.split(',').map(Number),
 
       // '*' => 1
       // '*/2' => 2
@@ -291,8 +291,8 @@ const TimePicker = decorate([
         value === '*'
           ? 1
           : value.indexOf('/') === 1
-            ? +value.split('/')[1]
-            : undefined,
+          ? +value.split('/')[1]
+          : undefined,
     },
   }),
   injectState,

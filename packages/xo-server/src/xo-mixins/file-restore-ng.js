@@ -56,8 +56,8 @@ const parsePartxLine = createPairsParser({
     key === 'start' || key === 'size'
       ? +value
       : key === 'type'
-        ? PARTITION_TYPE_NAMES[+value] || value
-        : value,
+      ? PARTITION_TYPE_NAMES[+value] || value
+      : value,
 })
 
 const listLvmLogicalVolumes = defer(

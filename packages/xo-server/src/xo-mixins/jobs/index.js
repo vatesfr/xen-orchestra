@@ -328,7 +328,7 @@ export default class Jobs {
       app.emit('job:terminated', undefined, job, schedule, runJobId)
       throw error
     } finally {
-      ;this.updateJob({ id, runId: null })::ignoreErrors()
+      this.updateJob({ id, runId: null })::ignoreErrors()
       delete runningJobs[id]
       delete runs[runJobId]
       if (session !== undefined) {

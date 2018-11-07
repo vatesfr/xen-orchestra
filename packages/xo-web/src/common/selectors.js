@@ -146,15 +146,14 @@ export const createFilter = (collection, predicate) =>
   _create2(
     collection,
     predicate,
-    _createCollectionWrapper(
-      (collection, predicate) =>
-        predicate === false
-          ? isArrayLike(collection)
-            ? EMPTY_ARRAY
-            : EMPTY_OBJECT
-          : predicate
-            ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
-            : collection
+    _createCollectionWrapper((collection, predicate) =>
+      predicate === false
+        ? isArrayLike(collection)
+          ? EMPTY_ARRAY
+          : EMPTY_OBJECT
+        : predicate
+        ? (isArrayLike(collection) ? filter : pickBy)(collection, predicate)
+        : collection
     )
   )
 
