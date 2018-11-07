@@ -31,11 +31,10 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=8"
   },
   "dependencies": {
     "archy": "^1.0.0",
-    "babel-runtime": "^6.23.0",
     "chalk": "^2.3.2",
     "exec-promise": "^0.7.0",
     "human-format": "^0.10.0",
@@ -44,11 +43,10 @@
     "xen-api": "^0.20.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.5",
+    "@babel/preset-env": "^7.1.5",
     "babel-plugin-lodash": "^3.2.11",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-env": "^1.4.0",
-    "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^5.1.4",
     "rimraf": "^2.6.1"
   },
@@ -61,23 +59,6 @@
     "predev": "npm run prebuild",
     "prepublishOnly": "npm run build",
     "test": "jest"
-  },
-  "babel": {
-    "plugins": [
-      "lodash",
-      "transform-runtime"
-    ],
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "node": 4
-          }
-        }
-      ],
-      "stage-3"
-    ]
   },
   "jest": {
     "roots": [
