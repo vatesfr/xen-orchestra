@@ -462,7 +462,9 @@ export default {
   async _installAllPoolPatchesOnHost (host) {
     const installableByUuid =
       host.license_params.sku_type !== 'free'
-        ? await this._listMissingPoolPatchesOnHost(host)
+        ? pickBy(await this._listMissingPoolPatchesOnHost(host), {
+            upgrade: false,
+          })
         : pickBy(await this._listMissingPoolPatchesOnHost(host), {
             paid: false,
             upgrade: false,
@@ -512,7 +514,7 @@ export default {
             return this._listMissingPoolPatchesOnHost(host).then(
               patches =>
                 host.license_params.sku_type !== 'free'
-                  ? patches
+                  ? pickBy(patches, { upgrade: false })
                   : pickBy(patches, { paid: false, upgrade: false })
             )
           }
