@@ -741,8 +741,8 @@ export default class BackupNg {
   // Task logs emitted in a restore execution:
   //
   // task.start(message: 'restore', data: { jobId: string, srId: string, time: number })
-  // │ ├─ task.start(message: 'transfer')
-  // │ └─ task.end(result: { id: string, size: number })
+  // ├─ task.start(message: 'transfer')
+  // │  └─ task.end(result: { id: string, size: number })
   // └─ task.end
   async importVmBackupNg (id: string, srId: string): Promise<string> {
     const app = this._app
