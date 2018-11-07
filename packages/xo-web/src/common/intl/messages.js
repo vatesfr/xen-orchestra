@@ -88,6 +88,7 @@ const messages = {
   xosan: 'XOSAN',
   backupDeprecatedMessage:
     'Warning: Backup is deprecated, use Backup NG instead.',
+  moveRestoreLegacyMessage: 'Warning: Your legacy backups can be found here',
   backupMigrationLink: 'How to migrate to Backup NG',
   backupNgNewPage: 'Create a new backup with Backup NG',
   backupOverviewPage: 'Overview',
@@ -1343,7 +1344,6 @@ const messages = {
   remoteError: 'Error',
   remoteErrorMessage:
     'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.',
-  noBackup: 'No backup available',
   backupVmNameColumn: 'VM Name',
   backupVmDescriptionColumn: 'VM Description',
   backupTags: 'Tags',
@@ -1361,6 +1361,8 @@ const messages = {
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
   restoreResfreshList: 'Refresh backup list',
+  restoreLegacy: 'Legacy restore',
+  restoreFileLegacy: 'Legacy file restore',
   restoreVmBackups: 'Restore',
   restoreVmBackupsTitle: 'Restore {vm}',
   restoreVmBackupsBulkTitle:
@@ -1396,6 +1398,7 @@ const messages = {
   restoreFilesSelectFiles: 'Select a file…',
   restoreFileContentNotFound: 'Content not found',
   restoreFilesNoFilesSelected: 'No files selected',
+  restoreFilesSelectedFiles: 'Selected files ({files}):',
   restoreFilesSelectedFilesAndFolders: 'Selected files/folders ({files}):',
   restoreFilesDiskError: 'Error while scanning disk',
   restoreFilesSelectAllFiles: "Select all this folder's files",

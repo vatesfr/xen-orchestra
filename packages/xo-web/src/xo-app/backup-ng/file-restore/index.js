@@ -32,6 +32,8 @@ import {
 import DeleteBackupsModalBody from '../restore/delete-backups-modal-body'
 import RestoreFileModalBody from './restore-file-modal'
 
+import RestoreFileLegacy from '../file-restore-legacy'
+
 // -----------------------------------------------------------------------------
 
 const BACKUPS_COLUMNS = [
@@ -239,6 +241,7 @@ export default class Restore extends Component {
             columns={BACKUPS_COLUMNS}
             individualActions={this._individualActions}
           />
+          <RestoreFileLegacy />
         </div>
       </Upgrade>
     )
