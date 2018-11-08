@@ -504,7 +504,8 @@ export default class TabAdvanced extends Component {
                     <AffinityHost vm={vm} />
                   </td>
                 </tr>
-                {vm.virtualizationMode === 'hvm' && (
+                {(vm.virtualizationMode === 'hvm' ||
+                  vm.virtualizationMode === 'pvhvm') && (
                   <tr>
                     <th>{_('vmVgpus')}</th>
                     <td>
@@ -526,7 +527,8 @@ export default class TabAdvanced extends Component {
                     />
                   </td>
                 </tr>
-                {vm.virtualizationMode === 'hvm' && (
+                {(vm.virtualizationMode === 'hvm' ||
+                  vm.virtualizationMode === 'pvhvm') && (
                   <tr>
                     <th>{_('vmVga')}</th>
                     <td>
