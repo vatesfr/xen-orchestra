@@ -418,7 +418,7 @@ export default class XapiStats {
     })
   }
 
-  getVmStats (xapi, vmId, granularity) {
+  async getVmStats (xapi, vmId, granularity) {
     const vm = xapi.getObject(vmId)
     const host = vm.$resident_on
     if (!host) {
