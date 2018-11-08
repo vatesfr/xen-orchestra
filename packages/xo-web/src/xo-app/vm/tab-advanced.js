@@ -19,8 +19,8 @@ import {
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
+  getVirtualizationModeLabel,
   osFamily,
-  VIRTUALIZATION_MODE_LABEL,
 } from 'utils'
 import {
   cloneVm,
@@ -409,7 +409,7 @@ export default class TabAdvanced extends Component {
               <tbody>
                 <tr>
                   <th>{_('virtualizationMode')}</th>
-                  <td>{_(VIRTUALIZATION_MODE_LABEL[vm.virtualizationMode])}</td>
+                  <td>{_(getVirtualizationModeLabel(vm))}</td>
                 </tr>
                 {vm.virtualizationMode === 'pv' && (
                   <tr>

@@ -22,8 +22,8 @@ import {
 import {
   connectStore,
   formatSize,
+  getVirtualizationModeLabel,
   osFamily,
-  VIRTUALIZATION_MODE_LABEL,
 } from 'utils'
 import {
   CpuSparkLines,
@@ -132,7 +132,7 @@ export default connectStore(() => {
           )}
         </Col>
         <Col mediumSize={3}>
-          <p>{_(VIRTUALIZATION_MODE_LABEL[vm.virtualizationMode])}</p>
+          <p>{_(getVirtualizationModeLabel(vm))}</p>
           {vgpu !== undefined && (
             <p>{renderXoItem(vgpuTypes[vgpu.vgpuType])}</p>
           )}
