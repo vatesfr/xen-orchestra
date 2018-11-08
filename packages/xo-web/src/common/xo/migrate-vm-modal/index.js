@@ -69,6 +69,8 @@ export default class MigrateVmModalBody extends BaseComponent {
     this.state = {
       mapVifsNetworks: {},
       targetSrs: {},
+      host: props.host || undefined,
+      intraPool: props.host ? props.vm.$pool === props.host.$pool : undefined,
     }
 
     this._getHostPredicate = createSelector(
@@ -117,10 +119,6 @@ export default class MigrateVmModalBody extends BaseComponent {
         return network => networks[network.id]
       }
     )
-  }
-
-  componentDidMount () {
-    this._selectHost(this.props.host)
   }
 
   get value () {
@@ -231,25 +229,28 @@ export default class MigrateVmModalBody extends BaseComponent {
               <SelectHost
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
+                required
                 value={host}
               />
             </Col>
           </SingleLineRow>
         </div>
-        {host && !doNotMigrateVdis && (
-          <div className={styles.groupBlock}>
-            <SingleLineRow>
-              <Col size={12}>
-                <ChooseSrForEachVdisModal
-                  mainSrPredicate={this._getSrPredicate()}
-                  onChange={this.linkState('targetSrs')}
-                  value={targetSrs}
-                  vdis={vdis}
-                />
-              </Col>
-            </SingleLineRow>
-          </div>
-        )}
+        {host &&
+          !doNotMigrateVdis && (
+            <div className={styles.groupBlock}>
+              <SingleLineRow>
+                <Col size={12}>
+                  <ChooseSrForEachVdisModal
+                    mainSrPredicate={this._getSrPredicate()}
+                    onChange={this.linkState('targetSrs')}
+                    required
+                    value={targetSrs}
+                    vdis={vdis}
+                  />
+                </Col>
+              </SingleLineRow>
+            </div>
+          )}
         {intraPool !== undefined &&
           (!intraPool && (
             <div>
