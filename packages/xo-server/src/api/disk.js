@@ -125,6 +125,7 @@ async function handleImportContent (req, res, { xapi, id }) {
   req.setTimeout(43200000) // 12 hours
 
   try {
+    req.length = +req.headers['content-length']
     await xapi.importVdiContent(id, req)
     res.end(format.response(0, true))
   } catch (e) {
