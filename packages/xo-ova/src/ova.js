@@ -88,7 +88,7 @@ export class ParsableFile {
   /** returns a ParsableFile */
   slice (start, end) {}
 
-  /** reads the fragment */
+  /** reads the fragment, returns an ArrayBuffer */
   async read () {}
 }
 
