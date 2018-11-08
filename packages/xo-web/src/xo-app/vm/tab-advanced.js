@@ -19,8 +19,8 @@ import {
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
+  getVirtualizationModeLabel,
   osFamily,
-  VIRTUALIZATION_MODE_LABEL,
 } from 'utils'
 import {
   cloneVm,
@@ -313,11 +313,6 @@ export default class TabAdvanced extends Component {
 
   render () {
     const { container, isAdmin, vgpus, vm } = this.props
-    const virtualizationMode =
-      vm.virtualizationMode === 'hvm' && Boolean(vm.xenTools)
-        ? 'pvhvm'
-        : vm.virtualizationMode
-
     return (
       <Container>
         <Row>
@@ -414,7 +409,7 @@ export default class TabAdvanced extends Component {
               <tbody>
                 <tr>
                   <th>{_('virtualizationMode')}</th>
-                  <td>{_(VIRTUALIZATION_MODE_LABEL[virtualizationMode])}</td>
+                  <td>{_(getVirtualizationModeLabel(vm))}</td>
                 </tr>
                 {vm.virtualizationMode === 'pv' && (
                   <tr>
