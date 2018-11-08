@@ -321,8 +321,12 @@ export default class XapiStats {
     const hostUuid = host.uuid
 
     if (
+      !(
+        vmUuid !== undefined &&
+        get(this._statsByObject, [vmUuid, step]) === undefined
+      ) &&
       get(this._statsByObject, [hostUuid, step, 'localTimestamp']) + step >
-      getCurrentTimestamp()
+        getCurrentTimestamp()
     ) {
       return this._getStats(hostUuid, step, vmUuid)
     }
