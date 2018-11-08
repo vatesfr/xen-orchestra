@@ -1188,26 +1188,9 @@ async function handleVmImport (req, res, { data, srId, type, xapi }) {
 }
 
 // TODO: "sr_id" can be passed in URL to target a specific SR
-async function import_ ({ data, host, sr, type }) {
-  let xapi
+async function import_ ({ data, sr, type }) {
   if (data && type === 'xva') {
     throw invalidParameters('unsupported field data for the file type xva')
-  }
-
-  if (!sr) {
-    if (!host) {
-      throw invalidParameters('you must provide either host or SR')
-    }
-
-    xapi = this.getXapi(host)
-    sr = xapi.pool.$default_SR
-    if (!sr) {
-      throw invalidParameters('there is not default SR in this pool')
-    }
-
-    // FIXME: must have administrate permission on default SR.
-  } else {
-    xapi = this.getXapi(sr)
   }
 
   return {
@@ -1215,7 +1198,7 @@ async function import_ ({ data, host, sr, type }) {
       data,
       srId: sr._xapiId,
       type,
-      xapi,
+      xapi: this.getXapi(sr),
     }),
   }
 }
@@ -1250,13 +1233,11 @@ import_.params = {
       },
     },
   },
-  host: { type: 'string', optional: true },
   type: { type: 'string', optional: true },
-  sr: { type: 'string', optional: true },
+  sr: { type: 'string' },
 }
 
 import_.resolve = {
-  host: ['host', 'host', 'administrate'],
   sr: ['sr', 'SR', 'administrate'],
 }
 

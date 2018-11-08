@@ -120,7 +120,7 @@ encoding by prefixing with `json:`:
 ##### VM import
 
  ```
-> xo-cli vm.import host=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
+> xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```
 
 ## Development
