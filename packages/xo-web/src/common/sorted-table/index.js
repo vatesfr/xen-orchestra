@@ -19,6 +19,7 @@ import {
   findIndex,
   forEach,
   get as getProperty,
+  isArray,
   isEmpty,
   isFunction,
   map,
@@ -211,28 +212,27 @@ const actionsShape = PropTypes.arrayOf(
   })
 )
 
-const IndividualAction = decorate([
+const Action = decorate([
   provideState({
     computed: {
-      disabled: ({ item }, { disabled, userData }) =>
-        isFunction(disabled) ? disabled(item, userData) : disabled,
-      handler: ({ item }, { handler, userData }) => () =>
-        handler(item, userData),
-      icon: ({ item }, { icon, userData }) =>
-        isFunction(icon) ? icon(item, userData) : icon,
-      item: (_, { item, grouped }) => (grouped ? [item] : item),
-      label: ({ item }, { label, userData }) =>
-        isFunction(label) ? label(item, userData) : label,
-      level: ({ item }, { level, userData }) =>
-        isFunction(level) ? level(item, userData) : level,
+      disabled: ({ items }, { disabled, userData }) =>
+        isFunction(disabled) ? disabled(items, userData) : disabled,
+      handler: ({ items }, { handler, userData }) => () =>
+        handler(items, userData),
+      icon: ({ items }, { icon, userData }) =>
+        isFunction(icon) ? icon(items, userData) : icon,
+      items: (_, { items, grouped }) =>
+        isArray(items) || !grouped ? items : [items],
+      label: ({ items }, { label, userData }) =>
+        isFunction(label) ? label(items, userData) : label,
+      level: ({ items }, { level, userData }) =>
+        isFunction(level) ? level(items, userData) : level,
     },
   }),
   injectState,
   ({ state, redirectOnSuccess, userData }) => (
     <ActionRowButton
       btnStyle={state.level}
-      data-item={state.item}
-      data-userData={userData}
       disabled={state.disabled}
       handler={state.handler}
       icon={state.icon}
@@ -241,42 +241,6 @@ const IndividualAction = decorate([
     />
   ),
 ])
-
-class GroupedAction extends Component {
-  _getIsDisabled = createSelector(
-    () => this.props.disabled,
-    () => this.props.selectedItems,
-    () => this.props.userData,
-    (disabled, selectedItems, userData) =>
-      isFunction(disabled) ? disabled(selectedItems, userData) : disabled
-  )
-  _getLabel = createSelector(
-    () => this.props.label,
-    () => this.props.selectedItems,
-    () => this.props.userData,
-    (label, selectedItems, userData) =>
-      isFunction(label) ? label(selectedItems, userData) : label
-  )
-
-  _executeAction = () => {
-    const p = this.props
-    return p.handler(p.selectedItems, p.userData)
-  }
-
-  render () {
-    const { icon, level } = this.props
-
-    return (
-      <ActionRowButton
-        btnStyle={level}
-        disabled={this._getIsDisabled()}
-        handler={this._executeAction}
-        icon={icon}
-        tooltip={this._getLabel()}
-      />
-    )
-  }
-}
 
 const LEVELS = [undefined, 'primary', 'warning', 'danger']
 // page number and sort info are optional for backward compatibility
@@ -792,12 +756,7 @@ export default class SortedTable extends Component {
         <div className='pull-right'>
           <ButtonGroup>
             {map(this._getIndividualActions(), (props, key) => (
-              <IndividualAction
-                {...props}
-                item={item}
-                key={key}
-                userData={userData}
-              />
+              <Action {...props} items={item} key={key} userData={userData} />
             ))}
           </ButtonGroup>
         </div>
@@ -931,10 +890,10 @@ export default class SortedTable extends Component {
                   <div className='pull-right'>
                     <ButtonGroup>
                       {map(groupedActions, (props, key) => (
-                        <GroupedAction
+                        <Action
                           {...props}
                           key={key}
-                          selectedItems={this._getSelectedItems()}
+                          items={this._getSelectedItems()}
                           userData={userData}
                         />
                       ))}
