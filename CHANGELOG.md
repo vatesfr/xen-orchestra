@@ -7,6 +7,7 @@
 - [Legacy Backup] Restore and File restore functionalities moved to the Backup NG view [#3499](https://github.com/vatesfr/xen-orchestra/issues/3499) (PR [#3610](https://github.com/vatesfr/xen-orchestra/pull/3610))
 - [Backup NG logs] Display warning in case of missing VMs instead of a ghosts VMs tasks (PR [#3647](https://github.com/vatesfr/xen-orchestra/pull/3647))
 - [VM] On migration, automatically selects the host and SR when only one is available [#3502](https://github.com/vatesfr/xen-orchestra/issues/3502) (PR [#3654](https://github.com/vatesfr/xen-orchestra/pull/3654))
+- [VM] Display VGA and video RAM for PVHVM guests [#3576](https://github.com/vatesfr/xen-orchestra/issues/3576) (PR [#3662](https://github.com/vatesfr/xen-orchestra/pull/3662))
 
 ### Bug fixes
 
