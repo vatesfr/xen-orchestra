@@ -1996,6 +1996,11 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async _importVdiContent (vdi, body, format = VDI_FORMAT_VHD) {
+    if (process.env.NODE_ENV !== 'production' && body.length == null) {
+      throw new Error(
+        'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
+      )
+    }
     await Promise.all([
       body.task,
       body.checksumVerified,
