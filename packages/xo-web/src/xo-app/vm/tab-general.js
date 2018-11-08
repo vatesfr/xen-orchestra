@@ -56,6 +56,9 @@ export default connectStore(() => {
     vgpuTypes,
     vm,
     vmTotalDiskSpace,
+    virtualizationMode = vm.virtualizationMode === 'hvm' && Boolean(vm.xenTools)
+      ? 'pvhvm'
+      : vm.virtualizationMode,
   }) => (
     <Container>
       {/* TODO: use CSS style */}
@@ -132,7 +135,7 @@ export default connectStore(() => {
           )}
         </Col>
         <Col mediumSize={3}>
-          <p>{_(VIRTUALIZATION_MODE_LABEL[vm.virtualizationMode])}</p>
+          <p>{_(VIRTUALIZATION_MODE_LABEL[virtualizationMode])}</p>
           {vgpu !== undefined && (
             <p>{renderXoItem(vgpuTypes[vgpu.vgpuType])}</p>
           )}
@@ -165,14 +168,15 @@ export default connectStore(() => {
           </BlockLink>
         </Col>
       </Row>
-      {!vm.xenTools && vm.power_state === 'Running' && (
-        <Row className='text-xs-center'>
-          <Col>
-            <Icon icon='error' />
-            <em> {_('noToolsDetected')}.</em>
-          </Col>
-        </Row>
-      )}
+      {!vm.xenTools &&
+        vm.power_state === 'Running' && (
+          <Row className='text-xs-center'>
+            <Col>
+              <Icon icon='error' />
+              <em> {_('noToolsDetected')}.</em>
+            </Col>
+          </Row>
+        )}
       {/* TODO: use CSS style */}
       <br />
       <Row>

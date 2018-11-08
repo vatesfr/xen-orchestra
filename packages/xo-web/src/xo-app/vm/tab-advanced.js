@@ -313,6 +313,11 @@ export default class TabAdvanced extends Component {
 
   render () {
     const { container, isAdmin, vgpus, vm } = this.props
+    const virtualizationMode =
+      vm.virtualizationMode === 'hvm' && Boolean(vm.xenTools)
+        ? 'pvhvm'
+        : vm.virtualizationMode
+
     return (
       <Container>
         <Row>
@@ -409,7 +414,7 @@ export default class TabAdvanced extends Component {
               <tbody>
                 <tr>
                   <th>{_('virtualizationMode')}</th>
-                  <td>{_(VIRTUALIZATION_MODE_LABEL[vm.virtualizationMode])}</td>
+                  <td>{_(VIRTUALIZATION_MODE_LABEL[virtualizationMode])}</td>
                 </tr>
                 {vm.virtualizationMode === 'pv' && (
                   <tr>
@@ -504,8 +509,7 @@ export default class TabAdvanced extends Component {
                     <AffinityHost vm={vm} />
                   </td>
                 </tr>
-                {(vm.virtualizationMode === 'hvm' ||
-                  vm.virtualizationMode === 'pvhvm') && (
+                {vm.virtualizationMode === 'hvm' && (
                   <tr>
                     <th>{_('vmVgpus')}</th>
                     <td>
@@ -527,8 +531,7 @@ export default class TabAdvanced extends Component {
                     />
                   </td>
                 </tr>
-                {(vm.virtualizationMode === 'hvm' ||
-                  vm.virtualizationMode === 'pvhvm') && (
+                {vm.virtualizationMode === 'hvm' && (
                   <tr>
                     <th>{_('vmVga')}</th>
                     <td>
