@@ -10,7 +10,12 @@ import {
   mapToArray,
   parseXml,
 } from './utils'
-import { isHostRunning, isVmHvm, isVmRunning, parseDateTime } from './xapi'
+import {
+  getVmDomainType,
+  isHostRunning,
+  isVmRunning,
+  parseDateTime,
+} from './xapi'
 import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
@@ -225,7 +230,8 @@ const TRANSFORMS = {
       other_config: otherConfig,
     } = obj
 
-    const isHvm = isVmHvm(obj)
+    const domainType = getVmDomainType(obj)
+    const isHvm = domainType === 'hvm'
     const isRunning = isVmRunning(obj)
     const xenTools = (() => {
       if (!isRunning || !metrics) {
@@ -343,11 +349,7 @@ const TRANSFORMS = {
       startTime: metrics && toTimestamp(metrics.start_time),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
-      virtualizationMode: isHvm
-        ? guestMetrics !== undefined && guestMetrics.PV_drivers_detected
-          ? 'pvhvm'
-          : 'hvm'
-        : 'pv',
+      virtualizationMode: domainType,
 
       // <=> Are the Xen Server tools installed?
       //
