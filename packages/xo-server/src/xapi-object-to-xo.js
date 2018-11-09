@@ -274,6 +274,7 @@ const TRANSFORMS = {
       affinityHost: link(obj, 'affinity'),
       auto_poweron: otherConfig.auto_poweron === 'true',
       boot: obj.HVM_boot_params,
+      bootPolicy: obj.HVM_boot_policy,
       CPUs: {
         max: +obj.VCPUs_max,
         number:

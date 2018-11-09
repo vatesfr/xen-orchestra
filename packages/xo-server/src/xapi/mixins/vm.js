@@ -257,6 +257,12 @@ export default {
       },
     },
 
+    bootPolicy: {
+      set (bootPolicy, vm) {
+        return this._set('HVM_boot_policy', bootPolicy)
+      },
+    },
+
     coresPerSocket: {
       set (coresPerSocket, vm) {
         return this._updateObjectMapProperty(vm, 'platform', {

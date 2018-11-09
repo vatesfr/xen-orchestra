@@ -1037,6 +1037,23 @@ export const convertVmToTemplate = vm =>
     ),
   }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
 
+export const changeVirtualizationMode = vm =>
+  confirm({
+    title: 'Change Virtualization mode',
+    body: (
+      <div>
+        <p>
+          You must know what you are doing, because it could break your setup
+          (if you didn't installed the bootloader in the MBR while switching
+          from PV to HVM, or even worse, in HVM to PV, if you don't have the
+          correct PV args)
+        </p>
+      </div>
+    ),
+  }).then(() =>
+    editVm(vm, { bootPolicy: vm.bootPolicy === '' ? 'Boot order' : '' })
+  )
+
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),

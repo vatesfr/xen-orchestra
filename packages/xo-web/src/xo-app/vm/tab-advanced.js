@@ -23,6 +23,7 @@ import {
   osFamily,
 } from 'utils'
 import {
+  changeVirtualizationMode,
   cloneVm,
   convertVmToTemplate,
   createVgpu,
@@ -392,6 +393,18 @@ export default class TabAdvanced extends Component {
               icon='vm-create-template'
               labelId='vmConvertToTemplateButton'
               redirectOnSuccess='/'
+            />
+            <TabButton
+              btnStyle='danger'
+              disabled={vm.power_state !== 'Halted'}
+              handler={changeVirtualizationMode}
+              handlerParam={vm}
+              icon='vm-migrate'
+              labelId={
+                vm.bootPolicy === ''
+                  ? 'vmVirtualizationPVToHVM'
+                  : 'vmVirtualizationHVMtoPV'
+              }
             />
             <TabButton
               btnStyle='danger'

@@ -561,6 +561,8 @@ export async function set (params) {
 }
 
 set.params = {
+  bootPolicy: { type: 'string', optional: true },
+
   // Identifier of the VM to update.
   id: { type: 'string' },
 
