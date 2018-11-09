@@ -8,6 +8,8 @@
 - [Backup NG logs] Display warning in case of missing VMs instead of a ghosts VMs tasks (PR [#3647](https://github.com/vatesfr/xen-orchestra/pull/3647))
 - [VM] On migration, automatically selects the host and SR when only one is available [#3502](https://github.com/vatesfr/xen-orchestra/issues/3502) (PR [#3654](https://github.com/vatesfr/xen-orchestra/pull/3654))
 - [VM] Display VGA and video RAM for PVHVM guests [#3576](https://github.com/vatesfr/xen-orchestra/issues/3576) (PR [#3664](https://github.com/vatesfr/xen-orchestra/pull/3664))
+- [Backup NG form] Display a warning to let the user know that the Delta Backup and the Continuous Replication are not supported on XenServer < 6.5 [#3540](https://github.com/vatesfr/xen-orchestra/issues/3540) (PR [#3668](https://github.com/vatesfr/xen-orchestra/pull/3668))
+- [Backup NG form] Omit VMs(Simple Backup)/pools(Smart Backup/Resident on) with XenServer < 6.5 from the selection when the Delta Backup mode or the Continuous Replication mode are selected [#3540](https://github.com/vatesfr/xen-orchestra/issues/3540) (PR [#3668](https://github.com/vatesfr/xen-orchestra/pull/3668))
 
 ### Bug fixes
 
