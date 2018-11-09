@@ -39,6 +39,9 @@ function help () {
 
       $name --unregister
         Remove stored credentials.
+        
+      $name --inspect <file>
+        Displays the data that would be imported from the ova.
 
 
     $name v$version
@@ -101,6 +104,20 @@ export async function register (args) {
     server: url,
     token: await xo.call('token.create', { expiresIn }),
   })
+}
+
+function nodeStringDecoder (buffer, encoder) {
+  return Buffer.from(buffer).toString(encoder)
+}
+
+export async function inspect (args) {
+  const file = args[0]
+  const data = await parseOVAFile(
+    new NodeParsableFile(file, (await stat(file)).size),
+    nodeStringDecoder,
+    true
+  )
+  console.log('data', data)
 }
 
 const PARAM_RE = /^([^=]+)=([^]*)$/
@@ -210,32 +227,25 @@ async function call (args) {
 
   const data = await parseOVAFile(
     new NodeParsableFile(file, (await stat(file)).size),
-    (buffer, encoder) => {
-      return Buffer.from(buffer).toString(encoder)
-    }
+    nodeStringDecoder
   )
   const xo = await connect()
-  const sr = Object.values(
-    await xo.call('xo.getAllObjects', { filter: { id: params.sr } })
-  )[0]
-  const pool = Object.values(
-    await xo.call('xo.getAllObjects', { filter: { id: sr.$poolId } })
-  )[0]
-  const master = Object.values(
-    await xo.call('xo.getAllObjects', { filter: { id: pool.master } })
-  )[0]
-  const pif = Object.values(
-    await xo.call('xo.getAllObjects', {
-      filter: {
-        type: 'PIF',
-        management: true,
-        $host: master.id,
-      },
-    })
-  )[0]
-  data.networks[0] = pif.$network
+  const getXoObject = async filter =>
+    Object.values(await xo.call('xo.getAllObjects', { filter }))[0]
+  const sr = await getXoObject({ id: params.sr })
+  const pool = await getXoObject({ id: sr.$poolId })
+  const master = await getXoObject({ id: pool.master })
+  const pif = await getXoObject({
+    type: 'PIF',
+    management: true,
+    $host: master.id,
+  })
+  data.networks = data.networks.map(() => pif.$network)
   data.disks = Object.values(data.disks)
+  console.log('data', data)
   params.data = data
+  params.type = 'ova'
+
   // FIXME: do not use private properties.
   const baseUrl = xo._url.replace(/^ws/, 'http')
 

@@ -188,9 +188,14 @@ async function parseOVF (fileFragment, stringDeserializer) {
  *
  * @param parsableFile: ParsableFile
  * @param stringDeserializer function (ArrayBuffer, encoding) => String
+ * @param skipVmdk if true avoid parsing the VMDK file tables
  * @returns {Promise<{tables: {}}>}
  */
-export async function parseOVAFile (parsableFile, stringDeserializer) {
+export async function parseOVAFile (
+  parsableFile,
+  stringDeserializer,
+  skipVmdk = false
+) {
   let offset = 0
   const HEADER_SIZE = 512
   let data = { tables: {} }
@@ -210,7 +215,7 @@ export async function parseOVAFile (parsableFile, stringDeserializer) {
       )
       data = { ...data, ...res }
     }
-    if (header.fileName.toLowerCase().endsWith('.vmdk')) {
+    if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk')) {
       const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
       const readFile = async (start, end) => fileSlice.slice(start, end).read()
       data.tables[header.fileName] = await readVmdkGrainTable(readFile)
