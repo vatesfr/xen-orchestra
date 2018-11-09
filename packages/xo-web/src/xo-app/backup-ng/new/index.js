@@ -182,6 +182,14 @@ const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   </ActionButton>
 )
 
+const canDeltaBackup = version => {
+  if (version === undefined) {
+    return false
+  }
+  const [major, minor] = version.split('.')
+  return +major > 6 || (+major === 6 && +minor >= 5)
+}
+
 export default decorate([
   New => props => (
     <Upgrade place='newBackup' required={2}>
@@ -192,6 +200,8 @@ export default decorate([
     remotes: subscribeRemotes,
   }),
   connectStore(() => ({
+    hostsById: createGetObjectsOfType('host'),
+    poolsById: createGetObjectsOfType('pool'),
     srsById: createGetObjectsOfType('SR'),
   })),
   injectIntl,
@@ -593,6 +603,16 @@ export default decorate([
         tags: constructSmartPattern(tags, normalizeTagValues),
         type: 'VM',
       }),
+      vmPredicate: ({ isDelta }, { hostsById, poolsById }) => ({
+        $container,
+      }) =>
+        !isDelta ||
+        canDeltaBackup(
+          get(() => hostsById[$container].version) ||
+            get(() => hostsById[poolsById[$container].master].version)
+        ),
+      poolPredicate: ({ isDelta }, { hostsById }) => pool =>
+        !isDelta || canDeltaBackup(get(() => hostsById[pool.master].version)),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
       propSettings: (_, { job }) =>
@@ -957,6 +977,11 @@ export default decorate([
                   </ActionButton>
                 </CardHeader>
                 <CardBlock>
+                  <em>
+                    <Icon icon='info' />{' '}
+                    {_('deltaBackupOnOutdatedXenServerWarning')}
+                  </em>
+
                   {state.smartMode ? (
                     <Upgrade place='newBackup' required={3}>
                       <SmartBackup />
@@ -969,6 +994,7 @@ export default decorate([
                       onChange={effects.setVms}
                       error={state.showErrors ? state.missingVms : undefined}
                       value={state.vms}
+                      predicate={state.vmPredicate}
                     />
                   )}
                 </CardBlock>
