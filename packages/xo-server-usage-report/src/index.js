@@ -288,12 +288,17 @@ async function getVmsStats ({ runningVms, xo }) {
   return orderBy(
     await Promise.all(
       map(runningVms, async vm => {
-        const vmStats = await xo
+        const { stats } = await xo
           .getXapiVmStats(vm, GRANULARITY)
           .catch(error => {
-            log.warn(`Error on fetching VM stats (${vm.id})`, error)
+            log.warn('Error on fetching VM stats', {
+              error,
+              vmId: vm.id,
+            })
+            return {
+              stats: {},
+            }
           })
-        const stats = vmStats !== undefined ? vmStats.stats : {}
 
         const iopsRead = METRICS_MEAN.iops(get(stats.iops, 'r'))
         const iopsWrite = METRICS_MEAN.iops(get(stats.iops, 'w'))
@@ -321,12 +326,17 @@ async function getHostsStats ({ runningHosts, xo }) {
   return orderBy(
     await Promise.all(
       map(runningHosts, async host => {
-        const hostStats = await xo
+        const { stats } = await xo
           .getXapiHostStats(host, GRANULARITY)
           .catch(error => {
-            log.warn(`Error on fetching host stats (${host.id})`, error)
+            log.warn('Error on fetching host stats', {
+              error,
+              hostId: host.id,
+            })
+            return {
+              stats: {},
+            }
           })
-        const stats = hostStats !== undefined ? hostStats.stats : {}
 
         return {
           uuid: host.uuid,
@@ -364,12 +374,17 @@ async function getSrsStats ({ xo, xoObjects }) {
           name += ` (${container.name_label})`
         }
 
-        const srStats = await xo
+        const { stats } = await xo
           .getXapiSrStats(sr.id, GRANULARITY)
           .catch(error => {
-            log.warn(`Error on fetching SR stats (${sr.id})`, error)
+            log.warn('Error on fetching SR stats', {
+              error,
+              srId: sr.id,
+            })
+            return {
+              stats: {},
+            }
           })
-        const stats = srStats !== undefined ? srStats.stats : {}
 
         const iopsRead = computeMean(get(stats.iops, 'r'))
         const iopsWrite = computeMean(get(stats.iops, 'w'))
