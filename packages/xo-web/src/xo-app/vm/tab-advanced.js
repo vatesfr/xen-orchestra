@@ -396,18 +396,6 @@ export default class TabAdvanced extends Component {
             />
             <TabButton
               btnStyle='danger'
-              disabled={vm.power_state !== 'Halted'}
-              handler={changeVirtualizationMode}
-              handlerParam={vm}
-              icon='vm-migrate'
-              labelId={
-                vm.bootPolicy === ''
-                  ? 'vmVirtualizationPVToHVM'
-                  : 'vmVirtualizationHVMtoPV'
-              }
-            />
-            <TabButton
-              btnStyle='danger'
               handler={deleteVm}
               handlerParam={vm}
               icon='vm-delete'
@@ -422,7 +410,24 @@ export default class TabAdvanced extends Component {
               <tbody>
                 <tr>
                   <th>{_('virtualizationMode')}</th>
-                  <td>{_(getVirtualizationModeLabel(vm))}</td>
+                  <td>
+                    {_(getVirtualizationModeLabel(vm))}{' '}
+                    {(vm.virtualizationMode === 'pv' ||
+                      vm.virtualizationMode === 'hvm') && (
+                      <ActionButton
+                        btnStyle='danger'
+                        disabled={vm.power_state !== 'Halted'}
+                        handler={changeVirtualizationMode}
+                        handlerParam={vm}
+                        icon='vm-migrate'
+                        size='small'
+                      >
+                        {_('vmSwitchVirtualizationMode', {
+                          mode: vm.virtualizationMode === 'pv' ? 'HVM' : 'PV',
+                        })}
+                      </ActionButton>
+                    )}
+                  </td>
                 </tr>
                 {vm.virtualizationMode === 'pv' && (
                   <tr>

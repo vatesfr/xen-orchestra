@@ -257,9 +257,9 @@ export default {
       },
     },
 
-    bootPolicy: {
-      set (bootPolicy, vm) {
-        return this._set('HVM_boot_policy', bootPolicy)
+    virtualizationMode: {
+      set (virtualizationMode, vm) {
+        return this._set('HVM_boot_policy', virtualizationMode)
       },
     },
 

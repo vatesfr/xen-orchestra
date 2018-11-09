@@ -1051,7 +1051,9 @@ export const changeVirtualizationMode = vm =>
       </div>
     ),
   }).then(() =>
-    editVm(vm, { bootPolicy: vm.bootPolicy === '' ? 'Boot order' : '' })
+    editVm(vm, {
+      virtualizationMode: vm.virtualizationMode === 'pv' ? 'Boot order' : '',
+    })
   )
 
 export const deleteTemplates = templates =>
