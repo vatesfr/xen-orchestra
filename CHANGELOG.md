@@ -10,6 +10,7 @@
 - [VM] Display VGA and video RAM for PVHVM guests [#3576](https://github.com/vatesfr/xen-orchestra/issues/3576) (PR [#3664](https://github.com/vatesfr/xen-orchestra/pull/3664))
 - [Backup NG form] Display a warning to let the user know that the Delta Backup and the Continuous Replication are not supported on XenServer < 6.5 [#3540](https://github.com/vatesfr/xen-orchestra/issues/3540) (PR [#3668](https://github.com/vatesfr/xen-orchestra/pull/3668))
 - [Backup NG form] Omit VMs(Simple Backup)/pools(Smart Backup/Resident on) with XenServer < 6.5 from the selection when the Delta Backup mode or the Continuous Replication mode are selected [#3540](https://github.com/vatesfr/xen-orchestra/issues/3540) (PR [#3668](https://github.com/vatesfr/xen-orchestra/pull/3668))
+- [VM] Allow to switch the Virtualization mode [#2372](https://github.com/vatesfr/xen-orchestra/issues/2372) (PR [#3669](https://github.com/vatesfr/xen-orchestra/pull/3669))
 
 ### Bug fixes
 
