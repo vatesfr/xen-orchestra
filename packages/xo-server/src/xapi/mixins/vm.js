@@ -259,7 +259,10 @@ export default {
 
     virtualizationMode: {
       set (virtualizationMode, vm) {
-        return this._set('HVM_boot_policy', virtualizationMode)
+        return this._set(
+          'HVM_boot_policy',
+          virtualizationMode === 'pv' ? 'Boot order' : ''
+        )
       },
     },
 
