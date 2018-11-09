@@ -48,6 +48,7 @@ export default decorate([
           multi
           onChange={effects.setPoolValues}
           value={get(state.$pool, 'values')}
+          predicate={state.poolPredicate}
         />
       </FormGroup>
       <FormGroup>
