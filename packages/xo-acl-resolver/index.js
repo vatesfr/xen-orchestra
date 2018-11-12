@@ -1,5 +1,9 @@
 'use strict'
 
+const { unauthorized } = require('xo-common/api-errors')
+
+// ===================================================================
+
 // These global variables are not a problem because the algorithm is
 // synchronous.
 let permissionsByObject
@@ -105,23 +109,26 @@ function checkAuthorization (objectId, permission) {
 
 // -------------------------------------------------------------------
 
-module.exports = (
+function assertPermissions (
   permissionsByObject_,
   getObject_,
   permissions,
   permission
-) => {
+) {
   // Assign global variables.
   permissionsByObject = permissionsByObject_
   getObject = getObject_
 
   try {
-    if (permission) {
-      return checkAuthorization(permissions, permission)
+    if (permission !== undefined) {
+      const objectId = permissions
+      if (!checkAuthorization(objectId, permission)) {
+        throw unauthorized(permission, objectId)
+      }
     } else {
       for (const [objectId, permission] of permissions) {
         if (!checkAuthorization(objectId, permission)) {
-          return false
+          throw unauthorized(permission, objectId)
         }
       }
     }
@@ -130,5 +137,18 @@ module.exports = (
   } finally {
     // Free the global variables.
     permissionsByObject = getObject = null
+  }
+}
+exports.assert = assertPermissions
+
+exports.check = function checkPermissions () {
+  try {
+    assertPermissions.apply(undefined, arguments)
+    return true
+  } catch (error) {
+    if (unauthorized.is(error)) {
+      return false
+    }
+    throw error
   }
 }
