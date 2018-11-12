@@ -95,7 +95,7 @@ function checkPermission (method) {
   }
 }
 
-function resolveParams (method, params) {
+async function resolveParams (method, params) {
   const resolve = method.resolve
   if (!resolve) {
     return params
@@ -134,13 +134,9 @@ function resolveParams (method, params) {
     }
   })
 
-  return this.hasPermissions(userId, permissions).then(success => {
-    if (success) {
-      return params
-    }
+  await this.checkPermissions(userId, permissions)
 
-    throw errors.unauthorized()
-  })
+  return params
 }
 
 // -------------------------------------------------------------------

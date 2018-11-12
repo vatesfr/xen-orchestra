@@ -32,13 +32,7 @@ function checkPermissionOnSrs (vm, permission = 'operate') {
     ])
   })
 
-  return this.hasPermissions(this.session.get('user_id'), permissions).then(
-    success => {
-      if (!success) {
-        throw unauthorized()
-      }
-    }
-  )
+  return this.checkPermissions(this.session.get('user_id'), permissions)
 }
 
 // ===================================================================
@@ -54,13 +48,10 @@ export async function create (params) {
   const { user } = this
   const resourceSet = extract(params, 'resourceSet')
   const template = extract(params, 'template')
-  if (
-    resourceSet === undefined &&
-    !(await this.hasPermissions(this.user.id, [
+  if (resourceSet === undefined) {
+    await this.checkPermissions(this.user.id, [
       [template.$pool, 'administrate'],
-    ]))
-  ) {
-    throw unauthorized()
+    ])
   }
 
   params.template = template._xapiId
@@ -475,9 +466,7 @@ export async function migrate ({
     })
   }
 
-  if (!(await this.hasPermissions(this.session.get('user_id'), permissions))) {
-    throw unauthorized()
-  }
+  await this.checkPermissions(this.user.id, permissions)
 
   await this.getXapi(vm).migrateVm(
     vm._xapiId,
@@ -735,13 +724,7 @@ copy.resolve = {
 
 export async function convertToTemplate ({ vm }) {
   // Convert to a template requires pool admin permission.
-  if (
-    !(await this.hasPermissions(this.session.get('user_id'), [
-      [vm.$pool, 'administrate'],
-    ]))
-  ) {
-    throw unauthorized()
-  }
+  await this.checkPermissions(this.user.id, [[vm.$pool, 'administrate']])
 
   await this.getXapi(vm).call('VM.set_is_a_template', vm._xapiRef, true)
 }
@@ -1288,10 +1271,8 @@ export async function createInterface ({
     await this.checkResourceSetConstraints(resourceSet, this.user.id, [
       network.id,
     ])
-  } else if (
-    !(await this.hasPermissions(this.user.id, [[network.id, 'view']]))
-  ) {
-    throw unauthorized()
+  } else {
+    await this.checkPermissions(this.user.id, [[network.id, 'view']])
   }
 
   let ipAddresses
