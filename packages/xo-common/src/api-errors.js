@@ -38,7 +38,7 @@ export const noSuchObject = create(1, (id, type) => ({
 }))
 
 export const unauthorized = create(2, () => ({
-  message: 'not authenticated or not enough permissions',
+  message: 'not enough permissions',
 }))
 
 export const invalidCredentials = create(3, () => ({
