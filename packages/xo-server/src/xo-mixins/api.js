@@ -82,7 +82,7 @@ function checkPermission (method) {
 
   const { user } = this
   if (!user) {
-    throw errors.unauthorized()
+    throw errors.unauthorized(permission)
   }
 
   // The only requirement is login.
@@ -91,7 +91,7 @@ function checkPermission (method) {
   }
 
   if (!hasPermission(user, permission)) {
-    throw errors.unauthorized()
+    throw errors.unauthorized(permission)
   }
 }
 
