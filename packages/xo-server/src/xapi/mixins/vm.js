@@ -259,6 +259,9 @@ export default {
 
     virtualizationMode: {
       set (virtualizationMode, vm) {
+        if (virtualizationMode !== 'pv' && virtualizationMode !== 'hvm') {
+          throw new Error(`The virtualization mode must be 'pv' or 'hvm'`)
+        }
         return this._set(
           'HVM_boot_policy',
           virtualizationMode === 'pv' ? 'Boot order' : ''
