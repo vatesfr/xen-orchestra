@@ -1,6 +1,6 @@
 // FIXME: rename to disk.*
 
-import { invalidParameters, unauthorized } from 'xo-common/api-errors'
+import { invalidParameters } from 'xo-common/api-errors'
 import { isArray, reduce } from 'lodash'
 
 import { parseSize } from '../utils'
@@ -67,13 +67,8 @@ export async function set (params) {
         { disk: size - vdi.size },
         resourceSetId
       )
-    } else if (
-      !(
-        this.user.permission === 'admin' ||
-        (await this.hasPermissions(this.user.id, [[vdi.$SR, 'operate']]))
-      )
-    ) {
-      throw unauthorized()
+    } else {
+      await this.checkPermissions(this.user.id, [[vdi.$SR, 'operate']])
     }
 
     await xapi.resizeVdi(ref, size)

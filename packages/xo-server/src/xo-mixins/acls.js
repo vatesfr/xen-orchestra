@@ -102,6 +102,21 @@ export default class {
     return permissions
   }
 
+  async checkPermissions (userId, permissions) {
+    const user = await this._xo.getUser(userId)
+
+    // Special case for super XO administrators.
+    if (user.permission === 'admin') {
+      return true
+    }
+
+    aclResolver.assert(
+      await this.getPermissionsForUser(userId),
+      id => this._xo.getObject(id),
+      permissions
+    )
+  }
+
   async hasPermissions (userId, permissions) {
     const user = await this._xo.getUser(userId)
 
