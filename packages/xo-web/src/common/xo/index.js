@@ -1039,17 +1039,8 @@ export const convertVmToTemplate = vm =>
 
 export const changeVirtualizationMode = vm =>
   confirm({
-    title: 'Change Virtualization mode',
-    body: (
-      <div>
-        <p>
-          You must know what you are doing, because it could break your setup
-          (if you didn't installed the bootloader in the MBR while switching
-          from PV to HVM, or even worse, in HVM to PV, if you don't have the
-          correct PV args)
-        </p>
-      </div>
-    ),
+    title: _('vmVirtualizationModeModalTitle'),
+    body: _('vmVirtualizationModeModalBody'),
   }).then(() => {
     if (vm.virtualizationMode === 'pv') {
       return editVm(vm, { virtualizationMode: 'hvm' })
