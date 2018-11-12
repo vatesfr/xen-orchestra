@@ -1024,9 +1024,9 @@ const messages = {
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
   vmSwitchVirtualizationMode: 'Convert to {mode}',
-  vmVirtualizationModeModalTitle: 'Change Virtualization mode',
+  vmVirtualizationModeModalTitle: 'Change virtualization mode',
   vmVirtualizationModeModalBody:
-    "You must know what you are doing, because it could break your setup (if you didn't installed the bootloader in the MBR while switching from PV to HVM, or even worse, in HVM to PV, if you don't have the correct PV args)",
+    "You must know what you are doing, because it could break your setup (if you didn't install the bootloader in the MBR while switching from PV to HVM, or even worse, in HVM to PV, if you don't have the correct PV args)",
   vmShareButton: 'Share',
   xenSettingsLabel: 'Xen settings',
   guestOsLabel: 'Guest OS',
