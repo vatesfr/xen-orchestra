@@ -1,7 +1,3 @@
-import { unauthorized } from 'xo-common/api-errors'
-
-// ===================================================================
-
 export function create ({ name, subjects, objects, limits }) {
   return this.createResourceSet(name, subjects, objects, limits)
 }
@@ -99,14 +95,10 @@ set.params = {
 // -------------------------------------------------------------------
 
 export function get ({ id }) {
-  const { user } = this
-  if (!user) {
-    throw unauthorized()
-  }
-
   return this.getResourceSet(id)
 }
 
+get.permission = ''
 get.params = {
   id: {
     type: 'string',
@@ -116,14 +108,10 @@ get.params = {
 // -------------------------------------------------------------------
 
 export async function getAll () {
-  const { user } = this
-  if (!user) {
-    throw unauthorized()
-  }
-
-  return this.getAllResourceSets(user.id)
+  return this.getAllResourceSets(this.user.id)
 }
 
+getAll.permission = ''
 getAll.description = 'Get the list of all existing resource set'
 
 // -------------------------------------------------------------------
