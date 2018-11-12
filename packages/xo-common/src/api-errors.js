@@ -37,7 +37,14 @@ export const noSuchObject = create(1, (id, type) => ({
   message: `no such ${type || 'object'} ${id}`,
 }))
 
-export const unauthorized = create(2, () => ({
+export const unauthorized = create(2, (permission, objectId, objectType) => ({
+  data: {
+    permission,
+    object: {
+      id: objectId,
+      type: objectType,
+    },
+  },
   message: 'not enough permissions',
 }))
 
