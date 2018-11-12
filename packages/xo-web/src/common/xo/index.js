@@ -1052,10 +1052,10 @@ export const changeVirtualizationMode = vm =>
     ),
   }).then(() => {
     if (vm.virtualizationMode === 'pv') {
-      editVm(vm, { virtualizationMode: 'hvm' })
+      return editVm(vm, { virtualizationMode: 'hvm' })
     }
     if (vm.virtualizationMode === 'hvm') {
-      editVm(vm, { virtualizationMode: 'pv' })
+      return editVm(vm, { virtualizationMode: 'pv' })
     }
   })
 
