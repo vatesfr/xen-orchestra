@@ -23,6 +23,7 @@
 ### Released packages
 
 - xo-common v0.2.0
+- xo-acl-resolver v0.4.0
 - xo-server v5.30.0
 - xo-web v5.30.0
 

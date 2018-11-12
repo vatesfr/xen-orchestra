@@ -1,5 +1,5 @@
 import add from 'lodash/add'
-import checkPermissions from 'xo-acl-resolver'
+import { check as checkPermissions } from 'xo-acl-resolver'
 import { createSelector as create } from 'reselect'
 import {
   filter,

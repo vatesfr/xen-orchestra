@@ -1,4 +1,4 @@
-import checkAuthorization from 'xo-acl-resolver'
+import aclResolver from 'xo-acl-resolver'
 import { forEach, includes, map } from 'lodash'
 
 import { ModelAlreadyExists } from '../collection'
@@ -110,7 +110,7 @@ export default class {
       return true
     }
 
-    return checkAuthorization(
+    return aclResolver.check(
       await this.getPermissionsForUser(userId),
       id => this._xo.getObject(id),
       permissions
