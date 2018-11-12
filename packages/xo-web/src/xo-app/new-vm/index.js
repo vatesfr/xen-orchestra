@@ -79,7 +79,6 @@ import {
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
   resolveIds,
-  resolveResourceSet,
 } from 'utils'
 import {
   createFilter,
@@ -87,6 +86,7 @@ import {
   createGetObject,
   createGetObjectsOfType,
   getIsPoolAdmin,
+  getResolvedResourceSets,
   getUser,
 } from 'selectors'
 
@@ -221,25 +221,32 @@ class Vif extends BaseComponent {
   resourceSets: subscribeResourceSets,
   user: subscribeCurrentUser,
 })
-@connectStore(() => ({
-  isAdmin: createSelector(
+@connectStore(() => {
+  const getIsAdmin = createSelector(
     getUser,
     user => user && user.permission === 'admin'
-  ),
-  isPoolAdmin: getIsPoolAdmin,
-  networks: createGetObjectsOfType('network').sort(),
-  pool: createGetObject((_, props) => props.location.query.pool),
-  pools: createGetObjectsOfType('pool'),
-  templates: createGetObjectsOfType('VM-template').sort(),
-  userSshKeys: createSelector(
+  )
+  const getPool = createGetObject((_, props) => props.location.query.pool)
+  const getUserSshKeys = createSelector(
     (_, props) => {
       const user = props.user
       return user && user.preferences && user.preferences.sshKeys
     },
     keys => keys
-  ),
-  srs: createGetObjectsOfType('SR'),
-}))
+  )
+  return (state, props) => ({
+    isAdmin: getIsAdmin(state, props),
+    isPoolAdmin: getIsPoolAdmin(state, props),
+    networks: createGetObjectsOfType('network').sort(),
+    pool: getPool(state, props),
+    pools: createGetObjectsOfType('pool'),
+    // true: to get objects as a self user
+    resolvedResourceSets: getResolvedResourceSets(state, props, true),
+    srs: createGetObjectsOfType('SR'),
+    templates: createGetObjectsOfType('VM-template').sort(),
+    userSshKeys: getUserSshKeys(state, props),
+  })
+})
 @injectIntl
 export default class NewVm extends BaseComponent {
   static contextTypes = {
@@ -271,7 +278,11 @@ export default class NewVm extends BaseComponent {
 
   _getResolvedResourceSet = createSelector(
     this._getResourceSet,
-    resolveResourceSet
+    () => this.props.resolvedResourceSets,
+    (resourceSet, resolvedResourceSets) =>
+      resolvedResourceSets.find(
+        ({ id }) => resourceSet && id === resourceSet.id
+      )
   )
 
   // Utils -----------------------------------------------------------------------

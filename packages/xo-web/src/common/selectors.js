@@ -273,13 +273,13 @@ const _getPermissionsPredicate = invoke(() => {
     }
   )
 
-  return state => {
+  return (state, props, useResourceSet) => {
     const user = getUser(state)
     if (!user) {
       return false
     }
 
-    if (user.permission === 'admin') {
+    if (user.permission === 'admin' || useResourceSet) {
       return // No predicate means no filtering.
     }
 
@@ -420,16 +420,16 @@ const _extendCollectionSelector = (selector, objectsType) => {
 //         ids (filter, find, groupBy and sort can be chained)
 // - sort: returns a selector which returns the objects appropriately
 //         sorted (groupBy can be chained)
-export const createGetObjectsOfType = type => {
-  const getObjects = isFunction(type)
-    ? (state, props) => state.objects.byType[type(state, props)] || EMPTY_OBJECT
-    : state => state.objects.byType[type] || EMPTY_OBJECT
-
-  return _extendCollectionSelector(
-    createFilter(getObjects, _getPermissionsPredicate),
+export const createGetObjectsOfType = type =>
+  _extendCollectionSelector(
+    createFilter(
+      (state, props, useResourceSet) =>
+        state.objects.byType[isFunction(type) ? type(state, props) : type] ||
+        EMPTY_OBJECT,
+      _getPermissionsPredicate
+    ),
     type
   )
-}
 
 export const createGetTags = collectionSelectors => {
   if (!collectionSelectors) {
