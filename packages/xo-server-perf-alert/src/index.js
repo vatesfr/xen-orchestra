@@ -463,7 +463,6 @@ ${monitorBodies.join('\n')}`
             try {
               const result = {
                 uuid,
-                name: definition.name,
                 object: this._xo.getXapi(uuid).getObject(uuid),
               }
 
