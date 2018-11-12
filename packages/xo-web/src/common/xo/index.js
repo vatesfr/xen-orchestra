@@ -1037,6 +1037,16 @@ export const convertVmToTemplate = vm =>
     ),
   }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
 
+export const changeVirtualizationMode = vm =>
+  confirm({
+    title: _('vmVirtualizationModeModalTitle'),
+    body: _('vmVirtualizationModeModalBody'),
+  }).then(() =>
+    editVm(vm, {
+      virtualizationMode: vm.virtualizationMode === 'hvm' ? 'pv' : 'hvm',
+    })
+  )
+
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
