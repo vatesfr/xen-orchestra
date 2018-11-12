@@ -1050,7 +1050,14 @@ export const changeVirtualizationMode = vm =>
         </p>
       </div>
     ),
-  }).then(() => editVm(vm, { virtualizationMode: vm.virtualizationMode }))
+  }).then(() => {
+    if (vm.virtualizationMode === 'pv') {
+      editVm(vm, { virtualizationMode: 'hvm' })
+    }
+    if (vm.virtualizationMode === 'hvm') {
+      editVm(vm, { virtualizationMode: 'pv' })
+    }
+  })
 
 export const deleteTemplates = templates =>
   confirm({
