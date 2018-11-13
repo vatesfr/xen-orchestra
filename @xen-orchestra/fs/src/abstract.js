@@ -1,5 +1,6 @@
 // @flow
 
+// $FlowFixMe
 import getStream from 'get-stream'
 import { randomBytes } from 'crypto'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'

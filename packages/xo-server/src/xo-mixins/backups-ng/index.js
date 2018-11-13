@@ -147,12 +147,12 @@ const defaultSettings: Settings = {
   timeout: 0,
   vmTimeout: 0,
 }
-const getSetting = <T>(
+const getSetting = <T, K: $Keys<Settings>>(
   settings: $Dict<Settings>,
-  name: $Keys<Settings>,
+  name: K,
   keys: string[],
   defaultValue?: T
-): T | any => {
+): T | $ElementType<Settings, K> => {
   for (let i = 0, n = keys.length; i < n; ++i) {
     const objectSettings = settings[keys[i]]
     if (objectSettings !== undefined) {

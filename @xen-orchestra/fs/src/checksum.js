@@ -1,6 +1,5 @@
 // @flow
 
-// $FlowFixMe
 import through2 from 'through2'
 import { createHash } from 'crypto'
 import { defer, fromEvent } from 'promise-toolbox'

@@ -4,6 +4,7 @@ module.exports = {
     __DEV__: true,
     $Dict: true,
     $Diff: true,
+    $ElementType: true,
     $Exact: true,
     $Keys: true,
     $PropertyType: true,
