@@ -16,6 +16,7 @@ import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
 import { form } from 'modal'
+import { generateId } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
@@ -149,10 +150,6 @@ const getInitialState = () => ({
   deltaMode: false,
   displayAdvancedSettings: undefined,
   drMode: false,
-  formId: generateRandomId(),
-  inputConcurrencyId: generateRandomId(),
-  inputReportWhenId: generateRandomId(),
-  inputTimeoutId: generateRandomId(),
   name: '',
   paramsUpdated: false,
   powerState: 'All',
@@ -564,6 +561,11 @@ export default decorate([
       },
     },
     computed: {
+      formId: generateId,
+      inputConcurrencyId: generateId,
+      inputReportWhenId: generateId,
+      inputTimeoutId: generateId,
+
       needUpdateParams: (state, { job, schedules }) =>
         job !== undefined && schedules !== undefined && !state.paramsUpdated,
       isJobInvalid: state =>
