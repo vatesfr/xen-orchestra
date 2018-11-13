@@ -3,13 +3,13 @@ import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import { addSubscriptions, generateRandomId } from 'utils'
+import { addSubscriptions } from 'utils'
 import { alert, confirm } from 'modal'
 import { createRemote, editRemote, subscribeRemotes } from 'xo'
 import { error } from 'notification'
 import { format } from 'xo-remote-parser'
+import { generateId, linkState } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
-import { linkState } from 'reaclette-utils'
 import { map, some, trimStart } from 'lodash'
 import { Number } from 'form'
 
@@ -27,7 +27,6 @@ export default decorate([
     initialState: () => ({
       domain: undefined,
       host: undefined,
-      inputTypeId: generateRandomId(),
       name: undefined,
       options: undefined,
       password: undefined,
@@ -114,6 +113,7 @@ export default decorate([
       },
     },
     computed: {
+      inputTypeId: generateId,
       parsedPath: ({ remote }) => remote && trimStart(remote.path, '/'),
     },
   }),

@@ -13,7 +13,7 @@ import decorate from './apply-decorators'
 import getEventValue from './get-event-value'
 import Icon from './icon'
 import Tooltip from './tooltip'
-import { generateRandomId } from './utils'
+import { generateId } from './reaclette-utils'
 import {
   disable as disableShortcuts,
   enable as enableShortcuts,
@@ -362,7 +362,7 @@ export const FormModal = decorate([
       },
     },
     computed: {
-      formId: generateRandomId,
+      formId: generateId,
     },
   }),
   injectState,
