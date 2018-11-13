@@ -30,6 +30,7 @@ import {
 } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
+import replaceSensitiveValues from './_replaceSensitiveValues'
 
 const debug = createDebug('xen-api')
 
@@ -93,7 +94,7 @@ class XapiError extends BaseError {
     this.params = params
 
     // slots than can be assigned later
-    this.method = undefined
+    this.call = undefined
     this.url = undefined
     this.task = undefined
   }
@@ -1071,7 +1072,10 @@ Xapi.prototype._transportCall = reduce(
           error = wrapError(error)
         }
 
-        error.method = method
+        error.call = {
+          method,
+          params: replaceSensitiveValues(args, '* obfuscated *'),
+        }
         throw error
       })
     },
