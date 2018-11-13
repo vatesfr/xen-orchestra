@@ -1074,7 +1074,7 @@ Xapi.prototype._transportCall = reduce(
 
         error.call = {
           method,
-          params: replaceSensitiveValues(args, '*obfuscated*'),
+          params: replaceSensitiveValues(args, '* obfuscated *'),
         }
         throw error
       })
