@@ -6,7 +6,7 @@ import { forEach, isFunction } from 'lodash'
 import { MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api'
-import replaceSensitiveValues from '../replace-sensitive-values'
+import * as sensitiveValues from '../sensitive-values'
 import { noop, serializeError } from '../utils'
 
 import * as errors from 'xo-common/api-errors'
@@ -276,7 +276,7 @@ export default class Api {
       const data = {
         userId,
         method: name,
-        params: replaceSensitiveValues(params, '* obfuscated *'),
+        params: sensitiveValues.replace(params, '* obfuscated *'),
         duration: Date.now() - startTime,
         error: serializeError(error),
       }
