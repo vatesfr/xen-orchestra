@@ -19,21 +19,20 @@ const replaceObfuscatedValues = (newConfig, currentConfig) => {
     return currentConfig
   }
 
+  let isArray
+
   if (
     newConfig === null ||
     currentConfig === null ||
     typeof newConfig !== 'object' ||
-    typeof currentConfig !== 'object'
+    typeof currentConfig !== 'object' ||
+    (isArray = Array.isArray(newConfig) !== Array.isArray(currentConfig))
   ) {
     return newConfig
   }
 
   const iteratee = (v, k) => replaceObfuscatedValues(v, currentConfig[k])
-  return Array.isArray(newConfig)
-    ? Array.isArray(currentConfig)
-      ? newConfig.map(iteratee)
-      : newConfig
-    : mapValues(newConfig, iteratee)
+  return isArray ? newConfig.map(iteratee) : mapValues(newConfig, iteratee)
 }
 
 export default class {
