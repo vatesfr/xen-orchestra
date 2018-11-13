@@ -26,7 +26,7 @@ const replaceObfuscatedValues = (newConfig, currentConfig) => {
     currentConfig === null ||
     typeof newConfig !== 'object' ||
     typeof currentConfig !== 'object' ||
-    (isArray = Array.isArray(newConfig) !== Array.isArray(currentConfig))
+    (isArray = Array.isArray(newConfig)) !== Array.isArray(currentConfig)
   ) {
     return newConfig
   }
