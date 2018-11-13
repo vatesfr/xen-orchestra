@@ -70,10 +70,9 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   async _sync () {
-    if (this._remote.enabled) {
-      // Check access (smb2 does not expose connect in public so far...)
-      await this.list()
-    }
+    // Check access (smb2 does not expose connect in public so far...)
+    await this.list()
+
     return this._remote
   }
 
