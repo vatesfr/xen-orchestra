@@ -5,14 +5,14 @@ import { utcParse } from 'd3-time-format'
 
 const COMPARATOR_FN = {
   '>': (a, b) => a > b,
-  '<=': (a, b) => a <= b,
+  '<': (a, b) => a < b,
 }
 
 const VM_FUNCTIONS = {
   cpuUsage: {
     name: 'VM CPU usage',
     description:
-      'Raises an alarm when the average usage of any CPU is (higher than/lower than or equal to) the threshold',
+      'Raises an alarm when the average usage of any CPU is higher/lower than the threshold',
     unit: '%',
     createParser: (comparator, legend, threshold) => {
       const regex = /cpu[0-9]+/
@@ -39,7 +39,7 @@ const VM_FUNCTIONS = {
   memoryUsage: {
     name: 'VM memory usage',
     description:
-      'Raises an alarm when the used memory % is (higher than/lower than or equal to) the threshold',
+      'Raises an alarm when the used memory % is higher/lower than the threshold',
     unit: '% used',
     createParser: (comparator, legend, threshold) => {
       const memoryBytesLegend = legend.find(l => l.name === 'memory')
@@ -67,7 +67,7 @@ const HOST_FUNCTIONS = {
   cpuUsage: {
     name: 'host CPU usage',
     description:
-      'Raises an alarm when the average usage of any CPU is (higher than/lower than or equal to) the threshold',
+      'Raises an alarm when the average usage of any CPU is higher/lower than the threshold',
     unit: '%',
     createParser: (comparator, legend, threshold) => {
       const regex = /^cpu[0-9]+$/
@@ -94,7 +94,7 @@ const HOST_FUNCTIONS = {
   memoryUsage: {
     name: 'host memory usage',
     description:
-      'Raises an alarm when the used memory % is (higher than/lower than or equal to) the threshold',
+      'Raises an alarm when the used memory % is higher/lower than the threshold',
     unit: '% used',
     createParser: (comparator, legend, threshold) => {
       const memoryKBytesLegend = legend.find(l => l.name === 'memory_total_kib')
@@ -122,7 +122,7 @@ const SR_FUNCTIONS = {
   storageUsage: {
     name: 'SR storage usage',
     description:
-      'Raises an alarm when the used disk space % is (higher than/lower than or equal to) the threshold',
+      'Raises an alarm when the used disk space % is higher/lower than the threshold',
     unit: '% used',
     createGetter: (comparator, threshold) => sr => {
       const getDisplayableValue = () =>
