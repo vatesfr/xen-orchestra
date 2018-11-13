@@ -284,7 +284,7 @@ export default decorate([
                     messages.remoteSmbPlaceHolderPassword
                   )}
                   required
-                  type='text'
+                  type='password'
                   value={password}
                 />
               </div>
