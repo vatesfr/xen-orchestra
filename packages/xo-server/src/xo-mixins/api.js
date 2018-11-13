@@ -2,10 +2,11 @@ import createLogger from '@xen-orchestra/log'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
-import { forEach, isArray, isFunction, map, mapValues } from 'lodash'
+import { forEach, isFunction } from 'lodash'
+import { MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api'
-import { MethodNotFound } from 'json-rpc-peer'
+import replaceSensitiveValues from '../replace-sensitive-values'
 import { noop, serializeError } from '../utils'
 
 import * as errors from 'xo-common/api-errors'
@@ -141,22 +142,6 @@ async function resolveParams (method, params) {
 
 // -------------------------------------------------------------------
 
-const removeSensitiveParams = (value, name) => {
-  if (name === 'password' && typeof value === 'string') {
-    return '* obfuscated *'
-  }
-
-  if (typeof value !== 'object' || value === null) {
-    return value
-  }
-
-  return isArray(value)
-    ? map(value, removeSensitiveParams)
-    : mapValues(value, removeSensitiveParams)
-}
-
-// ===================================================================
-
 export default class Api {
   constructor (xo) {
     this._logger = null
@@ -291,7 +276,7 @@ export default class Api {
       const data = {
         userId,
         method: name,
-        params: removeSensitiveParams(params),
+        params: replaceSensitiveValues(params, '* obfuscated *'),
         duration: Date.now() - startTime,
         error: serializeError(error),
       }

@@ -19,6 +19,7 @@
 - [Patches] Bulk install correctly ignores upgrade patches on licensed hosts (PR [#3651](https://github.com/vatesfr/xen-orchestra/pull/3651))
 - [Backup NG logs] Handle failed restores (PR [#3648](https://github.com/vatesfr/xen-orchestra/pull/3648))
 - [Self/New VM] Incorrect limit computation [#3658](https://github.com/vatesfr/xen-orchestra/issues/3658)
+- [Plugins] Don't expose credentials in config to users (PR [#3671](https://github.com/vatesfr/xen-orchestra/pull/3671))
 
 ### Released packages
 
