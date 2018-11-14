@@ -6,19 +6,21 @@ import RemoteHandlerAbstract from './abstract'
 const noop = () => {}
 
 // Normalize the error code for file not found.
-const normalizeError = error => {
+class ErrorWrapper extends Error {
+  constructor (error, newCode) {
+    super(error.message)
+    this.cause = error
+    this.code = newCode
+  }
+}
+const normalizeError = (error, shouldBeDirectory) => {
   const { code } = error
 
   return code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
     code === 'STATUS_OBJECT_PATH_NOT_FOUND'
-    ? Object.create(error, {
-        code: {
-          configurable: true,
-          readable: true,
-          value: 'ENOENT',
-          writable: true,
-        },
-      })
+    ? new ErrorWrapper(error, 'ENOENT')
+    : code === 'STATUS_NOT_SUPPORTED' || code === 'STATUS_INVALID_PARAMETER'
+    ? new ErrorWrapper(error, shouldBeDirectory ? 'ENOTDIR' : 'EISDIR')
     : error
 }
 
@@ -153,7 +155,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
         client.disconnect()
       })
     } catch (error) {
-      throw normalizeError(error)
+      throw normalizeError(error, true)
     }
 
     return list

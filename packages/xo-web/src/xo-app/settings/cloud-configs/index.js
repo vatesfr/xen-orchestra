@@ -4,13 +4,14 @@ import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, generateRandomId } from 'utils'
+import { addSubscriptions } from 'utils'
 import {
   AvailableTemplateVars,
   DEFAULT_CLOUD_CONFIG_TEMPLATE,
 } from 'cloud-config'
 import { Container, Col } from 'grid'
 import { find } from 'lodash'
+import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { Text } from 'editable'
 import { Textarea as DebounceTextarea } from 'debounce-input-decorator'
@@ -69,12 +70,7 @@ export default decorate([
     cloudConfigs: subscribeCloudConfigs,
   }),
   provideState({
-    initialState: () => ({
-      formId: generateRandomId(),
-      inputNameId: generateRandomId(),
-      inputTemplateId: generateRandomId(),
-      ...initialParams,
-    }),
+    initialState: () => initialParams,
     effects: {
       setInputValue: (_, { target: { name, value } }) => state => ({
         ...state,
@@ -112,6 +108,9 @@ export default decorate([
       }),
     },
     computed: {
+      formId: generateId,
+      inputNameId: generateId,
+      inputTemplateId: generateId,
       isInvalid: ({ name, template }) =>
         name.trim() === '' ||
         (template !== undefined && template.trim() === ''),

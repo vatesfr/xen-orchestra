@@ -1,39 +1,14 @@
 import Ajv from 'ajv'
 import createLogger from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
-import { mapValues } from 'lodash'
 
-import replaceSensitiveValues from '../replace-sensitive-values'
+import * as sensitiveValues from '../sensitive-values'
 import { PluginsMetadata } from '../models/plugin-metadata'
 import { isFunction, mapToArray } from '../utils'
 
 // ===================================================================
 
 const log = createLogger('xo:xo-mixins:plugins')
-
-// this random value is used to obfuscate real data
-const OBFUSCATED_VALUE = 'c<,R"/|+9[-&|/pI!/}'
-
-const replaceObfuscatedValues = (newConfig, currentConfig) => {
-  if (newConfig === OBFUSCATED_VALUE) {
-    return currentConfig
-  }
-
-  let isArray
-
-  if (
-    newConfig === null ||
-    currentConfig === null ||
-    typeof newConfig !== 'object' ||
-    typeof currentConfig !== 'object' ||
-    (isArray = Array.isArray(newConfig)) !== Array.isArray(currentConfig)
-  ) {
-    return newConfig
-  }
-
-  const iteratee = (v, k) => replaceObfuscatedValues(v, currentConfig[k])
-  return isArray ? newConfig.map(iteratee) : mapValues(newConfig, iteratee)
-}
 
 export default class {
   constructor (xo) {
@@ -145,7 +120,7 @@ export default class {
       loaded,
       unloadable,
       version,
-      configuration: replaceSensitiveValues(configuration, OBFUSCATED_VALUE),
+      configuration: sensitiveValues.obfuscate(configuration),
       configurationPresets,
       configurationSchema,
       testable,
@@ -194,7 +169,7 @@ export default class {
     const metadata = await this._getPluginMetadata()
 
     if (metadata !== undefined) {
-      configuration = replaceObfuscatedValues(
+      configuration = sensitiveValues.merge(
         configuration,
         metadata.configuration
       )

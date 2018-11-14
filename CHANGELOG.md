@@ -21,6 +21,8 @@
 - [Self/New VM] Incorrect limit computation [#3658](https://github.com/vatesfr/xen-orchestra/issues/3658)
 - [Plugins] Don't expose credentials in config to users (PR [#3671](https://github.com/vatesfr/xen-orchestra/pull/3671))
 - [Self/New VM] `not enough … available in the set …` error in some cases (PR [#3667](https://github.com/vatesfr/xen-orchestra/pull/3667))
+- [Backup NG] Errors listing backups on SMB remotes with extraneous files (PR [#3685](https://github.com/vatesfr/xen-orchestra/pull/3685))
+- [Remotes] Don't expose credentials to users [#3682](https://github.com/vatesfr/xen-orchestra/issues/3682) (PR [#3687](https://github.com/vatesfr/xen-orchestra/pull/3687))
 
 ### Released packages
 

@@ -288,12 +288,12 @@ export default decorate([
   injectIntl,
   provideState({
     initialState: () => ({
-      formId: generateRandomId(),
+      formKey: generateRandomId(),
       remote: undefined,
     }),
     effects: {
       reset: () => () => ({
-        formId: generateRandomId(),
+        formKey: generateRandomId(),
         remote: undefined,
       }),
       editRemote: (_, remote) => () => ({
@@ -351,7 +351,7 @@ export default decorate([
           />
         </div>
       )}
-      <Remote formatMessage={formatMessage} key={state.formId} />
+      <Remote formatMessage={formatMessage} key={state.formKey} />
     </div>
   ),
 ])
