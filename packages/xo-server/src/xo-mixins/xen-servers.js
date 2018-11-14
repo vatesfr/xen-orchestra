@@ -20,7 +20,7 @@ import { Servers } from '../models/server'
 const log = createLogger('xo:xo-mixins:xen-servers')
 
 export default class {
-  constructor (xo) {
+  constructor (xo, { xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
@@ -28,6 +28,7 @@ export default class {
       indexes: ['host'],
     }))
     this._stats = new XapiStats()
+    this._xapiOptions = xapiOptions
     this._xapis = { __proto__: null }
     this._xapisByPool = { __proto__: null }
     this._xo = xo
@@ -225,11 +226,14 @@ export default class {
 
     const xapi = (this._xapis[server.id] = new Xapi({
       allowUnauthorized: Boolean(server.allowUnauthorized),
+      readOnly: Boolean(server.readOnly),
+
+      ...this._xapiOptions,
+
       auth: {
         user: server.username,
         password: server.password,
       },
-      readOnly: Boolean(server.readOnly),
       url: server.host,
     }))
 
