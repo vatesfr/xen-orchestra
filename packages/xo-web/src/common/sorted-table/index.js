@@ -250,6 +250,7 @@ export default class SortedTable extends Component {
   static propTypes = {
     defaultColumn: PropTypes.number,
     defaultFilter: PropTypes.string,
+    disabledCheckbox: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
     collection: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
       .isRequired,
     columns: PropTypes.arrayOf(
@@ -295,6 +296,7 @@ export default class SortedTable extends Component {
     groupedActions: actionsShape,
     individualActions: actionsShape,
     itemsPerPage: PropTypes.number,
+    onSelectCheckbox: PropTypes.func,
     paginationContainer: PropTypes.func,
     rowAction: PropTypes.func,
     rowLink: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
@@ -603,10 +605,15 @@ export default class SortedTable extends Component {
   _setPage = this._setPage.bind(this)
 
   _selectAllVisibleItems = event => {
+    const { checked } = event.target
+    const { onSelectCheckbox } = this.props
+    const items = this._getVisibleItems()
+    onSelectCheckbox !== undefined && onSelectCheckbox(checked ? items : [])
+
     this.setState({
       all: false,
-      selectedItemsIds: event.target.checked
-        ? this.state.selectedItemsIds.union(map(this._getVisibleItems(), 'id'))
+      selectedItemsIds: checked
+        ? this.state.selectedItemsIds.union(map(items, 'id'))
         : this.state.selectedItemsIds.clear(),
     })
   }
@@ -672,9 +679,28 @@ export default class SortedTable extends Component {
     this._previous = current
   }
 
-  _onSelectItemCheckbox = event => {
+  _onSelectItemCheckbox = (event, item) => {
     const { target } = event
     this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
+
+    const { onSelectCheckbox } = this.props
+    let selectedItems = this._getSelectedItems()
+    if (target.checked) {
+      selectedItems.push(item)
+    } else {
+      selectedItems = selectedItems.filter(i => i.id !== item.id)
+    }
+    onSelectCheckbox !== undefined && onSelectCheckbox(selectedItems)
+  }
+
+  _disabledCheckbox = item => {
+    const { disabledCheckbox } = this.props
+    if (disabledCheckbox === undefined) {
+      return false
+    }
+    return isFunction(disabledCheckbox)
+      ? disabledCheckbox(item)
+      : disabledCheckbox
   }
 
   _getGroupedActions = createSelector(
@@ -717,7 +743,13 @@ export default class SortedTable extends Component {
 
   _renderItem = (item, i) => {
     const { props, state } = this
-    const { actions, individualActions, rowAction, rowLink } = props
+    const {
+      actions,
+      individualActions,
+      onSelectCheckbox,
+      rowAction,
+      rowLink,
+    } = props
     const userData = this._getUserData()
 
     const hasGroupedActions = this._hasGroupedActions()
@@ -741,12 +773,14 @@ export default class SortedTable extends Component {
 
     const { id = i } = item
 
-    const selectionColumn = hasGroupedActions && (
+    const selectionColumn = (hasGroupedActions ||
+      onSelectCheckbox !== undefined) && (
       <td className='text-xs-center' onClick={this._toggleNestedCheckbox}>
         <input
           checked={state.all || state.selectedItemsIds.has(id)}
+          disabled={this._disabledCheckbox(item)}
           name={i} // position in visible items
-          onChange={this._onSelectItemCheckbox}
+          onChange={event => this._onSelectItemCheckbox(event, item)}
           type='checkbox'
         />
       </td>
@@ -797,6 +831,7 @@ export default class SortedTable extends Component {
       filterContainer,
       individualActions,
       itemsPerPage,
+      onSelectCheckbox,
       paginationContainer,
       shortcutsTarget,
     } = props
@@ -903,7 +938,7 @@ export default class SortedTable extends Component {
               </th>
             </tr>
             <tr>
-              {hasGroupedActions && (
+              {(hasGroupedActions || onSelectCheckbox !== undefined) && (
                 <th
                   className='text-xs-center'
                   onClick={this._toggleNestedCheckbox}

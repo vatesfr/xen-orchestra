@@ -20,7 +20,6 @@ import {
   isEmpty,
   keys,
   map,
-  mapValues,
   pickBy,
 } from 'lodash'
 import {
@@ -72,8 +71,8 @@ const XOSAN_SR_COLUMNS = [
     name: _('xosanName'),
   },
   {
-    itemRenderer: (sr, userData) => {
-      const host = userData.hosts[sr.$container]
+    itemRenderer: (sr, { hosts }) => {
+      const host = find(hosts, ['id', sr.$container])
       return <Link to={`/hosts/${host.id}/general`}>{host.name_label}</Link>
     },
     name: _('xosanHost'),
@@ -102,8 +101,6 @@ const XOSAN_SR_COLUMNS = [
   },
 ]
 
-const XOSAN_SR_ACTIONS = []
-
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
 })
@@ -114,7 +111,7 @@ const XOSAN_SR_ACTIONS = []
 })
 export default class NewXosan extends Component {
   state = {
-    //  selectedSrs: {},
+    selectedSrs: [],
     brickSize: DEFAULT_BRICKSIZE,
     ipRange: '172.31.100.0',
     memorySize: DEFAULT_MEMORY,
@@ -158,7 +155,7 @@ export default class NewXosan extends Component {
       needsUpdate: false,
       pif: undefined,
       pool,
-      selectedSrs: {},
+      selectedSrs: [],
     })
 
     return this._checkPacks(pool)
@@ -177,7 +174,7 @@ export default class NewXosan extends Component {
       this.setState({
         suggestion: 0,
         suggestions: await computeXosanPossibleOptions(
-          keys(pickBy(selectedSrs)),
+          selectedSrs,
           customBrickSize ? brickSize : undefined
         ),
       })
@@ -206,14 +203,17 @@ export default class NewXosan extends Component {
     createSelector(
       createFilter(
         () => this.props.srs,
-        createSelector(this._getHosts, hosts => sr => {
-          let host
-          return (
-            sr.SR_type === 'lvm' &&
-            (host = find(hosts, { id: sr.$container })) !== undefined &&
-            host.power_state === 'Running'
-          )
-        })
+        createSelector(
+          this._getHosts,
+          hosts => sr => {
+            let host
+            return (
+              sr.SR_type === 'lvm' &&
+              (host = find(hosts, { id: sr.$container })) !== undefined &&
+              host.power_state === 'Running'
+            )
+          }
+        )
       ),
       this._getPbdsBySr,
       (srs, pbdsBySr) =>
@@ -237,10 +237,8 @@ export default class NewXosan extends Component {
     this.setState({ brickSize })
   }
 
-  _selectSr = async (event, sr) => {
-    const selectedSrs = { ...this.state.selectedSrs }
-    selectedSrs[sr.id] = event.target.checked
-    this.setState({ selectedSrs })
+  _selectSrs = selectedSrs => {
+    this.setState({ selectedSrs: map(selectedSrs, 'id') })
   }
 
   _getPifPredicate = createSelector(
@@ -263,13 +261,14 @@ export default class NewXosan extends Component {
   _getDisableSrCheckbox = createSelector(
     () => this.state.selectedSrs,
     this._getLvmSrs,
-    (selectedSrs, lvmsrs) => sr =>
-      !every(
-        keys(pickBy(selectedSrs)),
+    (selectedSrs, lvmsrs) => sr => {
+      return !every(
+        selectedSrs,
         selectedSrId =>
           selectedSrId === sr.id ||
           find(lvmsrs, { id: selectedSrId }).$container !== sr.$container
       )
+    }
   )
 
   _getDisableCreation = createSelector(
@@ -283,10 +282,6 @@ export default class NewXosan extends Component {
       !pif ||
       nSelectedSrs < 2 ||
       suggestions[suggestion].availableSpace === 0
-  )
-
-  _getHostsBySr = createSelector(this.getHosts, this._getLvmSrs, (hosts, srs) =>
-    mapValues(srs, sr => find(hosts, { id: sr.$container }))
   )
 
   _createXosanVm = () => {
@@ -352,7 +347,6 @@ export default class NewXosan extends Component {
       )
     }
 
-    // const disableSrCheckbox = this._getDisableSrCheckbox()
     const hostsNeedRestart =
       pool !== undefined &&
       hostsNeedRestartByPool !== undefined &&
@@ -415,17 +409,13 @@ export default class NewXosan extends Component {
             </Row>
           ) : (
             [
-              <Row>
-                <Col>
-                  <em>{_('xosanSelect2Srs')}</em>
-                  <SortedTable
-                    actions={XOSAN_SR_ACTIONS}
-                    collection={this._getLvmSrs()}
-                    columns={XOSAN_SR_COLUMNS}
-                    userData={{ hosts: this._getHostsBySr() }}
-                  />
-                </Col>
-              </Row>,
+              <SortedTable
+                collection={this._getLvmSrs()}
+                columns={XOSAN_SR_COLUMNS}
+                disabledCheckbox={this._getDisableSrCheckbox()}
+                data-hosts={this._getHosts()}
+                onSelectCheckbox={this._selectSrs}
+              />,
               <Row>
                 <Col>
                   {!isEmpty(suggestions) && (
