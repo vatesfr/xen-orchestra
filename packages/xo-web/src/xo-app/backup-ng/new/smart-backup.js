@@ -1,5 +1,6 @@
 import _ from 'intl'
 import decorate from 'apply-decorators'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
 import SmartBackupPreview from 'smart-backup'
@@ -7,7 +8,7 @@ import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { get } from 'lodash'
-import { injectState } from 'reaclette'
+import { injectState, provideState } from 'reaclette'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
 
@@ -23,8 +24,23 @@ export default decorate([
   connectStore({
     vms: createGetObjectsOfType('VM'),
   }),
+  provideState({
+    effects: {
+      setPattern: (_, value) => (_, { pattern, onChange }) => {
+        onChange({
+          ...pattern,
+          ...value,
+        })
+      },
+      setPowerState ({ setPattern }, powerState) {
+        setPattern({
+          power_state: powerState === 'All' ? undefined : powerState,
+        })
+      },
+    },
+  }),
   injectState,
-  ({ state, effects, vms }) => (
+  ({ state, effects, vms, pattern }) => (
     <div>
       <FormGroup>
         <label>
@@ -33,7 +49,7 @@ export default decorate([
         <Select
           options={VMS_STATUSES_OPTIONS}
           onChange={effects.setPowerState}
-          value={state.powerState}
+          value={defined(pattern.power_state, 'All')}
           simpleValue
           required
         />
