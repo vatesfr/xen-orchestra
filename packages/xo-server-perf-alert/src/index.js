@@ -196,7 +196,7 @@ export const configurationSchema = {
           alarmTriggerLevel: {
             title: 'Threshold',
             description:
-              'The direction of the crossing is given by the Alarm type',
+              'The direction of the crossing is given by the comparator type',
             type: 'number',
             default: 40,
           },
@@ -246,7 +246,7 @@ export const configurationSchema = {
           alarmTriggerLevel: {
             title: 'Threshold',
             description:
-              'The direction of the crossing is given by the Alarm type',
+              'The direction of the crossing is given by the comparator type',
             type: 'number',
             default: 40,
           },
@@ -297,7 +297,7 @@ export const configurationSchema = {
           alarmTriggerLevel: {
             title: 'Threshold',
             description:
-              'The direction of the crossing is given by the Alarm type',
+              'The direction of the crossing is given by the comparator type',
             type: 'number',
             default: 80,
           },
