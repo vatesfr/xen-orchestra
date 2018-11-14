@@ -1140,12 +1140,13 @@ async function _prepareGlusterVm (
   log.debug(`waiting for boot of ${ip}`)
   // wait until we find the assigned IP in the networks, we are just checking the boot is complete
   // fix #3688
-  const vmIsUp = vm =>
-    Boolean(
-      vm.guest_metrics !== NULL_REF &&
-        includes(xapi.getObject(vm.guest_metrics).networks, ip)
-    )
-  const vm = await xapi._waitObjectState(newVM.$id, vmIsUp)
+  const vm = await xapi._waitObjectState(
+    newVM.$id,
+    _ => _.guest_metrics !== NULL_REF
+  )
+  await xapi._waitObjectState(newVM.guest_metrics, _ =>
+    includes(_.networks, ip)
+  )
   log.debug(`booted ${ip}`)
   const localEndpoint = { xapi: xapi, hosts: [host], addresses: [ip] }
   const srFreeSpace = sr.physical_size - sr.physical_utilisation
