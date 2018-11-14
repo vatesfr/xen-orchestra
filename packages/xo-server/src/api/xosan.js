@@ -1144,9 +1144,7 @@ async function _prepareGlusterVm (
     newVM.$id,
     _ => _.guest_metrics !== NULL_REF
   )
-  await xapi._waitObjectState(newVM.guest_metrics, _ =>
-    includes(_.networks, ip)
-  )
+  await xapi._waitObjectState(vm.guest_metrics, _ => includes(_.networks, ip))
   log.debug(`booted ${ip}`)
   const localEndpoint = { xapi: xapi, hosts: [host], addresses: [ip] }
   const srFreeSpace = sr.physical_size - sr.physical_utilisation
