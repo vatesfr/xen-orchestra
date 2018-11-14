@@ -2,6 +2,7 @@ import _ from 'intl'
 import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SmartBackupPreview from 'smart-backup'
 import Tooltip from 'tooltip'
@@ -20,7 +21,7 @@ const VMS_STATUSES_OPTIONS = [
   { value: 'Halted', label: _('vmStateHalted') },
 ]
 
-export default decorate([
+const SmartBackup = decorate([
   connectStore({
     vms: createGetObjectsOfType('VM'),
   }),
@@ -106,3 +107,10 @@ export default decorate([
     </div>
   ),
 ])
+
+SmartBackup.propTypes = {
+  onChange: PropTypes.func.isRequired,
+  pattern: PropTypes.object.isRequired,
+}
+
+export default SmartBackup
