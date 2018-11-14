@@ -3,7 +3,7 @@ import decorate from 'apply-decorators'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
-import { generateRandomId } from 'utils'
+import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { Number } from 'form'
 
@@ -11,10 +11,10 @@ import { FormGroup, Input } from './../utils'
 
 export default decorate([
   provideState({
-    initialState: () => ({
-      formId: generateRandomId(),
-      idInputName: generateRandomId(),
-    }),
+    computed: {
+      formId: generateId,
+      idInputName: generateId,
+    },
     effects: {
       setSchedule: (_, params) => (_, { value, onChange }) => {
         onChange({

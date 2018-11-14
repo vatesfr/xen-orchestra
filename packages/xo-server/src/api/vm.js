@@ -1,7 +1,7 @@
-import concat from 'lodash/concat'
 import defer from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
+import { assignWith, concat } from 'lodash'
 import {
   forbiddenOperation,
   invalidParameters,
@@ -142,8 +142,10 @@ export async function create (params) {
   if (resourceSet) {
     await this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
     checkLimits = async limits2 => {
-      await this.allocateLimitsInResourceSet(limits, resourceSet)
-      await this.allocateLimitsInResourceSet(limits2, resourceSet)
+      await this.allocateLimitsInResourceSet(
+        assignWith({}, limits, limits2, (l1 = 0, l2) => l1 + l2),
+        resourceSet
+      )
     }
   }
 
