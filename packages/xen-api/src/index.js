@@ -209,6 +209,24 @@ const getTaskResult = task => {
   }
 }
 
+function defined () {
+  for (let i = 0, n = arguments.length; i < n; ++i) {
+    const arg = arguments[i]
+    if (arg !== undefined) {
+      return arg
+    }
+  }
+}
+
+const makeCallSetting = (setting, defaultValue) =>
+  setting === undefined
+    ? () => defaultValue
+    : typeof setting === 'function'
+    ? setting
+    : typeof setting !== 'object'
+    ? () => setting
+    : method => defined(setting[method], setting['*'], defaultValue)
+
 // -------------------------------------------------------------------
 
 const RESERVED_FIELDS = {
@@ -232,6 +250,7 @@ export class Xapi extends EventEmitter {
 
     this._allowUnauthorized = opts.allowUnauthorized
     this._auth = opts.auth
+    this._callTimeout = makeCallSetting(opts.callTimeout, 0)
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = createObject(null)
@@ -756,17 +775,20 @@ export class Xapi extends EventEmitter {
         newArgs.push.apply(newArgs, args)
       }
 
-      return pCatch.call(
-        this._transportCall(method, newArgs),
-        isSessionInvalid,
-        () => {
-          // XAPI is sometimes reinitialized and sessions are lost.
-          // Try to login again.
-          debug('%s: the session has been reinitialized', this._humanId)
+      return pTimeout.call(
+        pCatch.call(
+          this._transportCall(method, newArgs),
+          isSessionInvalid,
+          () => {
+            // XAPI is sometimes reinitialized and sessions are lost.
+            // Try to login again.
+            debug('%s: the session has been reinitialized', this._humanId)
 
-          this._sessionId = null
-          return this.connect().then(() => this._sessionCall(method, args))
-        }
+            this._sessionId = null
+            return this.connect().then(() => this._sessionCall(method, args))
+          }
+        ),
+        this._callTimeout(method, args)
       )
     } catch (error) {
       return Promise.reject(error)
