@@ -6,6 +6,7 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
+import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
 import { Toggle, SizeInput } from 'form'
@@ -19,6 +20,7 @@ import {
   isEmpty,
   keys,
   map,
+  mapValues,
   pickBy,
 } from 'lodash'
 import {
@@ -62,6 +64,46 @@ const _findLatestTemplate = templates => {
 const DEFAULT_BRICKSIZE = 100 * 1024 * 1024 * 1024 // 100 GiB
 const DEFAULT_MEMORY = 2 * 1024 * 1024 * 1024 // 2 GiB
 
+const XOSAN_SR_COLUMNS = [
+  {
+    itemRenderer: sr => (
+      <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
+    ),
+    name: _('xosanName'),
+  },
+  {
+    itemRenderer: (sr, userData) => {
+      const host = userData.hosts[sr.$container]
+      return <Link to={`/hosts/${host.id}/general`}>{host.name_label}</Link>
+    },
+    name: _('xosanHost'),
+  },
+  {
+    itemRenderer: sr => <span>{formatSize(sr.size)}</span>,
+    name: _('xosanSize'),
+  },
+  {
+    itemRenderer: sr =>
+      sr.size > 0 && (
+        <Tooltip
+          content={_('spaceLeftTooltip', {
+            used: String(Math.round((sr.physical_usage / sr.size) * 100)),
+            free: formatSize(sr.size - sr.physical_usage),
+          })}
+        >
+          <progress
+            className='progress'
+            max='100'
+            value={(sr.physical_usage / sr.size) * 100}
+          />
+        </Tooltip>
+      ),
+    name: _('xosanUsedSpace'),
+  },
+]
+
+const XOSAN_SR_ACTIONS = []
+
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
 })
@@ -72,7 +114,7 @@ const DEFAULT_MEMORY = 2 * 1024 * 1024 * 1024 // 2 GiB
 })
 export default class NewXosan extends Component {
   state = {
-    selectedSrs: {},
+    //  selectedSrs: {},
     brickSize: DEFAULT_BRICKSIZE,
     ipRange: '172.31.100.0',
     memorySize: DEFAULT_MEMORY,
@@ -243,6 +285,10 @@ export default class NewXosan extends Component {
       suggestions[suggestion].availableSpace === 0
   )
 
+  _getHostsBySr = createSelector(this.getHosts, this._getLvmSrs, (hosts, srs) =>
+    mapValues(srs, sr => find(hosts, { id: sr.$container }))
+  )
+
   _createXosanVm = () => {
     const params = this.state.suggestions[this.state.suggestion]
 
@@ -288,7 +334,6 @@ export default class NewXosan extends Component {
       needsUpdate,
       pif,
       pool,
-      selectedSrs,
       suggestion,
       suggestions,
       useVlan,
@@ -307,10 +352,7 @@ export default class NewXosan extends Component {
       )
     }
 
-    const lvmsrs = this._getLvmSrs()
-    const hosts = this._getHosts()
-
-    const disableSrCheckbox = this._getDisableSrCheckbox()
+    // const disableSrCheckbox = this._getDisableSrCheckbox()
     const hostsNeedRestart =
       pool !== undefined &&
       hostsNeedRestartByPool !== undefined &&
@@ -376,68 +418,12 @@ export default class NewXosan extends Component {
               <Row>
                 <Col>
                   <em>{_('xosanSelect2Srs')}</em>
-                  <table className='table table-striped'>
-                    <thead>
-                      <tr>
-                        <th />
-                        <th>{_('xosanName')}</th>
-                        <th>{_('xosanHost')}</th>
-                        <th>{_('xosanSize')}</th>
-                        <th>{_('xosanUsedSpace')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {map(lvmsrs, sr => {
-                        const host = find(hosts, ['id', sr.$container])
-
-                        return (
-                          <tr key={sr.id}>
-                            <td>
-                              <input
-                                checked={selectedSrs[sr.id] || false}
-                                disabled={disableSrCheckbox(sr)}
-                                onChange={event => this._selectSr(event, sr)}
-                                type='checkbox'
-                              />
-                            </td>
-                            <td>
-                              <Link to={`/srs/${sr.id}/general`}>
-                                {sr.name_label}
-                              </Link>
-                            </td>
-                            <td>
-                              <Link to={`/hosts/${host.id}/general`}>
-                                {host.name_label}
-                              </Link>
-                            </td>
-                            <td>{formatSize(sr.size)}</td>
-                            <td>
-                              {sr.size > 0 && (
-                                <Tooltip
-                                  content={_('spaceLeftTooltip', {
-                                    used: String(
-                                      Math.round(
-                                        (sr.physical_usage / sr.size) * 100
-                                      )
-                                    ),
-                                    free: formatSize(
-                                      sr.size - sr.physical_usage
-                                    ),
-                                  })}
-                                >
-                                  <progress
-                                    className='progress'
-                                    max='100'
-                                    value={(sr.physical_usage / sr.size) * 100}
-                                  />
-                                </Tooltip>
-                              )}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                  <SortedTable
+                    actions={XOSAN_SR_ACTIONS}
+                    collection={this._getLvmSrs()}
+                    columns={XOSAN_SR_COLUMNS}
+                    userData={{ hosts: this._getHostsBySr() }}
+                  />
                 </Col>
               </Row>,
               <Row>
