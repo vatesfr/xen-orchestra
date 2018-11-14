@@ -11,7 +11,7 @@ import { format } from 'xo-remote-parser'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { map, some, trimStart } from 'lodash'
-import { Number } from 'form'
+import { Password, Number } from 'form'
 
 const remoteTypes = {
   file: 'remoteTypeLocal',
@@ -276,15 +276,13 @@ export default decorate([
                 />
               </div>
               <div className='form-group'>
-                <input
-                  className='form-control'
+                <Password
                   name='password'
                   onChange={effects.linkState}
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderPassword
                   )}
                   required
-                  type='password'
                   value={password}
                 />
               </div>
