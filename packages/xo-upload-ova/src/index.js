@@ -5,7 +5,7 @@ import { stat } from 'fs-promise'
 import getStream from 'get-stream'
 import hrp from 'http-request-plus'
 import humanFormat from 'human-format'
-import forEach from 'lodash/forEach'
+import l33t from 'l33teral'
 import isObject from 'lodash/isObject'
 import getKeys from 'lodash/keys'
 import startsWith from 'lodash/startsWith'
@@ -43,6 +43,11 @@ function help () {
       $name --inspect <file>
         Displays the data that would be imported from the ova.
 
+      $name --upload <file> <sr> [--override <key>=<value> [<key>=<value>]+]
+        Actually imports the VM contained in <file> to the Storage Repository <sr>. 
+        Some parameters can be overridden from the file, consult --inspect to get the list.
+        Note: --override has to come last. By default arguments are string, prefix them with <json:> to type 
+        them, ex. " --override nameLabel='new VM'  memory=json:67108864 disks.vmdisk1.capacity=json:134217728"
 
     $name v$version
   `
@@ -117,122 +122,48 @@ export async function inspect (args) {
     nodeStringDecoder,
     true
   )
-  console.log('data', data)
+  console.log('file metadata:', data)
 }
 
-const PARAM_RE = /^([^=]+)=([^]*)$/
-
-export class NodeParsableFile {
-  constructor (fileName, fileLength = Infinity) {
-    this._fileName = fileName
-    this._start = 0
-    this._end = fileLength
+function parseOverride (args) {
+  const flag = args.shift()
+  if (flag !== '--override') {
+    throw new Error('Third argument has to be --override')
   }
 
-  slice (start, end) {
-    const newFile = new NodeParsableFile(this._fileName)
-    newFile._start = start < 0 ? this._end + start : this._start + start
-    newFile._end = end < 0 ? this._end + end : this._start + end
-    return newFile
+  if (args.length === 0) {
+    throw new Error('Missing actual override')
   }
-
-  async read () {
-    const result = await getStream.buffer(
-      createReadStream(this._fileName, {
-        start: this._start,
-        end: this._end - 1,
-      })
-    )
-    // crazy stuff to get a browser-compatible ArrayBuffer from a node buffer
-    // https://stackoverflow.com/a/31394257/72637
-    return result.buffer.slice(
-      result.byteOffset,
-      result.byteOffset + result.byteLength
-    )
-  }
-}
-
-function parseParameters (args) {
-  const params = {}
-  forEach(args, function (arg) {
-    let matches
-    if (!(matches = arg.match(PARAM_RE))) {
-      throw new Error('invalid arg: ' + arg)
-    }
-    const name = matches[1]
-    let value = matches[2]
-
+  const overrides = {}
+  for (const definition of args) {
+    const index = definition.indexOf('=')
+    const key = definition.slice(0, index)
+    let value = definition.slice(index + 1)
     if (startsWith(value, 'json:')) {
       value = JSON.parse(value.slice(5))
     }
-
-    if (name === '@') {
-      params['@'] = value
-      return
-    }
-
-    if (value === 'true') {
-      value = true
-    } else if (value === 'false') {
-      value = false
-    }
-
-    params[name] = value
-  })
-
-  return params
-}
-
-function ensurePathParam (method, value) {
-  if (typeof value !== 'string') {
-    /* eslint no-throw-literal: "off" */
-    throw method +
-      ' requires the @ parameter to be a path (e.g. @=/tmp/config.json)'
+    overrides[key] = value
   }
+  return overrides
 }
 
-const humanFormatOpts = {
-  unit: 'B',
-  scale: 'binary',
-}
-
-function printProgress (progress) {
-  if (progress.length) {
-    console.warn(
-      '%s% of %s @ %s/s - ETA %s',
-      Math.round(progress.percentage),
-      humanFormat(progress.length, humanFormatOpts),
-      humanFormat(progress.speed, humanFormatOpts),
-      prettyMs(progress.eta * 1e3)
-    )
-  } else {
-    console.warn(
-      '%s @ %s/s',
-      humanFormat(progress.transferred, humanFormatOpts),
-      humanFormat(progress.speed, humanFormatOpts)
-    )
+export async function upload (args) {
+  const file = args.shift()
+  const srId = args.shift()
+  let overrides = {}
+  if (args.length > 1) {
+    overrides = parseOverride(args)
   }
-}
-
-async function call (args) {
-  if (!args.length) {
-    throw new Error('missing command name')
-  }
-
-  const method = args.shift()
-  const params = parseParameters(args)
-
-  const file = params['@']
-  delete params['@']
 
   const data = await parseOVAFile(
     new NodeParsableFile(file, (await stat(file)).size),
     nodeStringDecoder
   )
+  const params = { sr: srId }
   const xo = await connect()
   const getXoObject = async filter =>
     Object.values(await xo.call('xo.getAllObjects', { filter }))[0]
-  const sr = await getXoObject({ id: params.sr })
+  const sr = await getXoObject({ id: srId })
   const pool = await getXoObject({ id: sr.$poolId })
   const master = await getXoObject({ id: pool.master })
   const pif = await getXoObject({
@@ -241,10 +172,21 @@ async function call (args) {
     $host: master.id,
   })
   data.networks = data.networks.map(() => pif.$network)
-  data.disks = Object.values(data.disks)
   console.log('data', data)
-  params.data = data
+  const l33tData = l33t(data)
+  const overridesKeys = Object.keys(overrides)
+  const missingKeys = overridesKeys.filter(k => !l33tData.probe(k))
+  if (missingKeys.length) {
+    // eslint-disable-next-line no-throw-literal
+    throw `those override keys don't exist in the metadata: ${missingKeys}`
+  }
+  for (const key of overridesKeys) {
+    l33tData.plant(key, overrides[key])
+  }
+  data.disks = Object.values(data.disks)
+  params.data = l33tData.obj
   params.type = 'ova'
+  const method = 'vm.import'
 
   // FIXME: do not use private properties.
   const baseUrl = xo._url.replace(/^ws/, 'http')
@@ -255,7 +197,10 @@ async function call (args) {
     key = keys[0]
 
     if (key === '$sendTo') {
-      ensurePathParam(method, file)
+      if (typeof file !== 'string') {
+        // eslint-disable-next-line
+        throw 'file parameter should be a path'
+      }
       url = resolveUrl(baseUrl, result[key])
 
       const { size: length } = await stat(file)
@@ -288,6 +233,59 @@ async function call (args) {
   }
 }
 
+export class NodeParsableFile {
+  constructor (fileName, fileLength = Infinity) {
+    this._fileName = fileName
+    this._start = 0
+    this._end = fileLength
+  }
+
+  slice (start, end) {
+    const newFile = new NodeParsableFile(this._fileName)
+    newFile._start = start < 0 ? this._end + start : this._start + start
+    newFile._end = end < 0 ? this._end + end : this._start + end
+    return newFile
+  }
+
+  async read () {
+    const result = await getStream.buffer(
+      createReadStream(this._fileName, {
+        start: this._start,
+        end: this._end - 1,
+      })
+    )
+    // crazy stuff to get a browser-compatible ArrayBuffer from a node buffer
+    // https://stackoverflow.com/a/31394257/72637
+    return result.buffer.slice(
+      result.byteOffset,
+      result.byteOffset + result.byteLength
+    )
+  }
+}
+
+const humanFormatOpts = {
+  unit: 'B',
+  scale: 'binary',
+}
+
+function printProgress (progress) {
+  if (progress.length) {
+    console.warn(
+      '%s% of %s @ %s/s - ETA %s',
+      Math.round(progress.percentage),
+      humanFormat(progress.length, humanFormatOpts),
+      humanFormat(progress.speed, humanFormatOpts),
+      prettyMs(progress.eta * 1e3)
+    )
+  } else {
+    console.warn(
+      '%s @ %s/s',
+      humanFormat(progress.transferred, humanFormatOpts),
+      humanFormat(progress.speed, humanFormatOpts)
+    )
+  }
+}
+
 export default async function main (args) {
   if (!args || !args.length || args[0] === '-h') {
     return help()
@@ -299,7 +297,6 @@ export default async function main (args) {
   if (fnName in exports) {
     return exports[fnName](args.slice(1))
   }
-  return call(args)
 }
 
 if (!module.parent) {
