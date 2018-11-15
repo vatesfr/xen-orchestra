@@ -662,9 +662,12 @@ export default class Xapi extends XapiBase {
       throw forbiddenOperation('destroy', vm.blocked_operations.reason)
     }
 
-    // if (!forceDeleteDefaultTemplate && vm.other_config.default_template === 'true') {
-    //   throw forbiddenOperation('destroy', 'VM is default template')
-    // }
+    if (
+      !forceDeleteDefaultTemplate &&
+      vm.other_config.default_template === 'true'
+    ) {
+      throw forbiddenOperation('destroy', 'VM is default template')
+    }
 
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
