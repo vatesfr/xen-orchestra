@@ -658,23 +658,29 @@ export default class Xapi extends XapiBase {
     // ensure the vm record is up-to-date
     vm = await this.barrier($ref)
 
+    if (!force && 'destroy' in vm.blocked_operations) {
+      throw forbiddenOperation('destroy', vm.blocked_operations.reason)
+    }
+
+    // if (!forceDeleteDefaultTemplate && vm.other_config.default_template === 'true') {
+    //   throw forbiddenOperation('destroy', 'VM is default template')
+    // }
+
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
       await this.call('VM.hard_shutdown', $ref)
     }
 
-    if (force) {
-      await this._updateObjectMapProperty(vm, 'blocked_operations', {
+    await Promise.all(
+      this.call('VM.set_is_a_template', vm.$ref, false),
+      this._updateObjectMapProperty(vm, 'blocked_operations', {
         destroy: null,
-      })
-    }
-
-    if (forceDeleteDefaultTemplate) {
-      await this._updateObjectMapProperty(vm, 'other_config', {
+      }),
+      this._updateObjectMapProperty(vm, 'other_config', {
         default_template: null,
       })
-    }
+    )
 
     // must be done before destroying the VM
     const disks = getVmDisks(vm)
