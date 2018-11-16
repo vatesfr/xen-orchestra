@@ -112,7 +112,6 @@ const constructPattern = values =>
 const destructVmsPattern = pattern =>
   pattern.id === undefined
     ? {
-        powerState: pattern.power_state || 'All',
         $pool: destructSmartPattern(pattern.$pool),
         tags: destructSmartPattern(pattern.tags, flatten),
       }
@@ -143,6 +142,7 @@ const createDoesRetentionExist = name => {
 }
 
 const getInitialState = () => ({
+  _vmsPattern: undefined,
   $pool: {},
   backupMode: false,
   compression: undefined,
@@ -152,7 +152,6 @@ const getInitialState = () => ({
   drMode: false,
   name: '',
   paramsUpdated: false,
-  powerState: 'All',
   remotes: [],
   schedules: {},
   settings: undefined,
@@ -484,9 +483,8 @@ export default decorate([
           snapshotRetention,
         }),
       }),
-      setPowerState: (_, powerState) => state => ({
-        ...state,
-        powerState,
+      onVmsPatternChange: (_, _vmsPattern) => ({
+        _vmsPattern,
       }),
       setPoolValues: (_, values) => state => ({
         ...state,
@@ -566,6 +564,10 @@ export default decorate([
       inputReportWhenId: generateId,
       inputTimeoutId: generateId,
 
+      vmsPattern: ({ _vmsPattern }, { job }) =>
+        defined(_vmsPattern, () => job.vms, {
+          type: 'VM',
+        }),
       needUpdateParams: (state, { job, schedules }) =>
         job !== undefined && schedules !== undefined && !state.paramsUpdated,
       isJobInvalid: state =>
@@ -599,11 +601,10 @@ export default decorate([
       snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
-      vmsSmartPattern: ({ $pool, powerState, tags }) => ({
+      vmsSmartPattern: ({ $pool, tags, vmsPattern }) => ({
+        ...vmsPattern,
         $pool: constructSmartPattern($pool, resolveIds),
-        power_state: powerState === 'All' ? undefined : powerState,
         tags: constructSmartPattern(tags, normalizeTagValues),
-        type: 'VM',
       }),
       vmPredicate: ({ isDelta }, { hostsById, poolsById }) => ({
         $container,
@@ -986,7 +987,10 @@ export default decorate([
 
                   {state.smartMode ? (
                     <Upgrade place='newBackup' required={3}>
-                      <SmartBackup />
+                      <SmartBackup
+                        onChange={effects.onVmsPatternChange}
+                        pattern={state.vmsPattern}
+                      />
                     </Upgrade>
                   ) : (
                     <FormFeedback
