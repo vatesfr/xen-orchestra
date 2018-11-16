@@ -659,7 +659,7 @@ export default class Xapi extends XapiBase {
     vm = await this.barrier($ref)
 
     if (!force && 'destroy' in vm.blocked_operations) {
-      throw forbiddenOperation('destroy', vm.blocked_operations.reason)
+      throw forbiddenOperation('destroy', vm.blocked_operations.destroy.reason)
     }
 
     if (
