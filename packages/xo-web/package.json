@@ -136,7 +136,7 @@
     "whatwg-fetch": "^3.0.0",
     "xml2js": "^0.4.19",
     "xo-acl-resolver": "^0.3.0",
-    "xo-common": "^0.1.2",
+    "xo-common": "^0.2.0",
     "xo-lib": "^0.8.0",
     "xo-remote-parser": "^0.5.0",
     "xo-vmdk-to-vhd": "^0.1.5"

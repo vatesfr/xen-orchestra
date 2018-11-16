@@ -23,6 +23,6 @@
     "node": ">=6"
   },
   "dependencies": {
-    "xo-common": "^0.1.2"
+    "xo-common": "^0.2.0"
   }
 }
