@@ -113,6 +113,7 @@ export default decorate([
       },
     },
     computed: {
+      formId: generateId,
       inputTypeId: generateId,
       parsedPath: ({ remote }) => remote && trimStart(remote.path, '/'),
     },
