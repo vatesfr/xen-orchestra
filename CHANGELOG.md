@@ -24,6 +24,7 @@
 - [Backup NG] Errors listing backups on SMB remotes with extraneous files (PR [#3685](https://github.com/vatesfr/xen-orchestra/pull/3685))
 - [Remotes] Don't expose credentials to users [#3682](https://github.com/vatesfr/xen-orchestra/issues/3682) (PR [#3687](https://github.com/vatesfr/xen-orchestra/pull/3687))
 - [VM] Correctly display guest metrics updates (tools, network, etc.) [#3533](https://github.com/vatesfr/xen-orchestra/issues/3533) (PR [#3694](https://github.com/vatesfr/xen-orchestra/pull/3694))
+- [VM Templates] Fix deletion [#3498](https://github.com/vatesfr/xen-orchestra/issues/3498) (PR [#3695](https://github.com/vatesfr/xen-orchestra/pull/3695))
 
 ### Released packages
 
