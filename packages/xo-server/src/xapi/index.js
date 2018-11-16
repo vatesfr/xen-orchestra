@@ -675,15 +675,15 @@ export default class Xapi extends XapiBase {
       await this.call('VM.hard_shutdown', $ref)
     }
 
-    await Promise.all(
+    await Promise.all([
       this.call('VM.set_is_a_template', vm.$ref, false),
       this._updateObjectMapProperty(vm, 'blocked_operations', {
         destroy: null,
       }),
       this._updateObjectMapProperty(vm, 'other_config', {
         default_template: null,
-      })
-    )
+      }),
+    ])
 
     // must be done before destroying the VM
     const disks = getVmDisks(vm)
