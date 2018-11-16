@@ -1210,17 +1210,17 @@ export const deleteVm = (vm, retryWithForce = true) =>
   })
     .then(() => _call('vm.delete', { id: resolveId(vm) }), noop)
     .catch(error => {
-      if (forbiddenOperation.is(error) || !retryWithForce) {
-        throw error
+      if (retryWithForce && forbiddenOperation.is(error)) {
+        return confirm({
+          title: _('deleteVmBlockedModalTitle'),
+          body: _('deleteVmBlockedModalMessage'),
+        }).then(
+          () => _call('vm.delete', { id: resolveId(vm), force: true }),
+          noop
+        )
       }
 
-      return confirm({
-        title: _('deleteVmBlockedModalTitle'),
-        body: _('deleteVmBlockedModalMessage'),
-      }).then(
-        () => _call('vm.delete', { id: resolveId(vm), force: true }),
-        noop
-      )
+      throw error
     })
 
 export const deleteVms = vms =>
