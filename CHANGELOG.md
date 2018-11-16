@@ -4,6 +4,7 @@
 
 ### Enhancements
 
+- [VM] Ability to set nested virtualization in settings [#3619](https://github.com/vatesfr/xen-orchestra/issues/3619) (PR [#3625](https://github.com/vatesfr/xen-orchestra/pull/3625))
 - [Legacy Backup] Restore and File restore functionalities moved to the Backup NG view [#3499](https://github.com/vatesfr/xen-orchestra/issues/3499) (PR [#3610](https://github.com/vatesfr/xen-orchestra/pull/3610))
 - [Backup NG logs] Display warning in case of missing VMs instead of a ghosts VMs tasks (PR [#3647](https://github.com/vatesfr/xen-orchestra/pull/3647))
 - [VM] On migration, automatically selects the host and SR when only one is available [#3502](https://github.com/vatesfr/xen-orchestra/issues/3502) (PR [#3654](https://github.com/vatesfr/xen-orchestra/pull/3654))
@@ -18,9 +19,10 @@
 - Validate modal containing a confirm text input by pressing the Enter key [#2735](https://github.com/vatesfr/xen-orchestra/issues/2735) (PR [#2890](https://github.com/vatesfr/xen-orchestra/pull/2890))
 - [Patches] Bulk install correctly ignores upgrade patches on licensed hosts (PR [#3651](https://github.com/vatesfr/xen-orchestra/pull/3651))
 - [Backup NG logs] Handle failed restores (PR [#3648](https://github.com/vatesfr/xen-orchestra/pull/3648))
-- [Self/New VM] Incorrect limit computation [#3658](https://github.com/vatesfr/xen-orchestra/issues/3658)
+- [Self/New VM] Incorrect limit computation [#3658](https://github.com/vatesfr/xen-orchestra/issues/3658) (PR [#3666](https://github.com/vatesfr/xen-orchestra/pull/3666))
 - [Plugins] Don't expose credentials in config to users (PR [#3671](https://github.com/vatesfr/xen-orchestra/pull/3671))
 - [Self/New VM] `not enough … available in the set …` error in some cases (PR [#3667](https://github.com/vatesfr/xen-orchestra/pull/3667))
+- [XOSAN] Creation stuck at "Configuring VMs" [#3688](https://github.com/vatesfr/xen-orchestra/issues/3688) (PR [#3689](https://github.com/vatesfr/xen-orchestra/pull/3689))
 - [Backup NG] Errors listing backups on SMB remotes with extraneous files (PR [#3685](https://github.com/vatesfr/xen-orchestra/pull/3685))
 - [Remotes] Don't expose credentials to users [#3682](https://github.com/vatesfr/xen-orchestra/issues/3682) (PR [#3687](https://github.com/vatesfr/xen-orchestra/pull/3687))
 - [VM] Correctly display guest metrics updates (tools, network, etc.) [#3533](https://github.com/vatesfr/xen-orchestra/issues/3533) (PR [#3694](https://github.com/vatesfr/xen-orchestra/pull/3694))
@@ -37,8 +39,6 @@
 ## **5.28.1** (2018-11-05)
 
 ### Enhancements
-
-- [VM] Ability to set nested virtualization in settings [#3619](https://github.com/vatesfr/xen-orchestra/issues/3619) (PR [#3625](https://github.com/vatesfr/xen-orchestra/pull/3625))
 
 ### Bug fixes
 
