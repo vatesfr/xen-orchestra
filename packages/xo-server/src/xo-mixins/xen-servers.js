@@ -159,13 +159,28 @@ export default class {
     return server
   }
 
-  _onXenAdd (xapiObjects, xapiIdsToXo, toRetry, conId) {
+  _onXenAdd (
+    newXapiObjects,
+    xapiIdsToXo,
+    toRetry,
+    conId,
+    dependents,
+    xapiObjects
+  ) {
     const conflicts = this._objectConflicts
     const objects = this._xo._objects
 
-    forEach(xapiObjects, (xapiObject, xapiId) => {
+    forEach(newXapiObjects, function handleObject (xapiObject, xapiId) {
+      const { $ref } = xapiObject
+
+      const dependent = dependents[$ref]
+      if (dependent !== undefined) {
+        delete dependents[$ref]
+        return handleObject(xapiObjects[dependent], dependent)
+      }
+
       try {
-        const xoObject = xapiObjectToXo(xapiObject)
+        const xoObject = xapiObjectToXo(xapiObject, dependents)
         if (!xoObject) {
           return
         }
@@ -174,7 +189,7 @@ export default class {
         xapiIdsToXo[xapiId] = xoId
 
         const previous = objects.get(xoId, undefined)
-        if (previous && previous._xapiRef !== xapiObject.$ref) {
+        if (previous && previous._xapiRef !== $ref) {
           const conflicts_ =
             conflicts[xoId] || (conflicts[xoId] = { __proto__: null })
           conflicts_[conId] = xoObject
@@ -251,11 +266,20 @@ export default class {
       let toRetry
       let toRetryNext = { __proto__: null }
 
+      const dependents = { __proto__: null }
+
       const onAddOrUpdate = objects => {
-        this._onXenAdd(objects, xapiIdsToXo, toRetryNext, conId)
+        this._onXenAdd(
+          objects,
+          xapiIdsToXo,
+          toRetryNext,
+          conId,
+          dependents,
+          xapi.objects.all
+        )
       }
       const onRemove = objects => {
-        this._onXenRemove(objects, xapiIdsToXo, toRetry, conId)
+        this._onXenRemove(objects, xapiIdsToXo, toRetry, conId, dependents)
       }
 
       const xapisByPool = this._xapisByPool
@@ -281,7 +305,7 @@ export default class {
       const addObject = object => {
         // TODO: optimize.
         onAddOrUpdate({ [object.$id]: object })
-        return xapiObjectToXo(object)
+        return xapiObjectToXo(object, dependents)
       }
 
       return {
