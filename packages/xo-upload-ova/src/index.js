@@ -287,7 +287,7 @@ function printProgress (progress) {
 }
 
 export default async function main (args) {
-  if (!args || !args.length || args[0] === '-h') {
+  if (!args || !args.length || args[0] === '-h' || args[0] === '--help') {
     return help()
   }
   const fnName = args[0].replace(
