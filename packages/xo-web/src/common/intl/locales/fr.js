@@ -393,7 +393,7 @@ export default {
   homeMigrateTo: 'Migrer vers…',
 
   // Original text: "Missing patches"
-  homeMissingPaths: 'Patches manquant',
+  homeMissingPatches: 'Patches manquant',
 
   // Original text: "Master:"
   homePoolMaster: 'Maître :',
