@@ -1,6 +1,7 @@
 import createLogger from '@xen-orchestra/log'
-import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
+import { pFinally, ignoreErrors } from 'promise-toolbox'
+import { some } from 'lodash'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -93,6 +94,7 @@ export default class {
   async updateXenServer (
     id,
     {
+      allowConnected,
       allowUnauthorized,
       enabled,
       error,
@@ -106,10 +108,11 @@ export default class {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
-      allowUnauthorized !== undefined ||
-      host !== undefined ||
-      password !== undefined ||
-      username !== undefined
+      !allowConnected &&
+      (allowUnauthorized !== undefined ||
+        host !== undefined ||
+        password !== undefined ||
+        username !== undefined)
 
     if (
       requireDisconnected &&
@@ -352,14 +355,39 @@ export default class {
 
     xapi.xo.install()
 
-    await xapi.connect().then(
-      () => this.updateXenServer(id, { error: null }),
-      error => {
-        this.updateXenServer(id, { error: serializeError(error) })
-
-        throw error
+    const onRedirect = ({ protocol, hostname, port }) => {
+      const isPoolMasterConnected = some(
+        this._xapis,
+        xapi =>
+          xapi.pool != null &&
+          hostname === xapi.getObject(xapi.pool.master).address
+      )
+      if (isPoolMasterConnected) {
+        throw new Error("The server's master is already connected.")
       }
-    )
+
+      let host = ''
+      protocol !== undefined && (host += `${protocol}//`)
+      host += hostname
+      port !== undefined && (host += `:${port}`)
+      this.updateXenServer(id, {
+        allowConnected: true,
+        host,
+      })::ignoreErrors()
+    }
+
+    xapi.on('redirect', onRedirect)
+    await xapi
+      .connect()
+      .then(
+        () => this.updateXenServer(id, { error: null }),
+        error => {
+          this.updateXenServer(id, { error: serializeError(error) })
+
+          throw error
+        }
+      )
+      ::pFinally(() => xapi.removeListener('redirect', onRedirect))
   }
 
   async disconnectXenServer (id) {
