@@ -213,7 +213,7 @@ export default class Acls extends Component {
       this.setState({
         subjects: [],
         objects: [],
-        action: '',
+        action: undefined,
       })
     } catch (err) {
       error('Add ACL(s)', err.message || String(err))
