@@ -5,6 +5,7 @@
 ### Enhancements
 
 - [Perf alert] Ability to trigger an alarm if a host/VM/SR usage value is below the threshold [#3612](https://github.com/vatesfr/xen-orchestra/issues/3612) (PR [#3675](https://github.com/vatesfr/xen-orchestra/pull/3675))
+- [Servers] Update the server's host on redirecting to the master [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3706](https://github.com/vatesfr/xen-orchestra/pull/3706))
 
 ### Bug fixes
 
