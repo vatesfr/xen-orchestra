@@ -134,6 +134,10 @@ export default class NewXosan extends Component {
           return
         }
 
+        if (pool === null) {
+          return
+        }
+
         const hosts = filter(this.props.hosts, { $pool: pool.id })
         const pack = findLatestPack(catalog.xosan, map(hosts, 'version'))
 
@@ -267,14 +271,13 @@ export default class NewXosan extends Component {
   _getDisableSrCheckbox = createSelector(
     () => this.state.selectedSrs,
     this._getLvmSrs,
-    (selectedSrs, lvmsrs) => sr => {
-      return !every(
+    (selectedSrs, lvmsrs) => sr =>
+      !every(
         selectedSrs,
         selectedSrId =>
           selectedSrId === sr.id ||
           find(lvmsrs, { id: selectedSrId }).$container !== sr.$container
       )
-    }
   )
 
   _getDisableCreation = createSelector(
@@ -354,6 +357,7 @@ export default class NewXosan extends Component {
     }
 
     const hostsNeedRestart =
+      pool !== null &&
       pool !== undefined &&
       hostsNeedRestartByPool !== undefined &&
       hostsNeedRestartByPool[pool.id]
