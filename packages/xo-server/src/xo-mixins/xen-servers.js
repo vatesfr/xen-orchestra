@@ -360,7 +360,7 @@ export default class {
       const isPoolMasterConnected = some(
         this._xapis,
         xapi =>
-          xapi.pool != null &&
+          xapi.pool !== null &&
           hostname === xapi.getObject(xapi.pool.master).address
       )
       if (isPoolMasterConnected) {
