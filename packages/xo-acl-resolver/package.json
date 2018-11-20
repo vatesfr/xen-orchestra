@@ -1,6 +1,6 @@
 {
   "name": "xo-acl-resolver",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "ISC",
   "description": "Xen-Orchestra internal: do ACLs resolution",
   "keywords": [],
@@ -23,6 +23,6 @@
     "node": ">=6"
   },
   "dependencies": {
-    "xo-common": "^0.1.2"
+    "xo-common": "^0.2.0"
   }
 }

@@ -262,9 +262,13 @@ export default {
         if (virtualizationMode !== 'pv' && virtualizationMode !== 'hvm') {
           throw new Error(`The virtualization mode must be 'pv' or 'hvm'`)
         }
-        return this._set(
-          'HVM_boot_policy',
-          virtualizationMode === 'hvm' ? 'Boot order' : ''
+        return this._set('domain_type', virtualizationMode)::pCatch(
+          { code: 'MESSAGE_METHOD_UNKNOWN' },
+          () =>
+            this._set(
+              'HVM_boot_policy',
+              virtualizationMode === 'hvm' ? 'Boot order' : ''
+            )
         )
       },
     },

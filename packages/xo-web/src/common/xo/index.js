@@ -193,7 +193,8 @@ export const resolveUrl = invoke(
 // -------------------------------------------------------------------
 
 const createSubscription = cb => {
-  const delay = 5e3
+  const delay = 5e3 // 5s
+  const clearCacheDelay = 6e5 // 10m
 
   const subscribers = Object.create(null)
   let cache
@@ -203,12 +204,18 @@ const createSubscription = cb => {
 
   let running = false
 
-  const uninstall = () => {
-    clearTimeout(timeout)
+  const clearCache = () => {
     cache = undefined
   }
 
+  const uninstall = () => {
+    clearTimeout(timeout)
+    timeout = setTimeout(clearCache, clearCacheDelay)
+  }
+
   const loop = () => {
+    clearTimeout(timeout)
+
     if (running) {
       return
     }
@@ -255,11 +262,11 @@ const createSubscription = cb => {
     const id = nextId++
     subscribers[id] = cb
 
-    if (n++ !== 0) {
-      if (cache !== undefined) {
-        asap(() => cb(cache))
-      }
-    } else {
+    if (cache !== undefined) {
+      asap(() => cb(cache))
+    }
+
+    if (n++ === 0) {
       loop()
     }
 
@@ -274,7 +281,6 @@ const createSubscription = cb => {
 
   subscribe.forceRefresh = () => {
     if (n) {
-      clearTimeout(timeout)
       loop()
     }
   }
@@ -1210,17 +1216,17 @@ export const deleteVm = (vm, retryWithForce = true) =>
   })
     .then(() => _call('vm.delete', { id: resolveId(vm) }), noop)
     .catch(error => {
-      if (forbiddenOperation.is(error) || !retryWithForce) {
-        throw error
+      if (retryWithForce && forbiddenOperation.is(error)) {
+        return confirm({
+          title: _('deleteVmBlockedModalTitle'),
+          body: _('deleteVmBlockedModalMessage'),
+        }).then(
+          () => _call('vm.delete', { id: resolveId(vm), force: true }),
+          noop
+        )
       }
 
-      return confirm({
-        title: _('deleteVmBlockedModalTitle'),
-        body: _('deleteVmBlockedModalMessage'),
-      }).then(
-        () => _call('vm.delete', { id: resolveId(vm), force: true }),
-        noop
-      )
+      throw error
     })
 
 export const deleteVms = vms =>

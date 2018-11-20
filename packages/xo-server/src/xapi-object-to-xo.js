@@ -223,7 +223,10 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vm (obj) {
+  vm (obj, dependents) {
+    dependents[obj.guest_metrics] = obj.$id
+    dependents[obj.metrics] = obj.$id
+
     const {
       $guest_metrics: guestMetrics,
       $metrics: metrics,
@@ -741,13 +744,13 @@ const TRANSFORMS = {
 
 // ===================================================================
 
-export default xapiObj => {
+export default function xapiObjectToXo (xapiObj, dependents) {
   const transform = TRANSFORMS[xapiObj.$type.toLowerCase()]
   if (!transform) {
     return
   }
 
-  const xoObj = transform(xapiObj)
+  const xoObj = transform(xapiObj, dependents)
   if (!xoObj) {
     return
   }
