@@ -549,6 +549,40 @@ ${monitorBodies.join('\n')}`
       )
   }
 
+  // Sample of a monitor
+  //  {
+  //    uuids: ['8485ea1f-b475-f6f2-58a7-895ab626ce5d'],
+  //    variableName: 'cpuUsage',
+  //    comparator: '>',
+  //    alarmTriggerLevel: 50,
+  //    alarmTriggerPeriod: 60,
+  //    objectType: 'host',
+  //    alarmId: 'host|cpuUsage|50',
+  //    title: 'host CPU usage > 50',
+  //    vmFunction: {
+  //      name: 'host CPU usage',
+  //      description: 'Raises an alarm when the average usage of any CPU is higher/lower than the threshold',
+  //      unit: '%',
+  //      createParser: [Function: createParser],
+  //    },
+  //    snapshot: [Function: snapshot],
+  //  }
+  //
+  // Sample of an entry of a snapshot
+  //  {
+  //    uuid: '8485ea1f-b475-f6f2-58a7-895ab626ce5d',
+  //    object: host,
+  //    objectLink: '[lab1](localhost:3000#/hosts/485ea1f-b475-f6f2-58a7-895ab626ce5d/stats)'
+  //    rrd: stats,
+  //    data: {
+  //      parseRow: [Function: parseRow],
+  //      getDisplayableValue: [Function: getDisplayableValue],
+  //      shouldAlarm: [Function: shouldAlarm],
+  //    },
+  //    value: 70,
+  //    shouldAlarm: true,
+  //    listItem: '  * [lab1](localhost:3000#/hosts/485ea1f-b475-f6f2-58a7-895ab626ce5d/stats): 70%\n'
+  //  }
   async _checkMonitors () {
     const monitors = this._getMonitors()
     for (const monitor of monitors) {
