@@ -4,10 +4,13 @@
 
 ### Enhancements
 
+- [Perf alert] Ability to trigger an alarm if a host/VM/SR usage value is below the threshold [#3612](https://github.com/vatesfr/xen-orchestra/issues/3612) (PR [#3675](https://github.com/vatesfr/xen-orchestra/pull/3675))
+
 ### Bug fixes
 
 ### Released packages
 
+- xo-server-perf-alert v0.2.0
 - xo-server-usage-report v0.7.1
 - xo-server v5.31.0
 - xo-web v5.31.0
@@ -24,7 +27,6 @@
 - [Backup NG form] Display a warning to let the user know that the Delta Backup and the Continuous Replication are not supported on XenServer < 6.5 [#3540](https://github.com/vatesfr/xen-orchestra/issues/3540) (PR [#3668](https://github.com/vatesfr/xen-orchestra/pull/3668))
 - [Backup NG form] Omit VMs(Simple Backup)/pools(Smart Backup/Resident on) with XenServer < 6.5 from the selection when the Delta Backup mode or the Continuous Replication mode are selected [#3540](https://github.com/vatesfr/xen-orchestra/issues/3540) (PR [#3668](https://github.com/vatesfr/xen-orchestra/pull/3668))
 - [VM] Allow to switch the Virtualization mode [#2372](https://github.com/vatesfr/xen-orchestra/issues/2372) (PR [#3669](https://github.com/vatesfr/xen-orchestra/pull/3669))
-- [Perf alert] Ability to trigger an alarm if a host/VM/SR usage value is below the threshold [#3612](https://github.com/vatesfr/xen-orchestra/issues/3612) (PR [#3675](https://github.com/vatesfr/xen-orchestra/pull/3675))
 
 ### Bug fixes
 
@@ -43,7 +45,6 @@
 
 ### Released packages
 
-- xo-server-perf-alert v0.2.0
 - xen-api v0.21.0
 - xo-common v0.2.0
 - xo-acl-resolver v0.4.0
