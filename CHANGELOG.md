@@ -10,6 +10,7 @@
 
 ### Released packages
 
+- xen-api v0.22.0
 - xo-server-perf-alert v0.2.0
 - xo-server-usage-report v0.7.1
 - xo-server v5.31.0
