@@ -107,13 +107,6 @@ export default class HostItem extends Component {
                     useLongClick
                   />
                 </Ellipsis>
-                {container && (
-                  <Col mediumSize={2} className='hidden-sm-down'>
-                    <Link to={`/${container.type}s/${container.id}`}>
-                      {container.name_label}
-                    </Link>
-                  </Col>
-                )}
                 &nbsp;
                 {container && host.id === container.master && (
                   <span className='tag tag-pill tag-info'>
@@ -203,6 +196,13 @@ export default class HostItem extends Component {
             <Col largeSize={2} className='hidden-lg-down'>
               <span className='tag tag-info tag-ip'>{host.address}</span>
             </Col>
+            {container && (
+              <Col mediumSize={2} className='hidden-sm-down'>
+                <Link to={`/${container.type}s/${container.id}`}>
+                  {container.name_label}
+                </Link>
+              </Col>
+            )}
             <Col
               mediumSize={1}
               offset={container ? undefined : 2}
