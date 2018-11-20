@@ -69,6 +69,7 @@ const XOSAN_SR_COLUMNS = [
       <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
     ),
     name: _('xosanName'),
+    sortCriteria: 'name_label',
   },
   {
     itemRenderer: (sr, { hosts }) => {
@@ -76,6 +77,10 @@ const XOSAN_SR_COLUMNS = [
       return <Link to={`/hosts/${host.id}/general`}>{host.name_label}</Link>
     },
     name: _('xosanHost'),
+    sortCriteria: (sr, { hosts }) => {
+      const host = find(hosts, ['id', sr.$container])
+      return host.name_label
+    },
   },
   {
     itemRenderer: sr => <span>{formatSize(sr.size)}</span>,
@@ -98,6 +103,7 @@ const XOSAN_SR_COLUMNS = [
         </Tooltip>
       ),
     name: _('xosanUsedSpace'),
+    sortCriteria: sr => sr.size > 0 && sr.size - sr.physical_usage,
   },
 ]
 
@@ -412,8 +418,8 @@ export default class NewXosan extends Component {
               <SortedTable
                 collection={this._getLvmSrs()}
                 columns={XOSAN_SR_COLUMNS}
-                disabledCheckbox={this._getDisableSrCheckbox()}
                 data-hosts={this._getHosts()}
+                disabledCheckbox={this._getDisableSrCheckbox()}
                 onSelectCheckbox={this._selectSrs}
               />,
               <Row>

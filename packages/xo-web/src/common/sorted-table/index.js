@@ -23,6 +23,7 @@ import {
   isEmpty,
   isFunction,
   map,
+  some,
   sortBy,
   startsWith,
 } from 'lodash'
@@ -618,6 +619,9 @@ export default class SortedTable extends Component {
     })
   }
 
+  _disabledAllVisibleItem = () =>
+    some(this._getVisibleItems(), item => this._disabledCheckbox(item) === true)
+
   // TODO: figure out why it's necessary
   _toggleNestedCheckboxGuard = false
 
@@ -945,6 +949,7 @@ export default class SortedTable extends Component {
                 >
                   <Checkbox
                     onChange={this._selectAllVisibleItems}
+                    disabled={this._disabledAllVisibleItem()}
                     checked={all || nSelectedItems !== 0}
                     indeterminate={
                       !all &&
