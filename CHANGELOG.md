@@ -4,10 +4,13 @@
 
 ### Enhancements
 
+- [Perf alert] Ability to trigger an alarm if a host/VM/SR usage value is below the threshold [#3612](https://github.com/vatesfr/xen-orchestra/issues/3612) (PR [#3675](https://github.com/vatesfr/xen-orchestra/pull/3675))
+
 ### Bug fixes
 
 ### Released packages
 
+- xo-server-perf-alert v0.2.0
 - xo-server-usage-report v0.7.1
 - xo-server v5.31.0
 - xo-web v5.31.0

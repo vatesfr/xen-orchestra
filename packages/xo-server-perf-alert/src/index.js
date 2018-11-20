@@ -3,14 +3,18 @@ import { createSchedule } from '@xen-orchestra/cron'
 import { assign, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 
+const COMPARATOR_FN = {
+  '>': (a, b) => a > b,
+  '<': (a, b) => a < b,
+}
+
 const VM_FUNCTIONS = {
   cpuUsage: {
     name: 'VM CPU usage',
     description:
-      'Raises an alarm when the average usage of any CPU is higher than the threshold',
+      'Raises an alarm when the average usage of any CPU is higher/lower than the threshold',
     unit: '%',
-    comparator: '>',
-    createParser: (legend, threshold) => {
+    createParser: (comparator, legend, threshold) => {
       const regex = /cpu[0-9]+/
       const filteredLegends = legend.filter(l => l.name.match(regex))
       const accumulator = Object.assign(
@@ -27,17 +31,17 @@ const VM_FUNCTIONS = {
           })
         },
         getDisplayableValue,
-        shouldAlarm: () => getDisplayableValue() > threshold,
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
   memoryUsage: {
     name: 'VM memory usage',
     description:
-      'Raises an alarm when the used memory % is higher than the threshold',
+      'Raises an alarm when the used memory % is higher/lower than the threshold',
     unit: '% used',
-    comparator: '>',
-    createParser: (legend, threshold) => {
+    createParser: (comparator, legend, threshold) => {
       const memoryBytesLegend = legend.find(l => l.name === 'memory')
       const memoryKBytesFreeLegend = legend.find(
         l => l.name === 'memory_internal_free'
@@ -52,9 +56,8 @@ const VM_FUNCTIONS = {
           )
         },
         getDisplayableValue,
-        shouldAlarm: () => {
-          return getDisplayableValue() > threshold
-        },
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
@@ -64,10 +67,9 @@ const HOST_FUNCTIONS = {
   cpuUsage: {
     name: 'host CPU usage',
     description:
-      'Raises an alarm when the average usage of any CPU is higher than the threshold',
+      'Raises an alarm when the average usage of any CPU is higher/lower than the threshold',
     unit: '%',
-    comparator: '>',
-    createParser: (legend, threshold) => {
+    createParser: (comparator, legend, threshold) => {
       const regex = /^cpu[0-9]+$/
       const filteredLegends = legend.filter(l => l.name.match(regex))
       const accumulator = Object.assign(
@@ -84,17 +86,17 @@ const HOST_FUNCTIONS = {
           })
         },
         getDisplayableValue,
-        shouldAlarm: () => getDisplayableValue() > threshold,
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
   memoryUsage: {
     name: 'host memory usage',
     description:
-      'Raises an alarm when the used memory % is higher than the threshold',
+      'Raises an alarm when the used memory % is higher/lower than the threshold',
     unit: '% used',
-    comparator: '>',
-    createParser: (legend, threshold) => {
+    createParser: (comparator, legend, threshold) => {
       const memoryKBytesLegend = legend.find(l => l.name === 'memory_total_kib')
       const memoryKBytesFreeLegend = legend.find(
         l => l.name === 'memory_free_kib'
@@ -109,7 +111,8 @@ const HOST_FUNCTIONS = {
           )
         },
         getDisplayableValue,
-        shouldAlarm: () => getDisplayableValue() > threshold,
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
@@ -119,15 +122,15 @@ const SR_FUNCTIONS = {
   storageUsage: {
     name: 'SR storage usage',
     description:
-      'Raises an alarm when the used disk space % is higher than the threshold',
+      'Raises an alarm when the used disk space % is higher/lower than the threshold',
     unit: '% used',
-    comparator: '>',
-    createGetter: threshold => sr => {
+    createGetter: (comparator, threshold) => sr => {
       const getDisplayableValue = () =>
         (sr.physical_utilisation * 100) / sr.physical_size
       return {
         getDisplayableValue,
-        shouldAlarm: () => getDisplayableValue() > threshold,
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
@@ -137,6 +140,13 @@ const TYPE_FUNCTION_MAP = {
   vm: VM_FUNCTIONS,
   host: HOST_FUNCTIONS,
   sr: SR_FUNCTIONS,
+}
+
+const COMPARATOR_ENTRY = {
+  title: 'Comparator',
+  type: 'string',
+  default: Object.keys(COMPARATOR_FN)[0],
+  enum: Object.keys(COMPARATOR_FN),
 }
 
 // list of currently ringing alarms, to avoid double notification
@@ -182,10 +192,11 @@ export const configurationSchema = {
             default: Object.keys(HOST_FUNCTIONS)[0],
             enum: Object.keys(HOST_FUNCTIONS),
           },
+          comparator: COMPARATOR_ENTRY,
           alarmTriggerLevel: {
             title: 'Threshold',
             description:
-              'The direction of the crossing is given by the Alarm type',
+              'The direction of the crossing is given by the comparator type',
             type: 'number',
             default: 40,
           },
@@ -222,7 +233,7 @@ export const configurationSchema = {
             description: Object.keys(VM_FUNCTIONS)
               .map(
                 k =>
-                  `  * ${k} (${VM_FUNCTIONS[k].unit}):${
+                  `  * ${k} (${VM_FUNCTIONS[k].unit}): ${
                     VM_FUNCTIONS[k].description
                   }`
               )
@@ -231,10 +242,11 @@ export const configurationSchema = {
             default: Object.keys(VM_FUNCTIONS)[0],
             enum: Object.keys(VM_FUNCTIONS),
           },
+          comparator: COMPARATOR_ENTRY,
           alarmTriggerLevel: {
             title: 'Threshold',
             description:
-              'The direction of the crossing is given by the Alarm type',
+              'The direction of the crossing is given by the comparator type',
             type: 'number',
             default: 40,
           },
@@ -281,10 +293,11 @@ export const configurationSchema = {
             default: Object.keys(SR_FUNCTIONS)[0],
             enum: Object.keys(SR_FUNCTIONS),
           },
+          comparator: COMPARATOR_ENTRY,
           alarmTriggerLevel: {
             title: 'Threshold',
             description:
-              'The direction of the crossing is given by the Alarm type',
+              'The direction of the crossing is given by the comparator type',
             type: 'number',
             default: 80,
           },
@@ -440,6 +453,7 @@ ${monitorBodies.join('\n')}`
         relatedNode[l.name] = l
       })
       const parser = typeFunction.createParser(
+        definition.comparator,
         parsedLegend.filter(l => l.uuid === uuid),
         definition.alarmTriggerLevel
       )
@@ -454,7 +468,7 @@ ${monitorBodies.join('\n')}`
       ...definition,
       alarmId,
       vmFunction: typeFunction,
-      title: `${typeFunction.name} ${typeFunction.comparator} ${
+      title: `${typeFunction.name} ${definition.comparator} ${
         definition.alarmTriggerLevel
       }${typeFunction.unit}`,
       snapshot: async () => {
@@ -488,6 +502,7 @@ ${monitorBodies.join('\n')}`
               } else {
                 // Stats via XAPI
                 const getter = typeFunction.createGetter(
+                  definition.comparator,
                   definition.alarmTriggerLevel
                 )
                 const data = getter(result.object)
