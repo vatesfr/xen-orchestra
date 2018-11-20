@@ -356,6 +356,7 @@ export default class {
     xapi.xo.install()
 
     const onRedirect = ({ protocol, hostname, port }) => {
+      // FIXME: race condition with the master's connection at the xo-server restart
       const isPoolMasterConnected = some(
         this._xapis,
         xapi =>
