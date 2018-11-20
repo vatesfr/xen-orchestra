@@ -336,6 +336,25 @@ export default decorate([
     effects: {
       toggleState,
     },
+    computed: {
+      backupLogs: (_, { logs, vms }) =>
+        defined(logs.backup, []).map(log =>
+          log.tasks !== undefined
+            ? {
+                ...log,
+                vmNames: (() => {
+                  let names
+                  log.tasks.forEach(task => {
+                    const vm = vms[task.data.id]
+                    vm !== undefined &&
+                      (names || (names = [])).push(vm.name_label)
+                  })
+                  return names
+                })(),
+              }
+            : log
+        ),
+    },
   }),
   injectState,
   ({ state, effects, logs, jobs, srs, vms }) => (
@@ -353,7 +372,7 @@ export default decorate([
           />
         </h2>
         <NoObjects
-          collection={logs && defined(logs.backup, [])}
+          collection={logs && state.backupLogs}
           columns={LOG_BACKUP_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}
