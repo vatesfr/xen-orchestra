@@ -320,9 +320,10 @@ export default decorate([
     logs: cb =>
       subscribeBackupNgLogs(logs =>
         cb(
-          groupBy(logs, log =>
-            log.message === 'restore' ? 'restore' : 'backup'
-          )
+          logs &&
+            groupBy(logs, log =>
+              log.message === 'restore' ? 'restore' : 'backup'
+            )
         )
       ),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
@@ -352,7 +353,7 @@ export default decorate([
           />
         </h2>
         <NoObjects
-          collection={defined(() => logs.backup, [])}
+          collection={logs && defined(logs.backup, [])}
           columns={LOG_BACKUP_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}
@@ -370,7 +371,7 @@ export default decorate([
           />
         </h2>
         <NoObjects
-          collection={defined(() => logs.restore, [])}
+          collection={logs && defined(logs.restore, [])}
           columns={LOG_RESTORE_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}
