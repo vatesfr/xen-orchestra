@@ -5,9 +5,11 @@ import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
+import { error } from 'notification'
 import { Container, Col, Row } from 'grid'
 import { Toggle, SizeInput } from 'form'
 import { SelectPif, SelectPool } from 'select-objects'
@@ -21,6 +23,7 @@ import {
   keys,
   map,
   pickBy,
+  some,
 } from 'lodash'
 import {
   createFilter,
@@ -74,17 +77,14 @@ const XOSAN_SR_COLUMNS = [
   {
     itemRenderer: (sr, { hosts }) => {
       const host = find(hosts, ['id', sr.$container])
-      return <Link to={`/hosts/${host.id}/general`}>{host.name_label}</Link>
+      return <Link to={`/hosts/${host.id}/general`}>{renderXoItem(host)}</Link>
     },
     name: _('xosanHost'),
-    sortCriteria: (sr, { hosts }) => {
-      const host = find(hosts, ['id', sr.$container])
-      return host.name_label
-    },
   },
   {
     itemRenderer: sr => <span>{formatSize(sr.size)}</span>,
     name: _('xosanSize'),
+    sortCriteria: 'size',
   },
   {
     itemRenderer: sr =>
@@ -103,7 +103,7 @@ const XOSAN_SR_COLUMNS = [
         </Tooltip>
       ),
     name: _('xosanUsedSpace'),
-    sortCriteria: sr => sr.size > 0 && sr.size - sr.physical_usage,
+    sortCriteria: sr => sr.size - sr.physical_usage,
   },
 ]
 
@@ -248,6 +248,10 @@ export default class NewXosan extends Component {
   }
 
   _selectSrs = selectedSrs => {
+    if (some(selectedSrs, sr => this._getDisableSrCheckbox(sr) === true)) {
+      return error(_('xosanSrOnSameHost'), _('xosanSrOnSameHostMessage'))
+    }
+
     this.setState({ selectedSrs: map(selectedSrs, 'id') })
   }
 
@@ -423,8 +427,7 @@ export default class NewXosan extends Component {
                 collection={this._getLvmSrs()}
                 columns={XOSAN_SR_COLUMNS}
                 data-hosts={this._getHosts()}
-                disabledCheckbox={this._getDisableSrCheckbox()}
-                onSelectCheckbox={this._selectSrs}
+                onSelect={this._selectSrs}
               />,
               <Row>
                 <Col>

@@ -23,7 +23,6 @@ import {
   isEmpty,
   isFunction,
   map,
-  some,
   sortBy,
   startsWith,
 } from 'lodash'
@@ -251,7 +250,6 @@ export default class SortedTable extends Component {
   static propTypes = {
     defaultColumn: PropTypes.number,
     defaultFilter: PropTypes.string,
-    disabledCheckbox: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
     collection: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
       .isRequired,
     columns: PropTypes.arrayOf(
@@ -297,7 +295,7 @@ export default class SortedTable extends Component {
     groupedActions: actionsShape,
     individualActions: actionsShape,
     itemsPerPage: PropTypes.number,
-    onSelectCheckbox: PropTypes.func,
+    onSelect: PropTypes.func,
     paginationContainer: PropTypes.func,
     rowAction: PropTypes.func,
     rowLink: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
@@ -607,20 +605,19 @@ export default class SortedTable extends Component {
 
   _selectAllVisibleItems = event => {
     const { checked } = event.target
-    const { onSelectCheckbox } = this.props
-    const items = this._getVisibleItems()
-    onSelectCheckbox !== undefined && onSelectCheckbox(checked ? items : [])
+    const { onSelect } = this.props
+
+    if (onSelect !== undefined) {
+      onSelect(checked ? this._getVisibleItems() : [])
+    }
 
     this.setState({
       all: false,
       selectedItemsIds: checked
-        ? this.state.selectedItemsIds.union(map(items, 'id'))
+        ? this.state.selectedItemsIds.union(map(this._getVisibleItems(), 'id'))
         : this.state.selectedItemsIds.clear(),
     })
   }
-
-  _disabledAllVisibleItem = () =>
-    some(this._getVisibleItems(), item => this._disabledCheckbox(item) === true)
 
   // TODO: figure out why it's necessary
   _toggleNestedCheckboxGuard = false
@@ -640,12 +637,15 @@ export default class SortedTable extends Component {
   _selectAll = () => this.setState({ all: true })
 
   _selectItem (current, selected, range = false) {
+    const { onSelect } = this.props
     const { all, selectedItemsIds } = this.state
     const visibleItems = this._getVisibleItems()
     const item = visibleItems[current]
+    let selectedItems
 
     if (all) {
-      return this.setState({
+      selectedItems = visibleItems
+      this.setState({
         all: false,
         selectedItemsIds: new Set().withMutations(selectedItemsIds => {
           forEach(visibleItems, item => {
@@ -654,17 +654,15 @@ export default class SortedTable extends Component {
           selectedItemsIds.delete(item.id)
         }),
       })
-    }
+    } else {
+      const method = (selected === undefined
+      ? !selectedItemsIds.has(item.id)
+      : selected)
+        ? 'add'
+        : 'delete'
 
-    const method = (selected === undefined
-    ? !selectedItemsIds.has(item.id)
-    : selected)
-      ? 'add'
-      : 'delete'
-
-    let previous
-    this.setState({
-      selectedItemsIds:
+      let previous
+      const _selectedItemsIds =
         range && (previous = this._previous) !== undefined
           ? selectedItemsIds.withMutations(selectedItemsIds => {
               let i = previous
@@ -677,34 +675,22 @@ export default class SortedTable extends Component {
                 selectedItemsIds[method](visibleItems[i].id)
               }
             })
-          : selectedItemsIds[method](item.id),
-    })
+          : selectedItemsIds[method](item.id)
+      selectedItems = filter(visibleItems, item =>
+        _selectedItemsIds.has(item.id)
+      )
+      this.setState({ selectedItemsIds: _selectedItemsIds })
+      this._previous = current
+    }
 
-    this._previous = current
+    if (onSelect !== undefined) {
+      onSelect(selectedItems)
+    }
   }
 
-  _onSelectItemCheckbox = (event, item) => {
+  _onSelectItemCheckbox = event => {
     const { target } = event
     this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
-
-    const { onSelectCheckbox } = this.props
-    let selectedItems = this._getSelectedItems()
-    if (target.checked) {
-      selectedItems.push(item)
-    } else {
-      selectedItems = selectedItems.filter(i => i.id !== item.id)
-    }
-    onSelectCheckbox !== undefined && onSelectCheckbox(selectedItems)
-  }
-
-  _disabledCheckbox = item => {
-    const { disabledCheckbox } = this.props
-    if (disabledCheckbox === undefined) {
-      return false
-    }
-    return isFunction(disabledCheckbox)
-      ? disabledCheckbox(item)
-      : disabledCheckbox
   }
 
   _getGroupedActions = createSelector(
@@ -747,13 +733,7 @@ export default class SortedTable extends Component {
 
   _renderItem = (item, i) => {
     const { props, state } = this
-    const {
-      actions,
-      individualActions,
-      onSelectCheckbox,
-      rowAction,
-      rowLink,
-    } = props
+    const { actions, individualActions, onSelect, rowAction, rowLink } = props
     const userData = this._getUserData()
 
     const hasGroupedActions = this._hasGroupedActions()
@@ -777,14 +757,12 @@ export default class SortedTable extends Component {
 
     const { id = i } = item
 
-    const selectionColumn = (hasGroupedActions ||
-      onSelectCheckbox !== undefined) && (
+    const selectionColumn = (hasGroupedActions || onSelect !== undefined) && (
       <td className='text-xs-center' onClick={this._toggleNestedCheckbox}>
         <input
           checked={state.all || state.selectedItemsIds.has(id)}
-          disabled={this._disabledCheckbox(item)}
           name={i} // position in visible items
-          onChange={event => this._onSelectItemCheckbox(event, item)}
+          onChange={this._onSelectItemCheckbox}
           type='checkbox'
         />
       </td>
@@ -835,7 +813,7 @@ export default class SortedTable extends Component {
       filterContainer,
       individualActions,
       itemsPerPage,
-      onSelectCheckbox,
+      onSelect,
       paginationContainer,
       shortcutsTarget,
     } = props
@@ -942,14 +920,13 @@ export default class SortedTable extends Component {
               </th>
             </tr>
             <tr>
-              {(hasGroupedActions || onSelectCheckbox !== undefined) && (
+              {(hasGroupedActions || onSelect !== undefined) && (
                 <th
                   className='text-xs-center'
                   onClick={this._toggleNestedCheckbox}
                 >
                   <Checkbox
                     onChange={this._selectAllVisibleItems}
-                    disabled={this._disabledAllVisibleItem()}
                     checked={all || nSelectedItems !== 0}
                     indeterminate={
                       !all &&

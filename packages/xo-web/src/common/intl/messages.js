@@ -1948,6 +1948,8 @@ const messages = {
   xosanMasterOffline: 'Pool master is not running',
   xosanInstallPackTitle: 'Install XOSAN pack on {pool}',
   xosanSelect2Srs: 'Select at least 2 SRs',
+  xosanSrOnSameHost: 'SRs on the same host',
+  xosanSrOnSameHostMessage: 'You have selected SRs on the same host',
   xosanLayout: 'Layout',
   xosanRedundancy: 'Redundancy',
   xosanCapacity: 'Capacity',
