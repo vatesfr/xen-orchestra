@@ -14,7 +14,7 @@ import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
-import { connectStore, routes } from 'utils'
+import { adminOnly, connectStore, routes } from 'utils'
 import { constructQueryString } from 'smart-backup'
 import { Container, Row, Col } from 'grid'
 import { createGetLoneSnapshots, createSelector } from 'selectors'
@@ -430,8 +430,10 @@ export default routes('overview', {
   'restore/metadata': RestoreMetadata,
   'file-restore': FileRestore,
   health: Health,
-})(({ children }) => (
-  <Page header={HEADER} title='backupPage' formatTitle>
-    {children}
-  </Page>
-))
+})(
+  adminOnly(({ children }) => (
+    <Page header={HEADER} title='backupPage' formatTitle>
+      {children}
+    </Page>
+  ))
+)

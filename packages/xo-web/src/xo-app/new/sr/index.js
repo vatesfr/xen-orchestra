@@ -15,7 +15,7 @@ import store from 'store'
 import trim from 'lodash/trim'
 import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
-import { connectStore, formatSize } from 'utils'
+import { adminOnly, connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { Password, Select, Toggle } from 'form'
@@ -216,6 +216,7 @@ const getSrPath = id => (id !== undefined ? `/srs/${id}` : undefined)
 
 // ===================================================================
 
+@adminOnly
 @injectIntl
 @connectStore(() => ({
   hosts: createGetObjectsOfType('host'),

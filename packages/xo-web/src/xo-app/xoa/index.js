@@ -2,7 +2,7 @@ import _ from 'intl'
 import Icon from 'icon'
 import Page from '../page'
 import React from 'react'
-import { routes } from 'utils'
+import { adminOnly, routes } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 
@@ -40,23 +40,25 @@ const Xoa = routes('xoa', {
   update: Update,
   licenses: Licenses,
   notifications: Notifications,
-})(({ children }) =>
-  +process.env.XOA_PLAN === 5 ? (
-    <Container>
-      <h2 className='text-danger'>{_('noUpdaterCommunity')}</h2>
-      <p>
-        {_('considerSubscribe', {
-          link: (
-            <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a>
-          ),
-        })}
-      </p>
-      <p className='text-danger'>{_('noUpdaterWarning')}</p>
-    </Container>
-  ) : (
-    <Page header={HEADER} title='xoaPage' formatTitle>
-      {children}
-    </Page>
+})(
+  adminOnly(({ children }) =>
+    +process.env.XOA_PLAN === 5 ? (
+      <Container>
+        <h2 className='text-danger'>{_('noUpdaterCommunity')}</h2>
+        <p>
+          {_('considerSubscribe', {
+            link: (
+              <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a>
+            ),
+          })}
+        </p>
+        <p className='text-danger'>{_('noUpdaterWarning')}</p>
+      </Container>
+    ) : (
+      <Page header={HEADER} title='xoaPage' formatTitle>
+        {children}
+      </Page>
+    )
   )
 )
 

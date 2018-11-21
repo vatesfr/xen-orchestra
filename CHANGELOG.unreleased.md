@@ -8,6 +8,7 @@
 ### Bug fixes
 
 - [Charts] Fixed the chart lines sometimes changing order/color (PR [#4221](https://github.com/vatesfr/xen-orchestra/pull/4221))
+- Prevent non-admin users to access admin pages with URL
 
 ### Released packages
 

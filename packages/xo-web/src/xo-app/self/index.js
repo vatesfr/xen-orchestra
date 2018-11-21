@@ -25,7 +25,12 @@ import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
-import { addSubscriptions, connectStore, resolveIds } from 'utils'
+import {
+  addSubscriptions,
+  adminOnly,
+  connectStore,
+  resolveIds
+} from 'utils'
 import {
   createGetObjectsOfType,
   createSelector,
@@ -700,6 +705,7 @@ class ResourceSet extends Component {
 
 const compareName = (a, b) => (a.name < b.name ? -1 : 1)
 
+@adminOnly
 @addSubscriptions({ resourceSets: subscribeResourceSets })
 @connectStore({ resolvedResourceSets: getResolvedResourceSets })
 export default class Self extends Component {
