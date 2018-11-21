@@ -10,7 +10,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { forEach } from 'lodash'
+import { flatten, forEach, isEmpty, map, uniq } from 'lodash'
 import { getPatchesDifference } from 'xo'
 import { SelectHost } from 'select-objects'
 
@@ -26,7 +26,7 @@ import { SelectHost } from 'select-objects'
           const { $pool } = host
           if ($pool !== poolId) {
             const previousHost = visitedPools[$pool]
-            if (previousHost) {
+            if (previousHost !== undefined) {
               delete singleHosts[previousHost]
             } else {
               const { id } = host
@@ -41,17 +41,17 @@ import { SelectHost } from 'select-objects'
   }),
   { withRef: true }
 )
-export default class AddHostModal extends BaseComponent {
+export default class AddHostsModal extends BaseComponent {
   get value() {
-    const { nHostMissingPatches, nPoolMissingPatches } = this.state
+    const { nHostsMissingPatches, nPoolMissingPatches } = this.state
     if (
       process.env.XOA_PLAN < 2 &&
-      (nHostMissingPatches > 0 || nPoolMissingPatches > 0)
+      (nHostsMissingPatches > 0 || nPoolMissingPatches > 0)
     ) {
       return {}
     }
 
-    return { host: this.state.host }
+    return { hosts: this.state.hosts }
   }
 
   _getHostPredicate = createSelector(
@@ -59,44 +59,61 @@ export default class AddHostModal extends BaseComponent {
     singleHosts => host => singleHosts[host.id]
   )
 
-  _onChangeHost = async host => {
-    if (host === null) {
+  _onChangeHosts = async hosts => {
+    if (isEmpty(hosts)) {
       this.setState({
-        host,
-        nHostMissingPatches: undefined,
+        hosts,
+        nHostsMissingPatches: undefined,
         nPoolMissingPatches: undefined,
       })
       return
     }
 
     const { master } = this.props.pool
-    const hostMissingPatches = await getPatchesDifference(host.id, master)
-    const poolMissingPatches = await getPatchesDifference(master, host.id)
-
     this.setState({
-      host,
-      nHostMissingPatches: hostMissingPatches.length,
-      nPoolMissingPatches: poolMissingPatches.length,
+      hosts,
+      nHostsMissingPatches: uniq(
+        flatten(
+          await Promise.all(
+            map(hosts, ({ id: hostId }) => getPatchesDifference(hostId, master))
+          )
+        )
+      ).length,
+      nPoolMissingPatches: uniq(
+        flatten(
+          await Promise.all(
+            map(hosts, ({ id: hostId }) => getPatchesDifference(master, hostId))
+          )
+        )
+      ).length,
     })
   }
 
   render() {
-    const { nHostMissingPatches, nPoolMissingPatches } = this.state
-
+    const { hosts, nHostsMissingPatches, nPoolMissingPatches } = this.state
+    const canMulti = +process.env.XOA_PLAN > 3
     return (
       <div>
         <SingleLineRow>
-          <Col size={6}>{_('addHostSelectHost')}</Col>
+          <Col size={6}>{_('hosts')}</Col>
           <Col size={6}>
             <SelectHost
-              onChange={this._onChangeHost}
+              multi={canMulti}
+              onChange={
+                canMulti
+                  ? this._onChangeHosts
+                  : host =>
+                      this._onChangeHosts(host !== null ? [host] : undefined)
+              }
               predicate={this._getHostPredicate()}
-              value={this.state.host}
+              value={
+                canMulti ? hosts : hosts !== undefined ? hosts[0] : undefined
+              }
             />
           </Col>
         </SingleLineRow>
         <br />
-        {(nHostMissingPatches > 0 || nPoolMissingPatches > 0) && (
+        {(nHostsMissingPatches > 0 || nPoolMissingPatches > 0) && (
           <div>
             {process.env.XOA_PLAN > 1 ? (
               <div>
@@ -112,13 +129,14 @@ export default class AddHostModal extends BaseComponent {
                     </Col>
                   </SingleLineRow>
                 )}
-                {nHostMissingPatches > 0 && (
+                {nHostsMissingPatches > 0 && (
                   <SingleLineRow>
                     <Col>
                       <span className='text-danger'>
                         <Icon icon='error' />{' '}
                         {_('missingPatchesHost', {
-                          nMissingPatches: nHostMissingPatches,
+                          nHosts: hosts.length,
+                          nMissingPatches: nHostsMissingPatches,
                         })}
                       </span>
                     </Col>
@@ -126,7 +144,9 @@ export default class AddHostModal extends BaseComponent {
                 )}
               </div>
             ) : (
-              _('patchUpdateNoInstall')
+              _('patchUpdateNoInstall', {
+                nHosts: hosts.length,
+              })
             )}
           </div>
         )}
