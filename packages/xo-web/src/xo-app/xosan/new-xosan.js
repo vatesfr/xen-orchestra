@@ -20,6 +20,7 @@ import {
   forEach,
   groupBy,
   isEmpty,
+  keyBy,
   keys,
   map,
   pickBy,
@@ -76,10 +77,11 @@ const XOSAN_SR_COLUMNS = [
   },
   {
     itemRenderer: (sr, { hosts }) => {
-      const host = find(hosts, ['id', sr.$container])
+      const host = hosts[sr.$container]
       return <Link to={`/hosts/${host.id}/general`}>{renderXoItem(host)}</Link>
     },
     name: _('xosanHost'),
+    sortCriteria: (sr, { hosts }) => hosts[sr.$container].name_label,
   },
   {
     itemRenderer: sr => <span>{formatSize(sr.size)}</span>,
@@ -205,7 +207,7 @@ export default class NewXosan extends Component {
   _getHosts = createSelector(
     () => this.props.hosts,
     this._getIsInPool,
-    (hosts, isInPool) => filter(hosts, isInPool)
+    (hosts, isInPool) => keyBy(filter(hosts, isInPool), 'id')
   )
 
   // LVM SRs that are connected
@@ -219,7 +221,7 @@ export default class NewXosan extends Component {
             let host
             return (
               sr.SR_type === 'lvm' &&
-              (host = find(hosts, { id: sr.$container })) !== undefined &&
+              hosts[sr.$container] !== undefined &&
               host.power_state === 'Running'
             )
           }
