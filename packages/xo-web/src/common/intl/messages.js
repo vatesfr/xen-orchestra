@@ -2048,6 +2048,8 @@ const messages = {
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
+  xoaLicenseNotShown:
+    'Your XOA license is not shown here yet (current license: {plan})',
   xosanLicenseRestricted: 'Limited size because XOSAN is in trial',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
