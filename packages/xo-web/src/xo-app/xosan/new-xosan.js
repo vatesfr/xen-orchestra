@@ -221,7 +221,7 @@ export default class NewXosan extends Component {
             let host
             return (
               sr.SR_type === 'lvm' &&
-              hosts[sr.$container] !== undefined &&
+              (host = hosts[sr.$container]) !== undefined &&
               host.power_state === 'Running'
             )
           }
