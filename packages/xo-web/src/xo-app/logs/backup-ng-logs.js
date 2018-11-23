@@ -342,15 +342,10 @@ export default decorate([
           log.tasks !== undefined
             ? {
                 ...log,
-                vmNames: (() => {
-                  let names
-                  log.tasks.forEach(task => {
-                    const vm = vms[task.data.id]
-                    vm !== undefined &&
-                      (names || (names = [])).push(vm.name_label)
-                  })
-                  return names
-                })(),
+                // "vmNames" can contains undefined entries
+                vmNames: map(log.tasks, ({ data }) =>
+                  get(() => vms[data.id].name_label)
+                ),
               }
             : log
         ),
