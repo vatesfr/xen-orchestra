@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['standard', 'standard-jsx'],
+  extends: ['standard', 'standard-jsx', 'prettier'],
   globals: {
     __DEV__: true,
     $Dict: true,
@@ -17,12 +17,9 @@ module.exports = {
     },
   },
   rules: {
-    'comma-dangle': ['error', 'always-multiline'],
-    indent: 'off',
     'no-var': 'error',
     'node/no-extraneous-import': 'error',
     'node/no-extraneous-require': 'error',
     'prefer-const': 'error',
-    'react/jsx-indent': 'off',
   },
 }

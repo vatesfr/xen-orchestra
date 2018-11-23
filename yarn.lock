@@ -4781,6 +4781,13 @@ escodegen@1.x.x, escodegen@^1.9.1:
   optionalDependencies:
     source-map "~0.6.1"
 
+eslint-config-prettier@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-3.3.0.tgz#41afc8d3b852e757f06274ed6c44ca16f939a57d"
+  integrity sha512-Bc3bh5bAcKNvs3HOpSi6EfGA2IIp7EzWcg2tS4vP7stnXu/J1opihHDM7jI9JCIckyIDTgZLSWn7J3HY0j2JfA==
+  dependencies:
+    get-stdin "^6.0.0"
+
 eslint-config-standard-jsx@^6.0.2:
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/eslint-config-standard-jsx/-/eslint-config-standard-jsx-6.0.2.tgz#90c9aa16ac2c4f8970c13fc7efc608bacd02da70"
