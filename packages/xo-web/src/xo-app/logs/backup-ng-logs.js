@@ -15,7 +15,7 @@ import { connectStore, formatSize, formatSpeed } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, groupBy, keyBy } from 'lodash'
+import { isEmpty, groupBy, map, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 import { toggleState } from 'reaclette-utils'
 import { VmItem, SrItem } from 'render-xo-item'
@@ -336,6 +336,20 @@ export default decorate([
     effects: {
       toggleState,
     },
+    computed: {
+      backupLogs: (_, { logs, vms }) =>
+        map(logs.backup, log =>
+          log.tasks !== undefined
+            ? {
+                ...log,
+                // "vmNames" can contains undefined entries
+                vmNames: map(log.tasks, ({ data }) =>
+                  get(() => vms[data.id].name_label)
+                ),
+              }
+            : log
+        ),
+    },
   }),
   injectState,
   ({ state, effects, logs, jobs, srs, vms }) => (
@@ -353,7 +367,7 @@ export default decorate([
           />
         </h2>
         <NoObjects
-          collection={logs && defined(logs.backup, [])}
+          collection={logs && state.backupLogs}
           columns={LOG_BACKUP_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}
