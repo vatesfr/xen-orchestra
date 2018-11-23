@@ -15,7 +15,7 @@ import { connectStore, formatSize, formatSpeed } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, groupBy, keyBy } from 'lodash'
+import { isEmpty, groupBy, map, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 import { toggleState } from 'reaclette-utils'
 import { VmItem, SrItem } from 'render-xo-item'
@@ -338,7 +338,7 @@ export default decorate([
     },
     computed: {
       backupLogs: (_, { logs, vms }) =>
-        defined(logs.backup, []).map(log =>
+        map(logs.backup, log =>
           log.tasks !== undefined
             ? {
                 ...log,
