@@ -2,6 +2,13 @@
 //
 // See sample.config.yaml to override.
 {
+  "apiWebSocketOptions": {
+    // https://github.com/websockets/ws#websocket-compression
+    // "perMessageDeflate": {
+    //   "threshold": 524288 // 512kiB
+    // }
+  },
+
   "http": {
     "listen": [
       {
@@ -27,6 +34,7 @@
 
     "mounts": {}
   },
+
   "datadir": "/var/lib/xo-server/data",
 
   // Should users be created on first sign in?
