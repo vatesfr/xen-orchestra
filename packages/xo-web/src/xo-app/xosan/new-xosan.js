@@ -20,7 +20,6 @@ import {
   forEach,
   groupBy,
   isEmpty,
-  keyBy,
   keys,
   map,
   pickBy,
@@ -207,7 +206,7 @@ export default class NewXosan extends Component {
   _getHosts = createSelector(
     () => this.props.hosts,
     this._getIsInPool,
-    (hosts, isInPool) => keyBy(filter(hosts, isInPool), 'id')
+    (hosts, isInPool) => pickBy(hosts, isInPool)
   )
 
   // LVM SRs that are connected

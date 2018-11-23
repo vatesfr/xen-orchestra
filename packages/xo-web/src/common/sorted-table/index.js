@@ -606,7 +606,6 @@ export default class SortedTable extends Component {
   _selectAllVisibleItems = event => {
     const { checked } = event.target
     const { onSelect } = this.props
-
     if (onSelect !== undefined) {
       onSelect(checked ? this._getVisibleItems() : [])
     }
@@ -634,25 +633,27 @@ export default class SortedTable extends Component {
     }
   }
 
-  _selectAll = () => this.setState({ all: true })
+  _selectAll = () => {
+    const p = this.props
+    if (p.onSelect !== undefined) {
+      p.onSelect(this._getItems())
+    }
+    this.setState({ all: true })
+  }
 
   _selectItem (current, selected, range = false) {
     const { onSelect } = this.props
     const { all, selectedItemsIds } = this.state
     const visibleItems = this._getVisibleItems()
     const item = visibleItems[current]
-    let selectedItems
+    let _selectedItemsIds
 
     if (all) {
-      selectedItems = visibleItems
-      this.setState({
-        all: false,
-        selectedItemsIds: new Set().withMutations(selectedItemsIds => {
-          forEach(visibleItems, item => {
-            selectedItemsIds.add(item.id)
-          })
-          selectedItemsIds.delete(item.id)
-        }),
+      _selectedItemsIds = new Set().withMutations(selectedItemsIds => {
+        forEach(visibleItems, item => {
+          selectedItemsIds.add(item.id)
+        })
+        selectedItemsIds.delete(item.id)
       })
     } else {
       const method = (selected === undefined
@@ -662,7 +663,7 @@ export default class SortedTable extends Component {
         : 'delete'
 
       let previous
-      const _selectedItemsIds =
+      _selectedItemsIds =
         range && (previous = this._previous) !== undefined
           ? selectedItemsIds.withMutations(selectedItemsIds => {
               let i = previous
@@ -676,16 +677,17 @@ export default class SortedTable extends Component {
               }
             })
           : selectedItemsIds[method](item.id)
-      selectedItems = filter(visibleItems, item =>
-        _selectedItemsIds.has(item.id)
-      )
-      this.setState({ selectedItemsIds: _selectedItemsIds })
       this._previous = current
     }
 
     if (onSelect !== undefined) {
-      onSelect(selectedItems)
+      onSelect(filter(visibleItems, item => _selectedItemsIds.has(item.id)))
     }
+
+    this.setState({
+      all: false,
+      selectedItemsIds: _selectedItemsIds,
+    })
   }
 
   _onSelectItemCheckbox = event => {
