@@ -1,4 +1,5 @@
 import { format, parse, MethodNotFound } from 'json-rpc-protocol'
+import { get } from 'lodash'
 import createLogger from '@xen-orchestra/log'
 import getStream from 'get-stream'
 import Koa from 'koa'
@@ -54,7 +55,7 @@ export default class Api {
   _call(method, params) {
     debug(`call: ${method}(${JSON.stringify(params)})`)
     const methods = this._methods
-    const fn = methods[method]
+    const fn = get(methods, method)
     if (fn === undefined) {
       throw new MethodNotFound(method)
     }

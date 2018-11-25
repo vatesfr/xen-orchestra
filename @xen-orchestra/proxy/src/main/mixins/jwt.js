@@ -48,22 +48,22 @@ export default class JsonWebToken {
     this._encodeOpts = { expiresIn }
 
     app.on('start', async () => {
-      let secret = app.get('jwt.secret')
+      let secret = app.settings.get('jwt.secret')
       if (secret === undefined) {
         secret = await fromCallback(cb => randomBytes(255, cb))
-        app.put('jwt.secret', secret)
+        app.settings.set('jwt.secret', secret)
       }
       this._secret = secret
     })
   }
 
-  decodeJwt(token: string): Promise<mixed> {
+  decode(token: string): Promise<mixed> {
     return fromCallback(cb =>
       jwt.verify(mpwtToJwt(token), this._secret, cb)
     ).then(extract)
   }
 
-  encodeJwt(payload: mixed): Promise<string> {
+  encode(payload: mixed): Promise<string> {
     return fromCallback(cb =>
       jwt.sign({ '': payload }, this._secret, this._encodeOpts, cb)
     ).then(jwtToMpwt)
