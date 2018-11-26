@@ -47,7 +47,13 @@ ${name} v${version}
     ignoreUnknownFormats: true,
   })
 
-  let httpServer = new (require('http-server-plus'))()
+  let httpServer = new (require('http-server-plus'))({
+    createSecureServer:
+      require('compare-versions')(process.version, '10.10.0') >= 0
+        ? (({ createSecureServer }) => opts =>
+            createSecureServer({ ...opts, allowHTTP1: true }))(require('http2'))
+        : undefined,
+  })
 
   const readFile = require('promise-toolbox/promisify')(require('fs').readFile)
   await require('@xen-orchestra/async-map').default(
@@ -126,8 +132,6 @@ ${name} v${version}
 main(process.argv.slice(2)).then(
   () => {
     info('bye :-)')
-
-    process.exit(0)
   },
   error => {
     fatal(error)

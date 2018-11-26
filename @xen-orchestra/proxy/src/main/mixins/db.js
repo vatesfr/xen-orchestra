@@ -1,14 +1,43 @@
 import expect from 'expect'
 import SqliteDatabase from 'better-sqlite3'
+import uuid from 'uuid/v4'
 import { join } from 'path'
 
 // https://www.sqlite.org/lang_expr.html
-const escapeString = str => `'${str.replace(/'/, "''")}'`
+const escapeIdentifier = ident => `"${ident.replace(/"/, '""')}"`
+const escapeValue = val =>
+  typeof val === 'string' ? `'${val.replace(/'/, "''")}'` : String(val)
+
+class Delete {
+  constructor(table) {
+    this._table = table
+  }
+
+  prepare() {
+    const table = this._table
+    const where = this._where
+    const sql = ['DELETE FROM', escapeIdentifier(table._name)]
+    if (where !== undefined) {
+      sql.push('WHERE', where)
+    }
+    return table._db.prepare(sql.join(' '))
+  }
+
+  where(clause) {
+    expect(this._where).toBe(undefined)
+    this._where = clause
+    return this
+  }
+}
 
 class Insert {
   constructor(table, columns) {
     this._columns = columns
     this._table = table
+
+    if (!('id' in columns)) {
+      columns.id = 'uuid_generate_v4()'
+    }
   }
 
   prepare() {
@@ -18,9 +47,9 @@ class Insert {
     return table._db.prepare(
       [
         'INSERT INTO',
-        escapeString(table._name),
+        escapeIdentifier(table._name),
         '(',
-        columnNames.map(escapeString).join(', '),
+        columnNames.map(escapeIdentifier).join(', '),
         ') VALUES (',
         columnNames.map(name => columns[name]).join(', '),
         ')',
@@ -44,9 +73,9 @@ class Select {
       'SELECT',
       columns === undefined || columns.length === 0
         ? '*'
-        : columns.map(escapeString).join(', '),
+        : columns.map(escapeIdentifier).join(', '),
       'FROM',
-      escapeString(table._name),
+      escapeIdentifier(table._name),
     ]
     if (where !== undefined) {
       sql.push('WHERE', where)
@@ -74,10 +103,10 @@ class Update {
     const where = this._where
     const sql = [
       'UPDATE',
-      escapeString(table._name),
+      escapeIdentifier(table._name),
       'SET',
       Object.keys(columns)
-        .map(name => `${escapeString(name)} = ${columns[name]}`)
+        .map(name => `${escapeIdentifier(name)} = ${columns[name]}`)
         .join(','),
     ]
     if (where !== undefined) {
@@ -97,6 +126,14 @@ class Table {
   constructor(db, name) {
     this._db = db
     this._name = name
+
+    this.getFromRowid = db.prepare(
+      `SELECT * FROM ${escapeIdentifier(name)} WHERE rowid = ?`
+    )
+  }
+
+  delete(...args) {
+    return new Delete(this, ...args)
   }
 
   insert(...args) {
@@ -113,10 +150,6 @@ class Table {
 }
 
 export default class Database {
-  get db() {
-    return this._db
-  }
-
   constructor(
     app,
     {
@@ -124,7 +157,8 @@ export default class Database {
     }
   ) {
     const db = (this._db = new SqliteDatabase(join(datadir, 'sqlite3.db')))
-    app.on('stop', db.close.bind(db))
+    app.hooks.on('stop', db.close.bind(db)).on('clean', () => db.exec('VACUUM'))
+    db.function('uuid_generate_v4', () => uuid())
   }
 
   createTable(name, columns) {
@@ -134,14 +168,14 @@ export default class Database {
 
     const sql = [
       'CREATE TABLE IF NOT EXISTS',
-      escapeString(name),
+      escapeIdentifier(name),
       '(',
-      'id INTEGER PRIMARY KEY AUTOINCREMENT,',
+      'id TEXT NOT NULL,',
       'created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,',
       'updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ]
     Object.keys(columns).forEach(name => {
-      sql.push(',', escapeString(name))
+      sql.push(',', escapeIdentifier(name))
       const column = columns[name]
       if (typeof column === 'string') {
         return sql.push(column)
@@ -150,18 +184,32 @@ export default class Database {
       if (!column.optional) {
         sql.push('NOT NULL')
       }
+      const defaultValue = column.default
+      if (defaultValue !== undefined) {
+        sql.push('DEFAULT', escapeValue(defaultValue))
+      }
       if (column.primaryKey) {
         sql.push('PRIMARY KEY')
+      }
+      const enumValues = column.enum
+      if (enumValues !== undefined) {
+        sql.push(
+          'CHECK (',
+          escapeIdentifier(name),
+          'IN (',
+          enumValues.map(escapeValue).join(','),
+          '))'
+        )
       }
     })
     sql.push(
       ');',
       'CREATE TRIGGER IF NOT EXISTS',
-      escapeString(`${name}_updated_at`),
+      escapeIdentifier(`${name}_updated_at`),
       'AFTER UPDATE ON',
-      escapeString(name),
+      escapeIdentifier(name),
       'FOR EACH ROW BEGIN UPDATE',
-      escapeString(name),
+      escapeIdentifier(name),
       'SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;',
       'END;'
     )

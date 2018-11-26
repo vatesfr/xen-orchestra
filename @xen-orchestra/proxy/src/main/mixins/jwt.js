@@ -47,7 +47,7 @@ export default class JsonWebToken {
   ) {
     this._encodeOpts = { expiresIn }
 
-    app.on('start', async () => {
+    app.hooks.on('start', async () => {
       let secret = app.settings.get('jwt.secret')
       if (secret === undefined) {
         secret = await fromCallback(cb => randomBytes(255, cb))

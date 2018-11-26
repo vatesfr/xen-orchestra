@@ -1,27 +1,14 @@
-import emitAsync from '@xen-orchestra/emit-async'
 import createLogger from '@xen-orchestra/log'
+import emitAsync from '@xen-orchestra/emit-async'
+import EventEmitter from 'events'
+import expect from 'expect'
 
 const { debug, warn } = createLogger('xo:proxy:hooks')
 
-const makeSingletonHook = (hook, postEvent) => {
-  let promise
-  return function() {
-    if (promise === undefined) {
-      promise = runHook(this, hook)
-      promise.then(() => {
-        this.removeAllListeners(hook)
-        this.emit(postEvent)
-        this.removeAllListeners(postEvent)
-      })
-    }
-    return promise
-  }
-}
-
-const runHook = (app, hook) => {
+const runHook = (emitter, hook) => {
   debug(`${hook} start…`)
   const promise = emitAsync.call(
-    app,
+    emitter,
     {
       onError: error => warn(`${hook} failure`, { error }),
     },
@@ -33,21 +20,33 @@ const runHook = (app, hook) => {
   return promise
 }
 
-export default {
+export default class Hooks extends EventEmitter {
   // Run *clean* async listeners.
   //
   // They normalize existing data, clear invalid entries, etc.
   clean() {
     return runHook(this, 'clean')
-  },
+  }
+
+  _status = 'stopped'
 
   // Run *start* async listeners.
   //
   // They initialize the application.
-  start: makeSingletonHook('start', 'started'),
+  async start() {
+    expect(this._status).toBe('stopped')
+    this._status = 'starting'
+    await runHook(this, 'start')
+    this.emit((this._status = 'started'))
+  }
 
   // Run *stop* async listeners.
   //
   // They close connections, unmount file systems, save states, etc.
-  stop: makeSingletonHook('stop', 'stopped'),
+  async stop() {
+    expect(this._status).toBe('started')
+    this._status = 'stopping'
+    await runHook(this, 'stop')
+    this.emit((this._status = 'stopped'))
+  }
 }

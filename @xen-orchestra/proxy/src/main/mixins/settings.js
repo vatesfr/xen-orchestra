@@ -10,6 +10,10 @@ export default class Settings {
       value: 'blob',
     })
 
+    this._delete = table
+      .delete()
+      .where('setting = ?')
+      .prepare()
     this._get = table
       .select(['value'])
       .where('setting = ?')
@@ -17,9 +21,13 @@ export default class Settings {
       .pluck()
     this._set = table.insert({ setting: '?', value: '?' }).prepare()
     // this._upsert = db.prepare(`
-    //   INSERT INTO Objects VALUES(?, ?)
-    //     ON CONFLICT(KEY) DO UPDATE SET value=excluded.value
+    //   INSERT INTO settings VALUES(?, ?)
+    //     ON CONFLICT(setting) DO UPDATE SET value=excluded.value
     // `)
+  }
+
+  delete(setting) {
+    this._delete.run(setting)
   }
 
   get(setting) {
@@ -30,6 +38,9 @@ export default class Settings {
   }
 
   set(setting, value) {
+    if (Buffer.isBuffer(value)) {
+      value = value.toString()
+    }
     this._set.run(setting, MessagePack.encode(value))
   }
 }

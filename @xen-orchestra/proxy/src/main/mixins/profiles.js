@@ -13,7 +13,7 @@ export default class Profiles {
       .prepare()
   }
 
-  create(name) {
+  create({ name }) {
     this._create.run(name)
   }
 

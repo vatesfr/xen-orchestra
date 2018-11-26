@@ -11,7 +11,7 @@ export default class HttpRequest {
       },
     }
   ) {
-    this.httpRequest = hrp.extend({
+    this.request = hrp.extend({
       agent: ifDef(httpProxy, _ => new ProxyAgent(_)),
     })
   }

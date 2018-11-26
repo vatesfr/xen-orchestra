@@ -1,9 +1,12 @@
 import { format, parse, MethodNotFound } from 'json-rpc-protocol'
 import { get } from 'lodash'
+import compress from 'koa-compress'
 import createLogger from '@xen-orchestra/log'
 import getStream from 'get-stream'
+import helmet from 'koa-helmet'
 import Koa from 'koa'
 import Router from 'koa-router'
+import Zone from 'node-zone'
 
 const { debug, warn } = createLogger('xo:proxy:api')
 
@@ -46,6 +49,8 @@ export default class Api {
 
     const koa = new Koa()
       .on('error', warn)
+      .use(helmet())
+      .use(compress())
       .use(router.routes())
       .use(router.allowedMethods())
 
@@ -55,12 +60,18 @@ export default class Api {
   _call(method, params) {
     debug(`call: ${method}(${JSON.stringify(params)})`)
     const methods = this._methods
+    const parts = method.split('.')
+    const context = get(methods, parts.slice(0, -1))
     const fn = get(methods, method)
     if (fn === undefined) {
       throw new MethodNotFound(method)
     }
-    return Array.isArray(params)
-      ? fn.apply(this._app, params)
-      : fn.call(this._app, params)
+
+    const zone = Zone.current.fork(`api call: ${method}`)
+    return zone.run(() =>
+      Array.isArray(params)
+        ? fn.apply(context, params)
+        : fn.call(context, params)
+    )
   }
 }
