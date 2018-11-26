@@ -2,235 +2,238 @@
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 
-import expect from 'must'
-import eventToPromise from 'event-to-promise'
-import {getAllHosts, getConfig, getMainConnection, getVmToMigrateId, waitObjectState} from './util'
-import {find, forEach} from 'lodash'
+import expect from "must";
+import eventToPromise from "event-to-promise";
+import {
+  getAllHosts,
+  getConfig,
+  getMainConnection,
+  getVmToMigrateId,
+  waitObjectState,
+} from "./util";
+import { find, forEach } from "lodash";
 
 // ===================================================================
 
-describe('host', () => {
-  let xo
-  let serverId
-  let hostId
+describe("host", () => {
+  let xo;
+  let serverId;
+  let hostId;
 
   // -----------------------------------------------------------------
 
   beforeAll(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
-    let config
-    ;[xo, config] = await Promise.all([
-      getMainConnection(),
-      getConfig()
-    ])
-    serverId = await xo.call('server.add', config.xenServer2).catch(() => {})
-    await eventToPromise(xo.objects, 'finish')
+    jest.setTimeout(10e3);
+    let config;
+    [xo, config] = await Promise.all([getMainConnection(), getConfig()]);
+    serverId = await xo.call("server.add", config.xenServer2).catch(() => {});
+    await eventToPromise(xo.objects, "finish");
 
-    hostId = getHost(config.host1)
-  })
+    hostId = getHost(config.host1);
+  });
 
   // -------------------------------------------------------------------
 
   afterAll(async () => {
-    await xo.call('server.remove', {
-      id: serverId
-    })
-  })
+    await xo.call("server.remove", {
+      id: serverId,
+    });
+  });
 
   // -------------------------------------------------------------------
 
-  function getHost (name_label) {
-    const hosts = getAllHosts(xo)
-    const host = find(hosts, {name_label: name_label})
-    return host.id
+  function getHost(nameLabel) {
+    const hosts = getAllHosts(xo);
+    const host = find(hosts, { name_label: nameLabel });
+    return host.id;
   }
 
-// ===================================================================
+  // ===================================================================
 
-  describe('.set()', () => {
-    let name_label
-    let name_description
+  describe(".set()", () => {
+    let nameLabel;
+    let nameDescription;
 
     beforeEach(async () => {
       // get values to set them at the end of the test
-      const host = xo.objects.all[hostId]
-      name_label = host.name_label
-      name_description = host.name_description
-    })
+      const host = xo.objects.all[hostId];
+      nameLabel = host.name_label;
+      nameDescription = host.name_description;
+    });
     afterEach(async () => {
-      await xo.call('host.set', {
+      await xo.call("host.set", {
         id: hostId,
-        name_label: name_label,
-        name_description: name_description
-      })
-    })
+        name_label: nameLabel,
+        name_description: nameDescription,
+      });
+    });
 
-    it('changes properties of the host', async () => {
-      await xo.call('host.set', {
+    it("changes properties of the host", async () => {
+      await xo.call("host.set", {
         id: hostId,
-        name_label: 'labTest',
-        name_description: 'description'
-      })
+        name_label: "labTest",
+        name_description: "description",
+      });
       await waitObjectState(xo, hostId, host => {
-        expect(host.name_label).to.be.equal('labTest')
-        expect(host.name_description).to.be.equal('description')
-      })
-    })
-  })
+        expect(host.name_label).to.be.equal("labTest");
+        expect(host.name_description).to.be.equal("description");
+      });
+    });
+  });
 
   // ------------------------------------------------------------------
 
-  describe('.restart()', () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 330e3
-    it('restart the host', async () => {
-      await xo.call('host.restart', {id: hostId})
+  describe(".restart()", () => {
+    jest.setTimeout(330e3);
+    it("restart the host", async () => {
+      await xo.call("host.restart", { id: hostId });
 
       await waitObjectState(xo, hostId, host => {
-        expect(host.current_operations)
-      })
+        expect(host.current_operations);
+      });
       await waitObjectState(xo, hostId, host => {
-        expect(host.power_state).to.be.equal('Halted')
-      })
+        expect(host.power_state).to.be.equal("Halted");
+      });
       await waitObjectState(xo, hostId, host => {
-        expect(host.power_state).to.be.equal('Running')
-      })
-    })
-  })
+        expect(host.power_state).to.be.equal("Running");
+      });
+    });
+  });
 
   // ------------------------------------------------------------------
 
-  describe('.restartAgent()', () => {
-    it('restart a Xen agent on the host')
-  })
+  describe(".restartAgent()", () => {
+    it("restart a Xen agent on the host");
+  });
 
   // ------------------------------------------------------------------
 
-  describe('.start()', () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 300e3
+  describe(".start()", () => {
+    jest.setTimeout(300e3);
     beforeEach(async () => {
       try {
-        await xo.call('host.stop', {id: hostId})
+        await xo.call("host.stop", { id: hostId });
       } catch (_) {}
 
       // test if the host is shutdown
       await waitObjectState(xo, hostId, host => {
-        expect(host.power_state).to.be.equal('Halted')
-      })
-    })
+        expect(host.power_state).to.be.equal("Halted");
+      });
+    });
 
-    it('start the host', async () => {
-      await xo.call('host.start', {id: hostId})
+    it("start the host", async () => {
+      await xo.call("host.start", { id: hostId });
       await waitObjectState(xo, hostId, host => {
-        expect(host.power_state).to.be.equal('Running')
-      })
-    })
-  })
+        expect(host.power_state).to.be.equal("Running");
+      });
+    });
+  });
 
   // ------------------------------------------------------------------
 
-  describe('.stop()', () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 300e3
-    let vmId
+  describe(".stop()", () => {
+    jest.setTimeout(300e3);
+    let vmId;
 
     beforeAll(async () => {
-      vmId = await getVmToMigrateId(xo)
+      vmId = await getVmToMigrateId(xo);
       try {
-        await xo.call('vm.start', {id: vmId})
+        await xo.call("vm.start", { id: vmId });
       } catch (_) {}
       try {
-        await xo.call('vm.migrate', {
+        await xo.call("vm.migrate", {
           vm: vmId,
-          host: hostId
-        })
+          host: hostId,
+        });
       } catch (_) {}
-    })
+    });
     afterEach(async () => {
-      await xo.call('host.start', {id: hostId})
-    })
+      await xo.call("host.start", { id: hostId });
+    });
 
-    it('stop the host and shutdown its VMs', async () => {
-      await xo.call('host.stop', {id: hostId})
+    it("stop the host and shutdown its VMs", async () => {
+      await xo.call("host.stop", { id: hostId });
       await Promise.all([
         waitObjectState(xo, vmId, vm => {
-          expect(vm.$container).not.to.be.equal(hostId)
-          expect(vm.power_state).to.be.equal('Halted')
+          expect(vm.$container).not.to.be.equal(hostId);
+          expect(vm.power_state).to.be.equal("Halted");
         }),
         waitObjectState(xo, hostId, host => {
-          expect(host.power_state).to.be.equal('Halted')
-        })
-      ])
-    })
-  })
+          expect(host.power_state).to.be.equal("Halted");
+        }),
+      ]);
+    });
+  });
 
   // ------------------------------------------------------------------
 
-  describe('.detach()', () => {
-    it('ejects the host of a pool')
-  })
+  describe(".detach()", () => {
+    it("ejects the host of a pool");
+  });
 
   // ------------------------------------------------------------------
 
-  describe('.disable(), ', () => {
+  describe(".disable(), ", () => {
     afterEach(async () => {
-      await xo.call('host.enable', {
-        id: hostId
-      })
-    })
+      await xo.call("host.enable", {
+        id: hostId,
+      });
+    });
 
-    it('disables to create VM on the host', async () => {
-      await xo.call('host.disable', {id: hostId})
+    it("disables to create VM on the host", async () => {
+      await xo.call("host.disable", { id: hostId });
       await waitObjectState(xo, hostId, host => {
-        expect(host.enabled).to.be.false()
-      })
-    })
-  })
+        expect(host.enabled).to.be.false();
+      });
+    });
+  });
 
   // ------------------------------------------------------------------
 
-  describe('.enable()', async () => {
+  describe(".enable()", async () => {
     beforeEach(async () => {
-      await xo.call('host.disable', {id: hostId})
-    })
+      await xo.call("host.disable", { id: hostId });
+    });
 
-    it('enables to create VM on the host', async () => {
-      await xo.call('host.enable', {id: hostId})
+    it("enables to create VM on the host", async () => {
+      await xo.call("host.enable", { id: hostId });
 
       await waitObjectState(xo, hostId, host => {
-        expect(host.enabled).to.be.true()
-      })
-    })
-  })
+        expect(host.enabled).to.be.true();
+      });
+    });
+  });
 
   // -----------------------------------------------------------------
-  describe('.createNetwork()', () => {
-    it('create a network')
-  })
+  describe(".createNetwork()", () => {
+    it("create a network");
+  });
 
   // -----------------------------------------------------------------
 
-  describe('.listMissingPatches()', () => {
-    it('returns an array of missing patches in the host')
-    it('returns a empty array if up-to-date')
-  })
+  describe(".listMissingPatches()", () => {
+    it("returns an array of missing patches in the host");
+    it("returns a empty array if up-to-date");
+  });
 
   // ------------------------------------------------------------------
 
-  describe('.installPatch()', () => {
-    it('installs a patch patch on the host')
-  })
+  describe(".installPatch()", () => {
+    it("installs a patch patch on the host");
+  });
 
   // ------------------------------------------------------------------
 
-  describe('.stats()', () => {
-    it('returns an array with statistics of the host', async () => {
-      const stats = await xo.call('host.stats', {
-        host: hostId
-      })
-      expect(stats).to.be.an.object()
+  describe(".stats()", () => {
+    it("returns an array with statistics of the host", async () => {
+      const stats = await xo.call("host.stats", {
+        host: hostId,
+      });
+      expect(stats).to.be.an.object();
 
-      forEach(stats, function (array, key) {
-        expect(array).to.be.an.array()
-      })
-    })
-  })
-})
+      forEach(stats, function(array, key) {
+        expect(array).to.be.an.array();
+      });
+    });
+  });
+});

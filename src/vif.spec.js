@@ -1,132 +1,133 @@
 /* eslint-env jest */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
-import expect from 'must'
+import expect from "must";
 
 // ===================================================================
 
-import {getConfig, getMainConnection, getNetworkId, waitObjectState, getVmXoTestPvId} from './util'
-import eventToPromise from 'event-to-promise'
-import {map} from 'lodash'
+import {
+  getConfig,
+  getMainConnection,
+  getNetworkId,
+  waitObjectState,
+  getVmXoTestPvId,
+} from "./util";
+import eventToPromise from "event-to-promise";
+import { map } from "lodash";
 
 // ===================================================================
 
-describe('vif', () => {
-  let xo
-  let serverId
-  let vifIds = []
-  let vmId
-  let vifId
+describe("vif", () => {
+  let xo;
+  let serverId;
+  let vifIds = [];
+  let vmId;
+  let vifId;
 
   beforeAll(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10e3
-    let config
+    jest.setTimeout(10e3);
+    let config;
+    [xo, config] = await Promise.all([getMainConnection(), getConfig()]);
 
-    ;[xo, config] = await Promise.all([
-      getMainConnection(),
-      getConfig()
-    ])
+    serverId = await xo.call("server.add", config.xenServer1).catch(() => {});
+    await eventToPromise(xo.objects, "finish");
 
-    serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
-    await eventToPromise(xo.objects, 'finish')
-
-    vmId = await getVmXoTestPvId(xo)
+    vmId = await getVmXoTestPvId(xo);
     try {
-      await xo.call('vm.start', {id: vmId})
+      await xo.call("vm.start", { id: vmId });
     } catch (_) {}
-  })
+  });
 
-// -------------------------------------------------------------------
+  // -------------------------------------------------------------------
 
   beforeEach(async () => {
-    vifId = await createVif()
-  })
+    vifId = await createVif();
+  });
 
-// -------------------------------------------------------------------
+  // -------------------------------------------------------------------
 
   afterEach(async () => {
-    await Promise.all(map(
-      vifIds,
-      vifId => xo.call('vif.delete', {id: vifId})
-    ))
-    vifIds = []
-  })
+    await Promise.all(
+      map(vifIds, vifId => xo.call("vif.delete", { id: vifId }))
+    );
+    vifIds = [];
+  });
 
-// -------------------------------------------------------------------
+  // -------------------------------------------------------------------
 
   afterAll(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 5e3
-    await xo.call('vm.stop', {id: vmId, force: true})
-    await xo.call('server.remove', {id: serverId})
-  })
+    jest.setTimeout(5e3);
+    await xo.call("vm.stop", { id: vmId, force: true });
+    await xo.call("server.remove", { id: serverId });
+  });
 
-// -------------------------------------------------------------------
+  // -------------------------------------------------------------------
 
-  async function createVif () {
-    const networkId = await getNetworkId(xo)
+  async function createVif() {
+    const networkId = await getNetworkId(xo);
 
-    const vifId = await xo.call('vm.createInterface', {
+    const vifId = await xo.call("vm.createInterface", {
       vm: vmId,
       network: networkId,
-      position: '1'
-    })
-    vifIds.push(vifId)
+      position: "1",
+    });
+    vifIds.push(vifId);
 
-    return vifId
+    return vifId;
   }
 
-// ===================================================================
+  // ===================================================================
 
-  describe('.delete()', () => {
-    it('deletes a VIF', async () => {
-      await xo.call('vif.disconnect', {id: vifId})
-      await xo.call('vif.delete', {id: vifId})
+  describe(".delete()", () => {
+    it("deletes a VIF", async () => {
+      await xo.call("vif.disconnect", { id: vifId });
+      await xo.call("vif.delete", { id: vifId });
 
       await waitObjectState(xo, vifId, vif => {
-        expect(vif).to.be.undefined()
-      })
+        expect(vif).to.be.undefined();
+      });
 
-      vifIds = []
-    })
+      vifIds = [];
+    });
 
-    it('can not delete a VIF if it is connected', async () => {
-      await xo.call('vif.delete', {id: vifId}).then(
+    it("can not delete a VIF if it is connected", async () => {
+      await xo.call("vif.delete", { id: vifId }).then(
         () => {
-          throw new Error('vif.delete() should have thrown')
+          throw new Error("vif.delete() should have thrown");
         },
-        function (error) {
-          expect(error.message).to.be.equal('unknown error from the peer')
+        function(error) {
+          expect(error.message).to.be.equal("unknown error from the peer");
         }
-      )
-      await xo.call('vif.disconnect', {id: vifId})
-    })
-  })
+      );
+      await xo.call("vif.disconnect", { id: vifId });
+    });
+  });
 
   // ----------------------------------------------------------------
 
-  describe('.disconnect()', () => {
-    it('disconnects a VIF', async () => {
-      await xo.call('vif.disconnect', {id: vifId})
+  describe(".disconnect()", () => {
+    it("disconnects a VIF", async () => {
+      await xo.call("vif.disconnect", { id: vifId });
       await waitObjectState(xo, vifId, vif => {
-        expect(vif.attached).to.be.false()
-      })
-    })
-  })
+        expect(vif.attached).to.be.false();
+      });
+    });
+  });
 
   // ----------------------------------------------------------------
 
-  describe('.connect()', () => {
+  describe(".connect()", () => {
     beforeEach(async () => {
-      await xo.call('vif.disconnect', {id: vifId})
-    })
+      await xo.call("vif.disconnect", { id: vifId });
+    });
     afterEach(async () => {
-      await xo.call('vif.disconnect', {id: vifId})
-    })
-    it('connects a VIF', async () => {
-      await xo.call('vif.connect', {id: vifId})
+      await xo.call("vif.disconnect", { id: vifId });
+    });
+    it("connects a VIF", async () => {
+      await xo.call("vif.connect", { id: vifId });
       await waitObjectState(xo, vifId, vif => {
-        expect(vif.attached).to.be.true()
-      })
-    })
-  })
-})
+        expect(vif.attached).to.be.true();
+      });
+    });
+  });
+});

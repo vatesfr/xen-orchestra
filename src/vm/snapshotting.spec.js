@@ -1,129 +1,121 @@
 /* eslint-env jest */
 
-import {
-  map,
-  size
-} from 'lodash'
+import { map, size } from "lodash";
 
-import {
-  almostEqual,
-  config,
-  waitObjectState,
-  xo
-} from './../util'
+import { almostEqual, config, waitObjectState, xo } from "./../util";
 
 // ===================================================================
 
 beforeAll(async () => {
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 100e3
-})
+  jest.setTimeout(100e3);
+});
 
-describe('snapshotting', () => {
-  let snapshotId
-  let vmId
+describe("snapshotting", () => {
+  let snapshotId;
+  let vmId;
 
   // ----------------------------------------------------------------------
 
   beforeAll(async () => {
-    vmId = await xo.call('vm.create', {
-      name_label: 'vmTest',
-      name_description: 'creating a vm',
+    vmId = await xo.call("vm.create", {
+      name_label: "vmTest",
+      name_description: "creating a vm",
       template: config.templatesId.centOS,
       VIFs: [
-        {network: config.labPoolNetworkId},
-        {network: config.labPoolNetworkId}
+        { network: config.labPoolNetworkId },
+        { network: config.labPoolNetworkId },
       ],
       VDIs: [
         {
-          device: '0',
+          device: "0",
           size: 1,
           SR: config.labPoolSrId,
-          type: 'user'
+          type: "user",
         },
         {
-          device: '1',
+          device: "1",
           size: 1,
           SR: config.labPoolSrId,
-          type: 'user'
+          type: "user",
         },
         {
-          device: '2',
+          device: "2",
           size: 1,
           SR: config.labPoolSrId,
-          type: 'user'
-        }
-      ]
-    })
+          type: "user",
+        },
+      ],
+    });
     await waitObjectState(xo, vmId, vm => {
-      if (vm.type !== 'VM') throw new Error('retry')
-    })
-  })
+      if (vm.type !== "VM") throw new Error("retry");
+    });
+  });
 
-  afterAll(() => xo.call('vm.delete', {id: vmId, delete_disks: true}))
+  afterAll(() => xo.call("vm.delete", { id: vmId, delete_disks: true }));
 
   // =================================================================
 
-  describe('.snapshot()', () => {
-    let $vm
+  describe(".snapshot()", () => {
+    let $vm;
 
-    it('snapshots a VM', async () => {
-      snapshotId = await xo.call('vm.snapshot', {
+    it("snapshots a VM", async () => {
+      snapshotId = await xo.call("vm.snapshot", {
         id: vmId,
-        name: 'snapshot'
-      })
+        name: "snapshot",
+      });
 
       const [, snapshot] = await Promise.all([
         waitObjectState(xo, vmId, vm => {
-          $vm = vm
-          expect(vm.snapshots[0]).toBe(snapshotId)
+          $vm = vm;
+          expect(vm.snapshots[0]).toBe(snapshotId);
         }),
-        xo.getOrWaitObject(snapshotId)
-      ])
+        xo.getOrWaitObject(snapshotId),
+      ]);
 
-      expect(snapshot.type).toBe('VM-snapshot')
-      expect(snapshot.name_label).toBe('snapshot')
-      expect(snapshot.$snapshot_of).toBe(vmId)
+      expect(snapshot.type).toBe("VM-snapshot");
+      expect(snapshot.name_label).toBe("snapshot");
+      expect(snapshot.$snapshot_of).toBe(vmId);
 
       almostEqual(snapshot, $vm, [
-        '$snapshot_of',
-        '$VBDs',
-        'id',
-        'installTime',
-        'name_label',
-        'snapshot_time',
-        'snapshots',
-        'type',
-        'uuid',
-        'VIFs'
-      ])
-    })
-  })
+        "$snapshot_of",
+        "$VBDs",
+        "id",
+        "installTime",
+        "name_label",
+        "snapshot_time",
+        "snapshots",
+        "type",
+        "uuid",
+        "VIFs",
+      ]);
+    });
+  });
 
-  describe('.revert()', () => {
-    let createdSnapshotId
+  describe(".revert()", () => {
+    let createdSnapshotId;
 
-    it('reverts a snapshot to its parent VM', async () => {
-      await xo.call('vm.set', {
+    it("reverts a snapshot to its parent VM", async () => {
+      await xo.call("vm.set", {
         id: vmId,
-        name_label: 'vmRenamed'
-      })
+        name_label: "vmRenamed",
+      });
       await waitObjectState(xo, vmId, vm => {
-        if (vm.name_label !== 'vmRenamed') throw new Error('retry')
-      })
+        if (vm.name_label !== "vmRenamed") throw new Error("retry");
+      });
 
-      await xo.call('vm.revert', {id: snapshotId})
+      await xo.call("vm.revert", { id: snapshotId });
 
       await waitObjectState(xo, vmId, vm => {
-        expect(size(vm.current_operations)).toBe(0)
-        expect(vm.name_label).toBe('vmTest')
-        expect(size(vm.snapshots)).toBe(2)
+        expect(size(vm.current_operations)).toBe(0);
+        expect(vm.name_label).toBe("vmTest");
+        expect(size(vm.snapshots)).toBe(2);
         map(vm.snapshots, snapshot => {
-          if (snapshot !== snapshotId) createdSnapshotId = snapshot
-        })
-      })
+          if (snapshot !== snapshotId) createdSnapshotId = snapshot;
+        });
+      });
 
-      const createdSnapshot = await xo.getOrWaitObject(createdSnapshotId)
-      expect(createdSnapshot.name_label).toBe('vmRenamed')
-    })
-  })
-})
+      const createdSnapshot = await xo.getOrWaitObject(createdSnapshotId);
+      expect(createdSnapshot.name_label).toBe("vmRenamed");
+    });
+  });
+});

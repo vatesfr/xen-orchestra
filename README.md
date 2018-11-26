@@ -2,14 +2,6 @@
 
 > Test client for Xo-Server
 
-## Install
-
-Installation of the [npm package](https://npmjs.org/package/xo-test):
-
-```
-> npm install --global xo-test
-```
-
 ## Usage
 
 xo-server needs to be installed on `localhost:9000`.
@@ -20,7 +12,7 @@ There should be a Xen Server available at `192.168.1.3`with the credentials `roo
 Warning ! This client will create and delete a lot of items (users, groups, servers ...) to test features
 
 ```
-> npm install
+> npm ci
 > npm test
 ```
 
