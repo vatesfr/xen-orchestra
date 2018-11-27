@@ -59,7 +59,7 @@ const log = createLogger('xo:main')
 
 const DEPRECATED_ENTRIES = ['users', 'servers']
 
-async function loadConfiguration () {
+async function loadConfiguration() {
   const config = await appConf.load('xo-server', {
     appDir: joinPath(__dirname, '..'),
     ignoreUnknownFormats: true,
@@ -79,7 +79,7 @@ async function loadConfiguration () {
 
 // ===================================================================
 
-function createExpressApp () {
+function createExpressApp() {
   const app = createExpress()
 
   app.use(helmet())
@@ -111,7 +111,7 @@ function createExpressApp () {
   return app
 }
 
-async function setUpPassport (express, xo) {
+async function setUpPassport(express, xo) {
   const strategies = { __proto__: null }
   xo.registerPassportStrategy = strategy => {
     passport.use(strategy)
@@ -214,7 +214,7 @@ async function setUpPassport (express, xo) {
 
 // ===================================================================
 
-async function registerPlugin (pluginPath, pluginName) {
+async function registerPlugin(pluginPath, pluginName) {
   const plugin = require(pluginPath)
   const { description, version = 'unknown' } = (() => {
     try {
@@ -257,7 +257,7 @@ async function registerPlugin (pluginPath, pluginName) {
 
 const logPlugin = createLogger('xo:plugin')
 
-function registerPluginWrapper (pluginPath, pluginName) {
+function registerPluginWrapper(pluginPath, pluginName) {
   logPlugin.info(`register ${pluginName}`)
 
   return registerPlugin.call(this, pluginPath, pluginName).then(
@@ -274,7 +274,7 @@ function registerPluginWrapper (pluginPath, pluginName) {
 const PLUGIN_PREFIX = 'xo-server-'
 const PLUGIN_PREFIX_LENGTH = PLUGIN_PREFIX.length
 
-async function registerPluginsInPath (path) {
+async function registerPluginsInPath(path) {
   const files = await readdir(path).catch(error => {
     if (error.code === 'ENOENT') {
       return []
@@ -295,7 +295,7 @@ async function registerPluginsInPath (path) {
   )
 }
 
-async function registerPlugins (xo) {
+async function registerPlugins(xo) {
   await Promise.all(
     mapToArray(
       [`${__dirname}/../node_modules/`, '/usr/local/lib/node_modules/'],
@@ -306,7 +306,7 @@ async function registerPlugins (xo) {
 
 // ===================================================================
 
-async function makeWebServerListen (
+async function makeWebServerListen(
   webServer,
   {
     certificate,
@@ -348,7 +348,7 @@ async function makeWebServerListen (
   }
 }
 
-async function createWebServer ({ listen, listenOptions }) {
+async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
 
   await Promise.all(
@@ -433,8 +433,10 @@ const setUpStaticFiles = (express, opts) => {
 
 // ===================================================================
 
-const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
+const setUpApi = (webServer, xo, config) => {
   const webSocketServer = new WebSocket.Server({
+    ...config.apiWebSocketOptions,
+
     noServer: true,
   })
   xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
@@ -547,7 +549,7 @@ ${name} v${version}`)(require('../package.json'))
 
 // ===================================================================
 
-export default async function main (args) {
+export default async function main(args) {
   // makes sure the global Promise has not been changed by a lib
   assert(global.Promise === require('bluebird'))
 
@@ -640,7 +642,7 @@ export default async function main (args) {
   })
 
   // Must be set up before the static files.
-  setUpApi(webServer, xo, config.verboseApiLogsOnErrors)
+  setUpApi(webServer, xo, config)
 
   setUpProxies(express, config.http.proxies, xo)
 
