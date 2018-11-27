@@ -1,4 +1,3 @@
-import asyncMap from '@xen-orchestra/async-map'
 import Collection from 'xo-collection'
 import createDebug from 'debug'
 import kindOf from 'kindof'
@@ -23,6 +22,7 @@ import {
   cancelable,
   defer,
   fromEvents,
+  ignoreErrors,
   pCatch,
   pDelay,
   pFinally,
@@ -290,7 +290,10 @@ export class Xapi extends EventEmitter {
 
     this._taskWatchers = Object.create(null)
 
-    this.status === CONNECTED && this._watchEvents()
+    if (this.status === CONNECTED) {
+      this._watchEvents()::ignoreErrors()
+    }
+
     this.on('connected', this._watchEvents)
     this.on('disconnected', () => {
       this._fromToken = ''
@@ -528,9 +531,9 @@ export class Xapi extends EventEmitter {
     )
   }
 
-  getAllRecords(type) {
-    return asyncMap(
-      this._sessionCall(`${type}.get_all_records`),
+  async getAllRecords(type) {
+    return map(
+      await this._sessionCall(`${type}.get_all_records`),
       (record, ref) => this._wrapRecord(type, ref, record)
     )
   }
