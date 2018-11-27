@@ -42,6 +42,7 @@
     "fs-promise": "^2.0.0",
     "get-stream": "^4.0.0",
     "index-modules": "^0.3.0",
+    "pipette": "^0.9.3",
     "rimraf": "^2.6.2",
     "tmp": "^0.0.33"
   },
@@ -51,6 +52,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
-    "prepare": "yarn run build"
+    "prepare": "yarn run build",
+    "test-integration": "jest \".integ\\.spec\\.js$\""
   }
 }
