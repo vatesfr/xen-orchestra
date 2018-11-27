@@ -11,17 +11,14 @@ import { fromEvent, pFromCallback } from 'promise-toolbox'
 import { createVhdStreamWithLength } from '.'
 import { FOOTER_SIZE } from './_constants'
 
-const initialDir = process.cwd()
+let tempDir = null
 
 beforeEach(async () => {
-  const dir = await pFromCallback(cb => tmp.dir(cb))
-  process.chdir(dir)
+  tempDir = await pFromCallback(cb => tmp.dir(cb))
 })
 
 afterEach(async () => {
-  const tmpDir = process.cwd()
-  process.chdir(initialDir)
-  await pFromCallback(cb => rimraf(tmpDir, cb))
+  await pFromCallback(cb => rimraf(tempDir, cb))
 })
 
 async function convertFromRawToVhd(rawName, vhdName) {
@@ -34,25 +31,29 @@ async function createRandomFile(name, size) {
 
 test('createVhdStreamWithLength can extract length', async () => {
   const initalSize = 40 * 1204 * 1024
-  await createRandomFile('randomfile', initalSize)
-  const vhdName = 'randomfile.vhd'
-  await convertFromRawToVhd('randomfile', vhdName)
+  const rawFileName = `${tempDir}/randomfile`
+  const vhdName = `${tempDir}/randomfile.vhd`
+  const outputVhdName = `${tempDir}/output.vhd`
+  await createRandomFile(rawFileName, initalSize)
+  await convertFromRawToVhd(rawFileName, vhdName)
   const vhdSize = fs.statSync(vhdName).size
   const result = await createVhdStreamWithLength(
     await createReadStream(vhdName)
   )
   expect(result.length).toEqual(vhdSize)
-  const outputFileStream = await createWriteStream('output.vhd')
+  const outputFileStream = await createWriteStream(outputVhdName)
   await fromEvent(result.pipe(outputFileStream), 'finish')
-  const outputSize = fs.statSync('output.vhd').size
+  const outputSize = fs.statSync(outputVhdName).size
   expect(outputSize).toEqual(vhdSize)
 })
 
 test('createVhdStreamWithLength can skip blank after last block and before footer', async () => {
   const initalSize = 40 * 1204 * 1024
-  await createRandomFile('randomfile', initalSize)
-  const vhdName = 'randomfile.vhd'
-  await convertFromRawToVhd('randomfile', vhdName)
+  const rawFileName = `${tempDir}/randomfile`
+  const vhdName = `${tempDir}/randomfile.vhd`
+  const outputVhdName = `${tempDir}/output.vhd`
+  await createRandomFile(rawFileName, initalSize)
+  await convertFromRawToVhd(rawFileName, vhdName)
   const vhdSize = fs.statSync(vhdName).size
   // read file footer
   const footer = await getStream.buffer(
@@ -75,10 +76,10 @@ test('createVhdStreamWithLength can skip blank after last block and before foote
     await createReadStream(vhdName)
   )
   expect(result.length).toEqual(vhdSize)
-  const outputFileStream = await createWriteStream('recovered.vhd')
+  const outputFileStream = await createWriteStream(outputVhdName)
   await fromEvent(result.pipe(outputFileStream), 'finish')
-  const outputSize = fs.statSync('recovered.vhd').size
+  const outputSize = fs.statSync(outputVhdName).size
   // check out file has been shortened again
   expect(outputSize).toEqual(vhdSize)
-  await execa('qemu-img', ['compare', 'recovered.vhd', 'randomfile.vhd'])
+  await execa('qemu-img', ['compare', outputVhdName, vhdName])
 })
