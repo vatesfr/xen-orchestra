@@ -1,11 +1,12 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore, ShortDate } from 'utils'
+import { addSubscriptions, connectStore, getXoaPlan, ShortDate } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
 import { find, forEach } from 'lodash'
@@ -200,6 +201,13 @@ export default class Licenses extends Component {
             >
               {_('refreshLicenses')}
             </ActionButton>
+          </Col>
+        </Row>
+        {/* TODO: Remove when XOA license management is available */}
+        <Row>
+          <Col>
+            <Icon icon='info' />{' '}
+            <em>{_('xoaLicenseNotShown', { plan: getXoaPlan() })}</em>
           </Col>
         </Row>
         <Row>

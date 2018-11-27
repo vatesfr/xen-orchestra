@@ -15,7 +15,7 @@ import { connectStore, formatSize, formatSpeed } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, groupBy, keyBy } from 'lodash'
+import { isEmpty, groupBy, map, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 import { toggleState } from 'reaclette-utils'
 import { VmItem, SrItem } from 'render-xo-item'
@@ -320,9 +320,10 @@ export default decorate([
     logs: cb =>
       subscribeBackupNgLogs(logs =>
         cb(
-          groupBy(logs, log =>
-            log.message === 'restore' ? 'restore' : 'backup'
-          )
+          logs &&
+            groupBy(logs, log =>
+              log.message === 'restore' ? 'restore' : 'backup'
+            )
         )
       ),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
@@ -334,6 +335,20 @@ export default decorate([
     }),
     effects: {
       toggleState,
+    },
+    computed: {
+      backupLogs: (_, { logs, vms }) =>
+        map(logs.backup, log =>
+          log.tasks !== undefined
+            ? {
+                ...log,
+                // "vmNames" can contains undefined entries
+                vmNames: map(log.tasks, ({ data }) =>
+                  get(() => vms[data.id].name_label)
+                ),
+              }
+            : log
+        ),
     },
   }),
   injectState,
@@ -352,7 +367,7 @@ export default decorate([
           />
         </h2>
         <NoObjects
-          collection={defined(() => logs.backup, [])}
+          collection={logs && state.backupLogs}
           columns={LOG_BACKUP_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}
@@ -370,7 +385,7 @@ export default decorate([
           />
         </h2>
         <NoObjects
-          collection={defined(() => logs.restore, [])}
+          collection={logs && defined(logs.restore, [])}
           columns={LOG_RESTORE_COLUMNS}
           component={SortedTable}
           data-jobs={jobs}
