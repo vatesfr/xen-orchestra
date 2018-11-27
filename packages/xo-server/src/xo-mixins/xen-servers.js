@@ -372,7 +372,7 @@ export default class {
 
     const { pool } = xapi
     if (pool !== null) {
-      delete this._xapisByPool[pool.uuid]
+      delete this._xapisByPool[pool.$id]
     }
 
     xapi.xo.uninstall()
