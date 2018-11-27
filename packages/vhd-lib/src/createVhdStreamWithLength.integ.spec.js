@@ -2,12 +2,12 @@
 
 import execa from 'execa'
 import fs from 'fs-extra'
-import { createReadStream, createWriteStream } from 'fs-promise'
-import { fromEvent, pFromCallback } from 'promise-toolbox'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
-
+import { createReadStream, createWriteStream } from 'fs-promise'
+import { fromEvent, pFromCallback } from 'promise-toolbox'
 import { Slicer } from 'pipette'
+
 import { createVhdStreamWithLength } from '.'
 import { FOOTER_SIZE } from './_constants'
 
