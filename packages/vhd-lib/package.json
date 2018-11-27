@@ -41,7 +41,6 @@
     "execa": "^1.0.0",
     "fs-promise": "^2.0.0",
     "get-stream": "^4.0.0",
-    "get-buffer": "^1.2.3",
     "index-modules": "^0.3.0",
     "rimraf": "^2.6.2",
     "tmp": "^0.0.33"

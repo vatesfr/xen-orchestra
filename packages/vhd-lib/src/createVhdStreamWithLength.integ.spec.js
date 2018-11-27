@@ -3,7 +3,7 @@
 import execa from 'execa'
 import fs from 'fs-extra'
 import rimraf from 'rimraf'
-import getBuffer from 'get-buffer'
+import getStream from 'get-stream'
 import tmp from 'tmp'
 import { createReadStream, createWriteStream } from 'fs-promise'
 import { fromEvent, pFromCallback } from 'promise-toolbox'
@@ -55,7 +55,7 @@ test('createVhdStreamWithLength can skip blank after last block and before foote
   await convertFromRawToVhd('randomfile', vhdName)
   const vhdSize = fs.statSync(vhdName).size
   // read file footer
-  const footer = await getBuffer.fromStream(
+  const footer = await getStream.buffer(
     createReadStream(vhdName, { start: vhdSize - FOOTER_SIZE })
   )
 
