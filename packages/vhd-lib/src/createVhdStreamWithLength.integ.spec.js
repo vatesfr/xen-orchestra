@@ -3,10 +3,10 @@
 import execa from 'execa'
 import fs from 'fs-extra'
 import rimraf from 'rimraf'
+import getBuffer from 'get-buffer'
 import tmp from 'tmp'
 import { createReadStream, createWriteStream } from 'fs-promise'
 import { fromEvent, pFromCallback } from 'promise-toolbox'
-import { Slicer } from 'pipette'
 
 import { createVhdStreamWithLength } from '.'
 import { FOOTER_SIZE } from './_constants'
@@ -55,18 +55,9 @@ test('createVhdStreamWithLength can skip blank after last block and before foote
   await convertFromRawToVhd('randomfile', vhdName)
   const vhdSize = fs.statSync(vhdName).size
   // read file footer
-  const slicer = new Slicer(
+  const footer = await getBuffer.fromStream(
     createReadStream(vhdName, { start: vhdSize - FOOTER_SIZE })
   )
-  const footer = await new Promise((resolve, reject) => {
-    slicer.read(FOOTER_SIZE, (error, actualLength, data, offset) => {
-      if (error !== false && error !== true) {
-        reject(error)
-      } else {
-        resolve(data)
-      }
-    })
-  })
 
   // we'll override the footer
   const endOfFile = await createWriteStream(vhdName, {
