@@ -371,7 +371,7 @@ export default class {
     delete this._xapis[id]
 
     const { pool } = xapi
-    if (pool !== null) {
+    if (pool != null) {
       delete this._xapisByPool[pool.$id]
     }
 
