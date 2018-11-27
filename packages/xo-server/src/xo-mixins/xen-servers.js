@@ -20,7 +20,7 @@ import { Servers } from '../models/server'
 const log = createLogger('xo:xo-mixins:xen-servers')
 
 export default class {
-  constructor (xo, { xapiOptions }) {
+  constructor(xo, { xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
@@ -58,7 +58,7 @@ export default class {
     // TODO: disconnect servers on stop.
   }
 
-  async registerXenServer ({
+  async registerXenServer({
     allowUnauthorized,
     host,
     label,
@@ -82,7 +82,7 @@ export default class {
     return server.properties
   }
 
-  async unregisterXenServer (id) {
+  async unregisterXenServer(id) {
     this.disconnectXenServer(id)::ignoreErrors()
 
     if (!(await this._servers.remove(id))) {
@@ -90,7 +90,7 @@ export default class {
     }
   }
 
-  async updateXenServer (
+  async updateXenServer(
     id,
     {
       allowUnauthorized,
@@ -150,7 +150,7 @@ export default class {
 
   // TODO: this method will no longer be async when servers are
   // integrated to the main collection.
-  async _getXenServer (id) {
+  async _getXenServer(id) {
     const server = await this._servers.first(id)
     if (server === undefined) {
       throw noSuchObject(id, 'xenServer')
@@ -159,7 +159,7 @@ export default class {
     return server
   }
 
-  _onXenAdd (
+  _onXenAdd(
     newXapiObjects,
     xapiIdsToXo,
     toRetry,
@@ -170,7 +170,7 @@ export default class {
     const conflicts = this._objectConflicts
     const objects = this._xo._objects
 
-    forEach(newXapiObjects, function handleObject (xapiObject, xapiId) {
+    forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       const { $ref } = xapiObject
 
       const dependent = dependents[$ref]
@@ -204,7 +204,7 @@ export default class {
     })
   }
 
-  _onXenRemove (xapiObjects, xapiIdsToXo, toRetry, conId) {
+  _onXenRemove(xapiObjects, xapiIdsToXo, toRetry, conId) {
     const conflicts = this._objectConflicts
     const objects = this._xo._objects
 
@@ -236,7 +236,7 @@ export default class {
     })
   }
 
-  async connectXenServer (id) {
+  async connectXenServer(id) {
     const server = (await this._getXenServer(id)).properties
 
     const xapi = (this._xapis[server.id] = new Xapi({
@@ -311,7 +311,7 @@ export default class {
       return {
         httpRequest: this._xo.httpRequest.bind(this),
 
-        install () {
+        install() {
           objects.on('add', onAddOrUpdate)
           objects.on('update', onAddOrUpdate)
           objects.on('remove', onRemove)
@@ -319,7 +319,7 @@ export default class {
 
           onAddOrUpdate(objects.all)
         },
-        uninstall () {
+        uninstall() {
           objects.removeListener('add', onAddOrUpdate)
           objects.removeListener('update', onAddOrUpdate)
           objects.removeListener('remove', onRemove)
@@ -362,7 +362,7 @@ export default class {
     )
   }
 
-  async disconnectXenServer (id) {
+  async disconnectXenServer(id) {
     const xapi = this._xapis[id]
     if (!xapi) {
       throw noSuchObject(id, 'xenServer')
@@ -371,20 +371,20 @@ export default class {
     delete this._xapis[id]
 
     const { pool } = xapi
-    if (pool) {
-      delete this._xapisByPool[pool.id]
+    if (pool != null) {
+      delete this._xapisByPool[pool.$id]
     }
 
     xapi.xo.uninstall()
     return xapi.disconnect()
   }
 
-  getAllXapis () {
+  getAllXapis() {
     return this._xapis
   }
 
   // Returns the XAPI connection associated to an object.
-  getXapi (object, type) {
+  getXapi(object, type) {
     if (isString(object)) {
       object = this._xo.getObject(object, type)
     }
@@ -402,7 +402,7 @@ export default class {
     return xapi
   }
 
-  async getAllXenServers () {
+  async getAllXenServers() {
     const servers = await this._servers.get()
     const xapis = this._xapis
     forEach(servers, server => {
@@ -423,19 +423,19 @@ export default class {
     return servers
   }
 
-  getXapiVmStats (vmId, granularity) {
+  getXapiVmStats(vmId, granularity) {
     return this._stats.getVmStats(this.getXapi(vmId), vmId, granularity)
   }
 
-  getXapiHostStats (hostId, granularity) {
+  getXapiHostStats(hostId, granularity) {
     return this._stats.getHostStats(this.getXapi(hostId), hostId, granularity)
   }
 
-  getXapiSrStats (srId, granularity) {
+  getXapiSrStats(srId, granularity) {
     return this._stats.getSrStats(this.getXapi(srId), srId, granularity)
   }
 
-  async mergeXenPools (sourceId, targetId, force = false) {
+  async mergeXenPools(sourceId, targetId, force = false) {
     const sourceXapi = this.getXapi(sourceId)
     const {
       _auth: { user, password },
