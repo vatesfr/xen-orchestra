@@ -24,7 +24,7 @@ export default class RemoteHandlerAbstract {
   _remote: Object
   _timeout: number
 
-  constructor (remote: any, options: Object = {}) {
+  constructor(remote: any, options: Object = {}) {
     if (remote.url === 'test://') {
       this._remote = remote
     } else {
@@ -36,33 +36,33 @@ export default class RemoteHandlerAbstract {
     ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
   }
 
-  get type (): string {
+  get type(): string {
     throw new Error('Not implemented')
   }
 
   /**
    * Asks the handler to sync the state of the effective remote with its' metadata
    */
-  async sync (): Promise<mixed> {
+  async sync(): Promise<mixed> {
     return this._sync()
   }
 
-  async _sync (): Promise<mixed> {
+  async _sync(): Promise<mixed> {
     throw new Error('Not implemented')
   }
 
   /**
    * Free the resources possibly dedicated to put the remote at work, when it is no more needed
    */
-  async forget (): Promise<void> {
+  async forget(): Promise<void> {
     await this._forget()
   }
 
-  async _forget (): Promise<void> {
+  async _forget(): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  async test (): Promise<Object> {
+  async test(): Promise<Object> {
     const testFileName = `${Date.now()}.test`
     const data = await fromCallback(cb => randomBytes(1024 * 1024, cb))
     let step = 'write'
@@ -88,21 +88,21 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  async outputFile (file: string, data: Data, options?: Object): Promise<void> {
+  async outputFile(file: string, data: Data, options?: Object): Promise<void> {
     return this._outputFile(file, data, {
       flags: 'wx',
       ...options,
     })
   }
 
-  async _outputFile (file: string, data: Data, options?: Object): Promise<void> {
+  async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
     const stream = await this.createOutputStream(file, options)
     const promise = fromEvent(stream, 'finish')
     stream.end(data)
     await promise
   }
 
-  async read (
+  async read(
     file: File,
     buffer: Buffer,
     position?: number
@@ -110,7 +110,7 @@ export default class RemoteHandlerAbstract {
     return this._read(file, buffer, position)
   }
 
-  _read (
+  _read(
     file: File,
     buffer: Buffer,
     position?: number
@@ -118,15 +118,15 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async readFile (file: string, options?: Object): Promise<Buffer> {
+  async readFile(file: string, options?: Object): Promise<Buffer> {
     return this._readFile(file, options)
   }
 
-  _readFile (file: string, options?: Object): Promise<Buffer> {
+  _readFile(file: string, options?: Object): Promise<Buffer> {
     return this.createReadStream(file, options).then(getStream.buffer)
   }
 
-  async rename (
+  async rename(
     oldPath: string,
     newPath: string,
     { checksum = false }: Object = {}
@@ -141,11 +141,11 @@ export default class RemoteHandlerAbstract {
     return p
   }
 
-  async _rename (oldPath: string, newPath: string) {
+  async _rename(oldPath: string, newPath: string) {
     throw new Error('Not implemented')
   }
 
-  async list (
+  async list(
     dir: string = '.',
     {
       filter,
@@ -166,11 +166,11 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  async _list (dir: string): Promise<string[]> {
+  async _list(dir: string): Promise<string[]> {
     throw new Error('Not implemented')
   }
 
-  createReadStream (
+  createReadStream(
     file: string,
     { checksum = false, ignoreMissingChecksum = false, ...options }: Object = {}
   ): Promise<LaxReadable> {
@@ -228,33 +228,33 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  async _createReadStream (
+  async _createReadStream(
     file: string,
     options?: Object
   ): Promise<LaxReadable> {
     throw new Error('Not implemented')
   }
 
-  async openFile (path: string, flags?: string): Promise<FileDescriptor> {
+  async openFile(path: string, flags?: string): Promise<FileDescriptor> {
     return {
       fd: await timeout.call(this._openFile(path, flags), this._timeout),
       path,
     }
   }
 
-  async _openFile (path: string, flags?: string): Promise<mixed> {
+  async _openFile(path: string, flags?: string): Promise<mixed> {
     throw new Error('Not implemented')
   }
 
-  async closeFile (fd: FileDescriptor): Promise<void> {
+  async closeFile(fd: FileDescriptor): Promise<void> {
     await timeout.call(this._closeFile(fd.fd), this._timeout)
   }
 
-  async _closeFile (fd: mixed): Promise<void> {
+  async _closeFile(fd: mixed): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  async refreshChecksum (path: string): Promise<void> {
+  async refreshChecksum(path: string): Promise<void> {
     const stream = (await this.createReadStream(path)).pipe(
       createChecksumStream()
     )
@@ -262,7 +262,7 @@ export default class RemoteHandlerAbstract {
     await this.outputFile(checksumFile(path), await stream.checksum)
   }
 
-  async createOutputStream (
+  async createOutputStream(
     file: File,
     { checksum = false, ...options }: Object = {}
   ): Promise<LaxWritable> {
@@ -296,14 +296,14 @@ export default class RemoteHandlerAbstract {
     return checksumStream
   }
 
-  async _createOutputStream (
+  async _createOutputStream(
     file: mixed,
     options?: Object
   ): Promise<LaxWritable> {
     throw new Error('Not implemented')
   }
 
-  async unlink (file: string, { checksum = true }: Object = {}): Promise<void> {
+  async unlink(file: string, { checksum = true }: Object = {}): Promise<void> {
     if (checksum) {
       ignoreErrors.call(this._unlink(checksumFile(file)))
     }
@@ -311,15 +311,15 @@ export default class RemoteHandlerAbstract {
     await timeout.call(this._unlink(file), this._timeout)
   }
 
-  async _unlink (file: mixed): Promise<void> {
+  async _unlink(file: mixed): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  async getSize (file: mixed): Promise<number> {
+  async getSize(file: mixed): Promise<number> {
     return timeout.call(this._getSize(file), this._timeout)
   }
 
-  async _getSize (file: mixed): Promise<number> {
+  async _getSize(file: mixed): Promise<number> {
     throw new Error('Not implemented')
   }
 }

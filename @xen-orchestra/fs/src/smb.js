@@ -7,7 +7,7 @@ const noop = () => {}
 
 // Normalize the error code for file not found.
 class ErrorWrapper extends Error {
-  constructor (error, newCode) {
+  constructor(error, newCode) {
     super(error.message)
     this.cause = error
     this.code = newCode
@@ -25,16 +25,16 @@ const normalizeError = (error, shouldBeDirectory) => {
 }
 
 export default class SmbHandler extends RemoteHandlerAbstract {
-  constructor (remote, opts) {
+  constructor(remote, opts) {
     super(remote, opts)
     this._forget = noop
   }
 
-  get type () {
+  get type() {
     return 'smb'
   }
 
-  _getClient () {
+  _getClient() {
     const remote = this._remote
 
     return new Smb2({
@@ -46,7 +46,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     })
   }
 
-  _getFilePath (file) {
+  _getFilePath(file) {
     if (file === '.') {
       file = undefined
     }
@@ -65,20 +65,20 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return path
   }
 
-  _dirname (file) {
+  _dirname(file) {
     const parts = file.split('\\')
     parts.pop()
     return parts.join('\\')
   }
 
-  async _sync () {
+  async _sync() {
     // Check access (smb2 does not expose connect in public so far...)
     await this.list()
 
     return this._remote
   }
 
-  async _outputFile (file, data, options = {}) {
+  async _outputFile(file, data, options = {}) {
     const client = this._getClient()
     const path = this._getFilePath(file)
     const dir = this._dirname(path)
@@ -92,7 +92,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     })
   }
 
-  async _read (file, buffer, position) {
+  async _read(file, buffer, position) {
     const needsClose = typeof file === 'string'
 
     let client
@@ -113,7 +113,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _readFile (file, options = {}) {
+  async _readFile(file, options = {}) {
     const client = this._getClient()
     let content
 
@@ -130,7 +130,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return content
   }
 
-  async _rename (oldPath, newPath) {
+  async _rename(oldPath, newPath) {
     const client = this._getClient()
 
     try {
@@ -146,7 +146,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _list (dir = '.') {
+  async _list(dir = '.') {
     const client = this._getClient()
     let list
 
@@ -161,7 +161,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return list
   }
 
-  async _createReadStream (file, options = {}) {
+  async _createReadStream(file, options = {}) {
     if (typeof file !== 'string') {
       file = file.path
     }
@@ -179,7 +179,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return stream
   }
 
-  async _createOutputStream (file, options = {}) {
+  async _createOutputStream(file, options = {}) {
     if (typeof file !== 'string') {
       file = file.path
     }
@@ -200,7 +200,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return stream
   }
 
-  async _unlink (file) {
+  async _unlink(file) {
     const client = this._getClient()
 
     try {
@@ -212,7 +212,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _getSize (file) {
+  async _getSize(file) {
     const client = await this._getClient()
     let size
 
@@ -230,7 +230,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   // TODO: add flags
-  async _openFile (path) {
+  async _openFile(path) {
     const client = this._getClient()
     return {
       client,
@@ -238,7 +238,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _closeFile ({ client, file }) {
+  async _closeFile({ client, file }) {
     await client.close(file)
     client.disconnect()
   }
