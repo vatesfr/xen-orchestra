@@ -3,10 +3,11 @@
 // $FlowFixMe
 import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
-import { randomBytes } from 'crypto'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
-import { type Readable, type Writable } from 'stream'
 import { parse } from 'xo-remote-parser'
+import { randomBytes } from 'crypto'
+import { resolve } from 'path'
+import { type Readable, type Writable } from 'stream'
 
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
@@ -18,6 +19,11 @@ type LaxWritable = Writable & Object
 type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
+
+// normalize the path:
+// - does not contains `.` or `..`  (cannot escape root dir)
+// - always starts with `/`
+const normalizePath = path => resolve('/', path)
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
 
@@ -64,7 +70,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async test(): Promise<Object> {
-    const testFileName = `${Date.now()}.test`
+    const testFileName = `/${Date.now()}.test`
     const data = await fromCallback(cb => randomBytes(1024 * 1024, cb))
     let step = 'write'
     try {
@@ -90,14 +96,14 @@ export default class RemoteHandlerAbstract {
   }
 
   async outputFile(file: string, data: Data, options?: Object): Promise<void> {
-    return this._outputFile(file, data, {
+    return this._outputFile(normalizePath(file), data, {
       flags: 'wx',
       ...options,
     })
   }
 
   async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
-    const stream = await this.createOutputStream(file, options)
+    const stream = await this.createOutputStream(normalizePath(file), options)
     const promise = fromEvent(stream, 'finish')
     stream.end(data)
     await promise
@@ -108,7 +114,11 @@ export default class RemoteHandlerAbstract {
     buffer: Buffer,
     position?: number
   ): Promise<{| bytesRead: number, buffer: Buffer |}> {
-    return this._read(file, buffer, position)
+    return this._read(
+      typeof file === 'string' ? normalizePath(file) : file,
+      buffer,
+      position
+    )
   }
 
   _read(
@@ -120,7 +130,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async readFile(file: string, options?: Object): Promise<Buffer> {
-    return this._readFile(file, options)
+    return this._readFile(normalizePath(file), options)
   }
 
   _readFile(file: string, options?: Object): Promise<Buffer> {
@@ -132,6 +142,9 @@ export default class RemoteHandlerAbstract {
     newPath: string,
     { checksum = false }: Object = {}
   ) {
+    oldPath = normalizePath(oldPath)
+    newPath = normalizePath(newPath)
+
     let p = timeout.call(this._rename(oldPath, newPath), this._timeout)
     if (checksum) {
       p = Promise.all([
@@ -150,6 +163,7 @@ export default class RemoteHandlerAbstract {
     dir: string,
     { recursive = false }: { recursive?: boolean } = {}
   ) {
+    dir = normalizePath(dir)
     await (recursive ? this._rmtree(dir) : this._rmdir(dir))
   }
 
@@ -185,6 +199,8 @@ export default class RemoteHandlerAbstract {
       prependDir = false,
     }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
   ): Promise<string[]> {
+    dir = normalizePath(dir)
+
     let entries = await timeout.call(this._list(dir), this._timeout)
     if (filter !== undefined) {
       entries = entries.filter(filter)
@@ -207,6 +223,9 @@ export default class RemoteHandlerAbstract {
     file: File,
     { checksum = false, ignoreMissingChecksum = false, ...options }: Object = {}
   ): Promise<LaxReadable> {
+    if (typeof file === 'string') {
+      file = normalizePath(file)
+    }
     const path = typeof file === 'string' ? file : file.path
     const streamP = timeout
       .call(this._createReadStream(file, options), this._timeout)
@@ -266,6 +285,8 @@ export default class RemoteHandlerAbstract {
   }
 
   async openFile(path: string, flags?: string): Promise<FileDescriptor> {
+    path = normalizePath(path)
+
     return {
       fd: await timeout.call(this._openFile(path, flags), this._timeout),
       path,
@@ -285,6 +306,8 @@ export default class RemoteHandlerAbstract {
   }
 
   async refreshChecksum(path: string): Promise<void> {
+    path = normalizePath(path)
+
     const stream = (await this.createReadStream(path)).pipe(
       createChecksumStream()
     )
@@ -296,6 +319,9 @@ export default class RemoteHandlerAbstract {
     file: File,
     { checksum = false, ...options }: Object = {}
   ): Promise<LaxWritable> {
+    if (typeof file === 'string') {
+      file = normalizePath(file)
+    }
     const path = typeof file === 'string' ? file : file.path
     const streamP = timeout.call(
       this._createOutputStream(file, {
@@ -334,6 +360,8 @@ export default class RemoteHandlerAbstract {
   }
 
   async unlink(file: string, { checksum = true }: Object = {}): Promise<void> {
+    file = normalizePath(file)
+
     if (checksum) {
       ignoreErrors.call(this._unlink(checksumFile(file)))
     }
@@ -346,7 +374,10 @@ export default class RemoteHandlerAbstract {
   }
 
   async getSize(file: File): Promise<number> {
-    return timeout.call(this._getSize(file), this._timeout)
+    return timeout.call(
+      this._getSize(typeof file === 'string' ? normalizePath(file) : file),
+      this._timeout
+    )
   }
 
   async _getSize(file: File): Promise<number> {
