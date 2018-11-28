@@ -28,6 +28,9 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   constructor(remote, opts) {
     super(remote, opts)
     this._forget = noop
+
+    const prefix = this._remote.path
+    this._prefix = prefix !== '' ? prefix + '\\' : prefix
   }
 
   get type() {
@@ -47,22 +50,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   _getFilePath(file) {
-    if (file === '.') {
-      file = undefined
-    }
-
-    let path = this._remote.path !== '' ? this._remote.path : ''
-
-    // Ensure remote path is a directory.
-    if (path !== '' && path[path.length - 1] !== '\\') {
-      path += '\\'
-    }
-
-    if (file) {
-      path += file.replace(/\//g, '\\')
-    }
-
-    return path
+    return this._prefix + file.slice(1).replace(/\//g, '\\')
   }
 
   _dirname(file) {

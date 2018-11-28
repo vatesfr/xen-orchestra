@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
-import { dirname, resolve } from 'path'
-import { noop, startsWith } from 'lodash'
+import { dirname } from 'path'
+import { noop } from 'lodash'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -14,16 +14,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   _getFilePath(file) {
-    const realPath = this._getRealPath()
-    const parts = [realPath]
-    if (file) {
-      parts.push(file)
-    }
-    const path = resolve.apply(null, parts)
-    if (!startsWith(path, realPath)) {
-      throw new Error('Remote path is unavailable')
-    }
-    return path
+    return this._getRealPath() + file
   }
 
   async _sync() {
