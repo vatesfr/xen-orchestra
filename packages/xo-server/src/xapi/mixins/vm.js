@@ -454,6 +454,8 @@ export default {
         this.startVm(vm.$id)::ignoreErrors()
       } else if (vm.power_state === 'Suspended') {
         this.resumeVm(vm.$id)::ignoreErrors()
+      } else if (vm.power_state === 'Paused') {
+        this.pauseVm(vm.$id)::ignoreErrors()
       }
     }
   },
@@ -461,6 +463,10 @@ export default {
   async resumeVm(vmId) {
     // the force parameter is always true
     return this.call('VM.resume', this.getObject(vmId).$ref, false, true)
+  },
+
+  async unpauseVm(vmId) {
+    return this.call('VM.unpause', this.getObject(vmId).$ref)
   },
 
   shutdownVm(vmId, { hard = false } = {}) {

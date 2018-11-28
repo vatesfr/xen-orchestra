@@ -45,6 +45,7 @@ import {
   forgetSrs,
   isSrShared,
   migrateVms,
+  pauseVms,
   reconnectAllHostsSrs,
   rescanSrs,
   restartHosts,
@@ -149,6 +150,11 @@ const OPTIONS = {
       { handler: copyVms, icon: 'vm-copy', tooltip: _('copyVmLabel') },
     ],
     otherActions: [
+      {
+        handler: pauseVms,
+        icon: 'vm-pause',
+        labelId: 'pauseVmLabel',
+      },
       {
         handler: suspendVms,
         icon: 'vm-suspend',

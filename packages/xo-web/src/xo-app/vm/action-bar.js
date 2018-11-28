@@ -10,7 +10,6 @@ import {
   exportVm,
   migrateVm,
   restartVm,
-  resumeVm,
   snapshotVm,
   startVm,
   stopVm,
@@ -125,7 +124,7 @@ const vmActionBarByState = {
   Suspended: ({ vm, isSelfUser, canAdministrate }) => (
     <ActionBar display='icon' handlerParam={vm}>
       <Action
-        handler={resumeVm}
+        handler={startVm}
         icon='vm-start'
         label={_('resumeVmLabel')}
         pending={includes(vm.current_operations, 'start')}
@@ -156,6 +155,24 @@ const vmActionBarByState = {
       )}
     </ActionBar>
   ),
+  Paused: ({ vm, isSelfUser, canAdministrate }) => (
+    <ActionBar display='icon' handlerParam={vm}>
+      <Action
+        handler={startVm}
+        icon='vm-start'
+        label={_('resumeVmLabel')}
+        pending={includes(vm.current_operations, 'unpause')}
+      />
+      {!isSelfUser && (
+        <Action
+          handler={snapshotVm}
+          icon='vm-snapshot'
+          label={_('snapshotVmLabel')}
+          pending={includes(vm.current_operations, 'snapshot')}
+        />
+      )}
+    </ActionBar>
+  ),
 }
 
 const VmActionBar = addSubscriptions(() => ({
@@ -163,7 +180,10 @@ const VmActionBar = addSubscriptions(() => ({
 }))(
   connectStore(() => ({
     checkPermissions: getCheckPermissions,
-    userId: createSelector(getUser, user => user.id),
+    userId: createSelector(
+      getUser,
+      user => user.id
+    ),
   }))(({ checkPermissions, vm, userId, resourceSets }) => {
     // Is the user in the same resource set as the VM
     const _getIsSelfUser = createSelector(

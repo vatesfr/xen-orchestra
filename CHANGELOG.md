@@ -7,6 +7,7 @@
 - [Perf alert] Ability to trigger an alarm if a host/VM/SR usage value is below the threshold [#3612](https://github.com/vatesfr/xen-orchestra/issues/3612) (PR [#3675](https://github.com/vatesfr/xen-orchestra/pull/3675))
 - [Home/VMs] Display pool's name [#2226](https://github.com/vatesfr/xen-orchestra/issues/2226) (PR [#3709](https://github.com/vatesfr/xen-orchestra/pull/3709))
 - [Servers] Prevent new connection if pool is already connected [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3724](https://github.com/vatesfr/xen-orchestra/pull/3724))
+- [VM] Pause (like Suspend but doesn't copy RAM on disk) [#3727](https://github.com/vatesfr/xen-orchestra/issues/3727) (PR [#3731](https://github.com/vatesfr/xen-orchestra/pull/3731))
 
 ### Bug fixes
 

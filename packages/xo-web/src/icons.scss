@@ -323,6 +323,11 @@
       @extend .fa-desktop;
       @extend .text-primary;
     }
+    &-paused {
+      @extend .fa;
+      @extend .fa-desktop;
+      @extend .text-muted;
+    }
     &-halted {
       @extend .fa;
       @extend .fa-desktop;
@@ -364,6 +369,10 @@
       @extend .fa-copy;
     }
     &-suspend {
+      @extend .fa;
+      @extend .fa-pause;
+    }
+    &-pause {
       @extend .fa;
       @extend .fa-pause;
     }
@@ -418,7 +427,7 @@
   &-paused {
     @extend .fa;
     @extend .fa-circle;
-    @extend .xo-status-suspended;
+    @extend .xo-status-paused;
   }
 
   &-unknown {

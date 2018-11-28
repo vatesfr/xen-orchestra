@@ -946,15 +946,21 @@ export const suspendVm = vm => _call('vm.suspend', { id: resolveId(vm) })
 
 export const suspendVms = vms =>
   confirm({
-    title: _('suspendVmsModalTitle', { nVms: vms.length }),
-    body: _('suspendVmsModalMessage', { nVms: vms.length }),
+    title: _('suspendVmsModalTitle', { vms: vms.length }),
+    body: _('suspendVmsModalMessage', { vms: vms.length }),
   }).then(
     () =>
       Promise.all(map(vms, vm => _call('vm.suspend', { id: resolveId(vm) }))),
     noop
   )
 
-export const resumeVm = vm => _call('vm.resume', { id: resolveId(vm) })
+export const pauseVm = vm => _call('vm.pause', { id: resolveId(vm) })
+
+export const pauseVms = vms =>
+  confirm({
+    title: _('pauseVmsModalTitle', { vms: vms.length }),
+    body: _('pauseVmsModalMessage', { vms: vms.length }),
+  }).then(() => Promise.all(map(vms, pauseVm)), noop)
 
 export const recoveryStartVm = vm =>
   _call('vm.recoveryStart', { id: resolveId(vm) })
