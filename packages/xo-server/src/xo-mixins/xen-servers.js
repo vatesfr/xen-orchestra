@@ -441,12 +441,12 @@ export default class {
     return this._stats.getSrStats(this.getXapi(srId), srId, granularity)
   }
 
-  async mergeXenPools(sourceId, targetId, force = false) {
-    const sourceXapi = this.getXapi(sourceId)
+  async mergeXenPools(sourcePoolId, targetPoolId, force = false) {
+    const sourceXapi = this.getXapi(sourcePoolId)
     const {
       _auth: { user, password },
       _url: { hostname },
-    } = this.getXapi(targetId)
+    } = this.getXapi(targetPoolId)
 
     // We don't want the events of the source XAPI to interfere with
     // the events of the new XAPI.
