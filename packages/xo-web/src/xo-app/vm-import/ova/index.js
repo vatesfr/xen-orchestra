@@ -193,11 +193,9 @@ async function parseTarFile(file) {
     // parsing it is the only way to get the size of big files because  normal headers store the size in a
     // 12 char octal string, they can't store big sizes.
     if (header.fileType === 'x') {
-      const paxFile = (await readFileFragment(
-        file,
-        offset,
-        offset + header.fileSize
-      )).toString()
+      const paxFile = Buffer.from(
+        await readFileFragment(file, offset, offset + header.fileSize)
+      ).toString()
       const lines = paxFile.split('\n')
       const found = lines.find(l => l.match(/^[0-9]+ size=/))
       const size = parseInt(found.split('=')[1])
