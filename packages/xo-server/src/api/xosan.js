@@ -1123,7 +1123,7 @@ async function _prepareGlusterVm(
       }
     }
   }
-  await xapi.addTag(newVM.$id, `XOSAN-${xapi.pool.name_label}`)
+  await xapi.addTag(newVM.$id, 'XOSAN')
   await xapi.editVm(newVM, {
     name_label: `XOSAN - ${lvmSr.name_label} - ${
       host.name_label
