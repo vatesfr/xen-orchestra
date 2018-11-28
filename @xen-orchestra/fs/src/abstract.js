@@ -145,6 +145,17 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
+  async rmdir(
+    dir: string,
+    { recursive = false }: { recursive?: boolean } = {}
+  ) {
+    await this._rmdir(dir, { recursive })
+  }
+
+  async _rmdir(dir: string, opts: { recursive: boolean }) {
+    throw new Error('Not implemented')
+  }
+
   async list(
     dir: string = '.',
     {
