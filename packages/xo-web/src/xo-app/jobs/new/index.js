@@ -76,7 +76,7 @@ const ACTIONS = [
   },
 ]
 
-const getType = function (param) {
+const getType = function(param) {
   if (!param) {
     return
   }
@@ -101,7 +101,7 @@ const reduceObject = (value, propertyName = 'id') =>
 /**
  * Adapts all data "arrayed" by UI-multiple-selectors to job's cross-product trick
  */
-const dataToParamVectorItems = function (params, data) {
+const dataToParamVectorItems = function(params, data) {
   const items = []
   forEach(params, (param, name) => {
     if (Array.isArray(data[name]) && param.items) {
@@ -139,7 +139,7 @@ const dataToParamVectorItems = function (params, data) {
 })
 @injectIntl
 export default class Jobs extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -158,7 +158,7 @@ export default class Jobs extends Component {
     })
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this.componentWillUnmount = subscribeJobs(jobs => {
       const j = {}
       for (const id in jobs) {
@@ -436,7 +436,7 @@ export default class Jobs extends Component {
     },
   ]
 
-  render () {
+  render() {
     const { props, state } = this
     const { action, actions, job, jobs } = state
     const { formatMessage } = this.props.intl

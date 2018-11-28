@@ -305,7 +305,7 @@ class NoObjectsWithoutServers extends Component {
     noResourceSets: PropTypes.bool.isRequired,
   }
 
-  render () {
+  render() {
     const {
       areObjectsFetched,
       isAdmin,
@@ -469,18 +469,18 @@ export default class Home extends Component {
     selectedItems: {},
   }
 
-  get page () {
+  get page() {
     return this.state.page
   }
-  set page (activePage) {
+  set page(activePage) {
     this.setState({ activePage })
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this._initFilterAndSortBy(this.props)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (this._getFilter() !== this._getFilter(props)) {
       this._initFilterAndSortBy(props)
     }
@@ -489,7 +489,7 @@ export default class Home extends Component {
     }
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     const { selectedItems } = this.state
 
     // Unselect items that are no longer visible
@@ -512,11 +512,11 @@ export default class Home extends Component {
     identity,
   ])
 
-  _getType () {
+  _getType() {
     return this.props.type
   }
 
-  _setType (type) {
+  _setType(type) {
     const { pathname, query } = this.props.location
     this.context.router.push({
       pathname,
@@ -526,7 +526,7 @@ export default class Home extends Component {
 
   // Filter and sort -----------------------------------------------------------
 
-  _getDefaultFilter (props = this.props) {
+  _getDefaultFilter(props = this.props) {
     const { type } = props
     const preferences = get(() => props.user.preferences)
     const defaultFilterName = get(() => preferences.defaultHomeFilters[type])
@@ -540,7 +540,7 @@ export default class Home extends Component {
     )
   }
 
-  _getDefaultSort (props = this.props) {
+  _getDefaultSort(props = this.props) {
     const { sortOptions } = OPTIONS[props.type]
     const defaultSort = find(sortOptions, 'default')
     const urlSort = find(sortOptions, { sortBy: props.location.query.sortBy })
@@ -559,7 +559,7 @@ export default class Home extends Component {
     }
   }
 
-  _setSort (event) {
+  _setSort(event) {
     const { sortBy, sortOrder } = event.currentTarget.dataset
     const { pathname, query } = this.props.location
 
@@ -571,7 +571,7 @@ export default class Home extends Component {
   }
   _setSort = this._setSort.bind(this)
 
-  _initFilterAndSortBy (props) {
+  _initFilterAndSortBy(props) {
     const filter = this._getFilter(props)
 
     // If filter is null, set a default filter.
@@ -616,7 +616,7 @@ export default class Home extends Component {
 
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
-  _getFilter (props = this.props) {
+  _getFilter(props = this.props) {
     return props.location.query.s
   }
 
@@ -636,7 +636,7 @@ export default class Home extends Component {
 
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
-  _setFilter (filter, props = this.props, replace) {
+  _setFilter(filter, props = this.props, replace) {
     if (!isString(filter)) {
       filter = filter.toString()
     }
@@ -752,7 +752,7 @@ export default class Home extends Component {
   _addCustomFilter = () => {
     return addCustomFilter(this._getType(), this._getFilter())
   }
-  _getCustomFilters () {
+  _getCustomFilters() {
     const { preferences } = this.props.user || {}
 
     if (!preferences) {
@@ -772,7 +772,10 @@ export default class Home extends Component {
       size(visibleItems) > 0 &&
       size(filter(selectedItems)) === size(visibleItems)
   )
-  _getIsSomeSelected = createSelector(() => this.state.selectedItems, some)
+  _getIsSomeSelected = createSelector(
+    () => this.state.selectedItems,
+    some
+  )
   _toggleMaster = () => {
     const selectedItems = {}
     if (!this._getIsAllSelected()) {
@@ -829,7 +832,7 @@ export default class Home extends Component {
 
   // Header --------------------------------------------------------------------
 
-  _renderHeader () {
+  _renderHeader() {
     const customFilters = this._getCustomFilters()
     const filteredItems = this._getFilteredItems()
     const nItems = this._getNumberOfItems()
@@ -1119,7 +1122,7 @@ export default class Home extends Component {
 
   // ---------------------------------------------------------------------------
 
-  render () {
+  render() {
     const { isAdmin, isPoolAdmin, noResourceSets } = this.props
 
     const nItems = this._getNumberOfItems()
