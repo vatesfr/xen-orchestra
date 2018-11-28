@@ -291,7 +291,7 @@ export class Xapi extends EventEmitter {
     this._taskWatchers = Object.create(null)
 
     if (this.status === CONNECTED) {
-      this._watchEvents()::ignoreErrors()
+      ignoreErrors.call(this._watchEvents())
     }
 
     this.on('connected', this._watchEvents)
