@@ -71,11 +71,11 @@ class TableFilter extends Component {
     this.props.onChange(event.target.value)
   }
 
-  focus () {
+  focus() {
     this.refs.filter.getWrappedInstance().focus()
   }
 
-  render () {
+  render() {
     const { props } = this
 
     return (
@@ -140,7 +140,7 @@ class ColumnHead extends Component {
     props.sort(props.columnId)
   }
 
-  render () {
+  render() {
     const { name, sortIcon, textAlign } = this.props
 
     if (!this.props.sort) {
@@ -174,7 +174,7 @@ class Checkbox extends Component {
     indeterminate: PropTypes.bool.isRequired,
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     const {
       props: { indeterminate },
       ref,
@@ -189,7 +189,7 @@ class Checkbox extends Component {
     this.componentDidUpdate()
   }
 
-  render () {
+  render() {
     const { indeterminate, ...props } = this.props
     props.ref = this._ref
     props.type = 'checkbox'
@@ -317,7 +317,7 @@ export default class SortedTable extends Component {
     router: routerShape,
   }
 
-  constructor (props, context) {
+  constructor(props, context) {
     super(props, context)
 
     this._getUserData =
@@ -506,7 +506,7 @@ export default class SortedTable extends Component {
     )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._checkUpdatePage()
 
     // Force one Portal refresh.
@@ -533,7 +533,7 @@ export default class SortedTable extends Component {
     })
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     const { selectedItemsIds } = this.state
 
     // Unselect items that are no longer visible
@@ -568,7 +568,7 @@ export default class SortedTable extends Component {
   }
 
   // update state in the state and update the URL param
-  _setVisibleState (state) {
+  _setVisibleState(state) {
     this.setState(state, this.props.stateUrlParam && this._saveUrlState)
   }
 
@@ -580,7 +580,7 @@ export default class SortedTable extends Component {
     })
   }
 
-  _checkUpdatePage () {
+  _checkUpdatePage() {
     const { page } = this.state
     if (page === 1) {
       return
@@ -598,7 +598,7 @@ export default class SortedTable extends Component {
     }
   }
 
-  _setPage (page) {
+  _setPage(page) {
     this._setVisibleState({ page })
   }
   _setPage = this._setPage.bind(this)
@@ -607,7 +607,7 @@ export default class SortedTable extends Component {
     const { checked } = event.target
     const { onSelect } = this.props
     if (onSelect !== undefined) {
-      onSelect(checked ? this._getVisibleItems() : [])
+      onSelect(checked ? map(this._getVisibleItems(), 'id') : [])
     }
 
     this.setState({
@@ -634,14 +634,14 @@ export default class SortedTable extends Component {
   }
 
   _selectAll = () => {
-    const p = this.props
-    if (p.onSelect !== undefined) {
-      p.onSelect(this._getItems())
+    const { onSelect } = this.props
+    if (onSelect !== undefined) {
+      onSelect(map(this._getItems(), 'id'))
     }
     this.setState({ all: true })
   }
 
-  _selectItem (current, selected, range = false) {
+  _selectItem(current, selected, range = false) {
     const { onSelect } = this.props
     const { all, selectedItemsIds } = this.state
     const visibleItems = this._getVisibleItems()
@@ -681,7 +681,7 @@ export default class SortedTable extends Component {
     }
 
     if (onSelect !== undefined) {
-      onSelect(filter(visibleItems, item => _selectedItemsIds.has(item.id)))
+      onSelect(_selectedItemsIds.toArray())
     }
 
     this.setState({
@@ -808,7 +808,7 @@ export default class SortedTable extends Component {
     )
   }
 
-  render () {
+  render() {
     const { props, state } = this
     const {
       actions,

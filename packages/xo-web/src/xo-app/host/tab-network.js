@@ -34,7 +34,7 @@ const _toggleDefaultLockingMode = (component, tooltip) =>
   tooltip ? <Tooltip content={tooltip}>{component}</Tooltip> : component
 
 class ConfigureIpModal extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     const { pif } = props
@@ -43,11 +43,11 @@ class ConfigureIpModal extends Component {
     }
   }
 
-  get value () {
+  get value() {
     return this.state
   }
 
-  render () {
+  render() {
     const { ip, netmask, dns, gateway } = this.state
 
     return (
@@ -102,7 +102,7 @@ class ConfigureIpModal extends Component {
 
 class PifItemVlan extends Component {
   _editPif = vlan => editPif(this.props.item, { vlan })
-  render () {
+  render() {
     const pif = this.props.item
     return (
       <div>
@@ -138,7 +138,7 @@ const reconfigureIp = (pif, mode) => {
 class PifItemIp extends Component {
   _onEditIp = () => reconfigureIp(this.props.pif, 'Static')
 
-  render () {
+  render() {
     const { pif } = this.props
     const pifIp = pif.ip
     return (
@@ -161,13 +161,13 @@ class PifItemIp extends Component {
 class PifItemMode extends Component {
   state = { configModes: [] }
 
-  componentDidMount () {
+  componentDidMount() {
     getIpv4ConfigModes().then(configModes => this.setState({ configModes }))
   }
 
   _configIp = mode => reconfigureIp(this.props.pif, mode)
 
-  render () {
+  render() {
     const { pif } = this.props
     const { configModes } = this.state
     return (
@@ -189,7 +189,7 @@ class PifItemLock extends Component {
     })
   }
 
-  render () {
+  render() {
     const { networks, pif, vifsByNetwork } = this.props
 
     const network = networks[pif.$network]

@@ -1947,7 +1947,6 @@ const messages = {
   xosanRestartAgents: 'Restart toolstacks',
   xosanMasterOffline: 'Pool master is not running',
   xosanInstallPackTitle: 'Install XOSAN pack on {pool}',
-  xosanSrOnSameHost: 'SRs on the same host',
   xosanSrOnSameHostMessage: 'You have selected SRs on the same host',
   xosanLayout: 'Layout',
   xosanRedundancy: 'Redundancy',

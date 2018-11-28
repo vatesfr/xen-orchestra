@@ -9,19 +9,18 @@ import renderXoItem from 'render-xo-item'
 import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import { error } from 'notification'
 import { Container, Col, Row } from 'grid'
 import { Toggle, SizeInput } from 'form'
 import { SelectPif, SelectPool } from 'select-objects'
 import {
-  every,
   filter,
-  find,
   forEach,
   groupBy,
   isEmpty,
+  keyBy,
   keys,
   map,
+  mapValues,
   pickBy,
   some,
 } from 'lodash'
@@ -135,10 +134,6 @@ export default class NewXosan extends Component {
           return
         }
 
-        if (pool === null) {
-          return
-        }
-
         const hosts = filter(this.props.hosts, { $pool: pool.id })
         const pack = findLatestPack(catalog.xosan, map(hosts, 'version'))
 
@@ -172,7 +167,7 @@ export default class NewXosan extends Component {
     return this._checkPacks(pool)
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     this._refreshSuggestions()
   }
 
@@ -248,12 +243,26 @@ export default class NewXosan extends Component {
     this.setState({ brickSize })
   }
 
+  _getContainerBySr = createSelector(
+    this._getLvmSrs,
+    srs => mapValues(keyBy(srs, 'id'), sr => sr.$container)
+  )
+
   _selectSrs = selectedSrs => {
-    if (some(selectedSrs, sr => this._getDisableSrCheckbox(sr) === true)) {
-      return error(_('xosanSrOnSameHost'), _('xosanSrOnSameHostMessage'))
+    const found = {}
+    const containers = this._getContainerBySr()
+    if (
+      some(selectedSrs, sr => {
+        const container = containers[sr]
+        const foundContainer = found[container]
+        found[container] = true
+        return foundContainer
+      })
+    ) {
+      return this.setState({ srsOnSameHost: true })
     }
 
-    this.setState({ selectedSrs: map(selectedSrs, 'id') })
+    this.setState({ srsOnSameHost: false, selectedSrs })
   }
 
   _getPifPredicate = createSelector(
@@ -271,18 +280,6 @@ export default class NewXosan extends Component {
       ({ type }) => type === 'xva',
     ]),
     _findLatestTemplate
-  )
-
-  _getDisableSrCheckbox = createSelector(
-    () => this.state.selectedSrs,
-    this._getLvmSrs,
-    (selectedSrs, lvmsrs) => sr =>
-      !every(
-        selectedSrs,
-        selectedSrId =>
-          selectedSrId === sr.id ||
-          find(lvmsrs, { id: selectedSrId }).$container !== sr.$container
-      )
   )
 
   _getDisableCreation = createSelector(
@@ -320,7 +317,7 @@ export default class NewXosan extends Component {
     this.props.onSrCreationStarted()
   }
 
-  render () {
+  render() {
     if (process.env.XOA_PLAN === 5) {
       return (
         <em>
@@ -343,6 +340,7 @@ export default class NewXosan extends Component {
       needsUpdate,
       pif,
       pool,
+      srsOnSameHost,
       suggestion,
       suggestions,
       useVlan,
@@ -362,12 +360,10 @@ export default class NewXosan extends Component {
     }
 
     const hostsNeedRestart =
-      pool !== null &&
-      pool !== undefined &&
+      pool != null &&
       hostsNeedRestartByPool !== undefined &&
       hostsNeedRestartByPool[pool.id]
     const architecture = suggestions != null && suggestions[suggestion]
-
     return (
       <Container>
         <Row className='mb-1'>
@@ -424,12 +420,23 @@ export default class NewXosan extends Component {
             </Row>
           ) : (
             [
-              <SortedTable
-                collection={this._getLvmSrs()}
-                columns={XOSAN_SR_COLUMNS}
-                data-hosts={this._getHosts()}
-                onSelect={this._selectSrs}
-              />,
+              <Row>
+                <Col>
+                  {srsOnSameHost && (
+                    <span className='text-warning'>
+                      <Icon icon='alarm' /> {_('xosanSrOnSameHostMessage')}
+                    </span>
+                  )}
+                </Col>
+                <Col>
+                  <SortedTable
+                    collection={this._getLvmSrs()}
+                    columns={XOSAN_SR_COLUMNS}
+                    data-hosts={this._getHosts()}
+                    onSelect={this._selectSrs}
+                  />
+                </Col>
+              </Row>,
               <Row>
                 <Col>
                   {!isEmpty(suggestions) && (
