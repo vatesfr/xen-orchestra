@@ -157,7 +157,26 @@ export default class RemoteHandlerAbstract {
   }
 
   async _rmtree(dir: string) {
-    // TODO: default implementation based on _list, _rmdir & _unlink
+    try {
+      return await this._rmdir(dir)
+    } catch (error) {
+      if (error.code !== 'ENOTEMPTY') {
+        throw error
+      }
+    }
+
+    const files = this._list(dir)
+    await Promise.all(
+      files.map(file =>
+        this._unlink(`${dir}/${file}`).catch(error => {
+          if (error.code === 'EISDIR') {
+            return this._rmtree(`${dir}/${file}`)
+          }
+          throw error
+        })
+      )
+    )
+    this._rmtree(dir)
   }
 
   async list(
