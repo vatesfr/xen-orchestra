@@ -120,4 +120,8 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   async _closeFile(fd) {
     return fs.close(fd)
   }
+
+  async _rmdir(dir) {
+    return fs.rmdir(dir)
+  }
 }

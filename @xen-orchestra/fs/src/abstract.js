@@ -1,6 +1,7 @@
 // @flow
 
 // $FlowFixMe
+import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
 import { randomBytes } from 'crypto'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
@@ -143,6 +144,38 @@ export default class RemoteHandlerAbstract {
 
   async _rename(oldPath: string, newPath: string) {
     throw new Error('Not implemented')
+  }
+
+  async rmdir(
+    dir: string,
+    { recursive = false }: { recursive?: boolean } = {}
+  ) {
+    await (recursive ? this._rmtree(dir) : this._rmdir(dir))
+  }
+
+  async _rmdir(dir: string) {
+    throw new Error('Not implemented')
+  }
+
+  async _rmtree(dir: string) {
+    try {
+      return await this._rmdir(dir)
+    } catch (error) {
+      if (error.code !== 'ENOTEMPTY') {
+        throw error
+      }
+    }
+
+    const files = await this._list(dir)
+    await asyncMap(files, file =>
+      this._unlink(`${dir}/${file}`).catch(error => {
+        if (error.code === 'EISDIR') {
+          return this._rmtree(`${dir}/${file}`)
+        }
+        throw error
+      })
+    )
+    return this._rmtree(dir)
   }
 
   async list(
