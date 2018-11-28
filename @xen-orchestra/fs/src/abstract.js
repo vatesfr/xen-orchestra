@@ -175,7 +175,7 @@ export default class RemoteHandlerAbstract {
         throw error
       })
     )
-    this._rmtree(dir)
+    return this._rmtree(dir)
   }
 
   async list(
