@@ -149,7 +149,7 @@ export default class RemoteHandlerAbstract {
     dir: string,
     { recursive = false }: { recursive?: boolean } = {}
   ) {
-    ;(await recursive) ? this._rmtree(dir) : this._rmdir(dir)
+    await (recursive ? this._rmtree(dir) : this._rmdir(dir))
   }
 
   async _rmdir(dir: string) {
