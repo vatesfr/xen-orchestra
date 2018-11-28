@@ -1,6 +1,7 @@
 // @flow
 
 // $FlowFixMe
+import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
 import { randomBytes } from 'crypto'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
@@ -165,16 +166,14 @@ export default class RemoteHandlerAbstract {
       }
     }
 
-    const files = this._list(dir)
-    await Promise.all(
-      files.map(file =>
-        this._unlink(`${dir}/${file}`).catch(error => {
-          if (error.code === 'EISDIR') {
-            return this._rmtree(`${dir}/${file}`)
-          }
-          throw error
-        })
-      )
+    const files = await this._list(dir)
+    await asyncMap(files, file =>
+      this._unlink(`${dir}/${file}`).catch(error => {
+        if (error.code === 'EISDIR') {
+          return this._rmtree(`${dir}/${file}`)
+        }
+        throw error
+      })
     )
     this._rmtree(dir)
   }

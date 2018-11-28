@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@marsaud/smb2": "^0.9.0",
+    "@xen-orchestra/async-map": "^0.0.0",
     "execa": "^1.0.0",
     "fs-extra": "^7.0.0",
     "get-stream": "^4.0.0",

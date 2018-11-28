@@ -122,6 +122,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _rmdir(dir) {
-    return fs.remove(dir)
+    return fs.rmdir(dir)
   }
 }
