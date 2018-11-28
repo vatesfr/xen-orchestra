@@ -10,6 +10,8 @@
 
 ### Bug fixes
 
+- [Servers] Fix deleting server on joining a pool [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3728](https://github.com/vatesfr/xen-orchestra/pull/3728))
+
 ### Released packages
 
 - xen-api v0.22.0
