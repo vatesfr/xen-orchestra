@@ -1,4 +1,5 @@
 import createLogger from '@xen-orchestra/log'
+import { findKey } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
@@ -459,6 +460,8 @@ export default class {
       throw e
     }
 
-    await this.unregisterXenServer(sourceId)
+    this.unregisterXenServer(
+      findKey(this._xapis, candidate => candidate === sourceXapi)
+    )::ignoreErrors()
   }
 }
