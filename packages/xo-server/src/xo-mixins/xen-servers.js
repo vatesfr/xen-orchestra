@@ -262,6 +262,8 @@ export default class {
         throw new Error("the server's pool is already connected")
       }
 
+      this._xapis[server.id] = xapisByPool[poolId] = xapi
+
       xapi.xo = (() => {
         const conId = server.id
 
@@ -357,10 +359,9 @@ export default class {
       xapi.xo.install()
       xapi.watchEvents()
 
-      this._xapis[server.id] = xapisByPool[poolId] = xapi
-
       this.updateXenServer(id, { error: null })::ignoreErrors()
     } catch (error) {
+      xapi.disconnect()::ignoreErrors()
       this.updateXenServer(id, { error: serializeError(error) })::ignoreErrors()
       throw error
     }
