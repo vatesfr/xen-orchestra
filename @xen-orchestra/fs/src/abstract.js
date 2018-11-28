@@ -171,7 +171,7 @@ export default class RemoteHandlerAbstract {
   }
 
   createReadStream(
-    file: string,
+    file: File,
     { checksum = false, ignoreMissingChecksum = false, ...options }: Object = {}
   ): Promise<LaxReadable> {
     const path = typeof file === 'string' ? file : file.path
@@ -228,10 +228,7 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  async _createReadStream(
-    file: string,
-    options?: Object
-  ): Promise<LaxReadable> {
+  async _createReadStream(file: File, options?: Object): Promise<LaxReadable> {
     throw new Error('Not implemented')
   }
 
@@ -297,7 +294,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async _createOutputStream(
-    file: mixed,
+    file: File,
     options?: Object
   ): Promise<LaxWritable> {
     throw new Error('Not implemented')
@@ -311,15 +308,15 @@ export default class RemoteHandlerAbstract {
     await timeout.call(this._unlink(file), this._timeout)
   }
 
-  async _unlink(file: mixed): Promise<void> {
+  async _unlink(file: string): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  async getSize(file: mixed): Promise<number> {
+  async getSize(file: File): Promise<number> {
     return timeout.call(this._getSize(file), this._timeout)
   }
 
-  async _getSize(file: mixed): Promise<number> {
+  async _getSize(file: File): Promise<number> {
     throw new Error('Not implemented')
   }
 }
