@@ -113,6 +113,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _rmdir(dir) {
-    return fs.rmdir(dir)
+    return fs.rmdir(this._getFilePath(dir))
   }
 }
