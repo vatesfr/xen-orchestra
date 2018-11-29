@@ -6,7 +6,7 @@ import { diffItems } from '../utils'
 
 // TODO: move into vm and rename to removeInterface
 async function delete_ ({ vif }) {
-  ;this.allocIpAddresses(
+  this.allocIpAddresses(
     vif.id,
     null,
     vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)

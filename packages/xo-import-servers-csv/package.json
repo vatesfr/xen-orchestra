@@ -1,0 +1,59 @@
+{
+  "name": "xo-import-servers-csv",
+  "version": "1.1.0",
+  "license": "ISC",
+  "description": "CLI to import servers in XO from a CSV file",
+  "keywords": [
+    "csv",
+    "host",
+    "import",
+    "orchestra",
+    "pool",
+    "server",
+    "xen",
+    "xen-orchestra"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-import-servers-csv",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@vates.fr"
+  },
+  "main": "dist/",
+  "bin": {
+    "xo-import-servers-csv": "dist/index.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {
+    "csv-parser": "^2.1.0",
+    "end-of-stream": "^1.1.0",
+    "exec-promise": "^0.7.0",
+    "highland": "^2.10.1",
+    "through2": "^3.0.0",
+    "xo-lib": "^0.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.2",
+    "@types/through2": "^2.0.31",
+    "tslint": "^5.9.1",
+    "tslint-config-standard": "^8.0.1",
+    "typescript": "^3.1.6"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "lint": "tslint 'src/*.ts'",
+    "posttest": "yarn run lint",
+    "prepublishOnly": "yarn run build",
+    "start": "node dist/index.js"
+  }
+}

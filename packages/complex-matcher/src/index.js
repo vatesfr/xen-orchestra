@@ -410,11 +410,10 @@ class P {
 
   static text (text) {
     const { length } = text
-    return new P(
-      (input, pos) =>
-        input.startsWith(text, pos)
-          ? new Success(pos + length, text)
-          : new Failure(pos, `'${text}'`)
+    return new P((input, pos) =>
+      input.startsWith(text, pos)
+        ? new Success(pos + length, text)
+        : new Failure(pos, `'${text}'`)
     )
   }
 
@@ -478,17 +477,16 @@ class P {
   }
 }
 
-P.eof = new P(
-  (input, pos, end) =>
-    pos < end ? new Failure(pos, 'end of input') : new Success(pos)
+P.eof = new P((input, pos, end) =>
+  pos < end ? new Failure(pos, 'end of input') : new Success(pos)
 )
 
 // -------------------------------------------------------------------
 
 const parser = P.grammar({
   default: r =>
-    P.seq(r.ws, r.term.repeat(), P.eof).map(
-      ([, terms]) => (terms.length === 0 ? new Null() : new And(terms))
+    P.seq(r.ws, r.term.repeat(), P.eof).map(([, terms]) =>
+      terms.length === 0 ? new Null() : new And(terms)
     ),
   globPattern: new P((input, pos, end) => {
     let value = ''

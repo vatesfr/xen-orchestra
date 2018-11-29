@@ -1,0 +1,60 @@
+{
+  "name": "xapi-explore-sr",
+  "version": "0.2.1",
+  "license": "ISC",
+  "description": "Display the list of VDIs (unmanaged and snapshots included) of a SR",
+  "keywords": [
+    "api",
+    "sr",
+    "vdi",
+    "vdis",
+    "xen",
+    "xen-api",
+    "xenapi"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xapi-explore-sr",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@isonoe.net"
+  },
+  "preferGlobal": true,
+  "main": "dist/",
+  "bin": {
+    "xapi-explore-sr": "dist/index.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=8"
+  },
+  "dependencies": {
+    "archy": "^1.0.0",
+    "chalk": "^2.3.2",
+    "exec-promise": "^0.7.0",
+    "human-format": "^0.10.0",
+    "lodash": "^4.17.4",
+    "pw": "^0.0.4",
+    "xen-api": "^0.20.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.5",
+    "@babel/preset-env": "^7.1.5",
+    "babel-plugin-lodash": "^3.2.11",
+    "cross-env": "^5.1.4",
+    "rimraf": "^2.6.1"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "prebuild": "rimraf dist/",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build"
+  }
+}

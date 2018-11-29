@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
@@ -80,21 +81,20 @@ const ThinProvisionedTip = ({ label }) => (
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
 const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
-  settings.map(
-    setting =>
-      defined(
-        setting.copyRetention,
-        setting.exportRetention,
-        setting.snapshotRetention
-      ) !== undefined
-        ? {
-            copyRetention: copyMode ? setting.copyRetention : undefined,
-            exportRetention: exportMode ? setting.exportRetention : undefined,
-            snapshotRetention: snapshotMode
-              ? setting.snapshotRetention
-              : undefined,
-          }
-        : setting
+  settings.map(setting =>
+    defined(
+      setting.copyRetention,
+      setting.exportRetention,
+      setting.snapshotRetention
+    ) !== undefined
+      ? {
+          copyRetention: copyMode ? setting.copyRetention : undefined,
+          exportRetention: exportMode ? setting.exportRetention : undefined,
+          snapshotRetention: snapshotMode
+            ? setting.snapshotRetention
+            : undefined,
+        }
+      : setting
   )
 
 const constructPattern = values =>
@@ -182,7 +182,7 @@ const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   </ActionButton>
 )
 
-export default [
+export default decorate([
   New => props => (
     <Upgrade place='newBackup' required={2}>
       <New {...props} />
@@ -295,8 +295,8 @@ export default [
             state.compression === undefined
               ? undefined
               : state.compression
-                ? 'native'
-                : '',
+              ? 'native'
+              : '',
           settings: normalizeSettings({
             settings: settings || state.propSettings,
             exportMode: state.exportMode,
@@ -596,28 +596,27 @@ export default [
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
       propSettings: (_, { job }) =>
-        Map(get(() => job.settings)).map(
-          setting =>
-            defined(
-              setting.copyRetention,
-              setting.exportRetention,
-              setting.snapshotRetention
-            )
-              ? {
-                  copyRetention: defined(
-                    setting.copyRetention,
-                    DEFAULT_RETENTION
-                  ),
-                  exportRetention: defined(
-                    setting.exportRetention,
-                    DEFAULT_RETENTION
-                  ),
-                  snapshotRetention: defined(
-                    setting.snapshotRetention,
-                    DEFAULT_RETENTION
-                  ),
-                }
-              : setting
+        Map(get(() => job.settings)).map(setting =>
+          defined(
+            setting.copyRetention,
+            setting.exportRetention,
+            setting.snapshotRetention
+          )
+            ? {
+                copyRetention: defined(
+                  setting.copyRetention,
+                  DEFAULT_RETENTION
+                ),
+                exportRetention: defined(
+                  setting.exportRetention,
+                  DEFAULT_RETENTION
+                ),
+                snapshotRetention: defined(
+                  setting.snapshotRetention,
+                  DEFAULT_RETENTION
+                ),
+              }
+            : setting
         ),
     },
   }),
@@ -1022,4 +1021,4 @@ export default [
       </form>
     )
   },
-].reduceRight((value, decorator) => decorator(value))
+])

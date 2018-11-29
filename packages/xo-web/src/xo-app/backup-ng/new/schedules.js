@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import decorate from 'apply-decorators'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
@@ -18,7 +19,7 @@ const FEEDBACK_ERRORS = [
   'missingSnapshotRetention',
 ]
 
-export default [
+export default decorate([
   injectState,
   provideState({
     computed: {
@@ -148,4 +149,4 @@ export default [
       </FormFeedback>
     </div>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])

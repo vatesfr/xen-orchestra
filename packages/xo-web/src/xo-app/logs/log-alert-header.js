@@ -4,6 +4,7 @@ import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
 import ButtonGroup from 'button-group'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
@@ -12,10 +13,7 @@ import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 
-const isFailureTask = ({ status }) =>
-  status !== 'success' && status !== 'pending'
-
-export default [
+export default decorate([
   addSubscriptions(({ id }) => ({
     log: cb =>
       subscribeBackupNgLogs(logs => {
@@ -26,19 +24,39 @@ export default [
     effects: {
       restartFailedVms: () => async (
         _,
-        { log: { jobId: id, scheduleId: schedule, tasks } }
+        { log: { jobId: id, scheduleId: schedule, tasks, infos } }
       ) => {
+        let vms
+        if (tasks !== undefined) {
+          const scheduledVms = get(
+            () => infos.find(({ message }) => message === 'vms').data.vms
+          )
+
+          if (scheduledVms !== undefined) {
+            vms = new Set(scheduledVms)
+            tasks.forEach(({ status, data: { id } }) => {
+              status === 'success' && vms.delete(id)
+            })
+            vms = Array.from(vms)
+          } else {
+            vms = []
+            tasks.forEach(({ status, data: { id } }) => {
+              status !== 'success' && vms.push(id)
+            })
+          }
+        }
+
         await runBackupNgJob({
           id,
           schedule,
-          vms:
-            tasks && tasks.filter(isFailureTask).map(vmTask => vmTask.data.id),
+          vms,
         })
       },
     },
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
-      jobFailed: (_, { log }) => log !== undefined && isFailureTask(log),
+      jobFailed: (_, { log = {} }) =>
+        log.status !== 'success' && log.status !== 'pending',
     },
   }),
   injectState,
@@ -64,16 +82,15 @@ export default [
             title='Backup job failed'
           />
         )}
-        {state.jobFailed &&
-          log.scheduleId !== undefined && (
-            <ActionButton
-              handler={effects.restartFailedVms}
-              icon='run'
-              size='small'
-              tooltip={_('backupRestartFailedVms')}
-            />
-          )}
+        {state.jobFailed && log.scheduleId !== undefined && (
+          <ActionButton
+            handler={effects.restartFailedVms}
+            icon='run'
+            size='small'
+            tooltip={_('backupRestartFailedVms')}
+          />
+        )}
       </ButtonGroup>
     </span>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])

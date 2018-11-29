@@ -383,6 +383,14 @@ export default {
 
     hasVendorDevice: true,
 
+    expNestedHvm: {
+      set (expNestedHvm, vm) {
+        return this._updateObjectMapProperty(vm, 'platform', {
+          'exp-nested-hvm': expNestedHvm ? 'true' : null,
+        })
+      },
+    },
+
     nicType: {
       set (nicType, vm) {
         return this._updateObjectMapProperty(vm, 'platform', {
@@ -427,9 +435,9 @@ export default {
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
       const vm = snapshot.$snapshot_of
       if (vm.power_state === 'Halted') {
-        ;this.startVm(vm.$id)::ignoreErrors()
+        this.startVm(vm.$id)::ignoreErrors()
       } else if (vm.power_state === 'Suspended') {
-        ;this.resumeVm(vm.$id)::ignoreErrors()
+        this.resumeVm(vm.$id)::ignoreErrors()
       }
     }
   },

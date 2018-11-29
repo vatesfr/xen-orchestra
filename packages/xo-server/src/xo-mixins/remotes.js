@@ -10,7 +10,8 @@ import { Remotes } from '../models/remote'
 // ===================================================================
 
 export default class {
-  constructor (xo) {
+  constructor (xo, { remoteOptions }) {
+    this._remoteOptions = remoteOptions
     this._remotes = new Remotes({
       connection: xo._redis,
       prefix: 'xo:remote',
@@ -57,7 +58,7 @@ export default class {
     const handlers = this._handlers
     let handler = handlers[id]
     if (handler === undefined) {
-      handler = handlers[id] = getHandler(remote)
+      handler = handlers[id] = getHandler(remote, this._remoteOptions)
     }
 
     try {

@@ -18,6 +18,7 @@ import {
   filter,
   findIndex,
   forEach,
+  get as getProperty,
   isEmpty,
   isFunction,
   map,
@@ -29,6 +30,7 @@ import ActionRowButton from '../action-row-button'
 import Button from '../button'
 import ButtonGroup from '../button-group'
 import Component from '../base-component'
+import decorate from '../apply-decorators'
 import Icon from '../icon'
 import Pagination from '../pagination'
 import SingleLineRow from '../single-line-row'
@@ -209,7 +211,7 @@ const actionsShape = PropTypes.arrayOf(
   })
 )
 
-const IndividualAction = [
+const IndividualAction = decorate([
   provideState({
     computed: {
       disabled: ({ item }, { disabled, userData }) =>
@@ -238,7 +240,7 @@ const IndividualAction = [
       tooltip={state.label}
     />
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 class GroupedAction extends Component {
   _getIsDisabled = createSelector(
@@ -288,13 +290,24 @@ export default class SortedTable extends Component {
       .isRequired,
     columns: PropTypes.arrayOf(
       PropTypes.shape({
-        component: PropTypes.func,
         default: PropTypes.bool,
         name: PropTypes.node,
-        itemRenderer: PropTypes.func,
         sortCriteria: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
         sortOrder: PropTypes.string,
         textAlign: PropTypes.string,
+
+        // for the cell render, you can use component or itemRenderer or valuePath
+        //
+        // item and userData will be injected in the component as props
+        // component: <Component />
+        component: PropTypes.func,
+
+        // itemRenderer: (item, userData) => <span />
+        itemRenderer: PropTypes.func,
+
+        // the path to the value, it's also the sort criteria default value
+        // valuePath: 'a.b.c'
+        valuePath: PropTypes.string,
       })
     ).isRequired,
     filterContainer: PropTypes.func,
@@ -426,9 +439,10 @@ export default class SortedTable extends Component {
         )
       ),
       createSelector(
+        () => this._getSelectedColumn().valuePath,
         () => this._getSelectedColumn().sortCriteria,
         this._getUserData,
-        (sortCriteria, userData) =>
+        (valuePath, sortCriteria = valuePath, userData) =>
           typeof sortCriteria === 'function'
             ? object => sortCriteria(object, userData)
             : sortCriteria
@@ -488,8 +502,8 @@ export default class SortedTable extends Component {
             ) {
               this.setState({
                 highlighted:
-                  (itemIndex + visibleItems.length + 1) %
-                  visibleItems.length || 0,
+                  (itemIndex + visibleItems.length + 1) % visibleItems.length ||
+                  0,
               })
             }
             break
@@ -501,8 +515,8 @@ export default class SortedTable extends Component {
             ) {
               this.setState({
                 highlighted:
-                  (itemIndex + visibleItems.length - 1) %
-                  visibleItems.length || 0,
+                  (itemIndex + visibleItems.length - 1) % visibleItems.length ||
+                  0,
               })
             }
             break
@@ -748,10 +762,12 @@ export default class SortedTable extends Component {
 
     const columns = map(
       props.columns,
-      ({ component: Component, itemRenderer, textAlign }, key) => (
+      ({ component: Component, itemRenderer, valuePath, textAlign }, key) => (
         <td className={textAlign && `text-xs-${textAlign}`} key={key}>
           {Component !== undefined ? (
             <Component item={item} userData={userData} />
+          ) : valuePath !== undefined ? (
+            getProperty(item, valuePath)
           ) : (
             itemRenderer(item, userData)
           )}
@@ -950,7 +966,11 @@ export default class SortedTable extends Component {
                   columnId={key}
                   key={key}
                   name={column.name}
-                  sort={column.sortCriteria && this._sort}
+                  sort={
+                    (column.sortCriteria !== undefined ||
+                      column.valuePath !== undefined) &&
+                    this._sort
+                  }
                   sortIcon={
                     state.selectedColumn === key ? state.sortOrder : 'sort'
                   }

@@ -88,6 +88,7 @@ const messages = {
   xosan: 'XOSAN',
   backupDeprecatedMessage:
     'Warning: Backup is deprecated, use Backup NG instead.',
+  moveRestoreLegacyMessage: 'Warning: Your legacy backups can be found here',
   backupMigrationLink: 'How to migrate to Backup NG',
   backupNgNewPage: 'Create a new backup with Backup NG',
   backupOverviewPage: 'Overview',
@@ -198,9 +199,14 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
+  labelBackup: 'Backup',
   labelMerge: 'Merge',
+  labelRestore: 'Restore',
   labelSize: 'Size',
+  labelSpeed: 'Speed',
+  labelSr: 'SR',
   labelTransfer: 'Transfer',
+  labelVm: 'VM',
 
   // ----- Forms -----
   formCancel: 'Cancel',
@@ -1031,6 +1037,7 @@ const messages = {
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
   ha: 'HA',
+  nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
   vmVga: 'VGA',
   vmVideoram: 'Video RAM',
@@ -1337,7 +1344,6 @@ const messages = {
   remoteError: 'Error',
   remoteErrorMessage:
     'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.',
-  noBackup: 'No backup available',
   backupVmNameColumn: 'VM Name',
   backupVmDescriptionColumn: 'VM Description',
   backupTags: 'Tags',
@@ -1355,6 +1361,8 @@ const messages = {
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
   restoreResfreshList: 'Refresh backup list',
+  restoreLegacy: 'Legacy restore',
+  restoreFileLegacy: 'Legacy file restore',
   restoreVmBackups: 'Restore',
   restoreVmBackupsTitle: 'Restore {vm}',
   restoreVmBackupsBulkTitle:
@@ -1390,6 +1398,7 @@ const messages = {
   restoreFilesSelectFiles: 'Select a file…',
   restoreFileContentNotFound: 'Content not found',
   restoreFilesNoFilesSelected: 'No files selected',
+  restoreFilesSelectedFiles: 'Selected files ({files}):',
   restoreFilesSelectedFilesAndFolders: 'Selected files/folders ({files}):',
   restoreFilesDiskError: 'Error while scanning disk',
   restoreFilesSelectAllFiles: "Select all this folder's files",
@@ -1795,6 +1804,15 @@ const messages = {
   logNoParams: 'No params',
   logDelete: 'Delete log',
   logsDelete: 'Delete logs',
+  logsThreePerPage: '3 / page',
+  logsTenPerPage: '10 / page',
+  logsJobId: 'Job ID',
+  logsJobName: 'Job name',
+  logsJobTime: 'Job time',
+  logsVmNotFound: 'VM not found!',
+  logsMissingVms: 'Missing VMs skipped ({ vms })',
+  logsFailedRestoreError: 'Click to show error',
+  logsFailedRestoreTitle: 'Restore error',
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
   logDeleteMultipleMessage:
     'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?',

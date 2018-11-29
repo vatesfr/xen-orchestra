@@ -36,7 +36,7 @@ export const FormFeedback = ({
 )
 
 FormFeedback.propTypes = {
-  component: PropTypes.node.isRequired,
+  component: PropTypes.func.isRequired,
   error: PropTypes.bool,
   message: PropTypes.node.isRequired,
 }

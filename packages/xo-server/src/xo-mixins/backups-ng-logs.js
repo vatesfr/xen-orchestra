@@ -129,6 +129,13 @@ export default {
             data: data.data,
             message,
           })
+      } else if (event === 'task.info') {
+        const parent = started[data.taskId]
+        parent !== undefined &&
+          (parent.infos || (parent.infos = [])).push({
+            data: data.data,
+            message,
+          })
       } else if (event === 'jobCall.start') {
         const parent = started[data.runJobId]
         if (parent !== undefined) {

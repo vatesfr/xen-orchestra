@@ -1,5 +1,6 @@
 import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import Select from 'form/select'
@@ -60,9 +61,12 @@ const TaskDate = ({ label, value }) =>
 const Warnings = ({ warnings }) =>
   warnings !== undefined ? (
     <div>
-      {warnings.map(({ message }) => (
+      {warnings.map(({ message, data }) => (
         <div className='text-warning'>
-          <Icon icon='alarm' /> {message}
+          <Icon icon='alarm' />{' '}
+          {message === 'missingVms'
+            ? _('logsMissingVms', { vms: data.vms.join(', ') })
+            : message}
         </div>
       ))}
     </div>
@@ -72,7 +76,7 @@ const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_LINK =
   'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
 
-export default [
+export default decorate([
   addSubscriptions(({ id }) => ({
     remotes: cb =>
       subscribeRemotes(remotes => {
@@ -422,4 +426,4 @@ export default [
       </div>
     )
   },
-].reduceRight((value, decorator) => decorator(value))
+])

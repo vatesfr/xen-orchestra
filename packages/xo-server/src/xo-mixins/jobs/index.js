@@ -290,8 +290,8 @@ export default class Jobs {
     runs[runJobId] = { cancel }
 
     let session
+    const app = this._app
     try {
-      const app = this._app
       session = app.createUserConnection()
       session.set('user_id', job.userId)
 
@@ -316,14 +316,19 @@ export default class Jobs {
 
       app.emit('job:terminated', status, job, schedule, runJobId)
     } catch (error) {
-      logger.error(`The execution of ${id} has failed.`, {
-        event: 'job.end',
-        runJobId,
-        error: serializeError(error),
-      })
+      await logger.error(
+        `The execution of ${id} has failed.`,
+        {
+          event: 'job.end',
+          runJobId,
+          error: serializeError(error),
+        },
+        true
+      )
+      app.emit('job:terminated', undefined, job, schedule, runJobId)
       throw error
     } finally {
-      ;this.updateJob({ id, runId: null })::ignoreErrors()
+      this.updateJob({ id, runId: null })::ignoreErrors()
       delete runningJobs[id]
       delete runs[runJobId]
       if (session !== undefined) {

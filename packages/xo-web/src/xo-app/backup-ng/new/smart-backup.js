@@ -1,4 +1,5 @@
 import _ from 'intl'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import SmartBackupPreview from 'smart-backup'
@@ -18,7 +19,7 @@ const VMS_STATUSES_OPTIONS = [
   { value: 'Halted', label: _('vmStateHalted') },
 ]
 
-export default [
+export default decorate([
   connectStore({
     vms: createGetObjectsOfType('VM'),
   }),
@@ -87,4 +88,4 @@ export default [
       <SmartBackupPreview vms={vms} pattern={state.vmsSmartPattern} />
     </div>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])

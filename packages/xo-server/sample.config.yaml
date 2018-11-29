@@ -46,14 +46,12 @@
 
 # Configuration of the embedded HTTP server.
 http:
-
   # Hosts & ports on which to listen.
   #
   # By default, the server listens on [::]:80.
   listen:
     # Basic HTTP.
-    -
-      # Address on which the server is listening on.
+    - # Address on which the server is listening on.
       #
       # Sets it to 'localhost' for IP to listen only on the local host.
       #
@@ -124,23 +122,20 @@ http:
 
 # Connection to the Redis server.
 redis:
-    # Unix sockets can be used
-    #
-    # Default: undefined
-    #socket: /var/run/redis/redis.sock
-
-    # Syntax: redis://[db[:password]@]hostname[:port][/db-number]
-    #
-    # Default: redis://localhost:6379/0
-    #uri: redis://redis.company.lan/42
-
-    # List of aliased commands.
-    #
-    # See http://redis.io/topics/security#disabling-of-specific-commands
-    #renameCommands:
-    #  del: '3dda29ad-3015-44f9-b13b-fa570de92489'
-    #  srem: '3fd758c9-5610-4e9d-a058-dbf4cb6d8bf0'
-
+  # Unix sockets can be used
+  #
+  # Default: undefined
+  #socket: /var/run/redis/redis.sock
+  # Syntax: redis://[db[:password]@]hostname[:port][/db-number]
+  #
+  # Default: redis://localhost:6379/0
+  #uri: redis://redis.company.lan/42
+  # List of aliased commands.
+  #
+  # See http://redis.io/topics/security#disabling-of-specific-commands
+  #renameCommands:
+  #  del: '3dda29ad-3015-44f9-b13b-fa570de92489'
+  #  srem: '3fd758c9-5610-4e9d-a058-dbf4cb6d8bf0'
 
 # Directory containing the database of XO.
 # Currently used for logs.

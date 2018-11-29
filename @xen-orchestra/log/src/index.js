@@ -38,6 +38,17 @@ for (const name in LEVELS) {
   const level = LEVELS[name]
 
   prototype[name.toLowerCase()] = function (message, data) {
+    if (typeof message !== 'string') {
+      if (message instanceof Error) {
+        data = { error: message }
+        ;({ message = 'an error has occured' } = message)
+      } else {
+        return this.warn('incorrect value passed to logger', {
+          level,
+          value: message,
+        })
+      }
+    }
     global[symbol](new Log(data, level, this._namespace, message, new Date()))
   }
 }

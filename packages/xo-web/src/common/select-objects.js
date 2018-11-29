@@ -63,8 +63,8 @@ const getIds = value =>
   value == null || isString(value) || isInteger(value)
     ? value
     : isArray(value)
-      ? map(value, getIds)
-      : value.id
+    ? map(value, getIds)
+    : value.id
 
 const getOption = (object, container) => ({
   label: container
@@ -162,11 +162,11 @@ class GenericSelect extends React.Component {
       return isEmpty(missingObjects)
         ? objects
         : withContainers
-          ? {
-              ...objects,
-              missingObjects,
-            }
-          : [...objects, ...missingObjects]
+        ? {
+            ...objects,
+            missingObjects,
+          }
+        : [...objects, ...missingObjects]
     }
   )
 
@@ -620,13 +620,10 @@ export const SelectVdi = makeStoreSelect(
     )
     const getVdis = createGetObjectsOfType('VDI')
       .filter(
-        createSelector(
-          getSrs,
-          getPredicate,
-          (srs, predicate) =>
-            predicate
-              ? vdi => srs[vdi.$SR] && predicate(vdi)
-              : vdi => srs[vdi.$SR]
+        createSelector(getSrs, getPredicate, (srs, predicate) =>
+          predicate
+            ? vdi => srs[vdi.$SR] && predicate(vdi)
+            : vdi => srs[vdi.$SR]
         )
       )
       .sort()
@@ -691,9 +688,9 @@ export const SelectSubject = makeSubscriptionSelect(
     const set = newSubjects => {
       subjects = newSubjects
       /* We must wait for groups AND users options to be loaded,
-     * or a previously setted value belonging to one type or another might be discarded
-     * by the internal <GenericSelect>
-     */
+       * or a previously setted value belonging to one type or another might be discarded
+       * by the internal <GenericSelect>
+       */
       if (usersLoaded && groupsLoaded) {
         subscriber({
           xoObjects: subjects,

@@ -17,11 +17,13 @@ type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
 
-export const DEFAULT_TIMEOUT = 10000
+const DEFAULT_TIMEOUT = 6e5 // 10 min
 
 export default class RemoteHandlerAbstract {
   _remote: Object
-  constructor (remote: any) {
+  _timeout: number
+
+  constructor (remote: any, options: Object = {}) {
     if (remote.url === 'test://') {
       this._remote = remote
     } else {
@@ -30,6 +32,7 @@ export default class RemoteHandlerAbstract {
         throw new Error('Incorrect remote type')
       }
     }
+    ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
   }
 
   get type (): string {
@@ -127,7 +130,7 @@ export default class RemoteHandlerAbstract {
     newPath: string,
     { checksum = false }: Object = {}
   ) {
-    let p = timeout.call(this._rename(oldPath, newPath), DEFAULT_TIMEOUT)
+    let p = timeout.call(this._rename(oldPath, newPath), this._timeout)
     if (checksum) {
       p = Promise.all([
         p,
@@ -148,7 +151,7 @@ export default class RemoteHandlerAbstract {
       prependDir = false,
     }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
   ): Promise<string[]> {
-    let entries = await timeout.call(this._list(dir), DEFAULT_TIMEOUT)
+    let entries = await timeout.call(this._list(dir), this._timeout)
     if (filter !== undefined) {
       entries = entries.filter(filter)
     }
@@ -172,7 +175,7 @@ export default class RemoteHandlerAbstract {
   ): Promise<LaxReadable> {
     const path = typeof file === 'string' ? file : file.path
     const streamP = timeout
-      .call(this._createReadStream(file, options), DEFAULT_TIMEOUT)
+      .call(this._createReadStream(file, options), this._timeout)
       .then(stream => {
         // detect early errors
         let promise = fromEvent(stream, 'readable')
@@ -233,7 +236,7 @@ export default class RemoteHandlerAbstract {
 
   async openFile (path: string, flags?: string): Promise<FileDescriptor> {
     return {
-      fd: await timeout.call(this._openFile(path, flags), DEFAULT_TIMEOUT),
+      fd: await timeout.call(this._openFile(path, flags), this._timeout),
       path,
     }
   }
@@ -243,7 +246,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async closeFile (fd: FileDescriptor): Promise<void> {
-    await timeout.call(this._closeFile(fd.fd), DEFAULT_TIMEOUT)
+    await timeout.call(this._closeFile(fd.fd), this._timeout)
   }
 
   async _closeFile (fd: mixed): Promise<void> {
@@ -268,7 +271,7 @@ export default class RemoteHandlerAbstract {
         flags: 'wx',
         ...options,
       }),
-      DEFAULT_TIMEOUT
+      this._timeout
     )
 
     if (!checksum) {
@@ -304,7 +307,7 @@ export default class RemoteHandlerAbstract {
       ignoreErrors.call(this._unlink(checksumFile(file)))
     }
 
-    await timeout.call(this._unlink(file), DEFAULT_TIMEOUT)
+    await timeout.call(this._unlink(file), this._timeout)
   }
 
   async _unlink (file: mixed): Promise<void> {
@@ -312,7 +315,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async getSize (file: mixed): Promise<number> {
-    return timeout.call(this._getSize(file), DEFAULT_TIMEOUT)
+    return timeout.call(this._getSize(file), this._timeout)
   }
 
   async _getSize (file: mixed): Promise<number> {

@@ -1,9 +1,9 @@
-import createDebug from 'debug'
+import createLogger from '@xen-orchestra/log'
 import DepTree from 'deptree'
 import { mapValues } from 'lodash'
 import { pAll } from 'promise-toolbox'
 
-const debug = createDebug('xo:config-management')
+const log = createLogger('xo:config-management')
 
 export default class ConfigManagement {
   constructor (app) {
@@ -33,7 +33,7 @@ export default class ConfigManagement {
 
       const data = config[key]
       if (data !== undefined) {
-        debug('importing', key)
+        log.debug(`importing ${key}`)
         await manager.importer(data)
       }
     }

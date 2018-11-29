@@ -165,15 +165,14 @@ export default connectStore(() => {
           </BlockLink>
         </Col>
       </Row>
-      {!vm.xenTools &&
-        vm.power_state === 'Running' && (
-          <Row className='text-xs-center'>
-            <Col>
-              <Icon icon='error' />
-              <em> {_('noToolsDetected')}.</em>
-            </Col>
-          </Row>
-        )}
+      {!vm.xenTools && vm.power_state === 'Running' && (
+        <Row className='text-xs-center'>
+          <Col>
+            <Icon icon='error' />
+            <em> {_('noToolsDetected')}.</em>
+          </Col>
+        </Row>
+      )}
       {/* TODO: use CSS style */}
       <br />
       <Row>

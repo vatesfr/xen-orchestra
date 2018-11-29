@@ -180,12 +180,9 @@ const XOSAN_COLUMNS = [
               {_('xosanLicenseExpiresDate', {
                 date: <ShortDate timestamp={license.expires} />,
               })}{' '}
-              {expiresSoon &&
-                isAdmin && (
-                  <Link to='/xoa/licenses'>
-                    {_('xosanUpdateLicenseMessage')}
-                  </Link>
-                )}
+              {expiresSoon && isAdmin && (
+                <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
+              )}
             </span>
           )}
         </span>
@@ -398,7 +395,7 @@ export default class Xosan extends Component {
     }
 
     if (!this._isXosanRegistered()) {
-      ;registerXosan()::ignoreErrors()
+      registerXosan()::ignoreErrors()
     }
 
     this.setState({ showNewXosanForm: true })

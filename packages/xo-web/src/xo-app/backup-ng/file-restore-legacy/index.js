@@ -3,15 +3,14 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { addSubscriptions, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
 import {
-  find,
   filter,
+  find,
   forEach,
   groupBy,
   isEmpty,
@@ -23,7 +22,6 @@ import {
 import { fetchFiles, listRemoteBackups, subscribeRemotes } from 'xo'
 
 import RestoreFileModalBody from './restore-file-modal'
-import styles from './index.css'
 
 const VM_COLUMNS = [
   {
@@ -127,50 +125,20 @@ export default class FileRestore extends Component {
   render () {
     const { backupInfoByVm } = this.props
 
-    if (!backupInfoByVm) {
-      return <h2>{_('statusLoading')}</h2>
-    }
+    return !isEmpty(backupInfoByVm) ? (
+      <div>
+        <h3>{_('restoreFileLegacy')}</h3>
+        <em>
+          <Icon icon='info' /> {_('restoreBackupsInfo')}
+        </em>
 
-    return process.env.XOA_PLAN > 3 ? (
-      <Container>
-        <h2>{_('restoreFiles')}</h2>
-        {isEmpty(backupInfoByVm) ? (
-          <div>
-            <em>
-              <Icon icon='info' /> {_('restoreDeltaBackupsInfo')}
-            </em>
-            <div>
-              <a>{_('noBackup')}</a>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <ul className={styles.listRestoreBackupInfos}>
-              <li>
-                <em>
-                  <Icon icon='info' /> {_('restoreBackupsInfo')}
-                </em>
-              </li>
-              <li>
-                <em>
-                  <Icon icon='info' /> {_('restoreDeltaBackupsInfo')}
-                </em>
-              </li>
-            </ul>
-
-            <SortedTable
-              collection={backupInfoByVm}
-              columns={VM_COLUMNS}
-              rowAction={openImportModal}
-              defaultColumn={2}
-            />
-          </div>
-        )}
-      </Container>
-    ) : (
-      <Container>
-        <Upgrade place='restoreFiles' available={4} />
-      </Container>
-    )
+        <SortedTable
+          collection={backupInfoByVm}
+          columns={VM_COLUMNS}
+          rowAction={openImportModal}
+          defaultColumn={2}
+        />
+      </div>
+    ) : null
   }
 }

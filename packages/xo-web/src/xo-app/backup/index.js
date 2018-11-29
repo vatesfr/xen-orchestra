@@ -7,16 +7,29 @@ import { routes } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 
+import New from './new'
 import Edit from './edit'
 import Overview from './overview'
-import Restore from './restore'
-import FileRestore from './file-restore'
 
 const DeprecatedMsg = () => (
   <div className='alert alert-warning'>
     {_('backupDeprecatedMessage')}
     <br />
     <Link to='/backup-ng/new'>{_('backupNgNewPage')}</Link>
+  </div>
+)
+
+const DEVELOPMENT = process.env.NODE_ENV === 'development'
+
+const MovingRestoreMessage = () => (
+  <div className='alert alert-warning'>
+    <Link to='/backup-ng/restore'>{_('moveRestoreLegacyMessage')}</Link>
+  </div>
+)
+
+const MovingFileRestoreMessage = () => (
+  <div className='alert alert-warning'>
+    <Link to='/backup-ng/file-restore'>{_('moveRestoreLegacyMessage')}</Link>
   </div>
 )
 
@@ -51,10 +64,10 @@ const HEADER = (
 
 const Backup = routes('overview', {
   ':id/edit': Edit,
-  new: DeprecatedMsg,
+  new: DEVELOPMENT ? New : DeprecatedMsg,
   overview: Overview,
-  restore: Restore,
-  'file-restore': FileRestore,
+  restore: MovingRestoreMessage,
+  'file-restore': MovingFileRestoreMessage,
 })(({ children }) => (
   <Page header={HEADER} title='backupPage' formatTitle>
     {children}

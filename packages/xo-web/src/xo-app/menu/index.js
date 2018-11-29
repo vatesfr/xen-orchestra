@@ -321,7 +321,12 @@ export default class Menu extends Component {
         ],
       },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
-      !noOperatablePools && { to: '/tasks', icon: 'task', label: 'taskMenu', pill: nTasks },
+      !noOperatablePools && {
+        to: '/tasks',
+        icon: 'task',
+        label: 'taskMenu',
+        pill: nTasks,
+      },
       isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
       !(noOperatablePools && noResourceSets) && {
         to: '/vms/new',

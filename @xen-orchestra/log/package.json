@@ -1,7 +1,6 @@
 {
-  "private": true,
   "name": "@xen-orchestra/log",
-  "version": "0.0.0",
+  "version": "0.1.4",
   "license": "ISC",
   "description": "",
   "keywords": [],
@@ -19,7 +18,9 @@
   "main": "dist/",
   "bin": {},
   "files": [
-    "dist/"
+    "configure.js",
+    "dist/",
+    "transports/"
   ],
   "browserslist": [
     ">2%"
@@ -29,7 +30,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.10.1"
+    "promise-toolbox": "^0.11.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

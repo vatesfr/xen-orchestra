@@ -9,11 +9,11 @@ import makeError from 'make-error'
 import map from 'lodash/map'
 import { EventEmitter } from 'events'
 import {
-  xoaConfiguration,
-  xoaRegisterState,
-  xoaTrialState,
-  xoaUpdaterLog,
-  xoaUpdaterState,
+  setXoaConfiguration,
+  setXoaRegisterState,
+  setXoaTrialState,
+  setXoaUpdaterLog,
+  setXoaUpdaterState,
 } from 'store/actions'
 
 // ===================================================================
@@ -242,6 +242,10 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
+  getLocalManifest () {
+    return this._call('getLocalManifest')
+  }
+
   async register (email, password, renew = false) {
     try {
       const token = await this._call('register', { email, password, renew })
@@ -355,13 +359,13 @@ class XoaUpdater extends EventEmitter {
   log (level, message) {
     message = (message != null && message.message) || String(message)
     const date = new Date()
-    this._log.unshift({
+    this._log.push({
       date: date.toLocaleString(),
       level,
       message,
     })
     while (this._log.length > 10) {
-      this._log.pop()
+      this._log.shift()
     }
     this.emit('log', map(this._log, item => assign({}, item)))
   }
@@ -406,14 +410,14 @@ export default xoaUpdater
 
 export const connectStore = store => {
   forEach(states, state =>
-    xoaUpdater.on(state, () => store.dispatch(xoaUpdaterState(state)))
+    xoaUpdater.on(state, () => store.dispatch(setXoaUpdaterState(state)))
   )
-  xoaUpdater.on('trialState', state => store.dispatch(xoaTrialState(state)))
-  xoaUpdater.on('log', log => store.dispatch(xoaUpdaterLog(log)))
+  xoaUpdater.on('trialState', state => store.dispatch(setXoaTrialState(state)))
+  xoaUpdater.on('log', log => store.dispatch(setXoaUpdaterLog(log)))
   xoaUpdater.on('registerState', registration =>
-    store.dispatch(xoaRegisterState(registration))
+    store.dispatch(setXoaRegisterState(registration))
   )
   xoaUpdater.on('configuration', configuration =>
-    store.dispatch(xoaConfiguration(configuration))
+    store.dispatch(setXoaConfiguration(configuration))
   )
 }

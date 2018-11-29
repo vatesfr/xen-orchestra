@@ -287,9 +287,6 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
-@addSubscriptions({
-  noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data))),
-})
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -301,7 +298,7 @@ const DEFAULT_TYPE = 'VM'
     noServersConnected,
   }
 })
-class NoObjects_ extends Component {
+class NoObjectsWithoutServers extends Component {
   static propTypes = {
     isAdmin: PropTypes.bool.isRequired,
     isPoolAdmin: PropTypes.bool.isRequired,
@@ -425,6 +422,17 @@ class NoObjects_ extends Component {
     )
   }
 }
+
+const NoObjectsWithServers = addSubscriptions({
+  noRegisteredServers: cb => subscribeServers(data => cb(isEmpty(data))),
+})(NoObjectsWithoutServers)
+
+const NoObjects = props =>
+  props.isAdmin ? (
+    <NoObjectsWithServers {...props} />
+  ) : (
+    <NoObjectsWithoutServers {...props} />
+  )
 
 @addSubscriptions({
   noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data))),
@@ -1048,32 +1056,30 @@ export default class Home extends Component {
                     <Icon icon='tags' /> {_('homeAllTags')}
                   </Button>
                 </OverlayTrigger>
-                {showResourceSetsSelector &&
-                  isAdmin &&
-                  !noResourceSets && (
-                    <OverlayTrigger
-                      trigger='click'
-                      rootClose
-                      placement='bottom'
-                      overlay={
-                        <Popover
-                          className={styles.selectObject}
-                          id='resourceSetPopover'
-                        >
-                          <SelectResourceSet
-                            autoFocus
-                            multi
-                            onChange={this._updateSelectedResourceSets}
-                            value={selectedResourceSets}
-                          />
-                        </Popover>
-                      }
-                    >
-                      <Button btnStyle='link'>
-                        <Icon icon='resource-set' /> {_('homeAllResourceSets')}
-                      </Button>
-                    </OverlayTrigger>
-                  )}
+                {showResourceSetsSelector && isAdmin && !noResourceSets && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover
+                        className={styles.selectObject}
+                        id='resourceSetPopover'
+                      >
+                        <SelectResourceSet
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedResourceSets}
+                          value={selectedResourceSets}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button btnStyle='link'>
+                      <Icon icon='resource-set' /> {_('homeAllResourceSets')}
+                    </Button>
+                  </OverlayTrigger>
+                )}
                 <DropdownButton
                   bsStyle='link'
                   id='sort'
@@ -1120,7 +1126,7 @@ export default class Home extends Component {
 
     if (nItems < 1) {
       return (
-        <NoObjects_
+        <NoObjects
           isAdmin={isAdmin}
           isPoolAdmin={isPoolAdmin}
           noResourceSets={noResourceSets}

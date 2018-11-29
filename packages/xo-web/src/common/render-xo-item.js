@@ -4,6 +4,7 @@ import React from 'react'
 import { get } from '@xen-orchestra/defined'
 import { startsWith } from 'lodash'
 
+import decorate from './apply-decorators'
 import Icon from './icon'
 import Link from './link'
 import { addSubscriptions, connectStore, formatSize } from './utils'
@@ -49,7 +50,7 @@ const XO_ITEM_PROP_TYPES = {
   id: PropTypes.string.isRequired,
 }
 
-export const VmItem = [
+export const VmItem = decorate([
   connectStore(() => {
     const getVm = createGetObject()
     return {
@@ -71,11 +72,11 @@ export const VmItem = [
       )}
     </XoItem>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 VmItem.propTypes = XO_ITEM_PROP_TYPES
 
-export const SrItem = [
+export const SrItem = decorate([
   connectStore(() => {
     const getSr = createGetObject()
     return {
@@ -100,11 +101,11 @@ export const SrItem = [
       )}
     </XoItem>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 SrItem.propTypes = XO_ITEM_PROP_TYPES
 
-export const RemoteItem = [
+export const RemoteItem = decorate([
   addSubscriptions(({ id }) => ({
     remote: cb =>
       subscribeRemotes(remotes => {
@@ -120,11 +121,11 @@ export const RemoteItem = [
       )}
     </XoItem>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 RemoteItem.propTypes = XO_ITEM_PROP_TYPES
 
-export const PoolItem = [
+export const PoolItem = decorate([
   connectStore(() => ({
     pool: createGetObject(),
   })),
@@ -137,13 +138,13 @@ export const PoolItem = [
       )}
     </XoItem>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 PoolItem.propTypes = XO_ITEM_PROP_TYPES
 
 // ===================================================================
 
-export const SrResourceSetItem = [
+export const SrResourceSetItem = decorate([
   connectStore(() => {
     const getSr = createGetObject()
     return (state, props) => ({
@@ -163,7 +164,7 @@ export const SrResourceSetItem = [
       )}
     </XoItem>
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 SrResourceSetItem.propTypes = XO_ITEM_PROP_TYPES
 
@@ -383,9 +384,8 @@ const GenericXoItem = connectStore(() => {
   return (state, props) => ({
     xoItem: getObject(state, props),
   })
-})(
-  ({ xoItem, ...props }) =>
-    xoItem ? renderXoItem(xoItem, props) : renderXoUnknownItem()
+})(({ xoItem, ...props }) =>
+  xoItem ? renderXoItem(xoItem, props) : renderXoUnknownItem()
 )
 
 export const renderXoItemFromId = (id, props) => (

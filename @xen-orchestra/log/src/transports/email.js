@@ -53,14 +53,12 @@ export default ({
     fromCallback(cb =>
       transporter.sendMail(
         {
-          subject: evalTemplate(
-            subject,
-            key =>
-              key === 'level'
-                ? NAMES[log.level]
-                : key === 'time'
-                  ? log.time.toISOString()
-                  : log[key]
+          subject: evalTemplate(subject, key =>
+            key === 'level'
+              ? NAMES[log.level]
+              : key === 'time'
+              ? log.time.toISOString()
+              : log[key]
           ),
           text: prettyFormat(log.data),
         },

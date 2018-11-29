@@ -7,6 +7,8 @@ import { mergeVhd as mergeVhd_ } from 'vhd-lib'
 // less memory usage.
 global.Promise = require('bluebird')
 
+const config: Object = JSON.parse(process.env.XO_CONFIG)
+
 export function mergeVhd (
   parentRemote: Remote,
   parentPath: string,
@@ -14,9 +16,9 @@ export function mergeVhd (
   childPath: string
 ) {
   return mergeVhd_(
-    getHandler(parentRemote),
+    getHandler(parentRemote, config.remoteOptions),
     parentPath,
-    getHandler(childRemote),
+    getHandler(childRemote, config.remoteOptions),
     childPath
   )
 }

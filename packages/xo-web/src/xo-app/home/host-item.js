@@ -108,12 +108,11 @@ export default class HostItem extends Component {
                   />
                 </Ellipsis>
                 &nbsp;
-                {container &&
-                  host.id === container.master && (
-                    <span className='tag tag-pill tag-info'>
-                      {_('pillMaster')}
-                    </span>
-                  )}
+                {container && host.id === container.master && (
+                  <span className='tag tag-pill tag-info'>
+                    {_('pillMaster')}
+                  </span>
+                )}
                 &nbsp;
                 {this.props.needsRestart && (
                   <Tooltip content={_('rebootUpdateHostLabel')}>

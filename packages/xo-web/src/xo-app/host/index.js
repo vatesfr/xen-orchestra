@@ -88,9 +88,8 @@ const isRunning = host => host && host.power_state === 'Running'
   const getHostPatches = createSelector(
     createGetObjectsOfType('pool_patch'),
     createGetObjectsOfType('host_patch').pick(
-      createSelector(
-        getHost,
-        host => (isString(host.patches[0]) ? host.patches : [])
+      createSelector(getHost, host =>
+        isString(host.patches[0]) ? host.patches : []
       )
     ),
     (poolsPatches, hostsPatches) =>

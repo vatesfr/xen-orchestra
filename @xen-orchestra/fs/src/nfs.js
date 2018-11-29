@@ -1,17 +1,28 @@
 import execa from 'execa'
 import fs from 'fs-extra'
+import { join } from 'path'
+import { tmpdir } from 'os'
 
 import LocalHandler from './local'
 
 const DEFAULT_NFS_OPTIONS = 'vers=3'
 
 export default class NfsHandler extends LocalHandler {
+  constructor (
+    remote,
+    { mountsDir = join(tmpdir(), 'xo-fs-mounts'), ...opts } = {}
+  ) {
+    super(remote, opts)
+
+    this._realPath = join(mountsDir, remote.id)
+  }
+
   get type () {
     return 'nfs'
   }
 
   _getRealPath () {
-    return `/run/xo-server/mounts/${this._remote.id}`
+    return this._realPath
   }
 
   async _mount () {
@@ -33,7 +44,11 @@ export default class NfsHandler extends LocalHandler {
         },
       }
     ).catch(error => {
-      if (!error.stderr.includes('already mounted')) {
+      if (
+        error == null ||
+        typeof error.stderr !== 'string' ||
+        !error.stderr.includes('already mounted')
+      ) {
         throw error
       }
     })
@@ -63,7 +78,11 @@ export default class NfsHandler extends LocalHandler {
         LANG: 'C',
       },
     }).catch(error => {
-      if (!error.stderr.includes('not mounted')) {
+      if (
+        error == null ||
+        typeof error.stderr !== 'string' ||
+        !error.stderr.includes('not mounted')
+      ) {
         throw error
       }
     })

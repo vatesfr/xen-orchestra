@@ -2,7 +2,9 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { injectState, provideState } from 'reaclette'
 
-const Number_ = [
+import decorate from '../apply-decorators'
+
+const Number_ = decorate([
   provideState({
     effects: {
       onChange: (_, { target: { value } }) => (state, props) => {
@@ -30,7 +32,7 @@ const Number_ = [
       value={value === undefined ? '' : String(value)}
     />
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 Number_.propTypes = {
   onChange: PropTypes.func.isRequired,

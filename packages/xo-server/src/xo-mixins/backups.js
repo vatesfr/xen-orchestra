@@ -1,4 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import escapeStringRegexp from 'escape-string-regexp'
 import execa from 'execa'
@@ -51,6 +52,7 @@ const TAG_SOURCE_VM = 'xo:source_vm'
 const TAG_EXPORT_TIME = 'xo:export_time'
 
 const shortDate = utcFormat('%Y-%m-%d')
+const log = createLogger('xo:xo-mixins:backups')
 
 // Test if a file is a vdi backup. (full or delta)
 const isVdiBackup = name => /^\d+T\d+Z_(?:full|delta)\.vhd$/.test(name)
@@ -142,8 +144,8 @@ const listPartitions = (() => {
       key === 'start' || key === 'size'
         ? +value
         : key === 'type'
-          ? TYPES[+value] || value
-          : value,
+        ? TYPES[+value] || value
+        : value,
   })
 
   return device =>
@@ -225,7 +227,7 @@ const mountPartition = (device, partitionId) =>
             unmount: once(() => execa('umount', ['--lazy', path])),
           }),
           error => {
-            console.log(error)
+            log.error(error)
 
             throw error
           }
@@ -443,17 +445,17 @@ export default class {
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
       if (localBaseUuid) {
-        ;promise.then(() => srcXapi.deleteVm(localBaseUuid))::ignoreErrors()
+        promise.then(() => srcXapi.deleteVm(localBaseUuid))::ignoreErrors()
       }
 
       if (toRemove !== undefined) {
-        ;promise
+        promise
           .then(() => asyncMap(toRemove, _ => targetXapi.deleteVm(_.$id)))
           ::ignoreErrors()
       }
 
       // (Asynchronously) Identify snapshot as future base.
-      ;promise
+      promise
         .then(() => {
           return srcXapi._updateObjectMapProperty(srcVm, 'other_config', {
             [TAG_LAST_BASE_DELTA]: delta.vm.uuid,
@@ -549,9 +551,9 @@ export default class {
 
       try {
         mergedDataSize += await mergeVhd(handler, parent, handler, backup)
-      } catch (e) {
-        console.error('Unable to use vhd-util.', e)
-        throw e
+      } catch (error) {
+        log.error('unable to use vhd-util', { error })
+        throw error
       }
 
       await handler.unlink(backup)
@@ -591,7 +593,7 @@ export default class {
       base => base.snapshot_time
     )
     forEach(bases, base => {
-      ;xapi.deleteVdi(base.$id)::ignoreErrors()
+      xapi.deleteVdi(base.$id)::ignoreErrors()
     })
 
     // Export full or delta backup.
@@ -650,7 +652,7 @@ export default class {
     )
     const baseVm = bases.pop()
     forEach(bases, base => {
-      ;xapi.deleteVm(base.$id)::ignoreErrors()
+      xapi.deleteVm(base.$id)::ignoreErrors()
     })
 
     // Check backup dirs.
@@ -723,7 +725,7 @@ export default class {
         fulFilledVdiBackups.push(vdiBackup)
       } else {
         error = vdiBackup.reason()
-        console.error('Rejected backup:', error)
+        log.error('Rejected backup:', { error })
       }
     }
 
@@ -778,7 +780,7 @@ export default class {
     await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, retention })
 
     if (baseVm) {
-      ;xapi.deleteVm(baseVm.$id)::ignoreErrors()
+      xapi.deleteVm(baseVm.$id)::ignoreErrors()
     }
 
     return {

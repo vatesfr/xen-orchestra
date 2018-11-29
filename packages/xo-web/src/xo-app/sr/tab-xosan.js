@@ -300,48 +300,45 @@ class Node extends Component {
                 ]}
               </div>,
               <div>
-                {status &&
-                  status.length !== 0 && (
-                    <Row className='mt-1'>
-                      <Col>
-                        <table className='table' style={{ maxWidth: '50em' }}>
-                          <thead>
-                            <th>{_('xosanJob')}</th>
-                            <th>{_('xosanPath')}</th>
-                            <th>{_('xosanStatus')}</th>
-                            <th>{_('xosanPid')}</th>
-                            <th>{_('xosanPort')}</th>
-                          </thead>
-                          <tbody>
-                            {map(status, job => (
-                              <tr key={job.pid}>
-                                <td>{job.hostname}</td>
-                                <td>{job.path}</td>
-                                <td>{job.status}</td>
-                                <td>{job.pid}</td>
-                                <td>{job.port}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </Col>
-                    </Row>
-                  )}
+                {status && status.length !== 0 && (
+                  <Row className='mt-1'>
+                    <Col>
+                      <table className='table' style={{ maxWidth: '50em' }}>
+                        <thead>
+                          <th>{_('xosanJob')}</th>
+                          <th>{_('xosanPath')}</th>
+                          <th>{_('xosanStatus')}</th>
+                          <th>{_('xosanPid')}</th>
+                          <th>{_('xosanPort')}</th>
+                        </thead>
+                        <tbody>
+                          {map(status, job => (
+                            <tr key={job.pid}>
+                              <td>{job.hostname}</td>
+                              <td>{job.path}</td>
+                              <td>{job.status}</td>
+                              <td>{job.pid}</td>
+                              <td>{job.port}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </Col>
+                  </Row>
+                )}
               </div>,
               <div>
-                {heal &&
-                  heal.file &&
-                  heal.file.length !== 0 && (
-                    <div>
-                      <h4>{_('xosanFilesNeedingHealing')}</h4>
-                      {map(heal.file, file => (
-                        <Row key={file.gfid}>
-                          <Col size={5}>{file._}</Col>
-                          <Col size={4}>{file.gfid}</Col>
-                        </Row>
-                      ))}
-                    </div>
-                  )}
+                {heal && heal.file && heal.file.length !== 0 && (
+                  <div>
+                    <h4>{_('xosanFilesNeedingHealing')}</h4>
+                    {map(heal.file, file => (
+                      <Row key={file.gfid}>
+                        <Col size={5}>{file._}</Col>
+                        <Col size={4}>{file.gfid}</Col>
+                      </Row>
+                    ))}
+                  </div>
+                )}
               </div>,
             ]}
           </Container>
@@ -812,43 +809,42 @@ export default class TabXosan extends Component {
               />{' '}
               {_('xosanAdvanced')}
             </h2>
-            {strippedVolumeInfo &&
-              showAdvanced && (
-                <div>
-                  <h3>{_('xosanVolume')}</h3>
-                  <Container>
-                    <Field title='Name'>{strippedVolumeInfo.name}</Field>
-                    <Field title='Status'>{strippedVolumeInfo.statusStr}</Field>
-                    <Field title='Type'>{strippedVolumeInfo.typeStr}</Field>
-                    <Field title='Brick Count'>
-                      {strippedVolumeInfo.brickCount}
+            {strippedVolumeInfo && showAdvanced && (
+              <div>
+                <h3>{_('xosanVolume')}</h3>
+                <Container>
+                  <Field title='Name'>{strippedVolumeInfo.name}</Field>
+                  <Field title='Status'>{strippedVolumeInfo.statusStr}</Field>
+                  <Field title='Type'>{strippedVolumeInfo.typeStr}</Field>
+                  <Field title='Brick Count'>
+                    {strippedVolumeInfo.brickCount}
+                  </Field>
+                  <Field title='Stripe Count'>
+                    {strippedVolumeInfo.stripeCount}
+                  </Field>
+                  <Field title='Replica Count'>
+                    {strippedVolumeInfo.replicaCount}
+                  </Field>
+                  <Field title='Arbiter Count'>
+                    {strippedVolumeInfo.arbiterCount}
+                  </Field>
+                  <Field title='Disperse Count'>
+                    {strippedVolumeInfo.disperseCount}
+                  </Field>
+                  <Field title='Redundancy Count'>
+                    {strippedVolumeInfo.redundancyCount}
+                  </Field>
+                </Container>
+                <h3 className='mt-1'>{_('xosanVolumeOptions')}</h3>
+                <Container>
+                  {map(strippedVolumeInfo.options, option => (
+                    <Field key={option.name} title={option.name}>
+                      {option.value}
                     </Field>
-                    <Field title='Stripe Count'>
-                      {strippedVolumeInfo.stripeCount}
-                    </Field>
-                    <Field title='Replica Count'>
-                      {strippedVolumeInfo.replicaCount}
-                    </Field>
-                    <Field title='Arbiter Count'>
-                      {strippedVolumeInfo.arbiterCount}
-                    </Field>
-                    <Field title='Disperse Count'>
-                      {strippedVolumeInfo.disperseCount}
-                    </Field>
-                    <Field title='Redundancy Count'>
-                      {strippedVolumeInfo.redundancyCount}
-                    </Field>
-                  </Container>
-                  <h3 className='mt-1'>{_('xosanVolumeOptions')}</h3>
-                  <Container>
-                    {map(strippedVolumeInfo.options, option => (
-                      <Field key={option.name} title={option.name}>
-                        {option.value}
-                      </Field>
-                    ))}
-                  </Container>
-                </div>
-              )}
+                  ))}
+                </Container>
+              </div>
+            )}
           </Col>
         </Row>
       </Container>

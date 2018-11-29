@@ -51,24 +51,22 @@ const vmActionBarByState = {
           pending={includes(vm.current_operations, 'snapshot')}
         />
       )}
-      {!isSelfUser &&
-        canAdministrate && (
-          <Action
-            handler={exportVm}
-            icon='export'
-            label={_('exportVmLabel')}
-            pending={includes(vm.current_operations, 'export')}
-          />
-        )}
-      {!isSelfUser &&
-        canAdministrate && (
-          <Action
-            handler={copyVm}
-            icon='vm-copy'
-            label={_('copyVmLabel')}
-            pending={includes(vm.current_operations, 'copy')}
-          />
-        )}
+      {!isSelfUser && canAdministrate && (
+        <Action
+          handler={exportVm}
+          icon='export'
+          label={_('exportVmLabel')}
+          pending={includes(vm.current_operations, 'export')}
+        />
+      )}
+      {!isSelfUser && canAdministrate && (
+        <Action
+          handler={copyVm}
+          icon='vm-copy'
+          label={_('copyVmLabel')}
+          pending={includes(vm.current_operations, 'copy')}
+        />
+      )}
     </ActionBar>
   ),
   Halted: ({ vm, isSelfUser, canAdministrate }) => (
@@ -79,15 +77,14 @@ const vmActionBarByState = {
         label={_('startVmLabel')}
         pending={includes(vm.current_operations, 'start')}
       />
-      {!isSelfUser &&
-        canAdministrate && (
-          <Action
-            handler={cloneVm}
-            icon='vm-fast-clone'
-            label={_('fastCloneVmLabel')}
-            pending={includes(vm.current_operations, 'clone')}
-          />
-        )}
+      {!isSelfUser && canAdministrate && (
+        <Action
+          handler={cloneVm}
+          icon='vm-fast-clone'
+          label={_('fastCloneVmLabel')}
+          pending={includes(vm.current_operations, 'clone')}
+        />
+      )}
       {!isSelfUser && (
         <Action
           handler={migrateVm}
@@ -107,24 +104,22 @@ const vmActionBarByState = {
           pending={includes(vm.current_operations, 'snapshot')}
         />
       )}
-      {!isSelfUser &&
-        canAdministrate && (
-          <Action
-            handler={exportVm}
-            icon='export'
-            label={_('exportVmLabel')}
-            pending={includes(vm.current_operations, 'export')}
-          />
-        )}
-      {!isSelfUser &&
-        canAdministrate && (
-          <Action
-            handler={copyVm}
-            icon='vm-copy'
-            label={_('copyVmLabel')}
-            pending={includes(vm.current_operations, 'copy')}
-          />
-        )}
+      {!isSelfUser && canAdministrate && (
+        <Action
+          handler={exportVm}
+          icon='export'
+          label={_('exportVmLabel')}
+          pending={includes(vm.current_operations, 'export')}
+        />
+      )}
+      {!isSelfUser && canAdministrate && (
+        <Action
+          handler={copyVm}
+          icon='vm-copy'
+          label={_('copyVmLabel')}
+          pending={includes(vm.current_operations, 'copy')}
+        />
+      )}
     </ActionBar>
   ),
   Suspended: ({ vm, isSelfUser, canAdministrate }) => (
@@ -143,24 +138,22 @@ const vmActionBarByState = {
           pending={includes(vm.current_operations, 'snapshot')}
         />
       )}
-      {!isSelfUser &&
-        canAdministrate && (
-          <Action
-            handler={exportVm}
-            icon='export'
-            label={_('exportVmLabel')}
-            pending={includes(vm.current_operations, 'export')}
-          />
-        )}
-      {!isSelfUser &&
-        canAdministrate && (
-          <Action
-            handler={copyVm}
-            icon='vm-copy'
-            label={_('copyVmLabel')}
-            pending={includes(vm.current_operations, 'copy')}
-          />
-        )}
+      {!isSelfUser && canAdministrate && (
+        <Action
+          handler={exportVm}
+          icon='export'
+          label={_('exportVmLabel')}
+          pending={includes(vm.current_operations, 'export')}
+        />
+      )}
+      {!isSelfUser && canAdministrate && (
+        <Action
+          handler={copyVm}
+          icon='vm-copy'
+          label={_('copyVmLabel')}
+          pending={includes(vm.current_operations, 'copy')}
+        />
+      )}
     </ActionBar>
   ),
 }

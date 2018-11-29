@@ -583,8 +583,8 @@
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
                 <td>{{normaliseValue this.total}} {{normaliseEvolution this.evolution.total}}</td>
-                <td>{{normaliseValue this.used}}</td>
-                <td>{{normaliseValue this.free}}</td>
+                <td>{{normaliseValue this.usedSpace}}</td>
+                <td>{{normaliseValue this.freeSpace}}</td>
               </tr>
             {{/each}}
           </table>

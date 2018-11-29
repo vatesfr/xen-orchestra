@@ -3,6 +3,7 @@
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
 import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { type Pattern, createPredicate } from 'value-matcher'
@@ -55,6 +56,8 @@ import {
 } from '../../utils'
 
 import { translateLegacyJob } from './migration'
+
+const log = createLogger('xo:xo-mixins:backups-ng')
 
 export type Mode = 'full' | 'delta'
 export type ReportWhen = 'always' | 'failure' | 'never'
@@ -131,8 +134,8 @@ const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
   entries === undefined
     ? []
     : retention > 0
-      ? entries.slice(0, -retention)
-      : entries
+    ? entries.slice(0, -retention)
+    : entries
 
 const defaultSettings: Settings = {
   concurrency: 0,
@@ -467,6 +470,28 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
 //    - copy in delta mode: `Continuous Replication`
 //    - copy in full mode: `Disaster Recovery`
 //    - imported from backup: `restored from backup`
+//
+// Task logs emitted in a backup execution:
+//
+// job.start(data: { mode: Mode, reportWhen: ReportWhen })
+// ├─ task.info(message: 'vms', data: { vms: string[] })
+// ├─ task.warning(message: 'missingVms', data: { vms: string[] })
+// ├─ task.warning(message: string)
+// ├─ task.start(data: { type: 'VM', id: string })
+// │  ├─ task.warning(message: string)
+// │  ├─ task.start(message: 'snapshot')
+// │  │  └─ task.end
+// │  ├─ task.start(message: 'export', data: { type: 'SR' | 'remote', id: string })
+// │  │  ├─ task.warning(message: string)
+// │  │  ├─ task.start(message: 'transfer')
+// │  │  │  ├─ task.warning(message: string)
+// │  │  │  └─ task.end(result: { size: number })
+// │  │  ├─ task.start(message: 'merge')
+// │  │  │  ├─ task.warning(message: string)
+// │  │  │  └─ task.end(result: { size: number })
+// │  │  └─ task.end
+// │  └─ task.end
+// └─ job.end
 export default class BackupNg {
   _app: {
     createJob: ($Diff<BackupJob, {| id: string |}>) => Promise<BackupJob>,
@@ -518,31 +543,25 @@ export default class BackupNg {
           vmsId !== undefined ||
           (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
         ) {
-          vms = vmsId
-            .map(id => {
-              try {
-                return app.getObject(id, 'VM')
-              } catch (error) {
-                const taskId: string = logger.notice(
-                  `Starting backup of ${id}. (${job.id})`,
-                  {
-                    event: 'task.start',
-                    parentId: runJobId,
-                    data: {
-                      type: 'VM',
-                      id,
-                    },
-                  }
-                )
-                logger.error(`Backuping ${id} has failed. (${job.id})`, {
-                  event: 'task.end',
-                  taskId,
-                  status: 'failure',
-                  result: serializeError(error),
-                })
-              }
+          vms = {}
+          const missingVms = []
+          vmsId.forEach(id => {
+            try {
+              vms[id] = app.getObject(id, 'VM')
+            } catch (error) {
+              missingVms.push(id)
+            }
+          })
+
+          if (missingVms.length !== 0) {
+            logger.warning('missingVms', {
+              event: 'task.warning',
+              taskId: runJobId,
+              data: {
+                vms: missingVms,
+              },
             })
-            .filter(vm => vm !== undefined)
+          }
         } else {
           vms = app.getObjects({
             filter: createPredicate({
@@ -643,6 +662,13 @@ export default class BackupNg {
         ])
         if (concurrency !== 0) {
           handleVm = limitConcurrency(concurrency)(handleVm)
+          logger.notice('vms', {
+            event: 'task.info',
+            taskId: runJobId,
+            data: {
+              vms: Object.keys(vms),
+            },
+          })
         }
         await asyncMap(vms, handleVm)
       }
@@ -708,6 +734,12 @@ export default class BackupNg {
     }
   }
 
+  // Task logs emitted in a restore execution:
+  //
+  // task.start(message: 'restore', data: { jobId: string, srId: string, time: number })
+  // ├─ task.start(message: 'transfer')
+  // │  └─ task.end(result: { id: string, size: number })
+  // └─ task.end
   async importVmBackupNg (id: string, srId: string): Promise<string> {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
@@ -722,14 +754,14 @@ export default class BackupNg {
     }
 
     const xapi = app.getXapi(srId)
-    const { uuid: vmUuid, name_label: vmName } = metadata.vm
+    const { jobId, timestamp: time } = metadata
     const logger = this._logger
     return wrapTaskFn(
       {
         data: {
+          jobId,
           srId,
-          vmUuid,
-          vmName,
+          time,
         },
         logger,
         message: 'restore',
@@ -799,7 +831,7 @@ export default class BackupNg {
             })
           )
         } catch (error) {
-          console.warn('[Warn] listVmBackups for remote %s:', remoteId, error)
+          log.warn(`listVmBackups for remote ${remoteId}:`, { error })
         }
       })
     )
@@ -1639,7 +1671,7 @@ export default class BackupNg {
           // Do not fail on corrupted VHDs (usually uncleaned temporary files),
           // they are probably inconsequent to the backup process and should not
           // fail it.
-          console.warn('BackupNg#_deleteVhd', path, error)
+          log.warn(`BackupNg#_deleteVhd ${path}`, { error })
         }
       }
     )
@@ -1691,7 +1723,7 @@ export default class BackupNg {
               backups.push(metadata)
             }
           } catch (error) {
-            console.warn('_listVmBackups', path, error)
+            log.warn(`_listVmBackups ${path}`, { error })
           }
         })
       )

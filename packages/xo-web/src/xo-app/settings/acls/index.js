@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
@@ -80,7 +81,7 @@ const ACL_ACTIONS = [
   },
 ]
 
-const AclTable = [
+const AclTable = decorate([
   connectStore({
     hosts: createGetObjectsOfType('host'),
     networks: createGetObjectsOfType('network'),
@@ -130,7 +131,7 @@ const AclTable = [
       columns={ACL_COLUMNS}
     />
   ),
-].reduceRight((value, decorator) => decorator(value))
+])
 
 export default class Acls extends Component {
   constructor (props) {

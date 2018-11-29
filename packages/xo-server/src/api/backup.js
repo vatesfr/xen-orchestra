@@ -1,7 +1,10 @@
 import archiver from 'archiver'
+import createLogger from '@xen-orchestra/log'
 import { basename } from 'path'
 import { format } from 'json-rpc-peer'
 import { forEach } from 'lodash'
+
+const log = createLogger('xo:backup')
 
 // ===================================================================
 
@@ -62,7 +65,7 @@ function handleFetchFiles (
 
       const archive = archiver(archiveFormat)
       archive.on('error', error => {
-        console.error(error)
+        log.error(error)
         res.end(format.error(0, error))
       })
 
@@ -74,7 +77,7 @@ function handleFetchFiles (
       archive.pipe(res)
     })
     .catch(error => {
-      console.error(error)
+      log.error(error)
       res.writeHead(500)
       res.end(format.error(0, error))
     })

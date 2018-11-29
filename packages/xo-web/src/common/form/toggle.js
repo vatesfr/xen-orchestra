@@ -26,7 +26,10 @@ export default class Toggle extends Component {
 
   _toggle = () => {
     const { props } = this
-    props.onChange(!props.value)
+
+    if (!props.disabled) {
+      props.onChange(!props.value)
+    }
   }
 
   render () {

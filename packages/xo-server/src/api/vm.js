@@ -68,10 +68,9 @@ export async function create (params) {
   const xapi = this.getXapi(template)
 
   const objectIds = [template.id]
-  const cpus = extract(params, 'CPUs')
-  const memoryMax = extract(params, 'memoryMax')
+  const { CPUs, memoryMax } = params
   const limits = {
-    cpus: cpus !== undefined ? cpus : template.CPUs.number,
+    cpus: CPUs !== undefined ? CPUs : template.CPUs.number,
     disk: 0,
     memory: memoryMax !== undefined ? memoryMax : template.memory.dynamic[1],
     vms: 1,
@@ -375,7 +374,7 @@ async function delete_ ({
     vm.type === 'VM' && // only regular VMs
     xapi.xo.getData(vm._xapiId, 'resourceSet') != null
   ) {
-    ;this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
+    this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
   }
 
   return xapi.deleteVm(
@@ -426,14 +425,14 @@ ejectCd.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function insertCd ({ vm, vdi, force }) {
+export async function insertCd ({ vm, vdi, force = true }) {
   await this.getXapi(vm).insertCdIntoVm(vdi._xapiId, vm._xapiId, { force })
 }
 
 insertCd.params = {
   id: { type: 'string' },
   cd_id: { type: 'string' },
-  force: { type: 'boolean' },
+  force: { type: 'boolean', optional: true },
 }
 
 insertCd.resolve = {
@@ -614,6 +613,8 @@ set.params = {
   // Emulate HVM C000 PCI device for Windows Update to fetch or update PV drivers
   hasVendorDevice: { type: 'boolean', optional: true },
 
+  expNestedHvm: { type: 'boolean', optional: true },
+
   // Move the vm In to/Out of Self Service
   resourceSet: { type: ['string', 'null'], optional: true },
 
@@ -629,7 +630,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function restart ({ vm, force }) {
+export async function restart ({ vm, force = false }) {
   const xapi = this.getXapi(vm)
 
   if (force) {
@@ -641,7 +642,7 @@ export async function restart ({ vm, force }) {
 
 restart.params = {
   id: { type: 'string' },
-  force: { type: 'boolean' },
+  force: { type: 'boolean', optional: true },
 }
 
 restart.resolve = {

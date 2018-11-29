@@ -8,7 +8,12 @@ const MAX_DELAY = 2 ** 31 - 1
 class Job {
   constructor (schedule, fn) {
     const wrapper = () => {
-      const result = fn()
+      let result
+      try {
+        result = fn()
+      } catch (_) {
+        // catch any thrown value to ensure it does not break the job
+      }
       let then
       if (result != null && typeof (then = result.then) === 'function') {
         then.call(result, scheduleNext, scheduleNext)
@@ -45,8 +50,8 @@ class Schedule {
       zone.toLowerCase() === 'utc'
         ? moment.utc
         : zone === 'local'
-          ? moment
-          : () => moment.tz(zone)
+        ? moment
+        : () => moment.tz(zone)
   }
 
   createJob (fn) {

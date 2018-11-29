@@ -44,7 +44,7 @@ export default class LevelDbLogger extends AbstractLogger {
       return promise.then(() => key)
     }
 
-    ;promise::ignoreErrors()
+    promise::ignoreErrors()
     return key
   }
 

@@ -149,7 +149,7 @@ class XoWeekChart extends Component {
       .selectAll('path')
       .remove()
     forEach(splittedData, data => {
-      ;svg
+      svg
         .select('.horizon-area')
         .append('path')
         .datum(data)

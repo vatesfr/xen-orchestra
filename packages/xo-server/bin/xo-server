@@ -11,21 +11,8 @@ require('../better-stacks')
 // less memory usage.
 global.Promise = require('bluebird')
 
-// Make unhandled rejected promises visible.
-process.on('unhandledRejection', function (reason) {
-  console.warn('[Warn] Possibly unhandled rejection:', reason && reason.stack || reason)
-})
-
-;(function (EE) {
-  var proto = EE.prototype
-  var emit = proto.emit
-  proto.emit = function patchedError (event, error) {
-    if (event === 'error' && !this.listenerCount(event)) {
-      return console.warn('[Warn] Unhandled error event:', error && error.stack || error)
-    }
-
-    return emit.apply(this, arguments)
-  }
-})(require('events').EventEmitter)
+require('@xen-orchestra/log/configure').catchGlobalErrors(
+  require('@xen-orchestra/log').default('xo:xo-server')
+)
 
 require('exec-promise')(require('../'))

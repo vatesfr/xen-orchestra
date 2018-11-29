@@ -43,6 +43,7 @@ export default class InstallPoolPatchesModalBody extends Component {
         if (
           vbd.is_cd_drive &&
           vbd.VDI !== undefined &&
+          vbd.attached &&
           !vmIds.includes(vbd.VM)
         ) {
           vmIds.push(vbd.VM)
@@ -72,12 +73,11 @@ export default class InstallPoolPatchesModalBody extends Component {
 
     return (
       <Container>
-        {!needDefaultSr &&
-          !someCdsInserted && (
-            <SingleLineRow>
-              <Col>{_('confirmPoolPatch')}</Col>
-            </SingleLineRow>
-          )}
+        {!needDefaultSr && !someCdsInserted && (
+          <SingleLineRow>
+            <Col>{_('confirmPoolPatch')}</Col>
+          </SingleLineRow>
+        )}
         {needDefaultSr && [
           <SingleLineRow className='mt-1' key='message'>
             <Col>
