@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`file:///tmp test handler handler doesn't crash 1`] = `
+exports[`file:///tmp #test() tests the remote appears to be working 1`] = `
 Object {
   "success": true,
 }

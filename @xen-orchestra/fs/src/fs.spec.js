@@ -2,6 +2,7 @@
 
 import { getHandler } from '.'
 import { tmpdir } from 'os'
+import getStream from 'get-stream'
 
 // https://gist.github.com/julien-f/3228c3f34fdac01ade09
 const unsecureRandomBytes = n => {
@@ -34,9 +35,6 @@ const TEST_DATA = unsecureRandomBytes(1024)
       handler = undefined
     })
 
-    beforeEach(async () => {
-      await handler.outputFile(testFile, TEST_DATA)
-    })
     afterEach(async () => {
       await handler.rmdir(testDir, { recursive: true }).catch(error => {
         if (error.code !== 'ENOENT') {
@@ -45,65 +43,70 @@ const TEST_DATA = unsecureRandomBytes(1024)
       })
     })
 
-    describe('test handler', () => {
-      it(`handler doesn't crash`, async () => {
+    describe('#test()', () => {
+      it('tests the remote appears to be working', async () => {
         expect(await handler.test()).toMatchSnapshot()
       })
     })
 
     describe('outputFile', () => {
       it('writes data to a file', async () => {
-        expect(await handler.readFile(testFile)).toEqual(TEST_DATA)
+        expect(await handler.outputFile(testFile, TEST_DATA)).toEqual(
+          TEST_DATA.data
+        )
       })
     })
 
     describe('list', () => {
       it(`should list the content of folder`, async () => {
+        await handler.outputFile(testFile, TEST_DATA)
         await expect(await handler.list(testDir)).toEqual(['file'])
       })
     })
 
     describe('createReadStream', () => {
       it(`should return a stream`, async () => {
-        const stream = await handler.createReadStream(testFile)
+        await handler.outputFile(testFile, TEST_DATA)
+        const buffer = await getStream.buffer(
+          await handler.createReadStream(testFile)
+        )
 
-        await expect(stream.path).toEqual(`${tmpdir}/${testFile}`)
+        await expect(buffer).toEqual(TEST_DATA)
       })
     })
     describe('getSize', () => {
       it(`should return the correct size`, async () => {
-        expect(await handler.getSize(testFile)).toEqual(1024)
+        await handler.outputFile(testFile, TEST_DATA)
+        expect(await handler.getSize(testFile)).toEqual(TEST_DATA.length)
       })
     })
 
     describe('rename', () => {
       it(`should rename the file`, async () => {
+        await handler.outputFile(testFile, TEST_DATA)
         await handler.rename(testFile, `${testDir}/file2`)
-        const file = await handler.createReadStream(`${testDir}/file2`)
 
-        expect(file.path).toBe(`${tmpdir}/${testDir}/file2`)
+        expect(await handler.list(testDir)).toContain('file2')
+        expect(await handler.readFile(`${testDir}/file2`)).toEqual(TEST_DATA)
       })
     })
 
     describe('unlink', () => {
       it(`should remove the file`, async () => {
-        let error
-        try {
-          await handler.unlink(testFile)
-          await handler.read(testFile)
-        } catch (e) {
-          error = e
-        }
+        await handler.outputFile(testFile, TEST_DATA)
+        await handler.unlink(testFile)
 
-        await expect(error.code).toEqual('ENOENT')
+        await expect(await handler.list(testDir)).toEqual([])
       })
     })
 
     describe('rmdir', () => {
       it(`should remove folder resursively`, async () => {
         let error
+        await handler.outputFile(testFile, TEST_DATA)
+        await handler.rmdir(testDir, { recursive: true })
+
         try {
-          await handler.rmdir(testDir, { recursive: true })
           await handler.list(testDir)
         } catch (e) {
           error = e
@@ -114,6 +117,8 @@ const TEST_DATA = unsecureRandomBytes(1024)
 
       it(`should throw an error when recursive is false`, async () => {
         let error
+        await handler.outputFile(testFile, TEST_DATA)
+
         try {
           await handler.rmdir(testDir)
         } catch (e) {
