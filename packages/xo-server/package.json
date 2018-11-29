@@ -38,7 +38,7 @@
     "@xen-orchestra/log": "^0.1.4",
     "@xen-orchestra/mixin": "^0.0.0",
     "ajv": "^6.1.1",
-    "app-conf": "^0.6.0",
+    "app-conf": "^0.6.1",
     "archiver": "^3.0.0",
     "async-iterator-to-stream": "^1.0.1",
     "base64url": "^3.0.0",
