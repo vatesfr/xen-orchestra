@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`test() handler doesn't crash 1`] = `
+exports[`file:///tmp test handler handler doesn't crash 1`] = `
 Object {
   "success": true,
 }
