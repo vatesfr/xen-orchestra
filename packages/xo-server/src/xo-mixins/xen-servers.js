@@ -11,12 +11,16 @@ import {
   forEach,
   isEmpty,
   isString,
+  pDelay,
   popProperty,
   serializeError,
 } from '../utils'
 import { Servers } from '../models/server'
 
 // ===================================================================
+
+const CONNECTION_TO_CONNECTED_POOL_ERROR =
+  "the server's pool is already connected"
 
 const log = createLogger('xo:xo-mixins:xen-servers')
 
@@ -260,7 +264,7 @@ export default class {
       const xapisByPool = this._xapisByPool
       const [{ $id: poolId }] = await xapi.getAllRecords('pool')
       if (xapisByPool[poolId] !== undefined) {
-        throw new Error("the server's pool is already connected")
+        throw new Error(CONNECTION_TO_CONNECTED_POOL_ERROR)
       }
 
       this._xapis[server.id] = xapisByPool[poolId] = xapi
@@ -463,5 +467,32 @@ export default class {
     this.unregisterXenServer(
       findKey(this._xapis, candidate => candidate === sourceXapi)
     )::ignoreErrors()
+  }
+
+  async detachHostFromPool(hostId) {
+    const xapi = this.getXapi(hostId)
+    const { address } = xapi.getObject(hostId)
+
+    await xapi.ejectHostFromPool(hostId)
+
+    this._getXenServer(
+      findKey(this._xapis, candidate => candidate === xapi)
+    ).then(
+      ({ properties }) =>
+        this.registerXenServer({
+          ...properties,
+          host: address,
+        }).then(({ id }) => {
+          const loop = () =>
+            pDelay(6e4).then(() =>
+              this.connectXenServer(id).catch(
+                ({ message }) =>
+                  message === CONNECTION_TO_CONNECTED_POOL_ERROR && loop()
+              )
+            )
+          return loop()
+        }),
+      () => {}
+    )
   }
 }
