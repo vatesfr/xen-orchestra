@@ -1,7 +1,6 @@
 /* eslint-env jest */
 
 import { getHandler } from '.'
-import fs from 'fs-extra'
 import { tmpdir } from 'os'
 
 // https://gist.github.com/julien-f/3228c3f34fdac01ade09
@@ -60,50 +59,57 @@ const TEST_DATA = unsecureRandomBytes(1024)
 
     describe('list', () => {
       it(`should list the content of folder`, async () => {
-        const content = await handler.list(testDir)
-        const contentFolder = await fs.readdir(`${tmpdir}/${testDir}`)
-
-        await expect(content).toEqual(contentFolder)
+        await expect(await handler.list(testDir)).toEqual(['file'])
       })
     })
 
     describe('createReadStream', () => {
       it(`should return a stream`, async () => {
         const stream = await handler.createReadStream(testFile)
-        const readStream = fs.createReadStream(`${tmpdir}/${testFile}`)
 
-        await expect(stream.path).toEqual(readStream.path)
+        await expect(stream.path).toEqual(`${tmpdir}/${testFile}`)
       })
     })
     describe('getSize', () => {
       it(`should return the correct size`, async () => {
-        const fileSize = await handler.getSize(testFile)
-        const stats = await fs.statSync(`${tmpdir}/${testFile}`)
-
-        expect(fileSize).toEqual(stats.size)
+        expect(await handler.getSize(testFile)).toEqual(1024)
       })
     })
 
     describe('rename', () => {
       it(`should rename the file`, async () => {
         await handler.rename(testFile, `${testDir}/file2`)
-        await expect(fs.existsSync(`${tmpdir}/${testDir}/file2`)).toBe(true)
+        const file = await handler.createReadStream(`${testDir}/file2`)
+
+        expect(file.path).toBe(`${tmpdir}/${testDir}/file2`)
       })
     })
 
     describe('unlink', () => {
       it(`should remove the file`, async () => {
-        await handler.unlink(testFile)
+        let error
+        try {
+          await handler.unlink(testFile)
+          await handler.read(testFile)
+        } catch (e) {
+          error = e
+        }
 
-        expect(fs.existsSync(`${tmpdir}/${testFile}`)).toBe(false)
+        await expect(error.code).toEqual('ENOENT')
       })
     })
 
     describe('rmdir', () => {
       it(`should remove folder resursively`, async () => {
-        await handler.rmdir(testDir, { recursive: true })
+        let error
+        try {
+          await handler.rmdir(testDir, { recursive: true })
+          await handler.list(testDir)
+        } catch (e) {
+          error = e
+        }
 
-        expect(fs.existsSync(`${tmpdir}/${testDir}`)).toBe(false)
+        expect(error.code).toBe('ENOENT')
       })
 
       it(`should throw an error when recursive is false`, async () => {
