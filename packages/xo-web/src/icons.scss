@@ -370,7 +370,7 @@
     }
     &-suspend {
       @extend .fa;
-      @extend .fa-pause;
+      @extend .fa-power-off;
     }
     &-pause {
       @extend .fa;
@@ -386,7 +386,7 @@
     }
     &-force-shutdown {
       @extend .fa;
-      @extend .fa-power-off;
+      @extend .fa-plug;
     }
     &-docker {
       @extend .fa;
