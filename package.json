@@ -59,5 +59,8 @@
     "hooks": {
       "commit-msg": "npm test"
     }
+  },
+  "jest": {
+    "modulePathIgnorePatterns": ["<rootDir>/src/old-tests"]
   }
 }
