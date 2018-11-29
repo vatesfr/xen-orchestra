@@ -1,3 +1,4 @@
+
 # Continuous Replication
 
 > WARNING: it works only with XenServer 6.5 or later
@@ -36,37 +37,26 @@ To protect the replication, we removed the possibility to boot your copied VM di
 
 ## Manual initial seed
 
-> This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need this**.
+> This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need this**. These instructions are for Backup-NG jobs, and will not work to seed a legacy backup job. Please migrate any legacy jobs to Backup-NG
 
-**If you can't transfer the first backup through your network**, you can make a seed locally. In order to do this, follow this procedure (until we make it accessible directly in XO):
+**If you can't transfer the first backup through your network because it's too large**, you can make a seed locally. In order to do this, follow this procedure (until we make it accessible directly in XO):
 
 ### Preparation
 
-1. create a cont. rep job to a non-distant SR (even the SR where the VM currently is). Do NOT enable the job during creation.
-1. manually start the first replication (only the first)
-1. when finished, export the replicated VM (via XOA or any other means, doesn't matter how you get your XVA file)
-1. import the replicated VM on your distant destination
-1. you can now remove your local replicated copy
-
-### Modifications
-
-In your source host:
-
-1. Get the UUID of the remote destination SR where your VM was imported
-1. On the source host: `xe vm-param-list uuid=<SourceVM_UUID> | grep other-config`.
-  * You should see somewhere in other-config: `xo:base_delta:<SR_UUID>: <VM_snapshot_UUID>;`
-  * Remove this entry with `xe vm-param-remove uuid=<OriginalVM_UUID> param-name=other-config param-key=xo:base_delta:<SR_UUID>`
-  * Recreate the correct param: `xe vm-param-set uuid=<OriginalVM_UUID> other-config:xo:base_delta:<destination_SR_UUID>=<VM_snapshot_UUID>`
-
-In XO:
-
-1. Edit the replication job and select the new destination SR
-
-On the destination host; to avoid data corruption, you need to avoid any VM start:
+1. ?? create a cont. rep job to a non-distant SR (even the SR where the VM currently is). Do NOT enable the job during creation.
+1. ?? manually start the first replication (only the first)
+1. ?? when finished, export the replicated VM (via XOA or any other means, doesn't matter how you get your XVA file)
+1. ?? Import the replicated VM on your distant destination
+1. ?? `cr-seed-cli`
+1. ?? you can now remove your local replicated copy
 
 ```
-xe vm-param-set blocked-operations:start uuid=<DestinationVM_UUID>
+> npm i -g @xen-orchestra/cr-seed-cli 
+> xo-cr-seed 
+> Usage: xo-cr-seed <source XAPI URL> <source snapshot UUID> <target XAPI URL> <target VM UUID> <backup job id> <backup schedule id> 
+> xo-cr-seed v0.2.0
 ```
+
 
 ### Enable
 
