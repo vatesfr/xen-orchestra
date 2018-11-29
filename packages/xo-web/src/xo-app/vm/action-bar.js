@@ -155,7 +155,7 @@ const vmActionBarByState = {
       )}
     </ActionBar>
   ),
-  Paused: ({ vm, isSelfUser, canAdministrate }) => (
+  Paused: ({ vm, isSelfUser }) => (
     <ActionBar display='icon' handlerParam={vm}>
       <Action
         handler={startVm}
