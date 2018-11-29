@@ -1080,6 +1080,20 @@ suspend.resolve = {
 
 // -------------------------------------------------------------------
 
+export async function pause({ vm }) {
+  await this.getXapi(vm).call('VM.pause', vm._xapiRef)
+}
+
+pause.params = {
+  id: { type: 'string' },
+}
+
+pause.resolve = {
+  vm: ['id', 'VM', 'operate'],
+}
+
+// -------------------------------------------------------------------
+
 export function resume({ vm }) {
   return this.getXapi(vm).resumeVm(vm._xapiId)
 }

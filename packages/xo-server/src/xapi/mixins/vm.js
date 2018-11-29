@@ -449,7 +449,7 @@ export default {
     }
     await this.call('VM.revert', snapshot.$ref)
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
-      const vm = snapshot.$snapshot_of
+      const vm = await this.barrier(snapshot.snapshot_of)
       if (vm.power_state === 'Halted') {
         this.startVm(vm.$id)::ignoreErrors()
       } else if (vm.power_state === 'Suspended') {
@@ -461,6 +461,10 @@ export default {
   async resumeVm(vmId) {
     // the force parameter is always true
     return this.call('VM.resume', this.getObject(vmId).$ref, false, true)
+  },
+
+  async unpauseVm(vmId) {
+    return this.call('VM.unpause', this.getObject(vmId).$ref)
   },
 
   shutdownVm(vmId, { hard = false } = {}) {

@@ -32,9 +32,9 @@ import {
   editVm,
   getVmsHaValues,
   isVmRunning,
+  pauseVm,
   recoveryStartVm,
   restartVm,
-  resumeVm,
   shareVm,
   startVm,
   stopVm,
@@ -332,6 +332,13 @@ export default class TabAdvanced extends Component {
               <span>
                 <TabButton
                   btnStyle='primary'
+                  handler={pauseVm}
+                  handlerParam={vm}
+                  icon='vm-pause'
+                  labelId='pauseVmLabel'
+                />
+                <TabButton
+                  btnStyle='primary'
                   handler={suspendVm}
                   handlerParam={vm}
                   icon='vm-suspend'
@@ -381,10 +388,35 @@ export default class TabAdvanced extends Component {
               <span>
                 <TabButton
                   btnStyle='primary'
-                  handler={resumeVm}
+                  handler={startVm}
                   handlerParam={vm}
                   icon='vm-start'
                   labelId='resumeVmLabel'
+                />
+                <TabButton
+                  btnStyle='warning'
+                  handler={forceShutdown}
+                  handlerParam={vm}
+                  icon='vm-force-shutdown'
+                  labelId='forceShutdownVmLabel'
+                />
+              </span>
+            )}
+            {vm.power_state === 'Paused' && (
+              <span>
+                <TabButton
+                  btnStyle='primary'
+                  handler={startVm}
+                  handlerParam={vm}
+                  icon='vm-start'
+                  labelId='resumeVmLabel'
+                />
+                <TabButton
+                  btnStyle='warning'
+                  handler={forceReboot}
+                  handlerParam={vm}
+                  icon='vm-force-reboot'
+                  labelId='forceRebootVmLabel'
                 />
                 <TabButton
                   btnStyle='warning'
