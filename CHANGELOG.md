@@ -2,6 +2,8 @@
 
 ## *next*
 
+- [Backup NG] Add "XOSAN" in excluted tags by default [#2128](https://github.com/vatesfr/xen-orchestra/issues/3563) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3563))
+
 ### Enhancements
 
 ### Bug fixes
@@ -113,7 +115,6 @@
 - [Backup Report] Log error when job failed [#3458](https://github.com/vatesfr/xen-orchestra/issues/3458) (PR [#3593](https://github.com/vatesfr/xen-orchestra/pull/3593))
 - [Backup NG] Display logs for backup restoration [#2511](https://github.com/vatesfr/xen-orchestra/issues/2511) (PR [#3609](https://github.com/vatesfr/xen-orchestra/pull/3609))
 - [XOA] Display product version and list of all installed packages [#3560](https://github.com/vatesfr/xen-orchestra/issues/3560) (PR [#3621](https://github.com/vatesfr/xen-orchestra/pull/3621))
-- [Backup NG] Add "XOSAN" in excluted tags by default [#2128](https://github.com/vatesfr/xen-orchestra/issues/3563) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3563))
 
 ### Bug fixes
 
