@@ -454,8 +454,6 @@ export default {
         this.startVm(vm.$id)::ignoreErrors()
       } else if (vm.power_state === 'Suspended') {
         this.resumeVm(vm.$id)::ignoreErrors()
-      } else if (vm.power_state === 'Paused') {
-        this.unpauseVm(vm.$id)::ignoreErrors()
       }
     }
   },
