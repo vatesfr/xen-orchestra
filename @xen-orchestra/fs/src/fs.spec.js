@@ -26,6 +26,7 @@ const TEST_DATA = unsecureRandomBytes(1024)
   describe(url, () => {
     let handler
     const testDir = `xo-fs-tests-${Date.now()}`
+    const testFile = `${testDir}/file`
 
     beforeAll(() => {
       handler = getHandler({ url })
@@ -35,7 +36,7 @@ const TEST_DATA = unsecureRandomBytes(1024)
     })
 
     beforeEach(async () => {
-      await handler.outputFile(`${testDir}/file`, TEST_DATA)
+      await handler.outputFile(testFile, TEST_DATA)
     })
     afterEach(async () => {
       await handler.rmdir(testDir, { recursive: true }).catch(error => {
@@ -53,7 +54,7 @@ const TEST_DATA = unsecureRandomBytes(1024)
 
     describe('outputFile', () => {
       it('writes data to a file', async () => {
-        expect(await handler.readFile(`${testDir}/file`)).toEqual(TEST_DATA)
+        expect(await handler.readFile(testFile)).toEqual(TEST_DATA)
       })
     })
 
@@ -68,16 +69,16 @@ const TEST_DATA = unsecureRandomBytes(1024)
 
     describe('createReadStream', () => {
       it(`should return a stream`, async () => {
-        const stream = await handler.createReadStream(`${testDir}/file`)
-        const readStream = fs.createReadStream(`${tmpdir}/${testDir}/file`)
+        const stream = await handler.createReadStream(testFile)
+        const readStream = fs.createReadStream(`${tmpdir}/${testFile}`)
 
         await expect(stream.path).toEqual(readStream.path)
       })
     })
     describe('getSize', () => {
       it(`should return the correct size`, async () => {
-        const fileSize = await handler.getSize(`${testDir}/file`)
-        const stats = await fs.statSync(`${tmpdir}/${testDir}/file`)
+        const fileSize = await handler.getSize(testFile)
+        const stats = await fs.statSync(`${tmpdir}/${testFile}`)
 
         expect(fileSize).toEqual(stats.size)
       })
@@ -85,16 +86,16 @@ const TEST_DATA = unsecureRandomBytes(1024)
 
     describe('rename', () => {
       it(`should rename the file`, async () => {
-        await handler.rename(`${testDir}/file`, `${testDir}/file2`)
+        await handler.rename(testFile, `${testDir}/file2`)
         await expect(fs.existsSync(`${tmpdir}/${testDir}/file2`)).toBe(true)
       })
     })
 
     describe('unlink', () => {
       it(`should remove the file`, async () => {
-        await handler.unlink(`${testDir}/file`)
+        await handler.unlink(testFile)
 
-        expect(fs.existsSync(`${tmpdir}/${testDir}/file`)).toBe(false)
+        expect(fs.existsSync(`${tmpdir}/${testFile}`)).toBe(false)
       })
     })
 
