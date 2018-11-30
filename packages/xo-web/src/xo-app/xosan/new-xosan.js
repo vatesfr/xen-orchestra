@@ -245,8 +245,8 @@ export default class NewXosan extends Component {
     const found = {}
     const { srs } = this.props
     if (
-      some(selectedSrs, id => {
-        const container = srs[id].$container
+      some(selectedSrs, srId => {
+        const container = srs[srId].$container
         const foundContainer = found[container]
         found[container] = true
         return foundContainer
