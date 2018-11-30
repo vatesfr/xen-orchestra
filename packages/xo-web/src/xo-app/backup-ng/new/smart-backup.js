@@ -1,19 +1,21 @@
 import _ from 'intl'
 import decorate from 'apply-decorators'
-import defined from '@xen-orchestra/defined'
+import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
-import SmartBackupPreview from 'smart-backup'
+import SmartBackupPreview, {
+  constructSmartPattern,
+  destructSmartPattern,
+} from 'smart-backup'
 import Tooltip from 'tooltip'
-import { connectStore } from 'utils'
+import { connectStore, resolveIds } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { get } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
 
-import { FormGroup } from './../utils'
+import { canDeltaBackup, FormGroup } from './../utils'
 
 const VMS_STATUSES_OPTIONS = [
   { value: 'All', label: _('vmStateAll') },
@@ -23,6 +25,7 @@ const VMS_STATUSES_OPTIONS = [
 
 const SmartBackup = decorate([
   connectStore({
+    hosts: createGetObjectsOfType('host'),
     vms: createGetObjectsOfType('VM'),
   }),
   provideState({
@@ -38,6 +41,31 @@ const SmartBackup = decorate([
           power_state: powerState === 'All' ? undefined : powerState,
         })
       },
+      setPoolPattern: ({ setPattern }, { values, notValues }) => ({
+        pools,
+      }) => {
+        setPattern({
+          $pool: constructSmartPattern(
+            {
+              values: values || pools.values,
+              notValues: notValues || pools.notValues,
+            },
+            resolveIds
+          ),
+        })
+      },
+      setPoolValues ({ setPoolPattern }, values) {
+        setPoolPattern({ values })
+      },
+      setPoolNotValues ({ setPoolPattern }, notValues) {
+        setPoolPattern({ notValues })
+      },
+    },
+    computed: {
+      poolPredicate: (_, { deltaMode, hosts }) => pool =>
+        !deltaMode || canDeltaBackup(get(() => hosts[pool.master].version)),
+      pools: (_, { pattern }) =>
+        pattern.$pool !== undefined ? destructSmartPattern(pattern.$pool) : {},
     },
   }),
   injectState,
@@ -64,8 +92,8 @@ const SmartBackup = decorate([
         <SelectPool
           multi
           onChange={effects.setPoolValues}
-          value={get(state.$pool, 'values')}
           predicate={state.poolPredicate}
+          value={state.pools.values}
         />
       </FormGroup>
       <FormGroup>
@@ -75,7 +103,7 @@ const SmartBackup = decorate([
         <SelectPool
           multi
           onChange={effects.setPoolNotValues}
-          value={get(state.$pool, 'notValues')}
+          value={state.pools.notValues}
         />
       </FormGroup>
       <h3>{_('editBackupSmartTags')}</h3>
@@ -87,7 +115,7 @@ const SmartBackup = decorate([
         <SelectTag
           multi
           onChange={effects.setTagValues}
-          value={get(state.tags, 'values')}
+          value={get(() => state.tags.values)}
         />
       </FormGroup>
       <FormGroup>
@@ -100,7 +128,7 @@ const SmartBackup = decorate([
         <SelectTag
           multi
           onChange={effects.setTagNotValues}
-          value={get(state.tags, 'notValues')}
+          value={get(() => state.tags.notValues)}
         />
       </FormGroup>
       <SmartBackupPreview vms={vms} pattern={state.vmsSmartPattern} />
