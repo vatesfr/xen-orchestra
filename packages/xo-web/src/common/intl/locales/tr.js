@@ -453,7 +453,7 @@ export default {
   homeMigrateTo: 'Taşı...',
 
   // Original text: "Missing patches"
-  homeMissingPaths: 'Eksik yamalar',
+  homeMissingPatches: 'Eksik yamalar',
 
   // Original text: "Master:"
   homePoolMaster: 'Master:',

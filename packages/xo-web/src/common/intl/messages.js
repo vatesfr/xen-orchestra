@@ -177,7 +177,7 @@ const messages = {
   homeSelectedItems: '{selected, number}x {icon} selected (on {total, number})',
   homeMore: 'More',
   homeMigrateTo: 'Migrate to…',
-  homeMissingPaths: 'Missing patches',
+  homeMissingPatches: 'Missing patches',
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
