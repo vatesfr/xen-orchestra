@@ -1,21 +1,19 @@
 import * as Editable from 'editable'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import Button from 'button'
 import Component from 'base-component'
-import decorate from 'apply-decorators'
-import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
-import { provideState, injectState } from 'reaclette'
-import { toggleState } from 'reaclette-utils'
+
 import {
   createUser,
   deleteUser,
@@ -36,48 +34,6 @@ const permissions = {
   },
 }
 
-const UserGroups = decorate([
-  addSubscriptions({
-    groups: cb =>
-      subscribeGroups(groups => {
-        cb(keyBy(groups, 'id'))
-      }),
-  }),
-  provideState({
-    initialState: () => ({
-      showGroups: false,
-    }),
-    effects: {
-      toggleState,
-    },
-  }),
-  injectState,
-  ({ state, effects, item: user, groups }) => (
-    <div>
-      {_('userCountGroups', { nGroups: user.groups.length })}
-      {user.groups.length !== 0 && (
-        <Button
-          size='small'
-          className='pull-right'
-          onClick={effects.toggleState}
-          name='showGroups'
-        >
-          <Icon icon={state.showGroups ? 'minus' : 'plus'} />
-        </Button>
-      )}
-      {state.showGroups && (
-        <ul className='list-group mt-1'>
-          {user.groups.map(id => (
-            <li className='list-group-item' key={id}>
-              {get(() => groups[id].name)}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  ),
-])
-
 const USER_COLUMNS = [
   {
     name: _('userNameColumn'),
@@ -91,7 +47,25 @@ const USER_COLUMNS = [
   },
   {
     name: _('userGroupsColumn'),
-    component: UserGroups,
+    itemRenderer: (user, { groups }) => {
+      const nGroups = user.groups.length
+      const nGroupsLabel = _('userCountGroups', { nGroups })
+      return nGroups !== 0 ? (
+        <Tooltip
+          content={
+            <div>
+              {user.groups.map(id => (
+                <div key={id}>{get(() => renderXoItem(groups[id]))}</div>
+              ))}
+            </div>
+          }
+        >
+          <span style={{ cursor: 'pointer' }}>{nGroupsLabel}</span>
+        </Tooltip>
+      ) : (
+        nGroupsLabel
+      )
+    },
   },
   {
     name: _('userPermissionColumn'),
@@ -131,6 +105,7 @@ const USER_ACTIONS = [
 ]
 
 @addSubscriptions({
+  groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
   users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
 })
 @injectIntl
@@ -149,7 +124,7 @@ export default class Users extends Component {
   }
 
   render() {
-    const { users, intl } = this.props
+    const { groups, users, intl } = this.props
     const { email, password, permission } = this.state
 
     return (
@@ -204,6 +179,7 @@ export default class Users extends Component {
             actions={USER_ACTIONS}
             collection={users}
             columns={USER_COLUMNS}
+            data-groups={groups}
           />
         )}
       </div>
