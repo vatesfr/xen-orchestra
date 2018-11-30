@@ -8,7 +8,7 @@
 
 ### Bug fixes
 
-- [Home/SRs] Fixed SR status for non admin users [#2204](https://github.com/vatesfr/xen-orchestra/issues/2204)
+- [Home/SRs] Fixed SR status for non admin users [#2204](https://github.com/vatesfr/xen-orchestra/issues/2204) (PR [#3742](https://github.com/vatesfr/xen-orchestra/pull/3742))
 
 ### Released packages
 
