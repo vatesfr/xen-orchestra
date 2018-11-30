@@ -1,21 +1,27 @@
 import * as Editable from 'editable'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
+import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
-
+import { provideState, injectState } from 'reaclette'
+import { toggleState } from 'reaclette-utils'
 import {
   createUser,
   deleteUser,
   deleteUsers,
   editUser,
+  subscribeGroups,
   subscribeUsers,
 } from 'xo'
 
@@ -30,6 +36,48 @@ const permissions = {
   },
 }
 
+const UserGroups = decorate([
+  addSubscriptions({
+    groups: cb =>
+      subscribeGroups(groups => {
+        cb(keyBy(groups, 'id'))
+      }),
+  }),
+  provideState({
+    initialState: () => ({
+      showGroups: false,
+    }),
+    effects: {
+      toggleState,
+    },
+  }),
+  injectState,
+  ({ state, effects, item: user, groups }) => (
+    <div>
+      {_('userCountGroups', { nGroups: user.groups.length })}
+      {user.groups.length !== 0 && (
+        <Button
+          size='small'
+          className='pull-right'
+          onClick={effects.toggleState}
+          name='showGroups'
+        >
+          <Icon icon={state.showGroups ? 'minus' : 'plus'} />
+        </Button>
+      )}
+      {state.showGroups && (
+        <ul className='list-group mt-1'>
+          {user.groups.map(id => (
+            <li className='list-group-item' key={id}>
+              {get(() => groups[id].name)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  ),
+])
+
 const USER_COLUMNS = [
   {
     name: _('userNameColumn'),
@@ -40,6 +88,10 @@ const USER_COLUMNS = [
       />
     ),
     sortCriteria: user => user.email,
+  },
+  {
+    name: _('userGroupsColumn'),
+    component: UserGroups,
   },
   {
     name: _('userPermissionColumn'),
@@ -96,7 +148,7 @@ export default class Users extends Component {
     })
   }
 
-  render () {
+  render() {
     const { users, intl } = this.props
     const { email, password, permission } = this.state
 
