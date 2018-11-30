@@ -60,7 +60,7 @@ const USER_COLUMNS = [
             </div>
           }
         >
-          <span style={{ cursor: 'pointer' }}>{nGroupsLabel}</span>
+          {nGroupsLabel}
         </Tooltip>
       ) : (
         nGroupsLabel
