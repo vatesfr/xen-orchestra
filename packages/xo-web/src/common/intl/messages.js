@@ -560,6 +560,8 @@ const messages = {
   groupUsersColumn: 'Users',
   addUserToGroupColumn: 'Add User',
   userNameColumn: 'Username',
+  userGroupsColumn: 'Member of',
+  userCountGroups: '{nGroups, number} group{nGroups, plural, one {} other {s}}',
   userPermissionColumn: 'Permissions',
   userPasswordColumn: 'Password',
   userName: 'Username',

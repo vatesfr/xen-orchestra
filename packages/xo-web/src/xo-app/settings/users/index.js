@@ -6,8 +6,11 @@ import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
+import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 
@@ -16,6 +19,7 @@ import {
   deleteUser,
   deleteUsers,
   editUser,
+  subscribeGroups,
   subscribeUsers,
 } from 'xo'
 
@@ -40,6 +44,28 @@ const USER_COLUMNS = [
       />
     ),
     sortCriteria: user => user.email,
+  },
+  {
+    name: _('userGroupsColumn'),
+    itemRenderer: (user, { groups }) => {
+      const nGroups = user.groups.length
+      const nGroupsLabel = _('userCountGroups', { nGroups })
+      return nGroups !== 0 ? (
+        <Tooltip
+          content={
+            <div>
+              {user.groups.map(id => (
+                <div key={id}>{get(() => renderXoItem(groups[id]))}</div>
+              ))}
+            </div>
+          }
+        >
+          {nGroupsLabel}
+        </Tooltip>
+      ) : (
+        nGroupsLabel
+      )
+    },
   },
   {
     name: _('userPermissionColumn'),
@@ -79,6 +105,7 @@ const USER_ACTIONS = [
 ]
 
 @addSubscriptions({
+  groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
   users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
 })
 @injectIntl
@@ -96,8 +123,8 @@ export default class Users extends Component {
     })
   }
 
-  render () {
-    const { users, intl } = this.props
+  render() {
+    const { groups, users, intl } = this.props
     const { email, password, permission } = this.state
 
     return (
@@ -152,6 +179,7 @@ export default class Users extends Component {
             actions={USER_ACTIONS}
             collection={users}
             columns={USER_COLUMNS}
+            data-groups={groups}
           />
         )}
       </div>
