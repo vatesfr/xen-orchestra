@@ -17,10 +17,8 @@ import {
   forEach,
   groupBy,
   isEmpty,
-  keyBy,
   keys,
   map,
-  mapValues,
   pickBy,
   some,
 } from 'lodash'
@@ -243,17 +241,12 @@ export default class NewXosan extends Component {
     this.setState({ brickSize })
   }
 
-  _getContainerBySr = createSelector(
-    this._getLvmSrs,
-    srs => mapValues(keyBy(srs, 'id'), sr => sr.$container)
-  )
-
   _selectSrs = selectedSrs => {
     const found = {}
-    const containers = this._getContainerBySr()
+    const { srs } = this.props
     if (
-      some(selectedSrs, sr => {
-        const container = containers[sr]
+      some(selectedSrs, id => {
+        const container = srs[id].$container
         const foundContainer = found[container]
         found[container] = true
         return foundContainer
@@ -283,11 +276,13 @@ export default class NewXosan extends Component {
   )
 
   _getDisableCreation = createSelector(
+    () => this.state.srsOnSameHost,
     () => this.state.suggestion,
     () => this.state.suggestions,
     () => this.state.pif,
     this._getNSelectedSrs,
-    (suggestion, suggestions, pif, nSelectedSrs) =>
+    (srsOnSameHost, suggestion, suggestions, pif, nSelectedSrs) =>
+      srsOnSameHost ||
       !suggestions ||
       !suggestions[suggestion] ||
       !pif ||
@@ -364,6 +359,7 @@ export default class NewXosan extends Component {
       hostsNeedRestartByPool !== undefined &&
       hostsNeedRestartByPool[pool.id]
     const architecture = suggestions != null && suggestions[suggestion]
+
     return (
       <Container>
         <Row className='mb-1'>
