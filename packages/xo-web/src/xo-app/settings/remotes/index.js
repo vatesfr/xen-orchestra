@@ -207,6 +207,10 @@ const COLUMNS_SMB_REMOTE = [
     ),
     name: _('remoteAuth'),
   },
+  {
+    itemRenderer: (remote, { formatMessage }) => <span>{remote.disk}</span>,
+    name: 'Disk space',
+  },
 ]
 
 const GROUPED_ACTIONS = [
