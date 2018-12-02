@@ -49,7 +49,7 @@ const TEST_DATA = unsecureRandomBytes(1024)
       })
     })
 
-    describe('outputFile', () => {
+    describe('#outputFile()', () => {
       it('writes data to a file', async () => {
         expect(await handler.outputFile(testFile, TEST_DATA)).toEqual(
           TEST_DATA.data
@@ -57,14 +57,14 @@ const TEST_DATA = unsecureRandomBytes(1024)
       })
     })
 
-    describe('list', () => {
+    describe('#list()', () => {
       it(`should list the content of folder`, async () => {
         await handler.outputFile(testFile, TEST_DATA)
         await expect(await handler.list(testDir)).toEqual(['file'])
       })
     })
 
-    describe('createReadStream', () => {
+    describe('#createReadStream()', () => {
       it(`should return a stream`, async () => {
         await handler.outputFile(testFile, TEST_DATA)
         const buffer = await getStream.buffer(
@@ -74,14 +74,14 @@ const TEST_DATA = unsecureRandomBytes(1024)
         await expect(buffer).toEqual(TEST_DATA)
       })
     })
-    describe('getSize', () => {
+    describe('#getSize()', () => {
       it(`should return the correct size`, async () => {
         await handler.outputFile(testFile, TEST_DATA)
         expect(await handler.getSize(testFile)).toEqual(TEST_DATA.length)
       })
     })
 
-    describe('rename', () => {
+    describe('#rename()', () => {
       it(`should rename the file`, async () => {
         await handler.outputFile(testFile, TEST_DATA)
         await handler.rename(testFile, `${testDir}/file2`)
@@ -91,7 +91,7 @@ const TEST_DATA = unsecureRandomBytes(1024)
       })
     })
 
-    describe('unlink', () => {
+    describe('#unlink()', () => {
       it(`should remove the file`, async () => {
         await handler.outputFile(testFile, TEST_DATA)
         await handler.unlink(testFile)
@@ -100,7 +100,7 @@ const TEST_DATA = unsecureRandomBytes(1024)
       })
     })
 
-    describe('rmdir', () => {
+    describe('#rmdir()', () => {
       it(`should remove folder resursively`, async () => {
         let error
         await handler.outputFile(testFile, TEST_DATA)
