@@ -138,7 +138,7 @@ class Vif extends BaseComponent {
     vif => ipPool => includes(ipPool.networks, vif.network)
   )
 
-  render () {
+  render() {
     const {
       intl: { formatMessage },
       ipPoolsConfigured,
@@ -220,7 +220,10 @@ class Vif extends BaseComponent {
   user: subscribeCurrentUser,
 })
 @connectStore(() => ({
-  isAdmin: createSelector(getUser, user => user && user.permission === 'admin'),
+  isAdmin: createSelector(
+    getUser,
+    user => user && user.permission === 'admin'
+  ),
   isPoolAdmin: getIsPoolAdmin,
   networks: createGetObjectsOfType('network').sort(),
   pool: createGetObject((_, props) => props.location.query.pool),
@@ -241,7 +244,7 @@ export default class NewVm extends BaseComponent {
     router: PropTypes.object,
   }
 
-  constructor () {
+  constructor() {
     super()
 
     this._uniqueId = 0
@@ -250,7 +253,7 @@ export default class NewVm extends BaseComponent {
     this.state = { state: {} }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._reset()
   }
 
@@ -271,7 +274,7 @@ export default class NewVm extends BaseComponent {
 
   // Utils -----------------------------------------------------------------------
 
-  get _isDiskTemplate () {
+  get _isDiskTemplate() {
     const { template } = this.state.state
     return (
       template &&
@@ -804,9 +807,7 @@ export default class NewVm extends BaseComponent {
     const { userSshKeys } = this.props
     const splitKey = newSshKey.split(' ')
     const title =
-      splitKey.length === 3
-        ? splitKey[2].split('\n')[0]
-        : newSshKey.substring(newSshKey.length - 10, newSshKey.length)
+      splitKey.length === 3 ? splitKey[2].split('\n')[0] : newSshKey.slice(-10)
 
     // save key
     addSshKey({
@@ -861,7 +862,7 @@ export default class NewVm extends BaseComponent {
     )
   }
 
-  render () {
+  render() {
     const { pool } = this.props
     return (
       <Page header={this._renderHeader()}>
