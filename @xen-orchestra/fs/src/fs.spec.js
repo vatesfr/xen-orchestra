@@ -51,9 +51,8 @@ const TEST_DATA = unsecureRandomBytes(1024)
 
     describe('#outputFile()', () => {
       it('writes data to a file', async () => {
-        expect(await handler.outputFile(testFile, TEST_DATA)).toEqual(
-          TEST_DATA.data
-        )
+        await handler.outputFile(testFile, TEST_DATA)
+        expect(await handler.readFile(testFile)).toEqual(TEST_DATA)
       })
     })
 
