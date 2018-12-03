@@ -1,7 +1,8 @@
 import createLogger from '@xen-orchestra/log'
+import makeError from 'make-error'
 import { findKey } from 'lodash'
-import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
+import { pCatch, ignoreErrors } from 'promise-toolbox'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -19,8 +20,7 @@ import { Servers } from '../models/server'
 
 // ===================================================================
 
-const CONNECTION_TO_CONNECTED_POOL_ERROR =
-  "the server's pool is already connected"
+const ConnectedPoolError = makeError('ConnectedPoolError')
 
 const log = createLogger('xo:xo-mixins:xen-servers')
 
@@ -264,7 +264,7 @@ export default class {
       const xapisByPool = this._xapisByPool
       const [{ $id: poolId }] = await xapi.getAllRecords('pool')
       if (xapisByPool[poolId] !== undefined) {
-        throw new Error(CONNECTION_TO_CONNECTED_POOL_ERROR)
+        throw new ConnectedPoolError("the server's pool is already connected")
       }
 
       this._xapis[server.id] = xapisByPool[poolId] = xapi
@@ -475,24 +475,19 @@ export default class {
 
     await xapi.ejectHostFromPool(hostId)
 
-    this._getXenServer(
-      findKey(this._xapis, candidate => candidate === xapi)
-    ).then(
-      ({ properties }) =>
-        this.registerXenServer({
+    this._getXenServer(findKey(this._xapis, candidate => candidate === xapi))
+      .then(async ({ properties }) => {
+        const { id } = await this.registerXenServer({
           ...properties,
           host: address,
-        }).then(({ id }) => {
-          const loop = () =>
-            pDelay(6e4).then(() =>
-              this.connectXenServer(id).catch(
-                ({ message }) =>
-                  message === CONNECTION_TO_CONNECTED_POOL_ERROR && loop()
-              )
-            )
-          return loop()
-        }),
-      () => {}
-    )
+        })
+
+        const loop = () =>
+          pDelay(6e4).then(() =>
+            this.connectXenServer(id)::pCatch(ConnectedPoolError, loop)
+          )
+        await loop()
+      })
+      ::ignoreErrors()
   }
 }
