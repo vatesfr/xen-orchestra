@@ -799,10 +799,10 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@marsaud/smb2@^0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.10.0.tgz#7e356b0a4735d1f1b924c2977a4c4e59508c9a89"
-  integrity sha512-lzUulrW2xZ72zizSSu8/suUvntfvTVLr5ixIgB/5lC1pJFYPuE/tPwa3rw6xl3nRQhmVXMSToDVPnOjT7gJGCg==
+"@marsaud/smb2@^0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.11.0.tgz#6e7d7b71342790e7486cf9ece48f7a7c4eeb4904"
+  integrity sha512-SQOPUHz0JRFMJ+plKg6JKYkYSsEDf2LlXuntRyNzlg3kUDNmBHKN5erE2R6nsxv3B7h1nlCcJZSi0HsGfHMTQQ==
   dependencies:
     babel-runtime "^5.8.34"
     bluebird "^3.5.3"

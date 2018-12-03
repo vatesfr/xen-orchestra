@@ -22,6 +22,8 @@ const normalizeError = (error, shouldBeDirectory) => {
     : code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
       code === 'STATUS_OBJECT_PATH_NOT_FOUND'
     ? new ErrorWrapper(error, 'ENOENT')
+    : code === 'STATUS_OBJECT_NAME_COLLISION'
+    ? new ErrorWrapper(error, 'EEXIST')
     : code === 'STATUS_NOT_SUPPORTED' || code === 'STATUS_INVALID_PARAMETER'
     ? new ErrorWrapper(error, shouldBeDirectory ? 'ENOTDIR' : 'EISDIR')
     : error
