@@ -236,7 +236,7 @@ export const Vdi = decorate([
     // FIXME: props.self ugly workaround to get object as a self user
     return (state, props) => ({
       vdi: getObject(state, props, props.self),
-      sr: getSr(state, props, props.self),
+      sr: getSr(state, props),
     })
   }),
   ({ sr, vdi }) => {
