@@ -8,8 +8,11 @@
 
 ### Bug fixes
 
+- [Home/SRs] Fixed SR status for non admin users [#2204](https://github.com/vatesfr/xen-orchestra/issues/2204) (PR [#3742](https://github.com/vatesfr/xen-orchestra/pull/3742))
+
 ### Released packages
 
+- xo-acl-resolver v0.4.1
 - xo-server v5.32.0
 - xo-web v5.32.0
 
