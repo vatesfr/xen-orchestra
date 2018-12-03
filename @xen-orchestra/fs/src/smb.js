@@ -80,6 +80,8 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       }
 
       return await client.writeFile(path, data, options)
+    } catch (error) {
+      throw normalizeError(error)
     } finally {
       client.disconnect()
     }
@@ -97,7 +99,9 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       ;({ client, file } = file.fd)
     }
 
-    return client.read(file, buffer, 0, buffer.length, position)
+    return client
+      .read(file, buffer, 0, buffer.length, position)
+      .catch(normalizeError)
   }
 
   async _readFile(file, options = {}) {
@@ -194,7 +198,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       return stream
     } catch (err) {
       client.disconnect()
-      throw err
+      throw normalizeError(err)
     }
   }
 
@@ -227,13 +231,13 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     const client = this._getClient()
     return {
       client,
-      file: await client.open(this._getFilePath(path)),
+      file: await client.open(this._getFilePath(path)).catch(normalizeError),
     }
   }
 
   async _closeFile({ client, file }) {
     try {
-      await client.close(file)
+      await client.close(file).catch(normalizeError)
     } finally {
       client.disconnect()
     }
