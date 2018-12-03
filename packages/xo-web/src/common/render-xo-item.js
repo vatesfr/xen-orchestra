@@ -192,7 +192,7 @@ export const Sr = decorate([
       container: getContainer(state, props),
     })
   }),
-  ({ sr, container, link, newTab }) => {
+  ({ sr, container, link, newTab, showSize }) => {
     if (sr === undefined) {
       return UNKNOWN_ITEM
     }
@@ -203,7 +203,7 @@ export const Sr = decorate([
         {container !== undefined && (
           <span className='text-muted'> - {container.name_label}</span>
         )}
-        {isSrWritable(sr) && (
+        {showSize && isSrWritable(sr) && (
           <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
         )}
       </LinkWrapper>
