@@ -5,7 +5,7 @@
 ### Enhancements
 
 - [Users] Display user groups [#3719](https://github.com/vatesfr/xen-orchestra/issues/3719) (PR [#3740](https://github.com/vatesfr/xen-orchestra/pull/3740))
-- [VDI] Display VDI's SR and container [3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3281](https://github.com/vatesfr/xen-orchestra/pull/3285))
+- [VDI] Display VDI's SR [3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3281](https://github.com/vatesfr/xen-orchestra/pull/3285))
 
 ### Bug fixes
 
