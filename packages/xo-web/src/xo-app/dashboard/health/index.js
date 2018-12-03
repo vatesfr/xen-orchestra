@@ -157,7 +157,7 @@ const ORPHANED_VDI_COLUMNS = [
   },
   {
     name: _('vdiSr'),
-    itemRenderer: vdi => <Sr id={vdi.$SR} link showSize={false} />,
+    itemRenderer: vdi => <Sr id={vdi.$SR} link spaceLeft={false} />,
   },
 ]
 

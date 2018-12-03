@@ -192,7 +192,7 @@ export const Sr = decorate([
       container: getContainer(state, props),
     })
   }),
-  ({ sr, container, link, newTab, showSize }) => {
+  ({ sr, container, link, newTab, spaceLeft }) => {
     if (sr === undefined) {
       return UNKNOWN_ITEM
     }
@@ -203,7 +203,7 @@ export const Sr = decorate([
         {container !== undefined && (
           <span className='text-muted'> - {container.name_label}</span>
         )}
-        {showSize && isSrWritable(sr) && (
+        {spaceLeft && isSrWritable(sr) && (
           <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
         )}
       </LinkWrapper>
@@ -216,12 +216,14 @@ Sr.propTypes = {
   link: PropTypes.bool,
   newTab: PropTypes.bool,
   self: PropTypes.bool,
+  spaceLeft: PropTypes.bool,
 }
 
 Sr.defaultProps = {
   link: false,
   newTab: false,
   self: false,
+  spaceLeft: true,
 }
 
 // ===================================================================
