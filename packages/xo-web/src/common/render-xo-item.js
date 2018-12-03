@@ -68,7 +68,12 @@ export const Host = decorate([
     const getHost = createGetObject()
     return {
       host: getHost,
-      pool: createGetObject(createSelector(getHost, host => host.$pool)),
+      pool: createGetObject(
+        createSelector(
+          getHost,
+          host => get(() => host.$pool)
+        )
+      ),
     }
   }),
   ({ host, pool, link, newTab }) => {
@@ -104,7 +109,10 @@ export const Vm = decorate([
     return {
       vm: getVm,
       container: createGetObject(
-        createSelector(getVm, vm => get(() => vm.$container))
+        createSelector(
+          getVm,
+          vm => get(() => vm.$container)
+        )
       ),
     }
   }),
@@ -158,11 +166,13 @@ export const VmTemplate = decorate([
 
 VmTemplate.propTypes = {
   id: PropTypes.string.isRequired,
+  self: PropTypes.bool,
 }
 
 VmTemplate.defaultProps = {
   link: false,
   newTab: false,
+  self: false,
 }
 
 // ===================================================================
@@ -171,7 +181,10 @@ export const Sr = decorate([
   connectStore(() => {
     const getSr = createGetObject()
     const getContainer = createGetObject(
-      createSelector(getSr, sr => get(() => sr.$container))
+      createSelector(
+        getSr,
+        sr => get(() => sr.$container)
+      )
     )
     return (state, props) => ({
       // FIXME: props.self ugly workaround to get object as a self user
@@ -202,11 +215,13 @@ Sr.propTypes = {
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
   newTab: PropTypes.bool,
+  self: PropTypes.bool,
 }
 
 Sr.defaultProps = {
   link: false,
   newTab: false,
+  self: false,
 }
 
 // ===================================================================
@@ -235,6 +250,11 @@ export const Vdi = decorate([
 
 Vdi.propTypes = {
   id: PropTypes.string.isRequired,
+  self: PropTypes.bool,
+}
+
+Vdi.defaultProps = {
+  self: false,
 }
 
 // ===================================================================
@@ -262,6 +282,11 @@ export const Network = decorate([
 
 Network.propTypes = {
   id: PropTypes.string.isRequired,
+  self: PropTypes.bool,
+}
+
+Network.defaultProps = {
+  self: false,
 }
 
 // ===================================================================
