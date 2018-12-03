@@ -29,10 +29,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return noop()
   }
 
-  async _outputFile(file, data, options) {
+  async _outputFile(file, data, { flags }) {
     const path = this._getFilePath(file)
     await fs.ensureDir(dirname(path))
-    await fs.writeFile(path, data, options)
+    await fs.writeFile(path, data, { flag: flags })
   }
 
   async _read(file, buffer, position) {
