@@ -5,13 +5,13 @@ import copy from 'copy-to-clipboard'
 import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
-import Link from 'link'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import { Sr } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
   createGetObjectsOfType,
@@ -110,7 +110,7 @@ const COLUMNS_VM_PV = [
             value={sr}
             xoType='SR'
           >
-            <Link to={`/srs/${sr.id}`}>{sr.name_label}</Link>
+            <Sr id={sr.id} link />
           </XoSelect>
         )
       )
@@ -259,11 +259,12 @@ class NewDisk extends Component {
     resolveResourceSet
   )
 
-  _getResourceSetDiskLimit = createSelector(this._getResourceSet, resourceSet =>
-    get(resourceSet, 'limits.disk.available')
+  _getResourceSetDiskLimit = createSelector(
+    this._getResourceSet,
+    resourceSet => get(resourceSet, 'limits.disk.available')
   )
 
-  render () {
+  render() {
     const { vm, isAdmin } = this.props
     const { formatMessage } = this.props.intl
     const { size, sr, name, bootable, readOnly } = this.state
@@ -398,7 +399,7 @@ class AttachDisk extends Component {
     }).then(onClose)
   }
 
-  render () {
+  render() {
     const { vm } = this.props
     const { vdi } = this.state
 
@@ -485,7 +486,7 @@ class OrderItem extends Component {
     this.forceUpdate()
   }
 
-  render () {
+  render() {
     const { item, connectDragSource, connectDropTarget } = this.props
     return connectDragSource(
       connectDropTarget(
@@ -507,7 +508,7 @@ class BootOrder extends Component {
     vm: PropTypes.object.isRequired,
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     const { vm } = props
     const order = parseBootOrder(vm.boot && vm.boot.order)
@@ -539,7 +540,7 @@ class BootOrder extends Component {
     return setVmBootOrder(vm, order).then(onClose)
   }
 
-  render () {
+  render() {
     const { order } = this.state
 
     return (
@@ -572,11 +573,11 @@ class BootOrder extends Component {
 }
 
 class MigrateVdiModalBody extends Component {
-  get value () {
+  get value() {
     return this.state
   }
 
-  render () {
+  render() {
     return (
       <Container>
         <SingleLineRow>
@@ -604,7 +605,7 @@ class MigrateVdiModalBody extends Component {
   allVbds: createGetObjectsOfType('VBD'),
 }))
 export default class TabDisks extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       attachDisk: false,
@@ -706,7 +707,7 @@ export default class TabDisks extends Component {
     },
   ]
 
-  render () {
+  render() {
     const { srs, vbds, vdis, vm } = this.props
 
     const { attachDisk, bootOrder, newDisk } = this.state
