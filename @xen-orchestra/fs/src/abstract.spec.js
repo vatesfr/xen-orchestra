@@ -7,7 +7,7 @@ import AbstractHandler from './abstract'
 const TIMEOUT = 10e3
 
 class TestHandler extends AbstractHandler {
-  constructor (impl) {
+  constructor(impl) {
     super({ url: 'test://' }, { timeout: TIMEOUT })
 
     Object.keys(impl).forEach(method => {

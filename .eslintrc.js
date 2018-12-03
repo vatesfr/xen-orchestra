@@ -21,5 +21,8 @@ module.exports = {
     'node/no-extraneous-import': 'error',
     'node/no-extraneous-require': 'error',
     'prefer-const': 'error',
+
+    // See https://github.com/prettier/eslint-config-prettier/issues/65
+    'react/jsx-indent': 'off',
   },
 }

@@ -388,7 +388,7 @@ export default {
   homeMigrateTo: 'Migrar a…',
 
   // Original text: 'Missing patches'
-  homeMissingPaths: undefined,
+  homeMissingPatches: undefined,
 
   // Original text: 'Master:'
   homePoolMaster: undefined,

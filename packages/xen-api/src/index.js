@@ -22,6 +22,7 @@ import {
   cancelable,
   defer,
   fromEvents,
+  ignoreErrors,
   pCatch,
   pDelay,
   pFinally,
@@ -87,7 +88,7 @@ const isSessionInvalid = ({ code }) => code === 'SESSION_INVALID'
 // -------------------------------------------------------------------
 
 class XapiError extends BaseError {
-  constructor (code, params) {
+  constructor(code, params) {
     super(`${code}(${params.join(', ')})`)
 
     this.code = code
@@ -209,7 +210,7 @@ const getTaskResult = task => {
   }
 }
 
-function defined () {
+function defined() {
   for (let i = 0, n = arguments.length; i < n; ++i) {
     const arg = arguments[i]
     if (arg !== undefined) {
@@ -245,16 +246,19 @@ const DISCONNECTED = 'disconnected'
 // -------------------------------------------------------------------
 
 export class Xapi extends EventEmitter {
-  constructor (opts) {
+  constructor(opts) {
     super()
 
     this._allowUnauthorized = opts.allowUnauthorized
     this._auth = opts.auth
     this._callTimeout = makeCallSetting(opts.callTimeout, 0)
+    this._debounce = opts.debounce == null ? 200 : opts.debounce
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = createObject(null)
     this._sessionId = null
+    ;(this._objects = new Collection()).getKey = getKey
+    ;(this._objectsByRef = createObject(null))[NULL_REF] = undefined
     const url = (this._url = parseUrl(opts.url))
 
     if (this._auth === undefined) {
@@ -269,39 +273,39 @@ export class Xapi extends EventEmitter {
       }
     }
 
+    // Memoize this function _addObject().
+    this._getPool = () => this._pool
+
     if (opts.watchEvents !== false) {
-      this._debounce = opts.debounce == null ? 200 : opts.debounce
-
-      this._eventWatchers = createObject(null)
-
-      this._fromToken = ''
-
-      // Memoize this function _addObject().
-      this._getPool = () => this._pool
-
-      this._nTasks = 0
-
-      const objects = (this._objects = new Collection())
-      objects.getKey = getKey
-
-      this._objectsByRef = createObject(null)
-      this._objectsByRef[NULL_REF] = undefined
-
-      this._taskWatchers = Object.create(null)
-
-      this.on('connected', this._watchEvents)
-      this.on('disconnected', () => {
-        this._fromToken = ''
-        objects.clear()
-      })
+      this.watchEvents()
     }
   }
 
-  get _url () {
+  watchEvents() {
+    this._eventWatchers = createObject(null)
+
+    this._fromToken = ''
+
+    this._nTasks = 0
+
+    this._taskWatchers = Object.create(null)
+
+    if (this.status === CONNECTED) {
+      ignoreErrors.call(this._watchEvents())
+    }
+
+    this.on('connected', this._watchEvents)
+    this.on('disconnected', () => {
+      this._fromToken = ''
+      this._objects.clear()
+    })
+  }
+
+  get _url() {
     return this.__url
   }
 
-  set _url (url) {
+  set _url(url) {
     this.__url = url
     this._call = autoTransport({
       allowUnauthorized: this._allowUnauthorized,
@@ -309,15 +313,15 @@ export class Xapi extends EventEmitter {
     })
   }
 
-  get readOnly () {
+  get readOnly() {
     return this._readOnly
   }
 
-  set readOnly (ro) {
+  set readOnly(ro) {
     this._readOnly = Boolean(ro)
   }
 
-  get sessionId () {
+  get sessionId() {
     const id = this._sessionId
 
     if (!id || id === CONNECTING) {
@@ -327,20 +331,20 @@ export class Xapi extends EventEmitter {
     return id
   }
 
-  get status () {
+  get status() {
     const id = this._sessionId
 
     return id ? (id === CONNECTING ? CONNECTING : CONNECTED) : DISCONNECTED
   }
 
-  get _humanId () {
+  get _humanId() {
     return `${this._auth.user}@${this._url.hostname}`
   }
 
   // ensure we have received all events up to this call
   //
   // optionally returns the up to date object for the given ref
-  barrier (ref) {
+  barrier(ref) {
     const eventWatchers = this._eventWatchers
     if (eventWatchers === undefined) {
       return Promise.reject(
@@ -381,7 +385,7 @@ export class Xapi extends EventEmitter {
     )
   }
 
-  connect () {
+  connect() {
     const { status } = this
 
     if (status === CONNECTED) {
@@ -418,7 +422,7 @@ export class Xapi extends EventEmitter {
     )
   }
 
-  disconnect () {
+  disconnect() {
     return Promise.resolve().then(() => {
       const { status } = this
 
@@ -437,14 +441,14 @@ export class Xapi extends EventEmitter {
   }
 
   // High level calls.
-  call (method, ...args) {
+  call(method, ...args) {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(method, prepareParam(args))
   }
 
   @cancelable
-  callAsync ($cancelToken, method, ...args) {
+  callAsync($cancelToken, method, ...args) {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(`Async.${method}`, args).then(taskRef => {
@@ -463,7 +467,7 @@ export class Xapi extends EventEmitter {
   //
   //  allowed even in read-only mode because it does not have impact on the
   //  XenServer and it's necessary for getResource()
-  createTask (nameLabel, nameDescription = '') {
+  createTask(nameLabel, nameDescription = '') {
     const promise = this._sessionCall('task.create', [
       nameLabel,
       nameDescription,
@@ -481,7 +485,7 @@ export class Xapi extends EventEmitter {
   // Nice getter which returns the object for a given $id (internal to
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
-  getObject (idOrUuidOrRef, defaultValue) {
+  getObject(idOrUuidOrRef, defaultValue) {
     if (typeof idOrUuidOrRef === 'object') {
       idOrUuidOrRef = idOrUuidOrRef.$id
     }
@@ -498,7 +502,7 @@ export class Xapi extends EventEmitter {
 
   // Returns the object for a given opaque reference (internal to
   // XAPI).
-  getObjectByRef (ref, defaultValue) {
+  getObjectByRef(ref, defaultValue) {
     const object = this._objectsByRef[ref]
 
     if (object !== undefined) return object
@@ -510,7 +514,7 @@ export class Xapi extends EventEmitter {
 
   // Returns the object for a given UUID (unique identifier that some
   // objects have).
-  getObjectByUuid (uuid, defaultValue) {
+  getObjectByUuid(uuid, defaultValue) {
     // Objects ids are already UUIDs if they have one.
     const object = this._objects.all[uuid]
 
@@ -521,13 +525,20 @@ export class Xapi extends EventEmitter {
     throw new Error('no object with UUID: ' + uuid)
   }
 
-  async getRecord (type, ref) {
+  async getRecord(type, ref) {
     return this._wrapRecord(
       await this._sessionCall(`${type}.get_record`, [ref])
     )
   }
 
-  async getRecordByUuid (type, uuid) {
+  async getAllRecords(type) {
+    return map(
+      await this._sessionCall(`${type}.get_all_records`),
+      (record, ref) => this._wrapRecord(type, ref, record)
+    )
+  }
+
+  async getRecordByUuid(type, uuid) {
     return this.getRecord(
       type,
       await this._sessionCall(`${type}.get_by_uuid`, [uuid])
@@ -535,7 +546,7 @@ export class Xapi extends EventEmitter {
   }
 
   @cancelable
-  getResource ($cancelToken, pathname, { host, query, task }) {
+  getResource($cancelToken, pathname, { host, query, task }) {
     return this._autoTask(task, `Xapi#getResource ${pathname}`).then(
       taskRef => {
         query = { ...query, session_id: this.sessionId }
@@ -575,7 +586,7 @@ export class Xapi extends EventEmitter {
   }
 
   @cancelable
-  putResource ($cancelToken, body, pathname, { host, query, task } = {}) {
+  putResource($cancelToken, body, pathname, { host, query, task } = {}) {
     if (this._readOnly) {
       return Promise.reject(
         new Error(new Error('cannot put resource in read only mode'))
@@ -681,11 +692,11 @@ export class Xapi extends EventEmitter {
     )
   }
 
-  setField ({ $type, $ref }, field, value) {
+  setField({ $type, $ref }, field, value) {
     return this.call(`${$type}.set_${field}`, $ref, value).then(noop)
   }
 
-  setFieldEntries (record, field, entries) {
+  setFieldEntries(record, field, entries) {
     return Promise.all(
       getKeys(entries).map(entry => {
         const value = entries[entry]
@@ -698,7 +709,7 @@ export class Xapi extends EventEmitter {
     ).then(noop)
   }
 
-  async setFieldEntry ({ $type, $ref }, field, entry, value) {
+  async setFieldEntry({ $type, $ref }, field, entry, value) {
     while (true) {
       try {
         await this.call(`${$type}.add_to_${field}`, $ref, entry, value)
@@ -712,11 +723,11 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  unsetFieldEntry ({ $type, $ref }, field, entry) {
+  unsetFieldEntry({ $type, $ref }, field, entry) {
     return this.call(`${$type}.remove_from_${field}`, $ref, entry)
   }
 
-  watchTask (ref) {
+  watchTask(ref) {
     const watchers = this._taskWatchers
     if (watchers === undefined) {
       throw new Error('Xapi#watchTask() requires events watching')
@@ -741,16 +752,16 @@ export class Xapi extends EventEmitter {
     return watcher.promise
   }
 
-  get pool () {
+  get pool() {
     return this._pool
   }
 
-  get objects () {
+  get objects() {
     return this._objects
   }
 
   // return a promise which resolves to a task ref or undefined
-  _autoTask (task = this._taskWatchers !== undefined, name) {
+  _autoTask(task = this._taskWatchers !== undefined, name) {
     if (task === false) {
       return Promise.resolve()
     }
@@ -764,7 +775,7 @@ export class Xapi extends EventEmitter {
   }
 
   // Medium level call: handle session errors.
-  _sessionCall (method, args) {
+  _sessionCall(method, args) {
     try {
       if (startsWith(method, 'session.')) {
         throw new Error('session.*() methods are disabled from this interface')
@@ -795,7 +806,7 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  _addObject (type, ref, object) {
+  _addObject(type, ref, object) {
     object = this._wrapRecord(type, ref, object)
 
     // Finally freezes the object.
@@ -842,7 +853,7 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  _removeObject (type, ref) {
+  _removeObject(type, ref) {
     const byRefs = this._objectsByRef
     const object = byRefs[ref]
     if (object !== undefined) {
@@ -865,7 +876,7 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  _processEvents (events) {
+  _processEvents(events) {
     forEach(events, event => {
       const { class: type, ref } = event
       if (event.operation === 'del') {
@@ -876,7 +887,7 @@ export class Xapi extends EventEmitter {
     })
   }
 
-  _watchEvents () {
+  _watchEvents() {
     const loop = () =>
       this.status === CONNECTED &&
       pTimeout
@@ -949,7 +960,7 @@ export class Xapi extends EventEmitter {
   // methods.
   //
   // It also has to manually get all objects first.
-  _watchEventsLegacy () {
+  _watchEventsLegacy() {
     const getAllObjects = () => {
       return this._sessionCall('system.listMethods').then(methods => {
         // Uses introspection to determine the methods to use to get
@@ -1001,7 +1012,7 @@ export class Xapi extends EventEmitter {
     return getAllObjects().then(watchEvents)
   }
 
-  _wrapRecord (type, ref, data) {
+  _wrapRecord(type, ref, data) {
     const RecordsByType = this._RecordsByType
     let Record = RecordsByType[type]
     if (Record === undefined) {
@@ -1012,7 +1023,7 @@ export class Xapi extends EventEmitter {
       const objectsByRef = this._objectsByRef
       const getObjectByRef = ref => objectsByRef[ref]
 
-      Record = function (ref, data) {
+      Record = function(ref, data) {
         defineProperties(this, {
           $id: { value: data.uuid || ref },
           $ref: { value: ref },
@@ -1026,7 +1037,7 @@ export class Xapi extends EventEmitter {
       const getters = { $pool: this._getPool }
       const props = { $type: type }
       fields.forEach(field => {
-        props[`set_${field}`] = function (value) {
+        props[`set_${field}`] = function(value) {
           return xapi.setField(this, field, value)
         }
 
@@ -1035,19 +1046,19 @@ export class Xapi extends EventEmitter {
         const value = data[field]
         if (isArray(value)) {
           if (value.length === 0 || isOpaqueRef(value[0])) {
-            getters[$field] = function () {
+            getters[$field] = function() {
               const value = this[field]
               return value.length === 0 ? value : value.map(getObjectByRef)
             }
           }
 
-          props[`add_to_${field}`] = function (...values) {
+          props[`add_to_${field}`] = function(...values) {
             return xapi
               .call(`${type}.add_${field}`, this.$ref, values)
               .then(noop)
           }
         } else if (value !== null && typeof value === 'object') {
-          getters[$field] = function () {
+          getters[$field] = function() {
             const value = this[field]
             const result = {}
             getKeys(value).forEach(key => {
@@ -1055,11 +1066,11 @@ export class Xapi extends EventEmitter {
             })
             return result
           }
-          props[`update_${field}`] = function (entries) {
+          props[`update_${field}`] = function(entries) {
             return xapi.setFieldEntries(this, field, entries)
           }
         } else if (isOpaqueRef(value)) {
-          getters[$field] = function () {
+          getters[$field] = function() {
             return objectsByRef[this[field]]
           }
         }
@@ -1088,7 +1099,7 @@ export class Xapi extends EventEmitter {
 
 Xapi.prototype._transportCall = reduce(
   [
-    function (method, args) {
+    function(method, args) {
       return this._call(method, args).catch(error => {
         if (!(error instanceof Error)) {
           error = wrapError(error)
@@ -1102,7 +1113,7 @@ Xapi.prototype._transportCall = reduce(
       })
     },
     call =>
-      function () {
+      function() {
         let iterator // lazily created
         const loop = () =>
           pCatch.call(
@@ -1143,7 +1154,7 @@ Xapi.prototype._transportCall = reduce(
         return loop()
       },
     call =>
-      function loop () {
+      function loop() {
         return pCatch.call(
           call.apply(this, arguments),
           isHostSlave,
@@ -1166,7 +1177,7 @@ Xapi.prototype._transportCall = reduce(
         )
       },
     call =>
-      function (method) {
+      function(method) {
         const startTime = Date.now()
         return call.apply(this, arguments).then(
           result => {

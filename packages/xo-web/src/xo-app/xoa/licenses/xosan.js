@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
-import renderXoItem, { PoolItem } from 'render-xo-item'
+import renderXoItem, { Pool } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
@@ -69,7 +69,7 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanPool'),
-    itemRenderer: sr => <PoolItem id={sr.$pool} link />,
+    itemRenderer: sr => <Pool id={sr.$pool} link />,
   },
   {
     name: _('xosanLicense'),

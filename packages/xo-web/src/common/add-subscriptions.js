@@ -1,5 +1,5 @@
-import map from 'lodash/map'
 import React from 'react'
+import { map, mapValues, noop } from 'lodash'
 
 const call = fn => fn()
 
@@ -7,30 +7,33 @@ const call = fn => fn()
 // callbacks have been correctly initialized when there are circular dependencies
 const addSubscriptions = subscriptions => Component =>
   class SubscriptionWrapper extends React.PureComponent {
-    _unsubscribes = null
-
-    componentWillMount () {
-      const state = {}
-      this._unsubscribes = map(
-        typeof subscriptions === 'function'
-          ? subscriptions(this.props)
-          : subscriptions,
-        (subscribe, prop) => {
-          state[prop] = undefined
-          return subscribe(value => this.setState({ [prop]: value }))
-        }
-      )
+    constructor(props) {
+      super(props)
 
       // provide all props since the beginning (better behavior with Freactal)
-      this.setState(state)
+      this.state = mapValues(
+        (this._subscribes =
+          typeof subscriptions === 'function'
+            ? subscriptions(props)
+            : subscriptions),
+        noop
+      )
     }
 
-    componentWillUnmount () {
+    _unsubscribes = undefined
+
+    componentDidMount() {
+      this._unsubscribes = map(this._subscribes, (subscribe, prop) =>
+        subscribe(value => this.setState({ [prop]: value }))
+      )
+    }
+
+    componentWillUnmount() {
       this._unsubscribes.forEach(call)
-      this._unsubscribes = null
+      this._unsubscribes = undefined
     }
 
-    render () {
+    render() {
       return <Component {...this.props} {...this.state} />
     }
   }

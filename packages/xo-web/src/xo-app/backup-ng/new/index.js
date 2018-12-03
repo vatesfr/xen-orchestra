@@ -21,7 +21,7 @@ import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
 import { Number } from 'form'
-import { renderXoItemFromId, RemoteItem } from 'render-xo-item'
+import { renderXoItemFromId, Remote } from 'render-xo-item'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
@@ -44,6 +44,7 @@ import NewSchedule from './new-schedule'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
 import {
+  canDeltaBackup,
   destructPattern,
   FormFeedback,
   FormGroup,
@@ -112,7 +113,6 @@ const constructPattern = values =>
 const destructVmsPattern = pattern =>
   pattern.id === undefined
     ? {
-        $pool: destructSmartPattern(pattern.$pool),
         tags: destructSmartPattern(pattern.tags, flatten),
       }
     : {
@@ -143,7 +143,6 @@ const createDoesRetentionExist = name => {
 
 const getInitialState = () => ({
   _vmsPattern: undefined,
-  $pool: {},
   backupMode: false,
   compression: undefined,
   crMode: false,
@@ -160,7 +159,7 @@ const getInitialState = () => ({
   snapshotMode: false,
   srs: [],
   tags: {
-    notValues: ['Continuous Replication', 'Disaster Recovery'],
+    notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
   },
   vms: [],
 })
@@ -177,14 +176,6 @@ const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
     {_('deleteOldBackupsFirst')}
   </ActionButton>
 )
-
-const canDeltaBackup = version => {
-  if (version === undefined) {
-    return false
-  }
-  const [major, minor] = version.split('.')
-  return +major > 6 || (+major === 6 && +minor >= 5)
-}
 
 export default decorate([
   New => props => (
@@ -486,20 +477,6 @@ export default decorate([
       onVmsPatternChange: (_, _vmsPattern) => ({
         _vmsPattern,
       }),
-      setPoolValues: (_, values) => state => ({
-        ...state,
-        $pool: {
-          ...state.$pool,
-          values,
-        },
-      }),
-      setPoolNotValues: (_, notValues) => state => ({
-        ...state,
-        $pool: {
-          ...state.$pool,
-          notValues,
-        },
-      }),
       setTagValues: (_, values) => state => ({
         ...state,
         tags: {
@@ -601,9 +578,8 @@ export default decorate([
       snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
-      vmsSmartPattern: ({ $pool, tags, vmsPattern }) => ({
+      vmsSmartPattern: ({ tags, vmsPattern }) => ({
         ...vmsPattern,
-        $pool: constructSmartPattern($pool, resolveIds),
         tags: constructSmartPattern(tags, normalizeTagValues),
       }),
       vmPredicate: ({ isDelta }, { hostsById, poolsById }) => ({
@@ -614,8 +590,6 @@ export default decorate([
           get(() => hostsById[$container].version) ||
             get(() => hostsById[poolsById[$container].master].version)
         ),
-      poolPredicate: ({ isDelta }, { hostsById }) => pool =>
-        !isDelta || canDeltaBackup(get(() => hostsById[pool.master].version)),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
       propSettings: (_, { job }) =>
@@ -788,7 +762,7 @@ export default decorate([
                         <Ul>
                           {map(state.remotes, (id, key) => (
                             <Li key={id}>
-                              <RemoteItem id={id} />
+                              <Remote id={id} />
                               <div className='pull-right'>
                                 <DeleteOldBackupsFirst
                                   handler={effects.setTargetDeleteFirst}
@@ -988,6 +962,7 @@ export default decorate([
                   {state.smartMode ? (
                     <Upgrade place='newBackup' required={3}>
                       <SmartBackup
+                        deltaMode={state.isDelta}
                         onChange={effects.onVmsPatternChange}
                         pattern={state.vmsPattern}
                       />

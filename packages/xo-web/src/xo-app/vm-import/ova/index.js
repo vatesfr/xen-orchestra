@@ -85,13 +85,13 @@ const filterDisks = disks => {
 // ===================================================================
 /* global FileReader */
 
-async function readFileFragment (file, start = 0, end) {
+async function readFileFragment(file, start = 0, end) {
   const reader = new FileReader()
   reader.readAsArrayBuffer(file.slice(start, end))
   return (await fromEvent(reader, 'loadend')).target.result
 }
 
-function parseTarHeader (header) {
+function parseTarHeader(header) {
   const fileName = Buffer.from(header.slice(0, 100))
     .toString('ascii')
     .split('\0')[0]
@@ -105,7 +105,7 @@ function parseTarHeader (header) {
   return { fileName, fileSize }
 }
 
-async function parseOVF (fileFragment) {
+async function parseOVF(fileFragment) {
   const xmlString = Buffer.from(await readFileFragment(fileFragment)).toString()
   return new Promise((resolve, reject) =>
     xml2js.parseString(
@@ -172,7 +172,7 @@ async function parseOVF (fileFragment) {
   )
 }
 
-async function parseTarFile (file) {
+async function parseTarFile(file) {
   let offset = 0
   const HEADER_SIZE = 512
   let data = { tables: {} }

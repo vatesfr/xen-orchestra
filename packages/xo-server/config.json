@@ -45,6 +45,7 @@
   "remoteOptions": {
     "mountsDir": "/run/xo-server/mounts",
 
+    // timeout in milliseconds (set to 0 to disable)
     "timeout": 600e3
   },
 

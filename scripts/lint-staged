@@ -6,7 +6,7 @@ const formatFiles = files => {
 const testFiles = files => {
   run(
     './node_modules/.bin/eslint',
-    ['--ignore-pattern', '!*', '--fix'].concat(files)
+    ['--ignore-pattern', '!*'].concat(files)
   )
   run(
     './node_modules/.bin/jest',

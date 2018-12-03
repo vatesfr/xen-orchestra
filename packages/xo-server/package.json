@@ -1,6 +1,6 @@
 {
   "name": "xo-server",
-  "version": "5.30.1",
+  "version": "5.31.1",
   "license": "AGPL-3.0",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -38,7 +38,7 @@
     "@xen-orchestra/log": "^0.1.4",
     "@xen-orchestra/mixin": "^0.0.0",
     "ajv": "^6.1.1",
-    "app-conf": "^0.6.0",
+    "app-conf": "^0.6.1",
     "archiver": "^3.0.0",
     "async-iterator-to-stream": "^1.0.1",
     "base64url": "^3.0.0",
@@ -115,7 +115,7 @@
     "value-matcher": "^0.2.0",
     "vhd-lib": "^0.4.0",
     "ws": "^6.0.0",
-    "xen-api": "^0.21.0",
+    "xen-api": "^0.22.0",
     "xml2js": "^0.4.19",
     "xo-acl-resolver": "^0.4.0",
     "xo-collection": "^0.4.1",

@@ -13,11 +13,11 @@ import { forEach, map, mapFilter, parseSize } from '../utils'
 
 // ===================================================================
 
-export function getHaValues () {
+export function getHaValues() {
   return ['best-effort', 'restart', '']
 }
 
-function checkPermissionOnSrs (vm, permission = 'operate') {
+function checkPermissionOnSrs(vm, permission = 'operate') {
   const permissions = []
   forEach(vm.$VBDs, vbdId => {
     const vbd = this.getObject(vbdId, 'VBD')
@@ -44,7 +44,7 @@ const extract = (obj, prop) => {
 }
 
 // TODO: Implement ACLs
-export async function create (params) {
+export async function create(params) {
   const { user } = this
   const resourceSet = extract(params, 'resourceSet')
   const template = extract(params, 'template')
@@ -325,7 +325,7 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-async function delete_ ({
+async function delete_({
   delete_disks, // eslint-disable-line camelcase
   force,
   forceDeleteDefaultTemplate,
@@ -403,7 +403,7 @@ export { delete_ as delete }
 
 // -------------------------------------------------------------------
 
-export async function ejectCd ({ vm }) {
+export async function ejectCd({ vm }) {
   await this.getXapi(vm).ejectCdFromVm(vm._xapiId)
 }
 
@@ -417,7 +417,7 @@ ejectCd.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function insertCd ({ vm, vdi, force = true }) {
+export async function insertCd({ vm, vdi, force = true }) {
   await this.getXapi(vm).insertCdIntoVm(vdi._xapiId, vm._xapiId, { force })
 }
 
@@ -436,7 +436,7 @@ insertCd.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function migrate ({
+export async function migrate({
   vm,
   host,
   sr,
@@ -512,7 +512,7 @@ migrate.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function set (params) {
+export async function set(params) {
   const VM = extract(params, 'VM')
   const xapi = this.getXapi(VM)
   const vmId = VM._xapiId
@@ -620,7 +620,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function restart ({ vm, force = false }) {
+export async function restart({ vm, force = false }) {
   const xapi = this.getXapi(vm)
 
   if (force) {
@@ -641,7 +641,7 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export const clone = defer(async function (
+export const clone = defer(async function(
   $defer,
   { vm, name, full_copy: fullCopy }
 ) {
@@ -683,7 +683,7 @@ clone.resolve = {
 // -------------------------------------------------------------------
 
 // TODO: implement resource sets
-export async function copy ({ compress, name: nameLabel, sr, vm }) {
+export async function copy({ compress, name: nameLabel, sr, vm }) {
   if (vm.$pool === sr.$pool) {
     if (vm.power_state === 'Running') {
       await checkPermissionOnSrs.call(this, vm)
@@ -724,7 +724,7 @@ copy.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function convertToTemplate ({ vm }) {
+export async function convertToTemplate({ vm }) {
   // Convert to a template requires pool admin permission.
   await this.checkPermissions(this.user.id, [[vm.$pool, 'administrate']])
 
@@ -745,7 +745,7 @@ export { convertToTemplate as convert }
 // -------------------------------------------------------------------
 
 // TODO: implement resource sets
-export const snapshot = defer(async function (
+export const snapshot = defer(async function(
   $defer,
   { vm, name = `${vm.name_label}_${new Date().toISOString()}` }
 ) {
@@ -773,7 +773,7 @@ snapshot.resolve = {
 
 // -------------------------------------------------------------------
 
-export function rollingDeltaBackup ({
+export function rollingDeltaBackup({
   vm,
   remote,
   tag,
@@ -805,7 +805,7 @@ rollingDeltaBackup.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export function importDeltaBackup ({ sr, remote, filePath, mapVdisSrs }) {
+export function importDeltaBackup({ sr, remote, filePath, mapVdisSrs }) {
   const mapVdisSrsXapi = {}
 
   forEach(mapVdisSrs, (srId, vdiId) => {
@@ -836,7 +836,7 @@ importDeltaBackup.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export function deltaCopy ({ force, vm, retention, sr }) {
+export function deltaCopy({ force, vm, retention, sr }) {
   return this.deltaCopyVm(vm, sr, force, retention)
 }
 
@@ -854,7 +854,7 @@ deltaCopy.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function rollingSnapshot ({ vm, tag, depth, retention = depth }) {
+export async function rollingSnapshot({ vm, tag, depth, retention = depth }) {
   await checkPermissionOnSrs.call(this, vm)
   return this.rollingSnapshotVm(vm, tag, retention)
 }
@@ -876,7 +876,7 @@ rollingSnapshot.description =
 
 // -------------------------------------------------------------------
 
-export function backup ({ vm, remoteId, file, compress }) {
+export function backup({ vm, remoteId, file, compress }) {
   return this.backupVm({ vm, remoteId, file, compress })
 }
 
@@ -897,7 +897,7 @@ backup.description = 'Exports a VM to the file system'
 
 // -------------------------------------------------------------------
 
-export function importBackup ({ remote, file, sr }) {
+export function importBackup({ remote, file, sr }) {
   return this.importVmBackup(remote, file, sr)
 }
 
@@ -918,7 +918,7 @@ importBackup.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export function rollingBackup ({
+export function rollingBackup({
   vm,
   remoteId,
   tag,
@@ -956,7 +956,7 @@ rollingBackup.description =
 
 // -------------------------------------------------------------------
 
-export function rollingDrCopy ({
+export function rollingDrCopy({
   vm,
   pool,
   sr,
@@ -1010,7 +1010,7 @@ rollingDrCopy.description =
 
 // -------------------------------------------------------------------
 
-export function start ({ vm, force, host }) {
+export function start({ vm, force, host }) {
   return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, force)
 }
 
@@ -1031,7 +1031,7 @@ start.resolve = {
 // - if !force → clean shutdown
 // - if force is true → hard shutdown
 // - if force is integer → clean shutdown and after force seconds, hard shutdown.
-export async function stop ({ vm, force }) {
+export async function stop({ vm, force }) {
   const xapi = this.getXapi(vm)
 
   // Hard shutdown
@@ -1066,7 +1066,7 @@ stop.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function suspend ({ vm }) {
+export async function suspend({ vm }) {
   await this.getXapi(vm).call('VM.suspend', vm._xapiRef)
 }
 
@@ -1080,7 +1080,21 @@ suspend.resolve = {
 
 // -------------------------------------------------------------------
 
-export function resume ({ vm }) {
+export async function pause({ vm }) {
+  await this.getXapi(vm).call('VM.pause', vm._xapiRef)
+}
+
+pause.params = {
+  id: { type: 'string' },
+}
+
+pause.resolve = {
+  vm: ['id', 'VM', 'operate'],
+}
+
+// -------------------------------------------------------------------
+
+export function resume({ vm }) {
   return this.getXapi(vm).resumeVm(vm._xapiId)
 }
 
@@ -1094,7 +1108,7 @@ resume.resolve = {
 
 // -------------------------------------------------------------------
 
-export function revert ({ snapshot, snapshotBefore }) {
+export function revert({ snapshot, snapshotBefore }) {
   return this.getXapi(snapshot).revertVm(snapshot._xapiId, snapshotBefore)
 }
 
@@ -1109,7 +1123,7 @@ revert.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExport (req, res, { xapi, id, compress }) {
+async function handleExport(req, res, { xapi, id, compress }) {
   const stream = await xapi.exportVm(id, {
     compress: compress != null ? compress : true,
   })
@@ -1126,7 +1140,7 @@ async function handleExport (req, res, { xapi, id, compress }) {
 }
 
 // TODO: integrate in xapi.js
-async function export_ ({ vm, compress }) {
+async function export_({ vm, compress }) {
   if (vm.power_state === 'Running') {
     await checkPermissionOnSrs.call(this, vm)
   }
@@ -1157,7 +1171,7 @@ export { export_ as export }
 
 // -------------------------------------------------------------------
 
-async function handleVmImport (req, res, { data, srId, type, xapi }) {
+async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
@@ -1172,7 +1186,7 @@ async function handleVmImport (req, res, { data, srId, type, xapi }) {
 }
 
 // TODO: "sr_id" can be passed in URL to target a specific SR
-async function import_ ({ data, sr, type }) {
+async function import_({ data, sr, type }) {
   if (data && type === 'xva') {
     throw invalidParameters('unsupported field data for the file type xva')
   }
@@ -1231,7 +1245,7 @@ export { import_ as import }
 
 // FIXME: if position is used, all other disks after this position
 // should be shifted.
-export async function attachDisk ({ vm, vdi, position, mode, bootable }) {
+export async function attachDisk({ vm, vdi, position, mode, bootable }) {
   await this.getXapi(vm).createVbd({
     bootable,
     mode,
@@ -1260,7 +1274,7 @@ attachDisk.resolve = {
 // -------------------------------------------------------------------
 
 // TODO: implement resource sets
-export async function createInterface ({
+export async function createInterface({
   vm,
   network,
   position,
@@ -1329,7 +1343,7 @@ createInterface.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function attachPci ({ vm, pciId }) {
+export async function attachPci({ vm, pciId }) {
   const xapi = this.getXapi(vm)
 
   await xapi.call('VM.add_to_other_config', vm._xapiRef, 'pci', pciId)
@@ -1346,7 +1360,7 @@ attachPci.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function detachPci ({ vm }) {
+export async function detachPci({ vm }) {
   const xapi = this.getXapi(vm)
 
   await xapi.call('VM.remove_from_other_config', vm._xapiRef, 'pci')
@@ -1361,7 +1375,7 @@ detachPci.resolve = {
 }
 // -------------------------------------------------------------------
 
-export function stats ({ vm, granularity }) {
+export function stats({ vm, granularity }) {
   return this.getXapiVmStats(vm._xapiId, granularity)
 }
 
@@ -1381,7 +1395,7 @@ stats.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function setBootOrder ({ vm, order }) {
+export async function setBootOrder({ vm, order }) {
   const xapi = this.getXapi(vm)
 
   order = { order }
@@ -1404,7 +1418,7 @@ setBootOrder.resolve = {
 
 // -------------------------------------------------------------------
 
-export function recoveryStart ({ vm }) {
+export function recoveryStart({ vm }) {
   return this.getXapi(vm).startVmOnCd(vm._xapiId)
 }
 
@@ -1418,7 +1432,7 @@ recoveryStart.resolve = {
 
 // -------------------------------------------------------------------
 
-export function getCloudInitConfig ({ template }) {
+export function getCloudInitConfig({ template }) {
   return this.getXapi(template).getCloudInitConfig(template._xapiId)
 }
 
@@ -1432,7 +1446,7 @@ getCloudInitConfig.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createCloudInitConfigDrive ({ vm, sr, config, coreos }) {
+export async function createCloudInitConfigDrive({ vm, sr, config, coreos }) {
   const xapi = this.getXapi(vm)
   if (coreos) {
     // CoreOS is a special CloudConfig drive created by XS plugin
@@ -1459,7 +1473,7 @@ createCloudInitConfigDrive.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createVgpu ({ vm, gpuGroup, vgpuType }) {
+export async function createVgpu({ vm, gpuGroup, vgpuType }) {
   // TODO: properly handle device. Can a VM have 2 vGPUS?
   await this.getXapi(vm).createVgpu(
     vm._xapiId,
@@ -1482,7 +1496,7 @@ createVgpu.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function deleteVgpu ({ vgpu }) {
+export async function deleteVgpu({ vgpu }) {
   await this.getXapi(vgpu).deleteVgpu(vgpu._xapiId)
 }
 

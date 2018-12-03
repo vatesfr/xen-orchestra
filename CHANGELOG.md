@@ -2,12 +2,34 @@
 
 ## *next*
 
+- [Backup NG] Add "XOSAN" in excluted tags by default [#2128](https://github.com/vatesfr/xen-orchestra/issues/3563) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3563))
+
 ### Enhancements
+
+- [Users] Display user groups [#3719](https://github.com/vatesfr/xen-orchestra/issues/3719) (PR [#3740](https://github.com/vatesfr/xen-orchestra/pull/3740))
+- [VDI] Display VDI's SR [3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3285](https://github.com/vatesfr/xen-orchestra/pull/3285))
+- [Health/Orphaned VDIs] Display SR's container [#3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3747](https://github.com/vatesfr/xen-orchestra/pull/3747))
+
+### Bug fixes
+
+- [Home/SRs] Fixed SR status for non admin users [#2204](https://github.com/vatesfr/xen-orchestra/issues/2204) (PR [#3742](https://github.com/vatesfr/xen-orchestra/pull/3742))
+
+### Released packages
+
+- xo-acl-resolver v0.4.1
+- xo-server v5.32.0
+- xo-web v5.32.0
+
+## **5.29.0** (2018-11-29)
 
 - [Perf alert] Ability to trigger an alarm if a host/VM/SR usage value is below the threshold [#3612](https://github.com/vatesfr/xen-orchestra/issues/3612) (PR [#3675](https://github.com/vatesfr/xen-orchestra/pull/3675))
 - [Home/VMs] Display pool's name [#2226](https://github.com/vatesfr/xen-orchestra/issues/2226) (PR [#3709](https://github.com/vatesfr/xen-orchestra/pull/3709))
+- [Servers] Prevent new connection if pool is already connected [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3724](https://github.com/vatesfr/xen-orchestra/pull/3724))
+- [VM] Pause (like Suspend but doesn't copy RAM on disk) [#3727](https://github.com/vatesfr/xen-orchestra/issues/3727) (PR [#3731](https://github.com/vatesfr/xen-orchestra/pull/3731))
 
 ### Bug fixes
+
+- [Servers] Fix deleting server on joining a pool [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3728](https://github.com/vatesfr/xen-orchestra/pull/3728))
 
 ### Released packages
 

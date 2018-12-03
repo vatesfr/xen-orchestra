@@ -18,7 +18,7 @@ import { injectState, provideState } from 'reaclette'
 import { isEmpty, groupBy, map, keyBy } from 'lodash'
 import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 import { toggleState } from 'reaclette-utils'
-import { VmItem, SrItem } from 'render-xo-item'
+import { Vm, Sr } from 'render-xo-item'
 
 import LogAlertBody from './log-alert-body'
 import LogAlertHeader from './log-alert-header'
@@ -195,7 +195,7 @@ const LOG_RESTORE_COLUMNS = [
     name: _('labelVm'),
     itemRenderer: ({ id, vm, status }) => (
       <div>
-        {vm !== undefined && <VmItem id={vm.id} link newTab />}
+        {vm !== undefined && <Vm id={vm.id} link newTab />}
         {vm === undefined && status === 'success' && (
           <span className='text-warning'>{_('logsVmNotFound')}</span>
         )}{' '}
@@ -216,7 +216,7 @@ const LOG_RESTORE_COLUMNS = [
   DURATION_COLUMN,
   {
     name: _('labelSr'),
-    itemRenderer: ({ data: { srId } }) => <SrItem id={srId} link newTab />,
+    itemRenderer: ({ data: { srId } }) => <Sr id={srId} link newTab />,
     sortCriteria: ({ data: { srId } }, { srs }) =>
       get(() => srs[srId].name_label),
   },
