@@ -28,10 +28,12 @@ const TEST_DATA = unsecureRandomBytes(1024)
     const testDir = `xo-fs-tests-${Date.now()}`
     const testFile = `${testDir}/file`
 
-    beforeAll(() => {
+    beforeAll(async () => {
       handler = getHandler({ url })
+      await handler.sync()
     })
-    afterAll(() => {
+    afterAll(async () => {
+      await handler.forget()
       handler = undefined
     })
 
