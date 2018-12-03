@@ -86,7 +86,7 @@ const TEST_DATA = unsecureRandomBytes(1024)
         await handler.outputFile(testFile, TEST_DATA)
         await handler.rename(testFile, `${testDir}/file2`)
 
-        expect(await handler.list(testDir)).toContain('file2')
+        expect(await handler.list(testDir)).toEqual(['file2'])
         expect(await handler.readFile(`${testDir}/file2`)).toEqual(TEST_DATA)
       })
     })
