@@ -3,6 +3,7 @@
 import { getHandler } from '.'
 import { tmpdir } from 'os'
 import getStream from 'get-stream'
+require('dotenv').config()
 
 // https://gist.github.com/julien-f/3228c3f34fdac01ade09
 const unsecureRandomBytes = n => {
@@ -30,11 +31,11 @@ const rejectionOf = p =>
     reason => reason
   )
 
-;[
-  `file://${tmpdir()}`,
-  // 'nfs://192.168.100.5:/tank',
-  // 'smb://Administrator:Vates123@WORKGROUP\\\\192.168.100.173\\smb\u0000',
-].forEach(url => {
+const handlers = [`file://${tmpdir()}`]
+if (process.env.xo_fs_nfs) handlers.push(process.env.xo_fs_nfs)
+if (process.env.xo_fs_smb) handlers.push(process.env.xo_fs_smb)
+
+handlers.forEach(url => {
   describe(url, () => {
     let handler
     const testDir = `xo-fs-tests-${Date.now()}`
