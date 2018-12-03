@@ -2,6 +2,8 @@
 
 ## *next*
 
+- [Backup NG] Add "XOSAN" in excluted tags by default [#2128](https://github.com/vatesfr/xen-orchestra/issues/3563) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3563))
+
 ### Enhancements
 
 - [Users] Display user groups [#3719](https://github.com/vatesfr/xen-orchestra/issues/3719) (PR [#3740](https://github.com/vatesfr/xen-orchestra/pull/3740))
