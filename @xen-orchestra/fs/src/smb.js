@@ -1,5 +1,6 @@
+import defer from 'golike-defer'
 import Smb2 from '@marsaud/smb2'
-import { pFinally } from 'promise-toolbox'
+import { finished } from 'readable-stream'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -67,154 +68,145 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   async _outputFile(file, data, options = {}) {
-    const client = this._getClient()
     const path = this._getFilePath(file)
     const dir = this._dirname(path)
 
-    if (dir) {
-      await client.ensureDir(dir)
-    }
+    const client = this._getClient()
+    try {
+      if (dir) {
+        await client.ensureDir(dir)
+      }
 
-    return client.writeFile(path, data, options)::pFinally(() => {
+      return await client.writeFile(path, data, options)
+    } finally {
       client.disconnect()
-    })
+    }
   }
 
-  async _read(file, buffer, position) {
-    const needsClose = typeof file === 'string'
-
+  @defer
+  async _read($defer, file, buffer, position) {
     let client
-    if (needsClose) {
+    if (typeof file === 'string') {
       client = this._getClient()
+      $defer.call(client, 'disconnect')
       file = await client.open(this._getFilePath(file))
+      $defer.call(client, 'close', file)
     } else {
       ;({ client, file } = file.fd)
     }
 
-    try {
-      return await client.read(file, buffer, 0, buffer.length, position)
-    } finally {
-      if (needsClose) {
-        await client.close(file)
-        client.disconnect()
-      }
-    }
+    return client.read(file, buffer, 0, buffer.length, position)
   }
 
   async _readFile(file, options = {}) {
     const client = this._getClient()
-    let content
-
     try {
-      content = await client
-        .readFile(this._getFilePath(file), options)
-        ::pFinally(() => {
-          client.disconnect()
-        })
+      return await client.readFile(this._getFilePath(file), options)
     } catch (error) {
       throw normalizeError(error)
+    } finally {
+      client.disconnect()
     }
-
-    return content
   }
 
   async _rename(oldPath, newPath) {
     const client = this._getClient()
-
     try {
-      await client
-        .rename(this._getFilePath(oldPath), this._getFilePath(newPath), {
+      await client.rename(
+        this._getFilePath(oldPath),
+        this._getFilePath(newPath),
+        {
           replace: true,
-        })
-        ::pFinally(() => {
-          client.disconnect()
-        })
+        }
+      )
     } catch (error) {
       throw normalizeError(error)
+    } finally {
+      client.disconnect()
     }
   }
 
   async _list(dir = '.') {
     const client = this._getClient()
-    let list
-
     try {
-      list = await client.readdir(this._getFilePath(dir))::pFinally(() => {
-        client.disconnect()
-      })
+      return await client.readdir(this._getFilePath(dir))
     } catch (error) {
       throw normalizeError(error, true)
+    } finally {
+      client.disconnect()
     }
-
-    return list
   }
 
   async _createReadStream(file, options = {}) {
     if (typeof file !== 'string') {
       file = file.path
     }
-    const client = this._getClient()
-    let stream
 
+    const client = this._getClient()
     try {
       // FIXME ensure that options are properly handled by @marsaud/smb2
-      stream = await client.createReadStream(this._getFilePath(file), options)
-      stream.on('end', () => client.disconnect())
+      const stream = await client.createReadStream(
+        this._getFilePath(file),
+        options
+      )
+
+      finished(stream, () => client.disconnect())
+
+      return stream
     } catch (error) {
+      client.disconnect()
+
       throw normalizeError(error)
     }
-
-    return stream
   }
 
   async _createOutputStream(file, options = {}) {
     if (typeof file !== 'string') {
       file = file.path
     }
-    const client = this._getClient()
     const path = this._getFilePath(file)
-    const dir = this._dirname(path)
-    let stream
+
+    const client = this._getClient()
     try {
+      const dir = this._dirname(path)
       if (dir) {
         await client.ensureDir(dir)
       }
-      stream = await client.createWriteStream(path, options) // FIXME ensure that options are properly handled by @marsaud/smb2
+
+      // FIXME ensure that options are properly handled by @marsaud/smb2
+      const stream = await client.createWriteStream(path, options)
+
+      finished(stream, () => client.disconnect())
+
+      return stream
     } catch (err) {
       client.disconnect()
       throw err
     }
-    stream.on('finish', () => client.disconnect())
-    return stream
   }
 
   async _unlink(file) {
     const client = this._getClient()
-
     try {
-      await client.unlink(this._getFilePath(file))::pFinally(() => {
-        client.disconnect()
-      })
+      await client.unlink(this._getFilePath(file))
     } catch (error) {
       throw normalizeError(error)
+    } finally {
+      client.disconnect()
     }
   }
 
   async _getSize(file) {
     const client = await this._getClient()
-    let size
-
     try {
-      size = await client
-        .getSize(this._getFilePath(typeof file === 'string' ? file : file.path))
-        ::pFinally(() => {
-          client.disconnect()
-        })
+      return await client.getSize(
+        this._getFilePath(typeof file === 'string' ? file : file.path)
+      )
     } catch (error) {
       throw normalizeError(error)
+    } finally {
+      client.disconnect()
     }
-
-    return size
   }
 
   // TODO: add flags
@@ -227,7 +219,10 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   async _closeFile({ client, file }) {
-    await client.close(file)
-    client.disconnect()
+    try {
+      await client.close(file)
+    } finally {
+      client.disconnect()
+    }
   }
 }
