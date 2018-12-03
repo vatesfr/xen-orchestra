@@ -95,11 +95,12 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  async outputFile(file: string, data: Data, options?: Object): Promise<void> {
-    return this._outputFile(normalizePath(file), data, {
-      flags: 'wx',
-      ...options,
-    })
+  async outputFile(
+    file: string,
+    data: Data,
+    { flags = 'wx' }: { flags?: string } = {}
+  ): Promise<void> {
+    return this._outputFile(normalizePath(file), data, { flags })
   }
 
   async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
@@ -129,8 +130,11 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async readFile(file: string, options?: Object): Promise<Buffer> {
-    return this._readFile(normalizePath(file), options)
+  async readFile(
+    file: string,
+    { flags = 'r' }: { flags?: string } = {}
+  ): Promise<Buffer> {
+    return this._readFile(normalizePath(file), { flags })
   }
 
   _readFile(file: string, options?: Object): Promise<Buffer> {
