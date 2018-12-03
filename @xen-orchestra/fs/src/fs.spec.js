@@ -3,7 +3,7 @@
 import { getHandler } from '.'
 import { tmpdir } from 'os'
 import getStream from 'get-stream'
-require('dotenv').config()
+import 'dotenv/config'
 
 // https://gist.github.com/julien-f/3228c3f34fdac01ade09
 const unsecureRandomBytes = n => {
