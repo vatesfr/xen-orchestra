@@ -1,8 +1,8 @@
 import createLogger from '@xen-orchestra/log'
 import makeError from 'make-error'
 import { findKey } from 'lodash'
+import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
-import { pCatch, ignoreErrors } from 'promise-toolbox'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -482,11 +482,20 @@ export default class {
           host: address,
         })
 
-        const loop = () =>
-          pDelay(6e4).then(() =>
-            this.connectXenServer(id)::pCatch(ConnectedPoolError, loop)
-          )
-        await loop()
+        for (let i = 0; i <= 4; ++i) {
+          await pDelay(6e4)
+          try {
+            await this.connectXenServer(id)
+            break
+          } catch (error) {
+            if (
+              !(error instanceof ConnectedPoolError) &&
+              error.code !== 'EHOSTUNREACH'
+            ) {
+              throw error
+            }
+          }
+        }
       })
       ::ignoreErrors()
   }
