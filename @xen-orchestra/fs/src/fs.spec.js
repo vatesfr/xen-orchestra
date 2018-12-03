@@ -22,6 +22,14 @@ const unsecureRandomBytes = n => {
 
 const TEST_DATA = unsecureRandomBytes(1024)
 
+const rejectionOf = p =>
+  p.then(
+    value => {
+      throw value
+    },
+    reason => reason
+  )
+
 ;[
   `file://${tmpdir()}`,
   // 'nfs://192.168.100.5:/tank',
@@ -59,6 +67,24 @@ const TEST_DATA = unsecureRandomBytes(1024)
       it('writes data to a file', async () => {
         await handler.outputFile(testFile, TEST_DATA)
         expect(await handler.readFile(testFile)).toEqual(TEST_DATA)
+      })
+
+      it('throws on existing files', async () => {
+        await handler.outputFile(testFile, '')
+        const error = await rejectionOf(handler.outputFile(testFile, ''))
+        expect(error.code).toBe('EEXIST')
+      })
+    })
+
+    describe('#readFile', () => {
+      it('returns a buffer containing the contents of the file', async () => {
+        await handler.outputFile(testFile, TEST_DATA)
+        expect(await handler.readFile(testFile)).toEqual(TEST_DATA)
+      })
+
+      it('throws on missing file', async () => {
+        const error = await rejectionOf(handler.readFile(testFile))
+        expect(error.code).toBe('ENOENT')
       })
     })
 
