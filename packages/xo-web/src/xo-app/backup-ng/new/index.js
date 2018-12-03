@@ -25,7 +25,6 @@ import { renderXoItemFromId, RemoteItem } from 'render-xo-item'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
-  canDeltaBackup,
   connectStore,
   generateRandomId,
   resolveId,
@@ -45,6 +44,7 @@ import NewSchedule from './new-schedule'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
 import {
+  canDeltaBackup,
   destructPattern,
   FormFeedback,
   FormGroup,
