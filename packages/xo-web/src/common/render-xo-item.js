@@ -229,12 +229,17 @@ Sr.defaultProps = {
 export const Vdi = decorate([
   connectStore(() => {
     const getObject = createGetObject()
+    const getSr = createGetObject((state, props) => {
+      const vdi = getObject(state, props, props.self)
+      return vdi && vdi.$SR
+    })
     // FIXME: props.self ugly workaround to get object as a self user
     return (state, props) => ({
       vdi: getObject(state, props, props.self),
+      sr: getSr(state, props),
     })
   }),
-  ({ vdi }) => {
+  ({ sr, vdi }) => {
     if (vdi === undefined) {
       return UNKNOWN_ITEM
     }
@@ -242,7 +247,9 @@ export const Vdi = decorate([
     return (
       <span>
         <Icon icon='disk' /> {vdi.name_label}
-        {vdi.name_description && <span> ({vdi.name_description})</span>}
+        {sr !== undefined && (
+          <span className='text-muted'> - {sr.name_label}</span>
+        )}
       </span>
     )
   },
