@@ -17,8 +17,10 @@ class ErrorWrapper extends Error {
 const normalizeError = (error, shouldBeDirectory) => {
   const { code } = error
 
-  return code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
-    code === 'STATUS_OBJECT_PATH_NOT_FOUND'
+  return code === 'STATUS_DIRECTORY_NOT_EMPTY'
+    ? new ErrorWrapper(error, 'ENOTEMPTY')
+    : code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
+      code === 'STATUS_OBJECT_PATH_NOT_FOUND'
     ? new ErrorWrapper(error, 'ENOENT')
     : code === 'STATUS_NOT_SUPPORTED' || code === 'STATUS_INVALID_PARAMETER'
     ? new ErrorWrapper(error, shouldBeDirectory ? 'ENOTDIR' : 'EISDIR')
@@ -121,6 +123,17 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       )
     } catch (error) {
       throw normalizeError(error)
+    } finally {
+      client.disconnect()
+    }
+  }
+
+  async _rmdir(dir) {
+    const client = this._getClient()
+    try {
+      await client.rmdir(this._getFilePath(dir))
+    } catch (error) {
+      throw normalizeError(error, true)
     } finally {
       client.disconnect()
     }
