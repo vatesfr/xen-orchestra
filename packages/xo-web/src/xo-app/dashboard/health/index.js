@@ -10,6 +10,7 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import xml2js from 'xml2js'
+import { Sr } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
@@ -41,10 +42,6 @@ const SrColContainer = connectStore(() => ({
 }))(({ container }) => (
   <Link to={`${container.type}s/${container.id}`}>{container.name_label}</Link>
 ))
-
-const VdiColSr = connectStore(() => ({
-  sr: createGetObject(),
-}))(({ sr }) => <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>)
 
 const VmColContainer = connectStore(() => ({
   container: createGetObject(),
@@ -160,7 +157,7 @@ const ORPHANED_VDI_COLUMNS = [
   },
   {
     name: _('vdiSr'),
-    itemRenderer: vdi => <VdiColSr id={vdi.$SR} />,
+    itemRenderer: vdi => <Sr id={vdi.$SR} link />,
   },
 ]
 
@@ -392,7 +389,10 @@ const ALARM_ACTIONS = [
     .sort()
   const getUserSrs = createGetObjectsOfType('SR').filter([isSrWritable])
   const getVdiSrs = createGetObjectsOfType('SR').pick(
-    createSelector(getOrphanVdiSnapshots, snapshots => map(snapshots, '$SR'))
+    createSelector(
+      getOrphanVdiSnapshots,
+      snapshots => map(snapshots, '$SR')
+    )
   )
   const getAlertMessages = createGetObjectsOfType('message').filter([
     message => message.name === 'ALARM',
@@ -412,13 +412,13 @@ export default class Health extends Component {
     pools: [],
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (props.alertMessages !== this.props.alertMessages) {
       this._updateAlarms(props)
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._updateAlarms(this.props)
   }
 
@@ -457,7 +457,10 @@ export default class Health extends Component {
   _getSrUrl = sr => `srs/${sr.id}`
 
   _getPoolPredicate = createSelector(
-    createSelector(() => this.state.pools, resolveIds),
+    createSelector(
+      () => this.state.pools,
+      resolveIds
+    ),
     poolIds =>
       isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
   )
@@ -481,7 +484,7 @@ export default class Health extends Component {
 
   _getMessages = createFilter(() => this.state.messages, this._getPoolPredicate)
 
-  render () {
+  render() {
     const { props, state } = this
 
     const userSrs = this._getUserSrs()
