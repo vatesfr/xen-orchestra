@@ -22,7 +22,11 @@ const unsecureRandomBytes = n => {
 
 const TEST_DATA = unsecureRandomBytes(1024)
 
-;[`file://${tmpdir()}`].forEach(url => {
+;[
+  `file://${tmpdir()}`,
+  // 'nfs://192.168.100.5:/tank',
+  // 'smb://Administrator:Vates123@WORKGROUP\\\\192.168.100.173\\smb\u0000',
+].forEach(url => {
   describe(url, () => {
     let handler
     const testDir = `xo-fs-tests-${Date.now()}`
