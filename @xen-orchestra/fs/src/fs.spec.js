@@ -61,7 +61,9 @@ handlers.forEach(url => {
 
     describe('#test()', () => {
       it('tests the remote appears to be working', async () => {
-        expect(await handler.test()).toMatchSnapshot()
+        expect(await handler.test()).toEqual({
+          success: true,
+        })
       })
     })
 
