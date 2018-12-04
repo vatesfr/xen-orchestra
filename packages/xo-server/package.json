@@ -71,6 +71,7 @@
     "http-server-plus": "^0.10.0",
     "human-format": "^0.10.0",
     "is-redirect": "^1.0.0",
+    "iterable-backoff": "^0.0.0",
     "jest-worker": "^23.0.0",
     "js-yaml": "^3.10.0",
     "json-rpc-peer": "^0.15.3",

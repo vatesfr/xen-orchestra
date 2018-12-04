@@ -1,6 +1,8 @@
 import createLogger from '@xen-orchestra/log'
+import { BaseError } from 'make-error'
+import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { fibonacci } from 'iterable-backoff'
 import { findKey } from 'lodash'
-import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Xapi from '../xapi'
@@ -17,6 +19,12 @@ import {
 import { Servers } from '../models/server'
 
 // ===================================================================
+
+class PoolAlreadyConnected extends BaseError {
+  constructor() {
+    super("the server's pool is already connected")
+  }
+}
 
 const log = createLogger('xo:xo-mixins:xen-servers')
 
@@ -260,7 +268,7 @@ export default class {
       const xapisByPool = this._xapisByPool
       const [{ $id: poolId }] = await xapi.getAllRecords('pool')
       if (xapisByPool[poolId] !== undefined) {
-        throw new Error("the server's pool is already connected")
+        throw new PoolAlreadyConnected()
       }
 
       this._xapis[server.id] = xapisByPool[poolId] = xapi
@@ -463,5 +471,39 @@ export default class {
     this.unregisterXenServer(
       findKey(this._xapis, candidate => candidate === sourceXapi)
     )::ignoreErrors()
+  }
+
+  async detachHostFromPool(hostId) {
+    const xapi = this.getXapi(hostId)
+    const { address } = xapi.getObject(hostId)
+
+    await xapi.ejectHostFromPool(hostId)
+
+    this._getXenServer(findKey(this._xapis, candidate => candidate === xapi))
+      .then(async ({ properties }) => {
+        const { id } = await this.registerXenServer({
+          ...properties,
+          host: address,
+        })
+
+        for (const delay of fibonacci()
+          .take(5)
+          .toMs()
+          .map(d => d * 60)) {
+          await pDelay(delay)
+          try {
+            await this.connectXenServer(id)
+            break
+          } catch (error) {
+            if (
+              !(error instanceof PoolAlreadyConnected) &&
+              error.code !== 'EHOSTUNREACH'
+            ) {
+              throw error
+            }
+          }
+        }
+      })
+      ::ignoreErrors()
   }
 }
