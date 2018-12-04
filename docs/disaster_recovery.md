@@ -33,3 +33,9 @@ Also, by default, the DR VM will have a "Disaster Recovery" tag.
 If you boot a copy of your production VM, be careful: if they share the same static IP, you'll have troubles.
 
 A good way to avoid this kind of problem is to remove the network interface on the DR VM and check if the export is correctly done.
+
+## VM auto power on and HA disabled
+
+VM auto power on and HA properties are disabled in the replicated VMs. A tag will be added if the VM source has one of these properties enabled.
+
+![](./assets/dr-ha-autopoweron-tags.png)
