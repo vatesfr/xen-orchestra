@@ -1,5 +1,5 @@
 import createLogger from '@xen-orchestra/log'
-import makeError from 'make-error'
+import { BaseError } from 'make-error'
 import { delay as pDelay, ignoreErrors } from 'promise-toolbox'
 import { fibonacci } from 'iterable-backoff'
 import { findKey } from 'lodash'
@@ -20,12 +20,11 @@ import { Servers } from '../models/server'
 
 // ===================================================================
 
-const PoolAlreadyConnected = makeError(function PoolAlreadyConnectedError() {
-  PoolAlreadyConnectedError.super.call(
-    this,
-    "the server's pool is already connected"
-  )
-})
+class PoolAlreadyConnected extends BaseError {
+  constructor() {
+    super("the server's pool is already connected")
+  }
+}
 
 const log = createLogger('xo:xo-mixins:xen-servers')
 
