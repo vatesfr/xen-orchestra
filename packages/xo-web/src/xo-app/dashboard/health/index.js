@@ -250,9 +250,7 @@ const AttachedVdisTable = decorate([
       {
         name: _('vdiSr'),
         itemRenderer: ({ sr }) =>
-          sr === undefined ? null : (
-            <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>
-          ),
+          sr === undefined ? null : <Sr id={sr.id} link spaceLeft={false} />,
         sortCriteria: ({ sr }) => sr != null && sr.name_label,
       },
     ],
