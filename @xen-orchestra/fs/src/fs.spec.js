@@ -137,29 +137,17 @@ handlers.forEach(url => {
 
     describe('#rmdir()', () => {
       it(`should remove folder resursively`, async () => {
-        let error
         await handler.outputFile(testFile, TEST_DATA)
         await handler.rmdir(testDir, { recursive: true })
 
-        try {
-          await handler.list(testDir)
-        } catch (e) {
-          error = e
-        }
-
+        const error = await rejectionOf(handler.list(testDir))
         expect(error.code).toBe('ENOENT')
       })
 
       it(`should throw an error when recursive is false`, async () => {
-        let error
         await handler.outputFile(testFile, TEST_DATA)
 
-        try {
-          await handler.rmdir(testDir)
-        } catch (e) {
-          error = e
-        }
-
+        const error = await rejectionOf(handler.rmdir(testDir))
         await expect(error.code).toEqual('ENOTEMPTY')
       })
     })
