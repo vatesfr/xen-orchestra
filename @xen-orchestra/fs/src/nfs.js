@@ -14,7 +14,13 @@ export default class NfsHandler extends LocalHandler {
   ) {
     super(remote, opts)
 
-    this._realPath = join(mountsDir, remote.id)
+    this._realPath = join(
+      mountsDir,
+      remote.id ||
+        Math.random()
+          .toString(36)
+          .slice(2)
+    )
   }
 
   get type() {
