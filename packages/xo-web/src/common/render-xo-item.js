@@ -192,7 +192,7 @@ export const Sr = decorate([
       container: getContainer(state, props),
     })
   }),
-  ({ sr, container, link, newTab, spaceLeft }) => {
+  ({ sr, container, link, newTab, spaceLeft, self }) => {
     if (sr === undefined) {
       return UNKNOWN_ITEM
     }
@@ -200,11 +200,16 @@ export const Sr = decorate([
     return (
       <LinkWrapper link={link} newTab={newTab} to={`/srs/${sr.id}`}>
         <Icon icon='sr' /> {sr.name_label}
-        {container !== undefined && (
-          <span className='text-muted'> - {container.name_label}</span>
+        {!self && spaceLeft && isSrWritable(sr) && (
+          <span className={!link && 'text-muted'}>{` (${formatSize(
+            sr.size - sr.physical_usage
+          )} free)`}</span>
         )}
-        {spaceLeft && isSrWritable(sr) && (
-          <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
+        {!self && container !== undefined && (
+          <span className={!link && 'text-muted'}>
+            {' '}
+            - {container.name_label}
+          </span>
         )}
       </LinkWrapper>
     )
