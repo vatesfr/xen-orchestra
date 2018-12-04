@@ -1,7 +1,8 @@
 import createLogger from '@xen-orchestra/log'
 import makeError from 'make-error'
+import { delay as pDelay, ignoreErrors } from 'promise-toolbox'
+import { fibonacci } from 'iterable-backoff'
 import { findKey } from 'lodash'
-import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Xapi from '../xapi'
@@ -12,7 +13,6 @@ import {
   forEach,
   isEmpty,
   isString,
-  pDelay,
   popProperty,
   serializeError,
 } from '../utils'
@@ -20,7 +20,12 @@ import { Servers } from '../models/server'
 
 // ===================================================================
 
-const ConnectedPoolError = makeError('ConnectedPoolError')
+const PoolAlreadyConnected = makeError(function PoolAlreadyConnectedError() {
+  PoolAlreadyConnectedError.super.call(
+    this,
+    "the server's pool is already connected"
+  )
+})
 
 const log = createLogger('xo:xo-mixins:xen-servers')
 
@@ -264,7 +269,7 @@ export default class {
       const xapisByPool = this._xapisByPool
       const [{ $id: poolId }] = await xapi.getAllRecords('pool')
       if (xapisByPool[poolId] !== undefined) {
-        throw new ConnectedPoolError("the server's pool is already connected")
+        throw new PoolAlreadyConnected()
       }
 
       this._xapis[server.id] = xapisByPool[poolId] = xapi
@@ -482,14 +487,17 @@ export default class {
           host: address,
         })
 
-        for (let i = 0; i <= 4; ++i) {
-          await pDelay(6e4)
+        for (const delay of fibonacci()
+          .take(5)
+          .toMs()
+          .map(d => d * 60)) {
+          await pDelay(delay)
           try {
             await this.connectXenServer(id)
             break
           } catch (error) {
             if (
-              !(error instanceof ConnectedPoolError) &&
+              !(error instanceof PoolAlreadyConnected) &&
               error.code !== 'EHOSTUNREACH'
             ) {
               throw error
