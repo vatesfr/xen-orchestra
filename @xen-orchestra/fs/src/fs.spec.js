@@ -1,9 +1,10 @@
 /* eslint-env jest */
 
-import { getHandler } from '.'
-import { tmpdir } from 'os'
-import getStream from 'get-stream'
 import 'dotenv/config'
+import getStream from 'get-stream'
+import { tmpdir } from 'os'
+
+import { getHandler } from '.'
 
 // https://gist.github.com/julien-f/3228c3f34fdac01ade09
 const unsecureRandomBytes = n => {
