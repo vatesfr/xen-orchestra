@@ -39,12 +39,12 @@ if (process.env.xo_fs_smb) handlers.push(process.env.xo_fs_smb)
 handlers.forEach(url => {
   describe(url, () => {
     let handler
-    const testDir = `xo-fs-tests-${Date.now()}`
-    const testFile = `${testDir}/file`
 
     beforeAll(async () => {
       handler = getHandler({ url })
       await handler.sync()
+
+      handler.prefix = `xo-fs-tests-${Date.now()}`
     })
     afterAll(async () => {
       await handler.forget()
@@ -52,11 +52,17 @@ handlers.forEach(url => {
     })
 
     afterEach(async () => {
-      await handler.rmdir(testDir, { recursive: true }).catch(error => {
+      // don't use the prefix feature for the final clean to avoid deleting
+      // everything on the remote if it's broken
+      const { prefix } = handler
+      expect(prefix).not.toBe('/')
+      handler.prefix = '/'
+      await handler.rmdir(prefix, { recursive: true }).catch(error => {
         if (error.code !== 'ENOENT') {
           throw error
         }
       })
+      handler.prefix = prefix
     })
 
     describe('#test()', () => {
@@ -69,41 +75,41 @@ handlers.forEach(url => {
 
     describe('#outputFile()', () => {
       it('writes data to a file', async () => {
-        await handler.outputFile(testFile, TEST_DATA)
-        expect(await handler.readFile(testFile)).toEqual(TEST_DATA)
+        await handler.outputFile('file', TEST_DATA)
+        expect(await handler.readFile('file')).toEqual(TEST_DATA)
       })
 
       it('throws on existing files', async () => {
-        await handler.outputFile(testFile, '')
-        const error = await rejectionOf(handler.outputFile(testFile, ''))
+        await handler.outputFile('file', '')
+        const error = await rejectionOf(handler.outputFile('file', ''))
         expect(error.code).toBe('EEXIST')
       })
     })
 
     describe('#readFile', () => {
       it('returns a buffer containing the contents of the file', async () => {
-        await handler.outputFile(testFile, TEST_DATA)
-        expect(await handler.readFile(testFile)).toEqual(TEST_DATA)
+        await handler.outputFile('file', TEST_DATA)
+        expect(await handler.readFile('file')).toEqual(TEST_DATA)
       })
 
       it('throws on missing file', async () => {
-        const error = await rejectionOf(handler.readFile(testFile))
+        const error = await rejectionOf(handler.readFile('file'))
         expect(error.code).toBe('ENOENT')
       })
     })
 
     describe('#list()', () => {
       it(`should list the content of folder`, async () => {
-        await handler.outputFile(testFile, TEST_DATA)
-        await expect(await handler.list(testDir)).toEqual(['file'])
+        await handler.outputFile('file', TEST_DATA)
+        await expect(await handler.list('.')).toEqual(['file'])
       })
     })
 
     describe('#createReadStream()', () => {
       it(`should return a stream`, async () => {
-        await handler.outputFile(testFile, TEST_DATA)
+        await handler.outputFile('file', TEST_DATA)
         const buffer = await getStream.buffer(
-          await handler.createReadStream(testFile)
+          await handler.createReadStream('file')
         )
 
         await expect(buffer).toEqual(TEST_DATA)
@@ -111,43 +117,43 @@ handlers.forEach(url => {
     })
     describe('#getSize()', () => {
       it(`should return the correct size`, async () => {
-        await handler.outputFile(testFile, TEST_DATA)
-        expect(await handler.getSize(testFile)).toEqual(TEST_DATA.length)
+        await handler.outputFile('file', TEST_DATA)
+        expect(await handler.getSize('file')).toEqual(TEST_DATA.length)
       })
     })
 
     describe('#rename()', () => {
       it(`should rename the file`, async () => {
-        await handler.outputFile(testFile, TEST_DATA)
-        await handler.rename(testFile, `${testDir}/file2`)
+        await handler.outputFile('file', TEST_DATA)
+        await handler.rename('file', `file2`)
 
-        expect(await handler.list(testDir)).toEqual(['file2'])
-        expect(await handler.readFile(`${testDir}/file2`)).toEqual(TEST_DATA)
+        expect(await handler.list('.')).toEqual(['file2'])
+        expect(await handler.readFile(`file2`)).toEqual(TEST_DATA)
       })
     })
 
     describe('#unlink()', () => {
       it(`should remove the file`, async () => {
-        await handler.outputFile(testFile, TEST_DATA)
-        await handler.unlink(testFile)
+        await handler.outputFile('file', TEST_DATA)
+        await handler.unlink('file')
 
-        await expect(await handler.list(testDir)).toEqual([])
+        await expect(await handler.list('.')).toEqual([])
       })
     })
 
     describe('#rmdir()', () => {
       it(`should remove folder resursively`, async () => {
-        await handler.outputFile(testFile, TEST_DATA)
-        await handler.rmdir(testDir, { recursive: true })
+        await handler.outputFile('file', TEST_DATA)
+        await handler.rmdir('.', { recursive: true })
 
-        const error = await rejectionOf(handler.list(testDir))
+        const error = await rejectionOf(handler.list('.'))
         expect(error.code).toBe('ENOENT')
       })
 
       it(`should throw an error when recursive is false`, async () => {
-        await handler.outputFile(testFile, TEST_DATA)
+        await handler.outputFile('file', TEST_DATA)
 
-        const error = await rejectionOf(handler.rmdir(testDir))
+        const error = await rejectionOf(handler.rmdir('.'))
         await expect(error.code).toEqual('ENOTEMPTY')
       })
     })
