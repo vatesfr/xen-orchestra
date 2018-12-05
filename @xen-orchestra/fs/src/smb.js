@@ -70,12 +70,16 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   async _createOutputStream(file, options) {
-    if (typeof file !== 'string') {
+    const needsClose = typeof file === 'string'
+    let client
+    if (needsClose) {
+      client = this._getClient()
+    } else {
+      ;({ client } = file.fd)
       file = file.path
     }
     const path = this._getFilePath(file)
 
-    const client = this._getClient()
     try {
       const dir = this._dirname(path)
       if (dir) {
@@ -85,21 +89,29 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       // FIXME ensure that options are properly handled by @marsaud/smb2
       const stream = await client.createWriteStream(path, options)
 
-      finished(stream, () => client.disconnect())
+      if (needsClose) {
+        finished(stream, () => client.disconnect())
+      }
 
       return stream
     } catch (err) {
-      client.disconnect()
+      if (needsClose) {
+        client.disconnect()
+      }
       throw normalizeError(err)
     }
   }
 
   async _createReadStream(file, options) {
-    if (typeof file !== 'string') {
+    const needsClose = typeof file === 'string'
+    let client
+    if (needsClose) {
+      client = this._getClient()
+    } else {
+      ;({ client } = file.fd)
       file = file.path
     }
 
-    const client = this._getClient()
     try {
       // FIXME ensure that options are properly handled by @marsaud/smb2
       const stream = await client.createReadStream(
@@ -107,26 +119,36 @@ export default class SmbHandler extends RemoteHandlerAbstract {
         options
       )
 
-      finished(stream, () => client.disconnect())
+      if (needsClose) {
+        finished(stream, () => client.disconnect())
+      }
 
       return stream
     } catch (error) {
-      client.disconnect()
-
+      if (needsClose) {
+        client.disconnect()
+      }
       throw normalizeError(error)
     }
   }
 
   async _getSize(file) {
-    const client = await this._getClient()
+    const needsClose = typeof file === 'string'
+    let client
+    if (needsClose) {
+      client = this._getClient()
+    } else {
+      ;({ client } = file.fd)
+      file = file.path
+    }
     try {
-      return await client.getSize(
-        this._getFilePath(typeof file === 'string' ? file : file.path)
-      )
+      return await client.getSize(this._getFilePath(file))
     } catch (error) {
       throw normalizeError(error)
     } finally {
-      client.disconnect()
+      if (needsClose) {
+        client.disconnect()
+      }
     }
   }
 
