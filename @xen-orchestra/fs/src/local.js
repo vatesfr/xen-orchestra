@@ -55,7 +55,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return stats.size
   }
 
-  async _list(dir = '.') {
+  async _list(dir) {
     return fs.readdir(this._getFilePath(dir))
   }
 

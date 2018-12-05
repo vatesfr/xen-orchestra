@@ -70,7 +70,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _createOutputStream(file, options = {}) {
+  async _createOutputStream(file, options) {
     if (typeof file !== 'string') {
       file = file.path
     }
@@ -95,7 +95,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _createReadStream(file, options = {}) {
+  async _createReadStream(file, options) {
     if (typeof file !== 'string') {
       file = file.path
     }
@@ -131,7 +131,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _list(dir = '.') {
+  async _list(dir) {
     const client = this._getClient()
     try {
       return await client.readdir(this._getFilePath(dir))
@@ -151,7 +151,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _outputFile(file, data, options = {}) {
+  async _outputFile(file, data, options) {
     const path = this._getFilePath(file)
     const dir = this._dirname(path)
 
@@ -186,7 +186,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       .catch(normalizeError)
   }
 
-  async _readFile(file, options = {}) {
+  async _readFile(file, options) {
     const client = this._getClient()
     try {
       return await client.readFile(this._getFilePath(file), options)
