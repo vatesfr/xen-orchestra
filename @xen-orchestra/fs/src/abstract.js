@@ -283,8 +283,8 @@ export default class RemoteHandlerAbstract {
 
   // Asks the handler to sync the state of the effective remote with its'
   // metadata
-  async sync(): Promise<mixed> {
-    return this._sync()
+  async sync(): Promise<void> {
+    await this._sync()
   }
 
   async test(): Promise<Object> {
@@ -340,9 +340,8 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _forget(): Promise<void> {
-    throw new Error('Not implemented')
-  }
+  // called to finalize the remote
+  async _forget(): Promise<void> {}
 
   async _getSize(file: File): Promise<number> {
     throw new Error('Not implemented')
@@ -404,9 +403,8 @@ export default class RemoteHandlerAbstract {
     return this._rmtree(dir)
   }
 
-  async _sync(): Promise<mixed> {
-    throw new Error('Not implemented')
-  }
+  // called to initialize the remote
+  async _sync(): Promise<void> {}
 
   async _unlink(file: string): Promise<void> {
     throw new Error('Not implemented')

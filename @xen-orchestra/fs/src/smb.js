@@ -4,8 +4,6 @@ import { finished } from 'readable-stream'
 
 import RemoteHandlerAbstract from './abstract'
 
-const noop = () => {}
-
 // Normalize the error code for file not found.
 const wrapError = (error, code) => ({
   __proto__: error,
@@ -30,7 +28,6 @@ const normalizeError = (error, shouldBeDirectory) => {
 export default class SmbHandler extends RemoteHandlerAbstract {
   constructor(remote, opts) {
     super(remote, opts)
-    this._forget = noop
 
     const prefix = this._remote.path
     this._prefix = prefix !== '' ? prefix + '\\' : prefix
@@ -228,8 +225,6 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   async _sync() {
     // Check access (smb2 does not expose connect in public so far...)
     await this.list('.')
-
-    return this._remote
   }
 
   async _unlink(file) {

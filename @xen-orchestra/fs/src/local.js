@@ -1,6 +1,5 @@
 import fs from 'fs-extra'
 import { dirname } from 'path'
-import { noop } from 'lodash'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -42,10 +41,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
           ...options,
           fd: file.fd,
         })
-  }
-
-  async _forget() {
-    return noop()
   }
 
   async _getSize(file) {
@@ -100,11 +95,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _sync() {
-    const path = this._getRealPath()
+    const path = this._getRealPath('/')
     await fs.ensureDir(path)
     await fs.access(path, fs.R_OK | fs.W_OK)
-
-    return this._remote
   }
 
   async _unlink(file) {
