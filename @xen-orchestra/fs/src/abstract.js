@@ -413,6 +413,8 @@ export default class RemoteHandlerAbstract {
   // Private members
 
   [kResolve](path: string): string {
-    return this[kPrefix] + normalizePath(path)
+    path = normalizePath(path)
+    const prefix = this[kPrefix]
+    return path === '/' ? prefix : prefix + path
   }
 }
