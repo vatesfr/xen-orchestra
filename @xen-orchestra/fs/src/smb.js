@@ -163,6 +163,17 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
+  async _mkdir(dir) {
+    const client = this._getClient()
+    try {
+      return await client.mkdir(this._getFilePath(dir))
+    } catch (error) {
+      throw normalizeError(error, true)
+    } finally {
+      client.disconnect()
+    }
+  }
+
   // TODO: add flags
   async _openFile(path) {
     const client = this._getClient()

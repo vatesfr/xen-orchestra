@@ -57,9 +57,7 @@ handlers.forEach(url => {
 
     beforeEach(async () => {
       // ensure test dir exists
-      // TODO: replace with mkdir
-      await handler.outputFile('file', '')
-      await handler.unlink('file')
+      await handler.mkdir('.')
     })
     afterEach(async () => {
       await handler.rmtree('.')
@@ -146,6 +144,49 @@ handlers.forEach(url => {
       })
     })
 
+    describe('#mkdir()', () => {
+      it('creates a directory', async () => {
+        await handler.mkdir('dir')
+        await expect(await handler.list('.')).toEqual(['dir'])
+      })
+
+      it('does not throw on existing directory', async () => {
+        await handler.mkdir('dir')
+        await handler.mkdir('dir')
+      })
+
+      it('throws ENOTDIR on existing file', async () => {
+        await handler.outputFile('file', '')
+        const error = await rejectionOf(handler.mkdir('file'))
+        expect(error.code).toBe('ENOTDIR')
+      })
+    })
+
+    describe('#mktree()', () => {
+      it('creates a tree of directories', async () => {
+        await handler.mktree('dir/dir')
+        await expect(await handler.list('.')).toEqual(['dir'])
+        await expect(await handler.list('dir')).toEqual(['dir'])
+      })
+
+      it('does not throw on existing directory', async () => {
+        await handler.mktree('dir/dir')
+        await handler.mktree('dir/dir')
+      })
+
+      it('throws ENOTDIR on existing file', async () => {
+        await handler.outputFile('dir/file', '')
+        const error = await rejectionOf(handler.mktree('dir/file'))
+        expect(error.code).toBe('ENOTDIR')
+      })
+
+      it('throws ENOTDIR on existing file in path', async () => {
+        await handler.outputFile('file', '')
+        const error = await rejectionOf(handler.mktree('file/dir'))
+        expect(error.code).toBe('ENOTDIR')
+      })
+    })
+
     describe('#outputFile()', () => {
       it('writes data to a file', async () => {
         await handler.outputFile('file', TEST_DATA)
@@ -183,10 +224,7 @@ handlers.forEach(url => {
 
     describe('#rmdir()', () => {
       it('should remove an empty directory', async () => {
-        // TODO: replace with mkdir
-        await handler.outputFile('dir/file', '')
-        await handler.unlink('dir/file')
-
+        await handler.mkdir('dir')
         await handler.rmdir('dir')
         expect(await handler.list('.')).toEqual([])
       })
