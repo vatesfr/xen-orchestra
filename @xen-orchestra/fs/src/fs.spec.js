@@ -51,17 +51,19 @@ handlers.forEach(url => {
       handler = undefined
     })
 
+    beforeEach(async () => {
+      // ensure test dir exists
+      // TODO: replace with mkdir
+      await handler.outputFile('file', '')
+      await handler.unlink('file')
+    })
     afterEach(async () => {
       // don't use the prefix feature for the final clean to avoid deleting
       // everything on the remote if it's broken
       const { prefix } = handler
       expect(prefix).not.toBe('/')
       handler.prefix = '/'
-      await handler.rmtree(prefix).catch(error => {
-        if (error.code !== 'ENOENT') {
-          throw error
-        }
-      })
+      await handler.rmtree(prefix)
       handler.prefix = prefix
     })
 
