@@ -14,7 +14,13 @@ export default class NfsHandler extends LocalHandler {
   ) {
     super(remote, opts)
 
-    this._realPath = join(mountsDir, remote.id)
+    this._realPath = join(
+      mountsDir,
+      remote.id ||
+        Math.random()
+          .toString(36)
+          .slice(2)
+    )
   }
 
   get type() {
@@ -54,20 +60,6 @@ export default class NfsHandler extends LocalHandler {
     })
   }
 
-  async _sync() {
-    await this._mount()
-
-    return this._remote
-  }
-
-  async _forget() {
-    try {
-      await this._umount(this._remote)
-    } catch (_) {
-      // We have to go on...
-    }
-  }
-
   async _umount() {
     await execa('umount', ['--force', this._getRealPath()], {
       env: {
@@ -82,5 +74,19 @@ export default class NfsHandler extends LocalHandler {
         throw error
       }
     })
+  }
+
+  async _forget() {
+    try {
+      await this._umount(this._remote)
+    } catch (_) {
+      // We have to go on...
+    }
+  }
+
+  async _sync() {
+    await this._mount()
+
+    return this._remote
   }
 }
