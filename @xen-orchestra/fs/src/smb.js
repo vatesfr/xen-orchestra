@@ -7,25 +7,23 @@ import RemoteHandlerAbstract from './abstract'
 const noop = () => {}
 
 // Normalize the error code for file not found.
-class ErrorWrapper extends Error {
-  constructor(error, newCode) {
-    super(error.message)
-    this.cause = error
-    this.code = newCode
-  }
-}
+const wrapError = (error, code) => ({
+  __proto__: error,
+  cause: error,
+  code,
+})
 const normalizeError = (error, shouldBeDirectory) => {
   const { code } = error
 
   return code === 'STATUS_DIRECTORY_NOT_EMPTY'
-    ? new ErrorWrapper(error, 'ENOTEMPTY')
+    ? wrapError(error, 'ENOTEMPTY')
     : code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
       code === 'STATUS_OBJECT_PATH_NOT_FOUND'
-    ? new ErrorWrapper(error, 'ENOENT')
+    ? wrapError(error, 'ENOENT')
     : code === 'STATUS_OBJECT_NAME_COLLISION'
-    ? new ErrorWrapper(error, 'EEXIST')
+    ? wrapError(error, 'EEXIST')
     : code === 'STATUS_NOT_SUPPORTED' || code === 'STATUS_INVALID_PARAMETER'
-    ? new ErrorWrapper(error, shouldBeDirectory ? 'ENOTDIR' : 'EISDIR')
+    ? wrapError(error, shouldBeDirectory ? 'ENOTDIR' : 'EISDIR')
     : error
 }
 
