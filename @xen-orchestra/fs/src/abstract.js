@@ -75,9 +75,9 @@ export default class RemoteHandlerAbstract {
     const data = await fromCallback(cb => randomBytes(1024 * 1024, cb))
     let step = 'write'
     try {
-      await this.outputFile(testFileName, data)
+      await this._outputFile(testFileName, data, { flags: 'wx' })
       step = 'read'
-      const read = await this.readFile(testFileName)
+      const read = await this._readFile(testFileName, { flags: 'r' })
       if (data.compare(read) !== 0) {
         throw new Error('output and input did not match')
       }
@@ -92,7 +92,7 @@ export default class RemoteHandlerAbstract {
         error: error.message || String(error),
       }
     } finally {
-      ignoreErrors.call(this.unlink(testFileName))
+      ignoreErrors.call(this._unlink(testFileName))
     }
   }
 
@@ -105,7 +105,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
-    const stream = await this.createOutputStream(file, options)
+    const stream = await this._createOutputStream(file, options)
     const promise = fromCallback(cb => finished(stream, cb))
     stream.end(data)
     return promise
@@ -139,7 +139,7 @@ export default class RemoteHandlerAbstract {
   }
 
   _readFile(file: string, options?: Object): Promise<Buffer> {
-    return this.createReadStream(file, options).then(getStream.buffer)
+    return this._createReadStream(file, options).then(getStream.buffer)
   }
 
   async rename(
@@ -247,7 +247,7 @@ export default class RemoteHandlerAbstract {
           promise = Promise.all([
             promise,
             ignoreErrors.call(
-              this.getSize(file).then(size => {
+              this._getSize(file).then(size => {
                 stream.length = size
               })
             ),
@@ -264,7 +264,7 @@ export default class RemoteHandlerAbstract {
     // avoid a unhandled rejection warning
     ignoreErrors.call(streamP)
 
-    return this.readFile(checksumFile(path)).then(
+    return this._readFile(checksumFile(path), { flags: 'r' }).then(
       checksum =>
         streamP.then(stream => {
           const { length } = stream
@@ -313,11 +313,13 @@ export default class RemoteHandlerAbstract {
   async refreshChecksum(path: string): Promise<void> {
     path = normalizePath(path)
 
-    const stream = (await this.createReadStream(path)).pipe(
+    const stream = (await this._createReadStream(path, { flags: 'r' })).pipe(
       createChecksumStream()
     )
     stream.resume() // start reading the whole file
-    await this.outputFile(checksumFile(path), await stream.checksum)
+    await this._outputFile(checksumFile(path), await stream.checksum, {
+      flags: 'wx',
+    })
   }
 
   async createOutputStream(
@@ -351,7 +353,9 @@ export default class RemoteHandlerAbstract {
 
     // $FlowFixMe
     checksumStream.checksumWritten = checksumStream.checksum
-      .then(value => this.outputFile(checksumFile(path), value))
+      .then(value =>
+        this._outputFile(checksumFile(path), value, { flags: 'wx' })
+      )
       .catch(forwardError)
 
     return checksumStream
