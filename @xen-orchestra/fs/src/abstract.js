@@ -106,7 +106,7 @@ export default class RemoteHandlerAbstract {
 
   async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
     const stream = await this.createOutputStream(file, options)
-    const promise = fromCallback(cb => finished(stream))
+    const promise = fromCallback(cb => finished(stream, cb))
     stream.end(data)
     return promise
   }
