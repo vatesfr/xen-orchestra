@@ -91,7 +91,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async test(): Promise<Object> {
-    const testFileName = `${Date.now()}.test`
+    const testFileName = this[kResolve](`${Date.now()}.test`)
     const data = await fromCallback(cb => randomBytes(1024 * 1024, cb))
     let step = 'write'
     try {
