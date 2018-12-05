@@ -16,7 +16,7 @@ import {
 } from 'selectors'
 import { forEach } from 'lodash'
 import { SelectSr } from 'select-objects'
-import { VmItem } from 'render-xo-item'
+import { Vm } from 'render-xo-item'
 import { ejectCd, isSrWritable, setDefaultSr } from 'xo'
 
 @connectStore(
@@ -60,7 +60,7 @@ export default class InstallPoolPatchesModalBody extends Component {
   _getTooltip = createSelector(this._getVmsWithCds, vmIds =>
     vmIds.map(vmId => (
       <p className='m-0' key={vmId}>
-        <VmItem id={vmId} />
+        <Vm id={vmId} />
       </p>
     ))
   )

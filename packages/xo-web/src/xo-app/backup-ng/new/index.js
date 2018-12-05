@@ -16,11 +16,12 @@ import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
 import { form } from 'modal'
+import { generateId } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
 import { Number } from 'form'
-import { renderXoItemFromId, RemoteItem } from 'render-xo-item'
+import { renderXoItemFromId, Remote } from 'render-xo-item'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
@@ -43,6 +44,7 @@ import NewSchedule from './new-schedule'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
 import {
+  canDeltaBackup,
   destructPattern,
   FormFeedback,
   FormGroup,
@@ -111,8 +113,6 @@ const constructPattern = values =>
 const destructVmsPattern = pattern =>
   pattern.id === undefined
     ? {
-        powerState: pattern.power_state || 'All',
-        $pool: destructSmartPattern(pattern.$pool),
         tags: destructSmartPattern(pattern.tags, flatten),
       }
     : {
@@ -142,20 +142,15 @@ const createDoesRetentionExist = name => {
 }
 
 const getInitialState = () => ({
-  $pool: {},
+  _vmsPattern: undefined,
   backupMode: false,
   compression: undefined,
   crMode: false,
   deltaMode: false,
   displayAdvancedSettings: undefined,
   drMode: false,
-  formId: generateRandomId(),
-  inputConcurrencyId: generateRandomId(),
-  inputReportWhenId: generateRandomId(),
-  inputTimeoutId: generateRandomId(),
   name: '',
   paramsUpdated: false,
-  powerState: 'All',
   remotes: [],
   schedules: {},
   settings: undefined,
@@ -164,7 +159,7 @@ const getInitialState = () => ({
   snapshotMode: false,
   srs: [],
   tags: {
-    notValues: ['Continuous Replication', 'Disaster Recovery'],
+    notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
   },
   vms: [],
 })
@@ -192,6 +187,8 @@ export default decorate([
     remotes: subscribeRemotes,
   }),
   connectStore(() => ({
+    hostsById: createGetObjectsOfType('host'),
+    poolsById: createGetObjectsOfType('pool'),
     srsById: createGetObjectsOfType('SR'),
   })),
   injectIntl,
@@ -477,23 +474,8 @@ export default decorate([
           snapshotRetention,
         }),
       }),
-      setPowerState: (_, powerState) => state => ({
-        ...state,
-        powerState,
-      }),
-      setPoolValues: (_, values) => state => ({
-        ...state,
-        $pool: {
-          ...state.$pool,
-          values,
-        },
-      }),
-      setPoolNotValues: (_, notValues) => state => ({
-        ...state,
-        $pool: {
-          ...state.$pool,
-          notValues,
-        },
+      onVmsPatternChange: (_, _vmsPattern) => ({
+        _vmsPattern,
       }),
       setTagValues: (_, values) => state => ({
         ...state,
@@ -554,6 +536,15 @@ export default decorate([
       },
     },
     computed: {
+      formId: generateId,
+      inputConcurrencyId: generateId,
+      inputReportWhenId: generateId,
+      inputTimeoutId: generateId,
+
+      vmsPattern: ({ _vmsPattern }, { job }) =>
+        defined(_vmsPattern, () => job.vms, {
+          type: 'VM',
+        }),
       needUpdateParams: (state, { job, schedules }) =>
         job !== undefined && schedules !== undefined && !state.paramsUpdated,
       isJobInvalid: state =>
@@ -587,12 +578,18 @@ export default decorate([
       snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
-      vmsSmartPattern: ({ $pool, powerState, tags }) => ({
-        $pool: constructSmartPattern($pool, resolveIds),
-        power_state: powerState === 'All' ? undefined : powerState,
+      vmsSmartPattern: ({ tags, vmsPattern }) => ({
+        ...vmsPattern,
         tags: constructSmartPattern(tags, normalizeTagValues),
-        type: 'VM',
       }),
+      vmPredicate: ({ isDelta }, { hostsById, poolsById }) => ({
+        $container,
+      }) =>
+        !isDelta ||
+        canDeltaBackup(
+          get(() => hostsById[$container].version) ||
+            get(() => hostsById[poolsById[$container].master].version)
+        ),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
       propSettings: (_, { job }) =>
@@ -765,7 +762,7 @@ export default decorate([
                         <Ul>
                           {map(state.remotes, (id, key) => (
                             <Li key={id}>
-                              <RemoteItem id={id} />
+                              <Remote id={id} />
                               <div className='pull-right'>
                                 <DeleteOldBackupsFirst
                                   handler={effects.setTargetDeleteFirst}
@@ -957,9 +954,18 @@ export default decorate([
                   </ActionButton>
                 </CardHeader>
                 <CardBlock>
+                  <em>
+                    <Icon icon='info' />{' '}
+                    {_('deltaBackupOnOutdatedXenServerWarning')}
+                  </em>
+
                   {state.smartMode ? (
                     <Upgrade place='newBackup' required={3}>
-                      <SmartBackup />
+                      <SmartBackup
+                        deltaMode={state.isDelta}
+                        onChange={effects.onVmsPatternChange}
+                        pattern={state.vmsPattern}
+                      />
                     </Upgrade>
                   ) : (
                     <FormFeedback
@@ -969,6 +975,7 @@ export default decorate([
                       onChange={effects.setVms}
                       error={state.showErrors ? state.missingVms : undefined}
                       value={state.vms}
+                      predicate={state.vmPredicate}
                     />
                   )}
                 </CardBlock>

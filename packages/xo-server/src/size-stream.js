@@ -1,6 +1,5 @@
 // @flow
 
-// $FlowFixMe
 import through2 from 'through2'
 import { type Readable } from 'stream'
 

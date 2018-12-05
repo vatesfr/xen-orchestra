@@ -13,7 +13,7 @@ import decorate from './apply-decorators'
 import getEventValue from './get-event-value'
 import Icon from './icon'
 import Tooltip from './tooltip'
-import { generateRandomId } from './utils'
+import { generateId } from './reaclette-utils'
 import {
   disable as disableShortcuts,
   enable as enableShortcuts,
@@ -195,7 +195,13 @@ class StrongConfirm extends Component {
 
   _focusAndAddEventListener = ref => {
     if (ref !== null) {
-      ref.focus()
+      // When the modal is triggered by a react-bootstrap Dropdown, the Dropdown takes the focus back
+      // https://github.com/vatesfr/react-bootstrap/blob/bootstrap-4/src/Dropdown.js#L63-L85
+      // FIXME: remove the setTimeout workaround when react-bootstrap-4 is removed
+      // See https://github.com/react-bootstrap/react-bootstrap/issues/2553#issuecomment-324356126
+      setTimeout(() => {
+        ref.focus()
+      })
       ref.addEventListener('keydown', this._handleKeyDown)
       this.componentWillUnmount = () =>
         ref.removeEventListener('keydown', this._handleKeyDown)
@@ -356,7 +362,7 @@ export const FormModal = decorate([
       },
     },
     computed: {
-      formId: generateRandomId,
+      formId: generateId,
     },
   }),
   injectState,

@@ -1,5 +1,9 @@
 'use strict'
 
+const { unauthorized } = require('xo-common/api-errors')
+
+// ===================================================================
+
 // These global variables are not a problem because the algorithm is
 // synchronous.
 let permissionsByObject
@@ -52,6 +56,8 @@ const checkAuthorizationByTypes = {
 
   network: or(checkSelf, checkMember('$pool')),
 
+  PBD: or(checkMember('host'), checkMember('SR')),
+
   PIF: checkMember('$host'),
 
   SR: or(checkSelf, checkMember('$container')),
@@ -62,7 +68,7 @@ const checkAuthorizationByTypes = {
 
   // Access to a VDI is granted if the user has access to the
   // containing SR or to a linked VM.
-  VDI (vdi, permission) {
+  VDI(vdi, permission) {
     // Check authorization for the containing SR.
     if (checkAuthorization(vdi.$SR, permission)) {
       return true
@@ -92,7 +98,7 @@ const checkAuthorizationByTypes = {
 }
 
 // Hoisting is important for this function.
-function checkAuthorization (objectId, permission) {
+function checkAuthorization(objectId, permission) {
   const object = getObject(objectId)
   if (!object) {
     return false
@@ -105,23 +111,26 @@ function checkAuthorization (objectId, permission) {
 
 // -------------------------------------------------------------------
 
-module.exports = (
+function assertPermissions(
   permissionsByObject_,
   getObject_,
   permissions,
   permission
-) => {
+) {
   // Assign global variables.
   permissionsByObject = permissionsByObject_
   getObject = getObject_
 
   try {
-    if (permission) {
-      return checkAuthorization(permissions, permission)
+    if (permission !== undefined) {
+      const objectId = permissions
+      if (!checkAuthorization(objectId, permission)) {
+        throw unauthorized(permission, objectId)
+      }
     } else {
       for (const [objectId, permission] of permissions) {
         if (!checkAuthorization(objectId, permission)) {
-          return false
+          throw unauthorized(permission, objectId)
         }
       }
     }
@@ -130,5 +139,18 @@ module.exports = (
   } finally {
     // Free the global variables.
     permissionsByObject = getObject = null
+  }
+}
+exports.assert = assertPermissions
+
+exports.check = function checkPermissions() {
+  try {
+    assertPermissions.apply(undefined, arguments)
+    return true
+  } catch (error) {
+    if (unauthorized.is(error)) {
+      return false
+    }
+    throw error
   }
 }

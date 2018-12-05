@@ -52,7 +52,7 @@ import styles from './index.css'
 
   return {
     hostMetrics: getHostMetrics,
-    missingPaths: getMissingPatches,
+    missingPatches: getMissingPatches,
     poolHosts: getPoolHosts,
     nSrs: getNumberOfSrs,
     nVms: getNumberOfVms,
@@ -69,7 +69,7 @@ export default class PoolItem extends Component {
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
   componentWillMount () {
-    this.props.missingPaths.then(patches =>
+    this.props.missingPatches.then(patches =>
       this.setState({ missingPatchCount: size(patches) })
     )
   }
@@ -109,7 +109,7 @@ export default class PoolItem extends Component {
                 {missingPatchCount > 0 && (
                   <span>
                     &nbsp;&nbsp;
-                    <Tooltip content={_('homeMissingPaths')}>
+                    <Tooltip content={_('homeMissingPatches')}>
                       <span className='tag tag-pill tag-danger'>
                         {missingPatchCount}
                       </span>

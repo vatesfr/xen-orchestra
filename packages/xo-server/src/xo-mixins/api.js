@@ -2,10 +2,11 @@ import createLogger from '@xen-orchestra/log'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
-import { forEach, isArray, isFunction, map, mapValues } from 'lodash'
+import { forEach, isFunction } from 'lodash'
+import { MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api'
-import { MethodNotFound } from 'json-rpc-peer'
+import * as sensitiveValues from '../sensitive-values'
 import { noop, serializeError } from '../utils'
 
 import * as errors from 'xo-common/api-errors'
@@ -82,7 +83,7 @@ function checkPermission (method) {
 
   const { user } = this
   if (!user) {
-    throw errors.unauthorized()
+    throw errors.unauthorized(permission)
   }
 
   // The only requirement is login.
@@ -91,11 +92,11 @@ function checkPermission (method) {
   }
 
   if (!hasPermission(user, permission)) {
-    throw errors.unauthorized()
+    throw errors.unauthorized(permission)
   }
 }
 
-function resolveParams (method, params) {
+async function resolveParams (method, params) {
   const resolve = method.resolve
   if (!resolve) {
     return params
@@ -134,32 +135,12 @@ function resolveParams (method, params) {
     }
   })
 
-  return this.hasPermissions(userId, permissions).then(success => {
-    if (success) {
-      return params
-    }
+  await this.checkPermissions(userId, permissions)
 
-    throw errors.unauthorized()
-  })
+  return params
 }
 
 // -------------------------------------------------------------------
-
-const removeSensitiveParams = (value, name) => {
-  if (name === 'password' && typeof value === 'string') {
-    return '* obfuscated *'
-  }
-
-  if (typeof value !== 'object' || value === null) {
-    return value
-  }
-
-  return isArray(value)
-    ? map(value, removeSensitiveParams)
-    : mapValues(value, removeSensitiveParams)
-}
-
-// ===================================================================
 
 export default class Api {
   constructor (xo) {
@@ -295,7 +276,7 @@ export default class Api {
       const data = {
         userId,
         method: name,
-        params: removeSensitiveParams(params),
+        params: sensitiveValues.replace(params, '* obfuscated *'),
         duration: Date.now() - startTime,
         error: serializeError(error),
       }

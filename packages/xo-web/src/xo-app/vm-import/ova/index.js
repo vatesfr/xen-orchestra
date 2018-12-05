@@ -83,27 +83,30 @@ const filterDisks = disks => {
 }
 
 // ===================================================================
-/* global FileReader, TextDecoder */
+/* global FileReader */
 
-async function readFileFragment (file, start = 0, end) {
+async function readFileFragment(file, start = 0, end) {
   const reader = new FileReader()
   reader.readAsArrayBuffer(file.slice(start, end))
   return (await fromEvent(reader, 'loadend')).target.result
 }
 
-function parseTarHeader (header) {
-  const textDecoder = new TextDecoder('ascii')
-  const fileName = textDecoder.decode(header.slice(0, 100)).split('\0')[0]
+function parseTarHeader(header) {
+  const fileName = Buffer.from(header.slice(0, 100))
+    .toString('ascii')
+    .split('\0')[0]
   if (fileName.length === 0) {
     return null
   }
-  const fileSize = parseInt(textDecoder.decode(header.slice(124, 124 + 11)), 8)
+  const fileSize = parseInt(
+    Buffer.from(header.slice(124, 124 + 11)).toString('ascii'),
+    8
+  )
   return { fileName, fileSize }
 }
 
-async function parseOVF (fileFragment) {
-  const textDecoder = new TextDecoder('utf-8')
-  const xmlString = textDecoder.decode(await readFileFragment(fileFragment))
+async function parseOVF(fileFragment) {
+  const xmlString = Buffer.from(await readFileFragment(fileFragment)).toString()
   return new Promise((resolve, reject) =>
     xml2js.parseString(
       xmlString,
@@ -169,7 +172,7 @@ async function parseOVF (fileFragment) {
   )
 }
 
-async function parseTarFile (file) {
+async function parseTarFile(file) {
   let offset = 0
   const HEADER_SIZE = 512
   let data = { tables: {} }

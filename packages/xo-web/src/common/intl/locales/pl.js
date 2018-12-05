@@ -337,7 +337,7 @@ export default {
   homeMigrateTo: 'Migruj do…',
 
   // Original text: "Missing patches"
-  homeMissingPaths: 'Brakujące łatki',
+  homeMissingPatches: 'Brakujące łatki',
 
   // Original text: "Master:"
   homePoolMaster: 'Master:',

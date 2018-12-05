@@ -2,10 +2,56 @@
 
 ## *next*
 
+
 ### Enhancements
 
+- [Users] Display user groups [#3719](https://github.com/vatesfr/xen-orchestra/issues/3719) (PR [#3740](https://github.com/vatesfr/xen-orchestra/pull/3740))
+- [VDI] Display VDI's SR [3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3285](https://github.com/vatesfr/xen-orchestra/pull/3285))
+- [Health, VM/disks] Display SR's container [#3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PRs [#3747](https://github.com/vatesfr/xen-orchestra/pull/3747), [#3751](https://github.com/vatesfr/xen-orchestra/pull/3751))
+- [Servers] Auto-connect to ejected host [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3738](https://github.com/vatesfr/xen-orchestra/pull/3738))
+- [Backup NG] Add "XOSAN" in excluded tags by default [#2128](https://github.com/vatesfr/xen-orchestra/issues/3563) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3563))
+
+### Bug fixes
+
+- [Home/SRs] Fixed SR status for non admin users [#2204](https://github.com/vatesfr/xen-orchestra/issues/2204) (PR [#3742](https://github.com/vatesfr/xen-orchestra/pull/3742))
+
+### Released packages
+
+- xo-acl-resolver v0.4.1
+- xo-server v5.32.0
+- xo-web v5.32.0
+
+## **5.29.0** (2018-11-29)
+
+- [Perf alert] Ability to trigger an alarm if a host/VM/SR usage value is below the threshold [#3612](https://github.com/vatesfr/xen-orchestra/issues/3612) (PR [#3675](https://github.com/vatesfr/xen-orchestra/pull/3675))
+- [Home/VMs] Display pool's name [#2226](https://github.com/vatesfr/xen-orchestra/issues/2226) (PR [#3709](https://github.com/vatesfr/xen-orchestra/pull/3709))
+- [Servers] Prevent new connection if pool is already connected [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3724](https://github.com/vatesfr/xen-orchestra/pull/3724))
+- [VM] Pause (like Suspend but doesn't copy RAM on disk) [#3727](https://github.com/vatesfr/xen-orchestra/issues/3727) (PR [#3731](https://github.com/vatesfr/xen-orchestra/pull/3731))
+
+### Bug fixes
+
+- [Servers] Fix deleting server on joining a pool [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3728](https://github.com/vatesfr/xen-orchestra/pull/3728))
+
+### Released packages
+
+- xen-api v0.22.0
+- xo-server-perf-alert v0.2.0
+- xo-server-usage-report v0.7.1
+- xo-server v5.31.0
+- xo-web v5.31.0
+
+## **5.28.2** (2018-11-16)
+
+### Enhancements
+
+- [VM] Ability to set nested virtualization in settings [#3619](https://github.com/vatesfr/xen-orchestra/issues/3619) (PR [#3625](https://github.com/vatesfr/xen-orchestra/pull/3625))
 - [Legacy Backup] Restore and File restore functionalities moved to the Backup NG view [#3499](https://github.com/vatesfr/xen-orchestra/issues/3499) (PR [#3610](https://github.com/vatesfr/xen-orchestra/pull/3610))
 - [Backup NG logs] Display warning in case of missing VMs instead of a ghosts VMs tasks (PR [#3647](https://github.com/vatesfr/xen-orchestra/pull/3647))
+- [VM] On migration, automatically selects the host and SR when only one is available [#3502](https://github.com/vatesfr/xen-orchestra/issues/3502) (PR [#3654](https://github.com/vatesfr/xen-orchestra/pull/3654))
+- [VM] Display VGA and video RAM for PVHVM guests [#3576](https://github.com/vatesfr/xen-orchestra/issues/3576) (PR [#3664](https://github.com/vatesfr/xen-orchestra/pull/3664))
+- [Backup NG form] Display a warning to let the user know that the Delta Backup and the Continuous Replication are not supported on XenServer < 6.5 [#3540](https://github.com/vatesfr/xen-orchestra/issues/3540) (PR [#3668](https://github.com/vatesfr/xen-orchestra/pull/3668))
+- [Backup NG form] Omit VMs(Simple Backup)/pools(Smart Backup/Resident on) with XenServer < 6.5 from the selection when the Delta Backup mode or the Continuous Replication mode are selected [#3540](https://github.com/vatesfr/xen-orchestra/issues/3540) (PR [#3668](https://github.com/vatesfr/xen-orchestra/pull/3668))
+- [VM] Allow to switch the Virtualization mode [#2372](https://github.com/vatesfr/xen-orchestra/issues/2372) (PR [#3669](https://github.com/vatesfr/xen-orchestra/pull/3669))
 
 ### Bug fixes
 
@@ -13,17 +59,26 @@
 - Validate modal containing a confirm text input by pressing the Enter key [#2735](https://github.com/vatesfr/xen-orchestra/issues/2735) (PR [#2890](https://github.com/vatesfr/xen-orchestra/pull/2890))
 - [Patches] Bulk install correctly ignores upgrade patches on licensed hosts (PR [#3651](https://github.com/vatesfr/xen-orchestra/pull/3651))
 - [Backup NG logs] Handle failed restores (PR [#3648](https://github.com/vatesfr/xen-orchestra/pull/3648))
+- [Self/New VM] Incorrect limit computation [#3658](https://github.com/vatesfr/xen-orchestra/issues/3658) (PR [#3666](https://github.com/vatesfr/xen-orchestra/pull/3666))
+- [Plugins] Don't expose credentials in config to users (PR [#3671](https://github.com/vatesfr/xen-orchestra/pull/3671))
+- [Self/New VM] `not enough … available in the set …` error in some cases (PR [#3667](https://github.com/vatesfr/xen-orchestra/pull/3667))
+- [XOSAN] Creation stuck at "Configuring VMs" [#3688](https://github.com/vatesfr/xen-orchestra/issues/3688) (PR [#3689](https://github.com/vatesfr/xen-orchestra/pull/3689))
+- [Backup NG] Errors listing backups on SMB remotes with extraneous files (PR [#3685](https://github.com/vatesfr/xen-orchestra/pull/3685))
+- [Remotes] Don't expose credentials to users [#3682](https://github.com/vatesfr/xen-orchestra/issues/3682) (PR [#3687](https://github.com/vatesfr/xen-orchestra/pull/3687))
+- [VM] Correctly display guest metrics updates (tools, network, etc.) [#3533](https://github.com/vatesfr/xen-orchestra/issues/3533) (PR [#3694](https://github.com/vatesfr/xen-orchestra/pull/3694))
+- [VM Templates] Fix deletion [#3498](https://github.com/vatesfr/xen-orchestra/issues/3498) (PR [#3695](https://github.com/vatesfr/xen-orchestra/pull/3695))
 
 ### Released packages
 
-- xo-server v5.30.0
+- xen-api v0.21.0
+- xo-common v0.2.0
+- xo-acl-resolver v0.4.0
+- xo-server v5.30.1
 - xo-web v5.30.0
 
 ## **5.28.1** (2018-11-05)
 
 ### Enhancements
-
-- [VM] Ability to set nested virtualization in settings [#3619](https://github.com/vatesfr/xen-orchestra/issues/3619) (PR [#3625](https://github.com/vatesfr/xen-orchestra/pull/3625))
 
 ### Bug fixes
 

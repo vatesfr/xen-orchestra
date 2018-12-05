@@ -83,7 +83,7 @@ class VmData extends Component {
     pool: PropTypes.object.isRequired,
   }
 
-  get value () {
+  get value() {
     const { props, refs } = this
     return {
       descriptionLabel: refs.descriptionLabel.value,
@@ -110,7 +110,7 @@ class VmData extends Component {
     id => network => network.$pool === id
   )
 
-  render () {
+  render() {
     const {
       descriptionLabel,
       defaultNetwork,
@@ -241,7 +241,7 @@ const getRedirectionUrl = vms =>
     : `/home?s=${encodeURIComponent(`id:|(${vms.join(' ')})`)}&t=VM`
 
 export default class Import extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state.vms = []
   }
@@ -273,7 +273,7 @@ export default class Import extends Component {
 
         if (
           extIndex >= 0 &&
-          (type = name.substring(extIndex + 1)) &&
+          (type = name.slice(extIndex + 1)) &&
           (func = FORMAT_TO_HANDLER[type])
         ) {
           push(parseFile(file, type, func))
@@ -314,7 +314,7 @@ export default class Import extends Component {
     })
   }
 
-  render () {
+  render() {
     const { pool, sr, srPredicate, vms } = this.state
 
     return (

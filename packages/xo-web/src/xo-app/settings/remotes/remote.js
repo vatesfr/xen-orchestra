@@ -3,15 +3,15 @@ import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import { addSubscriptions, generateRandomId } from 'utils'
+import { addSubscriptions } from 'utils'
 import { alert, confirm } from 'modal'
 import { createRemote, editRemote, subscribeRemotes } from 'xo'
 import { error } from 'notification'
 import { format } from 'xo-remote-parser'
+import { generateId, linkState } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
-import { linkState } from 'reaclette-utils'
 import { map, some, trimStart } from 'lodash'
-import { Number } from 'form'
+import { Password, Number } from 'form'
 
 const remoteTypes = {
   file: 'remoteTypeLocal',
@@ -27,7 +27,6 @@ export default decorate([
     initialState: () => ({
       domain: undefined,
       host: undefined,
-      inputTypeId: generateRandomId(),
       name: undefined,
       options: undefined,
       password: undefined,
@@ -114,6 +113,8 @@ export default decorate([
       },
     },
     computed: {
+      formId: generateId,
+      inputTypeId: generateId,
       parsedPath: ({ remote }) => remote && trimStart(remote.path, '/'),
     },
   }),
@@ -276,15 +277,13 @@ export default decorate([
                 />
               </div>
               <div className='form-group'>
-                <input
-                  className='form-control'
+                <Password
                   name='password'
                   onChange={effects.linkState}
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderPassword
                   )}
                   required
-                  type='text'
                   value={password}
                 />
               </div>

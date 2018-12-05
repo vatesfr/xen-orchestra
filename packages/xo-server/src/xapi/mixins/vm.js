@@ -14,7 +14,7 @@ const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 export default {
   // TODO: clean up on error.
   @deferrable
-  async createVm (
+  async createVm(
     $defer,
     templateId,
     {
@@ -234,7 +234,7 @@ export default {
   _editVm: makeEditObject({
     affinityHost: {
       get: 'affinity',
-      set (value, vm) {
+      set(value, vm) {
         return this._setObjectProperty(
           vm,
           'affinity',
@@ -244,7 +244,7 @@ export default {
     },
 
     autoPoweron: {
-      set (value, vm) {
+      set(value, vm) {
         return Promise.all([
           this._updateObjectMapProperty(vm, 'other_config', {
             autoPoweron: value ? 'true' : null,
@@ -257,8 +257,24 @@ export default {
       },
     },
 
+    virtualizationMode: {
+      set(virtualizationMode, vm) {
+        if (virtualizationMode !== 'pv' && virtualizationMode !== 'hvm') {
+          throw new Error(`The virtualization mode must be 'pv' or 'hvm'`)
+        }
+        return this._set('domain_type', virtualizationMode)::pCatch(
+          { code: 'MESSAGE_METHOD_UNKNOWN' },
+          () =>
+            this._set(
+              'HVM_boot_policy',
+              virtualizationMode === 'hvm' ? 'Boot order' : ''
+            )
+        )
+      },
+    },
+
     coresPerSocket: {
-      set (coresPerSocket, vm) {
+      set(coresPerSocket, vm) {
         return this._updateObjectMapProperty(vm, 'platform', {
           'cores-per-socket': coresPerSocket,
         })
@@ -280,7 +296,7 @@ export default {
       get: vm => +vm.VCPUs_at_startup,
       set: [
         'VCPUs_at_startup',
-        function (value, vm) {
+        function(value, vm) {
           return isVmRunning(vm) && this._set('VCPUs_number_live', value)
         },
       ],
@@ -288,7 +304,7 @@ export default {
 
     cpuCap: {
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
-      set (cap, vm) {
+      set(cap, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { cap })
       },
     },
@@ -304,13 +320,13 @@ export default {
 
     cpuWeight: {
       get: vm => vm.VCPUs_params.weight && +vm.VCPUs_params.weight,
-      set (weight, vm) {
+      set(weight, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { weight })
       },
     },
 
     highAvailability: {
-      set (ha, vm) {
+      set(ha, vm) {
         return this.call('VM.set_ha_restart_priority', vm.$ref, ha)
       },
     },
@@ -330,7 +346,7 @@ export default {
       limitName: 'memory',
       get: vm => +vm.memory_dynamic_max,
       preprocess: parseSize,
-      set (dynamicMax, vm) {
+      set(dynamicMax, vm) {
         const { $ref } = vm
         const dynamicMin = Math.min(vm.memory_dynamic_min, dynamicMax)
 
@@ -384,7 +400,7 @@ export default {
     hasVendorDevice: true,
 
     expNestedHvm: {
-      set (expNestedHvm, vm) {
+      set(expNestedHvm, vm) {
         return this._updateObjectMapProperty(vm, 'platform', {
           'exp-nested-hvm': expNestedHvm ? 'true' : null,
         })
@@ -392,7 +408,7 @@ export default {
     },
 
     nicType: {
-      set (nicType, vm) {
+      set(nicType, vm) {
         return this._updateObjectMapProperty(vm, 'platform', {
           nic_type: nicType,
         })
@@ -400,7 +416,7 @@ export default {
     },
 
     vga: {
-      set (vga, vm) {
+      set(vga, vm) {
         if (!includes(XEN_VGA_VALUES, vga)) {
           throw new Error(
             `The different values that the VGA can take are: ${XEN_VGA_VALUES}`
@@ -411,7 +427,7 @@ export default {
     },
 
     videoram: {
-      set (videoram, vm) {
+      set(videoram, vm) {
         if (!includes(XEN_VIDEORAM_VALUES, videoram)) {
           throw new Error(
             `The different values that the video RAM can take are: ${XEN_VIDEORAM_VALUES}`
@@ -422,18 +438,18 @@ export default {
     },
   }),
 
-  async editVm (id, props, checkLimits) {
+  async editVm(id, props, checkLimits) {
     return /* await */ this._editVm(this.getObject(id), props, checkLimits)
   },
 
-  async revertVm (snapshotId, snapshotBefore = true) {
+  async revertVm(snapshotId, snapshotBefore = true) {
     const snapshot = this.getObject(snapshotId)
     if (snapshotBefore) {
       await this._snapshotVm(snapshot.$snapshot_of)
     }
     await this.call('VM.revert', snapshot.$ref)
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
-      const vm = snapshot.$snapshot_of
+      const vm = await this.barrier(snapshot.snapshot_of)
       if (vm.power_state === 'Halted') {
         this.startVm(vm.$id)::ignoreErrors()
       } else if (vm.power_state === 'Suspended') {
@@ -442,12 +458,16 @@ export default {
     }
   },
 
-  async resumeVm (vmId) {
+  async resumeVm(vmId) {
     // the force parameter is always true
     return this.call('VM.resume', this.getObject(vmId).$ref, false, true)
   },
 
-  shutdownVm (vmId, { hard = false } = {}) {
+  async unpauseVm(vmId) {
+    return this.call('VM.unpause', this.getObject(vmId).$ref)
+  },
+
+  shutdownVm(vmId, { hard = false } = {}) {
     return this.call(
       `VM.${hard ? 'hard' : 'clean'}_shutdown`,
       this.getObject(vmId).$ref

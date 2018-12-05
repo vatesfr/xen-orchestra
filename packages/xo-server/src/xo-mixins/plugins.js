@@ -1,8 +1,9 @@
 import Ajv from 'ajv'
 import createLogger from '@xen-orchestra/log'
-
-import { PluginsMetadata } from '../models/plugin-metadata'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
+
+import * as sensitiveValues from '../sensitive-values'
+import { PluginsMetadata } from '../models/plugin-metadata'
 import { isFunction, mapToArray } from '../utils'
 
 // ===================================================================
@@ -119,7 +120,7 @@ export default class {
       loaded,
       unloadable,
       version,
-      configuration,
+      configuration: sensitiveValues.obfuscate(configuration),
       configurationPresets,
       configurationSchema,
       testable,
@@ -165,6 +166,14 @@ export default class {
   // save the new configuration.
   async configurePlugin (id, configuration) {
     const plugin = this._getRawPlugin(id)
+    const metadata = await this._getPluginMetadata()
+
+    if (metadata !== undefined) {
+      configuration = sensitiveValues.merge(
+        configuration,
+        metadata.configuration
+      )
+    }
 
     await this._configurePlugin(plugin, configuration)
 

@@ -1,5 +1,8 @@
 import createLogger from '@xen-orchestra/log'
-import { ignoreErrors } from 'promise-toolbox'
+import { BaseError } from 'make-error'
+import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { fibonacci } from 'iterable-backoff'
+import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Xapi from '../xapi'
@@ -17,10 +20,16 @@ import { Servers } from '../models/server'
 
 // ===================================================================
 
+class PoolAlreadyConnected extends BaseError {
+  constructor() {
+    super("the server's pool is already connected")
+  }
+}
+
 const log = createLogger('xo:xo-mixins:xen-servers')
 
 export default class {
-  constructor (xo) {
+  constructor(xo, { xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
@@ -28,6 +37,7 @@ export default class {
       indexes: ['host'],
     }))
     this._stats = new XapiStats()
+    this._xapiOptions = xapiOptions
     this._xapis = { __proto__: null }
     this._xapisByPool = { __proto__: null }
     this._xo = xo
@@ -57,7 +67,7 @@ export default class {
     // TODO: disconnect servers on stop.
   }
 
-  async registerXenServer ({
+  async registerXenServer({
     allowUnauthorized,
     host,
     label,
@@ -81,7 +91,7 @@ export default class {
     return server.properties
   }
 
-  async unregisterXenServer (id) {
+  async unregisterXenServer(id) {
     this.disconnectXenServer(id)::ignoreErrors()
 
     if (!(await this._servers.remove(id))) {
@@ -89,7 +99,7 @@ export default class {
     }
   }
 
-  async updateXenServer (
+  async updateXenServer(
     id,
     {
       allowUnauthorized,
@@ -149,7 +159,7 @@ export default class {
 
   // TODO: this method will no longer be async when servers are
   // integrated to the main collection.
-  async _getXenServer (id) {
+  async _getXenServer(id) {
     const server = await this._servers.first(id)
     if (server === undefined) {
       throw noSuchObject(id, 'xenServer')
@@ -158,13 +168,28 @@ export default class {
     return server
   }
 
-  _onXenAdd (xapiObjects, xapiIdsToXo, toRetry, conId) {
+  _onXenAdd(
+    newXapiObjects,
+    xapiIdsToXo,
+    toRetry,
+    conId,
+    dependents,
+    xapiObjects
+  ) {
     const conflicts = this._objectConflicts
     const objects = this._xo._objects
 
-    forEach(xapiObjects, (xapiObject, xapiId) => {
+    forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
+      const { $ref } = xapiObject
+
+      const dependent = dependents[$ref]
+      if (dependent !== undefined) {
+        delete dependents[$ref]
+        return handleObject(xapiObjects[dependent], dependent)
+      }
+
       try {
-        const xoObject = xapiObjectToXo(xapiObject)
+        const xoObject = xapiObjectToXo(xapiObject, dependents)
         if (!xoObject) {
           return
         }
@@ -173,7 +198,7 @@ export default class {
         xapiIdsToXo[xapiId] = xoId
 
         const previous = objects.get(xoId, undefined)
-        if (previous && previous._xapiRef !== xapiObject.$ref) {
+        if (previous && previous._xapiRef !== $ref) {
           const conflicts_ =
             conflicts[xoId] || (conflicts[xoId] = { __proto__: null })
           conflicts_[conId] = xoObject
@@ -188,7 +213,7 @@ export default class {
     })
   }
 
-  _onXenRemove (xapiObjects, xapiIdsToXo, toRetry, conId) {
+  _onXenRemove(xapiObjects, xapiIdsToXo, toRetry, conId) {
     const conflicts = this._objectConflicts
     const objects = this._xo._objects
 
@@ -220,121 +245,138 @@ export default class {
     })
   }
 
-  async connectXenServer (id) {
+  async connectXenServer(id) {
     const server = (await this._getXenServer(id)).properties
 
-    const xapi = (this._xapis[server.id] = new Xapi({
+    const xapi = new Xapi({
       allowUnauthorized: Boolean(server.allowUnauthorized),
+      readOnly: Boolean(server.readOnly),
+
+      ...this._xapiOptions,
+
       auth: {
         user: server.username,
         password: server.password,
       },
-      readOnly: Boolean(server.readOnly),
       url: server.host,
-    }))
+      watchEvents: false,
+    })
 
-    xapi.xo = (() => {
-      const conId = server.id
-
-      // Maps ids of XAPI objects to ids of XO objects.
-      const xapiIdsToXo = { __proto__: null }
-
-      // Map of XAPI objects which failed to be transformed to XO
-      // objects.
-      //
-      // At each `finish` there will be another attempt to transform
-      // until they succeed.
-      let toRetry
-      let toRetryNext = { __proto__: null }
-
-      const onAddOrUpdate = objects => {
-        this._onXenAdd(objects, xapiIdsToXo, toRetryNext, conId)
-      }
-      const onRemove = objects => {
-        this._onXenRemove(objects, xapiIdsToXo, toRetry, conId)
-      }
+    try {
+      await xapi.connect()
 
       const xapisByPool = this._xapisByPool
-      const onFinish = () => {
-        const { pool } = xapi
-        if (pool) {
-          xapisByPool[pool.$id] = xapi
-        }
-
-        if (!isEmpty(toRetry)) {
-          onAddOrUpdate(toRetry)
-          toRetry = null
-        }
-
-        if (!isEmpty(toRetryNext)) {
-          toRetry = toRetryNext
-          toRetryNext = { __proto__: null }
-        }
+      const [{ $id: poolId }] = await xapi.getAllRecords('pool')
+      if (xapisByPool[poolId] !== undefined) {
+        throw new PoolAlreadyConnected()
       }
 
-      const { objects } = xapi
+      this._xapis[server.id] = xapisByPool[poolId] = xapi
 
-      const addObject = object => {
-        // TODO: optimize.
-        onAddOrUpdate({ [object.$id]: object })
-        return xapiObjectToXo(object)
-      }
+      xapi.xo = (() => {
+        const conId = server.id
 
-      return {
-        httpRequest: this._xo.httpRequest.bind(this),
+        // Maps ids of XAPI objects to ids of XO objects.
+        const xapiIdsToXo = { __proto__: null }
 
-        install () {
-          objects.on('add', onAddOrUpdate)
-          objects.on('update', onAddOrUpdate)
-          objects.on('remove', onRemove)
-          objects.on('finish', onFinish)
+        // Map of XAPI objects which failed to be transformed to XO
+        // objects.
+        //
+        // At each `finish` there will be another attempt to transform
+        // until they succeed.
+        let toRetry
+        let toRetryNext = { __proto__: null }
 
-          onAddOrUpdate(objects.all)
-        },
-        uninstall () {
-          objects.removeListener('add', onAddOrUpdate)
-          objects.removeListener('update', onAddOrUpdate)
-          objects.removeListener('remove', onRemove)
-          objects.removeListener('finish', onFinish)
+        const dependents = { __proto__: null }
 
-          onRemove(objects.all)
-        },
-
-        addObject,
-        getData: (id, key) => {
-          const value = (typeof id === 'string' ? xapi.getObject(id) : id)
-            .other_config[`xo:${camelToSnakeCase(key)}`]
-          return value && JSON.parse(value)
-        },
-        setData: async (id, key, value) => {
-          await xapi._updateObjectMapProperty(
-            xapi.getObject(id),
-            'other_config',
-            {
-              [`xo:${camelToSnakeCase(key)}`]:
-                value !== null ? JSON.stringify(value) : value,
-            }
+        const onAddOrUpdate = objects => {
+          this._onXenAdd(
+            objects,
+            xapiIdsToXo,
+            toRetryNext,
+            conId,
+            dependents,
+            xapi.objects.all
           )
+        }
+        const onRemove = objects => {
+          this._onXenRemove(objects, xapiIdsToXo, toRetry, conId, dependents)
+        }
 
-          // Register the updated object.
-          addObject(await xapi._waitObject(id))
-        },
-      }
-    })()
+        const onFinish = () => {
+          if (!isEmpty(toRetry)) {
+            onAddOrUpdate(toRetry)
+            toRetry = null
+          }
 
-    xapi.xo.install()
+          if (!isEmpty(toRetryNext)) {
+            toRetry = toRetryNext
+            toRetryNext = { __proto__: null }
+          }
+        }
 
-    await xapi.connect().then(
-      () => this.updateXenServer(id, { error: null }),
-      error => {
-        this.updateXenServer(id, { error: serializeError(error) })
+        const { objects } = xapi
 
-        throw error
-      }
-    )
+        const addObject = object => {
+          // TODO: optimize.
+          onAddOrUpdate({ [object.$id]: object })
+          return xapiObjectToXo(object, dependents)
+        }
+
+        return {
+          httpRequest: this._xo.httpRequest.bind(this),
+
+          install() {
+            objects.on('add', onAddOrUpdate)
+            objects.on('update', onAddOrUpdate)
+            objects.on('remove', onRemove)
+            objects.on('finish', onFinish)
+
+            onAddOrUpdate(objects.all)
+          },
+          uninstall() {
+            objects.removeListener('add', onAddOrUpdate)
+            objects.removeListener('update', onAddOrUpdate)
+            objects.removeListener('remove', onRemove)
+            objects.removeListener('finish', onFinish)
+
+            onRemove(objects.all)
+          },
+
+          addObject,
+          getData: (id, key) => {
+            const value = (typeof id === 'string' ? xapi.getObject(id) : id)
+              .other_config[`xo:${camelToSnakeCase(key)}`]
+            return value && JSON.parse(value)
+          },
+          setData: async (id, key, value) => {
+            await xapi._updateObjectMapProperty(
+              xapi.getObject(id),
+              'other_config',
+              {
+                [`xo:${camelToSnakeCase(key)}`]:
+                  value !== null ? JSON.stringify(value) : value,
+              }
+            )
+
+            // Register the updated object.
+            addObject(await xapi._waitObject(id))
+          },
+        }
+      })()
+
+      xapi.xo.install()
+      xapi.watchEvents()
+
+      this.updateXenServer(id, { error: null })::ignoreErrors()
+    } catch (error) {
+      xapi.disconnect()::ignoreErrors()
+      this.updateXenServer(id, { error: serializeError(error) })::ignoreErrors()
+      throw error
+    }
   }
 
-  async disconnectXenServer (id) {
+  async disconnectXenServer(id) {
     const xapi = this._xapis[id]
     if (!xapi) {
       throw noSuchObject(id, 'xenServer')
@@ -343,20 +385,20 @@ export default class {
     delete this._xapis[id]
 
     const { pool } = xapi
-    if (pool) {
-      delete this._xapisByPool[pool.id]
+    if (pool != null) {
+      delete this._xapisByPool[pool.$id]
     }
 
     xapi.xo.uninstall()
     return xapi.disconnect()
   }
 
-  getAllXapis () {
+  getAllXapis() {
     return this._xapis
   }
 
   // Returns the XAPI connection associated to an object.
-  getXapi (object, type) {
+  getXapi(object, type) {
     if (isString(object)) {
       object = this._xo.getObject(object, type)
     }
@@ -374,7 +416,7 @@ export default class {
     return xapi
   }
 
-  async getAllXenServers () {
+  async getAllXenServers() {
     const servers = await this._servers.get()
     const xapis = this._xapis
     forEach(servers, server => {
@@ -395,24 +437,24 @@ export default class {
     return servers
   }
 
-  getXapiVmStats (vmId, granularity) {
+  getXapiVmStats(vmId, granularity) {
     return this._stats.getVmStats(this.getXapi(vmId), vmId, granularity)
   }
 
-  getXapiHostStats (hostId, granularity) {
+  getXapiHostStats(hostId, granularity) {
     return this._stats.getHostStats(this.getXapi(hostId), hostId, granularity)
   }
 
-  getXapiSrStats (srId, granularity) {
+  getXapiSrStats(srId, granularity) {
     return this._stats.getSrStats(this.getXapi(srId), srId, granularity)
   }
 
-  async mergeXenPools (sourceId, targetId, force = false) {
-    const sourceXapi = this.getXapi(sourceId)
+  async mergeXenPools(sourcePoolId, targetPoolId, force = false) {
+    const sourceXapi = this.getXapi(sourcePoolId)
     const {
       _auth: { user, password },
       _url: { hostname },
-    } = this.getXapi(targetId)
+    } = this.getXapi(targetPoolId)
 
     // We don't want the events of the source XAPI to interfere with
     // the events of the new XAPI.
@@ -426,6 +468,42 @@ export default class {
       throw e
     }
 
-    await this.unregisterXenServer(sourceId)
+    this.unregisterXenServer(
+      findKey(this._xapis, candidate => candidate === sourceXapi)
+    )::ignoreErrors()
+  }
+
+  async detachHostFromPool(hostId) {
+    const xapi = this.getXapi(hostId)
+    const { address } = xapi.getObject(hostId)
+
+    await xapi.ejectHostFromPool(hostId)
+
+    this._getXenServer(findKey(this._xapis, candidate => candidate === xapi))
+      .then(async ({ properties }) => {
+        const { id } = await this.registerXenServer({
+          ...properties,
+          host: address,
+        })
+
+        for (const delay of fibonacci()
+          .take(5)
+          .toMs()
+          .map(d => d * 60)) {
+          await pDelay(delay)
+          try {
+            await this.connectXenServer(id)
+            break
+          } catch (error) {
+            if (
+              !(error instanceof PoolAlreadyConnected) &&
+              error.code !== 'EHOSTUNREACH'
+            ) {
+              throw error
+            }
+          }
+        }
+      })
+      ::ignoreErrors()
   }
 }

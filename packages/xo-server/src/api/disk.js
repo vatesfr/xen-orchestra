@@ -1,7 +1,7 @@
 import createLogger from '@xen-orchestra/log'
 import pump from 'pump'
 import { format } from 'json-rpc-peer'
-import { noSuchObject, unauthorized } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors'
 
 import { parseSize } from '../utils'
 
@@ -31,9 +31,7 @@ export async function create ({ name, size, sr, vm, bootable, position, mode }) 
       // the resource set does not exist, falls back to normal check
     }
 
-    if (!(await this.hasPermissions(this.user.id, [[sr.id, 'administrate']]))) {
-      throw unauthorized()
-    }
+    await this.checkPermissions(this.user.id, [[sr.id, 'administrate']])
   } while (false)
 
   const xapi = this.getXapi(sr)
@@ -125,6 +123,7 @@ async function handleImportContent (req, res, { xapi, id }) {
   req.setTimeout(43200000) // 12 hours
 
   try {
+    req.length = +req.headers['content-length']
     await xapi.importVdiContent(id, req)
     res.end(format.response(0, true))
   } catch (e) {

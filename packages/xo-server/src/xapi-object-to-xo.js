@@ -10,7 +10,12 @@ import {
   mapToArray,
   parseXml,
 } from './utils'
-import { isHostRunning, isVmHvm, isVmRunning, parseDateTime } from './xapi'
+import {
+  getVmDomainType,
+  isHostRunning,
+  isVmRunning,
+  parseDateTime,
+} from './xapi'
 import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
@@ -218,14 +223,18 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vm (obj) {
+  vm (obj, dependents) {
+    dependents[obj.guest_metrics] = obj.$id
+    dependents[obj.metrics] = obj.$id
+
     const {
       $guest_metrics: guestMetrics,
       $metrics: metrics,
       other_config: otherConfig,
     } = obj
 
-    const isHvm = isVmHvm(obj)
+    const domainType = getVmDomainType(obj)
+    const isHvm = domainType === 'hvm'
     const isRunning = isVmRunning(obj)
     const xenTools = (() => {
       if (!isRunning || !metrics) {
@@ -343,11 +352,7 @@ const TRANSFORMS = {
       startTime: metrics && toTimestamp(metrics.start_time),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
-      virtualizationMode: isHvm
-        ? guestMetrics !== undefined && guestMetrics.PV_drivers_detected
-          ? 'pvhvm'
-          : 'hvm'
-        : 'pv',
+      virtualizationMode: domainType,
 
       // <=> Are the Xen Server tools installed?
       //
@@ -739,13 +744,13 @@ const TRANSFORMS = {
 
 // ===================================================================
 
-export default xapiObj => {
+export default function xapiObjectToXo (xapiObj, dependents) {
   const transform = TRANSFORMS[xapiObj.$type.toLowerCase()]
   if (!transform) {
     return
   }
 
-  const xoObj = transform(xapiObj)
+  const xoObj = transform(xapiObj, dependents)
   if (!xoObj) {
     return
   }

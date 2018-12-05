@@ -333,7 +333,7 @@ export default {
   homeMigrateTo: 'העבר ל…',
 
   // Original text: 'Missing patches'
-  homeMissingPaths: undefined,
+  homeMissingPatches: undefined,
 
   // Original text: 'Master:'
   homePoolMaster: undefined,

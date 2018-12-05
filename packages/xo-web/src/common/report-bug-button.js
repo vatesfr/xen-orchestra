@@ -5,7 +5,7 @@ import React from 'react'
 import ActionButton from './action-button'
 import ActionRowButton from './action-row-button'
 
-export const CAN_REPORT_BUG = process.env.XOA_PLAN > 1
+export const CAN_REPORT_BUG = __DEV__ && process.env.XOA_PLAN > 1
 
 export const reportBug = ({ formatMessage, message, title }) => {
   const encodedTitle = encodeURIComponent(title)

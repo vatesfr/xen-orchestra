@@ -41,7 +41,7 @@ import styles from './index.css'
   ),
 }))
 export default class HostItem extends Component {
-  get _isRunning () {
+  get _isRunning() {
     const host = this.props.item
     return host && host.power_state === 'Running'
   }
@@ -58,7 +58,7 @@ export default class HostItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
-  render () {
+  render() {
     const { item: host, container, expandAll, selected, nVms } = this.props
     const toolTipContent =
       host.power_state === `Running` && !host.enabled
@@ -228,7 +228,7 @@ export default class HostItem extends Component {
               <span>
                 {host.cpus.cores}x <Icon icon='cpu' /> &nbsp;{' '}
                 {formatSizeShort(host.memory.size)} <Icon icon='memory' />{' '}
-                &nbsp; v{host.version.substring(0, 3)}
+                &nbsp; v{host.version.slice(0, 3)}
               </span>
             </Col>
             <Col mediumSize={4}>

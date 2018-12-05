@@ -1,9 +1,8 @@
 import Client, { createBackoff } from 'jsonrpc-websocket-client'
 import hrp from 'http-request-plus'
 
-const UPDATER_URL = 'localhost'
-const WS_PORT = 9001
-const HTTP_PORT = 9002
+const WS_URL = 'ws://localhost:9001'
+const HTTP_URL = 'http://localhost:9002'
 
 // ===================================================================
 
@@ -47,7 +46,7 @@ class XoServerCloud {
       this
     )
 
-    const updater = (this._updater = new Client(`${UPDATER_URL}:${WS_PORT}`))
+    const updater = (this._updater = new Client(WS_URL))
     const connect = () =>
       updater.open(createBackoff()).catch(error => {
         console.error('xo-server-cloud: fail to connect to updater', error)
@@ -143,7 +142,7 @@ class XoServerCloud {
       throw new Error('cannot get download token')
     }
 
-    const response = await hrp(`${UPDATER_URL}:${HTTP_PORT}/`, {
+    const response = await hrp(HTTP_URL, {
       headers: {
         Authorization: `Bearer ${downloadToken}`,
       },

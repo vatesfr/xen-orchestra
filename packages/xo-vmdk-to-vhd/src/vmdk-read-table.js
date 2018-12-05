@@ -10,7 +10,7 @@ const GRAIN_ADDRESS_OFFSET = 56
  * the grain table is the array of LBAs (in byte, not in sector) ordered by their position in the VDMK file
  * THIS CODE RUNS ON THE BROWSER
  */
-export default async function readVmdkGrainTable (fileAccessor) {
+export default async function readVmdkGrainTable(fileAccessor) {
   const getLongLong = (buffer, offset, name) => {
     if (buffer.length < offset + 8) {
       throw new Error(

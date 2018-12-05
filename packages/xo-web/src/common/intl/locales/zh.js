@@ -288,7 +288,7 @@ export default {
   homeMigrateTo: '迁移至…',
 
   // Original text: "Missing patches"
-  homeMissingPaths: '缺少补丁',
+  homeMissingPatches: '缺少补丁',
 
   // Original text: "High Availability"
   highAvailability: '高可用',

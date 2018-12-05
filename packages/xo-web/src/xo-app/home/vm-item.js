@@ -4,6 +4,7 @@ import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import Link, { BlockLink } from 'link'
 import React from 'react'
+import renderXoItem from 'render-xo-item'
 import SingleLineRow from 'single-line-row'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
@@ -181,13 +182,13 @@ export default class VmItem extends Component {
                   xoType='host'
                 >
                   <Link to={`/${container.type}s/${container.id}`}>
-                    {container.name_label}
+                    {renderXoItem(container)}
                   </Link>
                 </XoSelect>
               ) : (
                 container && (
                   <Link to={`/${container.type}s/${container.id}`}>
-                    {container.name_label}
+                    {renderXoItem(container)}
                   </Link>
                 )
               )}

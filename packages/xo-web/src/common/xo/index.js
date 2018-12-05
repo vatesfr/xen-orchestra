@@ -193,7 +193,8 @@ export const resolveUrl = invoke(
 // -------------------------------------------------------------------
 
 const createSubscription = cb => {
-  const delay = 5e3
+  const delay = 5e3 // 5s
+  const clearCacheDelay = 6e5 // 10m
 
   const subscribers = Object.create(null)
   let cache
@@ -203,12 +204,18 @@ const createSubscription = cb => {
 
   let running = false
 
-  const uninstall = () => {
-    clearTimeout(timeout)
+  const clearCache = () => {
     cache = undefined
   }
 
+  const uninstall = () => {
+    clearTimeout(timeout)
+    timeout = setTimeout(clearCache, clearCacheDelay)
+  }
+
   const loop = () => {
+    clearTimeout(timeout)
+
     if (running) {
       return
     }
@@ -255,11 +262,11 @@ const createSubscription = cb => {
     const id = nextId++
     subscribers[id] = cb
 
-    if (n++ !== 0) {
-      if (cache !== undefined) {
-        asap(() => cb(cache))
-      }
-    } else {
+    if (cache !== undefined) {
+      asap(() => cb(cache))
+    }
+
+    if (n++ === 0) {
       loop()
     }
 
@@ -274,7 +281,6 @@ const createSubscription = cb => {
 
   subscribe.forceRefresh = () => {
     if (n) {
-      clearTimeout(timeout)
       loop()
     }
   }
@@ -940,15 +946,21 @@ export const suspendVm = vm => _call('vm.suspend', { id: resolveId(vm) })
 
 export const suspendVms = vms =>
   confirm({
-    title: _('suspendVmsModalTitle', { nVms: vms.length }),
-    body: _('suspendVmsModalMessage', { nVms: vms.length }),
+    title: _('suspendVmsModalTitle', { vms: vms.length }),
+    body: _('suspendVmsModalMessage', { vms: vms.length }),
   }).then(
     () =>
       Promise.all(map(vms, vm => _call('vm.suspend', { id: resolveId(vm) }))),
     noop
   )
 
-export const resumeVm = vm => _call('vm.resume', { id: resolveId(vm) })
+export const pauseVm = vm => _call('vm.pause', { id: resolveId(vm) })
+
+export const pauseVms = vms =>
+  confirm({
+    title: _('pauseVmsModalTitle', { vms: vms.length }),
+    body: _('pauseVmsModalMessage', { vms: vms.length }),
+  }).then(() => Promise.all(map(vms, pauseVm)), noop)
 
 export const recoveryStartVm = vm =>
   _call('vm.recoveryStart', { id: resolveId(vm) })
@@ -1036,6 +1048,16 @@ export const convertVmToTemplate = vm =>
       </div>
     ),
   }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
+
+export const changeVirtualizationMode = vm =>
+  confirm({
+    title: _('vmVirtualizationModeModalTitle'),
+    body: _('vmVirtualizationModeModalBody'),
+  }).then(() =>
+    editVm(vm, {
+      virtualizationMode: vm.virtualizationMode === 'hvm' ? 'pv' : 'hvm',
+    })
+  )
 
 export const deleteTemplates = templates =>
   confirm({
@@ -1200,17 +1222,17 @@ export const deleteVm = (vm, retryWithForce = true) =>
   })
     .then(() => _call('vm.delete', { id: resolveId(vm) }), noop)
     .catch(error => {
-      if (forbiddenOperation.is(error) || !retryWithForce) {
-        throw error
+      if (retryWithForce && forbiddenOperation.is(error)) {
+        return confirm({
+          title: _('deleteVmBlockedModalTitle'),
+          body: _('deleteVmBlockedModalMessage'),
+        }).then(
+          () => _call('vm.delete', { id: resolveId(vm), force: true }),
+          noop
+        )
       }
 
-      return confirm({
-        title: _('deleteVmBlockedModalTitle'),
-        body: _('deleteVmBlockedModalMessage'),
-      }).then(
-        () => _call('vm.delete', { id: resolveId(vm), force: true }),
-        noop
-      )
+      throw error
     })
 
 export const deleteVms = vms =>
@@ -1988,9 +2010,9 @@ export const getRemote = remote =>
   )
 
 export const createRemote = (name, url, options) =>
-  _call('remote.create', { name, url, options })::tap(remote =>
+  _call('remote.create', { name, url, options })::tap(remote => {
     testRemote(remote).catch(noop)
-  )
+  })
 
 export const deleteRemote = remote =>
   _call('remote.delete', { id: resolveId(remote) })::tap(
@@ -2022,9 +2044,9 @@ export const disableRemote = remote =>
   )
 
 export const editRemote = (remote, { name, url, options }) =>
-  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(() =>
+  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(() => {
     testRemote(remote).catch(noop)
-  )
+  })
 
 export const listRemote = remote =>
   _call('remote.list', resolveIds({ id: remote }))::tap(

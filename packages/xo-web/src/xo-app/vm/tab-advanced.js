@@ -19,10 +19,11 @@ import {
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
+  getVirtualizationModeLabel,
   osFamily,
-  VIRTUALIZATION_MODE_LABEL,
 } from 'utils'
 import {
+  changeVirtualizationMode,
   cloneVm,
   convertVmToTemplate,
   createVgpu,
@@ -31,9 +32,9 @@ import {
   editVm,
   getVmsHaValues,
   isVmRunning,
+  pauseVm,
   recoveryStartVm,
   restartVm,
-  resumeVm,
   shareVm,
   startVm,
   stopVm,
@@ -61,13 +62,20 @@ const shareVmProxy = vm => shareVm(vm, vm.resourceSet)
 
   const getVbds = createGetObjectsOfType('VBD').pick((_, { vm }) => vm.$VBDs)
   const getVdis = createGetObjectsOfType('VDI').pick(
-    createSelector(getVbds, vbds => map(vbds, 'VDI'))
+    createSelector(
+      getVbds,
+      vbds => map(vbds, 'VDI')
+    )
   )
   const getSrs = createGetObjectsOfType('SR').pick(
-    createSelector(getVdis, vdis => uniq(map(vdis, '$SR')))
+    createSelector(
+      getVdis,
+      vdis => uniq(map(vdis, '$SR'))
+    )
   )
-  const getSrsContainers = createSelector(getSrs, srs =>
-    uniq(map(srs, '$container'))
+  const getSrsContainers = createSelector(
+    getSrs,
+    srs => uniq(map(srs, '$container'))
   )
 
   const getAffinityHostPredicate = createSelector(
@@ -88,7 +96,7 @@ class AffinityHost extends Component {
   _editAffinityHost = host =>
     editVm(this.props.vm, { affinityHost: host.id || null })
 
-  render () {
+  render() {
     const { affinityHost, affinityHostPredicate } = this.props
 
     return (
@@ -122,7 +130,7 @@ class ResourceSetItem extends Component {
       assign(find(resourceSets, { id }), { type: 'resourceSet' })
   )
 
-  render () {
+  render() {
     return this.props.resourceSets === undefined
       ? null
       : renderXoItem(this._getResourceSet())
@@ -130,7 +138,7 @@ class ResourceSetItem extends Component {
 }
 
 class NewVgpu extends Component {
-  get value () {
+  get value() {
     return this.state
   }
 
@@ -139,7 +147,7 @@ class NewVgpu extends Component {
     poolId => vgpuType => poolId === vgpuType.$pool
   )
 
-  render () {
+  render() {
     return (
       <Container>
         <Row>
@@ -166,7 +174,7 @@ class Vgpus extends Component {
       createVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup })
     )
 
-  render () {
+  render() {
     const { vgpus, vm } = this.props
 
     return (
@@ -224,7 +232,7 @@ class CoresPerSocket extends Component {
   _onChange = event =>
     editVm(this.props.vm, { coresPerSocket: getEventValue(event) || null })
 
-  render () {
+  render() {
     const { container, vm } = this.props
     const selectedCoresPerSocket = vm.coresPerSocket
     const options = this._getCoresPerSocketPossibilities()
@@ -294,7 +302,10 @@ const NIC_TYPE_OPTIONS = [
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
   const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
-    createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup'))
+    createSelector(
+      getVgpus,
+      vgpus => map(vgpus, 'gpuGroup')
+    )
   )
 
   return {
@@ -304,14 +315,14 @@ const NIC_TYPE_OPTIONS = [
   }
 })
 export default class TabAdvanced extends Component {
-  componentDidMount () {
+  componentDidMount() {
     getVmsHaValues().then(vmsHaValues => this.setState({ vmsHaValues }))
   }
 
   _onNicTypeChange = value =>
     editVm(this.props.vm, { nicType: value === '' ? null : value })
 
-  render () {
+  render() {
     const { container, isAdmin, vgpus, vm } = this.props
     return (
       <Container>
@@ -319,6 +330,13 @@ export default class TabAdvanced extends Component {
           <Col className='text-xs-right'>
             {vm.power_state === 'Running' && (
               <span>
+                <TabButton
+                  btnStyle='primary'
+                  handler={pauseVm}
+                  handlerParam={vm}
+                  icon='vm-pause'
+                  labelId='pauseVmLabel'
+                />
                 <TabButton
                   btnStyle='primary'
                   handler={suspendVm}
@@ -370,10 +388,35 @@ export default class TabAdvanced extends Component {
               <span>
                 <TabButton
                   btnStyle='primary'
-                  handler={resumeVm}
+                  handler={startVm}
                   handlerParam={vm}
                   icon='vm-start'
                   labelId='resumeVmLabel'
+                />
+                <TabButton
+                  btnStyle='warning'
+                  handler={forceShutdown}
+                  handlerParam={vm}
+                  icon='vm-force-shutdown'
+                  labelId='forceShutdownVmLabel'
+                />
+              </span>
+            )}
+            {vm.power_state === 'Paused' && (
+              <span>
+                <TabButton
+                  btnStyle='primary'
+                  handler={startVm}
+                  handlerParam={vm}
+                  icon='vm-start'
+                  labelId='resumeVmLabel'
+                />
+                <TabButton
+                  btnStyle='warning'
+                  handler={forceReboot}
+                  handlerParam={vm}
+                  icon='vm-force-reboot'
+                  labelId='forceRebootVmLabel'
                 />
                 <TabButton
                   btnStyle='warning'
@@ -409,7 +452,24 @@ export default class TabAdvanced extends Component {
               <tbody>
                 <tr>
                   <th>{_('virtualizationMode')}</th>
-                  <td>{_(VIRTUALIZATION_MODE_LABEL[vm.virtualizationMode])}</td>
+                  <td>
+                    {_(getVirtualizationModeLabel(vm))}{' '}
+                    {(vm.virtualizationMode === 'pv' ||
+                      vm.virtualizationMode === 'hvm') && (
+                      <ActionButton
+                        btnStyle='danger'
+                        disabled={vm.power_state !== 'Halted'}
+                        handler={changeVirtualizationMode}
+                        handlerParam={vm}
+                        icon='vm-migrate'
+                        size='small'
+                      >
+                        {_('vmSwitchVirtualizationMode', {
+                          mode: vm.virtualizationMode === 'pv' ? 'HVM' : 'PV',
+                        })}
+                      </ActionButton>
+                    )}
+                  </td>
                 </tr>
                 {vm.virtualizationMode === 'pv' && (
                   <tr>

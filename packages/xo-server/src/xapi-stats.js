@@ -321,8 +321,12 @@ export default class XapiStats {
     const hostUuid = host.uuid
 
     if (
+      !(
+        vmUuid !== undefined &&
+        get(this._statsByObject, [vmUuid, step]) === undefined
+      ) &&
       get(this._statsByObject, [hostUuid, step, 'localTimestamp']) + step >
-      getCurrentTimestamp()
+        getCurrentTimestamp()
     ) {
       return this._getStats(hostUuid, step, vmUuid)
     }
@@ -414,7 +418,7 @@ export default class XapiStats {
     })
   }
 
-  getVmStats (xapi, vmId, granularity) {
+  async getVmStats (xapi, vmId, granularity) {
     const vm = xapi.getObject(vmId)
     const host = vm.$resident_on
     if (!host) {

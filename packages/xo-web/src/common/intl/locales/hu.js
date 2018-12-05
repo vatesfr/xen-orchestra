@@ -374,7 +374,7 @@ export default {
   homeMigrateTo: 'Migálás ide…',
 
   // Original text: "Missing patches"
-  homeMissingPaths: 'Missing patches',
+  homeMissingPatches: 'Missing patches',
 
   // Original text: "Master:"
   homePoolMaster: 'Master:',

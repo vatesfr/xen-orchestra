@@ -143,7 +143,18 @@ export const isHostRunning = host => {
 
 // -------------------------------------------------------------------
 
-export const isVmHvm = vm => Boolean(vm.HVM_boot_policy)
+export const getVmDomainType = vm => {
+  const dt = vm.domain_type
+  if (
+    dt !== undefined && // XS < 7.5
+    dt !== 'unspecified' // detection failed
+  ) {
+    return dt
+  }
+  return vm.HVM_boot_policy === '' ? 'pv' : 'hvm'
+}
+
+export const isVmHvm = vm => getVmDomainType(vm) === 'hvm'
 
 const VM_RUNNING_POWER_STATES = {
   Running: true,

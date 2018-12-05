@@ -8,24 +8,30 @@ import LocalHandler from './local'
 const DEFAULT_NFS_OPTIONS = 'vers=3'
 
 export default class NfsHandler extends LocalHandler {
-  constructor (
+  constructor(
     remote,
     { mountsDir = join(tmpdir(), 'xo-fs-mounts'), ...opts } = {}
   ) {
     super(remote, opts)
 
-    this._realPath = join(mountsDir, remote.id)
+    this._realPath = join(
+      mountsDir,
+      remote.id ||
+        Math.random()
+          .toString(36)
+          .slice(2)
+    )
   }
 
-  get type () {
+  get type() {
     return 'nfs'
   }
 
-  _getRealPath () {
+  _getRealPath() {
     return this._realPath
   }
 
-  async _mount () {
+  async _mount() {
     await fs.ensureDir(this._getRealPath())
     const { host, path, port, options } = this._remote
     return execa(
@@ -54,17 +60,13 @@ export default class NfsHandler extends LocalHandler {
     })
   }
 
-  async _sync () {
-    if (this._remote.enabled) {
-      await this._mount()
-    } else {
-      await this._umount()
-    }
+  async _sync() {
+    await this._mount()
 
     return this._remote
   }
 
-  async _forget () {
+  async _forget() {
     try {
       await this._umount(this._remote)
     } catch (_) {
@@ -72,7 +74,7 @@ export default class NfsHandler extends LocalHandler {
     }
   }
 
-  async _umount () {
+  async _umount() {
     await execa('umount', ['--force', this._getRealPath()], {
       env: {
         LANG: 'C',

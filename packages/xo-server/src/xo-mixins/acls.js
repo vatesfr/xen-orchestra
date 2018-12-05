@@ -1,4 +1,4 @@
-import checkAuthorization from 'xo-acl-resolver'
+import aclResolver from 'xo-acl-resolver'
 import { forEach, includes, map } from 'lodash'
 
 import { ModelAlreadyExists } from '../collection'
@@ -102,6 +102,21 @@ export default class {
     return permissions
   }
 
+  async checkPermissions (userId, permissions) {
+    const user = await this._xo.getUser(userId)
+
+    // Special case for super XO administrators.
+    if (user.permission === 'admin') {
+      return true
+    }
+
+    aclResolver.assert(
+      await this.getPermissionsForUser(userId),
+      id => this._xo.getObject(id),
+      permissions
+    )
+  }
+
   async hasPermissions (userId, permissions) {
     const user = await this._xo.getUser(userId)
 
@@ -110,7 +125,7 @@ export default class {
       return true
     }
 
-    return checkAuthorization(
+    return aclResolver.check(
       await this.getPermissionsForUser(userId),
       id => this._xo.getObject(id),
       permissions

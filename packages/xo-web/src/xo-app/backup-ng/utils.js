@@ -40,3 +40,11 @@ FormFeedback.propTypes = {
   error: PropTypes.bool,
   message: PropTypes.node.isRequired,
 }
+
+export const canDeltaBackup = version => {
+  if (version === undefined) {
+    return false
+  }
+  const [major, minor] = version.split('.')
+  return +major > 6 || (+major === 6 && +minor >= 5)
+}

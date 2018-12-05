@@ -103,6 +103,6 @@ encoding by prefixing with `json:`:
 ##### VM import
 
  ```
-> xo-cli vm.import host=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
+> xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```
 > Note: `xo-cli` only supports the import of XVA files. It will not import OVA files. To import OVA images, you must use the XOA web UI.

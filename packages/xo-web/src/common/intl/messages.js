@@ -177,7 +177,7 @@ const messages = {
   homeSelectedItems: '{selected, number}x {icon} selected (on {total, number})',
   homeMore: 'More',
   homeMigrateTo: 'Migrate to…',
-  homeMissingPaths: 'Missing patches',
+  homeMissingPatches: 'Missing patches',
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
@@ -419,6 +419,8 @@ const messages = {
     'Tip: using a thin-provisioned storage will consume less space. Please click on the icon to get more information',
   vmsOnThinProvisionedSrTip:
     'Tip: creating VMs on a thin-provisioned storage will consume less space when backuping them. Please click on the icon to get more information',
+  deltaBackupOnOutdatedXenServerWarning:
+    'Delta Backup and Continuous Replication require at least XenServer 6.5.',
   localRemoteWarningMessage:
     'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
@@ -558,6 +560,8 @@ const messages = {
   groupUsersColumn: 'Users',
   addUserToGroupColumn: 'Add User',
   userNameColumn: 'Username',
+  userGroupsColumn: 'Member of',
+  userCountGroups: '{nGroups, number} group{nGroups, plural, one {} other {s}}',
   userPermissionColumn: 'Permissions',
   userPasswordColumn: 'Password',
   userName: 'Username',
@@ -616,6 +620,7 @@ const messages = {
   startVmOnMissingHostMessage: 'You must select a host',
   recoveryModeLabel: 'Recovery start',
   suspendVmLabel: 'Suspend',
+  pauseVmLabel: 'Pause',
   stopVmLabel: 'Stop',
   forceShutdownVmLabel: 'Force shutdown',
   rebootVmLabel: 'Reboot',
@@ -869,6 +874,7 @@ const messages = {
   powerStateHalted: 'halted',
   powerStateRunning: 'running',
   powerStateSuspended: 'suspended',
+  powerStatePaused: 'paused',
 
   // ----- VM home -----
   vmCurrentStatus: 'Current status:',
@@ -1021,6 +1027,10 @@ const messages = {
   // ----- VM advanced tab -----
   vmRemoveButton: 'Remove',
   vmConvertToTemplateButton: 'Convert to template',
+  vmSwitchVirtualizationMode: 'Convert to {mode}',
+  vmVirtualizationModeModalTitle: 'Change virtualization mode',
+  vmVirtualizationModeModalBody:
+    "You must know what you are doing, because it could break your setup (if you didn't install the bootloader in the MBR while switching from PV to HVM, or even worse, in HVM to PV, if you don't have the correct PV args)",
   vmShareButton: 'Share',
   xenSettingsLabel: 'Xen settings',
   guestOsLabel: 'Guest OS',
@@ -1453,6 +1463,9 @@ const messages = {
   suspendVmsModalTitle: 'Suspend VM{vms, plural, one {} other {s}}',
   suspendVmsModalMessage:
     'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?',
+  pauseVmsModalTitle: 'Pause VM{vms, plural, one {} other {s}}',
+  pauseVmsModalMessage:
+    'Are you sure you want to pause {vms, number} VM{vms, plural, one {} other {s}}?',
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage:
     'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
@@ -2042,6 +2055,8 @@ const messages = {
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
+  xoaLicenseNotShown:
+    'XOA license management is not supported yet (current license: {plan})',
   xosanLicenseRestricted: 'Limited size because XOSAN is in trial',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
@@ -2067,7 +2082,7 @@ const messages = {
   durationFormat:
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
-forEach(messages, function (message, id) {
+forEach(messages, function(message, id) {
   if (isString(message)) {
     messages[id] = {
       id,

@@ -4,6 +4,9 @@
 
 Tested with:
 
+- XenServer 7.6
+- XenServer 7.5
+- XenServer 7.4
 - XenServer 7.3
 - XenServer 7.2
 - XenServer 7.1
@@ -44,6 +47,7 @@ Options:
 - `allowUnauthorized`: whether to accept self-signed certificates
 - `auth`: credentials used to sign in (can also be specified in the URL)
 - `readOnly = false`: if true, no methods with side-effects can be called
+- `callTimeout`: number of milliseconds after which a call is considered failed (can also be a map of timeouts by methods)
 
 ```js
 // Force connection.

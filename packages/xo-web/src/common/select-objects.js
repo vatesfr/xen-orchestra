@@ -247,11 +247,6 @@ class GenericSelect extends React.Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  /* TODO: When all item components are implemented, change type to this:
-      type: this.props.resourceSet !== undefined && option.xoItem.type !== undefined
-        ? `${option.xoItem.type}-resourceSet`
-        : undefined
-  */
   _renderOption = option => (
     <span
       className={
@@ -262,8 +257,9 @@ class GenericSelect extends React.Component {
     >
       {renderXoItem(option.xoItem, {
         type:
-          this.props.resourceSet && option.xoItem.type === 'SR'
-            ? 'SR-resourceSet'
+          this.props.resourceSet !== undefined &&
+          option.xoItem.type !== undefined
+            ? `${option.xoItem.type}-resourceSet`
             : undefined,
       })}
     </span>

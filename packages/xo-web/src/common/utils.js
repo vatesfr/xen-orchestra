@@ -47,6 +47,17 @@ export addSubscriptions from './add-subscriptions'
 
 // ===================================================================
 
+export const getVirtualizationModeLabel = vm => {
+  const virtualizationMode =
+    vm.virtualizationMode === 'hvm' && Boolean(vm.xenTools)
+      ? 'pvhvm'
+      : vm.virtualizationMode
+
+  return VIRTUALIZATION_MODE_LABEL[virtualizationMode]
+}
+
+// ===================================================================
+
 export const ensureArray = value => {
   if (value === undefined) {
     return []
