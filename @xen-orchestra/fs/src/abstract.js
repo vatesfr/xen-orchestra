@@ -273,12 +273,12 @@ export default class RemoteHandlerAbstract {
     return p
   }
 
-  async rmdir(
-    dir: string,
-    { recursive = false }: { recursive?: boolean } = {}
-  ) {
-    dir = this[kResolve](dir)
-    await (recursive ? this._rmtree(dir) : this._rmdir(dir))
+  async rmdir(dir: string): Promise<void> {
+    await this._rmdir(this[kResolve](dir))
+  }
+
+  async rmtree(dir: string): Promise<void> {
+    await this._rmtree(this[kResolve](dir))
   }
 
   // Asks the handler to sync the state of the effective remote with its'

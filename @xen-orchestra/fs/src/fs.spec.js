@@ -57,7 +57,7 @@ handlers.forEach(url => {
       const { prefix } = handler
       expect(prefix).not.toBe('/')
       handler.prefix = '/'
-      await handler.rmdir(prefix, { recursive: true }).catch(error => {
+      await handler.rmtree(prefix).catch(error => {
         if (error.code !== 'ENOENT') {
           throw error
         }
@@ -126,19 +126,29 @@ handlers.forEach(url => {
     })
 
     describe('#rmdir()', () => {
-      it(`should remove folder resursively`, async () => {
-        await handler.outputFile('file', TEST_DATA)
-        await handler.rmdir('.', { recursive: true })
+      it('should remove an empty directory', async () => {
+        // TODO: replace with mkdir
+        await handler.outputFile('dir/file', '')
+        await handler.unlink('dir/file')
 
-        const error = await rejectionOf(handler.list('.'))
-        expect(error.code).toBe('ENOENT')
+        await handler.rmdir('dir')
+        expect(await handler.list('.')).toEqual([])
       })
 
-      it(`should throw an error when recursive is false`, async () => {
-        await handler.outputFile('file', TEST_DATA)
+      it(`should throw on non-empty directory`, async () => {
+        await handler.outputFile('dir/file', '')
 
         const error = await rejectionOf(handler.rmdir('.'))
         await expect(error.code).toEqual('ENOTEMPTY')
+      })
+    })
+
+    describe('#rmtree', () => {
+      it(`should remove a directory resursively`, async () => {
+        await handler.outputFile('dir/file', '')
+        await handler.rmtree('dir')
+
+        expect(await handler.list('.')).toEqual([])
       })
     })
 
