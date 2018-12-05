@@ -192,6 +192,10 @@ handlers.forEach(url => {
         const error = await rejectionOf(handler.rmdir('.'))
         await expect(error.code).toEqual('ENOTEMPTY')
       })
+
+      it('does not throw on missing directory', async () => {
+        await handler.rmdir('dir')
+      })
     })
 
     describe('#rmtree', () => {
@@ -217,6 +221,10 @@ handlers.forEach(url => {
         await handler.unlink('file')
 
         await expect(await handler.list('.')).toEqual([])
+      })
+
+      it('does not throw on missing file', async () => {
+        await handler.unlink('file')
       })
     })
   })

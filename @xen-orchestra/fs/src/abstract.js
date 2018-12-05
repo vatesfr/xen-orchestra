@@ -33,6 +33,12 @@ const kResolve = Symbol('resolve')
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
 
+const ignoreEnoent = error => {
+  if (error == null || error.code !== 'ENOENT') {
+    throw error
+  }
+}
+
 export default class RemoteHandlerAbstract {
   _remote: Object
   _timeout: number
@@ -274,7 +280,10 @@ export default class RemoteHandlerAbstract {
   }
 
   async rmdir(dir: string): Promise<void> {
-    await timeout.call(this._rmdir(this[kResolve](dir)), this._timeout)
+    await timeout.call(
+      this._rmdir(this[kResolve](dir)).catch(ignoreEnoent),
+      this._timeout
+    )
   }
 
   async rmtree(dir: string): Promise<void> {
@@ -320,7 +329,7 @@ export default class RemoteHandlerAbstract {
       ignoreErrors.call(this._unlink(checksumFile(file)))
     }
 
-    await timeout.call(this._unlink(file), this._timeout)
+    await timeout.call(this._unlink(file).catch(ignoreEnoent), this._timeout)
   }
 
   // Methods that can be implemented by inheriting classes

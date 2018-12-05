@@ -101,11 +101,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _unlink(file) {
-    return fs.unlink(this._getFilePath(file)).catch(error => {
-      // do not throw if the file did not exist
-      if (error == null || error.code !== 'ENOENT') {
-        throw error
-      }
-    })
+    return fs.unlink(this._getFilePath(file))
   }
 }
