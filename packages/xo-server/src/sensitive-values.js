@@ -26,9 +26,14 @@ export const merge = (newValue, oldValue) => {
 
 export const obfuscate = value => replace(value, OBFUSCATED_VALUE)
 
-export function replace (value, replacement) {
-  function helper (value, name) {
-    if (name === 'password' && typeof value === 'string') {
+const SENSITIVE_PARAMS = ['password', 'token']
+
+export function replace(value, replacement) {
+  function helper(value, name) {
+    if (
+      SENSITIVE_PARAMS.some(value => value === name) &&
+      typeof value === 'string'
+    ) {
       return replacement
     }
 
