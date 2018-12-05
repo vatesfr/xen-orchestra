@@ -41,25 +41,25 @@ To protect the replication, we removed the possibility to boot your copied VM di
 > This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need this**. These instructions are for Backup-NG jobs, and will not work to seed a legacy backup job. Please migrate any legacy jobs to Backup-NG!
 
 
-## Job creation
+### Job creation
 
 Create the Continuous Replication backup job, and leave it disabled for now. On the main Backup-NG page, note its identifiers, the main `backupJobId` and the ID of one on the schedules for the job, `backupScheduleId`.
 
-## Seed creation
+### Seed creation
 
 Manually create a snapshot on the VM to backup, and note its UUID as `snapshotUuid` from the snapshot panel for the VM.
 
 > DO NOT ever delete or alter this snapshot, feel free to rename it to make that clear.
 
-## Seed copy
+### Seed copy
 
 Export this snapshot to a file, then import it on the target SR.
 
 Note the UUID of this newly created VM as `targetVmUuid`.
 
-> DO NOT start this VM or it will break the Continuous Replication!
+> DO not start this VM or it will break the Continuous Replication job! You can rename this VM to more easily remember this.
 
-## Set up metadata
+### Set up metadata
 
 The XOA backup system requires metadata to correctly associate the source snapshot and the target VM to the backup job. We're going to use the `xo-cr-seed` utility to help us set them up.
 
@@ -69,7 +69,7 @@ First install the tool (all the following is done from the XOA VM CLI):
 npm i -g xo-cr-seed
 ```
 
-Here is an example of how the utility expects the UUIDs and info passed to it::
+Here is an example of how the utility expects the UUIDs and info passed to it:
 
 ```
 xo-cr-seed
@@ -82,6 +82,6 @@ Putting it altogether and putting our values and UUID's into the command, it wil
 xo-cr-seed https://root:password@xen1.company.tld 4a21c1cd-e8bd-4466-910a-f7524ecc07b1 https://root:password@xen2.company.tld 5aaf86ca-ae06-4a4e-b6e1-d04f0609e64d 90d11a94-a88f-4a84-b7c1-ed207d3de2f9 369a26f0-da77-41ab-a998-fa6b02c69b9a
 ```
 
-## Finished
+### Finished
 
 Your backup job should now be working correctly! Manually run the job the first time to check if everything is OK. Then, enable the job. **Now, only the deltas are sent, your initial seed saved you a LOT of time if you have a slow network.**
