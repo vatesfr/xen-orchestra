@@ -1,7 +1,10 @@
 /* eslint-env jest */
 
 import 'dotenv/config'
+import asyncIteratorToStream from 'async-iterator-to-stream'
 import getStream from 'get-stream'
+import { fromCallback } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
 import { tmpdir } from 'os'
 
 import { getHandler } from '.'
@@ -23,6 +26,9 @@ const unsecureRandomBytes = n => {
 }
 
 const TEST_DATA = unsecureRandomBytes(1024)
+const createTestDataStream = asyncIteratorToStream(function*() {
+  yield TEST_DATA
+})
 
 const rejectionOf = p =>
   p.then(
@@ -65,6 +71,25 @@ handlers.forEach(url => {
       handler.prefix = '/'
       await handler.rmtree(prefix)
       handler.prefix = prefix
+    })
+
+    describe('#createOutputStream()', () => {
+      it('returns a writable stream', async () => {
+        const stream = await handler.createOutputStream('file')
+        await fromCallback(cb => pipeline(createTestDataStream(), stream, cb))
+        await expect(await handler.readFile('file')).toEqual(TEST_DATA)
+      })
+
+      it('works on an opened files', async () => {
+        const fd = await handler.openFile('file', 'wx')
+        try {
+          const stream = await handler.createOutputStream(fd)
+          await fromCallback(cb => pipeline(createTestDataStream(), stream, cb))
+        } finally {
+          await handler.closeFile(fd)
+        }
+        await expect(await handler.readFile('file')).toEqual(TEST_DATA)
+      })
     })
 
     describe('#createReadStream()', () => {
