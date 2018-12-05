@@ -76,12 +76,36 @@ handlers.forEach(url => {
 
         await expect(buffer).toEqual(TEST_DATA)
       })
+
+      it('works on an opened files', async () => {
+        await handler.outputFile('file', TEST_DATA)
+        const fd = await handler.openFile('file', 'r')
+        let buffer
+        try {
+          buffer = await getStream.buffer(await handler.createReadStream(fd))
+        } finally {
+          await handler.closeFile(fd)
+        }
+        await expect(buffer).toEqual(TEST_DATA)
+      })
     })
 
     describe('#getSize()', () => {
       it(`should return the correct size`, async () => {
         await handler.outputFile('file', TEST_DATA)
         expect(await handler.getSize('file')).toEqual(TEST_DATA.length)
+      })
+
+      it('works on an opened file', async () => {
+        await handler.outputFile('file', TEST_DATA)
+        const fd = await handler.openFile('file', 'r')
+        let size
+        try {
+          size = await handler.getSize(fd)
+        } finally {
+          await handler.closeFile(fd)
+        }
+        expect(size).toEqual(TEST_DATA.length)
       })
     })
 
