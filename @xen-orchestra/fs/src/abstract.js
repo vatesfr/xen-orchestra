@@ -78,7 +78,7 @@ export default class RemoteHandlerAbstract {
       await this._outputFile(testFileName, data, { flags: 'wx' })
       step = 'read'
       const read = await this._readFile(testFileName, { flags: 'r' })
-      if (data.compare(read) !== 0) {
+      if (!data.equals(read)) {
         throw new Error('output and input did not match')
       }
       return {
