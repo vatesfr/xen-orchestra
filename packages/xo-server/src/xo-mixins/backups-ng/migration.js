@@ -146,9 +146,11 @@ export const translateLegacyJob = (
   const { id } = job
   let method, schedule
   if (
+    id.includes(':') ||
     job.type !== 'call' ||
     (method = methods[job.method]) === undefined ||
-    (schedule = schedules.find(_ => _.jobId === id)) === undefined
+    (schedule = schedules.find(_ => _.jobId === id)) === undefined ||
+    schedule.id.includes(':')
   ) {
     throw new Error(`cannot convert job ${job.id}`)
   }
