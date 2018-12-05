@@ -52,7 +52,7 @@ const XAPI_ERROR_TO_XO_ERROR = {
 const hasPermission = (user, permission) =>
   PERMISSIONS[user.permission] >= PERMISSIONS[permission]
 
-function checkParams (method, params) {
+function checkParams(method, params) {
   const schema = method.params
   if (!schema) {
     return
@@ -71,7 +71,7 @@ function checkParams (method, params) {
   }
 }
 
-function checkPermission (method) {
+function checkPermission(method) {
   /* jshint validthis: true */
 
   const { permission } = method
@@ -96,7 +96,7 @@ function checkPermission (method) {
   }
 }
 
-async function resolveParams (method, params) {
+async function resolveParams(method, params) {
   const resolve = method.resolve
   if (!resolve) {
     return params
@@ -143,7 +143,7 @@ async function resolveParams (method, params) {
 // -------------------------------------------------------------------
 
 export default class Api {
-  constructor (xo) {
+  constructor(xo) {
     this._logger = null
     this._methods = { __proto__: null }
     this._xo = xo
@@ -154,11 +154,11 @@ export default class Api {
     })
   }
 
-  get apiMethods () {
+  get apiMethods() {
     return this._methods
   }
 
-  addApiMethod (name, method) {
+  addApiMethod(name, method) {
     const methods = this._methods
 
     if (name in methods) {
@@ -174,7 +174,7 @@ export default class Api {
     return () => remove()
   }
 
-  addApiMethods (methods) {
+  addApiMethods(methods) {
     let base = ''
     const removes = []
 
@@ -209,7 +209,7 @@ export default class Api {
     return remove
   }
 
-  async callApiMethod (session, name, params = {}) {
+  async callApiMethod(session, name, params = {}) {
     const startTime = Date.now()
 
     const method = this._methods[name]
@@ -273,10 +273,11 @@ export default class Api {
 
       return result
     } catch (error) {
+      params = sensitiveValues.replace(params, '* obfuscated *')
       const data = {
         userId,
         method: name,
-        params: sensitiveValues.replace(params, '* obfuscated *'),
+        params,
         duration: Date.now() - startTime,
         error: serializeError(error),
       }
