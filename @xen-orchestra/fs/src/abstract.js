@@ -274,7 +274,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async rmdir(dir: string): Promise<void> {
-    await this._rmdir(this[kResolve](dir))
+    await timeout.call(this._rmdir(this[kResolve](dir)), this._timeout)
   }
 
   async rmtree(dir: string): Promise<void> {

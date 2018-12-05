@@ -100,6 +100,18 @@ describe('rename()', () => {
   })
 })
 
+describe('rmdir()', () => {
+  it(`throws in case of timeout`, async () => {
+    const testHandler = new TestHandler({
+      rmdir: () => new Promise(() => {}),
+    })
+
+    const promise = testHandler.rmdir('dir')
+    jest.advanceTimersByTime(TIMEOUT)
+    await expect(promise).rejects.toThrowError(TimeoutError)
+  })
+})
+
 describe('unlink()', () => {
   it(`throws in case of timeout`, async () => {
     const testHandler = new TestHandler({
