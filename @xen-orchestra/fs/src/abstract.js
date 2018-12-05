@@ -3,6 +3,7 @@
 // $FlowFixMe
 import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
+import { finished } from 'readable-stream'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
@@ -104,10 +105,10 @@ export default class RemoteHandlerAbstract {
   }
 
   async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
-    const stream = await this.createOutputStream(normalizePath(file), options)
-    const promise = fromEvent(stream, 'finish')
+    const stream = await this.createOutputStream(file, options)
+    const promise = fromCallback(cb => finished(stream))
     stream.end(data)
-    await promise
+    return promise
   }
 
   async read(
