@@ -184,7 +184,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async list(
-    dir: string = '.',
+    dir: string,
     {
       filter,
       prependDir = false,

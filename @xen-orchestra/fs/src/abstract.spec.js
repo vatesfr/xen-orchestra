@@ -70,7 +70,7 @@ describe('list()', () => {
       list: () => new Promise(() => {}),
     })
 
-    const promise = testHandler.list()
+    const promise = testHandler.list('.')
     jest.advanceTimersByTime(TIMEOUT)
     await expect(promise).rejects.toThrowError(TimeoutError)
   })
