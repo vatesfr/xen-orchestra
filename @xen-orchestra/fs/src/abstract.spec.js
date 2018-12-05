@@ -16,54 +16,6 @@ class TestHandler extends AbstractHandler {
   }
 }
 
-describe('rename()', () => {
-  it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      rename: () => new Promise(() => {}),
-    })
-
-    const promise = testHandler.rename('oldPath', 'newPath')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
-  })
-})
-
-describe('list()', () => {
-  it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      list: () => new Promise(() => {}),
-    })
-
-    const promise = testHandler.list()
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
-  })
-})
-
-describe('createReadStream()', () => {
-  it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      createReadStream: () => new Promise(() => {}),
-    })
-
-    const promise = testHandler.createReadStream('file')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
-  })
-})
-
-describe('openFile()', () => {
-  it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      openFile: () => new Promise(() => {}),
-    })
-
-    const promise = testHandler.openFile('path')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
-  })
-})
-
 describe('closeFile()', () => {
   it(`throws in case of timeout`, async () => {
     const testHandler = new TestHandler({
@@ -88,13 +40,13 @@ describe('createOutputStream()', () => {
   })
 })
 
-describe('unlink()', () => {
+describe('createReadStream()', () => {
   it(`throws in case of timeout`, async () => {
     const testHandler = new TestHandler({
-      unlink: () => new Promise(() => {}),
+      createReadStream: () => new Promise(() => {}),
     })
 
-    const promise = testHandler.unlink('')
+    const promise = testHandler.createReadStream('file')
     jest.advanceTimersByTime(TIMEOUT)
     await expect(promise).rejects.toThrowError(TimeoutError)
   })
@@ -107,6 +59,54 @@ describe('getSize()', () => {
     })
 
     const promise = testHandler.getSize('')
+    jest.advanceTimersByTime(TIMEOUT)
+    await expect(promise).rejects.toThrowError(TimeoutError)
+  })
+})
+
+describe('list()', () => {
+  it(`throws in case of timeout`, async () => {
+    const testHandler = new TestHandler({
+      list: () => new Promise(() => {}),
+    })
+
+    const promise = testHandler.list()
+    jest.advanceTimersByTime(TIMEOUT)
+    await expect(promise).rejects.toThrowError(TimeoutError)
+  })
+})
+
+describe('openFile()', () => {
+  it(`throws in case of timeout`, async () => {
+    const testHandler = new TestHandler({
+      openFile: () => new Promise(() => {}),
+    })
+
+    const promise = testHandler.openFile('path')
+    jest.advanceTimersByTime(TIMEOUT)
+    await expect(promise).rejects.toThrowError(TimeoutError)
+  })
+})
+
+describe('rename()', () => {
+  it(`throws in case of timeout`, async () => {
+    const testHandler = new TestHandler({
+      rename: () => new Promise(() => {}),
+    })
+
+    const promise = testHandler.rename('oldPath', 'newPath')
+    jest.advanceTimersByTime(TIMEOUT)
+    await expect(promise).rejects.toThrowError(TimeoutError)
+  })
+})
+
+describe('unlink()', () => {
+  it(`throws in case of timeout`, async () => {
+    const testHandler = new TestHandler({
+      unlink: () => new Promise(() => {}),
+    })
+
+    const promise = testHandler.unlink('')
     jest.advanceTimersByTime(TIMEOUT)
     await expect(promise).rejects.toThrowError(TimeoutError)
   })

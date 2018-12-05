@@ -65,11 +65,28 @@ handlers.forEach(url => {
       handler.prefix = prefix
     })
 
-    describe('#test()', () => {
-      it('tests the remote appears to be working', async () => {
-        expect(await handler.test()).toEqual({
-          success: true,
-        })
+    describe('#createReadStream()', () => {
+      it(`should return a stream`, async () => {
+        await handler.outputFile('file', TEST_DATA)
+        const buffer = await getStream.buffer(
+          await handler.createReadStream('file')
+        )
+
+        await expect(buffer).toEqual(TEST_DATA)
+      })
+    })
+
+    describe('#getSize()', () => {
+      it(`should return the correct size`, async () => {
+        await handler.outputFile('file', TEST_DATA)
+        expect(await handler.getSize('file')).toEqual(TEST_DATA.length)
+      })
+    })
+
+    describe('#list()', () => {
+      it(`should list the content of folder`, async () => {
+        await handler.outputFile('file', TEST_DATA)
+        await expect(await handler.list('.')).toEqual(['file'])
       })
     })
 
@@ -98,30 +115,6 @@ handlers.forEach(url => {
       })
     })
 
-    describe('#list()', () => {
-      it(`should list the content of folder`, async () => {
-        await handler.outputFile('file', TEST_DATA)
-        await expect(await handler.list('.')).toEqual(['file'])
-      })
-    })
-
-    describe('#createReadStream()', () => {
-      it(`should return a stream`, async () => {
-        await handler.outputFile('file', TEST_DATA)
-        const buffer = await getStream.buffer(
-          await handler.createReadStream('file')
-        )
-
-        await expect(buffer).toEqual(TEST_DATA)
-      })
-    })
-    describe('#getSize()', () => {
-      it(`should return the correct size`, async () => {
-        await handler.outputFile('file', TEST_DATA)
-        expect(await handler.getSize('file')).toEqual(TEST_DATA.length)
-      })
-    })
-
     describe('#rename()', () => {
       it(`should rename the file`, async () => {
         await handler.outputFile('file', TEST_DATA)
@@ -129,15 +122,6 @@ handlers.forEach(url => {
 
         expect(await handler.list('.')).toEqual(['file2'])
         expect(await handler.readFile(`file2`)).toEqual(TEST_DATA)
-      })
-    })
-
-    describe('#unlink()', () => {
-      it(`should remove the file`, async () => {
-        await handler.outputFile('file', TEST_DATA)
-        await handler.unlink('file')
-
-        await expect(await handler.list('.')).toEqual([])
       })
     })
 
@@ -155,6 +139,23 @@ handlers.forEach(url => {
 
         const error = await rejectionOf(handler.rmdir('.'))
         await expect(error.code).toEqual('ENOTEMPTY')
+      })
+    })
+
+    describe('#test()', () => {
+      it('tests the remote appears to be working', async () => {
+        expect(await handler.test()).toEqual({
+          success: true,
+        })
+      })
+    })
+
+    describe('#unlink()', () => {
+      it(`should remove the file`, async () => {
+        await handler.outputFile('file', TEST_DATA)
+        await handler.unlink('file')
+
+        await expect(await handler.list('.')).toEqual([])
       })
     })
   })

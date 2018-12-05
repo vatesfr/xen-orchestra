@@ -62,11 +62,93 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return parts.join('\\')
   }
 
-  async _sync() {
-    // Check access (smb2 does not expose connect in public so far...)
-    await this.list()
+  async _closeFile({ client, file }) {
+    try {
+      await client.close(file).catch(normalizeError)
+    } finally {
+      client.disconnect()
+    }
+  }
 
-    return this._remote
+  async _createOutputStream(file, options = {}) {
+    if (typeof file !== 'string') {
+      file = file.path
+    }
+    const path = this._getFilePath(file)
+
+    const client = this._getClient()
+    try {
+      const dir = this._dirname(path)
+      if (dir) {
+        await client.ensureDir(dir)
+      }
+
+      // FIXME ensure that options are properly handled by @marsaud/smb2
+      const stream = await client.createWriteStream(path, options)
+
+      finished(stream, () => client.disconnect())
+
+      return stream
+    } catch (err) {
+      client.disconnect()
+      throw normalizeError(err)
+    }
+  }
+
+  async _createReadStream(file, options = {}) {
+    if (typeof file !== 'string') {
+      file = file.path
+    }
+
+    const client = this._getClient()
+    try {
+      // FIXME ensure that options are properly handled by @marsaud/smb2
+      const stream = await client.createReadStream(
+        this._getFilePath(file),
+        options
+      )
+
+      finished(stream, () => client.disconnect())
+
+      return stream
+    } catch (error) {
+      client.disconnect()
+
+      throw normalizeError(error)
+    }
+  }
+
+  async _getSize(file) {
+    const client = await this._getClient()
+    try {
+      return await client.getSize(
+        this._getFilePath(typeof file === 'string' ? file : file.path)
+      )
+    } catch (error) {
+      throw normalizeError(error)
+    } finally {
+      client.disconnect()
+    }
+  }
+
+  async _list(dir = '.') {
+    const client = this._getClient()
+    try {
+      return await client.readdir(this._getFilePath(dir))
+    } catch (error) {
+      throw normalizeError(error, true)
+    } finally {
+      client.disconnect()
+    }
+  }
+
+  // TODO: add flags
+  async _openFile(path) {
+    const client = this._getClient()
+    return {
+      client,
+      file: await client.open(this._getFilePath(path)).catch(normalizeError),
+    }
   }
 
   async _outputFile(file, data, options = {}) {
@@ -143,63 +225,11 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _list(dir = '.') {
-    const client = this._getClient()
-    try {
-      return await client.readdir(this._getFilePath(dir))
-    } catch (error) {
-      throw normalizeError(error, true)
-    } finally {
-      client.disconnect()
-    }
-  }
+  async _sync() {
+    // Check access (smb2 does not expose connect in public so far...)
+    await this.list()
 
-  async _createReadStream(file, options = {}) {
-    if (typeof file !== 'string') {
-      file = file.path
-    }
-
-    const client = this._getClient()
-    try {
-      // FIXME ensure that options are properly handled by @marsaud/smb2
-      const stream = await client.createReadStream(
-        this._getFilePath(file),
-        options
-      )
-
-      finished(stream, () => client.disconnect())
-
-      return stream
-    } catch (error) {
-      client.disconnect()
-
-      throw normalizeError(error)
-    }
-  }
-
-  async _createOutputStream(file, options = {}) {
-    if (typeof file !== 'string') {
-      file = file.path
-    }
-    const path = this._getFilePath(file)
-
-    const client = this._getClient()
-    try {
-      const dir = this._dirname(path)
-      if (dir) {
-        await client.ensureDir(dir)
-      }
-
-      // FIXME ensure that options are properly handled by @marsaud/smb2
-      const stream = await client.createWriteStream(path, options)
-
-      finished(stream, () => client.disconnect())
-
-      return stream
-    } catch (err) {
-      client.disconnect()
-      throw normalizeError(err)
-    }
+    return this._remote
   }
 
   async _unlink(file) {
@@ -208,36 +238,6 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       await client.unlink(this._getFilePath(file))
     } catch (error) {
       throw normalizeError(error)
-    } finally {
-      client.disconnect()
-    }
-  }
-
-  async _getSize(file) {
-    const client = await this._getClient()
-    try {
-      return await client.getSize(
-        this._getFilePath(typeof file === 'string' ? file : file.path)
-      )
-    } catch (error) {
-      throw normalizeError(error)
-    } finally {
-      client.disconnect()
-    }
-  }
-
-  // TODO: add flags
-  async _openFile(path) {
-    const client = this._getClient()
-    return {
-      client,
-      file: await client.open(this._getFilePath(path)).catch(normalizeError),
-    }
-  }
-
-  async _closeFile({ client, file }) {
-    try {
-      await client.close(file).catch(normalizeError)
     } finally {
       client.disconnect()
     }

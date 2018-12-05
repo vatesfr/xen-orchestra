@@ -51,198 +51,62 @@ export default class RemoteHandlerAbstract {
     this[kPrefix] = ''
   }
 
-  get prefix() {
+  // Public members
+
+  get prefix(): string {
     return this[kPrefix]
   }
 
-  set prefix(prefix) {
+  set prefix(prefix: string) {
     prefix = normalizePath(prefix)
     this[kPrefix] = prefix === '/' ? '' : prefix
-  }
-
-  [kResolve](path) {
-    return this[kPrefix] + normalizePath(path)
   }
 
   get type(): string {
     throw new Error('Not implemented')
   }
 
-  /**
-   * Asks the handler to sync the state of the effective remote with its' metadata
-   */
-  async sync(): Promise<mixed> {
-    return this._sync()
+  async closeFile(fd: FileDescriptor): Promise<void> {
+    await timeout.call(this._closeFile(fd.fd), this._timeout)
   }
 
-  async _sync(): Promise<mixed> {
-    throw new Error('Not implemented')
-  }
-
-  /**
-   * Free the resources possibly dedicated to put the remote at work, when it is no more needed
-   */
-  async forget(): Promise<void> {
-    await this._forget()
-  }
-
-  async _forget(): Promise<void> {
-    throw new Error('Not implemented')
-  }
-
-  async test(): Promise<Object> {
-    const testFileName = this[kResolve](`${Date.now()}.test`)
-    const data = await fromCallback(cb => randomBytes(1024 * 1024, cb))
-    let step = 'write'
-    try {
-      await this._outputFile(testFileName, data, { flags: 'wx' })
-      step = 'read'
-      const read = await this._readFile(testFileName, { flags: 'r' })
-      if (!data.equals(read)) {
-        throw new Error('output and input did not match')
-      }
-      return {
-        success: true,
-      }
-    } catch (error) {
-      return {
-        success: false,
-        step,
-        file: testFileName,
-        error: error.message || String(error),
-      }
-    } finally {
-      ignoreErrors.call(this._unlink(testFileName))
-    }
-  }
-
-  async outputFile(
-    file: string,
-    data: Data,
-    { flags = 'wx' }: { flags?: string } = {}
-  ): Promise<void> {
-    return this._outputFile(this[kResolve](file), data, { flags })
-  }
-
-  async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
-    const stream = await this._createOutputStream(file, options)
-    const promise = fromCallback(cb => finished(stream, cb))
-    stream.end(data)
-    return promise
-  }
-
-  async read(
+  async createOutputStream(
     file: File,
-    buffer: Buffer,
-    position?: number
-  ): Promise<{| bytesRead: number, buffer: Buffer |}> {
-    return this._read(
-      typeof file === 'string' ? this[kResolve](file) : file,
-      buffer,
-      position
+    { checksum = false, ...options }: Object = {}
+  ): Promise<LaxWritable> {
+    if (typeof file === 'string') {
+      file = this[kResolve](file)
+    }
+    const path = typeof file === 'string' ? file : file.path
+    const streamP = timeout.call(
+      this._createOutputStream(file, {
+        flags: 'wx',
+        ...options,
+      }),
+      this._timeout
     )
-  }
 
-  _read(
-    file: File,
-    buffer: Buffer,
-    position?: number
-  ): Promise<{| bytesRead: number, buffer: Buffer |}> {
-    throw new Error('Not implemented')
-  }
-
-  async readFile(
-    file: string,
-    { flags = 'r' }: { flags?: string } = {}
-  ): Promise<Buffer> {
-    return this._readFile(this[kResolve](file), { flags })
-  }
-
-  _readFile(file: string, options?: Object): Promise<Buffer> {
-    return this._createReadStream(file, options).then(getStream.buffer)
-  }
-
-  async rename(
-    oldPath: string,
-    newPath: string,
-    { checksum = false }: Object = {}
-  ) {
-    oldPath = this[kResolve](oldPath)
-    newPath = this[kResolve](newPath)
-
-    let p = timeout.call(this._rename(oldPath, newPath), this._timeout)
-    if (checksum) {
-      p = Promise.all([
-        p,
-        this._rename(checksumFile(oldPath), checksumFile(newPath)),
-      ])
-    }
-    return p
-  }
-
-  async _rename(oldPath: string, newPath: string) {
-    throw new Error('Not implemented')
-  }
-
-  async rmdir(
-    dir: string,
-    { recursive = false }: { recursive?: boolean } = {}
-  ) {
-    dir = this[kResolve](dir)
-    await (recursive ? this._rmtree(dir) : this._rmdir(dir))
-  }
-
-  async _rmdir(dir: string) {
-    throw new Error('Not implemented')
-  }
-
-  async _rmtree(dir: string) {
-    try {
-      return await this._rmdir(dir)
-    } catch (error) {
-      if (error.code !== 'ENOTEMPTY') {
-        throw error
-      }
+    if (!checksum) {
+      return streamP
     }
 
-    const files = await this._list(dir)
-    await asyncMap(files, file =>
-      this._unlink(`${dir}/${file}`).catch(error => {
-        if (error.code === 'EISDIR') {
-          return this._rmtree(`${dir}/${file}`)
-        }
-        throw error
-      })
-    )
-    return this._rmtree(dir)
-  }
-
-  async list(
-    dir: string = '.',
-    {
-      filter,
-      prependDir = false,
-    }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
-  ): Promise<string[]> {
-    const virtualDir = normalizePath(dir)
-    dir = this[kResolve](dir)
-
-    let entries = await timeout.call(this._list(dir), this._timeout)
-    if (filter !== undefined) {
-      entries = entries.filter(filter)
+    const checksumStream = createChecksumStream()
+    const forwardError = error => {
+      checksumStream.emit('error', error)
     }
 
-    if (prependDir) {
-      entries.forEach((entry, i) => {
-        entries[i] = virtualDir + '/' + entry
-      })
-    }
+    const stream = await streamP
+    stream.on('error', forwardError)
+    checksumStream.pipe(stream)
 
-    return entries
-  }
+    // $FlowFixMe
+    checksumStream.checksumWritten = checksumStream.checksum
+      .then(value =>
+        this._outputFile(checksumFile(path), value, { flags: 'wx' })
+      )
+      .catch(forwardError)
 
-  async _list(dir: string): Promise<string[]> {
-    throw new Error('Not implemented')
+    return checksumStream
   }
 
   createReadStream(
@@ -306,8 +170,41 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  async _createReadStream(file: File, options?: Object): Promise<LaxReadable> {
-    throw new Error('Not implemented')
+  // Free the resources possibly dedicated to put the remote at work, when it
+  // is no more needed
+  async forget(): Promise<void> {
+    await this._forget()
+  }
+
+  async getSize(file: File): Promise<number> {
+    return timeout.call(
+      this._getSize(typeof file === 'string' ? this[kResolve](file) : file),
+      this._timeout
+    )
+  }
+
+  async list(
+    dir: string = '.',
+    {
+      filter,
+      prependDir = false,
+    }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
+  ): Promise<string[]> {
+    const virtualDir = normalizePath(dir)
+    dir = this[kResolve](dir)
+
+    let entries = await timeout.call(this._list(dir), this._timeout)
+    if (filter !== undefined) {
+      entries = entries.filter(filter)
+    }
+
+    if (prependDir) {
+      entries.forEach((entry, i) => {
+        entries[i] = virtualDir + '/' + entry
+      })
+    }
+
+    return entries
   }
 
   async openFile(path: string, flags?: string): Promise<FileDescriptor> {
@@ -319,16 +216,31 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  async _openFile(path: string, flags?: string): Promise<mixed> {
-    throw new Error('Not implemented')
+  async outputFile(
+    file: string,
+    data: Data,
+    { flags = 'wx' }: { flags?: string } = {}
+  ): Promise<void> {
+    return this._outputFile(this[kResolve](file), data, { flags })
   }
 
-  async closeFile(fd: FileDescriptor): Promise<void> {
-    await timeout.call(this._closeFile(fd.fd), this._timeout)
+  async read(
+    file: File,
+    buffer: Buffer,
+    position?: number
+  ): Promise<{| bytesRead: number, buffer: Buffer |}> {
+    return this._read(
+      typeof file === 'string' ? this[kResolve](file) : file,
+      buffer,
+      position
+    )
   }
 
-  async _closeFile(fd: mixed): Promise<void> {
-    throw new Error('Not implemented')
+  async readFile(
+    file: string,
+    { flags = 'r' }: { flags?: string } = {}
+  ): Promise<Buffer> {
+    return this._readFile(this[kResolve](file), { flags })
   }
 
   async refreshChecksum(path: string): Promise<void> {
@@ -343,50 +255,62 @@ export default class RemoteHandlerAbstract {
     })
   }
 
-  async createOutputStream(
-    file: File,
-    { checksum = false, ...options }: Object = {}
-  ): Promise<LaxWritable> {
-    if (typeof file === 'string') {
-      file = this[kResolve](file)
+  async rename(
+    oldPath: string,
+    newPath: string,
+    { checksum = false }: Object = {}
+  ) {
+    oldPath = this[kResolve](oldPath)
+    newPath = this[kResolve](newPath)
+
+    let p = timeout.call(this._rename(oldPath, newPath), this._timeout)
+    if (checksum) {
+      p = Promise.all([
+        p,
+        this._rename(checksumFile(oldPath), checksumFile(newPath)),
+      ])
     }
-    const path = typeof file === 'string' ? file : file.path
-    const streamP = timeout.call(
-      this._createOutputStream(file, {
-        flags: 'wx',
-        ...options,
-      }),
-      this._timeout
-    )
-
-    if (!checksum) {
-      return streamP
-    }
-
-    const checksumStream = createChecksumStream()
-    const forwardError = error => {
-      checksumStream.emit('error', error)
-    }
-
-    const stream = await streamP
-    stream.on('error', forwardError)
-    checksumStream.pipe(stream)
-
-    // $FlowFixMe
-    checksumStream.checksumWritten = checksumStream.checksum
-      .then(value =>
-        this._outputFile(checksumFile(path), value, { flags: 'wx' })
-      )
-      .catch(forwardError)
-
-    return checksumStream
+    return p
   }
 
-  async _createOutputStream(
-    file: File,
-    options?: Object
-  ): Promise<LaxWritable> {
-    throw new Error('Not implemented')
+  async rmdir(
+    dir: string,
+    { recursive = false }: { recursive?: boolean } = {}
+  ) {
+    dir = this[kResolve](dir)
+    await (recursive ? this._rmtree(dir) : this._rmdir(dir))
+  }
+
+  // Asks the handler to sync the state of the effective remote with its'
+  // metadata
+  async sync(): Promise<mixed> {
+    return this._sync()
+  }
+
+  async test(): Promise<Object> {
+    const testFileName = this[kResolve](`${Date.now()}.test`)
+    const data = await fromCallback(cb => randomBytes(1024 * 1024, cb))
+    let step = 'write'
+    try {
+      await this._outputFile(testFileName, data, { flags: 'wx' })
+      step = 'read'
+      const read = await this._readFile(testFileName, { flags: 'r' })
+      if (!data.equals(read)) {
+        throw new Error('output and input did not match')
+      }
+      return {
+        success: true,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        step,
+        file: testFileName,
+        error: error.message || String(error),
+      }
+    } finally {
+      ignoreErrors.call(this._unlink(testFileName))
+    }
   }
 
   async unlink(file: string, { checksum = true }: Object = {}): Promise<void> {
@@ -399,18 +323,98 @@ export default class RemoteHandlerAbstract {
     await timeout.call(this._unlink(file), this._timeout)
   }
 
-  async _unlink(file: string): Promise<void> {
+  // Methods that can be implemented by inheriting classes
+
+  async _closeFile(fd: mixed): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  async getSize(file: File): Promise<number> {
-    return timeout.call(
-      this._getSize(typeof file === 'string' ? this[kResolve](file) : file),
-      this._timeout
-    )
+  async _createOutputStream(
+    file: File,
+    options?: Object
+  ): Promise<LaxWritable> {
+    throw new Error('Not implemented')
+  }
+
+  async _createReadStream(file: File, options?: Object): Promise<LaxReadable> {
+    throw new Error('Not implemented')
+  }
+
+  async _forget(): Promise<void> {
+    throw new Error('Not implemented')
   }
 
   async _getSize(file: File): Promise<number> {
     throw new Error('Not implemented')
+  }
+
+  async _list(dir: string): Promise<string[]> {
+    throw new Error('Not implemented')
+  }
+
+  async _openFile(path: string, flags?: string): Promise<mixed> {
+    throw new Error('Not implemented')
+  }
+
+  async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
+    const stream = await this._createOutputStream(file, options)
+    const promise = fromCallback(cb => finished(stream, cb))
+    stream.end(data)
+    return promise
+  }
+
+  _read(
+    file: File,
+    buffer: Buffer,
+    position?: number
+  ): Promise<{| bytesRead: number, buffer: Buffer |}> {
+    throw new Error('Not implemented')
+  }
+
+  _readFile(file: string, options?: Object): Promise<Buffer> {
+    return this._createReadStream(file, options).then(getStream.buffer)
+  }
+
+  async _rename(oldPath: string, newPath: string) {
+    throw new Error('Not implemented')
+  }
+
+  async _rmdir(dir: string) {
+    throw new Error('Not implemented')
+  }
+
+  async _rmtree(dir: string) {
+    try {
+      return await this._rmdir(dir)
+    } catch (error) {
+      if (error.code !== 'ENOTEMPTY') {
+        throw error
+      }
+    }
+
+    const files = await this._list(dir)
+    await asyncMap(files, file =>
+      this._unlink(`${dir}/${file}`).catch(error => {
+        if (error.code === 'EISDIR') {
+          return this._rmtree(`${dir}/${file}`)
+        }
+        throw error
+      })
+    )
+    return this._rmtree(dir)
+  }
+
+  async _sync(): Promise<mixed> {
+    throw new Error('Not implemented')
+  }
+
+  async _unlink(file: string): Promise<void> {
+    throw new Error('Not implemented')
+  }
+
+  // Private members
+
+  [kResolve](path: string): string {
+    return this[kPrefix] + normalizePath(path)
   }
 }

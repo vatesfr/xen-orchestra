@@ -60,20 +60,6 @@ export default class NfsHandler extends LocalHandler {
     })
   }
 
-  async _sync() {
-    await this._mount()
-
-    return this._remote
-  }
-
-  async _forget() {
-    try {
-      await this._umount(this._remote)
-    } catch (_) {
-      // We have to go on...
-    }
-  }
-
   async _umount() {
     await execa('umount', ['--force', this._getRealPath()], {
       env: {
@@ -88,5 +74,19 @@ export default class NfsHandler extends LocalHandler {
         throw error
       }
     })
+  }
+
+  async _forget() {
+    try {
+      await this._umount(this._remote)
+    } catch (_) {
+      // We have to go on...
+    }
+  }
+
+  async _sync() {
+    await this._mount()
+
+    return this._remote
   }
 }
