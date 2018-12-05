@@ -15,6 +15,8 @@ const normalizeError = (error, shouldBeDirectory) => {
 
   return code === 'STATUS_DIRECTORY_NOT_EMPTY'
     ? wrapError(error, 'ENOTEMPTY')
+    : code === 'STATUS_FILE_IS_A_DIRECTORY'
+    ? wrapError(error, 'EISDIR')
     : code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
       code === 'STATUS_OBJECT_PATH_NOT_FOUND'
     ? wrapError(error, 'ENOENT')
