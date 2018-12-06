@@ -181,7 +181,7 @@ export default class Vm extends BaseComponent {
         <Row>
           <Col mediumSize={6} className='header-title'>
             <h2>
-              <Tooltip content={`${state}`}>
+              <Tooltip content={state}>
                 <Icon icon={`vm-${state}`} />
               </Tooltip>{' '}
               <Text value={vm.name_label} onChange={this._setNameLabel} />
