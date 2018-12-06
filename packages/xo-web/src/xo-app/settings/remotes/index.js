@@ -175,6 +175,7 @@ const COLUMNS_NFS_REMOTE = [
     ),
   },
   COLUMN_STATE,
+  COLUMN_DISK,
 ]
 const COLUMNS_SMB_REMOTE = [
   COLUMN_NAME,
