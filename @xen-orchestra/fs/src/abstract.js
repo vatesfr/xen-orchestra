@@ -12,7 +12,7 @@ import { type Readable, type Writable } from 'stream'
 
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
-const { resolve } = path.posix
+const { dirname, resolve } = path.posix
 
 type Data = Buffer | Readable | string
 type FileDescriptor = {| fd: mixed, path: string |}
@@ -235,6 +235,24 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
+  async mkdir(dir: string): Promise<void> {
+    dir = normalizePath(dir)
+    try {
+      await this._mkdir(dir)
+    } catch (error) {
+      if (error == null || error.code !== 'EEXIST') {
+        throw error
+      }
+
+      // this operation will throw if it's not already a directory
+      await this._list(dir)
+    }
+  }
+
+  async mktree(dir: string): Promise<void> {
+    await this._mktree(normalizePath(dir))
+  }
+
   async openFile(path: string, flags?: string): Promise<FileDescriptor> {
     path = normalizePath(path)
 
@@ -380,6 +398,23 @@ export default class RemoteHandlerAbstract {
 
   async _list(dir: string): Promise<string[]> {
     throw new Error('Not implemented')
+  }
+
+  async _mkdir(dir: string): Promise<void> {
+    throw new Error('Not implemented')
+  }
+
+  async _mktree(dir: string): Promise<void> {
+    try {
+      return await this.mkdir(dir)
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    await this._mktree(dirname(dir))
+    return this._mktree(dir)
   }
 
   async _openFile(path: string, flags?: string): Promise<mixed> {

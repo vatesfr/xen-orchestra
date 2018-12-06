@@ -54,6 +54,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return fs.readdir(this._getFilePath(dir))
   }
 
+  _mkdir(dir) {
+    return fs.mkdir(this._getFilePath(dir))
+  }
+
   async _openFile(path, flags) {
     return fs.open(this._getFilePath(path), flags)
   }
