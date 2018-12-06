@@ -142,6 +142,13 @@ handlers.forEach(url => {
           '/dir/file',
         ])
       })
+
+      it('can prepend the directory to entries', async () => {
+        await handler.outputFile('dir/file', '')
+        expect(await handler.list('dir', { prependDir: true })).toEqual([
+          '/dir/file',
+        ])
+      })
     })
 
     describe('#mkdir()', () => {
