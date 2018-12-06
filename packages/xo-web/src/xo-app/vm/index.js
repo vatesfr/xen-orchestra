@@ -3,6 +3,7 @@ import BaseComponent from 'base-component'
 import Copiable from 'copiable'
 import Icon from 'icon'
 import Link from 'link'
+import Tooltip from 'tooltip'
 import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
 import PropTypes from 'prop-types'
@@ -60,7 +61,10 @@ import TabAdvanced from './tab-advanced'
     .sort()
   const getVdis = createGetVmDisks(getVm)
   const getSrs = createGetObjectsOfType('SR').pick(
-    createSelector(getVdis, vdis => map(vdis, '$SR'))
+    createSelector(
+      getVdis,
+      vdis => map(vdis, '$SR')
+    )
   )
 
   const getVmTotalDiskSpace = createSumBy(createGetVmDisks(getVm), 'size')
@@ -92,7 +96,7 @@ export default class Vm extends BaseComponent {
     router: PropTypes.object,
   }
 
-  loop (vm = this.props.vm) {
+  loop(vm = this.props.vm) {
     if (this.cancel) {
       this.cancel()
     }
@@ -125,15 +129,15 @@ export default class Vm extends BaseComponent {
   }
   loop = ::this.loop
 
-  componentWillMount () {
+  componentWillMount() {
     this.loop()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this.timeout)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const vmCur = this.props.vm
     const vmNext = props.vm
 
@@ -164,21 +168,23 @@ export default class Vm extends BaseComponent {
 
   _selectOptionRenderer = option => option.name_label
 
-  header () {
+  header() {
     const { vm, container, pool, hosts } = this.props
     if (!vm) {
       return <Icon icon='loading' />
     }
+
+    const state = isEmpty(vm.current_operations)
+      ? vm.power_state.toLowerCase()
+      : 'busy'
     return (
       <Container>
         <Row>
           <Col mediumSize={6} className='header-title'>
             <h2>
-              {isEmpty(vm.current_operations) ? (
-                <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
-              ) : (
-                <Icon icon='vm-busy' />
-              )}{' '}
+              <Tooltip content={`${state}`}>
+                <Icon icon={`vm-${state}`} />
+              </Tooltip>{' '}
               <Text value={vm.name_label} onChange={this._setNameLabel} />
             </h2>{' '}
             <Copiable tagName='pre' className='text-muted mb-0'>
@@ -263,7 +269,7 @@ export default class Vm extends BaseComponent {
   _toggleHeader = () =>
     this.setState({ collapsedHeader: !this.state.collapsedHeader })
 
-  render () {
+  render() {
     const { container, vm } = this.props
     if (!vm) {
       return <h1>{_('statusLoading')}</h1>
