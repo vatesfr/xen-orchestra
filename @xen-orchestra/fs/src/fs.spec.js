@@ -39,18 +39,16 @@ const rejectionOf = p =>
   )
 
 const handlers = [`file://${tmpdir()}`]
-if (process.env.xo_fs_nfs) handlers.push(process.env.xo_fs_nfs)
-if (process.env.xo_fs_smb) handlers.push(process.env.xo_fs_smb)
+// if (process.env.xo_fs_nfs) handlers.push(process.env.xo_fs_nfs)
+// if (process.env.xo_fs_smb) handlers.push(process.env.xo_fs_smb)
 
 handlers.forEach(url => {
   describe(url, () => {
     let handler
 
     beforeAll(async () => {
-      handler = getHandler({ url })
+      handler = getHandler({ url }).addPrefix(`xo-fs-tests-${Date.now()}`)
       await handler.sync()
-
-      handler.prefix = `xo-fs-tests-${Date.now()}`
     })
     afterAll(async () => {
       await handler.forget()
@@ -64,13 +62,13 @@ handlers.forEach(url => {
       await handler.unlink('file')
     })
     afterEach(async () => {
-      // don't use the prefix feature for the final clean to avoid deleting
-      // everything on the remote if it's broken
-      const { prefix } = handler
-      expect(prefix).not.toBe('/')
-      handler.prefix = '/'
-      await handler.rmtree(prefix)
-      handler.prefix = prefix
+      await handler.rmtree('.')
+    })
+
+    describe('#type', () => {
+      it('returns the type of the remote', () => {
+        expect(typeof handler.type).toBe('string')
+      })
     })
 
     describe('#createOutputStream()', () => {
@@ -138,6 +136,13 @@ handlers.forEach(url => {
       it(`should list the content of folder`, async () => {
         await handler.outputFile('file', TEST_DATA)
         await expect(await handler.list('.')).toEqual(['file'])
+      })
+
+      it('can prepend the directory to entries', async () => {
+        await handler.outputFile('dir/file', '')
+        expect(await handler.list('dir', { prependDir: true })).toEqual([
+          '/dir/file',
+        ])
       })
     })
 

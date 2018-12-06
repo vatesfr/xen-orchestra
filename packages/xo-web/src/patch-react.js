@@ -13,12 +13,12 @@ React.createElement = (createElement => {
         fontWeight: 'bold',
       }}
     >
-      an error has occured
+      an error has occurred
     </p>
   )
 
   const wrapRender = render => {
-    function patchedRender () {
+    function patchedRender() {
       try {
         return render.apply(this, arguments)
       } catch (error) {
@@ -31,7 +31,7 @@ React.createElement = (createElement => {
     return patchedRender
   }
 
-  return function (Component) {
+  return function(Component) {
     if (isFunction(Component)) {
       const patched = Component._patched
       if (patched) {
