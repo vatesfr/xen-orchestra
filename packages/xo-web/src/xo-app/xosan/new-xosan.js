@@ -172,15 +172,18 @@ export default class NewXosan extends Component {
   // Selector that doesn't return anything but updates the suggestions only if necessary
   _refreshSuggestions = createSelector(
     () => this.state.selectedSrs,
+    () => this.state.srsOnSameHost,
     () => this.state.brickSize,
     () => this.state.customBrickSize,
-    async (selectedSrs, brickSize, customBrickSize) => {
+    async (selectedSrs, srsOnSameHost, brickSize, customBrickSize) => {
       this.setState({
         suggestion: 0,
-        suggestions: await computeXosanPossibleOptions(
-          selectedSrs,
-          customBrickSize ? brickSize : undefined
-        ),
+        suggestions: !srsOnSameHost
+          ? await computeXosanPossibleOptions(
+              selectedSrs,
+              customBrickSize ? brickSize : undefined
+            )
+          : [],
       })
     }
   )
@@ -242,18 +245,16 @@ export default class NewXosan extends Component {
   }
 
   _selectSrs = selectedSrs => {
-    const found = {}
     const { srs } = this.props
-    if (
-      some(selectedSrs, srId => {
-        const container = get(() => srs[srId].$container)
+    const found = {}
+    let container
+    this.setState({
+      selectedSrs,
+      srsOnSameHost: some(selectedSrs, srId => {
+        container = get(() => srs[srId].$container)
         return found[container] || ((found[container] = true), false)
-      })
-    ) {
-      return this.setState({ srsOnSameHost: true })
-    }
-
-    this.setState({ srsOnSameHost: false, selectedSrs })
+      }),
+    })
   }
 
   _getPifPredicate = createSelector(
