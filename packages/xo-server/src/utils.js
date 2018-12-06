@@ -17,7 +17,7 @@ import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
 
 // ===================================================================
 
-export function camelToSnakeCase(string) {
+export function camelToSnakeCase (string) {
   return string.replace(
     /([a-z0-9])([A-Z])/g,
     (_, prevChar, currChar) => `${prevChar}_${currChar.toLowerCase()}`
@@ -48,7 +48,7 @@ export const diffItems = (coll1, coll2) => {
 // -------------------------------------------------------------------
 
 // Ensure the value is an array, wrap it if necessary.
-export function ensureArray(value) {
+export function ensureArray (value) {
   if (value === undefined) {
     return []
   }
@@ -59,7 +59,7 @@ export function ensureArray(value) {
 // -------------------------------------------------------------------
 
 // Returns the value of a property and removes it from the object.
-export function extractProperty(obj, prop) {
+export function extractProperty (obj, prop) {
   const value = obj[prop]
   delete obj[prop]
   return value
@@ -68,7 +68,7 @@ export function extractProperty(obj, prop) {
 // -------------------------------------------------------------------
 
 // Returns the first defined (non-undefined) value.
-export const firstDefined = function() {
+export const firstDefined = function () {
   const n = arguments.length
   for (let i = 0; i < n; ++i) {
     const arg = arguments[i]
@@ -118,7 +118,7 @@ export const generateToken = (randomBytes => {
 
 // -------------------------------------------------------------------
 
-export const formatXml = (function() {
+export const formatXml = (function () {
   const builder = new xml2js.Builder({
     headless: true,
   })
@@ -126,7 +126,7 @@ export const formatXml = (function() {
   return (...args) => builder.buildObject(...args)
 })()
 
-export const parseXml = (function() {
+export const parseXml = (function () {
   const opts = {
     mergeAttrs: true,
     explicitArray: false,
@@ -199,7 +199,7 @@ export const noop = () => {}
 // array or object) containing promise inspections.
 //
 // Usage: pSettle(promises) or promises::pSettle()
-export function pSettle(promises) {
+export function pSettle (promises) {
   return (this || promises)::pAll(p => Promise.resolve(p)::pReflect())
 }
 
@@ -217,7 +217,7 @@ export {
 
 // -------------------------------------------------------------------
 
-export function parseSize(size) {
+export function parseSize (size) {
   if (!isString(size)) {
     return size
   }
@@ -294,7 +294,7 @@ export const DONE = {}
 // `DONE` provided as the fourth argument.
 //
 // Usage: map(collection, item => item + 1)
-export function map(
+export function map (
   collection,
   iteratee,
   target = has(collection, 'length') ? [] : {}
@@ -367,7 +367,7 @@ export const thunkToArray = thunk => {
 // Creates a new function which throws an error.
 //
 // ```js
-// promise.catch(throwFn('an error has occurred'))
+// promise.catch(throwFn('an error has occured'))
 //
 // function foo (param = throwFn('param is required')()) {}
 // ```
