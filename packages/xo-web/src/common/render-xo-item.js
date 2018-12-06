@@ -68,7 +68,7 @@ export const Host = decorate([
     const getHost = createGetObject()
     return {
       host: getHost,
-      pool: createGetObject(
+      poolObject: createGetObject(
         createSelector(
           getHost,
           host => get(() => host.$pool)
@@ -76,7 +76,7 @@ export const Host = decorate([
       ),
     }
   }),
-  ({ host, pool, link, newTab }) => {
+  ({ host, pool, poolObject, link, newTab }) => {
     if (host === undefined) {
       return UNKNOWN_ITEM
     }
@@ -84,7 +84,7 @@ export const Host = decorate([
     return (
       <LinkWrapper link={link} newTab={newTab} to={`/hosts/${host.id}`}>
         <Icon icon='host' /> {host.name_label}
-        {pool !== undefined && ` (${pool.name_label})`}
+        {pool && poolObject !== undefined && ` (${poolObject.name_label})`}
       </LinkWrapper>
     )
   },
@@ -94,11 +94,13 @@ Host.propTypes = {
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
   newTab: PropTypes.bool,
+  pool: PropTypes.bool,
 }
 
 Host.defaultProps = {
   link: false,
   newTab: false,
+  pool: true,
 }
 
 // ===================================================================
@@ -189,10 +191,10 @@ export const Sr = decorate([
     return (state, props) => ({
       // FIXME: props.self ugly workaround to get object as a self user
       sr: getSr(state, props, props.self),
-      container: getContainer(state, props),
+      containerObject: getContainer(state, props),
     })
   }),
-  ({ sr, container, link, newTab, spaceLeft, self }) => {
+  ({ sr, container, containerObject, link, newTab, spaceLeft, self }) => {
     if (sr === undefined) {
       return UNKNOWN_ITEM
     }
@@ -205,10 +207,10 @@ export const Sr = decorate([
             sr.size - sr.physical_usage
           )} free)`}</span>
         )}
-        {!self && container !== undefined && (
+        {!self && container && containerObject !== undefined && (
           <span className={!link && 'text-muted'}>
             {' '}
-            - {container.name_label}
+            - {containerObject.name_label}
           </span>
         )}
       </LinkWrapper>
@@ -217,6 +219,7 @@ export const Sr = decorate([
 ])
 
 Sr.propTypes = {
+  container: PropTypes.bool,
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
   newTab: PropTypes.bool,
@@ -225,6 +228,7 @@ Sr.propTypes = {
 }
 
 Sr.defaultProps = {
+  container: true,
   link: false,
   newTab: false,
   self: false,

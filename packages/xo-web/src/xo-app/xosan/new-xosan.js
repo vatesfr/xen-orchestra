@@ -5,10 +5,11 @@ import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
 import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
+import { get } from '@xen-orchestra/defined'
+import { Host, Sr } from 'render-xo-item'
 import { Container, Col, Row } from 'grid'
 import { Toggle, SizeInput } from 'form'
 import { SelectPif, SelectPool } from 'select-objects'
@@ -65,17 +66,14 @@ const DEFAULT_MEMORY = 2 * 1024 * 1024 * 1024 // 2 GiB
 
 const XOSAN_SR_COLUMNS = [
   {
-    itemRenderer: sr => (
-      <Link to={`/srs/${sr.id}/general`}>{sr.name_label}</Link>
-    ),
+    itemRenderer: sr => <Sr id={sr.id} container={false} spaceLeft={false} />,
     name: _('xosanName'),
     sortCriteria: 'name_label',
   },
   {
-    itemRenderer: (sr, { hosts }) => {
-      const host = hosts[sr.$container]
-      return <Link to={`/hosts/${host.id}/general`}>{renderXoItem(host)}</Link>
-    },
+    itemRenderer: (sr, { hosts }) => (
+      <Host id={hosts[sr.$container].id} pool={false} />
+    ),
     name: _('xosanHost'),
     sortCriteria: (sr, { hosts }) => hosts[sr.$container].name_label,
   },
@@ -246,10 +244,8 @@ export default class NewXosan extends Component {
     const { srs } = this.props
     if (
       some(selectedSrs, srId => {
-        const container = srs[srId].$container
-        const foundContainer = found[container]
-        found[container] = true
-        return foundContainer
+        const container = get(() => srs[srId].$container)
+        return found[container] || ((found[container] = true), false)
       })
     ) {
       return this.setState({ srsOnSameHost: true })
