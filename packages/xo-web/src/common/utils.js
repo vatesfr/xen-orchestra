@@ -135,10 +135,10 @@ export const connectStore = (mapStateToProps, opts = {}) => {
     if (opts.withRef && 'value' in Component.prototype) {
       Object.defineProperty(ConnectedComponent.prototype, 'value', {
         configurable: true,
-        get () {
+        get() {
           return this.getWrappedInstance().value
         },
-        set (value) {
+        set(value) {
           this.getWrappedInstance().value = value
         },
       })
@@ -307,7 +307,7 @@ export const routes = (indexRoute, childRoutes) => target => {
 // Creates a new function which throws an error.
 //
 // ```js
-// promise.catch(throwFn('an error has occured'))
+// promise.catch(throwFn('an error has occurred'))
 //
 // function foo (param = throwFn('param is required')) {}
 // ```
@@ -374,7 +374,7 @@ export const resolveResourceSets = resourceSets =>
 //
 // newString === 'foo_COPY_foo_42_32'
 // ```
-export function buildTemplate (pattern, rules) {
+export function buildTemplate(pattern, rules) {
   const regExp = new RegExp(join(map(keys(rules), escapeRegExp), '|'), 'g')
   return (...params) =>
     replace(pattern, regExp, match => {
@@ -404,7 +404,7 @@ export const htmlFileToStream = file => {
     stream.emit('error', error)
   }
 
-  stream._read = function (size) {
+  stream._read = function(size) {
     if (offset >= file.size) {
       stream.push(null)
     } else {
@@ -442,7 +442,7 @@ const OPs = {
 }
 
 const makeNiceCompare = compare =>
-  function () {
+  function() {
     const { length } = arguments
     if (length === 2) {
       return compare(arguments[0], arguments[1])
