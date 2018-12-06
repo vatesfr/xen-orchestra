@@ -3,14 +3,16 @@
 // $FlowFixMe
 import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
+import path from 'path'
 import { finished } from 'readable-stream'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
-import { resolve } from 'path'
 import { type Readable, type Writable } from 'stream'
 
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
+
+const { resolve } = path.posix
 
 type Data = Buffer | Readable | string
 type FileDescriptor = {| fd: mixed, path: string |}
