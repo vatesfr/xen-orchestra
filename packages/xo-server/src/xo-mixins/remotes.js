@@ -85,7 +85,16 @@ export default class {
   }
 
   async getAllRemotes() {
-    return (await this._remotes.get()).map(_ => obfuscateRemote(_))
+    const remotes = this._remotes.get().map(async remote => {
+      let infoDisk
+      if (remote.enabled) {
+        infoDisk = await this.getRemoteInfoDisk(remote.id)
+      }
+
+      return { ...obfuscateRemote(remote), disk: infoDisk }
+    })
+
+    return Promise.all(remotes)
   }
 
   async _getRemote(id) {
@@ -98,6 +107,11 @@ export default class {
 
   getRemote(id) {
     return this._getRemote(id).then(obfuscateRemote)
+  }
+
+  async getRemoteInfoDisk(remoteId) {
+    const handler = await this.getRemoteHandler(remoteId)
+    return handler.getInfoDisk(handler._remote.path)
   }
 
   async createRemote({ name, url, options }) {

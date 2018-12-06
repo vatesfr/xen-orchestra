@@ -528,6 +528,14 @@ export default class RemoteHandlerAbstract {
   ): Promise<void> {
     throw new Error('Not implemented')
   }
+
+  async getInfoDisk(dir: string): Promise<number> {
+    return timeout.call(this._getInfoDisk(normalizePath(dir)), this._timeout)
+  }
+
+  async _getInfoDisk(dir: string): Promise<number> {
+    throw new Error('Not implemented')
+  }
 }
 
 function createPrefixWrapperMethods() {

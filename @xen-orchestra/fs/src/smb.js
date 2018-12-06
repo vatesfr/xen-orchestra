@@ -1,3 +1,4 @@
+import df from '@sindresorhus/df'
 import Smb2 from '@marsaud/smb2'
 
 import RemoteHandlerAbstract from './abstract'
@@ -163,5 +164,9 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return this._client
       .writeFile(this._getFilePath(file), data, options)
       .catch(normalizeError)
+  }
+
+  async _getInfoDisk(dir) {
+    return df.file(dir)
   }
 }

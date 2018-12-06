@@ -1,4 +1,5 @@
 import { parse } from 'xo-remote-parser'
+import df from '@sindresorhus/df'
 
 import MountHandler from './_mount'
 
@@ -17,5 +18,9 @@ export default class NfsHandler extends MountHandler {
 
   get type() {
     return 'nfs'
+  }
+
+  async _getInfoDisk(dir) {
+    return df.file(dir)
   }
 }

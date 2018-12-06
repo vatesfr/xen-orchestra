@@ -34,6 +34,18 @@ const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
 const _editRemoteOptions = (options, { remote }) =>
   editRemote(remote, { options: options !== '' ? options : null })
+const _formatSize = number => {
+  if (number === 0) return '0 B'
+  const UNITS = ['B', 'kB', 'MB', 'GB', 'TB', 'PB']
+  const exponent = Math.min(
+    Math.floor(Math.log10(number) / 3),
+    UNITS.length - 1
+  )
+  number = (number / Math.pow(1000, exponent)).toPrecision(3)
+
+  return `${number} ${UNITS[exponent]}`
+}
+
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
     <Text
@@ -74,6 +86,17 @@ const COLUMN_STATE = {
   ),
   name: _('remoteState'),
 }
+const COLUMN_DISK = {
+  itemRenderer: (remote, { formatMessage }) => (
+    <span>
+      {remote.disk &&
+        `${_formatSize(remote.disk.used)} / ${_formatSize(
+          remote.disk.available
+        )}`}
+    </span>
+  ),
+  name: _('remoteDisk'),
+}
 
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
 const COLUMNS_LOCAL_REMOTE = [
@@ -91,6 +114,7 @@ const COLUMNS_LOCAL_REMOTE = [
     name: _('remotePath'),
   },
   COLUMN_STATE,
+  COLUMN_DISK,
 ]
 const COLUMNS_NFS_REMOTE = [
   COLUMN_NAME,
@@ -207,10 +231,7 @@ const COLUMNS_SMB_REMOTE = [
     ),
     name: _('remoteAuth'),
   },
-  {
-    itemRenderer: (remote, { formatMessage }) => <span>{remote.disk}</span>,
-    name: 'Disk space',
-  },
+  COLUMN_DISK,
 ]
 
 const GROUPED_ACTIONS = [

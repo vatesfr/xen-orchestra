@@ -15,6 +15,16 @@ get.params = {
   id: { type: 'string' },
 }
 
+export async function getInfoDisk({ id }) {
+  return this.getRemoteInfoDisk(id)
+}
+
+getInfoDisk.permission = 'admin'
+getInfoDisk.description = 'Gets info on disk used by remote point'
+getInfoDisk.params = {
+  id: { type: 'string' },
+}
+
 export async function test({ id }) {
   return this.testRemote(id)
 }

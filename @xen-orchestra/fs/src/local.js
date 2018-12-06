@@ -1,4 +1,4 @@
-import execa from 'execa'
+import df from '@sindresorhus/df'
 import fs from 'fs-extra'
 import { fromEvent } from 'promise-toolbox'
 
@@ -108,5 +108,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   _writeFile(file, data, { flags }) {
     return fs.writeFile(this._getFilePath(file), data, { flag: flags })
+  }
+
+  async _getInfoDisk(dir) {
+    return df.file(dir)
   }
 }
