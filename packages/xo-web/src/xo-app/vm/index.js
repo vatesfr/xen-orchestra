@@ -173,7 +173,6 @@ export default class Vm extends BaseComponent {
     if (!vm) {
       return <Icon icon='loading' />
     }
-
     const state = isEmpty(vm.current_operations)
       ? vm.power_state.toLowerCase()
       : 'busy'
