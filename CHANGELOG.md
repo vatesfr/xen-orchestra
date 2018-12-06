@@ -5,14 +5,13 @@
 
 ### Enhancements
 
-- [New XOSAN] Improve view and possibility to sort SRs by name/size/free space [#2416](https://github.com/vatesfr/xen-orchestra/issues/2416) (PR [#3691](https://github.com/vatesfr/xen-orchestra/pull/3691))
-
 - [Users] Display user groups [#3719](https://github.com/vatesfr/xen-orchestra/issues/3719) (PR [#3740](https://github.com/vatesfr/xen-orchestra/pull/3740))
 - [VDI] Display VDI's SR [3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3285](https://github.com/vatesfr/xen-orchestra/pull/3285))
 - [Health, VM/disks] Display SR's container [#3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PRs [#3747](https://github.com/vatesfr/xen-orchestra/pull/3747), [#3751](https://github.com/vatesfr/xen-orchestra/pull/3751))
 - [Servers] Auto-connect to ejected host [#2238](https://github.com/vatesfr/xen-orchestra/issues/2238) (PR [#3738](https://github.com/vatesfr/xen-orchestra/pull/3738))
 - [Backup NG] Add "XOSAN" in excluded tags by default [#2128](https://github.com/vatesfr/xen-orchestra/issues/3563) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3563))
 - [VM] add tooltip for VM status icon [#3749](https://github.com/vatesfr/xen-orchestra/issues/3749) (PR [#3765](https://github.com/vatesfr/xen-orchestra/pull/3765))
+- [New XOSAN] Improve view and possibility to sort SRs by name/size/free space [#2416](https://github.com/vatesfr/xen-orchestra/issues/2416) (PR [#3691](https://github.com/vatesfr/xen-orchestra/pull/3691))
 
 ### Bug fixes
 
