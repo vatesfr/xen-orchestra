@@ -210,6 +210,7 @@ export default class Api {
   }
 
   async callApiMethod(session, name, params = {}) {
+    const xo = this._xo
     const startTime = Date.now()
 
     const method = this._methods[name]
@@ -219,7 +220,7 @@ export default class Api {
 
     // FIXME: it can cause issues if there any property assignments in
     // XO methods called from the API.
-    const context = Object.create(this._xo, {
+    const context = Object.create(xo, {
       api: {
         // Used by system.*().
         value: this,
@@ -231,8 +232,23 @@ export default class Api {
 
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
-    context.user = userId && (await this._xo.getUser(userId))
+    context.user = userId && (await xo.getUser(userId))
     const userName = context.user ? context.user.email : '(unknown user)'
+
+    const data = {
+      userId,
+      method: name,
+      params: sensitiveValues.replace(params, '* obfuscated *'),
+    }
+
+    const callId = `i${Math.random()
+      .toString(36)
+      .slice(2)}`
+
+    xo.emit('xo:preCall', {
+      ...data,
+      callId,
+    })
 
     try {
       await checkPermission.call(context, method)
@@ -271,23 +287,31 @@ export default class Api {
         )}] ==> ${kindOf(result)}`
       )
 
+      xo.emit('xo:postCall', {
+        callId,
+        result,
+      })
+
       return result
     } catch (error) {
-      params = sensitiveValues.replace(params, '* obfuscated *')
-      const data = {
-        userId,
-        method: name,
-        params,
+      const serializedError = serializeError(error)
+
+      xo.emit('xo:postCall', {
+        callId,
+        error: serializedError,
+      })
+
+      const message = `${userName} | ${name}(${JSON.stringify(
+        data.params
+      )}) [${ms(Date.now() - startTime)}] =!> ${error}`
+
+      this._logger.error(message, {
+        ...data,
         duration: Date.now() - startTime,
-        error: serializeError(error),
-      }
-      const message = `${userName} | ${name}(${JSON.stringify(params)}) [${ms(
-        Date.now() - startTime
-      )}] =!> ${error}`
+        error: serializedError,
+      })
 
-      this._logger.error(message, data)
-
-      if (this._xo._config.verboseLogsOnErrors) {
+      if (xo._config.verboseLogsOnErrors) {
         log.warn(message, { error })
       } else {
         log.warn(
@@ -301,7 +325,7 @@ export default class Api {
       if (xoError) {
         throw xoError(error.params, ref => {
           try {
-            return this._xo.getObject(ref).id
+            return xo.getObject(ref).id
           } catch (e) {
             return ref
           }
