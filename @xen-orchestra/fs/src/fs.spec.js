@@ -26,7 +26,8 @@ const unsecureRandomBytes = n => {
   return bytes
 }
 
-const TEST_DATA = unsecureRandomBytes(1024)
+const TEST_DATA_LEN = 1024
+const TEST_DATA = unsecureRandomBytes(TEST_DATA_LEN)
 const createTestDataStream = asyncIteratorToStream(function*() {
   yield TEST_DATA
 })
@@ -106,7 +107,7 @@ handlers.forEach(url => {
       beforeEach(() => handler.outputFile('file', TEST_DATA))
 
       testWithFileDescriptor('file', 'r', async () => {
-        expect(await handler.getSize('file')).toEqual(TEST_DATA.length)
+        expect(await handler.getSize('file')).toEqual(TEST_DATA_LEN)
       })
     })
 
@@ -190,8 +191,8 @@ handlers.forEach(url => {
     describe('#read()', () => {
       beforeEach(() => handler.outputFile('file', TEST_DATA))
 
-      const start = random(TEST_DATA.length)
-      const size = random(TEST_DATA.length)
+      const start = random(TEST_DATA_LEN)
+      const size = random(TEST_DATA_LEN)
 
       testWithFileDescriptor('file', 'r', async ({ file }) => {
         const buffer = Buffer.alloc(size)
@@ -199,7 +200,7 @@ handlers.forEach(url => {
         expect(result.buffer).toBe(buffer)
         expect(result).toEqual({
           buffer,
-          bytesRead: Math.min(size, TEST_DATA.length - start),
+          bytesRead: Math.min(size, TEST_DATA_LEN - start),
         })
       })
     })
