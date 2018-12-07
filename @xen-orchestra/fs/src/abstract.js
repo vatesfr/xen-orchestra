@@ -253,7 +253,7 @@ export default class RemoteHandlerAbstract {
     await this._mktree(normalizePath(dir))
   }
 
-  async openFile(path: string, flags?: string): Promise<FileDescriptor> {
+  async openFile(path: string, flags: string): Promise<FileDescriptor> {
     path = normalizePath(path)
 
     return {
@@ -417,7 +417,7 @@ export default class RemoteHandlerAbstract {
     return this._mktree(dir)
   }
 
-  async _openFile(path: string, flags?: string): Promise<mixed> {
+  async _openFile(path: string, flags: string): Promise<mixed> {
     throw new Error('Not implemented')
   }
 
