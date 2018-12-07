@@ -172,10 +172,10 @@ export default class NewXosan extends Component {
   // Selector that doesn't return anything but updates the suggestions only if necessary
   _refreshSuggestions = createSelector(
     () => this.state.selectedSrs,
-    () => this.state.srsOnSameHost,
     () => this.state.brickSize,
     () => this.state.customBrickSize,
-    async (selectedSrs, srsOnSameHost, brickSize, customBrickSize) => {
+    () => this.state.srsOnSameHost,
+    async (selectedSrs, brickSize, customBrickSize, srsOnSameHost) => {
       this.setState({
         suggestion: 0,
         suggestions: !srsOnSameHost
