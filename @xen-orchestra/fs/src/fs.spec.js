@@ -46,6 +46,18 @@ handlers.forEach(url => {
   describe(url, () => {
     let handler
 
+    const testWithFileDescriptor = (path, flags, fn) => {
+      it('with path', () => fn({ file: path, flags }))
+      it('with file descriptor', async () => {
+        const file = await handler.openFile(path, flags)
+        try {
+          await fn({ file })
+        } finally {
+          await handler.closeFile(file)
+        }
+      })
+    }
+
     beforeAll(async () => {
       handler = getHandler({ url }).addPrefix(`xo-fs-tests-${Date.now()}`)
       await handler.sync()
@@ -70,63 +82,30 @@ handlers.forEach(url => {
     })
 
     describe('#createOutputStream()', () => {
-      it('returns a writable stream', async () => {
-        const stream = await handler.createOutputStream('file')
+      testWithFileDescriptor('file', 'wx', async ({ file, flags }) => {
+        const stream = await handler.createOutputStream(file, { flags })
         await fromCallback(cb => pipeline(createTestDataStream(), stream, cb))
-        await expect(await handler.readFile('file')).toEqual(TEST_DATA)
-      })
-
-      it('works on an opened files', async () => {
-        const fd = await handler.openFile('file', 'wx')
-        try {
-          const stream = await handler.createOutputStream(fd)
-          await fromCallback(cb => pipeline(createTestDataStream(), stream, cb))
-        } finally {
-          await handler.closeFile(fd)
-        }
         await expect(await handler.readFile('file')).toEqual(TEST_DATA)
       })
     })
 
     describe('#createReadStream()', () => {
-      it(`should return a stream`, async () => {
-        await handler.outputFile('file', TEST_DATA)
-        const buffer = await getStream.buffer(
-          await handler.createReadStream('file')
-        )
+      beforeEach(() => handler.outputFile('file', TEST_DATA))
 
-        await expect(buffer).toEqual(TEST_DATA)
-      })
-
-      it('works on an opened files', async () => {
-        await handler.outputFile('file', TEST_DATA)
-        const fd = await handler.openFile('file', 'r')
-        let buffer
-        try {
-          buffer = await getStream.buffer(await handler.createReadStream(fd))
-        } finally {
-          await handler.closeFile(fd)
-        }
-        await expect(buffer).toEqual(TEST_DATA)
+      testWithFileDescriptor('file', 'r', async ({ file, flags }) => {
+        await expect(
+          await getStream.buffer(
+            await handler.createReadStream(file, { flags })
+          )
+        ).toEqual(TEST_DATA)
       })
     })
 
     describe('#getSize()', () => {
-      it(`should return the correct size`, async () => {
-        await handler.outputFile('file', TEST_DATA)
-        expect(await handler.getSize('file')).toEqual(TEST_DATA.length)
-      })
+      beforeEach(() => handler.outputFile('file', TEST_DATA))
 
-      it('works on an opened file', async () => {
-        await handler.outputFile('file', TEST_DATA)
-        const fd = await handler.openFile('file', 'r')
-        let size
-        try {
-          size = await handler.getSize(fd)
-        } finally {
-          await handler.closeFile(fd)
-        }
-        expect(size).toEqual(TEST_DATA.length)
+      testWithFileDescriptor('file', 'r', async () => {
+        expect(await handler.getSize('file')).toEqual(TEST_DATA.length)
       })
     })
 
