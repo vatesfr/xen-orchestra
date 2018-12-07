@@ -26,11 +26,11 @@ export const merge = (newValue, oldValue) => {
 
 export const obfuscate = value => replace(value, OBFUSCATED_VALUE)
 
-const SENSITIVE_PARAMS = new Set(['password', 'token'])
+const SENSITIVE_PARAMS = { __proto__: null, password: true, token: true }
 
 export function replace(value, replacement) {
   function helper(value, name) {
-    if (typeof value === 'string' && SENSITIVE_PARAMS.has(name)) {
+    if (typeof value === 'string' && name in SENSITIVE_PARAMS) {
       return replacement
     }
 
