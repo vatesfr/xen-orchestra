@@ -1,6 +1,6 @@
 import Smb2 from '@marsaud/smb2'
 
-import LocalHandler from './local'
+import RemoteHandlerAbstract from './abstract'
 
 // Normalize the error code for file not found.
 const wrapError = (error, code) => ({

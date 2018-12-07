@@ -9,9 +9,6 @@ import { random } from 'lodash'
 import { tmpdir } from 'os'
 
 import { getHandler } from '.'
-import { sep } from 'path'
-import fs from 'fs-extra'
-import os from 'os'
 
 // https://gist.github.com/julien-f/3228c3f34fdac01ade09
 const unsecureRandomBytes = n => {

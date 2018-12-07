@@ -3,17 +3,15 @@
 import type RemoteHandler from './abstract'
 import RemoteHandlerLocal from './local'
 import RemoteHandlerNfs from './nfs'
-// import RemoteHandlerSmb from './smb'
-import RemoteHandlerXoSmb from './xoSmb'
+import RemoteHandlerSmb from './smb'
 
 export type { default as RemoteHandler } from './abstract'
 export type Remote = { url: string }
 
 const HANDLERS = {
   file: RemoteHandlerLocal,
-  // smb: RemoteHandlerSmb,
+  smb: RemoteHandlerSmb,
   nfs: RemoteHandlerNfs,
-  smb: RemoteHandlerXoSmb,
 }
 
 export const getHandler = (remote: Remote, ...rest: any): RemoteHandler => {
