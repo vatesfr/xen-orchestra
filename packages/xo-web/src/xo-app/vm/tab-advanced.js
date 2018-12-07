@@ -8,12 +8,17 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
+import { error } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Select, Toggle } from 'form'
-import { SelectResourceSet, SelectVgpuType } from 'select-objects'
+import {
+  SelectSubject,
+  SelectResourceSet,
+  SelectRole,
+  SelectVgpuType,
+} from 'select-objects'
 import {
   addSubscriptions,
   connectStore,
@@ -23,6 +28,17 @@ import {
   osFamily,
 } from 'utils'
 import {
+  assign,
+  every,
+  find,
+  includes,
+  isEmpty,
+  keyBy,
+  map,
+  uniq,
+} from 'lodash'
+import {
+  addAcl,
   changeVirtualizationMode,
   cloneVm,
   convertVmToTemplate,
@@ -34,11 +50,15 @@ import {
   isVmRunning,
   pauseVm,
   recoveryStartVm,
+  removeAcl,
   restartVm,
   shareVm,
   startVm,
   stopVm,
+  subscribeAcls,
+  subscribeGroups,
   subscribeResourceSets,
+  subscribeUsers,
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -284,6 +304,126 @@ class CoresPerSocket extends Component {
           _('vmCoresPerSocketNone')
         )}
       </form>
+    )
+  }
+}
+
+class AddAclsModal extends Component {
+  get value() {
+    return this.state
+  }
+
+  _getPredicate = createSelector(
+    () => this.props.acls,
+    () => this.props.vm,
+    (acls, { id: vmId }) => ({ id: subjectId }) =>
+      isEmpty(acls) ||
+      isEmpty(
+        acls.filter(
+          ({ object, subject }) => object === vmId && subject === subjectId
+        )
+      )
+  )
+
+  render() {
+    const { action, subjects } = this.state
+    return (
+      <form>
+        <div className='form-group'>
+          <SelectSubject
+            multi
+            predicate={this._getPredicate()}
+            onChange={this.linkState('subjects')}
+            value={subjects}
+          />
+        </div>
+        <div className='form-group'>
+          <SelectRole onChange={this.linkState('action')} value={action} />
+        </div>
+      </form>
+    )
+  }
+}
+
+@addSubscriptions({
+  acls: subscribeAcls,
+  groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
+  users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
+})
+class Acls extends Component {
+  _addAcls = () =>
+    confirm({
+      title: _('vmAddAcls'),
+      body: <AddAclsModal acls={this.props.acls} vm={this.props.vm} />,
+    }).then(({ action, subjects }) => {
+      try {
+        Promise.all(
+          map(subjects, subject =>
+            addAcl({ subject, object: this.props.vm, action })
+          )
+        )
+      } catch (err) {
+        error('Add ACL(s)', err.message || String(err))
+      }
+    })
+
+  _getVmAcls = createSelector(
+    () => this.props.acls,
+    () => this.props.groups,
+    () => this.props.users,
+    () => this.props.vm,
+    (acls, groups, users, { id: vmId }) => {
+      if (isEmpty(acls)) {
+        return
+      }
+      const vmAcls = []
+      acls.forEach(({ object, subject, action }) => {
+        if (object === vmId) {
+          vmAcls.push({
+            action,
+            subject: users[subject] || groups[subject],
+          })
+        }
+      })
+
+      return vmAcls
+    }
+  )
+
+  render() {
+    const vmAcls = this._getVmAcls()
+    return (
+      <Container>
+        <Row>
+          {!isEmpty(vmAcls) &&
+            vmAcls.map(({ subject, action }) => (
+              <Col>
+                <Tooltip key={subject.id} content={action}>
+                  <span>{subject.email}</span>
+                </Tooltip>{' '}
+                <Tooltip content={_('removeAcl')}>
+                  <a
+                    role='button'
+                    onClick={() =>
+                      removeAcl({ subject, object: this.props.vm, action })
+                    }
+                  >
+                    <Icon icon='remove' />
+                  </a>
+                </Tooltip>
+              </Col>
+            ))}
+          <Col>
+            <ActionButton
+              btnStyle='primary'
+              handler={this._addAcls}
+              icon='add'
+              size='small'
+              tooltip={_('vmAddAcls')}
+            />
+          </Col>
+        </Row>
+      </Container>
     )
   }
 }
@@ -773,6 +913,12 @@ export default class TabAdvanced extends Component {
                     ) : (
                       _('resourceSetNone')
                     )}
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('vmAcls')}</th>
+                  <td>
+                    <Acls vm={vm} />
                   </td>
                 </tr>
               </tbody>
