@@ -52,7 +52,6 @@
   },
   "scripts": {
     "dev-test": "jest --bail --watch",
-    "posttest": "standard && dependency-check ./package.json",
     "test": "jest"
   },
   "husky": {
