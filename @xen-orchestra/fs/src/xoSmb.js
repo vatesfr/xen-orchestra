@@ -1,38 +1,34 @@
 import execa from 'execa'
 import fs from 'fs-extra'
-import { join } from 'path'
-import { tmpdir } from 'os'
 
-import LocalHandler from './local'
+import RemoteHandlerAbstract from './abstract'
 
-export default class XoSmb extends LocalHandler {
-  constructor (
-    remote,
-    { mountsDir = join(tmpdir(), 'xo-fs-mounts'), ...opts } = {}
-  ) {
+export default class XoSmb extends RemoteHandlerAbstract {
+  constructor(remote, opts) {
     super(remote, opts)
 
-    this._realPath = join(mountsDir, remote.id)
+    const prefix = this._remote.path
+    this._prefix = prefix !== '' ? prefix + '\\' : prefix
   }
 
-  get type () {
+  get type() {
     return 'smb'
   }
 
-  _getRealPath () {
-    return this._realPath
+  _getFilePath(file) {
+    return this._prefix + file.slice(1).replace(/\//g, '\\')
   }
 
-  async _mount () {
+  async _mount() {
     const { host, path, username, password, domain } = this._remote
-    await fs.ensureDir(path || this._getRealPath())
+    await fs.ensureDir(path)
     return execa(
       'mount',
       [
         '-t',
         'cifs',
         `\\\\${host}`,
-        path || this._getRealPath(),
+        path,
         '-o',
         `user=${username},password=${password},domain=${domain}`,
       ],
@@ -52,14 +48,14 @@ export default class XoSmb extends LocalHandler {
     })
   }
 
-  async _sync () {
+  async _sync() {
     // Check access (smb2 does not expose connect in public so far...)
     await this._mount()
 
     return this._remote
   }
 
-  async _forget () {
+  async _forget() {
     try {
       await this._umount(this._remote)
     } catch (_) {
@@ -67,8 +63,8 @@ export default class XoSmb extends LocalHandler {
     }
   }
 
-  async _umount () {
-    await execa('umount', ['--force', this._getRealPath()], {
+  async _umount() {
+    await execa('umount', ['--force', this._remote.path], {
       env: {
         LANG: 'C',
       },
