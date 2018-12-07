@@ -1,5 +1,4 @@
 import fs from 'fs-extra'
-import { dirname } from 'path'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -20,23 +19,20 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return fs.close(fd)
   }
 
-  async _createOutputStream(file, options) {
-    if (typeof file === 'string') {
-      const path = this._getFilePath(file)
-      await fs.ensureDir(dirname(path))
-      return fs.createWriteStream(path, options)
-    }
-    return fs.createWriteStream('', {
-      autoClose: false,
-      ...options,
-      fd: file.fd,
-    })
-  }
-
   async _createReadStream(file, options) {
     return typeof file === 'string'
       ? fs.createReadStream(this._getFilePath(file), options)
       : fs.createReadStream('', {
+          autoClose: false,
+          ...options,
+          fd: file.fd,
+        })
+  }
+
+  async _createWriteStream(file, options) {
+    return typeof file === 'string'
+      ? fs.createWriteStream(this._getFilePath(file), options)
+      : fs.createWriteStream('', {
           autoClose: false,
           ...options,
           fd: file.fd,
@@ -60,12 +56,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _openFile(path, flags) {
     return fs.open(this._getFilePath(path), flags)
-  }
-
-  async _outputFile(file, data, { flags }) {
-    const path = this._getFilePath(file)
-    await fs.ensureDir(dirname(path))
-    await fs.writeFile(path, data, { flag: flags })
   }
 
   async _read(file, buffer, position) {
@@ -106,5 +96,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _unlink(file) {
     return fs.unlink(this._getFilePath(file))
+  }
+
+  _writeFile(file, data, { flags }) {
+    return fs.writeFile(this._getFilePath(file), data, { flag: flags })
   }
 }

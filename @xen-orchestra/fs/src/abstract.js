@@ -4,7 +4,6 @@
 import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
 import path from 'path'
-import { finished } from 'readable-stream'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
@@ -267,7 +266,7 @@ export default class RemoteHandlerAbstract {
     data: Data,
     { flags = 'wx' }: { flags?: string } = {}
   ): Promise<void> {
-    return this._outputFile(normalizePath(file), data, { flags })
+    await this._outputFile(normalizePath(file), data, { flags })
   }
 
   async read(
@@ -372,20 +371,38 @@ export default class RemoteHandlerAbstract {
     await timeout.call(this._unlink(file).catch(ignoreEnoent), this._timeout)
   }
 
+  async writeFile(
+    file: string,
+    data: Data,
+    { flags = 'wx' }: { flags?: string } = {}
+  ): Promise<void> {
+    return this._writeFile(normalizePath(file), data, { flags })
+  }
+
   // Methods that can be implemented by inheriting classes
 
   async _closeFile(fd: mixed): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  async _createOutputStream(
-    file: File,
-    options?: Object
-  ): Promise<LaxWritable> {
-    throw new Error('Not implemented')
+  async _createOutputStream(file: File, options: Object): Promise<LaxWritable> {
+    try {
+      return await this._createWriteStream(file, options)
+    } catch (error) {
+      if (typeof file === 'string' && error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    await this._mktree(dirname(file))
+    return this._createOutputStream(file, options)
   }
 
   async _createReadStream(file: File, options?: Object): Promise<LaxReadable> {
+    throw new Error('Not implemented')
+  }
+
+  async _createWriteStream(file: File, options: Object): Promise<LaxWritable> {
     throw new Error('Not implemented')
   }
 
@@ -421,11 +438,21 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
-    const stream = await this._createOutputStream(file, options)
-    const promise = fromCallback(cb => finished(stream, cb))
-    stream.end(data)
-    return promise
+  async _outputFile(
+    file: string,
+    data: Data,
+    options: { flags?: string }
+  ): Promise<void> {
+    try {
+      return await this._writeFile(file, data, options)
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    await this._mktree(dirname(file))
+    return this._outputFile(file, data, options)
   }
 
   _read(
@@ -473,6 +500,14 @@ export default class RemoteHandlerAbstract {
   async _sync(): Promise<void> {}
 
   async _unlink(file: string): Promise<void> {
+    throw new Error('Not implemented')
+  }
+
+  async _writeFile(
+    file: string,
+    data: Data,
+    options: { flags?: string }
+  ): Promise<void> {
     throw new Error('Not implemented')
   }
 }

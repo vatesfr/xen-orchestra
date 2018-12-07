@@ -69,39 +69,6 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _createOutputStream(file, options) {
-    const needsClose = typeof file === 'string'
-    let client
-    if (needsClose) {
-      client = this._getClient()
-    } else {
-      ;({ client } = file.fd)
-      file = file.path
-    }
-    const path = this._getFilePath(file)
-
-    try {
-      const dir = this._dirname(path)
-      if (dir) {
-        await client.ensureDir(dir)
-      }
-
-      // FIXME ensure that options are properly handled by @marsaud/smb2
-      const stream = await client.createWriteStream(path, options)
-
-      if (needsClose) {
-        finished(stream, () => client.disconnect())
-      }
-
-      return stream
-    } catch (err) {
-      if (needsClose) {
-        client.disconnect()
-      }
-      throw normalizeError(err)
-    }
-  }
-
   async _createReadStream(file, options) {
     const needsClose = typeof file === 'string'
     let client
@@ -129,6 +96,36 @@ export default class SmbHandler extends RemoteHandlerAbstract {
         client.disconnect()
       }
       throw normalizeError(error)
+    }
+  }
+
+  async _createWriteStream(file, options) {
+    const needsClose = typeof file === 'string'
+    let client
+    if (needsClose) {
+      client = this._getClient()
+    } else {
+      ;({ client } = file.fd)
+      file = file.path
+    }
+
+    try {
+      // FIXME ensure that options are properly handled by @marsaud/smb2
+      const stream = await client.createWriteStream(
+        this._getFilePath(file),
+        options
+      )
+
+      if (needsClose) {
+        finished(stream, () => client.disconnect())
+      }
+
+      return stream
+    } catch (err) {
+      if (needsClose) {
+        client.disconnect()
+      }
+      throw normalizeError(err)
     }
   }
 
@@ -180,24 +177,6 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return {
       client,
       file: await client.open(this._getFilePath(path)).catch(normalizeError),
-    }
-  }
-
-  async _outputFile(file, data, options) {
-    const path = this._getFilePath(file)
-    const dir = this._dirname(path)
-
-    const client = this._getClient()
-    try {
-      if (dir) {
-        await client.ensureDir(dir)
-      }
-
-      return await client.writeFile(path, data, options)
-    } catch (error) {
-      throw normalizeError(error)
-    } finally {
-      client.disconnect()
     }
   }
 
@@ -266,6 +245,18 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     const client = this._getClient()
     try {
       await client.unlink(this._getFilePath(file))
+    } catch (error) {
+      throw normalizeError(error)
+    } finally {
+      client.disconnect()
+    }
+  }
+
+  async _writeFile(file, data, options) {
+    const path = this._getFilePath(file)
+    const client = this._getClient()
+    try {
+      return await client.writeFile(path, data, options)
     } catch (error) {
       throw normalizeError(error)
     } finally {
