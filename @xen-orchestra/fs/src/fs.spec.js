@@ -5,6 +5,7 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import getStream from 'get-stream'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
+import { random } from 'lodash'
 import { tmpdir } from 'os'
 
 import { getHandler } from '.'
@@ -183,6 +184,23 @@ handlers.forEach(url => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.outputFile('file', ''))
         expect(error.code).toBe('EEXIST')
+      })
+    })
+
+    describe('#read()', () => {
+      beforeEach(() => handler.outputFile('file', TEST_DATA))
+
+      const start = random(TEST_DATA.length)
+      const size = random(TEST_DATA.length)
+
+      testWithFileDescriptor('file', 'r', async ({ file }) => {
+        const buffer = Buffer.alloc(size)
+        const result = await handler.read(file, buffer, start)
+        expect(result.buffer).toBe(buffer)
+        expect(result).toEqual({
+          buffer,
+          bytesRead: Math.min(size, TEST_DATA.length - start),
+        })
       })
     })
 
