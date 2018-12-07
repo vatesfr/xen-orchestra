@@ -68,15 +68,16 @@ export const Host = decorate([
     const getHost = createGetObject()
     return {
       host: getHost,
-      poolObject: createGetObject(
+      pool: createGetObject(
         createSelector(
           getHost,
-          host => get(() => host.$pool)
+          (_, props) => props.pool,
+          (host, showPool) => showPool && get(() => host.$pool)
         )
       ),
     }
   }),
-  ({ host, pool, poolObject, link, newTab }) => {
+  ({ host, pool, link, newTab }) => {
     if (host === undefined) {
       return UNKNOWN_ITEM
     }
@@ -84,7 +85,7 @@ export const Host = decorate([
     return (
       <LinkWrapper link={link} newTab={newTab} to={`/hosts/${host.id}`}>
         <Icon icon='host' /> {host.name_label}
-        {pool && poolObject !== undefined && ` (${poolObject.name_label})`}
+        {pool !== undefined && ` (${pool.name_label})`}
       </LinkWrapper>
     )
   },
@@ -185,16 +186,17 @@ export const Sr = decorate([
     const getContainer = createGetObject(
       createSelector(
         getSr,
-        sr => get(() => sr.$container)
+        (_, props) => props.container,
+        (sr, showContainer) => showContainer && get(() => sr.$container)
       )
     )
     return (state, props) => ({
       // FIXME: props.self ugly workaround to get object as a self user
       sr: getSr(state, props, props.self),
-      containerObject: getContainer(state, props),
+      container: getContainer(state, props),
     })
   }),
-  ({ sr, container, containerObject, link, newTab, spaceLeft, self }) => {
+  ({ sr, container, link, newTab, spaceLeft, self }) => {
     if (sr === undefined) {
       return UNKNOWN_ITEM
     }
@@ -207,10 +209,10 @@ export const Sr = decorate([
             sr.size - sr.physical_usage
           )} free)`}</span>
         )}
-        {!self && container && containerObject !== undefined && (
+        {!self && container !== undefined && (
           <span className={!link && 'text-muted'}>
             {' '}
-            - {containerObject.name_label}
+            - {container.name_label}
           </span>
         )}
       </LinkWrapper>

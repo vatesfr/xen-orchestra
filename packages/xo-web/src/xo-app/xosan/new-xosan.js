@@ -417,19 +417,21 @@ export default class NewXosan extends Component {
             [
               <Row>
                 <Col>
-                  {srsOnSameHost && (
-                    <span className='text-warning'>
-                      <Icon icon='alarm' /> {_('xosanSrOnSameHostMessage')}
-                    </span>
-                  )}
-                </Col>
-                <Col>
                   <SortedTable
                     collection={this._getLvmSrs()}
                     columns={XOSAN_SR_COLUMNS}
                     data-hosts={this._getHosts()}
                     onSelect={this._selectSrs}
                   />
+                </Col>
+              </Row>,
+              <Row>
+                <Col>
+                  {srsOnSameHost && (
+                    <span className='text-danger'>
+                      <Icon icon='alarm' /> {_('xosanSrOnSameHostMessage')}
+                    </span>
+                  )}
                 </Col>
               </Row>,
               <Row>
