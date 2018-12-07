@@ -61,7 +61,10 @@ import TabAdvanced from './tab-advanced'
     .sort()
   const getVdis = createGetVmDisks(getVm)
   const getSrs = createGetObjectsOfType('SR').pick(
-    createSelector(getVdis, vdis => map(vdis, '$SR'))
+    createSelector(
+      getVdis,
+      vdis => map(vdis, '$SR')
+    )
   )
 
   const getVmTotalDiskSpace = createSumBy(createGetVmDisks(getVm), 'size')
@@ -93,7 +96,7 @@ export default class Vm extends BaseComponent {
     router: PropTypes.object,
   }
 
-  loop (vm = this.props.vm) {
+  loop(vm = this.props.vm) {
     if (this.cancel) {
       this.cancel()
     }
@@ -126,15 +129,15 @@ export default class Vm extends BaseComponent {
   }
   loop = ::this.loop
 
-  componentWillMount () {
+  componentWillMount() {
     this.loop()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this.timeout)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const vmCur = this.props.vm
     const vmNext = props.vm
 
@@ -165,7 +168,7 @@ export default class Vm extends BaseComponent {
 
   _selectOptionRenderer = option => option.name_label
 
-  header () {
+  header() {
     const { vm, container, pool, hosts } = this.props
     if (!vm) {
       return <Icon icon='loading' />
@@ -265,7 +268,7 @@ export default class Vm extends BaseComponent {
   _toggleHeader = () =>
     this.setState({ collapsedHeader: !this.state.collapsedHeader })
 
-  render () {
+  render() {
     const { container, vm } = this.props
     if (!vm) {
       return <h1>{_('statusLoading')}</h1>
