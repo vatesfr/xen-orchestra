@@ -142,3 +142,11 @@ redis:
 #
 # Default: '/var/lib/xo-server/data'
 #datadir: '/var/lib/xo-server/data'
+
+# Used by xo-server-audit plugin to not log the defined methods
+# You can find the usage of the pattern there https://github.com/micromatch/micromatch
+methodsPattern:
+  - '*.get*'
+  - '*.list*'
+  - 'session.*'
+  - 'system.*'

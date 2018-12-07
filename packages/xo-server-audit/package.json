@@ -1,0 +1,54 @@
+{
+  "name": "xo-server-audit",
+  "version": "0.0.0",
+  "license": "AGPL-3.0",
+  "description": "Audit plugin for XO-Server",
+  "keywords": [
+    "audit",
+    "log",
+    "logs",
+    "orchestra",
+    "plugin",
+    "xen-orchestra",
+    "xen",
+    "xo-server"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-audit",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@isonoe.net"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=6"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "babel-plugin-lodash": "^3.3.2",
+    "cross-env": "^5.1.3",
+    "rimraf": "^2.6.1"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "prebuild": "yarn run clean",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build"
+  },
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
+}
