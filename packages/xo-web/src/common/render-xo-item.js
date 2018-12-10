@@ -71,7 +71,8 @@ export const Host = decorate([
       pool: createGetObject(
         createSelector(
           getHost,
-          host => get(() => host.$pool)
+          (_, props) => props.pool,
+          (host, showPool) => showPool && get(() => host.$pool)
         )
       ),
     }
@@ -94,11 +95,13 @@ Host.propTypes = {
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
   newTab: PropTypes.bool,
+  pool: PropTypes.bool,
 }
 
 Host.defaultProps = {
   link: false,
   newTab: false,
+  pool: true,
 }
 
 // ===================================================================
@@ -183,7 +186,8 @@ export const Sr = decorate([
     const getContainer = createGetObject(
       createSelector(
         getSr,
-        sr => get(() => sr.$container)
+        (_, props) => props.container,
+        (sr, showContainer) => showContainer && get(() => sr.$container)
       )
     )
     return (state, props) => ({
@@ -217,6 +221,7 @@ export const Sr = decorate([
 ])
 
 Sr.propTypes = {
+  container: PropTypes.bool,
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
   newTab: PropTypes.bool,
@@ -225,6 +230,7 @@ Sr.propTypes = {
 }
 
 Sr.defaultProps = {
+  container: true,
   link: false,
   newTab: false,
   self: false,
