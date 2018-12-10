@@ -64,9 +64,7 @@ const XOSAN_SR_COLUMNS = [
     sortCriteria: 'name_label',
   },
   {
-    itemRenderer: (sr, { hosts }) => (
-      <Host id={hosts[sr.$container].id} pool={false} link />
-    ),
+    itemRenderer: sr => <Host id={sr.$container} pool={false} link />,
     name: _('xosanHost'),
     sortCriteria: (sr, { hosts }) => hosts[sr.$container].name_label,
   },
