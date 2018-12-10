@@ -5,6 +5,7 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import getStream from 'get-stream'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
+import { random } from 'lodash'
 import { tmpdir } from 'os'
 
 import { getHandler } from '.'
@@ -25,7 +26,8 @@ const unsecureRandomBytes = n => {
   return bytes
 }
 
-const TEST_DATA = unsecureRandomBytes(1024)
+const TEST_DATA_LEN = 1024
+const TEST_DATA = unsecureRandomBytes(TEST_DATA_LEN)
 const createTestDataStream = asyncIteratorToStream(function*() {
   yield TEST_DATA
 })
@@ -46,11 +48,21 @@ handlers.forEach(url => {
   describe(url, () => {
     let handler
 
-    beforeAll(async () => {
-      handler = getHandler({ url })
-      await handler.sync()
+    const testWithFileDescriptor = (path, flags, fn) => {
+      it('with path', () => fn({ file: path, flags }))
+      it('with file descriptor', async () => {
+        const file = await handler.openFile(path, flags)
+        try {
+          await fn({ file })
+        } finally {
+          await handler.closeFile(file)
+        }
+      })
+    }
 
-      handler.prefix = `xo-fs-tests-${Date.now()}`
+    beforeAll(async () => {
+      handler = getHandler({ url }).addPrefix(`xo-fs-tests-${Date.now()}`)
+      await handler.sync()
     })
     afterAll(async () => {
       await handler.forget()
@@ -59,78 +71,43 @@ handlers.forEach(url => {
 
     beforeEach(async () => {
       // ensure test dir exists
-      // TODO: replace with mkdir
-      await handler.outputFile('file', '')
-      await handler.unlink('file')
+      await handler.mkdir('.')
     })
     afterEach(async () => {
-      // don't use the prefix feature for the final clean to avoid deleting
-      // everything on the remote if it's broken
-      const { prefix } = handler
-      expect(prefix).not.toBe('/')
-      handler.prefix = '/'
-      await handler.rmtree(prefix)
-      handler.prefix = prefix
+      await handler.rmtree('.')
+    })
+
+    describe('#type', () => {
+      it('returns the type of the remote', () => {
+        expect(typeof handler.type).toBe('string')
+      })
     })
 
     describe('#createOutputStream()', () => {
-      it('returns a writable stream', async () => {
-        const stream = await handler.createOutputStream('file')
+      testWithFileDescriptor('file', 'wx', async ({ file, flags }) => {
+        const stream = await handler.createOutputStream(file, { flags })
         await fromCallback(cb => pipeline(createTestDataStream(), stream, cb))
-        await expect(await handler.readFile('file')).toEqual(TEST_DATA)
-      })
-
-      it('works on an opened files', async () => {
-        const fd = await handler.openFile('file', 'wx')
-        try {
-          const stream = await handler.createOutputStream(fd)
-          await fromCallback(cb => pipeline(createTestDataStream(), stream, cb))
-        } finally {
-          await handler.closeFile(fd)
-        }
         await expect(await handler.readFile('file')).toEqual(TEST_DATA)
       })
     })
 
     describe('#createReadStream()', () => {
-      it(`should return a stream`, async () => {
-        await handler.outputFile('file', TEST_DATA)
-        const buffer = await getStream.buffer(
-          await handler.createReadStream('file')
-        )
+      beforeEach(() => handler.outputFile('file', TEST_DATA))
 
-        await expect(buffer).toEqual(TEST_DATA)
-      })
-
-      it('works on an opened files', async () => {
-        await handler.outputFile('file', TEST_DATA)
-        const fd = await handler.openFile('file', 'r')
-        let buffer
-        try {
-          buffer = await getStream.buffer(await handler.createReadStream(fd))
-        } finally {
-          await handler.closeFile(fd)
-        }
-        await expect(buffer).toEqual(TEST_DATA)
+      testWithFileDescriptor('file', 'r', async ({ file, flags }) => {
+        await expect(
+          await getStream.buffer(
+            await handler.createReadStream(file, { flags })
+          )
+        ).toEqual(TEST_DATA)
       })
     })
 
     describe('#getSize()', () => {
-      it(`should return the correct size`, async () => {
-        await handler.outputFile('file', TEST_DATA)
-        expect(await handler.getSize('file')).toEqual(TEST_DATA.length)
-      })
+      beforeEach(() => handler.outputFile('file', TEST_DATA))
 
-      it('works on an opened file', async () => {
-        await handler.outputFile('file', TEST_DATA)
-        const fd = await handler.openFile('file', 'r')
-        let size
-        try {
-          size = await handler.getSize(fd)
-        } finally {
-          await handler.closeFile(fd)
-        }
-        expect(size).toEqual(TEST_DATA.length)
+      testWithFileDescriptor('file', 'r', async () => {
+        expect(await handler.getSize('file')).toEqual(TEST_DATA_LEN)
       })
     })
 
@@ -138,6 +115,63 @@ handlers.forEach(url => {
       it(`should list the content of folder`, async () => {
         await handler.outputFile('file', TEST_DATA)
         await expect(await handler.list('.')).toEqual(['file'])
+      })
+
+      it('can prepend the directory to entries', async () => {
+        await handler.outputFile('dir/file', '')
+        expect(await handler.list('dir', { prependDir: true })).toEqual([
+          '/dir/file',
+        ])
+      })
+
+      it('can prepend the directory to entries', async () => {
+        await handler.outputFile('dir/file', '')
+        expect(await handler.list('dir', { prependDir: true })).toEqual([
+          '/dir/file',
+        ])
+      })
+    })
+
+    describe('#mkdir()', () => {
+      it('creates a directory', async () => {
+        await handler.mkdir('dir')
+        await expect(await handler.list('.')).toEqual(['dir'])
+      })
+
+      it('does not throw on existing directory', async () => {
+        await handler.mkdir('dir')
+        await handler.mkdir('dir')
+      })
+
+      it('throws ENOTDIR on existing file', async () => {
+        await handler.outputFile('file', '')
+        const error = await rejectionOf(handler.mkdir('file'))
+        expect(error.code).toBe('ENOTDIR')
+      })
+    })
+
+    describe('#mktree()', () => {
+      it('creates a tree of directories', async () => {
+        await handler.mktree('dir/dir')
+        await expect(await handler.list('.')).toEqual(['dir'])
+        await expect(await handler.list('dir')).toEqual(['dir'])
+      })
+
+      it('does not throw on existing directory', async () => {
+        await handler.mktree('dir/dir')
+        await handler.mktree('dir/dir')
+      })
+
+      it('throws ENOTDIR on existing file', async () => {
+        await handler.outputFile('dir/file', '')
+        const error = await rejectionOf(handler.mktree('dir/file'))
+        expect(error.code).toBe('ENOTDIR')
+      })
+
+      it('throws ENOTDIR on existing file in path', async () => {
+        await handler.outputFile('file', '')
+        const error = await rejectionOf(handler.mktree('file/dir'))
+        expect(error.code).toBe('ENOTDIR')
       })
     })
 
@@ -151,6 +185,23 @@ handlers.forEach(url => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.outputFile('file', ''))
         expect(error.code).toBe('EEXIST')
+      })
+    })
+
+    describe('#read()', () => {
+      beforeEach(() => handler.outputFile('file', TEST_DATA))
+
+      const start = random(TEST_DATA_LEN)
+      const size = random(TEST_DATA_LEN)
+
+      testWithFileDescriptor('file', 'r', async ({ file }) => {
+        const buffer = Buffer.alloc(size)
+        const result = await handler.read(file, buffer, start)
+        expect(result.buffer).toBe(buffer)
+        expect(result).toEqual({
+          buffer,
+          bytesRead: Math.min(size, TEST_DATA_LEN - start),
+        })
       })
     })
 
@@ -178,10 +229,7 @@ handlers.forEach(url => {
 
     describe('#rmdir()', () => {
       it('should remove an empty directory', async () => {
-        // TODO: replace with mkdir
-        await handler.outputFile('dir/file', '')
-        await handler.unlink('dir/file')
-
+        await handler.mkdir('dir')
         await handler.rmdir('dir')
         expect(await handler.list('.')).toEqual([])
       })

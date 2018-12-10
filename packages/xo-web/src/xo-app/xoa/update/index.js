@@ -43,7 +43,7 @@ if (+process.env.XOA_PLAN < 5) {
 // FIXME: can't translate
 const LABELS_BY_STATE = {
   disconnected: 'Disconnected',
-  error: 'An error occured',
+  error: 'An error occurred',
   registerNeeded: 'Registration required',
   updating: 'Updating',
   upgradeNeeded: 'Upgrade required',
@@ -87,7 +87,7 @@ const Updates = decorate([
       showPackagesList: false,
     }),
     effects: {
-      async configure () {
+      async configure() {
         await xoaUpdater.configure(
           pick(this.state, [
             'proxyHost',
@@ -98,11 +98,11 @@ const Updates = decorate([
         )
         return this.effects.resetProxyConfig()
       },
-      initialize () {
+      initialize() {
         return this.effects.update()
       },
       linkState,
-      async register () {
+      async register() {
         const { state } = this
 
         const { isRegistered } = state
@@ -133,7 +133,7 @@ const Updates = decorate([
         return initialRegistrationState()
       },
       resetProxyConfig: initialProxyState,
-      async startTrial () {
+      async startTrial() {
         try {
           await confirm({
             title: _('trialReadyModal'),
@@ -158,7 +158,7 @@ const Updates = decorate([
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
-      async installedPackages () {
+      async installedPackages() {
         const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
         return { ...installer, ...updater, ...npm }
       },

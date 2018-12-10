@@ -100,6 +100,9 @@ That's it! Use your browser to visit the xo-server IP address, and it works! :)
 If you would like to update your current version, enter your `xen-orchestra` directory and run the following:
 
 ```
+# This will clear any changes you made in the repository!!
+$ git checkout .
+
 $ git pull --ff-only
 $ yarn
 $ yarn build

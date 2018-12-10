@@ -14,7 +14,7 @@ if (!(symbol in global)) {
 
 // -------------------------------------------------------------------
 
-function Log (data, level, namespace, message, time) {
+function Log(data, level, namespace, message, time) {
   this.data = data
   this.level = level
   this.namespace = namespace
@@ -22,7 +22,7 @@ function Log (data, level, namespace, message, time) {
   this.time = time
 }
 
-function Logger (namespace) {
+function Logger(namespace) {
   this._namespace = namespace
 
   // bind all logging methods
@@ -37,11 +37,11 @@ const { prototype } = Logger
 for (const name in LEVELS) {
   const level = LEVELS[name]
 
-  prototype[name.toLowerCase()] = function (message, data) {
+  prototype[name.toLowerCase()] = function(message, data) {
     if (typeof message !== 'string') {
       if (message instanceof Error) {
         data = { error: message }
-        ;({ message = 'an error has occured' } = message)
+        ;({ message = 'an error has occurred' } = message)
       } else {
         return this.warn('incorrect value passed to logger', {
           level,
@@ -53,13 +53,13 @@ for (const name in LEVELS) {
   }
 }
 
-prototype.wrap = function (message, fn) {
+prototype.wrap = function(message, fn) {
   const logger = this
   const warnAndRethrow = error => {
     logger.warn(message, { error })
     throw error
   }
-  return function () {
+  return function() {
     try {
       const result = fn.apply(this, arguments)
       const then = result != null && result.then

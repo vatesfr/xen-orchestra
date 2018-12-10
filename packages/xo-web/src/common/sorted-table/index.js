@@ -71,11 +71,11 @@ class TableFilter extends Component {
     this.props.onChange(event.target.value)
   }
 
-  focus () {
+  focus() {
     this.refs.filter.getWrappedInstance().focus()
   }
 
-  render () {
+  render() {
     const { props } = this
 
     return (
@@ -140,7 +140,7 @@ class ColumnHead extends Component {
     props.sort(props.columnId)
   }
 
-  render () {
+  render() {
     const { name, sortIcon, textAlign } = this.props
 
     if (!this.props.sort) {
@@ -174,7 +174,7 @@ class Checkbox extends Component {
     indeterminate: PropTypes.bool.isRequired,
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     const {
       props: { indeterminate },
       ref,
@@ -189,7 +189,7 @@ class Checkbox extends Component {
     this.componentDidUpdate()
   }
 
-  render () {
+  render() {
     const { indeterminate, ...props } = this.props
     props.ref = this._ref
     props.type = 'checkbox'
@@ -295,6 +295,7 @@ export default class SortedTable extends Component {
     groupedActions: actionsShape,
     individualActions: actionsShape,
     itemsPerPage: PropTypes.number,
+    onSelect: PropTypes.func,
     paginationContainer: PropTypes.func,
     rowAction: PropTypes.func,
     rowLink: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
@@ -316,7 +317,7 @@ export default class SortedTable extends Component {
     router: routerShape,
   }
 
-  constructor (props, context) {
+  constructor(props, context) {
     super(props, context)
 
     this._getUserData =
@@ -505,7 +506,7 @@ export default class SortedTable extends Component {
     )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._checkUpdatePage()
 
     // Force one Portal refresh.
@@ -532,7 +533,7 @@ export default class SortedTable extends Component {
     })
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     const { selectedItemsIds } = this.state
 
     // Unselect items that are no longer visible
@@ -567,7 +568,7 @@ export default class SortedTable extends Component {
   }
 
   // update state in the state and update the URL param
-  _setVisibleState (state) {
+  _setVisibleState(state) {
     this.setState(state, this.props.stateUrlParam && this._saveUrlState)
   }
 
@@ -579,7 +580,7 @@ export default class SortedTable extends Component {
     })
   }
 
-  _checkUpdatePage () {
+  _checkUpdatePage() {
     const { page } = this.state
     if (page === 1) {
       return
@@ -597,15 +598,21 @@ export default class SortedTable extends Component {
     }
   }
 
-  _setPage (page) {
+  _setPage(page) {
     this._setVisibleState({ page })
   }
   _setPage = this._setPage.bind(this)
 
   _selectAllVisibleItems = event => {
+    const { checked } = event.target
+    const { onSelect } = this.props
+    if (onSelect !== undefined) {
+      onSelect(checked ? map(this._getVisibleItems(), 'id') : [])
+    }
+
     this.setState({
       all: false,
-      selectedItemsIds: event.target.checked
+      selectedItemsIds: checked
         ? this.state.selectedItemsIds.union(map(this._getVisibleItems(), 'id'))
         : this.state.selectedItemsIds.clear(),
     })
@@ -626,34 +633,37 @@ export default class SortedTable extends Component {
     }
   }
 
-  _selectAll = () => this.setState({ all: true })
+  _selectAll = () => {
+    const { onSelect } = this.props
+    if (onSelect !== undefined) {
+      onSelect(map(this._getItems(), 'id'))
+    }
+    this.setState({ all: true })
+  }
 
-  _selectItem (current, selected, range = false) {
+  _selectItem(current, selected, range = false) {
+    const { onSelect } = this.props
     const { all, selectedItemsIds } = this.state
     const visibleItems = this._getVisibleItems()
     const item = visibleItems[current]
+    let _selectedItemsIds
 
     if (all) {
-      return this.setState({
-        all: false,
-        selectedItemsIds: new Set().withMutations(selectedItemsIds => {
-          forEach(visibleItems, item => {
-            selectedItemsIds.add(item.id)
-          })
-          selectedItemsIds.delete(item.id)
-        }),
+      _selectedItemsIds = new Set().withMutations(selectedItemsIds => {
+        forEach(visibleItems, item => {
+          selectedItemsIds.add(item.id)
+        })
+        selectedItemsIds.delete(item.id)
       })
-    }
+    } else {
+      const method = (selected === undefined
+      ? !selectedItemsIds.has(item.id)
+      : selected)
+        ? 'add'
+        : 'delete'
 
-    const method = (selected === undefined
-    ? !selectedItemsIds.has(item.id)
-    : selected)
-      ? 'add'
-      : 'delete'
-
-    let previous
-    this.setState({
-      selectedItemsIds:
+      let previous
+      _selectedItemsIds =
         range && (previous = this._previous) !== undefined
           ? selectedItemsIds.withMutations(selectedItemsIds => {
               let i = previous
@@ -666,10 +676,18 @@ export default class SortedTable extends Component {
                 selectedItemsIds[method](visibleItems[i].id)
               }
             })
-          : selectedItemsIds[method](item.id),
-    })
+          : selectedItemsIds[method](item.id)
+      this._previous = current
+    }
 
-    this._previous = current
+    if (onSelect !== undefined) {
+      onSelect(_selectedItemsIds.toArray())
+    }
+
+    this.setState({
+      all: false,
+      selectedItemsIds: _selectedItemsIds,
+    })
   }
 
   _onSelectItemCheckbox = event => {
@@ -717,7 +735,7 @@ export default class SortedTable extends Component {
 
   _renderItem = (item, i) => {
     const { props, state } = this
-    const { actions, individualActions, rowAction, rowLink } = props
+    const { actions, individualActions, onSelect, rowAction, rowLink } = props
     const userData = this._getUserData()
 
     const hasGroupedActions = this._hasGroupedActions()
@@ -741,7 +759,7 @@ export default class SortedTable extends Component {
 
     const { id = i } = item
 
-    const selectionColumn = hasGroupedActions && (
+    const selectionColumn = (hasGroupedActions || onSelect !== undefined) && (
       <td className='text-xs-center' onClick={this._toggleNestedCheckbox}>
         <input
           checked={state.all || state.selectedItemsIds.has(id)}
@@ -790,13 +808,14 @@ export default class SortedTable extends Component {
     )
   }
 
-  render () {
+  render() {
     const { props, state } = this
     const {
       actions,
       filterContainer,
       individualActions,
       itemsPerPage,
+      onSelect,
       paginationContainer,
       shortcutsTarget,
     } = props
@@ -903,7 +922,7 @@ export default class SortedTable extends Component {
               </th>
             </tr>
             <tr>
-              {hasGroupedActions && (
+              {(hasGroupedActions || onSelect !== undefined) && (
                 <th
                   className='text-xs-center'
                   onClick={this._toggleNestedCheckbox}

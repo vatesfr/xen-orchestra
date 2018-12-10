@@ -6,21 +6,14 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
+import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
+import { get } from '@xen-orchestra/defined'
+import { Host, Sr } from 'render-xo-item'
 import { Container, Col, Row } from 'grid'
 import { Toggle, SizeInput } from 'form'
 import { SelectPif, SelectPool } from 'select-objects'
-import {
-  every,
-  filter,
-  find,
-  forEach,
-  groupBy,
-  isEmpty,
-  keys,
-  map,
-  pickBy,
-} from 'lodash'
+import { filter, forEach, groupBy, isEmpty, map, pickBy, some } from 'lodash'
 import {
   createFilter,
   createGetObjectsOfType,
@@ -62,6 +55,45 @@ const _findLatestTemplate = templates => {
 const DEFAULT_BRICKSIZE = 100 * 1024 * 1024 * 1024 // 100 GiB
 const DEFAULT_MEMORY = 2 * 1024 * 1024 * 1024 // 2 GiB
 
+const XOSAN_SR_COLUMNS = [
+  {
+    itemRenderer: sr => (
+      <Sr id={sr.id} container={false} spaceLeft={false} link />
+    ),
+    name: _('xosanName'),
+    sortCriteria: 'name_label',
+  },
+  {
+    itemRenderer: sr => <Host id={sr.$container} pool={false} link />,
+    name: _('xosanHost'),
+    sortCriteria: (sr, { hosts }) => hosts[sr.$container].name_label,
+  },
+  {
+    itemRenderer: sr => <span>{formatSize(sr.size)}</span>,
+    name: _('xosanSize'),
+    sortCriteria: 'size',
+  },
+  {
+    itemRenderer: sr =>
+      sr.size > 0 && (
+        <Tooltip
+          content={_('spaceLeftTooltip', {
+            used: String(Math.round((sr.physical_usage / sr.size) * 100)),
+            free: formatSize(sr.size - sr.physical_usage),
+          })}
+        >
+          <progress
+            className='progress'
+            max='100'
+            value={(sr.physical_usage / sr.size) * 100}
+          />
+        </Tooltip>
+      ),
+    name: _('xosanUsedSpace'),
+    sortCriteria: sr => sr.size - sr.physical_usage,
+  },
+]
+
 @addSubscriptions({
   catalog: subscribeResourceCatalog,
 })
@@ -72,7 +104,7 @@ const DEFAULT_MEMORY = 2 * 1024 * 1024 * 1024 // 2 GiB
 })
 export default class NewXosan extends Component {
   state = {
-    selectedSrs: {},
+    selectedSrs: [],
     brickSize: DEFAULT_BRICKSIZE,
     ipRange: '172.31.100.0',
     memorySize: DEFAULT_MEMORY,
@@ -116,13 +148,13 @@ export default class NewXosan extends Component {
       needsUpdate: false,
       pif: undefined,
       pool,
-      selectedSrs: {},
+      selectedSrs: [],
     })
 
     return this._checkPacks(pool)
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     this._refreshSuggestions()
   }
 
@@ -131,13 +163,16 @@ export default class NewXosan extends Component {
     () => this.state.selectedSrs,
     () => this.state.brickSize,
     () => this.state.customBrickSize,
-    async (selectedSrs, brickSize, customBrickSize) => {
+    () => this.state.srsOnSameHost,
+    async (selectedSrs, brickSize, customBrickSize, srsOnSameHost) => {
       this.setState({
         suggestion: 0,
-        suggestions: await computeXosanPossibleOptions(
-          keys(pickBy(selectedSrs)),
-          customBrickSize ? brickSize : undefined
-        ),
+        suggestions: !srsOnSameHost
+          ? await computeXosanPossibleOptions(
+              selectedSrs,
+              customBrickSize ? brickSize : undefined
+            )
+          : [],
       })
     }
   )
@@ -156,7 +191,7 @@ export default class NewXosan extends Component {
   _getHosts = createSelector(
     () => this.props.hosts,
     this._getIsInPool,
-    (hosts, isInPool) => filter(hosts, isInPool)
+    (hosts, isInPool) => pickBy(hosts, isInPool)
   )
 
   // LVM SRs that are connected
@@ -164,14 +199,17 @@ export default class NewXosan extends Component {
     createSelector(
       createFilter(
         () => this.props.srs,
-        createSelector(this._getHosts, hosts => sr => {
-          let host
-          return (
-            sr.SR_type === 'lvm' &&
-            (host = find(hosts, { id: sr.$container })) !== undefined &&
-            host.power_state === 'Running'
-          )
-        })
+        createSelector(
+          this._getHosts,
+          hosts => sr => {
+            let host
+            return (
+              sr.SR_type === 'lvm' &&
+              (host = hosts[sr.$container]) !== undefined &&
+              host.power_state === 'Running'
+            )
+          }
+        )
       ),
       this._getPbdsBySr,
       (srs, pbdsBySr) =>
@@ -195,10 +233,17 @@ export default class NewXosan extends Component {
     this.setState({ brickSize })
   }
 
-  _selectSr = async (event, sr) => {
-    const selectedSrs = { ...this.state.selectedSrs }
-    selectedSrs[sr.id] = event.target.checked
-    this.setState({ selectedSrs })
+  _selectSrs = selectedSrs => {
+    const { srs } = this.props
+    const found = {}
+    let container
+    this.setState({
+      selectedSrs,
+      srsOnSameHost: some(selectedSrs, srId => {
+        container = get(() => srs[srId].$container)
+        return found[container] || ((found[container] = true), false)
+      }),
+    })
   }
 
   _getPifPredicate = createSelector(
@@ -208,7 +253,7 @@ export default class NewXosan extends Component {
 
   _getNSelectedSrs = createSelector(
     () => this.state.selectedSrs,
-    srs => filter(srs).length
+    srs => srs.length
   )
 
   _getLatestTemplate = createSelector(
@@ -218,24 +263,14 @@ export default class NewXosan extends Component {
     _findLatestTemplate
   )
 
-  _getDisableSrCheckbox = createSelector(
-    () => this.state.selectedSrs,
-    this._getLvmSrs,
-    (selectedSrs, lvmsrs) => sr =>
-      !every(
-        keys(pickBy(selectedSrs)),
-        selectedSrId =>
-          selectedSrId === sr.id ||
-          find(lvmsrs, { id: selectedSrId }).$container !== sr.$container
-      )
-  )
-
   _getDisableCreation = createSelector(
+    () => this.state.srsOnSameHost,
     () => this.state.suggestion,
     () => this.state.suggestions,
     () => this.state.pif,
     this._getNSelectedSrs,
-    (suggestion, suggestions, pif, nSelectedSrs) =>
+    (srsOnSameHost, suggestion, suggestions, pif, nSelectedSrs) =>
+      srsOnSameHost ||
       !suggestions ||
       !suggestions[suggestion] ||
       !pif ||
@@ -254,7 +289,7 @@ export default class NewXosan extends Component {
       template: this._getLatestTemplate(),
       pif: this.state.pif,
       vlan: this.state.vlan || 0,
-      srs: keys(pickBy(this.state.selectedSrs)),
+      srs: this.state.selectedSrs,
       glusterType: params.layout,
       redundancy: params.redundancy,
       brickSize: this.state.customBrickSize ? this.state.brickSize : undefined,
@@ -265,7 +300,7 @@ export default class NewXosan extends Component {
     this.props.onSrCreationStarted()
   }
 
-  render () {
+  render() {
     if (process.env.XOA_PLAN === 5) {
       return (
         <em>
@@ -288,7 +323,7 @@ export default class NewXosan extends Component {
       needsUpdate,
       pif,
       pool,
-      selectedSrs,
+      srsOnSameHost,
       suggestion,
       suggestions,
       useVlan,
@@ -307,12 +342,8 @@ export default class NewXosan extends Component {
       )
     }
 
-    const lvmsrs = this._getLvmSrs()
-    const hosts = this._getHosts()
-
-    const disableSrCheckbox = this._getDisableSrCheckbox()
     const hostsNeedRestart =
-      pool !== undefined &&
+      pool != null &&
       hostsNeedRestartByPool !== undefined &&
       hostsNeedRestartByPool[pool.id]
     const architecture = suggestions != null && suggestions[suggestion]
@@ -375,69 +406,21 @@ export default class NewXosan extends Component {
             [
               <Row>
                 <Col>
-                  <em>{_('xosanSelect2Srs')}</em>
-                  <table className='table table-striped'>
-                    <thead>
-                      <tr>
-                        <th />
-                        <th>{_('xosanName')}</th>
-                        <th>{_('xosanHost')}</th>
-                        <th>{_('xosanSize')}</th>
-                        <th>{_('xosanUsedSpace')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {map(lvmsrs, sr => {
-                        const host = find(hosts, ['id', sr.$container])
-
-                        return (
-                          <tr key={sr.id}>
-                            <td>
-                              <input
-                                checked={selectedSrs[sr.id] || false}
-                                disabled={disableSrCheckbox(sr)}
-                                onChange={event => this._selectSr(event, sr)}
-                                type='checkbox'
-                              />
-                            </td>
-                            <td>
-                              <Link to={`/srs/${sr.id}/general`}>
-                                {sr.name_label}
-                              </Link>
-                            </td>
-                            <td>
-                              <Link to={`/hosts/${host.id}/general`}>
-                                {host.name_label}
-                              </Link>
-                            </td>
-                            <td>{formatSize(sr.size)}</td>
-                            <td>
-                              {sr.size > 0 && (
-                                <Tooltip
-                                  content={_('spaceLeftTooltip', {
-                                    used: String(
-                                      Math.round(
-                                        (sr.physical_usage / sr.size) * 100
-                                      )
-                                    ),
-                                    free: formatSize(
-                                      sr.size - sr.physical_usage
-                                    ),
-                                  })}
-                                >
-                                  <progress
-                                    className='progress'
-                                    max='100'
-                                    value={(sr.physical_usage / sr.size) * 100}
-                                  />
-                                </Tooltip>
-                              )}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                  <SortedTable
+                    collection={this._getLvmSrs()}
+                    columns={XOSAN_SR_COLUMNS}
+                    data-hosts={this._getHosts()}
+                    onSelect={this._selectSrs}
+                  />
+                </Col>
+              </Row>,
+              <Row>
+                <Col>
+                  {srsOnSameHost && (
+                    <span className='text-danger'>
+                      <Icon icon='alarm' /> {_('xosanSrOnSameHostMessage')}
+                    </span>
+                  )}
                 </Col>
               </Row>,
               <Row>

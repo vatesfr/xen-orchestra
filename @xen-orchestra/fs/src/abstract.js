@@ -3,14 +3,15 @@
 // $FlowFixMe
 import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
-import { finished } from 'readable-stream'
+import path from 'path'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
-import { resolve } from 'path'
 import { type Readable, type Writable } from 'stream'
 
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
+
+const { dirname, resolve } = path.posix
 
 type Data = Buffer | Readable | string
 type FileDescriptor = {| fd: mixed, path: string |}
@@ -26,16 +27,42 @@ const checksumFile = file => file + '.checksum'
 // - always starts with `/`
 const normalizePath = path => resolve('/', path)
 
-// use symbols for private members to avoid any conflicts with inheriting
-// classes
-const kPrefix = Symbol('prefix')
-const kResolve = Symbol('resolve')
-
 const DEFAULT_TIMEOUT = 6e5 // 10 min
 
 const ignoreEnoent = error => {
   if (error == null || error.code !== 'ENOENT') {
     throw error
+  }
+}
+
+class PrefixWrapper {
+  constructor(remote, prefix) {
+    this._prefix = prefix
+    this._remote = remote
+  }
+
+  get type() {
+    return this._remote.type
+  }
+
+  // necessary to remove the prefix from the path with `prependDir` option
+  async list(dir, opts) {
+    const entries = await this._remote.list(this._resolve(dir), opts)
+    if (opts != null && opts.prependDir) {
+      const n = this._prefix.length
+      entries.forEach((entry, i, entries) => {
+        entries[i] = entry.slice(n)
+      })
+    }
+    return entries
+  }
+
+  rename(oldPath, newPath) {
+    return this._remote.rename(this._resolve(oldPath), this._resolve(newPath))
+  }
+
+  _resolve(path) {
+    return this._prefix + normalizePath(path)
   }
 }
 
@@ -53,23 +80,17 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
-
-    this[kPrefix] = ''
   }
 
   // Public members
 
-  get prefix(): string {
-    return this[kPrefix]
-  }
-
-  set prefix(prefix: string) {
-    prefix = normalizePath(prefix)
-    this[kPrefix] = prefix === '/' ? '' : prefix
-  }
-
   get type(): string {
     throw new Error('Not implemented')
+  }
+
+  addPrefix(prefix: string) {
+    prefix = normalizePath(prefix)
+    return prefix === '/' ? this : new PrefixWrapper(this, prefix)
   }
 
   async closeFile(fd: FileDescriptor): Promise<void> {
@@ -81,7 +102,7 @@ export default class RemoteHandlerAbstract {
     { checksum = false, ...options }: Object = {}
   ): Promise<LaxWritable> {
     if (typeof file === 'string') {
-      file = this[kResolve](file)
+      file = normalizePath(file)
     }
     const path = typeof file === 'string' ? file : file.path
     const streamP = timeout.call(
@@ -120,7 +141,7 @@ export default class RemoteHandlerAbstract {
     { checksum = false, ignoreMissingChecksum = false, ...options }: Object = {}
   ): Promise<LaxReadable> {
     if (typeof file === 'string') {
-      file = this[kResolve](file)
+      file = normalizePath(file)
     }
     const path = typeof file === 'string' ? file : file.path
     const streamP = timeout
@@ -184,7 +205,7 @@ export default class RemoteHandlerAbstract {
 
   async getSize(file: File): Promise<number> {
     return timeout.call(
-      this._getSize(typeof file === 'string' ? this[kResolve](file) : file),
+      this._getSize(typeof file === 'string' ? normalizePath(file) : file),
       this._timeout
     )
   }
@@ -197,7 +218,7 @@ export default class RemoteHandlerAbstract {
     }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
   ): Promise<string[]> {
     const virtualDir = normalizePath(dir)
-    dir = this[kResolve](dir)
+    dir = normalizePath(dir)
 
     let entries = await timeout.call(this._list(dir), this._timeout)
     if (filter !== undefined) {
@@ -213,8 +234,26 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  async openFile(path: string, flags?: string): Promise<FileDescriptor> {
-    path = this[kResolve](path)
+  async mkdir(dir: string): Promise<void> {
+    dir = normalizePath(dir)
+    try {
+      await this._mkdir(dir)
+    } catch (error) {
+      if (error == null || error.code !== 'EEXIST') {
+        throw error
+      }
+
+      // this operation will throw if it's not already a directory
+      await this._list(dir)
+    }
+  }
+
+  async mktree(dir: string): Promise<void> {
+    await this._mktree(normalizePath(dir))
+  }
+
+  async openFile(path: string, flags: string): Promise<FileDescriptor> {
+    path = normalizePath(path)
 
     return {
       fd: await timeout.call(this._openFile(path, flags), this._timeout),
@@ -227,7 +266,7 @@ export default class RemoteHandlerAbstract {
     data: Data,
     { flags = 'wx' }: { flags?: string } = {}
   ): Promise<void> {
-    return this._outputFile(this[kResolve](file), data, { flags })
+    await this._outputFile(normalizePath(file), data, { flags })
   }
 
   async read(
@@ -236,7 +275,7 @@ export default class RemoteHandlerAbstract {
     position?: number
   ): Promise<{| bytesRead: number, buffer: Buffer |}> {
     return this._read(
-      typeof file === 'string' ? this[kResolve](file) : file,
+      typeof file === 'string' ? normalizePath(file) : file,
       buffer,
       position
     )
@@ -246,11 +285,11 @@ export default class RemoteHandlerAbstract {
     file: string,
     { flags = 'r' }: { flags?: string } = {}
   ): Promise<Buffer> {
-    return this._readFile(this[kResolve](file), { flags })
+    return this._readFile(normalizePath(file), { flags })
   }
 
   async refreshChecksum(path: string): Promise<void> {
-    path = this[kResolve](path)
+    path = normalizePath(path)
 
     const stream = (await this._createReadStream(path, { flags: 'r' })).pipe(
       createChecksumStream()
@@ -266,8 +305,8 @@ export default class RemoteHandlerAbstract {
     newPath: string,
     { checksum = false }: Object = {}
   ) {
-    oldPath = this[kResolve](oldPath)
-    newPath = this[kResolve](newPath)
+    oldPath = normalizePath(oldPath)
+    newPath = normalizePath(newPath)
 
     let p = timeout.call(this._rename(oldPath, newPath), this._timeout)
     if (checksum) {
@@ -281,13 +320,13 @@ export default class RemoteHandlerAbstract {
 
   async rmdir(dir: string): Promise<void> {
     await timeout.call(
-      this._rmdir(this[kResolve](dir)).catch(ignoreEnoent),
+      this._rmdir(normalizePath(dir)).catch(ignoreEnoent),
       this._timeout
     )
   }
 
   async rmtree(dir: string): Promise<void> {
-    await this._rmtree(this[kResolve](dir))
+    await this._rmtree(normalizePath(dir))
   }
 
   // Asks the handler to sync the state of the effective remote with its'
@@ -297,7 +336,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async test(): Promise<Object> {
-    const testFileName = this[kResolve](`${Date.now()}.test`)
+    const testFileName = normalizePath(`${Date.now()}.test`)
     const data = await fromCallback(cb => randomBytes(1024 * 1024, cb))
     let step = 'write'
     try {
@@ -323,7 +362,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async unlink(file: string, { checksum = true }: Object = {}): Promise<void> {
-    file = this[kResolve](file)
+    file = normalizePath(file)
 
     if (checksum) {
       ignoreErrors.call(this._unlink(checksumFile(file)))
@@ -332,20 +371,38 @@ export default class RemoteHandlerAbstract {
     await timeout.call(this._unlink(file).catch(ignoreEnoent), this._timeout)
   }
 
+  async writeFile(
+    file: string,
+    data: Data,
+    { flags = 'wx' }: { flags?: string } = {}
+  ): Promise<void> {
+    return this._writeFile(normalizePath(file), data, { flags })
+  }
+
   // Methods that can be implemented by inheriting classes
 
   async _closeFile(fd: mixed): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  async _createOutputStream(
-    file: File,
-    options?: Object
-  ): Promise<LaxWritable> {
-    throw new Error('Not implemented')
+  async _createOutputStream(file: File, options: Object): Promise<LaxWritable> {
+    try {
+      return await this._createWriteStream(file, options)
+    } catch (error) {
+      if (typeof file === 'string' && error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    await this._mktree(dirname(file))
+    return this._createOutputStream(file, options)
   }
 
   async _createReadStream(file: File, options?: Object): Promise<LaxReadable> {
+    throw new Error('Not implemented')
+  }
+
+  async _createWriteStream(file: File, options: Object): Promise<LaxWritable> {
     throw new Error('Not implemented')
   }
 
@@ -360,15 +417,42 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _openFile(path: string, flags?: string): Promise<mixed> {
+  async _mkdir(dir: string): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  async _outputFile(file: string, data: Data, options?: Object): Promise<void> {
-    const stream = await this._createOutputStream(file, options)
-    const promise = fromCallback(cb => finished(stream, cb))
-    stream.end(data)
-    return promise
+  async _mktree(dir: string): Promise<void> {
+    try {
+      return await this.mkdir(dir)
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    await this._mktree(dirname(dir))
+    return this._mktree(dir)
+  }
+
+  async _openFile(path: string, flags: string): Promise<mixed> {
+    throw new Error('Not implemented')
+  }
+
+  async _outputFile(
+    file: string,
+    data: Data,
+    options: { flags?: string }
+  ): Promise<void> {
+    try {
+      return await this._writeFile(file, data, options)
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    await this._mktree(dirname(file))
+    return this._outputFile(file, data, options)
   }
 
   _read(
@@ -419,11 +503,45 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  // Private members
-
-  [kResolve](path: string): string {
-    path = normalizePath(path)
-    const prefix = this[kPrefix]
-    return path === '/' ? prefix : prefix + path
+  async _writeFile(
+    file: string,
+    data: Data,
+    options: { flags?: string }
+  ): Promise<void> {
+    throw new Error('Not implemented')
   }
 }
+
+function createPrefixWrapperMethods() {
+  const pPw = PrefixWrapper.prototype
+  const pRha = RemoteHandlerAbstract.prototype
+
+  const {
+    defineProperty,
+    getOwnPropertyDescriptor,
+    prototype: { hasOwnProperty },
+  } = Object
+
+  Object.getOwnPropertyNames(pRha).forEach(name => {
+    let descriptor, value
+    if (
+      hasOwnProperty.call(pPw, name) ||
+      name[0] === '_' ||
+      typeof (value = (descriptor = getOwnPropertyDescriptor(pRha, name))
+        .value) !== 'function'
+    ) {
+      return
+    }
+
+    descriptor.value = function() {
+      let path
+      if (arguments.length !== 0 && typeof (path = arguments[0]) === 'string') {
+        arguments[0] = this._resolve(path)
+      }
+      return value.apply(this._remote, arguments)
+    }
+
+    defineProperty(pPw, name, descriptor)
+  })
+}
+createPrefixWrapperMethods()
