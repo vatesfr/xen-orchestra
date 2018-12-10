@@ -189,25 +189,32 @@ async function parseTarFile(file) {
       break
     }
     // extended header: it's a text file named 'PaxHeader/<filename.ext>' appearing before the file.
-    // the attribute are ascii lines of form: "charcount key=value\n". charcount is the number of chars in the line
-    // parsing it is the only way to get the size of big files because  normal headers store the size in a
+    // the attribute are ascii lines of form: "charcount key=value\n". Charcount is the number of chars in the line.
+    // Parsing it is the only way to get the size of big files because  normal headers store the size in a
     // 12 char octal string, they can't store big sizes.
     if (header.fileType === 'x') {
       const paxFile = Buffer.from(
         await readFileFragment(file, offset, offset + header.fileSize)
       ).toString()
+      console.log('pax header', paxFile)
       const lines = paxFile.split('\n')
-      const found = lines.find(l => l.match(/^[0-9]+ size=/))
-      const size = parseInt(found.split('=')[1])
+      // "<charcount> key=value\n"
+      const foundSize = lines.find(l => l.match(/^[0-9]+ size=/))
       // go to next header
       offset += Math.ceil(header.fileSize / 512) * 512
       header = parseTarHeader(
         await readFileFragment(file, offset, offset + HEADER_SIZE)
       )
-      header.fileSize = size
       offset += HEADER_SIZE
+      if (foundSize) {
+        header.fileSize = parseInt(foundSize.split('=')[1])
+      }
     }
-    if (header.fileType === '0') {
+    // remove mac os X forks https://stackoverflow.com/questions/8766730/tar-command-in-mac-os-x-adding-hidden-files-why
+    if (
+      header.fileType === '0' &&
+      !header.fileName.toLowerCase().startsWith('./._')
+    ) {
       if (header.fileName.toLowerCase().endsWith('.ovf')) {
         const res = await parseOVF(file.slice(offset, offset + header.fileSize))
         data = { ...data, ...res }
