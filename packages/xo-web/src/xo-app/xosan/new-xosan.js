@@ -13,16 +13,7 @@ import { Host, Sr } from 'render-xo-item'
 import { Container, Col, Row } from 'grid'
 import { Toggle, SizeInput } from 'form'
 import { SelectPif, SelectPool } from 'select-objects'
-import {
-  filter,
-  forEach,
-  groupBy,
-  isEmpty,
-  keys,
-  map,
-  pickBy,
-  some,
-} from 'lodash'
+import { filter, forEach, groupBy, isEmpty, map, pickBy, some } from 'lodash'
 import {
   createFilter,
   createGetObjectsOfType,
@@ -264,7 +255,7 @@ export default class NewXosan extends Component {
 
   _getNSelectedSrs = createSelector(
     () => this.state.selectedSrs,
-    srs => filter(srs).length
+    srs => srs.length
   )
 
   _getLatestTemplate = createSelector(
@@ -300,7 +291,7 @@ export default class NewXosan extends Component {
       template: this._getLatestTemplate(),
       pif: this.state.pif,
       vlan: this.state.vlan || 0,
-      srs: keys(pickBy(this.state.selectedSrs)),
+      srs: this.state.selectedSrs,
       glusterType: params.layout,
       redundancy: params.redundancy,
       brickSize: this.state.customBrickSize ? this.state.brickSize : undefined,
