@@ -1334,6 +1334,7 @@ const messages = {
   // ---- Backup views ---
   backupSchedules: 'Schedules',
   scheduleCron: 'Cron pattern',
+  scheduleLastRun: 'Click to display last run details',
   scheduleName: 'Name',
   scheduleTimezone: 'Timezone',
   scheduleExportRetention: 'Backup ret.',
