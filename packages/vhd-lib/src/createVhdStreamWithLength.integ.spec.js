@@ -5,7 +5,7 @@ import fs from 'fs-extra'
 import rimraf from 'rimraf'
 import getStream from 'get-stream'
 import tmp from 'tmp'
-import { createReadStream, createWriteStream } from 'fs-promise'
+import { createReadStream, createWriteStream } from 'fs'
 import { fromEvent, pFromCallback } from 'promise-toolbox'
 
 import { createVhdStreamWithLength } from '.'
@@ -26,11 +26,16 @@ async function convertFromRawToVhd(rawName, vhdName) {
 }
 
 async function createRandomFile(name, size) {
-  await execa('bash', ['-c', `head -c ${size} /dev/urandom  >${name}`])
+  await fromEvent(
+    createReadStream('/dev/urandom', { end: size - 1 }).pipe(
+      fs.createWriteStream(name)
+    ),
+    'finish'
+  )
 }
 
 test('createVhdStreamWithLength can extract length', async () => {
-  const initalSize = 40 * 1204 * 1024
+  const initalSize = 40 * 1024 * 1024
   const rawFileName = `${tempDir}/randomfile`
   const vhdName = `${tempDir}/randomfile.vhd`
   const outputVhdName = `${tempDir}/output.vhd`
@@ -48,7 +53,7 @@ test('createVhdStreamWithLength can extract length', async () => {
 })
 
 test('createVhdStreamWithLength can skip blank after last block and before footer', async () => {
-  const initalSize = 40 * 1204 * 1024
+  const initalSize = 40 * 1024 * 1024
   const rawFileName = `${tempDir}/randomfile`
   const vhdName = `${tempDir}/randomfile.vhd`
   const outputVhdName = `${tempDir}/output.vhd`

@@ -5,6 +5,7 @@ import fs from 'fs-extra'
 import getStream from 'get-stream'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
+import { createReadStream } from 'fs'
 import { fromEvent, pFromCallback } from 'promise-toolbox'
 import { getHandler } from '@xen-orchestra/fs'
 import { randomBytes } from 'crypto'
@@ -28,11 +29,13 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tmpDir, cb))
 })
 
-async function createRandomFile(name, sizeMb) {
-  await execa('bash', [
-    '-c',
-    `< /dev/urandom tr -dc "\\t\\n [:alnum:]" | head -c ${sizeMb}M >${name}`,
-  ])
+async function createRandomFile(name, size) {
+  await fromEvent(
+    createReadStream('/dev/urandom', { end: size * 1024 * 1024 - 1 }).pipe(
+      fs.createWriteStream(name)
+    ),
+    'finish'
+  )
 }
 
 async function checkFile(vhdName) {
