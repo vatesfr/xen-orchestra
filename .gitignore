@@ -31,3 +31,4 @@ pnpm-debug.log.*
 yarn-error.log
 yarn-error.log.*
 .env
+.idea/
