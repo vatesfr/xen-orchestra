@@ -271,7 +271,8 @@ export default class {
         throw new PoolAlreadyConnected()
       }
 
-      this._xapis[server.id] = xapisByPool[poolId] = xapi
+      xapisByPool[poolId] = server.id
+      this._xapis[server.id] = xapi
 
       xapi.xo = (() => {
         const conId = server.id
@@ -384,9 +385,9 @@ export default class {
 
     delete this._xapis[id]
 
-    const { pool } = xapi
-    if (pool != null) {
-      delete this._xapisByPool[pool.$id]
+    const xapisByPool = this._xapisByPool
+    for (const poolId in xapisByPool) {
+      xapisByPool[poolId] === id && delete xapisByPool[poolId]
     }
 
     xapi.xo.uninstall()
