@@ -34,8 +34,8 @@ If you boot a copy of your production VM, be careful: if they share the same sta
 
 A good way to avoid this kind of problem is to remove the network interface on the DR VM and check if the export is correctly done.
 
-## VM auto power on and HA disabled
+## HA disabled on replicated VMs
 
-VM auto power on and HA properties are disabled in the replicated VMs. A tag will be added if the VM source has one of these properties enabled.
+Replicated VMs HA is taken into account by XS/XCP-ng. To avoid the resultant troubles, the property will be removed from the replicated VMs and a tag indicating this change will be added.
 
-![](./assets/dr-ha-autopoweron-tags.png)
+![](./assets/disabled-dr-ha-tag.png)

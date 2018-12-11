@@ -1136,7 +1136,6 @@ export default class BackupNg {
 
       const jsonMetadata = JSON.stringify(metadata)
 
-      const disableAutoPowerOn = vm.other_config.auto_poweron === 'true'
       const disableHighAvailability = vm.ha_restart_priority !== ''
 
       await waitAll(
@@ -1227,20 +1226,15 @@ export default class BackupNg {
                       parentId: taskId,
                       result: () => ({ size: xva.size }),
                     },
-                    xapi._importVm($cancelToken, fork, sr, async vm =>
-                      Promise.all([
-                        xapi._setObjectProperties(vm, {
-                          nameLabel: `${metadata.vm.name_label} - ${
-                            job.name
-                          } - (${safeDateFormat(metadata.timestamp)})`,
-                          haRestartPriority: disableHighAvailability
-                            ? ''
-                            : undefined,
-                        }),
-                        xapi._updateObjectMapProperty(vm, 'otherConfig', {
-                          autoPoweron: disableAutoPowerOn ? null : undefined,
-                        }),
-                      ])
+                    xapi._importVm($cancelToken, fork, sr, vm =>
+                      xapi._setObjectProperties(vm, {
+                        nameLabel: `${metadata.vm.name_label} - ${
+                          job.name
+                        } - (${safeDateFormat(metadata.timestamp)})`,
+                        haRestartPriority: disableHighAvailability
+                          ? ''
+                          : undefined,
+                      })
                     )
                   )
                 )
@@ -1249,8 +1243,6 @@ export default class BackupNg {
                   xapi.addTag(vm.$ref, 'Disaster Recovery'),
                   disableHighAvailability &&
                     xapi.addTag(vm.$ref, 'HA disabled'),
-                  disableAutoPowerOn &&
-                    xapi.addTag(vm.$ref, 'Auto power on disabled'),
                   xapi._updateObjectMapProperty(vm, 'blocked_operations', {
                     start:
                       'Start operation for this vm is blocked, clone it if you want to use it.',
