@@ -188,7 +188,7 @@ export default class Servers extends Component {
     })
   }
 
-  render () {
+  render() {
     const {
       props: {
         intl: { formatMessage },

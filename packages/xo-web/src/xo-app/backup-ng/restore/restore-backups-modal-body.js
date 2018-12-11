@@ -9,10 +9,10 @@ import { SelectSr } from 'select-objects'
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 
 export default class RestoreBackupsModalBody extends Component {
-  get value () {
+  get value() {
     return this.state
   }
-  render () {
+  render() {
     return (
       <div>
         <div className='mb-1'>
@@ -41,10 +41,10 @@ export default class RestoreBackupsModalBody extends Component {
 export class RestoreBackupsBulkModalBody extends Component {
   state = { latest: true }
 
-  get value () {
+  get value() {
     return this.state
   }
-  render () {
+  render() {
     const { datas } = this.props
     return (
       <div>

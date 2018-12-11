@@ -227,7 +227,7 @@ class JobsTable extends React.Component {
     this.context.router.push(path)
   }
 
-  render () {
+  render() {
     return (
       <SortedTable
         {...JobsTable.tableProps}

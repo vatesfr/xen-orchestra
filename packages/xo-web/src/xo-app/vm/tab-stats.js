@@ -17,12 +17,12 @@ import {
 
 export default injectIntl(
   class VmStats extends Component {
-    constructor (props) {
+    constructor(props) {
       super(props)
       this.state.useCombinedValues = false
     }
 
-    loop (vm = this.props.vm) {
+    loop(vm = this.props.vm) {
       if (this.cancel) {
         this.cancel()
       }
@@ -56,15 +56,15 @@ export default injectIntl(
     }
     loop = ::this.loop
 
-    componentWillMount () {
+    componentWillMount() {
       this.loop()
     }
 
-    componentWillUnmount () {
+    componentWillUnmount() {
       clearTimeout(this.timeout)
     }
 
-    componentWillReceiveProps (props) {
+    componentWillReceiveProps(props) {
       const vmCur = this.props.vm
       const vmNext = props.vm
 
@@ -80,7 +80,7 @@ export default injectIntl(
       }
     }
 
-    handleSelectStats (event) {
+    handleSelectStats(event) {
       const granularity = event.target.value
       clearTimeout(this.timeout)
 
@@ -94,7 +94,7 @@ export default injectIntl(
     }
     handleSelectStats = ::this.handleSelectStats
 
-    render () {
+    render() {
       const { intl } = this.props
       const {
         granularity,

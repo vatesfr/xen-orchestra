@@ -3,7 +3,7 @@ import { forEach } from 'lodash'
 
 // ===================================================================
 
-export function clean () {
+export function clean() {
   return this.clean()
 }
 
@@ -11,7 +11,7 @@ clean.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function exportConfig () {
+export async function exportConfig() {
   return {
     $getFrom: await this.registerHttpRequest(
       (req, res) => {
@@ -31,7 +31,7 @@ exportConfig.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-function handleGetAllObjects (req, res, { filter, limit }) {
+function handleGetAllObjects(req, res, { filter, limit }) {
   forEach(this.getObjects({ filter, limit }), object => {
     res.write(JSON.stringify(object))
     res.write('\n')
@@ -39,7 +39,7 @@ function handleGetAllObjects (req, res, { filter, limit }) {
   res.end()
 }
 
-export function getAllObjects ({ filter, limit, ndjson = false }) {
+export function getAllObjects({ filter, limit, ndjson = false }) {
   return ndjson
     ? this.registerHttpRequest(handleGetAllObjects, { filter, limit }).then(
         $getFrom => ({ $getFrom })
@@ -57,7 +57,7 @@ getAllObjects.params = {
 
 // -------------------------------------------------------------------
 
-export async function importConfig () {
+export async function importConfig() {
   return {
     $sendTo: await this.registerHttpRequest(async (req, res) => {
       await this.importConfig(JSON.parse(await getStream.buffer(req)))

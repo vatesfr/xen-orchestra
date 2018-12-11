@@ -42,7 +42,7 @@ export default class Tags extends Component {
     onDelete: PropTypes.func,
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this.setState({ editing: false })
   }
 
@@ -85,7 +85,7 @@ export default class Tags extends Component {
     event.preventDefault()
   }
 
-  render () {
+  render() {
     const { labels, onAdd, onChange, onClick, onDelete } = this.props
 
     const deleteTag = (onDelete || onChange) && this._deleteTag

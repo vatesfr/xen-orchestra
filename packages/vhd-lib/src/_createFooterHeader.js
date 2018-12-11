@@ -14,7 +14,7 @@ import {
   PLATFORM_WI2K,
 } from './_constants'
 
-export function createFooter (
+export function createFooter(
   size,
   timestamp,
   geometry,
@@ -39,7 +39,7 @@ export function createFooter (
   return footer
 }
 
-export function createHeader (
+export function createHeader(
   maxTableEntries,
   tableOffset = HEADER_SIZE + FOOTER_SIZE,
   blockSize = VHD_BLOCK_SIZE_BYTES

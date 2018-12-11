@@ -23,7 +23,7 @@ const numberOrDefault = (value, def) => (value >= 0 ? value : def)
 // Averages.
 // ===================================================================
 
-function computeAverage (values, nPoints) {
+function computeAverage(values, nPoints) {
   if (values === undefined) {
     return
   }
@@ -47,7 +47,7 @@ function computeAverage (values, nPoints) {
   return sum / tot
 }
 
-function computeRessourcesAverage (objects, objectsStats, nPoints) {
+function computeRessourcesAverage(objects, objectsStats, nPoints) {
   const averages = {}
 
   for (const object of objects) {
@@ -67,7 +67,7 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
   return averages
 }
 
-function computeRessourcesAverageWithWeight (averages1, averages2, ratio) {
+function computeRessourcesAverageWithWeight(averages1, averages2, ratio) {
   const averages = {}
 
   for (const id in averages1) {
@@ -87,7 +87,7 @@ function computeRessourcesAverageWithWeight (averages1, averages2, ratio) {
   return averages
 }
 
-function setRealCpuAverageOfVms (vms, vmsAverages, nCpus) {
+function setRealCpuAverageOfVms(vms, vmsAverages, nCpus) {
   for (const vm of vms) {
     const averages = vmsAverages[vm.id]
     averages.cpu *= averages.nCpus / nCpus
@@ -97,7 +97,7 @@ function setRealCpuAverageOfVms (vms, vmsAverages, nCpus) {
 // ===================================================================
 
 export default class Plan {
-  constructor (xo, name, poolIds, { excludedHosts, thresholds } = {}) {
+  constructor(xo, name, poolIds, { excludedHosts, thresholds } = {}) {
     this.xo = xo
     this._name = name
     this._poolIds = poolIds
@@ -132,7 +132,7 @@ export default class Plan {
     }
   }
 
-  execute () {
+  execute() {
     throw new Error('Not implemented')
   }
 
@@ -140,7 +140,7 @@ export default class Plan {
   // Get hosts to optimize.
   // ===================================================================
 
-  async _findHostsToOptimize () {
+  async _findHostsToOptimize() {
     const hosts = this._getHosts()
     const hostsStats = await this._getHostsStats(hosts, 'minutes')
 
@@ -181,7 +181,7 @@ export default class Plan {
     }
   }
 
-  _checkRessourcesThresholds () {
+  _checkRessourcesThresholds() {
     throw new Error('Not implemented')
   }
 
@@ -189,7 +189,7 @@ export default class Plan {
   // Get objects.
   // ===================================================================
 
-  _getPlanPools () {
+  _getPlanPools() {
     const pools = {}
 
     try {
@@ -204,7 +204,7 @@ export default class Plan {
   }
 
   // Compute hosts for each pool. They can change over time.
-  _getHosts ({ powerState = 'Running' } = {}) {
+  _getHosts({ powerState = 'Running' } = {}) {
     return filter(
       this.xo.getObjects(),
       object =>
@@ -215,7 +215,7 @@ export default class Plan {
     )
   }
 
-  async _getVms (hostId) {
+  async _getVms(hostId) {
     return filter(
       this.xo.getObjects(),
       object =>
@@ -229,7 +229,7 @@ export default class Plan {
   // Get stats.
   // ===================================================================
 
-  async _getHostsStats (hosts, granularity) {
+  async _getHostsStats(hosts, granularity) {
     const hostsStats = {}
 
     await Promise.all(
@@ -247,7 +247,7 @@ export default class Plan {
     return hostsStats
   }
 
-  async _getVmsStats (vms, granularity) {
+  async _getVmsStats(vms, granularity) {
     const vmsStats = {}
 
     await Promise.all(
@@ -265,7 +265,7 @@ export default class Plan {
     return vmsStats
   }
 
-  async _getVmsAverages (vms, host) {
+  async _getVmsAverages(vms, host) {
     const vmsStats = await this._getVmsStats(vms, 'minutes')
     const vmsAverages = computeRessourcesAverageWithWeight(
       computeRessourcesAverage(vms, vmsStats, EXECUTION_DELAY),

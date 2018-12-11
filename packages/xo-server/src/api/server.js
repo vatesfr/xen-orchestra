@@ -1,6 +1,6 @@
 import { ignoreErrors } from 'promise-toolbox'
 
-export async function add ({ autoConnect = true, ...props }) {
+export async function add({ autoConnect = true, ...props }) {
   const server = await this.registerXenServer(props)
 
   if (autoConnect) {
@@ -40,7 +40,7 @@ add.params = {
 
 // -------------------------------------------------------------------
 
-export async function remove ({ id }) {
+export async function remove({ id }) {
   await this.unregisterXenServer(id)
 }
 
@@ -58,7 +58,7 @@ remove.params = {
 
 // TODO: remove this function when users are integrated to the main
 // collection.
-export function getAll () {
+export function getAll() {
   return this.getAllXenServers()
 }
 
@@ -68,7 +68,7 @@ getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function set ({ id, ...props }) {
+export async function set({ id, ...props }) {
   await this.updateXenServer(id, props)
 }
 
@@ -104,7 +104,7 @@ set.params = {
 
 // -------------------------------------------------------------------
 
-export async function connect ({ id }) {
+export async function connect({ id }) {
   this.updateXenServer(id, { enabled: true })::ignoreErrors()
   await this.connectXenServer(id)
 }
@@ -121,7 +121,7 @@ connect.params = {
 
 // -------------------------------------------------------------------
 
-export async function disconnect ({ id }) {
+export async function disconnect({ id }) {
   this.updateXenServer(id, { enabled: false })::ignoreErrors()
   await this.disconnectXenServer(id)
 }

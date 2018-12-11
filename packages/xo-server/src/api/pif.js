@@ -2,18 +2,18 @@
 
 import { IPV4_CONFIG_MODES, IPV6_CONFIG_MODES } from '../xapi'
 
-export function getIpv4ConfigurationModes () {
+export function getIpv4ConfigurationModes() {
   return IPV4_CONFIG_MODES
 }
 
-export function getIpv6ConfigurationModes () {
+export function getIpv6ConfigurationModes() {
   return IPV6_CONFIG_MODES
 }
 
 // ===================================================================
 // Delete
 
-async function delete_ ({ pif }) {
+async function delete_({ pif }) {
   // TODO: check if PIF is attached before
   await this.getXapi(pif).call('PIF.destroy', pif._xapiRef)
 }
@@ -30,7 +30,7 @@ delete_.resolve = {
 // ===================================================================
 // Disconnect
 
-export async function disconnect ({ pif }) {
+export async function disconnect({ pif }) {
   // TODO: check if PIF is attached before
   await this.getXapi(pif).call('PIF.unplug', pif._xapiRef)
 }
@@ -45,7 +45,7 @@ disconnect.resolve = {
 // ===================================================================
 // Connect
 
-export async function connect ({ pif }) {
+export async function connect({ pif }) {
   // TODO: check if PIF is attached before
   await this.getXapi(pif).call('PIF.plug', pif._xapiRef)
 }
@@ -60,7 +60,7 @@ connect.resolve = {
 // ===================================================================
 // Reconfigure IP
 
-export async function reconfigureIp ({
+export async function reconfigureIp({
   pif,
   mode = 'DHCP',
   ip = '',
@@ -94,7 +94,7 @@ reconfigureIp.resolve = {
 
 // ===================================================================
 
-export async function editPif ({ pif, vlan }) {
+export async function editPif({ pif, vlan }) {
   await this.getXapi(pif).editPif(pif._xapiId, { vlan })
 }
 

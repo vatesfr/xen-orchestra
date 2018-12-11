@@ -131,29 +131,29 @@ const addWarnings = (text, warnings, nbIndent = 0) => {
 }
 
 class BackupReportsXoPlugin {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
     this._report = this._wrapper.bind(this)
   }
 
-  configure ({ toMails, toXmpp }) {
+  configure({ toMails, toXmpp }) {
     this._mailsReceivers = toMails
     this._xmppReceivers = toXmpp
   }
 
-  load () {
+  load() {
     this._xo.on('job:terminated', this._report)
   }
 
-  test ({ runId }) {
+  test({ runId }) {
     return this._backupNgListener(undefined, undefined, undefined, runId)
   }
 
-  unload () {
+  unload() {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  _wrapper (status, job, schedule, runJobId) {
+  _wrapper(status, job, schedule, runJobId) {
     return new Promise(resolve =>
       resolve(
         job.type === 'backup'
@@ -163,7 +163,7 @@ class BackupReportsXoPlugin {
     ).catch(logError)
   }
 
-  async _backupNgListener (_1, _2, schedule, runJobId) {
+  async _backupNgListener(_1, _2, schedule, runJobId) {
     const xo = this._xo
     const log = await xo.getBackupNgLogs(runJobId)
     if (log === undefined) {
@@ -480,7 +480,7 @@ class BackupReportsXoPlugin {
     })
   }
 
-  _sendReport ({ markdown, subject, nagiosStatus, nagiosMarkdown }) {
+  _sendReport({ markdown, subject, nagiosStatus, nagiosMarkdown }) {
     const xo = this._xo
     return Promise.all([
       xo.sendEmail !== undefined &&
@@ -506,7 +506,7 @@ class BackupReportsXoPlugin {
     ])
   }
 
-  _listener (status) {
+  _listener(status) {
     const { calls, timezone, error } = status
     const formatDate = createDateFormater(timezone)
 

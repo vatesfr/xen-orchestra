@@ -22,7 +22,7 @@ const UsageTooltip = connectStore(() => ({
 ))
 
 export default class TabGeneral extends Component {
-  componentDidMount () {
+  componentDidMount() {
     const { sr } = this.props
 
     if (sr.SR_type === 'xosan') {
@@ -32,7 +32,7 @@ export default class TabGeneral extends Component {
     }
   }
 
-  render () {
+  render() {
     const { sr, vdis, vdiSnapshots, unmanagedVdis } = this.props
 
     return (

@@ -33,17 +33,17 @@ const isRawString = string => {
 // -------------------------------------------------------------------
 
 class Node {
-  createPredicate () {
+  createPredicate() {
     return value => this.match(value)
   }
 }
 
 export class Null extends Node {
-  match () {
+  match() {
     return true
   }
 
-  toString () {
+  toString() {
     return ''
   }
 }
@@ -51,7 +51,7 @@ export class Null extends Node {
 const formatTerms = terms => terms.map(term => term.toString(true)).join(' ')
 
 export class And extends Node {
-  constructor (children) {
+  constructor(children) {
     super()
 
     if (children.length === 1) {
@@ -60,29 +60,29 @@ export class And extends Node {
     this.children = children
   }
 
-  match (value) {
+  match(value) {
     return this.children.every(child => child.match(value))
   }
 
-  toString (isNested) {
+  toString(isNested) {
     const terms = formatTerms(this.children)
     return isNested ? `(${terms})` : terms
   }
 }
 
 export class Comparison extends Node {
-  constructor (operator, value) {
+  constructor(operator, value) {
     super()
     this._comparator = Comparison.comparators[operator]
     this._operator = operator
     this._value = value
   }
 
-  match (value) {
+  match(value) {
     return typeof value === 'number' && this._comparator(value, this._value)
   }
 
-  toString () {
+  toString() {
     return this._operator + String(this._value)
   }
 }
@@ -94,7 +94,7 @@ Comparison.comparators = {
 }
 
 export class Or extends Node {
-  constructor (children) {
+  constructor(children) {
     super()
 
     if (children.length === 1) {
@@ -103,33 +103,33 @@ export class Or extends Node {
     this.children = children
   }
 
-  match (value) {
+  match(value) {
     return this.children.some(child => child.match(value))
   }
 
-  toString () {
+  toString() {
     return `|(${formatTerms(this.children)})`
   }
 }
 
 export class Not extends Node {
-  constructor (child) {
+  constructor(child) {
     super()
 
     this.child = child
   }
 
-  match (value) {
+  match(value) {
     return !this.child.match(value)
   }
 
-  toString () {
+  toString() {
     return '!' + this.child.toString(true)
   }
 }
 
 export class NumberNode extends Node {
-  constructor (value) {
+  constructor(value) {
     super()
 
     this.value = value
@@ -140,21 +140,21 @@ export class NumberNode extends Node {
     })
   }
 
-  match (value) {
+  match(value) {
     return (
       value === this.value ||
       (value !== null && typeof value === 'object' && some(value, this.match))
     )
   }
 
-  toString () {
+  toString() {
     return String(this.value)
   }
 }
 export { NumberNode as Number }
 
 export class NumberOrStringNode extends Node {
-  constructor (value) {
+  constructor(value) {
     super()
 
     this.value = value
@@ -165,7 +165,7 @@ export class NumberOrStringNode extends Node {
     })
   }
 
-  match (lcValue, numValue, value) {
+  match(lcValue, numValue, value) {
     return (
       value === numValue ||
       (typeof value === 'string'
@@ -175,25 +175,25 @@ export class NumberOrStringNode extends Node {
     )
   }
 
-  toString () {
+  toString() {
     return this.value
   }
 }
 export { NumberOrStringNode as NumberOrString }
 
 export class Property extends Node {
-  constructor (name, child) {
+  constructor(name, child) {
     super()
 
     this.name = name
     this.child = child
   }
 
-  match (value) {
+  match(value) {
     return value != null && this.child.match(value[this.name])
   }
 
-  toString () {
+  toString() {
     return `${formatString(this.name)}:${this.child.toString(true)}`
   }
 }
@@ -207,7 +207,7 @@ const formatString = value =>
     : `"${value}"`
 
 export class GlobPattern extends Node {
-  constructor (value) {
+  constructor(value) {
     // fallback to string node if no wildcard
     if (value.indexOf('*') === -1) {
       return new StringNode(value)
@@ -232,7 +232,7 @@ export class GlobPattern extends Node {
     })
   }
 
-  match (re, value) {
+  match(re, value) {
     if (typeof value === 'string') {
       return re.test(value)
     }
@@ -244,13 +244,13 @@ export class GlobPattern extends Node {
     return false
   }
 
-  toString () {
+  toString() {
     return this.value
   }
 }
 
 export class RegExpNode extends Node {
-  constructor (pattern, flags) {
+  constructor(pattern, flags) {
     super()
 
     this.re = new RegExp(pattern, flags)
@@ -261,7 +261,7 @@ export class RegExpNode extends Node {
     })
   }
 
-  match (value) {
+  match(value) {
     if (typeof value === 'string') {
       return this.re.test(value)
     }
@@ -273,14 +273,14 @@ export class RegExpNode extends Node {
     return false
   }
 
-  toString () {
+  toString() {
     return this.re.toString()
   }
 }
 export { RegExpNode as RegExp }
 
 export class StringNode extends Node {
-  constructor (value) {
+  constructor(value) {
     super()
 
     this.value = value
@@ -291,7 +291,7 @@ export class StringNode extends Node {
     })
   }
 
-  match (lcValue, value) {
+  match(lcValue, value) {
     if (typeof value === 'string') {
       return value.toLowerCase().indexOf(lcValue) !== -1
     }
@@ -303,24 +303,24 @@ export class StringNode extends Node {
     return false
   }
 
-  toString () {
+  toString() {
     return formatString(this.value)
   }
 }
 export { StringNode as String }
 
 export class TruthyProperty extends Node {
-  constructor (name) {
+  constructor(name) {
     super()
 
     this.name = name
   }
 
-  match (value) {
+  match(value) {
     return value != null && !!value[this.name]
   }
 
-  toString () {
+  toString() {
     return formatString(this.name) + '?'
   }
 }
@@ -330,12 +330,12 @@ export class TruthyProperty extends Node {
 // https://gist.github.com/yelouafi/556e5159e869952335e01f6b473c4ec1
 
 class Failure {
-  constructor (pos, expected) {
+  constructor(pos, expected) {
     this.expected = expected
     this.pos = pos
   }
 
-  get value () {
+  get value() {
     throw new Error(
       `parse error: expected ${this.expected} at position ${this.pos}`
     )
@@ -343,7 +343,7 @@ class Failure {
 }
 
 class Success {
-  constructor (pos, value) {
+  constructor(pos, value) {
     this.pos = pos
     this.value = value
   }
@@ -352,7 +352,7 @@ class Success {
 // -------------------------------------------------------------------
 
 class P {
-  static alt (...parsers) {
+  static alt(...parsers) {
     const { length } = parsers
     return new P((input, pos, end) => {
       for (let i = 0; i < length; ++i) {
@@ -365,7 +365,7 @@ class P {
     })
   }
 
-  static grammar (rules) {
+  static grammar(rules) {
     const grammar = {}
     Object.keys(rules).forEach(k => {
       const rule = rules[k]
@@ -374,14 +374,14 @@ class P {
     return grammar
   }
 
-  static lazy (parserCreator, arg) {
+  static lazy(parserCreator, arg) {
     const parser = new P((input, pos, end) =>
       (parser._parse = parserCreator(arg)._parse)(input, pos, end)
     )
     return parser
   }
 
-  static regex (regex) {
+  static regex(regex) {
     regex = new RegExp(regex.source, 'y')
     return new P((input, pos) => {
       regex.lastIndex = pos
@@ -392,7 +392,7 @@ class P {
     })
   }
 
-  static seq (...parsers) {
+  static seq(...parsers) {
     const { length } = parsers
     return new P((input, pos, end) => {
       const values = new Array(length)
@@ -408,7 +408,7 @@ class P {
     })
   }
 
-  static text (text) {
+  static text(text) {
     const { length } = text
     return new P((input, pos) =>
       input.startsWith(text, pos)
@@ -417,11 +417,11 @@ class P {
     )
   }
 
-  constructor (parse) {
+  constructor(parse) {
     this._parse = parse
   }
 
-  map (fn) {
+  map(fn) {
     return new P((input, pos, end) => {
       const result = this._parse(input, pos, end)
       if (result instanceof Success) {
@@ -431,11 +431,11 @@ class P {
     })
   }
 
-  parse (input, pos = 0, end = input.length) {
+  parse(input, pos = 0, end = input.length) {
     return this._parse(input, pos, end).value
   }
 
-  repeat (min = 0, max = Infinity) {
+  repeat(min = 0, max = Infinity) {
     return new P((input, pos, end) => {
       const value = []
       let result
@@ -461,7 +461,7 @@ class P {
     })
   }
 
-  skip (otherParser) {
+  skip(otherParser) {
     return new P((input, pos, end) => {
       const result = this._parse(input, pos, end)
       if (result instanceof Failure) {

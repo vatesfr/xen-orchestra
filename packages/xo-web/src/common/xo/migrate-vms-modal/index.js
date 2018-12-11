@@ -41,11 +41,21 @@ const LINE_STYLE = { paddingBottom: '1em' }
     const getVms = createGetObjectsOfType('VM').pick((_, props) => props.vms)
 
     const getVbdsByVm = createGetObjectsOfType('VBD')
-      .pick(createSelector(getVms, vms => flatten(map(vms, vm => vm.$VBDs))))
+      .pick(
+        createSelector(
+          getVms,
+          vms => flatten(map(vms, vm => vm.$VBDs))
+        )
+      )
       .groupBy('VM')
 
     const getVifsByVM = createGetObjectsOfType('VIF')
-      .pick(createSelector(getVms, vms => flatten(map(vms, vm => vm.VIFs))))
+      .pick(
+        createSelector(
+          getVms,
+          vms => flatten(map(vms, vm => vm.VIFs))
+        )
+      )
       .groupBy('$VM')
 
     return {
@@ -60,7 +70,7 @@ const LINE_STYLE = { paddingBottom: '1em' }
   { withRef: true }
 )
 export default class MigrateVmsModalBody extends BaseComponent {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this._getHostPredicate = createSelector(
@@ -111,11 +121,11 @@ export default class MigrateVmsModalBody extends BaseComponent {
     )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._selectHost(this.props.host)
   }
 
-  get value () {
+  get value() {
     const { host } = this.state
     const vms = filter(this.props.vms, vm => vm.$container !== host.id)
     if (!host || isEmpty(vms)) {
@@ -189,7 +199,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     }
   }
 
-  _getObject (id) {
+  _getObject(id) {
     return getObject(store.getState(), id)
   }
 
@@ -247,7 +257,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
   _toggleSmartVifMapping = () =>
     this.setState({ smartVifMapping: !this.state.smartVifMapping })
 
-  render () {
+  render() {
     const {
       defaultSrConnectedToHost,
       defaultSrId,

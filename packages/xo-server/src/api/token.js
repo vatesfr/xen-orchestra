@@ -1,6 +1,6 @@
 // TODO: Prevent token connections from creating tokens.
 // TODO: Token permission.
-export async function create ({ expiresIn }) {
+export async function create({ expiresIn }) {
   return (await this.createAuthenticationToken({
     expiresIn,
     userId: this.session.get('user_id'),
@@ -21,7 +21,7 @@ create.permission = '' // sign in
 // -------------------------------------------------------------------
 
 // TODO: an user should be able to delete its own tokens.
-async function delete_ ({ token: id }) {
+async function delete_({ token: id }) {
   await this.deleteAuthenticationToken(id)
 }
 

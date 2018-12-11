@@ -30,7 +30,7 @@ class PoolMaster extends Component {
 
   _onChange = host => setPoolMaster(host)
 
-  render () {
+  render() {
     const { pool, master } = this.props
 
     return (
@@ -61,7 +61,7 @@ export default class TabAdvanced extends Component {
       () => this.setState({ editRemoteSyslog: false, syslogDestination: '' })
     )
 
-  render () {
+  render() {
     const { hosts, gpuGroups, pool } = this.props
     const { state } = this
     const { editRemoteSyslog } = state

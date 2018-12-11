@@ -270,8 +270,9 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     }
   )
 
-  const getPoolPredicate = createSelector(getXosanSrs, srs => pool =>
-    every(srs, sr => sr.$pool !== pool.id)
+  const getPoolPredicate = createSelector(
+    getXosanSrs,
+    srs => pool => every(srs, sr => sr.$pool !== pool.id)
   )
 
   return {
@@ -289,20 +290,20 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   plugins: subscribePlugins,
 })
 export default class Xosan extends Component {
-  componentDidMount () {
+  componentDidMount() {
     this._updateLicenses().then(() =>
       this._subscribeVolumeInfo(this.props.xosanSrs)
     )
   }
 
-  componentWillReceiveProps ({ pools, xosanSrs }) {
+  componentWillReceiveProps({ pools, xosanSrs }) {
     if (xosanSrs !== this.props.xosanSrs) {
       this.unsubscribeVolumeInfo && this.unsubscribeVolumeInfo()
       this._subscribeVolumeInfo(xosanSrs)
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     if (this.unsubscribeVolumeInfo != null) this.unsubscribeVolumeInfo()
   }
 
@@ -401,7 +402,7 @@ export default class Xosan extends Component {
     this.setState({ showNewXosanForm: true })
   }
 
-  render () {
+  render() {
     const {
       hostsNeedRestartByPool,
       isAdmin,

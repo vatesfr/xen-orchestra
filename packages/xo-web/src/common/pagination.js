@@ -37,13 +37,13 @@ export default class Pagination extends React.PureComponent {
     value: PropTypes.number.isRequired,
   }
 
-  _onClick (event) {
+  _onClick(event) {
     event.preventDefault()
     this.props.onChange(+event.currentTarget.dataset.value)
   }
   _onClick = this._onClick.bind(this)
 
-  render () {
+  render() {
     const {
       ariaLabel,
       ellipsis,

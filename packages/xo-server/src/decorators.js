@@ -10,7 +10,7 @@ export const debounce = duration => (target, name, descriptor) => {
   // current object.
   const s = Symbol(`debounced ${name} data`)
 
-  function debounced () {
+  function debounced() {
     const data =
       this[s] ||
       (this[s] = {

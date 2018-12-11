@@ -19,36 +19,36 @@ const configFile = configPath + '/config.json'
 
 // ===================================================================
 
-const load = (exports.load = function () {
+const load = (exports.load = function() {
   return readFile(configFile)
     .then(JSON.parse)
-    .catch(function () {
+    .catch(function() {
       return {}
     })
 })
 
-exports.get = function (path) {
-  return load().then(function (config) {
+exports.get = function(path) {
+  return load().then(function(config) {
     return l33t(config).tap(path)
   })
 }
 
-const save = (exports.save = function (config) {
-  return mkdirp(configPath).then(function () {
+const save = (exports.save = function(config) {
+  return mkdirp(configPath).then(function() {
     return writeFile(configFile, JSON.stringify(config))
   })
 })
 
-exports.set = function (data) {
-  return load().then(function (config) {
+exports.set = function(data) {
+  return load().then(function(config) {
     return save(assign(config, data))
   })
 }
 
-exports.unset = function (paths) {
-  return load().then(function (config) {
+exports.unset = function(paths) {
+  return load().then(function(config) {
     const l33tConfig = l33t(config)
-    ;[].concat(paths).forEach(function (path) {
+    ;[].concat(paths).forEach(function(path) {
       l33tConfig.purge(path, true)
     })
     return save(config)

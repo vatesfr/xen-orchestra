@@ -47,11 +47,17 @@ import TabXosan from './tab-xosan'
   )
 
   const getPbds = createGetObjectsOfType('PBD').pick(
-    createSelector(getSr, sr => sr.$PBDs)
+    createSelector(
+      getSr,
+      sr => sr.$PBDs
+    )
   )
 
   const getSrHosts = createGetObjectsOfType('host').pick(
-    createSelector(getPbds, pbds => map(pbds, pbd => pbd.host))
+    createSelector(
+      getPbds,
+      pbds => map(pbds, pbd => pbd.host)
+    )
   )
 
   // -----------------------------------------------------------------
@@ -69,7 +75,12 @@ import TabXosan from './tab-xosan'
     .pick(getVdiIds)
     .sort()
   const getUnmanagedVdis = createGetObjectsOfType('VDI-unmanaged')
-    .pick(createSelector(getSr, sr => sr.VDIs))
+    .pick(
+      createSelector(
+        getSr,
+        sr => sr.VDIs
+      )
+    )
     .sort()
 
   // -----------------------------------------------------------------
@@ -97,13 +108,13 @@ export default class Sr extends Component {
     router: PropTypes.object,
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (this.props.sr && !props.sr) {
       this.context.router.push('/')
     }
   }
 
-  header () {
+  header() {
     const { sr, container } = this.props
     if (!sr) {
       return <Icon icon='loading' />
@@ -168,7 +179,7 @@ export default class Sr extends Component {
     )
   }
 
-  render () {
+  render() {
     const { container, sr } = this.props
     if (!sr) {
       return <h1>{_('statusLoading')}</h1>

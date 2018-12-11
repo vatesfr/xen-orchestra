@@ -107,7 +107,7 @@ const ACTIONS = [
   }
 })
 export default class Health extends Component {
-  render () {
+  render() {
     return (
       <Container>
         <Row className='lone-snapshots'>

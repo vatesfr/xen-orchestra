@@ -1,6 +1,6 @@
 import { SECTOR_SIZE } from './_constants'
 
-export default function computeGeometryForSize (size) {
+export default function computeGeometryForSize(size) {
   const totalSectors = Math.min(Math.ceil(size / 512), 65535 * 16 * 255)
   let sectorsPerTrackCylinder
   let heads

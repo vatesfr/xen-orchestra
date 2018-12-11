@@ -24,7 +24,7 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tmpDir, cb))
 })
 
-function createFileAccessor (file) {
+function createFileAccessor(file) {
   return async (start, end) => {
     if (start < 0 || end < 0) {
       const fileLength = (await stat(file)).size

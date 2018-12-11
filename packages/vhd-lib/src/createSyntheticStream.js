@@ -15,7 +15,7 @@ import { test as mapTestBit } from './_bitmap'
 const resolveRelativeFromFile = (file, path) =>
   resolve('/', dirname(file), path).slice(1)
 
-export default async function createSyntheticStream (handler, path) {
+export default async function createSyntheticStream(handler, path) {
   const fds = []
   const cleanup = () => {
     for (let i = 0, n = fds.length; i < n; ++i) {
@@ -85,7 +85,7 @@ export default async function createSyntheticStream (handler, path) {
     }
     const fileSize = blockOffset * SECTOR_SIZE + FOOTER_SIZE
 
-    const iterator = function * () {
+    const iterator = function*() {
       try {
         footer = fuFooter.pack(footer)
         checksumStruct(footer, fuFooter)
@@ -108,14 +108,14 @@ export default async function createSyntheticStream (handler, path) {
           yield bitmap
 
           const blocksByVhd = new Map()
-          const emitBlockSectors = function * (iVhd, i, n) {
+          const emitBlockSectors = function*(iVhd, i, n) {
             const vhd = vhds[iVhd]
             const isRootVhd = vhd === rootVhd
             if (!vhd.containsBlock(iBlock)) {
               if (isRootVhd) {
                 yield Buffer.alloc((n - i) * SECTOR_SIZE)
               } else {
-                yield * emitBlockSectors(iVhd + 1, i, n)
+                yield* emitBlockSectors(iVhd + 1, i, n)
               }
               return
             }
@@ -138,11 +138,11 @@ export default async function createSyntheticStream (handler, path) {
               if (hasData) {
                 yield data.slice(start * SECTOR_SIZE, i * SECTOR_SIZE)
               } else {
-                yield * emitBlockSectors(iVhd + 1, start, i)
+                yield* emitBlockSectors(iVhd + 1, start, i)
               }
             }
           }
-          yield * emitBlockSectors(owner, 0, sectorsPerBlockData)
+          yield* emitBlockSectors(owner, 0, sectorsPerBlockData)
         }
         yield footer
       } finally {

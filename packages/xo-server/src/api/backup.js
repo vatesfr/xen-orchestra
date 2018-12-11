@@ -8,7 +8,7 @@ const log = createLogger('xo:backup')
 
 // ===================================================================
 
-export function list ({ remote }) {
+export function list({ remote }) {
   return this.listVmBackups(remote)
 }
 
@@ -19,7 +19,7 @@ list.params = {
 
 // -------------------------------------------------------------------
 
-export function scanDisk ({ remote, disk }) {
+export function scanDisk({ remote, disk }) {
   return this.scanDiskBackup(remote, disk)
 }
 
@@ -31,7 +31,7 @@ scanDisk.params = {
 
 // -------------------------------------------------------------------
 
-export function scanFiles ({ remote, disk, partition, path }) {
+export function scanFiles({ remote, disk, partition, path }) {
   return this.scanFilesInDiskBackup(remote, disk, partition, path)
 }
 
@@ -45,7 +45,7 @@ scanFiles.params = {
 
 // -------------------------------------------------------------------
 
-function handleFetchFiles (
+function handleFetchFiles(
   req,
   res,
   { remote, disk, partition, paths, format: archiveFormat }
@@ -83,7 +83,7 @@ function handleFetchFiles (
     })
 }
 
-export async function fetchFiles ({ format = 'zip', ...params }) {
+export async function fetchFiles({ format = 'zip', ...params }) {
   const fileName =
     params.paths.length > 1
       ? `restore_${new Date().toJSON()}.${format}`

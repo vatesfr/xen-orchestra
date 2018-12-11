@@ -29,16 +29,16 @@ export const configurationSchema = {
 // ===================================================================
 
 class AuthGoogleXoPlugin {
-  constructor ({ xo }) {
+  constructor({ xo }) {
     this._conf = null
     this._xo = xo
   }
 
-  configure (conf) {
+  configure(conf) {
     this._conf = conf
   }
 
-  load () {
+  load() {
     const conf = this._conf
     const xo = this._xo
 

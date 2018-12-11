@@ -21,7 +21,7 @@ const get = (object, path, depth) => {
 }
 
 export default class BaseComponent extends PureComponent {
-  constructor (props, context) {
+  constructor(props, context) {
     super(props, context)
 
     // It really should have been done in React.Component!
@@ -39,7 +39,7 @@ export default class BaseComponent extends PureComponent {
   }
 
   // See https://preactjs.com/guide/linked-state
-  linkState (name, targetPath) {
+  linkState(name, targetPath) {
     const key = targetPath !== undefined ? `${name}##${targetPath}` : name
 
     let linkedState = this._linkedState
@@ -72,7 +72,7 @@ export default class BaseComponent extends PureComponent {
     })
   }
 
-  toggleState (name) {
+  toggleState(name) {
     let linkedState = this._linkedState
     let cb
     if (linkedState === null) {
@@ -111,7 +111,7 @@ if (VERBOSE) {
     }
   }
 
-  BaseComponent.prototype.componentDidUpdate = function (oldProps, oldState) {
+  BaseComponent.prototype.componentDidUpdate = function(oldProps, oldState) {
     const prefix = `${this.constructor.name} updated because of its`
     diff(`${prefix} props:`, oldProps, this.props)
     diff(`${prefix} state:`, oldState, this.state)

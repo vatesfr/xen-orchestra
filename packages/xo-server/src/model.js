@@ -5,7 +5,7 @@ import { forEach, isEmpty, isString } from './utils'
 // ===================================================================
 
 export default class Model extends EventEmitter {
-  constructor (properties) {
+  constructor(properties) {
     super()
 
     this.properties = { ...this.default }
@@ -16,18 +16,18 @@ export default class Model extends EventEmitter {
   }
 
   // Get a property.
-  get (name, def) {
+  get(name, def) {
     const value = this.properties[name]
     return value !== undefined ? value : def
   }
 
   // Check whether a property exists.
-  has (name) {
+  has(name) {
     return this.properties[name] !== undefined
   }
 
   // Set properties.
-  set (properties, value) {
+  set(properties, value) {
     // This method can also be used with two arguments to set a single
     // property.
     if (isString(properties)) {

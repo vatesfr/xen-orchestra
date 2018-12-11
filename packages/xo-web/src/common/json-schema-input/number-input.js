@@ -16,7 +16,7 @@ export default class NumberInput extends Component {
     this.props.onChange(value ? +value : undefined)
   }
 
-  render () {
+  render() {
     const { required, schema } = this.props
     const {
       disabled,

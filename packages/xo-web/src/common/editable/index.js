@@ -43,7 +43,7 @@ class Hover extends Component {
     alt: PropTypes.node.isRequired,
   }
 
-  constructor () {
+  constructor() {
     super()
 
     this.state = {
@@ -54,7 +54,7 @@ class Hover extends Component {
     this._onMouseLeave = () => this.setState({ hover: false })
   }
 
-  render () {
+  render() {
     if (this.state.hover) {
       return <span onMouseLeave={this._onMouseLeave}>{this.props.alt}</span>
     }
@@ -73,7 +73,7 @@ class Editable extends Component {
     value: PropTypes.any.isRequired,
   }
 
-  get value () {
+  get value() {
     throw new Error('not implemented')
   }
 
@@ -113,11 +113,11 @@ class Editable extends Component {
     )
   }
 
-  _save () {
+  _save() {
     return this.__save(() => this.value, this.props.onChange)
   }
 
-  async __save (getValue, saveValue) {
+  async __save(getValue, saveValue) {
     const { props } = this
 
     try {
@@ -159,7 +159,7 @@ class Editable extends Component {
   }
   __stopTimer = () => clearTimeout(this._timeout)
 
-  render () {
+  render() {
     const { state, props } = this
 
     if (!state.editing) {
@@ -232,7 +232,7 @@ export class Text extends Editable {
     value: PropTypes.string.isRequired,
   }
 
-  get value () {
+  get value() {
     const { input } = this.refs
 
     // FIXME: should be properly forwarded to the user.
@@ -248,7 +248,7 @@ export class Text extends Editable {
     target.style.width = `${target.value.length + 1}ex`
   }
 
-  _renderDisplay () {
+  _renderDisplay() {
     const { children, value } = this.props
 
     if (children || value) {
@@ -267,7 +267,7 @@ export class Text extends Editable {
     )
   }
 
-  _renderEdition () {
+  _renderEdition() {
     const { value } = this.props
     const { saving } = this.state
 
@@ -311,7 +311,7 @@ export class Number extends Component {
     value: PropTypes.number,
   }
 
-  get value () {
+  get value() {
     return +this.refs.input.value
   }
 
@@ -329,7 +329,7 @@ export class Number extends Component {
     this.props.onChange(value, params)
   }
 
-  render () {
+  render() {
     const { value } = this.props
     return (
       <Text
@@ -348,7 +348,7 @@ export class Select extends Editable {
     renderer: PropTypes.func,
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (
       props.value !== this.props.value ||
       props.options !== this.props.options
@@ -359,7 +359,7 @@ export class Select extends Editable {
     }
   }
 
-  get value () {
+  get value() {
     return this.props.options[this.state.valueKey]
   }
 
@@ -382,13 +382,13 @@ export class Select extends Editable {
     ref && ref.dispatchEvent(new window.MouseEvent('mousedown'))
   }
 
-  _renderDisplay () {
+  _renderDisplay() {
     const { children, renderer, value } = this.props
 
     return children || <span>{renderer ? renderer(value) : value}</span>
   }
 
-  _renderEdition () {
+  _renderEdition() {
     const { saving, valueKey } = this.state
     const { options } = this.props
 
@@ -429,11 +429,11 @@ export class XoSelect extends Editable {
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }
 
-  get value () {
+  get value() {
     return this.state.value
   }
 
-  _renderDisplay () {
+  _renderDisplay() {
     return (
       this.props.children || (
         <span>{this.props.value[this.props.labelProp]}</span>
@@ -443,7 +443,7 @@ export class XoSelect extends Editable {
 
   _onChange = object => this.setState({ value: object }, object && this._save)
 
-  _renderEdition () {
+  _renderEdition() {
     const { saving, xoType, ...props } = this.props
 
     const Select = MAP_TYPE_SELECT[xoType]
@@ -473,11 +473,11 @@ export class Size extends Editable {
     value: PropTypes.number.isRequired,
   }
 
-  get value () {
+  get value() {
     return this.refs.input.value
   }
 
-  _renderDisplay () {
+  _renderDisplay() {
     return this.props.children || formatSize(this.props.value)
   }
 
@@ -492,7 +492,7 @@ export class Size extends Editable {
     this._focused = true
   }
 
-  _renderEdition () {
+  _renderEdition() {
     const { saving } = this.state
     const { value } = this.props
 

@@ -6,7 +6,7 @@ import { debug } from './utils'
 // ===================================================================
 
 export default class DensityPlan extends Plan {
-  _checkRessourcesThresholds (objects, averages) {
+  _checkRessourcesThresholds(objects, averages) {
     const { low } = this._thresholds.memoryFree
     return filter(objects, object => {
       const { memory, memoryFree = memory } = averages[object.id]
@@ -14,7 +14,7 @@ export default class DensityPlan extends Plan {
     })
   }
 
-  async execute () {
+  async execute() {
     const results = await this._findHostsToOptimize()
 
     if (!results) {
@@ -89,7 +89,7 @@ export default class DensityPlan extends Plan {
     debug(`Density mode: ${optimizationsCount} optimizations.`)
   }
 
-  async _simulate ({ host, destinations, hostsAverages }) {
+  async _simulate({ host, destinations, hostsAverages }) {
     const { id: hostId } = host
 
     debug(`Try to optimize Host (${hostId}).`)
@@ -145,7 +145,7 @@ export default class DensityPlan extends Plan {
   }
 
   // Test if a VM migration on a destination (of a destinations set) is possible.
-  _testMigration ({ vm, destinations, hostsAverages, vmsAverages }) {
+  _testMigration({ vm, destinations, hostsAverages, vmsAverages }) {
     const {
       _thresholds: { critical: criticalThreshold },
     } = this
@@ -181,7 +181,7 @@ export default class DensityPlan extends Plan {
 
   // Migrate the VMs of one host.
   // Try to shutdown the VMs host.
-  async _migrate (hostId, moves) {
+  async _migrate(hostId, moves) {
     const xapiSrc = this.xo.getXapi(hostId)
 
     await Promise.all(

@@ -2,7 +2,7 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 
 import Vhd from './vhd'
 
-export default asyncIteratorToStream(async function * (handler, path) {
+export default asyncIteratorToStream(async function*(handler, path) {
   const fd = await handler.openFile(path, 'r')
   try {
     const vhd = new Vhd(handler, fd)

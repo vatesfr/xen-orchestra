@@ -113,7 +113,7 @@ const INDIVIDUAL_ACTIONS = [
     .sort(),
 }))
 export default class TabSnapshot extends Component {
-  render () {
+  render() {
     const { snapshots, vm } = this.props
     return (
       <Container>

@@ -12,7 +12,7 @@ export default class Dropzone extends Component {
     multiple: PropTypes.bool,
   }
 
-  render () {
+  render() {
     const { onDrop, message, multiple } = this.props
 
     return (

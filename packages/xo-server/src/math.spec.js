@@ -4,7 +4,7 @@ import { forEach } from 'lodash'
 import { thunkToArray } from './utils'
 import { crossProduct, mergeObjects } from './math'
 
-describe('mergeObjects', function () {
+describe('mergeObjects', function() {
   forEach(
     {
       'Two sets of one': [{ a: 1, b: 2 }, { a: 1 }, { b: 2 }],
@@ -26,7 +26,7 @@ describe('mergeObjects', function () {
     },
     ([resultSet, ...sets], name) => {
       describe(`with ${name}`, () => {
-        it('Assembles all given param sets in on set', function () {
+        it('Assembles all given param sets in on set', function() {
           expect(mergeObjects(sets)).toEqual(resultSet)
         })
       })
@@ -34,7 +34,7 @@ describe('mergeObjects', function () {
   )
 })
 
-describe('crossProduct', function () {
+describe('crossProduct', function() {
   // Gives the sum of all args
   const addTest = args => args.reduce((prev, curr) => prev + curr, 0)
   // Gives the product of all args
@@ -71,7 +71,7 @@ describe('crossProduct', function () {
     },
     ([product, items, cb], name) => {
       describe(`with ${name}`, () => {
-        it('Crosses sets of values with a crossProduct callback', function () {
+        it('Crosses sets of values with a crossProduct callback', function() {
           expect(thunkToArray(crossProduct(items, cb)).sort()).toEqual(
             product.sort()
           )

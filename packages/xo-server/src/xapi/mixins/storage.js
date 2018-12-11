@@ -6,51 +6,51 @@ import { mapToArray } from '../../utils'
 const log = createLogger('xo:storage')
 
 export default {
-  _connectAllSrPbds (sr) {
+  _connectAllSrPbds(sr) {
     return Promise.all(mapToArray(sr.$PBDs, pbd => this._plugPbd(pbd)))
   },
 
-  async connectAllSrPbds (id) {
+  async connectAllSrPbds(id) {
     await this._connectAllSrPbds(this.getObject(id))
   },
 
-  _disconnectAllSrPbds (sr) {
+  _disconnectAllSrPbds(sr) {
     return Promise.all(mapToArray(sr.$PBDs, pbd => this._unplugPbd(pbd)))
   },
 
-  async disconnectAllSrPbds (id) {
+  async disconnectAllSrPbds(id) {
     await this._disconnectAllSrPbds(this.getObject(id))
   },
 
-  async destroySr (id) {
+  async destroySr(id) {
     const sr = this.getObject(id)
     await this._disconnectAllSrPbds(sr)
     await this.call('SR.destroy', sr.$ref)
   },
 
-  async forgetSr (id) {
+  async forgetSr(id) {
     const sr = this.getObject(id)
     await this._disconnectAllSrPbds(sr)
     await this.call('SR.forget', sr.$ref)
   },
 
-  _plugPbd (pbd) {
+  _plugPbd(pbd) {
     return this.call('PBD.plug', pbd.$ref)
   },
 
-  async plugPbd (id) {
+  async plugPbd(id) {
     await this._plugPbd(this.getObject(id))
   },
 
-  _unplugPbd (pbd) {
+  _unplugPbd(pbd) {
     return this.call('PBD.unplug', pbd.$ref)
   },
 
-  async unplugPbd (id) {
+  async unplugPbd(id) {
     await this._unplugPbd(this.getObject(id))
   },
 
-  _getUnhealthyVdiChainLength (uuid, childrenMap, cache) {
+  _getUnhealthyVdiChainLength(uuid, childrenMap, cache) {
     let length = cache[uuid]
     if (length === undefined) {
       const children = childrenMap[uuid]
@@ -68,7 +68,7 @@ export default {
     return length
   },
 
-  getUnhealthyVdiChainsLength (sr) {
+  getUnhealthyVdiChainsLength(sr) {
     const vdis = this.getObject(sr).$VDIs
     const unhealthyVdis = { __proto__: null }
     const children = groupBy(vdis, 'sm_config.vhd-parent')

@@ -3,7 +3,7 @@
 // ===================================================================
 // Delete
 
-async function delete_ ({ PBD }) {
+async function delete_({ PBD }) {
   // TODO: check if PBD is attached before
   await this.getXapi(PBD).call('PBD.destroy', PBD._xapiRef)
 }
@@ -20,7 +20,7 @@ delete_.resolve = {
 // ===================================================================
 // Disconnect
 
-export async function disconnect ({ pbd }) {
+export async function disconnect({ pbd }) {
   return this.getXapi(pbd).unplugPbd(pbd._xapiId)
 }
 
@@ -35,7 +35,7 @@ disconnect.resolve = {
 // ===================================================================
 // Connect
 
-export async function connect ({ PBD }) {
+export async function connect({ PBD }) {
   // TODO: check if PBD is attached before
   await this.getXapi(PBD).call('PBD.plug', PBD._xapiRef)
 }

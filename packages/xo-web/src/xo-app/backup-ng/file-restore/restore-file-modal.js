@@ -80,7 +80,7 @@ export default class RestoreFileModalBody extends Component {
     selectedFiles: [],
   }
 
-  get value () {
+  get value() {
     const { disk, partition, selectedFiles, backup } = this.state
     const redundantFiles = this._getRedundantFiles()
 
@@ -271,7 +271,7 @@ export default class RestoreFileModalBody extends Component {
 
   // ---------------------------------------------------------------------------
 
-  render () {
+  render() {
     const { backups } = this.props
     const {
       backup,

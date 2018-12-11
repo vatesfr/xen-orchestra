@@ -157,7 +157,7 @@ class _ModalBody extends Component {
     targetSrs: {},
   }
 
-  get value () {
+  get value() {
     return this.state
   }
 
@@ -205,7 +205,7 @@ class _ModalBody extends Component {
     this.setState({ targetSrs })
   }
 
-  render () {
+  render() {
     const { props, state } = this
     const vdis = state.backup && state.backup.vdis
 
@@ -242,13 +242,13 @@ const ImportModalBody = injectIntl(_ModalBody, { withRef: true })
   rawRemotes: subscribeRemotes,
 })
 export default class Restore extends Component {
-  componentWillReceiveProps ({ rawRemotes }) {
+  componentWillReceiveProps({ rawRemotes }) {
     if (rawRemotes !== this.props.rawRemotes) {
       this._listAll(rawRemotes).catch(noop)
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { rawRemotes } = this.props
     if (rawRemotes !== undefined) {
       this._listAll(rawRemotes).catch(noop)
@@ -328,7 +328,7 @@ export default class Restore extends Component {
     this.setState({ backupInfoByVm })
   }
 
-  render () {
+  render() {
     const { backupInfoByVm } = this.state
     return !isEmpty(backupInfoByVm) ? (
       <div>

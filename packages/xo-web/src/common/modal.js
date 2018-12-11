@@ -82,7 +82,7 @@ class GenericModal extends Component {
     instance.close()
   }
 
-  render () {
+  render() {
     const { buttons, icon, title } = this.props
 
     const body = _addRef(this.props.children, 'body')
@@ -208,7 +208,7 @@ class StrongConfirm extends Component {
     }
   }
 
-  render () {
+  render() {
     const {
       body,
       strongConfirm: { messageId, values },
@@ -324,7 +324,7 @@ export const FormModal = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      initialize () {
+      initialize() {
         if (formModalState !== undefined) {
           throw new Error('FormModal is a singleton!')
         }
@@ -336,14 +336,14 @@ export const FormModal = decorate([
       onChange: (_, value) => () => ({
         value: getEventValue(value),
       }),
-      onCancel () {
+      onCancel() {
         const { state } = this
         if (!state.isHandlerRunning) {
           state.opened = false
           state.reject()
         }
       },
-      async onSubmit ({ close }) {
+      async onSubmit({ close }) {
         const { state } = this
         state.isHandlerRunning = true
 
@@ -411,24 +411,24 @@ export const FormModal = decorate([
 // -----------------------------------------------------------------------------
 
 export default class Modal extends Component {
-  constructor () {
+  constructor() {
     super()
 
     this.state = { showModal: false }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     if (instance) {
       throw new Error('Modal is a singleton!')
     }
     instance = this
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     instance = undefined
   }
 
-  close () {
+  close() {
     this.setState({ showModal: false }, enableShortcuts)
   }
 
@@ -439,7 +439,7 @@ export default class Modal extends Component {
     onClose && onClose()
   }
 
-  render () {
+  render() {
     const { content, showModal, props } = this.state
     return (
       <ReactModal show={showModal} onHide={this._onHide} {...props}>

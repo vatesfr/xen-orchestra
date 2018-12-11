@@ -9,7 +9,7 @@ describe('debounce()', () => {
 
   class Foo {
     @debounce(10)
-    foo () {
+    foo() {
       ++i
     }
   }

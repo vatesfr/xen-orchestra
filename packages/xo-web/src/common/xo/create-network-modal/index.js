@@ -16,7 +16,7 @@ class CreateNetworkModalBody extends Component {
     hostId => pif => pif.$host === hostId && pif.vlan === -1
   )
 
-  get value () {
+  get value() {
     const { refs } = this
     const { container } = this.props
     return {
@@ -29,7 +29,7 @@ class CreateNetworkModalBody extends Component {
     }
   }
 
-  render () {
+  render() {
     const { formatMessage } = this.props.intl
     return (
       <div>

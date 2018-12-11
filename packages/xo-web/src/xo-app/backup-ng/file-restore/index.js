@@ -98,7 +98,7 @@ export default class Restore extends Component {
     backupDataByVm: {},
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (
       props.remotes !== this.props.remotes ||
       props.jobs !== this.props.jobs
@@ -219,7 +219,7 @@ export default class Restore extends Component {
     },
   ]
 
-  render () {
+  render() {
     return (
       <Upgrade place='restoreBackup' available={4}>
         <div>

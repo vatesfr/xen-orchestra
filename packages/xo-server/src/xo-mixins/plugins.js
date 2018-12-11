@@ -11,7 +11,7 @@ import { isFunction, mapToArray } from '../utils'
 const log = createLogger('xo:xo-mixins:plugins')
 
 export default class {
-  constructor (xo) {
+  constructor(xo) {
     this._ajv = new Ajv({
       useDefaults: true,
     })
@@ -34,7 +34,7 @@ export default class {
     })
   }
 
-  _getRawPlugin (id) {
+  _getRawPlugin(id) {
     const plugin = this._plugins[id]
     if (!plugin) {
       throw noSuchObject(id, 'plugin')
@@ -42,12 +42,12 @@ export default class {
     return plugin
   }
 
-  async _getPluginMetadata (id) {
+  async _getPluginMetadata(id) {
     const metadata = await this._pluginsMetadata.first(id)
     return metadata?.properties
   }
 
-  async registerPlugin (
+  async registerPlugin(
     name,
     instance,
     configurationSchema,
@@ -97,7 +97,7 @@ export default class {
     }
   }
 
-  async _getPlugin (id) {
+  async _getPlugin(id) {
     const {
       configurationPresets,
       configurationSchema,
@@ -128,14 +128,14 @@ export default class {
     }
   }
 
-  async getPlugins () {
+  async getPlugins() {
     return /* await */ Promise.all(
       mapToArray(this._plugins, ({ id }) => this._getPlugin(id))
     )
   }
 
   // Validate the configuration and configure the plugin instance.
-  async _configurePlugin (plugin, configuration) {
+  async _configurePlugin(plugin, configuration) {
     const { configurationSchema } = plugin
 
     if (!configurationSchema) {
@@ -164,7 +164,7 @@ export default class {
 
   // Validate the configuration, configure the plugin instance and
   // save the new configuration.
-  async configurePlugin (id, configuration) {
+  async configurePlugin(id, configuration) {
     const plugin = this._getRawPlugin(id)
     const metadata = await this._getPluginMetadata()
 
@@ -181,19 +181,19 @@ export default class {
     await this._pluginsMetadata.merge(id, { configuration })
   }
 
-  async disablePluginAutoload (id) {
+  async disablePluginAutoload(id) {
     // TODO: handle case where autoload is already disabled.
 
     await this._pluginsMetadata.merge(id, { autoload: false })
   }
 
-  async enablePluginAutoload (id) {
+  async enablePluginAutoload(id) {
     // TODO: handle case where autoload is already enabled.
 
     await this._pluginsMetadata.merge(id, { autoload: true })
   }
 
-  async loadPlugin (id) {
+  async loadPlugin(id) {
     const plugin = this._getRawPlugin(id)
     if (plugin.loaded) {
       throw invalidParameters('plugin already loaded')
@@ -207,7 +207,7 @@ export default class {
     plugin.loaded = true
   }
 
-  async unloadPlugin (id) {
+  async unloadPlugin(id) {
     const plugin = this._getRawPlugin(id)
     if (!plugin.loaded) {
       throw invalidParameters('plugin already unloaded')
@@ -221,11 +221,11 @@ export default class {
     plugin.loaded = false
   }
 
-  async purgePluginConfiguration (id) {
+  async purgePluginConfiguration(id) {
     await this._pluginsMetadata.merge(id, { configuration: undefined })
   }
 
-  async testPlugin (id, data) {
+  async testPlugin(id, data) {
     const plugin = this._getRawPlugin(id)
     if (!plugin.testable) {
       throw invalidParameters('plugin not testable')

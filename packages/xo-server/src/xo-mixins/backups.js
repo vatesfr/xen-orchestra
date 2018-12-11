@@ -300,11 +300,11 @@ const mountLvmPv = (device, partition) => {
 // ===================================================================
 
 export default class {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
   }
 
-  async listRemoteBackups (remoteId) {
+  async listRemoteBackups(remoteId) {
     const handler = await this._xo.getRemoteHandler(remoteId)
 
     // List backups. (No delta)
@@ -330,7 +330,7 @@ export default class {
     return backups
   }
 
-  async listVmBackups (remoteId) {
+  async listVmBackups(remoteId) {
     const handler = await this._xo.getRemoteHandler(remoteId)
 
     const backups = []
@@ -363,7 +363,7 @@ export default class {
     return backups
   }
 
-  async importVmBackup (remoteId, file, sr) {
+  async importVmBackup(remoteId, file, sr) {
     const handler = await this._xo.getRemoteHandler(remoteId)
     const stream = await handler.createReadStream(file)
     const xapi = this._xo.getXapi(sr)
@@ -384,7 +384,7 @@ export default class {
   // -----------------------------------------------------------------
 
   @deferrable
-  async deltaCopyVm ($defer, srcVm, targetSr, force = false, retention = 1) {
+  async deltaCopyVm($defer, srcVm, targetSr, force = false, retention = 1) {
     const transferStart = Date.now()
     const srcXapi = this._xo.getXapi(srcVm)
     const targetXapi = this._xo.getXapi(targetSr)
@@ -478,7 +478,7 @@ export default class {
 
   // TODO: The other backup methods must use this function !
   // Prerequisite: The backups array must be ordered. (old to new backups)
-  async _removeOldBackups (backups, handler, dir, n) {
+  async _removeOldBackups(backups, handler, dir, n) {
     if (n <= 0) {
       return
     }
@@ -492,7 +492,7 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async _listVdiBackups (handler, dir) {
+  async _listVdiBackups(handler, dir) {
     let files
 
     try {
@@ -516,7 +516,7 @@ export default class {
   }
 
   // fix the parent UUID and filename in delta files after download from xapi or backup compression
-  async _chainDeltaVdiBackups ({ handler, dir }) {
+  async _chainDeltaVdiBackups({ handler, dir }) {
     const backups = await this._listVdiBackups(handler, dir)
     for (let i = 1; i < backups.length; i++) {
       const childPath = dir + '/' + backups[i]
@@ -524,7 +524,7 @@ export default class {
     }
   }
 
-  async _mergeDeltaVdiBackups ({ handler, dir, retention }) {
+  async _mergeDeltaVdiBackups({ handler, dir, retention }) {
     const backups = await this._listVdiBackups(handler, dir)
     const i = backups.length - retention
 
@@ -567,12 +567,12 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async _listDeltaVmBackups (handler, dir) {
+  async _listDeltaVmBackups(handler, dir) {
     const files = await handler.list(dir)
     return sortBy(filter(files, isDeltaBackup))
   }
 
-  async _saveDeltaVdiBackup (
+  async _saveDeltaVdiBackup(
     xapi,
     { vdiParent, isFull, handler, stream, dir, retention }
   ) {
@@ -625,7 +625,7 @@ export default class {
     }
   }
 
-  async _removeOldDeltaVmBackups (xapi, { handler, dir, retention }) {
+  async _removeOldDeltaVmBackups(xapi, { handler, dir, retention }) {
     const backups = await this._listDeltaVmBackups(handler, dir)
     const nOldBackups = backups.length - retention
 
@@ -638,7 +638,7 @@ export default class {
   }
 
   @deferrable
-  async rollingDeltaVmBackup ($defer, { vm, remoteId, tag, retention }) {
+  async rollingDeltaVmBackup($defer, { vm, remoteId, tag, retention }) {
     const transferStart = Date.now()
     const handler = await this._xo.getRemoteHandler(remoteId)
     const xapi = this._xo.getXapi(vm)
@@ -793,7 +793,7 @@ export default class {
     }
   }
 
-  async importDeltaVmBackup ({ sr, remoteId, filePath, mapVdisSrs = {} }) {
+  async importDeltaVmBackup({ sr, remoteId, filePath, mapVdisSrs = {} }) {
     filePath = `${filePath}${DELTA_BACKUP_EXT}`
     const { datetime } = parseVmBackupPath(filePath)
 
@@ -843,13 +843,13 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async backupVm ({ vm, remoteId, file, compress }) {
+  async backupVm({ vm, remoteId, file, compress }) {
     const handler = await this._xo.getRemoteHandler(remoteId)
     return this._backupVm(vm, handler, file, { compress })
   }
 
   @deferrable
-  async _backupVm ($defer, vm, handler, file, { compress }) {
+  async _backupVm($defer, vm, handler, file, { compress }) {
     const targetStream = await handler.createOutputStream(file)
     $defer.onFailure.call(handler, 'unlink', file)
     $defer.onFailure.call(targetStream, 'close')
@@ -869,7 +869,7 @@ export default class {
     }
   }
 
-  async rollingBackupVm ({ vm, remoteId, tag, retention, compress }) {
+  async rollingBackupVm({ vm, remoteId, tag, retention, compress }) {
     const transferStart = Date.now()
     const handler = await this._xo.getRemoteHandler(remoteId)
 
@@ -895,7 +895,7 @@ export default class {
     return data
   }
 
-  async rollingSnapshotVm (vm, tag, retention) {
+  async rollingSnapshotVm(vm, tag, retention) {
     const xapi = this._xo.getXapi(vm)
     vm = xapi.getObject(vm._xapiId)
 
@@ -927,7 +927,7 @@ export default class {
     await Promise.all(promises)
   }
 
-  _removeVms (xapi, vms) {
+  _removeVms(xapi, vms) {
     return Promise.all(
       mapToArray(vms, vm =>
         // Do not consider a failure to delete an old copy as a fatal error.
@@ -936,7 +936,7 @@ export default class {
     )
   }
 
-  async rollingDrCopyVm ({ vm, sr, tag, retention, deleteOldBackupsFirst }) {
+  async rollingDrCopyVm({ vm, sr, tag, retention, deleteOldBackupsFirst }) {
     const transferStart = Date.now()
     tag = 'DR_' + tag
     const reg = new RegExp(
@@ -993,7 +993,7 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  _mountVhd (remoteId, vhdPath) {
+  _mountVhd(remoteId, vhdPath) {
     return Promise.all([this._xo.getRemoteHandler(remoteId), tmpDir()]).then(
       ([handler, mountDir]) => {
         if (!handler._getRealPath) {
@@ -1049,7 +1049,7 @@ export default class {
     )
   }
 
-  _mountPartition (remoteId, vhdPath, partitionId) {
+  _mountPartition(remoteId, vhdPath, partitionId) {
     return this._mountVhd(remoteId, vhdPath).then(device =>
       mountPartition2(device, partitionId)
         .then(partition => ({
@@ -1065,7 +1065,7 @@ export default class {
   }
 
   @deferrable
-  async scanDiskBackup ($defer, remoteId, vhdPath) {
+  async scanDiskBackup($defer, remoteId, vhdPath) {
     const device = await this._mountVhd(remoteId, vhdPath)
     $defer(device.unmount)
 
@@ -1075,7 +1075,7 @@ export default class {
   }
 
   @deferrable
-  async scanFilesInDiskBackup ($defer, remoteId, vhdPath, partitionId, path) {
+  async scanFilesInDiskBackup($defer, remoteId, vhdPath, partitionId, path) {
     const partition = await this._mountPartition(remoteId, vhdPath, partitionId)
     $defer(partition.unmount)
 
@@ -1097,7 +1097,7 @@ export default class {
     return entriesMap
   }
 
-  async fetchFilesInDiskBackup (remoteId, vhdPath, partitionId, paths) {
+  async fetchFilesInDiskBackup(remoteId, vhdPath, partitionId, paths) {
     const partition = await this._mountPartition(remoteId, vhdPath, partitionId)
 
     let i = 0

@@ -33,7 +33,7 @@ exports.testSchema = {
 //
 // Its only parameter is an object which currently only contains a
 // `xo` property: the instance of the currently running xo-server.
-exports.default = function (opts) {
+exports.default = function(opts) {
   // For simplicity's sake, this plugin returns a plain object, but
   // usually it returns a new instance of an existing class.
   return {
@@ -42,7 +42,7 @@ exports.default = function (opts) {
     //
     // Note: before being called, the configuration is validated
     // against the provided configuration schema.
-    configure: function (configuration, state) {
+    configure: function(configuration, state) {
       console.log('stub configured', configuration)
       console.log('sub is currently', state.loaded ? 'loaded' : 'unloaded')
     },
@@ -54,14 +54,14 @@ exports.default = function (opts) {
     //
     // Note 2: if the plugin is configurable, will only be called if
     // the plugin has been successfully configured.
-    load: function () {
+    load: function() {
       console.log('stub loaded')
     },
 
     // This (optional) method is called to unload the plugin.
     //
     // Note: will only be called if the plugin is currently loaded.
-    unload: function () {
+    unload: function() {
       console.log('stub unloaded')
     },
 
@@ -70,7 +70,7 @@ exports.default = function (opts) {
     // Note 2: before being called, the test configuration is validated
     // against the provided test data.
     // Note 3: will only be called if the test option is activated.
-    test: function (data) {
+    test: function(data) {
       console.log('the configuration is about to be tested')
       // TODO: test the configuration, i.e, use the main feature of the plugin and throws any errors.
     },

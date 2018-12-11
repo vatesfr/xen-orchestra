@@ -177,7 +177,7 @@ class SelectMetric extends Component {
     onChange: PropTypes.func.isRequired,
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       objects: [],
@@ -281,7 +281,7 @@ class SelectMetric extends Component {
     this.props.onChange(value !== '' && state.metrics[value], state.objects)
   }
 
-  render () {
+  render() {
     const { metricsState, metrics, objects, predicate } = this.state
 
     return (
@@ -362,7 +362,7 @@ class MetricViewer extends Component {
     this.setState({ selectedMetric, objects })
   }
 
-  render () {
+  render() {
     const {
       props: { metricRenderer, title },
       state: { selectedMetric, objects },

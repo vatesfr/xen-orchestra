@@ -6,7 +6,7 @@ import parse from './parse'
 const MAX_DELAY = 2 ** 31 - 1
 
 class Job {
-  constructor (schedule, fn) {
+  constructor(schedule, fn) {
     const wrapper = () => {
       let result
       try {
@@ -33,18 +33,18 @@ class Job {
     this._timeout = undefined
   }
 
-  start () {
+  start() {
     this.stop()
     this._scheduleNext()
   }
 
-  stop () {
+  stop() {
     clearTimeout(this._timeout)
   }
 }
 
 class Schedule {
-  constructor (pattern, zone = 'utc') {
+  constructor(pattern, zone = 'utc') {
     this._schedule = parse(pattern)
     this._createDate =
       zone.toLowerCase() === 'utc'
@@ -54,11 +54,11 @@ class Schedule {
         : () => moment.tz(zone)
   }
 
-  createJob (fn) {
+  createJob(fn) {
     return new Job(this, fn)
   }
 
-  next (n) {
+  next(n) {
     const dates = new Array(n)
     const schedule = this._schedule
     let date = this._createDate()
@@ -68,12 +68,12 @@ class Schedule {
     return dates
   }
 
-  _nextDelay () {
+  _nextDelay() {
     const now = this._createDate()
     return next(this._schedule, now) - now
   }
 
-  startJob (fn) {
+  startJob(fn) {
     const job = this.createJob(fn)
     job.start()
     return job.stop.bind(job)

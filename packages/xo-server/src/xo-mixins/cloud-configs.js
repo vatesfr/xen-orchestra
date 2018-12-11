@@ -11,7 +11,7 @@ type CloudConfig = {|
 |}
 
 class CloudConfigs extends Collection {
-  get (properties) {
+  get(properties) {
     return super.get(properties)
   }
 }
@@ -26,7 +26,7 @@ export default class {
     update: Function,
   |}
 
-  constructor (app: any) {
+  constructor(app: any) {
     this._app = app
     const db = (this._db = new CloudConfigs({
       connection: app._redis,
@@ -43,25 +43,25 @@ export default class {
     )
   }
 
-  createCloudConfig (cloudConfig: $Diff<CloudConfig, {| id: string |}>) {
+  createCloudConfig(cloudConfig: $Diff<CloudConfig, {| id: string |}>) {
     return this._db.add(cloudConfig).properties
   }
 
-  async updateCloudConfig ({ id, name, template }: $Shape<CloudConfig>) {
+  async updateCloudConfig({ id, name, template }: $Shape<CloudConfig>) {
     const cloudConfig = await this.getCloudConfig(id)
     patch(cloudConfig, { name, template })
     return this._db.update(cloudConfig)
   }
 
-  deleteCloudConfig (id: string) {
+  deleteCloudConfig(id: string) {
     return this._db.remove(id)
   }
 
-  getAllCloudConfigs (): Promise<Array<CloudConfig>> {
+  getAllCloudConfigs(): Promise<Array<CloudConfig>> {
     return this._db.get()
   }
 
-  async getCloudConfig (id: string): Promise<CloudConfig> {
+  async getCloudConfig(id: string): Promise<CloudConfig> {
     const cloudConfig = await this._db.first(id)
     if (cloudConfig === undefined) {
       throw noSuchObject(id, 'cloud config')

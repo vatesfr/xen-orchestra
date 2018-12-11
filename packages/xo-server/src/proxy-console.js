@@ -5,7 +5,7 @@ import { parse } from 'url'
 
 const log = createLogger('xo:proxy-console')
 
-export default function proxyConsole (ws, vmConsole, sessionId) {
+export default function proxyConsole(ws, vmConsole, sessionId) {
   const url = parse(vmConsole.location)
   let { hostname } = url
   if (hostname === null || hostname === '') {

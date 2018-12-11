@@ -15,7 +15,7 @@ class CopyVmModalBody extends BaseComponent {
     copyMode: 'fullCopy',
   }
 
-  get value () {
+  get value() {
     const { props, state } = this
     return {
       compress: state.compress,
@@ -25,7 +25,7 @@ class CopyVmModalBody extends BaseComponent {
     }
   }
 
-  render () {
+  render() {
     const { formatMessage } = this.props.intl
     const { compress, copyMode, name, sr } = this.state
 

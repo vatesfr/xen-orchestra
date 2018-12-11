@@ -26,7 +26,7 @@ const log = createLogger('xo:xo')
 
 @mixin(mapToArray(mixins))
 export default class Xo extends EventEmitter {
-  constructor (config) {
+  constructor(config) {
     super()
 
     // a lot of mixins adds listener for start/stop/… events
@@ -60,7 +60,7 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   // Returns an object from its key or UUID.
-  getObject (key, type) {
+  getObject(key, type) {
     const {
       all,
       indexes: { byRef },
@@ -81,7 +81,7 @@ export default class Xo extends EventEmitter {
     return obj
   }
 
-  getObjects ({ filter, limit } = {}) {
+  getObjects({ filter, limit } = {}) {
     const { all } = this._objects
 
     if (filter === undefined) {
@@ -111,7 +111,7 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  createUserConnection () {
+  createUserConnection() {
     const { _connections: connections } = this
 
     const connection = new Connection()
@@ -127,7 +127,7 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  _handleHttpRequest (req, res, next) {
+  _handleHttpRequest(req, res, next) {
     const { url } = req
 
     const { _httpRequestWatchers: watchers } = this
@@ -164,10 +164,10 @@ export default class Xo extends EventEmitter {
     )
   }
 
-  async registerHttpRequest (fn, data, { suffix = '' } = {}) {
+  async registerHttpRequest(fn, data, { suffix = '' } = {}) {
     const { _httpRequestWatchers: watchers } = this
 
-    const url = await (function generateUniqueUrl () {
+    const url = await (function generateUniqueUrl() {
       return generateToken().then(token => {
         const url = `/api/${token}${suffix}`
 
@@ -183,7 +183,7 @@ export default class Xo extends EventEmitter {
     return url
   }
 
-  async registerHttpRequestHandler (
+  async registerHttpRequestHandler(
     url,
     fn,
     { data = undefined, persistent = true } = {}
@@ -201,14 +201,14 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  async unregisterHttpRequestHandler (url) {
+  async unregisterHttpRequestHandler(url) {
     delete this._httpRequestWatchers[url]
   }
 
   // -----------------------------------------------------------------
 
   // Plugins can use this method to expose methods directly on XO.
-  defineProperty (name, value, thisArg = null) {
+  defineProperty(name, value, thisArg = null) {
     if (name in this) {
       throw new Error(`Xo#${name} is already defined`)
     }
@@ -216,7 +216,7 @@ export default class Xo extends EventEmitter {
     // For security, prevent from accessing `this`.
     if (isFunction(value)) {
       value = (value =>
-        function () {
+        function() {
           return value.apply(thisArg, arguments)
         })(value)
     }
@@ -234,7 +234,7 @@ export default class Xo extends EventEmitter {
   }
 
   // Convenience method to define multiple properties at once.
-  defineProperties (props, thisArg) {
+  defineProperties(props, thisArg) {
     const unsets = []
     const unset = () => forEach(unsets, unset => unset())
 
@@ -256,17 +256,17 @@ export default class Xo extends EventEmitter {
   //
   // Some should be forwarded to connected clients.
   // Some should be persistently saved.
-  _watchObjects () {
+  _watchObjects() {
     const { _connections: connections, _objects: objects } = this
 
     let entered, exited
-    function reset () {
+    function reset() {
       entered = { __proto__: null }
       exited = { __proto__: null }
     }
     reset()
 
-    function onAdd (items) {
+    function onAdd(items) {
       forEach(items, (item, id) => {
         entered[id] = item
       })

@@ -101,7 +101,7 @@ const CONTAINER_COLUMNS = [
 ]
 
 export default class TabContainers extends Component {
-  render () {
+  render() {
     const { vm } = this.props
     if (isEmpty(vm.docker.containers)) {
       return (

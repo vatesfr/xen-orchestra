@@ -9,7 +9,7 @@ const log = createLogger('xo:disk')
 
 // ===================================================================
 
-export async function create ({ name, size, sr, vm, bootable, position, mode }) {
+export async function create({ name, size, sr, vm, bootable, position, mode }) {
   const attach = vm !== undefined
 
   do {
@@ -73,7 +73,7 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExportContent (req, res, { xapi, id }) {
+async function handleExportContent(req, res, { xapi, id }) {
   const stream = await xapi.exportVdiContent(id)
   req.on('close', () => stream.cancel())
 
@@ -92,7 +92,7 @@ async function handleExportContent (req, res, { xapi, id }) {
   })
 }
 
-export async function exportContent ({ vdi }) {
+export async function exportContent({ vdi }) {
   return {
     $getFrom: await this.registerHttpRequest(
       handleExportContent,
@@ -117,7 +117,7 @@ exportContent.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleImportContent (req, res, { xapi, id }) {
+async function handleImportContent(req, res, { xapi, id }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
@@ -132,7 +132,7 @@ async function handleImportContent (req, res, { xapi, id }) {
   }
 }
 
-export async function importContent ({ vdi }) {
+export async function importContent({ vdi }) {
   return {
     $sendTo: await this.registerHttpRequest(handleImportContent, {
       id: vdi._xapiId,
@@ -151,7 +151,7 @@ importContent.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function resize ({ vdi, size }) {
+export async function resize({ vdi, size }) {
   await this.getXapi(vdi).resizeVdi(vdi._xapiId, parseSize(size))
 }
 

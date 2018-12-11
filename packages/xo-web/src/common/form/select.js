@@ -41,7 +41,7 @@ export default class Select extends React.PureComponent {
   })
 
   // https://github.com/JedWatson/react-select/blob/dd32c27d7ea338a93159da5e40bc06697d0d86f9/src/utils/defaultMenuRenderer.js#L4
-  _renderMenu (opts) {
+  _renderMenu(opts) {
     const { focusOption, options, selectValue } = opts
 
     const focusFromEvent = event =>
@@ -87,7 +87,7 @@ export default class Select extends React.PureComponent {
   }
   _renderMenu = this._renderMenu.bind(this)
 
-  _renderRow (
+  _renderRow(
     {
       focusedOption,
       focusOption,
@@ -129,11 +129,11 @@ export default class Select extends React.PureComponent {
     )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.componentDidUpdate()
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     const { props } = this
     const {
       autoSelectSingleOption = props.required,
@@ -157,7 +157,7 @@ export default class Select extends React.PureComponent {
     }
   }
 
-  render () {
+  render() {
     const { props } = this
     const { multi } = props
     return (

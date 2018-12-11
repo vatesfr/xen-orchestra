@@ -24,20 +24,20 @@ const gulp = require('gulp')
 
 // ===================================================================
 
-function lazyFn (factory) {
-  let fn = function () {
+function lazyFn(factory) {
+  let fn = function() {
     fn = factory()
     return fn.apply(this, arguments)
   }
 
-  return function () {
+  return function() {
     return fn.apply(this, arguments)
   }
 }
 
 // -------------------------------------------------------------------
 
-const livereload = lazyFn(function () {
+const livereload = lazyFn(function() {
   const livereload = require('gulp-refresh')
   livereload.listen({
     port: LIVERELOAD_PORT,
@@ -46,9 +46,9 @@ const livereload = lazyFn(function () {
   return livereload
 })
 
-const pipe = lazyFn(function () {
+const pipe = lazyFn(function() {
   let current
-  function pipeCore (streams) {
+  function pipeCore(streams) {
     let i, n, stream
     for (i = 0, n = streams.length; i < n; ++i) {
       stream = streams[i]
@@ -63,7 +63,7 @@ const pipe = lazyFn(function () {
   }
 
   const push = Array.prototype.push
-  return function (streams) {
+  return function(streams) {
     try {
       if (!(streams instanceof Array)) {
         streams = []
@@ -79,7 +79,7 @@ const pipe = lazyFn(function () {
   }
 })
 
-const resolvePath = lazyFn(function () {
+const resolvePath = lazyFn(function() {
   return require('path').resolve
 })
 
@@ -87,13 +87,13 @@ const resolvePath = lazyFn(function () {
 
 // Similar to `gulp.src()` but the pattern is relative to `SRC_DIR`
 // and files are automatically watched when not in production mode.
-const src = lazyFn(function () {
-  function resolve (path) {
+const src = lazyFn(function() {
+  function resolve(path) {
     return path ? resolvePath(SRC_DIR, path) : SRC_DIR
   }
 
   return PRODUCTION
-    ? function src (pattern, opts) {
+    ? function src(pattern, opts) {
         const base = resolve(opts && opts.base)
 
         return gulp.src(pattern, {
@@ -103,7 +103,7 @@ const src = lazyFn(function () {
           sourcemaps: opts && opts.sourcemaps,
         })
       }
-    : function src (pattern, opts) {
+    : function src(pattern, opts) {
         const base = resolve(opts && opts.base)
 
         return pipe(
@@ -125,8 +125,8 @@ const src = lazyFn(function () {
 // Similar to `gulp.dest()` but the output directory is relative to
 // `DIST_DIR` and default to `./`, and files are automatically live-
 // reloaded when not in production mode.
-const dest = lazyFn(function () {
-  function resolve (path) {
+const dest = lazyFn(function() {
+  function resolve(path) {
     return path ? resolvePath(DIST_DIR, path) : DIST_DIR
   }
 
@@ -135,10 +135,10 @@ const dest = lazyFn(function () {
   }
 
   return PRODUCTION
-    ? function dest (path) {
+    ? function dest(path) {
         return gulp.dest(resolve(path), opts)
       }
-    : function dest (path) {
+    : function dest(path) {
         const stream = gulp.dest(resolve(path), opts)
         stream.pipe(livereload())
         return stream
@@ -147,7 +147,7 @@ const dest = lazyFn(function () {
 
 // ===================================================================
 
-function browserify (path, opts) {
+function browserify(path, opts) {
   if (opts == null) {
     opts = {}
   }
@@ -193,8 +193,8 @@ function browserify (path, opts) {
   })
 
   let write
-  function bundle () {
-    bundler.bundle(function onBundle (error, buffer) {
+  function bundle() {
+    bundler.bundle(function onBundle(error, buffer) {
       if (error) {
         stream.emit('error', error)
         return
@@ -211,21 +211,21 @@ function browserify (path, opts) {
   }
 
   if (PRODUCTION) {
-    write = function (data) {
+    write = function(data) {
       stream.push(data)
       stream.push(null)
     }
   } else {
     stream = require('gulp-plumber')().pipe(stream)
-    write = function (data) {
+    write = function(data) {
       stream.push(data)
     }
 
     bundler.on('update', bundle)
   }
 
-  stream._read = function () {
-    this._read = function () {}
+  stream._read = function() {
+    this._read = function() {}
     bundle()
   }
 
@@ -234,7 +234,7 @@ function browserify (path, opts) {
 
 // ===================================================================
 
-gulp.task(function buildPages () {
+gulp.task(function buildPages() {
   return pipe(
     src('index.pug'),
     require('gulp-pug')(),
@@ -246,7 +246,7 @@ gulp.task(function buildPages () {
   )
 })
 
-gulp.task(function buildScripts () {
+gulp.task(function buildScripts() {
   return pipe(
     browserify('./index.js', {
       plugins: [
@@ -266,7 +266,7 @@ gulp.task(function buildScripts () {
   )
 })
 
-gulp.task(function buildStyles () {
+gulp.task(function buildStyles() {
   return pipe(
     src('index.scss', { sourcemaps: true }),
     require('gulp-sass')(),
@@ -276,7 +276,7 @@ gulp.task(function buildStyles () {
   )
 })
 
-gulp.task(function copyAssets () {
+gulp.task(function copyAssets() {
   return pipe(
     src(['assets/**/*', 'favicon.*']),
     src('fontawesome-webfont.*', {
@@ -298,6 +298,6 @@ gulp.task(
 
 // -------------------------------------------------------------------
 
-gulp.task(function clean (done) {
+gulp.task(function clean(done) {
   require('rimraf')(DIST_DIR, done)
 })

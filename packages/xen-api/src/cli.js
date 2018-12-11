@@ -15,7 +15,7 @@ import { createClient } from './'
 
 // ===================================================================
 
-function askPassword (prompt = 'Password: ') {
+function askPassword(prompt = 'Password: ') {
   if (prompt) {
     process.stdout.write(prompt)
   }

@@ -7,7 +7,7 @@ import { PrimitiveInputWrapper } from '../json-schema-input/helpers'
 // ===================================================================
 
 export default class SrInput extends XoAbstractInput {
-  render () {
+  render() {
     const { props } = this
 
     return (

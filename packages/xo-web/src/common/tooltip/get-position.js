@@ -16,7 +16,7 @@
  * - `newState` {Object}
  * - `position` {OBject} {left: {Number}, top: {Number}}
  */
-export default function (e, target, node, place, effect, offset) {
+export default function(e, target, node, place, effect, offset) {
   const tipWidth = node.clientWidth
   const tipHeight = node.clientHeight
   const { mouseX, mouseY } = getCurrentOffset(e, target, effect)

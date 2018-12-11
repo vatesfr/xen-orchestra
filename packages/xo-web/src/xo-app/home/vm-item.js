@@ -49,7 +49,7 @@ import styles from './index.css'
   ),
 }))
 export default class VmItem extends Component {
-  get _isRunning () {
+  get _isRunning() {
     const vm = this.props.item
     return vm && vm.power_state === 'Running'
   }
@@ -75,7 +75,7 @@ export default class VmItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
-  render () {
+  render() {
     const { item: vm, container, expandAll, selected } = this.props
     const resourceSet = this._getResourceSet()
 

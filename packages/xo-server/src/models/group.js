@@ -14,15 +14,15 @@ export default class Group extends Model {}
 // ===================================================================
 
 export class Groups extends Collection {
-  get Model () {
+  get Model() {
     return Group
   }
 
-  create (name) {
+  create(name) {
     return this.add(new Group({ name }))
   }
 
-  async save (group) {
+  async save(group) {
     // Serializes.
     let tmp
     group.users = isEmpty((tmp = group.users)) ? undefined : JSON.stringify(tmp)
@@ -30,7 +30,7 @@ export class Groups extends Collection {
     return /* await */ this.update(group)
   }
 
-  async get (properties) {
+  async get(properties) {
     const groups = await super.get(properties)
 
     // Deserializes.

@@ -24,7 +24,7 @@ export default class Collapse extends Component {
     })
   }
 
-  render () {
+  render() {
     const { props } = this
     const { isOpened } = this.state
 

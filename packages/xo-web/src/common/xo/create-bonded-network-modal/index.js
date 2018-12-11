@@ -21,7 +21,7 @@ import SingleLineRow from '../../single-line-row'
   { withRef: true }
 )
 class CreateBondedNetworkModalBody extends Component {
-  componentWillMount () {
+  componentWillMount() {
     getBondModes().then(bondModes =>
       this.setState({ bondModes, bondMode: bondModes[0] })
     )
@@ -32,7 +32,7 @@ class CreateBondedNetworkModalBody extends Component {
     hostId => pif => pif.$host === hostId && pif.vlan === -1
   )
 
-  get value () {
+  get value() {
     const { name, description, pifs, mtu, bondMode } = this.state
     return {
       pool: this.props.pool,
@@ -44,7 +44,7 @@ class CreateBondedNetworkModalBody extends Component {
     }
   }
 
-  render () {
+  render() {
     const { formatMessage } = this.props.intl
     return (
       <div>

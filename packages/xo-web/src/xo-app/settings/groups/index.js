@@ -38,7 +38,7 @@ class UserDisplay extends Component {
     return removeUserFromGroup(id, group)
   }
 
-  render () {
+  render() {
     const { id, users } = this.props
 
     return (
@@ -65,7 +65,7 @@ class UserDisplay extends Component {
 class GroupMembersDisplay extends Component {
   _toggle = () => this.setState({ open: !this.state.open })
 
-  render () {
+  render() {
     const { group } = this.props
     return (
       <div>
@@ -152,7 +152,7 @@ export default class Groups extends Component {
     }
   }
 
-  render () {
+  render() {
     const { groups, intl } = this.props
 
     return (

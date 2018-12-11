@@ -50,7 +50,7 @@ const _isAddressInIpPool = (address, network, ipPool) =>
 // Note: an address cannot be in two different pools sharing a
 // network.
 export default class IpPools {
-  constructor (xo) {
+  constructor(xo) {
     this._store = null
     this._xo = xo
 
@@ -66,7 +66,7 @@ export default class IpPools {
     })
   }
 
-  async createIpPool ({ addresses, name, networks }) {
+  async createIpPool({ addresses, name, networks }) {
     const id = await this._generateId()
 
     await this._save({
@@ -79,7 +79,7 @@ export default class IpPools {
     return id
   }
 
-  async deleteIpPool (id) {
+  async deleteIpPool(id) {
     const store = this._store
 
     if (await store.has(id)) {
@@ -99,14 +99,14 @@ export default class IpPools {
     throw noSuchObject(id, 'ipPool')
   }
 
-  _getAllIpPools (filter) {
+  _getAllIpPools(filter) {
     return streamToArray(this._store.createValueStream(), {
       filter,
       mapper: normalize,
     })
   }
 
-  async getAllIpPools (userId) {
+  async getAllIpPools(userId) {
     let filter
     if (userId != null) {
       const user = await this._xo.getUser(userId)
@@ -120,13 +120,13 @@ export default class IpPools {
     return this._getAllIpPools(filter)
   }
 
-  getIpPool (id) {
+  getIpPool(id) {
     return this._store.get(id).then(normalize, error => {
       throw error.notFound ? noSuchObject(id, 'ipPool') : error
     })
   }
 
-  async _getAddressIpPool (address, network) {
+  async _getAddressIpPool(address, network) {
     const ipPools = await this._getAllIpPools(ipPool =>
       _isAddressInIpPool(address, network, ipPool)
     )
@@ -136,7 +136,7 @@ export default class IpPools {
 
   // Returns a map that indicates how many IPs from each IP pool the VM uses
   // e.g.: { 'ipPool:abc': 3, 'ipPool:xyz': 7 }
-  async computeVmIpPoolsUsage (vm) {
+  async computeVmIpPoolsUsage(vm) {
     const vifs = vm.VIFs
     const ipPools = []
     for (const vifId of vifs) {
@@ -159,7 +159,7 @@ export default class IpPools {
   }
 
   @synchronized
-  allocIpAddresses (vifId, addAddresses, removeAddresses) {
+  allocIpAddresses(vifId, addAddresses, removeAddresses) {
     const updatedIpPools = {}
     const limits = {}
 
@@ -231,7 +231,7 @@ export default class IpPools {
     }).then(allocAndSave)
   }
 
-  async _removeIpAddressesFromVifs (mapAddressVifs) {
+  async _removeIpAddressesFromVifs(mapAddressVifs) {
     const mapVifAddresses = {}
     forEach(mapAddressVifs, (vifs, address) => {
       forEach(vifs, vifId => {
@@ -270,7 +270,7 @@ export default class IpPools {
     )
   }
 
-  async updateIpPool (id, { addresses, name, networks, resourceSets }) {
+  async updateIpPool(id, { addresses, name, networks, resourceSets }) {
     const ipPool = await this.getIpPool(id)
     const previousAddresses = { ...ipPool.addresses }
 
@@ -311,7 +311,7 @@ export default class IpPools {
     await this._save(ipPool)
   }
 
-  async _generateId () {
+  async _generateId() {
     let id
     do {
       id = generateUnsecureToken(8)
@@ -319,7 +319,7 @@ export default class IpPools {
     return id
   }
 
-  _save (ipPool) {
+  _save(ipPool) {
     ipPool = normalize(ipPool)
     return this._store.put(ipPool.id, ipPool)
   }

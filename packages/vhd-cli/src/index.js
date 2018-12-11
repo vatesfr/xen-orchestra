@@ -4,7 +4,7 @@ import execPromise from 'exec-promise'
 
 import commands from './commands'
 
-function runCommand (commands, [command, ...args]) {
+function runCommand(commands, [command, ...args]) {
   if (command === undefined || command === '-h' || command === '--help') {
     command = 'help'
   }

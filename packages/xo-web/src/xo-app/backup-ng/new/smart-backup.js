@@ -36,7 +36,7 @@ const SmartBackup = decorate([
           ...value,
         })
       },
-      setPowerState ({ setPattern }, powerState) {
+      setPowerState({ setPattern }, powerState) {
         setPattern({
           power_state: powerState === 'All' ? undefined : powerState,
         })
@@ -54,10 +54,10 @@ const SmartBackup = decorate([
           ),
         })
       },
-      setPoolValues ({ setPoolPattern }, values) {
+      setPoolValues({ setPoolPattern }, values) {
         setPoolPattern({ values })
       },
-      setPoolNotValues ({ setPoolPattern }, notValues) {
+      setPoolNotValues({ setPoolPattern }, notValues) {
         setPoolPattern({ notValues })
       },
     },

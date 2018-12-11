@@ -1,5 +1,5 @@
 export default class UserError {
-  constructor (title, body) {
+  constructor(title, body) {
     this.title = title
     this.body = body
   }

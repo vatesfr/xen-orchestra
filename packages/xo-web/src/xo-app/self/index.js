@@ -138,7 +138,7 @@ export class Edit extends Component {
     resourceSet: PropTypes.object,
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -157,7 +157,7 @@ export class Edit extends Component {
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { resourceSet } = this.props
 
     if (resourceSet) {
@@ -355,7 +355,7 @@ export class Edit extends Component {
 
   // -----------------------------------------------------------------------------
 
-  render () {
+  render() {
     const { state } = this
     const { resourceSet } = this.props
 
@@ -669,7 +669,7 @@ class ResourceSet extends Component {
     }
   }
 
-  render () {
+  render() {
     const { resourceSet, autoExpand } = this.props
 
     return (
@@ -702,12 +702,12 @@ class ResourceSet extends Component {
 const compareName = (a, b) => (a.name < b.name ? -1 : 1)
 
 export default class Self extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {}
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this.componentWillUnmount = subscribeResourceSets(resourceSets => {
       this.setState({
         resourceSets: resolveResourceSets(resourceSets).sort(compareName),
@@ -715,7 +715,7 @@ export default class Self extends Component {
     })
   }
 
-  render () {
+  render() {
     const { resourceSets, showNewResourceSetForm } = this.state
     const { location } = this.props
 

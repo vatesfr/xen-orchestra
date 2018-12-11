@@ -4,8 +4,8 @@ Error.stackTraceLimit = 100
 try {
   const sep = require('path').sep
 
-  require('stack-chain').filter.attach(function (_, frames) {
-    const filtered = frames.filter(function (frame) {
+  require('stack-chain').filter.attach(function(_, frames) {
+    const filtered = frames.filter(function(frame) {
       const name = frame && frame.getFileName()
 
       return (

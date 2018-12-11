@@ -12,7 +12,7 @@ const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 const _escapeDot = id => id.replace('.', '\0')
 
 export default class DeleteBackupsModalBody extends Component {
-  get value () {
+  get value() {
     return this._getSelectedBackups()
   }
 
@@ -46,7 +46,7 @@ export default class DeleteBackupsModalBody extends Component {
     backups => orderBy(backups, 'timestamp', 'desc')
   )
 
-  render () {
+  render() {
     return (
       <div>
         <div>{_('deleteVmBackupsSelect')}</div>

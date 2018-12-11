@@ -376,7 +376,7 @@ export default class RemoteHandlerAbstract {
     data: Data,
     { flags = 'wx' }: { flags?: string } = {}
   ): Promise<void> {
-    return this._writeFile(normalizePath(file), data, { flags })
+    await this._writeFile(normalizePath(file), data, { flags })
   }
 
   // Methods that can be implemented by inheriting classes
@@ -389,7 +389,7 @@ export default class RemoteHandlerAbstract {
     try {
       return await this._createWriteStream(file, options)
     } catch (error) {
-      if (typeof file === 'string' && error.code !== 'ENOENT') {
+      if (typeof file !== 'string' || error.code !== 'ENOENT') {
         throw error
       }
     }

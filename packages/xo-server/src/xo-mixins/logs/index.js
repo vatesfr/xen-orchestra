@@ -3,13 +3,13 @@ import { defer, fromEvent } from 'promise-toolbox'
 import LevelDbLogger from './loggers/leveldb'
 
 export default class Logs {
-  constructor (app) {
+  constructor(app) {
     this._app = app
 
     app.on('clean', () => this._gc())
   }
 
-  async _gc (keep = 2e4) {
+  async _gc(keep = 2e4) {
     const db = await this._app.getStore('logs')
 
     let count = 1
@@ -46,13 +46,13 @@ export default class Logs {
     return promise
   }
 
-  getLogger (namespace) {
+  getLogger(namespace) {
     return this._app
       .getStore('logs')
       .then(store => new LevelDbLogger(store, namespace))
   }
 
-  async getLogs (namespace) {
+  async getLogs(namespace) {
     const logger = await this.getLogger(namespace)
 
     return new Promise((resolve, reject) => {

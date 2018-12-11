@@ -6,7 +6,7 @@ import { getJob, getSchedule } from 'xo'
 import New from '../new'
 
 export default class Edit extends Component {
-  componentWillMount () {
+  componentWillMount() {
     const { id } = this.props.routeParams
 
     if (id == null) {
@@ -20,7 +20,7 @@ export default class Edit extends Component {
     })
   }
 
-  render () {
+  render() {
     const { job, schedule } = this.state
 
     if (!job || !schedule) {

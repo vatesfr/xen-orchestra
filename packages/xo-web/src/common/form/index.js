@@ -26,11 +26,11 @@ export class Password extends Component {
     enableGenerator: PropTypes.bool,
   }
 
-  get value () {
+  get value() {
     return this.refs.field.value
   }
 
-  set value (value) {
+  set value(value) {
     this.refs.field.value = value
   }
 
@@ -56,7 +56,7 @@ export class Password extends Component {
     })
   }
 
-  render () {
+  render() {
     const { className, enableGenerator = false, ...props } = this.props
     const { visible } = this.state
 
@@ -97,7 +97,7 @@ export class Range extends Component {
     value: PropTypes.number,
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { min, onChange, required, value } = this.props
 
     if (value === undefined && required) {
@@ -107,7 +107,7 @@ export class Range extends Component {
 
   _onChange = value => this.props.onChange(getEventValue(value))
 
-  render () {
+  render() {
     const { max, min, step, value } = this.props
 
     return (
@@ -152,7 +152,7 @@ export class SizeInput extends BaseComponent {
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = this._createStateFromBytes(
@@ -160,14 +160,14 @@ export class SizeInput extends BaseComponent {
     )
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const { value } = props
     if (value !== undefined && value !== this.props.value) {
       this.setState(this._createStateFromBytes(value))
     }
   }
 
-  _createStateFromBytes (bytes) {
+  _createStateFromBytes(bytes) {
     if (bytes === this._bytes) {
       return {
         input: this._input,
@@ -189,7 +189,7 @@ export class SizeInput extends BaseComponent {
     }
   }
 
-  get value () {
+  get value() {
     const { input, unit } = this.state
 
     if (!input) {
@@ -199,7 +199,7 @@ export class SizeInput extends BaseComponent {
     return parseSize(`${+input} ${unit}`)
   }
 
-  set value (value) {
+  set value(value) {
     if (
       process.env.NODE_ENV !== 'production' &&
       this.props.value !== undefined
@@ -209,7 +209,7 @@ export class SizeInput extends BaseComponent {
     this.setState(this._createStateFromBytes(value))
   }
 
-  _onChange (input, unit) {
+  _onChange(input, unit) {
     const { onChange } = this.props
 
     // Empty input equals null.
@@ -267,7 +267,7 @@ export class SizeInput extends BaseComponent {
     }
   }
 
-  render () {
+  render() {
     const {
       autoFocus,
       className,

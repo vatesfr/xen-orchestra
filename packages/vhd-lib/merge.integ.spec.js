@@ -28,18 +28,18 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tmpDir, cb))
 })
 
-async function createRandomFile (name, sizeMb) {
+async function createRandomFile(name, sizeMb) {
   await execa('bash', [
     '-c',
     `< /dev/urandom tr -dc "\\t\\n [:alnum:]" | head -c ${sizeMb}M >${name}`,
   ])
 }
 
-async function checkFile (vhdName) {
+async function checkFile(vhdName) {
   await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdName])
 }
 
-async function recoverRawContent (vhdName, rawName, originalSize) {
+async function recoverRawContent(vhdName, rawName, originalSize) {
   await checkFile(vhdName)
   await execa('qemu-img', ['convert', '-fvpc', '-Oraw', vhdName, rawName])
   if (originalSize !== undefined) {
@@ -47,7 +47,7 @@ async function recoverRawContent (vhdName, rawName, originalSize) {
   }
 }
 
-async function convertFromRawToVhd (rawName, vhdName) {
+async function convertFromRawToVhd(rawName, vhdName) {
   await execa('qemu-img', ['convert', '-f', 'raw', '-Ovpc', rawName, vhdName])
 }
 

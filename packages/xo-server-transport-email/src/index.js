@@ -133,7 +133,7 @@ export const testSchema = {
 // ===================================================================
 
 class TransportEmailPlugin {
-  constructor ({ xo }) {
+  constructor({ xo }) {
     this._xo = xo
     this._unset = null
 
@@ -141,7 +141,7 @@ class TransportEmailPlugin {
     this._send = null
   }
 
-  configure ({
+  configure({
     from,
     transport: { ignoreUnauthorized, password, secure, user, ...transportConf },
   }) {
@@ -173,15 +173,15 @@ class TransportEmailPlugin {
     this._send = promisify(transport.sendMail, transport)
   }
 
-  load () {
+  load() {
     this._unset = this._xo.defineProperty('sendEmail', this._sendEmail, this)
   }
 
-  unload () {
+  unload() {
     this._unset()
   }
 
-  test ({ to }) {
+  test({ to }) {
     return this._sendEmail({
       to,
       subject: '[Xen Orchestra] Test of transport-email plugin',
@@ -198,7 +198,7 @@ The transport-email plugin for Xen Orchestra server seems to be working fine, ni
     })
   }
 
-  _sendEmail ({ from, to, cc, bcc, subject, markdown, attachments }) {
+  _sendEmail({ from, to, cc, bcc, subject, markdown, attachments }) {
     return this._send(
       removeUndefined({
         from,

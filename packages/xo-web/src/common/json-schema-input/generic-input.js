@@ -44,7 +44,7 @@ export default class GenericInput extends Component {
     onChange && onChange(getEventValue(event), name)
   }
 
-  render () {
+  render() {
     const { schema, value, uiSchema = EMPTY_OBJECT, ...opts } = this.props
 
     const props = {

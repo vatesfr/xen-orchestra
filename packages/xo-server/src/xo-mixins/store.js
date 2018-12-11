@@ -8,7 +8,7 @@ import { forEach, isFunction, promisify } from '../utils'
 
 // ===================================================================
 
-const _levelHas = function has (key, cb) {
+const _levelHas = function has(key, cb) {
   if (cb) {
     return this.get(key, (error, value) =>
       error ? (error.notFound ? cb(null, false) : cb(error)) : cb(null, true)
@@ -51,7 +51,7 @@ const levelPromise = db => {
 // ===================================================================
 
 export default class {
-  constructor (xo) {
+  constructor(xo) {
     const dir = `${xo._config.datadir}/leveldb`
     this._db = ensureDir(dir).then(() => {
       return sublevel(
@@ -62,7 +62,7 @@ export default class {
     })
   }
 
-  getStore (namespace) {
+  getStore(namespace) {
     return this._db.then(db => levelPromise(levelHas(db.sublevel(namespace))))
   }
 }

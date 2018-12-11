@@ -65,7 +65,7 @@ const _createGetDefaultPif = () =>
 class Name extends Component {
   _editName = value => editNetwork(this.props.network, { name_label: value })
 
-  render () {
+  render() {
     const { isBonded, network } = this.props
 
     return (
@@ -85,7 +85,7 @@ class Description extends Component {
   _editDescription = value =>
     editNetwork(this.props.network, { name_description: value })
 
-  render () {
+  render() {
     const { network } = this.props
 
     return (
@@ -102,7 +102,7 @@ class Description extends Component {
 class DefaultPif extends BaseComponent {
   _editPif = vlan => editPif(this.props.defaultPif, { vlan })
 
-  render () {
+  render() {
     const { defaultPif } = this.props
 
     if (!defaultPif) {
@@ -119,7 +119,7 @@ class DefaultPif extends BaseComponent {
 class Vlan extends BaseComponent {
   _editPif = vlan => editPif(this.props.defaultPif, { vlan })
 
-  render () {
+  render() {
     const { defaultPif } = this.props
 
     if (!defaultPif) {
@@ -154,7 +154,7 @@ class ToggleDefaultLockingMode extends Component {
     editNetwork(network, { defaultIsLocked: !network.defaultIsLocked })
   }
 
-  render () {
+  render() {
     const { isInUse, network } = this.props
     return _conditionalTooltip(
       <Toggle
@@ -171,7 +171,12 @@ class ToggleDefaultLockingMode extends Component {
 
 @connectStore(() => {
   const pif = createGetObject()
-  const host = createGetObject(createSelector(pif, pif => pif.$host))
+  const host = createGetObject(
+    createSelector(
+      pif,
+      pif => pif.$host
+    )
+  )
   const disableUnplug = createSelector(
     pif,
     pif =>
@@ -183,7 +188,7 @@ class ToggleDefaultLockingMode extends Component {
   return { host, pif, disableUnplug }
 })
 class PifItem extends Component {
-  render () {
+  render() {
     const { pif, host, disableUnplug } = this.props
 
     return (
@@ -220,7 +225,7 @@ class PifItem extends Component {
 }
 
 class PifsItem extends BaseComponent {
-  render () {
+  render() {
     const { network } = this.props
     const { showPifs } = this.state
 
@@ -278,7 +283,7 @@ class PifsItem extends BaseComponent {
   }
 })
 class NetworkActions extends Component {
-  render () {
+  render() {
     const { network, disableNetworkDelete } = this.props
 
     return (
@@ -350,7 +355,7 @@ const NETWORKS_COLUMNS = [
 // =============================================================================
 
 export default class TabNetworks extends Component {
-  render () {
+  render() {
     const { networks } = this.props
 
     return (

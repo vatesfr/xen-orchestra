@@ -1,10 +1,10 @@
 import { mapToArray } from '../utils'
 
-export function getBondModes () {
+export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
 }
 
-export async function create ({
+export async function create({
   pool,
   name,
   description,
@@ -37,7 +37,7 @@ create.permission = 'admin'
 
 // =================================================================
 
-export async function createBonded ({
+export async function createBonded({
   pool,
   name,
   description,
@@ -84,7 +84,7 @@ createBonded.description =
 
 // ===================================================================
 
-export async function set ({
+export async function set({
   network,
 
   name_description: nameDescription,
@@ -123,7 +123,7 @@ set.resolve = {
 
 // =================================================================
 
-export async function delete_ ({ network }) {
+export async function delete_({ network }) {
   return this.getXapi(network).deleteNetwork(network._xapiId)
 }
 export { delete_ as delete }

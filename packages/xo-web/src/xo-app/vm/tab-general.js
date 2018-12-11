@@ -40,7 +40,10 @@ export default connectStore(() => {
   const getAttachedVgpu = createFinder(getVgpus, vgpu => vgpu.currentlyAttached)
 
   const getVgpuTypes = createGetObjectsOfType('vgpuType').pick(
-    createSelector(getVgpus, vgpus => map(vgpus, 'vgpuType'))
+    createSelector(
+      getVgpus,
+      vgpus => map(vgpus, 'vgpuType')
+    )
   )
 
   return {

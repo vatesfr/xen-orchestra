@@ -20,7 +20,7 @@ export default class TimezonePicker extends Component {
     value: PropTypes.string,
   }
 
-  componentDidMount () {
+  componentDidMount() {
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
         timezone:
@@ -38,19 +38,19 @@ export default class TimezonePicker extends Component {
     })
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (props.value !== this.props.value) {
       this.setState({ timezone: props.value || SERVER_TIMEZONE_TAG })
     }
   }
 
-  get value () {
+  get value() {
     return this.state.timezone === SERVER_TIMEZONE_TAG
       ? null
       : this.state.timezone
   }
 
-  set value (value) {
+  set value(value) {
     this.setState({ timezone: value || SERVER_TIMEZONE_TAG })
   }
 
@@ -76,7 +76,7 @@ export default class TimezonePicker extends Component {
     this._onChange({ value: LOCAL_TIMEZONE })
   }
 
-  render () {
+  render() {
     const { timezone, options } = this.state
 
     return (

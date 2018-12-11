@@ -4,7 +4,7 @@ import Plan from './plan'
 import { debug } from './utils'
 
 // Compare a list of objects and give the best.
-function searchBestObject (objects, fun) {
+function searchBestObject(objects, fun) {
   let object = objects[0]
 
   for (let i = 1; i < objects.length; i++) {
@@ -19,7 +19,7 @@ function searchBestObject (objects, fun) {
 // ===================================================================
 
 export default class PerformancePlan extends Plan {
-  _checkRessourcesThresholds (objects, averages) {
+  _checkRessourcesThresholds(objects, averages) {
     return filter(objects, object => {
       const objectAverages = averages[object.id]
 
@@ -30,7 +30,7 @@ export default class PerformancePlan extends Plan {
     })
   }
 
-  async execute () {
+  async execute() {
     // Try to power on a hosts set.
     try {
       await Promise.all(
@@ -80,7 +80,7 @@ export default class PerformancePlan extends Plan {
     }
   }
 
-  async _optimize ({ exceededHost, hosts, hostsAverages }) {
+  async _optimize({ exceededHost, hosts, hostsAverages }) {
     const vms = await this._getVms(exceededHost.id)
     const vmsAverages = await this._getVmsAverages(vms, exceededHost)
 

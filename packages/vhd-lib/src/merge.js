@@ -10,7 +10,7 @@ import { DISK_TYPE_DIFFERENCING, DISK_TYPE_DYNAMIC } from './_constants'
 // Merge vhd child into vhd parent.
 //
 // TODO: rename the VHD file during the merge
-export default concurrency(2)(async function merge (
+export default concurrency(2)(async function merge(
   parentHandler,
   parentPath,
   childHandler,

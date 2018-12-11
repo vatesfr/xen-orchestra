@@ -65,7 +65,7 @@ class VifNetwork extends BaseComponent {
     vifPoolId => network => network.$pool === vifPoolId
   )
 
-  render () {
+  render() {
     const { network } = this.props
 
     return (
@@ -168,7 +168,7 @@ class VifAllowedIps extends BaseComponent {
   _toggleNewIp = () =>
     this.setState({ showNewIpForm: !this.state.showNewIpForm })
 
-  render () {
+  render() {
     const { showNewIpForm } = this.state
     const { resourceSet, item: vif } = this.props
 
@@ -281,7 +281,7 @@ class VifStatus extends BaseComponent {
     )
   }
 
-  render () {
+  render() {
     const { vif } = this.props
 
     return (
@@ -397,11 +397,11 @@ class NewVif extends BaseComponent {
     vm: PropTypes.object.isRequired,
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this._autoFill(this.props)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     this._autoFill(props)
   }
 
@@ -447,7 +447,7 @@ class NewVif extends BaseComponent {
     resolveResourceSet
   )
 
-  render () {
+  render() {
     const formatMessage = this.props.intl.formatMessage
     const { isAdmin } = this.props
     const { mac, network } = this.state
@@ -498,8 +498,9 @@ class NewVif extends BaseComponent {
   const getVifs = createGetObjectsOfType('VIF').pick(
     (_, props) => props.vm.VIFs
   )
-  const getNetworksId = createSelector(getVifs, vifs =>
-    map(vifs, vif => vif.$network)
+  const getNetworksId = createSelector(
+    getVifs,
+    vifs => map(vifs, vif => vif.$network)
   )
   const getNetworks = createGetObjectsOfType('network').pick(getNetworksId)
 
@@ -514,7 +515,7 @@ export default class TabNetwork extends BaseComponent {
       newVif: !this.state.newVif,
     })
 
-  render () {
+  render() {
     const { newVif } = this.state
     const { pool, vm, vifs, networks } = this.props
     return (

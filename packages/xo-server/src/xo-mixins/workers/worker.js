@@ -12,7 +12,7 @@ global.Promise = require('bluebird')
 // $FlowFixMe
 const config: Object = JSON.parse(process.env.XO_CONFIG)
 
-export function mergeVhd (
+export function mergeVhd(
   parentRemote: Remote,
   parentPath: string,
   childRemote: Remote,

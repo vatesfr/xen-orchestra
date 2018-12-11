@@ -9,22 +9,22 @@ import { serializeError, thunkToArray } from '../../utils'
 // ===================================================================
 
 const paramsVectorActionsMap = {
-  extractProperties ({ mapping, value }) {
+  extractProperties({ mapping, value }) {
     return mapValues(mapping, key => value[key])
   },
-  crossProduct ({ items }) {
+  crossProduct({ items }) {
     return thunkToArray(
       crossProduct(map(items, value => resolveParamsVector.call(this, value)))
     )
   },
-  fetchObjects ({ pattern }) {
+  fetchObjects({ pattern }) {
     const objects = filter(this.getObjects(), createPredicate(pattern))
     if (isEmpty(objects)) {
       throw new Error('no objects match this pattern')
     }
     return objects
   },
-  map ({ collection, iteratee, paramName = 'value' }) {
+  map({ collection, iteratee, paramName = 'value' }) {
     return map(resolveParamsVector.call(this, collection), value => {
       return resolveParamsVector.call(this, {
         ...iteratee,
@@ -35,7 +35,7 @@ const paramsVectorActionsMap = {
   set: ({ values }) => values,
 }
 
-export function resolveParamsVector (paramsVector) {
+export function resolveParamsVector(paramsVector) {
   const visitor = paramsVectorActionsMap[paramsVector.type]
   if (!visitor) {
     throw new Error(`Unsupported function '${paramsVector.type}'.`)
@@ -46,7 +46,7 @@ export function resolveParamsVector (paramsVector) {
 
 // ===================================================================
 
-export default async function executeJobCall ({
+export default async function executeJobCall({
   app,
   job,
   logger,

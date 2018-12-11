@@ -22,7 +22,7 @@ import { useUpdateSystem } from './xapi/utils'
 
 const { defineProperties, freeze } = Object
 
-function link (obj, prop, idField = '$id') {
+function link(obj, prop, idField = '$id') {
   const dynamicValue = obj[`$${prop}`]
   if (dynamicValue == null) {
     return dynamicValue // Properly handles null and undefined.
@@ -41,7 +41,7 @@ function link (obj, prop, idField = '$id') {
 // to already be a timestamp and returned.
 //
 // If there are no data or if the timestamp is 0, returns null.
-function toTimestamp (date) {
+function toTimestamp(date) {
   if (!date) {
     return null
   }
@@ -65,7 +65,7 @@ function toTimestamp (date) {
 // ===================================================================
 
 const TRANSFORMS = {
-  pool (obj) {
+  pool(obj) {
     const cpuInfo = obj.cpu_info
     return {
       default_SR: link(obj, 'default_SR'),
@@ -97,7 +97,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  host (obj) {
+  host(obj) {
     const {
       $metrics: metrics,
       other_config: otherConfig,
@@ -154,7 +154,7 @@ const TRANSFORMS = {
       logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      memory: (function () {
+      memory: (function() {
         if (metrics) {
           const free = +metrics.memory_free
           const total = +metrics.memory_total
@@ -223,7 +223,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vm (obj, dependents) {
+  vm(obj, dependents) {
     dependents[obj.guest_metrics] = obj.$id
     dependents[obj.metrics] = obj.$id
 
@@ -285,7 +285,7 @@ const TRANSFORMS = {
             : +obj.VCPUs_at_startup,
       },
       current_operations: obj.current_operations,
-      docker: (function () {
+      docker: (function() {
         const monitor = otherConfig['xscontainer-monitor']
         if (!monitor) {
           return
@@ -314,7 +314,7 @@ const TRANSFORMS = {
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
       high_availability: obj.ha_restart_priority,
 
-      memory: (function () {
+      memory: (function() {
         const dynamicMin = +obj.memory_dynamic_min
         const dynamicMax = +obj.memory_dynamic_max
         const staticMin = +obj.memory_static_min
@@ -398,7 +398,7 @@ const TRANSFORMS = {
       vm.CPUs.number = +obj.VCPUs_at_startup
       vm.template_info = {
         arch: otherConfig['install-arch'],
-        disks: (function () {
+        disks: (function() {
           const { disks: xml } = otherConfig
           let data
           if (!xml || !(data = parseXml(xml)).provision) {
@@ -406,7 +406,7 @@ const TRANSFORMS = {
           }
 
           const disks = ensureArray(data.provision.disk)
-          forEach(disks, function normalize (disk) {
+          forEach(disks, function normalize(disk) {
             disk.bootable = disk.bootable === 'true'
             disk.size = +disk.size
             disk.SR = extractProperty(disk, 'sr')
@@ -414,7 +414,7 @@ const TRANSFORMS = {
 
           return disks
         })(),
-        install_methods: (function () {
+        install_methods: (function() {
           const methods = otherConfig['install-methods']
 
           return methods ? methods.split(',') : []
@@ -438,7 +438,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  sr (obj) {
+  sr(obj) {
     return {
       type: 'SR',
 
@@ -468,7 +468,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pbd (obj) {
+  pbd(obj) {
     return {
       type: 'PBD',
 
@@ -481,7 +481,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pif (obj) {
+  pif(obj) {
     const metrics = obj.$metrics
 
     return {
@@ -512,7 +512,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vdi (obj) {
+  vdi(obj) {
     const vdi = {
       type: 'VDI',
 
@@ -540,7 +540,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vbd (obj) {
+  vbd(obj) {
     return {
       type: 'VBD',
 
@@ -557,7 +557,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vif (obj) {
+  vif(obj) {
     return {
       type: 'VIF',
 
@@ -575,7 +575,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  network (obj) {
+  network(obj) {
     return {
       bridge: obj.bridge,
       defaultIsLocked: obj.default_locking_mode === 'disabled',
@@ -591,7 +591,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  message (obj) {
+  message(obj) {
     return {
       body: obj.body,
       name: obj.name,
@@ -603,7 +603,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  task (obj) {
+  task(obj) {
     return {
       allowedOperations: obj.allowed_operations,
       created: toTimestamp(obj.created),
@@ -621,7 +621,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  host_patch (obj) {
+  host_patch(obj) {
     return {
       applied: Boolean(obj.applied),
       time: toTimestamp(obj.timestamp_applied),
@@ -633,7 +633,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pool_patch (obj) {
+  pool_patch(obj) {
     return {
       id: obj.$ref,
 
@@ -654,7 +654,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pci (obj) {
+  pci(obj) {
     return {
       type: 'PCI',
 
@@ -668,7 +668,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pgpu (obj) {
+  pgpu(obj) {
     return {
       type: 'PGPU',
 
@@ -690,7 +690,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vgpu (obj) {
+  vgpu(obj) {
     return {
       type: 'vgpu',
 
@@ -706,7 +706,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  gpu_group (obj) {
+  gpu_group(obj) {
     return {
       type: 'gpuGroup',
 
@@ -724,7 +724,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vgpu_type (obj) {
+  vgpu_type(obj) {
     return {
       type: 'vgpuType',
 
@@ -744,7 +744,7 @@ const TRANSFORMS = {
 
 // ===================================================================
 
-export default function xapiObjectToXo (xapiObj, dependents) {
+export default function xapiObjectToXo(xapiObj, dependents) {
   const transform = TRANSFORMS[xapiObj.$type.toLowerCase()]
   if (!transform) {
     return

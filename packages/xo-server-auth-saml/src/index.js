@@ -34,18 +34,18 @@ export const configurationSchema = {
 // ===================================================================
 
 class AuthSamlXoPlugin {
-  constructor ({ xo }) {
+  constructor({ xo }) {
     this._conf = null
     this._usernameField = null
     this._xo = xo
   }
 
-  configure ({ usernameField, ...conf }) {
+  configure({ usernameField, ...conf }) {
     this._usernameField = usernameField
     this._conf = conf
   }
 
-  load () {
+  load() {
     const xo = this._xo
 
     xo.registerPassportStrategy(

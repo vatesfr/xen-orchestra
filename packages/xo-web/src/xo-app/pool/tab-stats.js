@@ -67,11 +67,11 @@ export default class PoolStats extends Component {
     })
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._loop()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this.timeout)
   }
 
@@ -88,7 +88,7 @@ export default class PoolStats extends Component {
     )
   }
 
-  render () {
+  render() {
     const {
       granularity,
       selectStatsLoading,

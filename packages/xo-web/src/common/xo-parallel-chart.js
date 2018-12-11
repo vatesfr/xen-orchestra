@@ -139,7 +139,7 @@ export default class XoParallelChart extends Component {
     .on('brush', this._handleBrush)
     .on('end', this._handleBrush)
 
-  _highlight (elem, position) {
+  _highlight(elem, position) {
     const svg = this._svg
 
     // Reset tooltip.
@@ -189,7 +189,7 @@ export default class XoParallelChart extends Component {
     this._highlight()
   }
 
-  _draw (props = this.props) {
+  _draw(props = this.props) {
     const svg = this._svg
     const { labels, dataSet } = props
 
@@ -290,7 +290,7 @@ export default class XoParallelChart extends Component {
       })
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._svg = d3
       .select(this.refs.chart)
       .append('div')
@@ -306,11 +306,11 @@ export default class XoParallelChart extends Component {
     this._draw()
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     this._draw(nextProps)
   }
 
-  render () {
+  render() {
     return <div ref='chart' />
   }
 }

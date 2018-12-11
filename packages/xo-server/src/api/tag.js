@@ -1,4 +1,4 @@
-export async function add ({ tag, object }) {
+export async function add({ tag, object }) {
   await this.getXapi(object).addTag(object._xapiId, tag)
 }
 
@@ -15,7 +15,7 @@ add.params = {
 
 // -------------------------------------------------------------------
 
-export async function remove ({ tag, object }) {
+export async function remove({ tag, object }) {
   await this.getXapi(object).removeTag(object._xapiId, tag)
 }
 

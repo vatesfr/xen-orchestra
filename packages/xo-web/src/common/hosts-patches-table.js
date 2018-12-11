@@ -77,7 +77,7 @@ const ActionButton_ = ({ children, labelId, ...props }) => (
 // ===================================================================
 
 class HostsPatchesTable extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state.missingPatches = {}
   }
@@ -118,24 +118,24 @@ class HostsPatchesTable extends Component {
     return Promise.all(map(keys(pools), installAllPatchesOnPool))
   }
 
-  componentDidMount () {
+  componentDidMount() {
     // Force one Portal refresh.
     // Because Portal cannot see the container reference at first rendering.
     this.forceUpdate()
     this._subscribeMissingPatches()
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (nextProps.hosts !== this.props.hosts) {
       this._subscribeMissingPatches(nextProps.hosts)
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this.unsubscribeMissingPatches()
   }
 
-  render () {
+  render() {
     const {
       buttonsGroupContainer,
       container,
@@ -196,7 +196,7 @@ class HostsPatchesTable extends Component {
   }
 })
 class HostsPatchesTableByPool extends Component {
-  render () {
+  render() {
     const { props } = this
     return <HostsPatchesTable {...props} pools={props.pools} />
   }

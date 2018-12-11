@@ -1,11 +1,11 @@
-export async function getAll () {
+export async function getAll() {
   return this.getAllRemotes()
 }
 
 getAll.permission = 'admin'
 getAll.description = 'Gets all existing fs remote points'
 
-export async function get ({ id }) {
+export async function get({ id }) {
   return this.getRemote(id)
 }
 
@@ -15,7 +15,7 @@ get.params = {
   id: { type: 'string' },
 }
 
-export async function test ({ id }) {
+export async function test({ id }) {
   return this.testRemote(id)
 }
 
@@ -25,7 +25,7 @@ test.params = {
   id: { type: 'string' },
 }
 
-export async function list ({ id }) {
+export async function list({ id }) {
   return this.listRemoteBackups(id)
 }
 
@@ -35,7 +35,7 @@ list.params = {
   id: { type: 'string' },
 }
 
-export async function create ({ name, url, options }) {
+export async function create({ name, url, options }) {
   return this.createRemote({ name, url, options })
 }
 
@@ -47,7 +47,7 @@ create.params = {
   options: { type: 'string', optional: true },
 }
 
-export async function set ({ id, name, url, options, enabled }) {
+export async function set({ id, name, url, options, enabled }) {
   await this.updateRemote(id, { name, url, options, enabled })
 }
 
@@ -61,7 +61,7 @@ set.params = {
   enabled: { type: 'boolean', optional: true },
 }
 
-async function delete_ ({ id }) {
+async function delete_({ id }) {
   await this.removeRemote(id)
 }
 

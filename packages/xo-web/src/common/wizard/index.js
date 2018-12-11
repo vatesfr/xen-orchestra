@@ -31,14 +31,14 @@ export class Section extends Component {
     title: PropTypes.string.isRequired,
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this.setState({ isActive: false })
   }
 
   _onFocus = () => this.setState({ isActive: true })
   _onBlur = () => this.setState({ isActive: false })
 
-  render () {
+  render() {
     const { allDone, icon, title, done, children } = this.props
     return (
       <li

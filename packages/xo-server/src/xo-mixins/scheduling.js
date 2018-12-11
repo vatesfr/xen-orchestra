@@ -31,7 +31,7 @@ const normalize = schedule => {
 }
 
 class Schedules extends Collection {
-  async get (properties) {
+  async get(properties) {
     const schedules = await super.get(properties)
     schedules.forEach(normalize)
     return schedules
@@ -49,7 +49,7 @@ export default class Scheduling {
   |}
   _runs: { __proto__: null, [string]: () => void }
 
-  constructor (app: any) {
+  constructor(app: any) {
     this._app = app
 
     const db = (this._db = new Schedules({
@@ -92,7 +92,7 @@ export default class Scheduling {
     })
   }
 
-  async createSchedule ({
+  async createSchedule({
     cron,
     enabled,
     jobId,
@@ -112,7 +112,7 @@ export default class Scheduling {
     return schedule
   }
 
-  async getSchedule (id: string): Promise<Schedule> {
+  async getSchedule(id: string): Promise<Schedule> {
     const schedule = await this._db.first(id)
     if (schedule === undefined) {
       throw noSuchObject(id, 'schedule')
@@ -120,16 +120,16 @@ export default class Scheduling {
     return schedule.properties
   }
 
-  async getAllSchedules (): Promise<Array<Schedule>> {
+  async getAllSchedules(): Promise<Array<Schedule>> {
     return this._db.get()
   }
 
-  async deleteSchedule (id: string) {
+  async deleteSchedule(id: string) {
     this._stop(id)
     await this._db.remove(id)
   }
 
-  async updateSchedule ({
+  async updateSchedule({
     cron,
     enabled,
     id,
@@ -146,7 +146,7 @@ export default class Scheduling {
     await this._db.update(schedule)
   }
 
-  _start (schedule: Schedule) {
+  _start(schedule: Schedule) {
     const { id } = schedule
 
     this._stop(id)
@@ -159,7 +159,7 @@ export default class Scheduling {
     }
   }
 
-  _stop (id: string) {
+  _stop(id: string) {
     const runs = this._runs
     if (id in runs) {
       runs[id]()

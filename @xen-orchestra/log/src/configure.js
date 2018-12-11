@@ -12,7 +12,7 @@ const createTransport = config => {
   if (Array.isArray(config)) {
     const transports = config.map(createTransport)
     const { length } = transports
-    return function () {
+    return function() {
       for (let i = 0; i < length; ++i) {
         transports[i].apply(this, arguments)
       }
@@ -29,14 +29,14 @@ const createTransport = config => {
     }
 
     const orig = transport
-    transport = function (log) {
+    transport = function(log) {
       if ((level !== undefined && log.level >= level) || filter(log)) {
         return orig.apply(this, arguments)
       }
     }
   } else if (level !== undefined) {
     const orig = transport
-    transport = function (log) {
+    transport = function(log) {
       if (log.level >= level) {
         return orig.apply(this, arguments)
       }
@@ -85,7 +85,7 @@ export const catchGlobalErrors = logger => {
   const EventEmitter = require('events')
   const { prototype } = EventEmitter
   const { emit } = prototype
-  function patchedEmit (event, error) {
+  function patchedEmit(event, error) {
     if (event === 'error' && this.listenerCount(event) === 0) {
       logger.error('unhandled error event', { error })
       return false
