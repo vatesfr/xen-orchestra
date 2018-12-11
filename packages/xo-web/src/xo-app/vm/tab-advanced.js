@@ -15,9 +15,9 @@ import { Container, Row, Col } from 'grid'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Select, Toggle } from 'form'
 import {
-  SelectSubject,
   SelectResourceSet,
   SelectRole,
+  SelectSubject,
   SelectVgpuType,
 } from 'select-objects'
 import {
