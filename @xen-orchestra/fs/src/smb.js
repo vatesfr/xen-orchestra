@@ -1,6 +1,4 @@
-import defer from 'golike-defer'
 import Smb2 from '@marsaud/smb2'
-import { finished } from 'readable-stream'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -13,10 +11,12 @@ const wrapError = (error, code) => ({
 const normalizeError = (error, shouldBeDirectory) => {
   const { code } = error
 
-  return code === 'STATUS_DIRECTORY_NOT_EMPTY'
+  throw code === 'STATUS_DIRECTORY_NOT_EMPTY'
     ? wrapError(error, 'ENOTEMPTY')
     : code === 'STATUS_FILE_IS_A_DIRECTORY'
     ? wrapError(error, 'EISDIR')
+    : code === 'STATUS_NOT_A_DIRECTORY'
+    ? wrapError(error, 'ENOTDIR')
     : code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
       code === 'STATUS_OBJECT_PATH_NOT_FOUND'
     ? wrapError(error, 'ENOENT')
@@ -26,10 +26,14 @@ const normalizeError = (error, shouldBeDirectory) => {
     ? wrapError(error, shouldBeDirectory ? 'ENOTDIR' : 'EISDIR')
     : error
 }
+const normalizeDirError = error => normalizeError(error, true)
 
 export default class SmbHandler extends RemoteHandlerAbstract {
   constructor(remote, opts) {
     super(remote, opts)
+
+    // defined in _sync()
+    this._client = undefined
 
     const prefix = this._remote.path
     this._prefix = prefix !== '' ? prefix + '\\' : prefix
@@ -39,20 +43,13 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return 'smb'
   }
 
-  _getClient() {
-    const remote = this._remote
-
-    return new Smb2({
-      share: `\\\\${remote.host}`,
-      domain: remote.domain,
-      username: remote.username,
-      password: remote.password,
-      autoCloseTimeout: 0,
-    })
-  }
-
   _getFilePath(file) {
-    return this._prefix + file.slice(1).replace(/\//g, '\\')
+    return (
+      this._prefix +
+      (typeof file === 'string' ? file : file.path)
+        .slice(1)
+        .replace(/\//g, '\\')
+    )
   }
 
   _dirname(file) {
@@ -61,206 +58,104 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return parts.join('\\')
   }
 
-  async _closeFile({ client, file }) {
-    try {
-      await client.close(file).catch(normalizeError)
-    } finally {
-      client.disconnect()
-    }
+  _closeFile(file) {
+    return this._client.close(file).catch(normalizeError)
   }
 
-  async _createReadStream(file, options) {
-    const needsClose = typeof file === 'string'
-    let client
-    if (needsClose) {
-      client = this._getClient()
-    } else {
-      ;({ client } = file.fd)
-      file = file.path
-    }
-
-    try {
-      // FIXME ensure that options are properly handled by @marsaud/smb2
-      const stream = await client.createReadStream(
-        this._getFilePath(file),
-        options
-      )
-
-      if (needsClose) {
-        finished(stream, () => client.disconnect())
-      }
-
-      return stream
-    } catch (error) {
-      if (needsClose) {
-        client.disconnect()
-      }
-      throw normalizeError(error)
-    }
-  }
-
-  async _createWriteStream(file, options) {
-    const needsClose = typeof file === 'string'
-    let client
-    if (needsClose) {
-      client = this._getClient()
-    } else {
-      ;({ client } = file.fd)
-      file = file.path
-    }
-
-    try {
-      // FIXME ensure that options are properly handled by @marsaud/smb2
-      const stream = await client.createWriteStream(
-        this._getFilePath(file),
-        options
-      )
-
-      if (needsClose) {
-        finished(stream, () => client.disconnect())
-      }
-
-      return stream
-    } catch (err) {
-      if (needsClose) {
-        client.disconnect()
-      }
-      throw normalizeError(err)
-    }
-  }
-
-  async _getSize(file) {
-    const needsClose = typeof file === 'string'
-    let client
-    if (needsClose) {
-      client = this._getClient()
-    } else {
-      ;({ client } = file.fd)
-      file = file.path
-    }
-    try {
-      return await client.getSize(this._getFilePath(file))
-    } catch (error) {
-      throw normalizeError(error)
-    } finally {
-      if (needsClose) {
-        client.disconnect()
-      }
-    }
-  }
-
-  async _list(dir) {
-    const client = this._getClient()
-    try {
-      return await client.readdir(this._getFilePath(dir))
-    } catch (error) {
-      throw normalizeError(error, true)
-    } finally {
-      client.disconnect()
-    }
-  }
-
-  async _mkdir(dir) {
-    const client = this._getClient()
-    try {
-      return await client.mkdir(this._getFilePath(dir))
-    } catch (error) {
-      throw normalizeError(error, true)
-    } finally {
-      client.disconnect()
-    }
-  }
-
-  // TODO: add flags
-  async _openFile(path) {
-    const client = this._getClient()
-    return {
-      client,
-      file: await client.open(this._getFilePath(path)).catch(normalizeError),
-    }
-  }
-
-  @defer
-  async _read($defer, file, buffer, position) {
-    let client
-    if (typeof file === 'string') {
-      client = this._getClient()
-      $defer.call(client, 'disconnect')
-      file = await client.open(this._getFilePath(file))
-      $defer.call(client, 'close', file)
-    } else {
-      ;({ client, file } = file.fd)
-    }
-
-    return client
-      .read(file, buffer, 0, buffer.length, position)
+  _createReadStream(file, options) {
+    // FIXME ensure that options are properly handled by @marsaud/smb2
+    return this._client
+      .createReadStream(this._getFilePath(file), options)
       .catch(normalizeError)
   }
 
-  async _readFile(file, options) {
-    const client = this._getClient()
+  _createWriteStream(file, options) {
+    // FIXME ensure that options are properly handled by @marsaud/smb2
+    return this._client
+      .createWriteStream(this._getFilePath(file), options)
+      .catch(normalizeError)
+  }
+
+  _forget() {
+    const client = this._client
+    this._client = undefined
+    return client.disconnect()
+  }
+
+  _getSize(file) {
+    return this._client.getSize(this._getFilePath(file)).catch(normalizeError)
+  }
+
+  _list(dir) {
+    return this._client.readdir(this._getFilePath(dir)).catch(normalizeDirError)
+  }
+
+  _mkdir(dir) {
+    return this._client.mkdir(this._getFilePath(dir)).catch(normalizeDirError)
+  }
+
+  // TODO: add flags
+  _openFile(path, flags) {
+    return this._client
+      .open(this._getFilePath(path), flags)
+      .catch(normalizeError)
+  }
+
+  async _read(file, buffer, position) {
+    const client = this._client
+    const needsClose = typeof file === 'string'
+    file = needsClose ? await client.open(this._getFilePath(file)) : file.fd
     try {
-      return await client.readFile(this._getFilePath(file), options)
+      return await client.read(file, buffer, 0, buffer.length, position)
     } catch (error) {
-      throw normalizeError(error)
+      normalizeError(error)
     } finally {
-      client.disconnect()
+      if (needsClose) {
+        await client.close(file)
+      }
     }
   }
 
-  async _rename(oldPath, newPath) {
-    const client = this._getClient()
-    try {
-      await client.rename(
-        this._getFilePath(oldPath),
-        this._getFilePath(newPath),
-        {
-          replace: true,
-        }
-      )
-    } catch (error) {
-      throw normalizeError(error)
-    } finally {
-      client.disconnect()
-    }
+  _readFile(file, options) {
+    return this._client
+      .readFile(this._getFilePath(file), options)
+      .catch(normalizeError)
   }
 
-  async _rmdir(dir) {
-    const client = this._getClient()
-    try {
-      await client.rmdir(this._getFilePath(dir))
-    } catch (error) {
-      throw normalizeError(error, true)
-    } finally {
-      client.disconnect()
-    }
+  _rename(oldPath, newPath) {
+    return this._client
+      .rename(this._getFilePath(oldPath), this._getFilePath(newPath), {
+        replace: true,
+      })
+      .catch(normalizeError)
   }
 
-  async _sync() {
+  _rmdir(dir) {
+    return this._client.rmdir(this._getFilePath(dir)).catch(normalizeDirError)
+  }
+
+  _sync() {
+    const remote = this._remote
+
+    this._client = new Smb2({
+      share: `\\\\${remote.host}`,
+      domain: remote.domain,
+      username: remote.username,
+      password: remote.password,
+      autoCloseTimeout: 0,
+    })
+
     // Check access (smb2 does not expose connect in public so far...)
-    await this.list('.')
+    return this.list('.')
   }
 
-  async _unlink(file) {
-    const client = this._getClient()
-    try {
-      await client.unlink(this._getFilePath(file))
-    } catch (error) {
-      throw normalizeError(error)
-    } finally {
-      client.disconnect()
-    }
+  _unlink(file) {
+    return this._client.unlink(this._getFilePath(file)).catch(normalizeError)
   }
 
-  async _writeFile(file, data, options) {
-    const path = this._getFilePath(file)
-    const client = this._getClient()
-    try {
-      return await client.writeFile(path, data, options)
-    } catch (error) {
-      throw normalizeError(error)
-    } finally {
-      client.disconnect()
-    }
+  _writeFile(file, data, options) {
+    return this._client
+      .writeFile(this._getFilePath(file), data, options)
+      .catch(normalizeError)
   }
 }
