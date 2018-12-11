@@ -1091,6 +1091,19 @@ export default class BackupNg {
 
     const metadataFilename = `${vmDir}/${basename}.json`
 
+    const disableHighAvailability = async replicatedVm => {
+      if (vm.ha_restart_priority === '') {
+        return
+      }
+
+      return Promise.all([
+        xapi._setObjectProperties(replicatedVm, {
+          haRestartPriority: '',
+        }),
+        xapi.addTag(replicatedVm.$ref, 'HA disabled'),
+      ])
+    }
+
     if (mode === 'full') {
       // TODO: do not create the snapshot if there are no snapshotRetention and
       // the VM is not running
@@ -1135,8 +1148,6 @@ export default class BackupNg {
       const dataFilename = `${vmDir}/${dataBasename}`
 
       const jsonMetadata = JSON.stringify(metadata)
-
-      const disableHighAvailability = vm.ha_restart_priority !== ''
 
       await waitAll(
         [
@@ -1231,9 +1242,6 @@ export default class BackupNg {
                         nameLabel: `${metadata.vm.name_label} - ${
                           job.name
                         } - (${safeDateFormat(metadata.timestamp)})`,
-                        haRestartPriority: disableHighAvailability
-                          ? ''
-                          : undefined,
                       })
                     )
                   )
@@ -1241,8 +1249,7 @@ export default class BackupNg {
 
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Disaster Recovery'),
-                  disableHighAvailability &&
-                    xapi.addTag(vm.$ref, 'HA disabled'),
+                  disableHighAvailability(vm),
                   xapi._updateObjectMapProperty(vm, 'blocked_operations', {
                     start:
                       'Start operation for this vm is blocked, clone it if you want to use it.',
@@ -1593,6 +1600,7 @@ export default class BackupNg {
 
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Continuous Replication'),
+                  disableHighAvailability(vm),
                   xapi._updateObjectMapProperty(vm, 'blocked_operations', {
                     start:
                       'Start operation for this vm is blocked, clone it if you want to use it.',
