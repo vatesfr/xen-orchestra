@@ -1081,6 +1081,7 @@ const messages = {
   vmAcls: 'ACLs',
   vmAddAcls: 'add ACLs',
   removeAcl: 'delete',
+  moreAcls: '{nAcls, number} more…',
 
   // ----- VM placeholders -----
 

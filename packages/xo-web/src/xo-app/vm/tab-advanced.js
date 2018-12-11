@@ -4,6 +4,7 @@ import Component from 'base-component'
 import defined from '@xen-orchestra/defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
+import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
@@ -69,6 +70,11 @@ import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
 const SHARE_BUTTON_STYLE = { height: '38px' }
+const LEVELS = {
+  admin: 'danger',
+  operator: 'primary',
+  viewer: 'success',
+}
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -396,23 +402,33 @@ class Acls extends Component {
       <Container>
         <Row>
           {!isEmpty(vmAcls) &&
-            vmAcls.map(({ subject, action }) => (
-              <Col>
-                <Tooltip key={subject.id} content={action}>
-                  <span>{subject.email}</span>
-                </Tooltip>{' '}
-                <Tooltip content={_('removeAcl')}>
-                  <a
-                    role='button'
-                    onClick={() =>
-                      removeAcl({ subject, object: this.props.vm, action })
-                    }
-                  >
-                    <Icon icon='remove' />
-                  </a>
-                </Tooltip>
-              </Col>
-            ))}
+            vmAcls.slice(0, 5).map(({ subject, action }) => {
+              return (
+                <Col>
+                  <span>{`${subject.email} `}</span>
+                  <span className={`tag tag-pill tag-${LEVELS[action]}`}>
+                    {action}
+                  </span>{' '}
+                  <Tooltip content={_('removeAcl')}>
+                    <a
+                      role='button'
+                      onClick={() =>
+                        removeAcl({ subject, object: this.props.vm, action })
+                      }
+                    >
+                      <Icon icon='remove' />
+                    </a>
+                  </Tooltip>
+                </Col>
+              )
+            })}
+          {vmAcls && vmAcls.length > 5 && (
+            <Col>
+              <Link to={`settings/acls?s=object:${this.props.vm.id}`}>
+                {_('moreAcls', { nAcls: vmAcls.length - 5 })}
+              </Link>
+            </Col>
+          )}
           <Col>
             <ActionButton
               btnStyle='primary'
