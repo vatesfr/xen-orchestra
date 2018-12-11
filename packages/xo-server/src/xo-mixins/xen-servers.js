@@ -2,7 +2,6 @@ import createLogger from '@xen-orchestra/log'
 import { BaseError } from 'make-error'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 import { fibonacci } from 'iterable-backoff'
-import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Xapi from '../xapi'
@@ -469,18 +468,17 @@ export default class {
       throw e
     }
 
-    this.unregisterXenServer(
-      findKey(this._xapis, candidate => candidate === sourceXapi)
-    )::ignoreErrors()
+    this.unregisterXenServer(this._xapisByPool[sourcePoolId])::ignoreErrors()
   }
 
   async detachHostFromPool(hostId) {
     const xapi = this.getXapi(hostId)
+    const poolId = xapi.pool.$id
     const { address } = xapi.getObject(hostId)
 
     await xapi.ejectHostFromPool(hostId)
 
-    this._getXenServer(findKey(this._xapis, candidate => candidate === xapi))
+    this._getXenServer(this._xapisByPool[poolId])
       .then(async ({ properties }) => {
         const { id } = await this.registerXenServer({
           ...properties,
