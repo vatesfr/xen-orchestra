@@ -51,7 +51,6 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
-    "prepare": "yarn run build",
-    "test-integration": "jest \".integ\\.spec\\.js$\""
+    "prepare": "yarn run build"
   }
 }
