@@ -1,8 +1,9 @@
 import createLogger from '@xen-orchestra/log'
 import { BaseError } from 'make-error'
-import { pDelay, ignoreErrors } from 'promise-toolbox'
 import { fibonacci } from 'iterable-backoff'
+import { get } from '@xen-orchestra/defined'
 import { noSuchObject } from 'xo-common/api-errors'
+import { pDelay, ignoreErrors } from 'promise-toolbox'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -265,13 +266,14 @@ export default class {
       await xapi.connect()
 
       const xapisByPool = this._xapisByPool
+      const xapis = this._xapis
       const [{ $id: poolId }] = await xapi.getAllRecords('pool')
-      if (xapisByPool[poolId] !== undefined) {
+      if (get(() => xapis[xapisByPool[poolId]]) !== undefined) {
         throw new PoolAlreadyConnected()
       }
 
       xapisByPool[poolId] = server.id
-      this._xapis[server.id] = xapi
+      xapis[server.id] = xapi
 
       xapi.xo = (() => {
         const conId = server.id
@@ -384,11 +386,6 @@ export default class {
 
     delete this._xapis[id]
 
-    const xapisByPool = this._xapisByPool
-    for (const poolId in xapisByPool) {
-      xapisByPool[poolId] === id && delete xapisByPool[poolId]
-    }
-
     xapi.xo.uninstall()
     return xapi.disconnect()
   }
@@ -408,12 +405,12 @@ export default class {
       throw new Error(`object ${object.id} does not belong to a pool`)
     }
 
-    const serverId = this._xapisByPool[poolId]
-    if (serverId === undefined) {
+    const xapi = get(() => this._xapis[this._xapisByPool[poolId]])
+    if (xapi === undefined) {
       throw new Error(`no connection found for object ${object.id}`)
     }
 
-    return this._xapis[serverId]
+    return xapi
   }
 
   async getAllXenServers() {
