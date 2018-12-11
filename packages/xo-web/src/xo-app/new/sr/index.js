@@ -67,11 +67,11 @@ class SelectScsiId extends Component {
     this.setState({ value: opt.value }, () => props.onChange(opt.value))
   }
 
-  componentDidMount () {
+  componentDidMount() {
     return this.componentDidUpdate()
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     let options
     if (
       this.state.value === null &&
@@ -83,7 +83,7 @@ class SelectScsiId extends Component {
 
   state = { value: null }
 
-  render () {
+  render() {
     return (
       <Select
         clearable={false}
@@ -111,11 +111,11 @@ class SelectIqn extends Component {
     this.setState({ value }, () => props.onChange(props.options[value]))
   }
 
-  componentDidMount () {
+  componentDidMount() {
     return this.componentDidUpdate()
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     let options
     if (
       this.state.value === null &&
@@ -127,7 +127,7 @@ class SelectIqn extends Component {
 
   state = { value: null }
 
-  render () {
+  render() {
     return (
       <Select
         clearable={false}
@@ -161,11 +161,11 @@ class SelectLun extends Component {
     this.setState({ value }, () => props.onChange(props.options[value]))
   }
 
-  componentDidMount () {
+  componentDidMount() {
     return this.componentDidUpdate()
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     let options
     if (
       this.state.value === null &&
@@ -177,7 +177,7 @@ class SelectLun extends Component {
 
   state = { value: null }
 
-  render () {
+  render() {
     return (
       <Select
         clearable={false}
@@ -222,7 +222,7 @@ const getSrPath = id => `/srs/${id}`
   srs: createGetObjectsOfType('SR'),
 }))
 export default class New extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     const hostId = props.location.query.host
@@ -552,7 +552,7 @@ export default class New extends Component {
     }
   }
 
-  _renderHeader () {
+  _renderHeader() {
     return (
       <Container>
         <Row>
@@ -566,7 +566,7 @@ export default class New extends Component {
     )
   }
 
-  render () {
+  render() {
     const { hosts } = this.props
     const {
       auth,

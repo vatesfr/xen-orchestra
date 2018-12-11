@@ -30,8 +30,9 @@ export default class SmartBackupPreview extends Component {
     (vms, predicate) => filter(vms, predicate)
   )
 
-  _getSampleOfMatchingVms = createSelector(this._getMatchingVms, vms =>
-    vms.slice(0, SAMPLE_SIZE_OF_MATCHING_VMS)
+  _getSampleOfMatchingVms = createSelector(
+    this._getMatchingVms,
+    vms => vms.slice(0, SAMPLE_SIZE_OF_MATCHING_VMS)
   )
 
   _getQueryString = createSelector(
@@ -39,7 +40,7 @@ export default class SmartBackupPreview extends Component {
     constructQueryString
   )
 
-  render () {
+  render() {
     const nMatchingVms = this._getMatchingVms().length
     const sampleOfMatchingVms = this._getSampleOfMatchingVms()
     const queryString = this._getQueryString()

@@ -1,4 +1,4 @@
-export function get ({ namespace }) {
+export function get({ namespace }) {
   return this.getLogs(namespace)
 }
 
@@ -10,7 +10,7 @@ get.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-async function delete_ ({ namespace, id }) {
+async function delete_({ namespace, id }) {
   const logger = await this.getLogger(namespace)
   logger.del(id)
 }

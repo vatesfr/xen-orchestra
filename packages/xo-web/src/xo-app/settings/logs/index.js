@@ -125,7 +125,7 @@ export default class Logs extends BaseComponent {
 
   _getPredicate = logs => logs != null
 
-  render () {
+  render() {
     const logs = this._getLogs()
 
     return (

@@ -3,26 +3,26 @@ import { isEmpty } from '../../utils'
 import { makeEditObject } from '../utils'
 
 export default {
-  async _connectVif (vif) {
+  async _connectVif(vif) {
     await this.call('VIF.plug', vif.$ref)
   },
-  async connectVif (vifId) {
+  async connectVif(vifId) {
     await this._connectVif(this.getObject(vifId))
   },
-  async _deleteVif (vif) {
+  async _deleteVif(vif) {
     await this.call('VIF.destroy', vif.$ref)
   },
-  async deleteVif (vifId) {
+  async deleteVif(vifId) {
     const vif = this.getObject(vifId)
     if (vif.currently_attached) {
       await this._disconnectVif(vif)
     }
     await this._deleteVif(vif)
   },
-  async _disconnectVif (vif) {
+  async _disconnectVif(vif) {
     await this.call('VIF.unplug_force', vif.$ref)
   },
-  async disconnectVif (vifId) {
+  async disconnectVif(vifId) {
     await this._disconnectVif(this.getObject(vifId))
   },
   editVif: makeEditObject({
@@ -30,7 +30,7 @@ export default {
       get: true,
       set: [
         'ipv4Allowed',
-        function (value, vif) {
+        function(value, vif) {
           const lockingMode =
             isEmpty(value) && isEmpty(vif.ipv6_allowed)
               ? 'network_default'
@@ -46,7 +46,7 @@ export default {
       get: true,
       set: [
         'ipv6Allowed',
-        function (value, vif) {
+        function(value, vif) {
           const lockingMode =
             isEmpty(value) && isEmpty(vif.ipv4_allowed)
               ? 'network_default'

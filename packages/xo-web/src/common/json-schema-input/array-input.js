@@ -45,7 +45,7 @@ export default class ObjectInput extends Component {
     props.onChange(filter(props.value, (_, i) => i !== key))
   }
 
-  render () {
+  render() {
     const {
       props: {
         depth = 0,

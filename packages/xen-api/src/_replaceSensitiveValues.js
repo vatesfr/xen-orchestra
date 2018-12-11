@@ -1,7 +1,7 @@
 import mapValues from 'lodash/mapValues'
 
-export default function replaceSensitiveValues (value, replacement) {
-  function helper (value, name) {
+export default function replaceSensitiveValues(value, replacement) {
+  function helper(value, name) {
     if (name === 'password' && typeof value === 'string') {
       return replacement
     }

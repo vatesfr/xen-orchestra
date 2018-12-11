@@ -19,7 +19,7 @@ const VHD_BLOCK_SIZE_SECTORS = VHD_BLOCK_SIZE_BYTES / SECTOR_SIZE
 /**
  * @returns currentVhdPositionSector the first free sector after the data
  */
-function createBAT (
+function createBAT(
   firstBlockPosition,
   blockAddressList,
   ratio,
@@ -39,7 +39,7 @@ function createBAT (
   return currentVhdPositionSector
 }
 
-export default async function createReadableStream (
+export default async function createReadableStream(
   diskSize,
   incomingBlockSize,
   blockAddressList,
@@ -89,7 +89,7 @@ export default async function createReadableStream (
   )
   const fileSize = endOfData * SECTOR_SIZE + FOOTER_SIZE
   let position = 0
-  function * yieldAndTrack (buffer, expectedPosition) {
+  function* yieldAndTrack(buffer, expectedPosition) {
     if (expectedPosition !== undefined) {
       assert.strictEqual(position, expectedPosition)
     }
@@ -98,7 +98,7 @@ export default async function createReadableStream (
       position += buffer.length
     }
   }
-  async function * generateFileContent (blockIterator, bitmapSize, ratio) {
+  async function* generateFileContent(blockIterator, bitmapSize, ratio) {
     let currentBlock = -1
     let currentVhdBlockIndex = -1
     let currentBlockWithBitmap = Buffer.alloc(0)
@@ -108,7 +108,7 @@ export default async function createReadableStream (
       const batIndex = Math.floor(next.offsetBytes / VHD_BLOCK_SIZE_BYTES)
       if (batIndex !== currentVhdBlockIndex) {
         if (currentVhdBlockIndex >= 0) {
-          yield * yieldAndTrack(
+          yield* yieldAndTrack(
             currentBlockWithBitmap,
             bat.readUInt32BE(currentVhdBlockIndex * 4) * SECTOR_SIZE
           )
@@ -126,15 +126,15 @@ export default async function createReadableStream (
         bitmapSize + (next.offsetBytes % VHD_BLOCK_SIZE_BYTES)
       )
     }
-    yield * yieldAndTrack(currentBlockWithBitmap)
+    yield* yieldAndTrack(currentBlockWithBitmap)
   }
 
-  async function * iterator () {
-    yield * yieldAndTrack(footer, 0)
-    yield * yieldAndTrack(header, FOOTER_SIZE)
-    yield * yieldAndTrack(bat, FOOTER_SIZE + HEADER_SIZE)
-    yield * generateFileContent(blockIterator, bitmapSize, ratio)
-    yield * yieldAndTrack(footer)
+  async function* iterator() {
+    yield* yieldAndTrack(footer, 0)
+    yield* yieldAndTrack(header, FOOTER_SIZE)
+    yield* yieldAndTrack(bat, FOOTER_SIZE + HEADER_SIZE)
+    yield* generateFileContent(blockIterator, bitmapSize, ratio)
+    yield* yieldAndTrack(footer)
   }
 
   const stream = asyncIteratorToStream(iterator())

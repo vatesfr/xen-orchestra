@@ -28,11 +28,14 @@ import styles from './index.css'
     )
   )
 
-  const getMissingPatches = createSelector(getPoolHosts, hosts => {
-    return Promise.all(map(hosts, host => getHostMissingPatches(host))).then(
-      patches => uniq(map(flatten(patches), 'name'))
-    )
-  })
+  const getMissingPatches = createSelector(
+    getPoolHosts,
+    hosts => {
+      return Promise.all(map(hosts, host => getHostMissingPatches(host))).then(
+        patches => uniq(map(flatten(patches), 'name'))
+      )
+    }
+  )
 
   const getHostMetrics = createGetHostMetrics(getPoolHosts)
 
@@ -68,13 +71,13 @@ export default class PoolItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
-  componentWillMount () {
+  componentWillMount() {
     this.props.missingPatches.then(patches =>
       this.setState({ missingPatchCount: size(patches) })
     )
   }
 
-  render () {
+  render() {
     const {
       item: pool,
       expandAll,

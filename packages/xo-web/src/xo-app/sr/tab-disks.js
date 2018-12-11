@@ -79,7 +79,10 @@ const COLUMNS = [
       const getVbds = createGetObjectsOfType('VBD')
         .pick((_, props) => props.item.$VBDs)
         .sort()
-      const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
+      const getVmIds = createSelector(
+        getVbds,
+        vbds => map(vbds, 'VM')
+      )
       const getVms = createGetObjectsOfType('VM').pick(getVmIds)
       const getVmControllers = createGetObjectsOfType('VM-controller').pick(
         getVmIds
@@ -241,7 +244,7 @@ class NewDisk extends Component {
     }).then(onClose)
   }
 
-  render () {
+  render() {
     const { formatMessage } = this.props.intl
     const { name, readOnly, size } = this.state
 
@@ -315,7 +318,7 @@ export default class SrDisks extends Component {
     vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
   )
 
-  render () {
+  render() {
     const vdis = this._getAllVdis()
     const { newDisk } = this.state
 

@@ -40,7 +40,7 @@ const jobKeyToLabel = {
 
 @connectStore(() => ({ object: createGetObject() }))
 class JobParam extends Component {
-  render () {
+  render() {
     const { object, paramKey, id } = this.props
 
     return object != null
@@ -51,7 +51,7 @@ class JobParam extends Component {
 
 @connectStore(() => ({ object: createGetObject() }))
 class JobReturn extends Component {
-  render () {
+  render() {
     const { object, id } = this.props
 
     return (
@@ -180,7 +180,7 @@ class Log extends BaseComponent {
     )
   )
 
-  render () {
+  render() {
     const { error } = this.props.log
     return error !== undefined ? (
       <span

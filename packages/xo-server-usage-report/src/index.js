@@ -112,7 +112,7 @@ const normaliseValue = value => (isFinite(value) ? round(value, 2) : '-')
 
 // ===================================================================
 
-Handlebars.registerHelper('compare', function (
+Handlebars.registerHelper('compare', function(
   lvalue,
   operator,
   rvalue,
@@ -133,7 +133,7 @@ Handlebars.registerHelper('compare', function (
     : options.inverse(this)
 })
 
-Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
+Handlebars.registerHelper('math', function(lvalue, operator, rvalue, options) {
   if (arguments.length < 3) {
     throw new Error('Handlebars Helper "math" needs 2 parameters')
   }
@@ -205,7 +205,7 @@ Handlebars.registerHelper(
 
 // ===================================================================
 
-function computeMean (values) {
+function computeMean(values) {
   let sum = 0
   let n = 0
   forEach(values, val => {
@@ -220,14 +220,14 @@ function computeMean (values) {
 
 const computeDoubleMean = val => computeMean(map(val, computeMean))
 
-function computeMeans (objects, options) {
+function computeMeans(objects, options) {
   return zipObject(
     options,
     map(options, opt => computeMean(map(objects, opt)), 2)
   )
 }
 
-function getTop (objects, options) {
+function getTop(objects, options) {
   return zipObject(
     options,
     map(options, opt =>
@@ -251,7 +251,7 @@ function getTop (objects, options) {
   )
 }
 
-function computePercentage (curr, prev, options) {
+function computePercentage(curr, prev, options) {
   return zipObject(
     options,
     map(options, opt =>
@@ -262,14 +262,14 @@ function computePercentage (curr, prev, options) {
   )
 }
 
-function getDiff (oldElements, newElements) {
+function getDiff(oldElements, newElements) {
   return {
     added: differenceBy(newElements, oldElements, 'uuid'),
     removed: differenceBy(oldElements, newElements, 'uuid'),
   }
 }
 
-function getMemoryUsedMetric ({ memory, memoryFree = memory }) {
+function getMemoryUsedMetric({ memory, memoryFree = memory }) {
   return map(memory, (value, key) => value - memoryFree[key])
 }
 
@@ -284,7 +284,7 @@ const METRICS_MEAN = {
 
 // ===================================================================
 
-async function getVmsStats ({ runningVms, xo }) {
+async function getVmsStats({ runningVms, xo }) {
   return orderBy(
     await Promise.all(
       map(runningVms, async vm => {
@@ -322,7 +322,7 @@ async function getVmsStats ({ runningVms, xo }) {
   )
 }
 
-async function getHostsStats ({ runningHosts, xo }) {
+async function getHostsStats({ runningHosts, xo }) {
   return orderBy(
     await Promise.all(
       map(runningHosts, async host => {
@@ -354,7 +354,7 @@ async function getHostsStats ({ runningHosts, xo }) {
   )
 }
 
-async function getSrsStats ({ xo, xoObjects }) {
+async function getSrsStats({ xo, xoObjects }) {
   return orderBy(
     await asyncMap(
       filter(
@@ -406,7 +406,7 @@ async function getSrsStats ({ xo, xoObjects }) {
   )
 }
 
-function computeGlobalVmsStats ({ haltedVms, vmsStats, xo }) {
+function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
   const allVms = concat(
     map(vmsStats, vm => ({
       uuid: vm.uuid,
@@ -434,7 +434,7 @@ function computeGlobalVmsStats ({ haltedVms, vmsStats, xo }) {
   )
 }
 
-function computeGlobalHostsStats ({ haltedHosts, hostsStats, xo }) {
+function computeGlobalHostsStats({ haltedHosts, hostsStats, xo }) {
   const allHosts = concat(
     map(hostsStats, host => ({
       uuid: host.uuid,
@@ -461,7 +461,7 @@ function computeGlobalHostsStats ({ haltedHosts, hostsStats, xo }) {
   )
 }
 
-function getTopVms ({ vmsStats, xo }) {
+function getTopVms({ vmsStats, xo }) {
   return getTop(vmsStats, [
     'cpu',
     'ram',
@@ -475,7 +475,7 @@ function getTopVms ({ vmsStats, xo }) {
   ])
 }
 
-function getTopHosts ({ hostsStats, xo }) {
+function getTopHosts({ hostsStats, xo }) {
   return getTop(hostsStats, [
     'cpu',
     'ram',
@@ -485,11 +485,11 @@ function getTopHosts ({ hostsStats, xo }) {
   ])
 }
 
-function getTopSrs (srsStats) {
+function getTopSrs(srsStats) {
   return getTop(srsStats, ['usedSpace', 'iopsRead', 'iopsWrite', 'iopsTotal'])
 }
 
-async function getHostsMissingPatches ({ runningHosts, xo }) {
+async function getHostsMissingPatches({ runningHosts, xo }) {
   const hostsMissingPatches = await Promise.all(
     map(runningHosts, async host => {
       let hostsPatches = await xo
@@ -519,15 +519,15 @@ async function getHostsMissingPatches ({ runningHosts, xo }) {
   return filter(hostsMissingPatches, host => host !== undefined)
 }
 
-function getAllUsersEmail (users) {
+function getAllUsersEmail(users) {
   return map(users, 'email')
 }
 
-async function storeStats ({ data, storedStatsPath }) {
+async function storeStats({ data, storedStatsPath }) {
   await pWriteFile(storedStatsPath, JSON.stringify(data))
 }
 
-async function computeEvolution ({ storedStatsPath, ...newStats }) {
+async function computeEvolution({ storedStatsPath, ...newStats }) {
   try {
     const oldStats = JSON.parse(await pReadFile(storedStatsPath, 'utf8'))
     const newStatsVms = newStats.vms
@@ -616,7 +616,7 @@ async function computeEvolution ({ storedStatsPath, ...newStats }) {
   }
 }
 
-async function dataBuilder ({ xo, storedStatsPath, all }) {
+async function dataBuilder({ xo, storedStatsPath, all }) {
   const xoObjects = values(xo.getObjects())
   const runningVms = filter(xoObjects, { type: 'VM', power_state: 'Running' })
   const haltedVms = filter(xoObjects, { type: 'VM', power_state: 'Halted' })
@@ -707,7 +707,7 @@ const CRON_BY_PERIODICITY = {
 }
 
 class UsageReportPlugin {
-  constructor ({ xo, getDataDir }) {
+  constructor({ xo, getDataDir }) {
     this._xo = xo
     this._dir = getDataDir
     // Defined in configure().
@@ -718,7 +718,7 @@ class UsageReportPlugin {
     )
   }
 
-  configure (configuration, state) {
+  configure(configuration, state) {
     this._conf = configuration
 
     if (this._job !== undefined) {
@@ -743,22 +743,22 @@ class UsageReportPlugin {
     }
   }
 
-  async load () {
+  async load() {
     const dir = await this._dir()
     this._storedStatsPath = `${dir}/stats.json`
 
     this._job.start()
   }
 
-  unload () {
+  unload() {
     this._job.stop()
   }
 
-  test () {
+  test() {
     return this._sendReport(true)
   }
 
-  async _sendReport (storeData) {
+  async _sendReport(storeData) {
     const data = await dataBuilder({
       xo: this._xo,
       storedStatsPath: this._storedStatsPath,

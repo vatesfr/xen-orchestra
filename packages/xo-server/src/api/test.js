@@ -1,4 +1,4 @@
-export function getPermissionsForUser ({ userId }) {
+export function getPermissionsForUser({ userId }) {
   return this.getPermissionsForUser(userId)
 }
 
@@ -12,7 +12,7 @@ getPermissionsForUser.params = {
 
 // -------------------------------------------------------------------
 
-export function hasPermission ({ userId, objectId, permission }) {
+export function hasPermission({ userId, objectId, permission }) {
   return this.hasPermissions(userId, [[objectId, permission]])
 }
 
@@ -32,7 +32,7 @@ hasPermission.params = {
 
 // -------------------------------------------------------------------
 
-export function wait ({ duration, returnValue }) {
+export function wait({ duration, returnValue }) {
   return new Promise(resolve => {
     setTimeout(() => {
       resolve(returnValue)
@@ -48,7 +48,7 @@ wait.params = {
 
 // -------------------------------------------------------------------
 
-export async function copyVm ({ vm, sr }) {
+export async function copyVm({ vm, sr }) {
   const srcXapi = this.getXapi(vm)
   const tgtXapi = this.getXapi(sr)
 

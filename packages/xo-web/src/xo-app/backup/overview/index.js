@@ -227,7 +227,7 @@ export default class Overview extends Component {
     }
   )
 
-  render () {
+  render() {
     const schedules = this._getSchedules()
     const isScheduleUserMissing = this._getIsScheduleUserMissing()
 

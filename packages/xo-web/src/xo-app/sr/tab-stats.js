@@ -20,7 +20,7 @@ export default class SrStats extends Component {
     granularity: 'seconds',
   }
 
-  _loop (sr = get(this.props, 'sr')) {
+  _loop(sr = get(this.props, 'sr')) {
     if (sr === undefined) {
       this._loop()
     }
@@ -55,11 +55,11 @@ export default class SrStats extends Component {
 
   _loop = ::this._loop
 
-  componentWillMount () {
+  componentWillMount() {
     this._loop()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this.timeout)
   }
 
@@ -74,7 +74,7 @@ export default class SrStats extends Component {
     )
   }
 
-  render () {
+  render() {
     const {
       data,
       granularity,

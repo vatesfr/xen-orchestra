@@ -14,7 +14,7 @@ const configs = {
   '@babel/plugin-proposal-pipeline-operator': {
     proposal: 'minimal',
   },
-  '@babel/preset-env' (pkg) {
+  '@babel/preset-env'(pkg) {
     return {
       debug: !__TEST__,
 
@@ -46,7 +46,7 @@ const getConfig = (key, ...args) => {
     : config
 }
 
-module.exports = function (pkg, plugins, presets) {
+module.exports = function(pkg, plugins, presets) {
   plugins === undefined && (plugins = {})
   presets === undefined && (presets = {})
 

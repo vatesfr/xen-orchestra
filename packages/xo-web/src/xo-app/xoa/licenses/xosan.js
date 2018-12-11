@@ -16,7 +16,7 @@ import { unlockXosan } from 'xo'
 class SelectLicense extends Component {
   state = { license: 'none' }
 
-  render () {
+  render() {
     return (
       <form className='form-inline'>
         <select className='form-control' onChange={this.linkState('license')}>
@@ -153,7 +153,7 @@ export default class Xosan extends Component {
       filter(xosanSrs, ({ id }) => includes(knownXosanIds, id))
   )
 
-  render () {
+  render() {
     return (
       <SortedTable
         collection={this._getKnownXosans()}

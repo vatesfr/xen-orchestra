@@ -20,7 +20,7 @@ import { createGetObjectsOfType } from 'selectors'
 export default class TabPatches extends Component {
   _getContainer = () => this.refs.container
 
-  render () {
+  render() {
     return (
       <Upgrade place='poolPatches' required={2}>
         <Container>

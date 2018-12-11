@@ -122,7 +122,7 @@ const _listAllBackups = async remotes => {
     ),
 })
 export default class FileRestore extends Component {
-  render () {
+  render() {
     const { backupInfoByVm } = this.props
 
     return !isEmpty(backupInfoByVm) ? (

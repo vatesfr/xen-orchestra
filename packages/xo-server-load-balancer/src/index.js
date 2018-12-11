@@ -93,7 +93,7 @@ export const configurationSchema = {
 // ===================================================================
 
 class LoadBalancerPlugin {
-  constructor (xo) {
+  constructor(xo) {
     this.xo = xo
 
     this._job = createSchedule(`*/${EXECUTION_DELAY} * * * *`).createJob(
@@ -110,7 +110,7 @@ class LoadBalancerPlugin {
     )
   }
 
-  async configure ({ plans }) {
+  async configure({ plans }) {
     this._plans = []
     this._poolIds = [] // Used pools.
 
@@ -124,15 +124,15 @@ class LoadBalancerPlugin {
     }
   }
 
-  load () {
+  load() {
     this._job.start()
   }
 
-  unload () {
+  unload() {
     this._job.stop()
   }
 
-  _addPlan (mode, { name, pools, ...options }) {
+  _addPlan(mode, { name, pools, ...options }) {
     pools = uniq(pools)
 
     // Check already used pools.
@@ -148,7 +148,7 @@ class LoadBalancerPlugin {
     )
   }
 
-  _executePlans () {
+  _executePlans() {
     debug('Execute plans!')
 
     return Promise.all(mapToArray(this._plans, plan => plan.execute()))

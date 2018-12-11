@@ -57,7 +57,7 @@ export default class ActionButton extends Component {
     tooltip: PropTypes.node,
   }
 
-  async _execute () {
+  async _execute() {
     const { props } = this
 
     if (props.pending || this.state.working) {
@@ -131,7 +131,7 @@ export default class ActionButton extends Component {
     this._execute()
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { form } = this.props
 
     if (form) {
@@ -141,7 +141,7 @@ export default class ActionButton extends Component {
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     const { form } = this.props
 
     if (form) {
@@ -151,7 +151,7 @@ export default class ActionButton extends Component {
     }
   }
 
-  render () {
+  render() {
     const {
       props: { children, icon, iconColor, pending, tooltip, ...props },
       state: { error, working },

@@ -14,7 +14,7 @@ const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 const ONE_MONTH = 1e3 * 60 * 60 * 24 * 30
 
 export default class {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
 
     // Store last failures by user to throttle tries (slow bruteforce
@@ -75,15 +75,15 @@ export default class {
     })
   }
 
-  registerAuthenticationProvider (provider) {
+  registerAuthenticationProvider(provider) {
     return this._providers.add(provider)
   }
 
-  unregisterAuthenticationProvider (provider) {
+  unregisterAuthenticationProvider(provider) {
     return this._providers.delete(provider)
   }
 
-  async _authenticateUser (credentials) {
+  async _authenticateUser(credentials) {
     for (const provider of this._providers) {
       try {
         // A provider can return:
@@ -112,7 +112,7 @@ export default class {
     return false
   }
 
-  async authenticateUser (credentials) {
+  async authenticateUser(credentials) {
     // don't even attempt to authenticate with empty password
     const { password } = credentials
     if (password === '') {
@@ -151,7 +151,7 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken ({ expiresIn = ONE_MONTH, userId }) {
+  async createAuthenticationToken({ expiresIn = ONE_MONTH, userId }) {
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
@@ -166,13 +166,13 @@ export default class {
     return token.properties
   }
 
-  async deleteAuthenticationToken (id) {
+  async deleteAuthenticationToken(id) {
     if (!(await this._tokens.remove(id))) {
       throw noSuchAuthenticationToken(id)
     }
   }
 
-  async getAuthenticationToken (id) {
+  async getAuthenticationToken(id) {
     let token = await this._tokens.first(id)
     if (token === undefined) {
       throw noSuchAuthenticationToken(id)
@@ -189,7 +189,7 @@ export default class {
     return token
   }
 
-  async getAuthenticationTokensForUser (userId) {
+  async getAuthenticationTokensForUser(userId) {
     return this._tokens.get({ user_id: userId })
   }
 }

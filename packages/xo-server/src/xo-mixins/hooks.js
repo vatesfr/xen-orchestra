@@ -5,7 +5,7 @@ const log = createLogger('xo:xo-mixins:hooks')
 
 const makeSingletonHook = (hook, postEvent) => {
   let promise
-  return function () {
+  return function() {
     if (promise === undefined) {
       promise = runHook(this, hook)
       promise.then(() => {
@@ -37,7 +37,7 @@ export default {
   // Run *clean* async listeners.
   //
   // They normalize existing data, clear invalid entries, etc.
-  clean () {
+  clean() {
     return runHook(this, 'clean')
   },
 

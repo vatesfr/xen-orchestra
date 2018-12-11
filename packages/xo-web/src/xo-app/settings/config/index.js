@@ -11,7 +11,7 @@ import { importConfig, exportConfig } from 'xo'
 // ===================================================================
 
 export default class Config extends Component {
-  componentWillMount () {
+  componentWillMount() {
     this.state = { importStatus: 'noFile' }
   }
 
@@ -53,7 +53,7 @@ export default class Config extends Component {
     }
   }
 
-  render () {
+  render() {
     const { configFile } = this.state
 
     return (

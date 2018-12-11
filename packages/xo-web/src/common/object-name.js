@@ -8,7 +8,7 @@ import React, { Component } from 'react'
   return (state, props) => ({ object: object(state, props) })
 })
 export default class ObjectName extends Component {
-  render () {
+  render() {
     const { object } = this.props
     return <span>{object && object.name_label}</span>
   }

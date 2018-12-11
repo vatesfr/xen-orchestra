@@ -28,7 +28,7 @@ const log = createLogger('xo:xapi')
 export default {
   // FIXME: should be static
   @debounce(24 * 60 * 60 * 1000)
-  async _getXenUpdates () {
+  async _getXenUpdates() {
     const { readAll, statusCode } = await this.xo.httpRequest(
       'http://updates.xensource.com/XenServer/updates.xml'
     )
@@ -68,7 +68,7 @@ export default {
       }
     })
 
-    const resolveVersionPatches = function (uuids) {
+    const resolveVersionPatches = function(uuids) {
       const versionPatches = { __proto__: null }
 
       forEach(ensureArray(uuids), ({ uuid }) => {
@@ -104,7 +104,7 @@ export default {
   // =================================================================
 
   // Returns installed and not installed patches for a given host.
-  async _getPoolPatchesForHost (host) {
+  async _getPoolPatchesForHost(host) {
     const versions = (await this._getXenUpdates()).versions
 
     const hostVersions = host.software_version
@@ -115,7 +115,7 @@ export default {
     return version ? version.patches : []
   },
 
-  _getInstalledPoolPatchesOnHost (host) {
+  _getInstalledPoolPatchesOnHost(host) {
     const installed = { __proto__: null }
 
     // platform_version < 2.1.1
@@ -131,7 +131,7 @@ export default {
     return installed
   },
 
-  async _listMissingPoolPatchesOnHost (host) {
+  async _listMissingPoolPatchesOnHost(host) {
     const all = await this._getPoolPatchesForHost(host)
     const installed = this._getInstalledPoolPatchesOnHost(host)
 
@@ -153,7 +153,7 @@ export default {
     return installable
   },
 
-  async listMissingPoolPatchesOnHost (hostId) {
+  async listMissingPoolPatchesOnHost(hostId) {
     const host = this.getObject(hostId)
     // Returns an array to not break compatibility.
     return mapToArray(
@@ -163,7 +163,7 @@ export default {
     )
   },
 
-  async _ejectToolsIsos (hostRef) {
+  async _ejectToolsIsos(hostRef) {
     return Promise.all(
       mapFilter(this.objects.all, vm => {
         if (vm.$type !== 'vm' || (hostRef && vm.resident_on !== hostRef)) {
@@ -185,7 +185,7 @@ export default {
 
   // -----------------------------------------------------------------
 
-  _isPoolPatchInstallableOnHost (patchUuid, host) {
+  _isPoolPatchInstallableOnHost(patchUuid, host) {
     const installed = this._getInstalledPoolPatchesOnHost(host)
 
     if (installed[patchUuid]) {
@@ -205,7 +205,7 @@ export default {
     return installable
   },
 
-  _isPoolPatchInstallableOnPool (patchUuid) {
+  _isPoolPatchInstallableOnPool(patchUuid) {
     return every(
       this.objects.all,
       obj =>
@@ -217,7 +217,7 @@ export default {
   // -----------------------------------------------------------------
 
   // platform_version < 2.1.1 ----------------------------------------
-  async uploadPoolPatch (stream, patchName) {
+  async uploadPoolPatch(stream, patchName) {
     const patchRef = await this.putResource(stream, '/pool_patch_upload', {
       task: this.createTask('Patch upload', patchName),
     }).then(extractOpaqueRef)
@@ -225,7 +225,7 @@ export default {
     return this._getOrWaitObject(patchRef)
   },
 
-  async _getOrUploadPoolPatch (uuid) {
+  async _getOrUploadPoolPatch(uuid) {
     try {
       return this.getObjectByUuid(uuid)
     } catch (error) {}
@@ -257,7 +257,7 @@ export default {
   },
 
   // patform_version >= 2.1.1 ----------------------------------------
-  async _getUpdateVdi ($defer, patchUuid, hostId) {
+  async _getUpdateVdi($defer, patchUuid, hostId) {
     log.debug(`downloading patch ${patchUuid}`)
 
     const patchInfo = (await this._getXenUpdates()).patches[patchUuid]
@@ -308,7 +308,7 @@ export default {
   // -----------------------------------------------------------------
 
   // patform_version < 2.1.1 -----------------------------------------
-  async _installPoolPatchOnHost (patchUuid, host) {
+  async _installPoolPatchOnHost(patchUuid, host) {
     const [patch] = await Promise.all([
       this._getOrUploadPoolPatch(patchUuid),
       this._ejectToolsIsos(host.$ref),
@@ -318,7 +318,7 @@ export default {
   },
 
   // patform_version >= 2.1.1
-  _installPatchUpdateOnHost: deferrable(async function (
+  _installPatchUpdateOnHost: deferrable(async function(
     $defer,
     patchUuid,
     host
@@ -341,7 +341,7 @@ export default {
 
   // -----------------------------------------------------------------
 
-  async installPoolPatchOnHost (patchUuid, host) {
+  async installPoolPatchOnHost(patchUuid, host) {
     log.debug(`installing patch ${patchUuid}`)
     if (!isObject(host)) {
       host = this.getObject(host)
@@ -355,7 +355,7 @@ export default {
   // -----------------------------------------------------------------
 
   // platform_version < 2.1.1
-  async _installPoolPatchOnAllHosts (patchUuid) {
+  async _installPoolPatchOnAllHosts(patchUuid) {
     const [patch] = await Promise.all([
       this._getOrUploadPoolPatch(patchUuid),
       this._ejectToolsIsos(),
@@ -365,7 +365,7 @@ export default {
   },
 
   // platform_version >= 2.1.1
-  _installPatchUpdateOnAllHosts: deferrable(async function ($defer, patchUuid) {
+  _installPatchUpdateOnAllHosts: deferrable(async function($defer, patchUuid) {
     await this._assertConsistentHostServerTime(this.pool.master)
 
     let [vdi] = await Promise.all([
@@ -382,7 +382,7 @@ export default {
     )
   }),
 
-  async installPoolPatchOnAllHosts (patchUuid) {
+  async installPoolPatchOnAllHosts(patchUuid) {
     log.debug(`installing patch ${patchUuid} on all hosts`)
 
     return useUpdateSystem(this.pool.$master)
@@ -393,7 +393,7 @@ export default {
   // -----------------------------------------------------------------
 
   // If no host is provided, install on pool
-  async _installPoolPatchAndRequirements (patch, patchesByUuid, host) {
+  async _installPoolPatchAndRequirements(patch, patchesByUuid, host) {
     if (
       host == null
         ? !this._isPoolPatchInstallableOnPool(patch.uuid)
@@ -424,7 +424,7 @@ export default {
       : this.installPoolPatchOnHost(patch.uuid, host)
   },
 
-  async installSpecificPatchesOnHost (patchNames, hostId) {
+  async installSpecificPatchesOnHost(patchNames, hostId) {
     const host = this.getObject(hostId)
     const missingPatches = await this._listMissingPoolPatchesOnHost(host)
 
@@ -451,7 +451,7 @@ export default {
     }
   },
 
-  async installAllPoolPatchesOnHost (hostId) {
+  async installAllPoolPatchesOnHost(hostId) {
     const host = this.getObject(hostId)
     if (host.software_version.product_brand === 'XCP-ng') {
       return this._xcpInstallHostUpdates(host)
@@ -459,7 +459,7 @@ export default {
     return this._installAllPoolPatchesOnHost(host)
   },
 
-  async _installAllPoolPatchesOnHost (host) {
+  async _installAllPoolPatchesOnHost(host) {
     const installableByUuid =
       host.license_params.sku_type !== 'free'
         ? pickBy(await this._listMissingPoolPatchesOnHost(host), {
@@ -498,14 +498,14 @@ export default {
     }
   },
 
-  async installAllPoolPatchesOnAllHosts () {
+  async installAllPoolPatchesOnAllHosts() {
     if (this.pool.$master.software_version.product_brand === 'XCP-ng') {
       return this._xcpInstallAllPoolUpdatesOnHost()
     }
     return this._installAllPoolPatchesOnAllHosts()
   },
 
-  async _installAllPoolPatchesOnAllHosts () {
+  async _installAllPoolPatchesOnAllHosts() {
     const installableByUuid = assign(
       {},
       ...(await Promise.all(
@@ -550,7 +550,7 @@ export default {
   // ----------------------------------
 
   // list all yum updates available for a XCP-ng host
-  async _xcpListHostUpdates (host) {
+  async _xcpListHostUpdates(host) {
     return JSON.parse(
       await this.call(
         'host.call_plugin',
@@ -563,7 +563,7 @@ export default {
   },
 
   // install all yum updates for a XCP-ng host
-  async _xcpInstallHostUpdates (host) {
+  async _xcpInstallHostUpdates(host) {
     const update = await this.call(
       'host.call_plugin',
       host.$ref,
@@ -582,7 +582,7 @@ export default {
   },
 
   // install all yum updates for all XCP-ng hosts in a give pool
-  async _xcpInstallAllPoolUpdatesOnHost () {
+  async _xcpInstallAllPoolUpdatesOnHost() {
     await asyncMap(filter(this.objects.all, { $type: 'host' }), host =>
       this._xcpInstallHostUpdates(host)
     )

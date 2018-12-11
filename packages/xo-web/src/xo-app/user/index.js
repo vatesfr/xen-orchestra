@@ -74,7 +74,7 @@ class DefaultFilterPicker extends Component {
     type: PropTypes.string.isRequired,
   }
 
-  _computeOptions (props) {
+  _computeOptions(props) {
     const { customFilters, filters } = props
 
     // Custom filters.
@@ -113,15 +113,15 @@ class DefaultFilterPicker extends Component {
   _handleDefaultFilter = value =>
     setDefaultHomeFilter(this.props.type, value && value.value).catch(noop)
 
-  componentWillMount () {
+  componentWillMount() {
     this._computeOptions(this.props)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     this._computeOptions(props)
   }
 
-  render () {
+  render() {
     return (
       <Row>
         <Col>
@@ -152,7 +152,7 @@ class UserFilters extends Component {
 
   _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
 
-  render () {
+  render() {
     const {
       defaultHomeFilters,
       filters: customFiltersByType,
@@ -332,7 +332,7 @@ export default class User extends Component {
   _handleConfirmPasswordChange = event =>
     this.setState({ confirmPassword: event.target.value })
 
-  render () {
+  render() {
     const { lang, user } = this.props
 
     if (!user) {

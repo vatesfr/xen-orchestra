@@ -52,15 +52,15 @@ const RRD_POINTS_PER_STEP = {
 // -------------------------------------------------------------------
 
 // Return current local timestamp in seconds
-function getCurrentTimestamp () {
+function getCurrentTimestamp() {
   return Date.now() / 1000
 }
 
-function convertNanToNull (value) {
+function convertNanToNull(value) {
   return isNaN(value) ? null : value
 }
 
-async function getServerTimestamp (xapi, hostRef) {
+async function getServerTimestamp(xapi, hostRef) {
   const serverLocalTime = await xapi.call('host.get_servertime', hostRef)
   return Math.floor(parseDateTime(serverLocalTime).getTime() / 1e3)
 }
@@ -246,14 +246,14 @@ const STATS = {
 // -------------------------------------------------------------------
 
 export default class XapiStats {
-  constructor () {
+  constructor() {
     this._statsByObject = {}
   }
 
   // Execute one http request on a XenServer for get stats
   // Return stats (Json format) or throws got exception
   @limitConcurrency(3)
-  _getJson (xapi, host, timestamp, step) {
+  _getJson(xapi, host, timestamp, step) {
     return xapi
       .getResource('/rrd_updates', {
         host,
@@ -268,7 +268,7 @@ export default class XapiStats {
       .then(response => response.readAll().then(JSON5.parse))
   }
 
-  async _getNextTimestamp (xapi, host, step) {
+  async _getNextTimestamp(xapi, host, step) {
     const currentTimeStamp = await getServerTimestamp(xapi, host.$ref)
     const maxDuration = step * RRD_POINTS_PER_STEP[step]
     const lastTimestamp = get(this._statsByObject, [
@@ -286,7 +286,7 @@ export default class XapiStats {
     return lastTimestamp
   }
 
-  _getStats (hostUuid, step, vmUuid) {
+  _getStats(hostUuid, step, vmUuid) {
     const hostStats = this._statsByObject[hostUuid][step]
 
     // Return host stats
@@ -305,7 +305,7 @@ export default class XapiStats {
     }
   }
 
-  async _getAndUpdateStats (xapi, { host, vmUuid, granularity }) {
+  async _getAndUpdateStats(xapi, { host, vmUuid, granularity }) {
     const step =
       granularity === undefined
         ? RRD_STEP_SECONDS
@@ -411,14 +411,14 @@ export default class XapiStats {
     return this._getStats(hostUuid, step, vmUuid)
   }
 
-  getHostStats (xapi, hostId, granularity) {
+  getHostStats(xapi, hostId, granularity) {
     return this._getAndUpdateStats(xapi, {
       host: xapi.getObject(hostId),
       granularity,
     })
   }
 
-  async getVmStats (xapi, vmId, granularity) {
+  async getVmStats(xapi, vmId, granularity) {
     const vm = xapi.getObject(vmId)
     const host = vm.$resident_on
     if (!host) {
@@ -432,7 +432,7 @@ export default class XapiStats {
     })
   }
 
-  async getSrStats (xapi, srId, granularity) {
+  async getSrStats(xapi, srId, granularity) {
     const sr = xapi.getObject(srId)
 
     const hostsStats = {}

@@ -10,7 +10,7 @@ export default opts => {
   let i = 0
 
   let call
-  function create () {
+  function create() {
     const current = factories[i++](opts)
     if (i < length) {
       const currentI = i

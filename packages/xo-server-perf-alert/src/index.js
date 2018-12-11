@@ -343,7 +343,7 @@ const raiseOrLowerAlarm = (
   }
 }
 
-async function getServerTimestamp (xapi, host) {
+async function getServerTimestamp(xapi, host) {
   const serverLocalTime = await xapi.call('host.get_servertime', host.$ref)
   return Math.floor(
     utcParse('%Y%m%dT%H:%M:%SZ')(serverLocalTime).getTime() / 1000
@@ -351,7 +351,7 @@ async function getServerTimestamp (xapi, host) {
 }
 
 class PerfAlertXoPlugin {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
     this._job = createSchedule('* * * * *').createJob(async () => {
       try {
@@ -365,20 +365,20 @@ class PerfAlertXoPlugin {
     })
   }
 
-  async configure (configuration) {
+  async configure(configuration) {
     this._configuration = configuration
     clearCurrentAlarms()
   }
 
-  load () {
+  load() {
     this._job.start()
   }
 
-  unload () {
+  unload() {
     this._job.stop()
   }
 
-  _generateUrl (type, object) {
+  _generateUrl(type, object) {
     const { baseUrl } = this._configuration
     const { uuid } = object
     switch (type) {
@@ -393,7 +393,7 @@ class PerfAlertXoPlugin {
     }
   }
 
-  async test () {
+  async test() {
     const monitorBodies = await Promise.all(
       map(
         this._getMonitors(),
@@ -413,7 +413,7 @@ ${monitorBodies.join('\n')}`
     )
   }
 
-  _parseDefinition (definition) {
+  _parseDefinition(definition) {
     const alarmId = `${definition.objectType}|${definition.variableName}|${
       definition.alarmTriggerLevel
     }`
@@ -533,7 +533,7 @@ ${monitorBodies.join('\n')}`
     }
   }
 
-  _getMonitors () {
+  _getMonitors() {
     return map(this._configuration.hostMonitors, def =>
       this._parseDefinition({ ...def, objectType: 'host' })
     )
@@ -583,7 +583,7 @@ ${monitorBodies.join('\n')}`
   //    shouldAlarm: true,
   //    listItem: '  * [lab1](localhost:3000#/hosts/485ea1f-b475-f6f2-58a7-895ab626ce5d/stats): 70%\n'
   //  }
-  async _checkMonitors () {
+  async _checkMonitors() {
     const monitors = this._getMonitors()
     for (const monitor of monitors) {
       const snapshot = await monitor.snapshot()
@@ -654,7 +654,7 @@ ${entry.listItem}
     }
   }
 
-  _sendAlertEmail (subjectSuffix, markdownBody) {
+  _sendAlertEmail(subjectSuffix, markdownBody) {
     if (
       this._configuration.toEmails !== undefined &&
       this._xo.sendEmail !== undefined
@@ -673,7 +673,7 @@ ${entry.listItem}
     }
   }
 
-  async getRrd (xoObject, secondsAgo) {
+  async getRrd(xoObject, secondsAgo) {
     const host = xoObject.$type === 'host' ? xoObject : xoObject.$resident_on
     if (host == null) {
       return null
@@ -700,7 +700,7 @@ ${entry.listItem}
   }
 }
 
-exports.default = function ({ xo }) {
+exports.default = function({ xo }) {
   return new PerfAlertXoPlugin(xo)
 }
 

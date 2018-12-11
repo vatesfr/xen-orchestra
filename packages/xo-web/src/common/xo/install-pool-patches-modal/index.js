@@ -25,10 +25,16 @@ import { ejectCd, isSrWritable, setDefaultSr } from 'xo'
     return {
       pool: getPool,
       poolMaster: createGetObject(
-        createSelector(getPool, ({ master }) => master)
+        createSelector(
+          getPool,
+          ({ master }) => master
+        )
       ),
       vbds: createGetObjectsOfType('VBD').filter(
-        createSelector(getPool, ({ id }) => vbd => vbd.$pool === id)
+        createSelector(
+          getPool,
+          ({ id }) => vbd => vbd.$pool === id
+        )
       ),
     }
   },
@@ -57,15 +63,17 @@ export default class InstallPoolPatchesModalBody extends Component {
 
   _ejectCds = () => Promise.all(this._getVmsWithCds().map(ejectCd))
 
-  _getTooltip = createSelector(this._getVmsWithCds, vmIds =>
-    vmIds.map(vmId => (
-      <p className='m-0' key={vmId}>
-        <Vm id={vmId} />
-      </p>
-    ))
+  _getTooltip = createSelector(
+    this._getVmsWithCds,
+    vmIds =>
+      vmIds.map(vmId => (
+        <p className='m-0' key={vmId}>
+          <Vm id={vmId} />
+        </p>
+      ))
   )
 
-  render () {
+  render() {
     const { pool, poolMaster } = this.props
     const needDefaultSr =
       poolMaster.productBrand !== 'XCP-ng' && pool.default_SR === undefined

@@ -50,7 +50,7 @@ class PatchesCard extends Component {
 
   _getContainer = () => this.refs.container
 
-  render () {
+  render() {
     return (
       <Card>
         <CardHeader>
@@ -146,37 +146,43 @@ class DefaultCard extends Component {
   _getHostMetrics = createGetHostMetrics(this._getHosts)
 
   _getVmMetrics = createCollectionWrapper(
-    createSelector(this._getVms, vms => {
-      const metrics = {
-        vcpus: 0,
-        running: 0,
-        halted: 0,
-        other: 0,
+    createSelector(
+      this._getVms,
+      vms => {
+        const metrics = {
+          vcpus: 0,
+          running: 0,
+          halted: 0,
+          other: 0,
+        }
+        forEach(vms, vm => {
+          if (vm.power_state === 'Running') {
+            metrics.running++
+            metrics.vcpus += vm.CPUs.number
+          } else if (vm.power_state === 'Halted') {
+            metrics.halted++
+          } else metrics.other++
+        })
+        return metrics
       }
-      forEach(vms, vm => {
-        if (vm.power_state === 'Running') {
-          metrics.running++
-          metrics.vcpus += vm.CPUs.number
-        } else if (vm.power_state === 'Halted') {
-          metrics.halted++
-        } else metrics.other++
-      })
-      return metrics
-    })
+    )
   )
 
   _getSrMetrics = createCollectionWrapper(
-    createSelector(this._getSrs, srs => {
-      const metrics = {
-        srTotal: 0,
-        srUsage: 0,
+    createSelector(
+      this._getSrs,
+      srs => {
+        const metrics = {
+          srTotal: 0,
+          srUsage: 0,
+        }
+        forEach(srs, sr => {
+          metrics.srUsage += sr.physical_usage
+          metrics.srTotal += sr.size
+        })
+        return metrics
       }
-      forEach(srs, sr => {
-        metrics.srUsage += sr.physical_usage
-        metrics.srTotal += sr.size
-      })
-      return metrics
-    })
+    )
   )
 
   _getTopSrs = createTop(this._getSrs, [sr => sr.physical_usage / sr.size], 5)
@@ -203,7 +209,7 @@ class DefaultCard extends Component {
     }
   )
 
-  render () {
+  render() {
     const { props, state } = this
     const users = props.users
     const nUsers = size(users)
@@ -532,7 +538,7 @@ class DefaultCard extends Component {
   isAdmin,
 })
 export default class Overview extends Component {
-  render () {
+  render() {
     const { props } = this
     const showResourceSets = !isEmpty(props.resourceSets) && !props.isAdmin
     const authorized = !isEmpty(props.permissions) || props.isAdmin

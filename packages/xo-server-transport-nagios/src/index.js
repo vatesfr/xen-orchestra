@@ -36,11 +36,11 @@ export const configurationSchema = {
 // ===================================================================
 
 const bind = (fn, thisArg) =>
-  function __bound__ () {
+  function __bound__() {
     return fn.apply(thisArg, arguments)
   }
 
-function nscaPacketBuilder ({ host, iv, message, service, status, timestamp }) {
+function nscaPacketBuilder({ host, iv, message, service, status, timestamp }) {
   // Building NSCA packet
   const SIZE = 720
   const packet = Buffer.alloc(SIZE)
@@ -56,7 +56,7 @@ function nscaPacketBuilder ({ host, iv, message, service, status, timestamp }) {
   return packet
 }
 
-function xor (data, mask) {
+function xor(data, mask) {
   const dataSize = data.length
   const maskSize = mask.length
   const result = Buffer.allocUnsafe(dataSize)
@@ -81,7 +81,7 @@ const VERSION = 3
 const ENCODING = 'binary'
 
 class XoServerNagios {
-  constructor ({ xo }) {
+  constructor({ xo }) {
     this._sendPassiveCheck = bind(this._sendPassiveCheck, this)
     this._set = bind(xo.defineProperty, xo)
     this._unset = null
@@ -91,20 +91,20 @@ class XoServerNagios {
     this._key = null
   }
 
-  configure (configuration) {
+  configure(configuration) {
     this._conf = configuration
     this._key = Buffer.from(configuration.key, ENCODING)
   }
 
-  load () {
+  load() {
     this._unset = this._set('sendPassiveCheck', this._sendPassiveCheck)
   }
 
-  unload () {
+  unload() {
     this._unset()
   }
 
-  test () {
+  test() {
     return this._sendPassiveCheck({
       message:
         'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
@@ -112,7 +112,7 @@ class XoServerNagios {
     })
   }
 
-  _sendPassiveCheck ({ message, status }) {
+  _sendPassiveCheck({ message, status }) {
     return new Promise((resolve, reject) => {
       if (/\r|\n/.test(message)) {
         throw new Error('the message must not contain a line break')

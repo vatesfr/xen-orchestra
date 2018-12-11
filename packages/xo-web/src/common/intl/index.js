@@ -60,7 +60,7 @@ export class IntlProvider extends Component {
     lang: PropTypes.string.isRequired,
   }
 
-  render () {
+  render() {
     const { lang, children } = this.props
     // Adding a key prop is a work-around suggested by react-intl documentation
     // to make sure changes to the locale trigger a re-render of the child components
@@ -88,7 +88,10 @@ const parseDuration = milliseconds => {
 
 @connect(({ lang }) => ({ lang }))
 export class FormattedDuration extends Component {
-  _parseDuration = createSelector(() => this.props.duration, parseDuration)
+  _parseDuration = createSelector(
+    () => this.props.duration,
+    parseDuration
+  )
 
   _humanizeDuration = createSelector(
     () => this.props.duration,
@@ -100,7 +103,7 @@ export class FormattedDuration extends Component {
         .humanize()
   )
 
-  render () {
+  render() {
     const parsedDuration = this._parseDuration()
     return (
       <Tooltip

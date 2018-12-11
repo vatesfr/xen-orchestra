@@ -38,7 +38,7 @@ export default class ObjectInput extends Component {
     required => (required ? keyBy(required) : EMPTY_OBJECT)
   )
 
-  render () {
+  render() {
     const {
       props: {
         depth = 0,

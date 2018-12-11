@@ -18,15 +18,15 @@ export const configurationSchema = {
 // ===================================================================
 
 class AuthGitHubXoPlugin {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
   }
 
-  configure (conf) {
+  configure(conf) {
     this._conf = conf
   }
 
-  load () {
+  load() {
     const { _xo: xo } = this
 
     xo.registerPassportStrategy(

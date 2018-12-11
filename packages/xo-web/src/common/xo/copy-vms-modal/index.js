@@ -22,7 +22,7 @@ import { buildTemplate, connectStore } from 'utils'
   { withRef: true }
 )
 class CopyVmsModalBody extends BaseComponent {
-  get value () {
+  get value() {
     const { state } = this
     if (!state || !state.sr) {
       return {}
@@ -46,7 +46,7 @@ class CopyVmsModalBody extends BaseComponent {
     }
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this.setState({
       compress: false,
       namePattern: '{name}_COPY',
@@ -58,7 +58,7 @@ class CopyVmsModalBody extends BaseComponent {
     this.setState({ namePattern: event.target.value })
   _onChangeCompress = compress => this.setState({ compress })
 
-  render () {
+  render() {
     const { formatMessage } = this.props.intl
     const { compress, namePattern, sr } = this.state
     return process.env.XOA_PLAN > 2 ? (

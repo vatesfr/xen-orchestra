@@ -49,7 +49,7 @@ const getStyle = vdi => {
 }
 
 const mapFilter = (collection, iteratee, results = []) => {
-  forEach(collection, function () {
+  forEach(collection, function() {
     const result = iteratee.apply(this, arguments)
     if (result !== undefined) {
       results.push(result)

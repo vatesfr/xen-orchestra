@@ -21,7 +21,7 @@ import {
 export default class TabConsole extends Component {
   state = { scale: 1 }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (
       isVmRunning(this.props.vm) &&
       !isVmRunning(props.vm) &&
@@ -53,7 +53,7 @@ export default class TabConsole extends Component {
     this.setState({ minimalLayout: !this.state.minimalLayout })
   }
 
-  render () {
+  render() {
     const { statsOverview, vm } = this.props
     const { minimalLayout, scale } = this.state
 

@@ -101,7 +101,7 @@ class XoWeekChart extends Component {
     .x(elem => this._x(elem.date))
     .y(elem => this._y(elem.value))
 
-  _drawHorizonArea (data, max = d3.max(data, elem => elem.value)) {
+  _drawHorizonArea(data, max = d3.max(data, elem => elem.value)) {
     const intervalSize = max / HORIZON_AREA_N_STEPS
     const splittedData = []
 
@@ -158,7 +158,7 @@ class XoWeekChart extends Component {
     })
   }
 
-  _draw (props = this.props) {
+  _draw(props = this.props) {
     const svg = this._svg
 
     // 1. Update dimensions.
@@ -209,7 +209,7 @@ class XoWeekChart extends Component {
   }
 
   // Update hover area position and text.
-  _updateTooltip (tooltipX) {
+  _updateTooltip(tooltipX) {
     const date = this._x.invert(tooltipX)
     const { data } = this.props
     const index = this._bisectDate(data, date, 1)
@@ -240,7 +240,7 @@ class XoWeekChart extends Component {
       .text(props.valueRenderer(elem.value))
   }
 
-  componentDidMount () {
+  componentDidMount() {
     // Horizon area ----------------------------------------
 
     const svg = (this._svg = d3
@@ -282,7 +282,7 @@ class XoWeekChart extends Component {
     this._draw()
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     const { props } = this
 
     if (
@@ -301,7 +301,7 @@ class XoWeekChart extends Component {
     }
   }
 
-  render () {
+  render() {
     return <div ref='chart' />
   }
 }
@@ -353,22 +353,22 @@ export default class XoWeekCharts extends Component {
     })
   }
 
-  componentDidMount () {
+  componentDidMount() {
     window.addEventListener('resize', this._handleResize)
     this._handleResize()
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this.setState({
       tooltipX: 0,
     })
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     window.removeEventListener('resize', this._handleResize)
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     const { series } = nextProps
 
     if (this.props.series !== series) {
@@ -377,7 +377,7 @@ export default class XoWeekCharts extends Component {
     }
   }
 
-  render () {
+  render() {
     const {
       props,
       state: { chartsWidth, maxValue, tooltipX },

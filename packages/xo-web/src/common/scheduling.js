@@ -119,7 +119,7 @@ export class SchedulePreview extends Component {
     timezone: PropTypes.string,
   }
 
-  componentDidMount () {
+  componentDidMount() {
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
         defaultTimezone: serverTimezone,
@@ -127,7 +127,7 @@ export class SchedulePreview extends Component {
     })
   }
 
-  render () {
+  render() {
     const { defaultTimezone, value } = this.state
     const { cronPattern, timezone = defaultTimezone } = this.props
     const dates = createSchedule(cronPattern, timezone).next(value)
@@ -174,7 +174,7 @@ class ToggleTd extends Component {
     props.onChange(props.tdId, !props.value)
   }
 
-  render () {
+  render() {
     const { props } = this
     return (
       <td
@@ -348,7 +348,7 @@ class DayPicker extends Component {
     weekDayMode: isWeekDayMode(this.props),
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const weekDayMode = isWeekDayMode(props)
 
     if (weekDayMode !== undefined) {
@@ -365,7 +365,7 @@ class DayPicker extends Component {
     this.props.onChange(this.state.weekDayMode ? ['*', cron] : [cron, '*'])
   }
 
-  render () {
+  render() {
     const { monthDayPattern, weekDayPattern } = this.props
     const { weekDayMode } = this.state
 
@@ -412,7 +412,7 @@ export default class Scheduler extends Component {
     }),
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this._onCronChange = newCrons => {
@@ -451,7 +451,7 @@ export default class Scheduler extends Component {
     return timezone
   }
 
-  render () {
+  render() {
     const cronPatternArr = this._getCronPattern().split(' ')
     const timezone = this._getTimezone()
 

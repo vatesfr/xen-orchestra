@@ -19,7 +19,7 @@ export default class SelectFiles extends Component {
     onChange(multi ? files : files[0])
   }
 
-  render () {
+  render() {
     return (
       <label className='btn btn-secondary btn-file hidden'>
         <Icon icon='file' /> {this.props.label || _('browseFiles')}

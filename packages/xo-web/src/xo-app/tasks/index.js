@@ -49,7 +49,7 @@ const TASK_ITEM_STYLE = {
   host: createGetObject((_, props) => props.item.$host),
 }))
 export class TaskItem extends Component {
-  render () {
+  render() {
     const { host, item: task } = this.props
 
     return (
@@ -171,7 +171,10 @@ const GROUPED_ACTIONS = [
   const getPendingTasksByPool = getPendingTasks.sort().groupBy('$pool')
 
   const getPools = createGetObjectsOfType('pool').pick(
-    createSelector(getPendingTasksByPool, keys)
+    createSelector(
+      getPendingTasksByPool,
+      keys
+    )
   )
 
   return {
@@ -186,7 +189,7 @@ export default class Tasks extends Component {
     finishedTasks: [],
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const finishedTasks = differenceBy(
       flatten(toArray(this.props.pendingTasksByPool)),
       flatten(toArray(props.pendingTasksByPool)),
@@ -202,7 +205,10 @@ export default class Tasks extends Component {
   }
 
   _getTasks = createSelector(
-    createSelector(() => this.state.pools, resolveIds),
+    createSelector(
+      () => this.state.pools,
+      resolveIds
+    ),
     () => this.props.pendingTasksByPool,
     (poolIds, pendingTasksByPool) =>
       isEmpty(poolIds)
@@ -213,13 +219,16 @@ export default class Tasks extends Component {
   _getFinishedTasks = createFilter(
     () => this.state.finishedTasks,
     createSelector(
-      createSelector(() => this.state.pools, resolveIds),
+      createSelector(
+        () => this.state.pools,
+        resolveIds
+      ),
       poolIds =>
         isEmpty(poolIds) ? null : ({ $poolId }) => poolIds.includes($poolId)
     )
   )
 
-  render () {
+  render() {
     const { props } = this
     const { intl, nTasks, pools } = props
     const { formatMessage } = intl

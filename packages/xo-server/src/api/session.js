@@ -5,7 +5,7 @@ import { invalidCredentials } from 'xo-common/api-errors'
 
 // ===================================================================
 
-export async function signIn (credentials) {
+export async function signIn(credentials) {
   const user = await this.authenticateUser(credentials)
   if (!user) {
     throw invalidCredentials()
@@ -39,7 +39,7 @@ signInWithToken.params = {
 
 // -------------------------------------------------------------------
 
-export function signOut () {
+export function signOut() {
   this.session.unset('user_id')
 }
 
@@ -50,7 +50,7 @@ signOut.permission = ''
 
 // -------------------------------------------------------------------
 
-export async function getUser () {
+export async function getUser() {
   const userId = this.session.get('user_id')
 
   return userId === undefined

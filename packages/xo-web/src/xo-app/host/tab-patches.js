@@ -180,7 +180,7 @@ const INSTALLED_PATCH_COLUMNS_2 = [
 ]
 
 class XcpPatches extends Component {
-  render () {
+  render() {
     const { missingPatches, host, installAllPatches } = this.props
     const hasMissingPatches = !isEmpty(missingPatches)
     return (
@@ -256,7 +256,7 @@ class XenServerPatches extends Component {
     },
   ]
 
-  render () {
+  render() {
     const { host, missingPatches, installAllPatches } = this.props
     const { patches, columns } = this._getPatches()
     const hasMissingPatches = !isEmpty(missingPatches)
@@ -341,7 +341,7 @@ export default class TabPatches extends Component {
   _installPatch = patch =>
     this._chooseActionPatch(() => installHostPatch(this.props.host, patch))
 
-  render () {
+  render() {
     if (process.env.XOA_PLAN < 2) {
       return (
         <Container>

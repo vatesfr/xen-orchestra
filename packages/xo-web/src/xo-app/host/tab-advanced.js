@@ -42,7 +42,10 @@ const getPackId = ({ author, name }) => `${author}\0${name}`
     .sort()
 
   const getPcis = createGetObjectsOfType('PCI').pick(
-    createSelector(getPgpus, pgpus => map(pgpus, 'pci'))
+    createSelector(
+      getPgpus,
+      pgpus => map(pgpus, 'pci')
+    )
   )
 
   return {
@@ -70,7 +73,7 @@ export default class extends Component {
   )
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
-  render () {
+  render() {
     const { host, pcis, pgpus } = this.props
     return (
       <Container>

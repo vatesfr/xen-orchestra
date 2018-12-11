@@ -113,13 +113,13 @@ export const testSchema = {
 // ===================================================================
 
 class AuthLdap {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
 
     this._authenticate = bind(this._authenticate, this)
   }
 
-  async configure (conf) {
+  async configure(conf) {
     const clientOpts = (this._clientOpts = {
       url: conf.uri,
       maxConnections: 5,
@@ -155,15 +155,15 @@ class AuthLdap {
     this._searchFilter = searchFilter
   }
 
-  load () {
+  load() {
     this._xo.registerAuthenticationProvider(this._authenticate)
   }
 
-  unload () {
+  unload() {
     this._xo.unregisterAuthenticationProvider(this._authenticate)
   }
 
-  test ({ username, password }) {
+  test({ username, password }) {
     return this._authenticate({
       username,
       password,
@@ -174,7 +174,7 @@ class AuthLdap {
     })
   }
 
-  async _authenticate ({ username, password }, logger = noop) {
+  async _authenticate({ username, password }, logger = noop) {
     if (username === undefined || password === undefined) {
       logger('require `username` and `password` to authenticate!')
 

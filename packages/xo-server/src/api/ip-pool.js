@@ -1,4 +1,4 @@
-export function create (props) {
+export function create(props) {
   return this.createIpPool(props)
 }
 
@@ -7,7 +7,7 @@ create.description = 'Creates a new ipPool'
 
 // -------------------------------------------------------------------
 
-function delete_ ({ id }) {
+function delete_({ id }) {
   return this.deleteIpPool(id)
 }
 export { delete_ as delete }
@@ -17,7 +17,7 @@ delete_.description = 'Delete an ipPool'
 
 // -------------------------------------------------------------------
 
-export function getAll (params) {
+export function getAll(params) {
   const { user } = this
 
   return this.getAllIpPools(
@@ -30,7 +30,7 @@ getAll.description = 'List all ipPools'
 
 // -------------------------------------------------------------------
 
-export function set ({ id, ...props }) {
+export function set({ id, ...props }) {
   return this.updateIpPool(id, props)
 }
 

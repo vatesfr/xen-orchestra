@@ -8,7 +8,7 @@ import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
 // ===================================================================
 
 export default class Index {
-  constructor (computeHash) {
+  constructor(computeHash) {
     if (computeHash) {
       this.computeHash = iteratee(computeHash)
     }
@@ -24,12 +24,12 @@ export default class Index {
 
   // This method is used to compute the hash under which an item must
   // be saved.
-  computeHash (value, key) {
+  computeHash(value, key) {
     throw new NotImplemented('this method must be overridden')
   }
 
   // Remove empty items lists.
-  sweep () {
+  sweep() {
     const { _itemsByHash: itemsByHash } = this
     for (const hash in itemsByHash) {
       if (isEmpty(itemsByHash[hash])) {
@@ -40,13 +40,13 @@ export default class Index {
 
   // -----------------------------------------------------------------
 
-  get items () {
+  get items() {
     return this._itemsByHash
   }
 
   // -----------------------------------------------------------------
 
-  _attachCollection (collection) {
+  _attachCollection(collection) {
     // Add existing entries.
     //
     // FIXME: I think there may be a race condition if the `add` event
@@ -58,7 +58,7 @@ export default class Index {
     collection.on(ACTION_REMOVE, this._onRemove)
   }
 
-  _detachCollection (collection) {
+  _detachCollection(collection) {
     collection.removeListener(ACTION_ADD, this._onAdd)
     collection.removeListener(ACTION_UPDATE, this._onUpdate)
     collection.removeListener(ACTION_REMOVE, this._onRemove)
@@ -69,7 +69,7 @@ export default class Index {
 
   // -----------------------------------------------------------------
 
-  _onAdd (items) {
+  _onAdd(items) {
     const {
       computeHash,
       _itemsByHash: itemsByHash,
@@ -93,7 +93,7 @@ export default class Index {
     }
   }
 
-  _onUpdate (items) {
+  _onUpdate(items) {
     const {
       computeHash,
       _itemsByHash: itemsByHash,
@@ -122,7 +122,7 @@ export default class Index {
     }
   }
 
-  _onRemove (items) {
+  _onRemove(items) {
     const { _itemsByHash: itemsByHash, _keysToHash: keysToHash } = this
 
     for (const key in items) {

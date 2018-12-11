@@ -7,7 +7,7 @@ const HTTP_URL = 'http://localhost:9002'
 // ===================================================================
 
 class XoServerCloud {
-  constructor ({ xo }) {
+  constructor({ xo }) {
     this._xo = xo
 
     // Defined in configure().
@@ -15,11 +15,11 @@ class XoServerCloud {
     this._key = null
   }
 
-  configure (configuration) {
+  configure(configuration) {
     this._conf = configuration
   }
 
-  async load () {
+  async load() {
     const getResourceCatalog = () => this._getCatalog()
     getResourceCatalog.description = 'Get the list of all available resources'
     getResourceCatalog.permission = 'admin'
@@ -59,14 +59,14 @@ class XoServerCloud {
     connect()
   }
 
-  unload () {
+  unload() {
     this._unsetApiMethods()
     this._unsetRequestResource()
   }
 
   // ----------------------------------------------------------------
 
-  async _getCatalog () {
+  async _getCatalog() {
     const catalog = await this._updater.call('getResourceCatalog')
 
     if (!catalog) {
@@ -78,7 +78,7 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getNamespaces () {
+  async _getNamespaces() {
     const catalog = await this._getCatalog()
 
     if (!catalog._namespaces) {
@@ -90,7 +90,7 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _registerResource (namespace) {
+  async _registerResource(namespace) {
     const _namespace = (await this._getNamespaces())[namespace]
 
     if (_namespace === undefined) {
@@ -106,7 +106,7 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getNamespaceCatalog (namespace) {
+  async _getNamespaceCatalog(namespace) {
     const namespaceCatalog = (await this._getCatalog())[namespace]
 
     if (!namespaceCatalog) {
@@ -118,7 +118,7 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _requestResource (namespace, id, version) {
+  async _requestResource(namespace, id, version) {
     const _namespace = (await this._getNamespaces())[namespace]
 
     if (!_namespace || !_namespace.registered) {

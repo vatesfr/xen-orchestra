@@ -87,7 +87,7 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
   plugins: subscribePlugins,
 }))
 export default class Licenses extends Component {
-  constructor () {
+  constructor() {
     super()
 
     this.componentDidMount = this._updateLicenses
@@ -156,7 +156,7 @@ export default class Licenses extends Component {
     }
   )
 
-  render () {
+  render() {
     if (get(() => this.props.xoaRegistration.state) !== 'registered') {
       return (
         <span>

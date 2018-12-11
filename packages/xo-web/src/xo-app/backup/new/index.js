@@ -278,7 +278,7 @@ class TimeoutInput extends Component {
     this.props.onChange(value === '' ? null : +value * 1e3)
   }
 
-  render () {
+  render() {
     const { props } = this
     const { value } = props
 
@@ -544,7 +544,7 @@ export default class New extends Component {
     return defaultValue
   }
 
-  render () {
+  render() {
     const method = this._getValue('job', 'method', '')
     const scheduling = this._getScheduling()
     const vms = this._getVmsParam()

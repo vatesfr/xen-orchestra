@@ -73,7 +73,7 @@ const GROUPED_ACTIONS = [
 
 @injectIntl
 export default class Schedules extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       action: undefined,
@@ -93,7 +93,7 @@ export default class Schedules extends Component {
     })
   }
 
-  componentWillMount () {
+  componentWillMount() {
     const unsubscribeJobs = subscribeJobs(jobs => {
       const j = {}
       for (const id in jobs) {
@@ -208,7 +208,7 @@ export default class Schedules extends Component {
     },
   ]
 
-  render () {
+  render() {
     const { cronPattern, jobs, schedule, schedules, timezone } = this.state
     const userData = { jobs }
     return (

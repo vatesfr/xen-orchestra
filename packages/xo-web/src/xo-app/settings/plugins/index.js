@@ -27,7 +27,7 @@ import {
 } from 'xo'
 
 class Plugin extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.configFormId = `form-config-${props.id}`
@@ -113,7 +113,7 @@ class Plugin extends Component {
     }
   }
 
-  render () {
+  render() {
     const { props, state } = this
     const { editedConfig, expanded } = state
     const { configurationPresets, configurationSchema, loaded } = props
@@ -255,7 +255,7 @@ class Plugin extends Component {
   plugins: subscribePlugins,
 })
 export default class Plugins extends Component {
-  render () {
+  render() {
     if (isEmpty(this.props.plugins)) {
       return (
         <p>

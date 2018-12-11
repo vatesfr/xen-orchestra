@@ -217,7 +217,7 @@ const importers: $Dict<
   ) => Promise<string>,
   Mode
 > = {
-  async delta (handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
+  async delta(handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
     metadata = ((metadata: any): MetadataDelta)
     const { vdis, vhds, vm } = metadata
 
@@ -261,7 +261,7 @@ const importers: $Dict<
     )
     return newVm.$id
   },
-  async full (handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
+  async full(handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
     metadata = ((metadata: any): MetadataFull)
 
     const xva = await handler.createReadStream(
@@ -314,7 +314,7 @@ const unboxIds = (pattern?: SimpleIdPattern): string[] => {
 }
 
 // similar to Promise.all() but do not gather results
-async function waitAll<T> (
+async function waitAll<T>(
   promises: Promise<T>[],
   onRejection: Function
 ): Promise<void> {
@@ -388,7 +388,7 @@ const wrapTaskFn = <T>(
   opts: any,
   task: (...any) => Promise<T>
 ): ((taskId: string, ...any) => Promise<T>) =>
-  async function () {
+  async function() {
     const { data, logger, message, parentId, result } =
       typeof opts === 'function' ? opts.apply(this, arguments) : opts
 
@@ -511,11 +511,11 @@ export default class BackupNg {
   _logger: Logger
   _runningRestores: Set<string>
 
-  get runningRestores () {
+  get runningRestores() {
     return this._runningRestores
   }
 
-  constructor (app: any) {
+  constructor(app: any) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()
@@ -676,7 +676,7 @@ export default class BackupNg {
     })
   }
 
-  async createBackupNgJob (
+  async createBackupNgJob(
     props: $Diff<BackupJob, {| id: string |}>,
     schedules?: $Dict<$Diff<Schedule, {| id: string |}>>
   ): Promise<BackupJob> {
@@ -700,7 +700,7 @@ export default class BackupNg {
     return job
   }
 
-  async deleteBackupNgJob (id: string): Promise<void> {
+  async deleteBackupNgJob(id: string): Promise<void> {
     const app = this._app
     const [schedules] = await Promise.all([
       app.getAllSchedules(),
@@ -716,7 +716,7 @@ export default class BackupNg {
     ])
   }
 
-  async deleteVmBackupNg (id: string): Promise<void> {
+  async deleteVmBackupNg(id: string): Promise<void> {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
     const handler = await app.getRemoteHandler(remoteId)
@@ -740,7 +740,7 @@ export default class BackupNg {
   // ├─ task.start(message: 'transfer')
   // │  └─ task.end(result: { id: string, size: number })
   // └─ task.end
-  async importVmBackupNg (id: string, srId: string): Promise<string> {
+  async importVmBackupNg(id: string, srId: string): Promise<string> {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
     const handler = await app.getRemoteHandler(remoteId)
@@ -783,7 +783,7 @@ export default class BackupNg {
     )()
   }
 
-  async listVmBackupsNg (remotes: string[]) {
+  async listVmBackupsNg(remotes: string[]) {
     const backupsByVmByRemote: $Dict<$Dict<Metadata[]>> = {}
 
     const app = this._app
@@ -839,7 +839,7 @@ export default class BackupNg {
     return backupsByVmByRemote
   }
 
-  async migrateLegacyBackupJob (jobId: string) {
+  async migrateLegacyBackupJob(jobId: string) {
     const [job, schedules] = await Promise.all([
       this._app.getJob(jobId, 'call'),
       this._app.getAllSchedules(),
@@ -889,7 +889,7 @@ export default class BackupNg {
   // - [x] validate VHDs after exports and before imports, how?
   // - [x] check merge/transfert duration/size are what we want for delta
   @defer
-  async _backupVm (
+  async _backupVm(
     $defer: any,
     $cancelToken: any,
     vmUuid: string,
@@ -1408,7 +1408,7 @@ export default class BackupNg {
                   // wait for all targets to require the stream and then starts
                   // the real export and create the forks.
                   const resolves = []
-                  function resolver (resolve) {
+                  function resolver(resolve) {
                     resolves.push(resolve)
 
                     if (resolves.length === nTargets) {
@@ -1620,7 +1620,7 @@ export default class BackupNg {
     )
   }
 
-  async _deleteDeltaVmBackups (
+  async _deleteDeltaVmBackups(
     handler: RemoteHandler,
     backups: MetadataDelta[]
   ): Promise<number> {
@@ -1636,7 +1636,7 @@ export default class BackupNg {
     }).then(sum)
   }
 
-  async _deleteFullVmBackups (
+  async _deleteFullVmBackups(
     handler: RemoteHandler,
     backups: MetadataFull[]
   ): Promise<void> {
@@ -1651,7 +1651,7 @@ export default class BackupNg {
 
   // FIXME: synchronize by job/VDI, otherwise it can cause issues with the merge
   @defer
-  async _deleteVhd (
+  async _deleteVhd(
     $defer: any,
     handler: RemoteHandler,
     path: string
@@ -1697,11 +1697,11 @@ export default class BackupNg {
     return mergedDataSize
   }
 
-  async _deleteVms (xapi: Xapi, vms: Vm[]): Promise<void> {
+  async _deleteVms(xapi: Xapi, vms: Vm[]): Promise<void> {
     await asyncMap(vms, vm => xapi.deleteVm(vm))
   }
 
-  async _listVmBackups (
+  async _listVmBackups(
     handler: RemoteHandler,
     vm: Object | string,
     predicate?: Metadata => boolean

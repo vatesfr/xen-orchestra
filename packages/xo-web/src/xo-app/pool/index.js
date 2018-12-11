@@ -44,20 +44,36 @@ import TabPatches from './tab-patches'
 
   const getNetworks = createGetObjectsOfType('network')
     .filter(
-      createSelector(getPool, ({ id }) => network => network.$pool === id)
+      createSelector(
+        getPool,
+        ({ id }) => network => network.$pool === id
+      )
     )
     .sort()
 
   const getHosts = createGetObjectsOfType('host')
-    .filter(createSelector(getPool, ({ id }) => obj => obj.$pool === id))
+    .filter(
+      createSelector(
+        getPool,
+        ({ id }) => obj => obj.$pool === id
+      )
+    )
     .sort()
 
   const getPoolSrs = createGetObjectsOfType('SR')
-    .filter(createSelector(getPool, ({ id }) => sr => sr.$pool === id))
+    .filter(
+      createSelector(
+        getPool,
+        ({ id }) => sr => sr.$pool === id
+      )
+    )
     .sort()
 
   const getNumberOfVms = createGetObjectsOfType('VM').count(
-    createSelector(getPool, ({ id }) => obj => obj.$pool === id)
+    createSelector(
+      getPool,
+      ({ id }) => obj => obj.$pool === id
+    )
   )
 
   const getLogs = createGetObjectMessages(getPool)
@@ -85,7 +101,7 @@ export default class Pool extends Component {
   _setNameLabel = nameLabel =>
     editPool(this.props.pool, { name_label: nameLabel })
 
-  header () {
+  header() {
     const { pool } = this.props
     if (!pool) {
       return <Icon icon='loading' />
@@ -142,7 +158,7 @@ export default class Pool extends Component {
     )
   }
 
-  render () {
+  render() {
     const { pool } = this.props
     if (!pool) {
       return <h1>{_('statusLoading')}</h1>

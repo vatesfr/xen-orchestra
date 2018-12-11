@@ -44,7 +44,7 @@ export default class ResourceSetQuotas extends Component {
     }
   )
 
-  render () {
+  render() {
     const {
       intl: { formatMessage },
     } = this.props

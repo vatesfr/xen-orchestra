@@ -12,11 +12,11 @@ export default class PluginMetadata extends Model {}
 // ===================================================================
 
 export class PluginsMetadata extends Collection {
-  get Model () {
+  get Model() {
     return PluginMetadata
   }
 
-  async save ({ id, autoload, configuration }) {
+  async save({ id, autoload, configuration }) {
     return /* await */ this.update({
       id,
       autoload: autoload ? 'true' : 'false',
@@ -24,7 +24,7 @@ export class PluginsMetadata extends Collection {
     })
   }
 
-  async merge (id, data) {
+  async merge(id, data) {
     const pluginMetadata = await this.first(id)
     if (pluginMetadata === undefined) {
       throw new Error('no such plugin metadata')
@@ -36,7 +36,7 @@ export class PluginsMetadata extends Collection {
     })
   }
 
-  async get (properties) {
+  async get(properties) {
     const pluginsMetadata = await super.get(properties)
 
     // Deserializes.

@@ -17,7 +17,7 @@ const obfuscateRemote = ({ url, ...remote }) => {
 }
 
 export default class {
-  constructor (xo, { remoteOptions }) {
+  constructor(xo, { remoteOptions }) {
     this._remoteOptions = remoteOptions
     this._remotes = new Remotes({
       connection: xo._redis,
@@ -52,7 +52,7 @@ export default class {
     })
   }
 
-  async getRemoteHandler (remote) {
+  async getRemoteHandler(remote) {
     if (typeof remote === 'string') {
       remote = await this._getRemote(remote)
     }
@@ -79,16 +79,16 @@ export default class {
     return handler
   }
 
-  async testRemote (remote) {
+  async testRemote(remote) {
     const handler = await this.getRemoteHandler(remote)
     return handler.test()
   }
 
-  async getAllRemotes () {
+  async getAllRemotes() {
     return (await this._remotes.get()).map(_ => obfuscateRemote(_))
   }
 
-  async _getRemote (id) {
+  async _getRemote(id) {
     const remote = await this._remotes.first(id)
     if (remote === undefined) {
       throw noSuchObject(id, 'remote')
@@ -96,11 +96,11 @@ export default class {
     return remote.properties
   }
 
-  getRemote (id) {
+  getRemote(id) {
     return this._getRemote(id).then(obfuscateRemote)
   }
 
-  async createRemote ({ name, url, options }) {
+  async createRemote({ name, url, options }) {
     const params = {
       name,
       url,
@@ -114,7 +114,7 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote (id, { name, url, options, enabled }) {
+  updateRemote(id, { name, url, options, enabled }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -131,7 +131,7 @@ export default class {
   }
 
   @synchronized()
-  async _updateRemote (id, { url, ...props }) {
+  async _updateRemote(id, { url, ...props }) {
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values
@@ -144,7 +144,7 @@ export default class {
     return (await this._remotes.update(remote)).properties
   }
 
-  async removeRemote (id) {
+  async removeRemote(id) {
     const handler = this._handlers[id]
     if (handler !== undefined) {
       ignoreErrors.call(handler.forget())

@@ -20,7 +20,7 @@ const removeFromArraySet = (set, value) =>
 // ===================================================================
 
 export default class {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
 
     const redis = xo._redis
@@ -79,7 +79,7 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createUser ({ name, password, ...properties }) {
+  async createUser({ name, password, ...properties }) {
     if (name) {
       properties.email = name
     }
@@ -94,7 +94,7 @@ export default class {
     return user.properties
   }
 
-  async deleteUser (id) {
+  async deleteUser(id) {
     const user = await this.getUser(id)
 
     await this._users.remove(id)
@@ -124,7 +124,7 @@ export default class {
     })
   }
 
-  async updateUser (
+  async updateUser(
     id,
     {
       // TODO: remove
@@ -166,7 +166,7 @@ export default class {
   }
 
   // Merge this method in getUser() when plain objects.
-  async _getUser (id) {
+  async _getUser(id) {
     const user = await this._users.first(id)
     if (user === undefined) {
       throw noSuchObject(id, 'user')
@@ -177,7 +177,7 @@ export default class {
 
   // TODO: this method will no longer be async when users are
   // integrated to the main collection.
-  async getUser (id) {
+  async getUser(id) {
     const user = (await this._getUser(id)).properties
 
     // TODO: remove when no longer the email property has been
@@ -187,11 +187,11 @@ export default class {
     return user
   }
 
-  async getAllUsers () {
+  async getAllUsers() {
     return this._users.get()
   }
 
-  async getUserByName (username, returnNullIfMissing) {
+  async getUserByName(username, returnNullIfMissing) {
     // TODO: change `email` by `username`.
     const user = await this._users.first({ email: username })
     if (user !== undefined) {
@@ -206,7 +206,7 @@ export default class {
   }
 
   // Get or create a user associated with an auth provider.
-  async registerUser (provider, name) {
+  async registerUser(provider, name) {
     const user = await this.getUserByName(name, true)
     if (user) {
       if (user._provider !== provider) {
@@ -226,7 +226,7 @@ export default class {
     })
   }
 
-  async changeUserPassword (userId, oldPassword, newPassword) {
+  async changeUserPassword(userId, oldPassword, newPassword) {
     if (!(await this.checkUserPassword(userId, oldPassword, false))) {
       throw invalidCredentials()
     }
@@ -234,7 +234,7 @@ export default class {
     await this.updateUser(userId, { password: newPassword })
   }
 
-  async checkUserPassword (userId, password, updateIfNecessary = true) {
+  async checkUserPassword(userId, password, updateIfNecessary = true) {
     const { pw_hash: hash } = await this.getUser(userId)
     if (!(hash && (await verify(password, hash)))) {
       return false
@@ -249,14 +249,14 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createGroup ({ name }) {
+  async createGroup({ name }) {
     // TODO: use plain objects.
     const group = (await this._groups.create(name)).properties
 
     return group
   }
 
-  async deleteGroup (id) {
+  async deleteGroup(id) {
     const group = await this.getGroup(id)
 
     await this._groups.remove(id)
@@ -276,7 +276,7 @@ export default class {
     })
   }
 
-  async updateGroup (id, { name }) {
+  async updateGroup(id, { name }) {
     const group = await this.getGroup(id)
 
     if (name) group.name = name
@@ -284,7 +284,7 @@ export default class {
     await this._groups.save(group)
   }
 
-  async getGroup (id) {
+  async getGroup(id) {
     const group = await this._groups.first(id)
     if (group === undefined) {
       throw noSuchObject(id, 'group')
@@ -293,11 +293,11 @@ export default class {
     return group.properties
   }
 
-  async getAllGroups () {
+  async getAllGroups() {
     return this._groups.get()
   }
 
-  async addUserToGroup (userId, groupId) {
+  async addUserToGroup(userId, groupId) {
     const [user, group] = await Promise.all([
       this.getUser(userId),
       this.getGroup(groupId),
@@ -309,17 +309,17 @@ export default class {
     await Promise.all([this._users.save(user), this._groups.save(group)])
   }
 
-  async _removeUserFromGroup (userId, group) {
+  async _removeUserFromGroup(userId, group) {
     group.users = removeFromArraySet(group.users, userId)
     return this._groups.save(group)
   }
 
-  async _removeGroupFromUser (groupId, user) {
+  async _removeGroupFromUser(groupId, user) {
     user.groups = removeFromArraySet(user.groups, groupId)
     return this._users.save(user)
   }
 
-  async removeUserFromGroup (userId, groupId) {
+  async removeUserFromGroup(userId, groupId) {
     const [user, group] = await Promise.all([
       this.getUser(userId),
       this.getGroup(groupId),
@@ -331,7 +331,7 @@ export default class {
     ])
   }
 
-  async setGroupUsers (groupId, userIds) {
+  async setGroupUsers(groupId, userIds) {
     const group = await this.getGroup(groupId)
 
     let newUsersIds = lightSet(userIds)

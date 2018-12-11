@@ -11,11 +11,11 @@ export default class Server extends Model {}
 // -------------------------------------------------------------------
 
 export class Servers extends Collection {
-  get Model () {
+  get Model() {
     return Server
   }
 
-  async create (params) {
+  async create(params) {
     const { host } = params
 
     if (await this.exists({ host })) {
@@ -25,7 +25,7 @@ export class Servers extends Collection {
     return /* await */ this.add(params)
   }
 
-  async get (properties) {
+  async get(properties) {
     const servers = await super.get(properties)
 
     // Deserializes

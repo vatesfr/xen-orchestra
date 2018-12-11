@@ -5,7 +5,7 @@ const { NULL_REF, Xapi } = require('xen-api')
 
 const pkg = require('./package.json')
 
-Xapi.prototype.getVmDisks = async function (vm) {
+Xapi.prototype.getVmDisks = async function(vm) {
   const disks = { __proto__: null }
   await Promise.all([
     ...vm.VBDs.map(async vbdRef => {
@@ -19,7 +19,7 @@ Xapi.prototype.getVmDisks = async function (vm) {
   return disks
 }
 
-defer(async function main ($defer, args) {
+defer(async function main($defer, args) {
   if (args.length === 0 || args.includes('-h') || args.includes('--help')) {
     const cliName = Object.keys(pkg.bin)[0]
     return console.error(

@@ -23,7 +23,7 @@ const SECTOR_SIZE = 512
 const TEN_MIB = 10 * 1024 * 1024
 
 // Creates a 10MB buffer and initializes it as a FAT 16 volume.
-export function init () {
+export function init() {
   const buf = Buffer.alloc(TEN_MIB)
 
   // https://github.com/natevw/fatfs/blob/master/structs.js

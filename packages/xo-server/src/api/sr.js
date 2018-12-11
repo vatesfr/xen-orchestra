@@ -6,7 +6,7 @@ import { ensureArray, forEach, parseXml } from '../utils'
 
 // ===================================================================
 
-export async function set ({
+export async function set({
   sr,
 
   // TODO: use camel case.
@@ -33,7 +33,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function scan ({ SR }) {
+export async function scan({ SR }) {
   await this.getXapi(SR).call('SR.scan', SR._xapiRef)
 }
 
@@ -50,7 +50,7 @@ const srIsBackingHa = sr =>
   sr.$pool.ha_enabled && some(sr.$pool.$ha_statefiles, f => f.$SR === sr)
 
 // TODO: find a way to call this "delete" and not destroy
-export async function destroy ({ sr }) {
+export async function destroy({ sr }) {
   const xapi = this.getXapi(sr)
   if (sr.SR_type !== 'xosan') {
     await xapi.destroySr(sr._xapiId)
@@ -82,7 +82,7 @@ destroy.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function forget ({ SR }) {
+export async function forget({ SR }) {
   await this.getXapi(SR).forgetSr(SR._xapiId)
 }
 
@@ -96,7 +96,7 @@ forget.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function connectAllPbds ({ SR }) {
+export async function connectAllPbds({ SR }) {
   await this.getXapi(SR).connectAllSrPbds(SR._xapiId)
 }
 
@@ -110,7 +110,7 @@ connectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function disconnectAllPbds ({ SR }) {
+export async function disconnectAllPbds({ SR }) {
   await this.getXapi(SR).disconnectAllSrPbds(SR._xapiId)
 }
 
@@ -124,7 +124,7 @@ disconnectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createIso ({
+export async function createIso({
   host,
   nameLabel,
   nameDescription,
@@ -183,7 +183,7 @@ createIso.resolve = {
 
 // This functions creates a NFS SR
 
-export async function createNfs ({
+export async function createNfs({
   host,
   nameLabel,
   nameDescription,
@@ -245,7 +245,7 @@ createNfs.resolve = {
 
 // This functions creates an HBA SR
 
-export async function createHba ({ host, nameLabel, nameDescription, scsiId }) {
+export async function createHba({ host, nameLabel, nameDescription, scsiId }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -285,7 +285,7 @@ createHba.resolve = {
 
 // This functions creates a local LVM SR
 
-export async function createLvm ({ host, nameLabel, nameDescription, device }) {
+export async function createLvm({ host, nameLabel, nameDescription, device }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -325,7 +325,7 @@ createLvm.resolve = {
 
 // This functions creates a local ext SR
 
-export async function createExt ({ host, nameLabel, nameDescription, device }) {
+export async function createExt({ host, nameLabel, nameDescription, device }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -364,7 +364,7 @@ createExt.resolve = {
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
 
-export async function probeNfs ({ host, server }) {
+export async function probeNfs({ host, server }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -408,7 +408,7 @@ probeNfs.resolve = {
 // -------------------------------------------------------------------
 // This function helps to detect all HBA devices on the host
 
-export async function probeHba ({ host }) {
+export async function probeHba({ host }) {
   const xapi = this.getXapi(host)
 
   let xml
@@ -452,7 +452,7 @@ probeHba.resolve = {
 
 // This functions creates a iSCSI SR
 
-export async function createIscsi ({
+export async function createIscsi({
   host,
   nameLabel,
   nameDescription,
@@ -520,7 +520,7 @@ createIscsi.resolve = {
 // This function helps to detect all iSCSI IQN on a Target (iSCSI "server")
 // Return a table of IQN or empty table if no iSCSI connection to the target
 
-export async function probeIscsiIqns ({
+export async function probeIscsiIqns({
   host,
   target: targetIp,
   port,
@@ -590,7 +590,7 @@ probeIscsiIqns.resolve = {
 // This function helps to detect all iSCSI ID and LUNs on a Target
 //  It will return a LUN table
 
-export async function probeIscsiLuns ({
+export async function probeIscsiLuns({
   host,
   target: targetIp,
   port,
@@ -661,7 +661,7 @@ probeIscsiLuns.resolve = {
 // This function helps to detect if this target already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-export async function probeIscsiExists ({
+export async function probeIscsiExists({
   host,
   target: targetIp,
   port,
@@ -720,7 +720,7 @@ probeIscsiExists.resolve = {
 // This function helps to detect if this HBA already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-export async function probeHbaExists ({ host, scsiId }) {
+export async function probeHbaExists({ host, scsiId }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -748,7 +748,7 @@ probeHbaExists.resolve = {
 // This function helps to detect if this NFS SR already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-export async function probeNfsExists ({ host, server, serverPath }) {
+export async function probeNfsExists({ host, server, serverPath }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -783,7 +783,7 @@ probeNfsExists.resolve = {
 // -------------------------------------------------------------------
 // This function helps to reattach a forgotten NFS/iSCSI SR
 
-export async function reattach ({
+export async function reattach({
   host,
   uuid,
   nameLabel,
@@ -826,7 +826,7 @@ reattach.resolve = {
 // -------------------------------------------------------------------
 // This function helps to reattach a forgotten ISO SR
 
-export async function reattachIso ({
+export async function reattachIso({
   host,
   uuid,
   nameLabel,
@@ -868,7 +868,7 @@ reattachIso.resolve = {
 
 // -------------------------------------------------------------------
 
-export function getUnhealthyVdiChainsLength ({ sr }) {
+export function getUnhealthyVdiChainsLength({ sr }) {
   return this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
 }
 
@@ -882,7 +882,7 @@ getUnhealthyVdiChainsLength.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stats ({ sr, granularity }) {
+export function stats({ sr, granularity }) {
   return this.getXapiSrStats(sr._xapiId, granularity)
 }
 

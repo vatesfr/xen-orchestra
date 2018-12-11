@@ -3,7 +3,7 @@ import { dirname, relative } from 'path'
 import Vhd from './vhd'
 import { DISK_TYPE_DIFFERENCING } from './_constants'
 
-export default async function chain (
+export default async function chain(
   parentHandler,
   parentPath,
   childHandler,

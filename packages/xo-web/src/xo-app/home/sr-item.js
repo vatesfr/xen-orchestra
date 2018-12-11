@@ -38,7 +38,10 @@ import styles from './index.css'
     (_, props) => props.item,
     (pool, sr) => pool && pool.default_SR === sr.id
   ),
-  isShared: createSelector((_, props) => props.item, isSrShared),
+  isShared: createSelector(
+    (_, props) => props.item,
+    isSrShared
+  ),
   status: createSelector(
     createGetObjectsOfType('PBD').filter((_, props) => pbd =>
       pbd.SR === props.item.id
@@ -99,7 +102,7 @@ export default class SrItem extends Component {
     }
   }
 
-  render () {
+  render() {
     const {
       container,
       expandAll,

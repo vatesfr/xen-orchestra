@@ -4,7 +4,7 @@ import { mapToArray } from '../utils'
 
 // ===================================================================
 
-export async function set ({
+export async function set({
   pool,
 
   // TODO: use camel case.
@@ -37,7 +37,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function setDefaultSr ({ sr }) {
+export async function setDefaultSr({ sr }) {
   await this.hasPermissions(this.user.id, [[sr.$pool, 'administrate']])
 
   await this.getXapi(sr).setDefaultSr(sr._xapiId)
@@ -57,7 +57,7 @@ setDefaultSr.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function setPoolMaster ({ host }) {
+export async function setPoolMaster({ host }) {
   await this.hasPermissions(this.user.id, [[host.$pool, 'administrate']])
 
   await this.getXapi(host).setPoolMaster(host._xapiId)
@@ -75,7 +75,7 @@ setPoolMaster.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function installPatch ({ pool, patch: patchUuid }) {
+export async function installPatch({ pool, patch: patchUuid }) {
   await this.getXapi(pool).installPoolPatchOnAllHosts(patchUuid)
 }
 
@@ -93,7 +93,7 @@ installPatch.resolve = {
 }
 // -------------------------------------------------------------------
 
-export async function installAllPatches ({ pool }) {
+export async function installAllPatches({ pool }) {
   await this.getXapi(pool).installAllPoolPatchesOnAllHosts()
 }
 
@@ -112,7 +112,7 @@ installAllPatches.description =
 
 // -------------------------------------------------------------------
 
-async function handlePatchUpload (req, res, { pool }) {
+async function handlePatchUpload(req, res, { pool }) {
   const contentLength = req.headers['content-length']
   if (!contentLength) {
     res.writeHead(411)
@@ -123,7 +123,7 @@ async function handlePatchUpload (req, res, { pool }) {
   await this.getXapi(pool).uploadPoolPatch(req, contentLength)
 }
 
-export async function uploadPatch ({ pool }) {
+export async function uploadPatch({ pool }) {
   return {
     $sendTo: await this.registerHttpRequest(handlePatchUpload, { pool }),
   }
@@ -144,7 +144,7 @@ export { uploadPatch as patch }
 
 // -------------------------------------------------------------------
 
-export async function mergeInto ({ source, target, force }) {
+export async function mergeInto({ source, target, force }) {
   const sourceHost = this.getObject(source.master)
   const targetHost = this.getObject(target.master)
 
@@ -188,7 +188,7 @@ mergeInto.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function getLicenseState ({ pool }) {
+export async function getLicenseState({ pool }) {
   return this.getXapi(pool).call('pool.get_license_state', pool._xapiId.$ref)
 }
 
@@ -204,7 +204,7 @@ getLicenseState.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleInstallSupplementalPack (req, res, { poolId }) {
+async function handleInstallSupplementalPack(req, res, { poolId }) {
   const xapi = this.getXapi(poolId)
 
   // Timeout seems to be broken in Node 4.
@@ -221,7 +221,7 @@ async function handleInstallSupplementalPack (req, res, { poolId }) {
   }
 }
 
-export async function installSupplementalPack ({ pool }) {
+export async function installSupplementalPack({ pool }) {
   return {
     $sendTo: await this.registerHttpRequest(handleInstallSupplementalPack, {
       poolId: pool.id,

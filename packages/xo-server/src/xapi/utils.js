@@ -186,7 +186,7 @@ export const makeEditObject = specs => {
 
     if (set === true) {
       const prop = camelToSnakeCase(name)
-      return function (value) {
+      return function(value) {
         return this._set(prop, value)
       }
     }
@@ -195,7 +195,7 @@ export const makeEditObject = specs => {
       const index = set.indexOf('.')
       if (index === -1) {
         const prop = camelToSnakeCase(set)
-        return function (value) {
+        return function(value) {
           return this._set(prop, value)
         }
       }
@@ -203,7 +203,7 @@ export const makeEditObject = specs => {
       const map = set.slice(0, index)
       const prop = set.slice(index + 1)
 
-      return function (value, object) {
+      return function(value, object) {
         return this._updateObjectMapProperty(object, map, { [prop]: value })
       }
     }
@@ -223,7 +223,7 @@ export const makeEditObject = specs => {
       return set[0]
     }
 
-    return function (value, object) {
+    return function(value, object) {
       return Promise.all(mapToArray(set, set => set.call(this, value, object)))
     }
   }
@@ -283,7 +283,7 @@ export const makeEditObject = specs => {
     specs[(tmp = camelToSnakeCase(name))] || (specs[tmp] = spec)
   })
 
-  return async function _editObject_ (id, values, checkLimits) {
+  return async function _editObject_(id, values, checkLimits) {
     const limits = checkLimits && {}
     const object = this.getObject(id)
 

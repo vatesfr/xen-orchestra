@@ -3,7 +3,7 @@
 import { forEach } from 'lodash'
 import { resolveParamsVector } from './execute-call'
 
-describe('resolveParamsVector', function () {
+describe('resolveParamsVector', function() {
   forEach(
     {
       'cross product with three sets': [
@@ -68,7 +68,7 @@ describe('resolveParamsVector', function () {
 
         // Context.
         {
-          getObjects: function () {
+          getObjects: function() {
             return [
               {
                 id: 'vm:1',

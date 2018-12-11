@@ -10,7 +10,7 @@ import { PrimitiveInputWrapper } from './helpers'
 
 @uncontrollableInput()
 export default class BooleanInput extends Component {
-  render () {
+  render() {
     const { disabled, onChange, value, ...props } = this.props
 
     return (

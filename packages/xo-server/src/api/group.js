@@ -1,4 +1,4 @@
-export async function create ({ name }) {
+export async function create({ name }) {
   return (await this.createGroup({ name })).id
 }
 
@@ -11,7 +11,7 @@ create.params = {
 // -------------------------------------------------------------------
 
 // Deletes an existing group.
-async function delete_ ({ id }) {
+async function delete_({ id }) {
   await this.deleteGroup(id)
 }
 
@@ -26,7 +26,7 @@ delete_.params = {
 
 // -------------------------------------------------------------------
 
-export async function getAll () {
+export async function getAll() {
   return /* await */ this.getAllGroups()
 }
 
@@ -36,7 +36,7 @@ getAll.permission = 'admin'
 // -------------------------------------------------------------------
 
 // sets group.users with an array of user ids
-export async function setUsers ({ id, userIds }) {
+export async function setUsers({ id, userIds }) {
   await this.setGroupUsers(id, userIds)
 }
 
@@ -50,7 +50,7 @@ setUsers.params = {
 // -------------------------------------------------------------------
 
 // adds the user id to group.users
-export async function addUser ({ id, userId }) {
+export async function addUser({ id, userId }) {
   await this.addUserToGroup(userId, id)
 }
 
@@ -64,7 +64,7 @@ addUser.params = {
 // -------------------------------------------------------------------
 
 // remove the user id from group.users
-export async function removeUser ({ id, userId }) {
+export async function removeUser({ id, userId }) {
   await this.removeUserFromGroup(userId, id)
 }
 
@@ -79,7 +79,7 @@ removeUser.params = {
 
 // -------------------------------------------------------------------
 
-export async function set ({ id, name }) {
+export async function set({ id, name }) {
   await this.updateGroup(id, { name })
 }
 

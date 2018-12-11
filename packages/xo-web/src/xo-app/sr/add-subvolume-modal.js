@@ -8,7 +8,7 @@ import { createSelector } from 'selectors'
 import { map, min } from 'lodash'
 
 export default class AddSubvolumeModalBody extends Component {
-  get value () {
+  get value() {
     return this.state
   }
 
@@ -24,7 +24,7 @@ export default class AddSubvolumeModalBody extends Component {
     })
   }
 
-  render () {
+  render() {
     return (
       <Container>
         <Row className='mb-1'>

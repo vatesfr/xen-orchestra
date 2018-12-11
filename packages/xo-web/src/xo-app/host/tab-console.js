@@ -36,7 +36,7 @@ export default class extends Component {
 
   _getClipboardContent = () => this.refs.clipboard && this.refs.clipboard.value
 
-  render () {
+  render() {
     const { vmController, statsOverview } = this.props
 
     return (

@@ -15,7 +15,7 @@ export default class SaveNewUserFilterModalBody extends Component {
     value: PropTypes.string.isRequired,
   }
 
-  get value () {
+  get value() {
     return this.state.name || ''
   }
 
@@ -28,7 +28,7 @@ export default class SaveNewUserFilterModalBody extends Component {
     keys
   )
 
-  render () {
+  render() {
     const { value } = this.props
     const options = this._getFilterOptions()
 

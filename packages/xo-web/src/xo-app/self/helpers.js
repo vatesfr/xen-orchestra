@@ -20,7 +20,7 @@ export class Subjects extends Component {
     subjects: PropTypes.array.isRequired,
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       groups: {},
@@ -28,7 +28,7 @@ export class Subjects extends Component {
     }
   }
 
-  componentWillMount () {
+  componentWillMount() {
     const unsubscribeGroups = subscribeGroups(groups => {
       this.setState({
         groups: keyBy(groups, 'id'),
@@ -46,7 +46,7 @@ export class Subjects extends Component {
     }
   }
 
-  render () {
+  render() {
     const { state } = this
 
     return (

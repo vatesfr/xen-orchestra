@@ -51,7 +51,7 @@ const returnTrue = () => true
   resourceSets: subscribeResourceSets,
 })
 export default class Menu extends Component {
-  componentWillMount () {
+  componentWillMount() {
     const updateCollapsed = () => {
       this.setState({ collapsed: window.innerWidth < 1200 })
     }
@@ -64,7 +64,7 @@ export default class Menu extends Component {
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this._removeListener()
   }
 
@@ -82,9 +82,12 @@ export default class Menu extends Component {
     isEmpty
   )
 
-  _getNoResourceSets = createSelector(() => this.props.resourceSets, isEmpty)
+  _getNoResourceSets = createSelector(
+    () => this.props.resourceSets,
+    isEmpty
+  )
 
-  get height () {
+  get height() {
     return this.refs.content.offsetHeight
   }
 
@@ -104,7 +107,7 @@ export default class Menu extends Component {
     return signOut()
   }
 
-  render () {
+  render() {
     const {
       isAdmin,
       isPoolAdmin,

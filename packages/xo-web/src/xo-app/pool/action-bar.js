@@ -32,7 +32,7 @@ export default class PoolActionBar extends Component {
 
   _disconnectServer = () => disconnectServer(this._getServer())
 
-  render () {
+  render() {
     const { pool } = this.props
 
     return (

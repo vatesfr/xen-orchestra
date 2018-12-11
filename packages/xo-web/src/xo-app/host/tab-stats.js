@@ -15,12 +15,12 @@ import {
 } from 'xo-line-chart'
 
 export default class HostStats extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state.useCombinedValues = false
   }
 
-  loop (host = this.props.host) {
+  loop(host = this.props.host) {
     if (this.cancel) {
       this.cancel()
     }
@@ -54,15 +54,15 @@ export default class HostStats extends Component {
   }
   loop = ::this.loop
 
-  componentWillMount () {
+  componentWillMount() {
     this.loop()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this.timeout)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const hostCur = this.props.host
     const hostNext = props.host
 
@@ -81,7 +81,7 @@ export default class HostStats extends Component {
     }
   }
 
-  handleSelectStats (event) {
+  handleSelectStats(event) {
     const granularity = event.target.value
     clearTimeout(this.timeout)
 
@@ -95,7 +95,7 @@ export default class HostStats extends Component {
   }
   handleSelectStats = ::this.handleSelectStats
 
-  render () {
+  render() {
     const {
       granularity,
       selectStatsLoading,

@@ -73,7 +73,7 @@ export default class RestoreFileModalBody extends Component {
     format: 'zip',
   }
 
-  get value () {
+  get value() {
     const { state } = this
 
     return {
@@ -235,7 +235,7 @@ export default class RestoreFileModalBody extends Component {
 
   // ---------------------------------------------------------------------------
 
-  render () {
+  render() {
     const { backups } = this.props
     const {
       backup,

@@ -13,7 +13,7 @@ import globMatcher from './glob-matcher'
 
 // ===================================================================
 
-async function printLogs (db, args) {
+async function printLogs(db, args) {
   let stream = highland(db.createReadStream({ reverse: true }))
 
   if (args.since) {
@@ -58,7 +58,7 @@ async function printLogs (db, args) {
 
 // ===================================================================
 
-function helper () {
+function helper() {
   console.error(`
 xo-server-logs --help, -h
 
@@ -96,7 +96,7 @@ xo-server-logs --repair
 
 // ===================================================================
 
-function getArgs () {
+function getArgs() {
   const stringArgs = ['since', 'until', 'limit']
   const args = parseArgs(process.argv.slice(2), {
     string: stringArgs,
@@ -165,7 +165,7 @@ function getArgs () {
 
 // ===================================================================
 
-export default async function main () {
+export default async function main() {
   const args = getArgs()
 
   if (args.help) {

@@ -2,13 +2,13 @@ import { BaseError } from 'make-error'
 import { isArray, iteratee } from 'lodash'
 
 class XoError extends BaseError {
-  constructor ({ code, message, data }) {
+  constructor({ code, message, data }) {
     super(message)
     this.code = code
     this.data = data
   }
 
-  toJsonRpcError () {
+  toJsonRpcError() {
     return {
       message: this.message,
       code: this.code,

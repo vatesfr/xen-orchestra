@@ -171,7 +171,7 @@ const promptByType = {
     }),
 }
 
-export default function promptGeneric (schema, defaultValue, path) {
+export default function promptGeneric(schema, defaultValue, path) {
   const type = schema.enum ? 'enum' : schema.type
 
   const prompt = promptByType[type.toLowerCase()]

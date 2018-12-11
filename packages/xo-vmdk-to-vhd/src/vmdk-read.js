@@ -12,7 +12,7 @@ const compressionDeflate = 'COMPRESSION_DEFLATE'
 const compressionNone = 'COMPRESSION_NONE'
 const compressionMap = [compressionNone, compressionDeflate]
 
-function parseS64b (buffer, offset, valueName) {
+function parseS64b(buffer, offset, valueName) {
   const low = buffer.readInt32LE(offset)
   const high = buffer.readInt32LE(offset + 4)
   // here there might be a surprise because we are reading 64 integers into double floats (53 bits mantissa)
@@ -23,7 +23,7 @@ function parseS64b (buffer, offset, valueName) {
   return value
 }
 
-function parseU64b (buffer, offset, valueName) {
+function parseU64b(buffer, offset, valueName) {
   const low = buffer.readUInt32LE(offset)
   const high = buffer.readUInt32LE(offset + 4)
   // here there might be a surprise because we are reading 64 integers into double floats (53 bits mantissa)
@@ -34,7 +34,7 @@ function parseU64b (buffer, offset, valueName) {
   return value
 }
 
-function parseDescriptor (descriptorSlice) {
+function parseDescriptor(descriptorSlice) {
   const descriptorText = descriptorSlice.toString('ascii').replace(/\x00+$/, '') // eslint-disable-line no-control-regex
   const descriptorDict = {}
   const extentList = []
@@ -60,7 +60,7 @@ function parseDescriptor (descriptorSlice) {
   return { descriptor: descriptorDict, extents: extentList }
 }
 
-function parseFlags (flagBuffer) {
+function parseFlags(flagBuffer) {
   const number = flagBuffer.readUInt32LE(0)
   return {
     newLineTest: !!(number & (1 << 0)),
@@ -71,7 +71,7 @@ function parseFlags (flagBuffer) {
   }
 }
 
-function parseHeader (buffer) {
+function parseHeader(buffer) {
   const magicString = buffer.slice(0, 4).toString('ascii')
   if (magicString !== 'KDMV') {
     throw new Error('not a VMDK file')
@@ -121,7 +121,7 @@ function parseHeader (buffer) {
     numGTEsPerGT,
   }
 }
-async function readGrain (offsetSectors, buffer, compressed) {
+async function readGrain(offsetSectors, buffer, compressed) {
   const offset = offsetSectors * SECTOR_SIZE
   const size = buffer.readUInt32LE(offset + 8)
   const grainBuffer = buffer.slice(offset + 12, offset + 12 + size)
@@ -141,26 +141,26 @@ async function readGrain (offsetSectors, buffer, compressed) {
   }
 }
 
-function tryToParseMarker (buffer) {
+function tryToParseMarker(buffer) {
   const value = buffer.readUInt32LE(0)
   const size = buffer.readUInt32LE(8)
   const type = buffer.readUInt32LE(12)
   return { value, size, type }
 }
 
-function alignSectors (number) {
+function alignSectors(number) {
   return Math.ceil(number / SECTOR_SIZE) * SECTOR_SIZE
 }
 
 export default class VMDKDirectParser {
-  constructor (readStream) {
+  constructor(readStream) {
     this.virtualBuffer = new VirtualBuffer(readStream)
     this.header = null
   }
 
   // I found a VMDK file whose L1 and L2 table did not have a marker, but they were at the top
   // I detect this case and eat those tables first then let the normal loop go over the grains.
-  async _readL1 () {
+  async _readL1() {
     const position = this.virtualBuffer.position
     const l1entries = Math.floor(
       (this.header.capacitySectors + this.header.l1EntrySectors - 1) /
@@ -216,7 +216,7 @@ export default class VMDKDirectParser {
     }
   }
 
-  async readHeader () {
+  async readHeader() {
     const headerBuffer = await this.virtualBuffer.readChunk(
       HEADER_SIZE,
       'readHeader'
@@ -262,7 +262,7 @@ export default class VMDKDirectParser {
     return this.header
   }
 
-  async * blockIterator () {
+  async *blockIterator() {
     while (!this.virtualBuffer.isDepleted) {
       const position = this.virtualBuffer.position
       const sector = await this.virtualBuffer.readChunk(

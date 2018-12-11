@@ -14,24 +14,24 @@ import styles from './index.css'
 let instance
 
 export class TooltipViewer extends Component {
-  constructor () {
+  constructor() {
     super()
 
     this.state.place = 'top'
   }
 
-  componentDidMount () {
+  componentDidMount() {
     if (instance) {
       throw new Error('Tooltip viewer is a singleton!')
     }
     instance = this
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     instance = undefined
   }
 
-  render () {
+  render() {
     const { className, content, place, show, style } = this.state
 
     return (
@@ -65,27 +65,27 @@ export default class Tooltip extends Component {
     tagName: PropTypes.string,
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._addListeners()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this._removeListeners()
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (props.children !== this.props.children) {
       this._removeListeners()
     }
   }
 
-  componentDidUpdate (prevProps) {
+  componentDidUpdate(prevProps) {
     if (prevProps.children !== this.props.children) {
       this._addListeners()
     }
   }
 
-  _addListeners () {
+  _addListeners() {
     const node = (this._node = ReactDOM.findDOMNode(this))
 
     node.addEventListener('mouseenter', this._showTooltip)
@@ -93,7 +93,7 @@ export default class Tooltip extends Component {
     node.addEventListener('mousemove', this._updateTooltip)
   }
 
-  _removeListeners () {
+  _removeListeners() {
     const node = this._node
     this._hideTooltip()
 
@@ -145,7 +145,7 @@ export default class Tooltip extends Component {
     node.style.top = `${position.top}px`
   }
 
-  render () {
+  render() {
     const { children } = this.props
 
     if (!children) {

@@ -15,11 +15,11 @@ export default class Acl extends Model {}
 // -------------------------------------------------------------------
 
 export class Acls extends Collection {
-  get Model () {
+  get Model() {
     return Acl
   }
 
-  create (subject, object, action) {
+  create(subject, object, action) {
     return multiKeyHash(subject, object, action)
       .then(
         hash =>
@@ -33,15 +33,15 @@ export class Acls extends Collection {
       .then(acl => this.add(acl))
   }
 
-  delete (subject, object, action) {
+  delete(subject, object, action) {
     return multiKeyHash(subject, object, action).then(hash => this.remove(hash))
   }
 
-  aclExists (subject, object, action) {
+  aclExists(subject, object, action) {
     return multiKeyHash(subject, object, action).then(hash => this.exists(hash))
   }
 
-  async get (properties) {
+  async get(properties) {
     const acls = await super.get(properties)
 
     // Finds all records that are missing a action and need to be updated.

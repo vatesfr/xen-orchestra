@@ -74,7 +74,7 @@ const normalize = set => ({
 // ===================================================================
 
 export default class {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
 
     this._store = null
@@ -93,7 +93,7 @@ export default class {
     })
   }
 
-  async _generateId () {
+  async _generateId() {
     let id
     do {
       id = generateUnsecureToken(8)
@@ -101,11 +101,11 @@ export default class {
     return id
   }
 
-  _save (set) {
+  _save(set) {
     return this._store.put(set.id, set)
   }
 
-  async checkResourceSetConstraints (id, userId, objectIds) {
+  async checkResourceSetConstraints(id, userId, objectIds) {
     const set = await this.getResourceSet(id)
 
     const user = await this._xo.getUser(userId)
@@ -122,14 +122,14 @@ export default class {
     }
   }
 
-  async computeVmResourcesUsage (vm) {
+  async computeVmResourcesUsage(vm) {
     return assign(
       computeVmResourcesUsage(this._xo.getXapi(vm).getObject(vm._xapiId)),
       await this._xo.computeVmIpPoolsUsage(vm)
     )
   }
 
-  async createResourceSet (
+  async createResourceSet(
     name,
     subjects = undefined,
     objects = undefined,
@@ -149,7 +149,7 @@ export default class {
     return set
   }
 
-  async deleteResourceSet (id) {
+  async deleteResourceSet(id) {
     const store = this._store
 
     if (await store.has(id)) {
@@ -159,7 +159,7 @@ export default class {
     throw noSuchObject(id, 'resourceSet')
   }
 
-  async updateResourceSet (
+  async updateResourceSet(
     id,
     {
       name = undefined,
@@ -207,7 +207,7 @@ export default class {
 
   // If userId is provided, only resource sets available to that user
   // will be returned.
-  async getAllResourceSets (userId = undefined) {
+  async getAllResourceSets(userId = undefined) {
     let filter
     if (userId != null) {
       const user = await this._xo.getUser(userId)
@@ -223,7 +223,7 @@ export default class {
     })
   }
 
-  getResourceSet (id) {
+  getResourceSet(id) {
     return this._store.get(id).then(normalize, error => {
       if (error.notFound) {
         throw noSuchObject(id, 'resourceSet')
@@ -233,56 +233,56 @@ export default class {
     })
   }
 
-  async addObjectToResourceSet (objectId, setId) {
+  async addObjectToResourceSet(objectId, setId) {
     const set = await this.getResourceSet(setId)
     set.objects.push(objectId)
     await this._save(set)
   }
 
-  async removeObjectFromResourceSet (objectId, setId) {
+  async removeObjectFromResourceSet(objectId, setId) {
     const set = await this.getResourceSet(setId)
     remove(set.objects, id => id === objectId)
     await this._save(set)
   }
 
-  async addIpPoolToResourceSet (ipPoolId, setId) {
+  async addIpPoolToResourceSet(ipPoolId, setId) {
     const set = await this.getResourceSet(setId)
     set.ipPools.push(ipPoolId)
     await this._save(set)
   }
 
-  async removeIpPoolFromResourceSet (ipPoolId, setId) {
+  async removeIpPoolFromResourceSet(ipPoolId, setId) {
     const set = await this.getResourceSet(setId)
     remove(set.ipPools, id => id === ipPoolId)
     await this._save(set)
   }
 
-  async addSubjectToResourceSet (subjectId, setId) {
+  async addSubjectToResourceSet(subjectId, setId) {
     const set = await this.getResourceSet(setId)
     set.subjects.push(subjectId)
     await this._save(set)
   }
 
-  async removeSubjectToResourceSet (subjectId, setId) {
+  async removeSubjectToResourceSet(subjectId, setId) {
     const set = await this.getResourceSet(setId)
     remove(set.subjects, id => id === subjectId)
     await this._save(set)
   }
 
-  async addLimitToResourceSet (limitId, quantity, setId) {
+  async addLimitToResourceSet(limitId, quantity, setId) {
     const set = await this.getResourceSet(setId)
     set.limits[limitId] = quantity
     await this._save(set)
   }
 
-  async removeLimitFromResourceSet (limitId, setId) {
+  async removeLimitFromResourceSet(limitId, setId) {
     const set = await this.getResourceSet(setId)
     delete set.limits[limitId]
     await this._save(set)
   }
 
   @synchronizedResourceSets
-  async allocateLimitsInResourceSet (limits, setId, force = false) {
+  async allocateLimitsInResourceSet(limits, setId, force = false) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
       const limit = set.limits[id]
@@ -298,7 +298,7 @@ export default class {
   }
 
   @synchronizedResourceSets
-  async releaseLimitsInResourceSet (limits, setId) {
+  async releaseLimitsInResourceSet(limits, setId) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
       const limit = set.limits[id]
@@ -313,7 +313,7 @@ export default class {
     await this._save(set)
   }
 
-  async recomputeResourceSetsLimits () {
+  async recomputeResourceSetsLimits() {
     const sets = keyBy(await this.getAllResourceSets(), 'id')
     forEach(sets, ({ limits }) => {
       forEach(limits, (limit, id) => {
@@ -355,7 +355,7 @@ export default class {
     await Promise.all(mapToArray(sets, set => this._save(set)))
   }
 
-  async setVmResourceSet (vmId, resourceSetId) {
+  async setVmResourceSet(vmId, resourceSetId) {
     const xapi = this._xo.getXapi(vmId)
     const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')
 
@@ -398,7 +398,7 @@ export default class {
     }
   }
 
-  async shareVmResourceSet (vmId) {
+  async shareVmResourceSet(vmId) {
     const xapi = this._xo.getXapi(vmId)
     const resourceSetId = xapi.xo.getData(vmId, 'resourceSet')
     if (resourceSetId === undefined) {

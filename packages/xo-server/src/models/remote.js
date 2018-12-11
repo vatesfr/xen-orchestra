@@ -7,11 +7,11 @@ import { forEach } from '../utils'
 export default class Remote extends Model {}
 
 export class Remotes extends Collection {
-  get Model () {
+  get Model() {
     return Remote
   }
 
-  async get (properties) {
+  async get(properties) {
     const remotes = await super.get(properties)
     forEach(remotes, remote => {
       remote.enabled = remote.enabled === 'true'

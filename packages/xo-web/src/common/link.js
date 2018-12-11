@@ -55,7 +55,7 @@ export class BlockLink extends Component {
     }
   }
 
-  render () {
+  render() {
     const { children, tagName = 'div', className } = this.props
     const Component = tagName
     return (

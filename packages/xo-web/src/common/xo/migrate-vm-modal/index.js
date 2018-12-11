@@ -34,17 +34,24 @@ import styles from './index.css'
       .sort()
 
     const getVdis = createGetObjectsOfType('VDI').pick(
-      createSelector(getVbds, vbds =>
-        mapPlus(vbds, (vbd, push) => {
-          if (!vbd.is_cd_drive && vbd.VDI) {
-            push(vbd.VDI)
-          }
-        })
+      createSelector(
+        getVbds,
+        vbds =>
+          mapPlus(vbds, (vbd, push) => {
+            if (!vbd.is_cd_drive && vbd.VDI) {
+              push(vbd.VDI)
+            }
+          })
       )
     )
 
     const getVifs = createGetObjectsOfType('VIF')
-      .pick(createSelector(getVm, vm => vm.VIFs))
+      .pick(
+        createSelector(
+          getVm,
+          vm => vm.VIFs
+        )
+      )
       .sort()
 
     const getPifs = createGetObjectsOfType('PIF')
@@ -63,7 +70,7 @@ import styles from './index.css'
   { withRef: true }
 )
 export default class MigrateVmModalBody extends BaseComponent {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -121,7 +128,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     )
   }
 
-  get value () {
+  get value() {
     return {
       mapVdisSrs: resolveIds(this.state.targetSrs.mapVdisSrs),
       mapVifsNetworks: this.state.mapVifsNetworks,
@@ -131,7 +138,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     }
   }
 
-  _getObject (id) {
+  _getObject(id) {
     return getObject(store.getState(), id)
   }
 
@@ -210,7 +217,7 @@ export default class MigrateVmModalBody extends BaseComponent {
   _selectMigrationNetwork = migrationNetwork =>
     this.setState({ migrationNetworkId: migrationNetwork.id })
 
-  render () {
+  render() {
     const { vdis, vifs, networks } = this.props
     const {
       doNotMigrateVdis,
@@ -235,22 +242,21 @@ export default class MigrateVmModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-        {host &&
-          !doNotMigrateVdis && (
-            <div className={styles.groupBlock}>
-              <SingleLineRow>
-                <Col size={12}>
-                  <ChooseSrForEachVdisModal
-                    mainSrPredicate={this._getSrPredicate()}
-                    onChange={this.linkState('targetSrs')}
-                    required
-                    value={targetSrs}
-                    vdis={vdis}
-                  />
-                </Col>
-              </SingleLineRow>
-            </div>
-          )}
+        {host && !doNotMigrateVdis && (
+          <div className={styles.groupBlock}>
+            <SingleLineRow>
+              <Col size={12}>
+                <ChooseSrForEachVdisModal
+                  mainSrPredicate={this._getSrPredicate()}
+                  onChange={this.linkState('targetSrs')}
+                  required
+                  value={targetSrs}
+                  vdis={vdis}
+                />
+              </Col>
+            </SingleLineRow>
+          </div>
+        )}
         {intraPool !== undefined &&
           (!intraPool && (
             <div>

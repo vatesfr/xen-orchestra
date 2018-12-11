@@ -24,11 +24,11 @@ export default class Combobox extends Component {
     this.props.onChange(event.target.value)
   }
 
-  _setText (value) {
+  _setText(value) {
     this.props.onChange(value)
   }
 
-  render () {
+  render() {
     const { options, ...props } = this.props
 
     props.className = 'form-control'

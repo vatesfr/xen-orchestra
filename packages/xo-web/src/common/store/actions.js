@@ -9,7 +9,7 @@ const createAction = (() => {
             payload: payloadCreator(...args),
           })
         : (action =>
-            function () {
+            function() {
               if (arguments.length) {
                 throw new Error('this action expects no payload!')
               }

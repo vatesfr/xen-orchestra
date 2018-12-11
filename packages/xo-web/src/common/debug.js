@@ -11,7 +11,7 @@ class DebugAsync extends Component {
     promise: PropTypes.object.isRequired,
   }
 
-  constructor (props) {
+  constructor(props) {
     super()
 
     this.state = {
@@ -24,11 +24,11 @@ class DebugAsync extends Component {
     )
   }
 
-  shouldComponentUpdate (_, newState) {
+  shouldComponentUpdate(_, newState) {
     return this.state.status !== newState.status
   }
 
-  render () {
+  render() {
     const { status, value } = this.state
 
     if (status === 'pending') {

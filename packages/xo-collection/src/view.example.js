@@ -43,7 +43,7 @@ activeUsers.on('remove', users => {
 })
 
 // Make some changes in the future.
-setTimeout(function () {
+setTimeout(function() {
   console.log('-----')
 
   users.set({

@@ -108,7 +108,7 @@ export default class XoApp extends Component {
   }
   getChildContext = () => ({ shortcuts: shortcutManager })
 
-  displayOpenSourceDisclaimer () {
+  displayOpenSourceDisclaimer() {
     const previousDisclaimer = cookies.get('previousDisclaimer')
     const now = Math.floor(Date.now() / 1e3)
     const oneWeekAgo = now - 7 * 24 * 3600
@@ -130,7 +130,7 @@ export default class XoApp extends Component {
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.refs.bodyWrapper.style.minHeight =
       this.refs.menu.getWrappedInstance().height + 'px'
     if (+process.env.XOA_PLAN === 5) {
@@ -196,7 +196,7 @@ export default class XoApp extends Component {
     }
   }
 
-  render () {
+  render() {
     const { signedUp, trial } = this.props
     const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
 

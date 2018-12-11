@@ -29,12 +29,12 @@ const HEADER = (
   user: getUser,
 }))
 export default class About extends Component {
-  componentWillMount () {
+  componentWillMount() {
     serverVersion.then(serverVersion => {
       this.setState({ serverVersion })
     })
   }
-  render () {
+  render() {
     const { user } = this.props
     const isAdmin = user && user.permission === 'admin'
 

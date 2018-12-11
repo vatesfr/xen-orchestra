@@ -61,7 +61,7 @@ const mixin = Mixins => Class => {
 
   const n = Mixins.length
 
-  function DecoratedClass (...args) {
+  function DecoratedClass(...args) {
     const instance = new Class(...args)
 
     for (let i = 0; i < n; ++i) {

@@ -50,11 +50,17 @@ const isRunning = host => host && host.power_state === 'Running'
   const getPool = createGetObject((state, props) => getHost(state, props).$pool)
 
   const getVmController = createGetObjectsOfType('VM-controller').find(
-    createSelector(getHost, ({ id }) => obj => obj.$container === id)
+    createSelector(
+      getHost,
+      ({ id }) => obj => obj.$container === id
+    )
   )
 
   const getHostVms = createGetObjectsOfType('VM').filter(
-    createSelector(getHost, ({ id }) => obj => obj.$container === id)
+    createSelector(
+      getHost,
+      ({ id }) => obj => obj.$container === id
+    )
   )
 
   const getNumberOfVms = getHostVms.count()
@@ -71,25 +77,35 @@ const isRunning = host => host && host.power_state === 'Running'
     .sort()
 
   const getPifs = createGetObjectsOfType('PIF')
-    .pick(createSelector(getHost, host => host.$PIFs))
+    .pick(
+      createSelector(
+        getHost,
+        host => host.$PIFs
+      )
+    )
     .sort()
 
   const getNetworks = createGetObjectsOfType('network').pick(
-    createSelector(getPifs, pifs => map(pifs, pif => pif.$network))
+    createSelector(
+      getPifs,
+      pifs => map(pifs, pif => pif.$network)
+    )
   )
 
   const getPrivateNetworks = createFilter(
     createGetObjectsOfType('network'),
-    createSelector(getPool, pool => network =>
-      network.$pool === pool.id && isEmpty(network.PIFs)
+    createSelector(
+      getPool,
+      pool => network => network.$pool === pool.id && isEmpty(network.PIFs)
     )
   )
 
   const getHostPatches = createSelector(
     createGetObjectsOfType('pool_patch'),
     createGetObjectsOfType('host_patch').pick(
-      createSelector(getHost, host =>
-        isString(host.patches[0]) ? host.patches : []
+      createSelector(
+        getHost,
+        host => (isString(host.patches[0]) ? host.patches : [])
       )
     ),
     (poolsPatches, hostsPatches) =>
@@ -101,8 +117,9 @@ const isRunning = host => host && host.power_state === 'Running'
 
   const doesNeedRestart = createDoesHostNeedRestart(getHost)
 
-  const getMemoryUsed = createSelector(getHostVms, vms =>
-    sum(map(vms, vm => vm.memory.size))
+  const getMemoryUsed = createSelector(
+    getHostVms,
+    vms => sum(map(vms, vm => vm.memory.size))
   )
 
   return (state, props) => {
@@ -133,7 +150,7 @@ export default class Host extends Component {
     router: PropTypes.object,
   }
 
-  loop (host = this.props.host) {
+  loop(host = this.props.host) {
     if (host == null) {
       return
     }
@@ -170,17 +187,17 @@ export default class Host extends Component {
   }
   loop = ::this.loop
 
-  componentDidMount () {
+  componentDidMount() {
     this.loop()
     this._subscribePatches(this.props.host)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this.timeout)
     this.unsubscribeHostMissingPatches()
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const hostNext = props.host
     const hostCur = this.props.host
 
@@ -203,7 +220,7 @@ export default class Host extends Component {
     }
   }
 
-  _subscribePatches (host) {
+  _subscribePatches(host) {
     if (host === undefined) {
       return
     }
@@ -223,7 +240,7 @@ export default class Host extends Component {
   _setNameLabel = nameLabel =>
     editHost(this.props.host, { name_label: nameLabel })
 
-  header () {
+  header() {
     const { host, pool } = this.props
     const { missingPatches } = this.state || {}
     if (!host) {
@@ -311,7 +328,7 @@ export default class Host extends Component {
     )
   }
 
-  render () {
+  render() {
     const { host, pool } = this.props
     if (!host) {
       return <h1>{_('statusLoading')}</h1>

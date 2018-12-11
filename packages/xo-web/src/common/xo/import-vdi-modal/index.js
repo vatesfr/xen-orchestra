@@ -4,11 +4,11 @@ import Dropzone from 'dropzone'
 import React from 'react'
 
 export default class ImportVdiModalBody extends Component {
-  get value () {
+  get value() {
     return this.state.file
   }
 
-  render () {
+  render() {
     const { file } = this.state
     return (
       <Dropzone

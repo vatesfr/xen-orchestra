@@ -9,7 +9,7 @@ import Collection, {
 // ===================================================================
 
 export default class View extends Collection {
-  constructor (collection, predicate) {
+  constructor(collection, predicate) {
     super()
 
     this._collection = collection
@@ -31,29 +31,29 @@ export default class View extends Collection {
 
   // This method is necessary to free the memory of the view if its
   // life span is shorter than the collection.
-  destroy () {
+  destroy() {
     this._collection.removeListener(ACTION_ADD, this._onAdd)
     this._collection.removeListener(ACTION_UPDATE, this._onUpdate)
     this._collection.removeListener(ACTION_REMOVE, this._onRemove)
   }
 
-  add () {
+  add() {
     throw new Error('a view is read only')
   }
 
-  clear () {
+  clear() {
     throw new Error('a view is read only')
   }
 
-  set () {
+  set() {
     throw new Error('a view is read only')
   }
 
-  update () {
+  update() {
     throw new Error('a view is read only')
   }
 
-  _onAdd (items) {
+  _onAdd(items) {
     const { _predicate: predicate } = this
 
     forEach(items, (value, key) => {
@@ -66,7 +66,7 @@ export default class View extends Collection {
     })
   }
 
-  _onUpdate (items) {
+  _onUpdate(items) {
     const { _predicate: predicate } = this
 
     forEach(items, (value, key) => {
@@ -78,7 +78,7 @@ export default class View extends Collection {
     })
   }
 
-  _onRemove (items) {
+  _onRemove(items) {
     forEach(items, (value, key) => {
       if (super.has(key)) {
         super.remove(key)

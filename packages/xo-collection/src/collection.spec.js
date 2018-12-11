@@ -7,11 +7,11 @@ import Collection, { DuplicateItem, NoSuchItem } from './collection'
 
 // ===================================================================
 
-function waitTicks (n = 2) {
+function waitTicks(n = 2) {
   const { nextTick } = process
 
-  return new Promise(function (resolve) {
-    ;(function waitNextTick () {
+  return new Promise(function(resolve) {
+    ;(function waitNextTick() {
       // The first tick is handled by Promise#then()
       if (--n) {
         nextTick(waitNextTick)
@@ -22,24 +22,24 @@ function waitTicks (n = 2) {
   })
 }
 
-describe('Collection', function () {
+describe('Collection', function() {
   let col
-  beforeEach(function () {
+  beforeEach(function() {
     col = new Collection()
     col.add('bar', 0)
 
     return waitTicks()
   })
 
-  it('is iterable', function () {
+  it('is iterable', function() {
     const iterator = col[Symbol.iterator]()
 
     expect(iterator.next()).toEqual({ done: false, value: ['bar', 0] })
     expect(iterator.next()).toEqual({ done: true, value: undefined })
   })
 
-  describe('#keys()', function () {
-    it('returns an iterator over the keys', function () {
+  describe('#keys()', function() {
+    it('returns an iterator over the keys', function() {
       const iterator = col.keys()
 
       expect(iterator.next()).toEqual({ done: false, value: 'bar' })
@@ -47,8 +47,8 @@ describe('Collection', function () {
     })
   })
 
-  describe('#values()', function () {
-    it('returns an iterator over the values', function () {
+  describe('#values()', function() {
+    it('returns an iterator over the values', function() {
       const iterator = col.values()
 
       expect(iterator.next()).toEqual({ done: false, value: 0 })
@@ -56,8 +56,8 @@ describe('Collection', function () {
     })
   })
 
-  describe('#add()', function () {
-    it('adds item to the collection', function () {
+  describe('#add()', function() {
+    it('adds item to the collection', function() {
       const spy = jest.fn()
       col.on('add', spy)
 
@@ -69,17 +69,17 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async event.
-      return eventToPromise(col, 'add').then(function (added) {
+      return eventToPromise(col, 'add').then(function(added) {
         expect(Object.keys(added)).toEqual(['foo'])
         expect(added.foo).toBe(true)
       })
     })
 
-    it('throws an exception if the item already exists', function () {
+    it('throws an exception if the item already exists', function() {
       expect(() => col.add('bar', true)).toThrowError(DuplicateItem)
     })
 
-    it('accepts an object with an id property', function () {
+    it('accepts an object with an id property', function() {
       const foo = { id: 'foo' }
 
       col.add(foo)
@@ -88,8 +88,8 @@ describe('Collection', function () {
     })
   })
 
-  describe('#update()', function () {
-    it('updates an item of the collection', function () {
+  describe('#update()', function() {
+    it('updates an item of the collection', function() {
       const spy = jest.fn()
       col.on('update', spy)
 
@@ -102,17 +102,17 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async event.
-      return eventToPromise(col, 'update').then(function (updated) {
+      return eventToPromise(col, 'update').then(function(updated) {
         expect(Object.keys(updated)).toEqual(['bar'])
         expect(updated.bar).toBe(2)
       })
     })
 
-    it('throws an exception if the item does not exist', function () {
+    it('throws an exception if the item does not exist', function() {
       expect(() => col.update('baz', true)).toThrowError(NoSuchItem)
     })
 
-    it('accepts an object with an id property', function () {
+    it('accepts an object with an id property', function() {
       const bar = { id: 'bar' }
 
       col.update(bar)
@@ -121,8 +121,8 @@ describe('Collection', function () {
     })
   })
 
-  describe('#remove()', function () {
-    it('removes an item of the collection', function () {
+  describe('#remove()', function() {
+    it('removes an item of the collection', function() {
       const spy = jest.fn()
       col.on('remove', spy)
 
@@ -134,17 +134,17 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async event.
-      return eventToPromise(col, 'remove').then(function (removed) {
+      return eventToPromise(col, 'remove').then(function(removed) {
         expect(Object.keys(removed)).toEqual(['bar'])
         expect(removed.bar).toBeUndefined()
       })
     })
 
-    it('throws an exception if the item does not exist', function () {
+    it('throws an exception if the item does not exist', function() {
       expect(() => col.remove('baz', true)).toThrowError(NoSuchItem)
     })
 
-    it('accepts an object with an id property', function () {
+    it('accepts an object with an id property', function() {
       const bar = { id: 'bar' }
 
       col.remove(bar)
@@ -153,8 +153,8 @@ describe('Collection', function () {
     })
   })
 
-  describe('#set()', function () {
-    it('adds item if collection has not key', function () {
+  describe('#set()', function() {
+    it('adds item if collection has not key', function() {
       const spy = jest.fn()
       col.on('add', spy)
 
@@ -166,13 +166,13 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async events.
-      return eventToPromise(col, 'add').then(function (added) {
+      return eventToPromise(col, 'add').then(function(added) {
         expect(Object.keys(added)).toEqual(['foo'])
         expect(added.foo).toBe(true)
       })
     })
 
-    it('updates item if collection has key', function () {
+    it('updates item if collection has key', function() {
       const spy = jest.fn()
       col.on('udpate', spy)
 
@@ -184,13 +184,13 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async events.
-      return eventToPromise(col, 'update').then(function (updated) {
+      return eventToPromise(col, 'update').then(function(updated) {
         expect(Object.keys(updated)).toEqual(['bar'])
         expect(updated.bar).toBe(1)
       })
     })
 
-    it('accepts an object with an id property', function () {
+    it('accepts an object with an id property', function() {
       const foo = { id: 'foo' }
 
       col.set(foo)
@@ -199,36 +199,36 @@ describe('Collection', function () {
     })
   })
 
-  describe('#unset()', function () {
-    it('removes an existing item', function () {
+  describe('#unset()', function() {
+    it('removes an existing item', function() {
       col.unset('bar')
 
       expect(col.has('bar')).toBe(false)
 
-      return eventToPromise(col, 'remove').then(function (removed) {
+      return eventToPromise(col, 'remove').then(function(removed) {
         expect(Object.keys(removed)).toEqual(['bar'])
         expect(removed.bar).toBeUndefined()
       })
     })
 
-    it('does not throw if the item does not exists', function () {
+    it('does not throw if the item does not exists', function() {
       col.unset('foo')
     })
 
-    it('accepts an object with an id property', function () {
+    it('accepts an object with an id property', function() {
       col.unset({ id: 'bar' })
 
       expect(col.has('bar')).toBe(false)
 
-      return eventToPromise(col, 'remove').then(function (removed) {
+      return eventToPromise(col, 'remove').then(function(removed) {
         expect(Object.keys(removed)).toEqual(['bar'])
         expect(removed.bar).toBeUndefined()
       })
     })
   })
 
-  describe('touch()', function () {
-    it('can be used to signal an indirect update', function () {
+  describe('touch()', function() {
+    it('can be used to signal an indirect update', function() {
       const foo = { id: 'foo' }
       col.add(foo)
 
@@ -243,8 +243,8 @@ describe('Collection', function () {
     })
   })
 
-  describe('clear()', function () {
-    it('removes all items from the collection', function () {
+  describe('clear()', function() {
+    it('removes all items from the collection', function() {
       col.clear()
 
       expect(col.size).toBe(0)
@@ -256,7 +256,7 @@ describe('Collection', function () {
     })
   })
 
-  describe('deduplicates events', function () {
+  describe('deduplicates events', function() {
     forEach(
       {
         'add & update → add': [
@@ -298,7 +298,7 @@ describe('Collection', function () {
         ],
       },
       ([operations, results], label) => {
-        it(label, function () {
+        it(label, function() {
           forEach(operations, ([method, ...args]) => {
             col[method](...args)
           })

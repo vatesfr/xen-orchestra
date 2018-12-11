@@ -1,4 +1,4 @@
-export async function getAll () {
+export async function getAll() {
   return /* await */ this.getRoles()
 }
 

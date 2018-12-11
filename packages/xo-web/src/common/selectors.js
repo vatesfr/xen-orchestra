@@ -90,7 +90,7 @@ const _create2 = (...inputs) => {
     throw new Error('no input selectors')
   }
 
-  return create(inputSelectors, function () {
+  return create(inputSelectors, function() {
     const args = new Array(n)
     for (let i = 0, j = 0; i < n; ++i) {
       const input = inputs[i]

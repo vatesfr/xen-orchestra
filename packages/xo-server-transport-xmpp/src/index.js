@@ -34,7 +34,7 @@ export const configurationSchema = {
 // ===================================================================
 
 class TransportXmppPlugin {
-  constructor ({ xo }) {
+  constructor({ xo }) {
     this._sendToXmppClient = this._sendToXmppClient.bind(this)
     this._set = xo.defineProperty.bind(xo)
     this._unset = null
@@ -46,12 +46,12 @@ class TransportXmppPlugin {
     this._client = null
   }
 
-  configure (conf) {
+  configure(conf) {
     this._conf = conf
     this._conf.reconnect = true
   }
 
-  async load () {
+  async load() {
     this._client = new XmppClient(this._conf)
     this._client.on('error', () => {})
 
@@ -61,14 +61,14 @@ class TransportXmppPlugin {
     this._unset = this._set('sendToXmppClient', this._sendToXmppClient)
   }
 
-  unload () {
+  unload() {
     this._unset()
     this._client.end()
 
     this._unset = this._client = null
   }
 
-  _sendToXmppClient ({ to, message }) {
+  _sendToXmppClient({ to, message }) {
     for (const receiver of to) {
       this._client.send(
         new XmppClient.Stanza('message', {

@@ -3,7 +3,7 @@ import { isEmpty, pickBy } from 'lodash'
 
 import { safeDateFormat } from '../utils'
 
-export function createJob ({ schedules, ...job }) {
+export function createJob({ schedules, ...job }) {
   job.userId = this.user.id
   return this.createBackupNgJob(job, schedules)
 }
@@ -41,7 +41,7 @@ createJob.params = {
   },
 }
 
-export function migrateLegacyJob ({ id }) {
+export function migrateLegacyJob({ id }) {
   return this.migrateLegacyBackupJob(id)
 }
 migrateLegacyJob.permission = 'admin'
@@ -51,7 +51,7 @@ migrateLegacyJob.params = {
   },
 }
 
-export function deleteJob ({ id }) {
+export function deleteJob({ id }) {
   return this.deleteBackupNgJob(id)
 }
 deleteJob.permission = 'admin'
@@ -61,7 +61,7 @@ deleteJob.params = {
   },
 }
 
-export function editJob (props) {
+export function editJob(props) {
   return this.updateJob(props)
 }
 
@@ -100,13 +100,13 @@ editJob.params = {
   },
 }
 
-export function getAllJobs () {
+export function getAllJobs() {
   return this.getAllJobs('backup')
 }
 
 getAllJobs.permission = 'admin'
 
-export function getJob ({ id }) {
+export function getJob({ id }) {
   return this.getJob(id, 'backup')
 }
 
@@ -118,7 +118,7 @@ getJob.params = {
   },
 }
 
-export async function runJob ({
+export async function runJob({
   id,
   schedule,
   vm,
@@ -151,7 +151,7 @@ runJob.params = {
 
 // -----------------------------------------------------------------------------
 
-export async function getAllLogs (filter) {
+export async function getAllLogs(filter) {
   const logs = await this.getBackupNgLogs()
   return isEmpty(filter) ? logs : pickBy(logs, filter)
 }
@@ -160,7 +160,7 @@ getAllLogs.permission = 'admin'
 
 // -----------------------------------------------------------------------------
 
-export function deleteVmBackup ({ id }) {
+export function deleteVmBackup({ id }) {
   return this.deleteVmBackupNg(id)
 }
 
@@ -172,7 +172,7 @@ deleteVmBackup.params = {
   },
 }
 
-export function listVmBackups ({ remotes }) {
+export function listVmBackups({ remotes }) {
   return this.listVmBackupsNg(remotes)
 }
 
@@ -187,7 +187,7 @@ listVmBackups.params = {
   },
 }
 
-export function importVmBackup ({ id, sr }) {
+export function importVmBackup({ id, sr }) {
   return this.importVmBackupNg(id, sr)
 }
 
@@ -204,7 +204,7 @@ importVmBackup.params = {
 
 // -----------------------------------------------------------------------------
 
-export function listPartitions ({ remote, disk }) {
+export function listPartitions({ remote, disk }) {
   return this.listBackupNgDiskPartitions(remote, disk)
 }
 
@@ -219,7 +219,7 @@ listPartitions.params = {
   },
 }
 
-export function listFiles ({ remote, disk, partition, path }) {
+export function listFiles({ remote, disk, partition, path }) {
   return this.listBackupNgPartitionFiles(remote, disk, partition, path)
 }
 
@@ -241,7 +241,7 @@ listFiles.params = {
   },
 }
 
-async function handleFetchFiles (req, res, { remote, disk, partition, paths }) {
+async function handleFetchFiles(req, res, { remote, disk, partition, paths }) {
   const zipStream = await this.fetchBackupNgPartitionFiles(
     remote,
     disk,
@@ -254,7 +254,7 @@ async function handleFetchFiles (req, res, { remote, disk, partition, paths }) {
   return zipStream
 }
 
-export async function fetchFiles (params) {
+export async function fetchFiles(params) {
   const { paths } = params
   let filename = `restore_${safeDateFormat(new Date())}`
   if (paths.length === 1) {
