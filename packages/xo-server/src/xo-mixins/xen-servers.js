@@ -408,12 +408,12 @@ export default class {
       throw new Error(`object ${object.id} does not belong to a pool`)
     }
 
-    const xapi = this._xapisByPool[poolId]
-    if (!xapi) {
+    const serverId = this._xapisByPool[poolId]
+    if (serverId === undefined) {
       throw new Error(`no connection found for object ${object.id}`)
     }
 
-    return xapi
+    return this._xapis[serverId]
   }
 
   async getAllXenServers() {
