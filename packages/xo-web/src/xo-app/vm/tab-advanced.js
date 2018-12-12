@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
@@ -12,6 +13,7 @@ import Tooltip from 'tooltip'
 import { error } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { injectState, provideState } from 'reaclette'
 import { Number, Size, Text, XoSelect } from 'editable'
 import { Select, Toggle } from 'form'
 import {
@@ -338,8 +340,8 @@ class AddAclsModal extends Component {
         <div className='form-group'>
           <SelectSubject
             multi
-            predicate={this._getPredicate()}
             onChange={this.linkState('subjects')}
+            predicate={this._getPredicate()}
             value={subjects}
           />
         </div>
@@ -351,60 +353,55 @@ class AddAclsModal extends Component {
   }
 }
 
-@addSubscriptions({
-  acls: subscribeAcls,
-  groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
-  users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
-})
-class Acls extends Component {
-  _addAcls = () =>
-    confirm({
-      title: _('vmAddAcls'),
-      body: <AddAclsModal acls={this.props.acls} vm={this.props.vm} />,
-    }).then(({ action, subjects }) => {
-      try {
-        Promise.all(
-          map(subjects, subject =>
-            addAcl({ subject, object: this.props.vm, action })
-          )
-        )
-      } catch (err) {
-        error('Add ACL(s)', err.message || String(err))
-      }
-    })
-
-  _getVmAcls = createSelector(
-    () => this.props.acls,
-    () => this.props.groups,
-    () => this.props.users,
-    () => this.props.vm,
-    (acls, groups, users, { id: vmId }) => {
-      if (isEmpty(acls)) {
-        return
-      }
-      const vmAcls = []
-      acls.forEach(({ object, subject, action }) => {
-        if (object === vmId) {
-          vmAcls.push({
-            action,
-            subject: users[subject] || groups[subject],
-          })
+const Acls = decorate([
+  addSubscriptions({
+    acls: subscribeAcls,
+    groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
+    users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
+  }),
+  provideState({
+    effects: {
+      addAcls: () => (state, { acls, vm }) =>
+        confirm({
+          title: _('vmAddAcls'),
+          body: <AddAclsModal acls={acls} vm={vm} />,
+        }).then(({ action, subjects }) => {
+          try {
+            Promise.all(
+              map(subjects, subject => addAcl({ subject, object: vm, action }))
+            )
+          } catch (err) {
+            error('Add ACL(s)', err.message || String(err))
+          }
+        }),
+    },
+    computed: {
+      vmAcls: (_, { acls, groups, users, vm }) => {
+        if (isEmpty(acls)) {
+          return
         }
-      })
-
-      return vmAcls
-    }
-  )
-
-  render() {
-    const vmAcls = this._getVmAcls()
+        const vmAcls = []
+        acls.forEach(({ object, subject, action }) => {
+          if (object === vm.id) {
+            vmAcls.push({
+              action,
+              subject: users[subject] || groups[subject],
+            })
+          }
+        })
+        return vmAcls
+      },
+    },
+  }),
+  injectState,
+  ({ state: { vmAcls, vmId }, effects, vm }) => {
     return (
       <Container>
         <Row>
-          {!isEmpty(vmAcls) &&
+          {vmAcls !== undefined &&
             vmAcls.slice(0, 5).map(({ subject, action }) => {
               return (
-                <Col>
+                <Col key={subject.id}>
                   <span>{`${subject.email} `}</span>
                   <span className={`tag tag-pill tag-${LEVELS[action]}`}>
                     {action}
@@ -412,9 +409,7 @@ class Acls extends Component {
                   <Tooltip content={_('removeAcl')}>
                     <a
                       role='button'
-                      onClick={() =>
-                        removeAcl({ subject, object: this.props.vm, action })
-                      }
+                      onClick={() => removeAcl({ subject, object: vm, action })}
                     >
                       <Icon icon='remove' />
                     </a>
@@ -422,9 +417,9 @@ class Acls extends Component {
                 </Col>
               )
             })}
-          {vmAcls && vmAcls.length > 5 && (
+          {vmAcls !== undefined && vmAcls.length > 5 && (
             <Col>
-              <Link to={`settings/acls?s=object:${this.props.vm.id}`}>
+              <Link to={`settings/acls?s=object:${vm.id}`}>
                 {_('moreAcls', { nAcls: vmAcls.length - 5 })}
               </Link>
             </Col>
@@ -432,7 +427,7 @@ class Acls extends Component {
           <Col>
             <ActionButton
               btnStyle='primary'
-              handler={this._addAcls}
+              handler={effects.addAcls}
               icon='add'
               size='small'
               tooltip={_('vmAddAcls')}
@@ -441,8 +436,8 @@ class Acls extends Component {
         </Row>
       </Container>
     )
-  }
-}
+  },
+])
 
 const NIC_TYPE_OPTIONS = [
   {
