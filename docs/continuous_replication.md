@@ -71,9 +71,3 @@ xe vm-param-set blocked-operations:start uuid=<DestinationVM_UUID>
 ### Enable
 
 Manually run the job the first time to check if everything is OK. Then, enable the job. **Now, only the deltas are sent, your initial seed saved you a LOT of time if you have a slow network.**
-
-## HA disabled on replicated VMs
-
-Replicated VMs HA is taken into account by XS/XCP-ng. To avoid the resultant troubles, the property will be removed from the replicated VMs and a tag indicating this change will be added.
-
-![](./assets/disabled-cr-ha-tag.png)

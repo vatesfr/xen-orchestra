@@ -847,6 +847,20 @@ export default class BackupNg {
     await this._app.updateJob(translateLegacyJob(job, schedules), false)
   }
 
+  async _disableVmHighAvailability(vm: Vm) {
+    if (vm.ha_restart_priority === '') {
+      return
+    }
+
+    const xapi = this._app.getXapi(vm.uuid)
+    return Promise.all([
+      xapi._setObjectProperties(vm, {
+        haRestartPriority: '',
+      }),
+      xapi.addTag(vm.$ref, 'HA disabled'),
+    ])
+  }
+
   // High:
   // - [ ] in case of merge failure
   //       1. delete (or isolate) the tainted VHD
@@ -1091,19 +1105,6 @@ export default class BackupNg {
 
     const metadataFilename = `${vmDir}/${basename}.json`
 
-    const disableHighAvailability = async replicatedVm => {
-      if (vm.ha_restart_priority === '') {
-        return
-      }
-
-      return Promise.all([
-        xapi._setObjectProperties(replicatedVm, {
-          haRestartPriority: '',
-        }),
-        xapi.addTag(replicatedVm.$ref, 'HA disabled'),
-      ])
-    }
-
     if (mode === 'full') {
       // TODO: do not create the snapshot if there are no snapshotRetention and
       // the VM is not running
@@ -1249,7 +1250,7 @@ export default class BackupNg {
 
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Disaster Recovery'),
-                  disableHighAvailability(vm),
+                  this._disableVmHighAvailability(vm),
                   xapi._updateObjectMapProperty(vm, 'blocked_operations', {
                     start:
                       'Start operation for this vm is blocked, clone it if you want to use it.',
@@ -1600,7 +1601,7 @@ export default class BackupNg {
 
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Continuous Replication'),
-                  disableHighAvailability(vm),
+                  this._disableVmHighAvailability(vm),
                   xapi._updateObjectMapProperty(vm, 'blocked_operations', {
                     start:
                       'Start operation for this vm is blocked, clone it if you want to use it.',
