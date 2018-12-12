@@ -49,6 +49,7 @@
     "eslint-plugin-node": "^8.0.0",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
+    "lint-staged": "^8.1.0",
     "prettier": "^1.15.2"
   },
   "scripts": {
@@ -57,7 +58,7 @@
   },
   "husky": {
     "hooks": {
-      "commit-msg": "eslint --ignore-path .gitignore ."
+      "pre-commit": "lint-staged"
     }
   },
   "jest": {
@@ -66,5 +67,12 @@
     ],
     "testEnvironment": "node",
     "testRegex": "\\.spec\\.js$"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "git add",
+      "eslint"
+    ]
   }
 }
