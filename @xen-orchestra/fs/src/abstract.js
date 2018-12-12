@@ -220,10 +220,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async getInfo() {
-    return timeout.call(
-      this._getInfo(normalizePath(this._remote.path)),
-      this._timeout
-    )
+    return timeout.call(this._getInfo(), this._timeout)
   }
 
   async getSize(file: File): Promise<number> {
@@ -434,7 +431,7 @@ export default class RemoteHandlerAbstract {
   // called to finalize the remote
   async _forget(): Promise<void> {}
 
-  async _getInfo(dir: string) {
+  async _getInfo() {
     throw new Error('Not implemented')
   }
 

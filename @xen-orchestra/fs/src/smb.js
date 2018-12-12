@@ -1,4 +1,3 @@
-import df from '@sindresorhus/df'
 import Smb2 from '@marsaud/smb2'
 
 import RemoteHandlerAbstract from './abstract'
@@ -89,8 +88,9 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return client.disconnect()
   }
 
-  async _getInfo(dir) {
-    return df.file(dir)
+  async _getInfo() {
+    // TODO: add good implementation
+    return undefined
   }
 
   _getSize(file) {

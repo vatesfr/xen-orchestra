@@ -1,3 +1,4 @@
+import asyncMap from '@xen-orchestra/async-map'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'xo-remote-parser'
 import { getHandler } from '@xen-orchestra/fs'
@@ -85,16 +86,16 @@ export default class {
   }
 
   async getAllRemotes() {
-    const remotes = this._remotes.get().map(async remote => {
-      let infoDisk
+    const remotes = await this._remotes.get()
+    return asyncMap(remotes, async remote => {
+      let info
       if (remote.enabled) {
-        infoDisk = await this.getRemoteInfo(remote.id)
+        info = await this.getRemoteInfo(remote.id).catch(error => {
+          throw error
+        })
       }
-
-      return { ...obfuscateRemote(remote), disk: infoDisk }
+      return { ...obfuscateRemote(remote), info }
     })
-
-    return Promise.all(remotes)
   }
 
   async _getRemote(id) {

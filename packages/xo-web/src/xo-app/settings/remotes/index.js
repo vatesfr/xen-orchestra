@@ -6,7 +6,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { addSubscriptions, generateRandomId, noop } from 'utils'
+import { addSubscriptions, formatSize, generateRandomId, noop } from 'utils'
 import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
 import { groupBy, map, isEmpty } from 'lodash'
@@ -34,17 +34,6 @@ const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
 const _editRemoteOptions = (options, { remote }) =>
   editRemote(remote, { options: options !== '' ? options : null })
-const _formatSize = number => {
-  if (number === 0) return '0 B'
-  const UNITS = ['B', 'kB', 'MB', 'GB', 'TB', 'PB']
-  const exponent = Math.min(
-    Math.floor(Math.log10(number) / 3),
-    UNITS.length - 1
-  )
-  number = (number / Math.pow(1000, exponent)).toPrecision(3)
-
-  return `${number} ${UNITS[exponent]}`
-}
 
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
@@ -89,9 +78,9 @@ const COLUMN_STATE = {
 const COLUMN_DISK = {
   itemRenderer: (remote, { formatMessage }) => (
     <span>
-      {remote.disk &&
-        `${_formatSize(remote.disk.used)} / ${_formatSize(
-          remote.disk.available
+      {remote.info &&
+        `${formatSize(remote.info.used)} / ${formatSize(
+          remote.info.available
         )}`}
     </span>
   ),
@@ -232,7 +221,6 @@ const COLUMNS_SMB_REMOTE = [
     ),
     name: _('remoteAuth'),
   },
-  COLUMN_DISK,
 ]
 
 const GROUPED_ACTIONS = [
