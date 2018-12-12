@@ -12,7 +12,7 @@ import { confirm } from 'modal'
 import { constructQueryString } from 'smart-backup'
 import { Container, Row, Col } from 'grid'
 import { get } from '@xen-orchestra/defined'
-import { isEmpty, map, maxBy, filter, groupBy, some } from 'lodash'
+import { isEmpty, map, groupBy, some } from 'lodash'
 import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
 import {
@@ -59,7 +59,17 @@ const SchedulePreviewBody = decorate([
   addSubscriptions(({ schedule }) => ({
     lastRunLog: cb =>
       subscribeBackupNgLogs(logs => {
-        cb(maxBy(filter(logs, log => log.scheduleId === schedule.id), 'start'))
+        let lastRunLog
+        for (const runId in logs) {
+          const log = logs[runId]
+          if (
+            log.scheduleId === schedule.id &&
+            (lastRunLog === undefined || lastRunLog.start < log.start)
+          ) {
+            lastRunLog = log
+          }
+        }
+        cb(lastRunLog)
       }),
   })),
   ({ job, schedule, lastRunLog }) => (
