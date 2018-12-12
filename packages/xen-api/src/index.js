@@ -827,6 +827,8 @@ export class Xapi extends EventEmitter {
     objectsByRef[ref] = object
 
     if (type === 'pool') {
+      this._pool = object
+
       const eventWatchers = this._eventWatchers
       getKeys(object.other_config).forEach(key => {
         const eventWatcher = eventWatchers[key]
