@@ -20,6 +20,7 @@
 
 ### Released packages
 
+- xen-api v0.23.0
 - xo-acl-resolver v0.4.1
 - xo-server v5.32.0
 - xo-web v5.32.0
