@@ -35,6 +35,7 @@
     "golike-defer": "^0.4.1",
     "husky": "^1.2.0",
     "jest": "^23.6.0",
+    "lodash": "^4.17.11",
     "must": "^0.13.2",
     "rimraf": "^2.5.4",
     "xo-collection": "^0.4.1",
