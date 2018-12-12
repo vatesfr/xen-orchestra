@@ -447,6 +447,19 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
   }
 }
 
+const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
+  if (vm.ha_restart_priority === '') {
+    return
+  }
+
+  return Promise.all([
+    xapi._setObjectProperties(vm, {
+      haRestartPriority: '',
+    }),
+    xapi.addTag(vm.$ref, 'HA disabled'),
+  ])
+}
+
 // File structure on remotes:
 //
 // <remote>
@@ -847,20 +860,6 @@ export default class BackupNg {
     await this._app.updateJob(translateLegacyJob(job, schedules), false)
   }
 
-  async _disableVmHighAvailability(vm: Vm) {
-    if (vm.ha_restart_priority === '') {
-      return
-    }
-
-    const xapi = this._app.getXapi(vm.uuid)
-    return Promise.all([
-      xapi._setObjectProperties(vm, {
-        haRestartPriority: '',
-      }),
-      xapi.addTag(vm.$ref, 'HA disabled'),
-    ])
-  }
-
   // High:
   // - [ ] in case of merge failure
   //       1. delete (or isolate) the tainted VHD
@@ -1250,7 +1249,7 @@ export default class BackupNg {
 
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Disaster Recovery'),
-                  this._disableVmHighAvailability(vm),
+                  disableVmHighAvailability(xapi, vm),
                   xapi._updateObjectMapProperty(vm, 'blocked_operations', {
                     start:
                       'Start operation for this vm is blocked, clone it if you want to use it.',
@@ -1601,7 +1600,7 @@ export default class BackupNg {
 
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Continuous Replication'),
-                  this._disableVmHighAvailability(vm),
+                  disableVmHighAvailability(xapi, vm),
                   xapi._updateObjectMapProperty(vm, 'blocked_operations', {
                     start:
                       'Start operation for this vm is blocked, clone it if you want to use it.',
