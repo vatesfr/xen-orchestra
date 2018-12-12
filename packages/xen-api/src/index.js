@@ -407,8 +407,9 @@ export class Xapi extends EventEmitter {
       auth.user,
       auth.password,
     ]).then(
-      sessionId => {
+      async sessionId => {
         this._sessionId = sessionId
+        this._pool = (await this.getAllRecords('pool'))[0]
 
         debug('%s: connected', this._humanId)
 
@@ -826,8 +827,6 @@ export class Xapi extends EventEmitter {
     objectsByRef[ref] = object
 
     if (type === 'pool') {
-      this._pool = object
-
       const eventWatchers = this._eventWatchers
       getKeys(object.other_config).forEach(key => {
         const eventWatcher = eventWatchers[key]

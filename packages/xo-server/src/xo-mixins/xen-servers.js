@@ -265,14 +265,13 @@ export default class {
       await xapi.connect()
 
       const serversIdByPool = this._serversIdByPool
-      const xapis = this._xapis
-      const [{ $id: poolId }] = await xapi.getAllRecords('pool')
-      if (xapis[serversIdByPool[poolId]] !== undefined) {
+      const poolId = xapi.pool.$id
+      if (serversIdByPool[poolId] !== undefined) {
         throw new PoolAlreadyConnected()
       }
 
       serversIdByPool[poolId] = server.id
-      xapis[server.id] = xapi
+      this._xapis[server.id] = xapi
 
       xapi.xo = (() => {
         const conId = server.id
@@ -383,9 +382,8 @@ export default class {
       throw noSuchObject(id, 'xenServer')
     }
 
-    // no need to delete this entry from "this._serversIdByPool"
-    // because the connection associated to the pool will also be tested
     delete this._xapis[id]
+    delete this._serversIdByPool[xapi.pool.$id]
 
     xapi.xo.uninstall()
     return xapi.disconnect()
