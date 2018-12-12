@@ -16,7 +16,7 @@
 ### Bug fixes
 
 - [Home/SRs] Fixed SR status for non admin users [#2204](https://github.com/vatesfr/xen-orchestra/issues/2204) (PR [#3742](https://github.com/vatesfr/xen-orchestra/pull/3742))
-- [Servers] Fix "the server's pool is already connected" error shows even if the pool is not connected (PR [#3782](https://github.com/vatesfr/xen-orchestra/pull/3782))
+- [Servers] Fix occasional "server's pool already connected" errors when pool is not connected (PR [#3782](https://github.com/vatesfr/xen-orchestra/pull/3782))
 
 ### Released packages
 
