@@ -120,7 +120,7 @@ const SchedulePreviewBody = decorate([
             icon='preview'
             size='small'
             tooltip={_('scheduleLastRun')}
-            className={`text-${STATUS_LABELS[lastRunLog.status].className}`}
+            className={`btn-${STATUS_LABELS[lastRunLog.status].className}`}
           >
             <span>{_(STATUS_LABELS[lastRunLog.status].label)}</span>
           </ActionButton>
