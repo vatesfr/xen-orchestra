@@ -60,7 +60,9 @@
     }
   },
   "jest": {
-    "modulePathIgnorePatterns": ["<rootDir>/src/old-tests"],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/src/old-tests"
+    ],
     "testEnvironment": "node",
     "testRegex": "\\.spec\\.js$"
   }
