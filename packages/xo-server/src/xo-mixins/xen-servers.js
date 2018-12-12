@@ -35,10 +35,10 @@ export default class {
       prefix: 'xo:server',
       indexes: ['host'],
     }))
+    this._serverIdsByPool = { __proto__: null }
     this._stats = new XapiStats()
     this._xapiOptions = xapiOptions
     this._xapis = { __proto__: null }
-    this._serverIdsByPool = { __proto__: null }
     this._xo = xo
 
     xo.on('clean', () => serversDb.rebuildIndexes())
