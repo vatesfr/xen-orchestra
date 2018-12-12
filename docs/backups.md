@@ -141,3 +141,12 @@ To make the mount point persistent in XOA, edit the `/etc/fstab` file, and add:
 ```
 
 This way, without modifying your previous scheduled snapshot, they will be written to this new local mountpoint!
+
+## High availability (HA) disabled on replicated VMs
+
+Replicated VMs HA are taken into account by XS/XCP-ng. To avoid the resultant troubles, HA will be disabled from the replicated VMs and a tag indicating this change will be added.
+
+![](./assets/disabled-dr-ha-tag.png)
+![](./assets/disabled-cr-ha-tag.png)
+
+ > The tag won't be automatically removed by XO on the replicated VMs, even if HA is re-enabled.
