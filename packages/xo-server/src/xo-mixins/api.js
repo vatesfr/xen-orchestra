@@ -241,9 +241,9 @@ export default class Api {
       params: sensitiveValues.replace(params, '* obfuscated *'),
     }
 
-    const callId = `i${Math.random()
+    const callId = Math.random()
       .toString(36)
-      .slice(2)}`
+      .slice(2)
 
     xo.emit('xo:preCall', {
       ...data,
