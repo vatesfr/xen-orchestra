@@ -11,7 +11,12 @@ import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import Tooltip from 'tooltip'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
-import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
+import { keyBy } from 'lodash'
+import {
+  runBackupNgJob,
+  subscribeBackupNgJobs,
+  subscribeBackupNgLogs,
+} from 'xo'
 
 export default decorate([
   addSubscriptions(({ id }) => ({
@@ -19,6 +24,7 @@ export default decorate([
       subscribeBackupNgLogs(logs => {
         cb(logs[id])
       }),
+    jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
   })),
   provideState({
     effects: {

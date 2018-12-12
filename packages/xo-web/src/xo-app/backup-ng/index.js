@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -21,10 +22,11 @@ import {
   enableSchedule,
   runBackupNgJob,
   subscribeBackupNgJobs,
+  subscribeBackupNgLogs,
   subscribeSchedules,
 } from 'xo'
 
-import LogsTable from '../logs/backup-ng-logs'
+import LogsTable, { STATUS_LABELS, showTasks } from '../logs/backup-ng-logs'
 import Page from '../page'
 
 import Edit from './edit'
@@ -53,54 +55,80 @@ const _runBackupNgJob = ({ id, name, schedule }) =>
     }),
   }).then(() => runBackupNgJob({ id, schedule }))
 
-const SchedulePreviewBody = ({ item: job, userData: { schedulesByJob } }) => (
-  <div>
-    {map(schedulesByJob && schedulesByJob[job.id], schedule => (
-      <Ul key={schedule.id}>
-        {schedule.name ? (
-          <Li>{_.keyValue(_('scheduleName'), schedule.name)}</Li>
-        ) : (
-          <Li>{_.keyValue(_('scheduleCron'), schedule.cron)}</Li>
-        )}
-        <Li>
-          <StateButton
-            disabledLabel={_('stateDisabled')}
-            disabledHandler={enableSchedule}
-            disabledTooltip={_('logIndicationToEnable')}
-            enabledLabel={_('stateEnabled')}
-            enabledHandler={disableSchedule}
-            enabledTooltip={_('logIndicationToDisable')}
-            handlerParam={schedule.id}
-            state={schedule.enabled}
-            style={{ marginRight: '0.5em' }}
+const SchedulePreviewBody = decorate([
+  addSubscriptions(({ schedule }) => ({
+    lastRunLog: cb =>
+      subscribeBackupNgLogs(logs => {
+        let lastRunLog
+        for (const runId in logs) {
+          const log = logs[runId]
+          if (
+            log.scheduleId === schedule.id &&
+            (lastRunLog === undefined || lastRunLog.start < log.start)
+          ) {
+            lastRunLog = log
+          }
+        }
+        cb(lastRunLog)
+      }),
+  })),
+  ({ job, schedule, lastRunLog }) => (
+    <Ul>
+      {schedule.name ? (
+        <Li>{_.keyValue(_('scheduleName'), schedule.name)}</Li>
+      ) : (
+        <Li>{_.keyValue(_('scheduleCron'), schedule.cron)}</Li>
+      )}
+      <Li>
+        <StateButton
+          disabledLabel={_('stateDisabled')}
+          disabledHandler={enableSchedule}
+          disabledTooltip={_('logIndicationToEnable')}
+          enabledLabel={_('stateEnabled')}
+          enabledHandler={disableSchedule}
+          enabledTooltip={_('logIndicationToDisable')}
+          handlerParam={schedule.id}
+          state={schedule.enabled}
+          style={{ marginRight: '0.5em' }}
+        />
+        {job.runId !== undefined ? (
+          <ActionButton
+            btnStyle='danger'
+            handler={cancelJob}
+            handlerParam={job}
+            icon='cancel'
+            key='cancel'
+            size='small'
+            tooltip={_('formCancel')}
           />
-          {job.runId !== undefined ? (
-            <ActionButton
-              btnStyle='danger'
-              handler={cancelJob}
-              handlerParam={job}
-              icon='cancel'
-              key='cancel'
-              size='small'
-              tooltip={_('formCancel')}
-            />
-          ) : (
-            <ActionButton
-              btnStyle='primary'
-              data-id={job.id}
-              data-name={job.name}
-              data-schedule={schedule.id}
-              handler={_runBackupNgJob}
-              icon='run-schedule'
-              key='run'
-              size='small'
-            />
-          )}
-        </Li>
-      </Ul>
-    ))}
-  </div>
-)
+        ) : (
+          <ActionButton
+            btnStyle='primary'
+            data-id={job.id}
+            data-name={job.name}
+            data-schedule={schedule.id}
+            handler={_runBackupNgJob}
+            icon='run-schedule'
+            key='run'
+            size='small'
+          />
+        )}{' '}
+        {lastRunLog !== undefined && (
+          <ActionButton
+            handler={showTasks}
+            handlerParam={lastRunLog}
+            icon='preview'
+            size='small'
+            tooltip={_('scheduleLastRun')}
+            className={`btn-${STATUS_LABELS[lastRunLog.status].className}`}
+          >
+            <span>{_(STATUS_LABELS[lastRunLog.status].label)}</span>
+          </ActionButton>
+        )}
+      </Li>
+    </Ul>
+  ),
+])
 
 const MODES = [
   {
@@ -173,7 +201,14 @@ class JobsTable extends React.Component {
         name: _('jobModes'),
       },
       {
-        component: SchedulePreviewBody,
+        itemRenderer: (job, { schedulesByJob }) =>
+          map(get(() => schedulesByJob[job.id]), schedule => (
+            <SchedulePreviewBody
+              job={job}
+              key={schedule.id}
+              schedule={schedule}
+            />
+          )),
         name: _('jobSchedules'),
       },
       {

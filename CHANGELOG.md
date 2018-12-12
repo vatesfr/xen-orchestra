@@ -13,6 +13,7 @@
 - [VM] add tooltip for VM status icon [#3749](https://github.com/vatesfr/xen-orchestra/issues/3749) (PR [#3765](https://github.com/vatesfr/xen-orchestra/pull/3765))
 - [New XOSAN] Improve view and possibility to sort SRs by name/size/free space [#2416](https://github.com/vatesfr/xen-orchestra/issues/2416) (PR [#3691](https://github.com/vatesfr/xen-orchestra/pull/3691))
 - [Backup NG] Disable HA on replicated VM (CR, DR) [#2359](https://github.com/vatesfr/xen-orchestra/issues/2359) (PR [#3755](https://github.com/vatesfr/xen-orchestra/pull/3755))
+- [Backup NG] Display the last run status for each schedule with the possibility to show the associated log [#3769](https://github.com/vatesfr/xen-orchestra/issues/3769) (PR [#3779](https://github.com/vatesfr/xen-orchestra/pull/3779))
 
 ### Bug fixes
 

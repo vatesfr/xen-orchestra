@@ -29,7 +29,7 @@ const LI_STYLE = {
   whiteSpace: 'nowrap',
 }
 
-const STATUS_LABELS = {
+export const STATUS_LABELS = {
   failure: {
     className: 'danger',
     label: 'jobFailed',
@@ -286,8 +286,8 @@ const ROW_TRANSFORM = (task, { vms }) => {
   }
 }
 
-const showTasks = ({ id }, { jobs }) =>
-  alert(<LogAlertHeader id={id} jobs={jobs} />, <LogAlertBody id={id} />)
+export const showTasks = ({ id }) =>
+  alert(<LogAlertHeader id={id} />, <LogAlertBody id={id} />)
 
 const LOG_INDIVIDUAL_ACTIONS = [
   {
