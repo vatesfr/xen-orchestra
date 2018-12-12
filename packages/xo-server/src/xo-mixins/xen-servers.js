@@ -1,7 +1,6 @@
 import createLogger from '@xen-orchestra/log'
 import { BaseError } from 'make-error'
 import { fibonacci } from 'iterable-backoff'
-import { get } from '@xen-orchestra/defined'
 import { noSuchObject } from 'xo-common/api-errors'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
@@ -39,7 +38,7 @@ export default class {
     this._stats = new XapiStats()
     this._xapiOptions = xapiOptions
     this._xapis = { __proto__: null }
-    this._xapisByPool = { __proto__: null }
+    this._serversIdByPool = { __proto__: null }
     this._xo = xo
 
     xo.on('clean', () => serversDb.rebuildIndexes())
@@ -265,14 +264,14 @@ export default class {
     try {
       await xapi.connect()
 
-      const xapisByPool = this._xapisByPool
+      const serversIdByPool = this._serversIdByPool
       const xapis = this._xapis
       const [{ $id: poolId }] = await xapi.getAllRecords('pool')
-      if (get(() => xapis[xapisByPool[poolId]]) !== undefined) {
+      if (xapis[serversIdByPool[poolId]] !== undefined) {
         throw new PoolAlreadyConnected()
       }
 
-      xapisByPool[poolId] = server.id
+      serversIdByPool[poolId] = server.id
       xapis[server.id] = xapi
 
       xapi.xo = (() => {
@@ -384,6 +383,8 @@ export default class {
       throw noSuchObject(id, 'xenServer')
     }
 
+    // no need to delete this entry from "this._serversIdByPool"
+    // because the connection associated to the pool will also be tested
     delete this._xapis[id]
 
     xapi.xo.uninstall()
@@ -405,7 +406,7 @@ export default class {
       throw new Error(`object ${object.id} does not belong to a pool`)
     }
 
-    const xapi = get(() => this._xapis[this._xapisByPool[poolId]])
+    const xapi = this._xapis[this._serversIdByPool[poolId]]
     if (xapi === undefined) {
       throw new Error(`no connection found for object ${object.id}`)
     }
@@ -465,7 +466,9 @@ export default class {
       throw e
     }
 
-    this.unregisterXenServer(this._xapisByPool[sourcePoolId])::ignoreErrors()
+    this.unregisterXenServer(
+      this._serversIdByPool[sourcePoolId]
+    )::ignoreErrors()
   }
 
   async detachHostFromPool(hostId) {
@@ -475,7 +478,7 @@ export default class {
 
     await xapi.ejectHostFromPool(hostId)
 
-    this._getXenServer(this._xapisByPool[poolId])
+    this._getXenServer(this._serversIdByPool[poolId])
       .then(async ({ properties }) => {
         const { id } = await this.registerXenServer({
           ...properties,
