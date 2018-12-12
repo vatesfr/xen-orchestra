@@ -47,6 +47,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     })
   }
 
+  async _getInfo(dir) {
+    return df.file(dir)
+  }
+
   async _getSize(file) {
     const stats = await fs.stat(
       this._getFilePath(typeof file === 'string' ? file : file.path)
@@ -108,9 +112,5 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   _writeFile(file, data, { flags }) {
     return fs.writeFile(this._getFilePath(file), data, { flag: flags })
-  }
-
-  async _getInfoDisk(dir) {
-    return df.file(dir)
   }
 }

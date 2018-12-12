@@ -89,6 +89,10 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return client.disconnect()
   }
 
+  async _getInfo(dir) {
+    return df.file(dir)
+  }
+
   _getSize(file) {
     return this._client.getSize(this._getFilePath(file)).catch(normalizeError)
   }
@@ -164,9 +168,5 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return this._client
       .writeFile(this._getFilePath(file), data, options)
       .catch(normalizeError)
-  }
-
-  async _getInfoDisk(dir) {
-    return df.file(dir)
   }
 }

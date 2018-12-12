@@ -88,7 +88,7 @@ export default class {
     const remotes = this._remotes.get().map(async remote => {
       let infoDisk
       if (remote.enabled) {
-        infoDisk = await this.getRemoteInfoDisk(remote.id)
+        infoDisk = await this.getRemoteInfo(remote.id)
       }
 
       return { ...obfuscateRemote(remote), disk: infoDisk }
@@ -109,9 +109,9 @@ export default class {
     return this._getRemote(id).then(obfuscateRemote)
   }
 
-  async getRemoteInfoDisk(remoteId) {
+  async getRemoteInfo(remoteId) {
     const handler = await this.getRemoteHandler(remoteId)
-    return handler.getInfoDisk(handler._remote.path)
+    return handler.getInfo()
   }
 
   async createRemote({ name, url, options }) {
