@@ -799,14 +799,13 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@marsaud/smb2@^0.12.0":
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.12.0.tgz#8f02d73d8396fa318add926ec3dec8036effa6a9"
-  integrity sha512-8bK3bSiIlWAZHMe3dow9DeggjW89uZFIDaE1j0EVpyNQ1cPkQu81MADdxYcMnpPvO++ZMlF0hWVGsnZugBKtgA==
+"@marsaud/smb2@^0.13.0":
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.13.0.tgz#01b851a3658f668eeeb0ff97f427c18c1c2e44da"
+  integrity sha512-lT/egJdaaf40nlQmsx7fPaJDoVLtTMH012lKj2EKNlFiahmYKhQaP4L0+dL74mb1KOw/Ql5gyWNm3+amgsWayw==
   dependencies:
-    babel-runtime "^5.8.34"
-    bluebird "^3.5.3"
     ntlm "~0.1.1"
+    readable-stream "^3.0.6"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
@@ -2351,7 +2350,7 @@ babel-register@^6.26.0:
     mkdirp "^0.5.1"
     source-map-support "^0.4.15"
 
-babel-runtime@^5.8.25, babel-runtime@^5.8.3, babel-runtime@^5.8.34:
+babel-runtime@^5.8.25, babel-runtime@^5.8.3:
   version "5.8.38"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-5.8.38.tgz#1c0b02eb63312f5f087ff20450827b425c9d4c19"
   integrity sha1-HAsC62MxL18If/IEUIJ7QlydTBk=
@@ -2557,7 +2556,7 @@ blocked@^1.2.1:
   resolved "https://registry.yarnpkg.com/blocked/-/blocked-1.2.1.tgz#e22efe767863c65ab8197f6252929104e1ec9ce2"
   integrity sha1-4i7+dnhjxlq4GX9iUpKRBOHsnOI=
 
-bluebird@^3.5.1, bluebird@^3.5.3:
+bluebird@^3.5.1:
   version "3.5.3"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.3.tgz#7d01c6f9616c9a51ab0f8c549a79dfe6ec33efa7"
   integrity sha512-/qKPUQlaW1OyR51WeCPBvRnAlnZFUJkCSG5HzGnuIqhgyJtF+T94lFnn33eiazjRm2LAHVy2guNnaq48X9SJuw==
