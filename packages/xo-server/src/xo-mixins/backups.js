@@ -310,7 +310,7 @@ export default class {
     // List backups. (No delta)
     const backupFilter = file => endsWith(file, '.xva')
 
-    const files = await handler.list()
+    const files = await handler.list('.')
     const backups = filter(files, backupFilter)
 
     // List delta backups.
@@ -335,7 +335,7 @@ export default class {
 
     const backups = []
 
-    await asyncMap(handler.list(), entry => {
+    await asyncMap(handler.list('.'), entry => {
       if (endsWith(entry, '.xva')) {
         backups.push(parseVmBackupPath(entry))
       } else if (startsWith(entry, 'vm_delta_')) {
@@ -873,7 +873,7 @@ export default class {
     const transferStart = Date.now()
     const handler = await this._xo.getRemoteHandler(remoteId)
 
-    const files = await handler.list()
+    const files = await handler.list('.')
 
     const reg = new RegExp(
       '^[^_]+_' + escapeStringRegexp(`${tag}_${vm.name_label}.xva`)
