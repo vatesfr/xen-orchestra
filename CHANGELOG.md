@@ -22,6 +22,7 @@
 
 ### Released packages
 
+- @xen-orchestra/fs v0.5.0
 - xen-api v0.23.0
 - xo-acl-resolver v0.4.1
 - xo-server v5.32.0
