@@ -1,5 +1,6 @@
 import assert from 'assert'
 import { Transform } from 'stream'
+import { pipeline } from 'readable-stream'
 
 import {
   BLOCK_UNUSED,
@@ -148,6 +149,6 @@ export default async function createVhdStreamWithLength(stream) {
   }
   const newStream = new EndCutterStream(footerOffset, footerBuffer)
   newStream.length = fileSize
-  stream.pipe(newStream)
+  pipeline(stream, newStream)
   return newStream
 }

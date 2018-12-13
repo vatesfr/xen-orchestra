@@ -1,12 +1,14 @@
 /* eslint-env jest */
 
+import asyncIteratorToStream from 'async-iterator-to-stream'
 import execa from 'execa'
 import fs from 'fs-extra'
 import rimraf from 'rimraf'
 import getStream from 'get-stream'
 import tmp from 'tmp'
 import { createReadStream, createWriteStream } from 'fs'
-import { fromEvent, pFromCallback } from 'promise-toolbox'
+import { pFromCallback } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
 
 import { createVhdStreamWithLength } from '.'
 import { FOOTER_SIZE } from './_constants'
@@ -26,16 +28,17 @@ async function convertFromRawToVhd(rawName, vhdName) {
 }
 
 async function createRandomFile(name, size) {
-  await fromEvent(
-    createReadStream('/dev/urandom', { end: size - 1 }).pipe(
-      fs.createWriteStream(name)
-    ),
-    'finish'
-  )
+  const createRandomStream = asyncIteratorToStream(function*(size) {
+    while (size-- > 0) {
+      yield Buffer.from([Math.floor(Math.random() * 256)])
+    }
+  })
+  const input = await createRandomStream(size)
+  await pFromCallback(cb => pipeline(input, fs.createWriteStream(name), cb))
 }
 
 test('createVhdStreamWithLength can extract length', async () => {
-  const initalSize = 40 * 1024 * 1024
+  const initalSize = 4 * 1024
   const rawFileName = `${tempDir}/randomfile`
   const vhdName = `${tempDir}/randomfile.vhd`
   const outputVhdName = `${tempDir}/output.vhd`
@@ -47,13 +50,13 @@ test('createVhdStreamWithLength can extract length', async () => {
   )
   expect(result.length).toEqual(vhdSize)
   const outputFileStream = await createWriteStream(outputVhdName)
-  await fromEvent(result.pipe(outputFileStream), 'finish')
+  await pFromCallback(cb => pipeline(result, outputFileStream, cb))
   const outputSize = fs.statSync(outputVhdName).size
   expect(outputSize).toEqual(vhdSize)
 })
 
 test('createVhdStreamWithLength can skip blank after last block and before footer', async () => {
-  const initalSize = 40 * 1024 * 1024
+  const initalSize = 4 * 1024
   const rawFileName = `${tempDir}/randomfile`
   const vhdName = `${tempDir}/randomfile.vhd`
   const outputVhdName = `${tempDir}/output.vhd`
@@ -82,7 +85,7 @@ test('createVhdStreamWithLength can skip blank after last block and before foote
   )
   expect(result.length).toEqual(vhdSize)
   const outputFileStream = await createWriteStream(outputVhdName)
-  await fromEvent(result.pipe(outputFileStream), 'finish')
+  await pFromCallback(cb => pipeline(result, outputFileStream, cb))
   const outputSize = fs.statSync(outputVhdName).size
   // check out file has been shortened again
   expect(outputSize).toEqual(vhdSize)

@@ -1,13 +1,14 @@
 /* eslint-env jest */
 
+import asyncIteratorToStream from 'async-iterator-to-stream'
 import execa from 'execa'
 import fs from 'fs-extra'
 import getStream from 'get-stream'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
-import { createReadStream } from 'fs'
-import { fromEvent, pFromCallback } from 'promise-toolbox'
 import { getHandler } from '@xen-orchestra/fs'
+import { pFromCallback } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
 import { randomBytes } from 'crypto'
 
 import Vhd, { chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './'
@@ -29,13 +30,14 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tmpDir, cb))
 })
 
-async function createRandomFile(name, size) {
-  await fromEvent(
-    createReadStream('/dev/urandom', { end: size * 1024 * 1024 - 1 }).pipe(
-      fs.createWriteStream(name)
-    ),
-    'finish'
-  )
+async function createRandomFile(name, sizeMB) {
+  const createRandomStream = asyncIteratorToStream(function*(size) {
+    while (size-- > 0) {
+      yield Buffer.from([Math.floor(Math.random() * 256)])
+    }
+  })
+  const input = createRandomStream(sizeMB * 1024 * 1024)
+  await pFromCallback(cb => pipeline(input, fs.createWriteStream(name), cb))
 }
 
 async function checkFile(vhdName) {
@@ -58,7 +60,7 @@ test('blocks can be moved', async () => {
   const initalSize = 4
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
-  const handler = getHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() + '/' })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'randomfile.vhd')
   await newVhd.readHeaderAndFooter()
@@ -73,7 +75,7 @@ test('blocks can be moved', async () => {
 test('the BAT MSB is not used for sign', async () => {
   const randomBuffer = await pFromCallback(cb => randomBytes(SECTOR_SIZE, cb))
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', '1.8T'])
-  const handler = getHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() + '/' })
   const vhd = new Vhd(handler, 'empty.vhd')
   await vhd.readHeaderAndFooter()
   await vhd.readBlockAllocationTable()
@@ -123,7 +125,7 @@ test('writeData on empty file', async () => {
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
-  const handler = getHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() + '/' })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
@@ -138,7 +140,7 @@ test('writeData in 2 non-overlaping operations', async () => {
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
-  const handler = getHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() + '/' })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
@@ -158,7 +160,7 @@ test('writeData in 2 overlaping operations', async () => {
   await createRandomFile('randomfile', mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', mbOfRandom + 'M'])
   const randomData = await fs.readFile('randomfile')
-  const handler = getHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() + '/' })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
@@ -178,7 +180,7 @@ test('BAT can be extended and blocks moved', async () => {
   const initalSize = 4
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
-  const handler = getHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() + '/' })
   const originalSize = await handler.getSize('randomfile')
   const newVhd = new Vhd(handler, 'randomfile.vhd')
   await newVhd.readHeaderAndFooter()
@@ -202,7 +204,7 @@ test('coalesce works with empty parent files', async () => {
   ])
   await checkFile('randomfile.vhd')
   await checkFile('empty.vhd')
-  const handler = getHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() + '/' })
   const originalSize = await handler._getSize('randomfile')
   await chainVhd(handler, 'empty.vhd', handler, 'randomfile.vhd', true)
   await checkFile('randomfile.vhd')
@@ -225,7 +227,7 @@ test('coalesce works in normal cases', async () => {
     mbOfRandom + 1 + 'M',
   ])
   await convertFromRawToVhd('randomfile', 'child1.vhd')
-  const handler = getHandler({ url: 'file://' + process.cwd() })
+  const handler = getHandler({ url: 'file://' + process.cwd() + '/' })
   await execa('vhd-util', ['snapshot', '-n', 'child2.vhd', '-p', 'child1.vhd'])
   const vhd = new Vhd(handler, 'child2.vhd')
   await vhd.readHeaderAndFooter()
@@ -271,15 +273,15 @@ test('coalesce works in normal cases', async () => {
 
 test('createSyntheticStream passes vhd-util check', async () => {
   const initalSize = 4
-  const expectedVhdSize = 4197888
   await createRandomFile('randomfile', initalSize)
   await convertFromRawToVhd('randomfile', 'randomfile.vhd')
-  const handler = getHandler({ url: 'file://' + process.cwd() })
+  await checkFile('randomfile.vhd')
+  const handler = getHandler({ url: 'file://' + process.cwd() + '/' })
   const stream = await createSyntheticStream(handler, 'randomfile.vhd')
-  expect(stream.length).toEqual(expectedVhdSize)
-  await fromEvent(
-    stream.pipe(await fs.createWriteStream('recovered.vhd')),
-    'finish'
+  const expectedVhdSize = (await fs.stat('randomfile.vhd')).size
+  expect(stream.length).toEqual((await fs.stat('randomfile.vhd')).size)
+  await pFromCallback(cb =>
+    pipeline(stream, fs.createWriteStream('recovered.vhd'), cb)
   )
   await checkFile('recovered.vhd')
   const stats = await fs.stat('recovered.vhd')
