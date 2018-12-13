@@ -107,12 +107,14 @@ handlers.forEach(url => {
       it('should return an object with info', async () => {
         const info = await handler.getInfo()
 
+        expect(typeof info).toBe('object')
+
         if (Object.keys(info).length !== 0) {
           expect(info).toEqual(
-            expect.objectContaining({
-              available: expect.any(Number),
-              used: expect.any(Number),
-            })
+            expect.objectContaining({ available: expect.any(Number) })
+          )
+          expect(info).toEqual(
+            expect.objectContaining({ used: expect.any(Number) })
           )
         }
       })
