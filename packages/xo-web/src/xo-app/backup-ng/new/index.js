@@ -67,6 +67,8 @@ const DEFAULT_SCHEDULE = {
 const SR_BACKEND_FAILURE_LINK =
   'https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space'
 
+const BACKUP_NG_DOC_LINK = 'https://xen-orchestra.com/docs/backups.html'
+
 const ThinProvisionedTip = ({ label }) => (
   <Tooltip content={_(label)}>
     <a
@@ -721,6 +723,16 @@ export default decorate([
                         <Icon icon='info' />
                       </Tooltip>
                     )}
+                    <br />
+                    <a
+                      className='text-muted'
+                      href={BACKUP_NG_DOC_LINK}
+                      rel='noopener noreferrer'
+                      target='_blank'
+                    >
+                      <Icon icon='info' />{' '}
+                      {_('backupNgLinkToDocumentationMessage')}
+                    </a>
                   </div>
                 </CardBlock>
               </FormFeedback>
@@ -954,10 +966,10 @@ export default decorate([
                   </ActionButton>
                 </CardHeader>
                 <CardBlock>
-                  <em>
+                  <span className='text-muted'>
                     <Icon icon='info' />{' '}
                     {_('deltaBackupOnOutdatedXenServerWarning')}
-                  </em>
+                  </span>
 
                   {state.smartMode ? (
                     <Upgrade place='newBackup' required={3}>
