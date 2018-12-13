@@ -1079,8 +1079,8 @@ const messages = {
   vmAddVgpu: 'Add vGPU',
   vmSelectVgpuType: 'Select vGPU type',
   vmAcls: 'ACLs',
-  vmAddAcls: 'add ACLs',
-  removeAcl: 'delete',
+  vmAddAcls: 'Add ACLs',
+  removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
 
   // ----- VM placeholders -----

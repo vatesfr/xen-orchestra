@@ -28,6 +28,7 @@ import {
   formatSize,
   getCoresPerSocketPossibilities,
   getVirtualizationModeLabel,
+  noop,
   osFamily,
 } from 'utils'
 import {
@@ -38,6 +39,7 @@ import {
   isEmpty,
   keyBy,
   map,
+  some,
   uniq,
 } from 'lodash'
 import {
@@ -324,13 +326,8 @@ class AddAclsModal extends Component {
   _getPredicate = createSelector(
     () => this.props.acls,
     () => this.props.vm,
-    (acls, { id: vmId }) => ({ id: subjectId }) =>
-      isEmpty(acls) ||
-      isEmpty(
-        acls.filter(
-          ({ object, subject }) => object === vmId && subject === subjectId
-        )
-      )
+    (acls, { id: object }) => ({ id: subject }) =>
+      !some(acls, { object, subject })
   )
 
   render() {
@@ -365,15 +362,21 @@ const Acls = decorate([
         confirm({
           title: _('vmAddAcls'),
           body: <AddAclsModal acls={acls} vm={vm} />,
-        }).then(({ action, subjects }) => {
-          try {
-            Promise.all(
-              map(subjects, subject => addAcl({ subject, object: vm, action }))
+        })
+          .then(({ action, subjects }) => {
+            if (action == null || isEmpty(subjects)) {
+              throw new Error('User(s)/group(s) and role are required.')
+            }
+            return (
+              Promise.all(
+                map(subjects, subject =>
+                  addAcl({ subject, object: vm, action })
+                )
+              ),
+              noop
             )
-          } catch (err) {
-            error('Add ACL(s)', err.message || String(err))
-          }
-        }),
+          })
+          .catch(err => err && error('Add ACL(s)', err.message || String(err))),
     },
     computed: {
       vmAcls: (_, { acls, groups, users, vm }) => {
@@ -399,24 +402,26 @@ const Acls = decorate([
       <Container>
         <Row>
           {vmAcls !== undefined &&
-            vmAcls.slice(0, 5).map(({ subject, action }) => {
-              return (
-                <Col key={subject.id}>
-                  <span>{`${subject.email} `}</span>
-                  <span className={`tag tag-pill tag-${LEVELS[action]}`}>
-                    {action}
-                  </span>{' '}
-                  <Tooltip content={_('removeAcl')}>
-                    <a
-                      role='button'
-                      onClick={() => removeAcl({ subject, object: vm, action })}
-                    >
-                      <Icon icon='remove' />
-                    </a>
-                  </Tooltip>
-                </Col>
-              )
-            })}
+            vmAcls.slice(0, 5).map(({ subject, action }) => (
+              <Col
+                key={Math.random()
+                  .toString(36)
+                  .slice(2)}
+              >
+                <span>{subject.email}</span>{' '}
+                <span className={`tag tag-pill tag-${LEVELS[action]}`}>
+                  {action}
+                </span>{' '}
+                <Tooltip content={_('removeAcl')}>
+                  <a
+                    role='button'
+                    onClick={() => removeAcl({ subject, object: vm, action })}
+                  >
+                    <Icon icon='remove' />
+                  </a>
+                </Tooltip>
+              </Col>
+            ))}
           {vmAcls !== undefined && vmAcls.length > 5 && (
             <Col>
               <Link to={`settings/acls?s=object:${vm.id}`}>
@@ -926,12 +931,14 @@ export default class TabAdvanced extends Component {
                     )}
                   </td>
                 </tr>
-                <tr>
-                  <th>{_('vmAcls')}</th>
-                  <td>
-                    <Acls vm={vm} />
-                  </td>
-                </tr>
+                {isAdmin && (
+                  <tr>
+                    <th>{_('vmAcls')}</th>
+                    <td>
+                      <Acls vm={vm} />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </Col>
