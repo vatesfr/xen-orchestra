@@ -723,16 +723,17 @@ export default decorate([
                         <Icon icon='info' />
                       </Tooltip>
                     )}
+                    <br />
+                    <a
+                      className='text-muted'
+                      href={BACKUP_NG_DOC_LINK}
+                      rel='noopener noreferrer'
+                      target='_blank'
+                    >
+                      <Icon icon='info' />{' '}
+                      {_('backupNgLinkToDocumentationMessage')}
+                    </a>
                   </div>
-                  <a
-                    className='text-muted'
-                    href={BACKUP_NG_DOC_LINK}
-                    rel='noopener noreferrer'
-                    target='_blank'
-                  >
-                    <Icon icon='info' />{' '}
-                    {_('backupNgLinkToDocumentationMessage')}
-                  </a>
                 </CardBlock>
               </FormFeedback>
               <br />
