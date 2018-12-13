@@ -18,9 +18,11 @@
 ### Bug fixes
 
 - [Home/SRs] Fixed SR status for non admin users [#2204](https://github.com/vatesfr/xen-orchestra/issues/2204) (PR [#3742](https://github.com/vatesfr/xen-orchestra/pull/3742))
+- [Servers] Fix occasional "server's pool already connected" errors when pool is not connected (PR [#3782](https://github.com/vatesfr/xen-orchestra/pull/3782))
 
 ### Released packages
 
+- xen-api v0.23.0
 - xo-acl-resolver v0.4.1
 - xo-server v5.32.0
 - xo-web v5.32.0
