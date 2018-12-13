@@ -88,11 +88,6 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return client.disconnect()
   }
 
-  async _getInfo() {
-    // TODO: add good implementation
-    return {}
-  }
-
   _getSize(file) {
     return this._client.getSize(this._getFilePath(file)).catch(normalizeError)
   }

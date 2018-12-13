@@ -48,7 +48,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _getInfo() {
-    console.log('local', '43', this._getFilePath('/'))
     return df.file(this._getFilePath('/'))
   }
 
