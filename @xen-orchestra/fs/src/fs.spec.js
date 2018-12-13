@@ -103,16 +103,18 @@ handlers.forEach(url => {
       })
     })
 
-    describe('#createWriteStream()', () => {
-      testWithFileDescriptor('file', 'wx', async ({ file, flags }) => {
-        const stream = await handler.createWriteStream(file, { flags })
-        await fromCallback(cb => pipeline(createTestDataStream(), stream, cb))
-        await expect(await handler.readFile('file')).toEqual(TEST_DATA)
-      })
+    describe('#getInfo()', () => {
+      it('should return an object with info', async () => {
+        const info = await handler.getInfo()
 
-      it('fails if parent dir is missing', async () => {
-        const error = await rejectionOf(handler.createWriteStream('dir/file'))
-        expect(error.code).toBe('ENOENT')
+        if (Object.keys(info).length !== 0) {
+          expect(info).toEqual(
+            expect.objectContaining({
+              available: expect.any(Number),
+              used: expect.any(Number),
+            })
+          )
+        }
       })
     })
 

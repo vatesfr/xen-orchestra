@@ -90,7 +90,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
 
   async _getInfo() {
     // TODO: add good implementation
-    return undefined
+    return {}
   }
 
   _getSize(file) {

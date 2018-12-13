@@ -52,6 +52,18 @@ describe('createReadStream()', () => {
   })
 })
 
+describe('getInfo()', () => {
+  it(`throws in case of timeout`, async () => {
+    const testHandler = new TestHandler({
+      getInfo: () => new Promise(() => {}),
+    })
+
+    const promise = testHandler.getInfo()
+    jest.advanceTimersByTime(TIMEOUT)
+    await expect(promise).rejects.toThrowError(TimeoutError)
+  })
+})
+
 describe('getSize()', () => {
   it(`throws in case of timeout`, async () => {
     const testHandler = new TestHandler({
