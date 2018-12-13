@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
+import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
@@ -74,11 +75,17 @@ const SchedulePreviewBody = decorate([
   })),
   ({ job, schedule, lastRunLog }) => (
     <Ul>
-      {schedule.name ? (
-        <Li>{_.keyValue(_('scheduleName'), schedule.name)}</Li>
-      ) : (
-        <Li>{_.keyValue(_('scheduleCron'), schedule.cron)}</Li>
-      )}
+      <Li>
+        <Copiable
+          data={schedule.id}
+          tagName='div'
+          tooltip={_('scheduleCopyId', { id: schedule.id.slice(4, 8) })}
+        >
+          {schedule.name
+            ? _.keyValue(_('scheduleName'), schedule.name)
+            : _.keyValue(_('scheduleCron'), schedule.cron)}
+        </Copiable>
+      </Li>
       <Li>
         <StateButton
           disabledLabel={_('stateDisabled')}
@@ -181,7 +188,11 @@ class JobsTable extends React.Component {
     ],
     columns: [
       {
-        itemRenderer: _ => _.id.slice(4, 8),
+        itemRenderer: ({ id }) => (
+          <Copiable data={id} tagName='p'>
+            {id.slice(4, 8)}
+          </Copiable>
+        ),
         name: _('jobId'),
       },
       {

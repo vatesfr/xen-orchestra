@@ -1338,6 +1338,7 @@ const messages = {
   scheduleCron: 'Cron pattern',
   scheduleLastRun: 'Click to display last run details',
   scheduleName: 'Name',
+  scheduleCopyId: 'Copy ID {id}',
   scheduleTimezone: 'Timezone',
   scheduleExportRetention: 'Backup ret.',
   scheduleCopyRetention: 'Replication ret.',
