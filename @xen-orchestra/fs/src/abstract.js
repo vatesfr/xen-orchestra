@@ -368,7 +368,7 @@ export default class RemoteHandlerAbstract {
       ignoreErrors.call(this._unlink(checksumFile(file)))
     }
 
-    await timeout.call(this._unlink(file).catch(ignoreEnoent), this._timeout)
+    await this._unlink(file).catch(ignoreEnoent)
   }
 
   async writeFile(
