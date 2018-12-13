@@ -34,6 +34,7 @@ import {
 import {
   assign,
   every,
+  filter,
   find,
   includes,
   isEmpty,
@@ -326,8 +327,7 @@ class AddAclsModal extends Component {
   _getPredicate = createSelector(
     () => this.props.acls,
     () => this.props.vm,
-    (acls, { id: object }) => ({ id: subject }) =>
-      !some(acls, { object, subject })
+    (acls, object) => ({ id: subject }) => !some(acls, { object, subject })
   )
 
   render() {
@@ -379,35 +379,22 @@ const Acls = decorate([
           .catch(err => err && error('Add ACL(s)', err.message || String(err))),
     },
     computed: {
-      vmAcls: (_, { acls, groups, users, vm }) => {
-        if (isEmpty(acls)) {
-          return
-        }
-        const vmAcls = []
-        acls.forEach(({ object, subject, action }) => {
-          if (object === vm.id) {
-            vmAcls.push({
-              action,
-              subject: users[subject] || groups[subject],
-            })
-          }
-        })
-        return vmAcls
-      },
+      rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),
+      resolvedAcls: ({ rawAcls }, props) =>
+        rawAcls.map(({ subject, ...acl }) => ({
+          ...acl,
+          subject: props.users[subject] || props.groups[subject],
+        })),
     },
   }),
   injectState,
-  ({ state: { vmAcls, vmId }, effects, vm }) => {
+  ({ state: { resolvedAcls }, effects, vm }) => {
     return (
       <Container>
         <Row>
-          {vmAcls !== undefined &&
-            vmAcls.slice(0, 5).map(({ subject, action }) => (
-              <Col
-                key={Math.random()
-                  .toString(36)
-                  .slice(2)}
-              >
+          {resolvedAcls !== undefined &&
+            resolvedAcls.slice(0, 5).map(({ subject, action }) => (
+              <Col key={`${subject.email}.${action}`}>
                 <span>{subject.email}</span>{' '}
                 <span className={`tag tag-pill tag-${LEVELS[action]}`}>
                   {action}
@@ -422,10 +409,10 @@ const Acls = decorate([
                 </Tooltip>
               </Col>
             ))}
-          {vmAcls !== undefined && vmAcls.length > 5 && (
+          {resolvedAcls !== undefined && resolvedAcls.length > 5 && (
             <Col>
-              <Link to={`settings/acls?s=object:${vm.id}`}>
-                {_('moreAcls', { nAcls: vmAcls.length - 5 })}
+              <Link to={`settings/acls?s=object:${vm}`}>
+                {_('moreAcls', { nAcls: resolvedAcls.length - 5 })}
               </Link>
             </Col>
           )}
@@ -935,7 +922,7 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>{_('vmAcls')}</th>
                     <td>
-                      <Acls vm={vm} />
+                      <Acls vm={vm.id} />
                     </td>
                   </tr>
                 )}
