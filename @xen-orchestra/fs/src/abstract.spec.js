@@ -111,15 +111,3 @@ describe('rmdir()', () => {
     await expect(promise).rejects.toThrowError(TimeoutError)
   })
 })
-
-describe('unlink()', () => {
-  it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      unlink: () => new Promise(() => {}),
-    })
-
-    const promise = testHandler.unlink('')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
-  })
-})

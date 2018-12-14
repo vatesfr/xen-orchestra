@@ -1,9 +1,8 @@
 import createLogger from '@xen-orchestra/log'
 import { BaseError } from 'make-error'
-import { pDelay, ignoreErrors } from 'promise-toolbox'
 import { fibonacci } from 'iterable-backoff'
-import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
+import { pDelay, ignoreErrors } from 'promise-toolbox'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -21,8 +20,11 @@ import { Servers } from '../models/server'
 // ===================================================================
 
 class PoolAlreadyConnected extends BaseError {
-  constructor() {
-    super("the server's pool is already connected")
+  constructor(poolId, connectedServerId, connectingServerId) {
+    super('this pool is already connected')
+    this.poolId = poolId
+    this.connectedServerId = connectedServerId
+    this.connectingServerId = connectingServerId
   }
 }
 
@@ -36,10 +38,10 @@ export default class {
       prefix: 'xo:server',
       indexes: ['host'],
     }))
+    this._serverIdsByPool = { __proto__: null }
     this._stats = new XapiStats()
     this._xapiOptions = xapiOptions
     this._xapis = { __proto__: null }
-    this._xapisByPool = { __proto__: null }
     this._xo = xo
 
     xo.on('clean', () => serversDb.rebuildIndexes())
@@ -265,13 +267,18 @@ export default class {
     try {
       await xapi.connect()
 
-      const xapisByPool = this._xapisByPool
-      const [{ $id: poolId }] = await xapi.getAllRecords('pool')
-      if (xapisByPool[poolId] !== undefined) {
-        throw new PoolAlreadyConnected()
+      const serverIdsByPool = this._serverIdsByPool
+      const poolId = xapi.pool.$id
+      if (serverIdsByPool[poolId] !== undefined) {
+        throw new PoolAlreadyConnected(
+          poolId,
+          serverIdsByPool[poolId],
+          server.id
+        )
       }
 
-      this._xapis[server.id] = xapisByPool[poolId] = xapi
+      serverIdsByPool[poolId] = server.id
+      this._xapis[server.id] = xapi
 
       xapi.xo = (() => {
         const conId = server.id
@@ -383,11 +390,7 @@ export default class {
     }
 
     delete this._xapis[id]
-
-    const { pool } = xapi
-    if (pool != null) {
-      delete this._xapisByPool[pool.$id]
-    }
+    delete this._serverIdsByPool[xapi.pool.$id]
 
     xapi.xo.uninstall()
     return xapi.disconnect()
@@ -408,8 +411,8 @@ export default class {
       throw new Error(`object ${object.id} does not belong to a pool`)
     }
 
-    const xapi = this._xapisByPool[poolId]
-    if (!xapi) {
+    const xapi = this._xapis[this._serverIdsByPool[poolId]]
+    if (xapi === undefined) {
       throw new Error(`no connection found for object ${object.id}`)
     }
 
@@ -469,17 +472,18 @@ export default class {
     }
 
     this.unregisterXenServer(
-      findKey(this._xapis, candidate => candidate === sourceXapi)
+      this._serverIdsByPool[sourcePoolId]
     )::ignoreErrors()
   }
 
   async detachHostFromPool(hostId) {
     const xapi = this.getXapi(hostId)
+    const poolId = xapi.pool.$id
     const { address } = xapi.getObject(hostId)
 
     await xapi.ejectHostFromPool(hostId)
 
-    this._getXenServer(findKey(this._xapis, candidate => candidate === xapi))
+    this._getXenServer(this._serverIdsByPool[poolId])
       .then(async ({ properties }) => {
         const { id } = await this.registerXenServer({
           ...properties,

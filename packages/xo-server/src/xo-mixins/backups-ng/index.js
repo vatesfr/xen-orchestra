@@ -447,6 +447,19 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
   }
 }
 
+const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
+  if (vm.ha_restart_priority === '') {
+    return
+  }
+
+  return Promise.all([
+    xapi._setObjectProperties(vm, {
+      haRestartPriority: '',
+    }),
+    xapi.addTag(vm.$ref, 'HA disabled'),
+  ])
+}
+
 // File structure on remotes:
 //
 // <remote>
@@ -1236,6 +1249,7 @@ export default class BackupNg {
 
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Disaster Recovery'),
+                  disableVmHighAvailability(xapi, vm),
                   xapi._updateObjectMapProperty(vm, 'blocked_operations', {
                     start:
                       'Start operation for this vm is blocked, clone it if you want to use it.',
@@ -1586,6 +1600,7 @@ export default class BackupNg {
 
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Continuous Replication'),
+                  disableVmHighAvailability(xapi, vm),
                   xapi._updateObjectMapProperty(vm, 'blocked_operations', {
                     start:
                       'Start operation for this vm is blocked, clone it if you want to use it.',

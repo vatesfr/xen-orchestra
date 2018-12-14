@@ -421,6 +421,8 @@ const messages = {
     'Tip: creating VMs on a thin-provisioned storage will consume less space when backuping them. Please click on the icon to get more information',
   deltaBackupOnOutdatedXenServerWarning:
     'Delta Backup and Continuous Replication require at least XenServer 6.5.',
+  backupNgLinkToDocumentationMessage:
+    'Click for more information about the backup modes.',
   localRemoteWarningMessage:
     'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
@@ -1334,6 +1336,7 @@ const messages = {
   // ---- Backup views ---
   backupSchedules: 'Schedules',
   scheduleCron: 'Cron pattern',
+  scheduleLastRun: 'Click to display last run details',
   scheduleName: 'Name',
   scheduleTimezone: 'Timezone',
   scheduleExportRetention: 'Backup ret.',

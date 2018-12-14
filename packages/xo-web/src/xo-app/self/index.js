@@ -23,10 +23,14 @@ import ResourceSetQuotas from 'resource-set-quotas'
 import some from 'lodash/some'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType, createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
-
+import { addSubscriptions, connectStore, resolveIds } from 'utils'
+import {
+  createGetObjectsOfType,
+  createSelector,
+  getResolvedResourceSets,
+} from 'selectors'
 import {
   createResourceSet,
   deleteResourceSet,
@@ -35,14 +39,6 @@ import {
   subscribeIpPools,
   subscribeResourceSets,
 } from 'xo'
-
-import {
-  addSubscriptions,
-  connectStore,
-  resolveIds,
-  resolveResourceSets,
-} from 'utils'
-
 import {
   SelectIpPool,
   SelectNetwork,
@@ -699,25 +695,17 @@ class ResourceSet extends Component {
 
 // ===================================================================
 
-const compareName = (a, b) => (a.name < b.name ? -1 : 1)
-
+@addSubscriptions({ resourceSets: subscribeResourceSets })
+@connectStore({ resolvedResourceSets: getResolvedResourceSets })
 export default class Self extends Component {
   constructor(props) {
     super(props)
     this.state = {}
   }
 
-  componentWillMount() {
-    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
-      this.setState({
-        resourceSets: resolveResourceSets(resourceSets).sort(compareName),
-      })
-    })
-  }
-
-  render() {
-    const { resourceSets, showNewResourceSetForm } = this.state
-    const { location } = this.props
+  render () {
+    const { showNewResourceSetForm } = this.state
+    const { resolvedResourceSets, location } = this.props
 
     return (
       <Page formatTitle header={HEADER} title='selfServicePage'>
@@ -746,10 +734,10 @@ export default class Self extends Component {
               />,
               <hr key={1} />,
             ]}
-            {resourceSets
-              ? isEmpty(resourceSets)
+            {resolvedResourceSets
+              ? isEmpty(resolvedResourceSets)
                 ? _('noResourceSets')
-                : map(resourceSets, resourceSet => (
+                : map(resolvedResourceSets, resourceSet => (
                     <ResourceSet
                       autoExpand={location.query.resourceSet === resourceSet.id}
                       key={resourceSet.id}

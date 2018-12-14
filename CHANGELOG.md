@@ -12,13 +12,20 @@
 - [Backup NG] Add "XOSAN" in excluded tags by default [#2128](https://github.com/vatesfr/xen-orchestra/issues/3563) (PR [#3559](https://github.com/vatesfr/xen-orchestra/pull/3563))
 - [VM] add tooltip for VM status icon [#3749](https://github.com/vatesfr/xen-orchestra/issues/3749) (PR [#3765](https://github.com/vatesfr/xen-orchestra/pull/3765))
 - [New XOSAN] Improve view and possibility to sort SRs by name/size/free space [#2416](https://github.com/vatesfr/xen-orchestra/issues/2416) (PR [#3691](https://github.com/vatesfr/xen-orchestra/pull/3691))
+- [Backup NG] Disable HA on replicated VM (CR, DR) [#2359](https://github.com/vatesfr/xen-orchestra/issues/2359) (PR [#3755](https://github.com/vatesfr/xen-orchestra/pull/3755))
+- [Backup NG] Display the last run status for each schedule with the possibility to show the associated log [#3769](https://github.com/vatesfr/xen-orchestra/issues/3769) (PR [#3779](https://github.com/vatesfr/xen-orchestra/pull/3779))
+- [Backup NG] Add a link to the documentation [#3789](https://github.com/vatesfr/xen-orchestra/issues/3789) (PR [#3790](https://github.com/vatesfr/xen-orchestra/pull/3790))
 
 ### Bug fixes
 
 - [Home/SRs] Fixed SR status for non admin users [#2204](https://github.com/vatesfr/xen-orchestra/issues/2204) (PR [#3742](https://github.com/vatesfr/xen-orchestra/pull/3742))
+- [Servers] Fix occasional "server's pool already connected" errors when pool is not connected (PR [#3782](https://github.com/vatesfr/xen-orchestra/pull/3782))
+- [Self] Fix missing objects when the self service view is the first one to be loaded when opening XO [#2689](https://github.com/vatesfr/xen-orchestra/issues/2689) (PR [#3096](https://github.com/vatesfr/xen-orchestra/pull/3096))
 
 ### Released packages
 
+- @xen-orchestra/fs v0.5.0
+- xen-api v0.23.0
 - xo-acl-resolver v0.4.1
 - xo-server v5.32.0
 - xo-web v5.32.0

@@ -407,8 +407,9 @@ export class Xapi extends EventEmitter {
       auth.user,
       auth.password,
     ]).then(
-      sessionId => {
+      async sessionId => {
         this._sessionId = sessionId
+        this._pool = (await this.getAllRecords('pool'))[0]
 
         debug('%s: connected', this._humanId)
 

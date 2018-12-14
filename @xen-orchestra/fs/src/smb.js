@@ -63,17 +63,23 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   _createReadStream(file, options) {
-    // FIXME ensure that options are properly handled by @marsaud/smb2
-    return this._client
-      .createReadStream(this._getFilePath(file), options)
-      .catch(normalizeError)
+    if (typeof file === 'string') {
+      file = this._getFilePath(file)
+    } else {
+      options = { autoClose: false, ...options, fd: file.fd }
+      file = ''
+    }
+    return this._client.createReadStream(file, options).catch(normalizeError)
   }
 
   _createWriteStream(file, options) {
-    // FIXME ensure that options are properly handled by @marsaud/smb2
-    return this._client
-      .createWriteStream(this._getFilePath(file), options)
-      .catch(normalizeError)
+    if (typeof file === 'string') {
+      file = this._getFilePath(file)
+    } else {
+      options = { autoClose: false, ...options, fd: file.fd }
+      file = ''
+    }
+    return this._client.createWriteStream(file, options).catch(normalizeError)
   }
 
   _forget() {
