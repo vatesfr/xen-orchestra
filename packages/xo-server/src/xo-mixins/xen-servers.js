@@ -20,8 +20,11 @@ import { Servers } from '../models/server'
 // ===================================================================
 
 class PoolAlreadyConnected extends BaseError {
-  constructor() {
-    super("the server's pool is already connected")
+  constructor(poolId, connectedServerId, connectingServerId) {
+    super('this pool is already connected')
+    this.poolId = poolId
+    this.connectedServerId = connectedServerId
+    this.connectingServerId = connectingServerId
   }
 }
 
@@ -267,7 +270,11 @@ export default class {
       const serverIdsByPool = this._serverIdsByPool
       const poolId = xapi.pool.$id
       if (serverIdsByPool[poolId] !== undefined) {
-        throw new PoolAlreadyConnected()
+        throw new PoolAlreadyConnected(
+          poolId,
+          serverIdsByPool[poolId],
+          server.id
+        )
       }
 
       serverIdsByPool[poolId] = server.id
