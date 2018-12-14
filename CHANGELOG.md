@@ -20,6 +20,7 @@
 
 - [Home/SRs] Fixed SR status for non admin users [#2204](https://github.com/vatesfr/xen-orchestra/issues/2204) (PR [#3742](https://github.com/vatesfr/xen-orchestra/pull/3742))
 - [Servers] Fix occasional "server's pool already connected" errors when pool is not connected (PR [#3782](https://github.com/vatesfr/xen-orchestra/pull/3782))
+- [Self] Fix missing objects when the self service view is the first one to be loaded when opening XO [#2689](https://github.com/vatesfr/xen-orchestra/issues/2689) (PR [#3096](https://github.com/vatesfr/xen-orchestra/pull/3096))
 
 ### Released packages
 

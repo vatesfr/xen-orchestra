@@ -2,6 +2,7 @@ import add from 'lodash/add'
 import { check as checkPermissions } from 'xo-acl-resolver'
 import { createSelector as create } from 'reselect'
 import {
+  difference,
   filter,
   find,
   forEach,
@@ -9,10 +10,12 @@ import {
   identity,
   isArray,
   isArrayLike,
+  isEmpty,
   isFunction,
   keys,
   map,
   orderBy,
+  pick,
   pickBy,
   size,
   slice,
@@ -566,4 +569,34 @@ export const getIsPoolAdmin = create(
   create(createGetObjectsOfType('pool'), _createCollectionWrapper(Object.keys)),
   getCheckPermissions,
   (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
+)
+
+export const getResolvedResourceSets = create(
+  (_, props) => props.resourceSets,
+  createGetObjectsOfType('network'),
+  createGetObjectsOfType('SR'),
+  createGetObjectsOfType('VM-template'),
+  (resourceSets, networks, srs, vms) =>
+    map(resourceSets, resourceSet => {
+      const { objects, ...attrs } = resourceSet
+      const objectsByType = {}
+      const objectsFound = []
+
+      const resolve = (type, _objects) => {
+        const resolvedObjects = pick(_objects, objects)
+        if (!isEmpty(resolvedObjects)) {
+          objectsFound.push(...Object.keys(resolvedObjects))
+          objectsByType[type] = Object.values(resolvedObjects)
+        }
+      }
+      resolve('VM-template', vms)
+      resolve('SR', srs)
+      resolve('network', networks)
+
+      return {
+        ...attrs,
+        missingObjects: difference(objectsFound, objects),
+        objectsByType,
+      }
+    })
 )
