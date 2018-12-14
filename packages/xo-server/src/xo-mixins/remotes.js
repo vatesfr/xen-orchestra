@@ -21,14 +21,14 @@ const obfuscateRemote = ({ url, ...remote }) => {
 
 export default class {
   constructor(xo, { remoteOptions }) {
-    this._allInfoRemote = {}
+    this._handlers = { __proto__: null }
     this._remoteOptions = remoteOptions
     this._remotes = new Remotes({
       connection: xo._redis,
       prefix: 'xo:remote',
       indexes: ['enabled'],
     })
-    this._handlers = { __proto__: null }
+    this._remotesInfo = {}
 
     xo.on('clean', () => this._remotes.rebuildIndexes())
     xo.on('start', async () => {
@@ -96,10 +96,10 @@ export default class {
           this.getRemoteInfo(remote.id),
           DEFAULT_TIMEOUT
         )
-        this._allInfoRemote = { ...obfuscateRemote(remote), info }
-        return this._allInfoRemote
+        this._remotesInfo = { ...obfuscateRemote(remote), info }
+        return this._remotesInfo
       } catch (error) {
-        return this._allInfoRemote
+        return this._remotesInfo
       }
     })
   }
