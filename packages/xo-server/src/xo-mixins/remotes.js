@@ -2,7 +2,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'xo-remote-parser'
 import { getHandler } from '@xen-orchestra/fs'
-import { ignoreErrors } from 'promise-toolbox'
+import { ignoreErrors, timeout } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import * as sensitiveValues from '../sensitive-values'
@@ -12,6 +12,8 @@ import { Remotes } from '../models/remote'
 
 // ===================================================================
 
+const DEFAULT_TIMEOUT = 5e3 // 5 seconds
+
 const obfuscateRemote = ({ url, ...remote }) => {
   remote.url = format(sensitiveValues.obfuscate(parse(url)))
   return remote
@@ -19,6 +21,7 @@ const obfuscateRemote = ({ url, ...remote }) => {
 
 export default class {
   constructor(xo, { remoteOptions }) {
+    this._allInfoRemote = {}
     this._remoteOptions = remoteOptions
     this._remotes = new Remotes({
       connection: xo._redis,
@@ -85,17 +88,24 @@ export default class {
     return handler.test()
   }
 
-  async getAllRemotes() {
+  async getAllRemotesInfo() {
     const remotes = await this._remotes.get()
     return asyncMap(remotes, async remote => {
-      let info
-      if (remote.enabled) {
-        info = await this.getRemoteInfo(remote.id).catch(error => {
-          throw error
-        })
+      try {
+        const info = await timeout.call(
+          this.getRemoteInfo(remote.id),
+          DEFAULT_TIMEOUT
+        )
+        this._allInfoRemote = { ...obfuscateRemote(remote), info }
+        return this._allInfoRemote
+      } catch (error) {
+        return this._allInfoRemote
       }
-      return { ...obfuscateRemote(remote), info }
     })
+  }
+
+  async getAllRemotes() {
+    return (await this._remotes.get()).map(_ => obfuscateRemote(_))
   }
 
   async _getRemote(id) {

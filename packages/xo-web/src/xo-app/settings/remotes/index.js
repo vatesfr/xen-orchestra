@@ -20,7 +20,7 @@ import {
   disableRemote,
   editRemote,
   enableRemote,
-  subscribeRemotes,
+  subscribeRemotesInfo,
   testRemote,
 } from 'xo'
 
@@ -287,7 +287,7 @@ const FILTERS = {
 export default decorate([
   addSubscriptions({
     remotes: cb =>
-      subscribeRemotes(remotes => {
+      subscribeRemotesInfo(remotes => {
         cb(
           groupBy(
             map(remotes, remote => ({
