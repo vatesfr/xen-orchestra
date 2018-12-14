@@ -20,6 +20,7 @@ import {
   disableRemote,
   editRemote,
   enableRemote,
+  subscribeRemotes,
   subscribeRemotesInfo,
   testRemote,
 } from 'xo'
@@ -34,6 +35,11 @@ const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
 const _editRemoteOptions = (options, { remote }) =>
   editRemote(remote, { options: options !== '' ? options : null })
+const _remoteWithInfo = (remotes, remotesInfo) =>
+  remotes.map(remote => {
+    const info = remotesInfo[remote.id]
+    return { ...remote, info }
+  })
 
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
@@ -79,6 +85,8 @@ const COLUMN_DISK = {
   itemRenderer: (remote, { formatMessage }) => (
     <span>
       {remote.info &&
+        remote.info.used !== undefined &&
+        remote.info.available !== undefined &&
         `${formatSize(remote.info.used)} / ${formatSize(
           remote.info.available
         )}`}
@@ -287,7 +295,7 @@ const FILTERS = {
 export default decorate([
   addSubscriptions({
     remotes: cb =>
-      subscribeRemotesInfo(remotes => {
+      subscribeRemotes(remotes => {
         cb(
           groupBy(
             map(remotes, remote => ({
@@ -298,6 +306,7 @@ export default decorate([
           )
         )
       }),
+    remotesInfo: subscribeRemotesInfo,
   }),
   injectIntl,
   provideState({
@@ -316,13 +325,19 @@ export default decorate([
     },
   }),
   injectState,
-  ({ state, effects, remotes = {}, intl: { formatMessage } }) => (
+  ({
+    state,
+    effects,
+    remotes = {},
+    remotesInfo = {},
+    intl: { formatMessage },
+  }) => (
     <div>
       {!isEmpty(remotes.file) && (
         <div>
           <h2>{_('remoteTypeLocal')}</h2>
           <SortedTable
-            collection={remotes.file}
+            collection={_remoteWithInfo(remotes.file, remotesInfo)}
             columns={COLUMNS_LOCAL_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}

@@ -12,8 +12,6 @@ import { Remotes } from '../models/remote'
 
 // ===================================================================
 
-const DEFAULT_TIMEOUT = 5e3 // 5 seconds
-
 const obfuscateRemote = ({ url, ...remote }) => {
   remote.url = format(sensitiveValues.obfuscate(parse(url)))
   return remote
@@ -90,18 +88,22 @@ export default class {
 
   async getAllRemotesInfo() {
     const remotes = await this._remotes.get()
-    return asyncMap(remotes, async remote => {
-      try {
+
+    try {
+      const infos = {}
+      await asyncMap(remotes, async remote => {
+        const handler = await this.getRemoteHandler(remote.id)
         const info = await timeout.call(
-          this.getRemoteInfo(remote.id),
-          DEFAULT_TIMEOUT
+          handler.getInfo(),
+          this._remoteOptions.timeoutInfo
         )
-        this._remotesInfo = { ...obfuscateRemote(remote), info }
-        return this._remotesInfo
-      } catch (error) {
-        return this._remotesInfo
-      }
-    })
+        infos[remote.id] = info
+      })
+      this._remotesInfo = infos
+      return this._remotesInfo
+    } catch (error) {
+      return this._remotesInfo
+    }
   }
 
   async getAllRemotes() {
@@ -118,11 +120,6 @@ export default class {
 
   getRemote(id) {
     return this._getRemote(id).then(obfuscateRemote)
-  }
-
-  async getRemoteInfo(remoteId) {
-    const handler = await this.getRemoteHandler(remoteId)
-    return handler.getInfo()
   }
 
   async createRemote({ name, url, options }) {

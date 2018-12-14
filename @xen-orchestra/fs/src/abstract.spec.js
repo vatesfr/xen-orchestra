@@ -53,7 +53,7 @@ describe('createReadStream()', () => {
 })
 
 describe('getInfo()', () => {
-  it(`throws in case of timeout`, async () => {
+  it('throws in case of timeout', async () => {
     const testHandler = new TestHandler({
       getInfo: () => new Promise(() => {}),
     })

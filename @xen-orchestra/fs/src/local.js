@@ -47,7 +47,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     })
   }
 
-  async _getInfo() {
+  _getInfo() {
     return df.file(this._getFilePath('/'))
   }
 

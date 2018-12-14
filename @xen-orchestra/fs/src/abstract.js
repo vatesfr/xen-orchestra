@@ -432,7 +432,7 @@ export default class RemoteHandlerAbstract {
   async _forget(): Promise<void> {}
 
   async _getInfo() {
-    return Promise.resolve({})
+    return {}
   }
 
   async _getSize(file: File): Promise<number> {
