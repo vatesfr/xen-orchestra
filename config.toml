@@ -1,0 +1,34 @@
+iso = 'Windows7Ultimate.iso'
+network = 'Pool-wide network associated with eth0'
+pool = 'lab3'
+pvVm = 'xo-test-pv'
+vmToMigrate = 'souad'
+xoServerUrl = 'localhost:9000'
+
+# powerOnMode has to be not empty
+host1 = 'lab1'
+
+[adminCredentials]
+  email = 'admin@admin.net'
+  password = 'admin'
+
+[templates]
+debian = 'Debian Wheezy 7.0 (64-bit)'
+otherConfig = 'Other install media'
+centOS = 'CentOS 7'
+
+[slaveServer]
+host = '192.168.100.1'
+username = 'root'
+password = 'qwerty'
+autoConnect = false
+
+[[xenServers]]
+host = '192.168.100.3'
+username = 'root'
+password = 'qwerty'
+
+[[xenServers]]
+host = '192.168.100.2'
+username = 'root'
+password = 'qwerty'

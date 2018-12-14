@@ -1,49 +1,12 @@
 import defer from "golike-defer";
 import expect from "must";
-import { find, forEach, map, cloneDeep } from "lodash";
-
 import Xo from "xo-lib";
 import XoCollection from "xo-collection";
+import { find, forEach, map, cloneDeep } from "lodash";
+
+import config from "./_config";
 
 /* eslint-env jest */
-
-async function getConfig() {
-  return {
-    adminCredentials: {
-      email: "admin@admin.net",
-      password: "admin",
-    },
-    xoServerUrl: "localhost:9000",
-    xenServer1: {
-      host: "192.168.100.3",
-      username: "root",
-      password: "qwerty",
-    },
-    xenServer2: {
-      host: "192.168.100.2",
-      username: "root",
-      password: "qwerty",
-    },
-    slaveServer: {
-      host: "192.168.100.1",
-      username: "root",
-      password: "qwerty",
-      autoConnect: false,
-    },
-    pvVm: "xo-test-pv",
-    vmToMigrate: "souad",
-    network: "Pool-wide network associated with eth0",
-    iso: "Windows7Ultimate.iso",
-    pool: "lab3",
-    templates: {
-      debian: "Debian Wheezy 7.0 (64-bit)",
-      otherConfig: "Other install media",
-      centOS: "CentOS 7",
-    },
-    // powerOnMode has to be not empty
-    host1: "lab1",
-  };
-}
 
 export const getConnection = defer(
   async ({ onFailure: $onFailure }, { credentials } = {}) => {
@@ -114,11 +77,9 @@ export const rejectionOf = promise =>
     reason => reason
   );
 
-export let config;
 export let xo;
 beforeAll(async () => {
   console.log("beforeAll");
-  config = await getConfig();
   xo = await getConnection();
   console.log("beforeAll", xo);
 });
@@ -169,7 +130,6 @@ export function getOneHost(xo) {
 // ==================================================================
 
 export async function getNetworkId(xo) {
-  const config = await getConfig();
   const networks = xo.objects.indexes.type.network;
   const network = find(networks, { name_label: config.network });
   return network.id;
@@ -178,14 +138,12 @@ export async function getNetworkId(xo) {
 // ==================================================================
 
 export async function getVmXoTestPvId(xo) {
-  const config = await getConfig();
   const vms = xo.objects.indexes.type.VM;
   const vm = find(vms, { name_label: config.pvVm });
   return vm.id;
 }
 
 export async function getVmToMigrateId(xo) {
-  const config = await getConfig();
   const vms = xo.objects.indexes.type.VM;
   const vm = find(vms, { name_label: config.vmToMigrate });
   return vm.id;
