@@ -625,12 +625,14 @@ export default decorate([
     const { propSettings, settings = propSettings } = state
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
+    const { compression = job.compression === 'native' } = state
     const displayAdvancedSettings = defined(
       state.displayAdvancedSettings,
-      concurrency > 0 || timeout > 0 || offlineSnapshot
+      compression === 'native' ||
+        concurrency > 0 ||
+        timeout > 0 ||
+        offlineSnapshot
     )
-
-    const { compression = job.compression === 'native' } = state
 
     if (state.needUpdateParams) {
       effects.updateParams()

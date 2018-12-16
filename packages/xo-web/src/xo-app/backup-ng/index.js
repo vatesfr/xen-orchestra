@@ -213,8 +213,13 @@ class JobsTable extends React.Component {
       },
       {
         itemRenderer: job => {
-          const { concurrency, offlineSnapshot, reportWhen, timeout } =
-            job.settings[''] || {}
+          const {
+            compression,
+            concurrency,
+            offlineSnapshot,
+            reportWhen,
+            timeout,
+          } = job.settings[''] || {}
 
           return (
             <Ul>
@@ -229,6 +234,14 @@ class JobsTable extends React.Component {
                 <Li>
                   {_.keyValue(
                     _('offlineSnapshot'),
+                    <span className='text-success'>{_('stateEnabled')}</span>
+                  )}
+                </Li>
+              )}
+              {compression === 'native' && (
+                <Li>
+                  {_.keyValue(
+                    _('useCompression'),
                     <span className='text-success'>{_('stateEnabled')}</span>
                   )}
                 </Li>
