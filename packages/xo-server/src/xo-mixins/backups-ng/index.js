@@ -1518,6 +1518,7 @@ export default class BackupNg {
                         }))
                           .sort()
                           .pop()
+                          .slice(1) // remove leading slash
 
                         // ensure parent exists and is a valid VHD
                         await new Vhd(handler, parentPath).readHeaderAndFooter()
