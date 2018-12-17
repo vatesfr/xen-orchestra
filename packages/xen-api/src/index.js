@@ -219,6 +219,16 @@ function defined() {
   }
 }
 
+// TODO: find a better name
+// TODO: merge into promise-toolbox?
+const dontWait = promise => {
+  // https://github.com/JsCommunity/promise-toolbox#promiseignoreerrors
+  ignoreErrors.call(promise)
+
+  // http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it
+  return null
+}
+
 const makeCallSetting = (setting, defaultValue) =>
   setting === undefined
     ? () => defaultValue
@@ -453,14 +463,14 @@ export class Xapi extends EventEmitter {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(`Async.${method}`, args).then(taskRef => {
-          $cancelToken.promise.then(() => {
+          $cancelToken.promise.then(() =>
             // TODO: do not trigger if the task is already over
-            this._sessionCall('task.cancel', [taskRef]).catch(noop)
-          })
+            dontWait(this._sessionCall('task.cancel', [taskRef]))
+          )
 
-          return pFinally.call(this.watchTask(taskRef), () => {
-            this._sessionCall('task.destroy', [taskRef]).catch(noop)
-          })
+          return pFinally.call(this.watchTask(taskRef), () =>
+            dontWait(this._sessionCall('task.destroy', [taskRef]))
+          )
         })
   }
 
