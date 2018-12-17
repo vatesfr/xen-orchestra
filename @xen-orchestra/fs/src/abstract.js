@@ -214,6 +214,10 @@ export default class RemoteHandlerAbstract {
 
   // Free the resources possibly dedicated to put the remote at work, when it
   // is no more needed
+  //
+  // FIXME: Some handlers are implemented based on system-wide mecanisms (such
+  // as mount), forgetting them might breaking other processes using the same
+  // remote.
   async forget(): Promise<void> {
     await this._forget()
   }
@@ -346,6 +350,8 @@ export default class RemoteHandlerAbstract {
 
   // Asks the handler to sync the state of the effective remote with its'
   // metadata
+  //
+  // This method MUST ALWAYS be called before using the handler.
   async sync(): Promise<void> {
     await this._sync()
   }
