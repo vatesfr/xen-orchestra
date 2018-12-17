@@ -10,12 +10,7 @@ import Tooltip from '../tooltip'
 
 import styles from './index.css'
 
-const Copiable = ({
-  className,
-  tagName = 'span',
-  tooltip = _('copyToClipboard'),
-  ...props
-}) =>
+const Copiable = ({ className, tagName = 'span', ...props }) =>
   createElement(
     tagName,
     {
@@ -24,7 +19,7 @@ const Copiable = ({
     },
     props.children,
     ' ',
-    <Tooltip content={tooltip}>
+    <Tooltip content={_('copyToClipboard')}>
       <CopyToClipboard text={props.data || props.children}>
         <Button className={styles.button} size='small'>
           <Icon icon='clipboard' />
@@ -36,7 +31,6 @@ const Copiable = ({
 Copiable.propTypes = {
   data: PropTypes.string,
   tagName: PropTypes.string,
-  tooltip: PropTypes.node,
 }
 
 export { Copiable as default }

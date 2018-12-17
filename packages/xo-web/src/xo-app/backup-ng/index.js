@@ -1,13 +1,16 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
+import Button from 'button'
 import Copiable from 'copiable'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
+import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
 import { constructQueryString } from 'smart-backup'
@@ -76,15 +79,16 @@ const SchedulePreviewBody = decorate([
   ({ job, schedule, lastRunLog }) => (
     <Ul>
       <Li>
-        <Copiable
-          data={schedule.id}
-          tagName='div'
-          tooltip={_('scheduleCopyId', { id: schedule.id.slice(4, 8) })}
-        >
-          {schedule.name
-            ? _.keyValue(_('scheduleName'), schedule.name)
-            : _.keyValue(_('scheduleCron'), schedule.cron)}
-        </Copiable>
+        {schedule.name
+          ? _.keyValue(_('scheduleName'), schedule.name)
+          : _.keyValue(_('scheduleCron'), schedule.cron)}{' '}
+        <Tooltip content={_('scheduleCopyId', { id: schedule.id.slice(4, 8) })}>
+          <CopyToClipboard text={schedule.id}>
+            <Button size='small'>
+              <Icon icon='clipboard' />
+            </Button>
+          </CopyToClipboard>
+        </Tooltip>
       </Li>
       <Li>
         <StateButton
