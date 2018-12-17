@@ -126,12 +126,12 @@ const SchedulePreviewBody = decorate([
         )}{' '}
         {lastRunLog !== undefined && (
           <ActionButton
+            btnStyle={STATUS_LABELS[lastRunLog.status].className}
             handler={showTasks}
             handlerParam={lastRunLog}
             icon='preview'
             size='small'
             tooltip={_('scheduleLastRun')}
-            className={`btn-${STATUS_LABELS[lastRunLog.status].className}`}
           >
             <span>{_(STATUS_LABELS[lastRunLog.status].label)}</span>
           </ActionButton>
