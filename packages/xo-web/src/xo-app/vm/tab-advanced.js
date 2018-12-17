@@ -376,7 +376,15 @@ const Acls = decorate([
               noop
             )
           })
-          .catch(err => err && error('Add ACL(s)', err.message || String(err))),
+          .catch(
+            err => err && error(_('addAclsError'), err.message || String(err))
+          ),
+      removeAcl: (_, { currentTarget: { dataset } }) => (_, { vm: object }) =>
+        removeAcl({
+          action: dataset.action,
+          object,
+          subject: dataset.subject,
+        }),
     },
     computed: {
       rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),
@@ -388,47 +396,46 @@ const Acls = decorate([
     },
   }),
   injectState,
-  ({ state: { resolvedAcls }, effects, vm }) => {
-    return (
-      <Container>
-        <Row>
-          {resolvedAcls !== undefined &&
-            resolvedAcls.slice(0, 5).map(({ subject, action }) => (
-              <Col key={`${subject.email}.${action}`}>
-                <span>{subject.email}</span>{' '}
-                <span className={`tag tag-pill tag-${LEVELS[action]}`}>
-                  {action}
-                </span>{' '}
-                <Tooltip content={_('removeAcl')}>
-                  <a
-                    role='button'
-                    onClick={() => removeAcl({ subject, object: vm, action })}
-                  >
-                    <Icon icon='remove' />
-                  </a>
-                </Tooltip>
-              </Col>
-            ))}
-          {resolvedAcls !== undefined && resolvedAcls.length > 5 && (
-            <Col>
-              <Link to={`settings/acls?s=object:${vm}`}>
-                {_('moreAcls', { nAcls: resolvedAcls.length - 5 })}
-              </Link>
-            </Col>
-          )}
-          <Col>
-            <ActionButton
-              btnStyle='primary'
-              handler={effects.addAcls}
-              icon='add'
-              size='small'
-              tooltip={_('vmAddAcls')}
-            />
+  ({ state: { resolvedAcls }, effects, vm }) => (
+    <Container>
+      <Row>
+        {resolvedAcls.slice(0, 5).map(({ subject, action }) => (
+          <Col key={`${subject.email}.${action}`}>
+            <span>{subject.email}</span>{' '}
+            <span className={`tag tag-pill tag-${LEVELS[action]}`}>
+              {action}
+            </span>{' '}
+            <Tooltip content={_('removeAcl')}>
+              <a
+                data-action={action}
+                data-subject={subject.id}
+                onClick={effects.removeAcl}
+                role='button'
+              >
+                <Icon icon='remove' />
+              </a>
+            </Tooltip>
           </Col>
-        </Row>
-      </Container>
-    )
-  },
+        ))}
+        {resolvedAcls.length > 5 && (
+          <Col>
+            <Link to={`settings/acls?s=object:${vm}`}>
+              {_('moreAcls', { nAcls: resolvedAcls.length - 5 })}
+            </Link>
+          </Col>
+        )}
+        <Col>
+          <ActionButton
+            btnStyle='primary'
+            handler={effects.addAcls}
+            icon='add'
+            size='small'
+            tooltip={_('vmAddAcls')}
+          />
+        </Col>
+      </Row>
+    </Container>
+  ),
 ])
 
 const NIC_TYPE_OPTIONS = [
