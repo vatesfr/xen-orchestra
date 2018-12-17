@@ -197,6 +197,21 @@ export default class RemoteHandlerAbstract {
     )
   }
 
+  createWriteStream(
+    file: File,
+    options: { end?: number, flags?: string, start?: number } = {}
+  ): Promise<LaxWritable> {
+    return timeout.call(
+      this._createWriteStream(
+        typeof file === 'string' ? normalizePath(file) : file,
+        {
+          flags: 'wx',
+          ...options,
+        }
+      )
+    )
+  }
+
   // Free the resources possibly dedicated to put the remote at work, when it
   // is no more needed
   async forget(): Promise<void> {

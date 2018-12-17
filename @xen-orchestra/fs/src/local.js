@@ -1,4 +1,5 @@
 import fs from 'fs-extra'
+import { fromEvent } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -20,23 +21,29 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _createReadStream(file, options) {
-    return typeof file === 'string'
-      ? fs.createReadStream(this._getFilePath(file), options)
-      : fs.createReadStream('', {
-          autoClose: false,
-          ...options,
-          fd: file.fd,
-        })
+    if (typeof file === 'string') {
+      const stream = fs.createReadStream(this._getFilePath(file), options)
+      await fromEvent(stream, 'open')
+      return stream
+    }
+    return fs.createReadStream('', {
+      autoClose: false,
+      ...options,
+      fd: file.fd,
+    })
   }
 
   async _createWriteStream(file, options) {
-    return typeof file === 'string'
-      ? fs.createWriteStream(this._getFilePath(file), options)
-      : fs.createWriteStream('', {
-          autoClose: false,
-          ...options,
-          fd: file.fd,
-        })
+    if (typeof file === 'string') {
+      const stream = fs.createWriteStream(this._getFilePath(file), options)
+      await fromEvent(stream, 'open')
+      return stream
+    }
+    return fs.createWriteStream('', {
+      autoClose: false,
+      ...options,
+      fd: file.fd,
+    })
   }
 
   async _getSize(file) {
