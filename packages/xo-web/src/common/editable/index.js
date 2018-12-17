@@ -342,7 +342,7 @@ class SimpleSelect_ extends Editable {
     return this.state.value
   }
 
-  _onChange = value => this.setState({ value }, value && this._save)
+  _onChange = value => this.setState({ value }, this._save)
 
   _renderDisplay() {
     const { children, renderer, value } = this.props
@@ -376,8 +376,6 @@ class MultiSelect_ extends Editable {
       ? this.props.value
       : this.state.nextValue
   }
-
-  _onChange = nextValue => this.setState({ nextValue })
 
   _renderDisplay() {
     const { children, renderer, value } = this.props
