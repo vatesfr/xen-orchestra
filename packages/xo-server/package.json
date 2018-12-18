@@ -116,7 +116,7 @@
     "value-matcher": "^0.2.0",
     "vhd-lib": "^0.4.0",
     "ws": "^6.0.0",
-    "xen-api": "^0.22.0",
+    "xen-api": "^0.23.0",
     "xml2js": "^0.4.19",
     "xo-acl-resolver": "^0.4.0",
     "xo-collection": "^0.4.1",
