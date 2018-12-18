@@ -199,9 +199,7 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
-  labelBackup: 'Backup',
   labelMerge: 'Merge',
-  labelRestore: 'Restore',
   labelSize: 'Size',
   labelSpeed: 'Speed',
   labelSr: 'SR',
