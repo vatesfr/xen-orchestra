@@ -1755,6 +1755,11 @@ const messages = {
     "If you are a company, it's better to use it with our appliance + pro support included:",
   disclaimerText3:
     'This version is not bundled with any support nor updates. Use it with caution for critical tasks.',
+  notRegisteredDisclaimerInfo:
+    'You are not registered. Your XOA may not be up to date.',
+  notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',
+  notRegisteredDisclaimerRegister:
+    'Click here to register and update your XOA.',
 
   // ----- PIF -----
   connectPif: 'Connect PIF',

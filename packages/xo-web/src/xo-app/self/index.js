@@ -660,7 +660,7 @@ class ResourceSet extends Component {
   }
 
   _autoExpand = ref => {
-    if (ref && ref.scrollIntoView) {
+    if (ref && ref.scrollIntoView && this.props.autoExpand) {
       ref.scrollIntoView()
     }
   }
@@ -703,7 +703,7 @@ export default class Self extends Component {
     this.state = {}
   }
 
-  render () {
+  render() {
     const { showNewResourceSetForm } = this.state
     const { resolvedResourceSets, location } = this.props
 
