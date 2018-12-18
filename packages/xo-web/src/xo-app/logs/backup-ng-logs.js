@@ -1,4 +1,5 @@
 import _, { FormattedDuration } from 'intl'
+import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
 import Copiable from 'copiable'
@@ -29,7 +30,7 @@ const LI_STYLE = {
   whiteSpace: 'nowrap',
 }
 
-export const STATUS_LABELS = {
+const STATUS_LABELS = {
   failure: {
     className: 'danger',
     label: 'jobFailed',
@@ -50,6 +51,25 @@ export const STATUS_LABELS = {
     className: 'danger',
     label: 'jobInterrupted',
   },
+}
+
+const showTasks = id =>
+  alert(<LogAlertHeader id={id} />, <LogAlertBody id={id} />)
+
+export const LogStatus = ({ log, tooltip = _('logDisplayDetails') }) => {
+  const { className, label } = STATUS_LABELS[log.status]
+  return (
+    <ActionButton
+      btnStyle={className}
+      handler={showTasks}
+      handlerParam={log.id}
+      icon='preview'
+      size='small'
+      tooltip={tooltip}
+    >
+      {_(label)}
+    </ActionButton>
+  )
 }
 
 const LogDate = ({ time }) => (
@@ -100,10 +120,7 @@ const LOG_BACKUP_COLUMNS = [
   DURATION_COLUMN,
   {
     name: _('jobStatus'),
-    itemRenderer: log => {
-      const { className, label } = STATUS_LABELS[log.status]
-      return <span className={`tag tag-${className}`}>{_(label)}</span>
-    },
+    itemRenderer: log => <LogStatus log={log} />,
     sortCriteria: 'status',
   },
   {
@@ -286,17 +303,6 @@ const ROW_TRANSFORM = (task, { vms }) => {
   }
 }
 
-export const showTasks = ({ id }) =>
-  alert(<LogAlertHeader id={id} />, <LogAlertBody id={id} />)
-
-const LOG_INDIVIDUAL_ACTIONS = [
-  {
-    handler: showTasks,
-    icon: 'preview',
-    label: _('logDisplayDetails'),
-  },
-]
-
 const LOG_FILTERS = {
   jobFailed: 'status: failure',
   jobInterrupted: 'status: interrupted',
@@ -373,7 +379,6 @@ export default decorate([
           data-jobs={jobs}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
-          individualActions={LOG_INDIVIDUAL_ACTIONS}
           itemsPerPage={state.tenPerPageBackup ? 10 : 3}
         />
         <h2>

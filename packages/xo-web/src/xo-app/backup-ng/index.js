@@ -30,7 +30,7 @@ import {
   subscribeSchedules,
 } from 'xo'
 
-import LogsTable, { STATUS_LABELS, showTasks } from '../logs/backup-ng-logs'
+import LogsTable, { LogStatus } from '../logs/backup-ng-logs'
 import Page from '../page'
 
 import Edit from './edit'
@@ -125,16 +125,7 @@ const SchedulePreviewBody = decorate([
           />
         )}{' '}
         {lastRunLog !== undefined && (
-          <ActionButton
-            btnStyle={STATUS_LABELS[lastRunLog.status].className}
-            handler={showTasks}
-            handlerParam={lastRunLog}
-            icon='preview'
-            size='small'
-            tooltip={_('scheduleLastRun')}
-          >
-            <span>{_(STATUS_LABELS[lastRunLog.status].label)}</span>
-          </ActionButton>
+          <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />
         )}
       </Li>
     </Ul>
