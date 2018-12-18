@@ -289,6 +289,7 @@ export default class Api {
 
       xo.emit('xo:postCall', {
         callId,
+        method: name,
         result,
       })
 
@@ -299,6 +300,7 @@ export default class Api {
       xo.emit('xo:postCall', {
         callId,
         error: serializedError,
+        method: name,
       })
 
       const message = `${userName} | ${name}(${JSON.stringify(
