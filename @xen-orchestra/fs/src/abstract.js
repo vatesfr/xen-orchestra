@@ -10,9 +10,10 @@ import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
 import { type Readable, type Writable } from 'stream'
 
+import normalizePath from './_normalize-path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
-const { dirname, resolve } = path.posix
+const { dirname } = path.posix
 
 type Data = Buffer | Readable | string
 type FileDescriptor = {| fd: mixed, path: string |}
@@ -22,11 +23,6 @@ type LaxWritable = Writable & Object
 type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
-
-// normalize the path:
-// - does not contains `.` or `..`  (cannot escape root dir)
-// - always starts with `/`
-const normalizePath = path => resolve('/', path)
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
 
