@@ -747,12 +747,18 @@ export { convertToTemplate as convert }
 // TODO: implement resource sets
 export const snapshot = defer(async function(
   $defer,
-  { vm, name = `${vm.name_label}_${new Date().toISOString()}` }
+  {
+    vm,
+    name = `${vm.name_label}_${new Date().toISOString()}`,
+    saveMemory = false,
+  }
 ) {
   await checkPermissionOnSrs.call(this, vm)
 
   const xapi = this.getXapi(vm)
-  const { $id: snapshotId } = await xapi.snapshotVm(vm._xapiRef, name)
+  const { $id: snapshotId } = await (saveMemory
+    ? xapi.checkpointVm(vm._xapiRef, name)
+    : xapi.snapshotVm(vm._xapiRef, name))
   $defer.onFailure(() => xapi.deleteVm(snapshotId))
 
   const { user } = this
@@ -765,6 +771,7 @@ export const snapshot = defer(async function(
 snapshot.params = {
   id: { type: 'string' },
   name: { type: 'string', optional: true },
+  saveMemory: { type: 'boolean', optional: true },
 }
 
 snapshot.resolve = {
