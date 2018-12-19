@@ -756,7 +756,9 @@ export const snapshot = defer(async function(
   await checkPermissionOnSrs.call(this, vm)
 
   const xapi = this.getXapi(vm)
-  const { $id: snapshotId } = await xapi.snapshotVm(vm._xapiRef, name)
+  const { $id: snapshotId } = await (saveMemory
+    ? xapi.checkpointVm(vm._xapiRef, name)
+    : xapi.snapshotVm(vm._xapiRef, name))
   $defer.onFailure(() => xapi.deleteVm(snapshotId))
 
   const { user } = this
