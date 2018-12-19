@@ -41,8 +41,8 @@ const rejectionOf = p =>
   )
 
 const handlers = [`file://${tmpdir()}`]
-if (process.env.xo_fs_nfs) handlers.push(process.env.xo_fs_nfs)
 if (process.env.xo_fs_smb) handlers.push(process.env.xo_fs_smb)
+if (process.env.xo_fs_nfs) handlers.push(process.env.xo_fs_nfs)
 
 handlers.forEach(url => {
   describe(url, () => {

@@ -1,11 +1,16 @@
 import execa from 'execa'
 import fs from 'fs-extra'
+import { tmpdir } from 'os'
 
-import RemoteHandlerAbstract from './abstract'
+import LocalHandler from './local'
 
-export default class XoSmb extends RemoteHandlerAbstract {
+export default class SmbHandler extends LocalHandler {
   constructor(remote, opts) {
     super(remote, opts)
+
+    if (this._remote.path === '') {
+      this._remote.path = tmpdir() + '/smb/'
+    }
 
     const prefix = this._remote.path
     this._prefix = prefix !== '' ? prefix + '\\' : prefix
@@ -15,8 +20,12 @@ export default class XoSmb extends RemoteHandlerAbstract {
     return 'smb'
   }
 
-  _getFilePath(file) {
-    return this._prefix + file.slice(1).replace(/\//g, '\\')
+  async _forget() {
+    try {
+      await this._umount(this._remote)
+    } catch (error) {
+      throw error
+    }
   }
 
   async _mount() {
@@ -49,18 +58,9 @@ export default class XoSmb extends RemoteHandlerAbstract {
   }
 
   async _sync() {
-    // Check access (smb2 does not expose connect in public so far...)
     await this._mount()
 
     return this._remote
-  }
-
-  async _forget() {
-    try {
-      await this._umount(this._remote)
-    } catch (_) {
-      // We have to go on...
-    }
   }
 
   async _umount() {
