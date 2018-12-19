@@ -17,6 +17,7 @@
 - [Backup NG] Add a link to the documentation [#3789](https://github.com/vatesfr/xen-orchestra/issues/3789) (PR [#3790](https://github.com/vatesfr/xen-orchestra/pull/3790))
 - [Backup NG] Ability to copy schedule/job id to the clipboard [#3753](https://github.com/vatesfr/xen-orchestra/issues/3753) (PR [#3791](https://github.com/vatesfr/xen-orchestra/pull/3791))
 - [Backup NG / logs] Merge the job log status with the display details button [#3797](https://github.com/vatesfr/xen-orchestra/issues/3797) (PR [#3800](https://github.com/vatesfr/xen-orchestra/pull/3800))
+- [XOA] Notification banner when XOA is not registered [#3803](https://github.com/vatesfr/xen-orchestra/issues/3803) (PR [#3808](https://github.com/vatesfr/xen-orchestra/pull/3808))
 
 ### Bug fixes
 
