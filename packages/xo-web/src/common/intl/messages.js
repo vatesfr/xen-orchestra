@@ -1080,7 +1080,8 @@ const messages = {
   vmSelectVgpuType: 'Select vGPU type',
   vmAcls: 'ACLs',
   vmAddAcls: 'Add ACLs',
-  addAclsError: 'Add ACL(s)',
+  addAclsErrorTitle: 'Add ACL(s)',
+  missingSubjectsOrAction: 'User(s)/group(s) and role are required.',
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
 

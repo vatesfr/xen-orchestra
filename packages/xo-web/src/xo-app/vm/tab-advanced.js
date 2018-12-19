@@ -365,8 +365,9 @@ const Acls = decorate([
         })
           .then(({ action, subjects }) => {
             if (action == null || isEmpty(subjects)) {
-              throw new Error('User(s)/group(s) and role are required.')
+              return error(_('addAclsErrorTitle'), _('missingSubjectsOrAction'))
             }
+
             return (
               Promise.all(
                 map(subjects, subject =>
@@ -377,7 +378,8 @@ const Acls = decorate([
             )
           })
           .catch(
-            err => err && error(_('addAclsError'), err.message || String(err))
+            err =>
+              err && error(_('addAclsErrorTitle'), err.message || String(err))
           ),
       removeAcl: (_, { currentTarget: { dataset } }) => (_, { vm: object }) =>
         removeAcl({
@@ -398,10 +400,10 @@ const Acls = decorate([
   injectState,
   ({ state: { resolvedAcls }, effects, vm }) => (
     <Container>
-      <Row>
-        {resolvedAcls.slice(0, 5).map(({ subject, action }) => (
-          <Col key={`${subject.email}.${action}`}>
-            <span>{subject.email}</span>{' '}
+      {resolvedAcls.slice(0, 5).map(({ subject, action }) => (
+        <Row key={`${subject.id}.${action}`}>
+          <Col>
+            <span>{renderXoItem(subject)}</span>{' '}
             <span className={`tag tag-pill tag-${LEVELS[action]}`}>
               {action}
             </span>{' '}
@@ -416,14 +418,18 @@ const Acls = decorate([
               </a>
             </Tooltip>
           </Col>
-        ))}
-        {resolvedAcls.length > 5 && (
+        </Row>
+      ))}
+      {resolvedAcls.length > 5 && (
+        <Row>
           <Col>
             <Link to={`settings/acls?s=object:${vm}`}>
               {_('moreAcls', { nAcls: resolvedAcls.length - 5 })}
             </Link>
           </Col>
-        )}
+        </Row>
+      )}
+      <Row>
         <Col>
           <ActionButton
             btnStyle='primary'
