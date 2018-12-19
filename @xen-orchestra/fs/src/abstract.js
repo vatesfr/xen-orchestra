@@ -10,7 +10,7 @@ import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
 import { type Readable, type Writable } from 'stream'
 
-import normalizePath from './_normalize-path'
+import normalizePath from './_normalizePath'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
 const { dirname } = path.posix
