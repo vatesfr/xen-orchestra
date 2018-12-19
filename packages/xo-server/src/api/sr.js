@@ -431,7 +431,7 @@ export async function probeHba({ host }) {
       hba: hbaDevice.hba.trim(),
       path: hbaDevice.path.trim(),
       scsiId: hbaDevice.SCSIid.trim(),
-      size: hbaDevice.size.trim(),
+      size: +hbaDevice.size.trim(),
       vendor: hbaDevice.vendor.trim(),
     })
   })
