@@ -3,14 +3,14 @@ import fs from 'fs-extra'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
-import LocalHandler from './local'
+import MountHandler from './mountHandler'
 
 const DEFAULT_NFS_OPTIONS = 'vers=3'
 
 const sudoExeca = (command, args, opts) =>
   execa('sudo', [command, ...args], opts)
 
-export default class NfsHandler extends LocalHandler {
+export default class NfsHandler extends MountHandler {
   constructor(
     remote,
     {
@@ -33,10 +33,6 @@ export default class NfsHandler extends LocalHandler {
 
   get type() {
     return 'nfs'
-  }
-
-  _getRealPath() {
-    return this._realPath
   }
 
   async _mount() {
@@ -66,35 +62,5 @@ export default class NfsHandler extends LocalHandler {
         throw error
       }
     })
-  }
-
-  async _umount() {
-    await this._execa('umount', ['--force', this._getRealPath()], {
-      env: {
-        LANG: 'C',
-      },
-    }).catch(error => {
-      if (
-        error == null ||
-        typeof error.stderr !== 'string' ||
-        !error.stderr.includes('not mounted')
-      ) {
-        throw error
-      }
-    })
-  }
-
-  async _forget() {
-    try {
-      await this._umount(this._remote)
-    } catch (_) {
-      // We have to go on...
-    }
-  }
-
-  async _sync() {
-    await this._mount()
-
-    return this._remote
   }
 }
