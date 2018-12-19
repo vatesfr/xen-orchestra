@@ -365,7 +365,7 @@ const Acls = decorate([
         })
           .then(({ action, subjects }) => {
             if (action == null || isEmpty(subjects)) {
-              return error(_('addAclsErrorTitle'), _('missingSubjectsOrAction'))
+              return error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
             }
 
             return (

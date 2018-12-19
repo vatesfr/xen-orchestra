@@ -1081,7 +1081,7 @@ const messages = {
   vmAcls: 'ACLs',
   vmAddAcls: 'Add ACLs',
   addAclsErrorTitle: 'Add ACL(s)',
-  missingSubjectsOrAction: 'User(s)/group(s) and role are required.',
+  addAclsErrorMessage: 'User(s)/group(s) and role are required.',
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
 
