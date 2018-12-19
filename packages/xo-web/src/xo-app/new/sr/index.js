@@ -56,7 +56,7 @@ class SelectScsiId extends Component {
     () => this.props.options,
     options =>
       map(options, ({ vendor, path, size, scsiId }) => ({
-        label: `${vendor} - ${path} (${formatSize(+size)})`,
+        label: `${vendor} - ${path} (${formatSize(size)})`,
         value: scsiId,
       }))
   )
