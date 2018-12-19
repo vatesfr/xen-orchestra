@@ -301,7 +301,7 @@ export class Xapi extends EventEmitter {
     this._taskWatchers = Object.create(null)
 
     if (this.status === CONNECTED) {
-      ignoreErrors.call(this._watchEvents())
+      this._watchEvents()
     }
 
     this.on('connected', this._watchEvents)
@@ -954,16 +954,18 @@ export class Xapi extends EventEmitter {
       throw error
     }
 
-    return pCatch.call(
-      loop(),
-      isMethodUnknown,
+    ignoreErrors.call(
+      pCatch.call(
+        loop(),
+        isMethodUnknown,
 
-      // If the server failed, it is probably due to an excessively
-      // large response.
-      // Falling back to legacy events watch should be enough.
-      error => error && error.res && error.res.statusCode === 500,
+        // If the server failed, it is probably due to an excessively
+        // large response.
+        // Falling back to legacy events watch should be enough.
+        error => error && error.res && error.res.statusCode === 500,
 
-      () => this._watchEventsLegacy()
+        () => this._watchEventsLegacy()
+      )
     )
   }
 
