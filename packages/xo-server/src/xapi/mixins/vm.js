@@ -12,6 +12,16 @@ const XEN_VGA_VALUES = ['std', 'cirrus']
 const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 export default {
+  // https://xapi-project.github.io/xen-api/classes/vm.html#checkpoint
+  checkpointVm(vmId, nameLabel) {
+    const vm = this.getObject(vmId)
+    return this.asyncCall(
+      'VM.checkpoint',
+      vm.$ref,
+      nameLabel != null ? nameLabel : vm.name_label
+    )
+  },
+
   // TODO: clean up on error.
   @deferrable
   async createVm(

@@ -747,7 +747,11 @@ export { convertToTemplate as convert }
 // TODO: implement resource sets
 export const snapshot = defer(async function(
   $defer,
-  { vm, name = `${vm.name_label}_${new Date().toISOString()}` }
+  {
+    vm,
+    name = `${vm.name_label}_${new Date().toISOString()}`,
+    saveMemory = false,
+  }
 ) {
   await checkPermissionOnSrs.call(this, vm)
 
@@ -765,6 +769,7 @@ export const snapshot = defer(async function(
 snapshot.params = {
   id: { type: 'string' },
   name: { type: 'string', optional: true },
+  saveMemory: { type: 'boolean', optional: true },
 }
 
 snapshot.resolve = {
