@@ -15,6 +15,21 @@
 
 ### Enhancements
 
+- [Backup NG] Restore logs moved to restore tab [#3772](https://github.com/vatesfr/xen-orchestra/issues/3772) (PR [#3802](https://github.com/vatesfr/xen-orchestra/pull/3802))
+
+### Bug fixes
+
+
+### Released packages
+
+- xo-server v5.33.0
+- xo-web v5.33.0
+
+## *next*
+
+
+### Enhancements
+
 - [Users] Display user groups [#3719](https://github.com/vatesfr/xen-orchestra/issues/3719) (PR [#3740](https://github.com/vatesfr/xen-orchestra/pull/3740))
 - [VDI] Display VDI's SR [3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PR [#3285](https://github.com/vatesfr/xen-orchestra/pull/3285))
 - [Health, VM/disks] Display SR's container [#3021](https://github.com/vatesfr/xen-orchestra/issues/3021) (PRs [#3747](https://github.com/vatesfr/xen-orchestra/pull/3747), [#3751](https://github.com/vatesfr/xen-orchestra/pull/3751))
