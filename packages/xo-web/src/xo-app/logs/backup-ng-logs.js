@@ -172,7 +172,7 @@ export default decorate([
   ({ state, jobs }) => (
     <Card>
       <CardHeader>
-        <Icon icon='log' /> {_('logTitle')}
+        <Icon icon='logs' /> {_('logTitle')}
       </CardHeader>
       <CardBlock>
         <NoObjects

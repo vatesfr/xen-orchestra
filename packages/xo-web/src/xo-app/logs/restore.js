@@ -161,7 +161,7 @@ export default decorate([
   ({ logs, jobs, srs, vms }) => (
     <Card>
       <CardHeader>
-        <Icon icon='log' /> {_('logTitle')}
+        <Icon icon='logs' /> {_('logTitle')}
       </CardHeader>
       <CardBlock>
         <NoObjects
