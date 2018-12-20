@@ -19,7 +19,6 @@
 
 ### Bug fixes
 
-
 ### Released packages
 
 - xo-server v5.33.0
