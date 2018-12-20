@@ -15,7 +15,7 @@ export default {
   // https://xapi-project.github.io/xen-api/classes/vm.html#checkpoint
   checkpointVm(vmId, nameLabel) {
     const vm = this.getObject(vmId)
-    return this.asyncCall(
+    return this.callAsync(
       'VM.checkpoint',
       vm.$ref,
       nameLabel != null ? nameLabel : vm.name_label
