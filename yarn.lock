@@ -799,6 +799,11 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
+"@iarna/toml@^2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@iarna/toml/-/toml-2.2.1.tgz#82d0993d8882bb05e0645fbb4731d9e939e895b3"
+  integrity sha512-I2EjI9TbEFJNLziNPFfpo64PNanOaK17iL2kTW/jGlGOa4bvHw4VEied83kOEB7NJjXf1KfvmsQ2aEjy3xjiGg==
+
 "@marsaud/smb2@^0.13.0":
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.13.0.tgz#01b851a3658f668eeeb0ff97f427c18c1c2e44da"
