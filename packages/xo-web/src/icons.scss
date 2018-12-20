@@ -830,6 +830,10 @@
       @extend .fa;
       @extend .fa-list;
     }
+    &-audit {
+      @extend .fa;
+      @extend .fa-adn;
+    }
     &-config {
       @extend .fa;
       @extend .fa-file-o;

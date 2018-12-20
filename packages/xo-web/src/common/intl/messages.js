@@ -73,6 +73,7 @@ const messages = {
   settingsAclsPage: 'ACLs',
   settingsPluginsPage: 'Plugins',
   settingsLogsPage: 'Logs',
+  settingsAuditPage: 'Audit',
   settingsCloudConfigsPage: 'Cloud configs',
   settingsIpsPage: 'IPs',
   settingsConfigPage: 'Config',
@@ -1815,6 +1816,10 @@ const messages = {
   logUser: 'User',
   logMethod: 'Method',
   logParams: 'Params',
+  logResult: 'Result',
+  logDuration: 'Duration',
+  logDetails: 'Details',
+  logNoDetails: 'No details',
   logMessage: 'Message',
   logError: 'Error',
   logTitle: 'Logs',
@@ -1898,6 +1903,11 @@ const messages = {
   deleteCloudConfig: 'Delete cloud config',
   editCloudConfig: 'Edit cloud config',
   deleteSelectedCloudConfigs: 'Delete selected cloud configs',
+
+  // ----- Settings/Audit -----
+  auditPluginNeededMessage: 'The Audit plugin is not loaded or not exists!',
+  auditPluginDisabledMessage:
+    'The Audit plugin is disabled, the users actions will not be logged!',
 
   // ----- Config -----
   noConfigFile: 'No config file selected',
