@@ -35,6 +35,8 @@ import DeleteBackupsModalBody from './delete-backups-modal-body'
 
 import RestoreLegacy from '../restore-legacy'
 
+import Logs from '../../logs/restore'
+
 // -----------------------------------------------------------------------------
 
 const BACKUPS_COLUMNS = [
@@ -270,6 +272,8 @@ export default class Restore extends Component {
             collection={this.state.backupDataByVm}
             columns={BACKUPS_COLUMNS}
           />
+          <br />
+          <Logs />
           <RestoreLegacy />
         </div>
       </Upgrade>

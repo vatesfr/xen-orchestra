@@ -199,9 +199,7 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
-  labelBackup: 'Backup',
   labelMerge: 'Merge',
-  labelRestore: 'Restore',
   labelSize: 'Size',
   labelSpeed: 'Speed',
   labelSr: 'SR',
@@ -1830,7 +1828,8 @@ const messages = {
   logsTenPerPage: '10 / page',
   logsJobId: 'Job ID',
   logsJobName: 'Job name',
-  logsJobTime: 'Job time',
+  logsBackupTime: 'Backup time',
+  logsRestoreTime: 'Restore time',
   logsVmNotFound: 'VM not found!',
   logsMissingVms: 'Missing VMs skipped ({ vms })',
   logsFailedRestoreError: 'Click to show error',
