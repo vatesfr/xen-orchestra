@@ -4,17 +4,6 @@
 
 ### Enhancements
 
-### Bug fixes
-
-### Released packages
-
-- xo-server v5.33.0
-- xo-web v5.33.0
-
-## **5.30.0** (2018-12-20)
-
-### Enhancements
-
 - [Backup NG] Restore logs moved to restore tab [#3772](https://github.com/vatesfr/xen-orchestra/issues/3772) (PR [#3802](https://github.com/vatesfr/xen-orchestra/pull/3802))
 
 ### Bug fixes
@@ -24,8 +13,7 @@
 - xo-server v5.33.0
 - xo-web v5.33.0
 
-## *next*
-
+## **5.30.0** (2018-12-20)
 
 ### Enhancements
 
