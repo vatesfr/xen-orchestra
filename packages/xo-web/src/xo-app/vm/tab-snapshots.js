@@ -48,10 +48,17 @@ const COLUMNS = [
   },
   {
     itemRenderer: snapshot => (
-      <Text
-        onChange={value => editVm(snapshot, { name_label: value })}
-        value={snapshot.name_label}
-      />
+      <div>
+        <Text
+          onChange={value => editVm(snapshot, { name_label: value })}
+          value={snapshot.name_label}
+        />{' '}
+        {snapshot.power_state === 'Suspended' && (
+          <Tooltip content={_('snapshotMemorySaved')}>
+            <Icon icon='memory' color='text-success' />
+          </Tooltip>
+        )}
+      </div>
     ),
     name: _('snapshotName'),
     sortCriteria: _ => _.name_label,
