@@ -628,10 +628,7 @@ export default decorate([
     const { compression = job.compression === 'native' } = state
     const displayAdvancedSettings = defined(
       state.displayAdvancedSettings,
-      compression === 'native' ||
-        concurrency > 0 ||
-        timeout > 0 ||
-        offlineSnapshot
+      compression || concurrency > 0 || timeout > 0 || offlineSnapshot
     )
 
     if (state.needUpdateParams) {
