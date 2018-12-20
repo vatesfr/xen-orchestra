@@ -334,7 +334,7 @@ export class Number extends Component {
 
 class SimpleSelect_ extends Editable {
   static propTypes = {
-    renderer: PropTypes.func,
+    optionRenderer: PropTypes.func,
     value: PropTypes.oneOfType([PropTypes.oneOf([null]), PropTypes.object]),
   }
 
@@ -345,10 +345,16 @@ class SimpleSelect_ extends Editable {
   _onChange = value => this.setState({ value }, this._save)
 
   _renderDisplay() {
-    const { children, renderer, value } = this.props
+    const { children, optionRenderer, value } = this.props
     return (
       children || (
-        <span>{renderer !== undefined ? renderer(value) : value}</span>
+        <span>
+          {optionRenderer !== undefined
+            ? optionRenderer(value)
+            : value != null
+            ? value.label
+            : _('noValue')}
+        </span>
       )
     )
   }
@@ -367,7 +373,7 @@ class SimpleSelect_ extends Editable {
 
 class MultiSelect_ extends Editable {
   static propTypes = {
-    renderer: PropTypes.func,
+    optionRenderer: PropTypes.func,
     value: PropTypes.oneOfType([PropTypes.oneOf([null]), PropTypes.array]),
   }
 
@@ -378,10 +384,16 @@ class MultiSelect_ extends Editable {
   }
 
   _renderDisplay() {
-    const { children, renderer, value } = this.props
+    const { children, optionRenderer, value } = this.props
     return (
       children || (
-        <span>{renderer !== undefined ? renderer(value) : value}</span>
+        <span>
+          {optionRenderer !== undefined
+            ? optionRenderer(value)
+            : !isEmpty(value)
+            ? value.map(val => val.label).join(',')
+            : _('noValue')}
+        </span>
       )
     )
   }
