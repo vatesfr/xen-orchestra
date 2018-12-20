@@ -353,8 +353,8 @@ class AddAclsModal extends Component {
 const Acls = decorate([
   addSubscriptions({
     acls: subscribeAcls,
-    groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
-    users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
+    groups: subscribeGroups,
+    users: subscribeUsers,
   }),
   provideState({
     effects: {
@@ -389,12 +389,14 @@ const Acls = decorate([
         }),
     },
     computed: {
+      groups: (_, { groups }) => keyBy(groups, 'id'),
       rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),
-      resolvedAcls: ({ rawAcls }, props) =>
+      resolvedAcls: ({ rawAcls, users, groups }) =>
         rawAcls.map(({ subject, ...acl }) => ({
           ...acl,
-          subject: props.users[subject] || props.groups[subject],
+          subject: users[subject] || groups[subject],
         })),
+      users: (_, { users }) => keyBy(users, 'id'),
     },
   }),
   injectState,
