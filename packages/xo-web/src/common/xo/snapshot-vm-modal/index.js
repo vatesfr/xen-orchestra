@@ -16,7 +16,7 @@ export default class SnapshotVmModalBody extends Component {
           onChange={this.linkState('saveMemory')}
           checked={this.state.saveMemory}
         />{' '}
-        {_('snapshotVmModalSaveMemory')}
+        {_('snapshotVmSaveMemory')}
       </label>
     )
   }

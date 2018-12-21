@@ -54,7 +54,7 @@ const COLUMNS = [
           value={snapshot.name_label}
         />{' '}
         {snapshot.power_state === 'Suspended' && (
-          <Tooltip content={_('snapshotMemorySaved')}>
+          <Tooltip content={_('snapshotMemorySavedTooltip')}>
             <Icon icon='memory' color='text-success' />
           </Tooltip>
         )}
@@ -114,6 +114,8 @@ const INDIVIDUAL_ACTIONS = [
   },
 ]
 
+const _snapshotVmMemory = vm => snapshotVm(vm, true)
+
 @connectStore(() => ({
   snapshots: createGetObjectsOfType('VM-snapshot')
     .pick((_, props) => props.vm.snapshots)
@@ -126,6 +128,16 @@ export default class TabSnapshot extends Component {
       <Container>
         <Row>
           <Col className='text-xs-right'>
+            {vm.power_state !== 'Halted' && (
+              <TabButton
+                btnStyle='primary'
+                handler={_snapshotVmMemory}
+                handlerParam={vm}
+                icon='memory'
+                labelId='snapshotVmSaveMemory'
+                pending={includes(vm.current_operations, 'checkpoint')}
+              />
+            )}
             <TabButton
               btnStyle='primary'
               handler={snapshotVm}

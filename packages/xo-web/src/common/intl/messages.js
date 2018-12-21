@@ -1011,7 +1011,7 @@ const messages = {
   snapshotDate: 'Creation date',
   snapshotName: 'Name',
   snapshotDescription: 'Description',
-  snapshotMemorySaved: 'The VM memory is also saved',
+  snapshotMemorySavedTooltip: 'The VM memory is also saved',
   snapshotAction: 'Action',
   snapshotQuiesce: 'Quiesced snapshot',
   vmRevertSuccessfulTitle: 'Revert successful',
@@ -1472,8 +1472,7 @@ const messages = {
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage:
     'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
-  snapshotVmModalTitle: 'Snapshot VM',
-  snapshotVmModalSaveMemory: 'Save memory',
+  snapshotVmSaveMemory: 'Save memory',
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
   deleteVmsModalMessage:
