@@ -12,9 +12,6 @@ export default class NfsHandler extends MountHandler {
       device: `${host}${port !== undefined ? ':' + port : ''}:${path}`,
       options:
         DEFAULT_NFS_OPTIONS + (options !== undefined ? `,${options}` : ''),
-      env: {
-        LANG: 'C',
-      },
     })
   }
 

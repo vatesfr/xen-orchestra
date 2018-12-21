@@ -50,7 +50,10 @@ export default class MountHandler extends LocalHandler {
       'mount',
       ['-t', type, device, this._getRealPath(), '-o', options],
       {
-        env,
+        env: {
+          LANG: 'C',
+          ...env,
+        },
       }
     ).catch(error => {
       if (

@@ -19,7 +19,6 @@ export default class SmbMountHandler extends MountHandler {
       options:
         `domain=${domain}` + (options !== undefined ? `,${options}` : ''),
       env: {
-        LANG: 'C',
         USER: username,
         PASSWD: password,
       },
