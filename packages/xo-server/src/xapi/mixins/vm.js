@@ -20,17 +20,19 @@ export default {
   // https://xapi-project.github.io/xen-api/classes/vm.html#checkpoint
   async checkpointVm(vmId, nameLabel) {
     const vm = this.getObject(vmId)
-    const ref = await this.callAsync(
-      'VM.checkpoint',
-      vm.$ref,
-      nameLabel != null ? nameLabel : vm.name_label
-    ).then(extractOpaqueRef, error => {
+    try {
+      const ref = await this.callAsync(
+        'VM.checkpoint',
+        vm.$ref,
+        nameLabel != null ? nameLabel : vm.name_label
+      ).then(extractOpaqueRef)
+      return this.barrier(ref)
+    } catch (error) {
       if (error.code === 'VM_BAD_POWER_STATE') {
         return this._snapshotVm(vm)
       }
       throw error
-    })
-    return this.barrier(ref)
+    }
   },
 
   // TODO: clean up on error.
