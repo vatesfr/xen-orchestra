@@ -327,7 +327,8 @@ class AddAclsModal extends Component {
   _getPredicate = createSelector(
     () => this.props.acls,
     () => this.props.vm,
-    (acls, object) => ({ id: subject }) => !some(acls, { object, subject })
+    (acls, object) => ({ id: subject, permission }) =>
+      permission !== 'admin' && !some(acls, { object, subject })
   )
 
   render() {
@@ -353,8 +354,8 @@ class AddAclsModal extends Component {
 const Acls = decorate([
   addSubscriptions({
     acls: subscribeAcls,
-    groups: subscribeGroups,
-    users: subscribeUsers,
+    groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
+    users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
   }),
   provideState({
     effects: {
@@ -389,14 +390,18 @@ const Acls = decorate([
         }),
     },
     computed: {
-      groups: (_, { groups }) => keyBy(groups, 'id'),
       rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),
-      resolvedAcls: ({ rawAcls, users, groups }) =>
-        rawAcls.map(({ subject, ...acl }) => ({
+      resolvedAcls: ({ rawAcls }, { users, groups }) => {
+        if (users === undefined && groups === undefined) {
+          return []
+        }
+        return rawAcls.map(({ subject, ...acl }) => ({
           ...acl,
-          subject: users[subject] || groups[subject],
-        })),
-      users: (_, { users }) => keyBy(users, 'id'),
+          subject:
+            (users !== undefined && users[subject]) ||
+            (groups !== undefined && groups[subject]),
+        }))
+      },
     },
   }),
   injectState,
