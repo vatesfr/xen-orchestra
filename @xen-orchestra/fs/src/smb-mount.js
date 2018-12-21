@@ -1,14 +1,28 @@
 import { parse } from 'xo-remote-parser'
 
 import MountHandler from './_mount'
+import normalizePath from './_normalizePath'
 
 export default class SmbMountHandler extends MountHandler {
   constructor(remote, opts) {
-    const { domain, host, password, username } = parse(remote.url)
+    const {
+      domain = 'WORKGROUP',
+      host,
+      options,
+      password,
+      path,
+      username,
+    } = parse(remote.url)
     super(remote, opts, {
       type: 'cifs',
-      device: `//${host}`,
-      options: `user=${username},password=${password},domain=${domain}`,
+      device: '//' + host + normalizePath(path),
+      options:
+        `domain=${domain}` + (options !== undefined ? `,${options}` : ''),
+      env: {
+        LANG: 'C',
+        USER: username,
+        PASSWD: password,
+      },
     })
   }
 

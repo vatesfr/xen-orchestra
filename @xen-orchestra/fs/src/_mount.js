@@ -45,14 +45,12 @@ export default class MountHandler extends LocalHandler {
 
   async _sync() {
     await fs.ensureDir(this._getRealPath())
-    const { type, device, options } = this._params
+    const { type, device, options, env } = this._params
     return execa(
       'mount',
       ['-t', type, device, this._getRealPath(), '-o', options],
       {
-        env: {
-          LANG: 'C',
-        },
+        env,
       }
     ).catch(error => {
       if (
