@@ -1,8 +1,9 @@
 // @flow
 
 // $FlowFixMe
-import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
+
+import asyncMap from '@xen-orchestra/async-map'
 import path from 'path'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
