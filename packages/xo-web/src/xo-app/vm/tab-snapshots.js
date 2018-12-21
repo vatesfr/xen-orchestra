@@ -47,6 +47,7 @@ const COLUMNS = [
     sortOrder: 'desc',
   },
   {
+    // checkpoint snapshots are in a Suspended state
     itemRenderer: snapshot => (
       <div>
         <Text
@@ -54,7 +55,7 @@ const COLUMNS = [
           value={snapshot.name_label}
         />{' '}
         {snapshot.power_state === 'Suspended' && (
-          <Tooltip content={_('snapshotMemorySavedTooltip')}>
+          <Tooltip content={_('snapshotVmSaveMemory')}>
             <Icon icon='memory' color='text-success' />
           </Tooltip>
         )}
@@ -114,7 +115,7 @@ const INDIVIDUAL_ACTIONS = [
   },
 ]
 
-const _snapshotVmMemory = vm => snapshotVm(vm, true)
+const _snapshotVmWithMemory = vm => snapshotVm(vm, true)
 
 @connectStore(() => ({
   snapshots: createGetObjectsOfType('VM-snapshot')
@@ -131,7 +132,7 @@ export default class TabSnapshot extends Component {
             {vm.power_state !== 'Halted' && (
               <TabButton
                 btnStyle='primary'
-                handler={_snapshotVmMemory}
+                handler={_snapshotVmWithMemory}
                 handlerParam={vm}
                 icon='memory'
                 labelId='snapshotVmSaveMemory'

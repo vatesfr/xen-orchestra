@@ -1126,17 +1126,7 @@ export const snapshotVms = vms =>
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
     body: <SnapshotVmModalBody />,
   }).then(
-    saveMemory =>
-      Promise.all(
-        map(vms, id =>
-          snapshotVm(
-            id,
-            getObject(store.getState(), id).power_state === 'Halted'
-              ? undefined
-              : saveMemory
-          )
-        )
-      ),
+    saveMemory => Promise.all(map(vms, id => snapshotVm(id, saveMemory))),
     noop
   )
 

@@ -24,7 +24,12 @@ export default {
       'VM.checkpoint',
       vm.$ref,
       nameLabel != null ? nameLabel : vm.name_label
-    ).then(extractOpaqueRef)
+    ).then(extractOpaqueRef, error => {
+      if (error.code === 'VM_BAD_POWER_STATE') {
+        return this._snapshotVm(vm)
+      }
+      throw error
+    })
     return this.barrier(ref)
   },
 
