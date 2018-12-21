@@ -7,10 +7,17 @@ import LocalHandler from './local'
 
 const DEFAULT_NFS_OPTIONS = 'vers=3'
 
+const sudoExeca = (command, args, opts) =>
+  execa('sudo', [command, ...args], opts)
+
 export default class NfsHandler extends LocalHandler {
   constructor(
     remote,
-    { mountsDir = join(tmpdir(), 'xo-fs-mounts'), ...opts } = {}
+    {
+      mountsDir = join(tmpdir(), 'xo-fs-mounts'),
+      useSudo = false,
+      ...opts
+    } = {}
   ) {
     super(remote, opts)
 
@@ -21,6 +28,7 @@ export default class NfsHandler extends LocalHandler {
           .toString(36)
           .slice(2)
     )
+    this._execa = useSudo ? sudoExeca : execa
   }
 
   get type() {
@@ -34,7 +42,7 @@ export default class NfsHandler extends LocalHandler {
   async _mount() {
     await fs.ensureDir(this._getRealPath())
     const { host, path, port, options } = this._remote
-    return execa(
+    return this._execa(
       'mount',
       [
         '-t',
@@ -61,7 +69,7 @@ export default class NfsHandler extends LocalHandler {
   }
 
   async _umount() {
-    await execa('umount', ['--force', this._getRealPath()], {
+    await this._execa('umount', ['--force', this._getRealPath()], {
       env: {
         LANG: 'C',
       },
