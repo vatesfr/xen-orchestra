@@ -5,6 +5,7 @@
 ### Enhancements
 
 - [Backup NG] Restore logs moved to restore tab [#3772](https://github.com/vatesfr/xen-orchestra/issues/3772) (PR [#3802](https://github.com/vatesfr/xen-orchestra/pull/3802))
+- [VM / snapshots] Ability to save the VM memory [#3795](https://github.com/vatesfr/xen-orchestra/issues/3795) (PR [#3812](https://github.com/vatesfr/xen-orchestra/pull/3812))
 
 ### Bug fixes
 
