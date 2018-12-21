@@ -29,7 +29,7 @@ export default {
       return this.barrier(ref)
     } catch (error) {
       if (error.code === 'VM_BAD_POWER_STATE') {
-        return this._snapshotVm(vm)
+        return this._snapshotVm(vm, nameLabel)
       }
       throw error
     }
