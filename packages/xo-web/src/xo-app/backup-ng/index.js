@@ -30,7 +30,7 @@ import {
   subscribeSchedules,
 } from 'xo'
 
-import LogsTable, { LogStatus } from '../logs/backup-ng-logs'
+import LogsTable, { LogStatus } from '../logs/backup-ng'
 import Page from '../page'
 
 import Edit from './edit'

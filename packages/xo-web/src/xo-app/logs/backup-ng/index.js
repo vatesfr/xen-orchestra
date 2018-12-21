@@ -17,7 +17,8 @@ import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
 import LogAlertHeader from './log-alert-header'
-import { STATUS_LABELS, LOG_FILTERS, LogDate } from './utils'
+
+import { STATUS_LABELS, LOG_FILTERS, LogDate } from '../utils'
 
 const UL_STYLE = { listStyleType: 'none' }
 
