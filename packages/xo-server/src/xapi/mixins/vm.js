@@ -5,7 +5,12 @@ import { NULL_REF } from 'xen-api'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
 
-import { isVmHvm, isVmRunning, makeEditObject } from '../utils'
+import {
+  extractOpaqueRef,
+  isVmHvm,
+  isVmRunning,
+  makeEditObject,
+} from '../utils'
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
 const XEN_VGA_VALUES = ['std', 'cirrus']
@@ -13,13 +18,14 @@ const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 export default {
   // https://xapi-project.github.io/xen-api/classes/vm.html#checkpoint
-  checkpointVm(vmId, nameLabel) {
+  async checkpointVm(vmId, nameLabel) {
     const vm = this.getObject(vmId)
-    return this.asyncCall(
+    const ref = await this.callAsync(
       'VM.checkpoint',
       vm.$ref,
       nameLabel != null ? nameLabel : vm.name_label
-    )
+    ).then(extractOpaqueRef)
+    return this.barrier(ref)
   },
 
   // TODO: clean up on error.
