@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { isEmpty, isFunction, isString, pick, startsWith } from 'lodash'
+import { isEmpty, isFunction, isString, map, pick, startsWith } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
@@ -385,13 +385,12 @@ class MultiSelect_ extends Editable {
 
   _renderDisplay() {
     const { children, optionRenderer, value } = this.props
+
     return (
       children || (
         <span>
-          {optionRenderer !== undefined
-            ? optionRenderer(value)
-            : !isEmpty(value)
-            ? value.map(val => val.label).join(',')
+          {!isEmpty(value)
+            ? map(value, optionRenderer || 'label').join(', ')
             : _('noValue')}
         </span>
       )
