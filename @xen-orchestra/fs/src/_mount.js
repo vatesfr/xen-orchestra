@@ -5,14 +5,22 @@ import { tmpdir } from 'os'
 
 import LocalHandler from './local'
 
+const sudoExeca = (command, args, opts) =>
+  execa('sudo', [command, ...args], opts)
+
 export default class MountHandler extends LocalHandler {
   constructor(
     remote,
-    { mountsDir = join(tmpdir(), 'xo-fs-mounts'), ...opts } = {},
+    {
+      mountsDir = join(tmpdir(), 'xo-fs-mounts'),
+      useSudo = false,
+      ...opts
+    } = {},
     params
   ) {
     super(remote, opts)
 
+    this._execa = useSudo ? sudoExeca : execa
     this._params = params
     this._realPath = join(
       mountsDir,
@@ -24,7 +32,7 @@ export default class MountHandler extends LocalHandler {
   }
 
   async _forget() {
-    await execa('umount', ['--force', this._getRealPath()], {
+    await this._execa('umount', ['--force', this._getRealPath()], {
       env: {
         LANG: 'C',
       },
@@ -46,7 +54,7 @@ export default class MountHandler extends LocalHandler {
   async _sync() {
     await fs.ensureDir(this._getRealPath())
     const { type, device, options, env } = this._params
-    return execa(
+    return this._execa(
       'mount',
       ['-t', type, device, this._getRealPath(), '-o', options],
       {
