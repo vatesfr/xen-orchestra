@@ -92,8 +92,10 @@ export default class {
     await asyncMap(remotes, async remote => {
       try {
         const handler = await this.getRemoteHandler(remote.id)
-        this._remotesInfo[remote.id] = await timeout.call(
-          handler.getInfo(),
+        await timeout.call(
+          handler.getInfo().then(info => {
+            this._remotesInfo[remote.id] = info
+          }),
           this._remoteOptions.timeoutInfo
         )
       } catch (_) {}
