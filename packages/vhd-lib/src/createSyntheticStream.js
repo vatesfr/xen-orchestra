@@ -1,5 +1,6 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import { dirname, resolve } from 'path'
+
+import resolveRelativeFromFile from './_resolveRelativeFromFile'
 
 import Vhd from './vhd'
 import {
@@ -11,9 +12,6 @@ import {
 } from './_constants'
 import { fuFooter, fuHeader, checksumStruct } from './_structs'
 import { test as mapTestBit } from './_bitmap'
-
-const resolveRelativeFromFile = (file, path) =>
-  resolve('/', dirname(file), path).slice(1)
 
 export default async function createSyntheticStream(handler, path) {
   const fds = []
