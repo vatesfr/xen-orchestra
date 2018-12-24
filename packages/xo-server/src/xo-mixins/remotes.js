@@ -89,21 +89,21 @@ export default class {
   async getAllRemotesInfo() {
     const remotes = await this._remotes.get()
 
-    try {
-      const infos = {}
-      await asyncMap(remotes, async remote => {
+    await asyncMap(remotes, async remote => {
+      try {
         const handler = await this.getRemoteHandler(remote.id)
         const info = await timeout.call(
           handler.getInfo(),
           this._remoteOptions.timeoutInfo
         )
-        infos[remote.id] = info
-      })
-      this._remotesInfo = infos
-      return this._remotesInfo
-    } catch (error) {
-      return this._remotesInfo
-    }
+        this._remotesInfo[remote.id] = info
+      } catch (_) {
+        if (this._remotesInfo[remote.id] === undefined) {
+          this._remotesInfo[remote.id] = {}
+        }
+      }
+    })
+    return this._remotesInfo
   }
 
   async getAllRemotes() {
