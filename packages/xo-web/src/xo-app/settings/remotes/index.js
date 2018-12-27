@@ -35,11 +35,6 @@ const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
 const _editRemoteOptions = (options, { remote }) =>
   editRemote(remote, { options: options !== '' ? options : null })
-const _remoteWithInfo = (remotes, remotesInfo) =>
-  remotes.map(remote => {
-    const info = remotesInfo[remote.id]
-    return { ...remote, info }
-  })
 
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
@@ -323,21 +318,28 @@ export default decorate([
         remote,
       }),
     },
+    computed: {
+      remoteWithInfo: (_, { remotes, remotesInfo }) => {
+        if (remotesInfo) {
+          for (const remoteType in remotes) {
+            remotes[remoteType].map(remote => {
+              remote.info = remotesInfo[remote.id]
+            })
+          }
+        }
+
+        return remotes
+      },
+    },
   }),
   injectState,
-  ({
-    state,
-    effects,
-    remotes = {},
-    remotesInfo = {},
-    intl: { formatMessage },
-  }) => (
+  ({ state, effects, remotes = {}, intl: { formatMessage } }) => (
     <div>
       {!isEmpty(remotes.file) && (
         <div>
           <h2>{_('remoteTypeLocal')}</h2>
           <SortedTable
-            collection={_remoteWithInfo(remotes.file, remotesInfo)}
+            collection={state.remoteWithInfo.file}
             columns={COLUMNS_LOCAL_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
