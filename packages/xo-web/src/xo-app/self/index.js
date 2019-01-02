@@ -695,6 +695,8 @@ class ResourceSet extends Component {
 
 // ===================================================================
 
+const compareName = (a, b) => (a.name < b.name ? -1 : 1)
+
 @addSubscriptions({ resourceSets: subscribeResourceSets })
 @connectStore({ resolvedResourceSets: getResolvedResourceSets })
 export default class Self extends Component {
@@ -703,9 +705,13 @@ export default class Self extends Component {
     this.state = {}
   }
 
+  _getSortedResourceSets = createSelector(
+    () => this.props.resolvedResourceSets,
+    resolvedResourceSets => resolvedResourceSets.sort(compareName)
+  )
+
   render() {
-    const { showNewResourceSetForm } = this.state
-    const { resolvedResourceSets, location } = this.props
+    const resourceSets = this._getSortedResourceSets()
 
     return (
       <Page formatTitle header={HEADER} title='selfServicePage'>
@@ -727,19 +733,21 @@ export default class Self extends Component {
                 {_('recomputeResourceSets')}
               </ActionButton>
             </div>
-            {showNewResourceSetForm && [
+            {this.state.showNewResourceSetForm && [
               <Edit
                 key={0}
                 onSave={this.toggleState('showNewResourceSetForm')}
               />,
               <hr key={1} />,
             ]}
-            {resolvedResourceSets
-              ? isEmpty(resolvedResourceSets)
+            {resourceSets
+              ? isEmpty(resourceSets)
                 ? _('noResourceSets')
-                : map(resolvedResourceSets, resourceSet => (
+                : map(resourceSets, resourceSet => (
                     <ResourceSet
-                      autoExpand={location.query.resourceSet === resourceSet.id}
+                      autoExpand={
+                        this.props.location.query.resourceSet === resourceSet.id
+                      }
                       key={resourceSet.id}
                       resourceSet={resourceSet}
                     />
