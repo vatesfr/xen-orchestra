@@ -8,6 +8,8 @@
 
 ### Bug fixes
 
+- [Self] Display sorted Resource Sets [#3818](https://github.com/vatesfr/xen-orchestra/issues/3818) (PR [#3823](https://github.com/vatesfr/xen-orchestra/pull/3823))
+
 ### Released packages
 
 - xo-server v5.33.0
