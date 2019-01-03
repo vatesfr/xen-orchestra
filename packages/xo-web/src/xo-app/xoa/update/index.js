@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import AnsiUp from 'ansi_up'
 import Button from 'button'
+import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -225,7 +226,7 @@ const Updates = decorate([
               </p>
               {state.showPackagesList && (
                 <p>
-                  <pre>{state.packagesList}</pre>
+                  <Copiable tagName='pre'>{state.packagesList}</Copiable>
                 </p>
               )}
               {state.isDisconnected && (
