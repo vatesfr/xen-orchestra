@@ -35,21 +35,6 @@ const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
 const _editRemoteOptions = (options, { remote }) =>
   editRemote(remote, { options: options !== '' ? options : null })
-const _remoteWithInfo = (remotes, remotesInfo) => {
-  if (!remotesInfo) return remotes
-
-  const remoteWithInfo = {}
-  for (const remoteType in remotes) {
-    remoteWithInfo[remoteType] = []
-    remotes[remoteType].forEach(remote => {
-      remoteWithInfo[remoteType].push({
-        ...remote,
-        info: remotesInfo[remote.id],
-      })
-    })
-  }
-  return remoteWithInfo
-}
 
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
@@ -334,8 +319,20 @@ export default decorate([
       }),
     },
     computed: {
-      remoteWithInfo: (_, { remotes, remotesInfo }) =>
-        _remoteWithInfo(remotes, remotesInfo),
+      remoteWithInfo: (_, { remotes, remotesInfo }) => {
+        if (!remotesInfo) return remotes
+        const remoteWithInfo = {}
+        for (const remoteType in remotes) {
+          remoteWithInfo[remoteType] = []
+          remotes[remoteType].forEach(remote => {
+            remoteWithInfo[remoteType].push({
+              ...remote,
+              info: remotesInfo[remote.id],
+            })
+          })
+        }
+        return remoteWithInfo
+      },
     },
   }),
   injectState,
@@ -361,7 +358,7 @@ export default decorate([
         <div>
           <h2>{_('remoteTypeNfs')}</h2>
           <SortedTable
-            collection={remotes.nfs}
+            collection={state.remoteWithInfo.nfs}
             columns={COLUMNS_NFS_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
@@ -377,7 +374,7 @@ export default decorate([
         <div>
           <h2>{_('remoteTypeSmb')}</h2>
           <SortedTable
-            collection={remotes.smb}
+            collection={state.remoteWithInfo.smb}
             columns={COLUMNS_SMB_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}

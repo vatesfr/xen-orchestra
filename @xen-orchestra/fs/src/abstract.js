@@ -19,7 +19,7 @@ type Data = Buffer | Readable | string
 type FileDescriptor = {| fd: mixed, path: string |}
 type LaxReadable = Readable & Object
 type LaxWritable = Writable & Object
-type RemoteInfo = { used: number, available: number }
+type RemoteInfo = { used?: number, available?: number }
 
 type File = FileDescriptor | string
 
