@@ -530,6 +530,7 @@ const TRANSFORMS = {
       name_label: obj.name_label,
       size: +obj.virtual_size,
       snapshots: link(obj, 'snapshots'),
+      smConfig: obj.sm_config,
       tags: obj.tags,
       usage: +obj.physical_utilisation,
 

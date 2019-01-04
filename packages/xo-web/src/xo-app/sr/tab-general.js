@@ -2,29 +2,49 @@ import _ from 'intl'
 import Component from 'base-component'
 import HomeTags from 'home-tags'
 import Icon from 'icon'
-import map from 'lodash/map'
 import React from 'react'
 import Usage, { UsageElement } from 'usage'
 import { addTag, removeTag, getLicense } from 'xo'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createGetObject } from 'selectors'
+import { createGetObject, createSelector } from 'selectors'
+import {
+  differenceBy,
+  flatMap,
+  forEach,
+  groupBy,
+  identity,
+  keyBy,
+  sumBy,
+} from 'lodash'
+import { generateId } from 'reaclette-utils'
 import { renderXoItemFromId } from 'render-xo-item'
 
 const UsageTooltip = connectStore(() => ({
-  vbd: createGetObject((_, { vdi }) => vdi.$VBDs[0]),
-}))(({ vbd, vdi }) => (
-  <span>
-    {vdi.name_label} − {formatSize(vdi.usage)}
-    {vbd != null && <br />}
-    {vbd != null && renderXoItemFromId(vbd.VM)}
-  </span>
-))
+  vbd: createGetObject((_, { vdi }) => vdi.$VBDs && vdi.$VBDs[0]),
+}))(
+  ({ vbd, vdi: { baseCopyOf, name_label: nameLabel, snapshotOf, usage } }) => {
+    const vdiOf =
+      baseCopyOf === undefined
+        ? snapshotOf === nameLabel || snapshotOf === undefined
+          ? undefined
+          : snapshotOf
+        : baseCopyOf
+    return (
+      <span>
+        {vdiOf === undefined
+          ? `${nameLabel} - ${formatSize(usage)}`
+          : `${nameLabel} of ${vdiOf} - ${formatSize(usage)}`}
+        {vbd != null && <br />}
+        {vbd != null && renderXoItemFromId(vbd.VM)}
+      </span>
+    )
+  }
+)
 
 export default class TabGeneral extends Component {
   componentDidMount() {
     const { sr } = this.props
-
     if (sr.SR_type === 'xosan') {
       getLicense('xosan.trial', sr.id).then(() =>
         this.setState({ licenseRestriction: true })
@@ -32,9 +52,63 @@ export default class TabGeneral extends Component {
     }
   }
 
-  render() {
-    const { sr, vdis, vdiSnapshots, unmanagedVdis } = this.props
+  _getVdis = createSelector(
+    () => this.props.vdis,
+    () => this.props.unmanagedVdis,
+    () => this.props.vdiSnapshots,
+    (vdis, unmanagedVdis, vdiSnapshots) => {
+      const spanpshotsByVdis = groupBy(vdiSnapshots, '$snapshot_of')
+      const unmanagedVdisById = keyBy(unmanagedVdis, 'id')
+      let disks = []
+      let bc
+      let snapshots
+      forEach(vdis, vdi => {
+        const { id: vdiId, name_label: vdiNameLabel, smConfig } = vdi
+        bc = unmanagedVdisById[smConfig['vhd-parent']]
+        while (bc !== undefined) {
+          disks.push({ ...bc, baseCopyOf: vdiNameLabel })
+          bc = unmanagedVdisById[bc.smConfig['vhd-parent']]
+        }
+        disks.push(vdi)
+        if ((snapshots = spanpshotsByVdis[vdiId]) !== undefined) {
+          disks.push(
+            snapshots.map(snapshot => ({
+              ...snapshot,
+              snapshotOf: vdiNameLabel,
+            }))
+          )
+        }
+      })
 
+      if ((snapshots = spanpshotsByVdis[undefined]) !== undefined) {
+        disks.unshift(snapshots)
+      }
+      disks = flatMap(disks, identity)
+
+      const diff = differenceBy(
+        unmanagedVdis,
+        disks.filter(({ type }) => type === 'VDI-unmanaged'),
+        'id'
+      )
+      if (diff.length > 0) {
+        disks.unshift(
+          diff.length > 1
+            ? {
+                id: generateId(),
+                name_label: 'base copy',
+                type: 'VDI-unmanaged',
+                usage: sumBy(diff, 'usage'),
+              }
+            : diff[0]
+        )
+      }
+
+      return disks
+    }
+  )
+
+  render() {
+    const { sr } = this.props
     return (
       <Container>
         <Row className='text-xs-center'>
@@ -68,25 +142,11 @@ export default class TabGeneral extends Component {
         </Row>
         <Row>
           <Col smallOffset={1} mediumSize={10}>
-            <Usage total={sr.size}>
-              {map(unmanagedVdis, vdi => (
+            <Usage total={sr.size} tooltipOthers type='disk'>
+              {this._getVdis().map(vdi => (
                 <UsageElement
-                  highlight
-                  key={vdi.id}
-                  tooltip={<UsageTooltip vdi={vdi} />}
-                  value={vdi.usage}
-                />
-              ))}
-              {map(vdis, vdi => (
-                <UsageElement
-                  key={vdi.id}
-                  tooltip={<UsageTooltip vdi={vdi} />}
-                  value={vdi.usage}
-                />
-              ))}
-              {map(vdiSnapshots, vdi => (
-                <UsageElement
-                  highlight
+                  others={vdi.type === 'VDI-unmanaged'}
+                  highlight={vdi.type === 'VDI-snapshot'}
                   key={vdi.id}
                   tooltip={<UsageTooltip vdi={vdi} />}
                   value={vdi.usage}

@@ -3,16 +3,18 @@ import classNames from 'classnames'
 import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
 import sum from 'lodash/sum'
+import { formatSize } from 'utils'
 
 import Tooltip from '../tooltip'
 
-const Usage = ({ total, children }) => {
+const Usage = ({ total, children, type, tooltipOthers }) => {
   const limit = total / 400
   const othersValues = React.Children.map(children, child => {
     const { value } = child.props
-    return value < limit && value
+    return value < limit ? value : 0
   })
   const othersTotal = sum(othersValues)
+  const n = othersValues.length
   return (
     <span className='usage'>
       {React.Children.map(
@@ -20,12 +22,27 @@ const Usage = ({ total, children }) => {
         (child, index) =>
           child.props.value > limit && cloneElement(child, { total })
       )}
-      <Element others tooltip={_('others')} total={total} value={othersTotal} />
+      <Element
+        others={!tooltipOthers}
+        tooltip={
+          tooltipOthers && type !== undefined && n > 0
+            ? _('tooltipOthers', {
+                n,
+                total: formatSize(othersTotal),
+                type,
+              })
+            : _('others')
+        }
+        total={total}
+        value={othersTotal}
+      />
     </span>
   )
 }
 Usage.propTypes = {
+  tooltipOthers: PropTypes.bool,
   total: PropTypes.number.isRequired,
+  type: PropTypes.string,
 }
 export { Usage as default }
 
