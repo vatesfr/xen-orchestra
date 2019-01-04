@@ -8,7 +8,7 @@
 
 ### Bug fixes
 
-- [New VM] Fix `NO_HOSTS_AVAILABLE()` error when creating  a VM on a local SR [#3084](https://github.com/vatesfr/xen-orchestra/issues/3084) (PR [#3827](https://github.com/vatesfr/xen-orchestra/pull/3827))
+- [New VM] Fix `NO_HOSTS_AVAILABLE()` error when creating  a VM on a local SR from template on another local SR [#3084](https://github.com/vatesfr/xen-orchestra/issues/3084) (PR [#3827](https://github.com/vatesfr/xen-orchestra/pull/3827))
 
 ### Released packages
 
