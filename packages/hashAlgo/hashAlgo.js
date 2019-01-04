@@ -1,6 +1,6 @@
 const crypto = require('crypto')
 const EventEmitter = require('events')
-const { size, isEmpty } = require('lodash')
+const { invert } = require('lodash')
 
 const preEvents = [
   {
@@ -38,12 +38,24 @@ const postEvents = [
   },
 ]
 
-// IMHO, it will be better to use a HMAC instead of a simple hash.
-const createHash = data =>
-  crypto
-    .createHash('sha256')
+const ALGORITHM = 'sha256'
+
+// Format: $<algorithm>$<salt>$<encrypted>
+//
+// http://man7.org/linux/man-pages/man3/crypt.3.html#NOTES
+const ALGORITHM_TO_ID = {
+  md5: '1',
+  sha256: '5',
+  sha512: '6',
+}
+
+const ID_TO_ALGORITHM = invert(ALGORITHM_TO_ID)
+
+const createHash = (data, algorithm = ALGORITHM) =>
+  `$${ALGORITHM_TO_ID[algorithm]}$$${crypto
+    .createHash(algorithm)
     .update(JSON.stringify(data))
-    .digest('hex')
+    .digest('hex')}`
 
 class Audit {
   constructor(eventEmitter) {
@@ -56,44 +68,45 @@ class Audit {
   _onPreCall(data) {
     const logs = this._logs
     const log = {
-      time: Date.now(),
-      event: 'task.start',
       data,
+      event: 'methodCall.start',
+      preHash: logs.lastHash,
+      time: Date.now(),
     }
-
-    if (!isEmpty(logs)) {
-      log.parent = this._getLastHash()
+    if (logs.data === undefined) {
+      logs.data = {}
     }
-
-    // I separate 'task.start' with 'task.end' in different entries to be able
-    // to include the parent hash in the current task hash without complications
-    logs[createHash(log)] = log
+    logs.data[(logs.lastHash = createHash(log))] = log
   }
 
   _onPostCall(data) {
+    const logs = this._logs
     const log = {
-      time: Date.now(),
-      event: 'task.end',
       data,
-      parent: this._getLastHash(),
+      event: 'methodCall.end',
+      preHash: logs.lastHash,
+      time: Date.now(),
     }
-    this._logs[createHash(log)] = log
+    logs.data[(logs.lastHash = createHash(log))] = log
   }
 
-  _getLastHash() {
-    const logs = this._logs
-    return Object.keys(logs)[size(logs) - 1]
-  }
+  checkIntegrity(hash = this._logs.lastHash) {
+    const data = this._logs.data
 
-  checkIntegrity(hash = this._getLastHash()) {
-    const logs = this._logs
-    const log = logs[hash]
-    return (
-      isEmpty(logs) ||
-      (log !== undefined &&
-        hash === createHash(log) &&
-        (log.parent === undefined || this.checkIntegrity(log.parent)))
-    )
+    let entry = data[hash]
+    if (entry === undefined) {
+      return false
+    }
+
+    const algorithm = ID_TO_ALGORITHM[hash.slice(1, hash.indexOf('$', 1))]
+    do {
+      if (hash !== createHash(entry, algorithm)) {
+        return false
+      }
+      hash = entry.preHash
+    } while ((entry = data[hash]) !== undefined)
+
+    return true
   }
 
   getLogs() {
