@@ -104,18 +104,21 @@ handlers.forEach(url => {
     })
 
     describe('#getInfo()', () => {
+      let info
+      beforeAll(async () => {
+        info = await handler.getInfo()
+      })
+
       it('should return an object with info', async () => {
-        const info = await handler.getInfo()
-
         expect(typeof info).toBe('object')
+      })
 
-        if (Object.keys(info).length !== 0) {
-          expect(info).toEqual(
-            expect.objectContaining({ available: expect.any(Number) })
-          )
-          expect(info).toEqual(
-            expect.objectContaining({ used: expect.any(Number) })
-          )
+      it('should return correct type of attribute', async () => {
+        if (info.available) {
+          expect(typeof info.available).toBe('number')
+        }
+        if (info.used) {
+          expect(typeof info.used).toBe('number')
         }
       })
     })
