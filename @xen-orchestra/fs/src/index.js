@@ -15,22 +15,18 @@ const HANDLERS = {
   nfs: RemoteHandlerNfs,
 }
 
+try {
+  execa.sync('mount.cifs', ['-V'])
+  HANDLERS.smb = RemoteHandlerSmbMount
+} catch (_) {
+  HANDLERS.smb = RemoteHandlerSmb
+}
+
 export const getHandler = (remote: Remote, ...rest: any): RemoteHandler => {
   // FIXME: should be done in xo-remote-parser.
   const type = remote.url.split('://')[0]
 
-  let Handler
-  if (type === 'smb') {
-    try {
-      execa.sync('mount.cifs', ['-V'])
-      Handler = RemoteHandlerSmbMount
-    } catch (error) {
-      Handler = RemoteHandlerSmb
-    }
-  } else {
-    Handler = HANDLERS[type]
-  }
-
+  const Handler = HANDLERS[type]
   if (!Handler) {
     throw new Error('Unhandled remote type')
   }
