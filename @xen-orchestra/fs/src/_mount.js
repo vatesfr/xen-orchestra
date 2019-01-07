@@ -64,10 +64,11 @@ export default class MountHandler extends LocalHandler {
         },
       }
     ).catch(error => {
+      let stderr
       if (
         error == null ||
-        typeof error.stderr !== 'string' ||
-        !error.stderr.includes('already mounted')
+        typeof (stderr = error.stderr) !== 'string' ||
+        !(stderr.includes('already mounted') || stderr.includes('busy'))
       ) {
         throw error
       }
