@@ -693,16 +693,18 @@ export default class TabAdvanced extends Component {
                     />
                   </td>
                 </tr>
-                <tr>
-                  <th>{_('nestedVirt')}</th>
-                  <td>
-                    <Toggle
-                      disabled={vm.power_state !== 'Halted'}
-                      value={vm.expNestedHvm}
-                      onChange={value => editVm(vm, { expNestedHvm: value })}
-                    />
-                  </td>
-                </tr>
+                {vm.virtualizationMode === 'hvm' && (
+                  <tr>
+                    <th>{_('nestedVirt')}</th>
+                    <td>
+                      <Toggle
+                        disabled={vm.power_state !== 'Halted'}
+                        value={vm.expNestedHvm}
+                        onChange={value => editVm(vm, { expNestedHvm: value })}
+                      />
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('ha')}</th>
                   <td>

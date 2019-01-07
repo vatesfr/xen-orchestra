@@ -5,12 +5,14 @@
 ### Enhancements
 
 - [Backup NG] Restore logs moved to restore tab [#3772](https://github.com/vatesfr/xen-orchestra/issues/3772) (PR [#3802](https://github.com/vatesfr/xen-orchestra/pull/3802))
+- [Remotes] New SMB implementation that provides better stability and performance [#2257](https://github.com/vatesfr/xen-orchestra/issues/2257) (PR [#3708](https://github.com/vatesfr/xen-orchestra/pull/3708))
 - [VM/advanced] ACL management from VM view [#3040](https://github.com/vatesfr/xen-orchestra/issues/3727) (PR [#3040](https://github.com/vatesfr/xen-orchestra/pull/3774))
 
 ### Bug fixes
 
 ### Released packages
 
+- @xen-orchestra/fs v0.6.0
 - xo-server v5.33.0
 - xo-web v5.33.0
 

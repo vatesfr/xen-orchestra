@@ -1276,29 +1276,6 @@ export default class BackupNg {
         $defer.onSuccess.call(xapi, 'deleteVm', baseSnapshot)
       }
 
-      // JFT: TODO: remove when enough time has passed (~2018-09)
-      //
-      // Fix VHDs UUID (= VDI.uuid), which was not done before 2018-06-16.
-      await asyncMap(remotes, async ({ handler }) =>
-        asyncMap(
-          this._listVmBackups(handler, vmUuid, _ => _.mode === 'delta'),
-          ({ _filename, vdis, vhds }) => {
-            const vmDir = dirname(_filename)
-            return asyncMap(vhds, async (vhdPath, vdiId) => {
-              const uuid = parseUuid(vdis[vdiId].uuid)
-
-              const vhd = new Vhd(handler, `${vmDir}/${vhdPath}`)
-              await vhd.readHeaderAndFooter()
-              if (!vhd.footer.uuid.equals(uuid)) {
-                vhd.footer.uuid = uuid
-                await vhd.readBlockAllocationTable()
-                await vhd.writeFooter()
-              }
-            })
-          }
-        )
-      )
-
       let fullVdisRequired
       await (async () => {
         if (baseSnapshot === undefined) {
