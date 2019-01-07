@@ -129,6 +129,7 @@ const AclTable = decorate([
       actions={ACL_ACTIONS}
       collection={state.acls}
       columns={ACL_COLUMNS}
+      stateUrlParam='s'
     />
   ),
 ])
