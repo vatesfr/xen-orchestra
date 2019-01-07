@@ -127,10 +127,10 @@ handlers.forEach(url => {
       })
 
       it('should return correct type of attribute', async () => {
-        if (info.available) {
+        if (info.available !== undefined) {
           expect(typeof info.available).toBe('number')
         }
-        if (info.used) {
+        if (info.used !== undefined) {
           expect(typeof info.used).toBe('number')
         }
       })
