@@ -11,6 +11,7 @@
 - [Backup NG / Health] Show number of lone snapshots in tab label [#3500](https://github.com/vatesfr/xen-orchestra/issues/3500) (PR [#3824](https://github.com/vatesfr/xen-orchestra/pull/3824))
 - [Login] Add autofocus on username input on login page [#3835](https://github.com/vatesfr/xen-orchestra/issues/3835) (PR [#3836](https://github.com/vatesfr/xen-orchestra/pull/3836))
 - [Home/VM] Bulk snapshot: specify snapshots' names [#3778](https://github.com/vatesfr/xen-orchestra/issues/3778) (PR [#3787](https://github.com/vatesfr/xen-orchestra/pull/3787))
+- [Remotes] Show free space and usage disk on remote [#3055](https://github.com/vatesfr/xen-orchestra/issues/3055) (PR [#3767](https://github.com/vatesfr/xen-orchestra/pull/3767))
 
 ### Bug fixes
 
@@ -41,8 +42,6 @@
 - [Backup NG] Ability to copy schedule/job id to the clipboard [#3753](https://github.com/vatesfr/xen-orchestra/issues/3753) (PR [#3791](https://github.com/vatesfr/xen-orchestra/pull/3791))
 - [Backup NG / logs] Merge the job log status with the display details button [#3797](https://github.com/vatesfr/xen-orchestra/issues/3797) (PR [#3800](https://github.com/vatesfr/xen-orchestra/pull/3800))
 - [XOA] Notification banner when XOA is not registered [#3803](https://github.com/vatesfr/xen-orchestra/issues/3803) (PR [#3808](https://github.com/vatesfr/xen-orchestra/pull/3808))
-- [Remotes] Show free space and usage disk on remote [#3055](https://github.com/vatesfr/xen-orchestra/issues/3055) (PR [#3767](https://github.com/vatesfr/xen-orchestra/pull/3767))
-
 
 ### Bug fixes
 
