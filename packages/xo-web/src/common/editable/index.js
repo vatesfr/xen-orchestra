@@ -374,7 +374,7 @@ class SimpleSelect_ extends Editable {
 class MultiSelect_ extends Editable {
   static propTypes = {
     optionRenderer: PropTypes.func,
-    value: PropTypes.oneOfType([PropTypes.oneOf([null]), PropTypes.array]),
+    value: PropTypes.array,
   }
 
   get value() {
