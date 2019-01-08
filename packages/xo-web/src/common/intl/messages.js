@@ -1001,6 +1001,8 @@ const messages = {
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
+  newSnapshotWithMemory: 'New snapshot with memory',
+  snapshotMemorySaved: 'memory saved',
   snapshotCreateButton: 'New snapshot',
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
   revertSnapshot: 'Revert VM to this snapshot',
@@ -1477,9 +1479,8 @@ const messages = {
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage:
     'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
+  snapshotSaveMemory: 'save memory',
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
-  snapshotVmsModalMessage:
-    'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?',
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
   deleteVmsModalMessage:
     'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
