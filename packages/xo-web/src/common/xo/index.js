@@ -1116,13 +1116,19 @@ export const deleteTemplates = templates =>
           }, noop)
   }, noop)
 
-export const snapshotVm = vm => _call('vm.snapshot', { id: resolveId(vm) })
+export const snapshotVm = (vm, saveMemory) =>
+  _call('vm.snapshot', { id: resolveId(vm), saveMemory })
 
+import SnapshotVmModalBody from './snapshot-vm-modal' // eslint-disable-line import/first
 export const snapshotVms = vms =>
   confirm({
+    icon: 'memory',
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
-    body: _('snapshotVmsModalMessage', { vms: vms.length }),
-  }).then(() => map(vms, vmId => snapshotVm({ id: vmId })), noop)
+    body: <SnapshotVmModalBody />,
+  }).then(
+    saveMemory => Promise.all(map(vms, vm => snapshotVm(vm, saveMemory))),
+    noop
+  )
 
 export const deleteSnapshot = vm =>
   confirm({
