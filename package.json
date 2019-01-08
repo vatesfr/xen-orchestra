@@ -51,6 +51,7 @@
     "eslint-plugin-node": "^8.0.0",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
+    "jest-extended": "^0.11.0",
     "lint-staged": "^8.1.0",
     "prettier": "^1.15.2"
   },
@@ -68,7 +69,8 @@
       "<rootDir>/src/old-tests"
     ],
     "testEnvironment": "node",
-    "testRegex": "\\.spec\\.js$"
+    "testRegex": "\\.spec\\.js$",
+    "setupTestFrameworkScriptFile": "jest-extended"
   },
   "lint-staged": {
     "*.js": [

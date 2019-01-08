@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`user : create a user failed with an email already used 1`] = `[JsonRpcError: unknown error from the peer]`;
+
+exports[`user : create a user failed without email 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`user : create a user failed without password 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`user : create a user successfully with permission 1`] = `
+Object {
+  "email": "wayne2@vates.fr",
+  "groups": Array [],
+  "permission": "user",
+  "preferences": Object {},
+}
+`;
+
+exports[`user : create a user successfully without permission 1`] = `
+Object {
+  "email": "wayne1@vates.fr",
+  "groups": Array [],
+  "preferences": Object {},
+}
+`;

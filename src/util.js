@@ -1,16 +1,16 @@
 import defer from "golike-defer";
 import expect from "must";
-import Xo from "xo-lib";
 import XoCollection from "xo-collection";
 import { find, forEach, map, cloneDeep } from "lodash";
 
 import config from "./_config";
+import Xoconnection from "./XoWithTestHelpers";
 
 /* eslint-env jest */
 
 export const getConnection = defer(
   async ({ onFailure: $onFailure }, { credentials } = {}) => {
-    const xo = new Xo({ url: config.xoServerUrl });
+    const xo = new Xoconnection({ url: config.xoServerUrl });
     await xo.open();
     $onFailure(() => xo.close());
     await xo.signIn(
@@ -87,6 +87,9 @@ afterAll(async () => {
   console.log("afterAll", xo);
   await xo.close();
   xo = null;
+});
+afterEach(async () => {
+  await xo.deleteAllUsers();
 });
 
 // =================================================================
