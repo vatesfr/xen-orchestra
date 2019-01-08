@@ -10,6 +10,7 @@ import React, { cloneElement, Component } from 'react'
 import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
+import { Pool } from 'render-xo-item'
 import { editHost, fetchHostStats, subscribeHostMissingPatches } from 'xo'
 import { connectStore, routes } from 'utils'
 import {
@@ -250,6 +251,7 @@ export default class Host extends Component {
       <Container>
         <Row>
           <Col mediumSize={6} className='header-title'>
+            {pool !== undefined && <Pool id={pool.id} link />}
             <h2>
               <Icon
                 icon={
@@ -270,18 +272,10 @@ export default class Host extends Component {
             <Copiable tagName='pre' className='text-muted mb-0'>
               {host.uuid}
             </Copiable>
-            <span>
-              <Text
-                value={host.name_description}
-                onChange={this._setNameDescription}
-              />
-              {pool && (
-                <span className='text-muted'>
-                  {' '}
-                  - <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-                </span>
-              )}
-            </span>
+            <Text
+              value={host.name_description}
+              onChange={this._setNameDescription}
+            />
           </Col>
           <Col mediumSize={6}>
             <div className='text-xs-center'>
