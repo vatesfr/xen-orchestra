@@ -740,19 +740,17 @@ export default class Self extends Component {
               />,
               <hr key={1} />,
             ]}
-            {resourceSets
-              ? isEmpty(resourceSets)
-                ? _('noResourceSets')
-                : map(resourceSets, resourceSet => (
-                    <ResourceSet
-                      autoExpand={
-                        this.props.location.query.resourceSet === resourceSet.id
-                      }
-                      key={resourceSet.id}
-                      resourceSet={resourceSet}
-                    />
-                  ))
-              : _('loadingResourceSets')}
+            {isEmpty(resourceSets)
+              ? _('noResourceSets')
+              : map(resourceSets, resourceSet => (
+                  <ResourceSet
+                    autoExpand={
+                      this.props.location.query.resourceSet === resourceSet.id
+                    }
+                    key={resourceSet.id}
+                    resourceSet={resourceSet}
+                  />
+                ))}
           </div>
         ) : (
           <Container>
