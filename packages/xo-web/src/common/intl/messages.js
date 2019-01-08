@@ -1941,6 +1941,9 @@ const messages = {
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
 
+  // ----- Host -----
+  freeMemoryHost: '({memoryFree} free)',
+
   // ----- XOSAN -----
   xosanTitle: 'XOSAN',
   xosanSrTitle: 'Xen Orchestra SAN SR',

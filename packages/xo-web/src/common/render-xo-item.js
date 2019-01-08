@@ -77,7 +77,7 @@ export const Host = decorate([
       ),
     }
   }),
-  ({ host, pool, link, newTab, ramLeft }) => {
+  ({ host, pool, link, newTab, memoryFree }) => {
     if (host === undefined) {
       return UNKNOWN_ITEM
     }
@@ -85,16 +85,15 @@ export const Host = decorate([
     return (
       <LinkWrapper link={link} newTab={newTab} to={`/hosts/${host.id}`}>
         <Icon icon='host' /> {host.name_label}
-        {ramLeft && (
-          <span className={!link && 'text-muted'}>{` (${formatSize(
-            host.memory.size - host.memory.usage
-          )} free)`}</span>
+        {memoryFree && (
+          <span>
+            {' '}
+            {_('freeMemoryHost', {
+              memoryFree: formatSize(host.memory.size - host.memory.usage),
+            })}
+          </span>
         )}
-        {pool !== undefined && (
-          <span className={!link && 'text-muted'}>{` - ${
-            pool.name_label
-          }`}</span>
-        )}
+        {pool !== undefined && <span>{` ${pool.name_label}`}</span>}
       </LinkWrapper>
     )
   },
@@ -103,16 +102,16 @@ export const Host = decorate([
 Host.propTypes = {
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
+  memoryFree: PropTypes.bool,
   newTab: PropTypes.bool,
   pool: PropTypes.bool,
-  ramLeft: PropTypes.bool,
 }
 
 Host.defaultProps = {
   link: false,
+  memoryFree: false,
   newTab: false,
   pool: true,
-  ramLeft: true,
 }
 
 // ===================================================================
