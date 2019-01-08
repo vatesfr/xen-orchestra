@@ -1,17 +1,19 @@
 // @flow
 
 // $FlowFixMe
-import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
+
+import asyncMap from '@xen-orchestra/async-map'
 import path from 'path'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
 import { type Readable, type Writable } from 'stream'
 
+import normalizePath from './_normalizePath'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
-const { dirname, resolve } = path.posix
+const { dirname } = path.posix
 
 type Data = Buffer | Readable | string
 type FileDescriptor = {| fd: mixed, path: string |}
@@ -21,11 +23,6 @@ type LaxWritable = Writable & Object
 type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
-
-// normalize the path:
-// - does not contains `.` or `..`  (cannot escape root dir)
-// - always starts with `/`
-const normalizePath = path => resolve('/', path)
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
 

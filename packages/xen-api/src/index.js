@@ -538,6 +538,8 @@ export class Xapi extends EventEmitter {
 
   async getRecord(type, ref) {
     return this._wrapRecord(
+      type,
+      ref,
       await this._sessionCall(`${type}.get_record`, [ref])
     )
   }

@@ -1080,6 +1080,12 @@ const messages = {
   vmVgpuNone: 'None',
   vmAddVgpu: 'Add vGPU',
   vmSelectVgpuType: 'Select vGPU type',
+  vmAcls: 'ACLs',
+  vmAddAcls: 'Add ACLs',
+  addAclsErrorTitle: 'Failed to add ACL(s)',
+  addAclsErrorMessage: 'User(s)/group(s) and role are required.',
+  removeAcl: 'Delete',
+  moreAcls: '{nAcls, number} more…',
 
   // ----- VM placeholders -----
 

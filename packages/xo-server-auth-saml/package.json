@@ -32,7 +32,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "passport-saml": "^0.35.0"
+    "passport-saml": "^1.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
