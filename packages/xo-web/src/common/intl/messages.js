@@ -1341,6 +1341,8 @@ const messages = {
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',
+  loneSnapshotsMessages:
+    '{nLoneSnapshots} lone snapshot{nLoneSnapshots, plural, one {} other {s}} to delete!',
   scheduleCron: 'Cron pattern',
   scheduleLastRun: 'Click to display last run details',
   scheduleName: 'Name',
