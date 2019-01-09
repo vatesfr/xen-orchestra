@@ -376,6 +376,7 @@ export default class {
 
       this.updateXenServer(id, { error: null })::ignoreErrors()
     } catch (error) {
+      delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
       this.updateXenServer(id, { error: serializeError(error) })::ignoreErrors()
       throw error
