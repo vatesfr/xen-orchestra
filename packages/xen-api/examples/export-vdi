@@ -1,30 +1,59 @@
 #!/usr/bin/env node
 
-process.env.DEBUG = '*'
+process.env.DEBUG = 'xen-api'
 
+const createProgress = require('progress-stream')
+const createTop = require('process-top')
 const defer = require('golike-defer').default
-const pump = require('pump')
-const { CancelToken, fromCallback } = require('promise-toolbox')
+const getopts = require('getopts')
+const humanFormat = require('human-format')
+const { CancelToken } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
-const { createOutputStream, resolveRef } = require('./utils')
+const {
+  createOutputStream,
+  pipeline,
+  resolveRecord,
+  throttle,
+} = require('./utils')
 
-defer(async ($defer, args) => {
-  let raw = false
-  if (args[0] === '--raw') {
-    raw = true
-    args.shift()
-  }
+const formatSize = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B' })
+
+function Progress$toString() {
+  return [
+    formatSize(this.transferred),
+    ' / ',
+    formatSize(this.length),
+    ' | ',
+    this.runtime,
+    's / ',
+    this.eta,
+    's | ',
+    formatSize(this.speed),
+    '/s',
+  ].join('')
+}
+
+defer(async ($defer, rawArgs) => {
+  const { raw, throttle: bps, _: args } = getopts(rawArgs, {
+    boolean: 'raw',
+    alias: {
+      raw: 'r',
+      throttle: 't',
+    },
+  })
 
   if (args.length < 2) {
-    return console.log('Usage: export-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]')
+    return console.log(
+      'Usage: export-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]'
+    )
   }
 
   const xapi = createClient({
     allowUnauthorized: true,
     url: args[0],
-    watchEvents: false
+    watchEvents: false,
   })
 
   await xapi.connect()
@@ -33,21 +62,32 @@ defer(async ($defer, args) => {
   const { cancel, token } = CancelToken.source()
   process.on('SIGINT', cancel)
 
+  const vdi = await resolveRecord(xapi, 'VDI', args[1])
+
   // https://xapi-project.github.io/xen-api/snapshots.html#downloading-a-disk-or-snapshot
   const exportStream = await xapi.getResource(token, '/export_raw_vdi/', {
     query: {
       format: raw ? 'raw' : 'vhd',
-      vdi: await resolveRef(xapi, 'VDI', args[1])
-    }
+      vdi: vdi.$ref,
+    },
   })
 
   console.warn('Export task:', exportStream.headers['task-id'])
 
-  await fromCallback(cb => pump(
+  const top = createTop()
+  const progressStream = createProgress()
+
+  $defer(
+    clearInterval,
+    setInterval(() => {
+      console.warn('\r %s | %s', top.toString(), Progress$toString.call(progressStream.progress()))
+    }, 1e3)
+  )
+
+  await pipeline(
     exportStream,
-    createOutputStream(args[2]),
-    cb
-  ))
-})(process.argv.slice(2)).catch(
-  console.error.bind(console, 'error')
-)
+    progressStream,
+    throttle(bps),
+    createOutputStream(args[2])
+  )
+})(process.argv.slice(2)).catch(console.error.bind(console, 'error'))

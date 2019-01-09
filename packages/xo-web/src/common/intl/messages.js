@@ -1265,7 +1265,6 @@ const messages = {
   // ----- Self -----
   resourceSets: 'Resource sets',
   noResourceSets: 'No resource sets.',
-  loadingResourceSets: 'Loading resource sets',
   resourceSetName: 'Resource set name',
   resourceSetUsers: 'Users',
   resourceSetPools: 'Pools',
