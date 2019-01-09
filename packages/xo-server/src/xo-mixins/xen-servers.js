@@ -375,6 +375,12 @@ export default class {
       xapi.watchEvents()
 
       this.updateXenServer(id, { error: null })::ignoreErrors()
+
+      xapi.once('disconnected', () => {
+        xapi.xo.uninstall()
+        delete this._xapis[server.id]
+        delete this._serverIdsByPool[poolId]
+      })
     } catch (error) {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
