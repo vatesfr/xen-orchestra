@@ -93,7 +93,7 @@ export const Host = decorate([
             })}
           </span>
         )}
-        {pool !== undefined && <span>{` ${pool.name_label}`}</span>}
+        {pool !== undefined && <span>{` - ${pool.name_label}`}</span>}
       </LinkWrapper>
     )
   },
