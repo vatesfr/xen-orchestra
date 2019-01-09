@@ -4,7 +4,7 @@ If you can't purchase using your own account, usually because you need to go thr
 
 Typically, you will provide two contacts:
 
-* The "billing contact" (in general, the purchaser email). This account will have access to invoices. This is the account doing the purchase. Once purchased, the license needs to be bind to the second contact account, the technical contact.
+* The "billing contact" (in general, the purchaser email). This account will have access to invoices. This is the account doing the purchase. Once purchased, the license needs to be bound to the second contact account, the technical contact.
 * The "technical contact", the email of the system administrator using the solution and making support requests.
 
 ## As "billing contact"
