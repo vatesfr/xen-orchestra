@@ -339,7 +339,7 @@ class SimpleSelect_ extends Editable {
   }
 
   get value() {
-    return this.state.value
+    return this.state.value === undefined ? this.props.value : this.state.value
   }
 
   _onChange = value => this.setState({ value }, this._save)
