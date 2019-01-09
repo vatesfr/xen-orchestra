@@ -376,7 +376,7 @@ export default class {
 
       this.updateXenServer(id, { error: null })::ignoreErrors()
 
-      xapi.on('disconnected', () => {
+      xapi.once('disconnected', () => {
         xapi.xo.uninstall()
         delete this._xapis[server.id]
         delete this._serverIdsByPool[poolId]
