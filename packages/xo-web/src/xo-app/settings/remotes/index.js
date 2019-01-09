@@ -289,18 +289,7 @@ const FILTERS = {
 
 export default decorate([
   addSubscriptions({
-    remotes: cb =>
-      subscribeRemotes(remotes => {
-        cb(
-          groupBy(
-            map(remotes, remote => ({
-              ...parse(remote.url),
-              ...remote,
-            })),
-            'type'
-          )
-        )
-      }),
+    remotes: subscribeRemotes,
     remotesInfo: subscribeRemotesInfo,
   }),
   injectIntl,
@@ -319,26 +308,23 @@ export default decorate([
       }),
     },
     computed: {
-      remoteWithInfo: (_, { remotes, remotesInfo }) => {
-        if (!remotesInfo) return remotes
-        const remoteWithInfo = {}
-        for (const remoteType in remotes) {
-          remoteWithInfo[remoteType] = []
-          remotes[remoteType].forEach(remote => {
-            remoteWithInfo[remoteType].push({
+      remoteWithInfo: (_, { remotes, remotesInfo }) =>
+        groupBy(
+          map(remotes, remote => {
+            return {
+              ...parse(remote.url),
               ...remote,
-              info: remotesInfo[remote.id],
-            })
-          })
-        }
-        return remoteWithInfo
-      },
+              info: remotesInfo ? remotesInfo[remote.id] : {},
+            }
+          }),
+          'type'
+        ),
     },
   }),
   injectState,
   ({ state, effects, remotes = {}, intl: { formatMessage } }) => (
     <div>
-      {!isEmpty(remotes.file) && (
+      {!isEmpty(state.remoteWithInfo.file) && (
         <div>
           <h2>{_('remoteTypeLocal')}</h2>
           <SortedTable
@@ -354,7 +340,7 @@ export default decorate([
         </div>
       )}
 
-      {!isEmpty(remotes.nfs) && (
+      {!isEmpty(state.remoteWithInfo.nfs) && (
         <div>
           <h2>{_('remoteTypeNfs')}</h2>
           <SortedTable
@@ -370,7 +356,7 @@ export default decorate([
         </div>
       )}
 
-      {!isEmpty(remotes.smb) && (
+      {!isEmpty(state.remoteWithInfo.smb) && (
         <div>
           <h2>{_('remoteTypeSmb')}</h2>
           <SortedTable
