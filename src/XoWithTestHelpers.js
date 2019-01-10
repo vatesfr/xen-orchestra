@@ -22,12 +22,7 @@ export default class XoWithTestHelpers extends Xo {
     this.userIds.length = 0;
   }
 
-  getAllUsers() {
-    return super.call("user.getAll");
-  }
-
   async getUser(id) {
-    const users = await this.getAllUsers();
-    return find(users, { id });
+    return find(await super.call("user.getAll"), { id });
   }
 }

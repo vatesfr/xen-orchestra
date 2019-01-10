@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { omit } from "lodash";
+import { find, omit } from "lodash";
 import { testConnection, xo } from "../util";
 
 const simpleUser = {
@@ -8,7 +8,7 @@ const simpleUser = {
   password: "batman",
 };
 
-describe("user :", () => {
+describe("user", () => {
   describe("create a user", () => {
     describe.each([
       [
@@ -52,6 +52,26 @@ describe("user :", () => {
     it("failed with an email already used", async () => {
       await xo.createUser(simpleUser);
       await expect(xo.createUser(simpleUser)).rejects.toMatchSnapshot();
+    });
+  });
+
+  describe(".delete() :", () => {
+    it("deletes a user successfully with id", async () => {
+      const userId = await xo.call("user.create", simpleUser);
+      expect(await xo.call("user.delete", { id: userId })).toBe(true);
+      expect(await xo.getUser(userId)).toBe(undefined);
+    });
+
+    it("fails trying to delete a user with a nonexistent user", async () => {
+      await expect(
+        xo.call("user.delete", { id: "nonexistentId" })
+      ).rejects.toMatchSnapshot();
+    });
+
+    it("fails trying to delete itself", async () => {
+      await expect(
+        xo.call("user.delete", { id: xo._user.id })
+      ).rejects.toMatchSnapshot();
     });
   });
 });
