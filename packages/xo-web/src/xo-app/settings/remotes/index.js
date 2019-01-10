@@ -77,16 +77,14 @@ const COLUMN_STATE = {
   name: _('remoteState'),
 }
 const COLUMN_DISK = {
-  itemRenderer: (remote, { formatMessage }) => (
-    <span>
-      {remote.info &&
-        remote.info.used !== undefined &&
-        remote.info.available !== undefined &&
-        `${formatSize(remote.info.used)} / ${formatSize(
-          remote.info.available
-        )}`}
-    </span>
-  ),
+  itemRenderer: (remote, { formatMessage }) =>
+    remote.info !== undefined &&
+    remote.info.used !== undefined &&
+    remote.info.size !== undefined && (
+      <span>
+        {`${formatSize(remote.info.used)} / ${formatSize(remote.info.size)}`}
+      </span>
+    ),
   name: _('remoteDisk'),
 }
 
@@ -310,13 +308,11 @@ export default decorate([
     computed: {
       remoteWithInfo: (_, { remotes, remotesInfo }) =>
         groupBy(
-          map(remotes, remote => {
-            return {
-              ...parse(remote.url),
-              ...remote,
-              info: remotesInfo ? remotesInfo[remote.id] : {},
-            }
-          }),
+          map(remotes, remote => ({
+            ...parse(remote.url),
+            ...remote,
+            info: remotesInfo !== undefined ? remotesInfo[remote.id] : {},
+          })),
           'type'
         ),
     },
