@@ -21,6 +21,7 @@
 - [Servers] Fix cannot reconnect to a server after connection has been lost [#3839](https://github.com/vatesfr/xen-orchestra/issues/3839) (PR [#3841](https://github.com/vatesfr/xen-orchestra/pull/3841))
 - [New VM] Fix `NO_HOSTS_AVAILABLE()` error when creating  a VM on a local SR from template on another local SR [#3084](https://github.com/vatesfr/xen-orchestra/issues/3084) (PR [#3827](https://github.com/vatesfr/xen-orchestra/pull/3827))
 - [Backup NG] Fix typo in the form [#3854](https://github.com/vatesfr/xen-orchestra/issues/3854) (PR [#3855](https://github.com/vatesfr/xen-orchestra/pull/3855))
+- [New SR] No warning when creating a NFS SR on a path is already used as NFS SR [#3844](https://github.com/vatesfr/xen-orchestra/issues/3844) (PR [#3851](https://github.com/vatesfr/xen-orchestra/pull/3851))
 
 ### Released packages
 
