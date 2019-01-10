@@ -184,6 +184,9 @@ const messages = {
   srSharedType: 'Shared {type}',
   srNotSharedType: 'Not shared {type}',
 
+  // ----- Home snapshots  -----
+  snapshotVmsName: 'Name',
+
   // ----- Common components -----
   sortedTableAllItemsSelected: 'All of them are selected',
   sortedTableNoItems: 'No items found',
@@ -1001,6 +1004,8 @@ const messages = {
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
+  newSnapshotWithMemory: 'New snapshot with memory',
+  snapshotMemorySaved: 'memory saved',
   snapshotCreateButton: 'New snapshot',
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
   revertSnapshot: 'Revert VM to this snapshot',
@@ -1078,6 +1083,12 @@ const messages = {
   vmVgpuNone: 'None',
   vmAddVgpu: 'Add vGPU',
   vmSelectVgpuType: 'Select vGPU type',
+  vmAcls: 'ACLs',
+  vmAddAcls: 'Add ACLs',
+  addAclsErrorTitle: 'Failed to add ACL(s)',
+  addAclsErrorMessage: 'User(s)/group(s) and role are required.',
+  removeAcl: 'Delete',
+  moreAcls: '{nAcls, number} more…',
 
   // ----- VM placeholders -----
 
@@ -1254,7 +1265,6 @@ const messages = {
   // ----- Self -----
   resourceSets: 'Resource sets',
   noResourceSets: 'No resource sets.',
-  loadingResourceSets: 'Loading resource sets',
   resourceSetName: 'Resource set name',
   resourceSetUsers: 'Users',
   resourceSetPools: 'Pools',
@@ -1333,6 +1343,8 @@ const messages = {
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',
+  loneSnapshotsMessages:
+    '{nLoneSnapshots} lone snapshot{nLoneSnapshots, plural, one {} other {s}} to delete!',
   scheduleCron: 'Cron pattern',
   scheduleLastRun: 'Click to display last run details',
   scheduleName: 'Name',
@@ -1471,9 +1483,8 @@ const messages = {
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage:
     'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
+  snapshotSaveMemory: 'save memory',
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
-  snapshotVmsModalMessage:
-    'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?',
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
   deleteVmsModalMessage:
     'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',

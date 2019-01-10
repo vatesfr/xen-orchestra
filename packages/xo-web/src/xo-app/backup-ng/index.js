@@ -13,12 +13,13 @@ import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
+import { connectStore, routes } from 'utils'
 import { constructQueryString } from 'smart-backup'
 import { Container, Row, Col } from 'grid'
+import { createGetLoneSnapshots } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { isEmpty, map, groupBy, some } from 'lodash'
 import { NavLink, NavTabs } from 'nav'
-import { routes } from 'utils'
 import {
   cancelJob,
   deleteBackupNgJobs,
@@ -302,6 +303,26 @@ const Overview = () => (
   </div>
 )
 
+const HealthNavTab = decorate([
+  addSubscriptions({
+    // used by createGetLoneSnapshots
+    schedules: subscribeSchedules,
+  }),
+  connectStore({
+    nLoneSnapshots: createGetLoneSnapshots.count(),
+  }),
+  ({ nLoneSnapshots }) => (
+    <NavLink to='/backup-ng/health'>
+      <Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}{' '}
+      {nLoneSnapshots > 0 && (
+        <Tooltip content={_('loneSnapshotsMessages', { nLoneSnapshots })}>
+          <span className='tag tag-pill tag-warning'>{nLoneSnapshots}</span>
+        </Tooltip>
+      )}
+    </NavLink>
+  ),
+])
+
 const HEADER = (
   <Container>
     <Row>
@@ -325,10 +346,7 @@ const HEADER = (
             <Icon icon='menu-backup-file-restore' />{' '}
             {_('backupFileRestorePage')}
           </NavLink>
-          <NavLink to='/backup-ng/health'>
-            <Icon icon='menu-dashboard-health' />{' '}
-            {_('overviewHealthDashboardPage')}
-          </NavLink>
+          <HealthNavTab />
         </NavTabs>
       </Col>
     </Row>

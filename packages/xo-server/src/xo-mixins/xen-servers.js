@@ -250,7 +250,7 @@ export default class {
   async connectXenServer(id) {
     const server = (await this._getXenServer(id)).properties
 
-    const xapi = new Xapi({
+    const xapi = (this._xapis[server.id] = new Xapi({
       allowUnauthorized: Boolean(server.allowUnauthorized),
       readOnly: Boolean(server.readOnly),
 
@@ -262,7 +262,7 @@ export default class {
       },
       url: server.host,
       watchEvents: false,
-    })
+    }))
 
     try {
       await xapi.connect()
@@ -278,7 +278,6 @@ export default class {
       }
 
       serverIdsByPool[poolId] = server.id
-      this._xapis[server.id] = xapi
 
       xapi.xo = (() => {
         const conId = server.id
@@ -376,7 +375,14 @@ export default class {
       xapi.watchEvents()
 
       this.updateXenServer(id, { error: null })::ignoreErrors()
+
+      xapi.once('disconnected', () => {
+        xapi.xo.uninstall()
+        delete this._xapis[server.id]
+        delete this._serverIdsByPool[poolId]
+      })
     } catch (error) {
+      delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
       this.updateXenServer(id, { error: serializeError(error) })::ignoreErrors()
       throw error
