@@ -87,10 +87,11 @@ export const Host = decorate([
         <Icon icon='host' /> {host.name_label}
         {memoryFree && (
           <span>
-            {' '}
-            {_('freeMemoryHost', {
-              memoryFree: formatSize(host.memory.size - host.memory.usage),
+            {' ('}
+            {_('freeSpace', {
+              freeSpace: formatSize(host.memory.size - host.memory.usage),
             })}
+            {')'}
           </span>
         )}
         {pool !== undefined && <span>{` - ${pool.name_label}`}</span>}
@@ -365,7 +366,7 @@ Vgpu.propTypes = {
 
 // ===================================================================
 
-const xoItemToRender = {
+export const xoItemToRender = {
   // Subscription objects.
   cloudConfig: template => (
     <span>

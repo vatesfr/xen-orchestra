@@ -13,6 +13,7 @@ const messages = {
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'no such item',
   errorUnknownItem: 'unknown item',
+  freeSpace: '{freeSpace} free',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -1940,9 +1941,6 @@ const messages = {
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
-
-  // ----- Host -----
-  freeMemoryHost: '({memoryFree} free)',
 
   // ----- XOSAN -----
   xosanTitle: 'XOSAN',

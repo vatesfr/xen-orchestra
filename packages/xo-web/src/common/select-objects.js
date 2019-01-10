@@ -28,7 +28,7 @@ import Select from './form/select'
 import store from './store'
 import Tooltip from './tooltip'
 import uncontrollableInput from 'uncontrollable-input'
-import renderXoItem, { Host } from './render-xo-item'
+import { Host, xoItemToRender } from './render-xo-item'
 import {
   createCollectionWrapper,
   createFilter,
@@ -253,6 +253,11 @@ class GenericSelect extends React.Component {
   _renderOption = option => {
     const { xoItem } = option
     const { id, type } = xoItem
+    const _type =
+      this.props.resourceSet !== undefined && option.xoItem.type !== undefined
+        ? `${option.xoItem.type}-resourceSet`
+        : undefined || type
+    const Component = xoItemToRender[_type]
 
     return (
       <span
@@ -261,19 +266,12 @@ class GenericSelect extends React.Component {
             ? 'ml-1'
             : undefined
         }
+        key={id}
       >
         {type === 'host' ? (
-          <span key={id}>
-            <Host {...xoItem} memoryFree />
-          </span>
+          <Host id={id} memoryFree />
         ) : (
-          renderXoItem(xoItem, {
-            type:
-              this.props.resourceSet !== undefined &&
-              option.xoItem.type !== undefined
-                ? `${option.xoItem.type}-resourceSet`
-                : undefined,
-          })
+          <Component {...xoItem} />
         )}
       </span>
     )
