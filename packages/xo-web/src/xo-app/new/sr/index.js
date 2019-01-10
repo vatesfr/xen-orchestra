@@ -269,19 +269,8 @@ export default class New extends Component {
     const { host, iqn, lun, path, type, scsiId, nfs4, nfsOptions } = this.state
 
     const createMethodFactories = {
-      nfs: async () => {
-        const previous = await probeSrNfsExists(host.id, server.value, path)
-        if (previous && previous.length > 0) {
-          try {
-            await confirm({
-              title: _('existingSrModalTitle'),
-              body: <p>{_('existingSrModalText')}</p>,
-            })
-          } catch (error) {
-            return
-          }
-        }
-        return createSrNfs(
+      nfs: async () =>
+        createSrNfs(
           host.id,
           name.value,
           description.value,
@@ -289,8 +278,7 @@ export default class New extends Component {
           path,
           nfs4 ? '4' : undefined,
           nfsOptions
-        )
-      },
+        ),
       hba: async () => {
         const previous = await probeSrHbaExists(host.id, scsiId)
         if (previous && previous.length > 0) {
