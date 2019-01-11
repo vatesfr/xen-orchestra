@@ -269,7 +269,7 @@ export default class New extends Component {
     const { host, iqn, lun, path, type, scsiId, nfs4, nfsOptions } = this.state
 
     const createMethodFactories = {
-      nfs: async () =>
+      nfs: () =>
         createSrNfs(
           host.id,
           name.value,
