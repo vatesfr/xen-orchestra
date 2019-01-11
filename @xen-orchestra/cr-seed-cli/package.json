@@ -15,6 +15,6 @@
   },
   "dependencies": {
     "golike-defer": "^0.4.1",
-    "xen-api": "^0.23.0"
+    "xen-api": "^0.24.0"
   }
 }
