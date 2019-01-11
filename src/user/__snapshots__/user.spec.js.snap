@@ -4,6 +4,23 @@ exports[`user .delete() : fails trying to delete a user with a nonexistent user 
 
 exports[`user .delete() : fails trying to delete itself 1`] = `[JsonRpcError: a user cannot delete itself]`;
 
+exports[`user .getAll() : gets all the users created 1`] = `
+Array [
+  Object {
+    "email": "wayne4@vates.fr",
+    "groups": Array [],
+    "permission": "user",
+    "preferences": Object {},
+  },
+  Object {
+    "email": "wayne5@vates.fr",
+    "groups": Array [],
+    "permission": "user",
+    "preferences": Object {},
+  },
+]
+`;
+
 exports[`user create a user failed with an email already used 1`] = `[JsonRpcError: unknown error from the peer]`;
 
 exports[`user create a user failed without email 1`] = `[JsonRpcError: invalid parameters]`;

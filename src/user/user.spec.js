@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { find, omit } from "lodash";
+import { keyBy, omit } from "lodash";
 import { testConnection, xo } from "../util";
 
 const simpleUser = {
@@ -52,6 +52,28 @@ describe("user", () => {
     it("failed with an email already used", async () => {
       await xo.createUser(simpleUser);
       await expect(xo.createUser(simpleUser)).rejects.toMatchSnapshot();
+    });
+  });
+
+  describe(".getAll() :", () => {
+    it("gets all the users created", async () => {
+      const userId1 = await xo.createUser({
+        email: "wayne4@vates.fr",
+        password: "batman",
+        permission: "user",
+      });
+      const userId2 = await xo.createUser({
+        email: "wayne5@vates.fr",
+        password: "batman",
+        permission: "user",
+      });
+      let users = await xo.call("user.getAll");
+      expect(Array.isArray(users)).toBe(true);
+      users = keyBy(users, "id");
+      expect([
+        omit(users[userId1], "id"),
+        omit(users[userId2], "id"),
+      ]).toMatchSnapshot();
     });
   });
 
