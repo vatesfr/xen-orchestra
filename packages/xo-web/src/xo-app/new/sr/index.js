@@ -886,6 +886,7 @@ export default class New extends Component {
                           handler={this._reattach}
                           handlerParam={sr.uuid}
                           icon='connect'
+                          tooltip={_('reattachNewSrTooltip')}
                         />
                       </span>
                     </p>

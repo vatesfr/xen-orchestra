@@ -12,6 +12,7 @@
 - [Login] Add autofocus on username input on login page [#3835](https://github.com/vatesfr/xen-orchestra/issues/3835) (PR [#3836](https://github.com/vatesfr/xen-orchestra/pull/3836))
 - [Home/VM] Bulk snapshot: specify snapshots' names [#3778](https://github.com/vatesfr/xen-orchestra/issues/3778) (PR [#3787](https://github.com/vatesfr/xen-orchestra/pull/3787))
 - [Remotes] Show free space and disk usage on remote [#3055](https://github.com/vatesfr/xen-orchestra/issues/3055) (PR [#3767](https://github.com/vatesfr/xen-orchestra/pull/3767))
+- [New SR] Add tooltip for reattach action button [#3845](https://github.com/vatesfr/xen-orchestra/issues/3845) (PR [#3852](https://github.com/vatesfr/xen-orchestra/pull/3852))
 
 ### Bug fixes
 

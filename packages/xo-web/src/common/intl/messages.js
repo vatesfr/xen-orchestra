@@ -538,6 +538,7 @@ const messages = {
   newSrLocalPathPlaceHolder: '/path/to/directory',
   newSrUseNfs4: 'Use NFSv4',
   newSrNfsOptions: 'Comma delimited NFS options',
+  reattachNewSrTooltip: 'Reattach SR',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',
