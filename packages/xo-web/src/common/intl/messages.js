@@ -482,6 +482,7 @@ const messages = {
   remotePath: 'Path',
   remoteState: 'State',
   remoteDevice: 'Device',
+  remoteDisk: 'Disk (Used / Total)',
   remoteOptions: 'Options',
   remoteShare: 'Share',
   remoteAction: 'Action',

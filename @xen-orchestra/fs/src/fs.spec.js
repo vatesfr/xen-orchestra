@@ -116,6 +116,26 @@ handlers.forEach(url => {
       })
     })
 
+    describe('#getInfo()', () => {
+      let info
+      beforeAll(async () => {
+        info = await handler.getInfo()
+      })
+
+      it('should return an object with info', async () => {
+        expect(typeof info).toBe('object')
+      })
+
+      it('should return correct type of attribute', async () => {
+        if (info.size !== undefined) {
+          expect(typeof info.size).toBe('number')
+        }
+        if (info.used !== undefined) {
+          expect(typeof info.used).toBe('number')
+        }
+      })
+    })
+
     describe('#getSize()', () => {
       beforeEach(() => handler.outputFile('file', TEST_DATA))
 

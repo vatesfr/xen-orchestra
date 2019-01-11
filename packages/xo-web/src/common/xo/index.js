@@ -312,6 +312,10 @@ export const subscribePlugins = createSubscription(() => _call('plugin.get'))
 
 export const subscribeRemotes = createSubscription(() => _call('remote.getAll'))
 
+export const subscribeRemotesInfo = createSubscription(() =>
+  _call('remote.getAllInfo')
+)
+
 export const subscribeResourceSets = createSubscription(() =>
   _call('resourceSet.getAll')
 )
