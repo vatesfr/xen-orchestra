@@ -2,7 +2,7 @@ import Vhd from './vhd'
 import resolveRelativeFromFile from './_resolveRelativeFromFile'
 import { DISK_TYPE_DYNAMIC } from './_constants'
 
-export default async function checkVhain(handler, path) {
+export default async function checkChain(handler, path) {
   while (true) {
     const vhd = new Vhd(handler, path)
     await vhd.readHeaderAndFooter()
