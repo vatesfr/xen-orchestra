@@ -29,7 +29,7 @@ describe("user", () => {
     ])("successfully", (title, data) => {
       it(title, async () => {
         const userId = await xo.createUser(data);
-        expect(userId).toBeString();
+        expect(typeof userId).toBe("string");
         expect(omit(await xo.getUser(userId), "id")).toMatchSnapshot();
         await testConnection({
           credentials: {
