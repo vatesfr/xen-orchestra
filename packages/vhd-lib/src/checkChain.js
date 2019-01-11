@@ -6,7 +6,6 @@ export default async function checkChain(handler, path) {
   while (true) {
     const vhd = new Vhd(handler, path)
     await vhd.readHeaderAndFooter()
-    await vhd.readBlockAllocationTable()
 
     if (vhd.footer.diskType === DISK_TYPE_DYNAMIC) {
       break
