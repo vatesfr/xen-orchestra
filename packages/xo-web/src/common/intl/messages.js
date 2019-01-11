@@ -1564,9 +1564,6 @@ const messages = {
   removeAllLogsModalTitle: 'Remove all logs',
   removeAllLogsModalWarning: 'Are you sure you want to remove all logs?',
   definitiveMessageModal: 'This operation is definitive.',
-  existingSrModalTitle: 'Previous SR Usage',
-  existingSrModalText:
-    'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
   existingLunModalTitle: 'Previous LUN Usage',
   existingLunModalText:
     'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
