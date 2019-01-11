@@ -29,6 +29,7 @@
     "@xen-orchestra/fs": "^0.5.0",
     "cli-progress": "^2.0.0",
     "exec-promise": "^0.7.0",
+    "getopts": "^2.2.3",
     "struct-fu": "^1.2.0",
     "vhd-lib": "^0.4.0"
   },

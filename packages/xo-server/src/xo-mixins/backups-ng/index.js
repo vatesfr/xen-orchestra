@@ -32,6 +32,7 @@ import {
 } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
+  checkVhdChain,
   createSyntheticStream as createVhdReadStream,
 } from 'vhd-lib'
 
@@ -1328,10 +1329,12 @@ export default class BackupNg {
             await asyncMap(files, async file => {
               if (file[0] !== '.') {
                 try {
-                  const vhd = new Vhd(handler, `${dir}/${file}`)
+                  const path = `${dir}/${file}`
+                  const vhd = new Vhd(handler, path)
                   await vhd.readHeaderAndFooter()
 
                   if (vhd.footer.uuid.equals(parseUuid(vdi.uuid))) {
+                    await checkVhdChain(handler, path)
                     full = false
                   }
 

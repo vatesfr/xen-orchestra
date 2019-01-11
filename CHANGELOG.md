@@ -25,6 +25,8 @@
 
 ### Released packages
 
+- vhd-lib v0.5.0
+- vhd-cli v0.2.0
 - xen-api v0.24.0
 - @xen-orchestra/fs v0.6.0
 - xo-server v5.33.0
