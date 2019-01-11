@@ -19,6 +19,7 @@ type Data = Buffer | Readable | string
 type FileDescriptor = {| fd: mixed, path: string |}
 type LaxReadable = Readable & Object
 type LaxWritable = Writable & Object
+type RemoteInfo = { used?: number, size?: number }
 
 type File = FileDescriptor | string
 
@@ -217,6 +218,10 @@ export default class RemoteHandlerAbstract {
   // remote.
   async forget(): Promise<void> {
     await this._forget()
+  }
+
+  async getInfo(): Promise<RemoteInfo> {
+    return timeout.call(this._getInfo(), this._timeout)
   }
 
   async getSize(file: File): Promise<number> {
@@ -426,6 +431,10 @@ export default class RemoteHandlerAbstract {
 
   // called to finalize the remote
   async _forget(): Promise<void> {}
+
+  async _getInfo(): Promise<Object> {
+    return {}
+  }
 
   async _getSize(file: File): Promise<number> {
     throw new Error('Not implemented')

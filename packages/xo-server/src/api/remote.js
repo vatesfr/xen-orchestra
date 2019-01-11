@@ -15,6 +15,13 @@ get.params = {
   id: { type: 'string' },
 }
 
+export async function getAllInfo() {
+  return this.getAllRemotesInfo()
+}
+
+getAllInfo.permission = 'admin'
+getAllInfo.description = 'Gets all info of remote'
+
 export async function test({ id }) {
   return this.testRemote(id)
 }

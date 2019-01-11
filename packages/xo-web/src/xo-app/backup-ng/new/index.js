@@ -701,7 +701,7 @@ export default decorate([
                       {_('disasterRecovery')}
                     </ActionButton>{' '}
                     {process.env.XOA_PLAN < 3 && (
-                      <Tooltip content={_('dbAndDrRequireEntreprisePlan')}>
+                      <Tooltip content={_('dbAndDrRequireEnterprisePlan')}>
                         <Icon icon='info' />
                       </Tooltip>
                     )}{' '}

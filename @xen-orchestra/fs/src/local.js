@@ -1,3 +1,4 @@
+import df from '@sindresorhus/df'
 import fs from 'fs-extra'
 import { fromEvent } from 'promise-toolbox'
 
@@ -44,6 +45,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
       ...options,
       fd: file.fd,
     })
+  }
+
+  _getInfo() {
+    return df.file(this._getFilePath('/'))
   }
 
   async _getSize(file) {

@@ -1818,6 +1818,7 @@ export default class Xapi extends XapiBase {
     } catch (error) {
       const { code } = error
       if (
+        code !== 'NO_HOSTS_AVAILABLE' &&
         code !== 'LICENCE_RESTRICTION' &&
         code !== 'VDI_NEEDS_VM_FOR_MIGRATE'
       ) {

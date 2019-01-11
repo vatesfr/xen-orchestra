@@ -253,6 +253,9 @@ const CONNECTED = 'connected'
 const CONNECTING = 'connecting'
 const DISCONNECTED = 'disconnected'
 
+// timeout of XenAPI HTTP connections
+const HTTP_TIMEOUT = 24 * 3600 * 1e3
+
 // -------------------------------------------------------------------
 
 export class Xapi extends EventEmitter {
@@ -573,17 +576,20 @@ export class Xapi extends EventEmitter {
           }
         }
 
-        let promise = httpRequest(
-          $cancelToken,
-          this._url,
-          host && {
-            hostname: this.getObject(host).address,
-          },
-          {
-            pathname,
-            query,
-            rejectUnauthorized: !this._allowUnauthorized,
-          }
+        let promise = pTimeout.call(
+          httpRequest(
+            $cancelToken,
+            this._url,
+            host && {
+              hostname: this.getObject(host).address,
+            },
+            {
+              pathname,
+              query,
+              rejectUnauthorized: !this._allowUnauthorized,
+            }
+          ),
+          HTTP_TIMEOUT
         )
 
         if (taskResult !== undefined) {
@@ -631,21 +637,24 @@ export class Xapi extends EventEmitter {
         }
 
         const doRequest = (...opts) =>
-          httpRequest.put(
-            $cancelToken,
-            this._url,
-            host && {
-              hostname: this.getObject(host).address,
-            },
-            {
-              body,
-              headers,
-              query,
-              pathname,
-              maxRedirects: 0,
-              rejectUnauthorized: !this._allowUnauthorized,
-            },
-            ...opts
+          pTimeout.call(
+            httpRequest.put(
+              $cancelToken,
+              this._url,
+              host && {
+                hostname: this.getObject(host).address,
+              },
+              {
+                body,
+                headers,
+                query,
+                pathname,
+                maxRedirects: 0,
+                rejectUnauthorized: !this._allowUnauthorized,
+              },
+              ...opts
+            ),
+            HTTP_TIMEOUT
           )
 
         // if a stream, sends a dummy request to probe for a
