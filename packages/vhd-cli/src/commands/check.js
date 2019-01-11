@@ -3,12 +3,11 @@ import getopts from 'getopts'
 import { getHandler } from '@xen-orchestra/fs'
 import { resolve } from 'path'
 
-const checkVhd = (handler, path) =>
-  new Vhd(handler, resolve(path)).readHeaderAndFooter()
+const checkVhd = (handler, path) => new Vhd(handler, path).readHeaderAndFooter()
 
 export default async rawArgs => {
   const { chain, _: args } = getopts(rawArgs, {
-    boolean: 'chain',
+    boolean: ['chain'],
     default: {
       chain: false,
     },
@@ -19,7 +18,7 @@ export default async rawArgs => {
   const handler = getHandler({ url: 'file:///' })
   for (const vhd of args) {
     try {
-      await check(handler, vhd)
+      await check(handler, resolve(vhd))
       console.log('ok:', vhd)
     } catch (error) {
       console.error('nok:', vhd, error)
