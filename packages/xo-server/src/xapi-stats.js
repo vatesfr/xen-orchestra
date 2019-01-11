@@ -1,3 +1,4 @@
+import defined from '@xen-orchestra/defined'
 import JSON5 from 'json5'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { BaseError } from 'make-error'
@@ -301,7 +302,7 @@ export default class XapiStats {
     return {
       interval: step,
       endTimestamp: hostStats.endTimestamp,
-      ...this._statsByObject[vmUuid][step],
+      ...defined(() => this._statsByObject[vmUuid][step], { stats: {} }),
     }
   }
 
