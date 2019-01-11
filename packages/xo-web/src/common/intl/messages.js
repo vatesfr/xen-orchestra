@@ -410,7 +410,7 @@ const messages = {
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   timeoutUnit: 'in hours',
-  dbAndDrRequireEntreprisePlan: 'Delta Backup and DR require Entreprise plan',
+  dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require Enterprise plan',
   crRequiresPremiumPlan: 'CR requires Premium plan',
   smartBackupModeTitle: 'Smart mode',
   backupTargetRemotes: 'Target remotes (for Export)',
