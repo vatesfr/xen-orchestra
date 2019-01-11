@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { keyBy, omit } from "lodash";
+import { forOwn, keyBy, omit } from "lodash";
 import { testConnection, xo } from "../util";
 
 const simpleUser = {
@@ -8,26 +8,26 @@ const simpleUser = {
   password: "batman",
 };
 
+const withData = (data, fn) =>
+  forOwn(data, (data, title) => {
+    it(title, () => fn(data));
+  });
+
 describe("user", () => {
-  describe("create a user", () => {
-    describe.each([
-      [
-        "without permission",
-        {
+  describe(".create() :", () => {
+    withData(
+      {
+        "creates a user without permission": {
           email: "wayne1@vates.fr",
           password: "batman1",
         },
-      ],
-      [
-        "with permission",
-        {
+        "creates a user with permission": {
           email: "wayne2@vates.fr",
           password: "batman2",
           permission: "user",
         },
-      ],
-    ])("successfully", (title, data) => {
-      it(title, async () => {
+      },
+      async data => {
         const userId = await xo.createUser(data);
         expect(typeof userId).toBe("string");
         expect(omit(await xo.getUser(userId), "id")).toMatchSnapshot();
@@ -37,19 +37,22 @@ describe("user", () => {
             password: data.password,
           },
         });
-      });
-    });
+      }
+    );
 
-    describe.each([
-      ["without email", { password: "batman" }],
-      ["without password", { email: "wayne@vates.fr" }],
-    ])("failed", (title, data) => {
-      it(title, async () => {
+    withData(
+      {
+        "fails trying to create a user without email": { password: "batman" },
+        "fails trying to create a user without password": {
+          email: "wayne@vates.fr",
+        },
+      },
+      async data => {
         await expect(xo.createUser(data)).rejects.toMatchSnapshot();
-      });
-    });
+      }
+    );
 
-    it("failed with an email already used", async () => {
+    it("fails trying to create a user with an email already used", async () => {
       await xo.createUser(simpleUser);
       await expect(xo.createUser(simpleUser)).rejects.toMatchSnapshot();
     });

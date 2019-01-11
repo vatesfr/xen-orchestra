@@ -1,5 +1,28 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`user .create() : creates a user with permission 1`] = `
+Object {
+  "email": "wayne2@vates.fr",
+  "groups": Array [],
+  "permission": "user",
+  "preferences": Object {},
+}
+`;
+
+exports[`user .create() : creates a user without permission 1`] = `
+Object {
+  "email": "wayne1@vates.fr",
+  "groups": Array [],
+  "preferences": Object {},
+}
+`;
+
+exports[`user .create() : fails trying to create a user with an email already used 1`] = `[JsonRpcError: unknown error from the peer]`;
+
+exports[`user .create() : fails trying to create a user without email 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`user .create() : fails trying to create a user without password 1`] = `[JsonRpcError: invalid parameters]`;
+
 exports[`user .delete() : fails trying to delete a user with a nonexistent user 1`] = `[JsonRpcError: no such user nonexistentId]`;
 
 exports[`user .delete() : fails trying to delete itself 1`] = `[JsonRpcError: a user cannot delete itself]`;
@@ -19,27 +42,4 @@ Array [
     "preferences": Object {},
   },
 ]
-`;
-
-exports[`user create a user failed with an email already used 1`] = `[JsonRpcError: unknown error from the peer]`;
-
-exports[`user create a user failed without email 1`] = `[JsonRpcError: invalid parameters]`;
-
-exports[`user create a user failed without password 1`] = `[JsonRpcError: invalid parameters]`;
-
-exports[`user create a user successfully with permission 1`] = `
-Object {
-  "email": "wayne2@vates.fr",
-  "groups": Array [],
-  "permission": "user",
-  "preferences": Object {},
-}
-`;
-
-exports[`user create a user successfully without permission 1`] = `
-Object {
-  "email": "wayne1@vates.fr",
-  "groups": Array [],
-  "preferences": Object {},
-}
 `;
