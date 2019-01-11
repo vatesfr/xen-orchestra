@@ -94,9 +94,7 @@ export default class ActionButton extends Component {
       const { redirectOnSuccess } = props
       if (redirectOnSuccess !== undefined) {
         const to = isFunction(redirectOnSuccess)
-          ? result !== undefined
-            ? redirectOnSuccess(result, handlerParam)
-            : undefined
+          ? redirectOnSuccess(result, handlerParam)
           : redirectOnSuccess
         if (to !== undefined) {
           return this.context.router.push(to)
