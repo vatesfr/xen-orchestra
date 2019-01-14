@@ -4,11 +4,7 @@
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-transport-email):
-
-```
-> npm install --global xo-server-transport-email
-```
+For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
 
 ## Usage
 
