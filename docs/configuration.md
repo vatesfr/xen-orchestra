@@ -4,17 +4,15 @@ Once Xen Orchestra is installed, you can configure some parameters in the config
 
 ## Configuration
 
-The configuration file is located at `/etc/xo-server/config.yaml`.
-
-**WARNING: YAML is very strict with indentation: use spaces, not tabs.**
+The configuration file is located at `/etc/xo-server/config.toml`.
 
 ### User to run XO-server as
 
 By default, XO-server runs as 'root'. You can change that by uncommenting these lines and choose whatever user/group you want:
 
-```yaml
-user: 'nobody'
-group: 'nogroup'
+```toml
+user = 'nobody'
+group = 'nogroup'
 ```
 
 **Warning!** A non-privileged user:
@@ -26,20 +24,20 @@ group: 'nogroup'
 
 By default, XO-server listens on all addresses (0.0.0.0) and runs on port 80. If you need to, you can change this in the `# Basic HTTP` section:
 
-```yaml
-host: '0.0.0.0'
-port: 80
+```toml
+host = '0.0.0.0'
+port = 80
 ```
 
 ### HTTPS
 
 XO-server can also run in HTTPS (you can run HTTP and HTTPS at the same time) - just modify what's needed in the `# Basic HTTPS` section, this time with the certificates/keys you need and their path:
 
-```yaml
-host: '0.0.0.0'
-port: 443
-certificate: './certificate.pem'
-key: './key.pem'
+```toml
+host = '0.0.0.0'
+port = 443
+certificate = './certificate.pem'
+key = './key.pem'
 ```
 
 > If a chain of certificates authorities is needed, you may bundle them directly in the certificate. Note: the order of certificates does matter, your certificate should come first followed by the certificate of the above certificate authority up to the root.
@@ -60,10 +58,9 @@ This should be written just before the `mount` option, inside the `http:` block.
 
 You shouldn't have to change this. It's the path where `xo-web` files are served by `xo-server`.
 
-```yaml
-  mounts:
-    '/':
-      - '../xo-web/dist/'
+```toml
+[http.mounts]
+'/' = '../xo-web/dist/'
 ```
 
 ### Custom certificate authority
@@ -87,8 +84,8 @@ Don't forget to reload `systemd` conf and restart `xo-server`:
 
 By default, XO-server will try to contact Redis server on `localhost`, with the port `6379`. But you can define whatever you want:
 
-```yaml
-  uri: 'tcp://db:password@hostname:port'
+```toml
+uri = 'tcp://db:password@hostname:port'
 ```
 
 ### Proxy for XenServer updates and patches
@@ -101,12 +98,12 @@ To do that behind a corporate proxy, just add the `httpProxy` variable to match 
 
 You can add this at the end of your config file:
 
-```yaml
+```toml
 # HTTP proxy configuration used by xo-server to fetch resources on the Internet.
 #
 # See: https://github.com/TooTallNate/node-proxy-agent#maps-proxy-protocols-to-httpagent-implementations
 
-httpProxy: 'http://username:password@proxyAddress:port'
+httpProxy = 'http://username:password@proxyAddress:port'
 ```
 
 ### Log file

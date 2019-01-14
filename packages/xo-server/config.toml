@@ -1,6 +1,6 @@
 # Vendor config: DO NOT TOUCH!
 #
-# See sample.config.yaml to override.
+# See sample.config.toml to override.
 
 datadir = '/var/lib/xo-server/data'
 

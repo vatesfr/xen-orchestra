@@ -64,17 +64,15 @@ Now you have to create a config file for `xo-server`:
 
 ```
 $ cd packages/xo-server
-$ cp sample.config.yaml .xo-server.yaml
+$ cp sample.config.toml .xo-server.toml
 ```
 
 Edit and uncomment it to have the right path to serve `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xen-orchestra` and `xo-web` are in the same directory). It's near the end of the file:
 
-```yaml
-  mounts: '/': '../xo-web/dist/'
+```toml
+[mounts]
+'/' = '../xo-web/dist/'
 ```
-> Note this `dist` folder will be created in the next step.
-
-**WARNING: YAML is very strict with indentation: use spaces for it, not tabs**.
 
 In this config file, you can also change default ports (80 and 443) for xo-server. If you are running the server as a non-root user, you will need to set the port to 1024 or higher.
 
