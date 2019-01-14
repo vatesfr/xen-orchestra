@@ -7,13 +7,14 @@ import Component from 'base-component'
 import renderXoItem from 'render-xo-item'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
-import { map } from 'lodash'
 import { connectStore } from 'utils'
-import { injectIntl } from 'react-intl'
-import { createGetObjectsOfType } from 'selectors'
-import { Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
+import { createGetObjectsOfType, createFilter } from 'selectors'
+import { injectIntl } from 'react-intl'
+import { map } from 'lodash'
+import { Text, XoSelect } from 'editable'
 import {
+  enableAllHostsMultipathing,
   installSupplementalPackOnAllHosts,
   setPoolMaster,
   setRemoteSyslogHost,
@@ -47,13 +48,19 @@ class PoolMaster extends Component {
 }
 
 @injectIntl
-@connectStore({
-  hosts: createGetObjectsOfType('host')
+@connectStore(() => {
+  const getHosts = createGetObjectsOfType('host')
     .filter((_, { pool }) => ({ $pool: pool.id }))
-    .sort(),
-  gpuGroups: createGetObjectsOfType('gpuGroup')
-    .filter((_, { pool }) => ({ $pool: pool.id }))
-    .sort(),
+    .sort()
+  return {
+    hosts: getHosts,
+    hostsDisabledMultipathing: createFilter(getHosts, () => host =>
+      !host.multipathing
+    ),
+    gpuGroups: createGetObjectsOfType('gpuGroup')
+      .filter((_, { pool }) => ({ $pool: pool.id }))
+      .sort(),
+  }
 })
 export default class TabAdvanced extends Component {
   _setRemoteSyslogHosts = () =>
@@ -62,7 +69,7 @@ export default class TabAdvanced extends Component {
     )
 
   render() {
-    const { hosts, gpuGroups, pool } = this.props
+    const { hosts, gpuGroups, pool, hostsDisabledMultipathing } = this.props
     const { state } = this
     const { editRemoteSyslog } = state
     return (
@@ -159,6 +166,15 @@ export default class TabAdvanced extends Component {
             </Col>
           </Row>
         </Container>
+        <h3 className='mt-1 mb-1'>{_('hostMultipathing')}</h3>
+        <ActionButton
+          btnStyle='primary'
+          handler={enableAllHostsMultipathing}
+          handlerParam={hostsDisabledMultipathing}
+          icon='host'
+        >
+          {_('hostEnableMultipathingForAllHost')}
+        </ActionButton>
         <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>
         <Upgrade place='poolSupplementalPacks' required={2}>
           <SelectFiles
