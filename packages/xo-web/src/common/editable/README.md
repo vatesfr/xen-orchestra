@@ -1,3 +1,4 @@
+## Select
 ### Usage
 ```js
   <Select
@@ -10,12 +11,13 @@
     ]}
   />
 ```
-### Properties
-Name | Type | Default      | Description
-------- | ---------------- | ---------- | ---------:
-`options` | `Array` of Objects | | Specify the options that can be selected ans it's required. The properties `label` and `value` are required in the Object.
-`multi`| `Boolean` | `false` |  Sllow to select multiple values.
-`value` | `Object` or `Array` of Objects when `multi` is true |   | Control the current value and it's required.
-`onChange` | `Function` | |  Canage the changed value. The function's arguments: selected value(s).
-`optionRenderer`  | `Function` | | Manage option display. Parameter: an element of options.
-`children` | | | How the component will be rendered. Will fallback to optionRenderer if not used.
+### Props
+
+Name |    Type |    Default   | Description
+------- | --- | --- | ---------
+`options` | `Array` of `Object`s | | Required. Options that can be selected. `label` and `value` properties are required for each option.
+`multi`| `Boolean` | `false` |  Allow to select multiple values.
+`value` | `Object` or `Array` of `Object`s when `multi` is `true` | | Required. Current value.
+`onChange` | `Function` | | Manage the changed value. Parameters: selected value(s).
+`optionRenderer`  | `Function` | | Manage option display. Parameter: an element of `options`.
+`children` | | | How the component will be rendered. Will fallback to `optionRenderer` if not used.
