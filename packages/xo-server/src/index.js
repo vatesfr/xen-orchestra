@@ -79,14 +79,14 @@ async function loadConfiguration() {
 
 // ===================================================================
 
-function createExpressApp() {
+function createExpressApp(config) {
   const app = createExpress()
 
   app.use(helmet())
 
   // Registers the cookie-parser and express-session middlewares,
   // necessary for connect-flash.
-  app.use(cookieParser())
+  app.use(cookieParser(null, config.http.cookies))
   app.use(
     expressSession({
       resave: false,
@@ -601,7 +601,7 @@ export default async function main(args) {
   await xo.clean()
 
   // Express is used to manage non WebSocket connections.
-  const express = createExpressApp()
+  const express = createExpressApp(config)
 
   if (config.http.redirectToHttps) {
     let port
