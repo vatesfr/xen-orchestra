@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- [New SR] No redirection if the SR creation failed or canceled [#3843](https://github.com/vatesfr/xen-orchestra/issues/3843) (PR [#3853](https://github.com/vatesfr/xen-orchestra/pull/3853))
+
 ### Released packages
 
 - xo-server v5.34.0
