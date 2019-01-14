@@ -14,7 +14,7 @@ export async function set({
   const hostId = host._xapiId
 
   if (multipathing !== undefined) {
-    await xapi.toggleHostMultipathing(hostId, multipathing)
+    await xapi.setHostMultipathing(hostId, multipathing)
   }
 
   return xapi.setHostProperties(hostId, {
