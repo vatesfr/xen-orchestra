@@ -415,29 +415,42 @@ export default class Xapi extends XapiBase {
     await this.call('host.enable', this.getObject(hostId).$ref)
   }
 
-  async _setMultipathing(hostId, props) {
+  @deferrable
+  async toggleHostMultipathing($defer, hostId, multipathing) {
     const host = this.getObject(hostId)
 
-    await Promise.all(host.PBDs.map(ref => this.unplugPbd(ref)))
-    await this.disableHost(hostId)
-
-    await this._updateObjectMapProperty(host, 'other_config', props)
-
-    await Promise.all(host.PBDs.map(ref => this.plugPbd(ref)))
-    await this.enableHost(hostId)
-  }
-
-  enableHostMultipathing(hostId) {
-    return this._setMultipathing(hostId, {
-      multipathing: 'true',
-      multipathhandle: 'dmp',
+    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
+    await asyncMap(pluggedPbds, async pbd => {
+      const ref = pbd.$ref
+      await this.unplugPbd(ref)
+      $defer(() =>
+        this.plugPbd(ref).catch(error =>
+          log.error(`cannot plug the PBD (${pbd.$id})`, error)
+        )
+      )
     })
-  }
 
-  disableHostMultipathing(hostId) {
-    return this._setMultipathing(hostId, {
-      multipathing: 'false',
-    })
+    if (host.enabled) {
+      await this.disableHost(hostId)
+      $defer(() =>
+        this.enableHost(hostId).catch(error =>
+          log.error(`cannot enable the host (${host.$id})`, error)
+        )
+      )
+    }
+
+    return this._updateObjectMapProperty(
+      host,
+      'other_config',
+      multipathing
+        ? {
+            multipathing: 'true',
+            multipathhandle: 'dmp',
+          }
+        : {
+            multipathing: 'false',
+          }
+    )
   }
 
   async powerOnHost(hostId) {

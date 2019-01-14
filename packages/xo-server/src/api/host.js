@@ -2,14 +2,22 @@ import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
-export function set({
+export async function set({
   host,
+  multipathing,
 
   // TODO: use camel case.
   name_label: nameLabel,
   name_description: nameDescription,
 }) {
-  return this.getXapi(host).setHostProperties(host._xapiId, {
+  const xapi = this.getXapi(host)
+  const hostId = host._xapiId
+
+  if (multipathing !== undefined) {
+    await xapi.toggleHostMultipathing(hostId, multipathing)
+  }
+
+  return xapi.setHostProperties(hostId, {
     nameLabel,
     nameDescription,
   })
@@ -25,6 +33,10 @@ set.params = {
   },
   name_description: {
     type: 'string',
+    optional: true,
+  },
+  multipathing: {
+    type: 'boolean',
     optional: true,
   },
 }
@@ -150,38 +162,6 @@ enable.params = {
 }
 
 enable.resolve = {
-  host: ['id', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
-
-export function enableMultipathing({ host }) {
-  return this.getXapi(host).enableHostMultipathing(host._xapiId)
-}
-
-enableMultipathing.description = 'enable host multipathing'
-
-enableMultipathing.params = {
-  id: { type: 'string' },
-}
-
-enableMultipathing.resolve = {
-  host: ['id', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
-
-export function disableMultipathing({ host }) {
-  return this.getXapi(host).disableHostMultipathing(host._xapiId)
-}
-
-disableMultipathing.description = 'disable host multipathing'
-
-disableMultipathing.params = {
-  id: { type: 'string' },
-}
-
-disableMultipathing.resolve = {
   host: ['id', 'host', 'administrate'],
 }
 
