@@ -155,6 +155,38 @@ enable.resolve = {
 
 // -------------------------------------------------------------------
 
+export function enableMultipathing({ host }) {
+  return this.getXapi(host).enableHostMultipathing(host._xapiId)
+}
+
+enableMultipathing.description = 'enable host multipathing'
+
+enableMultipathing.params = {
+  id: { type: 'string' },
+}
+
+enableMultipathing.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+export function disableMultipathing({ host }) {
+  return this.getXapi(host).disableHostMultipathing(host._xapiId)
+}
+
+disableMultipathing.description = 'disable host multipathing'
+
+disableMultipathing.params = {
+  id: { type: 'string' },
+}
+
+disableMultipathing.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
 export function disable({ host }) {
   return this.getXapi(host).disableHost(host._xapiId)
 }

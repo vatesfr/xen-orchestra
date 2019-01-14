@@ -415,6 +415,31 @@ export default class Xapi extends XapiBase {
     await this.call('host.enable', this.getObject(hostId).$ref)
   }
 
+  async _setMultipathing(hostId, props) {
+    const host = this.getObject(hostId)
+
+    await Promise.all(host.PBDs.map(ref => this.unplugPbd(ref)))
+    await this.disableHost(hostId)
+
+    await this._updateObjectMapProperty(host, 'other_config', props)
+
+    await Promise.all(host.PBDs.map(ref => this.plugPbd(ref)))
+    await this.enableHost(hostId)
+  }
+
+  enableHostMultipathing(hostId) {
+    return this._setMultipathing(hostId, {
+      multipathing: 'true',
+      multipathhandle: 'dmp',
+    })
+  }
+
+  disableHostMultipathing(hostId) {
+    return this._setMultipathing(hostId, {
+      multipathing: 'false',
+    })
+  }
+
   async powerOnHost(hostId) {
     await this.call('host.power_on', this.getObject(hostId).$ref)
   }
