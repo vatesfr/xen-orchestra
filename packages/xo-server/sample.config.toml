@@ -10,23 +10,21 @@
 
 #=====================================================================
 
-# HTTP proxy configuration used by xo-server to fetch resources on the
-# Internet.
+# HTTP proxy configuration used by xo-server to fetch resources on the Internet.
 #
 # See: https://github.com/TooTallNate/node-proxy-agent#maps-proxy-protocols-to-httpagent-implementations
 # httpProxy = 'http://jsmith:qwerty@proxy.lan:3128'
 
 #=====================================================================
 
-# It may be necessary to run XO-Server as a privileged user (e.g.
-# `root`) for instance to allow the HTTP server to listen on a
+# It may be necessary to run XO-Server as a privileged user (e.g. `root`) for
+# instance to allow the HTTP server to listen on a
 # [privileged ports](http://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html).
 #
-# To avoid security issues, XO-Server can drop its privileges by
-# changing the user and the group is running with.
+# To avoid security issues, XO-Server can drop its privileges by changing the
+# user and the group is running with.
 #
-# Note: XO-Server will change them just after reading the
-# configuration.
+# Note: XO-Server will change them just after reading the configuration.
 
 # User to run XO-Server as.
 #
@@ -38,8 +36,8 @@
 
 # Group to run XO-Server as.
 #
-# Note: The group can be specified using either its name or its
-# numeric identifier.
+# Note: The group can be specified using either its name or its numeric
+# identifier.
 #
 # Default: undefined
 # group = 'nogroup'
@@ -74,7 +72,8 @@ port = 80
 
 # # Basic HTTPS.
 # #
-# # You can find the list of possible options there https://nodejs.org/docs/latest/api/tls.html#tls.createServer
+# # You can find the list of possible options there
+# # https://nodejs.org/docs/latest/api/tls.html#tls.createServer
 # #
 # # The only difference is the presence of the certificate and the key.
 # [[http.listen]]
@@ -82,11 +81,12 @@ port = 80
 # port = 443
 #
 # # File containing the certificate (PEM format).
-# # If a chain of certificates authorities is needed, you may bundle
-# # them directly in the certificate.
 # #
-# # Note: the order of certificates does matter, your certificate
-# # should come first followed by the certificate of the above
+# # If a chain of certificates authorities is needed, you may bundle them
+# # directly in the certificate.
+# #
+# # Note: the order of certificates does matter, your certificate should come
+# # first followed by the certificate of the above
 # # certificate authority up to the root.
 # #
 # # Default: undefined
