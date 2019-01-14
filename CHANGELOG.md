@@ -6,7 +6,6 @@
 
 - [VM migration] Display hosts' free memory [#3264](https://github.com/vatesfr/xen-orchestra/issues/3264) (PR [#3832](https://github.com/vatesfr/xen-orchestra/pull/3832))
 
-
 ### Bug fixes
 
 ### Released packages
