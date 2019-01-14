@@ -2,14 +2,22 @@ import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
-export function set({
+export async function set({
   host,
+  multipathing,
 
   // TODO: use camel case.
   name_label: nameLabel,
   name_description: nameDescription,
 }) {
-  return this.getXapi(host).setHostProperties(host._xapiId, {
+  const xapi = this.getXapi(host)
+  const hostId = host._xapiId
+
+  if (multipathing !== undefined) {
+    await xapi.setHostMultipathing(hostId, multipathing)
+  }
+
+  return xapi.setHostProperties(hostId, {
     nameLabel,
     nameDescription,
   })
@@ -25,6 +33,10 @@ set.params = {
   },
   name_description: {
     type: 'string',
+    optional: true,
+  },
+  multipathing: {
+    type: 'boolean',
     optional: true,
   },
 }

@@ -415,6 +415,36 @@ export default class Xapi extends XapiBase {
     await this.call('host.enable', this.getObject(hostId).$ref)
   }
 
+  @deferrable.onError(log.warn)
+  async setHostMultipathing($defer, hostId, multipathing) {
+    const host = this.getObject(hostId)
+
+    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
+    await asyncMap(pluggedPbds, async pbd => {
+      const ref = pbd.$ref
+      await this.unplugPbd(ref)
+      $defer(() => this.plugPbd(ref))
+    })
+
+    if (host.enabled) {
+      await this.disableHost(hostId)
+      $defer(() => this.enableHost(hostId))
+    }
+
+    return this._updateObjectMapProperty(
+      host,
+      'other_config',
+      multipathing
+        ? {
+            multipathing: 'true',
+            multipathhandle: 'dmp',
+          }
+        : {
+            multipathing: 'false',
+          }
+    )
+  }
+
   async powerOnHost(hostId) {
     await this.call('host.power_on', this.getObject(hostId).$ref)
   }
