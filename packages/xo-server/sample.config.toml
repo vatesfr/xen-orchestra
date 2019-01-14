@@ -50,6 +50,13 @@
 # configuration.
 # redirectToHttps = true
 
+# Settings applied to cookies created by xo-server's embedded HTTP server.
+#
+# See https://www.npmjs.com/package/cookie#options-1
+[http.cookies]
+#sameSite = true
+#secure = true
+
 # Basic HTTP.
 [[http.listen]]
 # Address on which the server is listening on.
