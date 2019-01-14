@@ -19,7 +19,7 @@ verboseApiLogsOnErrors = false
 
 # https:#github.com/websockets/ws#websocket-compression
 [apiWebSocketOptions]
-# perMessageDeflate = { threshold = 524288 } # 512kiB
+perMessageDeflate = { threshold = 524288 } # 512kiB
 
 [[http.listen]]
 port = 80
