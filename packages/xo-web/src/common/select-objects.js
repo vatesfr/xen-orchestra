@@ -24,11 +24,11 @@ import {
 import _ from './intl'
 import Button from './button'
 import Icon from './icon'
+import renderXoItem from './render-xo-item'
 import Select from './form/select'
 import store from './store'
 import Tooltip from './tooltip'
 import uncontrollableInput from 'uncontrollable-input'
-import { Host, xoItemToRender } from './render-xo-item'
 import {
   createCollectionWrapper,
   createFilter,
@@ -250,32 +250,24 @@ class GenericSelect extends React.Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  _renderOption = option => {
-    const { xoItem } = option
-    const { id, type } = xoItem
-    const _type =
-      this.props.resourceSet !== undefined && option.xoItem.type !== undefined
-        ? `${option.xoItem.type}-resourceSet`
-        : undefined || type
-    const Component = xoItemToRender[_type]
-
-    return (
-      <span
-        className={
-          !option.disabled && this.props.xoContainers !== undefined
-            ? 'ml-1'
-            : undefined
-        }
-        key={id}
-      >
-        {type === 'host' ? (
-          <Host id={id} memoryFree />
-        ) : (
-          <Component {...xoItem} />
-        )}
-      </span>
-    )
-  }
+  _renderOption = option => (
+    <span
+      className={
+        !option.disabled && this.props.xoContainers !== undefined
+          ? 'ml-1'
+          : undefined
+      }
+    >
+      {renderXoItem(option.xoItem, {
+        type:
+          this.props.resourceSet !== undefined &&
+          option.xoItem.type !== undefined
+            ? `${option.xoItem.type}-resourceSet`
+            : undefined,
+        memoryFree: option.xoItem.type === 'host',
+      })}
+    </span>
+  )
 
   render() {
     const { hasSelectAll, xoContainers, xoObjects, ...props } = this.props
