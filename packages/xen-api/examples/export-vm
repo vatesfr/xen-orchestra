@@ -2,15 +2,25 @@
 
 process.env.DEBUG = '*'
 
+const createProgress = require('progress-stream')
 const defer = require('golike-defer').default
-const pump = require('pump')
-const { CancelToken, fromCallback } = require('promise-toolbox')
+const getopts = require('getopts')
+const { CancelToken } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
-const { createOutputStream, resolveRef } = require('./utils')
+const {
+  createOutputStream,
+  formatProgress,
+  pipeline,
+  resolveRecord,
+} = require('./utils')
 
-defer(async ($defer, args) => {
+defer(async ($defer, rawArgs) => {
+  const { gzip, zstd, _: args } = getopts(rawArgs, {
+    boolean: ['gzip', 'zstd'],
+  })
+
   if (args.length < 2) {
     return console.log('Usage: export-vm <XS URL> <VM identifier> [<XVA file>]')
   }
@@ -18,7 +28,7 @@ defer(async ($defer, args) => {
   const xapi = createClient({
     allowUnauthorized: true,
     url: args[0],
-    watchEvents: false
+    watchEvents: false,
   })
 
   await xapi.connect()
@@ -30,18 +40,16 @@ defer(async ($defer, args) => {
   // https://xapi-project.github.io/xen-api/importexport.html
   const exportStream = await xapi.getResource(token, '/export/', {
     query: {
-      ref: await resolveRef(xapi, 'VM', args[1]),
-      use_compression: 'true'
-    }
+      ref: (await resolveRecord(xapi, 'VM', args[1])).$ref,
+      use_compression: zstd ? 'zstd' : gzip ? 'true' : 'false',
+    },
   })
 
   console.warn('Export task:', exportStream.headers['task-id'])
 
-  await fromCallback(cb => pump(
+  await pipeline(
     exportStream,
-    createOutputStream(args[2]),
-    cb
-  ))
-})(process.argv.slice(2)).catch(
-  console.error.bind(console, 'error')
-)
+    createProgress({ time: 1e3 }, p => console.warn(formatProgress(p))),
+    createOutputStream(args[2])
+  )
+})(process.argv.slice(2)).catch(console.error.bind(console, 'error'))

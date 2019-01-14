@@ -6,34 +6,17 @@ const createProgress = require('progress-stream')
 const createTop = require('process-top')
 const defer = require('golike-defer').default
 const getopts = require('getopts')
-const humanFormat = require('human-format')
 const { CancelToken } = require('promise-toolbox')
 
 const { createClient } = require('../')
 
 const {
   createOutputStream,
+  formatProgress,
   pipeline,
   resolveRecord,
   throttle,
 } = require('./utils')
-
-const formatSize = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B' })
-
-function Progress$toString() {
-  return [
-    formatSize(this.transferred),
-    ' / ',
-    formatSize(this.length),
-    ' | ',
-    this.runtime,
-    's / ',
-    this.eta,
-    's | ',
-    formatSize(this.speed),
-    '/s',
-  ].join('')
-}
 
 defer(async ($defer, rawArgs) => {
   const { raw, throttle: bps, _: args } = getopts(rawArgs, {
@@ -80,7 +63,7 @@ defer(async ($defer, rawArgs) => {
   $defer(
     clearInterval,
     setInterval(() => {
-      console.warn('\r %s | %s', top.toString(), Progress$toString.call(progressStream.progress()))
+      console.warn('\r %s | %s', top.toString(), formatProgress(progressStream.progress()))
     }, 1e3)
   )
 

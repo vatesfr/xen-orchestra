@@ -1,6 +1,7 @@
 const { createReadStream, createWriteStream, statSync } = require('fs')
 const { fromCallback } = require('promise-toolbox')
 const { PassThrough, pipeline } = require('readable-stream')
+const humanFormat = require('human-format')
 const Throttle = require('throttle')
 
 const { isOpaqueRef } = require('../')
@@ -27,6 +28,23 @@ exports.createOutputStream = path => {
   stream.pipe(process.stdout)
   return stream
 }
+
+const formatSizeOpts = { scale: 'binary', unit: 'B' }
+const formatSize = bytes => humanFormat(bytes, formatSizeOpts)
+
+exports.formatProgress = p =>
+  [
+    formatSize(p.transferred),
+    ' / ',
+    formatSize(p.length),
+    ' | ',
+    p.runtime,
+    's / ',
+    p.eta,
+    's | ',
+    formatSize(p.speed),
+    '/s',
+  ].join('')
 
 exports.pipeline = (...streams) => {
   return fromCallback(cb => {
