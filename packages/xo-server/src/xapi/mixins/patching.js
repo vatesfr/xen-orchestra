@@ -33,14 +33,14 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 //    _getXenUpdates
 //    isXcp
 // # LIST
-//    _listXcpUpdates       XCP available updates
-//    _listPatches          XS patches (installed or not)
-//    _listInstalledPatches XS installed patches on the host
-//    _listMissingPatches   XS missing patches on the host
-//    listMissingPatches    HL: missing patches (XS) or updates (XCP)
+//    _listXcpUpdates          XCP available updates
+//    _listPatches             XS patches (installed or not)
+//    _listInstalledPatches    XS installed patches on the host
+//    _listInstallablePatches  XS patches that are not installed and not conflicting
+//    listMissingPatches       HL: installable patches (XS) or updates (XCP)
 // # INSTALL
-//    _xcpUpdate            XCP yum update
-//    installPatches        HL: install patches (XS) or yum update (XCP) on hosts
+//    _xcpUpdate               XCP yum update
+//    installPatches           HL: install patches (XS) or yum update (XCP) on hosts
 
 // HELPERS ---------------------------------------------------------------------
 
@@ -162,22 +162,23 @@ export default {
   _listInstalledPatches(host) {
     const installed = { __proto__: null }
 
-    // platform_version < 2.1.1
-    forEach(host.$patches, hostPatch => {
-      installed[hostPatch.$pool_patch.uuid] = true
-    })
-
-    // platform_version >= 2.1.1
-    forEach(host.$updates, update => {
-      installed[update.uuid] = true // TODO: ignore packs
-    })
+    if (useUpdateSystem(host)) {
+      forEach(host.$updates, update => {
+        installed[update.uuid] = true // TODO: ignore packs
+      })
+    } else {
+      forEach(host.$patches, hostPatch => {
+        installed[hostPatch.$pool_patch.uuid] = true
+      })
+    }
 
     return installed
   },
 
-  // list patches that are provided by Citrix but not installed on the host and
-  // not conflicting with any of the installed patches
-  async _listMissingPatches(host) {
+  // list patches:
+  //   - not installed on the host
+  //   - not conflicting with any of the installed patches
+  async _listInstallablePatches(host) {
     const all = await this._getPoolPatchesForHost(host)
     const installed = this._getInstalledPoolPatchesOnHost(host)
 
@@ -203,7 +204,7 @@ export default {
   listMissingPatches(host) {
     return isXcp(host)
       ? this._listXcpUpdates(host)
-      : this._listMissingPatches(host)
+      : this._listInstallablePatches(host)
   },
 
   // INSTALL -------------------------------------------------------------------
@@ -235,11 +236,13 @@ export default {
   // high level
   // install specified patches on specified hosts
   //
-  // no patches specified: install all the missing patches for each host
-  // no hosts specified: install patches on all hosts
+  // no hosts specified: pool-wide install (only the pool master installed patches will be considered)
+  // no patches specified: install either the pool master's missing patches (no hosts specified) or each host's missing patches
   //
   // patches will be ignored for XCP (always updates completely)
   // patches that are already installed will be ignored (XS only)
+  //
+  // XS pool-wide optimization only works when no hosts are specified
   async installPatches({ patches, hosts }) {
     // XCP
     if (this.pool.$master.software_version.product_brand === 'XCP-ng') {
@@ -248,5 +251,19 @@ export default {
 
     // XS
     const poolWide = hosts === undefined
+    if (poolWide) {
+      // get pool master installable patches
+      // filter patches that should be installed (patches ^ installable patches OR installable patches if no patches specified)
+      // sort patches by requirements
+      // pool-wide install
+      return
+    }
+
+    // for each host
+      // get installable patches
+      // filter patches that should be installed
+      // sort patches
+      // one-by-one install
+
   },
 }
