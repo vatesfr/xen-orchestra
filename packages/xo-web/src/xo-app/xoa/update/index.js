@@ -246,7 +246,10 @@ const Updates = decorate([
               <ActionButton
                 btnStyle='success'
                 data-runningJobsExist={state.areJobsRunning}
-                disabled={xoaUpdaterState !== 'upgradeNeeded'}
+                disabled={
+                  xoaUpdaterState !== 'upgradeNeeded' &&
+                  xoaTrialState.state !== 'untrustedTrial'
+                } // enables button for updating packages OR ending trial
                 handler={effects.upgrade}
                 icon='upgrade'
               >
