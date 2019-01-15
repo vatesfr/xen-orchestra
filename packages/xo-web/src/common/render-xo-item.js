@@ -77,7 +77,7 @@ export const Host = decorate([
       ),
     }
   }),
-  ({ host, pool, link, newTab }) => {
+  ({ host, pool, link, newTab, memoryFree }) => {
     if (host === undefined) {
       return UNKNOWN_ITEM
     }
@@ -85,7 +85,16 @@ export const Host = decorate([
     return (
       <LinkWrapper link={link} newTab={newTab} to={`/hosts/${host.id}`}>
         <Icon icon='host' /> {host.name_label}
-        {pool !== undefined && ` (${pool.name_label})`}
+        {memoryFree && (
+          <span>
+            {' ('}
+            {_('memoryFree', {
+              memoryFree: formatSize(host.memory.size - host.memory.usage),
+            })}
+            {')'}
+          </span>
+        )}
+        {pool !== undefined && <span>{` - ${pool.name_label}`}</span>}
       </LinkWrapper>
     )
   },
@@ -94,12 +103,14 @@ export const Host = decorate([
 Host.propTypes = {
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
+  memoryFree: PropTypes.bool,
   newTab: PropTypes.bool,
   pool: PropTypes.bool,
 }
 
 Host.defaultProps = {
   link: false,
+  memoryFree: false,
   newTab: false,
   pool: true,
 }
@@ -408,7 +419,7 @@ const xoItemToRender = {
   // Pool objects.
   'VM-template': ({ id }) => <VmTemplate id={id} />,
   'VM-template-resourceSet': ({ id }) => <VmTemplate id={id} self />,
-  host: ({ id }) => <Host id={id} />,
+  host: ({ id, memoryFree }) => <Host id={id} memoryFree={memoryFree} />,
   network: ({ id }) => <Network id={id} />,
   'network-resourceSet': ({ id }) => <Network id={id} self />,
 
@@ -481,7 +492,7 @@ const xoItemToRender = {
   ),
 }
 
-const renderXoItem = (item, { className, type: xoType } = {}) => {
+const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
   const { id, label } = item
   const type = xoType || item.type
 
@@ -514,7 +525,7 @@ const renderXoItem = (item, { className, type: xoType } = {}) => {
   if (Component) {
     return (
       <span key={id} className={className}>
-        <Component {...item} />
+        <Component {...item} {...props} />
       </span>
     )
   }

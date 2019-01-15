@@ -264,6 +264,7 @@ class GenericSelect extends React.Component {
           option.xoItem.type !== undefined
             ? `${option.xoItem.type}-resourceSet`
             : undefined,
+        memoryFree: option.xoItem.type === 'host' || undefined,
       })}
     </span>
   )
