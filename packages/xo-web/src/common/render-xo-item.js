@@ -88,8 +88,8 @@ export const Host = decorate([
         {memoryFree && (
           <span>
             {' ('}
-            {_('freeSpace', {
-              freeSpace: formatSize(host.memory.size - host.memory.usage),
+            {_('memoryFree', {
+              memoryFree: formatSize(host.memory.size - host.memory.usage),
             })}
             {')'}
           </span>

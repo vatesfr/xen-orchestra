@@ -13,7 +13,7 @@ const messages = {
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'no such item',
   errorUnknownItem: 'unknown item',
-  freeSpace: '{freeSpace} free',
+  memoryFree: '{memoryFree} RAM free',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',

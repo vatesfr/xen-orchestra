@@ -231,8 +231,8 @@ export default class MigrateVmModalBody extends BaseComponent {
       <div>
         <div className={styles.block}>
           <SingleLineRow>
-            <Col size={6}>{_('migrateVmSelectHost')}</Col>
-            <Col size={6}>
+            <Col size={4}>{_('migrateVmSelectHost')}</Col>
+            <Col size={8}>
               <SelectHost
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
