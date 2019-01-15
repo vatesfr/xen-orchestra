@@ -10,6 +10,7 @@ import {
   find,
   includes,
   isObject,
+  pick,
   pickBy,
   some,
   sortBy,
@@ -162,16 +163,18 @@ export default {
   _listInstalledPatches(host) {
     const installed = { __proto__: null }
 
-    if (useUpdateSystem(host)) {
-      forEach(host.$updates, update => {
-        installed[update.uuid] = true // TODO: ignore packs
-      })
-    } else {
+    // Legacy XS patches
+    if (!useUpdateSystem(host)) {
       forEach(host.$patches, hostPatch => {
         installed[hostPatch.$pool_patch.uuid] = true
       })
+      return installed
     }
+    // ----------
 
+    forEach(host.$updates, update => {
+      installed[update.uuid] = true // TODO: ignore packs
+    })
     return installed
   },
 
@@ -233,6 +236,25 @@ export default {
     })
   },
 
+  async _poolWideInstall(patches) {
+    // Legacy XS patches
+    if (!useUpdateSystem(this.pool.$master)) {
+      // for each patch: pool_patch.pool_apply
+      return
+    }
+    // ----------
+
+    // for each patch: pool_update.introduce → pool_update.pool_apply
+  },
+
+  async _hostInstall(patches, host) {
+    throw new Error('not implemented')
+    // Legacy XS patches
+    // for each patch: pool_patch.apply
+    // ----------
+    // for each patch: pool_update.introduce → pool_update.apply
+  },
+
   // high level
   // install specified patches on specified hosts
   //
@@ -243,6 +265,7 @@ export default {
   // patches that are already installed will be ignored (XS only)
   //
   // XS pool-wide optimization only works when no hosts are specified
+  // it may install more patches that specified if some of them require other patches
   async installPatches({ patches, hosts }) {
     // XCP
     if (this.pool.$master.software_version.product_brand === 'XCP-ng') {
@@ -254,16 +277,19 @@ export default {
     if (poolWide) {
       // get pool master installable patches
       // filter patches that should be installed (patches ^ installable patches OR installable patches if no patches specified)
-      // sort patches by requirements
+      // sort patches by requirements and add required patches if necessary
       // pool-wide install
-      return
+      const installablePatches = await this._listInstallablePatches(this.pool.$master)
+      const patchesToInstall = pick(installablePatches, patches)
+      const sortedPatchesToInstall = this._sortPatches(patchesToInstall, installablePatches)
+      return this._poolWideInstall(sortedPatchesToInstall)
     }
 
     // for each host
       // get installable patches
       // filter patches that should be installed
       // sort patches
-      // one-by-one install
-
+      // host-by-host install
+    throw new Error('non pool-wide install not implemented')
   },
 }
