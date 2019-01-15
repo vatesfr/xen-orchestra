@@ -8,16 +8,16 @@ import { createGetObjectsOfType, createSelector } from '../../selectors'
 
 @connectStore(
   {
-    srsIds: createSelector(
-      createGetObjectsOfType('PBD').filter((_, { hostId, hostsIds }) => pbd =>
-        hostId !== undefined ? hostId === pbd.host : hostsIds.includes(pbd.host)
+    srIds: createSelector(
+      createGetObjectsOfType('PBD').filter((_, { hostIds }) => pbd =>
+        hostIds.includes(pbd.host)
       ),
       pbds => {
-        const srsIds = new Set([])
+        const srIds = new Set([])
         for (const id in pbds) {
-          srsIds.add(pbds[id].SR)
+          srIds.add(pbds[id].SR)
         }
-        return [...srsIds]
+        return [...srIds]
       }
     ),
   },
@@ -25,23 +25,22 @@ import { createGetObjectsOfType, createSelector } from '../../selectors'
 )
 export default class MultipathingModal extends Component {
   static propTypes = {
-    hostId: PropTypes.string,
-    hostsIds: PropTypes.arrayOf(PropTypes.string),
+    hostIds: PropTypes.arrayOf(PropTypes.string).isRequired,
   }
 
   render() {
-    const { hostId, hostsIds, srsIds } = this.props
+    const { hostIds, srIds } = this.props
     return (
       <div>
         {_('hostMultipathingWarning', {
-          nHosts: hostId !== undefined ? 1 : hostsIds.length,
+          nHosts: hostIds.length,
         })}
         <Collapse
           buttonText={_('hostMultipathingSrs')}
           size='small'
           className='mt-1'
         >
-          {srsIds.map(srId => (
+          {srIds.map(srId => (
             <div key={srId}>
               <Sr id={srId} link newTab />
             </div>

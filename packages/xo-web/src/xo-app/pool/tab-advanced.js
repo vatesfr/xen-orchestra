@@ -9,13 +9,13 @@ import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType, createFilter } from 'selectors'
+import { createGetObjectsOfType, createGroupBy } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { map } from 'lodash'
 import { Text, XoSelect } from 'editable'
 import {
-  enableAllHostsMultipathing,
   installSupplementalPackOnAllHosts,
+  setHostsMultipathing,
   setPoolMaster,
   setRemoteSyslogHost,
   setRemoteSyslogHosts,
@@ -54,8 +54,8 @@ class PoolMaster extends Component {
     .sort()
   return {
     hosts: getHosts,
-    hostsDisabledMultipathing: createFilter(getHosts, () => host =>
-      !host.multipathing
+    hostsByMultipathing: createGroupBy(getHosts, () => ({ multipathing }) =>
+      multipathing ? 'enabled' : 'disabled'
     ),
     gpuGroups: createGetObjectsOfType('gpuGroup')
       .filter((_, { pool }) => ({ $pool: pool.id }))
@@ -69,9 +69,13 @@ export default class TabAdvanced extends Component {
     )
 
   render() {
-    const { hosts, gpuGroups, pool, hostsDisabledMultipathing } = this.props
+    const { hosts, gpuGroups, pool, hostsByMultipathing } = this.props
     const { state } = this
     const { editRemoteSyslog } = state
+    const {
+      enabled: hostsEnabledMultipathing,
+      disabled: hostsDisabledMultipathing,
+    } = hostsByMultipathing
     return (
       <div>
         <Container>
@@ -167,14 +171,30 @@ export default class TabAdvanced extends Component {
           </Row>
         </Container>
         <h3 className='mt-1 mb-1'>{_('hostMultipathing')}</h3>
-        <ActionButton
-          btnStyle='primary'
-          handler={enableAllHostsMultipathing}
-          handlerParam={hostsDisabledMultipathing}
-          icon='host'
-        >
-          {_('hostEnableMultipathingForAllHost')}
-        </ActionButton>
+        <Container>
+          <Row>
+            <ActionButton
+              btnStyle='success'
+              data-hosts={hostsDisabledMultipathing}
+              data-multipathing
+              disabled={hostsDisabledMultipathing === undefined}
+              handler={setHostsMultipathing}
+              icon='host'
+            >
+              {_('hostEnableMultipathingForAllHosts')}
+            </ActionButton>{' '}
+            <ActionButton
+              btnStyle='danger'
+              data-hosts={hostsEnabledMultipathing}
+              data-multipathing={false}
+              disabled={hostsEnabledMultipathing === undefined}
+              handler={setHostsMultipathing}
+              icon='host'
+            >
+              {_('hostDisableMultipathingForAllHosts')}
+            </ActionButton>
+          </Row>
+        </Container>
         <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>
         <Upgrade place='poolSupplementalPacks' required={2}>
           <SelectFiles

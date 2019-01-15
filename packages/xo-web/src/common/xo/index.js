@@ -590,25 +590,19 @@ export const editHost = (host, props) =>
   _call('host.set', { ...props, id: resolveId(host) })
 
 import MultipathingModalBody from './multipathing-modal' // eslint-disable-line import/first
-export const setHostMultipathing = ({ host, multipathing }) => {
-  const id = resolveId(host)
-  return confirm({
-    title: _(
-      multipathing
-        ? 'hostEnableMultipathingMessage'
-        : 'hostDisableMultipathingMessage'
-    ),
-    body: <MultipathingModalBody hostId={id} />,
-  }).then(() => editHost(id, { multipathing }), noop)
-}
-
-export const enableAllHostsMultipathing = hosts => {
+export const setHostsMultipathing = ({
+  host,
+  hosts = [host],
+  multipathing,
+}) => {
   const ids = resolveIds(hosts)
   return confirm({
-    title: _('hostEnableMultipathingMessage'),
-    body: <MultipathingModalBody hostsIds={ids} />,
+    title: _(
+      multipathing ? 'hostEnableMultipathing' : 'hostDisableMultipathing'
+    ),
+    body: <MultipathingModalBody hostIds={ids} />,
   }).then(
-    () => Promise.all(map(ids, id => editHost(id, { multipathing: true }))),
+    () => Promise.all(map(ids, id => editHost(id, { multipathing }))),
     noop
   )
 }

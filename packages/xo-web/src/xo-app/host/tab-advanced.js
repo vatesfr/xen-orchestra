@@ -20,7 +20,7 @@ import {
   forgetHost,
   installSupplementalPack,
   restartHost,
-  setHostMultipathing,
+  setHostsMultipathing,
   setRemoteSyslogHost,
 } from 'xo'
 
@@ -192,11 +192,11 @@ export default class extends Component {
                       className='mb-1'
                       data-host={host}
                       data-multipathing={!host.multipathing}
-                      disabledLabel={_('hostMultipathingDisabled')}
-                      disabledTooltip={_('hostEnableMultipathingMessage')}
-                      enabledLabel={_('hostMultipathingEnabled')}
-                      enabledTooltip={_('hostDisableMultipathingMessage')}
-                      handler={setHostMultipathing}
+                      disabledLabel={_('stateDisabled')}
+                      disabledTooltip={_('hostEnableMultipathing')}
+                      enabledLabel={_('stateEnabled')}
+                      enabledTooltip={_('hostDisableMultipathing')}
+                      handler={setHostsMultipathing}
                       state={host.multipathing}
                     />
                   </td>
