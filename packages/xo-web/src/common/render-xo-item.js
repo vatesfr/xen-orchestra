@@ -17,7 +17,7 @@ import { isSrWritable, subscribeRemotes } from './xo'
 // ===================================================================
 
 const unknowItem = (uuid, type) => (
-  <Tooltip content={_('clickToCopyUuid', { uuid })}>
+  <Tooltip content={_('copyUuid', { uuid })}>
     <CopyToClipboard text={uuid}>
       <span className='text-muted' style={{ cursor: 'pointer' }}>
         {_('errorUnknownItem', { type })}
