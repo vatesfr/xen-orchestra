@@ -27,6 +27,23 @@ import {
 
 import { extractOpaqueRef, useUpdateSystem } from '../utils'
 
+// TOC -------------------------------------------------------------------------
+
+// # HELPERS
+//    _getXenUpdates
+//    isXcp
+// # LIST
+//    _listXcpUpdates       XCP available updates
+//    _listPatches          XS patches (installed or not)
+//    _listInstalledPatches XS installed patches on the host
+//    _listMissingPatches   XS missing patches on the host
+//    listMissingPatches    HL: missing patches (XS) or updates (XCP)
+// # INSTALL
+//    _xcpUpdate            XCP yum update
+//    installPatches        HL: install patches (XS) or yum update (XCP) on hosts
+
+// HELPERS ---------------------------------------------------------------------
+
 const log = createLogger('xo:xapi')
 
 const proxy = (() => {
@@ -116,7 +133,7 @@ export default {
   // LIST ----------------------------------------------------------------------
 
   // list all yum updates available for a XCP-ng host
-  async _getXcpUpdates(host) {
+  async _listXcpUpdates(host) {
     return JSON.parse(
       await this.call(
         'host.call_plugin',
@@ -158,7 +175,8 @@ export default {
     return installed
   },
 
-  // list patches that are provided by Citrix but not installed on the host
+  // list patches that are provided by Citrix but not installed on the host and
+  // not conflicting with any of the installed patches
   async _listMissingPatches(host) {
     const all = await this._getPoolPatchesForHost(host)
     const installed = this._getInstalledPoolPatchesOnHost(host)
@@ -181,7 +199,12 @@ export default {
     return installable
   },
 
-  listMissingPatches(host) {},
+  // high level
+  listMissingPatches(host) {
+    return isXcp(host)
+      ? this._listXcpUpdates(host)
+      : this._listMissingPatches(host)
+  },
 
   // INSTALL -------------------------------------------------------------------
 
