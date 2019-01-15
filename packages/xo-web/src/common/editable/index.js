@@ -417,6 +417,9 @@ class MultiSelect_ extends Editable {
 export const Select = ({ multi, ...props }) =>
   multi ? <MultiSelect_ {...props} /> : <SimpleSelect_ {...props} />
 
+Select.defaultProps = { multi: false }
+Select.propTypes = { multi: PropTypes.bool }
+
 const MAP_TYPE_SELECT = {
   host: SelectHost,
   ip: SelectIp,
