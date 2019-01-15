@@ -1,16 +1,20 @@
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
-import every from 'lodash/every'
-import filter from 'lodash/filter'
-import find from 'lodash/find'
-import includes from 'lodash/includes'
-import isObject from 'lodash/isObject'
-import pickBy from 'lodash/pickBy'
-import some from 'lodash/some'
-import sortBy from 'lodash/sortBy'
-import assign from 'lodash/assign'
+import hrp from 'http-request-plus'
+import ProxyAgent from 'proxy-agent'
 import unzip from 'julien-f-unzip'
+import {
+  every,
+  filter,
+  find,
+  includes,
+  isObject,
+  pickBy,
+  some,
+  sortBy,
+  assign,
+} from 'lodash'
 
 import ensureArray from '../../_ensureArray'
 import { debounce } from '../../decorators'
@@ -20,87 +24,109 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 
 const log = createLogger('xo:xapi')
 
+const proxy = (() => {
+  const httpProxy = process.env.http_proxy || process.env.HTTP_PROXY
+  return httpProxy && new ProxyAgent(httpProxy)
+})()
+
+const _getXenUpdates = debounce(24 * 60 * 60 * 1000)(async () => {
+  const response = await hrp(
+    {
+      agent: proxy,
+    },
+    'http://updates.xensource.com/XenServer/updates.xml'
+  )
+
+  if (response.statusCode !== 200) {
+    throw new Error('cannot fetch patches list from Citrix')
+  }
+
+  const data = parseXml(await response.readAll()).patchdata
+
+  const patches = { __proto__: null }
+  forEach(data.patches.patch, patch => {
+    patches[patch.uuid] = {
+      date: patch.timestamp,
+      description: patch['name-description'],
+      documentationUrl: patch.url,
+      guidance: patch['after-apply-guidance'],
+      name: patch['name-label'],
+      url: patch['patch-url'],
+      uuid: patch.uuid,
+      conflicts: mapToArray(ensureArray(patch.conflictingpatches), patch => {
+        return patch.conflictingpatch.uuid
+      }),
+      requirements: mapToArray(ensureArray(patch.requiredpatches), patch => {
+        return patch.requiredpatch.uuid
+      }),
+      paid: patch['update-stream'] === 'premium',
+      upgrade: /^XS\d{2,}$/.test(patch['name-label']),
+      // TODO: what does it mean, should we handle it?
+      // version: patch.version,
+    }
+    if (patches[patch.uuid].conflicts[0] === undefined) {
+      patches[patch.uuid].conflicts.length = 0
+    }
+    if (patches[patch.uuid].requirements[0] === undefined) {
+      patches[patch.uuid].requirements.length = 0
+    }
+  })
+
+  const resolveVersionPatches = function(uuids) {
+    const versionPatches = { __proto__: null }
+
+    forEach(ensureArray(uuids), ({ uuid }) => {
+      versionPatches[uuid] = patches[uuid]
+    })
+
+    return versionPatches
+  }
+
+  const versions = { __proto__: null }
+  let latestVersion
+  forEach(data.serverversions.version, version => {
+    versions[version.value] = {
+      date: version.timestamp,
+      name: version.name,
+      id: version.value,
+      documentationUrl: version.url,
+      patches: resolveVersionPatches(version.patch),
+    }
+
+    if (version.latest) {
+      latestVersion = versions[version.value]
+    }
+  })
+
+  return {
+    patches,
+    latestVersion,
+    versions,
+  }
+})
+
+const isXcp = host => host.software_version.product_brand === 'XCP-ng'
+
 export default {
-  // FIXME: should be static
-  @debounce(24 * 60 * 60 * 1000)
-  async _getXenUpdates() {
-    const response = await this.xo.httpRequest(
-      'http://updates.xensource.com/XenServer/updates.xml'
+  // LIST ----------------------------------------------------------------------
+
+  // list all yum updates available for a XCP-ng host
+  async _getXcpUpdates(host) {
+    return JSON.parse(
+      await this.call(
+        'host.call_plugin',
+        host.$ref,
+        'updater.py',
+        'check_update',
+        {}
+      )
     )
-
-    if (response.statusCode !== 200) {
-      throw new Error('cannot fetch patches list from Citrix')
-    }
-
-    const data = parseXml(await response.readAll()).patchdata
-
-    const patches = { __proto__: null }
-    forEach(data.patches.patch, patch => {
-      patches[patch.uuid] = {
-        date: patch.timestamp,
-        description: patch['name-description'],
-        documentationUrl: patch.url,
-        guidance: patch['after-apply-guidance'],
-        name: patch['name-label'],
-        url: patch['patch-url'],
-        uuid: patch.uuid,
-        conflicts: mapToArray(ensureArray(patch.conflictingpatches), patch => {
-          return patch.conflictingpatch.uuid
-        }),
-        requirements: mapToArray(ensureArray(patch.requiredpatches), patch => {
-          return patch.requiredpatch.uuid
-        }),
-        paid: patch['update-stream'] === 'premium',
-        upgrade: /^XS\d{2,}$/.test(patch['name-label']),
-        // TODO: what does it mean, should we handle it?
-        // version: patch.version,
-      }
-      if (patches[patch.uuid].conflicts[0] === undefined) {
-        patches[patch.uuid].conflicts.length = 0
-      }
-      if (patches[patch.uuid].requirements[0] === undefined) {
-        patches[patch.uuid].requirements.length = 0
-      }
-    })
-
-    const resolveVersionPatches = function(uuids) {
-      const versionPatches = { __proto__: null }
-
-      forEach(ensureArray(uuids), ({ uuid }) => {
-        versionPatches[uuid] = patches[uuid]
-      })
-
-      return versionPatches
-    }
-
-    const versions = { __proto__: null }
-    let latestVersion
-    forEach(data.serverversions.version, version => {
-      versions[version.value] = {
-        date: version.timestamp,
-        name: version.name,
-        id: version.value,
-        documentationUrl: version.url,
-        patches: resolveVersionPatches(version.patch),
-      }
-
-      if (version.latest) {
-        latestVersion = versions[version.value]
-      }
-    })
-
-    return {
-      patches,
-      latestVersion,
-      versions,
-    }
   },
 
-  // =================================================================
-
-  // Returns installed and not installed patches for a given host.
-  async _getPoolPatchesForHost(host) {
-    const versions = (await this._getXenUpdates()).versions
+  // list all patches provided by Citrix for this host regardless of if they're
+  // installed or not
+  async _listPatches(host) {
+    const versions = (await _getXenUpdates()).versions
 
     const hostVersions = host.software_version
     const version =
@@ -110,7 +136,8 @@ export default {
     return version ? version.patches : []
   },
 
-  _getInstalledPoolPatchesOnHost(host) {
+  // list patches installed on the host
+  _listInstalledPatches(host) {
     const installed = { __proto__: null }
 
     // platform_version < 2.1.1
@@ -126,7 +153,8 @@ export default {
     return installed
   },
 
-  async _listMissingPoolPatchesOnHost(host) {
+  // list patches that are provided by Citrix but not installed on the host
+  async _listMissingPatches(host) {
     const all = await this._getPoolPatchesForHost(host)
     const installed = this._getInstalledPoolPatchesOnHost(host)
 
@@ -148,438 +176,49 @@ export default {
     return installable
   },
 
-  async listMissingPoolPatchesOnHost(hostId) {
-    const host = this.getObject(hostId)
-    // Returns an array to not break compatibility.
-    return mapToArray(
-      await (host.software_version.product_brand === 'XCP-ng'
-        ? this._xcpListHostUpdates(host)
-        : this._listMissingPoolPatchesOnHost(host))
-    )
-  },
+  listMissingPatches(host) {},
 
-  async _ejectToolsIsos(hostRef) {
-    return Promise.all(
-      mapFilter(this.objects.all, vm => {
-        if (vm.$type !== 'VM' || (hostRef && vm.resident_on !== hostRef)) {
-          return
-        }
+  // INSTALL -------------------------------------------------------------------
 
-        const shouldEjectCd = some(vm.$VBDs, vbd => {
-          const vdi = vbd.$VDI
-
-          return vdi && vdi.is_tools_iso
-        })
-
-        if (shouldEjectCd) {
-          return this.ejectCdFromVm(vm.$id)
-        }
-      })
-    )
-  },
-
-  // -----------------------------------------------------------------
-
-  _isPoolPatchInstallableOnHost(patchUuid, host) {
-    const installed = this._getInstalledPoolPatchesOnHost(host)
-
-    if (installed[patchUuid]) {
-      return false
+  _xcpUpdate(hosts) {
+    if (hosts === undefined) {
+      hosts = filter(this.objects.all, { $type: 'host' })
     }
 
-    let installable = true
-
-    forEach(installed, patch => {
-      if (includes(patch.conflicts, patchUuid)) {
-        installable = false
-
-        return false
-      }
-    })
-
-    return installable
-  },
-
-  _isPoolPatchInstallableOnPool(patchUuid) {
-    return every(
-      this.objects.all,
-      obj =>
-        obj.$type !== 'host' ||
-        this._isPoolPatchInstallableOnHost(patchUuid, obj)
-    )
-  },
-
-  // -----------------------------------------------------------------
-
-  // platform_version < 2.1.1 ----------------------------------------
-  async uploadPoolPatch(stream, patchName) {
-    const patchRef = await this.putResource(stream, '/pool_patch_upload', {
-      task: this.createTask('Patch upload', patchName),
-    }).then(extractOpaqueRef)
-
-    return this._getOrWaitObject(patchRef)
-  },
-
-  async _getOrUploadPoolPatch(uuid) {
-    try {
-      return this.getObjectByUuid(uuid)
-    } catch (error) {}
-
-    log.debug(`downloading patch ${uuid}`)
-
-    const patchInfo = (await this._getXenUpdates()).patches[uuid]
-    if (!patchInfo) {
-      throw new Error('no such patch ' + uuid)
-    }
-
-    let stream = await this.xo.httpRequest(patchInfo.url)
-    stream = await new Promise((resolve, reject) => {
-      const PATCH_RE = /\.xsupdate$/
-      stream
-        .pipe(unzip.Parse())
-        .on('entry', entry => {
-          if (PATCH_RE.test(entry.path)) {
-            entry.length = entry.size
-            resolve(entry)
-          } else {
-            entry.autodrain()
-          }
-        })
-        .on('error', reject)
-    })
-
-    return this.uploadPoolPatch(stream, patchInfo.name)
-  },
-
-  // patform_version >= 2.1.1 ----------------------------------------
-  async _getUpdateVdi($defer, patchUuid, hostId) {
-    log.debug(`downloading patch ${patchUuid}`)
-
-    const patchInfo = (await this._getXenUpdates()).patches[patchUuid]
-    if (!patchInfo) {
-      throw new Error('no such patch ' + patchUuid)
-    }
-
-    let stream = await this.xo.httpRequest(patchInfo.url)
-    stream = await new Promise((resolve, reject) => {
-      stream
-        .pipe(unzip.Parse())
-        .on('entry', entry => {
-          entry.length = entry.size
-          resolve(entry)
-        })
-        .on('error', reject)
-    })
-
-    let vdi
-
-    // If no hostId provided, try and find a shared SR
-    if (!hostId) {
-      const sr = this.findAvailableSharedSr(stream.length)
-
-      if (!sr) {
-        return
-      }
-
-      vdi = await this.createTemporaryVdiOnSr(
-        stream,
-        sr,
-        '[XO] Patch ISO',
-        'small temporary VDI to store a patch ISO'
-      )
-    } else {
-      vdi = await this.createTemporaryVdiOnHost(
-        stream,
-        hostId,
-        '[XO] Patch ISO',
-        'small temporary VDI to store a patch ISO'
-      )
-    }
-    $defer(() => this._deleteVdi(vdi.$ref))
-
-    return vdi
-  },
-
-  // -----------------------------------------------------------------
-
-  // patform_version < 2.1.1 -----------------------------------------
-  async _installPoolPatchOnHost(patchUuid, host) {
-    const [patch] = await Promise.all([
-      this._getOrUploadPoolPatch(patchUuid),
-      this._ejectToolsIsos(host.$ref),
-    ])
-
-    await this.call('pool_patch.apply', patch.$ref, host.$ref)
-  },
-
-  // patform_version >= 2.1.1
-  _installPatchUpdateOnHost: deferrable(async function(
-    $defer,
-    patchUuid,
-    host
-  ) {
-    await this._assertConsistentHostServerTime(host.$ref)
-
-    const [vdi] = await Promise.all([
-      this._getUpdateVdi($defer, patchUuid, host.$id),
-      this._ejectToolsIsos(host.$ref),
-    ])
-
-    const updateRef = await this.call('pool_update.introduce', vdi.$ref)
-    // TODO: check update status
-    // const precheck = await this.call('pool_update.precheck', updateRef, host.$ref)
-    // - ok_livepatch_complete     An applicable live patch exists for every required component
-    // - ok_livepatch_incomplete   An applicable live patch exists but it is not sufficient
-    // - ok                        There is no applicable live patch
-    return this.call('pool_update.apply', updateRef, host.$ref)
-  }),
-
-  // -----------------------------------------------------------------
-
-  async installPoolPatchOnHost(patchUuid, host) {
-    log.debug(`installing patch ${patchUuid}`)
-    if (!isObject(host)) {
-      host = this.getObject(host)
-    }
-
-    return useUpdateSystem(host)
-      ? this._installPatchUpdateOnHost(patchUuid, host)
-      : this._installPoolPatchOnHost(patchUuid, host)
-  },
-
-  // -----------------------------------------------------------------
-
-  // platform_version < 2.1.1
-  async _installPoolPatchOnAllHosts(patchUuid) {
-    const [patch] = await Promise.all([
-      this._getOrUploadPoolPatch(patchUuid),
-      this._ejectToolsIsos(),
-    ])
-
-    await this.call('pool_patch.pool_apply', patch.$ref)
-  },
-
-  // platform_version >= 2.1.1
-  _installPatchUpdateOnAllHosts: deferrable(async function($defer, patchUuid) {
-    await this._assertConsistentHostServerTime(this.pool.master)
-
-    let [vdi] = await Promise.all([
-      this._getUpdateVdi($defer, patchUuid),
-      this._ejectToolsIsos(),
-    ])
-    if (vdi == null) {
-      vdi = await this._getUpdateVdi($defer, patchUuid, this.pool.master)
-    }
-
-    return this.call(
-      'pool_update.pool_apply',
-      await this.call('pool_update.introduce', vdi.$ref)
-    )
-  }),
-
-  async installPoolPatchOnAllHosts(patchUuid) {
-    log.debug(`installing patch ${patchUuid} on all hosts`)
-
-    return useUpdateSystem(this.pool.$master)
-      ? this._installPatchUpdateOnAllHosts(patchUuid)
-      : this._installPoolPatchOnAllHosts(patchUuid)
-  },
-
-  // -----------------------------------------------------------------
-
-  // If no host is provided, install on pool
-  async _installPoolPatchAndRequirements(patch, patchesByUuid, host) {
-    if (
-      host == null
-        ? !this._isPoolPatchInstallableOnPool(patch.uuid)
-        : !this._isPoolPatchInstallableOnHost(patch.uuid, host)
-    ) {
-      return
-    }
-
-    const { requirements } = patch
-
-    if (requirements.length) {
-      for (const requirementUuid of requirements) {
-        const requirement = patchesByUuid[requirementUuid]
-
-        if (requirement != null) {
-          await this._installPoolPatchAndRequirements(
-            requirement,
-            patchesByUuid,
-            host
-          )
-          host = host && this.getObject(host.$id)
-        }
-      }
-    }
-
-    return host == null
-      ? this.installPoolPatchOnAllHosts(patch.uuid)
-      : this.installPoolPatchOnHost(patch.uuid, host)
-  },
-
-  async installSpecificPatchesOnHost(patchNames, hostId) {
-    const host = this.getObject(hostId)
-    const missingPatches = await this._listMissingPoolPatchesOnHost(host)
-
-    const patchesToInstall = []
-    const addPatchesToList = patches => {
-      forEach(patches, patch => {
-        addPatchesToList(mapToArray(patch.requirements, { uuid: patch.uuid }))
-
-        if (!find(patchesToInstall, { name: patch.name })) {
-          patchesToInstall.push(patch)
-        }
-      })
-    }
-    addPatchesToList(
-      mapToArray(patchNames, name => find(missingPatches, { name }))
-    )
-
-    for (let i = 0, n = patchesToInstall.length; i < n; i++) {
-      await this._installPoolPatchAndRequirements(
-        patchesToInstall[i],
-        missingPatches,
-        host
-      )
-    }
-  },
-
-  async installAllPoolPatchesOnHost(hostId) {
-    const host = this.getObject(hostId)
-    if (host.software_version.product_brand === 'XCP-ng') {
-      return this._xcpInstallHostUpdates(host)
-    }
-    return this._installAllPoolPatchesOnHost(host)
-  },
-
-  async _installAllPoolPatchesOnHost(host) {
-    const installableByUuid =
-      host.license_params.sku_type !== 'free'
-        ? pickBy(await this._listMissingPoolPatchesOnHost(host), {
-            upgrade: false,
-          })
-        : pickBy(await this._listMissingPoolPatchesOnHost(host), {
-            paid: false,
-            upgrade: false,
-          })
-
-    // List of all installable patches sorted from the newest to the
-    // oldest.
-    const installable = sortBy(
-      installableByUuid,
-      patch => -Date.parse(patch.date)
-    )
-
-    for (let i = 0, n = installable.length; i < n; ++i) {
-      const patch = installable[i]
-
-      if (this._isPoolPatchInstallableOnHost(patch.uuid, host)) {
-        await this._installPoolPatchAndRequirements(
-          patch,
-          installableByUuid,
-          host
-        ).catch(error => {
-          if (
-            error.code !== 'PATCH_ALREADY_APPLIED' &&
-            error.code !== 'UPDATE_ALREADY_APPLIED'
-          ) {
-            throw error
-          }
-        })
-        host = this.getObject(host.$id)
-      }
-    }
-  },
-
-  async installAllPoolPatchesOnAllHosts() {
-    if (this.pool.$master.software_version.product_brand === 'XCP-ng') {
-      return this._xcpInstallAllPoolUpdatesOnHost()
-    }
-    return this._installAllPoolPatchesOnAllHosts()
-  },
-
-  async _installAllPoolPatchesOnAllHosts() {
-    const installableByUuid = assign(
-      {},
-      ...(await Promise.all(
-        mapFilter(this.objects.all, host => {
-          if (host.$type === 'host') {
-            return this._listMissingPoolPatchesOnHost(host).then(patches =>
-              host.license_params.sku_type !== 'free'
-                ? pickBy(patches, { upgrade: false })
-                : pickBy(patches, { paid: false, upgrade: false })
-            )
-          }
-        })
-      ))
-    )
-
-    // List of all installable patches sorted from the newest to the
-    // oldest.
-    const installable = sortBy(
-      installableByUuid,
-      patch => -Date.parse(patch.date)
-    )
-
-    for (let i = 0, n = installable.length; i < n; ++i) {
-      const patch = installable[i]
-
-      await this._installPoolPatchAndRequirements(
-        patch,
-        installableByUuid
-      ).catch(error => {
-        if (
-          error.code !== 'PATCH_ALREADY_APPLIED' &&
-          error.code !== 'UPDATE_ALREADY_APPLIED_IN_POOL'
-        ) {
-          throw error
-        }
-      })
-    }
-  },
-
-  // ----------------------------------
-  // XCP-ng dedicated zone for patching
-  // ----------------------------------
-
-  // list all yum updates available for a XCP-ng host
-  async _xcpListHostUpdates(host) {
-    return JSON.parse(
-      await this.call(
+    return asyncMap(hosts, async host => {
+      const update = await this.call(
         'host.call_plugin',
         host.$ref,
         'updater.py',
-        'check_update',
+        'update',
         {}
       )
-    )
+
+      if (JSON.parse(update).exit !== 0) {
+        throw new Error('Update install failed')
+      } else {
+        await this._updateObjectMapProperty(host, 'other_config', {
+          rpm_patch_installation_time: String(Date.now() / 1000),
+        })
+      }
+    })
   },
 
-  // install all yum updates for a XCP-ng host
-  async _xcpInstallHostUpdates(host) {
-    const update = await this.call(
-      'host.call_plugin',
-      host.$ref,
-      'updater.py',
-      'update',
-      {}
-    )
-
-    if (JSON.parse(update).exit !== 0) {
-      throw new Error('Update install failed')
-    } else {
-      await this._updateObjectMapProperty(host, 'other_config', {
-        rpm_patch_installation_time: String(Date.now() / 1000),
-      })
+  // high level
+  // install specified patches on specified hosts
+  //
+  // no patches specified: install all the missing patches for each host
+  // no hosts specified: install patches on all hosts
+  //
+  // patches will be ignored for XCP (always updates completely)
+  // patches that are already installed will be ignored (XS only)
+  async installPatches({ patches, hosts }) {
+    // XCP
+    if (this.pool.$master.software_version.product_brand === 'XCP-ng') {
+      return this._xcpUpdate(hosts)
     }
-  },
 
-  // install all yum updates for all XCP-ng hosts in a give pool
-  async _xcpInstallAllPoolUpdatesOnHost() {
-    await asyncMap(filter(this.objects.all, { $type: 'host' }), host =>
-      this._xcpInstallHostUpdates(host)
-    )
+    // XS
+    const poolWide = hosts === undefined
   },
 }
