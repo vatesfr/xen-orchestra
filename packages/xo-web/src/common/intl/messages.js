@@ -420,7 +420,7 @@ const messages = {
   crOnThickProvisionedSrWarning:
     'Tip: using a thin-provisioned storage will consume less space. Please click on the icon to get more information',
   vmsOnThinProvisionedSrTip:
-    'Tip: creating VMs on a thin-provisioned storage will consume less space when backuping them. Please click on the icon to get more information',
+    'Tip: creating VMs on a thin-provisioned storage will consume less space when backing them up. Please click on the icon to get more information',
   deltaBackupOnOutdatedXenServerWarning:
     'Delta Backup and Continuous Replication require at least XenServer 6.5.',
   backupNgLinkToDocumentationMessage:
@@ -448,7 +448,7 @@ const messages = {
   editBackupRemoteTitle: 'Remote',
   deleteOldBackupsFirst: 'Delete first',
   deleteOldBackupsFirstMessage:
-    'Delete old backups before backuping the VMs. If the new backup fails, you will lose your old backups.',
+    'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
 
   // ------ New Remote -----
   remoteList: 'Remote stores for backup',
