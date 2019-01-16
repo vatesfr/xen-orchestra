@@ -18,7 +18,6 @@ import { alert } from 'modal'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { injectState, provideState } from 'reaclette'
-import { linkState } from 'reaclette-utils'
 import { Row, Col } from 'grid'
 import {
   configurePlugin,
@@ -261,18 +260,41 @@ export default decorate([
     plugins: subscribePlugins,
   }),
   provideState({
-    initialState: () => ({ filter: '' }),
-    effects: { linkState },
+    effects: {
+      onSearchChange(
+        _,
+        {
+          target: { value },
+        }
+      ) {
+        const { location, router } = this.props
+        router.replace({
+          ...location,
+          query: {
+            ...location.query,
+            s: value,
+          },
+        })
+      },
+    },
     computed: {
+      search: (
+        _,
+        {
+          location: {
+            query: { s = '' },
+          },
+        }
+      ) => s,
       filteredPlugins: ({ predicate }, { plugins }) =>
         predicate === undefined ? plugins : plugins.filter(predicate),
-      predicate: ({ filter }) => {
-        if (filter.trim() === '') {
+      predicate: ({ search }) => {
+        if (search.trim() === '') {
           return
         }
 
         try {
-          return ComplexMatcher.parse(filter).createPredicate()
+          return ComplexMatcher.parse(search).createPredicate()
         } catch (error) {
           console.warn(error)
         }
@@ -291,9 +313,8 @@ export default decorate([
         <p>
           <input
             className='form-control'
-            name='filter'
-            onChange={effects.linkState}
-            value={state.filter}
+            onChange={effects.onSearchChange}
+            value={state.search}
           />
         </p>
         <ul style={{ paddingLeft: 0 }}>
