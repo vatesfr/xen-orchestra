@@ -667,13 +667,13 @@ export class Xapi extends EventEmitter {
               query: 'task_id' in query ? omit(query, 'task_id') : query,
             }).then(
               response => {
-                response.req.abort()
+                response.cancel()
                 return doRequest()
               },
               error => {
                 let response
                 if (error != null && (response = error.response) != null) {
-                  response.req.abort()
+                  response.cancel()
 
                   const {
                     headers: { location },
@@ -701,12 +701,12 @@ export class Xapi extends EventEmitter {
           }
 
           if (req.finished) {
-            req.abort()
+            response.cancel()
             return taskResult
           }
 
           return fromEvents(req, ['close', 'finish']).then(() => {
-            req.abort()
+            response.cancel()
             return taskResult
           })
         })

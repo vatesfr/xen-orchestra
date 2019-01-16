@@ -36,7 +36,7 @@
     "debug": "^4.0.1",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
-    "http-request-plus": "^0.7.0",
+    "http-request-plus": "^0.7.1",
     "iterable-backoff": "^0.0.0",
     "jest-diff": "^23.5.0",
     "json-rpc-protocol": "^0.13.1",

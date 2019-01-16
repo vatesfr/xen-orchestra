@@ -31,7 +31,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "http-request-plus": "^0.7.0",
+    "http-request-plus": "^0.7.1",
     "jsonrpc-websocket-client": "^0.4.1"
   },
   "devDependencies": {
