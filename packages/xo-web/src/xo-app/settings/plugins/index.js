@@ -299,8 +299,8 @@ export default decorate([
           />
         </p>
         <ul style={{ paddingLeft: 0 }}>
-          {state.sortedPlugins.map((plugin, key) => (
-            <li key={key} className='list-group-item clearfix'>
+          {state.sortedPlugins.map(plugin => (
+            <li key={plugin.id} className='list-group-item clearfix'>
               <Plugin {...plugin} />
             </li>
           ))}
