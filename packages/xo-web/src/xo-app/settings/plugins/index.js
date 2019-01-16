@@ -1,8 +1,10 @@
+import * as ComplexMatcher from 'complex-matcher'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ActionToggle from 'action-toggle'
 import Button from 'button'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -14,6 +16,8 @@ import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
+import { injectState, provideState } from 'reaclette'
+import { linkState } from 'reaclette-utils'
 import { Row, Col } from 'grid'
 import {
   configurePlugin,
@@ -251,29 +255,56 @@ class Plugin extends Component {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
-export default class Plugins extends Component {
-  render() {
-    if (isEmpty(this.props.plugins)) {
-      return (
-        <p>
-          <em>{_('noPlugins')}</em>
-        </p>
-      )
-    }
+const compareNames = (a, b) => (a.name < b.name ? -1 : 1)
 
-    return (
+export default decorate([
+  addSubscriptions({
+    plugins: subscribePlugins,
+  }),
+  provideState({
+    initialState: () => ({ filter: '' }),
+    effects: { linkState },
+    computed: {
+      filteredPlugins: ({ predicate }, { plugins }) =>
+        predicate === undefined ? plugins : plugins.filter(predicate),
+      predicate: ({ filter }) => {
+        if (filter.trim() === '') {
+          return
+        }
+
+        try {
+          return ComplexMatcher.parse(filter).createPredicate()
+        } catch (error) {
+          console.warn(error)
+        }
+      },
+      sortedPlugins: ({ filteredPlugins }) =>
+        filteredPlugins.sort(compareNames),
+    },
+  }),
+  injectState,
+  ({ effects, state, plugins }) =>
+    isEmpty(plugins) ? (
+      <p>
+        <em>{_('noPlugins')}</em>
+      </p>
+    ) : (
       <div>
+        <p>
+          <input
+            className='form-control'
+            name='filter'
+            onChange={effects.linkState}
+            value={state.filter}
+          />
+        </p>
         <ul style={{ paddingLeft: 0 }}>
-          {map(this.props.plugins, (plugin, key) => (
+          {state.sortedPlugins.map((plugin, key) => (
             <li key={key} className='list-group-item clearfix'>
               <Plugin {...plugin} />
             </li>
           ))}
         </ul>
       </div>
-    )
-  }
-}
+    ),
+])
