@@ -9,6 +9,7 @@ import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import orderBy from 'lodash/orderBy'
 import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import size from 'lodash/size'
@@ -255,8 +256,6 @@ class Plugin extends Component {
   }
 }
 
-const compareNames = (a, b) => (a.name < b.name ? -1 : 1)
-
 export default decorate([
   addSubscriptions({
     plugins: subscribePlugins,
@@ -278,8 +277,7 @@ export default decorate([
           console.warn(error)
         }
       },
-      sortedPlugins: ({ filteredPlugins }) =>
-        filteredPlugins.sort(compareNames),
+      sortedPlugins: ({ filteredPlugins }) => orderBy(filteredPlugins, 'name'),
     },
   }),
   injectState,
