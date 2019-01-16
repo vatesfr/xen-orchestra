@@ -11,9 +11,11 @@
 - [New SR] No redirection if the SR creation failed or canceled [#3843](https://github.com/vatesfr/xen-orchestra/issues/3843) (PR [#3853](https://github.com/vatesfr/xen-orchestra/pull/3853))
 - [Home] Fix two tabs opened by middle click in Firefox [#3450](https://github.com/vatesfr/xen-orchestra/issues/3450) (PR [#3825](https://github.com/vatesfr/xen-orchestra/pull/3825))
 - [XOA] Enable downgrade for ending trial (PR [#3867](https://github.com/vatesfr/xen-orchestra/pull/3867))
+- [OVA import] allow import of big files [#3468](https://github.com/vatesfr/xen-orchestra/issues/3468) (PR [#3504](https://github.com/vatesfr/xen-orchestra/pull/3504))
 
 ### Released packages
 
+- xo-vmdk-to-vhd v0.1.6
 - xo-server v5.34.0
 - xo-web v5.34.0
 

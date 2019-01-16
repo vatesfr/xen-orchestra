@@ -102,7 +102,10 @@ function parseTarHeader(header) {
     Buffer.from(header.slice(124, 124 + 11)).toString('ascii'),
     8
   )
-  return { fileName, fileSize }
+  // normal files are either the char '0' (charcode 48) or the char null (charcode zero)
+  const typeSlice = new Uint8Array(header.slice(156, 156 + 1))[0]
+  const fileType = typeSlice === 0 ? '0' : String.fromCharCode(typeSlice)
+  return { fileName, fileSize, fileType }
 }
 
 async function parseOVF(fileFragment) {
@@ -172,27 +175,56 @@ async function parseOVF(fileFragment) {
   )
 }
 
+// tar spec: https://www.gnu.org/software/tar/manual/html_node/Standard.html
 async function parseTarFile(file) {
   let offset = 0
   const HEADER_SIZE = 512
   let data = { tables: {} }
   while (offset + HEADER_SIZE <= file.size) {
-    const header = parseTarHeader(
+    let header = parseTarHeader(
       await readFileFragment(file, offset, offset + HEADER_SIZE)
     )
     offset += HEADER_SIZE
     if (header === null) {
       break
     }
-    if (header.fileName.toLowerCase().endsWith('.ovf')) {
-      const res = await parseOVF(file.slice(offset, offset + header.fileSize))
-      data = { ...data, ...res }
+    // extended header: it's a text file named 'PaxHeader/<filename.ext>' appearing before the file.
+    // the attribute are ascii lines of form: "charcount key=value\n". Charcount is the number of chars in the line.
+    // Parsing it is the only way to get the size of big files because  normal headers store the size in a
+    // 12 char octal string, they can't store big sizes.
+    if (header.fileType === 'x') {
+      const paxFile = Buffer.from(
+        await readFileFragment(file, offset, offset + header.fileSize)
+      ).toString()
+      console.log('pax header', paxFile)
+      const lines = paxFile.split('\n')
+      // "<charcount> key=value\n"
+      const foundSize = lines.find(l => l.match(/^[0-9]+ size=/))
+      // go to next header
+      offset += Math.ceil(header.fileSize / 512) * 512
+      header = parseTarHeader(
+        await readFileFragment(file, offset, offset + HEADER_SIZE)
+      )
+      offset += HEADER_SIZE
+      if (foundSize) {
+        header.fileSize = parseInt(foundSize.split('=')[1])
+      }
     }
-    if (header.fileName.toLowerCase().endsWith('.vmdk')) {
-      const fileSlice = file.slice(offset, offset + header.fileSize)
-      const readFile = async (start, end) =>
-        readFileFragment(fileSlice, start, end)
-      data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+    // remove mac os X forks https://stackoverflow.com/questions/8766730/tar-command-in-mac-os-x-adding-hidden-files-why
+    if (
+      header.fileType === '0' &&
+      !header.fileName.toLowerCase().startsWith('./._')
+    ) {
+      if (header.fileName.toLowerCase().endsWith('.ovf')) {
+        const res = await parseOVF(file.slice(offset, offset + header.fileSize))
+        data = { ...data, ...res }
+      }
+      if (header.fileName.toLowerCase().endsWith('.vmdk')) {
+        const fileSlice = file.slice(offset, offset + header.fileSize)
+        const readFile = async (start, end) =>
+          readFileFragment(fileSlice, start, end)
+        data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+      }
     }
     offset += Math.ceil(header.fileSize / 512) * 512
   }
