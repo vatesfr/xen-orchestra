@@ -56,6 +56,7 @@ const proxy = (() => {
   return httpProxy && new ProxyAgent(httpProxy)
 })()
 
+// raw { uuid: patch } map translated from updates.xensource.com/XenServer/updates.xml
 const _getXenUpdates = debounce(24 * 60 * 60 * 1000)(async () => {
   const response = await hrp(
     {
@@ -181,6 +182,7 @@ export default {
 
   // list all patches provided by Citrix for this host version regardless
   // of if they're installed or not
+  // ignore upgrade patches
   async _listPatches(host) {
     const versions = (await _getXenUpdates()).versions
 
@@ -189,7 +191,7 @@ export default {
       versions[hostVersions.product_version] ||
       versions[hostVersions.product_version_text]
 
-    return version ? version.patches : []
+    return version ? pickBy(version.patches, patch => !patch.upgrade : []
   },
 
   // list patches installed on the host
