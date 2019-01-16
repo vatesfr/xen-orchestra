@@ -430,7 +430,7 @@ export default class XapiStats {
               : {}
           )
 
-          const stepStats = getValuesFromDepth(xoObjStats, step, {
+          const stepStats = getValuesFromDepth(xoObjStats, String(step), {
             endTimestamp: json.meta.end,
             localTimestamp: localTimestamp,
             interval: step,
