@@ -5,11 +5,14 @@ import hrp from 'http-request-plus'
 import ProxyAgent from 'proxy-agent'
 import unzip from 'julien-f-unzip'
 import {
+  compact,
   every,
   filter,
   find,
   includes,
+  isEmpty,
   isObject,
+  map,
   pick,
   pickBy,
   some,
@@ -32,7 +35,8 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 
 // # HELPERS
 //    _getXenUpdates
-//    isXcp
+//    _sortPatches
+//    _isXcp
 // # LIST
 //    _listXcpUpdates          XCP available updates
 //    _listPatches             XS patches (installed or not)
@@ -128,7 +132,36 @@ const _getXenUpdates = debounce(24 * 60 * 60 * 1000)(async () => {
   }
 })
 
-const isXcp = host => host.software_version.product_brand === 'XCP-ng'
+// sort patches so they can be installed in the correct order according to their
+// requirements
+// installablePatches is a { uuid: patch } map that can be used to pull required
+// patches out of
+// if a required patch is not found in installablePatches, an error is thrown
+const _sortPatches = (patches, installablePatches) => {
+  if (isEmpty(patches)) {
+    return []
+  }
+
+  const sortedPatches = []
+  forEach(patches, patch => {
+    const requiredPatches = toArray(
+      pick(installablePatches, patch.requirements)
+    )
+    if (requiredPatches.length !== patch.requirements.length) {
+      throw new Error('some required patches cannot be installed')
+    }
+    forEach(_sortPatches(requiredPatches, installablePatches), patch => {
+      if (!find(sortedPatches({ uuid: patch.uuid }))) {
+        sortedPatches.push(patch)
+      }
+    })
+    sortedPatches.push(patch)
+  })
+
+  return sortedPatches
+}
+
+const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 
 export default {
   // LIST ----------------------------------------------------------------------
@@ -146,8 +179,8 @@ export default {
     )
   },
 
-  // list all patches provided by Citrix for this host regardless of if they're
-  // installed or not
+  // list all patches provided by Citrix for this host version regardless
+  // of if they're installed or not
   async _listPatches(host) {
     const versions = (await _getXenUpdates()).versions
 
@@ -181,6 +214,8 @@ export default {
   // list patches:
   //   - not installed on the host
   //   - not conflicting with any of the installed patches
+  // TODO: ignore paid patches on free license
+  // TODO: handle upgrade patches
   async _listInstallablePatches(host) {
     const all = await this._getPoolPatchesForHost(host)
     const installed = this._getInstalledPoolPatchesOnHost(host)
@@ -205,7 +240,7 @@ export default {
 
   // high level
   listMissingPatches(host) {
-    return isXcp(host)
+    return _isXcp(host)
       ? this._listXcpUpdates(host)
       : this._listInstallablePatches(host)
   },
@@ -279,17 +314,22 @@ export default {
       // filter patches that should be installed (patches ^ installable patches OR installable patches if no patches specified)
       // sort patches by requirements and add required patches if necessary
       // pool-wide install
-      const installablePatches = await this._listInstallablePatches(this.pool.$master)
+      const installablePatches = await this._listInstallablePatches(
+        this.pool.$master
+      )
       const patchesToInstall = pick(installablePatches, patches)
-      const sortedPatchesToInstall = this._sortPatches(patchesToInstall, installablePatches)
+      const sortedPatchesToInstall = _sortPatches(
+        patchesToInstall,
+        installablePatches
+      )
       return this._poolWideInstall(sortedPatchesToInstall)
     }
 
     // for each host
-      // get installable patches
-      // filter patches that should be installed
-      // sort patches
-      // host-by-host install
+    // get installable patches
+    // filter patches that should be installed
+    // sort patches
+    // host-by-host install
     throw new Error('non pool-wide install not implemented')
   },
 }
