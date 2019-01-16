@@ -5,6 +5,7 @@
 ### Enhancements
 
 - [VM migration] Display hosts' free memory [#3264](https://github.com/vatesfr/xen-orchestra/issues/3264) (PR [#3832](https://github.com/vatesfr/xen-orchestra/pull/3832))
+- [Plugins] New field to filter displayed plugins (PR [#3832](https://github.com/vatesfr/xen-orchestra/pull/3871))
 
 ### Bug fixes
 
