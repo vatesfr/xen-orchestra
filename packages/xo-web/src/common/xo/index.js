@@ -2453,6 +2453,28 @@ export const deleteSshKey = key =>
     })
   }, noop)
 
+export const addOtp = secret => {
+  return confirm({
+    title: _('addOtpConfirm'),
+    body: _('addOtpConfirmMessage'),
+  }).then(() => {
+    return _setUserPreferences({
+      otp: secret,
+    })
+  }, noop)
+}
+
+export const removeOtp = () => {
+  return confirm({
+    title: _('removeOtpConfirm'),
+    body: _('removeOtpConfirmMessage'),
+  }).then(() => {
+    return _setUserPreferences({
+      otp: null,
+    })
+  }, noop)
+}
+
 export const deleteSshKeys = keys =>
   confirm({
     title: _('deleteSshKeysConfirm', { nKeys: keys.length }),

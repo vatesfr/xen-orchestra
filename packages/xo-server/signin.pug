@@ -14,8 +14,23 @@ html
       h2.text-xs-center.mb-2 Xen Orchestra
       form(action = 'signin/local' method = 'post')
         fieldset
-          if error
-            p.text-danger #{error}
+        if error
+          p.text-danger #{error}
+        if otp
+          .input-group.mb-1
+            span.input-group-addon
+              i.fa.fa-key.fa-fw
+            input.form-control(
+              name = 'otp'
+              type = 'password'
+              placeholder = 'token'
+              required
+            )
+          div
+            button.btn.btn-block.btn-info
+              i.fa.fa-sign-in
+              |  Sign in
+        else
           .input-group.mb-1
             span.input-group-addon
               i.xo-icon-user.fa-fw

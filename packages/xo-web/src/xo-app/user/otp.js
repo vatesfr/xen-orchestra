@@ -1,38 +1,49 @@
-import React, { Component } from 'react'
 import authenticator from 'otplib/authenticator'
+import Component from 'base-component'
 import crypto from 'crypto'
 import qrcode from 'qrcode'
+import React from 'react'
+import { addOtp, removeOtp } from 'xo'
 
 import { Container, Row, Col } from '../../common/grid'
-import ActionButton from '../../common/action-button'
+import { Toggle } from '../../common/form'
 
 authenticator.options = { crypto }
 
-class Otp extends Component {
+export default class Otp extends Component {
   constructor(props) {
     super(props)
+
     this.state = {
-      secret: authenticator.generateSecret(),
+      secret: props.user.preferences.otp || authenticator.generateSecret(),
       qrcode: undefined,
     }
   }
 
   componentDidMount() {
     const { secret } = this.state
-    const otpauth = authenticator.keyuri('user', 'service', secret)
+    const { user } = this.props
+    const otpauth = authenticator.keyuri(user.email, 'XenOrchestra', secret)
 
-    qrcode
-      .toDataURL(otpauth)
-      .then(url => {
-        this.setState({ qrcode: url })
-      })
-      .catch(err => {
-        console.error(err)
-      })
+    qrcode.toDataURL(otpauth).then(url => {
+      this.setState({ qrcode: url })
+    })
+  }
+
+  _handleOtp = isChecked => {
+    const { secret } = this.state
+
+    if (isChecked) {
+      addOtp(secret)
+    } else {
+      removeOtp()
+    }
   }
 
   render() {
     const { secret, qrcode } = this.state
+    const { user } = this.props
+
     return (
       <Container>
         <Row>
@@ -40,22 +51,19 @@ class Otp extends Component {
             <strong>Authentification OTP</strong>
           </Col>
           <Col smallSize={10}>
-            <div>Activer</div>
-            <input checked type='checkbox' />
-            <div>{secret}</div>
-            <img src={qrcode} alt='qrcode' />
-            <ActionButton
-              icon='save'
-              btnStyle='primary'
-              handler={() => console.log('otp', '68')}
-            >
-              SAVE
-            </ActionButton>
+            <Toggle
+              value={user.preferences.otp || false}
+              onChange={value => this._handleOtp(value)}
+            />
+            {user.preferences.otp !== undefined && (
+              <div>
+                <div>{secret}</div>
+                <img src={qrcode} alt='qrcode' />
+              </div>
+            )}
           </Col>
         </Row>
       </Container>
     )
   }
 }
-
-export default Otp

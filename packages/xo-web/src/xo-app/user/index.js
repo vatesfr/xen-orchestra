@@ -425,7 +425,7 @@ export default class User extends Component {
           </Row>
         </Container>
         <hr />
-        <Otp />
+        <Otp user={user} />
         <hr />
         <SshKeys />
         <hr />

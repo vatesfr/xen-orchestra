@@ -1,9 +1,11 @@
 import appConf from 'app-conf'
 import assert from 'assert'
+import authenticator from 'otplib/authenticator'
 import bind from 'lodash/bind'
 import blocked from 'blocked'
 import createExpress from 'express'
 import createLogger from '@xen-orchestra/log'
+import crypto from 'crypto'
 import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
@@ -42,6 +44,10 @@ import { Strategy as LocalStrategy } from 'passport-local'
 
 import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
+
+// ===================================================================
+
+authenticator.options = { crypto }
 
 // ===================================================================
 
@@ -130,6 +136,7 @@ async function setUpPassport(express, xo) {
     res.send(
       signInPage({
         error: req.flash('error')[0],
+        otp: req.flash('otp')[0],
         strategies,
       })
     )
@@ -140,18 +147,44 @@ async function setUpPassport(express, xo) {
     res.redirect('/')
   })
 
+  let currentUser
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
-    const { url } = req
+    const { url, body } = req
     const matches = url.match(SIGNIN_STRATEGY_RE)
 
     if (matches) {
       return passport.authenticate(matches[1], async (err, user, info) => {
+        if (user) {
+          currentUser = user
+        }
+
         if (err) {
           return next(err)
         }
 
-        if (!user) {
+        // OTP authent
+        if (
+          currentUser !== undefined &&
+          currentUser.preferences !== undefined &&
+          currentUser.preferences.otp !== undefined
+        ) {
+          const isValid = authenticator.check(
+            body.otp,
+            currentUser.preferences.otp
+          )
+
+          if (body.otp !== undefined && !isValid) {
+            req.flash('otp', true)
+            req.flash('error', 'Invalid code')
+            return res.redirect('/signin')
+          } else if (!isValid) {
+            req.flash('otp', true)
+            return res.redirect('/signin')
+          }
+        }
+
+        if (!currentUser) {
           req.flash('error', info ? info.message : 'Invalid credentials')
           return res.redirect('/signin')
         }
@@ -160,7 +193,7 @@ async function setUpPassport(express, xo) {
         // browsers do not save cookies on redirect.
         req.flash(
           'token',
-          (await xo.createAuthenticationToken({ userId: user.id })).id
+          (await xo.createAuthenticationToken({ userId: currentUser.id })).id
         )
 
         // The session is only persistent for internal provider and if 'Remember me' box is checked
@@ -168,7 +201,7 @@ async function setUpPassport(express, xo) {
           'session-is-persistent',
           matches[1] === 'local' && req.body['remember-me'] === 'on'
         )
-
+        currentUser = undefined
         res.redirect(req.flash('return-url')[0] || '/')
       })(req, res, next)
     }
