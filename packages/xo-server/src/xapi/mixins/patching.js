@@ -301,7 +301,7 @@ export default {
     })
   },
 
-  // legacy patches: upload a patch on a pool before installing it
+  // Legacy XS patches: upload a patch on a pool before installing it
   async _legacyUploadPatch(uuid) {
     // check if the patch has already been uploaded
     try {
@@ -337,8 +337,45 @@ export default {
 
     return this._getOrWaitObject(patchRef)
   },
+  // ----------
 
-  async _poolWideInstall(patches) {
+  // upload patch on a VDI on a shared SR
+  async _uploadPatch($defer, uuid) {
+    log.debug(`downloading patch ${uuid}`)
+
+    const patchInfo = (await _getXenUpdates()).patches[uuid]
+    if (!patchInfo) {
+      throw new Error('no such patch ' + uuid)
+    }
+
+    let stream = await this.xo.httpRequest(patchInfo.url)
+    stream = await new Promise((resolve, reject) => {
+      stream
+        .pipe(unzip.Parse())
+        .on('entry', entry => {
+          entry.length = entry.size
+          resolve(entry)
+        })
+        .on('error', reject)
+    })
+
+    const sr = this.findAvailableSharedSr(stream.length)
+    if (sr === undefined) {
+      return
+    }
+
+    const vdi = await this.createTemporaryVdiOnSr(
+      stream,
+      sr,
+      '[XO] Patch ISO',
+      'small temporary VDI to store a patch ISO'
+    )
+    $defer(() => this._deleteVdi(vdi))
+
+    return vdi
+  },
+
+  _poolWideInstall: deferrable(async function($defer, patches) {
     // Legacy XS patches
     if (!useUpdateSystem(this.pool.$master)) {
       // for each patch: pool_patch.pool_apply
@@ -355,10 +392,23 @@ export default {
     // ----------
 
     // for each patch: pool_update.introduce → pool_update.pool_apply
-  },
+    for (const p of patches) {
+      const [vdi] = await Promise.all([
+        this._uploadPatch($defer, p.uuid),
+        this._ejectToolsIsos(),
+      ])
+      if (vdi === undefined) {
+        throw new Error('patch could not be uploaded')
+      }
+      return this.call(
+        'pool_update.pool_apply',
+        await this.call('pool_update.introduce', vdi.$ref)
+      )
+    }
+  }),
 
   async _hostInstall(patches, host) {
-    throw new Error('not implemented')
+    throw new Error('single host install not implemented')
     // Legacy XS patches
     // for each patch: pool_patch.apply
     // ----------
@@ -383,6 +433,7 @@ export default {
     }
 
     // XS
+    // TODO: assert consistent time
     const poolWide = hosts === undefined
     if (poolWide) {
       // get pool master installable patches
