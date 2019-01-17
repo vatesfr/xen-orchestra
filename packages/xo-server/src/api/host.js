@@ -199,59 +199,6 @@ forget.resolve = {
 
 // -------------------------------------------------------------------
 
-// Returns an array of missing new patches in the host
-// Returns an empty array if up-to-date
-// Throws an error if the host is not running the latest XS version
-export function listMissingPatches({ host }) {
-  return this.getXapi(host).listMissingPatches(host._xapiId)
-}
-
-listMissingPatches.description =
-  'return an array of missing new patches in the host'
-
-listMissingPatches.params = {
-  host: { type: 'string' },
-}
-
-listMissingPatches.resolve = {
-  host: ['host', 'host', 'view'],
-}
-
-// -------------------------------------------------------------------
-
-export function installPatch({ host, patch: patchUuid }) {
-  return this.getXapi(host).installPoolPatchOnHost(patchUuid, host._xapiId)
-}
-
-installPatch.description = 'install a patch on an host'
-
-installPatch.params = {
-  host: { type: 'string' },
-  patch: { type: 'string' },
-}
-
-installPatch.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
-
-export function installAllPatches({ host }) {
-  return this.getXapi(host).installAllPoolPatchesOnHost(host._xapiId)
-}
-
-installAllPatches.description = 'install all the missing patches on a host'
-
-installAllPatches.params = {
-  host: { type: 'string' },
-}
-
-installAllPatches.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
-
 export function emergencyShutdownHost({ host }) {
   return this.getXapi(host).emergencyShutdownHost(host._xapiId)
 }

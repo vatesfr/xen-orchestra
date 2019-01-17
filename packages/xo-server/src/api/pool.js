@@ -75,40 +75,43 @@ setPoolMaster.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function installPatch({ pool, patch: patchUuid }) {
-  await this.getXapi(pool).installPoolPatchOnAllHosts(patchUuid)
+// Returns an array of missing new patches in the host
+// Returns an empty array if up-to-date
+// Throws an error if the host is not running the latest XS version
+export function listMissingPatches({ host }) {
+  return this.getXapi(host).listMissingPatches(host._xapiId)
 }
 
-installPatch.params = {
-  pool: {
-    type: 'string',
-  },
-  patch: {
-    type: 'string',
-  },
+listMissingPatches.description =
+  'return an array of missing new patches in the host'
+
+listMissingPatches.params = {
+  host: { type: 'string' },
 }
 
-installPatch.resolve = {
-  pool: ['pool', 'pool', 'administrate'],
+listMissingPatches.resolve = {
+  host: ['host', 'host', 'view'],
 }
+
 // -------------------------------------------------------------------
 
-export async function installAllPatches({ pool }) {
-  await this.getXapi(pool).installAllPoolPatchesOnAllHosts()
+export async function installPatches({ pool, patches, hosts }) {
+  await this.getXapi(pool).installPatches(patches, hosts)
 }
 
-installAllPatches.params = {
+installPatches.params = {
   pool: {
     type: 'string',
   },
+  patches: { type: 'array', optional: true },
+  hosts: { type: 'array', optional: true },
 }
 
-installAllPatches.resolve = {
+installPatches.resolve = {
   pool: ['pool', 'pool', 'administrate'],
 }
 
-installAllPatches.description =
-  'Install automatically all patches for every hosts of a pool'
+installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
