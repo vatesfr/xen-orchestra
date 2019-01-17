@@ -1,8 +1,6 @@
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
-import hrp from 'http-request-plus'
-import ProxyAgent from 'proxy-agent'
 import unzip from 'julien-f-unzip'
 import { filter, find, isEmpty, pick, pickBy, some, toArray } from 'lodash'
 
@@ -39,88 +37,6 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 // HELPERS ---------------------------------------------------------------------
 
 const log = createLogger('xo:xapi')
-
-const proxy = (() => {
-  const httpProxy = process.env.http_proxy || process.env.HTTP_PROXY
-  return httpProxy && new ProxyAgent(httpProxy)
-})()
-
-// raw { uuid: patch } map translated from updates.xensource.com/XenServer/updates.xml
-const _getXenUpdates = debounce(24 * 60 * 60 * 1000)(async () => {
-  const response = await hrp(
-    {
-      agent: proxy,
-    },
-    'http://updates.xensource.com/XenServer/updates.xml'
-  )
-
-  if (response.statusCode !== 200) {
-    throw new Error('cannot fetch patches list from Citrix')
-  }
-
-  const data = parseXml(await response.readAll()).patchdata
-
-  const patches = { __proto__: null }
-  forEach(data.patches.patch, patch => {
-    patches[patch.uuid] = {
-      date: patch.timestamp,
-      description: patch['name-description'],
-      documentationUrl: patch.url,
-      guidance: patch['after-apply-guidance'],
-      name: patch['name-label'],
-      url: patch['patch-url'],
-      uuid: patch.uuid,
-      conflicts: mapToArray(ensureArray(patch.conflictingpatches), patch => {
-        return patch.conflictingpatch.uuid
-      }),
-      requirements: mapToArray(ensureArray(patch.requiredpatches), patch => {
-        return patch.requiredpatch.uuid
-      }),
-      paid: patch['update-stream'] === 'premium',
-      upgrade: /^XS\d{2,}$/.test(patch['name-label']),
-      // TODO: what does it mean, should we handle it?
-      // version: patch.version,
-    }
-    if (patches[patch.uuid].conflicts[0] === undefined) {
-      patches[patch.uuid].conflicts.length = 0
-    }
-    if (patches[patch.uuid].requirements[0] === undefined) {
-      patches[patch.uuid].requirements.length = 0
-    }
-  })
-
-  const resolveVersionPatches = function(uuids) {
-    const versionPatches = { __proto__: null }
-
-    forEach(ensureArray(uuids), ({ uuid }) => {
-      versionPatches[uuid] = patches[uuid]
-    })
-
-    return versionPatches
-  }
-
-  const versions = { __proto__: null }
-  let latestVersion
-  forEach(data.serverversions.version, version => {
-    versions[version.value] = {
-      date: version.timestamp,
-      name: version.name,
-      id: version.value,
-      documentationUrl: version.url,
-      patches: resolveVersionPatches(version.patch),
-    }
-
-    if (version.latest) {
-      latestVersion = versions[version.value]
-    }
-  })
-
-  return {
-    patches,
-    latestVersion,
-    versions,
-  }
-})
 
 // sort patches so they can be installed in the correct order according to their
 // requirements
@@ -161,7 +77,85 @@ const _sortPatches = (patches, installablePatches) => {
 
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 
+// =============================================================================
+
 export default {
+  // raw { uuid: patch } map translated from updates.xensource.com/XenServer/updates.xml
+  // FIXME: should be static
+  @debounce(24 * 60 * 60 * 1000)
+  async _getXenUpdates() {
+    const response = await this.xo.httpRequest(
+      'http://updates.xensource.com/XenServer/updates.xml'
+    )
+
+    if (response.statusCode !== 200) {
+      throw new Error('cannot fetch patches list from Citrix')
+    }
+
+    const data = parseXml(await response.readAll()).patchdata
+
+    const patches = { __proto__: null }
+    forEach(data.patches.patch, patch => {
+      patches[patch.uuid] = {
+        date: patch.timestamp,
+        description: patch['name-description'],
+        documentationUrl: patch.url,
+        guidance: patch['after-apply-guidance'],
+        name: patch['name-label'],
+        url: patch['patch-url'],
+        uuid: patch.uuid,
+        conflicts: mapToArray(ensureArray(patch.conflictingpatches), patch => {
+          return patch.conflictingpatch.uuid
+        }),
+        requirements: mapToArray(ensureArray(patch.requiredpatches), patch => {
+          return patch.requiredpatch.uuid
+        }),
+        paid: patch['update-stream'] === 'premium',
+        upgrade: /^XS\d{2,}$/.test(patch['name-label']),
+        // TODO: what does it mean, should we handle it?
+        // version: patch.version,
+      }
+      if (patches[patch.uuid].conflicts[0] === undefined) {
+        patches[patch.uuid].conflicts.length = 0
+      }
+      if (patches[patch.uuid].requirements[0] === undefined) {
+        patches[patch.uuid].requirements.length = 0
+      }
+    })
+
+    const resolveVersionPatches = function(uuids) {
+      const versionPatches = { __proto__: null }
+
+      forEach(ensureArray(uuids), ({ uuid }) => {
+        versionPatches[uuid] = patches[uuid]
+      })
+
+      return versionPatches
+    }
+
+    const versions = { __proto__: null }
+    let latestVersion
+    forEach(data.serverversions.version, version => {
+      versions[version.value] = {
+        date: version.timestamp,
+        name: version.name,
+        id: version.value,
+        documentationUrl: version.url,
+        patches: resolveVersionPatches(version.patch),
+      }
+
+      if (version.latest) {
+        latestVersion = versions[version.value]
+      }
+    })
+
+    return {
+      patches,
+      latestVersion,
+      versions,
+    }
+  },
+
   // eject all ISOs from all the host's VM when installing patches
   // if hostRef is not specified: eject ISOs on all the pool's VMs
   async _ejectToolsIsos(hostRef) {
@@ -203,7 +197,7 @@ export default {
   // of if they're installed or not
   // ignore upgrade patches
   async _listPatches(host) {
-    const versions = (await _getXenUpdates()).versions
+    const versions = (await this._getXenUpdates()).versions
 
     const hostVersions = host.software_version
     const version =
@@ -301,7 +295,7 @@ export default {
 
     log.debug(`legacy downloading patch ${uuid}`)
 
-    const patchInfo = (await _getXenUpdates()).patches[uuid]
+    const patchInfo = (await this._getXenUpdates()).patches[uuid]
     if (!patchInfo) {
       throw new Error('no such patch ' + uuid)
     }
@@ -334,7 +328,7 @@ export default {
   async _uploadPatch($defer, uuid) {
     log.debug(`downloading patch ${uuid}`)
 
-    const patchInfo = (await _getXenUpdates()).patches[uuid]
+    const patchInfo = (await this._getXenUpdates()).patches[uuid]
     if (!patchInfo) {
       throw new Error('no such patch ' + uuid)
     }
