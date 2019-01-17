@@ -60,6 +60,7 @@ const createHash = (data, algorithm = ALGORITHM) =>
 class Audit {
   constructor(eventEmitter) {
     this._logs = {}
+    this._lastHash = this._logs.lastHash
 
     eventEmitter.on('xo:preCall', this._onPreCall.bind(this))
     eventEmitter.on('xo:postCall', this._onPostCall.bind(this))
@@ -70,13 +71,13 @@ class Audit {
     const log = {
       data,
       event: 'methodCall.start',
-      preHash: logs.lastHash,
+      preHash: this._lastHash,
       time: Date.now(),
     }
     if (logs.data === undefined) {
       logs.data = {}
     }
-    logs.data[(logs.lastHash = createHash(log))] = log
+    logs.data[(this._lastHash = createHash(log))] = log
   }
 
   _onPostCall(data) {
@@ -84,29 +85,29 @@ class Audit {
     const log = {
       data,
       event: 'methodCall.end',
-      preHash: logs.lastHash,
+      preHash: this._lastHash,
       time: Date.now(),
     }
-    logs.data[(logs.lastHash = createHash(log))] = log
+    logs.data[(this._lastHash = createHash(log))] = log
   }
 
-  checkIntegrity(hash = this._logs.lastHash) {
+  checkIntegrity(hash = this._lastHash) {
     const data = this._logs.data
 
     let entry = data[hash]
     if (entry === undefined) {
-      return false
+      throw new Error(`The entry for the hash ${hash} doesn't exists`)
     }
 
     const algorithm = ID_TO_ALGORITHM[hash.slice(1, hash.indexOf('$', 1))]
     do {
       if (hash !== createHash(entry, algorithm)) {
-        return false
+        throw new Error(`The hash ${hash} not correspond to the stored entry`)
       }
       hash = entry.preHash
     } while ((entry = data[hash]) !== undefined)
 
-    return true
+    return hash
   }
 
   getLogs() {
