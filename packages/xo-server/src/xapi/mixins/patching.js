@@ -5,6 +5,7 @@ import hrp from 'http-request-plus'
 import ProxyAgent from 'proxy-agent'
 import unzip from 'julien-f-unzip'
 import {
+  assign,
   compact,
   every,
   filter,
@@ -17,7 +18,7 @@ import {
   pickBy,
   some,
   sortBy,
-  assign,
+  toArray,
 } from 'lodash'
 
 import { debounce } from '../../decorators'
@@ -37,6 +38,7 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 //    _getXenUpdates
 //    _sortPatches
 //    _isXcp
+//    _ejectToolsIsos
 // # LIST
 //    _listXcpUpdates          XCP available updates
 //    _listPatches             XS patches (installed or not)
@@ -45,6 +47,8 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 //    listMissingPatches       HL: installable patches (XS) or updates (XCP)
 // # INSTALL
 //    _xcpUpdate               XCP yum update
+//    _legacyUploadPatch       XS legacy upload
+//    _uploadPatch             XS upload on a dedicated VDI
 //    installPatches           HL: install patches (XS) or yum update (XCP) on hosts
 
 // HELPERS ---------------------------------------------------------------------
@@ -139,6 +143,7 @@ const _getXenUpdates = debounce(24 * 60 * 60 * 1000)(async () => {
 // patches out of
 // if a required patch is not found in installablePatches, an error is thrown
 const _sortPatches = (patches, installablePatches) => {
+  log.debug('Patches that were requested to be installed', patches.map(patch => patch.uuid))
   if (isEmpty(patches)) {
     return []
   }
@@ -159,12 +164,35 @@ const _sortPatches = (patches, installablePatches) => {
     sortedPatches.push(patch)
   })
 
+  log.debug('Patches that will actually be installed due to requirements and conflicts', sortedPatches.map(patch => patch.uuid))
   return sortedPatches
 }
 
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 
 export default {
+  // eject all ISOs from all the host's VM when installing patches
+  // if hostRef is not specified: eject ISOs on all the pool's VMs
+  async _ejectToolsIsos(hostRef) {
+    return Promise.all(
+      mapFilter(this.objects.all, vm => {
+        if (vm.$type !== 'vm' || (hostRef && vm.resident_on !== hostRef)) {
+          return
+        }
+
+        const shouldEjectCd = some(vm.$VBDs, vbd => {
+          const vdi = vbd.$VDI
+
+          return vdi && vdi.is_tools_iso
+        })
+
+        if (shouldEjectCd) {
+          return this.ejectCdFromVm(vm.$id)
+        }
+      })
+    )
+  },
+
   // LIST ----------------------------------------------------------------------
 
   // list all yum updates available for a XCP-ng host
@@ -191,7 +219,7 @@ export default {
       versions[hostVersions.product_version] ||
       versions[hostVersions.product_version_text]
 
-    return version ? pickBy(version.patches, patch => !patch.upgrade : []
+    return version ? pickBy(version.patches, patch => !patch.upgrade) : []
   },
 
   // list patches installed on the host
@@ -216,7 +244,7 @@ export default {
   // list patches:
   //   - not installed on the host
   //   - not conflicting with any of the installed patches
-  // TODO: ignore paid patches on free license
+  // TODO: ignore paid patches for free license hosts
   // TODO: handle upgrade patches
   async _listInstallablePatches(host) {
     const all = await this._getPoolPatchesForHost(host)
@@ -273,10 +301,55 @@ export default {
     })
   },
 
+  // legacy patches: upload a patch on a pool before installing it
+  async _legacyUploadPatch(uuid) {
+    // check if the patch has already been uploaded
+    try {
+      return this.getObjectByUuid(uuid)
+    } catch (e) {}
+
+    log.debug(`legacy downloading patch ${uuid}`)
+
+    const patchInfo = (await _getXenUpdates()).patches[uuid]
+    if (!patchInfo) {
+      throw new Error('no such patch ' + uuid)
+    }
+
+    let stream = await this.xo.httpRequest(patchInfo.url)
+    stream = await new Promise((resolve, reject) => {
+      const PATCH_RE = /\.xsupdate$/
+      stream
+        .pipe(unzip.Parse())
+        .on('entry', entry => {
+          if (PATCH_RE.test(entry.path)) {
+            entry.length = entry.size
+            resolve(entry)
+          } else {
+            entry.autodrain()
+          }
+        })
+        .on('error', reject)
+    })
+
+    const patchRef = await this.putResource(stream, '/pool_patch_upload', {
+      task: this.createTask('Patch upload', patchInfo.name),
+    }).then(extractOpaqueRef)
+
+    return this._getOrWaitObject(patchRef)
+  },
+
   async _poolWideInstall(patches) {
     // Legacy XS patches
     if (!useUpdateSystem(this.pool.$master)) {
       // for each patch: pool_patch.pool_apply
+      for (const p of patches) {
+        const [patch] = await Promise.all([
+          this._legacyUploadPatch(p.uuid),
+          this._ejectToolsIsos(this.pool.$master.$ref),
+        ])
+
+        await this.call('pool_patch.pool_apply', patch.$ref)
+      }
       return
     }
     // ----------
