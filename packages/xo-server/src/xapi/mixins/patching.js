@@ -4,22 +4,7 @@ import deferrable from 'golike-defer'
 import hrp from 'http-request-plus'
 import ProxyAgent from 'proxy-agent'
 import unzip from 'julien-f-unzip'
-import {
-  assign,
-  compact,
-  every,
-  filter,
-  find,
-  includes,
-  isEmpty,
-  isObject,
-  map,
-  pick,
-  pickBy,
-  some,
-  sortBy,
-  toArray,
-} from 'lodash'
+import { filter, find, isEmpty, pick, pickBy, some, toArray } from 'lodash'
 
 import { debounce } from '../../decorators'
 import {
@@ -143,7 +128,10 @@ const _getXenUpdates = debounce(24 * 60 * 60 * 1000)(async () => {
 // patches out of
 // if a required patch is not found in installablePatches, an error is thrown
 const _sortPatches = (patches, installablePatches) => {
-  log.debug('Patches that were requested to be installed', patches.map(patch => patch.uuid))
+  log.debug(
+    'Patches that were requested to be installed',
+    patches.map(patch => patch.uuid)
+  )
   if (isEmpty(patches)) {
     return []
   }
@@ -164,7 +152,10 @@ const _sortPatches = (patches, installablePatches) => {
     sortedPatches.push(patch)
   })
 
-  log.debug('Patches that will actually be installed due to requirements and conflicts', sortedPatches.map(patch => patch.uuid))
+  log.debug(
+    'Patches that will actually be installed due to requirements and conflicts',
+    sortedPatches.map(patch => patch.uuid)
+  )
   return sortedPatches
 }
 
