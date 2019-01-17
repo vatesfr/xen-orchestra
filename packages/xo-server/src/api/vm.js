@@ -35,6 +35,13 @@ function checkPermissionOnSrs(vm, permission = 'operate') {
   return this.checkPermissions(this.session.get('user_id'), permissions)
 }
 
+const getCompression = (oldCompression, newCompression) =>
+  oldCompression !== undefined
+    ? oldCompression
+      ? 'native'
+      : ''
+    : newCompression
+
 // ===================================================================
 
 const extract = (obj, prop) => {
@@ -683,7 +690,7 @@ clone.resolve = {
 // -------------------------------------------------------------------
 
 // TODO: implement resource sets
-export async function copy({ compress, name: nameLabel, sr, vm }) {
+export async function copy({ compress, compression, name: nameLabel, sr, vm }) {
   if (vm.$pool === sr.$pool) {
     if (vm.power_state === 'Running') {
       await checkPermissionOnSrs.call(this, vm)
@@ -698,7 +705,7 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
 
   return this.getXapi(vm)
     .remoteCopyVm(vm._xapiId, this.getXapi(sr), sr._xapiId, {
-      compress,
+      compress: getCompression(compress, compression),
       nameLabel,
     })
     .then(({ vm }) => vm.$id)
@@ -707,6 +714,10 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
 copy.params = {
   compress: {
     type: 'boolean',
+    optional: true,
+  },
+  compression: {
+    enum: ['', 'native', 'zstd'],
     optional: true,
   },
   name: {
@@ -883,8 +894,13 @@ rollingSnapshot.description =
 
 // -------------------------------------------------------------------
 
-export function backup({ vm, remoteId, file, compress }) {
-  return this.backupVm({ vm, remoteId, file, compress })
+export function backup({ vm, remoteId, file, compress, compression }) {
+  return this.backupVm({
+    compress: getCompression(compress, compression),
+    file,
+    remoteId,
+    vm,
+  })
 }
 
 backup.permission = 'admin'
@@ -894,6 +910,10 @@ backup.params = {
   remoteId: { type: 'string' },
   file: { type: 'string' },
   compress: { type: 'boolean', optional: true },
+  compression: {
+    enum: ['', 'native', 'zstd'],
+    optional: true,
+  },
 }
 
 backup.resolve = {
@@ -932,13 +952,14 @@ export function rollingBackup({
   depth,
   retention = depth,
   compress,
+  compression,
 }) {
   return this.rollingBackupVm({
-    vm,
+    compress: getCompression(compress, compression),
     remoteId,
-    tag,
     retention,
-    compress,
+    tag,
+    vm,
   })
 }
 
@@ -952,6 +973,10 @@ rollingBackup.params = {
   // This parameter is deprecated. It used to support the old saved backups jobs.
   depth: { type: 'number', optional: true },
   compress: { type: 'boolean', optional: true },
+  compression: {
+    enum: ['', 'native', 'zstd'],
+    optional: true,
+  },
 }
 
 rollingBackup.resolve = {
@@ -1130,9 +1155,9 @@ revert.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExport(req, res, { xapi, id, compress }) {
+async function handleExport(req, res, { xapi, id, compress = 'native' }) {
   const stream = await xapi.exportVm(id, {
-    compress: compress != null ? compress : true,
+    compress,
   })
   res.on('close', () => stream.cancel())
   // Remove the filename as it is already part of the URL.
@@ -1147,7 +1172,7 @@ async function handleExport(req, res, { xapi, id, compress }) {
 }
 
 // TODO: integrate in xapi.js
-async function export_({ vm, compress }) {
+async function export_({ vm, compress, compression }) {
   if (vm.power_state === 'Running') {
     await checkPermissionOnSrs.call(this, vm)
   }
@@ -1155,7 +1180,7 @@ async function export_({ vm, compress }) {
   const data = {
     xapi: this.getXapi(vm),
     id: vm._xapiId,
-    compress,
+    compress: getCompression(compress, compression),
   }
 
   return {
@@ -1168,6 +1193,10 @@ async function export_({ vm, compress }) {
 export_.params = {
   vm: { type: 'string' },
   compress: { type: 'boolean', optional: true },
+  compression: {
+    enum: ['', 'native', 'zstd'],
+    optional: true,
+  },
 }
 
 export_.resolve = {

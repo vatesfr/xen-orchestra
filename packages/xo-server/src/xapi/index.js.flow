@@ -58,6 +58,8 @@ declare export class Vm extends XapiObject {
   uuid: string;
 }
 
+export type Compress =  'native' | 'zstd' | ''
+
 declare export class Xapi {
   objects: { all: $Dict<Object> };
 
@@ -93,7 +95,7 @@ declare export class Xapi {
   exportVm(
     cancelToken: mixed,
     vm: Vm,
-    options ?: Object
+    options?: { compress?: Compress }
   ): Promise<AugmentedReadable>;
   getObject(object: Id): XapiObject;
   importDeltaVm(data: DeltaVmImport, options: Object): Promise<{ vm: Vm }>;

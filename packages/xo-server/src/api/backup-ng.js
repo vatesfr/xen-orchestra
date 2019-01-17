@@ -11,7 +11,7 @@ export function createJob({ schedules, ...job }) {
 createJob.permission = 'admin'
 createJob.params = {
   compression: {
-    enum: ['', 'native'],
+    enum: ['', 'native', 'zstd'],
     optional: true,
   },
   mode: {
@@ -68,7 +68,7 @@ export function editJob(props) {
 editJob.permission = 'admin'
 editJob.params = {
   compression: {
-    enum: ['', 'native'],
+    enum: ['', 'native', 'zstd'],
     optional: true,
   },
   id: {

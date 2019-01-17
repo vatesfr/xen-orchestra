@@ -42,6 +42,7 @@ import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
 import {
+  type Compress,
   type DeltaVmExport,
   type DeltaVmImport,
   type Vdi,
@@ -81,7 +82,7 @@ type SimpleIdPattern = {|
 
 export type BackupJob = {|
   ...$Exact<Job>,
-  compression?: 'native',
+  compression?: Compress,
   mode: Mode,
   remotes?: SimpleIdPattern,
   settings: $Dict<Settings>,
@@ -1119,7 +1120,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
-          compress: job.compression === 'native',
+          compress: job.compression ?? '',
         })
       )
       const exportTask = xva.task
