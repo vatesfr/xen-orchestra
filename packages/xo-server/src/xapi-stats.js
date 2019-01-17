@@ -1,4 +1,3 @@
-import defined from '@xen-orchestra/defined'
 import JSON5 from 'json5'
 import limitConcurrency from 'limit-concurrency-decorator'
 import synchronized from 'decorator-synchronized'
@@ -84,7 +83,7 @@ const combineStats = (stats, path, combineValues) =>
 // targetPath: [a, b, c] => a.b.c
 const getValuesFromDepth = (obj, targetPath, lastChildDefaultValue = []) => {
   if (typeof targetPath === 'string') {
-    return (obj[targetPath] = defined(obj[targetPath], lastChildDefaultValue))
+    return (obj[targetPath] = obj[targetPath] ?? lastChildDefaultValue)
   }
 
   forEach(targetPath, (path, key) => {
@@ -320,7 +319,7 @@ export default class XapiStats {
   _getCachedStats(hostUuid, step, vmUuid) {
     const statsByObject = this._statsByObject
 
-    const stats = statsByObject[defined(vmUuid, hostUuid)]
+    const stats = statsByObject[vmUuid ?? hostUuid]
     if (stats === undefined) {
       return
     }
@@ -451,9 +450,8 @@ export default class XapiStats {
       }
     }
 
-    return defined(
-      get(this._statsByObject, [defined(vmUuid, hostUuid), step]),
-      {
+    return (
+      this._statsByObject[vmUuid ?? hostUuid]?.[step] ?? {
         endTimestamp: localTimestamp,
         interval: step,
         stats: {},
