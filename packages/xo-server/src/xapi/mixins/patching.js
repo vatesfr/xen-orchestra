@@ -232,8 +232,8 @@ export default {
   // TODO: ignore paid patches for free license hosts
   // TODO: handle upgrade patches
   async _listInstallablePatches(host) {
-    const all = await this._getPoolPatchesForHost(host)
-    const installed = this._getInstalledPoolPatchesOnHost(host)
+    const all = await this._listPatches(host)
+    const installed = this._listInstalledPatches(host)
 
     const installable = { __proto__: null }
     forEach(all, (patch, uuid) => {
@@ -254,7 +254,8 @@ export default {
   },
 
   // high level
-  listMissingPatches(host) {
+  listMissingPatches(hostId) {
+    const host = this.getObject(hostId)
     return _isXcp(host)
       ? this._listXcpUpdates(host)
       : this._listInstallablePatches(host)
@@ -413,7 +414,7 @@ export default {
   // it may install more patches that specified if some of them require other patches
   async installPatches({ patches, hosts }) {
     // XCP
-    if (this.pool.$master.software_version.product_brand === 'XCP-ng') {
+    if (_isXcp(this.pool.$master)) {
       return this._xcpUpdate(hosts)
     }
 
