@@ -96,10 +96,10 @@ listMissingPatches.resolve = {
 // -------------------------------------------------------------------
 
 export async function installPatches({ pool, patches, hosts }) {
-  await this.getXapi(hosts === undefined ? pool : hosts[0]).installPatches(
+  await this.getXapi(hosts === undefined ? pool : hosts[0]).installPatches({
     patches,
-    hosts
-  )
+    hosts,
+  })
 }
 
 installPatches.params = {
