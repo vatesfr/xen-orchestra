@@ -219,9 +219,9 @@ class JobsTable extends React.Component {
         name: _('jobSchedules'),
       },
       {
-        itemRenderer: job => {
+        itemRenderer: ({ compression = '', settings }) => {
           const { concurrency, offlineSnapshot, reportWhen, timeout } =
-            job.settings[''] || {}
+            settings[''] || {}
 
           return (
             <Ul>
@@ -240,11 +240,11 @@ class JobsTable extends React.Component {
                   )}
                 </Li>
               )}
-              {job.compression === 'native' && (
+              {compression !== '' && (
                 <Li>
                   {_.keyValue(
-                    _('useCompression'),
-                    <span className='text-success'>{_('stateEnabled')}</span>
+                    _('formCompression'),
+                    compression === 'native' ? 'GZIP' : compression
                   )}
                 </Li>
               )}

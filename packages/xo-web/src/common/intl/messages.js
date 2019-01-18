@@ -197,6 +197,8 @@ const messages = {
   sortedTableNumberOfItems: '{nTotal, number} items',
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
   sortedTableSelectAllItems: 'Click here to select all items',
+  choseCompressionGzipOption: 'GZIP (very slow)',
+  choseCompressionZstdOption: 'Zstd (fast but XCP-ng only)',
 
   // ----- state -----
   state: 'State',
@@ -213,6 +215,7 @@ const messages = {
 
   // ----- Forms -----
   formCancel: 'Cancel',
+  formCompression: 'Compression',
   formCreate: 'Create',
   formEdit: 'Edit',
   formId: 'ID',
@@ -406,7 +409,6 @@ const messages = {
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
   useDelta: 'Use delta',
-  useCompression: 'Use compression',
   offlineSnapshot: 'Offline snapshot',
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   timeout: 'Timeout',
