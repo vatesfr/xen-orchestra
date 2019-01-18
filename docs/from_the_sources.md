@@ -185,7 +185,7 @@ service redis start
 
 ## SUDO
 
-In case you are running `xo-server` as a non-root user, you need to use `sudo` to be able to mount NFS remotes. You can do this by editing `xo-server/config.toml` and setting `useSudo = true`. It's near the end of the file:
+In case you are running `xo-server` with a non-root user, you need to use `sudo` to be able to mount NFS remotes. You can do this by editing `xo-server/.xo-server.toml` and setting `useSudo = true`. It's near the end of the file:
 
 ```
 useSudo = true
