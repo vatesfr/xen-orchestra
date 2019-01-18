@@ -347,9 +347,11 @@ export const streamToArray = (stream, { filter, mapper } = {}) =>
 
 // Create a serializable object from an error.
 export const serializeError = error => ({
-  message: error.message,
-  stack: error.stack,
   ...error, // Copy enumerable properties.
+  code: error.code,
+  message: error.message,
+  name: error.name,
+  stack: error.stack,
 })
 
 // -------------------------------------------------------------------
