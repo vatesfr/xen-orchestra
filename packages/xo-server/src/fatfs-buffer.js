@@ -16,6 +16,7 @@
 //   }
 // })
 
+import assert from 'assert'
 import { boot16 as fat16 } from 'fatfs/structs'
 
 const SECTOR_SIZE = 512
@@ -23,7 +24,10 @@ const SECTOR_SIZE = 512
 const TEN_MIB = 10 * 1024 * 1024
 
 // Creates a 10MB buffer and initializes it as a FAT 16 volume.
-export function init() {
+export function init({ label: 'cidata    ' } = {}) {
+  assert.strictEqual(typeof label, 'string')
+  assert.strictEqual(label.length, 11)
+  
   const buf = Buffer.alloc(TEN_MIB)
 
   // https://github.com/natevw/fatfs/blob/master/structs.js
@@ -47,7 +51,7 @@ export function init() {
       Reserved1: 0,
       BootSig: 41,
       VolID: 895111106,
-      VolLab: 'cidata    ',
+      VolLab: label,
       FilSysType: 'FAT16   ',
     },
     buf
