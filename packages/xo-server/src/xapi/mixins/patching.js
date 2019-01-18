@@ -39,10 +39,6 @@ const log = createLogger('xo:xapi')
 // patches out of
 // if a required patch is not found in installablePatches, an error is thrown
 const _sortPatches = (patches, installablePatches) => {
-  log.debug(
-    'Patches that were requested to be installed',
-    patches.map(patch => patch.uuid)
-  )
   if (isEmpty(patches)) {
     return []
   }
@@ -63,10 +59,6 @@ const _sortPatches = (patches, installablePatches) => {
     sortedPatches.push(patch)
   })
 
-  log.debug(
-    'Patches that will actually be installed due to requirements and conflicts',
-    sortedPatches.map(patch => patch.uuid)
-  )
   return sortedPatches
 }
 
@@ -381,6 +373,8 @@ export default {
       if (vdi === undefined) {
         throw new Error('patch could not be uploaded')
       }
+
+      log.debug(`installing patch ${p.uuid}`)
       return this.call(
         'pool_update.pool_apply',
         await this.call('pool_update.introduce', vdi.$ref)
@@ -424,11 +418,22 @@ export default {
       const installablePatches = await this._listInstallablePatches(
         this.pool.$master
       )
-      const patchesToInstall = pick(installablePatches, patches)
+      log.debug(`patches that were requested to be installed ${patches}`)
+
+      const patchesToInstall =
+        patches === undefined
+          ? installablePatches
+          : pick(installablePatches, patches)
       const sortedPatchesToInstall = _sortPatches(
-        patchesToInstall,
+        toArray(patchesToInstall),
         installablePatches
       )
+
+      log.debug(
+        'patches that will actually be installed',
+        sortedPatchesToInstall.map(patch => patch.uuid)
+      )
+
       return this._poolWideInstall(sortedPatchesToInstall)
     }
 
