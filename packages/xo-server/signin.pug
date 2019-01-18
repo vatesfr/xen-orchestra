@@ -14,16 +14,16 @@ html
       h2.text-xs-center.mb-2 Xen Orchestra
       form(action = 'signin/local' method = 'post')
         fieldset
-        if error
-          p.text-danger #{error}
+          if error
+            p.text-danger #{error}
         if otp
           .input-group.mb-1
             span.input-group-addon
               i.fa.fa-key.fa-fw
             input.form-control(
               name = 'otp'
-              type = 'password'
-              placeholder = 'token'
+              type = 'text'
+              placeholder = 'Token'
               required
             )
           div

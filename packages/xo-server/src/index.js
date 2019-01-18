@@ -47,6 +47,7 @@ import { configure } from '@xen-orchestra/log/configure'
 
 // ===================================================================
 
+// https://github.com/yeojz/otplib#using-specific-otp-implementations
 authenticator.options = { crypto }
 
 // ===================================================================
@@ -164,15 +165,9 @@ async function setUpPassport(express, xo) {
         }
 
         // OTP authent
-        if (
-          currentUser !== undefined &&
-          currentUser.preferences !== undefined &&
-          currentUser.preferences.otp !== undefined
-        ) {
-          const isValid = authenticator.check(
-            body.otp,
-            currentUser.preferences.otp
-          )
+        const otpSecret = currentUser?.preferences?.otp
+        if (otpSecret !== undefined) {
+          const isValid = authenticator.check(body.otp, otpSecret)
 
           if (body.otp !== undefined && !isValid) {
             req.flash('otp', true)

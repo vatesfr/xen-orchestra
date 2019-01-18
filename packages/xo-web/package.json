@@ -60,7 +60,6 @@
     "complex-matcher": "^0.5.0",
     "cookies-js": "^1.2.2",
     "copy-to-clipboard": "^3.0.8",
-    "crypto": "^1.0.1",
     "d3": "^5.0.0",
     "debounce-input-decorator": "^1.0.0",
     "enzyme": "^3.3.0",
