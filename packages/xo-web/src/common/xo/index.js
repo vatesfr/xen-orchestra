@@ -777,12 +777,13 @@ export const emergencyShutdownHosts = hosts => {
 }
 
 export const installHostPatch = (host, { uuid }) =>
-  _call('pool.installPatches', { host: resolveId(host), patch: [uuid] })::tap(
-    () => subscribeHostMissingPatches.forceRefresh(host)
-  )
+  _call('pool.installPatches', {
+    hosts: [resolveId(host)],
+    patch: [uuid],
+  })::tap(() => subscribeHostMissingPatches.forceRefresh(host))
 
 export const installAllHostPatches = host =>
-  _call('pool.installPatches', { host: resolveId(host) })::tap(() =>
+  _call('pool.installPatches', { hosts: [resolveId(host)] })::tap(() =>
     subscribeHostMissingPatches.forceRefresh(host)
   )
 
