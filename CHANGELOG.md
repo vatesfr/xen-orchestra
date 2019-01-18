@@ -13,6 +13,7 @@
 - [VM] Ability to copy a VM with zstd compression [#3773](https://github.com/vatesfr/xen-orchestra/issues/3773) (PR [#3889](https://github.com/vatesfr/xen-orchestra/pull/3889))
 - [VM & Host] "Pool > Host" breadcrumb at the top of the page (PR [#3898](https://github.com/vatesfr/xen-orchestra/pull/3898))
 - [Hosts] Ability to enable/disable host multipathing [#3659](https://github.com/vatesfr/xen-orchestra/issues/3659) (PR [#3865](https://github.com/vatesfr/xen-orchestra/pull/3865))
+- [Login] Add OTP authentification [#2044](https://github.com/vatesfr/xen-orchestra/issues/2044) (PR [#3879](https://github.com/vatesfr/xen-orchestra/pull/3879))
 
 ### Bug fixes
 
