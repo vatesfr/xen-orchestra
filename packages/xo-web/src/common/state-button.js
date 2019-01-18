@@ -14,41 +14,32 @@ const Button = styled(p => <ActionButton {...omit(p, 'state')} />)`
   color: ${p => p.theme[`${p.state ? 'enabled' : 'disabled'}StateColor`]};
 `
 
-const StateButton = props => {
-  const {
-    disabledHandler,
-    disabledHandlerParam,
-    disabledLabel,
-    disabledTooltip,
+const StateButton = ({
+  disabledHandler,
+  disabledHandlerParam,
+  disabledLabel,
+  disabledTooltip,
 
-    enabledLabel,
-    enabledTooltip,
-    enabledHandler,
-    enabledHandlerParam,
+  enabledLabel,
+  enabledTooltip,
+  enabledHandler,
+  enabledHandlerParam,
 
-    state,
-    ...otherProps
-  } = props
-  const handlerParamProp = {}
-  if ('enabledHandlerParam' in props || 'disabledHandlerParam' in props) {
-    handlerParamProp.handlerParam = state
-      ? enabledHandlerParam
-      : disabledHandlerParam
-  }
-  return (
-    <Button
-      handler={state ? enabledHandler : disabledHandler}
-      {...handlerParamProp}
-      tooltip={state ? enabledTooltip : disabledTooltip}
-      {...otherProps}
-      icon={state ? 'running' : 'halted'}
-      size='small'
-      state={state}
-    >
-      {state ? enabledLabel : disabledLabel}
-    </Button>
-  )
-}
+  state,
+  ...props
+}) => (
+  <Button
+    handler={state ? enabledHandler : disabledHandler}
+    handlerParam={state ? enabledHandlerParam : disabledHandlerParam}
+    tooltip={state ? enabledTooltip : disabledTooltip}
+    {...props}
+    icon={state ? 'running' : 'halted'}
+    size='small'
+    state={state}
+  >
+    {state ? enabledLabel : disabledLabel}
+  </Button>
+)
 
 StateButton.propTypes = {
   state: PropTypes.bool.isRequired,
