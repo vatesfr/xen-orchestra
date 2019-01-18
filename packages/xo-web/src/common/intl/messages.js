@@ -198,7 +198,7 @@ const messages = {
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
   sortedTableSelectAllItems: 'Click here to select all items',
   choseCompressionGzipOption: 'GZIP (very slow)',
-  choseCompressionZstdOption: 'Zstd (fast but XCP-ng only)',
+  choseCompressionZstdOption: 'Zstd (fast, XCP-ng only)',
 
   // ----- state -----
   state: 'State',
