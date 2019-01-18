@@ -17,7 +17,7 @@ group = 'nogroup'
 
 **Warning!** A non-privileged user:
 
-* require the use of ``sudo`` to mount NFS shares
+* requires the use of ``sudo`` to mount NFS shares
 
 ### HTTP listen address and port
 
