@@ -112,13 +112,13 @@ On XOA, the log file for XO-server is in `/var/log/syslog`. It contains all the 
 
 ### SUDO
 
-To be able to mount NFS shares with a non-privileged user the use of ``sudo`` is required. By default, XO-Server does not use it. To enable, change parameter ``useSudo`` to ``true``, inside the `remoteOptions` block.
+To be able to mount NFS shares with a non-privileged user, the use of ``sudo`` is required. By default, XO-Server does not use sudo. To enable it, change the parameter ``useSudo`` to ``true``. It's located inside the `remoteOptions` block.
 
 ```toml
 useSudo = true
 ```
 
-You need to configure ``sudo`` on your operating system to accept the user of your choice to run mount/umount commands without asking for password. Depending of your operating system / sudo version, the local of this configuration may change. Regardless, you can use:
+You also need to configure ``sudo`` on your operating system to accept the user of your choice to run mount/umount commands without asking for a password. Depending on your operating system / sudo version, the location of this configuration may change. Regardless, you can use:
 
 ```
 username ALL=(root)NOPASSWD: /bin/mount, /bin/umount
