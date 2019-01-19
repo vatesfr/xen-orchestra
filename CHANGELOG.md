@@ -16,6 +16,7 @@
 
 ### Released packages
 
+- xen-api v0.24.1
 - xo-vmdk-to-vhd v0.1.6
 - xo-server v5.34.0
 - xo-web v5.34.0

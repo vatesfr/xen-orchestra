@@ -55,7 +55,8 @@ export const required = name => {
 // -------------------------------------------------------------------
 
 export const serializeError = error => ({
-  ...error,
+  ...error, // Copy enumerable properties.
+  code: error.code,
   message: error.message,
   name: error.name,
   stack: error.stack,

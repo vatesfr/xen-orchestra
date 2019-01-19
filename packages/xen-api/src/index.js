@@ -109,6 +109,9 @@ export const wrapError = error => {
   } else {
     code = error.message
     params = error.data
+    if (!isArray(params)) {
+      params = []
+    }
   }
   return new XapiError(code, params)
 }
