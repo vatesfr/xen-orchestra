@@ -6,6 +6,7 @@
 
 - [VM migration] Display hosts' free memory [#3264](https://github.com/vatesfr/xen-orchestra/issues/3264) (PR [#3832](https://github.com/vatesfr/xen-orchestra/pull/3832))
 - [Plugins] New field to filter displayed plugins (PR [#3832](https://github.com/vatesfr/xen-orchestra/pull/3871))
+- [Cloud-Init] switch config drive type to `nocloud` to prepare for the passing of network config (PR [#3877](https://github.com/vatesfr/xen-orchestra/pull/3877))
 
 ### Bug fixes
 
