@@ -12,7 +12,7 @@ const messages = {
   statusLoading: 'Loading…',
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'no such item',
-  errorUnknownItem: 'unknown item',
+  errorUnknownItem: 'unknown {type}',
   memoryFree: '{memoryFree} RAM free',
 
   editableLongClickPlaceholder: 'Long click to edit',
