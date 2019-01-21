@@ -151,11 +151,6 @@ port = 80
 # Default: '/run/xo-server/mounts'
 #mountsDir = '/run/xo-server/mounts'
 
-# Timeout in milliseconds (set to 0 to disable)
-#
-# Default: '600e3'
-#timeout = 600e3
-
 # Use sudo for mount with non-root user
 #
 # Default: false
