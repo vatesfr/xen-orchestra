@@ -171,30 +171,28 @@ export default class TabAdvanced extends Component {
           </Row>
         </Container>
         <h3 className='mt-1 mb-1'>{_('hostMultipathing')}</h3>
-        <Container>
-          <Row>
-            <ActionButton
-              btnStyle='success'
-              data-hosts={hostsDisabledMultipathing}
-              data-multipathing
-              disabled={hostsDisabledMultipathing === undefined}
-              handler={setHostsMultipathing}
-              icon='host'
-            >
-              {_('hostEnableMultipathingForAllHosts')}
-            </ActionButton>{' '}
-            <ActionButton
-              btnStyle='danger'
-              data-hosts={hostsEnabledMultipathing}
-              data-multipathing={false}
-              disabled={hostsEnabledMultipathing === undefined}
-              handler={setHostsMultipathing}
-              icon='host'
-            >
-              {_('hostDisableMultipathingForAllHosts')}
-            </ActionButton>
-          </Row>
-        </Container>
+        <div>
+          <ActionButton
+            btnStyle='success'
+            data-hosts={hostsDisabledMultipathing}
+            data-multipathing
+            disabled={hostsDisabledMultipathing === undefined}
+            handler={setHostsMultipathing}
+            icon='host'
+          >
+            {_('hostEnableMultipathingForAllHosts')}
+          </ActionButton>{' '}
+          <ActionButton
+            btnStyle='danger'
+            data-hosts={hostsEnabledMultipathing}
+            data-multipathing={false}
+            disabled={hostsEnabledMultipathing === undefined}
+            handler={setHostsMultipathing}
+            icon='host'
+          >
+            {_('hostDisableMultipathingForAllHosts')}
+          </ActionButton>
+        </div>
         <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>
         <Upgrade place='poolSupplementalPacks' required={2}>
           <SelectFiles
