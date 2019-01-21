@@ -1052,6 +1052,10 @@
     @extend .fa;
     @extend .fa-support;
   }
+  &-notification {
+    @extend .fa;
+    @extend .fa-bell;
+  }
 
   // XOSAN related
 
