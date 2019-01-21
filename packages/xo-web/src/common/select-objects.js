@@ -250,24 +250,28 @@ class GenericSelect extends React.Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  _renderOption = option => (
-    <span
-      className={
-        !option.disabled && this.props.xoContainers !== undefined
-          ? 'ml-1'
-          : undefined
-      }
-    >
-      {renderXoItem(option.xoItem, {
-        type:
-          this.props.resourceSet !== undefined &&
-          option.xoItem.type !== undefined
-            ? `${option.xoItem.type}-resourceSet`
-            : undefined,
-        memoryFree: option.xoItem.type === 'host' || undefined,
-      })}
-    </span>
-  )
+  _renderOption = option => {
+    const isHost = option.xoItem.type === 'host'
+    return (
+      <span
+        className={
+          !option.disabled && this.props.xoContainers !== undefined
+            ? 'ml-1'
+            : undefined
+        }
+      >
+        {renderXoItem(option.xoItem, {
+          type:
+            this.props.resourceSet !== undefined &&
+            option.xoItem.type !== undefined
+              ? `${option.xoItem.type}-resourceSet`
+              : undefined,
+          memoryFree: isHost || undefined,
+          pool: isHost ? false : undefined,
+        })}
+      </span>
+    )
+  }
 
   render() {
     const { hasSelectAll, xoContainers, xoObjects, ...props } = this.props
@@ -375,9 +379,25 @@ export const SelectHost = makeStoreSelect(
     const getHostsByPool = createGetObjectsOfType('host')
       .filter(getPredicate)
       .sort()
+      .groupBy('$pool')
+
+    const getPools = createSelector(
+      createGetObjectsOfType('pool').pick(
+        createSelector(
+          getHostsByPool,
+          hostsByPool => keys(hostsByPool)
+        )
+      ),
+      (_, props) => props.pool, // sorted relative to this pool
+      (pools, poolId) =>
+        poolId !== undefined
+          ? sortBy(pools, pool => pool.id !== poolId)
+          : sortBy(pools)
+    )
 
     return {
       xoObjects: getHostsByPool,
+      xoContainers: getPools,
     }
   },
   { placeholder: _('selectHosts') }

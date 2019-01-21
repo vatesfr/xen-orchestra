@@ -218,7 +218,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     this.setState({ migrationNetworkId: migrationNetwork.id })
 
   render() {
-    const { vdis, vifs, networks } = this.props
+    const { vdis, vifs, vm, networks } = this.props
     const {
       doNotMigrateVdis,
       host,
@@ -234,6 +234,7 @@ export default class MigrateVmModalBody extends BaseComponent {
             <Col size={4}>{_('migrateVmSelectHost')}</Col>
             <Col size={8}>
               <SelectHost
+                pool={vm.$pool} // sorted relative to this pool
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 required
