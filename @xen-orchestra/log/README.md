@@ -75,7 +75,7 @@ catchGlobalErrors(transport)
 ```js
 import transportConsole from '@xen-orchestra/log/transports/console'
 
-configure(transports.console())
+configure(transportConsole())
 ```
 
 #### Email
