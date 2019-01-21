@@ -8,6 +8,7 @@
    - enhancement/bug fix entry added
    - list of packages to release updated (`${name} v${new version}`)
 - [ ] documentation updated
+- [ ] **I have tested added/updated features** (and impacted code)
 
 ### Process
 
