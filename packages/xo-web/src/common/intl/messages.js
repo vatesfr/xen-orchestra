@@ -14,6 +14,9 @@ const messages = {
   errorNoSuchItem: 'no such item',
   errorUnknownItem: 'unknown {type}',
   memoryFree: '{memoryFree} RAM free',
+  date: 'Date',
+  notifications: 'Notifications',
+  notification: 'Notification',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',

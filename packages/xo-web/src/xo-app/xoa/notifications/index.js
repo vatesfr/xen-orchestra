@@ -1,3 +1,4 @@
+import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import cookies from 'cookies-js'
@@ -8,11 +9,12 @@ import SortedTable from 'sorted-table'
 import updater from 'xoa-updater'
 import { alert } from 'modal'
 import { FormattedDate } from 'react-intl'
+import { some } from 'lodash'
 
 const COLUMNS = [
   {
     default: true,
-    name: 'Date',
+    name: _('date'),
     itemRenderer: ({ created, level }) => (
       <span>
         <Icon icon={level === 'warning' ? 'info' : 'alarm'} />{' '}
@@ -42,13 +44,15 @@ const Notification = ({ notification: { message } }) => (
 
 export default class Notifications extends Component {
   _getNotifications = () =>
-    updater._call('getMessages').then(messages => this.setState({ messages }))
+    updater
+      ._call('getMessages')
+      .then(notifications => this.setState({ notifications }))
 
   _showMessage = async notification => {
     cookies.set(`notification:${notification.id}`, 'dismissed')
     await alert(
       <span>
-        <Icon icon='notification' /> Notification
+        <Icon icon='notification' /> {_('notification')}
       </span>,
       <Notification notification={notification} />
     )
@@ -66,15 +70,32 @@ export default class Notifications extends Component {
           handler={this._getNotifications}
           icon='refresh'
         >
-          Refresh
+          {_('refresh')}
         </ActionButton>
         <SortedTable
           columns={COLUMNS}
-          collection={this.state.messages}
+          collection={this.state.notifications}
           rowAction={this._showMessage}
           stateUrlParam='s'
         />
       </div>
     )
+  }
+}
+
+export class NotificationTag extends Component {
+  componentDidMount() {
+    updater._call('getMessages').then(notifications => {
+      this.setState({
+        newNotifications: some(
+          notifications,
+          notification => !cookies.get(`notification:${notification.id}`)
+        ),
+      })
+    })
+  }
+
+  render() {
+    return this.state.newNotifications ? <Icon icon='notification' /> : null
   }
 }
