@@ -489,14 +489,12 @@ export default class TabAdvanced extends Component {
     getVmsHaValues().then(vmsHaValues => this.setState({ vmsHaValues }))
   }
 
-  _getCpuMask = createSelector(
-    () => this.props.vm.cpuMask,
-    cpuMask =>
-      map(cpuMask, number => ({
-        value: number,
-        label: `Core ${number} `,
-      }))
-  )
+  state = {
+    cpuMask: map(this.props.vm.cpuMask, number => ({
+      value: number,
+      label: `Core ${number} `,
+    })),
+  }
 
   _getCpuMaskOptions = createSelector(
     () => this.props.vm,
@@ -508,13 +506,16 @@ export default class TabAdvanced extends Component {
   )
 
   _onChangeCpuMask = cpuMask =>
-    editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
+    editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') }).then(() =>
+      this.setState({ cpuMask })
+    )
 
   _onNicTypeChange = value =>
     editVm(this.props.vm, { nicType: value === '' ? null : value })
 
   render() {
     const { container, isAdmin, vgpus, vm } = this.props
+    const { cpuMask, vmsHaValues } = this.state
     return (
       <Container>
         <Row>
@@ -682,7 +683,7 @@ export default class TabAdvanced extends Component {
                         onChange={this._onChangeCpuMask}
                         options={this._getCpuMaskOptions()}
                         placeholder={_('selectCpuMask')}
-                        value={this._getCpuMask()}
+                        value={cpuMask}
                       />
                     </td>
                   </tr>
@@ -757,7 +758,7 @@ export default class TabAdvanced extends Component {
                       }
                       value={vm.high_availability}
                     >
-                      {map(this.state.vmsHaValues, vmsHaValue => (
+                      {map(vmsHaValues, vmsHaValue => (
                         <option key={vmsHaValue} value={vmsHaValue}>
                           {vmsHaValue === '' ? _('vmHaDisabled') : vmsHaValue}
                         </option>
