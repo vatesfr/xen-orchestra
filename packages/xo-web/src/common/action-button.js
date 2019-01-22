@@ -65,9 +65,10 @@ export default class ActionButton extends Component {
     }
 
     const { children, handler, tooltip } = props
+    console.log(props)
 
     let handlerParam
-    if (handlerParam !== undefined) {
+    if (props.handlerParam !== undefined) {
       handlerParam = props.handlerParam
     } else {
       let empty = true
