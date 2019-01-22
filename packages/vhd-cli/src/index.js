@@ -16,9 +16,9 @@ function runCommand(commands, [command, ...args]) {
       return `Usage:
 
 ${Object.keys(commands)
-        .filter(command => command !== 'help')
-        .map(command => `    ${this.command} ${command}`)
-        .join('\n\n')}`
+  .filter(command => command !== 'help')
+  .map(command => `    ${this.command} ${command}`)
+  .join('\n\n')}`
     }
 
     throw `invalid command ${command}` // eslint-disable-line no-throw-literal

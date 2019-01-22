@@ -2339,10 +2339,7 @@ export default class Xapi extends XapiBase {
     const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
 
     await Promise.all([
-      fs.writeFile(
-        'meta-data',
-        'instance-id: ' + vm.uuid + '\n'
-      ),
+      fs.writeFile('meta-data', 'instance-id: ' + vm.uuid + '\n'),
       fs.writeFile('user-data', config),
     ])
 
