@@ -24,10 +24,11 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 
 
 1. Create a branch for your work
-2. Create a pull request for this branch against the `master` branch
-3. Push into the branch until the pull request is ready to merge
-4. Avoid unnecessary merges: keep you branch up to date by regularly rebasing `git rebase origin/master`
-5. When ready to merge, clean up the history (reorder commits, squash some of them together, rephrase messages): `git rebase -i origin/master`
+2. Add a summary of your changes to `CHANGELOG.md` under the `next` section, if your changes do not relate to an existing changelog item
+3. Create a pull request for this branch against the `master` branch
+4. Push into the branch until the pull request is ready to merge
+5. Avoid unnecessary merges: keep you branch up to date by regularly rebasing `git rebase origin/master`
+6. When ready to merge, clean up the history (reorder commits, squash some of them together, rephrase messages): `git rebase -i origin/master`
 
 ### Issue triage
 

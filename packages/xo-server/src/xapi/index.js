@@ -2327,7 +2327,7 @@ export default class Xapi extends XapiBase {
     const sr = this.getObject(srId)
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
-    const buffer = fatfsBufferInit()
+    const buffer = fatfsBufferInit({ label: 'cidata    ' })
     const vdi = await this.createVdi({
       name_label: 'XO CloudConfigDrive',
       size: buffer.length,
@@ -2338,14 +2338,12 @@ export default class Xapi extends XapiBase {
     // Then, generate a FAT fs
     const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
 
-    await fs.mkdir('openstack')
-    await fs.mkdir('openstack/latest')
     await Promise.all([
       fs.writeFile(
-        'openstack/latest/meta_data.json',
-        '{\n    "uuid": "' + vm.uuid + '"\n}\n'
+        'meta-data',
+        'instance-id: ' + vm.uuid + '\n'
       ),
-      fs.writeFile('openstack/latest/user_data', config),
+      fs.writeFile('user-data', config),
     ])
 
     // ignore errors, I (JFT) don't understand why they are emitted
