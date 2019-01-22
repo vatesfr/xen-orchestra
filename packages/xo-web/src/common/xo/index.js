@@ -51,6 +51,36 @@ import {
 
 // ===================================================================
 
+// Copied from xo-server-xoa
+function CacheEntry(expires, value) {
+  this.expires = expires
+  this.value = value
+}
+
+class Cache {
+  constructor(defaultTtl) {
+    this.defaultTtl = defaultTtl
+    this.entries = Object.create(null)
+  }
+
+  get(key) {
+    const { entries } = this
+    const entry = entries[key]
+    if (entry !== undefined) {
+      if (entry.expires > Date.now()) {
+        return entry.value
+      }
+      delete entries[key]
+    }
+  }
+
+  set(key, value, ttl = this.defaultTtl) {
+    this.entries[key] = new CacheEntry(Date.now() + ttl, value)
+  }
+}
+
+// ===================================================================
+
 export const XEN_DEFAULT_CPU_WEIGHT = 256
 export const XEN_DEFAULT_CPU_CAP = 0
 
@@ -359,21 +389,25 @@ export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
 )
 
-export const subscribeNotifications = createSubscription(() =>
-  updater._call('getMessages').then(notifications => {
-    const user = store.getState().user
-    // FIXME: returns a new array everytime which invalidates the subscription's cache
-    return map(
-      user != null && user.permission === 'admin'
-        ? notifications
-        : filter(notifications, { level: 'warning' }),
-      notification => ({
-        ...notification,
-        dismissed: cookies.get(`notification:${notification.id}`) !== undefined,
-      })
-    )
-  })
-)
+// TODO: move cache to updater
+const _notificationsCache = new Cache(1e3 * 60 * 5)
+export const subscribeNotifications = createSubscription(async () => {
+  let notifications = _notificationsCache.get('notifications')
+  if (notifications === undefined) {
+    notifications = await updater._call('getMessages')
+    _notificationsCache.set('notifications', notifications)
+  }
+  const user = store.getState().user
+  return map(
+    user != null && user.permission === 'admin'
+      ? notifications
+      : filter(notifications, { level: 'warning' }),
+    notification => ({
+      ...notification,
+      dismissed: cookies.get(`notification:${notification.id}`) !== undefined,
+    })
+  )
+})
 
 const checkSrCurrentStateSubscriptions = {}
 export const subscribeCheckSrCurrentState = (pool, cb) => {
