@@ -91,15 +91,6 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 // ===================================================================
 
-const XO_COMPRESS_TO_XAPI_COMPRESS = {
-  false: 'false',
-  gzip: 'true',
-  true: 'true',
-  zstd: 'zstd',
-}
-
-// ===================================================================
-
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
   constructor(...args) {
@@ -802,7 +793,12 @@ export default class Xapi extends XapiBase {
     const promise = this.getResource($cancelToken, '/export/', {
       query: {
         ref: exportedVm.$ref,
-        use_compression: XO_COMPRESS_TO_XAPI_COMPRESS[compress],
+        use_compression:
+          compress === 'zstd'
+            ? 'zstd'
+            : compress === true || compress === 'gzip'
+            ? 'true'
+            : 'false',
       },
       task: this.createTask('VM export', vm.name_label),
     }).catch(error => {
