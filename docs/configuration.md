@@ -17,7 +17,7 @@ group = 'nogroup'
 
 **Warning!** A non-privileged user:
 
-* requires the use of ``sudo`` to mount NFS shares
+* requires the use of ``sudo`` to mount NFS shares. See installation from the sources.
 
 ### HTTP listen address and port
 
@@ -108,18 +108,3 @@ httpProxy = 'http://username:password@proxyAddress:port'
 ### Log file
 
 On XOA, the log file for XO-server is in `/var/log/syslog`. It contains all the server information returned and can be a real help when you have trouble.
-
-
-### SUDO
-
-To be able to mount NFS shares with a non-privileged user, the use of ``sudo`` is required. By default, XO-Server does not use sudo. To enable it, change the parameter ``useSudo`` to ``true``. It's located inside the `remoteOptions` block.
-
-```toml
-useSudo = true
-```
-
-You also need to configure ``sudo`` on your operating system to accept the user of your choice to run mount/umount commands without asking for a password. Depending on your operating system / sudo version, the location of this configuration may change. Regardless, you can use:
-
-```
-username ALL=(root)NOPASSWD: /bin/mount, /bin/umount
-```
