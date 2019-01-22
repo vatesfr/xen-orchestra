@@ -148,7 +148,6 @@ async function setUpPassport(express, xo) {
     res.redirect('/')
   })
 
-  let currentUser
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
     const { url, body } = req
@@ -156,32 +155,36 @@ async function setUpPassport(express, xo) {
 
     if (matches) {
       return passport.authenticate(matches[1], async (err, user, info) => {
-        if (user) {
-          currentUser = user
-        }
-
         if (err) {
           return next(err)
         }
 
+        if (!user && body.otp === undefined) {
+          req.flash('error', info ? info.message : 'Invalid credentials')
+          return res.redirect('/signin')
+        }
+
         // OTP authent
-        const otpSecret = currentUser?.preferences?.otp
-        if (otpSecret !== undefined) {
-          const isValid = authenticator.check(body.otp, otpSecret)
+        const currentUser = user || req.flash('user')[0]
+        if (currentUser?.preferences?.otp !== undefined) {
+          const isValid = authenticator.check(
+            body.otp,
+            currentUser?.preferences?.otp
+          )
+
+          req.flash('user', {
+            id: currentUser.id,
+            preferences: currentUser.preferences,
+          })
 
           if (body.otp !== undefined && !isValid) {
-            req.flash('otp', true)
             req.flash('error', 'Invalid code')
+            req.flash('otp', true)
             return res.redirect('/signin')
           } else if (!isValid) {
             req.flash('otp', true)
             return res.redirect('/signin')
           }
-        }
-
-        if (!currentUser) {
-          req.flash('error', info ? info.message : 'Invalid credentials')
-          return res.redirect('/signin')
         }
 
         // The cookie will be set in via the next request because some
@@ -196,7 +199,6 @@ async function setUpPassport(express, xo) {
           'session-is-persistent',
           matches[1] === 'local' && req.body['remember-me'] === 'on'
         )
-        currentUser = undefined
         res.redirect(req.flash('return-url')[0] || '/')
       })(req, res, next)
     }
