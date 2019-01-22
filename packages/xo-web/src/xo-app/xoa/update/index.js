@@ -483,7 +483,7 @@ const COMPONENTS_BY_STATE = {
       <i className='fa fa-refresh fa-stack-1x' />
     </span>
   ),
-  upToDate: <Icon icon='success' />,
+  upToDate: null,
 }
 const TOOLTIPS_BY_STATE = {
   connected: _('waitingUpdateInfo'),

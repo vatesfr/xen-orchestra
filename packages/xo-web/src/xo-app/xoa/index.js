@@ -8,7 +8,7 @@ import { NavLink, NavTabs } from 'nav'
 
 import Update from './update'
 import Licenses from './licenses'
-import Notifications from './notifications'
+import Notifications, { NotificationTag } from './notifications'
 
 const HEADER = (
   <Container>
@@ -27,7 +27,8 @@ const HEADER = (
             <Icon icon='menu-license' /> {_('licensesPage')}
           </NavLink>
           <NavLink to='/xoa/notifications'>
-            <Icon icon='menu-notification' /> {_('notificationsPage')}
+            <Icon icon='menu-notification' /> {_('notificationsPage')}{' '}
+            <NotificationTag />
           </NavLink>
         </NavTabs>
       </Col>

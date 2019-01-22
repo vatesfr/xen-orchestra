@@ -9,7 +9,7 @@ import SortedTable from 'sorted-table'
 import updater from 'xoa-updater'
 import { alert } from 'modal'
 import { FormattedDate } from 'react-intl'
-import { some } from 'lodash'
+import { filter } from 'lodash'
 
 const COLUMNS = [
   {
@@ -74,7 +74,7 @@ export default class Notifications extends Component {
         </ActionButton>
         <SortedTable
           columns={COLUMNS}
-          collection={this.state.notifications}
+          collection={this.state.notifications || []}
           rowAction={this._showMessage}
           stateUrlParam='s'
         />
@@ -84,18 +84,25 @@ export default class Notifications extends Component {
 }
 
 export class NotificationTag extends Component {
-  componentDidMount() {
+  _refresh = () =>
     updater._call('getMessages').then(notifications => {
       this.setState({
-        newNotifications: some(
+        newNotifications: filter(
           notifications,
           notification => !cookies.get(`notification:${notification.id}`)
-        ),
+        ).length,
       })
     })
+
+  componentDidMount() {
+    this._refresh()
+    setInterval(this._refresh, 1e4)
   }
 
   render() {
-    return this.state.newNotifications ? <Icon icon='notification' /> : null
+    const { newNotifications } = this.state
+    return newNotifications > 0 ? (
+      <span className='tag tag-pill tag-warning'>{newNotifications}</span>
+    ) : null
   }
 }
