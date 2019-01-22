@@ -544,9 +544,13 @@ export default decorate([
       inputTimeoutId: generateId,
 
       vmsPattern: ({ _vmsPattern }, { job }) =>
-        defined(_vmsPattern, () => job.vms, {
-          type: 'VM',
-        }),
+        defined(
+          _vmsPattern,
+          () => (job.vms.id !== undefined ? undefined : job.vms),
+          {
+            type: 'VM',
+          }
+        ),
       needUpdateParams: (state, { job, schedules }) =>
         job !== undefined && schedules !== undefined && !state.paramsUpdated,
       isJobInvalid: state =>

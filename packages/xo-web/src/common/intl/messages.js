@@ -12,7 +12,7 @@ const messages = {
   statusLoading: 'Loading…',
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'no such item',
-  errorUnknownItem: 'unknown item',
+  errorUnknownItem: 'unknown {type}',
   memoryFree: '{memoryFree} RAM free',
 
   editableLongClickPlaceholder: 'Long click to edit',
@@ -1625,7 +1625,6 @@ const messages = {
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',
-  copyVmConfirm: 'Are you sure you want to copy this VM to {SR}?',
   copyVmName: 'Name',
   copyVmNamePattern: 'Name pattern',
   copyVmNamePlaceholder: 'If empty: name of the copied VM',
