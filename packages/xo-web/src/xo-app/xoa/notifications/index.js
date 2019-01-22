@@ -42,10 +42,6 @@ const COLUMNS = [
   },
 ]
 
-const Notification = ({ notification: { message } }) => (
-  <div dangerouslySetInnerHTML={{ __html: marked(message) }} />
-)
-
 const Notifications = decorate([
   addSubscriptions({
     notifications: subscribeNotifications,
@@ -53,13 +49,14 @@ const Notifications = decorate([
   provideState({
     effects: {
       showMessage: (effects, notification) => () => {
-        console.log('notification', notification)
         cookies.set(`notification:${notification.id}`, 'dismissed')
         return alert(
           <span>
             <Icon icon='notification' /> {_('notification')}
           </span>,
-          <Notification notification={notification} />
+          <div
+            dangerouslySetInnerHTML={{ __html: marked(notification.message) }}
+          />
         ).then(subscribeNotifications.forceRefresh)
       },
     },
@@ -88,7 +85,7 @@ export const NotificationTag = decorate([
   }),
   injectState,
   ({ state }) =>
-    console.log(state.newNotifications) || state.newNotifications > 0 ? (
+    state.newNotifications > 0 ? (
       <span className='tag tag-pill tag-warning'>{state.newNotifications}</span>
     ) : null,
 ])
