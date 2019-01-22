@@ -1122,7 +1122,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
-          compress: getJobCompression(job.compression),
+          compress: getJobCompression(job),
         })
       )
       const exportTask = xva.task
