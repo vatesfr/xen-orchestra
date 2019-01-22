@@ -11,7 +11,7 @@ import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import { error } from 'notification'
 import { get } from '@xen-orchestra/defined'
 import { Select, Number } from 'editable'
@@ -165,14 +165,26 @@ class PifItemMode extends Component {
     getIpv4ConfigModes().then(configModes => this.setState({ configModes }))
   }
 
-  _configIp = mode => reconfigureIp(this.props.pif, mode)
+  _configIp = mode => mode != null && reconfigureIp(this.props.pif, mode.value)
+
+  _getOptions = createSelector(
+    () => this.state.configModes,
+    configModes => configModes.map(mode => ({ label: mode, value: mode }))
+  )
+
+  _getValue = createSelector(
+    () => this.props.pif.mode,
+    mode => ({ label: mode, value: mode })
+  )
 
   render() {
-    const { pif } = this.props
-    const { configModes } = this.state
     return (
-      <Select onChange={this._configIp} options={configModes} value={pif.mode}>
-        {pif.mode}
+      <Select
+        onChange={this._configIp}
+        options={this._getOptions()}
+        value={this._getValue()}
+      >
+        {this.props.pif.mode}
       </Select>
     )
   }

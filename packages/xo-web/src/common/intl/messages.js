@@ -19,6 +19,7 @@ const messages = {
   editableClickPlaceholder: 'Click to edit',
   browseFiles: 'Browse files',
   showLogs: 'Show logs',
+  noValue: 'None',
 
   // ----- Modals -----
   alertOk: 'OK',
