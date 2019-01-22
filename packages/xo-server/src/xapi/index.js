@@ -1862,15 +1862,13 @@ export default class Xapi extends XapiBase {
       const newVdi = await this.barrier(
         await this.call('VDI.copy', vdi.$ref, sr.$ref)
       )
-      await asyncMap(vdi.$VBDs, vbd =>
-        Promise.all([
-          this.call('VBD.destroy', vbd.$ref),
-          this.createVbd({
-            ...vbd,
-            vdi: newVdi,
-          }),
-        ])
-      )
+      await asyncMap(vdi.$VBDs, async vbd => {
+        await this.call('VBD.destroy', vbd.$ref)
+        await this.createVbd({
+          ...vbd,
+          vdi: newVdi,
+        })
+      })
       await this._deleteVdi(vdi)
     }
   }
