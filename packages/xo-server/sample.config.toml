@@ -141,3 +141,17 @@ port = 80
 #
 # Default: '/var/lib/xo-server/data'
 #datadir = '/var/lib/xo-server/data'
+
+#=====================================================================
+
+# Configuration for remotes
+[remoteOptions]
+# Directory used to mount remotes
+#
+# Default: '/run/xo-server/mounts'
+#mountsDir = '/run/xo-server/mounts'
+
+# Use sudo for mount with non-root user
+#
+# Default: false
+#useSudo = false
