@@ -42,7 +42,6 @@ import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
 import {
-  type Compress,
   type DeltaVmExport,
   type DeltaVmImport,
   type Vdi,
@@ -82,7 +81,7 @@ type SimpleIdPattern = {|
 
 export type BackupJob = {|
   ...$Exact<Job>,
-  compression?: Compress,
+  compression?: 'native' | 'zstd' | '',
   mode: Mode,
   remotes?: SimpleIdPattern,
   settings: $Dict<Settings>,
@@ -177,6 +176,12 @@ const isHiddenFile = (filename: string) => filename[0] === '.'
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
 const isXva = (filename: string) => filename.endsWith('.xva')
+
+const BACKUP_COMPRESSION_TO_XO_COMPRESS = {
+  '': false,
+  native: 'gzip',
+  zstd: 'zstd',
+}
 
 const listReplicatedVms = (
   xapi: Xapi,
@@ -1120,7 +1125,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
-          compress: job.compression ?? '',
+          compress: BACKUP_COMPRESSION_TO_XO_COMPRESS[job.compression],
         })
       )
       const exportTask = xva.task

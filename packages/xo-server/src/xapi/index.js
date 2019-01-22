@@ -91,10 +91,11 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 // ===================================================================
 
-const XO_COMPRESS_VALUE_TO_XAPI = {
-  '': () => 'false',
-  native: () => 'true',
-  zstd: productBrand => (productBrand === 'XCP-ng' ? 'zstd' : 'true'),
+const XO_COMPRESS_TO_XAPI_COMPRESS = {
+  false: 'false',
+  gzip: 'true',
+  true: 'true',
+  zstd: 'zstd',
 }
 
 // ===================================================================
@@ -547,7 +548,7 @@ export default class Xapi extends XapiBase {
     vmId,
     targetXapi,
     targetSrId,
-    { compress = 'native', nameLabel = undefined } = {}
+    { compress, nameLabel = undefined } = {}
   ) {
     // Fall back on local copy if possible.
     if (targetXapi === this) {
@@ -791,7 +792,7 @@ export default class Xapi extends XapiBase {
   // Returns a stream to the exported VM.
   @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
-  async exportVm($cancelToken, vmId, { compress = 'native' } = {}) {
+  async exportVm($cancelToken, vmId, { compress = false } = {}) {
     const vm = this.getObject(vmId)
     const useSnapshot = isVmRunning(vm)
     const exportedVm = useSnapshot
@@ -801,9 +802,7 @@ export default class Xapi extends XapiBase {
     const promise = this.getResource($cancelToken, '/export/', {
       query: {
         ref: exportedVm.$ref,
-        use_compression: XO_COMPRESS_VALUE_TO_XAPI[compress](
-          vm.$pool.$master.software_version.product_brand
-        ),
+        use_compression: XO_COMPRESS_TO_XAPI_COMPRESS[compress],
       },
       task: this.createTask('VM export', vm.name_label),
     }).catch(error => {

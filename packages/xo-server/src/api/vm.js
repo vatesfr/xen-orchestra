@@ -35,13 +35,6 @@ function checkPermissionOnSrs(vm, permission = 'operate') {
   return this.checkPermissions(this.session.get('user_id'), permissions)
 }
 
-const getCompression = (oldCompression, newCompression) =>
-  oldCompression !== undefined
-    ? oldCompression
-      ? 'native'
-      : ''
-    : newCompression
-
 // ===================================================================
 
 const extract = (obj, prop) => {
@@ -690,7 +683,7 @@ clone.resolve = {
 // -------------------------------------------------------------------
 
 // TODO: implement resource sets
-export async function copy({ compress, compression, name: nameLabel, sr, vm }) {
+export async function copy({ compress, name: nameLabel, sr, vm }) {
   if (vm.$pool === sr.$pool) {
     if (vm.power_state === 'Running') {
       await checkPermissionOnSrs.call(this, vm)
@@ -705,7 +698,7 @@ export async function copy({ compress, compression, name: nameLabel, sr, vm }) {
 
   return this.getXapi(vm)
     .remoteCopyVm(vm._xapiId, this.getXapi(sr), sr._xapiId, {
-      compress: getCompression(compress, compression),
+      compress,
       nameLabel,
     })
     .then(({ vm }) => vm.$id)
@@ -713,11 +706,7 @@ export async function copy({ compress, compression, name: nameLabel, sr, vm }) {
 
 copy.params = {
   compress: {
-    type: 'boolean',
-    optional: true,
-  },
-  compression: {
-    enum: ['', 'native', 'zstd'],
+    type: ['boolean', 'string'],
     optional: true,
   },
   name: {
@@ -894,13 +883,8 @@ rollingSnapshot.description =
 
 // -------------------------------------------------------------------
 
-export function backup({ vm, remoteId, file, compress, compression }) {
-  return this.backupVm({
-    compress: getCompression(compress, compression),
-    file,
-    remoteId,
-    vm,
-  })
+export function backup({ vm, remoteId, file, compress }) {
+  return this.backupVm({ vm, remoteId, file, compress })
 }
 
 backup.permission = 'admin'
@@ -910,10 +894,6 @@ backup.params = {
   remoteId: { type: 'string' },
   file: { type: 'string' },
   compress: { type: 'boolean', optional: true },
-  compression: {
-    enum: ['', 'native', 'zstd'],
-    optional: true,
-  },
 }
 
 backup.resolve = {
@@ -952,14 +932,13 @@ export function rollingBackup({
   depth,
   retention = depth,
   compress,
-  compression,
 }) {
   return this.rollingBackupVm({
-    compress: getCompression(compress, compression),
-    remoteId,
-    retention,
-    tag,
     vm,
+    remoteId,
+    tag,
+    retention,
+    compress,
   })
 }
 
@@ -973,10 +952,6 @@ rollingBackup.params = {
   // This parameter is deprecated. It used to support the old saved backups jobs.
   depth: { type: 'number', optional: true },
   compress: { type: 'boolean', optional: true },
-  compression: {
-    enum: ['', 'native', 'zstd'],
-    optional: true,
-  },
 }
 
 rollingBackup.resolve = {
@@ -1155,7 +1130,7 @@ revert.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExport(req, res, { xapi, id, compress = 'native' }) {
+async function handleExport(req, res, { xapi, id, compress }) {
   const stream = await xapi.exportVm(id, {
     compress,
   })
@@ -1172,7 +1147,7 @@ async function handleExport(req, res, { xapi, id, compress = 'native' }) {
 }
 
 // TODO: integrate in xapi.js
-async function export_({ vm, compress, compression }) {
+async function export_({ vm, compress }) {
   if (vm.power_state === 'Running') {
     await checkPermissionOnSrs.call(this, vm)
   }
@@ -1180,7 +1155,7 @@ async function export_({ vm, compress, compression }) {
   const data = {
     xapi: this.getXapi(vm),
     id: vm._xapiId,
-    compress: getCompression(compress, compression),
+    compress,
   }
 
   return {
@@ -1192,11 +1167,7 @@ async function export_({ vm, compress, compression }) {
 
 export_.params = {
   vm: { type: 'string' },
-  compress: { type: 'boolean', optional: true },
-  compression: {
-    enum: ['', 'native', 'zstd'],
-    optional: true,
-  },
+  compress: { type: ['boolean', 'string'], optional: true },
 }
 
 export_.resolve = {
