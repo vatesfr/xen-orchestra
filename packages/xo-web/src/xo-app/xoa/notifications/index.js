@@ -94,7 +94,11 @@ export class NotificationTag extends Component {
 
   componentDidMount() {
     this._refresh()
-    setInterval(this._refresh, 1e4)
+    this._interval = setInterval(this._refresh, 1e4)
+  }
+
+  componentWillUnmount() {
+    clearInterval(this._interval)
   }
 
   render() {

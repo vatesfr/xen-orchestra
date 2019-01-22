@@ -243,23 +243,32 @@ export default class Menu extends Component {
           },
         ],
       },
-      isAdmin && {
-        to: 'xoa/update',
+      {
+        to: isAdmin ? 'xoa/update' : 'xoa/notifications',
         icon: 'menu-xoa',
         label: 'xoa',
         extra: (
           <span>
-            <UpdateTag /> <NotificationTag />
+            {isAdmin && (
+              <span>
+                <UpdateTag />{' '}
+              </span>
+            )}
+            <NotificationTag />
           </span>
         ),
         subMenu: [
-          {
+          isAdmin && {
             to: 'xoa/update',
             icon: 'menu-update',
             label: 'updatePage',
             extra: <UpdateTag />,
           },
-          { to: 'xoa/licenses', icon: 'menu-license', label: 'licensesPage' },
+          isAdmin && {
+            to: 'xoa/licenses',
+            icon: 'menu-license',
+            label: 'licensesPage',
+          },
           {
             to: 'xoa/notifications',
             icon: 'menu-notification',

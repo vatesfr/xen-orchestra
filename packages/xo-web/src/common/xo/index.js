@@ -2695,7 +2695,7 @@ export const unlockXosan = (licenseId, srId) =>
 export const getNotifications = () =>
   updater._call('getMessages').then(notifications => {
     const user = store.getState().user
-    return user !== undefined && user.permission === 'admin'
+    return user != null && user.permission === 'admin'
       ? notifications
       : filter(notifications, { level: 'warning' })
   })
