@@ -69,6 +69,14 @@ export const getConnection = defer(
 export const testConnection = opts =>
   getConnection(opts).then(connection => connection.close());
 
+export const testWithOtherConnection = defer(
+  async ($defer, credentials, functionToExecute) => {
+    const xoUser = await getConnection({ credentials });
+    $defer(() => xoUser.close());
+    await functionToExecute(xoUser);
+  }
+);
+
 export const rejectionOf = promise =>
   promise.then(
     value => {

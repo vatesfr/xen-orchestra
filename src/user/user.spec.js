@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import { forOwn, keyBy, omit } from "lodash";
-import { testConnection, xo } from "../util";
+import { testConnection, testWithOtherConnection, xo } from "../util";
 
 const simpleUser = {
   email: "wayne3@vates.fr",
@@ -77,6 +77,107 @@ describe("user", () => {
         omit(users[userId1], "id"),
         omit(users[userId2], "id"),
       ]).toMatchSnapshot();
+    });
+  });
+
+  describe(".set() :", () => {
+    withData(
+      {
+        "sets an email": { email: "wayne_modified@vates.fr" },
+        "sets a password": { password: "newPassword" },
+        "sets a permission": { permission: "user" },
+        "sets a preference": {
+          preferences: {
+            filters: {
+              VM: {
+                test: "name_label: test",
+              },
+            },
+          },
+        },
+      },
+      async data => {
+        data.id = await xo.createUser(simpleUser);
+        expect(await xo.call("user.set", data)).toBe(true);
+        expect(omit(await xo.getUser(data.id), "id")).toMatchSnapshot();
+
+        await testConnection({
+          credentials: {
+            email: data.email === undefined ? simpleUser.email : data.email,
+            password:
+              data.password === undefined ? simpleUser.password : data.password,
+          },
+        });
+      }
+    );
+
+    withData(
+      {
+        "fails trying to set an email with a non admin user connection": {
+          email: "wayne_modified@vates.fr",
+        },
+        "fails trying to set a password with a non admin user connection": {
+          password: "newPassword",
+        },
+        "fails trying to set a permission with a non admin user connection": {
+          permission: "user",
+        },
+      },
+      async data => {
+        data.id = await xo.createUser({
+          email: "wayne8@vates.fr",
+          password: "batman8",
+        });
+        await xo.createUser(simpleUser);
+
+        await testWithOtherConnection(simpleUser, xo =>
+          expect(xo.call("user.set", data)).rejects.toMatchSnapshot()
+        );
+      }
+    );
+
+    withData(
+      {
+        "fails trying to set its own permission as a non admin user": simpleUser,
+        "fails trying to set its own permission as an admin": {
+          email: "admin2@admin.net",
+          password: "batman",
+          permission: "admin",
+        },
+      },
+      async data => {
+        const id = await xo.createUser(data);
+        const { email, password } = data;
+        await testWithOtherConnection({ email, password }, xo =>
+          expect(
+            xo.call("user.set", { id, permission: "user" })
+          ).rejects.toMatchSnapshot()
+        );
+      }
+    );
+
+    it("fails trying to set a property of a nonexistant user", async () => {
+      await expect(
+        xo.call("user.set", {
+          id: "non-existent-id",
+          password: simpleUser.password,
+        })
+      ).rejects.toMatchSnapshot();
+    });
+
+    it.skip("fails trying to set an email already used", async () => {
+      await xo.createUser(simpleUser);
+      const userId2 = await xo.createUser({
+        email: "wayne6@vates.fr",
+        password: "batman",
+      });
+
+      await expect(
+        xo.call("user.set", {
+          id: userId2,
+          email: simpleUser.email,
+        })
+      ).rejects.toMatchSnapshot();
     });
   });
 
