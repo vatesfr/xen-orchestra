@@ -5,6 +5,7 @@ import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import reflect from 'promise-toolbox/reflect'
 import tap from 'promise-toolbox/tap'
+import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
@@ -2688,3 +2689,13 @@ export const getLicense = (productId, boundObjectId) =>
 
 export const unlockXosan = (licenseId, srId) =>
   _call('xosan.unlock', { licenseId, sr: srId })
+
+// Notifications ---------------------------------------------------------------
+
+export const getNotifications = () =>
+  updater.call('getMessages').then(notifications => {
+    const user = store.getState().user
+    return user !== undefined && user.permission === 'admin'
+      ? notifications
+      : filter(notifications, { level: 'warning' })
+  })

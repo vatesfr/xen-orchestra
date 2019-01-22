@@ -6,10 +6,10 @@ import Icon from 'icon'
 import marked from 'marked'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import updater from 'xoa-updater'
 import { alert } from 'modal'
 import { FormattedDate } from 'react-intl'
 import { filter } from 'lodash'
+import { getNotifications } from 'xo'
 
 const COLUMNS = [
   {
@@ -43,10 +43,8 @@ const Notification = ({ notification: { message } }) => (
 )
 
 export default class Notifications extends Component {
-  _getNotifications = () =>
-    updater
-      ._call('getMessages')
-      .then(notifications => this.setState({ notifications }))
+  _refreshNotifications = () =>
+    getNotifications().then(notifications => this.setState({ notifications }))
 
   _showMessage = async notification => {
     cookies.set(`notification:${notification.id}`, 'dismissed')
@@ -56,10 +54,10 @@ export default class Notifications extends Component {
       </span>,
       <Notification notification={notification} />
     )
-    await this._getNotifications()
+    await this._refreshNotifications()
   }
 
-  componentDidMount = this._getNotifications
+  componentDidMount = this._refreshNotifications
 
   render() {
     return (
@@ -67,7 +65,7 @@ export default class Notifications extends Component {
         <ActionButton
           btnStyle='primary'
           className='mb-1'
-          handler={this._getNotifications}
+          handler={this._refreshNotifications}
           icon='refresh'
         >
           {_('refresh')}
@@ -85,7 +83,7 @@ export default class Notifications extends Component {
 
 export class NotificationTag extends Component {
   _refresh = () =>
-    updater._call('getMessages').then(notifications => {
+    getNotifications().then(notifications => {
       this.setState({
         newNotifications: filter(
           notifications,
