@@ -177,11 +177,8 @@ const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
 const isXva = (filename: string) => filename.endsWith('.xva')
 
-const BACKUP_COMPRESSION_TO_XO_COMPRESS = {
-  '': false,
-  native: 'gzip',
-  zstd: 'zstd',
-}
+const getJobCompression = ({ compression: c }) =>
+  c === undefined || c === '' ? false : c === 'native' ? 'gzip' : 'zstd'
 
 const listReplicatedVms = (
   xapi: Xapi,
@@ -1125,7 +1122,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
-          compress: BACKUP_COMPRESSION_TO_XO_COMPRESS[job.compression] ?? false,
+          compress: getJobCompression(job.compression),
         })
       )
       const exportTask = xva.task
