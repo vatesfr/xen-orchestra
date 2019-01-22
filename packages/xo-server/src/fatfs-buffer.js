@@ -24,10 +24,10 @@ const SECTOR_SIZE = 512
 const TEN_MIB = 10 * 1024 * 1024
 
 // Creates a 10MB buffer and initializes it as a FAT 16 volume.
-export function init({ label: 'cidata    ' } = {}) {
+export function init({ label = 'NO LABEL   ' } = {}) {
   assert.strictEqual(typeof label, 'string')
   assert.strictEqual(label.length, 11)
-  
+
   const buf = Buffer.alloc(TEN_MIB)
 
   // https://github.com/natevw/fatfs/blob/master/structs.js
