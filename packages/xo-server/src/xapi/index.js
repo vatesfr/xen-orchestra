@@ -2332,7 +2332,7 @@ export default class Xapi extends XapiBase {
     const sr = this.getObject(srId)
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
-    const buffer = fatfsBufferInit({ label: 'cidata    ' })
+    const buffer = fatfsBufferInit({ label: 'cidata     ' })
     const vdi = await this.createVdi({
       name_label: 'XO CloudConfigDrive',
       size: buffer.length,
