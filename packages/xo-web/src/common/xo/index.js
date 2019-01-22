@@ -359,6 +359,22 @@ export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
 )
 
+export const subscribeNotifications = createSubscription(() =>
+  updater._call('getMessages').then(notifications => {
+    const user = store.getState().user
+    // FIXME: returns a new array everytime which invalidates the subscription's cache
+    return map(
+      user != null && user.permission === 'admin'
+        ? notifications
+        : filter(notifications, { level: 'warning' }),
+      notification => ({
+        ...notification,
+        dismissed: cookies.get(`notification:${notification.id}`) !== undefined,
+      })
+    )
+  })
+)
+
 const checkSrCurrentStateSubscriptions = {}
 export const subscribeCheckSrCurrentState = (pool, cb) => {
   const poolId = resolveId(pool)
@@ -2689,13 +2705,3 @@ export const getLicense = (productId, boundObjectId) =>
 
 export const unlockXosan = (licenseId, srId) =>
   _call('xosan.unlock', { licenseId, sr: srId })
-
-// Notifications ---------------------------------------------------------------
-
-export const getNotifications = () =>
-  updater._call('getMessages').then(notifications => {
-    const user = store.getState().user
-    return user != null && user.permission === 'admin'
-      ? notifications
-      : filter(notifications, { level: 'warning' })
-  })
