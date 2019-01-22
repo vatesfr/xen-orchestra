@@ -81,7 +81,7 @@ type SimpleIdPattern = {|
 
 export type BackupJob = {|
   ...$Exact<Job>,
-  compression?: 'native',
+  compression?: 'native' | 'zstd' | '',
   mode: Mode,
   remotes?: SimpleIdPattern,
   settings: $Dict<Settings>,
@@ -176,6 +176,9 @@ const isHiddenFile = (filename: string) => filename[0] === '.'
 const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
 const isXva = (filename: string) => filename.endsWith('.xva')
+
+const getJobCompression = ({ compression: c }) =>
+  c === undefined || c === '' ? false : c === 'native' ? 'gzip' : 'zstd'
 
 const listReplicatedVms = (
   xapi: Xapi,
@@ -1119,7 +1122,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
-          compress: job.compression === 'native',
+          compress: getJobCompression(job),
         })
       )
       const exportTask = xva.task

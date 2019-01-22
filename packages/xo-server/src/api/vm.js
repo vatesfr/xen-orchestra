@@ -706,7 +706,7 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
 
 copy.params = {
   compress: {
-    type: 'boolean',
+    type: ['boolean', 'string'],
     optional: true,
   },
   name: {
@@ -1132,7 +1132,7 @@ revert.resolve = {
 
 async function handleExport(req, res, { xapi, id, compress }) {
   const stream = await xapi.exportVm(id, {
-    compress: compress != null ? compress : true,
+    compress,
   })
   res.on('close', () => stream.cancel())
   // Remove the filename as it is already part of the URL.
@@ -1167,7 +1167,7 @@ async function export_({ vm, compress }) {
 
 export_.params = {
   vm: { type: 'string' },
-  compress: { type: 'boolean', optional: true },
+  compress: { type: ['boolean', 'string'], optional: true },
 }
 
 export_.resolve = {

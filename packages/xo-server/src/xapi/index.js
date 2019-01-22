@@ -539,7 +539,7 @@ export default class Xapi extends XapiBase {
     vmId,
     targetXapi,
     targetSrId,
-    { compress = true, nameLabel = undefined } = {}
+    { compress, nameLabel = undefined } = {}
   ) {
     // Fall back on local copy if possible.
     if (targetXapi === this) {
@@ -783,7 +783,7 @@ export default class Xapi extends XapiBase {
   // Returns a stream to the exported VM.
   @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
-  async exportVm($cancelToken, vmId, { compress = true } = {}) {
+  async exportVm($cancelToken, vmId, { compress = false } = {}) {
     const vm = this.getObject(vmId)
     const useSnapshot = isVmRunning(vm)
     const exportedVm = useSnapshot
@@ -793,7 +793,12 @@ export default class Xapi extends XapiBase {
     const promise = this.getResource($cancelToken, '/export/', {
       query: {
         ref: exportedVm.$ref,
-        use_compression: compress ? 'true' : 'false',
+        use_compression:
+          compress === 'zstd'
+            ? 'zstd'
+            : compress === true || compress === 'gzip'
+            ? 'true'
+            : 'false',
       },
       task: this.createTask('VM export', vm.name_label),
     }).catch(error => {
