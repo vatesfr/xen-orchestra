@@ -2693,7 +2693,7 @@ export const unlockXosan = (licenseId, srId) =>
 // Notifications ---------------------------------------------------------------
 
 export const getNotifications = () =>
-  updater.call('getMessages').then(notifications => {
+  updater._call('getMessages').then(notifications => {
     const user = store.getState().user
     return user !== undefined && user.permission === 'admin'
       ? notifications
