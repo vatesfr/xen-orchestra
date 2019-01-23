@@ -148,9 +148,57 @@ async function setUpPassport(express, xo) {
     res.redirect('/')
   })
 
+  express.get('/signin/otp', (req, res, next) => {
+    const { user } = req.session
+
+    if (!user) {
+      return res.redirect('/signin')
+    }
+
+    res.send(
+      signInPage({
+        error: req.flash('error')[0],
+        otp: true,
+        strategies,
+      })
+    )
+  })
+
+  express.post('/signin/otp', (req, res, next) => {
+    const { body, session } = req
+    const { user } = session
+
+    if (!user) {
+      return res.redirect('/signin')
+    }
+
+    const isValid = authenticator.check(body.otp, user?.preferences?.otp)
+    if (isValid) {
+      setToken(req, res, next)
+    } else {
+      req.flash('error', 'Invalid code')
+      return res.redirect('/signin/otp')
+    }
+  })
+
+  const setToken = async (req, res, next) => {
+    const { user, persistent } = req.session
+
+    // The cookie will be set in via the next request because some
+    // browsers do not save cookies on redirect.
+    req.flash(
+      'token',
+      (await xo.createAuthenticationToken({ userId: user.id })).id
+    )
+    // The session is only persistent for internal provider and if 'Remember me' box is checked
+    req.flash('session-is-persistent', persistent)
+
+    res.redirect(req.flash('return-url')[0] || '/')
+  }
+
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
-    const { url, body } = req
+    const { url } = req
     const matches = url.match(SIGNIN_STRATEGY_RE)
 
     if (matches) {
@@ -159,47 +207,20 @@ async function setUpPassport(express, xo) {
           return next(err)
         }
 
-        if (!user && body.otp === undefined) {
+        if (!user) {
           req.flash('error', info ? info.message : 'Invalid credentials')
           return res.redirect('/signin')
         }
 
-        // OTP authent
-        const currentUser = user || req.flash('user')[0]
-        if (currentUser?.preferences?.otp !== undefined) {
-          const isValid = authenticator.check(
-            body.otp,
-            currentUser?.preferences?.otp
-          )
+        req.session.user = { id: user.id, preferences: user.preferences }
+        req.session.persistent =
+          matches[1] === 'local' && req.body['remember-me'] === 'on'
 
-          req.flash('user', {
-            id: currentUser.id,
-            preferences: currentUser.preferences,
-          })
-
-          if (body.otp !== undefined && !isValid) {
-            req.flash('error', 'Invalid code')
-            req.flash('otp', true)
-            return res.redirect('/signin')
-          } else if (!isValid) {
-            req.flash('otp', true)
-            return res.redirect('/signin')
-          }
+        if (user?.preferences?.otp !== undefined) {
+          return res.redirect('/signin/otp')
         }
 
-        // The cookie will be set in via the next request because some
-        // browsers do not save cookies on redirect.
-        req.flash(
-          'token',
-          (await xo.createAuthenticationToken({ userId: currentUser.id })).id
-        )
-
-        // The session is only persistent for internal provider and if 'Remember me' box is checked
-        req.flash(
-          'session-is-persistent',
-          matches[1] === 'local' && req.body['remember-me'] === 'on'
-        )
-        res.redirect(req.flash('return-url')[0] || '/')
+        setToken(req, res, next)
       })(req, res, next)
     }
 
