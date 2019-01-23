@@ -404,7 +404,7 @@ export const subscribeNotifications = createSubscription(async () => {
       : filter(notifications, { level: 'warning' }),
     notification => ({
       ...notification,
-      dismissed: cookies.get(`notification:${notification.id}`) !== undefined,
+      dismissed: cookies.get(`notification:${notification.id}`) === 'dismissed',
     })
   )
 })
