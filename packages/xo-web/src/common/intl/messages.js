@@ -20,6 +20,7 @@ const messages = {
   browseFiles: 'Browse files',
   showLogs: 'Show logs',
   noValue: 'None',
+  compression: 'Compression',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -197,6 +198,8 @@ const messages = {
   sortedTableNumberOfItems: '{nTotal, number} items',
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
   sortedTableSelectAllItems: 'Click here to select all items',
+  chooseCompressionGzipOption: 'GZIP (very slow)',
+  chooseCompressionZstdOption: 'Zstd (fast, XCP-ng only)',
 
   // ----- state -----
   state: 'State',
@@ -406,7 +409,6 @@ const messages = {
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
   useDelta: 'Use delta',
-  useCompression: 'Use compression',
   offlineSnapshot: 'Offline snapshot',
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   timeout: 'Timeout',
