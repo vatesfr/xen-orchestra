@@ -1,6 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import Compression from 'chose-compression'
+import SelectCompression from 'select-compression'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -922,9 +922,9 @@ export default decorate([
                       {state.isFull && (
                         <FormGroup>
                           <label htmlFor={state.compressionId}>
-                            <strong>{_('formCompression')}</strong>
+                            <strong>{_('compression')}</strong>
                           </label>
-                          <Compression
+                          <SelectCompression
                             id={state.compressionId}
                             onChange={effects.setCompression}
                             value={compression}

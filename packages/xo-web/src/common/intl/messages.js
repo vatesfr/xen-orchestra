@@ -20,6 +20,7 @@ const messages = {
   browseFiles: 'Browse files',
   showLogs: 'Show logs',
   noValue: 'None',
+  compression: 'Compression',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -197,8 +198,8 @@ const messages = {
   sortedTableNumberOfItems: '{nTotal, number} items',
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
   sortedTableSelectAllItems: 'Click here to select all items',
-  choseCompressionGzipOption: 'GZIP (very slow)',
-  choseCompressionZstdOption: 'Zstd (fast, XCP-ng only)',
+  chooseCompressionGzipOption: 'GZIP (very slow)',
+  chooseCompressionZstdOption: 'Zstd (fast, XCP-ng only)',
 
   // ----- state -----
   state: 'State',
@@ -215,7 +216,6 @@ const messages = {
 
   // ----- Forms -----
   formCancel: 'Cancel',
-  formCompression: 'Compression',
   formCreate: 'Create',
   formEdit: 'Edit',
   formId: 'ID',

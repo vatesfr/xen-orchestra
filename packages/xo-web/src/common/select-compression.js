@@ -9,16 +9,16 @@ const OPTIONS = [
     value: '',
   },
   {
-    label: _('choseCompressionGzipOption'),
+    label: _('chooseCompressionGzipOption'),
     value: 'native',
   },
   {
-    label: _('choseCompressionZstdOption'),
+    label: _('chooseCompressionZstdOption'),
     value: 'zstd',
   },
 ]
 
-const Compression = ({ onChange, value, ...props }) => (
+const SelectCompression = ({ onChange, value, ...props }) => (
   <Select
     labelKey='label'
     onChange={onChange}
@@ -26,14 +26,13 @@ const Compression = ({ onChange, value, ...props }) => (
     required
     simpleValue
     value={value}
-    valueKey='value'
     {...props}
   />
 )
 
-Compression.propTypes = {
+SelectCompression.propTypes = {
   onChange: PropTypes.func.isRequired,
   value: PropTypes.string,
 }
 
-export { Compression as default }
+export { SelectCompression as default }

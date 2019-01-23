@@ -243,7 +243,7 @@ class JobsTable extends React.Component {
               {compression !== '' && (
                 <Li>
                   {_.keyValue(
-                    _('formCompression'),
+                    _('compression'),
                     compression === 'native' ? 'GZIP' : compression
                   )}
                 </Li>
