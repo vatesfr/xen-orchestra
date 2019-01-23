@@ -29,15 +29,15 @@ export default {
   // FIXME: should be static
   @debounce(24 * 60 * 60 * 1000)
   async _getXenUpdates() {
-    const { readAll, statusCode } = await this.xo.httpRequest(
+    const response = await this.xo.httpRequest(
       'http://updates.xensource.com/XenServer/updates.xml'
     )
 
-    if (statusCode !== 200) {
+    if (response.statusCode !== 200) {
       throw new Error('cannot fetch patches list from Citrix')
     }
 
-    const data = parseXml(await readAll()).patchdata
+    const data = parseXml(await response.readAll()).patchdata
 
     const patches = { __proto__: null }
     forEach(data.patches.patch, patch => {
