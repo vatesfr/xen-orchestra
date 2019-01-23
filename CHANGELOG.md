@@ -8,6 +8,7 @@
 - [Plugins] New field to filter displayed plugins (PR [#3832](https://github.com/vatesfr/xen-orchestra/pull/3871))
 - Ability to copy ID of "unknown item"s [#3833](https://github.com/vatesfr/xen-orchestra/issues/3833) (PR [#3856](https://github.com/vatesfr/xen-orchestra/pull/3856))
 - [Cloud-Init] switch config drive type to `nocloud` to prepare for the passing of network config (PR [#3877](https://github.com/vatesfr/xen-orchestra/pull/3877))
+- [UI] Show pool name next to templates' names [#3894](https://github.com/vatesfr/xen-orchestra/issues/3894) (PR [#3896](https://github.com/vatesfr/xen-orchestra/pull/3896))
 
 ### Bug fixes
 
