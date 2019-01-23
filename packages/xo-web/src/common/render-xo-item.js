@@ -182,7 +182,7 @@ export const VmTemplate = decorate([
       pool: getPool(state, props),
     })
   }),
-  ({ id, template, pool, self }) => {
+  ({ id, template, pool }) => {
     if (template === undefined) {
       return unknowItem(id, 'template')
     }
@@ -190,8 +190,8 @@ export const VmTemplate = decorate([
     return (
       <span>
         <Icon icon='vm' /> {template.name_label}
-        {!self && pool !== undefined && (
-          <span className={'text-muted'}>{` - ${pool.name_label}`}</span>
+        {pool !== undefined && (
+          <span className='text-muted'>{` - ${pool.name_label}`}</span>
         )}
       </span>
     )
