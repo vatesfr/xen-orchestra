@@ -137,7 +137,6 @@ async function setUpPassport(express, xo) {
     res.send(
       signInPage({
         error: req.flash('error')[0],
-        otp: req.flash('otp')[0],
         strategies,
       })
     )
@@ -163,31 +162,31 @@ async function setUpPassport(express, xo) {
   })
 
   express.post('/signin/otp', (req, res, next) => {
-    if (req.session.user === undefined) {
+    const { user } = req.session
+
+    if (user === undefined) {
       return res.redirect('/signin')
     }
 
-    if (authenticator.check(req.body.otp, req.session.user.preferences.otp)) {
+    if (authenticator.check(req.body.otp, user.preferences.otp)) {
       setToken(req, res, next)
     } else {
       req.flash('error', 'Invalid code')
-      return res.status(303).redirect('/signin/otp')
+      return res.redirect(303, '/signin/otp')
     }
   })
 
   const setToken = async (req, res, next) => {
-    const { user, persistent } = req.session
+    const { user, isPersistent } = req.session
     const token = (await xo.createAuthenticationToken({ userId: user.id })).id
 
-    if (persistent) {
-      // Persistent cookie ? => 1 year
-      res.cookie('token', token, { maxAge: 1000 * 60 * 60 * 24 * 365 })
-    } else {
-      // Non-persistent : external provider as Github, Twitter...
-      res.cookie('token', token)
-    }
+    // Persistent cookie ? => 1 year
+    // Non-persistent : external provider as Github, Twitter...
+    isPersistent === true
+      ? res.cookie('token', token, { maxAge: 1000 * 60 * 60 * 24 * 365 })
+      : res.cookie('token', token)
 
-    delete req.session.persistent
+    delete req.session.isPersistent
     delete req.session.user
     res.redirect(req.flash('return-url')[0] || '/')
   }
@@ -209,7 +208,7 @@ async function setUpPassport(express, xo) {
         }
 
         req.session.user = { id: user.id, preferences: user.preferences }
-        req.session.persistent =
+        req.session.isPersistent =
           matches[1] === 'local' && req.body['remember-me'] === 'on'
 
         if (user.preferences?.otp !== undefined) {
