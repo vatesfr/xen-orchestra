@@ -149,9 +149,7 @@ async function setUpPassport(express, xo) {
   })
 
   express.get('/signin/otp', (req, res, next) => {
-    const { user } = req.session
-
-    if (!user) {
+    if (req.session.user === undefined) {
       return res.redirect('/signin')
     }
 
@@ -165,34 +163,32 @@ async function setUpPassport(express, xo) {
   })
 
   express.post('/signin/otp', (req, res, next) => {
-    const { body, session } = req
-    const { user } = session
-
-    if (!user) {
+    if (req.session.user === undefined) {
       return res.redirect('/signin')
     }
 
-    const isValid = authenticator.check(body.otp, user?.preferences?.otp)
-    if (isValid) {
+    if (authenticator.check(req.body.otp, req.session.user.preferences.otp)) {
       setToken(req, res, next)
     } else {
       req.flash('error', 'Invalid code')
-      return res.redirect('/signin/otp')
+      return res.status(303).redirect('/signin/otp')
     }
   })
 
   const setToken = async (req, res, next) => {
     const { user, persistent } = req.session
+    const token = (await xo.createAuthenticationToken({ userId: user.id })).id
 
-    // The cookie will be set in via the next request because some
-    // browsers do not save cookies on redirect.
-    req.flash(
-      'token',
-      (await xo.createAuthenticationToken({ userId: user.id })).id
-    )
-    // The session is only persistent for internal provider and if 'Remember me' box is checked
-    req.flash('session-is-persistent', persistent)
+    if (persistent) {
+      // Persistent cookie ? => 1 year
+      res.cookie('token', token, { maxAge: 1000 * 60 * 60 * 24 * 365 })
+    } else {
+      // Non-persistent : external provider as Github, Twitter...
+      res.cookie('token', token)
+    }
 
+    delete req.session.persistent
+    delete req.session.user
     res.redirect(req.flash('return-url')[0] || '/')
   }
 
@@ -216,7 +212,7 @@ async function setUpPassport(express, xo) {
         req.session.persistent =
           matches[1] === 'local' && req.body['remember-me'] === 'on'
 
-        if (user?.preferences?.otp !== undefined) {
+        if (user.preferences?.otp !== undefined) {
           return res.redirect('/signin/otp')
         }
 
@@ -224,21 +220,7 @@ async function setUpPassport(express, xo) {
       })(req, res, next)
     }
 
-    const token = req.flash('token')[0]
-
-    if (token) {
-      const isPersistent = req.flash('session-is-persistent')[0]
-
-      if (isPersistent) {
-        // Persistent cookie ? => 1 year
-        res.cookie('token', token, { maxAge: 1000 * 60 * 60 * 24 * 365 })
-      } else {
-        // Non-persistent : external provider as Github, Twitter...
-        res.cookie('token', token)
-      }
-
-      next()
-    } else if (req.cookies.token) {
+    if (req.cookies.token) {
       next()
     } else if (
       /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/.test(url)
