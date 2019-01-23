@@ -170,12 +170,19 @@ Vm.defaultProps = {
 export const VmTemplate = decorate([
   connectStore(() => {
     const getObject = createGetObject()
+    const getPool = createGetObject(
+      createSelector(
+        getObject,
+        vm => get(() => vm.$pool)
+      )
+    )
     return (state, props) => ({
       // FIXME: props.self ugly workaround to get object as a self user
       template: getObject(state, props, props.self),
+      pool: getPool(state, props),
     })
   }),
-  ({ id, template }) => {
+  ({ id, template, pool, self }) => {
     if (template === undefined) {
       return unknowItem(id, 'template')
     }
@@ -183,6 +190,9 @@ export const VmTemplate = decorate([
     return (
       <span>
         <Icon icon='vm' /> {template.name_label}
+        {!self && pool !== undefined && (
+          <span className={'text-muted'}>{` - ${pool.name_label}`}</span>
+        )}
       </span>
     )
   },
