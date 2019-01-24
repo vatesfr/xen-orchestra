@@ -229,7 +229,7 @@ async function setUpPassport(express, xo) {
       next()
     } else {
       req.flash('return-url', url)
-      return res.redirect(303, '/signin')
+      return res.redirect('/signin')
     }
   })
 
