@@ -414,13 +414,22 @@ export const dismissNotification = id => {
 // TODO: move cache to updater
 const _notificationsCache = new Cache(1e3 * 60 * 5)
 export const subscribeNotifications = createSubscription(async () => {
+  const { user, xoaUpdaterState } = store.getState()
+  if (
+    process.env.XOA_PLAN === 5 ||
+    xoaUpdaterState === 'disconnected' ||
+    xoaUpdaterState === 'error'
+  ) {
+    return []
+  }
+
   let notifications = _notificationsCache.get('notifications')
   if (notifications === undefined) {
     notifications = await updater._call('getMessages')
     _notificationsCache.set('notifications', notifications)
   }
+
   const notificationCookie = getNotificationCookie()
-  const { user } = store.getState()
   return map(
     user != null && user.permission === 'admin'
       ? notifications
