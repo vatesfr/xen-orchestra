@@ -265,6 +265,11 @@ const PIF_COLUMNS = [
     sortCriteria: 'mtu',
   },
   {
+    itemRenderer: pif => `${pif.speed} Mb/s`,
+    name: _('pifSpeedLabel'),
+    sortCriteria: 'speed',
+  },
+  {
     itemRenderer: (pif, userData) => (
       <PifItemLock pif={pif} networks={userData.networks} />
     ),
