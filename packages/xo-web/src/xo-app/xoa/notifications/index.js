@@ -41,6 +41,14 @@ const COLUMNS = [
     sortOrder: 'desc',
   },
   {
+    name: _('messageSubject'),
+    itemRenderer: ({ read, title }) => {
+      const Tag = read ? 'span' : 'strong'
+      return <Tag>{title}</Tag>
+    },
+    sortCriteria: 'title',
+  },
+  {
     name: '',
     itemRenderer: ({ id, read }) =>
       !read && <strong className='text-success'>{_('notificationNew')}</strong>,
