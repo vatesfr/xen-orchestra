@@ -20,6 +20,7 @@ const messages = {
   notificationNew: 'NEW!',
   messageSubject: 'Subject',
   messageFrom: 'From',
+  messageReply: 'Reply',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',

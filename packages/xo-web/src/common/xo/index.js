@@ -391,7 +391,7 @@ export const subscribeResourceCatalog = createSubscription(() =>
 
 const getNotificationCookie = () => {
   const rawNotificationCookie = cookies.get(
-    `notificatons:${store.getState().user.id}`
+    `notifications:${store.getState().user.id}`
   )
   return rawNotificationCookie === undefined
     ? {}
@@ -402,7 +402,7 @@ const setNotificationCookie = (id, cookie) => {
   const notifications = getNotificationCookie()
   notifications[id] = { ...(notifications[id] || {}), ...cookie }
   cookies.set(
-    `notificatons:${store.getState().user.id}`,
+    `notifications:${store.getState().user.id}`,
     JSON.stringify(notifications)
   )
 }

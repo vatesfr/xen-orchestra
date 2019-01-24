@@ -6,6 +6,7 @@ import marked from 'marked'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { alert } from 'modal'
+import { CAN_REPORT_BUG, reportBug } from 'report-bug-button'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { subscribeNotifications, dismissNotification } from 'xo'
@@ -63,6 +64,15 @@ const COLUMNS = [
   },
 ]
 
+const ACTIONS = [
+  {
+    disabled: !CAN_REPORT_BUG,
+    label: _('messageReply'),
+    handler: notification => reportBug({ title: `Re: ${notification.title}` }),
+    icon: 'reply',
+  },
+]
+
 const Notifications = decorate([
   addSubscriptions({
     notifications: subscribeNotifications,
@@ -87,6 +97,7 @@ const Notifications = decorate([
     <SortedTable
       columns={COLUMNS}
       collection={notifications || []}
+      individualActions={ACTIONS}
       rowAction={effects.showMessage}
       stateUrlParam='s'
     />
