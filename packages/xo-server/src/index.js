@@ -165,7 +165,7 @@ async function setUpPassport(express, xo) {
     const { user } = req.session
 
     if (user === undefined) {
-      return res.redirect('/signin')
+      return res.redirect(303, '/signin')
     }
 
     if (authenticator.check(req.body.otp, user.preferences.otp)) {
@@ -190,7 +190,7 @@ async function setUpPassport(express, xo) {
 
     delete req.session.isPersistent
     delete req.session.user
-    res.redirect(req.flash('return-url')[0] || '/')
+    res.redirect(303, req.flash('return-url')[0] || '/')
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
@@ -206,7 +206,7 @@ async function setUpPassport(express, xo) {
 
         if (!user) {
           req.flash('error', info ? info.message : 'Invalid credentials')
-          return res.redirect('/signin')
+          return res.redirect(303, '/signin')
         }
 
         req.session.user = { id: user.id, preferences: user.preferences }
@@ -214,7 +214,7 @@ async function setUpPassport(express, xo) {
           matches[1] === 'local' && req.body['remember-me'] === 'on'
 
         if (user.preferences?.otp !== undefined) {
-          return res.redirect('/signin-otp')
+          return res.redirect(303, '/signin-otp')
         }
 
         setToken(req, res, next)
@@ -229,7 +229,7 @@ async function setUpPassport(express, xo) {
       next()
     } else {
       req.flash('return-url', url)
-      return res.redirect('/signin')
+      return res.redirect(303, '/signin')
     }
   })
 
