@@ -21,6 +21,11 @@ const messages = {
   showLogs: 'Show logs',
   noValue: 'None',
   compression: 'Compression',
+  multipathing: 'Multipathing',
+  enableMultipathing: 'Enable multipathing',
+  disableMultipathing: 'Disable multipathing',
+  enableAllHostsMultipathing: 'Enable all hosts multipathing',
+  disableAllHostsMultipathing: 'Disable all hosts multipathing',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -757,11 +762,6 @@ const messages = {
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
   hostIscsiName: 'iSCSI name',
-  hostMultipathing: 'Multipathing',
-  hostEnableMultipathing: 'Enable multipathing',
-  hostDisableMultipathing: 'Disable multipathing',
-  hostEnableMultipathingForAllHosts: 'Enable all hosts multipathing',
-  hostDisableMultipathingForAllHosts: 'Disable all hosts multipathing',
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingWarning:
     'The host{nHosts, plural, one {} other {s}} will lose the connection to the SRs. Do you want to continue?',

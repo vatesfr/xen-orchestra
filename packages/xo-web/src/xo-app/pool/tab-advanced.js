@@ -170,7 +170,7 @@ export default class TabAdvanced extends Component {
             </Col>
           </Row>
         </Container>
-        <h3 className='mt-1 mb-1'>{_('hostMultipathing')}</h3>
+        <h3 className='mt-1 mb-1'>{_('multipathing')}</h3>
         <div>
           <ActionButton
             btnStyle='success'
@@ -180,7 +180,7 @@ export default class TabAdvanced extends Component {
             handler={setHostsMultipathing}
             icon='host'
           >
-            {_('hostEnableMultipathingForAllHosts')}
+            {_('enableAllHostsMultipathing')}
           </ActionButton>{' '}
           <ActionButton
             btnStyle='danger'
@@ -190,7 +190,7 @@ export default class TabAdvanced extends Component {
             handler={setHostsMultipathing}
             icon='host'
           >
-            {_('hostDisableMultipathingForAllHosts')}
+            {_('disableAllHostsMultipathing')}
           </ActionButton>
         </div>
         <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>

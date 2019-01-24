@@ -1,10 +1,11 @@
-import _ from '../../intl'
-import Collapse from '../../collapse'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import { Sr } from '../../render-xo-item'
+
+import _ from '../../intl'
+import Collapse from '../../collapse'
 import { connectStore } from '../../utils'
 import { createGetObjectsOfType, createSelector } from '../../selectors'
+import { Sr } from '../../render-xo-item'
 
 @connectStore(
   {

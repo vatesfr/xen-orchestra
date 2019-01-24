@@ -597,9 +597,7 @@ export const setHostsMultipathing = ({
 }) => {
   const ids = resolveIds(hosts)
   return confirm({
-    title: _(
-      multipathing ? 'hostEnableMultipathing' : 'hostDisableMultipathing'
-    ),
+    title: _(multipathing ? 'enableMultipathing' : 'disableMultipathing'),
     body: <MultipathingModalBody hostIds={ids} />,
   }).then(
     () => Promise.all(map(ids, id => editHost(id, { multipathing }))),

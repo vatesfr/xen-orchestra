@@ -186,16 +186,16 @@ export default class extends Component {
                   <Copiable tagName='td'>{host.iSCSI_name}</Copiable>
                 </tr>
                 <tr>
-                  <th>{_('hostMultipathing')}</th>
+                  <th>{_('multipathing')}</th>
                   <td>
                     <StateButton
                       className='mb-1'
                       data-host={host}
                       data-multipathing={!host.multipathing}
                       disabledLabel={_('stateDisabled')}
-                      disabledTooltip={_('hostEnableMultipathing')}
+                      disabledTooltip={_('enableMultipathing')}
                       enabledLabel={_('stateEnabled')}
-                      enabledTooltip={_('hostDisableMultipathing')}
+                      enabledTooltip={_('disableMultipathing')}
                       handler={setHostsMultipathing}
                       state={host.multipathing}
                     />
