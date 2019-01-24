@@ -6,21 +6,23 @@ html
     meta(name = 'viewport' content = 'width=device-width, initial-scale=1.0')
     title Xen Orchestra
     meta(name = 'author' content = 'Vates SAS')
-    link(rel = 'stylesheet' href = '/index.css')
+    link(rel = 'stylesheet' href = 'index.css')
   body(style = 'display: flex; height: 100vh;')
     div(style = 'margin: auto; width: 20em;')
       div.mb-2(style = 'display: flex;')
-        img(src = '/assets/logo.png' style = 'margin: auto;')
+        img(src = 'assets/logo.png' style = 'margin: auto;')
       h2.text-xs-center.mb-2 Xen Orchestra
       if error
         p.text-danger #{error}
       if otp
-        form(action = '/signin/otp' method = 'post')
+        form(action = '/signin-otp' method = 'post')
           fieldset
             .input-group.mb-1
               span.input-group-addon
                 i.fa.fa-key.fa-fw
               input.form-control(
+                autocomplete = 'off'
+                autofocus
                 name = 'otp'
                 type = 'text'
                 placeholder = 'Token'

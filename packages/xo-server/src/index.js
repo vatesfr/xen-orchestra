@@ -147,7 +147,7 @@ async function setUpPassport(express, xo) {
     res.redirect('/')
   })
 
-  express.get('/signin/otp', (req, res, next) => {
+  express.get('/signin-otp', (req, res, next) => {
     if (req.session.user === undefined) {
       return res.redirect('/signin')
     }
@@ -161,7 +161,7 @@ async function setUpPassport(express, xo) {
     )
   })
 
-  express.post('/signin/otp', (req, res, next) => {
+  express.post('/signin-otp', (req, res, next) => {
     const { user } = req.session
 
     if (user === undefined) {
@@ -172,7 +172,7 @@ async function setUpPassport(express, xo) {
       setToken(req, res, next)
     } else {
       req.flash('error', 'Invalid code')
-      return res.redirect(303, '/signin/otp')
+      return res.redirect(303, '/signin-otp')
     }
   })
 
@@ -182,9 +182,11 @@ async function setUpPassport(express, xo) {
 
     // Persistent cookie ? => 1 year
     // Non-persistent : external provider as Github, Twitter...
-    isPersistent === true
-      ? res.cookie('token', token, { maxAge: 1000 * 60 * 60 * 24 * 365 })
-      : res.cookie('token', token)
+    res.cookie(
+      'token',
+      token,
+      isPersistent ? { maxAge: 1000 * 60 * 60 * 24 * 365 } : undefined
+    )
 
     delete req.session.isPersistent
     delete req.session.user
@@ -212,7 +214,7 @@ async function setUpPassport(express, xo) {
           matches[1] === 'local' && req.body['remember-me'] === 'on'
 
         if (user.preferences?.otp !== undefined) {
-          return res.redirect('/signin/otp')
+          return res.redirect('/signin-otp')
         }
 
         setToken(req, res, next)
