@@ -420,7 +420,6 @@ export const subscribeNotifications = createSubscription(async () => {
     _notificationsCache.set('notifications', notifications)
   }
   const notificationCookie = getNotificationCookie()
-  console.log('notificationCookie', notificationCookie)
   const { user } = store.getState()
   return map(
     user != null && user.permission === 'admin'

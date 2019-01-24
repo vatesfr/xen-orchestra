@@ -1,4 +1,5 @@
 import _ from 'intl'
+import classNames from 'classnames'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import marked from 'marked'
@@ -9,35 +10,35 @@ import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { subscribeNotifications, dismissNotification } from 'xo'
 import { addSubscriptions } from 'utils'
-import { filter } from 'lodash'
+import { filter, some } from 'lodash'
 
 const COLUMNS = [
   {
+    name: '',
+    itemRenderer: ({ level }) =>
+      level === 'warning' && <Icon icon='alarm' color='text-danger' />,
+  },
+  {
     default: true,
     name: _('date'),
-    itemRenderer: ({ created, level }) => (
-      <span>
-        <Icon icon={level === 'warning' ? 'info' : 'alarm'} />{' '}
-        <FormattedDate
-          value={new Date(created)}
-          month='long'
-          day='numeric'
-          year='numeric'
-          hour='2-digit'
-          minute='2-digit'
-          second='2-digit'
-        />
-      </span>
+    itemRenderer: ({ created }) => (
+      <FormattedDate
+        value={new Date(created)}
+        month='long'
+        day='numeric'
+        year='numeric'
+        hour='2-digit'
+        minute='2-digit'
+        second='2-digit'
+      />
     ),
     sortCriteria: 'created',
     sortOrder: 'desc',
   },
   {
     name: '',
-    itemRenderer: ({ id, dismissed }) =>
-      !dismissed && (
-        <strong className='text-success'>{_('notificationNew')}</strong>
-      ),
+    itemRenderer: ({ id, read }) =>
+      !read && <strong className='text-success'>{_('notificationNew')}</strong>,
   },
 ]
 
@@ -80,11 +81,22 @@ export const NotificationTag = decorate([
     computed: {
       newNotifications: (_, { notifications }) =>
         filter(notifications, { read: false }).length,
+      someWarningNotifications: (_, { notifications }) =>
+        console.log('notifications', notifications) ||
+        some(notifications, { level: 'warning', read: false }),
     },
   }),
   injectState,
   ({ state }) =>
     state.newNotifications > 0 ? (
-      <span className='tag tag-pill tag-warning'>{state.newNotifications}</span>
+      <span
+        className={classNames(
+          'tag',
+          'tag-pill',
+          state.someWarningNotifications ? 'tag-danger' : 'tag-warning'
+        )}
+      >
+        {state.newNotifications}
+      </span>
     ) : null,
 ])
