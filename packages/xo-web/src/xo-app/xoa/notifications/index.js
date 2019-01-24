@@ -1,5 +1,4 @@
 import _ from 'intl'
-import cookies from 'cookies-js'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import marked from 'marked'
@@ -8,7 +7,7 @@ import SortedTable from 'sorted-table'
 import { alert } from 'modal'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { subscribeNotifications } from 'xo'
+import { subscribeNotifications, dismissNotification } from 'xo'
 import { addSubscriptions } from 'utils'
 import { filter } from 'lodash'
 
@@ -49,7 +48,7 @@ const Notifications = decorate([
   provideState({
     effects: {
       showMessage: (effects, notification) => () => {
-        cookies.set(`notification:${notification.id}`, 'dismissed')
+        dismissNotification(notification.id)
         return alert(
           <span>
             <Icon icon='notification' /> {_('notification')}
@@ -80,7 +79,7 @@ export const NotificationTag = decorate([
   provideState({
     computed: {
       newNotifications: (_, { notifications }) =>
-        filter(notifications, { dismissed: false }).length,
+        filter(notifications, { read: false }).length,
     },
   }),
   injectState,

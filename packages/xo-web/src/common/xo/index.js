@@ -389,6 +389,28 @@ export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
 )
 
+const getNotificationCookie = () => {
+  const rawNotificationCookie = cookies.get(
+    `notificatons:${store.getState().user.id}`
+  )
+  return rawNotificationCookie === undefined
+    ? {}
+    : JSON.parse(rawNotificationCookie)
+}
+
+const setNotificationCookie = (id, cookie) => {
+  const notifications = getNotificationCookie()
+  notifications[id] = { ...(notifications[id] || {}), ...cookie }
+  cookies.set(
+    `notificatons:${store.getState().user.id}`,
+    JSON.stringify(notifications)
+  )
+}
+
+export const dismissNotification = id => {
+  setNotificationCookie(id, { read: true, date: Date.now() })
+}
+
 // TODO: move cache to updater
 const _notificationsCache = new Cache(1e3 * 60 * 5)
 export const subscribeNotifications = createSubscription(async () => {
@@ -397,14 +419,16 @@ export const subscribeNotifications = createSubscription(async () => {
     notifications = await updater._call('getMessages')
     _notificationsCache.set('notifications', notifications)
   }
-  const user = store.getState().user
+  const notificationCookie = getNotificationCookie()
+  console.log('notificationCookie', notificationCookie)
+  const { user } = store.getState()
   return map(
     user != null && user.permission === 'admin'
       ? notifications
       : filter(notifications, { level: 'warning' }),
     notification => ({
       ...notification,
-      dismissed: cookies.get(`notification:${notification.id}`) === 'dismissed',
+      read: !!get(notificationCookie, `${notification.id}.read`),
     })
   )
 })
