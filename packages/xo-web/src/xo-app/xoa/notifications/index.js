@@ -68,7 +68,10 @@ const ACTIONS = [
   {
     disabled: !CAN_REPORT_BUG,
     label: _('messageReply'),
-    handler: notification => reportBug({ title: `Re: ${notification.title}` }),
+    handler: notification =>
+      reportBug({
+        title: `Re: ${notification.title} (Ref: ${notification.id})`,
+      }),
     icon: 'reply',
   },
 ]
