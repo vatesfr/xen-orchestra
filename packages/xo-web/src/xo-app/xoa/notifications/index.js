@@ -21,17 +21,22 @@ const COLUMNS = [
   {
     default: true,
     name: _('date'),
-    itemRenderer: ({ created }) => (
-      <FormattedDate
-        value={new Date(created)}
-        month='long'
-        day='numeric'
-        year='numeric'
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    ),
+    itemRenderer: ({ created, read }) => {
+      const Tag = read ? 'span' : 'strong'
+      return (
+        <Tag>
+          <FormattedDate
+            value={new Date(created)}
+            month='long'
+            day='numeric'
+            year='numeric'
+            hour='2-digit'
+            minute='2-digit'
+            second='2-digit'
+          />
+        </Tag>
+      )
+    },
     sortCriteria: 'created',
     sortOrder: 'desc',
   },
