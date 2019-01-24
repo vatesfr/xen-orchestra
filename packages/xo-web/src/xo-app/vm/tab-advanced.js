@@ -489,33 +489,32 @@ export default class TabAdvanced extends Component {
     getVmsHaValues().then(vmsHaValues => this.setState({ vmsHaValues }))
   }
 
-  state = {
-    cpuMask: map(this.props.vm.cpuMask, number => ({
-      value: number,
-      label: `Core ${number} `,
-    })),
-  }
-
   _getCpuMaskOptions = createSelector(
     () => this.props.vm,
     vm =>
       times(vm.CPUs.max, number => ({
-        value: `${number}`,
-        label: `Core ${number} `,
+        value: number,
+        label: `Core ${number}`,
       }))
   )
 
+  _getCpuMask = createSelector(
+    this._getCpuMaskOptions,
+    () => this.props.vm.cpuMask,
+    (options, cpuMask) =>
+      cpuMask !== undefined
+        ? options.filter(({ value }) => cpuMask.includes(value))
+        : undefined
+  )
+
   _onChangeCpuMask = cpuMask =>
-    editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') }).then(() =>
-      this.setState({ cpuMask })
-    )
+    editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
   _onNicTypeChange = value =>
     editVm(this.props.vm, { nicType: value === '' ? null : value })
 
   render() {
     const { container, isAdmin, vgpus, vm } = this.props
-    const { cpuMask, vmsHaValues } = this.state
     return (
       <Container>
         <Row>
@@ -683,7 +682,7 @@ export default class TabAdvanced extends Component {
                         onChange={this._onChangeCpuMask}
                         options={this._getCpuMaskOptions()}
                         placeholder={_('selectCpuMask')}
-                        value={cpuMask}
+                        value={this._getCpuMask()}
                       />
                     </td>
                   </tr>
@@ -758,7 +757,7 @@ export default class TabAdvanced extends Component {
                       }
                       value={vm.high_availability}
                     >
-                      {map(vmsHaValues, vmsHaValue => (
+                      {map(this.state.vmsHaValues, vmsHaValue => (
                         <option key={vmsHaValue} value={vmsHaValue}>
                           {vmsHaValue === '' ? _('vmHaDisabled') : vmsHaValue}
                         </option>
