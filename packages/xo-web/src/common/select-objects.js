@@ -120,6 +120,8 @@ const getObjectsById = objects =>
 class GenericSelect extends React.Component {
   static propTypes = {
     allowMissingObjects: PropTypes.bool,
+    compareContainers: PropTypes.func,
+    compareOptions: PropTypes.func,
     hasSelectAll: PropTypes.bool,
     multi: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
@@ -177,8 +179,10 @@ class GenericSelect extends React.Component {
 
   _getOptions = createSelector(
     () => this.props.xoContainers,
+    () => this.props.compareContainers,
+    () => this.props.compareOptions,
     this._getObjects,
-    (containers, objects) => {
+    (containers, compareContainers, compareOptions, objects) => {
       // createCollectionWrapper with a depth?
       const { name } = this.constructor
 
@@ -199,7 +203,11 @@ class GenericSelect extends React.Component {
         }
 
         options = []
-        forEach(containers, container => {
+        const _containers =
+          compareContainers !== undefined
+            ? containers.sort(compareContainers)
+            : containers
+        forEach(_containers, container => {
           options.push({
             disabled: true,
             xoItem: container,
@@ -225,7 +233,9 @@ class GenericSelect extends React.Component {
         }
         return option
       })
-      return options
+      return compareOptions !== undefined
+        ? options.sort(compareOptions)
+        : options
     }
   )
 
@@ -381,21 +391,29 @@ export const SelectHost = makeStoreSelect(
       .sort()
       .groupBy('$pool')
 
-    const getPools = createSelector(
-      createGetObjectsOfType('pool').pick(
+    const getPools = createGetObjectsOfType('pool')
+      .pick(
         createSelector(
           getHostsByPool,
           hostsByPool => keys(hostsByPool)
         )
-      ),
-      (_, props) => props.pool, // sorted relative to this pool
-      (pools, poolId) =>
+      )
+      .sort()
+
+    const compareContainers = createSelector(
+      (_, props) => props.pool,
+      poolId => (pool1, pool2) =>
         poolId !== undefined
-          ? sortBy(pools, pool => pool.id !== poolId)
-          : sortBy(pools)
+          ? pool1.id === poolId
+            ? -1
+            : pool2.id === poolId
+            ? 1
+            : 0
+          : undefined
     )
 
     return {
+      compareContainers,
       xoObjects: getHostsByPool,
       xoContainers: getPools,
     }
