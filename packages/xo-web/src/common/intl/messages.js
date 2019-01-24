@@ -19,6 +19,7 @@ const messages = {
   notification: 'Notification',
   notificationNew: 'NEW!',
   messageSubject: 'Subject',
+  messageFrom: 'From',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',

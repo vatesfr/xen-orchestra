@@ -41,6 +41,14 @@ const COLUMNS = [
     sortOrder: 'desc',
   },
   {
+    name: _('messageFrom'),
+    itemRenderer: ({ read }) => {
+      const Tag = read ? 'span' : 'strong'
+      return <Tag>{'XO Team'}</Tag>
+    },
+    sortCriteria: '',
+  },
+  {
     name: _('messageSubject'),
     itemRenderer: ({ read, title }) => {
       const Tag = read ? 'span' : 'strong'
