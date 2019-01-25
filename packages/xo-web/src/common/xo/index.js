@@ -412,6 +412,7 @@ const setNotificationCookie = (id, changes) => {
 
 export const dismissNotification = id => {
   setNotificationCookie(id, { read: true, date: Date.now() })
+  subscribeNotifications.forceRefresh()
 }
 
 // TODO: move cache to updater

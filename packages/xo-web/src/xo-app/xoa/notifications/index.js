@@ -84,17 +84,15 @@ const Notifications = decorate([
   }),
   provideState({
     effects: {
-      showMessage: (effects, notification) => () => {
-        dismissNotification(notification.id)
-        return alert(
+      showMessage: (effects, notification) => () =>
+        alert(
           <span>
             <Icon icon='notification' /> {_('notification')}
           </span>,
           <div
             dangerouslySetInnerHTML={{ __html: marked(notification.message) }}
           />
-        ).then(subscribeNotifications.forceRefresh)
-      },
+        ).then(() => dismissNotification(notification.id)),
     },
   }),
   injectState,
@@ -116,7 +114,7 @@ export const NotificationTag = decorate([
   }),
   provideState({
     computed: {
-      newNotifications: (_, { notifications }) =>
+      nNewNotifications: (_, { notifications }) =>
         filter(notifications, { read: false }).length,
       someWarningNotifications: (_, { notifications }) =>
         some(notifications, { level: 'warning', read: false }),
@@ -124,7 +122,7 @@ export const NotificationTag = decorate([
   }),
   injectState,
   ({ state }) =>
-    state.newNotifications > 0 ? (
+    state.nNewNotifications > 0 ? (
       <span
         className={classNames(
           'tag',
@@ -132,7 +130,7 @@ export const NotificationTag = decorate([
           state.someWarningNotifications ? 'tag-danger' : 'tag-warning'
         )}
       >
-        {state.newNotifications}
+        {state.nNewNotifications}
       </span>
     ) : null,
 ])
