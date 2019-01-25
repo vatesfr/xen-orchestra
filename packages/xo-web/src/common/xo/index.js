@@ -1627,39 +1627,10 @@ export const setVif = (
 export const editNetwork = (network, props) =>
   _call('network.set', { ...props, id: resolveId(network) })
 
-import CreateNetworkModalBody from './create-network-modal' // eslint-disable-line import/first
-export const createNetwork = container =>
-  confirm({
-    icon: 'network',
-    title: _('newNetworkCreate'),
-    body: <CreateNetworkModalBody container={container} />,
-  }).then(params => {
-    if (!params.name) {
-      return error(
-        _('newNetworkNoNameErrorTitle'),
-        _('newNetworkNoNameErrorMessage')
-      )
-    }
-    return _call('network.create', params)
-  }, noop)
-
 export const getBondModes = () => _call('network.getBondModes')
-
-import CreateBondedNetworkModalBody from './create-bonded-network-modal' // eslint-disable-line import/first
-export const createBondedNetwork = container =>
-  confirm({
-    icon: 'network',
-    title: _('newBondedNetworkCreate'),
-    body: <CreateBondedNetworkModalBody pool={container.$pool} />,
-  }).then(params => {
-    if (!params.name) {
-      return error(
-        _('newNetworkNoNameErrorTitle'),
-        _('newNetworkNoNameErrorMessage')
-      )
-    }
-    return _call('network.createBonded', params)
-  }, noop)
+export const createNetwork = params => _call('network.create', params)
+export const createBondedNetwork = params =>
+  _call('network.createBonded', params)
 
 export const deleteNetwork = network =>
   confirm({

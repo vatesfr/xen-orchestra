@@ -6,11 +6,11 @@ import ButtonGroup from 'button-group'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
+import Link from 'link'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
-import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -24,8 +24,6 @@ import {
 } from 'selectors'
 import {
   connectPif,
-  createBondedNetwork,
-  createNetwork,
   deleteNetwork,
   disconnectPif,
   editNetwork,
@@ -362,20 +360,12 @@ export default class TabNetworks extends Component {
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='primary'
-              handler={createBondedNetwork}
-              handlerParam={this.props.pool}
-              icon='add'
-              labelId='networkCreateBondedButton'
-            />
-            <TabButton
-              btnStyle='primary'
-              handler={createNetwork}
-              handlerParam={this.props.pool}
-              icon='add'
-              labelId='networkCreateButton'
-            />
+            <Link
+              className='btn btn-primary mb-1'
+              to={`new/network?pool=${this.props.pool.id}`}
+            >
+              <Icon icon='add' /> {_('networkCreateButton')}
+            </Link>
           </Col>
         </Row>
         <Row>
