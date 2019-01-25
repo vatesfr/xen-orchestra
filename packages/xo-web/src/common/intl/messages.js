@@ -16,6 +16,7 @@ const messages = {
   memoryFree: '{memoryFree} RAM free',
   date: 'Date',
   notifications: 'Notifications',
+  noNotifications: 'No notifications so far.',
   notificationNew: 'NEW!',
   messageSubject: 'Subject',
   messageFrom: 'From',

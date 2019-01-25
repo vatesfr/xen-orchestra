@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import marked from 'marked'
+import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
@@ -97,9 +98,11 @@ const Notifications = decorate([
   }),
   injectState,
   ({ notifications, effects }) => (
-    <SortedTable
+    <NoObjects
+      collection={notifications}
       columns={COLUMNS}
-      collection={notifications || []}
+      component={SortedTable}
+      emptyMessage={_('noNotifications')}
       individualActions={ACTIONS}
       rowAction={effects.showMessage}
       stateUrlParam='s'
