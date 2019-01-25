@@ -115,7 +115,7 @@ const INDIVIDUAL_ACTIONS = [
   },
 ]
 
-const _snapshotVmWithMemory = vm => snapshotVm(vm, true)
+const _snapshotVmWithMemory = vm => snapshotVm(vm, undefined, true) // undefined: name is generated on the server side
 
 @connectStore(() => ({
   snapshots: createGetObjectsOfType('VM-snapshot')
