@@ -9,8 +9,9 @@ import Upgrade from 'xoa-upgrade'
 import { Col } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { SelectSr } from 'select-objects'
-import { Toggle } from 'form'
 import { buildTemplate, connectStore } from 'utils'
+
+import SelectCompression from '../../select-compression'
 
 @connectStore(
   () => {
@@ -40,7 +41,8 @@ class CopyVmsModalBody extends BaseComponent {
         )
       : map(vms, vm => vm.name_label)
     return {
-      compress: state.compress,
+      compression:
+        state.compression === 'zstd' ? 'zstd' : state.compression === 'native',
       names,
       sr: state.sr.id,
     }
@@ -48,7 +50,7 @@ class CopyVmsModalBody extends BaseComponent {
 
   componentWillMount() {
     this.setState({
-      compress: false,
+      compression: '',
       namePattern: '{name}_COPY',
     })
   }
@@ -56,11 +58,10 @@ class CopyVmsModalBody extends BaseComponent {
   _onChangeSr = sr => this.setState({ sr })
   _onChangeNamePattern = event =>
     this.setState({ namePattern: event.target.value })
-  _onChangeCompress = compress => this.setState({ compress })
 
   render() {
     const { formatMessage } = this.props.intl
-    const { compress, namePattern, sr } = this.state
+    const { compression, namePattern, sr } = this.state
     return process.env.XOA_PLAN > 2 ? (
       <div>
         <SingleLineRow>
@@ -84,9 +85,12 @@ class CopyVmsModalBody extends BaseComponent {
         </SingleLineRow>
         &nbsp;
         <SingleLineRow>
-          <Col size={6}>{_('copyVmCompress')}</Col>
+          <Col size={6}>{_('compression')}</Col>
           <Col size={6}>
-            <Toggle onChange={this.linkState('compress')} value={compress} />
+            <SelectCompression
+              onChange={this.linkState('compression')}
+              value={compression}
+            />
           </Col>
         </SingleLineRow>
       </div>
