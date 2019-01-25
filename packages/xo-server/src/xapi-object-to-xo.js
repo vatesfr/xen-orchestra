@@ -745,7 +745,7 @@ const TRANSFORMS = {
 
 // ===================================================================
 
-export default function xapiObjectToXo(xapiObj, dependents) {
+export default function xapiObjectToXo(xapiObj, dependents = {}) {
   const transform = TRANSFORMS[xapiObj.$type.toLowerCase()]
   if (!transform) {
     return
