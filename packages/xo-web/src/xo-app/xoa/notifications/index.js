@@ -87,7 +87,7 @@ const Notifications = decorate([
       showMessage: (effects, notification) => () =>
         alert(
           <span>
-            <Icon icon='notification' /> {_('notification')}
+            <Icon icon='notification' /> {notification.title}
           </span>,
           <div
             dangerouslySetInnerHTML={{ __html: marked(notification.message) }}
