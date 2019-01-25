@@ -1826,11 +1826,12 @@ const messages = {
   deleteSshKeysConfirm: 'Delete SSH key{nKeys, plural, one {} other {s}}',
   deleteSshKeysConfirmMessage:
     'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?',
-  addOtpConfirm: 'Add OTP authentification',
-  addOtpConfirmMessage: 'Are you sure you want to add OTP authentification ?',
-  removeOtpConfirm: 'remove OTP authentification',
+  addOtpConfirm: 'Add OTP authentication',
+  addOtpConfirmMessage: 'Are you sure you want to add OTP authentication ?',
+  removeOtpConfirm: 'remove OTP authentication',
   removeOtpConfirmMessage:
-    'Are you sure you want to remove OTP authentification ?',
+    'Are you sure you want to remove OTP authentication ?',
+  OtpAuthentication: 'Authentication OTP',
 
   // ----- Usage -----
   others: 'Others',
