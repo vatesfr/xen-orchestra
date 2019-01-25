@@ -11,7 +11,7 @@
 - [UI] Show pool name next to templates' names [#3894](https://github.com/vatesfr/xen-orchestra/issues/3894) (PR [#3896](https://github.com/vatesfr/xen-orchestra/pull/3896))
 - [Backup NG] Support zstd compression for full backups [#3773](https://github.com/vatesfr/xen-orchestra/issues/3773) (PR [#3883](https://github.com/vatesfr/xen-orchestra/pull/3883))
 - [VM] Ability to copy a VM with zstd compression [#3773](https://github.com/vatesfr/xen-orchestra/issues/3773) (PR [#3889](https://github.com/vatesfr/xen-orchestra/pull/3889))
-- [Notifications] New notification page to provide important information about XOA
+- [Notifications] New notification page to provide important information about XOA (PR [#3904](https://github.com/vatesfr/xen-orchestra/pull/3904))
 
 ### Bug fixes
 
