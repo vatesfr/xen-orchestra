@@ -119,7 +119,6 @@ export const NotificationTag = decorate([
       newNotifications: (_, { notifications }) =>
         filter(notifications, { read: false }).length,
       someWarningNotifications: (_, { notifications }) =>
-        console.log('notifications', notifications) ||
         some(notifications, { level: 'warning', read: false }),
     },
   }),
