@@ -390,17 +390,20 @@ export const subscribeResourceCatalog = createSubscription(() =>
 )
 
 const getNotificationCookie = () => {
-  const rawNotificationCookie = cookies.get(
+  const notificationCookie = cookies.get(
     `notifications:${store.getState().user.id}`
   )
-  return rawNotificationCookie === undefined
-    ? {}
-    : JSON.parse(rawNotificationCookie)
+  return notificationCookie === undefined ? {} : JSON.parse(notificationCookie)
 }
 
-const setNotificationCookie = (id, cookie) => {
+const setNotificationCookie = (id, changes) => {
   const notifications = getNotificationCookie()
-  notifications[id] = { ...(notifications[id] || {}), ...cookie }
+  notifications[id] = { ...(notifications[id] || {}), ...changes }
+  forEach(notifications[id], (value, key) => {
+    if (value === null) {
+      delete notifications[id][key]
+    }
+  })
   cookies.set(
     `notifications:${store.getState().user.id}`,
     JSON.stringify(notifications)

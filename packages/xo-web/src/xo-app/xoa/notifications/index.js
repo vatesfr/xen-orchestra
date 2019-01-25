@@ -18,6 +18,7 @@ const COLUMNS = [
     name: '',
     itemRenderer: ({ level }) =>
       level === 'warning' && <Icon icon='alarm' color='text-danger' />,
+    sortCriteria: 'level',
   },
   {
     default: true,
@@ -61,6 +62,7 @@ const COLUMNS = [
     name: '',
     itemRenderer: ({ id, read }) =>
       !read && <strong className='text-success'>{_('notificationNew')}</strong>,
+    sortCriteria: 'read',
   },
 ]
 
