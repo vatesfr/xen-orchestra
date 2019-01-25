@@ -652,7 +652,6 @@ export class Xapi extends EventEmitter {
                 headers,
                 query,
                 pathname,
-                maxRedirects: 0,
                 rejectUnauthorized: !this._allowUnauthorized,
               },
               ...opts
@@ -668,6 +667,8 @@ export class Xapi extends EventEmitter {
 
               // omit task_id because this request will fail on purpose
               query: 'task_id' in query ? omit(query, 'task_id') : query,
+
+              maxRedirects: 0,
             }).then(
               response => {
                 response.cancel()
