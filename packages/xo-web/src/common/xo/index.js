@@ -589,6 +589,22 @@ export const setPoolMaster = host =>
 export const editHost = (host, props) =>
   _call('host.set', { ...props, id: resolveId(host) })
 
+import MultipathingModalBody from './multipathing-modal' // eslint-disable-line import/first
+export const setHostsMultipathing = ({
+  host,
+  hosts = [host],
+  multipathing,
+}) => {
+  const ids = resolveIds(hosts)
+  return confirm({
+    title: _(multipathing ? 'enableMultipathing' : 'disableMultipathing'),
+    body: <MultipathingModalBody hostIds={ids} />,
+  }).then(
+    () => Promise.all(map(ids, id => editHost(id, { multipathing }))),
+    noop
+  )
+}
+
 export const fetchHostStats = (host, granularity) =>
   _call('host.stats', { host: resolveId(host), granularity })
 

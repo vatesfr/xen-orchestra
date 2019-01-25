@@ -21,6 +21,11 @@ const messages = {
   showLogs: 'Show logs',
   noValue: 'None',
   compression: 'Compression',
+  multipathing: 'Multipathing',
+  enableMultipathing: 'Enable multipathing',
+  disableMultipathing: 'Disable multipathing',
+  enableAllHostsMultipathing: 'Enable all hosts multipathing',
+  disableAllHostsMultipathing: 'Disable all hosts multipathing',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -757,6 +762,9 @@ const messages = {
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
   hostIscsiName: 'iSCSI name',
+  hostMultipathingSrs: 'Click to see concerned SRs',
+  hostMultipathingWarning:
+    'The host{nHosts, plural, one {} other {s}} will lose the connection to the SRs. Do you want to continue?',
   hostXenServerVersion: 'Version',
   hostStatusEnabled: 'Enabled',
   hostStatusDisabled: 'Disabled',
