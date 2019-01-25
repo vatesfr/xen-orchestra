@@ -51,36 +51,6 @@ import {
 
 // ===================================================================
 
-// Copied from xo-server-xoa
-function CacheEntry(expires, value) {
-  this.expires = expires
-  this.value = value
-}
-
-class Cache {
-  constructor(defaultTtl) {
-    this.defaultTtl = defaultTtl
-    this.entries = Object.create(null)
-  }
-
-  get(key) {
-    const { entries } = this
-    const entry = entries[key]
-    if (entry !== undefined) {
-      if (entry.expires > Date.now()) {
-        return entry.value
-      }
-      delete entries[key]
-    }
-  }
-
-  set(key, value, ttl = this.defaultTtl) {
-    this.entries[key] = new CacheEntry(Date.now() + ttl, value)
-  }
-}
-
-// ===================================================================
-
 export const XEN_DEFAULT_CPU_WEIGHT = 256
 export const XEN_DEFAULT_CPU_CAP = 0
 
@@ -415,8 +385,6 @@ export const dismissNotification = id => {
   subscribeNotifications.forceRefresh()
 }
 
-// TODO: move cache to updater
-const _notificationsCache = new Cache(1e3 * 60 * 5)
 export const subscribeNotifications = createSubscription(async () => {
   const { user, xoaUpdaterState } = store.getState()
   if (
@@ -427,12 +395,7 @@ export const subscribeNotifications = createSubscription(async () => {
     return []
   }
 
-  let notifications = _notificationsCache.get('notifications')
-  if (notifications === undefined) {
-    notifications = await updater._call('getMessages')
-    _notificationsCache.set('notifications', notifications)
-  }
-
+  const notifications = await updater._call('getMessages')
   const notificationCookie = getNotificationCookie()
   return map(
     user != null && user.permission === 'admin'
