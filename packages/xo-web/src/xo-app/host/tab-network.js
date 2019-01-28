@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
+import humanFormat from 'human-format'
 import React from 'react'
 import Icon from 'icon'
 import SingleLineRow from 'single-line-row'
@@ -265,7 +266,8 @@ const PIF_COLUMNS = [
     sortCriteria: 'mtu',
   },
   {
-    itemRenderer: pif => `${pif.speed} Mb/s`,
+    itemRenderer: ({ speed }) =>
+      speed !== undefined && humanFormat(speed * 1e6, { unit: 'b/s' }), // 1e6: convert Mb to b
     name: _('pifSpeedLabel'),
     sortCriteria: 'speed',
   },
