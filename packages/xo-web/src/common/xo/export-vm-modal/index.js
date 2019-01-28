@@ -3,6 +3,7 @@ import React from 'react'
 
 import _ from '../../intl'
 import SelectCompression from '../../select-compression'
+import { Container, Row, Col } from '../../grid'
 
 export default class ExportVmModalBody extends BaseComponent {
   state = {
@@ -16,13 +17,19 @@ export default class ExportVmModalBody extends BaseComponent {
 
   render() {
     return (
-      <div>
-        <strong>{_('compression')}</strong>
-        <SelectCompression
-          onChange={this.linkState('compression')}
-          value={this.state.compression}
-        />
-      </div>
+      <Container>
+        <Row>
+          <Col mediumSize={6}>
+            <strong>{_('compression')}</strong>
+          </Col>
+          <Col mediumSize={6}>
+            <SelectCompression
+              onChange={this.linkState('compression')}
+              value={this.state.compression}
+            />
+          </Col>
+        </Row>
+      </Container>
     )
   }
 }
