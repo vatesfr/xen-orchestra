@@ -334,9 +334,9 @@ export default {
 
     cpuMask: {
       get: vm => vm.VCPUs_params.mask && vm.VCPUs_params.mask.split(','),
-      set (cpuMask, vm) {
+      set(cpuMask, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', {
-          mask: cpuMask !== undefined ? cpuMask.join(',') : '',
+          mask: cpuMask == null ? cpuMask : cpuMask.join(','),
         })
       },
     },
