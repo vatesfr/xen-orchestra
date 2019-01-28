@@ -12,40 +12,59 @@ html
       div.mb-2(style = 'display: flex;')
         img(src = 'assets/logo.png' style = 'margin: auto;')
       h2.text-xs-center.mb-2 Xen Orchestra
-      form(action = 'signin/local' method = 'post')
-        fieldset
-          if error
-            p.text-danger #{error}
-          .input-group.mb-1
-            span.input-group-addon
-              i.xo-icon-user.fa-fw
-            input.form-control(
-              autofocus
-              name = 'username'
-              placeholder = 'Username'
-              required
-              type = 'text'
-            )
-          .input-group.mb-1
-            span.input-group-addon
-              i.fa.fa-key.fa-fw
-            input.form-control(
-              name = 'password'
-              type = 'password'
-              placeholder = 'Password'
-              required
-            )
-          .checkbox
-            label
-              input(
-                name = 'remember-me'
-                type = 'checkbox'
+      if error
+        p.text-danger #{error}
+      if otp
+        form(action = 'signin-otp' method = 'post')
+          fieldset
+            .input-group.mb-1
+              span.input-group-addon
+                i.fa.fa-key.fa-fw
+              input.form-control(
+                autocomplete = 'off'
+                autofocus
+                name = 'otp'
+                type = 'text'
+                placeholder = 'Code'
+                required
               )
-              | &nbsp;
-              | Remember me
-          div
-            button.btn.btn-block.btn-info
-              i.fa.fa-sign-in
-              |  Sign in
-          each label, id in strategies
-            div: a(href = 'signin/' + id) Sign in with #{label}
+            div
+              button.btn.btn-block.btn-info
+                i.fa.fa-sign-in
+                |  Sign in
+      else
+        form(action = 'signin/local' method = 'post')
+          fieldset
+            .input-group.mb-1
+              span.input-group-addon
+                i.xo-icon-user.fa-fw
+              input.form-control(
+                autofocus
+                name = 'username'
+                placeholder = 'Username'
+                required
+                type = 'text'
+              )
+            .input-group.mb-1
+              span.input-group-addon
+                i.fa.fa-key.fa-fw
+              input.form-control(
+                name = 'password'
+                type = 'password'
+                placeholder = 'Password'
+                required
+              )
+            .checkbox
+              label
+                input(
+                  name = 'remember-me'
+                  type = 'checkbox'
+                )
+                | &nbsp;
+                | Remember me
+            div
+              button.btn.btn-block.btn-info
+                i.fa.fa-sign-in
+                |  Sign in
+            each label, id in strategies
+              div: a(href = 'signin/' + id) Sign in with #{label}
