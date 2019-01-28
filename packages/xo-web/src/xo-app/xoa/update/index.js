@@ -480,10 +480,10 @@ const COMPONENTS_BY_STATE = {
   upgradeNeeded: (
     <span className='fa-stack'>
       <i className='fa fa-circle fa-stack-2x text-success' />
-      <i className='fa fa-bell fa-stack-1x' />
+      <i className='fa fa-refresh fa-stack-1x' />
     </span>
   ),
-  upToDate: <Icon icon='success' />,
+  upToDate: null,
 }
 const TOOLTIPS_BY_STATE = {
   connected: _('waitingUpdateInfo'),

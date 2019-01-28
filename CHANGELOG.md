@@ -14,6 +14,7 @@
 - [VM & Host] "Pool > Host" breadcrumb at the top of the page (PR [#3898](https://github.com/vatesfr/xen-orchestra/pull/3898))
 - [Hosts] Ability to enable/disable host multipathing [#3659](https://github.com/vatesfr/xen-orchestra/issues/3659) (PR [#3865](https://github.com/vatesfr/xen-orchestra/pull/3865))
 - [Login] Add OTP authentication [#2044](https://github.com/vatesfr/xen-orchestra/issues/2044) (PR [#3879](https://github.com/vatesfr/xen-orchestra/pull/3879))
+- [Notifications] New notification page to provide important information about XOA (PR [#3904](https://github.com/vatesfr/xen-orchestra/pull/3904))
 
 ### Bug fixes
 
@@ -28,6 +29,7 @@
 
 ### Released packages
 
+- xoa-updater v0.15.0
 - xen-api v0.24.1
 - xo-vmdk-to-vhd v0.1.6
 - xo-server v5.34.0

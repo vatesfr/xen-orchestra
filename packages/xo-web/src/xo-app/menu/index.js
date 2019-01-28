@@ -8,6 +8,7 @@ import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { UpdateTag } from '../xoa/update'
+import { NotificationTag } from '../xoa/notifications'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
@@ -242,14 +243,38 @@ export default class Menu extends Component {
           },
         ],
       },
-      isAdmin && {
-        to: 'xoa/update',
+      {
+        to: isAdmin ? 'xoa/update' : 'xoa/notifications',
         icon: 'menu-xoa',
         label: 'xoa',
-        extra: <UpdateTag />,
+        extra: (
+          <span>
+            {isAdmin && (
+              <span>
+                <UpdateTag />{' '}
+              </span>
+            )}
+            <NotificationTag />
+          </span>
+        ),
         subMenu: [
-          { to: 'xoa/update', icon: 'menu-update', label: 'updatePage' },
-          { to: 'xoa/licenses', icon: 'menu-license', label: 'licensesPage' },
+          isAdmin && {
+            to: 'xoa/update',
+            icon: 'menu-update',
+            label: 'updatePage',
+            extra: <UpdateTag />,
+          },
+          isAdmin && {
+            to: 'xoa/licenses',
+            icon: 'menu-license',
+            label: 'licensesPage',
+          },
+          {
+            to: 'xoa/notifications',
+            icon: 'menu-notification',
+            label: 'notificationsPage',
+            extra: <NotificationTag />,
+          },
         ],
       },
       isAdmin && {
@@ -535,7 +560,7 @@ const SubMenu = props => {
             <li key={index} className='nav-item xo-menu-item'>
               <Link activeClassName='active' className='nav-link' to={item.to}>
                 <Icon icon={`${item.icon}`} size='lg' fixedWidth />{' '}
-                {_(item.label)}
+                {_(item.label)} {item.extra}
               </Link>
             </li>
           )

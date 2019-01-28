@@ -5,6 +5,7 @@ import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import reflect from 'promise-toolbox/reflect'
 import tap from 'promise-toolbox/tap'
+import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
@@ -357,6 +358,55 @@ export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
 )
+
+const getNotificationCookie = () => {
+  const notificationCookie = cookies.get(
+    `notifications:${store.getState().user.id}`
+  )
+  return notificationCookie === undefined ? {} : JSON.parse(notificationCookie)
+}
+
+const setNotificationCookie = (id, changes) => {
+  const notifications = getNotificationCookie()
+  notifications[id] = { ...(notifications[id] || {}), ...changes }
+  forEach(notifications[id], (value, key) => {
+    if (value === null) {
+      delete notifications[id][key]
+    }
+  })
+  cookies.set(
+    `notifications:${store.getState().user.id}`,
+    JSON.stringify(notifications)
+  )
+}
+
+export const dismissNotification = id => {
+  setNotificationCookie(id, { read: true, date: Date.now() })
+  subscribeNotifications.forceRefresh()
+}
+
+export const subscribeNotifications = createSubscription(async () => {
+  const { user, xoaUpdaterState } = store.getState()
+  if (
+    process.env.XOA_PLAN === 5 ||
+    xoaUpdaterState === 'disconnected' ||
+    xoaUpdaterState === 'error'
+  ) {
+    return []
+  }
+
+  const notifications = await updater._call('getMessages')
+  const notificationCookie = getNotificationCookie()
+  return map(
+    user != null && user.permission === 'admin'
+      ? notifications
+      : filter(notifications, { level: 'warning' }),
+    notification => ({
+      ...notification,
+      read: !!get(notificationCookie, `${notification.id}.read`),
+    })
+  )
+})
 
 const checkSrCurrentStateSubscriptions = {}
 export const subscribeCheckSrCurrentState = (pool, cb) => {
