@@ -173,6 +173,7 @@ const TRANSFORMS = {
           total: 0,
         }
       })(),
+      multipathing: obj.multipathing,
       patches: patches || link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
@@ -744,7 +745,7 @@ const TRANSFORMS = {
 
 // ===================================================================
 
-export default function xapiObjectToXo(xapiObj, dependents) {
+export default function xapiObjectToXo(xapiObj, dependents = {}) {
   const transform = TRANSFORMS[xapiObj.$type.toLowerCase()]
   if (!transform) {
     return

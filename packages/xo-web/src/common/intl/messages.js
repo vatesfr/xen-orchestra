@@ -28,6 +28,11 @@ const messages = {
   showLogs: 'Show logs',
   noValue: 'None',
   compression: 'Compression',
+  multipathing: 'Multipathing',
+  enableMultipathing: 'Enable multipathing',
+  disableMultipathing: 'Disable multipathing',
+  enableAllHostsMultipathing: 'Enable all hosts multipathing',
+  disableAllHostsMultipathing: 'Disable all hosts multipathing',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -765,6 +770,9 @@ const messages = {
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
   hostIscsiName: 'iSCSI name',
+  hostMultipathingSrs: 'Click to see concerned SRs',
+  hostMultipathingWarning:
+    'The host{nHosts, plural, one {} other {s}} will lose the connection to the SRs. Do you want to continue?',
   hostXenServerVersion: 'Version',
   hostStatusEnabled: 'Enabled',
   hostStatusDisabled: 'Disabled',
@@ -1826,6 +1834,12 @@ const messages = {
   deleteSshKeysConfirm: 'Delete SSH key{nKeys, plural, one {} other {s}}',
   deleteSshKeysConfirmMessage:
     'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?',
+  addOtpConfirm: 'Add OTP authentication',
+  addOtpConfirmMessage: 'Are you sure you want to add OTP authentication?',
+  removeOtpConfirm: 'Remove OTP authentication',
+  removeOtpConfirmMessage:
+    'Are you sure you want to remove OTP authentication?',
+  OtpAuthentication: 'OTP authentication',
 
   // ----- Usage -----
   others: 'Others',

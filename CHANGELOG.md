@@ -11,6 +11,9 @@
 - [UI] Show pool name next to templates' names [#3894](https://github.com/vatesfr/xen-orchestra/issues/3894) (PR [#3896](https://github.com/vatesfr/xen-orchestra/pull/3896))
 - [Backup NG] Support zstd compression for full backups [#3773](https://github.com/vatesfr/xen-orchestra/issues/3773) (PR [#3883](https://github.com/vatesfr/xen-orchestra/pull/3883))
 - [VM] Ability to copy a VM with zstd compression [#3773](https://github.com/vatesfr/xen-orchestra/issues/3773) (PR [#3889](https://github.com/vatesfr/xen-orchestra/pull/3889))
+- [VM & Host] "Pool > Host" breadcrumb at the top of the page (PR [#3898](https://github.com/vatesfr/xen-orchestra/pull/3898))
+- [Hosts] Ability to enable/disable host multipathing [#3659](https://github.com/vatesfr/xen-orchestra/issues/3659) (PR [#3865](https://github.com/vatesfr/xen-orchestra/pull/3865))
+- [Login] Add OTP authentication [#2044](https://github.com/vatesfr/xen-orchestra/issues/2044) (PR [#3879](https://github.com/vatesfr/xen-orchestra/pull/3879))
 - [Notifications] New notification page to provide important information about XOA (PR [#3904](https://github.com/vatesfr/xen-orchestra/pull/3904))
 
 ### Bug fixes
@@ -20,6 +23,9 @@
 - [XOA] Enable downgrade for ending trial (PR [#3867](https://github.com/vatesfr/xen-orchestra/pull/3867))
 - [OVA import] allow import of big files [#3468](https://github.com/vatesfr/xen-orchestra/issues/3468) (PR [#3504](https://github.com/vatesfr/xen-orchestra/pull/3504))
 - [Backup NG] Smart settings not saved when editing a backup job [#3885](https://github.com/vatesfr/xen-orchestra/issues/3885) (PR [#3886](https://github.com/vatesfr/xen-orchestra/pull/3886))
+- [VM/snapshot] New snapshot with memory: fix "invalid parameters" error (PR [#3903](https://github.com/vatesfr/xen-orchestra/pull/3903))
+- [VM creation] Broken CloudInit config drive when VM created on local SR
+- [Legacy Backup] Fix error when restoring a backup
 
 ### Released packages
 

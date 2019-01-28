@@ -2,14 +2,11 @@ import _ from 'intl'
 import BaseComponent from 'base-component'
 import Copiable from 'copiable'
 import Icon from 'icon'
-import Link from 'link'
 import Tooltip from 'tooltip'
 import { NavLink, NavTabs } from 'nav'
-import Page from '../page'
 import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
-import VmActionBar from './action-bar'
-import { Host } from 'render-xo-item'
+import { Host, Pool } from 'render-xo-item'
 import { Text, XoSelect } from 'editable'
 import { assign, isEmpty, map, pick } from 'lodash'
 import { editVm, fetchVmStats, isVmRunning, migrateVm } from 'xo'
@@ -25,6 +22,7 @@ import {
   isAdmin,
 } from 'selectors'
 
+import Page from '../page'
 import TabGeneral from './tab-general'
 import TabStats from './tab-stats'
 import TabConsole from './tab-console'
@@ -34,6 +32,7 @@ import TabNetwork from './tab-network'
 import TabSnapshots from './tab-snapshots'
 import TabLogs from './tab-logs'
 import TabAdvanced from './tab-advanced'
+import VmActionBar from './action-bar'
 
 // ===================================================================
 
@@ -176,6 +175,31 @@ export default class Vm extends BaseComponent {
       <Container>
         <Row>
           <Col mediumSize={6} className='header-title'>
+            <span>
+              <span className='text-muted'>
+                {pool !== undefined && <Pool id={pool.id} link />}
+                {vm.power_state === 'Running' && (
+                  <span>
+                    {container !== undefined && pool !== undefined && (
+                      <span>
+                        {' '}
+                        <Icon icon='next' />{' '}
+                      </span>
+                    )}
+                    {container !== undefined && (
+                      <XoSelect
+                        onChange={this._migrateVm}
+                        useLongClick
+                        value={container}
+                        xoType='host'
+                      >
+                        <Host id={container.id} pool={false} link />
+                      </XoSelect>
+                    )}
+                  </span>
+                )}
+              </span>
+            </span>
             <h2>
               <Tooltip content={state}>
                 <Icon icon={`vm-${state}`} />
@@ -185,30 +209,10 @@ export default class Vm extends BaseComponent {
             <Copiable tagName='pre' className='text-muted mb-0'>
               {vm.uuid}
             </Copiable>
-            <span>
-              <Text
-                value={vm.name_description}
-                onChange={this._setNameDescription}
-              />
-              <span className='text-muted'>
-                {vm.power_state === 'Running' && container && (
-                  <span>
-                    <span> - </span>
-                    <XoSelect
-                      onChange={this._migrateVm}
-                      useLongClick
-                      value={container}
-                      xoType='host'
-                    >
-                      <Host id={container.id} pool={false} link />
-                    </XoSelect>
-                  </span>
-                )}{' '}
-                {pool && (
-                  <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-                )}
-              </span>
-            </span>
+            <Text
+              value={vm.name_description}
+              onChange={this._setNameDescription}
+            />
           </Col>
           <Col mediumSize={6} className='text-xs-center'>
             <div>

@@ -2,8 +2,9 @@ import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import React from 'react'
-import TabButton from 'tab-button'
 import SelectFiles from 'select-files'
+import StateButton from 'state-button'
+import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
 import { Text } from 'editable'
 import { Toggle } from 'form'
@@ -13,13 +14,14 @@ import { Container, Row, Col } from 'grid'
 import { forEach, map, noop } from 'lodash'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import {
-  enableHost,
   detachHost,
   disableHost,
+  enableHost,
   forgetHost,
-  setRemoteSyslogHost,
-  restartHost,
   installSupplementalPack,
+  restartHost,
+  setHostsMultipathing,
+  setRemoteSyslogHost,
 } from 'xo'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
@@ -182,6 +184,22 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostIscsiName')}</th>
                   <Copiable tagName='td'>{host.iSCSI_name}</Copiable>
+                </tr>
+                <tr>
+                  <th>{_('multipathing')}</th>
+                  <td>
+                    <StateButton
+                      className='mb-1'
+                      data-host={host}
+                      data-multipathing={!host.multipathing}
+                      disabledLabel={_('stateDisabled')}
+                      disabledTooltip={_('enableMultipathing')}
+                      enabledLabel={_('stateEnabled')}
+                      enabledTooltip={_('disableMultipathing')}
+                      handler={setHostsMultipathing}
+                      state={host.multipathing}
+                    />
+                  </td>
                 </tr>
                 <tr>
                   <th>{_('hostRemoteSyslog')}</th>
