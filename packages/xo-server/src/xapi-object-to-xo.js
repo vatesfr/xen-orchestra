@@ -477,6 +477,7 @@ const TRANSFORMS = {
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
       device_config: obj.device_config,
+      otherConfig: obj.other_config,
     }
   },
 
