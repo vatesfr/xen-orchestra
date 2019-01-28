@@ -26,9 +26,10 @@ export default decorate([
       },
     },
     computed: {
-      async qrcode({ secret }, { user }) {
-        const otpauth = authenticator.keyuri(user.email, 'XenOrchestra', secret)
-        return qrcode.toDataURL(otpauth)
+      qrcode({ secret }, { user }) {
+        return qrcode.toDataURL(
+          authenticator.keyuri(user.email, 'XenOrchestra', secret)
+        )
       },
     },
   }),
@@ -41,7 +42,7 @@ export default decorate([
         </Col>
         <Col smallSize={10}>
           <Toggle
-            value={Boolean(user.preferences.otp) || false}
+            value={user.preferences.otp !== undefined}
             onChange={effects._handleOtp}
           />{' '}
           {user.preferences.otp !== undefined && (
