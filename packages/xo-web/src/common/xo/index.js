@@ -1425,12 +1425,21 @@ export const importVms = (vms, sr) =>
     )
   )
 
-export const exportVm = vm => {
-  info(_('startVmExport'), vm.id)
-  return _call('vm.export', { vm: resolveId(vm) }).then(({ $getFrom: url }) => {
-    window.location = `.${url}`
+import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
+export const exportVm = vm =>
+  confirm({
+    body: <ExportVmModalBody />,
+    icon: 'export',
+    title: _('exportVmLabel'),
+  }).then(compress => {
+    const id = resolveId(vm)
+    info(_('startVmExport'), id)
+    return _call('vm.export', { vm: id, compress }).then(
+      ({ $getFrom: url }) => {
+        window.location = `.${url}`
+      }
+    )
   })
-}
 
 export const exportVdi = vdi => {
   info(_('startVdiExport'), vdi.id)
