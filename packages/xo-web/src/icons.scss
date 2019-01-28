@@ -803,6 +803,10 @@
     @extend .fa;
     @extend .fa-file-text-o;
   }
+  &-menu-notification {
+    @extend .fa;
+    @extend .fa-bell;
+  }
   &-menu-settings {
     @extend .fa;
     @extend .fa-cog;
@@ -1047,6 +1051,14 @@
   &-support {
     @extend .fa;
     @extend .fa-support;
+  }
+  &-notification {
+    @extend .fa;
+    @extend .fa-bell;
+  }
+  &-reply {
+    @extend .fa;
+    @extend .fa-share;
   }
 
   // XOSAN related

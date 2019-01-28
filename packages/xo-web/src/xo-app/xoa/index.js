@@ -8,6 +8,7 @@ import { NavLink, NavTabs } from 'nav'
 
 import Update from './update'
 import Licenses from './licenses'
+import Notifications, { NotificationTag } from './notifications'
 
 const HEADER = (
   <Container>
@@ -25,6 +26,10 @@ const HEADER = (
           <NavLink to='/xoa/licenses'>
             <Icon icon='menu-license' /> {_('licensesPage')}
           </NavLink>
+          <NavLink to='/xoa/notifications'>
+            <Icon icon='menu-notification' /> {_('notificationsPage')}{' '}
+            <NotificationTag />
+          </NavLink>
         </NavTabs>
       </Col>
     </Row>
@@ -34,6 +39,7 @@ const HEADER = (
 const Xoa = routes('xoa', {
   update: Update,
   licenses: Licenses,
+  notifications: Notifications,
 })(({ children }) =>
   +process.env.XOA_PLAN === 5 ? (
     <Container>

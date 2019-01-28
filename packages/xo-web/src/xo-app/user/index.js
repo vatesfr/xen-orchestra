@@ -28,6 +28,7 @@ import {
 } from 'xo'
 
 import Page from '../page'
+import Otp from './otp'
 
 // ===================================================================
 
@@ -423,6 +424,8 @@ export default class User extends Component {
             </Col>
           </Row>
         </Container>
+        <hr />
+        <Otp user={user} />
         <hr />
         <SshKeys />
         <hr />

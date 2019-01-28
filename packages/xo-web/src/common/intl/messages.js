@@ -14,6 +14,13 @@ const messages = {
   errorNoSuchItem: 'no such item',
   errorUnknownItem: 'unknown {type}',
   memoryFree: '{memoryFree} RAM free',
+  date: 'Date',
+  notifications: 'Notifications',
+  noNotifications: 'No notifications so far.',
+  notificationNew: 'NEW!',
+  messageSubject: 'Subject',
+  messageFrom: 'From',
+  messageReply: 'Reply',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -74,6 +81,7 @@ const messages = {
   xoaPage: 'XOA',
   updatePage: 'Updates',
   licensesPage: 'Licenses',
+  notificationsPage: 'Notifications',
   settingsPage: 'Settings',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
@@ -1826,6 +1834,12 @@ const messages = {
   deleteSshKeysConfirm: 'Delete SSH key{nKeys, plural, one {} other {s}}',
   deleteSshKeysConfirmMessage:
     'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?',
+  addOtpConfirm: 'Add OTP authentication',
+  addOtpConfirmMessage: 'Are you sure you want to add OTP authentication?',
+  removeOtpConfirm: 'Remove OTP authentication',
+  removeOtpConfirmMessage:
+    'Are you sure you want to remove OTP authentication?',
+  OtpAuthentication: 'OTP authentication',
 
   // ----- Usage -----
   others: 'Others',
