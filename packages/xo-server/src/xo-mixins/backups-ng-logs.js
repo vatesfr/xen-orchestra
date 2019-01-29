@@ -1,4 +1,5 @@
-import { forEach } from 'lodash'
+import ms from 'ms'
+import { forEach, isEmpty, iteratee, sortedIndexBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 const isSkippedError = error =>
@@ -30,6 +31,10 @@ const computeStatusAndSortTasks = (status, tasks) => {
   tasks.sort(taskTimeComparator)
 
   return status
+}
+
+function getPropertyValue(key) {
+  return this[key]
 }
 
 const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
@@ -169,5 +174,49 @@ export default {
     forEach(restoreLogs, handleLog)
 
     return runId === undefined ? consolidated : consolidated[runId]
+  },
+
+  async getBackupNgLogsSorted({ after, before, filter, limit }) {
+    let logs = await this.getBackupNgLogs()
+
+    // convert to array
+    logs = Object.keys(logs).map(getPropertyValue, logs)
+
+    if (!isEmpty(filter)) {
+      logs = logs.filter(iteratee(filter))
+    }
+
+    logs.sort((a, b) => a.start - b.start)
+
+    // only extract the range we are interrested in
+    const i =
+      after === undefined
+        ? 0
+        : sortedIndexBy(
+            logs,
+            {
+              start: typeof after === 'number' ? after : Date.now() - ms(after),
+            },
+            _ => _.start
+          )
+    let j =
+      before === undefined
+        ? logs.length
+        : sortedIndexBy(
+            logs,
+            {
+              start:
+                typeof before === 'number' ? before : Date.now() - ms(before),
+            },
+            _ => _.start
+          )
+
+    limit += i
+    if (limit < j) {
+      j = limit
+    }
+    logs = logs.slice(i, j)
+
+    return logs.map(_ => _.start)
   },
 }
