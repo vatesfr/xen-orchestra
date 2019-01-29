@@ -8,6 +8,12 @@ const simpleUser = {
   password: "batman",
 };
 
+const adminUser = {
+  email: "admin2@admin.net",
+  password: "admin",
+  permission: "admin",
+};
+
 const withData = (data, fn) =>
   forOwn(data, (data, title) => {
     it(title, () => fn(data));
@@ -195,9 +201,11 @@ describe("user", () => {
     });
 
     it("fails trying to delete itself", async () => {
-      await expect(
-        xo.call("user.delete", { id: xo._user.id })
-      ).rejects.toMatchSnapshot();
+      const id = await xo.createUser(adminUser);
+      const { email, password } = adminUser;
+      await testWithOtherConnection({ email, password }, xo =>
+        expect(xo.call("user.delete", { id })).rejects.toMatchSnapshot()
+      );
     });
   });
 });
