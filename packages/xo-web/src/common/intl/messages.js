@@ -774,7 +774,7 @@ const messages = {
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
   hostIscsiName: 'iSCSI name',
-  hostNoIscsiSr: 'Not connected to a iSCSI SR',
+  hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:
     '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}} ({ nSessions, number } iSCSI session{nSessions, plural, one {} other {s}})',

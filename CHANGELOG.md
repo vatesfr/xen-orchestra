@@ -16,7 +16,7 @@
 - [Login] Add OTP authentication [#2044](https://github.com/vatesfr/xen-orchestra/issues/2044) (PR [#3879](https://github.com/vatesfr/xen-orchestra/pull/3879))
 - [Notifications] New notification page to provide important information about XOA (PR [#3904](https://github.com/vatesfr/xen-orchestra/pull/3904))
 - [VM] Ability to export a VM with zstd compression [#3773](https://github.com/vatesfr/xen-orchestra/issues/3773) (PR [#3891](https://github.com/vatesfr/xen-orchestra/pull/3891))
-- Display iscsi paths and mark the SR with a yellow dot if one path is not available. [#3659](https://github.com/vatesfr/xen-orchestra/issues/3659) (PR [#3829](https://github.com/vatesfr/xen-orchestra/pull/3829))
+- [SR] Display iscsi paths and mark the SR with a yellow dot if one path is not available. [#3659](https://github.com/vatesfr/xen-orchestra/issues/3659) (PR [#3829](https://github.com/vatesfr/xen-orchestra/pull/3829))
 
 ### Bug fixes
 

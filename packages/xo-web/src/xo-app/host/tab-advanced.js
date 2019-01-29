@@ -49,21 +49,23 @@ const MultipathableSrs = decorate([
   }),
   ({ pbds }) =>
     isEmpty(pbds) ? (
-      _('hostNoIscsiSr')
+      <div>{_('hostNoIscsiSr')}</div>
     ) : (
       <Container>
         {map(pbds, pbd => {
           const [nActives, nPaths] = getIscsiPaths(pbd)
           return (
             <Row key={pbd.id}>
-              <Sr id={pbd.SR} link newTab container={false} />{' '}
-              {nActives !== undefined &&
-                nPaths !== undefined &&
-                _('hostMultipathingPaths', {
-                  nActives,
-                  nPaths,
-                  nSessions: pbd.otherConfig.iscsi_sessions,
-                })}
+              <Col>
+                <Sr id={pbd.SR} link newTab container={false} />{' '}
+                {nActives !== undefined &&
+                  nPaths !== undefined &&
+                  _('hostMultipathingPaths', {
+                    nActives,
+                    nPaths,
+                    nSessions: pbd.otherConfig.iscsi_sessions,
+                  })}
+              </Col>
             </Row>
           )
         })}

@@ -84,38 +84,39 @@ const HOST_ACTIONS = [
   },
 ]
 
-const HOST_PATHS_COLUMN = {
-  name: _('paths'),
-  itemRenderer: (pbd, hosts) => {
-    if (!pbd.attached) {
-      return _('pbdDisconnected')
-    }
+const HOST_WITH_PATHS_COLUMNS = [
+  ...HOST_COLUMNS,
+  {
+    name: _('paths'),
+    itemRenderer: (pbd, hosts) => {
+      if (!pbd.attached) {
+        return _('pbdDisconnected')
+      }
 
-    if (!get(() => hosts[pbd.host].multipathing)) {
-      return _('multipathingDisabled')
-    }
+      if (!get(() => hosts[pbd.host].multipathing)) {
+        return _('multipathingDisabled')
+      }
 
-    const [nActives, nPaths] = getIscsiPaths(pbd)
-    return (
-      nActives !== undefined &&
-      nPaths !== undefined &&
-      _('hostMultipathingPaths', {
-        nActives,
-        nPaths,
-        nSessions: pbd.otherConfig.iscsi_sessions,
-      })
-    )
+      const [nActives, nPaths] = getIscsiPaths(pbd)
+      return (
+        nActives !== undefined &&
+        nPaths !== undefined &&
+        _('hostMultipathingPaths', {
+          nActives,
+          nPaths,
+          nSessions: pbd.otherConfig.iscsi_sessions,
+        })
+      )
+    },
+    sortCriteria: (pbd, hosts) => get(() => hosts[pbd.host].multipathing),
   },
-  sortCriteria: (pbd, hosts) => get(() => hosts[pbd.host].multipathing),
-}
+]
 
 export default decorate([
   provideState({
     computed: {
       columns: (_, { sr }) =>
-        sr.sm_config.multipathable
-          ? [...HOST_COLUMNS, HOST_PATHS_COLUMN]
-          : HOST_COLUMNS,
+        sr.sm_config.multipathable ? HOST_WITH_PATHS_COLUMNS : HOST_COLUMNS,
     },
   }),
   injectState,
