@@ -66,8 +66,6 @@ html
                 | &nbsp;
                 | Remember me
             div
-              button.btn.btn-block.btn-info.mb-1
+              button.btn.btn-block.btn-info
                 i.fa.fa-sign-in
                 |  Sign in
-            each label, id in strategies
-              div: a(href = 'signin/' + id).btn.btn-block.btn-primary.mb-1 Sign in with #{label}
