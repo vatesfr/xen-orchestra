@@ -1,18 +1,21 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
+import decorate from 'apply-decorators'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SelectFiles from 'select-files'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
+import { compareVersions, connectStore, getIscsiPaths } from 'utils'
+import { Container, Row, Col } from 'grid'
+import { createGetObjectsOfType, createSelector } from 'selectors'
+import { forEach, map, noop, isEmpty } from 'lodash'
+import { FormattedRelative, FormattedTime } from 'react-intl'
+import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
 import { Toggle } from 'form'
-import { compareVersions, connectStore } from 'utils'
-import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Container, Row, Col } from 'grid'
-import { forEach, map, noop } from 'lodash'
-import { createGetObjectsOfType, createSelector } from 'selectors'
 import {
   detachHost,
   disableHost,
@@ -37,6 +40,42 @@ const formatPack = ({ name, author, description, version }, key) => (
 )
 
 const getPackId = ({ author, name }) => `${author}\0${name}`
+
+const MultipathableSrs = decorate([
+  connectStore({
+    pbds: createGetObjectsOfType('PBD').filter((_, { hostId }) => pbd =>
+      pbd.host === hostId && Boolean(pbd.otherConfig.multipathed)
+    ),
+  }),
+  ({ pbds }) =>
+    isEmpty(pbds) ? (
+      <div>{_('hostNoIscsiSr')}</div>
+    ) : (
+      <Container>
+        {map(pbds, pbd => {
+          const [nActives, nPaths] = getIscsiPaths(pbd)
+          return (
+            <Row key={pbd.id}>
+              <Col>
+                <Sr id={pbd.SR} link newTab container={false} />{' '}
+                {nActives !== undefined &&
+                  nPaths !== undefined &&
+                  _('hostMultipathingPaths', {
+                    nActives,
+                    nPaths,
+                    nSessions: pbd.otherConfig.iscsi_sessions,
+                  })}
+              </Col>
+            </Row>
+          )
+        })}
+      </Container>
+    ),
+])
+
+MultipathableSrs.propTypes = {
+  hostId: PropTypes.string.isRequired,
+}
 
 @connectStore(() => {
   const getPgpus = createGetObjectsOfType('PGPU')
@@ -199,6 +238,7 @@ export default class extends Component {
                       handler={setHostsMultipathing}
                       state={host.multipathing}
                     />
+                    {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
                 <tr>

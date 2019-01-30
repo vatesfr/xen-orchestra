@@ -29,10 +29,14 @@ const messages = {
   noValue: 'None',
   compression: 'Compression',
   multipathing: 'Multipathing',
+  multipathingDisabled: 'Multipathing disabled',
   enableMultipathing: 'Enable multipathing',
   disableMultipathing: 'Disable multipathing',
   enableAllHostsMultipathing: 'Enable all hosts multipathing',
   disableAllHostsMultipathing: 'Disable all hosts multipathing',
+  paths: 'Paths',
+  pbdDisconnected: 'PBD disconnected',
+  hasInactivePath: 'Has an inactive path',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -770,7 +774,10 @@ const messages = {
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
   hostIscsiName: 'iSCSI name',
+  hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
+  hostMultipathingPaths:
+    '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}} ({ nSessions, number } iSCSI session{nSessions, plural, one {} other {s}})',
   hostMultipathingWarning:
     'The host{nHosts, plural, one {} other {s}} will lose the connection to the SRs. Do you want to continue?',
   hostXenServerVersion: 'Version',
