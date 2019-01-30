@@ -188,7 +188,7 @@ export default {
 
     logs.sort((a, b) => a.start - b.start)
 
-    // only extract the range we are interrested in
+    // only extract the range we are interested in
     const i =
       after === undefined
         ? 0
@@ -197,7 +197,7 @@ export default {
             {
               start: typeof after === 'number' ? after : Date.now() - ms(after),
             },
-            _ => _.start
+            'start'
           )
     let j =
       before === undefined
@@ -208,7 +208,7 @@ export default {
               start:
                 typeof before === 'number' ? before : Date.now() - ms(before),
             },
-            _ => _.start
+            'start'
           )
 
     limit += i
@@ -217,6 +217,6 @@ export default {
     }
     logs = logs.slice(i, j)
 
-    return logs.map(_ => _.start)
+    return logs
   },
 }
