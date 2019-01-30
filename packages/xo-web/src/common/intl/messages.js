@@ -818,6 +818,7 @@ const messages = {
   pifModeLabel: 'Mode',
   pifMacLabel: 'MAC',
   pifMtuLabel: 'MTU',
+  pifSpeedLabel: 'Speed',
   pifStatusLabel: 'Status',
   pifStatusConnected: 'Connected',
   pifStatusDisconnected: 'Disconnected',

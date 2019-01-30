@@ -507,6 +507,7 @@ const TRANSFORMS = {
       // A physical PIF cannot be unplugged
       physical: Boolean(obj.physical),
       vlan: +obj.VLAN,
+      speed: metrics && +metrics.speed,
       $host: link(obj, 'host'),
       $network: link(obj, 'network'),
     }
