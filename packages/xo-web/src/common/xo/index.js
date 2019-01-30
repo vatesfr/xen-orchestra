@@ -179,7 +179,7 @@ export const connectStore = store => {
   // work around to keep the user in Redux store up to date
   //
   // FIXME: store subscriptions data directly in Redux
-  subscribeUsers(user => {
+  subscribeCurrentUser(user => {
     store.dispatch(signedIn(xo.user))
   })
 }
