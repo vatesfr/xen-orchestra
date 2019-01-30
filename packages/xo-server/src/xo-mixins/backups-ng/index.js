@@ -480,13 +480,26 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 //      ├─ <YYYYMMDD>T<HHmmss>.xva
 //      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
 //
+// Attributes on created VM snapshots:
+//
+// - `other_config`:
+//    - `xo:backup:datetime` = snapshot.snapshot_time (allow sorting replicated VMs)
+//    - `xo:backup:job` = job.id
+//    - `xo:backup:schedule` = schedule.id
+//    - `xo:backup:vm` = vm.uuid
+//    - `xo:backup:exported` = 'true' (added at the end of the backup)
+//
 // Attributes of created VMs:
 //
-// - name: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
+// - all snapshots attributes (see above)
+// - `name_label`: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
 // - tag:
 //    - copy in delta mode: `Continuous Replication`
 //    - copy in full mode: `Disaster Recovery`
 //    - imported from backup: `restored from backup`
+// - `blocked_operations.start`: message
+// - for copies/replications only, added after complete transfer
+//    - `other_config[xo:backup:sr]` = sr.uuid
 //
 // Task logs emitted in a backup execution:
 //
