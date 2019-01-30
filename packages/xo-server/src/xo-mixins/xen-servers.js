@@ -1,6 +1,7 @@
 import createLogger from '@xen-orchestra/log'
 import { BaseError } from 'make-error'
 import { fibonacci } from 'iterable-backoff'
+import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
@@ -394,9 +395,13 @@ export default class {
     if (!xapi) {
       throw noSuchObject(id, 'xenServer')
     }
+    const serverIdsByPool = this._serverIdsByPool
 
     delete this._xapis[id]
-    delete this._serverIdsByPool[xapi.pool.$id]
+    // The connection with the pool can be lost
+    const poolId =
+      xapi.pool?.$id ?? findKey(serverIdsByPool, serverId => serverId === id)
+    delete serverIdsByPool[poolId]
 
     xapi.xo.uninstall()
     return xapi.disconnect()
