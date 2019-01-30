@@ -30,6 +30,7 @@
 - [VM/snapshot] New snapshot with memory: fix "invalid parameters" error (PR [#3903](https://github.com/vatesfr/xen-orchestra/pull/3903))
 - [VM creation] Broken CloudInit config drive when VM created on local SR
 - [Legacy Backup] Fix error when restoring a backup
+- [Home] Fix `user.getAll` error when user is not admin [#3573](https://github.com/vatesfr/xen-orchestra/issues/3573) (PR [#3918](https://github.com/vatesfr/xen-orchestra/pull/3918))
 
 ### Released packages
 
