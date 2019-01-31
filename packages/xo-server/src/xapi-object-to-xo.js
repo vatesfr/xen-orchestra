@@ -427,6 +427,7 @@ const TRANSFORMS = {
     let tmp
     if ((tmp = obj.VCPUs_params)) {
       tmp.cap && (vm.cpuCap = +tmp.cap)
+      tmp.mask && (vm.cpuMask = tmp.mask.split(',').map(_ => +_))
       tmp.weight && (vm.cpuWeight = +tmp.weight)
     }
 
