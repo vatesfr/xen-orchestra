@@ -29,9 +29,11 @@
 - [VM/snapshot] New snapshot with memory: fix "invalid parameters" error (PR [#3903](https://github.com/vatesfr/xen-orchestra/pull/3903))
 - [VM creation] Broken CloudInit config drive when VM created on local SR
 - [Legacy Backup] Fix error when restoring a backup
+- [Backup NG] Fix restore issue when a disk has grown (PR [#3920](https://github.com/vatesfr/xen-orchestra/pull/3920))
 
 ### Released packages
 
+- vhd-lib v0.5.6
 - xoa-updater v0.15.0
 - xen-api v0.24.1
 - xo-vmdk-to-vhd v0.1.6
