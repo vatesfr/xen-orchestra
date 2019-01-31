@@ -673,20 +673,18 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
-                {isVmRunning(vm) && (
-                  <tr>
-                    <th>{_('cpuMaskLabel')}</th>
-                    <td>
-                      <EditableSelect
-                        multi
-                        onChange={this._onChangeCpuMask}
-                        options={this._getCpuMaskOptions()}
-                        placeholder={_('selectCpuMask')}
-                        value={this._getCpuMask()}
-                      />
-                    </td>
-                  </tr>
-                )}
+                <tr>
+                  <th>{_('cpuMaskLabel')}</th>
+                  <td>
+                    <EditableSelect
+                      multi
+                      onChange={this._onChangeCpuMask}
+                      options={this._getCpuMaskOptions()}
+                      placeholder={_('selectCpuMask')}
+                      value={this._getCpuMask()}
+                    />
+                  </td>
+                </tr>
                 <tr>
                   <th>{_('cpuWeightLabel')}</th>
                   <td>
