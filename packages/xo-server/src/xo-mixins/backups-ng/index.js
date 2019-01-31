@@ -209,6 +209,32 @@ const listReplicatedVms = (
   return values(vms).sort(compareReplicatedVmDatetime)
 }
 
+const listInterruptedReplicatedVms = (
+  xapi: Xapi,
+  scheduleId: string,
+  vmUuid: string
+): Vm[] => {
+  const { all } = xapi.objects
+  const vms = {}
+  for (const key in all) {
+    const object = all[key]
+    const oc = object.other_config
+    if (
+      object.$type === 'vm' &&
+      !object.is_a_snapshot &&
+      !object.is_a_template &&
+      !('xo:backup:sr' in oc) &&
+      'start' in object.blocked_operations &&
+      oc['xo:backup:schedule'] === scheduleId &&
+      oc['xo:backup:vm'] === vmUuid
+    ) {
+      vms[object.$id] = object
+    }
+  }
+
+  return values(vms).sort(compareReplicatedVmDatetime)
+}
+
 const importers: $Dict<
   (
     handler: RemoteHandler,
@@ -918,6 +944,7 @@ export default class BackupNg {
   // - [x] possibility to (re-)run a single VM in a backup?
   // - [x] validate VHDs after exports and before imports, how?
   // - [x] check merge/transfert duration/size are what we want for delta
+  // - [x] delete interrupted *importing* VMs
   @defer
   async _backupVm(
     $defer: any,
@@ -1235,6 +1262,14 @@ export default class BackupNg {
                 const fork = forkExport()
 
                 const { $id: srId, xapi } = sr
+
+                // delete previous interrupted copies
+                ignoreErrors.call(
+                  this._deleteVms(
+                    xapi,
+                    listInterruptedReplicatedVms(xapi, scheduleId, vmUuid)
+                  )
+                )
 
                 const oldVms = getOldEntries(
                   copyRetention - 1,
@@ -1571,6 +1606,14 @@ export default class BackupNg {
                 const fork = forkExport()
 
                 const { $id: srId, xapi } = sr
+
+                // delete previous interrupted copies
+                ignoreErrors.call(
+                  this._deleteVms(
+                    xapi,
+                    listInterruptedReplicatedVms(xapi, scheduleId, vmUuid)
+                  )
+                )
 
                 const oldVms = getOldEntries(
                   copyRetention - 1,
