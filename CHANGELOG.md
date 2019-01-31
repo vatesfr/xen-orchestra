@@ -18,6 +18,7 @@
 - [VM] Ability to export a VM with zstd compression [#3773](https://github.com/vatesfr/xen-orchestra/issues/3773) (PR [#3891](https://github.com/vatesfr/xen-orchestra/pull/3891))
 - [Host/network] Display PIF speed [#3887](https://github.com/vatesfr/xen-orchestra/issues/3887) (PR [#3901](https://github.com/vatesfr/xen-orchestra/pull/3901))
 - [SR] Display iscsi paths and mark the SR with a yellow dot if one path is not available. [#3659](https://github.com/vatesfr/xen-orchestra/issues/3659) (PR [#3829](https://github.com/vatesfr/xen-orchestra/pull/3829))
+- [UI] Unifies the Signin buttons (PR [#3913](https://github.com/vatesfr/xen-orchestra/pull/3913))
 
 ### Bug fixes
 
@@ -29,6 +30,7 @@
 - [VM/snapshot] New snapshot with memory: fix "invalid parameters" error (PR [#3903](https://github.com/vatesfr/xen-orchestra/pull/3903))
 - [VM creation] Broken CloudInit config drive when VM created on local SR
 - [Legacy Backup] Fix error when restoring a backup
+- [Home] Fix `user.getAll` error when user is not admin [#3573](https://github.com/vatesfr/xen-orchestra/issues/3573) (PR [#3918](https://github.com/vatesfr/xen-orchestra/pull/3918))
 - [Backup NG] Fix restore issue when a disk has grown (PR [#3920](https://github.com/vatesfr/xen-orchestra/pull/3920))
 
 ### Released packages
