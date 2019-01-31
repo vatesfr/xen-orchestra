@@ -38,7 +38,7 @@
 
 ### Released packages
 
-- vhd-lib v0.5.6
+- vhd-lib v0.5.1
 - xoa-updater v0.15.0
 - xen-api v0.24.1
 - xo-vmdk-to-vhd v0.1.6
