@@ -32,7 +32,7 @@
 - [VM creation] Broken CloudInit config drive when VM created on local SR
 - [Legacy Backup] Fix error when restoring a backup
 - [Home] Fix `user.getAll` error when user is not admin [#3573](https://github.com/vatesfr/xen-orchestra/issues/3573) (PR [#3918](https://github.com/vatesfr/xen-orchestra/pull/3918))
-- [Backup NG] Fix restore issue when a disk has grown (PR [#3920](https://github.com/vatesfr/xen-orchestra/pull/3920))
+- [Backup NG] Fix restore issue when a disk has grown [#3910](https://github.com/vatesfr/xen-orchestra/issues/3910)  (PR [#3920](https://github.com/vatesfr/xen-orchestra/pull/3920))
 
 ### Released packages
 
