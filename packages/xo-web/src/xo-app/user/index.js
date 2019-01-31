@@ -426,8 +426,8 @@ export default class User extends Component {
         </Container>
         <hr />
         {(process.env.XOA_PLAN > 2 || user.preferences.otp !== undefined) && [
-          <Otp user={user} />,
-          <hr />,
+          <Otp user={user} key='otp' />,
+          <hr key='hr' />,
         ]}
         <SshKeys />
         <hr />
