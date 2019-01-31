@@ -183,7 +183,7 @@ const getJobCompression = ({ compression: c }) =>
 const listReplicatedVms = (
   xapi: Xapi,
   scheduleId: string,
-  srId: string,
+  srId?: string,
   vmUuid?: string
 ): Vm[] => {
   const { all } = xapi.objects
@@ -201,32 +201,6 @@ const listReplicatedVms = (
       (oc['xo:backup:vm'] === vmUuid ||
         // 2018-03-28, JFT: to catch VMs replicated before this fix
         oc['xo:backup:vm'] === undefined)
-    ) {
-      vms[object.$id] = object
-    }
-  }
-
-  return values(vms).sort(compareReplicatedVmDatetime)
-}
-
-const listInterruptedReplicatedVms = (
-  xapi: Xapi,
-  scheduleId: string,
-  vmUuid: string
-): Vm[] => {
-  const { all } = xapi.objects
-  const vms = {}
-  for (const key in all) {
-    const object = all[key]
-    const oc = object.other_config
-    if (
-      object.$type === 'vm' &&
-      !object.is_a_snapshot &&
-      !object.is_a_template &&
-      !('xo:backup:sr' in oc) &&
-      'start' in object.blocked_operations &&
-      oc['xo:backup:schedule'] === scheduleId &&
-      oc['xo:backup:vm'] === vmUuid
     ) {
       vms[object.$id] = object
     }
@@ -1267,7 +1241,7 @@ export default class BackupNg {
                 ignoreErrors.call(
                   this._deleteVms(
                     xapi,
-                    listInterruptedReplicatedVms(xapi, scheduleId, vmUuid)
+                    listReplicatedVms(xapi, scheduleId, undefined, vmUuid)
                   )
                 )
 
@@ -1611,7 +1585,7 @@ export default class BackupNg {
                 ignoreErrors.call(
                   this._deleteVms(
                     xapi,
-                    listInterruptedReplicatedVms(xapi, scheduleId, vmUuid)
+                    listReplicatedVms(xapi, scheduleId, undefined, vmUuid)
                   )
                 )
 
