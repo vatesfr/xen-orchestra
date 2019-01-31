@@ -34,6 +34,7 @@
 - [Legacy Backup] Fix error when restoring a backup
 - [Home] Fix `user.getAll` error when user is not admin [#3573](https://github.com/vatesfr/xen-orchestra/issues/3573) (PR [#3918](https://github.com/vatesfr/xen-orchestra/pull/3918))
 - [Backup NG] Fix restore issue when a disk has grown [#3910](https://github.com/vatesfr/xen-orchestra/issues/3910)  (PR [#3920](https://github.com/vatesfr/xen-orchestra/pull/3920))
+- [Backup NG] Delete _importing_ VMs due to interrupted CR/DR (PR [#3923](https://github.com/vatesfr/xen-orchestra/pull/3923))
 
 ### Released packages
 

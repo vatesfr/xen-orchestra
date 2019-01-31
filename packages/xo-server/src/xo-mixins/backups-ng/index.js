@@ -183,7 +183,7 @@ const getJobCompression = ({ compression: c }) =>
 const listReplicatedVms = (
   xapi: Xapi,
   scheduleId: string,
-  srId: string,
+  srId?: string,
   vmUuid?: string
 ): Vm[] => {
   const { all } = xapi.objects
@@ -918,6 +918,7 @@ export default class BackupNg {
   // - [x] possibility to (re-)run a single VM in a backup?
   // - [x] validate VHDs after exports and before imports, how?
   // - [x] check merge/transfert duration/size are what we want for delta
+  // - [x] delete interrupted *importing* VMs
   @defer
   async _backupVm(
     $defer: any,
@@ -1235,6 +1236,14 @@ export default class BackupNg {
                 const fork = forkExport()
 
                 const { $id: srId, xapi } = sr
+
+                // delete previous interrupted copies
+                ignoreErrors.call(
+                  this._deleteVms(
+                    xapi,
+                    listReplicatedVms(xapi, scheduleId, undefined, vmUuid)
+                  )
+                )
 
                 const oldVms = getOldEntries(
                   copyRetention - 1,
@@ -1571,6 +1580,14 @@ export default class BackupNg {
                 const fork = forkExport()
 
                 const { $id: srId, xapi } = sr
+
+                // delete previous interrupted copies
+                ignoreErrors.call(
+                  this._deleteVms(
+                    xapi,
+                    listReplicatedVms(xapi, scheduleId, undefined, vmUuid)
+                  )
+                )
 
                 const oldVms = getOldEntries(
                   copyRetention - 1,
