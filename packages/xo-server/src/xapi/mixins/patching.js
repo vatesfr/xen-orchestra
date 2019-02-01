@@ -216,7 +216,6 @@ export default {
   // list patches:
   //   - not installed on the host
   //   - not conflicting with any of the installed patches
-  // TODO: ignore paid patches for free license hosts
   // TODO: handle upgrade patches
   async _listInstallablePatches(host) {
     const all = await this._listPatches(host)
@@ -225,6 +224,10 @@ export default {
     const installable = { __proto__: null }
     forEach(all, (patch, uuid) => {
       if (installed[uuid]) {
+        return
+      }
+
+      if (host.license_params.sku_type === 'free' && patch.paid) {
         return
       }
 
