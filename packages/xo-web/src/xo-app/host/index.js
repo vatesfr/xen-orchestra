@@ -20,7 +20,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { assign, isEmpty, isString, map, pick, sortBy, sum } from 'lodash'
+import { assign, isEmpty, isString, map, pick, sortBy } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
@@ -118,11 +118,6 @@ const isRunning = host => host && host.power_state === 'Running'
 
   const doesNeedRestart = createDoesHostNeedRestart(getHost)
 
-  const getMemoryUsed = createSelector(
-    getHostVms,
-    vms => sum(map(vms, vm => vm.memory.size))
-  )
-
   return (state, props) => {
     const host = getHost(state, props)
     if (!host) {
@@ -134,7 +129,6 @@ const isRunning = host => host && host.power_state === 'Running'
       hostPatches:
         host.productBrand !== 'XCP-ng' && getHostPatches(state, props),
       logs: getLogs(state, props),
-      memoryUsed: getMemoryUsed(state, props),
       needsRestart: doesNeedRestart(state, props),
       networks: getNetworks(state, props),
       nVms: getNumberOfVms(state, props),
