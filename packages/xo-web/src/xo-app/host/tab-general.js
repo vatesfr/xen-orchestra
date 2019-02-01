@@ -20,14 +20,7 @@ import {
   LoadSparkLines,
 } from 'xo-sparklines'
 
-export default ({
-  statsOverview,
-  host,
-  memoryUsed,
-  nVms,
-  vmController,
-  vms,
-}) => {
+export default ({ statsOverview, host, nVms, vmController, vms }) => {
   const pool = getObject(store.getState(), host.$pool)
   const vmsFilter = encodeURIComponent(
     new CM.Property('$container', new CM.String(host.id)).toString()
@@ -141,7 +134,7 @@ export default ({
         <Col className='text-xs-center'>
           <h5>
             {_('memoryHostState', {
-              memoryUsed: formatSizeShort(memoryUsed),
+              memoryUsed: formatSizeShort(host.memory.usage),
               memoryTotal: formatSizeShort(host.memory.size),
               memoryFree: formatSizeShort(host.memory.size - host.memory.usage),
             })}
