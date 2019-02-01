@@ -64,6 +64,60 @@ describe("user", () => {
     });
   });
 
+  describe(".changePassword() :", () => {
+    it("changes the actual user password", async () => {
+      const user = {
+        email: "wayne7@vates.fr",
+        password: "batman",
+      };
+      const newPassword = "newpwd";
+
+      await xo.createUser(user);
+      await testWithOtherConnection(user, xo =>
+        expect(
+          xo.call("user.changePassword", {
+            oldPassword: user.password,
+            newPassword,
+          })
+        ).resolves.toMatchSnapshot()
+      );
+
+      await testConnection({
+        credentials: {
+          email: user.email,
+          password: newPassword,
+        },
+      });
+
+      await expect(
+        testConnection({
+          credentials: user,
+        })
+      ).rejects.toMatchSnapshot();
+    });
+
+    withData(
+      {
+        "fails trying to change the password without newPassword": {
+          oldPassword: simpleUser.password,
+        },
+        "fails trying to change the password without oldPassword": {
+          newPassword: "newpwd",
+        },
+        "fails trying to change the password with invalid oldPassword": {
+          oldPassword: "falsepwd",
+          newPassword: "newpwd",
+        },
+      },
+      async data => {
+        await xo.createUser(simpleUser);
+        await testWithOtherConnection(simpleUser, xo =>
+          expect(xo.call("user.changePassword", data)).rejects.toMatchSnapshot()
+        );
+      }
+    );
+  });
+
   describe(".getAll() :", () => {
     it("gets all the users created", async () => {
       const userId1 = await xo.createUser({
