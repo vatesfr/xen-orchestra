@@ -6,7 +6,7 @@
 
 ### Bug fixes
 
-- [Host] Show the host's memory usage instead of the sum of the VM's memory usage
+- [Host] Show the host's memory usage instead of the sum of the VMs' memory usage (PR [#3924](https://github.com/vatesfr/xen-orchestra/pull/3924))
 
 ### Released packages
 
