@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- [Host] Show the host's memory usage instead of the sum of the VM's memory usage
+
 ### Released packages
 
 - xo-server v5.35.0
