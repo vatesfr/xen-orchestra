@@ -103,9 +103,7 @@ export async function installPatches({ pool, patches, hosts }) {
 }
 
 installPatches.params = {
-  pool: {
-    type: 'string',
-  },
+  pool: { type: 'string', optional: true },
   patches: { type: 'array', optional: true },
   hosts: { type: 'array', optional: true },
 }
