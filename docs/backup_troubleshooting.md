@@ -33,7 +33,7 @@ Just remember this: **coalesce will happen every time a snapshot is removed**.
 
 First check SMlog on the XenServer host for messages relating to VDI corruption or coalesce job failure. For example, by running `cat /var/log/SMlog | grep -i exception` or `cat /var/log/SMlog | grep -i error` on the XenServer host with the affected storage.  
 
-Coalesce jobs can also fail to run if the SR does not have enough free space. Check the problematic SR and make sure it has enough free space, generally 30% or more free is recommended depending on VM size. You can see if that is the problem by looking into the `SMlog` with `grep -i coales /var/log/SMlog` (you may have to look at previous logs such as `SMlog.1`).
+Coalesce jobs can also fail to run if the SR does not have enough free space. Check the problematic SR and make sure it has enough free space, generally 30% or more free is recommended depending on VM size. You can check if this is the issue by searching `SMlog` with `grep -i coales /var/log/SMlog` (you may have to look at previous logs such as `SMlog.1`).
 
 You can check if a coalesce job is currently active by running `ps axf | grep vhd` on the XenServer host and looking for a VHD process in the results (one of the resulting processes will be the grep command you just ran, ignore that one).  
 
