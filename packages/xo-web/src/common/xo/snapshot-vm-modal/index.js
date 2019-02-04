@@ -2,7 +2,7 @@ import _ from 'intl'
 import React from 'react'
 import BaseComponent from 'base-component'
 import { Row, Col } from 'grid'
-import { mapValues } from 'lodash'
+import { forEach } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
 import { buildTemplate, connectStore } from 'utils'
 
@@ -13,12 +13,15 @@ import { buildTemplate, connectStore } from 'utils'
   { withRef: true }
 )
 export default class SnapshotVmModalBody extends BaseComponent {
-  state = { namePattern: '{name}_{date}' }
+  state = {
+    descriptionPattern: '{description}',
+    namePattern: '{name}_{date}',
+  }
 
   get value() {
-    const { namePattern, saveMemory } = this.state
-    if (namePattern === '') {
-      return { names: {}, saveMemory }
+    const { descriptionPattern, namePattern, saveMemory } = this.state
+    if (namePattern === '' && descriptionPattern === '') {
+      return { names: {}, descriptions: {}, saveMemory }
     }
 
     const generateName = buildTemplate(namePattern, {
@@ -26,8 +29,20 @@ export default class SnapshotVmModalBody extends BaseComponent {
       '{date}': new Date().toISOString(),
     })
 
+    const generateDescription = buildTemplate(descriptionPattern, {
+      '{description}': vm => vm.name_description,
+    })
+
+    const names = []
+    const descriptions = []
+    forEach(this.props.vms, ({ id, ...vm }) => {
+      names[id] = generateName(vm)
+      descriptions[id] = generateDescription(vm)
+    })
+
     return {
-      names: mapValues(this.props.vms, generateName),
+      names,
+      descriptions,
       saveMemory,
     }
   }
@@ -35,7 +50,7 @@ export default class SnapshotVmModalBody extends BaseComponent {
   render() {
     return (
       <div>
-        <Row>
+        <Row className='mb-1'>
           <Col size={6}>{_('snapshotVmsName')}</Col>
           <Col size={6}>
             <input
@@ -43,6 +58,17 @@ export default class SnapshotVmModalBody extends BaseComponent {
               onChange={this.linkState('namePattern')}
               type='text'
               value={this.state.namePattern}
+            />
+          </Col>
+        </Row>
+        <Row>
+          <Col size={6}>{_('snapshotVmsDescription')}</Col>
+          <Col size={6}>
+            <input
+              className='form-control'
+              onChange={this.linkState('descriptionPattern')}
+              type='text'
+              value={this.state.descriptionPattern}
             />
           </Col>
         </Row>
