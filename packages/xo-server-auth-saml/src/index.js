@@ -42,7 +42,12 @@ class AuthSamlXoPlugin {
 
   configure({ usernameField, ...conf }) {
     this._usernameField = usernameField
-    this._conf = conf
+    this._conf = {
+      ...conf,
+
+      // must match the callback URL
+      path: '/signin/saml/callback',
+    }
   }
 
   load() {
