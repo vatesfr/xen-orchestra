@@ -1,10 +1,10 @@
 import _ from 'intl'
 import React from 'react'
 import BaseComponent from 'base-component'
-import { Row, Col } from 'grid'
 import { forEach } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
 import { buildTemplate, connectStore } from 'utils'
+import { Container, Col, Row } from 'grid'
 
 @connectStore(
   {
@@ -24,32 +24,31 @@ export default class SnapshotVmModalBody extends BaseComponent {
       return { names: {}, descriptions: {}, saveMemory }
     }
 
-    const generateName = buildTemplate(namePattern, {
-      '{name}': vm => vm.name_label,
-      '{date}': new Date().toISOString(),
-    })
-
-    const generateDescription = buildTemplate(descriptionPattern, {
+    const RULES = {
+      '{date}': () => new Date().toISOString(),
       '{description}': vm => vm.name_description,
-    })
+      '{name}': vm => vm.name_label,
+    }
+    const generateName = buildTemplate(namePattern, RULES)
+    const generateDescription = buildTemplate(descriptionPattern, RULES)
 
     const names = []
     const descriptions = []
-    forEach(this.props.vms, ({ id, ...vm }) => {
+    forEach(this.props.vms, (vm, id) => {
       names[id] = generateName(vm)
       descriptions[id] = generateDescription(vm)
     })
 
     return {
-      names,
-      descriptions,
+      names: namePattern !== '' ? names : {},
+      descriptions: descriptionPattern !== '' ? descriptions : {},
       saveMemory,
     }
   }
 
   render() {
     return (
-      <div>
+      <Container>
         <Row className='mb-1'>
           <Col size={6}>{_('snapshotVmsName')}</Col>
           <Col size={6}>
@@ -84,7 +83,7 @@ export default class SnapshotVmModalBody extends BaseComponent {
             </label>
           </Col>
         </Row>
-      </div>
+      </Container>
     )
   }
 }

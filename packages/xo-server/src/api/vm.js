@@ -776,9 +776,9 @@ export const snapshot = defer(async function(
 })
 
 snapshot.params = {
+  description: { type: 'string', optional: true },
   id: { type: 'string' },
   name: { type: 'string', optional: true },
-  description: { type: 'string', optional: true },
   saveMemory: { type: 'boolean', optional: true },
 }
 
