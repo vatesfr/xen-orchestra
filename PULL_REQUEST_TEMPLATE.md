@@ -4,7 +4,7 @@
 
 - [ ] PR reference the relevant issue (e.g. `Fixes #007`)
 - [ ] if UI changes, a screenshot has been added to the PR
-- [ ] CHANGELOG:
+- [ ] `CHANGELOG.unreleased.md`:
    - enhancement/bug fix entry added
    - list of packages to release updated (`${name} v${new version}`)
 - [ ] documentation updated
