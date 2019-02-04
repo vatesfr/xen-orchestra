@@ -8,12 +8,10 @@ export default class SmbMountHandler extends MountHandler {
     const { domain = 'WORKGROUP', host, password, path, username } = parse(
       remote.url
     )
-    const { options } = remote
     super(remote, opts, {
       type: 'cifs',
       device: '//' + host + normalizePath(path),
-      options:
-        `domain=${domain}` + (options !== undefined ? `,${options}` : ''),
+      options: `domain=${domain}`,
       env: {
         USER: username,
         PASSWD: password,
