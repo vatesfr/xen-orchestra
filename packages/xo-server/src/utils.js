@@ -15,6 +15,8 @@ import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
 
+import { SimpleIdPattern } from './utils'
+
 // ===================================================================
 
 export function camelToSnakeCase(string) {
@@ -416,4 +418,14 @@ export const getFirstPropertyName = object => {
       return key
     }
   }
+}
+
+// -------------------------------------------------------------------
+
+export const unboxIdsFromPattern = (pattern?: SimpleIdPattern): string[] => {
+  if (pattern === undefined) {
+    return []
+  }
+  const { id } = pattern
+  return typeof id === 'string' ? [id] : id.__or
 }

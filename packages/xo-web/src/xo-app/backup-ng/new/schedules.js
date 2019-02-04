@@ -24,8 +24,6 @@ export default decorate([
   provideState({
     computed: {
       disabledDeletion: state => size(state.schedules) <= 1,
-      disabledEdition: state =>
-        !state.exportMode && !state.copyMode && !state.snapshotMode,
       error: state => find(FEEDBACK_ERRORS, error => state[error]),
       individualActions: (
         { disabledDeletion, disabledEdition },
@@ -129,7 +127,6 @@ export default decorate([
             btnStyle='primary'
             className='pull-right'
             handler={effects.showScheduleModal}
-            disabled={state.disabledEdition}
             icon='add'
             tooltip={_('scheduleAdd')}
           />

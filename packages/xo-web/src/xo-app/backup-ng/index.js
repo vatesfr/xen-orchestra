@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
+import ButtonLink from 'button-link'
 import Copiable from 'copiable'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
@@ -16,29 +17,31 @@ import { confirm } from 'modal'
 import { connectStore, routes } from 'utils'
 import { constructQueryString } from 'smart-backup'
 import { Container, Row, Col } from 'grid'
-import { createGetLoneSnapshots } from 'selectors'
+import { createGetLoneSnapshots, createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { isEmpty, map, groupBy, some } from 'lodash'
 import { NavLink, NavTabs } from 'nav'
 import {
   cancelJob,
-  deleteBackupNgJobs,
+  deleteBackupJobs,
   disableSchedule,
   enableSchedule,
   runBackupNgJob,
+  runMetadataBackupJob,
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
+  subscribeMetadataBackupJobs,
   subscribeSchedules,
 } from 'xo'
 
 import LogsTable, { LogStatus } from '../logs/backup-ng'
 import Page from '../page'
 
+import BackupVms, { BackupMetadata } from './new'
 import Edit from './edit'
-import New from './new'
 import FileRestore from './file-restore'
-import Restore from './restore'
 import Health from './health'
+import Restore from './restore'
 import { destructPattern } from './utils'
 
 const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
@@ -51,14 +54,23 @@ const Li = props => (
   />
 )
 
-const _runBackupNgJob = ({ id, name, schedule }) =>
+const _runBackupJob = ({ id, name, schedule, type }) =>
   confirm({
     title: _('runJob'),
     body: _('runBackupNgJobConfirm', {
       id: id.slice(0, 5),
       name: <strong>{name}</strong>,
     }),
-  }).then(() => runBackupNgJob({ id, schedule }))
+  }).then(() =>
+    type === 'backup'
+      ? runBackupNgJob({ id, schedule })
+      : runMetadataBackupJob({ id, schedule })
+  )
+
+const _deleteBackupJobs = items => {
+  const { backup: backupIds, metadata: metadataIds } = groupBy(items, 'type')
+  return deleteBackupJobs({ backupIds, metadataIds })
+}
 
 const SchedulePreviewBody = decorate([
   addSubscriptions(({ schedule }) => ({
@@ -119,7 +131,8 @@ const SchedulePreviewBody = decorate([
             data-id={job.id}
             data-name={job.name}
             data-schedule={schedule.id}
-            handler={_runBackupNgJob}
+            data-type={job.type}
+            handler={_runBackupJob}
             icon='run-schedule'
             key='run'
             size='small'
@@ -159,10 +172,19 @@ const MODES = [
     test: job =>
       job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
   },
+  {
+    label: 'poolMetadata',
+    test: job => !isEmpty(destructPattern(job.pools)),
+  },
+  {
+    label: 'xoConfig',
+    test: job => job.xoMetadata,
+  },
 ]
 
 @addSubscriptions({
   jobs: subscribeBackupNgJobs,
+  metadataJobs: subscribeMetadataBackupJobs,
   schedulesByJob: cb =>
     subscribeSchedules(schedules => {
       cb(groupBy(schedules, 'jobId'))
@@ -176,7 +198,7 @@ class JobsTable extends React.Component {
   static tableProps = {
     actions: [
       {
-        handler: deleteBackupNgJobs,
+        handler: _deleteBackupJobs,
         label: _('deleteBackupSchedule'),
         icon: 'delete',
         level: 'danger',
@@ -261,6 +283,7 @@ class JobsTable extends React.Component {
             pathname: '/home',
             query: { t: 'VM', s: constructQueryString(job.vms) },
           }),
+        disabled: job => job.type !== 'backup',
         label: _('redirectToMatchingVms'),
         icon: 'preview',
       },
@@ -277,11 +300,22 @@ class JobsTable extends React.Component {
     this.context.router.push(path)
   }
 
+  _getCollection = createSelector(
+    () => this.props.jobs,
+    () => this.props.metadataJobs,
+    (jobs, metadataJobs) =>
+      isEmpty(metadataJobs)
+        ? jobs
+        : isEmpty(jobs)
+        ? metadataJobs
+        : [...jobs, ...metadataJobs]
+  )
+
   render() {
     return (
       <SortedTable
         {...JobsTable.tableProps}
-        collection={this.props.jobs}
+        collection={this._getCollection()}
         data-goTo={this._goTo}
         data-schedulesByJob={this.props.schedulesByJob}
       />
@@ -353,9 +387,31 @@ const HEADER = (
   </Container>
 )
 
+const RedirectToNewBackupView = () => (
+  <Container>
+    <Row>
+      <Col>
+        <Card>
+          <CardHeader>{_('backupType')}</CardHeader>
+          <CardBlock className='text-md-center'>
+            <ButtonLink to='backup-ng/new/vms'>
+              <Icon icon='backup' /> {_('goToVmsBackup')}
+            </ButtonLink>{' '}
+            <ButtonLink to='backup-ng/new/metadata'>
+              <Icon icon='database' /> {_('goToMetadataBackup')}
+            </ButtonLink>
+          </CardBlock>
+        </Card>
+      </Col>
+    </Row>
+  </Container>
+)
+
 export default routes('overview', {
   ':id/edit': Edit,
-  new: New,
+  new: RedirectToNewBackupView,
+  'new/vms': BackupVms,
+  'new/metadata': BackupMetadata,
   overview: Overview,
   restore: Restore,
   'file-restore': FileRestore,

@@ -37,6 +37,8 @@ const messages = {
   paths: 'Paths',
   pbdDisconnected: 'PBD disconnected',
   hasInactivePath: 'Has an inactive path',
+  pools: 'Pools',
+  remotes: 'Remotes',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -125,6 +127,12 @@ const messages = {
   deltaBackup: 'Delta Backup',
   disasterRecovery: 'Disaster Recovery',
   continuousReplication: 'Continuous Replication',
+  backupType: 'Backup type',
+  poolMetadata: 'Pool metadata',
+  xoConfig: 'XO config',
+  metadataBackup: 'Metadata Backup',
+  goToVmsBackup: 'Go to VMs Backup',
+  goToMetadataBackup: 'Go to Metadata Backup',
   jobsOverviewPage: 'Overview',
   jobsNewPage: 'New',
   jobsSchedulingPage: 'Scheduling',
@@ -370,6 +378,7 @@ const messages = {
   missingBackupMode: 'You need to choose a backup mode!',
   missingRemotes: 'Missing remotes!',
   missingSrs: 'Missing SRs!',
+  missingPools: 'Missing pools!',
   missingSchedules: 'Missing schedules!',
   missingExportRetention:
     'The Backup mode and The Delta Backup mode require backup retention to be higher than 0!',
@@ -1396,6 +1405,8 @@ const messages = {
   scheduleExportRetention: 'Backup ret.',
   scheduleCopyRetention: 'Replication ret.',
   scheduleSnapshotRetention: 'Snapshot ret.',
+  poolMetadataRetention: 'Pool ret.',
+  xoMetadataRetention: 'XO ret.',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',
