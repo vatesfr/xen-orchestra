@@ -5,13 +5,36 @@ import { NULL_REF } from 'xen-api'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
 
-import { isVmHvm, isVmRunning, makeEditObject } from '../utils'
+import {
+  extractOpaqueRef,
+  isVmHvm,
+  isVmRunning,
+  makeEditObject,
+} from '../utils'
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
 const XEN_VGA_VALUES = ['std', 'cirrus']
 const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 export default {
+  // https://xapi-project.github.io/xen-api/classes/vm.html#checkpoint
+  async checkpointVm(vmId, nameLabel) {
+    const vm = this.getObject(vmId)
+    try {
+      const ref = await this.callAsync(
+        'VM.checkpoint',
+        vm.$ref,
+        nameLabel != null ? nameLabel : vm.name_label
+      ).then(extractOpaqueRef)
+      return this.barrier(ref)
+    } catch (error) {
+      if (error.code === 'VM_BAD_POWER_STATE') {
+        return this._snapshotVm(vm, nameLabel)
+      }
+      throw error
+    }
+  },
+
   // TODO: clean up on error.
   @deferrable
   async createVm(
@@ -306,6 +329,15 @@ export default {
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
       set(cap, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { cap })
+      },
+    },
+
+    cpuMask: {
+      get: vm => vm.VCPUs_params.mask && vm.VCPUs_params.mask.split(','),
+      set(cpuMask, vm) {
+        return this._updateObjectMapProperty(vm, 'VCPUs_params', {
+          mask: cpuMask == null ? cpuMask : cpuMask.join(','),
+        })
       },
     },
 

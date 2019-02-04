@@ -415,6 +415,36 @@ export default class Xapi extends XapiBase {
     await this.call('host.enable', this.getObject(hostId).$ref)
   }
 
+  @deferrable.onError(log.warn)
+  async setHostMultipathing($defer, hostId, multipathing) {
+    const host = this.getObject(hostId)
+
+    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
+    await asyncMap(pluggedPbds, async pbd => {
+      const ref = pbd.$ref
+      await this.unplugPbd(ref)
+      $defer(() => this.plugPbd(ref))
+    })
+
+    if (host.enabled) {
+      await this.disableHost(hostId)
+      $defer(() => this.enableHost(hostId))
+    }
+
+    return this._updateObjectMapProperty(
+      host,
+      'other_config',
+      multipathing
+        ? {
+            multipathing: 'true',
+            multipathhandle: 'dmp',
+          }
+        : {
+            multipathing: 'false',
+          }
+    )
+  }
+
   async powerOnHost(hostId) {
     await this.call('host.power_on', this.getObject(hostId).$ref)
   }
@@ -509,7 +539,7 @@ export default class Xapi extends XapiBase {
     vmId,
     targetXapi,
     targetSrId,
-    { compress = true, nameLabel = undefined } = {}
+    { compress, nameLabel = undefined } = {}
   ) {
     // Fall back on local copy if possible.
     if (targetXapi === this) {
@@ -753,7 +783,7 @@ export default class Xapi extends XapiBase {
   // Returns a stream to the exported VM.
   @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
-  async exportVm($cancelToken, vmId, { compress = true } = {}) {
+  async exportVm($cancelToken, vmId, { compress = false } = {}) {
     const vm = this.getObject(vmId)
     const useSnapshot = isVmRunning(vm)
     const exportedVm = useSnapshot
@@ -763,7 +793,12 @@ export default class Xapi extends XapiBase {
     const promise = this.getResource($cancelToken, '/export/', {
       query: {
         ref: exportedVm.$ref,
-        use_compression: compress ? 'true' : 'false',
+        use_compression:
+          compress === 'zstd'
+            ? 'zstd'
+            : compress === true || compress === 'gzip'
+            ? 'true'
+            : 'false',
       },
       task: this.createTask('VM export', vm.name_label),
     }).catch(error => {
@@ -1818,6 +1853,7 @@ export default class Xapi extends XapiBase {
     } catch (error) {
       const { code } = error
       if (
+        code !== 'NO_HOSTS_AVAILABLE' &&
         code !== 'LICENCE_RESTRICTION' &&
         code !== 'VDI_NEEDS_VM_FOR_MIGRATE'
       ) {
@@ -1826,15 +1862,13 @@ export default class Xapi extends XapiBase {
       const newVdi = await this.barrier(
         await this.call('VDI.copy', vdi.$ref, sr.$ref)
       )
-      await asyncMap(vdi.$VBDs, vbd =>
-        Promise.all([
-          this.call('VBD.destroy', vbd.$ref),
-          this.createVbd({
-            ...vbd,
-            vdi: newVdi,
-          }),
-        ])
-      )
+      await asyncMap(vdi.$VBDs, async vbd => {
+        await this.call('VBD.destroy', vbd.$ref)
+        await this.createVbd({
+          ...vbd,
+          vdi: newVdi,
+        })
+      })
       await this._deleteVdi(vdi)
     }
   }
@@ -2296,7 +2330,7 @@ export default class Xapi extends XapiBase {
     const sr = this.getObject(srId)
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
-    const buffer = fatfsBufferInit()
+    const buffer = fatfsBufferInit({ label: 'cidata     ' })
     const vdi = await this.createVdi({
       name_label: 'XO CloudConfigDrive',
       size: buffer.length,
@@ -2307,14 +2341,9 @@ export default class Xapi extends XapiBase {
     // Then, generate a FAT fs
     const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
 
-    await fs.mkdir('openstack')
-    await fs.mkdir('openstack/latest')
     await Promise.all([
-      fs.writeFile(
-        'openstack/latest/meta_data.json',
-        '{\n    "uuid": "' + vm.uuid + '"\n}\n'
-      ),
-      fs.writeFile('openstack/latest/user_data', config),
+      fs.writeFile('meta-data', 'instance-id: ' + vm.uuid + '\n'),
+      fs.writeFile('user-data', config),
     ])
 
     // ignore errors, I (JFT) don't understand why they are emitted

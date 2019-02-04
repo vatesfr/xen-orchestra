@@ -10,6 +10,7 @@ import React, { cloneElement, Component } from 'react'
 import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
+import { Pool } from 'render-xo-item'
 import { editHost, fetchHostStats, subscribeHostMissingPatches } from 'xo'
 import { connectStore, routes } from 'utils'
 import {
@@ -19,7 +20,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { assign, isEmpty, isString, map, pick, sortBy, sum } from 'lodash'
+import { assign, isEmpty, isString, map, pick, sortBy } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
@@ -117,11 +118,6 @@ const isRunning = host => host && host.power_state === 'Running'
 
   const doesNeedRestart = createDoesHostNeedRestart(getHost)
 
-  const getMemoryUsed = createSelector(
-    getHostVms,
-    vms => sum(map(vms, vm => vm.memory.size))
-  )
-
   return (state, props) => {
     const host = getHost(state, props)
     if (!host) {
@@ -133,7 +129,6 @@ const isRunning = host => host && host.power_state === 'Running'
       hostPatches:
         host.productBrand !== 'XCP-ng' && getHostPatches(state, props),
       logs: getLogs(state, props),
-      memoryUsed: getMemoryUsed(state, props),
       needsRestart: doesNeedRestart(state, props),
       networks: getNetworks(state, props),
       nVms: getNumberOfVms(state, props),
@@ -250,6 +245,7 @@ export default class Host extends Component {
       <Container>
         <Row>
           <Col mediumSize={6} className='header-title'>
+            {pool !== undefined && <Pool id={pool.id} link />}
             <h2>
               <Icon
                 icon={
@@ -270,18 +266,10 @@ export default class Host extends Component {
             <Copiable tagName='pre' className='text-muted mb-0'>
               {host.uuid}
             </Copiable>
-            <span>
-              <Text
-                value={host.name_description}
-                onChange={this._setNameDescription}
-              />
-              {pool && (
-                <span className='text-muted'>
-                  {' '}
-                  - <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-                </span>
-              )}
-            </span>
+            <Text
+              value={host.name_description}
+              onChange={this._setNameDescription}
+            />
           </Col>
           <Col mediumSize={6}>
             <div className='text-xs-center'>

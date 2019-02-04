@@ -565,6 +565,23 @@ export const createGetVmDisks = vmSelector =>
     )
   )
 
+export const createGetLoneSnapshots = createGetObjectsOfType(
+  'VM-snapshot'
+).filter(
+  create(
+    _createCollectionWrapper(
+      (_, props) => props.schedules !== undefined && map(props.schedules, 'id')
+    ),
+    scheduleIds =>
+      scheduleIds
+        ? _ => {
+            const scheduleId = _.other['xo:backup:schedule']
+            return scheduleId !== undefined && !scheduleIds.includes(scheduleId)
+          }
+        : false
+  )
+)
+
 export const getIsPoolAdmin = create(
   create(createGetObjectsOfType('pool'), _createCollectionWrapper(Object.keys)),
   getCheckPermissions,

@@ -1,5 +1,8 @@
 const { createReadStream, createWriteStream, statSync } = require('fs')
-const { PassThrough } = require('stream')
+const { fromCallback } = require('promise-toolbox')
+const { PassThrough, pipeline } = require('readable-stream')
+const humanFormat = require('human-format')
+const Throttle = require('throttle')
 
 const { isOpaqueRef } = require('../')
 
@@ -26,7 +29,32 @@ exports.createOutputStream = path => {
   return stream
 }
 
-exports.resolveRef = (xapi, type, refOrUuidOrNameLabel) =>
+const formatSizeOpts = { scale: 'binary', unit: 'B' }
+const formatSize = bytes => humanFormat(bytes, formatSizeOpts)
+
+exports.formatProgress = p =>
+  [
+    formatSize(p.transferred),
+    ' / ',
+    formatSize(p.length),
+    ' | ',
+    p.runtime,
+    's / ',
+    p.eta,
+    's | ',
+    formatSize(p.speed),
+    '/s',
+  ].join('')
+
+exports.pipeline = (...streams) => {
+  return fromCallback(cb => {
+    streams = streams.filter(_ => _ != null)
+    streams.push(cb)
+    pipeline.apply(undefined, streams)
+  })
+}
+
+const resolveRef = (xapi, type, refOrUuidOrNameLabel) =>
   isOpaqueRef(refOrUuidOrNameLabel)
     ? refOrUuidOrNameLabel
     : xapi.call(`${type}.get_by_uuid`, refOrUuidOrNameLabel).catch(() =>
@@ -41,3 +69,10 @@ exports.resolveRef = (xapi, type, refOrUuidOrNameLabel) =>
             )
           })
       )
+
+exports.resolveRecord = async (xapi, type, refOrUuidOrNameLabel) =>
+  xapi.getRecord(type, await resolveRef(xapi, type, refOrUuidOrNameLabel))
+
+exports.resolveRef = resolveRef
+
+exports.throttle = opts => (opts != null ? new Throttle(opts) : undefined)

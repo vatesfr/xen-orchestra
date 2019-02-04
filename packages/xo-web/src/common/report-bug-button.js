@@ -8,9 +8,13 @@ import ActionRowButton from './action-row-button'
 export const CAN_REPORT_BUG = __DEV__ && process.env.XOA_PLAN > 1
 
 export const reportBug = ({ formatMessage, message, title }) => {
-  const encodedTitle = encodeURIComponent(title)
+  const encodedTitle = encodeURIComponent(title == null ? '' : title)
   const encodedMessage = encodeURIComponent(
-    formatMessage !== undefined ? formatMessage(message) : message
+    message == null
+      ? ''
+      : formatMessage === undefined
+      ? message
+      : formatMessage(message)
   )
 
   window.open(

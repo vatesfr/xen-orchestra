@@ -12,12 +12,31 @@ const messages = {
   statusLoading: 'Loading…',
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'no such item',
-  errorUnknownItem: 'unknown item',
+  errorUnknownItem: 'unknown {type}',
+  memoryFree: '{memoryFree} RAM free',
+  date: 'Date',
+  notifications: 'Notifications',
+  noNotifications: 'No notifications so far.',
+  notificationNew: 'NEW!',
+  messageSubject: 'Subject',
+  messageFrom: 'From',
+  messageReply: 'Reply',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
   browseFiles: 'Browse files',
   showLogs: 'Show logs',
+  noValue: 'None',
+  compression: 'Compression',
+  multipathing: 'Multipathing',
+  multipathingDisabled: 'Multipathing disabled',
+  enableMultipathing: 'Enable multipathing',
+  disableMultipathing: 'Disable multipathing',
+  enableAllHostsMultipathing: 'Enable all hosts multipathing',
+  disableAllHostsMultipathing: 'Disable all hosts multipathing',
+  paths: 'Paths',
+  pbdDisconnected: 'PBD disconnected',
+  hasInactivePath: 'Has an inactive path',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -66,6 +85,7 @@ const messages = {
   xoaPage: 'XOA',
   updatePage: 'Updates',
   licensesPage: 'Licenses',
+  notificationsPage: 'Notifications',
   settingsPage: 'Settings',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
@@ -184,6 +204,9 @@ const messages = {
   srSharedType: 'Shared {type}',
   srNotSharedType: 'Not shared {type}',
 
+  // ----- Home snapshots  -----
+  snapshotVmsName: 'Name',
+
   // ----- Common components -----
   sortedTableAllItemsSelected: 'All of them are selected',
   sortedTableNoItems: 'No items found',
@@ -192,6 +215,8 @@ const messages = {
   sortedTableNumberOfItems: '{nTotal, number} items',
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
   sortedTableSelectAllItems: 'Click here to select all items',
+  chooseCompressionGzipOption: 'GZIP (very slow)',
+  chooseCompressionZstdOption: 'Zstd (fast, XCP-ng only)',
 
   // ----- state -----
   state: 'State',
@@ -199,9 +224,7 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
-  labelBackup: 'Backup',
   labelMerge: 'Merge',
-  labelRestore: 'Restore',
   labelSize: 'Size',
   labelSpeed: 'Speed',
   labelSr: 'SR',
@@ -403,13 +426,12 @@ const messages = {
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
   useDelta: 'Use delta',
-  useCompression: 'Use compression',
   offlineSnapshot: 'Offline snapshot',
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   timeoutUnit: 'in hours',
-  dbAndDrRequireEntreprisePlan: 'Delta Backup and DR require Entreprise plan',
+  dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require Enterprise plan',
   crRequiresPremiumPlan: 'CR requires Premium plan',
   smartBackupModeTitle: 'Smart mode',
   backupTargetRemotes: 'Target remotes (for Export)',
@@ -418,7 +440,7 @@ const messages = {
   crOnThickProvisionedSrWarning:
     'Tip: using a thin-provisioned storage will consume less space. Please click on the icon to get more information',
   vmsOnThinProvisionedSrTip:
-    'Tip: creating VMs on a thin-provisioned storage will consume less space when backuping them. Please click on the icon to get more information',
+    'Tip: creating VMs on a thin-provisioned storage will consume less space when backing them up. Please click on the icon to get more information',
   deltaBackupOnOutdatedXenServerWarning:
     'Delta Backup and Continuous Replication require at least XenServer 6.5.',
   backupNgLinkToDocumentationMessage:
@@ -446,7 +468,7 @@ const messages = {
   editBackupRemoteTitle: 'Remote',
   deleteOldBackupsFirst: 'Delete first',
   deleteOldBackupsFirstMessage:
-    'Delete old backups before backuping the VMs. If the new backup fails, you will lose your old backups.',
+    'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
 
   // ------ New Remote -----
   remoteList: 'Remote stores for backup',
@@ -481,6 +503,7 @@ const messages = {
   remotePath: 'Path',
   remoteState: 'State',
   remoteDevice: 'Device',
+  remoteDisk: 'Disk (Used / Total)',
   remoteOptions: 'Options',
   remoteShare: 'Share',
   remoteAction: 'Action',
@@ -495,7 +518,7 @@ const messages = {
   remoteNfsPlaceHolderHost: 'host *',
   remoteNfsPlaceHolderPort: 'Port',
   remoteNfsPlaceHolderPath: 'path/to/backup',
-  remoteNfsPlaceHolderOptions: 'Custom mount options',
+  remoteNfsPlaceHolderOptions: 'Custom mount options. Default: vers=3',
   remoteSmbPlaceHolderRemotePath: 'subfolder [path\\\\to\\\\backup]',
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',
@@ -536,6 +559,7 @@ const messages = {
   newSrLocalPathPlaceHolder: '/path/to/directory',
   newSrUseNfs4: 'Use NFSv4',
   newSrNfsOptions: 'Comma delimited NFS options',
+  reattachNewSrTooltip: 'Reattach SR',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',
@@ -750,6 +774,12 @@ const messages = {
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
   hostIscsiName: 'iSCSI name',
+  hostNoIscsiSr: 'Not connected to an iSCSI SR',
+  hostMultipathingSrs: 'Click to see concerned SRs',
+  hostMultipathingPaths:
+    '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}} ({ nSessions, number } iSCSI session{nSessions, plural, one {} other {s}})',
+  hostMultipathingWarning:
+    'The host{nHosts, plural, one {} other {s}} will lose the connection to the SRs. Do you want to continue?',
   hostXenServerVersion: 'Version',
   hostStatusEnabled: 'Enabled',
   hostStatusDisabled: 'Disabled',
@@ -788,6 +818,7 @@ const messages = {
   pifModeLabel: 'Mode',
   pifMacLabel: 'MAC',
   pifMtuLabel: 'MTU',
+  pifSpeedLabel: 'Speed',
   pifStatusLabel: 'Status',
   pifStatusConnected: 'Connected',
   pifStatusDisconnected: 'Disconnected',
@@ -1003,6 +1034,8 @@ const messages = {
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
+  newSnapshotWithMemory: 'New snapshot with memory',
+  snapshotMemorySaved: 'memory saved',
   snapshotCreateButton: 'New snapshot',
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
   revertSnapshot: 'Revert VM to this snapshot',
@@ -1038,6 +1071,8 @@ const messages = {
   guestOsLabel: 'Guest OS',
   miscLabel: 'Misc',
   virtualizationMode: 'Virtualization mode',
+  cpuMaskLabel: 'CPU mask',
+  selectCpuMask: 'Select core(s)…',
   cpuWeightLabel: 'CPU weight',
   defaultCpuWeight: 'Default ({value, number})',
   cpuCapLabel: 'CPU cap',
@@ -1080,6 +1115,12 @@ const messages = {
   vmVgpuNone: 'None',
   vmAddVgpu: 'Add vGPU',
   vmSelectVgpuType: 'Select vGPU type',
+  vmAcls: 'ACLs',
+  vmAddAcls: 'Add ACLs',
+  addAclsErrorTitle: 'Failed to add ACL(s)',
+  addAclsErrorMessage: 'User(s)/group(s) and role are required.',
+  removeAcl: 'Delete',
+  moreAcls: '{nAcls, number} more…',
 
   // ----- VM placeholders -----
 
@@ -1256,7 +1297,6 @@ const messages = {
   // ----- Self -----
   resourceSets: 'Resource sets',
   noResourceSets: 'No resource sets.',
-  loadingResourceSets: 'Loading resource sets',
   resourceSetName: 'Resource set name',
   resourceSetUsers: 'Users',
   resourceSetPools: 'Pools',
@@ -1335,9 +1375,12 @@ const messages = {
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',
+  loneSnapshotsMessages:
+    '{nLoneSnapshots} lone snapshot{nLoneSnapshots, plural, one {} other {s}} to delete!',
   scheduleCron: 'Cron pattern',
   scheduleLastRun: 'Click to display last run details',
   scheduleName: 'Name',
+  scheduleCopyId: 'Copy ID {id}',
   scheduleTimezone: 'Timezone',
   scheduleExportRetention: 'Backup ret.',
   scheduleCopyRetention: 'Replication ret.',
@@ -1472,9 +1515,8 @@ const messages = {
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage:
     'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
+  snapshotSaveMemory: 'save memory',
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
-  snapshotVmsModalMessage:
-    'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?',
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
   deleteVmsModalMessage:
     'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
@@ -1552,9 +1594,6 @@ const messages = {
   removeAllLogsModalTitle: 'Remove all logs',
   removeAllLogsModalWarning: 'Are you sure you want to remove all logs?',
   definitiveMessageModal: 'This operation is definitive.',
-  existingSrModalTitle: 'Previous SR Usage',
-  existingSrModalText:
-    'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
   existingLunModalTitle: 'Previous LUN Usage',
   existingLunModalText:
     'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
@@ -1615,13 +1654,11 @@ const messages = {
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',
-  copyVmConfirm: 'Are you sure you want to copy this VM to {SR}?',
   copyVmName: 'Name',
   copyVmNamePattern: 'Name pattern',
   copyVmNamePlaceholder: 'If empty: name of the copied VM',
   copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}_COPY"',
   copyVmSelectSr: 'Select SR',
-  copyVmCompress: 'Use compression',
   copyVmsNoTargetSr: 'No target SR',
   copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
   fastCloneMode: 'Fast clone',
@@ -1754,6 +1791,11 @@ const messages = {
     "If you are a company, it's better to use it with our appliance + pro support included:",
   disclaimerText3:
     'This version is not bundled with any support nor updates. Use it with caution for critical tasks.',
+  notRegisteredDisclaimerInfo:
+    'You are not registered. Your XOA may not be up to date.',
+  notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',
+  notRegisteredDisclaimerRegister:
+    'Click here to register and update your XOA.',
 
   // ----- PIF -----
   connectPif: 'Connect PIF',
@@ -1802,6 +1844,12 @@ const messages = {
   deleteSshKeysConfirm: 'Delete SSH key{nKeys, plural, one {} other {s}}',
   deleteSshKeysConfirmMessage:
     'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?',
+  addOtpConfirm: 'Add OTP authentication',
+  addOtpConfirmMessage: 'Are you sure you want to add OTP authentication?',
+  removeOtpConfirm: 'Remove OTP authentication',
+  removeOtpConfirmMessage:
+    'Are you sure you want to remove OTP authentication?',
+  OtpAuthentication: 'OTP authentication',
 
   // ----- Usage -----
   others: 'Others',
@@ -1824,7 +1872,8 @@ const messages = {
   logsTenPerPage: '10 / page',
   logsJobId: 'Job ID',
   logsJobName: 'Job name',
-  logsJobTime: 'Job time',
+  logsBackupTime: 'Backup time',
+  logsRestoreTime: 'Restore time',
   logsVmNotFound: 'VM not found!',
   logsMissingVms: 'Missing VMs skipped ({ vms })',
   logsFailedRestoreError: 'Click to show error',

@@ -1070,7 +1070,7 @@ export default {
   offlineSnapshotInfo: undefined,
 
   // Original text: "Delta Backup and DR require Entreprise plan"
-  dbAndDrRequireEntreprisePlan:
+  dbAndDrRequireEnterprisePlan:
     'Fark Yedekleme ve DR Enterprise planı gerektirir',
 
   // Original text: "CR requires Premium plan"

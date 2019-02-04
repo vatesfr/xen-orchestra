@@ -5,6 +5,7 @@ import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import reflect from 'promise-toolbox/reflect'
 import tap from 'promise-toolbox/tap'
+import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
@@ -178,8 +179,8 @@ export const connectStore = store => {
   // work around to keep the user in Redux store up to date
   //
   // FIXME: store subscriptions data directly in Redux
-  subscribeUsers(user => {
-    store.dispatch(signedIn(xo.user))
+  subscribeCurrentUser(user => {
+    store.dispatch(signedIn(user))
   })
 }
 
@@ -312,6 +313,10 @@ export const subscribePlugins = createSubscription(() => _call('plugin.get'))
 
 export const subscribeRemotes = createSubscription(() => _call('remote.getAll'))
 
+export const subscribeRemotesInfo = createSubscription(() =>
+  _call('remote.getAllInfo')
+)
+
 export const subscribeResourceSets = createSubscription(() =>
   _call('resourceSet.getAll')
 )
@@ -353,6 +358,55 @@ export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
 )
+
+const getNotificationCookie = () => {
+  const notificationCookie = cookies.get(
+    `notifications:${store.getState().user.id}`
+  )
+  return notificationCookie === undefined ? {} : JSON.parse(notificationCookie)
+}
+
+const setNotificationCookie = (id, changes) => {
+  const notifications = getNotificationCookie()
+  notifications[id] = { ...(notifications[id] || {}), ...changes }
+  forEach(notifications[id], (value, key) => {
+    if (value === null) {
+      delete notifications[id][key]
+    }
+  })
+  cookies.set(
+    `notifications:${store.getState().user.id}`,
+    JSON.stringify(notifications)
+  )
+}
+
+export const dismissNotification = id => {
+  setNotificationCookie(id, { read: true, date: Date.now() })
+  subscribeNotifications.forceRefresh()
+}
+
+export const subscribeNotifications = createSubscription(async () => {
+  const { user, xoaUpdaterState } = store.getState()
+  if (
+    process.env.XOA_PLAN === 5 ||
+    xoaUpdaterState === 'disconnected' ||
+    xoaUpdaterState === 'error'
+  ) {
+    return []
+  }
+
+  const notifications = await updater._call('getMessages')
+  const notificationCookie = getNotificationCookie()
+  return map(
+    user != null && user.permission === 'admin'
+      ? notifications
+      : filter(notifications, { level: 'warning' }),
+    notification => ({
+      ...notification,
+      read: !!get(notificationCookie, `${notification.id}.read`),
+    })
+  )
+})
 
 const checkSrCurrentStateSubscriptions = {}
 export const subscribeCheckSrCurrentState = (pool, cb) => {
@@ -584,6 +638,22 @@ export const setPoolMaster = host =>
 
 export const editHost = (host, props) =>
   _call('host.set', { ...props, id: resolveId(host) })
+
+import MultipathingModalBody from './multipathing-modal' // eslint-disable-line import/first
+export const setHostsMultipathing = ({
+  host,
+  hosts = [host],
+  multipathing,
+}) => {
+  const ids = resolveIds(hosts)
+  return confirm({
+    title: _(multipathing ? 'enableMultipathing' : 'disableMultipathing'),
+    body: <MultipathingModalBody hostIds={ids} />,
+  }).then(
+    () => Promise.all(map(ids, id => editHost(id, { multipathing }))),
+    noop
+  )
+}
 
 export const fetchHostStats = (host, granularity) =>
   _call('host.stats', { host: resolveId(host), granularity })
@@ -999,26 +1069,20 @@ const _copyVm = ({ vm, sr, name, compress }) =>
   })
 
 import CopyVmModalBody from './copy-vm-modal' // eslint-disable-line import/first
-export const copyVm = (vm, sr, name, compress) => {
-  return sr !== undefined
-    ? confirm({
-        title: _('copyVm'),
-        body: _('copyVmConfirm', { SR: sr.name_label }),
-      }).then(() => _copyVm({ vm, sr: sr.id, name, compress }))
-    : confirm({
-        title: _('copyVm'),
-        body: <CopyVmModalBody vm={vm} />,
-      }).then(params => {
-        if (params.copyMode === 'fullCopy') {
-          if (!params.sr) {
-            error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
-            return
-          }
-          return _copyVm({ vm, ...params })
-        }
-        return cloneVm({ id: vm.id, name_label: params.name })
-      }, noop)
-}
+export const copyVm = vm =>
+  confirm({
+    title: _('copyVm'),
+    body: <CopyVmModalBody vm={vm} />,
+  }).then(params => {
+    if (params.copyMode === 'fullCopy') {
+      if (!params.sr) {
+        error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
+        return
+      }
+      return _copyVm({ vm, ...params })
+    }
+    return cloneVm({ id: vm.id, name_label: params.name })
+  }, noop)
 
 import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
 export const copyVms = vms => {
@@ -1116,13 +1180,20 @@ export const deleteTemplates = templates =>
           }, noop)
   }, noop)
 
-export const snapshotVm = vm => _call('vm.snapshot', { id: resolveId(vm) })
+export const snapshotVm = (vm, name, saveMemory) =>
+  _call('vm.snapshot', { id: resolveId(vm), name, saveMemory })
 
+import SnapshotVmModalBody from './snapshot-vm-modal' // eslint-disable-line import/first
 export const snapshotVms = vms =>
   confirm({
+    icon: 'memory',
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
-    body: _('snapshotVmsModalMessage', { vms: vms.length }),
-  }).then(() => map(vms, vmId => snapshotVm({ id: vmId })), noop)
+    body: <SnapshotVmModalBody vms={vms} />,
+  }).then(
+    ({ names, saveMemory }) =>
+      Promise.all(map(vms, vm => snapshotVm(vm, names[vm], saveMemory))),
+    noop
+  )
 
 export const deleteSnapshot = vm =>
   confirm({
@@ -1354,12 +1425,21 @@ export const importVms = (vms, sr) =>
     )
   )
 
-export const exportVm = vm => {
-  info(_('startVmExport'), vm.id)
-  return _call('vm.export', { vm: resolveId(vm) }).then(({ $getFrom: url }) => {
-    window.location = `.${url}`
+import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
+export const exportVm = vm =>
+  confirm({
+    body: <ExportVmModalBody />,
+    icon: 'export',
+    title: _('exportVmLabel'),
+  }).then(compress => {
+    const id = resolveId(vm)
+    info(_('startVmExport'), id)
+    return _call('vm.export', { vm: id, compress }).then(
+      ({ $getFrom: url }) => {
+        window.location = `.${url}`
+      }
+    )
   })
-}
 
 export const exportVdi = vdi => {
   info(_('startVdiExport'), vdi.id)
@@ -2431,6 +2511,30 @@ export const deleteSshKey = key =>
       ),
     })
   }, noop)
+
+export const addOtp = secret =>
+  confirm({
+    title: _('addOtpConfirm'),
+    body: _('addOtpConfirmMessage'),
+  }).then(
+    () =>
+      _setUserPreferences({
+        otp: secret,
+      }),
+    noop
+  )
+
+export const removeOtp = () =>
+  confirm({
+    title: _('removeOtpConfirm'),
+    body: _('removeOtpConfirmMessage'),
+  }).then(
+    () =>
+      _setUserPreferences({
+        otp: null,
+      }),
+    noop
+  )
 
 export const deleteSshKeys = keys =>
   confirm({

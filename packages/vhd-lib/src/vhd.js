@@ -216,7 +216,9 @@ export default class Vhd {
 
   // return the first sector (bitmap) of a block
   _getBatEntry(block) {
-    return this.blockTable.readUInt32BE(block * 4)
+    const i = block * 4
+    const { blockTable } = this
+    return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
   }
 
   _readBlock(blockId, onlyBitmap = false) {

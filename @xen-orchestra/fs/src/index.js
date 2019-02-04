@@ -1,17 +1,25 @@
 // @flow
+import execa from 'execa'
 
 import type RemoteHandler from './abstract'
 import RemoteHandlerLocal from './local'
 import RemoteHandlerNfs from './nfs'
 import RemoteHandlerSmb from './smb'
+import RemoteHandlerSmbMount from './smb-mount'
 
 export type { default as RemoteHandler } from './abstract'
 export type Remote = { url: string }
 
 const HANDLERS = {
   file: RemoteHandlerLocal,
-  smb: RemoteHandlerSmb,
   nfs: RemoteHandlerNfs,
+}
+
+try {
+  execa.sync('mount.cifs', ['-V'])
+  HANDLERS.smb = RemoteHandlerSmbMount
+} catch (_) {
+  HANDLERS.smb = RemoteHandlerSmb
 }
 
 export const getHandler = (remote: Remote, ...rest: any): RemoteHandler => {

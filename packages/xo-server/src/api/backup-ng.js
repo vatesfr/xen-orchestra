@@ -1,5 +1,4 @@
 import { basename } from 'path'
-import { isEmpty, pickBy } from 'lodash'
 
 import { safeDateFormat } from '../utils'
 
@@ -11,7 +10,7 @@ export function createJob({ schedules, ...job }) {
 createJob.permission = 'admin'
 createJob.params = {
   compression: {
-    enum: ['', 'native'],
+    enum: ['', 'native', 'zstd'],
     optional: true,
   },
   mode: {
@@ -68,7 +67,7 @@ export function editJob(props) {
 editJob.permission = 'admin'
 editJob.params = {
   compression: {
-    enum: ['', 'native'],
+    enum: ['', 'native', 'zstd'],
     optional: true,
   },
   id: {
@@ -151,12 +150,23 @@ runJob.params = {
 
 // -----------------------------------------------------------------------------
 
-export async function getAllLogs(filter) {
-  const logs = await this.getBackupNgLogs()
-  return isEmpty(filter) ? logs : pickBy(logs, filter)
+export function getAllLogs() {
+  return this.getBackupNgLogs()
 }
 
 getAllLogs.permission = 'admin'
+
+export function getLogs({ after, before, limit, ...filter }) {
+  return this.getBackupNgLogsSorted({ after, before, limit, filter })
+}
+
+getLogs.permission = 'admin'
+
+getLogs.params = {
+  after: { type: ['number', 'string'], optional: true },
+  before: { type: ['number', 'string'], optional: true },
+  limit: { type: 'number', optional: true },
+}
 
 // -----------------------------------------------------------------------------
 

@@ -6,11 +6,7 @@ XO-Server plugin which sends email reports and Xmpp messages when backup jobs ar
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-backup-reports):
-
-```
-> npm install --global xo-server-backup-reports
-```
+For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
 
 ## Usage
 

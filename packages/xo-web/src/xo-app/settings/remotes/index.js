@@ -6,7 +6,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { addSubscriptions, generateRandomId, noop } from 'utils'
+import { addSubscriptions, formatSize, generateRandomId, noop } from 'utils'
 import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
 import { groupBy, map, isEmpty } from 'lodash'
@@ -21,6 +21,7 @@ import {
   editRemote,
   enableRemote,
   subscribeRemotes,
+  subscribeRemotesInfo,
   testRemote,
 } from 'xo'
 
@@ -34,6 +35,7 @@ const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
 const _editRemoteOptions = (options, { remote }) =>
   editRemote(remote, { options: options !== '' ? options : null })
+
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
     <Text
@@ -74,6 +76,17 @@ const COLUMN_STATE = {
   ),
   name: _('remoteState'),
 }
+const COLUMN_DISK = {
+  itemRenderer: (remote, { formatMessage }) =>
+    remote.info !== undefined &&
+    remote.info.used !== undefined &&
+    remote.info.size !== undefined && (
+      <span>
+        {`${formatSize(remote.info.used)} / ${formatSize(remote.info.size)}`}
+      </span>
+    ),
+  name: _('remoteDisk'),
+}
 
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
 const COLUMNS_LOCAL_REMOTE = [
@@ -91,6 +104,7 @@ const COLUMNS_LOCAL_REMOTE = [
     name: _('remotePath'),
   },
   COLUMN_STATE,
+  COLUMN_DISK,
 ]
 const COLUMNS_NFS_REMOTE = [
   COLUMN_NAME,
@@ -151,6 +165,7 @@ const COLUMNS_NFS_REMOTE = [
     ),
   },
   COLUMN_STATE,
+  COLUMN_DISK,
 ]
 const COLUMNS_SMB_REMOTE = [
   COLUMN_NAME,
@@ -272,18 +287,8 @@ const FILTERS = {
 
 export default decorate([
   addSubscriptions({
-    remotes: cb =>
-      subscribeRemotes(remotes => {
-        cb(
-          groupBy(
-            map(remotes, remote => ({
-              ...parse(remote.url),
-              ...remote,
-            })),
-            'type'
-          )
-        )
-      }),
+    remotes: subscribeRemotes,
+    remotesInfo: subscribeRemotesInfo,
   }),
   injectIntl,
   provideState({
@@ -300,15 +305,26 @@ export default decorate([
         remote,
       }),
     },
+    computed: {
+      remoteWithInfo: (_, { remotes, remotesInfo }) =>
+        groupBy(
+          map(remotes, remote => ({
+            ...parse(remote.url),
+            ...remote,
+            info: remotesInfo !== undefined ? remotesInfo[remote.id] : {},
+          })),
+          'type'
+        ),
+    },
   }),
   injectState,
   ({ state, effects, remotes = {}, intl: { formatMessage } }) => (
     <div>
-      {!isEmpty(remotes.file) && (
+      {!isEmpty(state.remoteWithInfo.file) && (
         <div>
           <h2>{_('remoteTypeLocal')}</h2>
           <SortedTable
-            collection={remotes.file}
+            collection={state.remoteWithInfo.file}
             columns={COLUMNS_LOCAL_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
@@ -320,11 +336,11 @@ export default decorate([
         </div>
       )}
 
-      {!isEmpty(remotes.nfs) && (
+      {!isEmpty(state.remoteWithInfo.nfs) && (
         <div>
           <h2>{_('remoteTypeNfs')}</h2>
           <SortedTable
-            collection={remotes.nfs}
+            collection={state.remoteWithInfo.nfs}
             columns={COLUMNS_NFS_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
@@ -336,11 +352,11 @@ export default decorate([
         </div>
       )}
 
-      {!isEmpty(remotes.smb) && (
+      {!isEmpty(state.remoteWithInfo.smb) && (
         <div>
           <h2>{_('remoteTypeSmb')}</h2>
           <SortedTable
-            collection={remotes.smb}
+            collection={state.remoteWithInfo.smb}
             columns={COLUMNS_SMB_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}

@@ -173,6 +173,7 @@ const TRANSFORMS = {
           total: 0,
         }
       })(),
+      multipathing: obj.multipathing,
       patches: patches || link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
@@ -426,6 +427,7 @@ const TRANSFORMS = {
     let tmp
     if ((tmp = obj.VCPUs_params)) {
       tmp.cap && (vm.cpuCap = +tmp.cap)
+      tmp.mask && (vm.cpuMask = tmp.mask.split(',').map(_ => +_))
       tmp.weight && (vm.cpuWeight = +tmp.weight)
     }
 
@@ -476,6 +478,7 @@ const TRANSFORMS = {
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
       device_config: obj.device_config,
+      otherConfig: obj.other_config,
     }
   },
 
@@ -505,6 +508,7 @@ const TRANSFORMS = {
       // A physical PIF cannot be unplugged
       physical: Boolean(obj.physical),
       vlan: +obj.VLAN,
+      speed: metrics && +metrics.speed,
       $host: link(obj, 'host'),
       $network: link(obj, 'network'),
     }
@@ -744,7 +748,7 @@ const TRANSFORMS = {
 
 // ===================================================================
 
-export default function xapiObjectToXo(xapiObj, dependents) {
+export default function xapiObjectToXo(xapiObj, dependents = {}) {
   const transform = TRANSFORMS[xapiObj.$type.toLowerCase()]
   if (!transform) {
     return

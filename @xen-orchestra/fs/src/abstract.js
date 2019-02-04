@@ -1,31 +1,29 @@
 // @flow
 
 // $FlowFixMe
-import asyncMap from '@xen-orchestra/async-map'
 import getStream from 'get-stream'
+
+import asyncMap from '@xen-orchestra/async-map'
 import path from 'path'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
 import { type Readable, type Writable } from 'stream'
 
+import normalizePath from './_normalizePath'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
-const { dirname, resolve } = path.posix
+const { dirname } = path.posix
 
 type Data = Buffer | Readable | string
 type FileDescriptor = {| fd: mixed, path: string |}
 type LaxReadable = Readable & Object
 type LaxWritable = Writable & Object
+type RemoteInfo = { used?: number, size?: number }
 
 type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
-
-// normalize the path:
-// - does not contains `.` or `..`  (cannot escape root dir)
-// - always starts with `/`
-const normalizePath = path => resolve('/', path)
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
 
@@ -197,10 +195,33 @@ export default class RemoteHandlerAbstract {
     )
   }
 
+  createWriteStream(
+    file: File,
+    options: { end?: number, flags?: string, start?: number } = {}
+  ): Promise<LaxWritable> {
+    return timeout.call(
+      this._createWriteStream(
+        typeof file === 'string' ? normalizePath(file) : file,
+        {
+          flags: 'wx',
+          ...options,
+        }
+      )
+    )
+  }
+
   // Free the resources possibly dedicated to put the remote at work, when it
   // is no more needed
+  //
+  // FIXME: Some handlers are implemented based on system-wide mecanisms (such
+  // as mount), forgetting them might breaking other processes using the same
+  // remote.
   async forget(): Promise<void> {
     await this._forget()
+  }
+
+  async getInfo(): Promise<RemoteInfo> {
+    return timeout.call(this._getInfo(), this._timeout)
   }
 
   async getSize(file: File): Promise<number> {
@@ -331,6 +352,8 @@ export default class RemoteHandlerAbstract {
 
   // Asks the handler to sync the state of the effective remote with its'
   // metadata
+  //
+  // This method MUST ALWAYS be called before using the handler.
   async sync(): Promise<void> {
     await this._sync()
   }
@@ -408,6 +431,10 @@ export default class RemoteHandlerAbstract {
 
   // called to finalize the remote
   async _forget(): Promise<void> {}
+
+  async _getInfo(): Promise<Object> {
+    return {}
+  }
 
   async _getSize(file: File): Promise<number> {
     throw new Error('Not implemented')

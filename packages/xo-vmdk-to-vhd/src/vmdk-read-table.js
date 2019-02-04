@@ -54,10 +54,9 @@ export default async function readVmdkGrainTable(fileAccessor) {
   const grainSize =
     getLongLong(headerBuffer, GRAIN_SIZE_OFFSET, 'grain size') * SECTOR_SIZE
   const grainCount = Math.ceil(capacity / grainSize)
-  const numGTEsPerGT = getLongLong(
-    headerBuffer,
+  const numGTEsPerGT = new DataView(headerBuffer).getUint32(
     NUM_GTE_PER_GT_OFFSET,
-    'num GTE per GT'
+    true
   )
   const grainTablePhysicalSize = numGTEsPerGT * 4
   const grainDirectoryEntries = Math.ceil(grainCount / numGTEsPerGT)

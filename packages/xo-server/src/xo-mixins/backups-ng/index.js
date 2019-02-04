@@ -32,6 +32,7 @@ import {
 } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
+  checkVhdChain,
   createSyntheticStream as createVhdReadStream,
 } from 'vhd-lib'
 
@@ -80,7 +81,7 @@ type SimpleIdPattern = {|
 
 export type BackupJob = {|
   ...$Exact<Job>,
-  compression?: 'native',
+  compression?: 'native' | 'zstd' | '',
   mode: Mode,
   remotes?: SimpleIdPattern,
   settings: $Dict<Settings>,
@@ -176,10 +177,13 @@ const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
 const isXva = (filename: string) => filename.endsWith('.xva')
 
+const getJobCompression = ({ compression: c }) =>
+  c === undefined || c === '' ? false : c === 'native' ? 'gzip' : 'zstd'
+
 const listReplicatedVms = (
   xapi: Xapi,
   scheduleId: string,
-  srId: string,
+  srId?: string,
   vmUuid?: string
 ): Vm[] => {
   const { all } = xapi.objects
@@ -476,13 +480,26 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 //      ├─ <YYYYMMDD>T<HHmmss>.xva
 //      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
 //
+// Attributes on created VM snapshots:
+//
+// - `other_config`:
+//    - `xo:backup:datetime` = snapshot.snapshot_time (allow sorting replicated VMs)
+//    - `xo:backup:job` = job.id
+//    - `xo:backup:schedule` = schedule.id
+//    - `xo:backup:vm` = vm.uuid
+//    - `xo:backup:exported` = 'true' (added at the end of the backup)
+//
 // Attributes of created VMs:
 //
-// - name: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
+// - all snapshots attributes (see above)
+// - `name_label`: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
 // - tag:
 //    - copy in delta mode: `Continuous Replication`
 //    - copy in full mode: `Disaster Recovery`
 //    - imported from backup: `restored from backup`
+// - `blocked_operations.start`: message
+// - for copies/replications only, added after complete transfer
+//    - `other_config[xo:backup:sr]` = sr.uuid
 //
 // Task logs emitted in a backup execution:
 //
@@ -901,6 +918,7 @@ export default class BackupNg {
   // - [x] possibility to (re-)run a single VM in a backup?
   // - [x] validate VHDs after exports and before imports, how?
   // - [x] check merge/transfert duration/size are what we want for delta
+  // - [x] delete interrupted *importing* VMs
   @defer
   async _backupVm(
     $defer: any,
@@ -1118,7 +1136,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
-          compress: job.compression === 'native',
+          compress: getJobCompression(job),
         })
       )
       const exportTask = xva.task
@@ -1219,6 +1237,14 @@ export default class BackupNg {
 
                 const { $id: srId, xapi } = sr
 
+                // delete previous interrupted copies
+                ignoreErrors.call(
+                  this._deleteVms(
+                    xapi,
+                    listReplicatedVms(xapi, scheduleId, undefined, vmUuid)
+                  )
+                )
+
                 const oldVms = getOldEntries(
                   copyRetention - 1,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
@@ -1276,29 +1302,6 @@ export default class BackupNg {
         $defer.onSuccess.call(xapi, 'deleteVm', baseSnapshot)
       }
 
-      // JFT: TODO: remove when enough time has passed (~2018-09)
-      //
-      // Fix VHDs UUID (= VDI.uuid), which was not done before 2018-06-16.
-      await asyncMap(remotes, async ({ handler }) =>
-        asyncMap(
-          this._listVmBackups(handler, vmUuid, _ => _.mode === 'delta'),
-          ({ _filename, vdis, vhds }) => {
-            const vmDir = dirname(_filename)
-            return asyncMap(vhds, async (vhdPath, vdiId) => {
-              const uuid = parseUuid(vdis[vdiId].uuid)
-
-              const vhd = new Vhd(handler, `${vmDir}/${vhdPath}`)
-              await vhd.readHeaderAndFooter()
-              if (!vhd.footer.uuid.equals(uuid)) {
-                vhd.footer.uuid = uuid
-                await vhd.readBlockAllocationTable()
-                await vhd.writeFooter()
-              }
-            })
-          }
-        )
-      )
-
       let fullVdisRequired
       await (async () => {
         if (baseSnapshot === undefined) {
@@ -1351,16 +1354,21 @@ export default class BackupNg {
             await asyncMap(files, async file => {
               if (file[0] !== '.') {
                 try {
-                  const vhd = new Vhd(handler, `${dir}/${file}`)
+                  const path = `${dir}/${file}`
+                  const vhd = new Vhd(handler, path)
                   await vhd.readHeaderAndFooter()
 
                   if (vhd.footer.uuid.equals(parseUuid(vdi.uuid))) {
+                    await checkVhdChain(handler, path)
                     full = false
                   }
 
                   return
                 } catch (error) {
-                  if (!(error instanceof AssertionError)) {
+                  if (
+                    !(error instanceof AssertionError) ||
+                    error?.code === 'ENOENT'
+                  ) {
                     throw error
                   }
                 }
@@ -1518,6 +1526,7 @@ export default class BackupNg {
                         }))
                           .sort()
                           .pop()
+                          .slice(1) // remove leading slash
 
                         // ensure parent exists and is a valid VHD
                         await new Vhd(handler, parentPath).readHeaderAndFooter()
@@ -1571,6 +1580,14 @@ export default class BackupNg {
                 const fork = forkExport()
 
                 const { $id: srId, xapi } = sr
+
+                // delete previous interrupted copies
+                ignoreErrors.call(
+                  this._deleteVms(
+                    xapi,
+                    listReplicatedVms(xapi, scheduleId, undefined, vmUuid)
+                  )
+                )
 
                 const oldVms = getOldEntries(
                   copyRetention - 1,

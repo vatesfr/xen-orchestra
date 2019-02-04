@@ -593,3 +593,11 @@ export const generateRandomId = () =>
   Math.random()
     .toString(36)
     .slice(2)
+
+// ===================================================================
+
+// it returns [nActivePaths, nPaths]
+export const getIscsiPaths = pbd => {
+  const pathsInfo = pbd.otherConfig[`mpath-${pbd.device_config.SCSIid}`]
+  return pathsInfo !== undefined ? JSON.parse(pathsInfo) : []
+}

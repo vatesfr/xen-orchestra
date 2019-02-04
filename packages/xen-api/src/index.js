@@ -109,6 +109,9 @@ export const wrapError = error => {
   } else {
     code = error.message
     params = error.data
+    if (!isArray(params)) {
+      params = []
+    }
   }
   return new XapiError(code, params)
 }
@@ -219,6 +222,16 @@ function defined() {
   }
 }
 
+// TODO: find a better name
+// TODO: merge into promise-toolbox?
+const dontWait = promise => {
+  // https://github.com/JsCommunity/promise-toolbox#promiseignoreerrors
+  ignoreErrors.call(promise)
+
+  // http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it
+  return null
+}
+
 const makeCallSetting = (setting, defaultValue) =>
   setting === undefined
     ? () => defaultValue
@@ -242,6 +255,9 @@ const RESERVED_FIELDS = {
 const CONNECTED = 'connected'
 const CONNECTING = 'connecting'
 const DISCONNECTED = 'disconnected'
+
+// timeout of XenAPI HTTP connections
+const HTTP_TIMEOUT = 24 * 3600 * 1e3
 
 // -------------------------------------------------------------------
 
@@ -291,7 +307,7 @@ export class Xapi extends EventEmitter {
     this._taskWatchers = Object.create(null)
 
     if (this.status === CONNECTED) {
-      ignoreErrors.call(this._watchEvents())
+      this._watchEvents()
     }
 
     this.on('connected', this._watchEvents)
@@ -453,14 +469,14 @@ export class Xapi extends EventEmitter {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(`Async.${method}`, args).then(taskRef => {
-          $cancelToken.promise.then(() => {
+          $cancelToken.promise.then(() =>
             // TODO: do not trigger if the task is already over
-            this._sessionCall('task.cancel', [taskRef]).catch(noop)
-          })
+            dontWait(this._sessionCall('task.cancel', [taskRef]))
+          )
 
-          return pFinally.call(this.watchTask(taskRef), () => {
-            this._sessionCall('task.destroy', [taskRef]).catch(noop)
-          })
+          return pFinally.call(this.watchTask(taskRef), () =>
+            dontWait(this._sessionCall('task.destroy', [taskRef]))
+          )
         })
   }
 
@@ -528,6 +544,8 @@ export class Xapi extends EventEmitter {
 
   async getRecord(type, ref) {
     return this._wrapRecord(
+      type,
+      ref,
       await this._sessionCall(`${type}.get_record`, [ref])
     )
   }
@@ -561,17 +579,20 @@ export class Xapi extends EventEmitter {
           }
         }
 
-        let promise = httpRequest(
-          $cancelToken,
-          this._url,
-          host && {
-            hostname: this.getObject(host).address,
-          },
-          {
-            pathname,
-            query,
-            rejectUnauthorized: !this._allowUnauthorized,
-          }
+        let promise = pTimeout.call(
+          httpRequest(
+            $cancelToken,
+            this._url,
+            host && {
+              hostname: this.getObject(host).address,
+            },
+            {
+              pathname,
+              query,
+              rejectUnauthorized: !this._allowUnauthorized,
+            }
+          ),
+          HTTP_TIMEOUT
         )
 
         if (taskResult !== undefined) {
@@ -619,21 +640,23 @@ export class Xapi extends EventEmitter {
         }
 
         const doRequest = (...opts) =>
-          httpRequest.put(
-            $cancelToken,
-            this._url,
-            host && {
-              hostname: this.getObject(host).address,
-            },
-            {
-              body,
-              headers,
-              query,
-              pathname,
-              maxRedirects: 0,
-              rejectUnauthorized: !this._allowUnauthorized,
-            },
-            ...opts
+          pTimeout.call(
+            httpRequest.put(
+              $cancelToken,
+              this._url,
+              host && {
+                hostname: this.getObject(host).address,
+              },
+              {
+                body,
+                headers,
+                query,
+                pathname,
+                rejectUnauthorized: !this._allowUnauthorized,
+              },
+              ...opts
+            ),
+            HTTP_TIMEOUT
           )
 
         // if a stream, sends a dummy request to probe for a
@@ -644,15 +667,17 @@ export class Xapi extends EventEmitter {
 
               // omit task_id because this request will fail on purpose
               query: 'task_id' in query ? omit(query, 'task_id') : query,
+
+              maxRedirects: 0,
             }).then(
               response => {
-                response.req.abort()
+                response.cancel()
                 return doRequest()
               },
               error => {
                 let response
                 if (error != null && (response = error.response) != null) {
-                  response.req.abort()
+                  response.cancel()
 
                   const {
                     headers: { location },
@@ -680,12 +705,12 @@ export class Xapi extends EventEmitter {
           }
 
           if (req.finished) {
-            req.abort()
+            response.cancel()
             return taskResult
           }
 
           return fromEvents(req, ['close', 'finish']).then(() => {
-            req.abort()
+            response.cancel()
             return taskResult
           })
         })
@@ -944,16 +969,18 @@ export class Xapi extends EventEmitter {
       throw error
     }
 
-    return pCatch.call(
-      loop(),
-      isMethodUnknown,
+    ignoreErrors.call(
+      pCatch.call(
+        loop(),
+        isMethodUnknown,
 
-      // If the server failed, it is probably due to an excessively
-      // large response.
-      // Falling back to legacy events watch should be enough.
-      error => error && error.res && error.res.statusCode === 500,
+        // If the server failed, it is probably due to an excessively
+        // large response.
+        // Falling back to legacy events watch should be enough.
+        error => error && error.res && error.res.statusCode === 500,
 
-      () => this._watchEventsLegacy()
+        () => this._watchEventsLegacy()
+      )
     )
   }
 

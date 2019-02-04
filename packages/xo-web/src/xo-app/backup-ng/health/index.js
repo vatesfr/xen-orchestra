@@ -6,17 +6,12 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { Card, CardHeader, CardBlock } from 'card'
 import { addSubscriptions, connectStore } from 'utils'
+import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
-import { FormattedRelative, FormattedTime } from 'react-intl'
-import { includes, map } from 'lodash'
+import { createGetLoneSnapshots, createGetObjectsOfType } from 'selectors'
 import { deleteSnapshot, deleteSnapshots, subscribeSchedules } from 'xo'
-import {
-  createSelector,
-  createGetObjectsOfType,
-  createCollectionWrapper,
-} from 'selectors'
+import { FormattedRelative, FormattedTime } from 'react-intl'
 
 const SNAPSHOT_COLUMNS = [
   {
@@ -72,39 +67,20 @@ const ACTIONS = [
 ]
 
 @addSubscriptions({
+  // used by createGetLoneSnapshots
   schedules: subscribeSchedules,
 })
-@connectStore(() => {
-  const getSnapshots = createGetObjectsOfType('VM-snapshot')
-
-  return {
-    loneSnapshots: getSnapshots.filter(
-      createSelector(
-        createCollectionWrapper(
-          (_, props) =>
-            props.schedules !== undefined && map(props.schedules, 'id')
-        ),
-        scheduleIds =>
-          scheduleIds
-            ? _ => {
-                const scheduleId = _.other['xo:backup:schedule']
-                return (
-                  scheduleId !== undefined && !includes(scheduleIds, scheduleId)
-                )
-              }
-            : false
-      )
-    ),
-    legacySnapshots: getSnapshots.filter([
-      (() => {
-        const RE = /^(?:XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
-        return (
-          { name_label } // eslint-disable-line camelcase
-        ) => RE.test(name_label)
-      })(),
-    ]),
-    vms: createGetObjectsOfType('VM'),
-  }
+@connectStore({
+  loneSnapshots: createGetLoneSnapshots,
+  legacySnapshots: createGetObjectsOfType('VM-snapshot').filter([
+    (() => {
+      const RE = /^(?:XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
+      return (
+        { name_label } // eslint-disable-line camelcase
+      ) => RE.test(name_label)
+    })(),
+  ]),
+  vms: createGetObjectsOfType('VM'),
 })
 export default class Health extends Component {
   render() {

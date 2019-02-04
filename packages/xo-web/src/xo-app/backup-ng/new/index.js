@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import SelectCompression from 'select-compression'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -7,9 +8,9 @@ import Link from 'link'
 import moment from 'moment-timezone'
 import React from 'react'
 import Select from 'form/select'
-import UserError from 'user-error'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
+import UserError from 'user-error'
 import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
@@ -208,7 +209,7 @@ export default decorate([
         await createBackupNgJob({
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression ? 'native' : '',
+          compression: state.compression,
           schedules: mapValues(
             state.schedules,
             ({ id, ...schedule }) => schedule
@@ -290,12 +291,7 @@ export default decorate([
           id: props.job.id,
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression:
-            state.compression === undefined
-              ? undefined
-              : state.compression
-              ? 'native'
-              : '',
+          compression: state.compression,
           settings: normalizeSettings({
             settings: settings || state.propSettings,
             exportMode: state.exportMode,
@@ -500,6 +496,7 @@ export default decorate([
 
         return getInitialState()
       },
+      setCompression: (_, compression) => ({ compression }),
       setGlobalSettings: (_, { name, value }) => ({
         propSettings,
         settings = propSettings,
@@ -538,15 +535,20 @@ export default decorate([
       },
     },
     computed: {
+      compressionId: generateId,
       formId: generateId,
       inputConcurrencyId: generateId,
       inputReportWhenId: generateId,
       inputTimeoutId: generateId,
 
       vmsPattern: ({ _vmsPattern }, { job }) =>
-        defined(_vmsPattern, () => job.vms, {
-          type: 'VM',
-        }),
+        defined(
+          _vmsPattern,
+          () => (job.vms.id !== undefined ? undefined : job.vms),
+          {
+            type: 'VM',
+          }
+        ),
       needUpdateParams: (state, { job, schedules }) =>
         job !== undefined && schedules !== undefined && !state.paramsUpdated,
       isJobInvalid: state =>
@@ -625,12 +627,11 @@ export default decorate([
     const { propSettings, settings = propSettings } = state
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
+    const compression = defined(state.compression, job.compression, '')
     const displayAdvancedSettings = defined(
       state.displayAdvancedSettings,
-      concurrency > 0 || timeout > 0 || offlineSnapshot
+      compression !== '' || concurrency > 0 || timeout > 0 || offlineSnapshot
     )
-
-    const { compression = job.compression === 'native' } = state
 
     if (state.needUpdateParams) {
       effects.updateParams()
@@ -702,7 +703,7 @@ export default decorate([
                       {_('disasterRecovery')}
                     </ActionButton>{' '}
                     {process.env.XOA_PLAN < 3 && (
-                      <Tooltip content={_('dbAndDrRequireEntreprisePlan')}>
+                      <Tooltip content={_('dbAndDrRequireEnterprisePlan')}>
                         <Icon icon='info' />
                       </Tooltip>
                     )}{' '}
@@ -918,6 +919,18 @@ export default decorate([
                           placeholder={formatMessage(messages.timeoutUnit)}
                         />
                       </FormGroup>
+                      {state.isFull && (
+                        <FormGroup>
+                          <label htmlFor={state.compressionId}>
+                            <strong>{_('compression')}</strong>
+                          </label>
+                          <SelectCompression
+                            id={state.compressionId}
+                            onChange={effects.setCompression}
+                            value={compression}
+                          />
+                        </FormGroup>
+                      )}
                       <FormGroup>
                         <label>
                           <strong>{_('offlineSnapshot')}</strong>{' '}
@@ -931,19 +944,6 @@ export default decorate([
                           />
                         </label>
                       </FormGroup>
-                      {state.isFull && (
-                        <FormGroup>
-                          <label>
-                            <strong>{_('useCompression')}</strong>{' '}
-                            <input
-                              checked={compression}
-                              name='compression'
-                              onChange={effects.setCheckboxValue}
-                              type='checkbox'
-                            />
-                          </label>
-                        </FormGroup>
-                      )}
                     </div>
                   )}
                 </CardBlock>

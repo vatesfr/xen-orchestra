@@ -36,38 +36,52 @@ To protect the replication, we removed the possibility to boot your copied VM di
 
 ## Manual initial seed
 
-> This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need this**.
+**If you can't transfer the first backup through your network because it's too large**, you can make a seed locally. In order to do this, follow this procedure (until we make it accessible directly in XO).  
 
-**If you can't transfer the first backup through your network**, you can make a seed locally. In order to do this, follow this procedure (until we make it accessible directly in XO):
+> This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need this**. These instructions are for Backup-NG jobs, and will not work to seed a legacy backup job. Please migrate any legacy jobs to Backup-NG!
 
-### Preparation
 
-1. create a cont. rep job to a non-distant SR (even the SR where the VM currently is). Do NOT enable the job during creation.
-1. manually start the first replication (only the first)
-1. when finished, export the replicated VM (via XOA or any other means, doesn't matter how you get your XVA file)
-1. import the replicated VM on your distant destination
-1. you can now remove your local replicated copy
+### Job creation
 
-### Modifications
+Create the Continuous Replication backup job, and leave it disabled for now. On the main Backup-NG page, note its identifiers, the main `backupJobId` and the ID of one on the schedules for the job, `backupScheduleId`.
 
-In your source host:
+### Seed creation
 
-1. Get the UUID of the remote destination SR where your VM was imported
-1. On the source host: `xe vm-param-list uuid=<SourceVM_UUID> | grep other-config`.
-  * You should see somewhere in other-config: `xo:base_delta:<SR_UUID>: <VM_snapshot_UUID>;`
-  * Remove this entry with `xe vm-param-remove uuid=<OriginalVM_UUID> param-name=other-config param-key=xo:base_delta:<SR_UUID>`
-  * Recreate the correct param: `xe vm-param-set uuid=<OriginalVM_UUID> other-config:xo:base_delta:<destination_SR_UUID>=<VM_snapshot_UUID>`
+Manually create a snapshot on the VM to backup, and note its UUID as `snapshotUuid` from the snapshot panel for the VM.
 
-In XO:
+> DO NOT ever delete or alter this snapshot, feel free to rename it to make that clear.
 
-1. Edit the replication job and select the new destination SR
+### Seed copy
 
-On the destination host; to avoid data corruption, you need to avoid any VM start:
+Export this snapshot to a file, then import it on the target SR.
+
+Note the UUID of this newly created VM as `targetVmUuid`.
+
+> DO not start this VM or it will break the Continuous Replication job! You can rename this VM to more easily remember this.
+
+### Set up metadata
+
+The XOA backup system requires metadata to correctly associate the source snapshot and the target VM to the backup job. We're going to use the `xo-cr-seed` utility to help us set them up.
+
+First install the tool (all the following is done from the XOA VM CLI):
 
 ```
-xe vm-param-set blocked-operations:start uuid=<DestinationVM_UUID>
+npm i -g xo-cr-seed
 ```
 
-### Enable
+Here is an example of how the utility expects the UUIDs and info passed to it:
 
-Manually run the job the first time to check if everything is OK. Then, enable the job. **Now, only the deltas are sent, your initial seed saved you a LOT of time if you have a slow network.**
+```
+xo-cr-seed
+Usage: xo-cr-seed <source XAPI URL> <source snapshot UUID> <target XAPI URL> <target VM UUID> <backup job id> <backup schedule id>
+
+xo-cr-seed v0.2.0
+```
+Putting it altogether and putting our values and UUID's into the command, it will look like this (it is a long command):
+```
+xo-cr-seed https://root:password@xen1.company.tld 4a21c1cd-e8bd-4466-910a-f7524ecc07b1 https://root:password@xen2.company.tld 5aaf86ca-ae06-4a4e-b6e1-d04f0609e64d 90d11a94-a88f-4a84-b7c1-ed207d3de2f9 369a26f0-da77-41ab-a998-fa6b02c69b9a
+```
+
+### Finished
+
+Your backup job should now be working correctly! Manually run the job the first time to check if everything is OK. Then, enable the job. **Now, only the deltas are sent, your initial seed saved you a LOT of time if you have a slow network.**

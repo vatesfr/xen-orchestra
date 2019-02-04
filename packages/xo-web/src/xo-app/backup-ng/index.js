@@ -1,20 +1,25 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
+import Button from 'button'
+import Copiable from 'copiable'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
+import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
+import { connectStore, routes } from 'utils'
 import { constructQueryString } from 'smart-backup'
 import { Container, Row, Col } from 'grid'
+import { createGetLoneSnapshots } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { isEmpty, map, groupBy, some } from 'lodash'
 import { NavLink, NavTabs } from 'nav'
-import { routes } from 'utils'
 import {
   cancelJob,
   deleteBackupNgJobs,
@@ -26,7 +31,7 @@ import {
   subscribeSchedules,
 } from 'xo'
 
-import LogsTable, { STATUS_LABELS, showTasks } from '../logs/backup-ng-logs'
+import LogsTable, { LogStatus } from '../logs/backup-ng'
 import Page from '../page'
 
 import Edit from './edit'
@@ -74,11 +79,18 @@ const SchedulePreviewBody = decorate([
   })),
   ({ job, schedule, lastRunLog }) => (
     <Ul>
-      {schedule.name ? (
-        <Li>{_.keyValue(_('scheduleName'), schedule.name)}</Li>
-      ) : (
-        <Li>{_.keyValue(_('scheduleCron'), schedule.cron)}</Li>
-      )}
+      <Li>
+        {schedule.name
+          ? _.keyValue(_('scheduleName'), schedule.name)
+          : _.keyValue(_('scheduleCron'), schedule.cron)}{' '}
+        <Tooltip content={_('scheduleCopyId', { id: schedule.id.slice(4, 8) })}>
+          <CopyToClipboard text={schedule.id}>
+            <Button size='small'>
+              <Icon icon='clipboard' />
+            </Button>
+          </CopyToClipboard>
+        </Tooltip>
+      </Li>
       <Li>
         <StateButton
           disabledLabel={_('stateDisabled')}
@@ -114,16 +126,7 @@ const SchedulePreviewBody = decorate([
           />
         )}{' '}
         {lastRunLog !== undefined && (
-          <ActionButton
-            handler={showTasks}
-            handlerParam={lastRunLog}
-            icon='preview'
-            size='small'
-            tooltip={_('scheduleLastRun')}
-            className={`btn-${STATUS_LABELS[lastRunLog.status].className}`}
-          >
-            <span>{_(STATUS_LABELS[lastRunLog.status].label)}</span>
-          </ActionButton>
+          <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />
         )}
       </Li>
     </Ul>
@@ -181,7 +184,11 @@ class JobsTable extends React.Component {
     ],
     columns: [
       {
-        itemRenderer: _ => _.id.slice(4, 8),
+        itemRenderer: ({ id }) => (
+          <Copiable data={id} tagName='p'>
+            {id.slice(4, 8)}
+          </Copiable>
+        ),
         name: _('jobId'),
       },
       {
@@ -212,9 +219,9 @@ class JobsTable extends React.Component {
         name: _('jobSchedules'),
       },
       {
-        itemRenderer: job => {
+        itemRenderer: ({ compression = '', settings }) => {
           const { concurrency, offlineSnapshot, reportWhen, timeout } =
-            job.settings[''] || {}
+            settings[''] || {}
 
           return (
             <Ul>
@@ -230,6 +237,14 @@ class JobsTable extends React.Component {
                   {_.keyValue(
                     _('offlineSnapshot'),
                     <span className='text-success'>{_('stateEnabled')}</span>
+                  )}
+                </Li>
+              )}
+              {compression !== '' && (
+                <Li>
+                  {_.keyValue(
+                    _('compression'),
+                    compression === 'native' ? 'GZIP' : compression
                   )}
                 </Li>
               )}
@@ -288,6 +303,26 @@ const Overview = () => (
   </div>
 )
 
+const HealthNavTab = decorate([
+  addSubscriptions({
+    // used by createGetLoneSnapshots
+    schedules: subscribeSchedules,
+  }),
+  connectStore({
+    nLoneSnapshots: createGetLoneSnapshots.count(),
+  }),
+  ({ nLoneSnapshots }) => (
+    <NavLink to='/backup-ng/health'>
+      <Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}{' '}
+      {nLoneSnapshots > 0 && (
+        <Tooltip content={_('loneSnapshotsMessages', { nLoneSnapshots })}>
+          <span className='tag tag-pill tag-warning'>{nLoneSnapshots}</span>
+        </Tooltip>
+      )}
+    </NavLink>
+  ),
+])
+
 const HEADER = (
   <Container>
     <Row>
@@ -311,10 +346,7 @@ const HEADER = (
             <Icon icon='menu-backup-file-restore' />{' '}
             {_('backupFileRestorePage')}
           </NavLink>
-          <NavLink to='/backup-ng/health'>
-            <Icon icon='menu-dashboard-health' />{' '}
-            {_('overviewHealthDashboardPage')}
-          </NavLink>
+          <HealthNavTab />
         </NavTabs>
       </Col>
     </Row>

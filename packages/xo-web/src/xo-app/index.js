@@ -3,6 +3,7 @@ import cookies from 'cookies-js'
 import DocumentTitle from 'react-document-title'
 import Icon from 'icon'
 import isArray from 'lodash/isArray'
+import Link from 'link'
 import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -96,6 +97,7 @@ const BODY_STYLE = {
 @connectStore(state => {
   return {
     trial: state.xoaTrialState,
+    registerNeeded: state.xoaUpdaterState === 'registerNeeded',
     signedUp: !!state.user,
   }
 })
@@ -197,36 +199,53 @@ export default class XoApp extends Component {
   }
 
   render() {
-    const { signedUp, trial } = this.props
+    const { signedUp, trial, registerNeeded } = this.props
     const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
 
     return (
       <IntlProvider>
         <ThemeProvider theme={themes.base}>
           <DocumentTitle title='Xen Orchestra'>
-            <div style={CONTAINER_STYLE}>
-              <Shortcuts
-                name='XoApp'
-                handler={this._shortcutsHandler}
-                targetNodeSelector='body'
-                stopPropagation={false}
-              />
-              <Menu ref='menu' />
-              <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
-                <div style={BODY_STYLE}>
-                  {blocked ? (
-                    <XoaUpdates />
-                  ) : signedUp ? (
-                    this.props.children
-                  ) : (
-                    <p>Still loading</p>
-                  )}
+            <div>
+              {process.env.XOA_PLAN < 5 && registerNeeded && (
+                <div className='alert alert-danger mb-0'>
+                  {_('notRegisteredDisclaimerInfo')}{' '}
+                  <a
+                    href='https://xen-orchestra.com/#!/signup'
+                    rel='noopener noreferrer'
+                    target='_blank'
+                  >
+                    {_('notRegisteredDisclaimerCreateAccount')}
+                  </a>{' '}
+                  <Link to='/xoa/update'>
+                    {_('notRegisteredDisclaimerRegister')}
+                  </Link>
                 </div>
+              )}
+              <div style={CONTAINER_STYLE}>
+                <Shortcuts
+                  name='XoApp'
+                  handler={this._shortcutsHandler}
+                  targetNodeSelector='body'
+                  stopPropagation={false}
+                />
+                <Menu ref='menu' />
+                <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
+                  <div style={BODY_STYLE}>
+                    {blocked ? (
+                      <XoaUpdates />
+                    ) : signedUp ? (
+                      this.props.children
+                    ) : (
+                      <p>Still loading</p>
+                    )}
+                  </div>
+                </div>
+                <Modal />
+                <FormModal />
+                <Notification />
+                <TooltipViewer />
               </div>
-              <Modal />
-              <FormModal />
-              <Notification />
-              <TooltipViewer />
             </div>
           </DocumentTitle>
         </ThemeProvider>

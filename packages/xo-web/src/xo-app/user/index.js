@@ -28,6 +28,7 @@ import {
 } from 'xo'
 
 import Page from '../page'
+import Otp from './otp'
 
 // ===================================================================
 
@@ -424,6 +425,10 @@ export default class User extends Component {
           </Row>
         </Container>
         <hr />
+        {(process.env.XOA_PLAN > 2 || user.preferences.otp !== undefined) && [
+          <Otp user={user} key='otp' />,
+          <hr key='hr' />,
+        ]}
         <SshKeys />
         <hr />
         <UserFilters user={user} />

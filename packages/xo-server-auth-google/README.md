@@ -9,11 +9,7 @@ same identifier.
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-auth-google):
-
-```
-> npm install --global xo-server-auth-google
-```
+For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
 
 ## Usage
 

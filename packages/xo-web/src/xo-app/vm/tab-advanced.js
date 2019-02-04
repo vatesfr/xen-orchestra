@@ -1,28 +1,57 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
+import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
+import { error } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
-import { Number, Size, Text, XoSelect } from 'editable'
+import { injectState, provideState } from 'reaclette'
+import {
+  Number,
+  Select as EditableSelect,
+  Size,
+  Text,
+  XoSelect,
+} from 'editable'
 import { Select, Toggle } from 'form'
-import { SelectResourceSet, SelectVgpuType } from 'select-objects'
+import {
+  SelectResourceSet,
+  SelectRole,
+  SelectSubject,
+  SelectVgpuType,
+} from 'select-objects'
 import {
   addSubscriptions,
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
   getVirtualizationModeLabel,
+  noop,
   osFamily,
 } from 'utils'
 import {
+  assign,
+  every,
+  filter,
+  find,
+  includes,
+  isEmpty,
+  keyBy,
+  map,
+  times,
+  some,
+  uniq,
+} from 'lodash'
+import {
+  addAcl,
   changeVirtualizationMode,
   cloneVm,
   convertVmToTemplate,
@@ -34,11 +63,15 @@ import {
   isVmRunning,
   pauseVm,
   recoveryStartVm,
+  removeAcl,
   restartVm,
   shareVm,
   startVm,
   stopVm,
+  subscribeAcls,
+  subscribeGroups,
   subscribeResourceSets,
+  subscribeUsers,
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -49,6 +82,11 @@ import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
 const SHARE_BUTTON_STYLE = { height: '38px' }
+const LEVELS = {
+  admin: 'danger',
+  operator: 'primary',
+  viewer: 'success',
+}
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -288,6 +326,138 @@ class CoresPerSocket extends Component {
   }
 }
 
+class AddAclsModal extends Component {
+  get value() {
+    return this.state
+  }
+
+  _getPredicate = createSelector(
+    () => this.props.acls,
+    () => this.props.vm,
+    (acls, object) => ({ id: subject, permission }) =>
+      permission !== 'admin' && !some(acls, { object, subject })
+  )
+
+  render() {
+    const { action, subjects } = this.state
+    return (
+      <form>
+        <div className='form-group'>
+          <SelectSubject
+            multi
+            onChange={this.linkState('subjects')}
+            predicate={this._getPredicate()}
+            value={subjects}
+          />
+        </div>
+        <div className='form-group'>
+          <SelectRole onChange={this.linkState('action')} value={action} />
+        </div>
+      </form>
+    )
+  }
+}
+
+const Acls = decorate([
+  addSubscriptions({
+    acls: subscribeAcls,
+    groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
+    users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
+  }),
+  provideState({
+    effects: {
+      addAcls: () => (state, { acls, vm }) =>
+        confirm({
+          title: _('vmAddAcls'),
+          body: <AddAclsModal acls={acls} vm={vm} />,
+        })
+          .then(({ action, subjects }) => {
+            if (action == null || isEmpty(subjects)) {
+              return error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
+            }
+
+            return (
+              Promise.all(
+                map(subjects, subject =>
+                  addAcl({ subject, object: vm, action })
+                )
+              ),
+              noop
+            )
+          })
+          .catch(
+            err =>
+              err && error(_('addAclsErrorTitle'), err.message || String(err))
+          ),
+      removeAcl: (_, { currentTarget: { dataset } }) => (_, { vm: object }) =>
+        removeAcl({
+          action: dataset.action,
+          object,
+          subject: dataset.subject,
+        }),
+    },
+    computed: {
+      rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),
+      resolvedAcls: ({ rawAcls }, { users, groups }) => {
+        if (users === undefined && groups === undefined) {
+          return []
+        }
+        return rawAcls.map(({ subject, ...acl }) => ({
+          ...acl,
+          subject:
+            (users !== undefined && users[subject]) ||
+            (groups !== undefined && groups[subject]),
+        }))
+      },
+    },
+  }),
+  injectState,
+  ({ state: { resolvedAcls }, effects, vm }) => (
+    <Container>
+      {resolvedAcls.slice(0, 5).map(({ subject, action }) => (
+        <Row key={`${subject.id}.${action}`}>
+          <Col>
+            <span>{renderXoItem(subject)}</span>{' '}
+            <span className={`tag tag-pill tag-${LEVELS[action]}`}>
+              {action}
+            </span>{' '}
+            <Tooltip content={_('removeAcl')}>
+              <a
+                data-action={action}
+                data-subject={subject.id}
+                onClick={effects.removeAcl}
+                role='button'
+              >
+                <Icon icon='remove' />
+              </a>
+            </Tooltip>
+          </Col>
+        </Row>
+      ))}
+      {resolvedAcls.length > 5 && (
+        <Row>
+          <Col>
+            <Link to={`settings/acls?s=object:${vm}`}>
+              {_('moreAcls', { nAcls: resolvedAcls.length - 5 })}
+            </Link>
+          </Col>
+        </Row>
+      )}
+      <Row>
+        <Col>
+          <ActionButton
+            btnStyle='primary'
+            handler={effects.addAcls}
+            icon='add'
+            size='small'
+            tooltip={_('vmAddAcls')}
+          />
+        </Col>
+      </Row>
+    </Container>
+  ),
+])
+
 const NIC_TYPE_OPTIONS = [
   {
     label: 'Realtek RTL819',
@@ -318,6 +488,27 @@ export default class TabAdvanced extends Component {
   componentDidMount() {
     getVmsHaValues().then(vmsHaValues => this.setState({ vmsHaValues }))
   }
+
+  _getCpuMaskOptions = createSelector(
+    () => this.props.vm,
+    vm =>
+      times(vm.CPUs.max, number => ({
+        value: number,
+        label: `Core ${number}`,
+      }))
+  )
+
+  _getCpuMask = createSelector(
+    this._getCpuMaskOptions,
+    () => this.props.vm.cpuMask,
+    (options, cpuMask) =>
+      cpuMask !== undefined
+        ? options.filter(({ value }) => cpuMask.includes(value))
+        : undefined
+  )
+
+  _onChangeCpuMask = cpuMask =>
+    editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
   _onNicTypeChange = value =>
     editVm(this.props.vm, { nicType: value === '' ? null : value })
@@ -483,6 +674,18 @@ export default class TabAdvanced extends Component {
                   </tr>
                 )}
                 <tr>
+                  <th>{_('cpuMaskLabel')}</th>
+                  <td>
+                    <EditableSelect
+                      multi
+                      onChange={this._onChangeCpuMask}
+                      options={this._getCpuMaskOptions()}
+                      placeholder={_('selectCpuMask')}
+                      value={this._getCpuMask()}
+                    />
+                  </td>
+                </tr>
+                <tr>
                   <th>{_('cpuWeightLabel')}</th>
                   <td>
                     <Number
@@ -530,16 +733,18 @@ export default class TabAdvanced extends Component {
                     />
                   </td>
                 </tr>
-                <tr>
-                  <th>{_('nestedVirt')}</th>
-                  <td>
-                    <Toggle
-                      disabled={vm.power_state !== 'Halted'}
-                      value={vm.expNestedHvm}
-                      onChange={value => editVm(vm, { expNestedHvm: value })}
-                    />
-                  </td>
-                </tr>
+                {vm.virtualizationMode === 'hvm' && (
+                  <tr>
+                    <th>{_('nestedVirt')}</th>
+                    <td>
+                      <Toggle
+                        disabled={vm.power_state !== 'Halted'}
+                        value={vm.expNestedHvm}
+                        onChange={value => editVm(vm, { expNestedHvm: value })}
+                      />
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('ha')}</th>
                   <td>
@@ -775,6 +980,14 @@ export default class TabAdvanced extends Component {
                     )}
                   </td>
                 </tr>
+                {isAdmin && (
+                  <tr>
+                    <th>{_('vmAcls')}</th>
+                    <td>
+                      <Acls vm={vm.id} />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </Col>
