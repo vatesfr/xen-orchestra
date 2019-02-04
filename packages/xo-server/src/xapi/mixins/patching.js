@@ -26,7 +26,7 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 //    _listXcpUpdates          XCP available updates
 //    _listPatches             XS patches (installed or not)
 //    _listInstalledPatches    XS installed patches on the host
-//    _listInstallablePatches  XS patches that are not installed and not conflicting
+//    _listInstallablePatches  XS (host, requested patches) → sorted patches that are not installed and not conflicting
 //    listMissingPatches       HL: installable patches (XS) or updates (XCP)
 // # INSTALL
 //    _xcpUpdate               XCP yum update
