@@ -5,14 +5,10 @@ import normalizePath from './_normalizePath'
 
 export default class SmbMountHandler extends MountHandler {
   constructor(remote, opts) {
-    const {
-      domain = 'WORKGROUP',
-      host,
-      options,
-      password,
-      path,
-      username,
-    } = parse(remote.url)
+    const { domain = 'WORKGROUP', host, password, path, username } = parse(
+      remote.url
+    )
+    const { options } = remote
     super(remote, opts, {
       type: 'cifs',
       device: '//' + host + normalizePath(path),
