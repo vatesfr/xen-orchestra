@@ -3,12 +3,12 @@
 import { forOwn, keyBy, omit } from "lodash";
 import { testConnection, testWithOtherConnection, xo } from "../util";
 
-const simpleUser = {
+const SIMPLE_USER = {
   email: "wayne3@vates.fr",
   password: "batman",
 };
 
-const adminUser = {
+const ADMIN_USER = {
   email: "admin2@admin.net",
   password: "admin",
   permission: "admin",
@@ -59,8 +59,8 @@ describe("user", () => {
     );
 
     it("fails trying to create a user with an email already used", async () => {
-      await xo.createUser(simpleUser);
-      await expect(xo.createUser(simpleUser)).rejects.toMatchSnapshot();
+      await xo.createUser(SIMPLE_USER);
+      await expect(xo.createUser(SIMPLE_USER)).rejects.toMatchSnapshot();
     });
   });
 
@@ -99,7 +99,7 @@ describe("user", () => {
     withData(
       {
         "fails trying to change the password without newPassword": {
-          oldPassword: simpleUser.password,
+          oldPassword: SIMPLE_USER.password,
         },
         "fails trying to change the password without oldPassword": {
           newPassword: "newpwd",
@@ -110,8 +110,8 @@ describe("user", () => {
         },
       },
       async data => {
-        await xo.createUser(simpleUser);
-        await testWithOtherConnection(simpleUser, xo =>
+        await xo.createUser(SIMPLE_USER);
+        await testWithOtherConnection(SIMPLE_USER, xo =>
           expect(xo.call("user.changePassword", data)).rejects.toMatchSnapshot()
         );
       }
@@ -157,15 +157,17 @@ describe("user", () => {
         },
       },
       async data => {
-        data.id = await xo.createUser(simpleUser);
+        data.id = await xo.createUser(SIMPLE_USER);
         expect(await xo.call("user.set", data)).toBe(true);
         expect(omit(await xo.getUser(data.id), "id")).toMatchSnapshot();
 
         await testConnection({
           credentials: {
-            email: data.email === undefined ? simpleUser.email : data.email,
+            email: data.email === undefined ? SIMPLE_USER.email : data.email,
             password:
-              data.password === undefined ? simpleUser.password : data.password,
+              data.password === undefined
+                ? SIMPLE_USER.password
+                : data.password,
           },
         });
       }
@@ -188,9 +190,9 @@ describe("user", () => {
           email: "wayne8@vates.fr",
           password: "batman8",
         });
-        await xo.createUser(simpleUser);
+        await xo.createUser(SIMPLE_USER);
 
-        await testWithOtherConnection(simpleUser, xo =>
+        await testWithOtherConnection(SIMPLE_USER, xo =>
           expect(xo.call("user.set", data)).rejects.toMatchSnapshot()
         );
       }
@@ -198,7 +200,7 @@ describe("user", () => {
 
     withData(
       {
-        "fails trying to set its own permission as a non admin user": simpleUser,
+        "fails trying to set its own permission as a non admin user": SIMPLE_USER,
         "fails trying to set its own permission as an admin": {
           email: "admin2@admin.net",
           password: "batman",
@@ -220,13 +222,13 @@ describe("user", () => {
       await expect(
         xo.call("user.set", {
           id: "non-existent-id",
-          password: simpleUser.password,
+          password: SIMPLE_USER.password,
         })
       ).rejects.toMatchSnapshot();
     });
 
     it.skip("fails trying to set an email already used", async () => {
-      await xo.createUser(simpleUser);
+      await xo.createUser(SIMPLE_USER);
       const userId2 = await xo.createUser({
         email: "wayne6@vates.fr",
         password: "batman",
@@ -235,7 +237,7 @@ describe("user", () => {
       await expect(
         xo.call("user.set", {
           id: userId2,
-          email: simpleUser.email,
+          email: SIMPLE_USER.email,
         })
       ).rejects.toMatchSnapshot();
     });
@@ -243,7 +245,7 @@ describe("user", () => {
 
   describe(".delete() :", () => {
     it("deletes a user successfully with id", async () => {
-      const userId = await xo.call("user.create", simpleUser);
+      const userId = await xo.call("user.create", SIMPLE_USER);
       expect(await xo.call("user.delete", { id: userId })).toBe(true);
       expect(await xo.getUser(userId)).toBe(undefined);
     });
@@ -255,8 +257,8 @@ describe("user", () => {
     });
 
     it("fails trying to delete itself", async () => {
-      const id = await xo.createUser(adminUser);
-      const { email, password } = adminUser;
+      const id = await xo.createUser(ADMIN_USER);
+      const { email, password } = ADMIN_USER;
       await testWithOtherConnection({ email, password }, xo =>
         expect(xo.call("user.delete", { id })).rejects.toMatchSnapshot()
       );
