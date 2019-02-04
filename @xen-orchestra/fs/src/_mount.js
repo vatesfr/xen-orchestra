@@ -21,10 +21,13 @@ export default class MountHandler extends LocalHandler {
     super(remote, opts)
 
     this._execa = useSudo ? sudoExeca : execa
-    this._params = params
-    this._params.options =
-      params.options +
-      (remote.options !== undefined ? `,${remote.options}` : '')
+    const options = [params.options, remote.options].filter(
+      _ => _ !== undefined
+    )
+    this._params = {
+      ...params,
+      options: options.length !== 0 ? options.join(',') : undefined,
+    }
     this._realPath = join(
       mountsDir,
       remote.id ||
