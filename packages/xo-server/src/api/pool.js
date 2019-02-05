@@ -77,7 +77,6 @@ setPoolMaster.resolve = {
 
 // Returns an array of missing new patches in the host
 // Returns an empty array if up-to-date
-// Throws an error if the host is not running the latest XS version
 export function listMissingPatches({ host }) {
   return this.getXapi(host).listMissingPatches(host._xapiId)
 }
