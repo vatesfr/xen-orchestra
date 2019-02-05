@@ -2,16 +2,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import unzip from 'julien-f-unzip'
-import {
-  every,
-  filter,
-  find,
-  isEmpty,
-  pick,
-  pickBy,
-  some,
-  toArray,
-} from 'lodash'
+import { filter, find, pickBy, some } from 'lodash'
 
 import { debounce } from '../../decorators'
 import {
@@ -27,14 +18,13 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 // TOC -------------------------------------------------------------------------
 
 // # HELPERS
-//    _getXenUpdates           Map of Objects
-//    _sortPatches
 //    _isXcp
 //    _ejectToolsIsos
+//    _getXenUpdates           Map of Objects
 // # LIST
 //    _listXcpUpdates          XCP available updates - Array of Objects
 //    _listPatches             XS patches (installed or not) - Map of Objects
-//    _listInstalledPatches    XS installed patches on the host - Map of Objects
+//    _listInstalledPatches    XS installed patches on the host - Map of Booleans
 //    _listInstallablePatches  XS (host, requested patches) → sorted patches that are not installed and not conflicting - Array of Objects
 //    listMissingPatches       HL: installable patches (XS) or updates (XCP) - Array of Objects
 // # INSTALL
@@ -46,35 +36,6 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 // HELPERS ---------------------------------------------------------------------
 
 const log = createLogger('xo:xapi')
-
-// sort patches so they can be installed in the correct order according to their
-// requirements
-// installablePatches is a { uuid: patch } map that can be used to pull required
-// patches out of
-// if a required patch is not found in installablePatches, an error is thrown
-const _sortPatches = (patches, installablePatches) => {
-  if (isEmpty(patches)) {
-    return []
-  }
-
-  const sortedPatches = []
-  forEach(patches, patch => {
-    const requiredPatches = toArray(
-      pick(installablePatches, patch.requirements)
-    )
-    if (requiredPatches.length !== patch.requirements.length) {
-      throw new Error('some required patches cannot be installed')
-    }
-    forEach(_sortPatches(requiredPatches, installablePatches), patch => {
-      if (!find(sortedPatches({ uuid: patch.uuid }))) {
-        sortedPatches.push(patch)
-      }
-    })
-    sortedPatches.push(patch)
-  })
-
-  return sortedPatches
-}
 
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 
@@ -159,7 +120,7 @@ export default {
     }
   },
 
-  // eject all ISOs from all the host's VM when installing patches
+  // eject all ISOs from all the host's VMs when installing patches
   // if hostRef is not specified: eject ISOs on all the pool's VMs
   async _ejectToolsIsos(hostRef) {
     return Promise.all(
@@ -184,6 +145,7 @@ export default {
   // LIST ----------------------------------------------------------------------
 
   // list all yum updates available for a XCP-ng host
+  // (hostObject) → { uuid: patchObject }
   async _listXcpUpdates(host) {
     return JSON.parse(
       await this.call(
@@ -198,7 +160,8 @@ export default {
 
   // list all patches provided by Citrix for this host version regardless
   // of if they're installed or not
-  // ignore upgrade patches
+  // ignores upgrade patches
+  // (hostObject) → { uuid: patchObject }
   async _listPatches(host) {
     const versions = (await this._getXenUpdates()).versions
 
@@ -211,6 +174,7 @@ export default {
   },
 
   // list patches installed on the host
+  // (hostObject) → { uuid: boolean }
   _listInstalledPatches(host) {
     const installed = { __proto__: null }
 
@@ -229,78 +193,82 @@ export default {
     return installed
   },
 
-  // list patches:
-  //   - not installed on the host
-  //   - not conflicting with any of the installed patches
-  // TODO: handle upgrade patches
-  // async _listInstallablePatches(host) {
-  //   const all = await this._listPatches(host)
-  //   const installed = this._listInstalledPatches(host)
-  //
-  //   const installable = { __proto__: null }
-  //   forEach(all, (patch, uuid) => {
-  //     if (installed[uuid]) {
-  //       return
-  //     }
-  //
-  //     // TODO: we may want to show them anyway
-  //     if (host.license_params.sku_type === 'free' && patch.paid) {
-  //       return
-  //     }
-  //
-  //     for (const uuid of patch.conflicts) {
-  //       if (uuid in installed) {
-  //         return
-  //       }
-  //     }
-  //
-  //     installable[uuid] = patch
-  //   })
-  //
-  //   return installable
-  // },
-
-  // host: host object
-  // requestPatches: list of patch IDs
   // TODO: hide paid patches
   // TODO: handle upgrade patches
+  // (hostObject, [ patchId ]) → [ patchObject ]
   async _listInstallablePatches(host, requestedPatches) {
     const all = await this._listPatches(host)
     const installed = this._listInstalledPatches(host)
 
-    const installable = []
     if (requestedPatches === undefined) {
-      requestedPatches = all
+      // install them all
+      requestedPatches = Object.keys(all)
     }
+    // We assume:
+    // - no conflict transitivity (If A conflicts with B and B with C, Citrix should tell us explicitly that A conflicts with C)
+    // - no requirements transitivity (If A requires B and B requires C, Citrix should tell us explicitly that A requires C)
+    // - sorted requirements (If A requires B and C, then C cannot require B)
     // For each requested patch:
-    // - ignore it if not found
-    // - ignore it if it's already installed
-    // - ignore it if it's already in installable
-    // - ignore it if it has conflicting patches installed
-    // - ignore it if it has conflicting patches in installable
+    // - throw if not found
+    // - throw if already installed
+    // - ignore if already in installable (may have been added because of requirements)
+    // - throw if conflicting patches installed
+    // - throw if conflicting patches in installable
+    // - throw if one of the requirements is not found
     // - push its required patches in installable
     // - push it in installable
+    const installable = []
     forEach(requestedPatches, id => {
       const patch = all[id]
       if (patch === undefined) {
+        throw new Error(`patch not found: ${id}`)
+      }
+
+      if (installed[id] !== undefined) {
+        throw new Error(`patch already installed: ${patch.name} (${id})`)
+      }
+
+      if (find(installable, { id }) !== undefined) {
         return
       }
 
-      const { requirements, conflicts } = patch
+      let conflictId
       if (
-        installed[id] === undefined &&
-        find(installable, { id }) === undefined &&
-        every(
-          conflicts,
-          id =>
-            installed[id] === undefined && find(installed, { id }) === undefined
-        )
+        (conflictId = find(
+          patch.conflicts,
+          conflictId => installed[conflictId] !== undefined
+        )) !== undefined
       ) {
-        installable.push(
-          ...this._listInstallablePatches(host, requirements),
-          patch
+        throw new Error(
+          `patch ${
+            patch.name
+          } (${id}) conflicts with installed patch ${conflictId}`
         )
       }
+
+      if (
+        (conflictId = find(patch.conflicts, conflictId =>
+          find(installable, { id: conflictId })
+        )) !== undefined
+      ) {
+        throw new Error(
+          `patches ${id} and ${conflictId} conflict with eachother`
+        )
+      }
+
+      // add requirements
+      forEach(patch.requirements, id => {
+        const requiredPatch = all[id]
+        if (requiredPatch === undefined) {
+          throw new Error(`patch ${id} required but not found`)
+        }
+        if (find(installable, { id }) === undefined) {
+          installable.push(requiredPatch)
+        }
+      })
+
+      // add itself
+      installable.push(patch)
     })
 
     return installable
@@ -477,30 +445,18 @@ export default {
     // TODO: assert consistent time
     const poolWide = hosts === undefined
     if (poolWide) {
-      // get pool master installable patches
-      // filter patches that should be installed (patches ^ installable patches OR installable patches if no patches specified)
-      // sort patches by requirements and add required patches if necessary
-      // pool-wide install
-      const installablePatches = await this._listInstallablePatches(
-        this.pool.$master
-      )
       log.debug(`patches that were requested to be installed ${patches}`)
-
-      const patchesToInstall =
-        patches === undefined
-          ? installablePatches
-          : pick(installablePatches, patches)
-      const sortedPatchesToInstall = _sortPatches(
-        toArray(patchesToInstall),
-        installablePatches
+      const installablePatches = await this._listInstallablePatches(
+        this.pool.$master,
+        patches
       )
 
       log.debug(
         'patches that will actually be installed',
-        sortedPatchesToInstall.map(patch => patch.uuid)
+        installablePatches.map(patch => patch.uuid)
       )
 
-      return this._poolWideInstall(sortedPatchesToInstall)
+      return this._poolWideInstall(installablePatches)
     }
 
     // for each host
