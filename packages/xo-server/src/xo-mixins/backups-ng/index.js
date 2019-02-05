@@ -1367,7 +1367,7 @@ export default class BackupNg {
                 } catch (error) {
                   if (
                     !(error instanceof AssertionError) ||
-                    error?.code === 'ENOENT'
+                    error?.code !== 'ENOENT'
                   ) {
                     throw error
                   }
