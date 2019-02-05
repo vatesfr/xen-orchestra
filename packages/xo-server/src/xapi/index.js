@@ -36,6 +36,7 @@ import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
+import pRetry from '../pRetry'
 import {
   camelToSnakeCase,
   ensureArray,
@@ -1869,7 +1870,9 @@ export default class Xapi extends XapiBase {
       }`
     )
     try {
-      await this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {})
+      await pRetry(() => this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {}), {
+        when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
+      })
     } catch (error) {
       const { code } = error
       if (
