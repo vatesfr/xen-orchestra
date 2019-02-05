@@ -6,6 +6,7 @@
 
 - [Host] Show the host's memory usage instead of the sum of the VMs' memory usage (PR [#3924](https://github.com/vatesfr/xen-orchestra/pull/3924))
 - [SAML] Make `AssertionConsumerServiceURL` matches the callback URL
+- [Backup NG] Correctly delete broken VHD chains [#3875](https://github.com/vatesfr/xen-orchestra/issues/3875) (PR [#3939](https://github.com/vatesfr/xen-orchestra/pull/3939))
 
 ### Released packages
 
