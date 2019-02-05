@@ -6,6 +6,12 @@ import { createGetObjectsOfType } from 'selectors'
 import { buildTemplate, connectStore } from 'utils'
 import { Container, Col, Row } from 'grid'
 
+const RULES = {
+  '{date}': () => new Date().toISOString(),
+  '{description}': vm => vm.name_description,
+  '{name}': vm => vm.name_label,
+}
+
 @connectStore(
   {
     vms: createGetObjectsOfType('VM').pick((_, props) => props.vms),
@@ -24,24 +30,23 @@ export default class SnapshotVmModalBody extends BaseComponent {
       return { names: {}, descriptions: {}, saveMemory }
     }
 
-    const RULES = {
-      '{date}': () => new Date().toISOString(),
-      '{description}': vm => vm.name_description,
-      '{name}': vm => vm.name_label,
-    }
     const generateName = buildTemplate(namePattern, RULES)
     const generateDescription = buildTemplate(descriptionPattern, RULES)
+    const names = {}
+    const descriptions = {}
 
-    const names = []
-    const descriptions = []
     forEach(this.props.vms, (vm, id) => {
-      names[id] = generateName(vm)
-      descriptions[id] = generateDescription(vm)
+      if (namePattern !== '') {
+        names[id] = generateName(vm)
+      }
+      if (descriptionPattern !== '') {
+        descriptions[id] = generateDescription(vm)
+      }
     })
 
     return {
-      names: namePattern !== '' ? names : {},
-      descriptions: descriptionPattern !== '' ? descriptions : {},
+      descriptions,
+      names,
       saveMemory,
     }
   }
