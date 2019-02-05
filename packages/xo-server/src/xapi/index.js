@@ -1575,7 +1575,7 @@ export default class Xapi extends XapiBase {
             vm = await this.barrier(vmRef)
             const createdSnapshots = vm.$snapshots.filter(
               _ =>
-                prevSnapshotRefs.has(_.$ref) &&
+                !prevSnapshotRefs.has(_.$ref) &&
                 _.name_label.startsWith(snapshotNameLabelPrefix)
             )
 
