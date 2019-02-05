@@ -2,7 +2,16 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import unzip from 'julien-f-unzip'
-import { filter, find, isEmpty, pick, pickBy, some, toArray } from 'lodash'
+import {
+  every,
+  filter,
+  find,
+  isEmpty,
+  pick,
+  pickBy,
+  some,
+  toArray,
+} from 'lodash'
 
 import { debounce } from '../../decorators'
 import {
@@ -18,16 +27,16 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 // TOC -------------------------------------------------------------------------
 
 // # HELPERS
-//    _getXenUpdates
+//    _getXenUpdates           Map of Objects
 //    _sortPatches
 //    _isXcp
 //    _ejectToolsIsos
 // # LIST
-//    _listXcpUpdates          XCP available updates
-//    _listPatches             XS patches (installed or not)
-//    _listInstalledPatches    XS installed patches on the host
-//    _listInstallablePatches  XS (host, requested patches) → sorted patches that are not installed and not conflicting
-//    listMissingPatches       HL: installable patches (XS) or updates (XCP)
+//    _listXcpUpdates          XCP available updates - Array of Objects
+//    _listPatches             XS patches (installed or not) - Map of Objects
+//    _listInstalledPatches    XS installed patches on the host - Map of Objects
+//    _listInstallablePatches  XS (host, requested patches) → sorted patches that are not installed and not conflicting - Array of Objects
+//    listMissingPatches       HL: installable patches (XS) or updates (XCP) - Array of Objects
 // # INSTALL
 //    _xcpUpdate               XCP yum update
 //    _legacyUploadPatch       XS legacy upload
@@ -96,12 +105,14 @@ export default {
         name: patch['name-label'],
         url: patch['patch-url'],
         uuid: patch.uuid,
-        conflicts: mapToArray(ensureArray(patch.conflictingpatches), patch => {
-          return patch.conflictingpatch.uuid
-        }),
-        requirements: mapToArray(ensureArray(patch.requiredpatches), patch => {
-          return patch.requiredpatch.uuid
-        }),
+        conflicts: mapToArray(
+          ensureArray(patch.conflictingpatches),
+          patch => patch.conflictingpatch.uuid
+        ),
+        requirements: mapToArray(
+          ensureArray(patch.requiredpatches),
+          patch => patch.requiredpatch.uuid
+        ),
         paid: patch['update-stream'] === 'premium',
         upgrade: /^XS\d{2,}$/.test(patch['name-label']),
         // TODO: what does it mean, should we handle it?
@@ -196,7 +207,7 @@ export default {
       versions[hostVersions.product_version] ||
       versions[hostVersions.product_version_text]
 
-    return version ? pickBy(version.patches, patch => !patch.upgrade) : []
+    return version ? pickBy(version.patches, patch => !patch.upgrade) : {}
   },
 
   // list patches installed on the host
@@ -222,27 +233,74 @@ export default {
   //   - not installed on the host
   //   - not conflicting with any of the installed patches
   // TODO: handle upgrade patches
-  async _listInstallablePatches(host) {
+  // async _listInstallablePatches(host) {
+  //   const all = await this._listPatches(host)
+  //   const installed = this._listInstalledPatches(host)
+  //
+  //   const installable = { __proto__: null }
+  //   forEach(all, (patch, uuid) => {
+  //     if (installed[uuid]) {
+  //       return
+  //     }
+  //
+  //     // TODO: we may want to show them anyway
+  //     if (host.license_params.sku_type === 'free' && patch.paid) {
+  //       return
+  //     }
+  //
+  //     for (const uuid of patch.conflicts) {
+  //       if (uuid in installed) {
+  //         return
+  //       }
+  //     }
+  //
+  //     installable[uuid] = patch
+  //   })
+  //
+  //   return installable
+  // },
+
+  // host: host object
+  // requestPatches: list of patch IDs
+  // TODO: hide paid patches
+  // TODO: handle upgrade patches
+  async _listInstallablePatches(host, requestedPatches) {
     const all = await this._listPatches(host)
     const installed = this._listInstalledPatches(host)
 
-    const installable = { __proto__: null }
-    forEach(all, (patch, uuid) => {
-      if (installed[uuid]) {
+    const installable = []
+    if (requestedPatches === undefined) {
+      requestedPatches = all
+    }
+    // For each requested patch:
+    // - ignore it if not found
+    // - ignore it if it's already installed
+    // - ignore it if it's already in installable
+    // - ignore it if it has conflicting patches installed
+    // - ignore it if it has conflicting patches in installable
+    // - push its required patches in installable
+    // - push it in installable
+    forEach(requestedPatches, id => {
+      const patch = all[id]
+      if (patch === undefined) {
         return
       }
 
-      if (host.license_params.sku_type === 'free' && patch.paid) {
-        return
+      const { requirements, conflicts } = patch
+      if (
+        installed[id] === undefined &&
+        find(installable, { id }) === undefined &&
+        every(
+          conflicts,
+          id =>
+            installed[id] === undefined && find(installed, { id }) === undefined
+        )
+      ) {
+        installable.push(
+          ...this._listInstallablePatches(host, requirements),
+          patch
+        )
       }
-
-      for (const uuid of patch.conflicts) {
-        if (uuid in installed) {
-          return
-        }
-      }
-
-      installable[uuid] = patch
     })
 
     return installable
