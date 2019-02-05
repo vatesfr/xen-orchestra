@@ -65,6 +65,7 @@ export default {
         guidance: patch['after-apply-guidance'],
         name: patch['name-label'],
         url: patch['patch-url'],
+        id: patch.uuid,
         uuid: patch.uuid,
         conflicts: mapToArray(
           ensureArray(patch.conflictingpatches),
@@ -200,8 +201,9 @@ export default {
     const all = await this._listPatches(host)
     const installed = this._listInstalledPatches(host)
 
+    let getAll = false
     if (requestedPatches === undefined) {
-      // install them all
+      getAll = true
       requestedPatches = Object.keys(all)
     }
     // We assume:
@@ -225,6 +227,9 @@ export default {
       }
 
       if (installed[id] !== undefined) {
+        if (getAll) {
+          return
+        }
         throw new Error(`patch already installed: ${patch.name} (${id})`)
       }
 
@@ -239,6 +244,14 @@ export default {
           conflictId => installed[conflictId] !== undefined
         )) !== undefined
       ) {
+        if (getAll) {
+          log(
+            `patch ${
+              patch.name
+            } (${id}) conflicts with installed patch ${conflictId}`
+          )
+          return
+        }
         throw new Error(
           `patch ${
             patch.name
@@ -251,6 +264,10 @@ export default {
           find(installable, { id: conflictId })
         )) !== undefined
       ) {
+        if (getAll) {
+          log(`patches ${id} and ${conflictId} conflict with eachother`)
+          return
+        }
         throw new Error(
           `patches ${id} and ${conflictId} conflict with eachother`
         )
@@ -445,7 +462,7 @@ export default {
     // TODO: assert consistent time
     const poolWide = hosts === undefined
     if (poolWide) {
-      log.debug(`patches that were requested to be installed ${patches}`)
+      log.debug('patches that were requested to be installed', patches)
       const installablePatches = await this._listInstallablePatches(
         this.pool.$master,
         patches
