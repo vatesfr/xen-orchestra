@@ -1365,10 +1365,9 @@ export default class BackupNg {
 
                   return
                 } catch (error) {
-                  if (
-                    !(error instanceof AssertionError) ||
-                    error?.code === 'ENOENT'
-                  ) {
+                  const corruptedVhdOrMissingParent =
+                    error instanceof AssertionError || error?.code === 'ENOENT'
+                  if (!corruptedVhdOrMissingParent) {
                     throw error
                   }
                 }
