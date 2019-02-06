@@ -380,6 +380,9 @@ const messages = {
   missingSrs: 'Missing SRs!',
   missingPools: 'Missing pools!',
   missingSchedules: 'Missing schedules!',
+  // to improve appropriate retention?
+  missingRetentions:
+    'The modes need at least a schedule with retention higher than 0',
   missingExportRetention:
     'The Backup mode and The Delta Backup mode require backup retention to be higher than 0!',
   missingCopyRetention:

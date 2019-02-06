@@ -11,7 +11,7 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Col, Row } from 'grid'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, mapValues, map } from 'lodash'
+import { isEmpty, mapValues, map, some } from 'lodash'
 import { Remote } from 'render-xo-item'
 import { SelectPool, SelectRemote } from 'select-objects'
 import {
@@ -35,6 +35,10 @@ import {
 
 import Schedules from '../_schedules'
 
+// A retention can be:
+// - number: set by user
+// - undefined: will be replaced by the default value in the display(table + modal) and on submitting the form
+// - null: when a user voluntary delete its value.
 const DEFAULT_RETENTION = 1
 
 const RETENTION_POOL_METADATA = {
@@ -56,27 +60,8 @@ const getInitialState = () => ({
   _remotes: undefined,
   _schedules: undefined,
   _settings: undefined,
+  showErrors: false,
 })
-
-const getSettings = (settings, { modePoolMetadata, modeXoMetadata }) =>
-  mapValues(
-    settings,
-    ({
-      retentionPoolMetadata = DEFAULT_RETENTION,
-      retentionXoMetadata = DEFAULT_RETENTION,
-    }) => {
-      const setting = {}
-      if (modePoolMetadata) {
-        setting.retentionPoolMetadata =
-          retentionPoolMetadata === null ? undefined : retentionPoolMetadata
-      }
-      if (modeXoMetadata) {
-        setting.retentionXoMetadata =
-          retentionXoMetadata === null ? undefined : retentionXoMetadata
-      }
-      return setting
-    }
-  )
 
 export default decorate([
   New => props => (
@@ -91,23 +76,37 @@ export default decorate([
     initialState: getInitialState,
     effects: {
       createJob: () => async state => {
-        const { modePoolMetadata, modeXoMetadata } = state
+        if (state.isJobInvalid) {
+          return { showErrors: true }
+        }
+
         await createMetadataBackupJob({
           name: state.name,
           pools: state.pools && constructPattern(state.pools),
           remotes: constructPattern(state.remotes),
-          xoMetadata: modeXoMetadata,
+          xoMetadata: state.modeXoMetadata,
           schedules: mapValues(
             state.schedules,
             ({ id, ...schedule }) => schedule
           ),
-          settings: getSettings(state.settings, {
-            modePoolMetadata,
-            modeXoMetadata,
-          }),
+          settings: mapValues(
+            state.settings,
+            ({ retentionPoolMetadata, retentionXoMetadata }) => ({
+              retentionPoolMetadata: state.modePoolMetadata
+                ? defined(retentionPoolMetadata, DEFAULT_RETENTION)
+                : undefined,
+              retentionXoMetadata: state.modeXoMetadata
+                ? defined(retentionXoMetadata, DEFAULT_RETENTION)
+                : undefined,
+            })
+          ),
         })
       },
       editJob: () => async (state, props) => {
+        if (state.isJobInvalid) {
+          return { showErrors: true }
+        }
+
         await Promise.all(
           map(props.schedules, ({ id }) => {
             const schedule = state.schedules[id]
@@ -141,17 +140,23 @@ export default decorate([
           })
         )
 
-        const { modePoolMetadata, modeXoMetadata } = state
         await editMetadataBackupJob({
           id: props.job.id,
           name: state.name,
           pools: state.pools && constructPattern(state.pools),
           remotes: constructPattern(state.remotes),
-          xoMetadata: state.modeXoConfig,
-          settings: getSettings(state.settings, {
-            modePoolMetadata,
-            modeXoMetadata,
-          }),
+          xoMetadata: state.modeXoMetadata,
+          settings: mapValues(
+            settings,
+            ({ retentionPoolMetadata, retentionXoMetadata }) => ({
+              retentionPoolMetadata: state.modePoolMetadata
+                ? defined(retentionPoolMetadata, DEFAULT_RETENTION)
+                : undefined,
+              retentionXoMetadata: state.modeXoMetadata
+                ? defined(retentionXoMetadata, DEFAULT_RETENTION)
+                : undefined,
+            })
+          ),
         })
       },
 
@@ -183,8 +188,8 @@ export default decorate([
     computed: {
       idForm: generateId,
 
-      modePoolMetadata: ({ _modePoolMetadata, pools }) =>
-        defined(_modePoolMetadata, !isEmpty(pools)),
+      modePoolMetadata: ({ _modePoolMetadata }, { job }) =>
+        defined(_modePoolMetadata, () => !isEmpty(destructPattern(job.pools))),
       modeXoMetadata: ({ _modeXoMetadata }, { job }) =>
         defined(_modeXoMetadata, () => job.xoMetadata),
       name: (state, { job }) => defined(state._name, () => job.name, ''),
@@ -207,6 +212,33 @@ export default decorate([
       remotes: ({ _remotes }, { job }) =>
         defined(_remotes, () => destructPattern(job.remotes), []),
       remotesPredicate: ({ remotes }) => ({ id }) => !remotes.includes(id),
+
+      isJobInvalid: state =>
+        state.missingModes ||
+        state.missingName ||
+        state.missingPools ||
+        state.missingRemotes ||
+        state.missingRetentionPoolMetadata ||
+        state.missingRetentionXoMetadata ||
+        state.missingSchedules,
+
+      missingModes: state => !state.modeXoMetadata && !state.modePoolMetadata,
+      missingName: state => state.name.trim() === '',
+      missingPools: state => state.modePoolMetadata && isEmpty(state.pools),
+      missingRemotes: state => isEmpty(state.remotes),
+      missingRetentionPoolMetadata: state =>
+        state.modePoolMetadata &&
+        !some(
+          state.settings,
+          ({ retentionPoolMetadata }) => retentionPoolMetadata !== null
+        ),
+      missingRetentionXoMetadata: state =>
+        state.modeXoMetadata &&
+        !some(
+          state.settings,
+          ({ retentionXoMetadata }) => retentionXoMetadata !== null
+        ),
+      missingSchedules: state => isEmpty(state.schedules),
     },
   }),
   injectState,
@@ -215,6 +247,16 @@ export default decorate([
       job === undefined
         ? [effects.createJob, 'formCreate']
         : [effects.editJob, 'formSave']
+    const {
+      missingModes,
+      missingName,
+      missingPools,
+      missingRemotes,
+      missingRetentionPoolMetadata,
+      missingRetentionXoMetadata,
+      missingSchedules,
+    } = state.showErrors ? state : {}
+
     return (
       <form id={state.idForm}>
         <Container>
@@ -225,7 +267,7 @@ export default decorate([
                 <CardBlock>
                   <FormFeedback
                     component={Input}
-                    error={undefined}
+                    error={missingName}
                     message={_('missingBackupName')}
                     onChange={effects.linkState}
                     value={state.name}
@@ -235,7 +277,7 @@ export default decorate([
               </Card>
               <FormFeedback
                 component={Card}
-                error={undefined}
+                error={missingModes}
                 message={_('missingBackupMode')}
               >
                 <CardBlock>
@@ -286,7 +328,7 @@ export default decorate([
                         message={_('missingRemotes')}
                         onChange={effects.addRemote}
                         predicate={state.remotesPredicate}
-                        error={undefined}
+                        error={missingRemotes}
                         value={null}
                       />
                       <br />
@@ -321,7 +363,7 @@ export default decorate([
                       message={_('missingPools')}
                       multi
                       onChange={effects.setPools}
-                      error={undefined}
+                      error={missingPools}
                       value={state.pools}
                     />
                   </CardBlock>
@@ -330,6 +372,10 @@ export default decorate([
               <Schedules
                 handlerSchedules={effects.setSchedules}
                 handlerSettings={effects.setSettings}
+                missingRetentions={
+                  missingRetentionPoolMetadata || missingRetentionXoMetadata
+                }
+                missingSchedules={missingSchedules}
                 retentions={state.retentions}
                 schedules={state.schedules}
                 settings={state.settings}

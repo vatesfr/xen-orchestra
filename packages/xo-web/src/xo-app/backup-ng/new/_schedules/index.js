@@ -166,8 +166,14 @@ const Schedules = decorate([
     },
   }),
   injectState,
-  ({ state, effects, schedules }) => (
-    <FormFeedback component={Card} error={undefined} message={undefined}>
+  ({ state, effects, schedules, missingSchedules, missingRetentions }) => (
+    <FormFeedback
+      component={Card}
+      error={missingSchedules || missingRetentions}
+      message={
+        missingSchedules ? _('missingSchedules') : _('missingRetentions')
+      }
+    >
       <CardHeader>
         {_('backupSchedules')}*
         <ActionButton
@@ -196,6 +202,8 @@ const Schedules = decorate([
 Schedules.propTypes = {
   handlerSchedules: PropTypes.func.isRequired,
   handlerSettings: PropTypes.func.isRequired,
+  missingRetentions: PropTypes.bool,
+  missingSchedules: PropTypes.bool,
   retentions: PropTypes.arrayOf(
     PropTypes.shape({
       defaultValue: PropTypes.number,
