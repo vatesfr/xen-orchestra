@@ -2,6 +2,8 @@
 
 ### Enhancements
 
+- [VM migration] Display same-pool hosts first [#3262](https://github.com/vatesfr/xen-orchestra/issues/3262) (PR [#3890](https://github.com/vatesfr/xen-orchestra/pull/3890))
+
 ### Bug fixes
 
 ### Released packages
