@@ -192,36 +192,43 @@ async function parseOVF(fileFragment) {
 
 // tar spec: https://www.gnu.org/software/tar/manual/html_node/Standard.html
 async function parseTarFile(file) {
-  let offset = 0
-  const HEADER_SIZE = 512
-  let data = { tables: {} }
-  while (offset + HEADER_SIZE <= file.size) {
-    const header = parseTarHeader(
-      await readFileFragment(file, offset, offset + HEADER_SIZE)
-    )
-    offset += HEADER_SIZE
-    if (header === null) {
-      break
-    }
-    // remove mac os X forks https://stackoverflow.com/questions/8766730/tar-command-in-mac-os-x-adding-hidden-files-why
-    if (
-      header.fileType === '0' &&
-      !header.fileName.toLowerCase().startsWith('./._')
-    ) {
-      if (header.fileName.toLowerCase().endsWith('.ovf')) {
-        const res = await parseOVF(file.slice(offset, offset + header.fileSize))
-        data = { ...data, ...res }
+  document.getElementsByTagName('body')[0].style.cursor = 'wait'
+  try {
+    let offset = 0
+    const HEADER_SIZE = 512
+    let data = { tables: {} }
+    while (offset + HEADER_SIZE <= file.size) {
+      const header = parseTarHeader(
+        await readFileFragment(file, offset, offset + HEADER_SIZE)
+      )
+      offset += HEADER_SIZE
+      if (header === null) {
+        break
       }
-      if (header.fileName.toLowerCase().endsWith('.vmdk')) {
-        const fileSlice = file.slice(offset, offset + header.fileSize)
-        const readFile = async (start, end) =>
-          readFileFragment(fileSlice, start, end)
-        data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+      // remove mac os X forks https://stackoverflow.com/questions/8766730/tar-command-in-mac-os-x-adding-hidden-files-why
+      if (
+        header.fileType === '0' &&
+        !header.fileName.toLowerCase().startsWith('./._')
+      ) {
+        if (header.fileName.toLowerCase().endsWith('.ovf')) {
+          const res = await parseOVF(
+            file.slice(offset, offset + header.fileSize)
+          )
+          data = { ...data, ...res }
+        }
+        if (header.fileName.toLowerCase().endsWith('.vmdk')) {
+          const fileSlice = file.slice(offset, offset + header.fileSize)
+          const readFile = async (start, end) =>
+            readFileFragment(fileSlice, start, end)
+          data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+        }
       }
+      offset += Math.ceil(header.fileSize / 512) * 512
     }
-    offset += Math.ceil(header.fileSize / 512) * 512
+    return data
+  } finally {
+    document.getElementsByTagName('body')[0].style.cursor = 'auto'
   }
-  return data
 }
 
 const parseOvaFile = async file => parseTarFile(file)
