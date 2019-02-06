@@ -979,6 +979,7 @@ const messages = {
   vdiRemove: 'Remove VDI',
   noControlDomainVdis: 'No VDIs attached to Control Domain',
   vbdBootableStatus: 'Boot flag',
+  vbdDevice: 'Device',
   vbdStatus: 'Status',
   vbdStatusConnected: 'Connected',
   vbdStatusDisconnected: 'Disconnected',
