@@ -122,15 +122,11 @@ const COLUMNS_VM_PV = [
     },
   },
   {
-    itemRenderer: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return <span>{vbd.device}</span>
-    },
+    itemRenderer: (vdi, userData) => (
+      <span>{userData.vbdsByVdi[vdi.id].device}</span>
+    ),
     name: _('vbdDevice'),
-    sortCriteria: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return vbd.device
-    },
+    sortCriteria: (vdi, userData) => userData.vbdsByVdi[vdi.id].device,
   },
   {
     itemRenderer: (vdi, userData) => {
