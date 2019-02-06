@@ -9,7 +9,7 @@ export default {
     return this.getResource($cancelToken, '/pool/xmldbdump', {
       task: this.createTask(
         'Pool metadata',
-        pool.name_label || pool.$master.name_label
+        pool.name_label ?? pool.$master.name_label
       ),
     })
       .then(response => response.readAll())

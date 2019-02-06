@@ -2,8 +2,12 @@
 import asyncMap from '@xen-orchestra/async-map'
 import deferrable from 'golike-defer'
 
-import { type SimpleIdPattern, unboxIdsFromPattern } from '../utils'
 import { type Xapi } from '../xapi'
+import {
+  safeDateFormat,
+  type SimpleIdPattern,
+  unboxIdsFromPattern,
+} from '../utils'
 
 import { type Executor, type Job } from './jobs'
 import { type Schedule } from './scheduling'
@@ -24,6 +28,17 @@ type MetadataBackupJob = {
   xoMetadata?: boolean,
 }
 
+const METADATA_BACKUP_DIR = 'xo-metadata-backups'
+
+// File structure on remotes:
+//
+// <remote>
+// └─ xo-metadata-backups
+//   └─ <schedule ID>
+//    ├─ xo
+//    │ └─ <YYYYMMDD>T<HHmmss>.json
+//    └─ <pool UUID>
+//      └─ <YYYYMMDD>T<HHmmss>.json
 export default class metadataBackup {
   _app: {
     createJob: (
@@ -60,37 +75,68 @@ export default class metadataBackup {
     }
 
     const job: MetadataBackupJob = (job_: any)
+    const remoteIds = unboxIdsFromPattern(job.remotes)
+    if (remoteIds.length === 0) {
+      throw new Error('metadata backup job cannot run without remotes')
+    }
+
     const poolIds = unboxIdsFromPattern(job.pools)
     const isEmptyPools = poolIds.length === 0
     if (!job.xoMetadata && isEmptyPools) {
-      throw new Error('no pools match this pattern')
+      throw new Error('no metadata mode found')
     }
 
     const app = this._app
-    const timestamp = new Date().toISOString()
-    const filePromise = {}
-    if (job.xoMetadata) {
-      filePromise[`xo-metadata-${timestamp}.json`] = app.exportConfig()
+    const { retentionXoMetadata, retentionPoolMetadata } =
+      job?.settings[schedule.id] || {}
+
+    const scheduleDir = `${METADATA_BACKUP_DIR}/${schedule.id}`
+    const files = []
+    if (job.xoMetadata && retentionXoMetadata > 0) {
+      files.push({
+        data: await app.exportConfig(),
+        dir: `${scheduleDir}/xo`,
+        retention: retentionXoMetadata - 1,
+      })
     }
-    if (!isEmptyPools) {
-      for (const id of poolIds) {
-        filePromise[`pool-metadata-${id}-${timestamp}.json`] = app
-          .getXapi(id)
-          .getPoolMetadata(cancelToken)
-      }
+    if (!isEmptyPools && retentionPoolMetadata > 0) {
+      files.push(
+        ...(await Promise.all(
+          poolIds.map(async id => ({
+            data: await app.getXapi(id).getPoolMetadata(cancelToken),
+            dir: `${scheduleDir}/${id}`,
+            retention: retentionPoolMetadata - 1,
+          }))
+        ))
+      )
+    }
+
+    if (files.length === 0) {
+      throw new Error('no retentions corresponding to the metadata modes found')
     }
 
     cancelToken.throwIfRequested()
-    const data = await asyncMap(filePromise, async (promise, fileName) => ({
-      fileName,
-      data: await promise,
-    }))
 
-    return asyncMap(unboxIdsFromPattern(job.remotes), async id => {
+    const timestamp = safeDateFormat(Date.now())
+    return asyncMap(remoteIds, async id => {
       const handler = await app.getRemoteHandler(id)
-      return data.map(({ fileName, data }) => {
+      return files.map(async ({ data, dir, retention }) => {
+        // deleting old backups
+        await handler.list(dir).then(
+          list => {
+            if (retention > 0) {
+              list = list.slice(0, -retention)
+            }
+            return Promise.all(
+              list.map(fileToDelete => handler.unlink(`${dir}/${fileToDelete}`))
+            )
+          },
+          () => {}
+        )
+
+        const fileName = `${dir}/${timestamp}.json`
+        await handler.outputFile(fileName, JSON.stringify(data, null, 2))
         $defer.onFailure(() => handler.unlink(fileName))
-        return handler.outputFile(fileName, JSON.stringify(data, null, 2))
       })
     })
   }
@@ -106,16 +152,16 @@ export default class metadataBackup {
       type: METADATA_BACKUP_JOB_TYPE,
     })
 
-    const { id, settings } = job
+    const { id: jobId, settings } = job
     await asyncMap(schedules, async (schedule, tmpId) => {
       const { id: scheduleId } = await app.createSchedule({
         ...schedule,
-        jobId: job.id,
+        jobId,
       })
       settings[scheduleId] = settings[tmpId]
       delete settings[tmpId]
     })
-    await app.updateJob({ id, settings })
+    await app.updateJob({ jobId, settings })
 
     return job
   }
@@ -132,7 +178,7 @@ export default class metadataBackup {
       app.removeJob(id),
       asyncMap(schedules, schedule => {
         if (schedule.id === id) {
-          app.deleteSchedule(id)
+          return app.deleteSchedule(id)
         }
       }),
     ])

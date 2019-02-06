@@ -68,7 +68,10 @@ const _runBackupJob = ({ id, name, schedule, type }) =>
   )
 
 const _deleteBackupJobs = items => {
-  const { backup: backupIds, metadata: metadataIds } = groupBy(items, 'type')
+  const { backup: backupIds, metadataBackup: metadataIds } = groupBy(
+    items,
+    'type'
+  )
   return deleteBackupJobs({ backupIds, metadataIds })
 }
 

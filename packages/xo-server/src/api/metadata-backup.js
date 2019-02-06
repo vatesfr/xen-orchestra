@@ -69,7 +69,7 @@ editJob.params = {
     optional: true,
   },
   pools: {
-    type: 'object',
+    type: ['object', 'null'],
     optional: true,
   },
   settings: {

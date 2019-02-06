@@ -82,7 +82,9 @@ export default decorate([
 
         await createMetadataBackupJob({
           name: state.name,
-          pools: state.pools && constructPattern(state.pools),
+          pools: state.modePoolMetadata
+            ? constructPattern(state.pools)
+            : undefined,
           remotes: constructPattern(state.remotes),
           xoMetadata: state.modeXoMetadata,
           schedules: mapValues(
@@ -143,7 +145,7 @@ export default decorate([
         await editMetadataBackupJob({
           id: props.job.id,
           name: state.name,
-          pools: state.pools && constructPattern(state.pools),
+          pools: state.modePoolMetadata ? constructPattern(state.pools) : null,
           remotes: constructPattern(state.remotes),
           xoMetadata: state.modeXoMetadata,
           settings: mapValues(

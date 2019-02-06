@@ -130,7 +130,6 @@ const messages = {
   backupType: 'Backup type',
   poolMetadata: 'Pool metadata',
   xoConfig: 'XO config',
-  metadataBackup: 'Metadata Backup',
   goToVmsBackup: 'Go to VMs Backup',
   goToMetadataBackup: 'Go to Metadata Backup',
   jobsOverviewPage: 'Overview',
@@ -380,7 +379,6 @@ const messages = {
   missingSrs: 'Missing SRs!',
   missingPools: 'Missing pools!',
   missingSchedules: 'Missing schedules!',
-  // to improve appropriate retention?
   missingRetentions:
     'The modes need at least a schedule with retention higher than 0',
   missingExportRetention:
