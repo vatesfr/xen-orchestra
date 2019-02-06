@@ -98,9 +98,24 @@ function parseTarHeader(header) {
   if (fileName.length === 0) {
     return null
   }
-  const fileSize = parseInt(
-    Buffer.from(header.slice(124, 124 + 11)).toString('ascii'),
-    8
+  // https://stackoverflow.com/a/2511526/72637
+  const sizeBuffer = Buffer.from(header.slice(124, 124 + 12))
+  let fileSize = 0
+  if (sizeBuffer[0] === 128) {
+    // https://github.com/chrisdickinson/tar-parse/blob/master/header.js#L271
+    // remove the head byte and go from low to high power.
+    const array = [...sizeBuffer.slice(1)].reverse()
+    array.forEach((value, index) => {
+      fileSize += value * Math.pow(256, index)
+    })
+  } else fileSize = parseInt(sizeBuffer.slice(0, -1).toString('ascii'), 8)
+  console.log(
+    'fileSize',
+    fileName,
+    fileSize,
+    'B',
+    fileSize / Math.pow(1024, 3),
+    'GB'
   )
   // normal files are either the char '0' (charcode 48) or the char null (charcode zero)
   const typeSlice = new Uint8Array(header.slice(156, 156 + 1))[0]
@@ -181,34 +196,12 @@ async function parseTarFile(file) {
   const HEADER_SIZE = 512
   let data = { tables: {} }
   while (offset + HEADER_SIZE <= file.size) {
-    let header = parseTarHeader(
+    const header = parseTarHeader(
       await readFileFragment(file, offset, offset + HEADER_SIZE)
     )
     offset += HEADER_SIZE
     if (header === null) {
       break
-    }
-    // extended header: it's a text file named 'PaxHeader/<filename.ext>' appearing before the file.
-    // the attribute are ascii lines of form: "charcount key=value\n". Charcount is the number of chars in the line.
-    // Parsing it is the only way to get the size of big files because  normal headers store the size in a
-    // 12 char octal string, they can't store big sizes.
-    if (header.fileType === 'x') {
-      const paxFile = Buffer.from(
-        await readFileFragment(file, offset, offset + header.fileSize)
-      ).toString()
-      console.log('pax header', paxFile)
-      const lines = paxFile.split('\n')
-      // "<charcount> key=value\n"
-      const foundSize = lines.find(l => l.match(/^[0-9]+ size=/))
-      // go to next header
-      offset += Math.ceil(header.fileSize / 512) * 512
-      header = parseTarHeader(
-        await readFileFragment(file, offset, offset + HEADER_SIZE)
-      )
-      offset += HEADER_SIZE
-      if (foundSize) {
-        header.fileSize = parseInt(foundSize.split('=')[1])
-      }
     }
     // remove mac os X forks https://stackoverflow.com/questions/8766730/tar-command-in-mac-os-x-adding-hidden-files-why
     if (
