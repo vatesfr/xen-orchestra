@@ -1,7 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
-import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import moment from 'moment-timezone'
 import PropTypes from 'prop-types'
@@ -24,7 +23,7 @@ const DEFAULT_SCHEDULE = {
   timezone: moment.tz.guess(),
 }
 
-const setRetentionDefaultValue = (schedule, retentions) => {
+const setDefaultRetentions = (schedule, retentions) => {
   retentions.forEach(({ defaultValue, valuePath }) => {
     if (schedule[valuePath] === undefined) {
       schedule[valuePath] = defaultValue
@@ -90,12 +89,20 @@ const Schedules = decorate([
         props.handlerSchedules(state.immutableSchedules.delete(id).toObject())
         props.handlerSettings(state.immutableSettings.delete(id).toObject())
       },
-      showModal: (effects, schedule = { ...DEFAULT_SCHEDULE }) => async (
-        state,
-        props
-      ) => {
-        const { cron, name, timezone, enabled, ...setting } = await form({
-          defaultValue: setRetentionDefaultValue(schedule, state.retentions),
+      showModal: (
+        effects,
+        { id = generateRandomId(), name, cron, timezone } = DEFAULT_SCHEDULE
+      ) => async (state, props) => {
+        const {
+          cron: newCron,
+          name: newName,
+          timezone: newTimezone,
+          ...newRetentions
+        } = await form({
+          defaultValue: setDefaultRetentions(
+            { cron, name, timezone },
+            state.retentions
+          ),
           render: props => <Modal retentions={state.retentions} {...props} />,
           header: (
             <span>
@@ -111,20 +118,24 @@ const Schedules = decorate([
           },
         })
 
-        const id = defined(() => schedule.id, generateRandomId())
         props.handlerSchedules(
           state.immutableSchedules
             .update(id, schedule => ({
               ...schedule,
+              cron: newCron,
               id,
-              cron,
-              name,
-              timezone,
+              name: newName,
+              timezone: newTimezone,
             }))
             .toObject()
         )
         props.handlerSettings(
-          state.immutableSettings.set(id, setting).toObject()
+          state.immutableSettings
+            .update(id, setting => ({
+              ...setting,
+              ...newRetentions,
+            }))
+            .toObject()
         )
       },
       toggleScheduleState: (_, id) => (
@@ -150,7 +161,7 @@ const Schedules = decorate([
       immutableSettings: (_, { settings }) => Map(settings),
       rowTransform: (_, { settings = {}, retentions }) => schedule => {
         schedule = { ...schedule, ...settings[schedule.id] }
-        return setRetentionDefaultValue(schedule, retentions)
+        return setDefaultRetentions(schedule, retentions)
       },
     },
   }),
@@ -168,19 +179,15 @@ const Schedules = decorate([
         />
       </CardHeader>
       <CardBlock>
-        {state.immutableSchedules.isEmpty() ? (
-          <p className='text-md-center'>{_('noSchedules')}</p>
-        ) : (
-          <SortedTable
-            collection={schedules}
-            columns={state.columns}
-            data-deleteSchedule={effects.deleteSchedule}
-            data-showModal={effects.showModal}
-            data-toggleScheduleState={effects.toggleScheduleState}
-            individualActions={INDIVIDUAL_ACTIONS}
-            rowTransform={state.rowTransform}
-          />
-        )}
+        <SortedTable
+          collection={schedules}
+          columns={state.columns}
+          data-deleteSchedule={effects.deleteSchedule}
+          data-showModal={effects.showModal}
+          data-toggleScheduleState={effects.toggleScheduleState}
+          individualActions={INDIVIDUAL_ACTIONS}
+          rowTransform={state.rowTransform}
+        />
       </CardBlock>
     </FormFeedback>
   ),
@@ -191,6 +198,7 @@ Schedules.propTypes = {
   handlerSettings: PropTypes.func.isRequired,
   retentions: PropTypes.arrayOf(
     PropTypes.shape({
+      defaultValue: PropTypes.number,
       name: PropTypes.node.isRequired,
       valuePath: PropTypes.string.isRequired,
     })
