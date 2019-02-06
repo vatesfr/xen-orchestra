@@ -260,28 +260,24 @@ class GenericSelect extends React.Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  _renderOption = option => {
-    const isHost = option.xoItem.type === 'host'
-    return (
-      <span
-        className={
-          !option.disabled && this.props.xoContainers !== undefined
-            ? 'ml-1'
-            : undefined
-        }
-      >
-        {renderXoItem(option.xoItem, {
-          type:
-            this.props.resourceSet !== undefined &&
-            option.xoItem.type !== undefined
-              ? `${option.xoItem.type}-resourceSet`
-              : undefined,
-          memoryFree: isHost || undefined,
-          pool: isHost ? false : undefined,
-        })}
-      </span>
-    )
-  }
+  _renderOption = option => (
+    <span
+      className={
+        !option.disabled && this.props.xoContainers !== undefined
+          ? 'ml-1'
+          : undefined
+      }
+    >
+      {renderXoItem(option.xoItem, {
+        type:
+          this.props.resourceSet !== undefined &&
+          option.xoItem.type !== undefined
+            ? `${option.xoItem.type}-resourceSet`
+            : undefined,
+        memoryFree: option.xoItem.type === 'host' || undefined,
+      })}
+    </span>
+  )
 
   render() {
     const { hasSelectAll, xoContainers, xoObjects, ...props } = this.props
@@ -401,8 +397,6 @@ export const SelectHost = makeStoreSelect(
       .sort()
 
     return {
-      compareContainers: (_, { compareContainers }) => compareContainers,
-      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getHostsByPool,
       xoContainers: getPools,
     }
@@ -445,8 +439,6 @@ export const SelectSr = makeStoreSelect(
     )
 
     return {
-      compareContainers: (_, { compareContainers }) => compareContainers,
-      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getSrsByContainer,
       xoContainers: getContainers,
     }
@@ -482,8 +474,6 @@ export const SelectVm = makeStoreSelect(
     )
 
     return {
-      compareContainers: (_, { compareContainers }) => compareContainers,
-      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getVmsByContainer,
       xoContainers: getContainers,
     }
@@ -510,8 +500,6 @@ export const SelectVmSnapshot = makeStoreSelect(
       .sort()
 
     return {
-      compareContainers: (_, { compareContainers }) => compareContainers,
-      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getSnapshotsByVms,
       xoContainers: getVms,
     }
@@ -561,8 +549,6 @@ export const SelectVmTemplate = makeStoreSelect(
       .sort()
 
     return {
-      compareContainers: (_, { compareContainers }) => compareContainers,
-      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getVmTemplatesByPool,
       xoContainers: getPools,
     }
@@ -588,8 +574,6 @@ export const SelectNetwork = makeStoreSelect(
       .sort()
 
     return {
-      compareContainers: (_, { compareContainers }) => compareContainers,
-      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getNetworksByPool,
       xoContainers: getPools,
     }
@@ -615,8 +599,6 @@ export const SelectPif = makeStoreSelect(
       .sort()
 
     return {
-      compareContainers: (_, { compareContainers }) => compareContainers,
-      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getPifsByHost,
       xoContainers: getHosts,
     }
@@ -688,8 +670,6 @@ export const SelectVdi = makeStoreSelect(
       .groupBy('$SR')
 
     return {
-      compareContainers: (_, { compareContainers }) => compareContainers,
-      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getVdis,
       xoContainers: getSrs.sort(),
     }
@@ -734,8 +714,6 @@ export const SelectVgpuType = makeStoreSelect(
       .sort()
 
     return {
-      compareContainers: (_, { compareContainers }) => compareContainers,
-      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getVgpuTypes,
       xoContainers: getGpuGroups,
     }

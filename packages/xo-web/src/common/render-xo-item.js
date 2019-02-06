@@ -439,7 +439,7 @@ const xoItemToRender = {
   // Pool objects.
   'VM-template': ({ id }) => <VmTemplate id={id} />,
   'VM-template-resourceSet': ({ id }) => <VmTemplate id={id} self />,
-  host: props => <Host {...props} />,
+  host: ({ id, memoryFree }) => <Host id={id} memoryFree={memoryFree} />,
   network: ({ id }) => <Network id={id} />,
   'network-resourceSet': ({ id }) => <Network id={id} self />,
 
