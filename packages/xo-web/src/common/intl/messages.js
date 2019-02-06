@@ -206,6 +206,7 @@ const messages = {
 
   // ----- Home snapshots  -----
   snapshotVmsName: 'Name',
+  snapshotVmsDescription: 'Description',
 
   // ----- Common components -----
   sortedTableAllItemsSelected: 'All of them are selected',

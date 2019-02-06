@@ -753,6 +753,7 @@ export const snapshot = defer(async function(
     vm,
     name = `${vm.name_label}_${new Date().toISOString()}`,
     saveMemory = false,
+    description,
   }
 ) {
   await checkPermissionOnSrs.call(this, vm)
@@ -763,6 +764,10 @@ export const snapshot = defer(async function(
     : xapi.snapshotVm(vm._xapiRef, name))
   $defer.onFailure(() => xapi.deleteVm(snapshotId))
 
+  if (description !== undefined) {
+    await xapi.editVm(snapshotId, { name_description: description })
+  }
+
   const { user } = this
   if (user.permission !== 'admin') {
     await this.addAcl(user.id, snapshotId, 'admin')
@@ -771,6 +776,7 @@ export const snapshot = defer(async function(
 })
 
 snapshot.params = {
+  description: { type: 'string', optional: true },
   id: { type: 'string' },
   name: { type: 'string', optional: true },
   saveMemory: { type: 'boolean', optional: true },
