@@ -124,8 +124,7 @@ const COLUMNS_VM_PV = [
   {
     itemRenderer: (vdi, userData) => {
       const vbd = userData.vbdsByVdi[vdi.id]
-      const { device } = vbd
-      return <span>{device !== null && device}</span>
+      return <span>{vbd.device}</span>
     },
     name: _('vbdDevice'),
     sortCriteria: (vdi, userData) => {
