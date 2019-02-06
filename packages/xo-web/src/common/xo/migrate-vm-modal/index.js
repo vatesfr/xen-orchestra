@@ -227,6 +227,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       migrationNetworkId,
       targetSrs,
     } = this.state
+    const { $pool: poolId } = vm
     return (
       <div>
         <div className={styles.block}>
@@ -234,7 +235,9 @@ export default class MigrateVmModalBody extends BaseComponent {
             <Col size={4}>{_('migrateVmSelectHost')}</Col>
             <Col size={8}>
               <SelectHost
-                pool={vm.$pool} // sorted relative to this pool
+                compareContainers={(pool1, pool2) =>
+                  pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
+                }
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 required

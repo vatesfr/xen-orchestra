@@ -400,20 +400,9 @@ export const SelectHost = makeStoreSelect(
       )
       .sort()
 
-    const compareContainers = createSelector(
-      (_, props) => props.pool,
-      poolId => (pool1, pool2) =>
-        poolId !== undefined
-          ? pool1.id === poolId
-            ? -1
-            : pool2.id === poolId
-            ? 1
-            : 0
-          : undefined
-    )
-
     return {
-      compareContainers,
+      compareContainers: (_, { compareContainers }) => compareContainers,
+      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getHostsByPool,
       xoContainers: getPools,
     }
@@ -456,6 +445,8 @@ export const SelectSr = makeStoreSelect(
     )
 
     return {
+      compareContainers: (_, { compareContainers }) => compareContainers,
+      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getSrsByContainer,
       xoContainers: getContainers,
     }
@@ -491,6 +482,8 @@ export const SelectVm = makeStoreSelect(
     )
 
     return {
+      compareContainers: (_, { compareContainers }) => compareContainers,
+      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getVmsByContainer,
       xoContainers: getContainers,
     }
@@ -517,6 +510,8 @@ export const SelectVmSnapshot = makeStoreSelect(
       .sort()
 
     return {
+      compareContainers: (_, { compareContainers }) => compareContainers,
+      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getSnapshotsByVms,
       xoContainers: getVms,
     }
@@ -566,6 +561,8 @@ export const SelectVmTemplate = makeStoreSelect(
       .sort()
 
     return {
+      compareContainers: (_, { compareContainers }) => compareContainers,
+      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getVmTemplatesByPool,
       xoContainers: getPools,
     }
@@ -591,6 +588,8 @@ export const SelectNetwork = makeStoreSelect(
       .sort()
 
     return {
+      compareContainers: (_, { compareContainers }) => compareContainers,
+      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getNetworksByPool,
       xoContainers: getPools,
     }
@@ -616,6 +615,8 @@ export const SelectPif = makeStoreSelect(
       .sort()
 
     return {
+      compareContainers: (_, { compareContainers }) => compareContainers,
+      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getPifsByHost,
       xoContainers: getHosts,
     }
@@ -687,6 +688,8 @@ export const SelectVdi = makeStoreSelect(
       .groupBy('$SR')
 
     return {
+      compareContainers: (_, { compareContainers }) => compareContainers,
+      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getVdis,
       xoContainers: getSrs.sort(),
     }
@@ -731,6 +734,8 @@ export const SelectVgpuType = makeStoreSelect(
       .sort()
 
     return {
+      compareContainers: (_, { compareContainers }) => compareContainers,
+      compareOptions: (_, { compareOptions }) => compareOptions,
       xoObjects: getVgpuTypes,
       xoContainers: getGpuGroups,
     }
