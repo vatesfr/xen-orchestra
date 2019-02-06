@@ -1,5 +1,7 @@
 # Backups
 
+> Watch our [introduction video](https://www.youtube.com/watch?v=FfUqIwT8KzI) (45m) to Backup in Xen Orchestra!
+
 This section is dedicated to all existing methods of rolling back or backing up your VMs in Xen Orchestra.
 
 There are several ways to protect your VMs:
