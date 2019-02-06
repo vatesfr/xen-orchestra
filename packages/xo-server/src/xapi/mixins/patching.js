@@ -279,7 +279,7 @@ export default {
         if (requiredPatch === undefined) {
           throw new Error(`patch ${id} required but not found`)
         }
-        if (find(installable, { id }) === undefined) {
+        if (!installed[id] && find(installable, { id }) === undefined) {
           installable.push(requiredPatch)
         }
       })
