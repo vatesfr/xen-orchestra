@@ -4,6 +4,7 @@
 
 ### Bug fixes
 
+- [Import] Fix import of big OVA files
 - [Host] Show the host's memory usage instead of the sum of the VMs' memory usage (PR [#3924](https://github.com/vatesfr/xen-orchestra/pull/3924))
 - [SAML] Make `AssertionConsumerServiceURL` matches the callback URL
 
