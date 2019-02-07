@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { omit } from "lodash";
+import { keyBy, omit } from "lodash";
 
 import config from "../_config";
 import { xo, testWithOtherConnection } from "../util";
@@ -61,6 +61,37 @@ describe("job", () => {
 
     it("fails trying to create a job without job params", async () => {
       await expect(xo.createJob({})).rejects.toMatchSnapshot();
+    });
+  });
+
+  describe(".getAll() :", () => {
+    it("gets all available jobs", async () => {
+      const jobId1 = await xo.createJob(defaultJob);
+      const jobId2 = await xo.createJob({
+        ...defaultJob,
+        name: "jobTest2",
+        paramsVector: {
+          type: "crossProduct",
+          items: [
+            {
+              type: "set",
+              values: [
+                {
+                  id: config.vmIdXoTest,
+                  name: "test2-snapshot",
+                },
+              ],
+            },
+          ],
+        },
+      });
+      let jobs = await xo.call("job.getAll");
+      expect(Array.isArray(jobs)).toBe(true);
+      jobs = keyBy(jobs, "id");
+      expect([
+        omit(jobs[jobId1], "id", "userId"),
+        omit(jobs[jobId2], "id", "userId"),
+      ]).toMatchSnapshot();
     });
   });
 });
