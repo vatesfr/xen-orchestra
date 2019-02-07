@@ -1099,8 +1099,8 @@ export class Xapi extends EventEmitter {
           }
         } else if (value === '' || isOpaqueRef(value)) {
           // 2019-02-07 - JFT: even if `value` should not be an empty string for
-          // a ref property, an user had the case on XenServer 7.0 on a VM
-          // created by XenCenter
+          // a ref property, an user had the case on XenServer 7.0 on the CD VBD
+          // of a VM created by XenCenter
           getters[$field] = function() {
             return objectsByRef[this[field]]
           }
