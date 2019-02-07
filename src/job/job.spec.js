@@ -94,4 +94,18 @@ describe("job", () => {
       ]).toMatchSnapshot();
     });
   });
+
+  describe(".get() :", () => {
+    it("gets an existing job", async () => {
+      const id = await xo.createJob(defaultJob);
+      const job = await xo.call("job.get", { id });
+      expect(omit(job, "id", "userId")).toMatchSnapshot();
+    });
+
+    it("fails trying to get a job with a non existent id", async () => {
+      await expect(
+        xo.call("job.get", { id: "non-existent-id" })
+      ).rejects.toMatchSnapshot();
+    });
+  });
 });

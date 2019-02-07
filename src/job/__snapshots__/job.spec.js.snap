@@ -72,3 +72,29 @@ Array [
   },
 ]
 `;
+
+exports[`job .get() : fails trying to get a job with a non existent id 1`] = `[JsonRpcError: no such job [object Object]]`;
+
+exports[`job .get() : gets an existing job 1`] = `
+Object {
+  "key": "snapshot",
+  "method": "vm.snapshot",
+  "name": "jobTest",
+  "paramsVector": Object {
+    "items": Array [
+      Object {
+        "type": "set",
+        "values": Array [
+          Object {
+            "id": "ceabe44c-f04d-6674-5599-bfd7b7e298ba",
+            "name": "test-snapshot",
+          },
+        ],
+      },
+    ],
+    "type": "crossProduct",
+  },
+  "timeout": 2000,
+  "type": "call",
+}
+`;
