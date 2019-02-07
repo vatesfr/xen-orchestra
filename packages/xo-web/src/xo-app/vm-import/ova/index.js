@@ -191,7 +191,7 @@ async function parseOVF(fileFragment) {
 
 // tar spec: https://www.gnu.org/software/tar/manual/html_node/Standard.html
 async function parseTarFile(file) {
-  document.getElementsByTagName('body')[0].style.cursor = 'wait'
+  document.body.style.cursor = 'wait'
   try {
     let offset = 0
     const HEADER_SIZE = 512
@@ -226,7 +226,7 @@ async function parseTarFile(file) {
     }
     return data
   } finally {
-    document.getElementsByTagName('body')[0].style.cursor = null
+    document.body.style.cursor = null
   }
 }
 
