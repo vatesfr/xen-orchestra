@@ -36,7 +36,7 @@ import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import pRetry from '../pRetry'
+import pRetry from '../_pRetry'
 import {
   camelToSnakeCase,
   ensureArray,
