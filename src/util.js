@@ -87,12 +87,9 @@ export const rejectionOf = promise =>
 
 export let xo;
 beforeAll(async () => {
-  console.log("beforeAll");
   xo = await getConnection();
-  console.log("beforeAll", xo);
 });
 afterAll(async () => {
-  console.log("afterAll", xo);
   await xo.close();
   xo = null;
 });
