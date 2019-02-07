@@ -206,6 +206,7 @@ const messages = {
 
   // ----- Home snapshots  -----
   snapshotVmsName: 'Name',
+  snapshotVmsDescription: 'Description',
 
   // ----- Common components -----
   sortedTableAllItemsSelected: 'All of them are selected',
@@ -919,6 +920,7 @@ const messages = {
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
+  created: 'Created on {date}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled:
@@ -978,6 +980,7 @@ const messages = {
   vdiRemove: 'Remove VDI',
   noControlDomainVdis: 'No VDIs attached to Control Domain',
   vbdBootableStatus: 'Boot flag',
+  vbdDevice: 'Device',
   vbdStatus: 'Status',
   vbdStatusConnected: 'Connected',
   vbdStatusDisconnected: 'Disconnected',
