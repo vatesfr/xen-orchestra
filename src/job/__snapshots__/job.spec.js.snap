@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`job .create() : creates a new job 1`] = `
+Object {
+  "key": "snapshot",
+  "method": "vm.snapshot",
+  "name": "jobTest",
+  "paramsVector": Object {
+    "items": Array [
+      Object {
+        "type": "set",
+        "values": Array [
+          Object {
+            "id": "ceabe44c-f04d-6674-5599-bfd7b7e298ba",
+            "name": "test-snapshot",
+          },
+        ],
+      },
+    ],
+    "type": "crossProduct",
+  },
+  "timeout": 2000,
+  "type": "call",
+}
+`;
+
+exports[`job .create() : fails trying to create a job without job params 1`] = `[JsonRpcError: invalid parameters]`;

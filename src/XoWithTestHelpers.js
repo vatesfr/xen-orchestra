@@ -5,6 +5,7 @@ export default class XoWithTestHelpers extends Xo {
   constructor(opts) {
     super(opts);
     this.userIds = [];
+    this.jobIds = [];
   }
 
   async createUser(params) {
@@ -24,5 +25,20 @@ export default class XoWithTestHelpers extends Xo {
 
   async getUser(id) {
     return find(await super.call("user.getAll"), { id });
+  }
+
+  async createJob(params) {
+    const jobId = await super.call("job.create", { job: params });
+    this.jobIds.push(jobId);
+    return jobId;
+  }
+
+  async deleteAllJobs() {
+    await Promise.all(
+      this.jobIds.map(id =>
+        super.call("job.delete", { id }).catch(error => console.error(error))
+      )
+    );
+    this.jobIds.length = 0;
   }
 }

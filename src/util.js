@@ -98,6 +98,7 @@ afterAll(async () => {
 });
 afterEach(async () => {
   await xo.deleteAllUsers();
+  await xo.deleteAllJobs();
 });
 
 // =================================================================
