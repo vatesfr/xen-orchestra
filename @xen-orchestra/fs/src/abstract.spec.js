@@ -16,6 +16,8 @@ class TestHandler extends AbstractHandler {
   }
 }
 
+jest.useFakeTimers()
+
 describe('closeFile()', () => {
   it(`throws in case of timeout`, async () => {
     const testHandler = new TestHandler({
