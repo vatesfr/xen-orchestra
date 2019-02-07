@@ -1545,14 +1545,16 @@ export default class Xapi extends XapiBase {
       }`
     )
 
+    const vmRef = vm.$ref
     let ref
     do {
       if (!vm.tags.includes('xo-disable-quiesce')) {
+        vm = await this.barrier(vmRef)
         try {
           ref = await this.callAsync(
             $cancelToken,
             'VM.snapshot_with_quiesce',
-            vm.$ref,
+            vmRef,
             nameLabel
           ).then(extractOpaqueRef)
           this.addTag(ref, 'quiesce')::ignoreErrors()
@@ -1561,12 +1563,30 @@ export default class Xapi extends XapiBase {
         } catch (error) {
           const { code } = error
           if (
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-            // quiesce only work on a running VM
-            code !== 'VM_BAD_POWER_STATE' &&
             // quiesce failed, fallback on standard snapshot
             // TODO: emit warning
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
+            code === 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
+          ) {
+            // detect and remove new broken snapshots
+            //
+            // see https://github.com/vatesfr/xen-orchestra/issues/3936
+            const prevSnapshotRefs = new Set(vm.snapshots)
+            const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
+            vm = await this.barrier(vmRef)
+            const createdSnapshots = vm.$snapshots.filter(
+              _ =>
+                !prevSnapshotRefs.has(_.$ref) &&
+                _.name_label.startsWith(snapshotNameLabelPrefix)
+            )
+
+            // be safe: only delete if there was a single match
+            if (createdSnapshots.length === 1) {
+              ignoreErrors.call(this._deleteVm(createdSnapshots[0]))
+            }
+          } else if (
+            code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
+            // quiesce only work on a running VM
+            code !== 'VM_BAD_POWER_STATE'
           ) {
             throw error
           }
@@ -1575,7 +1595,7 @@ export default class Xapi extends XapiBase {
       ref = await this.callAsync(
         $cancelToken,
         'VM.snapshot',
-        vm.$ref,
+        vmRef,
         nameLabel
       ).then(extractOpaqueRef)
     } while (false)
