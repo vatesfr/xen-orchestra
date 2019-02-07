@@ -1,7 +1,5 @@
 # CloudInit
 
-> CloudInit support is available in the 4.11 release and higher
-
 Cloud-init is a program "that handles the early initialization of a cloud instance"[^n]. In other words, you can, on a "cloud-init"-ready template VM, pass a lot of data at first boot:
 
 * setting the hostname
@@ -18,25 +16,27 @@ So it means very easily customizing your VM when you create it from a compatible
 
 You only need to use a template of a VM with CloudInit installed inside it. [Check this blog post to learn how to install CloudInit](https://xen-orchestra.com/blog/centos-cloud-template-for-xenserver/).
 
+**Note:** In XOA 5.31, we changed the cloud-init config drive type from [OpenStack](https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html) to the [NoCloud](https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html) type. This will allow us to pass network configuration to VMs in the future. For 99% of users, including default cloud-init installs, this change will have no effect. However if you have previously modified your cloud-init installation in a VM template to only look for `openstack` drive types (for instance with the `datasource_list` setting in `/etc/cloud/cloud.cfg`) you need to modify it to also look for `nocloud`.
+
 ## Usage
 
 First, select your compatible template (CloudInit ready) and name it:
 
-![](https://xen-orchestra.com/blog/content/images/2015/12/template_choice.png)
+![](./assets/cloud-init-1.png)
 
 Then, activate the config drive and insert your SSH key. Or you can also use a custom CloudInit configuration:
 
-![](https://xen-orchestra.com/blog/content/images/2016/02/CloudInit.png)
+![](./assets/cloud-init-2.png)
 
 > CloudInit configuration examples are [available here](http://cloudinit.readthedocs.org/en/latest/topics/examples.html).
 
-You can extend the disk size (**in this case, the template disk was 8 GiB originally**):
+You can extend the disk size (**in this case, the template disk was 8 GiB originally**). We'll extend it to 20GiB:
 
-![](https://xen-orchestra.com/blog/content/images/2015/12/diskedition.png)
+![](./assets/cloud-init-3.png)
 
 Finally, create the VM:
 
-![](https://xen-orchestra.com/blog/content/images/2015/12/recap.png)
+![](./assets/cloud-init-4.png)
 
 Now start the VM and SSH to its IP:
 
