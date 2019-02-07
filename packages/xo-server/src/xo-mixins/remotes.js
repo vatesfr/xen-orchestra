@@ -96,7 +96,7 @@ export default class {
           handler.getInfo().then(info => {
             this._remotesInfo[remote.id] = info
           }),
-          this._remoteOptions.timeoutInfo
+          5e3
         )
       } catch (_) {}
     })
