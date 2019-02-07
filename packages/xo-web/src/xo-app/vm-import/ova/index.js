@@ -101,13 +101,12 @@ function parseTarHeader(header) {
   // https://stackoverflow.com/a/2511526/72637
   const sizeBuffer = Buffer.from(header.slice(124, 124 + 12))
   let fileSize = 0
-  if (sizeBuffer[0] === 128) {
+  if (sizeBuffer[0] === 0x80) {
     // https://github.com/chrisdickinson/tar-parse/blob/master/header.js#L271
-    // remove the head byte and go from low to high power.
-    const array = [...sizeBuffer.slice(1)].reverse()
-    array.forEach((value, index) => {
-      fileSize += value * Math.pow(256, index)
-    })
+    // remove the head byte and go in decreasing power order.
+    for (let i = 1; i < sizeBuffer.length; i++) {
+      fileSize = fileSize * 256 + sizeBuffer[i]
+    }
   } else fileSize = parseInt(sizeBuffer.slice(0, -1).toString('ascii'), 8)
   console.log(
     'fileSize',
@@ -227,7 +226,7 @@ async function parseTarFile(file) {
     }
     return data
   } finally {
-    document.getElementsByTagName('body')[0].style.cursor = 'auto'
+    document.getElementsByTagName('body')[0].style.cursor = null
   }
 }
 
