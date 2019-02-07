@@ -920,6 +920,7 @@ const messages = {
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
+  created: 'Created on {date}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled:
