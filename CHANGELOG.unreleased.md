@@ -3,6 +3,7 @@
 ### Enhancements
 
 - [Home] Set description on bulk snapshot [#3925](https://github.com/vatesfr/xen-orchestra/issues/3925) (PR [#3933](https://github.com/vatesfr/xen-orchestra/pull/3933))
+- Work-around the XenServer issue when `VBD#VDI` is an empty string instead of an opaque reference (PR [#3950](https://github.com/vatesfr/xen-orchestra/pull/3950))
 
 ### Bug fixes
 
@@ -15,6 +16,7 @@
 
 ### Released packages
 
+- xen-api v0.24.2
 - @xen-orchestra/fs v0.6.1
 - xo-server-auth-saml v0.5.3
 - xo-server v5.35.0
