@@ -22,21 +22,21 @@ You only need to use a template of a VM with CloudInit installed inside it. [Che
 
 First, select your compatible template (CloudInit ready) and name it:
 
-![](https://xen-orchestra.com/docs/assets/cloud-init-1.png)
+![](./assets/cloud-init-1.png)
 
 Then, activate the config drive and insert your SSH key. Or you can also use a custom CloudInit configuration:
 
-![](https://xen-orchestra.com/docs/assets/cloud-init-2.png)
+![](./assets/cloud-init-2.png)
 
 > CloudInit configuration examples are [available here](http://cloudinit.readthedocs.org/en/latest/topics/examples.html).
 
 You can extend the disk size (**in this case, the template disk was 8 GiB originally**). We'll extend it to 20GiB:
 
-![](https://xen-orchestra.com/docs/assets/cloud-init-3.png)
+![](./assets/cloud-init-3.png)
 
 Finally, create the VM:
 
-![](https://xen-orchestra.com/docs/assets/cloud-init-4.png)
+![](./assets/cloud-init-4.png)
 
 Now start the VM and SSH to its IP:
 
