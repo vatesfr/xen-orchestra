@@ -1554,7 +1554,7 @@ export default class Xapi extends XapiBase {
           ref = await this.callAsync(
             $cancelToken,
             'VM.snapshot_with_quiesce',
-            vm.$ref,
+            vmRef,
             nameLabel
           ).then(extractOpaqueRef)
           this.addTag(ref, 'quiesce')::ignoreErrors()
@@ -1595,7 +1595,7 @@ export default class Xapi extends XapiBase {
       ref = await this.callAsync(
         $cancelToken,
         'VM.snapshot',
-        vm.$ref,
+        vmRef,
         nameLabel
       ).then(extractOpaqueRef)
     } while (false)
