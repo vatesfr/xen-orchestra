@@ -231,6 +231,7 @@ const parseFile = async (file, type, func) => {
       type,
     }
   } catch (error) {
+    console.error(error)
     return { error, file, type }
   }
 }
