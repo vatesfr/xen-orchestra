@@ -194,7 +194,10 @@ class GenericSelect extends React.Component {
           )
         }
 
-        options = map(objects, getOption)
+        options = (compareOptions !== undefined
+          ? objects.sort(compareOptions)
+          : objects
+        ).map(obj => getOption(obj))
       } else {
         if (__DEV__ && isArray(objects)) {
           throw new Error(
@@ -213,7 +216,11 @@ class GenericSelect extends React.Component {
             xoItem: container,
           })
 
-          forEach(objects[container.id], object => {
+          const _objects =
+            compareOptions !== undefined
+              ? objects[container.id].sort(compareOptions)
+              : objects[container.id]
+          forEach(_objects, object => {
             options.push(getOption(object, container))
           })
         })
@@ -233,9 +240,7 @@ class GenericSelect extends React.Component {
         }
         return option
       })
-      return compareOptions !== undefined
-        ? options.sort(compareOptions)
-        : options
+      return options
     }
   )
 
