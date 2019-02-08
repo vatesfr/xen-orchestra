@@ -734,6 +734,7 @@ const messages = {
   // ----- Pool network tab -----
   pif: 'PIF',
   poolNetworkNameLabel: 'Name',
+  poolNetworkDefault: 'Default Network',
   poolNetworkDescription: 'Description',
   poolNetworkPif: 'PIFs',
   privateNetworks: 'Private networks',

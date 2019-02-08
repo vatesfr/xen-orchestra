@@ -79,6 +79,33 @@ class Name extends Component {
 
 // -----------------------------------------------------------------------------
 
+class DefaultNetwork extends Component {
+  _editDefaultNetwork = value => {
+    editNetwork(this.props.network, {
+      other_config: {
+        ...this.props.network.other_config,
+        automatic: value.toString(),
+      },
+    })
+  }
+
+  render() {
+    const { network } = this.props
+
+    return (
+      <Toggle
+        onChange={this._editDefaultNetwork}
+        value={
+          network.other_config !== undefined &&
+          network.other_config.automatic === 'true'
+        }
+      />
+    )
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 class Description extends Component {
   _editDescription = value =>
     editNetwork(this.props.network, { name_description: value })
@@ -342,6 +369,10 @@ const NETWORKS_COLUMNS = [
     name: _('poolNetworkPif'),
     itemRenderer: network =>
       !isEmpty(network.PIFs) && <PifsItem network={network} />,
+  },
+  {
+    name: _('poolNetworkDefault'),
+    itemRenderer: network => <DefaultNetwork network={network} />,
   },
   {
     name: '',

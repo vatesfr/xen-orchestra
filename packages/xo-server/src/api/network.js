@@ -85,34 +85,39 @@ createBonded.description =
 // ===================================================================
 
 export async function set({
-  network,
-
-  name_description: nameDescription,
-  name_label: nameLabel,
   defaultIsLocked,
   id,
+  name_description: nameDescription,
+  name_label: nameLabel,
+  network,
+  other_config: otherConfig,
 }) {
   await this.getXapi(network).setNetworkProperties(network._xapiId, {
+    defaultIsLocked,
     nameDescription,
     nameLabel,
-    defaultIsLocked,
+    otherConfig,
   })
 }
 
 set.params = {
+  defaultIsLocked: {
+    type: 'boolean',
+    optional: true,
+  },
   id: {
     type: 'string',
-  },
-  name_label: {
-    type: 'string',
-    optional: true,
   },
   name_description: {
     type: 'string',
     optional: true,
   },
-  defaultIsLocked: {
-    type: 'boolean',
+  name_label: {
+    type: 'string',
+    optional: true,
+  },
+  other_config: {
+    type: 'object',
     optional: true,
   },
 }
