@@ -1587,7 +1587,7 @@ export default class Xapi extends XapiBase {
               }
             },
             {
-              delay: 1e3,
+              delay: 60e3,
               tries: 3,
             }
           ).then(extractOpaqueRef)
