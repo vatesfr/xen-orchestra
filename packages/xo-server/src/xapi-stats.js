@@ -322,7 +322,10 @@ export default class XapiStats {
 
     // stats are out of date
     if (stepStats.localTimestamp + step < getCurrentTimestamp()) {
-      delete stats[step]
+      delete statsByObject[hostUuid][step]
+      if (vmUuid !== undefined) {
+        delete stats[step]
+      }
       return
     }
 
