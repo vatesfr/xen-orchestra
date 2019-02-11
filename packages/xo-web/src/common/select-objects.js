@@ -179,10 +179,10 @@ class GenericSelect extends React.Component {
 
   _getOptions = createSelector(
     () => this.props.xoContainers,
+    this._getObjects,
     () => this.props.compareContainers,
     () => this.props.compareOptions,
-    this._getObjects,
-    (containers, compareContainers, compareOptions, objects) => {
+    (containers, objects, compareContainers, compareOptions) => {
       // createCollectionWrapper with a depth?
       const { name } = this.constructor
 
@@ -197,7 +197,7 @@ class GenericSelect extends React.Component {
         options = (compareOptions !== undefined
           ? objects.sort(compareOptions)
           : objects
-        ).map(obj => getOption(obj))
+        ).map(getOption)
       } else {
         if (__DEV__ && isArray(objects)) {
           throw new Error(
