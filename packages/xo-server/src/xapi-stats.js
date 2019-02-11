@@ -304,32 +304,21 @@ export default class XapiStats {
   _getCachedStats(hostUuid, step, vmUuid) {
     const statsByObject = this._statsByObject
 
-    const stats = statsByObject[vmUuid ?? hostUuid]
+    const stats = statsByObject[vmUuid ?? hostUuid]?.[step]
     if (stats === undefined) {
       return
     }
 
-    // invalid stats due to the vm migration
-    if (vmUuid !== undefined && stats.hostUuid !== hostUuid) {
-      delete statsByObject[vmUuid]
-      return
-    }
-
-    const stepStats = stats[step]
-    if (stepStats === undefined) {
-      return
-    }
-
     // stats are out of date
-    if (stepStats.localTimestamp + step < getCurrentTimestamp()) {
+    if (stats.localTimestamp + step < getCurrentTimestamp()) {
       delete statsByObject[hostUuid][step]
       if (vmUuid !== undefined) {
-        delete stats[step]
+        delete statsByObject[vmUuid][step]
       }
       return
     }
 
-    return stepStats
+    return stats
   }
 
   @synchronized.withKey((_, { host }) => host.uuid)
@@ -402,12 +391,11 @@ export default class XapiStats {
             return
           }
 
-          const xoObjectStats = createGetProperty(this._statsByObject, uuid, {})
-          if (type === 'vm') {
-            xoObjectStats.hostUuid = hostUuid
-          }
-
-          const stepStats = createGetProperty(xoObjectStats, step, {})
+          const stepStats = createGetProperty(
+            createGetProperty(this._statsByObject, uuid, {}),
+            step,
+            {}
+          )
           stepStats.endTimestamp = json.meta.end
           stepStats.localTimestamp = localTimestamp
           stepStats.interval = step
