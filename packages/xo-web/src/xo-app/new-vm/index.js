@@ -631,6 +631,22 @@ export default class NewVm extends BaseComponent {
         )
     }
   )
+
+  _findNetwork = () => {
+    const automaticNetwork = find(
+      this._getPoolNetworks(),
+      network =>
+        network.other_config && network.other_config.automatic === 'true'
+    )
+
+    return automaticNetwork !== undefined
+      ? automaticNetwork
+      : find(this._getPoolNetworks(), network => {
+          const pif = getObject(store.getState(), network.PIFs[0])
+          return pif && pif.management
+        })
+  }
+
   _getDefaultNetworkId = template => {
     if (template === undefined) {
       return
@@ -641,10 +657,7 @@ export default class NewVm extends BaseComponent {
         ? find(this._getResolvedResourceSet().objectsByType.network, {
             $pool: template.$pool,
           })
-        : find(this._getPoolNetworks(), network => {
-            const pif = getObject(store.getState(), network.PIFs[0])
-            return pif && pif.management
-          })
+        : this._findNetwork()
     return network && network.id
   }
 
