@@ -3,6 +3,7 @@ import limitConcurrency from 'limit-concurrency-decorator'
 import synchronized from 'decorator-synchronized'
 import { BaseError } from 'make-error'
 import {
+  defaults,
   endsWith,
   findKey,
   forEach,
@@ -78,24 +79,8 @@ const computeValues = (dataRow, legendIndex, transformValue = identity) =>
 const combineStats = (stats, path, combineValues) =>
   zipWith(...map(stats, path), (...values) => combineValues(values))
 
-// It browse the object in depth and initialise it's properties if not exists
-// The targerPath can be a string or an array containing the depth
-// targetPath: [a, b, c] => a.b.c
-const getValuesFromDepth = (obj, targetPath, lastChildDefaultValue = []) => {
-  if (typeof targetPath === 'string') {
-    return (obj[targetPath] = obj[targetPath] ?? lastChildDefaultValue)
-  }
-
-  forEach(targetPath, (path, key) => {
-    if (obj[path] === undefined) {
-      obj = obj[path] =
-        targetPath.length - 1 === key ? lastChildDefaultValue : {}
-      return
-    }
-    obj = obj[path]
-  })
-  return obj
-}
+const createGetProperty = (obj, property, defaultValue) =>
+  defaults(obj, { [property]: defaultValue })[property]
 
 const testMetric = (test, type) =>
   typeof test === 'string'
@@ -414,38 +399,40 @@ export default class XapiStats {
             return
           }
 
+          const xoObjectStats = createGetProperty(this._statsByObject, uuid, {})
+          if (type === 'vm') {
+            xoObjectStats.hostUuid = hostUuid
+          }
+
+          const stepStats = createGetProperty(xoObjectStats, step, {})
+          stepStats.endTimestamp = json.meta.end
+          stepStats.localTimestamp = localTimestamp
+          stepStats.interval = step
+
           const path =
             metric.getPath !== undefined
               ? metric.getPath(testResult)
               : [findKey(metrics, metric)]
 
-          const xoObjStats = getValuesFromDepth(
-            this._statsByObject,
-            uuid,
-            type === 'vm'
-              ? {
-                  hostUuid,
-                }
-              : {}
-          )
+          const lastKey = path.length - 1
+          let metricStats = createGetProperty(stepStats, 'stats', {})
+          path.forEach((property, key) => {
+            if (key === lastKey) {
+              metricStats = createGetProperty(metricStats, property, [])
+              metricStats.push(
+                ...computeValues(json.data, index, metric.transformValue)
+              )
 
-          const stepStats = getValuesFromDepth(xoObjStats, String(step), {
-            endTimestamp: json.meta.end,
-            localTimestamp: localTimestamp,
-            interval: step,
+              // remove older Values
+              metricStats.splice(
+                0,
+                metricStats.length - RRD_POINTS_PER_STEP[step]
+              )
+              return
+            }
+
+            metricStats = createGetProperty(metricStats, property, {})
           })
-
-          const metricValues = getValuesFromDepth(stepStats, ['stats', ...path])
-
-          metricValues.push(
-            ...computeValues(json.data, index, metric.transformValue)
-          )
-
-          // remove older Values
-          metricValues.splice(
-            0,
-            metricValues.length - RRD_POINTS_PER_STEP[step]
-          )
         })
       }
     }
