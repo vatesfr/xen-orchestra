@@ -171,7 +171,7 @@ const TRANSFORMS = {
         }
       })(),
       multipathing: otherConfig.multipathing === 'true',
-      patches: patches || link(obj, 'patches'),
+      patches: link(obj, obj.updates !== undefined ? 'updates' : 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
       startTime: toTimestamp(otherConfig.boot_time),
@@ -652,6 +652,19 @@ const TRANSFORMS = {
 
       // TODO: host.[$]pool_patches ←→ pool.[$]host_patches
       $host_patches: link(obj, 'host_patches'),
+    }
+  },
+
+  // -----------------------------------------------------------------
+
+  pool_update(obj) {
+    return {
+      description: obj.name_description,
+      guidance: obj.after_apply_guidance,
+      name: obj.name_label,
+      size: +obj.installation_size,
+      // TODO: what does it mean, should we handle it?
+      // version: obj.version,
     }
   },
 
