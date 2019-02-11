@@ -98,3 +98,30 @@ Object {
   "type": "call",
 }
 `;
+
+exports[`job .set() : fails trying to set a job without job.id 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`job .set() : sets a job 1`] = `
+Object {
+  "key": "snapshot",
+  "method": "vm.clone",
+  "name": "jobTest",
+  "paramsVector": Object {
+    "items": Array [
+      Object {
+        "type": "set",
+        "values": Array [
+          Object {
+            "full_copy": true,
+            "id": "ceabe44c-f04d-6674-5599-bfd7b7e298ba",
+            "name": "clone",
+          },
+        ],
+      },
+    ],
+    "type": "cross product",
+  },
+  "timeout": 2000,
+  "type": "call",
+}
+`;

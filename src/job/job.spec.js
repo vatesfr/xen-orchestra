@@ -108,4 +108,40 @@ describe("job", () => {
       ).rejects.toMatchSnapshot();
     });
   });
+
+  describe(".set() :", () => {
+    it("sets a job", async () => {
+      const id = await xo.createJob(defaultJob);
+      await xo.call("job.set", {
+        job: {
+          id,
+          type: "call",
+          key: "snapshot",
+          method: "vm.clone",
+          paramsVector: {
+            type: "cross product",
+            items: [
+              {
+                type: "set",
+                values: [
+                  {
+                    id: config.vmIdXoTest,
+                    name: "clone",
+                    full_copy: true,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
+      expect(
+        omit(await xo.call("job.get", { id }), "id", "userId")
+      ).toMatchSnapshot();
+    });
+
+    it("fails trying to set a job without job.id", async () => {
+      await expect(xo.call("job.set", defaultJob)).rejects.toMatchSnapshot();
+    });
+  });
 });
