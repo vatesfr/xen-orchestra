@@ -209,10 +209,10 @@ const NewNetwork = decorate([
                       <div>
                         <label>{_('newNetworkBondMode')}</label>
                         <Select
-                          options={modeOptions}
                           onChange={effects.onChangeMode}
-                          value={bondMode}
+                          options={modeOptions}
                           required
+                          value={bondMode}
                         />
                       </div>
                     ) : (
