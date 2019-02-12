@@ -3,7 +3,7 @@
 If you have a UPS for your hosts, and lose power, you may have a limited amount of time to shut down all of your VM infrastructure before the batteries run out. If you find yourself in this situation, or any other situation requiring the fast shutdown of everything, you can use the **Emergency Shutdown** feature.
 
 ## How to activate
-On the host view, clicking on this button will trigger the  _Emergency shutdown_procedure:
+On the host view, clicking on this button will trigger the  _Emergency Shutdown_ procedure:
 
 ![](./assets/e-shutdown-1.png)
 
