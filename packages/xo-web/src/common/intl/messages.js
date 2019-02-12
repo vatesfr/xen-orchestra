@@ -565,7 +565,6 @@ const messages = {
   reattachNewSrTooltip: 'Reattach SR',
 
   // ------ New Newtork -----
-
   createNewNetworkNoPermission: 'You have no permission to create a network',
   createNewNetworkOn: 'Create a new network on {select}',
 
