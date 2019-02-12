@@ -416,9 +416,18 @@ export default class Xapi extends XapiBase {
     await this.call('host.enable', this.getObject(hostId).$ref)
   }
 
+  // Resources:
+  // - Citrix XenServer ® 7.0 Administrator's Guide ch. 5.4
+  // - https://github.com/xcp-ng/xenadmin/blob/master/XenModel/Actions/Host/EditMultipathAction.cs
+  // - https://github.com/serencorbett1/xenadmin/blob/master/XenModel/XenAPI-Extensions/SR.cs
   @deferrable.onError(log.warn)
   async setHostMultipathing($defer, hostId, multipathing) {
     const host = this.getObject(hostId)
+
+    if (host.enabled) {
+      await this.disableHost(hostId)
+      $defer(() => this.enableHost(hostId))
+    }
 
     const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
     await asyncMap(pluggedPbds, async pbd => {
@@ -426,11 +435,6 @@ export default class Xapi extends XapiBase {
       await this.unplugPbd(ref)
       $defer(() => this.plugPbd(ref))
     })
-
-    if (host.enabled) {
-      await this.disableHost(hostId)
-      $defer(() => this.enableHost(hostId))
-    }
 
     return this._updateObjectMapProperty(
       host,
