@@ -396,7 +396,7 @@ export const SelectHost = makeStoreSelect(
       .pick(
         createSelector(
           getHostsByPool,
-          hostsByPool => keys(hostsByPool)
+          hostsByPool => Object.keys(hostsByPool)
         )
       )
       .sort()
