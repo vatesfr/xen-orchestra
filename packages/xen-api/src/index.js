@@ -1097,7 +1097,10 @@ export class Xapi extends EventEmitter {
           props[`update_${field}`] = function(entries) {
             return xapi.setFieldEntries(this, field, entries)
           }
-        } else if (isOpaqueRef(value)) {
+        } else if (value === '' || isOpaqueRef(value)) {
+          // 2019-02-07 - JFT: even if `value` should not be an empty string for
+          // a ref property, an user had the case on XenServer 7.0 on the CD VBD
+          // of a VM created by XenCenter
           getters[$field] = function() {
             return objectsByRef[this[field]]
           }
