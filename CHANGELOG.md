@@ -21,6 +21,8 @@
 - [SAML] Make `AssertionConsumerServiceURL` matches the callback URL
 - [Backup NG] Correctly delete broken VHD chains [#3875](https://github.com/vatesfr/xen-orchestra/issues/3875) (PR [#3939](https://github.com/vatesfr/xen-orchestra/pull/3939))
 - [Remotes] Don't ignore `mount` options [#3935](https://github.com/vatesfr/xen-orchestra/issues/3935) (PR [#3931](https://github.com/vatesfr/xen-orchestra/pull/3931))
+- [Host] Fix invalid multipathing status in hosts with XenServer < 7.5 (
+[#3956](https://github.com/vatesfr/xen-orchestra/issues/3956) (PR [#3961](https://github.com/vatesfr/xen-orchestra/pull/3961))
 
 ### Released packages
 
