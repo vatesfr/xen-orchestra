@@ -54,12 +54,12 @@ function toTimestamp(date) {
     return timestamp
   }
 
-  const ms = parseDateTime(date).getTime()
-  if (ms === 0) {
+  const ms = parseDateTime(date)
+  if (!ms || ms.getTime() === 0) {
     return null
   }
 
-  return Math.round(ms / 1000)
+  return Math.round(ms.getTime() / 1000)
 }
 
 // ===================================================================
