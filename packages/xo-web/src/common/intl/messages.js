@@ -733,8 +733,8 @@ const messages = {
   memoryLeftTooltip: '{used}% used ({free} free)',
   // ----- Pool network tab -----
   pif: 'PIF',
+  poolNetworkAutomatic: 'Automatic network',
   poolNetworkNameLabel: 'Name',
-  poolNetworkDefault: 'Default Network',
   poolNetworkDescription: 'Description',
   poolNetworkPif: 'PIFs',
   privateNetworks: 'Private networks',
