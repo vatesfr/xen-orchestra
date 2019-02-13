@@ -54,6 +54,11 @@ export default class VmItem extends Component {
     return vm && vm.power_state === 'Running'
   }
 
+  _getCompareContainers = (pool1, pool2) => {
+    const { $pool: poolId } = this.props.item
+    return pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
+  }
+
   _getResourceSet = createFinder(
     () => this.props.resourceSets,
     createSelector(
@@ -78,7 +83,6 @@ export default class VmItem extends Component {
   render() {
     const { item: vm, container, expandAll, selected } = this.props
     const resourceSet = this._getResourceSet()
-    const { $pool: poolId } = vm
 
     return (
       <div className={styles.item}>
@@ -175,9 +179,7 @@ export default class VmItem extends Component {
             <Col mediumSize={2} className='hidden-sm-down'>
               {this._isRunning && container ? (
                 <XoSelect
-                  compareContainers={(pool1, pool2) =>
-                    pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
-                  }
+                  compareContainers={this._getCompareContainers}
                   labelProp='name_label'
                   onChange={this._migrateVm}
                   placeholder={_('homeMigrateTo')}

@@ -158,6 +158,11 @@ export default class Vm extends BaseComponent {
     (checkPermissions, vm, srs) => checkPermissions(vm.id, 'operate')
   )
 
+  _getCompareContainers = (pool1, pool2) => {
+    const { $pool: poolId } = this.props.vm
+    return pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
+  }
+
   _setNameDescription = nameDescription =>
     editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
@@ -168,7 +173,6 @@ export default class Vm extends BaseComponent {
     if (!vm) {
       return <Icon icon='loading' />
     }
-    const { $pool: poolId } = vm
     const state = isEmpty(vm.current_operations)
       ? vm.power_state.toLowerCase()
       : 'busy'
@@ -189,9 +193,7 @@ export default class Vm extends BaseComponent {
                     )}
                     {container !== undefined && (
                       <XoSelect
-                        compareContainers={(pool1, pool2) =>
-                          pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
-                        }
+                        compareContainers={this._getCompareContainers}
                         onChange={this._migrateVm}
                         useLongClick
                         value={container}

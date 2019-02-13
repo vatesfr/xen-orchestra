@@ -214,11 +214,16 @@ export default class MigrateVmModalBody extends BaseComponent {
     })
   }
 
+  _getCompareContainers = (pool1, pool2) => {
+    const { $pool: poolId } = this.props.vm
+    return pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
+  }
+
   _selectMigrationNetwork = migrationNetwork =>
     this.setState({ migrationNetworkId: migrationNetwork.id })
 
   render() {
-    const { vdis, vifs, vm, networks } = this.props
+    const { vdis, vifs, networks } = this.props
     const {
       doNotMigrateVdis,
       host,
@@ -227,7 +232,6 @@ export default class MigrateVmModalBody extends BaseComponent {
       migrationNetworkId,
       targetSrs,
     } = this.state
-    const { $pool: poolId } = vm
     return (
       <div>
         <div className={styles.block}>
@@ -235,9 +239,7 @@ export default class MigrateVmModalBody extends BaseComponent {
             <Col size={4}>{_('migrateVmSelectHost')}</Col>
             <Col size={8}>
               <SelectHost
-                compareContainers={(pool1, pool2) =>
-                  pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
-                }
+                compareContainers={this._getCompareContainers}
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 required
