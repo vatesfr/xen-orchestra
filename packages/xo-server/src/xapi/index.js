@@ -418,8 +418,8 @@ export default class Xapi extends XapiBase {
 
   // Resources:
   // - Citrix XenServer ® 7.0 Administrator's Guide ch. 5.4
-  // - https://github.com/xcp-ng/xenadmin/blob/master/XenModel/Actions/Host/EditMultipathAction.cs
-  // - https://github.com/serencorbett1/xenadmin/blob/master/XenModel/XenAPI-Extensions/SR.cs
+  // - https://github.com/xcp-ng/xenadmin/blob/60dd70fc36faa0ec91654ec97e24b7af36acff9f/XenModel/Actions/Host/EditMultipathAction.cs
+  // - https://github.com/serencorbett1/xenadmin/blob/1c3fb0c1112e4e316423afc6a028066001d3dea1/XenModel/XenAPI-Extensions/SR.cs
   @deferrable.onError(log.warn)
   async setHostMultipathing($defer, hostId, multipathing) {
     const host = this.getObject(hostId)
@@ -429,6 +429,8 @@ export default class Xapi extends XapiBase {
       $defer(() => this.enableHost(hostId))
     }
 
+    // Xen center evacuate running VMs before unplugging the PBDs.
+    // In our implementation we chose to show a warning instead of evacuating them.
     const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
     await asyncMap(pluggedPbds, async pbd => {
       const ref = pbd.$ref
