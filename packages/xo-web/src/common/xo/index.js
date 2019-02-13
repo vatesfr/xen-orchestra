@@ -395,7 +395,12 @@ export const subscribeNotifications = createSubscription(async () => {
     return []
   }
 
-  const notifications = await updater._call('getMessages')
+  let notifications
+  try {
+    notifications = await updater._call('getMessages')
+  } catch (err) {
+    return []
+  }
   const notificationCookie = getNotificationCookie()
   return map(
     user != null && user.permission === 'admin'
