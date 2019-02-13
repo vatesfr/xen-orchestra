@@ -430,7 +430,9 @@ export default class Xapi extends XapiBase {
     }
 
     // Xen center evacuate running VMs before unplugging the PBDs.
-    // In our implementation we chose to show a warning instead of evacuating them.
+    // In our implementation, we chose to show a warning instead of evacuating them
+    // because the evacuation migrate VMs using the live migration to the other hosts in the same pool
+    // if a host not have a shared SR it will fail the evacuation
     const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
     await asyncMap(pluggedPbds, async pbd => {
       const ref = pbd.$ref
