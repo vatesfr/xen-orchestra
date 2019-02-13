@@ -37,6 +37,7 @@ import {
   map,
   size,
   slice,
+  some,
   sum,
   sumBy,
 } from 'lodash'
@@ -1344,6 +1345,28 @@ export default class NewVm extends BaseComponent {
 
   // DISKS -----------------------------------------------------------------------
 
+  _getSrsNotOnSameHost = createSelector(
+    () => this.state.state.existingDisks,
+    () => this.state.state.VDIs,
+    () => this.props.srs,
+    (existingDisks, vdis, srs) => {
+      let container
+      const predicate = srId =>
+        container !== undefined
+          ? container !== srs[srId].$container
+          : ((container = get(() => srs[srId].$container)), false)
+
+      return (
+        vdis.some(({ SR: srId }) => srId !== null && predicate(srId)) &&
+        (isEmpty(existingDisks) ||
+          some(
+            existingDisks,
+            ({ $SR: srId }) => srId !== null && predicate(srId)
+          ))
+      )
+    }
+  )
+
   _renderDisks = () => {
     const {
       state: { installMethod, existingDisks, VDIs },
@@ -1359,6 +1382,11 @@ export default class NewVm extends BaseComponent {
         done={this._isDisksDone()}
       >
         <SectionContent column>
+          {this._getSrsNotOnSameHost() && (
+            <span className='text-danger'>
+              <Icon icon='alarm' /> {_('newVmSrsNotOnSameHost')}
+            </span>
+          )}
           {/* Existing disks */}
           {map(existingDisks, (disk, index) => (
             <div key={i}>
