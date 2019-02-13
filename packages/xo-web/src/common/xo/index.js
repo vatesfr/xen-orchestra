@@ -390,13 +390,19 @@ export const subscribeNotifications = createSubscription(async () => {
   if (
     process.env.XOA_PLAN === 5 ||
     xoaUpdaterState === 'disconnected' ||
-    xoaUpdaterState === 'error' ||
-    xoaUpdaterState === 'registerNeeded'
+    xoaUpdaterState === 'error'
   ) {
     return []
   }
 
-  const notifications = await updater._call('getMessages')
+  let notifications
+  try {
+    notifications = await updater._call('getMessages')
+  } catch (err) {
+    if (err.message !== 'Not registered') {
+      throw err
+    }
+  }
   const notificationCookie = getNotificationCookie()
   return map(
     user != null && user.permission === 'admin'
