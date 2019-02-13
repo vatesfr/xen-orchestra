@@ -283,14 +283,10 @@ export default class XapiStats {
       .then(response => response.readAll().then(JSON5.parse))
   }
 
-  async _getNextTimestamp(xapi, host, step) {
+  async _getNextTimestamp(xapi, host, uuid, step) {
     const currentTimeStamp = await getServerTimestamp(xapi, host.$ref)
     const maxDuration = step * RRD_POINTS_PER_STEP[step]
-    const lastTimestamp = get(this._statsByObject, [
-      host.uuid,
-      step,
-      'endTimestamp',
-    ])
+    const lastTimestamp = this._statsByObject[uuid]?.[step]?.endTimestamp
 
     if (
       lastTimestamp === undefined ||
@@ -301,20 +297,19 @@ export default class XapiStats {
     return lastTimestamp
   }
 
-  _getCachedStats(hostUuid, step, vmUuid) {
+  // To avoid multiple requests, we keep a cash for the stats and
+  // only return it if we not exceed a step
+  _getCachedStats(uuid, step) {
     const statsByObject = this._statsByObject
 
-    const stats = statsByObject[vmUuid ?? hostUuid]?.[step]
+    const stats = statsByObject[uuid]?.[step]
     if (stats === undefined) {
       return
     }
 
     // stats are out of date
     if (stats.localTimestamp + step < getCurrentTimestamp()) {
-      delete statsByObject[hostUuid][step]
-      if (vmUuid !== undefined) {
-        delete statsByObject[vmUuid][step]
-      }
+      delete statsByObject[uuid][step]
       return
     }
 
@@ -322,7 +317,7 @@ export default class XapiStats {
   }
 
   @synchronized.withKey((_, { host }) => host.uuid)
-  async _getAndUpdateStats(xapi, { host, vmUuid, granularity }) {
+  async _getAndUpdateStats(xapi, { host, uuid, granularity }) {
     const step =
       granularity === undefined
         ? RRD_STEP_SECONDS
@@ -335,14 +330,12 @@ export default class XapiStats {
     }
 
     // Limit the number of http requests
-    const hostUuid = host.uuid
-
-    const stats = this._getCachedStats(hostUuid, step, vmUuid)
+    const stats = this._getCachedStats(uuid, step)
     if (stats !== undefined) {
       return stats
     }
 
-    const timestamp = await this._getNextTimestamp(xapi, host, step)
+    const timestamp = await this._getNextTimestamp(xapi, host, uuid, step)
     const json = await this._getJson(xapi, host, timestamp, step)
     if (json.meta.step !== step) {
       throw new FaultyGranularity(
@@ -351,81 +344,53 @@ export default class XapiStats {
     }
 
     const localTimestamp = getCurrentTimestamp()
-    // It exists data
-    if (json.data.length !== 0) {
-      // Warning: Sometimes, the json.xport.meta.start value does not match with the
-      // timestamp of the oldest data value
-      // So, we use the timestamp of the oldest data value !
-      const startTimestamp = json.data[json.meta.rows - 1].t
-      const endTimestamp = get(this._statsByObject, [
-        hostUuid,
-        step,
-        'endTimestamp',
-      ])
+    if (json.data.length > 0) {
+      // reorder data
+      json.data.reverse()
+      forEach(json.meta.legend, (legend, index) => {
+        const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(
+          legend
+        )
 
-      const statsOffset = endTimestamp - startTimestamp + step
-      if (endTimestamp !== undefined && statsOffset > 0) {
-        const parseOffset = statsOffset / step
-        // Remove useless data
-        // Note: Older values are at end of json.data.row
-        json.data.splice(json.data.length - parseOffset)
-      }
+        const metrics = STATS[type]
+        if (metrics === undefined) {
+          return
+        }
 
-      // It exists useful data
-      if (json.data.length > 0) {
-        // reorder data
-        json.data.reverse()
-        forEach(json.meta.legend, (legend, index) => {
-          const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(
-            legend
-          )
+        const { metric, testResult } = findMetric(metrics, metricType)
+        if (metric === undefined) {
+          return
+        }
 
-          const metrics = STATS[type]
-          if (metrics === undefined) {
+        const stepStats = createGetProperty(
+          createGetProperty(this._statsByObject, uuid, {}),
+          step,
+          {}
+        )
+        stepStats.endTimestamp = json.meta.end
+        stepStats.localTimestamp = localTimestamp
+        stepStats.interval = step
+
+        const path =
+          metric.getPath !== undefined
+            ? metric.getPath(testResult)
+            : [findKey(metrics, metric)]
+
+        const lastKey = path.length - 1
+        let metricStats = createGetProperty(stepStats, 'stats', {})
+        path.forEach((property, key) => {
+          if (key === lastKey) {
+            metricStats[property] = computeValues(
+              json.data,
+              index,
+              metric.transformValue
+            )
             return
           }
 
-          const { metric, testResult } = findMetric(metrics, metricType)
-
-          if (metric === undefined) {
-            return
-          }
-
-          const stepStats = createGetProperty(
-            createGetProperty(this._statsByObject, uuid, {}),
-            step,
-            {}
-          )
-          stepStats.endTimestamp = json.meta.end
-          stepStats.localTimestamp = localTimestamp
-          stepStats.interval = step
-
-          const path =
-            metric.getPath !== undefined
-              ? metric.getPath(testResult)
-              : [findKey(metrics, metric)]
-
-          const lastKey = path.length - 1
-          let metricStats = createGetProperty(stepStats, 'stats', {})
-          path.forEach((property, key) => {
-            if (key === lastKey) {
-              metricStats = createGetProperty(metricStats, property, [])
-              metricStats.push(
-                ...computeValues(json.data, index, metric.transformValue)
-              )
-
-              // remove older Values
-              metricStats.splice(
-                0,
-                metricStats.length - RRD_POINTS_PER_STEP[step]
-              )
-              return
-            }
-
-            metricStats = createGetProperty(metricStats, property, {})
-          })
+          metricStats = createGetProperty(metricStats, property, {})
         })
-      }
+      })
     }
 
     return (
@@ -441,6 +406,7 @@ export default class XapiStats {
   getHostStats(xapi, hostId, granularity) {
     return this._getAndUpdateStats(xapi, {
       host: xapi.getObject(hostId),
+      uuid: host.uuid,
       granularity,
     })
   }
@@ -454,7 +420,7 @@ export default class XapiStats {
 
     return this._getAndUpdateStats(xapi, {
       host,
-      vmUuid: vm.uuid,
+      uuid: vm.uuid,
       granularity,
     })
   }
