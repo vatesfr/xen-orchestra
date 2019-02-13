@@ -496,9 +496,15 @@ export default class NewVm extends BaseComponent {
       })
     })
     if (VIFs.length === 0) {
-      VIFs.push({
-        network: this._getDefaultNetworkId(template),
-      })
+      const automaticNetworks = this._getAutomaticNetworks().map(network => ({
+        network: network.id,
+      }))
+
+      automaticNetworks.length !== 0
+        ? VIFs.push(...automaticNetworks)
+        : VIFs.push({
+            network: this._getDefaultNetworkId(template),
+          })
     }
     const name_label =
       state.name_label === '' || !state.name_labelHasChanged
@@ -632,15 +638,20 @@ export default class NewVm extends BaseComponent {
     }
   )
 
-  _findNetwork = () => {
-    const automaticNetwork = find(
-      this._getPoolNetworks(),
+  _getAutomaticNetworks = () => {
+    const poolNetworks = this._getPoolNetworks()
+
+    return poolNetworks.filter(
       network =>
         network.other_config && network.other_config.automatic === 'true'
     )
+  }
 
-    return automaticNetwork !== undefined
-      ? automaticNetwork
+  _findNetwork = () => {
+    const automaticNetworks = this._getAutomaticNetworks()
+
+    return automaticNetworks.length !== 0
+      ? automaticNetworks[0]
       : find(this._getPoolNetworks(), network => {
           const pif = getObject(store.getState(), network.PIFs[0])
           return pif && pif.management
