@@ -390,7 +390,8 @@ export const subscribeNotifications = createSubscription(async () => {
   if (
     process.env.XOA_PLAN === 5 ||
     xoaUpdaterState === 'disconnected' ||
-    xoaUpdaterState === 'error'
+    xoaUpdaterState === 'error' ||
+    xoaUpdaterState === 'registerNeeded'
   ) {
     return []
   }
