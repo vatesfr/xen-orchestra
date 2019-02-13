@@ -399,9 +399,7 @@ export const subscribeNotifications = createSubscription(async () => {
   try {
     notifications = await updater._call('getMessages')
   } catch (err) {
-    if (err.message !== 'Not registered') {
-      throw err
-    }
+    return []
   }
   const notificationCookie = getNotificationCookie()
   return map(
