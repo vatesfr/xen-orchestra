@@ -583,7 +583,13 @@ const TRANSFORMS = {
       MTU: +obj.MTU,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      other_config: obj.other_config,
+      other_config: {
+        ...obj.other_config,
+        automatic:
+          obj.other_config?.automatic !== undefined
+            ? obj.other_config.automatic === 'true'
+            : null,
+      },
       tags: obj.tags,
       PIFs: link(obj, 'PIFs'),
       VIFs: link(obj, 'VIFs'),

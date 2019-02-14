@@ -642,8 +642,7 @@ export default class NewVm extends BaseComponent {
     const poolNetworks = this._getPoolNetworks()
 
     return poolNetworks.filter(
-      network =>
-        network.other_config && network.other_config.automatic === 'true'
+      network => network.other_config && network.other_config.automatic
     )
   }
 
