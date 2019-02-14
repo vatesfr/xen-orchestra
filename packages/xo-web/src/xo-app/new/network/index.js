@@ -6,7 +6,6 @@ import PropTypes from 'prop-types'
 import styles from './index.css'
 import React, { Component } from 'react'
 import Wizard, { Section } from 'wizard'
-import { Col, Container, Row } from 'grid'
 import { connectStore } from 'utils'
 import { createBondedNetwork, createNetwork, getBondModes } from 'xo'
 import { createGetObject, getIsPoolAdmin } from 'selectors'
@@ -24,7 +23,7 @@ const EMPTY = {
   mtu: '',
   name: '',
   pif: undefined,
-  pifs: undefined,
+  pifs: [],
   vlan: '',
 }
 
@@ -37,19 +36,16 @@ const NewNetwork = decorate([
   provideState({
     initialState: () => ({ ...EMPTY, bondModes: undefined }),
     effects: {
-      initialize: async () => {
-        const bondModes = await getBondModes()
-        return { bondModes }
-      },
+      initialize: async () => ({ bondModes: await getBondModes() }),
       linkState,
-      onChangeBondedNetwork: () => ({ bonded }) => ({
-        ...EMPTY,
-        bonded: !bonded,
-      }),
-      onChangeMode: (_, bondMode) => () => ({ bondMode }),
+      onChangeMode: (_, bondMode) => ({ bondMode }),
       onChangePif: (_, value) => ({ bonded }) =>
         bonded ? { pifs: value } : { pif: value },
       reset: () => EMPTY,
+      toggleBonded: () => ({ bonded }) => ({
+        ...EMPTY,
+        bonded: !bonded,
+      }),
     },
     computed: {
       modeOptions: ({ bondModes }) =>
@@ -58,7 +54,7 @@ const NewNetwork = decorate([
               label: mode,
               value: mode,
             }))
-          : {},
+          : [],
       pifPredicate: (_, { pool }) => pif =>
         pif.vlan === -1 && pif.$host === (pool && pool.master),
     },
@@ -83,7 +79,7 @@ const NewNetwork = decorate([
       } = state
       return bonded
         ? createBondedNetwork({
-            bondMode,
+            bondMode: bondMode.value,
             description,
             mtu,
             name,
@@ -119,26 +115,17 @@ const NewNetwork = decorate([
     _renderHeader = () => {
       const { isPoolAdmin, pool } = this.props
       return (
-        <Container>
-          <Row>
-            <Col mediumSize={12}>
-              <h2>
-                {isPoolAdmin
-                  ? _('createNewNetworkOn', {
-                      select: (
-                        <span className={styles.inlineSelect}>
-                          <SelectPool
-                            onChange={this._selectPool}
-                            value={pool}
-                          />
-                        </span>
-                      ),
-                    })
-                  : _('createNewNetworkNoPermission')}
-              </h2>
-            </Col>
-          </Row>
-        </Container>
+        <h2>
+          {isPoolAdmin
+            ? _('createNewNetworkOn', {
+                select: (
+                  <span className={styles.inlineSelect}>
+                    <SelectPool onChange={this._selectPool} value={pool} />
+                  </span>
+                ),
+              })
+            : _('createNewNetworkNoPermission')}
+        </h2>
       )
     }
 
@@ -162,15 +149,14 @@ const NewNetwork = decorate([
           {pool !== undefined && (
             <form id='networkCreation'>
               <Wizard>
-                <Section icon='network' title='newNetworkGeneral'>
+                <Section icon='network' title='newNetworkType'>
+                  <div>
+                    <Toggle onChange={effects.toggleBonded} value={bonded} />{' '}
+                    <label>{_('bondedNetwork')}</label>
+                  </div>
+                </Section>
+                <Section icon='new-network-info' title='newNetworkInfo'>
                   <div className='form-group'>
-                    <div className='mb-1'>
-                      <Toggle
-                        onChange={effects.onChangeBondedNetwork}
-                        value={bonded}
-                      />{' '}
-                      <label>{_('bondedNetwork')}</label>
-                    </div>
                     <label>{_('newNetworkInterface')}</label>
                     <SelectPif
                       multi={bonded}
