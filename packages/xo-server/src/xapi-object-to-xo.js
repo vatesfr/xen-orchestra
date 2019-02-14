@@ -585,9 +585,7 @@ const TRANSFORMS = {
       name_label: obj.name_label,
       other_config: {
         ...obj.other_config,
-        automatic:
-          obj.other_config?.automatic !== undefined &&
-          obj.other_config.automatic === 'true',
+        automatic: obj.other_config?.automatic === 'true',
       },
       tags: obj.tags,
       PIFs: link(obj, 'PIFs'),
