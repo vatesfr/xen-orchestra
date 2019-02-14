@@ -2,6 +2,8 @@
 
 ### Enhancements
 
+- [VM migration] Display same-pool hosts first in the selector [#3262](https://github.com/vatesfr/xen-orchestra/issues/3262) (PR [#3890](https://github.com/vatesfr/xen-orchestra/pull/3890))
+
 ### Bug fixes
 
 - [Host] Fix multipathing status for XenServer < 7.5 [#3956](https://github.com/vatesfr/xen-orchestra/issues/3956) (PR [#3961](https://github.com/vatesfr/xen-orchestra/pull/3961))
