@@ -182,6 +182,7 @@ const messages = {
   homeFilterTags: 'Tags',
   homeSortBy: 'Sort by',
   homeSortByCpus: 'CPUs',
+  homeSortByStartedTime: 'Started time',
   homeSortByName: 'Name',
   homeSortByPowerstate: 'Power state',
   homeSortByRAM: 'RAM',

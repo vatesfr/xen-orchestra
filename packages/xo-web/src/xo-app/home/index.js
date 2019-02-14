@@ -206,6 +206,11 @@ const OPTIONS = {
         sortBy: 'container.name_label',
         sortOrder: 'asc',
       },
+      {
+        labelId: 'homeSortByStartedTime',
+        sortBy: 'startTime',
+        sortOrder: 'desc',
+      },
     ],
   },
   pool: {
