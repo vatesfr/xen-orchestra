@@ -362,14 +362,18 @@ export default class XapiStats {
           return
         }
 
-        const stepStats = createGetProperty(
-          createGetProperty(this._statsByObject, uuid, {}),
-          step,
-          {}
-        )
-        stepStats.endTimestamp = json.meta.end
-        stepStats.localTimestamp = localTimestamp
-        stepStats.interval = step
+        const xoObjectStats = createGetProperty(this._statsByObject, uuid, {})
+        const stepStats = xoObjectStats[step]
+        if (
+          stepStats === undefined ||
+          stepStats.localTimestamp !== localTimestamp
+        ) {
+          xoObjectStats[step] = {
+            endTimestamp: json.meta.end,
+            localTimestamp: localTimestamp,
+            interval: step,
+          }
+        }
 
         const path =
           metric.getPath !== undefined
