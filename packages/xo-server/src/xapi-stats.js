@@ -7,7 +7,6 @@ import {
   endsWith,
   findKey,
   forEach,
-  get,
   identity,
   map,
   mapValues,
@@ -283,18 +282,10 @@ export default class XapiStats {
       .then(response => response.readAll().then(JSON5.parse))
   }
 
-  async _getNextTimestamp(xapi, host, uuid, step) {
+  async _getOptimumTimestamp(xapi, host, step) {
     const currentTimeStamp = await getServerTimestamp(xapi, host.$ref)
     const maxDuration = step * RRD_POINTS_PER_STEP[step]
-    const lastTimestamp = this._statsByObject[uuid]?.[step]?.endTimestamp
-
-    if (
-      lastTimestamp === undefined ||
-      currentTimeStamp - lastTimestamp + step > maxDuration
-    ) {
-      return currentTimeStamp - maxDuration + step
-    }
-    return lastTimestamp
+    return currentTimeStamp - maxDuration + step
   }
 
   // To avoid multiple requests, we keep a cash for the stats and
@@ -307,7 +298,6 @@ export default class XapiStats {
       return
     }
 
-    // stats are out of date
     if (stats.localTimestamp + step < getCurrentTimestamp()) {
       delete statsByObject[uuid][step]
       return
@@ -335,7 +325,7 @@ export default class XapiStats {
       return stats
     }
 
-    const timestamp = await this._getNextTimestamp(xapi, host, uuid, step)
+    const timestamp = await this._getOptimumTimestamp(xapi, host, step)
     const json = await this._getJson(xapi, host, timestamp, step)
     if (json.meta.step !== step) {
       throw new FaultyGranularity(
@@ -398,7 +388,7 @@ export default class XapiStats {
     }
 
     return (
-      this._statsByObject[vmUuid ?? hostUuid]?.[step] ?? {
+      this._statsByObject[uuid]?.[step] ?? {
         endTimestamp: localTimestamp,
         interval: step,
         stats: {},
