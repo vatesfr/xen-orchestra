@@ -214,7 +214,7 @@ export default class MigrateVmModalBody extends BaseComponent {
     })
   }
 
-  _getCompareContainers = (pool1, pool2) => {
+  compareContainers = (pool1, pool2) => {
     const { $pool: poolId } = this.props.vm
     return pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
   }
@@ -239,7 +239,7 @@ export default class MigrateVmModalBody extends BaseComponent {
             <Col size={4}>{_('migrateVmSelectHost')}</Col>
             <Col size={8}>
               <SelectHost
-                compareContainers={this._getCompareContainers}
+                compareContainers={this.compareContainers}
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 required

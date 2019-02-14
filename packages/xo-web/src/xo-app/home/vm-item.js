@@ -54,7 +54,7 @@ export default class VmItem extends Component {
     return vm && vm.power_state === 'Running'
   }
 
-  _getCompareContainers = (pool1, pool2) => {
+  compareContainers = (pool1, pool2) => {
     const { $pool: poolId } = this.props.item
     return pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
   }
@@ -179,7 +179,7 @@ export default class VmItem extends Component {
             <Col mediumSize={2} className='hidden-sm-down'>
               {this._isRunning && container ? (
                 <XoSelect
-                  compareContainers={this._getCompareContainers}
+                  compareContainers={this.compareContainers}
                   labelProp='name_label'
                   onChange={this._migrateVm}
                   placeholder={_('homeMigrateTo')}
