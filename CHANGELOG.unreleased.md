@@ -9,7 +9,7 @@
 - Enable compression for HTTP requests (and initial objects fetch)
 - [VDI migration] Display same-pool SRs first in the selector [#3945](https://github.com/vatesfr/xen-orchestra/issues/3945) (PR [#3996](https://github.com/vatesfr/xen-orchestra/pull/3996))
 - [Home] Save the current page in url [#3993](https://github.com/vatesfr/xen-orchestra/issues/3993) (PR [#3999](https://github.com/vatesfr/xen-orchestra/pull/3999))
-
+- [VM/disk] Illegal SR: Display a warning message and a confirmation modal on attaching a disk [#3911](https://github.com/vatesfr/xen-orchestra/issues/3911) (PR [#3969](https://github.com/vatesfr/xen-orchestra/pull/3969))
 ### Bug fixes
 
 - [New network] PIF was wrongly required which prevented from creating a private network (PR [#4010](https://github.com/vatesfr/xen-orchestra/pull/4010))
