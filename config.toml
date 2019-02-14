@@ -4,7 +4,7 @@ pool = 'lab3'
 pvVm = 'xo-test-pv'
 vmToMigrate = 'souad'
 xoServerUrl = 'localhost:9000'
-vmIdXoTest = 'ceabe44c-f04d-6674-5599-bfd7b7e298ba'
+vmIdXoTest = 'd865d913-eb17-b1af-399c-07edbe57551c'
 
 # powerOnMode has to be not empty
 host1 = 'lab1'

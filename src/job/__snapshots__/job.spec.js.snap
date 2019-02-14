@@ -11,7 +11,7 @@ Object {
         "type": "set",
         "values": Array [
           Object {
-            "id": "ceabe44c-f04d-6674-5599-bfd7b7e298ba",
+            "id": "d865d913-eb17-b1af-399c-07edbe57551c",
             "name": "test-snapshot",
           },
         ],
@@ -26,6 +26,32 @@ Object {
 
 exports[`job .create() : fails trying to create a job without job params 1`] = `[JsonRpcError: invalid parameters]`;
 
+exports[`job .get() : fails trying to get a job with a non existent id 1`] = `[JsonRpcError: no such job [object Object]]`;
+
+exports[`job .get() : gets an existing job 1`] = `
+Object {
+  "key": "snapshot",
+  "method": "vm.snapshot",
+  "name": "jobTest",
+  "paramsVector": Object {
+    "items": Array [
+      Object {
+        "type": "set",
+        "values": Array [
+          Object {
+            "id": "d865d913-eb17-b1af-399c-07edbe57551c",
+            "name": "test-snapshot",
+          },
+        ],
+      },
+    ],
+    "type": "crossProduct",
+  },
+  "timeout": 2000,
+  "type": "call",
+}
+`;
+
 exports[`job .getAll() : gets all available jobs 1`] = `
 Array [
   Object {
@@ -38,7 +64,7 @@ Array [
           "type": "set",
           "values": Array [
             Object {
-              "id": "ceabe44c-f04d-6674-5599-bfd7b7e298ba",
+              "id": "d865d913-eb17-b1af-399c-07edbe57551c",
               "name": "test-snapshot",
             },
           ],
@@ -59,7 +85,7 @@ Array [
           "type": "set",
           "values": Array [
             Object {
-              "id": "ceabe44c-f04d-6674-5599-bfd7b7e298ba",
+              "id": "d865d913-eb17-b1af-399c-07edbe57551c",
               "name": "test2-snapshot",
             },
           ],
@@ -71,32 +97,6 @@ Array [
     "type": "call",
   },
 ]
-`;
-
-exports[`job .get() : fails trying to get a job with a non existent id 1`] = `[JsonRpcError: no such job [object Object]]`;
-
-exports[`job .get() : gets an existing job 1`] = `
-Object {
-  "key": "snapshot",
-  "method": "vm.snapshot",
-  "name": "jobTest",
-  "paramsVector": Object {
-    "items": Array [
-      Object {
-        "type": "set",
-        "values": Array [
-          Object {
-            "id": "ceabe44c-f04d-6674-5599-bfd7b7e298ba",
-            "name": "test-snapshot",
-          },
-        ],
-      },
-    ],
-    "type": "crossProduct",
-  },
-  "timeout": 2000,
-  "type": "call",
-}
 `;
 
 exports[`job .set() : fails trying to set a job without job.id 1`] = `[JsonRpcError: invalid parameters]`;
@@ -113,7 +113,7 @@ Object {
         "values": Array [
           Object {
             "full_copy": true,
-            "id": "ceabe44c-f04d-6674-5599-bfd7b7e298ba",
+            "id": "d865d913-eb17-b1af-399c-07edbe57551c",
             "name": "clone",
           },
         ],
