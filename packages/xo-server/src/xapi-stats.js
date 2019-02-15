@@ -52,11 +52,6 @@ const RRD_POINTS_PER_STEP = {
 // Utils
 // -------------------------------------------------------------------
 
-// Return current local timestamp in seconds
-function getCurrentTimestamp() {
-  return Date.now() / 1000
-}
-
 function convertNanToNull(value) {
   return isNaN(value) ? null : value
 }
@@ -282,15 +277,9 @@ export default class XapiStats {
       .then(response => response.readAll().then(JSON5.parse))
   }
 
-  async _getOptimumTimestamp(xapi, host, step) {
-    const currentTimeStamp = await getServerTimestamp(xapi, host.$ref)
-    const maxDuration = step * RRD_POINTS_PER_STEP[step]
-    return currentTimeStamp - maxDuration + step
-  }
-
   // To avoid multiple requests, we keep a cash for the stats and
   // only return it if we not exceed a step
-  _getCachedStats(uuid, step) {
+  _getCachedStats(uuid, step, currentTimeStamp) {
     const statsByObject = this._statsByObject
 
     const stats = statsByObject[uuid]?.[step]
@@ -298,7 +287,7 @@ export default class XapiStats {
       return
     }
 
-    if (stats.localTimestamp + step < getCurrentTimestamp()) {
+    if (stats.endTimestamp + step < currentTimeStamp) {
       delete statsByObject[uuid][step]
       return
     }
@@ -319,21 +308,25 @@ export default class XapiStats {
       )
     }
 
+    const currentTimeStamp = await getServerTimestamp(xapi, host.$ref)
+
     // Limit the number of http requests
-    const stats = this._getCachedStats(uuid, step)
+    const stats = this._getCachedStats(uuid, step, currentTimeStamp)
     if (stats !== undefined) {
       return stats
     }
 
-    const timestamp = await this._getOptimumTimestamp(xapi, host, step)
-    const json = await this._getJson(xapi, host, timestamp, step)
+    const maxDuration = step * RRD_POINTS_PER_STEP[step]
+
+    // To avoid exceed the maxDuration, we add a step
+    const optimumTimestamp = currentTimeStamp - maxDuration + step
+    const json = await this._getJson(xapi, host, optimumTimestamp, step)
     if (json.meta.step !== step) {
       throw new FaultyGranularity(
         `Unable to get the true granularity: ${json.meta.step}`
       )
     }
 
-    const localTimestamp = getCurrentTimestamp()
     if (json.data.length > 0) {
       // reorder data
       json.data.reverse()
@@ -356,12 +349,11 @@ export default class XapiStats {
         let stepStats = xoObjectStats[step]
         if (
           stepStats === undefined ||
-          stepStats.localTimestamp !== localTimestamp
+          stepStats.endTimestamp !== json.meta.end
         ) {
           stepStats = xoObjectStats[step] = {
             endTimestamp: json.meta.end,
             interval: step,
-            localTimestamp,
           }
         }
 
@@ -389,17 +381,17 @@ export default class XapiStats {
 
     return (
       this._statsByObject[uuid]?.[step] ?? {
-        endTimestamp: localTimestamp,
+        endTimestamp: currentTimeStamp,
         interval: step,
         stats: {},
-        localTimestamp,
       }
     )
   }
 
   getHostStats(xapi, hostId, granularity) {
+    const host = xapi.getObject(hostId)
     return this._getAndUpdateStats(xapi, {
-      host: xapi.getObject(hostId),
+      host,
       uuid: host.uuid,
       granularity,
     })
