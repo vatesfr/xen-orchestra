@@ -15,6 +15,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xapi-explore-sr",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xapi-explore-sr",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

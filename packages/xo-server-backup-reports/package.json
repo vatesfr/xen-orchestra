@@ -18,6 +18,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-backup-reports",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-server-backup-reports",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

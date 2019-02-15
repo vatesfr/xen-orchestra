@@ -12,6 +12,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-cli",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-cli",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
