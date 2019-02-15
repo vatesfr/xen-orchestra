@@ -1134,7 +1134,7 @@ export class Xapi extends EventEmitter {
 Xapi.prototype._transportCall = reduce(
   [
     function(method, args) {
-      return this._call(method, args).catch(error => {
+      return pTimeout(this._call(method, args), HTTP_TIMEOUT).catch(error => {
         if (!(error instanceof Error)) {
           error = wrapError(error)
         }
