@@ -155,7 +155,7 @@ const NewNetwork = decorate([
                     <label>{_('bondedNetwork')}</label>
                   </div>
                 </Section>
-                <Section icon='new-network-info' title='newNetworkInfo'>
+                <Section icon='info' title='newNetworkInfo'>
                   <div className='form-group'>
                     <label>{_('newNetworkInterface')}</label>
                     <SelectPif
