@@ -207,7 +207,7 @@ const OPTIONS = {
         sortOrder: 'asc',
       },
       {
-        labelId: 'homeSortByStartedTime',
+        labelId: 'homeSortByStartTime',
         sortBy: 'startTime',
         sortOrder: 'desc',
       },
