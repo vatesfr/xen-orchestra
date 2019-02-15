@@ -144,4 +144,26 @@ describe("job", () => {
       await expect(xo.call("job.set", defaultJob)).rejects.toMatchSnapshot();
     });
   });
+
+  describe(".delete() :", () => {
+    it("deletes an existing job", async () => {
+      const id = await xo.call("job.create", { job: defaultJob });
+      const { id: scheduleId } = await xo.call("schedule.create", {
+        jobId: id,
+        cron: "* * * * * *",
+        enabled: false,
+      });
+      await xo.call("job.delete", { id });
+      await expect(xo.call("job.get", { id })).rejects.toMatchSnapshot();
+      await expect(
+        xo.call("schedule.get", { id: scheduleId })
+      ).rejects.toMatchSnapshot();
+    });
+
+    it.skip("fails trying to delete a job with a non existent id", async () => {
+      await expect(
+        xo.call("job.delete", { id: "non-existent-id" })
+      ).rejects.toMatchSnapshot();
+    });
+  });
 });

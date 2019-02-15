@@ -26,6 +26,10 @@ Object {
 
 exports[`job .create() : fails trying to create a job without job params 1`] = `[JsonRpcError: invalid parameters]`;
 
+exports[`job .delete() : deletes an existing job 1`] = `[JsonRpcError: no such job [object Object]]`;
+
+exports[`job .delete() : deletes an existing job 2`] = `[JsonRpcError: no such schedule [object Object]]`;
+
 exports[`job .get() : fails trying to get a job with a non existent id 1`] = `[JsonRpcError: no such job [object Object]]`;
 
 exports[`job .get() : gets an existing job 1`] = `
