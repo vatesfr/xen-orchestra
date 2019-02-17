@@ -120,6 +120,8 @@ const getObjectsById = objects =>
 class GenericSelect extends React.Component {
   static propTypes = {
     allowMissingObjects: PropTypes.bool,
+    compareContainers: PropTypes.func,
+    compareOptions: PropTypes.func,
     hasSelectAll: PropTypes.bool,
     multi: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
@@ -178,7 +180,9 @@ class GenericSelect extends React.Component {
   _getOptions = createSelector(
     () => this.props.xoContainers,
     this._getObjects,
-    (containers, objects) => {
+    () => this.props.compareContainers,
+    () => this.props.compareOptions,
+    (containers, objects, compareContainers, compareOptions) => {
       // createCollectionWrapper with a depth?
       const { name } = this.constructor
 
@@ -190,7 +194,10 @@ class GenericSelect extends React.Component {
           )
         }
 
-        options = map(objects, getOption)
+        options = (compareOptions !== undefined
+          ? objects.sort(compareOptions)
+          : objects
+        ).map(getOption)
       } else {
         if (__DEV__ && isArray(objects)) {
           throw new Error(
@@ -199,13 +206,21 @@ class GenericSelect extends React.Component {
         }
 
         options = []
-        forEach(containers, container => {
+        const _containers =
+          compareContainers !== undefined
+            ? containers.sort(compareContainers)
+            : containers
+        forEach(_containers, container => {
           options.push({
             disabled: true,
             xoItem: container,
           })
 
-          forEach(objects[container.id], object => {
+          const _objects =
+            compareOptions !== undefined
+              ? objects[container.id].sort(compareOptions)
+              : objects[container.id]
+          forEach(_objects, object => {
             options.push(getOption(object, container))
           })
         })
@@ -375,9 +390,20 @@ export const SelectHost = makeStoreSelect(
     const getHostsByPool = createGetObjectsOfType('host')
       .filter(getPredicate)
       .sort()
+      .groupBy('$pool')
+
+    const getPools = createGetObjectsOfType('pool')
+      .pick(
+        createSelector(
+          getHostsByPool,
+          hostsByPool => Object.keys(hostsByPool)
+        )
+      )
+      .sort()
 
     return {
       xoObjects: getHostsByPool,
+      xoContainers: getPools,
     }
   },
   { placeholder: _('selectHosts') }

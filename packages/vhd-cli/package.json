@@ -7,6 +7,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/vhd-cli",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/vhd-cli",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -26,7 +27,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^0.6.0",
+    "@xen-orchestra/fs": "^0.6.1",
     "cli-progress": "^2.0.0",
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",

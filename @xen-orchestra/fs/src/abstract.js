@@ -34,18 +34,18 @@ const ignoreEnoent = error => {
 }
 
 class PrefixWrapper {
-  constructor(remote, prefix) {
+  constructor(handler, prefix) {
     this._prefix = prefix
-    this._remote = remote
+    this._handler = handler
   }
 
   get type() {
-    return this._remote.type
+    return this._handler.type
   }
 
   // necessary to remove the prefix from the path with `prependDir` option
   async list(dir, opts) {
-    const entries = await this._remote.list(this._resolve(dir), opts)
+    const entries = await this._handler.list(this._resolve(dir), opts)
     if (opts != null && opts.prependDir) {
       const n = this._prefix.length
       entries.forEach((entry, i, entries) => {
@@ -56,7 +56,7 @@ class PrefixWrapper {
   }
 
   rename(oldPath, newPath) {
-    return this._remote.rename(this._resolve(oldPath), this._resolve(newPath))
+    return this._handler.rename(this._resolve(oldPath), this._resolve(newPath))
   }
 
   _resolve(path) {
@@ -565,7 +565,7 @@ function createPrefixWrapperMethods() {
       if (arguments.length !== 0 && typeof (path = arguments[0]) === 'string') {
         arguments[0] = this._resolve(path)
       }
-      return value.apply(this._remote, arguments)
+      return value.apply(this._handler, arguments)
     }
 
     defineProperty(pPw, name, descriptor)

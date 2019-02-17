@@ -14,6 +14,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-auth-ldap",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-server-auth-ldap",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

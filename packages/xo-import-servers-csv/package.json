@@ -16,6 +16,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-import-servers-csv",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-import-servers-csv",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

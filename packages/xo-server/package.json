@@ -1,6 +1,6 @@
 {
   "name": "xo-server",
-  "version": "5.34.1",
+  "version": "5.35.0",
   "license": "AGPL-3.0",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -12,6 +12,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-server",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -35,7 +36,7 @@
     "@xen-orchestra/async-map": "^0.0.0",
     "@xen-orchestra/cron": "^1.0.3",
     "@xen-orchestra/emit-async": "^0.0.0",
-    "@xen-orchestra/fs": "^0.6.0",
+    "@xen-orchestra/fs": "^0.6.1",
     "@xen-orchestra/log": "^0.1.4",
     "@xen-orchestra/mixin": "^0.0.0",
     "ajv": "^6.1.1",
@@ -118,7 +119,7 @@
     "value-matcher": "^0.2.0",
     "vhd-lib": "^0.5.1",
     "ws": "^6.0.0",
-    "xen-api": "^0.24.1",
+    "xen-api": "^0.24.2",
     "xml2js": "^0.4.19",
     "xo-acl-resolver": "^0.4.1",
     "xo-collection": "^0.4.1",

@@ -1,10 +1,16 @@
 import _ from 'intl'
 import React from 'react'
 import BaseComponent from 'base-component'
-import { Row, Col } from 'grid'
-import { mapValues } from 'lodash'
+import { forEach } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
 import { buildTemplate, connectStore } from 'utils'
+import { Container, Col, Row } from 'grid'
+
+const RULES = {
+  '{date}': () => new Date().toISOString(),
+  '{description}': vm => vm.name_description,
+  '{name}': vm => vm.name_label,
+}
 
 @connectStore(
   {
@@ -13,29 +19,42 @@ import { buildTemplate, connectStore } from 'utils'
   { withRef: true }
 )
 export default class SnapshotVmModalBody extends BaseComponent {
-  state = { namePattern: '{name}_{date}' }
+  state = {
+    descriptionPattern: '{description}',
+    namePattern: '{name}_{date}',
+  }
 
   get value() {
-    const { namePattern, saveMemory } = this.state
-    if (namePattern === '') {
-      return { names: {}, saveMemory }
+    const { descriptionPattern, namePattern, saveMemory } = this.state
+    if (namePattern === '' && descriptionPattern === '') {
+      return { names: {}, descriptions: {}, saveMemory }
     }
 
-    const generateName = buildTemplate(namePattern, {
-      '{name}': vm => vm.name_label,
-      '{date}': new Date().toISOString(),
+    const generateName = buildTemplate(namePattern, RULES)
+    const generateDescription = buildTemplate(descriptionPattern, RULES)
+    const names = {}
+    const descriptions = {}
+
+    forEach(this.props.vms, (vm, id) => {
+      if (namePattern !== '') {
+        names[id] = generateName(vm)
+      }
+      if (descriptionPattern !== '') {
+        descriptions[id] = generateDescription(vm)
+      }
     })
 
     return {
-      names: mapValues(this.props.vms, generateName),
+      descriptions,
+      names,
       saveMemory,
     }
   }
 
   render() {
     return (
-      <div>
-        <Row>
+      <Container>
+        <Row className='mb-1'>
           <Col size={6}>{_('snapshotVmsName')}</Col>
           <Col size={6}>
             <input
@@ -43,6 +62,17 @@ export default class SnapshotVmModalBody extends BaseComponent {
               onChange={this.linkState('namePattern')}
               type='text'
               value={this.state.namePattern}
+            />
+          </Col>
+        </Row>
+        <Row>
+          <Col size={6}>{_('snapshotVmsDescription')}</Col>
+          <Col size={6}>
+            <input
+              className='form-control'
+              onChange={this.linkState('descriptionPattern')}
+              type='text'
+              value={this.state.descriptionPattern}
             />
           </Col>
         </Row>
@@ -58,7 +88,7 @@ export default class SnapshotVmModalBody extends BaseComponent {
             </label>
           </Col>
         </Row>
-      </div>
+      </Container>
     )
   }
 }

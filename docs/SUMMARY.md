@@ -51,6 +51,7 @@
    * [Job manager](scheduler.md)
    * [Alerts](alerts.md)
    * [Load balancing](load_balancing.md)
+   * [Emergency Shutdown](emergency_shutdown.md)
    * [Auto scalability](auto_scalability.md)
    * [Forecaster](forecaster.md)
 * [Recipes](recipes.md)

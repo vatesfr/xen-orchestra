@@ -395,7 +395,12 @@ export const subscribeNotifications = createSubscription(async () => {
     return []
   }
 
-  const notifications = await updater._call('getMessages')
+  let notifications
+  try {
+    notifications = await updater._call('getMessages')
+  } catch (err) {
+    return []
+  }
   const notificationCookie = getNotificationCookie()
   return map(
     user != null && user.permission === 'admin'
@@ -1180,8 +1185,8 @@ export const deleteTemplates = templates =>
           }, noop)
   }, noop)
 
-export const snapshotVm = (vm, name, saveMemory) =>
-  _call('vm.snapshot', { id: resolveId(vm), name, saveMemory })
+export const snapshotVm = (vm, name, saveMemory, description) =>
+  _call('vm.snapshot', { id: resolveId(vm), name, description, saveMemory })
 
 import SnapshotVmModalBody from './snapshot-vm-modal' // eslint-disable-line import/first
 export const snapshotVms = vms =>
@@ -1190,8 +1195,10 @@ export const snapshotVms = vms =>
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
     body: <SnapshotVmModalBody vms={vms} />,
   }).then(
-    ({ names, saveMemory }) =>
-      Promise.all(map(vms, vm => snapshotVm(vm, names[vm], saveMemory))),
+    ({ names, saveMemory, descriptions }) =>
+      Promise.all(
+        map(vms, vm => snapshotVm(vm, names[vm], saveMemory, descriptions[vm]))
+      ),
     noop
   )
 

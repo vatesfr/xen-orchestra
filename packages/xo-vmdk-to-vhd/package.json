@@ -10,6 +10,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-vmdk-to-vhd",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-vmdk-to-vhd",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

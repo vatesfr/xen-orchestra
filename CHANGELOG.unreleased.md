@@ -2,16 +2,18 @@
 
 ### Enhancements
 
+- [VM migration] Display same-pool hosts first in the selector [#3262](https://github.com/vatesfr/xen-orchestra/issues/3262) (PR [#3890](https://github.com/vatesfr/xen-orchestra/pull/3890))
+- [Home/VM] Sort VM by start time [#3955](https://github.com/vatesfr/xen-orchestra/issues/3955) (PR [#3970](https://github.com/vatesfr/xen-orchestra/pull/3970))
+
 ### Bug fixes
 
-- [Host] Show the host's memory usage instead of the sum of the VMs' memory usage (PR [#3924](https://github.com/vatesfr/xen-orchestra/pull/3924))
-- [SAML] Make `AssertionConsumerServiceURL` matches the callback URL
-- [Backup NG] Correctly delete broken VHD chains [#3875](https://github.com/vatesfr/xen-orchestra/issues/3875) (PR [#3939](https://github.com/vatesfr/xen-orchestra/pull/3939))
-- [Remotes] Don't ignore `mount` options [#3935](https://github.com/vatesfr/xen-orchestra/issues/3935) (PR [#3931](https://github.com/vatesfr/xen-orchestra/pull/3931))
+- [Host] Fix multipathing status for XenServer < 7.5 [#3956](https://github.com/vatesfr/xen-orchestra/issues/3956) (PR [#3961](https://github.com/vatesfr/xen-orchestra/pull/3961))
+- [Home/VM] Show creation date of the VM on if it available [#3953](https://github.com/vatesfr/xen-orchestra/issues/3953) (PR [#3959](https://github.com/vatesfr/xen-orchestra/pull/3959))
+- [Notifications] Fix invalid notifications when not registered (PR [#3966](https://github.com/vatesfr/xen-orchestra/pull/3966))
 
 ### Released packages
 
-- @xen-orchestra/fs v0.6.1
-- xo-server-auth-saml v0.5.3
-- xo-server v5.35.0
-- xo-web v5.35.0
+- xen-api v0.24.3
+- xoa-updater v0.15.2
+- xo-server v5.36.0
+- xo-web v5.36.0

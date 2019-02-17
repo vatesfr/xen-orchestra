@@ -23,6 +23,7 @@ require('exec-promise')(() =>
     pkg.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/${relativeDir}`
     pkg.bugs = `https://github.com/vatesfr/xen-orchestra/issues`
     pkg.repository = {
+      directory: relativeDir,
       type: 'git',
       url: 'https://github.com/vatesfr/xen-orchestra.git',
     }

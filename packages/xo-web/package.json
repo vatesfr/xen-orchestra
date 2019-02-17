@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-web",
-  "version": "5.34.0",
+  "version": "5.35.0",
   "license": "AGPL-3.0",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -13,6 +13,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-web",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-web",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

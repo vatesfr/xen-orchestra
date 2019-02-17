@@ -36,6 +36,7 @@ import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
+import pRetry from '../_pRetry'
 import {
   camelToSnakeCase,
   ensureArray,
@@ -415,21 +416,29 @@ export default class Xapi extends XapiBase {
     await this.call('host.enable', this.getObject(hostId).$ref)
   }
 
+  // Resources:
+  // - Citrix XenServer ® 7.0 Administrator's Guide ch. 5.4
+  // - https://github.com/xcp-ng/xenadmin/blob/60dd70fc36faa0ec91654ec97e24b7af36acff9f/XenModel/Actions/Host/EditMultipathAction.cs
+  // - https://github.com/serencorbett1/xenadmin/blob/1c3fb0c1112e4e316423afc6a028066001d3dea1/XenModel/XenAPI-Extensions/SR.cs
   @deferrable.onError(log.warn)
   async setHostMultipathing($defer, hostId, multipathing) {
     const host = this.getObject(hostId)
 
+    if (host.enabled) {
+      await this.disableHost(hostId)
+      $defer(() => this.enableHost(hostId))
+    }
+
+    // Xen center evacuate running VMs before unplugging the PBDs.
+    // The evacuate method uses the live migration to migrate running VMs
+    // from host to another. It only works when a shared SR is present
+    // in the host. For this reason we chose to show a warning instead.
     const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
     await asyncMap(pluggedPbds, async pbd => {
       const ref = pbd.$ref
       await this.unplugPbd(ref)
       $defer(() => this.plugPbd(ref))
     })
-
-    if (host.enabled) {
-      await this.disableHost(hostId)
-      $defer(() => this.enableHost(hostId))
-    }
 
     return this._updateObjectMapProperty(
       host,
@@ -1545,15 +1554,50 @@ export default class Xapi extends XapiBase {
       }`
     )
 
+    const vmRef = vm.$ref
     let ref
     do {
       if (!vm.tags.includes('xo-disable-quiesce')) {
         try {
-          ref = await this.callAsync(
-            $cancelToken,
-            'VM.snapshot_with_quiesce',
-            vm.$ref,
-            nameLabel
+          vm = await this.barrier(vmRef)
+          ref = await pRetry(
+            async bail => {
+              try {
+                return await this.callAsync(
+                  $cancelToken,
+                  'VM.snapshot_with_quiesce',
+                  vmRef,
+                  nameLabel
+                )
+              } catch (error) {
+                if (error?.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
+                  throw bail(error)
+                }
+
+                // detect and remove new broken snapshots
+                //
+                // see https://github.com/vatesfr/xen-orchestra/issues/3936
+                const prevSnapshotRefs = new Set(vm.snapshots)
+                const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
+                vm = await this.barrier(vmRef)
+                const createdSnapshots = vm.$snapshots.filter(
+                  _ =>
+                    !prevSnapshotRefs.has(_.$ref) &&
+                    _.name_label.startsWith(snapshotNameLabelPrefix)
+                )
+
+                // be safe: only delete if there was a single match
+                if (createdSnapshots.length === 1) {
+                  ignoreErrors.call(this._deleteVm(createdSnapshots[0]))
+                }
+
+                throw error
+              }
+            },
+            {
+              delay: 60e3,
+              tries: 3,
+            }
           ).then(extractOpaqueRef)
           this.addTag(ref, 'quiesce')::ignoreErrors()
 
@@ -1575,7 +1619,7 @@ export default class Xapi extends XapiBase {
       ref = await this.callAsync(
         $cancelToken,
         'VM.snapshot',
-        vm.$ref,
+        vmRef,
         nameLabel
       ).then(extractOpaqueRef)
     } while (false)
@@ -1849,7 +1893,9 @@ export default class Xapi extends XapiBase {
       }`
     )
     try {
-      await this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {})
+      await pRetry(() => this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {}), {
+        when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
+      })
     } catch (error) {
       const { code } = error
       if (

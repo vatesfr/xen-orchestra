@@ -15,6 +15,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-usage-report",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-server-usage-report",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
