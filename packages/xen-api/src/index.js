@@ -1134,17 +1134,19 @@ export class Xapi extends EventEmitter {
 Xapi.prototype._transportCall = reduce(
   [
     function(method, args) {
-      return pTimeout(this._call(method, args), HTTP_TIMEOUT).catch(error => {
-        if (!(error instanceof Error)) {
-          error = wrapError(error)
-        }
+      return pTimeout
+        .call(this._call(method, args), HTTP_TIMEOUT)
+        .catch(error => {
+          if (!(error instanceof Error)) {
+            error = wrapError(error)
+          }
 
-        error.call = {
-          method,
-          params: replaceSensitiveValues(args, '* obfuscated *'),
-        }
-        throw error
-      })
+          error.call = {
+            method,
+            params: replaceSensitiveValues(args, '* obfuscated *'),
+          }
+          throw error
+        })
     },
     call =>
       function() {
