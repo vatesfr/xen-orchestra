@@ -1315,8 +1315,7 @@ const messages = {
   newVmShowAdvanced: 'Show advanced settings',
   newVmHideAdvanced: 'Hide advanced settings',
   newVmShare: 'Share this VM',
-  newVmSrsNotOnSameHost:
-    "Select SRs in same host. VM can't run at 2 hosts at the same time",
+  newVmSrsNotOnSameHost: 'The SRs must either be on the same host or shared',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

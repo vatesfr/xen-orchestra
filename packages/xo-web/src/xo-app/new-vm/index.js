@@ -46,6 +46,7 @@ import {
   createVm,
   createVms,
   getCloudInitConfig,
+  isSrShared,
   subscribeCurrentUser,
   subscribeIpPools,
   subscribeResourceSets,
@@ -1345,26 +1346,38 @@ export default class NewVm extends BaseComponent {
 
   // DISKS -----------------------------------------------------------------------
 
-  _getSrsNotOnSameHost = createSelector(
-    () => this.state.state.existingDisks,
-    () => this.state.state.VDIs,
+  _areSrsNotOnSameHost = createSelector(
     () => this.props.srs,
-    (existingDisks, vdis, srs) => {
+    srs => disks => {
+      if (isEmpty(disks)) {
+        return false
+      }
       let container
       const predicate = srId =>
         container !== undefined
           ? container !== srs[srId].$container
-          : ((container = get(() => srs[srId].$container)), false)
+          : ((container = srs[srId].$container), false)
 
-      return (
-        vdis.some(({ SR: srId }) => srId !== null && predicate(srId)) &&
-        (isEmpty(existingDisks) ||
-          some(
-            existingDisks,
-            ({ $SR: srId }) => srId !== null && predicate(srId)
-          ))
-      )
+      return some(disks, disk => {
+        const srId = disk.$SR || disk.SR
+        return srId != null && !isSrShared(srs[srId]) ? predicate(srId) : false
+      })
     }
+  )
+
+  _srsNotOnSameHost = createSelector(
+    createSelector(
+      this._areSrsNotOnSameHost,
+      () => this.state.state.existingDisks,
+      (areSrsNotOnSameHost, existingDisks) => areSrsNotOnSameHost(existingDisks)
+    ),
+    createSelector(
+      this._areSrsNotOnSameHost,
+      () => this.state.state.VDIs,
+      (areSrsNotOnSameHost, vdis) => areSrsNotOnSameHost(vdis)
+    ),
+    (srsExistingDisksNotOnSmaeHost, srsVdisNotOnSameHost) =>
+      srsVdisNotOnSameHost || srsExistingDisksNotOnSmaeHost
   )
 
   _renderDisks = () => {
@@ -1382,7 +1395,7 @@ export default class NewVm extends BaseComponent {
         done={this._isDisksDone()}
       >
         <SectionContent column>
-          {this._getSrsNotOnSameHost() && (
+          {this._srsNotOnSameHost() && (
             <span className='text-danger'>
               <Icon icon='alarm' /> {_('newVmSrsNotOnSameHost')}
             </span>
