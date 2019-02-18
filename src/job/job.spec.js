@@ -43,12 +43,13 @@ describe("job", () => {
       const userId = await xo.createUser(ADMIN_USER);
       const { email, password } = ADMIN_USER;
       await testWithOtherConnection({ email, password }, async xo => {
-        const id = await xo.createJob(defaultJob);
+        const id = await xo.call("job.create", { job: defaultJob });
         expect(typeof id).toBe("string");
 
         const job = await xo.call("job.get", { id });
         expect(omit(job, "id", "userId")).toMatchSnapshot();
         expect(job.userId).toBe(userId);
+        await xo.call("job.delete", { id });
       });
     });
 
