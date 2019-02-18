@@ -148,7 +148,7 @@ async function parseOVF(fileFragment) {
         const hardware = system.VirtualHardwareSection
 
         // Get VM name/description.
-        data.nameLabel = hardware.System['VirtualSystemIdentifier']
+        data.nameLabel = hardware.System.VirtualSystemIdentifier
         data.descriptionLabel =
           (system.AnnotationSection && system.AnnotationSection.Annotation) ||
           (system.OperatingSystemSection &&
@@ -158,20 +158,20 @@ async function parseOVF(fileFragment) {
         forEach(ensureArray(disks), disk => {
           const file = find(
             ensureArray(files),
-            file => file['id'] === disk['fileRef']
+            file => file.id === disk.fileRef
           )
-          const unit = disk['capacityAllocationUnits']
+          const unit = disk.capacityAllocationUnits
 
-          data.disks[disk['diskId']] = {
+          data.disks[disk.diskId] = {
             capacity:
-              disk['capacity'] * ((unit && allocationUnitsToFactor(unit)) || 1),
-            path: file && file['href'],
+              disk.capacity * ((unit && allocationUnitsToFactor(unit)) || 1),
+            path: file && file.href,
           }
         })
 
         // Get hardware info: CPU, RAM, disks, networks...
         forEach(ensureArray(hardware.Item), item => {
-          const handler = RESOURCE_TYPE_TO_HANDLER[item['ResourceType']]
+          const handler = RESOURCE_TYPE_TO_HANDLER[item.ResourceType]
           if (!handler) {
             return
           }
