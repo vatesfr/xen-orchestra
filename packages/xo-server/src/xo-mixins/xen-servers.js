@@ -30,6 +30,17 @@ class PoolAlreadyConnected extends BaseError {
 
 const log = createLogger('xo:xo-mixins:xen-servers')
 
+// Servers life cycle (S: server, X: xapi)
+//
+// Legend:
+// s: server
+// x: xapi
+// cacheX: the server's xapi is present in the cache(_xapis)
+// cacheP: the server's pool is present in the cache (_serverIdsByPool)
+//
+// sRegistered[] ─ sDisconnected[] ─ sxConnecting[cacheX] ─ xConnected[cacheX] -> !cacheP ----> sConnected[cacheX, cacheP]
+//                                                                             -> cacheP ---> xDisconnected[] ─ sDisconnected[]
+//
 export default class {
   constructor(xo, { xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
