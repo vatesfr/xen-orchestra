@@ -4,7 +4,6 @@
 
 - [VM migration] Display same-pool hosts first in the selector [#3262](https://github.com/vatesfr/xen-orchestra/issues/3262) (PR [#3890](https://github.com/vatesfr/xen-orchestra/pull/3890))
 - [Home/VM] Sort VM by start time [#3955](https://github.com/vatesfr/xen-orchestra/issues/3955) (PR [#3970](https://github.com/vatesfr/xen-orchestra/pull/3970))
-- [Host] Add multipathing required state to the warning message (PR [#3975](https://github.com/vatesfr/xen-orchestra/pull/3975))
 
 ### Bug fixes
 
