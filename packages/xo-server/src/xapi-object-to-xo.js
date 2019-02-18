@@ -578,15 +578,13 @@ const TRANSFORMS = {
 
   network(obj) {
     return {
+      automatic: obj.other_config?.automatic === 'true',
       bridge: obj.bridge,
       defaultIsLocked: obj.default_locking_mode === 'disabled',
       MTU: +obj.MTU,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      other_config: {
-        ...obj.other_config,
-        automatic: obj.other_config?.automatic === 'true',
-      },
+      other_config: obj.other_config,
       tags: obj.tags,
       PIFs: link(obj, 'PIFs'),
       VIFs: link(obj, 'VIFs'),

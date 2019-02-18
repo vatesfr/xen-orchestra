@@ -25,6 +25,19 @@ export default {
   async disconnectVif(vifId) {
     await this._disconnectVif(this.getObject(vifId))
   },
+  async _editNetwork(
+    id,
+    { automatic, defaultIsLocked, nameDescription, nameLabel, otherConfig }
+  ) {
+    await this._setObjectProperties(this.getObject(id), {
+      defaultIsLocked,
+      nameDescription,
+      otherConfig: {
+        ...otherConfig,
+        automatic: automatic.toString(),
+      },
+    })
+  },
   editVif: makeEditObject({
     ipv4Allowed: {
       get: true,

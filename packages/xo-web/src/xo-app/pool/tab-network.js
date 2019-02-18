@@ -80,25 +80,14 @@ class Name extends Component {
 // -----------------------------------------------------------------------------
 
 class AutomaticNetwork extends Component {
-  _editAutomaticNetwork = value => {
-    editNetwork(this.props.network, {
-      other_config: {
-        ...this.props.network.other_config,
-        automatic: value.toString(),
-      },
-    })
-  }
+  _editAutomaticNetwork = automatic =>
+    editNetwork(this.props.network, { automatic })
 
   render() {
     const { network } = this.props
 
     return (
-      <Toggle
-        onChange={this._editAutomaticNetwork}
-        value={
-          network.other_config !== undefined && network.other_config.automatic
-        }
-      />
+      <Toggle onChange={this._editAutomaticNetwork} value={network.automatic} />
     )
   }
 }
