@@ -485,26 +485,18 @@ export default class NewVm extends BaseComponent {
       }
     })
 
-    const VIFs = []
+    let VIFs = []
     forEach(template.VIFs, vifId => {
       const vif = getObject(storeState, vifId, resourceSet)
       VIFs.push({
         network:
           pool || isInResourceSet(vif.$network)
             ? vif.$network
-            : this._getDefaultNetworkId(template),
+            : this._getDefaultNetworks(template)[0].network,
       })
     })
     if (VIFs.length === 0) {
-      const automaticNetworks = this._getAutomaticNetworks().map(network => ({
-        network: network.id,
-      }))
-
-      automaticNetworks.length !== 0
-        ? VIFs.push(...automaticNetworks)
-        : VIFs.push({
-            network: this._getDefaultNetworkId(template),
-          })
+      VIFs = this._getDefaultNetworks(template)
     }
     const name_label =
       state.name_label === '' || !state.name_labelHasChanged
@@ -638,37 +630,48 @@ export default class NewVm extends BaseComponent {
     }
   )
 
-  _getAutomaticNetworks = () => {
-    const poolNetworks = this._getPoolNetworks()
+  _getAutomaticNetworks = createSelector(
+    () => this._getPoolNetworks(),
+    poolNetworks =>
+      filter(poolNetworks, network => network.automatic).map(network => ({
+        network: network.id,
+      }))
+  )
 
-    return poolNetworks.filter(
-      network => network.other_config && network.other_config.automatic
-    )
-  }
-
-  _findNetwork = () => {
-    const automaticNetworks = this._getAutomaticNetworks()
-
-    return automaticNetworks.length !== 0
-      ? automaticNetworks[0]
-      : find(this._getPoolNetworks(), network => {
-          const pif = getObject(store.getState(), network.PIFs[0])
-          return pif && pif.management
-        })
-  }
-
-  _getDefaultNetworkId = template => {
+  _getDefaultNetworks = template => {
     if (template === undefined) {
-      return
+      return [{}]
     }
 
-    const network =
-      this.props.pool === undefined
-        ? find(this._getResolvedResourceSet().objectsByType.network, {
-            $pool: template.$pool,
-          })
-        : this._findNetwork()
-    return network && network.id
+    if (this.props.pool === undefined) {
+      const network = find(
+        this._getResolvedResourceSet().objectsByType.network,
+        {
+          $pool: template.$pool,
+        }
+      )
+      return [
+        {
+          network: network !== undefined ? network.id : undefined,
+        },
+      ]
+    }
+
+    const automaticNetworks = this._getAutomaticNetworks()
+    if (automaticNetworks.length !== 0) {
+      return automaticNetworks
+    }
+
+    const network = find(this._getPoolNetworks(), network => {
+      const pif = getObject(store.getState(), network.PIFs[0])
+      return pif && pif.management
+    })
+
+    return [
+      {
+        network: network !== undefined ? network.id : undefined,
+      },
+    ]
   }
 
   _buildVmsNameTemplate = createSelector(
@@ -809,12 +812,7 @@ export default class NewVm extends BaseComponent {
     const { state } = this.state
 
     this._setState({
-      VIFs: [
-        ...state.VIFs,
-        {
-          network: this._getDefaultNetworkId(state.template),
-        },
-      ],
+      VIFs: [...state.VIFs, this._getDefaultNetworks(state.template)[0]],
     })
   }
   _removeInterface = index => {
