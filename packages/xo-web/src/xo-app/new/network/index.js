@@ -1,9 +1,7 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
-import Page from '../../page'
 import PropTypes from 'prop-types'
-import styles from './index.css'
 import React, { Component } from 'react'
 import Wizard, { Section } from 'wizard'
 import { connectStore } from 'utils'
@@ -15,6 +13,9 @@ import { linkState } from 'reaclette-utils'
 import { map } from 'lodash'
 import { Select, Toggle } from 'form'
 import { SelectPif, SelectPool } from 'select-objects'
+
+import Page from '../../page'
+import styles from './index.css'
 
 const EMPTY = {
   bonded: false,
