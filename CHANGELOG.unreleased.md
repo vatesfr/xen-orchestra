@@ -4,7 +4,7 @@
 
 - [VM migration] Display same-pool hosts first in the selector [#3262](https://github.com/vatesfr/xen-orchestra/issues/3262) (PR [#3890](https://github.com/vatesfr/xen-orchestra/pull/3890))
 - [Home/VM] Sort VM by start time [#3955](https://github.com/vatesfr/xen-orchestra/issues/3955) (PR [#3970](https://github.com/vatesfr/xen-orchestra/pull/3970))
-- [Editable fields] Unfocusing (clicking outside) submit the change instead of canceling (PR [#3980](https://github.com/vatesfr/xen-orchestra/pull/3980))
+- [Editable fields] Unfocusing (clicking outside) submits the change instead of canceling (PR [#3980](https://github.com/vatesfr/xen-orchestra/pull/3980))
 
 ### Bug fixes
 
