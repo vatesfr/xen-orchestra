@@ -53,7 +53,7 @@ git clone -b master http://github.com/vatesfr/xen-orchestra
 
 ## Installing dependencies
 
-Once you have it, use `yarn`, as the non-root (or root) user owning the fetched code, to install the other dependencies. Enter the `xen-orchestra` directory and run the following commands:
+Now that you have the code, you can enter the `xen-orchestra` directory and use `yarn` to install other dependencies. Then finally build it using `yarn build`. Be sure to run `yarn` commands as the same user you will be using to run Xen Orchestra:
 
 ```
 $ cd xen-orchestra
