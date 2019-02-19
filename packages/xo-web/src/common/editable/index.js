@@ -104,9 +104,7 @@ class Editable extends Component {
     )
   }
 
-  _save() {
-    return this.__save(() => this.value, this.props.onChange)
-  }
+  _save = () => this.__save(() => this.value, this.props.onChange)
 
   async __save(getValue, saveValue) {
     const { props } = this
@@ -275,7 +273,7 @@ export class Text extends Editable {
         {...extraProps}
         autoFocus
         defaultValue={value}
-        onBlur={this._closeEdition}
+        onBlur={this._save}
         onInput={this._onInput}
         onKeyDown={this._onKeyDown}
         readOnly={saving}
@@ -492,10 +490,10 @@ export class Size extends Editable {
     return this.props.children || formatSize(this.props.value)
   }
 
-  _closeEditionIfUnfocused = () => {
+  _saveIfUnfocused = () => {
     this._focused = false
     setTimeout(() => {
-      !this._focused && this._closeEdition()
+      !this._focused && this._save()
     }, 10)
   }
 
@@ -512,7 +510,7 @@ export class Size extends Editable {
         // SizeInput uses `input-group` which makes it behave as a block element (display: table).
         // `form-inline` to use it as an inline element
         className='form-inline'
-        onBlur={this._closeEditionIfUnfocused}
+        onBlur={this._saveIfUnfocused}
         onFocus={this._focus}
         onKeyDown={this._onKeyDown}
       >
