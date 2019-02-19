@@ -780,6 +780,8 @@ const messages = {
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:
     '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}} ({ nSessions, number } iSCSI session{nSessions, plural, one {} other {s}})',
+  hostMultipathingRequiredState:
+    'This action will not be fulfilled if a VM is in a running state. Please ensure that all VMs are evacuated or stopped before doing this action!',
   hostMultipathingWarning:
     'The host{nHosts, plural, one {} other {s}} will lose the connection to the SRs. Do you want to continue?',
   hostXenServerVersion: 'Version',
