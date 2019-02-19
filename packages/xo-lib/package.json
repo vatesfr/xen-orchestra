@@ -11,6 +11,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-lib",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-lib",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

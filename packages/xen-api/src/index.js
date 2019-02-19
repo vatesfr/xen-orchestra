@@ -248,6 +248,11 @@ const RESERVED_FIELDS = {
   pool: true,
   ref: true,
   type: true,
+  xapi: true,
+}
+
+function getPool() {
+  return this.$xapi.pool
 }
 
 // -------------------------------------------------------------------
@@ -288,9 +293,6 @@ export class Xapi extends EventEmitter {
         delete url.password
       }
     }
-
-    // Memoize this function _addObject().
-    this._getPool = () => this._pool
 
     if (opts.watchEvents !== false) {
       this.watchEvents()
@@ -1055,6 +1057,7 @@ export class Xapi extends EventEmitter {
         defineProperties(this, {
           $id: { value: data.uuid || ref },
           $ref: { value: ref },
+          $xapi: { value: xapi },
         })
         for (let i = 0; i < nFields; ++i) {
           const field = fields[i]
@@ -1062,7 +1065,7 @@ export class Xapi extends EventEmitter {
         }
       }
 
-      const getters = { $pool: this._getPool }
+      const getters = { $pool: getPool }
       const props = { $type: type }
       fields.forEach(field => {
         props[`set_${field}`] = function(value) {
@@ -1131,17 +1134,19 @@ export class Xapi extends EventEmitter {
 Xapi.prototype._transportCall = reduce(
   [
     function(method, args) {
-      return this._call(method, args).catch(error => {
-        if (!(error instanceof Error)) {
-          error = wrapError(error)
-        }
+      return pTimeout
+        .call(this._call(method, args), HTTP_TIMEOUT)
+        .catch(error => {
+          if (!(error instanceof Error)) {
+            error = wrapError(error)
+          }
 
-        error.call = {
-          method,
-          params: replaceSensitiveValues(args, '* obfuscated *'),
-        }
-        throw error
-      })
+          error.call = {
+            method,
+            params: replaceSensitiveValues(args, '* obfuscated *'),
+          }
+          throw error
+        })
     },
     call =>
       function() {

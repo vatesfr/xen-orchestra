@@ -4,6 +4,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/cr-seed-cli",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "@xen-orchestra/cr-seed-cli",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

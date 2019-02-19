@@ -54,12 +54,9 @@ function toTimestamp(date) {
     return timestamp
   }
 
-  const ms = parseDateTime(date)
-  if (!ms) {
-    return null
-  }
+  const ms = parseDateTime(date)?.getTime()
 
-  return Math.round(ms.getTime() / 1000)
+  return ms === undefined || ms === 0 ? null : Math.round(ms / 1000)
 }
 
 // ===================================================================
@@ -173,7 +170,7 @@ const TRANSFORMS = {
           total: 0,
         }
       })(),
-      multipathing: obj.multipathing,
+      multipathing: otherConfig.multipathing === 'true',
       patches: patches || link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',

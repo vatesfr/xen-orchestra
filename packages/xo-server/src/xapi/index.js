@@ -416,21 +416,29 @@ export default class Xapi extends XapiBase {
     await this.call('host.enable', this.getObject(hostId).$ref)
   }
 
+  // Resources:
+  // - Citrix XenServer ® 7.0 Administrator's Guide ch. 5.4
+  // - https://github.com/xcp-ng/xenadmin/blob/60dd70fc36faa0ec91654ec97e24b7af36acff9f/XenModel/Actions/Host/EditMultipathAction.cs
+  // - https://github.com/serencorbett1/xenadmin/blob/1c3fb0c1112e4e316423afc6a028066001d3dea1/XenModel/XenAPI-Extensions/SR.cs
   @deferrable.onError(log.warn)
   async setHostMultipathing($defer, hostId, multipathing) {
     const host = this.getObject(hostId)
 
+    if (host.enabled) {
+      await this.disableHost(hostId)
+      $defer(() => this.enableHost(hostId))
+    }
+
+    // Xen center evacuate running VMs before unplugging the PBDs.
+    // The evacuate method uses the live migration to migrate running VMs
+    // from host to another. It only works when a shared SR is present
+    // in the host. For this reason we chose to show a warning instead.
     const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
     await asyncMap(pluggedPbds, async pbd => {
       const ref = pbd.$ref
       await this.unplugPbd(ref)
       $defer(() => this.plugPbd(ref))
     })
-
-    if (host.enabled) {
-      await this.disableHost(hostId)
-      $defer(() => this.enableHost(hostId))
-    }
 
     return this._updateObjectMapProperty(
       host,

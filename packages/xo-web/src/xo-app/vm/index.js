@@ -151,6 +151,11 @@ export default class Vm extends BaseComponent {
     }
   }
 
+  compareContainers = (pool1, pool2) => {
+    const { $pool: poolId } = this.props.vm
+    return pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
+  }
+
   _getCanSnapshot = createSelector(
     () => this.props.checkPermissions,
     () => this.props.vm,
@@ -188,6 +193,7 @@ export default class Vm extends BaseComponent {
                     )}
                     {container !== undefined && (
                       <XoSelect
+                        compareContainers={this.compareContainers}
                         onChange={this._migrateVm}
                         useLongClick
                         value={container}
