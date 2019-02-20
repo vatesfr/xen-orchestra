@@ -37,7 +37,6 @@ import {
   map,
   size,
   slice,
-  some,
   sum,
   sumBy,
 } from 'lodash'
@@ -1346,38 +1345,26 @@ export default class NewVm extends BaseComponent {
 
   // DISKS -----------------------------------------------------------------------
 
-  _areSrsNotOnSameHost = createSelector(
+  _srsNotOnSameHost = createSelector(
     () => this.props.srs,
-    srs => disks => {
-      if (isEmpty(disks)) {
-        return false
-      }
+    () => this.state.state.existingDisks,
+    () => this.state.state.VDIs,
+    (srs, existingDisks, vdis) => {
       let container
-      const predicate = srId =>
-        container !== undefined
-          ? container !== srs[srId].$container
-          : ((container = srs[srId].$container), false)
-
-      return some(disks, disk => {
-        const srId = disk.$SR || disk.SR
-        return srId != null && !isSrShared(srs[srId]) ? predicate(srId) : false
+      let sr
+      const disks = vdis
+      forEach(existingDisks, disk => disks.push(disk))
+      return disks.some(vdi => {
+        sr = srs[vdi.$SR || vdi.SR]
+        return (
+          sr !== undefined &&
+          !isSrShared(sr) &&
+          (container !== undefined
+            ? container !== sr.$container
+            : ((container = sr.$container), false))
+        )
       })
     }
-  )
-
-  _srsNotOnSameHost = createSelector(
-    createSelector(
-      this._areSrsNotOnSameHost,
-      () => this.state.state.existingDisks,
-      (areSrsNotOnSameHost, existingDisks) => areSrsNotOnSameHost(existingDisks)
-    ),
-    createSelector(
-      this._areSrsNotOnSameHost,
-      () => this.state.state.VDIs,
-      (areSrsNotOnSameHost, vdis) => areSrsNotOnSameHost(vdis)
-    ),
-    (srsExistingDisksNotOnSmaeHost, srsVdisNotOnSameHost) =>
-      srsVdisNotOnSameHost || srsExistingDisksNotOnSmaeHost
   )
 
   _renderDisks = () => {
@@ -1395,11 +1382,6 @@ export default class NewVm extends BaseComponent {
         done={this._isDisksDone()}
       >
         <SectionContent column>
-          {this._srsNotOnSameHost() && (
-            <span className='text-danger'>
-              <Icon icon='alarm' /> {_('newVmSrsNotOnSameHost')}
-            </span>
-          )}
           {/* Existing disks */}
           {map(existingDisks, (disk, index) => (
             <div key={i}>
@@ -1511,6 +1493,11 @@ export default class NewVm extends BaseComponent {
               {index < VDIs.length - 1 && <hr />}
             </div>
           ))}
+          {this._srsNotOnSameHost() && (
+            <span className='text-danger'>
+              <Icon icon='alarm' /> {_('newVmSrsNotOnSameHost')}
+            </span>
+          )}
           <Item>
             <Button onClick={this._addVdi}>
               <Icon icon='new-vm-add' /> {_('newVmAddDisk')}
