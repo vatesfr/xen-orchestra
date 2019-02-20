@@ -110,8 +110,6 @@ const NewNetwork = decorate([
       })
     }
 
-    _redirectOnSuccess = () => `pools/${this.props.pool.id}/network`
-
     _renderHeader = () => {
       const { isPoolAdmin, pool } = this.props
       return (
@@ -226,7 +224,7 @@ const NewNetwork = decorate([
                   form='networkCreation'
                   handler={this._create}
                   icon='new-network-create'
-                  redirectOnSuccess={this._redirectOnSuccess}
+                  redirectOnSuccess={`pools/${pool.id}/network`}
                 >
                   {_('newNetworkCreate')}
                 </ActionButton>
