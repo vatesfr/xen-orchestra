@@ -3,7 +3,6 @@ import { BaseError } from 'make-error'
 import { fibonacci } from 'iterable-backoff'
 import { noSuchObject } from 'xo-common/api-errors'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
-import { some } from 'lodash'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -444,9 +443,10 @@ export default class {
   }
 
   _getXenServerStatus(id) {
-    return this._xapis[id] === undefined
+    const xapi = this._xapis[id]
+    return xapi === undefined
       ? 'disconnected'
-      : some(this._serverIdsByPool, value => value === id)
+      : this._serverIdsByPool[(xapi.pool?.$id)] === id
       ? 'connected'
       : 'connecting'
   }
