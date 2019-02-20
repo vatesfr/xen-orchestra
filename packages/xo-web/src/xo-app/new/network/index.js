@@ -110,8 +110,7 @@ const NewNetwork = decorate([
       })
     }
 
-    _redirectOnSuccess = network =>
-      network !== undefined ? `pools/${this.props.pool.id}/network` : undefined
+    _redirectOnSuccess = () => `pools/${this.props.pool.id}/network`
 
     _renderHeader = () => {
       const { isPoolAdmin, pool } = this.props
