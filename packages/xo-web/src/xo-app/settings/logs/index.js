@@ -26,6 +26,24 @@ const formatMessage = data =>
     2
   )}\n${JSON.stringify(data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``
 
+const formatedLog = log =>
+  `${log.data.method}\n${JSON.stringify(
+    log.data.params,
+    null,
+    2
+  )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`
+
+const downloadLog = log => {
+  const element = document.createElement('a')
+  // eslint-disable-next-line no-undef
+  const file = new Blob([formatedLog(log)], {
+    type: 'text/plain',
+  })
+  element.href = URL.createObjectURL(file)
+  element.download = `${new Date(log.time).toISOString()} - XO.log`
+  element.click()
+}
+
 const COLUMNS = [
   {
     name: _('logUser'),
@@ -89,16 +107,15 @@ const INDIVIDUAL_ACTIONS = [
     handler: log =>
       alert(
         _('logError'),
-        <Copiable tagName='pre'>
-          {`${log.data.method}\n${JSON.stringify(
-            log.data.params,
-            null,
-            2
-          )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`}
-        </Copiable>
+        <Copiable tagName='pre'>{formatedLog(log)}</Copiable>
       ),
     icon: 'preview',
     label: _('logDisplayDetails'),
+  },
+  {
+    handler: log => downloadLog(log),
+    icon: 'reply',
+    label: _('logDownload'),
   },
   {
     disabled: !CAN_REPORT_BUG,

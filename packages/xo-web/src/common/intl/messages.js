@@ -1874,6 +1874,7 @@ const messages = {
   logError: 'Error',
   logTitle: 'Logs',
   logDisplayDetails: 'Display details',
+  logDownload: 'Download log',
   logTime: 'Date',
   logNoStackTrace: 'No stack trace',
   logNoParams: 'No params',
