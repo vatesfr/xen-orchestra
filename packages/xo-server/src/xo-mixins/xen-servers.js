@@ -3,6 +3,7 @@ import { BaseError } from 'make-error'
 import { fibonacci } from 'iterable-backoff'
 import { noSuchObject } from 'xo-common/api-errors'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
+import { some } from 'lodash'
 
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
@@ -30,44 +31,15 @@ class PoolAlreadyConnected extends BaseError {
 
 const log = createLogger('xo:xo-mixins:xen-servers')
 
-// - server is disconnected:
-//   - `_xapis[server.id]` is `undefined`
-//   - `connectXenServer()`
-//     - normal case:
-//       1. `_xapis[server.id] = new Xapi()`
-//       2. connect xapi
-//       3. `_xapis[server.id]` isn't `undefined`
-//       4. `this._serverIdsByPool[xapi.pool.$id]` is `undefined`
-//       5. `this._serverIdsByPool[xapi.pool.$id] = server.id`
-//       6. synchronize XO with xapi events
-//
-//     - request disconnection:
-//       1. `_xapis[server.id] = new Xapi()`
-//       2. connect xapi
-//       3. `_xapis[server.id]` is `undefined`
-//       4. disconnect xapi
-//
-//     - server's pool exists:
-//       1. `_xapis[server.id] = new Xapi()`
-//       2. connect xapi
-//       3. `_xapis[server.id]` isn't `undefined`
-//       4. `this._serverIdsByPool[xapi.pool.$id]` isn't `undefined`
-//       5. delete `_xapis[server.id]`
-//       6. disconnect xapi
-//       7. update the server's error
-//       8. throw an error
+// Server is disconnected:
+// - _xapi[server.id] is undefined
 
-//     - xapi disconnected by loosing the connection to the server:
-//       1. `_xapis[server.id] = new Xapi()`
-//       2. connect xapi
-//       3. `_xapis[server.id]` isn't `undefined`
-//       4. `this._serverIdsByPool[xapi.pool.$id]` is `undefined`
-//       5. `this._serverIdsByPool[xapi.pool.$id] = server.id`
-//       6. synchronize XO with xapi events
-//       7. xapi disconnected
-//       8. desynchronize XO with xapi events
-//       9. delete `_xapis[server.id]`
-//       10. delete `this._serverIdsByPool[poolId]`
+// Server is connecting:
+// - _xapi[server.id] is defined
+
+// Server is connected:
+// - _xapi[server.id] id defined
+// - _serversIdsByPool[xapi.pool.$id] is server.id
 export default class {
   constructor(xo, { xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
@@ -307,7 +279,7 @@ export default class {
 
       // requesting disconnection on the server connecting
       if (this._xapis[server.id] === undefined) {
-        return xapi.disconnect()
+        xapi.disconnect()::ignoreErrors()
       }
 
       const serverIdsByPool = this._serverIdsByPool
@@ -433,13 +405,14 @@ export default class {
   }
 
   async disconnectXenServer(id) {
-    const xapi = this._xapis[id]
-    if (!xapi) {
-      throw noSuchObject(id, 'xenServer')
+    const status = this._getXenServerStatus(id)
+    if (status === 'disconnected') {
+      return
     }
 
+    const xapi = this._xapis[id]
     delete this._xapis[id]
-    if (xapi.status === 'connected') {
+    if (status === 'connected') {
       delete this._serverIdsByPool[xapi.pool.$id]
       xapi.xo.uninstall()
     }
@@ -469,18 +442,21 @@ export default class {
     return xapi
   }
 
+  _getXenServerStatus(id) {
+    return this._xapis[id] === undefined
+      ? 'disconnected'
+      : some(this._serverIdsByPool, value => value === id)
+      ? 'connected'
+      : 'connecting'
+  }
+
   async getAllXenServers() {
     const servers = await this._servers.get()
     const xapis = this._xapis
     forEach(servers, server => {
-      const xapi = xapis[server.id]
-      if (xapi !== undefined) {
-        server.status = xapi.status
-
-        let pool
-        if (server.label === undefined && (pool = xapi.pool) != null) {
-          server.label = pool.name_label
-        }
+      server.status = this._getXenServerStatus(server.id)
+      if (server.status === 'connected' && server.label === undefined) {
+        server.label = xapis[server.id].pool.name_label
       }
 
       // Do not expose password.
