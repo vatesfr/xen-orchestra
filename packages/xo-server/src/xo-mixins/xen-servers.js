@@ -439,9 +439,10 @@ export default class {
     }
 
     delete this._xapis[id]
-    delete this._serverIdsByPool[xapi.pool.$id]
-
-    xapi.xo.uninstall()
+    if (xapi.status === 'connected') {
+      delete this._serverIdsByPool[xapi.pool.$id]
+      xapi.xo.uninstall()
+    }
     return xapi.disconnect()
   }
 
