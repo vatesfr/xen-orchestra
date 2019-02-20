@@ -280,6 +280,7 @@ export default class {
       // requesting disconnection on the server connecting
       if (this._xapis[server.id] === undefined) {
         xapi.disconnect()::ignoreErrors()
+        return
       }
 
       const serverIdsByPool = this._serverIdsByPool
