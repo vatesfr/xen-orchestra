@@ -31,14 +31,14 @@ class PoolAlreadyConnected extends BaseError {
 const log = createLogger('xo:xo-mixins:xen-servers')
 
 // Server is disconnected:
-// - _xapi[server.id] is undefined
+// - _xapis[server.id] is undefined
 
 // Server is connecting:
-// - _xapi[server.id] is defined
+// - _xapis[server.id] is defined
 
 // Server is connected:
-// - _xapi[server.id] id defined
-// - _serversIdsByPool[xapi.pool.$id] is server.id
+// - _xapis[server.id] id defined
+// - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
   constructor(xo, { xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
@@ -276,7 +276,7 @@ export default class {
     try {
       await xapi.connect()
 
-      // requesting disconnection on the server connecting
+      // requesting disconnection on the connecting server
       if (this._xapis[server.id] === undefined) {
         xapi.disconnect()::ignoreErrors()
         return
