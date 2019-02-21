@@ -7,6 +7,7 @@ createJob.permission = 'admin'
 createJob.params = {
   name: {
     type: 'string',
+    optional: true,
   },
   pools: {
     type: 'object',

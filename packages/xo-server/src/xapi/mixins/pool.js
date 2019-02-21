@@ -1,7 +1,5 @@
 import { cancelable } from 'promise-toolbox'
 
-import { parseXml } from '../../utils'
-
 export default {
   @cancelable
   getPoolMetadata($cancelToken) {
@@ -12,7 +10,5 @@ export default {
         pool.name_label ?? pool.$master.name_label
       ),
     })
-      .then(response => response.readAll())
-      .then(parseXml)
   },
 }

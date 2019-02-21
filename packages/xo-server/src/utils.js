@@ -15,7 +15,7 @@ import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
 
-import { SimpleIdPattern } from './utils'
+import { type SimpleIdPattern } from './utils'
 
 // ===================================================================
 

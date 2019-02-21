@@ -36,9 +36,11 @@ const METADATA_BACKUP_DIR = 'xo-metadata-backups'
 // └─ xo-metadata-backups
 //   └─ <schedule ID>
 //    ├─ xo
+//    │ ├─ <YYYYMMDD>T<HHmmss>.metadata.json
 //    │ └─ <YYYYMMDD>T<HHmmss>.json
 //    └─ <pool UUID>
-//      └─ <YYYYMMDD>T<HHmmss>.json
+//      ├─ <YYYYMMDD>T<HHmmss>.metadata.json
+//      └─ <YYYYMMDD>T<HHmmss>.xml
 export default class metadataBackup {
   _app: {
     createJob: (
@@ -91,22 +93,84 @@ export default class metadataBackup {
       job?.settings[schedule.id] || {}
 
     const scheduleDir = `${METADATA_BACKUP_DIR}/${schedule.id}`
+    const timestamp = safeDateFormat(Date.now())
     const files = []
     if (job.xoMetadata && retentionXoMetadata > 0) {
+      const dir = `${scheduleDir}/xo`
+      const fileName = `${dir}/${timestamp}.json`
+      const metaDataFileName = `${dir}/${timestamp}.metadata.json`
+
+      const data = await app.exportConfig()
+
       files.push({
-        data: await app.exportConfig(),
-        dir: `${scheduleDir}/xo`,
+        executeBackup: async handler => {
+          await Promise.all([
+            handler.outputFile(fileName, JSON.stringify(data, null, 2)),
+            handler.outputFile(
+              metaDataFileName,
+              JSON.stringify(
+                {
+                  jobId: job.id,
+                  scheduleId: schedule.id,
+                  timestamp,
+                },
+                null,
+                2
+              )
+            ),
+          ])
+          $defer.onFailure(async () => {
+            await Promise.all([
+              handler.unlink(fileName),
+              handler.unlink(metaDataFileName),
+            ])
+          })
+        },
+        dir,
         retention: retentionXoMetadata - 1,
       })
     }
     if (!isEmptyPools && retentionPoolMetadata > 0) {
+      const retention = retentionPoolMetadata - 1
       files.push(
         ...(await Promise.all(
-          poolIds.map(async id => ({
-            data: await app.getXapi(id).getPoolMetadata(cancelToken),
-            dir: `${scheduleDir}/${id}`,
-            retention: retentionPoolMetadata - 1,
-          }))
+          poolIds.map(async id => {
+            const dir = `${scheduleDir}/${id}`
+            const fileName = `${dir}/${timestamp}.xml`
+            const metaDataFileName = `${dir}/${timestamp}.metadata.json`
+
+            const stream = await app.getXapi(id).getPoolMetadata(cancelToken)
+
+            return {
+              executeBackup: async handler => {
+                const [outputStream] = await Promise.all([
+                  handler.createOutputStream(fileName),
+                  handler.outputFile(
+                    metaDataFileName,
+                    JSON.stringify(
+                      {
+                        jobId: job.id,
+                        scheduleId: schedule.id,
+                        poolId: id,
+                        timestamp,
+                      },
+                      null,
+                      2
+                    )
+                  ),
+                ])
+                stream.pipe(outputStream)
+                $defer.onFailure(async () => {
+                  await Promise.all([
+                    handler.unlink(fileName),
+                    handler.unlink(metaDataFileName),
+                  ])
+                })
+              },
+              dir,
+              retention,
+            }
+          })
         ))
       )
     }
@@ -117,10 +181,9 @@ export default class metadataBackup {
 
     cancelToken.throwIfRequested()
 
-    const timestamp = safeDateFormat(Date.now())
     return asyncMap(remoteIds, async id => {
       const handler = await app.getRemoteHandler(id)
-      return files.map(async ({ data, dir, retention }) => {
+      return files.map(async ({ executeBackup, dir, retention }) => {
         // deleting old backups
         await handler.list(dir).then(
           list => {
@@ -134,9 +197,7 @@ export default class metadataBackup {
           () => {}
         )
 
-        const fileName = `${dir}/${timestamp}.json`
-        await handler.outputFile(fileName, JSON.stringify(data, null, 2))
-        $defer.onFailure(() => handler.unlink(fileName))
+        await executeBackup(handler)
       })
     })
   }
