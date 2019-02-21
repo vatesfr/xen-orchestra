@@ -369,6 +369,11 @@ export default class Menu extends Component {
             label: 'newVmPage',
           },
           isAdmin && { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
+          isPoolAdmin && {
+            to: '/new/network',
+            icon: 'menu-new-network',
+            label: 'newNetworkPage',
+          },
           isAdmin && {
             to: '/settings/servers',
             icon: 'menu-settings-servers',

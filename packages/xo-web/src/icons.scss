@@ -854,6 +854,10 @@
       @extend .fa;
       @extend .fa-database;
     }
+    &-network {
+      @extend .fa;
+      @extend .fa-sitemap;
+    }
     &-import {
       @extend .fa;
       @extend .fa-file-archive-o;
@@ -904,6 +908,13 @@
     &-remove {
       @extend .fa;
       @extend .fa-times;
+    }
+  }
+  // New network
+  &-new-network {
+    &-create {
+      @extend .fa;
+      @extend .fa-play;
     }
   }
   //  OS Icons

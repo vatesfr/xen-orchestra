@@ -101,6 +101,7 @@ const messages = {
   newMenu: 'New',
   taskMenu: 'Tasks',
   taskPage: 'Tasks',
+  newNetworkPage: 'Network',
   newVmPage: 'VM',
   newSrPage: 'Storage',
   newServerPage: 'Server',
@@ -562,6 +563,10 @@ const messages = {
   newSrUseNfs4: 'Use NFSv4',
   newSrNfsOptions: 'Comma delimited NFS options',
   reattachNewSrTooltip: 'Reattach SR',
+
+  // ------ New Newtork -----
+  createNewNetworkNoPermission: 'You have no permission to create a network',
+  createNewNetworkOn: 'Create a new network on {select}',
 
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',
@@ -1690,7 +1695,6 @@ const messages = {
 
   // ----- Network -----
   newNetworkCreate: 'Create network',
-  newBondedNetworkCreate: 'Create bonded network',
   newNetworkInterface: 'Interface',
   newNetworkName: 'Name',
   newNetworkDescription: 'Description',
@@ -1698,13 +1702,14 @@ const messages = {
   newNetworkDefaultVlan: 'No VLAN if empty',
   newNetworkMtu: 'MTU',
   newNetworkDefaultMtu: 'Default: 1500',
-  newNetworkNoNameErrorTitle: 'Name required',
-  newNetworkNoNameErrorMessage: 'A name is required to create a network',
   newNetworkBondMode: 'Bond mode',
+  newNetworkInfo: 'Info',
+  newNetworkType: 'Type',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
   pillBonded: 'Bonded',
+  bondedNetwork: 'Bonded network',
 
   // ----- Add host -----
   addHostSelectHost: 'Host',
