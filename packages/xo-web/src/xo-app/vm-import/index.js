@@ -264,6 +264,10 @@ export default class Import extends Component {
   }
 
   _handleDrop = async files => {
+    this.setState({
+      vms: [],
+    })
+
     const vms = await Promise.all(
       mapPlus(files, (file, push) => {
         const { name } = file
