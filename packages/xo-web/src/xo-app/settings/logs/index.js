@@ -26,7 +26,7 @@ const formatMessage = data =>
     2
   )}\n${JSON.stringify(data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``
 
-const formatedLog = log =>
+const formatLog = log =>
   `${log.data.method}\n${JSON.stringify(
     log.data.params,
     null,
@@ -34,14 +34,16 @@ const formatedLog = log =>
   )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`
 
 const downloadLog = log => {
-  const element = document.createElement('a')
-  // eslint-disable-next-line no-undef
-  const file = new Blob([formatedLog(log)], {
+  const file = new window.Blob([formatLog(log)], {
     type: 'text/plain',
   })
-  element.href = URL.createObjectURL(file)
-  element.download = `${new Date(log.time).toISOString()} - XO.log`
-  element.click()
+  const anchor = document.createElement('a')
+  anchor.href = window.URL.createObjectURL(file)
+  anchor.download = `${new Date(log.time).toISOString()} - XO.log`
+  anchor.style.display = 'none'
+  document.body.appendChild(anchor)
+  anchor.click()
+  document.body.removeChild(anchor)
 }
 
 const COLUMNS = [
@@ -105,10 +107,7 @@ const ACTIONS = [
 const INDIVIDUAL_ACTIONS = [
   {
     handler: log =>
-      alert(
-        _('logError'),
-        <Copiable tagName='pre'>{formatedLog(log)}</Copiable>
-      ),
+      alert(_('logError'), <Copiable tagName='pre'>{formatLog(log)}</Copiable>),
     icon: 'preview',
     label: _('logDisplayDetails'),
   },
