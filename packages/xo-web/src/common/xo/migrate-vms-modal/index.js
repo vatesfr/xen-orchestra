@@ -145,7 +145,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     // Map VM --> ( Map VDI --> SR )
     const mapVmsMapVdisSrs = {}
     forEach(vbdsByVm, (vbds, vm) => {
-      if (doNotMigrateVmVdis[vm]) {
+      if (intraPool && doNotMigrateVmVdis[vm]) {
         return
       }
       const mapVdisSrs = {}
