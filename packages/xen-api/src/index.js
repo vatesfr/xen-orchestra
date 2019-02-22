@@ -724,39 +724,39 @@ export class Xapi extends EventEmitter {
     )
   }
 
-  setField({ $type, $ref }, field, value) {
-    return this.call(`${$type}.set_${field}`, $ref, value).then(noop)
+  setField(type, ref, field, value) {
+    return this.call(`${type}.set_${field}`, ref, value).then(noop)
   }
 
-  setFieldEntries(record, field, entries) {
+  setFieldEntries(type, ref, field, entries) {
     return Promise.all(
       getKeys(entries).map(entry => {
         const value = entries[entry]
         if (value !== undefined) {
           return value === null
-            ? this.unsetFieldEntry(record, field, entry)
-            : this.setFieldEntry(record, field, entry, value)
+            ? this.unsetFieldEntry(type, ref, field, entry)
+            : this.setFieldEntry(type, ref, field, entry, value)
         }
       })
     ).then(noop)
   }
 
-  async setFieldEntry({ $type, $ref }, field, entry, value) {
+  async setFieldEntry(type, ref, field, entry, value) {
     while (true) {
       try {
-        await this.call(`${$type}.add_to_${field}`, $ref, entry, value)
+        await this.call(`${type}.add_to_${field}`, ref, entry, value)
         return
       } catch (error) {
         if (error == null || error.code !== 'MAP_DUPLICATE_KEY') {
           throw error
         }
       }
-      await this.unsetFieldEntry({ $type, $ref }, field, entry)
+      await this.unsetFieldEntry(type, ref, field, entry)
     }
   }
 
-  unsetFieldEntry({ $type, $ref }, field, entry) {
-    return this.call(`${$type}.remove_from_${field}`, $ref, entry)
+  unsetFieldEntry(type, ref, field, entry) {
+    return this.call(`${type}.remove_from_${field}`, ref, entry)
   }
 
   watchTask(ref) {
@@ -1073,7 +1073,7 @@ export class Xapi extends EventEmitter {
       const props = { $type: type }
       fields.forEach(field => {
         props[`set_${field}`] = function(value) {
-          return xapi.setField(this, field, value)
+          return xapi.setField(this.$type, this.$ref, field, value)
         }
 
         const $field = (field in RESERVED_FIELDS ? '$$' : '$') + field
@@ -1102,7 +1102,7 @@ export class Xapi extends EventEmitter {
             return result
           }
           props[`update_${field}`] = function(entries) {
-            return xapi.setFieldEntries(this, field, entries)
+            return xapi.setFieldEntries(this.$type, this.$ref, field, entries)
           }
         } else if (value === '' || isOpaqueRef(value)) {
           // 2019-02-07 - JFT: even if `value` should not be an empty string for

@@ -82,21 +82,17 @@ ${cliName} v${pkg.version}
   )
 
   await Promise.all([
-    srcXapi.setFieldEntries(srcSnapshot, 'other_config', metadata),
-    srcXapi.setFieldEntries(srcSnapshot, 'other_config', {
+    srcSnapshot.update_other_config(metadata),
+    srcSnapshot.update_other_config({
       'xo:backup:exported': 'true',
     }),
-    tgtXapi.setField(
-      tgtVm,
-      'name_label',
-      `${srcVm.name_label} (${srcSnapshot.snapshot_time})`
-    ),
-    tgtXapi.setFieldEntries(tgtVm, 'other_config', metadata),
-    tgtXapi.setFieldEntries(tgtVm, 'other_config', {
+    tgtVm.set_name_label(`${srcVm.name_label} (${srcSnapshot.snapshot_time})`),
+    tgtVm.update_other_config(metadata),
+    tgtVm.update_other_config({
       'xo:backup:sr': tgtSr.uuid,
       'xo:copy_of': srcSnapshotUuid,
     }),
-    tgtXapi.setFieldEntries(tgtVm, 'blocked_operations', {
+    tgtVm.update_blocked_operations({
       start:
         'Start operation for this vm is blocked, clone it if you want to use it.',
     }),
@@ -105,12 +101,9 @@ ${cliName} v${pkg.version}
         const srcDisk = srcDisks[userDevice]
         const tgtDisk = tgtDisks[userDevice]
 
-        return tgtXapi.setFieldEntry(
-          tgtDisk,
-          'other_config',
-          'xo:copy_of',
-          srcDisk.uuid
-        )
+        return tgtDisk.update_other_config({
+          'xo:copy_of': srcDisk.uuid,
+        })
       })
     ),
   ])
