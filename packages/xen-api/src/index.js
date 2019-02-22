@@ -737,15 +737,16 @@ export class Xapi extends EventEmitter {
       getKeys(entries).map(entry => {
         const value = entries[entry]
         if (value !== undefined) {
-          return value === null
-            ? this.unsetFieldEntry(type, ref, field, entry)
-            : this.setFieldEntry(type, ref, field, entry, value)
+          return this.setFieldEntry(type, ref, field, entry, value)
         }
       })
     ).then(noop)
   }
 
   async setFieldEntry(type, ref, field, entry, value) {
+    if (value === null) {
+      return this.call(`${type}.remove_from_${field}`, ref, entry)
+    }
     while (true) {
       try {
         await this.call(`${type}.add_to_${field}`, ref, entry, value)
@@ -755,12 +756,8 @@ export class Xapi extends EventEmitter {
           throw error
         }
       }
-      await this.unsetFieldEntry(type, ref, field, entry)
+      await this.call(`${type}.remove_from_${field}`, ref, entry)
     }
-  }
-
-  unsetFieldEntry(type, ref, field, entry) {
-    return this.call(`${type}.remove_from_${field}`, ref, entry)
   }
 
   watchTask(ref) {
