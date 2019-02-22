@@ -1145,9 +1145,15 @@ Xapi.prototype._transportCall = reduce(
             error = wrapError(error)
           }
 
+          // do not log the session ID
+          //
+          // TODO: should log at the session level to avoid logging sensitive
+          // values?
+          const params = args[0] === this._sessionId ? args.slice(1) : args
+
           error.call = {
             method,
-            params: replaceSensitiveValues(args, '* obfuscated *'),
+            params: replaceSensitiveValues(params, '* obfuscated *'),
           }
           throw error
         })
