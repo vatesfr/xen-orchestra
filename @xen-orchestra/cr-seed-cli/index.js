@@ -83,19 +83,17 @@ ${cliName} v${pkg.version}
 
   await Promise.all([
     srcSnapshot.update_other_config(metadata),
-    srcSnapshot.update_other_config({
-      'xo:backup:exported': 'true',
-    }),
+    srcSnapshot.update_other_config('xo:backup:exported', 'true'),
     tgtVm.set_name_label(`${srcVm.name_label} (${srcSnapshot.snapshot_time})`),
     tgtVm.update_other_config(metadata),
     tgtVm.update_other_config({
       'xo:backup:sr': tgtSr.uuid,
       'xo:copy_of': srcSnapshotUuid,
     }),
-    tgtVm.update_blocked_operations({
-      start:
-        'Start operation for this vm is blocked, clone it if you want to use it.',
-    }),
+    tgtVm.update_blocked_operations(
+      'start',
+      'Start operation for this vm is blocked, clone it if you want to use it.'
+    ),
     Promise.all(
       userDevices.map(userDevice => {
         const srcDisk = srcDisks[userDevice]

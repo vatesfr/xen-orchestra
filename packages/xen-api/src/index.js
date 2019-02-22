@@ -1102,8 +1102,10 @@ export class Xapi extends EventEmitter {
             })
             return result
           }
-          props[`update_${field}`] = function(entries) {
-            return xapi.setFieldEntries(this.$type, this.$ref, field, entries)
+          props[`update_${field}`] = function(entries, value) {
+            return typeof entries === 'string'
+              ? xapi.setFieldEntry(this.$type, this.$ref, field, entries, value)
+              : xapi.setFieldEntries(this.$type, this.$ref, field, entries)
           }
         } else if (value === '' || isOpaqueRef(value)) {
           // 2019-02-07 - JFT: even if `value` should not be an empty string for
