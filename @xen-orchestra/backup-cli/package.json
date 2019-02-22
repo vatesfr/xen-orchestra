@@ -1,0 +1,19 @@
+{
+  "name": "@xen-orchestra/backups-cli",
+  "version": "0.0.0",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/backups-cli",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/backups-cli",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "bin": {
+    "xo-backups": "./index.js"
+  },
+  "dependencies": {
+    "@xen-orchestra/fs": "^0.6.0",
+    "getopts": "^2.2.3",
+    "vhd-lib": "^0.5.1"
+  }
+}

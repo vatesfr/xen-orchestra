@@ -12,8 +12,6 @@ import { filter, find } from 'lodash'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { start as createRepl } from 'repl'
 
-import { createClient } from './'
-
 // ===================================================================
 
 function askPassword(prompt = 'Password: ') {
@@ -44,7 +42,7 @@ function getAllBoundDescriptors(object) {
 
 const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
-const main = async args => {
+const main = async (args, Xapi = require('./').Xapi) => {
   const opts = minimist(args, {
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
 
@@ -81,7 +79,7 @@ const main = async args => {
     })
   }
 
-  const xapi = createClient({
+  const xapi = new Xapi({
     url: opts._[0],
     allowUnauthorized: opts.au,
     auth,
