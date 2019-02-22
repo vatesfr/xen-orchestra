@@ -501,6 +501,10 @@ export class Xapi extends EventEmitter {
     return promise
   }
 
+  getField(type, ref, field) {
+    return this._sessionCall(`${type}.get_${field}`, [ref])
+  }
+
   // Nice getter which returns the object for a given $id (internal to
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
