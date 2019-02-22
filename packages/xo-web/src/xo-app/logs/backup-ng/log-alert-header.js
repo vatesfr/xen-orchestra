@@ -9,6 +9,7 @@ import Icon from 'icon'
 import React from 'react'
 import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import Tooltip from 'tooltip'
+import { downloadLog } from 'utils'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { keyBy } from 'lodash'
@@ -28,6 +29,8 @@ export default decorate([
   })),
   provideState({
     effects: {
+      _downloadLog: () => ({ formattedLog }, { log }) =>
+        downloadLog({ log: formattedLog, date: log.end, type: 'backup NG' }),
       restartFailedVms: () => async (
         _,
         { log: { jobId: id, scheduleId: schedule, tasks, infos } }
@@ -80,6 +83,11 @@ export default decorate([
               <Icon icon='clipboard' />
             </Button>
           </CopyToClipboard>
+        </Tooltip>
+        <Tooltip content={_('logDownload')}>
+          <Button size='small' onClick={effects._downloadLog}>
+            <Icon icon='reply' />
+          </Button>
         </Tooltip>
         {CAN_REPORT_BUG && (
           <ReportBugButton

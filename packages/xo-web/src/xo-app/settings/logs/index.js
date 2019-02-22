@@ -8,7 +8,7 @@ import Copiable from 'copiable'
 import NoObjects from 'no-objects'
 import SortedTable from 'sorted-table'
 import styles from './index.css'
-import { addSubscriptions } from 'utils'
+import { addSubscriptions, downloadLog } from 'utils'
 import { alert } from 'modal'
 import { createSelector } from 'selectors'
 import { CAN_REPORT_BUG, reportBug } from 'report-bug-button'
@@ -32,19 +32,6 @@ const formatLog = log =>
     null,
     2
   )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`
-
-const downloadLog = log => {
-  const file = new window.Blob([formatLog(log)], {
-    type: 'text/plain',
-  })
-  const anchor = document.createElement('a')
-  anchor.href = window.URL.createObjectURL(file)
-  anchor.download = `${new Date(log.time).toISOString()} - XO.log`
-  anchor.style.display = 'none'
-  document.body.appendChild(anchor)
-  anchor.click()
-  document.body.removeChild(anchor)
-}
 
 const COLUMNS = [
   {
@@ -112,7 +99,8 @@ const INDIVIDUAL_ACTIONS = [
     label: _('logDisplayDetails'),
   },
   {
-    handler: log => downloadLog(log),
+    handler: log =>
+      downloadLog({ log: formatLog(log), date: log.time, type: 'XO' }),
     icon: 'reply',
     label: _('logDownload'),
   },
