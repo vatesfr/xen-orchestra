@@ -552,6 +552,10 @@ export class Xapi extends EventEmitter {
     )
   }
 
+  getRecords(type, refs) {
+    return Promise.all(refs.map(ref => this.getRecord(type, ref)))
+  }
+
   async getAllRecords(type) {
     return map(
       await this._sessionCall(`${type}.get_all_records`),
