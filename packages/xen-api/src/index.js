@@ -501,6 +501,10 @@ export class Xapi extends EventEmitter {
     return promise
   }
 
+  getField(type, ref, field) {
+    return this._sessionCall(`${type}.get_${field}`, [ref])
+  }
+
   // Nice getter which returns the object for a given $id (internal to
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
@@ -550,6 +554,10 @@ export class Xapi extends EventEmitter {
       ref,
       await this._sessionCall(`${type}.get_record`, [ref])
     )
+  }
+
+  getRecords(type, refs) {
+    return Promise.all(refs.map(ref => this.getRecord(type, ref)))
   }
 
   async getAllRecords(type) {
@@ -720,39 +728,36 @@ export class Xapi extends EventEmitter {
     )
   }
 
-  setField({ $type, $ref }, field, value) {
-    return this.call(`${$type}.set_${field}`, $ref, value).then(noop)
+  setField(type, ref, field, value) {
+    return this.call(`${type}.set_${field}`, ref, value).then(noop)
   }
 
-  setFieldEntries(record, field, entries) {
+  setFieldEntries(type, ref, field, entries) {
     return Promise.all(
       getKeys(entries).map(entry => {
         const value = entries[entry]
         if (value !== undefined) {
-          return value === null
-            ? this.unsetFieldEntry(record, field, entry)
-            : this.setFieldEntry(record, field, entry, value)
+          return this.setFieldEntry(type, ref, field, entry, value)
         }
       })
     ).then(noop)
   }
 
-  async setFieldEntry({ $type, $ref }, field, entry, value) {
+  async setFieldEntry(type, ref, field, entry, value) {
+    if (value === null) {
+      return this.call(`${type}.remove_from_${field}`, ref, entry)
+    }
     while (true) {
       try {
-        await this.call(`${$type}.add_to_${field}`, $ref, entry, value)
+        await this.call(`${type}.add_to_${field}`, ref, entry, value)
         return
       } catch (error) {
         if (error == null || error.code !== 'MAP_DUPLICATE_KEY') {
           throw error
         }
       }
-      await this.unsetFieldEntry({ $type, $ref }, field, entry)
+      await this.call(`${type}.remove_from_${field}`, ref, entry)
     }
-  }
-
-  unsetFieldEntry({ $type, $ref }, field, entry) {
-    return this.call(`${$type}.remove_from_${field}`, $ref, entry)
   }
 
   watchTask(ref) {
@@ -1069,7 +1074,7 @@ export class Xapi extends EventEmitter {
       const props = { $type: type }
       fields.forEach(field => {
         props[`set_${field}`] = function(value) {
-          return xapi.setField(this, field, value)
+          return xapi.setField(this.$type, this.$ref, field, value)
         }
 
         const $field = (field in RESERVED_FIELDS ? '$$' : '$') + field
@@ -1097,8 +1102,10 @@ export class Xapi extends EventEmitter {
             })
             return result
           }
-          props[`update_${field}`] = function(entries) {
-            return xapi.setFieldEntries(this, field, entries)
+          props[`update_${field}`] = function(entries, value) {
+            return typeof entries === 'string'
+              ? xapi.setFieldEntry(this.$type, this.$ref, field, entries, value)
+              : xapi.setFieldEntries(this.$type, this.$ref, field, entries)
           }
         } else if (value === '' || isOpaqueRef(value)) {
           // 2019-02-07 - JFT: even if `value` should not be an empty string for
@@ -1141,9 +1148,15 @@ Xapi.prototype._transportCall = reduce(
             error = wrapError(error)
           }
 
+          // do not log the session ID
+          //
+          // TODO: should log at the session level to avoid logging sensitive
+          // values?
+          const params = args[0] === this._sessionId ? args.slice(1) : args
+
           error.call = {
             method,
-            params: replaceSensitiveValues(args, '* obfuscated *'),
+            params: replaceSensitiveValues(params, '* obfuscated *'),
           }
           throw error
         })

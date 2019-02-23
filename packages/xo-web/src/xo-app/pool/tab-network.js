@@ -10,10 +10,10 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
-import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
 import { Toggle } from 'form'
 import {
@@ -24,8 +24,6 @@ import {
 } from 'selectors'
 import {
   connectPif,
-  createBondedNetwork,
-  createNetwork,
   deleteNetwork,
   disconnectPif,
   editNetwork,
@@ -362,19 +360,10 @@ export default class TabNetworks extends Component {
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='primary'
-              handler={createBondedNetwork}
-              handlerParam={this.props.pool}
-              icon='add'
-              labelId='networkCreateBondedButton'
-            />
-            <TabButton
-              btnStyle='primary'
-              handler={createNetwork}
-              handlerParam={this.props.pool}
+            <TabButtonLink
               icon='add'
               labelId='networkCreateButton'
+              to={`new/network?pool=${this.props.pool.id}`}
             />
           </Col>
         </Row>

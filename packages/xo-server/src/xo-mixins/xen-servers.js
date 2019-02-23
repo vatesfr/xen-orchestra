@@ -30,6 +30,15 @@ class PoolAlreadyConnected extends BaseError {
 
 const log = createLogger('xo:xo-mixins:xen-servers')
 
+// Server is disconnected:
+// - _xapis[server.id] is undefined
+
+// Server is connecting:
+// - _xapis[server.id] is defined
+
+// Server is connected:
+// - _xapis[server.id] id defined
+// - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
   constructor(xo, { xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
@@ -267,6 +276,12 @@ export default class {
     try {
       await xapi.connect()
 
+      // requesting disconnection on the connecting server
+      if (this._xapis[server.id] === undefined) {
+        xapi.disconnect()::ignoreErrors()
+        return
+      }
+
       const serverIdsByPool = this._serverIdsByPool
       const poolId = xapi.pool.$id
       if (serverIdsByPool[poolId] !== undefined) {
@@ -390,15 +405,17 @@ export default class {
   }
 
   async disconnectXenServer(id) {
-    const xapi = this._xapis[id]
-    if (!xapi) {
-      throw noSuchObject(id, 'xenServer')
+    const status = this._getXenServerStatus(id)
+    if (status === 'disconnected') {
+      return
     }
 
+    const xapi = this._xapis[id]
     delete this._xapis[id]
-    delete this._serverIdsByPool[xapi.pool.$id]
-
-    xapi.xo.uninstall()
+    if (status === 'connected') {
+      delete this._serverIdsByPool[xapi.pool.$id]
+      xapi.xo.uninstall()
+    }
     return xapi.disconnect()
   }
 
@@ -425,18 +442,22 @@ export default class {
     return xapi
   }
 
+  _getXenServerStatus(id) {
+    const xapi = this._xapis[id]
+    return xapi === undefined
+      ? 'disconnected'
+      : this._serverIdsByPool[(xapi.pool?.$id)] === id
+      ? 'connected'
+      : 'connecting'
+  }
+
   async getAllXenServers() {
     const servers = await this._servers.get()
     const xapis = this._xapis
     forEach(servers, server => {
-      const xapi = xapis[server.id]
-      if (xapi !== undefined) {
-        server.status = xapi.status
-
-        let pool
-        if (server.label === undefined && (pool = xapi.pool) != null) {
-          server.label = pool.name_label
-        }
+      server.status = this._getXenServerStatus(server.id)
+      if (server.status === 'connected' && server.label === undefined) {
+        server.label = xapis[server.id].pool.name_label
       }
 
       // Do not expose password.

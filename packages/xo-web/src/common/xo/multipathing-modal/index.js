@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 
 import _ from '../../intl'
 import Collapse from '../../collapse'
+import Icon from '../../icon'
 import { connectStore } from '../../utils'
 import { createGetObjectsOfType, createSelector } from '../../selectors'
 import { Sr } from '../../render-xo-item'
@@ -36,6 +37,10 @@ export default class MultipathingModal extends Component {
         {_('hostMultipathingWarning', {
           nHosts: hostIds.length,
         })}
+        <br />
+        <span className='text-info'>
+          <Icon icon='info' /> {_('hostMultipathingRequiredState')}
+        </span>
         <Collapse
           buttonText={_('hostMultipathingSrs')}
           size='small'
