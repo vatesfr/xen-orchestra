@@ -757,7 +757,7 @@ export class Xapi extends EventEmitter {
 
   async setFieldEntry(type, ref, field, entry, value) {
     if (value === null) {
-      return this.call(`${type}.remove_from_${field}`, ref, entry)
+      return this.call(`${type}.remove_from_${field}`, ref, entry).then(noop)
     }
     while (true) {
       try {
