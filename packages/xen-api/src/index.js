@@ -7,7 +7,6 @@ import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
 import { fibonacci } from 'iterable-backoff'
 import {
-  filter,
   forEach,
   isArray,
   isInteger,
@@ -403,42 +402,55 @@ export class Xapi extends EventEmitter {
     )
   }
 
-  connect() {
+  async connect() {
     const { status } = this
 
     if (status === CONNECTED) {
-      return Promise.reject(new Error('already connected'))
+      throw new Error('already connected')
     }
 
     if (status === CONNECTING) {
-      return Promise.reject(new Error('already connecting'))
+      throw new Error('already connecting')
     }
 
     const auth = this._auth
     if (auth === undefined) {
-      return Promise.reject(new Error('missing credentials'))
+      throw new Error('missing credentials')
     }
 
     this._sessionId = CONNECTING
 
-    return this._transportCall('session.login_with_password', [
-      auth.user,
-      auth.password,
-    ]).then(
-      async sessionId => {
-        this._sessionId = sessionId
-        this._pool = (await this.getAllRecords('pool'))[0]
+    try {
+      const [methods, sessionId] = await Promise.all([
+        this._transportCall('system.listMethods'),
+        this._transportCall('session.login_with_password', [
+          auth.user,
+          auth.password,
+        ]),
+      ])
 
-        debug('%s: connected', this._humanId)
+      // Uses introspection to list available types.
+      const types = (this._types = methods
+        .filter(isGetAllRecordsMethod)
+        .map(method => method.slice(0, method.indexOf('.'))))
+      this._lcToTypes = { __proto__: null }
+      types.forEach(type => {
+        const lcType = type.toLowerCase()
+        if (lcType !== type) {
+          this._lcToTypes[lcType] = type
+        }
+      })
 
-        this.emit(CONNECTED)
-      },
-      error => {
-        this._sessionId = null
+      this._sessionId = sessionId
+      this._pool = (await this.getAllRecords('pool'))[0]
 
-        throw error
-      }
-    )
+      debug('%s: connected', this._humanId)
+      this.emit(CONNECTED)
+    } catch (error) {
+      this._sessionId = null
+
+      throw error
+    }
   }
 
   disconnect() {
@@ -911,7 +923,12 @@ export class Xapi extends EventEmitter {
 
   _processEvents(events) {
     forEach(events, event => {
-      const { class: type, ref } = event
+      let type = event.class
+      const lcToTypes = this._lcToTypes
+      if (type in lcToTypes) {
+        type = lcToTypes[type]
+      }
+      const { ref } = event
       if (event.operation === 'del') {
         this._removeObject(type, ref)
       } else {
@@ -996,30 +1013,23 @@ export class Xapi extends EventEmitter {
   //
   // It also has to manually get all objects first.
   _watchEventsLegacy() {
-    const getAllObjects = () => {
-      return this._sessionCall('system.listMethods').then(methods => {
-        // Uses introspection to determine the methods to use to get
-        // all objects.
-        const getAllRecordsMethods = filter(methods, isGetAllRecordsMethod)
-
-        return Promise.all(
-          map(getAllRecordsMethods, method =>
-            this._sessionCall(method).then(
-              objects => {
-                const type = method.slice(0, method.indexOf('.')).toLowerCase()
-                forEach(objects, (object, ref) => {
-                  this._addObject(type, ref, object)
-                })
-              },
-              error => {
-                if (error.code !== 'MESSAGE_REMOVED') {
-                  throw error
-                }
+    const getAllObjects = async () => {
+      return Promise.all(
+        this._types.map(type =>
+          this._sessionCall(`${type}.get_all_records`).then(
+            objects => {
+              forEach(objects, (object, ref) => {
+                this._addObject(type, ref, object)
+              })
+            },
+            error => {
+              if (error.code !== 'MESSAGE_REMOVED') {
+                throw error
               }
-            )
+            }
           )
         )
-      })
+      )
     }
 
     const watchEvents = () =>
