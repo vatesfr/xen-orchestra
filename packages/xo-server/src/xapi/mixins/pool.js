@@ -2,7 +2,7 @@ import { cancelable } from 'promise-toolbox'
 
 export default {
   @cancelable
-  getPoolMetadata($cancelToken) {
+  exportPoolMetadata($cancelToken) {
     const { pool } = this
     return this.getResource($cancelToken, '/pool/xmldbdump', {
       task: this.createTask(

@@ -1,6 +1,8 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import deferrable from 'golike-defer'
+import { ignoreErrors, promisify } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
 
 import { type Xapi } from '../xapi'
 import {
@@ -11,6 +13,8 @@ import {
 
 import { type Executor, type Job } from './jobs'
 import { type Schedule } from './scheduling'
+
+const pPipeline = promisify(pipeline)
 
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
 
@@ -36,11 +40,13 @@ const METADATA_BACKUP_DIR = 'xo-metadata-backups'
 // └─ xo-metadata-backups
 //   └─ <schedule ID>
 //    ├─ xo
-//    │ ├─ <YYYYMMDD>T<HHmmss>.metadata.json
-//    │ └─ <YYYYMMDD>T<HHmmss>.json
+//    │ └─ <YYYYMMDD>T<HHmmss>
+//    │   ├─ metadata.json
+//    │   └─ data.json
 //    └─ <pool UUID>
-//      ├─ <YYYYMMDD>T<HHmmss>.metadata.json
-//      └─ <YYYYMMDD>T<HHmmss>.xml
+//      └─ <YYYYMMDD>T<HHmmss>
+//        ├─ metadata.json
+//        └─ data
 export default class metadataBackup {
   _app: {
     createJob: (
@@ -96,37 +102,32 @@ export default class metadataBackup {
     const timestamp = safeDateFormat(Date.now())
     const files = []
     if (job.xoMetadata && retentionXoMetadata > 0) {
-      const dir = `${scheduleDir}/xo`
-      const fileName = `${dir}/${timestamp}.json`
-      const metaDataFileName = `${dir}/${timestamp}.metadata.json`
+      const xoDir = `${scheduleDir}/xo`
+      const dir = `${xoDir}/${timestamp}`
 
-      const data = await app.exportConfig()
+      const data = JSON.stringify(await app.exportConfig(), null, 2)
+      const fileName = `${dir}/data.json`
+
+      const metadata = JSON.stringify(
+        {
+          jobId: job.id,
+          scheduleId: schedule.id,
+          timestamp,
+        },
+        null,
+        2
+      )
+      const metaDataFileName = `${dir}/metadata.json`
 
       files.push({
         executeBackup: async handler => {
           await Promise.all([
-            handler.outputFile(fileName, JSON.stringify(data, null, 2)),
-            handler.outputFile(
-              metaDataFileName,
-              JSON.stringify(
-                {
-                  jobId: job.id,
-                  scheduleId: schedule.id,
-                  timestamp,
-                },
-                null,
-                2
-              )
-            ),
+            handler.outputFile(fileName, data),
+            handler.outputFile(metaDataFileName, metadata),
           ])
-          $defer.onFailure(async () => {
-            await Promise.all([
-              handler.unlink(fileName),
-              handler.unlink(metaDataFileName),
-            ])
-          })
+          $defer.onFailure(() => handler.unlink(dir))
         },
-        dir,
+        dir: xoDir,
         retention: retentionXoMetadata - 1,
       })
     }
@@ -135,39 +136,38 @@ export default class metadataBackup {
       files.push(
         ...(await Promise.all(
           poolIds.map(async id => {
-            const dir = `${scheduleDir}/${id}`
-            const fileName = `${dir}/${timestamp}.xml`
-            const metaDataFileName = `${dir}/${timestamp}.metadata.json`
+            const metadataDir = `${scheduleDir}/${id}`
+            const dir = `${metadataDir}/${timestamp}`
 
-            const stream = await app.getXapi(id).getPoolMetadata(cancelToken)
+            // TODO: export the metadata only once then split the stream between remotes
+            const stream = await app.getXapi(id).exportPoolMetadata(cancelToken)
+            const fileName = `${dir}/data`
+
+            const metadata = JSON.stringify(
+              {
+                jobId: job.id,
+                scheduleId: schedule.id,
+                poolId: id,
+                timestamp,
+              },
+              null,
+              2
+            )
+            const metaDataFileName = `${dir}/metadata.json`
 
             return {
               executeBackup: async handler => {
-                const [outputStream] = await Promise.all([
-                  handler.createOutputStream(fileName),
-                  handler.outputFile(
-                    metaDataFileName,
-                    JSON.stringify(
-                      {
-                        jobId: job.id,
-                        scheduleId: schedule.id,
-                        poolId: id,
-                        timestamp,
-                      },
-                      null,
-                      2
-                    )
-                  ),
+                await Promise.all([
+                  (async () =>
+                    pPipeline(
+                      stream,
+                      await handler.createOutputStream(fileName)
+                    ))(),
+                  handler.outputFile(metaDataFileName, metadata),
                 ])
-                stream.pipe(outputStream)
-                $defer.onFailure(async () => {
-                  await Promise.all([
-                    handler.unlink(fileName),
-                    handler.unlink(metaDataFileName),
-                  ])
-                })
+                $defer.onFailure(() => handler.unlink(dir))
               },
-              dir,
+              dir: metadataDir,
               retention,
             }
           })
@@ -181,25 +181,32 @@ export default class metadataBackup {
 
     cancelToken.throwIfRequested()
 
-    return asyncMap(remoteIds, async id => {
-      const handler = await app.getRemoteHandler(id)
-      return files.map(async ({ executeBackup, dir, retention }) => {
-        // deleting old backups
-        await handler.list(dir).then(
-          list => {
+    return asyncMap(
+      // TODO: emit a warning task if a remote is broken
+      asyncMap(remoteIds, id => app.getRemoteHandler(id)::ignoreErrors()),
+      async handler => {
+        if (handler === undefined) {
+          return
+        }
+
+        for (const { executeBackup, dir, retention } of files) {
+          await executeBackup(handler)
+
+          // deleting old backups
+          await handler.list(dir).then(list => {
+            list.sort()
             if (retention > 0) {
               list = list.slice(0, -retention)
             }
             return Promise.all(
-              list.map(fileToDelete => handler.unlink(`${dir}/${fileToDelete}`))
+              list.map(timestampDir =>
+                handler.unlink(`${dir}/${timestampDir}`)::ignoreErrors()
+              )
             )
-          },
-          () => {}
-        )
-
-        await executeBackup(handler)
-      })
-    })
+          })
+        }
+      }
+    )
   }
 
   async createMetadataBackupJob(
