@@ -32,7 +32,7 @@ const setDefaultRetentions = (schedule, retentions) => {
   return schedule
 }
 
-export const isRetentionsMissing = (value, retentions) =>
+export const areRetentionsMissing = (value, retentions) =>
   retentions.length !== 0 &&
   !retentions.some(({ valuePath }) => value[valuePath] > 0)
 
@@ -111,7 +111,7 @@ const Schedules = decorate([
           ),
           size: 'large',
           handler: value => {
-            if (isRetentionsMissing(value, state.retentions)) {
+            if (areRetentionsMissing(value, state.retentions)) {
               throw new UserError(_('newScheduleError'), _('retentionNeeded'))
             }
             return value

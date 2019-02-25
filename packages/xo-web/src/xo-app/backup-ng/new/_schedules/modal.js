@@ -11,7 +11,7 @@ import { Number } from 'form'
 
 import { FormGroup, Input } from '../../utils'
 
-import { isRetentionsMissing } from '.'
+import { areRetentionsMissing } from '.'
 
 export default decorate([
   provideState({
@@ -50,7 +50,7 @@ export default decorate([
       idInputName: generateId,
 
       missingRetentions: (_, { value, retentions }) =>
-        isRetentionsMissing(value, retentions),
+        areRetentionsMissing(value, retentions),
     },
   }),
   injectState,
@@ -72,7 +72,7 @@ export default decorate([
             value={schedule.name}
           />
         </FormGroup>
-        {/* retentions effect are defined on initialize() */}
+        {/* retentions effects are defined on initialize() */}
         {retentions.map(({ name, valuePath }) => (
           <FormGroup key={valuePath}>
             <label>

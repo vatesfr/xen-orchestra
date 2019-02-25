@@ -1922,14 +1922,18 @@ export const subscribeBackupNgLogs = createSubscription(() =>
   _call('backupNg.getAllLogs')
 )
 
+export const subscribeMetadataBackupJobs = createSubscription(() =>
+  _call('metadataBackup.getAllJobs')
+)
+
 export const createBackupNgJob = props =>
   _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 
 export const deleteBackupJobs = async ({
   backupIds = [],
-  metadataIds = [],
+  metadataBackupIds = [],
 }) => {
-  const nJobs = backupIds.length + metadataIds.length
+  const nJobs = backupIds.length + metadataBackupIds.length
   if (nJobs === 0) {
     return
   }
@@ -1951,10 +1955,10 @@ export const deleteBackupJobs = async ({
       )::tap(subscribeBackupNgJobs.forceRefresh)
     )
   }
-  if (metadataIds.length !== 0) {
+  if (metadataBackupIds.length !== 0) {
     promises.push(
       Promise.all(
-        metadataIds.map(id =>
+        metadataBackupIds.map(id =>
           _call('metadataBackup.deleteJob', { id: resolveId(id) })
         )
       )::tap(subscribeMetadataBackupJobs.forceRefresh)
@@ -1997,10 +2001,6 @@ export const deleteBackups = async backups => {
     await deleteBackup(backups[i])
   }
 }
-
-export const subscribeMetadataBackupJobs = createSubscription(() =>
-  _call('metadataBackup.getAllJobs')
-)
 
 export const createMetadataBackupJob = props =>
   _call('metadataBackup.createJob', props)

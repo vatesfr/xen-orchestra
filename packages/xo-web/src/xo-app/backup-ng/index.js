@@ -68,11 +68,11 @@ const _runBackupJob = ({ id, name, schedule, type }) =>
   )
 
 const _deleteBackupJobs = items => {
-  const { backup: backupIds, metadataBackup: metadataIds } = groupBy(
+  const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(
     items,
     'type'
   )
-  return deleteBackupJobs({ backupIds, metadataIds })
+  return deleteBackupJobs({ backupIds, metadataBackupIds })
 }
 
 const SchedulePreviewBody = decorate([
@@ -306,12 +306,7 @@ class JobsTable extends React.Component {
   _getCollection = createSelector(
     () => this.props.jobs,
     () => this.props.metadataJobs,
-    (jobs, metadataJobs) =>
-      isEmpty(metadataJobs)
-        ? jobs
-        : isEmpty(jobs)
-        ? metadataJobs
-        : [...jobs, ...metadataJobs]
+    (jobs = [], metadataJobs = []) => [...jobs, ...metadataJobs]
   )
 
   render() {
@@ -390,7 +385,7 @@ const HEADER = (
   </Container>
 )
 
-const RedirectToNewBackupView = () => (
+const ChooseBackupType = () => (
   <Container>
     <Row>
       <Col>
@@ -398,10 +393,10 @@ const RedirectToNewBackupView = () => (
           <CardHeader>{_('backupType')}</CardHeader>
           <CardBlock className='text-md-center'>
             <ButtonLink to='backup-ng/new/vms'>
-              <Icon icon='backup' /> {_('goToVmsBackup')}
+              <Icon icon='backup' /> {_('backupVms')}
             </ButtonLink>{' '}
             <ButtonLink to='backup-ng/new/metadata'>
-              <Icon icon='database' /> {_('goToMetadataBackup')}
+              <Icon icon='database' /> {_('Backup metadata')}
             </ButtonLink>
           </CardBlock>
         </Card>
@@ -412,7 +407,7 @@ const RedirectToNewBackupView = () => (
 
 export default routes('overview', {
   ':id/edit': Edit,
-  new: RedirectToNewBackupView,
+  new: ChooseBackupType,
   'new/vms': BackupVms,
   'new/metadata': BackupMetadata,
   overview: Overview,

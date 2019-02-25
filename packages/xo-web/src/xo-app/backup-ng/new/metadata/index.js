@@ -38,7 +38,7 @@ import Schedules from '../_schedules'
 // A retention can be:
 // - number: set by user
 // - undefined: will be replaced by the default value in the display(table + modal) and on submitting the form
-// - null: when a user voluntary delete its value.
+// - null: when a user voluntarily deletes its value.
 const DEFAULT_RETENTION = 1
 
 const RETENTION_POOL_METADATA = {
@@ -109,8 +109,9 @@ export default decorate([
           return { showErrors: true }
         }
 
-        await Promise.all(
-          map(props.schedules, ({ id }) => {
+        const settings = { ...state.settings }
+        await Promise.all([
+          ...map(props.schedules, ({ id }) => {
             const schedule = state.schedules[id]
             if (schedule === undefined) {
               return deleteSchedule(id)
@@ -123,12 +124,8 @@ export default decorate([
               timezone: schedule.timezone,
               enabled: schedule.enabled,
             })
-          })
-        )
-
-        const settings = { ...state.settings }
-        await Promise.all(
-          map(state.schedules, async schedule => {
+          }),
+          ...map(state.schedules, async schedule => {
             if (props.schedules[schedule.id] === undefined) {
               const { id } = await createSchedule(props.job.id, {
                 cron: schedule.cron,
@@ -139,8 +136,8 @@ export default decorate([
               settings[id] = settings[schedule.id]
               delete settings[schedule.id]
             }
-          })
-        )
+          }),
+        ])
 
         await editMetadataBackupJob({
           id: props.job.id,
