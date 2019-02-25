@@ -60,7 +60,6 @@ import {
   asInteger,
   extractOpaqueRef,
   filterUndefineds,
-  getNamespaceForType,
   getVmDisks,
   canSrHaveNewVdiOfSize,
   isVmHvm,
@@ -227,7 +226,7 @@ export default class Xapi extends XapiBase {
 
   _setObjectProperty(object, name, value) {
     return this.call(
-      `${getNamespaceForType(object.$type)}.set_${camelToSnakeCase(name)}`,
+      `${object.$type}.set_${camelToSnakeCase(name)}`,
       object.$ref,
       prepareXapiParam(value)
     )
@@ -236,15 +235,13 @@ export default class Xapi extends XapiBase {
   _setObjectProperties(object, props) {
     const { $ref: ref, $type: type } = object
 
-    const namespace = getNamespaceForType(type)
-
     // TODO: the thrown error should contain the name of the
     // properties that failed to be set.
     return Promise.all(
       mapToArray(props, (value, name) => {
         if (value != null) {
           return this.call(
-            `${namespace}.set_${camelToSnakeCase(name)}`,
+            `${type}.set_${camelToSnakeCase(name)}`,
             ref,
             prepareXapiParam(value)
           )
@@ -258,9 +255,8 @@ export default class Xapi extends XapiBase {
 
     prop = camelToSnakeCase(prop)
 
-    const namespace = getNamespaceForType(type)
-    const add = `${namespace}.add_to_${prop}`
-    const remove = `${namespace}.remove_from_${prop}`
+    const add = `${type}.add_to_${prop}`
+    const remove = `${type}.remove_from_${prop}`
 
     await Promise.all(
       mapToArray(values, (value, name) => {
@@ -327,15 +323,13 @@ export default class Xapi extends XapiBase {
   async addTag(id, tag) {
     const { $ref: ref, $type: type } = this.getObject(id)
 
-    const namespace = getNamespaceForType(type)
-    await this.call(`${namespace}.add_tags`, ref, tag)
+    await this.call(`${type}.add_tags`, ref, tag)
   }
 
   async removeTag(id, tag) {
     const { $ref: ref, $type: type } = this.getObject(id)
 
-    const namespace = getNamespaceForType(type)
-    await this.call(`${namespace}.remove_tags`, ref, tag)
+    await this.call(`${type}.remove_tags`, ref, tag)
   }
 
   // =================================================================
@@ -1708,7 +1702,7 @@ export default class Xapi extends XapiBase {
         find(
           this.objects.all,
           obj =>
-            obj.$type === 'vm' &&
+            obj.$type === 'VM' &&
             obj.is_a_template &&
             obj.name_label === templateNameLabel
         )
@@ -2208,7 +2202,7 @@ export default class Xapi extends XapiBase {
     const physPif = find(
       this.objects.all,
       obj =>
-        obj.$type === 'pif' &&
+        obj.$type === 'PIF' &&
         (obj.physical || !isEmpty(obj.bond_master_of)) &&
         obj.$pool === pif.$pool &&
         obj.device === pif.device
@@ -2444,7 +2438,7 @@ export default class Xapi extends XapiBase {
     return find(
       this.objects.all,
       obj =>
-        obj.$type === 'sr' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
+        obj.$type === 'SR' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
     )
   }
 

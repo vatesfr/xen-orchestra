@@ -166,7 +166,7 @@ export default {
   async _ejectToolsIsos(hostRef) {
     return Promise.all(
       mapFilter(this.objects.all, vm => {
-        if (vm.$type !== 'vm' || (hostRef && vm.resident_on !== hostRef)) {
+        if (vm.$type !== 'VM' || (hostRef && vm.resident_on !== hostRef)) {
           return
         }
 

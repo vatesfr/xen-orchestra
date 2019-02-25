@@ -192,7 +192,7 @@ const listReplicatedVms = (
     const object = all[key]
     const oc = object.other_config
     if (
-      object.$type === 'vm' &&
+      object.$type === 'VM' &&
       !object.is_a_snapshot &&
       !object.is_a_template &&
       'start' in object.blocked_operations &&

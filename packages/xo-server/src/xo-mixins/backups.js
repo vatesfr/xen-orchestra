@@ -427,7 +427,7 @@ export default class {
 
       let toRemove = filter(
         targetXapi.objects.all,
-        obj => obj.$type === 'vm' && obj.other_config[TAG_SOURCE_VM] === uuid
+        obj => obj.$type === 'VM' && obj.other_config[TAG_SOURCE_VM] === uuid
       )
       const { length } = toRemove
       const deleteBase = length === 0 // old replications are not captured in toRemove
