@@ -985,18 +985,21 @@ export class Xapi extends EventEmitter {
     // initial fetch
     await Promise.all(
       types.map(async type => {
-        // FIXME: use _transportCall to avoid auto-reconnection
-        const { events } = await this._sessionCall('event.from', [
-          [type],
-          '',
-          0, // do not wait if no records for this type
-        ])
-
-        // we can bypass _processEvents here because they are all *add* event
-        // and all objects are of the same type
-        events.forEach(event =>
-          this._addObject(type, event.ref, event.snapshot)
-        )
+        try {
+          // FIXME: use _transportCall to avoid auto-reconnection
+          forOwn(
+            await this._sessionCall(`${type}.get_all_records`),
+            (record, ref) => {
+              // we can bypass _processEvents here because they are all *add*
+              // event and all objects are of the same type
+              this._addObject(type, ref, record)
+            }
+          )
+        } catch (error) {
+          if (error == null || error.code !== 'MESSAGE_REMOVED') {
+            throw error
+          }
+        }
       })
     )
     this._resolveObjectsFetched()
@@ -1108,8 +1111,7 @@ export class Xapi extends EventEmitter {
       const nFields = fields.length
       const xapi = this
 
-      const objectsByRef = this._objectsByRef
-      const getObjectByRef = ref => objectsByRef[ref]
+      const getObjectByRef = ref => this._objectsByRef[ref]
 
       Record = function(ref, data) {
         defineProperties(this, {
@@ -1151,7 +1153,7 @@ export class Xapi extends EventEmitter {
             const value = this[field]
             const result = {}
             getKeys(value).forEach(key => {
-              result[key] = objectsByRef[value[key]]
+              result[key] = xapi._objectsByRef[value[key]]
             })
             return result
           }
@@ -1165,7 +1167,7 @@ export class Xapi extends EventEmitter {
           // a ref property, an user had the case on XenServer 7.0 on the CD VBD
           // of a VM created by XenCenter
           getters[$field] = function() {
-            return objectsByRef[this[field]]
+            return xapi._objectsByRef[this[field]]
           }
         }
       })
