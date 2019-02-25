@@ -1,7 +1,7 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import deferrable from 'golike-defer'
-import { ignoreErrors, promisify } from 'promise-toolbox'
+import { ignoreErrors } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 
 import { type Xapi } from '../xapi'
@@ -13,8 +13,6 @@ import {
 
 import { type Executor, type Job } from './jobs'
 import { type Schedule } from './scheduling'
-
-const pPipeline = promisify(pipeline)
 
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
 
@@ -125,14 +123,13 @@ export default class metadataBackup {
             handler.outputFile(fileName, data),
             handler.outputFile(metaDataFileName, metadata),
           ])
-          $defer.onFailure(() => handler.unlink(dir))
+          $defer.onFailure(() => handler.rmtree(dir))
         },
         dir: xoDir,
-        retention: retentionXoMetadata - 1,
+        retention: retentionXoMetadata,
       })
     }
     if (!isEmptyPools && retentionPoolMetadata > 0) {
-      const retention = retentionPoolMetadata - 1
       files.push(
         ...(await Promise.all(
           poolIds.map(async id => {
@@ -157,18 +154,15 @@ export default class metadataBackup {
 
             return {
               executeBackup: async handler => {
-                await Promise.all([
-                  (async () =>
-                    pPipeline(
-                      stream,
-                      await handler.createOutputStream(fileName)
-                    ))(),
+                const [outputStream] = await Promise.all([
+                  handler.createOutputStream(fileName),
                   handler.outputFile(metaDataFileName, metadata),
                 ])
-                $defer.onFailure(() => handler.unlink(dir))
+                pipeline(stream, outputStream)
+                $defer.onFailure(() => handler.rmtree(dir))
               },
               dir: metadataDir,
-              retention,
+              retention: retentionPoolMetadata,
             }
           })
         ))
@@ -195,12 +189,10 @@ export default class metadataBackup {
           // deleting old backups
           await handler.list(dir).then(list => {
             list.sort()
-            if (retention > 0) {
-              list = list.slice(0, -retention)
-            }
+            list = list.slice(0, -retention)
             return Promise.all(
               list.map(timestampDir =>
-                handler.unlink(`${dir}/${timestampDir}`)::ignoreErrors()
+                handler.rmtree(`${dir}/${timestampDir}`)::ignoreErrors()
               )
             )
           })
@@ -229,7 +221,7 @@ export default class metadataBackup {
       settings[scheduleId] = settings[tmpId]
       delete settings[tmpId]
     })
-    await app.updateJob({ jobId, settings })
+    await app.updateJob({ id: jobId, settings })
 
     return job
   }
