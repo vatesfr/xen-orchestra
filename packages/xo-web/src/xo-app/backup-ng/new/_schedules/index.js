@@ -97,10 +97,10 @@ const Schedules = decorate([
           cron: newCron,
           name: newName,
           timezone: newTimezone,
-          ...newRetentions
+          ...newSettings
         } = await form({
           defaultValue: setDefaultRetentions(
-            { cron, name, timezone },
+            { cron, name, timezone, ...state.immutableSettings.get(id) },
             state.retentions
           ),
           render: props => <Modal retentions={state.retentions} {...props} />,
@@ -133,7 +133,7 @@ const Schedules = decorate([
           state.immutableSettings
             .update(id, setting => ({
               ...setting,
-              ...newRetentions,
+              ...newSettings,
             }))
             .toObject()
         )
