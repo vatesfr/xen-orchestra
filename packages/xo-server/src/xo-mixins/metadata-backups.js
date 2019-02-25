@@ -119,11 +119,11 @@ export default class metadataBackup {
 
       files.push({
         executeBackup: async handler => {
+          $defer.onFailure(() => handler.rmtree(dir))
           await Promise.all([
             handler.outputFile(fileName, data),
             handler.outputFile(metaDataFileName, metadata),
           ])
-          $defer.onFailure(() => handler.rmtree(dir))
         },
         dir: xoDir,
         retention: retentionXoMetadata,
@@ -154,12 +154,12 @@ export default class metadataBackup {
 
             return {
               executeBackup: async handler => {
+                $defer.onFailure(() => handler.rmtree(dir))
                 const [outputStream] = await Promise.all([
                   handler.createOutputStream(fileName),
                   handler.outputFile(metaDataFileName, metadata),
                 ])
                 pipeline(stream, outputStream)
-                $defer.onFailure(() => handler.rmtree(dir))
               },
               dir: metadataDir,
               retention: retentionPoolMetadata,
@@ -175,6 +175,7 @@ export default class metadataBackup {
 
     cancelToken.throwIfRequested()
 
+    const timestampReg = /^\d{8}T\d{6}Z$/
     return asyncMap(
       // TODO: emit a warning task if a remote is broken
       asyncMap(remoteIds, id => app.getRemoteHandler(id)::ignoreErrors()),
@@ -183,20 +184,24 @@ export default class metadataBackup {
           return
         }
 
-        for (const { executeBackup, dir, retention } of files) {
-          await executeBackup(handler)
+        await Promise.all(
+          files.map(async ({ executeBackup, dir, retention }) => {
+            await executeBackup(handler)
 
-          // deleting old backups
-          await handler.list(dir).then(list => {
-            list.sort()
-            list = list.slice(0, -retention)
-            return Promise.all(
-              list.map(timestampDir =>
-                handler.rmtree(`${dir}/${timestampDir}`)::ignoreErrors()
+            // deleting old backups
+            await handler.list(dir).then(list => {
+              list.sort()
+              list = list
+                .filter(timestampDir => timestampReg.test(timestampDir))
+                .slice(0, -retention)
+              return Promise.all(
+                list.map(timestampDir =>
+                  handler.rmtree(`${dir}/${timestampDir}`)
+                )
               )
-            )
+            })
           })
-        }
+        )
       }
     )
   }
