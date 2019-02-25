@@ -1005,7 +1005,7 @@ export class Xapi extends EventEmitter {
     const debounce = this._debounce
     while (true) {
       if (debounce != null) {
-        await pDelay(this._debounce)
+        await pDelay(debounce)
       }
 
       let result
@@ -1013,7 +1013,7 @@ export class Xapi extends EventEmitter {
         result = await this._sessionCall(
           'event.from',
           [types, fromToken, EVENT_TIMEOUT],
-          EVENT_TIMEOUT * 1e1
+          EVENT_TIMEOUT * 1.1
         )
       } catch (error) {
         if (error instanceof TimeoutError) {
