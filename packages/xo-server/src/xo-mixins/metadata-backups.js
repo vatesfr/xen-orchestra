@@ -1,8 +1,8 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
-import deferrable from 'golike-defer'
-import { ignoreErrors } from 'promise-toolbox'
+import defer from 'golike-defer'
 import { pipeline } from 'readable-stream'
+import { promisify, ignoreErrors } from 'promise-toolbox'
 
 import { type Xapi } from '../xapi'
 import {
@@ -13,6 +13,8 @@ import {
 
 import { type Executor, type Job } from './jobs'
 import { type Schedule } from './scheduling'
+
+const pPipeline = promisify(pipeline)
 
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
 
@@ -74,8 +76,7 @@ export default class metadataBackup {
     })
   }
 
-  @deferrable
-  async _executor($defer, { cancelToken, job: job_, schedule }): Executor {
+  async _executor({ cancelToken, job: job_, schedule }): Executor {
     if (schedule === undefined) {
       throw new Error('backup job cannot run without a schedule')
     }
@@ -118,13 +119,13 @@ export default class metadataBackup {
       const metaDataFileName = `${dir}/metadata.json`
 
       files.push({
-        executeBackup: async handler => {
+        executeBackup: defer(($defer, handler) => {
           $defer.onFailure(() => handler.rmtree(dir))
-          await Promise.all([
+          return Promise.all([
             handler.outputFile(fileName, data),
             handler.outputFile(metaDataFileName, metadata),
           ])
-        },
+        }),
         dir: xoDir,
         retention: retentionXoMetadata,
       })
@@ -153,14 +154,19 @@ export default class metadataBackup {
             const metaDataFileName = `${dir}/metadata.json`
 
             return {
-              executeBackup: async handler => {
+              executeBackup: defer(($defer, handler) => {
                 $defer.onFailure(() => handler.rmtree(dir))
-                const [outputStream] = await Promise.all([
-                  handler.createOutputStream(fileName),
+                return Promise.all([
+                  (async () => {
+                    const outputStream = await handler.createOutputStream(
+                      fileName
+                    )
+                    $defer.onFailure(() => outputStream.destroy())
+                    return pPipeline(stream, outputStream)
+                  })(),
                   handler.outputFile(metaDataFileName, metadata),
                 ])
-                pipeline(stream, outputStream)
-              },
+              }),
               dir: metadataDir,
               retention: retentionPoolMetadata,
             }
