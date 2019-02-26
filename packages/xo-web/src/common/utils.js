@@ -610,7 +610,9 @@ export const downloadLog = ({ log, date, type }) => {
   })
   const anchor = document.createElement('a')
   anchor.href = window.URL.createObjectURL(file)
-  anchor.download = `${new Date(date).toISOString()} - ${type}.log`
+  anchor.download = `${new Date(date)
+    .toISOString()
+    .replace(/:/g, '_')} - ${type}.log`
   anchor.style.display = 'none'
   document.body.appendChild(anchor)
   anchor.click()
