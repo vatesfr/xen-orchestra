@@ -983,25 +983,30 @@ export class Xapi extends EventEmitter {
     const types = this._watchedTypes || this._types
 
     // initial fetch
-    await Promise.all(
-      types.map(async type => {
-        try {
-          // FIXME: use _transportCall to avoid auto-reconnection
-          forOwn(
-            await this._sessionCall(`${type}.get_all_records`),
-            (record, ref) => {
-              // we can bypass _processEvents here because they are all *add*
-              // event and all objects are of the same type
-              this._addObject(type, ref, record)
+    const flush = this.objects.bufferEvents()
+    try {
+      await Promise.all(
+        types.map(async type => {
+          try {
+            // FIXME: use _transportCall to avoid auto-reconnection
+            forOwn(
+              await this._sessionCall(`${type}.get_all_records`),
+              (record, ref) => {
+                // we can bypass _processEvents here because they are all *add*
+                // event and all objects are of the same type
+                this._addObject(type, ref, record)
+              }
+            )
+          } catch (error) {
+            if (error == null || error.code !== 'MESSAGE_REMOVED') {
+              throw error
             }
-          )
-        } catch (error) {
-          if (error == null || error.code !== 'MESSAGE_REMOVED') {
-            throw error
           }
-        }
-      })
-    )
+        })
+      )
+    } finally {
+      flush()
+    }
     this._resolveObjectsFetched()
 
     // event loop
@@ -1060,22 +1065,28 @@ export class Xapi extends EventEmitter {
   // It also has to manually get all objects first.
   _watchEventsLegacy() {
     const getAllObjects = async () => {
-      return Promise.all(
-        this._types.map(type =>
-          this._sessionCall(`${type}.get_all_records`).then(
-            objects => {
-              forEach(objects, (object, ref) => {
-                this._addObject(type, ref, object)
-              })
-            },
-            error => {
-              if (error.code !== 'MESSAGE_REMOVED') {
-                throw error
+      const flush = this.objects.bufferEvents()
+      try {
+        await Promise.all(
+          this._types.map(type =>
+            this._sessionCall(`${type}.get_all_records`).then(
+              objects => {
+                forEach(objects, (object, ref) => {
+                  this._addObject(type, ref, object)
+                })
+              },
+              error => {
+                if (error.code !== 'MESSAGE_REMOVED') {
+                  throw error
+                }
               }
-            }
+            )
           )
         )
-      ).then(() => this._resolveObjectsFetched())
+      } finally {
+        flush()
+      }
+      this._resolveObjectsFetched()
     }
 
     const watchEvents = () =>
