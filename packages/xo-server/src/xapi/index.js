@@ -679,17 +679,17 @@ export default class Xapi extends XapiBase {
   }
 
   async _deleteVm(
-    vm,
+    vmOrRef,
     deleteDisks = true,
     force = false,
     forceDeleteDefaultTemplate = false
   ) {
-    log.debug(`Deleting VM ${vm.name_label}`)
-
-    const { $ref } = vm
+    const $ref = typeof vmOrRef === 'string' ? vmOrRef : vmOrRef.$ref
 
     // ensure the vm record is up-to-date
-    vm = await this.barrier($ref)
+    const vm = await this.barrier($ref)
+
+    log.debug(`Deleting VM ${vm.name_label}`)
 
     if (!force && 'destroy' in vm.blocked_operations) {
       throw forbiddenOperation('destroy', vm.blocked_operations.destroy.reason)
@@ -1541,19 +1541,15 @@ export default class Xapi extends XapiBase {
 
   @concurrency(2)
   @cancelable
-  async _snapshotVm($cancelToken, vm, nameLabel = vm.name_label) {
-    log.debug(
-      `Snapshotting VM ${vm.name_label}${
-        nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''
-      }`
-    )
-
-    const vmRef = vm.$ref
+  async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
+    const vm = this.getRecord('VM', vmRef)
+    if (nameLabel === undefined) {
+      nameLabel = vm.name_label
+    }
     let ref
     do {
       if (!vm.tags.includes('xo-disable-quiesce')) {
         try {
-          vm = await this.barrier(vmRef)
           ref = await pRetry(
             async bail => {
               try {
@@ -1564,7 +1560,10 @@ export default class Xapi extends XapiBase {
                   nameLabel
                 )
               } catch (error) {
-                if (error?.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
+                if (
+                  error == null ||
+                  error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
+                ) {
                   throw bail(error)
                 }
 
@@ -1573,12 +1572,11 @@ export default class Xapi extends XapiBase {
                 // see https://github.com/vatesfr/xen-orchestra/issues/3936
                 const prevSnapshotRefs = new Set(vm.snapshots)
                 const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
-                vm = await this.barrier(vmRef)
-                const createdSnapshots = vm.$snapshots.filter(
-                  _ =>
-                    !prevSnapshotRefs.has(_.$ref) &&
-                    _.name_label.startsWith(snapshotNameLabelPrefix)
-                )
+                vm.snapshots = await this.getField('VM', vmRef, 'snapshots')
+                const createdSnapshots = (await this.getRecords(
+                  'VM',
+                  vm.snapshots.filter(_ => !prevSnapshotRefs.has(_))
+                )).filter(_ => _.name_label.startsWith(snapshotNameLabelPrefix))
 
                 // be safe: only delete if there was a single match
                 if (createdSnapshots.length === 1) {
@@ -1593,7 +1591,7 @@ export default class Xapi extends XapiBase {
               tries: 3,
             }
           ).then(extractOpaqueRef)
-          this.addTag(ref, 'quiesce')::ignoreErrors()
+          ignoreErrors.call(this.call('VM.add_tags', ref, 'quiesce'))
 
           break
         } catch (error) {
@@ -1618,14 +1616,9 @@ export default class Xapi extends XapiBase {
       ).then(extractOpaqueRef)
     } while (false)
 
-    // Convert the template to a VM and wait to have receive the up-
-    // to-date object.
-    const [, snapshot] = await Promise.all([
-      this.call('VM.set_is_a_template', ref, false),
-      this.barrier(ref),
-    ])
+    await this.setField('VM', ref, 'is_a_template', false)
 
-    return snapshot
+    return this.getRecord('VM', ref)
   }
 
   async snapshotVm(vmId, nameLabel = undefined) {
