@@ -30,7 +30,7 @@ export default decorate([
   provideState({
     effects: {
       _downloadLog: () => ({ formattedLog }, { log }) =>
-        downloadLog({ log: formattedLog, date: log.end, type: 'backup NG' }),
+        downloadLog({ log: formattedLog, date: log.start, type: 'backup NG' }),
       restartFailedVms: () => async (
         _,
         { log: { jobId: id, scheduleId: schedule, tasks, infos } }
