@@ -65,7 +65,7 @@ const getInitialState = () => ({
 
 export default decorate([
   New => props => (
-    <Upgrade place='newMetadataBackup' required={4}>
+    <Upgrade place='newMetadataBackup' required={3}>
       <New {...props} />
     </Upgrade>
   ),
