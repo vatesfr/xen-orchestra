@@ -86,7 +86,7 @@ export default decorate([
         </Tooltip>
         <Tooltip content={_('logDownload')}>
           <Button size='small' onClick={effects._downloadLog}>
-            <Icon icon='reply' />
+            <Icon icon='download' />
           </Button>
         </Tooltip>
         {CAN_REPORT_BUG && (

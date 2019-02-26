@@ -101,7 +101,7 @@ const INDIVIDUAL_ACTIONS = [
   {
     handler: log =>
       downloadLog({ log: formatLog(log), date: log.time, type: 'XO' }),
-    icon: 'reply',
+    icon: 'download',
     label: _('logDownload'),
   },
   {
