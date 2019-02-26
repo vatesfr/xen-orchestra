@@ -1542,7 +1542,10 @@ export default class Xapi extends XapiBase {
   @concurrency(2)
   @cancelable
   async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
-    const vm = this.getRecord('VM', vmRef)
+    const vm = await this.getRecord('VM', vmRef)
+    if (nameLabel === undefined) {
+      nameLabel = vm.name_label
+    }
 
     log.debug(
       `Snapshotting VM ${vm.name_label}${
@@ -1550,9 +1553,6 @@ export default class Xapi extends XapiBase {
       }`
     )
 
-    if (nameLabel === undefined) {
-      nameLabel = vm.name_label
-    }
     let ref
     do {
       if (!vm.tags.includes('xo-disable-quiesce')) {
@@ -1567,10 +1567,7 @@ export default class Xapi extends XapiBase {
                   nameLabel
                 )
               } catch (error) {
-                if (
-                  error == null ||
-                  error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
-                ) {
+                if (error?.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
                   throw bail(error)
                 }
 
