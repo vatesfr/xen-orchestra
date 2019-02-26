@@ -32,21 +32,21 @@ type MetadataBackupJob = {
   xoMetadata?: boolean,
 }
 
-const METADATA_BACKUP_DIR = 'xo-metadata-backups'
-
 // File structure on remotes:
 //
 // <remote>
-// └─ xo-metadata-backups
-//   └─ <schedule ID>
-//    ├─ xo
-//    │ └─ <YYYYMMDD>T<HHmmss>
-//    │   ├─ metadata.json
-//    │   └─ data.json
-//    └─ <pool UUID>
-//      └─ <YYYYMMDD>T<HHmmss>
-//        ├─ metadata.json
-//        └─ data
+// ├─ xo-config-backups
+// │  └─ <schedule ID>
+// │     └─ <YYYYMMDD>T<HHmmss>
+// │        ├─ metadata.json
+// │        └─ data.json
+// └─ xo-pool-metadata-backups
+//    └─ <schedule ID>
+//       └─ <pool UUID>
+//          └─ <YYYYMMDD>T<HHmmss>
+//             ├─ metadata.json
+//             └─ data
+
 export default class metadataBackup {
   _app: {
     createJob: (
@@ -97,12 +97,11 @@ export default class metadataBackup {
     const { retentionXoMetadata, retentionPoolMetadata } =
       job?.settings[schedule.id] || {}
 
-    const scheduleDir = `${METADATA_BACKUP_DIR}/${schedule.id}`
     const timestamp = safeDateFormat(Date.now())
     const files = []
     if (job.xoMetadata && retentionXoMetadata > 0) {
-      const xoDir = `${scheduleDir}/xo`
-      const dir = `${xoDir}/${timestamp}`
+      const xoMetadataDir = `xo-config-backups/${schedule.id}`
+      const dir = `${xoMetadataDir}/${timestamp}`
 
       const data = JSON.stringify(await app.exportConfig(), null, 2)
       const fileName = `${dir}/data.json`
@@ -126,7 +125,7 @@ export default class metadataBackup {
             handler.outputFile(metaDataFileName, metadata),
           ])
         }),
-        dir: xoDir,
+        dir: xoMetadataDir,
         retention: retentionXoMetadata,
       })
     }
@@ -134,8 +133,10 @@ export default class metadataBackup {
       files.push(
         ...(await Promise.all(
           poolIds.map(async id => {
-            const metadataDir = `${scheduleDir}/${id}`
-            const dir = `${metadataDir}/${timestamp}`
+            const poolMetadataDir = `xo-pool-metadata-backups/${
+              schedule.id
+            }/${id}`
+            const dir = `${poolMetadataDir}/${timestamp}`
 
             // TODO: export the metadata only once then split the stream between remotes
             const stream = await app.getXapi(id).exportPoolMetadata(cancelToken)
@@ -166,12 +167,12 @@ export default class metadataBackup {
                     // 'readable-stream/pipeline' not call the callback when an error throws
                     // from the readable stream
                     stream.pipe(outputStream)
-                    return pFinished(stream)
+                    return pFinished(outputStream)
                   })(),
                   handler.outputFile(metaDataFileName, metadata),
                 ])
               }),
-              dir: metadataDir,
+              dir: poolMetadataDir,
               retention: retentionPoolMetadata,
             }
           })
