@@ -592,7 +592,7 @@ export class Xapi extends EventEmitter {
   }
 
   @cancelable
-  getResource($cancelToken, pathname, { host, query, task }) {
+  getResource($cancelToken, pathname, { host, query, task } = {}) {
     return this._autoTask(task, `Xapi#getResource ${pathname}`).then(
       taskRef => {
         query = { ...query, session_id: this.sessionId }
