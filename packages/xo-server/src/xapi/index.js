@@ -1543,6 +1543,13 @@ export default class Xapi extends XapiBase {
   @cancelable
   async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
     const vm = this.getRecord('VM', vmRef)
+
+    log.debug(
+      `Snapshotting VM ${vm.name_label}${
+        nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''
+      }`
+    )
+
     if (nameLabel === undefined) {
       nameLabel = vm.name_label
     }
