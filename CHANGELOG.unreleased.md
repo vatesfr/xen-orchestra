@@ -7,6 +7,7 @@
 - [Editable fields] Unfocusing (clicking outside) submits the change instead of canceling (PR [#3980](https://github.com/vatesfr/xen-orchestra/pull/3980))
 - [Network] Dedicated page for network creation [#3895](https://github.com/vatesfr/xen-orchestra/issues/3895) (PR [#3906](https://github.com/vatesfr/xen-orchestra/pull/3906))
 - [Logs] Add button to download the log [#3957](https://github.com/vatesfr/xen-orchestra/issues/3957) (PR [#3985](https://github.com/vatesfr/xen-orchestra/pull/3985))
+- [Continuous Replication] Share full copy between schedules [#3973](https://github.com/vatesfr/xen-orchestra/issues/3973) (PR [#3995](https://github.com/vatesfr/xen-orchestra/pull/3995))
 
 ### Bug fixes
 
