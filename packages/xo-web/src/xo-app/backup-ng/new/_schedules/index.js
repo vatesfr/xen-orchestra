@@ -11,8 +11,8 @@ import UserError from 'user-error'
 import { Card, CardBlock, CardHeader } from 'card'
 import { form } from 'modal'
 import { generateRandomId } from 'utils'
+import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
-import { Map } from 'immutable'
 
 import { FormFeedback } from '../../utils'
 
@@ -86,21 +86,29 @@ const Schedules = decorate([
   provideState({
     effects: {
       deleteSchedule: (_, id) => (state, props) => {
-        props.handlerSchedules(state.immutableSchedules.delete(id).toObject())
-        props.handlerSettings(state.immutableSettings.delete(id).toObject())
+        const schedules = { ...props.schedules }
+        delete schedules[id]
+        props.handlerSchedules(schedules)
+
+        const settings = { ...props.settings }
+        delete settings[id]
+        props.handlerSettings(settings)
       },
       showModal: (
         effects,
         { id = generateRandomId(), name, cron, timezone } = DEFAULT_SCHEDULE
       ) => async (state, props) => {
+        const schedule = get(() => props.schedules[id])
+        const setting = get(() => props.settings[id])
+
         const {
           cron: newCron,
           name: newName,
           timezone: newTimezone,
-          ...newSettings
+          ...newSetting
         } = await form({
           defaultValue: setDefaultRetentions(
-            { cron, name, timezone, ...state.immutableSettings.get(id) },
+            { cron, name, timezone, ...setting },
             state.retentions
           ),
           render: props => <Modal retentions={state.retentions} {...props} />,
@@ -118,38 +126,36 @@ const Schedules = decorate([
           },
         })
 
-        props.handlerSchedules(
-          state.immutableSchedules
-            .update(id, schedule => ({
-              ...schedule,
-              cron: newCron,
-              id,
-              name: newName,
-              timezone: newTimezone,
-            }))
-            .toObject()
-        )
-        props.handlerSettings(
-          state.immutableSettings
-            .update(id, setting => ({
-              ...setting,
-              ...newSettings,
-            }))
-            .toObject()
-        )
+        props.handlerSchedules({
+          ...props.schedules,
+          [id]: {
+            ...schedule,
+            cron: newCron,
+            id,
+            name: newName,
+            timezone: newTimezone,
+          },
+        })
+        props.handlerSettings({
+          ...props.settings,
+          [id]: {
+            ...setting,
+            ...newSetting,
+          },
+        })
       },
       toggleScheduleState: (_, id) => (
-        { immutableSchedules },
-        { handlerSchedules }
+        state,
+        { handlerSchedules, schedules }
       ) => {
-        handlerSchedules(
-          immutableSchedules
-            .update(id, schedule => ({
-              ...schedule,
-              enabled: !schedule.enabled,
-            }))
-            .toObject()
-        )
+        const schedule = schedules[id]
+        handlerSchedules({
+          ...schedules,
+          [id]: {
+            ...schedule,
+            enabled: !schedule.enabled,
+          },
+        })
       },
     },
     computed: {
@@ -157,8 +163,6 @@ const Schedules = decorate([
         ...COLUMNS,
         ...retentions.map(({ defaultValue, ...props }) => props),
       ],
-      immutableSchedules: (_, { schedules }) => Map(schedules),
-      immutableSettings: (_, { settings }) => Map(settings),
       rowTransform: (_, { settings = {}, retentions }) => schedule => {
         schedule = { ...schedule, ...settings[schedule.id] }
         return setDefaultRetentions(schedule, retentions)

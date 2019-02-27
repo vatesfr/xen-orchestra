@@ -37,7 +37,7 @@ import {
 import LogsTable, { LogStatus } from '../logs/backup-ng'
 import Page from '../page'
 
-import BackupVms, { BackupMetadata } from './new'
+import NewVmBackup, { NewMetadataBackup } from './new'
 import Edit from './edit'
 import FileRestore from './file-restore'
 import Health from './health'
@@ -408,8 +408,8 @@ const ChooseBackupType = () => (
 export default routes('overview', {
   ':id/edit': Edit,
   new: ChooseBackupType,
-  'new/vms': BackupVms,
-  'new/metadata': BackupMetadata,
+  'new/vms': NewVmBackup,
+  'new/metadata': NewMetadataBackup,
   overview: Overview,
   restore: Restore,
   'file-restore': FileRestore,

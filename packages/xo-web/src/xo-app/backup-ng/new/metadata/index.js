@@ -214,7 +214,6 @@ export default decorate([
 
       isJobInvalid: state =>
         state.missingModes ||
-        state.missingName ||
         state.missingPools ||
         state.missingRemotes ||
         state.missingRetentionPoolMetadata ||
@@ -222,7 +221,6 @@ export default decorate([
         state.missingSchedules,
 
       missingModes: state => !state.modeXoMetadata && !state.modePoolMetadata,
-      missingName: state => state.name.trim() === '',
       missingPools: state => state.modePoolMetadata && isEmpty(state.pools),
       missingRemotes: state => isEmpty(state.remotes),
       missingRetentionPoolMetadata: state =>
@@ -248,7 +246,6 @@ export default decorate([
         : [effects.editJob, 'formSave']
     const {
       missingModes,
-      missingName,
       missingPools,
       missingRemotes,
       missingRetentionPoolMetadata,
@@ -264,13 +261,10 @@ export default decorate([
               <Card>
                 <CardHeader>{_('backupName')}*</CardHeader>
                 <CardBlock>
-                  <FormFeedback
-                    component={Input}
-                    error={missingName}
-                    message={_('missingBackupName')}
+                  <Input
                     onChange={effects.linkState}
-                    value={state.name}
                     name='_name'
+                    value={state.name}
                   />
                 </CardBlock>
               </Card>

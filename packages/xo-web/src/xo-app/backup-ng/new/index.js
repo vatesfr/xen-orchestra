@@ -55,7 +55,7 @@ import {
   Ul,
 } from './../utils'
 
-export BackupMetadata from './metadata'
+export NewMetadataBackup from './metadata'
 
 // ===================================================================
 
