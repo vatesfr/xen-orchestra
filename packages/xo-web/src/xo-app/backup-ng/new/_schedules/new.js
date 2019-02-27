@@ -4,7 +4,6 @@ import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
-import { Card, CardBlock } from 'card'
 import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { Number } from 'form'
@@ -51,47 +50,45 @@ export default decorate([
   }),
   injectState,
   ({ effects, state, retentions, value: schedule }) => (
-    <Card>
-      <CardBlock>
-        {state.missingRetentions && (
-          <div className='text-danger text-md-center'>
-            <Icon icon='alarm' /> {_('retentionNeeded')}
-          </div>
-        )}
-        <FormGroup>
-          <label htmlFor={state.idInputName}>
-            <strong>{_('formName')}</strong>
+    <div>
+      {state.missingRetentions && (
+        <div className='text-danger text-md-center'>
+          <Icon icon='alarm' /> {_('retentionNeeded')}
+        </div>
+      )}
+      <FormGroup>
+        <label htmlFor={state.idInputName}>
+          <strong>{_('formName')}</strong>
+        </label>
+        <Input
+          id={state.idInputName}
+          onChange={effects.setName}
+          value={schedule.name}
+        />
+      </FormGroup>
+      {/* retentions effects are defined on initialize() */}
+      {retentions.map(({ name, valuePath }) => (
+        <FormGroup key={valuePath}>
+          <label>
+            <strong>{name}</strong>
           </label>
-          <Input
-            id={state.idInputName}
-            onChange={effects.setName}
-            value={schedule.name}
+          <Number
+            data-name={valuePath}
+            min='0'
+            onChange={effects.setRetention}
+            value={schedule[valuePath]}
           />
         </FormGroup>
-        {/* retentions effects are defined on initialize() */}
-        {retentions.map(({ name, valuePath }) => (
-          <FormGroup key={valuePath}>
-            <label>
-              <strong>{name}</strong>
-            </label>
-            <Number
-              data-name={valuePath}
-              min='0'
-              onChange={effects.setRetention}
-              value={schedule[valuePath]}
-            />
-          </FormGroup>
-        ))}
-        <Scheduler
-          onChange={effects.setCronTimezone}
-          cronPattern={schedule.cron}
-          timezone={schedule.timezone}
-        />
-        <SchedulePreview
-          cronPattern={schedule.cron}
-          timezone={schedule.timezone}
-        />
-      </CardBlock>
-    </Card>
+      ))}
+      <Scheduler
+        onChange={effects.setCronTimezone}
+        cronPattern={schedule.cron}
+        timezone={schedule.timezone}
+      />
+      <SchedulePreview
+        cronPattern={schedule.cron}
+        timezone={schedule.timezone}
+      />
+    </div>
   ),
 ])
