@@ -583,7 +583,7 @@ class BootOrder extends Component {
     )
   }
 }
-@connectStore({ withRef: true })
+
 class MigrateVdiModalBody extends Component {
   static propTypes = {
     pool: PropTypes.string.isRequired,
