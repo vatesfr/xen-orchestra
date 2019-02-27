@@ -182,7 +182,7 @@ const getJobCompression = ({ compression: c }) =>
 
 const listReplicatedVms = (
   xapi: Xapi,
-  scheduleId: string,
+  scheduleOrJobId: string,
   srId?: string,
   vmUuid?: string
 ): Vm[] => {
@@ -196,7 +196,8 @@ const listReplicatedVms = (
       !object.is_a_snapshot &&
       !object.is_a_template &&
       'start' in object.blocked_operations &&
-      oc['xo:backup:schedule'] === scheduleId &&
+      (oc['xo:backup:job'] === scheduleOrJobId ||
+        oc['xo:backup:schedule'] === scheduleOrJobId) &&
       oc['xo:backup:sr'] === srId &&
       (oc['xo:backup:vm'] === vmUuid ||
         // 2018-03-28, JFT: to catch VMs replicated before this fix
@@ -1323,7 +1324,7 @@ export default class BackupNg {
         for (const { $id: srId, xapi } of srs) {
           const replicatedVm = listReplicatedVms(
             xapi,
-            scheduleId,
+            jobId,
             srId,
             vmUuid
           ).find(vm => vm.other_config[TAG_COPY_SRC] === baseSnapshot.uuid)
