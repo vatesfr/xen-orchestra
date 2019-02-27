@@ -193,12 +193,14 @@ const INDIVIDUAL_ACTIONS = [
   ...(process.env.XOA_PLAN > 1
     ? [
         {
-          disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
+          disabled: ({ id, type }, { isVdiAttached }) =>
+            isVdiAttached[id] || type === 'VDI-unmanaged',
           handler: importVdi,
           icon: 'import',
           label: _('importVdi'),
         },
         {
+          disabled: vdi => vdi.type === 'VDI-unmanaged',
           handler: exportVdi,
           icon: 'export',
           label: _('exportVdi'),
@@ -206,11 +208,13 @@ const INDIVIDUAL_ACTIONS = [
       ]
     : []),
   {
+    disabled: vdi => vdi.type === 'VDI-unmanaged',
     handler: vdi => copy(vdi.uuid),
     icon: 'clipboard',
     label: vdi => _('copyUuid', { uuid: vdi.uuid }),
   },
   {
+    disabled: vdi => vdi.type === 'VDI-unmanaged',
     handler: deleteVdi,
     icon: 'delete',
     label: _('deleteSelectedVdi'),
