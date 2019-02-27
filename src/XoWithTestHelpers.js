@@ -6,6 +6,7 @@ export default class XoWithTestHelpers extends Xo {
     super(opts);
     this.userIds = [];
     this.jobIds = [];
+    this.backupNgIds = [];
   }
 
   async createUser(params) {
@@ -40,5 +41,22 @@ export default class XoWithTestHelpers extends Xo {
       )
     );
     this.jobIds.length = 0;
+  }
+
+  async createTempBackupNgJob(params) {
+    const backupNg = await super.call("backupNg.createJob", params);
+    this.backupNgIds.push(backupNg.id);
+    return backupNg;
+  }
+
+  async deleteTempBackupNgJobs() {
+    await Promise.all(
+      this.backupNgIds.map(id =>
+        super
+          .call("backupNg.deleteJob", { id })
+          .catch(error => console.error(error))
+      )
+    );
+    this.backupNgIds.length = 0;
   }
 }

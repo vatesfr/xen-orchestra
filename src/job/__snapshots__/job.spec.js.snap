@@ -11,7 +11,7 @@ Object {
         "type": "set",
         "values": Array [
           Object {
-            "id": "d865d913-eb17-b1af-399c-07edbe57551c",
+            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
             "name": "test-snapshot",
           },
         ],
@@ -43,7 +43,7 @@ Object {
         "type": "set",
         "values": Array [
           Object {
-            "id": "d865d913-eb17-b1af-399c-07edbe57551c",
+            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
             "name": "test-snapshot",
           },
         ],
@@ -68,7 +68,7 @@ Array [
           "type": "set",
           "values": Array [
             Object {
-              "id": "d865d913-eb17-b1af-399c-07edbe57551c",
+              "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
               "name": "test-snapshot",
             },
           ],
@@ -89,7 +89,7 @@ Array [
           "type": "set",
           "values": Array [
             Object {
-              "id": "d865d913-eb17-b1af-399c-07edbe57551c",
+              "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
               "name": "test2-snapshot",
             },
           ],
@@ -117,7 +117,7 @@ Object {
         "values": Array [
           Object {
             "full_copy": true,
-            "id": "d865d913-eb17-b1af-399c-07edbe57551c",
+            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
             "name": "clone",
           },
         ],

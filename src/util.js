@@ -94,8 +94,11 @@ afterAll(async () => {
   xo = null;
 });
 afterEach(async () => {
-  await xo.deleteAllUsers();
-  await xo.deleteAllJobs();
+  await Promise.all([
+    xo.deleteAllUsers(),
+    xo.deleteAllJobs(),
+    xo.deleteTempBackupNgJobs(),
+  ]);
 });
 
 // =================================================================
