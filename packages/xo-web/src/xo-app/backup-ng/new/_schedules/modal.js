@@ -16,15 +16,6 @@ import { areRetentionsMissing } from '.'
 export default decorate([
   provideState({
     effects: {
-      initialize() {
-        this.props.retentions.forEach(({ valuePath }) => {
-          this.effects[`set${valuePath}`] = value => {
-            this.effects.setSchedule({
-              [valuePath]: defined(value, null),
-            })
-          }
-        })
-      },
       setSchedule: (_, params) => (_, { value, onChange }) => {
         onChange({
           ...value,
@@ -43,6 +34,11 @@ export default decorate([
       setName: ({ setSchedule }, { target: { value } }) => () => {
         setSchedule({
           name: value.trim() === '' ? null : value,
+        })
+      },
+      setRetention: ({ setSchedule }, value, { name }) => () => {
+        setSchedule({
+          [name]: defined(value, null),
         })
       },
     },
@@ -79,8 +75,9 @@ export default decorate([
               <strong>{name}</strong>
             </label>
             <Number
+              data-name={valuePath}
               min='0'
-              onChange={effects[`set${valuePath}`]}
+              onChange={effects.setRetention}
               value={schedule[valuePath]}
             />
           </FormGroup>
