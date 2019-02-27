@@ -16,7 +16,7 @@ import { injectState, provideState } from 'reaclette'
 
 import { FormFeedback } from '../../utils'
 
-import Modal from './modal'
+import NewSchedule from './new'
 
 const DEFAULT_SCHEDULE = {
   cron: '0 0 * * *',
@@ -111,7 +111,9 @@ const Schedules = decorate([
             { cron, name, timezone, ...setting },
             state.retentions
           ),
-          render: props => <Modal retentions={state.retentions} {...props} />,
+          render: props => (
+            <NewSchedule retentions={state.retentions} {...props} />
+          ),
           header: (
             <span>
               <Icon icon='schedule' /> {_('schedule')}
