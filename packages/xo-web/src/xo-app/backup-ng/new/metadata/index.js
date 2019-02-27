@@ -11,7 +11,7 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Col, Row } from 'grid'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, mapValues, map, some } from 'lodash'
+import { every, isEmpty, mapValues, map } from 'lodash'
 import { Remote } from 'render-xo-item'
 import { SelectPool, SelectRemote } from 'select-objects'
 import {
@@ -225,15 +225,15 @@ export default decorate([
       missingRemotes: state => isEmpty(state.remotes),
       missingRetentionPoolMetadata: state =>
         state.modePoolMetadata &&
-        !some(
+        every(
           state.settings,
-          ({ retentionPoolMetadata }) => retentionPoolMetadata !== null
+          ({ retentionPoolMetadata }) => retentionPoolMetadata === null
         ),
       missingRetentionXoMetadata: state =>
         state.modeXoMetadata &&
-        !some(
+        every(
           state.settings,
-          ({ retentionXoMetadata }) => retentionXoMetadata !== null
+          ({ retentionXoMetadata }) => retentionXoMetadata === null
         ),
       missingSchedules: state => isEmpty(state.schedules),
     },
