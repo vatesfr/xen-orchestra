@@ -1,5 +1,6 @@
 import execa from 'execa'
 import fs from 'fs-extra'
+import { ignoreErrors } from 'promise-toolbox'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
@@ -23,9 +24,9 @@ export default class MountHandler extends LocalHandler {
     this._execa = useSudo ? sudoExeca : execa
     this._params = {
       ...params,
-      options: [params.options, remote.options].filter(
-        _ => _ !== undefined
-      ).join(','),
+      options: [params.options, remote.options]
+        .filter(_ => _ !== undefined)
+        .join(','),
     }
     this._realPath = join(
       mountsDir,
@@ -37,19 +38,19 @@ export default class MountHandler extends LocalHandler {
   }
 
   async _forget() {
-    await this._execa('umount', ['--force', this._getRealPath()], {
-      env: {
-        LANG: 'C',
-      },
-    }).catch(error => {
-      if (
-        error == null ||
-        typeof error.stderr !== 'string' ||
-        !error.stderr.includes('not mounted')
-      ) {
-        throw error
-      }
-    })
+    const keeper = this._keeper
+    if (keeper === undefined) {
+      return
+    }
+    await fs.close(keeper)
+
+    await ignoreErrors.call(
+      this._execa('umount', ['--force', this._getRealPath()], {
+        env: {
+          LANG: 'C',
+        },
+      })
+    )
   }
 
   _getRealPath() {
@@ -57,18 +58,23 @@ export default class MountHandler extends LocalHandler {
   }
 
   async _sync() {
-    await fs.ensureDir(this._getRealPath())
-    const { type, device, options, env } = this._params
-    return this._execa(
-      'mount',
-      ['-t', type, device, this._getRealPath(), '-o', options],
-      {
-        env: {
-          LANG: 'C',
-          ...env,
-        },
-      }
-    ).catch(error => {
+    const realPath = this._getRealPath()
+
+    await fs.ensureDir(realPath)
+
+    try {
+      const { type, device, options, env } = this._params
+      await this._execa(
+        'mount',
+        ['-t', type, device, realPath, '-o', options],
+        {
+          env: {
+            LANG: 'C',
+            ...env,
+          },
+        }
+      )
+    } catch (error) {
       let stderr
       if (
         error == null ||
@@ -77,6 +83,14 @@ export default class MountHandler extends LocalHandler {
       ) {
         throw error
       }
-    })
+    }
+
+    // keep an open file on the mount to prevent it from being unmounted if used
+    // by another handler/process
+    const keeperPath = `${realPath}/.keeper_${Math.random()
+      .toString(36)
+      .slice(2)}`
+    this._keeper = await fs.open(keeperPath, 'w')
+    ignoreErrors.call(fs.unlink(keeperPath))
   }
 }
