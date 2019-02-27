@@ -1,8 +1,7 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
-import { finished } from 'readable-stream'
-import { promisify, ignoreErrors } from 'promise-toolbox'
+import { fromEvent, ignoreErrors } from 'promise-toolbox'
 
 import { type Xapi } from '../xapi'
 import {
@@ -13,8 +12,6 @@ import {
 
 import { type Executor, type Job } from './jobs'
 import { type Schedule } from './scheduling'
-
-const pFinished = promisify(finished)
 
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
 
@@ -167,7 +164,11 @@ export default class metadataBackup {
                     // 'readable-stream/pipeline' not call the callback when an error throws
                     // from the readable stream
                     stream.pipe(outputStream)
-                    return pFinished(outputStream)
+                    return fromEvent(stream, 'end').catch(error => {
+                      if (error.message !== 'aborted') {
+                        throw error
+                      }
+                    })
                   })(),
                   handler.outputFile(metaDataFileName, metadata),
                 ])
