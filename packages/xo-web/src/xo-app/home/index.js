@@ -492,6 +492,10 @@ export default class Home extends Component {
   }
 
   componentWillReceiveProps(props) {
+    const { query } = props.location
+    if (query.p !== this.state.activePage) {
+      this.page = parseInt(query.p)
+    }
     if (this._getFilter() !== this._getFilter(props)) {
       this._initFilterAndSortBy(props)
     }
@@ -655,10 +659,8 @@ export default class Home extends Component {
     const { pathname, query } = props.location
     this.context.router[replace ? 'replace' : 'push']({
       pathname,
-      query: { ...query, s: filter },
+      query: { ...query, s: filter, p: 1 },
     })
-
-    this.page = 1
   }
 
   _clearFilter = () => this._setFilter('')
@@ -686,7 +688,11 @@ export default class Home extends Component {
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
 
   _onPageSelection = page => {
-    this.page = page
+    const { pathname, query } = this.props.location
+    this.context.router.replace({
+      pathname,
+      query: { ...query, p: page },
+    })
   }
 
   _tick = isCriteria => (
