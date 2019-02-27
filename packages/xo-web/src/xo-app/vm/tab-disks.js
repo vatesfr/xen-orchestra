@@ -57,6 +57,7 @@ import {
   editVdi,
   exportVdi,
   importVdi,
+  isSrShared,
   isSrWritable,
   isVmRunning,
   migrateVdi,
@@ -64,6 +65,9 @@ import {
   setVmBootOrder,
   subscribeResourceSets,
 } from 'xo'
+
+const compareOptions = (sr1, sr2) =>
+  isSrShared(sr1) ? -1 : isSrShared(sr2) ? 1 : 0
 
 const COLUMNS_VM_PV = [
   {
@@ -103,6 +107,7 @@ const COLUMNS_VM_PV = [
       return (
         sr !== undefined && (
           <XoSelect
+            compareOptions={compareOptions}
             labelProp='name_label'
             onChange={sr => migrateVdi(vdi, sr)}
             predicate={sr => sr.$pool === userData.vm.$pool && isSrWritable(sr)}
@@ -578,10 +583,21 @@ class BootOrder extends Component {
     )
   }
 }
-
+@connectStore({ withRef: true })
 class MigrateVdiModalBody extends Component {
+  static propTypes = {
+    pool: PropTypes.string.isRequired,
+  }
+
   get value() {
     return this.state
+  }
+
+  compareContainers = (c1, c2) => {
+    const poolId = this.props.pool
+    const c1Id = c1.type === 'host' ? c1.$pool : c1.id
+    const c2Id = c2.type === 'host' ? c2.$pool : c2.id
+    return c1Id === poolId ? -1 : c2Id === poolId ? 1 : 0
   }
 
   render() {
@@ -590,7 +606,12 @@ class MigrateVdiModalBody extends Component {
         <SingleLineRow>
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
-            <SelectSr onChange={this.linkState('sr')} required />
+            <SelectSr
+              compareContainers={this.compareContainers}
+              compareOptions={compareOptions}
+              onChange={this.linkState('sr')}
+              required
+            />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
@@ -645,7 +666,7 @@ export default class TabDisks extends Component {
   _migrateVdi = vdi => {
     return confirm({
       title: _('vdiMigrate'),
-      body: <MigrateVdiModalBody />,
+      body: <MigrateVdiModalBody pool={this.props.vm.$pool} />,
     }).then(({ sr, migrateAll }) => {
       if (!sr) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
