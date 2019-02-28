@@ -94,24 +94,25 @@ export default class metadataBackup {
     const { retentionXoMetadata, retentionPoolMetadata } =
       job?.settings[schedule.id] || {}
 
-    const timestamp = safeDateFormat(Date.now())
+    const timestamp = Date.now()
+    const formattedTimestamp = safeDateFormat(timestamp)
+    const commonMetadata = {
+      jobId: job.id,
+      jobName: job.name,
+      scheduleId: schedule.id,
+      scheduleName: schedule.name,
+      timestamp,
+    }
+
     const files = []
     if (job.xoMetadata && retentionXoMetadata > 0) {
       const xoMetadataDir = `xo-config-backups/${schedule.id}`
-      const dir = `${xoMetadataDir}/${timestamp}`
+      const dir = `${xoMetadataDir}/${formattedTimestamp}`
 
       const data = JSON.stringify(await app.exportConfig(), null, 2)
       const fileName = `${dir}/data.json`
 
-      const metadata = JSON.stringify(
-        {
-          jobId: job.id,
-          scheduleId: schedule.id,
-          timestamp,
-        },
-        null,
-        2
-      )
+      const metadata = JSON.stringify(commonMetadata, null, 2)
       const metaDataFileName = `${dir}/metadata.json`
 
       files.push({
@@ -133,18 +134,19 @@ export default class metadataBackup {
             const poolMetadataDir = `xo-pool-metadata-backups/${
               schedule.id
             }/${id}`
-            const dir = `${poolMetadataDir}/${timestamp}`
+            const dir = `${poolMetadataDir}/${formattedTimestamp}`
 
             // TODO: export the metadata only once then split the stream between remotes
             const stream = await app.getXapi(id).exportPoolMetadata(cancelToken)
             const fileName = `${dir}/data`
 
+            const pool = this._app.getObject(id)
             const metadata = JSON.stringify(
               {
-                jobId: job.id,
-                scheduleId: schedule.id,
+                ...commonMetadata,
+                poolDescription: pool.name_description,
                 poolId: id,
-                timestamp,
+                poolName: pool.name_label,
               },
               null,
               2

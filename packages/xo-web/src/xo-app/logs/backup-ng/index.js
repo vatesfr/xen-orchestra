@@ -13,7 +13,11 @@ import { createGetObjectsOfType } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, filter, map, keyBy } from 'lodash'
-import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
+import {
+  subscribeBackupNgJobs,
+  subscribeBackupNgLogs,
+  subscribeMetadataBackupJobs,
+} from 'xo'
 
 import LogAlertBody from './log-alert-body'
 import LogAlertHeader from './log-alert-header'
@@ -29,11 +33,16 @@ const LI_STYLE = {
 const showTasks = id =>
   alert(<LogAlertHeader id={id} />, <LogAlertBody id={id} />)
 
-export const LogStatus = ({ log, tooltip = _('logDisplayDetails') }) => {
+export const LogStatus = ({
+  log,
+  tooltip = _('logDisplayDetails'),
+  disabled,
+}) => {
   const { className, label } = STATUS_LABELS[log.status]
   return (
     <ActionButton
       btnStyle={className}
+      disabled={disabled}
       handler={showTasks}
       handlerParam={log.id}
       icon='preview'
@@ -79,13 +88,18 @@ const COLUMNS = [
   },
   {
     name: _('jobStatus'),
-    itemRenderer: log => <LogStatus log={log} />,
+    itemRenderer: (log, { jobs }) => (
+      <LogStatus
+        disabled={get(() => jobs[log.jobId].type) !== 'backup'}
+        log={log}
+      />
+    ),
     sortCriteria: 'status',
   },
   {
     name: _('labelSize'),
-    itemRenderer: ({ tasks: vmTasks }) => {
-      if (isEmpty(vmTasks)) {
+    itemRenderer: ({ tasks: vmTasks, jobId }, { jobs }) => {
+      if (get(() => jobs[jobId].type) !== 'backup' || isEmpty(vmTasks)) {
         return null
       }
 
@@ -151,6 +165,8 @@ export default decorate([
         cb(logs && filter(logs, log => log.message !== 'restore'))
       ),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
+    metadataJobs: cb =>
+      subscribeMetadataBackupJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
   provideState({
     computed: {
@@ -167,6 +183,7 @@ export default decorate([
               }
             : log
         ),
+      jobs: (_, { jobs, metadataJobs }) => ({ ...jobs, ...metadataJobs }),
     },
   }),
   injectState,
@@ -180,7 +197,7 @@ export default decorate([
           collection={state.logs}
           columns={COLUMNS}
           component={SortedTable}
-          data-jobs={jobs}
+          data-jobs={state.jobs}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
         />
