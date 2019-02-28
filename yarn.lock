@@ -6607,14 +6607,14 @@ http-proxy@^1.16.2:
     follow-redirects "^1.0.0"
     requires-port "^1.0.0"
 
-http-request-plus@^0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.7.1.tgz#259dd499c0be5ac3ba3ea3d05428e8748a260748"
-  integrity sha512-/1euyr0znKEB+gQ0JmyYkZVWOgXZtRJcTE4p+Ig26ppaVqymWikz75tHSt+dHPiSgZWpGrpjN+3973KoVzP+AA==
+http-request-plus@^0.7.2:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.7.2.tgz#2906e475512f4785e12a9dcef3fecdabc6bacd78"
+  integrity sha512-ucD71+V/NSJQesgglwppt5XzcFUGXiToUyLQGUklR8Y4rkx7fEwwlsiuPVsrMgZaBQ3Ohs3pzKafqncTaWIFXg==
   dependencies:
     is-redirect "^1.0.0"
     lodash "^4.17.4"
-    promise-toolbox "^0.10.1"
+    promise-toolbox "^0.11.0"
 
 http-server-plus@^0.10.0:
   version "0.10.0"
@@ -10491,13 +10491,6 @@ promise-polyfill@^6.0.1:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/promise-polyfill/-/promise-polyfill-6.1.0.tgz#dfa96943ea9c121fca4de9b5868cb39d3472e057"
   integrity sha1-36lpQ+qcEh/KTem1hoyznTRy4Fc=
-
-promise-toolbox@^0.10.1:
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.10.1.tgz#1049bab6b20fad9b8ad217d22fa91d680b4305b9"
-  integrity sha512-TDPFea6muML14mVu9pHQcn/5h1nV+qj+SYyrsoIgbo7osFHLK3wSAOAqXOFJwx23a3hZmuLp6ecXwAbqzsoD9A==
-  dependencies:
-    make-error "^1.3.2"
 
 promise-toolbox@^0.11.0:
   version "0.11.0"
