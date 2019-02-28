@@ -11,7 +11,7 @@ In Xen Orchestra, Metadata backup is divided in two differents options:
 * Pool metadata backup
 * XO configuration backup
 
-### How to backup pool metadata
+### How to use metadata backup
 
 In the backup job section, when creating a new backup job, you will now have the option between backup VMs and Backup Metadata.
 ![](https://user-images.githubusercontent.com/21563339/53413921-bd636f00-39cd-11e9-8a3c-d4f893135fa4.png)
