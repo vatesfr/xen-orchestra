@@ -16,6 +16,7 @@
 - [Notifications] Fix invalid notifications when not registered (PR [#3966](https://github.com/vatesfr/xen-orchestra/pull/3966))
 - [Import] Fix import of some OVA files [#3962](https://github.com/vatesfr/xen-orchestra/issues/3962) (PR [#3974](https://github.com/vatesfr/xen-orchestra/pull/3974))
 - [Servers] Fix *already connected error* after a server has been removed during connection [#3976](https://github.com/vatesfr/xen-orchestra/issues/3976) (PR [#3977](https://github.com/vatesfr/xen-orchestra/pull/3977))
+- [Backup] Fix random _mount_ issues with NFS/SMB remotes [#3973](https://github.com/vatesfr/xen-orchestra/issues/3973) (PR [#4003](https://github.com/vatesfr/xen-orchestra/pull/4003))
 
 ### Released packages
 
