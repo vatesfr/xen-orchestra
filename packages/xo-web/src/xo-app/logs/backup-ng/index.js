@@ -88,9 +88,9 @@ const COLUMNS = [
   },
   {
     name: _('jobStatus'),
-    itemRenderer: (log, { jobs }) => (
+    itemRenderer: log => (
       <LogStatus
-        disabled={get(() => jobs[log.jobId].type) !== 'backup'}
+        disabled={log.status !== 'failure' && isEmpty(log.tasks)}
         log={log}
       />
     ),

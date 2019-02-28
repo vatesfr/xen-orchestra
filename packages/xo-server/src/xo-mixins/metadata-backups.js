@@ -144,9 +144,8 @@ export default class metadataBackup {
             const metadata = JSON.stringify(
               {
                 ...commonMetadata,
-                poolDescription: pool.name_description,
-                poolId: id,
-                poolName: pool.name_label,
+                pool,
+                master: this._app.getObject(pool.master),
               },
               null,
               2
