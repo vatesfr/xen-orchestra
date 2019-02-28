@@ -89,7 +89,7 @@ export default class MountHandler extends LocalHandler {
       try {
         // the failure may mean it's already mounted, use `findmnt` to check
         // that's the case
-        await this._execa('findmnt', ['--target', realPath], {
+        await this._execa('findmnt', [realPath], {
           stdio: 'ignore',
         })
       } catch (_) {
