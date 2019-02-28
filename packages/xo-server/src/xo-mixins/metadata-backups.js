@@ -140,12 +140,12 @@ export default class metadataBackup {
             const stream = await app.getXapi(id).exportPoolMetadata(cancelToken)
             const fileName = `${dir}/data`
 
-            const pool = this._app.getObject(id)
+            const xapi = this._app.getXapi(id)
             const metadata = JSON.stringify(
               {
                 ...commonMetadata,
-                pool,
-                master: this._app.getObject(pool.master),
+                pool: xapi.pool,
+                master: await xapi.getRecord('host', xapi.pool.master),
               },
               null,
               2
