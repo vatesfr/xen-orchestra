@@ -19,6 +19,7 @@
 
 ### Released packages
 
+- @xen-orchestra/fs v0.7.0
 - xen-api v0.24.3
 - xoa-updater v0.15.2
 - xo-server v5.36.0
