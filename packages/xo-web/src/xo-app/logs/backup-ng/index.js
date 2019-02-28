@@ -33,16 +33,12 @@ const LI_STYLE = {
 const showTasks = id =>
   alert(<LogAlertHeader id={id} />, <LogAlertBody id={id} />)
 
-export const LogStatus = ({
-  log,
-  tooltip = _('logDisplayDetails'),
-  disabled,
-}) => {
+export const LogStatus = ({ log, tooltip = _('logDisplayDetails') }) => {
   const { className, label } = STATUS_LABELS[log.status]
   return (
     <ActionButton
       btnStyle={className}
-      disabled={disabled}
+      disabled={log.status !== 'failure' && isEmpty(log.tasks)}
       handler={showTasks}
       handlerParam={log.id}
       icon='preview'
@@ -88,12 +84,7 @@ const COLUMNS = [
   },
   {
     name: _('jobStatus'),
-    itemRenderer: log => (
-      <LogStatus
-        disabled={log.status !== 'failure' && isEmpty(log.tasks)}
-        log={log}
-      />
-    ),
+    itemRenderer: log => <LogStatus log={log} />,
     sortCriteria: 'status',
   },
   {
