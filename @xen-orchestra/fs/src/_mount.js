@@ -86,12 +86,13 @@ export default class MountHandler extends LocalHandler {
         }
       )
     } catch (error) {
-      let stderr
-      if (
-        error == null ||
-        typeof (stderr = error.stderr) !== 'string' ||
-        !(stderr.includes('already mounted') || stderr.includes('busy'))
-      ) {
+      try {
+        // the failure may means it's already mounted, use `findmnt` to check
+        // that's the case
+        await this._execa('findmnt', ['--target', realPath], {
+          stdio: 'ignore',
+        })
+      } catch (_) {
         throw error
       }
     }
