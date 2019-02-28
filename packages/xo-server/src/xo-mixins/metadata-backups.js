@@ -145,7 +145,7 @@ export default class metadataBackup {
               {
                 ...commonMetadata,
                 pool: xapi.pool,
-                master: await xapi.getRecord('host', xapi.pool.master),
+                poolMaster: await xapi.getRecord('host', xapi.pool.master),
               },
               null,
               2
