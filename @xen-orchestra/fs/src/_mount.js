@@ -45,7 +45,7 @@ export default class MountHandler extends LocalHandler {
     await fs.close(keeper)
 
     await ignoreErrors.call(
-      this._execa('umount', ['--force', this._getRealPath()], {
+      this._execa('umount', [this._getRealPath()], {
         env: {
           LANG: 'C',
         },
