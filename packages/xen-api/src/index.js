@@ -1038,7 +1038,7 @@ export class Xapi extends EventEmitter {
 
       // detect and fix disappearing tasks (e.g. when toolstack restarts)
       if (result.valid_ref_counts.task !== this._nTasks) {
-        ignoreErrors.call(
+        await ignoreErrors.call(
           this._sessionCall('task.get_all_records').then(tasks => {
             const toRemove = new Set()
             forOwn(this.objects.all, object => {
