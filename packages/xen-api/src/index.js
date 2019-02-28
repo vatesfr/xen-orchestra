@@ -427,7 +427,7 @@ export class Xapi extends EventEmitter {
 
     try {
       const [methods, sessionId] = await Promise.all([
-        this._transportCall('system.listMethods'),
+        this._transportCall('system.listMethods', []),
         this._transportCall('session.login_with_password', [
           auth.user,
           auth.password,
