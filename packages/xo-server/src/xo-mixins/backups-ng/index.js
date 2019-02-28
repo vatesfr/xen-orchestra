@@ -54,6 +54,8 @@ import {
   resolveRelativeFromFile,
   safeDateFormat,
   serializeError,
+  type SimpleIdPattern,
+  unboxIdsFromPattern,
 } from '../../utils'
 
 import { translateLegacyJob } from './migration'
@@ -73,10 +75,6 @@ type Settings = {|
   snapshotRetention?: number,
   timeout?: number,
   vmTimeout?: number,
-|}
-
-type SimpleIdPattern = {|
-  id: string | {| __or: string[] |},
 |}
 
 export type BackupJob = {|
@@ -308,14 +306,6 @@ const parseVmBackupId = (id: string) => {
     metadataFilename: id.slice(i + 1),
     remoteId: id.slice(0, i),
   }
-}
-
-const unboxIds = (pattern?: SimpleIdPattern): string[] => {
-  if (pattern === undefined) {
-    return []
-  }
-  const { id } = pattern
-  return typeof id === 'string' ? [id] : id.__or
 }
 
 // similar to Promise.all() but do not gather results
@@ -605,7 +595,7 @@ export default class BackupNg {
           }
         }
         const jobId = job.id
-        const srs = unboxIds(job.srs).map(id => {
+        const srs = unboxIdsFromPattern(job.srs).map(id => {
           const xapi = app.getXapi(id)
           return {
             __proto__: xapi.getObject(id),
@@ -613,7 +603,7 @@ export default class BackupNg {
           }
         })
         const remotes = await Promise.all(
-          unboxIds(job.remotes).map(async id => ({
+          unboxIdsFromPattern(job.remotes).map(async id => ({
             id,
             handler: await app.getRemoteHandler(id),
           }))
