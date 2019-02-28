@@ -22,6 +22,7 @@ export default class MountHandler extends LocalHandler {
     super(remote, opts)
 
     this._execa = useSudo ? sudoExeca : execa
+    this._keeper = undefined
     this._params = {
       ...params,
       options: [params.options, remote.options]
@@ -42,6 +43,7 @@ export default class MountHandler extends LocalHandler {
     if (keeper === undefined) {
       return
     }
+    this._keeper = undefined
     await fs.close(keeper)
 
     await ignoreErrors.call(
@@ -58,6 +60,15 @@ export default class MountHandler extends LocalHandler {
   }
 
   async _sync() {
+    // in case of multiple `sync`s, ensure we properly close previous keeper
+    {
+      const keeper = this._keeper
+      if (keeper !== undefined) {
+        this._keeper = undefined
+        ignoreErrors.call(fs.close(keeper))
+      }
+    }
+
     const realPath = this._getRealPath()
 
     await fs.ensureDir(realPath)
