@@ -997,10 +997,9 @@ export class Xapi extends EventEmitter {
                 this._addObject(type, ref, record)
               }
             )
-          } catch (error) {
-            if (error == null || error.code !== 'MESSAGE_REMOVED') {
-              throw error
-            }
+          } catch (_) {
+            // there is nothing ideal to do here, do not interrupt event
+            // handling
           }
         })
       )
