@@ -10,6 +10,7 @@ There are several ways to protect your VMs:
 * [Rolling Snapshots](rolling_snapshots.md) [*Starter Edition*]
 * [Delta Backups](delta_backups.md) (best of both previous ones) [*Enterprise Edition*]
 * [Disaster Recovery](disaster_recovery.md) [*Enterprise Edition*]
+* [Metadata Backups](metadata_backup.md) [*Enterprise Edition*]
 * [Continuous Replication](continuous_replication.md) [*Premium Edition*]
 * [File Level Restore](file_level_restore.md) [*Premium Edition*]
 
