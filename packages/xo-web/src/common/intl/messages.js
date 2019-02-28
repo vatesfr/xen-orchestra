@@ -1093,6 +1093,7 @@ const messages = {
   guestOsLabel: 'Guest OS',
   miscLabel: 'Misc',
   virtualizationMode: 'Virtualization mode',
+  startDelayLabel: 'Boot delay',
   cpuMaskLabel: 'CPU mask',
   selectCpuMask: 'Select core(s)…',
   cpuWeightLabel: 'CPU weight',
