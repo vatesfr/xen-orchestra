@@ -96,7 +96,7 @@ afterAll(async () => {
 afterEach(async () => {
   await Promise.all([
     xo.deleteAllUsers(),
-    xo.deleteAllJobs(),
+    xo.deleteTempJobs(),
     xo.deleteTempBackupNgJobs(),
   ]);
 });

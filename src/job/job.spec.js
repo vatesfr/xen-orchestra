@@ -1,9 +1,9 @@
 /* eslint-env jest */
 
-import { keyBy, omit } from "lodash";
+import { difference, keyBy, omit } from "lodash";
 
 import config from "../_config";
-import { xo, testWithOtherConnection } from "../util";
+import { testWithOtherConnection, waitObjectState, xo } from "../util";
 
 const ADMIN_USER = {
   email: "admin2@admin.net",
@@ -55,20 +55,20 @@ describe("job", () => {
 
     it("creates a job with a userId", async () => {
       const userId = await xo.createUser(ADMIN_USER);
-      const id = await xo.createJob({ ...defaultJob, userId });
+      const id = await xo.createTempJob({ ...defaultJob, userId });
       const { userId: expectedUserId } = await xo.call("job.get", { id });
       expect(userId).toBe(expectedUserId);
     });
 
     it("fails trying to create a job without job params", async () => {
-      await expect(xo.createJob({})).rejects.toMatchSnapshot();
+      await expect(xo.createTempJob({})).rejects.toMatchSnapshot();
     });
   });
 
   describe(".getAll() :", () => {
     it("gets all available jobs", async () => {
-      const jobId1 = await xo.createJob(defaultJob);
-      const jobId2 = await xo.createJob({
+      const jobId1 = await xo.createTempJob(defaultJob);
+      const jobId2 = await xo.createTempJob({
         ...defaultJob,
         name: "jobTest2",
         paramsVector: {
@@ -98,7 +98,7 @@ describe("job", () => {
 
   describe(".get() :", () => {
     it("gets an existing job", async () => {
-      const id = await xo.createJob(defaultJob);
+      const id = await xo.createTempJob(defaultJob);
       const job = await xo.call("job.get", { id });
       expect(omit(job, "id", "userId")).toMatchSnapshot();
     });
@@ -112,7 +112,7 @@ describe("job", () => {
 
   describe(".set() :", () => {
     it("sets a job", async () => {
-      const id = await xo.createJob(defaultJob);
+      const id = await xo.createTempJob(defaultJob);
       await xo.call("job.set", {
         job: {
           id,
@@ -165,6 +165,30 @@ describe("job", () => {
       await expect(
         xo.call("job.delete", { id: "non-existent-id" })
       ).rejects.toMatchSnapshot();
+    });
+  });
+
+  describe(".runSequence() :", () => {
+    let id;
+
+    afterEach(async () => {
+      await xo
+        .call("vm.delete", { id, delete_disks: true })
+        .catch(error => console.error(error));
+    });
+
+    it("runs a job", async () => {
+      const jobId = await xo.createTempJob(defaultJob);
+      const snapshots = xo.objects.all[config.vmIdXoTest].snapshots;
+      await xo.call("job.runSequence", { idSequence: [jobId] });
+      await waitObjectState(
+        xo,
+        config.vmIdXoTest,
+        ({ snapshots: actualSnapshots }) => {
+          expect(actualSnapshots.length).toBe(snapshots.length + 1);
+          id = difference(actualSnapshots, snapshots)[0];
+        }
+      );
     });
   });
 });

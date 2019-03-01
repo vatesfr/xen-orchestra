@@ -28,13 +28,13 @@ export default class XoWithTestHelpers extends Xo {
     return find(await super.call("user.getAll"), { id });
   }
 
-  async createJob(params) {
+  async createTempJob(params) {
     const jobId = await super.call("job.create", { job: params });
     this.jobIds.push(jobId);
     return jobId;
   }
 
-  async deleteAllJobs() {
+  async deleteTempJobs() {
     await Promise.all(
       this.jobIds.map(id =>
         super.call("job.delete", { id }).catch(error => console.error(error))
