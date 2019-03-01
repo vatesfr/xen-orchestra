@@ -3,6 +3,7 @@ import { format, parse } from 'json-rpc-protocol'
 
 import { UnsupportedTransport } from './_utils'
 
+// https://github.com/xenserver/xenadmin/blob/0df39a9d83cd82713f32d24704852a0fd57b8a64/XenModel/XenAPI/Session.cs#L403-L433
 export default ({ allowUnauthorized, url }) => {
   return (method, args) =>
     httpRequestPlus
