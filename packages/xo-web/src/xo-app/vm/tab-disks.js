@@ -23,10 +23,11 @@ import {
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { injectIntl } from 'react-intl'
 import {
-  noop,
   addSubscriptions,
-  formatSize,
   connectStore,
+  createCompare,
+  formatSize,
+  noop,
   resolveResourceSet,
 } from 'utils'
 import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
@@ -66,9 +67,6 @@ import {
   subscribeResourceSets,
 } from 'xo'
 
-const compareOptions = (sr1, sr2) =>
-  isSrShared(sr1) ? -1 : isSrShared(sr2) ? 1 : 0
-
 const COLUMNS_VM_PV = [
   {
     itemRenderer: vdi => (
@@ -107,7 +105,7 @@ const COLUMNS_VM_PV = [
       return (
         sr !== undefined && (
           <XoSelect
-            compareOptions={compareOptions}
+            compareOptions={createCompare([isSrShared, 'name_label'])}
             labelProp='name_label'
             onChange={sr => migrateVdi(vdi, sr)}
             predicate={sr => sr.$pool === userData.vm.$pool && isSrWritable(sr)}
@@ -593,13 +591,6 @@ class MigrateVdiModalBody extends Component {
     return this.state
   }
 
-  compareContainers = (c1, c2) => {
-    const poolId = this.props.pool
-    const c1Id = c1.type === 'host' ? c1.$pool : c1.id
-    const c2Id = c2.type === 'host' ? c2.$pool : c2.id
-    return c1Id === poolId ? -1 : c2Id === poolId ? 1 : 0
-  }
-
   render() {
     return (
       <Container>
@@ -607,8 +598,12 @@ class MigrateVdiModalBody extends Component {
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
             <SelectSr
-              compareContainers={this.compareContainers}
-              compareOptions={compareOptions}
+              compareContainers={createCompare([
+                c => c.$pool === this.props.pool,
+                c => c.type === 'pool',
+                'name_label',
+              ])}
+              compareOptions={createCompare([isSrShared, 'name_label'])}
               onChange={this.linkState('sr')}
               required
             />
