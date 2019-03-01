@@ -1026,7 +1026,11 @@ export class Xapi extends EventEmitter {
       try {
         result = await this._sessionCall(
           'event.from',
-          [types, fromToken, EVENT_TIMEOUT],
+          [
+            types,
+            fromToken,
+            EVENT_TIMEOUT + 0.1, // must be float for XML-RPC transport
+          ],
           EVENT_TIMEOUT * 1e3 * 1.1
         )
       } catch (error) {
