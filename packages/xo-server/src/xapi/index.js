@@ -2361,8 +2361,16 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
+  //
+  // https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html
   @deferrable
-  async createCloudInitConfigDrive($defer, vmId, srId, config) {
+  async createCloudInitConfigDrive(
+    $defer,
+    vmId,
+    srId,
+    userConfig,
+    networkConfig
+  ) {
     const vm = this.getObject(vmId)
     const sr = this.getObject(srId)
 
@@ -2380,7 +2388,9 @@ export default class Xapi extends XapiBase {
 
     await Promise.all([
       fs.writeFile('meta-data', 'instance-id: ' + vm.uuid + '\n'),
-      fs.writeFile('user-data', config),
+      fs.writeFile('user-data', userConfig),
+      networkConfig !== undefined &&
+        fs.writeFile('network-config', networkConfig),
     ])
 
     // ignore errors, I (JFT) don't understand why they are emitted
