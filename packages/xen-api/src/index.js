@@ -37,7 +37,7 @@ const debug = createDebug('xen-api')
 
 // ===================================================================
 
-// in seconds
+// in seconds!
 const EVENT_TIMEOUT = 60
 
 // http://www.gnu.org/software/libc/manual/html_node/Error-Codes.html
@@ -1020,7 +1020,7 @@ export class Xapi extends EventEmitter {
         result = await this._sessionCall(
           'event.from',
           [types, fromToken, EVENT_TIMEOUT],
-          EVENT_TIMEOUT * 1.1
+          EVENT_TIMEOUT * 1e3 * 1.1
         )
       } catch (error) {
         if (error instanceof TimeoutError) {
