@@ -39,6 +39,7 @@ import {
   slice,
   sum,
   sumBy,
+  uniqBy,
 } from 'lodash'
 import {
   addSshKey,
@@ -1345,17 +1346,23 @@ export default class NewVm extends BaseComponent {
 
   // DISKS -----------------------------------------------------------------------
 
-  _srsNotOnSameHost = createSelector(
-    () => this.props.srs,
+  _getDiskSrs = createSelector(
     () => this.state.state.existingDisks,
     () => this.state.state.VDIs,
-    (srs, existingDisks, vdis) => {
+    (existingDisks, vdis) => {
+      const getSr = _ => _.$SR || _.SR
+      return uniqBy([...existingDisks, ...vdis], getSr).map(getSr)
+    }
+  )
+
+  _srsNotOnSameHost = createSelector(
+    this._getDiskSrs,
+    () => this.props.srs,
+    (diskSrs, srs) => {
       let container
       let sr
-      const disks = vdis
-      forEach(existingDisks, disk => disks.push(disk))
-      return disks.some(vdi => {
-        sr = srs[vdi.$SR || vdi.SR]
+      return diskSrs.some(srId => {
+        sr = srs[srId]
         return (
           sr !== undefined &&
           !isSrShared(sr) &&
