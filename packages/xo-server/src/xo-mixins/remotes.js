@@ -133,7 +133,7 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote(id, { name, url, options, enabled }) {
+  updateRemote(id, { enabled, name, options, speed, url }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -142,20 +142,28 @@ export default class {
     }
 
     return this._updateRemote(id, {
-      name,
-      url,
-      options,
       enabled,
+      name,
+      options,
+      speed,
+      url,
     })
   }
 
   @synchronized()
-  async _updateRemote(id, { url, ...props }) {
+  async _updateRemote(id, { url, speed, ...props }) {
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values
     if (typeof url === 'string') {
       remote.url = format(sensitiveValues.merge(parse(url), parse(remote.url)))
+    }
+
+    if (speed !== undefined) {
+      remote.speed = JSON.stringify(speed)
+    }
+    if (typeof remote.speed === 'object') {
+      remote.speed = JSON.stringify(remote.speed)
     }
 
     patch(remote, props)

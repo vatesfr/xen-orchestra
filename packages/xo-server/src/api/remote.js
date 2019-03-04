@@ -54,8 +54,8 @@ create.params = {
   options: { type: 'string', optional: true },
 }
 
-export async function set({ id, name, url, options, enabled }) {
-  await this.updateRemote(id, { name, url, options, enabled })
+export async function set({ id, name, url, options, enabled, speed }) {
+  await this.updateRemote(id, { name, url, options, enabled, speed })
 }
 
 set.permission = 'admin'

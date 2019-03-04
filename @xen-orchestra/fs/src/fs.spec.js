@@ -290,9 +290,11 @@ handlers.forEach(url => {
 
     describe('#test()', () => {
       it('tests the remote appears to be working', async () => {
-        expect(await handler.test()).toEqual({
-          success: true,
-        })
+        const answer = await handler.test()
+
+        expect(answer).toHaveProperty('success', true)
+        expect(answer).toHaveProperty('writeSpeed')
+        expect(answer).toHaveProperty('readSpeed')
       })
     })
 

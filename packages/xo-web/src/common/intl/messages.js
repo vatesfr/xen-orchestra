@@ -517,6 +517,7 @@ const messages = {
   remoteState: 'State',
   remoteDevice: 'Device',
   remoteDisk: 'Disk (Used / Total)',
+  remoteSpeed: 'Speed (Write / Read)',
   remoteOptions: 'Options',
   remoteShare: 'Share',
   remoteAction: 'Action',

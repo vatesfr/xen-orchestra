@@ -19,6 +19,7 @@ import {
   deleteRemotes,
   disableRemote,
   editRemote,
+  editRemoteSpeed,
   enableRemote,
   subscribeRemotes,
   subscribeRemotesInfo,
@@ -35,6 +36,11 @@ const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
 const _editRemoteOptions = (options, { remote }) =>
   editRemote(remote, { options: options !== '' ? options : null })
+const _editRemoteSpeed = ({ writeSpeed, readSpeed }, remote) => {
+  editRemoteSpeed(remote, {
+    speed: { write: writeSpeed, read: readSpeed },
+  })
+}
 
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
@@ -77,7 +83,7 @@ const COLUMN_STATE = {
   name: _('remoteState'),
 }
 const COLUMN_DISK = {
-  itemRenderer: (remote, { formatMessage }) =>
+  itemRenderer: remote =>
     remote.info !== undefined &&
     remote.info.used !== undefined &&
     remote.info.size !== undefined && (
@@ -86,6 +92,20 @@ const COLUMN_DISK = {
       </span>
     ),
   name: _('remoteDisk'),
+}
+const COLUMN_SPEED = {
+  itemRenderer: remote => {
+    return (
+      remote.speed !== undefined &&
+      remote.speed.write !== undefined &&
+      remote.speed.read !== undefined && (
+        <span>{`${formatSize(
+          parseInt(remote.speed.write, 10)
+        )}/s / ${formatSize(parseInt(remote.speed.read, 10))}/s`}</span>
+      )
+    )
+  },
+  name: _('remoteSpeed'),
 }
 
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
@@ -105,6 +125,7 @@ const COLUMNS_LOCAL_REMOTE = [
   },
   COLUMN_STATE,
   COLUMN_DISK,
+  COLUMN_SPEED,
 ]
 const COLUMNS_NFS_REMOTE = [
   COLUMN_NAME,
@@ -166,6 +187,7 @@ const COLUMNS_NFS_REMOTE = [
   },
   COLUMN_STATE,
   COLUMN_DISK,
+  COLUMN_SPEED,
 ]
 const COLUMNS_SMB_REMOTE = [
   COLUMN_NAME,
@@ -222,6 +244,7 @@ const COLUMNS_SMB_REMOTE = [
     ),
     name: _('remoteAuth'),
   },
+  COLUMN_SPEED,
 ]
 
 const GROUPED_ACTIONS = [
@@ -237,8 +260,9 @@ const INDIVIDUAL_ACTIONS = [
   {
     disabled: remote => !remote.enabled,
     handler: remote =>
-      testRemote(remote).then(
-        answer =>
+      testRemote(remote).then(answer => {
+        _editRemoteSpeed(answer, remote)
+        return (
           answer.success
             ? alert(
                 <span>
@@ -261,8 +285,9 @@ const INDIVIDUAL_ACTIONS = [
                   </dl>
                 </p>
               ),
-        noop
-      ),
+          noop
+        )
+      }),
     icon: 'diagnosis',
     label: _('remoteTestTip'),
     level: 'primary',
