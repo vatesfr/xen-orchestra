@@ -92,7 +92,7 @@ const NewNetwork = decorate([
             description,
             mtu,
             name,
-            pif: pif && pif.id,
+            pif: pif == null ? undefined : pif.id,
             pool: pool.id,
             vlan,
           })
