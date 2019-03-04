@@ -182,6 +182,7 @@ const COLUMNS = [
 
 const GROUPED_ACTIONS = [
   {
+    disabled: vdis => some(vdis, ['type', 'VDI-unmanaged']),
     handler: deleteVdis,
     icon: 'delete',
     label: _('deleteSelectedVdis'),
