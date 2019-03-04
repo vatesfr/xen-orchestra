@@ -4,6 +4,8 @@
 
 ### Bug fixes
 
+- [New network] PIF was wrongly required which prevented from creating a private network (PR [#4010](https://github.com/vatesfr/xen-orchestra/pull/4010))
+
 ### Released packages
 
 - xo-server v5.37.0
