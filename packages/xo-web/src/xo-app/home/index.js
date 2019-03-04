@@ -492,14 +492,17 @@ export default class Home extends Component {
   }
 
   componentWillReceiveProps(props) {
-    const { query } = props.location
+    const {
+      location: { query },
+      type,
+    } = props
     if (query.p !== this.state.activePage) {
-      this.page = parseInt(query.p)
+      this.setState({ activePage: parseInt(query.p, 10) })
     }
     if (this._getFilter() !== this._getFilter(props)) {
       this._initFilterAndSortBy(props)
     }
-    if (props.type !== this.props.type) {
+    if (type !== this.props.type) {
       this.setState({ activePage: undefined, highlighted: undefined })
     }
   }
