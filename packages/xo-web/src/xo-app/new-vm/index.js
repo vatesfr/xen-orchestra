@@ -492,11 +492,11 @@ export default class NewVm extends BaseComponent {
         network:
           pool || isInResourceSet(vif.$network)
             ? vif.$network
-            : this._getDefaultNetworks(template)[0].network,
+            : this._getDefaultNetworks(template)[0],
       })
     })
     if (VIFs.length === 0) {
-      VIFs = this._getDefaultNetworks(template)
+      VIFs = this._getDefaultNetworks(template).map(id => ({ network: id }))
     }
     const name_label =
       state.name_label === '' || !state.name_labelHasChanged
@@ -633,14 +633,14 @@ export default class NewVm extends BaseComponent {
   _getAutomaticNetworks = createSelector(
     () => this._getPoolNetworks(),
     poolNetworks =>
-      filter(poolNetworks, network => network.automatic).map(network => ({
-        network: network.id,
-      }))
+      filter(poolNetworks, network => network.automatic).map(
+        network => network.id
+      )
   )
 
   _getDefaultNetworks = template => {
     if (template === undefined) {
-      return [{}]
+      return []
     }
 
     if (this.props.pool === undefined) {
@@ -650,11 +650,7 @@ export default class NewVm extends BaseComponent {
           $pool: template.$pool,
         }
       )
-      return [
-        {
-          network: network !== undefined ? network.id : undefined,
-        },
-      ]
+      return network !== undefined ? [network.id] : []
     }
 
     const automaticNetworks = this._getAutomaticNetworks()
@@ -667,11 +663,7 @@ export default class NewVm extends BaseComponent {
       return pif && pif.management
     })
 
-    return [
-      {
-        network: network !== undefined ? network.id : undefined,
-      },
-    ]
+    return network !== undefined ? [network.id] : []
   }
 
   _buildVmsNameTemplate = createSelector(
@@ -812,7 +804,10 @@ export default class NewVm extends BaseComponent {
     const { state } = this.state
 
     this._setState({
-      VIFs: [...state.VIFs, this._getDefaultNetworks(state.template)[0]],
+      VIFs: [
+        ...state.VIFs,
+        { network: this._getDefaultNetworks(state.template)[0] },
+      ],
     })
   }
   _removeInterface = index => {
