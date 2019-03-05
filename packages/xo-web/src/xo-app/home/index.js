@@ -477,8 +477,15 @@ export default class Home extends Component {
   }
 
   state = {
-    activePage: 1,
     selectedItems: {},
+  }
+
+  get page() {
+    const {
+      location: { query },
+    } = this.props
+    const queryPage = +query.p
+    return !Number.isNaN(queryPage) ? queryPage : 1
   }
 
   componentWillMount() {
@@ -486,20 +493,13 @@ export default class Home extends Component {
   }
 
   componentWillReceiveProps(props) {
-    const {
-      location: { query },
-      type,
-    } = props
+    const { type } = props
 
-    const queryPage = +query.p
-    if (!Number.isNaN(queryPage) && queryPage !== this.state.activePage) {
-      this.setState({ activePage: queryPage })
-    }
     if (this._getFilter() !== this._getFilter(props)) {
       this._initFilterAndSortBy(props)
     }
     if (type !== this.props.type) {
-      this.setState({ activePage: undefined, highlighted: undefined })
+      this.setState({ highlighted: undefined })
     }
   }
 
@@ -680,7 +680,7 @@ export default class Home extends Component {
 
   _getVisibleItems = createPager(
     this._getFilteredItems,
-    () => this.state.activePage || 1,
+    () => this.page,
     ITEMS_PER_PAGE
   )
 
@@ -1156,7 +1156,7 @@ export default class Home extends Component {
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
     const { Item } = OPTIONS[this.props.type]
-    const { activePage, expandAll, highlighted, selectedItems } = this.state
+    const { expandAll, highlighted, selectedItems } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
     if (this.refs.masterCheckbox) {
@@ -1206,7 +1206,7 @@ export default class Home extends Component {
                   <Pagination
                     onChange={this._onPageSelection}
                     pages={ceil(filteredItems.length / ITEMS_PER_PAGE)}
-                    value={activePage || 1}
+                    value={this.page}
                   />
                 </div>
               </div>
