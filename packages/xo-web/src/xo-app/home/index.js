@@ -480,13 +480,6 @@ export default class Home extends Component {
     selectedItems: {},
   }
 
-  get page() {
-    return this.state.page
-  }
-  set page(activePage) {
-    this.setState({ activePage })
-  }
-
   componentWillMount() {
     this._initFilterAndSortBy(this.props)
   }
@@ -496,8 +489,9 @@ export default class Home extends Component {
       location: { query },
       type,
     } = props
-    if (query.p !== this.state.activePage) {
-      this.setState({ activePage: parseInt(query.p, 10) })
+
+    if (+query.p !== this.state.activePage) {
+      this.setState({ activePage: +query.p })
     }
     if (this._getFilter() !== this._getFilter(props)) {
       this._initFilterAndSortBy(props)
