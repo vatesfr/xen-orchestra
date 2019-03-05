@@ -1,5 +1,24 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`backupNg .create() : creates a new backup job with schedules 1`] = `
+Object {
+  "mode": "full",
+  "name": "default-backupNg",
+  "type": "backup",
+  "vms": Object {
+    "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
+  },
+}
+`;
+
+exports[`backupNg .create() : creates a new backup job with schedules 2`] = `
+Object {
+  "cron": "0 * * * * *",
+  "enabled": false,
+  "name": "scheduleTest",
+}
+`;
+
 exports[`backupNg .create() : creates a new backup job without schedules 1`] = `
 Object {
   "mode": "full",
