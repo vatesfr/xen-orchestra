@@ -81,6 +81,7 @@ import {
   resolveResourceSet,
 } from 'utils'
 import {
+  createFilter,
   createSelector,
   createGetObject,
   createGetObjectsOfType,
@@ -492,11 +493,11 @@ export default class NewVm extends BaseComponent {
         network:
           pool || isInResourceSet(vif.$network)
             ? vif.$network
-            : this._getDefaultNetworks(template)[0],
+            : this._getDefaultNetworkIds(template)[0],
       })
     })
     if (VIFs.length === 0) {
-      VIFs = this._getDefaultNetworks(template).map(id => ({ network: id }))
+      VIFs = this._getDefaultNetworkIds(template).map(id => ({ network: id }))
     }
     const name_label =
       state.name_label === '' || !state.name_labelHasChanged
@@ -631,14 +632,11 @@ export default class NewVm extends BaseComponent {
   )
 
   _getAutomaticNetworks = createSelector(
-    () => this._getPoolNetworks(),
-    poolNetworks =>
-      filter(poolNetworks, network => network.automatic).map(
-        network => network.id
-      )
+    createFilter(this._getPoolNetworks, [network => network.automatic]),
+    networks => networks.map(_ => _.id)
   )
 
-  _getDefaultNetworks = template => {
+  _getDefaultNetworkIds = template => {
     if (template === undefined) {
       return []
     }
@@ -806,7 +804,7 @@ export default class NewVm extends BaseComponent {
     this._setState({
       VIFs: [
         ...state.VIFs,
-        { network: this._getDefaultNetworks(state.template)[0] },
+        { network: this._getDefaultNetworkIds(state.template)[0] },
       ],
     })
   }
