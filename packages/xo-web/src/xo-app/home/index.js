@@ -477,6 +477,7 @@ export default class Home extends Component {
   }
 
   state = {
+    activePage: 1,
     selectedItems: {},
   }
 
@@ -490,8 +491,9 @@ export default class Home extends Component {
       type,
     } = props
 
-    if (+query.p !== this.state.activePage) {
-      this.setState({ activePage: +query.p })
+    const queryPage = Number.isNaN(+query.p) ? 1 : +query.p
+    if (queryPage !== this.state.activePage) {
+      this.setState({ activePage: queryPage })
     }
     if (this._getFilter() !== this._getFilter(props)) {
       this._initFilterAndSortBy(props)
