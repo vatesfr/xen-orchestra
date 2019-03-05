@@ -67,6 +67,7 @@ import {
   subscribeResourceSets,
 } from 'xo'
 
+const compareSr = createCompare([isSrShared])
 const COLUMNS_VM_PV = [
   {
     itemRenderer: vdi => (
@@ -105,7 +106,7 @@ const COLUMNS_VM_PV = [
       return (
         sr !== undefined && (
           <XoSelect
-            compareOptions={createCompare([isSrShared, 'name_label'])}
+            compareOptions={compareSr}
             labelProp='name_label'
             onChange={sr => migrateVdi(vdi, sr)}
             predicate={sr => sr.$pool === userData.vm.$pool && isSrWritable(sr)}
@@ -591,6 +592,11 @@ class MigrateVdiModalBody extends Component {
     return this.state
   }
 
+  compareContainers = createCompare([
+    c => c.$pool === this.props.pool,
+    c => c.type === 'pool',
+  ])
+
   render() {
     return (
       <Container>
@@ -598,12 +604,8 @@ class MigrateVdiModalBody extends Component {
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
             <SelectSr
-              compareContainers={createCompare([
-                c => c.$pool === this.props.pool,
-                c => c.type === 'pool',
-                'name_label',
-              ])}
-              compareOptions={createCompare([isSrShared, 'name_label'])}
+              compareContainers={this.compareContainers}
+              compareOptions={compareSr}
               onChange={this.linkState('sr')}
               required
             />
