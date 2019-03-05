@@ -491,8 +491,8 @@ export default class Home extends Component {
       type,
     } = props
 
-    const queryPage = Number.isNaN(+query.p) ? 1 : +query.p
-    if (queryPage !== this.state.activePage) {
+    const queryPage = +query.p
+    if (!Number.isNaN(queryPage) && queryPage !== this.state.activePage) {
       this.setState({ activePage: queryPage })
     }
     if (this._getFilter() !== this._getFilter(props)) {
