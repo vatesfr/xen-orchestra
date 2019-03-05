@@ -182,7 +182,7 @@ const COLUMNS = [
 
 const GROUPED_ACTIONS = [
   {
-    disabled: vdis => some(vdis, ['type', 'VDI-unmanaged']),
+    disabled: vdis => some(vdis, { type: 'VDI-unmanaged' }),
     handler: deleteVdis,
     icon: 'delete',
     label: _('deleteSelectedVdis'),
@@ -209,7 +209,6 @@ const INDIVIDUAL_ACTIONS = [
       ]
     : []),
   {
-    disabled: ({ type }) => type === 'VDI-unmanaged',
     handler: vdi => copy(vdi.uuid),
     icon: 'clipboard',
     label: vdi => _('copyUuid', { uuid: vdi.uuid }),
