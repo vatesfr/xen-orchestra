@@ -487,17 +487,18 @@ export default class NewVm extends BaseComponent {
     })
 
     let VIFs = []
+    const defaultNetworkIds = this._getDefaultNetworkIds(template)
     forEach(template.VIFs, vifId => {
       const vif = getObject(storeState, vifId, resourceSet)
       VIFs.push({
         network:
           pool || isInResourceSet(vif.$network)
             ? vif.$network
-            : this._getDefaultNetworkIds(template)[0],
+            : defaultNetworkIds[0],
       })
     })
     if (VIFs.length === 0) {
-      VIFs = this._getDefaultNetworkIds(template).map(id => ({ network: id }))
+      VIFs = defaultNetworkIds.map(id => ({ network: id }))
     }
     const name_label =
       state.name_label === '' || !state.name_labelHasChanged
