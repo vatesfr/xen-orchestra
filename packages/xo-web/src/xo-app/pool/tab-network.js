@@ -79,6 +79,21 @@ class Name extends Component {
 
 // -----------------------------------------------------------------------------
 
+class AutomaticNetwork extends Component {
+  _editAutomaticNetwork = automatic =>
+    editNetwork(this.props.network, { automatic })
+
+  render() {
+    const { network } = this.props
+
+    return (
+      <Toggle onChange={this._editAutomaticNetwork} value={network.automatic} />
+    )
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 class Description extends Component {
   _editDescription = value =>
     editNetwork(this.props.network, { name_description: value })
@@ -342,6 +357,10 @@ const NETWORKS_COLUMNS = [
     name: _('poolNetworkPif'),
     itemRenderer: network =>
       !isEmpty(network.PIFs) && <PifsItem network={network} />,
+  },
+  {
+    name: _('poolNetworkAutomatic'),
+    itemRenderer: network => <AutomaticNetwork network={network} />,
   },
   {
     name: '',

@@ -305,17 +305,23 @@ export default class Xapi extends XapiBase {
 
   async setNetworkProperties(
     id,
-    { nameLabel, nameDescription, defaultIsLocked }
+    { automatic, defaultIsLocked, nameDescription, nameLabel }
   ) {
     let defaultLockingMode
     if (defaultIsLocked != null) {
       defaultLockingMode = defaultIsLocked ? 'disabled' : 'unlocked'
     }
-    await this._setObjectProperties(this.getObject(id), {
-      nameLabel,
-      nameDescription,
-      defaultLockingMode,
-    })
+    const network = this.getObject(id)
+    await Promise.all([
+      this._setObjectProperties(network, {
+        defaultLockingMode,
+        nameDescription,
+        nameLabel,
+      }),
+      this._updateObjectMapProperty(network, 'other_config', {
+        automatic: automatic === undefined ? undefined : automatic ? 'true' : null,
+      }),
+    ])
   }
 
   // =================================================================
