@@ -81,6 +81,7 @@ import {
   resolveResourceSet,
 } from 'utils'
 import {
+  createFilter,
   createSelector,
   createGetObject,
   createGetObjectsOfType,
@@ -485,20 +486,19 @@ export default class NewVm extends BaseComponent {
       }
     })
 
-    const VIFs = []
+    let VIFs = []
+    const defaultNetworkIds = this._getDefaultNetworkIds(template)
     forEach(template.VIFs, vifId => {
       const vif = getObject(storeState, vifId, resourceSet)
       VIFs.push({
         network:
           pool || isInResourceSet(vif.$network)
             ? vif.$network
-            : this._getDefaultNetworkId(template),
+            : defaultNetworkIds[0],
       })
     })
     if (VIFs.length === 0) {
-      VIFs.push({
-        network: this._getDefaultNetworkId(template),
-      })
+      VIFs = defaultNetworkIds.map(id => ({ network: id }))
     }
     const name_label =
       state.name_label === '' || !state.name_labelHasChanged
@@ -631,21 +631,38 @@ export default class NewVm extends BaseComponent {
         )
     }
   )
-  _getDefaultNetworkId = template => {
+
+  _getAutomaticNetworks = createSelector(
+    createFilter(this._getPoolNetworks, [network => network.automatic]),
+    networks => networks.map(_ => _.id)
+  )
+
+  _getDefaultNetworkIds = template => {
     if (template === undefined) {
-      return
+      return []
     }
 
-    const network =
-      this.props.pool === undefined
-        ? find(this._getResolvedResourceSet().objectsByType.network, {
-            $pool: template.$pool,
-          })
-        : find(this._getPoolNetworks(), network => {
-            const pif = getObject(store.getState(), network.PIFs[0])
-            return pif && pif.management
-          })
-    return network && network.id
+    if (this.props.pool === undefined) {
+      const network = find(
+        this._getResolvedResourceSet().objectsByType.network,
+        {
+          $pool: template.$pool,
+        }
+      )
+      return network !== undefined ? [network.id] : []
+    }
+
+    const automaticNetworks = this._getAutomaticNetworks()
+    if (automaticNetworks.length !== 0) {
+      return automaticNetworks
+    }
+
+    const network = find(this._getPoolNetworks(), network => {
+      const pif = getObject(store.getState(), network.PIFs[0])
+      return pif && pif.management
+    })
+
+    return network !== undefined ? [network.id] : []
   }
 
   _buildVmsNameTemplate = createSelector(
@@ -788,9 +805,7 @@ export default class NewVm extends BaseComponent {
     this._setState({
       VIFs: [
         ...state.VIFs,
-        {
-          network: this._getDefaultNetworkId(state.template),
-        },
+        { network: this._getDefaultNetworkIds(state.template)[0] },
       ],
     })
   }

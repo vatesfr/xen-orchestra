@@ -10,10 +10,10 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
-import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
 import { Toggle } from 'form'
 import {
@@ -24,8 +24,6 @@ import {
 } from 'selectors'
 import {
   connectPif,
-  createBondedNetwork,
-  createNetwork,
   deleteNetwork,
   disconnectPif,
   editNetwork,
@@ -75,6 +73,21 @@ class Name extends Component {
           <span className='tag tag-pill tag-info'>{_('pillBonded')}</span>
         )}
       </span>
+    )
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+class AutomaticNetwork extends Component {
+  _editAutomaticNetwork = automatic =>
+    editNetwork(this.props.network, { automatic })
+
+  render() {
+    const { network } = this.props
+
+    return (
+      <Toggle onChange={this._editAutomaticNetwork} value={network.automatic} />
     )
   }
 }
@@ -346,6 +359,10 @@ const NETWORKS_COLUMNS = [
       !isEmpty(network.PIFs) && <PifsItem network={network} />,
   },
   {
+    name: _('poolNetworkAutomatic'),
+    itemRenderer: network => <AutomaticNetwork network={network} />,
+  },
+  {
     name: '',
     itemRenderer: network => <NetworkActions network={network} />,
     textAlign: 'right',
@@ -362,19 +379,10 @@ export default class TabNetworks extends Component {
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='primary'
-              handler={createBondedNetwork}
-              handlerParam={this.props.pool}
-              icon='add'
-              labelId='networkCreateBondedButton'
-            />
-            <TabButton
-              btnStyle='primary'
-              handler={createNetwork}
-              handlerParam={this.props.pool}
+            <TabButtonLink
               icon='add'
               labelId='networkCreateButton'
+              to={`new/network?pool=${this.props.pool.id}`}
             />
           </Col>
         </Row>

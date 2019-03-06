@@ -182,6 +182,7 @@ const COLUMNS = [
 
 const GROUPED_ACTIONS = [
   {
+    disabled: vdis => some(vdis, { type: 'VDI-unmanaged' }),
     handler: deleteVdis,
     icon: 'delete',
     label: _('deleteSelectedVdis'),
@@ -193,12 +194,14 @@ const INDIVIDUAL_ACTIONS = [
   ...(process.env.XOA_PLAN > 1
     ? [
         {
-          disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
+          disabled: ({ id, type }, { isVdiAttached }) =>
+            isVdiAttached[id] || type === 'VDI-unmanaged',
           handler: importVdi,
           icon: 'import',
           label: _('importVdi'),
         },
         {
+          disabled: ({ type }) => type === 'VDI-unmanaged',
           handler: exportVdi,
           icon: 'export',
           label: _('exportVdi'),
@@ -211,6 +214,7 @@ const INDIVIDUAL_ACTIONS = [
     label: vdi => _('copyUuid', { uuid: vdi.uuid }),
   },
   {
+    disabled: ({ type }) => type === 'VDI-unmanaged',
     handler: deleteVdi,
     icon: 'delete',
     label: _('deleteSelectedVdi'),

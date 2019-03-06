@@ -11,3 +11,5 @@ declare export function safeDateFormat(timestamp: number): string
 declare export function serializeError(error: Error): Object
 
 declare export function streamToBuffer(stream: Readable): Promise<Buffer>
+
+export type SimpleIdPattern = {| id: string | {| __or: string[] |}, |}

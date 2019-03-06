@@ -108,6 +108,10 @@
     @extend .fa;
     @extend .fa-clipboard;
   }
+  &-download {
+    @extend .fa;
+    @extend .fa-download;
+  }
   &-shortcuts {
     @extend .fa;
     @extend .fa-keyboard-o;
@@ -489,7 +493,8 @@
   }
 
   // SR
-  &-sr, &-vdi {
+  &-sr,
+  &-vdi {
     &-reconnect-all {
       @extend .fa;
       @extend .fa-retweet;
@@ -563,7 +568,8 @@
   }
 
   // Host and VM actions
-  &-host, &-vm {
+  &-host,
+  &-vm {
     &-start {
       @extend .fa;
       @extend .fa-play;
@@ -611,12 +617,12 @@
 
   &-filters {
     @extend .fa;
-    @extend .fa-filter
+    @extend .fa-filter;
   }
 
   &-tags {
     @extend .fa;
-    @extend .fa-tags
+    @extend .fa-tags;
   }
 
   &-remove-tag {
@@ -656,11 +662,11 @@
   }
   &-minus {
     @extend .fa;
-    @extend .fa-minus
+    @extend .fa-minus;
   }
   &-plus {
     @extend .fa;
-    @extend .fa-plus
+    @extend .fa-plus;
   }
   &-clear-search {
     @extend .fa;
@@ -854,6 +860,10 @@
       @extend .fa;
       @extend .fa-database;
     }
+    &-network {
+      @extend .fa;
+      @extend .fa-sitemap;
+    }
     &-import {
       @extend .fa;
       @extend .fa-file-archive-o;
@@ -867,7 +877,7 @@
   &-new-vm {
     &-infos {
       @extend .fa;
-      @extend .fa-info-circle
+      @extend .fa-info-circle;
     }
     &-perf {
       @extend .fa;
@@ -904,6 +914,13 @@
     &-remove {
       @extend .fa;
       @extend .fa-times;
+    }
+  }
+  // New network
+  &-new-network {
+    &-create {
+      @extend .fa;
+      @extend .fa-play;
     }
   }
   //  OS Icons
@@ -979,7 +996,7 @@
     color: #ccc;
   }
 
- // About
+  // About
   &-bug {
     @extend .fa;
     @extend .fa-bug;

@@ -46,6 +46,7 @@ import Schedules from './schedules'
 import SmartBackup from './smart-backup'
 import {
   canDeltaBackup,
+  constructPattern,
   destructPattern,
   FormFeedback,
   FormGroup,
@@ -53,6 +54,8 @@ import {
   Li,
   Ul,
 } from './../utils'
+
+export NewMetadataBackup from './metadata'
 
 // ===================================================================
 
@@ -101,17 +104,6 @@ const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
         }
       : setting
   )
-
-const constructPattern = values =>
-  values.length === 1
-    ? {
-        id: resolveId(values[0]),
-      }
-    : {
-        id: {
-          __or: resolveIds(values),
-        },
-      }
 
 const destructVmsPattern = pattern =>
   pattern.id === undefined

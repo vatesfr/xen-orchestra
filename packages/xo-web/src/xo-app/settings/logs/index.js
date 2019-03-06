@@ -8,7 +8,7 @@ import Copiable from 'copiable'
 import NoObjects from 'no-objects'
 import SortedTable from 'sorted-table'
 import styles from './index.css'
-import { addSubscriptions } from 'utils'
+import { addSubscriptions, downloadLog } from 'utils'
 import { alert } from 'modal'
 import { createSelector } from 'selectors'
 import { CAN_REPORT_BUG, reportBug } from 'report-bug-button'
@@ -25,6 +25,13 @@ const formatMessage = data =>
     null,
     2
   )}\n${JSON.stringify(data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``
+
+const formatLog = log =>
+  `${log.data.method}\n${JSON.stringify(
+    log.data.params,
+    null,
+    2
+  )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`
 
 const COLUMNS = [
   {
@@ -87,18 +94,15 @@ const ACTIONS = [
 const INDIVIDUAL_ACTIONS = [
   {
     handler: log =>
-      alert(
-        _('logError'),
-        <Copiable tagName='pre'>
-          {`${log.data.method}\n${JSON.stringify(
-            log.data.params,
-            null,
-            2
-          )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`}
-        </Copiable>
-      ),
+      alert(_('logError'), <Copiable tagName='pre'>{formatLog(log)}</Copiable>),
     icon: 'preview',
     label: _('logDisplayDetails'),
+  },
+  {
+    handler: log =>
+      downloadLog({ log: formatLog(log), date: log.time, type: 'XO' }),
+    icon: 'download',
+    label: _('logDownload'),
   },
   {
     disabled: !CAN_REPORT_BUG,

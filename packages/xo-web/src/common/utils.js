@@ -601,3 +601,20 @@ export const getIscsiPaths = pbd => {
   const pathsInfo = pbd.otherConfig[`mpath-${pbd.device_config.SCSIid}`]
   return pathsInfo !== undefined ? JSON.parse(pathsInfo) : []
 }
+
+// ===================================================================
+
+export const downloadLog = ({ log, date, type }) => {
+  const file = new window.Blob([log], {
+    type: 'text/plain',
+  })
+  const anchor = document.createElement('a')
+  anchor.href = window.URL.createObjectURL(file)
+  anchor.download = `${new Date(date)
+    .toISOString()
+    .replace(/:/g, '_')} - ${type}.log`
+  anchor.style.display = 'none'
+  document.body.appendChild(anchor)
+  anchor.click()
+  document.body.removeChild(anchor)
+}

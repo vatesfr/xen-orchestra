@@ -1627,39 +1627,10 @@ export const setVif = (
 export const editNetwork = (network, props) =>
   _call('network.set', { ...props, id: resolveId(network) })
 
-import CreateNetworkModalBody from './create-network-modal' // eslint-disable-line import/first
-export const createNetwork = container =>
-  confirm({
-    icon: 'network',
-    title: _('newNetworkCreate'),
-    body: <CreateNetworkModalBody container={container} />,
-  }).then(params => {
-    if (!params.name) {
-      return error(
-        _('newNetworkNoNameErrorTitle'),
-        _('newNetworkNoNameErrorMessage')
-      )
-    }
-    return _call('network.create', params)
-  }, noop)
-
 export const getBondModes = () => _call('network.getBondModes')
-
-import CreateBondedNetworkModalBody from './create-bonded-network-modal' // eslint-disable-line import/first
-export const createBondedNetwork = container =>
-  confirm({
-    icon: 'network',
-    title: _('newBondedNetworkCreate'),
-    body: <CreateBondedNetworkModalBody pool={container.$pool} />,
-  }).then(params => {
-    if (!params.name) {
-      return error(
-        _('newNetworkNoNameErrorTitle'),
-        _('newNetworkNoNameErrorMessage')
-      )
-    }
-    return _call('network.createBonded', params)
-  }, noop)
+export const createNetwork = params => _call('network.create', params)
+export const createBondedNetwork = params =>
+  _call('network.createBonded', params)
 
 export const deleteNetwork = network =>
   confirm({
@@ -1951,15 +1922,22 @@ export const subscribeBackupNgLogs = createSubscription(() =>
   _call('backupNg.getAllLogs')
 )
 
+export const subscribeMetadataBackupJobs = createSubscription(() =>
+  _call('metadataBackup.getAllJobs')
+)
+
 export const createBackupNgJob = props =>
   _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 
-export const deleteBackupNgJobs = async ids => {
-  const { length } = ids
-  if (length === 0) {
+export const deleteBackupJobs = async ({
+  backupIds = [],
+  metadataBackupIds = [],
+}) => {
+  const nJobs = backupIds.length + metadataBackupIds.length
+  if (nJobs === 0) {
     return
   }
-  const vars = { nJobs: length }
+  const vars = { nJobs }
   try {
     await confirm({
       title: _('confirmDeleteBackupJobsTitle', vars),
@@ -1969,9 +1947,25 @@ export const deleteBackupNgJobs = async ids => {
     return
   }
 
-  return Promise.all(
-    ids.map(id => _call('backupNg.deleteJob', { id: resolveId(id) }))
-  )::tap(subscribeBackupNgJobs.forceRefresh)
+  const promises = []
+  if (backupIds.length !== 0) {
+    promises.push(
+      Promise.all(
+        backupIds.map(id => _call('backupNg.deleteJob', { id: resolveId(id) }))
+      )::tap(subscribeBackupNgJobs.forceRefresh)
+    )
+  }
+  if (metadataBackupIds.length !== 0) {
+    promises.push(
+      Promise.all(
+        metadataBackupIds.map(id =>
+          _call('metadataBackup.deleteJob', { id: resolveId(id) })
+        )
+      )::tap(subscribeMetadataBackupJobs.forceRefresh)
+    )
+  }
+
+  return Promise.all(promises)::tap(subscribeSchedules.forceRefresh)
 }
 
 export const editBackupNgJob = props =>
@@ -2007,6 +2001,19 @@ export const deleteBackups = async backups => {
     await deleteBackup(backups[i])
   }
 }
+
+export const createMetadataBackupJob = props =>
+  _call('metadataBackup.createJob', props)
+    ::tap(subscribeMetadataBackupJobs.forceRefresh)
+    ::tap(subscribeSchedules.forceRefresh)
+
+export const editMetadataBackupJob = props =>
+  _call('metadataBackup.editJob', props)
+    ::tap(subscribeMetadataBackupJobs.forceRefresh)
+    ::tap(subscribeSchedules.forceRefresh)
+
+export const runMetadataBackupJob = params =>
+  _call('metadataBackup.runJob', params)
 
 // Plugins -----------------------------------------------------------
 

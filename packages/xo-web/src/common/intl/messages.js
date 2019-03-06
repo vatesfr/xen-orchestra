@@ -37,6 +37,8 @@ const messages = {
   paths: 'Paths',
   pbdDisconnected: 'PBD disconnected',
   hasInactivePath: 'Has an inactive path',
+  pools: 'Pools',
+  remotes: 'Remotes',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -101,6 +103,7 @@ const messages = {
   newMenu: 'New',
   taskMenu: 'Tasks',
   taskPage: 'Tasks',
+  newNetworkPage: 'Network',
   newVmPage: 'VM',
   newSrPage: 'Storage',
   newServerPage: 'Server',
@@ -124,6 +127,11 @@ const messages = {
   deltaBackup: 'Delta Backup',
   disasterRecovery: 'Disaster Recovery',
   continuousReplication: 'Continuous Replication',
+  backupType: 'Backup type',
+  poolMetadata: 'Pool metadata',
+  xoConfig: 'XO config',
+  backupVms: 'Backup VMs',
+  backupMetadata: 'Backup metadata',
   jobsOverviewPage: 'Overview',
   jobsNewPage: 'New',
   jobsSchedulingPage: 'Scheduling',
@@ -369,14 +377,17 @@ const messages = {
   missingBackupMode: 'You need to choose a backup mode!',
   missingRemotes: 'Missing remotes!',
   missingSrs: 'Missing SRs!',
+  missingPools: 'Missing pools!',
   missingSchedules: 'Missing schedules!',
+  missingRetentions:
+    'The modes need at least a schedule with retention higher than 0',
   missingExportRetention:
     'The Backup mode and The Delta Backup mode require backup retention to be higher than 0!',
   missingCopyRetention:
     'The CR mode and The DR mode require replication retention to be higher than 0!',
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
-  retentionNeeded: 'One of the retentions needs to be higher than 0!',
+  retentionNeeded: 'Requires one retention to be higher than 0!',
   newScheduleError: 'Invalid schedule',
   createRemoteMessage:
     'No remotes found, please click on the remotes settings button to create one!',
@@ -563,6 +574,10 @@ const messages = {
   newSrNfsOptions: 'Comma delimited NFS options',
   reattachNewSrTooltip: 'Reattach SR',
 
+  // ------ New Newtork -----
+  createNewNetworkNoPermission: 'You have no permission to create a network',
+  createNewNetworkOn: 'Create a new network on {select}',
+
   // ----- Acls, Users, Groups ------
   subjectName: 'Users/Groups',
   objectName: 'Object',
@@ -718,6 +733,7 @@ const messages = {
   memoryLeftTooltip: '{used}% used ({free} free)',
   // ----- Pool network tab -----
   pif: 'PIF',
+  poolNetworkAutomatic: 'Automatic',
   poolNetworkNameLabel: 'Name',
   poolNetworkDescription: 'Description',
   poolNetworkPif: 'PIFs',
@@ -780,6 +796,8 @@ const messages = {
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:
     '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}} ({ nSessions, number } iSCSI session{nSessions, plural, one {} other {s}})',
+  hostMultipathingRequiredState:
+    'This action will not be fulfilled if a VM is in a running state. Please ensure that all VMs are evacuated or stopped before doing this action!',
   hostMultipathingWarning:
     'The host{nHosts, plural, one {} other {s}} will lose the connection to the SRs. Do you want to continue?',
   hostXenServerVersion: 'Version',
@@ -1389,6 +1407,8 @@ const messages = {
   scheduleExportRetention: 'Backup ret.',
   scheduleCopyRetention: 'Replication ret.',
   scheduleSnapshotRetention: 'Snapshot ret.',
+  poolMetadataRetention: 'Pool ret.',
+  xoMetadataRetention: 'XO ret.',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',
@@ -1688,7 +1708,6 @@ const messages = {
 
   // ----- Network -----
   newNetworkCreate: 'Create network',
-  newBondedNetworkCreate: 'Create bonded network',
   newNetworkInterface: 'Interface',
   newNetworkName: 'Name',
   newNetworkDescription: 'Description',
@@ -1696,13 +1715,14 @@ const messages = {
   newNetworkDefaultVlan: 'No VLAN if empty',
   newNetworkMtu: 'MTU',
   newNetworkDefaultMtu: 'Default: 1500',
-  newNetworkNoNameErrorTitle: 'Name required',
-  newNetworkNoNameErrorMessage: 'A name is required to create a network',
   newNetworkBondMode: 'Bond mode',
+  newNetworkInfo: 'Info',
+  newNetworkType: 'Type',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
   pillBonded: 'Bonded',
+  bondedNetwork: 'Bonded network',
 
   // ----- Add host -----
   addHostSelectHost: 'Host',
@@ -1867,6 +1887,7 @@ const messages = {
   logError: 'Error',
   logTitle: 'Logs',
   logDisplayDetails: 'Display details',
+  logDownload: 'Download log',
   logTime: 'Date',
   logNoStackTrace: 'No stack trace',
   logNoParams: 'No params',

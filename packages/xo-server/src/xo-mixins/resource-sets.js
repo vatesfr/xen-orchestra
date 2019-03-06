@@ -329,7 +329,7 @@ export default class {
         let id
         let set
         if (
-          object.$type !== 'vm' ||
+          object.$type !== 'VM' ||
           object.is_a_snapshot ||
           ('start' in object.blocked_operations &&
             (object.tags.includes('Disaster Recovery') ||

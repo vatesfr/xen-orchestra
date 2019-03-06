@@ -154,6 +154,10 @@ class BackupReportsXoPlugin {
   }
 
   _wrapper(status, job, schedule, runJobId) {
+    if (job.type === 'metadataBackup') {
+      return
+    }
+
     return new Promise(resolve =>
       resolve(
         job.type === 'backup'

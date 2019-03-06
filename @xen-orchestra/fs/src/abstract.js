@@ -5,6 +5,7 @@ import getStream from 'get-stream'
 
 import asyncMap from '@xen-orchestra/async-map'
 import path from 'path'
+import synchronized from 'decorator-synchronized'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
@@ -216,6 +217,7 @@ export default class RemoteHandlerAbstract {
   // FIXME: Some handlers are implemented based on system-wide mecanisms (such
   // as mount), forgetting them might breaking other processes using the same
   // remote.
+  @synchronized()
   async forget(): Promise<void> {
     await this._forget()
   }
@@ -354,6 +356,7 @@ export default class RemoteHandlerAbstract {
   // metadata
   //
   // This method MUST ALWAYS be called before using the handler.
+  @synchronized()
   async sync(): Promise<void> {
     await this._sync()
   }

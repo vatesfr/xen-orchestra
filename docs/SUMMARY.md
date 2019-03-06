@@ -33,6 +33,7 @@
        * [Disaster recovery](disaster_recovery.md)
        * [Smart Backup](smart_backup.md)
        * [File level Restore](file_level_restore.md)
+       * [Metadata Backup](metadata_backup.md)
        * [Backup Concurrency](concurrency.md)
        * [Configure backup reports](backup_reports.md)
        * [Backup troubleshooting](backup_troubleshooting.md)

@@ -54,6 +54,8 @@ import {
   resolveRelativeFromFile,
   safeDateFormat,
   serializeError,
+  type SimpleIdPattern,
+  unboxIdsFromPattern,
 } from '../../utils'
 
 import { translateLegacyJob } from './migration'
@@ -73,10 +75,6 @@ type Settings = {|
   snapshotRetention?: number,
   timeout?: number,
   vmTimeout?: number,
-|}
-
-type SimpleIdPattern = {|
-  id: string | {| __or: string[] |},
 |}
 
 export type BackupJob = {|
@@ -182,7 +180,7 @@ const getJobCompression = ({ compression: c }) =>
 
 const listReplicatedVms = (
   xapi: Xapi,
-  scheduleId: string,
+  scheduleOrJobId: string,
   srId?: string,
   vmUuid?: string
 ): Vm[] => {
@@ -192,11 +190,12 @@ const listReplicatedVms = (
     const object = all[key]
     const oc = object.other_config
     if (
-      object.$type === 'vm' &&
+      object.$type === 'VM' &&
       !object.is_a_snapshot &&
       !object.is_a_template &&
       'start' in object.blocked_operations &&
-      oc['xo:backup:schedule'] === scheduleId &&
+      (oc['xo:backup:job'] === scheduleOrJobId ||
+        oc['xo:backup:schedule'] === scheduleOrJobId) &&
       oc['xo:backup:sr'] === srId &&
       (oc['xo:backup:vm'] === vmUuid ||
         // 2018-03-28, JFT: to catch VMs replicated before this fix
@@ -307,14 +306,6 @@ const parseVmBackupId = (id: string) => {
     metadataFilename: id.slice(i + 1),
     remoteId: id.slice(0, i),
   }
-}
-
-const unboxIds = (pattern?: SimpleIdPattern): string[] => {
-  if (pattern === undefined) {
-    return []
-  }
-  const { id } = pattern
-  return typeof id === 'string' ? [id] : id.__or
 }
 
 // similar to Promise.all() but do not gather results
@@ -604,7 +595,7 @@ export default class BackupNg {
           }
         }
         const jobId = job.id
-        const srs = unboxIds(job.srs).map(id => {
+        const srs = unboxIdsFromPattern(job.srs).map(id => {
           const xapi = app.getXapi(id)
           return {
             __proto__: xapi.getObject(id),
@@ -612,7 +603,7 @@ export default class BackupNg {
           }
         })
         const remotes = await Promise.all(
-          unboxIds(job.remotes).map(async id => ({
+          unboxIdsFromPattern(job.remotes).map(async id => ({
             id,
             handler: await app.getRemoteHandler(id),
           }))
@@ -1323,7 +1314,7 @@ export default class BackupNg {
         for (const { $id: srId, xapi } of srs) {
           const replicatedVm = listReplicatedVms(
             xapi,
-            scheduleId,
+            jobId,
             srId,
             vmUuid
           ).find(vm => vm.other_config[TAG_COPY_SRC] === baseSnapshot.uuid)

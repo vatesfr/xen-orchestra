@@ -673,8 +673,9 @@ ${entry.listItem}
     }
   }
 
-  async getRrd(xoObject, secondsAgo) {
-    const host = xoObject.$type === 'host' ? xoObject : xoObject.$resident_on
+  async getRrd(xapiObject, secondsAgo) {
+    const host =
+      xapiObject.$type === 'host' ? xapiObject : xapiObject.$resident_on
     if (host == null) {
       return null
     }
@@ -685,13 +686,13 @@ ${entry.listItem}
       host,
       query: {
         cf: 'AVERAGE',
-        host: (xoObject.$type === 'host').toString(),
+        host: (xapiObject.$type === 'host').toString(),
         json: 'true',
         start: serverTimestamp - secondsAgo,
       },
     }
-    if (xoObject.$type === 'vm') {
-      payload['vm_uuid'] = xoObject.uuid
+    if (xapiObject.$type === 'VM') {
+      payload['vm_uuid'] = xapiObject.uuid
     }
     // JSON is not well formed, can't use the default node parser
     return JSON5.parse(

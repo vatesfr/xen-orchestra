@@ -1461,14 +1461,25 @@ getCloudInitConfig.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createCloudInitConfigDrive({ vm, sr, config, coreos }) {
+export async function createCloudInitConfigDrive({
+  config,
+  coreos,
+  networkConfig,
+  sr,
+  vm,
+}) {
   const xapi = this.getXapi(vm)
   if (coreos) {
     // CoreOS is a special CloudConfig drive created by XS plugin
     await xapi.createCoreOsCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
   } else {
     // use generic Cloud Init drive
-    await xapi.createCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
+    await xapi.createCloudInitConfigDrive(
+      vm._xapiId,
+      sr._xapiId,
+      config,
+      networkConfig
+    )
   }
 }
 
@@ -1476,6 +1487,7 @@ createCloudInitConfigDrive.params = {
   vm: { type: 'string' },
   sr: { type: 'string' },
   config: { type: 'string' },
+  networkConfig: { type: 'string', optional: true },
 }
 
 createCloudInitConfigDrive.resolve = {

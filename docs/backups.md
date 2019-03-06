@@ -10,6 +10,7 @@ There are several ways to protect your VMs:
 * [Rolling Snapshots](rolling_snapshots.md) [*Starter Edition*]
 * [Delta Backups](delta_backups.md) (best of both previous ones) [*Enterprise Edition*]
 * [Disaster Recovery](disaster_recovery.md) [*Enterprise Edition*]
+* [Metadata Backups](metadata_backup.md) [*Enterprise Edition*]
 * [Continuous Replication](continuous_replication.md) [*Premium Edition*]
 * [File Level Restore](file_level_restore.md) [*Premium Edition*]
 
@@ -41,7 +42,7 @@ Each backups' job execution is identified by a `runId`. You can find this `runId
 
 All backup types rely on snapshots. But what about data consistency? By default, Xen Orchestra will try to take a **quiesced snapshot** every time a snapshot is done (and fall back to normal snapshots if it's not possible).
 
-Snapshots of Windows VMs can be quiesced (especially MS SQL or Exchange services) after you have installed Xen Tools in your VMs. However, [there is an extra step to install the VSS provider on windows](quiesce). A quiesced snapshot means the operating system will be notified and the cache will be flushed to disks. This way, your backups will always be consistent.
+Snapshots of Windows VMs can be quiesced (especially MS SQL or Exchange services) after you have installed Xen Tools in your VMs. However, [there is an extra step to install the VSS provider on windows](https://xen-orchestra.com/blog/xenserver-quiesce-snapshots/). A quiesced snapshot means the operating system will be notified and the cache will be flushed to disks. This way, your backups will always be consistent.
 
 To see if you have quiesced snapshots for a VM, just go into its snapshot tab, then the "info" icon means it is a quiesced snapshot:
 
