@@ -96,7 +96,6 @@ export async function set({
     defaultIsLocked,
     nameDescription,
     nameLabel,
-    otherConfig: network.other_config,
   })
 }
 
@@ -108,9 +107,6 @@ set.params = {
   defaultIsLocked: {
     type: 'boolean',
     optional: true,
-  },
-  id: {
-    type: 'string',
   },
   name_description: {
     type: 'string',
