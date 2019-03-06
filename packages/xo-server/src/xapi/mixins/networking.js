@@ -25,16 +25,17 @@ export default {
   async disconnectVif(vifId) {
     await this._disconnectVif(this.getObject(vifId))
   },
-  async _editNetwork(
+  async editNetwork(
     id,
     { automatic, defaultIsLocked, nameDescription, nameLabel, otherConfig }
   ) {
     await this._setObjectProperties(this.getObject(id), {
       defaultIsLocked,
       nameDescription,
+      nameLabel,
       otherConfig: {
         ...otherConfig,
-        automatic: automatic.toString(),
+        automatic: String(automatic),
       },
     })
   },
