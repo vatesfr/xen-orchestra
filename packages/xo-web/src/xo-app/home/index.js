@@ -499,6 +499,7 @@ export default class Home extends Component {
       this._initFilterAndSortBy(props)
     }
     if (type !== this.props.type) {
+      this._changePage(1, props)
       this.setState({ highlighted: undefined })
     }
   }
@@ -519,6 +520,15 @@ export default class Home extends Component {
         this.setState({ selectedItems: newSelectedItems })
       }
     }
+  }
+
+  _changePage = (page, props) => {
+    const { pathname, query } = props.location
+    const defaultFilter = this._getDefaultFilter(props)
+    this.context.router.replace({
+      pathname,
+      query: { ...query, p: page, s: defaultFilter },
+    })
   }
 
   _getNumberOfItems = createCounter(() => this.props.items)
