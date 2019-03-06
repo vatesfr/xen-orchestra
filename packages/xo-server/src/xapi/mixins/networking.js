@@ -25,22 +25,6 @@ export default {
   async disconnectVif(vifId) {
     await this._disconnectVif(this.getObject(vifId))
   },
-  async editNetwork(
-    id,
-    { automatic, defaultIsLocked, nameDescription, nameLabel }
-  ) {
-    const network = this.getObject(id)
-    await Promise.all([
-      this._setObjectProperties(network, {
-        defaultIsLocked,
-        nameDescription,
-        nameLabel,
-      }),
-      await this._updateObjectMapProperty(network, 'other_config', {
-        automatic: String(automatic),
-      }),
-    ])
-  },
   editVif: makeEditObject({
     ipv4Allowed: {
       get: true,

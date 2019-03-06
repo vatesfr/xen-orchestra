@@ -91,7 +91,7 @@ export async function set({
   name_label: nameLabel,
   network,
 }) {
-  await this.getXapi(network).editNetwork(network._xapiId, {
+  await this.getXapi(network).setNetworkProperties(network._xapiId, {
     automatic,
     defaultIsLocked,
     nameDescription,
