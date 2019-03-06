@@ -37,6 +37,8 @@ const messages = {
   paths: 'Paths',
   pbdDisconnected: 'PBD disconnected',
   hasInactivePath: 'Has an inactive path',
+  pools: 'Pools',
+  remotes: 'Remotes',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -125,6 +127,11 @@ const messages = {
   deltaBackup: 'Delta Backup',
   disasterRecovery: 'Disaster Recovery',
   continuousReplication: 'Continuous Replication',
+  backupType: 'Backup type',
+  poolMetadata: 'Pool metadata',
+  xoConfig: 'XO config',
+  backupVms: 'Backup VMs',
+  backupMetadata: 'Backup metadata',
   jobsOverviewPage: 'Overview',
   jobsNewPage: 'New',
   jobsSchedulingPage: 'Scheduling',
@@ -370,14 +377,17 @@ const messages = {
   missingBackupMode: 'You need to choose a backup mode!',
   missingRemotes: 'Missing remotes!',
   missingSrs: 'Missing SRs!',
+  missingPools: 'Missing pools!',
   missingSchedules: 'Missing schedules!',
+  missingRetentions:
+    'The modes need at least a schedule with retention higher than 0',
   missingExportRetention:
     'The Backup mode and The Delta Backup mode require backup retention to be higher than 0!',
   missingCopyRetention:
     'The CR mode and The DR mode require replication retention to be higher than 0!',
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
-  retentionNeeded: 'One of the retentions needs to be higher than 0!',
+  retentionNeeded: 'Requires one retention to be higher than 0!',
   newScheduleError: 'Invalid schedule',
   createRemoteMessage:
     'No remotes found, please click on the remotes settings button to create one!',
@@ -1396,6 +1406,8 @@ const messages = {
   scheduleExportRetention: 'Backup ret.',
   scheduleCopyRetention: 'Replication ret.',
   scheduleSnapshotRetention: 'Snapshot ret.',
+  poolMetadataRetention: 'Pool ret.',
+  xoMetadataRetention: 'XO ret.',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',
@@ -1874,6 +1886,7 @@ const messages = {
   logError: 'Error',
   logTitle: 'Logs',
   logDisplayDetails: 'Display details',
+  logDownload: 'Download log',
   logTime: 'Date',
   logNoStackTrace: 'No stack trace',
   logNoParams: 'No params',

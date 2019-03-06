@@ -92,7 +92,7 @@ const NewNetwork = decorate([
             description,
             mtu,
             name,
-            pif: pif.id,
+            pif: pif == null ? undefined : pif.id,
             pool: pool.id,
             vlan,
           })
@@ -160,7 +160,7 @@ const NewNetwork = decorate([
                       multi={bonded}
                       onChange={effects.onChangePif}
                       predicate={pifPredicate}
-                      required
+                      required={bonded}
                       value={bonded ? pifs : pif}
                     />
                     <label>{_('newNetworkName')}</label>

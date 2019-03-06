@@ -60,7 +60,6 @@ import {
   asInteger,
   extractOpaqueRef,
   filterUndefineds,
-  getNamespaceForType,
   getVmDisks,
   canSrHaveNewVdiOfSize,
   isVmHvm,
@@ -227,7 +226,7 @@ export default class Xapi extends XapiBase {
 
   _setObjectProperty(object, name, value) {
     return this.call(
-      `${getNamespaceForType(object.$type)}.set_${camelToSnakeCase(name)}`,
+      `${object.$type}.set_${camelToSnakeCase(name)}`,
       object.$ref,
       prepareXapiParam(value)
     )
@@ -236,15 +235,13 @@ export default class Xapi extends XapiBase {
   _setObjectProperties(object, props) {
     const { $ref: ref, $type: type } = object
 
-    const namespace = getNamespaceForType(type)
-
     // TODO: the thrown error should contain the name of the
     // properties that failed to be set.
     return Promise.all(
       mapToArray(props, (value, name) => {
         if (value != null) {
           return this.call(
-            `${namespace}.set_${camelToSnakeCase(name)}`,
+            `${type}.set_${camelToSnakeCase(name)}`,
             ref,
             prepareXapiParam(value)
           )
@@ -258,9 +255,8 @@ export default class Xapi extends XapiBase {
 
     prop = camelToSnakeCase(prop)
 
-    const namespace = getNamespaceForType(type)
-    const add = `${namespace}.add_to_${prop}`
-    const remove = `${namespace}.remove_from_${prop}`
+    const add = `${type}.add_to_${prop}`
+    const remove = `${type}.remove_from_${prop}`
 
     await Promise.all(
       mapToArray(values, (value, name) => {
@@ -327,15 +323,13 @@ export default class Xapi extends XapiBase {
   async addTag(id, tag) {
     const { $ref: ref, $type: type } = this.getObject(id)
 
-    const namespace = getNamespaceForType(type)
-    await this.call(`${namespace}.add_tags`, ref, tag)
+    await this.call(`${type}.add_tags`, ref, tag)
   }
 
   async removeTag(id, tag) {
     const { $ref: ref, $type: type } = this.getObject(id)
 
-    const namespace = getNamespaceForType(type)
-    await this.call(`${namespace}.remove_tags`, ref, tag)
+    await this.call(`${type}.remove_tags`, ref, tag)
   }
 
   // =================================================================
@@ -685,17 +679,17 @@ export default class Xapi extends XapiBase {
   }
 
   async _deleteVm(
-    vm,
+    vmOrRef,
     deleteDisks = true,
     force = false,
     forceDeleteDefaultTemplate = false
   ) {
-    log.debug(`Deleting VM ${vm.name_label}`)
-
-    const { $ref } = vm
+    const $ref = typeof vmOrRef === 'string' ? vmOrRef : vmOrRef.$ref
 
     // ensure the vm record is up-to-date
-    vm = await this.barrier($ref)
+    const vm = await this.barrier($ref)
+
+    log.debug(`Deleting VM ${vm.name_label}`)
 
     if (!force && 'destroy' in vm.blocked_operations) {
       throw forbiddenOperation('destroy', vm.blocked_operations.destroy.reason)
@@ -1547,19 +1541,22 @@ export default class Xapi extends XapiBase {
 
   @concurrency(2)
   @cancelable
-  async _snapshotVm($cancelToken, vm, nameLabel = vm.name_label) {
+  async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
+    const vm = await this.getRecord('VM', vmRef)
+    if (nameLabel === undefined) {
+      nameLabel = vm.name_label
+    }
+
     log.debug(
       `Snapshotting VM ${vm.name_label}${
         nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''
       }`
     )
 
-    const vmRef = vm.$ref
     let ref
     do {
       if (!vm.tags.includes('xo-disable-quiesce')) {
         try {
-          vm = await this.barrier(vmRef)
           ref = await pRetry(
             async bail => {
               try {
@@ -1579,12 +1576,11 @@ export default class Xapi extends XapiBase {
                 // see https://github.com/vatesfr/xen-orchestra/issues/3936
                 const prevSnapshotRefs = new Set(vm.snapshots)
                 const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
-                vm = await this.barrier(vmRef)
-                const createdSnapshots = vm.$snapshots.filter(
-                  _ =>
-                    !prevSnapshotRefs.has(_.$ref) &&
-                    _.name_label.startsWith(snapshotNameLabelPrefix)
-                )
+                vm.snapshots = await this.getField('VM', vmRef, 'snapshots')
+                const createdSnapshots = (await this.getRecords(
+                  'VM',
+                  vm.snapshots.filter(_ => !prevSnapshotRefs.has(_))
+                )).filter(_ => _.name_label.startsWith(snapshotNameLabelPrefix))
 
                 // be safe: only delete if there was a single match
                 if (createdSnapshots.length === 1) {
@@ -1599,7 +1595,7 @@ export default class Xapi extends XapiBase {
               tries: 3,
             }
           ).then(extractOpaqueRef)
-          this.addTag(ref, 'quiesce')::ignoreErrors()
+          ignoreErrors.call(this.call('VM.add_tags', ref, 'quiesce'))
 
           break
         } catch (error) {
@@ -1624,14 +1620,9 @@ export default class Xapi extends XapiBase {
       ).then(extractOpaqueRef)
     } while (false)
 
-    // Convert the template to a VM and wait to have receive the up-
-    // to-date object.
-    const [, snapshot] = await Promise.all([
-      this.call('VM.set_is_a_template', ref, false),
-      this.barrier(ref),
-    ])
+    await this.setField('VM', ref, 'is_a_template', false)
 
-    return snapshot
+    return this.getRecord('VM', ref)
   }
 
   async snapshotVm(vmId, nameLabel = undefined) {
@@ -1708,7 +1699,7 @@ export default class Xapi extends XapiBase {
         find(
           this.objects.all,
           obj =>
-            obj.$type === 'vm' &&
+            obj.$type === 'VM' &&
             obj.is_a_template &&
             obj.name_label === templateNameLabel
         )
@@ -2208,7 +2199,7 @@ export default class Xapi extends XapiBase {
     const physPif = find(
       this.objects.all,
       obj =>
-        obj.$type === 'pif' &&
+        obj.$type === 'PIF' &&
         (obj.physical || !isEmpty(obj.bond_master_of)) &&
         obj.$pool === pif.$pool &&
         obj.device === pif.device
@@ -2370,8 +2361,16 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
+  //
+  // https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html
   @deferrable
-  async createCloudInitConfigDrive($defer, vmId, srId, config) {
+  async createCloudInitConfigDrive(
+    $defer,
+    vmId,
+    srId,
+    userConfig,
+    networkConfig
+  ) {
     const vm = this.getObject(vmId)
     const sr = this.getObject(srId)
 
@@ -2389,7 +2388,9 @@ export default class Xapi extends XapiBase {
 
     await Promise.all([
       fs.writeFile('meta-data', 'instance-id: ' + vm.uuid + '\n'),
-      fs.writeFile('user-data', config),
+      fs.writeFile('user-data', userConfig),
+      networkConfig !== undefined &&
+        fs.writeFile('network-config', networkConfig),
     ])
 
     // ignore errors, I (JFT) don't understand why they are emitted
@@ -2444,7 +2445,7 @@ export default class Xapi extends XapiBase {
     return find(
       this.objects.all,
       obj =>
-        obj.$type === 'sr' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
+        obj.$type === 'SR' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
     )
   }
 

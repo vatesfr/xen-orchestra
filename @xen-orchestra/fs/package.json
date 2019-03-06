@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/fs",
-  "version": "0.6.1",
+  "version": "0.7.1",
   "license": "AGPL-3.0",
   "description": "The File System for Xen Orchestra backups.",
   "keywords": [],
@@ -24,6 +24,7 @@
     "@marsaud/smb2": "^0.13.0",
     "@sindresorhus/df": "^2.1.0",
     "@xen-orchestra/async-map": "^0.0.0",
+    "decorator-synchronized": "^0.3.0",
     "execa": "^1.0.0",
     "fs-extra": "^7.0.0",
     "get-stream": "^4.0.0",
