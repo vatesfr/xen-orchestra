@@ -1373,11 +1373,15 @@ export const fetchVmStats = (vm, granularity) =>
 
 export const getVmsHaValues = () => _call('vm.getHaValues')
 
-export const importVm = (file, type = 'xva', data = undefined, sr) => {
+export const importVm = async (file, type = 'xva', data = undefined, sr) => {
   const { name } = file
 
   info(_('startVmImport'), name)
-
+  if (data.tables) {
+    for (const k in data.tables) {
+      data.tables[k] = await data.tables[k]
+    }
+  }
   return _call('vm.import', { type, data, sr: resolveId(sr) }).then(
     ({ $sendTo }) =>
       post($sendTo, file)

@@ -217,7 +217,8 @@ async function parseTarFile(file) {
           const fileSlice = file.slice(offset, offset + header.fileSize)
           const readFile = async (start, end) =>
             readFileFragment(fileSlice, start, end)
-          data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+          // storing the promise, not the value
+          data.tables[header.fileName] = readVmdkGrainTable(readFile)
         }
       }
       offset += Math.ceil(header.fileSize / 512) * 512
@@ -228,6 +229,4 @@ async function parseTarFile(file) {
   }
 }
 
-const parseOvaFile = async file => parseTarFile(file)
-
-export { parseOvaFile as default }
+export { parseTarFile as default }
