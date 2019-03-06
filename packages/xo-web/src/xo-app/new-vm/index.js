@@ -39,7 +39,6 @@ import {
   slice,
   sum,
   sumBy,
-  uniqBy,
 } from 'lodash'
 import {
   addSshKey,
@@ -1350,8 +1349,10 @@ export default class NewVm extends BaseComponent {
     () => this.state.state.existingDisks,
     () => this.state.state.VDIs,
     (existingDisks, vdis) => {
-      const getSr = _ => _.$SR || _.SR
-      return uniqBy([...existingDisks, ...vdis], getSr).map(getSr)
+      const diskSrs = new Set()
+      forEach(existingDisks, disk => diskSrs.add(disk.$SR))
+      vdis.forEach(disk => diskSrs.add(disk.SR))
+      return [...diskSrs]
     }
   )
 
