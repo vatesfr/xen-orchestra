@@ -319,7 +319,7 @@ export default class Xapi extends XapiBase {
         nameLabel,
       }),
       this._updateObjectMapProperty(network, 'other_config', {
-        automatic: automatic !== undefined ? String(automatic) : undefined,
+        automatic: automatic === undefined ? undefined : automatic ? 'true' : null,
       }),
     ])
   }
