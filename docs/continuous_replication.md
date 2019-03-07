@@ -43,11 +43,19 @@ To protect the replication, we removed the possibility to boot your copied VM di
 
 ### Job creation
 
-Create the Continuous Replication backup job, and leave it disabled for now. On the main Backup-NG page, note its identifiers, the main `backupJobId` and the ID of one on the schedules for the job, `backupScheduleId`.
+Create the Continuous Replication backup job, and leave it disabled for now. On the main Backup-NG page, copy the job's `backupJobId` by hovering to the left of the shortened ID and clicking the  copy to clipboard button:
+
+![](./assets/cr-seed-1.png)
+
+Copy it somewhere temporarily. Now we need to also copy the ID of the job schedule, `backupScheduleId`. Do this by hovering over the schedule name in the same panel as before, and clicking the copy to clipboard button. Keep it with the `backupJobId` you copied previously as we will need them all later:
+
+![](./assets/cr-seed-2.png)
 
 ### Seed creation
 
-Manually create a snapshot on the VM to backup, and note its UUID as `snapshotUuid` from the snapshot panel for the VM.
+Manually create a snapshot on the VM being backed up, then copy this snapshot UUID, `snapshotUuid` from the snapshot panel of the VM:
+
+![](./assets/cr-seed-3.png)
 
 > DO NOT ever delete or alter this snapshot, feel free to rename it to make that clear.
 
@@ -55,7 +63,9 @@ Manually create a snapshot on the VM to backup, and note its UUID as `snapshotUu
 
 Export this snapshot to a file, then import it on the target SR.
 
-Note the UUID of this newly created VM as `targetVmUuid`.
+We need to copy the UUID of this newly created VM as well, `targetVmUuid`:
+
+![](./assets/cr-seed-4.png)
 
 > DO not start this VM or it will break the Continuous Replication job! You can rename this VM to more easily remember this.
 
