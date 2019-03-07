@@ -82,9 +82,10 @@ import {
 } from 'utils'
 import {
   createFilter,
-  createSelector,
+  createFinder,
   createGetObject,
   createGetObjectsOfType,
+  createSelector,
   getIsPoolAdmin,
   getResolvedResourceSets,
   getUser,
@@ -226,7 +227,11 @@ class Vif extends BaseComponent {
     getUser,
     user => user && user.permission === 'admin'
   )
+  const getNetworks = createGetObjectsOfType('network').sort()
   const getPool = createGetObject((_, props) => props.location.query.pool)
+  const getPools = createGetObjectsOfType('pool')
+  const getSrs = createGetObjectsOfType('SR')
+  const getTemplates = createGetObjectsOfType('VM-template').sort()
   const getUserSshKeys = createSelector(
     (_, props) => {
       const user = props.user
@@ -237,13 +242,16 @@ class Vif extends BaseComponent {
   return (state, props) => ({
     isAdmin: getIsAdmin(state, props),
     isPoolAdmin: getIsPoolAdmin(state, props),
-    networks: createGetObjectsOfType('network').sort(),
+    networks: getNetworks(state, props),
     pool: getPool(state, props),
-    pools: createGetObjectsOfType('pool'),
-    // true: to get objects as a self user
-    resolvedResourceSets: getResolvedResourceSets(state, props, true),
-    srs: createGetObjectsOfType('SR'),
-    templates: createGetObjectsOfType('VM-template').sort(),
+    pools: getPools(state, props),
+    resolvedResourceSets: getResolvedResourceSets(
+      state,
+      props,
+      props.pool === undefined // to get objects as a self user
+    ),
+    srs: getSrs(state, props),
+    templates: getTemplates(state, props),
     userSshKeys: getUserSshKeys(state, props),
   })
 })
@@ -266,23 +274,24 @@ export default class NewVm extends BaseComponent {
     this._reset()
   }
 
-  _getResourceSet = () => {
-    const {
-      location: {
-        query: { resourceSet: resourceSetId },
-      },
-      resourceSets,
-    } = this.props
-    return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
-  }
+  _getResourceSet = createFinder(
+    () => this.props.resourceSets,
+    createSelector(
+      () => this.props.location.query.resourceSet,
+      resourceSetId => resourceSet =>
+        resourceSet !== undefined ? resourceSetId === resourceSet.id : undefined
+    )
+  )
 
-  _getResolvedResourceSet = createSelector(
-    this._getResourceSet,
+  _getResolvedResourceSet = createFinder(
     () => this.props.resolvedResourceSets,
-    (resourceSet, resolvedResourceSets) =>
-      resolvedResourceSets.find(
-        ({ id }) => resourceSet && id === resourceSet.id
-      )
+    createSelector(
+      this._getResourceSet,
+      resourceSet => resolvedResourceSet =>
+        resourceSet !== undefined
+          ? resolvedResourceSet.id === resourceSet.id
+          : undefined
+    )
   )
 
   // Utils -----------------------------------------------------------------------
