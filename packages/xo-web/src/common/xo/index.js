@@ -739,7 +739,6 @@ export const enableHost = host => _call('host.enable', { id: resolveId(host) })
 export const disableHost = host =>
   _call('host.disable', { id: resolveId(host) })
 
-const missingUpdatePluginByHost = { __proto__: null }
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
   if (host.productBrand !== 'XCP-ng') {
@@ -749,13 +748,9 @@ export const getHostMissingPatches = async host => {
       ? patches
       : filter(patches, { paid: false })
   }
-  if (missingUpdatePluginByHost[hostId]) {
-    return null
-  }
   try {
     return await _call('pool.listMissingPatches', { host: hostId })
   } catch (_) {
-    missingUpdatePluginByHost[hostId] = true
     return null
   }
 }
