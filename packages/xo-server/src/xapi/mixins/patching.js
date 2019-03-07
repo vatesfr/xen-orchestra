@@ -189,12 +189,15 @@ export default {
     // ----------
 
     forEach(host.$updates, update => {
-      installed[update.uuid] = true // TODO: ignore packs
+      // ignore packs
+      if (update.name_label.startsWith('XS')) {
+        installed[update.uuid] = true
+      }
     })
+
     return installed
   },
 
-  // TODO: hide paid patches
   // TODO: handle upgrade patches
   // (hostObject, [ patchId ]) → [ patchObject ]
   async _listInstallablePatches(host, requestedPatches) {
