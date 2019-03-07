@@ -4,13 +4,13 @@ import XoCollection from "xo-collection";
 import { find, forEach, map, cloneDeep } from "lodash";
 
 import config from "./_config";
-import Xoconnection from "./XoWithTestHelpers";
+import XoConnection from "./_xoWithTestHelpers";
 
 /* eslint-env jest */
 
 export const getConnection = defer(
   async ({ onFailure: $onFailure }, { credentials } = {}) => {
-    const xo = new Xoconnection({ url: config.xoServerUrl });
+    const xo = new XoConnection({ url: config.xoServerUrl });
     await xo.open();
     $onFailure(() => xo.close());
     await xo.signIn(
