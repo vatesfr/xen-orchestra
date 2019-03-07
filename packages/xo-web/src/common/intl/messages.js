@@ -893,7 +893,7 @@ const messages = {
   installPatchWarningResolve: 'Install',
   patchRelease: 'Release',
   updatePluginNotInstalled:
-    'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first.',
+    'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',
   showChangelog: 'Show changelog',
   changelog: 'Changelog',
   changelogPatch: 'Patch',
