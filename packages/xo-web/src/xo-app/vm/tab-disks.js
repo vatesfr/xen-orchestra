@@ -70,6 +70,38 @@ import {
 const compareContainers = poolId =>
   createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
 const compareSrs = createCompare([isSrShared])
+
+class VdiSr extends Component {
+  _compareContainers = createSelector(
+    () => this.props.userData.vm.$pool,
+    poolId => compareContainers(poolId)
+  )
+
+  render() {
+    const {
+      item: vdi,
+      userData: { srs, vm },
+    } = this.props
+    const sr = srs[vdi.$SR]
+    return (
+      sr !== undefined && (
+        <XoSelect
+          compareContainers={this._compareContainers()}
+          compareOptions={compareSrs}
+          labelProp='name_label'
+          onChange={sr => migrateVdi(vdi, sr)}
+          predicate={sr => sr.$pool === vm.$pool && isSrWritable(sr)}
+          useLongClick
+          value={sr}
+          xoType='SR'
+        >
+          <Sr id={sr.id} link />
+        </XoSelect>
+      )
+    )
+  }
+}
+
 const COLUMNS_VM_PV = [
   {
     itemRenderer: vdi => (
@@ -103,25 +135,7 @@ const COLUMNS_VM_PV = [
     sortCriteria: 'size',
   },
   {
-    itemRenderer: (vdi, { srs, vm: { $pool: poolId } }) => {
-      const sr = srs[vdi.$SR]
-      return (
-        sr !== undefined && (
-          <XoSelect
-            compareContainers={compareContainers(poolId)}
-            compareOptions={compareSrs}
-            labelProp='name_label'
-            onChange={sr => migrateVdi(vdi, sr)}
-            predicate={sr => sr.$pool === poolId && isSrWritable(sr)}
-            useLongClick
-            value={sr}
-            xoType='SR'
-          >
-            <Sr id={sr.id} link />
-          </XoSelect>
-        )
-      )
-    },
+    component: VdiSr,
     name: _('vdiSr'),
     sortCriteria: (vdi, userData) => {
       const sr = userData.srs[vdi.$SR]
