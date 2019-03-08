@@ -244,7 +244,7 @@ class JobsTable extends React.Component {
         name: _('jobSchedules'),
       },
       {
-        itemRenderer: ({ compression = '', settings }) => {
+        itemRenderer: ({ compression = '', mode, settings }) => {
           const { concurrency, offlineSnapshot, reportWhen, timeout } =
             settings[''] || {}
 
@@ -265,7 +265,7 @@ class JobsTable extends React.Component {
                   )}
                 </Li>
               )}
-              {compression !== '' && (
+              {compression !== '' && mode === 'full' && (
                 <Li>
                   {_.keyValue(
                     _('compression'),

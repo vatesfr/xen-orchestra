@@ -201,7 +201,7 @@ export default decorate([
         await createBackupNgJob({
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression,
+          compression: state.isFull ? state.compression : undefined,
           schedules: mapValues(
             state.schedules,
             ({ id, ...schedule }) => schedule
@@ -283,7 +283,7 @@ export default decorate([
           id: props.job.id,
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression,
+          compression: state.isFull ? state.compression : '',
           settings: normalizeSettings({
             settings: settings || state.propSettings,
             exportMode: state.exportMode,
