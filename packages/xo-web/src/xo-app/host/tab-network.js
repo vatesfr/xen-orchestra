@@ -204,7 +204,6 @@ class PifItemLock extends Component {
 
   render() {
     const { networks, pif, vifsByNetwork } = this.props
-
     const network = networks[pif.$network]
     if (network === undefined) {
       return null

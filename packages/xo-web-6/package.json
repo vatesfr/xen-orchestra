@@ -43,5 +43,17 @@
     "build": "cross-env NODE_ENV=production webpack",
     "start": "cross-env NODE_ENV=development webpack-dev-server --hot",
     "start:open": "npm run start -- --open"
+  },
+  "dependencies": {
+    "@types/dygraphs": "^1.1.8",
+    "@types/recharts": "^1.1.16",
+    "bootstrap": "^4.3.1",
+    "chart.js": "^2.8.0",
+    "dygraphs": "^2.1.0",
+    "moment": "^2.24.0",
+    "react-bootstrap": "^1.0.0-beta.9",
+    "react-chartjs-2": "^2.7.6",
+    "react-vis": "^1.11.7",
+    "recharts": "^1.6.2"
   }
 }
