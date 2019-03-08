@@ -386,7 +386,7 @@ export default {
         .on('error', reject)
     })
 
-    const sr = this.findAvailableSharedSr(stream.length)
+    const sr = this.findAvailableSr(stream.length)
     if (sr === undefined) {
       return
     }
