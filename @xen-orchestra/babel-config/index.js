@@ -23,14 +23,20 @@ const configs = {
 
       shippedProposals: true,
       targets: (() => {
+        const targets = {}
+        const browsers = pkg.browserslist
+        if (browsers !== undefined) {
+          targets.browsers = browsers
+        }
         let node = (pkg.engines || {}).node
         if (node !== undefined) {
           const trimChars = '^=>~'
           while (trimChars.includes(node[0])) {
             node = node.slice(1)
           }
+          targets.node = node
         }
-        return { browsers: pkg.browserslist, node }
+        return targets
       })(),
       useBuiltIns: '@babel/polyfill' in (pkg.dependencies || {}) && 'usage',
     }
