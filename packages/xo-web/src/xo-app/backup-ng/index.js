@@ -42,7 +42,7 @@ import FileRestore from './file-restore'
 import getSettingsWithNonDefaultValue from './_getSettingsWithNonDefaultValue'
 import Health from './health'
 import NewVmBackup, { NewMetadataBackup } from './new'
-import Restore from './restore'
+import Restore, { RestoreMetadata } from './restore'
 import { destructPattern } from './utils'
 
 const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
@@ -427,6 +427,7 @@ export default routes('overview', {
   'new/metadata': NewMetadataBackup,
   overview: Overview,
   restore: Restore,
+  'restore/metadata': RestoreMetadata,
   'file-restore': FileRestore,
   health: Health,
 })(({ children }) => (
