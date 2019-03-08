@@ -102,11 +102,10 @@ const TRANSFORMS = {
     } = obj
 
     const isRunning = isHostRunning(obj)
-    let supplementalPacks, patches
+    let supplementalPacks
 
     if (useUpdateSystem(obj)) {
       supplementalPacks = []
-      patches = []
 
       forEach(obj.$updates, update => {
         const formattedUpdate = {
@@ -121,7 +120,7 @@ const TRANSFORMS = {
         }
 
         if (startsWith(update.name_label, 'XS')) {
-          patches.push(formattedUpdate)
+          // It's a patch update but for homogeneity, we're still using pool_patches
         } else {
           supplementalPacks.push(formattedUpdate)
         }
@@ -171,7 +170,7 @@ const TRANSFORMS = {
         }
       })(),
       multipathing: otherConfig.multipathing === 'true',
-      patches: link(obj, obj.updates !== undefined ? 'updates' : 'patches'),
+      patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
       startTime: toTimestamp(otherConfig.boot_time),
@@ -630,6 +629,10 @@ const TRANSFORMS = {
       time: toTimestamp(obj.timestamp_applied),
       pool_patch: link(obj, 'pool_patch', '$ref'),
 
+      // TODO: what does it mean, always empty?
+      // name: obj.name_label,
+      // description: obj.name_description,
+
       $host: link(obj, 'host'),
     }
   },
@@ -640,31 +643,20 @@ const TRANSFORMS = {
     return {
       id: obj.$ref,
 
-      applied: Boolean(obj.pool_applied),
       description: obj.name_description,
       guidance: obj.after_apply_guidance,
       name: obj.name_label,
       size: +obj.size,
       uuid: obj.uuid,
 
+      // TODO: means that the patch must be applied on every host
+      // applied: Boolean(obj.pool_applied),
+
       // TODO: what does it mean, should we handle it?
       // version: obj.version,
 
       // TODO: host.[$]pool_patches ←→ pool.[$]host_patches
       $host_patches: link(obj, 'host_patches'),
-    }
-  },
-
-  // -----------------------------------------------------------------
-
-  pool_update(obj) {
-    return {
-      description: obj.name_description,
-      guidance: obj.after_apply_guidance,
-      name: obj.name_label,
-      size: +obj.installation_size,
-      // TODO: what does it mean, should we handle it?
-      // version: obj.version,
     }
   },
 
