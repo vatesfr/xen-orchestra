@@ -67,30 +67,34 @@ import {
   subscribeResourceSets,
 } from 'xo'
 
-const compareContainers = poolId =>
+const createCompareContainers = poolId =>
   createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
 const compareSrs = createCompare([isSrShared])
 
 class VdiSr extends Component {
-  _compareContainers = createSelector(
+  _getCompareContainers = createSelector(
     () => this.props.userData.vm.$pool,
-    poolId => compareContainers(poolId)
+    poolId => createCompareContainers(poolId)
   )
 
+  _getSrPredicate = createSelector(
+    () => this.props.userData.vm.$pool,
+    poolId => sr => sr.$pool === poolId && isSrWritable(sr)
+  )
+
+  _onChangeSr = sr => migrateVdi(this.props.item, sr)
+
   render() {
-    const {
-      item: vdi,
-      userData: { srs, vm },
-    } = this.props
-    const sr = srs[vdi.$SR]
+    const { item: vdi, userData } = this.props
+    const sr = userData.srs[vdi.$SR]
     return (
       sr !== undefined && (
         <XoSelect
-          compareContainers={this._compareContainers()}
+          compareContainers={this._getCompareContainers()}
           compareOptions={compareSrs}
           labelProp='name_label'
-          onChange={sr => migrateVdi(vdi, sr)}
-          predicate={sr => sr.$pool === vm.$pool && isSrWritable(sr)}
+          onChange={this._onChangeSr}
+          predicate={this._getSrPredicate()}
           useLongClick
           value={sr}
           xoType='SR'
@@ -609,9 +613,9 @@ class MigrateVdiModalBody extends Component {
     return this.state
   }
 
-  _compareContainers = createSelector(
+  _getCompareContainers = createSelector(
     () => this.props.pool,
-    poolId => compareContainers(poolId)
+    poolId => createCompareContainers(poolId)
   )
 
   render() {
@@ -621,7 +625,7 @@ class MigrateVdiModalBody extends Component {
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
             <SelectSr
-              compareContainers={this._compareContainers()}
+              compareContainers={this._getCompareContainers()}
               compareOptions={compareSrs}
               onChange={this.linkState('sr')}
               required
