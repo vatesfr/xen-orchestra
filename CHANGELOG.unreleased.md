@@ -9,8 +9,10 @@
 ### Bug fixes
 
 - [New network] PIF was wrongly required which prevented from creating a private network (PR [#4010](https://github.com/vatesfr/xen-orchestra/pull/4010))
+- [Google authentication] Migrate to new endpoint
 
 ### Released packages
 
+- xo-server-auth-google v0.2.1
 - xo-server v5.37.0
 - xo-web v5.37.0
