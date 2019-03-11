@@ -37,7 +37,7 @@ import {
 import LogsTable, { LogStatus } from '../logs/backup-ng'
 import Page from '../page'
 
-import NewVmBackup, { NewMetadataBackup } from './new'
+import NewVmBackup, { NewMetadataBackup, extractSettingsToDisplay } from './new'
 import Edit from './edit'
 import FileRestore from './file-restore'
 import Health from './health'
@@ -244,20 +244,27 @@ class JobsTable extends React.Component {
         name: _('jobSchedules'),
       },
       {
-        itemRenderer: ({ compression = '', mode, settings }) => {
-          const { concurrency, offlineSnapshot, reportWhen, timeout } =
-            settings[''] || {}
+        itemRenderer: job => {
+          const {
+            compression,
+            concurrency,
+            offlineSnapshot,
+            reportWhen,
+            timeout,
+          } = extractSettingsToDisplay(job)
 
           return (
             <Ul>
-              {reportWhen && <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>}
-              {concurrency > 0 && (
+              {reportWhen !== undefined && (
+                <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>
+              )}
+              {concurrency !== undefined && (
                 <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
               )}
-              {timeout > 0 && (
+              {timeout !== undefined && (
                 <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>
               )}
-              {offlineSnapshot && (
+              {offlineSnapshot !== undefined && (
                 <Li>
                   {_.keyValue(
                     _('offlineSnapshot'),
@@ -265,7 +272,7 @@ class JobsTable extends React.Component {
                   )}
                 </Li>
               )}
-              {compression !== '' && mode === 'full' && (
+              {compression !== undefined && (
                 <Li>
                   {_.keyValue(
                     _('compression'),

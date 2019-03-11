@@ -59,6 +59,30 @@ export NewMetadataBackup from './metadata'
 
 // ===================================================================
 
+export const extractSettingsToDisplay = ({
+  compression = '',
+  mode,
+  settings: { '': globalSetting = {} },
+}) => {
+  const settings = {}
+  if (globalSetting.reportWhen !== undefined) {
+    settings.reportWhen = globalSetting.reportWhen
+  }
+  if (globalSetting.concurrency > 0) {
+    settings.concurrency = globalSetting.concurrency
+  }
+  if (globalSetting.timeout > 0) {
+    settings.timeout = globalSetting.timeout
+  }
+  if (globalSetting.offlineSnapshot) {
+    settings.offlineSnapshot = globalSetting.offlineSnapshot
+  }
+  if (mode === 'full' && compression !== '') {
+    settings.compression = compression
+  }
+  return settings
+}
+
 const DEFAULT_RETENTION = 1
 const DEFAULT_SCHEDULE = {
   copyRetention: DEFAULT_RETENTION,
@@ -137,12 +161,12 @@ const createDoesRetentionExist = name => {
 }
 
 const getInitialState = () => ({
+  _displayAdvancedSettings: undefined,
   _vmsPattern: undefined,
   backupMode: false,
   compression: undefined,
   crMode: false,
   deltaMode: false,
-  displayAdvancedSettings: undefined,
   drMode: false,
   name: '',
   paramsUpdated: false,
@@ -201,7 +225,7 @@ export default decorate([
         await createBackupNgJob({
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.isFull ? state.compression : undefined,
+          compression: state.compression,
           schedules: mapValues(
             state.schedules,
             ({ id, ...schedule }) => schedule
@@ -283,7 +307,7 @@ export default decorate([
           id: props.job.id,
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.isFull ? state.compression : '',
+          compression: state.compression,
           settings: normalizeSettings({
             settings: settings || state.propSettings,
             exportMode: state.exportMode,
@@ -611,6 +635,26 @@ export default decorate([
               }
             : setting
         ),
+      displayAdvancedSettings: (
+        {
+          _displayAdvancedSettings,
+          compression,
+          isFull,
+          propSettings,
+          settings = propSettings,
+        },
+        { job }
+      ) =>
+        defined(
+          _displayAdvancedSettings,
+          Object.keys(
+            extractSettingsToDisplay({
+              compression: defined(compression, job.compression),
+              mode: isFull ? 'full' : 'delta',
+              settings: { '': settings.get('') },
+            })
+          ).some(setting => setting !== 'reportWhen')
+        ),
     },
   }),
   injectState,
@@ -620,10 +664,6 @@ export default decorate([
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
     const compression = defined(state.compression, job.compression, '')
-    const displayAdvancedSettings = defined(
-      state.displayAdvancedSettings,
-      compression !== '' || concurrency > 0 || timeout > 0 || offlineSnapshot
-    )
 
     if (state.needUpdateParams) {
       effects.updateParams()
@@ -848,11 +888,13 @@ export default decorate([
                   {_('newBackupSettings')}
                   <ActionButton
                     className='pull-right'
-                    data-mode='displayAdvancedSettings'
+                    data-mode='_displayAdvancedSettings'
                     handler={effects.toggleMode}
-                    icon={displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
+                    icon={
+                      state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'
+                    }
                     iconColor={
-                      displayAdvancedSettings ? 'text-success' : undefined
+                      state.displayAdvancedSettings ? 'text-success' : undefined
                     }
                     size='small'
                   >
@@ -885,7 +927,7 @@ export default decorate([
                       valueKey='value'
                     />
                   </FormGroup>
-                  {displayAdvancedSettings && (
+                  {state.displayAdvancedSettings && (
                     <div>
                       <FormGroup>
                         <label htmlFor={state.inputConcurrencyId}>
