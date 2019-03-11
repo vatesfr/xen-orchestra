@@ -347,6 +347,7 @@ const TRANSFORMS = {
       hasVendorDevice: obj.has_vendor_device,
       resourceSet,
       snapshots: link(obj, 'snapshots'),
+      startDelay: +obj.start_delay,
       startTime: metrics && toTimestamp(metrics.start_time),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
