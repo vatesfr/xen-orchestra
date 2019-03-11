@@ -49,6 +49,8 @@ import {
   updatePermissions,
 } from '../store/actions'
 
+import parseNdJson from './_parseNdJson'
+
 // ===================================================================
 
 export const XEN_DEFAULT_CPU_WEIGHT = 256
@@ -141,26 +143,9 @@ export const connectStore = store => {
       .then(response => response.text())
       .then(data => {
         const objects = Object.create(null)
-
-        const { length } = data
-        let i = 0
-        while (i < length) {
-          let j = data.indexOf('\n', i)
-
-          // no final \n
-          if (j === -1) {
-            j = length
-          }
-
-          // non empty line
-          if (j !== i) {
-            const object = JSON.parse(data.slice(i, j))
-            objects[object.id] = object
-          }
-
-          i = j + 1
-        }
-
+        parseNdJson(data, object => {
+          objects[object.id] = object
+        })
         store.dispatch(updateObjects(objects))
       })
   })
@@ -1918,9 +1903,18 @@ export const subscribeBackupNgJobs = createSubscription(() =>
   _call('backupNg.getAllJobs')
 )
 
-export const subscribeBackupNgLogs = createSubscription(() =>
-  _call('backupNg.getAllLogs')
-)
+export const subscribeBackupNgLogs = createSubscription(async () => {
+  const logs = { __proto__: null }
+  parseNdJson(
+    await (await fetch(
+      '.' + (await _call('backupNg.getAllLogs', { ndjson: true })).$getFrom
+    )).text(),
+    log => {
+      logs[log.id] = log
+    }
+  )
+  return logs
+})
 
 export const subscribeMetadataBackupJobs = createSubscription(() =>
   _call('metadataBackup.getAllJobs')
