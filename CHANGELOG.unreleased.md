@@ -15,6 +15,7 @@
 - [New network] PIF was wrongly required which prevented from creating a private network (PR [#4010](https://github.com/vatesfr/xen-orchestra/pull/4010))
 - [Google authentication] Migrate to new endpoint
 - [Backup NG] Better handling of huge logs [#4025](https://github.com/vatesfr/xen-orchestra/issues/4025) (PR [#4026](https://github.com/vatesfr/xen-orchestra/pull/4026))
+- [Home/VM] Bulk migration: fixed VM VDIs not migrated to the selected SR [#3986](https://github.com/vatesfr/xen-orchestra/issues/3986) (PR [#3987](https://github.com/vatesfr/xen-orchestra/pull/3987))
 
 ### Released packages
 
