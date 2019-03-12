@@ -245,6 +245,34 @@ const STATS = {
 
 // -------------------------------------------------------------------
 
+// RRD
+// json: {
+//   meta: {
+//     start: Number,
+//     step: Number,
+//     end: Number,
+//     rows: Number,
+//     columns: Number,
+//     legend: String[rows]
+//   },
+//   data: Item[columns] // Item = { t: Number, values: Number[rows] }
+// }
+
+// Local cache
+// _statsByObject : {
+//   [uuid]: {
+//     [step]: {
+//       endTimestamp: Number, // the timestamp of the last statistic point
+//       interval: Number, // step
+//       stats: {
+//         [metric1]: Number[],
+//         [metric2]: {
+//           [subMetric]: Number[],
+//         }
+//       }
+//     }
+//   }
+// }
 export default class XapiStats {
   constructor() {
     this._statsByObject = {}
