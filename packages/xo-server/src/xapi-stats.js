@@ -334,7 +334,7 @@ export default class XapiStats {
     }
   }
 
-  @synchronized
+  @synchronized.withKey((_, { host }) => host.uuid)
   async _getAndUpdateStats(xapi, { host, vmUuid, granularity }) {
     const step =
       granularity === undefined
