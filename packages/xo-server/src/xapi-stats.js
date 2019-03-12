@@ -1,5 +1,6 @@
 import JSON5 from 'json5'
 import limitConcurrency from 'limit-concurrency-decorator'
+import synchronized from 'decorator-synchronized'
 import { BaseError } from 'make-error'
 import {
   endsWith,
@@ -333,6 +334,7 @@ export default class XapiStats {
     }
   }
 
+  @synchronized
   async _getAndUpdateStats(xapi, { host, vmUuid, granularity }) {
     const step =
       granularity === undefined
