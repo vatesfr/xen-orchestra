@@ -41,6 +41,7 @@
     "must": "^0.13.2",
     "rimraf": "^2.5.4",
     "xo-collection": "^0.4.1",
+    "xo-common": "^0.2.0",
     "xo-lib": "^0.9.0"
   },
   "devDependencies": {

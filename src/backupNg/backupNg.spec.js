@@ -1,6 +1,7 @@
 /* eslint-env jest */
 
-import { omit } from "lodash";
+import { findKey, omit } from "lodash";
+import { noSuchObject } from "xo-common/api-errors";
 
 import config from "../_config";
 import randomId from "../_randomId";
@@ -62,6 +63,44 @@ describe("backupNg", () => {
       const schedule = await xo.call("schedule.get", { id: scheduleId });
       expect(omit(schedule, "id", "jobId")).toMatchSnapshot();
       expect(schedule.jobId).toBe(jobId);
+    });
+  });
+
+  describe(".delete() :", () => {
+    it("deletes a backup job", async () => {
+      const scheduleTempId = randomId();
+      const { id: jobId } = await xo.call("backupNg.createJob", {
+        ...defaultBackupNg,
+        schedules: {
+          [scheduleTempId]: {
+            name: "scheduleTest",
+            cron: "0 * * * * *",
+          },
+        },
+        settings: {
+          ...defaultBackupNg.settings,
+          [scheduleTempId]: { snapshotRetention: 1 },
+        },
+      });
+
+      const backupNgJob = await xo.call("backupNg.getJob", { id: jobId });
+      const scheduleId = findKey(backupNgJob.settings, {
+        snapshotRetention: 1,
+      });
+
+      await xo.call("backupNg.deleteJob", { id: jobId });
+
+      let isRejectedJobErrorValid = false;
+      await xo.call("backupNg.getJob", { id: jobId }).catch(error => {
+        isRejectedJobErrorValid = noSuchObject.is(error);
+      });
+      expect(isRejectedJobErrorValid).toBe(true);
+
+      let isRejectedScheduleErrorValid = false;
+      await xo.call("schedule.get", { id: scheduleId }).catch(error => {
+        isRejectedScheduleErrorValid = noSuchObject.is(error);
+      });
+      expect(isRejectedScheduleErrorValid).toBe(true);
     });
   });
 });
