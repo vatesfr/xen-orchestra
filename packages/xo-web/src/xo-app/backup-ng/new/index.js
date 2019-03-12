@@ -15,7 +15,7 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
+import { flatten, includes, isEmpty, map, mapValues, omit, some } from 'lodash'
 import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
@@ -44,6 +44,7 @@ import {
 import NewSchedule from './new-schedule'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
+import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import {
   canDeltaBackup,
   constructPattern,
@@ -58,30 +59,6 @@ import {
 export NewMetadataBackup from './metadata'
 
 // ===================================================================
-
-export const extractSettingsToDisplay = ({
-  compression = '',
-  mode,
-  settings: { '': globalSetting = {} },
-}) => {
-  const settings = {}
-  if (globalSetting.reportWhen !== undefined) {
-    settings.reportWhen = globalSetting.reportWhen
-  }
-  if (globalSetting.concurrency > 0) {
-    settings.concurrency = globalSetting.concurrency
-  }
-  if (globalSetting.timeout > 0) {
-    settings.timeout = globalSetting.timeout
-  }
-  if (globalSetting.offlineSnapshot) {
-    settings.offlineSnapshot = globalSetting.offlineSnapshot
-  }
-  if (mode === 'full' && compression !== '') {
-    settings.compression = compression
-  }
-  return settings
-}
 
 const DEFAULT_RETENTION = 1
 const DEFAULT_SCHEDULE = {
@@ -513,6 +490,9 @@ export default decorate([
         return getInitialState()
       },
       setCompression: (_, compression) => ({ compression }),
+      toggleDisplayAdvancedSettings: () => ({ displayAdvancedSettings }) => ({
+        _displayAdvancedSettings: !displayAdvancedSettings,
+      }),
       setGlobalSettings: (_, { name, value }) => ({
         propSettings,
         settings = propSettings,
@@ -635,25 +615,16 @@ export default decorate([
               }
             : setting
         ),
-      displayAdvancedSettings: (
-        {
-          _displayAdvancedSettings,
-          compression,
-          isFull,
-          propSettings,
-          settings = propSettings,
-        },
-        { job }
-      ) =>
+      displayAdvancedSettings: (state, props) =>
         defined(
-          _displayAdvancedSettings,
-          Object.keys(
-            extractSettingsToDisplay({
-              compression: defined(compression, job.compression),
-              mode: isFull ? 'full' : 'delta',
-              settings: { '': settings.get('') },
+          state._displayAdvancedSettings,
+          !isEmpty(
+            getSettingsWithNonDefaultValue({
+              compression: get(() => props.job.compression),
+              mode: state.isFull ? 'full' : 'delta',
+              settings: omit(get(() => props.job.settings), `${''}.reportWhen`),
             })
-          ).some(setting => setting !== 'reportWhen')
+          )
         ),
     },
   }),
@@ -889,7 +860,7 @@ export default decorate([
                   <ActionButton
                     className='pull-right'
                     data-mode='_displayAdvancedSettings'
-                    handler={effects.toggleMode}
+                    handler={effects.toggleDisplayAdvancedSettings}
                     icon={
                       state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'
                     }

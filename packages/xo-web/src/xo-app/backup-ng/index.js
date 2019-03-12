@@ -37,10 +37,11 @@ import {
 import LogsTable, { LogStatus } from '../logs/backup-ng'
 import Page from '../page'
 
-import NewVmBackup, { NewMetadataBackup, extractSettingsToDisplay } from './new'
 import Edit from './edit'
 import FileRestore from './file-restore'
+import getSettingsWithNonDefaultValue from './_getSettingsWithNonDefaultValue'
 import Health from './health'
+import NewVmBackup, { NewMetadataBackup } from './new'
 import Restore from './restore'
 import { destructPattern } from './utils'
 
@@ -251,7 +252,7 @@ class JobsTable extends React.Component {
             offlineSnapshot,
             reportWhen,
             timeout,
-          } = extractSettingsToDisplay(job)
+          } = getSettingsWithNonDefaultValue(job)
 
           return (
             <Ul>
