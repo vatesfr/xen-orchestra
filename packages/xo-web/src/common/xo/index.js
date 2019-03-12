@@ -1904,15 +1904,14 @@ export const subscribeBackupNgJobs = createSubscription(() =>
 )
 
 export const subscribeBackupNgLogs = createSubscription(async () => {
+  const { $getFrom } = await _call('backupNg.getAllLogs', { ndjson: true })
+  const response = await fetch(`.${$getFrom}`)
+  const data = await response.text()
+
   const logs = { __proto__: null }
-  parseNdJson(
-    await (await fetch(
-      '.' + (await _call('backupNg.getAllLogs', { ndjson: true })).$getFrom
-    )).text(),
-    log => {
-      logs[log.id] = log
-    }
-  )
+  parseNdJson(data, log => {
+    logs[log.id] = log
+  })
   return logs
 })
 
