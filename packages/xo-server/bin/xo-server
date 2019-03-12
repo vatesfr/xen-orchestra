@@ -4,6 +4,11 @@
 
 // ===================================================================
 
+// https://expressjs.com/en/advanced/best-practice-performance.html#set-node_env-to-production
+if (process.env.NODE_ENV === undefined) {
+  process.env.NODE_ENV = 'production'
+}
+
 // Better stack traces if possible.
 require('../better-stacks')
 

@@ -33,7 +33,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "passport-google-oauth20": "^1.0.0"
+    "passport-google-oauth20": "^2.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

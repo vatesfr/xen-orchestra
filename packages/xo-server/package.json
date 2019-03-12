@@ -94,7 +94,7 @@
     "ms": "^2.1.1",
     "multikey-hash": "^1.0.4",
     "ndjson": "^1.5.0",
-    "otplib": "^10.0.1",
+    "otplib": "^11.0.0",
     "parse-pairs": "^0.2.2",
     "partial-stream": "0.0.0",
     "passport": "^0.4.0",
