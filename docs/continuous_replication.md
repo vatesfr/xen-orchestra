@@ -66,7 +66,7 @@ The XOA backup system requires metadata to correctly associate the source snapsh
 First install the tool (all the following is done from the XOA VM CLI):
 
 ```
-npm i -g xo-cr-seed
+sudo npm i -g --unsafe-perm @xen-orchestra/cr-seed-cli
 ```
 
 Here is an example of how the utility expects the UUIDs and info passed to it:

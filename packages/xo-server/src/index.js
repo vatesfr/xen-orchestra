@@ -3,6 +3,7 @@ import assert from 'assert'
 import authenticator from 'otplib/authenticator'
 import bind from 'lodash/bind'
 import blocked from 'blocked'
+import compression from 'compression'
 import createExpress from 'express'
 import createLogger from '@xen-orchestra/log'
 import crypto from 'crypto'
@@ -90,6 +91,8 @@ function createExpressApp(config) {
   const app = createExpress()
 
   app.use(helmet())
+
+  app.use(compression())
 
   // Registers the cookie-parser and express-session middlewares,
   // necessary for connect-flash.
