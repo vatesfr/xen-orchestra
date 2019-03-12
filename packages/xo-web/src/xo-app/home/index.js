@@ -480,14 +480,6 @@ export default class Home extends Component {
     selectedItems: {},
   }
 
-  get page() {
-    const {
-      location: { query },
-    } = this.props
-    const queryPage = +query.p
-    return !Number.isNaN(queryPage) ? queryPage : 1
-  }
-
   componentWillMount() {
     this._initFilterAndSortBy(this.props)
   }
@@ -499,7 +491,6 @@ export default class Home extends Component {
       this._initFilterAndSortBy(props)
     }
     if (type !== this.props.type) {
-      this._changePage(1, props)
       this.setState({ highlighted: undefined })
     }
   }
@@ -522,19 +513,18 @@ export default class Home extends Component {
     }
   }
 
-  _changePage = (page, props) => {
-    const { pathname, query } = props.location
-    const defaultFilter = this._getDefaultFilter(props)
-    this.context.router.replace({
-      pathname,
-      query: { ...query, p: page, s: defaultFilter },
-    })
-  }
-
   _getNumberOfItems = createCounter(() => this.props.items)
   _getNumberOfSelectedItems = createCounter(() => this.state.selectedItems, [
     identity,
   ])
+
+  _getPage() {
+    const {
+      location: { query },
+    } = this.props
+    const queryPage = +query.p
+    return !Number.isNaN(queryPage) ? queryPage : 1
+  }
 
   _getType() {
     return this.props.type
@@ -544,7 +534,7 @@ export default class Home extends Component {
     const { pathname, query } = this.props.location
     this.context.router.push({
       pathname,
-      query: { ...query, t: type, s: undefined },
+      query: { ...query, t: type, s: undefined, p: 1 },
     })
   }
 
@@ -690,7 +680,7 @@ export default class Home extends Component {
 
   _getVisibleItems = createPager(
     this._getFilteredItems,
-    () => this.page,
+    () => this._getPage(),
     ITEMS_PER_PAGE
   )
 
@@ -1216,7 +1206,7 @@ export default class Home extends Component {
                   <Pagination
                     onChange={this._onPageSelection}
                     pages={ceil(filteredItems.length / ITEMS_PER_PAGE)}
-                    value={this.page}
+                    value={this._getPage()}
                   />
                 </div>
               </div>
