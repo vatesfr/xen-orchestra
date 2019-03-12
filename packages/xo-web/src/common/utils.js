@@ -618,3 +618,28 @@ export const downloadLog = ({ log, date, type }) => {
   anchor.click()
   document.body.removeChild(anchor)
 }
+
+// ===================================================================
+
+// Creates compare function based on different criterias
+//
+// ```js
+// [{ name: 'bar', value: v2 }, { name: 'foo', value: v1 }].sort(
+//   createCompare([
+//     o => o.value === v1,
+//     'name'
+//   ])
+// )
+// ```
+export const createCompare = criterias => (...items) => {
+  let res = 0
+  // Array.find to stop when the result is != 0
+  criterias.find(fn => {
+    const [v1, v2] = items.map(item => {
+      const v = typeof fn === 'string' ? item[fn] : fn(item)
+      return v === true ? -1 : v === false ? 1 : v
+    })
+    return (res = v1 < v2 ? -1 : v1 > v2 ? 1 : 0)
+  })
+  return res
+}

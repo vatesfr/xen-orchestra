@@ -23,10 +23,11 @@ import {
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { injectIntl } from 'react-intl'
 import {
-  noop,
   addSubscriptions,
-  formatSize,
   connectStore,
+  createCompare,
+  formatSize,
+  noop,
   resolveResourceSet,
 } from 'utils'
 import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
@@ -57,6 +58,7 @@ import {
   editVdi,
   exportVdi,
   importVdi,
+  isSrShared,
   isSrWritable,
   isVmRunning,
   migrateVdi,
@@ -64,6 +66,45 @@ import {
   setVmBootOrder,
   subscribeResourceSets,
 } from 'xo'
+
+const createCompareContainers = poolId =>
+  createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
+const compareSrs = createCompare([isSrShared])
+
+class VdiSr extends Component {
+  _getCompareContainers = createSelector(
+    () => this.props.userData.vm.$pool,
+    poolId => createCompareContainers(poolId)
+  )
+
+  _getSrPredicate = createSelector(
+    () => this.props.userData.vm.$pool,
+    poolId => sr => sr.$pool === poolId && isSrWritable(sr)
+  )
+
+  _onChangeSr = sr => migrateVdi(this.props.item, sr)
+
+  render() {
+    const { item: vdi, userData } = this.props
+    const sr = userData.srs[vdi.$SR]
+    return (
+      sr !== undefined && (
+        <XoSelect
+          compareContainers={this._getCompareContainers()}
+          compareOptions={compareSrs}
+          labelProp='name_label'
+          onChange={this._onChangeSr}
+          predicate={this._getSrPredicate()}
+          useLongClick
+          value={sr}
+          xoType='SR'
+        >
+          <Sr id={sr.id} link />
+        </XoSelect>
+      )
+    )
+  }
+}
 
 const COLUMNS_VM_PV = [
   {
@@ -98,23 +139,7 @@ const COLUMNS_VM_PV = [
     sortCriteria: 'size',
   },
   {
-    itemRenderer: (vdi, userData) => {
-      const sr = userData.srs[vdi.$SR]
-      return (
-        sr !== undefined && (
-          <XoSelect
-            labelProp='name_label'
-            onChange={sr => migrateVdi(vdi, sr)}
-            predicate={sr => sr.$pool === userData.vm.$pool && isSrWritable(sr)}
-            useLongClick
-            value={sr}
-            xoType='SR'
-          >
-            <Sr id={sr.id} link />
-          </XoSelect>
-        )
-      )
-    },
+    component: VdiSr,
     name: _('vdiSr'),
     sortCriteria: (vdi, userData) => {
       const sr = userData.srs[vdi.$SR]
@@ -580,9 +605,18 @@ class BootOrder extends Component {
 }
 
 class MigrateVdiModalBody extends Component {
+  static propTypes = {
+    pool: PropTypes.string.isRequired,
+  }
+
   get value() {
     return this.state
   }
+
+  _getCompareContainers = createSelector(
+    () => this.props.pool,
+    poolId => createCompareContainers(poolId)
+  )
 
   render() {
     return (
@@ -590,7 +624,12 @@ class MigrateVdiModalBody extends Component {
         <SingleLineRow>
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
-            <SelectSr onChange={this.linkState('sr')} required />
+            <SelectSr
+              compareContainers={this._getCompareContainers()}
+              compareOptions={compareSrs}
+              onChange={this.linkState('sr')}
+              required
+            />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
@@ -645,7 +684,7 @@ export default class TabDisks extends Component {
   _migrateVdi = vdi => {
     return confirm({
       title: _('vdiMigrate'),
-      body: <MigrateVdiModalBody />,
+      body: <MigrateVdiModalBody pool={this.props.vm.$pool} />,
     }).then(({ sr, migrateAll }) => {
       if (!sr) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
