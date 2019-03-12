@@ -1316,6 +1316,7 @@ const messages = {
   newVmShowAdvanced: 'Show advanced settings',
   newVmHideAdvanced: 'Hide advanced settings',
   newVmShare: 'Share this VM',
+  newVmSrsNotOnSameHost: 'The SRs must either be on the same host or shared',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
