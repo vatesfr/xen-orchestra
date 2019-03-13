@@ -664,9 +664,7 @@ export default class TabDisks extends Component {
     () => this.props.srs,
     () => this.props.vdis,
     (srs, vdis) => {
-      if (
-        find(vdis, ({ $SR: srId }) => srs[srId] === undefined) !== undefined
-      ) {
+      if (some(vdis, ({ $SR: srId }) => srs[srId] === undefined)) {
         return false
       }
       let container
