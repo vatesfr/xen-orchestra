@@ -523,7 +523,7 @@ export default class Home extends Component {
       location: { query },
     } = this.props
     const queryPage = +query.p
-    return !Number.isNaN(queryPage) ? queryPage : 1
+    return Number.isNaN(queryPage) ? 1 : queryPage
   }
 
   _getType() {
