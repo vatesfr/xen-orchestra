@@ -619,10 +619,9 @@ export default decorate([
         defined(
           state._displayAdvancedSettings,
           !isEmpty(
-            getSettingsWithNonDefaultValue({
+            getSettingsWithNonDefaultValue(state.isFull ? 'full' : 'delta', {
               compression: get(() => props.job.compression),
-              mode: state.isFull ? 'full' : 'delta',
-              settings: omit(get(() => props.job.settings), `${''}.reportWhen`),
+              ...get(() => omit(props.job.settings[''], 'reportWhen')),
             })
           )
         ),

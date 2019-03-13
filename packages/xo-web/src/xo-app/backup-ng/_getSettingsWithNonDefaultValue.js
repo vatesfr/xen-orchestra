@@ -1,25 +1,29 @@
-const getSettingsWithNonDefaultValue = ({
-  compression = '',
-  mode,
-  settings: { '': globalSetting = {} } = {},
-}) => {
-  const settings = {}
-  if (globalSetting.reportWhen !== undefined) {
-    settings.reportWhen = globalSetting.reportWhen
-  }
-  if (globalSetting.concurrency > 0) {
-    settings.concurrency = globalSetting.concurrency
-  }
-  if (globalSetting.timeout > 0) {
-    settings.timeout = globalSetting.timeout
-  }
-  if (globalSetting.offlineSnapshot) {
-    settings.offlineSnapshot = globalSetting.offlineSnapshot
-  }
-  if (mode === 'full' && compression !== '') {
-    settings.compression = compression
-  }
-  return settings
+import { pickBy } from 'lodash'
+
+const DEFAULTS = {
+  __proto__: null,
+
+  compression: '',
+  concurrency: 0,
+  offlineSnapshot: false,
+  timeout: 0,
 }
+
+const MODES = {
+  __proto__: null,
+
+  compression: 'full',
+}
+
+const getSettingsWithNonDefaultValue = (mode, settings) =>
+  pickBy(settings, (value, key) => {
+    const settingMode = MODES[key]
+
+    return (
+      (settingMode === undefined || settingMode === mode) &&
+      value !== undefined &&
+      value !== DEFAULTS[key]
+    )
+  })
 
 export { getSettingsWithNonDefaultValue as default }

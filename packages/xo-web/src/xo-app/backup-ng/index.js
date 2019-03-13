@@ -252,7 +252,10 @@ class JobsTable extends React.Component {
             offlineSnapshot,
             reportWhen,
             timeout,
-          } = getSettingsWithNonDefaultValue(job)
+          } = getSettingsWithNonDefaultValue(job.mode, {
+            compression: job.compression,
+            ...job.settings[''],
+          })
 
           return (
             <Ul>
