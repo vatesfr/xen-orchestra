@@ -978,9 +978,6 @@ const messages = {
   containerRestart: 'Restart this container',
 
   // ----- VM disk tab -----
-  attachDiskModalTitle: 'Attach disk',
-  attachDiskModalMessage:
-    'The SR must either be shared or on the same host as the other disks for the VM to be able to start.',
   vdiAction: 'Action',
   vdiAttachDeviceButton: 'Attach disk',
   vbdCreateDeviceButton: 'New disk',
@@ -1026,7 +1023,6 @@ const messages = {
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
-  srNotOnSameHost: 'The SR must either be local to {host} or shared.',
   srsNotOnSameHost:
     'The SRs must either be on the same host or shared for the VM to be able to start.',
   useQuotaWarning:

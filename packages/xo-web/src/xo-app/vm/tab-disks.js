@@ -22,7 +22,6 @@ import {
 } from 'selectors'
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { injectIntl } from 'react-intl'
-import { get as definedGet } from '@xen-orchestra/defined'
 import {
   addSubscriptions,
   connectStore,
@@ -251,13 +250,10 @@ const parseBootOrder = bootOrder => {
   resourceSets: subscribeResourceSets,
 })
 @connectStore({
-  hosts: createGetObjectsOfType('host'),
   isAdmin,
 })
 class NewDisk extends Component {
   static propTypes = {
-    hostSrShouldBeOn: PropTypes.string,
-    isSrIllegal: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vm: PropTypes.object.isRequired,
   }
@@ -272,12 +268,6 @@ class NewDisk extends Component {
       mode: readOnly ? 'RO' : 'RW',
     }).then(onClose)
   }
-
-  _isSrIllegal = createSelector(
-    () => this.props.isSrIllegal,
-    () => this.state.sr,
-    (isSrIllegal, sr) => isSrIllegal(sr)
-  )
 
   // FIXME: duplicate code
   _getSrPredicate = createSelector(
@@ -307,7 +297,7 @@ class NewDisk extends Component {
   )
 
   render() {
-    const { hosts, hostSrShouldBeOn, vm, isAdmin } = this.props
+    const { vm, isAdmin } = this.props
     const { formatMessage } = this.props.intl
     const { size, sr, name, bootable, readOnly } = this.state
 
@@ -377,16 +367,6 @@ class NewDisk extends Component {
             </ActionButton>
           </span>
         </fieldset>
-        {this._isSrIllegal() && (
-          <div>
-            <span className='text-danger'>
-              <Icon icon='alarm' />{' '}
-              {_('srNotOnSameHost', {
-                host: definedGet(() => hosts[hostSrShouldBeOn].name_label),
-              })}
-            </span>
-          </div>
-        )}
         {resourceSet != null &&
           diskLimit != null &&
           (diskLimit < size ? (
@@ -409,12 +389,8 @@ class NewDisk extends Component {
   }
 }
 
-@connectStore({
-  srs: createGetObjectsOfType('SR'),
-})
 class AttachDisk extends Component {
   static propTypes = {
-    isSrIllegal: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vbds: PropTypes.array.isRequired,
     vm: PropTypes.object.isRequired,
@@ -437,13 +413,6 @@ class AttachDisk extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-  _isVdiOnIllegalSR = createSelector(
-    () => this.props.isSrIllegal,
-    () => this.props.srs,
-    () => this.state.vdi,
-    (isSrIllegal, srs, vdi) => isSrIllegal(srs[vdi.$SR])
-  )
-
   _selectVdi = vdi => this.setState({ vdi })
 
   _addVdi = () => {
@@ -456,20 +425,10 @@ class AttachDisk extends Component {
         const vbd = vbds[id]
         return !vbd || !vbd.attached || vbd.read_only
       })
-    return this._isVdiOnIllegalSR()
-      ? confirm({
-          title: _('attachDiskModalTitle'),
-          body: _('attachDiskModalMessage'),
-        }).then(() =>
-          attachDiskToVm(vdi, vm, {
-            bootable,
-            mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
-          }).then(onClose)
-        )
-      : attachDiskToVm(vdi, vm, {
-          bootable,
-          mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
-        }).then(onClose)
+    return attachDiskToVm(vdi, vm, {
+      bootable,
+      mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
+    }).then(onClose)
   }
 
   render() {
@@ -645,13 +604,8 @@ class BootOrder extends Component {
   }
 }
 
-@connectStore(() => ({ hosts: createGetObjectsOfType('host') }), {
-  withRef: true,
-})
 class MigrateVdiModalBody extends Component {
   static propTypes = {
-    hostSrShouldBeOn: PropTypes.string,
-    isSrIllegal: PropTypes.func.isRequired,
     pool: PropTypes.string.isRequired,
   }
 
@@ -664,13 +618,7 @@ class MigrateVdiModalBody extends Component {
     poolId => createCompareContainers(poolId)
   )
 
-  _isSrIllegal = createSelector(
-    () => this.props.isSrIllegal,
-    () => this.state.sr,
-    (isSrIllegal, sr) => isSrIllegal(sr)
-  )
   render() {
-    const { hosts, hostSrShouldBeOn } = this.props
     return (
       <Container>
         <SingleLineRow>
@@ -692,18 +640,6 @@ class MigrateVdiModalBody extends Component {
             </label>
           </Col>
         </SingleLineRow>
-        {this._isSrIllegal() && (
-          <SingleLineRow>
-            <Col>
-              <span className='text-danger'>
-                <Icon icon='alarm' />{' '}
-                {_('srNotOnSameHost', {
-                  host: definedGet(() => hosts[hostSrShouldBeOn].name_label),
-                })}
-              </span>
-            </Col>
-          </SingleLineRow>
-        )}
       </Container>
     )
   }
@@ -723,6 +659,29 @@ export default class TabDisks extends Component {
       newDisk: false,
     }
   }
+
+  _areVdisSrsIllegal = createSelector(
+    () => this.props.srs,
+    () => this.props.vdis,
+    (srs, vdis) => {
+      if (
+        find(vdis, ({ $SR: srId }) => srs[srId] === undefined) !== undefined
+      ) {
+        return false
+      }
+      let container
+      let sr
+      return some(vdis, ({ $SR: srId }) => {
+        sr = srs[srId]
+        if (isSrShared(sr)) {
+          return false
+        }
+        return container === undefined
+          ? ((container = sr.$container), false)
+          : container !== sr.$container
+      })
+    }
+  )
 
   _toggleNewDisk = () =>
     this.setState({
@@ -748,13 +707,7 @@ export default class TabDisks extends Component {
   _migrateVdi = vdi => {
     return confirm({
       title: _('vdiMigrate'),
-      body: (
-        <MigrateVdiModalBody
-          hostSrShouldBeOn={this._getHostSrShouldBeOn()}
-          isSrIllegal={this._isSrIllegal()}
-          pool={this.props.vm.$pool}
-        />
-      ),
+      body: <MigrateVdiModalBody pool={this.props.vm.$pool} />,
     }).then(({ sr, migrateAll }) => {
       if (!sr) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
@@ -779,30 +732,6 @@ export default class TabDisks extends Component {
       isAdmin || (resourceSet == null && isVmAdmin)
   )
 
-  _getHostSrShouldBeOn = createSelector(
-    () => this.props.srs,
-    () => this.props.vdis,
-    (srs, vdis) => {
-      let container = ''
-      for (const id in vdis) {
-        const sr = srs[vdis[id].$SR]
-        if (sr === undefined) {
-          container = ''
-          break
-        }
-        if (isSrShared(sr)) {
-          continue
-        }
-        if (container !== '' && container !== sr.$container) {
-          container = undefined
-          break
-        }
-        container = sr.$container
-      }
-      return container
-    }
-  )
-
   _getVbdsByVdi = createSelector(
     () => this.props.vdis,
     () => this.props.vbds,
@@ -817,16 +746,6 @@ export default class TabDisks extends Component {
       (vbds, vdis) => pick(groupBy(vbds, 'VDI'), vdis)
     ),
     vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
-  )
-
-  _isSrIllegal = createSelector(
-    this._getHostSrShouldBeOn,
-    hostSrShouldBeOn => sr =>
-      sr !== undefined &&
-      !isSrShared(sr) &&
-      hostSrShouldBeOn !== undefined &&
-      hostSrShouldBeOn !== '' &&
-      sr.$container !== hostSrShouldBeOn
   )
 
   individualActions = [
@@ -859,8 +778,8 @@ export default class TabDisks extends Component {
 
   render() {
     const { srs, vbds, vdis, vm } = this.props
+
     const { attachDisk, bootOrder, newDisk } = this.state
-    const hostSrShouldBeOn = this._getHostSrShouldBeOn()
 
     return (
       <Container>
@@ -894,19 +813,13 @@ export default class TabDisks extends Component {
           <Col>
             {newDisk && (
               <div>
-                <NewDisk
-                  hostSrShouldBeOn={hostSrShouldBeOn}
-                  isSrIllegal={this._isSrIllegal()}
-                  onClose={this._toggleNewDisk}
-                  vm={vm}
-                />
+                <NewDisk vm={vm} onClose={this._toggleNewDisk} />
                 <hr />
               </div>
             )}
             {attachDisk && (
               <div>
                 <AttachDisk
-                  isSrIllegal={this._isSrIllegal()}
                   vm={vm}
                   vbds={vbds}
                   onClose={this._toggleAttachDisk}
@@ -923,7 +836,7 @@ export default class TabDisks extends Component {
           </Col>
         </Row>
         <Row>
-          {hostSrShouldBeOn === undefined && (
+          {this._areVdisSrsIllegal() && (
             <div>
               <span className='text-danger'>
                 <Icon icon='alarm' /> {_('srsNotOnSameHost')}
