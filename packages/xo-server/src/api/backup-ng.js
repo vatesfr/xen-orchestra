@@ -156,7 +156,7 @@ runJob.params = {
 async function handleGetAllLogs(req, res) {
   const logs = await this.getBackupNgLogs()
   res.set('Content-Type', 'application/json')
-  fromCallback(cb => pipeline(createNdJsonStream(logs), res, cb))
+  return fromCallback(cb => pipeline(createNdJsonStream(logs), res, cb))
 }
 
 export function getAllLogs({ ndjson = false }) {
