@@ -1,29 +1,22 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
 
-const getArrayValue = (array, i) => array[i]
-
-function getObjectValue(object, i) {
-  return object[this[i]]
+function* values(object) {
+  const keys = Object.keys(object)
+  for (let i = 0, n = keys.length; i < n; ++i) {
+    yield object[keys[i]]
+  }
 }
 
 /**
  * Creates a NDJSON stream of all the values
  *
- * @param {(Array|Object)} values
+ * @param {(Array|Object)} collection
  */
-module.exports = asyncIteratorToStream(function*(values) {
-  let getter, n
-  if (Array.isArray(values)) {
-    getter = getArrayValue
-    n = values.length
-  } else {
-    const keys = Object.keys(values)
-    getter = getObjectValue.bind(keys)
-    n = keys.length
-  }
-
-  for (let i = 0; i < n; ++i) {
-    yield JSON.stringify(getter(values, i))
+module.exports = asyncIteratorToStream(function*(collection) {
+  for (const value of Array.isArray(collection)
+    ? collection
+    : values(collection)) {
+    yield JSON.stringify(value)
     yield '\n'
   }
 })
