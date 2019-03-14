@@ -1924,7 +1924,12 @@ export default class Xapi extends XapiBase {
   async _deleteVdi(vdiRef) {
     log.debug(`Deleting VDI ${vdiRef}`)
 
-    await this.call('VDI.destroy', vdiRef)
+    await this.call('VDI.destroy', vdiRef).catch(error => {
+      if (error.code !== 'HANDLE_INVALID') {
+        log.error('_deleteVdi', { error })
+        throw error
+      }
+    })
   }
 
   _resizeVdi(vdi, size) {
