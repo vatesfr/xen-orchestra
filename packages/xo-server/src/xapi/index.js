@@ -737,6 +737,12 @@ export default class Xapi extends XapiBase {
         this._deleteVm(snapshot)
       )::ignoreErrors(),
 
+      vm.suspend_VDI !== NULL_REF &&
+        (() => {
+          const suspendVdi = this.getObjectByRef(vm.suspend_VDI)
+          return this._deleteVdi(suspendVdi)
+        })::ignoreErrors(),
+
       deleteDisks &&
         asyncMap(disks, ({ $ref: vdiRef }) => {
           let onFailure = () => {
