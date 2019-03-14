@@ -272,7 +272,9 @@ class JobsTable extends React.Component {
                 <Li>
                   {_.keyValue(
                     _('offlineSnapshot'),
-                    <span className='text-success'>{_('stateEnabled')}</span>
+                    <span className='text-success'>
+                      {_(offlineSnapshot ? 'stateEnabled' : 'stateDisabled')}
+                    </span>
                   )}
                 </Li>
               )}
