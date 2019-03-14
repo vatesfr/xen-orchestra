@@ -3,6 +3,7 @@
 ### Enhancements
 
 - [Self/New VM] Display confirmation modal when user will use a large amount of resources [#4044](https://github.com/vatesfr/xen-orchestra/issues/4044) (PR [#4127](https://github.com/vatesfr/xen-orchestra/pull/4127))
+- [VDI migration, New disk]: Warning when SR host is different from the other disks [#3911](https://github.com/vatesfr/xen-orchestra/issues/3911) (PR [#4035](https://github.com/vatesfr/xen-orchestra/pull/4035))
 
 ### Bug fixes
 
