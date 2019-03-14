@@ -105,6 +105,7 @@
     "pug": "^2.0.0-rc.4",
     "pump": "^3.0.0",
     "pw": "^0.0.4",
+    "readable-stream": "^3.2.0",
     "redis": "^2.8.0",
     "schema-inspector": "^1.6.8",
     "semver": "^5.4.1",
