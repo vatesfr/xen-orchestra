@@ -1006,6 +1006,9 @@ const messages = {
   containerRestart: 'Restart this container',
 
   // ----- VM disk tab -----
+  attachDiskModalTitle: 'Attach disk',
+  attachDiskModalMessage:
+    "The VDI's SR must either be shared or on the same host as the other disks for the VM to be able to start.",
   vdiAction: 'Action',
   vdiAttachDeviceButton: 'Attach disk',
   vbdCreateDeviceButton: 'New disk',

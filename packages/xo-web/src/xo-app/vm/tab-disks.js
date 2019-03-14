@@ -406,8 +406,17 @@ class NewDisk extends Component {
   }
 }
 
+@connectStore({
+  srs: createGetObjectsOfType('SR').filter(
+    createSelector(
+      (_, { vm }) => vm && vm.$pool,
+      poolId => sr => sr.$pool === poolId && isSrWritable(sr)
+    )
+  ),
+})
 class AttachDisk extends Component {
   static propTypes = {
+    checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vbds: PropTypes.array.isRequired,
     vm: PropTypes.object.isRequired,
@@ -432,6 +441,13 @@ class AttachDisk extends Component {
 
   _selectVdi = vdi => this.setState({ vdi })
 
+  _isVdiSrOnSameHost = createSelector(
+    () => this.props.checkSr,
+    () => this.props.srs,
+    () => this.state.vdi,
+    (check, srs, vdi) => check(srs[vdi.$SR])
+  )
+
   _addVdi = () => {
     const { vm, vbds, onClose = noop } = this.props
     const { bootable, readOnly, vdi } = this.state
@@ -442,10 +458,19 @@ class AttachDisk extends Component {
         const vbd = vbds[id]
         return !vbd || !vbd.attached || vbd.read_only
       })
-    return attachDiskToVm(vdi, vm, {
-      bootable,
-      mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
-    }).then(onClose)
+
+    const _attachDisktoVm = () =>
+      attachDiskToVm(vdi, vm, {
+        bootable,
+        mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
+      }).then(onClose)
+
+    return this._isVdiSrOnSameHost()
+      ? _attachDisktoVm()
+      : confirm({
+          title: _('attachDiskModalTitle'),
+          body: _('attachDiskModalMessage'),
+        }).then(() => _attachDisktoVm())
   }
 
   render() {
@@ -896,6 +921,7 @@ export default class TabDisks extends Component {
             {attachDisk && (
               <div>
                 <AttachDisk
+                  checkSr={this._isSrOnSameHost()}
                   vm={vm}
                   vbds={vbds}
                   onClose={this._toggleAttachDisk}
