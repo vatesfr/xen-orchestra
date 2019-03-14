@@ -319,7 +319,8 @@ export default class Xapi extends XapiBase {
         nameLabel,
       }),
       this._updateObjectMapProperty(network, 'other_config', {
-        automatic: automatic === undefined ? undefined : automatic ? 'true' : null,
+        automatic:
+          automatic === undefined ? undefined : automatic ? 'true' : null,
       }),
     ])
   }
@@ -1264,7 +1265,7 @@ export default class Xapi extends XapiBase {
     return loop()
   }
 
-  @synchronized
+  @synchronized()
   _callInstallationPlugin(hostRef, vdi) {
     return this.call(
       'host.call_plugin',
