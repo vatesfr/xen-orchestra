@@ -15,8 +15,14 @@ export class Remotes extends Collection {
     const remotes = await super.get(properties)
     forEach(remotes, remote => {
       remote.enabled = remote.enabled === 'true'
-      remote.speed =
-        remote.speed !== undefined ? JSON.parse(remote.speed) : undefined
+
+      let speed
+      try {
+        speed = JSON.parse(remote.speed)
+      } catch (error) {
+        return
+      }
+      remote.speed = speed
     })
     return remotes
   }

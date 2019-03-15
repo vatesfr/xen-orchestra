@@ -99,9 +99,9 @@ const COLUMN_SPEED = {
       remote.speed !== undefined &&
       remote.speed.write !== undefined &&
       remote.speed.read !== undefined && (
-        <span>{`${formatSize(
-          parseInt(remote.speed.write, 10)
-        )}/s / ${formatSize(parseInt(remote.speed.read, 10))}/s`}</span>
+        <span>{`${formatSize(+remote.speed.write)}/s / ${formatSize(
+          +remote.speed.read
+        )}/s`}</span>
       )
     )
   },
