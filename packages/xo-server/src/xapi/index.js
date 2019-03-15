@@ -1926,7 +1926,7 @@ export default class Xapi extends XapiBase {
 
     await this.call('VDI.destroy', vdiRef).catch(error => {
       if (error.code !== 'HANDLE_INVALID') {
-        log.error('_deleteVdi', { error })
+        log.error('_deleteVdi', { error, vdiRef })
         throw error
       }
     })
