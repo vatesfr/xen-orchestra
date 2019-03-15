@@ -103,4 +103,13 @@ describe("backupNg", () => {
       expect(isRejectedScheduleErrorValid).toBe(true);
     });
   });
+
+  describe(".runJob() :", () => {
+    it("fails trying to run a backup job without schedule", async () => {
+      const { id } = await xo.createTempBackupNgJob(defaultBackupNg);
+      await expect(
+        xo.call("backupNg.runJob", { id })
+      ).rejects.toMatchSnapshot();
+    });
+  });
 });

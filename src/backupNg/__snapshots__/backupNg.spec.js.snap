@@ -34,3 +34,5 @@ Object {
   },
 }
 `;
+
+exports[`backupNg .runJob() : fails trying to run a backup job without schedule 1`] = `[JsonRpcError: invalid parameters]`;
