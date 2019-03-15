@@ -4249,6 +4249,11 @@ decorator-synchronized@^0.3.0:
   resolved "https://registry.yarnpkg.com/decorator-synchronized/-/decorator-synchronized-0.3.0.tgz#72a21e7f0208abba2cd1ecd622aafb4a65b1096c"
   integrity sha512-qLBoPd9TnmE3vo9Qjo6bjiPpyJVYYG69L2qy+TndhtuJGLCIPXpmy4ErqyksJM3Fbzv4EBh0aY0Xl5zU7bYCCg==
 
+decorator-synchronized@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/decorator-synchronized/-/decorator-synchronized-0.5.0.tgz#0d457bafa0685f30e8a796941da512587feecb2c"
+  integrity sha512-PAs5w8+d5TlrvkuEWSAHJ9DJc0I8ElH5F23F+hhUUbK/EUmApG/ZqqYF/+AwExaALI+LxzhBWMH5xVpvsmVFeQ==
+
 deep-extend@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/deep-extend/-/deep-extend-0.6.0.tgz#c4fa7c95404a17a9c3e8ca7e1537312b736330ac"
