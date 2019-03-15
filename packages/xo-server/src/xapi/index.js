@@ -737,7 +737,8 @@ export default class Xapi extends XapiBase {
         this._deleteVm(snapshot)
       )::ignoreErrors(),
 
-      vm.suspend_VDI !== NULL_REF &&
+      vm.power_state === 'Suspended' &&
+        vm.suspend_VDI !== NULL_REF &&
         this._deleteVdi(vm.suspend_VDI)::ignoreErrors(),
 
       deleteDisks &&
@@ -1924,12 +1925,13 @@ export default class Xapi extends XapiBase {
   async _deleteVdi(vdiRef) {
     log.debug(`Deleting VDI ${vdiRef}`)
 
-    await this.call('VDI.destroy', vdiRef).catch(error => {
-      if (error.code !== 'HANDLE_INVALID') {
-        log.error('_deleteVdi', { error, vdiRef })
+    try {
+      await this.call('VDI.destroy', vdiRef)
+    } catch (error) {
+      if (error?.code !== 'HANDLE_INVALID') {
         throw error
       }
-    })
+    }
   }
 
   _resizeVdi(vdi, size) {
