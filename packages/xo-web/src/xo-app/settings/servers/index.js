@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
+import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
@@ -154,6 +155,15 @@ const COLUMNS = [
       </span>
     ),
     sortCriteria: _ => !!_.allowUnauthorized,
+  },
+  {
+    itemRenderer: (server, formatMessage) =>
+      server.poolId !== undefined && (
+        <Link to={`/pools/${server.poolId}`}>
+          {server.poolLabel ? server.poolLabel : _('pool')}
+        </Link>
+      ),
+    name: _('pool'),
   },
 ]
 const INDIVIDUAL_ACTIONS = [
