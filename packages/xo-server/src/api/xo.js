@@ -17,6 +17,7 @@ export async function exportConfig() {
       (req, res) => {
         res.writeHead(200, 'OK', {
           'content-disposition': 'attachment',
+          'content-type': 'application/json',
         })
 
         return this.exportConfig()
@@ -32,6 +33,7 @@ exportConfig.permission = 'admin'
 // -------------------------------------------------------------------
 
 function handleGetAllObjects(req, res, { filter, limit }) {
+  res.set('Content-Type', 'application/json')
   forEach(this.getObjects({ filter, limit }), object => {
     res.write(JSON.stringify(object))
     res.write('\n')

@@ -1,4 +1,5 @@
 import { basename } from 'path'
+import { forOwn } from 'lodash'
 
 import { safeDateFormat } from '../utils'
 
@@ -150,11 +151,28 @@ runJob.params = {
 
 // -----------------------------------------------------------------------------
 
-export function getAllLogs() {
-  return this.getBackupNgLogs()
+async function handleGetAllLogs(req, res) {
+  res.set('Content-Type', 'application/json');
+  forOwn(await this.getBackupNgLogs(), log => {
+    res.write(JSON.stringify(log))
+    res.write('\n')
+  })
+  res.end()
+}
+
+export function getAllLogs({ ndjson = false }) {
+  return ndjson
+    ? this.registerHttpRequest(handleGetAllLogs).then($getFrom => ({
+        $getFrom,
+      }))
+    : this.getBackupNgLogs()
 }
 
 getAllLogs.permission = 'admin'
+
+getAllLogs.params = {
+  ndjson: { type: 'boolean', optional: true },
+}
 
 export function getLogs({ after, before, limit, ...filter }) {
   return this.getBackupNgLogsSorted({ after, before, limit, filter })
