@@ -1,5 +1,6 @@
 import JSON5 from 'json5'
 import limitConcurrency from 'limit-concurrency-decorator'
+import synchronized from 'decorator-synchronized'
 import { BaseError } from 'make-error'
 import {
   endsWith,
@@ -245,6 +246,34 @@ const STATS = {
 
 // -------------------------------------------------------------------
 
+// RRD
+// json: {
+//   meta: {
+//     start: Number,
+//     step: Number,
+//     end: Number,
+//     rows: Number,
+//     columns: Number,
+//     legend: String[rows]
+//   },
+//   data: Item[columns] // Item = { t: Number, values: Number[rows] }
+// }
+
+// Local cache
+// _statsByObject : {
+//   [uuid]: {
+//     [step]: {
+//       endTimestamp: Number, // the timestamp of the last statistic point
+//       interval: Number, // step
+//       stats: {
+//         [metric1]: Number[],
+//         [metric2]: {
+//           [subMetric]: Number[],
+//         }
+//       }
+//     }
+//   }
+// }
 export default class XapiStats {
   constructor() {
     this._statsByObject = {}
@@ -305,6 +334,7 @@ export default class XapiStats {
     }
   }
 
+  @synchronized.withKey((_, { host }) => host.uuid)
   async _getAndUpdateStats(xapi, { host, vmUuid, granularity }) {
     const step =
       granularity === undefined

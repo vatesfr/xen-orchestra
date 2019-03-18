@@ -674,6 +674,15 @@ export default class TabAdvanced extends Component {
                   </tr>
                 )}
                 <tr>
+                  <th>{_('startDelayLabel')}</th>
+                  <td>
+                    <Number
+                      value={vm.startDelay}
+                      onChange={value => editVm(vm, { startDelay: value })}
+                    />
+                  </td>
+                </tr>
+                <tr>
                   <th>{_('cpuMaskLabel')}</th>
                   <td>
                     <EditableSelect

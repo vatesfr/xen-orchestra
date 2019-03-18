@@ -468,6 +468,13 @@ export default {
         return this._updateObjectMapProperty(vm, 'platform', { videoram })
       },
     },
+
+    startDelay: {
+      get: vm => +vm.start_delay,
+      set(startDelay, vm) {
+        return this.call('VM.set_start_delay', vm.$ref, startDelay)
+      },
+    },
   }),
 
   async editVm(id, props, checkLimits) {

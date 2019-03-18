@@ -480,23 +480,18 @@ export default class Home extends Component {
     selectedItems: {},
   }
 
-  get page() {
-    return this.state.page
-  }
-  set page(activePage) {
-    this.setState({ activePage })
-  }
-
   componentWillMount() {
     this._initFilterAndSortBy(this.props)
   }
 
   componentWillReceiveProps(props) {
+    const { type } = props
+
     if (this._getFilter() !== this._getFilter(props)) {
       this._initFilterAndSortBy(props)
     }
-    if (props.type !== this.props.type) {
-      this.setState({ activePage: undefined, highlighted: undefined })
+    if (type !== this.props.type) {
+      this.setState({ highlighted: undefined })
     }
   }
 
@@ -523,6 +518,14 @@ export default class Home extends Component {
     identity,
   ])
 
+  _getPage() {
+    const {
+      location: { query },
+    } = this.props
+    const queryPage = +query.p
+    return Number.isNaN(queryPage) ? 1 : queryPage
+  }
+
   _getType() {
     return this.props.type
   }
@@ -531,7 +534,7 @@ export default class Home extends Component {
     const { pathname, query } = this.props.location
     this.context.router.push({
       pathname,
-      query: { ...query, t: type, s: undefined },
+      query: { ...query, t: type, s: undefined, p: 1 },
     })
   }
 
@@ -655,10 +658,8 @@ export default class Home extends Component {
     const { pathname, query } = props.location
     this.context.router[replace ? 'replace' : 'push']({
       pathname,
-      query: { ...query, s: filter },
+      query: { ...query, s: filter, p: 1 },
     })
-
-    this.page = 1
   }
 
   _clearFilter = () => this._setFilter('')
@@ -679,14 +680,18 @@ export default class Home extends Component {
 
   _getVisibleItems = createPager(
     this._getFilteredItems,
-    () => this.state.activePage || 1,
+    () => this._getPage(),
     ITEMS_PER_PAGE
   )
 
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
 
   _onPageSelection = page => {
-    this.page = page
+    const { pathname, query } = this.props.location
+    this.context.router.replace({
+      pathname,
+      query: { ...query, p: page },
+    })
   }
 
   _tick = isCriteria => (
@@ -1151,7 +1156,7 @@ export default class Home extends Component {
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
     const { Item } = OPTIONS[this.props.type]
-    const { activePage, expandAll, highlighted, selectedItems } = this.state
+    const { expandAll, highlighted, selectedItems } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
     if (this.refs.masterCheckbox) {
@@ -1201,7 +1206,7 @@ export default class Home extends Component {
                   <Pagination
                     onChange={this._onPageSelection}
                     pages={ceil(filteredItems.length / ITEMS_PER_PAGE)}
-                    value={activePage || 1}
+                    value={this._getPage()}
                   />
                 </div>
               </div>

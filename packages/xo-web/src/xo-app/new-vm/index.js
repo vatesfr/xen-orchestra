@@ -45,6 +45,7 @@ import {
   createVm,
   createVms,
   getCloudInitConfig,
+  isSrShared,
   subscribeCurrentUser,
   subscribeIpPools,
   subscribeResourceSets,
@@ -1344,6 +1345,36 @@ export default class NewVm extends BaseComponent {
 
   // DISKS -----------------------------------------------------------------------
 
+  _getDiskSrs = createSelector(
+    () => this.state.state.existingDisks,
+    () => this.state.state.VDIs,
+    (existingDisks, vdis) => {
+      const diskSrs = new Set()
+      forEach(existingDisks, disk => diskSrs.add(disk.$SR))
+      vdis.forEach(disk => diskSrs.add(disk.SR))
+      return [...diskSrs]
+    }
+  )
+
+  _srsNotOnSameHost = createSelector(
+    this._getDiskSrs,
+    () => this.props.srs,
+    (diskSrs, srs) => {
+      let container
+      let sr
+      return diskSrs.some(srId => {
+        sr = srs[srId]
+        return (
+          sr !== undefined &&
+          !isSrShared(sr) &&
+          (container !== undefined
+            ? container !== sr.$container
+            : ((container = sr.$container), false))
+        )
+      })
+    }
+  )
+
   _renderDisks = () => {
     const {
       state: { installMethod, existingDisks, VDIs },
@@ -1470,6 +1501,11 @@ export default class NewVm extends BaseComponent {
               {index < VDIs.length - 1 && <hr />}
             </div>
           ))}
+          {this._srsNotOnSameHost() && (
+            <span className='text-danger'>
+              <Icon icon='alarm' /> {_('newVmSrsNotOnSameHost')}
+            </span>
+          )}
           <Item>
             <Button onClick={this._addVdi}>
               <Icon icon='new-vm-add' /> {_('newVmAddDisk')}

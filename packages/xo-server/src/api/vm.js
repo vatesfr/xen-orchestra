@@ -612,6 +612,8 @@ set.params = {
 
   share: { type: 'boolean', optional: true },
 
+  startDelay: { type: 'integer', optional: true },
+
   // set the VM network interface controller
   nicType: { type: ['string', 'null'], optional: true },
 }

@@ -1,5 +1,17 @@
 # ChangeLog
 
+## **5.32.2** (2019-02-28)
+
+### Bug fixes
+
+- Fix XAPI events monitoring on old version (XenServer 7.2)
+
+## **5.32.1** (2019-02-28)
+
+### Bug fixes
+
+- Fix a very short timeout in the monitoring of XAPI events which may lead to unresponsive XenServer hosts
+
 ## **5.32.0** (2019-02-28)
 
 ### Enhancements
