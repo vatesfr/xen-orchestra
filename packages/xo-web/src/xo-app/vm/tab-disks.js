@@ -14,6 +14,7 @@ import TabButton from 'tab-button'
 import { Sr } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
+  createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
   createFinder,
@@ -36,6 +37,7 @@ import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import {
+  every,
   filter,
   find,
   forEach,
@@ -45,6 +47,7 @@ import {
   mapValues,
   pick,
   some,
+  sortedUniq,
 } from 'lodash'
 import {
   attachDiskToVm,
@@ -660,6 +663,30 @@ export default class TabDisks extends Component {
     }
   }
 
+  _areSrsOnSameHost = createSelector(
+    createSelector(
+      () => this.props.vdis,
+      createCollectionWrapper(vdis => sortedUniq(map(vdis, '$SR').sort()))
+    ),
+    () => this.props.srs,
+    (vdiSrs, srs) => {
+      if (some(vdiSrs, srId => srs[srId] === undefined)) {
+        return true // the user doesn't have permissions on one of the SRs: no warning
+      }
+      let container
+      let sr
+      return every(vdiSrs, srId => {
+        sr = srs[srId]
+        if (isSrShared(sr)) {
+          return true
+        }
+        return container === undefined
+          ? ((container = sr.$container), true)
+          : container === sr.$container
+      })
+    }
+  )
+
   _toggleNewDisk = () =>
     this.setState({
       newDisk: !this.state.newDisk,
@@ -813,6 +840,13 @@ export default class TabDisks extends Component {
           </Col>
         </Row>
         <Row>
+          {!this._areSrsOnSameHost() && (
+            <div>
+              <span className='text-danger'>
+                <Icon icon='alarm' /> {_('srsNotOnSameHost')}
+              </span>
+            </div>
+          )}
           <Col>
             <SortedTable
               actions={ACTIONS}
