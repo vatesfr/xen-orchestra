@@ -1,6 +1,8 @@
 import { basename } from 'path'
-import { forOwn } from 'lodash'
+import { fromCallback } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
 
+import createNdJsonStream from '../_createNdJsonStream'
 import { safeDateFormat } from '../utils'
 
 export function createJob({ schedules, ...job }) {
@@ -152,12 +154,9 @@ runJob.params = {
 // -----------------------------------------------------------------------------
 
 async function handleGetAllLogs(req, res) {
-  res.set('Content-Type', 'application/json');
-  forOwn(await this.getBackupNgLogs(), log => {
-    res.write(JSON.stringify(log))
-    res.write('\n')
-  })
-  res.end()
+  const logs = await this.getBackupNgLogs()
+  res.set('Content-Type', 'application/json')
+  return fromCallback(cb => pipeline(createNdJsonStream(logs), res, cb))
 }
 
 export function getAllLogs({ ndjson = false }) {
