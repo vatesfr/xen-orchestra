@@ -12,7 +12,7 @@ Another good way to check if there is activity is the XOA VM stats view (on the 
 
 ### VDI chain protection
 
-This means your previous VM disks and snapshots should be "merged" (*coalesced* in the XenServer world) before we can take a new snapshot. This mechanism is handled by XenServer itself, not Xen Orchestra. But we can check your existing VDI chain and avoid creating more snapshots than your storage can merge. Otherwise, this will lead to catastrophic consequences. Xen Orchestra is the **only** XenServer/XCP backup product dealing with this.
+Backup jobs regularly delete snapshots. When a snapshot is deleted, either manually or via a backup job, it triggers the need for Xenserver to coalesce the VDI chain - to merge the remaining snapshots. This means generally we cannot take too many new snapshots on said VM until Xenserver has finished running a coalesce job on the VDI chain. This mechanism and scheduling is handled by XenServer itself, not Xen Orchestra. But we can check your existing VDI chain and avoid creating more snapshots than your storage can merge. If we don't, this will lead to catastrophic consequences. Xen Orchestra is the **only** XenServer/XCP backup product that takes this into account and offers protection.
 
 Without this detection, you could have 2 potential issues:
 
@@ -23,7 +23,7 @@ The first issue is a chain that contains more than 30 elements (fixed XenServer 
 
 In the end, this message is a **protection mechanism against damaging your SR**. The backup job will fail, but XenServer itself should eventually automatically coalesce the snapshot chain, and the the next time the backup job should complete.
 
-Just remember this: **coalesce will happen every time a snapshot is removed**.
+Just remember this: **a coalesce should happen every time a snapshot is removed**.
 
 > You can read more on this on our dedicated blog post regarding [XenServer coalesce detection](https://xen-orchestra.com/blog/xenserver-coalesce-detection-in-xen-orchestra/).
 
