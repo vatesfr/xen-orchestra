@@ -295,6 +295,7 @@ handlers.forEach(url => {
         expect(answer.success).toBe(true)
         expect(typeof answer.writeRate).toBe('number')
         expect(typeof answer.readRate).toBe('number')
+        expect(typeof answer.timestamp).toBe('number')
       })
     })
 
