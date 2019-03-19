@@ -1,5 +1,8 @@
 import getStream from 'get-stream'
-import { forEach } from 'lodash'
+import { fromCallback } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
+
+import createNdJsonStream from '../_createNdJsonStream'
 
 // ===================================================================
 
@@ -33,12 +36,9 @@ exportConfig.permission = 'admin'
 // -------------------------------------------------------------------
 
 function handleGetAllObjects(req, res, { filter, limit }) {
+  const objects = this.getObjects({ filter, limit })
   res.set('Content-Type', 'application/json')
-  forEach(this.getObjects({ filter, limit }), object => {
-    res.write(JSON.stringify(object))
-    res.write('\n')
-  })
-  res.end()
+  return fromCallback(cb => pipeline(createNdJsonStream(objects), res, cb))
 }
 
 export function getAllObjects({ filter, limit, ndjson = false }) {

@@ -158,7 +158,7 @@ export default class IpPools {
     return countBy(ipPools, ({ id }) => `ipPool:${id}`)
   }
 
-  @synchronized
+  @synchronized()
   allocIpAddresses(vifId, addAddresses, removeAddresses) {
     const updatedIpPools = {}
     const limits = {}
