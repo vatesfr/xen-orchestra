@@ -317,6 +317,10 @@ export default decorate([
             value={state.search}
           />
         </p>
+        <span>
+          {`${state.sortedPlugins.length}x`} <Icon icon='plugins' />
+          {` (${plugins.length})`}
+        </span>
         <ul style={{ paddingLeft: 0 }}>
           {state.sortedPlugins.map(plugin => (
             <li key={plugin.id} className='list-group-item clearfix'>

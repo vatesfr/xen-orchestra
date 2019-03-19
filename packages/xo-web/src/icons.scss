@@ -23,6 +23,10 @@
     @extend .fa;
     @extend .fa-thumb-tack;
   }
+  &-plugins {
+    @extend .fa;
+    @extend .fa-puzzle-piece;
+  }
   &-message {
     @extend .fa;
     @extend .fa-envelope-o;
