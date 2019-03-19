@@ -141,7 +141,7 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote(id, { enabled, name, options, benchmark, url }) {
+  updateRemote(id, { benchmark, enabled, name, options, url }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -150,16 +150,16 @@ export default class {
     }
 
     return this._updateRemote(id, {
+      benchmark,
       enabled,
       name,
       options,
-      benchmark,
       url,
     })
   }
 
   @synchronized()
-  async _updateRemote(id, { url, benchmark, ...props }) {
+  async _updateRemote(id, { benchmark, url, ...props }) {
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values
