@@ -2135,11 +2135,6 @@ export const editRemote = (remote, { name, url, options }) =>
     testRemote(remote).catch(noop)
   })
 
-export const editRemoteSpeed = (remote, { speed }) =>
-  _call('remote.set', resolveIds({ remote, speed }))::tap(
-    subscribeRemotes.forceRefresh
-  )
-
 export const listRemote = remote =>
   _call('remote.list', resolveIds({ id: remote }))::tap(
     subscribeRemotes.forceRefresh,

@@ -16,13 +16,13 @@ export class Remotes extends Collection {
     forEach(remotes, remote => {
       remote.enabled = remote.enabled === 'true'
 
-      let speed
+      let benchmarks
       try {
-        speed = JSON.parse(remote.speed)
+        benchmarks = JSON.parse(remote.benchmarks)
       } catch (error) {
         return
       }
-      remote.speed = speed
+      remote.benchmarks = benchmarks
     })
     return remotes
   }

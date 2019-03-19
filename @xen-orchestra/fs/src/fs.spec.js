@@ -292,9 +292,9 @@ handlers.forEach(url => {
       it('tests the remote appears to be working', async () => {
         const answer = await handler.test()
 
-        expect(answer).toHaveProperty('success', true)
-        expect(answer).toHaveProperty('writeSpeed')
-        expect(answer).toHaveProperty('readSpeed')
+        expect(answer.success).toBe(true)
+        expect(typeof answer.writeRate).toBe('number')
+        expect(typeof answer.readRate).toBe('number')
       })
     })
 

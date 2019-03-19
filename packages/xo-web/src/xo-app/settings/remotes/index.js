@@ -9,7 +9,7 @@ import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, generateRandomId, noop } from 'utils'
 import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
-import { groupBy, map, isEmpty } from 'lodash'
+import { groupBy, last, map, isEmpty } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Number, Password, Text } from 'editable'
@@ -19,7 +19,6 @@ import {
   deleteRemotes,
   disableRemote,
   editRemote,
-  editRemoteSpeed,
   enableRemote,
   subscribeRemotes,
   subscribeRemotesInfo,
@@ -36,11 +35,6 @@ const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
 const _editRemoteOptions = (options, { remote }) =>
   editRemote(remote, { options: options !== '' ? options : null })
-const _editRemoteSpeed = ({ writeSpeed, readSpeed }, remote) => {
-  editRemoteSpeed(remote, {
-    speed: { write: writeSpeed, read: readSpeed },
-  })
-}
 
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
@@ -95,12 +89,15 @@ const COLUMN_DISK = {
 }
 const COLUMN_SPEED = {
   itemRenderer: remote => {
+    const benchmark =
+      remote.benchmarks !== undefined && remote.benchmarks.length > 0
+        ? last(remote.benchmarks)
+        : undefined
+
     return (
-      remote.speed !== undefined &&
-      remote.speed.write !== undefined &&
-      remote.speed.read !== undefined && (
-        <span>{`${formatSize(+remote.speed.write)}/s / ${formatSize(
-          +remote.speed.read
+      benchmark !== undefined && (
+        <span>{`${formatSize(benchmark.writeRate)}/s / ${formatSize(
+          benchmark.readRate
         )}/s`}</span>
       )
     )
@@ -260,9 +257,8 @@ const INDIVIDUAL_ACTIONS = [
   {
     disabled: remote => !remote.enabled,
     handler: remote =>
-      testRemote(remote).then(answer => {
-        _editRemoteSpeed(answer, remote)
-        return (
+      testRemote(remote).then(
+        answer =>
           answer.success
             ? alert(
                 <span>
@@ -285,9 +281,8 @@ const INDIVIDUAL_ACTIONS = [
                   </dl>
                 </p>
               ),
-          noop
-        )
-      }),
+        noop
+      ),
     icon: 'diagnosis',
     label: _('remoteTestTip'),
     level: 'primary',

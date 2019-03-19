@@ -26,8 +26,8 @@ type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
 const formatSpeed = (hrtime: Array, size: Number) => {
-  const seconds = (hrtime[0] + hrtime[1] / 1e9).toFixed(4)
-  return (size / seconds).toFixed(2)
+  const seconds = hrtime[0] + hrtime[1] / 1e9
+  return size / seconds
 }
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
@@ -385,8 +385,9 @@ export default class RemoteHandlerAbstract {
       }
       return {
         success: true,
-        writeSpeed: formatSpeed(endWrite, SIZE),
-        readSpeed: formatSpeed(endRead, SIZE),
+        writeRate: formatSpeed(endWrite, SIZE),
+        readRate: formatSpeed(endRead, SIZE),
+        timestamp: Date.now(),
       }
     } catch (error) {
       return {
