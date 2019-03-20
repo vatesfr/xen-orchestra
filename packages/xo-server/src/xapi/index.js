@@ -2378,8 +2378,6 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
-  //
-  // https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html
   @deferrable
   async createCloudInitConfigDrive(
     $defer,
