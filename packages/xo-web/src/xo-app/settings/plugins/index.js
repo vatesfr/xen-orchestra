@@ -318,8 +318,8 @@ export default decorate([
           />
         </p>
         <span>
-          {`${state.sortedPlugins.length}x`} <Icon icon='plugins' />
-          {` (${plugins.length})`}
+          {state.sortedPlugins.length}x <Icon icon='plugin' /> ({plugins.length}
+          )
         </span>
         <ul style={{ paddingLeft: 0 }}>
           {state.sortedPlugins.map(plugin => (
