@@ -310,7 +310,6 @@ export default class XapiStats {
 
     const currentTimeStamp = await getServerTimestamp(xapi, host.$ref)
 
-    // Limit the number of http requests
     const stats = this._getCachedStats(uuid, step, currentTimeStamp)
     if (stats !== undefined) {
       return stats
@@ -318,19 +317,15 @@ export default class XapiStats {
 
     const maxDuration = step * RRD_POINTS_PER_STEP[step]
 
-    // To avoid exceed the maxDuration, we add a step
+    // To avoid crossing over the boundary, we ask for one less step
     const optimumTimestamp = currentTimeStamp - maxDuration + step
     const json = await this._getJson(xapi, host, optimumTimestamp, step)
-    if (json.meta.step !== step) {
-      throw new FaultyGranularity(
-        `Unable to get the true granularity: ${json.meta.step}`
-      )
-    }
 
+    const gotStep = json.meta.step
     if (json.data.length > 0) {
-      // reorder data
+      // got data are organized from the recent to the oldest
       json.data.reverse()
-      forEach(json.meta.legend, (legend, index) => {
+      json.meta.legend.forEach((legend, index) => {
         const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(
           legend
         )
@@ -346,14 +341,14 @@ export default class XapiStats {
         }
 
         const xoObjectStats = createGetProperty(this._statsByObject, uuid, {})
-        let stepStats = xoObjectStats[step]
+        let stepStats = xoObjectStats[gotStep]
         if (
           stepStats === undefined ||
           stepStats.endTimestamp !== json.meta.end
         ) {
-          stepStats = xoObjectStats[step] = {
+          stepStats = xoObjectStats[gotStep] = {
             endTimestamp: json.meta.end,
-            interval: step,
+            interval: gotStep,
           }
         }
 
@@ -377,6 +372,12 @@ export default class XapiStats {
           metricStats = createGetProperty(metricStats, property, {})
         })
       })
+    }
+
+    if (gotStep !== step) {
+      throw new FaultyGranularity(
+        `Unable to get the true granularity: ${gotStep}`
+      )
     }
 
     return (
