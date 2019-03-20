@@ -157,8 +157,8 @@ const COLUMNS = [
     sortCriteria: _ => !!_.allowUnauthorized,
   },
   {
-    itemRenderer: (server, formatMessage) =>
-      server.poolId !== undefined && <Pool id={server.poolId} link />,
+    itemRenderer: ({ poolId }) =>
+      poolId !== undefined && <Pool id={poolId} link />,
     name: _('pool'),
   },
 ]
