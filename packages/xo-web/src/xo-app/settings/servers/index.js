@@ -2,7 +2,6 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import Icon from 'icon'
-import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
@@ -12,6 +11,7 @@ import { alert, confirm } from 'modal'
 import { Container } from 'grid'
 import { Password as EditablePassword, Text } from 'editable'
 import { Password, Toggle } from 'form'
+import { Pool } from 'render-xo-item'
 import { injectIntl } from 'react-intl'
 import { noop } from 'lodash'
 import {
@@ -158,11 +158,7 @@ const COLUMNS = [
   },
   {
     itemRenderer: (server, formatMessage) =>
-      server.poolId !== undefined && (
-        <Link to={`/pools/${server.poolId}`}>
-          {server.poolLabel ? server.poolLabel : _('pool')}
-        </Link>
-      ),
+      server.poolId !== undefined && <Pool id={server.poolId} link />,
     name: _('pool'),
   },
 ]
