@@ -9,7 +9,8 @@ import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, generateRandomId, noop } from 'utils'
 import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
-import { groupBy, last, map, isEmpty } from 'lodash'
+import { get } from '@xen-orchestra/defined'
+import { groupBy, map, isEmpty } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Number, Password, Text } from 'editable'
@@ -89,10 +90,7 @@ const COLUMN_DISK = {
 }
 const COLUMN_SPEED = {
   itemRenderer: remote => {
-    const benchmark =
-      remote.benchmarks !== undefined && remote.benchmarks.length > 0
-        ? last(remote.benchmarks)
-        : undefined
+    const benchmark = get(() => remote.benchmarks[remote.benchmarks.length - 1])
 
     return (
       benchmark !== undefined && (

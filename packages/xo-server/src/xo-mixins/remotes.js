@@ -84,11 +84,14 @@ export default class {
   async testRemote(remote) {
     const handler = await this.getRemoteHandler(remote)
     const answer = await handler.test()
+    const { success, ...benchmark } = answer
 
-    if (answer.success === true) {
-      const benchmark = { ...answer }
-      delete benchmark.success
-      await this.updateRemote(remote, { benchmark })
+    if (success) {
+      const benchmarks =
+        remote.benchmarks !== undefined
+          ? [...remote.benchmarks, benchmark]
+          : [benchmark]
+      await this.updateRemote(remote, { benchmarks })
     }
 
     return answer
@@ -141,7 +144,7 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote(id, { benchmark, enabled, name, options, url }) {
+  updateRemote(id, { benchmarks, enabled, name, options, url }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -150,7 +153,7 @@ export default class {
     }
 
     return this._updateRemote(id, {
-      benchmark,
+      benchmarks,
       enabled,
       name,
       options,
@@ -159,7 +162,7 @@ export default class {
   }
 
   @synchronized()
-  async _updateRemote(id, { benchmark, url, ...props }) {
+  async _updateRemote(id, { benchmarks, url, ...props }) {
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values
@@ -167,12 +170,8 @@ export default class {
       remote.url = format(sensitiveValues.merge(parse(url), parse(remote.url)))
     }
 
-    if (benchmark !== undefined) {
-      remote.benchmarks = JSON.stringify(
-        remote.benchmarks !== undefined
-          ? [...remote.benchmarks, benchmark]
-          : [benchmark]
-      )
+    if (benchmarks !== undefined) {
+      remote.benchmarks = JSON.stringify(benchmarks)
     }
     if (Array.isArray(remote.benchmarks) === true) {
       remote.benchmarks = JSON.stringify(remote.benchmarks)
