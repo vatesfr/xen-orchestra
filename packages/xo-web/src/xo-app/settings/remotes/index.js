@@ -6,7 +6,13 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { addSubscriptions, formatSize, generateRandomId, noop } from 'utils'
+import {
+  addSubscriptions,
+  formatSize,
+  formatSpeed,
+  generateRandomId,
+  noop,
+} from 'utils'
 import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
 import { get } from '@xen-orchestra/defined'
@@ -94,9 +100,10 @@ const COLUMN_SPEED = {
 
     return (
       benchmark !== undefined && (
-        <span>{`${formatSize(benchmark.writeRate)}/s / ${formatSize(
-          benchmark.readRate
-        )}/s`}</span>
+        <span>{`${formatSpeed(benchmark.writeRate, 1e3)} / ${formatSpeed(
+          benchmark.readRate,
+          1e3
+        )}`}</span>
       )
     )
   },
