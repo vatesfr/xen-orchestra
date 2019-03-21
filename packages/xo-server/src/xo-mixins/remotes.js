@@ -87,11 +87,12 @@ export default class {
     const { success, ...benchmark } = answer
 
     if (success) {
-      const benchmarks =
-        remote.benchmarks !== undefined
-          ? [...remote.benchmarks, benchmark]
-          : [benchmark]
-      await this.updateRemote(remote, { benchmarks })
+      await this._updateRemote(remote, {
+        benchmarks:
+          remote.benchmarks !== undefined
+            ? [...remote.benchmarks, benchmark]
+            : [benchmark],
+      })
     }
 
     return answer
@@ -144,7 +145,7 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote(id, { benchmarks, enabled, name, options, url }) {
+  updateRemote(id, { enabled, name, options, url }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -153,7 +154,6 @@ export default class {
     }
 
     return this._updateRemote(id, {
-      benchmarks,
       enabled,
       name,
       options,
