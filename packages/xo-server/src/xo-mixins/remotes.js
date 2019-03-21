@@ -145,7 +145,7 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote(id, { enabled, name, options, url }) {
+  updateRemote(id, { name, url, options, enabled }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -154,10 +154,10 @@ export default class {
     }
 
     return this._updateRemote(id, {
-      enabled,
       name,
-      options,
       url,
+      options,
+      enabled,
     })
   }
 
