@@ -12,7 +12,9 @@ Another good way to check if there is activity is the XOA VM stats view (on the 
 
 ### VDI chain protection
 
-This means your previous VM disks and snapshots should be "merged" (*coalesced* in the XenServer world) before we can take a new snapshot. This mechanism is handled by XenServer itself, not Xen Orchestra. But we can check your existing VDI chain and avoid creating more snapshots than your storage can merge. Otherwise, this will lead to catastrophic consequences. Xen Orchestra is the **only** XenServer/XCP backup product dealing with this.
+Backup jobs regularly delete snapshots. When a snapshot is deleted, either manually or via a backup job, it triggers the need for Xenserver to coalesce the VDI chain - to merge the remaining VDIs and base copies in the chain. This means generally we cannot take too many new snapshots on said VM until Xenserver has finished running a coalesce job on the VDI chain.  
+
+This mechanism and scheduling is handled by XenServer itself, not Xen Orchestra. But we can check your existing VDI chain and avoid creating more snapshots than your storage can merge. If we don't, this will lead to catastrophic consequences. Xen Orchestra is the **only** XenServer/XCP backup product that takes this into account and offers protection.
 
 Without this detection, you could have 2 potential issues:
 
@@ -21,9 +23,9 @@ Without this detection, you could have 2 potential issues:
 
 The first issue is a chain that contains more than 30 elements (fixed XenServer limit), and the other one means it's full because the "coalesce" process couldn't keep up the pace and the storage filled up.
 
-In the end, this message is a **protection mechanism against damaging your SR**. The backup job will fail, but XenServer itself should eventually automatically coalesce the snapshot chain, and the the next time the backup job should complete.
+In the end, this message is a **protection mechanism preventing damage to your SR**. The backup job will fail, but XenServer itself should eventually automatically coalesce the snapshot chain, and the the next time the backup job should complete.
 
-Just remember this: **coalesce will happen every time a snapshot is removed**.
+Just remember this: **a coalesce should happen every time a snapshot is removed**.
 
 > You can read more on this on our dedicated blog post regarding [XenServer coalesce detection](https://xen-orchestra.com/blog/xenserver-coalesce-detection-in-xen-orchestra/).
 
@@ -37,7 +39,9 @@ Coalesce jobs can also fail to run if the SR does not have enough free space. Ch
 
 You can check if a coalesce job is currently active by running `ps axf | grep vhd` on the XenServer host and looking for a VHD process in the results (one of the resulting processes will be the grep command you just ran, ignore that one).  
 
-If you don't see any running coalesce jobs, and can't find any other reason that XenServer has not started one, you can attempt to make it start a coalesce job by rescanning the SR. This is harmless to try, but will not always result in a coalesce. Visit the problematic SR in the XOA UI, then click the "Rescan All Disks" button towards the top right: it looks like a refresh circle icon. This should begin the coalesce process - if you click the Advanced tab in the SR view, the "disks needing to be coalesced" list should become smaller and smaller.
+If you don't see any running coalesce jobs, and can't find any other reason that XenServer has not started one, you can attempt to make it start a coalesce job by rescanning the SR. This is harmless to try, but will not always result in a coalesce. Visit the problematic SR in the XOA UI, then click the "Rescan All Disks" button towards the top right: it looks like a refresh circle icon. This should begin the coalesce process - if you click the Advanced tab in the SR view, the "disks needing to be coalesced" list should become smaller and smaller.  
+
+As a last resort, migrating the VM (more specifically, its disks) to a new storage repository will also force a coalesce and solve this issue. That means migrating a VM to another host (with its own storage) and back will force the VDI chain for that VM to be coalesced, and get rid of the `VDI Chain Protection` message.
 
 ### Parse Error
 
