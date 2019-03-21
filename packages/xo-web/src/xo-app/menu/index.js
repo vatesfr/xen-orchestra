@@ -13,6 +13,7 @@ import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
   signOut,
+  subscribeNotifications,
   subscribePermissions,
   subscribeResourceSets,
 } from 'xo'
@@ -31,23 +32,32 @@ import styles from './index.css'
 const returnTrue = () => true
 
 @connectStore(
-  () => ({
-    isAdmin,
-    isPoolAdmin: getIsPoolAdmin,
-    nTasks: createGetObjectsOfType('task').count([
+  () => {
+    const getHostsSize = createGetObjectsOfType('host').count()
+    const getPools = createGetObjectsOfType('pool')
+    const getSrs = createGetObjectsOfType('SR')
+    const getTasksSize = createGetObjectsOfType('task').count([
       task => task.status === 'pending',
-    ]),
-    pools: createGetObjectsOfType('pool'),
-    nHosts: createGetObjectsOfType('host').count(),
-    srs: createGetObjectsOfType('SR'),
-    status: getStatus,
-    user: getUser,
-  }),
+    ])
+
+    return (state, props) => ({
+      isAdmin: isAdmin(state, props),
+      isPoolAdmin: getIsPoolAdmin(state, props),
+      nHosts: getHostsSize(state, props),
+      nTasks: getTasksSize(state, props),
+      pools: getPools(state, props),
+      srs: getSrs(state, props),
+      status: getStatus(state, props),
+      user: getUser(state, props),
+      xoaState: state.xoaUpdaterState,
+    })
+  },
   {
     withRef: true,
   }
 )
 @addSubscriptions({
+  notifications: subscribeNotifications,
   permissions: subscribePermissions,
   resourceSets: subscribeResourceSets,
 })
@@ -88,6 +98,14 @@ export default class Menu extends Component {
     isEmpty
   )
 
+  _getNoNotifications = createSelector(
+    createFilter(
+      () => this.props.notifications,
+      n => n !== undefined && !n.read
+    ),
+    isEmpty
+  )
+
   get height() {
     return this.refs.content.offsetHeight
   }
@@ -118,9 +136,11 @@ export default class Menu extends Component {
       pools,
       nHosts,
       srs,
+      xoaState,
     } = this.props
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = this._getNoResourceSets()
+    const noNotifications = this._getNoNotifications()
 
     /* eslint-disable object-property-newline */
     const items = [
@@ -247,16 +267,14 @@ export default class Menu extends Component {
         to: isAdmin ? 'xoa/update' : 'xoa/notifications',
         icon: 'menu-xoa',
         label: 'xoa',
-        extra: (
-          <span>
-            {isAdmin && (
-              <span>
-                <UpdateTag />{' '}
-              </span>
-            )}
+        extra:
+          xoaState === 'upToDate' && noNotifications ? null : isAdmin ? (
+            <span>
+              <UpdateTag /> <NotificationTag />
+            </span>
+          ) : noNotifications ? null : (
             <NotificationTag />
-          </span>
-        ),
+          ),
         subMenu: [
           isAdmin && {
             to: 'xoa/update',
