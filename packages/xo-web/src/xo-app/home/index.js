@@ -674,7 +674,10 @@ export default class Home extends Component {
 
   _getFilteredItems = createSort(
     createFilter(() => this.props.items, this._getFilterFunction),
-    () => this.state.sortBy,
+    createSelector(
+      () => this.state.sortBy,
+      sortBy => [sortBy, 'name_label']
+    ),
     () => this.state.sortOrder
   )
 

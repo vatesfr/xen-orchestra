@@ -1023,6 +1023,8 @@ const messages = {
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
+  srsNotOnSameHost:
+    'The SRs must either be shared or on the same host for the VM to be able to start.',
   useQuotaWarning:
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet:

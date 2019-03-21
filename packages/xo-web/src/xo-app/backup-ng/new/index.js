@@ -15,7 +15,7 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
+import { flatten, includes, isEmpty, map, mapValues, omit, some } from 'lodash'
 import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
@@ -44,6 +44,7 @@ import {
 import NewSchedule from './new-schedule'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
+import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import {
   canDeltaBackup,
   constructPattern,
@@ -137,12 +138,12 @@ const createDoesRetentionExist = name => {
 }
 
 const getInitialState = () => ({
+  _displayAdvancedSettings: undefined,
   _vmsPattern: undefined,
   backupMode: false,
   compression: undefined,
   crMode: false,
   deltaMode: false,
-  displayAdvancedSettings: undefined,
   drMode: false,
   name: '',
   paramsUpdated: false,
@@ -489,6 +490,9 @@ export default decorate([
         return getInitialState()
       },
       setCompression: (_, compression) => ({ compression }),
+      toggleDisplayAdvancedSettings: () => ({ displayAdvancedSettings }) => ({
+        _displayAdvancedSettings: !displayAdvancedSettings,
+      }),
       setGlobalSettings: (_, { name, value }) => ({
         propSettings,
         settings = propSettings,
@@ -611,6 +615,16 @@ export default decorate([
               }
             : setting
         ),
+      displayAdvancedSettings: (state, props) =>
+        defined(
+          state._displayAdvancedSettings,
+          !isEmpty(
+            getSettingsWithNonDefaultValue(state.isFull ? 'full' : 'delta', {
+              compression: get(() => props.job.compression),
+              ...get(() => omit(props.job.settings[''], 'reportWhen')),
+            })
+          )
+        ),
     },
   }),
   injectState,
@@ -620,10 +634,6 @@ export default decorate([
     const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
       settings.get('') || {}
     const compression = defined(state.compression, job.compression, '')
-    const displayAdvancedSettings = defined(
-      state.displayAdvancedSettings,
-      compression !== '' || concurrency > 0 || timeout > 0 || offlineSnapshot
-    )
 
     if (state.needUpdateParams) {
       effects.updateParams()
@@ -848,11 +858,13 @@ export default decorate([
                   {_('newBackupSettings')}
                   <ActionButton
                     className='pull-right'
-                    data-mode='displayAdvancedSettings'
-                    handler={effects.toggleMode}
-                    icon={displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
+                    data-mode='_displayAdvancedSettings'
+                    handler={effects.toggleDisplayAdvancedSettings}
+                    icon={
+                      state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'
+                    }
                     iconColor={
-                      displayAdvancedSettings ? 'text-success' : undefined
+                      state.displayAdvancedSettings ? 'text-success' : undefined
                     }
                     size='small'
                   >
@@ -885,7 +897,7 @@ export default decorate([
                       valueKey='value'
                     />
                   </FormGroup>
-                  {displayAdvancedSettings && (
+                  {state.displayAdvancedSettings && (
                     <div>
                       <FormGroup>
                         <label htmlFor={state.inputConcurrencyId}>

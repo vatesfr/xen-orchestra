@@ -37,10 +37,11 @@ import {
 import LogsTable, { LogStatus } from '../logs/backup-ng'
 import Page from '../page'
 
-import NewVmBackup, { NewMetadataBackup } from './new'
 import Edit from './edit'
 import FileRestore from './file-restore'
+import getSettingsWithNonDefaultValue from './_getSettingsWithNonDefaultValue'
 import Health from './health'
+import NewVmBackup, { NewMetadataBackup } from './new'
 import Restore from './restore'
 import { destructPattern } from './utils'
 
@@ -244,28 +245,38 @@ class JobsTable extends React.Component {
         name: _('jobSchedules'),
       },
       {
-        itemRenderer: ({ compression = '', settings }) => {
-          const { concurrency, offlineSnapshot, reportWhen, timeout } =
-            settings[''] || {}
+        itemRenderer: job => {
+          const {
+            compression,
+            concurrency,
+            offlineSnapshot,
+            reportWhen,
+            timeout,
+          } = getSettingsWithNonDefaultValue(job.mode, {
+            compression: job.compression,
+            ...job.settings[''],
+          })
 
           return (
             <Ul>
-              {reportWhen && <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>}
-              {concurrency > 0 && (
+              {reportWhen !== undefined && (
+                <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>
+              )}
+              {concurrency !== undefined && (
                 <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
               )}
-              {timeout > 0 && (
+              {timeout !== undefined && (
                 <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>
               )}
-              {offlineSnapshot && (
+              {offlineSnapshot !== undefined && (
                 <Li>
                   {_.keyValue(
                     _('offlineSnapshot'),
-                    <span className='text-success'>{_('stateEnabled')}</span>
+                    _(offlineSnapshot ? 'stateEnabled' : 'stateDisabled')
                   )}
                 </Li>
               )}
-              {compression !== '' && (
+              {compression !== undefined && (
                 <Li>
                   {_.keyValue(
                     _('compression'),
