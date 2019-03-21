@@ -25,7 +25,7 @@ type RemoteInfo = { used?: number, size?: number }
 type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
-const speedRate = (hrtime: Array<number>, size: number) => {
+const speedRate = (hrtime: number[], size: number) => {
   const seconds = hrtime[0] + hrtime[1] / 1e9
   return size / seconds
 }
