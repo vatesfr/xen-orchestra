@@ -25,7 +25,7 @@ type RemoteInfo = { used?: number, size?: number }
 type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
-const formatSpeed = (hrtime: Array, size: Number) => {
+const speedRate = (hrtime: Array<number>, size: number) => {
   const seconds = hrtime[0] + hrtime[1] / 1e9
   return size / seconds
 }
@@ -373,20 +373,20 @@ export default class RemoteHandlerAbstract {
     try {
       const startWrite = process.hrtime()
       await this._outputFile(testFileName, data, { flags: 'wx' })
-      const endWrite = process.hrtime(startWrite)
+      const writeTimeElapsed = process.hrtime(startWrite)
 
       step = 'read'
       const startRead = process.hrtime()
       const read = await this._readFile(testFileName, { flags: 'r' })
-      const endRead = process.hrtime(startRead)
+      const readTimeElapsed = process.hrtime(startRead)
 
       if (!data.equals(read)) {
         throw new Error('output and input did not match')
       }
       return {
         success: true,
-        writeRate: formatSpeed(endWrite, SIZE),
-        readRate: formatSpeed(endRead, SIZE),
+        writeRate: speedRate(writeTimeElapsed, SIZE),
+        readRate: speedRate(readTimeElapsed, SIZE),
       }
     } catch (error) {
       return {
