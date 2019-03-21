@@ -4,7 +4,6 @@ import { format, parse } from 'xo-remote-parser'
 import { getHandler } from '@xen-orchestra/fs'
 import { ignoreErrors, timeout } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
-import { takeRight } from 'lodash'
 
 import * as sensitiveValues from '../sensitive-values'
 import patch from '../patch'
@@ -84,7 +83,6 @@ export default class {
 
   async testRemote(remoteId) {
     const handler = await this.getRemoteHandler(remoteId)
-    const remote = await this._getRemote(remoteId)
     const { readRate, writeRate, ...answer } = await handler.test()
 
     if (answer.success) {
@@ -93,10 +91,12 @@ export default class {
         timestamp: Date.now(),
         writeRate,
       }
+      const remote = await this._getRemote(remoteId)
+
       await this._updateRemote(remoteId, {
         benchmarks:
           remote.benchmarks !== undefined
-            ? [...takeRight(remote.benchmarks, 4), benchmark]
+            ? [...remote.benchmarks.slice(-49), benchmark] // store 50 benchmarks
             : [benchmark],
       })
     }

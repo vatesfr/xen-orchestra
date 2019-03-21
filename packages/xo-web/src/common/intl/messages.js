@@ -518,7 +518,7 @@ const messages = {
   remoteDevice: 'Device',
   remoteDisk: 'Disk (Used / Total)',
   remoteSpeed: 'Speed (Write / Read)',
-  remoteSpeedInfo: 'Read and write rate speed performed during a remote test',
+  remoteSpeedInfo: 'Read and write rate speed performed during latest test',
   remoteOptions: 'Options',
   remoteShare: 'Share',
   remoteAction: 'Action',
