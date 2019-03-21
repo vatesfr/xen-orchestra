@@ -458,7 +458,6 @@ export default class {
       server.status = this._getXenServerStatus(server.id)
       if (server.status === 'connected') {
         server.poolId = xapis[server.id].pool.uuid
-        server.poolLabel = xapis[server.id].pool.name_label
       }
 
       // Do not expose password.
