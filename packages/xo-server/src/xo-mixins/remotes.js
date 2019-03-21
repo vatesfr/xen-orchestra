@@ -84,9 +84,13 @@ export default class {
   async testRemote(remote) {
     const handler = await this.getRemoteHandler(remote)
     const answer = await handler.test()
-    const { success, ...benchmark } = answer
 
-    if (success) {
+    if (answer.success) {
+      const benchmark = {
+        writeRate: answer.writeRate,
+        readRate: answer.readRate,
+        timestamp: answer.timestamp,
+      }
       await this._updateRemote(remote, {
         benchmarks:
           remote.benchmarks !== undefined
