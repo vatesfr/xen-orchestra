@@ -170,11 +170,11 @@ export default class {
       remote.url = format(sensitiveValues.merge(parse(url), parse(remote.url)))
     }
 
-    if (benchmarks !== undefined) {
+    if (
+      benchmarks !== undefined ||
+      (benchmarks = remote.benchmarks) !== undefined
+    ) {
       remote.benchmarks = JSON.stringify(benchmarks)
-    }
-    if (Array.isArray(remote.benchmarks) === true) {
-      remote.benchmarks = JSON.stringify(remote.benchmarks)
     }
 
     patch(remote, props)
