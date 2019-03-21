@@ -107,7 +107,14 @@ const COLUMN_SPEED = {
       )
     )
   },
-  name: _('remoteSpeed'),
+  name: (
+    <span>
+      {_('remoteSpeed')}{' '}
+      <Tooltip content={_('remoteSpeedInfo')}>
+        <Icon icon='info' size='lg' />
+      </Tooltip>
+    </span>
+  ),
 }
 
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
