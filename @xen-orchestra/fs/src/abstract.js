@@ -387,7 +387,6 @@ export default class RemoteHandlerAbstract {
         success: true,
         writeRate: formatSpeed(endWrite, SIZE),
         readRate: formatSpeed(endRead, SIZE),
-        timestamp: Date.now(),
       }
     } catch (error) {
       return {
