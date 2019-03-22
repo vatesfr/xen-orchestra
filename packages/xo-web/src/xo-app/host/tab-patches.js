@@ -264,6 +264,7 @@ export default class TabPatches extends Component {
     chooseAction({
       body: <p>{_('installAllPatchesContent')}</p>,
       buttons: [{ label: _('installAllPatchesRedirect'), value: 'goToPool' }],
+      icon: 'host-patch-update',
       title: _('installAllPatchesTitle'),
     }).then(() =>
       this.context.router.push(`/pools/${this.props.host.$pool}/patches`)

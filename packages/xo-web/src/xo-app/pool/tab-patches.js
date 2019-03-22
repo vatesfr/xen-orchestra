@@ -3,15 +3,14 @@ import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
+import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { alert } from 'modal'
 import { Col, Container, Row } from 'grid'
-import { connectStore, formatSize } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import {
   installAllPatchesOnPool,
-  installPoolPatch,
-  installPoolPatches,
+  installPatches,
   subscribeHostMissingPatches,
 } from 'xo'
 import { isEmpty } from 'lodash'
@@ -39,7 +38,7 @@ const MISSING_PATCH_COLUMNS = [
         (<FormattedRelative value={date} />)
       </span>
     ),
-    sortCriteria: _ => _.date,
+    sortCriteria: 'date',
     sortOrder: 'desc',
   },
   {
@@ -51,11 +50,9 @@ const MISSING_PATCH_COLUMNS = [
 
 const ACTIONS = [
   {
-    handler: (patches, { pool }) => installPoolPatches(patches, pool),
-    individualHandler: (patch, { pool }) => installPoolPatch(patch, pool),
-    individualLabel: _('installPoolPatch'),
+    handler: (patches, { pool }) => installPatches(patches, pool),
     icon: 'host-patch-update',
-    label: _('installPoolPatches'),
+    label: _('install'),
     level: 'primary',
   },
 ]
@@ -169,88 +166,75 @@ const INSTALLED_PATCH_COLUMNS = [
   },
 ]
 
+@addSubscriptions(({ master }) => ({
+  missingPatches: cb => subscribeHostMissingPatches(master, cb),
+}))
 @connectStore({
   hostPatches: createGetObjectsOfType('patch').pick(
     (_, { master }) => master.patches
   ),
 })
 export default class TabPatches extends Component {
-  state = { missingPatches: [] }
-
-  componentDidMount() {
-    subscribeHostMissingPatches(this.props.master, patches =>
-      this.setState({
-        missingPatches: patches,
-      })
-    )
-  }
-
   render() {
-    if (process.env.XOA_PLAN < 2) {
-      return (
-        <Container>
-          <Upgrade place='poolPatches' required={2} />
-        </Container>
-      )
-    }
-
-    const { missingPatches } = this.state
     const {
       hostPatches,
+      missingPatches = [],
       pool,
       master: { productBrand },
     } = this.props
 
     return (
-      <Container>
-        <Row>
-          <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='primary'
-              data-pool={pool}
-              disabled={isEmpty(missingPatches)}
-              handler={installAllPatchesOnPool}
-              icon='host-patch-update'
-              labelId='installPoolPatches'
-            />
-          </Col>
-        </Row>
-        {productBrand === 'XCP-ng' ? (
+      <Upgrade place='poolPatches' required={2}>
+        <Container>
           <Row>
-            <Col>
-              <h3>{_('hostMissingPatches')}</h3>
-              <SortedTable
-                columns={MISSING_PATCH_COLUMNS_XCP}
-                collection={missingPatches}
-                individualActions={INDIVIDUAL_ACTIONS_XCP}
+            <Col className='text-xs-right'>
+              <TabButton
+                btnStyle='primary'
+                data-pool={pool}
+                disabled={isEmpty(missingPatches)}
+                handler={installAllPatchesOnPool}
+                icon='host-patch-update'
+                labelId='installPoolPatches'
               />
             </Col>
           </Row>
-        ) : (
-          <Container>
+          {productBrand === 'XCP-ng' ? (
             <Row>
               <Col>
                 <h3>{_('hostMissingPatches')}</h3>
                 <SortedTable
-                  actions={ACTIONS}
+                  columns={MISSING_PATCH_COLUMNS_XCP}
                   collection={missingPatches}
-                  columns={MISSING_PATCH_COLUMNS}
-                  data-pool={pool}
+                  individualActions={INDIVIDUAL_ACTIONS_XCP}
                 />
               </Col>
             </Row>
-            <Row>
-              <Col>
-                <h3>{_('hostAppliedPatches')}</h3>
-                <SortedTable
-                  collection={hostPatches}
-                  columns={INSTALLED_PATCH_COLUMNS}
-                />
-              </Col>
-            </Row>
-          </Container>
-        )}
-      </Container>
+          ) : (
+            <div>
+              <Row>
+                <Col>
+                  <h3>{_('hostMissingPatches')}</h3>
+                  <SortedTable
+                    actions={ACTIONS}
+                    collection={missingPatches}
+                    columns={MISSING_PATCH_COLUMNS}
+                    data-pool={pool}
+                  />
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <h3>{_('hostAppliedPatches')}</h3>
+                  <SortedTable
+                    collection={hostPatches}
+                    columns={INSTALLED_PATCH_COLUMNS}
+                  />
+                </Col>
+              </Row>
+            </div>
+          )}
+        </Container>
+      </Upgrade>
     )
   }
 }
