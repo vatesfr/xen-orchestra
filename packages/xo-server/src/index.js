@@ -189,12 +189,12 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
   const SESSION_VALIDITY = ifDef(authCfg.sessionCookieValidity, parseDuration)
   const setToken = async (req, res, next) => {
     const { user, isPersistent } = req.session
-    const token = (await xo.createAuthenticationToken({
+    const token = await xo.createAuthenticationToken({
       expiresIn: isPersistent ? PERMANENT_VALIDITY : SESSION_VALIDITY,
       userId: user.id,
-    })).id
+    })
 
-    res.cookie('token', token, {
+    res.cookie('token', token.id, {
       // a session (non-permanent) cookie must not have a max age because it
       // must not survive browser restart
       maxAge: isPersistent ? Math.floor(token.expiration / 1e3) : undefined,
@@ -682,7 +682,7 @@ export default async function main(args) {
 
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
-  await setUpPassport(express, xo)
+  await setUpPassport(express, xo, config)
 
   // Attaches express to the web server.
   webServer.on('request', express)
