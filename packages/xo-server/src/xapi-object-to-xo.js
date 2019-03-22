@@ -624,10 +624,18 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   host_patch(obj) {
+    const poolPatch = obj.$pool_patch
     return {
+      type: 'patch',
+
       applied: Boolean(obj.applied),
+      enforceHomogeneity: poolPatch.pool_applied,
+      description: poolPatch.name_description,
+      name: poolPatch.name_label,
+      pool_patch: poolPatch.$ref,
+      size: poolPatch.size,
+      guidance: poolPatch.after_apply_guidance,
       time: toTimestamp(obj.timestamp_applied),
-      pool_patch: link(obj, 'pool_patch', '$ref'),
 
       // TODO: what does it mean, always empty?
       // name: obj.name_label,
@@ -643,11 +651,12 @@ const TRANSFORMS = {
     return {
       id: obj.$ref,
 
+      dataUuid: obj.uuid, // UUID of the patch file as stated in Citrix's XML file
       description: obj.name_description,
       guidance: obj.after_apply_guidance,
       name: obj.name_label,
       size: +obj.size,
-      uuid: obj.uuid,
+      uuid: obj.$ref,
 
       // TODO: means that the patch must be applied on every host
       // applied: Boolean(obj.pool_applied),
