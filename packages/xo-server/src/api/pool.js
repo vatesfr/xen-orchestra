@@ -1,5 +1,4 @@
 import { format } from 'json-rpc-peer'
-import { differenceBy } from 'lodash'
 
 // ===================================================================
 
@@ -146,6 +145,22 @@ export { uploadPatch as patch }
 
 // -------------------------------------------------------------------
 
+export async function getPatchesDifference({ source, target }) {
+  return this.getPatchesDifference(target, source)
+}
+
+getPatchesDifference.params = {
+  source: { type: 'string' },
+  target: { type: 'string' },
+}
+
+mergeInto.resolve = {
+  source: ['source', 'host', 'view'],
+  target: ['target', 'host', 'view'],
+}
+
+// -------------------------------------------------------------------
+
 export async function mergeInto({ source, target, force }) {
   const sourceHost = this.getObject(source.master)
   const targetHost = this.getObject(target.master)
@@ -158,23 +173,17 @@ export async function mergeInto({ source, target, force }) {
     )
   }
 
-  const sourcePatches = sourceHost.patches.map(patchId =>
-    this.getObject(patchId)
-  )
-  const targetPatches = targetHost.patches.map(patchId =>
-    this.getObject(patchId)
-  )
-  const counterDiff = differenceBy(sourcePatches, targetPatches, 'name')
+  const counterDiff = this.getPatchesDifference(source.master, target.master)
 
   if (counterDiff.length > 0) {
     throw new Error('host has patches that are not applied on target pool')
   }
 
-  const diff = differenceBy(targetPatches, sourcePatches, 'name')
+  const diff = this.getPatchesDifference(target.master, source.master)
 
   const xapi = this.getXapi(source)
   await xapi.installPatches({
-    patches: await xapi.findPatches(diff.map(patch => patch.name)),
+    patches: await xapi.findPatches(diff),
   })
 
   await this.mergeXenPools(source._xapiId, target._xapiId, force)
