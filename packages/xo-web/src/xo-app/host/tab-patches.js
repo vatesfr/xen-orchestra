@@ -9,7 +9,7 @@ import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { restartHost, installAllHostPatches, installHostPatch } from 'xo'
+import { restartHost } from 'xo'
 import { isEmpty } from 'lodash'
 
 const MISSING_PATCH_COLUMNS = [
@@ -205,15 +205,6 @@ class XcpPatches extends Component {
   needsRestart: createDoesHostNeedRestart((_, props) => props.host),
 }))
 class XenServerPatches extends Component {
-  _individualActions = [
-    {
-      name: _('patchAction'),
-      level: 'primary',
-      handler: this.props.installPatch,
-      icon: 'host-patch-update',
-    },
-  ]
-
   render() {
     const { host, missingPatches, installAllPatches, hostPatches } = this.props
     const hasMissingPatches = !isEmpty(missingPatches)
@@ -244,7 +235,6 @@ class XenServerPatches extends Component {
             <Col>
               <h3>{_('hostMissingPatches')}</h3>
               <SortedTable
-                individualActions={this._individualActions}
                 collection={missingPatches}
                 columns={MISSING_PATCH_COLUMNS}
               />
@@ -270,30 +260,14 @@ export default class TabPatches extends Component {
     router: PropTypes.object,
   }
 
-  _chooseActionPatch = async doInstall => {
-    const choice = await chooseAction({
-      body: <p>{_('installPatchWarningContent')}</p>,
-      buttons: [
-        {
-          label: _('installPatchWarningResolve'),
-          value: 'install',
-          btnStyle: 'primary',
-        },
-        { label: _('installPatchWarningReject'), value: 'goToPool' },
-      ],
-      title: _('installPatchWarningTitle'),
-    })
-
-    return choice === 'install'
-      ? doInstall()
-      : this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
-  }
-
   _installAllPatches = () =>
-    this._chooseActionPatch(() => installAllHostPatches(this.props.host))
-
-  _installPatch = patch =>
-    this._chooseActionPatch(() => installHostPatch(this.props.host, patch))
+    chooseAction({
+      body: <p>{_('installAllPatchesContent')}</p>,
+      buttons: [{ label: _('installAllPatchesRedirect'), value: 'goToPool' }],
+      title: _('installAllPatchesTitle'),
+    }).then(() =>
+      this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
+    )
 
   render() {
     if (process.env.XOA_PLAN < 2) {
@@ -306,14 +280,10 @@ export default class TabPatches extends Component {
     if (this.props.missingPatches === null) {
       return <em>{_('updatePluginNotInstalled')}</em>
     }
-    return this.props.host.productBrand === 'XCP-ng' ? (
-      <XcpPatches {...this.props} installAllPatches={this._installAllPatches} />
-    ) : (
-      <XenServerPatches
-        {...this.props}
-        installAllPatches={this._installAllPatches}
-        installPatch={this._installPatch}
-      />
+    const Patches =
+      this.props.host.productBrand === 'XCP-ng' ? XcpPatches : XenServerPatches
+    return (
+      <Patches {...this.props} installAllPatches={this._installAllPatches} />
     )
   }
 }

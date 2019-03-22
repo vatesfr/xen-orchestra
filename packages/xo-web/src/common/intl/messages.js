@@ -884,11 +884,9 @@ const messages = {
   hostAppliedPatches: 'Applied patches',
   hostMissingPatches: 'Missing patches',
   hostUpToDate: 'Host up-to-date!',
-  installPatchWarningTitle: 'Non-recommended patch install',
-  installPatchWarningContent:
-    'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
-  installPatchWarningReject: 'Go to pool',
-  installPatchWarningResolve: 'Install',
+  installAllPatchesTitle: 'Install all patches',
+  installAllPatchesContent: 'To install all patches go to pool.',
+  installAllPatchesRedirect: 'Go to pool',
   patchRelease: 'Release',
   updatePluginNotInstalled:
     'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',

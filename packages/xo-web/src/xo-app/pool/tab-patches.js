@@ -189,7 +189,7 @@ export default class TabPatches extends Component {
     if (process.env.XOA_PLAN < 2) {
       return (
         <Container>
-          <Upgrade place='hostPatches' available={2} />
+          <Upgrade place='poolPatches' required={2} />
         </Container>
       )
     }
