@@ -774,13 +774,23 @@ export const installHostPatch = (host, { uuid }) =>
     patches: [uuid],
   })::tap(() => subscribeHostMissingPatches.forceRefresh(host))
 
+export const installPoolPatch = ({ uuid }) =>
+  _call('pool.installPatches', {
+    patches: [uuid],
+  })::tap(() => subscribeHostMissingPatches.forceRefresh())
+
+export const installPoolPatches = patches =>
+  _call('pool.installPatches', {
+    patches: resolveIds(patches),
+  })::tap(() => subscribeHostMissingPatches.forceRefresh())
+
 export const installAllHostPatches = host =>
   _call('pool.installPatches', { hosts: [resolveId(host)] })::tap(() =>
     subscribeHostMissingPatches.forceRefresh(host)
   )
 
 import InstallPoolPatchesModalBody from './install-pool-patches-modal' // eslint-disable-line import/first
-export const installAllPatchesOnPool = pool => {
+export const installAllPatchesOnPool = ({ pool }) => {
   const poolId = resolveId(pool)
   return confirm({
     body: <InstallPoolPatchesModalBody pool={poolId} />,
