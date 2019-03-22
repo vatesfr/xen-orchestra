@@ -115,7 +115,9 @@ class HostsPatchesTable extends Component {
       pools[host.$pool] = true
     })
 
-    return Promise.all(map(keys(pools), installAllPatchesOnPool))
+    return Promise.all(
+      map(keys(pools), pool => installAllPatchesOnPool({ pool }))
+    )
   }
 
   componentDidMount() {
