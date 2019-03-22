@@ -174,17 +174,17 @@ export async function mergeInto({ source, target, force }) {
   }
 
   const counterDiff = this.getPatchesDifference(source.master, target.master)
-
   if (counterDiff.length > 0) {
     throw new Error('host has patches that are not applied on target pool')
   }
 
   const diff = this.getPatchesDifference(target.master, source.master)
-
-  const xapi = this.getXapi(source)
-  await xapi.installPatches({
-    patches: await xapi.findPatches(diff),
-  })
+  if (diff.length > 0) {
+    const xapi = this.getXapi(source)
+    await xapi.installPatches({
+      patches: await xapi.findPatches(diff),
+    })
+  }
 
   await this.mergeXenPools(source._xapiId, target._xapiId, force)
 }
