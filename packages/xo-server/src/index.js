@@ -573,6 +573,9 @@ const setUpConsoleProxy = (webServer, xo) => {
         proxyConsole(connection, vmConsole, xapi.sessionId)
       })
     } catch (error) {
+      try {
+        socket.end()
+      } catch (_) {}
       console.error((error && error.stack) || error)
     }
   })
