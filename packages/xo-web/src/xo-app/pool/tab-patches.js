@@ -51,8 +51,8 @@ const MISSING_PATCH_COLUMNS = [
 
 const ACTIONS = [
   {
-    handler: installPoolPatches,
-    individualHandler: installPoolPatch,
+    handler: (patches, { pool }) => installPoolPatches(patches, pool),
+    individualHandler: (patch, { pool }) => installPoolPatch(patch, pool),
     individualLabel: _('installPoolPatch'),
     icon: 'host-patch-update',
     label: _('installPoolPatches'),
@@ -235,6 +235,7 @@ export default class TabPatches extends Component {
                   actions={ACTIONS}
                   collection={missingPatches}
                   columns={MISSING_PATCH_COLUMNS}
+                  data-pool={pool}
                 />
               </Col>
             </Row>

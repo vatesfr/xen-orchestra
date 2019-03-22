@@ -774,13 +774,15 @@ export const installHostPatch = (host, { uuid }) =>
     patches: [uuid],
   })::tap(() => subscribeHostMissingPatches.forceRefresh(host))
 
-export const installPoolPatch = ({ uuid }) =>
+export const installPoolPatch = ({ uuid }, pool) =>
   _call('pool.installPatches', {
+    pool: resolveId(pool),
     patches: [uuid],
   })::tap(() => subscribeHostMissingPatches.forceRefresh())
 
-export const installPoolPatches = patches =>
+export const installPoolPatches = (patches, pool) =>
   _call('pool.installPatches', {
+    pool: resolveId(pool),
     patches: resolveIds(patches),
   })::tap(() => subscribeHostMissingPatches.forceRefresh())
 

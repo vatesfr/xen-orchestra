@@ -81,27 +81,9 @@ export default class {
     return handler
   }
 
-  async testRemote(remoteId) {
-    const handler = await this.getRemoteHandler(remoteId)
-    const { readRate, writeRate, ...answer } = await handler.test()
-
-    if (answer.success) {
-      const benchmark = {
-        readRate,
-        timestamp: Date.now(),
-        writeRate,
-      }
-      const remote = await this._getRemote(remoteId)
-
-      await this._updateRemote(remoteId, {
-        benchmarks:
-          remote.benchmarks !== undefined
-            ? [...remote.benchmarks.slice(-49), benchmark] // store 50 benchmarks
-            : [benchmark],
-      })
-    }
-
-    return answer
+  async testRemote(remote) {
+    const handler = await this.getRemoteHandler(remote)
+    return handler.test()
   }
 
   async getAllRemotesInfo() {
@@ -168,19 +150,12 @@ export default class {
   }
 
   @synchronized()
-  async _updateRemote(id, { benchmarks, url, ...props }) {
+  async _updateRemote(id, { url, ...props }) {
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values
     if (typeof url === 'string') {
       remote.url = format(sensitiveValues.merge(parse(url), parse(remote.url)))
-    }
-
-    if (
-      benchmarks !== undefined ||
-      (benchmarks = remote.benchmarks) !== undefined
-    ) {
-      remote.benchmarks = JSON.stringify(benchmarks)
     }
 
     patch(remote, props)

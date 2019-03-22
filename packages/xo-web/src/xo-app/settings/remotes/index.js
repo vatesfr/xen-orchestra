@@ -6,16 +6,9 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import {
-  addSubscriptions,
-  formatSize,
-  formatSpeed,
-  generateRandomId,
-  noop,
-} from 'utils'
+import { addSubscriptions, formatSize, generateRandomId, noop } from 'utils'
 import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
-import { get } from '@xen-orchestra/defined'
 import { groupBy, map, isEmpty } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
@@ -84,7 +77,7 @@ const COLUMN_STATE = {
   name: _('remoteState'),
 }
 const COLUMN_DISK = {
-  itemRenderer: remote =>
+  itemRenderer: (remote, { formatMessage }) =>
     remote.info !== undefined &&
     remote.info.used !== undefined &&
     remote.info.size !== undefined && (
@@ -93,28 +86,6 @@ const COLUMN_DISK = {
       </span>
     ),
   name: _('remoteDisk'),
-}
-const COLUMN_SPEED = {
-  itemRenderer: remote => {
-    const benchmark = get(() => remote.benchmarks[remote.benchmarks.length - 1])
-
-    return (
-      benchmark !== undefined && (
-        <span>{`${formatSpeed(benchmark.writeRate, 1e3)} / ${formatSpeed(
-          benchmark.readRate,
-          1e3
-        )}`}</span>
-      )
-    )
-  },
-  name: (
-    <span>
-      {_('remoteSpeed')}{' '}
-      <Tooltip content={_('remoteSpeedInfo')}>
-        <Icon icon='info' size='lg' />
-      </Tooltip>
-    </span>
-  ),
 }
 
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
@@ -134,7 +105,6 @@ const COLUMNS_LOCAL_REMOTE = [
   },
   COLUMN_STATE,
   COLUMN_DISK,
-  COLUMN_SPEED,
 ]
 const COLUMNS_NFS_REMOTE = [
   COLUMN_NAME,
@@ -196,7 +166,6 @@ const COLUMNS_NFS_REMOTE = [
   },
   COLUMN_STATE,
   COLUMN_DISK,
-  COLUMN_SPEED,
 ]
 const COLUMNS_SMB_REMOTE = [
   COLUMN_NAME,
@@ -253,7 +222,6 @@ const COLUMNS_SMB_REMOTE = [
     ),
     name: _('remoteAuth'),
   },
-  COLUMN_SPEED,
 ]
 
 const GROUPED_ACTIONS = [
@@ -350,57 +318,56 @@ export default decorate([
     },
   }),
   injectState,
-  ({ state, effects, remotes = {}, intl: { formatMessage } }) =>
-    console.log(remotes) || (
-      <div>
-        {!isEmpty(state.remoteWithInfo.file) && (
-          <div>
-            <h2>{_('remoteTypeLocal')}</h2>
-            <SortedTable
-              collection={state.remoteWithInfo.file}
-              columns={COLUMNS_LOCAL_REMOTE}
-              data-editRemote={effects.editRemote}
-              data-formatMessage={formatMessage}
-              filters={FILTERS}
-              groupedActions={GROUPED_ACTIONS}
-              individualActions={INDIVIDUAL_ACTIONS}
-              stateUrlParam='l'
-            />
-          </div>
-        )}
+  ({ state, effects, remotes = {}, intl: { formatMessage } }) => (
+    <div>
+      {!isEmpty(state.remoteWithInfo.file) && (
+        <div>
+          <h2>{_('remoteTypeLocal')}</h2>
+          <SortedTable
+            collection={state.remoteWithInfo.file}
+            columns={COLUMNS_LOCAL_REMOTE}
+            data-editRemote={effects.editRemote}
+            data-formatMessage={formatMessage}
+            filters={FILTERS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='l'
+          />
+        </div>
+      )}
 
-        {!isEmpty(state.remoteWithInfo.nfs) && (
-          <div>
-            <h2>{_('remoteTypeNfs')}</h2>
-            <SortedTable
-              collection={state.remoteWithInfo.nfs}
-              columns={COLUMNS_NFS_REMOTE}
-              data-editRemote={effects.editRemote}
-              data-formatMessage={formatMessage}
-              filters={FILTERS}
-              groupedActions={GROUPED_ACTIONS}
-              individualActions={INDIVIDUAL_ACTIONS}
-              stateUrlParam='nfs'
-            />
-          </div>
-        )}
+      {!isEmpty(state.remoteWithInfo.nfs) && (
+        <div>
+          <h2>{_('remoteTypeNfs')}</h2>
+          <SortedTable
+            collection={state.remoteWithInfo.nfs}
+            columns={COLUMNS_NFS_REMOTE}
+            data-editRemote={effects.editRemote}
+            data-formatMessage={formatMessage}
+            filters={FILTERS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='nfs'
+          />
+        </div>
+      )}
 
-        {!isEmpty(state.remoteWithInfo.smb) && (
-          <div>
-            <h2>{_('remoteTypeSmb')}</h2>
-            <SortedTable
-              collection={state.remoteWithInfo.smb}
-              columns={COLUMNS_SMB_REMOTE}
-              data-editRemote={effects.editRemote}
-              data-formatMessage={formatMessage}
-              filters={FILTERS}
-              groupedActions={GROUPED_ACTIONS}
-              individualActions={INDIVIDUAL_ACTIONS}
-              stateUrlParam='smb'
-            />
-          </div>
-        )}
-        <Remote formatMessage={formatMessage} key={state.formKey} />
-      </div>
-    ),
+      {!isEmpty(state.remoteWithInfo.smb) && (
+        <div>
+          <h2>{_('remoteTypeSmb')}</h2>
+          <SortedTable
+            collection={state.remoteWithInfo.smb}
+            columns={COLUMNS_SMB_REMOTE}
+            data-editRemote={effects.editRemote}
+            data-formatMessage={formatMessage}
+            filters={FILTERS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='smb'
+          />
+        </div>
+      )}
+      <Remote formatMessage={formatMessage} key={state.formKey} />
+    </div>
+  ),
 ])

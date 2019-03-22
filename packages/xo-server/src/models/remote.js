@@ -14,10 +14,6 @@ export class Remotes extends Collection {
   async get(properties) {
     const remotes = await super.get(properties)
     forEach(remotes, remote => {
-      remote.benchmarks =
-        remote.benchmarks !== undefined
-          ? JSON.parse(remote.benchmarks)
-          : undefined
       remote.enabled = remote.enabled === 'true'
     })
     return remotes
