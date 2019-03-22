@@ -86,14 +86,14 @@ export default class {
     for (const provider of this._providers) {
       try {
         // A provider can return:
-        // - `null` if the user could not be authenticated
+        // - `undefined`/`null` if the user could not be authenticated
         // - the identifier of the authenticated user
         // - an object with a property `username` containing the name
         //   of the authenticated user
         const result = await provider(credentials)
 
         // No match.
-        if (!result) {
+        if (result == null) {
           continue
         }
 
@@ -104,7 +104,7 @@ export default class {
         // DEPRECATED: Authentication providers may just throw `null`
         // to indicate they could not authenticate the user without
         // any special errors.
-        if (error) log.error(error)
+        if (error !== null) log.error(error)
       }
     }
   }
