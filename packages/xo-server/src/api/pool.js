@@ -173,10 +173,9 @@ export async function mergeInto({ source, target, force }) {
   const diff = differenceBy(targetPatches, sourcePatches, 'name')
 
   const xapi = this.getXapi(source)
-  await xapi.installPatches(
-    await xapi.findPatches(diff.map(patch => patch.name)),
-    sourceHost._xapiId
-  )
+  await xapi.installPatches({
+    patches: await xapi.findPatches(diff.map(patch => patch.name)),
+  })
 
   await this.mergeXenPools(source._xapiId, target._xapiId, force)
 }
