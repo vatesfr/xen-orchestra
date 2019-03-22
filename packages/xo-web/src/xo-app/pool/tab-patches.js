@@ -130,6 +130,64 @@ const INDIVIDUAL_ACTIONS_XCP = [
   },
 ]
 
+const INSTALLED_PATCH_COLUMNS = [
+  {
+    name: _('patchNameLabel'),
+    itemRenderer: ({ poolPatch }) => poolPatch.name,
+    sortCriteria: ({ poolPatch }) => poolPatch.name,
+  },
+  {
+    name: _('patchDescription'),
+    itemRenderer: ({ poolPatch }) => poolPatch.description,
+    sortCriteria: ({ poolPatch }) => poolPatch.description,
+  },
+  {
+    default: true,
+    name: _('patchApplied'),
+    itemRenderer: patch => {
+      const time = patch.time * 1000
+      return (
+        <span>
+          <FormattedTime
+            value={time}
+            day='numeric'
+            month='long'
+            year='numeric'
+          />{' '}
+          (<FormattedRelative value={time} />)
+        </span>
+      )
+    },
+    sortCriteria: 'time',
+    sortOrder: 'desc',
+  },
+  {
+    name: _('patchSize'),
+    itemRenderer: ({ poolPatch }) => formatSize(poolPatch.size),
+    sortCriteria: ({ poolPatch }) => poolPatch.size,
+  },
+]
+
+// support for software_version.platform_version ^2.1.1
+const INSTALLED_PATCH_COLUMNS_2 = [
+  {
+    default: true,
+    name: _('patchNameLabel'),
+    itemRenderer: _ => _.name,
+    sortCriteria: 'name',
+  },
+  {
+    name: _('patchDescription'),
+    itemRenderer: _ => _.description,
+    sortCriteria: 'description',
+  },
+  {
+    name: _('patchSize'),
+    itemRenderer: _ => formatSize(_.size),
+    sortCriteria: 'size',
+  },
+]
+
 export default class TabPatches extends Component {
   state = { missingPatches: [] }
 
@@ -151,6 +209,11 @@ export default class TabPatches extends Component {
     }
 
     const { missingPatches } = this.state
+    const {
+      pool,
+      master: { patches, productBrand },
+    } = this.props
+
     return (
       <Container>
         <Row>
@@ -168,7 +231,7 @@ export default class TabPatches extends Component {
         <Row>
           <Col>
             <h3>{_('hostMissingPatches')}</h3>
-            {this.props.master.productBrand === 'XCP-ng' ? (
+            {productBrand === 'XCP-ng' ? (
               <SortedTable
                 columns={MISSING_PATCH_COLUMNS_XCP}
                 collection={missingPatches}
@@ -181,6 +244,15 @@ export default class TabPatches extends Component {
                 columns={MISSING_PATCH_COLUMNS}
               />
             )}
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <h3>{_('hostAppliedPatches')}</h3>
+            <SortedTable
+              collection={patches}
+              columns={INSTALLED_PATCH_COLUMNS_2}
+            />
           </Col>
         </Row>
       </Container>
