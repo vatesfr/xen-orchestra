@@ -1,15 +1,11 @@
 import { deprecate } from 'util'
 
 import { getUserPublicProperties } from '../utils'
-import { invalidCredentials } from 'xo-common/api-errors'
 
 // ===================================================================
 
 export async function signIn(credentials) {
   const user = await this.authenticateUser(credentials)
-  if (!user) {
-    throw invalidCredentials()
-  }
   this.session.set('user_id', user.id)
 
   return getUserPublicProperties(user)

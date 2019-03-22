@@ -1,6 +1,6 @@
 import createLogger from '@xen-orchestra/log'
-import { noSuchObject } from 'xo-common/api-errors'
 import { ignoreErrors } from 'promise-toolbox'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 
 import parseDuration from '../_parseDuration'
 import Token, { Tokens } from '../models/token'
@@ -107,8 +107,6 @@ export default class {
         if (error) log.error(error)
       }
     }
-
-    return false
   }
 
   async authenticateUser(credentials) {
@@ -138,14 +136,14 @@ export default class {
       throw new Error('too fast authentication tries')
     }
 
-    const user = await this._authenticateUser(credentials)
-    if (user) {
-      delete failures[username]
-    } else {
+    const result = await this._authenticateUser(credentials)
+    if (result === undefined) {
       failures[username] = now
+      throw invalidCredentials()
     }
 
-    return user
+    delete failures[username]
+    return result
   }
 
   // -----------------------------------------------------------------
