@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
@@ -457,6 +458,9 @@ export default class Scheduler extends Component {
 
     return (
       <div className='card-block'>
+        <em>
+          <Icon icon='info' /> {_('scheduleDSTWarning')}
+        </em>
         <Row>
           <Col largeSize={6}>
             <TimePicker
