@@ -175,14 +175,17 @@ export async function mergeInto({ source, target, force }) {
 
   const counterDiff = this.getPatchesDifference(source.master, target.master)
   if (counterDiff.length > 0) {
-    throw new Error('host has patches that are not applied on target pool')
+    const targetXapi = this.getXapi(target)
+    await targetXapi.installPatches({
+      patches: await targetXapi.findPatches(counterDiff),
+    })
   }
 
   const diff = this.getPatchesDifference(target.master, source.master)
   if (diff.length > 0) {
-    const xapi = this.getXapi(source)
-    await xapi.installPatches({
-      patches: await xapi.findPatches(diff),
+    const sourceXapi = this.getXapi(source)
+    await sourceXapi.installPatches({
+      patches: await sourceXapi.findPatches(diff),
     })
   }
 
