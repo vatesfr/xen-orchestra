@@ -637,10 +637,6 @@ const TRANSFORMS = {
       guidance: poolPatch.after_apply_guidance,
       time: toTimestamp(obj.timestamp_applied),
 
-      // TODO: what does it mean, always empty?
-      // name: obj.name_label,
-      // description: obj.name_description,
-
       $host: link(obj, 'host'),
     }
   },
