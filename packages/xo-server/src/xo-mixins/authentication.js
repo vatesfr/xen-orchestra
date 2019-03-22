@@ -1,27 +1,26 @@
 import createLogger from '@xen-orchestra/log'
-import ms from 'ms'
 import { noSuchObject } from 'xo-common/api-errors'
 import { ignoreErrors } from 'promise-toolbox'
 
+import parseDuration from '../_parseDuration'
 import Token, { Tokens } from '../models/token'
 import { forEach, generateToken } from '../utils'
 
 // ===================================================================
+
 const log = createLogger('xo:authentification')
 
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
-const ONE_MONTH = 1e3 * 60 * 60 * 24 * 30
-
 export default class {
-  constructor(xo) {
+  constructor(xo, config) {
+    this._config = config.authentication
+    this._providers = new Set()
     this._xo = xo
 
     // Store last failures by user to throttle tries (slow bruteforce
     // attacks).
     this._failures = { __proto__: null }
-
-    this._providers = new Set()
 
     // Creates persistent collections.
     const tokensDb = (this._tokens = new Tokens({
@@ -151,13 +150,19 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken({ expiresIn = ONE_MONTH, userId }) {
+  async createAuthenticationToken({
+    expiresIn = this._config.defaultTokenValidity,
+    userId,
+  }) {
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
       expiration:
         Date.now() +
-        (typeof expiresIn === 'string' ? ms(expiresIn) : expiresIn),
+        Math.min(
+          parseDuration(expiresIn),
+          parseDuration(this._config.maxTokenValidity)
+        ),
     })
 
     await this._tokens.add(token)

@@ -21,6 +21,10 @@ verboseApiLogsOnErrors = false
 [apiWebSocketOptions]
 perMessageDeflate = { threshold = 524288 } # 512kiB
 
+[authentication]
+defaultTokenValidity = '30 days'
+maxTokenValidity = '0.5 year'
+
 [[http.listen]]
 port = 80
 
