@@ -194,11 +194,13 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
       userId: user.id,
     })
 
-    res.cookie('token', token.id, {
+    res.cookie(
+      'token',
+      token.id,
       // a session (non-permanent) cookie must not have a max age because it
       // must not survive browser restart
-      maxAge: isPersistent ? Math.floor(token.expiration / 1e3) : undefined,
-    })
+      isPersistent ? { maxAge: Math.floor(token.expiration / 1e3) } : undefined
+    )
 
     delete req.session.isPersistent
     delete req.session.user
