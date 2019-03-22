@@ -5,7 +5,8 @@ import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
 import { alert } from 'modal'
 import { Col, Container, Row } from 'grid'
-import { formatSize } from 'utils'
+import { connectStore, formatSize } from 'utils'
+import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import {
   installAllPatchesOnPool,
@@ -133,13 +134,13 @@ const INDIVIDUAL_ACTIONS_XCP = [
 const INSTALLED_PATCH_COLUMNS = [
   {
     name: _('patchNameLabel'),
-    itemRenderer: ({ poolPatch }) => poolPatch.name,
-    sortCriteria: ({ poolPatch }) => poolPatch.name,
+    itemRenderer: _ => _.name,
+    sortCriteria: 'name',
   },
   {
     name: _('patchDescription'),
-    itemRenderer: ({ poolPatch }) => poolPatch.description,
-    sortCriteria: ({ poolPatch }) => poolPatch.description,
+    itemRenderer: _ => _.description,
+    sortCriteria: 'description',
   },
   {
     default: true,
@@ -163,31 +164,16 @@ const INSTALLED_PATCH_COLUMNS = [
   },
   {
     name: _('patchSize'),
-    itemRenderer: ({ poolPatch }) => formatSize(poolPatch.size),
-    sortCriteria: ({ poolPatch }) => poolPatch.size,
-  },
-]
-
-// support for software_version.platform_version ^2.1.1
-const INSTALLED_PATCH_COLUMNS_2 = [
-  {
-    default: true,
-    name: _('patchNameLabel'),
-    itemRenderer: _ => _.name,
-    sortCriteria: 'name',
-  },
-  {
-    name: _('patchDescription'),
-    itemRenderer: _ => _.description,
-    sortCriteria: 'description',
-  },
-  {
-    name: _('patchSize'),
     itemRenderer: _ => formatSize(_.size),
     sortCriteria: 'size',
   },
 ]
 
+@connectStore({
+  hostPatches: createGetObjectsOfType('patch').pick(
+    (_, { master }) => master.patches
+  ),
+})
 export default class TabPatches extends Component {
   state = { missingPatches: [] }
 
@@ -210,8 +196,9 @@ export default class TabPatches extends Component {
 
     const { missingPatches } = this.state
     const {
+      hostPatches,
       pool,
-      master: { patches, productBrand },
+      master: { productBrand },
     } = this.props
 
     return (
@@ -220,7 +207,7 @@ export default class TabPatches extends Component {
           <Col className='text-xs-right'>
             <TabButton
               btnStyle='primary'
-              data-pool={this.props.pool}
+              data-pool={pool}
               disabled={isEmpty(missingPatches)}
               handler={installAllPatchesOnPool}
               icon='host-patch-update'
@@ -228,33 +215,40 @@ export default class TabPatches extends Component {
             />
           </Col>
         </Row>
-        <Row>
-          <Col>
-            <h3>{_('hostMissingPatches')}</h3>
-            {productBrand === 'XCP-ng' ? (
+        {productBrand === 'XCP-ng' ? (
+          <Row>
+            <Col>
+              <h3>{_('hostMissingPatches')}</h3>
               <SortedTable
                 columns={MISSING_PATCH_COLUMNS_XCP}
                 collection={missingPatches}
                 individualActions={INDIVIDUAL_ACTIONS_XCP}
               />
-            ) : (
-              <SortedTable
-                actions={ACTIONS}
-                collection={missingPatches}
-                columns={MISSING_PATCH_COLUMNS}
-              />
-            )}
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <h3>{_('hostAppliedPatches')}</h3>
-            <SortedTable
-              collection={patches}
-              columns={INSTALLED_PATCH_COLUMNS_2}
-            />
-          </Col>
-        </Row>
+            </Col>
+          </Row>
+        ) : (
+          <Container>
+            <Row>
+              <Col>
+                <h3>{_('hostMissingPatches')}</h3>
+                <SortedTable
+                  actions={ACTIONS}
+                  collection={missingPatches}
+                  columns={MISSING_PATCH_COLUMNS}
+                />
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <h3>{_('hostAppliedPatches')}</h3>
+                <SortedTable
+                  collection={hostPatches}
+                  columns={INSTALLED_PATCH_COLUMNS}
+                />
+              </Col>
+            </Row>
+          </Container>
+        )}
       </Container>
     )
   }
