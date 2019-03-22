@@ -31,7 +31,7 @@ maxTokenValidity = '0.5 year'
 #sessionCookieValidity = '10 hours'
 
 # Default to `maxTokenValidity`
-#permanentCookieValidity = '1 month'
+#permanentCookieValidity = '30 days'
 
 [[http.listen]]
 port = 80
