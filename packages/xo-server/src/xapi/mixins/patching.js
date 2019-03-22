@@ -27,6 +27,7 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 //    _listInstalledPatches    XS installed patches on the host - Map of Booleans
 //    _listInstallablePatches  XS (host, requested patches) → sorted patches that are not installed and not conflicting - Array of Objects
 //    listMissingPatches       HL: installable patches (XS) or updates (XCP) - Array of Objects
+//    findPatches              HL: get XS patches objects from names
 // # INSTALL
 //    _xcpUpdate               XCP yum update
 //    _legacyUploadPatch       XS legacy upload
@@ -300,6 +301,18 @@ export default {
     return _isXcp(host)
       ? this._listXcpUpdates(host)
       : this._listInstallablePatches(host)
+  },
+
+  // convenient method to find which patches should be installed from a
+  // list of patch names
+  // e.g.: compare the installed patches of 2 hosts by their
+  // names (XS..E...) then find the patches global ID
+  // [ names ] → [ IDs ]
+  async findPatches(names) {
+    const all = await this._listPatches(this.pool.$master)
+    return filter(all, patch => names.includes(patch.name)).map(
+      patch => patch.id
+    )
   },
 
   // INSTALL -------------------------------------------------------------------

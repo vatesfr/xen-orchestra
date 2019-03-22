@@ -1,6 +1,5 @@
 import { format } from 'json-rpc-peer'
 import { differenceBy } from 'lodash'
-import { mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -159,8 +158,12 @@ export async function mergeInto({ source, target, force }) {
     )
   }
 
-  const sourcePatches = sourceHost.patches
-  const targetPatches = targetHost.patches
+  const sourcePatches = sourceHost.patches.map(patchId =>
+    this.getObject(patchId)
+  )
+  const targetPatches = targetHost.patches.map(patchId =>
+    this.getObject(patchId)
+  )
   const counterDiff = differenceBy(sourcePatches, targetPatches, 'name')
 
   if (counterDiff.length > 0) {
@@ -169,9 +172,9 @@ export async function mergeInto({ source, target, force }) {
 
   const diff = differenceBy(targetPatches, sourcePatches, 'name')
 
-  // TODO: compare UUIDs
-  await this.getXapi(source).installSpecificPatchesOnHost(
-    mapToArray(diff, 'name'),
+  const xapi = this.getXapi(source)
+  await xapi.installPatches(
+    await xapi.findPatches(diff.map(patch => patch.name)),
     sourceHost._xapiId
   )
 
