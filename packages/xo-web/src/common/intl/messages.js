@@ -539,6 +539,7 @@ const messages = {
   remoteSmbPlaceHolderPassword: 'Password',
   remoteSmbPlaceHolderDomain: 'Domain',
   remoteSmbPlaceHolderAddressShare: '<address>\\\\<share> *',
+  remoteSmbPlaceHolderOptions: 'Custom mount options',
   remotePlaceHolderPassword: 'password(fill to edit)',
 
   // ------ New Storage -----

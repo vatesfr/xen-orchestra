@@ -300,6 +300,19 @@ export default decorate([
                   value={domain}
                 />
               </div>
+              <div className='input-group form-group'>
+                <span className='input-group-addon'>-o</span>
+                <input
+                  className='form-control'
+                  name='options'
+                  onChange={effects.linkState}
+                  placeholder={formatMessage(
+                    messages.remoteSmbPlaceHolderOptions
+                  )}
+                  type='text'
+                  value={options}
+                />
+              </div>
             </fieldset>
           )}
           <div className='form-group'>
