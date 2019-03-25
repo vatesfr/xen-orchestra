@@ -321,7 +321,7 @@ export default class XapiStats {
     const optimumTimestamp = currentTimeStamp - maxDuration + step
     const json = await this._getJson(xapi, host, optimumTimestamp, step)
 
-    const gotStep = json.meta.step
+    const actualStep = json.meta.step
     if (json.data.length > 0) {
       // got data are organized from the recent to the oldest
       json.data.reverse()
@@ -341,14 +341,14 @@ export default class XapiStats {
         }
 
         const xoObjectStats = createGetProperty(this._statsByObject, uuid, {})
-        let stepStats = xoObjectStats[gotStep]
+        let stepStats = xoObjectStats[actualStep]
         if (
           stepStats === undefined ||
           stepStats.endTimestamp !== json.meta.end
         ) {
-          stepStats = xoObjectStats[gotStep] = {
+          stepStats = xoObjectStats[actualStep] = {
             endTimestamp: json.meta.end,
-            interval: gotStep,
+            interval: actualStep,
           }
         }
 
@@ -374,9 +374,9 @@ export default class XapiStats {
       })
     }
 
-    if (gotStep !== step) {
+    if (actualStep !== step) {
       throw new FaultyGranularity(
-        `Unable to get the true granularity: ${gotStep}`
+        `Unable to get the true granularity: ${actualStep}`
       )
     }
 
