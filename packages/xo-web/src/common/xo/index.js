@@ -69,6 +69,9 @@ export const isVmRunning = vm => vm && vm.power_state === 'Running'
 // ===================================================================
 
 export const signOut = () => {
+  // prevent automatic reconnection
+  xo.removeListener('closed', connect)
+
   cookies.expire('token')
   window.location.reload(true)
 }

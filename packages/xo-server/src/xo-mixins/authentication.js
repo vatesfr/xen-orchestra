@@ -1,6 +1,6 @@
 import createLogger from '@xen-orchestra/log'
-import { noSuchObject } from 'xo-common/api-errors'
 import { ignoreErrors } from 'promise-toolbox'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 
 import parseDuration from '../_parseDuration'
 import Token, { Tokens } from '../models/token'
@@ -86,14 +86,14 @@ export default class {
     for (const provider of this._providers) {
       try {
         // A provider can return:
-        // - `null` if the user could not be authenticated
+        // - `undefined`/`null` if the user could not be authenticated
         // - the identifier of the authenticated user
         // - an object with a property `username` containing the name
         //   of the authenticated user
         const result = await provider(credentials)
 
         // No match.
-        if (!result) {
+        if (result == null) {
           continue
         }
 
@@ -104,11 +104,9 @@ export default class {
         // DEPRECATED: Authentication providers may just throw `null`
         // to indicate they could not authenticate the user without
         // any special errors.
-        if (error) log.error(error)
+        if (error !== null) log.error(error)
       }
     }
-
-    return false
   }
 
   async authenticateUser(credentials) {
@@ -138,14 +136,14 @@ export default class {
       throw new Error('too fast authentication tries')
     }
 
-    const user = await this._authenticateUser(credentials)
-    if (user) {
-      delete failures[username]
-    } else {
+    const result = await this._authenticateUser(credentials)
+    if (result === undefined) {
       failures[username] = now
+      throw invalidCredentials()
     }
 
-    return user
+    delete failures[username]
+    return result
   }
 
   // -----------------------------------------------------------------
