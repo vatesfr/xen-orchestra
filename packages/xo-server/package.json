@@ -35,6 +35,7 @@
     "@iarna/toml": "^2.2.1",
     "@xen-orchestra/async-map": "^0.0.0",
     "@xen-orchestra/cron": "^1.0.3",
+    "@xen-orchestra/defined": "^0.0.0",
     "@xen-orchestra/emit-async": "^0.0.0",
     "@xen-orchestra/fs": "^0.7.1",
     "@xen-orchestra/log": "^0.1.4",

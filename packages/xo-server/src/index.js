@@ -15,17 +15,20 @@ import pw from 'pw'
 import serveStatic from 'serve-static'
 import startsWith from 'lodash/startsWith'
 import stoppable from 'stoppable'
+import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
+
 import { compile as compilePug } from 'pug'
 import { createServer as createProxyServer } from 'http-proxy'
 import { fromEvent } from 'promise-toolbox'
+import { ifDef } from '@xen-orchestra/defined'
 import { join as joinPath } from 'path'
 
 import JsonRpcPeer from 'json-rpc-peer'
 import { invalidCredentials } from 'xo-common/api-errors'
 import { ensureDir, readdir, readFile } from 'fs-extra'
 
-import WebServer from 'http-server-plus'
+import parseDuration from './_parseDuration'
 import Xo from './xo'
 import {
   forEach,
@@ -121,7 +124,7 @@ function createExpressApp(config) {
   return app
 }
 
-async function setUpPassport(express, xo) {
+async function setUpPassport(express, xo, { authentication: authCfg }) {
   const strategies = { __proto__: null }
   xo.registerPassportStrategy = strategy => {
     passport.use(strategy)
@@ -179,16 +182,24 @@ async function setUpPassport(express, xo) {
     }
   })
 
+  const PERMANENT_VALIDITY = ifDef(
+    authCfg.permanentCookieValidity,
+    parseDuration
+  )
+  const SESSION_VALIDITY = ifDef(authCfg.sessionCookieValidity, parseDuration)
   const setToken = async (req, res, next) => {
     const { user, isPersistent } = req.session
-    const token = (await xo.createAuthenticationToken({ userId: user.id })).id
+    const token = await xo.createAuthenticationToken({
+      expiresIn: isPersistent ? PERMANENT_VALIDITY : SESSION_VALIDITY,
+      userId: user.id,
+    })
 
-    // Persistent cookie ? => 1 year
-    // Non-persistent : external provider as Github, Twitter...
     res.cookie(
       'token',
-      token,
-      isPersistent ? { maxAge: 1000 * 60 * 60 * 24 * 365 } : undefined
+      token.id,
+      // a session (non-permanent) cookie must not have an expiration date
+      // because it must not survive browser restart
+      isPersistent ? { expires: new Date(token.expiration) } : undefined
     )
 
     delete req.session.isPersistent
@@ -673,7 +684,7 @@ export default async function main(args) {
 
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
-  await setUpPassport(express, xo)
+  await setUpPassport(express, xo, config)
 
   // Attaches express to the web server.
   webServer.on('request', express)
