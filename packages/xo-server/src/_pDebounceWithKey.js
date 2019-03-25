@@ -27,9 +27,12 @@ export default (fn, delay, keyFn = defaultKeyFn) => {
     let promise = cache.get(keys)
     if (promise === undefined) {
       cache.set(keys, (promise = fn.apply(this, arguments)))
-      promise.then(
-        scheduleRemoveCacheEntry.bind(cache, keys, Date.now() + delay)
+      const remove = scheduleRemoveCacheEntry.bind(
+        cache,
+        keys,
+        Date.now() + delay
       )
+      promise.then(remove, remove)
     }
     return promise
   }
