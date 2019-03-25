@@ -1,8 +1,9 @@
 import asyncMap from '@xen-orchestra/async-map'
 import { some } from 'lodash'
 
+import ensureArray from '../_ensureArray'
 import { asInteger } from '../xapi/utils'
-import { ensureArray, forEach, parseXml } from '../utils'
+import { forEach, parseXml } from '../utils'
 
 // ===================================================================
 

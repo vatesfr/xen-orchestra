@@ -12,14 +12,9 @@ import sortBy from 'lodash/sortBy'
 import assign from 'lodash/assign'
 import unzip from 'julien-f-unzip'
 
+import ensureArray from '../../_ensureArray'
 import { debounce } from '../../decorators'
-import {
-  ensureArray,
-  forEach,
-  mapFilter,
-  mapToArray,
-  parseXml,
-} from '../../utils'
+import { forEach, mapFilter, mapToArray, parseXml } from '../../utils'
 
 import { extractOpaqueRef, useUpdateSystem } from '../utils'
 
