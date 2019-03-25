@@ -9,10 +9,10 @@ import {
   createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
-  createGetObject,
 } from 'selectors'
+import { forEach } from 'lodash'
+import { getPatchesDifference } from 'xo'
 import { SelectHost } from 'select-objects'
-import { differenceBy, forEach } from 'lodash'
 
 @connectStore(
   () => ({
@@ -38,16 +38,16 @@ import { differenceBy, forEach } from 'lodash'
         return singleHosts
       })
     ),
-    poolMasterPatches: createSelector(
-      createGetObject((_, props) => props.pool.master),
-      ({ patches }) => patches
-    ),
   }),
   { withRef: true }
 )
 export default class AddHostModal extends BaseComponent {
   get value() {
-    if (process.env.XOA_PLAN < 2 && this.state.nMissingPatches) {
+    const { nHostMissingPatches, nPoolMissingPatches } = this.stat
+    if (
+      process.env.XOA_PLAN < 2 &&
+      (nHostMissingPatches > 0 || nPoolMissingPatches > 0)
+    ) {
       return {}
     }
 
@@ -60,17 +60,26 @@ export default class AddHostModal extends BaseComponent {
   )
 
   _onChangeHost = host => {
-    this.setState({
-      host,
-      nMissingPatches: host
-        ? differenceBy(this.props.poolMasterPatches, host.patches, 'name')
-            .length
-        : undefined,
-    })
+    if (host === undefined) {
+      return
+    }
+    const { master } = this.props.pool
+    getPatchesDifference(master, host.id).then(missingPatches =>
+      this.setState({
+        host,
+        nHostMissingPatches: missingPatches.length,
+      })
+    )
+
+    getPatchesDifference(host.id, master).then(missingPatches =>
+      this.setState({
+        nPoolMissingPatches: missingPatches.length,
+      })
+    )
   }
 
   render() {
-    const { nMissingPatches } = this.state
+    const { nHostMissingPatches, nPoolMissingPatches } = this.state
 
     return (
       <div>
@@ -85,14 +94,27 @@ export default class AddHostModal extends BaseComponent {
           </Col>
         </SingleLineRow>
         <br />
-        {nMissingPatches > 0 && (
+        {(nHostMissingPatches > 0 || nPoolMissingPatches > 0) && (
           <SingleLineRow>
             <Col>
               <span className='text-danger'>
                 <Icon icon='error' />{' '}
-                {process.env.XOA_PLAN > 1
-                  ? _('hostNeedsPatchUpdate', { patches: nMissingPatches })
-                  : _('hostNeedsPatchUpdateNoInstall')}
+                {process.env.XOA_PLAN > 1 ? (
+                  <span>
+                    {_('missingPatchesWarining')}
+                    <br />
+                    {nPoolMissingPatches > 0 &&
+                      _('missingPatchesPool', {
+                        nMissingPatches: nPoolMissingPatches,
+                      })}
+                    {nHostMissingPatches > 0 &&
+                      _('missingPatchesHost', {
+                        nMissingPatches: nHostMissingPatches,
+                      })}
+                  </span>
+                ) : (
+                  _('patchUpdateNoInstall')
+                )}
               </span>
             </Col>
           </SingleLineRow>
