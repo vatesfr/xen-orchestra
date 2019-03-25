@@ -323,7 +323,8 @@ export default class XapiStats {
 
     const actualStep = json.meta.step
     if (json.data.length > 0) {
-      // got data are organized from the recent to the oldest
+      // fetched data is organized from the newest to the oldest
+      // but this implementation requires it in the other direction
       json.data.reverse()
       json.meta.legend.forEach((legend, index) => {
         const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(
