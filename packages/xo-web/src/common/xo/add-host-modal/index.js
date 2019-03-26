@@ -51,7 +51,7 @@ export default class AddHostModal extends BaseComponent {
       return {}
     }
 
-    return this.state
+    return { host: this.state.host }
   }
 
   _getHostPredicate = createSelector(
