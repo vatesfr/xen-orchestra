@@ -5,8 +5,8 @@ class Node {
   }
 }
 
-function del(node, i, n, keys) {
-  if (i === n) {
+function del(node, i, keys) {
+  if (i === keys.length) {
     if (node instanceof Node) {
       node.value = undefined
       return node
@@ -22,7 +22,7 @@ function del(node, i, n, keys) {
   if (child === undefined) {
     return node
   }
-  const newChild = del(child, i + 1, n, keys)
+  const newChild = del(child, i + 1, keys)
   if (newChild === undefined) {
     if (children.size === 1) {
       return node.value
@@ -34,18 +34,18 @@ function del(node, i, n, keys) {
   return node
 }
 
-function get(node, i, n, keys) {
-  return node instanceof Node
-    ? i === n
+function get(node, i, keys) {
+  return i === keys.length
+    ? node instanceof Node
       ? node.value
-      : get(node.children.get(keys[i]), i + 1, n, keys)
-    : i === n
-    ? node
+      : node
+    : node instanceof Node
+    ? get(node.children.get(keys[i]), i + 1, keys)
     : undefined
 }
 
-function set(node, i, n, keys, value) {
-  if (i === n) {
+function set(node, i, keys, value) {
+  if (i === keys.length) {
     if (node instanceof Node) {
       node.value = value
       return node
@@ -55,11 +55,11 @@ function set(node, i, n, keys, value) {
   const key = keys[i]
   if (!(node instanceof Node)) {
     node = new Node(node)
-    node.children.set(key, set(undefined, i + 1, n, keys, value))
+    node.children.set(key, set(undefined, i + 1, keys, value))
   } else {
     const { children } = node
     const child = children.get(key)
-    const newChild = set(child, i + 1, n, keys, value)
+    const newChild = set(child, i + 1, keys, value)
     if (newChild !== child) {
       children.set(key, newChild)
     }
@@ -83,6 +83,5 @@ export default class MultiKeyMap {
 
   set(keys, value) {
     this._root = set(this._root, 0, keys.length, keys, value)
-    return this
   }
 }
