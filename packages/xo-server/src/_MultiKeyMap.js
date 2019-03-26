@@ -74,14 +74,14 @@ export default class MultiKeyMap {
   }
 
   delete(keys) {
-    this._root = del(this._root, 0, keys.length, keys)
+    this._root = del(this._root, 0, keys)
   }
 
   get(keys) {
-    return get(this._root, 0, keys.length, keys)
+    return get(this._root, 0, keys)
   }
 
   set(keys, value) {
-    this._root = set(this._root, 0, keys.length, keys, value)
+    this._root = set(this._root, 0, keys, value)
   }
 }
