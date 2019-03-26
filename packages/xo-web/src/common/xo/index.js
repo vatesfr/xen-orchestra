@@ -556,6 +556,12 @@ export const removeServer = server =>
 export const editPool = (pool, props) =>
   _call('pool.set', { id: resolveId(pool), ...props })
 
+export const getPatchesDifference = (source, target) =>
+  _call('pool.getPatchesDifference', {
+    source: resolveId(source),
+    target: resolveId(target),
+  })
+
 import AddHostModalBody from './add-host-modal' // eslint-disable-line import/first
 export const addHostToPool = (pool, host) => {
   if (host) {
