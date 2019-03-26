@@ -518,7 +518,7 @@ const setUpApi = (webServer, xo, config) => {
 
     // Connect the WebSocket to the JSON-RPC server.
     socket.on('message', message => {
-      const expiration = connection.get('expiration')
+      const expiration = connection.get('expiration', undefined)
       if (expiration !== undefined && expiration < Date.now()) {
         return void connection.close()
       }
