@@ -37,4 +37,17 @@ Object {
 
 exports[`backupNg .runJob() : fails trying to run a backup job with no matching VMs 1`] = `[JsonRpcError: unknown error from the peer]`;
 
+exports[`backupNg .runJob() : fails trying to run a backup job with non-existent vm 1`] = `
+Array [
+  Object {
+    "data": Object {
+      "vms": Array [
+        "non-existent-id",
+      ],
+    },
+    "message": "missingVms",
+  },
+]
+`;
+
 exports[`backupNg .runJob() : fails trying to run a backup job without schedule 1`] = `[JsonRpcError: invalid parameters]`;

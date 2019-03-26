@@ -139,5 +139,35 @@ describe("backupNg", () => {
         xo.call("backupNg.runJob", { id: jobId, schedule: settingKeys[0] })
       ).rejects.toMatchSnapshot();
     });
+
+    it("fails trying to run a backup job with non-existent vm", async () => {
+      const scheduleTempId = randomId();
+      const { id: jobId } = await xo.createTempBackupNgJob({
+        ...defaultBackupNg,
+        schedules: {
+          [scheduleTempId]: {
+            name: "scheduleTest",
+            cron: "0 * * * * *",
+          },
+        },
+        settings: {
+          [scheduleTempId]: { snapshotRetention: 1 },
+        },
+        vms: {
+          id: "non-existent-id",
+        },
+      });
+
+      const backupNgJob = await xo.call("backupNg.getJob", { id: jobId });
+
+      const settingKeys = Object.keys(backupNgJob.settings);
+      expect(settingKeys.length).toBe(1);
+
+      await xo.call("backupNg.runJob", { id: jobId, schedule: settingKeys[0] });
+      const [log] = await xo.call("backupNg.getLogs", {
+        scheduleId: settingKeys[0],
+      });
+      expect(log.warnings).toMatchSnapshot();
+    });
   });
 });
