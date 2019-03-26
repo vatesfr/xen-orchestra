@@ -5,8 +5,16 @@ import { getUserPublicProperties } from '../utils'
 // ===================================================================
 
 export async function signIn(credentials) {
-  const user = await this.authenticateUser(credentials)
-  this.session.set('user_id', user.id)
+  const { session } = this
+
+  const { user, expiration } = await this.authenticateUser(credentials)
+  session.set('user_id', user.id)
+
+  if (expiration === undefined) {
+    session.unset('expiration')
+  } else {
+    session.set('expiration', expiration)
+  }
 
   return getUserPublicProperties(user)
 }
