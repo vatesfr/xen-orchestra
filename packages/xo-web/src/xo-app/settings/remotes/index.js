@@ -99,7 +99,9 @@ const COLUMN_SPEED = {
     const benchmark = get(() => remote.benchmarks[remote.benchmarks.length - 1])
 
     return (
-      benchmark !== undefined && (
+      benchmark !== undefined &&
+      benchmark.readRate !== undefined &&
+      benchmark.writeRate !== undefined && (
         <span>{`${formatSpeed(benchmark.writeRate, 1e3)} / ${formatSpeed(
           benchmark.readRate,
           1e3
