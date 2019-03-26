@@ -761,7 +761,7 @@ const messages = {
   missingPatchesHost:
     'This host needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may be long.',
   patchUpdateNoInstall:
-    'This host cannot be added to the pool because the patches are not homogeneous',
+    'This host cannot be added to the pool because the patches are not homogeneous.',
   addHostErrorTitle: 'Adding host failed',
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',

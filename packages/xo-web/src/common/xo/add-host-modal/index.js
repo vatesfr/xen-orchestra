@@ -60,8 +60,12 @@ export default class AddHostModal extends BaseComponent {
   )
 
   _onChangeHost = async host => {
-    if (host === undefined) {
-      this.setState({})
+    if (host === null) {
+      this.setState({
+        host,
+        nHostMissingPatches: undefined,
+        nPoolMissingPatches: undefined,
+      })
       return
     }
 
@@ -93,35 +97,38 @@ export default class AddHostModal extends BaseComponent {
         </SingleLineRow>
         <br />
         {(nHostMissingPatches > 0 || nPoolMissingPatches > 0) && (
-          <SingleLineRow>
-            <Col>
-              <span className='text-danger'>
-                {process.env.XOA_PLAN > 1 ? (
-                  <span>
-                    {nPoolMissingPatches > 0 && (
-                      <span>
+          <div>
+            {process.env.XOA_PLAN > 1 ? (
+              <div>
+                {nPoolMissingPatches > 0 && (
+                  <SingleLineRow>
+                    <Col>
+                      <span className='text-danger'>
                         <Icon icon='error' />{' '}
                         {_('missingPatchesPool', {
                           nMissingPatches: nPoolMissingPatches,
                         })}
                       </span>
-                    )}
-                    <br />
-                    {nHostMissingPatches > 0 && (
-                      <span>
+                    </Col>
+                  </SingleLineRow>
+                )}
+                {nHostMissingPatches > 0 && (
+                  <SingleLineRow>
+                    <Col>
+                      <span className='text-danger'>
                         <Icon icon='error' />{' '}
                         {_('missingPatchesHost', {
                           nMissingPatches: nHostMissingPatches,
                         })}
                       </span>
-                    )}
-                  </span>
-                ) : (
-                  _('patchUpdateNoInstall')
+                    </Col>
+                  </SingleLineRow>
                 )}
-              </span>
-            </Col>
-          </SingleLineRow>
+              </div>
+            ) : (
+              _('patchUpdateNoInstall')
+            )}
+          </div>
         )}
       </div>
     )
