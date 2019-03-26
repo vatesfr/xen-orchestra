@@ -370,6 +370,7 @@ async function makeWebServerListen(
     ;[opts.cert, opts.key] = await Promise.all([readFile(cert), readFile(key)])
     if (opts.key.includes('ENCRYPTED')) {
       opts.passphrase = await new Promise(resolve => {
+        // eslint-disable-next-line no-console
         console.log('Encrypted key %s', key)
         process.stdout.write(`Enter pass phrase: `)
         pw(resolve)
