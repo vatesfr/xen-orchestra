@@ -49,22 +49,27 @@ export default async function createVhdStreamWithLength(stream) {
   const footerBuffer = await readStream(FOOTER_SIZE)
   const footer = fuFooter.unpack(footerBuffer)
   checkFooter(footer)
+
   const header = fuHeader.unpack(await readStream(HEADER_SIZE))
   checkHeader(header, footer)
-  const bitmapSizeBytes =
-    Math.ceil(header.blockSize / 8 / SECTOR_SIZE / SECTOR_SIZE) * SECTOR_SIZE
-  const blockAndBitmapSizeBytes = header.blockSize + bitmapSizeBytes
+
   await readStream(header.tableOffset - streamPosition)
+
   const table = await readStream(header.maxTableEntries * 4)
-  const lastBlock = getFirstAndLastBlocks(table).lastSector
-  const footerOffset = lastBlock * SECTOR_SIZE + blockAndBitmapSizeBytes
-  const fileSize = footerOffset + FOOTER_SIZE
+
   readBuffers.reverse()
   for (const buf of readBuffers) {
     stream.unshift(buf)
   }
+
+  const footerOffset =
+    getFirstAndLastBlocks(table).lastSector * SECTOR_SIZE +
+    Math.ceil(header.blockSize / SECTOR_SIZE / 8) * SECTOR_SIZE +
+    header.blockSize
+
   const newStream = new EndCutterStream(footerOffset, footerBuffer)
-  newStream.length = fileSize
   pipeline(stream, newStream)
+
+  newStream.length = footerOffset + FOOTER_SIZE
   return newStream
 }
