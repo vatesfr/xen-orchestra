@@ -1,6 +1,5 @@
 import assert from 'assert'
-import { Transform } from 'stream'
-import { pipeline } from 'readable-stream'
+import { pipeline, Transform } from 'readable-stream'
 
 import checkFooter from './_checkFooter'
 import checkHeader from './_checkHeader'
