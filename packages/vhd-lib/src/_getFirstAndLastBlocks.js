@@ -1,9 +1,13 @@
+import assert from 'assert'
+
 import { BLOCK_UNUSED } from './_constants'
 
 // get the identifiers and first sectors of the first and last block
 // in the file
 export default bat => {
   const n = bat.length
+  assert.strictEqual(n % 4, 0)
+
   let i = 0
   let j = 0
   let first, firstSector, last, lastSector
