@@ -1,16 +1,13 @@
 import assert from 'assert'
 import { fromEvent } from 'promise-toolbox'
 
+import checkFooter from './_checkFooter'
 import constantStream from './_constant-stream'
 import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
 import { set as mapSetBit, test as mapTestBit } from './_bitmap'
 import {
   BLOCK_UNUSED,
-  DISK_TYPE_DIFFERENCING,
-  DISK_TYPE_DYNAMIC,
-  FILE_FORMAT_VERSION,
-  FOOTER_COOKIE,
   FOOTER_SIZE,
   HEADER_COOKIE,
   HEADER_SIZE,
@@ -171,14 +168,7 @@ export default class Vhd {
     }
 
     const footer = (this.footer = fuFooter.unpack(bufFooter))
-    assert.strictEqual(footer.cookie, FOOTER_COOKIE, 'footer cookie')
-    assert.strictEqual(footer.dataOffset, FOOTER_SIZE)
-    assert.strictEqual(footer.fileFormatVersion, FILE_FORMAT_VERSION)
-    assert(footer.originalSize <= footer.currentSize)
-    assert(
-      footer.diskType === DISK_TYPE_DIFFERENCING ||
-        footer.diskType === DISK_TYPE_DYNAMIC
-    )
+    checkFooter(footer)
 
     const header = (this.header = fuHeader.unpack(bufHeader))
     assert.strictEqual(header.cookie, HEADER_COOKIE)

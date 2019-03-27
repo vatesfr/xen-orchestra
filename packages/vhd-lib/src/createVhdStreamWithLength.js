@@ -2,12 +2,9 @@ import assert from 'assert'
 import { Transform } from 'stream'
 import { pipeline } from 'readable-stream'
 
+import checkFooter from './_checkFooter'
 import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import {
-  DISK_TYPE_DIFFERENCING,
-  DISK_TYPE_DYNAMIC,
-  FILE_FORMAT_VERSION,
-  FOOTER_COOKIE,
   FOOTER_SIZE,
   HEADER_COOKIE,
   HEADER_SIZE,
@@ -108,14 +105,7 @@ export default async function createVhdStreamWithLength(stream) {
   const chunk = await readStream(FOOTER_SIZE + HEADER_SIZE)
   const footerBuffer = chunk.slice(0, FOOTER_SIZE)
   const footer = fuFooter.unpack(footerBuffer)
-  assert.strictEqual(footer.cookie, FOOTER_COOKIE)
-  assert.strictEqual(footer.dataOffset, FOOTER_SIZE)
-  assert.strictEqual(footer.fileFormatVersion, FILE_FORMAT_VERSION)
-  assert(footer.originalSize <= footer.currentSize)
-  assert(
-    footer.diskType === DISK_TYPE_DIFFERENCING ||
-      footer.diskType === DISK_TYPE_DYNAMIC
-  )
+  checkFooter(footer)
   const header = fuHeader.unpack(
     chunk.slice(FOOTER_SIZE, FOOTER_SIZE + HEADER_SIZE)
   )
