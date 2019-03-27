@@ -2,6 +2,7 @@ import assert from 'assert'
 import { fromEvent } from 'promise-toolbox'
 
 import checkFooter from './_checkFooter'
+import checkHeader from './_checkHeader'
 import constantStream from './_constant-stream'
 import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
@@ -9,9 +10,7 @@ import { set as mapSetBit, test as mapTestBit } from './_bitmap'
 import {
   BLOCK_UNUSED,
   FOOTER_SIZE,
-  HEADER_COOKIE,
   HEADER_SIZE,
-  HEADER_VERSION,
   PARENT_LOCATOR_ENTRIES,
   PLATFORM_NONE,
   PLATFORM_W2KU,
@@ -171,11 +170,7 @@ export default class Vhd {
     checkFooter(footer)
 
     const header = (this.header = fuHeader.unpack(bufHeader))
-    assert.strictEqual(header.cookie, HEADER_COOKIE)
-    assert.strictEqual(header.dataOffset, undefined)
-    assert.strictEqual(header.headerVersion, HEADER_VERSION)
-    assert(header.maxTableEntries >= footer.currentSize / header.blockSize)
-    assert(Number.isInteger(Math.log2(header.blockSize / SECTOR_SIZE)))
+    checkHeader(header, footer)
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.

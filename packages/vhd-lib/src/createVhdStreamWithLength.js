@@ -3,14 +3,9 @@ import { Transform } from 'stream'
 import { pipeline } from 'readable-stream'
 
 import checkFooter from './_checkFooter'
+import checkHeader from './_checkHeader'
 import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
-import {
-  FOOTER_SIZE,
-  HEADER_COOKIE,
-  HEADER_SIZE,
-  HEADER_VERSION,
-  SECTOR_SIZE,
-} from './_constants'
+import { FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from './_constants'
 import { fuFooter, fuHeader } from './_structs'
 
 class EndCutterStream extends Transform {
@@ -109,11 +104,7 @@ export default async function createVhdStreamWithLength(stream) {
   const header = fuHeader.unpack(
     chunk.slice(FOOTER_SIZE, FOOTER_SIZE + HEADER_SIZE)
   )
-  assert.strictEqual(header.cookie, HEADER_COOKIE)
-  assert.strictEqual(header.dataOffset, undefined)
-  assert.strictEqual(header.headerVersion, HEADER_VERSION)
-  assert(header.maxTableEntries >= footer.currentSize / header.blockSize)
-  assert(Number.isInteger(Math.log2(header.blockSize / SECTOR_SIZE)))
+  checkHeader(header, footer)
   const bitmapSizeBytes =
     Math.ceil(header.blockSize / 8 / SECTOR_SIZE / SECTOR_SIZE) * SECTOR_SIZE
   const blockAndBitmapSizeBytes = header.blockSize + bitmapSizeBytes
