@@ -903,6 +903,9 @@ const messages = {
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
   install: 'Install',
+  installPatchTitle: 'Install patch{nPatches, plural, one {} other {es}}',
+  installPatchContent:
+    'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch:
     'Are you sure you want to install all the patches on this pool?',
