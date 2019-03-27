@@ -22,7 +22,7 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 //    _listInstalledPatches    XS installed patches on the host - Map of Booleans
 //    _listInstallablePatches  XS (host, requested patches) → sorted patches that are not installed and not conflicting - Array of Objects
 //    listMissingPatches       HL: installable patches (XS) or updates (XCP) - Array of Objects
-//    findPatches              HL: get XS patches objects from names
+//    findPatches              HL: get XS patches IDs from names
 // # INSTALL
 //    _xcpUpdate               XCP yum update
 //    _legacyUploadPatch       XS legacy upload
@@ -313,7 +313,8 @@ export default {
     const host = this.getObject(hostId)
     return _isXcp(host)
       ? this._listXcpUpdates(host)
-      : this._listInstallablePatches(host)
+      : // TODO: list paid patches of free hosts as well so the UI can show them
+        this._listInstallablePatches(host)
   },
 
   // convenient method to find which patches should be installed from a
@@ -455,7 +456,7 @@ export default {
       }
 
       log.debug(`installing patch ${p.uuid}`)
-      return this.call(
+      await this.call(
         'pool_update.pool_apply',
         await this.call('pool_update.introduce', vdi.$ref)
       )
