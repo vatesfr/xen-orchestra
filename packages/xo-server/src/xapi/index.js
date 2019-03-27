@@ -94,8 +94,10 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor(...args) {
-    super(...args)
+  constructor({ guessVhdSizeOnImport, ...opts }) {
+    super(opts)
+
+    this._guessVhdSizeOnImport = guessVhdSizeOnImport
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -2096,12 +2098,20 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async _importVdiContent(vdi, body, format = VDI_FORMAT_VHD) {
-    const stream =
-      body.length == null ? await createVhdStreamWithLength(body) : body
+    if (typeof body.pipe === 'function' && body.length === undefined) {
+      if (this._guessVhdSizeOnImport && format === VDI_FORMAT_VHD) {
+        body = await createVhdStreamWithLength(body)
+      } else if (__DEV__) {
+        throw new Error(
+          'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
+        )
+      }
+    }
+
     await Promise.all([
       body.task,
       body.checksumVerified,
-      this.putResource(stream, '/import_raw_vdi/', {
+      this.putResource(body, '/import_raw_vdi/', {
         query: {
           format,
           vdi: vdi.$ref,
