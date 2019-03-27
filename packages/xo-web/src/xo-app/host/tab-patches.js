@@ -9,7 +9,7 @@ import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { restartHost } from 'xo'
+import { installAllPatchesOnHost, restartHost } from 'xo'
 import { isEmpty } from 'lodash'
 
 const MISSING_PATCH_COLUMNS = [
@@ -260,15 +260,21 @@ export default class TabPatches extends Component {
     router: PropTypes.object,
   }
 
-  _installAllPatches = () =>
-    chooseAction({
+  _installAllPatches = () => {
+    const { host } = this.props
+    const { $pool: pool, productBrand } = host
+
+    if (productBrand === 'XCP-ng') {
+      return installAllPatchesOnHost({ host })
+    }
+
+    return chooseAction({
       body: <p>{_('installAllPatchesContent')}</p>,
       buttons: [{ label: _('installAllPatchesRedirect'), value: 'goToPool' }],
       icon: 'host-patch-update',
       title: _('installAllPatchesTitle'),
-    }).then(() =>
-      this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
-    )
+    }).then(() => this.context.router.push(`/pools/${pool}/patches`))
+  }
 
   render() {
     if (process.env.XOA_PLAN < 2) {

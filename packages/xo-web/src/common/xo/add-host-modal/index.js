@@ -70,8 +70,8 @@ export default class AddHostModal extends BaseComponent {
     }
 
     const { master } = this.props.pool
-    const hostMissingPatches = await getPatchesDifference(master, host.id)
-    const poolMissingPatches = await getPatchesDifference(host.id, master)
+    const hostMissingPatches = await getPatchesDifference(host.id, master)
+    const poolMissingPatches = await getPatchesDifference(master, host.id)
 
     this.setState({
       host,

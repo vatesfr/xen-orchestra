@@ -891,6 +891,8 @@ const messages = {
   installAllPatchesTitle: 'Install all patches',
   installAllPatchesContent: 'To install all patches go to pool.',
   installAllPatchesRedirect: 'Go to pool',
+  installAllPatchesOnHostContent:
+    'Are you sure you want to install all patches on this host?',
   patchRelease: 'Release',
   updatePluginNotInstalled:
     'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',
@@ -903,6 +905,9 @@ const messages = {
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
   install: 'Install',
+  installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',
+  installPatchesContent:
+    'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch:
     'Are you sure you want to install all the patches on this pool?',
