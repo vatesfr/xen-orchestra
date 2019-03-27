@@ -531,7 +531,6 @@
 ## **5.33.0** (2019-03-29)
 
 ### Enhancements
-- [Import] remove support for host in vm.import
 
 - [SR/Disk] Disable actions on unmanaged VDIs [#3988](https://github.com/vatesfr/xen-orchestra/issues/3988) (PR [#4000](https://github.com/vatesfr/xen-orchestra/pull/4000))
 - [Pool] Specify automatic networks on a Pool [#3916](https://github.com/vatesfr/xen-orchestra/issues/3916) (PR [#3958](https://github.com/vatesfr/xen-orchestra/pull/3958))
@@ -801,8 +800,6 @@
 
 ### Released packages
 
-- xo-ova v0.2.0 (renamed from xo-vmdk-to-vhd)
-- xo-upload-ova v0.1.0
 - xen-api v0.21.0
 - xo-common v0.2.0
 - xo-acl-resolver v0.4.0
