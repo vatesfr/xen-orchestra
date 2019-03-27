@@ -37,7 +37,7 @@ export default class {
 
       const user = await xo.getUserByName(username, true)
       if (user && (await xo.checkUserPassword(user.id, password))) {
-        return user.id
+        return { userId: user.id }
       }
     })
 
@@ -48,7 +48,8 @@ export default class {
       }
 
       try {
-        return (await xo.getAuthenticationToken(tokenId)).user_id
+        const token = await xo.getAuthenticationToken(tokenId)
+        return { expiration: token.expiration, userId: token.user_id }
       } catch (error) {}
     })
 
@@ -88,6 +89,10 @@ export default class {
         // A provider can return:
         // - `undefined`/`null` if the user could not be authenticated
         // - the identifier of the authenticated user
+        // - an object containing:
+        //   - `userId`
+        //   - optionally `expiration` to indicate when the session is no longer
+        //     valid
         // - an object with a property `username` containing the name
         //   of the authenticated user
         const result = await provider(credentials)
@@ -97,9 +102,20 @@ export default class {
           continue
         }
 
-        return result.username
-          ? await this._xo.registerUser(undefined, result.username)
-          : await this._xo.getUser(result)
+        if (typeof result === 'string') {
+          return {
+            user: await this._getUser(result),
+          }
+        }
+
+        const { userId, username, expiration } = result
+
+        return {
+          user: await (userId !== undefined
+            ? this._xo.getUser(userId)
+            : this._xo.registerUser(undefined, username)),
+          expiration,
+        }
       } catch (error) {
         // DEPRECATED: Authentication providers may just throw `null`
         // to indicate they could not authenticate the user without
@@ -109,7 +125,9 @@ export default class {
     }
   }
 
-  async authenticateUser(credentials) {
+  async authenticateUser(
+    credentials
+  ): Promise<{| user: Object, expiration?: number |}> {
     // don't even attempt to authenticate with empty password
     const { password } = credentials
     if (password === '') {

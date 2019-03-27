@@ -251,7 +251,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
   xo.registerPassportStrategy(
     new LocalStrategy(async (username, password, done) => {
       try {
-        const user = await xo.authenticateUser({ username, password })
+        const { user } = await xo.authenticateUser({ username, password })
         done(null, user)
       } catch (error) {
         done(null, false, { message: error.message })
@@ -518,6 +518,11 @@ const setUpApi = (webServer, xo, config) => {
 
     // Connect the WebSocket to the JSON-RPC server.
     socket.on('message', message => {
+      const expiration = connection.get('expiration', undefined)
+      if (expiration !== undefined && expiration < Date.now()) {
+        return void connection.close()
+      }
+
       jsonRpc.write(message)
     })
 
@@ -565,7 +570,7 @@ const setUpConsoleProxy = (webServer, xo) => {
       {
         const { token } = parseCookies(req.headers.cookie)
 
-        const user = await xo.authenticateUser({ token })
+        const { user } = await xo.authenticateUser({ token })
         if (!(await xo.hasPermissions(user.id, [[id, 'operate']]))) {
           throw invalidCredentials()
         }
