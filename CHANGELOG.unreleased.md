@@ -17,10 +17,12 @@
 - Properly redirect to sign in page instead of being stuck in a refresh loop
 - [Backup-ng] No more false positives when list matching VMs on Home page [#4078](https://github.com/vatesfr/xen-orchestra/issues/4078) (PR [#4085](https://github.com/vatesfr/xen-orchestra/pull/4085))
 - [Plugins] Properly remove optional settings when unchecking _Fill information_ (PR [#4076](https://github.com/vatesfr/xen-orchestra/pull/4076))
+- [Patches] Fixes multiple issues [#2188](https://github.com/vatesfr/xen-orchestra/issues/2188) [#3777](https://github.com/vatesfr/xen-orchestra/issues/3777) [#3783](https://github.com/vatesfr/xen-orchestra/issues/3783) [#3934](https://github.com/vatesfr/xen-orchestra/issues/3934) (PR [#4077](https://github.com/vatesfr/xen-orchestra/pull/4077))
 
 ### Released packages
 
 - vhd-lib v0.6.0
 - @xen-orchestra/fs v0.8.0
+- xo-server-usage-report v0.7.2
 - xo-server v5.38.0
 - xo-web v5.38.0
