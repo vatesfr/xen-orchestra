@@ -68,14 +68,14 @@ export default class {
     let handler = handlers[id]
     if (handler === undefined) {
       handler = handlers[id] = getHandler(remote, this._remoteOptions)
-    }
 
-    try {
-      await handler.sync()
-      ignoreErrors.call(this._updateRemote(id, { error: '' }))
-    } catch (error) {
-      ignoreErrors.call(this._updateRemote(id, { error: error.message }))
-      throw error
+      try {
+        await handler.sync()
+        ignoreErrors.call(this._updateRemote(id, { error: '' }))
+      } catch (error) {
+        ignoreErrors.call(this._updateRemote(id, { error: error.message }))
+        throw error
+      }
     }
 
     return handler
