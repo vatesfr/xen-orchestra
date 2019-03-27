@@ -205,6 +205,7 @@ export default {
       getAll = true
       requestedPatches = Object.keys(all)
     }
+    const freeHost = this.pool.$master.license_params.sku_type === 'free'
     // We assume:
     // - no conflict transitivity (If A conflicts with B and B with C, Citrix should tell us explicitly that A conflicts with C)
     // - no requirements transitivity (If A requires B and B requires C, Citrix should tell us explicitly that A requires C)
@@ -213,6 +214,7 @@ export default {
     // - throw if not found
     // - throw if already installed
     // - ignore if already in installable (may have been added because of requirements)
+    // - if paid patch on free host: either ignore (listing all the patches) or throw (patch is requested)
     // - throw if conflicting patches installed
     // - throw if conflicting patches in installable
     // - throw if one of the requirements is not found
@@ -234,6 +236,15 @@ export default {
 
       if (find(installable, { id }) !== undefined) {
         return
+      }
+
+      if (patch.paid && freeHost) {
+        if (getAll) {
+          return
+        }
+        throw new Error(
+          `requested patch ${patch.name} (${id}) requires a XenServer license`
+        )
       }
 
       let conflictId
@@ -276,9 +287,16 @@ export default {
       forEach(patch.requirements, id => {
         const requiredPatch = all[id]
         if (requiredPatch === undefined) {
-          throw new Error(`patch ${id} required but not found`)
+          throw new Error(`required patch ${id} not found`)
         }
         if (!installed[id] && find(installable, { id }) === undefined) {
+          if (requiredPatch.paid && freeHost) {
+            throw new Error(
+              `required patch ${
+                requiredPatch.name
+              } (${id}) requires a XenServer license`
+            )
+          }
           installable.push(requiredPatch)
         }
       })
