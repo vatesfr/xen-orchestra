@@ -21,6 +21,18 @@ verboseApiLogsOnErrors = false
 [apiWebSocketOptions]
 perMessageDeflate = { threshold = 524288 } # 512kiB
 
+[authentication]
+defaultTokenValidity = '30 days'
+maxTokenValidity = '0.5 year'
+
+# Default to `maxTokenValidity`
+#permanentCookieValidity = '30 days'
+
+# Default to `undefined`, ie as long as the browser is not restarted
+#
+# https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Set-Cookie#Session_cookie
+#sessionCookieValidity = '10 hours'
+
 [[http.listen]]
 port = 80
 

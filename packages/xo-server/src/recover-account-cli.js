@@ -10,7 +10,7 @@ const recoverAccount = async ([name]) => {
 xo-server-recover-account <user name or email>
 
     If the user does not exist, it is created, if it exists, updates
-    its password and resets its permission to Admin.
+    its password, remove any configured OTP and resets its permission to Admin.
 `
   }
 
@@ -32,7 +32,11 @@ xo-server-recover-account <user name or email>
 
   const user = await xo.getUserByName(name, true)
   if (user !== null) {
-    await xo.updateUser(user.id, { password, permission: 'admin' })
+    await xo.updateUser(user.id, {
+      password,
+      permission: 'admin',
+      preferences: { otp: null },
+    })
     console.log(`user ${name} has been successfully updated`)
   } else {
     await xo.createUser({ name, password, permission: 'admin' })

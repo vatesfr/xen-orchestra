@@ -166,7 +166,7 @@ export default class {
   // save the new configuration.
   async configurePlugin(id, configuration) {
     const plugin = this._getRawPlugin(id)
-    const metadata = await this._getPluginMetadata()
+    const metadata = await this._getPluginMetadata(id)
 
     if (metadata !== undefined) {
       configuration = sensitiveValues.merge(

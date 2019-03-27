@@ -1,7 +1,7 @@
 import { startsWith } from 'lodash'
 
+import ensureArray from './_ensureArray'
 import {
-  ensureArray,
   extractProperty,
   forEach,
   isArray,

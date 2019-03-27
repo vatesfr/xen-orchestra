@@ -35,11 +35,11 @@ import {
 import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
+import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import pRetry from '../_pRetry'
 import {
   camelToSnakeCase,
-  ensureArray,
   forEach,
   isFunction,
   map,
@@ -2378,8 +2378,6 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
-  //
-  // https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html
   @deferrable
   async createCloudInitConfigDrive(
     $defer,
@@ -2401,13 +2399,32 @@ export default class Xapi extends XapiBase {
     $defer.onFailure(() => this._deleteVdi(vdi.$ref))
 
     // Then, generate a FAT fs
-    const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
+    const { mkdir, writeFile } = promisifyAll(
+      fatfs.createFileSystem(fatfsBuffer(buffer))
+    )
 
     await Promise.all([
-      fs.writeFile('meta-data', 'instance-id: ' + vm.uuid + '\n'),
-      fs.writeFile('user-data', userConfig),
-      networkConfig !== undefined &&
-        fs.writeFile('network-config', networkConfig),
+      // preferred datasource: NoCloud
+      //
+      // https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html
+      writeFile('meta-data', 'instance-id: ' + vm.uuid + '\n'),
+      writeFile('user-data', userConfig),
+      networkConfig !== undefined && writeFile('network-config', networkConfig),
+
+      // fallback datasource: Config Drive 2
+      //
+      // https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html#version-2
+      mkdir('openstack').then(() =>
+        mkdir('openstack/latest').then(() =>
+          Promise.all([
+            writeFile(
+              'openstack/latest/meta_data.json',
+              JSON.stringify({ uuid: vm.uuid })
+            ),
+            writeFile('openstack/latest/user_data', userConfig),
+          ])
+        )
+      ),
     ])
 
     // ignore errors, I (JFT) don't understand why they are emitted

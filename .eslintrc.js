@@ -16,6 +16,16 @@ module.exports = {
     $PropertyType: true,
     $Shape: true,
   },
+
+  overrides: [
+    {
+      files: ['packages/*cli*/**/*.js', '*-cli.js'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+  ],
+
   parser: 'babel-eslint',
   parserOptions: {
     ecmaFeatures: {
@@ -23,6 +33,7 @@ module.exports = {
     },
   },
   rules: {
+    'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-var': 'error',
     'node/no-extraneous-import': 'error',
     'node/no-extraneous-require': 'error',

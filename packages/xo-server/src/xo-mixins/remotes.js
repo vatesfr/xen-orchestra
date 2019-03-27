@@ -68,22 +68,40 @@ export default class {
     let handler = handlers[id]
     if (handler === undefined) {
       handler = handlers[id] = getHandler(remote, this._remoteOptions)
-    }
 
-    try {
-      await handler.sync()
-      ignoreErrors.call(this._updateRemote(id, { error: '' }))
-    } catch (error) {
-      ignoreErrors.call(this._updateRemote(id, { error: error.message }))
-      throw error
+      try {
+        await handler.sync()
+        ignoreErrors.call(this._updateRemote(id, { error: '' }))
+      } catch (error) {
+        ignoreErrors.call(this._updateRemote(id, { error: error.message }))
+        throw error
+      }
     }
 
     return handler
   }
 
-  async testRemote(remote) {
-    const handler = await this.getRemoteHandler(remote)
-    return handler.test()
+  async testRemote(remoteId) {
+    const handler = await this.getRemoteHandler(remoteId)
+    const { readRate, writeRate, ...answer } = await handler.test()
+
+    if (answer.success) {
+      const benchmark = {
+        readRate,
+        timestamp: Date.now(),
+        writeRate,
+      }
+      const remote = await this._getRemote(remoteId)
+
+      await this._updateRemote(remoteId, {
+        benchmarks:
+          remote.benchmarks !== undefined
+            ? [...remote.benchmarks.slice(-49), benchmark] // store 50 benchmarks
+            : [benchmark],
+      })
+    }
+
+    return answer
   }
 
   async getAllRemotesInfo() {
@@ -150,12 +168,19 @@ export default class {
   }
 
   @synchronized()
-  async _updateRemote(id, { url, ...props }) {
+  async _updateRemote(id, { benchmarks, url, ...props }) {
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values
     if (typeof url === 'string') {
       remote.url = format(sensitiveValues.merge(parse(url), parse(remote.url)))
+    }
+
+    if (
+      benchmarks !== undefined ||
+      (benchmarks = remote.benchmarks) !== undefined
+    ) {
+      remote.benchmarks = JSON.stringify(benchmarks)
     }
 
     patch(remote, props)

@@ -32,7 +32,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "http-request-plus": "^0.7.2",
+    "http-request-plus": "^0.8.0",
     "jsonrpc-websocket-client": "^0.4.1"
   },
   "devDependencies": {
