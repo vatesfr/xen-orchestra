@@ -3,6 +3,7 @@ import { pipeline, Transform } from 'readable-stream'
 
 import checkFooter from './_checkFooter'
 import checkHeader from './_checkHeader'
+import noop from './_noop'
 import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import readChunk from './_readChunk'
 import { FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from './_constants'
@@ -68,7 +69,7 @@ export default async function createVhdStreamWithLength(stream) {
     header.blockSize
 
   const newStream = new EndCutterStream(footerOffset, footerBuffer)
-  pipeline(stream, newStream)
+  pipeline(stream, newStream, noop)
 
   newStream.length = footerOffset + FOOTER_SIZE
   return newStream
