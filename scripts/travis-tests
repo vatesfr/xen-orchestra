@@ -32,11 +32,7 @@ if (process.env.TRAVIS_PULL_REQUEST !== 'false') {
   if (files.length !== 0) {
     run(
       './node_modules/.bin/jest',
-      [
-        '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
-        '--findRelatedTests',
-        '--passWithNoTests',
-      ].concat(files)
+      ['--findRelatedTests', '--passWithNoTests'].concat(files)
     )
   }
 } else {
