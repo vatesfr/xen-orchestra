@@ -217,7 +217,7 @@ export async function upload (args) {
 
       try {
         return await hrp
-          .post(url, {
+          .post(url.toString(), {
             body: input,
             headers: {
               'content-length': length,
@@ -296,6 +296,7 @@ export default async function main (args) {
   if (fnName in exports) {
     return exports[fnName](args.slice(1))
   }
+  return help()
 }
 
 if (!module.parent) {
