@@ -68,6 +68,10 @@ export default async function createVhdStreamWithLength(stream) {
     Math.ceil(header.blockSize / SECTOR_SIZE / 8) * SECTOR_SIZE +
     header.blockSize
 
+  // ignore any data after footerOffset and push footerBuffer
+  //
+  // this is necessary to ignore any blank space between the last block and the
+  // final footer which would invalidate the size we computed
   const newStream = new EndCutterStream(footerOffset, footerBuffer)
   pipeline(stream, newStream, noop)
 
