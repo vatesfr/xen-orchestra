@@ -15,11 +15,7 @@ import {
   createFilter,
   createSelector,
 } from './selectors'
-import {
-  installAllHostPatches,
-  installAllPatchesOnPool,
-  subscribeHostMissingPatches,
-} from './xo'
+import { installAllPatchesOnPool, subscribeHostMissingPatches } from './xo'
 
 // ===================================================================
 
@@ -42,17 +38,6 @@ const MISSING_PATCHES_COLUMNS = [
       <Link to={`/hosts/${host.id}/patches`}>{missingPatches[host.id]}</Link>
     ),
     sortCriteria: (host, { missingPatches }) => missingPatches[host.id],
-  },
-  {
-    name: _('patchUpdateButton'),
-    itemRenderer: (host, { installAllHostPatches }) => (
-      <ActionButton
-        btnStyle='primary'
-        handler={installAllHostPatches}
-        handlerParam={host}
-        icon='host-patch-update'
-      />
-    ),
   },
 ]
 
@@ -164,7 +149,6 @@ class HostsPatchesTable extends Component {
                 : MISSING_PATCHES_COLUMNS
             }
             userData={{
-              installAllHostPatches,
               missingPatches: this.state.missingPatches,
               pools,
             }}
