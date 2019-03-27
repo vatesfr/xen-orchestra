@@ -2,9 +2,7 @@ import _ from 'intl'
 import classNames from 'classnames'
 import Component from 'base-component'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
-import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { UpdateTag } from '../xoa/update'
@@ -24,34 +22,29 @@ import {
   getIsPoolAdmin,
   getStatus,
   getUser,
+  getXoaState,
   isAdmin,
 } from 'selectors'
+import { every, isEmpty, map } from 'lodash'
 
 import styles from './index.css'
 
 const returnTrue = () => true
 
 @connectStore(
-  () => {
-    const getHostsSize = createGetObjectsOfType('host').count()
-    const getPools = createGetObjectsOfType('pool')
-    const getSrs = createGetObjectsOfType('SR')
-    const getTasksSize = createGetObjectsOfType('task').count([
+  () => ({
+    isAdmin,
+    isPoolAdmin: getIsPoolAdmin,
+    nHosts: createGetObjectsOfType('host').count(),
+    nTasks: createGetObjectsOfType('task').count([
       task => task.status === 'pending',
-    ])
-
-    return (state, props) => ({
-      isAdmin: isAdmin(state, props),
-      isPoolAdmin: getIsPoolAdmin(state, props),
-      nHosts: getHostsSize(state, props),
-      nTasks: getTasksSize(state, props),
-      pools: getPools(state, props),
-      srs: getSrs(state, props),
-      status: getStatus(state, props),
-      user: getUser(state, props),
-      xoaState: state.xoaUpdaterState,
-    })
-  },
+    ]),
+    pools: createGetObjectsOfType('pool'),
+    srs: createGetObjectsOfType('SR'),
+    status: getStatus,
+    user: getUser,
+    xoaState: getXoaState,
+  }),
   {
     withRef: true,
   }
@@ -99,11 +92,8 @@ export default class Menu extends Component {
   )
 
   _getNoNotifications = createSelector(
-    createFilter(
-      () => this.props.notifications,
-      n => n !== undefined && !n.read
-    ),
-    isEmpty
+    () => this.props.notifications,
+    notifications => every(notifications, { read: true })
   )
 
   get height() {
@@ -267,14 +257,10 @@ export default class Menu extends Component {
         to: isAdmin ? 'xoa/update' : 'xoa/notifications',
         icon: 'menu-xoa',
         label: 'xoa',
-        extra:
-          xoaState === 'upToDate' && noNotifications ? null : isAdmin ? (
-            <span>
-              <UpdateTag /> <NotificationTag />
-            </span>
-          ) : noNotifications ? null : (
-            <NotificationTag />
-          ),
+        extra: [
+          !isAdmin || xoaState === 'upToDate' ? null : <UpdateTag />,
+          noNotifications ? null : <NotificationTag />,
+        ],
         subMenu: [
           isAdmin && {
             to: 'xoa/update',
@@ -546,6 +532,8 @@ export default class Menu extends Component {
 const MenuLinkItem = props => {
   const { item } = props
   const { to, icon, label, subMenu, pill, extra } = item
+  const extraIsArray = Array.isArray(extra)
+  const _extra = extraIsArray ? extra.find(e => e !== null) : extra
 
   return (
     <li className='nav-item xo-menu-item'>
@@ -555,7 +543,7 @@ const MenuLinkItem = props => {
         to={to}
       >
         <Icon
-          className={classNames((pill || extra) && styles.hiddenCollapsed)}
+          className={classNames((pill || _extra) && styles.hiddenCollapsed)}
           icon={`${icon}`}
           size='lg'
           fixedWidth
@@ -566,7 +554,13 @@ const MenuLinkItem = props => {
           &nbsp;
         </span>
         {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
-        {extra}
+        {_extra}
+        <span className={styles.hiddenCollapsed}>
+          {extraIsArray &&
+            extra.map(e =>
+              e !== null && e !== _extra ? <span>{e}</span> : null
+            )}
+        </span>
       </Link>
       {subMenu && <SubMenu items={subMenu} />}
     </li>

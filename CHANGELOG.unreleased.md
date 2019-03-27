@@ -10,6 +10,7 @@
 ### Bug fixes
 
 - [Continuous Replication] Fix VHD size guess for empty files [#4105](https://github.com/vatesfr/xen-orchestra/issues/4105)  (PR [#4107](https://github.com/vatesfr/xen-orchestra/pull/4107))
+- [Menu] XOA: Display icon when no notifications nor updates [#4012](https://github.com/vatesfr/xen-orchestra/issues/4012) (PR [#4068](https://github.com/vatesfr/xen-orchestra/pull/4068)
 
 ### Released packages
 
