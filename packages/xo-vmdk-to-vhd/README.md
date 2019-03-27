@@ -2,8 +2,6 @@
 
 > JS lib streaming a vmdk file to a vhd.
 
-This package used to be called 'xo-vmdk-to-vhd'
-
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/xo-vmdk-to-vhd):
