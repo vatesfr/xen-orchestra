@@ -12,7 +12,7 @@
 - [Home] Always sort the items by their names as a secondary sort criteria [#3983](https://github.com/vatesfr/xen-orchestra/issues/3983) (PR [#4047](https://github.com/vatesfr/xen-orchestra/pull/4047))
 - [Remotes] Fixes `spawn mount EMFILE` error during backup
 - Properly redirect to sign in page instead of being stuck in a refresh loop
-- [Backup-ng] Properly set filter with tags on Home page when you click on "See the matching VMs" [#4078](https://github.com/vatesfr/xen-orchestra/issues/4078) (PR [#4085](https://github.com/vatesfr/xen-orchestra/pull/4085))
+- [Backup-ng] No more false positives when list matching VMs on Home page [#4078](https://github.com/vatesfr/xen-orchestra/issues/4078) (PR [#4085](https://github.com/vatesfr/xen-orchestra/pull/4085))
 
 ### Released packages
 
