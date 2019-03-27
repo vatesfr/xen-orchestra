@@ -46,13 +46,10 @@ export default async function createVhdStreamWithLength(stream) {
     return chunk
   }
 
-  const chunk = await readStream(FOOTER_SIZE + HEADER_SIZE)
-  const footerBuffer = chunk.slice(0, FOOTER_SIZE)
+  const footerBuffer = await readStream(FOOTER_SIZE)
   const footer = fuFooter.unpack(footerBuffer)
   checkFooter(footer)
-  const header = fuHeader.unpack(
-    chunk.slice(FOOTER_SIZE, FOOTER_SIZE + HEADER_SIZE)
-  )
+  const header = fuHeader.unpack(await readStream(HEADER_SIZE))
   checkHeader(header, footer)
   const bitmapSizeBytes =
     Math.ceil(header.blockSize / 8 / SECTOR_SIZE / SECTOR_SIZE) * SECTOR_SIZE
