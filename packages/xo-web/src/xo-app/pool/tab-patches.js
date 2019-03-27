@@ -4,7 +4,7 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
-import { alert, confirm } from 'modal'
+import { alert } from 'modal'
 import { Col, Container, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -50,11 +50,7 @@ const MISSING_PATCH_COLUMNS = [
 
 const ACTIONS = [
   {
-    handler: (patches, { pool }) =>
-      confirm({
-        body: _('installPatchContent', { nPatches: patches.length }),
-        title: _('installPatchTitle', { nPatches: patches.length }),
-      }).then(() => installPatches(patches, pool)),
+    handler: (patches, { pool }) => installPatches(patches, pool),
     icon: 'host-patch-update',
     label: _('install'),
     level: 'primary',

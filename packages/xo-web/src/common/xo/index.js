@@ -777,17 +777,27 @@ export const emergencyShutdownHosts = hosts => {
   }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
 }
 
-export const installHostPatch = (host, { uuid }) =>
-  _call('pool.installPatches', {
-    hosts: [resolveId(host)],
-    patches: [uuid],
-  })::tap(() => subscribeHostMissingPatches.forceRefresh(host))
+// for XCP-ng now
+export const installAllPatchesOnHost = ({ host }) =>
+  confirm({
+    body: _('installAllPatchesOnHostContent'),
+    title: _('installAllPatchesTitle'),
+  }).then(() =>
+    _call('pool.installPatches', { hosts: [resolveId(host)] })::tap(() =>
+      subscribeHostMissingPatches.forceRefresh(host)
+    )
+  )
 
 export const installPatches = (patches, pool) =>
-  _call('pool.installPatches', {
-    pool: resolveId(pool),
-    patches: resolveIds(patches),
-  })::tap(() => subscribeHostMissingPatches.forceRefresh())
+  confirm({
+    body: _('installPatchesContent', { nPatches: patches.length }),
+    title: _('installPatchesTitle', { nPatches: patches.length }),
+  }).then(() =>
+    _call('pool.installPatches', {
+      pool: resolveId(pool),
+      patches: resolveIds(patches),
+    })::tap(() => subscribeHostMissingPatches.forceRefresh())
+  )
 
 import InstallPoolPatchesModalBody from './install-pool-patches-modal' // eslint-disable-line import/first
 export const installAllPatchesOnPool = ({ pool }) => {
