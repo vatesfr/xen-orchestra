@@ -24,21 +24,21 @@ afterEach(async () => {
 })
 
 export class NodeParsableFile extends ParsableFile {
-  constructor (fileName, fileLength = Infinity) {
+  constructor(fileName, fileLength = Infinity) {
     super()
     this._fileName = fileName
     this._start = 0
     this._end = fileLength
   }
 
-  slice (start, end) {
+  slice(start, end) {
     const newFile = new NodeParsableFile(this._fileName)
     newFile._start = start < 0 ? this._end + start : this._start + start
     newFile._end = end < 0 ? this._end + end : this._start + end
     return newFile
   }
 
-  async read () {
+  async read() {
     const result = await getStream.buffer(
       createReadStream(this._fileName, {
         start: this._start,

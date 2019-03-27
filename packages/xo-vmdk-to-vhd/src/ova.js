@@ -65,7 +65,7 @@ const RESOURCE_TYPE_TO_HANDLER = {
   },
 }
 
-function parseTarHeader (header, stringDeserializer) {
+function parseTarHeader(header, stringDeserializer) {
   const fileName = stringDeserializer(header.slice(0, 100), 'ascii').split(
     '\0'
   )[0]
@@ -81,15 +81,15 @@ function parseTarHeader (header, stringDeserializer) {
 
 export class ParsableFile {
   // noinspection JSMethodCanBeStatic
-  get size () {
+  get size() {
     return 0
   }
 
   /** returns a ParsableFile */
-  slice (start, end) {}
+  slice(start, end) {}
 
   /** reads the fragment, returns an ArrayBuffer */
-  async read () {}
+  async read() {}
 }
 
 export const ensureArray = value => {
@@ -117,7 +117,7 @@ const filterDisks = disks => {
   }
 }
 
-async function parseOVF (fileFragment, stringDeserializer) {
+async function parseOVF(fileFragment, stringDeserializer) {
   const xmlString = stringDeserializer(await fileFragment.read(), 'utf-8')
   return new Promise((resolve, reject) =>
     xml2js.parseString(
@@ -191,7 +191,7 @@ async function parseOVF (fileFragment, stringDeserializer) {
  * @param skipVmdk if true avoid parsing the VMDK file tables
  * @returns {Promise<{tables: {}}>}
  */
-export async function parseOVAFile (
+export async function parseOVAFile(
   parsableFile,
   stringDeserializer,
   skipVmdk = false

@@ -1,3 +1,5 @@
+/* eslint no-console: "off" */
+
 import chalk from 'chalk'
 import execPromise from 'exec-promise'
 import { createReadStream } from 'fs'
@@ -16,7 +18,7 @@ import pw from 'pw'
 import stripIndent from 'strip-indent'
 import { URL } from 'url'
 import Xo from 'xo-lib'
-import { parseOVAFile } from 'xo-ova'
+import { parseOVAFile } from 'xo-vmdk-to-vhd'
 
 import pkg from '../package'
 import {
@@ -25,7 +27,7 @@ import {
   unset as unsetConfig,
 } from './config'
 
-function help () {
+function help() {
   return stripIndent(
     `
     Usage:
@@ -51,7 +53,7 @@ function help () {
 
     $name v$version
   `
-  ).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+  ).replace(/<([^>]+)>|\$(\w+)/g, function(_, arg, key) {
     if (arg) {
       return '<' + chalk.yellow(arg) + '>'
     }
@@ -64,7 +66,7 @@ function help () {
   })
 }
 
-async function connect () {
+async function connect() {
   const { server, token } = await loadConfig()
   if (server === undefined) {
     throw new Error('no server to connect to!')
@@ -80,11 +82,11 @@ async function connect () {
   return xo
 }
 
-export function unregister () {
+export function unregister() {
   return unsetConfig(['server', 'token'])
 }
 
-export async function register (args) {
+export async function register(args) {
   let expiresIn
   if (args[0] === '--expiresIn') {
     expiresIn = args[1]
@@ -111,11 +113,11 @@ export async function register (args) {
   })
 }
 
-function nodeStringDecoder (buffer, encoder) {
+function nodeStringDecoder(buffer, encoder) {
   return Buffer.from(buffer).toString(encoder)
 }
 
-export async function inspect (args) {
+export async function inspect(args) {
   const file = args[0]
   const data = await parseOVAFile(
     new NodeParsableFile(file, (await stat(file)).size),
@@ -125,7 +127,7 @@ export async function inspect (args) {
   console.log('file metadata:', data)
 }
 
-function parseOverride (args) {
+function parseOverride(args) {
   const flag = args.shift()
   if (flag !== '--override') {
     throw new Error('Third argument has to be --override')
@@ -147,7 +149,7 @@ function parseOverride (args) {
   return overrides
 }
 
-export async function upload (args) {
+export async function upload(args) {
   const file = args.shift()
   const srId = args.shift()
   let overrides = {}
@@ -234,20 +236,20 @@ export async function upload (args) {
 }
 
 export class NodeParsableFile {
-  constructor (fileName, fileLength = Infinity) {
+  constructor(fileName, fileLength = Infinity) {
     this._fileName = fileName
     this._start = 0
     this._end = fileLength
   }
 
-  slice (start, end) {
+  slice(start, end) {
     const newFile = new NodeParsableFile(this._fileName)
     newFile._start = start < 0 ? this._end + start : this._start + start
     newFile._end = end < 0 ? this._end + end : this._start + end
     return newFile
   }
 
-  async read () {
+  async read() {
     const result = await getStream.buffer(
       createReadStream(this._fileName, {
         start: this._start,
@@ -268,7 +270,7 @@ const humanFormatOpts = {
   scale: 'binary',
 }
 
-function printProgress (progress) {
+function printProgress(progress) {
   if (progress.length) {
     console.warn(
       '%s% of %s @ %s/s - ETA %s',
@@ -286,7 +288,7 @@ function printProgress (progress) {
   }
 }
 
-export default async function main (args) {
+export default async function main(args) {
   if (!args || !args.length || args[0] === '-h' || args[0] === '--help') {
     return help()
   }

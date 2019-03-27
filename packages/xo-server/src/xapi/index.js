@@ -9,7 +9,7 @@ import mixin from '@xen-orchestra/mixin'
 import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
-import { vmdkToVhd } from 'xo-ova'
+import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import {
   cancelable,
   defer,

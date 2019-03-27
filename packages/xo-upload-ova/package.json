@@ -34,7 +34,7 @@
     "fs-extra": "^7.0.0",
     "fs-promise": "^2.0.3",
     "get-stream": "^4.1.0",
-    "http-request-plus": "^0.6.0",
+    "http-request-plus": "^0.8.0",
     "human-format": "^0.10.0",
     "l33teral": "^3.0.3",
     "lodash": "^4.17.4",
@@ -45,7 +45,7 @@
     "strip-indent": "^2.0.0",
     "xdg-basedir": "^3.0.0",
     "xo-lib": "^0.9.0",
-    "xo-ova": "^0.1.5"
+    "xo-vmdk-to-vhd": "^0.1.6"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
