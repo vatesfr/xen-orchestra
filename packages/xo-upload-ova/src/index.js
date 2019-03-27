@@ -14,7 +14,7 @@ import prettyMs from 'pretty-ms'
 import progressStream from 'progress-stream'
 import pw from 'pw'
 import stripIndent from 'strip-indent'
-import { resolve as resolveUrl } from 'url'
+import { URL } from 'url'
 import Xo from 'xo-lib'
 import { parseOVAFile } from 'xo-ova'
 
@@ -201,7 +201,7 @@ export async function upload (args) {
         // eslint-disable-next-line
         throw 'file parameter should be a path'
       }
-      url = resolveUrl(baseUrl, result[key])
+      url = new URL(result[key], baseUrl)
 
       const { size: length } = await stat(file)
       const input = nicePipe([
@@ -290,9 +290,8 @@ export default async function main (args) {
   if (!args || !args.length || args[0] === '-h' || args[0] === '--help') {
     return help()
   }
-  const fnName = args[0].replace(
-    /^--|-\w/g,
-    match => (match === '--' ? '' : match[1].toUpperCase())
+  const fnName = args[0].replace(/^--|-\w/g, match =>
+    match === '--' ? '' : match[1].toUpperCase()
   )
   if (fnName in exports) {
     return exports[fnName](args.slice(1))
