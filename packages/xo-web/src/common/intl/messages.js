@@ -430,8 +430,8 @@ const messages = {
     'This will migrate this backup to a backup NG. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
-  scheduleDSTWarning:
-    'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. ie 2AM to 3AM for US.',
+  scheduleDstWarning:
+    'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
 
   // ------ New backup -----
   newBackupAdvancedSettings: 'Advanced settings',
