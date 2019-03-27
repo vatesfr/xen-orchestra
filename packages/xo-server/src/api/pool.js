@@ -154,7 +154,7 @@ getPatchesDifference.params = {
   target: { type: 'string' },
 }
 
-mergeInto.resolve = {
+getPatchesDifference.resolve = {
   source: ['source', 'host', 'view'],
   target: ['target', 'host', 'view'],
 }
