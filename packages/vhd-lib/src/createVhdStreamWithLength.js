@@ -2,8 +2,8 @@ import assert from 'assert'
 import { Transform } from 'stream'
 import { pipeline } from 'readable-stream'
 
+import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import {
-  BLOCK_UNUSED,
   DISK_TYPE_DIFFERENCING,
   DISK_TYPE_DYNAMIC,
   FILE_FORMAT_VERSION,
@@ -15,17 +15,6 @@ import {
   SECTOR_SIZE,
 } from './_constants'
 import { fuFooter, fuHeader } from './_structs'
-
-function findLastBlock(table) {
-  let maxEntry = null
-  for (let i = 0; i < table.length / 4; i++) {
-    const entry = table.readUInt32BE(i * 4)
-    if (entry !== BLOCK_UNUSED && (maxEntry === null || entry > maxEntry)) {
-      maxEntry = entry
-    }
-  }
-  return maxEntry
-}
 
 class EndCutterStream extends Transform {
   constructor(footerOffset, footerBuffer) {
@@ -140,7 +129,7 @@ export default async function createVhdStreamWithLength(stream) {
   const blockAndBitmapSizeBytes = header.blockSize + bitmapSizeBytes
   await readStream(header.tableOffset - streamPosition)
   const table = await readStream(header.maxTableEntries * 4)
-  const lastBlock = findLastBlock(table)
+  const lastBlock = getFirstAndLastBlocks(table).lastSector
   const footerOffset = lastBlock * SECTOR_SIZE + blockAndBitmapSizeBytes
   const fileSize = footerOffset + FOOTER_SIZE
   readBuffers.reverse()

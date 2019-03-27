@@ -2,6 +2,7 @@ import assert from 'assert'
 import { fromEvent } from 'promise-toolbox'
 
 import constantStream from './_constant-stream'
+import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
 import { set as mapSetBit, test as mapTestBit } from './_bitmap'
 import {
@@ -242,49 +243,6 @@ export default class Vhd {
     )
   }
 
-  // get the identifiers and first sectors of the first and last block
-  // in the file
-  //
-  _getFirstAndLastBlocks() {
-    const n = this.header.maxTableEntries
-    const bat = this.blockTable
-    let i = 0
-    let j = 0
-    let first, firstSector, last, lastSector
-
-    // get first allocated block for initialization
-    while ((firstSector = bat.readUInt32BE(j)) === BLOCK_UNUSED) {
-      i += 1
-      j += 4
-
-      if (i === n) {
-        const error = new Error('no allocated block found')
-        error.noBlock = true
-        throw error
-      }
-    }
-    lastSector = firstSector
-    first = last = i
-
-    while (i < n) {
-      const sector = bat.readUInt32BE(j)
-      if (sector !== BLOCK_UNUSED) {
-        if (sector < firstSector) {
-          first = i
-          firstSector = sector
-        } else if (sector > lastSector) {
-          last = i
-          lastSector = sector
-        }
-      }
-
-      i += 1
-      j += 4
-    }
-
-    return { first, firstSector, last, lastSector }
-  }
-
   // =================================================================
   // Write functions.
   // =================================================================
@@ -311,7 +269,9 @@ export default class Vhd {
 
   async _freeFirstBlockSpace(spaceNeededBytes) {
     try {
-      const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
+      const { first, firstSector, lastSector } = getFirstAndLastBlocks(
+        this.blockTable
+      )
       const tableOffset = this.header.tableOffset
       const { batSize } = this
       const newMinSector = Math.ceil(
