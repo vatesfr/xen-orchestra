@@ -22,7 +22,7 @@ export default bat => {
   lastSector = firstSector
   first = last = i
 
-  while (i < n) {
+  while (j < n) {
     const sector = bat.readUInt32BE(j)
     if (sector !== BLOCK_UNUSED) {
       if (sector < firstSector) {
