@@ -4,14 +4,13 @@ import Copiable from 'copiable'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
-import semver from 'semver'
 import store from 'store'
 import HomeTags from 'home-tags'
 import { addTag, removeTag } from 'xo'
 import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative } from 'react-intl'
-import { formatSize, formatSizeShort } from 'utils'
+import { formatSize, formatSizeShort, hasLicenseRestrictions } from 'utils'
 import Usage, { UsageElement } from 'usage'
 import { getObject } from 'selectors'
 import {
@@ -21,7 +20,7 @@ import {
   LoadSparkLines,
 } from 'xo-sparklines'
 
-import ShowLicenceRestriction from './warning-licence'
+import LicenseWarning from './license-warning'
 
 export default ({ statsOverview, host, nVms, vmController, vms }) => {
   const pool = getObject(store.getState(), host.$pool)
@@ -85,12 +84,7 @@ export default ({ statsOverview, host, nVms, vmController, vms }) => {
             {host.productBrand !== 'XCP-ng'
               ? host.license_params.sku_type
               : 'GPLv2'}
-            ){' '}
-            {host.productBrand !== 'XCP-ng' &&
-              semver.satisfies(host.version, '>=7.3.0') &&
-              host.license_params.sku_type === 'free' && (
-                <ShowLicenceRestriction iconSize='lg' />
-              )}
+            ) {hasLicenseRestrictions(host) && <LicenseWarning iconSize='lg' />}
           </p>
         </Col>
         <Col mediumSize={3}>

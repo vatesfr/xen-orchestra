@@ -6,7 +6,6 @@ import isEmpty from 'lodash/isEmpty'
 import Link, { BlockLink } from 'link'
 import map from 'lodash/map'
 import React from 'react'
-import semver from 'semver'
 import SingleLineRow from 'single-line-row'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
@@ -20,7 +19,12 @@ import {
   startHost,
   stopHost,
 } from 'xo'
-import { connectStore, formatSizeShort, osFamily } from 'utils'
+import {
+  connectStore,
+  formatSizeShort,
+  hasLicenseRestrictions,
+  osFamily,
+} from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetObject,
@@ -29,7 +33,7 @@ import {
 } from 'selectors'
 
 import MiniStats from './mini-stats'
-import ShowLicenceRestriction from '../host/warning-licence'
+import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
 
 @connectStore(() => ({
@@ -124,11 +128,7 @@ export default class HostItem extends Component {
                   </Tooltip>
                 )}
                 &nbsp;
-                {host.productBrand !== 'XCP-ng' &&
-                  semver.satisfies(host.version, '>=7.3.0') &&
-                  host.license_params.sku_type === 'free' && (
-                    <ShowLicenceRestriction />
-                  )}
+                {hasLicenseRestrictions(host) && <LicenseWarning />}
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>

@@ -12,20 +12,19 @@ const showInfo = () =>
         href='https://xcp-ng.com/pricing.html#xcpngvsxenserver'
         target='_blank'
       >
-        Some actions will be restricted.
+        {_('actionsRestricted')}
       </a>{' '}
-      You can:
+      {_('counterRestrictionsOptions')}
       <ul>
         <li>
           <a
             href='https://github.com/xcp-ng/xcp/wiki/Upgrade-from-XenServer'
             target='_blank'
           >
-            upgrade to XCP-ng{' '}
+            {_('counterRestrictionsOptionsXcp')}
           </a>
-          for free to get rid of these restrictions
         </li>
-        <li>or get a commercial Citrix license</li>
+        <li>{_('counterRestrictionsOptionsXsLicense')}</li>
       </ul>
     </span>
   )
