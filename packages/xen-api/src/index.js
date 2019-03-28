@@ -21,7 +21,6 @@ import {
   ignoreErrors,
   pCatch,
   pDelay,
-  pFinally,
   pTimeout,
   TimeoutError,
 } from 'promise-toolbox'
@@ -103,18 +102,6 @@ export const NULL_REF = 'OpaqueRef:NULL'
 // -------------------------------------------------------------------
 
 const getKey = o => o.$id
-
-// -------------------------------------------------------------------
-
-// TODO: find a better name
-// TODO: merge into promise-toolbox?
-const dontWait = promise => {
-  // https://github.com/JsCommunity/promise-toolbox#promiseignoreerrors
-  ignoreErrors.call(promise)
-
-  // http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it
-  return null
-}
 
 // -------------------------------------------------------------------
 
@@ -351,7 +338,11 @@ export class Xapi extends EventEmitter {
     })
   }
 
-  // High level calls.
+  // ===========================================================================
+  // RPC calls
+  // ===========================================================================
+
+  // this should be used for instantaneous calls, otherwise use `callAsync`
   call(method, ...args) {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
@@ -359,19 +350,24 @@ export class Xapi extends EventEmitter {
   }
 
   @cancelable
-  callAsync($cancelToken, method, ...args) {
-    return this._readOnly && !isReadOnlyCall(method, args)
-      ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
-      : this._sessionCall(`Async.${method}`, args).then(taskRef => {
-          $cancelToken.promise.then(() =>
-            // TODO: do not trigger if the task is already over
-            dontWait(this._sessionCall('task.cancel', [taskRef]))
-          )
+  async callAsync($cancelToken, method, ...args) {
+    if (this._readOnly && !isReadOnlyCall(method, args)) {
+      throw new Error(`cannot call ${method}() in read only mode`)
+    }
 
-          return pFinally.call(this.watchTask(taskRef), () =>
-            dontWait(this._sessionCall('task.destroy', [taskRef]))
-          )
-        })
+    const taskRef = await this._sessionCall(`Async.${method}`, args)
+    $cancelToken.promise.then(() =>
+      // TODO: do not trigger if the task is already over
+      ignoreErrors.call(this._sessionCall('task.cancel', [taskRef]))
+    )
+
+    const promise = this.watchTask(taskRef)
+
+    const destroyTask = () =>
+      ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
+    promise.then(destroyTask, destroyTask)
+
+    return promise
   }
 
   // create a task and automatically destroy it when settled
