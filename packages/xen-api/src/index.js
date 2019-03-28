@@ -207,7 +207,7 @@ export class Xapi extends EventEmitter {
     const { status } = this
 
     if (status === CONNECTED) {
-      throw new Error('already connected')
+      return
     }
 
     if (status === CONNECTING) {
@@ -255,7 +255,7 @@ export class Xapi extends EventEmitter {
     const { status } = this
 
     if (status === DISCONNECTED) {
-      throw new Error('already disconnected')
+      return
     }
 
     ignoreErrors.call(this._transportCall('session.logout', [this._sessionId]))
