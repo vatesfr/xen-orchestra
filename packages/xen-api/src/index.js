@@ -88,12 +88,7 @@ const isSessionInvalid = ({ code }) => code === 'SESSION_INVALID'
 
 // ===================================================================
 
-const {
-  create: createObject,
-  defineProperties,
-  freeze: freezeObject,
-  keys: getKeys,
-} = Object
+const { defineProperties, freeze, keys: getKeys } = Object
 
 // -------------------------------------------------------------------
 
@@ -132,28 +127,31 @@ export class Xapi extends EventEmitter {
   constructor(opts) {
     super()
 
-    this._allowUnauthorized = opts.allowUnauthorized
     this._callTimeout = makeCallSetting(opts.callTimeout, 0)
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
-    this._RecordsByType = createObject(null)
+    this._RecordsByType = { __proto__: null }
     this._sessionId = null
 
     this._auth = opts.auth
-    const url = (this._url = parseUrl(opts.url))
+    const url = parseUrl(opts.url)
     if (this._auth === undefined) {
       const user = url.username
-      if (user !== undefined) {
-        this._auth = {
-          user,
-          password: url.password,
-        }
-        delete url.username
-        delete url.password
+      if (user === undefined) {
+        throw new TypeError('missing credentials')
       }
+
+      this._auth = {
+        user,
+        password: url.password,
+      }
+      delete url.username
+      delete url.password
     }
 
+    this._allowUnauthorized = opts.allowUnauthorized
+    this._setUrl(url)
     ;(this._objects = new Collection()).getKey = getKey
     this._debounce = opts.debounce == null ? 200 : opts.debounce
     this._watchedTypes = undefined
@@ -164,7 +162,7 @@ export class Xapi extends EventEmitter {
 
     const { watchEvents } = opts
     if (watchEvents !== false) {
-      if (Array.isArray(watchEvents)) {
+      if (isArray(watchEvents)) {
         this._watchedTypes = watchEvents
       }
       this.watchEvents()
@@ -215,9 +213,6 @@ export class Xapi extends EventEmitter {
     }
 
     const auth = this._auth
-    if (auth === undefined) {
-      throw new Error('missing credentials')
-    }
 
     this._sessionId = CONNECTING
 
@@ -254,22 +249,20 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  disconnect() {
-    return Promise.resolve().then(() => {
-      const { status } = this
+  async disconnect() {
+    const { status } = this
 
-      if (status === DISCONNECTED) {
-        return Promise.reject(new Error('already disconnected'))
-      }
+    if (status === DISCONNECTED) {
+      throw new Error('already disconnected')
+    }
 
-      this._transportCall('session.logout', [this._sessionId]).catch(noop)
+    ignoreErrors.call(this._transportCall('session.logout', [this._sessionId]))
 
-      this._sessionId = null
+    this._sessionId = null
 
-      debug('%s: disconnected', this._humanId)
+    debug('%s: disconnected', this._humanId)
 
-      this.emit(DISCONNECTED)
-    })
+    this.emit(DISCONNECTED)
   }
 
   // ===========================================================================
@@ -629,9 +622,9 @@ export class Xapi extends EventEmitter {
   }
 
   watchEvents() {
-    this._eventWatchers = createObject(null)
+    this._eventWatchers = { __proto__: null }
 
-    this._taskWatchers = Object.create(null)
+    this._taskWatchers = { __proto__: null }
 
     if (this.status === CONNECTED) {
       this._watchEventsWrapper()
@@ -672,24 +665,8 @@ export class Xapi extends EventEmitter {
   // Private
   // ===========================================================================
 
-  get _humanId() {
-    return `${this._auth.user}@${this._url.hostname}`
-  }
-
-  get _url() {
-    return this.__url
-  }
-
-  set _url(url) {
-    this.__url = url
-    this._call = autoTransport({
-      allowUnauthorized: this._allowUnauthorized,
-      url,
-    })
-  }
-
   _clearObjects() {
-    ;(this._objectsByRef = createObject(null))[NULL_REF] = undefined
+    ;(this._objectsByRef = { __proto__: null })[NULL_REF] = undefined
     this._nTasks = 0
     this._objects.clear()
     this.objectsFetched = new Promise(resolve => {
@@ -743,11 +720,20 @@ export class Xapi extends EventEmitter {
     }
   }
 
+  _setUrl(url) {
+    this._humanId = `${this._auth.user}@${url.hostname}`
+    this._call = autoTransport({
+      allowUnauthorized: this._allowUnauthorized,
+      url,
+    })
+    this._url = url
+  }
+
   _addRecordToCache(type, ref, object) {
     object = this._wrapRecord(type, ref, object)
 
     // Finally freezes the object.
-    freezeObject(object)
+    freeze(object)
 
     const objects = this._objects
     const objectsByRef = this._objectsByRef
@@ -791,7 +777,7 @@ export class Xapi extends EventEmitter {
   }
 
   _processEvents(events) {
-    forEach(events, event => {
+    events.forEach(event => {
       let type = event.class
       const lcToTypes = this._lcToTypes
       if (type in lcToTypes) {
@@ -1014,7 +1000,7 @@ export class Xapi extends EventEmitter {
 
       Record = function(ref, data) {
         defineProperties(this, {
-          $id: { value: data.uuid || ref },
+          $id: { value: data.uuid ?? ref },
           $ref: { value: ref },
           $xapi: { value: xapi },
         })
