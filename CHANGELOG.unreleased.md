@@ -13,6 +13,7 @@
 - [Remotes] Fixes `spawn mount EMFILE` error during backup
 - Properly redirect to sign in page instead of being stuck in a refresh loop
 - [Backup-ng] No more false positives when list matching VMs on Home page [#4078](https://github.com/vatesfr/xen-orchestra/issues/4078) (PR [#4085](https://github.com/vatesfr/xen-orchestra/pull/4085))
+- [Plugins] Properly remove optional settings when unchecking _Fill information_ (PR [#4076](https://github.com/vatesfr/xen-orchestra/pull/4076))
 
 ### Released packages
 
