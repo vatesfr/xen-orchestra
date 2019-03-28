@@ -1303,12 +1303,13 @@ export default class BackupNg {
           return
         }
 
-        const prevDeltaChainLength = +baseSnapshot.other_config[
+        let prevDeltaChainLength = +baseSnapshot.other_config[
           'xo:backup:deltaChainLength'
         ]
-        if (!Number.isNaN(prevDeltaChainLength)) {
-          deltaChainLength = prevDeltaChainLength + 1
+        if (Number.isNaN(prevDeltaChainLength)) {
+          prevDeltaChainLength = 0
         }
+        deltaChainLength = prevDeltaChainLength + 1
 
         const fullInterval = getSetting(settings, 'fullInterval', [
           vmUuid,
