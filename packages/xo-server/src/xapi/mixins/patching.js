@@ -334,6 +334,11 @@ export default {
   _xcpUpdate(hosts) {
     if (hosts === undefined) {
       hosts = filter(this.objects.all, { $type: 'host' })
+    } else {
+      hosts = filter(
+        this.objects.all,
+        obj => obj.$type === 'host' && hosts.includes(obj.$id)
+      )
     }
 
     return asyncMap(hosts, async host => {
