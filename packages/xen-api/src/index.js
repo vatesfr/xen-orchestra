@@ -433,71 +433,9 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  // create a task and automatically destroy it when settled
-  //
-  //  allowed even in read-only mode because it does not have impact on the
-  //  XenServer and it's necessary for getResource()
-  createTask(nameLabel, nameDescription = '') {
-    const promise = this._sessionCall('task.create', [
-      nameLabel,
-      nameDescription,
-    ])
-
-    promise.then(taskRef => {
-      const destroy = () =>
-        this._sessionCall('task.destroy', [taskRef]).catch(noop)
-      this.watchTask(taskRef).then(destroy, destroy)
-    })
-
-    return promise
-  }
-
-  getField(type, ref, field) {
-    return this._sessionCall(`${type}.get_${field}`, [ref])
-  }
-
-  // Nice getter which returns the object for a given $id (internal to
-  // this lib), UUID (unique identifier that some objects have) or
-  // opaque reference (internal to XAPI).
-  getObject(idOrUuidOrRef, defaultValue) {
-    if (typeof idOrUuidOrRef === 'object') {
-      idOrUuidOrRef = idOrUuidOrRef.$id
-    }
-
-    const object =
-      this._objects.all[idOrUuidOrRef] || this._objectsByRef[idOrUuidOrRef]
-
-    if (object !== undefined) return object
-
-    if (arguments.length > 1) return defaultValue
-
-    throw new Error('no object with UUID or opaque ref: ' + idOrUuidOrRef)
-  }
-
-  // Returns the object for a given opaque reference (internal to
-  // XAPI).
-  getObjectByRef(ref, defaultValue) {
-    const object = this._objectsByRef[ref]
-
-    if (object !== undefined) return object
-
-    if (arguments.length > 1) return defaultValue
-
-    throw new Error('no object with opaque ref: ' + ref)
-  }
-
-  // Returns the object for a given UUID (unique identifier that some
-  // objects have).
-  getObjectByUuid(uuid, defaultValue) {
-    // Objects ids are already UUIDs if they have one.
-    const object = this._objects.all[uuid]
-
-    if (object) return object
-
-    if (arguments.length > 1) return defaultValue
-
-    throw new Error('no object with UUID: ' + uuid)
-  }
+  // ===========================================================================
+  // HTTP requests
+  // ===========================================================================
 
   @cancelable
   async getResource($cancelToken, pathname, { host, query, task } = {}) {
@@ -653,6 +591,72 @@ export class Xapi extends EventEmitter {
     }
     response.cancel()
     return pTaskResult
+  }
+
+  // create a task and automatically destroy it when settled
+  //
+  //  allowed even in read-only mode because it does not have impact on the
+  //  XenServer and it's necessary for getResource()
+  createTask(nameLabel, nameDescription = '') {
+    const promise = this._sessionCall('task.create', [
+      nameLabel,
+      nameDescription,
+    ])
+
+    promise.then(taskRef => {
+      const destroy = () =>
+        this._sessionCall('task.destroy', [taskRef]).catch(noop)
+      this.watchTask(taskRef).then(destroy, destroy)
+    })
+
+    return promise
+  }
+
+  getField(type, ref, field) {
+    return this._sessionCall(`${type}.get_${field}`, [ref])
+  }
+
+  // Nice getter which returns the object for a given $id (internal to
+  // this lib), UUID (unique identifier that some objects have) or
+  // opaque reference (internal to XAPI).
+  getObject(idOrUuidOrRef, defaultValue) {
+    if (typeof idOrUuidOrRef === 'object') {
+      idOrUuidOrRef = idOrUuidOrRef.$id
+    }
+
+    const object =
+      this._objects.all[idOrUuidOrRef] || this._objectsByRef[idOrUuidOrRef]
+
+    if (object !== undefined) return object
+
+    if (arguments.length > 1) return defaultValue
+
+    throw new Error('no object with UUID or opaque ref: ' + idOrUuidOrRef)
+  }
+
+  // Returns the object for a given opaque reference (internal to
+  // XAPI).
+  getObjectByRef(ref, defaultValue) {
+    const object = this._objectsByRef[ref]
+
+    if (object !== undefined) return object
+
+    if (arguments.length > 1) return defaultValue
+
+    throw new Error('no object with opaque ref: ' + ref)
+  }
+
+  // Returns the object for a given UUID (unique identifier that some
+  // objects have).
+  getObjectByUuid(uuid, defaultValue) {
+    // Objects ids are already UUIDs if they have one.
+    const object = this._objects.all[uuid]
+
+    if (object) return object
+
+    if (arguments.length > 1) return defaultValue
+
+    throw new Error('no object with UUID: ' + uuid)
   }
 
   watchTask(ref) {
