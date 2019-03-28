@@ -29,7 +29,7 @@ import {
 } from 'selectors'
 
 import MiniStats from './mini-stats'
-import ShowWarningLicence from '../host/warning-licence'
+import showLicenceRestriction from '../host/warning-licence'
 import styles from './index.css'
 
 @connectStore(() => ({
@@ -123,6 +123,12 @@ export default class HostItem extends Component {
                     </Link>
                   </Tooltip>
                 )}
+                &nbsp;
+                {host.productBrand !== 'XCP-ng' &&
+                  semver.satisfies(host.version, '>=7.3.0') &&
+                  host.license_params.sku_type === 'free' && (
+                    <showLicenceRestriction />
+                  )}
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>
@@ -161,12 +167,7 @@ export default class HostItem extends Component {
                       </Tooltip>
                     </span>
                   )}
-                </span>{' '}
-                {host.productBrand !== 'XCP-ng' &&
-                  semver.satisfies(host.version, '>=7.3.0') &&
-                  host.license_params.sku_type === 'free' && (
-                    <ShowWarningLicence />
-                  )}
+                </span>
                 <Icon
                   className='text-info'
                   icon={host.os_version && osFamily(host.os_version.distro)}

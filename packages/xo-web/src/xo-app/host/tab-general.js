@@ -21,7 +21,7 @@ import {
   LoadSparkLines,
 } from 'xo-sparklines'
 
-import ShowWarningLicence from './warning-licence'
+import showLicenceRestriction from './warning-licence'
 
 export default ({ statsOverview, host, nVms, vmController, vms }) => {
   const pool = getObject(store.getState(), host.$pool)
@@ -88,7 +88,9 @@ export default ({ statsOverview, host, nVms, vmController, vms }) => {
             ){' '}
             {host.productBrand !== 'XCP-ng' &&
               semver.satisfies(host.version, '>=7.3.0') &&
-              host.license_params.sku_type === 'free' && <ShowWarningLicence />}
+              host.license_params.sku_type === 'free' && (
+                <showLicenceRestriction iconSize='lg' />
+              )}
           </p>
         </Col>
         <Col mediumSize={3}>

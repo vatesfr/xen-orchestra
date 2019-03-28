@@ -1,11 +1,12 @@
 import _ from 'intl'
 import React from 'react'
 import Icon from 'icon'
+import Tooltip from 'tooltip'
 import { alert } from 'modal'
 
 const showInfo = () =>
   alert(
-    _('warningSuggestXcpngTitle'),
+    _('licenseRestrictionsModalTitle'),
     <span>
       <a
         href='https://xcp-ng.com/pricing.html#xcpngvsxenserver'
@@ -29,10 +30,12 @@ const showInfo = () =>
     </span>
   )
 
-const showWarningLicence = () => (
-  <a className='text-danger' style={{ cursor: 'pointer' }} onClick={showInfo}>
-    <Icon icon='alarm' size='lg' />
-  </a>
+const showLicenceRestriction = ({ iconSize = 'sm' }) => (
+  <Tooltip content={_('licenseRestrictions')}>
+    <a className='text-danger' style={{ cursor: 'pointer' }} onClick={showInfo}>
+      <Icon icon='alarm' size={iconSize} />
+    </a>
+  </Tooltip>
 )
 
-export default showWarningLicence
+export default showLicenceRestriction

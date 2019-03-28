@@ -713,7 +713,9 @@ const messages = {
   displayAllHosts: 'Display all hosts of this pool',
   displayAllStorages: 'Display all storages of this pool',
   displayAllVMs: 'Display all VMs of this pool',
-  warningSuggestXcpngTitle: 'Warning: you are using a Free XenServer license',
+  licenseRestrictions: 'Licence restrictions',
+  licenseRestrictionsModalTitle:
+    'Warning: you are using a Free XenServer license',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
   vmsTabName: 'Vms',
