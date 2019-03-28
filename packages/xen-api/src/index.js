@@ -580,6 +580,7 @@ export class Xapi extends EventEmitter {
     }
 
     const doRequest = httpRequest.put.bind(
+      undefined,
       $cancelToken,
       this._url,
       host && {
