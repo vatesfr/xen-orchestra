@@ -17,7 +17,11 @@
 - Properly redirect to sign in page instead of being stuck in a refresh loop
 - [Backup-ng] No more false positives when list matching VMs on Home page [#4078](https://github.com/vatesfr/xen-orchestra/issues/4078) (PR [#4085](https://github.com/vatesfr/xen-orchestra/pull/4085))
 - [Plugins] Properly remove optional settings when unchecking _Fill information_ (PR [#4076](https://github.com/vatesfr/xen-orchestra/pull/4076))
-- [Patches] Fixes multiple issues [#2188](https://github.com/vatesfr/xen-orchestra/issues/2188) [#3777](https://github.com/vatesfr/xen-orchestra/issues/3777) [#3783](https://github.com/vatesfr/xen-orchestra/issues/3783) [#3934](https://github.com/vatesfr/xen-orchestra/issues/3934) (PR [#4077](https://github.com/vatesfr/xen-orchestra/pull/4077))
+- [Patches] (PR [#4077](https://github.com/vatesfr/xen-orchestra/pull/4077))
+  - Add a host to a pool: fixes the auto-patching of the host on XenServer < 7.2 [#3783](https://github.com/vatesfr/xen-orchestra/issues/3783)
+  - Add a host to a pool: homogenizes both the host and **pool**'s patches [#2188](https://github.com/vatesfr/xen-orchestra/issues/2188)
+  - Safely install a subset of patches on a pool [#3777](https://github.com/vatesfr/xen-orchestra/issues/3777)
+  - XCP-ng: no longer requires to run `yum install xcp-ng-updater` when it's already installed [#3934](https://github.com/vatesfr/xen-orchestra/issues/3934)
 
 ### Released packages
 
