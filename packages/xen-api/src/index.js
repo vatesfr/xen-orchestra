@@ -39,11 +39,6 @@ import XapiError from './_XapiError'
 
 // ===================================================================
 
-export { XapiError }
-export const wrapError = XapiError.wrap
-
-// ===================================================================
-
 // in seconds!
 const EVENT_TIMEOUT = 60
 
