@@ -1296,24 +1296,29 @@ export default class BackupNg {
         $defer.onSuccess.call(xapi, 'deleteVm', baseSnapshot)
       }
 
+      let deltaChainLength = 0
       let fullVdisRequired
       await (async () => {
         if (baseSnapshot === undefined) {
           return
         }
 
-        const fullInterval = getSetting(settings, 'fullInterval', [
-          vmUuid,
-          scheduleId,
-          '',
-        ])
-        if (
-          fullInterval !== 0 &&
-          fullInterval ===
-            +baseSnapshot.other_config['xo:backup:deltaChainLength']
-        ) {
-          baseSnapshot = undefined
-          return
+        const maybeDeltaChainLength = +baseSnapshot.other_config[
+          'xo:backup:deltaChainLength'
+        ]
+        if (!Number.isNaN(maybeDeltaChainLength)) {
+          deltaChainLength = maybeDeltaChainLength
+
+          const fullInterval = getSetting(settings, 'fullInterval', [
+            vmUuid,
+            scheduleId,
+            '',
+          ])
+
+          if (fullInterval !== 0 && fullInterval === deltaChainLength) {
+            baseSnapshot = undefined
+            return
+          }
         }
 
         const fullRequired = { __proto__: null }
@@ -1647,8 +1652,7 @@ export default class BackupNg {
       if (!isFull) {
         ignoreErrors.call(
           xapi._updateObjectMapProperty(snapshot, 'other_config', {
-            'xo:backup:deltaChainLength':
-              1 + baseSnapshot.other_config['xo:backup:deltaChainLength'],
+            'xo:backup:deltaChainLength': deltaChainLength + 1,
           })
         )
       }
