@@ -134,7 +134,6 @@ export class Xapi extends EventEmitter {
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
-    this._sessionId = undefined
 
     this._auth = opts.auth
     const url = parseUrl(opts.url)
@@ -154,6 +153,14 @@ export class Xapi extends EventEmitter {
 
     this._allowUnauthorized = opts.allowUnauthorized
     this._setUrl(url)
+
+    this._connecting = undefined
+    this._connected = new Promise(resolve => {
+      this._resolveConnected = resolve
+    })
+    this._disconnected = Promise.resolve()
+    this._sessionId = undefined
+    this._status = DISCONNECTED
     ;(this._objects = new Collection()).getKey = getKey
     this._debounce = opts.debounce == null ? 200 : opts.debounce
     this._watchedTypes = undefined
@@ -182,6 +189,14 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
   // Connection
   // ===========================================================================
+
+  get connected() {
+    return this._connected
+  }
+
+  get disconnected() {
+    return this._disconnected
+  }
 
   get pool() {
     return this._pool
@@ -246,6 +261,11 @@ export class Xapi extends EventEmitter {
       this._pool = (await this.getAllRecords('pool'))[0]
 
       debug('%s: connected', this._humanId)
+      this._disconnected = new Promise(resolve => {
+        this._resolveDisconnected = resolve
+      })
+      this._resolveConnected()
+      this._resolveConnected = undefined
       this.emit(CONNECTED)
     } catch (error) {
       ignoreErrors.call(this.disconnect())
@@ -261,9 +281,22 @@ export class Xapi extends EventEmitter {
       return
     }
 
-    ignoreErrors.call(this._transportCall('session.logout', [this._sessionId]))
+    if (status === CONNECTED) {
+      this._connected = new Promise(resolve => {
+        this._resolveConnected = resolve
+      })
 
-    this._sessionId = undefined
+      this._resolveDisconnected()
+      this._resolveDisconnected = undefined
+    } else {
+      assert(status === CONNECTING)
+    }
+
+    const sessionId = this._sessionId
+    if (sessionId !== undefined) {
+      this._sessionId = undefined
+      ignoreErrors.call(this._transportCall('session.logout', [sessionId]))
+    }
 
     debug('%s: disconnected', this._humanId)
 
