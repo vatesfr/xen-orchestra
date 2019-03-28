@@ -140,6 +140,7 @@ const defaultSettings: Settings = {
   concurrency: 0,
   deleteFirst: false,
   exportRetention: 0,
+  fullInterval: 0,
   offlineSnapshot: false,
   reportWhen: 'failure',
   snapshotRetention: 0,
@@ -475,10 +476,11 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 //
 // - `other_config`:
 //    - `xo:backup:datetime` = snapshot.snapshot_time (allow sorting replicated VMs)
+//    - `xo:backup:deltaChainLength` = n (number of delta copies/replicated since a full)
+//    - `xo:backup:exported` = 'true' (added at the end of the backup)
 //    - `xo:backup:job` = job.id
 //    - `xo:backup:schedule` = schedule.id
 //    - `xo:backup:vm` = vm.uuid
-//    - `xo:backup:exported` = 'true' (added at the end of the backup)
 //
 // Attributes of created VMs:
 //
@@ -937,6 +939,7 @@ export default class BackupNg {
         },
         xapi._updateObjectMapProperty(vm, 'other_config', {
           'xo:backup:datetime': null,
+          'xo:backup:deltaChainLength': null,
           'xo:backup:exported': null,
           'xo:backup:job': null,
           'xo:backup:schedule': null,
@@ -1293,9 +1296,28 @@ export default class BackupNg {
         $defer.onSuccess.call(xapi, 'deleteVm', baseSnapshot)
       }
 
+      let deltaChainLength = 0
       let fullVdisRequired
       await (async () => {
         if (baseSnapshot === undefined) {
+          return
+        }
+
+        let prevDeltaChainLength = +baseSnapshot.other_config[
+          'xo:backup:deltaChainLength'
+        ]
+        if (Number.isNaN(prevDeltaChainLength)) {
+          prevDeltaChainLength = 0
+        }
+        deltaChainLength = prevDeltaChainLength + 1
+
+        const fullInterval = getSetting(settings, 'fullInterval', [
+          vmUuid,
+          scheduleId,
+          '',
+        ])
+        if (fullInterval !== 0 && fullInterval <= deltaChainLength) {
+          baseSnapshot = undefined
           return
         }
 
@@ -1626,6 +1648,15 @@ export default class BackupNg {
         ],
         noop // errors are handled in logs
       )
+
+      if (!isFull) {
+        ignoreErrors.call(
+          snapshot.update_other_config(
+            'xo:backup:deltaChainLength',
+            String(deltaChainLength)
+          )
+        )
+      }
     } else {
       throw new Error(`no exporter for backup mode ${mode}`)
     }
