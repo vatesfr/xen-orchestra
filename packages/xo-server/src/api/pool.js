@@ -146,7 +146,7 @@ export { uploadPatch as patch }
 // -------------------------------------------------------------------
 
 export async function getPatchesDifference({ source, target }) {
-  return this.getPatchesDifference(target, source)
+  return this.getPatchesDifference(target.id, source.id)
 }
 
 getPatchesDifference.params = {
