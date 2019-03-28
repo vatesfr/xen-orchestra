@@ -1,16 +1,13 @@
 import Collection from 'xo-collection'
-import createDebug from 'debug'
 import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
-import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
 import { fibonacci } from 'iterable-backoff'
 import {
   forEach,
   forOwn,
   isArray,
-  isInteger,
   map,
   noop,
   omit,
@@ -18,7 +15,6 @@ import {
   startsWith,
 } from 'lodash'
 import {
-  Cancel,
   cancelable,
   defer,
   fromEvents,
@@ -31,9 +27,20 @@ import {
 } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
+import debug from './_debug'
+import getTaskResult from './_getTaskResult'
+import isGetAllRecordsMethod from './_isGetAllRecordsMethod'
+import isOpaqueRef from './_isOpaqueRef'
+import isReadOnlyCall from './_isReadOnlyCall'
+import makeCallSetting from './_makeCallSetting'
+import parseUrl from './_parseUrl'
 import replaceSensitiveValues from './_replaceSensitiveValues'
+import XapiError from './_XapiError'
 
-const debug = createDebug('xen-api')
+// ===================================================================
+
+export { XapiError }
+export const wrapError = XapiError.wrap
 
 // ===================================================================
 
@@ -85,58 +92,7 @@ const isMethodUnknown = ({ code }) => code === 'MESSAGE_METHOD_UNKNOWN'
 
 const isSessionInvalid = ({ code }) => code === 'SESSION_INVALID'
 
-// -------------------------------------------------------------------
-
-class XapiError extends BaseError {
-  constructor(code, params) {
-    super(`${code}(${params.join(', ')})`)
-
-    this.code = code
-    this.params = params
-
-    // slots than can be assigned later
-    this.call = undefined
-    this.url = undefined
-    this.task = undefined
-  }
-}
-
-export const wrapError = error => {
-  let code, params
-  if (isArray(error)) {
-    // < XenServer 7.3
-    ;[code, ...params] = error
-  } else {
-    code = error.message
-    params = error.data
-    if (!isArray(params)) {
-      params = []
-    }
-  }
-  return new XapiError(code, params)
-}
-
 // ===================================================================
-
-const URL_RE = /^(?:(https?:)\/*)?(?:([^:]+):([^@]+)@)?([^/]+?)(?::([0-9]+))?\/?$/
-const parseUrl = url => {
-  const matches = URL_RE.exec(url)
-  if (!matches) {
-    throw new Error('invalid URL: ' + url)
-  }
-
-  const [, protocol = 'https:', username, password, hostname, port] = matches
-  const parsedUrl = { protocol, hostname, port }
-  if (username !== undefined) {
-    parsedUrl.username = decodeURIComponent(username)
-  }
-  if (password !== undefined) {
-    parsedUrl.password = decodeURIComponent(password)
-  }
-  return parsedUrl
-}
-
-// -------------------------------------------------------------------
 
 const {
   create: createObject,
@@ -149,78 +105,11 @@ const {
 
 export const NULL_REF = 'OpaqueRef:NULL'
 
-const OPAQUE_REF_PREFIX = 'OpaqueRef:'
-export const isOpaqueRef = value =>
-  typeof value === 'string' && startsWith(value, OPAQUE_REF_PREFIX)
-
-// -------------------------------------------------------------------
-
-const isGetAllRecordsMethod = RegExp.prototype.test.bind(/\.get_all_records$/)
-
-const RE_READ_ONLY_METHOD = /^[^.]+\.get_/
-const isReadOnlyCall = (method, args) =>
-  args.length === 1 &&
-  typeof args[0] === 'string' &&
-  RE_READ_ONLY_METHOD.test(method)
-
-// Prepare values before passing them to the XenAPI:
-//
-// - cast integers to strings
-const prepareParam = param => {
-  if (isInteger(param)) {
-    return String(param)
-  }
-
-  if (typeof param !== 'object' || param === null) {
-    return param
-  }
-
-  if (isArray(param)) {
-    return map(param, prepareParam)
-  }
-
-  const values = {}
-  forEach(param, (value, key) => {
-    if (value !== undefined) {
-      values[key] = prepareParam(value)
-    }
-  })
-  return values
-}
-
 // -------------------------------------------------------------------
 
 const getKey = o => o.$id
 
 // -------------------------------------------------------------------
-
-const getTaskResult = task => {
-  const { status } = task
-  if (status === 'cancelled') {
-    return Promise.reject(new Cancel('task canceled'))
-  }
-  if (status === 'failure') {
-    const error = wrapError(task.error_info)
-    error.task = task
-    return Promise.reject(error)
-  }
-  if (status === 'success') {
-    // the result might be:
-    // - empty string
-    // - an opaque reference
-    // - an XML-RPC value
-    return Promise.resolve(task.result)
-  }
-}
-
-function defined() {
-  for (let i = 0, n = arguments.length; i < n; ++i) {
-    const arg = arguments[i]
-    if (arg !== undefined) {
-      return arg
-    }
-  }
-}
 
 // TODO: find a better name
 // TODO: merge into promise-toolbox?
@@ -231,15 +120,6 @@ const dontWait = promise => {
   // http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it
   return null
 }
-
-const makeCallSetting = (setting, defaultValue) =>
-  setting === undefined
-    ? () => defaultValue
-    : typeof setting === 'function'
-    ? setting
-    : typeof setting !== 'object'
-    ? () => setting
-    : method => defined(setting[method], setting['*'], defaultValue)
 
 // -------------------------------------------------------------------
 
@@ -480,7 +360,7 @@ export class Xapi extends EventEmitter {
   call(method, ...args) {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
-      : this._sessionCall(method, prepareParam(args))
+      : this._sessionCall(method, args)
   }
 
   @cancelable
@@ -1221,7 +1101,7 @@ Xapi.prototype._transportCall = reduce(
         .call(this._call(method, args), HTTP_TIMEOUT)
         .catch(error => {
           if (!(error instanceof Error)) {
-            error = wrapError(error)
+            error = XapiError.wrap(error)
           }
 
           // do not log the session ID
