@@ -171,43 +171,20 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  watchEvents() {
-    this._eventWatchers = createObject(null)
-
-    this._taskWatchers = Object.create(null)
-
-    if (this.status === CONNECTED) {
-      this._watchEventsWrapper()
-    }
-
-    this.on('connected', this._watchEventsWrapper)
-    this.on('disconnected', () => {
-      this._objects.clear()
-    })
-  }
-
-  get pool() {
-    return this._pool
-  }
-
-  get _url() {
-    return this.__url
-  }
-
-  set _url(url) {
-    this.__url = url
-    this._call = autoTransport({
-      allowUnauthorized: this._allowUnauthorized,
-      url,
-    })
-  }
-
   get readOnly() {
     return this._readOnly
   }
 
   set readOnly(ro) {
     this._readOnly = Boolean(ro)
+  }
+
+  // ===========================================================================
+  // Connection
+  // ===========================================================================
+
+  get pool() {
+    return this._pool
   }
 
   get sessionId() {
@@ -224,10 +201,6 @@ export class Xapi extends EventEmitter {
     const id = this._sessionId
 
     return id ? (id === CONNECTING ? CONNECTING : CONNECTED) : DISCONNECTED
-  }
-
-  get _humanId() {
-    return `${this._auth.user}@${this._url.hostname}`
   }
 
   async connect() {
@@ -557,25 +530,6 @@ export class Xapi extends EventEmitter {
     return pTaskResult
   }
 
-  // create a task and automatically destroy it when settled
-  //
-  //  allowed even in read-only mode because it does not have impact on the
-  //  XenServer and it's necessary for getResource()
-  createTask(nameLabel, nameDescription = '') {
-    const promise = this._sessionCall('task.create', [
-      nameLabel,
-      nameDescription,
-    ])
-
-    promise.then(taskRef => {
-      const destroy = () =>
-        this._sessionCall('task.destroy', [taskRef]).catch(noop)
-      this.watchTask(taskRef).then(destroy, destroy)
-    })
-
-    return promise
-  }
-
   // ===========================================================================
   // Events & cached objects
   // ===========================================================================
@@ -628,6 +582,25 @@ export class Xapi extends EventEmitter {
     )
   }
 
+  // create a task and automatically destroy it when settled
+  //
+  //  allowed even in read-only mode because it does not have impact on the
+  //  XenServer and it's necessary for getResource()
+  createTask(nameLabel, nameDescription = '') {
+    const promise = this._sessionCall('task.create', [
+      nameLabel,
+      nameDescription,
+    ])
+
+    promise.then(taskRef => {
+      const destroy = () =>
+        this._sessionCall('task.destroy', [taskRef]).catch(noop)
+      this.watchTask(taskRef).then(destroy, destroy)
+    })
+
+    return promise
+  }
+
   // Nice getter which returns the object for a given $id (internal to
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
@@ -671,6 +644,21 @@ export class Xapi extends EventEmitter {
     throw new Error('no object with UUID: ' + uuid)
   }
 
+  watchEvents() {
+    this._eventWatchers = createObject(null)
+
+    this._taskWatchers = Object.create(null)
+
+    if (this.status === CONNECTED) {
+      this._watchEventsWrapper()
+    }
+
+    this.on('connected', this._watchEventsWrapper)
+    this.on('disconnected', () => {
+      this._objects.clear()
+    })
+  }
+
   watchTask(ref) {
     const watchers = this._taskWatchers
     if (watchers === undefined) {
@@ -699,6 +687,22 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
   // Private
   // ===========================================================================
+
+  get _humanId() {
+    return `${this._auth.user}@${this._url.hostname}`
+  }
+
+  get _url() {
+    return this.__url
+  }
+
+  set _url(url) {
+    this.__url = url
+    this._call = autoTransport({
+      allowUnauthorized: this._allowUnauthorized,
+      url,
+    })
+  }
 
   _clearObjects() {
     ;(this._objectsByRef = createObject(null))[NULL_REF] = undefined
