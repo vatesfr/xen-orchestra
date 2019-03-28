@@ -583,14 +583,14 @@ export class Xapi extends EventEmitter {
       undefined,
       $cancelToken,
       this._url,
-      host && {
+      host !== undefined && {
         hostname: this.getObject(host).address,
       },
       {
         body,
         headers,
-        query,
         pathname,
+        query,
         rejectUnauthorized: !this._allowUnauthorized,
 
         // this is an inactivity timeout (unclear in Node doc)
@@ -598,8 +598,8 @@ export class Xapi extends EventEmitter {
       }
     )
 
-    // if a stream, sends a dummy request to probe for a
-    // redirection before consuming body
+    // if body is a stream, sends a dummy request to probe for a redirection
+    // before consuming body
     const response = await (isStream
       ? doRequest({
           body: '',
