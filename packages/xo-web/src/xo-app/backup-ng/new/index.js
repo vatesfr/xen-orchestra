@@ -520,9 +520,9 @@ export default decorate([
           value: value && value * 3600e3,
         })
       },
-      setFullBackupInterval({ setGlobalSettings }, value) {
+      setFullInterval({ setGlobalSettings }, value) {
         setGlobalSettings({
-          name: 'fullBackupInterval',
+          name: 'fullInterval',
           value,
         })
       },
@@ -540,7 +540,7 @@ export default decorate([
       compressionId: generateId,
       formId: generateId,
       inputConcurrencyId: generateId,
-      inputFullBackupIntervalId: generateId,
+      inputFullIntervalId: generateId,
       inputReportWhenId: generateId,
       inputTimeoutId: generateId,
 
@@ -641,7 +641,7 @@ export default decorate([
     const compression = defined(state.compression, job.compression, '')
     const {
       concurrency,
-      fullBackupInterval,
+      fullInterval,
       offlineSnapshot,
       reportWhen = 'failure',
       timeout,
@@ -936,13 +936,13 @@ export default decorate([
                         />
                       </FormGroup>
                       <FormGroup>
-                        <label htmlFor={state.inputFullBackupIntervalId}>
+                        <label htmlFor={state.inputFullIntervalId}>
                           <strong>{_('fullBackupInterval')}</strong>
                         </label>{' '}
                         <Number
-                          id={state.inputFullBackupIntervalId}
-                          onChange={effects.setFullBackupInterval}
-                          value={fullBackupInterval}
+                          id={state.inputFullIntervalId}
+                          onChange={effects.setFullInterval}
+                          value={fullInterval}
                         />
                       </FormGroup>
                       {state.isFull && (
