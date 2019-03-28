@@ -6,6 +6,7 @@ import isEmpty from 'lodash/isEmpty'
 import Link, { BlockLink } from 'link'
 import map from 'lodash/map'
 import React from 'react'
+import semver from 'semver'
 import SingleLineRow from 'single-line-row'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
@@ -28,6 +29,7 @@ import {
 } from 'selectors'
 
 import MiniStats from './mini-stats'
+import ShowWarningLicence from '../host/warning-licence'
 import styles from './index.css'
 
 @connectStore(() => ({
@@ -159,7 +161,12 @@ export default class HostItem extends Component {
                       </Tooltip>
                     </span>
                   )}
-                </span>
+                </span>{' '}
+                {host.productBrand !== 'XCP-ng' &&
+                  semver.satisfies(host.version, '>=7.3.0') &&
+                  host.license_params.sku_type === 'free' && (
+                    <ShowWarningLicence />
+                  )}
                 <Icon
                   className='text-info'
                   icon={host.os_version && osFamily(host.os_version.distro)}

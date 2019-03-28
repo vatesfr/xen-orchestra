@@ -4,6 +4,7 @@ import Copiable from 'copiable'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
+import semver from 'semver'
 import store from 'store'
 import HomeTags from 'home-tags'
 import { addTag, removeTag } from 'xo'
@@ -19,6 +20,8 @@ import {
   NetworkSparkLines,
   LoadSparkLines,
 } from 'xo-sparklines'
+
+import ShowWarningLicence from './warning-licence'
 
 export default ({ statsOverview, host, nVms, vmController, vms }) => {
   const pool = getObject(store.getState(), host.$pool)
@@ -82,7 +85,10 @@ export default ({ statsOverview, host, nVms, vmController, vms }) => {
             {host.productBrand !== 'XCP-ng'
               ? host.license_params.sku_type
               : 'GPLv2'}
-            )
+            ){' '}
+            {host.productBrand !== 'XCP-ng' &&
+              semver.satisfies(host.version, '>=7.3.0') &&
+              host.license_params.sku_type === 'free' && <ShowWarningLicence />}
           </p>
         </Col>
         <Col mediumSize={3}>
