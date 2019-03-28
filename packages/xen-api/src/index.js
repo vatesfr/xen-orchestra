@@ -370,6 +370,68 @@ export class Xapi extends EventEmitter {
     return promise
   }
 
+  // ===========================================================================
+  // Objects handling helpers
+  // ===========================================================================
+
+  async getAllRecords(type) {
+    return map(
+      await this._sessionCall(`${type}.get_all_records`),
+      (record, ref) => this._wrapRecord(type, ref, record)
+    )
+  }
+
+  async getRecord(type, ref) {
+    return this._wrapRecord(
+      type,
+      ref,
+      await this._sessionCall(`${type}.get_record`, [ref])
+    )
+  }
+
+  async getRecordByUuid(type, uuid) {
+    return this.getRecord(
+      type,
+      await this._sessionCall(`${type}.get_by_uuid`, [uuid])
+    )
+  }
+
+  getRecords(type, refs) {
+    return Promise.all(refs.map(ref => this.getRecord(type, ref)))
+  }
+
+  setField(type, ref, field, value) {
+    return this.call(`${type}.set_${field}`, ref, value).then(noop)
+  }
+
+  setFieldEntries(type, ref, field, entries) {
+    return Promise.all(
+      getKeys(entries).map(entry => {
+        const value = entries[entry]
+        if (value !== undefined) {
+          return this.setFieldEntry(type, ref, field, entry, value)
+        }
+      })
+    ).then(noop)
+  }
+
+  async setFieldEntry(type, ref, field, entry, value) {
+    if (value === null) {
+      return this.call(`${type}.remove_from_${field}`, ref, entry).then(noop)
+    }
+    while (true) {
+      try {
+        await this.call(`${type}.add_to_${field}`, ref, entry, value)
+        return
+      } catch (error) {
+        if (error?.code !== 'MAP_DUPLICATE_KEY') {
+          throw error
+        }
+      }
+      await this.call(`${type}.remove_from_${field}`, ref, entry)
+    }
+  }
+
   // create a task and automatically destroy it when settled
   //
   //  allowed even in read-only mode because it does not have impact on the
@@ -434,32 +496,6 @@ export class Xapi extends EventEmitter {
     if (arguments.length > 1) return defaultValue
 
     throw new Error('no object with UUID: ' + uuid)
-  }
-
-  async getRecord(type, ref) {
-    return this._wrapRecord(
-      type,
-      ref,
-      await this._sessionCall(`${type}.get_record`, [ref])
-    )
-  }
-
-  getRecords(type, refs) {
-    return Promise.all(refs.map(ref => this.getRecord(type, ref)))
-  }
-
-  async getAllRecords(type) {
-    return map(
-      await this._sessionCall(`${type}.get_all_records`),
-      (record, ref) => this._wrapRecord(type, ref, record)
-    )
-  }
-
-  async getRecordByUuid(type, uuid) {
-    return this.getRecord(
-      type,
-      await this._sessionCall(`${type}.get_by_uuid`, [uuid])
-    )
   }
 
   @cancelable
@@ -614,38 +650,6 @@ export class Xapi extends EventEmitter {
         })
       }
     )
-  }
-
-  setField(type, ref, field, value) {
-    return this.call(`${type}.set_${field}`, ref, value).then(noop)
-  }
-
-  setFieldEntries(type, ref, field, entries) {
-    return Promise.all(
-      getKeys(entries).map(entry => {
-        const value = entries[entry]
-        if (value !== undefined) {
-          return this.setFieldEntry(type, ref, field, entry, value)
-        }
-      })
-    ).then(noop)
-  }
-
-  async setFieldEntry(type, ref, field, entry, value) {
-    if (value === null) {
-      return this.call(`${type}.remove_from_${field}`, ref, entry).then(noop)
-    }
-    while (true) {
-      try {
-        await this.call(`${type}.add_to_${field}`, ref, entry, value)
-        return
-      } catch (error) {
-        if (error == null || error.code !== 'MAP_DUPLICATE_KEY') {
-          throw error
-        }
-      }
-      await this.call(`${type}.remove_from_${field}`, ref, entry)
-    }
   }
 
   watchTask(ref) {
