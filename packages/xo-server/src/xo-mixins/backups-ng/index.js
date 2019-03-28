@@ -1315,7 +1315,7 @@ export default class BackupNg {
             '',
           ])
 
-          if (fullInterval !== 0 && fullInterval < deltaChainLength) {
+          if (fullInterval !== 0 && fullInterval <= deltaChainLength) {
             baseSnapshot = undefined
             return
           }
