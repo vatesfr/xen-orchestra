@@ -1,3 +1,4 @@
+import assert from 'assert'
 import Collection from 'xo-collection'
 import kindOf from 'kindof'
 import ms from 'ms'
@@ -210,9 +211,7 @@ export class Xapi extends EventEmitter {
       return
     }
 
-    if (status === CONNECTING) {
-      throw new Error('already connecting')
-    }
+    assert(status === DISCONNECTED)
 
     const auth = this._auth
 
