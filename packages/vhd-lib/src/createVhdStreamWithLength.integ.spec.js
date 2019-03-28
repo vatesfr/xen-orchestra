@@ -38,11 +38,11 @@ async function createRandomFile(name, size) {
 }
 
 test('createVhdStreamWithLength can extract length', async () => {
-  const initalSize = 4 * 1024
+  const initialSize = 4 * 1024
   const rawFileName = `${tempDir}/randomfile`
   const vhdName = `${tempDir}/randomfile.vhd`
   const outputVhdName = `${tempDir}/output.vhd`
-  await createRandomFile(rawFileName, initalSize)
+  await createRandomFile(rawFileName, initialSize)
   await convertFromRawToVhd(rawFileName, vhdName)
   const vhdSize = fs.statSync(vhdName).size
   const result = await createVhdStreamWithLength(
@@ -56,11 +56,11 @@ test('createVhdStreamWithLength can extract length', async () => {
 })
 
 test('createVhdStreamWithLength can skip blank after last block and before footer', async () => {
-  const initalSize = 4 * 1024
+  const initialSize = 4 * 1024
   const rawFileName = `${tempDir}/randomfile`
   const vhdName = `${tempDir}/randomfile.vhd`
   const outputVhdName = `${tempDir}/output.vhd`
-  await createRandomFile(rawFileName, initalSize)
+  await createRandomFile(rawFileName, initialSize)
   await convertFromRawToVhd(rawFileName, vhdName)
   const vhdSize = fs.statSync(vhdName).size
   // read file footer
