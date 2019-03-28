@@ -186,6 +186,10 @@ export class Xapi extends EventEmitter {
     })
   }
 
+  get pool() {
+    return this._pool
+  }
+
   get _url() {
     return this.__url
   }
@@ -224,50 +228,6 @@ export class Xapi extends EventEmitter {
 
   get _humanId() {
     return `${this._auth.user}@${this._url.hostname}`
-  }
-
-  // ensure we have received all events up to this call
-  //
-  // optionally returns the up to date object for the given ref
-  barrier(ref) {
-    const eventWatchers = this._eventWatchers
-    if (eventWatchers === undefined) {
-      return Promise.reject(
-        new Error('Xapi#barrier() requires events watching')
-      )
-    }
-
-    const key = `xo:barrier:${Math.random()
-      .toString(36)
-      .slice(2)}`
-    const poolRef = this._pool.$ref
-
-    const { promise, resolve } = defer()
-    eventWatchers[key] = resolve
-
-    return this._sessionCall('pool.add_to_other_config', [
-      poolRef,
-      key,
-      '',
-    ]).then(() =>
-      promise.then(() => {
-        this._sessionCall('pool.remove_from_other_config', [
-          poolRef,
-          key,
-        ]).catch(noop)
-
-        if (ref === undefined) {
-          return
-        }
-
-        // support legacy params (type, ref)
-        if (arguments.length === 2) {
-          ref = arguments[1]
-        }
-
-        return this.getObjectByRef(ref)
-      })
-    )
   }
 
   async connect() {
@@ -616,6 +576,58 @@ export class Xapi extends EventEmitter {
     return promise
   }
 
+  // ===========================================================================
+  // Events & cached objects
+  // ===========================================================================
+
+  get objects() {
+    return this._objects
+  }
+
+  // ensure we have received all events up to this call
+  //
+  // optionally returns the up to date object for the given ref
+  barrier(ref) {
+    const eventWatchers = this._eventWatchers
+    if (eventWatchers === undefined) {
+      return Promise.reject(
+        new Error('Xapi#barrier() requires events watching')
+      )
+    }
+
+    const key = `xo:barrier:${Math.random()
+      .toString(36)
+      .slice(2)}`
+    const poolRef = this._pool.$ref
+
+    const { promise, resolve } = defer()
+    eventWatchers[key] = resolve
+
+    return this._sessionCall('pool.add_to_other_config', [
+      poolRef,
+      key,
+      '',
+    ]).then(() =>
+      promise.then(() => {
+        this._sessionCall('pool.remove_from_other_config', [
+          poolRef,
+          key,
+        ]).catch(noop)
+
+        if (ref === undefined) {
+          return
+        }
+
+        // support legacy params (type, ref)
+        if (arguments.length === 2) {
+          ref = arguments[1]
+        }
+
+        return this.getObjectByRef(ref)
+      })
+    )
+  }
+
   // Nice getter which returns the object for a given $id (internal to
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
@@ -684,13 +696,9 @@ export class Xapi extends EventEmitter {
     return watcher.promise
   }
 
-  get pool() {
-    return this._pool
-  }
-
-  get objects() {
-    return this._objects
-  }
+  // ===========================================================================
+  // Private
+  // ===========================================================================
 
   _clearObjects() {
     ;(this._objectsByRef = createObject(null))[NULL_REF] = undefined
@@ -794,6 +802,22 @@ export class Xapi extends EventEmitter {
     }
   }
 
+  _processEvents(events) {
+    forEach(events, event => {
+      let type = event.class
+      const lcToTypes = this._lcToTypes
+      if (type in lcToTypes) {
+        type = lcToTypes[type]
+      }
+      const { ref } = event
+      if (event.operation === 'del') {
+        this._removeObject(type, ref)
+      } else {
+        this._addObject(type, ref, event.snapshot)
+      }
+    })
+  }
+
   _removeObject(type, ref) {
     const byRefs = this._objectsByRef
     const object = byRefs[ref]
@@ -815,22 +839,6 @@ export class Xapi extends EventEmitter {
       taskWatcher.reject(error)
       delete taskWatchers[ref]
     }
-  }
-
-  _processEvents(events) {
-    forEach(events, event => {
-      let type = event.class
-      const lcToTypes = this._lcToTypes
-      if (type in lcToTypes) {
-        type = lcToTypes[type]
-      }
-      const { ref } = event
-      if (event.operation === 'del') {
-        this._removeObject(type, ref)
-      } else {
-        this._addObject(type, ref, event.snapshot)
-      }
-    })
   }
 
   // - prevent multiple watches
