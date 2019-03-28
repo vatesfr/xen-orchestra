@@ -244,7 +244,7 @@ export class Xapi extends EventEmitter {
       debug('%s: connected', this._humanId)
       this.emit(CONNECTED)
     } catch (error) {
-      this._sessionId = null
+      ignoreErrors.call(this.disconnect())
 
       throw error
     }
