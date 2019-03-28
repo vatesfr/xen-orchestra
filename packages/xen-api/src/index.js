@@ -401,6 +401,10 @@ export class Xapi extends EventEmitter {
     return Promise.all(refs.map(ref => this.getRecord(type, ref)))
   }
 
+  getField(type, ref, field) {
+    return this._sessionCall(`${type}.get_${field}`, [ref])
+  }
+
   setField(type, ref, field, value) {
     return this.call(`${type}.set_${field}`, ref, value).then(noop)
   }
@@ -610,10 +614,6 @@ export class Xapi extends EventEmitter {
     })
 
     return promise
-  }
-
-  getField(type, ref, field) {
-    return this._sessionCall(`${type}.get_${field}`, [ref])
   }
 
   // Nice getter which returns the object for a given $id (internal to
