@@ -1303,11 +1303,11 @@ export default class BackupNg {
           return
         }
 
-        const maybeDeltaChainLength = +baseSnapshot.other_config[
+        const prevDeltaChainLength = +baseSnapshot.other_config[
           'xo:backup:deltaChainLength'
         ]
-        if (!Number.isNaN(maybeDeltaChainLength)) {
-          deltaChainLength = maybeDeltaChainLength
+        if (!Number.isNaN(prevDeltaChainLength)) {
+          deltaChainLength = prevDeltaChainLength + 1
 
           const fullInterval = getSetting(settings, 'fullInterval', [
             vmUuid,
@@ -1315,7 +1315,7 @@ export default class BackupNg {
             '',
           ])
 
-          if (fullInterval !== 0 && fullInterval === deltaChainLength) {
+          if (fullInterval !== 0 && fullInterval < deltaChainLength) {
             baseSnapshot = undefined
             return
           }
@@ -1653,7 +1653,7 @@ export default class BackupNg {
         ignoreErrors.call(
           snapshot.update_other_config(
             'xo:backup:deltaChainLength',
-            String(deltaChainLength + 1)
+            String(deltaChainLength)
           )
         )
       }
