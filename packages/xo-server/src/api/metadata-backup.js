@@ -101,3 +101,42 @@ runJob.params = {
     type: 'string',
   },
 }
+
+export async function list({ remotes }) {
+  return this.listMetadataBackups(remotes)
+}
+
+list.permission = 'admin'
+
+list.params = {
+  remotes: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
+  },
+}
+
+export function restore({ id }) {
+  return this.restoreMetadataBackup(id)
+}
+
+restore.permission = 'admin'
+
+restore.params = {
+  id: {
+    type: 'string',
+  },
+}
+
+function delete_({ id }) {
+  return this.deleteMetadataBackup(id)
+}
+delete_.permission = 'admin'
+
+delete_.params = {
+  id: {
+    type: 'string',
+  },
+}
+export { delete_ as delete }
