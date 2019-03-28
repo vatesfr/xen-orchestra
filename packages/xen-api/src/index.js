@@ -26,6 +26,7 @@ import {
 } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
+import coalesceCalls from './_coalesceCalls'
 import debug from './_debug'
 import getTaskResult from './_getTaskResult'
 import isGetAllRecordsMethod from './_isGetAllRecordsMethod'
@@ -201,6 +202,7 @@ export class Xapi extends EventEmitter {
     return id ? (id === CONNECTING ? CONNECTING : CONNECTED) : DISCONNECTED
   }
 
+  connect = coalesceCalls(this.connect)
   async connect() {
     const { status } = this
 
