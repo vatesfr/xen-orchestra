@@ -297,7 +297,7 @@
     "@babel/helper-plugin-utils" "^7.0.0"
     "@babel/plugin-syntax-json-strings" "^7.2.0"
 
-"@babel/plugin-proposal-nullish-coalescing-operator@^7.0.0":
+"@babel/plugin-proposal-nullish-coalescing-operator@^7.0.0", "@babel/plugin-proposal-nullish-coalescing-operator@^7.2.0":
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-nullish-coalescing-operator/-/plugin-proposal-nullish-coalescing-operator-7.2.0.tgz#c3fda766187b2f2162657354407247a758ee9cf9"
   integrity sha512-QXj/YjFuFJd68oDvoc1e8aqLr2wz7Kofzvp6Ekd/o7MWZl+nZ0/cpStxND+hlZ7DpRWAp7OmuyT2areZ2V3YUA==
@@ -321,7 +321,7 @@
     "@babel/helper-plugin-utils" "^7.0.0"
     "@babel/plugin-syntax-optional-catch-binding" "^7.2.0"
 
-"@babel/plugin-proposal-optional-chaining@^7.0.0":
+"@babel/plugin-proposal-optional-chaining@^7.0.0", "@babel/plugin-proposal-optional-chaining@^7.2.0":
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-optional-chaining/-/plugin-proposal-optional-chaining-7.2.0.tgz#ae454f4c21c6c2ce8cb2397dc332ae8b420c5441"
   integrity sha512-ea3Q6edZC/55wEBVZAEz42v528VulyO0eir+7uky/sT4XRcdkWJcFi1aPtitTlwUzGnECWJNExWww1SStt+yWw==

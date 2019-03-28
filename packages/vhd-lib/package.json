@@ -42,6 +42,7 @@
     "fs-promise": "^2.0.0",
     "get-stream": "^4.0.0",
     "index-modules": "^0.3.0",
+    "readable-stream": "^3.0.6",
     "rimraf": "^2.6.2",
     "tmp": "^0.0.33"
   },

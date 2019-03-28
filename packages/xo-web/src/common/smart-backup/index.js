@@ -1,5 +1,5 @@
 import * as CM from 'complex-matcher'
-import { get, identity, isEmpty } from 'lodash'
+import { escapeRegExp, get, identity, isEmpty } from 'lodash'
 
 import { EMPTY_OBJECT } from './../utils'
 
@@ -59,7 +59,7 @@ export const constructSmartPattern = (
 
 const valueToComplexMatcher = pattern => {
   if (typeof pattern === 'string') {
-    return new CM.String(pattern)
+    return new CM.RegExpNode(`^${escapeRegExp(pattern)}$`)
   }
 
   if (Array.isArray(pattern)) {
