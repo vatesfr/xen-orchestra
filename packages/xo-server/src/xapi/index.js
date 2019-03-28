@@ -68,6 +68,7 @@ import {
   parseDateTime,
   prepareXapiParam,
 } from './utils'
+import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
 
@@ -93,8 +94,10 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor(...args) {
-    super(...args)
+  constructor({ guessVhdSizeOnImport, ...opts }) {
+    super(opts)
+
+    this._guessVhdSizeOnImport = guessVhdSizeOnImport
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -2095,11 +2098,16 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async _importVdiContent(vdi, body, format = VDI_FORMAT_VHD) {
-    if (__DEV__ && body.length == null) {
-      throw new Error(
-        'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
-      )
+    if (typeof body.pipe === 'function' && body.length === undefined) {
+      if (this._guessVhdSizeOnImport && format === VDI_FORMAT_VHD) {
+        body = await createVhdStreamWithLength(body)
+      } else if (__DEV__) {
+        throw new Error(
+          'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
+        )
+      }
     }
+
     await Promise.all([
       body.task,
       body.checksumVerified,

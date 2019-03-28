@@ -4,22 +4,20 @@ import rimraf from 'rimraf'
 import tmp from 'tmp'
 import { createWriteStream, readFile } from 'fs-promise'
 import { fromEvent, pFromCallback } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
 
 import { createReadableRawStream, createReadableSparseStream } from './'
 
 import { createFooter } from './src/_createFooterHeader'
 
-const initialDir = process.cwd()
+let tempDir = null
 
 beforeEach(async () => {
-  const dir = await pFromCallback(cb => tmp.dir(cb))
-  process.chdir(dir)
+  tempDir = await pFromCallback(cb => tmp.dir(cb))
 })
 
 afterEach(async () => {
-  const tmpDir = process.cwd()
-  process.chdir(initialDir)
-  await pFromCallback(cb => rimraf(tmpDir, cb))
+  await pFromCallback(cb => rimraf(tempDir, cb))
 })
 
 test('createFooter() does not crash', () => {
@@ -55,9 +53,10 @@ test('ReadableRawVHDStream does not crash', async () => {
   }
   const fileSize = 1000
   const stream = createReadableRawStream(fileSize, mockParser)
-  const pipe = stream.pipe(createWriteStream('output.vhd'))
-  await fromEvent(pipe, 'finish')
-  await execa('vhd-util', ['check', '-t', '-i', '-n', 'output.vhd'])
+  await pFromCallback(cb =>
+    pipeline(stream, createWriteStream(`${tempDir}/output.vhd`), cb)
+  )
+  await execa('vhd-util', ['check', '-t', '-i', '-n', `${tempDir}/output.vhd`])
 })
 
 test('ReadableRawVHDStream detects when blocks are out of order', async () => {
@@ -87,9 +86,9 @@ test('ReadableRawVHDStream detects when blocks are out of order', async () => {
     new Promise((resolve, reject) => {
       const stream = createReadableRawStream(100000, mockParser)
       stream.on('error', reject)
-      const pipe = stream.pipe(createWriteStream('outputStream'))
-      pipe.on('finish', resolve)
-      pipe.on('error', reject)
+      pipeline(stream, createWriteStream(`${tempDir}/outputStream`), err =>
+        err ? reject(err) : resolve()
+      )
     })
   ).rejects.toThrow('Received out of order blocks')
 })
@@ -114,19 +113,19 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
     blocks
   )
   expect(stream.length).toEqual(4197888)
-  const pipe = stream.pipe(createWriteStream('output.vhd'))
+  const pipe = stream.pipe(createWriteStream(`${tempDir}/output.vhd`))
   await fromEvent(pipe, 'finish')
-  await execa('vhd-util', ['check', '-t', '-i', '-n', 'output.vhd'])
+  await execa('vhd-util', ['check', '-t', '-i', '-n', `${tempDir}/output.vhd`])
   await execa('qemu-img', [
     'convert',
     '-f',
     'vpc',
     '-O',
     'raw',
-    'output.vhd',
-    'out1.raw',
+    `${tempDir}/output.vhd`,
+    `${tempDir}/out1.raw`,
   ])
-  const out1 = await readFile('out1.raw')
+  const out1 = await readFile(`${tempDir}/out1.raw`)
   const expected = Buffer.alloc(fileSize)
   blocks.forEach(b => {
     b.data.copy(expected, b.offsetBytes)
