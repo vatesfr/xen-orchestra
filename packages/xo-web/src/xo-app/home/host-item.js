@@ -29,7 +29,7 @@ import {
 } from 'selectors'
 
 import MiniStats from './mini-stats'
-import showLicenceRestriction from '../host/warning-licence'
+import ShowLicenceRestriction from '../host/warning-licence'
 import styles from './index.css'
 
 @connectStore(() => ({
@@ -127,7 +127,7 @@ export default class HostItem extends Component {
                 {host.productBrand !== 'XCP-ng' &&
                   semver.satisfies(host.version, '>=7.3.0') &&
                   host.license_params.sku_type === 'free' && (
-                    <showLicenceRestriction />
+                    <ShowLicenceRestriction />
                   )}
               </EllipsisContainer>
             </Col>
