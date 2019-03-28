@@ -1651,9 +1651,7 @@ export default class BackupNg {
 
       if (!isFull) {
         ignoreErrors.call(
-          xapi.setFieldEntry(
-            snapshot,
-            'other_config',
+          snapshot.update_other_config(
             'xo:backup:deltaChainLength',
             String(deltaChainLength + 1)
           )
