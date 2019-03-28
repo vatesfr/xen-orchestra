@@ -134,7 +134,7 @@ export class Xapi extends EventEmitter {
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
-    this._sessionId = null
+    this._sessionId = undefined
 
     this._auth = opts.auth
     const url = parseUrl(opts.url)
@@ -190,7 +190,7 @@ export class Xapi extends EventEmitter {
   get sessionId() {
     const id = this._sessionId
 
-    if (!id || id === CONNECTING) {
+    if (id === undefined || id === CONNECTING) {
       throw new Error('sessionId is only available when connected')
     }
 
@@ -200,7 +200,11 @@ export class Xapi extends EventEmitter {
   get status() {
     const id = this._sessionId
 
-    return id ? (id === CONNECTING ? CONNECTING : CONNECTED) : DISCONNECTED
+    return id === undefined
+      ? DISCONNECTED
+      : id === CONNECTING
+      ? CONNECTING
+      : CONNECTED
   }
 
   connect = coalesceCalls(this.connect)
@@ -259,7 +263,7 @@ export class Xapi extends EventEmitter {
 
     ignoreErrors.call(this._transportCall('session.logout', [this._sessionId]))
 
-    this._sessionId = null
+    this._sessionId = undefined
 
     debug('%s: disconnected', this._humanId)
 
@@ -710,7 +714,7 @@ export class Xapi extends EventEmitter {
             // Try to login again.
             debug('%s: the session has been reinitialized', this._humanId)
 
-            this._sessionId = null
+            this._sessionId = undefined
             return this.connect().then(() => this._sessionCall(method, args))
           }
         ),
