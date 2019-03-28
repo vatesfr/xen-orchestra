@@ -1308,17 +1308,16 @@ export default class BackupNg {
         ]
         if (!Number.isNaN(prevDeltaChainLength)) {
           deltaChainLength = prevDeltaChainLength + 1
+        }
 
-          const fullInterval = getSetting(settings, 'fullInterval', [
-            vmUuid,
-            scheduleId,
-            '',
-          ])
-
-          if (fullInterval !== 0 && fullInterval <= deltaChainLength) {
-            baseSnapshot = undefined
-            return
-          }
+        const fullInterval = getSetting(settings, 'fullInterval', [
+          vmUuid,
+          scheduleId,
+          '',
+        ])
+        if (fullInterval !== 0 && fullInterval <= deltaChainLength) {
+          baseSnapshot = undefined
+          return
         }
 
         const fullRequired = { __proto__: null }
