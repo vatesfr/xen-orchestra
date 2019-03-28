@@ -29,7 +29,7 @@ const showInfo = () =>
     </span>
   )
 
-const ShowLicenceRestriction = ({ iconSize = 'sm' }) => (
+const LicenseWarning = ({ iconSize = 'sm' }) => (
   <Tooltip content={_('licenseRestrictions')}>
     <a className='text-danger' style={{ cursor: 'pointer' }} onClick={showInfo}>
       <Icon icon='alarm' size={iconSize} />
@@ -37,4 +37,4 @@ const ShowLicenceRestriction = ({ iconSize = 'sm' }) => (
   </Tooltip>
 )
 
-export default ShowLicenceRestriction
+export default LicenseWarning
