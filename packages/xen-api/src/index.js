@@ -755,7 +755,7 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  _addObject(type, ref, object) {
+  _addRecordToCache(type, ref, object) {
     object = this._wrapRecord(type, ref, object)
 
     // Finally freezes the object.
@@ -811,14 +811,14 @@ export class Xapi extends EventEmitter {
       }
       const { ref } = event
       if (event.operation === 'del') {
-        this._removeObject(type, ref)
+        this._removeRecordFromCache(type, ref)
       } else {
-        this._addObject(type, ref, event.snapshot)
+        this._addRecordToCache(type, ref, event.snapshot)
       }
     })
   }
 
-  _removeObject(type, ref) {
+  _removeRecordFromCache(type, ref) {
     const byRefs = this._objectsByRef
     const object = byRefs[ref]
     if (object !== undefined) {
@@ -888,7 +888,7 @@ export class Xapi extends EventEmitter {
               (record, ref) => {
                 // we can bypass _processEvents here because they are all *add*
                 // event and all objects are of the same type
-                this._addObject(type, ref, record)
+                this._addRecordToCache(type, ref, record)
               }
             )
           } catch (error) {
@@ -948,10 +948,10 @@ export class Xapi extends EventEmitter {
             })
             forOwn(tasks, (task, ref) => {
               toRemove.delete(ref)
-              this._addObject('task', ref, task)
+              this._addRecordToCache('task', ref, task)
             })
             toRemove.forEach(ref => {
-              this._removeObject('task', ref)
+              this._removeRecordFromCache('task', ref)
             })
           })
         )
@@ -972,7 +972,7 @@ export class Xapi extends EventEmitter {
             this._sessionCall(`${type}.get_all_records`).then(
               objects => {
                 forEach(objects, (object, ref) => {
-                  this._addObject(type, ref, object)
+                  this._addRecordToCache(type, ref, object)
                 })
               },
               error => {
