@@ -541,12 +541,10 @@ export class Xapi extends EventEmitter {
   // ensure we have received all events up to this call
   //
   // optionally returns the up to date object for the given ref
-  barrier(ref) {
+  async barrier(ref) {
     const eventWatchers = this._eventWatchers
     if (eventWatchers === undefined) {
-      return Promise.reject(
-        new Error('Xapi#barrier() requires events watching')
-      )
+      throw new Error('Xapi#barrier() requires events watching')
     }
 
     const key = `xo:barrier:${Math.random()
@@ -557,48 +555,34 @@ export class Xapi extends EventEmitter {
     const { promise, resolve } = defer()
     eventWatchers[key] = resolve
 
-    return this._sessionCall('pool.add_to_other_config', [
-      poolRef,
-      key,
-      '',
-    ]).then(() =>
-      promise.then(() => {
-        this._sessionCall('pool.remove_from_other_config', [
-          poolRef,
-          key,
-        ]).catch(noop)
+    await this._sessionCall('pool.add_to_other_config', [poolRef, key, ''])
 
-        if (ref === undefined) {
-          return
-        }
+    await promise
 
-        // support legacy params (type, ref)
-        if (arguments.length === 2) {
-          ref = arguments[1]
-        }
-
-        return this.getObjectByRef(ref)
-      })
+    ignoreErrors.call(
+      this._sessionCall('pool.remove_from_other_config', [poolRef, key])
     )
+
+    if (ref !== undefined) {
+      return this.getObjectByRef(ref)
+    }
   }
 
   // create a task and automatically destroy it when settled
   //
   //  allowed even in read-only mode because it does not have impact on the
   //  XenServer and it's necessary for getResource()
-  createTask(nameLabel, nameDescription = '') {
-    const promise = this._sessionCall('task.create', [
+  async createTask(nameLabel, nameDescription = '') {
+    const taskRef = await this._sessionCall('task.create', [
       nameLabel,
       nameDescription,
     ])
 
-    promise.then(taskRef => {
-      const destroy = () =>
-        this._sessionCall('task.destroy', [taskRef]).catch(noop)
-      this.watchTask(taskRef).then(destroy, destroy)
-    })
+    const destroyTask = () =>
+      ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
+    this.watchTask(taskRef).then(destroyTask, destroyTask)
 
-    return promise
+    return taskRef
   }
 
   // Nice getter which returns the object for a given $id (internal to
