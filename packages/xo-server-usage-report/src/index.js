@@ -494,7 +494,7 @@ async function getHostsMissingPatches({ runningHosts, xo }) {
     map(runningHosts, async host => {
       let hostsPatches = await xo
         .getXapi(host)
-        .listMissingPoolPatchesOnHost(host._xapiId)
+        .listMissingPatches(host._xapiId)
         .catch(error => {
           console.error(
             '[WARN] error on fetching hosts missing patches:',

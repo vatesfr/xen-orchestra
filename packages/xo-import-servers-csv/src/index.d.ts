@@ -1,8 +1,3 @@
-declare module 'csv-parser' {
-  function csvParser(opts?: Object): any
-  export = csvParser
-}
-
 declare module 'exec-promise' {
   function execPromise(cb: (args: string[]) => any): void
   export = execPromise

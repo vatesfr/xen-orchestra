@@ -10,8 +10,9 @@ import { invalidParameters } from 'xo-common/api-errors'
 import { v4 as generateUuid } from 'uuid'
 import { includes, remove, filter, find, range } from 'lodash'
 
+import ensureArray from '../_ensureArray'
 import { asInteger } from '../xapi/utils'
-import { parseXml, ensureArray } from '../utils'
+import { parseXml } from '../utils'
 
 const log = createLogger('xo:xosan')
 

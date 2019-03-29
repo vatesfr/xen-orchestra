@@ -49,6 +49,8 @@ import {
   updatePermissions,
 } from '../store/actions'
 
+import parseNdJson from './_parseNdJson'
+
 // ===================================================================
 
 export const XEN_DEFAULT_CPU_WEIGHT = 256
@@ -67,6 +69,9 @@ export const isVmRunning = vm => vm && vm.power_state === 'Running'
 // ===================================================================
 
 export const signOut = () => {
+  // prevent automatic reconnection
+  xo.removeListener('closed', connect)
+
   cookies.expire('token')
   window.location.reload(true)
 }
@@ -141,26 +146,9 @@ export const connectStore = store => {
       .then(response => response.text())
       .then(data => {
         const objects = Object.create(null)
-
-        const { length } = data
-        let i = 0
-        while (i < length) {
-          let j = data.indexOf('\n', i)
-
-          // no final \n
-          if (j === -1) {
-            j = length
-          }
-
-          // non empty line
-          if (j !== i) {
-            const object = JSON.parse(data.slice(i, j))
-            objects[object.id] = object
-          }
-
-          i = j + 1
-        }
-
+        parseNdJson(data, object => {
+          objects[object.id] = object
+        })
         store.dispatch(updateObjects(objects))
       })
   })
@@ -568,6 +556,12 @@ export const removeServer = server =>
 export const editPool = (pool, props) =>
   _call('pool.set', { id: resolveId(pool), ...props })
 
+export const getPatchesDifference = (source, target) =>
+  _call('pool.getPatchesDifference', {
+    source: resolveId(source),
+    target: resolveId(target),
+  })
+
 import AddHostModalBody from './add-host-modal' // eslint-disable-line import/first
 export const addHostToPool = (pool, host) => {
   if (host) {
@@ -751,23 +745,18 @@ export const enableHost = host => _call('host.enable', { id: resolveId(host) })
 export const disableHost = host =>
   _call('host.disable', { id: resolveId(host) })
 
-const missingUpdatePluginByHost = { __proto__: null }
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
   if (host.productBrand !== 'XCP-ng') {
-    const patches = await _call('host.listMissingPatches', { host: hostId })
+    const patches = await _call('pool.listMissingPatches', { host: hostId })
     // Hide paid patches to XS-free users
     return host.license_params.sku_type !== 'free'
       ? patches
       : filter(patches, { paid: false })
   }
-  if (missingUpdatePluginByHost[hostId]) {
-    return null
-  }
   try {
-    return await _call('host.listMissingPatches', { host: hostId })
+    return await _call('pool.listMissingPatches', { host: hostId })
   } catch (_) {
-    missingUpdatePluginByHost[hostId] = true
     return null
   }
 }
@@ -788,18 +777,30 @@ export const emergencyShutdownHosts = hosts => {
   }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
 }
 
-export const installHostPatch = (host, { uuid }) =>
-  _call('host.installPatch', { host: resolveId(host), patch: uuid })::tap(() =>
-    subscribeHostMissingPatches.forceRefresh(host)
+// for XCP-ng now
+export const installAllPatchesOnHost = ({ host }) =>
+  confirm({
+    body: _('installAllPatchesOnHostContent'),
+    title: _('installAllPatchesTitle'),
+  }).then(() =>
+    _call('pool.installPatches', { hosts: [resolveId(host)] })::tap(() =>
+      subscribeHostMissingPatches.forceRefresh(host)
+    )
   )
 
-export const installAllHostPatches = host =>
-  _call('host.installAllPatches', { host: resolveId(host) })::tap(() =>
-    subscribeHostMissingPatches.forceRefresh(host)
+export const installPatches = (patches, pool) =>
+  confirm({
+    body: _('installPatchesContent', { nPatches: patches.length }),
+    title: _('installPatchesTitle', { nPatches: patches.length }),
+  }).then(() =>
+    _call('pool.installPatches', {
+      pool: resolveId(pool),
+      patches: resolveIds(patches),
+    })::tap(() => subscribeHostMissingPatches.forceRefresh())
   )
 
 import InstallPoolPatchesModalBody from './install-pool-patches-modal' // eslint-disable-line import/first
-export const installAllPatchesOnPool = pool => {
+export const installAllPatchesOnPool = ({ pool }) => {
   const poolId = resolveId(pool)
   return confirm({
     body: <InstallPoolPatchesModalBody pool={poolId} />,
@@ -807,7 +808,7 @@ export const installAllPatchesOnPool = pool => {
     icon: 'host-patch-update',
   }).then(
     () =>
-      _call('pool.installAllPatches', { pool: poolId })::tap(() =>
+      _call('pool.installPatches', { pool: poolId })::tap(() =>
         subscribeHostMissingPatches.forceRefresh()
       ),
     noop
@@ -1918,9 +1919,17 @@ export const subscribeBackupNgJobs = createSubscription(() =>
   _call('backupNg.getAllJobs')
 )
 
-export const subscribeBackupNgLogs = createSubscription(() =>
-  _call('backupNg.getAllLogs')
-)
+export const subscribeBackupNgLogs = createSubscription(async () => {
+  const { $getFrom } = await _call('backupNg.getAllLogs', { ndjson: true })
+  const response = await fetch(`.${$getFrom}`)
+  const data = await response.text()
+
+  const logs = { __proto__: null }
+  parseNdJson(data, log => {
+    logs[log.id] = log
+  })
+  return logs
+})
 
 export const subscribeMetadataBackupJobs = createSubscription(() =>
   _call('metadataBackup.getAllJobs')

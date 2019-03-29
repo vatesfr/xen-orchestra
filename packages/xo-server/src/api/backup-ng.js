@@ -1,5 +1,8 @@
 import { basename } from 'path'
+import { fromCallback } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
 
+import createNdJsonStream from '../_createNdJsonStream'
 import { safeDateFormat } from '../utils'
 
 export function createJob({ schedules, ...job }) {
@@ -150,11 +153,25 @@ runJob.params = {
 
 // -----------------------------------------------------------------------------
 
-export function getAllLogs() {
-  return this.getBackupNgLogs()
+async function handleGetAllLogs(req, res) {
+  const logs = await this.getBackupNgLogs()
+  res.set('Content-Type', 'application/json')
+  return fromCallback(cb => pipeline(createNdJsonStream(logs), res, cb))
+}
+
+export function getAllLogs({ ndjson = false }) {
+  return ndjson
+    ? this.registerHttpRequest(handleGetAllLogs).then($getFrom => ({
+        $getFrom,
+      }))
+    : this.getBackupNgLogs()
 }
 
 getAllLogs.permission = 'admin'
+
+getAllLogs.params = {
+  ndjson: { type: 'boolean', optional: true },
+}
 
 export function getLogs({ after, before, limit, ...filter }) {
   return this.getBackupNgLogsSorted({ after, before, limit, filter })

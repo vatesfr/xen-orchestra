@@ -4,7 +4,7 @@ const { PassThrough, pipeline } = require('readable-stream')
 const humanFormat = require('human-format')
 const Throttle = require('throttle')
 
-const { isOpaqueRef } = require('../')
+const isOpaqueRef = require('../dist/_isOpaqueRef').default
 
 exports.createInputStream = path => {
   if (path === undefined || path === '-') {

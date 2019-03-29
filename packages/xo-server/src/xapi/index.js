@@ -35,11 +35,11 @@ import {
 import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
+import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import pRetry from '../_pRetry'
 import {
   camelToSnakeCase,
-  ensureArray,
   forEach,
   isFunction,
   map,
@@ -68,6 +68,7 @@ import {
   parseDateTime,
   prepareXapiParam,
 } from './utils'
+import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
 
@@ -93,8 +94,10 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor(...args) {
-    super(...args)
+  constructor({ guessVhdSizeOnImport, ...opts }) {
+    super(opts)
+
+    this._guessVhdSizeOnImport = guessVhdSizeOnImport
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -319,7 +322,8 @@ export default class Xapi extends XapiBase {
         nameLabel,
       }),
       this._updateObjectMapProperty(network, 'other_config', {
-        automatic: automatic === undefined ? undefined : automatic ? 'true' : null,
+        automatic:
+          automatic === undefined ? undefined : automatic ? 'true' : null,
       }),
     ])
   }
@@ -736,6 +740,10 @@ export default class Xapi extends XapiBase {
         this._deleteVm(snapshot)
       )::ignoreErrors(),
 
+      vm.power_state === 'Suspended' &&
+        vm.suspend_VDI !== NULL_REF &&
+        this._deleteVdi(vm.suspend_VDI)::ignoreErrors(),
+
       deleteDisks &&
         asyncMap(disks, ({ $ref: vdiRef }) => {
           let onFailure = () => {
@@ -760,7 +768,7 @@ export default class Xapi extends XapiBase {
             return (
               // Only remove VBDs not attached to other VMs.
               vdi.VBDs.length < 2 || every(vdi.$VBDs, vbd => vbd.VM === $ref)
-                ? this._deleteVdi(vdi)
+                ? this._deleteVdi(vdiRef)
                 : onFailure(vdi)
             )
           }
@@ -930,7 +938,7 @@ export default class Xapi extends XapiBase {
         //
         // The snapshot must not exist otherwise it could break the
         // next export.
-        this._deleteVdi(vdi)::ignoreErrors()
+        this._deleteVdi(vdi.$ref)::ignoreErrors()
         return
       }
 
@@ -1086,7 +1094,7 @@ export default class Xapi extends XapiBase {
         }
 
         newVdi = await this._getOrWaitObject(await this._cloneVdi(baseVdi))
-        $defer.onFailure(() => this._deleteVdi(newVdi))
+        $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
 
         await this._updateObjectMapProperty(newVdi, 'other_config', {
           [TAG_COPY_SRC]: vdi.uuid,
@@ -1101,7 +1109,7 @@ export default class Xapi extends XapiBase {
           },
           sr: mapVdisSrs[vdi.uuid] || srId,
         })
-        $defer.onFailure(() => this._deleteVdi(newVdi))
+        $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
       }
 
       await asyncMap(vbds[vdiId], vbd =>
@@ -1264,7 +1272,7 @@ export default class Xapi extends XapiBase {
     return loop()
   }
 
-  @synchronized
+  @synchronized()
   _callInstallationPlugin(hostRef, vdi) {
     return this.call(
       'host.call_plugin',
@@ -1292,7 +1300,7 @@ export default class Xapi extends XapiBase {
       '[XO] Supplemental pack ISO',
       'small temporary VDI to store a supplemental pack ISO'
     )
-    $defer(() => this._deleteVdi(vdi))
+    $defer(() => this._deleteVdi(vdi.$ref))
 
     await this._callInstallationPlugin(this.getObject(hostId).$ref, vdi.uuid)
   }
@@ -1320,7 +1328,7 @@ export default class Xapi extends XapiBase {
         '[XO] Supplemental pack ISO',
         'small temporary VDI to store a supplemental pack ISO'
       )
-      $defer(() => this._deleteVdi(vdi))
+      $defer(() => this._deleteVdi(vdi.$ref))
 
       // Install pack sequentially to prevent concurrent access to the unique VDI
       for (const host of hosts) {
@@ -1351,7 +1359,7 @@ export default class Xapi extends XapiBase {
             '[XO] Supplemental pack ISO',
             'small temporary VDI to store a supplemental pack ISO'
           )
-          $defer(() => this._deleteVdi(vdi))
+          $defer(() => this._deleteVdi(vdi.$ref))
 
           await this._callInstallationPlugin(host.$ref, vdi.uuid)
         })
@@ -1437,7 +1445,7 @@ export default class Xapi extends XapiBase {
           size: disk.capacity,
           sr: sr.$ref,
         }))
-        $defer.onFailure(() => this._deleteVdi(vdi))
+        $defer.onFailure(() => this._deleteVdi(vdi.$ref))
 
         return this.createVbd({
           userdevice: disk.position,
@@ -1559,47 +1567,28 @@ export default class Xapi extends XapiBase {
       }`
     )
 
+    // see https://github.com/vatesfr/xen-orchestra/issues/4074
+    const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
+    ignoreErrors.call(
+      Promise.all(
+        vm.snapshots.map(async ref => {
+          const nameLabel = await this.getField('VM', ref, 'name_label')
+          if (nameLabel.startsWith(snapshotNameLabelPrefix)) {
+            return this._deleteVm(ref)
+          }
+        })
+      )
+    )
+
     let ref
     do {
       if (!vm.tags.includes('xo-disable-quiesce')) {
         try {
-          ref = await pRetry(
-            async bail => {
-              try {
-                return await this.callAsync(
-                  $cancelToken,
-                  'VM.snapshot_with_quiesce',
-                  vmRef,
-                  nameLabel
-                )
-              } catch (error) {
-                if (error?.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
-                  throw bail(error)
-                }
-
-                // detect and remove new broken snapshots
-                //
-                // see https://github.com/vatesfr/xen-orchestra/issues/3936
-                const prevSnapshotRefs = new Set(vm.snapshots)
-                const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
-                vm.snapshots = await this.getField('VM', vmRef, 'snapshots')
-                const createdSnapshots = (await this.getRecords(
-                  'VM',
-                  vm.snapshots.filter(_ => !prevSnapshotRefs.has(_))
-                )).filter(_ => _.name_label.startsWith(snapshotNameLabelPrefix))
-
-                // be safe: only delete if there was a single match
-                if (createdSnapshots.length === 1) {
-                  ignoreErrors.call(this._deleteVm(createdSnapshots[0]))
-                }
-
-                throw error
-              }
-            },
-            {
-              delay: 60e3,
-              tries: 3,
-            }
+          ref = await this.callAsync(
+            $cancelToken,
+            'VM.snapshot_with_quiesce',
+            vmRef,
+            nameLabel
           ).then(extractOpaqueRef)
           ignoreErrors.call(this.call('VM.add_tags', ref, 'quiesce'))
 
@@ -1912,15 +1901,21 @@ export default class Xapi extends XapiBase {
           vdi: newVdi,
         })
       })
-      await this._deleteVdi(vdi)
+      await this._deleteVdi(vdi.$ref)
     }
   }
 
   // TODO: check whether the VDI is attached.
-  async _deleteVdi(vdi) {
-    log.debug(`Deleting VDI ${vdi.name_label}`)
+  async _deleteVdi(vdiRef) {
+    log.debug(`Deleting VDI ${vdiRef}`)
 
-    await this.call('VDI.destroy', vdi.$ref)
+    try {
+      await this.call('VDI.destroy', vdiRef)
+    } catch (error) {
+      if (error?.code !== 'HANDLE_INVALID') {
+        throw error
+      }
+    }
   }
 
   _resizeVdi(vdi, size) {
@@ -2015,7 +2010,7 @@ export default class Xapi extends XapiBase {
   }
 
   async deleteVdi(vdiId) {
-    await this._deleteVdi(this.getObject(vdiId))
+    await this._deleteVdi(this.getObject(vdiId).$ref)
   }
 
   async resizeVdi(vdiId, size) {
@@ -2084,11 +2079,16 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async _importVdiContent(vdi, body, format = VDI_FORMAT_VHD) {
-    if (__DEV__ && body.length == null) {
-      throw new Error(
-        'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
-      )
+    if (typeof body.pipe === 'function' && body.length === undefined) {
+      if (this._guessVhdSizeOnImport && format === VDI_FORMAT_VHD) {
+        body = await createVhdStreamWithLength(body)
+      } else if (__DEV__) {
+        throw new Error(
+          'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
+        )
+      }
     }
+
     await Promise.all([
       body.task,
       body.checksumVerified,
@@ -2367,8 +2367,6 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
-  //
-  // https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html
   @deferrable
   async createCloudInitConfigDrive(
     $defer,
@@ -2387,16 +2385,35 @@ export default class Xapi extends XapiBase {
       size: buffer.length,
       sr: sr.$ref,
     })
-    $defer.onFailure(() => this._deleteVdi(vdi))
+    $defer.onFailure(() => this._deleteVdi(vdi.$ref))
 
     // Then, generate a FAT fs
-    const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
+    const { mkdir, writeFile } = promisifyAll(
+      fatfs.createFileSystem(fatfsBuffer(buffer))
+    )
 
     await Promise.all([
-      fs.writeFile('meta-data', 'instance-id: ' + vm.uuid + '\n'),
-      fs.writeFile('user-data', userConfig),
-      networkConfig !== undefined &&
-        fs.writeFile('network-config', networkConfig),
+      // preferred datasource: NoCloud
+      //
+      // https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html
+      writeFile('meta-data', 'instance-id: ' + vm.uuid + '\n'),
+      writeFile('user-data', userConfig),
+      networkConfig !== undefined && writeFile('network-config', networkConfig),
+
+      // fallback datasource: Config Drive 2
+      //
+      // https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html#version-2
+      mkdir('openstack').then(() =>
+        mkdir('openstack/latest').then(() =>
+          Promise.all([
+            writeFile(
+              'openstack/latest/meta_data.json',
+              JSON.stringify({ uuid: vm.uuid })
+            ),
+            writeFile('openstack/latest/user_data', userConfig),
+          ])
+        )
+      ),
     ])
 
     // ignore errors, I (JFT) don't understand why they are emitted
@@ -2422,7 +2439,7 @@ export default class Xapi extends XapiBase {
       size: stream.length,
       sr: sr.$ref,
     })
-    $defer.onFailure(() => this._deleteVdi(vdi))
+    $defer.onFailure(() => this._deleteVdi(vdi.$ref))
 
     await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
 
@@ -2452,6 +2469,15 @@ export default class Xapi extends XapiBase {
       this.objects.all,
       obj =>
         obj.$type === 'SR' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
+    )
+  }
+
+  // Main purpose: upload update on VDI
+  // Is a local SR on a non master host OK?
+  findAvailableSr(minSize) {
+    return find(
+      this.objects.all,
+      obj => obj.$type === 'SR' && canSrHaveNewVdiOfSize(obj, minSize)
     )
   }
 

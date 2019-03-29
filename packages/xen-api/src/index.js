@@ -1,16 +1,14 @@
+import assert from 'assert'
 import Collection from 'xo-collection'
-import createDebug from 'debug'
 import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
-import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
 import { fibonacci } from 'iterable-backoff'
 import {
   forEach,
   forOwn,
   isArray,
-  isInteger,
   map,
   noop,
   omit,
@@ -18,22 +16,27 @@ import {
   startsWith,
 } from 'lodash'
 import {
-  Cancel,
   cancelable,
   defer,
   fromEvents,
   ignoreErrors,
   pCatch,
   pDelay,
-  pFinally,
   pTimeout,
   TimeoutError,
 } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
+import coalesceCalls from './_coalesceCalls'
+import debug from './_debug'
+import getTaskResult from './_getTaskResult'
+import isGetAllRecordsMethod from './_isGetAllRecordsMethod'
+import isOpaqueRef from './_isOpaqueRef'
+import isReadOnlyCall from './_isReadOnlyCall'
+import makeCallSetting from './_makeCallSetting'
+import parseUrl from './_parseUrl'
 import replaceSensitiveValues from './_replaceSensitiveValues'
-
-const debug = createDebug('xen-api')
+import XapiError from './_XapiError'
 
 // ===================================================================
 
@@ -85,161 +88,17 @@ const isMethodUnknown = ({ code }) => code === 'MESSAGE_METHOD_UNKNOWN'
 
 const isSessionInvalid = ({ code }) => code === 'SESSION_INVALID'
 
-// -------------------------------------------------------------------
-
-class XapiError extends BaseError {
-  constructor(code, params) {
-    super(`${code}(${params.join(', ')})`)
-
-    this.code = code
-    this.params = params
-
-    // slots than can be assigned later
-    this.call = undefined
-    this.url = undefined
-    this.task = undefined
-  }
-}
-
-export const wrapError = error => {
-  let code, params
-  if (isArray(error)) {
-    // < XenServer 7.3
-    ;[code, ...params] = error
-  } else {
-    code = error.message
-    params = error.data
-    if (!isArray(params)) {
-      params = []
-    }
-  }
-  return new XapiError(code, params)
-}
-
 // ===================================================================
 
-const URL_RE = /^(?:(https?:)\/*)?(?:([^:]+):([^@]+)@)?([^/]+?)(?::([0-9]+))?\/?$/
-const parseUrl = url => {
-  const matches = URL_RE.exec(url)
-  if (!matches) {
-    throw new Error('invalid URL: ' + url)
-  }
-
-  const [, protocol = 'https:', username, password, hostname, port] = matches
-  const parsedUrl = { protocol, hostname, port }
-  if (username !== undefined) {
-    parsedUrl.username = decodeURIComponent(username)
-  }
-  if (password !== undefined) {
-    parsedUrl.password = decodeURIComponent(password)
-  }
-  return parsedUrl
-}
-
-// -------------------------------------------------------------------
-
-const {
-  create: createObject,
-  defineProperties,
-  freeze: freezeObject,
-  keys: getKeys,
-} = Object
+const { defineProperties, freeze, keys: getKeys } = Object
 
 // -------------------------------------------------------------------
 
 export const NULL_REF = 'OpaqueRef:NULL'
 
-const OPAQUE_REF_PREFIX = 'OpaqueRef:'
-export const isOpaqueRef = value =>
-  typeof value === 'string' && startsWith(value, OPAQUE_REF_PREFIX)
-
-// -------------------------------------------------------------------
-
-const isGetAllRecordsMethod = RegExp.prototype.test.bind(/\.get_all_records$/)
-
-const RE_READ_ONLY_METHOD = /^[^.]+\.get_/
-const isReadOnlyCall = (method, args) =>
-  args.length === 1 &&
-  typeof args[0] === 'string' &&
-  RE_READ_ONLY_METHOD.test(method)
-
-// Prepare values before passing them to the XenAPI:
-//
-// - cast integers to strings
-const prepareParam = param => {
-  if (isInteger(param)) {
-    return String(param)
-  }
-
-  if (typeof param !== 'object' || param === null) {
-    return param
-  }
-
-  if (isArray(param)) {
-    return map(param, prepareParam)
-  }
-
-  const values = {}
-  forEach(param, (value, key) => {
-    if (value !== undefined) {
-      values[key] = prepareParam(value)
-    }
-  })
-  return values
-}
-
 // -------------------------------------------------------------------
 
 const getKey = o => o.$id
-
-// -------------------------------------------------------------------
-
-const getTaskResult = task => {
-  const { status } = task
-  if (status === 'cancelled') {
-    return Promise.reject(new Cancel('task canceled'))
-  }
-  if (status === 'failure') {
-    const error = wrapError(task.error_info)
-    error.task = task
-    return Promise.reject(error)
-  }
-  if (status === 'success') {
-    // the result might be:
-    // - empty string
-    // - an opaque reference
-    // - an XML-RPC value
-    return Promise.resolve(task.result)
-  }
-}
-
-function defined() {
-  for (let i = 0, n = arguments.length; i < n; ++i) {
-    const arg = arguments[i]
-    if (arg !== undefined) {
-      return arg
-    }
-  }
-}
-
-// TODO: find a better name
-// TODO: merge into promise-toolbox?
-const dontWait = promise => {
-  // https://github.com/JsCommunity/promise-toolbox#promiseignoreerrors
-  ignoreErrors.call(promise)
-
-  // http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it
-  return null
-}
-
-const makeCallSetting = (setting, defaultValue) =>
-  setting === undefined
-    ? () => defaultValue
-    : typeof setting === 'function'
-    ? setting
-    : typeof setting !== 'object'
-    ? () => setting
-    : method => defined(setting[method], setting['*'], defaultValue)
 
 // -------------------------------------------------------------------
 
@@ -270,27 +129,38 @@ export class Xapi extends EventEmitter {
   constructor(opts) {
     super()
 
-    this._allowUnauthorized = opts.allowUnauthorized
     this._callTimeout = makeCallSetting(opts.callTimeout, 0)
+    this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
-    this._RecordsByType = createObject(null)
-    this._sessionId = null
+    this._RecordsByType = { __proto__: null }
 
     this._auth = opts.auth
-    const url = (this._url = parseUrl(opts.url))
+    const url = parseUrl(opts.url)
     if (this._auth === undefined) {
       const user = url.username
-      if (user !== undefined) {
-        this._auth = {
-          user,
-          password: url.password,
-        }
-        delete url.username
-        delete url.password
+      if (user === undefined) {
+        throw new TypeError('missing credentials')
       }
+
+      this._auth = {
+        user,
+        password: url.password,
+      }
+      delete url.username
+      delete url.password
     }
 
+    this._allowUnauthorized = opts.allowUnauthorized
+    this._setUrl(url)
+
+    this._connecting = undefined
+    this._connected = new Promise(resolve => {
+      this._resolveConnected = resolve
+    })
+    this._disconnected = Promise.resolve()
+    this._sessionId = undefined
+    this._status = DISCONNECTED
     ;(this._objects = new Collection()).getKey = getKey
     this._debounce = opts.debounce == null ? 200 : opts.debounce
     this._watchedTypes = undefined
@@ -301,38 +171,11 @@ export class Xapi extends EventEmitter {
 
     const { watchEvents } = opts
     if (watchEvents !== false) {
-      if (Array.isArray(watchEvents)) {
+      if (isArray(watchEvents)) {
         this._watchedTypes = watchEvents
       }
       this.watchEvents()
     }
-  }
-
-  watchEvents() {
-    this._eventWatchers = createObject(null)
-
-    this._taskWatchers = Object.create(null)
-
-    if (this.status === CONNECTED) {
-      this._watchEventsWrapper()
-    }
-
-    this.on('connected', this._watchEventsWrapper)
-    this.on('disconnected', () => {
-      this._objects.clear()
-    })
-  }
-
-  get _url() {
-    return this.__url
-  }
-
-  set _url(url) {
-    this.__url = url
-    this._call = autoTransport({
-      allowUnauthorized: this._allowUnauthorized,
-      url,
-    })
   }
 
   get readOnly() {
@@ -343,10 +186,26 @@ export class Xapi extends EventEmitter {
     this._readOnly = Boolean(ro)
   }
 
+  // ===========================================================================
+  // Connection
+  // ===========================================================================
+
+  get connected() {
+    return this._connected
+  }
+
+  get disconnected() {
+    return this._disconnected
+  }
+
+  get pool() {
+    return this._pool
+  }
+
   get sessionId() {
     const id = this._sessionId
 
-    if (!id || id === CONNECTING) {
+    if (id === undefined || id === CONNECTING) {
       throw new Error('sessionId is only available when connected')
     }
 
@@ -356,72 +215,24 @@ export class Xapi extends EventEmitter {
   get status() {
     const id = this._sessionId
 
-    return id ? (id === CONNECTING ? CONNECTING : CONNECTED) : DISCONNECTED
+    return id === undefined
+      ? DISCONNECTED
+      : id === CONNECTING
+      ? CONNECTING
+      : CONNECTED
   }
 
-  get _humanId() {
-    return `${this._auth.user}@${this._url.hostname}`
-  }
-
-  // ensure we have received all events up to this call
-  //
-  // optionally returns the up to date object for the given ref
-  barrier(ref) {
-    const eventWatchers = this._eventWatchers
-    if (eventWatchers === undefined) {
-      return Promise.reject(
-        new Error('Xapi#barrier() requires events watching')
-      )
-    }
-
-    const key = `xo:barrier:${Math.random()
-      .toString(36)
-      .slice(2)}`
-    const poolRef = this._pool.$ref
-
-    const { promise, resolve } = defer()
-    eventWatchers[key] = resolve
-
-    return this._sessionCall('pool.add_to_other_config', [
-      poolRef,
-      key,
-      '',
-    ]).then(() =>
-      promise.then(() => {
-        this._sessionCall('pool.remove_from_other_config', [
-          poolRef,
-          key,
-        ]).catch(noop)
-
-        if (ref === undefined) {
-          return
-        }
-
-        // support legacy params (type, ref)
-        if (arguments.length === 2) {
-          ref = arguments[1]
-        }
-
-        return this.getObjectByRef(ref)
-      })
-    )
-  }
-
+  connect = coalesceCalls(this.connect)
   async connect() {
     const { status } = this
 
     if (status === CONNECTED) {
-      throw new Error('already connected')
+      return
     }
 
-    if (status === CONNECTING) {
-      throw new Error('already connecting')
-    }
+    assert(status === DISCONNECTED)
 
     const auth = this._auth
-    if (auth === undefined) {
-      throw new Error('missing credentials')
-    }
 
     this._sessionId = CONNECTING
 
@@ -450,76 +261,359 @@ export class Xapi extends EventEmitter {
       this._pool = (await this.getAllRecords('pool'))[0]
 
       debug('%s: connected', this._humanId)
+      this._disconnected = new Promise(resolve => {
+        this._resolveDisconnected = resolve
+      })
+      this._resolveConnected()
+      this._resolveConnected = undefined
       this.emit(CONNECTED)
     } catch (error) {
-      this._sessionId = null
+      ignoreErrors.call(this.disconnect())
 
       throw error
     }
   }
 
-  disconnect() {
-    return Promise.resolve().then(() => {
-      const { status } = this
+  async disconnect() {
+    const { status } = this
 
-      if (status === DISCONNECTED) {
-        return Promise.reject(new Error('already disconnected'))
-      }
+    if (status === DISCONNECTED) {
+      return
+    }
 
-      this._transportCall('session.logout', [this._sessionId]).catch(noop)
+    if (status === CONNECTED) {
+      this._connected = new Promise(resolve => {
+        this._resolveConnected = resolve
+      })
 
-      this._sessionId = null
+      this._resolveDisconnected()
+      this._resolveDisconnected = undefined
+    } else {
+      assert(status === CONNECTING)
+    }
 
-      debug('%s: disconnected', this._humanId)
+    const sessionId = this._sessionId
+    if (sessionId !== undefined) {
+      this._sessionId = undefined
+      ignoreErrors.call(this._transportCall('session.logout', [sessionId]))
+    }
 
-      this.emit(DISCONNECTED)
-    })
+    debug('%s: disconnected', this._humanId)
+
+    this.emit(DISCONNECTED)
   }
 
-  // High level calls.
+  // ===========================================================================
+  // RPC calls
+  // ===========================================================================
+
+  // this should be used for instantaneous calls, otherwise use `callAsync`
   call(method, ...args) {
     return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
-      : this._sessionCall(method, prepareParam(args))
+      : this._sessionCall(method, args)
   }
 
   @cancelable
-  callAsync($cancelToken, method, ...args) {
-    return this._readOnly && !isReadOnlyCall(method, args)
-      ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
-      : this._sessionCall(`Async.${method}`, args).then(taskRef => {
-          $cancelToken.promise.then(() =>
-            // TODO: do not trigger if the task is already over
-            dontWait(this._sessionCall('task.cancel', [taskRef]))
-          )
+  async callAsync($cancelToken, method, ...args) {
+    if (this._readOnly && !isReadOnlyCall(method, args)) {
+      throw new Error(`cannot call ${method}() in read only mode`)
+    }
 
-          return pFinally.call(this.watchTask(taskRef), () =>
-            dontWait(this._sessionCall('task.destroy', [taskRef]))
-          )
-        })
+    const taskRef = await this._sessionCall(`Async.${method}`, args)
+    $cancelToken.promise.then(() =>
+      // TODO: do not trigger if the task is already over
+      ignoreErrors.call(this._sessionCall('task.cancel', [taskRef]))
+    )
+
+    const promise = this.watchTask(taskRef)
+
+    const destroyTask = () =>
+      ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
+    promise.then(destroyTask, destroyTask)
+
+    return promise
+  }
+
+  // ===========================================================================
+  // Objects handling helpers
+  // ===========================================================================
+
+  async getAllRecords(type) {
+    return map(
+      await this._sessionCall(`${type}.get_all_records`),
+      (record, ref) => this._wrapRecord(type, ref, record)
+    )
+  }
+
+  async getRecord(type, ref) {
+    return this._wrapRecord(
+      type,
+      ref,
+      await this._sessionCall(`${type}.get_record`, [ref])
+    )
+  }
+
+  async getRecordByUuid(type, uuid) {
+    return this.getRecord(
+      type,
+      await this._sessionCall(`${type}.get_by_uuid`, [uuid])
+    )
+  }
+
+  getRecords(type, refs) {
+    return Promise.all(refs.map(ref => this.getRecord(type, ref)))
+  }
+
+  getField(type, ref, field) {
+    return this._sessionCall(`${type}.get_${field}`, [ref])
+  }
+
+  setField(type, ref, field, value) {
+    return this.call(`${type}.set_${field}`, ref, value).then(noop)
+  }
+
+  setFieldEntries(type, ref, field, entries) {
+    return Promise.all(
+      getKeys(entries).map(entry => {
+        const value = entries[entry]
+        if (value !== undefined) {
+          return this.setFieldEntry(type, ref, field, entry, value)
+        }
+      })
+    ).then(noop)
+  }
+
+  async setFieldEntry(type, ref, field, entry, value) {
+    if (value === null) {
+      return this.call(`${type}.remove_from_${field}`, ref, entry).then(noop)
+    }
+    while (true) {
+      try {
+        await this.call(`${type}.add_to_${field}`, ref, entry, value)
+        return
+      } catch (error) {
+        if (error?.code !== 'MAP_DUPLICATE_KEY') {
+          throw error
+        }
+      }
+      await this.call(`${type}.remove_from_${field}`, ref, entry)
+    }
+  }
+
+  // ===========================================================================
+  // HTTP requests
+  // ===========================================================================
+
+  @cancelable
+  async getResource($cancelToken, pathname, { host, query, task } = {}) {
+    const taskRef = await this._autoTask(task, `Xapi#getResource ${pathname}`)
+
+    query = { ...query, session_id: this.sessionId }
+
+    let pTaskResult
+    if (taskRef !== undefined) {
+      query.task_id = taskRef
+      pTaskResult = this.watchTask(taskRef)
+
+      if (typeof $cancelToken.addHandler === 'function') {
+        $cancelToken.addHandler(() => pTaskResult)
+      }
+    }
+
+    const response = await httpRequest(
+      $cancelToken,
+      this._url,
+      host !== undefined && {
+        hostname: this.getObject(host).address,
+      },
+      {
+        pathname,
+        query,
+        rejectUnauthorized: !this._allowUnauthorized,
+
+        // this is an inactivity timeout (unclear in Node doc)
+        timeout: this._httpInactivityTimeout,
+      }
+    )
+
+    if (pTaskResult !== undefined) {
+      response.task = pTaskResult
+    }
+
+    return response
+  }
+
+  @cancelable
+  async putResource($cancelToken, body, pathname, { host, query, task } = {}) {
+    if (this._readOnly) {
+      throw new Error('cannot put resource in read only mode')
+    }
+
+    const taskRef = await this._autoTask(task, `Xapi#putResource ${pathname}`)
+
+    query = { ...query, session_id: this.sessionId }
+
+    let pTaskResult
+    if (taskRef !== undefined) {
+      query.task_id = taskRef
+      pTaskResult = this.watchTask(taskRef)
+
+      if (typeof $cancelToken.addHandler === 'function') {
+        $cancelToken.addHandler(() => pTaskResult)
+      }
+    }
+
+    const headers = {}
+
+    // XAPI does not support chunk encoding so there is no proper way to send
+    // data without knowing its length
+    //
+    // as a work-around, a huge content length (1PiB) is added (so that the
+    // server won't prematurely cut the connection), and the connection will be
+    // cut once all the data has been sent without waiting for a response
+    const isStream = typeof body.pipe === 'function'
+    const useHack = isStream && body.length === undefined
+    if (useHack) {
+      console.warn(
+        this._humanId,
+        'Xapi#putResource',
+        pathname,
+        'missing length'
+      )
+
+      headers['content-length'] = '1125899906842624'
+    }
+
+    const doRequest = httpRequest.put.bind(
+      undefined,
+      $cancelToken,
+      this._url,
+      host !== undefined && {
+        hostname: this.getObject(host).address,
+      },
+      {
+        body,
+        headers,
+        pathname,
+        query,
+        rejectUnauthorized: !this._allowUnauthorized,
+
+        // this is an inactivity timeout (unclear in Node doc)
+        timeout: this._httpInactivityTimeout,
+      }
+    )
+
+    // if body is a stream, sends a dummy request to probe for a redirection
+    // before consuming body
+    const response = await (isStream
+      ? doRequest({
+          body: '',
+
+          // omit task_id because this request will fail on purpose
+          query: 'task_id' in query ? omit(query, 'task_id') : query,
+
+          maxRedirects: 0,
+        }).then(
+          response => {
+            response.cancel()
+            return doRequest()
+          },
+          error => {
+            let response
+            if (error != null && (response = error.response) != null) {
+              response.cancel()
+
+              const {
+                headers: { location },
+                statusCode,
+              } = response
+              if (statusCode === 302 && location !== undefined) {
+                // ensure the original query is sent
+                return doRequest(location, { query })
+              }
+            }
+
+            throw error
+          }
+        )
+      : doRequest())
+
+    if (pTaskResult !== undefined) {
+      pTaskResult = pTaskResult.catch(error => {
+        error.url = response.url
+        throw error
+      })
+    }
+
+    if (!useHack) {
+      // consume the response
+      response.resume()
+
+      return pTaskResult
+    }
+
+    const { req } = response
+    if (!req.finished) {
+      await fromEvents(req, ['close', 'finish'])
+    }
+    response.cancel()
+    return pTaskResult
+  }
+
+  // ===========================================================================
+  // Events & cached objects
+  // ===========================================================================
+
+  get objects() {
+    return this._objects
+  }
+
+  // ensure we have received all events up to this call
+  //
+  // optionally returns the up to date object for the given ref
+  async barrier(ref) {
+    const eventWatchers = this._eventWatchers
+    if (eventWatchers === undefined) {
+      throw new Error('Xapi#barrier() requires events watching')
+    }
+
+    const key = `xo:barrier:${Math.random()
+      .toString(36)
+      .slice(2)}`
+    const poolRef = this._pool.$ref
+
+    const { promise, resolve } = defer()
+    eventWatchers[key] = resolve
+
+    await this._sessionCall('pool.add_to_other_config', [poolRef, key, ''])
+
+    await promise
+
+    ignoreErrors.call(
+      this._sessionCall('pool.remove_from_other_config', [poolRef, key])
+    )
+
+    if (ref !== undefined) {
+      return this.getObjectByRef(ref)
+    }
   }
 
   // create a task and automatically destroy it when settled
   //
   //  allowed even in read-only mode because it does not have impact on the
   //  XenServer and it's necessary for getResource()
-  createTask(nameLabel, nameDescription = '') {
-    const promise = this._sessionCall('task.create', [
+  async createTask(nameLabel, nameDescription = '') {
+    const taskRef = await this._sessionCall('task.create', [
       nameLabel,
       nameDescription,
     ])
 
-    promise.then(taskRef => {
-      const destroy = () =>
-        this._sessionCall('task.destroy', [taskRef]).catch(noop)
-      this.watchTask(taskRef).then(destroy, destroy)
-    })
+    const destroyTask = () =>
+      ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
+    this.watchTask(taskRef).then(destroyTask, destroyTask)
 
-    return promise
-  }
-
-  getField(type, ref, field) {
-    return this._sessionCall(`${type}.get_${field}`, [ref])
+    return taskRef
   }
 
   // Nice getter which returns the object for a given $id (internal to
@@ -565,216 +659,19 @@ export class Xapi extends EventEmitter {
     throw new Error('no object with UUID: ' + uuid)
   }
 
-  async getRecord(type, ref) {
-    return this._wrapRecord(
-      type,
-      ref,
-      await this._sessionCall(`${type}.get_record`, [ref])
-    )
-  }
+  watchEvents() {
+    this._eventWatchers = { __proto__: null }
 
-  getRecords(type, refs) {
-    return Promise.all(refs.map(ref => this.getRecord(type, ref)))
-  }
+    this._taskWatchers = { __proto__: null }
 
-  async getAllRecords(type) {
-    return map(
-      await this._sessionCall(`${type}.get_all_records`),
-      (record, ref) => this._wrapRecord(type, ref, record)
-    )
-  }
-
-  async getRecordByUuid(type, uuid) {
-    return this.getRecord(
-      type,
-      await this._sessionCall(`${type}.get_by_uuid`, [uuid])
-    )
-  }
-
-  @cancelable
-  getResource($cancelToken, pathname, { host, query, task } = {}) {
-    return this._autoTask(task, `Xapi#getResource ${pathname}`).then(
-      taskRef => {
-        query = { ...query, session_id: this.sessionId }
-        let taskResult
-        if (taskRef !== undefined) {
-          query.task_id = taskRef
-          taskResult = this.watchTask(taskRef)
-
-          if (typeof $cancelToken.addHandler === 'function') {
-            $cancelToken.addHandler(() => taskResult)
-          }
-        }
-
-        let promise = pTimeout.call(
-          httpRequest(
-            $cancelToken,
-            this._url,
-            host && {
-              hostname: this.getObject(host).address,
-            },
-            {
-              pathname,
-              query,
-              rejectUnauthorized: !this._allowUnauthorized,
-            }
-          ),
-          HTTP_TIMEOUT
-        )
-
-        if (taskResult !== undefined) {
-          promise = promise.then(response => {
-            response.task = taskResult
-            return response
-          })
-        }
-
-        return promise
-      }
-    )
-  }
-
-  @cancelable
-  putResource($cancelToken, body, pathname, { host, query, task } = {}) {
-    if (this._readOnly) {
-      return Promise.reject(
-        new Error(new Error('cannot put resource in read only mode'))
-      )
+    if (this.status === CONNECTED) {
+      this._watchEventsWrapper()
     }
 
-    return this._autoTask(task, `Xapi#putResource ${pathname}`).then(
-      taskRef => {
-        query = { ...query, session_id: this.sessionId }
-
-        let taskResult
-        if (taskRef !== undefined) {
-          query.task_id = taskRef
-          taskResult = this.watchTask(taskRef)
-
-          if (typeof $cancelToken.addHandler === 'function') {
-            $cancelToken.addHandler(() => taskResult)
-          }
-        }
-
-        const headers = {}
-
-        // Xen API does not support chunk encoding.
-        const isStream = typeof body.pipe === 'function'
-        const { length } = body
-        if (isStream && length === undefined) {
-          // add a fake huge content length (1 PiB)
-          headers['content-length'] = '1125899906842624'
-        }
-
-        const doRequest = (...opts) =>
-          pTimeout.call(
-            httpRequest.put(
-              $cancelToken,
-              this._url,
-              host && {
-                hostname: this.getObject(host).address,
-              },
-              {
-                body,
-                headers,
-                query,
-                pathname,
-                rejectUnauthorized: !this._allowUnauthorized,
-              },
-              ...opts
-            ),
-            HTTP_TIMEOUT
-          )
-
-        // if a stream, sends a dummy request to probe for a
-        // redirection before consuming body
-        const promise = isStream
-          ? doRequest({
-              body: '',
-
-              // omit task_id because this request will fail on purpose
-              query: 'task_id' in query ? omit(query, 'task_id') : query,
-
-              maxRedirects: 0,
-            }).then(
-              response => {
-                response.cancel()
-                return doRequest()
-              },
-              error => {
-                let response
-                if (error != null && (response = error.response) != null) {
-                  response.cancel()
-
-                  const {
-                    headers: { location },
-                    statusCode,
-                  } = response
-                  if (statusCode === 302 && location !== undefined) {
-                    // ensure the original query is sent
-                    return doRequest(location, { query })
-                  }
-                }
-
-                throw error
-              }
-            )
-          : doRequest()
-
-        return promise.then(response => {
-          const { req } = response
-
-          if (taskResult !== undefined) {
-            taskResult = taskResult.catch(error => {
-              error.url = response.url
-              throw error
-            })
-          }
-
-          if (req.finished) {
-            response.cancel()
-            return taskResult
-          }
-
-          return fromEvents(req, ['close', 'finish']).then(() => {
-            response.cancel()
-            return taskResult
-          })
-        })
-      }
-    )
-  }
-
-  setField(type, ref, field, value) {
-    return this.call(`${type}.set_${field}`, ref, value).then(noop)
-  }
-
-  setFieldEntries(type, ref, field, entries) {
-    return Promise.all(
-      getKeys(entries).map(entry => {
-        const value = entries[entry]
-        if (value !== undefined) {
-          return this.setFieldEntry(type, ref, field, entry, value)
-        }
-      })
-    ).then(noop)
-  }
-
-  async setFieldEntry(type, ref, field, entry, value) {
-    if (value === null) {
-      return this.call(`${type}.remove_from_${field}`, ref, entry).then(noop)
-    }
-    while (true) {
-      try {
-        await this.call(`${type}.add_to_${field}`, ref, entry, value)
-        return
-      } catch (error) {
-        if (error == null || error.code !== 'MAP_DUPLICATE_KEY') {
-          throw error
-        }
-      }
-      await this.call(`${type}.remove_from_${field}`, ref, entry)
-    }
+    this.on('connected', this._watchEventsWrapper)
+    this.on('disconnected', () => {
+      this._objects.clear()
+    })
   }
 
   watchTask(ref) {
@@ -802,16 +699,12 @@ export class Xapi extends EventEmitter {
     return watcher.promise
   }
 
-  get pool() {
-    return this._pool
-  }
-
-  get objects() {
-    return this._objects
-  }
+  // ===========================================================================
+  // Private
+  // ===========================================================================
 
   _clearObjects() {
-    ;(this._objectsByRef = createObject(null))[NULL_REF] = undefined
+    ;(this._objectsByRef = { __proto__: null })[NULL_REF] = undefined
     this._nTasks = 0
     this._objects.clear()
     this.objectsFetched = new Promise(resolve => {
@@ -854,7 +747,7 @@ export class Xapi extends EventEmitter {
             // Try to login again.
             debug('%s: the session has been reinitialized', this._humanId)
 
-            this._sessionId = null
+            this._sessionId = undefined
             return this.connect().then(() => this._sessionCall(method, args))
           }
         ),
@@ -865,11 +758,20 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  _addObject(type, ref, object) {
+  _setUrl(url) {
+    this._humanId = `${this._auth.user}@${url.hostname}`
+    this._call = autoTransport({
+      allowUnauthorized: this._allowUnauthorized,
+      url,
+    })
+    this._url = url
+  }
+
+  _addRecordToCache(type, ref, object) {
     object = this._wrapRecord(type, ref, object)
 
     // Finally freezes the object.
-    freezeObject(object)
+    freeze(object)
 
     const objects = this._objects
     const objectsByRef = this._objectsByRef
@@ -912,7 +814,23 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  _removeObject(type, ref) {
+  _processEvents(events) {
+    events.forEach(event => {
+      let type = event.class
+      const lcToTypes = this._lcToTypes
+      if (type in lcToTypes) {
+        type = lcToTypes[type]
+      }
+      const { ref } = event
+      if (event.operation === 'del') {
+        this._removeRecordFromCache(type, ref)
+      } else {
+        this._addRecordToCache(type, ref, event.snapshot)
+      }
+    })
+  }
+
+  _removeRecordFromCache(type, ref) {
     const byRefs = this._objectsByRef
     const object = byRefs[ref]
     if (object !== undefined) {
@@ -933,22 +851,6 @@ export class Xapi extends EventEmitter {
       taskWatcher.reject(error)
       delete taskWatchers[ref]
     }
-  }
-
-  _processEvents(events) {
-    forEach(events, event => {
-      let type = event.class
-      const lcToTypes = this._lcToTypes
-      if (type in lcToTypes) {
-        type = lcToTypes[type]
-      }
-      const { ref } = event
-      if (event.operation === 'del') {
-        this._removeObject(type, ref)
-      } else {
-        this._addObject(type, ref, event.snapshot)
-      }
-    })
   }
 
   // - prevent multiple watches
@@ -998,7 +900,7 @@ export class Xapi extends EventEmitter {
               (record, ref) => {
                 // we can bypass _processEvents here because they are all *add*
                 // event and all objects are of the same type
-                this._addObject(type, ref, record)
+                this._addRecordToCache(type, ref, record)
               }
             )
           } catch (error) {
@@ -1058,10 +960,10 @@ export class Xapi extends EventEmitter {
             })
             forOwn(tasks, (task, ref) => {
               toRemove.delete(ref)
-              this._addObject('task', ref, task)
+              this._addRecordToCache('task', ref, task)
             })
             toRemove.forEach(ref => {
-              this._removeObject('task', ref)
+              this._removeRecordFromCache('task', ref)
             })
           })
         )
@@ -1082,7 +984,7 @@ export class Xapi extends EventEmitter {
             this._sessionCall(`${type}.get_all_records`).then(
               objects => {
                 forEach(objects, (object, ref) => {
-                  this._addObject(type, ref, object)
+                  this._addRecordToCache(type, ref, object)
                 })
               },
               error => {
@@ -1136,7 +1038,7 @@ export class Xapi extends EventEmitter {
 
       Record = function(ref, data) {
         defineProperties(this, {
-          $id: { value: data.uuid || ref },
+          $id: { value: data.uuid ?? ref },
           $ref: { value: ref },
           $xapi: { value: xapi },
         })
@@ -1221,7 +1123,7 @@ Xapi.prototype._transportCall = reduce(
         .call(this._call(method, args), HTTP_TIMEOUT)
         .catch(error => {
           if (!(error instanceof Error)) {
-            error = wrapError(error)
+            error = XapiError.wrap(error)
           }
 
           // do not log the session ID

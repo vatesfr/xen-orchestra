@@ -40,7 +40,7 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 // - _xapis[server.id] id defined
 // - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
-  constructor(xo, { xapiOptions }) {
+  constructor(xo, { guessVhdSizeOnImport, xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
@@ -49,7 +49,10 @@ export default class {
     }))
     this._serverIdsByPool = { __proto__: null }
     this._stats = new XapiStats()
-    this._xapiOptions = xapiOptions
+    this._xapiOptions = {
+      guessVhdSizeOnImport,
+      ...xapiOptions,
+    }
     this._xapis = { __proto__: null }
     this._xo = xo
 
@@ -456,8 +459,8 @@ export default class {
     const xapis = this._xapis
     forEach(servers, server => {
       server.status = this._getXenServerStatus(server.id)
-      if (server.status === 'connected' && server.label === undefined) {
-        server.label = xapis[server.id].pool.name_label
+      if (server.status === 'connected') {
+        server.poolId = xapis[server.id].pool.uuid
       }
 
       // Do not expose password.

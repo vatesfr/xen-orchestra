@@ -11,6 +11,7 @@ import { alert, confirm } from 'modal'
 import { Container } from 'grid'
 import { Password as EditablePassword, Text } from 'editable'
 import { Password, Toggle } from 'form'
+import { Pool } from 'render-xo-item'
 import { injectIntl } from 'react-intl'
 import { noop } from 'lodash'
 import {
@@ -154,6 +155,11 @@ const COLUMNS = [
       </span>
     ),
     sortCriteria: _ => !!_.allowUnauthorized,
+  },
+  {
+    itemRenderer: ({ poolId }) =>
+      poolId !== undefined && <Pool id={poolId} link />,
+    name: _('pool'),
   },
 ]
 const INDIVIDUAL_ACTIONS = [

@@ -51,8 +51,8 @@ const levelPromise = db => {
 // ===================================================================
 
 export default class {
-  constructor(xo) {
-    const dir = `${xo._config.datadir}/leveldb`
+  constructor(xo, config) {
+    const dir = `${config.datadir}/leveldb`
     this._db = ensureDir(dir).then(() => {
       return sublevel(
         levelup(dir, {

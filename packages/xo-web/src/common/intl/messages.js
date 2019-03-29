@@ -517,6 +517,8 @@ const messages = {
   remoteState: 'State',
   remoteDevice: 'Device',
   remoteDisk: 'Disk (Used / Total)',
+  remoteSpeed: 'Speed (Write / Read)',
+  remoteSpeedInfo: 'Read and write rate speed performed during latest test',
   remoteOptions: 'Options',
   remoteShare: 'Share',
   remoteAction: 'Action',
@@ -754,10 +756,12 @@ const messages = {
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
   addHostLabel: 'Add Host',
-  hostNeedsPatchUpdate:
-    'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.',
-  hostNeedsPatchUpdateNoInstall:
-    "This host cannot be added to the pool because it's missing some patches.",
+  missingPatchesPool:
+    'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may be long.',
+  missingPatchesHost:
+    'This host needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may be long.',
+  patchUpdateNoInstall:
+    'This host cannot be added to the pool because the patches are not homogeneous.',
   addHostErrorTitle: 'Adding host failed',
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
@@ -884,14 +888,14 @@ const messages = {
   hostAppliedPatches: 'Applied patches',
   hostMissingPatches: 'Missing patches',
   hostUpToDate: 'Host up-to-date!',
-  installPatchWarningTitle: 'Non-recommended patch install',
-  installPatchWarningContent:
-    'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
-  installPatchWarningReject: 'Go to pool',
-  installPatchWarningResolve: 'Install',
+  installAllPatchesTitle: 'Install all patches',
+  installAllPatchesContent: 'To install all patches go to pool.',
+  installAllPatchesRedirect: 'Go to pool',
+  installAllPatchesOnHostContent:
+    'Are you sure you want to install all patches on this host?',
   patchRelease: 'Release',
   updatePluginNotInstalled:
-    'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first.',
+    'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',
   showChangelog: 'Show changelog',
   changelog: 'Changelog',
   changelogPatch: 'Patch',
@@ -900,6 +904,10 @@ const messages = {
   changelogDescription: 'Description',
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
+  install: 'Install',
+  installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',
+  installPatchesContent:
+    'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch:
     'Are you sure you want to install all the patches on this pool?',
@@ -1023,6 +1031,8 @@ const messages = {
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
+  srsNotOnSameHost:
+    'The SRs must either be shared or on the same host for the VM to be able to start.',
   useQuotaWarning:
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet:
@@ -1093,6 +1103,7 @@ const messages = {
   guestOsLabel: 'Guest OS',
   miscLabel: 'Misc',
   virtualizationMode: 'Virtualization mode',
+  startDelayLabel: 'Start delay (seconds)',
   cpuMaskLabel: 'CPU mask',
   selectCpuMask: 'Select core(s)…',
   cpuWeightLabel: 'CPU weight',
@@ -1315,6 +1326,7 @@ const messages = {
   newVmShowAdvanced: 'Show advanced settings',
   newVmHideAdvanced: 'Hide advanced settings',
   newVmShare: 'Share this VM',
+  newVmSrsNotOnSameHost: 'The SRs must either be on the same host or shared',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -1403,11 +1415,11 @@ const messages = {
   scheduleName: 'Name',
   scheduleCopyId: 'Copy ID {id}',
   scheduleTimezone: 'Timezone',
-  scheduleExportRetention: 'Backup ret.',
-  scheduleCopyRetention: 'Replication ret.',
-  scheduleSnapshotRetention: 'Snapshot ret.',
-  poolMetadataRetention: 'Pool ret.',
-  xoMetadataRetention: 'XO ret.',
+  scheduleExportRetention: 'Backup retention',
+  scheduleCopyRetention: 'Replication retention',
+  scheduleSnapshotRetention: 'Snapshot retention',
+  poolMetadataRetention: 'Pool retention',
+  xoMetadataRetention: 'XO retention',
   getRemote: 'Get remote',
   listRemote: 'List Remote',
   simpleBackup: 'simple',

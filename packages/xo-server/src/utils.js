@@ -3,7 +3,6 @@ import forEach from 'lodash/forEach'
 import has from 'lodash/has'
 import highland from 'highland'
 import humanFormat from 'human-format'
-import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import keys from 'lodash/keys'
 import multiKeyHashInt from 'multikey-hash'
@@ -45,17 +44,6 @@ export const diffItems = (coll1, coll2) => {
   })
 
   return [added, keys(removed)]
-}
-
-// -------------------------------------------------------------------
-
-// Ensure the value is an array, wrap it if necessary.
-export function ensureArray(value) {
-  if (value === undefined) {
-    return []
-  }
-
-  return isArray(value) ? value : [value]
 }
 
 // -------------------------------------------------------------------

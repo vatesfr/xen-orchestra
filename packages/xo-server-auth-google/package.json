@@ -1,6 +1,6 @@
 {
   "name": "xo-server-auth-google",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "AGPL-3.0",
   "description": "Google authentication plugin for XO-Server",
   "keywords": [
@@ -33,7 +33,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "passport-google-oauth20": "^1.0.0"
+    "passport-google-oauth20": "^2.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
