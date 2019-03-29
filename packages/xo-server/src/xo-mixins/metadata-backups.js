@@ -453,17 +453,15 @@ export default class metadataBackup {
     const message = 'metadataRestore'
     const [remoteId, dir, ...path] = id.split('/')
     const handler = await app.getRemoteHandler(remoteId)
+    const metadataFolder = `${dir}/${path.join('/')}`
 
-    let taskId
+    const taskId = logger.notice(message, {
+      event: 'task.start',
+      data: JSON.parse(
+        String(await handler.readFile(`${metadataFolder}/metadata.json`))
+      ),
+    })
     try {
-      const metadataFolder = `${dir}/${path.join('/')}`
-
-      taskId = logger.notice(message, {
-        event: 'task.start',
-        data: JSON.parse(
-          String(await handler.readFile(`${metadataFolder}/metadata.json`))
-        ),
-      })
       this._runningMetadataRestores.add(taskId)
 
       let result

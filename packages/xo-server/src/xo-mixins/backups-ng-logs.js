@@ -59,7 +59,7 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 //   id: string,
 //   jobId?: string,
 //   jobName?: string,
-//   message?: 'restore' | 'backup',
+//   message?:  'backup' | 'metadataRestore' | 'restore',
 //   scheduleId?: string,
 //   start: number,
 //   status: 'pending' | 'failure' | 'interrupted' | 'skipped' | 'success',
