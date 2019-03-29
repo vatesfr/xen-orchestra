@@ -556,6 +556,12 @@ export const removeServer = server =>
 export const editPool = (pool, props) =>
   _call('pool.set', { id: resolveId(pool), ...props })
 
+export const getPatchesDifference = (source, target) =>
+  _call('pool.getPatchesDifference', {
+    source: resolveId(source),
+    target: resolveId(target),
+  })
+
 import AddHostModalBody from './add-host-modal' // eslint-disable-line import/first
 export const addHostToPool = (pool, host) => {
   if (host) {
@@ -739,23 +745,18 @@ export const enableHost = host => _call('host.enable', { id: resolveId(host) })
 export const disableHost = host =>
   _call('host.disable', { id: resolveId(host) })
 
-const missingUpdatePluginByHost = { __proto__: null }
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
   if (host.productBrand !== 'XCP-ng') {
-    const patches = await _call('host.listMissingPatches', { host: hostId })
+    const patches = await _call('pool.listMissingPatches', { host: hostId })
     // Hide paid patches to XS-free users
     return host.license_params.sku_type !== 'free'
       ? patches
       : filter(patches, { paid: false })
   }
-  if (missingUpdatePluginByHost[hostId]) {
-    return null
-  }
   try {
-    return await _call('host.listMissingPatches', { host: hostId })
+    return await _call('pool.listMissingPatches', { host: hostId })
   } catch (_) {
-    missingUpdatePluginByHost[hostId] = true
     return null
   }
 }
@@ -776,18 +777,30 @@ export const emergencyShutdownHosts = hosts => {
   }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
 }
 
-export const installHostPatch = (host, { uuid }) =>
-  _call('host.installPatch', { host: resolveId(host), patch: uuid })::tap(() =>
-    subscribeHostMissingPatches.forceRefresh(host)
+// for XCP-ng now
+export const installAllPatchesOnHost = ({ host }) =>
+  confirm({
+    body: _('installAllPatchesOnHostContent'),
+    title: _('installAllPatchesTitle'),
+  }).then(() =>
+    _call('pool.installPatches', { hosts: [resolveId(host)] })::tap(() =>
+      subscribeHostMissingPatches.forceRefresh(host)
+    )
   )
 
-export const installAllHostPatches = host =>
-  _call('host.installAllPatches', { host: resolveId(host) })::tap(() =>
-    subscribeHostMissingPatches.forceRefresh(host)
+export const installPatches = (patches, pool) =>
+  confirm({
+    body: _('installPatchesContent', { nPatches: patches.length }),
+    title: _('installPatchesTitle', { nPatches: patches.length }),
+  }).then(() =>
+    _call('pool.installPatches', {
+      pool: resolveId(pool),
+      patches: resolveIds(patches),
+    })::tap(() => subscribeHostMissingPatches.forceRefresh())
   )
 
 import InstallPoolPatchesModalBody from './install-pool-patches-modal' // eslint-disable-line import/first
-export const installAllPatchesOnPool = pool => {
+export const installAllPatchesOnPool = ({ pool }) => {
   const poolId = resolveId(pool)
   return confirm({
     body: <InstallPoolPatchesModalBody pool={poolId} />,
@@ -795,7 +808,7 @@ export const installAllPatchesOnPool = pool => {
     icon: 'host-patch-update',
   }).then(
     () =>
-      _call('pool.installAllPatches', { pool: poolId })::tap(() =>
+      _call('pool.installPatches', { pool: poolId })::tap(() =>
         subscribeHostMissingPatches.forceRefresh()
       ),
     noop
@@ -2010,6 +2023,27 @@ export const editMetadataBackupJob = props =>
 
 export const runMetadataBackupJob = params =>
   _call('metadataBackup.runJob', params)
+
+export const listMetadataBackups = remotes =>
+  _call('metadataBackup.list', { remotes: resolveIds(remotes) })
+
+export const restoreMetadataBackup = backup =>
+  _call('metadataBackup.restore', {
+    id: resolveId(backup),
+  })::tap(subscribeBackupNgLogs.forceRefresh)
+
+export const deleteMetadataBackup = backup =>
+  _call('metadataBackup.delete', {
+    id: resolveId(backup),
+  })
+
+export const deleteMetadataBackups = async (backups = []) => {
+  // delete sequentially from newest to oldest
+  backups = backups.slice().sort((b1, b2) => b2.timestamp - b1.timestamp)
+  for (let i = 0, n = backups.length; i < n; ++i) {
+    await deleteMetadataBackup(backups[i])
+  }
+}
 
 // Plugins -----------------------------------------------------------
 

@@ -39,6 +39,13 @@ const messages = {
   hasInactivePath: 'Has an inactive path',
   pools: 'Pools',
   remotes: 'Remotes',
+  type: 'Type',
+  restore: 'Restore',
+  delete: 'Delete',
+  vms: 'VMs',
+  metadata: 'Metadata',
+  chooseBackup: 'Choose a backup',
+  clickToShowError: 'Click to show error',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -443,6 +450,7 @@ const messages = {
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
+  fullBackupInterval: 'Full backup interval',
   timeoutUnit: 'in hours',
   dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require Enterprise plan',
   crRequiresPremiumPlan: 'CR requires Premium plan',
@@ -713,6 +721,14 @@ const messages = {
   displayAllHosts: 'Display all hosts of this pool',
   displayAllStorages: 'Display all storages of this pool',
   displayAllVMs: 'Display all VMs of this pool',
+  licenseRestrictions: 'License restrictions',
+  licenseRestrictionsModalTitle:
+    'Warning: you are using a Free XenServer license',
+  actionsRestricted: 'Some actions will be restricted.',
+  counterRestrictionsOptions: 'You can:',
+  counterRestrictionsOptionsXcp:
+    'upgrade to XCP-ng for free to get rid of these restrictions',
+  counterRestrictionsOptionsXsLicense: 'or get a commercial Citrix license',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
   vmsTabName: 'Vms',
@@ -756,10 +772,12 @@ const messages = {
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
   addHostLabel: 'Add Host',
-  hostNeedsPatchUpdate:
-    'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.',
-  hostNeedsPatchUpdateNoInstall:
-    "This host cannot be added to the pool because it's missing some patches.",
+  missingPatchesPool:
+    'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may be long.',
+  missingPatchesHost:
+    'This host needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may be long.',
+  patchUpdateNoInstall:
+    'This host cannot be added to the pool because the patches are not homogeneous.',
   addHostErrorTitle: 'Adding host failed',
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
@@ -886,14 +904,14 @@ const messages = {
   hostAppliedPatches: 'Applied patches',
   hostMissingPatches: 'Missing patches',
   hostUpToDate: 'Host up-to-date!',
-  installPatchWarningTitle: 'Non-recommended patch install',
-  installPatchWarningContent:
-    'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
-  installPatchWarningReject: 'Go to pool',
-  installPatchWarningResolve: 'Install',
+  installAllPatchesTitle: 'Install all patches',
+  installAllPatchesContent: 'To install all patches go to pool.',
+  installAllPatchesRedirect: 'Go to pool',
+  installAllPatchesOnHostContent:
+    'Are you sure you want to install all patches on this host?',
   patchRelease: 'Release',
   updatePluginNotInstalled:
-    'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first.',
+    'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',
   showChangelog: 'Show changelog',
   changelog: 'Changelog',
   changelogPatch: 'Patch',
@@ -902,6 +920,10 @@ const messages = {
   changelogDescription: 'Description',
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
+  install: 'Install',
+  installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',
+  installPatchesContent:
+    'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch:
     'Are you sure you want to install all the patches on this pool?',
@@ -1362,8 +1384,7 @@ const messages = {
   resourceSetNew: 'New',
 
   // ---- VM import ---
-  importVmsList:
-    'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.',
+  importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
@@ -1420,6 +1441,7 @@ const messages = {
   simpleBackup: 'simple',
   delta: 'delta',
   restoreBackups: 'Restore Backups',
+  noBackups: 'There are no backups!',
   restoreBackupsInfo: 'Click on a VM to display restore options',
   restoreDeltaBackupsInfo:
     'Only the files of Delta Backup which are not on a SMB remote can be restored',
@@ -1460,10 +1482,16 @@ const messages = {
   restoreVmBackupsStart:
     'Start VM{nVms, plural, one {} other {s}} after restore',
   restoreVmBackupsBulkErrorTitle: 'Multi-restore error',
+  restoreMetadataBackupTitle: 'Restore {item}',
+  bulkRestoreMetadataBackupTitle:
+    'Restore {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}',
+  bulkRestoreMetadataBackupMessage:
+    'Restore {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}} from {nMetadataBackups, plural, one {its} other {their}} {oldestOrLatest} backup',
+  deleteMetadataBackupTitle: 'Delete {item} backup',
   restoreVmBackupsBulkErrorMessage: 'You need to select a destination SR',
   deleteVmBackups: 'Delete backups…',
   deleteVmBackupsTitle: 'Delete {vm} backups',
-  deleteVmBackupsSelect: 'Select backups to delete:',
+  deleteBackupsSelect: 'Select backups to delete:',
   deleteVmBackupsSelectAll: 'All',
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
@@ -1471,6 +1499,11 @@ const messages = {
   deleteVmBackupsBulkConfirmText:
     'delete {nBackups} backup{nBackups, plural, one {} other {s}}',
   unknownJob: 'Unknown job',
+  bulkDeleteMetadataBackupsTitle: 'Delete metadata backups',
+  bulkDeleteMetadataBackupsMessage:
+    'Are you sure you want to delete all the backups from {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}?',
+  bulkDeleteMetadataBackupsConfirmText:
+    'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
@@ -1905,6 +1938,7 @@ const messages = {
   logsJobName: 'Job name',
   logsBackupTime: 'Backup time',
   logsRestoreTime: 'Restore time',
+  copyLogToClipboard: 'Copy log to clipboard',
   logsVmNotFound: 'VM not found!',
   logsMissingVms: 'Missing VMs skipped ({ vms })',
   logsFailedRestoreError: 'Click to show error',

@@ -68,6 +68,7 @@ import {
   parseDateTime,
   prepareXapiParam,
 } from './utils'
+import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
 
@@ -93,8 +94,10 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor(...args) {
-    super(...args)
+  constructor({ guessVhdSizeOnImport, ...opts }) {
+    super(opts)
+
+    this._guessVhdSizeOnImport = guessVhdSizeOnImport
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -1564,47 +1567,28 @@ export default class Xapi extends XapiBase {
       }`
     )
 
+    // see https://github.com/vatesfr/xen-orchestra/issues/4074
+    const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
+    ignoreErrors.call(
+      Promise.all(
+        vm.snapshots.map(async ref => {
+          const nameLabel = await this.getField('VM', ref, 'name_label')
+          if (nameLabel.startsWith(snapshotNameLabelPrefix)) {
+            return this._deleteVm(ref)
+          }
+        })
+      )
+    )
+
     let ref
     do {
       if (!vm.tags.includes('xo-disable-quiesce')) {
         try {
-          ref = await pRetry(
-            async bail => {
-              try {
-                return await this.callAsync(
-                  $cancelToken,
-                  'VM.snapshot_with_quiesce',
-                  vmRef,
-                  nameLabel
-                )
-              } catch (error) {
-                if (error?.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
-                  throw bail(error)
-                }
-
-                // detect and remove new broken snapshots
-                //
-                // see https://github.com/vatesfr/xen-orchestra/issues/3936
-                const prevSnapshotRefs = new Set(vm.snapshots)
-                const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
-                vm.snapshots = await this.getField('VM', vmRef, 'snapshots')
-                const createdSnapshots = (await this.getRecords(
-                  'VM',
-                  vm.snapshots.filter(_ => !prevSnapshotRefs.has(_))
-                )).filter(_ => _.name_label.startsWith(snapshotNameLabelPrefix))
-
-                // be safe: only delete if there was a single match
-                if (createdSnapshots.length === 1) {
-                  ignoreErrors.call(this._deleteVm(createdSnapshots[0]))
-                }
-
-                throw error
-              }
-            },
-            {
-              delay: 60e3,
-              tries: 3,
-            }
+          ref = await this.callAsync(
+            $cancelToken,
+            'VM.snapshot_with_quiesce',
+            vmRef,
+            nameLabel
           ).then(extractOpaqueRef)
           ignoreErrors.call(this.call('VM.add_tags', ref, 'quiesce'))
 
@@ -2095,11 +2079,16 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async _importVdiContent(vdi, body, format = VDI_FORMAT_VHD) {
-    if (__DEV__ && body.length == null) {
-      throw new Error(
-        'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
-      )
+    if (typeof body.pipe === 'function' && body.length === undefined) {
+      if (this._guessVhdSizeOnImport && format === VDI_FORMAT_VHD) {
+        body = await createVhdStreamWithLength(body)
+      } else if (__DEV__) {
+        throw new Error(
+          'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
+        )
+      }
     }
+
     await Promise.all([
       body.task,
       body.checksumVerified,
@@ -2480,6 +2469,15 @@ export default class Xapi extends XapiBase {
       this.objects.all,
       obj =>
         obj.$type === 'SR' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
+    )
+  }
+
+  // Main purpose: upload update on VDI
+  // Is a local SR on a non master host OK?
+  findAvailableSr(minSize) {
+    return find(
+      this.objects.all,
+      obj => obj.$type === 'SR' && canSrHaveNewVdiOfSize(obj, minSize)
     )
   }
 

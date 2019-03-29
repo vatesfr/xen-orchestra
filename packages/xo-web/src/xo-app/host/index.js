@@ -20,7 +20,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { assign, isEmpty, isString, map, pick, sortBy } from 'lodash'
+import { assign, isEmpty, map, pick, sortBy } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
@@ -101,19 +101,11 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
-  const getHostPatches = createSelector(
-    createGetObjectsOfType('pool_patch'),
-    createGetObjectsOfType('host_patch').pick(
-      createSelector(
-        getHost,
-        host => (isString(host.patches[0]) ? host.patches : [])
-      )
-    ),
-    (poolsPatches, hostsPatches) =>
-      map(hostsPatches, hostPatch => ({
-        ...hostPatch,
-        poolPatch: poolsPatches[hostPatch.pool_patch],
-      }))
+  const getHostPatches = createGetObjectsOfType('patch').pick(
+    createSelector(
+      getHost,
+      host => host.patches
+    )
   )
 
   const doesNeedRestart = createDoesHostNeedRestart(getHost)

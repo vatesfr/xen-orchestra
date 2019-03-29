@@ -1,19 +1,16 @@
 import assert from 'assert'
 import { fromEvent } from 'promise-toolbox'
 
+import checkFooter from './_checkFooter'
+import checkHeader from './_checkHeader'
 import constantStream from './_constant-stream'
+import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
 import { set as mapSetBit, test as mapTestBit } from './_bitmap'
 import {
   BLOCK_UNUSED,
-  DISK_TYPE_DIFFERENCING,
-  DISK_TYPE_DYNAMIC,
-  FILE_FORMAT_VERSION,
-  FOOTER_COOKIE,
   FOOTER_SIZE,
-  HEADER_COOKIE,
   HEADER_SIZE,
-  HEADER_VERSION,
   PARENT_LOCATOR_ENTRIES,
   PLATFORM_NONE,
   PLATFORM_W2KU,
@@ -170,21 +167,10 @@ export default class Vhd {
     }
 
     const footer = (this.footer = fuFooter.unpack(bufFooter))
-    assert.strictEqual(footer.cookie, FOOTER_COOKIE, 'footer cookie')
-    assert.strictEqual(footer.dataOffset, FOOTER_SIZE)
-    assert.strictEqual(footer.fileFormatVersion, FILE_FORMAT_VERSION)
-    assert(footer.originalSize <= footer.currentSize)
-    assert(
-      footer.diskType === DISK_TYPE_DIFFERENCING ||
-        footer.diskType === DISK_TYPE_DYNAMIC
-    )
+    checkFooter(footer)
 
     const header = (this.header = fuHeader.unpack(bufHeader))
-    assert.strictEqual(header.cookie, HEADER_COOKIE)
-    assert.strictEqual(header.dataOffset, undefined)
-    assert.strictEqual(header.headerVersion, HEADER_VERSION)
-    assert(header.maxTableEntries >= footer.currentSize / header.blockSize)
-    assert(Number.isInteger(Math.log2(header.blockSize / SECTOR_SIZE)))
+    checkHeader(header, footer)
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
@@ -242,49 +228,6 @@ export default class Vhd {
     )
   }
 
-  // get the identifiers and first sectors of the first and last block
-  // in the file
-  //
-  _getFirstAndLastBlocks() {
-    const n = this.header.maxTableEntries
-    const bat = this.blockTable
-    let i = 0
-    let j = 0
-    let first, firstSector, last, lastSector
-
-    // get first allocated block for initialization
-    while ((firstSector = bat.readUInt32BE(j)) === BLOCK_UNUSED) {
-      i += 1
-      j += 4
-
-      if (i === n) {
-        const error = new Error('no allocated block found')
-        error.noBlock = true
-        throw error
-      }
-    }
-    lastSector = firstSector
-    first = last = i
-
-    while (i < n) {
-      const sector = bat.readUInt32BE(j)
-      if (sector !== BLOCK_UNUSED) {
-        if (sector < firstSector) {
-          first = i
-          firstSector = sector
-        } else if (sector > lastSector) {
-          last = i
-          lastSector = sector
-        }
-      }
-
-      i += 1
-      j += 4
-    }
-
-    return { first, firstSector, last, lastSector }
-  }
-
   // =================================================================
   // Write functions.
   // =================================================================
@@ -311,7 +254,9 @@ export default class Vhd {
 
   async _freeFirstBlockSpace(spaceNeededBytes) {
     try {
-      const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
+      const { first, firstSector, lastSector } = getFirstAndLastBlocks(
+        this.blockTable
+      )
       const tableOffset = this.header.tableOffset
       const { batSize } = this
       const newMinSector = Math.ceil(

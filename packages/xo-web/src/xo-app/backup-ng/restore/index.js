@@ -1,6 +1,8 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import ButtonLink from 'button-link'
 import Component from 'base-component'
+import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
@@ -36,6 +38,8 @@ import DeleteBackupsModalBody from './delete-backups-modal-body'
 import RestoreLegacy from '../restore-legacy'
 
 import Logs from '../../logs/restore'
+
+export RestoreMetadata from './metadata'
 
 // -----------------------------------------------------------------------------
 
@@ -265,7 +269,10 @@ export default class Restore extends Component {
               icon='refresh'
             >
               {_('restoreResfreshList')}
-            </ActionButton>
+            </ActionButton>{' '}
+            <ButtonLink to='backup-ng/restore/metadata'>
+              <Icon icon='database' /> {_('metadata')}
+            </ButtonLink>
           </div>
           <SortedTable
             actions={this._actions}

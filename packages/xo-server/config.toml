@@ -9,6 +9,18 @@ datadir = '/var/lib/xo-server/data'
 # Necessary for external authentication providers.
 createUserOnFirstSignin = true
 
+# XAPI does not support chunked encoding in HTTP requests which is necessary
+# when the content length is not know which is the case for many backup related
+# operations in XO.
+#
+# It's possible to work-around this for VHDs  because it's possible to guess
+# their size just by looking at the beginning of the stream.
+#
+# But it is a guess, not a certainty, it depends on how the VHDs are formatted
+# by XenServer, therefore it's disabled for the moment but can be enabled
+# specifically for a user if necessary.
+guessVhdSizeOnImport = false
+
 # Whether API logs should contains the full request/response on
 # errors.
 #
@@ -32,6 +44,10 @@ maxTokenValidity = '0.5 year'
 #
 # https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Set-Cookie#Session_cookie
 #sessionCookieValidity = '10 hours'
+
+[backup]
+# Delay for which backups listing on a remote is cached
+listingDebounce = '1 min'
 
 [[http.listen]]
 port = 80
