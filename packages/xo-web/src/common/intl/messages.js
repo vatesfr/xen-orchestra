@@ -443,6 +443,7 @@ const messages = {
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
+  fullBackupInterval: 'Full backup interval',
   timeoutUnit: 'in hours',
   dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require Enterprise plan',
   crRequiresPremiumPlan: 'CR requires Premium plan',
@@ -764,10 +765,12 @@ const messages = {
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
   addHostLabel: 'Add Host',
-  hostNeedsPatchUpdate:
-    'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.',
-  hostNeedsPatchUpdateNoInstall:
-    "This host cannot be added to the pool because it's missing some patches.",
+  missingPatchesPool:
+    'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may be long.',
+  missingPatchesHost:
+    'This host needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may be long.',
+  patchUpdateNoInstall:
+    'This host cannot be added to the pool because the patches are not homogeneous.',
   addHostErrorTitle: 'Adding host failed',
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
@@ -894,14 +897,14 @@ const messages = {
   hostAppliedPatches: 'Applied patches',
   hostMissingPatches: 'Missing patches',
   hostUpToDate: 'Host up-to-date!',
-  installPatchWarningTitle: 'Non-recommended patch install',
-  installPatchWarningContent:
-    'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway',
-  installPatchWarningReject: 'Go to pool',
-  installPatchWarningResolve: 'Install',
+  installAllPatchesTitle: 'Install all patches',
+  installAllPatchesContent: 'To install all patches go to pool.',
+  installAllPatchesRedirect: 'Go to pool',
+  installAllPatchesOnHostContent:
+    'Are you sure you want to install all patches on this host?',
   patchRelease: 'Release',
   updatePluginNotInstalled:
-    'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first.',
+    'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',
   showChangelog: 'Show changelog',
   changelog: 'Changelog',
   changelogPatch: 'Patch',
@@ -910,6 +913,10 @@ const messages = {
   changelogDescription: 'Description',
   // ----- Pool patch tabs -----
   refreshPatches: 'Refresh patches',
+  install: 'Install',
+  installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',
+  installPatchesContent:
+    'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch:
     'Are you sure you want to install all the patches on this pool?',
@@ -1370,8 +1377,7 @@ const messages = {
   resourceSetNew: 'New',
 
   // ---- VM import ---
-  importVmsList:
-    'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.',
+  importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',

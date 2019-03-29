@@ -102,11 +102,10 @@ const TRANSFORMS = {
     } = obj
 
     const isRunning = isHostRunning(obj)
-    let supplementalPacks, patches
+    let supplementalPacks
 
     if (useUpdateSystem(obj)) {
       supplementalPacks = []
-      patches = []
 
       forEach(obj.$updates, update => {
         const formattedUpdate = {
@@ -121,7 +120,7 @@ const TRANSFORMS = {
         }
 
         if (startsWith(update.name_label, 'XS')) {
-          patches.push(formattedUpdate)
+          // It's a patch update but for homogeneity, we're still using pool_patches
         } else {
           supplementalPacks.push(formattedUpdate)
         }
@@ -171,7 +170,7 @@ const TRANSFORMS = {
         }
       })(),
       multipathing: otherConfig.multipathing === 'true',
-      patches: patches || link(obj, 'patches'),
+      patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
       startTime: toTimestamp(otherConfig.boot_time),
@@ -625,10 +624,18 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   host_patch(obj) {
+    const poolPatch = obj.$pool_patch
     return {
+      type: 'patch',
+
       applied: Boolean(obj.applied),
+      enforceHomogeneity: poolPatch.pool_applied,
+      description: poolPatch.name_description,
+      name: poolPatch.name_label,
+      pool_patch: poolPatch.$ref,
+      size: poolPatch.size,
+      guidance: poolPatch.after_apply_guidance,
       time: toTimestamp(obj.timestamp_applied),
-      pool_patch: link(obj, 'pool_patch', '$ref'),
 
       $host: link(obj, 'host'),
     }
@@ -640,12 +647,15 @@ const TRANSFORMS = {
     return {
       id: obj.$ref,
 
-      applied: Boolean(obj.pool_applied),
+      dataUuid: obj.uuid, // UUID of the patch file as stated in Citrix's XML file
       description: obj.name_description,
       guidance: obj.after_apply_guidance,
       name: obj.name_label,
       size: +obj.size,
-      uuid: obj.uuid,
+      uuid: obj.$ref,
+
+      // TODO: means that the patch must be applied on every host
+      // applied: Boolean(obj.pool_applied),
 
       // TODO: what does it mean, should we handle it?
       // version: obj.version,

@@ -520,6 +520,12 @@ export default decorate([
           value: value && value * 3600e3,
         })
       },
+      setFullInterval({ setGlobalSettings }, value) {
+        setGlobalSettings({
+          name: 'fullInterval',
+          value,
+        })
+      },
       setOfflineSnapshot: (
         { setGlobalSettings },
         { target: { checked: value } }
@@ -534,6 +540,7 @@ export default decorate([
       compressionId: generateId,
       formId: generateId,
       inputConcurrencyId: generateId,
+      inputFullIntervalId: generateId,
       inputReportWhenId: generateId,
       inputTimeoutId: generateId,
 
@@ -631,9 +638,14 @@ export default decorate([
   ({ state, effects, remotes, srsById, job = {}, intl }) => {
     const { formatMessage } = intl
     const { propSettings, settings = propSettings } = state
-    const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
-      settings.get('') || {}
     const compression = defined(state.compression, job.compression, '')
+    const {
+      concurrency,
+      fullInterval,
+      offlineSnapshot,
+      reportWhen = 'failure',
+      timeout,
+    } = settings.get('') || {}
 
     if (state.needUpdateParams) {
       effects.updateParams()
@@ -921,6 +933,16 @@ export default decorate([
                           onChange={effects.setTimeout}
                           value={timeout && timeout / 3600e3}
                           placeholder={formatMessage(messages.timeoutUnit)}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputFullIntervalId}>
+                          <strong>{_('fullBackupInterval')}</strong>
+                        </label>{' '}
+                        <Number
+                          id={state.inputFullIntervalId}
+                          onChange={effects.setFullInterval}
+                          value={fullInterval}
                         />
                       </FormGroup>
                       {state.isFull && (

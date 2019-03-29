@@ -2472,6 +2472,15 @@ export default class Xapi extends XapiBase {
     )
   }
 
+  // Main purpose: upload update on VDI
+  // Is a local SR on a non master host OK?
+  findAvailableSr(minSize) {
+    return find(
+      this.objects.all,
+      obj => obj.$type === 'SR' && canSrHaveNewVdiOfSize(obj, minSize)
+    )
+  }
+
   async _assertConsistentHostServerTime(hostRef) {
     const delta =
       parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -

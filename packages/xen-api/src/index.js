@@ -1,3 +1,4 @@
+import assert from 'assert'
 import Collection from 'xo-collection'
 import kindOf from 'kindof'
 import ms from 'ms'
@@ -26,6 +27,7 @@ import {
 } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
+import coalesceCalls from './_coalesceCalls'
 import debug from './_debug'
 import getTaskResult from './_getTaskResult'
 import isGetAllRecordsMethod from './_isGetAllRecordsMethod'
@@ -88,12 +90,7 @@ const isSessionInvalid = ({ code }) => code === 'SESSION_INVALID'
 
 // ===================================================================
 
-const {
-  create: createObject,
-  defineProperties,
-  freeze: freezeObject,
-  keys: getKeys,
-} = Object
+const { defineProperties, freeze, keys: getKeys } = Object
 
 // -------------------------------------------------------------------
 
@@ -132,28 +129,38 @@ export class Xapi extends EventEmitter {
   constructor(opts) {
     super()
 
-    this._allowUnauthorized = opts.allowUnauthorized
     this._callTimeout = makeCallSetting(opts.callTimeout, 0)
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
-    this._RecordsByType = createObject(null)
-    this._sessionId = null
+    this._RecordsByType = { __proto__: null }
 
     this._auth = opts.auth
-    const url = (this._url = parseUrl(opts.url))
+    const url = parseUrl(opts.url)
     if (this._auth === undefined) {
       const user = url.username
-      if (user !== undefined) {
-        this._auth = {
-          user,
-          password: url.password,
-        }
-        delete url.username
-        delete url.password
+      if (user === undefined) {
+        throw new TypeError('missing credentials')
       }
+
+      this._auth = {
+        user,
+        password: url.password,
+      }
+      delete url.username
+      delete url.password
     }
 
+    this._allowUnauthorized = opts.allowUnauthorized
+    this._setUrl(url)
+
+    this._connecting = undefined
+    this._connected = new Promise(resolve => {
+      this._resolveConnected = resolve
+    })
+    this._disconnected = Promise.resolve()
+    this._sessionId = undefined
+    this._status = DISCONNECTED
     ;(this._objects = new Collection()).getKey = getKey
     this._debounce = opts.debounce == null ? 200 : opts.debounce
     this._watchedTypes = undefined
@@ -164,42 +171,11 @@ export class Xapi extends EventEmitter {
 
     const { watchEvents } = opts
     if (watchEvents !== false) {
-      if (Array.isArray(watchEvents)) {
+      if (isArray(watchEvents)) {
         this._watchedTypes = watchEvents
       }
       this.watchEvents()
     }
-  }
-
-  watchEvents() {
-    this._eventWatchers = createObject(null)
-
-    this._taskWatchers = Object.create(null)
-
-    if (this.status === CONNECTED) {
-      this._watchEventsWrapper()
-    }
-
-    this.on('connected', this._watchEventsWrapper)
-    this.on('disconnected', () => {
-      this._objects.clear()
-    })
-  }
-
-  get pool() {
-    return this._pool
-  }
-
-  get _url() {
-    return this.__url
-  }
-
-  set _url(url) {
-    this.__url = url
-    this._call = autoTransport({
-      allowUnauthorized: this._allowUnauthorized,
-      url,
-    })
   }
 
   get readOnly() {
@@ -210,10 +186,26 @@ export class Xapi extends EventEmitter {
     this._readOnly = Boolean(ro)
   }
 
+  // ===========================================================================
+  // Connection
+  // ===========================================================================
+
+  get connected() {
+    return this._connected
+  }
+
+  get disconnected() {
+    return this._disconnected
+  }
+
+  get pool() {
+    return this._pool
+  }
+
   get sessionId() {
     const id = this._sessionId
 
-    if (!id || id === CONNECTING) {
+    if (id === undefined || id === CONNECTING) {
       throw new Error('sessionId is only available when connected')
     }
 
@@ -223,28 +215,24 @@ export class Xapi extends EventEmitter {
   get status() {
     const id = this._sessionId
 
-    return id ? (id === CONNECTING ? CONNECTING : CONNECTED) : DISCONNECTED
+    return id === undefined
+      ? DISCONNECTED
+      : id === CONNECTING
+      ? CONNECTING
+      : CONNECTED
   }
 
-  get _humanId() {
-    return `${this._auth.user}@${this._url.hostname}`
-  }
-
+  connect = coalesceCalls(this.connect)
   async connect() {
     const { status } = this
 
     if (status === CONNECTED) {
-      throw new Error('already connected')
+      return
     }
 
-    if (status === CONNECTING) {
-      throw new Error('already connecting')
-    }
+    assert(status === DISCONNECTED)
 
     const auth = this._auth
-    if (auth === undefined) {
-      throw new Error('missing credentials')
-    }
 
     this._sessionId = CONNECTING
 
@@ -273,30 +261,46 @@ export class Xapi extends EventEmitter {
       this._pool = (await this.getAllRecords('pool'))[0]
 
       debug('%s: connected', this._humanId)
+      this._disconnected = new Promise(resolve => {
+        this._resolveDisconnected = resolve
+      })
+      this._resolveConnected()
+      this._resolveConnected = undefined
       this.emit(CONNECTED)
     } catch (error) {
-      this._sessionId = null
+      ignoreErrors.call(this.disconnect())
 
       throw error
     }
   }
 
-  disconnect() {
-    return Promise.resolve().then(() => {
-      const { status } = this
+  async disconnect() {
+    const { status } = this
 
-      if (status === DISCONNECTED) {
-        return Promise.reject(new Error('already disconnected'))
-      }
+    if (status === DISCONNECTED) {
+      return
+    }
 
-      this._transportCall('session.logout', [this._sessionId]).catch(noop)
+    if (status === CONNECTED) {
+      this._connected = new Promise(resolve => {
+        this._resolveConnected = resolve
+      })
 
-      this._sessionId = null
+      this._resolveDisconnected()
+      this._resolveDisconnected = undefined
+    } else {
+      assert(status === CONNECTING)
+    }
 
-      debug('%s: disconnected', this._humanId)
+    const sessionId = this._sessionId
+    if (sessionId !== undefined) {
+      this._sessionId = undefined
+      ignoreErrors.call(this._transportCall('session.logout', [sessionId]))
+    }
 
-      this.emit(DISCONNECTED)
-    })
+    debug('%s: disconnected', this._humanId)
+
+    this.emit(DISCONNECTED)
   }
 
   // ===========================================================================
@@ -557,25 +561,6 @@ export class Xapi extends EventEmitter {
     return pTaskResult
   }
 
-  // create a task and automatically destroy it when settled
-  //
-  //  allowed even in read-only mode because it does not have impact on the
-  //  XenServer and it's necessary for getResource()
-  createTask(nameLabel, nameDescription = '') {
-    const promise = this._sessionCall('task.create', [
-      nameLabel,
-      nameDescription,
-    ])
-
-    promise.then(taskRef => {
-      const destroy = () =>
-        this._sessionCall('task.destroy', [taskRef]).catch(noop)
-      this.watchTask(taskRef).then(destroy, destroy)
-    })
-
-    return promise
-  }
-
   // ===========================================================================
   // Events & cached objects
   // ===========================================================================
@@ -587,12 +572,10 @@ export class Xapi extends EventEmitter {
   // ensure we have received all events up to this call
   //
   // optionally returns the up to date object for the given ref
-  barrier(ref) {
+  async barrier(ref) {
     const eventWatchers = this._eventWatchers
     if (eventWatchers === undefined) {
-      return Promise.reject(
-        new Error('Xapi#barrier() requires events watching')
-      )
+      throw new Error('Xapi#barrier() requires events watching')
     }
 
     const key = `xo:barrier:${Math.random()
@@ -603,29 +586,34 @@ export class Xapi extends EventEmitter {
     const { promise, resolve } = defer()
     eventWatchers[key] = resolve
 
-    return this._sessionCall('pool.add_to_other_config', [
-      poolRef,
-      key,
-      '',
-    ]).then(() =>
-      promise.then(() => {
-        this._sessionCall('pool.remove_from_other_config', [
-          poolRef,
-          key,
-        ]).catch(noop)
+    await this._sessionCall('pool.add_to_other_config', [poolRef, key, ''])
 
-        if (ref === undefined) {
-          return
-        }
+    await promise
 
-        // support legacy params (type, ref)
-        if (arguments.length === 2) {
-          ref = arguments[1]
-        }
-
-        return this.getObjectByRef(ref)
-      })
+    ignoreErrors.call(
+      this._sessionCall('pool.remove_from_other_config', [poolRef, key])
     )
+
+    if (ref !== undefined) {
+      return this.getObjectByRef(ref)
+    }
+  }
+
+  // create a task and automatically destroy it when settled
+  //
+  //  allowed even in read-only mode because it does not have impact on the
+  //  XenServer and it's necessary for getResource()
+  async createTask(nameLabel, nameDescription = '') {
+    const taskRef = await this._sessionCall('task.create', [
+      nameLabel,
+      nameDescription,
+    ])
+
+    const destroyTask = () =>
+      ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
+    this.watchTask(taskRef).then(destroyTask, destroyTask)
+
+    return taskRef
   }
 
   // Nice getter which returns the object for a given $id (internal to
@@ -671,6 +659,21 @@ export class Xapi extends EventEmitter {
     throw new Error('no object with UUID: ' + uuid)
   }
 
+  watchEvents() {
+    this._eventWatchers = { __proto__: null }
+
+    this._taskWatchers = { __proto__: null }
+
+    if (this.status === CONNECTED) {
+      this._watchEventsWrapper()
+    }
+
+    this.on('connected', this._watchEventsWrapper)
+    this.on('disconnected', () => {
+      this._objects.clear()
+    })
+  }
+
   watchTask(ref) {
     const watchers = this._taskWatchers
     if (watchers === undefined) {
@@ -701,7 +704,7 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
 
   _clearObjects() {
-    ;(this._objectsByRef = createObject(null))[NULL_REF] = undefined
+    ;(this._objectsByRef = { __proto__: null })[NULL_REF] = undefined
     this._nTasks = 0
     this._objects.clear()
     this.objectsFetched = new Promise(resolve => {
@@ -744,7 +747,7 @@ export class Xapi extends EventEmitter {
             // Try to login again.
             debug('%s: the session has been reinitialized', this._humanId)
 
-            this._sessionId = null
+            this._sessionId = undefined
             return this.connect().then(() => this._sessionCall(method, args))
           }
         ),
@@ -755,11 +758,20 @@ export class Xapi extends EventEmitter {
     }
   }
 
+  _setUrl(url) {
+    this._humanId = `${this._auth.user}@${url.hostname}`
+    this._call = autoTransport({
+      allowUnauthorized: this._allowUnauthorized,
+      url,
+    })
+    this._url = url
+  }
+
   _addRecordToCache(type, ref, object) {
     object = this._wrapRecord(type, ref, object)
 
     // Finally freezes the object.
-    freezeObject(object)
+    freeze(object)
 
     const objects = this._objects
     const objectsByRef = this._objectsByRef
@@ -803,7 +815,7 @@ export class Xapi extends EventEmitter {
   }
 
   _processEvents(events) {
-    forEach(events, event => {
+    events.forEach(event => {
       let type = event.class
       const lcToTypes = this._lcToTypes
       if (type in lcToTypes) {
@@ -1026,7 +1038,7 @@ export class Xapi extends EventEmitter {
 
       Record = function(ref, data) {
         defineProperties(this, {
-          $id: { value: data.uuid || ref },
+          $id: { value: data.uuid ?? ref },
           $ref: { value: ref },
           $xapi: { value: xapi },
         })

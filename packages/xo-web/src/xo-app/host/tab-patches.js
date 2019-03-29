@@ -7,10 +7,10 @@ import Upgrade from 'xoa-upgrade'
 import { alert, chooseAction } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createDoesHostNeedRestart, createSelector } from 'selectors'
+import { createDoesHostNeedRestart } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { restartHost, installAllHostPatches, installHostPatch } from 'xo'
-import { isEmpty, isString } from 'lodash'
+import { installAllPatchesOnHost, restartHost } from 'xo'
+import { isEmpty } from 'lodash'
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -124,13 +124,13 @@ const INDIVIDUAL_ACTIONS_XCP = [
 const INSTALLED_PATCH_COLUMNS = [
   {
     name: _('patchNameLabel'),
-    itemRenderer: patch => patch.poolPatch.name,
-    sortCriteria: patch => patch.poolPatch.name,
+    itemRenderer: patch => patch.name,
+    sortCriteria: patch => patch.name,
   },
   {
     name: _('patchDescription'),
-    itemRenderer: patch => patch.poolPatch.description,
-    sortCriteria: patch => patch.poolPatch.description,
+    itemRenderer: patch => patch.description,
+    sortCriteria: patch => patch.description,
   },
   {
     default: true,
@@ -151,26 +151,6 @@ const INSTALLED_PATCH_COLUMNS = [
     },
     sortCriteria: patch => patch.time,
     sortOrder: 'desc',
-  },
-  {
-    name: _('patchSize'),
-    itemRenderer: patch => formatSize(patch.poolPatch.size),
-    sortCriteria: patch => patch.poolPatch.size,
-  },
-]
-
-// support for software_version.platform_version ^2.1.1
-const INSTALLED_PATCH_COLUMNS_2 = [
-  {
-    default: true,
-    name: _('patchNameLabel'),
-    itemRenderer: patch => patch.name,
-    sortCriteria: patch => patch.name,
-  },
-  {
-    name: _('patchDescription'),
-    itemRenderer: patch => patch.description,
-    sortCriteria: patch => patch.description,
   },
   {
     name: _('patchSize'),
@@ -225,40 +205,8 @@ class XcpPatches extends Component {
   needsRestart: createDoesHostNeedRestart((_, props) => props.host),
 }))
 class XenServerPatches extends Component {
-  _getPatches = createSelector(
-    () => this.props.host,
-    () => this.props.hostPatches,
-    (host, hostPatches) => {
-      if (isEmpty(host.patches) && isEmpty(hostPatches)) {
-        return { patches: null }
-      }
-
-      if (isString(host.patches[0])) {
-        return {
-          patches: hostPatches,
-          columns: INSTALLED_PATCH_COLUMNS,
-        }
-      }
-
-      return {
-        patches: host.patches,
-        columns: INSTALLED_PATCH_COLUMNS_2,
-      }
-    }
-  )
-
-  _individualActions = [
-    {
-      name: _('patchAction'),
-      level: 'primary',
-      handler: this.props.installPatch,
-      icon: 'host-patch-update',
-    },
-  ]
-
   render() {
-    const { host, missingPatches, installAllPatches } = this.props
-    const { patches, columns } = this._getPatches()
+    const { host, missingPatches, installAllPatches, hostPatches } = this.props
     const hasMissingPatches = !isEmpty(missingPatches)
     return (
       <Container>
@@ -287,7 +235,6 @@ class XenServerPatches extends Component {
             <Col>
               <h3>{_('hostMissingPatches')}</h3>
               <SortedTable
-                individualActions={this._individualActions}
                 collection={missingPatches}
                 columns={MISSING_PATCH_COLUMNS}
               />
@@ -296,14 +243,11 @@ class XenServerPatches extends Component {
         )}
         <Row>
           <Col>
-            {patches ? (
-              <span>
-                <h3>{_('hostAppliedPatches')}</h3>
-                <SortedTable collection={patches} columns={columns} />
-              </span>
-            ) : (
-              <h4 className='text-xs-center'>{_('patchNothing')}</h4>
-            )}
+            <h3>{_('hostAppliedPatches')}</h3>
+            <SortedTable
+              collection={hostPatches}
+              columns={INSTALLED_PATCH_COLUMNS}
+            />
           </Col>
         </Row>
       </Container>
@@ -316,30 +260,21 @@ export default class TabPatches extends Component {
     router: PropTypes.object,
   }
 
-  _chooseActionPatch = async doInstall => {
-    const choice = await chooseAction({
-      body: <p>{_('installPatchWarningContent')}</p>,
-      buttons: [
-        {
-          label: _('installPatchWarningResolve'),
-          value: 'install',
-          btnStyle: 'primary',
-        },
-        { label: _('installPatchWarningReject'), value: 'goToPool' },
-      ],
-      title: _('installPatchWarningTitle'),
-    })
+  _installAllPatches = () => {
+    const { host } = this.props
+    const { $pool: pool, productBrand } = host
 
-    return choice === 'install'
-      ? doInstall()
-      : this.context.router.push(`/pools/${this.props.host.$pool}/patches`)
+    if (productBrand === 'XCP-ng') {
+      return installAllPatchesOnHost({ host })
+    }
+
+    return chooseAction({
+      body: <p>{_('installAllPatchesContent')}</p>,
+      buttons: [{ label: _('installAllPatchesRedirect'), value: 'goToPool' }],
+      icon: 'host-patch-update',
+      title: _('installAllPatchesTitle'),
+    }).then(() => this.context.router.push(`/pools/${pool}/patches`))
   }
-
-  _installAllPatches = () =>
-    this._chooseActionPatch(() => installAllHostPatches(this.props.host))
-
-  _installPatch = patch =>
-    this._chooseActionPatch(() => installHostPatch(this.props.host, patch))
 
   render() {
     if (process.env.XOA_PLAN < 2) {
@@ -352,14 +287,10 @@ export default class TabPatches extends Component {
     if (this.props.missingPatches === null) {
       return <em>{_('updatePluginNotInstalled')}</em>
     }
-    return this.props.host.productBrand === 'XCP-ng' ? (
-      <XcpPatches {...this.props} installAllPatches={this._installAllPatches} />
-    ) : (
-      <XenServerPatches
-        {...this.props}
-        installAllPatches={this._installAllPatches}
-        installPatch={this._installPatch}
-      />
+    const Patches =
+      this.props.host.productBrand === 'XCP-ng' ? XcpPatches : XenServerPatches
+    return (
+      <Patches {...this.props} installAllPatches={this._installAllPatches} />
     )
   }
 }
