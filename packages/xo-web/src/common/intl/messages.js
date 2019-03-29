@@ -443,6 +443,7 @@ const messages = {
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
+  fullBackupInterval: 'Full backup interval',
   timeoutUnit: 'in hours',
   dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require Enterprise plan',
   crRequiresPremiumPlan: 'CR requires Premium plan',
