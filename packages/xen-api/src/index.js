@@ -582,7 +582,7 @@ export class Xapi extends EventEmitter {
     // Objects ids are already UUIDs if they have one.
     const object = this._objects.all[uuid]
 
-    if (object) return object
+    if (object !== undefined) return object
 
     if (arguments.length > 1) return defaultValue
 
