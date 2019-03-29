@@ -154,7 +154,6 @@ export class Xapi extends EventEmitter {
     this._allowUnauthorized = opts.allowUnauthorized
     this._setUrl(url)
 
-    this._connecting = undefined
     this._connected = new Promise(resolve => {
       this._resolveConnected = resolve
     })
