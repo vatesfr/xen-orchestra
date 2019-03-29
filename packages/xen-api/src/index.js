@@ -759,7 +759,11 @@ export class Xapi extends EventEmitter {
     // An object's UUID can change during its life.
     const prev = objectsByRef[ref]
     let prevUuid
-    if (prev && (prevUuid = prev.uuid) && prevUuid !== object.uuid) {
+    if (
+      prev !== undefined &&
+      (prevUuid = prev.uuid) !== undefined &&
+      prevUuid !== object.uuid
+    ) {
       objects.remove(prevUuid)
     }
 
@@ -795,6 +799,7 @@ export class Xapi extends EventEmitter {
   }
 
   _processEvents(events) {
+    const flush = this._objects.bufferEvents()
     events.forEach(event => {
       let type = event.class
       const lcToTypes = this._lcToTypes
@@ -808,6 +813,54 @@ export class Xapi extends EventEmitter {
         this._addRecordToCache(type, ref, event.snapshot)
       }
     })
+    flush()
+  }
+
+  async _refreshCachedRecords(types) {
+    const toRemoveByType = { __proto__: null }
+    types.forEach(type => {
+      toRemoveByType[type] = new Set()
+    })
+    const byRefs = this._objectsByRef
+    getKeys(byRefs).forEach(ref => {
+      const { $type } = byRefs[ref]
+      const toRemove = toRemoveByType[$type]
+      if (toRemove !== undefined) {
+        toRemove.add(ref)
+      }
+    })
+
+    const flush = this._objects.bufferEvents()
+    await Promise.all(
+      types.map(async type => {
+        try {
+          const toRemove = toRemoveByType[type]
+          const records = await this._sessionCall(`${type}.get_all_records`)
+          const refs = getKeys(records)
+          refs.forEach(ref => {
+            toRemove.delete(ref)
+
+            // we can bypass _processEvents here because they are all *add*
+            // event and all objects are of the same type
+            this._addRecordToCache(type, ref, records[ref])
+          })
+          toRemove.forEach(ref => {
+            this._removeRecordFromCache(type, ref)
+          })
+
+          if (type === 'task') {
+            this._nTasks = refs.length
+          }
+        } catch (error) {
+          // there is nothing ideal to do here, do not interrupt event
+          // handling
+          if (error?.code !== 'MESSAGE_REMOVED') {
+            console.warn('_refreshCachedRecords', type, error)
+          }
+        }
+      })
+    )
+    flush()
   }
 
   _removeRecordFromCache(type, ref) {
