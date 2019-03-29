@@ -53,6 +53,18 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
   return 1
 }
 
+// type Task = {
+//   data: any,
+//   end?: number,
+//   id: string,
+//   jobId?: string,
+//   jobName?: string,
+//   message?: 'restore',
+//   scheduleId?: string,
+//   start: number,
+//   status: 'pending' | 'failure' | 'interrupted' | 'skipped' | 'success',
+//   tasks?: Task[],
+// }
 export default {
   async getBackupNgLogs(runId?: string) {
     const [jobLogs, restoreLogs] = await Promise.all([
