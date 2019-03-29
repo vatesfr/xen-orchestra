@@ -63,10 +63,18 @@ export default async function createVhdStreamWithLength(stream) {
     stream.unshift(buf)
   }
 
-  const footerOffset =
-    getFirstAndLastBlocks(table).lastSector * SECTOR_SIZE +
-    Math.ceil(header.blockSize / SECTOR_SIZE / 8 / SECTOR_SIZE) * SECTOR_SIZE +
-    header.blockSize
+  let footerOffset
+  try {
+    footerOffset =
+      getFirstAndLastBlocks(table).lastSector * SECTOR_SIZE +
+      Math.ceil(header.blockSize / SECTOR_SIZE / 8 / SECTOR_SIZE) *
+        SECTOR_SIZE +
+      header.blockSize
+  } catch (e) {
+    if (e.noBlock) {
+      footerOffset = Math.ceil(streamPosition / SECTOR_SIZE) * SECTOR_SIZE
+    } else throw e
+  }
 
   // ignore any data after footerOffset and push footerBuffer
   //

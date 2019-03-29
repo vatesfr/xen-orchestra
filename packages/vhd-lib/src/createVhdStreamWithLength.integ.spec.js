@@ -55,7 +55,25 @@ test('createVhdStreamWithLength can extract length', async () => {
   expect(outputSize).toEqual(vhdSize)
 })
 
-test('createVhdStreamWithLength can skip blank after last block and before footer', async () => {
+test('createVhdStreamWithLength can handle empty VHD files', async () => {
+  const initialSize = 0
+  const rawFileName = `${tempDir}/randomfile`
+  const vhdName = `${tempDir}/randomfile.vhd`
+  const outputVhdName = `${tempDir}/output.vhd`
+  await createRandomFile(rawFileName, initialSize)
+  await convertFromRawToVhd(rawFileName, vhdName)
+  const vhdSize = fs.statSync(vhdName).size
+  const result = await createVhdStreamWithLength(
+    await createReadStream(vhdName)
+  )
+  expect(result.length).toEqual(vhdSize)
+  const outputFileStream = await createWriteStream(outputVhdName)
+  await pFromCallback(cb => pipeline(result, outputFileStream, cb))
+  const outputSize = fs.statSync(outputVhdName).size
+  expect(outputSize).toEqual(vhdSize)
+})
+
+test('createVhdStreamWithLength can skip blank after the last block and before the footer', async () => {
   const initialSize = 4 * 1024
   const rawFileName = `${tempDir}/randomfile`
   const vhdName = `${tempDir}/randomfile.vhd`
