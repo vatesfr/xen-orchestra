@@ -142,28 +142,17 @@ export class Xapi extends EventEmitter {
   }
 
   get sessionId() {
-    const id = this._sessionId
-
-    if (id === undefined || id === CONNECTING) {
-      throw new Error('sessionId is only available when connected')
-    }
-
-    return id
+    assert(this._status === CONNECTED)
+    return this._sessionId
   }
 
   get status() {
-    const id = this._sessionId
-
-    return id === undefined
-      ? DISCONNECTED
-      : id === CONNECTING
-      ? CONNECTING
-      : CONNECTED
+    return this._status
   }
 
   connect = coalesceCalls(this.connect)
   async connect() {
-    const { status } = this
+    const status = this._status
 
     if (status === CONNECTED) {
       return
@@ -173,7 +162,7 @@ export class Xapi extends EventEmitter {
 
     const auth = this._auth
 
-    this._sessionId = CONNECTING
+    this._status = CONNECTING
     this._disconnected = new Promise(resolve => {
       this._resolveDisconnected = resolve
     })
@@ -202,6 +191,7 @@ export class Xapi extends EventEmitter {
       debug('%s: connected', this._humanId)
       this._resolveConnected()
       this._resolveConnected = undefined
+      this._status = CONNECTED
       this.emit(CONNECTED)
     } catch (error) {
       ignoreErrors.call(this.disconnect())
@@ -211,7 +201,7 @@ export class Xapi extends EventEmitter {
   }
 
   async disconnect() {
-    const { status } = this
+    const status = this._status
 
     if (status === DISCONNECTED) {
       return
@@ -233,6 +223,7 @@ export class Xapi extends EventEmitter {
 
     debug('%s: disconnected', this._humanId)
 
+    this._status = DISCONNECTED
     this.emit(DISCONNECTED)
     this._resolveDisconnected()
     this._resolveDisconnected = undefined
