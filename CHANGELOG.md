@@ -28,6 +28,15 @@
   - never disconnect by itself even in case of errors
   - never stop watching events
 
+### Released packages
+
+- xen-api v0.25.0
+- vhd-lib v0.6.0
+- @xen-orchestra/fs v0.8.0
+- xo-server-usage-report v0.7.2
+- xo-server v5.38.1
+- xo-web v5.38.0
+
 ### Bug fixes
 
 - [New network] PIF was wrongly required which prevented from creating a private network (PR [#4010](https://github.com/vatesfr/xen-orchestra/pull/4010))
