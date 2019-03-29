@@ -11,6 +11,7 @@
 - [Settings/Servers] Display link to pool [#4041](https://github.com/vatesfr/xen-orchestra/issues/4041) (PR [#4045](https://github.com/vatesfr/xen-orchestra/pull/4045))
 - [Import] Change wording of drop zone (PR [#4020](https://github.com/vatesfr/xen-orchestra/pull/4020))
 - [Backup NG] Ability to set the interval of the full backups [#1783](https://github.com/vatesfr/xen-orchestra/issues/1783) (PR [#4083](https://github.com/vatesfr/xen-orchestra/pull/4083))
+- [Hosts] Display a warning icon if you have XenServer license restrictions [#4091](https://github.com/vatesfr/xen-orchestra/issues/4091) (PR [#4094](https://github.com/vatesfr/xen-orchestra/pull/4094))
 
 ### Bug fixes
 

@@ -10,7 +10,7 @@ import { addTag, removeTag } from 'xo'
 import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative } from 'react-intl'
-import { formatSize, formatSizeShort } from 'utils'
+import { formatSize, formatSizeShort, hasLicenseRestrictions } from 'utils'
 import Usage, { UsageElement } from 'usage'
 import { getObject } from 'selectors'
 import {
@@ -19,6 +19,8 @@ import {
   NetworkSparkLines,
   LoadSparkLines,
 } from 'xo-sparklines'
+
+import LicenseWarning from './license-warning'
 
 export default ({ statsOverview, host, nVms, vmController, vms }) => {
   const pool = getObject(store.getState(), host.$pool)
@@ -82,7 +84,7 @@ export default ({ statsOverview, host, nVms, vmController, vms }) => {
             {host.productBrand !== 'XCP-ng'
               ? host.license_params.sku_type
               : 'GPLv2'}
-            )
+            ) {hasLicenseRestrictions(host) && <LicenseWarning iconSize='lg' />}
           </p>
         </Col>
         <Col mediumSize={3}>

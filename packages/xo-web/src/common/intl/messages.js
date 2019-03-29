@@ -714,6 +714,14 @@ const messages = {
   displayAllHosts: 'Display all hosts of this pool',
   displayAllStorages: 'Display all storages of this pool',
   displayAllVMs: 'Display all VMs of this pool',
+  licenseRestrictions: 'License restrictions',
+  licenseRestrictionsModalTitle:
+    'Warning: you are using a Free XenServer license',
+  actionsRestricted: 'Some actions will be restricted.',
+  counterRestrictionsOptions: 'You can:',
+  counterRestrictionsOptionsXcp:
+    'upgrade to XCP-ng for free to get rid of these restrictions',
+  counterRestrictionsOptionsXsLicense: 'or get a commercial Citrix license',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
   vmsTabName: 'Vms',
