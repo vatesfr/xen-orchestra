@@ -5,6 +5,7 @@ const DEFAULTS = {
 
   compression: '',
   concurrency: 0,
+  fullInterval: 0,
   offlineSnapshot: false,
   timeout: 0,
 }
