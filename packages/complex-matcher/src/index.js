@@ -648,6 +648,54 @@ export const getPropertyClausesStrings = node => {
   return {}
 }
 
+const _getPropertyClausesRegex = ({ child }) => {
+  if (child instanceof Or) {
+    const strings = []
+    child.children.forEach(child => {
+      if (child instanceof RegExpNode) {
+        strings.push(child.re.source.slice(1, -1).replace(/\\/g, ''))
+      }
+    })
+    return strings
+  }
+
+  if (child instanceof RegExpNode) {
+    return [child.re.source.slice(1, -1).replace(/\\/g, '')]
+  }
+
+  return []
+}
+
+export const getPropertyClausesRegex = node => {
+  if (!node) {
+    return {}
+  }
+
+  if (node instanceof Property) {
+    return {
+      [node.name]: _getPropertyClausesRegex(node),
+    }
+  }
+
+  if (node instanceof And) {
+    const strings = {}
+    node.children.forEach(node => {
+      if (node instanceof Property) {
+        const { name } = node
+        const values = strings[name]
+        if (values) {
+          values.push.apply(values, _getPropertyClausesRegex(node))
+        } else {
+          strings[name] = _getPropertyClausesRegex(node)
+        }
+      }
+    })
+    return strings
+  }
+
+  return {}
+}
+
 // -------------------------------------------------------------------
 
 export const setPropertyClause = (node, name, child) => {
