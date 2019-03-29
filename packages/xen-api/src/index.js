@@ -160,21 +160,18 @@ export class Xapi extends EventEmitter {
 
     assert(status === DISCONNECTED)
 
-    const auth = this._auth
-
     this._status = CONNECTING
     this._disconnected = new Promise(resolve => {
       this._resolveDisconnected = resolve
     })
 
     try {
-      const [methods, sessionId] = await Promise.all([
-        this._call('system.listMethods', []),
-        this._call('session.login_with_password', [auth.user, auth.password]),
-      ])
+      await this._sessionOpen()
 
       // Uses introspection to list available types.
-      const types = (this._types = methods
+      const types = (this._types = (await this._interruptOnDisconnect(
+        this._call('system.listMethods')
+      ))
         .filter(isGetAllRecordsMethod)
         .map(method => method.slice(0, method.indexOf('.'))))
       this._lcToTypes = { __proto__: null }
@@ -185,13 +182,12 @@ export class Xapi extends EventEmitter {
         }
       })
 
-      this._sessionId = sessionId
       this._pool = (await this.getAllRecords('pool'))[0]
 
       debug('%s: connected', this._humanId)
+      this._status = CONNECTED
       this._resolveConnected()
       this._resolveConnected = undefined
-      this._status = CONNECTED
       this.emit(CONNECTED)
     } catch (error) {
       ignoreErrors.call(this.disconnect())
@@ -224,9 +220,9 @@ export class Xapi extends EventEmitter {
     debug('%s: disconnected', this._humanId)
 
     this._status = DISCONNECTED
-    this.emit(DISCONNECTED)
     this._resolveDisconnected()
     this._resolveDisconnected = undefined
+    this.emit(DISCONNECTED)
   }
 
   // ===========================================================================
