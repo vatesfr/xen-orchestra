@@ -234,6 +234,9 @@ export class Xapi extends EventEmitter {
     const auth = this._auth
 
     this._sessionId = CONNECTING
+    this._disconnected = new Promise(resolve => {
+      this._resolveDisconnected = resolve
+    })
 
     try {
       const [methods, sessionId] = await Promise.all([
@@ -260,9 +263,6 @@ export class Xapi extends EventEmitter {
       this._pool = (await this.getAllRecords('pool'))[0]
 
       debug('%s: connected', this._humanId)
-      this._disconnected = new Promise(resolve => {
-        this._resolveDisconnected = resolve
-      })
       this._resolveConnected()
       this._resolveConnected = undefined
       this.emit(CONNECTED)
@@ -284,9 +284,6 @@ export class Xapi extends EventEmitter {
       this._connected = new Promise(resolve => {
         this._resolveConnected = resolve
       })
-
-      this._resolveDisconnected()
-      this._resolveDisconnected = undefined
     } else {
       assert(status === CONNECTING)
     }
@@ -300,6 +297,8 @@ export class Xapi extends EventEmitter {
     debug('%s: disconnected', this._humanId)
 
     this.emit(DISCONNECTED)
+    this._resolveDisconnected()
+    this._resolveDisconnected = undefined
   }
 
   // ===========================================================================
