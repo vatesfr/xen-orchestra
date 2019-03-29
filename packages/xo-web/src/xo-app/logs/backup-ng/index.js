@@ -153,7 +153,7 @@ export default decorate([
   addSubscriptions({
     logs: cb =>
       subscribeBackupNgLogs(logs =>
-        cb(logs && filter(logs, log => log.message !== 'restore'))
+        cb(logs && filter(logs, log => log.message === 'backup'))
       ),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
     metadataJobs: cb =>

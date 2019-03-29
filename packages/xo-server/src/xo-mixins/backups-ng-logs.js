@@ -59,7 +59,7 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 //   id: string,
 //   jobId?: string,
 //   jobName?: string,
-//   message?: 'restore',
+//   message?:  'backup' | 'metadataRestore' | 'restore',
 //   scheduleId?: string,
 //   start: number,
 //   status: 'pending' | 'failure' | 'interrupted' | 'skipped' | 'success',
@@ -67,12 +67,13 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 // }
 export default {
   async getBackupNgLogs(runId?: string) {
-    const [jobLogs, restoreLogs] = await Promise.all([
+    const [jobLogs, restoreLogs, restoreMetadataLogs] = await Promise.all([
       this.getLogs('jobs'),
       this.getLogs('restore'),
+      this.getLogs('metadataRestore'),
     ])
 
-    const { runningJobs, runningRestores } = this
+    const { runningJobs, runningRestores, runningMetadataRestores } = this
     const consolidated = {}
     const started = {}
 
@@ -89,6 +90,7 @@ export default {
             id,
             jobId,
             jobName: data.jobName,
+            message: 'backup',
             scheduleId,
             start: time,
             status: runningJobs[jobId] === id ? 'pending' : 'interrupted',
@@ -117,7 +119,8 @@ export default {
         if (parentId === undefined && (runId === undefined || runId === id)) {
           // top level task
           task.status =
-            message === 'restore' && !runningRestores.has(id)
+            (message === 'restore' && !runningRestores.has(id)) ||
+            (message === 'metadataRestore' && !runningMetadataRestores.has(id))
               ? 'interrupted'
               : 'pending'
           consolidated[id] = started[id] = task
@@ -184,6 +187,7 @@ export default {
 
     forEach(jobLogs, handleLog)
     forEach(restoreLogs, handleLog)
+    forEach(restoreMetadataLogs, handleLog)
 
     return runId === undefined ? consolidated : consolidated[runId]
   },

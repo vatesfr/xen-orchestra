@@ -45,6 +45,10 @@ maxTokenValidity = '0.5 year'
 # https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Set-Cookie#Session_cookie
 #sessionCookieValidity = '10 hours'
 
+[backup]
+# Delay for which backups listing on a remote is cached
+listingDebounce = '1 min'
+
 [[http.listen]]
 port = 80
 

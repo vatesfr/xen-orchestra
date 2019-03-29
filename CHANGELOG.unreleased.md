@@ -26,6 +26,7 @@
 
 ### Released packages
 
+- xen-api v0.24.6
 - vhd-lib v0.6.0
 - @xen-orchestra/fs v0.8.0
 - xo-server-usage-report v0.7.2
