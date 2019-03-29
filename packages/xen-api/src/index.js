@@ -495,6 +495,10 @@ export class Xapi extends EventEmitter {
     return this._objects
   }
 
+  get objectsFetched() {
+    return this._objectsFetched
+  }
+
   // ensure we have received all events up to this call
   //
   // optionally returns the up to date object for the given ref
