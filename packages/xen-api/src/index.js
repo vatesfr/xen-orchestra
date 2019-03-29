@@ -4,24 +4,14 @@ import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { EventEmitter } from 'events'
-import { fibonacci } from 'iterable-backoff'
-import {
-  forEach,
-  forOwn,
-  isArray,
-  map,
-  noop,
-  omit,
-  reduce,
-  startsWith,
-} from 'lodash'
+import { forEach, forOwn, isArray, map, noop, omit } from 'lodash'
 import {
   cancelable,
   defer,
   fromEvents,
   ignoreErrors,
-  pCatch,
   pDelay,
+  pRetry,
   pTimeout,
   TimeoutError,
 } from 'promise-toolbox'
@@ -43,50 +33,11 @@ import XapiError from './_XapiError'
 // in seconds!
 const EVENT_TIMEOUT = 60
 
-// http://www.gnu.org/software/libc/manual/html_node/Error-Codes.html
-const NETWORK_ERRORS = {
-  // Connection has been closed outside of our control.
-  ECONNRESET: true,
-
-  // Connection has been aborted locally.
-  ECONNABORTED: true,
-
-  // Host is up but refuses connection (typically: no such service).
-  ECONNREFUSED: true,
-
-  // TODO: ??
-  EINVAL: true,
-
-  // Host is not reachable (does not respond).
-  EHOSTUNREACH: true,
-
-  // network is unreachable
-  ENETUNREACH: true,
-
-  // Connection configured timed out has been reach.
-  ETIMEDOUT: true,
-}
-
-const isNetworkError = ({ code }) => NETWORK_ERRORS[code]
-
-// -------------------------------------------------------------------
-
-const XAPI_NETWORK_ERRORS = {
-  HOST_STILL_BOOTING: true,
-  HOST_HAS_NO_MANAGEMENT_IP: true,
-}
-
-const isXapiNetworkError = ({ code }) => XAPI_NETWORK_ERRORS[code]
-
 // -------------------------------------------------------------------
 
 const areEventsLost = ({ code }) => code === 'EVENTS_LOST'
 
-const isHostSlave = ({ code }) => code === 'HOST_IS_SLAVE'
-
 const isMethodUnknown = ({ code }) => code === 'MESSAGE_METHOD_UNKNOWN'
-
-const isSessionInvalid = ({ code }) => code === 'SESSION_INVALID'
 
 // ===================================================================
 
@@ -119,9 +70,6 @@ function getPool() {
 const CONNECTED = 'connected'
 const CONNECTING = 'connecting'
 const DISCONNECTED = 'disconnected'
-
-// timeout of XenAPI HTTP connections
-const HTTP_TIMEOUT = 24 * 3600 * 1e3
 
 // -------------------------------------------------------------------
 
@@ -237,11 +185,8 @@ export class Xapi extends EventEmitter {
 
     try {
       const [methods, sessionId] = await Promise.all([
-        this._transportCall('system.listMethods', []),
-        this._transportCall('session.login_with_password', [
-          auth.user,
-          auth.password,
-        ]),
+        this._call('system.listMethods', []),
+        this._call('session.login_with_password', [auth.user, auth.password]),
       ])
 
       // Uses introspection to list available types.
@@ -294,7 +239,7 @@ export class Xapi extends EventEmitter {
     const sessionId = this._sessionId
     if (sessionId !== undefined) {
       this._sessionId = undefined
-      ignoreErrors.call(this._transportCall('session.logout', [sessionId]))
+      ignoreErrors.call(this._call('session.logout', [sessionId]))
     }
 
     debug('%s: disconnected', this._humanId)
@@ -702,6 +647,44 @@ export class Xapi extends EventEmitter {
   // Private
   // ===========================================================================
 
+  async _call(method, args, timeout = this._callTimeout(method, args)) {
+    const startTime = Date.now()
+    try {
+      const result = await pTimeout.call(this._transport(method, args), timeout)
+      debug(
+        '%s: %s(...) [%s] ==> %s',
+        this._humanId,
+        method,
+        ms(Date.now() - startTime),
+        kindOf(result)
+      )
+      return result
+    } catch (e) {
+      const error = e instanceof Error ? e : XapiError.wrap(e)
+
+      // do not log the session ID
+      //
+      // TODO: should log at the session level to avoid logging sensitive
+      // values?
+      const params = args[0] === this._sessionId ? args.slice(1) : args
+
+      error.call = {
+        method,
+        params: replaceSensitiveValues(params, '* obfuscated *'),
+      }
+
+      debug(
+        '%s: %s(...) [%s] =!> %s',
+        this._humanId,
+        method,
+        ms(Date.now() - startTime),
+        error
+      )
+
+      throw error
+    }
+  }
+
   _clearObjects() {
     ;(this._objectsByRef = { __proto__: null })[NULL_REF] = undefined
     this._nTasks = 0
@@ -725,41 +708,67 @@ export class Xapi extends EventEmitter {
     return Promise.resolve(task)
   }
 
-  // Medium level call: handle session errors.
-  _sessionCall(method, args, timeout = this._callTimeout(method, args)) {
-    try {
-      if (startsWith(method, 'session.')) {
-        throw new Error('session.*() methods are disabled from this interface')
-      }
+  _interruptOnDisconnect(promise) {
+    return Promise.race([
+      promise,
+      this._disconnected.then(() => {
+        throw new Error('disconnected')
+      }),
+    ])
+  }
 
-      const newArgs = [this.sessionId]
-      if (args !== undefined) {
-        newArgs.push.apply(newArgs, args)
-      }
-
-      return pTimeout.call(
-        pCatch.call(
-          this._transportCall(method, newArgs),
-          isSessionInvalid,
-          () => {
-            // XAPI is sometimes reinitialized and sessions are lost.
-            // Try to login again.
-            debug('%s: the session has been reinitialized', this._humanId)
-
-            this._sessionId = undefined
-            return this.connect().then(() => this._sessionCall(method, args))
-          }
-        ),
-        timeout
-      )
-    } catch (error) {
-      return Promise.reject(error)
+  async _sessionCall(method, args, timeout) {
+    if (method.startsWith('session.')) {
+      throw new Error('session.*() methods are disabled from this interface')
     }
+
+    const sessionId = this._sessionId
+    assert.notStrictEqual(sessionId, undefined)
+
+    const newArgs = [sessionId]
+    if (args !== undefined) {
+      newArgs.push.apply(newArgs, args)
+    }
+
+    return pRetry(
+      () => this._interruptOnDisconnect(this._call(method, newArgs, timeout)),
+      {
+        tries: 2,
+        when: { code: 'SESSION_INVALID' },
+        onRetry: () => this._sessionOpen(),
+      }
+    )
+  }
+
+  // FIXME: (probably rare) race condition leading to unnecessary login when:
+  // 1. two calls using an invalid session start
+  // 2. one fails with SESSION_INVALID and renew the session by calling
+  //    `_sessionOpen`
+  // 3. the session is renewed
+  // 4. the second call fails with SESSION_INVALID which leads to a new
+  //    unnecessary renewal
+  _sessionOpen = coalesceCalls(this._sessionOpen)
+  async _sessionOpen() {
+    const { user, password } = this._auth
+    const params = [user, password]
+    this._sessionId = await pRetry(
+      () =>
+        this._interruptOnDisconnect(
+          this._call('session.login_with_password', params)
+        ),
+      {
+        tries: 2,
+        when: { code: 'HOST_IS_SLAVE' },
+        onRetry: error => {
+          this._setUrl({ ...this._url, hostname: error.params[0] })
+        },
+      }
+    )
   }
 
   _setUrl(url) {
     this._humanId = `${this._auth.user}@${url.hostname}`
-    this._call = autoTransport({
+    this._transport = autoTransport({
       allowUnauthorized: this._allowUnauthorized,
       url,
     })
@@ -1114,123 +1123,6 @@ export class Xapi extends EventEmitter {
     return new Record(ref, data)
   }
 }
-
-Xapi.prototype._transportCall = reduce(
-  [
-    function(method, args) {
-      return pTimeout
-        .call(this._call(method, args), HTTP_TIMEOUT)
-        .catch(error => {
-          if (!(error instanceof Error)) {
-            error = XapiError.wrap(error)
-          }
-
-          // do not log the session ID
-          //
-          // TODO: should log at the session level to avoid logging sensitive
-          // values?
-          const params = args[0] === this._sessionId ? args.slice(1) : args
-
-          error.call = {
-            method,
-            params: replaceSensitiveValues(params, '* obfuscated *'),
-          }
-          throw error
-        })
-    },
-    call =>
-      function() {
-        let iterator // lazily created
-        const loop = () =>
-          pCatch.call(
-            call.apply(this, arguments),
-            isNetworkError,
-            isXapiNetworkError,
-            error => {
-              if (iterator === undefined) {
-                iterator = fibonacci()
-                  .clamp(undefined, 60)
-                  .take(10)
-                  .toMs()
-              }
-
-              const cursor = iterator.next()
-              if (!cursor.done) {
-                // TODO: ability to cancel the connection
-                // TODO: ability to force immediate reconnection
-
-                const delay = cursor.value
-                debug(
-                  '%s: network error %s, next try in %s ms',
-                  this._humanId,
-                  error.code,
-                  delay
-                )
-                return pDelay(delay).then(loop)
-              }
-
-              debug('%s: network error %s, aborting', this._humanId, error.code)
-
-              // mark as disconnected
-              pCatch.call(this.disconnect(), noop)
-
-              throw error
-            }
-          )
-        return loop()
-      },
-    call =>
-      function loop() {
-        return pCatch.call(
-          call.apply(this, arguments),
-          isHostSlave,
-          ({ params: [master] }) => {
-            debug(
-              '%s: host is slave, attempting to connect at %s',
-              this._humanId,
-              master
-            )
-
-            const newUrl = {
-              ...this._url,
-              hostname: master,
-            }
-            this.emit('redirect', newUrl)
-            this._url = newUrl
-
-            return loop.apply(this, arguments)
-          }
-        )
-      },
-    call =>
-      function(method) {
-        const startTime = Date.now()
-        return call.apply(this, arguments).then(
-          result => {
-            debug(
-              '%s: %s(...) [%s] ==> %s',
-              this._humanId,
-              method,
-              ms(Date.now() - startTime),
-              kindOf(result)
-            )
-            return result
-          },
-          error => {
-            debug(
-              '%s: %s(...) [%s] =!> %s',
-              this._humanId,
-              method,
-              ms(Date.now() - startTime),
-              error
-            )
-            throw error
-          }
-        )
-      },
-  ],
-  (call, decorator) => decorator(call)
-)
 
 // ===================================================================
 
