@@ -66,7 +66,7 @@ export class Xapi extends EventEmitter {
   constructor(opts) {
     super()
 
-    this._callTimeout = makeCallSetting(opts.callTimeout, 0)
+    this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._eventPollDelay = opts.eventPollDelay ?? 60 * 1e3 // 1 min
     this._pool = null
