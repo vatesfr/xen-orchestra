@@ -405,7 +405,6 @@ const Updates = decorate([
               )}
               {+process.env.XOA_PLAN === 1 && (
                 <div>
-                  <h2>{_('trial')}</h2>
                   {state.isTrialAllowed && (
                     <div>
                       {state.isRegistered ? (
@@ -413,6 +412,7 @@ const Updates = decorate([
                           btnStyle='success'
                           handler={effects.startTrial}
                           icon='trial'
+                          size='large'
                         >
                           {_('trialStartButton')}
                         </ActionButton>
