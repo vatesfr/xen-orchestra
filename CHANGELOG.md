@@ -28,15 +28,6 @@
   - never disconnect by itself even in case of errors
   - never stop watching events
 
-### Released packages
-
-- xen-api v0.25.0
-- vhd-lib v0.6.0
-- @xen-orchestra/fs v0.8.0
-- xo-server-usage-report v0.7.2
-- xo-server v5.38.1
-- xo-web v5.38.0
-
 ### Bug fixes
 
 - [New network] PIF was wrongly required which prevented from creating a private network (PR [#4010](https://github.com/vatesfr/xen-orchestra/pull/4010))
@@ -55,6 +46,15 @@
   - Add a host to a pool: homogenizes both the host and **pool**'s patches [#2188](https://github.com/vatesfr/xen-orchestra/issues/2188)
   - Safely install a subset of patches on a pool [#3777](https://github.com/vatesfr/xen-orchestra/issues/3777)
   - XCP-ng: no longer requires to run `yum install xcp-ng-updater` when it's already installed [#3934](https://github.com/vatesfr/xen-orchestra/issues/3934)
+
+### Released packages
+
+- xen-api v0.25.0
+- vhd-lib v0.6.0
+- @xen-orchestra/fs v0.8.0
+- xo-server-usage-report v0.7.2
+- xo-server v5.38.1
+- xo-web v5.38.0
 
 ## **5.32.2** (2019-02-28)
 
