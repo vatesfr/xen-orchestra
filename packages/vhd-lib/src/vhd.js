@@ -253,43 +253,37 @@ export default class Vhd {
   }
 
   async _freeFirstBlockSpace(spaceNeededBytes) {
-    try {
-      const { first, firstSector, lastSector } = getFirstAndLastBlocks(
-        this.blockTable
+    const firstAndLastBlocks = getFirstAndLastBlocks(this.blockTable)
+    if (firstAndLastBlocks === undefined) {
+      return
+    }
+
+    const { first, firstSector, lastSector } = firstAndLastBlocks
+    const tableOffset = this.header.tableOffset
+    const { batSize } = this
+    const newMinSector = Math.ceil(
+      (tableOffset + batSize + spaceNeededBytes) / SECTOR_SIZE
+    )
+    if (
+      tableOffset + batSize + spaceNeededBytes >=
+      sectorsToBytes(firstSector)
+    ) {
+      const { fullBlockSize } = this
+      const newFirstSector = Math.max(
+        lastSector + fullBlockSize / SECTOR_SIZE,
+        newMinSector
       )
-      const tableOffset = this.header.tableOffset
-      const { batSize } = this
-      const newMinSector = Math.ceil(
-        (tableOffset + batSize + spaceNeededBytes) / SECTOR_SIZE
+      debug(
+        `freeFirstBlockSpace: move first block ${firstSector} -> ${newFirstSector}`
       )
-      if (
-        tableOffset + batSize + spaceNeededBytes >=
-        sectorsToBytes(firstSector)
-      ) {
-        const { fullBlockSize } = this
-        const newFirstSector = Math.max(
-          lastSector + fullBlockSize / SECTOR_SIZE,
-          newMinSector
-        )
-        debug(
-          `freeFirstBlockSpace: move first block ${firstSector} -> ${newFirstSector}`
-        )
-        // copy the first block at the end
-        const block = await this._read(
-          sectorsToBytes(firstSector),
-          fullBlockSize
-        )
-        await this._write(block, sectorsToBytes(newFirstSector))
-        await this._setBatEntry(first, newFirstSector)
-        await this.writeFooter(true)
-        spaceNeededBytes -= this.fullBlockSize
-        if (spaceNeededBytes > 0) {
-          return this._freeFirstBlockSpace(spaceNeededBytes)
-        }
-      }
-    } catch (e) {
-      if (!e.noBlock) {
-        throw e
+      // copy the first block at the end
+      const block = await this._read(sectorsToBytes(firstSector), fullBlockSize)
+      await this._write(block, sectorsToBytes(newFirstSector))
+      await this._setBatEntry(first, newFirstSector)
+      await this.writeFooter(true)
+      spaceNeededBytes -= this.fullBlockSize
+      if (spaceNeededBytes > 0) {
+        return this._freeFirstBlockSpace(spaceNeededBytes)
       }
     }
   }
