@@ -44,14 +44,15 @@ test('createVhdStreamWithLength can extract length', async () => {
   const outputVhdName = `${tempDir}/output.vhd`
   await createRandomFile(rawFileName, initialSize)
   await convertFromRawToVhd(rawFileName, vhdName)
-  const vhdSize = fs.statSync(vhdName).size
+  const { size: vhdSize } = await fs.stat(vhdName)
+
   const result = await createVhdStreamWithLength(
     await createReadStream(vhdName)
   )
   expect(result.length).toEqual(vhdSize)
   const outputFileStream = await createWriteStream(outputVhdName)
   await pFromCallback(cb => pipeline(result, outputFileStream, cb))
-  const outputSize = fs.statSync(outputVhdName).size
+  const { size: outputSize } = await fs.stat(outputVhdName)
   expect(outputSize).toEqual(vhdSize)
 })
 
@@ -62,14 +63,14 @@ test('createVhdStreamWithLength can handle empty VHD files', async () => {
   const outputVhdName = `${tempDir}/output.vhd`
   await createRandomFile(rawFileName, initialSize)
   await convertFromRawToVhd(rawFileName, vhdName)
-  const vhdSize = fs.statSync(vhdName).size
+  const { size: vhdSize } = await fs.stat(vhdName)
   const result = await createVhdStreamWithLength(
     await createReadStream(vhdName)
   )
   expect(result.length).toEqual(vhdSize)
   const outputFileStream = await createWriteStream(outputVhdName)
   await pFromCallback(cb => pipeline(result, outputFileStream, cb))
-  const outputSize = fs.statSync(outputVhdName).size
+  const { size: outputSize } = await fs.stat(outputVhdName)
   expect(outputSize).toEqual(vhdSize)
 })
 
@@ -80,7 +81,7 @@ test('createVhdStreamWithLength can skip blank after the last block and before t
   const outputVhdName = `${tempDir}/output.vhd`
   await createRandomFile(rawFileName, initialSize)
   await convertFromRawToVhd(rawFileName, vhdName)
-  const vhdSize = fs.statSync(vhdName).size
+  const { size: vhdSize } = await fs.stat(vhdName)
   // read file footer
   const footer = await getStream.buffer(
     createReadStream(vhdName, { start: vhdSize - FOOTER_SIZE })
@@ -95,7 +96,7 @@ test('createVhdStreamWithLength can skip blank after the last block and before t
   await pFromCallback(cb => endOfFile.write(Buffer.alloc(FOOTER_SIZE), cb))
   // write the footer after the new blank
   await pFromCallback(cb => endOfFile.end(footer, cb))
-  const longerSize = fs.statSync(vhdName).size
+  const { size: longerSize } = await fs.stat(vhdName)
   // check input file has been lengthened
   expect(longerSize).toEqual(vhdSize + FOOTER_SIZE)
   const result = await createVhdStreamWithLength(
@@ -104,7 +105,7 @@ test('createVhdStreamWithLength can skip blank after the last block and before t
   expect(result.length).toEqual(vhdSize)
   const outputFileStream = await createWriteStream(outputVhdName)
   await pFromCallback(cb => pipeline(result, outputFileStream, cb))
-  const outputSize = fs.statSync(outputVhdName).size
+  const { size: outputSize } = await fs.stat(outputVhdName)
   // check out file has been shortened again
   expect(outputSize).toEqual(vhdSize)
   await execa('qemu-img', ['compare', outputVhdName, vhdName])
