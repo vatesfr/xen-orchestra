@@ -73,6 +73,15 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
 //          └─ <YYYYMMDD>T<HHmmss>
 //             ├─ metadata.json
 //             └─ data
+//
+// Task logs emitted in a metadata backup execution:
+//
+// job.start
+// ├─ task.start(data: { type: 'pool', id: string, pool: <Pool />, poolMaster: <Host /> })
+// │  └─ task.end
+// ├─ task.start(data: { type: 'xo' })
+// │  └─ task.end
+// └─ job.end
 export default class metadataBackup {
   _app: {
     createJob: (
@@ -123,7 +132,13 @@ export default class metadataBackup {
     })
   }
 
-  async _executor({ cancelToken, job: job_, schedule }): Executor {
+  async _executor({
+    cancelToken,
+    job: job_,
+    logger,
+    runJobId,
+    schedule,
+  }): Executor {
     if (schedule === undefined) {
       throw new Error('backup job cannot run without a schedule')
     }
@@ -156,6 +171,14 @@ export default class metadataBackup {
 
     const files = []
     if (job.xoMetadata && retentionXoMetadata > 0) {
+      const taskId = logger.notice(`Starting XO metadata backup. (${job.id})`, {
+        data: {
+          type: 'xo',
+        },
+        event: 'task.start',
+        parentId: runJobId,
+      })
+
       const xoMetadataDir = `${DIR_XO_CONFIG_BACKUPS}/${schedule.id}`
       const dir = `${xoMetadataDir}/${formattedTimestamp}`
 
@@ -171,7 +194,25 @@ export default class metadataBackup {
           return Promise.all([
             handler.outputFile(fileName, data),
             handler.outputFile(metaDataFileName, metadata),
-          ])
+          ]).then(
+            result => {
+              logger.notice(`Backuping XO metadata is a success. (${job.id})`, {
+                event: 'task.end',
+                status: 'success',
+                taskId,
+              })
+              return result
+            },
+            error => {
+              logger.notice(`Backuping XO metadata has failed. (${job.id})`, {
+                event: 'task.end',
+                result: serializeError(error),
+                status: 'failure',
+                taskId,
+              })
+              throw error
+            }
+          )
         }),
         dir: xoMetadataDir,
         retention: retentionXoMetadata,
@@ -181,6 +222,21 @@ export default class metadataBackup {
       files.push(
         ...(await Promise.all(
           poolIds.map(async id => {
+            const xapi = this._app.getXapi(id)
+            const poolMaster = await xapi.getRecord('host', xapi.pool.master)
+            const taskId = logger.notice(
+              `Starting metadata backup for the pool (${id}). (${job.id})`,
+              {
+                data: {
+                  id,
+                  pool: xapi.pool,
+                  poolMaster,
+                  type: 'pool',
+                },
+                event: 'task.start',
+                parentId: runJobId,
+              }
+            )
             const poolMetadataDir = `${DIR_XO_POOL_METADATA_BACKUPS}/${
               schedule.id
             }/${id}`
@@ -190,12 +246,11 @@ export default class metadataBackup {
             const stream = await app.getXapi(id).exportPoolMetadata(cancelToken)
             const fileName = `${dir}/data`
 
-            const xapi = this._app.getXapi(id)
             const metadata = JSON.stringify(
               {
                 ...commonMetadata,
                 pool: xapi.pool,
-                poolMaster: await xapi.getRecord('host', xapi.pool.master),
+                poolMaster,
               },
               null,
               2
@@ -222,7 +277,33 @@ export default class metadataBackup {
                     })
                   })(),
                   handler.outputFile(metaDataFileName, metadata),
-                ])
+                ]).then(
+                  result => {
+                    logger.notice(
+                      `Backuping pool metadata (${id}) is a success. (${
+                        job.id
+                      })`,
+                      {
+                        event: 'task.end',
+                        status: 'success',
+                        taskId,
+                      }
+                    )
+                    return result
+                  },
+                  error => {
+                    logger.notice(
+                      `Backuping pool metadata (${id}) has failed. (${job.id})`,
+                      {
+                        event: 'task.end',
+                        result: serializeError(error),
+                        status: 'failure',
+                        taskId,
+                      }
+                    )
+                    throw error
+                  }
+                )
               }),
               dir: poolMetadataDir,
               retention: retentionPoolMetadata,
