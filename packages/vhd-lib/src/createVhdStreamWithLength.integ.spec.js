@@ -37,8 +37,13 @@ const convert = (inputFormat, inputFile, outputFormat, outputFile) =>
   ])
 
 const createRandomStream = asyncIteratorToStream(function*(size) {
-  while (size-- > 0) {
-    yield Buffer.from([Math.floor(Math.random() * 256)])
+  let requested = Math.min(size, yield)
+  while (size > 0) {
+    const buf = Buffer.allocUnsafe(requested)
+    for (let i = 0; i < requested; ++i) {
+      buf[i] = Math.floor(Math.random() * 256)
+    }
+    requested = Math.min((size -= requested), yield buf)
   }
 })
 
