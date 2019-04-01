@@ -2,7 +2,7 @@
 
 import { ast, pattern } from './index.fixtures'
 import {
-  getPropertyClausesStrings,
+  getPropertyClausesStringsOrRegex,
   GlobPattern,
   Null,
   NumberNode,
@@ -11,11 +11,14 @@ import {
   setPropertyClause,
 } from './'
 
-it('getPropertyClausesStrings', () => {
-  const tmp = getPropertyClausesStrings(parse('foo bar:baz baz:|(foo bar)'))
+it('getPropertyClausesStringsOrRegex', () => {
+  const tmp = getPropertyClausesStringsOrRegex(
+    parse('foo bar:baz baz:|(foo bar) foo:/^bar$/')
+  )
   expect(tmp).toEqual({
     bar: ['baz'],
     baz: ['foo', 'bar'],
+    foo: ['bar'],
   })
 })
 

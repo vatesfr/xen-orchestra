@@ -606,7 +606,7 @@ export default class Home extends Component {
 
     let properties
     try {
-      properties = ComplexMatcher.getPropertyClausesRegex(
+      properties = ComplexMatcher.getPropertyClausesStringsOrRegex(
         ComplexMatcher.parse(filter)
       )
     } catch (_) {
