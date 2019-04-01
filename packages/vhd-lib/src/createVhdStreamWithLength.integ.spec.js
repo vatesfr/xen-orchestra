@@ -36,12 +36,13 @@ const convert = (inputFormat, inputFile, outputFormat, outputFile) =>
     outputFile,
   ])
 
+const createRandomStream = asyncIteratorToStream(function*(size) {
+  while (size-- > 0) {
+    yield Buffer.from([Math.floor(Math.random() * 256)])
+  }
+})
+
 async function createRandomFile(name, size) {
-  const createRandomStream = asyncIteratorToStream(function*(size) {
-    while (size-- > 0) {
-      yield Buffer.from([Math.floor(Math.random() * 256)])
-    }
-  })
   const input = await createRandomStream(size)
   await pFromCallback(cb => pipeline(input, fs.createWriteStream(name), cb))
 }
