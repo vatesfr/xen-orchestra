@@ -36,6 +36,8 @@
     "node": ">=6"
   },
   "dependencies": {
+    "@xen-orchestra/defined": "^0.0.0",
+    "@xen-orchestra/log": "^0.1.4",
     "human-format": "^0.10.0",
     "lodash": "^4.13.1",
     "moment-timezone": "^0.5.13"

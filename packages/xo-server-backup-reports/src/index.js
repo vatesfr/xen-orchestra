@@ -1,7 +1,11 @@
+import createLogger from '@xen-orchestra/log'
+import defined, { get } from '@xen-orchestra/defined'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
-import { forEach, get, startCase } from 'lodash'
+import { forEach, groupBy, startCase } from 'lodash'
 import pkg from '../package'
+
+const logger = createLogger('xo:xo-server-backup-reports')
 
 export const configurationSchema = {
   type: 'object',
@@ -46,6 +50,9 @@ export const testSchema = {
 
 // ===================================================================
 
+const TAB = '  '
+const UNKNOWN_ITEM = 'Unknown'
+
 const ICON_FAILURE = '🚨'
 const ICON_INTERRUPTED = '⚠️'
 const ICON_SKIPPED = '⏩'
@@ -86,10 +93,6 @@ const formatSpeed = (bytes, milliseconds) =>
       })
     : 'N/A'
 
-const logError = e => {
-  console.error('backup report error:', e)
-}
-
 const NO_VMS_MATCH_THIS_PATTERN = 'no VMs match this pattern'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
@@ -100,13 +103,12 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
-const INDENT = '  '
 const createGetTemporalDataMarkdown = formatDate => (
   start,
   end,
   nbIndent = 0
 ) => {
-  const indent = INDENT.repeat(nbIndent)
+  const indent = TAB.repeat(nbIndent)
 
   const markdown = [`${indent}- **Start time**: ${formatDate(start)}`]
   if (end !== undefined) {
@@ -124,11 +126,123 @@ const addWarnings = (text, warnings, nbIndent = 0) => {
     return
   }
 
-  const indent = INDENT.repeat(nbIndent)
+  const indent = TAB.repeat(nbIndent)
   warnings.forEach(({ message }) => {
     text.push(`${indent}- **${ICON_WARNING} ${message}**`)
   })
 }
+
+// ===================================================================
+
+const TITLE_BY_STATUS = {
+  failure: n => `## ${n} Failure${n === 1 ? '' : 's'}`,
+  interrupted: n => `## ${n} Interrupted`,
+  skipped: n => `## ${n} Skipped`,
+  success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
+}
+
+const getTemporalDataMarkdown = (end, start, formatDate) => {
+  const markdown = [`- **Start time**: ${formatDate(start)}`]
+  if (end !== undefined) {
+    markdown.push(`- **End time**: ${formatDate(end)}`)
+    const duration = end - start
+    if (duration >= 1) {
+      markdown.push(`- **Duration**: ${formatDuration(duration)}`)
+    }
+  }
+  return markdown
+}
+
+const getWarningsMarkdown = warnings =>
+  warnings.map(({ message }) => `- **${ICON_WARNING} ${message}**`)
+
+const getError = task => {
+  let message
+  if (
+    task.status === 'success' ||
+    (message = defined(() => task.result.message, () => task.result.code)) ===
+      undefined
+  ) {
+    return
+  }
+
+  const label = task.status === 'skipped' ? 'Reason' : 'Error'
+  return `- **${label}**: ${message}`
+}
+
+const poolMarkdown = (task, { formatDate }) => {
+  const { pool, poolMaster = {} } = task.data
+
+  const name = pool.name_label || poolMaster.name_label || UNKNOWN_ITEM
+  const body = [
+    `- **UUID**: ${pool.uuid}`,
+    ...getTemporalDataMarkdown(task.end, task.start, formatDate),
+  ]
+
+  const error = getError(task)
+  if (error !== undefined) {
+    body.push(error)
+  }
+
+  return {
+    body,
+    title: `[pool] ${name}`,
+  }
+}
+
+const xoMarkdown = (task, { formatDate, jobName }) => {
+  const body = getTemporalDataMarkdown(task.end, task.start, formatDate)
+
+  const error = getError(task)
+  if (error !== undefined) {
+    body.push(error)
+  }
+
+  return { body, title: `[XO] ${jobName}` }
+}
+
+const remoteMarkdown = async (task, { formatDate, xo }) => {
+  const id = task.data.id
+
+  const name = await xo.getRemote(id).then(
+    ({ name }) => name,
+    error => {
+      logger.warn(error)
+      return UNKNOWN_ITEM
+    }
+  )
+  const body = [
+    `- **ID**: ${id}`,
+    ...getTemporalDataMarkdown(task.end, task.start, formatDate),
+  ]
+
+  const error = getError(task)
+  if (error !== undefined) {
+    body.push(error)
+  }
+
+  return {
+    body,
+    title: `[remote] ${name}`,
+  }
+}
+
+const getMarkdown = async (task, props) => {
+  const type = get(() => task.data.type)
+  if (type === 'pool') {
+    return poolMarkdown(task, props)
+  }
+
+  if (type === 'xo') {
+    return xoMarkdown(task, props)
+  }
+
+  if (type === 'remote') {
+    return remoteMarkdown(task, props)
+  }
+}
+
+// ===================================================================
 
 class BackupReportsXoPlugin {
   constructor(xo) {
@@ -146,41 +260,162 @@ class BackupReportsXoPlugin {
   }
 
   test({ runId }) {
-    return this._backupNgListener(undefined, undefined, undefined, runId)
+    return this._wrapper(undefined, undefined, undefined, runId, true)
   }
 
   unload() {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  _wrapper(status, job, schedule, runJobId) {
-    if (job.type === 'metadataBackup') {
-      return
-    }
+  async _wrapper(status, job, schedule, runJobId, test) {
+    const xo = this._xo
 
-    return new Promise(resolve =>
-      resolve(
-        job.type === 'backup'
-          ? this._backupNgListener(status, job, schedule, runJobId)
-          : this._listener(status, job, schedule, runJobId)
-      )
-    ).catch(logError)
+    try {
+      if (test || job.type === 'backup' || job.type === 'metadataBackup') {
+        const log = await xo.getBackupNgLogs(runJobId)
+        if (log === undefined) {
+          throw new Error(`no log found with runId=${JSON.stringify(runJobId)}`)
+        }
+
+        const reportWhen = log.data.reportWhen
+        if (
+          reportWhen === 'never' ||
+          (reportWhen === 'failure' && log.status === 'success')
+        ) {
+          return
+        }
+
+        if (test) {
+          job = await xo.getJob(log.jobId)
+        }
+
+        return job.type === 'backup'
+          ? this._backupNgListener(log, schedule, runJobId)
+          : this._metadataBackupListener(log, schedule, runJobId)
+      }
+
+      return this._listener(status, job, schedule, runJobId)
+    } catch (error) {
+      logger.warn(error)
+    }
   }
 
-  async _backupNgListener(_1, _2, schedule, runJobId) {
+  async _metadataBackupListener(log, schedule, runJobId) {
     const xo = this._xo
-    const log = await xo.getBackupNgLogs(runJobId)
-    if (log === undefined) {
-      throw new Error(`no log found with runId=${JSON.stringify(runJobId)}`)
+
+    const formatDate = createDateFormater(
+      defined(
+        () => schedule.timezone,
+        await xo.getSchedule(log.scheduleId).then(
+          schedule => schedule.timezone,
+          error => {
+            logger.warn(error)
+          }
+        )
+      )
+    )
+
+    const tasksByStatus = groupBy(log.tasks, 'status')
+    const n = defined(() => log.tasks.length, 0)
+    const nSuccesses = defined(() => tasksByStatus.success.length, 0)
+
+    if (log.data.reportWhen === 'failure') {
+      delete tasksByStatus.success
     }
 
-    const { reportWhen, mode } = log.data || {}
-    if (
-      reportWhen === 'never' ||
-      (log.status === 'success' && reportWhen === 'failure')
-    ) {
-      return
+    // header
+    const markdown = [
+      `##  Global status: ${log.status}`,
+      '',
+      `- **Job ID**: ${log.jobId}`,
+      `- **Job name**: ${log.jobName}`,
+      `- **Run ID**: ${runJobId}`,
+      ...getTemporalDataMarkdown(log.end, log.start, formatDate),
+      n !== 0 && `- **Successes**: ${nSuccesses} / ${n}`,
+      log.warnings !== undefined &&
+        getWarningsMarkdown(log.warnings).join('\n'),
+      getError(log),
+    ]
+
+    const nagiosText = []
+
+    // body
+    for (const status in tasksByStatus) {
+      const tasks = tasksByStatus[status]
+
+      // tasks header
+      markdown.push('---', '', TITLE_BY_STATUS[status](tasks.length))
+
+      // tasks body
+      for (const task of tasks) {
+        const taskMarkdown = await getMarkdown(task, {
+          formatDate,
+          jobName: log.jobName,
+        })
+        if (taskMarkdown === undefined) {
+          continue
+        }
+
+        const { title, body } = taskMarkdown
+        markdown.push('', `### ${title}`, '', `${TAB}${body.join(`\n${TAB}`)}`)
+
+        if (task.status !== 'success') {
+          nagiosText.push(`[${task.status}] ${taskMarkdown.title}`)
+        }
+
+        if (task.warnings !== undefined) {
+          markdown.push(
+            `${TAB}${getWarningsMarkdown(task.warnings).join(`\n${TAB}`)}`
+          )
+        }
+
+        for (const subTask of task.tasks || []) {
+          const taskMarkdown = await getMarkdown(subTask, { formatDate, xo })
+          if (taskMarkdown === undefined) {
+            continue
+          }
+
+          const { title, body } = taskMarkdown
+          markdown.push(
+            `${TAB.repeat(2)}- **${title}** ${STATUS_ICON[subTask.status]}`,
+            `${TAB.repeat(3)}${body.join(`\n${TAB.repeat(3)}`)}`
+          )
+
+          if (subTask.warnings !== undefined) {
+            markdown.push(
+              `${TAB.repeat(2)}${getWarningsMarkdown(subTask.warnings).join(
+                `\n${TAB.repeat(2)}`
+              )}`
+            )
+          }
+        }
+      }
     }
+
+    // footer
+    markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
+
+    return this._sendReport({
+      subject: `[Xen Orchestra] ${log.status} − Metadata backup report for ${
+        log.jobName
+      } ${STATUS_ICON[log.status]}`,
+      markdown: markdown.filter(_ => typeof _ === 'string').join('\n'),
+      nagiosStatus: log.status === 'success' ? 0 : 2,
+      nagiosMarkdown:
+        log.status === 'success'
+          ? `[Xen Orchestra] [Success] Metadata backup report for ${
+              log.jobName
+            }`
+          : `[Xen Orchestra] [${log.status}] Metadata backup report for ${
+              log.jobName
+            } - ${nagiosText.join(' ')}`,
+    })
+  }
+
+  async _backupNgListener(log, schedule, runJobId) {
+    const xo = this._xo
+
+    const { reportWhen, mode } = log.data || {}
 
     if (schedule === undefined) {
       schedule = await xo.getSchedule(log.scheduleId)
@@ -263,8 +498,7 @@ class BackupReportsXoPlugin {
 
         const icon = STATUS_ICON[subTaskLog.status]
         const errorMessage = `    - **Error**: ${get(
-          subTaskLog.result,
-          'message'
+          () => subTaskLog.result.message
         )}`
 
         if (subTaskLog.message === 'snapshot') {
@@ -330,9 +564,9 @@ class BackupReportsXoPlugin {
                 operationLog.end - operationLog.start
               )}`
             )
-          } else if (get(operationLog.result, 'message') !== undefined) {
+          } else if (get(() => operationLog.result.message) !== undefined) {
             operationInfoText.push(
-              `      - **Error**: ${get(operationLog.result, 'message')}`
+              `      - **Error**: ${get(() => operationLog.result.message)}`
             )
           }
           const operationText = [
@@ -342,11 +576,11 @@ class BackupReportsXoPlugin {
             ...getTemporalDataMarkdown(operationLog.start, operationLog.end, 3),
             ...operationInfoText,
           ].join('\n')
-          if (get(subTaskLog, 'data.type') === 'remote') {
+          if (get(() => subTaskLog.data.type) === 'remote') {
             remotesText.push(operationText)
             remotesText.join('\n')
           }
-          if (get(subTaskLog, 'data.type') === 'SR') {
+          if (get(() => subTaskLog.data.type) === 'SR') {
             srsText.push(operationText)
             srsText.join('\n')
           }
