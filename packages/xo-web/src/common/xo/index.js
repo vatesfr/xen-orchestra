@@ -2024,6 +2024,27 @@ export const editMetadataBackupJob = props =>
 export const runMetadataBackupJob = params =>
   _call('metadataBackup.runJob', params)
 
+export const listMetadataBackups = remotes =>
+  _call('metadataBackup.list', { remotes: resolveIds(remotes) })
+
+export const restoreMetadataBackup = backup =>
+  _call('metadataBackup.restore', {
+    id: resolveId(backup),
+  })::tap(subscribeBackupNgLogs.forceRefresh)
+
+export const deleteMetadataBackup = backup =>
+  _call('metadataBackup.delete', {
+    id: resolveId(backup),
+  })
+
+export const deleteMetadataBackups = async (backups = []) => {
+  // delete sequentially from newest to oldest
+  backups = backups.slice().sort((b1, b2) => b2.timestamp - b1.timestamp)
+  for (let i = 0, n = backups.length; i < n; ++i) {
+    await deleteMetadataBackup(backups[i])
+  }
+}
+
 // Plugins -----------------------------------------------------------
 
 export const loadPlugin = async id =>

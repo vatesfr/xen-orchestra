@@ -49,7 +49,7 @@ export default class DeleteBackupsModalBody extends Component {
   render() {
     return (
       <div>
-        <div>{_('deleteVmBackupsSelect')}</div>
+        <div>{_('deleteBackupsSelect')}</div>
         <div className='list-group'>
           {map(this._getBackups(), backup => (
             <button

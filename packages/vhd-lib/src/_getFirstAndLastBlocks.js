@@ -19,9 +19,7 @@ export default bat => {
     j += 4
 
     if (j === n) {
-      const error = new Error('no allocated block found')
-      error.noBlock = true
-      throw error
+      return
     }
   }
   lastSector = firstSector

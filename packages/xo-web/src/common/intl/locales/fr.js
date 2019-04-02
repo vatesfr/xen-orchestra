@@ -2643,9 +2643,9 @@ export default {
   // Original text: "New"
   resourceSetNew: 'Nouvelle',
 
-  // Original text: "Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files."
+  // Original text: "Drop OVA or XVA files here to import Virtual Machines."
   importVmsList:
-    'Essayez de déposer des fichiers de VMs ici, ou bien cliquez pour sélectionner des VMs à téléverser. Seuls les fichiers .xva/.ova sont acceptés.',
+    'Déposez ici vos fichiers OVA ou XVA pour importer des machines virtuelles.',
 
   // Original text: "No selected VMs."
   noSelectedVms: 'Pas de VM sélectionnée.',

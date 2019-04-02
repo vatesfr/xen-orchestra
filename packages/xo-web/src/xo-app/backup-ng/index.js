@@ -42,7 +42,7 @@ import FileRestore from './file-restore'
 import getSettingsWithNonDefaultValue from './_getSettingsWithNonDefaultValue'
 import Health from './health'
 import NewVmBackup, { NewMetadataBackup } from './new'
-import Restore from './restore'
+import Restore, { RestoreMetadata } from './restore'
 import { destructPattern } from './utils'
 
 const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
@@ -249,6 +249,7 @@ class JobsTable extends React.Component {
           const {
             compression,
             concurrency,
+            fullInterval,
             offlineSnapshot,
             reportWhen,
             timeout,
@@ -267,6 +268,9 @@ class JobsTable extends React.Component {
               )}
               {timeout !== undefined && (
                 <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>
+              )}
+              {fullInterval !== undefined && (
+                <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>
               )}
               {offlineSnapshot !== undefined && (
                 <Li>
@@ -423,6 +427,7 @@ export default routes('overview', {
   'new/metadata': NewMetadataBackup,
   overview: Overview,
   restore: Restore,
+  'restore/metadata': RestoreMetadata,
   'file-restore': FileRestore,
   health: Health,
 })(({ children }) => (

@@ -19,7 +19,12 @@ import {
   startHost,
   stopHost,
 } from 'xo'
-import { connectStore, formatSizeShort, osFamily } from 'utils'
+import {
+  connectStore,
+  formatSizeShort,
+  hasLicenseRestrictions,
+  osFamily,
+} from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetObject,
@@ -28,6 +33,7 @@ import {
 } from 'selectors'
 
 import MiniStats from './mini-stats'
+import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
 
 @connectStore(() => ({
@@ -121,6 +127,8 @@ export default class HostItem extends Component {
                     </Link>
                   </Tooltip>
                 )}
+                &nbsp;
+                {hasLicenseRestrictions(host) && <LicenseWarning />}
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>

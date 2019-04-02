@@ -1,6 +1,6 @@
 {
   "name": "xen-api",
-  "version": "0.24.5",
+  "version": "0.25.0",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -38,7 +38,6 @@
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
     "http-request-plus": "^0.8.0",
-    "iterable-backoff": "^0.1.0",
     "jest-diff": "^24.0.0",
     "json-rpc-protocol": "^0.13.1",
     "kindof": "^2.0.0",
@@ -54,6 +53,7 @@
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.3.4",
     "@babel/plugin-proposal-decorators": "^7.0.0",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.2.0",
     "@babel/plugin-proposal-optional-chaining": "^7.2.0",

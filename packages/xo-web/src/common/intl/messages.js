@@ -39,6 +39,13 @@ const messages = {
   hasInactivePath: 'Has an inactive path',
   pools: 'Pools',
   remotes: 'Remotes',
+  type: 'Type',
+  restore: 'Restore',
+  delete: 'Delete',
+  vms: 'VMs',
+  metadata: 'Metadata',
+  chooseBackup: 'Choose a backup',
+  clickToShowError: 'Click to show error',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -443,6 +450,7 @@ const messages = {
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
+  fullBackupInterval: 'Full backup interval',
   timeoutUnit: 'in hours',
   dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require Enterprise plan',
   crRequiresPremiumPlan: 'CR requires Premium plan',
@@ -714,6 +722,14 @@ const messages = {
   displayAllHosts: 'Display all hosts of this pool',
   displayAllStorages: 'Display all storages of this pool',
   displayAllVMs: 'Display all VMs of this pool',
+  licenseRestrictions: 'License restrictions',
+  licenseRestrictionsModalTitle:
+    'Warning: you are using a Free XenServer license',
+  actionsRestricted: 'Some actions will be restricted.',
+  counterRestrictionsOptions: 'You can:',
+  counterRestrictionsOptionsXcp:
+    'upgrade to XCP-ng for free to get rid of these restrictions',
+  counterRestrictionsOptionsXsLicense: 'or get a commercial Citrix license',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
   vmsTabName: 'Vms',
@@ -1369,8 +1385,7 @@ const messages = {
   resourceSetNew: 'New',
 
   // ---- VM import ---
-  importVmsList:
-    'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.',
+  importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
@@ -1427,6 +1442,7 @@ const messages = {
   simpleBackup: 'simple',
   delta: 'delta',
   restoreBackups: 'Restore Backups',
+  noBackups: 'There are no backups!',
   restoreBackupsInfo: 'Click on a VM to display restore options',
   restoreDeltaBackupsInfo:
     'Only the files of Delta Backup which are not on a SMB remote can be restored',
@@ -1467,10 +1483,16 @@ const messages = {
   restoreVmBackupsStart:
     'Start VM{nVms, plural, one {} other {s}} after restore',
   restoreVmBackupsBulkErrorTitle: 'Multi-restore error',
+  restoreMetadataBackupTitle: 'Restore {item}',
+  bulkRestoreMetadataBackupTitle:
+    'Restore {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}',
+  bulkRestoreMetadataBackupMessage:
+    'Restore {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}} from {nMetadataBackups, plural, one {its} other {their}} {oldestOrLatest} backup',
+  deleteMetadataBackupTitle: 'Delete {item} backup',
   restoreVmBackupsBulkErrorMessage: 'You need to select a destination SR',
   deleteVmBackups: 'Delete backups…',
   deleteVmBackupsTitle: 'Delete {vm} backups',
-  deleteVmBackupsSelect: 'Select backups to delete:',
+  deleteBackupsSelect: 'Select backups to delete:',
   deleteVmBackupsSelectAll: 'All',
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
@@ -1478,6 +1500,11 @@ const messages = {
   deleteVmBackupsBulkConfirmText:
     'delete {nBackups} backup{nBackups, plural, one {} other {s}}',
   unknownJob: 'Unknown job',
+  bulkDeleteMetadataBackupsTitle: 'Delete metadata backups',
+  bulkDeleteMetadataBackupsMessage:
+    'Are you sure you want to delete all the backups from {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}?',
+  bulkDeleteMetadataBackupsConfirmText:
+    'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
@@ -1912,6 +1939,7 @@ const messages = {
   logsJobName: 'Job name',
   logsBackupTime: 'Backup time',
   logsRestoreTime: 'Restore time',
+  copyLogToClipboard: 'Copy log to clipboard',
   logsVmNotFound: 'VM not found!',
   logsMissingVms: 'Missing VMs skipped ({ vms })',
   logsFailedRestoreError: 'Click to show error',
