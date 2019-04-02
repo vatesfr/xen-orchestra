@@ -1803,7 +1803,6 @@ const messages = {
   // ----- Updates View -----
   updateTitle: 'Updates',
   registration: 'Registration',
-  trial: 'Trial',
   settings: 'Settings',
   proxySettings: 'Proxy settings',
   proxySettingsHostPlaceHolder: 'Host (myproxy.example.org)',
