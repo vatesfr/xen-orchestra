@@ -226,6 +226,16 @@ const COLUMNS_SMB_REMOTE = [
     ),
     name: _('remoteShare'),
   },
+  {
+    name: _('remoteOptions'),
+    itemRenderer: remote => (
+      <Text
+        data-remote={remote}
+        onChange={_editRemoteOptions}
+        value={remote.options || ''}
+      />
+    ),
+  },
   COLUMN_STATE,
   {
     itemRenderer: (remote, { formatMessage }) => (
