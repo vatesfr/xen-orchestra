@@ -459,7 +459,7 @@ export default class Scheduler extends Component {
     return (
       <div className='card-block'>
         <em>
-          <Icon icon='info' /> {_('scheduleDSTWarning')}
+          <Icon icon='info' /> {_('scheduleDstWarning')}
         </em>
         <Row>
           <Col largeSize={6}>
