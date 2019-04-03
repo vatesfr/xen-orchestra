@@ -1388,8 +1388,9 @@ export const importVm = (file, type = 'xva', data = undefined, sr) => {
           success(_('vmImportSuccess'), name)
           return res.json().then(body => body.result)
         })
-        .catch(() => {
+        .catch(error => {
           error(_('vmImportFailed'), name)
+          throw error
         })
   )
 }
@@ -1429,9 +1430,11 @@ export const importVdi = async vdi => {
 export const importVms = (vms, sr) =>
   Promise.all(
     map(vms, ({ file, type, data }) =>
-      importVm(file, type, data, sr).catch(noop)
+      importVm(file, type, data, sr).catch(error => {
+        console.warn('importVms', file.name, error)
+      })
     )
-  )
+  ).then(ids => ids.filter(_ => _ !== undefined))
 
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
 export const exportVm = vm =>
