@@ -1,5 +1,16 @@
 # ChangeLog
 
+## **5.33.1** (2019-04-04)
+
+### Bug fix
+
+- Fix major memory leak [2563be4](https://github.com/vatesfr/xen-orchestra/commit/2563be472bfd84c6ed867efd21c4aeeb824d387f)
+
+### Released packages
+
+- xen-api v0.25.1
+- xo-server v5.38.2
+
 ## **5.33.0** (2019-03-29)
 
 ### Enhancements
