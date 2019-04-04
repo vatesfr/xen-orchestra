@@ -532,8 +532,7 @@ export default class Menu extends Component {
 const MenuLinkItem = props => {
   const { item } = props
   const { to, icon, label, subMenu, pill, extra } = item
-  const extraIsArray = Array.isArray(extra)
-  const _extra = extraIsArray ? extra.find(e => e !== null) : extra
+  const _extra = extra !== undefined ? extra.find(e => e !== null) : undefined
 
   return (
     <li className='nav-item xo-menu-item'>
@@ -556,10 +555,8 @@ const MenuLinkItem = props => {
         {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
         {_extra}
         <span className={styles.hiddenCollapsed}>
-          {extraIsArray &&
-            extra.map(e =>
-              e !== null && e !== _extra ? <span>{e}</span> : null
-            )}
+          {extra !== undefined &&
+            extra.map(e => (e !== null && e !== _extra ? e : null))}
         </span>
       </Link>
       {subMenu && <SubMenu items={subMenu} />}
