@@ -25,6 +25,7 @@ import isReadOnlyCall from './_isReadOnlyCall'
 import makeCallSetting from './_makeCallSetting'
 import parseUrl from './_parseUrl'
 import replaceSensitiveValues from './_replaceSensitiveValues'
+import Signal from './_Signal'
 import XapiError from './_XapiError'
 
 // ===================================================================
@@ -92,19 +93,15 @@ export class Xapi extends EventEmitter {
     this._allowUnauthorized = opts.allowUnauthorized
     this._setUrl(url)
 
-    this._connected = new Promise(resolve => {
-      this._resolveConnected = resolve
-    })
-    this._disconnected = Promise.resolve()
+    this._connected = Signal.source()
+    this._disconnected = Signal.source()
     this._sessionId = undefined
     this._status = DISCONNECTED
 
     this._debounce = opts.debounce ?? 200
     this._objects = new Collection()
     this._objectsByRef = { __proto__: null }
-    this._objectsFetched = new Promise(resolve => {
-      this._resolveObjectsFetched = resolve
-    })
+    this._objectsFetched = Signal.source()
     this._eventWatchers = { __proto__: null }
     this._taskWatchers = { __proto__: null }
     this._watchedTypes = undefined
@@ -130,11 +127,11 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
 
   get connected() {
-    return this._connected
+    return this._connected.signal
   }
 
   get disconnected() {
-    return this._disconnected
+    return this._disconnected.signal
   }
 
   get pool() {
@@ -161,9 +158,7 @@ export class Xapi extends EventEmitter {
     assert(status === DISCONNECTED)
 
     this._status = CONNECTING
-    this._disconnected = new Promise(resolve => {
-      this._resolveDisconnected = resolve
-    })
+    this._disconnected = Signal.source()
 
     try {
       await this._sessionOpen()
@@ -186,8 +181,7 @@ export class Xapi extends EventEmitter {
 
       debug('%s: connected', this._humanId)
       this._status = CONNECTED
-      this._resolveConnected()
-      this._resolveConnected = undefined
+      this._connected.request()
       this.emit(CONNECTED)
     } catch (error) {
       ignoreErrors.call(this.disconnect())
@@ -204,9 +198,7 @@ export class Xapi extends EventEmitter {
     }
 
     if (status === CONNECTED) {
-      this._connected = new Promise(resolve => {
-        this._resolveConnected = resolve
-      })
+      this._connected = Signal.source()
     } else {
       assert(status === CONNECTING)
     }
@@ -220,8 +212,7 @@ export class Xapi extends EventEmitter {
     debug('%s: disconnected', this._humanId)
 
     this._status = DISCONNECTED
-    this._resolveDisconnected()
-    this._resolveDisconnected = undefined
+    this._disconnected.request()
     this.emit(DISCONNECTED)
   }
 
@@ -672,12 +663,18 @@ export class Xapi extends EventEmitter {
   }
 
   _interruptOnDisconnect(promise) {
-    return Promise.race([
-      promise,
-      this._disconnected.then(() => {
-        throw new Error('disconnected')
-      }),
-    ])
+    let subscription
+    const pWrapper = new Promise((resolve, reject) => {
+      subscription = this._disconnected.signal.subscribe(() => {
+        reject(new Error('disconnected'))
+      })
+      promise.then(resolve, reject)
+    })
+    const clean = () => {
+      subscription.unsubscribe()
+    }
+    pWrapper.then(clean, clean)
+    return pWrapper
   }
 
   async _sessionCall(method, args, timeout) {
@@ -881,10 +878,8 @@ export class Xapi extends EventEmitter {
   async _watchEvents() {
     // eslint-disable-next-line no-labels
     mainLoop: while (true) {
-      if (this._resolveObjectsFetched === undefined) {
-        this._objectsFetched = new Promise(resolve => {
-          this._resolveObjectsFetched = resolve
-        })
+      if (this._objectsFetched.signal.requested) {
+        this._objectsFetched = Signal.source()
       }
 
       await this._connected
@@ -912,8 +907,7 @@ export class Xapi extends EventEmitter {
 
       // initial fetch
       await this._refreshCachedRecords(types)
-      this._resolveObjectsFetched()
-      this._resolveObjectsFetched = undefined
+      this._objectsFetched.request()
 
       // event loop
       const debounce = this._debounce
@@ -960,10 +954,8 @@ export class Xapi extends EventEmitter {
   //
   // It also has to manually get all objects first.
   async _watchEventsLegacy() {
-    if (this._resolveObjectsFetched === undefined) {
-      this._objectsFetched = new Promise(resolve => {
-        this._resolveObjectsFetched = resolve
-      })
+    if (this._objectsFetched.signal.requested) {
+      this._objectsFetched = Signal.source()
     }
 
     await this._connected
@@ -972,8 +964,7 @@ export class Xapi extends EventEmitter {
 
     // initial fetch
     await this._refreshCachedRecords(types)
-    this._resolveObjectsFetched()
-    this._resolveObjectsFetched = undefined
+    this._objectsFetched.request()
 
     await this._sessionCall('event.register', [types])
 
