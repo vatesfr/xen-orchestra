@@ -4,6 +4,7 @@
 
 - [Settings/remotes] Expose mount options field for SMB [#4063](https://github.com/vatesfr/xen-orchestra/issues/4063) (PR [#4067](https://github.com/vatesfr/xen-orchestra/pull/4067))
 - [Backup/Schedule] Add warning regarding DST when you add a schedule [#4042](https://github.com/vatesfr/xen-orchestra/issues/4042) (PR [#4056](https://github.com/vatesfr/xen-orchestra/pull/4056))
+- [Import] Avoid blocking the UI when dropping a big OVA file on the UI (PR [#4018](https://github.com/vatesfr/xen-orchestra/pull/4018))
 
 ### Bug fixes
 
@@ -11,6 +12,7 @@
 
 ### Released packages
 
+- xo-vmdk-to-vhd v0.1.7
 - vhd-lib v0.6.1
 - xo-server v5.39.0
 - xo-web v5.39.0
