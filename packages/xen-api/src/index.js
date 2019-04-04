@@ -672,12 +672,21 @@ export class Xapi extends EventEmitter {
   }
 
   _interruptOnDisconnect(promise) {
-    return Promise.race([
-      promise,
-      this._disconnected.then(() => {
-        throw new Error('disconnected')
-      }),
-    ])
+    let listener
+    const pWrapper = new Promise((resolve, reject) => {
+      promise.then(resolve, reject)
+      this.on(
+        DISCONNECTED,
+        (listener = () => {
+          reject(new Error('disconnected'))
+        })
+      )
+    })
+    const clean = () => {
+      this.removeListener(DISCONNECTED, listener)
+    }
+    pWrapper.then(clean, clean)
+    return pWrapper
   }
 
   _sessionCallRetryOptions = {
