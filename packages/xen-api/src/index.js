@@ -680,27 +680,30 @@ export class Xapi extends EventEmitter {
     ])
   }
 
-  async _sessionCall(method, args, timeout) {
+  _sessionCallRetryOptions = {
+    tries: 2,
+    when: error =>
+      this._status !== DISCONNECTED && error?.code === 'SESSION_INVALID',
+    onRetry: () => this._sessionOpen(),
+  }
+  _sessionCall(method, args, timeout) {
     if (method.startsWith('session.')) {
-      throw new Error('session.*() methods are disabled from this interface')
+      return Promise.reject(
+        new Error('session.*() methods are disabled from this interface')
+      )
     }
 
-    const sessionId = this._sessionId
-    assert.notStrictEqual(sessionId, undefined)
+    return pRetry(() => {
+      const sessionId = this._sessionId
+      assert.notStrictEqual(sessionId, undefined)
 
-    const newArgs = [sessionId]
-    if (args !== undefined) {
-      newArgs.push.apply(newArgs, args)
-    }
-
-    return pRetry(
-      () => this._interruptOnDisconnect(this._call(method, newArgs, timeout)),
-      {
-        tries: 2,
-        when: { code: 'SESSION_INVALID' },
-        onRetry: () => this._sessionOpen(),
+      const newArgs = [sessionId]
+      if (args !== undefined) {
+        newArgs.push.apply(newArgs, args)
       }
-    )
+
+      return this._call(method, newArgs, timeout)
+    }, this._sessionCallRetryOptions)
   }
 
   // FIXME: (probably rare) race condition leading to unnecessary login when:
