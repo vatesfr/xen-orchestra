@@ -237,7 +237,9 @@ const parseFile = async (file, type, func) => {
 }
 
 const getRedirectionUrl = vms =>
-  vms.length === 1
+  vms.length === 0
+    ? undefined // no redirect
+    : vms.length === 1
     ? `/vms/${vms[0]}`
     : `/home?s=${encodeURIComponent(`id:|(${vms.join(' ')})`)}&t=VM`
 
