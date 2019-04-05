@@ -607,7 +607,10 @@ const _getPropertyClauseStringsOrRegex = ({ child }) => {
         strings.push(child.value)
       }
       if (child instanceof RegExpNode) {
-        strings.push(child.re.source.replace(/^(\^)|\\|\$$/g, ''))
+        const unescapedRegexp = child.re.source.replace(/^(\^)|\\|\$$/g, '')
+        if (child.re.source === `^${escapeRegExp(unescapedRegexp)}$`) {
+          strings.push(unescapedRegexp)
+        }
       }
     })
     return strings
@@ -617,7 +620,10 @@ const _getPropertyClauseStringsOrRegex = ({ child }) => {
     return [child.value]
   }
   if (child instanceof RegExpNode) {
-    return [child.re.source.replace(/^(\^)|\\|\$$/g, '')]
+    const unescapedRegexp = child.re.source.replace(/^(\^)|\\|\$$/g, '')
+    if (child.re.source === `^${escapeRegExp(unescapedRegexp)}$`) {
+      return [unescapedRegexp]
+    }
   }
 
   return []
