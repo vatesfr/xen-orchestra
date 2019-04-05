@@ -935,16 +935,18 @@ export default decorate([
                           placeholder={formatMessage(messages.timeoutUnit)}
                         />
                       </FormGroup>
-                      <FormGroup>
-                        <label htmlFor={state.inputFullIntervalId}>
-                          <strong>{_('fullBackupInterval')}</strong>
-                        </label>{' '}
-                        <Number
-                          id={state.inputFullIntervalId}
-                          onChange={effects.setFullInterval}
-                          value={fullInterval}
-                        />
-                      </FormGroup>
+                      {state.isDelta && (
+                        <FormGroup>
+                          <label htmlFor={state.inputFullIntervalId}>
+                            <strong>{_('fullBackupInterval')}</strong>
+                          </label>{' '}
+                          <Number
+                            id={state.inputFullIntervalId}
+                            onChange={effects.setFullInterval}
+                            value={fullInterval}
+                          />
+                        </FormGroup>
+                      )}
                       {state.isFull && (
                         <FormGroup>
                           <label htmlFor={state.compressionId}>
