@@ -9,6 +9,7 @@
 ### Bug fixes
 
 - [Continuous Replication] Fix VHD size guess for empty files [#4105](https://github.com/vatesfr/xen-orchestra/issues/4105)  (PR [#4107](https://github.com/vatesfr/xen-orchestra/pull/4107))
+- [Backup NG] Only display full backup interval in case of a delta backup (PR [#4125](https://github.com/vatesfr/xen-orchestra/pull/4107))
 
 ### Released packages
 
