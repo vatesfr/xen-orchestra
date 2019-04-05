@@ -869,7 +869,13 @@ export default class Xapi extends XapiBase {
   _assertHealthyVdiChains(vm) {
     const cache = { __proto__: null }
     forEach(vm.$VBDs, ({ $VDI }) => {
-      this._assertHealthyVdiChain($VDI, cache)
+      try {
+        this._assertHealthyVdiChain($VDI, cache)
+      } catch (error) {
+        error.VDI = $VDI
+        error.VM = vm
+        throw error
+      }
     })
   }
 
