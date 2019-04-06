@@ -18,6 +18,7 @@ import {
   AvailableTemplateVars,
   DEFAULT_CLOUD_CONFIG_TEMPLATE,
 } from 'cloud-config'
+import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import {
@@ -92,6 +93,7 @@ import {
 
 import styles from './index.css'
 
+const MULTIPLICAND = 2
 const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
 
@@ -322,6 +324,29 @@ export default class NewVm extends BaseComponent {
       share: false,
       tags: [],
     })
+  }
+
+  _selfCreate = () => {
+    const {
+      CPUs,
+      VDIs,
+      existingDisks,
+      memoryDynamicMax,
+      template,
+    } = this.state.state
+    const disksSize = sumBy(VDIs, 'size') + sumBy(existingDisks, 'size')
+    const templateDisksSize = sumBy(template.template_info.disks, 'size')
+    const templateMemoryDynamicMax = template.memory.dynamic[1]
+    const templateVcpusMax = template.CPUs.max
+
+    return CPUs > MULTIPLICAND * templateVcpusMax ||
+      memoryDynamicMax > MULTIPLICAND * templateMemoryDynamicMax ||
+      disksSize > MULTIPLICAND * templateDisksSize
+      ? confirm({
+          title: _('createVmModalTitle'),
+          body: _('createVmModalWarningMessage'),
+        }).then(this._create)
+      : this._create()
   }
 
   _create = () => {
@@ -915,7 +940,7 @@ export default class NewVm extends BaseComponent {
                   ) || !this._availableResources()
                 }
                 form='vmCreation'
-                handler={this._create}
+                handler={pool === undefined ? this._selfCreate : this._create}
                 icon='new-vm-create'
                 redirectOnSuccess={this._getRedirectionUrl}
               >
