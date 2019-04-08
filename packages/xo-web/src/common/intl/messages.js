@@ -46,6 +46,7 @@ const messages = {
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
   clickToShowError: 'Click to show error',
+  backupJobs: 'Backup jobs',
 
   // ----- Modals -----
   alertOk: 'OK',
