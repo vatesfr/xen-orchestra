@@ -25,7 +25,7 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import { every, isEmpty, map } from 'lodash'
+import { every, identity, isEmpty, map } from 'lodash'
 
 import styles from './index.css'
 
@@ -258,8 +258,10 @@ export default class Menu extends Component {
         icon: 'menu-xoa',
         label: 'xoa',
         extra: [
-          !isAdmin || xoaState === 'upToDate' ? null : <UpdateTag />,
-          noNotifications ? null : <NotificationTag />,
+          !isAdmin || xoaState === 'upToDate' ? null : (
+            <UpdateTag key='update' />
+          ),
+          noNotifications ? null : <NotificationTag key='notification' />,
         ],
         subMenu: [
           isAdmin && {
@@ -553,10 +555,9 @@ const MenuLinkItem = props => {
           &nbsp;
         </span>
         {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
-        {_extra}
+        <span className={styles.hiddenUncollapsed}>{_extra}</span>
         <span className={styles.hiddenCollapsed}>
-          {extra !== undefined &&
-            extra.map(e => (e !== null && e !== _extra ? e : null))}
+          {extra !== undefined && extra.map(identity)}
         </span>
       </Link>
       {subMenu && <SubMenu items={subMenu} />}
