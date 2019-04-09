@@ -44,7 +44,7 @@
     "index-modules": "^0.3.0",
     "promise-toolbox": "^0.12.1",
     "rimraf": "^2.6.1",
-    "tmp": "^0.0.33"
+    "tmp": "^0.1.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

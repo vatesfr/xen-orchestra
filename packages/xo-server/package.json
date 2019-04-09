@@ -117,7 +117,7 @@
     "struct-fu": "^1.2.0",
     "tar-stream": "^2.0.1",
     "through2": "^3.0.0",
-    "tmp": "^0.0.33",
+    "tmp": "^0.1.0",
     "uuid": "^3.0.1",
     "value-matcher": "^0.2.0",
     "vhd-lib": "^0.6.0",
