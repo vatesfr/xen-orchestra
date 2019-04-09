@@ -39,9 +39,14 @@ import {
 
 const SrColContainer = connectStore(() => ({
   container: createGetObject(),
-}))(({ container }) => (
-  <Link to={`${container.type}s/${container.id}`}>{container.name_label}</Link>
-))
+}))(
+  ({ container }) =>
+    container !== undefined && (
+      <Link to={`${container.type}s/${container.id}`}>
+        {container.name_label}
+      </Link>
+    )
+)
 
 const VmColContainer = connectStore(() => ({
   container: createGetObject(),
