@@ -340,7 +340,7 @@ const Overview = () => (
   <div>
     <Card>
       <CardHeader>
-        <Icon icon='schedule' /> {_('backupJobs')}
+        <Icon icon='backup' /> {_('backupJobs')}
       </CardHeader>
       <CardBlock>
         <JobsTable />
