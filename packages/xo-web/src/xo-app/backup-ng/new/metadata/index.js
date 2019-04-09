@@ -38,7 +38,6 @@ import Schedules from '../_schedules'
 // A retention can be:
 // - number: set by user
 // - undefined: will be replaced by the default value in the display(table + modal) and on submitting the form
-// - null: when a user voluntarily deletes its value.
 const DEFAULT_RETENTION = 1
 
 const RETENTION_POOL_METADATA = {
@@ -207,7 +206,20 @@ export default decorate([
       schedules: ({ _schedules }, { schedules }) =>
         defined(_schedules, schedules),
       settings: ({ _settings }, { job }) =>
-        defined(_settings, () => job.settings),
+        // it replaces null retentions introduced by the commit
+        // https://github.com/vatesfr/xen-orchestra/commit/fea5117ed83b58d3a57715b32d63d46e3004a094#diff-c02703199db2a4c217943cf8e02b91deR40
+        defined(_settings, () =>
+          mapValues(job.settings, setting => {
+            const newSetting = { ...setting }
+            if (newSetting.retentionPoolMetadata === null) {
+              newSetting.retentionPoolMetadata = 0
+            }
+            if (newSetting.retentionXoMetadata === null) {
+              newSetting.retentionXoMetadata = 0
+            }
+            return newSetting
+          })
+        ),
       remotes: ({ _remotes }, { job }) =>
         defined(_remotes, () => destructPattern(job.remotes), []),
       remotesPredicate: ({ remotes }) => ({ id }) => !remotes.includes(id),
@@ -227,13 +239,13 @@ export default decorate([
         state.modePoolMetadata &&
         every(
           state.settings,
-          ({ retentionPoolMetadata }) => retentionPoolMetadata === null
+          ({ retentionPoolMetadata }) => retentionPoolMetadata === 0
         ),
       missingRetentionXoMetadata: state =>
         state.modeXoMetadata &&
         every(
           state.settings,
-          ({ retentionXoMetadata }) => retentionXoMetadata === null
+          ({ retentionXoMetadata }) => retentionXoMetadata === 0
         ),
       missingSchedules: state => isEmpty(state.schedules),
     },

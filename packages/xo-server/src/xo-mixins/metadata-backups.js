@@ -24,6 +24,8 @@ const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
+const DEFAULT_RETENTION = 0
+
 type Settings = {|
   retentionXoMetadata?: number,
   retentionPoolMetadata?: number,
@@ -454,8 +456,18 @@ export default class metadataBackup {
       throw new Error('no metadata mode found')
     }
 
-    const { retentionXoMetadata = 0, retentionPoolMetadata = 0 } =
+    let { retentionXoMetadata, retentionPoolMetadata } =
       job.settings[schedule.id] || {}
+
+    // it also replaces null retentions introduced by the commit
+    // https://github.com/vatesfr/xen-orchestra/commit/fea5117ed83b58d3a57715b32d63d46e3004a094#diff-c02703199db2a4c217943cf8e02b91deR40
+    if (retentionXoMetadata == null) {
+      retentionXoMetadata = DEFAULT_RETENTION
+    }
+    if (retentionPoolMetadata == null) {
+      retentionPoolMetadata = DEFAULT_RETENTION
+    }
+
     if (
       (retentionPoolMetadata === 0 && retentionXoMetadata === 0) ||
       (!job.xoMetadata && retentionPoolMetadata === 0) ||
