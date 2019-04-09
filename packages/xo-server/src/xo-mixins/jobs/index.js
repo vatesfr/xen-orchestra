@@ -266,6 +266,11 @@ export default class Jobs {
         reportWhen: (settings && settings.reportWhen) || 'failure',
       }
     }
+    if (type === 'metadataBackup') {
+      data = {
+        reportWhen: job.settings['']?.reportWhen ?? 'failure',
+      }
+    }
 
     const logger = this._logger
     const runJobId = logger.notice(`Starting execution of ${id}.`, {

@@ -26,9 +26,12 @@ const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const DEFAULT_RETENTION = 0
 
+type ReportWhen = 'always' | 'failure' | 'never'
+
 type Settings = {|
-  retentionXoMetadata?: number,
+  reportWhen?: ReportWhen,
   retentionPoolMetadata?: number,
+  retentionXoMetadata?: number,
 |}
 
 type MetadataBackupJob = {
@@ -93,7 +96,7 @@ const deleteOldBackups = (handler, dir, retention, handleError) =>
 //
 // Task logs emitted in a metadata backup execution:
 //
-// job.start
+// job.start(data: { reportWhen: ReportWhen })
 // ├─ task.start(data: { type: 'pool', id: string, pool: <Pool />, poolMaster: <Host /> })
 // │  ├─ task.start(data: { type: 'remote', id: string })
 // │  │  └─ task.end
