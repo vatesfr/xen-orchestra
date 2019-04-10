@@ -11,7 +11,7 @@ const GRAIN_ADDRESS_OFFSET = 56
  * THIS CODE RUNS ON THE BROWSER
  */
 export default async function readVmdkGrainTable(fileAccessor) {
-  return (await readCapacityAndGrainTable(fileAccessor)).table
+  return (await readCapacityAndGrainTable(fileAccessor)).tablePromise
 }
 
 /***
