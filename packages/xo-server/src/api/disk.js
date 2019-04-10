@@ -2,8 +2,10 @@ import createLogger from '@xen-orchestra/log'
 import pump from 'pump'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
+import convertFromVMDK from 'xo-vmdk-to-vhd'
 
 import { parseSize } from '../utils'
+import { VDI_FORMAT_VHD } from '../xapi'
 
 const log = createLogger('xo:disk')
 
@@ -164,4 +166,54 @@ resize.params = {
 
 resize.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
+}
+
+async function handleImport(
+  req,
+  res,
+  { capacity, name, blocksTable, srId, xapi }
+) {
+  // Timeout seems to be broken in Node 4.
+  // See https://github.com/nodejs/node/issues/3319
+  req.setTimeout(43200000) // 12 hours
+  try {
+    const vdi = await xapi.createVdi({
+      name_label: name,
+      size: capacity,
+      sr: srId && this.getObject(srId).$ref,
+    })
+    const vhdStream = await convertFromVMDK(req, blocksTable)
+    await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+    res.end(format.response(0, vdi.$id))
+  } catch (e) {
+    res.writeHead(500)
+    res.end(format.error(0, new Error(e.message)))
+  }
+}
+
+export async function importFromVmdk({ sr, capacity, name, blocksTable }) {
+  return {
+    $sendTo: await this.registerHttpRequest(handleImport, {
+      capacity,
+      name,
+      blocksTable,
+      srId: sr._xapiId,
+      xapi: this.getXapi(sr),
+    }),
+  }
+}
+
+importFromVmdk.params = {
+  sr: { type: 'string' },
+  capacity: { type: 'integer' },
+  name: { type: 'string' },
+  blocksTable: {
+    type: 'array',
+    items: {
+      type: 'integer',
+    },
+  },
+}
+importFromVmdk.resolve = {
+  sr: ['sr', 'SR', 'administrate'],
 }

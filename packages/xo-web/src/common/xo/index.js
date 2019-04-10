@@ -1459,6 +1459,23 @@ export const importVdi = async vdi => {
   )
 }
 
+export const importFromVmdk = (sr, capacity, name, blocksTable, file) => {
+  return _call('disk.importFromVmdk', { sr, capacity, name, blocksTable }).then(
+    ({ $sendTo }) =>
+      post($sendTo, file)
+        .then(res => {
+          if (res.status !== 200) {
+            throw res.status
+          }
+          success('vmdkImportSuccess', name)
+          return res.json().then(body => body.result)
+        })
+        .catch(err => {
+          error('vmdkImportSuccess', err)
+        })
+  )
+}
+
 export const importVms = (vms, sr) =>
   Promise.all(
     map(vms, ({ file, type, data }) =>

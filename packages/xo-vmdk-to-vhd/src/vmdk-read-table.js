@@ -11,6 +11,15 @@ const GRAIN_ADDRESS_OFFSET = 56
  * THIS CODE RUNS ON THE BROWSER
  */
 export default async function readVmdkGrainTable(fileAccessor) {
+  return (await readCapacityAndGrainTable(fileAccessor)).table
+}
+
+/***
+ *
+ * @param fileAccessor: (start, end) => ArrayBuffer
+ * @returns {Promise<{capacityBytes: number, tablePromise: Promise<[number]>}>}
+ */
+export async function readCapacityAndGrainTable(fileAccessor) {
   const getLongLong = (buffer, offset, name) => {
     if (buffer.byteLength < offset + 8) {
       throw new Error(
@@ -51,47 +60,52 @@ export default async function readVmdkGrainTable(fileAccessor) {
     getLongLong(grainAddrBuffer, 0, 'grain directory address') * SECTOR_SIZE
   const capacity =
     getLongLong(headerBuffer, DISK_CAPACITY_OFFSET, 'capacity') * SECTOR_SIZE
-  const grainSize =
-    getLongLong(headerBuffer, GRAIN_SIZE_OFFSET, 'grain size') * SECTOR_SIZE
-  const grainCount = Math.ceil(capacity / grainSize)
-  const numGTEsPerGT = new DataView(headerBuffer).getUint32(
-    NUM_GTE_PER_GT_OFFSET,
-    true
-  )
-  const grainTablePhysicalSize = numGTEsPerGT * 4
-  const grainDirectoryEntries = Math.ceil(grainCount / numGTEsPerGT)
-  const grainDirectoryPhysicalSize = grainDirectoryEntries * 4
-  const grainDir = new Uint32Array(
-    await fileAccessor(
-      grainDirPosBytes,
-      grainDirPosBytes + grainDirectoryPhysicalSize
+  async function readTable() {
+    const grainSize =
+      getLongLong(headerBuffer, GRAIN_SIZE_OFFSET, 'grain size') * SECTOR_SIZE
+    const grainCount = Math.ceil(capacity / grainSize)
+    const numGTEsPerGT = new DataView(headerBuffer).getUint32(
+      NUM_GTE_PER_GT_OFFSET,
+      true
     )
-  )
-  const cachedGrainTables = []
-  for (let i = 0; i < grainDirectoryEntries; i++) {
-    const grainTableAddr = grainDir[i] * SECTOR_SIZE
-    if (grainTableAddr !== 0) {
-      cachedGrainTables[i] = new Uint32Array(
-        await fileAccessor(
-          grainTableAddr,
-          grainTableAddr + grainTablePhysicalSize
-        )
+    const grainTablePhysicalSize = numGTEsPerGT * 4
+    const grainDirectoryEntries = Math.ceil(grainCount / numGTEsPerGT)
+    const grainDirectoryPhysicalSize = grainDirectoryEntries * 4
+    const grainDir = new Uint32Array(
+      await fileAccessor(
+        grainDirPosBytes,
+        grainDirPosBytes + grainDirectoryPhysicalSize
       )
-    }
-  }
-  const extractedGrainTable = []
-  for (let i = 0; i < grainCount; i++) {
-    const directoryEntry = Math.floor(i / numGTEsPerGT)
-    const grainTable = cachedGrainTables[directoryEntry]
-    if (grainTable !== undefined) {
-      const grainAddr = grainTable[i % numGTEsPerGT]
-      if (grainAddr !== 0) {
-        extractedGrainTable.push([i, grainAddr])
+    )
+    const cachedGrainTables = []
+    for (let i = 0; i < grainDirectoryEntries; i++) {
+      const grainTableAddr = grainDir[i] * SECTOR_SIZE
+      if (grainTableAddr !== 0) {
+        cachedGrainTables[i] = new Uint32Array(
+          await fileAccessor(
+            grainTableAddr,
+            grainTableAddr + grainTablePhysicalSize
+          )
+        )
       }
     }
+    const extractedGrainTable = []
+    for (let i = 0; i < grainCount; i++) {
+      const directoryEntry = Math.floor(i / numGTEsPerGT)
+      const grainTable = cachedGrainTables[directoryEntry]
+      if (grainTable !== undefined) {
+        const grainAddr = grainTable[i % numGTEsPerGT]
+        if (grainAddr !== 0) {
+          extractedGrainTable.push([i, grainAddr])
+        }
+      }
+    }
+    extractedGrainTable.sort(
+      ([i1, grainAddress1], [i2, grainAddress2]) =>
+        grainAddress1 - grainAddress2
+    )
+    return extractedGrainTable.map(([index, grainAddress]) => index * grainSize)
   }
-  extractedGrainTable.sort(
-    ([i1, grainAddress1], [i2, grainAddress2]) => grainAddress1 - grainAddress2
-  )
-  return extractedGrainTable.map(([index, grainAddress]) => index * grainSize)
+
+  return { tablePromise: readTable(), capacityBytes: capacity }
 }
