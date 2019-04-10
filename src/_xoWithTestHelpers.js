@@ -4,59 +4,56 @@ import Xo from "xo-lib";
 export default class XoWithTestHelpers extends Xo {
   constructor(opts) {
     super(opts);
-    this.userIds = [];
-    this.jobIds = [];
-    this.backupNgIds = [];
+    this._tempResourcesByClass = {
+      backupNg: [],
+      job: [],
+      user: [],
+    };
   }
 
-  async createUser(params) {
-    const userId = await super.call("user.create", params);
-    this.userIds.push(userId);
-    return userId;
+  async _createTempResources(class_, method, params) {
+    const result = await super.call(`${class_}.${method}`, params);
+    this._tempResourcesByClass[class_].push(result.id || result);
+    return result;
   }
 
-  async deleteAllUsers() {
+  async _deleteTempResources(class_, method, params) {
+    const tempResources = this._tempResourcesByClass[class_];
     await Promise.all(
-      this.userIds.map(id =>
-        super.call("user.delete", { id }).catch(error => console.error(error))
+      tempResources.map(id =>
+        super
+          .call(`${class_}.${method}`, { id, ...params })
+          .catch(error => console.error(error))
       )
     );
-    this.userIds.length = 0;
+    tempResources.length = 0;
+  }
+
+  createUser(params) {
+    return this._createTempResources("user", "create", params);
+  }
+
+  deleteAllUsers() {
+    return this._deleteTempResources("user", "delete");
   }
 
   async getUser(id) {
     return find(await super.call("user.getAll"), { id });
   }
 
-  async createTempJob(params) {
-    const jobId = await super.call("job.create", { job: params });
-    this.jobIds.push(jobId);
-    return jobId;
+  createTempJob(params) {
+    return this._createTempResources("job", "create", { job: params });
   }
 
-  async deleteTempJobs() {
-    await Promise.all(
-      this.jobIds.map(id =>
-        super.call("job.delete", { id }).catch(error => console.error(error))
-      )
-    );
-    this.jobIds.length = 0;
+  deleteTempJobs() {
+    return this._deleteTempResources("job", "delete");
   }
 
-  async createTempBackupNgJob(params) {
-    const backupNg = await super.call("backupNg.createJob", params);
-    this.backupNgIds.push(backupNg.id);
-    return backupNg;
+  createTempBackupNgJob(params) {
+    return this._createTempResources("backupNg", "createJob", params);
   }
 
-  async deleteTempBackupNgJobs() {
-    await Promise.all(
-      this.backupNgIds.map(id =>
-        super
-          .call("backupNg.deleteJob", { id })
-          .catch(error => console.error(error))
-      )
-    );
-    this.backupNgIds.length = 0;
+  deleteTempBackupNgJobs() {
+    return this._deleteTempResources("backupNg", "deleteJob");
   }
 }
