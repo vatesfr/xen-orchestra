@@ -43,6 +43,7 @@ import VmImport from './vm-import'
 import Xoa from './xoa'
 import XoaUpdates from './xoa/update'
 import Xosan from './xosan'
+import VmdkImport from './import-vmdk'
 
 import keymap, { help } from '../keymap'
 
@@ -93,6 +94,7 @@ const BODY_STYLE = {
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
+  'import-vmdk': VmdkImport,
 })
 @connectStore(state => {
   return {
