@@ -265,9 +265,9 @@ const TransferMergeTask = ({ task }) => {
 }
 
 const COMPONENT_BY_TYPE = {
-  VM: VmTask,
+  vm: VmTask,
   remote: RemoteTask,
-  SR: SrTask,
+  sr: SrTask,
   pool: PoolTask,
   xo: XoTask,
 }
@@ -282,7 +282,7 @@ const TaskLi = ({ className, task, ...props }) => {
   let Component
   if (
     (Component = defined(
-      () => COMPONENT_BY_TYPE[task.data.type],
+      () => COMPONENT_BY_TYPE[task.data.type.toLowerCase()],
       COMPONENT_BY_MESSAGE[task.message]
     )) === undefined
   ) {
