@@ -283,7 +283,9 @@ const TaskLi = ({ className, task, ...props }) => {
   if (
     (Component = defined(
       () => COMPONENT_BY_TYPE[task.data.type.toLowerCase()],
-      COMPONENT_BY_MESSAGE[task.message]
+
+      // work-around to not let defined handle the component as a safety function
+      () => COMPONENT_BY_MESSAGE[task.message]
     )) === undefined
   ) {
     return null
