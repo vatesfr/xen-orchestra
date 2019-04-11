@@ -24,7 +24,7 @@
 - xo-vmdk-to-vhd v0.1.7
 - vhd-lib v0.6.1
 - xo-server v5.39.0
-- xo-web v5.39.0
+- xo-web v5.39.1
 
 ## **5.33.1** (2019-04-04)
 
