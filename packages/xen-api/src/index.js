@@ -34,7 +34,7 @@ const EVENT_TIMEOUT = 60
 
 // ===================================================================
 
-const { defineProperties, freeze, keys: getKeys } = Object
+const { defineProperties, defineProperty, freeze, keys: getKeys } = Object
 
 // -------------------------------------------------------------------
 
@@ -1023,17 +1023,23 @@ export class Xapi extends EventEmitter {
 
       const getObjectByRef = ref => this._objectsByRef[ref]
 
-      Record = function(ref, data) {
-        defineProperties(this, {
-          $id: { value: data.uuid ?? ref },
-          $ref: { value: ref },
-          $xapi: { value: xapi },
-        })
-        for (let i = 0; i < nFields; ++i) {
-          const field = fields[i]
-          this[field] = data[field]
+      Record = defineProperty(
+        function(ref, data) {
+          defineProperties(this, {
+            $id: { value: data.uuid ?? ref },
+            $ref: { value: ref },
+            $xapi: { value: xapi },
+          })
+          for (let i = 0; i < nFields; ++i) {
+            const field = fields[i]
+            this[field] = data[field]
+          }
+        },
+        'name',
+        {
+          value: type,
         }
-      }
+      )
 
       const getters = { $pool: getPool }
       const props = { $type: type }

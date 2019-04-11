@@ -14,6 +14,7 @@ const MODES = {
   __proto__: null,
 
   compression: 'full',
+  fullInterval: 'delta',
 }
 
 const getSettingsWithNonDefaultValue = (mode, settings) =>
