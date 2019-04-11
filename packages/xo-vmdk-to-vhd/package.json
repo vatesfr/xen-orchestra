@@ -29,7 +29,7 @@
     "pipette": "^0.9.3",
     "promise-toolbox": "^0.12.1",
     "tmp": "^0.1.0",
-    "vhd-lib": "^0.6.0"
+    "vhd-lib": "^0.6.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
