@@ -7,7 +7,6 @@ import Icon from 'icon'
 import Link from 'link'
 import moment from 'moment-timezone'
 import React from 'react'
-import Select from 'form/select'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import UserError from 'user-error'
@@ -42,6 +41,7 @@ import {
 } from 'xo'
 
 import NewSchedule from './new-schedule'
+import ReportWhen from './_reportWhen'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
@@ -114,23 +114,6 @@ const destructVmsPattern = pattern =>
     : {
         vms: destructPattern(pattern),
       }
-
-const REPORT_WHEN_FILTER_OPTIONS = [
-  {
-    label: 'reportWhenAlways',
-    value: 'always',
-  },
-  {
-    label: 'reportWhenFailure',
-    value: 'failure',
-  },
-  {
-    label: 'reportWhenNever',
-    value: 'never',
-  },
-]
-
-const getOptionRenderer = ({ label }) => <span>{_(label)}</span>
 
 const createDoesRetentionExist = name => {
   const predicate = setting => setting[name] > 0
@@ -541,7 +524,6 @@ export default decorate([
       formId: generateId,
       inputConcurrencyId: generateId,
       inputFullIntervalId: generateId,
-      inputReportWhenId: generateId,
       inputTimeoutId: generateId,
 
       vmsPattern: ({ _vmsPattern }, { job }) =>
@@ -884,33 +866,12 @@ export default decorate([
                   </ActionButton>
                 </CardHeader>
                 <CardBlock>
-                  <FormGroup>
-                    <label htmlFor={state.inputReportWhenId}>
-                      <strong>{_('reportWhen')}</strong>
-                    </label>{' '}
-                    <Tooltip content={_('pluginsWarning')}>
-                      <Link
-                        className='btn btn-primary btn-sm'
-                        target='_blank'
-                        to='/settings/plugins'
-                      >
-                        <Icon icon='menu-settings-plugins' />{' '}
-                        <strong>{_('pluginsSettings')}</strong>
-                      </Link>
-                    </Tooltip>
-                    <Select
-                      id={state.inputReportWhenId}
-                      labelKey='label'
-                      onChange={effects.setReportWhen}
-                      optionRenderer={getOptionRenderer}
-                      options={REPORT_WHEN_FILTER_OPTIONS}
-                      required
-                      //  Handle improper value introduced by:
-                      //  https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
-                      value={reportWhen === 'Never' ? 'never' : reportWhen}
-                      valueKey='value'
-                    />
-                  </FormGroup>
+                  <ReportWhen
+                    onChange={effects.setReportWhen}
+                    //  Handle improper value introduced by:
+                    //  https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
+                    value={reportWhen === 'Never' ? 'never' : reportWhen}
+                  />
                   {state.displayAdvancedSettings && (
                     <div>
                       <FormGroup>
