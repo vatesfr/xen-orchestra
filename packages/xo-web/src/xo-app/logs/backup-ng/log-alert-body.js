@@ -283,7 +283,7 @@ const TaskLi = ({ className, task, ...props }) => {
   if (
     (Component = defined(
       () => COMPONENT_BY_TYPE[task.data.type.toLowerCase()],
-      COMPONENT_BY_MESSAGE[task.message]
+      () => COMPONENT_BY_MESSAGE[task.message]
     )) === undefined
   ) {
     return null
