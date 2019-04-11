@@ -152,7 +152,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       return
     }
 
-    const { vbds, vm } = this.props
+    const { pools, vbds, vm } = this.props
     const intraPool = vm.$pool === host.$pool
 
     // Intra-pool
@@ -178,7 +178,7 @@ export default class MigrateVmModalBody extends BaseComponent {
         intraPool,
         mapVifsNetworks: undefined,
         migrationNetwork: undefined,
-        targetSrs: {},
+        targetSrs: { mainSr: pools[host.$pool].default_SR },
       })
       return
     }

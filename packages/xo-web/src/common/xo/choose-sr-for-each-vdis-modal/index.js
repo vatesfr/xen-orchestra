@@ -70,7 +70,8 @@ export default class ChooseSrForEachVdisModal extends Component {
         {props.vdis != null && mainSr != null && (
           <Collapsible
             buttonText={_('chooseSrForEachVdisModalSelectSr')}
-            collapsible={props.vdis.length >= 3}
+            collapsible
+            size='small'
           >
             <br />
             <Container>
