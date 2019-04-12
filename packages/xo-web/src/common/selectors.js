@@ -275,13 +275,13 @@ const _getPermissionsPredicate = invoke(() => {
     }
   )
 
-  return state => {
+  return (state, props, useResourceSet) => {
     const user = getUser(state)
     if (!user) {
       return false
     }
 
-    if (user.permission === 'admin') {
+    if (user.permission === 'admin' || useResourceSet) {
       return // No predicate means no filtering.
     }
 

@@ -79,14 +79,15 @@ import {
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
   resolveIds,
-  resolveResourceSet,
 } from 'utils'
 import {
   createFilter,
-  createSelector,
+  createFinder,
   createGetObject,
   createGetObjectsOfType,
+  createSelector,
   getIsPoolAdmin,
+  getResolvedResourceSets,
   getUser,
 } from 'selectors'
 
@@ -221,25 +222,39 @@ class Vif extends BaseComponent {
   resourceSets: subscribeResourceSets,
   user: subscribeCurrentUser,
 })
-@connectStore(() => ({
-  isAdmin: createSelector(
+@connectStore(() => {
+  const getIsAdmin = createSelector(
     getUser,
     user => user && user.permission === 'admin'
-  ),
-  isPoolAdmin: getIsPoolAdmin,
-  networks: createGetObjectsOfType('network').sort(),
-  pool: createGetObject((_, props) => props.location.query.pool),
-  pools: createGetObjectsOfType('pool'),
-  templates: createGetObjectsOfType('VM-template').sort(),
-  userSshKeys: createSelector(
+  )
+  const getNetworks = createGetObjectsOfType('network').sort()
+  const getPool = createGetObject((_, props) => props.location.query.pool)
+  const getPools = createGetObjectsOfType('pool')
+  const getSrs = createGetObjectsOfType('SR')
+  const getTemplates = createGetObjectsOfType('VM-template').sort()
+  const getUserSshKeys = createSelector(
     (_, props) => {
       const user = props.user
       return user && user.preferences && user.preferences.sshKeys
     },
     keys => keys
-  ),
-  srs: createGetObjectsOfType('SR'),
-}))
+  )
+  return (state, props) => ({
+    isAdmin: getIsAdmin(state, props),
+    isPoolAdmin: getIsPoolAdmin(state, props),
+    networks: getNetworks(state, props),
+    pool: getPool(state, props),
+    pools: getPools(state, props),
+    resolvedResourceSets: getResolvedResourceSets(
+      state,
+      props,
+      props.pool === undefined // to get objects as a self user
+    ),
+    srs: getSrs(state, props),
+    templates: getTemplates(state, props),
+    userSshKeys: getUserSshKeys(state, props),
+  })
+})
 @injectIntl
 export default class NewVm extends BaseComponent {
   static contextTypes = {
@@ -259,19 +274,24 @@ export default class NewVm extends BaseComponent {
     this._reset()
   }
 
-  _getResourceSet = () => {
-    const {
-      location: {
-        query: { resourceSet: resourceSetId },
-      },
-      resourceSets,
-    } = this.props
-    return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
-  }
+  _getResourceSet = createFinder(
+    () => this.props.resourceSets,
+    createSelector(
+      () => this.props.location.query.resourceSet,
+      resourceSetId => resourceSet =>
+        resourceSet !== undefined ? resourceSetId === resourceSet.id : undefined
+    )
+  )
 
-  _getResolvedResourceSet = createSelector(
-    this._getResourceSet,
-    resolveResourceSet
+  _getResolvedResourceSet = createFinder(
+    () => this.props.resolvedResourceSets,
+    createSelector(
+      this._getResourceSet,
+      resourceSet =>
+        resourceSet !== undefined
+          ? resolvedResourceSet => resolvedResourceSet.id === resourceSet.id
+          : false
+    )
   )
 
   // Utils -----------------------------------------------------------------------
