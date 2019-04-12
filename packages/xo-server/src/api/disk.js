@@ -203,7 +203,7 @@ async function handleImport(req, res, { type, name, vmdkData, srId, xapi }) {
 }
 
 // type is 'vhd' or 'vmdk'
-export async function importDisk({ sr, type, name, vmdkData }) {
+async function importDisk({ sr, type, name, vmdkData }) {
   return {
     $sendTo: await this.registerHttpRequest(handleImport, {
       type,
@@ -214,6 +214,7 @@ export async function importDisk({ sr, type, name, vmdkData }) {
     }),
   }
 }
+export { importDisk as import }
 
 importDisk.params = {
   sr: { type: 'string' },
