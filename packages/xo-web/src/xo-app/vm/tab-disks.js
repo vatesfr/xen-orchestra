@@ -441,7 +441,7 @@ class AttachDisk extends Component {
 
   _selectVdi = vdi => this.setState({ vdi })
 
-  _isVdiSrOnSameHost = createSelector(
+  _checkSr = createSelector(
     () => this.props.checkSr,
     () => this.props.srs,
     () => this.state.vdi,
@@ -465,12 +465,12 @@ class AttachDisk extends Component {
         mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
       }).then(onClose)
 
-    return this._isVdiSrOnSameHost()
+    return this._checkSr()
       ? _attachDisktoVm()
       : confirm({
           title: _('attachDiskModalTitle'),
           body: _('attachDiskModalMessage'),
-        }).then(() => _attachDisktoVm())
+        }).then(_attachDisktoVm)
   }
 
   render() {
@@ -921,7 +921,7 @@ export default class TabDisks extends Component {
             {attachDisk && (
               <div>
                 <AttachDisk
-                  checkSr={this._isSrOnSameHost()}
+                  checkSr={this._getCheckSr()}
                   vm={vm}
                   vbds={vbds}
                   onClose={this._toggleAttachDisk}
