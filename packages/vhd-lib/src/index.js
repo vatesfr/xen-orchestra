@@ -14,3 +14,4 @@ export { default as mergeVhd } from './merge'
 export {
   default as createVhdStreamWithLength,
 } from './createVhdStreamWithLength'
+export { default as peekFooterFromVhdStream } from './peekFooterFromVhdStream'

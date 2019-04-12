@@ -15,6 +15,7 @@ export default class VmdkImport extends Component {
     super(props)
     this.state.sr = 'a5954951-3dfa-42b8-803f-4bc270b22a0b'
   }
+
   /* global FileReader */
   async _parseVmdk(file) {
     return readCapacityAndGrainTable(async (start, end) => {
@@ -23,6 +24,7 @@ export default class VmdkImport extends Component {
       return (await fromEvent(reader, 'loadend')).target.result
     })
   }
+
   /* eslint-disable no-console */
   _handleDrop = async files => {
     console.log('dropped', files)
@@ -31,19 +33,25 @@ export default class VmdkImport extends Component {
         const { name } = file
         const extIndex = name.lastIndexOf('.')
         let type
-
         if (
           extIndex >= 0 &&
           (type = name.slice(extIndex + 1)) &&
-          type === 'vmdk'
+          (type === 'vmdk' || type === 'vhd')
         ) {
-          const { capacityBytes, tablePromise } = await this._parseVmdk(file)
-          console.log('parsed file', name, capacityBytes, tablePromise)
+          let vmdkData
+          if (type === 'vmdk') {
+            const parsed = await this._parseVmdk(file)
+            console.log('parsed file', name, parsed.capacityBytes)
+            vmdkData = {
+              blocksTable: await parsed.tablePromise,
+              capacity: parsed.capacityBytes,
+            }
+          }
           const res = await importFromVmdk(
             this.state.sr,
-            capacityBytes,
+            type,
             name,
-            await tablePromise,
+            vmdkData,
             file
           )
           console.log('imported ', res)
@@ -83,7 +91,7 @@ export default class VmdkImport extends Component {
           <FormGrid.Row>
             <Dropzone
               onDrop={this._handleDrop}
-              message='Drop your VMDK file here'
+              message='Drop your VHD or VMDK file here'
             />
           </FormGrid.Row>
         </form>
