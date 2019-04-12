@@ -242,6 +242,7 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
+  labelDisk: 'Disk',
   labelMerge: 'Merge',
   labelSize: 'Size',
   labelSpeed: 'Speed',
@@ -252,6 +253,7 @@ const messages = {
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
+  formDescription: 'Description',
   formEdit: 'Edit',
   formId: 'ID',
   formName: 'Name',
@@ -1426,6 +1428,11 @@ const messages = {
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
+
+  // ---- Disk import ---
+  importDisksList: 'Drop VMDK or VHD files here to import disks.',
+  importFileType: '{type} file:',
+  importToSr: 'To SR',
 
   // ---- Tasks ---
   cancelTask: 'Cancel',

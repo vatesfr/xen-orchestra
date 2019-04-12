@@ -1431,23 +1431,6 @@ export const importVdi = async vdi => {
   )
 }
 
-export const importFromVmdk = (sr, type, name, vmdkData, file) => {
-  return _call('disk.import', { sr, type, name, vmdkData }).then(
-    ({ $sendTo }) =>
-      post($sendTo, file)
-        .then(res => {
-          if (res.status !== 200) {
-            throw res.status
-          }
-          success('vmdkImportSuccess', name)
-          return res.json().then(body => body.result)
-        })
-        .catch(err => {
-          error('vmdkImportSuccess', err)
-        })
-  )
-}
-
 export const importVms = (vms, sr) =>
   Promise.all(
     map(vms, ({ file, type, data }) =>
@@ -1456,6 +1439,37 @@ export const importVms = (vms, sr) =>
       })
     )
   ).then(ids => ids.filter(_ => _ !== undefined))
+
+export const importDisk = ({ description, file, name, type, vmdkData }, sr) =>
+  _call('disk.import', {
+    description,
+    name,
+    sr: resolveId(sr),
+    type,
+    vmdkData,
+  }).then(({ $sendTo }) => {
+    console.log('Import disk ')
+    post($sendTo, file)
+      .then(res => {
+        if (res.status !== 200) {
+          throw res.status
+        }
+        success('vmdkImportSuccess', name)
+        return res.json().then(body => body.result)
+      })
+      .catch(err => {
+        error('vmdkImportSuccess', err)
+      })
+  })
+
+export const importDisks = (disks, sr) =>
+  Promise.all(
+    map(disks, disk =>
+      importDisk(disk, sr).catch(err => {
+        console.warn('importDisks', disk.file.name, err)
+      })
+    )
+  )
 
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
 export const exportVm = vm =>

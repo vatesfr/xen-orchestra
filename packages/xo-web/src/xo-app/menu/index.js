@@ -386,7 +386,7 @@ export default class Menu extends Component {
             label: 'newServerPage',
           },
           !noOperatablePools && {
-            to: '/vms/import',
+            to: '/import/vm',
             icon: 'menu-new-import',
             label: 'newImport',
           },
