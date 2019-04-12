@@ -172,6 +172,7 @@ resize.resolve = {
 async function handleImport(req, res, { type, name, vmdkData, srId, xapi }) {
   req.setTimeout(43200000) // 12 hours
   try {
+    req.length = req.headers['content-length']
     let vhdStream, size
     if (type === 'vmdk') {
       vhdStream = await convertFromVMDK(req, vmdkData.blocksTable)
@@ -182,18 +183,16 @@ async function handleImport(req, res, { type, name, vmdkData, srId, xapi }) {
       const footer = await peekFooterFromVhdStream(req)
       size = footer.currentSize
     }
-
+    if (vhdStream === undefined) {
+      throw new Error(
+        `Unknown disk type, expected "vhd" or "vmdk", got ${type}`
+      )
+    }
     const vdi = await xapi.createVdi({
       name_label: name,
       size,
       sr: srId && this.getObject(srId).$ref,
     })
-    req.length = req.headers['content-length']
-
-    if (vhdStream === undefined)
-      throw new Error(
-        `Unknown disk type, expected "vhd" or "vmdk", got ${type}`
-      )
     await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
     res.end(format.response(0, vdi.$id))
   } catch (e) {
@@ -214,6 +213,7 @@ async function importDisk({ sr, type, name, vmdkData }) {
     }),
   }
 }
+
 export { importDisk as import }
 
 importDisk.params = {
