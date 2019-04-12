@@ -1,6 +1,5 @@
 import _ from 'intl'
 import decorate from 'apply-decorators'
-import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
@@ -35,9 +34,9 @@ export default decorate([
           name: value.trim() === '' ? null : value,
         })
       },
-      setRetention: ({ setSchedule }, value, { name }) => () => {
+      setRetention({ setSchedule }, value, { name }) {
         setSchedule({
-          [name]: defined(value, null),
+          [name]: value,
         })
       },
     },
@@ -66,7 +65,6 @@ export default decorate([
           value={schedule.name}
         />
       </FormGroup>
-      {/* retentions effects are defined on initialize() */}
       {retentions.map(({ name, valuePath }) => (
         <FormGroup key={valuePath}>
           <label>
@@ -76,6 +74,7 @@ export default decorate([
             data-name={valuePath}
             min='0'
             onChange={effects.setRetention}
+            required
             value={schedule[valuePath]}
           />
         </FormGroup>

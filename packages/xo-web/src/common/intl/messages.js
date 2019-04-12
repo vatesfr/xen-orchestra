@@ -1609,7 +1609,7 @@ const messages = {
   migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
   migrateVmNoDefaultSrError: 'No default SR',
   migrateVmNotConnectedDefaultSrError: 'Default SR not connected to host',
-  chooseSrForEachVdisModalSelectSr: 'For each VDI, select an SR:',
+  chooseSrForEachVdisModalSelectSr: 'For each VDI, select an SR (optional)',
   chooseSrForEachVdisModalMainSr: 'Select main SR…',
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',

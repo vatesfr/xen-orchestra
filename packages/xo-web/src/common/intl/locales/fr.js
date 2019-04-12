@@ -3016,7 +3016,8 @@ export default {
     "Le SR par défaut n'est pas connecté à l'hôte",
 
   // Original text: "For each VDI, select an SR:"
-  chooseSrForEachVdisModalSelectSr: 'Pour chaque VDI, sélectionner un SR :',
+  chooseSrForEachVdisModalSelectSr:
+    'Pour chaque VDI, sélectionner un SR (optionnel)',
 
   // Original text: "Select main SR…"
   chooseSrForEachVdisModalMainSr: 'Sélectionner le SR principal…',

@@ -213,6 +213,8 @@ export const getStatus = state => state.status
 
 export const getUser = state => state.user
 
+export const getXoaState = state => state.xoaUpdaterState
+
 export const getCheckPermissions = invoke(() => {
   const getPredicate = create(
     state => state.permissions,
