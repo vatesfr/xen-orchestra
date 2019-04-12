@@ -1,8 +1,9 @@
 import createLogger from '@xen-orchestra/log'
 import pump from 'pump'
+import convertFromVMDK from 'xo-vmdk-to-vhd'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
-import convertFromVMDK from 'xo-vmdk-to-vhd'
+import { peekFooterFromVhdStream } from 'vhd-lib'
 
 import { parseSize } from '../utils'
 import { VDI_FORMAT_VHD } from '../xapi'
@@ -168,21 +169,33 @@ resize.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
 }
 
-async function handleImport(
-  req,
-  res,
-  { capacity, name, blocksTable, srId, xapi }
-) {
+async function handleImport(req, res, { type, name, vmdkData, srId, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
   try {
+    let vhdStream, size
+    if (type === 'vmdk') {
+      vhdStream = await convertFromVMDK(req, vmdkData.blocksTable)
+      size = vmdkData.size
+    }
+    if (type === 'vhd') {
+      vhdStream = req
+      const footer = await peekFooterFromVhdStream(req)
+      size = footer.currentSize
+    }
+
     const vdi = await xapi.createVdi({
       name_label: name,
-      size: capacity,
+      size,
       sr: srId && this.getObject(srId).$ref,
     })
-    const vhdStream = await convertFromVMDK(req, blocksTable)
+    req.length = req.headers['content-length']
+
+    if (vhdStream === undefined)
+      throw new Error(
+        `Unknown disk type, expected "vhd" or "vmdk", got ${type}`
+      )
     await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
     res.end(format.response(0, vdi.$id))
   } catch (e) {
@@ -191,29 +204,37 @@ async function handleImport(
   }
 }
 
-export async function importFromVmdk({ sr, capacity, name, blocksTable }) {
+// type is 'vhd' or 'vmdk'
+export async function importDisk({ sr, type, name, vmdkData }) {
   return {
     $sendTo: await this.registerHttpRequest(handleImport, {
-      capacity,
+      type,
       name,
-      blocksTable,
+      vmdkData,
       srId: sr._xapiId,
       xapi: this.getXapi(sr),
     }),
   }
 }
 
-importFromVmdk.params = {
+importDisk.params = {
   sr: { type: 'string' },
-  capacity: { type: 'integer' },
+  type: { type: 'string' },
   name: { type: 'string' },
-  blocksTable: {
-    type: 'array',
-    items: {
-      type: 'integer',
+  vmdkData: {
+    type: 'object',
+    optional: true,
+    properties: {
+      capacity: { type: 'integer' },
+      blocksTable: {
+        type: 'array',
+        items: {
+          type: 'integer',
+        },
+      },
     },
   },
 }
-importFromVmdk.resolve = {
+importDisk.resolve = {
   sr: ['sr', 'SR', 'administrate'],
 }

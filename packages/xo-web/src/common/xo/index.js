@@ -1459,8 +1459,8 @@ export const importVdi = async vdi => {
   )
 }
 
-export const importFromVmdk = (sr, capacity, name, blocksTable, file) => {
-  return _call('disk.importFromVmdk', { sr, capacity, name, blocksTable }).then(
+export const importFromVmdk = (sr, type, name, vmdkData, file) => {
+  return _call('disk.importDisk', { sr, type, name, vmdkData }).then(
     ({ $sendTo }) =>
       post($sendTo, file)
         .then(res => {
