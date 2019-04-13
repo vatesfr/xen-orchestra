@@ -1055,8 +1055,8 @@ const messages = {
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet:
     'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
-  warningSr:
-    'The SR{n, plural, one {} other {s}}  must either be shared or on the same host for the VM to be able to start.',
+  warningVdiSr:
+    "The VDIs' SRs  must either be shared or on the same host for the VM to be able to start.",
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',

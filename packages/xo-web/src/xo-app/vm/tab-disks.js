@@ -248,10 +248,10 @@ const parseBootOrder = bootOrder => {
   return order
 }
 
-const WarningSr = ({ n }) => (
+const WARNING_VDI_SR = (
   <div>
     <span className='text-danger'>
-      <Icon icon='alarm' /> {_('warningSr', { n })}
+      <Icon icon='alarm' /> {_('warningVdiSr')}
     </span>
   </div>
 )
@@ -385,7 +385,7 @@ class NewDisk extends Component {
             </ActionButton>
           </span>
         </fieldset>
-        {!this._checkSr() && <WarningSr n={1} />}
+        {!this._checkSr() && WARNING_VDI_SR}
         {resourceSet != null &&
           diskLimit != null &&
           (diskLimit < size ? (
@@ -668,9 +668,7 @@ class MigrateVdiModalBody extends Component {
         </SingleLineRow>
         {!this._checkSr() && (
           <SingleLineRow>
-            <Col>
-              <WarningSr n={1} />
-            </Col>
+            <Col>{WARNING_VDI_SR}</Col>
           </SingleLineRow>
         )}
       </Container>
@@ -912,7 +910,7 @@ export default class TabDisks extends Component {
           </Col>
         </Row>
         <Row>
-          {!this._areSrsOnSameHost() && <WarningSr n={vdis.length} />}
+          {!this._areSrsOnSameHost() && WARNING_VDI_SR}
           <Col>
             <SortedTable
               actions={ACTIONS}
