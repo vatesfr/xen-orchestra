@@ -468,8 +468,8 @@ class AttachDisk extends Component {
     return this._checkSr()
       ? _attachDisktoVm()
       : confirm({
-          title: _('attachDiskModalTitle'),
-          body: _('attachDiskModalMessage'),
+          title: _('attachDisk'),
+          body: _('warningVdiSr'),
         }).then(_attachDisktoVm)
   }
 
