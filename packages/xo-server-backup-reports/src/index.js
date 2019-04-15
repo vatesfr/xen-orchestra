@@ -259,19 +259,29 @@ class BackupReportsXoPlugin {
     this._xo.on('job:terminated', this._report)
   }
 
-  test({ runId }) {
-    return this._wrapper(undefined, undefined, undefined, runId, true)
+  async test({ runId }) {
+    const xo = this._xo
+
+    const log = await xo.getBackupNgLogs(runId)
+    if (log === undefined) {
+      throw new Error(`no log found with runId=${JSON.stringify(runId)}`)
+    }
+
+    const job = await xo.getJob(log.jobId)
+    return job.type === 'backup'
+      ? this._backupNgListener(log, undefined, runId)
+      : this._metadataBackupListener(log, undefined, runId)
   }
 
   unload() {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  async _wrapper(status, job, schedule, runJobId, test) {
+  async _wrapper(status, job, schedule, runJobId) {
     const xo = this._xo
 
     try {
-      if (test || job.type === 'backup' || job.type === 'metadataBackup') {
+      if (job.type === 'backup' || job.type === 'metadataBackup') {
         const log = await xo.getBackupNgLogs(runJobId)
         if (log === undefined) {
           throw new Error(`no log found with runId=${JSON.stringify(runJobId)}`)
@@ -283,10 +293,6 @@ class BackupReportsXoPlugin {
           (reportWhen === 'failure' && log.status === 'success')
         ) {
           return
-        }
-
-        if (test) {
-          job = await xo.getJob(log.jobId)
         }
 
         return job.type === 'backup'
