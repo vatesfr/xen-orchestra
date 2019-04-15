@@ -1,5 +1,5 @@
 import createLogger from '@xen-orchestra/log'
-import defined, { get } from '@xen-orchestra/defined'
+import defined from '@xen-orchestra/defined'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 import { forEach, groupBy, startCase } from 'lodash'
@@ -50,7 +50,6 @@ export const testSchema = {
 
 // ===================================================================
 
-const TAB = '  '
 const UNKNOWN_ITEM = 'Unknown'
 
 const ICON_FAILURE = '🚨'
@@ -103,12 +102,13 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
+const INDENT = '  '
 const createGetTemporalDataMarkdown = formatDate => (
   start,
   end,
   nbIndent = 0
 ) => {
-  const indent = TAB.repeat(nbIndent)
+  const indent = INDENT.repeat(nbIndent)
 
   const markdown = [`${indent}- **Start time**: ${formatDate(start)}`]
   if (end !== undefined) {
@@ -126,7 +126,7 @@ const addWarnings = (text, warnings, nbIndent = 0) => {
     return
   }
 
-  const indent = TAB.repeat(nbIndent)
+  const indent = INDENT.repeat(nbIndent)
   warnings.forEach(({ message }) => {
     text.push(`${indent}- **${ICON_WARNING} ${message}**`)
   })
@@ -136,8 +136,8 @@ const addWarnings = (text, warnings, nbIndent = 0) => {
 
 const TITLE_BY_STATUS = {
   failure: n => `## ${n} Failure${n === 1 ? '' : 's'}`,
-  interrupted: n => `## ${n} Interrupted`,
-  skipped: n => `## ${n} Skipped`,
+  interrupted: n => `## ${n} Interrupt${n === 1 ? '' : 's'}`,
+  skipped: n => `## ${n} Skip${n === 1 ? '' : 's'}`,
   success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
 }
 
@@ -156,7 +156,7 @@ const getTemporalDataMarkdown = (end, start, formatDate) => {
 const getWarningsMarkdown = warnings =>
   warnings.map(({ message }) => `- **${ICON_WARNING} ${message}**`)
 
-const getError = task => {
+const getErrorMarkdown = task => {
   let message
   if (
     task.status === 'success' ||
@@ -170,7 +170,7 @@ const getError = task => {
   return `- **${label}**: ${message}`
 }
 
-const poolMarkdown = (task, { formatDate }) => {
+const getPoolMarkdown = (task, { formatDate }) => {
   const { pool, poolMaster = {} } = task.data
 
   const name = pool.name_label || poolMaster.name_label || UNKNOWN_ITEM
@@ -179,7 +179,7 @@ const poolMarkdown = (task, { formatDate }) => {
     ...getTemporalDataMarkdown(task.end, task.start, formatDate),
   ]
 
-  const error = getError(task)
+  const error = getErrorMarkdown(task)
   if (error !== undefined) {
     body.push(error)
   }
@@ -190,10 +190,10 @@ const poolMarkdown = (task, { formatDate }) => {
   }
 }
 
-const xoMarkdown = (task, { formatDate, jobName }) => {
+const getXoMarkdown = (task, { formatDate, jobName }) => {
   const body = getTemporalDataMarkdown(task.end, task.start, formatDate)
 
-  const error = getError(task)
+  const error = getErrorMarkdown(task)
   if (error !== undefined) {
     body.push(error)
   }
@@ -201,7 +201,7 @@ const xoMarkdown = (task, { formatDate, jobName }) => {
   return { body, title: `[XO] ${jobName}` }
 }
 
-const remoteMarkdown = async (task, { formatDate, xo }) => {
+const getRemoteMarkdown = async (task, { formatDate, xo }) => {
   const id = task.data.id
 
   const name = await xo.getRemote(id).then(
@@ -216,7 +216,7 @@ const remoteMarkdown = async (task, { formatDate, xo }) => {
     ...getTemporalDataMarkdown(task.end, task.start, formatDate),
   ]
 
-  const error = getError(task)
+  const error = getErrorMarkdown(task)
   if (error !== undefined) {
     body.push(error)
   }
@@ -228,17 +228,17 @@ const remoteMarkdown = async (task, { formatDate, xo }) => {
 }
 
 const getMarkdown = async (task, props) => {
-  const type = get(() => task.data.type)
+  const type = task.data?.type
   if (type === 'pool') {
-    return poolMarkdown(task, props)
+    return getPoolMarkdown(task, props)
   }
 
   if (type === 'xo') {
-    return xoMarkdown(task, props)
+    return getXoMarkdown(task, props)
   }
 
   if (type === 'remote') {
-    return remoteMarkdown(task, props)
+    return getRemoteMarkdown(task, props)
   }
 }
 
@@ -340,7 +340,7 @@ class BackupReportsXoPlugin {
       n !== 0 && `- **Successes**: ${nSuccesses} / ${n}`,
       log.warnings !== undefined &&
         getWarningsMarkdown(log.warnings).join('\n'),
-      getError(log),
+      getErrorMarkdown(log),
     ]
 
     const nagiosText = []
@@ -363,7 +363,12 @@ class BackupReportsXoPlugin {
         }
 
         const { title, body } = taskMarkdown
-        markdown.push('', `### ${title}`, '', `${TAB}${body.join(`\n${TAB}`)}`)
+        markdown.push(
+          '',
+          `### ${title}`,
+          '',
+          `${INDENT}${body.join(`\n${INDENT}`)}`
+        )
 
         if (task.status !== 'success') {
           nagiosText.push(`[${task.status}] ${taskMarkdown.title}`)
@@ -371,7 +376,7 @@ class BackupReportsXoPlugin {
 
         if (task.warnings !== undefined) {
           markdown.push(
-            `${TAB}${getWarningsMarkdown(task.warnings).join(`\n${TAB}`)}`
+            `${INDENT}${getWarningsMarkdown(task.warnings).join(`\n${INDENT}`)}`
           )
         }
 
@@ -383,14 +388,14 @@ class BackupReportsXoPlugin {
 
           const { title, body } = taskMarkdown
           markdown.push(
-            `${TAB.repeat(2)}- **${title}** ${STATUS_ICON[subTask.status]}`,
-            `${TAB.repeat(3)}${body.join(`\n${TAB.repeat(3)}`)}`
+            `${INDENT.repeat(2)}- **${title}** ${STATUS_ICON[subTask.status]}`,
+            `${INDENT.repeat(3)}${body.join(`\n${INDENT.repeat(3)}`)}`
           )
 
           if (subTask.warnings !== undefined) {
             markdown.push(
-              `${TAB.repeat(2)}${getWarningsMarkdown(subTask.warnings).join(
-                `\n${TAB.repeat(2)}`
+              `${INDENT.repeat(2)}${getWarningsMarkdown(subTask.warnings).join(
+                `\n${INDENT.repeat(2)}`
               )}`
             )
           }
@@ -503,9 +508,7 @@ class BackupReportsXoPlugin {
         }
 
         const icon = STATUS_ICON[subTaskLog.status]
-        const errorMessage = `    - **Error**: ${get(
-          () => subTaskLog.result.message
-        )}`
+        const errorMessage = `    - **Error**: ${subTaskLog.result?.message}`
 
         if (subTaskLog.message === 'snapshot') {
           snapshotText.push(
@@ -570,9 +573,9 @@ class BackupReportsXoPlugin {
                 operationLog.end - operationLog.start
               )}`
             )
-          } else if (get(() => operationLog.result.message) !== undefined) {
+          } else if (operationLog.result?.message !== undefined) {
             operationInfoText.push(
-              `      - **Error**: ${get(() => operationLog.result.message)}`
+              `      - **Error**: ${operationLog.result?.message}`
             )
           }
           const operationText = [
@@ -582,11 +585,11 @@ class BackupReportsXoPlugin {
             ...getTemporalDataMarkdown(operationLog.start, operationLog.end, 3),
             ...operationInfoText,
           ].join('\n')
-          if (get(() => subTaskLog.data.type) === 'remote') {
+          if (subTaskLog.data?.type === 'remote') {
             remotesText.push(operationText)
             remotesText.join('\n')
           }
-          if (get(() => subTaskLog.data.type) === 'SR') {
+          if (subTaskLog.data?.type === 'SR') {
             srsText.push(operationText)
             srsText.join('\n')
           }
