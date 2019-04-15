@@ -30,8 +30,9 @@ const getLongLong = (buffer, offset, name) => {
 }
 
 /**
+ * the grain table is the array of LBAs (in byte, not in sector) ordered by
+ * their position in the VDMK file
  *
- * the grain table is the array of LBAs (in byte, not in sector) ordered by their position in the VDMK file
  * THIS CODE RUNS ON THE BROWSER
  */
 export default async function readVmdkGrainTable(fileAccessor) {
@@ -59,10 +60,12 @@ export async function readCapacityAndGrainTable(fileAccessor) {
       GRAIN_ADDRESS_OFFSET + 8
     )
   }
+
   const grainDirPosBytes =
     getLongLong(grainAddrBuffer, 0, 'grain directory address') * SECTOR_SIZE
   const capacity =
     getLongLong(headerBuffer, DISK_CAPACITY_OFFSET, 'capacity') * SECTOR_SIZE
+
   async function readTable() {
     const grainSize =
       getLongLong(headerBuffer, GRAIN_SIZE_OFFSET, 'grain size') * SECTOR_SIZE
