@@ -49,9 +49,7 @@ export async function readCapacityAndGrainTable(fileAccessor) {
     GRAIN_ADDRESS_OFFSET,
     GRAIN_ADDRESS_OFFSET + 8
   )
-  if (
-    new Int8Array(grainAddrBuffer).reduce((acc, val) => acc && val === -1, true)
-  ) {
+  if (new Int8Array(grainAddrBuffer).every(val => val === -1)) {
     headerBuffer = await fileAccessor(
       FOOTER_POSITION,
       FOOTER_POSITION + HEADER_SIZE
