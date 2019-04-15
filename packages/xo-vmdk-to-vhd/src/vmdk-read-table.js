@@ -5,6 +5,30 @@ const DISK_CAPACITY_OFFSET = 12
 const GRAIN_SIZE_OFFSET = 20
 const NUM_GTE_PER_GT_OFFSET = 44
 const GRAIN_ADDRESS_OFFSET = 56
+
+const MANTISSA_BITS_IN_DOUBLE = 53
+const getLongLong = (buffer, offset, name) => {
+  if (buffer.byteLength < offset + 8) {
+    throw new Error(
+      `buffer ${name} is too short, expecting ${offset + 8} minimum, got ${
+        buffer.byteLength
+      }`
+    )
+  }
+
+  const dataView = new DataView(buffer)
+
+  const highBits = dataView.getUint32(offset + 4, true)
+  if (highBits >= Math.pow(2, MANTISSA_BITS_IN_DOUBLE - 32)) {
+    throw new Error(
+      'Unsupported file, high order bits are to high in field ' + name
+    )
+  }
+
+  const res = dataView.getUint32(offset, true)
+  return res + highBits * Math.pow(2, 32)
+}
+
 /**
  *
  * the grain table is the array of LBAs (in byte, not in sector) ordered by their position in the VDMK file
@@ -20,25 +44,6 @@ export default async function readVmdkGrainTable(fileAccessor) {
  * @returns {Promise<{capacityBytes: number, tablePromise: Promise<[number]>}>}
  */
 export async function readCapacityAndGrainTable(fileAccessor) {
-  const getLongLong = (buffer, offset, name) => {
-    if (buffer.byteLength < offset + 8) {
-      throw new Error(
-        `buffer ${name} is too short, expecting ${offset + 8} minimum, got ${
-          buffer.byteLength
-        }`
-      )
-    }
-    const dataView = new DataView(buffer)
-    const res = dataView.getUint32(offset, true)
-    const highBits = dataView.getUint32(offset + 4, true)
-    const MANTISSA_BITS_IN_DOUBLE = 53
-    if (highBits >= Math.pow(2, MANTISSA_BITS_IN_DOUBLE - 32)) {
-      throw new Error(
-        'Unsupported file, high order bits are to high in field ' + name
-      )
-    }
-    return res + highBits * Math.pow(2, 32)
-  }
   let headerBuffer = await fileAccessor(0, HEADER_SIZE)
   let grainAddrBuffer = headerBuffer.slice(
     GRAIN_ADDRESS_OFFSET,
