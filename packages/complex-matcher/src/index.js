@@ -599,7 +599,15 @@ export const parse = parser.parse.bind(parser)
 
 // -------------------------------------------------------------------
 
-const _getPropertyClauseStringsOrRegex = ({ child }) => {
+const _extractStringFromRegexp = child => {
+  const unescapedRegexp = child.re.source.replace(/^(\^)|\\|\$$/g, '')
+  if (child.re.source === `^${escapeRegExp(unescapedRegexp)}$`) {
+    return unescapedRegexp
+  }
+  return false
+}
+
+const _getPropertyClauseStrings = ({ child }) => {
   if (child instanceof Or) {
     const strings = []
     child.children.forEach(child => {
@@ -607,8 +615,8 @@ const _getPropertyClauseStringsOrRegex = ({ child }) => {
         strings.push(child.value)
       }
       if (child instanceof RegExpNode) {
-        const unescapedRegexp = child.re.source.replace(/^(\^)|\\|\$$/g, '')
-        if (child.re.source === `^${escapeRegExp(unescapedRegexp)}$`) {
+        const unescapedRegexp = _extractStringFromRegexp(child)
+        if (unescapedRegexp) {
           strings.push(unescapedRegexp)
         }
       }
@@ -620,8 +628,8 @@ const _getPropertyClauseStringsOrRegex = ({ child }) => {
     return [child.value]
   }
   if (child instanceof RegExpNode) {
-    const unescapedRegexp = child.re.source.replace(/^(\^)|\\|\$$/g, '')
-    if (child.re.source === `^${escapeRegExp(unescapedRegexp)}$`) {
+    const unescapedRegexp = _extractStringFromRegexp(child)
+    if (unescapedRegexp) {
       return [unescapedRegexp]
     }
   }
@@ -630,14 +638,14 @@ const _getPropertyClauseStringsOrRegex = ({ child }) => {
 }
 
 // Find possible values for property clauses in a and clause.
-export const getPropertyClausesStringsOrRegex = node => {
+export const getPropertyClausesStrings = node => {
   if (!node) {
     return {}
   }
 
   if (node instanceof Property) {
     return {
-      [node.name]: _getPropertyClauseStringsOrRegex(node),
+      [node.name]: _getPropertyClauseStrings(node),
     }
   }
 
@@ -648,9 +656,9 @@ export const getPropertyClausesStringsOrRegex = node => {
         const { name } = node
         const values = strings[name]
         if (values) {
-          values.push.apply(values, _getPropertyClauseStringsOrRegex(node))
+          values.push.apply(values, _getPropertyClauseStrings(node))
         } else {
-          strings[name] = _getPropertyClauseStringsOrRegex(node)
+          strings[name] = _getPropertyClauseStrings(node)
         }
       }
     })
