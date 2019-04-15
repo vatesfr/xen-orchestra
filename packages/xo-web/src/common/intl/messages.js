@@ -1285,6 +1285,9 @@ const messages = {
   spaceLeftTooltip: '{used}% used ({free} left)',
 
   // ----- New VM -----
+  createVmModalTitle: 'Create VM',
+  createVmModalWarningMessage:
+    "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
