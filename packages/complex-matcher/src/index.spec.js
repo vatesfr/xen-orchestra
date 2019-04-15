@@ -13,13 +13,12 @@ import {
 
 it('getPropertyClausesStrings', () => {
   const tmp = getPropertyClausesStrings(
-    parse('foo bar:baz baz:|(foo bar) foo:/^bar$/ reg:|(/^foo$/ /^bar$/)')
+    parse('foo bar:baz baz:|(foo bar /^boo$/ /^far$/) foo:/^bar$/')
   )
   expect(tmp).toEqual({
     bar: ['baz'],
-    baz: ['foo', 'bar'],
+    baz: ['foo', 'bar', 'boo', 'far'],
     foo: ['bar'],
-    reg: ['foo', 'bar'],
   })
 })
 

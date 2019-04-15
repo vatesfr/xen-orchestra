@@ -604,7 +604,6 @@ const _extractStringFromRegexp = child => {
   if (child.re.source === `^${escapeRegExp(unescapedRegexp)}$`) {
     return unescapedRegexp
   }
-  return false
 }
 
 const _getPropertyClauseStrings = ({ child }) => {
@@ -616,7 +615,7 @@ const _getPropertyClauseStrings = ({ child }) => {
       }
       if (child instanceof RegExpNode) {
         const unescapedRegexp = _extractStringFromRegexp(child)
-        if (unescapedRegexp) {
+        if (unescapedRegexp !== undefined) {
           strings.push(unescapedRegexp)
         }
       }
@@ -629,7 +628,7 @@ const _getPropertyClauseStrings = ({ child }) => {
   }
   if (child instanceof RegExpNode) {
     const unescapedRegexp = _extractStringFromRegexp(child)
-    if (unescapedRegexp) {
+    if (unescapedRegexp !== undefined) {
       return [unescapedRegexp]
     }
   }
