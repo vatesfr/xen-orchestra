@@ -248,14 +248,6 @@ const parseBootOrder = bootOrder => {
   return order
 }
 
-const WARNING_VDI_SR = (
-  <div>
-    <span className='text-danger'>
-      <Icon icon='alarm' /> {_('warningVdiSr')}
-    </span>
-  </div>
-)
-
 @injectIntl
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
@@ -385,7 +377,13 @@ class NewDisk extends Component {
             </ActionButton>
           </span>
         </fieldset>
-        {!this._checkSr() && WARNING_VDI_SR}
+        {!this._checkSr() && (
+          <div>
+            <span className='text-danger'>
+              <Icon icon='alarm' /> {_('warningVdiSr')}
+            </span>
+          </div>
+        )}
         {resourceSet != null &&
           diskLimit != null &&
           (diskLimit < size ? (
@@ -668,7 +666,11 @@ class MigrateVdiModalBody extends Component {
         </SingleLineRow>
         {!this._checkSr() && (
           <SingleLineRow>
-            <Col>{WARNING_VDI_SR}</Col>
+            <Col>
+              <span className='text-danger'>
+                <Icon icon='alarm' /> {_('warningVdiSr')}
+              </span>
+            </Col>
           </SingleLineRow>
         )}
       </Container>
@@ -910,7 +912,13 @@ export default class TabDisks extends Component {
           </Col>
         </Row>
         <Row>
-          {!this._areSrsOnSameHost() && WARNING_VDI_SR}
+          {!this._areSrsOnSameHost() && (
+            <div>
+              <span className='text-danger'>
+                <Icon icon='alarm' /> {_('warningVdiSr')}
+              </span>
+            </div>
+          )}
           <Col>
             <SortedTable
               actions={ACTIONS}
