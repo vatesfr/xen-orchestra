@@ -3,7 +3,7 @@
 import { difference, keyBy, omit } from "lodash";
 
 import config from "../_config";
-import { testWithOtherConnection, waitObjectState, xo } from "../util";
+import xo, { testWithOtherConnection } from "../_xoConnection";
 
 const ADMIN_USER = {
   email: "admin2@admin.net",
@@ -181,8 +181,7 @@ describe("job", () => {
       const jobId = await xo.createTempJob(defaultJob);
       const snapshots = xo.objects.all[config.vmIdXoTest].snapshots;
       await xo.call("job.runSequence", { idSequence: [jobId] });
-      await waitObjectState(
-        xo,
+      await xo.waitObjectState(
         config.vmIdXoTest,
         ({ snapshots: actualSnapshots }) => {
           expect(actualSnapshots.length).toBe(snapshots.length + 1);

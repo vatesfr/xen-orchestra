@@ -1,81 +1,7 @@
-import defer from "golike-defer";
 import expect from "must";
-import XoCollection from "xo-collection";
 import { find, forEach, map, cloneDeep } from "lodash";
 
 import config from "./_config";
-import XoConnection from "./_xoWithTestHelpers";
-
-/* eslint-env jest */
-
-export const getConnection = defer(
-  async ({ onFailure: $onFailure }, { credentials } = {}) => {
-    const xo = new XoConnection({ url: config.xoServerUrl });
-    await xo.open();
-    $onFailure(() => xo.close());
-    await xo.signIn(
-      credentials === undefined ? config.adminCredentials : credentials
-    );
-    // Injects waitObject()
-    //
-    // TODO: integrate in xo-lib.
-    const watchers = {};
-    const waitObject = (xo.waitObject = id =>
-      new Promise(resolve => {
-        watchers[id] = resolve;
-      })); // FIXME: work with multiple listeners.
-
-    const objects = (xo.objects = new XoCollection());
-    xo.on("notification", ({ method, params }) => {
-      if (method !== "all") {
-        return;
-      }
-
-      const fn = params.type === "exit" ? objects.unset : objects.set;
-
-      forEach(params.items, (item, id) => {
-        fn.call(objects, id, item);
-
-        const watcher = watchers[id];
-        if (watcher) {
-          watcher(item);
-          delete watchers[id];
-        }
-      });
-    });
-    forEach(await xo.call("xo.getAllObjects"), (object, id) => {
-      objects.set(id, object);
-
-      const watcher = watchers[id];
-      if (watcher) {
-        watcher(object);
-        delete watchers[id];
-      }
-    });
-
-    xo.getOrWaitObject = async id => {
-      const object = objects.all[id];
-      if (object) {
-        return object;
-      }
-
-      return waitObject(id);
-    };
-
-    return xo;
-  }
-);
-
-export const testConnection = opts =>
-  getConnection(opts).then(connection => connection.close());
-
-export const testWithOtherConnection = defer(
-  async ($defer, credentials, functionToExecute) => {
-    const xoUser = await getConnection({ credentials });
-    $defer(() => xoUser.close());
-    await functionToExecute(xoUser);
-  }
-);
 
 export const rejectionOf = promise =>
   promise.then(
@@ -84,22 +10,6 @@ export const rejectionOf = promise =>
     },
     reason => reason
   );
-
-export let xo;
-beforeAll(async () => {
-  xo = await getConnection();
-});
-afterAll(async () => {
-  await xo.close();
-  xo = null;
-});
-afterEach(async () => {
-  await Promise.all([
-    xo.deleteAllUsers(),
-    xo.deleteTempJobs(),
-    xo.deleteTempBackupNgJobs(),
-  ]);
-});
 
 // =================================================================
 
@@ -233,16 +143,4 @@ export function almostEqual(actual, expected, ignoredAttributes) {
     deepDelete(expected, ignoredAttribute.split("."));
   });
   expect(actual).to.be.eql(expected);
-}
-
-export async function waitObjectState(xo, id, predicate) {
-  let obj = xo.objects.all[id];
-  while (true) {
-    try {
-      await predicate(obj);
-      return;
-    } catch (_) {}
-    // If failed, wait for next object state/update and retry.
-    obj = await xo.waitObject(id);
-  }
 }

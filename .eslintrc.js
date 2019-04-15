@@ -12,6 +12,12 @@ module.exports = {
     "prettier/standard",
   ],
 
+  parser: "babel-eslint",
+  parserOptions: {
+    ecmaFeatures: {
+      legacyDecorators: true,
+    },
+  },
   rules: {
     // prefer let/const over var
     "no-var": "error",

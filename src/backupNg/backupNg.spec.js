@@ -5,7 +5,7 @@ import { noSuchObject } from "xo-common/api-errors";
 
 import config from "../_config";
 import randomId from "../_randomId";
-import { xo } from "../util";
+import xo from "../_xoConnection";
 
 describe("backupNg", () => {
   let defaultBackupNg;

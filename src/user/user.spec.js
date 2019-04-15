@@ -1,7 +1,8 @@
 /* eslint-env jest */
 
 import { forOwn, keyBy, omit } from "lodash";
-import { testConnection, testWithOtherConnection, xo } from "../util";
+
+import xo, { testConnection, testWithOtherConnection } from "../_xoConnection";
 
 const SIMPLE_USER = {
   email: "wayne3@vates.fr",
