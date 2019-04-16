@@ -20,6 +20,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import {
   ceil,
   debounce,
+  escapeRegExp,
   filter,
   find,
   forEach,
@@ -747,7 +748,11 @@ export default class Home extends Component {
             filter,
             'tags',
             new ComplexMatcher.Or(
-              map(tags, tag => new ComplexMatcher.String(tag.id))
+              map(
+                tags,
+                tag =>
+                  new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`)
+              )
             )
           )
         : ComplexMatcher.setPropertyClause(filter, 'tags', undefined)

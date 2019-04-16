@@ -599,6 +599,13 @@ export const parse = parser.parse.bind(parser)
 
 // -------------------------------------------------------------------
 
+const _extractStringFromRegexp = child => {
+  const unescapedRegexp = child.re.source.replace(/^(\^)|\\|\$$/g, '')
+  if (child.re.source === `^${escapeRegExp(unescapedRegexp)}$`) {
+    return unescapedRegexp
+  }
+}
+
 const _getPropertyClauseStrings = ({ child }) => {
   if (child instanceof Or) {
     const strings = []
@@ -606,12 +613,24 @@ const _getPropertyClauseStrings = ({ child }) => {
       if (child instanceof StringNode) {
         strings.push(child.value)
       }
+      if (child instanceof RegExpNode) {
+        const unescapedRegexp = _extractStringFromRegexp(child)
+        if (unescapedRegexp !== undefined) {
+          strings.push(unescapedRegexp)
+        }
+      }
     })
     return strings
   }
 
   if (child instanceof StringNode) {
     return [child.value]
+  }
+  if (child instanceof RegExpNode) {
+    const unescapedRegexp = _extractStringFromRegexp(child)
+    if (unescapedRegexp !== undefined) {
+      return [unescapedRegexp]
+    }
   }
 
   return []
