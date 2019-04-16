@@ -1,5 +1,4 @@
 import createLogger from '@xen-orchestra/log'
-import defined from '@xen-orchestra/defined'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 import { forEach, groupBy, startCase } from 'lodash'
@@ -50,6 +49,7 @@ export const testSchema = {
 
 // ===================================================================
 
+const INDENT = '  '
 const UNKNOWN_ITEM = 'Unknown'
 
 const ICON_FAILURE = '🚨'
@@ -66,7 +66,7 @@ const STATUS_ICON = {
 }
 
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
-const createDateFormater = timezone =>
+const createDateFormatter = timezone =>
   timezone !== undefined
     ? timestamp =>
         moment(timestamp)
@@ -102,36 +102,6 @@ const isSkippedError = error =>
   error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
   error.message === NO_SUCH_OBJECT_ERROR
 
-const INDENT = '  '
-const createGetTemporalDataMarkdown = formatDate => (
-  start,
-  end,
-  nbIndent = 0
-) => {
-  const indent = INDENT.repeat(nbIndent)
-
-  const markdown = [`${indent}- **Start time**: ${formatDate(start)}`]
-  if (end !== undefined) {
-    markdown.push(`${indent}- **End time**: ${formatDate(end)}`)
-    const duration = end - start
-    if (duration >= 1) {
-      markdown.push(`${indent}- **Duration**: ${formatDuration(duration)}`)
-    }
-  }
-  return markdown
-}
-
-const addWarnings = (text, warnings, nbIndent = 0) => {
-  if (warnings === undefined) {
-    return
-  }
-
-  const indent = INDENT.repeat(nbIndent)
-  warnings.forEach(({ message }) => {
-    text.push(`${indent}- **${ICON_WARNING} ${message}**`)
-  })
-}
-
 // ===================================================================
 
 const TITLE_BY_STATUS = {
@@ -160,8 +130,7 @@ const getErrorMarkdown = task => {
   let message
   if (
     task.status === 'success' ||
-    (message = defined(() => task.result.message, () => task.result.code)) ===
-      undefined
+    (message = task.result?.message ?? task.result?.code) === undefined
   ) {
     return
   }
@@ -242,6 +211,13 @@ const getMarkdown = async (task, props) => {
   }
 }
 
+const getSpaceByLevel = level => INDENT.repeat(level)
+
+const arrayToMarkdown = (array, level) => {
+  const space = getSpaceByLevel(level)
+  return `${space}${array.join(`\n${space}`)}`
+}
+
 // ===================================================================
 
 class BackupReportsXoPlugin {
@@ -269,8 +245,8 @@ class BackupReportsXoPlugin {
 
     const job = await xo.getJob(log.jobId)
     return job.type === 'backup'
-      ? this._backupNgListener(log, undefined, runId)
-      : this._metadataBackupListener(log, undefined, runId)
+      ? this._backupNgListener(log, undefined, runId, true)
+      : this._metadataBackupListener(log, undefined, runId, true)
   }
 
   unload() {
@@ -306,26 +282,24 @@ class BackupReportsXoPlugin {
     }
   }
 
-  async _metadataBackupListener(log, schedule, runJobId) {
+  async _metadataBackupListener(log, schedule, runJobId, test) {
     const xo = this._xo
 
-    const formatDate = createDateFormater(
-      defined(
-        () => schedule.timezone,
-        await xo.getSchedule(log.scheduleId).then(
+    const formatDate = createDateFormatter(
+      schedule?.timezone ??
+        (await xo.getSchedule(log.scheduleId).then(
           schedule => schedule.timezone,
           error => {
             logger.warn(error)
           }
-        )
-      )
+        ))
     )
 
     const tasksByStatus = groupBy(log.tasks, 'status')
-    const n = defined(() => log.tasks.length, 0)
-    const nSuccesses = defined(() => tasksByStatus.success.length, 0)
+    const n = log.tasks?.length ?? 0
+    const nSuccesses = tasksByStatus.success?.length ?? 0
 
-    if (log.data.reportWhen === 'failure') {
+    if (!test && log.data.reportWhen === 'failure') {
       delete tasksByStatus.success
     }
 
@@ -367,38 +341,29 @@ class BackupReportsXoPlugin {
           '',
           `### ${title}`,
           '',
-          `${INDENT}${body.join(`\n${INDENT}`)}`
+          arrayToMarkdown(body, 1),
+          task.warning !== undefined &&
+            arrayToMarkdown(getWarningsMarkdown(task.warnings), 1)
         )
 
         if (task.status !== 'success') {
-          nagiosText.push(`[${task.status}] ${taskMarkdown.title}`)
+          nagiosText.push(`[${task.status}] ${title}`)
         }
 
-        if (task.warnings !== undefined) {
-          markdown.push(
-            `${INDENT}${getWarningsMarkdown(task.warnings).join(`\n${INDENT}`)}`
-          )
-        }
-
-        for (const subTask of task.tasks || []) {
+        for (const subTask of task.tasks ?? []) {
           const taskMarkdown = await getMarkdown(subTask, { formatDate, xo })
           if (taskMarkdown === undefined) {
             continue
           }
 
+          const icon = STATUS_ICON[subTask.status]
           const { title, body } = taskMarkdown
           markdown.push(
-            `${INDENT.repeat(2)}- **${title}** ${STATUS_ICON[subTask.status]}`,
-            `${INDENT.repeat(3)}${body.join(`\n${INDENT.repeat(3)}`)}`
+            `${getSpaceByLevel(2)}- **${title}** ${icon}`,
+            arrayToMarkdown(body, 3),
+            subTask.warnings !== undefined &&
+              arrayToMarkdown(getWarningsMarkdown(subTask.warnings), 3)
           )
-
-          if (subTask.warnings !== undefined) {
-            markdown.push(
-              `${INDENT.repeat(2)}${getWarningsMarkdown(subTask.warnings).join(
-                `\n${INDENT.repeat(2)}`
-              )}`
-            )
-          }
         }
       }
     }
@@ -423,7 +388,7 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _backupNgListener(log, schedule, runJobId) {
+  async _backupNgListener(log, schedule, runJobId, test) {
     const xo = this._xo
 
     const { reportWhen, mode } = log.data || {}
@@ -433,31 +398,28 @@ class BackupReportsXoPlugin {
     }
 
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
-    const formatDate = createDateFormater(schedule.timezone)
-    const getTemporalDataMarkdown = createGetTemporalDataMarkdown(formatDate)
+    const formatDate = createDateFormatter(schedule.timezone)
 
-    if (
-      (log.status === 'failure' || log.status === 'skipped') &&
-      log.result !== undefined
-    ) {
-      let markdown = [
+    const errorMarkdown = getErrorMarkdown(log)
+    if (errorMarkdown !== undefined) {
+      const markdown = [
         `##  Global status: ${log.status}`,
         '',
         `- **Job ID**: ${log.jobId}`,
         `- **Run ID**: ${runJobId}`,
         `- **mode**: ${mode}`,
-        ...getTemporalDataMarkdown(log.start, log.end),
-        `- **Error**: ${log.result.message}`,
+        ...getTemporalDataMarkdown(log.end, log.start, formatDate),
+        `- **Error**: ${errorMarkdown}`,
       ]
-      addWarnings(markdown, log.warnings)
+      if (log.warnings !== undefined) {
+        markdown.push(...getWarningsMarkdown(log.warnings))
+      }
       markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
-
-      markdown = markdown.join('\n')
       return this._sendReport({
         subject: `[Xen Orchestra] ${
           log.status
         } − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
-        markdown,
+        markdown: markdown.join('\n'),
         nagiosStatus: 2,
         nagiosMarkdown: `[Xen Orchestra] [${
           log.status
@@ -477,7 +439,7 @@ class BackupReportsXoPlugin {
     let nSkipped = 0
     let nInterrupted = 0
     for (const taskLog of log.tasks) {
-      if (taskLog.status === 'success' && reportWhen === 'failure') {
+      if (!test && taskLog.status === 'success' && reportWhen === 'failure') {
         continue
       }
 
@@ -490,16 +452,18 @@ class BackupReportsXoPlugin {
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
         `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
-        ...getTemporalDataMarkdown(taskLog.start, taskLog.end),
+        ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
       ]
-      addWarnings(text, taskLog.warnings)
+      if (taskLog.warnings !== undefined) {
+        text.push(...getWarningsMarkdown(taskLog.warnings))
+      }
 
       const failedSubTasks = []
       const snapshotText = []
       const srsText = []
       const remotesText = []
 
-      for (const subTaskLog of taskLog.tasks || []) {
+      for (const subTaskLog of taskLog.tasks ?? []) {
         if (
           subTaskLog.message !== 'export' &&
           subTaskLog.message !== 'snapshot'
@@ -508,26 +472,49 @@ class BackupReportsXoPlugin {
         }
 
         const icon = STATUS_ICON[subTaskLog.status]
-        const errorMessage = `    - **Error**: ${subTaskLog.result?.message}`
+        const type = subTaskLog.data?.type
+        const errorMarkdown = getErrorMarkdown(subTaskLog)
 
         if (subTaskLog.message === 'snapshot') {
           snapshotText.push(
             `- **Snapshot** ${icon}`,
-            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 1)
+            arrayToMarkdown(
+              getTemporalDataMarkdown(
+                subTaskLog.end,
+                subTaskLog.start,
+                formatDate
+              ),
+              1
+            )
           )
-        } else if (subTaskLog.data.type === 'remote') {
+        } else if (type === 'remote') {
           const id = subTaskLog.data.id
-          const remote = await xo.getRemote(id).catch(() => {})
+          const remote = await xo.getRemote(id).catch(error => {
+            logger.warn(error)
+          })
+          const title = remote !== undefined ? remote.name : `Remote Not found`
+
           remotesText.push(
-            `  - **${
-              remote !== undefined ? remote.name : `Remote Not found`
-            }** (${id}) ${icon}`,
-            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
+            `${getSpaceByLevel(1)}- **${title}** (${id}) ${icon}`,
+            arrayToMarkdown(
+              getTemporalDataMarkdown(
+                subTaskLog.end,
+                subTaskLog.start,
+                formatDate
+              ),
+              2
+            )
           )
-          addWarnings(remotesText, subTaskLog.warnings, 2)
+          if (subTaskLog.warning !== undefined) {
+            remotesText.push(
+              arrayToMarkdown(getWarningsMarkdown(subTaskLog.warnings), 2)
+            )
+          }
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(remote !== undefined ? remote.name : id)
-            remotesText.push('', errorMessage)
+            if (errorMarkdown !== undefined) {
+              remotesText.push('', `${getSpaceByLevel(2)}${errorMarkdown}`)
+            }
           }
         } else {
           const id = subTaskLog.data.id
@@ -539,12 +526,25 @@ class BackupReportsXoPlugin {
             sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, id]
           srsText.push(
             `  - **${srName}** (${srUuid}) ${icon}`,
-            ...getTemporalDataMarkdown(subTaskLog.start, subTaskLog.end, 2)
+            arrayToMarkdown(
+              getTemporalDataMarkdown(
+                subTaskLog.end,
+                subTaskLog.start,
+                formatDate
+              ),
+              2
+            )
           )
-          addWarnings(srsText, subTaskLog.warnings, 2)
+          if (subTaskLog.warnings !== undefined) {
+            srsText.push(
+              arrayToMarkdown(getWarningsMarkdown(subTaskLog.warnings), 2)
+            )
+          }
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(sr !== undefined ? sr.name_label : id)
-            srsText.push('', errorMessage)
+            if (errorMarkdown !== undefined) {
+              srsText.push('', `${getSpaceByLevel(2)}${errorMarkdown}`)
+            }
           }
         }
 
@@ -557,8 +557,18 @@ class BackupReportsXoPlugin {
           }
 
           const operationInfoText = []
-          addWarnings(operationInfoText, operationLog.warnings, 3)
-          if (operationLog.status === 'success') {
+          if (operationLog.warnings !== undefined) {
+            operationInfoText.push(
+              arrayToMarkdown(getWarningsMarkdown(operationLog.warnings), 3)
+            )
+          }
+
+          const errorMarkdown = getErrorMarkdown(operationLog)
+          if (errorMarkdown !== undefined) {
+            operationInfoText.push(
+              `${getSpaceByLevel(3)}- **Error**: ${errorMarkdown}`
+            )
+          } else {
             const size = operationLog.result.size
             if (operationLog.message === 'merge') {
               globalMergeSize += size
@@ -567,29 +577,31 @@ class BackupReportsXoPlugin {
             }
 
             operationInfoText.push(
-              `      - **Size**: ${formatSize(size)}`,
-              `      - **Speed**: ${formatSpeed(
+              `${getSpaceByLevel(3)}- **Size**: ${formatSize(size)}`,
+              `${getSpaceByLevel(3)}- **Speed**: ${formatSpeed(
                 size,
                 operationLog.end - operationLog.start
               )}`
             )
-          } else if (operationLog.result?.message !== undefined) {
-            operationInfoText.push(
-              `      - **Error**: ${operationLog.result?.message}`
-            )
           }
           const operationText = [
-            `    - **${operationLog.message}** ${
+            `${getSpaceByLevel(2)}- **${operationLog.message}** ${
               STATUS_ICON[operationLog.status]
             }`,
-            ...getTemporalDataMarkdown(operationLog.start, operationLog.end, 3),
+            arrayToMarkdown(
+              getTemporalDataMarkdown(
+                operationLog.end,
+                operationLog.start,
+                formatDate
+              ),
+              3
+            ),
             ...operationInfoText,
           ].join('\n')
-          if (subTaskLog.data?.type === 'remote') {
+          if (type === 'remote') {
             remotesText.push(operationText)
             remotesText.join('\n')
-          }
-          if (subTaskLog.data?.type === 'SR') {
+          } else if (type === 'SR') {
             srsText.push(operationText)
             srsText.join('\n')
           }
@@ -663,7 +675,7 @@ class BackupReportsXoPlugin {
       `- **Job ID**: ${log.jobId}`,
       `- **Run ID**: ${runJobId}`,
       `- **mode**: ${mode}`,
-      ...getTemporalDataMarkdown(log.start, log.end),
+      ...getTemporalDataMarkdown(log.end, log.start, formatDate),
       `- **Successes**: ${nSuccesses} / ${nVms}`,
     ]
 
@@ -673,7 +685,11 @@ class BackupReportsXoPlugin {
     if (globalMergeSize !== 0) {
       markdown.push(`- **Merge size**: ${formatSize(globalMergeSize)}`)
     }
-    addWarnings(markdown, log.warnings)
+
+    if (log.warnings !== undefined) {
+      markdown.push(getWarningsMarkdown(log.warnings))
+    }
+
     markdown.push('')
 
     if (nFailures !== 0) {
@@ -700,7 +716,7 @@ class BackupReportsXoPlugin {
       )
     }
 
-    if (nSuccesses !== 0 && reportWhen !== 'failure') {
+    if (nSuccesses !== 0 && (test || reportWhen !== 'failure')) {
       markdown.push(
         '---',
         '',
@@ -755,7 +771,7 @@ class BackupReportsXoPlugin {
 
   _listener(status) {
     const { calls, timezone, error } = status
-    const formatDate = createDateFormater(timezone)
+    const formatDate = createDateFormatter(timezone)
 
     if (status.error !== undefined) {
       const [globalStatus, icon] =
