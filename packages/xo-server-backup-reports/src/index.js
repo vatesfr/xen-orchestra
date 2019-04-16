@@ -123,7 +123,7 @@ const getTemporalDataMarkdown = (end, start, formatDate) => {
   return markdown
 }
 
-const getWarningsMarkdown = warnings =>
+const getWarningsMarkdown = (warnings = []) =>
   warnings.map(({ message }) => `- **${ICON_WARNING} ${message}**`)
 
 const getErrorMarkdown = task => {
@@ -211,11 +211,22 @@ const getMarkdown = async (task, props) => {
   }
 }
 
-const getSpaceByLevel = level => INDENT.repeat(level)
+const toMarkdown = parts => {
+  const lines = []
+  let indentLevel = 0
 
-const arrayToMarkdown = (array, level) => {
-  const space = getSpaceByLevel(level)
-  return `${space}${array.join(`\n${space}`)}`
+  const helper = part => {
+    if (typeof part === 'string') {
+      lines.push(`${INDENT.repeat(indentLevel)}${part}`)
+    } else if (Array.isArray(part)) {
+      ++indentLevel
+      part.forEach(helper)
+      --indentLevel
+    }
+  }
+  helper(parts)
+
+  return lines.join('\n')
 }
 
 // ===================================================================
@@ -312,8 +323,7 @@ class BackupReportsXoPlugin {
       `- **Run ID**: ${runJobId}`,
       ...getTemporalDataMarkdown(log.end, log.start, formatDate),
       n !== 0 && `- **Successes**: ${nSuccesses} / ${n}`,
-      log.warnings !== undefined &&
-        getWarningsMarkdown(log.warnings).join('\n'),
+      ...getWarningsMarkdown(log.warnings),
       getErrorMarkdown(log),
     ]
 
@@ -337,15 +347,7 @@ class BackupReportsXoPlugin {
         }
 
         const { title, body } = taskMarkdown
-        markdown.push(
-          '',
-          `### ${title}`,
-          '',
-          arrayToMarkdown(body, 1),
-          task.warning !== undefined &&
-            arrayToMarkdown(getWarningsMarkdown(task.warnings), 1)
-        )
-
+        const subMarkdown = ['', ...body, ...getWarningsMarkdown(task.warnings)]
         if (task.status !== 'success') {
           nagiosText.push(`[${task.status}] ${title}`)
         }
@@ -358,13 +360,12 @@ class BackupReportsXoPlugin {
 
           const icon = STATUS_ICON[subTask.status]
           const { title, body } = taskMarkdown
-          markdown.push(
-            `${getSpaceByLevel(2)}- **${title}** ${icon}`,
-            arrayToMarkdown(body, 3),
-            subTask.warnings !== undefined &&
-              arrayToMarkdown(getWarningsMarkdown(subTask.warnings), 3)
-          )
+          subMarkdown.push([
+            `- **${title}** ${icon}`,
+            [...body, ...getWarningsMarkdown(subTask.warnings)],
+          ])
         }
+        markdown.push('', `### ${title}`, subMarkdown)
       }
     }
 
@@ -375,7 +376,7 @@ class BackupReportsXoPlugin {
       subject: `[Xen Orchestra] ${log.status} − Metadata backup report for ${
         log.jobName
       } ${STATUS_ICON[log.status]}`,
-      markdown: markdown.filter(_ => typeof _ === 'string').join('\n'),
+      markdown: toMarkdown(markdown),
       nagiosStatus: log.status === 'success' ? 0 : 2,
       nagiosMarkdown:
         log.status === 'success'
@@ -410,16 +411,16 @@ class BackupReportsXoPlugin {
         `- **mode**: ${mode}`,
         ...getTemporalDataMarkdown(log.end, log.start, formatDate),
         `- **Error**: ${errorMarkdown}`,
+        ...getWarningsMarkdown(log.warnings),
+        '---',
+        '',
+        `*${pkg.name} v${pkg.version}*`,
       ]
-      if (log.warnings !== undefined) {
-        markdown.push(...getWarningsMarkdown(log.warnings))
-      }
-      markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
       return this._sendReport({
         subject: `[Xen Orchestra] ${
           log.status
         } − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
-        markdown: markdown.join('\n'),
+        markdown: toMarkdown(markdown),
         nagiosStatus: 2,
         nagiosMarkdown: `[Xen Orchestra] [${
           log.status
@@ -453,10 +454,8 @@ class BackupReportsXoPlugin {
         '',
         `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
         ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
+        ...getWarningsMarkdown(taskLog.warnings),
       ]
-      if (taskLog.warnings !== undefined) {
-        text.push(...getWarningsMarkdown(taskLog.warnings))
-      }
 
       const failedSubTasks = []
       const snapshotText = []
@@ -476,17 +475,13 @@ class BackupReportsXoPlugin {
         const errorMarkdown = getErrorMarkdown(subTaskLog)
 
         if (subTaskLog.message === 'snapshot') {
-          snapshotText.push(
-            `- **Snapshot** ${icon}`,
-            arrayToMarkdown(
-              getTemporalDataMarkdown(
-                subTaskLog.end,
-                subTaskLog.start,
-                formatDate
-              ),
-              1
-            )
-          )
+          snapshotText.push(`- **Snapshot** ${icon}`, [
+            ...getTemporalDataMarkdown(
+              subTaskLog.end,
+              subTaskLog.start,
+              formatDate
+            ),
+          ])
         } else if (type === 'remote') {
           const id = subTaskLog.data.id
           const remote = await xo.getRemote(id).catch(error => {
@@ -494,27 +489,18 @@ class BackupReportsXoPlugin {
           })
           const title = remote !== undefined ? remote.name : `Remote Not found`
 
-          remotesText.push(
-            `${getSpaceByLevel(1)}- **${title}** (${id}) ${icon}`,
-            arrayToMarkdown(
-              getTemporalDataMarkdown(
-                subTaskLog.end,
-                subTaskLog.start,
-                formatDate
-              ),
-              2
-            )
-          )
-          if (subTaskLog.warning !== undefined) {
-            remotesText.push(
-              arrayToMarkdown(getWarningsMarkdown(subTaskLog.warnings), 2)
-            )
-          }
+          remotesText.push(`- **${title}** (${id}) ${icon}`, [
+            ...getTemporalDataMarkdown(
+              subTaskLog.end,
+              subTaskLog.start,
+              formatDate
+            ),
+            ...getWarningsMarkdown(subTaskLog.warnings),
+            errorMarkdown,
+          ])
+
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(remote !== undefined ? remote.name : id)
-            if (errorMarkdown !== undefined) {
-              remotesText.push('', `${getSpaceByLevel(2)}${errorMarkdown}`)
-            }
           }
         } else {
           const id = subTaskLog.data.id
@@ -524,27 +510,17 @@ class BackupReportsXoPlugin {
           } catch (e) {}
           const [srName, srUuid] =
             sr !== undefined ? [sr.name_label, sr.uuid] : [`SR Not found`, id]
-          srsText.push(
-            `  - **${srName}** (${srUuid}) ${icon}`,
-            arrayToMarkdown(
-              getTemporalDataMarkdown(
-                subTaskLog.end,
-                subTaskLog.start,
-                formatDate
-              ),
-              2
-            )
-          )
-          if (subTaskLog.warnings !== undefined) {
-            srsText.push(
-              arrayToMarkdown(getWarningsMarkdown(subTaskLog.warnings), 2)
-            )
-          }
+          srsText.push(`- **${srName}** (${srUuid}) ${icon}`, [
+            ...getTemporalDataMarkdown(
+              subTaskLog.end,
+              subTaskLog.start,
+              formatDate
+            ),
+            ...getWarningsMarkdown(subTaskLog.warnings),
+            errorMarkdown,
+          ])
           if (subTaskLog.status === 'failure') {
             failedSubTasks.push(sr !== undefined ? sr.name_label : id)
-            if (errorMarkdown !== undefined) {
-              srsText.push('', `${getSpaceByLevel(2)}${errorMarkdown}`)
-            }
           }
         }
 
@@ -556,65 +532,48 @@ class BackupReportsXoPlugin {
             return
           }
 
-          const operationInfoText = []
-          if (operationLog.warnings !== undefined) {
-            operationInfoText.push(
-              arrayToMarkdown(getWarningsMarkdown(operationLog.warnings), 3)
-            )
-          }
-
-          const errorMarkdown = getErrorMarkdown(operationLog)
-          if (errorMarkdown !== undefined) {
-            operationInfoText.push(
-              `${getSpaceByLevel(3)}- **Error**: ${errorMarkdown}`
-            )
-          } else {
-            const size = operationLog.result.size
+          const size = operationLog.result?.size
+          if (size > 0) {
             if (operationLog.message === 'merge') {
               globalMergeSize += size
             } else {
               globalTransferSize += size
             }
-
-            operationInfoText.push(
-              `${getSpaceByLevel(3)}- **Size**: ${formatSize(size)}`,
-              `${getSpaceByLevel(3)}- **Speed**: ${formatSpeed(
-                size,
-                operationLog.end - operationLog.start
-              )}`
-            )
           }
+
           const operationText = [
-            `${getSpaceByLevel(2)}- **${operationLog.message}** ${
-              STATUS_ICON[operationLog.status]
-            }`,
-            arrayToMarkdown(
-              getTemporalDataMarkdown(
+            `- **${operationLog.message}** ${STATUS_ICON[operationLog.status]}`,
+            [
+              ...getTemporalDataMarkdown(
                 operationLog.end,
                 operationLog.start,
                 formatDate
               ),
-              3
-            ),
-            ...operationInfoText,
-          ].join('\n')
+              size > 0 && `- **Size**: ${formatSize(size)}`,
+              size > 0 &&
+                `- **Speed**: ${formatSpeed(
+                  size,
+                  operationLog.end - operationLog.start
+                )}`,
+              ...getWarningsMarkdown(operationLog.warnings),
+              getErrorMarkdown(operationLog),
+            ],
+          ]
           if (type === 'remote') {
             remotesText.push(operationText)
-            remotesText.join('\n')
           } else if (type === 'SR') {
             srsText.push(operationText)
-            srsText.join('\n')
           }
         })
       }
 
-      if (srsText.length !== 0) {
-        srsText.unshift(`- **SRs**`)
-      }
-      if (remotesText.length !== 0) {
-        remotesText.unshift(`- **Remotes**`)
-      }
-      const subText = [...snapshotText, '', ...srsText, '', ...remotesText]
+      const subText = [
+        ...snapshotText,
+        srsText.length !== 0 && `- **SRs**`,
+        srsText,
+        remotesText.length !== 0 && `- **Remotes**`,
+        remotesText,
+      ]
       if (taskLog.result !== undefined) {
         if (taskLog.status === 'skipped') {
           ++nSkipped
@@ -624,8 +583,7 @@ class BackupReportsXoPlugin {
               taskLog.result.message === UNHEALTHY_VDI_CHAIN_ERROR
                 ? UNHEALTHY_VDI_CHAIN_MESSAGE
                 : taskLog.result.message
-            }`,
-            ''
+            }`
           )
           nagiosText.push(
             `[(Skipped) ${vm !== undefined ? vm.name_label : 'undefined'} : ${
@@ -634,11 +592,7 @@ class BackupReportsXoPlugin {
           )
         } else {
           ++nFailures
-          failedVmsText.push(
-            ...text,
-            `- **Error**: ${taskLog.result.message}`,
-            ''
-          )
+          failedVmsText.push(...text, `- **Error**: ${taskLog.result.message}`)
 
           nagiosText.push(
             `[(Failed) ${vm !== undefined ? vm.name_label : 'undefined'} : ${
@@ -649,7 +603,7 @@ class BackupReportsXoPlugin {
       } else {
         if (taskLog.status === 'failure') {
           ++nFailures
-          failedVmsText.push(...text, '', '', ...subText, '')
+          failedVmsText.push(...text, ...subText)
           nagiosText.push(
             `[${
               vm !== undefined ? vm.name_label : 'undefined'
@@ -657,19 +611,19 @@ class BackupReportsXoPlugin {
           )
         } else if (taskLog.status === 'interrupted') {
           ++nInterrupted
-          interruptedVmsText.push(...text, '', '', ...subText, '')
+          interruptedVmsText.push(...text, ...subText)
           nagiosText.push(
             `[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`
           )
         } else {
-          successfulVmsText.push(...text, '', '', ...subText, '')
+          successfulVmsText.push(...text, ...subText)
         }
       }
     }
 
     const nVms = log.tasks.length
     const nSuccesses = nVms - nFailures - nSkipped - nInterrupted
-    let markdown = [
+    const markdown = [
       `##  Global status: ${log.status}`,
       '',
       `- **Job ID**: ${log.jobId}`,
@@ -677,20 +631,13 @@ class BackupReportsXoPlugin {
       `- **mode**: ${mode}`,
       ...getTemporalDataMarkdown(log.end, log.start, formatDate),
       `- **Successes**: ${nSuccesses} / ${nVms}`,
+      globalTransferSize !== 0 &&
+        `- **Transfer size**: ${formatSize(globalTransferSize)}`,
+      globalMergeSize !== 0 &&
+        `- **Merge size**: ${formatSize(globalMergeSize)}`,
+      ...getWarningsMarkdown(log.warnings),
+      '',
     ]
-
-    if (globalTransferSize !== 0) {
-      markdown.push(`- **Transfer size**: ${formatSize(globalTransferSize)}`)
-    }
-    if (globalMergeSize !== 0) {
-      markdown.push(`- **Merge size**: ${formatSize(globalMergeSize)}`)
-    }
-
-    if (log.warnings !== undefined) {
-      markdown.push(getWarningsMarkdown(log.warnings))
-    }
-
-    markdown.push('')
 
     if (nFailures !== 0) {
       markdown.push(
@@ -727,9 +674,8 @@ class BackupReportsXoPlugin {
     }
 
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
-    markdown = markdown.join('\n')
     return this._sendReport({
-      markdown,
+      markdown: toMarkdown(markdown),
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${
         STATUS_ICON[log.status]
       }`,
