@@ -1447,8 +1447,7 @@ export const importDisk = ({ description, file, name, type, vmdkData }, sr) =>
     sr: resolveId(sr),
     type,
     vmdkData,
-  }).then(({ $sendTo }) => {
-    console.log('Import disk ')
+  }).then(({ $sendTo }) =>
     post($sendTo, file)
       .then(res => {
         if (res.status !== 200) {
@@ -1460,7 +1459,7 @@ export const importDisk = ({ description, file, name, type, vmdkData }, sr) =>
       .catch(err => {
         error('vmdkImportSuccess', err)
       })
-  })
+  )
 
 export const importDisks = (disks, sr) =>
   Promise.all(

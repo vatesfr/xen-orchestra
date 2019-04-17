@@ -1433,6 +1433,7 @@ const messages = {
   importDisksList: 'Drop VMDK or VHD files here to import disks.',
   importFileType: '{type} file:',
   importToSr: 'To SR',
+  diskNamePlaceholder: 'If empty: name of file',
 
   // ---- Tasks ---
   cancelTask: 'Cancel',
