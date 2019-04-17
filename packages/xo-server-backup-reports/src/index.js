@@ -256,13 +256,13 @@ class BackupReportsXoPlugin {
         }),
       ])
 
-      if (job.type !== 'backup' && job.type !== 'metadataBackup') {
-        throw new Error('Unknown backup job type')
+      if (job.type === 'backup') {
+        return this._ngVmHandler(log, job, schedule, force)
+      } else if (job.type === 'metadataBackup') {
+        return this._metadataHandler(log, job, schedule, force)
       }
 
-      return job.type === 'backup'
-        ? this._ngVmHandler(log, job, schedule, force)
-        : this._metadataHandler(log, job, schedule, force)
+      throw new Error(`Unknown backup job type: ${job.type}`)
     } catch (error) {
       logger.warn(error)
     }
