@@ -106,8 +106,8 @@ const isSkippedError = error =>
 
 const TITLE_BY_STATUS = {
   failure: n => `## ${n} Failure${n === 1 ? '' : 's'}`,
-  interrupted: n => `## ${n} Interruption${n === 1 ? '' : 's'}`,
-  skipped: n => `## ${n} Skip${n === 1 ? '' : 's'}`,
+  interrupted: n => `## ${n} Interrupted`,
+  skipped: n => `## ${n} Skipped`,
   success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
 }
 
@@ -220,8 +220,8 @@ class BackupReportsXoPlugin {
     this._xo.on('job:terminated', this._report)
   }
 
-  async test({ runId }) {
-    return this._report(runId)
+  test({ runId }) {
+    return this._report(runId, { force: true })
   }
 
   unload() {
@@ -249,28 +249,23 @@ class BackupReportsXoPlugin {
         return
       }
 
-      if (type === undefined) {
-        type = await xo.getJob(log.jobId).then(({ type }) => type)
-      }
-      return type === 'backup'
-        ? this._backupNgListener(log, runJobId, force)
-        : this._metadataBackupListener(log, runJobId, force)
+      const job = await xo.getJob(log.jobId)
+      const schedule = await xo.getSchedule(log.scheduleId).catch(error => {
+        logger.warn(error)
+      })
+
+      return job.type === 'backup'
+        ? this._backupNgListener(log, job, schedule, force)
+        : this._metadataBackupListener(log, job, schedule, force)
     } catch (error) {
       logger.warn(error)
     }
   }
 
-  async _metadataBackupListener(log, runJobId, force) {
+  async _metadataBackupListener(log, { name: jobName }, schedule, force) {
     const xo = this._xo
 
-    const formatDate = createDateFormatter(
-      await xo.getSchedule(log.scheduleId).then(
-        schedule => schedule.timezone,
-        error => {
-          logger.warn(error)
-        }
-      )
-    )
+    const formatDate = createDateFormatter(schedule?.timezone)
 
     const tasksByStatus = groupBy(log.tasks, 'status')
     const n = log.tasks?.length ?? 0
@@ -285,8 +280,8 @@ class BackupReportsXoPlugin {
       `##  Global status: ${log.status}`,
       '',
       `- **Job ID**: ${log.jobId}`,
-      `- **Job name**: ${log.jobName}`,
-      `- **Run ID**: ${runJobId}`,
+      `- **Job name**: ${jobName}`,
+      `- **Run ID**: ${log.id}`,
       ...getTemporalDataMarkdown(log.end, log.start, formatDate),
       n !== 0 && `- **Successes**: ${nSuccesses} / ${n}`,
       ...getWarningsMarkdown(log.warnings),
@@ -356,27 +351,19 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _backupNgListener(log, runJobId, force) {
+  async _backupNgListener(log, { name: jobName }, schedule, force) {
     const xo = this._xo
 
     const { reportWhen, mode } = log.data || {}
 
-    const jobName = (await xo.getJob(log.jobId, 'backup')).name
-    const formatDate = createDateFormatter(
-      await xo.getSchedule(log.scheduleId).then(
-        schedule => schedule.timezone,
-        error => {
-          logger.warn(error)
-        }
-      )
-    )
+    const formatDate = createDateFormatter(schedule?.timezone)
 
     if (log.tasks === undefined) {
       const markdown = [
         `##  Global status: ${log.status}`,
         '',
         `- **Job ID**: ${log.jobId}`,
-        `- **Run ID**: ${runJobId}`,
+        `- **Run ID**: ${log.id}`,
         `- **mode**: ${mode}`,
         ...getTemporalDataMarkdown(log.end, log.start, formatDate),
         getErrorMarkdown(log),
@@ -596,7 +583,7 @@ class BackupReportsXoPlugin {
       `##  Global status: ${log.status}`,
       '',
       `- **Job ID**: ${log.jobId}`,
-      `- **Run ID**: ${runJobId}`,
+      `- **Run ID**: ${log.id}`,
       `- **mode**: ${mode}`,
       ...getTemporalDataMarkdown(log.end, log.start, formatDate),
       `- **Successes**: ${nSuccesses} / ${nVms}`,
