@@ -52,6 +52,7 @@ export default {
 
       coreOs = false,
       cloudConfig = undefined,
+      networkConfig = undefined,
 
       vgpuType = undefined,
       gpuGroup = undefined,
@@ -244,7 +245,7 @@ export default {
       const method = coreOs
         ? 'createCoreOsCloudInitConfigDrive'
         : 'createCloudInitConfigDrive'
-      await this[method](vm.$id, srRef, cloudConfig)
+      await this[method](vm.$id, srRef, cloudConfig, networkConfig)
     }
 
     // wait for the record with all the VBDs and VIFs

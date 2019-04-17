@@ -17,6 +17,7 @@ import Wizard, { Section } from 'wizard'
 import {
   AvailableTemplateVars,
   DEFAULT_CLOUD_CONFIG_TEMPLATE,
+  DEFAULT_NETWORK_CONFIG_TEMPLATE,
 } from 'cloud-config'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
@@ -398,6 +399,7 @@ export default class NewVm extends BaseComponent {
 
     let cloudConfig
     let cloudConfigs
+    let networkConfig
     if (state.installMethod !== 'noConfigDrive') {
       if (state.installMethod === 'SSH') {
         const format = hostname =>
@@ -434,6 +436,10 @@ export default class NewVm extends BaseComponent {
             replacer(state, i + +seqStart)
           )
         }
+        networkConfig = defined(
+          state.networkConfig,
+          DEFAULT_NETWORK_CONFIG_TEMPLATE
+        )
       }
     } else if (state.template.name_label === 'CoreOS') {
       cloudConfig = state.cloudConfig
@@ -488,6 +494,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       share: state.share,
       cloudConfig,
+      networkConfig,
       coreOs: state.template.name_label === 'CoreOS',
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
@@ -1117,6 +1124,7 @@ export default class NewVm extends BaseComponent {
     const {
       cloudConfig,
       customConfig,
+      networkConfig,
       installIso,
       installMethod,
       installNetwork,
@@ -1208,13 +1216,32 @@ export default class NewVm extends BaseComponent {
               </span>
             </LineItem>
             <br />
-            <DebounceTextarea
-              className='form-control'
-              disabled={installMethod !== 'customConfig'}
-              onChange={this._linkState('customConfig')}
-              rows={7}
-              value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
-            />
+            <Row>
+              <Col size={3}>
+                <div className='text-muted'>User config</div>
+                <DebounceTextarea
+                  className='form-control'
+                  disabled={installMethod !== 'customConfig'}
+                  onChange={this._linkState('customConfig')}
+                  rows={7}
+                  value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
+                />
+              </Col>
+              <Col size={3}>
+                <div className='text-muted'>Network config</div>
+                <DebounceTextarea
+                  className='form-control'
+                  disabled={installMethod !== 'customConfig'}
+                  onChange={this._linkState('networkConfig')}
+                  rows={7}
+                  value={defined(
+                    networkConfig,
+                    DEFAULT_NETWORK_CONFIG_TEMPLATE
+                  )}
+                />
+              </Col>
+              <Col size={6} />
+            </Row>
           </SectionContent>
         ) : (
           <SectionContent>
