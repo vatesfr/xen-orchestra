@@ -162,14 +162,9 @@ export default class Jobs {
           return
         }
 
-        xo.emit(
-          'job:terminated',
-          undefined,
-          job,
-          undefined,
-          // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
-          String(job.runId)
-        )
+        xo.emit('job:terminated', String(job.runId), {
+          type: job.type,
+        })
         return this.updateJob({ id: job.id, runId: null })
       })
     )
@@ -319,7 +314,10 @@ export default class Jobs {
         true
       )
 
-      app.emit('job:terminated', status, job, schedule, runJobId)
+      app.emit('job:terminated', runJobId, {
+        type: job.type,
+        status,
+      })
     } catch (error) {
       await logger.error(
         `The execution of ${id} has failed.`,
@@ -330,7 +328,9 @@ export default class Jobs {
         },
         true
       )
-      app.emit('job:terminated', undefined, job, schedule, runJobId)
+      app.emit('job:terminated', runJobId, {
+        type: job.type,
+      })
       throw error
     } finally {
       this.updateJob({ id, runId: null })::ignoreErrors()

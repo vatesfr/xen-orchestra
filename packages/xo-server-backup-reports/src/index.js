@@ -221,67 +221,55 @@ class BackupReportsXoPlugin {
   }
 
   async test({ runId }) {
-    const xo = this._xo
-
-    const log = await xo.getBackupNgLogs(runId)
-    if (log === undefined) {
-      throw new Error(`no log found with runId=${JSON.stringify(runId)}`)
-    }
-
-    return this._report(
-      undefined,
-      await xo.getJob(log.jobId),
-      undefined,
-      runId,
-      true
-    )
+    return this._report(runId)
   }
 
   unload() {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  async _wrapper(status, job, schedule, runJobId, force) {
+  async _wrapper(runJobId, { type, status, force } = {}) {
     const xo = this._xo
-
     try {
-      if (job.type === 'backup' || job.type === 'metadataBackup') {
-        const log = await xo.getBackupNgLogs(runJobId)
-        if (log === undefined) {
-          throw new Error(`no log found with runId=${JSON.stringify(runJobId)}`)
-        }
-
-        const reportWhen = log.data.reportWhen
-        if (
-          !force &&
-          (reportWhen === 'never' ||
-            (reportWhen === 'failure' && log.status === 'success'))
-        ) {
-          return
-        }
-
-        return job.type === 'backup'
-          ? this._backupNgListener(log, schedule, runJobId, force)
-          : this._metadataBackupListener(log, schedule, runJobId, force)
+      if (type === 'call') {
+        return this._listener(status)
       }
 
-      return this._listener(status, job, schedule, runJobId)
+      const log = await xo.getBackupNgLogs(runJobId)
+      if (log === undefined) {
+        throw new Error(`no log found with runId=${JSON.stringify(runJobId)}`)
+      }
+
+      const reportWhen = log.data.reportWhen
+      if (
+        !force &&
+        (reportWhen === 'never' ||
+          (reportWhen === 'failure' && log.status === 'success'))
+      ) {
+        return
+      }
+
+      if (type === undefined) {
+        type = await xo.getJob(log.jobId).then(({ type }) => type)
+      }
+      return type === 'backup'
+        ? this._backupNgListener(log, runJobId, force)
+        : this._metadataBackupListener(log, runJobId, force)
     } catch (error) {
       logger.warn(error)
     }
   }
 
-  async _metadataBackupListener(log, schedule, runJobId, force) {
+  async _metadataBackupListener(log, runJobId, force) {
     const xo = this._xo
 
     const formatDate = createDateFormatter(
-      schedule?.timezone ??
-        (await xo.getSchedule(log.scheduleId).then(
-          schedule => schedule.timezone,
-          error => {
-            logger.warn(error)
-          }
-        ))
+      await xo.getSchedule(log.scheduleId).then(
+        schedule => schedule.timezone,
+        error => {
+          logger.warn(error)
+        }
+      )
     )
 
     const tasksByStatus = groupBy(log.tasks, 'status')
@@ -368,20 +356,22 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _backupNgListener(log, schedule, runJobId, force) {
+  async _backupNgListener(log, runJobId, force) {
     const xo = this._xo
 
     const { reportWhen, mode } = log.data || {}
 
-    if (schedule === undefined) {
-      schedule = await xo.getSchedule(log.scheduleId)
-    }
-
     const jobName = (await xo.getJob(log.jobId, 'backup')).name
-    const formatDate = createDateFormatter(schedule.timezone)
+    const formatDate = createDateFormatter(
+      await xo.getSchedule(log.scheduleId).then(
+        schedule => schedule.timezone,
+        error => {
+          logger.warn(error)
+        }
+      )
+    )
 
-    const errorMarkdown = getErrorMarkdown(log)
-    if (errorMarkdown !== undefined) {
+    if (log.tasks === undefined) {
       const markdown = [
         `##  Global status: ${log.status}`,
         '',
@@ -389,7 +379,7 @@ class BackupReportsXoPlugin {
         `- **Run ID**: ${runJobId}`,
         `- **mode**: ${mode}`,
         ...getTemporalDataMarkdown(log.end, log.start, formatDate),
-        errorMarkdown,
+        getErrorMarkdown(log),
         ...getWarningsMarkdown(log.warnings),
         '---',
         '',
