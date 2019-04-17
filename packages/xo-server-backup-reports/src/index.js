@@ -139,77 +139,51 @@ const getErrorMarkdown = task => {
   return `- **${label}**: ${message}`
 }
 
-const getPoolMarkdown = (task, { formatDate }) => {
-  const { pool, poolMaster = {} } = task.data
+const MARKDOWN_BY_TYPE = {
+  pool(task, { formatDate }) {
+    const { pool, poolMaster = {} } = task.data
+    const name = pool.name_label || poolMaster.name_label || UNKNOWN_ITEM
 
-  const name = pool.name_label || poolMaster.name_label || UNKNOWN_ITEM
-  const body = [
-    `- **UUID**: ${pool.uuid}`,
-    ...getTemporalDataMarkdown(task.end, task.start, formatDate),
-  ]
-
-  const error = getErrorMarkdown(task)
-  if (error !== undefined) {
-    body.push(error)
-  }
-
-  return {
-    body,
-    title: `[pool] ${name}`,
-  }
-}
-
-const getXoMarkdown = (task, { formatDate, jobName }) => {
-  const body = getTemporalDataMarkdown(task.end, task.start, formatDate)
-
-  const error = getErrorMarkdown(task)
-  if (error !== undefined) {
-    body.push(error)
-  }
-
-  return { body, title: `[XO] ${jobName}` }
-}
-
-const getRemoteMarkdown = async (task, { formatDate, xo }) => {
-  const id = task.data.id
-
-  const name = await xo.getRemote(id).then(
-    ({ name }) => name,
-    error => {
-      logger.warn(error)
-      return UNKNOWN_ITEM
+    return {
+      body: [
+        `- **UUID**: ${pool.uuid}`,
+        ...getTemporalDataMarkdown(task.end, task.start, formatDate),
+        getErrorMarkdown(task),
+      ],
+      title: `[pool] ${name}`,
     }
-  )
-  const body = [
-    `- **ID**: ${id}`,
-    ...getTemporalDataMarkdown(task.end, task.start, formatDate),
-  ]
-
-  const error = getErrorMarkdown(task)
-  if (error !== undefined) {
-    body.push(error)
-  }
-
-  return {
-    body,
-    title: `[remote] ${name}`,
-  }
+  },
+  xo(task, { formatDate, jobName }) {
+    return {
+      body: [
+        ...getTemporalDataMarkdown(task.end, task.start, formatDate),
+        getErrorMarkdown(task),
+      ],
+      title: `[XO] ${jobName}`,
+    }
+  },
+  async remote(task, { formatDate, xo }) {
+    const id = task.data.id
+    const name = await xo.getRemote(id).then(
+      ({ name }) => name,
+      error => {
+        logger.warn(error)
+        return UNKNOWN_ITEM
+      }
+    )
+    return {
+      body: [
+        `- **ID**: ${id}`,
+        ...getTemporalDataMarkdown(task.end, task.start, formatDate),
+        getErrorMarkdown(task),
+      ],
+      title: `[remote] ${name}`,
+    }
+  },
 }
 
-const getMarkdown = async (task, props) => {
-  const type = task.data?.type
-  if (type === 'pool') {
-    return getPoolMarkdown(task, props)
-  }
-
-  if (type === 'xo') {
-    return getXoMarkdown(task, props)
-  }
-
-  if (type === 'remote') {
-    return getRemoteMarkdown(task, props)
-  }
-}
+const getMarkdown = async (task, props) =>
+  MARKDOWN_BY_TYPE[(task.data?.type)]?.(task, props)
 
 const toMarkdown = parts => {
   const lines = []
@@ -347,7 +321,8 @@ class BackupReportsXoPlugin {
         }
 
         const { title, body } = taskMarkdown
-        const subMarkdown = ['', ...body, ...getWarningsMarkdown(task.warnings)]
+        const subMarkdown = [...body, ...getWarningsMarkdown(task.warnings)]
+
         if (task.status !== 'success') {
           nagiosText.push(`[${task.status}] ${title}`)
         }
@@ -365,7 +340,7 @@ class BackupReportsXoPlugin {
             [...body, ...getWarningsMarkdown(subTask.warnings)],
           ])
         }
-        markdown.push('', `### ${title}`, subMarkdown)
+        markdown.push('', '', `### ${title}`, ...subMarkdown)
       }
     }
 
@@ -410,7 +385,7 @@ class BackupReportsXoPlugin {
         `- **Run ID**: ${runJobId}`,
         `- **mode**: ${mode}`,
         ...getTemporalDataMarkdown(log.end, log.start, formatDate),
-        `- **Error**: ${errorMarkdown}`,
+        errorMarkdown,
         ...getWarningsMarkdown(log.warnings),
         '---',
         '',
