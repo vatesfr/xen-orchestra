@@ -249,10 +249,16 @@ class BackupReportsXoPlugin {
         return
       }
 
-      const job = await xo.getJob(log.jobId)
-      const schedule = await xo.getSchedule(log.scheduleId).catch(error => {
-        logger.warn(error)
-      })
+      const [job, schedule] = await Promise.all([
+        await xo.getJob(log.jobId),
+        await xo.getSchedule(log.scheduleId).catch(error => {
+          logger.warn(error)
+        }),
+      ])
+
+      if (job.type !== 'backup' && job.type !== 'metadataBackup') {
+        throw new Error('Unknown backup job type')
+      }
 
       return job.type === 'backup'
         ? this._ngVmHandler(log, job, schedule, force)
