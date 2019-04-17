@@ -228,17 +228,20 @@ class BackupReportsXoPlugin {
       throw new Error(`no log found with runId=${JSON.stringify(runId)}`)
     }
 
-    const job = await xo.getJob(log.jobId)
-    return job.type === 'backup'
-      ? this._backupNgListener(log, undefined, runId, true)
-      : this._metadataBackupListener(log, undefined, runId, true)
+    return this._report(
+      undefined,
+      await xo.getJob(log.jobId),
+      undefined,
+      runId,
+      true
+    )
   }
 
   unload() {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  async _wrapper(status, job, schedule, runJobId) {
+  async _wrapper(status, job, schedule, runJobId, force) {
     const xo = this._xo
 
     try {
@@ -250,15 +253,16 @@ class BackupReportsXoPlugin {
 
         const reportWhen = log.data.reportWhen
         if (
-          reportWhen === 'never' ||
-          (reportWhen === 'failure' && log.status === 'success')
+          !force &&
+          (reportWhen === 'never' ||
+            (reportWhen === 'failure' && log.status === 'success'))
         ) {
           return
         }
 
         return job.type === 'backup'
-          ? this._backupNgListener(log, schedule, runJobId)
-          : this._metadataBackupListener(log, schedule, runJobId)
+          ? this._backupNgListener(log, schedule, runJobId, force)
+          : this._metadataBackupListener(log, schedule, runJobId, force)
       }
 
       return this._listener(status, job, schedule, runJobId)
@@ -267,7 +271,7 @@ class BackupReportsXoPlugin {
     }
   }
 
-  async _metadataBackupListener(log, schedule, runJobId, test) {
+  async _metadataBackupListener(log, schedule, runJobId, force) {
     const xo = this._xo
 
     const formatDate = createDateFormatter(
@@ -284,7 +288,7 @@ class BackupReportsXoPlugin {
     const n = log.tasks?.length ?? 0
     const nSuccesses = tasksByStatus.success?.length ?? 0
 
-    if (!test && log.data.reportWhen === 'failure') {
+    if (!force && log.data.reportWhen === 'failure') {
       delete tasksByStatus.success
     }
 
@@ -364,7 +368,7 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _backupNgListener(log, schedule, runJobId, test) {
+  async _backupNgListener(log, schedule, runJobId, force) {
     const xo = this._xo
 
     const { reportWhen, mode } = log.data || {}
@@ -415,7 +419,7 @@ class BackupReportsXoPlugin {
     let nSkipped = 0
     let nInterrupted = 0
     for (const taskLog of log.tasks) {
-      if (!test && taskLog.status === 'success' && reportWhen === 'failure') {
+      if (!force && taskLog.status === 'success' && reportWhen === 'failure') {
         continue
       }
 
@@ -638,7 +642,7 @@ class BackupReportsXoPlugin {
       )
     }
 
-    if (nSuccesses !== 0 && (test || reportWhen !== 'failure')) {
+    if (nSuccesses !== 0 && (force || reportWhen !== 'failure')) {
       markdown.push(
         '---',
         '',
