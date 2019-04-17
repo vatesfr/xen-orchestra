@@ -221,18 +221,18 @@ class BackupReportsXoPlugin {
   }
 
   test({ runId }) {
-    return this._report(runId, { force: true })
+    return this._report(runId, undefined, true)
   }
 
   unload() {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  async _report(runJobId, { type, status, force } = {}) {
+  async _report(runJobId, { type, status } = {}, force) {
     const xo = this._xo
     try {
       if (type === 'call') {
-        return this._listener(status)
+        return this._legacyVmHandler(status)
       }
 
       const log = await xo.getBackupNgLogs(runJobId)
@@ -255,14 +255,14 @@ class BackupReportsXoPlugin {
       })
 
       return job.type === 'backup'
-        ? this._backupNgListener(log, job, schedule, force)
-        : this._metadataBackupListener(log, job, schedule, force)
+        ? this._ngVmHandler(log, job, schedule, force)
+        : this._metadataHandler(log, job, schedule, force)
     } catch (error) {
       logger.warn(error)
     }
   }
 
-  async _metadataBackupListener(log, { name: jobName }, schedule, force) {
+  async _metadataHandler(log, { name: jobName }, schedule, force) {
     const xo = this._xo
 
     const formatDate = createDateFormatter(schedule?.timezone)
@@ -351,7 +351,7 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _backupNgListener(log, { name: jobName }, schedule, force) {
+  async _ngVmHandler(log, { name: jobName }, schedule, force) {
     const xo = this._xo
 
     const { reportWhen, mode } = log.data || {}
@@ -671,7 +671,7 @@ class BackupReportsXoPlugin {
     ])
   }
 
-  _listener(status) {
+  _legacyVmHandler(status) {
     const { calls, timezone, error } = status
     const formatDate = createDateFormatter(timezone)
 
