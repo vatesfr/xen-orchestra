@@ -162,9 +162,14 @@ export default class Jobs {
           return
         }
 
-        xo.emit('job:terminated', String(job.runId), {
-          type: job.type,
-        })
+        xo.emit(
+          'job:terminated',
+          // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
+          String(job.runId),
+          {
+            type: job.type,
+          }
+        )
         return this.updateJob({ id: job.id, runId: null })
       })
     )

@@ -106,7 +106,7 @@ const isSkippedError = error =>
 
 const TITLE_BY_STATUS = {
   failure: n => `## ${n} Failure${n === 1 ? '' : 's'}`,
-  interrupted: n => `## ${n} Interrupt${n === 1 ? '' : 's'}`,
+  interrupted: n => `## ${n} Interruption${n === 1 ? '' : 's'}`,
   skipped: n => `## ${n} Skip${n === 1 ? '' : 's'}`,
   success: n => `## ${n} Success${n === 1 ? '' : 'es'}`,
 }
@@ -208,7 +208,7 @@ const toMarkdown = parts => {
 class BackupReportsXoPlugin {
   constructor(xo) {
     this._xo = xo
-    this._report = this._wrapper.bind(this)
+    this._report = this._report.bind(this)
   }
 
   configure({ toMails, toXmpp }) {
@@ -228,7 +228,7 @@ class BackupReportsXoPlugin {
     this._xo.removeListener('job:terminated', this._report)
   }
 
-  async _wrapper(runJobId, { type, status, force } = {}) {
+  async _report(runJobId, { type, status, force } = {}) {
     const xo = this._xo
     try {
       if (type === 'call') {
