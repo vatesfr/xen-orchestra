@@ -597,12 +597,9 @@ class ResourceSet extends Component {
   _renderDisplay = () => {
     const { resourceSet } = this.props
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
-    const { limits, id, ipPools, subjects, objectsByType } = resourceSet
+    const { limits, ipPools, subjects, objectsByType } = resourceSet
 
     return [
-      <li key={id} className='list-group-item'>
-        <span className='tag tag-default'>id</span> {id}
-      </li>,
       <li key='subjects' className='list-group-item'>
         <Subjects subjects={subjects} />
       </li>,
@@ -673,7 +670,10 @@ class ResourceSet extends Component {
 
     return (
       <div className='mb-1' ref={this._autoExpand}>
-        <Collapse buttonText={resourceSet.name} defaultOpen={autoExpand}>
+        <Collapse
+          buttonText={`${resourceSet.name} (${resourceSet.id})`}
+          defaultOpen={autoExpand}
+        >
           <ul className='list-group'>
             {this.state.editionMode ? (
               <Edit
