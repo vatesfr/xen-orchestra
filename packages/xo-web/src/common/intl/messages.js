@@ -1006,7 +1006,6 @@ const messages = {
   containerRestart: 'Restart this container',
 
   // ----- VM disk tab -----
-  attachDisk: 'Attach disk',
   vdiAction: 'Action',
   vdiAttachDeviceButton: 'Attach disk',
   vbdCreateDeviceButton: 'New disk',

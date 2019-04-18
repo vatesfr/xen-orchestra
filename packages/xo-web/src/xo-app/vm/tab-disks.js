@@ -453,19 +453,10 @@ class AttachDisk extends Component {
         const vbd = vbds[id]
         return !vbd || !vbd.attached || vbd.read_only
       })
-
-    const _attachDisktoVm = () =>
-      attachDiskToVm(vdi, vm, {
-        bootable,
-        mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
-      }).then(onClose)
-
-    return this._checkSr()
-      ? _attachDisktoVm()
-      : confirm({
-          title: _('attachDisk'),
-          body: _('warningVdiSr'),
-        }).then(_attachDisktoVm)
+    return attachDiskToVm(vdi, vm, {
+      bootable,
+      mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
+    }).then(onClose)
   }
 
   render() {
@@ -503,6 +494,13 @@ class AttachDisk extends Component {
                 {_('vbdAttach')}
               </ActionButton>
             </span>
+            {!this._checkSr() && (
+              <div>
+                <span className='text-danger'>
+                  <Icon icon='alarm' /> {_('warningVdiSr')}
+                </span>
+              </div>
+            )}
           </fieldset>
         )}
       </form>
