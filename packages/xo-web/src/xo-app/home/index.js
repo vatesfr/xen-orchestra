@@ -750,8 +750,7 @@ export default class Home extends Component {
             new ComplexMatcher.Or(
               map(
                 tags,
-                tag =>
-                  new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`)
+                tag => new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`)
               )
             )
           )
@@ -831,7 +830,10 @@ export default class Home extends Component {
           break
         case 'NAV_UP':
           this.setState({
-            highlighted: (this.state.highlighted - 1) % items.length || 0,
+            highlighted:
+              this.state.highlighted > 0
+                ? this.state.highlighted - 1
+                : items.length - 1,
           })
           break
         case 'SELECT':
