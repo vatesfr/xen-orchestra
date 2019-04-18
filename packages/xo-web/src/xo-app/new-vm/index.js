@@ -1217,21 +1217,29 @@ export default class NewVm extends BaseComponent {
             </LineItem>
             <br />
             <Row>
-              <Col size={3}>
-                <div className='text-muted'>User config</div>
+              <Col size={6}>
+                <label className='text-muted' htmlFor='customConfig'>
+                  User config
+                </label>
+                <br />
                 <DebounceTextarea
                   className='form-control'
                   disabled={installMethod !== 'customConfig'}
+                  id='customConfig'
                   onChange={this._linkState('customConfig')}
                   rows={7}
                   value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
                 />
               </Col>
-              <Col size={3}>
-                <div className='text-muted'>Network config</div>
+              <Col size={6}>
+                <label className='text-muted' htmlFor='networkConfig'>
+                  Network config
+                </label>
+                <br />
                 <DebounceTextarea
                   className='form-control'
                   disabled={installMethod !== 'customConfig'}
+                  id='networkConfig'
                   onChange={this._linkState('networkConfig')}
                   rows={7}
                   value={defined(
@@ -1240,7 +1248,6 @@ export default class NewVm extends BaseComponent {
                   )}
                 />
               </Col>
-              <Col size={6} />
             </Row>
           </SectionContent>
         ) : (
