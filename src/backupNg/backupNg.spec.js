@@ -19,7 +19,7 @@ describe("backupNg", () => {
       },
       settings: {
         "": {
-          reportWhen: "always",
+          reportWhen: "never",
         },
       },
     };
@@ -168,6 +168,68 @@ describe("backupNg", () => {
         scheduleId: settingKeys[0],
       });
       expect(log.warnings).toMatchSnapshot();
+    });
+
+    it("fails trying to run a backup job with a VM without disks", async () => {
+      const vmIdWithoutDisks = await xo.createTempVm({
+        name_label: "XO Test Without Disks",
+        name_description: "Creating a vm without disks",
+        template: config.xoTestTemplateId,
+      });
+
+      const scheduleTempId = randomId();
+      const { id: jobId } = await xo.createTempBackupNgJob({
+        ...defaultBackupNg,
+        schedules: {
+          [scheduleTempId]: {
+            name: "scheduleTest",
+            cron: "0 * * * * *",
+          },
+        },
+        settings: {
+          ...defaultBackupNg.settings,
+          [scheduleTempId]: { snapshotRetention: 1 },
+        },
+        vms: {
+          id: vmIdWithoutDisks,
+        },
+      });
+
+      const schedule = await xo.getSchedule({ jobId });
+      expect(typeof schedule).toBe("object");
+      await xo.call("backupNg.runJob", { id: jobId, schedule: schedule.id });
+
+      const [
+        {
+          tasks: [vmTask],
+          ...log
+        },
+      ] = await xo.call("backupNg.getLogs", {
+        jobId,
+        scheduleId: schedule.id,
+      });
+      expect(log).toMatchSnapshot({
+        end: expect.any(Number),
+        id: expect.any(String),
+        jobId: expect.any(String),
+        scheduleId: expect.any(String),
+        start: expect.any(Number),
+      });
+
+      expect(vmTask).toMatchSnapshot({
+        end: expect.any(Number),
+        data: {
+          id: expect.any(String),
+        },
+        id: expect.any(String),
+        message: expect.any(String),
+        result: {
+          stack: expect.any(String),
+        },
+        start: expect.any(Number),
+      });
+
+      expect(vmTask.data.id).toBe(vmIdWithoutDisks);
     });
   });
 });

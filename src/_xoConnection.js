@@ -68,7 +68,7 @@ class XoConnection extends Xo {
   async connect($defer, credentials = config.adminCredentials) {
     await this.open();
     $defer.onFailure(() => this.close());
-    
+
     await this.signIn(credentials);
     await this._fetchObjects();
 
@@ -107,6 +107,19 @@ class XoConnection extends Xo {
     const job = await this.call("backupNg.createJob", params);
     this._tempResourceDisposers.push("backupNg.deleteJob", { id: job.id });
     return job;
+  }
+
+  async createTempVm(params) {
+    const id = await this.call("vm.create", params);
+    this._tempResourceDisposers.push("vm.delete", { id });
+    await this.waitObjectState(id, vm => {
+      if (vm.type !== "VM") throw new Error("retry");
+    });
+    return id;
+  }
+
+  async getSchedule(predicate) {
+    return find(await this.call("schedule.getAll"), predicate);
   }
 
   async deleteTempResources() {

@@ -25,13 +25,49 @@ Object {
   "name": "default-backupNg",
   "settings": Object {
     "": Object {
-      "reportWhen": "always",
+      "reportWhen": "never",
     },
   },
   "type": "backup",
   "vms": Object {
     "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
   },
+}
+`;
+
+exports[`backupNg .runJob() : fails trying to run a backup job with a VM without disks 1`] = `
+Object {
+  "data": Object {
+    "mode": "full",
+    "reportWhen": "never",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "jobId": Any<String>,
+  "jobName": "default-backupNg",
+  "message": "backup",
+  "scheduleId": Any<String>,
+  "start": Any<Number>,
+  "status": "skipped",
+}
+`;
+
+exports[`backupNg .runJob() : fails trying to run a backup job with a VM without disks 2`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "VM",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "message": "no disks found",
+    "name": "Error",
+    "stack": Any<String>,
+  },
+  "start": Any<Number>,
+  "status": "skipped",
 }
 `;
 

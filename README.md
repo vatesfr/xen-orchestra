@@ -82,8 +82,10 @@ describe("user", () => {
   The available helpers:  
   * `createUser(params)`  
   * `getUser(id)`  
-  * `createTempJob(jobId)`  
+  * `createTempJob(params)`  
   * `createTempBackupNgJob(params)`  
+  * `createTempVm(params)`  
+  * `getSchedule(predicate)`  
 
 ## Usage
 
