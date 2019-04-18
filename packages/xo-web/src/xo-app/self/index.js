@@ -597,9 +597,12 @@ class ResourceSet extends Component {
   _renderDisplay = () => {
     const { resourceSet } = this.props
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
-    const { limits, ipPools, subjects, objectsByType } = resourceSet
+    const { limits, id, ipPools, subjects, objectsByType } = resourceSet
 
     return [
+      <li key={id} className='list-group-item'>
+        <span className='tag tag-default'>id</span> {id}
+      </li>,
       <li key='subjects' className='list-group-item'>
         <Subjects subjects={subjects} />
       </li>,
