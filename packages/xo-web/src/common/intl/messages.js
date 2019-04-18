@@ -1433,7 +1433,6 @@ const messages = {
   diskImportSuccess: 'Disk import success ',
   diskImportFailed: 'Disk import failed ',
   dropDisksFiles: 'Drop VMDK or VHD files here to import disks.',
-  importFileType: '{type} file:',
   importToSr: 'To SR',
   diskNamePlaceholder: 'If empty: name of file',
 
