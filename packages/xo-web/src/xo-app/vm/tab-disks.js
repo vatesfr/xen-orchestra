@@ -407,12 +407,7 @@ class NewDisk extends Component {
 }
 
 @connectStore({
-  srs: createGetObjectsOfType('SR').filter(
-    createSelector(
-      (_, { vm }) => vm && vm.$pool,
-      poolId => sr => sr.$pool === poolId && isSrWritable(sr)
-    )
-  ),
+  srs: createGetObjectsOfType('SR'),
 })
 class AttachDisk extends Component {
   static propTypes = {
