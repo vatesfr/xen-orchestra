@@ -104,6 +104,7 @@ const isSkippedError = error =>
 
 // ===================================================================
 
+const STATUS = ['failure', 'interrupted', 'skipped', 'success']
 const TITLE_BY_STATUS = {
   failure: n => `## ${n} Failure${n === 1 ? '' : 's'}`,
   interrupted: n => `## ${n} Interrupted`,
@@ -182,7 +183,7 @@ const MARKDOWN_BY_TYPE = {
   },
 }
 
-const getMarkdown = async (task, props) =>
+const getMarkdown = (task, props) =>
   MARKDOWN_BY_TYPE[(task.data?.type)]?.(task, props)
 
 const toMarkdown = parts => {
@@ -297,8 +298,11 @@ class BackupReportsXoPlugin {
     const nagiosText = []
 
     // body
-    for (const status in tasksByStatus) {
+    for (const status of STATUS) {
       const tasks = tasksByStatus[status]
+      if (tasks === undefined) {
+        continue
+      }
 
       // tasks header
       markdown.push('---', '', TITLE_BY_STATUS[status](tasks.length))
