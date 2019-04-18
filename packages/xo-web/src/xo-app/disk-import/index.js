@@ -1,4 +1,3 @@
-import * as FormGrid from 'form-grid'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
@@ -12,6 +11,7 @@ import { generateId, linkState } from 'reaclette-utils'
 import { importDisks } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
+import { LabelCol, InputCol, Row } from 'form-grid'
 import { readCapacityAndGrainTable } from 'xo-vmdk-to-vhd'
 import { SelectSr } from 'select-objects'
 
@@ -27,8 +27,7 @@ const DiskImport = decorate([
     initialState: getInitialState,
     effects: {
       handleDrop: (effects, files) => async ({ sr }) => {
-        const disks = []
-        await Promise.all(
+        const disks = await Promise.all(
           mapPlus(files, async (file, push) => {
             const { name } = file
             const extIndex = name.lastIndexOf('.')
@@ -46,7 +45,7 @@ const DiskImport = decorate([
                   capacity: parsed.capacityBytes,
                 }
               }
-              disks.push({
+              push({
                 id: generateId(),
                 file,
                 name,
@@ -109,17 +108,17 @@ const DiskImport = decorate([
       } = this.props
       return (
         <form id='import-form'>
-          <FormGrid.Row>
-            <FormGrid.LabelCol>{_('importToSr')}</FormGrid.LabelCol>
-            <FormGrid.InputCol>
+          <Row>
+            <LabelCol>{_('importToSr')}</LabelCol>
+            <InputCol>
               <SelectSr onChange={effects.onChangeSr} required value={sr} />
-            </FormGrid.InputCol>
-          </FormGrid.Row>
+            </InputCol>
+          </Row>
           {sr !== undefined && (
             <div>
               <Dropzone
                 onDrop={effects.handleDrop}
-                message={_('importDisksList')}
+                message={_('dropDisksFiles')}
               />
               {disks.length > 0 && (
                 <div>
@@ -132,11 +131,9 @@ const DiskImport = decorate([
                       >
                         <br />
                         <div key={preview}>
-                          <FormGrid.Row>
-                            <FormGrid.LabelCol>
-                              {_('formName')}
-                            </FormGrid.LabelCol>
-                            <FormGrid.InputCol>
+                          <Row>
+                            <LabelCol>{_('formName')}</LabelCol>
+                            <InputCol>
                               <input
                                 className='form-control'
                                 name={id}
@@ -147,13 +144,11 @@ const DiskImport = decorate([
                                 type='text'
                                 value={mapNames[id]}
                               />
-                            </FormGrid.InputCol>
-                          </FormGrid.Row>
-                          <FormGrid.Row>
-                            <FormGrid.LabelCol>
-                              {_('formDescription')}
-                            </FormGrid.LabelCol>
-                            <FormGrid.InputCol>
+                            </InputCol>
+                          </Row>
+                          <Row>
+                            <LabelCol>{_('formDescription')}</LabelCol>
+                            <InputCol>
                               <input
                                 className='form-control'
                                 name={id}
@@ -161,8 +156,8 @@ const DiskImport = decorate([
                                 type='text'
                                 value={mapDescriptions[id]}
                               />
-                            </FormGrid.InputCol>
-                          </FormGrid.Row>
+                            </InputCol>
+                          </Row>
                         </div>
                       </Collapse>
                     ))}

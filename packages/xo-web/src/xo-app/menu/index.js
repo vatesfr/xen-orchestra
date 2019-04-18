@@ -362,6 +362,23 @@ export default class Menu extends Component {
         pill: nTasks,
       },
       isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
+      !noOperatablePools && {
+        to: '/import/vm',
+        icon: 'menu-new-import',
+        label: 'newImport',
+        subMenu: [
+          {
+            to: '/import/vm',
+            icon: 'vm',
+            label: 'labelVm',
+          },
+          {
+            to: '/import/disk',
+            icon: 'disk',
+            label: 'labelDisk',
+          },
+        ],
+      },
       !(noOperatablePools && noResourceSets) && {
         to: '/vms/new',
         icon: 'menu-new',
@@ -384,11 +401,6 @@ export default class Menu extends Component {
             to: '/settings/servers',
             icon: 'menu-settings-servers',
             label: 'newServerPage',
-          },
-          !noOperatablePools && {
-            to: '/import/vm',
-            icon: 'menu-new-import',
-            label: 'newImport',
           },
         ],
       },

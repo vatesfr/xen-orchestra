@@ -1430,7 +1430,9 @@ const messages = {
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
 
   // ---- Disk import ---
-  importDisksList: 'Drop VMDK or VHD files here to import disks.',
+  diskImportSuccess: 'Disk import success ',
+  diskImportFailed: 'Disk import failed ',
+  dropDisksFiles: 'Drop VMDK or VHD files here to import disks.',
   importFileType: '{type} file:',
   importToSr: 'To SR',
   diskNamePlaceholder: 'If empty: name of file',
