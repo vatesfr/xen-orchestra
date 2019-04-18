@@ -406,8 +406,12 @@ class NewDisk extends Component {
   }
 }
 
+@connectStore({
+  srs: createGetObjectsOfType('SR'),
+})
 class AttachDisk extends Component {
   static propTypes = {
+    checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vbds: PropTypes.array.isRequired,
     vm: PropTypes.object.isRequired,
@@ -431,6 +435,13 @@ class AttachDisk extends Component {
   )
 
   _selectVdi = vdi => this.setState({ vdi })
+
+  _checkSr = createSelector(
+    () => this.props.checkSr,
+    () => this.props.srs,
+    () => this.state.vdi,
+    (check, srs, vdi) => check(srs[vdi.$SR])
+  )
 
   _addVdi = () => {
     const { vm, vbds, onClose = noop } = this.props
@@ -483,6 +494,13 @@ class AttachDisk extends Component {
                 {_('vbdAttach')}
               </ActionButton>
             </span>
+            {!this._checkSr() && (
+              <div>
+                <span className='text-danger'>
+                  <Icon icon='alarm' /> {_('warningVdiSr')}
+                </span>
+              </div>
+            )}
           </fieldset>
         )}
       </form>
@@ -896,6 +914,7 @@ export default class TabDisks extends Component {
             {attachDisk && (
               <div>
                 <AttachDisk
+                  checkSr={this._getCheckSr()}
                   vm={vm}
                   vbds={vbds}
                   onClose={this._toggleAttachDisk}
