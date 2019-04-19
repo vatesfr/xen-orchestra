@@ -8,7 +8,7 @@ const __PROD__ = NODE_ENV === 'production'
 // https://webpack.js.org/configuration/
 module.exports = {
   mode: NODE_ENV,
-  entry: resolveApp('src/index.js'),
+  entry: resolveApp('src/index.tsx'),
   output: {
     filename: __PROD__ ? '[name].[contenthash:8].js' : '[name].js',
     path: resolveApp('dist'),
@@ -22,7 +22,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.tsx$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
@@ -32,6 +32,9 @@ module.exports = {
         },
       },
     ],
+  },
+  resolve: {
+    extensions: ['.tsx', '.js'],
   },
   devtool: __PROD__ ? 'source-map' : 'cheap-module-eval-source-map',
   plugins: [

@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import * as React from 'react'
 import styled from '@emotion/styled'
 import { HashRouter as Router, Route, Link } from 'react-router-dom'
 import { Helmet, HelmetProvider } from 'react-helmet-async'
@@ -31,10 +31,10 @@ export default () => (
         </ul>
       </nav>
 
-      <Suspense fallback='loading'>
+      <React.Suspense fallback='loading'>
         <Route path='/' exact component={Bar} />
         <Route path='/foo' component={Foo} />
-      </Suspense>
+      </React.Suspense>
     </HelmetProvider>
   </Router>
 )
