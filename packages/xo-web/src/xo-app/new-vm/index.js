@@ -441,7 +441,7 @@ export default class NewVm extends BaseComponent {
           DEFAULT_NETWORK_CONFIG_TEMPLATE
         )
       }
-    } else if (state.template.name_label === 'CoreOS') {
+    } else if (this._isCoreOs()) {
       cloudConfig = state.cloudConfig
       if (state.multipleVms) {
         cloudConfigs = new Array(state.nbVms).fill(state.cloudConfig)
@@ -494,14 +494,11 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       share: state.share,
       cloudConfig,
-      coreOs: state.template.name_label === 'CoreOS',
+      networkConfig: this._isCoreOs() ? undefined : networkConfig,
+      coreOs: this._isCoreOs(),
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
       gpuGroup: get(() => state.vgpuType.gpuGroup),
-    }
-
-    if (state.template.name_label !== 'CoreOS') {
-      data.networkConfig = networkConfig
     }
 
     return state.multipleVms
@@ -598,7 +595,7 @@ export default class NewVm extends BaseComponent {
       }),
     })
 
-    if (template.name_label === 'CoreOS') {
+    if (this._isCoreOs()) {
       getCloudInitConfig(template.id).then(
         cloudConfig =>
           this._setState({ cloudConfig, coreOsDefaultTemplateError: false }),
@@ -746,6 +743,11 @@ export default class NewVm extends BaseComponent {
     },
     () => this.state.state.CPUs,
     getCoresPerSocketPossibilities
+  )
+
+  _isCoreOs = createSelector(
+    () => this.state.template,
+    template => template && template.name_label === 'coreOs'
   )
 
   // On change -------------------------------------------------------------------
@@ -1233,7 +1235,7 @@ export default class NewVm extends BaseComponent {
                 />
               </label>
               &nbsp;&nbsp;&nbsp;
-              {template.name_label !== 'CoreOS' && (
+              {!this._isCoreOs() && (
                 <label className='text-muted' htmlFor='networkConfig'>
                   Network config
                   <br />
@@ -1330,7 +1332,7 @@ export default class NewVm extends BaseComponent {
             )}
           </SectionContent>
         )}
-        {template.name_label === 'CoreOS' && (
+        {this._isCoreOs() && (
           <div>
             <label>{_('newVmCloudConfig')}</label>{' '}
             {!coreOsDefaultTemplateError ? (
