@@ -1,3 +1,4 @@
+/* eslint eslint-comments/disable-enable-pair: [error, {allowWholeFile: true}] */
 /* eslint-disable camelcase */
 import asyncMap from '@xen-orchestra/async-map'
 import concurrency from 'limit-concurrency-decorator'
