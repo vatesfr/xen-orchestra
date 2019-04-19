@@ -494,11 +494,14 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       share: state.share,
       cloudConfig,
-      networkConfig,
       coreOs: state.template.name_label === 'CoreOS',
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
       gpuGroup: get(() => state.vgpuType.gpuGroup),
+    }
+
+    if (state.template.name_label !== 'CoreOS') {
+      data.networkConfig = networkConfig
     }
 
     return state.multipleVms
@@ -1230,21 +1233,23 @@ export default class NewVm extends BaseComponent {
                 />
               </label>
               &nbsp;&nbsp;&nbsp;
-              <label className='text-muted' htmlFor='networkConfig'>
-                Network config
-                <br />
-                <DebounceTextarea
-                  className='form-control'
-                  disabled={installMethod !== 'customConfig'}
-                  id='networkConfig'
-                  onChange={this._linkState('networkConfig')}
-                  rows={7}
-                  value={defined(
-                    networkConfig,
-                    DEFAULT_NETWORK_CONFIG_TEMPLATE
-                  )}
-                />
-              </label>
+              {template.name_label !== 'CoreOS' && (
+                <label className='text-muted' htmlFor='networkConfig'>
+                  Network config
+                  <br />
+                  <DebounceTextarea
+                    className='form-control'
+                    disabled={installMethod !== 'customConfig'}
+                    id='networkConfig'
+                    onChange={this._linkState('networkConfig')}
+                    rows={7}
+                    value={defined(
+                      networkConfig,
+                      DEFAULT_NETWORK_CONFIG_TEMPLATE
+                    )}
+                  />
+                </label>
+              )}
             </LineItem>
           </SectionContent>
         ) : (
