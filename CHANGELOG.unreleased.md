@@ -1,5 +1,9 @@
 > This file contains all changes that have not been released yet.
 
+### Features
+
+- [Self/New VM] Add network config box to custom clould-init [#3872](https://github.com/vatesfr/xen-orchestra/issues/3872) (PR [#4150](https://github.com/vatesfr/xen-orchestra/pull/4150))
+
 ### Enhancements
 
 - [Self/New VM] Display confirmation modal when user will use a large amount of resources [#4044](https://github.com/vatesfr/xen-orchestra/issues/4044) (PR [#4127](https://github.com/vatesfr/xen-orchestra/pull/4127))
