@@ -1440,32 +1440,28 @@ export const importVms = (vms, sr) =>
     )
   ).then(ids => ids.filter(_ => _ !== undefined))
 
-const importDisk = ({ description, file, name, type, vmdkData }, sr) =>
-  _call('disk.import', {
+const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
+  const disk = await _call('disk.import', {
     description,
     name,
     sr: resolveId(sr),
     type,
     vmdkData,
-  }).then(({ $sendTo }) =>
-    post($sendTo, file)
-      .then(async res => {
-        if (res.status !== 200) {
-          throw res.status
-        }
-        success(_('diskImportSuccess'), name)
-        await res.json().then(body => body.result)
-      })
-      .catch(err => {
-        error(_('diskImportFailed'), err)
-      })
-  )
+  })
+  const result = await post(disk.$sendTo, file)
+  if (result.status !== 200) {
+    throw result.status
+  }
+  success(_('diskImportSuccess'), name)
+  await result.json().then(body => body.result)
+}
 
 export const importDisks = (disks, sr) =>
   Promise.all(
     map(disks, disk =>
       importDisk(disk, sr).catch(err => {
         error(_('diskImportFailed'), err)
+        throw err
       })
     )
   )
