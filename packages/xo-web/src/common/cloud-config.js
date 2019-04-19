@@ -38,9 +38,9 @@ export const DEFAULT_CLOUD_CONFIG_TEMPLATE =
 
 // SOURCE: https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html
 export const DEFAULT_NETWORK_CONFIG_TEMPLATE = `#network:
-  #version: 1
-  #config:
-  #- type: physical
-    #name: eth0
-    #subnets:
-      #- type: dhcp`
+#  version: 1
+#  config:
+#  - type: physical
+#    name: eth0
+#    subnets:
+#    - type: dhcp`

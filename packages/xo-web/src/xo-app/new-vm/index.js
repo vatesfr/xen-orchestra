@@ -1216,11 +1216,9 @@ export default class NewVm extends BaseComponent {
               </span>
             </LineItem>
             <br />
-            <Row>
-              <Col size={6}>
-                <label className='text-muted' htmlFor='customConfig'>
-                  User config
-                </label>
+            <LineItem>
+              <label className='text-muted' htmlFor='customConfig'>
+                User config
                 <br />
                 <DebounceTextarea
                   className='form-control'
@@ -1230,11 +1228,10 @@ export default class NewVm extends BaseComponent {
                   rows={7}
                   value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
                 />
-              </Col>
-              <Col size={6}>
-                <label className='text-muted' htmlFor='networkConfig'>
-                  Network config
-                </label>
+              </label>
+              &nbsp;&nbsp;&nbsp;
+              <label className='text-muted' htmlFor='networkConfig'>
+                Network config
                 <br />
                 <DebounceTextarea
                   className='form-control'
@@ -1247,8 +1244,8 @@ export default class NewVm extends BaseComponent {
                     DEFAULT_NETWORK_CONFIG_TEMPLATE
                   )}
                 />
-              </Col>
-            </Row>
+              </label>
+            </LineItem>
           </SectionContent>
         ) : (
           <SectionContent>

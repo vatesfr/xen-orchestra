@@ -242,10 +242,16 @@ export default {
         }
       })
 
-      const method = coreOs
-        ? 'createCoreOsCloudInitConfigDrive'
-        : 'createCloudInitConfigDrive'
-      await this[method](vm.$id, srRef, cloudConfig, networkConfig)
+      if (coreOs) {
+        await this.createCoreOsCloudInitConfigDrive(vm.$id, srRef, cloudConfig)
+      } else {
+        await this.createCloudInitConfigDrive(
+          vm.$id,
+          srRef,
+          cloudConfig,
+          networkConfig
+        )
+      }
     }
 
     // wait for the record with all the VBDs and VIFs
