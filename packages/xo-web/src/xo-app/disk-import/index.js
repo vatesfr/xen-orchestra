@@ -129,8 +129,7 @@ const DiskImport = decorate([
                         size='small'
                         className='mb-1'
                       >
-                        <br />
-                        <div key={preview}>
+                        <div className='mt-1' key={preview}>
                           <Row>
                             <LabelCol>{_('formName')}</LabelCol>
                             <InputCol>
