@@ -2,7 +2,7 @@ import _ from 'intl'
 import Icon from 'icon'
 import Page from '../page'
 import React from 'react'
-import { Container, Row, Col } from 'grid'
+import { Col, Container, Row } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
 

@@ -6,12 +6,13 @@ import decorate from 'apply-decorators'
 import Dropzone from 'dropzone'
 import fromEvent from 'promise-toolbox/fromEvent'
 import React, { Component } from 'react'
+import { Container } from 'grid'
 import { formatSize, mapPlus } from 'utils'
 import { generateId, linkState } from 'reaclette-utils'
 import { importDisks } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { LabelCol, InputCol, Row } from 'form-grid'
+import { InputCol, LabelCol, Row } from 'form-grid'
 import { readCapacityAndGrainTable } from 'xo-vmdk-to-vhd'
 import { SelectSr } from 'select-objects'
 
@@ -107,79 +108,81 @@ const DiskImport = decorate([
         state: { disks, mapDescriptions, mapNames, sr },
       } = this.props
       return (
-        <form id='import-form'>
-          <Row>
-            <LabelCol>{_('importToSr')}</LabelCol>
-            <InputCol>
-              <SelectSr onChange={effects.onChangeSr} required value={sr} />
-            </InputCol>
-          </Row>
-          {sr !== undefined && (
-            <div>
-              <Dropzone
-                onDrop={effects.handleDrop}
-                message={_('dropDisksFiles')}
-              />
-              {disks.length > 0 && (
-                <div>
+        <Container>
+          <form id='import-form'>
+            <Row>
+              <LabelCol>{_('importToSr')}</LabelCol>
+              <InputCol>
+                <SelectSr onChange={effects.onChangeSr} required value={sr} />
+              </InputCol>
+            </Row>
+            {sr !== undefined && (
+              <div>
+                <Dropzone
+                  onDrop={effects.handleDrop}
+                  message={_('dropDisksFiles')}
+                />
+                {disks.length > 0 && (
                   <div>
-                    {disks.map(({ file: { name, preview, size }, id }) => (
-                      <Collapse
-                        buttonText={`${name} - ${formatSize(size)}`}
-                        size='small'
-                        className='mb-1'
+                    <div>
+                      {disks.map(({ file: { name, preview, size }, id }) => (
+                        <Collapse
+                          buttonText={`${name} - ${formatSize(size)}`}
+                          size='small'
+                          className='mb-1'
+                        >
+                          <div className='mt-1' key={preview}>
+                            <Row>
+                              <LabelCol>{_('formName')}</LabelCol>
+                              <InputCol>
+                                <input
+                                  className='form-control'
+                                  name={id}
+                                  onChange={effects.onChangeName}
+                                  placeholder={formatMessage(
+                                    messages.diskNamePlaceholder
+                                  )}
+                                  type='text'
+                                  value={mapNames[id]}
+                                />
+                              </InputCol>
+                            </Row>
+                            <Row>
+                              <LabelCol>{_('formDescription')}</LabelCol>
+                              <InputCol>
+                                <input
+                                  className='form-control'
+                                  name={id}
+                                  onChange={effects.onChangeDescription}
+                                  type='text'
+                                  value={mapDescriptions[id]}
+                                />
+                              </InputCol>
+                            </Row>
+                          </div>
+                        </Collapse>
+                      ))}
+                    </div>
+                    <div className='form-group pull-right'>
+                      <ActionButton
+                        btnStyle='primary'
+                        className='mr-1'
+                        form='import-form'
+                        handler={this._import}
+                        icon='import'
+                        redirectOnSuccess={`/srs/${sr.id}/disks`}
+                        type='submit'
                       >
-                        <div className='mt-1' key={preview}>
-                          <Row>
-                            <LabelCol>{_('formName')}</LabelCol>
-                            <InputCol>
-                              <input
-                                className='form-control'
-                                name={id}
-                                onChange={effects.onChangeName}
-                                placeholder={formatMessage(
-                                  messages.diskNamePlaceholder
-                                )}
-                                type='text'
-                                value={mapNames[id]}
-                              />
-                            </InputCol>
-                          </Row>
-                          <Row>
-                            <LabelCol>{_('formDescription')}</LabelCol>
-                            <InputCol>
-                              <input
-                                className='form-control'
-                                name={id}
-                                onChange={effects.onChangeDescription}
-                                type='text'
-                                value={mapDescriptions[id]}
-                              />
-                            </InputCol>
-                          </Row>
-                        </div>
-                      </Collapse>
-                    ))}
+                        {_('newImport')}
+                      </ActionButton>
+                      <Button onClick={effects.reset}>{_('formReset')}</Button>
+                    </div>
                   </div>
-                  <div className='form-group pull-right'>
-                    <ActionButton
-                      btnStyle='primary'
-                      className='mr-1'
-                      form='import-form'
-                      handler={this._import}
-                      icon='import'
-                      redirectOnSuccess={`/srs/${sr.id}/disks`}
-                      type='submit'
-                    >
-                      {_('newImport')}
-                    </ActionButton>
-                    <Button onClick={effects.reset}>{_('formReset')}</Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </form>
+                )}
+              </div>
+            )}
+          </form>
+        </Container>
       )
     }
   },
