@@ -1,4 +1,4 @@
-import _, { messages } from 'intl'
+import _ from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
 import Collapse from 'collapse'
@@ -103,7 +103,6 @@ const DiskImport = decorate([
     render() {
       const {
         effects,
-        intl: { formatMessage },
         state: { disks, mapDescriptions, mapNames, sr },
       } = this.props
       return (
@@ -138,9 +137,7 @@ const DiskImport = decorate([
                                   className='form-control'
                                   name={id}
                                   onChange={effects.onChangeName}
-                                  placeholder={formatMessage(
-                                    messages.diskNamePlaceholder
-                                  )}
+                                  placeholder={name}
                                   type='text'
                                   value={mapNames[id]}
                                 />
