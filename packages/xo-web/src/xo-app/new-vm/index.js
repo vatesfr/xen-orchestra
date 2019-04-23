@@ -18,6 +18,7 @@ import {
   AvailableTemplateVars,
   DEFAULT_CLOUD_CONFIG_TEMPLATE,
   DEFAULT_NETWORK_CONFIG_TEMPLATE,
+  NetworkConfigInfo,
 } from 'cloud-config'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
@@ -1223,7 +1224,7 @@ export default class NewVm extends BaseComponent {
             <br />
             <LineItem>
               <label className='text-muted' htmlFor='customConfig'>
-                User config
+                {_('newVmUserConfigLabel')}
                 <br />
                 <DebounceTextarea
                   className='form-control'
@@ -1234,10 +1235,11 @@ export default class NewVm extends BaseComponent {
                   value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
                 />
               </label>
-              &nbsp;&nbsp;&nbsp;
+              &nbsp; &nbsp; &nbsp;
+              {/* work around purpose: sectionContent and lineItem classNames break bootstrap style */}
               {!this._isCoreOs() && (
                 <label className='text-muted' htmlFor='networkConfig'>
-                  Network config
+                  {_('newVmNetworkConfigLabel')} <NetworkConfigInfo />
                   <br />
                   <DebounceTextarea
                     className='form-control'

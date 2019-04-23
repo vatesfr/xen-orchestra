@@ -21,12 +21,55 @@ const showAvailableTemplateVars = () =>
     </ul>
   )
 
+const showNetworkConfigInfo = () =>
+  alert(
+    _('newVmNetworkConfigLabel'),
+    <div>
+      <p>
+        {_('newVmNetworkConfigInfo', {
+          noCouldDatasourceLink: (
+            <a
+              href='https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html#datasource-nocloud'
+              target='_blank'
+            >
+              {_('newVmNoCloudDatasource')}
+            </a>
+          ),
+        })}
+      </p>
+      <p>
+        {_('newVmNetworkConfigDocLink', {
+          networkConfigDocLink: (
+            <a
+              href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html'
+              target='_blank'
+            >
+              {_('newVmNetworkConfigDoc')}
+            </a>
+          ),
+        })}
+      </p>
+    </div>
+  )
+
 export const AvailableTemplateVars = () => (
   <Tooltip content={_('availableTemplateVarsInfo')}>
     <a
       className='text-info'
       style={{ cursor: 'pointer' }}
       onClick={showAvailableTemplateVars}
+    >
+      <Icon icon='info' />
+    </a>
+  </Tooltip>
+)
+
+export const NetworkConfigInfo = () => (
+  <Tooltip content={_('newVmNetworkConfigTooltip')}>
+    <a
+      className='text-info'
+      style={{ cursor: 'pointer' }}
+      onClick={showNetworkConfigInfo}
     >
       <Icon icon='info' />
     </a>
