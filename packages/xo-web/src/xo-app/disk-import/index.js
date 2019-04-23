@@ -86,6 +86,7 @@ const DiskImport = decorate([
   injectIntl,
   injectState,
   class extends Component {
+    // not an effect for `redirectOnSuccess` to work.
     _import = () => {
       const {
         state: { disks, mapDescriptions, mapNames, sr },
