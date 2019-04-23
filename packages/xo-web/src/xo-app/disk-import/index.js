@@ -5,7 +5,7 @@ import Collapse from 'collapse'
 import decorate from 'apply-decorators'
 import Dropzone from 'dropzone'
 import fromEvent from 'promise-toolbox/fromEvent'
-import React, { Component } from 'react'
+import React from 'react'
 import { Container } from 'grid'
 import { formatSize } from 'utils'
 import { generateId, linkState } from 'reaclette-utils'
@@ -22,15 +22,15 @@ const getInitialState = () => ({
   mapDescriptions: {},
   mapNames: {},
   sr: undefined,
+  vmdkFile: undefined,
 })
 
 const DiskImport = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      handleDrop: (effects, files) => async ({ sr }) => {
-        const disks = []
-        await Promise.all(
+      handleDrop: (effects, files) => async ({ sr, vmdkFile }) => {
+        const disks = await Promise.all(
           map(files, async file => {
             const { name } = file
             const extIndex = name.lastIndexOf('.')
@@ -42,24 +42,42 @@ const DiskImport = decorate([
             ) {
               let vmdkData
               if (type === 'vmdk') {
-                const parsed = await effects.parseVmdk(file)
+                const parsed = await readCapacityAndGrainTable(
+                  async (start, end) => {
+                    /* global FileReader */
+                    const reader = new FileReader()
+                    reader.readAsArrayBuffer(file.slice(start, end))
+                    return (await fromEvent(reader, 'loadend')).target.result
+                  }
+                )
                 vmdkData = {
                   blocksTable: await parsed.tablePromise,
                   capacity: parsed.capacityBytes,
                 }
               }
-              disks.push({
+
+              return {
                 id: generateId(),
                 file,
                 name,
                 sr,
                 type,
                 vmdkData,
-              })
+              }
             }
           })
         )
         return { disks }
+      },
+      import: () => async ({ disks, mapDescriptions, mapNames, sr }) => {
+        await importDisks(
+          disks.map(({ id, name, ...disk }) => ({
+            ...disk,
+            name: mapNames[id] || name,
+            description: mapDescriptions[id],
+          })),
+          sr
+        )
       },
       linkState,
       onChangeDescription: (_, { target: { name, value } }) => ({
@@ -73,115 +91,86 @@ const DiskImport = decorate([
         return { mapNames }
       },
       onChangeSr: (_, sr) => ({ sr }),
-      parseVmdk: file =>
-        readCapacityAndGrainTable(async (start, end) => {
-          /* global FileReader */
-          const reader = new FileReader()
-          reader.readAsArrayBuffer(file.slice(start, end))
-          return (await fromEvent(reader, 'loadend')).target.result
-        }),
       reset: getInitialState,
     },
   }),
   injectIntl,
   injectState,
-  class extends Component {
-    // not an effect for `redirectOnSuccess` to work.
-    _import = () => {
-      const {
-        state: { disks, mapDescriptions, mapNames, sr },
-      } = this.props
-      return importDisks(
-        disks.map(({ id, name, ...disk }) => ({
-          ...disk,
-          name: mapNames[id] || name,
-          description: mapDescriptions[id],
-        })),
-        sr
-      )
-    }
-
-    render() {
-      const {
-        effects,
-        state: { disks, mapDescriptions, mapNames, sr },
-      } = this.props
-      return (
-        <Container>
-          <form id='import-form'>
-            <Row>
-              <LabelCol>{_('importToSr')}</LabelCol>
-              <InputCol>
-                <SelectSr onChange={effects.onChangeSr} required value={sr} />
-              </InputCol>
-            </Row>
-            {sr !== undefined && (
+  ({ effects, state: { disks, mapDescriptions, mapNames, sr } }) => (
+    <Container>
+      <form id='import-form'>
+        <Row>
+          <LabelCol>{_('importToSr')}</LabelCol>
+          <InputCol>
+            <SelectSr onChange={effects.onChangeSr} required value={sr} />
+          </InputCol>
+        </Row>
+        {sr !== undefined && (
+          <div>
+            <Dropzone
+              onDrop={effects.handleDrop}
+              message={_('dropDisksFiles')}
+            />
+            {disks.length > 0 && (
               <div>
-                <Dropzone
-                  onDrop={effects.handleDrop}
-                  message={_('dropDisksFiles')}
-                />
-                {disks.length > 0 && (
-                  <div>
-                    <div>
-                      {disks.map(({ file: { name, size }, id }) => (
-                        <Collapse
-                          buttonText={`${name} - ${formatSize(size)}`}
-                          size='small'
-                          className='mb-1'
-                        >
-                          <div className='mt-1' key={id}>
-                            <Row>
-                              <LabelCol>{_('formName')}</LabelCol>
-                              <InputCol>
-                                <input
-                                  className='form-control'
-                                  name={id}
-                                  onChange={effects.onChangeName}
-                                  placeholder={name}
-                                  type='text'
-                                  value={mapNames[id]}
-                                />
-                              </InputCol>
-                            </Row>
-                            <Row>
-                              <LabelCol>{_('formDescription')}</LabelCol>
-                              <InputCol>
-                                <input
-                                  className='form-control'
-                                  name={id}
-                                  onChange={effects.onChangeDescription}
-                                  type='text'
-                                  value={mapDescriptions[id]}
-                                />
-                              </InputCol>
-                            </Row>
-                          </div>
-                        </Collapse>
-                      ))}
-                    </div>
-                    <div className='form-group pull-right'>
-                      <ActionButton
-                        btnStyle='primary'
-                        className='mr-1'
-                        form='import-form'
-                        handler={this._import}
-                        icon='import'
-                        redirectOnSuccess={`/srs/${sr.id}/disks`}
-                        type='submit'
-                      >
-                        {_('newImport')}
-                      </ActionButton>
-                      <Button onClick={effects.reset}>{_('formReset')}</Button>
-                    </div>
-                  </div>
-                )}
+                <div>
+                  {disks.map(({ file: { name, size }, id }) => (
+                    <Collapse
+                      buttonText={`${name} - ${formatSize(size)}`}
+                      key={id}
+                      size='small'
+                      className='mb-1'
+                    >
+                      <div className='mt-1'>
+                        <Row>
+                          <LabelCol>{_('formName')}</LabelCol>
+                          <InputCol>
+                            <input
+                              className='form-control'
+                              name={id}
+                              onChange={effects.onChangeName}
+                              placeholder={name}
+                              type='text'
+                              value={mapNames[id]}
+                            />
+                          </InputCol>
+                        </Row>
+                        <Row>
+                          <LabelCol>{_('formDescription')}</LabelCol>
+                          <InputCol>
+                            <input
+                              className='form-control'
+                              name={id}
+                              onChange={effects.onChangeDescription}
+                              type='text'
+                              value={mapDescriptions[id]}
+                            />
+                          </InputCol>
+                        </Row>
+                      </div>
+                    </Collapse>
+                  ))}
+                </div>
+                <div className='form-group pull-right'>
+                  <ActionButton
+                    btnStyle='primary'
+                    className='mr-1'
+                    form='import-form'
+                    handler={effects.import}
+                    icon='import'
+                    redirectOnSuccess={`/srs/${sr.id}/disks`}
+                    type='submit'
+                  >
+                    {_('newImport')}
+                  </ActionButton>
+                  <Button onClick={effects.reset}>{_('formReset')}</Button>
+                </div>
               </div>
             )}
-          </form>
-        </Container>
-      )
-    }
-  },
+          </div>
+        )}
+      </form>
+    </Container>
+  ),
 ])
 export { DiskImport as default }
