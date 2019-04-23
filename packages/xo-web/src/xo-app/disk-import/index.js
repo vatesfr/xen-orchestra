@@ -7,12 +7,13 @@ import Dropzone from 'dropzone'
 import fromEvent from 'promise-toolbox/fromEvent'
 import React, { Component } from 'react'
 import { Container } from 'grid'
-import { formatSize, mapPlus } from 'utils'
+import { formatSize } from 'utils'
 import { generateId, linkState } from 'reaclette-utils'
 import { importDisks } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { InputCol, LabelCol, Row } from 'form-grid'
+import { map } from 'lodash'
 import { readCapacityAndGrainTable } from 'xo-vmdk-to-vhd'
 import { SelectSr } from 'select-objects'
 
@@ -28,8 +29,9 @@ const DiskImport = decorate([
     initialState: getInitialState,
     effects: {
       handleDrop: (effects, files) => async ({ sr }) => {
-        const disks = await Promise.all(
-          mapPlus(files, async (file, push) => {
+        const disks = []
+        await Promise.all(
+          map(files, async file => {
             const { name } = file
             const extIndex = name.lastIndexOf('.')
             let type
@@ -46,7 +48,7 @@ const DiskImport = decorate([
                   capacity: parsed.capacityBytes,
                 }
               }
-              push({
+              disks.push({
                 id: generateId(),
                 file,
                 name,
@@ -71,7 +73,7 @@ const DiskImport = decorate([
         return { mapNames }
       },
       onChangeSr: (_, sr) => ({ sr }),
-      parseVmdk: async file =>
+      parseVmdk: file =>
         readCapacityAndGrainTable(async (start, end) => {
           /* global FileReader */
           const reader = new FileReader()
@@ -89,14 +91,11 @@ const DiskImport = decorate([
         state: { disks, mapDescriptions, mapNames, sr },
       } = this.props
       return importDisks(
-        disks.map(disk => {
-          const { id, name } = disk
-          return {
-            ...disk,
-            name: mapNames[id] || name,
-            description: mapDescriptions[id],
-          }
-        }),
+        disks.map(({ id, name, ...disk }) => ({
+          ...disk,
+          name: mapNames[id] || name,
+          description: mapDescriptions[id],
+        })),
         sr
       )
     }
@@ -125,13 +124,13 @@ const DiskImport = decorate([
                 {disks.length > 0 && (
                   <div>
                     <div>
-                      {disks.map(({ file: { name, preview, size }, id }) => (
+                      {disks.map(({ file: { name, size }, id }) => (
                         <Collapse
                           buttonText={`${name} - ${formatSize(size)}`}
                           size='small'
                           className='mb-1'
                         >
-                          <div className='mt-1' key={preview}>
+                          <div className='mt-1' key={id}>
                             <Row>
                               <LabelCol>{_('formName')}</LabelCol>
                               <InputCol>

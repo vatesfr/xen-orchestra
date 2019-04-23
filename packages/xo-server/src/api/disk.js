@@ -221,9 +221,10 @@ async function importDisk({ sr, type, name, description, vmdkData }) {
 export { importDisk as import }
 
 importDisk.params = {
+  description: { type: 'string' },
+  name: { type: 'string' },
   sr: { type: 'string' },
   type: { type: 'string' },
-  name: { type: 'string' },
   vmdkData: {
     type: 'object',
     optional: true,

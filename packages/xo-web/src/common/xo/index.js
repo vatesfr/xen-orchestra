@@ -1453,7 +1453,8 @@ const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
     throw result.status
   }
   success(_('diskImportSuccess'), name)
-  await result.json().then(body => body.result)
+  const body = await result.json()
+  await body.result
 }
 
 export const importDisks = (disks, sr) =>
