@@ -1223,7 +1223,7 @@ export default class NewVm extends BaseComponent {
             </LineItem>
             <br />
             <LineItem>
-              <label className='text-muted' htmlFor='customConfig'>
+              <label className='text-muted' for='customConfig'>
                 {_('newVmUserConfigLabel')}
                 <br />
                 <DebounceTextarea
@@ -1238,7 +1238,7 @@ export default class NewVm extends BaseComponent {
               &nbsp; &nbsp; &nbsp;
               {/* work around purpose: sectionContent and lineItem classNames break bootstrap style */}
               {!this._isCoreOs() && (
-                <label className='text-muted' htmlFor='networkConfig'>
+                <label className='text-muted' for='networkConfig'>
                   {_('newVmNetworkConfigLabel')} <NetworkConfigInfo />
                   <br />
                   <DebounceTextarea
