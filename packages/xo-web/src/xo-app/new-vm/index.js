@@ -1223,13 +1223,12 @@ export default class NewVm extends BaseComponent {
             </LineItem>
             <br />
             <LineItem>
-              <label className='text-muted' for='customConfig'>
+              <label className='text-muted'>
                 {_('newVmUserConfigLabel')}
                 <br />
                 <DebounceTextarea
                   className='form-control'
                   disabled={installMethod !== 'customConfig'}
-                  id='customConfig'
                   onChange={this._linkState('customConfig')}
                   rows={7}
                   value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
@@ -1238,13 +1237,12 @@ export default class NewVm extends BaseComponent {
               &nbsp; &nbsp; &nbsp;
               {/* work around purpose: sectionContent and lineItem classNames break bootstrap style */}
               {!this._isCoreOs() && (
-                <label className='text-muted' for='networkConfig'>
+                <label className='text-muted'>
                   {_('newVmNetworkConfigLabel')} <NetworkConfigInfo />
                   <br />
                   <DebounceTextarea
                     className='form-control'
                     disabled={installMethod !== 'customConfig'}
-                    id='networkConfig'
                     onChange={this._linkState('networkConfig')}
                     rows={7}
                     value={defined(
