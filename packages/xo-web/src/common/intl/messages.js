@@ -1352,12 +1352,12 @@ const messages = {
   newVmSrsNotOnSameHost: 'The SRs must either be on the same host or shared',
   newVmNetworkConfigLabel: 'Network config',
   newVmNetworkConfigInfo:
-    'Network configuration is only compatible with the {noCouldDatasourceLink}.',
+    'Network configuration is only compatible with the {noCloudDatasourceLink}.',
   newVmNetworkConfigDocLink: 'See {networkConfigDocLink}.',
   newVmNetworkConfigTooltip:
     'Click here to get more information about network config',
   newVmUserConfigLabel: 'User config',
-  newVmNoCloudDatasource: 'NoCould datasource',
+  newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
 
   // ----- Self -----
