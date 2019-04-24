@@ -1350,6 +1350,15 @@ const messages = {
   newVmHideAdvanced: 'Hide advanced settings',
   newVmShare: 'Share this VM',
   newVmSrsNotOnSameHost: 'The SRs must either be on the same host or shared',
+  newVmNetworkConfigLabel: 'Network config',
+  newVmNetworkConfigInfo:
+    'Network configuration is only compatible with the {noCouldDatasourceLink}.',
+  newVmNetworkConfigDocLink: 'See {networkConfigDocLink}.',
+  newVmNetworkConfigTooltip:
+    'Click here to get more information about network config',
+  newVmUserConfigLabel: 'User config',
+  newVmNoCloudDatasource: 'NoCould datasource',
+  newVmNetworkConfigDoc: 'Network config documentation',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

@@ -17,6 +17,8 @@ import Wizard, { Section } from 'wizard'
 import {
   AvailableTemplateVars,
   DEFAULT_CLOUD_CONFIG_TEMPLATE,
+  DEFAULT_NETWORK_CONFIG_TEMPLATE,
+  NetworkConfigInfo,
 } from 'cloud-config'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
@@ -398,6 +400,7 @@ export default class NewVm extends BaseComponent {
 
     let cloudConfig
     let cloudConfigs
+    let networkConfig
     if (state.installMethod !== 'noConfigDrive') {
       if (state.installMethod === 'SSH') {
         const format = hostname =>
@@ -434,8 +437,12 @@ export default class NewVm extends BaseComponent {
             replacer(state, i + +seqStart)
           )
         }
+        networkConfig = defined(
+          state.networkConfig,
+          DEFAULT_NETWORK_CONFIG_TEMPLATE
+        )
       }
-    } else if (state.template.name_label === 'CoreOS') {
+    } else if (this._isCoreOs()) {
       cloudConfig = state.cloudConfig
       if (state.multipleVms) {
         cloudConfigs = new Array(state.nbVms).fill(state.cloudConfig)
@@ -488,7 +495,8 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       share: state.share,
       cloudConfig,
-      coreOs: state.template.name_label === 'CoreOS',
+      networkConfig: this._isCoreOs() ? undefined : networkConfig,
+      coreOs: this._isCoreOs(),
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
       gpuGroup: get(() => state.vgpuType.gpuGroup),
@@ -588,7 +596,7 @@ export default class NewVm extends BaseComponent {
       }),
     })
 
-    if (template.name_label === 'CoreOS') {
+    if (this._isCoreOs()) {
       getCloudInitConfig(template.id).then(
         cloudConfig =>
           this._setState({ cloudConfig, coreOsDefaultTemplateError: false }),
@@ -736,6 +744,11 @@ export default class NewVm extends BaseComponent {
     },
     () => this.state.state.CPUs,
     getCoresPerSocketPossibilities
+  )
+
+  _isCoreOs = createSelector(
+    () => this.state.template,
+    template => template && template.name_label === 'CoreOS'
   )
 
   // On change -------------------------------------------------------------------
@@ -1117,6 +1130,7 @@ export default class NewVm extends BaseComponent {
     const {
       cloudConfig,
       customConfig,
+      networkConfig,
       installIso,
       installMethod,
       installNetwork,
@@ -1208,13 +1222,39 @@ export default class NewVm extends BaseComponent {
               </span>
             </LineItem>
             <br />
-            <DebounceTextarea
-              className='form-control'
-              disabled={installMethod !== 'customConfig'}
-              onChange={this._linkState('customConfig')}
-              rows={7}
-              value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
-            />
+            <LineItem>
+              <Item>
+                <label className='text-muted'>
+                  {_('newVmUserConfigLabel')}
+                  <br />
+                  <DebounceTextarea
+                    className='form-control'
+                    disabled={installMethod !== 'customConfig'}
+                    onChange={this._linkState('customConfig')}
+                    rows={7}
+                    value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
+                  />
+                </label>
+              </Item>
+              {!this._isCoreOs() && (
+                <Item>
+                  <label className='text-muted'>
+                    {_('newVmNetworkConfigLabel')} <NetworkConfigInfo />
+                    <br />
+                    <DebounceTextarea
+                      className='form-control'
+                      disabled={installMethod !== 'customConfig'}
+                      onChange={this._linkState('networkConfig')}
+                      rows={7}
+                      value={defined(
+                        networkConfig,
+                        DEFAULT_NETWORK_CONFIG_TEMPLATE
+                      )}
+                    />
+                  </label>
+                </Item>
+              )}
+            </LineItem>
           </SectionContent>
         ) : (
           <SectionContent>
@@ -1294,7 +1334,7 @@ export default class NewVm extends BaseComponent {
             )}
           </SectionContent>
         )}
-        {template.name_label === 'CoreOS' && (
+        {this._isCoreOs() && (
           <div>
             <label>{_('newVmCloudConfig')}</label>{' '}
             {!coreOsDefaultTemplateError ? (
