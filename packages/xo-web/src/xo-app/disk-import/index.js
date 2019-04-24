@@ -22,14 +22,13 @@ const getInitialState = () => ({
   mapDescriptions: {},
   mapNames: {},
   sr: undefined,
-  vmdkFile: undefined,
 })
 
 const DiskImport = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      handleDrop: (effects, files) => async ({ sr, vmdkFile }) => {
+      handleDrop: (effects, files) => async ({ sr }) => {
         const disks = await Promise.all(
           map(files, async file => {
             const { name } = file
