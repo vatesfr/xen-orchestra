@@ -27,7 +27,7 @@ const showNetworkConfigInfo = () =>
     <div>
       <p>
         {_('newVmNetworkConfigInfo', {
-          noCouldDatasourceLink: (
+          noCloudDatasourceLink: (
             <a
               href='https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html#datasource-nocloud'
               target='_blank'
