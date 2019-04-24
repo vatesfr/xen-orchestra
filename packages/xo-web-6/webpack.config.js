@@ -22,7 +22,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.tsx$/,
+        test: /\.tsx?$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
@@ -34,7 +34,7 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.js'],
+    extensions: ['.tsx', '.ts', '.js'],
   },
   devtool: __PROD__ ? 'source-map' : 'cheap-module-eval-source-map',
   plugins: [

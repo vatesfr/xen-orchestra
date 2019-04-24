@@ -1,10 +1,12 @@
 import React, { StrictMode } from 'react'
 import ReactDOM from 'react-dom'
+
 import App from './App'
+import Connection from './libs/Connection'
 
 ReactDOM.render(
   <StrictMode>
-    <App />
+    <App connection={new Connection()} />
   </StrictMode>,
   document.getElementById('root')
 )
