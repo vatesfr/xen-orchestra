@@ -748,7 +748,7 @@ export default class NewVm extends BaseComponent {
 
   _isCoreOs = createSelector(
     () => this.state.template,
-    template => template && template.name_label === 'CoreOs'
+    template => template && template.name_label === 'CoreOS'
   )
 
   // On change -------------------------------------------------------------------
