@@ -748,7 +748,7 @@ export default class NewVm extends BaseComponent {
 
   _isCoreOs = createSelector(
     () => this.state.template,
-    template => template && template.name_label === 'coreOs'
+    template => template && template.name_label === 'CoreOs'
   )
 
   // On change -------------------------------------------------------------------
@@ -1223,34 +1223,36 @@ export default class NewVm extends BaseComponent {
             </LineItem>
             <br />
             <LineItem>
-              <label className='text-muted'>
-                {_('newVmUserConfigLabel')}
-                <br />
-                <DebounceTextarea
-                  className='form-control'
-                  disabled={installMethod !== 'customConfig'}
-                  onChange={this._linkState('customConfig')}
-                  rows={7}
-                  value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
-                />
-              </label>
-              &nbsp; &nbsp; &nbsp;
-              {/* work around purpose: sectionContent and lineItem classNames break bootstrap style */}
-              {!this._isCoreOs() && (
+              <Item>
                 <label className='text-muted'>
-                  {_('newVmNetworkConfigLabel')} <NetworkConfigInfo />
+                  {_('newVmUserConfigLabel')}
                   <br />
                   <DebounceTextarea
                     className='form-control'
                     disabled={installMethod !== 'customConfig'}
-                    onChange={this._linkState('networkConfig')}
+                    onChange={this._linkState('customConfig')}
                     rows={7}
-                    value={defined(
-                      networkConfig,
-                      DEFAULT_NETWORK_CONFIG_TEMPLATE
-                    )}
+                    value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
                   />
                 </label>
+              </Item>
+              {!this._isCoreOs() && (
+                <Item>
+                  <label className='text-muted'>
+                    {_('newVmNetworkConfigLabel')} <NetworkConfigInfo />
+                    <br />
+                    <DebounceTextarea
+                      className='form-control'
+                      disabled={installMethod !== 'customConfig'}
+                      onChange={this._linkState('networkConfig')}
+                      rows={7}
+                      value={defined(
+                        networkConfig,
+                        DEFAULT_NETWORK_CONFIG_TEMPLATE
+                      )}
+                    />
+                  </label>
+                </Item>
               )}
             </LineItem>
           </SectionContent>

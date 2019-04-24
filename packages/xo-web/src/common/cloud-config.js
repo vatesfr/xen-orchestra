@@ -86,4 +86,4 @@ export const DEFAULT_NETWORK_CONFIG_TEMPLATE = `#network:
 #  - type: physical
 #    name: eth0
 #    subnets:
-#    - type: dhcp`
+#      - type: dhcp`
