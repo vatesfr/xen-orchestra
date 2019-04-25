@@ -10,7 +10,7 @@
 
 ### Released packages
 
-- xo-server v5.40.0
-- xo-web v5.40.0
 - vhd-lib v0.6.2
 - xo-vmdk-to-vhd v0.1.8
+- xo-server v5.40.0
+- xo-web v5.40.0
