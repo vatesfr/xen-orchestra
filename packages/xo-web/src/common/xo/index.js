@@ -1441,14 +1441,14 @@ export const importVms = (vms, sr) =>
   ).then(ids => ids.filter(_ => _ !== undefined))
 
 const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
-  const disk = await _call('disk.import', {
+  const res = await _call('disk.import', {
     description,
     name,
     sr: resolveId(sr),
     type,
     vmdkData,
   })
-  const result = await post(disk.$sendTo, file)
+  const result = await post(res.$sendTo, file)
   if (result.status !== 200) {
     throw result.status
   }
