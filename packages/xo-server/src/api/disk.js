@@ -169,7 +169,7 @@ resize.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
 }
 
-async function handleImport(req, res, { type, name, vmdkData, srId, xapi }) {
+async function handleImport(req, res, { type, name, vmdkData, sr, xapi }) {
   req.setTimeout(43200000) // 12 hours
   try {
     req.length = req.headers['content-length']
@@ -189,7 +189,7 @@ async function handleImport(req, res, { type, name, vmdkData, srId, xapi }) {
     const vdi = await xapi.createVdi({
       name_label: name,
       size,
-      sr: this.getObject(srId).$ref,
+      sr: sr.$ref,
     })
     await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
     res.end(format.response(0, vdi.$id))
@@ -206,7 +206,7 @@ async function importDisk({ sr, type, name, vmdkData }) {
       type,
       name,
       vmdkData,
-      srId: sr._xapiId,
+      sr: sr,
       xapi: this.getXapi(sr),
     }),
   }
