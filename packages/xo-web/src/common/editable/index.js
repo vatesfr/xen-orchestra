@@ -150,6 +150,17 @@ class Editable extends Component {
 
   render() {
     const { state, props } = this
+    const { error, saving } = state
+
+    const ErrorToolTip = props =>
+      props.error != null && (
+        <span>
+          {' '}
+          <Tooltip content={error}>
+            <Icon icon='error' />
+          </Tooltip>
+        </span>
+      )
 
     if (!state.editing) {
       const { onUndo, previous } = state
@@ -184,11 +195,10 @@ class Editable extends Component {
             ) : (
               success
             ))}
+          <ErrorToolTip error={error} />
         </span>
       )
     }
-
-    const { error, saving } = state
 
     return (
       <span>
@@ -199,14 +209,7 @@ class Editable extends Component {
             <Icon icon='loading' />
           </span>
         )}
-        {error != null && (
-          <span>
-            {' '}
-            <Tooltip content={error}>
-              <Icon icon='error' />
-            </Tooltip>
-          </span>
-        )}
+        <ErrorToolTip error={error} />
       </span>
     )
   }
@@ -340,7 +343,9 @@ class SimpleSelect_ extends Editable {
     return this.state.value === undefined ? this.props.value : this.state.value
   }
 
-  _onChange = value => this.setState({ value }, this._save)
+  _onChange = value => {
+    this.setState({ value }, this._save)
+  }
 
   _renderDisplay() {
     const { children, optionRenderer, value } = this.props
@@ -450,7 +455,9 @@ export class XoSelect extends Editable {
     )
   }
 
-  _onChange = object => this.setState({ value: object }, object && this._save)
+  _onChange = object => {
+    this.setState({ value: object }, object && this._save)
+  }
 
   _renderEdition() {
     const { saving, xoType, ...props } = this.props
