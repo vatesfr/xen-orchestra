@@ -193,6 +193,11 @@ create.params = {
     optional: true,
   },
 
+  networkConfig: {
+    type: 'string',
+    optional: true,
+  },
+
   coreOs: {
     type: 'boolean',
     optional: true,

@@ -1,5 +1,7 @@
 module.exports = {
   extends: [
+    'plugin:eslint-comments/recommended',
+
     'standard',
     'standard-jsx',
     'prettier',

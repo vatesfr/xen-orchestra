@@ -257,6 +257,7 @@ const parseBootOrder = bootOrder => {
 })
 class NewDisk extends Component {
   static propTypes = {
+    checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vm: PropTypes.object.isRequired,
   }
@@ -297,6 +298,12 @@ class NewDisk extends Component {
   _getResourceSetDiskLimit = createSelector(
     this._getResourceSet,
     resourceSet => get(resourceSet, 'limits.disk.available')
+  )
+
+  _checkSr = createSelector(
+    () => this.props.checkSr,
+    () => this.state.sr,
+    (check, sr) => check(sr)
   )
 
   render() {
@@ -370,6 +377,13 @@ class NewDisk extends Component {
             </ActionButton>
           </span>
         </fieldset>
+        {!this._checkSr() && (
+          <div>
+            <span className='text-danger'>
+              <Icon icon='alarm' /> {_('warningVdiSr')}
+            </span>
+          </div>
+        )}
         {resourceSet != null &&
           diskLimit != null &&
           (diskLimit < size ? (
@@ -392,8 +406,12 @@ class NewDisk extends Component {
   }
 }
 
+@connectStore({
+  srs: createGetObjectsOfType('SR'),
+})
 class AttachDisk extends Component {
   static propTypes = {
+    checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vbds: PropTypes.array.isRequired,
     vm: PropTypes.object.isRequired,
@@ -417,6 +435,13 @@ class AttachDisk extends Component {
   )
 
   _selectVdi = vdi => this.setState({ vdi })
+
+  _checkSr = createSelector(
+    () => this.props.checkSr,
+    () => this.props.srs,
+    () => this.state.vdi,
+    (check, srs, vdi) => check(srs[vdi.$SR])
+  )
 
   _addVdi = () => {
     const { vm, vbds, onClose = noop } = this.props
@@ -469,6 +494,13 @@ class AttachDisk extends Component {
                 {_('vbdAttach')}
               </ActionButton>
             </span>
+            {!this._checkSr() && (
+              <div>
+                <span className='text-danger'>
+                  <Icon icon='alarm' /> {_('warningVdiSr')}
+                </span>
+              </div>
+            )}
           </fieldset>
         )}
       </form>
@@ -609,6 +641,7 @@ class BootOrder extends Component {
 
 class MigrateVdiModalBody extends Component {
   static propTypes = {
+    checkSr: PropTypes.func.isRequired,
     pool: PropTypes.string.isRequired,
   }
 
@@ -619,6 +652,12 @@ class MigrateVdiModalBody extends Component {
   _getCompareContainers = createSelector(
     () => this.props.pool,
     poolId => createCompareContainers(poolId)
+  )
+
+  _checkSr = createSelector(
+    () => this.props.checkSr,
+    () => this.state.sr,
+    (check, sr) => check(sr)
   )
 
   render() {
@@ -643,6 +682,15 @@ class MigrateVdiModalBody extends Component {
             </label>
           </Col>
         </SingleLineRow>
+        {!this._checkSr() && (
+          <SingleLineRow>
+            <Col>
+              <span className='text-danger'>
+                <Icon icon='alarm' /> {_('warningVdiSr')}
+              </span>
+            </Col>
+          </SingleLineRow>
+        )}
       </Container>
     )
   }
@@ -663,11 +711,13 @@ export default class TabDisks extends Component {
     }
   }
 
+  _getVdiSrs = createSelector(
+    () => this.props.vdis,
+    createCollectionWrapper(vdis => sortedUniq(map(vdis, '$SR').sort()))
+  )
+
   _areSrsOnSameHost = createSelector(
-    createSelector(
-      () => this.props.vdis,
-      createCollectionWrapper(vdis => sortedUniq(map(vdis, '$SR').sort()))
-    ),
+    this._getVdiSrs,
     () => this.props.srs,
     (vdiSrs, srs) => {
       if (some(vdiSrs, srId => srs[srId] === undefined)) {
@@ -711,7 +761,12 @@ export default class TabDisks extends Component {
   _migrateVdi = vdi => {
     return confirm({
       title: _('vdiMigrate'),
-      body: <MigrateVdiModalBody pool={this.props.vm.$pool} />,
+      body: (
+        <MigrateVdiModalBody
+          checkSr={this._getCheckSr()}
+          pool={this.props.vm.$pool}
+        />
+      ),
     }).then(({ sr, migrateAll }) => {
       if (!sr) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
@@ -734,6 +789,37 @@ export default class TabDisks extends Component {
     this._getIsVmAdmin,
     (isAdmin, resourceSet, isVmAdmin) =>
       isAdmin || (resourceSet == null && isVmAdmin)
+  )
+
+  _getRequiredHost = createSelector(
+    this._areSrsOnSameHost,
+    this._getVdiSrs,
+    () => this.props.srs,
+    (areSrsOnSameHost, vdiSrs, srs) => {
+      if (!areSrsOnSameHost) {
+        return
+      }
+
+      let container
+      let sr
+      forEach(vdiSrs, srId => {
+        sr = srs[srId]
+        if (sr !== undefined && !isSrShared(sr)) {
+          container = sr.$container
+          return false
+        }
+      })
+      return container
+    }
+  )
+
+  _getCheckSr = createSelector(
+    this._getRequiredHost,
+    requiredHost => sr =>
+      sr === undefined ||
+      isSrShared(sr) ||
+      requiredHost === undefined ||
+      sr.$container === requiredHost
   )
 
   _getVbdsByVdi = createSelector(
@@ -817,13 +903,18 @@ export default class TabDisks extends Component {
           <Col>
             {newDisk && (
               <div>
-                <NewDisk vm={vm} onClose={this._toggleNewDisk} />
+                <NewDisk
+                  checkSr={this._getCheckSr()}
+                  vm={vm}
+                  onClose={this._toggleNewDisk}
+                />
                 <hr />
               </div>
             )}
             {attachDisk && (
               <div>
                 <AttachDisk
+                  checkSr={this._getCheckSr()}
                   vm={vm}
                   vbds={vbds}
                   onClose={this._toggleAttachDisk}
@@ -843,7 +934,7 @@ export default class TabDisks extends Component {
           {!this._areSrsOnSameHost() && (
             <div>
               <span className='text-danger'>
-                <Icon icon='alarm' /> {_('srsNotOnSameHost')}
+                <Icon icon='alarm' /> {_('warningVdiSr')}
               </span>
             </div>
           )}

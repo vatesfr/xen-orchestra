@@ -20,6 +20,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import {
   ceil,
   debounce,
+  escapeRegExp,
   filter,
   find,
   forEach,
@@ -747,7 +748,10 @@ export default class Home extends Component {
             filter,
             'tags',
             new ComplexMatcher.Or(
-              map(tags, tag => new ComplexMatcher.String(tag.id))
+              map(
+                tags,
+                tag => new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`)
+              )
             )
           )
         : ComplexMatcher.setPropertyClause(filter, 'tags', undefined)
@@ -826,7 +830,10 @@ export default class Home extends Component {
           break
         case 'NAV_UP':
           this.setState({
-            highlighted: (this.state.highlighted - 1) % items.length || 0,
+            highlighted:
+              this.state.highlighted > 0
+                ? this.state.highlighted - 1
+                : items.length - 1,
           })
           break
         case 'SELECT':

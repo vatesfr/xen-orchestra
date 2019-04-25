@@ -1051,12 +1051,12 @@ const messages = {
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
-  srsNotOnSameHost:
-    'The SRs must either be shared or on the same host for the VM to be able to start.',
   useQuotaWarning:
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet:
     'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
+  warningVdiSr:
+    "The VDIs' SRs  must either be shared or on the same host for the VM to be able to start.",
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',
@@ -1350,6 +1350,15 @@ const messages = {
   newVmHideAdvanced: 'Hide advanced settings',
   newVmShare: 'Share this VM',
   newVmSrsNotOnSameHost: 'The SRs must either be on the same host or shared',
+  newVmNetworkConfigLabel: 'Network config',
+  newVmNetworkConfigInfo:
+    'Network configuration is only compatible with the {noCloudDatasourceLink}.',
+  newVmNetworkConfigDocLink: 'See {networkConfigDocLink}.',
+  newVmNetworkConfigTooltip:
+    'Click here to get more information about network config',
+  newVmUserConfigLabel: 'User config',
+  newVmNoCloudDatasource: 'NoCloud datasource',
+  newVmNetworkConfigDoc: 'Network config documentation',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
