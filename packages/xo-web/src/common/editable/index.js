@@ -152,7 +152,7 @@ class Editable extends Component {
     const { state, props } = this
     const { error, saving } = state
 
-    const ErrorToolTip = props =>
+    const ErrorTooltip = props =>
       props.error != null && (
         <span>
           {' '}
@@ -195,7 +195,7 @@ class Editable extends Component {
             ) : (
               success
             ))}
-          <ErrorToolTip error={error} />
+          <ErrorTooltip error={error} />
         </span>
       )
     }
@@ -209,7 +209,7 @@ class Editable extends Component {
             <Icon icon='loading' />
           </span>
         )}
-        <ErrorToolTip error={error} />
+        <ErrorTooltip error={error} />
       </span>
     )
   }
