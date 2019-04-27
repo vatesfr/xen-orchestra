@@ -684,6 +684,14 @@ const messages = {
   vmConsoleLabel: 'Console',
   backupLabel: 'Backup',
 
+  // ----- SR general tab -----
+  baseCopyTooltip:
+    '{n, number} base cop{n, plural, one {y} other {ies}} ({usage})',
+  snapshotTooltip:
+    '{n, number} snapshot{n, plural, one {} other {s}} ({usage})',
+  vdiOnVmTooltip: '{name} ({usage}) on {vmName}',
+  vdiTooltip: '{name} ({usage})',
+
   // ----- SR advanced tab -----
 
   srUnhealthyVdiDepth: 'Depth',
