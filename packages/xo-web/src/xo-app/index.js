@@ -222,6 +222,17 @@ export default class XoApp extends Component {
                   </Link>
                 </div>
               )}
+              {+process.env.XOA_PLAN === 5 && (
+                <div className='alert alert-danger mb-0'>
+                  <a
+                    href='https://xen-orchestra.com/#!/xoa'
+                    rel='noopener noreferrer'
+                    target='_blank'
+                  >
+                    {_('disclaimerText3')}
+                  </a>
+                </div>
+              )}
               <div style={CONTAINER_STYLE}>
                 <Shortcuts
                   name='XoApp'
