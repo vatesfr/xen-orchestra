@@ -130,15 +130,7 @@ export default connectStore(() => {
               })}
             </div>
           )}
-          {vm.power_state === 'Running' ? (
-            <div>
-              <p className='text-xs-center'>
-                {_('started', {
-                  ago: <FormattedRelative value={vm.startTime * 1000} />,
-                })}
-              </p>
-            </div>
-          ) : (
+          {vm.power_state === 'Halted' ? (
             <p className='text-xs-center'>
               {lastShutdownTime
                 ? _('vmHaltedSince', {
@@ -146,6 +138,14 @@ export default connectStore(() => {
                   })
                 : _('vmNotRunning')}
             </p>
+          ) : (
+            <div>
+              <p className='text-xs-center'>
+                {_('started', {
+                  ago: <FormattedRelative value={vm.startTime * 1000} />,
+                })}
+              </p>
+            </div>
           )}
         </Col>
         <Col mediumSize={3}>
