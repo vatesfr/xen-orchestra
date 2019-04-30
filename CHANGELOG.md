@@ -20,6 +20,7 @@
 - [VDI migration, New disk] Warning when SR host is different from the other disks [#3911](https://github.com/vatesfr/xen-orchestra/issues/3911) (PR [#4035](https://github.com/vatesfr/xen-orchestra/pull/4035))
 - [Attach disk] Display warning message when VDI SR is on different host from the other disks [#3911](https://github.com/vatesfr/xen-orchestra/issues/3911) (PR [#4117](https://github.com/vatesfr/xen-orchestra/pull/4117))
 - [Editable] Notify user when editable undo fails [#3799](https://github.com/vatesfr/xen-orchestra/issues/3799) (PR [#4150](https://github.com/vatesfr/xen-orchestra/pull/4157))
+- [XO] Add banner for sources users to clarify support conditions [#4165](https://github.com/vatesfr/xen-orchestra/issues/4165) (PR [#4167](https://github.com/vatesfr/xen-orchestra/pull/4167))
 
 ### Bug fixes
 
