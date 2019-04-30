@@ -12,6 +12,7 @@ import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
+  assertConsistentHostServerTime,
   addTag,
   editHost,
   fetchHostStats,
@@ -125,6 +126,12 @@ export default class HostItem extends Component {
                     <Link to={`/hosts/${host.id}/patches`}>
                       <Icon icon='alarm' />
                     </Link>
+                  </Tooltip>
+                )}
+                &nbsp;
+                {!assertConsistentHostServerTime(host) && (
+                  <Tooltip content={_('assertConsistentHostServerTimeTooltip')}>
+                    <Icon color='text-danger' icon='alarm' />
                   </Tooltip>
                 )}
                 &nbsp;

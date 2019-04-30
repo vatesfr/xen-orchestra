@@ -11,7 +11,12 @@ import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { Pool } from 'render-xo-item'
-import { editHost, fetchHostStats, subscribeHostMissingPatches } from 'xo'
+import {
+  assertConsistentHostServerTime,
+  editHost,
+  fetchHostStats,
+  subscribeHostMissingPatches,
+} from 'xo'
 import { connectStore, routes } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -252,6 +257,12 @@ export default class Host extends Component {
                   <Link to={`/hosts/${host.id}/patches`}>
                     <Icon icon='alarm' />
                   </Link>
+                </Tooltip>
+              )}
+              &nbsp;
+              {!assertConsistentHostServerTime(host) && (
+                <Tooltip content={_('assertConsistentHostServerTimeTooltip')}>
+                  <Icon color='text-danger' icon='alarm' />
                 </Tooltip>
               )}
             </h2>

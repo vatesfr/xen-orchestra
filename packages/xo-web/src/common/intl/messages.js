@@ -891,6 +891,10 @@ const messages = {
   changelogAuthor: 'Author',
   changelogDate: 'Date',
   changelogDescription: 'Description',
+  // ----- Host home -----
+  assertConsistentHostServerTimeTooltip:
+    'host server time and XOA date are not consistent with each other',
+
   // ----- Pool patch tabs -----
   install: 'Install',
   installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',

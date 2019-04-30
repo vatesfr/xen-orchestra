@@ -211,6 +211,20 @@ emergencyShutdownHost.resolve = {
 
 // -------------------------------------------------------------------
 
+export async function assertConsistentHostServerTime({ host }) {
+  await this.getXapi(host)._assertConsistentHostServerTime(host._xapiRef)
+}
+
+assertConsistentHostServerTime.params = {
+  host: { type: 'string' },
+}
+
+assertConsistentHostServerTime.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
 export function stats({ host, granularity }) {
   return this.getXapiHostStats(host._xapiId, granularity)
 }
