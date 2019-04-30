@@ -3,7 +3,6 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
-import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { Toggle } from 'form'
 import { fetchHostStats } from 'xo'
@@ -105,7 +104,7 @@ export default class HostStats extends Component {
 
     return !stats ? (
       <p>No stats.</p>
-    ) : process.env.XOA_PLAN > 2 ? (
+    ) : (
       <Container>
         <Row>
           <Col mediumSize={5}>
@@ -178,10 +177,6 @@ export default class HostStats extends Component {
             <LoadLineChart data={stats} />
           </Col>
         </Row>
-      </Container>
-    ) : (
-      <Container>
-        <Upgrade place='hostStats' available={3} />
       </Container>
     )
   }
