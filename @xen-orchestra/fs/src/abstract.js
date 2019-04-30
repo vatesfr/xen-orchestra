@@ -410,6 +410,21 @@ export default class RemoteHandlerAbstract {
     await this._unlink(file).catch(ignoreEnoent)
   }
 
+  async write(
+    file: File,
+    buffer: Buffer,
+    position: number
+  ): Promise<{| bytesWritten: number, buffer: Buffer |}> {
+    await timeout.call(
+      this._write(
+        typeof file === 'string' ? normalizePath(file) : file,
+        buffer,
+        position
+      ),
+      this._timeout
+    )
+  }
+
   async writeFile(
     file: string,
     data: Data,
@@ -543,6 +558,28 @@ export default class RemoteHandlerAbstract {
   async _sync(): Promise<void> {}
 
   async _unlink(file: string): Promise<void> {
+    throw new Error('Not implemented')
+  }
+
+  async _write(file: File, buffer: Buffer, position: number): Promise<void> {
+    const isPath = typeof file === 'string'
+    if (isPath) {
+      file = await this.openFile(file, 'r+')
+    }
+    try {
+      return await this._writeFd(file, buffer, position)
+    } finally {
+      if (isPath) {
+        await this.closeFile(file)
+      }
+    }
+  }
+
+  async _writeFd(
+    fd: FileDescriptor,
+    buffer: Buffer,
+    position: number
+  ): Promise<void> {
     throw new Error('Not implemented')
   }
 
