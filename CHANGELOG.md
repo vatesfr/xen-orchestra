@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next** (2019-04-26)
+## **5.34.0** (2019-04-30)
 
 ### Highlights
 
@@ -39,7 +39,7 @@
 - xo-vmdk-to-vhd v0.1.7
 - vhd-lib v0.6.1
 - xo-server v5.40.0
-- xo-web v5.40.0
+- xo-web v5.40.1
 
 ## **5.33.1** (2019-04-04)
 
