@@ -48,7 +48,7 @@ const gitDiffIndex = () => gitDiff('index', ['--cached', 'HEAD'])
 
 // -----------------------------------------------------------------------------
 
-const files = gitDiffIndex().filter(_ => _.endsWith('.js'))
+const files = gitDiffIndex().filter(RegExp.prototype.test.bind(/.[jt]sx?$/))
 if (files.length === 0) {
   return
 }

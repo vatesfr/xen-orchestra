@@ -9,7 +9,7 @@ function onMessage({ data }) {
   const message = JsonRpc.parse(data)
   const { type } = message
   if (type === 'notification') {
-    this.on('notification', method)
+    this.emit('notification', message)
   } else if (type === 'request') {
     this.send(
       JsonRpc.format.error(
