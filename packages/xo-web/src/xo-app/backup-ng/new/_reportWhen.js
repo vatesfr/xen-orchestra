@@ -52,13 +52,11 @@ const ReportWhen = decorate([
       </Tooltip>
       <Select
         id={state.idInput}
-        labelKey='label'
         onChange={onChange}
         optionRenderer={getOptionRenderer}
         options={REPORT_WHEN_FILTER_OPTIONS}
         required
         value={value}
-        valueKey='value'
       />
     </FormGroup>
   ),
