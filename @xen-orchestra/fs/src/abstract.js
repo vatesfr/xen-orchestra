@@ -415,13 +415,10 @@ export default class RemoteHandlerAbstract {
     buffer: Buffer,
     position: number
   ): Promise<{| bytesWritten: number, buffer: Buffer |}> {
-    await timeout.call(
-      this._write(
-        typeof file === 'string' ? normalizePath(file) : file,
-        buffer,
-        position
-      ),
-      this._timeout
+    await this._write(
+      typeof file === 'string' ? normalizePath(file) : file,
+      buffer,
+      position
     )
   }
 

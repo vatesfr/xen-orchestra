@@ -314,7 +314,7 @@ handlers.forEach(url => {
     describe('#write()', () => {
       beforeEach(() => handler.outputFile('file', TEST_DATA))
 
-      testWithFileDescriptor('file', 'rs+', async ({ file }) => {
+      testWithFileDescriptor('file', 'r+', async ({ file }) => {
         const WRITE_SIZE = 256
         const WRITE_TEST_DATA = unsecureRandomBytes(WRITE_SIZE)
         await handler.write(file, WRITE_TEST_DATA, 0)
