@@ -8,6 +8,7 @@
 - [Metadata backup] Detailed logs [#4005](https://github.com/vatesfr/xen-orchestra/issues/4005) (PR [#4014](https://github.com/vatesfr/xen-orchestra/pull/4014))
 - [Backup reports] Support metadata backups (PR [#4084](https://github.com/vatesfr/xen-orchestra/pull/4084))
 - [VM migration] Auto select default SR and collapse optional actions [#3326](https://github.com/vatesfr/xen-orchestra/issues/3326) (PR [#4121](https://github.com/vatesfr/xen-orchestra/pull/4121))
+- Unlock basic stats on all editions [#4166](https://github.com/vatesfr/xen-orchestra/issues/4166) (PR [#4172](https://github.com/vatesfr/xen-orchestra/pull/4172))
 
 ### Enhancements
 
