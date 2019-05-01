@@ -49,6 +49,12 @@ maxTokenValidity = '0.5 year'
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
 
+# Helmet handles HTTP security via headers
+#
+# https://helmetjs.github.io/docs/
+#[http.helmet.hsts]
+#includeSubDomains = false
+
 [[http.listen]]
 port = 80
 

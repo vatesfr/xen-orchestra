@@ -32,7 +32,7 @@
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
     "struct-fu": "^1.2.0",
-    "vhd-lib": "^0.6.0"
+    "vhd-lib": "^0.6.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
@@ -44,7 +44,7 @@
     "index-modules": "^0.3.0",
     "promise-toolbox": "^0.12.1",
     "rimraf": "^2.6.1",
-    "tmp": "^0.0.33"
+    "tmp": "^0.1.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

@@ -409,8 +409,7 @@ const xoItemToRender = {
     <span>
       <strong>
         <Icon icon='resource-set' /> {resourceSet.name}
-      </strong>{' '}
-      ({resourceSet.id})
+      </strong>
     </span>
   ),
   sshKey: key => (

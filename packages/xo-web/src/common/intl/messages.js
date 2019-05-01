@@ -46,6 +46,7 @@ const messages = {
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
   clickToShowError: 'Click to show error',
+  backupJobs: 'Backup jobs',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -430,6 +431,8 @@ const messages = {
     'This will migrate this backup to a backup NG. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
+  scheduleDstWarning:
+    'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
 
   // ------ New backup -----
   newBackupAdvancedSettings: 'Advanced settings',
@@ -1048,12 +1051,12 @@ const messages = {
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
-  srsNotOnSameHost:
-    'The SRs must either be shared or on the same host for the VM to be able to start.',
   useQuotaWarning:
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet:
     'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
+  warningVdiSr:
+    "The VDIs' SRs  must either be shared or on the same host for the VM to be able to start.",
 
   // ----- VM network tab -----
   vifCreateDeviceButton: 'New device',
@@ -1282,6 +1285,9 @@ const messages = {
   spaceLeftTooltip: '{used}% used ({free} left)',
 
   // ----- New VM -----
+  createVmModalTitle: 'Create VM',
+  createVmModalWarningMessage:
+    "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
@@ -1344,6 +1350,15 @@ const messages = {
   newVmHideAdvanced: 'Hide advanced settings',
   newVmShare: 'Share this VM',
   newVmSrsNotOnSameHost: 'The SRs must either be on the same host or shared',
+  newVmNetworkConfigLabel: 'Network config',
+  newVmNetworkConfigInfo:
+    'Network configuration is only compatible with the {noCloudDatasourceLink}.',
+  newVmNetworkConfigDocLink: 'See {networkConfigDocLink}.',
+  newVmNetworkConfigTooltip:
+    'Click here to get more information about network config',
+  newVmUserConfigLabel: 'User config',
+  newVmNoCloudDatasource: 'NoCloud datasource',
+  newVmNetworkConfigDoc: 'Network config documentation',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -1606,7 +1621,7 @@ const messages = {
   migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
   migrateVmNoDefaultSrError: 'No default SR',
   migrateVmNotConnectedDefaultSrError: 'Default SR not connected to host',
-  chooseSrForEachVdisModalSelectSr: 'For each VDI, select an SR:',
+  chooseSrForEachVdisModalSelectSr: 'For each VDI, select an SR (optional)',
   chooseSrForEachVdisModalMainSr: 'Select main SR…',
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
@@ -1853,7 +1868,7 @@ const messages = {
   disclaimerText2:
     "If you are a company, it's better to use it with our appliance + pro support included:",
   disclaimerText3:
-    'This version is not bundled with any support nor updates. Use it with caution for critical tasks.',
+    'This version is not bundled with any support nor updates. Use it with caution.',
   notRegisteredDisclaimerInfo:
     'You are not registered. Your XOA may not be up to date.',
   notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',

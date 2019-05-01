@@ -3,7 +3,6 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
-import Upgrade from 'xoa-upgrade'
 import { fetchVmStats } from 'xo'
 import { Toggle } from 'form'
 import { injectIntl } from 'react-intl'
@@ -105,7 +104,7 @@ export default injectIntl(
 
       return !stats ? (
         <p>No stats.</p>
-      ) : process.env.XOA_PLAN > 2 ? (
+      ) : (
         <Container>
           <Row>
             <Col mediumSize={6}>
@@ -176,10 +175,6 @@ export default injectIntl(
               <XvdLineChart addSumSeries={useCombinedValues} data={stats} />
             </Col>
           </Row>
-        </Container>
-      ) : (
-        <Container>
-          <Upgrade place='vmStats' available={3} />
         </Container>
       )
     }

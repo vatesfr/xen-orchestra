@@ -489,35 +489,37 @@ class DefaultCard extends Component {
             </Card>
           </Col>
         </Row>
-        <Row>
-          <Col>
-            <Card>
-              <CardHeader>
-                <Icon icon='menu-dashboard-stats' /> {_('dashboardReport')}
-              </CardHeader>
-              <CardBlock className='text-xs-center'>
-                <ActionButton
-                  btnStyle='primary'
-                  disabled={!canSendTheReport}
-                  handler={sendUsageReport}
-                  icon=''
-                >
-                  {_('dashboardSendReport')}
-                </ActionButton>
-                <br />
-                {!canSendTheReport && (
-                  <span>
-                    <Link to='/settings/plugins' className='text-info'>
-                      <Icon icon='info' /> {_('dashboardSendReportInfo')}
-                    </Link>
-                    <br />
-                  </span>
-                )}
-                {_('dashboardSendReportMessage')}
-              </CardBlock>
-            </Card>
-          </Col>
-        </Row>
+        {props.isAdmin && (
+          <Row>
+            <Col>
+              <Card>
+                <CardHeader>
+                  <Icon icon='menu-dashboard-stats' /> {_('dashboardReport')}
+                </CardHeader>
+                <CardBlock className='text-xs-center'>
+                  <ActionButton
+                    btnStyle='primary'
+                    disabled={!canSendTheReport}
+                    handler={sendUsageReport}
+                    icon=''
+                  >
+                    {_('dashboardSendReport')}
+                  </ActionButton>
+                  <br />
+                  {!canSendTheReport && (
+                    <span>
+                      <Link to='/settings/plugins' className='text-info'>
+                        <Icon icon='info' /> {_('dashboardSendReportInfo')}
+                      </Link>
+                      <br />
+                    </span>
+                  )}
+                  {_('dashboardSendReportMessage')}
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col>
             <PatchesCard hosts={this._getHosts()} />

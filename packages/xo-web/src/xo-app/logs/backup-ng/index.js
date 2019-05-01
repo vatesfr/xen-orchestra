@@ -38,7 +38,6 @@ export const LogStatus = ({ log, tooltip = _('logDisplayDetails') }) => {
   return (
     <ActionButton
       btnStyle={className}
-      disabled={log.status !== 'failure' && isEmpty(log.tasks)}
       handler={showTasks}
       handlerParam={log.id}
       icon='preview'

@@ -3248,7 +3248,7 @@ export default {
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
   disclaimerText3:
-    'This Verzió is not bundled with any support nor upDates. Use it with caution for critical tasks.',
+    'This Verzió is not bundled with any support nor upDates. Use it with caution.',
 
   // Original text: "Connect PIF"
   connectPif: 'Csatlakozás PIF',

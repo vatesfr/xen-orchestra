@@ -4294,7 +4294,7 @@ export default {
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
   disclaimerText3:
-    'Bu sürüm herhangi bir destek veya güncellemeyle birlikte verilmez. Kritik görevler için dikkatli kullanın.',
+    'Bu sürüm herhangi bir destek veya güncellemeyle birlikte verilmez. Dikkatli kullanın.',
 
   // Original text: "Connect PIF"
   connectPif: "PIF'e bağlan",

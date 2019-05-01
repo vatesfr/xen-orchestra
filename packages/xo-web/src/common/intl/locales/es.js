@@ -3411,7 +3411,7 @@ export default {
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
   disclaimerText3:
-    'Esta versión no está creada para recibir soporte ni actualizaciones. Úsala con precaución para tareas críticas.',
+    'Esta versión no está creada para recibir soporte ni actualizaciones. Úsala con precaución.',
 
   // Original text: "Connect PIF"
   connectPif: 'Conectar PIF',

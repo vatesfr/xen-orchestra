@@ -34,7 +34,7 @@ const EVENT_TIMEOUT = 60
 
 // ===================================================================
 
-const { defineProperties, freeze, keys: getKeys } = Object
+const { defineProperties, defineProperty, freeze, keys: getKeys } = Object
 
 // -------------------------------------------------------------------
 
@@ -672,35 +672,47 @@ export class Xapi extends EventEmitter {
   }
 
   _interruptOnDisconnect(promise) {
-    return Promise.race([
-      promise,
-      this._disconnected.then(() => {
-        throw new Error('disconnected')
-      }),
-    ])
+    let listener
+    const pWrapper = new Promise((resolve, reject) => {
+      promise.then(resolve, reject)
+      this.on(
+        DISCONNECTED,
+        (listener = () => {
+          reject(new Error('disconnected'))
+        })
+      )
+    })
+    const clean = () => {
+      this.removeListener(DISCONNECTED, listener)
+    }
+    pWrapper.then(clean, clean)
+    return pWrapper
   }
 
-  async _sessionCall(method, args, timeout) {
+  _sessionCallRetryOptions = {
+    tries: 2,
+    when: error =>
+      this._status !== DISCONNECTED && error?.code === 'SESSION_INVALID',
+    onRetry: () => this._sessionOpen(),
+  }
+  _sessionCall(method, args, timeout) {
     if (method.startsWith('session.')) {
-      throw new Error('session.*() methods are disabled from this interface')
+      return Promise.reject(
+        new Error('session.*() methods are disabled from this interface')
+      )
     }
 
-    const sessionId = this._sessionId
-    assert.notStrictEqual(sessionId, undefined)
+    return pRetry(() => {
+      const sessionId = this._sessionId
+      assert.notStrictEqual(sessionId, undefined)
 
-    const newArgs = [sessionId]
-    if (args !== undefined) {
-      newArgs.push.apply(newArgs, args)
-    }
-
-    return pRetry(
-      () => this._interruptOnDisconnect(this._call(method, newArgs, timeout)),
-      {
-        tries: 2,
-        when: { code: 'SESSION_INVALID' },
-        onRetry: () => this._sessionOpen(),
+      const newArgs = [sessionId]
+      if (args !== undefined) {
+        newArgs.push.apply(newArgs, args)
       }
-    )
+
+      return this._call(method, newArgs, timeout)
+    }, this._sessionCallRetryOptions)
   }
 
   // FIXME: (probably rare) race condition leading to unnecessary login when:
@@ -1011,17 +1023,23 @@ export class Xapi extends EventEmitter {
 
       const getObjectByRef = ref => this._objectsByRef[ref]
 
-      Record = function(ref, data) {
-        defineProperties(this, {
-          $id: { value: data.uuid ?? ref },
-          $ref: { value: ref },
-          $xapi: { value: xapi },
-        })
-        for (let i = 0; i < nFields; ++i) {
-          const field = fields[i]
-          this[field] = data[field]
+      Record = defineProperty(
+        function(ref, data) {
+          defineProperties(this, {
+            $id: { value: data.uuid ?? ref },
+            $ref: { value: ref },
+            $xapi: { value: xapi },
+          })
+          for (let i = 0; i < nFields; ++i) {
+            const field = fields[i]
+            this[field] = data[field]
+          }
+        },
+        'name',
+        {
+          value: type,
         }
-      }
+      )
 
       const getters = { $pool: getPool }
       const props = { $type: type }

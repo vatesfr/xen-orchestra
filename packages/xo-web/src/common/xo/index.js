@@ -1373,11 +1373,15 @@ export const fetchVmStats = (vm, granularity) =>
 
 export const getVmsHaValues = () => _call('vm.getHaValues')
 
-export const importVm = (file, type = 'xva', data = undefined, sr) => {
+export const importVm = async (file, type = 'xva', data = undefined, sr) => {
   const { name } = file
 
   info(_('startVmImport'), name)
-
+  if (data !== undefined && data.tables !== undefined) {
+    for (const k in data.tables) {
+      data.tables[k] = await data.tables[k]
+    }
+  }
   return _call('vm.import', { type, data, sr: resolveId(sr) }).then(
     ({ $sendTo }) =>
       post($sendTo, file)
@@ -1388,8 +1392,9 @@ export const importVm = (file, type = 'xva', data = undefined, sr) => {
           success(_('vmImportSuccess'), name)
           return res.json().then(body => body.result)
         })
-        .catch(() => {
+        .catch(err => {
           error(_('vmImportFailed'), name)
+          throw err
         })
   )
 }
@@ -1429,9 +1434,11 @@ export const importVdi = async vdi => {
 export const importVms = (vms, sr) =>
   Promise.all(
     map(vms, ({ file, type, data }) =>
-      importVm(file, type, data, sr).catch(noop)
+      importVm(file, type, data, sr).catch(error => {
+        console.warn('importVms', file.name, error)
+      })
     )
-  )
+  ).then(ids => ids.filter(_ => _ !== undefined))
 
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
 export const exportVm = vm =>

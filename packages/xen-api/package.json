@@ -1,6 +1,6 @@
 {
   "name": "xen-api",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -33,6 +33,7 @@
     "node": ">=6"
   },
   "dependencies": {
+    "bind-property-descriptor": "^1.0.0",
     "blocked": "^1.2.1",
     "debug": "^4.0.1",
     "event-to-promise": "^0.8.0",

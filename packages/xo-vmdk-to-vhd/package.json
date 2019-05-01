@@ -1,6 +1,6 @@
 {
   "name": "xo-vmdk-to-vhd",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "license": "AGPL-3.0",
   "description": "JS lib streaming a vmdk file to a vhd",
   "keywords": [
@@ -25,11 +25,11 @@
   },
   "dependencies": {
     "child-process-promise": "^2.0.3",
-    "core-js": "3.0.0",
+    "core-js": "^3.0.0",
     "pipette": "^0.9.3",
     "promise-toolbox": "^0.12.1",
-    "tmp": "^0.0.33",
-    "vhd-lib": "^0.6.0"
+    "tmp": "^0.1.0",
+    "vhd-lib": "^0.6.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

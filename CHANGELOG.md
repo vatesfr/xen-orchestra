@@ -1,5 +1,57 @@
 # ChangeLog
 
+## **5.34.0** (2019-04-30)
+
+### Highlights
+
+- [Self/New VM] Add network config box to custom cloud-init [#3872](https://github.com/vatesfr/xen-orchestra/issues/3872) (PR [#4150](https://github.com/vatesfr/xen-orchestra/pull/4150))
+- [Metadata backup] Detailed logs [#4005](https://github.com/vatesfr/xen-orchestra/issues/4005) (PR [#4014](https://github.com/vatesfr/xen-orchestra/pull/4014))
+- [Backup reports] Support metadata backups (PR [#4084](https://github.com/vatesfr/xen-orchestra/pull/4084))
+- [VM migration] Auto select default SR and collapse optional actions [#3326](https://github.com/vatesfr/xen-orchestra/issues/3326) (PR [#4121](https://github.com/vatesfr/xen-orchestra/pull/4121))
+- Unlock basic stats on all editions [#4166](https://github.com/vatesfr/xen-orchestra/issues/4166) (PR [#4172](https://github.com/vatesfr/xen-orchestra/pull/4172))
+
+### Enhancements
+
+- [Settings/remotes] Expose mount options field for SMB [#4063](https://github.com/vatesfr/xen-orchestra/issues/4063) (PR [#4067](https://github.com/vatesfr/xen-orchestra/pull/4067))
+- [Backup/Schedule] Add warning regarding DST when you add a schedule [#4042](https://github.com/vatesfr/xen-orchestra/issues/4042) (PR [#4056](https://github.com/vatesfr/xen-orchestra/pull/4056))
+- [Import] Avoid blocking the UI when dropping a big OVA file on the UI (PR [#4018](https://github.com/vatesfr/xen-orchestra/pull/4018))
+- [Backup NG/Overview] Make backup list title clearer [#4111](https://github.com/vatesfr/xen-orchestra/issues/4111) (PR [#4129](https://github.com/vatesfr/xen-orchestra/pull/4129))
+- [Dashboard] Hide "Report" section for non-admins [#4123](https://github.com/vatesfr/xen-orchestra/issues/4123) (PR [#4126](https://github.com/vatesfr/xen-orchestra/pull/4126))
+- [Self/New VM] Display confirmation modal when user will use a large amount of resources [#4044](https://github.com/vatesfr/xen-orchestra/issues/4044) (PR [#4127](https://github.com/vatesfr/xen-orchestra/pull/4127))
+- [VDI migration, New disk] Warning when SR host is different from the other disks [#3911](https://github.com/vatesfr/xen-orchestra/issues/3911) (PR [#4035](https://github.com/vatesfr/xen-orchestra/pull/4035))
+- [Attach disk] Display warning message when VDI SR is on different host from the other disks [#3911](https://github.com/vatesfr/xen-orchestra/issues/3911) (PR [#4117](https://github.com/vatesfr/xen-orchestra/pull/4117))
+- [Editable] Notify user when editable undo fails [#3799](https://github.com/vatesfr/xen-orchestra/issues/3799) (PR [#4150](https://github.com/vatesfr/xen-orchestra/pull/4157))
+- [XO] Add banner for sources users to clarify support conditions [#4165](https://github.com/vatesfr/xen-orchestra/issues/4165) (PR [#4167](https://github.com/vatesfr/xen-orchestra/pull/4167))
+
+### Bug fixes
+
+- [Continuous Replication] Fix VHD size guess for empty files [#4105](https://github.com/vatesfr/xen-orchestra/issues/4105)  (PR [#4107](https://github.com/vatesfr/xen-orchestra/pull/4107))
+- [Backup NG] Only display full backup interval in case of a delta backup (PR [#4125](https://github.com/vatesfr/xen-orchestra/pull/4107))
+- [Dashboard/Health] fix 'an error has occurred' on the storage state table [#4128](https://github.com/vatesfr/xen-orchestra/issues/4128)  (PR [#4132](https://github.com/vatesfr/xen-orchestra/pull/4132))
+- [Menu] XOA: Fixed empty slot when menu is collapsed [#4012](https://github.com/vatesfr/xen-orchestra/issues/4012) (PR [#4068](https://github.com/vatesfr/xen-orchestra/pull/4068)
+- [Self/New VM] Fix missing templates when refreshing page [#3265](https://github.com/vatesfr/xen-orchestra/issues/3265) (PR [#3565](https://github.com/vatesfr/xen-orchestra/pull/3565))
+- [Home] No more false positives when select Tag on Home page [#4087](https://github.com/vatesfr/xen-orchestra/issues/4087) (PR [#4112](https://github.com/vatesfr/xen-orchestra/pull/4112))
+
+### Released packages
+
+- xo-server-backup-reports v0.16.0
+- complex-matcher v0.6.0
+- xo-vmdk-to-vhd v0.1.7
+- vhd-lib v0.6.1
+- xo-server v5.40.0
+- xo-web v5.40.1
+
+## **5.33.1** (2019-04-04)
+
+### Bug fix
+
+- Fix major memory leak [2563be4](https://github.com/vatesfr/xen-orchestra/commit/2563be472bfd84c6ed867efd21c4aeeb824d387f)
+
+### Released packages
+
+- xen-api v0.25.1
+- xo-server v5.38.2
+
 ## **5.33.0** (2019-03-29)
 
 ### Enhancements
