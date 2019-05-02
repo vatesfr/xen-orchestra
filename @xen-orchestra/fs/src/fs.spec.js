@@ -26,10 +26,8 @@ const unsecureRandomBytes = n => {
   return bytes
 }
 
-const TEST_DATA_LEN = 1024
+const TEST_DATA_LEN = 6 // MUST BE A PAIR VALUE
 const TEST_DATA = unsecureRandomBytes(TEST_DATA_LEN)
-const WRITE_TEST_DATA_LEN = 256
-const WRITE_TEST_DATA = unsecureRandomBytes(WRITE_TEST_DATA_LEN)
 const createTestDataStream = asyncIteratorToStream(function*() {
   yield TEST_DATA
 })
@@ -315,13 +313,28 @@ handlers.forEach(url => {
 
     describe('#write()', () => {
       beforeEach(() => handler.outputFile('file', TEST_DATA))
+      for (const range of [
+        { offset: random(TEST_DATA_LEN / 2), length: TEST_DATA_LEN / 2 }, // smaller file size than the orignal one (TEST_DATA)
+        {
+          // bigger file than the orignal one (TEST_DATA)
+          offset: random(TEST_DATA_LEN),
+          length: TEST_DATA_LEN * 2,
+        },
+      ]) {
+        const writeTestData = unsecureRandomBytes(range.length)
 
-      testWithFileDescriptor('file', 'r+', async ({ file }) => {
-        const offset = random(WRITE_TEST_DATA_LEN)
-        await handler.write(file, WRITE_TEST_DATA, offset)
-        WRITE_TEST_DATA.copy(TEST_DATA, offset)
-        await expect(await handler.readFile('file')).toEqual(TEST_DATA)
-      })
+        testWithFileDescriptor('file', 'r+', async ({ file }) => {
+          await handler.write(file, writeTestData, range.offset)
+          let waitedResult = TEST_DATA
+          // Can't copy buffer when size exceeds TEST_DATA
+          if (range.length > TEST_DATA_LEN) {
+            waitedResult = Buffer.alloc(range.length + range.offset)
+            TEST_DATA.copy(waitedResult)
+          }
+          writeTestData.copy(waitedResult, range.offset)
+          await expect(await handler.readFile('file')).toEqual(waitedResult)
+        })
+      }
     })
   })
 })
