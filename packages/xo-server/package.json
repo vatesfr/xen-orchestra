@@ -109,7 +109,7 @@
     "readable-stream": "^3.2.0",
     "redis": "^2.8.0",
     "schema-inspector": "^1.6.8",
-    "semver": "^5.4.1",
+    "semver": "^6.0.0",
     "serve-static": "^1.13.1",
     "split-lines": "^2.0.0",
     "stack-chain": "^2.0.0",

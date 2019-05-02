@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "http-request-plus": "^0.8.0",
-    "jsonrpc-websocket-client": "^0.4.1"
+    "jsonrpc-websocket-client": "^0.5.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
