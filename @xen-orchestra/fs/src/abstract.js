@@ -587,6 +587,14 @@ export default class RemoteHandlerAbstract {
   ): Promise<void> {
     throw new Error('Not implemented')
   }
+
+  async truncate(
+    file: string,
+    data: Data,
+    { flags = 'wx' }: { flags?: string } = {}
+  ): Promise<void> {
+    throw new Error('Not implemented')
+  }
 }
 
 function createPrefixWrapperMethods() {
