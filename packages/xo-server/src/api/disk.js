@@ -169,7 +169,11 @@ resize.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
 }
 
-async function handleImport(req, res, { type, name, vmdkData, sr, xapi }) {
+async function handleImport(
+  req,
+  res,
+  { type, name, description, vmdkData, srId, xapi }
+) {
   req.setTimeout(43200000) // 12 hours
   try {
     req.length = req.headers['content-length']
@@ -187,6 +191,7 @@ async function handleImport(req, res, { type, name, vmdkData, sr, xapi }) {
       )
     }
     const vdi = await xapi.createVdi({
+      name_description: description,
       name_label: name,
       size,
       sr: sr.$ref,
@@ -200,13 +205,14 @@ async function handleImport(req, res, { type, name, vmdkData, sr, xapi }) {
 }
 
 // type is 'vhd' or 'vmdk'
-async function importDisk({ sr, type, name, vmdkData }) {
+async function importDisk({ sr, type, name, description, vmdkData }) {
   return {
     $sendTo: await this.registerHttpRequest(handleImport, {
-      type,
+      description,
       name,
+      srId: sr._xapiId,
+      type,
       vmdkData,
-      sr: sr,
       xapi: this.getXapi(sr),
     }),
   }
@@ -215,9 +221,10 @@ async function importDisk({ sr, type, name, vmdkData }) {
 export { importDisk as import }
 
 importDisk.params = {
+  description: { type: 'string', optional: true },
+  name: { type: 'string' },
   sr: { type: 'string' },
   type: { type: 'string' },
-  name: { type: 'string' },
   vmdkData: {
     type: 'object',
     optional: true,
