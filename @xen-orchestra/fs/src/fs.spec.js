@@ -316,7 +316,7 @@ handlers.forEach(url => {
       for (const range of [
         { offset: random(TEST_DATA_LEN / 2), length: TEST_DATA_LEN / 2 }, // smaller file size than the orignal one (TEST_DATA)
         {
-          // bigger file than the orignal one (TEST_DATA)
+          // bigger file size than the orignal one (TEST_DATA)
           offset: random(TEST_DATA_LEN),
           length: TEST_DATA_LEN * 2,
         },
