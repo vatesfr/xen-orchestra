@@ -314,11 +314,11 @@ handlers.forEach(url => {
     describe('#write()', () => {
       beforeEach(() => handler.outputFile('file', TEST_DATA))
       for (const range of [
-        { offset: random(TEST_DATA_LEN / 2), length: TEST_DATA_LEN / 2 }, // smaller file size than the orignal one (TEST_DATA)
+        { length: TEST_DATA_LEN / 2, offset: random(TEST_DATA_LEN / 2) }, // smaller file size than the orignal one (TEST_DATA)
         {
           // bigger file size than the orignal one (TEST_DATA)
-          offset: random(TEST_DATA_LEN),
           length: TEST_DATA_LEN * 2,
+          offset: random(TEST_DATA_LEN * 2),
         },
       ]) {
         const writeTestData = unsecureRandomBytes(range.length)
