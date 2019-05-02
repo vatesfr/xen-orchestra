@@ -16,6 +16,7 @@ import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
 import {
   AvailableTemplateVars,
+  CAN_CLOUD_INIT,
   DEFAULT_CLOUD_CONFIG_TEMPLATE,
   DEFAULT_NETWORK_CONFIG_TEMPLATE,
   NetworkConfigInfo,
@@ -1163,13 +1164,18 @@ export default class NewVm extends BaseComponent {
             <br />
             <LineItem>
               <label>
-                <input
-                  checked={installMethod === 'SSH'}
-                  name='installMethod'
-                  onChange={this._linkState('installMethod')}
-                  type='radio'
-                  value='SSH'
-                />
+                <Tooltip
+                  content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}
+                >
+                  <input
+                    checked={installMethod === 'SSH'}
+                    disabled={!CAN_CLOUD_INIT}
+                    name='installMethod'
+                    onChange={this._linkState('installMethod')}
+                    type='radio'
+                    value='SSH'
+                  />
+                </Tooltip>
                 &nbsp;
                 {_('newVmSshKey')}
               </label>
@@ -1201,13 +1207,18 @@ export default class NewVm extends BaseComponent {
             <br />
             <LineItem>
               <label>
-                <input
-                  checked={installMethod === 'customConfig'}
-                  name='installMethod'
-                  onChange={this._linkState('installMethod')}
-                  type='radio'
-                  value='customConfig'
-                />
+                <Tooltip
+                  content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}
+                >
+                  <input
+                    checked={installMethod === 'customConfig'}
+                    disabled={!CAN_CLOUD_INIT}
+                    name='installMethod'
+                    onChange={this._linkState('installMethod')}
+                    type='radio'
+                    value='customConfig'
+                  />
+                </Tooltip>
                 &nbsp;
                 {_('newVmCustomConfig')}
               </label>
