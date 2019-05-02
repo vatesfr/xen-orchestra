@@ -117,4 +117,8 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   _writeFile(file, data, { flags }) {
     return fs.writeFile(this._getFilePath(file), data, { flag: flags })
   }
+
+  _truncate(file, len) {
+    return fs.truncate(this._getFilePath(file), len)
+  }
 }

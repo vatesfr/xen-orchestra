@@ -588,11 +588,7 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async truncate(
-    file: string,
-    data: Data,
-    { flags = 'wx' }: { flags?: string } = {}
-  ): Promise<void> {
+  async truncate(file: string, len: number): Promise<void> {
     throw new Error('Not implemented')
   }
 }
