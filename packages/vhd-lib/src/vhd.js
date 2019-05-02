@@ -1,9 +1,7 @@
 import assert from 'assert'
-import { fromEvent } from 'promise-toolbox'
 
 import checkFooter from './_checkFooter'
 import checkHeader from './_checkHeader'
-import constantStream from './_constant-stream'
 import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
 import { set as mapSetBit, test as mapTestBit } from './_bitmap'
@@ -232,24 +230,14 @@ export default class Vhd {
   // Write functions.
   // =================================================================
 
-  // Write a buffer/stream at a given position in a vhd file.
+  // Write a buffer at a given position in a vhd file.
   async _write(data, offset) {
     debug(
       `_write offset=${offset} size=${
         Buffer.isBuffer(data) ? data.length : '???'
       }`
     )
-    // TODO: could probably be merged in remote handlers.
-    const stream = await this._handler.createOutputStream(this._path, {
-      flags: 'r+',
-      start: offset,
-    })
-    return Buffer.isBuffer(data)
-      ? new Promise((resolve, reject) => {
-          stream.on('error', reject)
-          stream.end(data, resolve)
-        })
-      : fromEvent(data.pipe(stream), 'finish')
+    return this._handler.write(this._path, data, offset)
   }
 
   async _freeFirstBlockSpace(spaceNeededBytes) {
@@ -306,7 +294,7 @@ export default class Vhd {
       `ensureBatSize: extend BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
     )
     await this._write(
-      constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
+      Buffer.alloc(maxTableEntries - prevMaxTableEntries, BUF_BLOCK_UNUSED),
       header.tableOffset + prevBat.length
     )
     await this.writeHeader()
@@ -331,10 +319,7 @@ export default class Vhd {
 
     await Promise.all([
       // Write an empty block and addr in vhd file.
-      this._write(
-        constantStream([0], this.fullBlockSize),
-        sectorsToBytes(blockAddr)
-      ),
+      this._write(Buffer.alloc(this.fullBlockSize), sectorsToBytes(blockAddr)),
 
       this._setBatEntry(blockId, blockAddr),
     ])
