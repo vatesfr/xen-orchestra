@@ -26,7 +26,7 @@ const unsecureRandomBytes = n => {
   return bytes
 }
 
-const TEST_DATA_LEN = 6 // MUST BE A PAIR VALUE
+const TEST_DATA_LEN = 1024 // MUST BE A PAIR VALUE
 const TEST_DATA = unsecureRandomBytes(TEST_DATA_LEN)
 const createTestDataStream = asyncIteratorToStream(function*() {
   yield TEST_DATA
