@@ -180,7 +180,7 @@ async function handleImport(
     let vhdStream, size
     if (type === 'vmdk') {
       vhdStream = await convertFromVMDK(req, vmdkData.blocksTable)
-      size = vmdkData.size
+      size = vmdkData.capacity
     } else if (type === 'vhd') {
       vhdStream = req
       const footer = await peekFooterFromVhdStream(req)
