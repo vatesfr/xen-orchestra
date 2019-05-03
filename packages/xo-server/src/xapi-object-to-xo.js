@@ -347,7 +347,9 @@ const TRANSFORMS = {
       resourceSet,
       snapshots: link(obj, 'snapshots'),
       startDelay: +obj.start_delay,
-      startTime: metrics && toTimestamp(metrics.start_time),
+      startTime:
+        (metrics && toTimestamp(metrics.start_time)) ||
+        toTimestamp(otherConfig.start_time),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
       virtualizationMode: domainType,
