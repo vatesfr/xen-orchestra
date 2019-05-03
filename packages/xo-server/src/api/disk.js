@@ -194,7 +194,7 @@ async function handleImport(
       name_description: description,
       name_label: name,
       size,
-      sr: sr.$ref,
+      sr: srId,
     })
     await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
     res.end(format.response(0, vdi.$id))
