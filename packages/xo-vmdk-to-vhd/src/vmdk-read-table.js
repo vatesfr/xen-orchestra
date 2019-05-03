@@ -21,7 +21,7 @@ const getLongLong = (buffer, offset, name) => {
   const highBits = dataView.getUint32(offset + 4, true)
   if (highBits >= Math.pow(2, MANTISSA_BITS_IN_DOUBLE - 32)) {
     throw new Error(
-      'Unsupported file, high order bits are to high in field ' + name
+      'Unsupported file, high order bits are too high in field ' + name
     )
   }
 
