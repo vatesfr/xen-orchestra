@@ -5,6 +5,7 @@ import Collapse from 'collapse'
 import decorate from 'apply-decorators'
 import Dropzone from 'dropzone'
 import fromEvent from 'promise-toolbox/fromEvent'
+import Icon from 'icon'
 import React from 'react'
 import { Container } from 'grid'
 import { formatSize } from 'utils'
@@ -22,13 +23,15 @@ const getInitialState = () => ({
   mapDescriptions: {},
   mapNames: {},
   sr: undefined,
+  loadingDisks: false,
 })
 
 const DiskImport = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      handleDrop: (effects, files) => async ({ sr }) => {
+      handleDrop: async function(_, files) {
+        this.state.loadingDisks = true
         const disks = await Promise.all(
           map(files, async file => {
             const { name } = file
@@ -59,14 +62,14 @@ const DiskImport = decorate([
                 id: generateId(),
                 file,
                 name,
-                sr,
+                sr: this.state.sr,
                 type,
                 vmdkData,
               }
             }
           })
         )
-        return { disks }
+        return { disks, loadingDisks: false }
       },
       import: () => async ({ disks, mapDescriptions, mapNames, sr }) => {
         await importDisks(
@@ -95,7 +98,10 @@ const DiskImport = decorate([
   }),
   injectIntl,
   injectState,
-  ({ effects, state: { disks, mapDescriptions, mapNames, sr } }) => (
+  ({
+    effects,
+    state: { disks, loadingDisks, mapDescriptions, mapNames, sr },
+  }) => (
     <Container>
       <form id='import-form'>
         <Row>
@@ -110,6 +116,7 @@ const DiskImport = decorate([
               onDrop={effects.handleDrop}
               message={_('dropDisksFiles')}
             />
+            {loadingDisks && <Icon icon='loading' />}
             {disks.length > 0 && (
               <div>
                 <div>
