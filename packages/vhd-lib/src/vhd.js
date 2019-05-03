@@ -232,11 +232,8 @@ export default class Vhd {
 
   // Write a buffer at a given position in a vhd file.
   async _write(data, offset) {
-    debug(
-      `_write offset=${offset} size=${
-        Buffer.isBuffer(data) ? data.length : '???'
-      }`
-    )
+    assert(Buffer.isBuffer(data))
+    debug(`_write offset=${offset} size=${data.length}`)
     return this._handler.write(this._path, data, offset)
   }
 
