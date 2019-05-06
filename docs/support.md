@@ -6,7 +6,7 @@ You can access our pro support if you subscribe to any of these plans:
 * Enterprise
 * Premium
 
-Higher tier support plans include faster ticket response times. Paid support plans and response times are based on the plan you have, plans can be [reviewed here](https://xen-orchestra.com/#!/xo-pricing). 
+Higher tier support plans include faster ticket response times. Paid support plans and response times are based on the plan you have, plans can be [reviewed here](https://xen-orchestra.com/#!/xo-pricing).
 
 ## Free limited support
 
@@ -21,7 +21,7 @@ If you are using Xen Orchestra via the sources, you can ask questions and try to
 
 If you are using XO from sources, we encourage you to give back to the community by assisting other users via these two avenues as well.   
 
-Lastly while Xen Orchestra is free to use and change, supporting and developing it takes a lot of effort. If you consider support business critical please sign-up for one of our [support plans](https://xen-orchestra.com/#!/xo-pricing). 
+Lastly while Xen Orchestra is free to use and change, supporting and developing it takes a lot of effort. If you consider support business critical please sign-up for one of our [support plans](https://xen-orchestra.com/#!/xo-pricing).
 
 ## Open a ticket
 
