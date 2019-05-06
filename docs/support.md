@@ -28,6 +28,7 @@ Lastly while Xen Orchestra is free and Open Source software, supporting and deve
 
 > Note: support from the sources is harder, because Xen Orchestra can potentially run on any Linux distro (or even FreeBSD and Windows!). Always try to double check that you followed the guide on how to [install it from the sources](https://xen-orchestra.com/docs/from_the_sources.html) before going further.
 
+
 ## Open a ticket
 
 If you have a subscription (or at least a registered free XOA), you can open a ticket describing your issue directly from your personal account page [here](https://xen-orchestra.com/#!/member/support)
