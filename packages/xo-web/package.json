@@ -1,5 +1,5 @@
 {
-  "private": false,
+  "private": true,
   "name": "xo-web",
   "version": "5.40.1",
   "license": "AGPL-3.0",
