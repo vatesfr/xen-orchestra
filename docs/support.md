@@ -22,7 +22,7 @@ If you are using Xen Orchestra via the source and not XOA, you can ask questions
 
 We encourage you to give back to the community by assisting other users via these two avenues as well.
 
-Lastly while Xen Orchestra is free and Open Source software, supporting and developing it takes a lot of effort. If you are considering using Xen Orchestra in production, please subscribe for on of our [professional support plans](https://xen-orchestra.com/#!/xo-pricing). 
+Lastly while Xen Orchestra is free and Open Source software, supporting and developing it takes a lot of effort. If you are considering using Xen Orchestra in production, please subscribe for on of our [professional support plans](https://xen-orchestra.com/#!/xo-pricing).
 
 ## Open a ticket
 
