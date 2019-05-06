@@ -1226,7 +1226,7 @@ const messages = {
   dashboardSendReportInfo:
     'The usage report and transport email plugins need to be loaded!',
   tooltipOthers:
-    'Others ({total} on {n, number} {type}{n, plural, one {} other {s}})',
+    'Others ({total} on {nOthers, number} {type}{nOthers, plural, one {} other {s}})',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',

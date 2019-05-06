@@ -9,12 +9,17 @@ import Tooltip from '../tooltip'
 
 const Usage = ({ total, children, type, tooltipOthers }) => {
   const limit = total / 400
+  let nOthers = 0
   const othersValues = React.Children.map(children, child => {
-    const { value } = child.props
-    return value < limit ? value : 0
+    const { value, n } = child.props
+    if (value < limit) {
+      nOthers += n === undefined ? 1 : n
+      return value
+    }
+    return 0
   })
+
   const othersTotal = sum(othersValues)
-  const n = othersValues.length
   return (
     <span className='usage'>
       {React.Children.map(
@@ -25,9 +30,9 @@ const Usage = ({ total, children, type, tooltipOthers }) => {
       <Element
         others={!tooltipOthers}
         tooltip={
-          tooltipOthers && type !== undefined && n > 0
+          tooltipOthers && type !== undefined && nOthers > 0
             ? _('tooltipOthers', {
-                n,
+                nOthers,
                 total: formatSize(othersTotal),
                 type,
               })
