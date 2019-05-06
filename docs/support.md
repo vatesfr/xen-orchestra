@@ -19,7 +19,7 @@ If you are using Xen Orchestra via the sources, you can ask questions and try to
 * In our [forum](https://xcp-ng.org/forum/category/12/xen-orchestra)
 * In our IRC - `#xen-orchestra` on `Freenode`
 
-If you are using XO from sources, we encourage you to give back to the community by assisting other users via these two avenues as well.   
+If you are using XO from sources, we encourage you to give back to the community by assisting other users via these two avenues as well.  
 
 Lastly while Xen Orchestra is free to use and change, supporting and developing it takes a lot of effort. If you consider support business critical please sign-up for one of our [support plans](https://xen-orchestra.com/#!/xo-pricing).
 
