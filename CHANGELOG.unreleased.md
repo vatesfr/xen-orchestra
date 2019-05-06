@@ -4,7 +4,7 @@
 
 ### Bug fixes
 
-- [Pool/Patches] Fix "an error has occurred" in "Applied patches" [#4192](https://github.com/vatesfr/xen-orchestra/issues/4192)
+- [Pool/Patches] Fix "an error has occurred" in "Applied patches" [#4192](https://github.com/vatesfr/xen-orchestra/issues/4192) (PR [#4193](https://github.com/vatesfr/xen-orchestra/pull/4193))
 
 ### Released packages
 
