@@ -15,7 +15,7 @@ With the free version of the Xen Orchestra Appliance (XOA free), you can open su
 
 ## Community support
 
-If you are using Xen Orchestra via the source and not XOA, you can ask questions and try to recieve help a number of different ways:
+If you are using Xen Orchestra via the source and not XOA, you can ask questions and try to recieve help through a number of different ways:
 
 * In our [forum](https://xcp-ng.org/forum/category/12/xen-orchestra)
 * In our IRC - `#xen-orchestra` on `Freenode`
