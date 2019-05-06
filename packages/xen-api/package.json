@@ -69,6 +69,7 @@
     "plot": "gnuplot -p memory-test.gnu",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "postversion": "npm publish"
   }
 }

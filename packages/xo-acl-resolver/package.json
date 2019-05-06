@@ -25,5 +25,8 @@
   },
   "dependencies": {
     "xo-common": "^0.2.0"
+  },
+  "scripts": {
+    "postversion": "npm publish"
   }
 }
