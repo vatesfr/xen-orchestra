@@ -112,12 +112,12 @@ export default decorate([
           name,
           pools: modePoolMetadata ? constructPattern(pools) : undefined,
           remotes: constructPattern(remotes),
-          xoMetadata: modeXoMetadata,
           schedules: mapValues(schedules, ({ id, ...schedule }) => schedule),
           settings: setSettingsDefaultRetentions(settings, {
             modePoolMetadata,
             modeXoMetadata,
           }),
+          xoMetadata: modeXoMetadata,
         })
       },
       editJob: () => async (state, props) => {
@@ -161,11 +161,11 @@ export default decorate([
           name,
           pools: modePoolMetadata ? constructPattern(pools) : null,
           remotes: constructPattern(remotes),
-          xoMetadata: modeXoMetadata,
           settings: setSettingsDefaultRetentions(settings, {
             modePoolMetadata,
             modeXoMetadata,
           }),
+          xoMetadata: modeXoMetadata,
         })
       },
 

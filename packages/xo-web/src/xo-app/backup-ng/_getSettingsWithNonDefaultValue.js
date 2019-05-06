@@ -7,6 +7,7 @@ const DEFAULTS = {
   concurrency: 0,
   fullInterval: 0,
   offlineSnapshot: false,
+  reportWhen: 'failure',
   timeout: 0,
 }
 
