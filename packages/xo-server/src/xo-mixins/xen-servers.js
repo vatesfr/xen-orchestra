@@ -4,6 +4,7 @@ import { fibonacci } from 'iterable-backoff'
 import { noSuchObject } from 'xo-common/api-errors'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
+import * as XenStore from '../_XenStore'
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import XapiStats from '../xapi-stats'
@@ -64,8 +65,19 @@ export default class {
         servers => serversDb.update(servers)
       )
 
-      // Connects to existing servers.
       const servers = await serversDb.get()
+
+      // Add servers in XenStore
+      if (servers.length === 0) {
+        const xenStoreServers = await XenStore.read('vm-data/xen-servers')
+          .then(JSON.parse)
+          .catch(() => [])
+        for (const server of xenStoreServers) {
+          servers.push(await this.registerXenServer(server))
+        }
+      }
+
+      // Connects to existing servers.
       for (const server of servers) {
         if (server.enabled) {
           this.connectXenServer(server.id).catch(error => {
