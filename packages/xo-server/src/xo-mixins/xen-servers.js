@@ -66,15 +66,13 @@ export default class {
       )
 
       const servers = await serversDb.get()
-      const hosts = new Set(servers.map(_ => _.host))
 
       // Add servers in XenStore
-      const xenStoreServers = await XenStore.read('vm-data/xen-servers')
-        .then(JSON.parse)
-        .catch(() => [])
-      for (const server of xenStoreServers) {
-        if (!hosts.has(server.host)) {
-          hosts.add(server.host)
+      if (servers.length === 0) {
+        const xenStoreServers = await XenStore.read('vm-data/xen-servers')
+          .then(JSON.parse)
+          .catch(() => [])
+        for (const server of xenStoreServers) {
           servers.push(await this.registerXenServer(server))
         }
       }
