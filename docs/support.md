@@ -11,7 +11,7 @@ XOA is available in multiple plans:
 
 Higher tier support plans include faster ticket response times (and cover more features). Paid support plans and response times are based on the plan you have, plans can be [reviewed here](https://xen-orchestra.com/#!/xo-pricing).
 
-## Free limited support
+## XOA Free support
 
 With the free version of the Xen Orchestra Appliance (XOA free), you can open support tickets and we will do our best to assist you, however, this support is limited and is not guaranteed in regards to response times or resolutions offered.
 
@@ -26,7 +26,7 @@ We encourage you to give back to the community by assisting other users via thes
 
 Lastly while Xen Orchestra is free and Open Source software, supporting and developing it takes a lot of effort. If you are considering using Xen Orchestra in production, please subscribe for one of our [professional support plans](https://xen-orchestra.com/#!/xo-pricing).
 
-> Note: support from the sources is harder, because Xen Orchestra can potentially run on any Linux distro (or even FreeBSD and Windows!). Always try to double check that you followed the guide on how to [install it from the sources](https://xen-orchestra.com/docs/from_the_sources.html) before going further.
+> Note: support from the sources is harder, because Xen Orchestra can potentially run on any Linux distro (or even FreeBSD and Windows!). Always try to double check that you followed our guide on how to [install it from the sources](https://xen-orchestra.com/docs/from_the_sources.html) before going further.
 
 ## Open a ticket
 
