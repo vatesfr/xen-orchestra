@@ -28,6 +28,10 @@ require('exec-promise')(() =>
       url: 'https://github.com/vatesfr/xen-orchestra.git',
     }
 
+    if (!('version' in pkg)) {
+      pkg.version = '0.0.0'
+    }
+
     delete pkg.standard
 
     deleteProperties(pkg, 'config', ['commitizen'])
@@ -54,14 +58,24 @@ require('exec-promise')(() =>
     ])
     deleteProperties(pkg, 'scripts', ['commitmsg', 'cz'])
 
-    const { scripts } = pkg
-    if (scripts !== undefined) {
-      const prepublish = scripts.prepublish
-      if (prepublish !== undefined && !('prepublishOnly' in scripts)) {
-        delete scripts.prepublish
-        scripts.prepublishOnly = prepublish
-        pkg.scripts = sortedObject(scripts)
+    let { scripts = {} } = pkg
+    const originalScripts = scripts
+
+    if (!pkg.private && !('postversion' in scripts)) {
+      scripts = { ...scripts, postversion: 'npm publish' }
+    }
+
+    const prepublish = scripts.prepublish
+    if (prepublish !== undefined && !('prepublishOnly' in scripts)) {
+      scripts = {
+        ...scripts,
+        prepublishOnly: prepublish,
+        prepublish: undefined,
       }
+    }
+
+    if (scripts !== originalScripts) {
+      pkg.scripts = sortedObject(scripts)
     }
 
     return Promise.all([

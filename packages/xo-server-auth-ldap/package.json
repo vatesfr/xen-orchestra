@@ -55,5 +55,6 @@
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
-  }
+  },
+  "private": true
 }

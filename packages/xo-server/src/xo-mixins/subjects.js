@@ -4,6 +4,7 @@ import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 
+import * as XenStore from '../_XenStore'
 import { Groups } from '../models/group'
 import { Users } from '../models/user'
 import { forEach, isEmpty, lightSet, mapToArray } from '../utils'
@@ -68,8 +69,12 @@ export default class {
       )
 
       if (!(await usersDb.exists())) {
-        const email = 'admin@admin.net'
-        const password = 'admin'
+        const {
+          email = 'admin@admin.net',
+          password = 'admin',
+        } = await XenStore.read('vm-data/admin-account')
+          .then(JSON.parse)
+          .catch(() => ({}))
 
         await this.createUser({ email, password, permission: 'admin' })
         log.info(`Default user created: ${email} with password ${password}`)

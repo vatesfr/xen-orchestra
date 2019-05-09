@@ -1,5 +1,5 @@
 {
-  "private": false,
+  "private": true,
   "name": "xo-web",
   "version": "5.40.1",
   "license": "AGPL-3.0",
@@ -100,7 +100,7 @@
     "prop-types": "^15.6.0",
     "qrcode": "^1.3.2",
     "random-password": "^0.1.2",
-    "reaclette": "^0.7.0",
+    "reaclette": "^0.8.0",
     "react": "^15.4.1",
     "react-addons-shallow-compare": "^15.6.2",
     "react-addons-test-utils": "^15.6.2",

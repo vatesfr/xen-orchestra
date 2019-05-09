@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "xo-server",
   "version": "5.40.0",
   "license": "AGPL-3.0",
