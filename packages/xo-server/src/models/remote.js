@@ -22,4 +22,16 @@ export class Remotes extends Collection {
     })
     return remotes
   }
+
+  _update(remotes) {
+    return super._update(
+      remotes.map(remote => {
+        const { benchmarks } = remote
+        if (benchmarks !== undefined) {
+          remote.benchmarks = JSON.stringify(benchmarks)
+        }
+        return remote
+      })
+    )
+  }
 }
