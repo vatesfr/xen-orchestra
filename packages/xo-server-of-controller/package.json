@@ -1,0 +1,22 @@
+{
+  "name": "xo-server-of-controller",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-of-controller",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "packages/xo-server-of-controller",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "scripts": {
+    "postversion": "npm publish"
+  },
+  "version": "0.0.0",
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.4",
+    "@babel/preset-env": "^7.4.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
+}
