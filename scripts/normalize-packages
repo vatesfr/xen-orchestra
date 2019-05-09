@@ -28,6 +28,10 @@ require('exec-promise')(() =>
       url: 'https://github.com/vatesfr/xen-orchestra.git',
     }
 
+    if (!('version' in pkg)) {
+      pkg.version = '0.0.0'
+    }
+
     delete pkg.standard
 
     deleteProperties(pkg, 'config', ['commitizen'])
