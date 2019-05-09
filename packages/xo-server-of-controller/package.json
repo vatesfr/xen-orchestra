@@ -8,15 +8,24 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "scripts": {
-    "postversion": "npm publish"
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "prebuild": "rimraf dist/",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build"
   },
   "version": "0.0.0",
+  "engines": {
+    "node": ">=6"
+  },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
-    "@babel/preset-env": "^7.4.4"
+    "@babel/preset-env": "^7.4.4",
+    "cross-env": "^5.2.0"
   },
   "dependencies": {
     "lodash": "^4.17.11"
-  }
+  },
+  "private": true
 }
