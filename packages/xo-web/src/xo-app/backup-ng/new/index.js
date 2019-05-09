@@ -126,7 +126,7 @@ const REPORT_WHEN_FILTER_OPTIONS = [
   },
   {
     label: 'reportWhenNever',
-    value: 'Never',
+    value: 'never',
   },
 ]
 
