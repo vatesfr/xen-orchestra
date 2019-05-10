@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { findKey, omit } from "lodash";
+import { findKey } from "lodash";
 import { noSuchObject } from "xo-common/api-errors";
 
 import config from "../_config";
@@ -28,7 +28,10 @@ describe("backupNg", () => {
   describe(".create() :", () => {
     it("creates a new backup job without schedules", async () => {
       const backupNg = await xo.createTempBackupNgJob(defaultBackupNg);
-      expect(omit(backupNg, "id", "userId")).toMatchSnapshot();
+      expect(backupNg).toMatchSnapshot({
+        id: expect.any(String),
+        userId: expect.any(String),
+      });
       expect(backupNg.userId).toBe(xo._user.id);
     });
 
@@ -50,7 +53,11 @@ describe("backupNg", () => {
 
       const backupNgJob = await xo.call("backupNg.getJob", { id: jobId });
 
-      expect(omit(backupNgJob, "id", "userId", "settings")).toMatchSnapshot();
+      expect(backupNgJob).toMatchSnapshot({
+        id: expect.any(String),
+        userId: expect.any(String),
+        settings: expect.any(Object),
+      });
       expect(backupNgJob.userId).toBe(xo._user.id);
 
       const settingKeys = Object.keys(backupNgJob.settings);
@@ -61,7 +68,10 @@ describe("backupNg", () => {
       });
 
       const schedule = await xo.call("schedule.get", { id: scheduleId });
-      expect(omit(schedule, "id", "jobId")).toMatchSnapshot();
+      expect(schedule).toMatchSnapshot({
+        id: expect.any(String),
+        jobId: expect.any(String),
+      });
       expect(schedule.jobId).toBe(jobId);
     });
   });

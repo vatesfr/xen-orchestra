@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { difference, keyBy, omit } from "lodash";
+import { difference, keyBy } from "lodash";
 
 import config from "../_config";
 import xo, { testWithOtherConnection } from "../_xoConnection";
@@ -47,7 +47,10 @@ describe("job", () => {
         expect(typeof id).toBe("string");
 
         const job = await xo.call("job.get", { id });
-        expect(omit(job, "id", "userId")).toMatchSnapshot();
+        expect(job).toMatchSnapshot({
+          id: expect.any(String),
+          userId: expect.any(String),
+        });
         expect(job.userId).toBe(userId);
         await xo.call("job.delete", { id });
       });
@@ -89,10 +92,14 @@ describe("job", () => {
       let jobs = await xo.call("job.getAll");
       expect(Array.isArray(jobs)).toBe(true);
       jobs = keyBy(jobs, "id");
-      expect([
-        omit(jobs[jobId1], "id", "userId"),
-        omit(jobs[jobId2], "id", "userId"),
-      ]).toMatchSnapshot();
+      expect(jobs[jobId1]).toMatchSnapshot({
+        id: expect.any(String),
+        userId: expect.any(String),
+      });
+      expect(jobs[jobId2]).toMatchSnapshot({
+        id: expect.any(String),
+        userId: expect.any(String),
+      });
     });
   });
 
@@ -100,7 +107,10 @@ describe("job", () => {
     it("gets an existing job", async () => {
       const id = await xo.createTempJob(defaultJob);
       const job = await xo.call("job.get", { id });
-      expect(omit(job, "id", "userId")).toMatchSnapshot();
+      expect(job).toMatchSnapshot({
+        id: expect.any(String),
+        userId: expect.any(String),
+      });
     });
 
     it("fails trying to get a job with a non existent id", async () => {
@@ -136,9 +146,10 @@ describe("job", () => {
           },
         },
       });
-      expect(
-        omit(await xo.call("job.get", { id }), "id", "userId")
-      ).toMatchSnapshot();
+      expect(await xo.call("job.get", { id })).toMatchSnapshot({
+        id: expect.any(String),
+        userId: expect.any(String),
+      });
     });
 
     it("fails trying to set a job without job.id", async () => {

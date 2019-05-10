@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { forOwn, keyBy, omit } from "lodash";
+import { forOwn, keyBy } from "lodash";
 
 import xo, { testConnection, testWithOtherConnection } from "../_xoConnection";
 
@@ -37,7 +37,9 @@ describe("user", () => {
       async data => {
         const userId = await xo.createUser(data);
         expect(typeof userId).toBe("string");
-        expect(omit(await xo.getUser(userId), "id")).toMatchSnapshot();
+        expect(await xo.getUser(userId)).toMatchSnapshot({
+          id: expect.any(String),
+        });
         await testConnection({
           credentials: {
             email: data.email,
@@ -134,10 +136,8 @@ describe("user", () => {
       let users = await xo.call("user.getAll");
       expect(Array.isArray(users)).toBe(true);
       users = keyBy(users, "id");
-      expect([
-        omit(users[userId1], "id"),
-        omit(users[userId2], "id"),
-      ]).toMatchSnapshot();
+      expect(users[userId1]).toMatchSnapshot({ id: expect.any(String) });
+      expect(users[userId2]).toMatchSnapshot({ id: expect.any(String) });
     });
   });
 
@@ -160,7 +160,9 @@ describe("user", () => {
       async data => {
         data.id = await xo.createUser(SIMPLE_USER);
         expect(await xo.call("user.set", data)).toBe(true);
-        expect(omit(await xo.getUser(data.id), "id")).toMatchSnapshot();
+        expect(await xo.getUser(data.id)).toMatchSnapshot({
+          id: expect.any(String),
+        });
 
         await testConnection({
           credentials: {

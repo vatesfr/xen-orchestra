@@ -2,6 +2,7 @@
 
 exports[`job .create() : creates a new job 1`] = `
 Object {
+  "id": Any<String>,
   "key": "snapshot",
   "method": "vm.snapshot",
   "name": "jobTest",
@@ -21,6 +22,7 @@ Object {
   },
   "timeout": 2000,
   "type": "call",
+  "userId": Any<String>,
 }
 `;
 
@@ -34,6 +36,7 @@ exports[`job .get() : fails trying to get a job with a non existent id 1`] = `[J
 
 exports[`job .get() : gets an existing job 1`] = `
 Object {
+  "id": Any<String>,
   "key": "snapshot",
   "method": "vm.snapshot",
   "name": "jobTest",
@@ -53,60 +56,67 @@ Object {
   },
   "timeout": 2000,
   "type": "call",
+  "userId": Any<String>,
 }
 `;
 
 exports[`job .getAll() : gets all available jobs 1`] = `
-Array [
-  Object {
-    "key": "snapshot",
-    "method": "vm.snapshot",
-    "name": "jobTest",
-    "paramsVector": Object {
-      "items": Array [
-        Object {
-          "type": "set",
-          "values": Array [
-            Object {
-              "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
-              "name": "test-snapshot",
-            },
-          ],
-        },
-      ],
-      "type": "crossProduct",
-    },
-    "timeout": 2000,
-    "type": "call",
+Object {
+  "id": Any<String>,
+  "key": "snapshot",
+  "method": "vm.snapshot",
+  "name": "jobTest",
+  "paramsVector": Object {
+    "items": Array [
+      Object {
+        "type": "set",
+        "values": Array [
+          Object {
+            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
+            "name": "test-snapshot",
+          },
+        ],
+      },
+    ],
+    "type": "crossProduct",
   },
-  Object {
-    "key": "snapshot",
-    "method": "vm.snapshot",
-    "name": "jobTest2",
-    "paramsVector": Object {
-      "items": Array [
-        Object {
-          "type": "set",
-          "values": Array [
-            Object {
-              "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
-              "name": "test2-snapshot",
-            },
-          ],
-        },
-      ],
-      "type": "crossProduct",
-    },
-    "timeout": 2000,
-    "type": "call",
+  "timeout": 2000,
+  "type": "call",
+  "userId": Any<String>,
+}
+`;
+
+exports[`job .getAll() : gets all available jobs 2`] = `
+Object {
+  "id": Any<String>,
+  "key": "snapshot",
+  "method": "vm.snapshot",
+  "name": "jobTest2",
+  "paramsVector": Object {
+    "items": Array [
+      Object {
+        "type": "set",
+        "values": Array [
+          Object {
+            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
+            "name": "test2-snapshot",
+          },
+        ],
+      },
+    ],
+    "type": "crossProduct",
   },
-]
+  "timeout": 2000,
+  "type": "call",
+  "userId": Any<String>,
+}
 `;
 
 exports[`job .set() : fails trying to set a job without job.id 1`] = `[JsonRpcError: invalid parameters]`;
 
 exports[`job .set() : sets a job 1`] = `
 Object {
+  "id": Any<String>,
   "key": "snapshot",
   "method": "vm.clone",
   "name": "jobTest",
@@ -127,5 +137,6 @@ Object {
   },
   "timeout": 2000,
   "type": "call",
+  "userId": Any<String>,
 }
 `;

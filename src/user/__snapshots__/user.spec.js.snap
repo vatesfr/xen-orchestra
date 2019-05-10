@@ -14,6 +14,7 @@ exports[`user .create() : creates a user with permission 1`] = `
 Object {
   "email": "wayne2@vates.fr",
   "groups": Array [],
+  "id": Any<String>,
   "permission": "user",
   "preferences": Object {},
 }
@@ -23,6 +24,7 @@ exports[`user .create() : creates a user without permission 1`] = `
 Object {
   "email": "wayne1@vates.fr",
   "groups": Array [],
+  "id": Any<String>,
   "preferences": Object {},
 }
 `;
@@ -38,20 +40,23 @@ exports[`user .delete() : fails trying to delete a user with a nonexistent user 
 exports[`user .delete() : fails trying to delete itself 1`] = `[JsonRpcError: a user cannot delete itself]`;
 
 exports[`user .getAll() : gets all the users created 1`] = `
-Array [
-  Object {
-    "email": "wayne4@vates.fr",
-    "groups": Array [],
-    "permission": "user",
-    "preferences": Object {},
-  },
-  Object {
-    "email": "wayne5@vates.fr",
-    "groups": Array [],
-    "permission": "user",
-    "preferences": Object {},
-  },
-]
+Object {
+  "email": "wayne4@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "permission": "user",
+  "preferences": Object {},
+}
+`;
+
+exports[`user .getAll() : gets all the users created 2`] = `
+Object {
+  "email": "wayne5@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "permission": "user",
+  "preferences": Object {},
+}
 `;
 
 exports[`user .set() : fails trying to set a password with a non admin user connection 1`] = `[JsonRpcError: this properties can only changed by an administrator]`;
@@ -70,6 +75,7 @@ exports[`user .set() : sets a password 1`] = `
 Object {
   "email": "wayne3@vates.fr",
   "groups": Array [],
+  "id": Any<String>,
   "permission": "none",
   "preferences": Object {},
 }
@@ -79,6 +85,7 @@ exports[`user .set() : sets a permission 1`] = `
 Object {
   "email": "wayne3@vates.fr",
   "groups": Array [],
+  "id": Any<String>,
   "permission": "user",
   "preferences": Object {},
 }
@@ -88,6 +95,7 @@ exports[`user .set() : sets a preference 1`] = `
 Object {
   "email": "wayne3@vates.fr",
   "groups": Array [],
+  "id": Any<String>,
   "permission": "none",
   "preferences": Object {
     "filters": Object {
@@ -103,6 +111,7 @@ exports[`user .set() : sets an email 1`] = `
 Object {
   "email": "wayne_modified@vates.fr",
   "groups": Array [],
+  "id": Any<String>,
   "permission": "none",
   "preferences": Object {},
 }

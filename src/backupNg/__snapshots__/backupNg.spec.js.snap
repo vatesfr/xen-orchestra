@@ -2,9 +2,12 @@
 
 exports[`backupNg .create() : creates a new backup job with schedules 1`] = `
 Object {
+  "id": Any<String>,
   "mode": "full",
   "name": "default-backupNg",
+  "settings": Any<Object>,
   "type": "backup",
+  "userId": Any<String>,
   "vms": Object {
     "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
   },
@@ -15,12 +18,15 @@ exports[`backupNg .create() : creates a new backup job with schedules 2`] = `
 Object {
   "cron": "0 * * * * *",
   "enabled": false,
+  "id": Any<String>,
+  "jobId": Any<String>,
   "name": "scheduleTest",
 }
 `;
 
 exports[`backupNg .create() : creates a new backup job without schedules 1`] = `
 Object {
+  "id": Any<String>,
   "mode": "full",
   "name": "default-backupNg",
   "settings": Object {
@@ -29,6 +35,7 @@ Object {
     },
   },
   "type": "backup",
+  "userId": Any<String>,
   "vms": Object {
     "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
   },
