@@ -18,7 +18,7 @@ import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { linkState, toggleState } from 'reaclette-utils'
-import { Password } from 'form'
+import { Password, Select } from 'form'
 import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
 const ansiUp = new AnsiUp()
@@ -193,6 +193,8 @@ const Updates = decorate([
   ({
     effects,
     intl: { formatMessage },
+    privateChannel,
+    channel,
     state,
     xoaConfiguration,
     xoaRegisterState,
@@ -202,7 +204,7 @@ const Updates = decorate([
   }) => (
     <Container>
       <Row>
-        <Col mediumSize={12}>
+        <Col mediumSize={6}>
           <Card>
             <CardHeader>
               <UpdateTag /> {LABELS_BY_STATE[xoaUpdaterState]}
@@ -273,6 +275,46 @@ const Updates = decorate([
                   </div>
                 ))}
               </pre>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={6}>
+          <Card>
+            <CardHeader>
+              <UpdateTag /> {LABELS_BY_STATE[xoaUpdaterState]}
+            </CardHeader>
+            <CardBlock>
+              <form id='releaseChannelsForm' className='form-inline'>
+                <div className='form-group'>
+                  <input
+                    className='form-control'
+                    onChange={effects.linkState('privateChannel')}
+                    placeholder={formatMessage(messages.privateChannelName)}
+                    required
+                    type='text'
+                    value={privateChannel}
+                  />
+                </div>{' '}
+                <div className='form-group'>
+                  <Select
+                    clearable={false}
+                    onChange={effects.linkState('channel')}
+                    // options={map(channels)}
+                    placeholder={formatMessage(messages.selectChannel)}
+                    required
+                    value={channel}
+                  />
+                </div>{' '}
+                <br /> <br />
+                <ActionButton
+                  form='releaseChannelsForm'
+                  icon='success'
+                  btnStyle='primary'
+                  // handler={this._create}
+                >
+                  {_('changeChannel')}
+                </ActionButton>
+              </form>
             </CardBlock>
           </Card>
         </Col>
