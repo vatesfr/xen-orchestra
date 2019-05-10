@@ -16,8 +16,12 @@ import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
 import {
   AvailableTemplateVars,
+  CAN_CLOUD_INIT,
   DEFAULT_CLOUD_CONFIG_TEMPLATE,
+  DEFAULT_NETWORK_CONFIG_TEMPLATE,
+  NetworkConfigInfo,
 } from 'cloud-config'
+import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import {
@@ -45,6 +49,7 @@ import {
   createVm,
   createVms,
   getCloudInitConfig,
+  isSrShared,
   subscribeCurrentUser,
   subscribeIpPools,
   subscribeResourceSets,
@@ -78,18 +83,21 @@ import {
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
   resolveIds,
-  resolveResourceSet,
 } from 'utils'
 import {
-  createSelector,
+  createFilter,
+  createFinder,
   createGetObject,
   createGetObjectsOfType,
+  createSelector,
   getIsPoolAdmin,
+  getResolvedResourceSets,
   getUser,
 } from 'selectors'
 
 import styles from './index.css'
 
+const MULTIPLICAND = 2
 const NB_VMS_MIN = 2
 const NB_VMS_MAX = 100
 
@@ -219,25 +227,39 @@ class Vif extends BaseComponent {
   resourceSets: subscribeResourceSets,
   user: subscribeCurrentUser,
 })
-@connectStore(() => ({
-  isAdmin: createSelector(
+@connectStore(() => {
+  const getIsAdmin = createSelector(
     getUser,
     user => user && user.permission === 'admin'
-  ),
-  isPoolAdmin: getIsPoolAdmin,
-  networks: createGetObjectsOfType('network').sort(),
-  pool: createGetObject((_, props) => props.location.query.pool),
-  pools: createGetObjectsOfType('pool'),
-  templates: createGetObjectsOfType('VM-template').sort(),
-  userSshKeys: createSelector(
+  )
+  const getNetworks = createGetObjectsOfType('network').sort()
+  const getPool = createGetObject((_, props) => props.location.query.pool)
+  const getPools = createGetObjectsOfType('pool')
+  const getSrs = createGetObjectsOfType('SR')
+  const getTemplates = createGetObjectsOfType('VM-template').sort()
+  const getUserSshKeys = createSelector(
     (_, props) => {
       const user = props.user
       return user && user.preferences && user.preferences.sshKeys
     },
     keys => keys
-  ),
-  srs: createGetObjectsOfType('SR'),
-}))
+  )
+  return (state, props) => ({
+    isAdmin: getIsAdmin(state, props),
+    isPoolAdmin: getIsPoolAdmin(state, props),
+    networks: getNetworks(state, props),
+    pool: getPool(state, props),
+    pools: getPools(state, props),
+    resolvedResourceSets: getResolvedResourceSets(
+      state,
+      props,
+      props.pool === undefined // to get objects as a self user
+    ),
+    srs: getSrs(state, props),
+    templates: getTemplates(state, props),
+    userSshKeys: getUserSshKeys(state, props),
+  })
+})
 @injectIntl
 export default class NewVm extends BaseComponent {
   static contextTypes = {
@@ -257,19 +279,24 @@ export default class NewVm extends BaseComponent {
     this._reset()
   }
 
-  _getResourceSet = () => {
-    const {
-      location: {
-        query: { resourceSet: resourceSetId },
-      },
-      resourceSets,
-    } = this.props
-    return resourceSets && find(resourceSets, ({ id }) => id === resourceSetId)
-  }
+  _getResourceSet = createFinder(
+    () => this.props.resourceSets,
+    createSelector(
+      () => this.props.location.query.resourceSet,
+      resourceSetId => resourceSet =>
+        resourceSet !== undefined ? resourceSetId === resourceSet.id : undefined
+    )
+  )
 
-  _getResolvedResourceSet = createSelector(
-    this._getResourceSet,
-    resolveResourceSet
+  _getResolvedResourceSet = createFinder(
+    () => this.props.resolvedResourceSets,
+    createSelector(
+      this._getResourceSet,
+      resourceSet =>
+        resourceSet !== undefined
+          ? resolvedResourceSet => resolvedResourceSet.id === resourceSet.id
+          : false
+    )
   )
 
   // Utils -----------------------------------------------------------------------
@@ -322,6 +349,29 @@ export default class NewVm extends BaseComponent {
     })
   }
 
+  _selfCreate = () => {
+    const {
+      CPUs,
+      VDIs,
+      existingDisks,
+      memoryDynamicMax,
+      template,
+    } = this.state.state
+    const disksSize = sumBy(VDIs, 'size') + sumBy(existingDisks, 'size')
+    const templateDisksSize = sumBy(template.template_info.disks, 'size')
+    const templateMemoryDynamicMax = template.memory.dynamic[1]
+    const templateVcpusMax = template.CPUs.max
+
+    return CPUs > MULTIPLICAND * templateVcpusMax ||
+      memoryDynamicMax > MULTIPLICAND * templateMemoryDynamicMax ||
+      disksSize > MULTIPLICAND * templateDisksSize
+      ? confirm({
+          title: _('createVmModalTitle'),
+          body: _('createVmModalWarningMessage'),
+        }).then(this._create)
+      : this._create()
+  }
+
   _create = () => {
     const { state } = this.state
     let installation
@@ -351,6 +401,7 @@ export default class NewVm extends BaseComponent {
 
     let cloudConfig
     let cloudConfigs
+    let networkConfig
     if (state.installMethod !== 'noConfigDrive') {
       if (state.installMethod === 'SSH') {
         const format = hostname =>
@@ -387,8 +438,12 @@ export default class NewVm extends BaseComponent {
             replacer(state, i + +seqStart)
           )
         }
+        networkConfig = defined(
+          state.networkConfig,
+          DEFAULT_NETWORK_CONFIG_TEMPLATE
+        )
       }
-    } else if (state.template.name_label === 'CoreOS') {
+    } else if (this._isCoreOs()) {
       cloudConfig = state.cloudConfig
       if (state.multipleVms) {
         cloudConfigs = new Array(state.nbVms).fill(state.cloudConfig)
@@ -441,7 +496,8 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       share: state.share,
       cloudConfig,
-      coreOs: state.template.name_label === 'CoreOS',
+      networkConfig: this._isCoreOs() ? undefined : networkConfig,
+      coreOs: this._isCoreOs(),
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
       gpuGroup: get(() => state.vgpuType.gpuGroup),
@@ -485,20 +541,19 @@ export default class NewVm extends BaseComponent {
       }
     })
 
-    const VIFs = []
+    let VIFs = []
+    const defaultNetworkIds = this._getDefaultNetworkIds(template)
     forEach(template.VIFs, vifId => {
       const vif = getObject(storeState, vifId, resourceSet)
       VIFs.push({
         network:
           pool || isInResourceSet(vif.$network)
             ? vif.$network
-            : this._getDefaultNetworkId(template),
+            : defaultNetworkIds[0],
       })
     })
     if (VIFs.length === 0) {
-      VIFs.push({
-        network: this._getDefaultNetworkId(template),
-      })
+      VIFs = defaultNetworkIds.map(id => ({ network: id }))
     }
     const name_label =
       state.name_label === '' || !state.name_labelHasChanged
@@ -542,7 +597,7 @@ export default class NewVm extends BaseComponent {
       }),
     })
 
-    if (template.name_label === 'CoreOS') {
+    if (this._isCoreOs()) {
       getCloudInitConfig(template.id).then(
         cloudConfig =>
           this._setState({ cloudConfig, coreOsDefaultTemplateError: false }),
@@ -631,21 +686,38 @@ export default class NewVm extends BaseComponent {
         )
     }
   )
-  _getDefaultNetworkId = template => {
+
+  _getAutomaticNetworks = createSelector(
+    createFilter(this._getPoolNetworks, [network => network.automatic]),
+    networks => networks.map(_ => _.id)
+  )
+
+  _getDefaultNetworkIds = template => {
     if (template === undefined) {
-      return
+      return []
     }
 
-    const network =
-      this.props.pool === undefined
-        ? find(this._getResolvedResourceSet().objectsByType.network, {
-            $pool: template.$pool,
-          })
-        : find(this._getPoolNetworks(), network => {
-            const pif = getObject(store.getState(), network.PIFs[0])
-            return pif && pif.management
-          })
-    return network && network.id
+    if (this.props.pool === undefined) {
+      const network = find(
+        this._getResolvedResourceSet().objectsByType.network,
+        {
+          $pool: template.$pool,
+        }
+      )
+      return network !== undefined ? [network.id] : []
+    }
+
+    const automaticNetworks = this._getAutomaticNetworks()
+    if (automaticNetworks.length !== 0) {
+      return automaticNetworks
+    }
+
+    const network = find(this._getPoolNetworks(), network => {
+      const pif = getObject(store.getState(), network.PIFs[0])
+      return pif && pif.management
+    })
+
+    return network !== undefined ? [network.id] : []
   }
 
   _buildVmsNameTemplate = createSelector(
@@ -673,6 +745,11 @@ export default class NewVm extends BaseComponent {
     },
     () => this.state.state.CPUs,
     getCoresPerSocketPossibilities
+  )
+
+  _isCoreOs = createSelector(
+    () => this.state.template,
+    template => template && template.name_label === 'CoreOS'
   )
 
   // On change -------------------------------------------------------------------
@@ -788,9 +865,7 @@ export default class NewVm extends BaseComponent {
     this._setState({
       VIFs: [
         ...state.VIFs,
-        {
-          network: this._getDefaultNetworkId(state.template),
-        },
+        { network: this._getDefaultNetworkIds(state.template)[0] },
       ],
     })
   }
@@ -899,7 +974,7 @@ export default class NewVm extends BaseComponent {
                   ) || !this._availableResources()
                 }
                 form='vmCreation'
-                handler={this._create}
+                handler={pool === undefined ? this._selfCreate : this._create}
                 icon='new-vm-create'
                 redirectOnSuccess={this._getRedirectionUrl}
               >
@@ -1056,6 +1131,7 @@ export default class NewVm extends BaseComponent {
     const {
       cloudConfig,
       customConfig,
+      networkConfig,
       installIso,
       installMethod,
       installNetwork,
@@ -1088,13 +1164,18 @@ export default class NewVm extends BaseComponent {
             <br />
             <LineItem>
               <label>
-                <input
-                  checked={installMethod === 'SSH'}
-                  name='installMethod'
-                  onChange={this._linkState('installMethod')}
-                  type='radio'
-                  value='SSH'
-                />
+                <Tooltip
+                  content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}
+                >
+                  <input
+                    checked={installMethod === 'SSH'}
+                    disabled={!CAN_CLOUD_INIT}
+                    name='installMethod'
+                    onChange={this._linkState('installMethod')}
+                    type='radio'
+                    value='SSH'
+                  />
+                </Tooltip>
                 &nbsp;
                 {_('newVmSshKey')}
               </label>
@@ -1126,13 +1207,18 @@ export default class NewVm extends BaseComponent {
             <br />
             <LineItem>
               <label>
-                <input
-                  checked={installMethod === 'customConfig'}
-                  name='installMethod'
-                  onChange={this._linkState('installMethod')}
-                  type='radio'
-                  value='customConfig'
-                />
+                <Tooltip
+                  content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}
+                >
+                  <input
+                    checked={installMethod === 'customConfig'}
+                    disabled={!CAN_CLOUD_INIT}
+                    name='installMethod'
+                    onChange={this._linkState('installMethod')}
+                    type='radio'
+                    value='customConfig'
+                  />
+                </Tooltip>
                 &nbsp;
                 {_('newVmCustomConfig')}
               </label>
@@ -1147,13 +1233,39 @@ export default class NewVm extends BaseComponent {
               </span>
             </LineItem>
             <br />
-            <DebounceTextarea
-              className='form-control'
-              disabled={installMethod !== 'customConfig'}
-              onChange={this._linkState('customConfig')}
-              rows={7}
-              value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
-            />
+            <LineItem>
+              <Item>
+                <label className='text-muted'>
+                  {_('newVmUserConfigLabel')}
+                  <br />
+                  <DebounceTextarea
+                    className='form-control'
+                    disabled={installMethod !== 'customConfig'}
+                    onChange={this._linkState('customConfig')}
+                    rows={7}
+                    value={defined(customConfig, DEFAULT_CLOUD_CONFIG_TEMPLATE)}
+                  />
+                </label>
+              </Item>
+              {!this._isCoreOs() && (
+                <Item>
+                  <label className='text-muted'>
+                    {_('newVmNetworkConfigLabel')} <NetworkConfigInfo />
+                    <br />
+                    <DebounceTextarea
+                      className='form-control'
+                      disabled={installMethod !== 'customConfig'}
+                      onChange={this._linkState('networkConfig')}
+                      rows={7}
+                      value={defined(
+                        networkConfig,
+                        DEFAULT_NETWORK_CONFIG_TEMPLATE
+                      )}
+                    />
+                  </label>
+                </Item>
+              )}
+            </LineItem>
           </SectionContent>
         ) : (
           <SectionContent>
@@ -1233,7 +1345,7 @@ export default class NewVm extends BaseComponent {
             )}
           </SectionContent>
         )}
-        {template.name_label === 'CoreOS' && (
+        {this._isCoreOs() && (
           <div>
             <label>{_('newVmCloudConfig')}</label>{' '}
             {!coreOsDefaultTemplateError ? (
@@ -1328,6 +1440,36 @@ export default class NewVm extends BaseComponent {
   _isInterfacesDone = () => every(this.state.state.VIFs, vif => vif.network)
 
   // DISKS -----------------------------------------------------------------------
+
+  _getDiskSrs = createSelector(
+    () => this.state.state.existingDisks,
+    () => this.state.state.VDIs,
+    (existingDisks, vdis) => {
+      const diskSrs = new Set()
+      forEach(existingDisks, disk => diskSrs.add(disk.$SR))
+      vdis.forEach(disk => diskSrs.add(disk.SR))
+      return [...diskSrs]
+    }
+  )
+
+  _srsNotOnSameHost = createSelector(
+    this._getDiskSrs,
+    () => this.props.srs,
+    (diskSrs, srs) => {
+      let container
+      let sr
+      return diskSrs.some(srId => {
+        sr = srs[srId]
+        return (
+          sr !== undefined &&
+          !isSrShared(sr) &&
+          (container !== undefined
+            ? container !== sr.$container
+            : ((container = sr.$container), false))
+        )
+      })
+    }
+  )
 
   _renderDisks = () => {
     const {
@@ -1455,6 +1597,11 @@ export default class NewVm extends BaseComponent {
               {index < VDIs.length - 1 && <hr />}
             </div>
           ))}
+          {this._srsNotOnSameHost() && (
+            <span className='text-danger'>
+              <Icon icon='alarm' /> {_('newVmSrsNotOnSameHost')}
+            </span>
+          )}
           <Item>
             <Button onClick={this._addVdi}>
               <Icon icon='new-vm-add' /> {_('newVmAddDisk')}

@@ -1,9 +1,11 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { injectState, provideState } from 'reaclette'
+import { startsWith } from 'lodash'
 
 import decorate from '../apply-decorators'
 
+// it provide `data-*` to add params to the `onChange`
 const Number_ = decorate([
   provideState({
     effects: {
@@ -18,7 +20,16 @@ const Number_ = decorate([
           }
         }
 
-        props.onChange(value)
+        const params = {}
+        let empty = true
+        Object.keys(props).forEach(key => {
+          if (startsWith(key, 'data-')) {
+            empty = false
+            params[key.slice(5)] = props[key]
+          }
+        })
+
+        props.onChange(value, empty ? undefined : params)
       },
     },
   }),

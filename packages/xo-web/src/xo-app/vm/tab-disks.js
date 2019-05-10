@@ -14,6 +14,7 @@ import TabButton from 'tab-button'
 import { Sr } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
+  createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
   createFinder,
@@ -23,10 +24,11 @@ import {
 import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { injectIntl } from 'react-intl'
 import {
-  noop,
   addSubscriptions,
-  formatSize,
   connectStore,
+  createCompare,
+  formatSize,
+  noop,
   resolveResourceSet,
 } from 'utils'
 import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
@@ -35,6 +37,7 @@ import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import {
+  every,
   filter,
   find,
   forEach,
@@ -44,6 +47,7 @@ import {
   mapValues,
   pick,
   some,
+  sortedUniq,
 } from 'lodash'
 import {
   attachDiskToVm,
@@ -57,6 +61,7 @@ import {
   editVdi,
   exportVdi,
   importVdi,
+  isSrShared,
   isSrWritable,
   isVmRunning,
   migrateVdi,
@@ -64,6 +69,45 @@ import {
   setVmBootOrder,
   subscribeResourceSets,
 } from 'xo'
+
+const createCompareContainers = poolId =>
+  createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
+const compareSrs = createCompare([isSrShared])
+
+class VdiSr extends Component {
+  _getCompareContainers = createSelector(
+    () => this.props.userData.vm.$pool,
+    poolId => createCompareContainers(poolId)
+  )
+
+  _getSrPredicate = createSelector(
+    () => this.props.userData.vm.$pool,
+    poolId => sr => sr.$pool === poolId && isSrWritable(sr)
+  )
+
+  _onChangeSr = sr => migrateVdi(this.props.item, sr)
+
+  render() {
+    const { item: vdi, userData } = this.props
+    const sr = userData.srs[vdi.$SR]
+    return (
+      sr !== undefined && (
+        <XoSelect
+          compareContainers={this._getCompareContainers()}
+          compareOptions={compareSrs}
+          labelProp='name_label'
+          onChange={this._onChangeSr}
+          predicate={this._getSrPredicate()}
+          useLongClick
+          value={sr}
+          xoType='SR'
+        >
+          <Sr id={sr.id} link />
+        </XoSelect>
+      )
+    )
+  }
+}
 
 const COLUMNS_VM_PV = [
   {
@@ -98,28 +142,19 @@ const COLUMNS_VM_PV = [
     sortCriteria: 'size',
   },
   {
-    itemRenderer: (vdi, userData) => {
-      const sr = userData.srs[vdi.$SR]
-      return (
-        sr !== undefined && (
-          <XoSelect
-            labelProp='name_label'
-            onChange={sr => migrateVdi(vdi, sr)}
-            predicate={sr => sr.$pool === userData.vm.$pool && isSrWritable(sr)}
-            useLongClick
-            value={sr}
-            xoType='SR'
-          >
-            <Sr id={sr.id} link />
-          </XoSelect>
-        )
-      )
-    },
+    component: VdiSr,
     name: _('vdiSr'),
     sortCriteria: (vdi, userData) => {
       const sr = userData.srs[vdi.$SR]
       return sr !== undefined && sr.name_label
     },
+  },
+  {
+    itemRenderer: ({ id }, userData) => (
+      <span>{userData.vbdsByVdi[id].device}</span>
+    ),
+    name: _('vbdDevice'),
+    sortCriteria: ({ id }, userData) => userData.vbdsByVdi[id].device,
   },
   {
     itemRenderer: (vdi, userData) => {
@@ -222,6 +257,7 @@ const parseBootOrder = bootOrder => {
 })
 class NewDisk extends Component {
   static propTypes = {
+    checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vm: PropTypes.object.isRequired,
   }
@@ -262,6 +298,12 @@ class NewDisk extends Component {
   _getResourceSetDiskLimit = createSelector(
     this._getResourceSet,
     resourceSet => get(resourceSet, 'limits.disk.available')
+  )
+
+  _checkSr = createSelector(
+    () => this.props.checkSr,
+    () => this.state.sr,
+    (check, sr) => check(sr)
   )
 
   render() {
@@ -335,6 +377,13 @@ class NewDisk extends Component {
             </ActionButton>
           </span>
         </fieldset>
+        {!this._checkSr() && (
+          <div>
+            <span className='text-danger'>
+              <Icon icon='alarm' /> {_('warningVdiSr')}
+            </span>
+          </div>
+        )}
         {resourceSet != null &&
           diskLimit != null &&
           (diskLimit < size ? (
@@ -357,8 +406,12 @@ class NewDisk extends Component {
   }
 }
 
+@connectStore({
+  srs: createGetObjectsOfType('SR'),
+})
 class AttachDisk extends Component {
   static propTypes = {
+    checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vbds: PropTypes.array.isRequired,
     vm: PropTypes.object.isRequired,
@@ -382,6 +435,13 @@ class AttachDisk extends Component {
   )
 
   _selectVdi = vdi => this.setState({ vdi })
+
+  _checkSr = createSelector(
+    () => this.props.checkSr,
+    () => this.props.srs,
+    () => this.state.vdi,
+    (check, srs, vdi) => check(srs[vdi.$SR])
+  )
 
   _addVdi = () => {
     const { vm, vbds, onClose = noop } = this.props
@@ -434,6 +494,13 @@ class AttachDisk extends Component {
                 {_('vbdAttach')}
               </ActionButton>
             </span>
+            {!this._checkSr() && (
+              <div>
+                <span className='text-danger'>
+                  <Icon icon='alarm' /> {_('warningVdiSr')}
+                </span>
+              </div>
+            )}
           </fieldset>
         )}
       </form>
@@ -573,9 +640,25 @@ class BootOrder extends Component {
 }
 
 class MigrateVdiModalBody extends Component {
+  static propTypes = {
+    checkSr: PropTypes.func.isRequired,
+    pool: PropTypes.string.isRequired,
+  }
+
   get value() {
     return this.state
   }
+
+  _getCompareContainers = createSelector(
+    () => this.props.pool,
+    poolId => createCompareContainers(poolId)
+  )
+
+  _checkSr = createSelector(
+    () => this.props.checkSr,
+    () => this.state.sr,
+    (check, sr) => check(sr)
+  )
 
   render() {
     return (
@@ -583,7 +666,12 @@ class MigrateVdiModalBody extends Component {
         <SingleLineRow>
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
-            <SelectSr onChange={this.linkState('sr')} required />
+            <SelectSr
+              compareContainers={this._getCompareContainers()}
+              compareOptions={compareSrs}
+              onChange={this.linkState('sr')}
+              required
+            />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
@@ -594,6 +682,15 @@ class MigrateVdiModalBody extends Component {
             </label>
           </Col>
         </SingleLineRow>
+        {!this._checkSr() && (
+          <SingleLineRow>
+            <Col>
+              <span className='text-danger'>
+                <Icon icon='alarm' /> {_('warningVdiSr')}
+              </span>
+            </Col>
+          </SingleLineRow>
+        )}
       </Container>
     )
   }
@@ -613,6 +710,32 @@ export default class TabDisks extends Component {
       newDisk: false,
     }
   }
+
+  _getVdiSrs = createSelector(
+    () => this.props.vdis,
+    createCollectionWrapper(vdis => sortedUniq(map(vdis, '$SR').sort()))
+  )
+
+  _areSrsOnSameHost = createSelector(
+    this._getVdiSrs,
+    () => this.props.srs,
+    (vdiSrs, srs) => {
+      if (some(vdiSrs, srId => srs[srId] === undefined)) {
+        return true // the user doesn't have permissions on one of the SRs: no warning
+      }
+      let container
+      let sr
+      return every(vdiSrs, srId => {
+        sr = srs[srId]
+        if (isSrShared(sr)) {
+          return true
+        }
+        return container === undefined
+          ? ((container = sr.$container), true)
+          : container === sr.$container
+      })
+    }
+  )
 
   _toggleNewDisk = () =>
     this.setState({
@@ -638,7 +761,12 @@ export default class TabDisks extends Component {
   _migrateVdi = vdi => {
     return confirm({
       title: _('vdiMigrate'),
-      body: <MigrateVdiModalBody />,
+      body: (
+        <MigrateVdiModalBody
+          checkSr={this._getCheckSr()}
+          pool={this.props.vm.$pool}
+        />
+      ),
     }).then(({ sr, migrateAll }) => {
       if (!sr) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
@@ -661,6 +789,37 @@ export default class TabDisks extends Component {
     this._getIsVmAdmin,
     (isAdmin, resourceSet, isVmAdmin) =>
       isAdmin || (resourceSet == null && isVmAdmin)
+  )
+
+  _getRequiredHost = createSelector(
+    this._areSrsOnSameHost,
+    this._getVdiSrs,
+    () => this.props.srs,
+    (areSrsOnSameHost, vdiSrs, srs) => {
+      if (!areSrsOnSameHost) {
+        return
+      }
+
+      let container
+      let sr
+      forEach(vdiSrs, srId => {
+        sr = srs[srId]
+        if (sr !== undefined && !isSrShared(sr)) {
+          container = sr.$container
+          return false
+        }
+      })
+      return container
+    }
+  )
+
+  _getCheckSr = createSelector(
+    this._getRequiredHost,
+    requiredHost => sr =>
+      sr === undefined ||
+      isSrShared(sr) ||
+      requiredHost === undefined ||
+      sr.$container === requiredHost
   )
 
   _getVbdsByVdi = createSelector(
@@ -744,13 +903,18 @@ export default class TabDisks extends Component {
           <Col>
             {newDisk && (
               <div>
-                <NewDisk vm={vm} onClose={this._toggleNewDisk} />
+                <NewDisk
+                  checkSr={this._getCheckSr()}
+                  vm={vm}
+                  onClose={this._toggleNewDisk}
+                />
                 <hr />
               </div>
             )}
             {attachDisk && (
               <div>
                 <AttachDisk
+                  checkSr={this._getCheckSr()}
                   vm={vm}
                   vbds={vbds}
                   onClose={this._toggleAttachDisk}
@@ -767,6 +931,13 @@ export default class TabDisks extends Component {
           </Col>
         </Row>
         <Row>
+          {!this._areSrsOnSameHost() && (
+            <div>
+              <span className='text-danger'>
+                <Icon icon='alarm' /> {_('warningVdiSr')}
+              </span>
+            </div>
+          )}
           <Col>
             <SortedTable
               actions={ACTIONS}

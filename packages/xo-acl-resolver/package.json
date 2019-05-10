@@ -7,6 +7,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-acl-resolver",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-acl-resolver",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -24,5 +25,8 @@
   },
   "dependencies": {
     "xo-common": "^0.2.0"
+  },
+  "scripts": {
+    "postversion": "npm publish"
   }
 }

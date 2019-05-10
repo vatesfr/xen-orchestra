@@ -71,44 +71,6 @@ export const extractOpaqueRef = str => {
 
 // -------------------------------------------------------------------
 
-const TYPE_TO_NAMESPACE = { __proto__: null }
-forEach(
-  [
-    'Bond',
-    'DR_task',
-    'GPU_group',
-    'PBD',
-    'PCI',
-    'PGPU',
-    'PIF',
-    'PIF_metrics',
-    'SM',
-    'SR',
-    'VBD',
-    'VBD_metrics',
-    'VDI',
-    'VGPU',
-    'VGPU_type',
-    'VIF',
-    'VLAN',
-    'VM',
-    'VM_appliance',
-    'VM_guest_metrics',
-    'VM_metrics',
-    'VMPP',
-    'VTPM',
-  ],
-  namespace => {
-    TYPE_TO_NAMESPACE[namespace.toLowerCase()] = namespace
-  }
-)
-
-// Object types given by `xen-api` are always lowercase but the
-// namespaces in the Xen API can have a different casing.
-export const getNamespaceForType = type => TYPE_TO_NAMESPACE[type] || type
-
-// -------------------------------------------------------------------
-
 export const getVmDisks = vm => {
   const disks = { __proto__: null }
   forEach(vm.$VBDs, vbd => {
@@ -288,7 +250,7 @@ export const makeEditObject = specs => {
     const object = this.getObject(id)
 
     const _objectRef = object.$ref
-    const _setMethodPrefix = `${getNamespaceForType(object.$type)}.set_`
+    const _setMethodPrefix = `${object.$type}.set_`
 
     // Context used to execute functions.
     const context = {

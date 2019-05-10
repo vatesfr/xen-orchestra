@@ -1,9 +1,12 @@
 import appConf from 'app-conf'
 import assert from 'assert'
+import authenticator from 'otplib/authenticator'
 import bind from 'lodash/bind'
 import blocked from 'blocked'
+import compression from 'compression'
 import createExpress from 'express'
 import createLogger from '@xen-orchestra/log'
+import crypto from 'crypto'
 import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
@@ -12,17 +15,20 @@ import pw from 'pw'
 import serveStatic from 'serve-static'
 import startsWith from 'lodash/startsWith'
 import stoppable from 'stoppable'
+import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
+
 import { compile as compilePug } from 'pug'
 import { createServer as createProxyServer } from 'http-proxy'
 import { fromEvent } from 'promise-toolbox'
+import { ifDef } from '@xen-orchestra/defined'
 import { join as joinPath } from 'path'
 
 import JsonRpcPeer from 'json-rpc-peer'
 import { invalidCredentials } from 'xo-common/api-errors'
 import { ensureDir, readdir, readFile } from 'fs-extra'
 
-import WebServer from 'http-server-plus'
+import parseDuration from './_parseDuration'
 import Xo from './xo'
 import {
   forEach,
@@ -42,6 +48,11 @@ import { Strategy as LocalStrategy } from 'passport-local'
 
 import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
+
+// ===================================================================
+
+// https://github.com/yeojz/otplib#using-specific-otp-implementations
+authenticator.options = { crypto }
 
 // ===================================================================
 
@@ -82,7 +93,9 @@ async function loadConfiguration() {
 function createExpressApp(config) {
   const app = createExpress()
 
-  app.use(helmet())
+  app.use(helmet(config.http.helmet))
+
+  app.use(compression())
 
   // Registers the cookie-parser and express-session middlewares,
   // necessary for connect-flash.
@@ -111,7 +124,7 @@ function createExpressApp(config) {
   return app
 }
 
-async function setUpPassport(express, xo) {
+async function setUpPassport(express, xo, { authentication: authCfg }) {
   const strategies = { __proto__: null }
   xo.registerPassportStrategy = strategy => {
     passport.use(strategy)
@@ -140,6 +153,60 @@ async function setUpPassport(express, xo) {
     res.redirect('/')
   })
 
+  express.get('/signin-otp', (req, res, next) => {
+    if (req.session.user === undefined) {
+      return res.redirect('/signin')
+    }
+
+    res.send(
+      signInPage({
+        error: req.flash('error')[0],
+        otp: true,
+        strategies,
+      })
+    )
+  })
+
+  express.post('/signin-otp', (req, res, next) => {
+    const { user } = req.session
+
+    if (user === undefined) {
+      return res.redirect(303, '/signin')
+    }
+
+    if (authenticator.check(req.body.otp, user.preferences.otp)) {
+      setToken(req, res, next)
+    } else {
+      req.flash('error', 'Invalid code')
+      return res.redirect(303, '/signin-otp')
+    }
+  })
+
+  const PERMANENT_VALIDITY = ifDef(
+    authCfg.permanentCookieValidity,
+    parseDuration
+  )
+  const SESSION_VALIDITY = ifDef(authCfg.sessionCookieValidity, parseDuration)
+  const setToken = async (req, res, next) => {
+    const { user, isPersistent } = req.session
+    const token = await xo.createAuthenticationToken({
+      expiresIn: isPersistent ? PERMANENT_VALIDITY : SESSION_VALIDITY,
+      userId: user.id,
+    })
+
+    res.cookie(
+      'token',
+      token.id,
+      // a session (non-permanent) cookie must not have an expiration date
+      // because it must not survive browser restart
+      isPersistent ? { expires: new Date(token.expiration) } : undefined
+    )
+
+    delete req.session.isPersistent
+    delete req.session.user
+    res.redirect(303, req.flash('return-url')[0] || '/')
+  }
+
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
     const { url } = req
@@ -153,41 +220,22 @@ async function setUpPassport(express, xo) {
 
         if (!user) {
           req.flash('error', info ? info.message : 'Invalid credentials')
-          return res.redirect('/signin')
+          return res.redirect(303, '/signin')
         }
 
-        // The cookie will be set in via the next request because some
-        // browsers do not save cookies on redirect.
-        req.flash(
-          'token',
-          (await xo.createAuthenticationToken({ userId: user.id })).id
-        )
-
-        // The session is only persistent for internal provider and if 'Remember me' box is checked
-        req.flash(
-          'session-is-persistent',
+        req.session.user = { id: user.id, preferences: user.preferences }
+        req.session.isPersistent =
           matches[1] === 'local' && req.body['remember-me'] === 'on'
-        )
 
-        res.redirect(req.flash('return-url')[0] || '/')
+        if (user.preferences?.otp !== undefined) {
+          return res.redirect(303, '/signin-otp')
+        }
+
+        setToken(req, res, next)
       })(req, res, next)
     }
 
-    const token = req.flash('token')[0]
-
-    if (token) {
-      const isPersistent = req.flash('session-is-persistent')[0]
-
-      if (isPersistent) {
-        // Persistent cookie ? => 1 year
-        res.cookie('token', token, { maxAge: 1000 * 60 * 60 * 24 * 365 })
-      } else {
-        // Non-persistent : external provider as Github, Twitter...
-        res.cookie('token', token)
-      }
-
-      next()
-    } else if (req.cookies.token) {
+    if (req.cookies.token) {
       next()
     } else if (
       /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/.test(url)
@@ -203,7 +251,7 @@ async function setUpPassport(express, xo) {
   xo.registerPassportStrategy(
     new LocalStrategy(async (username, password, done) => {
       try {
-        const user = await xo.authenticateUser({ username, password })
+        const { user } = await xo.authenticateUser({ username, password })
         done(null, user)
       } catch (error) {
         done(null, false, { message: error.message })
@@ -322,6 +370,7 @@ async function makeWebServerListen(
     ;[opts.cert, opts.key] = await Promise.all([readFile(cert), readFile(key)])
     if (opts.key.includes('ENCRYPTED')) {
       opts.passphrase = await new Promise(resolve => {
+        // eslint-disable-next-line no-console
         console.log('Encrypted key %s', key)
         process.stdout.write(`Enter pass phrase: `)
         pw(resolve)
@@ -469,6 +518,11 @@ const setUpApi = (webServer, xo, config) => {
 
     // Connect the WebSocket to the JSON-RPC server.
     socket.on('message', message => {
+      const expiration = connection.get('expiration', undefined)
+      if (expiration !== undefined && expiration < Date.now()) {
+        return void connection.close()
+      }
+
       jsonRpc.write(message)
     })
 
@@ -516,7 +570,7 @@ const setUpConsoleProxy = (webServer, xo) => {
       {
         const { token } = parseCookies(req.headers.cookie)
 
-        const user = await xo.authenticateUser({ token })
+        const { user } = await xo.authenticateUser({ token })
         if (!(await xo.hasPermissions(user.id, [[id, 'operate']]))) {
           throw invalidCredentials()
         }
@@ -536,6 +590,9 @@ const setUpConsoleProxy = (webServer, xo) => {
         proxyConsole(connection, vmConsole, xapi.sessionId)
       })
     } catch (error) {
+      try {
+        socket.end()
+      } catch (_) {}
       console.error((error && error.stack) || error)
     }
   })
@@ -633,7 +690,7 @@ export default async function main(args) {
 
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
-  await setUpPassport(express, xo)
+  await setUpPassport(express, xo, config)
 
   // Attaches express to the web server.
   webServer.on('request', express)

@@ -593,3 +593,60 @@ export const generateRandomId = () =>
   Math.random()
     .toString(36)
     .slice(2)
+
+// ===================================================================
+
+// it returns [nActivePaths, nPaths]
+export const getIscsiPaths = pbd => {
+  const pathsInfo = pbd.otherConfig[`mpath-${pbd.device_config.SCSIid}`]
+  return pathsInfo !== undefined ? JSON.parse(pathsInfo) : []
+}
+
+// ===================================================================
+
+export const downloadLog = ({ log, date, type }) => {
+  const file = new window.Blob([log], {
+    type: 'text/plain',
+  })
+  const anchor = document.createElement('a')
+  anchor.href = window.URL.createObjectURL(file)
+  anchor.download = `${new Date(date)
+    .toISOString()
+    .replace(/:/g, '_')} - ${type}.log`
+  anchor.style.display = 'none'
+  document.body.appendChild(anchor)
+  anchor.click()
+  document.body.removeChild(anchor)
+}
+
+// ===================================================================
+
+// Creates compare function based on different criterias
+//
+// ```js
+// [{ name: 'bar', value: v2 }, { name: 'foo', value: v1 }].sort(
+//   createCompare([
+//     o => o.value === v1,
+//     'name'
+//   ])
+// )
+// ```
+export const createCompare = criterias => (...items) => {
+  let res = 0
+  // Array.find to stop when the result is != 0
+  criterias.find(fn => {
+    const [v1, v2] = items.map(item => {
+      const v = typeof fn === 'string' ? item[fn] : fn(item)
+      return v === true ? -1 : v === false ? 1 : v
+    })
+    return (res = v1 < v2 ? -1 : v1 > v2 ? 1 : 0)
+  })
+  return res
+}
+
+// ===================================================================
+
+export const hasLicenseRestrictions = host =>
+  host.productBrand !== 'XCP-ng' &&
+  versionSatisfies(host.version, '>=7.3.0') &&
+  host.license_params.sku_type === 'free'

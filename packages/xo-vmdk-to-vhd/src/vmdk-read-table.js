@@ -12,10 +12,10 @@ const GRAIN_ADDRESS_OFFSET = 56
  */
 export default async function readVmdkGrainTable(fileAccessor) {
   const getLongLong = (buffer, offset, name) => {
-    if (buffer.length < offset + 8) {
+    if (buffer.byteLength < offset + 8) {
       throw new Error(
         `buffer ${name} is too short, expecting ${offset + 8} minimum, got ${
-          buffer.length
+          buffer.byteLength
         }`
       )
     }
@@ -54,19 +54,19 @@ export default async function readVmdkGrainTable(fileAccessor) {
   const grainSize =
     getLongLong(headerBuffer, GRAIN_SIZE_OFFSET, 'grain size') * SECTOR_SIZE
   const grainCount = Math.ceil(capacity / grainSize)
-  const numGTEsPerGT = getLongLong(
-    headerBuffer,
+  const numGTEsPerGT = new DataView(headerBuffer).getUint32(
     NUM_GTE_PER_GT_OFFSET,
-    'num GTE per GT'
+    true
   )
   const grainTablePhysicalSize = numGTEsPerGT * 4
   const grainDirectoryEntries = Math.ceil(grainCount / numGTEsPerGT)
   const grainDirectoryPhysicalSize = grainDirectoryEntries * 4
-  const grainDirBuffer = await fileAccessor(
-    grainDirPosBytes,
-    grainDirPosBytes + grainDirectoryPhysicalSize
+  const grainDir = new Uint32Array(
+    await fileAccessor(
+      grainDirPosBytes,
+      grainDirPosBytes + grainDirectoryPhysicalSize
+    )
   )
-  const grainDir = new Uint32Array(grainDirBuffer)
   const cachedGrainTables = []
   for (let i = 0; i < grainDirectoryEntries; i++) {
     const grainTableAddr = grainDir[i] * SECTOR_SIZE

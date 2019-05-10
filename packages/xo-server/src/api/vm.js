@@ -193,6 +193,11 @@ create.params = {
     optional: true,
   },
 
+  networkConfig: {
+    type: 'string',
+    optional: true,
+  },
+
   coreOs: {
     type: 'boolean',
     optional: true,
@@ -587,6 +592,8 @@ set.params = {
   // Kernel arguments for PV VM.
   PV_args: { type: 'string', optional: true },
 
+  cpuMask: { type: 'array', optional: true },
+
   cpuWeight: { type: ['integer', 'null'], optional: true },
 
   cpuCap: { type: ['integer', 'null'], optional: true },
@@ -609,6 +616,8 @@ set.params = {
   resourceSet: { type: ['string', 'null'], optional: true },
 
   share: { type: 'boolean', optional: true },
+
+  startDelay: { type: 'integer', optional: true },
 
   // set the VM network interface controller
   nicType: { type: ['string', 'null'], optional: true },
@@ -706,7 +715,7 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
 
 copy.params = {
   compress: {
-    type: 'boolean',
+    type: ['boolean', 'string'],
     optional: true,
   },
   name: {
@@ -751,6 +760,7 @@ export const snapshot = defer(async function(
     vm,
     name = `${vm.name_label}_${new Date().toISOString()}`,
     saveMemory = false,
+    description,
   }
 ) {
   await checkPermissionOnSrs.call(this, vm)
@@ -761,6 +771,10 @@ export const snapshot = defer(async function(
     : xapi.snapshotVm(vm._xapiRef, name))
   $defer.onFailure(() => xapi.deleteVm(snapshotId))
 
+  if (description !== undefined) {
+    await xapi.editVm(snapshotId, { name_description: description })
+  }
+
   const { user } = this
   if (user.permission !== 'admin') {
     await this.addAcl(user.id, snapshotId, 'admin')
@@ -769,6 +783,7 @@ export const snapshot = defer(async function(
 })
 
 snapshot.params = {
+  description: { type: 'string', optional: true },
   id: { type: 'string' },
   name: { type: 'string', optional: true },
   saveMemory: { type: 'boolean', optional: true },
@@ -1132,7 +1147,7 @@ revert.resolve = {
 
 async function handleExport(req, res, { xapi, id, compress }) {
   const stream = await xapi.exportVm(id, {
-    compress: compress != null ? compress : true,
+    compress,
   })
   res.on('close', () => stream.cancel())
   // Remove the filename as it is already part of the URL.
@@ -1167,7 +1182,7 @@ async function export_({ vm, compress }) {
 
 export_.params = {
   vm: { type: 'string' },
-  compress: { type: 'boolean', optional: true },
+  compress: { type: ['boolean', 'string'], optional: true },
 }
 
 export_.resolve = {
@@ -1453,14 +1468,25 @@ getCloudInitConfig.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createCloudInitConfigDrive({ vm, sr, config, coreos }) {
+export async function createCloudInitConfigDrive({
+  config,
+  coreos,
+  networkConfig,
+  sr,
+  vm,
+}) {
   const xapi = this.getXapi(vm)
   if (coreos) {
     // CoreOS is a special CloudConfig drive created by XS plugin
     await xapi.createCoreOsCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
   } else {
     // use generic Cloud Init drive
-    await xapi.createCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
+    await xapi.createCloudInitConfigDrive(
+      vm._xapiId,
+      sr._xapiId,
+      config,
+      networkConfig
+    )
   }
 }
 
@@ -1468,6 +1494,7 @@ createCloudInitConfigDrive.params = {
   vm: { type: 'string' },
   sr: { type: 'string' },
   config: { type: 'string' },
+  networkConfig: { type: 'string', optional: true },
 }
 
 createCloudInitConfigDrive.resolve = {

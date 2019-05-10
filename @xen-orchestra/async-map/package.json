@@ -7,6 +7,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/async-map",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "@xen-orchestra/async-map",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -45,6 +46,7 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
     "prepare": "yarn run build",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "postversion": "npm publish"
   }
 }

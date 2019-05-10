@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import SelectCompression from 'select-compression'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -7,14 +8,14 @@ import Link from 'link'
 import moment from 'moment-timezone'
 import React from 'react'
 import Select from 'form/select'
-import UserError from 'user-error'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
+import UserError from 'user-error'
 import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { flatten, includes, isEmpty, map, mapValues, some } from 'lodash'
+import { flatten, includes, isEmpty, map, mapValues, omit, some } from 'lodash'
 import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
@@ -43,8 +44,10 @@ import {
 import NewSchedule from './new-schedule'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
+import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import {
   canDeltaBackup,
+  constructPattern,
   destructPattern,
   FormFeedback,
   FormGroup,
@@ -52,6 +55,8 @@ import {
   Li,
   Ul,
 } from './../utils'
+
+export NewMetadataBackup from './metadata'
 
 // ===================================================================
 
@@ -101,17 +106,6 @@ const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
       : setting
   )
 
-const constructPattern = values =>
-  values.length === 1
-    ? {
-        id: resolveId(values[0]),
-      }
-    : {
-        id: {
-          __or: resolveIds(values),
-        },
-      }
-
 const destructVmsPattern = pattern =>
   pattern.id === undefined
     ? {
@@ -132,7 +126,7 @@ const REPORT_WHEN_FILTER_OPTIONS = [
   },
   {
     label: 'reportWhenNever',
-    value: 'Never',
+    value: 'never',
   },
 ]
 
@@ -144,12 +138,12 @@ const createDoesRetentionExist = name => {
 }
 
 const getInitialState = () => ({
+  _displayAdvancedSettings: undefined,
   _vmsPattern: undefined,
   backupMode: false,
   compression: undefined,
   crMode: false,
   deltaMode: false,
-  displayAdvancedSettings: undefined,
   drMode: false,
   name: '',
   paramsUpdated: false,
@@ -208,7 +202,7 @@ export default decorate([
         await createBackupNgJob({
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression ? 'native' : '',
+          compression: state.compression,
           schedules: mapValues(
             state.schedules,
             ({ id, ...schedule }) => schedule
@@ -290,12 +284,7 @@ export default decorate([
           id: props.job.id,
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
-          compression:
-            state.compression === undefined
-              ? undefined
-              : state.compression
-              ? 'native'
-              : '',
+          compression: state.compression,
           settings: normalizeSettings({
             settings: settings || state.propSettings,
             exportMode: state.exportMode,
@@ -500,6 +489,10 @@ export default decorate([
 
         return getInitialState()
       },
+      setCompression: (_, compression) => ({ compression }),
+      toggleDisplayAdvancedSettings: () => ({ displayAdvancedSettings }) => ({
+        _displayAdvancedSettings: !displayAdvancedSettings,
+      }),
       setGlobalSettings: (_, { name, value }) => ({
         propSettings,
         settings = propSettings,
@@ -527,6 +520,12 @@ export default decorate([
           value: value && value * 3600e3,
         })
       },
+      setFullInterval({ setGlobalSettings }, value) {
+        setGlobalSettings({
+          name: 'fullInterval',
+          value,
+        })
+      },
       setOfflineSnapshot: (
         { setGlobalSettings },
         { target: { checked: value } }
@@ -538,15 +537,21 @@ export default decorate([
       },
     },
     computed: {
+      compressionId: generateId,
       formId: generateId,
       inputConcurrencyId: generateId,
+      inputFullIntervalId: generateId,
       inputReportWhenId: generateId,
       inputTimeoutId: generateId,
 
       vmsPattern: ({ _vmsPattern }, { job }) =>
-        defined(_vmsPattern, () => job.vms, {
-          type: 'VM',
-        }),
+        defined(
+          _vmsPattern,
+          () => (job.vms.id !== undefined ? undefined : job.vms),
+          {
+            type: 'VM',
+          }
+        ),
       needUpdateParams: (state, { job, schedules }) =>
         job !== undefined && schedules !== undefined && !state.paramsUpdated,
       isJobInvalid: state =>
@@ -617,19 +622,30 @@ export default decorate([
               }
             : setting
         ),
+      displayAdvancedSettings: (state, props) =>
+        defined(
+          state._displayAdvancedSettings,
+          !isEmpty(
+            getSettingsWithNonDefaultValue(state.isFull ? 'full' : 'delta', {
+              compression: get(() => props.job.compression),
+              ...get(() => omit(props.job.settings[''], 'reportWhen')),
+            })
+          )
+        ),
     },
   }),
   injectState,
   ({ state, effects, remotes, srsById, job = {}, intl }) => {
     const { formatMessage } = intl
     const { propSettings, settings = propSettings } = state
-    const { concurrency, reportWhen = 'failure', offlineSnapshot, timeout } =
-      settings.get('') || {}
-    const { compression = job.compression === 'native' } = state
-    const displayAdvancedSettings = defined(
-      state.displayAdvancedSettings,
-      compression || concurrency > 0 || timeout > 0 || offlineSnapshot
-    )
+    const compression = defined(state.compression, job.compression, '')
+    const {
+      concurrency,
+      fullInterval,
+      offlineSnapshot,
+      reportWhen = 'failure',
+      timeout,
+    } = settings.get('') || {}
 
     if (state.needUpdateParams) {
       effects.updateParams()
@@ -854,11 +870,13 @@ export default decorate([
                   {_('newBackupSettings')}
                   <ActionButton
                     className='pull-right'
-                    data-mode='displayAdvancedSettings'
-                    handler={effects.toggleMode}
-                    icon={displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
+                    data-mode='_displayAdvancedSettings'
+                    handler={effects.toggleDisplayAdvancedSettings}
+                    icon={
+                      state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'
+                    }
                     iconColor={
-                      displayAdvancedSettings ? 'text-success' : undefined
+                      state.displayAdvancedSettings ? 'text-success' : undefined
                     }
                     size='small'
                   >
@@ -891,7 +909,7 @@ export default decorate([
                       valueKey='value'
                     />
                   </FormGroup>
-                  {displayAdvancedSettings && (
+                  {state.displayAdvancedSettings && (
                     <div>
                       <FormGroup>
                         <label htmlFor={state.inputConcurrencyId}>
@@ -917,6 +935,30 @@ export default decorate([
                           placeholder={formatMessage(messages.timeoutUnit)}
                         />
                       </FormGroup>
+                      {state.isDelta && (
+                        <FormGroup>
+                          <label htmlFor={state.inputFullIntervalId}>
+                            <strong>{_('fullBackupInterval')}</strong>
+                          </label>{' '}
+                          <Number
+                            id={state.inputFullIntervalId}
+                            onChange={effects.setFullInterval}
+                            value={fullInterval}
+                          />
+                        </FormGroup>
+                      )}
+                      {state.isFull && (
+                        <FormGroup>
+                          <label htmlFor={state.compressionId}>
+                            <strong>{_('compression')}</strong>
+                          </label>
+                          <SelectCompression
+                            id={state.compressionId}
+                            onChange={effects.setCompression}
+                            value={compression}
+                          />
+                        </FormGroup>
+                      )}
                       <FormGroup>
                         <label>
                           <strong>{_('offlineSnapshot')}</strong>{' '}
@@ -930,19 +972,6 @@ export default decorate([
                           />
                         </label>
                       </FormGroup>
-                      {state.isFull && (
-                        <FormGroup>
-                          <label>
-                            <strong>{_('useCompression')}</strong>{' '}
-                            <input
-                              checked={compression}
-                              name='compression'
-                              onChange={effects.setCheckboxValue}
-                              type='checkbox'
-                            />
-                          </label>
-                        </FormGroup>
-                      )}
                     </div>
                   )}
                 </CardBlock>

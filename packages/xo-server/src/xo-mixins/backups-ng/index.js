@@ -54,6 +54,8 @@ import {
   resolveRelativeFromFile,
   safeDateFormat,
   serializeError,
+  type SimpleIdPattern,
+  unboxIdsFromPattern,
 } from '../../utils'
 
 import { translateLegacyJob } from './migration'
@@ -75,13 +77,9 @@ type Settings = {|
   vmTimeout?: number,
 |}
 
-type SimpleIdPattern = {|
-  id: string | {| __or: string[] |},
-|}
-
 export type BackupJob = {|
   ...$Exact<Job>,
-  compression?: 'native',
+  compression?: 'native' | 'zstd' | '',
   mode: Mode,
   remotes?: SimpleIdPattern,
   settings: $Dict<Settings>,
@@ -142,6 +140,7 @@ const defaultSettings: Settings = {
   concurrency: 0,
   deleteFirst: false,
   exportRetention: 0,
+  fullInterval: 0,
   offlineSnapshot: false,
   reportWhen: 'failure',
   snapshotRetention: 0,
@@ -177,10 +176,13 @@ const isMetadataFile = (filename: string) => filename.endsWith('.json')
 const isVhd = (filename: string) => filename.endsWith('.vhd')
 const isXva = (filename: string) => filename.endsWith('.xva')
 
+const getJobCompression = ({ compression: c }) =>
+  c === undefined || c === '' ? false : c === 'native' ? 'gzip' : 'zstd'
+
 const listReplicatedVms = (
   xapi: Xapi,
-  scheduleId: string,
-  srId: string,
+  scheduleOrJobId: string,
+  srId?: string,
   vmUuid?: string
 ): Vm[] => {
   const { all } = xapi.objects
@@ -189,11 +191,12 @@ const listReplicatedVms = (
     const object = all[key]
     const oc = object.other_config
     if (
-      object.$type === 'vm' &&
+      object.$type === 'VM' &&
       !object.is_a_snapshot &&
       !object.is_a_template &&
       'start' in object.blocked_operations &&
-      oc['xo:backup:schedule'] === scheduleId &&
+      (oc['xo:backup:job'] === scheduleOrJobId ||
+        oc['xo:backup:schedule'] === scheduleOrJobId) &&
       oc['xo:backup:sr'] === srId &&
       (oc['xo:backup:vm'] === vmUuid ||
         // 2018-03-28, JFT: to catch VMs replicated before this fix
@@ -304,14 +307,6 @@ const parseVmBackupId = (id: string) => {
     metadataFilename: id.slice(i + 1),
     remoteId: id.slice(0, i),
   }
-}
-
-const unboxIds = (pattern?: SimpleIdPattern): string[] => {
-  if (pattern === undefined) {
-    return []
-  }
-  const { id } = pattern
-  return typeof id === 'string' ? [id] : id.__or
 }
 
 // similar to Promise.all() but do not gather results
@@ -477,13 +472,27 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 //      ├─ <YYYYMMDD>T<HHmmss>.xva
 //      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
 //
+// Attributes on created VM snapshots:
+//
+// - `other_config`:
+//    - `xo:backup:datetime` = snapshot.snapshot_time (allow sorting replicated VMs)
+//    - `xo:backup:deltaChainLength` = n (number of delta copies/replicated since a full)
+//    - `xo:backup:exported` = 'true' (added at the end of the backup)
+//    - `xo:backup:job` = job.id
+//    - `xo:backup:schedule` = schedule.id
+//    - `xo:backup:vm` = vm.uuid
+//
 // Attributes of created VMs:
 //
-// - name: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
+// - all snapshots attributes (see above)
+// - `name_label`: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
 // - tag:
 //    - copy in delta mode: `Continuous Replication`
 //    - copy in full mode: `Disaster Recovery`
 //    - imported from backup: `restored from backup`
+// - `blocked_operations.start`: message
+// - for copies/replications only, added after complete transfer
+//    - `other_config[xo:backup:sr]` = sr.uuid
 //
 // Task logs emitted in a backup execution:
 //
@@ -588,7 +597,7 @@ export default class BackupNg {
           }
         }
         const jobId = job.id
-        const srs = unboxIds(job.srs).map(id => {
+        const srs = unboxIdsFromPattern(job.srs).map(id => {
           const xapi = app.getXapi(id)
           return {
             __proto__: xapi.getObject(id),
@@ -596,7 +605,7 @@ export default class BackupNg {
           }
         })
         const remotes = await Promise.all(
-          unboxIds(job.remotes).map(async id => ({
+          unboxIdsFromPattern(job.remotes).map(async id => ({
             id,
             handler: await app.getRemoteHandler(id),
           }))
@@ -902,6 +911,7 @@ export default class BackupNg {
   // - [x] possibility to (re-)run a single VM in a backup?
   // - [x] validate VHDs after exports and before imports, how?
   // - [x] check merge/transfert duration/size are what we want for delta
+  // - [x] delete interrupted *importing* VMs
   @defer
   async _backupVm(
     $defer: any,
@@ -929,6 +939,7 @@ export default class BackupNg {
         },
         xapi._updateObjectMapProperty(vm, 'other_config', {
           'xo:backup:datetime': null,
+          'xo:backup:deltaChainLength': null,
           'xo:backup:exported': null,
           'xo:backup:job': null,
           'xo:backup:schedule': null,
@@ -1119,7 +1130,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
-          compress: job.compression === 'native',
+          compress: getJobCompression(job),
         })
       )
       const exportTask = xva.task
@@ -1220,6 +1231,14 @@ export default class BackupNg {
 
                 const { $id: srId, xapi } = sr
 
+                // delete previous interrupted copies
+                ignoreErrors.call(
+                  this._deleteVms(
+                    xapi,
+                    listReplicatedVms(xapi, scheduleId, undefined, vmUuid)
+                  )
+                )
+
                 const oldVms = getOldEntries(
                   copyRetention - 1,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
@@ -1277,9 +1296,28 @@ export default class BackupNg {
         $defer.onSuccess.call(xapi, 'deleteVm', baseSnapshot)
       }
 
+      let deltaChainLength = 0
       let fullVdisRequired
       await (async () => {
         if (baseSnapshot === undefined) {
+          return
+        }
+
+        let prevDeltaChainLength = +baseSnapshot.other_config[
+          'xo:backup:deltaChainLength'
+        ]
+        if (Number.isNaN(prevDeltaChainLength)) {
+          prevDeltaChainLength = 0
+        }
+        deltaChainLength = prevDeltaChainLength + 1
+
+        const fullInterval = getSetting(settings, 'fullInterval', [
+          vmUuid,
+          scheduleId,
+          '',
+        ])
+        if (fullInterval !== 0 && fullInterval <= deltaChainLength) {
+          baseSnapshot = undefined
           return
         }
 
@@ -1298,7 +1336,7 @@ export default class BackupNg {
         for (const { $id: srId, xapi } of srs) {
           const replicatedVm = listReplicatedVms(
             xapi,
-            scheduleId,
+            jobId,
             srId,
             vmUuid
           ).find(vm => vm.other_config[TAG_COPY_SRC] === baseSnapshot.uuid)
@@ -1340,7 +1378,9 @@ export default class BackupNg {
 
                   return
                 } catch (error) {
-                  if (!(error instanceof AssertionError)) {
+                  const corruptedVhdOrMissingParent =
+                    error instanceof AssertionError || error?.code === 'ENOENT'
+                  if (!corruptedVhdOrMissingParent) {
                     throw error
                   }
                 }
@@ -1553,6 +1593,14 @@ export default class BackupNg {
 
                 const { $id: srId, xapi } = sr
 
+                // delete previous interrupted copies
+                ignoreErrors.call(
+                  this._deleteVms(
+                    xapi,
+                    listReplicatedVms(xapi, scheduleId, undefined, vmUuid)
+                  )
+                )
+
                 const oldVms = getOldEntries(
                   copyRetention - 1,
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
@@ -1600,6 +1648,15 @@ export default class BackupNg {
         ],
         noop // errors are handled in logs
       )
+
+      if (!isFull) {
+        ignoreErrors.call(
+          snapshot.update_other_config(
+            'xo:backup:deltaChainLength',
+            String(deltaChainLength)
+          )
+        )
+      }
     } else {
       throw new Error(`no exporter for backup mode ${mode}`)
     }

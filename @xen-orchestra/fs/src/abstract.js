@@ -5,6 +5,7 @@ import getStream from 'get-stream'
 
 import asyncMap from '@xen-orchestra/async-map'
 import path from 'path'
+import synchronized from 'decorator-synchronized'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
@@ -24,6 +25,10 @@ type RemoteInfo = { used?: number, size?: number }
 type File = FileDescriptor | string
 
 const checksumFile = file => file + '.checksum'
+const computeRate = (hrtime: number[], size: number) => {
+  const seconds = hrtime[0] + hrtime[1] / 1e9
+  return size / seconds
+}
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
 
@@ -34,18 +39,18 @@ const ignoreEnoent = error => {
 }
 
 class PrefixWrapper {
-  constructor(remote, prefix) {
+  constructor(handler, prefix) {
     this._prefix = prefix
-    this._remote = remote
+    this._handler = handler
   }
 
   get type() {
-    return this._remote.type
+    return this._handler.type
   }
 
   // necessary to remove the prefix from the path with `prependDir` option
   async list(dir, opts) {
-    const entries = await this._remote.list(this._resolve(dir), opts)
+    const entries = await this._handler.list(this._resolve(dir), opts)
     if (opts != null && opts.prependDir) {
       const n = this._prefix.length
       entries.forEach((entry, i, entries) => {
@@ -56,7 +61,7 @@ class PrefixWrapper {
   }
 
   rename(oldPath, newPath) {
-    return this._remote.rename(this._resolve(oldPath), this._resolve(newPath))
+    return this._handler.rename(this._resolve(oldPath), this._resolve(newPath))
   }
 
   _resolve(path) {
@@ -216,6 +221,7 @@ export default class RemoteHandlerAbstract {
   // FIXME: Some handlers are implemented based on system-wide mecanisms (such
   // as mount), forgetting them might breaking other processes using the same
   // remote.
+  @synchronized()
   async forget(): Promise<void> {
     await this._forget()
   }
@@ -354,23 +360,33 @@ export default class RemoteHandlerAbstract {
   // metadata
   //
   // This method MUST ALWAYS be called before using the handler.
+  @synchronized()
   async sync(): Promise<void> {
     await this._sync()
   }
 
   async test(): Promise<Object> {
+    const SIZE = 1024 * 1024 * 10
     const testFileName = normalizePath(`${Date.now()}.test`)
-    const data = await fromCallback(cb => randomBytes(1024 * 1024, cb))
+    const data = await fromCallback(cb => randomBytes(SIZE, cb))
     let step = 'write'
     try {
+      const writeStart = process.hrtime()
       await this._outputFile(testFileName, data, { flags: 'wx' })
+      const writeDuration = process.hrtime(writeStart)
+
       step = 'read'
+      const readStart = process.hrtime()
       const read = await this._readFile(testFileName, { flags: 'r' })
+      const readDuration = process.hrtime(readStart)
+
       if (!data.equals(read)) {
         throw new Error('output and input did not match')
       }
       return {
         success: true,
+        writeRate: computeRate(writeDuration, SIZE),
+        readRate: computeRate(readDuration, SIZE),
       }
     } catch (error) {
       return {
@@ -392,6 +408,18 @@ export default class RemoteHandlerAbstract {
     }
 
     await this._unlink(file).catch(ignoreEnoent)
+  }
+
+  async write(
+    file: File,
+    buffer: Buffer,
+    position: number
+  ): Promise<{| bytesWritten: number, buffer: Buffer |}> {
+    await this._write(
+      typeof file === 'string' ? normalizePath(file) : file,
+      buffer,
+      position
+    )
   }
 
   async writeFile(
@@ -530,6 +558,28 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
+  async _write(file: File, buffer: Buffer, position: number): Promise<void> {
+    const isPath = typeof file === 'string'
+    if (isPath) {
+      file = await this.openFile(file, 'r+')
+    }
+    try {
+      return await this._writeFd(file, buffer, position)
+    } finally {
+      if (isPath) {
+        await this.closeFile(file)
+      }
+    }
+  }
+
+  async _writeFd(
+    fd: FileDescriptor,
+    buffer: Buffer,
+    position: number
+  ): Promise<void> {
+    throw new Error('Not implemented')
+  }
+
   async _writeFile(
     file: string,
     data: Data,
@@ -565,7 +615,7 @@ function createPrefixWrapperMethods() {
       if (arguments.length !== 0 && typeof (path = arguments[0]) === 'string') {
         arguments[0] = this._resolve(path)
       }
-      return value.apply(this._remote, arguments)
+      return value.apply(this._handler, arguments)
     }
 
     defineProperty(pPw, name, descriptor)

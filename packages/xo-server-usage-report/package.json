@@ -1,6 +1,6 @@
 {
   "name": "xo-server-usage-report",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "license": "AGPL-3.0",
   "description": "",
   "keywords": [
@@ -15,6 +15,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-usage-report",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-server-usage-report",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -38,10 +39,10 @@
     "@xen-orchestra/cron": "^1.0.3",
     "@xen-orchestra/log": "^0.1.4",
     "handlebars": "^4.0.6",
-    "html-minifier": "^3.5.8",
+    "html-minifier": "^4.0.0",
     "human-format": "^0.10.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.11.0"
+    "promise-toolbox": "^0.12.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
@@ -58,5 +59,6 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
-  }
+  },
+  "private": true
 }

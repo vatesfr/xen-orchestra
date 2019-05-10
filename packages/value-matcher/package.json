@@ -7,6 +7,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/value-matcher",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/value-matcher",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -24,7 +25,7 @@
     ">2%"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "dependencies": {},
   "devDependencies": {
@@ -42,6 +43,7 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
     "prepare": "yarn run build",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "postversion": "npm publish"
   }
 }

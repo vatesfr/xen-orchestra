@@ -10,7 +10,7 @@ import renderXoItem from 'render-xo-item'
 import Tooltip from 'tooltip'
 import { addTag, editVm, removeTag } from 'xo'
 import { BlockLink } from 'link'
-import { FormattedRelative } from 'react-intl'
+import { FormattedRelative, FormattedDate } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
@@ -116,6 +116,20 @@ export default connectStore(() => {
       <br />
       <Row className='text-xs-center'>
         <Col mediumSize={3}>
+          {vm.installTime !== null && (
+            <div className='text-xs-center'>
+              {_('created', {
+                date: (
+                  <FormattedDate
+                    day='2-digit'
+                    month='long'
+                    value={vm.installTime * 1000}
+                    year='numeric'
+                  />
+                ),
+              })}
+            </div>
+          )}
           {vm.power_state === 'Running' ? (
             <div>
               <p className='text-xs-center'>

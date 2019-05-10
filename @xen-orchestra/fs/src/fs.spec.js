@@ -3,9 +3,9 @@
 import 'dotenv/config'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import getStream from 'get-stream'
+import { forOwn, random } from 'lodash'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
-import { random } from 'lodash'
 import { tmpdir } from 'os'
 
 import { getHandler } from '.'
@@ -290,9 +290,11 @@ handlers.forEach(url => {
 
     describe('#test()', () => {
       it('tests the remote appears to be working', async () => {
-        expect(await handler.test()).toEqual({
-          success: true,
-        })
+        const answer = await handler.test()
+
+        expect(answer.success).toBe(true)
+        expect(typeof answer.writeRate).toBe('number')
+        expect(typeof answer.readRate).toBe('number')
       })
     })
 
@@ -307,6 +309,46 @@ handlers.forEach(url => {
       it('does not throw on missing file', async () => {
         await handler.unlink('file')
       })
+    })
+
+    describe('#write()', () => {
+      beforeEach(() => handler.outputFile('file', TEST_DATA))
+
+      const PATCH_DATA_LEN = Math.ceil(TEST_DATA_LEN / 2)
+      const PATCH_DATA = unsecureRandomBytes(PATCH_DATA_LEN)
+
+      forOwn(
+        {
+          'dont increase file size': (() => {
+            const offset = random(0, TEST_DATA_LEN - PATCH_DATA_LEN)
+
+            const expected = Buffer.from(TEST_DATA)
+            PATCH_DATA.copy(expected, offset)
+
+            return { offset, expected }
+          })(),
+          'increase file size': (() => {
+            const offset = random(
+              TEST_DATA_LEN - PATCH_DATA_LEN + 1,
+              TEST_DATA_LEN
+            )
+
+            const expected = Buffer.alloc(offset + PATCH_DATA_LEN)
+            TEST_DATA.copy(expected)
+            PATCH_DATA.copy(expected, offset)
+
+            return { offset, expected }
+          })(),
+        },
+        ({ offset, expected }, title) => {
+          describe(title, () => {
+            testWithFileDescriptor('file', 'r+', async ({ file }) => {
+              await handler.write(file, PATCH_DATA, offset)
+              await expect(await handler.readFile('file')).toEqual(expected)
+            })
+          })
+        }
+      )
     })
   })
 })

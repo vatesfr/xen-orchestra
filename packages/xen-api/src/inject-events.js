@@ -4,31 +4,33 @@ import { pDelay } from 'promise-toolbox'
 
 import { createClient } from './'
 
-const xapi = (() => {
-  const [, , url, user, password] = process.argv
-
-  return createClient({
-    auth: { user, password },
+async function main([url]) {
+  const xapi = createClient({
+    allowUnauthorized: true,
     url,
     watchEvents: false,
   })
-})()
+  await xapi.connect()
 
-xapi
-  .connect()
-
-  // Get the pool record's ref.
-  .then(() => xapi.call('pool.get_all'))
-
-  // Injects lots of events.
-  .then(([poolRef]) => {
-    const loop = () =>
-      pDelay
-        .call(
-          xapi.call('event.inject', 'pool', poolRef),
-          10 // A small delay is required to avoid overloading the Xen API.
-        )
-        .then(loop)
-
-    return loop()
+  let loop = true
+  process.on('SIGINT', () => {
+    loop = false
   })
+
+  const { pool } = xapi
+  // eslint-disable-next-line no-unmodified-loop-condition
+  while (loop) {
+    await pool.update_other_config(
+      'xo:injectEvents',
+      Math.random()
+        .toString(36)
+        .slice(2)
+    )
+    await pDelay(1e2)
+  }
+
+  await pool.update_other_config('xo:injectEvents', null)
+  await xapi.disconnect()
+}
+
+main(process.argv.slice(2)).catch(console.error)

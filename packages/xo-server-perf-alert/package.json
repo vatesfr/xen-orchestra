@@ -7,6 +7,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-perf-alert",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-server-perf-alert",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -41,5 +42,6 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
-  }
+  },
+  "private": true
 }

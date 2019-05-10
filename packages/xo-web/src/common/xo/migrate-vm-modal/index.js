@@ -152,7 +152,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       return
     }
 
-    const { vbds, vm } = this.props
+    const { pools, vbds, vm } = this.props
     const intraPool = vm.$pool === host.$pool
 
     // Intra-pool
@@ -177,7 +177,7 @@ export default class MigrateVmModalBody extends BaseComponent {
         host,
         intraPool,
         mapVifsNetworks: undefined,
-        migrationNetwork: undefined,
+        migrationNetworkId: undefined,
         targetSrs: {},
       })
       return
@@ -210,8 +210,13 @@ export default class MigrateVmModalBody extends BaseComponent {
       intraPool,
       mapVifsNetworks: defaultNetworksForVif,
       migrationNetworkId: defaultMigrationNetworkId,
-      targetSrs: {},
+      targetSrs: { mainSr: pools[host.$pool].default_SR },
     })
+  }
+
+  compareContainers = (pool1, pool2) => {
+    const { $pool: poolId } = this.props.vm
+    return pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
   }
 
   _selectMigrationNetwork = migrationNetwork =>
@@ -234,6 +239,7 @@ export default class MigrateVmModalBody extends BaseComponent {
             <Col size={4}>{_('migrateVmSelectHost')}</Col>
             <Col size={8}>
               <SelectHost
+                compareContainers={this.compareContainers}
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 required

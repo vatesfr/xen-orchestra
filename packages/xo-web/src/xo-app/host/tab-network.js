@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
+import humanFormat from 'human-format'
 import React from 'react'
 import Icon from 'icon'
 import SingleLineRow from 'single-line-row'
@@ -11,7 +12,7 @@ import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import { error } from 'notification'
 import { get } from '@xen-orchestra/defined'
 import { Select, Number } from 'editable'
@@ -165,14 +166,26 @@ class PifItemMode extends Component {
     getIpv4ConfigModes().then(configModes => this.setState({ configModes }))
   }
 
-  _configIp = mode => reconfigureIp(this.props.pif, mode)
+  _configIp = mode => mode != null && reconfigureIp(this.props.pif, mode.value)
+
+  _getOptions = createSelector(
+    () => this.state.configModes,
+    configModes => configModes.map(mode => ({ label: mode, value: mode }))
+  )
+
+  _getValue = createSelector(
+    () => this.props.pif.mode,
+    mode => ({ label: mode, value: mode })
+  )
 
   render() {
-    const { pif } = this.props
-    const { configModes } = this.state
     return (
-      <Select onChange={this._configIp} options={configModes} value={pif.mode}>
-        {pif.mode}
+      <Select
+        onChange={this._configIp}
+        options={this._getOptions()}
+        value={this._getValue()}
+      >
+        {this.props.pif.mode}
       </Select>
     )
   }
@@ -251,6 +264,12 @@ const PIF_COLUMNS = [
     itemRenderer: pif => pif.mtu,
     name: _('pifMtuLabel'),
     sortCriteria: 'mtu',
+  },
+  {
+    itemRenderer: ({ speed }) =>
+      speed !== undefined && humanFormat(speed * 1e6, { unit: 'b/s' }), // 1e6: convert Mb to b
+    name: _('pifSpeedLabel'),
+    sortCriteria: 'speed',
   },
   {
     itemRenderer: (pif, userData) => (

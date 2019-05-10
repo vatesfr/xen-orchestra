@@ -10,7 +10,7 @@ import { addTag, removeTag } from 'xo'
 import { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import { FormattedRelative } from 'react-intl'
-import { formatSize, formatSizeShort } from 'utils'
+import { formatSize, formatSizeShort, hasLicenseRestrictions } from 'utils'
 import Usage, { UsageElement } from 'usage'
 import { getObject } from 'selectors'
 import {
@@ -20,14 +20,9 @@ import {
   LoadSparkLines,
 } from 'xo-sparklines'
 
-export default ({
-  statsOverview,
-  host,
-  memoryUsed,
-  nVms,
-  vmController,
-  vms,
-}) => {
+import LicenseWarning from './license-warning'
+
+export default ({ statsOverview, host, nVms, vmController, vms }) => {
   const pool = getObject(store.getState(), host.$pool)
   const vmsFilter = encodeURIComponent(
     new CM.Property('$container', new CM.String(host.id)).toString()
@@ -89,7 +84,7 @@ export default ({
             {host.productBrand !== 'XCP-ng'
               ? host.license_params.sku_type
               : 'GPLv2'}
-            )
+            ) {hasLicenseRestrictions(host) && <LicenseWarning iconSize='lg' />}
           </p>
         </Col>
         <Col mediumSize={3}>
@@ -141,7 +136,7 @@ export default ({
         <Col className='text-xs-center'>
           <h5>
             {_('memoryHostState', {
-              memoryUsed: formatSizeShort(memoryUsed),
+              memoryUsed: formatSizeShort(host.memory.usage),
               memoryTotal: formatSizeShort(host.memory.size),
               memoryFree: formatSizeShort(host.memory.size - host.memory.usage),
             })}

@@ -1,7 +1,7 @@
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import fromEvent from 'promise-toolbox/fromEvent'
-import xml2js from 'xml2js'
+import xml2js, { processors } from 'xml2js'
 import { ensureArray } from 'utils'
 import { readVmdkGrainTable } from 'xo-vmdk-to-vhd'
 
@@ -22,21 +22,15 @@ const MEMORY_UNIT_TO_FACTOR = {
 
 const RESOURCE_TYPE_TO_HANDLER = {
   // CPU.
-  '3': (data, { 'rasd:VirtualQuantity': nCpus }) => {
+  '3': (data, { VirtualQuantity: nCpus }) => {
     data.nCpus = +nCpus
   },
   // RAM.
-  '4': (
-    data,
-    { 'rasd:AllocationUnits': unit, 'rasd:VirtualQuantity': quantity }
-  ) => {
+  '4': (data, { AllocationUnits: unit, VirtualQuantity: quantity }) => {
     data.memory = quantity * allocationUnitsToFactor(unit)
   },
   // Network.
-  '10': (
-    { networks },
-    { 'rasd:AutomaticAllocation': enabled, 'rasd:Connection': name }
-  ) => {
+  '10': ({ networks }, { AutomaticAllocation: enabled, Connection: name }) => {
     if (enabled) {
       networks.push(name)
     }
@@ -45,10 +39,10 @@ const RESOURCE_TYPE_TO_HANDLER = {
   '17': (
     { disks },
     {
-      'rasd:AddressOnParent': position,
-      'rasd:Description': description = 'No description',
-      'rasd:ElementName': name,
-      'rasd:HostResource': resource,
+      AddressOnParent: position,
+      Description: description = 'No description',
+      ElementName: name,
+      HostResource: resource,
     }
   ) => {
     const diskId = resource.match(/^(?:ovf:)?\/disk\/(.+)$/)
@@ -98,11 +92,28 @@ function parseTarHeader(header) {
   if (fileName.length === 0) {
     return null
   }
-  const fileSize = parseInt(
-    Buffer.from(header.slice(124, 124 + 11)).toString('ascii'),
-    8
+  // https://stackoverflow.com/a/2511526/72637
+  const sizeBuffer = Buffer.from(header.slice(124, 124 + 12))
+  let fileSize = 0
+  if (sizeBuffer[0] === 0x80) {
+    // https://github.com/chrisdickinson/tar-parse/blob/master/header.js#L271
+    // remove the head byte and go in decreasing power order.
+    for (let i = 1; i < sizeBuffer.length; i++) {
+      fileSize = fileSize * 256 + sizeBuffer[i]
+    }
+  } else fileSize = parseInt(sizeBuffer.slice(0, -1).toString('ascii'), 8)
+  console.log(
+    'fileSize',
+    fileName,
+    fileSize,
+    'B',
+    fileSize / Math.pow(1024, 3),
+    'GB'
   )
-  return { fileName, fileSize }
+  // normal files are either the char '0' (charcode 48) or the char null (charcode zero)
+  const typeSlice = new Uint8Array(header.slice(156, 156 + 1))[0]
+  const fileType = typeSlice === 0 ? '0' : String.fromCharCode(typeSlice)
+  return { fileName, fileSize, fileType }
 }
 
 async function parseOVF(fileFragment) {
@@ -110,7 +121,12 @@ async function parseOVF(fileFragment) {
   return new Promise((resolve, reject) =>
     xml2js.parseString(
       xmlString,
-      { mergeAttrs: true, explicitArray: false },
+      {
+        mergeAttrs: true,
+        explicitArray: false,
+        tagNameProcessors: [processors.stripPrefix],
+        attrNameProcessors: [processors.stripPrefix],
+      },
       (err, res) => {
         if (err) {
           reject(err)
@@ -132,7 +148,7 @@ async function parseOVF(fileFragment) {
         const hardware = system.VirtualHardwareSection
 
         // Get VM name/description.
-        data.nameLabel = hardware.System['vssd:VirtualSystemIdentifier']
+        data.nameLabel = hardware.System.VirtualSystemIdentifier
         data.descriptionLabel =
           (system.AnnotationSection && system.AnnotationSection.Annotation) ||
           (system.OperatingSystemSection &&
@@ -142,21 +158,20 @@ async function parseOVF(fileFragment) {
         forEach(ensureArray(disks), disk => {
           const file = find(
             ensureArray(files),
-            file => file['ovf:id'] === disk['ovf:fileRef']
+            file => file.id === disk.fileRef
           )
-          const unit = disk['ovf:capacityAllocationUnits']
+          const unit = disk.capacityAllocationUnits
 
-          data.disks[disk['ovf:diskId']] = {
+          data.disks[disk.diskId] = {
             capacity:
-              disk['ovf:capacity'] *
-              ((unit && allocationUnitsToFactor(unit)) || 1),
-            path: file && file['ovf:href'],
+              disk.capacity * ((unit && allocationUnitsToFactor(unit)) || 1),
+            path: file && file.href,
           }
         })
 
         // Get hardware info: CPU, RAM, disks, networks...
         forEach(ensureArray(hardware.Item), item => {
-          const handler = RESOURCE_TYPE_TO_HANDLER[item['rasd:ResourceType']]
+          const handler = RESOURCE_TYPE_TO_HANDLER[item.ResourceType]
           if (!handler) {
             return
           }
@@ -172,33 +187,46 @@ async function parseOVF(fileFragment) {
   )
 }
 
+// tar spec: https://www.gnu.org/software/tar/manual/html_node/Standard.html
 async function parseTarFile(file) {
-  let offset = 0
-  const HEADER_SIZE = 512
-  let data = { tables: {} }
-  while (offset + HEADER_SIZE <= file.size) {
-    const header = parseTarHeader(
-      await readFileFragment(file, offset, offset + HEADER_SIZE)
-    )
-    offset += HEADER_SIZE
-    if (header === null) {
-      break
+  document.body.style.cursor = 'wait'
+  try {
+    let offset = 0
+    const HEADER_SIZE = 512
+    let data = { tables: {} }
+    while (offset + HEADER_SIZE <= file.size) {
+      const header = parseTarHeader(
+        await readFileFragment(file, offset, offset + HEADER_SIZE)
+      )
+      offset += HEADER_SIZE
+      if (header === null) {
+        break
+      }
+      // remove mac os X forks https://stackoverflow.com/questions/8766730/tar-command-in-mac-os-x-adding-hidden-files-why
+      if (
+        header.fileType === '0' &&
+        !header.fileName.toLowerCase().startsWith('./._')
+      ) {
+        if (header.fileName.toLowerCase().endsWith('.ovf')) {
+          const res = await parseOVF(
+            file.slice(offset, offset + header.fileSize)
+          )
+          data = { ...data, ...res }
+        }
+        if (header.fileName.toLowerCase().endsWith('.vmdk')) {
+          const fileSlice = file.slice(offset, offset + header.fileSize)
+          const readFile = async (start, end) =>
+            readFileFragment(fileSlice, start, end)
+          // storing the promise, not the value
+          data.tables[header.fileName] = readVmdkGrainTable(readFile)
+        }
+      }
+      offset += Math.ceil(header.fileSize / 512) * 512
     }
-    if (header.fileName.toLowerCase().endsWith('.ovf')) {
-      const res = await parseOVF(file.slice(offset, offset + header.fileSize))
-      data = { ...data, ...res }
-    }
-    if (header.fileName.toLowerCase().endsWith('.vmdk')) {
-      const fileSlice = file.slice(offset, offset + header.fileSize)
-      const readFile = async (start, end) =>
-        readFileFragment(fileSlice, start, end)
-      data.tables[header.fileName] = await readVmdkGrainTable(readFile)
-    }
-    offset += Math.ceil(header.fileSize / 512) * 512
+    return data
+  } finally {
+    document.body.style.cursor = null
   }
-  return data
 }
 
-const parseOvaFile = async file => parseTarFile(file)
-
-export { parseOvaFile as default }
+export { parseTarFile as default }

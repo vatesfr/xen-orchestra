@@ -1,4 +1,5 @@
 import _ from 'intl'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { get } from '@xen-orchestra/defined'
@@ -7,6 +8,7 @@ import { find, startsWith } from 'lodash'
 import decorate from './apply-decorators'
 import Icon from './icon'
 import Link from './link'
+import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
@@ -14,7 +16,15 @@ import { isSrWritable, subscribeRemotes } from './xo'
 
 // ===================================================================
 
-const UNKNOWN_ITEM = <span className='text-muted'>{_('errorUnknownItem')}</span>
+const unknowItem = (uuid, type) => (
+  <Tooltip content={_('copyUuid', { uuid })}>
+    <CopyToClipboard text={uuid}>
+      <span className='text-muted' style={{ cursor: 'pointer' }}>
+        {_('errorUnknownItem', { type })}
+      </span>
+    </CopyToClipboard>
+  </Tooltip>
+)
 
 const LinkWrapper = ({ children, link, to, newTab }) =>
   link ? (
@@ -37,9 +47,9 @@ export const Pool = decorate([
   connectStore(() => ({
     pool: createGetObject(),
   })),
-  ({ pool, link, newTab }) => {
+  ({ id, pool, link, newTab }) => {
     if (pool === undefined) {
-      return UNKNOWN_ITEM
+      return unknowItem(id, 'pool')
     }
 
     return (
@@ -77,9 +87,9 @@ export const Host = decorate([
       ),
     }
   }),
-  ({ host, pool, link, newTab, memoryFree }) => {
+  ({ id, host, pool, link, newTab, memoryFree }) => {
     if (host === undefined) {
-      return UNKNOWN_ITEM
+      return unknowItem(id, 'host')
     }
 
     return (
@@ -130,9 +140,9 @@ export const Vm = decorate([
       ),
     }
   }),
-  ({ vm, container, link, newTab }) => {
+  ({ id, vm, container, link, newTab }) => {
     if (vm === undefined) {
-      return UNKNOWN_ITEM
+      return unknowItem(id, 'VM')
     }
 
     return (
@@ -160,19 +170,29 @@ Vm.defaultProps = {
 export const VmTemplate = decorate([
   connectStore(() => {
     const getObject = createGetObject()
+    const getPool = createGetObject(
+      createSelector(
+        getObject,
+        vm => get(() => vm.$pool)
+      )
+    )
     return (state, props) => ({
       // FIXME: props.self ugly workaround to get object as a self user
       template: getObject(state, props, props.self),
+      pool: getPool(state, props),
     })
   }),
-  ({ template }) => {
+  ({ id, template, pool }) => {
     if (template === undefined) {
-      return UNKNOWN_ITEM
+      return unknowItem(id, 'template')
     }
 
     return (
       <span>
         <Icon icon='vm' /> {template.name_label}
+        {pool !== undefined && (
+          <span className='text-muted'>{` - ${pool.name_label}`}</span>
+        )}
       </span>
     )
   },
@@ -207,9 +227,9 @@ export const Sr = decorate([
       container: getContainer(state, props),
     })
   }),
-  ({ sr, container, link, newTab, spaceLeft, self }) => {
+  ({ id, sr, container, link, newTab, spaceLeft, self }) => {
     if (sr === undefined) {
-      return UNKNOWN_ITEM
+      return unknowItem(id, 'SR')
     }
 
     return (
@@ -263,9 +283,9 @@ export const Vdi = decorate([
       sr: getSr(state, props),
     })
   }),
-  ({ sr, vdi }) => {
+  ({ id, sr, vdi }) => {
     if (vdi === undefined) {
-      return UNKNOWN_ITEM
+      return unknowItem(id, 'VDI')
     }
 
     return (
@@ -298,9 +318,9 @@ export const Network = decorate([
       network: getObject(state, props, props.self),
     })
   }),
-  ({ network }) => {
+  ({ id, network }) => {
     if (network === undefined) {
-      return UNKNOWN_ITEM
+      return unknowItem(id, 'network')
     }
 
     return (
@@ -326,9 +346,9 @@ export const Remote = decorate([
   addSubscriptions(({ id }) => ({
     remote: cb => subscribeRemotes(remotes => cb(find(remotes, { id }))),
   })),
-  ({ remote, link, newTab }) => {
+  ({ id, remote, link, newTab }) => {
     if (remote === undefined) {
-      return UNKNOWN_ITEM // TODO: handle remotes not fetched yet
+      return unknowItem(id, 'remote') // TODO: handle remotes not fetched yet
     }
 
     return (
@@ -389,8 +409,7 @@ const xoItemToRender = {
     <span>
       <strong>
         <Icon icon='resource-set' /> {resourceSet.name}
-      </strong>{' '}
-      ({resourceSet.id})
+      </strong>
     </span>
   ),
   sshKey: key => (

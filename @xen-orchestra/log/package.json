@@ -7,6 +7,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/log",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "@xen-orchestra/log",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -26,11 +27,11 @@
     ">2%"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.11.0"
+    "promise-toolbox": "^0.12.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
@@ -47,6 +48,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "postversion": "npm publish"
   }
 }

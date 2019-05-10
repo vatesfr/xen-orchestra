@@ -1,6 +1,8 @@
 import { basename } from 'path'
-import { isEmpty, pickBy } from 'lodash'
+import { fromCallback } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
 
+import createNdJsonStream from '../_createNdJsonStream'
 import { safeDateFormat } from '../utils'
 
 export function createJob({ schedules, ...job }) {
@@ -11,7 +13,7 @@ export function createJob({ schedules, ...job }) {
 createJob.permission = 'admin'
 createJob.params = {
   compression: {
-    enum: ['', 'native'],
+    enum: ['', 'native', 'zstd'],
     optional: true,
   },
   mode: {
@@ -68,7 +70,7 @@ export function editJob(props) {
 editJob.permission = 'admin'
 editJob.params = {
   compression: {
-    enum: ['', 'native'],
+    enum: ['', 'native', 'zstd'],
     optional: true,
   },
   id: {
@@ -151,12 +153,37 @@ runJob.params = {
 
 // -----------------------------------------------------------------------------
 
-export async function getAllLogs(filter) {
+async function handleGetAllLogs(req, res) {
   const logs = await this.getBackupNgLogs()
-  return isEmpty(filter) ? logs : pickBy(logs, filter)
+  res.set('Content-Type', 'application/json')
+  return fromCallback(cb => pipeline(createNdJsonStream(logs), res, cb))
+}
+
+export function getAllLogs({ ndjson = false }) {
+  return ndjson
+    ? this.registerHttpRequest(handleGetAllLogs).then($getFrom => ({
+        $getFrom,
+      }))
+    : this.getBackupNgLogs()
 }
 
 getAllLogs.permission = 'admin'
+
+getAllLogs.params = {
+  ndjson: { type: 'boolean', optional: true },
+}
+
+export function getLogs({ after, before, limit, ...filter }) {
+  return this.getBackupNgLogsSorted({ after, before, limit, filter })
+}
+
+getLogs.permission = 'admin'
+
+getLogs.params = {
+  after: { type: ['number', 'string'], optional: true },
+  before: { type: ['number', 'string'], optional: true },
+  limit: { type: 'number', optional: true },
+}
 
 // -----------------------------------------------------------------------------
 

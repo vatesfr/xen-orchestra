@@ -52,6 +52,7 @@ export default {
 
       coreOs = false,
       cloudConfig = undefined,
+      networkConfig = undefined,
 
       vgpuType = undefined,
       gpuGroup = undefined,
@@ -241,10 +242,16 @@ export default {
         }
       })
 
-      const method = coreOs
-        ? 'createCoreOsCloudInitConfigDrive'
-        : 'createCloudInitConfigDrive'
-      await this[method](vm.$id, srRef, cloudConfig)
+      if (coreOs) {
+        await this.createCoreOsCloudInitConfigDrive(vm.$id, srRef, cloudConfig)
+      } else {
+        await this.createCloudInitConfigDrive(
+          vm.$id,
+          srRef,
+          cloudConfig,
+          networkConfig
+        )
+      }
     }
 
     // wait for the record with all the VBDs and VIFs
@@ -329,6 +336,15 @@ export default {
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
       set(cap, vm) {
         return this._updateObjectMapProperty(vm, 'VCPUs_params', { cap })
+      },
+    },
+
+    cpuMask: {
+      get: vm => vm.VCPUs_params.mask && vm.VCPUs_params.mask.split(','),
+      set(cpuMask, vm) {
+        return this._updateObjectMapProperty(vm, 'VCPUs_params', {
+          mask: cpuMask == null ? cpuMask : cpuMask.join(','),
+        })
       },
     },
 
@@ -457,6 +473,13 @@ export default {
           )
         }
         return this._updateObjectMapProperty(vm, 'platform', { videoram })
+      },
+    },
+
+    startDelay: {
+      get: vm => +vm.start_delay,
+      set(startDelay, vm) {
+        return this.call('VM.set_start_delay', vm.$ref, startDelay)
       },
     },
   }),

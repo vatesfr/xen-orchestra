@@ -13,7 +13,11 @@ import { createGetObjectsOfType } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, filter, map, keyBy } from 'lodash'
-import { subscribeBackupNgJobs, subscribeBackupNgLogs } from 'xo'
+import {
+  subscribeBackupNgJobs,
+  subscribeBackupNgLogs,
+  subscribeMetadataBackupJobs,
+} from 'xo'
 
 import LogAlertBody from './log-alert-body'
 import LogAlertHeader from './log-alert-header'
@@ -84,8 +88,8 @@ const COLUMNS = [
   },
   {
     name: _('labelSize'),
-    itemRenderer: ({ tasks: vmTasks }) => {
-      if (isEmpty(vmTasks)) {
+    itemRenderer: ({ tasks: vmTasks, jobId }, { jobs }) => {
+      if (get(() => jobs[jobId].type) !== 'backup' || isEmpty(vmTasks)) {
         return null
       }
 
@@ -148,9 +152,11 @@ export default decorate([
   addSubscriptions({
     logs: cb =>
       subscribeBackupNgLogs(logs =>
-        cb(logs && filter(logs, log => log.message !== 'restore'))
+        cb(logs && filter(logs, log => log.message === 'backup'))
       ),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
+    metadataJobs: cb =>
+      subscribeMetadataBackupJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
   provideState({
     computed: {
@@ -167,6 +173,7 @@ export default decorate([
               }
             : log
         ),
+      jobs: (_, { jobs, metadataJobs }) => ({ ...jobs, ...metadataJobs }),
     },
   }),
   injectState,
@@ -180,7 +187,7 @@ export default decorate([
           collection={state.logs}
           columns={COLUMNS}
           component={SortedTable}
-          data-jobs={jobs}
+          data-jobs={state.jobs}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
         />

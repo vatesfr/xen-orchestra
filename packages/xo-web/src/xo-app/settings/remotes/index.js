@@ -6,9 +6,16 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { addSubscriptions, formatSize, generateRandomId, noop } from 'utils'
+import {
+  addSubscriptions,
+  formatSize,
+  formatSpeed,
+  generateRandomId,
+  noop,
+} from 'utils'
 import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
+import { get } from '@xen-orchestra/defined'
 import { groupBy, map, isEmpty } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
@@ -77,7 +84,7 @@ const COLUMN_STATE = {
   name: _('remoteState'),
 }
 const COLUMN_DISK = {
-  itemRenderer: (remote, { formatMessage }) =>
+  itemRenderer: remote =>
     remote.info !== undefined &&
     remote.info.used !== undefined &&
     remote.info.size !== undefined && (
@@ -86,6 +93,30 @@ const COLUMN_DISK = {
       </span>
     ),
   name: _('remoteDisk'),
+}
+const COLUMN_SPEED = {
+  itemRenderer: remote => {
+    const benchmark = get(() => remote.benchmarks[remote.benchmarks.length - 1])
+
+    return (
+      benchmark !== undefined &&
+      benchmark.readRate !== undefined &&
+      benchmark.writeRate !== undefined && (
+        <span>{`${formatSpeed(benchmark.writeRate, 1e3)} / ${formatSpeed(
+          benchmark.readRate,
+          1e3
+        )}`}</span>
+      )
+    )
+  },
+  name: (
+    <span>
+      {_('remoteSpeed')}{' '}
+      <Tooltip content={_('remoteSpeedInfo')}>
+        <Icon icon='info' size='lg' />
+      </Tooltip>
+    </span>
+  ),
 }
 
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
@@ -105,6 +136,7 @@ const COLUMNS_LOCAL_REMOTE = [
   },
   COLUMN_STATE,
   COLUMN_DISK,
+  COLUMN_SPEED,
 ]
 const COLUMNS_NFS_REMOTE = [
   COLUMN_NAME,
@@ -166,6 +198,7 @@ const COLUMNS_NFS_REMOTE = [
   },
   COLUMN_STATE,
   COLUMN_DISK,
+  COLUMN_SPEED,
 ]
 const COLUMNS_SMB_REMOTE = [
   COLUMN_NAME,
@@ -192,6 +225,16 @@ const COLUMNS_SMB_REMOTE = [
       </span>
     ),
     name: _('remoteShare'),
+  },
+  {
+    name: _('remoteOptions'),
+    itemRenderer: remote => (
+      <Text
+        data-remote={remote}
+        onChange={_editRemoteOptions}
+        value={remote.options || ''}
+      />
+    ),
   },
   COLUMN_STATE,
   {
@@ -222,6 +265,7 @@ const COLUMNS_SMB_REMOTE = [
     ),
     name: _('remoteAuth'),
   },
+  COLUMN_SPEED,
 ]
 
 const GROUPED_ACTIONS = [

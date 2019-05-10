@@ -95,7 +95,7 @@ root@xen1.company.net> xapi.pool.$master.name_label
 To ease searches, `find()` and `findAll()` functions are available:
 
 ```
-root@xen1.company.net> findAll({ $type: 'vm' }).length
+root@xen1.company.net> findAll({ $type: 'VM' }).length
 183
 ```
 

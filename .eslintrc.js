@@ -1,5 +1,13 @@
 module.exports = {
-  extends: ['standard', 'standard-jsx', 'prettier'],
+  extends: [
+    'plugin:eslint-comments/recommended',
+
+    'standard',
+    'standard-jsx',
+    'prettier',
+    'prettier/standard',
+    'prettier/react',
+  ],
   globals: {
     __DEV__: true,
     $Dict: true,
@@ -10,6 +18,16 @@ module.exports = {
     $PropertyType: true,
     $Shape: true,
   },
+
+  overrides: [
+    {
+      files: ['cli.js', '*-cli.js', 'packages/*cli*/**/*.js'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+  ],
+
   parser: 'babel-eslint',
   parserOptions: {
     ecmaFeatures: {
@@ -17,12 +35,10 @@ module.exports = {
     },
   },
   rules: {
+    'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-var': 'error',
     'node/no-extraneous-import': 'error',
     'node/no-extraneous-require': 'error',
     'prefer-const': 'error',
-
-    // See https://github.com/prettier/eslint-config-prettier/issues/65
-    'react/jsx-indent': 'off',
   },
 }

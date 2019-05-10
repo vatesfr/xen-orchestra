@@ -231,12 +231,15 @@ const parseFile = async (file, type, func) => {
       type,
     }
   } catch (error) {
+    console.error(error)
     return { error, file, type }
   }
 }
 
 const getRedirectionUrl = vms =>
-  vms.length === 1
+  vms.length === 0
+    ? undefined // no redirect
+    : vms.length === 1
     ? `/vms/${vms[0]}`
     : `/home?s=${encodeURIComponent(`id:|(${vms.join(' ')})`)}&t=VM`
 
@@ -263,6 +266,10 @@ export default class Import extends Component {
   }
 
   _handleDrop = async files => {
+    this.setState({
+      vms: [],
+    })
+
     const vms = await Promise.all(
       mapPlus(files, (file, push) => {
         const { name } = file

@@ -1,6 +1,4 @@
 import { format } from 'json-rpc-peer'
-import { differenceBy } from 'lodash'
-import { mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -75,40 +73,43 @@ setPoolMaster.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function installPatch({ pool, patch: patchUuid }) {
-  await this.getXapi(pool).installPoolPatchOnAllHosts(patchUuid)
+// Returns an array of missing new patches in the host
+// Returns an empty array if up-to-date
+export function listMissingPatches({ host }) {
+  return this.getXapi(host).listMissingPatches(host._xapiId)
 }
 
-installPatch.params = {
-  pool: {
-    type: 'string',
-  },
-  patch: {
-    type: 'string',
-  },
+listMissingPatches.description =
+  'return an array of missing new patches in the host'
+
+listMissingPatches.params = {
+  host: { type: 'string' },
 }
 
-installPatch.resolve = {
-  pool: ['pool', 'pool', 'administrate'],
+listMissingPatches.resolve = {
+  host: ['host', 'host', 'view'],
 }
+
 // -------------------------------------------------------------------
 
-export async function installAllPatches({ pool }) {
-  await this.getXapi(pool).installAllPoolPatchesOnAllHosts()
+export async function installPatches({ pool, patches, hosts }) {
+  await this.getXapi(hosts === undefined ? pool : hosts[0]).installPatches({
+    patches,
+    hosts,
+  })
 }
 
-installAllPatches.params = {
-  pool: {
-    type: 'string',
-  },
+installPatches.params = {
+  pool: { type: 'string', optional: true },
+  patches: { type: 'array', optional: true },
+  hosts: { type: 'array', optional: true },
 }
 
-installAllPatches.resolve = {
+installPatches.resolve = {
   pool: ['pool', 'pool', 'administrate'],
 }
 
-installAllPatches.description =
-  'Install automatically all patches for every hosts of a pool'
+installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
@@ -144,6 +145,22 @@ export { uploadPatch as patch }
 
 // -------------------------------------------------------------------
 
+export async function getPatchesDifference({ source, target }) {
+  return this.getPatchesDifference(target.id, source.id)
+}
+
+getPatchesDifference.params = {
+  source: { type: 'string' },
+  target: { type: 'string' },
+}
+
+getPatchesDifference.resolve = {
+  source: ['source', 'host', 'view'],
+  target: ['target', 'host', 'view'],
+}
+
+// -------------------------------------------------------------------
+
 export async function mergeInto({ source, target, force }) {
   const sourceHost = this.getObject(source.master)
   const targetHost = this.getObject(target.master)
@@ -156,21 +173,21 @@ export async function mergeInto({ source, target, force }) {
     )
   }
 
-  const sourcePatches = sourceHost.patches
-  const targetPatches = targetHost.patches
-  const counterDiff = differenceBy(sourcePatches, targetPatches, 'name')
-
+  const counterDiff = this.getPatchesDifference(source.master, target.master)
   if (counterDiff.length > 0) {
-    throw new Error('host has patches that are not applied on target pool')
+    const targetXapi = this.getXapi(target)
+    await targetXapi.installPatches({
+      patches: await targetXapi.findPatches(counterDiff),
+    })
   }
 
-  const diff = differenceBy(targetPatches, sourcePatches, 'name')
-
-  // TODO: compare UUIDs
-  await this.getXapi(source).installSpecificPatchesOnHost(
-    mapToArray(diff, 'name'),
-    sourceHost._xapiId
-  )
+  const diff = this.getPatchesDifference(target.master, source.master)
+  if (diff.length > 0) {
+    const sourceXapi = this.getXapi(source)
+    await sourceXapi.installPatches({
+      patches: await sourceXapi.findPatches(diff),
+    })
+  }
 
   await this.mergeXenPools(source._xapiId, target._xapiId, force)
 }

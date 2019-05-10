@@ -246,7 +246,10 @@ const Updates = decorate([
               <ActionButton
                 btnStyle='success'
                 data-runningJobsExist={state.areJobsRunning}
-                disabled={xoaUpdaterState !== 'upgradeNeeded'}
+                disabled={
+                  xoaUpdaterState !== 'upgradeNeeded' &&
+                  xoaTrialState.state !== 'untrustedTrial'
+                } // enables button for updating packages OR ending trial
                 handler={effects.upgrade}
                 icon='upgrade'
               >
@@ -402,7 +405,6 @@ const Updates = decorate([
               )}
               {+process.env.XOA_PLAN === 1 && (
                 <div>
-                  <h2>{_('trial')}</h2>
                   {state.isTrialAllowed && (
                     <div>
                       {state.isRegistered ? (
@@ -410,6 +412,7 @@ const Updates = decorate([
                           btnStyle='success'
                           handler={effects.startTrial}
                           icon='trial'
+                          size='large'
                         >
                           {_('trialStartButton')}
                         </ActionButton>
@@ -477,10 +480,10 @@ const COMPONENTS_BY_STATE = {
   upgradeNeeded: (
     <span className='fa-stack'>
       <i className='fa fa-circle fa-stack-2x text-success' />
-      <i className='fa fa-bell fa-stack-1x' />
+      <i className='fa fa-refresh fa-stack-1x' />
     </span>
   ),
-  upToDate: <Icon icon='success' />,
+  upToDate: null,
 }
 const TOOLTIPS_BY_STATE = {
   connected: _('waitingUpdateInfo'),

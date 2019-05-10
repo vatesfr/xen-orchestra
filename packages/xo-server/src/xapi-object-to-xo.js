@@ -1,7 +1,7 @@
 import { startsWith } from 'lodash'
 
+import ensureArray from './_ensureArray'
 import {
-  ensureArray,
   extractProperty,
   forEach,
   isArray,
@@ -54,12 +54,9 @@ function toTimestamp(date) {
     return timestamp
   }
 
-  const ms = parseDateTime(date)
-  if (!ms) {
-    return null
-  }
+  const ms = parseDateTime(date)?.getTime()
 
-  return Math.round(ms.getTime() / 1000)
+  return ms === undefined || ms === 0 ? null : Math.round(ms / 1000)
 }
 
 // ===================================================================
@@ -105,11 +102,10 @@ const TRANSFORMS = {
     } = obj
 
     const isRunning = isHostRunning(obj)
-    let supplementalPacks, patches
+    let supplementalPacks
 
     if (useUpdateSystem(obj)) {
       supplementalPacks = []
-      patches = []
 
       forEach(obj.$updates, update => {
         const formattedUpdate = {
@@ -124,7 +120,7 @@ const TRANSFORMS = {
         }
 
         if (startsWith(update.name_label, 'XS')) {
-          patches.push(formattedUpdate)
+          // It's a patch update but for homogeneity, we're still using pool_patches
         } else {
           supplementalPacks.push(formattedUpdate)
         }
@@ -173,7 +169,8 @@ const TRANSFORMS = {
           total: 0,
         }
       })(),
-      patches: patches || link(obj, 'patches'),
+      multipathing: otherConfig.multipathing === 'true',
+      patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
       startTime: toTimestamp(otherConfig.boot_time),
@@ -349,6 +346,7 @@ const TRANSFORMS = {
       hasVendorDevice: obj.has_vendor_device,
       resourceSet,
       snapshots: link(obj, 'snapshots'),
+      startDelay: +obj.start_delay,
       startTime: metrics && toTimestamp(metrics.start_time),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
@@ -426,6 +424,7 @@ const TRANSFORMS = {
     let tmp
     if ((tmp = obj.VCPUs_params)) {
       tmp.cap && (vm.cpuCap = +tmp.cap)
+      tmp.mask && (vm.cpuMask = tmp.mask.split(',').map(_ => +_))
       tmp.weight && (vm.cpuWeight = +tmp.weight)
     }
 
@@ -476,6 +475,7 @@ const TRANSFORMS = {
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
       device_config: obj.device_config,
+      otherConfig: obj.other_config,
     }
   },
 
@@ -505,6 +505,7 @@ const TRANSFORMS = {
       // A physical PIF cannot be unplugged
       physical: Boolean(obj.physical),
       vlan: +obj.VLAN,
+      speed: metrics && +metrics.speed,
       $host: link(obj, 'host'),
       $network: link(obj, 'network'),
     }
@@ -577,6 +578,7 @@ const TRANSFORMS = {
 
   network(obj) {
     return {
+      automatic: obj.other_config?.automatic === 'true',
       bridge: obj.bridge,
       defaultIsLocked: obj.default_locking_mode === 'disabled',
       MTU: +obj.MTU,
@@ -622,10 +624,18 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   host_patch(obj) {
+    const poolPatch = obj.$pool_patch
     return {
+      type: 'patch',
+
       applied: Boolean(obj.applied),
+      enforceHomogeneity: poolPatch.pool_applied,
+      description: poolPatch.name_description,
+      name: poolPatch.name_label,
+      pool_patch: poolPatch.$ref,
+      size: +poolPatch.size,
+      guidance: poolPatch.after_apply_guidance,
       time: toTimestamp(obj.timestamp_applied),
-      pool_patch: link(obj, 'pool_patch', '$ref'),
 
       $host: link(obj, 'host'),
     }
@@ -637,12 +647,15 @@ const TRANSFORMS = {
     return {
       id: obj.$ref,
 
-      applied: Boolean(obj.pool_applied),
+      dataUuid: obj.uuid, // UUID of the patch file as stated in Citrix's XML file
       description: obj.name_description,
       guidance: obj.after_apply_guidance,
       name: obj.name_label,
       size: +obj.size,
-      uuid: obj.uuid,
+      uuid: obj.$ref,
+
+      // TODO: means that the patch must be applied on every host
+      // applied: Boolean(obj.pool_applied),
 
       // TODO: what does it mean, should we handle it?
       // version: obj.version,
@@ -744,7 +757,7 @@ const TRANSFORMS = {
 
 // ===================================================================
 
-export default function xapiObjectToXo(xapiObj, dependents) {
+export default function xapiObjectToXo(xapiObj, dependents = {}) {
   const transform = TRANSFORMS[xapiObj.$type.toLowerCase()]
   if (!transform) {
     return

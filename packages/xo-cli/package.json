@@ -12,6 +12,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-cli",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-cli",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -33,7 +34,7 @@
     "chalk": "^2.2.0",
     "exec-promise": "^0.7.0",
     "fs-promise": "^2.0.3",
-    "http-request-plus": "^0.7.0",
+    "http-request-plus": "^0.8.0",
     "human-format": "^0.10.0",
     "l33teral": "^3.0.3",
     "lodash": "^4.17.4",
@@ -42,7 +43,7 @@
     "nice-pipe": "0.0.0",
     "pretty-ms": "^4.0.0",
     "progress-stream": "^2.0.0",
-    "promise-toolbox": "^0.11.0",
+    "promise-toolbox": "^0.12.1",
     "pump": "^3.0.0",
     "pw": "^0.0.4",
     "strip-indent": "^2.0.0",
@@ -63,6 +64,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "postversion": "npm publish"
   }
 }

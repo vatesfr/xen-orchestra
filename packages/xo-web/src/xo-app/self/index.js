@@ -670,7 +670,10 @@ class ResourceSet extends Component {
 
     return (
       <div className='mb-1' ref={this._autoExpand}>
-        <Collapse buttonText={resourceSet.name} defaultOpen={autoExpand}>
+        <Collapse
+          buttonText={`${resourceSet.name} (${resourceSet.id})`}
+          defaultOpen={autoExpand}
+        >
           <ul className='list-group'>
             {this.state.editionMode ? (
               <Edit

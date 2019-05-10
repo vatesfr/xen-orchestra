@@ -3,7 +3,6 @@ import forEach from 'lodash/forEach'
 import has from 'lodash/has'
 import highland from 'highland'
 import humanFormat from 'human-format'
-import isArray from 'lodash/isArray'
 import isString from 'lodash/isString'
 import keys from 'lodash/keys'
 import multiKeyHashInt from 'multikey-hash'
@@ -14,6 +13,8 @@ import { randomBytes } from 'crypto'
 import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
+
+import { type SimpleIdPattern } from './utils'
 
 // ===================================================================
 
@@ -43,17 +44,6 @@ export const diffItems = (coll1, coll2) => {
   })
 
   return [added, keys(removed)]
-}
-
-// -------------------------------------------------------------------
-
-// Ensure the value is an array, wrap it if necessary.
-export function ensureArray(value) {
-  if (value === undefined) {
-    return []
-  }
-
-  return isArray(value) ? value : [value]
 }
 
 // -------------------------------------------------------------------
@@ -347,9 +337,11 @@ export const streamToArray = (stream, { filter, mapper } = {}) =>
 
 // Create a serializable object from an error.
 export const serializeError = error => ({
-  message: error.message,
-  stack: error.stack,
   ...error, // Copy enumerable properties.
+  code: error.code,
+  message: error.message,
+  name: error.name,
+  stack: error.stack,
 })
 
 // -------------------------------------------------------------------
@@ -414,4 +406,14 @@ export const getFirstPropertyName = object => {
       return key
     }
   }
+}
+
+// -------------------------------------------------------------------
+
+export const unboxIdsFromPattern = (pattern?: SimpleIdPattern): string[] => {
+  if (pattern === undefined) {
+    return []
+  }
+  const { id } = pattern
+  return typeof id === 'string' ? [id] : id.__or
 }

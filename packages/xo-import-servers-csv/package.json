@@ -16,6 +16,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-import-servers-csv",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-import-servers-csv",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -31,7 +32,7 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "dependencies": {
     "csv-parser": "^2.1.0",
@@ -42,7 +43,7 @@
     "xo-lib": "^0.9.0"
   },
   "devDependencies": {
-    "@types/node": "^10.12.2",
+    "@types/node": "^11.11.4",
     "@types/through2": "^2.0.31",
     "tslint": "^5.9.1",
     "tslint-config-standard": "^8.0.1",
@@ -54,6 +55,7 @@
     "lint": "tslint 'src/*.ts'",
     "posttest": "yarn run lint",
     "prepublishOnly": "yarn run build",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "postversion": "npm publish"
   }
 }

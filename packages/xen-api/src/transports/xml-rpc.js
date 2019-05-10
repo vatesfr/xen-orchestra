@@ -1,6 +1,8 @@
 import { createClient, createSecureClient } from 'xmlrpc'
 import { promisify } from 'promise-toolbox'
 
+import prepareXmlRpcParams from './_prepareXmlRpcParams'
+
 const logError = error => {
   if (error.res) {
     console.error(
@@ -30,10 +32,7 @@ const parseResult = result => {
   return result.Value
 }
 
-export default ({
-  allowUnauthorized,
-  url: { hostname, path, port, protocol },
-}) => {
+export default ({ allowUnauthorized, url: { hostname, port, protocol } }) => {
   const client = (protocol === 'https:' ? createSecureClient : createClient)({
     host: hostname,
     port,
@@ -41,5 +40,6 @@ export default ({
   })
   const call = promisify(client.methodCall, client)
 
-  return (method, args) => call(method, args).then(parseResult, logError)
+  return (method, args) =>
+    call(method, prepareXmlRpcParams(args)).then(parseResult, logError)
 }

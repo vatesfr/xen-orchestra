@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
+import ButtonLink from 'button-link'
 import Copiable from 'copiable'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
@@ -16,18 +17,20 @@ import { confirm } from 'modal'
 import { connectStore, routes } from 'utils'
 import { constructQueryString } from 'smart-backup'
 import { Container, Row, Col } from 'grid'
-import { createGetLoneSnapshots } from 'selectors'
+import { createGetLoneSnapshots, createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { isEmpty, map, groupBy, some } from 'lodash'
 import { NavLink, NavTabs } from 'nav'
 import {
   cancelJob,
-  deleteBackupNgJobs,
+  deleteBackupJobs,
   disableSchedule,
   enableSchedule,
   runBackupNgJob,
+  runMetadataBackupJob,
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
+  subscribeMetadataBackupJobs,
   subscribeSchedules,
 } from 'xo'
 
@@ -35,10 +38,11 @@ import LogsTable, { LogStatus } from '../logs/backup-ng'
 import Page from '../page'
 
 import Edit from './edit'
-import New from './new'
 import FileRestore from './file-restore'
-import Restore from './restore'
+import getSettingsWithNonDefaultValue from './_getSettingsWithNonDefaultValue'
 import Health from './health'
+import NewVmBackup, { NewMetadataBackup } from './new'
+import Restore, { RestoreMetadata } from './restore'
 import { destructPattern } from './utils'
 
 const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
@@ -51,14 +55,26 @@ const Li = props => (
   />
 )
 
-const _runBackupNgJob = ({ id, name, schedule }) =>
+const _runBackupJob = ({ id, name, schedule, type }) =>
   confirm({
     title: _('runJob'),
     body: _('runBackupNgJobConfirm', {
       id: id.slice(0, 5),
       name: <strong>{name}</strong>,
     }),
-  }).then(() => runBackupNgJob({ id, schedule }))
+  }).then(() =>
+    type === 'backup'
+      ? runBackupNgJob({ id, schedule })
+      : runMetadataBackupJob({ id, schedule })
+  )
+
+const _deleteBackupJobs = items => {
+  const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(
+    items,
+    'type'
+  )
+  return deleteBackupJobs({ backupIds, metadataBackupIds })
+}
 
 const SchedulePreviewBody = decorate([
   addSubscriptions(({ schedule }) => ({
@@ -119,7 +135,8 @@ const SchedulePreviewBody = decorate([
             data-id={job.id}
             data-name={job.name}
             data-schedule={schedule.id}
-            handler={_runBackupNgJob}
+            data-type={job.type}
+            handler={_runBackupJob}
             icon='run-schedule'
             key='run'
             size='small'
@@ -159,10 +176,19 @@ const MODES = [
     test: job =>
       job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
   },
+  {
+    label: 'poolMetadata',
+    test: job => !isEmpty(destructPattern(job.pools)),
+  },
+  {
+    label: 'xoConfig',
+    test: job => job.xoMetadata,
+  },
 ]
 
 @addSubscriptions({
   jobs: subscribeBackupNgJobs,
+  metadataJobs: subscribeMetadataBackupJobs,
   schedulesByJob: cb =>
     subscribeSchedules(schedules => {
       cb(groupBy(schedules, 'jobId'))
@@ -176,7 +202,7 @@ class JobsTable extends React.Component {
   static tableProps = {
     actions: [
       {
-        handler: deleteBackupNgJobs,
+        handler: _deleteBackupJobs,
         label: _('deleteBackupSchedule'),
         icon: 'delete',
         level: 'danger',
@@ -220,31 +246,45 @@ class JobsTable extends React.Component {
       },
       {
         itemRenderer: job => {
-          const { concurrency, offlineSnapshot, reportWhen, timeout } =
-            job.settings[''] || {}
+          const {
+            compression,
+            concurrency,
+            fullInterval,
+            offlineSnapshot,
+            reportWhen,
+            timeout,
+          } = getSettingsWithNonDefaultValue(job.mode, {
+            compression: job.compression,
+            ...job.settings[''],
+          })
 
           return (
             <Ul>
-              {reportWhen && <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>}
-              {concurrency > 0 && (
+              {reportWhen !== undefined && (
+                <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>
+              )}
+              {concurrency !== undefined && (
                 <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
               )}
-              {timeout > 0 && (
+              {timeout !== undefined && (
                 <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>
               )}
-              {offlineSnapshot && (
+              {fullInterval !== undefined && (
+                <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>
+              )}
+              {offlineSnapshot !== undefined && (
                 <Li>
                   {_.keyValue(
                     _('offlineSnapshot'),
-                    <span className='text-success'>{_('stateEnabled')}</span>
+                    _(offlineSnapshot ? 'stateEnabled' : 'stateDisabled')
                   )}
                 </Li>
               )}
-              {job.compression === 'native' && (
+              {compression !== undefined && (
                 <Li>
                   {_.keyValue(
-                    _('useCompression'),
-                    <span className='text-success'>{_('stateEnabled')}</span>
+                    _('compression'),
+                    compression === 'native' ? 'GZIP' : compression
                   )}
                 </Li>
               )}
@@ -261,6 +301,7 @@ class JobsTable extends React.Component {
             pathname: '/home',
             query: { t: 'VM', s: constructQueryString(job.vms) },
           }),
+        disabled: job => job.type !== 'backup',
         label: _('redirectToMatchingVms'),
         icon: 'preview',
       },
@@ -277,11 +318,17 @@ class JobsTable extends React.Component {
     this.context.router.push(path)
   }
 
+  _getCollection = createSelector(
+    () => this.props.jobs,
+    () => this.props.metadataJobs,
+    (jobs = [], metadataJobs = []) => [...jobs, ...metadataJobs]
+  )
+
   render() {
     return (
       <SortedTable
         {...JobsTable.tableProps}
-        collection={this.props.jobs}
+        collection={this._getCollection()}
         data-goTo={this._goTo}
         data-schedulesByJob={this.props.schedulesByJob}
       />
@@ -293,7 +340,7 @@ const Overview = () => (
   <div>
     <Card>
       <CardHeader>
-        <Icon icon='schedule' /> {_('backupSchedules')}
+        <Icon icon='backup' /> {_('backupJobs')}
       </CardHeader>
       <CardBlock>
         <JobsTable />
@@ -353,11 +400,34 @@ const HEADER = (
   </Container>
 )
 
+const ChooseBackupType = () => (
+  <Container>
+    <Row>
+      <Col>
+        <Card>
+          <CardHeader>{_('backupType')}</CardHeader>
+          <CardBlock className='text-md-center'>
+            <ButtonLink to='backup-ng/new/vms'>
+              <Icon icon='backup' /> {_('backupVms')}
+            </ButtonLink>{' '}
+            <ButtonLink to='backup-ng/new/metadata'>
+              <Icon icon='database' /> {_('backupMetadata')}
+            </ButtonLink>
+          </CardBlock>
+        </Card>
+      </Col>
+    </Row>
+  </Container>
+)
+
 export default routes('overview', {
   ':id/edit': Edit,
-  new: New,
+  new: ChooseBackupType,
+  'new/vms': NewVmBackup,
+  'new/metadata': NewMetadataBackup,
   overview: Overview,
   restore: Restore,
+  'restore/metadata': RestoreMetadata,
   'file-restore': FileRestore,
   health: Health,
 })(({ children }) => (

@@ -12,6 +12,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-auth-github",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-server-auth-github",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -40,5 +41,6 @@
     "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "NODE_DEV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prepublishOnly": "yarn run build"
-  }
+  },
+  "private": true
 }

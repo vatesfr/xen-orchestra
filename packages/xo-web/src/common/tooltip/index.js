@@ -37,7 +37,9 @@ export class TooltipViewer extends Component {
     return (
       <div
         className={classNames(
-          show ? styles.tooltipEnabled : styles.tooltipDisabled,
+          show && content !== undefined
+            ? styles.tooltipEnabled
+            : styles.tooltipDisabled,
           className
         )}
         style={{

@@ -1,19 +1,14 @@
 import assert from 'assert'
-import { fromEvent } from 'promise-toolbox'
 
-import constantStream from './_constant-stream'
+import checkFooter from './_checkFooter'
+import checkHeader from './_checkHeader'
+import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
 import { set as mapSetBit, test as mapTestBit } from './_bitmap'
 import {
   BLOCK_UNUSED,
-  DISK_TYPE_DIFFERENCING,
-  DISK_TYPE_DYNAMIC,
-  FILE_FORMAT_VERSION,
-  FOOTER_COOKIE,
   FOOTER_SIZE,
-  HEADER_COOKIE,
   HEADER_SIZE,
-  HEADER_VERSION,
   PARENT_LOCATOR_ENTRIES,
   PLATFORM_NONE,
   PLATFORM_W2KU,
@@ -170,21 +165,10 @@ export default class Vhd {
     }
 
     const footer = (this.footer = fuFooter.unpack(bufFooter))
-    assert.strictEqual(footer.cookie, FOOTER_COOKIE, 'footer cookie')
-    assert.strictEqual(footer.dataOffset, FOOTER_SIZE)
-    assert.strictEqual(footer.fileFormatVersion, FILE_FORMAT_VERSION)
-    assert(footer.originalSize <= footer.currentSize)
-    assert(
-      footer.diskType === DISK_TYPE_DIFFERENCING ||
-        footer.diskType === DISK_TYPE_DYNAMIC
-    )
+    checkFooter(footer)
 
     const header = (this.header = fuHeader.unpack(bufHeader))
-    assert.strictEqual(header.cookie, HEADER_COOKIE)
-    assert.strictEqual(header.dataOffset, undefined)
-    assert.strictEqual(header.headerVersion, HEADER_VERSION)
-    assert(header.maxTableEntries >= footer.currentSize / header.blockSize)
-    assert(Number.isInteger(Math.log2(header.blockSize / SECTOR_SIZE)))
+    checkHeader(header, footer)
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
@@ -216,7 +200,9 @@ export default class Vhd {
 
   // return the first sector (bitmap) of a block
   _getBatEntry(block) {
-    return this.blockTable.readUInt32BE(block * 4)
+    const i = block * 4
+    const { blockTable } = this
+    return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
   }
 
   _readBlock(blockId, onlyBitmap = false) {
@@ -240,109 +226,49 @@ export default class Vhd {
     )
   }
 
-  // get the identifiers and first sectors of the first and last block
-  // in the file
-  //
-  _getFirstAndLastBlocks() {
-    const n = this.header.maxTableEntries
-    const bat = this.blockTable
-    let i = 0
-    let j = 0
-    let first, firstSector, last, lastSector
-
-    // get first allocated block for initialization
-    while ((firstSector = bat.readUInt32BE(j)) === BLOCK_UNUSED) {
-      i += 1
-      j += 4
-
-      if (i === n) {
-        const error = new Error('no allocated block found')
-        error.noBlock = true
-        throw error
-      }
-    }
-    lastSector = firstSector
-    first = last = i
-
-    while (i < n) {
-      const sector = bat.readUInt32BE(j)
-      if (sector !== BLOCK_UNUSED) {
-        if (sector < firstSector) {
-          first = i
-          firstSector = sector
-        } else if (sector > lastSector) {
-          last = i
-          lastSector = sector
-        }
-      }
-
-      i += 1
-      j += 4
-    }
-
-    return { first, firstSector, last, lastSector }
-  }
-
   // =================================================================
   // Write functions.
   // =================================================================
 
-  // Write a buffer/stream at a given position in a vhd file.
+  // Write a buffer at a given position in a vhd file.
   async _write(data, offset) {
-    debug(
-      `_write offset=${offset} size=${
-        Buffer.isBuffer(data) ? data.length : '???'
-      }`
-    )
-    // TODO: could probably be merged in remote handlers.
-    const stream = await this._handler.createOutputStream(this._path, {
-      flags: 'r+',
-      start: offset,
-    })
-    return Buffer.isBuffer(data)
-      ? new Promise((resolve, reject) => {
-          stream.on('error', reject)
-          stream.end(data, resolve)
-        })
-      : fromEvent(data.pipe(stream), 'finish')
+    assert(Buffer.isBuffer(data))
+    debug(`_write offset=${offset} size=${data.length}`)
+    return this._handler.write(this._path, data, offset)
   }
 
   async _freeFirstBlockSpace(spaceNeededBytes) {
-    try {
-      const { first, firstSector, lastSector } = this._getFirstAndLastBlocks()
-      const tableOffset = this.header.tableOffset
-      const { batSize } = this
-      const newMinSector = Math.ceil(
-        (tableOffset + batSize + spaceNeededBytes) / SECTOR_SIZE
+    const firstAndLastBlocks = getFirstAndLastBlocks(this.blockTable)
+    if (firstAndLastBlocks === undefined) {
+      return
+    }
+
+    const { first, firstSector, lastSector } = firstAndLastBlocks
+    const tableOffset = this.header.tableOffset
+    const { batSize } = this
+    const newMinSector = Math.ceil(
+      (tableOffset + batSize + spaceNeededBytes) / SECTOR_SIZE
+    )
+    if (
+      tableOffset + batSize + spaceNeededBytes >=
+      sectorsToBytes(firstSector)
+    ) {
+      const { fullBlockSize } = this
+      const newFirstSector = Math.max(
+        lastSector + fullBlockSize / SECTOR_SIZE,
+        newMinSector
       )
-      if (
-        tableOffset + batSize + spaceNeededBytes >=
-        sectorsToBytes(firstSector)
-      ) {
-        const { fullBlockSize } = this
-        const newFirstSector = Math.max(
-          lastSector + fullBlockSize / SECTOR_SIZE,
-          newMinSector
-        )
-        debug(
-          `freeFirstBlockSpace: move first block ${firstSector} -> ${newFirstSector}`
-        )
-        // copy the first block at the end
-        const block = await this._read(
-          sectorsToBytes(firstSector),
-          fullBlockSize
-        )
-        await this._write(block, sectorsToBytes(newFirstSector))
-        await this._setBatEntry(first, newFirstSector)
-        await this.writeFooter(true)
-        spaceNeededBytes -= this.fullBlockSize
-        if (spaceNeededBytes > 0) {
-          return this._freeFirstBlockSpace(spaceNeededBytes)
-        }
-      }
-    } catch (e) {
-      if (!e.noBlock) {
-        throw e
+      debug(
+        `freeFirstBlockSpace: move first block ${firstSector} -> ${newFirstSector}`
+      )
+      // copy the first block at the end
+      const block = await this._read(sectorsToBytes(firstSector), fullBlockSize)
+      await this._write(block, sectorsToBytes(newFirstSector))
+      await this._setBatEntry(first, newFirstSector)
+      await this.writeFooter(true)
+      spaceNeededBytes -= this.fullBlockSize
+      if (spaceNeededBytes > 0) {
+        return this._freeFirstBlockSpace(spaceNeededBytes)
       }
     }
   }
@@ -365,7 +291,7 @@ export default class Vhd {
       `ensureBatSize: extend BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
     )
     await this._write(
-      constantStream(BUF_BLOCK_UNUSED, maxTableEntries - prevMaxTableEntries),
+      Buffer.alloc(maxTableEntries - prevMaxTableEntries, BUF_BLOCK_UNUSED),
       header.tableOffset + prevBat.length
     )
     await this.writeHeader()
@@ -390,10 +316,7 @@ export default class Vhd {
 
     await Promise.all([
       // Write an empty block and addr in vhd file.
-      this._write(
-        constantStream([0], this.fullBlockSize),
-        sectorsToBytes(blockAddr)
-      ),
+      this._write(Buffer.alloc(this.fullBlockSize), sectorsToBytes(blockAddr)),
 
       this._setBatEntry(blockId, blockAddr),
     ])

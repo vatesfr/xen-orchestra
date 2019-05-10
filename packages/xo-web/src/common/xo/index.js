@@ -5,6 +5,7 @@ import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import reflect from 'promise-toolbox/reflect'
 import tap from 'promise-toolbox/tap'
+import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
@@ -48,6 +49,8 @@ import {
   updatePermissions,
 } from '../store/actions'
 
+import parseNdJson from './_parseNdJson'
+
 // ===================================================================
 
 export const XEN_DEFAULT_CPU_WEIGHT = 256
@@ -66,6 +69,9 @@ export const isVmRunning = vm => vm && vm.power_state === 'Running'
 // ===================================================================
 
 export const signOut = () => {
+  // prevent automatic reconnection
+  xo.removeListener('closed', connect)
+
   cookies.expire('token')
   window.location.reload(true)
 }
@@ -140,26 +146,9 @@ export const connectStore = store => {
       .then(response => response.text())
       .then(data => {
         const objects = Object.create(null)
-
-        const { length } = data
-        let i = 0
-        while (i < length) {
-          let j = data.indexOf('\n', i)
-
-          // no final \n
-          if (j === -1) {
-            j = length
-          }
-
-          // non empty line
-          if (j !== i) {
-            const object = JSON.parse(data.slice(i, j))
-            objects[object.id] = object
-          }
-
-          i = j + 1
-        }
-
+        parseNdJson(data, object => {
+          objects[object.id] = object
+        })
         store.dispatch(updateObjects(objects))
       })
   })
@@ -178,8 +167,8 @@ export const connectStore = store => {
   // work around to keep the user in Redux store up to date
   //
   // FIXME: store subscriptions data directly in Redux
-  subscribeUsers(user => {
-    store.dispatch(signedIn(xo.user))
+  subscribeCurrentUser(user => {
+    store.dispatch(signedIn(user))
   })
 }
 
@@ -358,6 +347,60 @@ export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
 )
 
+const getNotificationCookie = () => {
+  const notificationCookie = cookies.get(
+    `notifications:${store.getState().user.id}`
+  )
+  return notificationCookie === undefined ? {} : JSON.parse(notificationCookie)
+}
+
+const setNotificationCookie = (id, changes) => {
+  const notifications = getNotificationCookie()
+  notifications[id] = { ...(notifications[id] || {}), ...changes }
+  forEach(notifications[id], (value, key) => {
+    if (value === null) {
+      delete notifications[id][key]
+    }
+  })
+  cookies.set(
+    `notifications:${store.getState().user.id}`,
+    JSON.stringify(notifications)
+  )
+}
+
+export const dismissNotification = id => {
+  setNotificationCookie(id, { read: true, date: Date.now() })
+  subscribeNotifications.forceRefresh()
+}
+
+export const subscribeNotifications = createSubscription(async () => {
+  const { user, xoaUpdaterState } = store.getState()
+  if (
+    process.env.XOA_PLAN === 5 ||
+    xoaUpdaterState === 'disconnected' ||
+    xoaUpdaterState === 'error'
+  ) {
+    return []
+  }
+
+  let notifications
+  try {
+    notifications = await updater._call('getMessages')
+  } catch (err) {
+    return []
+  }
+  const notificationCookie = getNotificationCookie()
+  return map(
+    user != null && user.permission === 'admin'
+      ? notifications
+      : filter(notifications, { level: 'warning' }),
+    notification => ({
+      ...notification,
+      read: !!get(notificationCookie, `${notification.id}.read`),
+    })
+  )
+})
+
 const checkSrCurrentStateSubscriptions = {}
 export const subscribeCheckSrCurrentState = (pool, cb) => {
   const poolId = resolveId(pool)
@@ -513,6 +556,12 @@ export const removeServer = server =>
 export const editPool = (pool, props) =>
   _call('pool.set', { id: resolveId(pool), ...props })
 
+export const getPatchesDifference = (source, target) =>
+  _call('pool.getPatchesDifference', {
+    source: resolveId(source),
+    target: resolveId(target),
+  })
+
 import AddHostModalBody from './add-host-modal' // eslint-disable-line import/first
 export const addHostToPool = (pool, host) => {
   if (host) {
@@ -588,6 +637,22 @@ export const setPoolMaster = host =>
 
 export const editHost = (host, props) =>
   _call('host.set', { ...props, id: resolveId(host) })
+
+import MultipathingModalBody from './multipathing-modal' // eslint-disable-line import/first
+export const setHostsMultipathing = ({
+  host,
+  hosts = [host],
+  multipathing,
+}) => {
+  const ids = resolveIds(hosts)
+  return confirm({
+    title: _(multipathing ? 'enableMultipathing' : 'disableMultipathing'),
+    body: <MultipathingModalBody hostIds={ids} />,
+  }).then(
+    () => Promise.all(map(ids, id => editHost(id, { multipathing }))),
+    noop
+  )
+}
 
 export const fetchHostStats = (host, granularity) =>
   _call('host.stats', { host: resolveId(host), granularity })
@@ -680,23 +745,18 @@ export const enableHost = host => _call('host.enable', { id: resolveId(host) })
 export const disableHost = host =>
   _call('host.disable', { id: resolveId(host) })
 
-const missingUpdatePluginByHost = { __proto__: null }
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
   if (host.productBrand !== 'XCP-ng') {
-    const patches = await _call('host.listMissingPatches', { host: hostId })
+    const patches = await _call('pool.listMissingPatches', { host: hostId })
     // Hide paid patches to XS-free users
     return host.license_params.sku_type !== 'free'
       ? patches
       : filter(patches, { paid: false })
   }
-  if (missingUpdatePluginByHost[hostId]) {
-    return null
-  }
   try {
-    return await _call('host.listMissingPatches', { host: hostId })
+    return await _call('pool.listMissingPatches', { host: hostId })
   } catch (_) {
-    missingUpdatePluginByHost[hostId] = true
     return null
   }
 }
@@ -717,18 +777,30 @@ export const emergencyShutdownHosts = hosts => {
   }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
 }
 
-export const installHostPatch = (host, { uuid }) =>
-  _call('host.installPatch', { host: resolveId(host), patch: uuid })::tap(() =>
-    subscribeHostMissingPatches.forceRefresh(host)
+// for XCP-ng now
+export const installAllPatchesOnHost = ({ host }) =>
+  confirm({
+    body: _('installAllPatchesOnHostContent'),
+    title: _('installAllPatchesTitle'),
+  }).then(() =>
+    _call('pool.installPatches', { hosts: [resolveId(host)] })::tap(() =>
+      subscribeHostMissingPatches.forceRefresh(host)
+    )
   )
 
-export const installAllHostPatches = host =>
-  _call('host.installAllPatches', { host: resolveId(host) })::tap(() =>
-    subscribeHostMissingPatches.forceRefresh(host)
+export const installPatches = (patches, pool) =>
+  confirm({
+    body: _('installPatchesContent', { nPatches: patches.length }),
+    title: _('installPatchesTitle', { nPatches: patches.length }),
+  }).then(() =>
+    _call('pool.installPatches', {
+      pool: resolveId(pool),
+      patches: resolveIds(patches),
+    })::tap(() => subscribeHostMissingPatches.forceRefresh())
   )
 
 import InstallPoolPatchesModalBody from './install-pool-patches-modal' // eslint-disable-line import/first
-export const installAllPatchesOnPool = pool => {
+export const installAllPatchesOnPool = ({ pool }) => {
   const poolId = resolveId(pool)
   return confirm({
     body: <InstallPoolPatchesModalBody pool={poolId} />,
@@ -736,7 +808,7 @@ export const installAllPatchesOnPool = pool => {
     icon: 'host-patch-update',
   }).then(
     () =>
-      _call('pool.installAllPatches', { pool: poolId })::tap(() =>
+      _call('pool.installPatches', { pool: poolId })::tap(() =>
         subscribeHostMissingPatches.forceRefresh()
       ),
     noop
@@ -1003,26 +1075,20 @@ const _copyVm = ({ vm, sr, name, compress }) =>
   })
 
 import CopyVmModalBody from './copy-vm-modal' // eslint-disable-line import/first
-export const copyVm = (vm, sr, name, compress) => {
-  return sr !== undefined
-    ? confirm({
-        title: _('copyVm'),
-        body: _('copyVmConfirm', { SR: sr.name_label }),
-      }).then(() => _copyVm({ vm, sr: sr.id, name, compress }))
-    : confirm({
-        title: _('copyVm'),
-        body: <CopyVmModalBody vm={vm} />,
-      }).then(params => {
-        if (params.copyMode === 'fullCopy') {
-          if (!params.sr) {
-            error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
-            return
-          }
-          return _copyVm({ vm, ...params })
-        }
-        return cloneVm({ id: vm.id, name_label: params.name })
-      }, noop)
-}
+export const copyVm = vm =>
+  confirm({
+    title: _('copyVm'),
+    body: <CopyVmModalBody vm={vm} />,
+  }).then(params => {
+    if (params.copyMode === 'fullCopy') {
+      if (!params.sr) {
+        error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
+        return
+      }
+      return _copyVm({ vm, ...params })
+    }
+    return cloneVm({ id: vm.id, name_label: params.name })
+  }, noop)
 
 import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
 export const copyVms = vms => {
@@ -1120,8 +1186,8 @@ export const deleteTemplates = templates =>
           }, noop)
   }, noop)
 
-export const snapshotVm = (vm, name, saveMemory) =>
-  _call('vm.snapshot', { id: resolveId(vm), name, saveMemory })
+export const snapshotVm = (vm, name, saveMemory, description) =>
+  _call('vm.snapshot', { id: resolveId(vm), name, description, saveMemory })
 
 import SnapshotVmModalBody from './snapshot-vm-modal' // eslint-disable-line import/first
 export const snapshotVms = vms =>
@@ -1130,8 +1196,10 @@ export const snapshotVms = vms =>
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
     body: <SnapshotVmModalBody vms={vms} />,
   }).then(
-    ({ names, saveMemory }) =>
-      Promise.all(map(vms, vm => snapshotVm(vm, names[vm], saveMemory))),
+    ({ names, saveMemory, descriptions }) =>
+      Promise.all(
+        map(vms, vm => snapshotVm(vm, names[vm], saveMemory, descriptions[vm]))
+      ),
     noop
   )
 
@@ -1305,11 +1373,15 @@ export const fetchVmStats = (vm, granularity) =>
 
 export const getVmsHaValues = () => _call('vm.getHaValues')
 
-export const importVm = (file, type = 'xva', data = undefined, sr) => {
+export const importVm = async (file, type = 'xva', data = undefined, sr) => {
   const { name } = file
 
   info(_('startVmImport'), name)
-
+  if (data !== undefined && data.tables !== undefined) {
+    for (const k in data.tables) {
+      data.tables[k] = await data.tables[k]
+    }
+  }
   return _call('vm.import', { type, data, sr: resolveId(sr) }).then(
     ({ $sendTo }) =>
       post($sendTo, file)
@@ -1320,8 +1392,9 @@ export const importVm = (file, type = 'xva', data = undefined, sr) => {
           success(_('vmImportSuccess'), name)
           return res.json().then(body => body.result)
         })
-        .catch(() => {
+        .catch(err => {
           error(_('vmImportFailed'), name)
+          throw err
         })
   )
 }
@@ -1361,16 +1434,27 @@ export const importVdi = async vdi => {
 export const importVms = (vms, sr) =>
   Promise.all(
     map(vms, ({ file, type, data }) =>
-      importVm(file, type, data, sr).catch(noop)
+      importVm(file, type, data, sr).catch(error => {
+        console.warn('importVms', file.name, error)
+      })
     )
-  )
+  ).then(ids => ids.filter(_ => _ !== undefined))
 
-export const exportVm = vm => {
-  info(_('startVmExport'), vm.id)
-  return _call('vm.export', { vm: resolveId(vm) }).then(({ $getFrom: url }) => {
-    window.location = `.${url}`
+import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
+export const exportVm = vm =>
+  confirm({
+    body: <ExportVmModalBody />,
+    icon: 'export',
+    title: _('exportVmLabel'),
+  }).then(compress => {
+    const id = resolveId(vm)
+    info(_('startVmExport'), id)
+    return _call('vm.export', { vm: id, compress }).then(
+      ({ $getFrom: url }) => {
+        window.location = `.${url}`
+      }
+    )
   })
-}
 
 export const exportVdi = vdi => {
   info(_('startVdiExport'), vdi.id)
@@ -1551,39 +1635,10 @@ export const setVif = (
 export const editNetwork = (network, props) =>
   _call('network.set', { ...props, id: resolveId(network) })
 
-import CreateNetworkModalBody from './create-network-modal' // eslint-disable-line import/first
-export const createNetwork = container =>
-  confirm({
-    icon: 'network',
-    title: _('newNetworkCreate'),
-    body: <CreateNetworkModalBody container={container} />,
-  }).then(params => {
-    if (!params.name) {
-      return error(
-        _('newNetworkNoNameErrorTitle'),
-        _('newNetworkNoNameErrorMessage')
-      )
-    }
-    return _call('network.create', params)
-  }, noop)
-
 export const getBondModes = () => _call('network.getBondModes')
-
-import CreateBondedNetworkModalBody from './create-bonded-network-modal' // eslint-disable-line import/first
-export const createBondedNetwork = container =>
-  confirm({
-    icon: 'network',
-    title: _('newBondedNetworkCreate'),
-    body: <CreateBondedNetworkModalBody pool={container.$pool} />,
-  }).then(params => {
-    if (!params.name) {
-      return error(
-        _('newNetworkNoNameErrorTitle'),
-        _('newNetworkNoNameErrorMessage')
-      )
-    }
-    return _call('network.createBonded', params)
-  }, noop)
+export const createNetwork = params => _call('network.create', params)
+export const createBondedNetwork = params =>
+  _call('network.createBonded', params)
 
 export const deleteNetwork = network =>
   confirm({
@@ -1871,19 +1926,34 @@ export const subscribeBackupNgJobs = createSubscription(() =>
   _call('backupNg.getAllJobs')
 )
 
-export const subscribeBackupNgLogs = createSubscription(() =>
-  _call('backupNg.getAllLogs')
+export const subscribeBackupNgLogs = createSubscription(async () => {
+  const { $getFrom } = await _call('backupNg.getAllLogs', { ndjson: true })
+  const response = await fetch(`.${$getFrom}`)
+  const data = await response.text()
+
+  const logs = { __proto__: null }
+  parseNdJson(data, log => {
+    logs[log.id] = log
+  })
+  return logs
+})
+
+export const subscribeMetadataBackupJobs = createSubscription(() =>
+  _call('metadataBackup.getAllJobs')
 )
 
 export const createBackupNgJob = props =>
   _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 
-export const deleteBackupNgJobs = async ids => {
-  const { length } = ids
-  if (length === 0) {
+export const deleteBackupJobs = async ({
+  backupIds = [],
+  metadataBackupIds = [],
+}) => {
+  const nJobs = backupIds.length + metadataBackupIds.length
+  if (nJobs === 0) {
     return
   }
-  const vars = { nJobs: length }
+  const vars = { nJobs }
   try {
     await confirm({
       title: _('confirmDeleteBackupJobsTitle', vars),
@@ -1893,9 +1963,25 @@ export const deleteBackupNgJobs = async ids => {
     return
   }
 
-  return Promise.all(
-    ids.map(id => _call('backupNg.deleteJob', { id: resolveId(id) }))
-  )::tap(subscribeBackupNgJobs.forceRefresh)
+  const promises = []
+  if (backupIds.length !== 0) {
+    promises.push(
+      Promise.all(
+        backupIds.map(id => _call('backupNg.deleteJob', { id: resolveId(id) }))
+      )::tap(subscribeBackupNgJobs.forceRefresh)
+    )
+  }
+  if (metadataBackupIds.length !== 0) {
+    promises.push(
+      Promise.all(
+        metadataBackupIds.map(id =>
+          _call('metadataBackup.deleteJob', { id: resolveId(id) })
+        )
+      )::tap(subscribeMetadataBackupJobs.forceRefresh)
+    )
+  }
+
+  return Promise.all(promises)::tap(subscribeSchedules.forceRefresh)
 }
 
 export const editBackupNgJob = props =>
@@ -1929,6 +2015,40 @@ export const deleteBackups = async backups => {
   backups = backups.slice().sort((b1, b2) => b2.timestamp - b1.timestamp)
   for (let i = 0, n = backups.length; i < n; ++i) {
     await deleteBackup(backups[i])
+  }
+}
+
+export const createMetadataBackupJob = props =>
+  _call('metadataBackup.createJob', props)
+    ::tap(subscribeMetadataBackupJobs.forceRefresh)
+    ::tap(subscribeSchedules.forceRefresh)
+
+export const editMetadataBackupJob = props =>
+  _call('metadataBackup.editJob', props)
+    ::tap(subscribeMetadataBackupJobs.forceRefresh)
+    ::tap(subscribeSchedules.forceRefresh)
+
+export const runMetadataBackupJob = params =>
+  _call('metadataBackup.runJob', params)
+
+export const listMetadataBackups = remotes =>
+  _call('metadataBackup.list', { remotes: resolveIds(remotes) })
+
+export const restoreMetadataBackup = backup =>
+  _call('metadataBackup.restore', {
+    id: resolveId(backup),
+  })::tap(subscribeBackupNgLogs.forceRefresh)
+
+export const deleteMetadataBackup = backup =>
+  _call('metadataBackup.delete', {
+    id: resolveId(backup),
+  })
+
+export const deleteMetadataBackups = async (backups = []) => {
+  // delete sequentially from newest to oldest
+  backups = backups.slice().sort((b1, b2) => b2.timestamp - b1.timestamp)
+  for (let i = 0, n = backups.length; i < n; ++i) {
+    await deleteMetadataBackup(backups[i])
   }
 }
 
@@ -2442,6 +2562,30 @@ export const deleteSshKey = key =>
       ),
     })
   }, noop)
+
+export const addOtp = secret =>
+  confirm({
+    title: _('addOtpConfirm'),
+    body: _('addOtpConfirmMessage'),
+  }).then(
+    () =>
+      _setUserPreferences({
+        otp: secret,
+      }),
+    noop
+  )
+
+export const removeOtp = () =>
+  confirm({
+    title: _('removeOtpConfirm'),
+    body: _('removeOtpConfirmMessage'),
+  }).then(
+    () =>
+      _setUserPreferences({
+        otp: null,
+      }),
+    noop
+  )
 
 export const deleteSshKeys = keys =>
   confirm({

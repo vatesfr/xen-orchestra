@@ -93,7 +93,7 @@ declare export class Xapi {
   exportVm(
     cancelToken: mixed,
     vm: Vm,
-    options ?: Object
+    options?: { compress?: true | false | 'gzip' | 'zstd' }
   ): Promise<AugmentedReadable>;
   getObject(object: Id): XapiObject;
   importDeltaVm(data: DeltaVmImport, options: Object): Promise<{ vm: Vm }>;

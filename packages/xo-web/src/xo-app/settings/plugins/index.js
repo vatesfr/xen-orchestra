@@ -1,12 +1,15 @@
+import * as ComplexMatcher from 'complex-matcher'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ActionToggle from 'action-toggle'
 import Button from 'button'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import orderBy from 'lodash/orderBy'
 import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import size from 'lodash/size'
@@ -14,6 +17,7 @@ import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
+import { injectState, provideState } from 'reaclette'
 import { Row, Col } from 'grid'
 import {
   configurePlugin,
@@ -251,29 +255,82 @@ class Plugin extends Component {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
-export default class Plugins extends Component {
-  render() {
-    if (isEmpty(this.props.plugins)) {
-      return (
-        <p>
-          <em>{_('noPlugins')}</em>
-        </p>
-      )
-    }
+export default decorate([
+  addSubscriptions({
+    plugins: subscribePlugins,
+  }),
+  provideState({
+    effects: {
+      onSearchChange(
+        _,
+        {
+          target: { value },
+        }
+      ) {
+        const { location, router } = this.props
+        router.replace({
+          ...location,
+          query: {
+            ...location.query,
+            s: value,
+          },
+        })
+      },
+    },
+    computed: {
+      search: (
+        _,
+        {
+          location: {
+            query: { s = '' },
+          },
+        }
+      ) => s,
+      filteredPlugins: ({ predicate }, { plugins }) =>
+        predicate === undefined ? plugins : plugins.filter(predicate),
+      predicate: ({ search }) => {
+        if (search.trim() === '') {
+          return
+        }
 
-    return (
+        try {
+          return ComplexMatcher.parse(search).createPredicate()
+        } catch (error) {
+          console.warn(error)
+        }
+      },
+      sortedPlugins: ({ filteredPlugins }) => orderBy(filteredPlugins, 'name'),
+    },
+  }),
+  injectState,
+  ({ effects, state, plugins }) =>
+    isEmpty(plugins) ? (
+      <p>
+        <em>{_('noPlugins')}</em>
+      </p>
+    ) : (
       <div>
+        <p>
+          <input
+            className='form-control'
+            onChange={effects.onSearchChange}
+            value={state.search}
+          />
+        </p>
+        <span>
+          {_('homeDisplayedItems', {
+            displayed: state.sortedPlugins.length,
+            icon: <Icon icon='plugin' />,
+            total: plugins.length,
+          })}
+        </span>
         <ul style={{ paddingLeft: 0 }}>
-          {map(this.props.plugins, (plugin, key) => (
-            <li key={key} className='list-group-item clearfix'>
+          {state.sortedPlugins.map(plugin => (
+            <li key={plugin.id} className='list-group-item clearfix'>
               <Plugin {...plugin} />
             </li>
           ))}
         </ul>
       </div>
-    )
-  }
-}
+    ),
+])

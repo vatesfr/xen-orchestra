@@ -213,6 +213,8 @@ export const getStatus = state => state.status
 
 export const getUser = state => state.user
 
+export const getXoaState = state => state.xoaUpdaterState
+
 export const getCheckPermissions = invoke(() => {
   const getPredicate = create(
     state => state.permissions,
@@ -273,13 +275,13 @@ const _getPermissionsPredicate = invoke(() => {
     }
   )
 
-  return state => {
+  return (state, props, useResourceSet) => {
     const user = getUser(state)
     if (!user) {
       return false
     }
 
-    if (user.permission === 'admin') {
+    if (user.permission === 'admin' || useResourceSet) {
       return // No predicate means no filtering.
     }
 
@@ -332,8 +334,8 @@ export const createSortForType = invoke(() => {
   const iterateesByType = {
     message: message => message.time,
     PIF: pif => pif.device,
+    patch: patch => patch.name,
     pool: pool => pool.name_label,
-    pool_patch: patch => patch.name,
     tag: tag => tag,
     VBD: vbd => vbd.position,
     'VDI-snapshot': snapshot => snapshot.snapshot_time,
@@ -494,37 +496,18 @@ export const createGetObjectMessages = objectSelector =>
 export const getObject = createGetObject((_, id) => id)
 
 export const createDoesHostNeedRestart = hostSelector => {
-  // XS < 7.1
-  const patchRequiresReboot = createGetObjectsOfType('pool_patch')
-    .pick(
-      // Returns the first patch of the host which requires it to be
-      // restarted.
-      create(
-        createGetObjectsOfType('host_patch')
-          .pick((state, props) => {
-            const host = hostSelector(state, props)
-            return host && host.patches
-          })
-          .filter(
-            create(
-              (state, props) => {
-                const host = hostSelector(state, props)
-                return host && host.startTime
-              },
-              startTime => patch => patch.time > startTime
-            )
-          ),
-        hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
+  const patchRequiresReboot = createGetObjectsOfType('patch')
+    .pick(create(hostSelector, host => host.patches))
+    .find(
+      create(hostSelector, host => ({ guidance, time, upgrade }) =>
+        time > host.startTime &&
+        (upgrade ||
+          some(
+            guidance,
+            action => action === 'restartHost' || action === 'restartXapi'
+          ))
       )
     )
-    .find([
-      ({ guidance, upgrade }) =>
-        upgrade ||
-        find(
-          guidance,
-          action => action === 'restartHost' || action === 'restartXapi'
-        ),
-    ])
 
   return create(
     hostSelector,
