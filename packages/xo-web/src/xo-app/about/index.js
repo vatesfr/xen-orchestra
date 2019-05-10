@@ -88,7 +88,7 @@ export default class About extends Component {
                   <p className='text-muted'>{_('bugTrackerText')}</p>
                 </Col>
                 <Col mediumSize={6}>
-                  <a href='https://xen-orchestra.com/forum/'>
+                  <a href='https://xcp-ng.org/forum/category/12/xen-orchestra'>
                     <Icon icon='group' size={4} />
                     <h4>{_('community')}</h4>
                   </a>
