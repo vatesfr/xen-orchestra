@@ -1,3 +1,4 @@
+import * as MultiCounter from '@xen-orchestra/multi-counter'
 import aclResolver from 'xo-acl-resolver'
 import { forEach, includes, map } from 'lodash'
 
@@ -6,15 +7,31 @@ import { Acls } from '../models/acl'
 
 // ===================================================================
 
+// TODO add cache per user
 export default class {
   constructor(xo) {
     this._xo = xo
+    this._cacheByObjectByUser = { __proto__: null }
 
     const aclsDb = (this._acls = new Acls({
       connection: xo._redis,
       prefix: 'xo:acl',
       indexes: ['subject', 'object'],
     }))
+
+    const nSessionsByUser = MultiCounter.create()
+    xo.on('session.open', session => {
+      const userId = session.get('user_id')
+      if (nSessionsByUser[userId]++ === 0) {
+        this._cacheByObjectByUser[userId] = { __proto__: null }
+      }
+    })
+    xo.on('session.close', session => {
+      const userId = session.get('user_id')
+      if (--nSessionsByUser[userId] === 0) {
+        delete this._cacheByObjectByUser[userId]
+      }
+    })
 
     xo.on('start', () => {
       xo.addConfigManager(

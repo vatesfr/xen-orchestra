@@ -1,0 +1,14 @@
+{
+  "name": "@xen-orchestra/multi-counter",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/multi-counter",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/multi-counter",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "version": "0.0.0",
+  "scripts": {
+    "postversion": "npm publish"
+  }
+}
