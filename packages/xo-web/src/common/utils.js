@@ -550,15 +550,21 @@ export const getIscsiPaths = pbd => {
 
 // ===================================================================
 
-export const downloadLog = ({ log, date, type }) => {
-  const file = new window.Blob([log], {
+export const createBinaryFile = str =>
+  new window.Blob([str], {
     type: 'text/plain',
   })
+
+// ===================================================================
+
+export const formatDate = ms => new Date(ms).toISOString().replace(/:/g, '_')
+
+// ===================================================================
+
+export const downloadLog = ({ log, date, type }) => {
   const anchor = document.createElement('a')
-  anchor.href = window.URL.createObjectURL(file)
-  anchor.download = `${new Date(date)
-    .toISOString()
-    .replace(/:/g, '_')} - ${type}.log`
+  anchor.href = window.URL.createObjectURL(createBinaryFile(log))
+  anchor.download = `${formatDate(date)} - ${type}.log`
   anchor.style.display = 'none'
   document.body.appendChild(anchor)
   anchor.click()
