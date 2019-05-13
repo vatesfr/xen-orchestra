@@ -280,10 +280,15 @@ const Updates = decorate([
         </Col>
         <Col mediumSize={6}>
           <Card>
-            <CardHeader>
-              <UpdateTag /> {LABELS_BY_STATE[xoaUpdaterState]}
-            </CardHeader>
+            <CardHeader>{_('releaseChannels')}</CardHeader>
             <CardBlock>
+              <div>
+                {_('selectedChannel')}{' '}
+                <h5 className='d-inline-block'>
+                  <span className='tag tag-pill tag-info'>stable</span>
+                </h5>
+              </div>
+              <br />
               <form id='releaseChannelsForm' className='form-inline'>
                 <div className='form-group'>
                   <input
@@ -305,7 +310,6 @@ const Updates = decorate([
                     value={channel}
                   />
                 </div>{' '}
-                <br /> <br />
                 <ActionButton
                   form='releaseChannelsForm'
                   icon='success'
