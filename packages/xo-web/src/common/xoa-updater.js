@@ -14,6 +14,7 @@ import {
   setXoaTrialState,
   setXoaUpdaterLog,
   setXoaUpdaterState,
+  setXoaReleaseChannels,
 } from 'store/actions'
 
 // ===================================================================
@@ -381,6 +382,17 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
+  async getReleaseChannels() {
+    try {
+      this._releaseChannels = await this._call('getReleaseChannels')
+      return this._releaseChannels
+    } catch (error) {
+      this._releaseChannels = []
+    } finally {
+      this.emit('releaseChannels', this._releaseChannels)
+    }
+  }
+
   async _call(...args) {
     const c = await this._open()
     try {
@@ -419,5 +431,8 @@ export const connectStore = store => {
   )
   xoaUpdater.on('configuration', configuration =>
     store.dispatch(setXoaConfiguration(configuration))
+  )
+  xoaUpdater.on('releaseChannels', releaseChannels =>
+    store.dispatch(setXoaReleaseChannels(releaseChannels))
   )
 }

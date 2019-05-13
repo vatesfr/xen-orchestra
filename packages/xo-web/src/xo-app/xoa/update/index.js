@@ -65,6 +65,9 @@ const initialProxyState = () => zipObject(PROXY_ENTRIES)
 const REGISTRATION_ENTRIES = ['email', 'password']
 const initialRegistrationState = () => zipObject(REGISTRATION_ENTRIES)
 
+const CHANNEL_ENTRIES = ['channel', 'privateChannel']
+const initialChannels = () => zipObject(CHANNEL_ENTRIES)
+
 const helper = (obj1, obj2, prop) =>
   defined(() => obj1[prop], () => obj2[prop], '')
 
@@ -75,6 +78,7 @@ const Updates = decorate([
   }),
   connectStore([
     'xoaConfiguration',
+    'xoaReleaseChannels',
     'xoaRegisterState',
     'xoaTrialState',
     'xoaUpdaterLog',
@@ -84,6 +88,8 @@ const Updates = decorate([
     initialState: () => ({
       ...initialProxyState(),
       ...initialRegistrationState(),
+      ...initialChannels(),
+      addPrivateChannel: false,
       askRegisterAgain: false,
       showPackagesList: false,
     }),
@@ -95,12 +101,14 @@ const Updates = decorate([
             'proxyPassword',
             'proxyPort',
             'proxyUser',
+            'channel',
           ])
         )
         return this.effects.resetProxyConfig()
       },
-      initialize() {
-        return this.effects.update()
+      async initialize() {
+        await this.effects.update()
+        await this.effects.getReleaseChannels()
       },
       linkState,
       async register() {
@@ -153,6 +161,10 @@ const Updates = decorate([
       toggleState,
       update: () => xoaUpdater.update(),
       upgrade: () => xoaUpdater.upgrade(),
+      getReleaseChannels: () => xoaUpdater.getReleaseChannels(),
+      onChannelChange: (_, channel) => ({
+        channel: channel.value,
+      }),
     },
     computed: {
       areJobsRunning: (_, { jobs, backupNgJobs }) =>
@@ -193,11 +205,10 @@ const Updates = decorate([
   ({
     effects,
     intl: { formatMessage },
-    privateChannel,
-    channel,
     state,
     xoaConfiguration,
     xoaRegisterState,
+    xoaReleaseChannels,
     xoaTrialState,
     xoaUpdaterLog,
     xoaUpdaterState,
@@ -285,36 +296,64 @@ const Updates = decorate([
               <div>
                 {_('selectedChannel')}{' '}
                 <h5 className='d-inline-block'>
-                  <span className='tag tag-pill tag-info'>stable</span>
+                  <span className='tag tag-pill tag-info'>
+                    {xoaConfiguration.channel}
+                  </span>
                 </h5>
               </div>
               <br />
-              <form id='releaseChannelsForm' className='form-inline'>
-                <div className='form-group'>
-                  <input
-                    className='form-control'
-                    onChange={effects.linkState('privateChannel')}
-                    placeholder={formatMessage(messages.privateChannelName)}
-                    required
-                    type='text'
-                    value={privateChannel}
-                  />
-                </div>{' '}
+              <form id='releaseChannelsForm' className='form'>
                 <div className='form-group'>
                   <Select
                     clearable={false}
-                    onChange={effects.linkState('channel')}
-                    // options={map(channels)}
+                    onChange={effects.onChannelChange}
+                    options={map(xoaReleaseChannels, elt => ({
+                      label: elt.description,
+                      value: elt.id,
+                    }))}
                     placeholder={formatMessage(messages.selectChannel)}
                     required
-                    value={channel}
+                    value={helper(state, xoaConfiguration, 'channel')}
+                    disabled={state.addPrivateChannel}
                   />
+                  <br />
+                  {state.addPrivateChannel && (
+                    <div className='form-group'>
+                      <input
+                        className='form-control'
+                        name='privateChannel'
+                        onChange={effects.linkState}
+                        placeholder={formatMessage(messages.privateChannelName)}
+                        required
+                        type='text'
+                        value={helper(
+                          state,
+                          xoaConfiguration,
+                          'privateChannel'
+                        )}
+                      />
+                      <br />
+                    </div>
+                  )}
+                  <Button
+                    btnStyle='light'
+                    name='addPrivateChannel'
+                    onClick={effects.toggleState}
+                  >
+                    <Icon
+                      fixedWidth
+                      icon={state.addPrivateChannel ? 'remove-tag' : 'add'}
+                    />{' '}
+                    {state.addPrivateChannel
+                      ? _('genericCancel')
+                      : _('addPrivateChannel')}
+                  </Button>
                 </div>{' '}
                 <ActionButton
                   form='releaseChannelsForm'
                   icon='success'
                   btnStyle='primary'
-                  // handler={this._create}
+                  handler={effects.configure}
                 >
                   {_('changeChannel')}
                 </ActionButton>
