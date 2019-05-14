@@ -171,6 +171,10 @@ const Updates = decorate([
         }
         return { channel: channel.value }
       },
+      cancelPrivateChannelAdd: () => ({
+        channel: '',
+        addPrivateChannel: false,
+      }),
     },
     computed: {
       areJobsRunning: (_, { jobs, backupNgJobs }) =>
@@ -353,8 +357,7 @@ const Updates = decorate([
                       </div>
                       <Button
                         btnStyle='light'
-                        name='addPrivateChannel'
-                        onClick={effects.toggleState}
+                        onClick={effects.cancelPrivateChannelAdd}
                       >
                         <Icon fixedWidth icon='remove-tag' />{' '}
                         {_('genericCancel')}
