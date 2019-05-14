@@ -16,7 +16,7 @@ import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, map, pick, some, zipObject } from 'lodash'
+import { isEmpty, map, pick, remove, some, zipObject } from 'lodash'
 import { linkState, toggleState } from 'reaclette-utils'
 import { Password, Select } from 'form'
 import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
@@ -65,7 +65,7 @@ const initialProxyState = () => zipObject(PROXY_ENTRIES)
 const REGISTRATION_ENTRIES = ['email', 'password']
 const initialRegistrationState = () => zipObject(REGISTRATION_ENTRIES)
 
-const CHANNEL_ENTRIES = ['channel', 'privateChannel']
+const CHANNEL_ENTRIES = ['addPrivateChannel', 'channel', 'privateChannel']
 const initialChannels = () => zipObject(CHANNEL_ENTRIES)
 
 const helper = (obj1, obj2, prop) =>
@@ -89,21 +89,22 @@ const Updates = decorate([
       ...initialProxyState(),
       ...initialRegistrationState(),
       ...initialChannels(),
-      addPrivateChannel: false,
       askRegisterAgain: false,
       showPackagesList: false,
     }),
     effects: {
       async configure() {
-        await xoaUpdater.configure(
-          pick(this.state, [
+        await xoaUpdater.configure({
+          ...pick(this.state, [
             'proxyHost',
             'proxyPassword',
             'proxyPort',
             'proxyUser',
-            'channel',
-          ])
-        )
+          ]),
+          channel: this.state.addPrivateChannel
+            ? this.state.privateChannel
+            : this.state.channel,
+        })
         return this.effects.resetProxyConfig()
       },
       async initialize() {
@@ -204,6 +205,27 @@ const Updates = decorate([
           .sort()
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
+      xoaReleaseChannelsOptions: (
+        _,
+        { xoaReleaseChannels, xoaConfiguration }
+      ) => {
+        // Remove already selected channel
+        const _xoaReleaseChannelsOptions = [...xoaReleaseChannels]
+        remove(
+          _xoaReleaseChannelsOptions,
+          elt => elt.description === xoaConfiguration.channel
+        )
+        return [
+          ...map(_xoaReleaseChannelsOptions, elt => ({
+            label: elt.description,
+            value: elt.id,
+          })),
+          {
+            label: <span className='font-italic'>custom channel</span>,
+            value: 'custom channel',
+          },
+        ]
+      },
     },
   }),
   injectState,
@@ -313,18 +335,7 @@ const Updates = decorate([
                   <Select
                     clearable={false}
                     onChange={effects.onChannelChange}
-                    options={[
-                      ...map(xoaReleaseChannels, elt => ({
-                        label: elt.description,
-                        value: elt.id,
-                      })),
-                      {
-                        label: (
-                          <span className='font-italic'>custom channel</span>
-                        ),
-                        value: 'custom channel',
-                      },
-                    ]}
+                    options={state.xoaReleaseChannelsOptions}
                     placeholder={formatMessage(messages.selectChannel)}
                     required
                     value={helper(state, xoaConfiguration, 'channel')}
