@@ -200,7 +200,7 @@ async function handleImport(
     res.end(format.response(0, vdi.$id))
   } catch (e) {
     res.writeHead(500)
-    res.end(format.error(0, new Error(e.message)))
+    res.end(format.error(0, new JsonRpcError(e.message)))
   }
 }
 
