@@ -228,7 +228,7 @@ export default {
   userPage: 'Utilisateur',
 
   // Original text: "No support"
-  noSupport: 'Pas de support',
+  noSupport: 'Support professionnel manquant',
 
   // Original text: "Free upgrade!"
   freeUpgrade: 'Mise à jour gratuite !',
@@ -3312,7 +3312,7 @@ export default {
 
   // Original text: "You can download our turnkey appliance at {website}"
   downloadXoaFromWebsite:
-    'Téléchargez notre édition clef en main sur {website}',
+    'Téléchargez l’appareil clé en main à {website}',
 
   // Original text: "Bug Tracker"
   bugTracker: 'Gestionnaire de tickets',
