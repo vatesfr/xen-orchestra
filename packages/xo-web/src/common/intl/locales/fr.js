@@ -3312,7 +3312,7 @@ export default {
 
   // Original text: "You can download our turnkey appliance at {website}"
   downloadXoaFromWebsite:
-    'Téléchargez l’appareil clé en main à {website}',
+    'Téléchargez notre édition clef en main sur  {website}',
 
   // Original text: "Bug Tracker"
   bugTracker: 'Gestionnaire de tickets',
