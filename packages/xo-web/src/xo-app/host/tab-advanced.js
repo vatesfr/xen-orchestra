@@ -2,6 +2,7 @@ import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import decorate from 'apply-decorators'
+import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SelectFiles from 'select-files'
@@ -9,6 +10,7 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
 import { compareVersions, connectStore, getIscsiPaths } from 'utils'
+import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { forEach, map, noop, isEmpty } from 'lodash'
@@ -19,6 +21,7 @@ import { Toggle } from 'form'
 import {
   detachHost,
   disableHost,
+  editHost,
   enableHost,
   forgetHost,
   isHyperThreadingEnabledHost,
@@ -120,6 +123,21 @@ export default class extends Component {
       return uniqPacks
     }
   )
+
+  _setHostIscsiIqn = iscsiIqn =>
+    confirm({
+      icon: 'alarm',
+      title: _('editHostIscsiIqnTitle'),
+      body: (
+        <div>
+          {_('editHostIscsiIqnMessage')}
+          <br />
+          <span className='text-muted'>
+            <Icon icon='info' /> {_('uniqueHostIscsiIqnInfo')}
+          </span>
+        </div>
+      ),
+    }).then(() => editHost(this.props.host, { iscsiIqn }), noop)
 
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
@@ -231,8 +249,13 @@ export default class extends Component {
                   <Copiable tagName='td'>{host.build}</Copiable>
                 </tr>
                 <tr>
-                  <th>{_('hostIscsiName')}</th>
-                  <Copiable tagName='td'>{host.iSCSI_name}</Copiable>
+                  <th>{_('hostIscsiIqn')}</th>
+                  <td>
+                    <Text
+                      onChange={this._setHostIscsiIqn}
+                      value={host.iscsiIqn}
+                    />
+                  </td>
                 </tr>
                 <tr>
                   <th>{_('multipathing')}</th>
