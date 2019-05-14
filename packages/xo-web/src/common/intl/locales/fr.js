@@ -228,7 +228,7 @@ export default {
   userPage: 'Utilisateur',
 
   // Original text: "No support"
-  noSupport: 'Support professionnel manquant',
+  noSupport: 'Pas de support professionnel',
 
   // Original text: "Free upgrade!"
   freeUpgrade: 'Mise à jour gratuite !',
