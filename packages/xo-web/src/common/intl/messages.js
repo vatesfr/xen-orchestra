@@ -1789,7 +1789,7 @@ const messages = {
   xenOrchestra: 'Xen Orchestra',
   xenOrchestraServer: 'Xen Orchestra server',
   xenOrchestraWeb: 'Xen Orchestra web client',
-  noProSupport: 'Limited Support Provided!',
+  noProSupport: 'Professional support missing!',
   noProductionUse: 'Use in production at your own risk',
   downloadXoaFromWebsite: 'You can download the turnkey appliance at {website}',
   bugTracker: 'Bug Tracker',
