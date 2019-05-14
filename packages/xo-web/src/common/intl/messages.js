@@ -148,7 +148,7 @@ const messages = {
   xoa: 'XOA',
 
   // ----- Support -----
-  noSupport: 'No Support',
+  noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
 
   // ----- Sign out -----
