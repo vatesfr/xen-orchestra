@@ -513,14 +513,6 @@ export default {
     return this.call('VM.unpause', this.getObject(vmId).$ref)
   },
 
-  async suspendVm(vmId) {
-    const vm = this.getObject(vmId)
-    await this._updateObjectMapProperty(vm, 'other_config', {
-      start_time: vm.$metrics && vm.$metrics.start_time,
-    })
-    await this.call('VM.suspend', vm.$ref)
-  },
-
   shutdownVm(vmId, { hard = false } = {}) {
     return this.call(
       `VM.${hard ? 'hard' : 'clean'}_shutdown`,

@@ -1658,11 +1658,11 @@ export default class Xapi extends XapiBase {
 
   async startVm(vmId, hostId, force) {
     try {
-      const vm = this.getObject(vmId)
-      await this._startVm(vm, hostId && this.getObject(hostId), force)
-      await this._updateObjectMapProperty(vm, 'other_config', {
-        start_time: vm.$metrics && vm.$metrics.start_time,
-      })
+      await this._startVm(
+        this.getObject(vmId),
+        hostId && this.getObject(hostId),
+        force
+      )
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])

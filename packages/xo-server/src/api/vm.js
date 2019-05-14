@@ -1089,7 +1089,7 @@ stop.resolve = {
 // -------------------------------------------------------------------
 
 export async function suspend({ vm }) {
-  await this.getXapi(vm).suspendVm(vm._xapiRef)
+  await this.getXapi(vm).call('VM.suspend', vm._xapiRef)
 }
 
 suspend.params = {
