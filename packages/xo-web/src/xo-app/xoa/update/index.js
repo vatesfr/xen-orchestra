@@ -169,12 +169,8 @@ const Updates = decorate([
             addPrivateChannel: true,
           }
         }
-        return { channel: channel.value }
+        return { channel: channel.value, addPrivateChannel: false }
       },
-      cancelPrivateChannelAdd: () => ({
-        channel: '',
-        addPrivateChannel: false,
-      }),
     },
     computed: {
       areJobsRunning: (_, { jobs, backupNgJobs }) =>
@@ -332,36 +328,24 @@ const Updates = decorate([
                     placeholder={formatMessage(messages.selectChannel)}
                     required
                     value={helper(state, xoaConfiguration, 'channel')}
-                    disabled={state.addPrivateChannel}
                   />
                   <br />
                   {state.addPrivateChannel && (
-                    <div>
-                      <div className='form-group'>
-                        <input
-                          autoFocus
-                          className='form-control'
-                          name='privateChannel'
-                          onChange={effects.linkState}
-                          placeholder={formatMessage(
-                            messages.privateChannelName
-                          )}
-                          required
-                          type='text'
-                          value={helper(
-                            state,
-                            xoaConfiguration,
-                            'privateChannel'
-                          )}
-                        />
-                      </div>
-                      <Button
-                        btnStyle='light'
-                        onClick={effects.cancelPrivateChannelAdd}
-                      >
-                        <Icon fixedWidth icon='remove-tag' />{' '}
-                        {_('genericCancel')}
-                      </Button>
+                    <div className='form-group'>
+                      <input
+                        autoFocus
+                        className='form-control'
+                        name='privateChannel'
+                        onChange={effects.linkState}
+                        placeholder={formatMessage(messages.privateChannelName)}
+                        required
+                        type='text'
+                        value={helper(
+                          state,
+                          xoaConfiguration,
+                          'privateChannel'
+                        )}
+                      />
                     </div>
                   )}
                 </div>{' '}
