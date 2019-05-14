@@ -318,7 +318,12 @@ const Updates = decorate([
                         label: elt.description,
                         value: elt.id,
                       })),
-                      { label: 'custom channel', value: 'custom channel' },
+                      {
+                        label: (
+                          <span className='font-italic'>custom channel</span>
+                        ),
+                        value: 'custom channel',
+                      },
                     ]}
                     placeholder={formatMessage(messages.selectChannel)}
                     required
