@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-- [VM/general] Display 'Started... ago' instead of 'Halted... ago' for suspended and paused states [#3750](https://github.com/vatesfr/xen-orchestra/issues/3750) (PR [#4170](https://github.com/vatesfr/xen-orchestra/pull/4170))
+- [VM/general] Display 'Started... ago' instead of 'Halted... ago' for paused state [#3750](https://github.com/vatesfr/xen-orchestra/issues/3750) (PR [#4170](https://github.com/vatesfr/xen-orchestra/pull/4170))
 
 ### Bug fixes
 
