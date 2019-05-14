@@ -1790,7 +1790,6 @@ const messages = {
   privateChannelName: 'Private channel name',
   selectChannel: 'Select channel',
   changeChannel: 'Change channel',
-  selectedChannel: 'Selected channel:',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',

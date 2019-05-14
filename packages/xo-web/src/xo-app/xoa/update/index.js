@@ -16,7 +16,7 @@ import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, map, pick, remove, some, zipObject } from 'lodash'
+import { find, isEmpty, map, pick, some, zipObject } from 'lodash'
 import { linkState, toggleState } from 'reaclette-utils'
 import { Password, Select } from 'form'
 import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
@@ -205,16 +205,8 @@ const Updates = decorate([
           .sort()
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
-      xoaReleaseChannelsOptions: (
-        _,
-        { xoaReleaseChannels, xoaConfiguration }
-      ) => {
-        // Remove already selected channel
+      xoaReleaseChannelsOptions: (_, { xoaReleaseChannels }) => {
         const _xoaReleaseChannelsOptions = [...xoaReleaseChannels]
-        remove(
-          _xoaReleaseChannelsOptions,
-          elt => elt.description === xoaConfiguration.channel
-        )
         return [
           ...map(_xoaReleaseChannelsOptions, elt => ({
             label: elt.description,
@@ -225,6 +217,14 @@ const Updates = decorate([
             value: 'custom channel',
           },
         ]
+      },
+      initialChannel: (_, { xoaReleaseChannels, xoaConfiguration }) => {
+        const channel = find(
+          xoaReleaseChannels,
+          channel => channel.id === xoaConfiguration.channel
+        )
+
+        return (channel && channel.description) || ''
       },
     },
   }),
@@ -321,15 +321,6 @@ const Updates = decorate([
           <Card>
             <CardHeader>{_('releaseChannels')}</CardHeader>
             <CardBlock>
-              <div>
-                {_('selectedChannel')}{' '}
-                <h5 className='d-inline-block'>
-                  <span className='tag tag-pill tag-info'>
-                    {xoaConfiguration.channel}
-                  </span>
-                </h5>
-              </div>
-              <br />
               <form id='releaseChannelsForm' className='form'>
                 <div className='form-group'>
                   <Select
@@ -338,7 +329,7 @@ const Updates = decorate([
                     options={state.xoaReleaseChannelsOptions}
                     placeholder={formatMessage(messages.selectChannel)}
                     required
-                    value={helper(state, xoaConfiguration, 'channel')}
+                    value={state.channel || state.initialChannel}
                   />
                   <br />
                   {state.addPrivateChannel && (
