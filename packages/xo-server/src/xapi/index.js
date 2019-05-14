@@ -2336,7 +2336,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _assertConsistentHostServerTime(hostRef) {
+  async assertConsistentHostServerTime(hostRef) {
     const delta =
       parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -
       Date.now()

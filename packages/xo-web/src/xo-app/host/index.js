@@ -1,4 +1,5 @@
 import _ from 'intl'
+import AssertConsistentHostTime from 'assert-consistent-host-time'
 import Copiable from 'copiable'
 import HostActionBar from './action-bar'
 import Icon from 'icon'
@@ -11,12 +12,7 @@ import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { Pool } from 'render-xo-item'
-import {
-  assertConsistentHostServerTime,
-  editHost,
-  fetchHostStats,
-  subscribeHostMissingPatches,
-} from 'xo'
+import { editHost, fetchHostStats, subscribeHostMissingPatches } from 'xo'
 import { connectStore, routes } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -260,11 +256,7 @@ export default class Host extends Component {
                 </Tooltip>
               )}
               &nbsp;
-              {!assertConsistentHostServerTime(host) && (
-                <Tooltip content={_('assertConsistentHostServerTimeTooltip')}>
-                  <Icon color='text-danger' icon='alarm' />
-                </Tooltip>
-              )}
+              <AssertConsistentHostTime hostId={host.id} />
             </h2>
             <Copiable tagName='pre' className='text-muted mb-0'>
               {host.uuid}

@@ -777,11 +777,8 @@ export const emergencyShutdownHosts = hosts => {
   }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
 }
 
-export const assertConsistentHostServerTime = host =>
-  _call('host.assertConsistentHostServerTime', { host: resolveId(host) }).then(
-    () => true,
-    () => false
-  )
+export const isHostTimeConsistentToXoaTime = host =>
+  _call('host.isConsistentHostServerTime', { host: resolveId(host) })
 
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>

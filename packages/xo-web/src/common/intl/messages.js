@@ -892,8 +892,8 @@ const messages = {
   changelogDate: 'Date',
   changelogDescription: 'Description',
   // ----- Host home -----
-  assertConsistentHostServerTimeTooltip:
-    'host server time and XOA date are not consistent with each other',
+  warningHostTimeTooltip:
+    'Host time and XOA time are not consistent with each other',
 
   // ----- Pool patch tabs -----
   install: 'Install',

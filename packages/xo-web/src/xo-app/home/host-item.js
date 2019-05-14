@@ -1,4 +1,5 @@
 import _ from 'intl'
+import AssertConsistentHostTime from 'assert-consistent-host-time'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
@@ -12,7 +13,6 @@ import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
-  assertConsistentHostServerTime,
   addTag,
   editHost,
   fetchHostStats,
@@ -129,11 +129,7 @@ export default class HostItem extends Component {
                   </Tooltip>
                 )}
                 &nbsp;
-                {!assertConsistentHostServerTime(host) && (
-                  <Tooltip content={_('assertConsistentHostServerTimeTooltip')}>
-                    <Icon color='text-danger' icon='alarm' />
-                  </Tooltip>
-                )}
+                <AssertConsistentHostTime hostId={host.id} />
                 &nbsp;
                 {hasLicenseRestrictions(host) && <LicenseWarning />}
               </EllipsisContainer>
