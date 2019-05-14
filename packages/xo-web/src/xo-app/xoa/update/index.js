@@ -162,9 +162,15 @@ const Updates = decorate([
       update: () => xoaUpdater.update(),
       upgrade: () => xoaUpdater.upgrade(),
       getReleaseChannels: () => xoaUpdater.getReleaseChannels(),
-      onChannelChange: (_, channel) => ({
-        channel: channel.value,
-      }),
+      onChannelChange: (_, channel) => {
+        if (channel.value === 'custom channel') {
+          return {
+            channel: channel.value,
+            addPrivateChannel: true,
+          }
+        }
+        return { channel: channel.value }
+      },
     },
     computed: {
       areJobsRunning: (_, { jobs, backupNgJobs }) =>
@@ -307,10 +313,13 @@ const Updates = decorate([
                   <Select
                     clearable={false}
                     onChange={effects.onChannelChange}
-                    options={map(xoaReleaseChannels, elt => ({
-                      label: elt.description,
-                      value: elt.id,
-                    }))}
+                    options={[
+                      ...map(xoaReleaseChannels, elt => ({
+                        label: elt.description,
+                        value: elt.id,
+                      })),
+                      { label: 'custom channel', value: 'custom channel' },
+                    ]}
                     placeholder={formatMessage(messages.selectChannel)}
                     required
                     value={helper(state, xoaConfiguration, 'channel')}
@@ -318,36 +327,35 @@ const Updates = decorate([
                   />
                   <br />
                   {state.addPrivateChannel && (
-                    <div className='form-group'>
-                      <input
-                        className='form-control'
-                        name='privateChannel'
-                        onChange={effects.linkState}
-                        placeholder={formatMessage(messages.privateChannelName)}
-                        required
-                        type='text'
-                        value={helper(
-                          state,
-                          xoaConfiguration,
-                          'privateChannel'
-                        )}
-                      />
-                      <br />
+                    <div>
+                      <div className='form-group'>
+                        <input
+                          autoFocus
+                          className='form-control'
+                          name='privateChannel'
+                          onChange={effects.linkState}
+                          placeholder={formatMessage(
+                            messages.privateChannelName
+                          )}
+                          required
+                          type='text'
+                          value={helper(
+                            state,
+                            xoaConfiguration,
+                            'privateChannel'
+                          )}
+                        />
+                      </div>
+                      <Button
+                        btnStyle='light'
+                        name='addPrivateChannel'
+                        onClick={effects.toggleState}
+                      >
+                        <Icon fixedWidth icon='remove-tag' />{' '}
+                        {_('genericCancel')}
+                      </Button>
                     </div>
                   )}
-                  <Button
-                    btnStyle='light'
-                    name='addPrivateChannel'
-                    onClick={effects.toggleState}
-                  >
-                    <Icon
-                      fixedWidth
-                      icon={state.addPrivateChannel ? 'remove-tag' : 'add'}
-                    />{' '}
-                    {state.addPrivateChannel
-                      ? _('genericCancel')
-                      : _('addPrivateChannel')}
-                  </Button>
                 </div>{' '}
                 <ActionButton
                   form='releaseChannelsForm'
