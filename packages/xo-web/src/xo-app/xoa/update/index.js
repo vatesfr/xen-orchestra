@@ -206,9 +206,8 @@ const Updates = decorate([
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
       xoaReleaseChannelsOptions: (_, { xoaReleaseChannels }) => {
-        const _xoaReleaseChannelsOptions = [...xoaReleaseChannels]
         return [
-          ...map(_xoaReleaseChannelsOptions, elt => ({
+          ...map(xoaReleaseChannels, elt => ({
             label: elt.description,
             value: elt.id,
           })),
@@ -224,7 +223,11 @@ const Updates = decorate([
           channel => channel.id === xoaConfiguration.channel
         )
 
-        return (channel && channel.description) || ''
+        if (channel !== undefined && channel.description !== undefined) {
+          return channel.description
+        } else {
+          return ''
+        }
       },
     },
   }),
