@@ -472,7 +472,7 @@ const messages = {
   localRemoteWarningMessage:
     'Warning: Local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
-    'Warning: his feature works only with XenServer 6.5 or newer.',
+    'Warning: This feature works only with XenServer 6.5 or newer.',
   editBackupVmsTitle: 'VMs',
   editBackupSmartStatusTitle: 'VMs statuses',
   editBackupSmartResidentOn: 'Resident on',
