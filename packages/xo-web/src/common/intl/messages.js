@@ -428,7 +428,7 @@ const messages = {
   backupOwner: 'Backup owner',
   migrateBackupSchedule: 'Migrate to Backup NG',
   migrateBackupScheduleMessage:
-    'This will migrate this backup to a Backup NG. This operation is not reversible. Do you want to continue?',
+    'This will convert the old backup job to a Backup NG job. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:
@@ -462,17 +462,17 @@ const messages = {
   backupTargetSrs: 'Target SRs (for replication)',
   localRemoteWarningTitle: 'Local remote selected',
   crOnThickProvisionedSrWarning:
-    'Tip: using a thin-provisioned storage will consume less space. Please click on the icon to get more information',
+    'Tip: Using thin-provisioned storage will consume less space. Please click on the icon to get more information',
   vmsOnThinProvisionedSrTip:
-    'Tip: creating VMs on a thin-provisioned storage will consume less space when backing them up. Please click on the icon to get more information',
+    'Tip: Creating VMs on thin-provisioned storage will consume less space. Please click on the icon to get more information',
   deltaBackupOnOutdatedXenServerWarning:
     'Delta Backup and Continuous Replication require at least XenServer 6.5.',
   backupNgLinkToDocumentationMessage:
-    'Click for more information about the backup modes.',
+    'Click for more information about the backup methods.',
   localRemoteWarningMessage:
-    'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
+    'Warning: Local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
-    'Warning: this feature works only with XenServer 6.5 or newer.',
+    'Warning: This feature works only with XenServer 6.5 or newer.',
   editBackupVmsTitle: 'VMs',
   editBackupSmartStatusTitle: 'VMs statuses',
   editBackupSmartResidentOn: 'Resident on',
@@ -589,13 +589,13 @@ const messages = {
   reattachNewSrTooltip: 'Reattach SR',
 
   // ------ New Network -----
-  createNewNetworkNoPermission: 'You have no permissions to create a network',
+  createNewNetworkNoPermission: 'You do not have permission to create a network',
   createNewNetworkOn: 'Create a new network on {select}',
 
-  // ----- Acls, Users, Groups ------
+  // ----- ACLs, Users, Groups ------
   subjectName: 'Users/Groups',
   objectName: 'Object',
-  aclNoneFound: 'No acls found',
+  aclNoneFound: 'No ACLs found',
   roleName: 'Role',
   aclCreate: 'Create',
   newGroupName: 'New group name',
@@ -727,8 +727,8 @@ const messages = {
   displayAllVMs: 'Display all VMs of this pool',
   licenseRestrictions: 'License restrictions',
   licenseRestrictionsModalTitle:
-    'Warning: you are using a free XenServer license',
-  actionsRestricted: 'Some actions will be restricted.',
+    'Warning: You are using a Free XenServer license',
+  actionsRestricted: 'Some functionality is restricted.',
   counterRestrictionsOptions: 'You can:',
   counterRestrictionsOptionsXcp:
     'upgrade to XCP-ng for free to get rid of these restrictions',
@@ -796,7 +796,7 @@ const messages = {
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
   noHostsAvailableErrorMessage:
-    'Some VMs cannot be migrated before restarting this host. Please try a force reboot.',
+    'Some VMs cannot be migrated without first rebooting this host. Please try force reboot.',
   failHostBulkRestartTitle: 'Error while restarting hosts',
   failHostBulkRestartMessage:
     '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.',
