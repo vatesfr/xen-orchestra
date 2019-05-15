@@ -35,7 +35,7 @@ const ReportWhen = decorate([
     },
   }),
   injectState,
-  ({ state, onChange, value }) => (
+  ({ state, onChange, value, ...props }) => (
     <FormGroup>
       <label htmlFor={state.idInput}>
         <strong>{_('reportWhen')}</strong>
@@ -55,8 +55,8 @@ const ReportWhen = decorate([
         onChange={onChange}
         optionRenderer={getOptionRenderer}
         options={REPORT_WHEN_FILTER_OPTIONS}
-        required
         value={value}
+        {...props}
       />
     </FormGroup>
   ),

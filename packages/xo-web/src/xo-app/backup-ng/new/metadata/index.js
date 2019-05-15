@@ -392,6 +392,7 @@ export default decorate([
                 <CardBlock>
                   <ReportWhen
                     onChange={effects.setReportWhen}
+                    required
                     value={reportWhen}
                   />
                 </CardBlock>

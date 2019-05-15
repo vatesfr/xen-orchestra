@@ -868,6 +868,7 @@ export default decorate([
                 <CardBlock>
                   <ReportWhen
                     onChange={effects.setReportWhen}
+                    required
                     //  Handle improper value introduced by:
                     //  https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
                     value={reportWhen === 'Never' ? 'never' : reportWhen}
