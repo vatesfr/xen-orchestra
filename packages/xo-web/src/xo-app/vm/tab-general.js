@@ -62,7 +62,7 @@ export default connectStore(() => {
   }) => {
     const {
       addresses,
-      CPUs,
+      CPUs: cpus,
       current_operations: currentOperations,
       id,
       installTime,
@@ -71,7 +71,7 @@ export default connectStore(() => {
       power_state: powerState,
       startTime,
       tags,
-      VIFs,
+      VIFs: vifs,
       xenTools,
     } = vm
     return (
@@ -82,7 +82,7 @@ export default connectStore(() => {
           <Col mediumSize={3}>
             <h2>
               <Number
-                value={CPUs.number}
+                value={cpus.number}
                 onChange={vcpus => editVm(vm, { CPUs: vcpus })}
               />
               x <Icon icon='cpu' size='lg' />
@@ -109,7 +109,7 @@ export default connectStore(() => {
           <Col mediumSize={3}>
             <BlockLink to={`/vms/${id}/network`}>
               <h2>
-                {VIFs.length}x <Icon icon='network' size='lg' />
+                {vifs.length}x <Icon icon='network' size='lg' />
               </h2>
             </BlockLink>
             <BlockLink to={`/vms/${id}/stats`}>
