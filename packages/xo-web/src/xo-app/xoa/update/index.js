@@ -227,30 +227,19 @@ const Updates = decorate([
           .sort()
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
-      xoaReleaseChannelsOptions: (_, { xoaReleaseChannels }) => {
-        return [
-          ...map(xoaReleaseChannels, elt => ({
-            label: elt.description,
-            value: elt.id,
-          })),
-          {
-            label: <span className='font-italic'>custom channel</span>,
-            value: 'custom channel',
-          },
-        ]
-      },
-      initialChannel: (_, { xoaReleaseChannels, xoaConfiguration }) => {
-        const channel = find(
-          xoaReleaseChannels,
-          channel => channel.id === xoaConfiguration.channel
-        )
-
-        if (channel !== undefined && channel.description !== undefined) {
-          return channel.description
-        } else {
-          return ''
-        }
-      },
+      xoaReleaseChannelsOptions: (_, { xoaReleaseChannels }) =>
+        xoaReleaseChannels.length > 0
+          ? [
+              ...map(xoaReleaseChannels, elt => ({
+                label: elt.description,
+                value: elt.id,
+              })),
+              {
+                label: <span className='font-italic'>custom channel</span>,
+                value: 'custom channel',
+              },
+            ]
+          : [],
     },
   }),
   injectState,
@@ -353,7 +342,7 @@ const Updates = decorate([
                     options={state.xoaReleaseChannelsOptions}
                     placeholder={formatMessage(messages.selectChannel)}
                     required
-                    value={state.channelId || state.initialChannel}
+                    value={state.channelId}
                   />
                   <br />
                   {state.addPrivateChannel && (
