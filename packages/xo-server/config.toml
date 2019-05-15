@@ -74,6 +74,7 @@ honorCipherOrder = true
 secureOptions = 117440512
 
 [http.mounts]
+'/' = '../xo-web/dist'
 
 [remoteOptions]
 mountsDir = '/run/xo-server/mounts'
