@@ -117,7 +117,7 @@ port = 80
 
 # List of files/directories which will be served.
 [http.mounts]
-#'/' = '/path/to/xo-web/dist/'
+#'/any/url' = '/path/to/directory'
 
 # List of proxied URLs (HTTP & WebSockets).
 [http.proxies]
