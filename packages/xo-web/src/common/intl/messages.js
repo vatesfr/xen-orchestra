@@ -462,17 +462,17 @@ const messages = {
   backupTargetSrs: 'Target SRs (for Replication)',
   localRemoteWarningTitle: 'Local remote selected',
   crOnThickProvisionedSrWarning:
-    'Tip: using a thin-provisioned storage will consume less space. Please click on the icon to get more information',
+    'Tip: Using thin-provisioned storage will consume less space. Please click on the icon to get more information',
   vmsOnThinProvisionedSrTip:
-    'Tip: creating VMs on a thin-provisioned storage will consume less space when backing them up. Please click on the icon to get more information',
+    'Tip: Creating VMs on a thin-provisioned storage will consume less space. Please click on the icon to get more information',
   deltaBackupOnOutdatedXenServerWarning:
     'Delta Backup and Continuous Replication require at least XenServer 6.5.',
   backupNgLinkToDocumentationMessage:
-    'Click for more information about the backup modes.',
+    'Click for more information about the backup methods.',
   localRemoteWarningMessage:
-    'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
+    'Warning: Local remotes will use limited XOA disk space. Only for advanced users.',
   backupVersionWarning:
-    'Warning: this feature works only with XenServer 6.5 or newer.',
+    'Warning: his feature works only with XenServer 6.5 or newer.',
   editBackupVmsTitle: 'VMs',
   editBackupSmartStatusTitle: 'VMs statuses',
   editBackupSmartResidentOn: 'Resident on',
@@ -589,13 +589,13 @@ const messages = {
   reattachNewSrTooltip: 'Reattach SR',
 
   // ------ New Network -----
-  createNewNetworkNoPermission: 'You have no permission to create a network',
+  createNewNetworkNoPermission: 'You do not have permission to create a network',
   createNewNetworkOn: 'Create a new network on {select}',
 
-  // ----- Acls, Users, Groups ------
+  // ----- ACLs, Users, Groups ------
   subjectName: 'Users/Groups',
   objectName: 'Object',
-  aclNoneFound: 'No acls found',
+  aclNoneFound: 'No ACLs found',
   roleName: 'Role',
   aclCreate: 'Create',
   newGroupName: 'New Group Name',
@@ -610,8 +610,8 @@ const messages = {
   deleteUsersModalTitle: 'Delete user{nUsers, plural, one {} other {s}}',
   deleteUsersModalMessage:
     'Are you sure you want to delete {nUsers, number} user{nUsers, plural, one {} other {s}}?',
-  noUser: 'no user',
-  unknownUser: 'unknown user',
+  noUser: 'No user',
+  unknownUser: 'Unknown user',
   noGroupFound: 'No group found',
   groupNameColumn: 'Name',
   groupUsersColumn: 'Users',
@@ -728,15 +728,15 @@ const messages = {
   licenseRestrictions: 'License restrictions',
   licenseRestrictionsModalTitle:
     'Warning: you are using a Free XenServer license',
-  actionsRestricted: 'Some actions will be restricted.',
+  actionsRestricted: 'Some functionality is restricted.',
   counterRestrictionsOptions: 'You can:',
   counterRestrictionsOptionsXcp:
     'upgrade to XCP-ng for free to get rid of these restrictions',
   counterRestrictionsOptionsXsLicense: 'or get a commercial Citrix license',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
-  vmsTabName: 'Vms',
-  srsTabName: 'Srs',
+  vmsTabName: 'VMs',
+  srsTabName: 'SRs',
   // ----- Pool advanced tab -----
   poolEditAll: 'Edit all',
   poolEditRemoteSyslog: 'Edit remote syslog for all hosts',
@@ -796,7 +796,7 @@ const messages = {
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
   noHostsAvailableErrorMessage:
-    'Some VMs cannot be migrated before restarting this host. Please try force reboot.',
+    'Some VMs cannot be migrated without first rebooting this host. Please try force reboot.',
   failHostBulkRestartTitle: 'Error while restarting hosts',
   failHostBulkRestartMessage:
     '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.',
@@ -952,10 +952,10 @@ const messages = {
   networkTabName: 'Network',
   disksTabName: 'Disk{disks, plural, one {} other {s}}',
 
-  powerStateHalted: 'halted',
-  powerStateRunning: 'running',
-  powerStateSuspended: 'suspended',
-  powerStatePaused: 'paused',
+  powerStateHalted: 'Halted',
+  powerStateRunning: 'Running',
+  powerStateSuspended: 'Suspended',
+  powerStatePaused: 'Paused',
 
   // ----- VM home -----
   vmCurrentStatus: 'Current status:',
