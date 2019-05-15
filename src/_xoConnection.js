@@ -87,7 +87,7 @@ class XoConnection extends Xo {
     }
   }
 
-  async createUser(params) {
+  async createTempUser(params) {
     const id = await this.call("user.create", params);
     this._tempResourceDisposers.push("user.delete", { id });
     return id;

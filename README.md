@@ -30,7 +30,7 @@ describe("user", () => {
   describe(".set()", () => {
     it("sets an email", async () => {
       // some tests using xo methods and helpers from _xoConnection.js
-      const id = await xo.createUser(SIMPLE_USER);
+      const id = await xo.createTempUser(SIMPLE_USER);
       expect(await xo.call("user.set", params)).toBe(true);
       expect(await xo.getUser(id)).toMatchSnapshot({
         id: expect.any(String),
@@ -68,7 +68,7 @@ describe("user", () => {
   describe(".create()", () => {
     it("creates a user without permission", async () => {
       // The user will be deleted automatically at the end of the test
-      const userId = await xo.createUser({
+      const userId = await xo.createTempUser({
         email: "wayne1@vates.fr",
         password: "batman1",
       });
@@ -80,7 +80,7 @@ describe("user", () => {
   ```
 
   The available helpers:  
-  * `createUser(params)`  
+  * `createTempUser(params)`  
   * `getUser(id)`  
   * `createTempJob(params)`  
   * `createTempBackupNgJob(params)`  

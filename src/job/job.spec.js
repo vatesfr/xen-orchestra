@@ -40,7 +40,7 @@ describe("job", () => {
 
   describe(".create() :", () => {
     it("creates a new job", async () => {
-      const userId = await xo.createUser(ADMIN_USER);
+      const userId = await xo.createTempUser(ADMIN_USER);
       const { email, password } = ADMIN_USER;
       await testWithOtherConnection({ email, password }, async xo => {
         const id = await xo.call("job.create", { job: defaultJob });
@@ -57,7 +57,7 @@ describe("job", () => {
     });
 
     it("creates a job with a userId", async () => {
-      const userId = await xo.createUser(ADMIN_USER);
+      const userId = await xo.createTempUser(ADMIN_USER);
       const id = await xo.createTempJob({ ...defaultJob, userId });
       const { userId: expectedUserId } = await xo.call("job.get", { id });
       expect(userId).toBe(expectedUserId);
