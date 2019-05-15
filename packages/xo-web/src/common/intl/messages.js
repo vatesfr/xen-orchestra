@@ -464,7 +464,7 @@ const messages = {
   crOnThickProvisionedSrWarning:
     'Tip: Using thin-provisioned storage will consume less space. Please click on the icon to get more information',
   vmsOnThinProvisionedSrTip:
-    'Tip: Creating VMs on a thin-provisioned storage will consume less space. Please click on the icon to get more information',
+    'Tip: Creating VMs on thin-provisioned storage will consume less space. Please click on the icon to get more information',
   deltaBackupOnOutdatedXenServerWarning:
     'Delta Backup and Continuous Replication require at least XenServer 6.5.',
   backupNgLinkToDocumentationMessage:
