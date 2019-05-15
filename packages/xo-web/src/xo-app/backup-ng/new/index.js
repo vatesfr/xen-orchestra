@@ -126,7 +126,7 @@ const REPORT_WHEN_FILTER_OPTIONS = [
   },
   {
     label: 'reportWhenNever',
-    value: 'Never',
+    value: 'never',
   },
 ]
 
@@ -905,7 +905,9 @@ export default decorate([
                       optionRenderer={getOptionRenderer}
                       options={REPORT_WHEN_FILTER_OPTIONS}
                       required
-                      value={reportWhen}
+                      //  Handle improper value introduced by:
+                      //  https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
+                      value={reportWhen === 'Never' ? 'never' : reportWhen}
                       valueKey='value'
                     />
                   </FormGroup>

@@ -1,4 +1,4 @@
-import { format } from 'json-rpc-peer'
+import { format, JsonRPcError } from 'json-rpc-peer'
 
 // ===================================================================
 
@@ -234,7 +234,7 @@ async function handleInstallSupplementalPack(req, res, { poolId }) {
     res.end(format.response(0))
   } catch (e) {
     res.writeHead(500)
-    res.end(format.error(0, new Error(e.message)))
+    res.end(format.error(0, new JsonRPcError(e.message)))
   }
 }
 

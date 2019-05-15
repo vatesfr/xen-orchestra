@@ -221,7 +221,7 @@ const messages = {
   srSharedType: 'Shared {type}',
   srNotSharedType: 'Not shared {type}',
 
-  // ----- Home snapshots  -----
+  // ----- Home snapshots -----
   snapshotVmsName: 'Name',
   snapshotVmsDescription: 'Description',
 
@@ -479,7 +479,7 @@ const messages = {
   editBackupSmartNotResidentOn: 'Not resident on',
   editBackupSmartPools: 'Pools',
   editBackupSmartTags: 'Tags',
-  sampleOfMatchingVms: 'Sample of matching Vms',
+  sampleOfMatchingVms: 'Sample of matching VMs',
   backupReplicatedVmsInfo:
     'Replicated VMs (VMs with Continuous Replication or Disaster Recovery tag) must be excluded!',
   editBackupSmartTagsTitle: 'VMs Tags',
@@ -588,7 +588,7 @@ const messages = {
   newSrNfsOptions: 'Comma delimited NFS options',
   reattachNewSrTooltip: 'Reattach SR',
 
-  // ------ New Newtork -----
+  // ------ New Network -----
   createNewNetworkNoPermission: 'You have no permission to create a network',
   createNewNetworkOn: 'Create a new network on {select}',
 
@@ -645,7 +645,7 @@ const messages = {
   unknownPluginError: 'Unknown error',
   purgePluginConfiguration: 'Purge plugin configuration',
   purgePluginConfigurationQuestion:
-    'Are you sure you want to purge this configuration ?',
+    'Are you sure you want to purge this configuration?',
   editPluginConfiguration: 'Edit',
   cancelPluginEdition: 'Cancel',
   pluginConfigurationSuccess: 'Plugin configuration',
@@ -1321,6 +1321,7 @@ const messages = {
   newVmSshKey: 'SSH key',
   noConfigDrive: 'No config drive',
   newVmCustomConfig: 'Custom config',
+  premiumOnly: 'Only available in Premium',
   availableTemplateVarsInfo:
     'Click here to see the available template variables',
   availableTemplateVarsTitle: 'Available template variables',
@@ -1675,7 +1676,7 @@ const messages = {
   definitiveMessageModal: 'This operation is definitive.',
   existingLunModalTitle: 'Previous LUN Usage',
   existingLunModalText:
-    'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.',
+    'This LUN has been previously used as storage by a XenServer host. All data will be lost if you choose to continue with the SR creation.',
   alreadyRegisteredModal: 'Replace current registration?',
   alreadyRegisteredModalText:
     'Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?',
@@ -1788,9 +1789,9 @@ const messages = {
   xenOrchestra: 'Xen Orchestra',
   xenOrchestraServer: 'Xen Orchestra server',
   xenOrchestraWeb: 'Xen Orchestra web client',
-  noProSupport: 'No pro support provided!',
-  noProductionUse: 'Use in production at your own risks',
-  downloadXoaFromWebsite: 'You can download our turnkey appliance at {website}',
+  noProSupport: 'Professional support missing!',
+  noProductionUse: 'Use in production at your own risk',
+  downloadXoaFromWebsite: 'You can download the turnkey appliance at {website}',
   bugTracker: 'Bug Tracker',
   bugTrackerText: 'Issues? Report it!',
   community: 'Community',
@@ -2026,7 +2027,7 @@ const messages = {
   // ----- Config -----
   noConfigFile: 'No config file selected',
   importTip:
-    'Try dropping a config file here, or click to select a config file to upload.',
+    'Try dropping a config file here or click to select a config file to upload.',
   config: 'Config',
   importConfig: 'Import',
   importConfigSuccess: 'Config file successfully imported',
@@ -2103,7 +2104,7 @@ const messages = {
   xosanUpdatePacks: 'Update packs',
   xosanPackUpdateChecking: 'Checking for updates',
   xosanPackUpdateError:
-    'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded and that the updater is reachable.',
+    'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded, and that the updater is reachable.',
   xosanPackUpdateUnavailable: 'XOSAN resources are unavailable',
   xosanPackUpdateUnregistered: 'Not registered for XOSAN resources',
   xosanPackUpdateUpToDate: "✓ This pool's XOSAN packs are up to date!",

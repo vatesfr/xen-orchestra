@@ -633,7 +633,7 @@ const TRANSFORMS = {
       description: poolPatch.name_description,
       name: poolPatch.name_label,
       pool_patch: poolPatch.$ref,
-      size: poolPatch.size,
+      size: +poolPatch.size,
       guidance: poolPatch.after_apply_guidance,
       time: toTimestamp(obj.timestamp_applied),
 

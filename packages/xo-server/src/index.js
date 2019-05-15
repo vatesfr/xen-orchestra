@@ -417,6 +417,7 @@ const setUpProxies = (express, opts, xo) => {
   }
 
   const proxy = createProxyServer({
+    changeOrigin: true,
     ignorePath: true,
   }).on('error', error => console.error(error))
 

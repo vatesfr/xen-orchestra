@@ -6,5 +6,5 @@
 
 ### Released packages
 
-- xo-server v5.41.0
-- xo-web v5.41.0
+- xo-server v5.42.0
+- xo-web v5.42.0

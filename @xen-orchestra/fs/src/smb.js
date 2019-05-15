@@ -159,6 +159,10 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return this._client.unlink(this._getFilePath(file)).catch(normalizeError)
   }
 
+  _writeFd(file, buffer, position) {
+    return this._client.write(file.fd, buffer, 0, buffer.length, position)
+  }
+
   _writeFile(file, data, options) {
     return this._client
       .writeFile(this._getFilePath(file), data, options)

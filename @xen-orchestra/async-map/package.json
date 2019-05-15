@@ -46,6 +46,7 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
     "prepare": "yarn run build",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "postversion": "npm publish"
   }
 }

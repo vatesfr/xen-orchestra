@@ -50,5 +50,6 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
-  }
+  },
+  "private": true
 }

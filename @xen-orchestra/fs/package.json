@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/fs",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "license": "AGPL-3.0",
   "description": "The File System for Xen Orchestra backups.",
   "keywords": [],
@@ -55,6 +55,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
-    "prepare": "yarn run build"
+    "prepare": "yarn run build",
+    "postversion": "npm publish"
   }
 }

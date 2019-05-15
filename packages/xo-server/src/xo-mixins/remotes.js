@@ -168,19 +168,12 @@ export default class {
   }
 
   @synchronized()
-  async _updateRemote(id, { benchmarks, url, ...props }) {
+  async _updateRemote(id, { url, ...props }) {
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values
     if (typeof url === 'string') {
       remote.url = format(sensitiveValues.merge(parse(url), parse(remote.url)))
-    }
-
-    if (
-      benchmarks !== undefined ||
-      (benchmarks = remote.benchmarks) !== undefined
-    ) {
-      remote.benchmarks = JSON.stringify(benchmarks)
     }
 
     patch(remote, props)
