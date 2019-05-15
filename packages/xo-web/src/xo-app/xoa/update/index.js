@@ -65,7 +65,7 @@ const initialProxyState = () => zipObject(PROXY_ENTRIES)
 const REGISTRATION_ENTRIES = ['email', 'password']
 const initialRegistrationState = () => zipObject(REGISTRATION_ENTRIES)
 
-const CHANNEL_ENTRIES = ['addPrivateChannel', 'channel', 'privateChannel']
+const CHANNEL_ENTRIES = ['addPrivateChannel', 'channelId', 'privateChannelId']
 const initialChannels = () => zipObject(CHANNEL_ENTRIES)
 
 const helper = (obj1, obj2, prop) =>
@@ -102,14 +102,34 @@ const Updates = decorate([
             'proxyUser',
           ]),
           channel: this.state.addPrivateChannel
-            ? this.state.privateChannel
-            : this.state.channel,
+            ? this.state.privateChannelId
+            : this.state.channelId,
         })
         return this.effects.resetProxyConfig()
       },
       async initialize() {
         await this.effects.update()
         await this.effects.getReleaseChannels()
+        await this.effects.initializeChannel()
+      },
+      initializeChannel() {
+        const { xoaReleaseChannels, xoaConfiguration } = this.props
+        if (xoaConfiguration.channel === undefined) {
+          this.state.channelId = ''
+        } else {
+          if (
+            // Is public channel
+            find(
+              xoaReleaseChannels,
+              channel => channel.id === xoaConfiguration.channel
+            )
+          ) {
+            this.state.channelId = xoaConfiguration.channel
+          } else {
+            this.state.addPrivateChannel = true
+            this.state.privateChannelId = xoaConfiguration.channel
+          }
+        }
       },
       linkState,
       async register() {
@@ -162,15 +182,17 @@ const Updates = decorate([
       toggleState,
       update: () => xoaUpdater.update(),
       upgrade: () => xoaUpdater.upgrade(),
-      getReleaseChannels: () => xoaUpdater.getReleaseChannels(),
+      getReleaseChannels: async () => {
+        await xoaUpdater.getReleaseChannels()
+      },
       onChannelChange: (_, channel) => {
         if (channel.value === 'custom channel') {
           return {
-            channel: channel.value,
+            channelId: channel.value,
             addPrivateChannel: true,
           }
         }
-        return { channel: channel.value, addPrivateChannel: false }
+        return { channelId: channel.value, addPrivateChannel: false }
       },
     },
     computed: {
@@ -239,7 +261,6 @@ const Updates = decorate([
     state,
     xoaConfiguration,
     xoaRegisterState,
-    xoaReleaseChannels,
     xoaTrialState,
     xoaUpdaterLog,
     xoaUpdaterState,
@@ -332,7 +353,7 @@ const Updates = decorate([
                     options={state.xoaReleaseChannelsOptions}
                     placeholder={formatMessage(messages.selectChannel)}
                     required
-                    value={state.channel || state.initialChannel}
+                    value={state.channelId || state.initialChannel}
                   />
                   <br />
                   {state.addPrivateChannel && (
@@ -340,7 +361,7 @@ const Updates = decorate([
                       <input
                         autoFocus
                         className='form-control'
-                        name='privateChannel'
+                        name='privateChannelId'
                         onChange={effects.linkState}
                         placeholder={formatMessage(messages.privateChannelName)}
                         required
@@ -348,7 +369,7 @@ const Updates = decorate([
                         value={helper(
                           state,
                           xoaConfiguration,
-                          'privateChannel'
+                          'privateChannelId'
                         )}
                       />
                     </div>
