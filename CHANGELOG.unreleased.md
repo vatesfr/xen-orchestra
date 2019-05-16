@@ -7,6 +7,8 @@
 
 ### Bug fixes
 
+- [Charts] Fixed the chart lines sometimes changing order/color (PR [#4221](https://github.com/vatesfr/xen-orchestra/pull/4221))
+
 ### Released packages
 
 - xo-server v5.42.0
