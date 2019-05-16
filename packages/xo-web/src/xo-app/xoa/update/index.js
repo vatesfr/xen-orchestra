@@ -18,7 +18,7 @@ import { ignoreErrors } from 'promise-toolbox'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { find, isEmpty, map, pick, some, zipObject } from 'lodash'
-import { linkState, toggleState } from 'reaclette-utils'
+import { generateId, linkState, toggleState } from 'reaclette-utils'
 import { Password, Select } from 'form'
 import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
@@ -110,24 +110,24 @@ const Updates = decorate([
       },
       async initialize() {
         ignoreErrors.call(this.effects.update())
-        await this.effects.getReleaseChannels()
+        this.state.xoaReleaseChannels = await xoaUpdater.getReleaseChannels()
         ignoreErrors.call(this.effects.initializeChannel())
       },
       initializeChannel() {
-        const { xoaConfiguration } = this.props
-        if (xoaConfiguration.channel !== undefined) {
+        const { channel } = this.props.xoaConfiguration
+        if (channel !== undefined) {
           if (
             // Is public channel
             find(
               this.state.xoaReleaseChannels,
-              channel => channel.id === xoaConfiguration.channel
+              channel => channel.id === channel
             )
           ) {
-            return { channelId: xoaConfiguration.channel }
+            return { channelId: channel }
           } else {
             return {
               addPrivateChannel: true,
-              privateChannelId: xoaConfiguration.channel,
+              privateChannelId: channel,
             }
           }
         }
@@ -183,10 +183,6 @@ const Updates = decorate([
       toggleState,
       update: () => xoaUpdater.update(),
       upgrade: () => xoaUpdater.upgrade(),
-      getReleaseChannels: async () => {
-        const xoaReleaseChannels = await xoaUpdater.getReleaseChannels()
-        return { xoaReleaseChannels }
-      },
       onChannelChange: (_, channel) => {
         if (channel.value === 'custom channel') {
           return {
@@ -239,6 +235,7 @@ const Updates = decorate([
           value: 'custom channel',
         },
       ],
+      idReleaseChannelsForm: generateId,
     },
   }),
   injectState,
@@ -333,11 +330,10 @@ const Updates = decorate([
           <Card>
             <CardHeader>{_('releaseChannels')}</CardHeader>
             <CardBlock>
-              <form id='releaseChannelsForm' className='form'>
+              <form id={state.idReleaseChannelsForm} className='form'>
                 <div className='form-group'>
                   <Select
                     autoSelectSingleOption={false}
-                    clearable={false}
                     onChange={effects.onChannelChange}
                     options={state.xoaReleaseChannelsOptions}
                     placeholder={formatMessage(messages.selectChannel)}
@@ -365,10 +361,10 @@ const Updates = decorate([
                   )}
                 </div>{' '}
                 <ActionButton
-                  form='releaseChannelsForm'
-                  icon='success'
                   btnStyle='primary'
+                  form={state.idReleaseChannelsForm}
                   handler={effects.configure}
+                  icon='success'
                 >
                   {_('changeChannel')}
                 </ActionButton>
