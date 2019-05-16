@@ -14,6 +14,7 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
+import { ignoreErrors } from 'promise-toolbox'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { find, isEmpty, map, pick, some, zipObject } from 'lodash'
@@ -108,14 +109,14 @@ const Updates = decorate([
         return this.effects.resetProxyConfig()
       },
       async initialize() {
-        this.effects.update()
+        ignoreErrors.call(this.effects.update())
         await this.effects.getReleaseChannels()
-        this.effects.initializeChannel()
+        ignoreErrors.call(this.effects.initializeChannel())
       },
       initializeChannel() {
         const { xoaConfiguration } = this.props
         if (xoaConfiguration.channel === undefined) {
-          this.state.channelId = ''
+          return { channelId: '' }
         } else {
           if (
             // Is public channel
