@@ -14,7 +14,6 @@ import {
   setXoaTrialState,
   setXoaUpdaterLog,
   setXoaUpdaterState,
-  setXoaReleaseChannels,
 } from 'store/actions'
 
 // ===================================================================
@@ -428,8 +427,5 @@ export const connectStore = store => {
   )
   xoaUpdater.on('configuration', configuration =>
     store.dispatch(setXoaConfiguration(configuration))
-  )
-  xoaUpdater.on('releaseChannels', releaseChannels =>
-    store.dispatch(setXoaReleaseChannels(releaseChannels))
   )
 }
