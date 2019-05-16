@@ -15,6 +15,7 @@ import {
   max,
   round,
   size,
+  sortBy,
   sum,
   values,
 } from 'lodash'
@@ -107,7 +108,7 @@ const makeLabelInterpolationFnc = (intl, nValues, endTimestamp, interval) => {
 
 // Supported series: xvds, vifs, pifs.
 const buildSeries = ({ stats, label, addSumSeries }) => {
-  const series = []
+  let series = []
 
   for (const io in stats) {
     const ioData = stats[io]
@@ -122,6 +123,8 @@ const buildSeries = ({ stats, label, addSumSeries }) => {
         })
       }
     }
+
+    series = sortBy(series, 'name')
 
     if (addSumSeries) {
       series.push({
@@ -588,10 +591,13 @@ PoolLoadLineChart.propTypes = {
 }
 
 const buildSrSeries = ({ stats, label, addSumSeries }) => {
-  const series = map(stats, (data, key) => ({
-    name: `${label} (${key})`,
-    data,
-  }))
+  const series = sortBy(
+    map(stats, (data, key) => ({
+      name: `${label} (${key})`,
+      data,
+    })),
+    'name'
+  )
 
   if (addSumSeries) {
     series.push({
