@@ -384,12 +384,9 @@ class XoaUpdater extends EventEmitter {
 
   async getReleaseChannels() {
     try {
-      this._releaseChannels = await this._call('getReleaseChannels')
-      return this._releaseChannels
+      return await this._call('getReleaseChannels')
     } catch (error) {
-      this._releaseChannels = []
-    } finally {
-      this.emit('releaseChannels', this._releaseChannels)
+      return []
     }
   }
 

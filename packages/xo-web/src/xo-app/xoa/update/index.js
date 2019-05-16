@@ -78,7 +78,6 @@ const Updates = decorate([
   }),
   connectStore([
     'xoaConfiguration',
-    'xoaReleaseChannels',
     'xoaRegisterState',
     'xoaTrialState',
     'xoaUpdaterLog',
@@ -90,6 +89,7 @@ const Updates = decorate([
       ...initialRegistrationState(),
       ...initialChannels(),
       askRegisterAgain: false,
+      xoaReleaseChannels: [],
       showPackagesList: false,
     }),
     effects: {
@@ -108,26 +108,28 @@ const Updates = decorate([
         return this.effects.resetProxyConfig()
       },
       async initialize() {
-        await this.effects.update()
+        this.effects.update()
         await this.effects.getReleaseChannels()
-        await this.effects.initializeChannel()
+        this.effects.initializeChannel()
       },
       initializeChannel() {
-        const { xoaReleaseChannels, xoaConfiguration } = this.props
+        const { xoaConfiguration } = this.props
         if (xoaConfiguration.channel === undefined) {
           this.state.channelId = ''
         } else {
           if (
             // Is public channel
             find(
-              xoaReleaseChannels,
+              this.state.xoaReleaseChannels,
               channel => channel.id === xoaConfiguration.channel
             )
           ) {
-            this.state.channelId = xoaConfiguration.channel
+            return { channelId: xoaConfiguration.channel }
           } else {
-            this.state.addPrivateChannel = true
-            this.state.privateChannelId = xoaConfiguration.channel
+            return {
+              addPrivateChannel: true,
+              privateChannelId: xoaConfiguration.channel,
+            }
           }
         }
       },
@@ -183,7 +185,8 @@ const Updates = decorate([
       update: () => xoaUpdater.update(),
       upgrade: () => xoaUpdater.upgrade(),
       getReleaseChannels: async () => {
-        await xoaUpdater.getReleaseChannels()
+        const xoaReleaseChannels = await xoaUpdater.getReleaseChannels()
+        return { xoaReleaseChannels }
       },
       onChannelChange: (_, channel) => {
         if (channel.value === 'custom channel') {
@@ -227,19 +230,16 @@ const Updates = decorate([
           .sort()
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
-      xoaReleaseChannelsOptions: (_, { xoaReleaseChannels }) =>
-        xoaReleaseChannels.length > 0
-          ? [
-              ...map(xoaReleaseChannels, elt => ({
-                label: elt.description,
-                value: elt.id,
-              })),
-              {
-                label: <span className='font-italic'>custom channel</span>,
-                value: 'custom channel',
-              },
-            ]
-          : [],
+      xoaReleaseChannelsOptions: ({ xoaReleaseChannels }) => [
+        ...map(xoaReleaseChannels, elt => ({
+          label: elt.description,
+          value: elt.id,
+        })),
+        {
+          label: <span className='font-italic'>custom channel</span>,
+          value: 'custom channel',
+        },
+      ],
     },
   }),
   injectState,
@@ -337,6 +337,7 @@ const Updates = decorate([
               <form id='releaseChannelsForm' className='form'>
                 <div className='form-group'>
                   <Select
+                    autoSelectSingleOption={false}
                     clearable={false}
                     onChange={effects.onChannelChange}
                     options={state.xoaReleaseChannelsOptions}

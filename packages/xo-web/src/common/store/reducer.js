@@ -163,7 +163,4 @@ export default {
       },
     }
   ),
-  xoaReleaseChannels: combineActionHandlers([], {
-    [actions.setXoaReleaseChannels]: (_, releaseChannels) => releaseChannels,
-  }),
 }

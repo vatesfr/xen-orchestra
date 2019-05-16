@@ -53,7 +53,3 @@ export const setXoaConfiguration = createAction(
   'XOA_CONFIGURATION',
   configuration => configuration
 )
-export const setXoaReleaseChannels = createAction(
-  'XOA_RELEASE_CHANNELS',
-  releaseChannels => releaseChannels
-)
