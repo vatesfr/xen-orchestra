@@ -115,9 +115,7 @@ const Updates = decorate([
       },
       initializeChannel() {
         const { xoaConfiguration } = this.props
-        if (xoaConfiguration.channel === undefined) {
-          return { channelId: '' }
-        } else {
+        if (xoaConfiguration.channel !== undefined) {
           if (
             // Is public channel
             find(
