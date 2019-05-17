@@ -447,7 +447,8 @@ const messages = {
   timeoutInfo: 'Number of hours after which a job is considered failed',
   fullBackupInterval: 'Full backup interval',
   timeoutUnit: 'In hours',
-  dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require an Enterprise plan',
+  dbAndDrRequireEnterprisePlan:
+    'Delta Backup and DR require an Enterprise plan',
   crRequiresPremiumPlan: 'CR requires a Premium plan',
   smartBackupModeTitle: 'Smart mode',
   backupTargetRemotes: 'Target remotes (for export)',
@@ -575,7 +576,8 @@ const messages = {
   reattachNewSrTooltip: 'Reattach SR',
 
   // ------ New Network -----
-  createNewNetworkNoPermission: 'You do not have permission to create a network',
+  createNewNetworkNoPermission:
+    'You do not have permission to create a network',
   createNewNetworkOn: 'Create a new network on {select}',
 
   // ----- ACLs, Users, Groups ------
@@ -1787,7 +1789,8 @@ const messages = {
   upgradeWarningMessage:
     'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?',
   releaseChannels: 'Release channels',
-  UnlistedChannelName: 'Unlisted channel name',
+  unlistedChannel: 'unlisted channel',
+  unlistedChannelName: 'Unlisted channel name',
   selectChannel: 'Select channel',
   changeChannel: 'Change channel',
 

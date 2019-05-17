@@ -96,6 +96,7 @@ const Updates = decorate([
     effects: {
       async configure() {
         const { state } = this
+        const { effects } = this
         await xoaUpdater.configure({
           ...pick(state, [
             'proxyHost',
@@ -107,7 +108,8 @@ const Updates = decorate([
             ? state.unlistedChannel
             : state.channel,
         })
-        return this.effects.resetProxyConfig()
+        await effects.resetProxyConfig()
+        return effects.update()
       },
       async initialize() {
         await Promise.all([
@@ -203,7 +205,9 @@ const Updates = decorate([
                   value: channel,
                 })),
               {
-                label: <span className='font-italic'>unlisted channel</span>,
+                label: (
+                  <span className='font-italic'>{_('unlistedChannel')}</span>
+                ),
                 value: UNLISTED_CHANNEL_VALUE,
               },
             ],
@@ -349,7 +353,7 @@ const Updates = decorate([
                         name='unlistedChannel'
                         onChange={effects.linkState}
                         placeholder={formatMessage(
-                          messages.UnlistedChannelName
+                          messages.unlistedChannelName
                         )}
                         required
                         type='text'
