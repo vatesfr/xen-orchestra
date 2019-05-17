@@ -12,7 +12,7 @@
     "eslint-config-standard-jsx": "^6.0.2",
     "eslint-plugin-eslint-comments": "^3.1.1",
     "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-node": "^8.0.0",
+    "eslint-plugin-node": "^9.0.1",
     "eslint-plugin-promise": "^4.0.0",
     "eslint-plugin-react": "^7.6.1",
     "eslint-plugin-standard": "^4.0.0",
