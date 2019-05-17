@@ -192,18 +192,19 @@ const Updates = decorate([
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
       channelsFormId: generateId,
-      channelsOptions: ({ channels }) => [
-        ...Object.keys(channels)
-          .sort()
-          .map(channel => ({
-            label: channel,
-            value: channel,
-          })),
-        {
-          label: <span className='font-italic'>unlisted channel</span>,
-          value: UNLISTED_CHANNEL_VALUE,
-        },
-      ],
+      channelsOptions: ({ channels }) =>
+        channels && [
+          ...Object.keys(channels)
+            .sort()
+            .map(channel => ({
+              label: channel,
+              value: channel,
+            })),
+          {
+            label: <span className='font-italic'>unlisted channel</span>,
+            value: UNLISTED_CHANNEL_VALUE,
+          },
+        ],
       async installedPackages() {
         const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
         return { ...installer, ...updater, ...npm }
@@ -330,6 +331,7 @@ const Updates = decorate([
                 <div className='form-group'>
                   <Select
                     autoSelectSingleOption={false} // avoid selecting *unlisted channel* before public channels are retrieved
+                    isLoading={state.channelsOptions === undefined}
                     onChange={effects.onChannelChange}
                     options={state.channelsOptions}
                     placeholder={formatMessage(messages.selectChannel)}
