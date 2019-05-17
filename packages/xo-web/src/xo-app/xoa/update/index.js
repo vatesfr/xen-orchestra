@@ -14,7 +14,6 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
-import { ignoreErrors } from 'promise-toolbox'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
@@ -59,6 +58,8 @@ const LEVELS_TO_CLASSES = {
   warning: 'text-warning',
   error: 'text-danger',
 }
+
+const UNLISTED_CHANNEL_VALUE = 'unlisted channel'
 
 const PROXY_ENTRIES = ['proxyHost', 'proxyPassword', 'proxyPort', 'proxyUser']
 const initialProxyState = () => zipObject(PROXY_ENTRIES)
@@ -108,26 +109,27 @@ const Updates = decorate([
         })
         return this.effects.resetProxyConfig()
       },
-      async initialize() {
-        ignoreErrors.call(this.effects.update())
-        this.state.xoaReleaseChannels = await xoaUpdater.getReleaseChannels()
-        ignoreErrors.call(this.effects.initializeChannel())
+      initialize() {
+        return Promise.all([
+          this.effects.initializeChannels(),
+          this.effects.update(),
+        ])
       },
-      initializeChannel() {
+      async initializeChannels() {
+        const channels = await xoaUpdater.getReleaseChannels()
+
         const { channel } = this.props.xoaConfiguration
         if (channel !== undefined) {
-          if (
-            // Is public channel
-            this.state.xoaReleaseChannels[channel]
-          ) {
-            return { channel: channel }
-          } else {
-            return {
-              addUnlistedChannel: true,
-              channel: 'unlisted channel',
-              unlistedChannel: channel,
-            }
-          }
+          const isPublicChannel = channel in channels
+
+          return isPublicChannel
+            ? { channel: channel, channels }
+            : {
+                addUnlistedChannel: true,
+                channel: UNLISTED_CHANNEL_VALUE,
+                channels,
+                unlistedChannel: channel,
+              }
         }
       },
       linkState,
@@ -182,7 +184,7 @@ const Updates = decorate([
       update: () => xoaUpdater.update(),
       upgrade: () => xoaUpdater.upgrade(),
       onChannelChange: (_, channel) => {
-        if (channel.value === 'unlisted channel') {
+        if (channel.value === UNLISTED_CHANNEL_VALUE) {
           return {
             channel: channel.value,
             addUnlistedChannel: true,
@@ -231,7 +233,7 @@ const Updates = decorate([
         })),
         {
           label: <span className='font-italic'>unlisted channel</span>,
-          value: 'unlisted channel',
+          value: UNLISTED_CHANNEL_VALUE,
         },
       ],
     },
