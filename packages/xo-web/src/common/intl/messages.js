@@ -1787,7 +1787,7 @@ const messages = {
   upgradeWarningMessage:
     'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?',
   releaseChannels: 'Release channels',
-  privateChannelName: 'Private channel name',
+  UnlistedChannelName: 'Unlisted channel name',
   selectChannel: 'Select channel',
   changeChannel: 'Change channel',
 

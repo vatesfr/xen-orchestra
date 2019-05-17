@@ -17,7 +17,7 @@ import { error } from 'notification'
 import { ignoreErrors } from 'promise-toolbox'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { find, isEmpty, map, pick, some, zipObject } from 'lodash'
+import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { generateId, linkState, toggleState } from 'reaclette-utils'
 import { Password, Select } from 'form'
 import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
@@ -66,7 +66,7 @@ const initialProxyState = () => zipObject(PROXY_ENTRIES)
 const REGISTRATION_ENTRIES = ['email', 'password']
 const initialRegistrationState = () => zipObject(REGISTRATION_ENTRIES)
 
-const CHANNEL_ENTRIES = ['addPrivateChannel', 'channelId', 'privateChannelId']
+const CHANNEL_ENTRIES = ['addUnlistedChannel', 'channel', 'unlistedChannel']
 const initialChannels = () => zipObject(CHANNEL_ENTRIES)
 
 const helper = (obj1, obj2, prop) =>
@@ -102,9 +102,9 @@ const Updates = decorate([
             'proxyPort',
             'proxyUser',
           ]),
-          channel: this.state.addPrivateChannel
-            ? this.state.privateChannelId
-            : this.state.channelId,
+          channel: this.state.addUnlistedChannel
+            ? this.state.unlistedChannel
+            : this.state.channel,
         })
         return this.effects.resetProxyConfig()
       },
@@ -118,16 +118,14 @@ const Updates = decorate([
         if (channel !== undefined) {
           if (
             // Is public channel
-            find(
-              this.state.xoaReleaseChannels,
-              channel => channel.id === channel
-            )
+            this.state.xoaReleaseChannels[channel]
           ) {
-            return { channelId: channel }
+            return { channel: channel }
           } else {
             return {
-              addPrivateChannel: true,
-              privateChannelId: channel,
+              addUnlistedChannel: true,
+              channel: 'unlisted channel',
+              unlistedChannel: channel,
             }
           }
         }
@@ -184,13 +182,13 @@ const Updates = decorate([
       update: () => xoaUpdater.update(),
       upgrade: () => xoaUpdater.upgrade(),
       onChannelChange: (_, channel) => {
-        if (channel.value === 'custom channel') {
+        if (channel.value === 'unlisted channel') {
           return {
-            channelId: channel.value,
-            addPrivateChannel: true,
+            channel: channel.value,
+            addUnlistedChannel: true,
           }
         }
-        return { channelId: channel.value, addPrivateChannel: false }
+        return { channel: channel.value, addUnlistedChannel: false }
       },
     },
     computed: {
@@ -226,13 +224,13 @@ const Updates = decorate([
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
       xoaReleaseChannelsOptions: ({ xoaReleaseChannels }) => [
-        ...map(xoaReleaseChannels, elt => ({
-          label: elt.description,
-          value: elt.id,
+        ...map(xoaReleaseChannels, (_, channel) => ({
+          label: channel,
+          value: channel,
         })),
         {
-          label: <span className='font-italic'>custom channel</span>,
-          value: 'custom channel',
+          label: <span className='font-italic'>unlisted channel</span>,
+          value: 'unlisted channel',
         },
       ],
       idReleaseChannelsForm: generateId,
@@ -338,23 +336,25 @@ const Updates = decorate([
                     options={state.xoaReleaseChannelsOptions}
                     placeholder={formatMessage(messages.selectChannel)}
                     required
-                    value={state.channelId}
+                    value={state.channel}
                   />
                   <br />
-                  {state.addPrivateChannel && (
+                  {state.addUnlistedChannel && (
                     <div className='form-group'>
                       <input
                         autoFocus
                         className='form-control'
-                        name='privateChannelId'
+                        name='unlistedChannel'
                         onChange={effects.linkState}
-                        placeholder={formatMessage(messages.privateChannelName)}
+                        placeholder={formatMessage(
+                          messages.UnlistedChannelName
+                        )}
                         required
                         type='text'
                         value={helper(
                           state,
                           xoaConfiguration,
-                          'privateChannelId'
+                          'unlistedChannel'
                         )}
                       />
                     </div>
