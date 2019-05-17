@@ -333,7 +333,7 @@ const Updates = decorate([
               <form id={state.idReleaseChannelsForm} className='form'>
                 <div className='form-group'>
                   <Select
-                    autoSelectSingleOption={false}
+                    autoSelectSingleOption={false} // We don't want Select to tigger an onChange when only one option is passed
                     onChange={effects.onChannelChange}
                     options={state.xoaReleaseChannelsOptions}
                     placeholder={formatMessage(messages.selectChannel)}
