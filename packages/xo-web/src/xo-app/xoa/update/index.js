@@ -223,6 +223,7 @@ const Updates = decorate([
           .sort()
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
+      releaseChannelsFormId: generateId,
       xoaReleaseChannelsOptions: ({ xoaReleaseChannels }) => [
         ...map(xoaReleaseChannels, (_, channel) => ({
           label: channel,
@@ -233,7 +234,6 @@ const Updates = decorate([
           value: 'unlisted channel',
         },
       ],
-      idReleaseChannelsForm: generateId,
     },
   }),
   injectState,
@@ -328,10 +328,10 @@ const Updates = decorate([
           <Card>
             <CardHeader>{_('releaseChannels')}</CardHeader>
             <CardBlock>
-              <form id={state.idReleaseChannelsForm} className='form'>
+              <form id={state.releaseChannelsFormId} className='form'>
                 <div className='form-group'>
                   <Select
-                    autoSelectSingleOption={false} // We don't want Select to tigger an onChange when only one option is passed
+                    autoSelectSingleOption={false} // avoid selecting *unlisted channel* before public channels are retrieved
                     onChange={effects.onChannelChange}
                     options={state.xoaReleaseChannelsOptions}
                     placeholder={formatMessage(messages.selectChannel)}
@@ -362,7 +362,7 @@ const Updates = decorate([
                 </div>{' '}
                 <ActionButton
                   btnStyle='primary'
-                  form={state.idReleaseChannelsForm}
+                  form={state.releaseChannelsFormId}
                   handler={effects.configure}
                   icon='success'
                 >
