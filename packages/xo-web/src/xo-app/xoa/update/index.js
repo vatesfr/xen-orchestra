@@ -193,18 +193,20 @@ const Updates = decorate([
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
       channelsFormId: generateId,
       channelsOptions: ({ channels }) =>
-        channels && [
-          ...Object.keys(channels)
-            .sort()
-            .map(channel => ({
-              label: channel,
-              value: channel,
-            })),
-          {
-            label: <span className='font-italic'>unlisted channel</span>,
-            value: UNLISTED_CHANNEL_VALUE,
-          },
-        ],
+        channels === undefined
+          ? undefined
+          : [
+              ...Object.keys(channels)
+                .sort()
+                .map(channel => ({
+                  label: channel,
+                  value: channel,
+                })),
+              {
+                label: <span className='font-italic'>unlisted channel</span>,
+                value: UNLISTED_CHANNEL_VALUE,
+              },
+            ],
       async installedPackages() {
         const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
         return { ...installer, ...updater, ...npm }
