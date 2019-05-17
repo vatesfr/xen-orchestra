@@ -95,8 +95,7 @@ const Updates = decorate([
     }),
     effects: {
       async configure() {
-        const { state } = this
-        const { effects } = this
+        const { effects, state } = this
         await xoaUpdater.configure({
           ...pick(state, [
             'proxyHost',
