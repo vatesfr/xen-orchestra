@@ -116,18 +116,18 @@ const Updates = decorate([
         ])
       },
       async initializeChannels() {
-        const channels = await xoaUpdater.getReleaseChannels()
+        const xoaReleaseChannels = await xoaUpdater.getReleaseChannels()
 
         const { channel } = this.props.xoaConfiguration
         if (channel !== undefined) {
-          const isPublicChannel = channel in channels
+          const isPublicChannel = channel in xoaReleaseChannels
 
           return isPublicChannel
-            ? { channel: channel, channels }
+            ? { channel: channel, xoaReleaseChannels }
             : {
                 addUnlistedChannel: true,
                 channel: UNLISTED_CHANNEL_VALUE,
-                channels,
+                xoaReleaseChannels,
                 unlistedChannel: channel,
               }
         }
