@@ -91,8 +91,8 @@ const Updates = decorate([
       ...initialRegistrationState(),
       ...initialChannels(),
       askRegisterAgain: false,
-      xoaReleaseChannels: {},
       showPackagesList: false,
+      xoaReleaseChannels: {},
     }),
     effects: {
       async configure() {
@@ -109,27 +109,26 @@ const Updates = decorate([
         })
         return this.effects.resetProxyConfig()
       },
-      initialize() {
-        return Promise.all([
+      async initialize() {
+        await Promise.all([
           this.effects.initializeChannels(),
           this.effects.update(),
         ])
       },
       async initializeChannels() {
         const xoaReleaseChannels = await xoaUpdater.getReleaseChannels()
+        this.state.xoaReleaseChannels = xoaReleaseChannels
 
         const { channel } = this.props.xoaConfiguration
         if (channel !== undefined) {
           const isPublicChannel = channel in xoaReleaseChannels
 
-          return isPublicChannel
-            ? { channel: channel, xoaReleaseChannels }
-            : {
-                addUnlistedChannel: true,
-                channel: UNLISTED_CHANNEL_VALUE,
-                xoaReleaseChannels,
-                unlistedChannel: channel,
-              }
+          if (isPublicChannel) this.state.channel = channel
+          else {
+            this.state.addUnlistedChannel = true
+            this.state.channel = UNLISTED_CHANNEL_VALUE
+            this.state.unlistedChannel = channel
+          }
         }
       },
       linkState,
