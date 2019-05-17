@@ -134,6 +134,7 @@ const Updates = decorate([
         }
       },
       linkState,
+      onChannelChange: (_, channel) => ({ channel: channel.value }),
       async register() {
         const { state } = this
 
@@ -184,13 +185,13 @@ const Updates = decorate([
       toggleState,
       update: () => xoaUpdater.update(),
       upgrade: () => xoaUpdater.upgrade(),
-      onChannelChange: (_, channel) => ({ channel: channel.value }),
     },
     computed: {
       areJobsRunning: (_, { jobs, backupNgJobs }) =>
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
+      channelsFormId: generateId,
       channelsOptions: ({ channels }) => [
         ...Object.keys(channels)
           .sort()
@@ -231,7 +232,6 @@ const Updates = decorate([
           .sort()
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
-      releaseChannelsFormId: generateId,
     },
   }),
   injectState,
@@ -326,7 +326,7 @@ const Updates = decorate([
           <Card>
             <CardHeader>{_('releaseChannels')}</CardHeader>
             <CardBlock>
-              <form id={state.releaseChannelsFormId} className='form'>
+              <form id={state.channelsFormId} className='form'>
                 <div className='form-group'>
                   <Select
                     autoSelectSingleOption={false} // avoid selecting *unlisted channel* before public channels are retrieved
@@ -360,7 +360,7 @@ const Updates = decorate([
                 </div>{' '}
                 <ActionButton
                   btnStyle='primary'
-                  form={state.releaseChannelsFormId}
+                  form={state.channelsFormId}
                   handler={effects.configure}
                   icon='success'
                 >
