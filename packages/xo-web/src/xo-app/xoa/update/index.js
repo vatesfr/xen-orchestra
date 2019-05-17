@@ -9,7 +9,7 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
-import { addSubscriptions, connectStore } from 'utils'
+import { addSubscriptions, adminOnly, connectStore } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
@@ -69,6 +69,7 @@ const helper = (obj1, obj2, prop) =>
   defined(() => obj1[prop], () => obj2[prop], '')
 
 const Updates = decorate([
+  adminOnly,
   addSubscriptions({
     backupNgJobs: subscribeBackupNgJobs,
     jobs: subscribeJobs,
