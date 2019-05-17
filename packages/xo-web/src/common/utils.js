@@ -655,7 +655,7 @@ export const hasLicenseRestrictions = host =>
 
 export const adminOnly = Component =>
   connectStore({
-    isAdmin,
-  })(({ isAdmin, ...props }) =>
-    isAdmin ? <Component {...props} /> : <_NotFound />
+    _isAdmin: isAdmin,
+  })(({ _isAdmin, ...props }) =>
+    _isAdmin ? <Component {...props} /> : <_NotFound />
   )
