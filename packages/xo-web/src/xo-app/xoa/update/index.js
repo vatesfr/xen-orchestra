@@ -108,8 +108,7 @@ const Updates = decorate([
             ? state.unlistedChannel
             : state.channel,
         })
-        await effects.resetProxyConfig()
-        return effects.update()
+        await Promise.all([effects.resetProxyConfig(), effects.update()])
       },
       async initialize() {
         await Promise.all([
