@@ -192,10 +192,12 @@ const Updates = decorate([
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
       channelsOptions: ({ channels }) => [
-        ...map(channels, (_, channel) => ({
-          label: channel,
-          value: channel,
-        })),
+        ...Object.keys(channels)
+          .sort()
+          .map(channel => ({
+            label: channel,
+            value: channel,
+          })),
         {
           label: <span className='font-italic'>unlisted channel</span>,
           value: UNLISTED_CHANNEL_VALUE,
