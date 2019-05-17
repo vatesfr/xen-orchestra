@@ -90,7 +90,7 @@ const Updates = decorate([
       ...initialRegistrationState(),
       ...initialChannels(),
       askRegisterAgain: false,
-      xoaReleaseChannels: [],
+      xoaReleaseChannels: {},
       showPackagesList: false,
     }),
     effects: {
