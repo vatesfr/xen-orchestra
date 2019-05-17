@@ -139,12 +139,13 @@ export default class {
     return this._getRemote(id).then(obfuscateRemote)
   }
 
-  async createRemote({ name, url, options }) {
+  async createRemote({ name, options, proxy, url }) {
     const params = {
-      name,
-      url,
       enabled: false,
       error: '',
+      name,
+      proxy,
+      url,
     }
     if (options !== undefined) {
       params.options = options
@@ -153,7 +154,7 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote(id, { name, url, options, enabled }) {
+  updateRemote(id, { enabled, name, options, proxy, url }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -162,10 +163,11 @@ export default class {
     }
 
     return this._updateRemote(id, {
-      name,
-      url,
-      options,
       enabled,
+      name,
+      options,
+      proxy,
+      url,
     })
   }
 

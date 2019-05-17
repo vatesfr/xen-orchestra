@@ -45,6 +45,7 @@ import {
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
+  subscribeProxies,
   subscribeRemotes,
   subscribeResourceSets,
   subscribeRoles,
@@ -808,6 +809,21 @@ export const SelectRemote = makeSubscriptionSelect(
     return unsubscribeRemotes
   },
   { placeholder: _('selectRemotes') }
+)
+
+// ===================================================================
+
+export const SelectProxy = makeSubscriptionSelect(
+  subscriber =>
+    subscribeProxies(proxies => {
+      subscriber({
+        xoObjects: sortBy(proxies, 'name').map(proxy => ({
+          ...proxy,
+          type: 'proxy',
+        })),
+      })
+    }),
+  { placeholder: _('selectProxies') }
 )
 
 // ===================================================================

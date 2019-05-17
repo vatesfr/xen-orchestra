@@ -15,6 +15,7 @@ import {
   SelectIp,
   SelectNetwork,
   SelectPool,
+  SelectProxy,
   SelectRemote,
   SelectResourceSetIp,
   SelectSr,
@@ -424,10 +425,12 @@ Select.defaultProps = { multi: false }
 Select.propTypes = { multi: PropTypes.bool }
 
 const MAP_TYPE_SELECT = {
+  'VM-template': SelectVmTemplate,
   host: SelectHost,
   ip: SelectIp,
   network: SelectNetwork,
   pool: SelectPool,
+  proxy: SelectProxy,
   remote: SelectRemote,
   resourceSetIp: SelectResourceSetIp,
   SR: SelectSr,
@@ -435,7 +438,6 @@ const MAP_TYPE_SELECT = {
   tag: SelectTag,
   vgpuType: SelectVgpuType,
   VM: SelectVm,
-  'VM-template': SelectVmTemplate,
 }
 
 export class XoSelect extends Editable {

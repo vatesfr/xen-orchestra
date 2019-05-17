@@ -305,6 +305,8 @@ export const subscribeRemotesInfo = createSubscription(() =>
   _call('remote.getAllInfo')
 )
 
+export const subscribeProxies = createSubscription(() => _call('proxy.getAll'))
+
 export const subscribeResourceSets = createSubscription(() =>
   _call('resourceSet.getAll')
 )
@@ -2140,8 +2142,13 @@ export const getRemote = remote =>
     error(_('getRemote'), err.message || String(err))
   )
 
-export const createRemote = (name, url, options) =>
-  _call('remote.create', { name, url, options })::tap(remote => {
+export const createRemote = (name, url, options, proxy) =>
+  _call('remote.create', {
+    name,
+    options,
+    proxy: resolveId(proxy),
+    url,
+  })::tap(remote => {
     testRemote(remote).catch(noop)
   })
 
@@ -2174,8 +2181,14 @@ export const disableRemote = remote =>
     subscribeRemotes.forceRefresh
   )
 
-export const editRemote = (remote, { name, url, options }) =>
-  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(() => {
+export const editRemote = (remote, { name, options, proxy, url }) =>
+  _call('remote.set', {
+    id: resolveId(remote),
+    name,
+    options,
+    proxy: resolveId(proxy),
+    url,
+  })::tap(() => {
     testRemote(remote).catch(noop)
   })
 

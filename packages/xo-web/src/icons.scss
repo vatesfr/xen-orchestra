@@ -11,6 +11,10 @@
     @extend .fa;
     @extend .fa-desktop;
   }
+  &-proxy {
+    @extend .fa;
+    @extend .fa-globe;
+  }
   &-remote {
     @extend .fa;
     @extend .fa-plug;
