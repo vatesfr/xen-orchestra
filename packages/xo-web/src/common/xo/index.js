@@ -2508,14 +2508,25 @@ export const editUser = (user, { email, password, permission }) =>
     subscribeUsers.forceRefresh
   )
 
+const _signOutFromEverywhereElse = () =>
+  _call('user.deleteAllTokens', { except: cookies.get('token') })
+
+export const signOutFromEverywhereElse = () =>
+  _signOutFromEverywhereElse().then(
+    () => success(_('signOutOtherSessions'), _('signOutOtherSessionsSuccess')),
+    () => error(_('signOutOtherSessions'), _('signOutOtherSessionsError'))
+  )
+
 export const changePassword = (oldPassword, newPassword) =>
   _call('user.changePassword', {
     oldPassword,
     newPassword,
-  }).then(
-    () => success(_('pwdChangeSuccess'), _('pwdChangeSuccessBody')),
-    () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
-  )
+  })
+    .then(_signOutFromEverywhereElse)
+    .then(
+      () => success(_('pwdChangeSuccess'), _('pwdChangeSuccessBody')),
+      () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
+    )
 
 const _setUserPreferences = preferences =>
   _call('user.set', {

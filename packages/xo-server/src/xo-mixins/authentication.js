@@ -193,6 +193,14 @@ export default class {
     }
   }
 
+  async deleteAllTokens(id, except) {
+    return Promise.all(
+      (await this.getAuthenticationTokensForUser(id)).map(
+        ({ id }) => id !== except && this.deleteAuthenticationToken(id)
+      )
+    )
+  }
+
   async getAuthenticationToken(id) {
     let token = await this._tokens.first(id)
     if (token === undefined) {

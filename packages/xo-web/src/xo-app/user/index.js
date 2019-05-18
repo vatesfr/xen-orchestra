@@ -24,6 +24,7 @@ import {
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
+  signOutFromEverywhereElse,
   subscribeCurrentUser,
 } from 'xo'
 
@@ -397,6 +398,18 @@ export default class User extends Component {
                   {_('changePasswordOk')}
                 </ActionButton>
               </form>
+            </Col>
+          </Row>
+          <br />
+          <Row>
+            <Col smallSize={10} offset={2}>
+              <ActionButton
+                btnStyle='danger'
+                handler={signOutFromEverywhereElse}
+                icon='disconnect'
+              >
+                {_('signOutOtherSessions')}
+              </ActionButton>
             </Col>
           </Row>
           <br />

@@ -1839,6 +1839,10 @@ const messages = {
   pwdChangeErrorBody:
     'The old password provided is incorrect. Your password has not been changed.',
   changePasswordOk: 'OK',
+  signOutOtherSessions: 'Sign out other sessions',
+  signOutOtherSessionsSuccess:
+    'Successfully signed out all your other sessions',
+  signOutOtherSessionsError: 'Error while signing out your other sessions',
   sshKeys: 'SSH keys',
   newSshKey: 'New SSH key',
   deleteSshKey: 'Delete',

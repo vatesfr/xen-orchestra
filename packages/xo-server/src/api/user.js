@@ -100,3 +100,15 @@ changePassword.params = {
   oldPassword: { type: 'string' },
   newPassword: { type: 'string' },
 }
+
+// -------------------------------------------------------------------
+
+export async function deleteAllTokens({ except }) {
+  await this.deleteAllTokens(this.session.get('user_id'), except)
+}
+
+deleteAllTokens.permission = ''
+
+deleteAllTokens.params = {
+  except: { type: 'string', optional: true },
+}
