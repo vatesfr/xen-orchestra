@@ -95,7 +95,7 @@ const Updates = decorate([
         const { effects, state } = this
         await xoaUpdater.configure({
           ...pick(state, [
-            state.channel && 'channel',
+            'channel',
             'proxyHost',
             'proxyPassword',
             'proxyPort',
