@@ -84,7 +84,7 @@ const Updates = decorate([
   ]),
   provideState({
     initialState: () => ({
-      _channel: undefined,
+      channel: undefined,
       ...initialProxyState(),
       ...initialRegistrationState(),
       askRegisterAgain: false,
@@ -95,7 +95,7 @@ const Updates = decorate([
         const { effects, state } = this
         await xoaUpdater.configure({
           ...pick(state, [
-            '_channel',
+            'channel',
             'proxyHost',
             'proxyPassword',
             'proxyPort',
@@ -108,7 +108,7 @@ const Updates = decorate([
         return this.effects.update()
       },
       linkState,
-      onChannelChange: (_, _channel) => ({ _channel }),
+      onChannelChange: (_, channel) => ({ channel }),
       async register() {
         const { state } = this
 
@@ -203,10 +203,10 @@ const Updates = decorate([
         xoaTrialState.state === 'default' &&
         !isTrialRunning(xoaTrialState.trial) &&
         !exposeTrial(xoaTrialState.trial),
-      channel: ({ _channel }, { xoaConfiguration }) =>
-        defined(_channel, xoaConfiguration.channel),
-      isUnlistedChannel: ({ channel, channels }) =>
-        channel !== undefined && !(channel in channels),
+      consolidatedChannel: ({ channel }, { xoaConfiguration }) =>
+        defined(channel, xoaConfiguration.channel),
+      isUnlistedChannel: ({ consolidatedChannel, channels }) =>
+        consolidatedChannel !== undefined && !(consolidatedChannel in channels),
       isUpdaterDown: (_, { xoaTrialState }) =>
         isEmpty(xoaTrialState) || xoaTrialState.state === 'ERROR',
       packagesList: ({ installedPackages }) =>
@@ -322,7 +322,7 @@ const Updates = decorate([
                     value={
                       state.isUnlistedChannel
                         ? UNLISTED_CHANNEL_VALUE
-                        : state.channel
+                        : state.consolidatedChannel
                     }
                   />
                   <br />
@@ -331,14 +331,14 @@ const Updates = decorate([
                       <input
                         autoFocus
                         className='form-control'
-                        name='_channel'
+                        name='channel'
                         onChange={effects.linkState}
                         placeholder={formatMessage(
                           messages.unlistedChannelName
                         )}
                         required
                         type='text'
-                        value={state.channel}
+                        value={state.consolidatedChannel}
                       />
                     </div>
                   )}
