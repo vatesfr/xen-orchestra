@@ -12,9 +12,9 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
+import { adminOnly, connectStore, routes } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
-import { connectStore, routes } from 'utils'
 import { constructQueryString } from 'smart-backup'
 import { Container, Row, Col } from 'grid'
 import { createGetLoneSnapshots, createSelector } from 'selectors'
@@ -420,18 +420,20 @@ const ChooseBackupType = () => (
   </Container>
 )
 
-export default routes('overview', {
-  ':id/edit': Edit,
-  new: ChooseBackupType,
-  'new/vms': NewVmBackup,
-  'new/metadata': NewMetadataBackup,
-  overview: Overview,
-  restore: Restore,
-  'restore/metadata': RestoreMetadata,
-  'file-restore': FileRestore,
-  health: Health,
-})(({ children }) => (
-  <Page header={HEADER} title='backupPage' formatTitle>
-    {children}
-  </Page>
-))
+export default adminOnly(
+  routes('overview', {
+    ':id/edit': Edit,
+    new: ChooseBackupType,
+    'new/vms': NewVmBackup,
+    'new/metadata': NewMetadataBackup,
+    overview: Overview,
+    restore: Restore,
+    'restore/metadata': RestoreMetadata,
+    'file-restore': FileRestore,
+    health: Health,
+  })(({ children }) => (
+    <Page header={HEADER} title='backupPage' formatTitle>
+      {children}
+    </Page>
+  ))
+)

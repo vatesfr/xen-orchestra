@@ -14,6 +14,7 @@ import { every, filter, find, flatten, forEach, isEmpty, map } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import {
   addSubscriptions,
+  adminOnly,
   connectStore,
   cowSet,
   formatSize,
@@ -211,6 +212,7 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   },
 ]
 
+@adminOnly
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host')
   const getHostsByPool = getHosts.groupBy('$pool')

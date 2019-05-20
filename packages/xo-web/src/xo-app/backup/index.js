@@ -3,7 +3,7 @@ import Icon from 'icon'
 import Link from 'link'
 import Page from '../page'
 import React from 'react'
-import { routes } from 'utils'
+import { adminOnly, routes } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 
@@ -62,16 +62,18 @@ const HEADER = (
   </Container>
 )
 
-const Backup = routes('overview', {
-  ':id/edit': Edit,
-  new: DEVELOPMENT ? New : DeprecatedMsg,
-  overview: Overview,
-  restore: MovingRestoreMessage,
-  'file-restore': MovingFileRestoreMessage,
-})(({ children }) => (
-  <Page header={HEADER} title='backupPage' formatTitle>
-    {children}
-  </Page>
-))
+const Backup = adminOnly(
+  routes('overview', {
+    ':id/edit': Edit,
+    new: DEVELOPMENT ? New : DeprecatedMsg,
+    overview: Overview,
+    restore: MovingRestoreMessage,
+    'file-restore': MovingFileRestoreMessage,
+  })(({ children }) => (
+    <Page header={HEADER} title='backupPage' formatTitle>
+      {children}
+    </Page>
+  ))
+)
 
 export default Backup

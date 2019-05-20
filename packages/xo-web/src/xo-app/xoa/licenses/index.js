@@ -6,7 +6,13 @@ import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore, getXoaPlan, ShortDate } from 'utils'
+import {
+  addSubscriptions,
+  adminOnly,
+  connectStore,
+  getXoaPlan,
+  ShortDate,
+} from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
 import { find, forEach } from 'lodash'
@@ -77,6 +83,7 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
   return () => <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>
 }
 
+@adminOnly
 @connectStore({
   xosanSrs: createGetObjectsOfType('SR').filter([
     ({ SR_type }) => SR_type === 'xosan', // eslint-disable-line camelcase

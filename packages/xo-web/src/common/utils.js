@@ -29,7 +29,7 @@ import _ from './intl'
 import * as actions from './store/actions'
 import invoke from './invoke'
 import store from './store'
-import { getObject } from './selectors'
+import { getObject, isAdmin } from './selectors'
 import { satisfies as versionSatisfies } from 'semver'
 
 export const EMPTY_ARRAY = Object.freeze([])
@@ -650,3 +650,12 @@ export const hasLicenseRestrictions = host =>
   host.productBrand !== 'XCP-ng' &&
   versionSatisfies(host.version, '>=7.3.0') &&
   host.license_params.sku_type === 'free'
+
+// ===================================================================
+
+export const adminOnly = Component =>
+  connectStore({
+    _isAdmin: isAdmin,
+  })(({ _isAdmin, ...props }) =>
+    _isAdmin ? <Component {...props} /> : <_NotFound />
+  )
