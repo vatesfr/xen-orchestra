@@ -400,6 +400,10 @@ export default class RemoteHandlerAbstract {
     }
   }
 
+  async truncate(file: string, len: number): Promise<void> {
+    throw new Error('Not implemented')
+  }
+
   async unlink(file: string, { checksum = true }: Object = {}): Promise<void> {
     file = normalizePath(file)
 

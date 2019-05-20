@@ -106,6 +106,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     await fs.access(path, fs.R_OK | fs.W_OK)
   }
 
+  _truncate(file, len) {
+    return fs.truncate(this._getFilePath(file), len)
+  }
+
   async _unlink(file) {
     return fs.unlink(this._getFilePath(file))
   }
