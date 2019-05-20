@@ -58,5 +58,31 @@ export default {
         },
       ],
     },
+
+    // in kB/s
+    rateLimit: {
+      get: vif => {
+        if (vif.qos_algorithm_type === 'ratelimit') {
+          const { kbps } = vif.qos_algorithm_params
+          if (kbps !== undefined) {
+            return +kbps
+          }
+        }
+
+        // null is value used to remove the existing value
+        //
+        // we need to match this, to allow avoiding the `set` if the value is
+        // already missing.
+        return null
+      },
+      set: (value, vif) =>
+        Promise.all([
+          vif.set_qos_algorithm_type(value === null ? '' : 'ratelimit'),
+          vif.update_qos_algorithm_params(
+            'kbps',
+            value === null ? null : String(value)
+          ),
+        ]),
+    },
   }),
 }

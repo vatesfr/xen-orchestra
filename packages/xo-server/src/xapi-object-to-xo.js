@@ -569,6 +569,16 @@ const TRANSFORMS = {
       MAC: obj.MAC,
       MTU: +obj.MTU,
 
+      // in kB/s
+      rateLimit: (() => {
+        if (obj.qos_algorithm_type === 'ratelimit') {
+          const { kbps } = obj.qos_algorithm_params
+          if (kbps !== undefined) {
+            return +kbps
+          }
+        }
+      })(),
+
       $network: link(obj, 'network'),
       $VM: link(obj, 'VM'),
     }
