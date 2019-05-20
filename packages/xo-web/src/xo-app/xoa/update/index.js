@@ -84,10 +84,10 @@ const Updates = decorate([
   ]),
   provideState({
     initialState: () => ({
-      _channel: undefined,
       ...initialProxyState(),
       ...initialRegistrationState(),
       askRegisterAgain: false,
+      channel: undefined,
       showPackagesList: false,
     }),
     effects: {
@@ -95,7 +95,7 @@ const Updates = decorate([
         const { effects, state } = this
         await xoaUpdater.configure({
           ...pick(state, [
-            'channel',
+            state.channel && 'channel',
             'proxyHost',
             'proxyPassword',
             'proxyPort',
@@ -108,7 +108,7 @@ const Updates = decorate([
         return this.effects.update()
       },
       linkState,
-      onChannelChange: (_, _channel) => ({ _channel }),
+      onChannelChange: (_, channel) => ({ channel }),
       async register() {
         const { state } = this
 
@@ -184,8 +184,6 @@ const Updates = decorate([
                 value: UNLISTED_CHANNEL_VALUE,
               },
             ],
-      channel: ({ _channel }, { xoaConfiguration }) =>
-        defined(_channel, xoaConfiguration.channel),
       async installedPackages() {
         const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
         return { ...installer, ...updater, ...npm }
@@ -322,7 +320,7 @@ const Updates = decorate([
                     value={
                       state.isUnlistedChannel
                         ? UNLISTED_CHANNEL_VALUE
-                        : state.channel
+                        : helper(state, xoaConfiguration, 'channel')
                     }
                   />
                   <br />
@@ -331,14 +329,14 @@ const Updates = decorate([
                       <input
                         autoFocus
                         className='form-control'
-                        name='_channel'
+                        name='channel'
                         onChange={effects.linkState}
                         placeholder={formatMessage(
                           messages.unlistedChannelName
                         )}
                         required
                         type='text'
-                        value={state.channel}
+                        value={helper(state, xoaConfiguration, 'channel')}
                       />
                     </div>
                   )}
