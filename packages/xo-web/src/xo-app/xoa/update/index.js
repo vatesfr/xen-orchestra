@@ -181,7 +181,7 @@ const Updates = decorate([
                 label: (
                   <span className='font-italic'>{_('unlistedChannel')}</span>
                 ),
-                value: '',
+                value: UNLISTED_CHANNEL_VALUE,
               },
             ],
       channel: ({ _channel }, { xoaConfiguration }) =>
