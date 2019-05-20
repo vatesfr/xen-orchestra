@@ -59,16 +59,13 @@ const LEVELS_TO_CLASSES = {
   error: 'text-danger',
 }
 
-const UNLISTED_CHANNEL_VALUE = 'unlisted channel'
+const UNLISTED_CHANNEL_VALUE = ''
 
 const PROXY_ENTRIES = ['proxyHost', 'proxyPassword', 'proxyPort', 'proxyUser']
 const initialProxyState = () => zipObject(PROXY_ENTRIES)
 
 const REGISTRATION_ENTRIES = ['email', 'password']
 const initialRegistrationState = () => zipObject(REGISTRATION_ENTRIES)
-
-const CHANNEL_ENTRIES = ['channel', 'channels', 'unlistedChannel']
-const initialChannels = () => zipObject(CHANNEL_ENTRIES)
 
 const helper = (obj1, obj2, prop) =>
   defined(() => obj1[prop], () => obj2[prop], '')
@@ -87,9 +84,9 @@ const Updates = decorate([
   ]),
   provideState({
     initialState: () => ({
+      _channel: undefined,
       ...initialProxyState(),
       ...initialRegistrationState(),
-      ...initialChannels(),
       askRegisterAgain: false,
       showPackagesList: false,
     }),
@@ -98,43 +95,20 @@ const Updates = decorate([
         const { effects, state } = this
         await xoaUpdater.configure({
           ...pick(state, [
+            'channel',
             'proxyHost',
             'proxyPassword',
             'proxyPort',
             'proxyUser',
           ]),
-          channel: state.isUnlistedChannel
-            ? state.unlistedChannel
-            : state.channel,
         })
         await Promise.all([effects.resetProxyConfig(), effects.update()])
       },
-      async initialize() {
-        await Promise.all([
-          this.effects.initializeChannels(),
-          this.effects.update(),
-        ])
-      },
-      async initializeChannels() {
-        const { state } = this
-
-        const channels = await xoaUpdater.getReleaseChannels()
-        state.channels = channels
-
-        const { channel } = this.props.xoaConfiguration
-        if (channel !== undefined) {
-          const isPublicChannel = channel in channels
-
-          if (isPublicChannel) {
-            state.channel = channel
-          } else {
-            state.channel = UNLISTED_CHANNEL_VALUE
-            state.unlistedChannel = channel
-          }
-        }
+      initialize() {
+        return this.effects.update()
       },
       linkState,
-      onChannelChange: (_, channel) => ({ channel: channel.value }),
+      onChannelChange: (_, _channel) => ({ _channel }),
       async register() {
         const { state } = this
 
@@ -192,6 +166,7 @@ const Updates = decorate([
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
       channelsFormId: generateId,
+      channels: () => xoaUpdater.getReleaseChannels(),
       channelsOptions: ({ channels }) =>
         channels === undefined
           ? undefined
@@ -206,9 +181,11 @@ const Updates = decorate([
                 label: (
                   <span className='font-italic'>{_('unlistedChannel')}</span>
                 ),
-                value: UNLISTED_CHANNEL_VALUE,
+                value: '',
               },
             ],
+      channel: ({ _channel }, { xoaConfiguration }) =>
+        defined(_channel, xoaConfiguration.channel),
       async installedPackages() {
         const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
         return { ...installer, ...updater, ...npm }
@@ -228,7 +205,8 @@ const Updates = decorate([
         xoaTrialState.state === 'default' &&
         !isTrialRunning(xoaTrialState.trial) &&
         !exposeTrial(xoaTrialState.trial),
-      isUnlistedChannel: ({ channel }) => channel === UNLISTED_CHANNEL_VALUE,
+      isUnlistedChannel: ({ channel, channels }) =>
+        channel !== undefined && !(channel in channels),
       isUpdaterDown: (_, { xoaTrialState }) =>
         isEmpty(xoaTrialState) || xoaTrialState.state === 'ERROR',
       packagesList: ({ installedPackages }) =>
@@ -338,9 +316,14 @@ const Updates = decorate([
                     isLoading={state.channelsOptions === undefined}
                     onChange={effects.onChannelChange}
                     options={state.channelsOptions}
+                    simpleValue
                     placeholder={formatMessage(messages.selectChannel)}
                     required
-                    value={state.channel}
+                    value={
+                      state.isUnlistedChannel
+                        ? UNLISTED_CHANNEL_VALUE
+                        : state.channel
+                    }
                   />
                   <br />
                   {state.isUnlistedChannel && (
@@ -348,18 +331,14 @@ const Updates = decorate([
                       <input
                         autoFocus
                         className='form-control'
-                        name='unlistedChannel'
+                        name='_channel'
                         onChange={effects.linkState}
                         placeholder={formatMessage(
                           messages.unlistedChannelName
                         )}
                         required
                         type='text'
-                        value={helper(
-                          state,
-                          xoaConfiguration,
-                          'unlistedChannel'
-                        )}
+                        value={state.channel}
                       />
                     </div>
                   )}
