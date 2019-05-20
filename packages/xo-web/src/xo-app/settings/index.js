@@ -63,19 +63,19 @@ const HEADER = (
   </Container>
 )
 
-const Settings = routes('servers', {
-  acls: Acls,
-  'cloud-configs': CloudConfigs,
-  config: Config,
-  groups: Groups,
-  ips: Ips,
-  logs: Logs,
-  plugins: Plugins,
-  remotes: Remotes,
-  servers: Servers,
-  users: Users,
-})(
-  adminOnly(({ children }) => (
+const Settings = adminOnly(
+  routes('servers', {
+    acls: Acls,
+    'cloud-configs': CloudConfigs,
+    config: Config,
+    groups: Groups,
+    ips: Ips,
+    logs: Logs,
+    plugins: Plugins,
+    remotes: Remotes,
+    servers: Servers,
+    users: Users,
+  })(({ children }) => (
     <Page header={HEADER} title='settingsPage' formatTitle>
       {children}
     </Page>

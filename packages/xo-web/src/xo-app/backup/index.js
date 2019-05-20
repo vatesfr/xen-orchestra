@@ -62,14 +62,14 @@ const HEADER = (
   </Container>
 )
 
-const Backup = routes('overview', {
-  ':id/edit': Edit,
-  new: DEVELOPMENT ? New : DeprecatedMsg,
-  overview: Overview,
-  restore: MovingRestoreMessage,
-  'file-restore': MovingFileRestoreMessage,
-})(
-  adminOnly(({ children }) => (
+const Backup = adminOnly(
+  routes('overview', {
+    ':id/edit': Edit,
+    new: DEVELOPMENT ? New : DeprecatedMsg,
+    overview: Overview,
+    restore: MovingRestoreMessage,
+    'file-restore': MovingFileRestoreMessage,
+  })(({ children }) => (
     <Page header={HEADER} title='backupPage' formatTitle>
       {children}
     </Page>

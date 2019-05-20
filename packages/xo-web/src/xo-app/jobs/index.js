@@ -37,14 +37,14 @@ const HEADER = (
   </Container>
 )
 
-const Jobs = routes('overview', {
-  ':id/edit': Edit,
-  new: New,
-  overview: Overview,
-  schedules: Schedules,
-  'schedules/:id/edit': EditSchedule,
-})(
-  adminOnly(({ children }) => (
+const Jobs = adminOnly(
+  routes('overview', {
+    ':id/edit': Edit,
+    new: New,
+    overview: Overview,
+    schedules: Schedules,
+    'schedules/:id/edit': EditSchedule,
+  })(({ children }) => (
     <Page header={HEADER} title='jobsPage' formatTitle>
       {children}
     </Page>
