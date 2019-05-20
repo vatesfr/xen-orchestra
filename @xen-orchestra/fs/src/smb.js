@@ -155,6 +155,12 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return this.list('.')
   }
 
+  _truncate(file, len) {
+    return this._client
+      .truncate(this._getFilePath(file), len)
+      .catch(normalizeError)
+  }
+
   _unlink(file) {
     return this._client.unlink(this._getFilePath(file)).catch(normalizeError)
   }
@@ -166,12 +172,6 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   _writeFile(file, data, options) {
     return this._client
       .writeFile(this._getFilePath(file), data, options)
-      .catch(normalizeError)
-  }
-
-  _truncate(file, len) {
-    return this._client
-      .truncate(this._getFilePath(file), len)
       .catch(normalizeError)
   }
 }

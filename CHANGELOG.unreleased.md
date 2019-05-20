@@ -11,7 +11,6 @@
 ### Released packages
 
 - xo-server-backup-reports v0.16.1
-- @marsaud/smb2 v0.14.0
 - @xen-orchestra/fs v0.9.0
 - vhd-lib v0.7.0
 - xo-server v5.41.0
