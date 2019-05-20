@@ -316,9 +316,9 @@ const Updates = decorate([
                     isLoading={state.channelsOptions === undefined}
                     onChange={effects.onChannelChange}
                     options={state.channelsOptions}
-                    simpleValue
                     placeholder={formatMessage(messages.selectChannel)}
                     required
+                    simpleValue
                     value={
                       state.isUnlistedChannel
                         ? UNLISTED_CHANNEL_VALUE
