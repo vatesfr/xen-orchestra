@@ -449,9 +449,7 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
   }
 
   return Promise.all([
-    xapi._setObjectProperties(vm, {
-      haRestartPriority: '',
-    }),
+    vm.set_ha_restart_priority(''),
     xapi.addTag(vm.$ref, 'HA disabled'),
   ])
 }
@@ -1258,11 +1256,11 @@ export default class BackupNg {
                       result: () => ({ size: xva.size }),
                     },
                     xapi._importVm($cancelToken, fork, sr, vm =>
-                      xapi._setObjectProperties(vm, {
-                        nameLabel: `${metadata.vm.name_label} - ${
+                      vm.set_name_label(
+                        `${metadata.vm.name_label} - ${
                           job.name
-                        } - (${safeDateFormat(metadata.timestamp)})`,
-                      })
+                        } - (${safeDateFormat(metadata.timestamp)})`
+                      )
                     )
                   )
                 )

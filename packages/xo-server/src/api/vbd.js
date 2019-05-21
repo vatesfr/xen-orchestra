@@ -48,8 +48,7 @@ connect.resolve = {
 
 export async function set({ position, vbd }) {
   if (position !== undefined) {
-    const xapi = this.getXapi(vbd)
-    await xapi.call('VBD.set_userdevice', vbd._xapiRef, String(position))
+    await this.getXapiObject(vbd).set_userdevice(String(position))
   }
 }
 
@@ -67,9 +66,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function setBootable({ vbd, bootable }) {
-  const xapi = this.getXapi(vbd)
-
-  await xapi.call('VBD.set_bootable', vbd._xapiRef, bootable)
+  await this.getXapiObject(vbd).set_bootable(bootable)
 }
 
 setBootable.params = {

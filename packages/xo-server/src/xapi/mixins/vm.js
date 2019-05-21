@@ -115,9 +115,7 @@ export default {
             order = 'ncd'
           }
 
-          this._setObjectProperties(vm, {
-            HVM_boot_params: { ...bootParams, order },
-          })
+          vm.set_HVM_boot_params({ ...bootParams, order })
         }
       } else {
         // PV
@@ -263,13 +261,8 @@ export default {
   _editVm: makeEditObject({
     affinityHost: {
       get: 'affinity',
-      set(value, vm) {
-        return this._setObjectProperty(
-          vm,
-          'affinity',
-          value ? this.getObject(value).$ref : NULL_REF
-        )
-      },
+      set: (value, vm) =>
+        vm.set_affinity(value ? this.getObject(value).$ref : NULL_REF),
     },
 
     autoPoweron: {
@@ -289,14 +282,13 @@ export default {
         if (virtualizationMode !== 'pv' && virtualizationMode !== 'hvm') {
           throw new Error(`The virtualization mode must be 'pv' or 'hvm'`)
         }
-        return this._set('domain_type', virtualizationMode)::pCatch(
-          { code: 'MESSAGE_METHOD_UNKNOWN' },
-          () =>
-            this._set(
-              'HVM_boot_policy',
+        return vm
+          .set_domain_type(virtualizationMode)
+          ::pCatch({ code: 'MESSAGE_METHOD_UNKNOWN' }, () =>
+            vm.set_HVM_boot_policy(
               virtualizationMode === 'hvm' ? 'Boot order' : ''
             )
-        )
+          )
       },
     },
 
@@ -320,9 +312,7 @@ export default {
       get: vm => +vm.VCPUs_at_startup,
       set: [
         'VCPUs_at_startup',
-        function(value, vm) {
-          return isVmRunning(vm) && this._set('VCPUs_number_live', value)
-        },
+        (value, vm) => isVmRunning(vm) && vm.set_VCPUs_number_live(value),
       ],
     },
 
@@ -355,9 +345,7 @@ export default {
     },
 
     highAvailability: {
-      set(ha, vm) {
-        return this.call('VM.set_ha_restart_priority', vm.$ref, ha)
-      },
+      set: (ha, vm) => vm.set_ha_restart_priority(ha),
     },
 
     memoryMin: {
@@ -461,9 +449,7 @@ export default {
 
     startDelay: {
       get: vm => +vm.start_delay,
-      set(startDelay, vm) {
-        return this.call('VM.set_start_delay', vm.$ref, startDelay)
-      },
+      set: (startDelay, vm) => vm.set_start_delay(startDelay),
     },
   }),
 
