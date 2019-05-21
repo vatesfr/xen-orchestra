@@ -354,20 +354,15 @@ handlers.forEach(url => {
     describe('#truncate()', () => {
       forOwn(
         {
-          'inbound truncates': (() => {
+          'shrinks file': (() => {
             const length = random(0, TEST_DATA_LEN)
-
-            const expected = Buffer.alloc(length)
-            TEST_DATA.copy(expected)
-
+            const expected = TEST_DATA.slice(0, length)
             return { length, expected }
           })(),
-          'outbound truncates': (() => {
-            const length = random(TEST_DATA_LEN + 1, TEST_DATA_LEN * 2)
-
+          'grows file': (() => {
+            const length = random(TEST_DATA_LEN, TEST_DATA_LEN * 2)
             const expected = Buffer.alloc(length)
             TEST_DATA.copy(expected)
-
             return { length, expected }
           })(),
         },
