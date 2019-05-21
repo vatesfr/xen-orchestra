@@ -35,7 +35,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function scan({ SR }) {
-  await this.getXapi(SR).call('SR.scan', SR._xapiRef)
+  await this.getXapi(SR).callAsync('SR.scan', SR._xapiRef)
 }
 
 scan.params = {

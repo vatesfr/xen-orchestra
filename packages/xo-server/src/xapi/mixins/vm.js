@@ -94,7 +94,7 @@ export default {
 
     // Creates the VDIs and executes the initial steps of the
     // installation.
-    await this.call('VM.provision', vmRef)
+    await this.callAsync('VM.provision', vmRef)
 
     let vm = await this._getOrWaitObject(vmRef)
 
@@ -493,7 +493,7 @@ export default {
     if (snapshotBefore) {
       await this._snapshotVm(snapshot.$snapshot_of)
     }
-    await this.call('VM.revert', snapshot.$ref)
+    await this.callAsync('VM.revert', snapshot.$ref)
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
       const vm = await this.barrier(snapshot.snapshot_of)
       if (vm.power_state === 'Halted') {
@@ -506,11 +506,11 @@ export default {
 
   async resumeVm(vmId) {
     // the force parameter is always true
-    return this.call('VM.resume', this.getObject(vmId).$ref, false, true)
+    await this.callAsync('VM.resume', this.getObject(vmId).$ref, false, true)
   },
 
   async unpauseVm(vmId) {
-    return this.call('VM.unpause', this.getObject(vmId).$ref)
+    await this.callAsync('VM.unpause', this.getObject(vmId).$ref)
   },
 
   rebootVm(vmId, { hard = false } = {}) {
@@ -521,7 +521,7 @@ export default {
   },
 
   shutdownVm(vmId, { hard = false } = {}) {
-    return this.call(
+    return this.callAsync(
       `VM.${hard ? 'hard' : 'clean'}_shutdown`,
       this.getObject(vmId).$ref
     ).then(noop)

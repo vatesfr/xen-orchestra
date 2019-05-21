@@ -378,12 +378,12 @@ export default class Xapi extends XapiBase {
     await pSettle(
       mapToArray(vms, vm => {
         if (!vm.is_control_domain) {
-          return this.call('VM.suspend', vm.$ref)
+          return this.callAsync('VM.suspend', vm.$ref)
         }
       })
     )
     await this.call('host.disable', host.$ref)
-    await this.call('host.shutdown', host.$ref)
+    await this.callAsync('host.shutdown', host.$ref)
   }
 
   // =================================================================
@@ -396,7 +396,7 @@ export default class Xapi extends XapiBase {
     await this.call('host.disable', ref)
 
     try {
-      await this.call('host.evacuate', ref)
+      await this.callAsync('host.evacuate', ref)
     } catch (error) {
       if (!force) {
         await this.call('host.enable', ref)
@@ -411,7 +411,7 @@ export default class Xapi extends XapiBase {
   }
 
   async forgetHost(hostId) {
-    await this.call('host.destroy', this.getObject(hostId).$ref)
+    await this.callAsync('host.destroy', this.getObject(hostId).$ref)
   }
 
   async ejectHostFromPool(hostId) {
@@ -461,18 +461,18 @@ export default class Xapi extends XapiBase {
   }
 
   async powerOnHost(hostId) {
-    await this.call('host.power_on', this.getObject(hostId).$ref)
+    await this.callAsync('host.power_on', this.getObject(hostId).$ref)
   }
 
   async rebootHost(hostId, force = false) {
     const host = this.getObject(hostId)
 
     await this._clearHost(host, force)
-    await this.call('host.reboot', host.$ref)
+    await this.callAsync('host.reboot', host.$ref)
   }
 
   async restartHostAgent(hostId) {
-    await this.call('host.restart_agent', this.getObject(hostId).$ref)
+    await this.callAsync('host.restart_agent', this.getObject(hostId).$ref)
   }
 
   async setRemoteSyslogHost(hostId, syslogDestination) {
@@ -487,7 +487,7 @@ export default class Xapi extends XapiBase {
     const host = this.getObject(hostId)
 
     await this._clearHost(host, force)
-    await this.call('host.shutdown', host.$ref)
+    await this.callAsync('host.shutdown', host.$ref)
   }
 
   // =================================================================
@@ -501,7 +501,7 @@ export default class Xapi extends XapiBase {
       }`
     )
 
-    return this.call('VM.clone', vm.$ref, nameLabel)
+    return this.callAsync('VM.clone', vm.$ref, nameLabel).then(extractOpaqueRef)
   }
 
   // Copy a VM: make a normal copy of a VM and all its VDIs.
@@ -717,7 +717,7 @@ export default class Xapi extends XapiBase {
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
-      await this.call('VM.hard_shutdown', $ref)
+      await this.callAsync('VM.hard_shutdown', $ref)
     }
 
     await Promise.all([
@@ -735,7 +735,7 @@ export default class Xapi extends XapiBase {
 
     // this cannot be done in parallel, otherwise disks and snapshots will be
     // destroyed even if this fails
-    await this.call('VM.destroy', $ref)
+    await this.callAsync('VM.destroy', $ref)
 
     return Promise.all([
       asyncMap(vm.$snapshots, snapshot =>
@@ -1654,7 +1654,7 @@ export default class Xapi extends XapiBase {
           false, // Start paused?
           false // Skip pre-boot checks?
         )
-      : this.call('VM.start_on', vm.$ref, host.$ref, false, false)
+      : this.callAsync('VM.start_on', vm.$ref, host.$ref, false, false)
   }
 
   async startVm(vmId, hostId, force) {
@@ -1827,14 +1827,14 @@ export default class Xapi extends XapiBase {
     })
 
     if (isVmRunning(vm)) {
-      await this.call('VBD.plug', vbdRef)
+      await this.callAsync('VBD.plug', vbdRef)
     }
   }
 
   _cloneVdi(vdi) {
     log.debug(`Cloning VDI ${vdi.name_label}`)
 
-    return this.call('VDI.clone', vdi.$ref)
+    return this.callAsync('VDI.clone', vdi.$ref).then(extractOpaqueRef)
   }
 
   async createVdi({
@@ -1857,7 +1857,7 @@ export default class Xapi extends XapiBase {
     log.debug(`Creating VDI ${name_label} on ${sr.name_label}`)
 
     return this._getOrWaitObject(
-      await this.call('VDI.create', {
+      await this.callAsync('VDI.create', {
         name_description,
         name_label,
         other_config,
@@ -1869,7 +1869,7 @@ export default class Xapi extends XapiBase {
         type,
         virtual_size: size !== undefined ? parseSize(size) : virtual_size,
         xenstore_data,
-      })
+      }).then(extractOpaqueRef)
     )
   }
 
@@ -1923,7 +1923,7 @@ export default class Xapi extends XapiBase {
     log.debug(`Deleting VDI ${vdiRef}`)
 
     try {
-      await this.call('VDI.destroy', vdiRef)
+      await this.callAsync('VDI.destroy', vdiRef)
     } catch (error) {
       if (error?.code !== 'HANDLE_INVALID') {
         throw error
@@ -1936,7 +1936,7 @@ export default class Xapi extends XapiBase {
       `Resizing VDI ${vdi.name_label} from ${vdi.virtual_size} to ${size}`
     )
 
-    return this.call('VDI.resize', vdi.$ref, size)
+    return this.callAsync('VDI.resize', vdi.$ref, size)
   }
 
   _getVmCdDrive(vm) {
@@ -1950,7 +1950,7 @@ export default class Xapi extends XapiBase {
   async _ejectCdFromVm(vm) {
     const cdDrive = this._getVmCdDrive(vm)
     if (cdDrive) {
-      await this.call('VBD.eject', cdDrive.$ref)
+      await this.callAsync('VBD.eject', cdDrive.$ref)
     }
   }
 
@@ -1958,16 +1958,16 @@ export default class Xapi extends XapiBase {
     const cdDrive = await this._getVmCdDrive(vm)
     if (cdDrive) {
       try {
-        await this.call('VBD.insert', cdDrive.$ref, cd.$ref)
+        await this.callAsync('VBD.insert', cdDrive.$ref, cd.$ref)
       } catch (error) {
         if (!force || error.code !== 'VBD_NOT_EMPTY') {
           throw error
         }
 
-        await this.call('VBD.eject', cdDrive.$ref)::ignoreErrors()
+        await this.callAsync('VBD.eject', cdDrive.$ref)::ignoreErrors()
 
         // Retry.
-        await this.call('VBD.insert', cdDrive.$ref, cd.$ref)
+        await this.callAsync('VBD.insert', cdDrive.$ref, cd.$ref)
       }
 
       if (bootable !== Boolean(cdDrive.bootable)) {
@@ -1984,7 +1984,7 @@ export default class Xapi extends XapiBase {
   }
 
   async connectVbd(vbdId) {
-    await this.call('VBD.plug', vbdId)
+    await this.callAsync('VBD.plug', vbdId)
   }
 
   async _disconnectVbd(vbd) {
@@ -2044,7 +2044,7 @@ export default class Xapi extends XapiBase {
     const vdi = this.getObject(vdiId)
 
     const snap = await this._getOrWaitObject(
-      await this.call('VDI.snapshot', vdi.$ref)
+      await this.callAsync('VDI.snapshot', vdi.$ref).then(extractOpaqueRef)
     )
 
     if (nameLabel) {
@@ -2172,7 +2172,7 @@ export default class Xapi extends XapiBase {
     )
 
     if (currently_attached && isVmRunning(vm)) {
-      await this.call('VIF.plug', vifRef)
+      await this.callAsync('VIF.plug', vifRef)
     }
 
     return vifRef
@@ -2200,7 +2200,7 @@ export default class Xapi extends XapiBase {
       // https://citrix.github.io/xenserver-sdk/#network
       other_config: { automatic: 'false' },
     })
-    $defer.onFailure(() => this.call('network.destroy', networkRef))
+    $defer.onFailure(() => this.callAsync('network.destroy', networkRef))
     if (pifId) {
       await this.call(
         'pool.create_VLAN_from_PIF',
@@ -2239,7 +2239,7 @@ export default class Xapi extends XapiBase {
     await Promise.all(
       mapToArray(
         vlans,
-        vlan => vlan !== NULL_REF && this.call('VLAN.destroy', vlan)
+        vlan => vlan !== NULL_REF && this.callAsync('VLAN.destroy', vlan)
       )
     )
 
@@ -2254,7 +2254,7 @@ export default class Xapi extends XapiBase {
         newPifs,
         pifRef =>
           !wasAttached[this.getObject(pifRef).host] &&
-          this.call('PIF.unplug', pifRef)::ignoreErrors()
+          this.callAsync('PIF.unplug', pifRef)::ignoreErrors()
       )
     )
   }
@@ -2285,7 +2285,7 @@ export default class Xapi extends XapiBase {
     await Promise.all(
       mapToArray(
         vlans,
-        vlan => vlan !== NULL_REF && this.call('VLAN.destroy', vlan)
+        vlan => vlan !== NULL_REF && this.callAsync('VLAN.destroy', vlan)
       )
     )
 
@@ -2294,7 +2294,7 @@ export default class Xapi extends XapiBase {
       mapToArray(bonds, bond => this.call('Bond.destroy', bond))
     )
 
-    await this.call('network.destroy', network.$ref)
+    await this.callAsync('network.destroy', network.$ref)
   }
 
   // =================================================================

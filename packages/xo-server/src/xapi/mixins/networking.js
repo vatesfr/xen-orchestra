@@ -4,13 +4,13 @@ import { makeEditObject } from '../utils'
 
 export default {
   async _connectVif(vif) {
-    await this.call('VIF.plug', vif.$ref)
+    await this.callAsync('VIF.plug', vif.$ref)
   },
   async connectVif(vifId) {
     await this._connectVif(this.getObject(vifId))
   },
   async _deleteVif(vif) {
-    await this.call('VIF.destroy', vif.$ref)
+    await this.callAsync('VIF.destroy', vif.$ref)
   },
   async deleteVif(vifId) {
     const vif = this.getObject(vifId)
@@ -20,7 +20,7 @@ export default {
     await this._deleteVif(vif)
   },
   async _disconnectVif(vif) {
-    await this.call('VIF.unplug_force', vif.$ref)
+    await this.callAsync('VIF.unplug_force', vif.$ref)
   },
   async disconnectVif(vifId) {
     await this._disconnectVif(this.getObject(vifId))

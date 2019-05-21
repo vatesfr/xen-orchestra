@@ -15,7 +15,7 @@ export function getIpv6ConfigurationModes() {
 
 async function delete_({ pif }) {
   // TODO: check if PIF is attached before
-  await this.getXapi(pif).call('PIF.destroy', pif._xapiRef)
+  await this.getXapi(pif).callAsync('PIF.destroy', pif._xapiRef)
 }
 export { delete_ as delete }
 
@@ -32,7 +32,7 @@ delete_.resolve = {
 
 export async function disconnect({ pif }) {
   // TODO: check if PIF is attached before
-  await this.getXapi(pif).call('PIF.unplug', pif._xapiRef)
+  await this.getXapi(pif).callAsync('PIF.unplug', pif._xapiRef)
 }
 
 disconnect.params = {
@@ -47,7 +47,7 @@ disconnect.resolve = {
 
 export async function connect({ pif }) {
   // TODO: check if PIF is attached before
-  await this.getXapi(pif).call('PIF.plug', pif._xapiRef)
+  await this.getXapi(pif).callAsync('PIF.plug', pif._xapiRef)
 }
 
 connect.params = {
