@@ -29,6 +29,7 @@ import {
   groupBy,
   includes,
   isEmpty,
+  noop,
   omit,
   startsWith,
   uniq,
@@ -1262,7 +1263,7 @@ export default class Xapi extends XapiBase {
     )
 
     const loop = () =>
-      this.call(
+      this.callAsync(
         'VM.migrate_send',
         vm.$ref,
         token,
@@ -1276,7 +1277,7 @@ export default class Xapi extends XapiBase {
         pDelay(1e4).then(loop)
       )
 
-    return loop()
+    return loop().then(noop)
   }
 
   @synchronized()
@@ -1546,7 +1547,7 @@ export default class Xapi extends XapiBase {
       })
     } else {
       try {
-        await this.call('VM.pool_migrate', vm.$ref, host.$ref, {
+        await this.callAsync('VM.pool_migrate', vm.$ref, host.$ref, {
           force: 'true',
         })
       } catch (error) {
@@ -1886,9 +1887,12 @@ export default class Xapi extends XapiBase {
       }`
     )
     try {
-      await pRetry(() => this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {}), {
-        when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
-      })
+      await pRetry(
+        () => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}),
+        {
+          when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
+        }
+      )
     } catch (error) {
       const { code } = error
       if (
@@ -1899,7 +1903,9 @@ export default class Xapi extends XapiBase {
         throw error
       }
       const newVdi = await this.barrier(
-        await this.call('VDI.copy', vdi.$ref, sr.$ref)
+        await this.callAsync('VDI.copy', vdi.$ref, sr.$ref).then(
+          extractOpaqueRef
+        )
       )
       await asyncMap(vdi.$VBDs, async vbd => {
         await this.call('VBD.destroy', vbd.$ref)
