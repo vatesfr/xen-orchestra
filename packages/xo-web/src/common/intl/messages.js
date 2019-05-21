@@ -687,10 +687,11 @@ const messages = {
   // ----- SR general tab -----
   baseCopyTooltip:
     '{n, number} base cop{n, plural, one {y} other {ies}} ({usage})',
-  snapshotTooltip:
+  diskTooltip: '{name} ({usage})',
+  vdisTooltip: '{n, number} VDI{n, plural, one {} other {s}} ({usage})',
+  snapshotsTooltip:
     '{n, number} snapshot{n, plural, one {} other {s}} ({usage})',
   vdiOnVmTooltip: '{name} ({usage}) on {vmName}',
-  vdiTooltip: '{name} ({usage})',
 
   // ----- SR advanced tab -----
 
@@ -1226,7 +1227,7 @@ const messages = {
   dashboardSendReportInfo:
     'The usage report and transport email plugins need to be loaded!',
   tooltipOthers:
-    'Others ({total} on {nOthers, number} {type}{nOthers, plural, one {} other {s}})',
+    'Others ({size} on {nOthers, number} {type}{nOthers, plural, one {} other {s}})',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',

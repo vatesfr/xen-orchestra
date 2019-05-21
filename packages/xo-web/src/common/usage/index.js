@@ -18,7 +18,6 @@ const Usage = ({ total, children, type, tooltipOthers }) => {
     }
     return 0
   })
-
   const othersTotal = sum(othersValues)
   return (
     <span className='usage'>
@@ -33,7 +32,7 @@ const Usage = ({ total, children, type, tooltipOthers }) => {
           tooltipOthers && type !== undefined && nOthers > 0
             ? _('tooltipOthers', {
                 nOthers,
-                total: formatSize(othersTotal),
+                size: formatSize(othersTotal),
                 type,
               })
             : _('others')

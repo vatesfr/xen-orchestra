@@ -528,9 +528,9 @@ const TRANSFORMS = {
 
       name_description: obj.name_description,
       name_label: obj.name_label,
+      parent: obj.sm_config['vhd-parent'],
       size: +obj.virtual_size,
       snapshots: link(obj, 'snapshots'),
-      parent: obj.sm_config['vhd-parent'],
       tags: obj.tags,
       usage: +obj.physical_utilisation,
 
