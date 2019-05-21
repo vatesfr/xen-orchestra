@@ -291,10 +291,8 @@ export default class Xapi extends XapiBase {
       nameDescription !== undefined &&
         network.set_name_description(nameDescription),
       nameLabel !== undefined && network.set_name_label(nameLabel),
-      network.update_other_config(
-        'automatic',
-        automatic === undefined ? undefined : automatic ? 'true' : null
-      ),
+      automatic !== undefined &&
+        network.update_other_config('automatic', automatic ? 'true' : null),
     ])
   }
 
