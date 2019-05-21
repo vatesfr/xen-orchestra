@@ -339,7 +339,7 @@ const messages = {
   runJob: 'Run job',
   cancelJob: 'Cancel job',
   runJobConfirm: 'Are you sure you want to run {backupType} {id} ({tag})?',
-  runJobVerbose: 'One shot job started. See overview for logs.',
+  runJobVerbose: 'Onetime job started. See overview for logs.',
   jobEdit: 'Edit job',
   jobDelete: 'Delete',
   jobFinished: 'Finished',
