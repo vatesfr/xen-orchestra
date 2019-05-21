@@ -420,18 +420,18 @@ const ChooseBackupType = () => (
   </Container>
 )
 
-export default adminOnly(
-  routes('overview', {
-    ':id/edit': Edit,
-    new: ChooseBackupType,
-    'new/vms': NewVmBackup,
-    'new/metadata': NewMetadataBackup,
-    overview: Overview,
-    restore: Restore,
-    'restore/metadata': RestoreMetadata,
-    'file-restore': FileRestore,
-    health: Health,
-  })(({ children }) => (
+export default routes('overview', {
+  ':id/edit': Edit,
+  new: ChooseBackupType,
+  'new/vms': NewVmBackup,
+  'new/metadata': NewMetadataBackup,
+  overview: Overview,
+  restore: Restore,
+  'restore/metadata': RestoreMetadata,
+  'file-restore': FileRestore,
+  health: Health,
+})(
+  adminOnly(({ children }) => (
     <Page header={HEADER} title='backupPage' formatTitle>
       {children}
     </Page>
