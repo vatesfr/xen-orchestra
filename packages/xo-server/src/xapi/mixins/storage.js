@@ -35,7 +35,7 @@ export default {
   },
 
   _plugPbd(pbd) {
-    return this.call('PBD.plug', pbd.$ref)
+    return this.callAsync('PBD.plug', pbd.$ref)
   },
 
   async plugPbd(id) {
@@ -43,7 +43,7 @@ export default {
   },
 
   _unplugPbd(pbd) {
-    return this.call('PBD.unplug', pbd.$ref)
+    return this.callAsync('PBD.unplug', pbd.$ref)
   },
 
   async unplugPbd(id) {
