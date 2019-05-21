@@ -1,4 +1,5 @@
 import createLogger from '@xen-orchestra/log'
+import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 
@@ -193,11 +194,11 @@ export default class {
     }
   }
 
-  async deleteAllTokens(id, except) {
+  async deleteAuthenticationTokens({ filter }) {
     return Promise.all(
-      (await this.getAuthenticationTokensForUser(id)).map(
-        ({ id }) => id !== except && this.deleteAuthenticationToken(id)
-      )
+      (await this._tokens.get())
+        .filter(createPredicate(filter))
+        .map(({ id }) => this.deleteAuthenticationToken(id))
     )
   }
 

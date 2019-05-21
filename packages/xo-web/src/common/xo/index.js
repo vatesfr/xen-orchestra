@@ -2509,7 +2509,7 @@ export const editUser = (user, { email, password, permission }) =>
   )
 
 const _signOutFromEverywhereElse = () =>
-  _call('user.deleteAllTokens', { except: cookies.get('token') })
+  _call('token.deleteAll', { except: cookies.get('token') })
 
 export const signOutFromEverywhereElse = () =>
   _signOutFromEverywhereElse().then(
