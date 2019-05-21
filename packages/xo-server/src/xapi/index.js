@@ -2044,7 +2044,7 @@ export default class Xapi extends XapiBase {
     const vdi = this.getObject(vdiId)
 
     const snap = await this._getOrWaitObject(
-      await this.callAsync('VDI.snapshot', vdi.$ref)
+      await this.callAsync('VDI.snapshot', vdi.$ref).then(extractOpaqueRef)
     )
 
     if (nameLabel) {
