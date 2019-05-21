@@ -84,6 +84,7 @@ export type BackupJob = {|
   ...$Exact<Job>,
   compression?: 'native' | 'zstd' | '',
   mode: Mode,
+  proxy?: 'string',
   remotes?: SimpleIdPattern,
   settings: $Dict<Settings>,
   srs?: SimpleIdPattern,
