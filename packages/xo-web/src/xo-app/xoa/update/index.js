@@ -17,6 +17,7 @@ import { error } from 'notification'
 import { generateId, linkState, toggleState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
+import { Input as DebounceInput } from 'debounce-input-decorator'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { Password, Select } from 'form'
 import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
@@ -336,9 +337,10 @@ const Updates = decorate([
                   <br />
                   {state.isUnlistedChannel && (
                     <div className='form-group'>
-                      <input
+                      <DebounceInput
                         autoFocus
                         className='form-control'
+                        debounceTimeout={500}
                         name='channel'
                         onChange={effects.linkState}
                         placeholder={formatMessage(
