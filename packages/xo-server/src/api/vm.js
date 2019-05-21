@@ -630,13 +630,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function restart({ vm, force = false }) {
-  const xapi = this.getXapi(vm)
-
-  if (force) {
-    await xapi.call('VM.hard_reboot', vm._xapiRef)
-  } else {
-    await xapi.call('VM.clean_reboot', vm._xapiRef)
-  }
+  return this.getXapi(vm).rebootVm(vm._xapiId, { hard: force })
 }
 
 restart.params = {

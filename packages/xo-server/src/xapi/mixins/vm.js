@@ -513,6 +513,13 @@ export default {
     return this.call('VM.unpause', this.getObject(vmId).$ref)
   },
 
+  rebootVm(vmId, { hard = false } = {}) {
+    return this.callAsync(
+      `VM.${hard ? 'hard' : 'clean'}_reboot`,
+      this.getObject(vmId).$ref
+    ).then(noop)
+  },
+
   shutdownVm(vmId, { hard = false } = {}) {
     return this.call(
       `VM.${hard ? 'hard' : 'clean'}_shutdown`,
