@@ -350,5 +350,30 @@ handlers.forEach(url => {
         }
       )
     })
+
+    describe('#truncate()', () => {
+      forOwn(
+        {
+          'shrinks file': (() => {
+            const length = random(0, TEST_DATA_LEN)
+            const expected = TEST_DATA.slice(0, length)
+            return { length, expected }
+          })(),
+          'grows file': (() => {
+            const length = random(TEST_DATA_LEN, TEST_DATA_LEN * 2)
+            const expected = Buffer.alloc(length)
+            TEST_DATA.copy(expected)
+            return { length, expected }
+          })(),
+        },
+        ({ length, expected }, title) => {
+          it(title, async () => {
+            await handler.outputFile('file', TEST_DATA)
+            await handler.truncate('file', length)
+            await expect(await handler.readFile('file')).toEqual(expected)
+          })
+        }
+      )
+    })
   })
 })

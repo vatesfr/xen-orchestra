@@ -401,7 +401,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async truncate(file: string, len: number): Promise<void> {
-    throw new Error('Not implemented')
+    await this._truncate(file, len)
   }
 
   async unlink(file: string, { checksum = true }: Object = {}): Promise<void> {
