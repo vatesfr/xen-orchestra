@@ -96,9 +96,8 @@ const Updates = decorate([
     }),
     effects: {
       async configure() {
-        const { effects, state } = this
         await xoaUpdater.configure({
-          ...pick(state, [
+          ...pick(this.state, [
             'channel',
             'proxyHost',
             'proxyPassword',
@@ -106,6 +105,8 @@ const Updates = decorate([
             'proxyUser',
           ]),
         })
+
+        const { effects } = this
         await Promise.all([
           effects.resetChannel(),
           effects.resetProxyConfig(),
