@@ -194,6 +194,8 @@ const Updates = decorate([
                 value: UNLISTED_CHANNEL_VALUE,
               },
             ],
+      consolidatedChannel: ({ channel }, { xoaConfiguration }) =>
+        defined(channel, xoaConfiguration.channel),
       async installedPackages() {
         const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
         return { ...installer, ...updater, ...npm }
@@ -213,8 +215,6 @@ const Updates = decorate([
         xoaTrialState.state === 'default' &&
         !isTrialRunning(xoaTrialState.trial) &&
         !exposeTrial(xoaTrialState.trial),
-      consolidatedChannel: ({ channel }, { xoaConfiguration }) =>
-        defined(channel, xoaConfiguration.channel),
       isUnlistedChannel: ({ consolidatedChannel, channels }) =>
         consolidatedChannel !== undefined && !(consolidatedChannel in channels),
       isUpdaterDown: (_, { xoaTrialState }) =>
@@ -322,7 +322,6 @@ const Updates = decorate([
               <form id={state.channelsFormId} className='form'>
                 <div className='form-group'>
                   <Select
-                    autoSelectSingleOption={false} // avoid selecting *unlisted channel* before public channels are retrieved
                     isLoading={state.channelsOptions === undefined}
                     onChange={effects.onChannelChange}
                     options={state.channelsOptions}
