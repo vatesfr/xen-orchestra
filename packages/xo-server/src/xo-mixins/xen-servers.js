@@ -386,14 +386,12 @@ export default class {
             return value && JSON.parse(value)
           },
           setData: async (id, key, value) => {
-            await xapi._updateObjectMapProperty(
-              xapi.getObject(id),
-              'other_config',
-              {
-                [`xo:${camelToSnakeCase(key)}`]:
-                  value !== null ? JSON.stringify(value) : value,
-              }
-            )
+            await xapi
+              .getObject(id)
+              .update_other_config(
+                `xo:${camelToSnakeCase(key)}`,
+                value !== null ? JSON.stringify(value) : value
+              )
 
             // Register the updated object.
             addObject(await xapi._waitObject(id))

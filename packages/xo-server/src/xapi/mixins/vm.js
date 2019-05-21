@@ -125,13 +125,12 @@ export default {
           if (installMethod === 'network') {
             // TODO: normalize RHEL URL?
 
-            await this._updateObjectMapProperty(vm, 'other_config', {
-              'install-repository': installRepository,
-            })
+            await vm.update_other_config(
+              'install-repository',
+              installRepository
+            )
           } else if (installMethod === 'cd') {
-            await this._updateObjectMapProperty(vm, 'other_config', {
-              'install-repository': 'cdrom',
-            })
+            await vm.update_other_config('install-repository', 'cdrom')
           }
         }
       }
@@ -276,9 +275,7 @@ export default {
     autoPoweron: {
       set(value, vm) {
         return Promise.all([
-          this._updateObjectMapProperty(vm, 'other_config', {
-            autoPoweron: value ? 'true' : null,
-          }),
+          vm.update_other_config('autoPoweron', value ? 'true' : null),
           value &&
             this.setPoolProperties({
               autoPoweron: true,
@@ -304,11 +301,8 @@ export default {
     },
 
     coresPerSocket: {
-      set(coresPerSocket, vm) {
-        return this._updateObjectMapProperty(vm, 'platform', {
-          'cores-per-socket': coresPerSocket,
-        })
-      },
+      set: (coresPerSocket, vm) =>
+        vm.update_platform('cores-per-socket', coresPerSocket),
     },
 
     CPUs: 'cpus',
@@ -334,18 +328,16 @@ export default {
 
     cpuCap: {
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
-      set(cap, vm) {
-        return this._updateObjectMapProperty(vm, 'VCPUs_params', { cap })
-      },
+      set: (cap, vm) => vm.update_VCPUs_params('cap', cap),
     },
 
     cpuMask: {
       get: vm => vm.VCPUs_params.mask && vm.VCPUs_params.mask.split(','),
-      set(cpuMask, vm) {
-        return this._updateObjectMapProperty(vm, 'VCPUs_params', {
-          mask: cpuMask == null ? cpuMask : cpuMask.join(','),
-        })
-      },
+      set: (cpuMask, vm) =>
+        vm.update_VCPUs_params(
+          'mask',
+          cpuMask == null ? cpuMask : cpuMask.join(',')
+        ),
     },
 
     cpusMax: 'cpusStaticMax',
@@ -359,9 +351,7 @@ export default {
 
     cpuWeight: {
       get: vm => vm.VCPUs_params.weight && +vm.VCPUs_params.weight,
-      set(weight, vm) {
-        return this._updateObjectMapProperty(vm, 'VCPUs_params', { weight })
-      },
+      set: (weight, vm) => vm.update_VCPUs_params('weight', weight),
     },
 
     highAvailability: {
@@ -439,19 +429,12 @@ export default {
     hasVendorDevice: true,
 
     expNestedHvm: {
-      set(expNestedHvm, vm) {
-        return this._updateObjectMapProperty(vm, 'platform', {
-          'exp-nested-hvm': expNestedHvm ? 'true' : null,
-        })
-      },
+      set: (expNestedHvm, vm) =>
+        vm.update_platform('exp-nested-hvm', expNestedHvm ? 'true' : null),
     },
 
     nicType: {
-      set(nicType, vm) {
-        return this._updateObjectMapProperty(vm, 'platform', {
-          nic_type: nicType,
-        })
-      },
+      set: (nicType, vm) => vm.update_platform('nic_type', nicType),
     },
 
     vga: {
@@ -461,7 +444,7 @@ export default {
             `The different values that the VGA can take are: ${XEN_VGA_VALUES}`
           )
         }
-        return this._updateObjectMapProperty(vm, 'platform', { vga })
+        return vm.update_platform('vga', vga)
       },
     },
 
@@ -472,7 +455,7 @@ export default {
             `The different values that the video RAM can take are: ${XEN_VIDEORAM_VALUES}`
           )
         }
-        return this._updateObjectMapProperty(vm, 'platform', { videoram })
+        return vm.update_platform('videoram', videoram)
       },
     },
 

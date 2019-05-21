@@ -162,11 +162,17 @@ export const makeEditObject = specs => {
         }
       }
 
-      const map = set.slice(0, index)
-      const prop = set.slice(index + 1)
+      const field = set.slice(0, index)
+      const entry = set.slice(index + 1)
 
       return function(value, object) {
-        return this._updateObjectMapProperty(object, map, { [prop]: value })
+        return this.setFieldEntry(
+          object.$type,
+          object.$ref,
+          field,
+          entry,
+          value
+        )
       }
     }
 

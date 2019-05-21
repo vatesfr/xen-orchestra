@@ -937,7 +937,7 @@ export default class BackupNg {
           message: 'clean backup metadata on VM',
           parentId: taskId,
         },
-        xapi._updateObjectMapProperty(vm, 'other_config', {
+        vm.update_other_config({
           'xo:backup:datetime': null,
           'xo:backup:deltaChainLength': null,
           'xo:backup:exported': null,
@@ -1051,7 +1051,7 @@ export default class BackupNg {
         message: 'add metadata to snapshot',
         parentId: taskId,
       },
-      xapi._updateObjectMapProperty(snapshot, 'other_config', {
+      snapshot.update_other_config({
         'xo:backup:datetime': snapshot.snapshot_time,
         'xo:backup:job': jobId,
         'xo:backup:schedule': scheduleId,
@@ -1270,13 +1270,11 @@ export default class BackupNg {
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Disaster Recovery'),
                   disableVmHighAvailability(xapi, vm),
-                  xapi._updateObjectMapProperty(vm, 'blocked_operations', {
-                    start:
-                      'Start operation for this vm is blocked, clone it if you want to use it.',
-                  }),
-                  xapi._updateObjectMapProperty(vm, 'other_config', {
-                    'xo:backup:sr': srId,
-                  }),
+                  vm.update_blocked_operations(
+                    'start',
+                    'Start operation for this vm is blocked, clone it if you want to use it.'
+                  ),
+                  vm.update_other_config('xo:backup:sr', srId),
                 ])
 
                 if (!deleteFirst) {
@@ -1630,13 +1628,11 @@ export default class BackupNg {
                 await Promise.all([
                   xapi.addTag(vm.$ref, 'Continuous Replication'),
                   disableVmHighAvailability(xapi, vm),
-                  xapi._updateObjectMapProperty(vm, 'blocked_operations', {
-                    start:
-                      'Start operation for this vm is blocked, clone it if you want to use it.',
-                  }),
-                  xapi._updateObjectMapProperty(vm, 'other_config', {
-                    'xo:backup:sr': srId,
-                  }),
+                  vm.update_blocked_operations(
+                    'start',
+                    'Start operation for this vm is blocked, clone it if you want to use it.'
+                  ),
+                  vm.update_other_config('xo:backup:sr', srId),
                 ])
 
                 if (!deleteFirst) {
@@ -1667,9 +1663,7 @@ export default class BackupNg {
         message: 'set snapshot.other_config[xo:backup:exported]',
         parentId: taskId,
       },
-      xapi._updateObjectMapProperty(snapshot, 'other_config', {
-        'xo:backup:exported': 'true',
-      })
+      snapshot.update_other_config('xo:backup:exported', 'true')
     )
   }
 
