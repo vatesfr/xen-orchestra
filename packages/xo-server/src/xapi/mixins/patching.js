@@ -353,9 +353,10 @@ export default {
       if (JSON.parse(update).exit !== 0) {
         throw new Error('Update install failed')
       } else {
-        await this._updateObjectMapProperty(host, 'other_config', {
-          rpm_patch_installation_time: String(Date.now() / 1000),
-        })
+        await host.update_other_config(
+          'rpm_patch_installation_time',
+          String(Date.now() / 1000)
+        )
       }
     })
   },

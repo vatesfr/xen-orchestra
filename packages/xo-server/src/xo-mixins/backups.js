@@ -456,11 +456,9 @@ export default class {
 
       // (Asynchronously) Identify snapshot as future base.
       promise
-        .then(() => {
-          return srcXapi._updateObjectMapProperty(srcVm, 'other_config', {
-            [TAG_LAST_BASE_DELTA]: delta.vm.uuid,
-          })
-        })
+        .then(() =>
+          srcVm.update_other_config(TAG_LAST_BASE_DELTA, delta.vm.uuid)
+        )
         ::ignoreErrors()
 
       return promise
@@ -974,10 +972,10 @@ export default class {
       nameLabel: copyName,
     })
 
-    targetXapi._updateObjectMapProperty(data.vm, 'blocked_operations', {
-      start:
-        'Start operation for this vm is blocked, clone it if you want to use it.',
-    })
+    data.vm.update_blocked_operations(
+      'start',
+      'Start operation for this vm is blocked, clone it if you want to use it.'
+    )
 
     await targetXapi.addTag(data.vm.$id, 'Disaster Recovery')
 

@@ -255,30 +255,6 @@ export default class Xapi extends XapiBase {
     )::ignoreErrors()
   }
 
-  async _updateObjectMapProperty(object, prop, values) {
-    const { $ref: ref, $type: type } = object
-
-    prop = camelToSnakeCase(prop)
-
-    const add = `${type}.add_to_${prop}`
-    const remove = `${type}.remove_from_${prop}`
-
-    await Promise.all(
-      mapToArray(values, (value, name) => {
-        if (value !== undefined) {
-          name = camelToSnakeCase(name)
-          const removal = this.call(remove, ref, name)
-
-          return value === null
-            ? removal
-            : removal
-                ::ignoreErrors()
-                .then(() => this.call(add, ref, name, prepareXapiParam(value)))
-        }
-      })
-    )
-  }
-
   async setHostProperties(id, { nameLabel, nameDescription }) {
     await this._setObjectProperties(this.getObject(id), {
       nameLabel,
@@ -295,9 +271,7 @@ export default class Xapi extends XapiBase {
         nameDescription,
       }),
       autoPoweron != null &&
-        this._updateObjectMapProperty(pool, 'other_config', {
-          autoPoweron: autoPoweron ? 'true' : null,
-        }),
+        pool.update_other_config('autoPoweron', autoPoweron ? 'true' : null),
     ])
   }
 
@@ -323,10 +297,10 @@ export default class Xapi extends XapiBase {
         nameDescription,
         nameLabel,
       }),
-      this._updateObjectMapProperty(network, 'other_config', {
-        automatic:
-          automatic === undefined ? undefined : automatic ? 'true' : null,
-      }),
+      network.update_other_config(
+        'automatic',
+        automatic === undefined ? undefined : automatic ? 'true' : null
+      ),
     ])
   }
 
@@ -446,9 +420,7 @@ export default class Xapi extends XapiBase {
       $defer(() => this.plugPbd(ref))
     })
 
-    return this._updateObjectMapProperty(
-      host,
-      'other_config',
+    return host.update_other_config(
       multipathing
         ? {
             multipathing: 'true',
@@ -722,12 +694,8 @@ export default class Xapi extends XapiBase {
 
     await Promise.all([
       this.call('VM.set_is_a_template', vm.$ref, false),
-      this._updateObjectMapProperty(vm, 'blocked_operations', {
-        destroy: null,
-      }),
-      this._updateObjectMapProperty(vm, 'other_config', {
-        default_template: null,
-      }),
+      vm.update_blocked_operations('destroy', null),
+      vm.update_other_config('default_template', null),
     ])
 
     // must be done before destroying the VM
@@ -1075,12 +1043,8 @@ export default class Xapi extends XapiBase {
       this._setObjectProperties(vm, {
         name_label: `[Importing…] ${name_label}`,
       }),
-      this._updateObjectMapProperty(vm, 'blocked_operations', {
-        start: 'Importing…',
-      }),
-      this._updateObjectMapProperty(vm, 'other_config', {
-        [TAG_COPY_SRC]: delta.vm.uuid,
-      }),
+      vm.update_blocked_operations('start', 'Importing…'),
+      vm.update_other_config(TAG_COPY_SRC, delta.vm.uuid),
     ])
 
     // 2. Delete all VBDs which may have been created by the import.
@@ -1104,9 +1068,7 @@ export default class Xapi extends XapiBase {
         newVdi = await this._getOrWaitObject(await this._cloneVdi(baseVdi))
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
 
-        await this._updateObjectMapProperty(newVdi, 'other_config', {
-          [TAG_COPY_SRC]: vdi.uuid,
-        })
+        await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
       } else {
         newVdi = await this.createVdi({
           ...vdi,
@@ -1205,11 +1167,12 @@ export default class Xapi extends XapiBase {
         name_label,
       }),
       // FIXME: move
-      this._updateObjectMapProperty(vm, 'blocked_operations', {
-        start: disableStartAfterImport
+      vm.update_blocked_operations(
+        'start',
+        disableStartAfterImport
           ? 'Do not start this VM, clone it if you want to use it.'
-          : null,
-      }),
+          : null
+      ),
     ])
 
     return { transferSize, vm }
@@ -1633,18 +1596,17 @@ export default class Xapi extends XapiBase {
   }
 
   async setVcpuWeight(vmId, weight) {
-    weight = weight || null // Take all falsy values as a removal (0 included)
-    const vm = this.getObject(vmId)
-    await this._updateObjectMapProperty(vm, 'VCPUs_params', { weight })
+    await this.getObject(vmId).update_VCPUs_params(
+      'weight',
+      weight || null // Take all falsy values as a removal (0 included)
+    )
   }
 
   async _startVm(vm, host, force) {
     log.debug(`Starting VM ${vm.name_label}`)
 
     if (force) {
-      await this._updateObjectMapProperty(vm, 'blocked_operations', {
-        start: null,
-      })
+      await vm.update_blocked_operations('start', null)
     }
 
     return host === undefined
@@ -1683,16 +1645,12 @@ export default class Xapi extends XapiBase {
     if (isVmHvm(vm)) {
       const { order } = vm.HVM_boot_params
 
-      await this._updateObjectMapProperty(vm, 'HVM_boot_params', {
-        order: 'd',
-      })
+      await vm.update_HVM_boot_params('order', 'd')
 
       try {
         await this._startVm(vm)
       } finally {
-        await this._updateObjectMapProperty(vm, 'HVM_boot_params', {
-          order,
-        })
+        await vm.update_HVM_boot_params('order', order)
       }
     } else {
       // Find the original template by name (*sigh*).
@@ -1727,7 +1685,7 @@ export default class Xapi extends XapiBase {
           this._setObjectProperties(vm, {
             PV_bootloader: 'eliloader',
           }),
-          this._updateObjectMapProperty(vm, 'other_config', {
+          vm.update_other_config({
             'install-distro':
               template && template.other_config['install-distro'],
             'install-repository': 'cdrom',
