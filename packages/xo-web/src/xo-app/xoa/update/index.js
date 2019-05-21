@@ -105,7 +105,11 @@ const Updates = decorate([
             'proxyUser',
           ]),
         })
-        await Promise.all([effects.resetProxyConfig(), effects.update()])
+        await Promise.all([
+          effects.resetChannel(),
+          effects.resetProxyConfig(),
+          effects.update(),
+        ])
       },
       initialize() {
         return this.effects.update()
