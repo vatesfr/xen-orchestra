@@ -67,6 +67,9 @@ const initialProxyState = () => zipObject(PROXY_ENTRIES)
 const REGISTRATION_ENTRIES = ['email', 'password']
 const initialRegistrationState = () => zipObject(REGISTRATION_ENTRIES)
 
+const CHANNEL_ENTRIES = ['channel']
+const initialChannelState = () => zipObject(CHANNEL_ENTRIES)
+
 const helper = (obj1, obj2, prop) =>
   defined(() => obj1[prop], () => obj2[prop], '')
 
@@ -84,7 +87,7 @@ const Updates = decorate([
   ]),
   provideState({
     initialState: () => ({
-      channel: undefined,
+      ...initialChannelState(),
       ...initialProxyState(),
       ...initialRegistrationState(),
       askRegisterAgain: false,
@@ -139,6 +142,7 @@ const Updates = decorate([
 
         return initialRegistrationState()
       },
+      resetChannel: initialChannelState,
       resetProxyConfig: initialProxyState,
       async startTrial() {
         try {
