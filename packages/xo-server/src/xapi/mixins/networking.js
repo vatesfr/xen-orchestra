@@ -37,7 +37,7 @@ export default {
               : 'locked'
 
           if (lockingMode !== vif.locking_mode) {
-            return this._set('locking_mode', lockingMode)
+            return vif.set_locking_mode(lockingMode)
           }
         },
       ],
@@ -53,7 +53,7 @@ export default {
               : 'locked'
 
           if (lockingMode !== vif.locking_mode) {
-            return this._set('locking_mode', lockingMode)
+            return vif.set_locking_mode(lockingMode)
           }
         },
       ],

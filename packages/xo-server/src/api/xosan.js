@@ -1132,7 +1132,7 @@ async function _prepareGlusterVm(
     name_description: 'Xosan VM storage',
     memory: memorySize,
   })
-  await xapi.call('VM.set_xenstore_data', newVM.$ref, xenstoreData)
+  await newVM.set_xenstore_data(xenstoreData)
   const rootDisk = newVM.$VBDs
     .map(vbd => vbd && vbd.$VDI)
     .find(vdi => vdi && vdi.name_label === 'xosan_root')

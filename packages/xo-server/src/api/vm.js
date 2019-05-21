@@ -731,7 +731,7 @@ export async function convertToTemplate({ vm }) {
   // Convert to a template requires pool admin permission.
   await this.checkPermissions(this.user.id, [[vm.$pool, 'administrate']])
 
-  await this.getXapi(vm).call('VM.set_is_a_template', vm._xapiRef, true)
+  await this.getXapiObject(vm).set_is_a_template(true)
 }
 
 convertToTemplate.params = {
@@ -1412,15 +1412,11 @@ stats.resolve = {
 // -------------------------------------------------------------------
 
 export async function setBootOrder({ vm, order }) {
-  const xapi = this.getXapi(vm)
-
-  order = { order }
-  if (vm.virtualizationMode === 'hvm') {
-    await xapi.call('VM.set_HVM_boot_params', vm._xapiRef, order)
-    return
+  if (vm.virtualizationMode !== 'hvm') {
+    throw invalidParameters('You can only set the boot order on a HVM guest')
   }
 
-  throw invalidParameters('You can only set the boot order on a HVM guest')
+  await this.getXapiObject(vm).set_HVM_boot_params({ order })
 }
 
 setBootOrder.params = {

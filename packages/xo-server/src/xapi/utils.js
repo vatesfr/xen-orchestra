@@ -148,8 +148,8 @@ export const makeEditObject = specs => {
 
     if (set === true) {
       const prop = camelToSnakeCase(name)
-      return function(value) {
-        return this._set(prop, value)
+      return function(value, obj) {
+        return this.setField(obj.$type, obj.$ref, prop, value)
       }
     }
 
@@ -157,8 +157,8 @@ export const makeEditObject = specs => {
       const index = set.indexOf('.')
       if (index === -1) {
         const prop = camelToSnakeCase(set)
-        return function(value) {
-          return this._set(prop, value)
+        return function(value, obj) {
+          return this.setField(obj.$type, obj.$ref, prop, value)
         }
       }
 
@@ -255,16 +255,6 @@ export const makeEditObject = specs => {
     const limits = checkLimits && {}
     const object = this.getObject(id)
 
-    const _objectRef = object.$ref
-    const _setMethodPrefix = `${object.$type}.set_`
-
-    // Context used to execute functions.
-    const context = {
-      __proto__: this,
-      _set: (prop, value) =>
-        this.call(_setMethodPrefix + prop, _objectRef, prepareXapiParam(value)),
-    }
-
     const set = (value, name) => {
       if (value === undefined) {
         return
@@ -293,7 +283,7 @@ export const makeEditObject = specs => {
         }
       }
 
-      const cb = () => spec.set.call(context, value, object)
+      const cb = () => spec.set.call(this, value, object)
 
       const { constraints } = spec
       if (constraints) {

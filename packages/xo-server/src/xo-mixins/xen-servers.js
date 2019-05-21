@@ -455,6 +455,11 @@ export default class {
     return xapi
   }
 
+  // returns the XAPI object corresponding to an XO object
+  getXapiObject(xoObject) {
+    return this.getXapi(xoObject).getObjectByRef(xoObject._xapiRef)
+  }
+
   _getXenServerStatus(id) {
     const xapi = this._xapis[id]
     return xapi === undefined

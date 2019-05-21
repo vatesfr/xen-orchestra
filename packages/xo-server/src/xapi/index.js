@@ -229,14 +229,6 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  _setObjectProperty(object, name, value) {
-    return this.call(
-      `${object.$type}.set_${camelToSnakeCase(name)}`,
-      object.$ref,
-      prepareXapiParam(value)
-    )
-  }
-
   _setObjectProperties(object, props) {
     const { $ref: ref, $type: type } = object
 
@@ -256,30 +248,32 @@ export default class Xapi extends XapiBase {
   }
 
   async setHostProperties(id, { nameLabel, nameDescription }) {
-    await this._setObjectProperties(this.getObject(id), {
-      nameLabel,
-      nameDescription,
-    })
+    const host = this.getObject(id)
+    await Promise.all([
+      nameDescription !== undefined &&
+        host.set_name_description(nameDescription),
+      nameLabel !== undefined && host.set_name_label(nameLabel),
+    ])
   }
 
   async setPoolProperties({ autoPoweron, nameLabel, nameDescription }) {
     const { pool } = this
 
     await Promise.all([
-      this._setObjectProperties(pool, {
-        nameLabel,
-        nameDescription,
-      }),
+      nameDescription !== undefined &&
+        pool.set_name_description(nameDescription),
+      nameLabel !== undefined && pool.set_name_label(nameLabel),
       autoPoweron != null &&
         pool.update_other_config('autoPoweron', autoPoweron ? 'true' : null),
     ])
   }
 
   async setSrProperties(id, { nameLabel, nameDescription }) {
-    await this._setObjectProperties(this.getObject(id), {
-      nameLabel,
-      nameDescription,
-    })
+    const sr = this.getObject(id)
+    await Promise.all([
+      nameDescription !== undefined && sr.set_name_description(nameDescription),
+      nameLabel !== undefined && sr.set_name_label(nameLabel),
+    ])
   }
 
   async setNetworkProperties(
@@ -292,11 +286,11 @@ export default class Xapi extends XapiBase {
     }
     const network = this.getObject(id)
     await Promise.all([
-      this._setObjectProperties(network, {
-        defaultLockingMode,
-        nameDescription,
-        nameLabel,
-      }),
+      defaultLockingMode !== undefined &&
+        network.set_default_locking_mode(defaultLockingMode),
+      nameDescription !== undefined &&
+        network.set_name_description(nameDescription),
+      nameLabel !== undefined && network.set_name_label(nameLabel),
       network.update_other_config(
         'automatic',
         automatic === undefined ? undefined : automatic ? 'true' : null
@@ -320,10 +314,8 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async setDefaultSr(srId) {
-    this._setObjectProperties(this.pool, {
-      default_SR: this.getObject(srId).$ref,
-    })
+  setDefaultSr(srId) {
+    return this.pool.set_default_SR(this.getObject(srId).$ref)
   }
 
   // =================================================================
@@ -449,7 +441,7 @@ export default class Xapi extends XapiBase {
 
   async setRemoteSyslogHost(hostId, syslogDestination) {
     const host = this.getObject(hostId)
-    await this.call('host.set_logging', host.$ref, {
+    await host.set_logging({
       syslog_destination: syslogDestination,
     })
     await this.call('host.syslog_reconfigure', host.$ref)
@@ -544,12 +536,7 @@ export default class Xapi extends XapiBase {
     stream = stream.pipe(sizeStream)
 
     const onVmCreation =
-      nameLabel !== undefined
-        ? vm =>
-            targetXapi._setObjectProperties(vm, {
-              nameLabel,
-            })
-        : null
+      nameLabel !== undefined ? vm => vm.set_name_label(nameLabel) : null
 
     const vm = await targetXapi._getOrWaitObject(
       await targetXapi._importVm(stream, sr, onVmCreation)
@@ -693,7 +680,7 @@ export default class Xapi extends XapiBase {
     }
 
     await Promise.all([
-      this.call('VM.set_is_a_template', vm.$ref, false),
+      vm.set_is_a_template(false),
       vm.update_blocked_operations('destroy', null),
       vm.update_other_config('default_template', null),
     ])
@@ -1040,9 +1027,7 @@ export default class Xapi extends XapiBase {
     $defer.onFailure(() => this._deleteVm(vm))
 
     await Promise.all([
-      this._setObjectProperties(vm, {
-        name_label: `[Importing…] ${name_label}`,
-      }),
+      vm.set_name_label(`[Importing…] ${name_label}`),
       vm.update_blocked_operations('start', 'Importing…'),
       vm.update_other_config(TAG_COPY_SRC, delta.vm.uuid),
     ])
@@ -1163,9 +1148,7 @@ export default class Xapi extends XapiBase {
     }
 
     await Promise.all([
-      this._setObjectProperties(vm, {
-        name_label,
-      }),
+      vm.set_name_label(name_label),
       // FIXME: move
       vm.update_blocked_operations(
         'start',
@@ -1400,9 +1383,7 @@ export default class Xapi extends XapiBase {
         'start',
         'OVA import in progress...'
       ),
-      this._setObjectProperties(vm, {
-        name_label: `[Importing...] ${nameLabel}`,
-      }),
+      vm.set_name_label(`[Importing...] ${nameLabel}`),
     ])
 
     // 2. Create VDIs & Vifs.
@@ -1463,7 +1444,7 @@ export default class Xapi extends XapiBase {
     // Enable start and restore the VM name label after import.
     await Promise.all([
       this.removeForbiddenOperationFromVm(vm.$id, 'start'),
-      this._setObjectProperties(vm, { name_label: nameLabel }),
+      vm.set_name_label(nameLabel),
     ])
     return vm
   }
@@ -1672,19 +1653,13 @@ export default class Xapi extends XapiBase {
 
         const cdDrive = this._getVmCdDrive(vm)
         forEach(vm.$VBDs, vbd => {
-          promises.push(
-            this._setObjectProperties(vbd, {
-              bootable: vbd === cdDrive,
-            })
-          )
+          promises.push(vbd.set_bootable(vbd === cdDrive))
 
           bootables.push([vbd, Boolean(vbd.bootable)])
         })
 
         promises.push(
-          this._setObjectProperties(vm, {
-            PV_bootloader: 'eliloader',
-          }),
+          vm.set_PV_bootloader('eliloader'),
           vm.update_other_config({
             'install-distro':
               template && template.other_config['install-distro'],
@@ -1696,12 +1671,10 @@ export default class Xapi extends XapiBase {
 
         await this._startVm(vm)
       } finally {
-        this._setObjectProperties(vm, {
-          PV_bootloader: bootloader,
-        })::ignoreErrors()
+        vm.set_PV_bootloader(bootloader)::ignoreErrors()
 
         forEach(bootables, ([vbd, bootable]) => {
-          this._setObjectProperties(vbd, { bootable })::ignoreErrors()
+          vbd.set_bootable(bootable)::ignoreErrors()
         })
       }
     }
@@ -1929,7 +1902,7 @@ export default class Xapi extends XapiBase {
       }
 
       if (bootable !== Boolean(cdDrive.bootable)) {
-        await this._setObjectProperties(cdDrive, { bootable })
+        await cdDrive.set_bootable(bootable)
       }
     } else {
       await this.createVbd({
@@ -1951,7 +1924,7 @@ export default class Xapi extends XapiBase {
       await this.call('VBD.unplug_force', vbd.$ref)
     } catch (error) {
       if (error.code === 'VBD_NOT_UNPLUGGABLE') {
-        await this.call('VBD.set_unpluggable', vbd.$ref, true)
+        await vbd.set_unpluggable(true)
         return this.call('VBD.unplug_force', vbd.$ref)
       }
     }
@@ -2006,7 +1979,7 @@ export default class Xapi extends XapiBase {
     )
 
     if (nameLabel) {
-      await this.call('VDI.set_name_label', snap.$ref, nameLabel)
+      await snap.set_name_label(nameLabel)
     }
 
     return snap
