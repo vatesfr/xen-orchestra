@@ -1068,8 +1068,17 @@ export class Xapi extends EventEmitter {
           getters[$field] = function() {
             const value = this[field]
             const result = {}
+            const objectsByRef = xapi._objectsByRef
+            let object
             getKeys(value).forEach(key => {
-              result[key] = xapi._objectsByRef[value[key]]
+              const k =
+                (object = objectsByRef[key]) !== undefined ? object.$id : key
+              const v =
+                (object = objectsByRef[value[key]]) !== undefined
+                  ? object
+                  : value[key]
+
+              result[k] = v
             })
             return result
           }
