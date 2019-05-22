@@ -10,6 +10,7 @@
 
 - [Charts] Fixed the chart lines sometimes changing order/color (PR [#4221](https://github.com/vatesfr/xen-orchestra/pull/4221))
 - Prevent non-admin users to access admin pages with URL
+- [Upgrade] Fix alert before upgrade while running backup jobs (PR [#4235](https://github.com/vatesfr/xen-orchestra/pull/4235))
 
 ### Released packages
 
