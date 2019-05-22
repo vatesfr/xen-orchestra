@@ -1,6 +1,5 @@
 /* eslint-env jest */
 
-import { findKey } from "lodash";
 import { noSuchObject } from "xo-common/api-errors";
 
 import config from "../_config";
@@ -60,19 +59,17 @@ describe("backupNg", () => {
       });
       expect(backupNgJob.userId).toBe(xo._user.id);
 
-      const settingKeys = Object.keys(backupNgJob.settings);
-      expect(settingKeys.length).toBe(2);
-      const scheduleId = settingKeys.find(key => key !== "");
-      expect(backupNgJob.settings[scheduleId]).toEqual({
+      expect(Object.keys(backupNgJob.settings).length).toBe(2);
+      const schedule = await xo.getSchedule({ jobId });
+      expect(typeof schedule).toBe("object");
+      expect(backupNgJob.settings[schedule.id]).toEqual({
         snapshotRetention: 1,
       });
 
-      const schedule = await xo.call("schedule.get", { id: scheduleId });
       expect(schedule).toMatchSnapshot({
         id: expect.any(String),
         jobId: expect.any(String),
       });
-      expect(schedule.jobId).toBe(jobId);
     });
   });
 
@@ -93,10 +90,8 @@ describe("backupNg", () => {
         },
       });
 
-      const backupNgJob = await xo.call("backupNg.getJob", { id: jobId });
-      const scheduleId = findKey(backupNgJob.settings, {
-        snapshotRetention: 1,
-      });
+      const schedule = await xo.getSchedule({ jobId });
+      expect(typeof schedule).toBe("object");
 
       await xo.call("backupNg.deleteJob", { id: jobId });
 
@@ -107,7 +102,7 @@ describe("backupNg", () => {
       expect(isRejectedJobErrorValid).toBe(true);
 
       let isRejectedScheduleErrorValid = false;
-      await xo.call("schedule.get", { id: scheduleId }).catch(error => {
+      await xo.call("schedule.get", { id: schedule.id }).catch(error => {
         isRejectedScheduleErrorValid = noSuchObject.is(error);
       });
       expect(isRejectedScheduleErrorValid).toBe(true);
@@ -141,12 +136,11 @@ describe("backupNg", () => {
         },
       });
 
-      const backupNgJob = await xo.call("backupNg.getJob", { id: jobId });
-      const settingKeys = Object.keys(backupNgJob.settings);
-      expect(settingKeys.length).toBe(1);
+      const schedule = await xo.getSchedule({ jobId });
+      expect(typeof schedule).toBe("object");
 
       await expect(
-        xo.call("backupNg.runJob", { id: jobId, schedule: settingKeys[0] })
+        xo.call("backupNg.runJob", { id: jobId, schedule: schedule.id })
       ).rejects.toMatchSnapshot();
     });
 
@@ -168,14 +162,12 @@ describe("backupNg", () => {
         },
       });
 
-      const backupNgJob = await xo.call("backupNg.getJob", { id: jobId });
+      const schedule = await xo.getSchedule({ jobId });
+      expect(typeof schedule).toBe("object");
 
-      const settingKeys = Object.keys(backupNgJob.settings);
-      expect(settingKeys.length).toBe(1);
-
-      await xo.call("backupNg.runJob", { id: jobId, schedule: settingKeys[0] });
+      await xo.call("backupNg.runJob", { id: jobId, schedule: schedule.id });
       const [log] = await xo.call("backupNg.getLogs", {
-        scheduleId: settingKeys[0],
+        scheduleId: schedule.id,
       });
       expect(log.warnings).toMatchSnapshot();
     });
