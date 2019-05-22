@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`backupNg .create() : creates a new backup job with schedules 1`] = `
+exports[`backupNg .createJob() : creates a new backup job with schedules 1`] = `
 Object {
   "id": Any<String>,
   "mode": "full",
@@ -14,7 +14,7 @@ Object {
 }
 `;
 
-exports[`backupNg .create() : creates a new backup job with schedules 2`] = `
+exports[`backupNg .createJob() : creates a new backup job with schedules 2`] = `
 Object {
   "cron": "0 * * * * *",
   "enabled": false,
@@ -24,7 +24,7 @@ Object {
 }
 `;
 
-exports[`backupNg .create() : creates a new backup job without schedules 1`] = `
+exports[`backupNg .createJob() : creates a new backup job without schedules 1`] = `
 Object {
   "id": Any<String>,
   "mode": "full",

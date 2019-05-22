@@ -24,7 +24,7 @@ describe("backupNg", () => {
     };
   });
 
-  describe(".create() :", () => {
+  describe(".createJob() :", () => {
     it("creates a new backup job without schedules", async () => {
       const backupNg = await xo.createTempBackupNgJob(defaultBackupNg);
       expect(backupNg).toMatchSnapshot({
