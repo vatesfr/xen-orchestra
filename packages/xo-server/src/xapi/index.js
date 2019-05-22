@@ -1398,7 +1398,7 @@ export default class Xapi extends XapiBase {
         $defer.onFailure(() => this._deleteVdi(vdi.$ref))
 
         return this.createVbd({
-          userdevice: `${disk.position}`,
+          userdevice: String(disk.position),
           vdi,
           vm,
         })
