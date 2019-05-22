@@ -14,11 +14,12 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
+import { generateId, linkState, toggleState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
+import { Input as DebounceInput } from 'debounce-input-decorator'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
-import { linkState, toggleState } from 'reaclette-utils'
-import { Password } from 'form'
+import { Password, Select } from 'form'
 import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
 const ansiUp = new AnsiUp()
@@ -59,11 +60,16 @@ const LEVELS_TO_CLASSES = {
   error: 'text-danger',
 }
 
+const UNLISTED_CHANNEL_VALUE = ''
+
 const PROXY_ENTRIES = ['proxyHost', 'proxyPassword', 'proxyPort', 'proxyUser']
 const initialProxyState = () => zipObject(PROXY_ENTRIES)
 
 const REGISTRATION_ENTRIES = ['email', 'password']
 const initialRegistrationState = () => zipObject(REGISTRATION_ENTRIES)
+
+const CHANNEL_ENTRIES = ['channel']
+const initialChannelState = () => zipObject(CHANNEL_ENTRIES)
 
 const helper = (obj1, obj2, prop) =>
   defined(() => obj1[prop], () => obj2[prop], '')
@@ -83,6 +89,7 @@ const Updates = decorate([
   ]),
   provideState({
     initialState: () => ({
+      ...initialChannelState(),
       ...initialProxyState(),
       ...initialRegistrationState(),
       askRegisterAgain: false,
@@ -90,20 +97,28 @@ const Updates = decorate([
     }),
     effects: {
       async configure() {
-        await xoaUpdater.configure(
-          pick(this.state, [
+        await xoaUpdater.configure({
+          ...pick(this.state, [
+            'channel',
             'proxyHost',
             'proxyPassword',
             'proxyPort',
             'proxyUser',
-          ])
-        )
-        return this.effects.resetProxyConfig()
+          ]),
+        })
+
+        const { effects } = this
+        await Promise.all([
+          effects.resetChannel(),
+          effects.resetProxyConfig(),
+          effects.update(),
+        ])
       },
       initialize() {
         return this.effects.update()
       },
       linkState,
+      onChannelChange: (_, channel) => ({ channel }),
       async register() {
         const { state } = this
 
@@ -134,6 +149,7 @@ const Updates = decorate([
 
         return initialRegistrationState()
       },
+      resetChannel: initialChannelState,
       resetProxyConfig: initialProxyState,
       async startTrial() {
         try {
@@ -160,6 +176,27 @@ const Updates = decorate([
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
+      channelsFormId: generateId,
+      channels: () => xoaUpdater.getReleaseChannels(),
+      channelsOptions: ({ channels }) =>
+        channels === undefined
+          ? undefined
+          : [
+              ...Object.keys(channels)
+                .sort()
+                .map(channel => ({
+                  label: channel,
+                  value: channel,
+                })),
+              {
+                label: (
+                  <span className='font-italic'>{_('unlistedChannel')}</span>
+                ),
+                value: UNLISTED_CHANNEL_VALUE,
+              },
+            ],
+      consolidatedChannel: ({ channel }, { xoaConfiguration }) =>
+        defined(channel, xoaConfiguration.channel),
       async installedPackages() {
         const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
         return { ...installer, ...updater, ...npm }
@@ -179,6 +216,8 @@ const Updates = decorate([
         xoaTrialState.state === 'default' &&
         !isTrialRunning(xoaTrialState.trial) &&
         !exposeTrial(xoaTrialState.trial),
+      isUnlistedChannel: ({ consolidatedChannel, channels }) =>
+        consolidatedChannel !== undefined && !(consolidatedChannel in channels),
       isUpdaterDown: (_, { xoaTrialState }) =>
         isEmpty(xoaTrialState) || xoaTrialState.state === 'ERROR',
       packagesList: ({ installedPackages }) =>
@@ -203,7 +242,7 @@ const Updates = decorate([
   }) => (
     <Container>
       <Row>
-        <Col mediumSize={12}>
+        <Col mediumSize={6}>
           <Card>
             <CardHeader>
               <UpdateTag /> {LABELS_BY_STATE[xoaUpdaterState]}
@@ -274,6 +313,56 @@ const Updates = decorate([
                   </div>
                 ))}
               </pre>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={6}>
+          <Card>
+            <CardHeader>{_('releaseChannels')}</CardHeader>
+            <CardBlock>
+              <form id={state.channelsFormId} className='form'>
+                <div className='form-group'>
+                  <Select
+                    isLoading={state.channelsOptions === undefined}
+                    onChange={effects.onChannelChange}
+                    options={state.channelsOptions}
+                    placeholder={formatMessage(messages.selectChannel)}
+                    required
+                    simpleValue
+                    value={
+                      state.isUnlistedChannel
+                        ? UNLISTED_CHANNEL_VALUE
+                        : state.consolidatedChannel
+                    }
+                  />
+                  <br />
+                  {state.isUnlistedChannel && (
+                    <div className='form-group'>
+                      <DebounceInput
+                        autoFocus
+                        className='form-control'
+                        debounceTimeout={500}
+                        name='channel'
+                        onChange={effects.linkState}
+                        placeholder={formatMessage(
+                          messages.unlistedChannelName
+                        )}
+                        required
+                        type='text'
+                        value={state.consolidatedChannel}
+                      />
+                    </div>
+                  )}
+                </div>{' '}
+                <ActionButton
+                  btnStyle='primary'
+                  form={state.channelsFormId}
+                  handler={effects.configure}
+                  icon='success'
+                >
+                  {_('changeChannel')}
+                </ActionButton>
+              </form>
             </CardBlock>
           </Card>
         </Col>

@@ -381,6 +381,13 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
+  getReleaseChannels() {
+    return this._call('getReleaseChannels').catch(error => {
+      console.error('getReleaseChannels', error)
+      return {}
+    })
+  }
+
   async _call(...args) {
     const c = await this._open()
     try {
