@@ -169,7 +169,7 @@ const Updates = decorate([
       },
       toggleState,
       update: () => xoaUpdater.update(),
-      async upgrade() {
+      upgrade() {
         return this.state.areJobsRunning
           ? confirm({
               title: _('upgradeWarningTitle'),
