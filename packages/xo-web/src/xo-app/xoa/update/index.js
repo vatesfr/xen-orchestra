@@ -169,7 +169,14 @@ const Updates = decorate([
       },
       toggleState,
       update: () => xoaUpdater.update(),
-      upgrade: () => xoaUpdater.upgrade(),
+      upgrade() {
+        return this.state.areJobsRunning
+          ? confirm({
+              title: _('upgradeWarningTitle'),
+              body: <p>{_('upgradeWarningMessage')}</p>,
+            }).then(() => xoaUpdater.upgrade())
+          : xoaUpdater.upgrade()
+      },
     },
     computed: {
       areJobsRunning: (_, { jobs, backupNgJobs }) =>
@@ -285,7 +292,6 @@ const Updates = decorate([
               </ActionButton>{' '}
               <ActionButton
                 btnStyle='success'
-                data-runningJobsExist={state.areJobsRunning}
                 disabled={
                   xoaUpdaterState !== 'upgradeNeeded' &&
                   xoaTrialState.state !== 'untrustedTrial'
