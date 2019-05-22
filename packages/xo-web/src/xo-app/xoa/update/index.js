@@ -169,7 +169,14 @@ const Updates = decorate([
       },
       toggleState,
       update: () => xoaUpdater.update(),
-      upgrade: () => xoaUpdater.upgrade(),
+      async upgrade() {
+        return this.props.runningJobsExist
+          ? confirm({
+              title: _('upgradeWarningTitle'),
+              body: <p>{_('upgradeWarningMessage')}</p>,
+            }).then(() => xoaUpdater.upgrade())
+          : xoaUpdater.upgrade()
+      },
     },
     computed: {
       areJobsRunning: (_, { jobs, backupNgJobs }) =>
