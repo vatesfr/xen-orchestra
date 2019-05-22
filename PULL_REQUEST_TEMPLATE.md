@@ -14,5 +14,5 @@
 
 1. create a PR as soon as possible
 1. mark it as `WiP:` (Work in Progress) if not ready to be merged
-1. when you want a review, add a reviewer
+1. when you want a review, add a reviewer (and only one)
 1. if necessary, update your PR, and re- add a reviewer
