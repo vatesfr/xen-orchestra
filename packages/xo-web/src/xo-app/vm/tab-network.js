@@ -30,7 +30,6 @@ import {
 import {
   concat,
   every,
-  filter,
   find,
   includes,
   isEmpty,
@@ -38,6 +37,8 @@ import {
   map,
   remove,
   some,
+  toArray,
+  uniq,
 } from 'lodash'
 
 import {
@@ -521,7 +522,7 @@ export default class TabNetwork extends BaseComponent {
     // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
     // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
     // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L66-L68
-    addresses => filter(addresses, (_, key) => key.includes('v'))
+    addresses => uniq(toArray(addresses))
   )
 
   render() {
