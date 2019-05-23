@@ -376,7 +376,7 @@ export const dismissNotification = id => {
 export const subscribeNotifications = createSubscription(async () => {
   const { user, xoaUpdaterState } = store.getState()
   if (
-    process.env.XOA_PLAN === 5 ||
+    +process.env.XOA_PLAN === 5 ||
     xoaUpdaterState === 'disconnected' ||
     xoaUpdaterState === 'error'
   ) {
