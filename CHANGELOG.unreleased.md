@@ -12,6 +12,7 @@
 - Prevent non-admin users to access admin pages with URL
 - [Upgrade] Fix alert before upgrade while running backup jobs (PR [#4235](https://github.com/vatesfr/xen-orchestra/pull/4235))
 - [Import] Fix import OVA files (PR [#4232](https://github.com/vatesfr/xen-orchestra/pull/4232))
+- [VM/network] Fix duplicate IPv4 (PR [#4239](https://github.com/vatesfr/xen-orchestra/pull/4239))
 
 ### Released packages
 
