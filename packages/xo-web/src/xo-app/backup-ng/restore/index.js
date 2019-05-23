@@ -38,6 +38,7 @@ import DeleteBackupsModalBody from './delete-backups-modal-body'
 import RestoreLegacy from '../restore-legacy'
 
 import Logs from '../../logs/restore'
+import { formatSize } from '../../../common/utils'
 
 export RestoreMetadata from './metadata'
 
@@ -86,6 +87,11 @@ const BACKUPS_COLUMNS = [
     sortCriteria: 'last.timestamp',
     default: true,
     sortOrder: 'desc',
+  },
+  {
+    name: _('sizeBackupColumn'),
+    itemRenderer: ({ size }) => size !== undefined && formatSize(size),
+    sortCriteria: 'size',
   },
   {
     name: _('availableBackupsColumn'),
@@ -148,7 +154,7 @@ export default class Restore extends Component {
       })
     })
     // TODO: perf
-    let first, last
+    let first, last, size
     forEach(backupDataByVm, (data, vmId) => {
       first = { timestamp: Infinity }
       last = { timestamp: 0 }
@@ -161,9 +167,10 @@ export default class Restore extends Component {
           first = backup
         }
         count[backup.mode] = (count[backup.mode] || 0) + 1
+        size = backup.size
       })
 
-      assign(data, { first, last, count, id: vmId })
+      assign(data, { first, last, count, id: vmId, size })
     })
 
     forEach(backupDataByVm, ({ backups }, vmId) => {

@@ -1795,8 +1795,10 @@ export default class BackupNg {
       await Promise.all(
         files.filter(isMetadataFile).map(async file => {
           const path = `${dir}/${file}`
+          const backupFile = file.split('.')[0]
           try {
             const metadata = JSON.parse(String(await handler.readFile(path)))
+            metadata.size = await handler._getSize(`/${dir}/${backupFile}.xva`)
             if (predicate === undefined || predicate(metadata)) {
               Object.defineProperty(metadata, '_filename', {
                 value: path,
