@@ -1,4 +1,5 @@
 import createLogger from '@xen-orchestra/log'
+import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 
@@ -191,6 +192,14 @@ export default class {
     if (!(await this._tokens.remove(id))) {
       throw noSuchAuthenticationToken(id)
     }
+  }
+
+  async deleteAuthenticationTokens({ filter }) {
+    return Promise.all(
+      (await this._tokens.get())
+        .filter(createPredicate(filter))
+        .map(({ id }) => this.deleteAuthenticationToken(id))
+    )
   }
 
   async getAuthenticationToken(id) {

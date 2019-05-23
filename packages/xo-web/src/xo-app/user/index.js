@@ -7,6 +7,7 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
@@ -24,6 +25,7 @@ import {
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
+  signOutFromEverywhereElse,
   subscribeCurrentUser,
 } from 'xo'
 
@@ -397,6 +399,20 @@ export default class User extends Component {
                   {_('changePasswordOk')}
                 </ActionButton>
               </form>
+            </Col>
+          </Row>
+          <br />
+          <Row>
+            <Col smallSize={10} offset={2}>
+              <Tooltip content={_('forgetTokensExplained')}>
+                <ActionButton
+                  btnStyle='danger'
+                  handler={signOutFromEverywhereElse}
+                  icon='disconnect'
+                >
+                  {_('forgetTokens')}
+                </ActionButton>
+              </Tooltip>
             </Col>
           </Row>
           <br />
