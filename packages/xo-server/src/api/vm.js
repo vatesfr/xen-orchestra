@@ -791,11 +791,13 @@ export const snapshot = defer(async function(
     description,
   }
 ) {
-  if (vm.resourceSet !== undefined) {
+  if (
+    vm.resourceSet !== undefined &&
+    (await this.getResourceSet(vm.resourceSet)).subjects.includes(this.user.id)
+  ) {
     await this.allocateLimitsInResourceSet(
       await this.computeVmResourcesUsage(vm),
-      vm.resourceSet,
-      this.user.permission === 'admin'
+      vm.resourceSet
     )
   } else {
     await checkPermissionOnSrs.call(this, vm)
@@ -805,6 +807,7 @@ export const snapshot = defer(async function(
   const { $id: snapshotId } = await (saveMemory
     ? xapi.checkpointVm(vm._xapiRef, name)
     : xapi.snapshotVm(vm._xapiRef, name))
+  // FIXME: deallocate self resources
   $defer.onFailure(() => xapi.deleteVm(snapshotId))
 
   if (description !== undefined) {
