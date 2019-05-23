@@ -7,6 +7,7 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
@@ -403,13 +404,15 @@ export default class User extends Component {
           <br />
           <Row>
             <Col smallSize={10} offset={2}>
-              <ActionButton
-                btnStyle='danger'
-                handler={signOutFromEverywhereElse}
-                icon='disconnect'
-              >
-                {_('signOutOtherSessions')}
-              </ActionButton>
+              <Tooltip content={_('forgetTokensExplained')}>
+                <ActionButton
+                  btnStyle='danger'
+                  handler={signOutFromEverywhereElse}
+                  icon='disconnect'
+                >
+                  {_('forgetTokens')}
+                </ActionButton>
+              </Tooltip>
             </Col>
           </Row>
           <br />

@@ -2513,8 +2513,8 @@ const _signOutFromEverywhereElse = () =>
 
 export const signOutFromEverywhereElse = () =>
   _signOutFromEverywhereElse().then(
-    () => success(_('signOutOtherSessions'), _('signOutOtherSessionsSuccess')),
-    () => error(_('signOutOtherSessions'), _('signOutOtherSessionsError'))
+    () => success(_('forgetTokens'), _('forgetTokensSuccess')),
+    () => error(_('forgetTokens'), _('forgetTokensError'))
   )
 
 export const changePassword = (oldPassword, newPassword) =>

@@ -1839,10 +1839,11 @@ const messages = {
   pwdChangeErrorBody:
     'The old password provided is incorrect. Your password has not been changed.',
   changePasswordOk: 'OK',
-  signOutOtherSessions: 'Sign out other sessions',
-  signOutOtherSessionsSuccess:
-    'Successfully signed out all your other sessions',
-  signOutOtherSessionsError: 'Error while signing out your other sessions',
+  forgetTokens: 'Forget all connection tokens',
+  forgetTokensExplained:
+    'This will prevent other clients from authenticating with existing tokens but will not kill active sessions',
+  forgetTokensSuccess: 'Successfully forgot connection tokens',
+  forgetTokensError: 'Error while forgetting connection tokens',
   sshKeys: 'SSH keys',
   newSshKey: 'New SSH key',
   deleteSshKey: 'Delete',
