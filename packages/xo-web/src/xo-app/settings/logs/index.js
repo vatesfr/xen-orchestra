@@ -51,9 +51,20 @@ const COLUMNS = [
   {
     name: _('logMessage'),
     itemRenderer: log => (
-      <pre className={styles.widthLimit}>
-        {log.data.error && log.data.error.message}
-      </pre>
+      <span>
+        <pre className={styles.widthLimit}>
+          {log.data.error && log.data.error.message}
+        </pre>
+        {log.data.error && log.data.error.code === 'LICENCE_RESTRICTION' && (
+          <a
+            href='https://xcp-ng.org/'
+            rel='noopener noreferrer'
+            target='_blank'
+          >
+            {_('logSuggestXcpNg')}
+          </a>
+        )}
+      </span>
     ),
     sortCriteria: log => log.data.error && log.data.error.message,
   },

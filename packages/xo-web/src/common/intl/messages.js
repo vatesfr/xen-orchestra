@@ -1872,6 +1872,7 @@ const messages = {
   // ----- Logs -----
   logUser: 'User',
   logMessage: 'Message',
+  logSuggestXcpNg: 'Use XCP-ng to get rid of restrictions',
   logError: 'Error',
   logTitle: 'Logs',
   logDisplayDetails: 'Display details',
