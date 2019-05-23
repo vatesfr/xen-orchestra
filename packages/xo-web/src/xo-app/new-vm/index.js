@@ -547,9 +547,7 @@ export default class NewVm extends BaseComponent {
       const vif = getObject(storeState, vifId, resourceSet)
       VIFs.push({
         network:
-          pool || isInResourceSet(vif.$network)
-            ? vif.$network
-            : defaultNetworkIds[0],
+          pool || isInResourceSet(vif.$network) ? vif.$network : undefined,
       })
     })
     if (VIFs.length === 0) {
@@ -708,16 +706,15 @@ export default class NewVm extends BaseComponent {
     }
 
     const automaticNetworks = this._getAutomaticNetworks()
-    if (automaticNetworks.length !== 0) {
-      return automaticNetworks
-    }
 
     const network = find(this._getPoolNetworks(), network => {
       const pif = getObject(store.getState(), network.PIFs[0])
       return pif && pif.management
     })
 
-    return network !== undefined ? [network.id] : []
+    return network !== undefined
+      ? [network.id, ...automaticNetworks]
+      : [...automaticNetworks]
   }
 
   _buildVmsNameTemplate = createSelector(
