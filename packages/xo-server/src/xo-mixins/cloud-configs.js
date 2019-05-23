@@ -3,6 +3,7 @@ import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../collection/redis'
 import patch from '../patch'
+import { mapToArray } from '../utils'
 
 type CloudConfig = {|
   id: string,
@@ -38,7 +39,10 @@ export default class {
       app.addConfigManager(
         'cloudConfigs',
         () => db.get(),
-        cloudConfigs => db.update(cloudConfigs)
+        cloudConfigs =>
+          Promise.all(
+            mapToArray(cloudConfigs, cloudConfig => db.update(cloudConfig))
+          )
       )
     )
   }
