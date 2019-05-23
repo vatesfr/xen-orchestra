@@ -67,7 +67,7 @@ export default class {
     const handlers = this._handlers
     let handler = handlers[id]
     if (handler === undefined) {
-      handler = handlers[id] = getHandler(remote, this._remoteOptions)
+      handler = getHandler(remote, this._remoteOptions)
 
       try {
         await handler.sync()
@@ -76,6 +76,8 @@ export default class {
         ignoreErrors.call(this._updateRemote(id, { error: error.message }))
         throw error
       }
+
+      handlers[id] = handler
     }
 
     return handler
