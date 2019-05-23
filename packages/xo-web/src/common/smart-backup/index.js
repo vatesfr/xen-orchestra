@@ -59,7 +59,7 @@ export const constructSmartPattern = (
 
 const valueToComplexMatcher = pattern => {
   if (typeof pattern === 'string') {
-    return new CM.RegExpNode(`^${escapeRegExp(pattern)}$`)
+    return new CM.RegExpNode(`^${escapeRegExp(pattern)}$`, 'i')
   }
 
   if (Array.isArray(pattern)) {

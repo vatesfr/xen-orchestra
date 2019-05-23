@@ -750,7 +750,8 @@ export default class Home extends Component {
             new ComplexMatcher.Or(
               map(
                 tags,
-                tag => new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`)
+                tag =>
+                  new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`, 'i')
               )
             )
           )
