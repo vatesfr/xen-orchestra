@@ -1144,7 +1144,7 @@ revert.params = {
 }
 
 revert.resolve = {
-  snapshot: ['snapshot', 'VM-snapshot', 'administrate'],
+  snapshot: ['snapshot', 'VM-snapshot', 'operate'],
 }
 
 // -------------------------------------------------------------------
