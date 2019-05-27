@@ -3,6 +3,7 @@ import Component from 'base-component'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { map } from 'lodash'
+import { Vdi } from 'render-xo-item'
 
 import _ from '../../intl'
 import SingleLineRow from '../../single-line-row'
@@ -85,7 +86,9 @@ export default class ChooseSrForEachVdisModal extends Component {
               </SingleLineRow>
               {map(props.vdis, vdi => (
                 <SingleLineRow key={vdi.uuid}>
-                  <Col size={6}>{vdi.name_label || vdi.name}</Col>
+                  <Col size={6}>
+                    <Vdi id={vdi.id} showSize />
+                  </Col>
                   <Col size={6}>
                     <SelectSr
                       onChange={sr =>
