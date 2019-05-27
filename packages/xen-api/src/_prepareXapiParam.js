@@ -17,6 +17,7 @@ const prepareXapiParam = param => {
   if (typeof param === 'object') {
     return map(filterUndefineds(param), prepareXapiParam)
   }
+  return param
 }
 
 export { prepareXapiParam as default }
