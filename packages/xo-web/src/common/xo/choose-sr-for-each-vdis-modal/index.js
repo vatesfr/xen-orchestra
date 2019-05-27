@@ -2,6 +2,7 @@ import Collapse from 'collapse'
 import Component from 'base-component'
 import PropTypes from 'prop-types'
 import React from 'react'
+import { formatSize } from 'utils'
 import { map } from 'lodash'
 
 import _ from '../../intl'
@@ -85,7 +86,10 @@ export default class ChooseSrForEachVdisModal extends Component {
               </SingleLineRow>
               {map(props.vdis, vdi => (
                 <SingleLineRow key={vdi.uuid}>
-                  <Col size={6}>{vdi.name_label || vdi.name}</Col>
+                  <Col size={6}>
+                    {vdi.name_label || vdi.name}{' '}
+                    <span className='text-muted'>({formatSize(vdi.size)})</span>
+                  </Col>
                   <Col size={6}>
                     <SelectSr
                       onChange={sr =>
