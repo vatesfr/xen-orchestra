@@ -89,7 +89,7 @@ const BACKUPS_COLUMNS = [
     sortOrder: 'desc',
   },
   {
-    name: _('sizeBackupColumn'),
+    name: _('labelSize'),
     itemRenderer: ({ size }) => size !== undefined && formatSize(size),
     sortCriteria: 'size',
   },
@@ -154,7 +154,8 @@ export default class Restore extends Component {
       })
     })
     // TODO: perf
-    let first, last, size
+    let first, last
+    let size = 0
     forEach(backupDataByVm, (data, vmId) => {
       first = { timestamp: Infinity }
       last = { timestamp: 0 }
@@ -167,7 +168,7 @@ export default class Restore extends Component {
           first = backup
         }
         count[backup.mode] = (count[backup.mode] || 0) + 1
-        size = backup.size
+        size = size + backup.size
       })
 
       assign(data, { first, last, count, id: vmId, size })

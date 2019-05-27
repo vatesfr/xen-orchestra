@@ -1798,7 +1798,7 @@ export default class BackupNg {
           const backupFile = file.split('.')[0]
           try {
             const metadata = JSON.parse(String(await handler.readFile(path)))
-            metadata.size = await handler._getSize(`/${dir}/${backupFile}.xva`)
+            metadata.size = await handler.getSize(`/${dir}/${backupFile}.xva`)
             if (predicate === undefined || predicate(metadata)) {
               Object.defineProperty(metadata, '_filename', {
                 value: path,
