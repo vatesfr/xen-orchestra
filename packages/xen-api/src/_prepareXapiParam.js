@@ -1,4 +1,4 @@
-import { isInteger, map, pickBy } from 'lodash'
+import { isInteger, mapValues, pickBy } from 'lodash'
 
 const asBoolean = value => Boolean(value)
 const asInteger = value => String(value)
@@ -15,7 +15,7 @@ const prepareXapiParam = param => {
     return param.map(prepareXapiParam)
   }
   if (typeof param === 'object') {
-    return map(filterUndefineds(param), prepareXapiParam)
+    return mapValues(filterUndefineds(param), prepareXapiParam)
   }
   return param
 }
