@@ -341,7 +341,11 @@ export default {
 
     cpuWeight: {
       get: vm => vm.VCPUs_params.weight && +vm.VCPUs_params.weight,
-      set: (weight, vm) => vm.update_VCPUs_params('weight', weight),
+      set: (weight, vm) =>
+        vm.update_VCPUs_params(
+          'weight',
+          weight === null ? null : String(weight)
+        ),
     },
 
     highAvailability: {
