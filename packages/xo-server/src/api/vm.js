@@ -603,7 +603,7 @@ set.params = {
   // Switch from Cirrus video adaptor to VGA adaptor
   vga: { type: 'string', optional: true },
 
-  videoram: { type: ['string', 'number'], optional: true },
+  videoram: { type: 'number', optional: true },
 
   coresPerSocket: { type: ['string', 'number', 'null'], optional: true },
 
