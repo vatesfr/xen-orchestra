@@ -1574,14 +1574,6 @@ export default class Xapi extends XapiBase {
     return /* await */ this._snapshotVm(this.getObject(vmId), nameLabel)
   }
 
-  async setVcpuWeight(vmId, weight) {
-    await this.getObject(vmId).update_VCPUs_params(
-      'weight',
-      // Take all falsy values as a removal (0 included)
-      weight ? String(weight) : null
-    )
-  }
-
   async _startVm(vm, host, force) {
     log.debug(`Starting VM ${vm.name_label}`)
 
