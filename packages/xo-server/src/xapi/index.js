@@ -894,6 +894,17 @@ export default class Xapi extends XapiBase {
         this._exportVdi($cancelToken, vdi, baseVdi, VDI_FORMAT_VHD)
     })
 
+    const suspendVdi = vm.$suspend_VDI
+    if (suspendVdi !== undefined) {
+      const vdiRef = suspendVdi.$ref
+      vdis[vdiRef] = {
+        ...suspendVdi,
+        $SR$uuid: suspendVdi.$SR.uuid,
+      }
+      streams[`${vdiRef}.vhd`] = () =>
+        this._exportVdi($cancelToken, suspendVdi, undefined, VDI_FORMAT_VHD)
+    }
+
     const vifs = {}
     forEach(vm.$VIFs, vif => {
       const network = vif.$network
@@ -996,6 +1007,7 @@ export default class Xapi extends XapiBase {
           ...delta.vm.other_config,
           [TAG_COPY_SRC]: delta.vm.uuid,
         },
+        suspend_VDI: delta.vmSnapshot.suspend_VDI,
       })
     )
     $defer.onFailure(() => this._deleteVm(vm))
@@ -1005,7 +1017,7 @@ export default class Xapi extends XapiBase {
 
     // 3. Create VDIs & VBDs.
     const vbds = groupBy(delta.vbds, 'VDI')
-    const newVdis = await map(delta.vdis, async (vdi, vdiId) => {
+    const newVdis = await map(delta.vdis, async (vdi, vdiRef) => {
       let newVdi
 
       const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
@@ -1035,7 +1047,11 @@ export default class Xapi extends XapiBase {
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
       }
 
-      await asyncMap(vbds[vdiId], vbd =>
+      if (vdiRef === delta.snapshotVm.suspend_VDI) {
+        await vm.set_suspend_VDI(newVdi.$ref)
+      }
+
+      await asyncMap(vbds[vdiRef], vbd =>
         this.createVbd({
           ...vbd,
           vdi: newVdi,
