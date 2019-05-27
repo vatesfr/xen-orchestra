@@ -6,6 +6,11 @@ import config from "../_config";
 import randomId from "../_randomId";
 import xo from "../_xoConnection";
 
+const DEFAULT_SCHEDULE = {
+  name: "scheduleTest",
+  cron: "0 * * * * *",
+};
+
 describe("backupNg", () => {
   let defaultBackupNg;
 
@@ -39,10 +44,7 @@ describe("backupNg", () => {
       const { id: jobId } = await xo.createTempBackupNgJob({
         ...defaultBackupNg,
         schedules: {
-          [scheduleTempId]: {
-            name: "scheduleTest",
-            cron: "0 * * * * *",
-          },
+          [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
           ...defaultBackupNg.settings,
@@ -79,10 +81,7 @@ describe("backupNg", () => {
       const { id: jobId } = await xo.call("backupNg.createJob", {
         ...defaultBackupNg,
         schedules: {
-          [scheduleTempId]: {
-            name: "scheduleTest",
-            cron: "0 * * * * *",
-          },
+          [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
           ...defaultBackupNg.settings,
@@ -122,10 +121,7 @@ describe("backupNg", () => {
       const { id: jobId } = await xo.createTempBackupNgJob({
         ...defaultBackupNg,
         schedules: {
-          [scheduleTempId]: {
-            name: "scheduleTest",
-            cron: "0 * * * * *",
-          },
+          [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
@@ -149,10 +145,7 @@ describe("backupNg", () => {
       const { id: jobId } = await xo.createTempBackupNgJob({
         ...defaultBackupNg,
         schedules: {
-          [scheduleTempId]: {
-            name: "scheduleTest",
-            cron: "0 * * * * *",
-          },
+          [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
@@ -183,10 +176,7 @@ describe("backupNg", () => {
       const { id: jobId } = await xo.createTempBackupNgJob({
         ...defaultBackupNg,
         schedules: {
-          [scheduleTempId]: {
-            name: "scheduleTest",
-            cron: "0 * * * * *",
-          },
+          [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
           ...defaultBackupNg.settings,
@@ -233,5 +223,105 @@ describe("backupNg", () => {
 
       expect(vmTask.data.id).toBe(vmIdWithoutDisks);
     });
+  });
+
+  test("execute three times a rolling snapshot with 2 as retention & revert to an old state", async () => {
+    jest.setTimeout(7e4);
+    const vmId = await xo.createTempVm({
+      name_label: "XO Test Temp",
+      name_description: "Creating a temporary vm",
+      template: config.xoTestTemplateId,
+      VDIs: [
+        {
+          size: 1,
+          SR: config.srs.defaultSr,
+          type: "user",
+        },
+      ],
+    });
+
+    const scheduleTempId = randomId();
+    const { id: jobId } = await xo.createTempBackupNgJob({
+      ...defaultBackupNg,
+      vms: {
+        id: vmId,
+      },
+      schedules: {
+        [scheduleTempId]: DEFAULT_SCHEDULE,
+      },
+      settings: {
+        ...defaultBackupNg.settings,
+        [scheduleTempId]: { snapshotRetention: 2 },
+      },
+    });
+
+    const schedule = await xo.getSchedule({ jobId });
+    expect(typeof schedule).toBe("object");
+    for (let i = 0; i < 3; i++) {
+      const oldSnapshots = xo.objects.all[vmId].snapshots;
+      await xo.call("backupNg.runJob", { id: jobId, schedule: schedule.id });
+      await xo.waitObjectState(vmId, ({ snapshots }) => {
+        // Test on updating snapshots.
+        expect(snapshots).not.toEqual(oldSnapshots);
+      });
+    }
+
+    const { snapshots, videoram: oldVideoram } = xo.objects.all[vmId];
+
+    // Test on the retention, how many snapshots should be saved.
+    expect(snapshots.length).toBe(2);
+
+    const newVideoram = 16;
+    await xo.call("vm.set", { id: vmId, videoram: newVideoram });
+    await xo.waitObjectState(vmId, ({ videoram }) => {
+      expect(videoram).toBe(newVideoram.toString());
+    });
+
+    await xo.call("vm.revert", {
+      snapshot: snapshots[0],
+    });
+
+    await xo.waitObjectState(vmId, ({ videoram }) => {
+      expect(videoram).toBe(oldVideoram);
+    });
+
+    const [
+      {
+        tasks: [{ tasks: subTasks, ...vmTask }],
+        ...log
+      },
+    ] = await xo.call("backupNg.getLogs", {
+      jobId,
+      scheduleId: schedule.id,
+    });
+
+    expect(log).toMatchSnapshot({
+      end: expect.any(Number),
+      id: expect.any(String),
+      jobId: expect.any(String),
+      scheduleId: expect.any(String),
+      start: expect.any(Number),
+    });
+
+    const subTaskSnapshot = subTasks.find(
+      ({ message }) => message === "snapshot"
+    );
+    expect(subTaskSnapshot).toMatchSnapshot({
+      end: expect.any(Number),
+      id: expect.any(String),
+      result: expect.any(String),
+      start: expect.any(Number),
+    });
+
+    expect(vmTask).toMatchSnapshot({
+      data: {
+        id: expect.any(String),
+      },
+      end: expect.any(Number),
+      id: expect.any(String),
+      message: expect.any(String),
+      start: expect.any(Number),
+    });
+    expect(vmTask.data.id).toBe(vmId);
   });
 });

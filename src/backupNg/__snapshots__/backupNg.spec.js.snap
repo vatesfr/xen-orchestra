@@ -94,3 +94,45 @@ Array [
 `;
 
 exports[`backupNg .runJob() : fails trying to run a backup job without schedule 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`backupNg execute three times a rolling snapshot with 2 as retention & revert to an old state 1`] = `
+Object {
+  "data": Object {
+    "mode": "full",
+    "reportWhen": "never",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "jobId": Any<String>,
+  "jobName": "default-backupNg",
+  "message": "backup",
+  "scheduleId": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a rolling snapshot with 2 as retention & revert to an old state 2`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": "snapshot",
+  "result": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a rolling snapshot with 2 as retention & revert to an old state 3`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "VM",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;

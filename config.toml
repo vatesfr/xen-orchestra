@@ -19,6 +19,9 @@ debian = 'Debian Wheezy 7.0 (64-bit)'
 otherConfig = 'Other install media'
 centOS = 'CentOS 7'
 
+[srs]
+defaultSr = 'a5954951-3dfa-42b8-803f-4bc270b22a0b'
+
 [slaveServer]
 host = '192.168.100.1'
 username = 'root'
