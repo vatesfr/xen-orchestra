@@ -706,15 +706,16 @@ export default class NewVm extends BaseComponent {
     }
 
     const automaticNetworks = this._getAutomaticNetworks()
+    if (automaticNetworks.length > 0) {
+      return automaticNetworks
+    }
 
     const network = find(this._getPoolNetworks(), network => {
       const pif = getObject(store.getState(), network.PIFs[0])
       return pif && pif.management
     })
 
-    return network !== undefined
-      ? [network.id, ...automaticNetworks]
-      : [...automaticNetworks]
+    return network !== undefined ? [network.id] : []
   }
 
   _buildVmsNameTemplate = createSelector(
