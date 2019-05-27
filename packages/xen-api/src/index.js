@@ -24,6 +24,7 @@ import isOpaqueRef from './_isOpaqueRef'
 import isReadOnlyCall from './_isReadOnlyCall'
 import makeCallSetting from './_makeCallSetting'
 import parseUrl from './_parseUrl'
+import prepareXapiParam from './_prepareXapiParam'
 import replaceSensitiveValues from './_replaceSensitiveValues'
 import XapiError from './_XapiError'
 
@@ -292,7 +293,9 @@ export class Xapi extends EventEmitter {
   }
 
   setField(type, ref, field, value) {
-    return this.call(`${type}.set_${field}`, ref, value).then(noop)
+    return this.call(`${type}.set_${field}`, ref, prepareXapiParam(value)).then(
+      noop
+    )
   }
 
   setFieldEntries(type, ref, field, entries) {
@@ -312,7 +315,12 @@ export class Xapi extends EventEmitter {
     }
     while (true) {
       try {
-        await this.call(`${type}.add_to_${field}`, ref, entry, value)
+        await this.call(
+          `${type}.add_to_${field}`,
+          ref,
+          entry,
+          prepareXapiParam(value)
+        )
         return
       } catch (error) {
         if (error?.code !== 'MAP_DUPLICATE_KEY') {
@@ -1061,7 +1069,7 @@ export class Xapi extends EventEmitter {
 
           props[`add_to_${field}`] = function(...values) {
             return xapi
-              .call(`${type}.add_${field}`, this.$ref, values)
+              .call(`${type}.add_${field}`, this.$ref, prepareXapiParam(values))
               .then(noop)
           }
         } else if (value !== null && typeof value === 'object') {
