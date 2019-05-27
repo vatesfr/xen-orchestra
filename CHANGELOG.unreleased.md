@@ -16,6 +16,7 @@
 - [Import] Fix import OVA files (PR [#4232](https://github.com/vatesfr/xen-orchestra/pull/4232))
 - [VM/network] Fix duplicate IPv4 (PR [#4239](https://github.com/vatesfr/xen-orchestra/pull/4239))
 - [Remotes] Fix disconnected remotes which may appear to work
+- [Host] Fix incorrect hypervisor name [#4246](https://github.com/vatesfr/xen-orchestra/issues/4246) (PR [#4248](https://github.com/vatesfr/xen-orchestra/pull/4248))
 
 ### Released packages
 

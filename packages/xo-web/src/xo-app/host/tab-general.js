@@ -118,7 +118,9 @@ export default ({ statsOverview, host, nVms, vmController, vms }) => {
           <Usage total={host.memory.size}>
             <UsageElement
               highlight
-              tooltip={`XenServer (${formatSize(vmController.memory.size)})`}
+              tooltip={`${host.productBrand} (${formatSize(
+                vmController.memory.size
+              )})`}
               value={vmController.memory.size}
             />
             {map(vms, vm => (
