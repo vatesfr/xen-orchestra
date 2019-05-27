@@ -294,7 +294,7 @@ export default {
 
     coresPerSocket: {
       set: (coresPerSocket, vm) =>
-        vm.update_platform('cores-per-socket', coresPerSocket),
+        vm.update_platform('cores-per-socket', String(coresPerSocket)),
     },
 
     CPUs: 'cpus',
@@ -318,7 +318,7 @@ export default {
 
     cpuCap: {
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
-      set: (cap, vm) => vm.update_VCPUs_params('cap', cap),
+      set: (cap, vm) => vm.update_VCPUs_params('cap', String(cap)),
     },
 
     cpuMask: {
@@ -443,7 +443,7 @@ export default {
             `The different values that the video RAM can take are: ${XEN_VIDEORAM_VALUES}`
           )
         }
-        return vm.update_platform('videoram', videoram)
+        return vm.update_platform('videoram', String(videoram))
       },
     },
 
