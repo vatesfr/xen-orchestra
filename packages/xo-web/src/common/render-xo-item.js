@@ -283,7 +283,7 @@ export const Vdi = decorate([
       sr: getSr(state, props),
     })
   }),
-  ({ id, sr, vdi }) => {
+  ({ id, showSize, showSr, sr, vdi }) => {
     if (vdi === undefined) {
       return unknowItem(id, 'VDI')
     }
@@ -291,8 +291,11 @@ export const Vdi = decorate([
     return (
       <span>
         <Icon icon='disk' /> {vdi.name_label}
-        {sr !== undefined && (
+        {sr !== undefined && showSr && (
           <span className='text-muted'> - {sr.name_label}</span>
+        )}
+        {showSize && (
+          <span className='text-muted'> ({formatSize(vdi.size)})</span>
         )}
       </span>
     )
@@ -302,10 +305,13 @@ export const Vdi = decorate([
 Vdi.propTypes = {
   id: PropTypes.string.isRequired,
   self: PropTypes.bool,
+  showSize: PropTypes.bool,
 }
 
 Vdi.defaultProps = {
   self: false,
+  showSize: false,
+  showSr: false,
 }
 
 // ===================================================================
@@ -432,8 +438,8 @@ const xoItemToRender = {
   // XO objects.
   pool: ({ id }) => <Pool id={id} />,
 
-  VDI: ({ id }) => <Vdi id={id} />,
-  'VDI-resourceSet': ({ id }) => <Vdi id={id} self />,
+  VDI: ({ id }) => <Vdi id={id} showSr />,
+  'VDI-resourceSet': ({ id }) => <Vdi id={id} self showSr />,
 
   // Pool objects.
   'VM-template': ({ id }) => <VmTemplate id={id} />,
