@@ -210,6 +210,43 @@ createFile.resolve = {
 }
 
 // -------------------------------------------------------------------
+
+export async function createFile({
+  host,
+  nameLabel,
+  nameDescription,
+  location,
+}) {
+  const xapi = this.getXapi(host)
+  const deviceConfig = { location }
+  const srRef = await xapi.call(
+    'SR.create',
+    host._xapiRef,
+    deviceConfig,
+    '0',
+    nameLabel,
+    nameDescription,
+    'file',
+    'user',
+    false,
+    {}
+  )
+  const sr = await xapi.call('SR.get_record', srRef)
+  return sr.uuid
+}
+
+createFile.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  location: { type: 'string' },
+}
+
+createFile.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
 // NFS SR
 
 // This functions creates a NFS SR
