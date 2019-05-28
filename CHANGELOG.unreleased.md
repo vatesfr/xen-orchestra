@@ -12,8 +12,8 @@
 ### Bug fixes
 
 - [Charts] Fixed the chart lines sometimes changing order/color (PR [#4221](https://github.com/vatesfr/xen-orchestra/pull/4221))
-- Prevent non-admin users to access admin pages with URL
-- [Upgrade] Fix alert before upgrade while running backup jobs (PR [#4235](https://github.com/vatesfr/xen-orchestra/pull/4235))
+- Prevent non-admin users to access admin pages with URL (PR [#4220](https://github.com/vatesfr/xen-orchestra/pull/4220))
+- [Upgrade] Fix alert before upgrade while running backup jobs [#4164](https://github.com/vatesfr/xen-orchestra/issues/4164) (PR [#4235](https://github.com/vatesfr/xen-orchestra/pull/4235))
 - [Import] Fix import OVA files (PR [#4232](https://github.com/vatesfr/xen-orchestra/pull/4232))
 - [VM/network] Fix duplicate IPv4 (PR [#4239](https://github.com/vatesfr/xen-orchestra/pull/4239))
 - [Remotes] Fix disconnected remotes which may appear to work
