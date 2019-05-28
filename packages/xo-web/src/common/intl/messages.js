@@ -675,6 +675,7 @@ const messages = {
   cloneVmLabel: 'Clone',
   fastCloneVmLabel: 'Fast clone',
   vmConsoleLabel: 'Console',
+  backupLabel: 'Backup',
 
   // ----- SR advanced tab -----
 
