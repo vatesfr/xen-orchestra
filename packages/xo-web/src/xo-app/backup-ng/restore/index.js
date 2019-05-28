@@ -167,7 +167,10 @@ export default class Restore extends Component {
           first = backup
         }
         count[backup.mode] = (count[backup.mode] || 0) + 1
-        size += backup.size
+
+        if (backup.size !== undefined) {
+          size += backup.size
+        }
       })
 
       assign(data, { first, last, count, id: vmId, size })
