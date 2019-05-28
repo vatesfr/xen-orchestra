@@ -50,9 +50,7 @@ export default connectStore(() => {
     lastShutdownTime: createGetVmLastShutdownTime(),
     tasks: createGetObjectsOfType('task')
       .filter((_, { vm }) => task =>
-        task.status === 'pending' &&
-        task.progress > 0 &&
-        task.id in vm.current_operations
+        task.status === 'pending' && task.id in vm.current_operations
       )
       .sort(),
     vgpu: getAttachedVgpu,
@@ -71,7 +69,6 @@ export default connectStore(() => {
     const {
       addresses,
       CPUs: cpus,
-      current_operations: currentOperations,
       id,
       installTime,
       memory,
