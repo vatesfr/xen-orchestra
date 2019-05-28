@@ -6,7 +6,7 @@ import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, noop } from 'utils'
+import { addSubscriptions, formatSize, noop } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
@@ -38,7 +38,6 @@ import DeleteBackupsModalBody from './delete-backups-modal-body'
 import RestoreLegacy from '../restore-legacy'
 
 import Logs from '../../logs/restore'
-import { formatSize } from '../../../common/utils'
 
 export RestoreMetadata from './metadata'
 
@@ -168,7 +167,7 @@ export default class Restore extends Component {
           first = backup
         }
         count[backup.mode] = (count[backup.mode] || 0) + 1
-        size = size + backup.size
+        size += backup.size
       })
 
       assign(data, { first, last, count, id: vmId, size })
