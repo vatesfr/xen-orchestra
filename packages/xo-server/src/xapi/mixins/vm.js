@@ -268,7 +268,7 @@ export default {
     autoPoweron: {
       set(value, vm) {
         return Promise.all([
-          vm.update_other_config('autoPoweron', value ? 'true' : null),
+          vm.update_other_config('auto_poweron', value ? 'true' : null),
           value &&
             this.setPoolProperties({
               autoPoweron: true,

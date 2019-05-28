@@ -264,7 +264,7 @@ export default class Xapi extends XapiBase {
         pool.set_name_description(nameDescription),
       nameLabel !== undefined && pool.set_name_label(nameLabel),
       autoPoweron != null &&
-        pool.update_other_config('autoPoweron', autoPoweron ? 'true' : null),
+        pool.update_other_config('auto_poweron', autoPoweron ? 'true' : null),
     ])
   }
 
