@@ -120,7 +120,10 @@ const Updates = decorate([
       linkState,
       onChannelChange: (_, channel) => ({ channel }),
       async register() {
-        const { state } = this
+        const {
+          props: { xoaRegisterState },
+          state,
+        } = this
 
         const { isRegistered } = state
         if (isRegistered) {
@@ -130,7 +133,7 @@ const Updates = decorate([
               body: (
                 <p>
                   {_('alreadyRegisteredModalText', {
-                    email: this.props.xoaRegisterState.email,
+                    email: xoaRegisterState.email,
                   })}
                 </p>
               ),
@@ -144,7 +147,7 @@ const Updates = decorate([
         }
 
         state.askRegisterAgain = false
-        const { email, password } = state
+        const { email = xoaRegisterState.email, password } = state
         await xoaUpdater.register(email, password, isRegistered)
 
         return initialRegistrationState()
@@ -471,7 +474,7 @@ const Updates = decorate([
                   </div>{' '}
                   <div className='form-group'>
                     <Password
-                      disabled={state.email === undefined}
+                      disabled={helper(state, xoaRegisterState, 'email') === ''}
                       name='password'
                       onChange={effects.linkState}
                       placeholder={formatMessage(
