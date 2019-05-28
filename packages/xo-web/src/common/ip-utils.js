@@ -1,7 +1,9 @@
-import forEachRight from 'lodash/forEachRight'
 import forEach from 'lodash/forEach'
+import forEachRight from 'lodash/forEachRight'
+import head from 'lodash/head'
 import isArray from 'lodash/isArray'
 import isIp from 'is-ip'
+import last from 'lodash/last'
 import some from 'lodash/some'
 
 export { isIp }
@@ -82,6 +84,9 @@ export const formatIps = ips => {
   if (ips.length === 0) {
     return []
   }
+  if (ips.length === 1) {
+    return ips
+  }
   const sortedIps = ips.sort((ip1, ip2) => {
     const splitIp1 = ip1.split('.')
     const splitIp2 = ip2.split('.')
@@ -99,24 +104,8 @@ export const formatIps = ips => {
       (splitIp1[0] - splitIp2[0]) * 256 * 256 * 256
     )
   })
-  const range = { first: '', last: '' }
-  const formattedIps = []
-  let index = 0
-  forEach(sortedIps, ip => {
-    if (ip !== getNextIpV4(range.last)) {
-      if (range.first) {
-        formattedIps[index] =
-          range.first === range.last ? range.first : { ...range }
-        index++
-      }
-      range.first = range.last = ip
-    } else {
-      range.last = ip
-    }
-  })
-  formattedIps[index] = range.first === range.last ? range.first : range
 
-  return formattedIps
+  return [{ first: head(sortedIps), last: last(sortedIps) }]
 }
 
 export const parseIpPattern = pattern => {
