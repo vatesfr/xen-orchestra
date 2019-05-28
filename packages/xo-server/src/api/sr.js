@@ -444,6 +444,38 @@ probeZfs.resolve = {
 }
 
 // -------------------------------------------------------------------
+// This function helps to detect all ZFS pools
+// Return a dict of pools with their parameters { <poolname>: {<paramdict>}}
+
+export async function probeZfs({ host }) {
+  const xapi = this.getXapi(host)
+  try {
+    const result = await xapi.call(
+      'host.call_plugin',
+      host._xapiRef,
+      'zfs.py',
+      'list_zfs_pools',
+      {}
+    )
+    return JSON.parse(result)
+  } catch (error) {
+    if (error.code === 'XENAPI_MISSING_PLUGIN') {
+      return {}
+    } else {
+      throw error
+    }
+  }
+}
+
+probeZfs.params = {
+  host: { type: 'string' },
+}
+
+probeZfs.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
 
