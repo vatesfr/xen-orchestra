@@ -496,7 +496,10 @@ export async function probeZfs({ host }) {
     )
     return JSON.parse(result)
   } catch (error) {
-    if (error.code === 'XENAPI_MISSING_PLUGIN') {
+    if (
+      error.code === 'XENAPI_MISSING_PLUGIN' ||
+      error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION'
+    ) {
       return {}
     } else {
       throw error
