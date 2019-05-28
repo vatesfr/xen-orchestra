@@ -5,14 +5,15 @@ import { format, JsonRPcError } from 'json-rpc-peer'
 export async function set({
   pool,
 
-  // TODO: use camel case.
   name_description: nameDescription,
   name_label: nameLabel,
 }) {
-  await this.getXapi(pool).setPoolProperties({
-    nameDescription,
-    nameLabel,
-  })
+  pool = this.getXapiObject(pool)
+
+  await Promise.all([
+    nameDescription !== undefined && pool.set_name_description(nameDescription),
+    nameLabel !== undefined && pool.set_name_label(nameLabel),
+  ])
 }
 
 set.params = {

@@ -887,10 +887,10 @@ async function createVDIOnLVMWithoutSizeLimit(xapi, lvmSr, diskSize) {
   await xapi.callAsync('SR.scan', xapi.getObject(lvmSr).$ref)
   const vdi = find(xapi.getObject(lvmSr).$VDIs, vdi => vdi.uuid === uuid)
   if (vdi != null) {
-    await xapi.setSrProperties(vdi.$ref, {
-      nameLabel: 'xosan_data',
-      nameDescription: 'Created by XO',
-    })
+    await Promise.all([
+      vdi.set_name_description('Created by XO'),
+      vdi.set_name_label('xosan_data'),
+    ])
     return vdi
   }
 }

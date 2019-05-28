@@ -10,14 +10,15 @@ import { forEach, parseXml } from '../utils'
 export async function set({
   sr,
 
-  // TODO: use camel case.
   name_description: nameDescription,
   name_label: nameLabel,
 }) {
-  await this.getXapi(sr).setSrProperties(sr._xapiId, {
-    nameDescription,
-    nameLabel,
-  })
+  sr = this.getXapiObject(sr)
+
+  await Promise.all([
+    nameDescription !== undefined && sr.set_name_description(nameDescription),
+    nameLabel !== undefined && sr.set_name_label(nameLabel),
+  ])
 }
 
 set.params = {

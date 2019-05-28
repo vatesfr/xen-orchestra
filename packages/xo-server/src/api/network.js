@@ -85,18 +85,26 @@ createBonded.description =
 // ===================================================================
 
 export async function set({
+  network,
+
   automatic,
   defaultIsLocked,
   name_description: nameDescription,
   name_label: nameLabel,
-  network,
 }) {
-  await this.getXapi(network).setNetworkProperties(network._xapiId, {
-    automatic,
-    defaultIsLocked,
-    nameDescription,
-    nameLabel,
-  })
+  network = this.getXapiObject(network)
+
+  await Promise.all([
+    automatic !== undefined &&
+      network.update_other_config('automatic', automatic ? 'true' : null),
+    defaultIsLocked !== undefined &&
+      network.set_default_locking_mode(
+        defaultIsLocked ? 'disabled' : 'unlocked'
+      ),
+    nameDescription !== undefined &&
+      network.set_name_description(nameDescription),
+    nameLabel !== undefined && network.set_name_label(nameLabel),
+  ])
 }
 
 set.params = {

@@ -4,23 +4,19 @@ import { format, JsonRpcError } from 'json-rpc-peer'
 
 export async function set({
   host,
-  multipathing,
 
-  // TODO: use camel case.
+  multipathing,
   name_label: nameLabel,
   name_description: nameDescription,
 }) {
-  const xapi = this.getXapi(host)
-  const hostId = host._xapiId
+  host = this.getXapiObject(host)
 
-  if (multipathing !== undefined) {
-    await xapi.setHostMultipathing(hostId, multipathing)
-  }
-
-  return xapi.setHostProperties(hostId, {
-    nameLabel,
-    nameDescription,
-  })
+  await Promise.all([
+    nameDescription !== undefined && host.set_name_description(nameDescription),
+    nameLabel !== undefined && host.set_name_label(nameLabel),
+    multipathing !== undefined &&
+      host.$xapi.setHostMultipathing(host.$id, multipathing),
+  ])
 }
 
 set.description = 'changes the properties of an host'

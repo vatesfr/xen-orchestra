@@ -247,55 +247,6 @@ export default class Xapi extends XapiBase {
     )::ignoreErrors()
   }
 
-  async setHostProperties(id, { nameLabel, nameDescription }) {
-    const host = this.getObject(id)
-    await Promise.all([
-      nameDescription !== undefined &&
-        host.set_name_description(nameDescription),
-      nameLabel !== undefined && host.set_name_label(nameLabel),
-    ])
-  }
-
-  async setPoolProperties({ autoPoweron, nameLabel, nameDescription }) {
-    const { pool } = this
-
-    await Promise.all([
-      nameDescription !== undefined &&
-        pool.set_name_description(nameDescription),
-      nameLabel !== undefined && pool.set_name_label(nameLabel),
-      autoPoweron != null &&
-        pool.update_other_config('auto_poweron', autoPoweron ? 'true' : null),
-    ])
-  }
-
-  async setSrProperties(id, { nameLabel, nameDescription }) {
-    const sr = this.getObject(id)
-    await Promise.all([
-      nameDescription !== undefined && sr.set_name_description(nameDescription),
-      nameLabel !== undefined && sr.set_name_label(nameLabel),
-    ])
-  }
-
-  async setNetworkProperties(
-    id,
-    { automatic, defaultIsLocked, nameDescription, nameLabel }
-  ) {
-    let defaultLockingMode
-    if (defaultIsLocked != null) {
-      defaultLockingMode = defaultIsLocked ? 'disabled' : 'unlocked'
-    }
-    const network = this.getObject(id)
-    await Promise.all([
-      defaultLockingMode !== undefined &&
-        network.set_default_locking_mode(defaultLockingMode),
-      nameDescription !== undefined &&
-        network.set_name_description(nameDescription),
-      nameLabel !== undefined && network.set_name_label(nameLabel),
-      automatic !== undefined &&
-        network.update_other_config('automatic', automatic ? 'true' : null),
-    ])
-  }
-
   // =================================================================
 
   async addTag(id, tag) {
