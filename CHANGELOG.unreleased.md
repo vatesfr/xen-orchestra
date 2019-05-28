@@ -2,6 +2,8 @@
 
 ### Enhancements
 
+- [Backup NG] Display the size of the backups [#4009](https://github.com/vatesfr/xen-orchestra/issues/4009) (PR [#4245](https://github.com/vatesfr/xen-orchestra/pull/4245))
+
 ### Bug fixes
 
 ### Released packages
