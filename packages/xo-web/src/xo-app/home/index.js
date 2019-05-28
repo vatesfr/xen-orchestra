@@ -179,6 +179,11 @@ const OPTIONS = {
         labelId: 'snapshotVmLabel',
       },
       {
+        handler: snapshotVms,
+        icon: 'backup',
+        labelId: 'backupLabel',
+      },
+      {
         handler: deleteVms,
         icon: 'vm-delete',
         labelId: 'vmRemoveButton',
