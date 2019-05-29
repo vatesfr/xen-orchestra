@@ -112,6 +112,10 @@ export default class extends Component {
       return uniqPacks
     }
   )
+  _isHtEnabled = createSelector(
+    () => this.props.host.CPUs.flags,
+    flags => /\bht\b/.test(flags)
+  )
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
   render() {
@@ -275,9 +279,9 @@ export default class extends Component {
                 <tr>
                   <th>{_('hyperThreading')}</th>
                   <td>
-                    {/\bht\b/.test(host.CPUs.flags)
-                      ? _('hostStatusEnabled')
-                      : _('hostStatusDisabled')}
+                    {this._isHtEnabled()
+                      ? _('stateEnabled')
+                      : _('stateDisabled')}
                   </td>
                 </tr>
                 <tr>
