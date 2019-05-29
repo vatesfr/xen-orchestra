@@ -100,7 +100,7 @@ export default {
       '0',
       nameLabel,
       nameDescription,
-      type, // SR LVM
+      type,
       'user', // recommended by Citrix
       shared,
       {}
