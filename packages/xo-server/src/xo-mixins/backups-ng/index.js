@@ -498,6 +498,13 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 // - for copies/replications only, added after complete transfer
 //    - `other_config[xo:backup:sr]` = sr.uuid
 //
+// Attributes on the VDIs of the backed-up VMs:
+//
+// - `other_config`:
+//    - `xo:backup:diskId`: identifier used for the disk`
+//      this is automatically filled with its `uuid` if missing
+//      this is used to keep the identity of the VDI accross migrations
+//
 // Task logs emitted in a backup execution:
 //
 // job.start(data: { mode: Mode, reportWhen: ReportWhen })
@@ -1045,6 +1052,18 @@ export default class BackupNg {
       xapi._assertHealthyVdiChains(vm)
     }
 
+    {
+      const disks = getVmDisks(vm)
+      await Promise.all(
+        Object.keys(disks).map(ref => {
+          const disk = disks[ref]
+          if (!('xo:backup:diskId' in disk.other_config)) {
+            return disk.update_other_config('xo:backup:diskId', disk.uuid)
+          }
+        })
+      )
+    }
+
     const offlineSnapshot: boolean = getSetting(settings, 'offlineSnapshot', [
       vmUuid,
       '',
@@ -1423,8 +1442,9 @@ export default class BackupNg {
 
         await asyncMap(remotes, ({ handler }) => {
           return asyncMap(vdis, async vdi => {
-            const snapshotOf = vdi.$snapshot_of
-            const dir = `${vmDir}/vdis/${jobId}/${snapshotOf.uuid}`
+            const dir = `${vmDir}/vdis/${jobId}/${
+              vdi.other_config['xo:backup:diskId']
+            }`
             const files = await handler
               .list(dir, { filter: isVhd })
               .catch(_ => [])
@@ -1455,7 +1475,7 @@ export default class BackupNg {
               await handler.unlink(`${dir}/${file}`)
             })
             if (full) {
-              fullRequired[snapshotOf.$id] = true
+              fullRequired[vdi.$snapshot_of.$id] = true
             }
           })
         })
@@ -1486,7 +1506,7 @@ export default class BackupNg {
           deltaExport.vdis,
           vdi =>
             `vdis/${jobId}/${
-              (xapi.getObject(vdi.snapshot_of): Object).uuid
+              vdi.other_config['xo:backup:diskId']
             }/${basename}.vhd`
         ),
         vm,
