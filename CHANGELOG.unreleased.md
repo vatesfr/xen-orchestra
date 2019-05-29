@@ -8,6 +8,7 @@
 - [User] Forget connection tokens on password change or on demand [#4214](https://github.com/vatesfr/xen-orchestra/issues/4214) (PR [#4224](https://github.com/vatesfr/xen-orchestra/pull/4224))
 - [Settings/Logs] LICENCE_RESTRICTION errors: suggest XCP-ng as an Open Source alternative [#3876](https://github.com/vatesfr/xen-orchestra/issues/3876) (PR [#4238](https://github.com/vatesfr/xen-orchestra/pull/4238))
 - [VM/Migrate] Display VDI size on migrate modal [#2534](https://github.com/vatesfr/xen-orchestra/issues/2534) (PR [#4250](https://github.com/vatesfr/xen-orchestra/pull/4250))
+- [Host] Display hyperthreading status on advanced tab [#4262](https://github.com/vatesfr/xen-orchestra/issues/4262) (PR [#4263](https://github.com/vatesfr/xen-orchestra/pull/4263))
 
 ### Bug fixes
 
