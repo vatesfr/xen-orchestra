@@ -89,7 +89,8 @@ const BACKUPS_COLUMNS = [
   },
   {
     name: _('labelSize'),
-    itemRenderer: ({ size }) => size !== undefined && formatSize(size),
+    itemRenderer: ({ size }) =>
+      size !== undefined && size !== 0 && formatSize(size),
     sortCriteria: 'size',
   },
   {
