@@ -273,6 +273,14 @@ export default class extends Component {
                   </td>
                 </tr>
                 <tr>
+                  <th>{_('hyperThreading')}</th>
+                  <td>
+                    {/\bht\b/.test(host.CPUs.flags)
+                      ? _('hostStatusEnabled')
+                      : _('hostStatusDisabled')}
+                  </td>
+                </tr>
+                <tr>
                   <th>{_('hostManufacturerinfo')}</th>
                   <Copiable tagName='td'>
                     {host.bios_strings['system-manufacturer']} (

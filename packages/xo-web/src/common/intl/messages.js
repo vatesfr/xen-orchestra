@@ -791,6 +791,7 @@ const messages = {
   memoryHostState:
     'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
+  hyperThreading: 'Hyperthreading',
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
