@@ -20,6 +20,8 @@
 
 ## **5.34.0** (2019-04-30)
 
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
 ### Highlights
 
 - [Self/New VM] Add network config box to custom cloud-init [#3872](https://github.com/vatesfr/xen-orchestra/issues/3872) (PR [#4150](https://github.com/vatesfr/xen-orchestra/pull/4150))
@@ -60,6 +62,8 @@
 - xo-web v5.40.1
 
 ## **5.33.1** (2019-04-04)
+
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Bug fix
 
