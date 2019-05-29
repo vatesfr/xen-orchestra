@@ -84,4 +84,28 @@ export default {
     })
     return unhealthyVdis
   },
+
+  async createSr({
+    host,
+    nameLabel,
+    nameDescription,
+    type,
+    deviceConfig,
+    shared = false,
+  }) {
+    const srRef = await this.call(
+      'SR.create',
+      host._xapiRef,
+      deviceConfig,
+      '0',
+      nameLabel,
+      nameDescription,
+      type, // SR LVM
+      'user', // recommended by Citrix
+      shared,
+      {}
+    )
+
+    return (await this.barrier(srRef)).uuid
+  },
 }

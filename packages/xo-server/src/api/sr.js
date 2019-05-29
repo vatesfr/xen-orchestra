@@ -188,21 +188,13 @@ export async function createFile({
   location,
 }) {
   const xapi = this.getXapi(host)
-  const deviceConfig = { location }
-  const srRef = await xapi.call(
-    'SR.create',
-    host._xapiRef,
-    deviceConfig,
-    '0',
+  return xapi.createSr({
+    host,
     nameLabel,
     nameDescription,
-    'file',
-    'user',
-    false,
-    {}
-  )
-  const sr = await xapi.call('SR.get_record', srRef)
-  return sr.uuid
+    type: 'file',
+    deviceConfig: { location },
+  })
 }
 
 createFile.params = {
@@ -401,7 +393,24 @@ createExt.resolve = {
 // -------------------------------------------------------------------
 // This function helps to detect all ZFS pools
 // Return a dict of pools with their parameters { <poolname>: {<paramdict>}}
-
+// example output (the parameter mountpoint is of interest):
+// {"tank":
+// {
+//    "setuid": "on", "relatime": "off", "referenced": "24K", "written": "24K", "zoned": "off", "primarycache": "all",
+//    "logbias": "latency", "creation": "Mon May 27 17:24 2019", "sync": "standard", "snapdev": "hidden",
+//    "dedup": "off", "sharenfs": "off", "usedbyrefreservation": "0B", "sharesmb": "off", "createtxg": "1",
+//    "canmount": "on", "mountpoint": "/tank", "casesensitivity": "sensitive", "utf8only": "off", "xattr": "on",
+//    "dnodesize": "legacy", "mlslabel": "none", "objsetid": "54", "defcontext": "none", "rootcontext": "none",
+//    "mounted": "yes", "compression": "off", "overlay": "off", "logicalused": "47K", "usedbysnapshots": "0B",
+//    "filesystem_count": "none", "copies": "1", "snapshot_limit": "none", "aclinherit": "restricted",
+//    "compressratio": "1.00x", "readonly": "off", "version": "5", "normalization": "none", "filesystem_limit": "none",
+//    "type": "filesystem", "secondarycache": "all", "refreservation": "none", "available": "17.4G", "used": "129K",
+//    "exec": "on", "refquota": "none", "refcompressratio": "1.00x", "quota": "none", "keylocation": "none",
+//    "snapshot_count": "none", "fscontext": "none", "vscan": "off", "reservation": "none", "atime": "on",
+//    "recordsize": "128K", "usedbychildren": "105K", "usedbydataset": "24K", "guid": "656061077639704004",
+//    "pbkdf2iters": "0", "checksum": "on", "special_small_blocks": "0", "redundant_metadata": "all",
+//    "volmode": "default", "devices": "on", "keyformat": "none", "logicalreferenced": "12K", "acltype": "off",
+//    "nbmand": "off", "context": "none", "encryption": "off", "snapdir": "hidden"}}
 export async function probeZfs({ host }) {
   const xapi = this.getXapi(host)
   try {
