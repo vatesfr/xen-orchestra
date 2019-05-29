@@ -210,43 +210,6 @@ createFile.resolve = {
 }
 
 // -------------------------------------------------------------------
-
-export async function createFile({
-  host,
-  nameLabel,
-  nameDescription,
-  location,
-}) {
-  const xapi = this.getXapi(host)
-  const deviceConfig = { location }
-  const srRef = await xapi.call(
-    'SR.create',
-    host._xapiRef,
-    deviceConfig,
-    '0',
-    nameLabel,
-    nameDescription,
-    'file',
-    'user',
-    false,
-    {}
-  )
-  const sr = await xapi.call('SR.get_record', srRef)
-  return sr.uuid
-}
-
-createFile.params = {
-  host: { type: 'string' },
-  nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
-  location: { type: 'string' },
-}
-
-createFile.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
 // NFS SR
 
 // This functions creates a NFS SR
@@ -449,41 +412,6 @@ createExt.resolve = {
 //    "pbkdf2iters": "0", "checksum": "on", "special_small_blocks": "0", "redundant_metadata": "all",
 //    "volmode": "default", "devices": "on", "keyformat": "none", "logicalreferenced": "12K", "acltype": "off",
 //    "nbmand": "off", "context": "none", "encryption": "off", "snapdir": "hidden"}}
-export async function probeZfs({ host }) {
-  const xapi = this.getXapi(host)
-  try {
-    const result = await xapi.call(
-      'host.call_plugin',
-      host._xapiRef,
-      'zfs.py',
-      'list_zfs_pools',
-      {}
-    )
-    return JSON.parse(result)
-  } catch (error) {
-    if (
-      error.code === 'XENAPI_MISSING_PLUGIN' ||
-      error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION'
-    ) {
-      return {}
-    } else {
-      throw error
-    }
-  }
-}
-
-probeZfs.params = {
-  host: { type: 'string' },
-}
-
-probeZfs.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
-// This function helps to detect all ZFS pools
-// Return a dict of pools with their parameters { <poolname>: {<paramdict>}}
-
 export async function probeZfs({ host }) {
   const xapi = this.getXapi(host)
   try {
