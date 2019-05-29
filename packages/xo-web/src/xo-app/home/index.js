@@ -179,8 +179,10 @@ const OPTIONS = {
         labelId: 'snapshotVmLabel',
       },
       {
-        handler: snapshotVms,
-        icon: 'backup',
+        handler: () => {
+          console.log(this)
+        },
+        icon: 'vm-backup',
         labelId: 'backupLabel',
       },
       {

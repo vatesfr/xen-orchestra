@@ -983,6 +983,7 @@ export default decorate([
                     />
                   )}
                 </CardBlock>
+                {console.log(state.vms)}
               </Card>
               <Schedules />
             </Col>
