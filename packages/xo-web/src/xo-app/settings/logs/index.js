@@ -33,6 +33,24 @@ const formatLog = log =>
     2
   )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`
 
+const LogInfo = ({ log }) => {
+  const { error } = log.data
+  if (error === undefined) {
+    return null
+  }
+  if (error.code === 'LICENCE_RESTRICTION') {
+    return (
+      <a href='https://xcp-ng.org/' rel='noopener noreferrer' target='_blank'>
+        {_('logSuggestXcpNg')}
+      </a>
+    )
+  }
+  if (error.name === 'XapiError') {
+    return _('logXapiError')
+  }
+  return null
+}
+
 const COLUMNS = [
   {
     name: _('logUser'),
@@ -55,15 +73,7 @@ const COLUMNS = [
         <pre className={styles.widthLimit}>
           {log.data.error && log.data.error.message}
         </pre>
-        {log.data.error && log.data.error.code === 'LICENCE_RESTRICTION' && (
-          <a
-            href='https://xcp-ng.org/'
-            rel='noopener noreferrer'
-            target='_blank'
-          >
-            {_('logSuggestXcpNg')}
-          </a>
-        )}
+        <LogInfo log={log} />
       </span>
     ),
     sortCriteria: log => log.data.error && log.data.error.message,
