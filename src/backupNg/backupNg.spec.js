@@ -223,6 +223,59 @@ describe("backupNg", () => {
 
       expect(vmTask.data.id).toBe(vmIdWithoutDisks);
     });
+
+    it("fails trying to run backup job with remotes without exportRetention", async () => {
+      const scheduleTempId = randomId();
+      const { id: jobId } = await xo.createTempBackupNgJob({
+        ...defaultBackupNg,
+        remotes: {
+          id: config.remotes.defaultRemote,
+        },
+        schedules: {
+          [scheduleTempId]: DEFAULT_SCHEDULE,
+        },
+        settings: {
+          ...defaultBackupNg.settings,
+          [scheduleTempId]: {},
+        },
+      });
+
+      const schedule = await xo.getSchedule({ jobId });
+      expect(typeof schedule).toBe("object");
+      await xo.call("backupNg.runJob", { id: jobId, schedule: schedule.id });
+
+      const [
+        {
+          tasks: [task],
+          ...log
+        },
+      ] = await xo.call("backupNg.getLogs", {
+        jobId,
+        scheduleId: schedule.id,
+      });
+
+      expect(log).toMatchSnapshot({
+        end: expect.any(Number),
+        id: expect.any(String),
+        jobId: expect.any(String),
+        scheduleId: expect.any(String),
+        start: expect.any(Number),
+      });
+
+      expect(task).toMatchSnapshot({
+        data: {
+          id: expect.any(String),
+        },
+        end: expect.any(Number),
+        id: expect.any(String),
+        message: expect.any(String),
+        result: {
+          stack: expect.any(String),
+        },
+        start: expect.any(Number),
+      });
+      expect(task.data.id).toBe(config.vmIdXoTest);
+    });
   });
 
   test("execute three times a rolling snapshot with 2 as retention & revert to an old state", async () => {
