@@ -575,6 +575,7 @@ const messages = {
   newSrNfsOptions: 'Comma delimited NFS options',
   newSrNfs: 'NFS version',
   reattachNewSrTooltip: 'Reattach SR',
+  srLocation: 'Storage location',
 
   // ------ New Network -----
   createNewNetworkNoPermission:

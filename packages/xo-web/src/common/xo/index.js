@@ -2283,6 +2283,8 @@ export const probeSrHba = host => _call('sr.probeHba', { host })
 export const probeSrHbaExists = (host, scsiId) =>
   _call('sr.probeHbaExists', { host, scsiId })
 
+export const probeZfs = host => _call('sr.probeZfs', { host })
+
 export const reattachSr = (host, uuid, nameLabel, nameDescription, type) =>
   _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type })
 
@@ -2345,6 +2347,9 @@ export const createSrLvm = (host, nameLabel, nameDescription, device) =>
 
 export const createSrExt = (host, nameLabel, nameDescription, device) =>
   _call('sr.createExt', { host, nameLabel, nameDescription, device })
+
+export const createSrZfs = (host, nameLabel, nameDescription, location) =>
+  _call('sr.createFile', { host, nameLabel, nameDescription, location })
 
 // Job logs ----------------------------------------------------------
 
