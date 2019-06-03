@@ -4,7 +4,17 @@ import { noSuchObject } from 'xo-common/api-errors'
 import Collection from '../collection/redis'
 import patch from '../patch'
 
-const sync = synchronized.withKey((arg1, arg2) => arg1.address ?? arg2.address)
+const sync = synchronized.withKey((arg1, arg2) => {
+  if (arg1.address !== undefined) {
+    return arg1.address
+  }
+
+  if (arg2.address !== undefined) {
+    return arg2.address
+  }
+
+  return arg1
+})
 
 export default class Proxy {
   constructor(app) {
