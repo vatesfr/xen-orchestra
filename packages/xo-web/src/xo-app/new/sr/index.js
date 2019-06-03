@@ -202,11 +202,11 @@ const SR_TYPE_TO_LABEL = {
   hba: 'HBA',
   iscsi: 'iSCSI',
   local: 'Local',
-  lvm: 'Local LVM',
+  lvm: 'LVM (local)',
   nfs: 'NFS',
   nfsiso: 'NFS ISO',
   smb: 'SMB',
-  zfs: 'ZFS',
+  zfs: 'ZFS (local)',
 }
 
 const SR_GROUP_TO_LABEL = {
