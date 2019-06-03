@@ -189,11 +189,11 @@ export async function createFile({
 }) {
   const xapi = this.getXapi(host)
   return xapi.createSr({
-    host,
-    nameLabel,
-    nameDescription,
+    hostRef: host._xapiRef,
+    name_label: nameLabel,
+    name_description: nameDescription,
     type: 'file',
-    deviceConfig: { location },
+    device_config: { location },
   })
 }
 
