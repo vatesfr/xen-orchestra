@@ -389,7 +389,10 @@ export default class New extends Component {
     }
   }
 
-  _handleSrHostSelection = host => this.setState({ host })
+  _handleSrHostSelection = host => {
+    this.setState({ host })
+    this._probe(host, this.state.type)
+  }
   _handleNameChange = event => this.setState({ name: event.target.value })
   _handleDescriptionChange = event =>
     this.setState({ description: event.target.value })
@@ -406,22 +409,7 @@ export default class New extends Component {
       usage: undefined,
       used: undefined,
     })
-    if (type === 'hba' && this.state.host !== undefined) {
-      this.setState(({ loading }) => ({ loading: loading + 1 }))
-      const hbaDevices = await probeSrHba(this.state.host.id)::ignoreErrors()
-      this.setState(({ loading }) => ({
-        hbaDevices,
-        loading: loading - 1,
-      }))
-    }
-    if (type === 'zfs' && this.state.host !== undefined) {
-      await this.setState(({ loading }) => ({ loading: loading + 1 }))
-      const zfsPools = await probeZfs(this.state.host.id)::ignoreErrors()
-      await this.setState(({ loading }) => ({
-        loading: loading - 1,
-        zfsPools,
-      }))
-    }
+    this._probe(this.state.host, type)
   }
 
   _handleSrHbaSelection = async scsiId => {
@@ -556,6 +544,27 @@ export default class New extends Component {
     this.setState({
       nfsVersion: value,
     })
+  }
+
+  _probe = async (host, type) => {
+    const probeMethodFactories = {
+      hba: async hostId => {
+        const hbaDevices = await probeSrHba(hostId)::ignoreErrors()
+        this.setState({ hbaDevices })
+      },
+      zfs: async hostId => {
+        const zfsPools = await probeZfs(hostId)::ignoreErrors()
+        this.setState({ zfsPools })
+      },
+    }
+
+    if (host !== undefined && host !== null && type !== undefined) {
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
+      await probeMethodFactories[type](host.id)
+      this.setState(({ loading }) => ({
+        loading: loading - 1,
+      }))
+    }
   }
 
   _reattach = async uuid => {
