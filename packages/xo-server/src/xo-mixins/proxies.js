@@ -5,15 +5,13 @@ import Collection from '../collection/redis'
 import patch from '../patch'
 
 const sync = synchronized.withKey((arg1, arg2) => {
-  if (arg1.address !== undefined) {
-    return arg1.address
+  // In case of "updateProxy"
+  if (typeof arg1 === 'string') {
+    // synchronize by id if the address is not defined
+    return arg2.address ?? arg1
   }
 
-  if (arg2.address !== undefined) {
-    return arg2.address
-  }
-
-  return arg1
+  return arg1.address
 })
 
 export default class Proxy {
