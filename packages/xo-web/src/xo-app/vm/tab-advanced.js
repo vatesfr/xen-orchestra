@@ -833,6 +833,11 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
+                <tr>
+                  <th>{_('vmBoot')}</th>
+                  <td>{vm.HVM_boot_params && vm.HVM_boot_params.firmware}</td>
+                  {/** firmware= bios || uefi */}
+                </tr>
               </tbody>
             </table>
             <br />

@@ -1132,6 +1132,7 @@ const messages = {
   addAclsErrorMessage: 'User(s)/group(s) and role are required.',
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
+  vmBoot: 'Boot',
 
   // ----- VM placeholders -----
 
