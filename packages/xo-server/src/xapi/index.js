@@ -1327,11 +1327,7 @@ export default class Xapi extends XapiBase {
     $defer.onFailure(() => this._deleteVm(vm))
     // Disable start and change the VM name label during import.
     await Promise.all([
-      this.addForbiddenOperationToVm(
-        vm.$id,
-        'start',
-        'OVA import in progress...'
-      ),
+      vm.update_blocked_operations('start', 'OVA import in progress...'),
       vm.set_name_label(`[Importing...] ${nameLabel}`),
     ])
 
@@ -1392,7 +1388,7 @@ export default class Xapi extends XapiBase {
 
     // Enable start and restore the VM name label after import.
     await Promise.all([
-      this.removeForbiddenOperationFromVm(vm.$id, 'start'),
+      vm.update_blocked_operations('start', null),
       vm.set_name_label(nameLabel),
     ])
     return vm
@@ -1620,24 +1616,6 @@ export default class Xapi extends XapiBase {
         })
       }
     }
-  }
-
-  // vm_operations: http://xapi-project.github.io/xen-api/classes/vm.html
-  async addForbiddenOperationToVm(vmId, operation, reason) {
-    await this.call(
-      'VM.add_to_blocked_operations',
-      this.getObject(vmId).$ref,
-      operation,
-      `[XO] ${reason}`
-    )
-  }
-
-  async removeForbiddenOperationFromVm(vmId, operation) {
-    await this.call(
-      'VM.remove_from_blocked_operations',
-      this.getObject(vmId).$ref,
-      operation
-    )
   }
 
   // =================================================================

@@ -1360,9 +1360,7 @@ createInterface.resolve = {
 // -------------------------------------------------------------------
 
 export async function attachPci({ vm, pciId }) {
-  const xapi = this.getXapi(vm)
-
-  await xapi.call('VM.add_to_other_config', vm._xapiRef, 'pci', pciId)
+  await this.getXapiObject(vm).update_other_config('pci', pciId)
 }
 
 attachPci.params = {
@@ -1377,9 +1375,7 @@ attachPci.resolve = {
 // -------------------------------------------------------------------
 
 export async function detachPci({ vm }) {
-  const xapi = this.getXapi(vm)
-
-  await xapi.call('VM.remove_from_other_config', vm._xapiRef, 'pci')
+  await this.getXapiObject(vm).update_other_config('pci', null)
 }
 
 detachPci.params = {
