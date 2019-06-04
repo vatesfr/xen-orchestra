@@ -621,6 +621,9 @@ set.params = {
 
   // set the VM network interface controller
   nicType: { type: ['string', 'null'], optional: true },
+
+  // set the VM boot firmware mode
+  hvmBootFirmware: { type: 'string', optional: true },
 }
 
 set.resolve = {

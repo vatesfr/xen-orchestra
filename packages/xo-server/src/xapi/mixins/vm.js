@@ -449,6 +449,10 @@ export default {
       get: vm => +vm.start_delay,
       set: (startDelay, vm) => vm.set_start_delay(startDelay),
     },
+
+    hvmBootFirmware: {
+      set: (firmware, vm) => vm.update_HVM_boot_params('firmware', firmware),
+    },
   }),
 
   async editVm(id, props, checkLimits) {

@@ -1837,6 +1837,9 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
+          <SectionContent>
+            <Item label={_('vmBootFirmware')}>{/** put code here*/}</Item>
+          </SectionContent>,
         ]}
       </Section>
     )

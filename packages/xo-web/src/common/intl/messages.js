@@ -1132,7 +1132,8 @@ const messages = {
   addAclsErrorMessage: 'User(s)/group(s) and role are required.',
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
-  vmBoot: 'Boot',
+  vmBootFirmware: 'Boot firmware',
+  vmBootFirmwareWarning: 'Boot firmware is still experimental in CH/XCP-ng 8.0',
 
   // ----- VM placeholders -----
 

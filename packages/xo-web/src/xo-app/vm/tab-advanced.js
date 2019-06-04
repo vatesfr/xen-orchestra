@@ -10,7 +10,7 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { error } from 'notification'
+import { error, info } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
@@ -73,6 +73,7 @@ import {
   subscribeResourceSets,
   subscribeUsers,
   suspendVm,
+  VM_BOOT_FIRMWARES,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
@@ -834,9 +835,25 @@ export default class TabAdvanced extends Component {
                   </tr>
                 )}
                 <tr>
-                  <th>{_('vmBoot')}</th>
-                  <td>{vm.HVM_boot_params && vm.HVM_boot_params.firmware}</td>
-                  {/** firmware= bios || uefi */}
+                  <th>{_('vmBootFirmware')}</th>
+                  <td>
+                    <select
+                      className='form-control'
+                      onChange={event => {
+                        editVm(vm, {
+                          hvmBootFirmware: getEventValue(event),
+                        })
+                        info(_('vmBootFirmwareWarning'))
+                      }}
+                      value={defined(() => vm.boot.firmware, 'bios')}
+                    >
+                      {map(VM_BOOT_FIRMWARES, val => (
+                        <option key={val} value={val}>
+                          {val}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
                 </tr>
               </tbody>
             </table>
