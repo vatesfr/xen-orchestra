@@ -23,6 +23,7 @@ import {
 } from 'cloud-config'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { info } from 'notification'
 import { injectIntl } from 'react-intl'
 import {
   Input as DebounceInput,
@@ -53,6 +54,7 @@ import {
   subscribeCurrentUser,
   subscribeIpPools,
   subscribeResourceSets,
+  VM_BOOT_FIRMWARES,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
 } from 'xo'
@@ -334,6 +336,7 @@ export default class NewVm extends BaseComponent {
       cpuWeight: '',
       existingDisks: {},
       fastClone: true,
+      hvmBootFirmware: '',
       installMethod: 'noConfigDrive',
       multipleVms: false,
       name_label: '',
@@ -501,6 +504,7 @@ export default class NewVm extends BaseComponent {
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
       gpuGroup: get(() => state.vgpuType.gpuGroup),
+      hvmBootFirmware: state.hvmBootFirmware,
     }
 
     return state.multipleVms
@@ -899,6 +903,11 @@ export default class NewVm extends BaseComponent {
 
   _getRedirectionUrl = id =>
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
+
+  _handleHvmBootFirmware = ({ target: { value } }) => {
+    this._setState({ hvmBootFirmware: value })
+    info(_('vmBootFirmwareWarning'))
+  }
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1630,6 +1639,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate,
       cpuCap,
       cpuWeight,
+      hvmBootFirmware,
       memoryDynamicMin,
       memoryDynamicMax,
       memoryStaticMax,
@@ -1645,6 +1655,7 @@ export default class NewVm extends BaseComponent {
     } = this.state.state
     const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
+
     return (
       <Section
         icon='new-vm-advanced'
@@ -1838,7 +1849,19 @@ export default class NewVm extends BaseComponent {
             </SectionContent>
           ),
           <SectionContent>
-            <Item label={_('vmBootFirmware')}>{/** put code here*/}</Item>
+            <Item label={_('vmBootFirmware')}>
+              <select
+                className='form-control'
+                onChange={this._handleHvmBootFirmware}
+                value={hvmBootFirmware}
+              >
+                {map(VM_BOOT_FIRMWARES, val => (
+                  <option key={val} value={val}>
+                    {val}
+                  </option>
+                ))}
+              </select>
+            </Item>
           </SectionContent>,
         ]}
       </Section>
