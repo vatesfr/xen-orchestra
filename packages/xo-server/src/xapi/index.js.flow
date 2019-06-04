@@ -74,7 +74,6 @@ declare export class Xapi {
   ): Promise<void>;
   _snapshotVm(cancelToken: mixed, vm: Vm, nameLabel?: string): Promise<Vm>;
 
-  addTag(object: Id, tag: string): Promise<void>;
   barrier(): Promise<void>;
   barrier(ref: string): Promise<XapiObject>;
   deleteVm(vm: Id): Promise<void>;

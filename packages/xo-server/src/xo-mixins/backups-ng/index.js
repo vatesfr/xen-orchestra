@@ -286,7 +286,7 @@ const importers: $Dict<
       xapi.importVm(xva, { srId: sr.$id })
     )
     await Promise.all([
-      xapi.addTag(vm.$id, 'restored from backup'),
+      vm.add_tags('restored from backup'),
       xapi.editVm(vm.$id, {
         name_label: `${metadata.vm.name_label} (${safeDateFormat(
           metadata.timestamp
@@ -450,7 +450,7 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 
   return Promise.all([
     vm.set_ha_restart_priority(''),
-    xapi.addTag(vm.$ref, 'HA disabled'),
+    vm.add_tags('HA disabled'),
   ])
 }
 
@@ -1266,7 +1266,7 @@ export default class BackupNg {
                 )
 
                 await Promise.all([
-                  xapi.addTag(vm.$ref, 'Disaster Recovery'),
+                  vm.add_tags('Disaster Recovery'),
                   disableVmHighAvailability(xapi, vm),
                   vm.update_blocked_operations(
                     'start',
@@ -1624,7 +1624,7 @@ export default class BackupNg {
                 )
 
                 await Promise.all([
-                  xapi.addTag(vm.$ref, 'Continuous Replication'),
+                  vm.add_tags('Continuous Replication'),
                   disableVmHighAvailability(xapi, vm),
                   vm.update_blocked_operations(
                     'start',

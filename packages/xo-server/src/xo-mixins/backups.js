@@ -372,7 +372,7 @@ export default class {
 
     const { datetime } = parseVmBackupPath(file)
     await Promise.all([
-      xapi.addTag(vm.$id, 'restored from backup'),
+      vm.add_tags('restored from backup'),
       xapi.editVm(vm.$id, {
         name_label: `${vm.name_label} (${shortDate(datetime * 1e3)})`,
       }),
@@ -972,12 +972,13 @@ export default class {
       nameLabel: copyName,
     })
 
-    data.vm.update_blocked_operations(
-      'start',
-      'Start operation for this vm is blocked, clone it if you want to use it.'
-    )
-
-    await targetXapi.addTag(data.vm.$id, 'Disaster Recovery')
+    await Promise.all([
+      data.vm.add_tags('Disaster Recovery'),
+      data.vm.update_blocked_operations(
+        'start',
+        'Start operation for this vm is blocked, clone it if you want to use it.'
+      ),
+    ])
 
     if (!deleteOldBackupsFirst) {
       await this._removeVms(targetXapi, vmsToRemove)

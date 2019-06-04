@@ -8,5 +8,6 @@
 
 ### Released packages
 
+- xen-api v0.25.2
 - xo-server v5.43.0
 - xo-web v5.43.0

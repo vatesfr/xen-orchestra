@@ -1059,9 +1059,14 @@ export class Xapi extends EventEmitter {
             }
           }
 
-          props[`add_to_${field}`] = function(...values) {
+          props[`add_${field}`] = function(value) {
             return xapi
-              .call(`${type}.add_${field}`, this.$ref, values)
+              .call(`${type}.add_${field}`, this.$ref, value)
+              .then(noop)
+          }
+          props[`remove_${field}`] = function(value) {
+            return xapi
+              .call(`${type}.remove_${field}`, this.$ref, value)
               .then(noop)
           }
         } else if (value !== null && typeof value === 'object') {

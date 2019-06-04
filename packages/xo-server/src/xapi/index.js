@@ -249,20 +249,6 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async addTag(id, tag) {
-    const { $ref: ref, $type: type } = this.getObject(id)
-
-    await this.call(`${type}.add_tags`, ref, tag)
-  }
-
-  async removeTag(id, tag) {
-    const { $ref: ref, $type: type } = this.getObject(id)
-
-    await this.call(`${type}.remove_tags`, ref, tag)
-  }
-
-  // =================================================================
-
   setDefaultSr(srId) {
     return this.pool.set_default_SR(this.getObject(srId).$ref)
   }
