@@ -1855,7 +1855,7 @@ export default class NewVm extends BaseComponent {
                 onChange={this._handleHvmBootFirmware}
                 value={hvmBootFirmware}
               >
-                {map(VM_BOOT_FIRMWARES, val => (
+                {VM_BOOT_FIRMWARES.map(val => (
                   <option key={val} value={val}>
                     {val}
                   </option>

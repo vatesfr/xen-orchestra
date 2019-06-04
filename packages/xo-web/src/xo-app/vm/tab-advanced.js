@@ -511,6 +511,13 @@ export default class TabAdvanced extends Component {
   _onChangeCpuMask = cpuMask =>
     editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
+  _onBootFirmwareChange = event => {
+    editVm(this.props.vm, {
+      hvmBootFirmware: getEventValue(event),
+    })
+    info(_('vmBootFirmwareWarning'))
+  }
+
   _onNicTypeChange = value =>
     editVm(this.props.vm, { nicType: value === '' ? null : value })
 
@@ -839,15 +846,10 @@ export default class TabAdvanced extends Component {
                   <td>
                     <select
                       className='form-control'
-                      onChange={event => {
-                        editVm(vm, {
-                          hvmBootFirmware: getEventValue(event),
-                        })
-                        info(_('vmBootFirmwareWarning'))
-                      }}
+                      onChange={this._onBootFirmwareChange}
                       value={defined(() => vm.boot.firmware, 'bios')}
                     >
-                      {map(VM_BOOT_FIRMWARES, val => (
+                      {VM_BOOT_FIRMWARES.map(val => (
                         <option key={val} value={val}>
                           {val}
                         </option>
