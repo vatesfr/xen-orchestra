@@ -1412,7 +1412,7 @@ export async function setBootOrder({ vm, order }) {
     throw invalidParameters('You can only set the boot order on a HVM guest')
   }
 
-  await this.getXapiObject(vm).set_HVM_boot_params({ order })
+  await this.getXapiObject(vm).update_HVM_boot_params('order', order)
 }
 
 setBootOrder.params = {

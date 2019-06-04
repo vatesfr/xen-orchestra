@@ -107,15 +107,12 @@ export default {
 
       if (isHvm) {
         if (!isEmpty(vdis) || installMethod === 'network') {
-          const { HVM_boot_params: bootParams } = vm
-          let order = bootParams.order
-          if (order) {
-            order = 'n' + order.replace('n', '')
-          } else {
-            order = 'ncd'
-          }
+          const { order } = vm.HVM_boot_params
 
-          vm.set_HVM_boot_params({ ...bootParams, order })
+          vm.update_HVM_boot_params(
+            'order',
+            order ? 'n' + order.replace('n', '') : 'ncd'
+          )
         }
       } else {
         // PV
