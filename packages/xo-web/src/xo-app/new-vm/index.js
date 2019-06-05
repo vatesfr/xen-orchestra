@@ -83,6 +83,7 @@ import {
   formatSize,
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
+  noop,
   resolveIds,
 } from 'utils'
 import {
@@ -335,7 +336,7 @@ export default class NewVm extends BaseComponent {
       cpuWeight: '',
       existingDisks: {},
       fastClone: true,
-      hvmBootFirmware: '',
+      hvmBootFirmware: null,
       installMethod: 'noConfigDrive',
       multipleVms: false,
       name_label: '',
@@ -910,10 +911,11 @@ export default class NewVm extends BaseComponent {
 
   _handleHvmBootFirmware = ({ target: { value } }) => {
     if (value === 'uefi') {
+      // TODO: Confirm should be removed once the feature is stabilized
       confirm({
         title: _('vmBootFirmware'),
         body: _('vmUefiFirmwareWarningMessage'),
-      }).then(() => this._setState({ hvmBootFirmware: value }))
+      }).then(() => this._setState({ hvmBootFirmware: value }), noop)
     } else {
       this._setState({ hvmBootFirmware: value })
     }

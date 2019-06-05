@@ -514,13 +514,16 @@ export default class TabAdvanced extends Component {
   _onBootFirmwareChange = event => {
     const hvmBootFirmware = getEventValue(event)
     if (hvmBootFirmware === 'uefi') {
+      // TODO: Confirm should be removed once the feature is stabilized
       confirm({
         title: _('vmBootFirmware'),
         body: _('vmUefiFirmwareWarningMessage'),
-      }).then(() =>
-        editVm(this.props.vm, {
-          hvmBootFirmware,
-        })
+      }).then(
+        () =>
+          editVm(this.props.vm, {
+            hvmBootFirmware,
+          }),
+        noop
       )
     } else {
       editVm(this.props.vm, {
