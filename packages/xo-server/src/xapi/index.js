@@ -956,16 +956,19 @@ export default class Xapi extends XapiBase {
       await this._createVmRecord({
         ...delta.vm,
         affinity: null,
+        blocked_operations: {
+          ...delta.vm.blocked_operations,
+          start: 'Importing…',
+        },
         is_a_template: false,
+        name_label: `[Importing…] ${name_label}`,
+        other_config: {
+          ...delta.vm.other_config,
+          [TAG_COPY_SRC]: delta.vm.uuid,
+        },
       })
     )
     $defer.onFailure(() => this._deleteVm(vm))
-
-    await Promise.all([
-      vm.set_name_label(`[Importing…] ${name_label}`),
-      vm.update_blocked_operations('start', 'Importing…'),
-      vm.update_other_config(TAG_COPY_SRC, delta.vm.uuid),
-    ])
 
     // 2. Delete all VBDs which may have been created by the import.
     await asyncMap(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
