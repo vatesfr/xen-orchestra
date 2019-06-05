@@ -7,6 +7,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
+  "main": "./dist",
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
@@ -25,7 +26,10 @@
     "cross-env": "^5.2.0"
   },
   "dependencies": {
-    "lodash": "^4.17.11"
+    "@xen-orchestra/log": "^0.1.4",
+    "internal-ip": "^4.3.0",
+    "lodash": "^4.17.11",
+    "promise-toolbox": "^0.12.1"
   },
   "private": true
 }
