@@ -4,16 +4,8 @@ import { noSuchObject } from 'xo-common/api-errors'
 import Collection from '../collection/redis'
 import patch from '../patch'
 
-const sync = synchronized.withKey((arg1, arg2) => {
-  // In case of "updateProxy"
-  if (typeof arg1 === 'string') {
-    const id = arg1
-    const props = arg2
-    return props.address ?? id
-  }
-
-  return arg1.address
-})
+const extractProperties = _ => _.properties
+const synchonizedWrite = synchronized()
 
 export default class Proxy {
   constructor(app) {
@@ -41,16 +33,17 @@ export default class Proxy {
     }
   }
 
-  @sync
+  @synchonizedWrite
   async registerProxy({ address, authenticationToken, name }) {
     await this._throwIfRegistered(address)
 
-    const { properties } = await this._db.add({
-      address,
-      authenticationToken,
-      name,
-    })
-    return properties
+    return this._db
+      .add({
+        address,
+        authenticationToken,
+        name,
+      })
+      .then(extractProperties)
   }
 
   unregisterProxy(id) {
@@ -58,26 +51,25 @@ export default class Proxy {
   }
 
   async getProxy(id) {
-    const proxy = await this._db.first(id)
+    const proxy = await this._db.first(id).then(extractProperties)
     if (proxy === undefined) {
       throw noSuchObject(id, 'proxy')
     }
-    return proxy.properties
+    return proxy
   }
 
   getAllProxies() {
     return this._db.get()
   }
 
-  @sync
+  @synchonizedWrite
   async updateProxy(id, { address, authenticationToken, name }) {
     const proxy = await this.getProxy(id)
-    if (address != null && proxy.address !== address) {
+    if (address !== undefined && proxy.address !== address) {
       await this._throwIfRegistered(address)
     }
 
     patch(proxy, { address, authenticationToken, name })
-    const { properties } = await this._db.update(proxy)
-    return properties
+    return this._db.update(proxy).then(extractProperties)
   }
 }
