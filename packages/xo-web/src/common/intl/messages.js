@@ -1132,6 +1132,7 @@ const messages = {
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
   vmBootFirmware: 'Boot firmware',
+  vmDefaultBootFirmwareLabel: 'default (bios)',
   vmUefiFirmwareWarningMessage:
     "You're about to change your boot firmware from bios to uefi which is still experimental in CH/XCP-ng 8.0. Are you sure you want to continue?",
 

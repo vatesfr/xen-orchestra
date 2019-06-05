@@ -336,7 +336,7 @@ export default class NewVm extends BaseComponent {
       cpuWeight: '',
       existingDisks: {},
       fastClone: true,
-      hvmBootFirmware: null,
+      hvmBootFirmware: '',
       installMethod: 'noConfigDrive',
       multipleVms: false,
       name_label: '',
@@ -504,7 +504,8 @@ export default class NewVm extends BaseComponent {
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
       gpuGroup: get(() => state.vgpuType.gpuGroup),
-      hvmBootFirmware: state.hvmBootFirmware,
+      hvmBootFirmware:
+        state.hvmBootFirmware === '' ? null : state.hvmBootFirmware,
     }
 
     return state.multipleVms
@@ -1867,6 +1868,7 @@ export default class NewVm extends BaseComponent {
                   onChange={this._handleHvmBootFirmware}
                   value={hvmBootFirmware}
                 >
+                  <option value=''>{_('vmDefaultBootFirmwareLabel')}</option>
                   {VM_BOOT_FIRMWARES.map(val => (
                     <option key={val} value={val}>
                       {val}

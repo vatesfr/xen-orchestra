@@ -861,8 +861,11 @@ export default class TabAdvanced extends Component {
                     <select
                       className='form-control'
                       onChange={this._onBootFirmwareChange}
-                      value={defined(() => vm.boot.firmware, 'bios')}
+                      value={defined(() => vm.boot.firmware, '')}
                     >
+                      <option value=''>
+                        {_('vmDefaultBootFirmwareLabel')}
+                      </option>
                       {VM_BOOT_FIRMWARES.map(val => (
                         <option key={val} value={val}>
                           {val}
