@@ -508,12 +508,12 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 // │  │  │  ├─ task.warning(message: string)
 // │  │  │  └─ task.end(result: { size: number })
 // │  │  │
-// │  │  │  // in case of a full mode
+// │  │  │  // in case of full backup, DR and CR
 // │  │  ├─ task.start(message: 'clean')
 // │  │  │  ├─ task.warning(message: string)
 // │  │  │  └─ task.end
 // │  │  │
-// │  │  │ // in case of a delta mode
+// │  │  │ // in case of delta backup
 // │  │  ├─ task.start(message: 'merge')
 // │  │  │  ├─ task.warning(message: string)
 // │  │  │  └─ task.end(result: { size: number })
@@ -1628,9 +1628,19 @@ export default class BackupNg {
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
+                const deleteOldBackups = () =>
+                  wrapTask(
+                    {
+                      logger,
+                      message: 'clean',
+                      parentId: taskId,
+                    },
+                    this._deleteVms(xapi, oldVms)
+                  )
+
                 const deleteFirst = getSetting(settings, 'deleteFirst', [srId])
                 if (deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
 
                 const { vm } = await wrapTask(
@@ -1660,7 +1670,7 @@ export default class BackupNg {
                 ])
 
                 if (!deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
               }
             )
