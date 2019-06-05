@@ -7,8 +7,9 @@ import patch from '../patch'
 const sync = synchronized.withKey((arg1, arg2) => {
   // In case of "updateProxy"
   if (typeof arg1 === 'string') {
-    // synchronize by id if the address is not defined
-    return arg2.address ?? arg1
+    const id = arg1
+    const props = arg2
+    return props.address ?? id
   }
 
   return arg1.address
