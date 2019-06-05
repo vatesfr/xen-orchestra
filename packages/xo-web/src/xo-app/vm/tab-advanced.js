@@ -10,7 +10,7 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { error, info } from 'notification'
+import { error } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
@@ -512,10 +512,21 @@ export default class TabAdvanced extends Component {
     editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
   _onBootFirmwareChange = event => {
-    editVm(this.props.vm, {
-      hvmBootFirmware: getEventValue(event),
-    })
-    info(_('vmBootFirmwareWarning'))
+    const hvmBootFirmware = getEventValue(event)
+    if (hvmBootFirmware === 'uefi') {
+      confirm({
+        title: _('vmBootFirmware'),
+        body: _('vmUefiFirmwareWarningMessage'),
+      }).then(() =>
+        editVm(this.props.vm, {
+          hvmBootFirmware,
+        })
+      )
+    } else {
+      editVm(this.props.vm, {
+        hvmBootFirmware,
+      })
+    }
   }
 
   _onNicTypeChange = value =>

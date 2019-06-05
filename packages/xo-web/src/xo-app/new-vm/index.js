@@ -23,7 +23,6 @@ import {
 } from 'cloud-config'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
-import { info } from 'notification'
 import { injectIntl } from 'react-intl'
 import {
   Input as DebounceInput,
@@ -756,6 +755,11 @@ export default class NewVm extends BaseComponent {
     template => template && template.name_label === 'CoreOS'
   )
 
+  _isHvm = createSelector(
+    () => this.state.template,
+    template => template && template.virtualizationMode === 'hvm'
+  )
+
   // On change -------------------------------------------------------------------
 
   _onChangeSshKeys = keys =>
@@ -905,8 +909,14 @@ export default class NewVm extends BaseComponent {
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
   _handleHvmBootFirmware = ({ target: { value } }) => {
-    this._setState({ hvmBootFirmware: value })
-    info(_('vmBootFirmwareWarning'))
+    if (value === 'uefi') {
+      confirm({
+        title: _('vmBootFirmware'),
+        body: _('vmUefiFirmwareWarningMessage'),
+      }).then(() => this._setState({ hvmBootFirmware: value }))
+    } else {
+      this._setState({ hvmBootFirmware: value })
+    }
   }
 
   // MAIN ------------------------------------------------------------------------
@@ -1651,7 +1661,6 @@ export default class NewVm extends BaseComponent {
       share,
       showAdvanced,
       tags,
-      template,
     } = this.state.state
     const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
@@ -1838,7 +1847,7 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
-          template && template.virtualizationMode === 'hvm' && (
+          this._isHvm() && (
             <SectionContent>
               <Item label={_('vmVgpu')}>
                 <SelectVgpuType
@@ -1848,21 +1857,23 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
-          <SectionContent>
-            <Item label={_('vmBootFirmware')}>
-              <select
-                className='form-control'
-                onChange={this._handleHvmBootFirmware}
-                value={hvmBootFirmware}
-              >
-                {VM_BOOT_FIRMWARES.map(val => (
-                  <option key={val} value={val}>
-                    {val}
-                  </option>
-                ))}
-              </select>
-            </Item>
-          </SectionContent>,
+          this._isHvm() && (
+            <SectionContent>
+              <Item label={_('vmBootFirmware')}>
+                <select
+                  className='form-control'
+                  onChange={this._handleHvmBootFirmware}
+                  value={hvmBootFirmware}
+                >
+                  {VM_BOOT_FIRMWARES.map(val => (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  ))}
+                </select>
+              </Item>
+            </SectionContent>
+          ),
         ]}
       </Section>
     )

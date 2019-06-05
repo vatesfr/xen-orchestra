@@ -62,6 +62,7 @@ export const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 // ===================================================================
 
+// https://docs.citrix.com/en-us/citrix-hypervisor/whats-new/experimental.html
 export const VM_BOOT_FIRMWARES = ['bios', 'uefi']
 
 // ===================================================================
