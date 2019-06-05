@@ -623,7 +623,7 @@ set.params = {
   nicType: { type: ['string', 'null'], optional: true },
 
   // set the VM boot firmware mode
-  hvmBootFirmware: { type: 'string', optional: true },
+  hvmBootFirmware: { type: ['string', 'null'], optional: true },
 }
 
 set.resolve = {

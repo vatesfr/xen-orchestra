@@ -512,8 +512,9 @@ export default class TabAdvanced extends Component {
     editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
   _onBootFirmwareChange = event => {
-    const hvmBootFirmware = getEventValue(event)
-    if (hvmBootFirmware === 'uefi') {
+    const hvmBootFirmware =
+      getEventValue(event) === '' ? null : getEventValue(event)
+    if (VM_BOOT_FIRMWARES.includes(hvmBootFirmware)) {
       // TODO: Confirm should be removed once the feature is stabilized
       confirm({
         title: _('vmBootFirmware'),
