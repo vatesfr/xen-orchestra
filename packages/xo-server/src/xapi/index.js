@@ -960,6 +960,7 @@ export default class Xapi extends XapiBase {
           ...delta.vm.blocked_operations,
           start: 'Importing…',
         },
+        ha_always_run: false,
         is_a_template: false,
         name_label: `[Importing…] ${name_label}`,
         other_config: {
@@ -1086,6 +1087,7 @@ export default class Xapi extends XapiBase {
     }
 
     await Promise.all([
+      delta.vm.ha_always_run && vm.set_ha_always_run(true),
       vm.set_name_label(name_label),
       // FIXME: move
       vm.update_blocked_operations(
