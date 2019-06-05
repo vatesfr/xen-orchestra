@@ -518,7 +518,7 @@ export default class TabAdvanced extends Component {
       // TODO: Confirm should be removed once the feature is stabilized
       confirm({
         title: _('vmBootFirmware'),
-        body: _('vmUefiFirmwareWarningMessage'),
+        body: _('vmBootFirmwareWarningMessage'),
       }).then(
         () =>
           editVm(this.props.vm, {

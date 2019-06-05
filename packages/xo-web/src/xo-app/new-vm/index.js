@@ -915,11 +915,11 @@ export default class NewVm extends BaseComponent {
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
   _handleHvmBootFirmware = ({ target: { value } }) => {
-    if (value === 'uefi') {
+    if (VM_BOOT_FIRMWARES.includes(value)) {
       // TODO: Confirm should be removed once the feature is stabilized
       confirm({
         title: _('vmBootFirmware'),
-        body: _('vmUefiFirmwareWarningMessage'),
+        body: _('vmBootFirmwareWarningMessage'),
       }).then(() => this._setState({ hvmBootFirmware: value }), noop)
     } else {
       this._setState({ hvmBootFirmware: value })
