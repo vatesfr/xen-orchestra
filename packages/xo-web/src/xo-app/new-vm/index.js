@@ -915,7 +915,7 @@ export default class NewVm extends BaseComponent {
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
   _handleHvmBootFirmware = ({ target: { value } }) => {
-    if (VM_BOOT_FIRMWARES.includes(value)) {
+    if (value !== '') {
       // TODO: Confirm should be removed once the feature is stabilized
       confirm({
         title: _('vmBootFirmware'),

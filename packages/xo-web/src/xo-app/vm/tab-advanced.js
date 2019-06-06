@@ -512,9 +512,7 @@ export default class TabAdvanced extends Component {
     editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
   _onBootFirmwareChange = event => {
-    const hvmBootFirmware =
-      getEventValue(event) === '' ? null : getEventValue(event)
-    if (VM_BOOT_FIRMWARES.includes(hvmBootFirmware)) {
+    if (getEventValue(event) !== '') {
       // TODO: Confirm should be removed once the feature is stabilized
       confirm({
         title: _('vmBootFirmware'),
@@ -522,13 +520,13 @@ export default class TabAdvanced extends Component {
       }).then(
         () =>
           editVm(this.props.vm, {
-            hvmBootFirmware,
+            hvmBootFirmware: getEventValue(event),
           }),
         noop
       )
     } else {
       editVm(this.props.vm, {
-        hvmBootFirmware,
+        hvmBootFirmware: null,
       })
     }
   }
