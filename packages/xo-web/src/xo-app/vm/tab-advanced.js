@@ -512,7 +512,8 @@ export default class TabAdvanced extends Component {
     editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
   _onBootFirmwareChange = event => {
-    if (getEventValue(event) !== '') {
+    const value = getEventValue(event)
+    if (value !== '') {
       // TODO: Confirm should be removed once the feature is stabilized
       confirm({
         title: _('vmBootFirmware'),
@@ -520,7 +521,7 @@ export default class TabAdvanced extends Component {
       }).then(
         () =>
           editVm(this.props.vm, {
-            hvmBootFirmware: getEventValue(event),
+            hvmBootFirmware: value,
           }),
         noop
       )
