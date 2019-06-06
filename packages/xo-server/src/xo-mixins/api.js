@@ -60,8 +60,9 @@ function checkParams(method, params) {
 
   const result = schemaInspector.validate(
     {
-      type: 'object',
       properties: schema,
+      strict: true,
+      type: 'object',
     },
     params
   )

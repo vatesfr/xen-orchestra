@@ -183,6 +183,7 @@ getLogs.params = {
   after: { type: ['number', 'string'], optional: true },
   before: { type: ['number', 'string'], optional: true },
   limit: { type: 'number', optional: true },
+  '*': { type: 'any' },
 }
 
 // -----------------------------------------------------------------------------
