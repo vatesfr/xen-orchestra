@@ -62,7 +62,8 @@ class SDNController {
     })
   }
 
-  /* TODO: remove all listeners + test load/unload
+  // TODO: remove all listeners + test load/unload
+  /*
   async unload() {
     while (!this._OvsdbBClients.empty) {
       delete this._OvsdbBClients.shift()
@@ -169,171 +170,14 @@ class SDNController {
   }
 
   async _objectsUpdated(objects) {
-    const xapi = objects.$xapi
-
     await Promise.all(
       map(objects, async (object, id) => {
         const { $type } = object
 
         if ($type === 'PIF') {
-          // Only if PIF is in a private network
-          const result = find(this._poolNetworks, { network: object.network })
-          if (!result) {
-            return
-          }
-
-          if (!object.currently_attached) {
-            if (result.starCenter === object.host) {
-              log.debug(
-                `PIF: '${object.device}' of network: '${
-                  object.$network.name_label
-                }' star-center host: '${
-                  object.$host.name_label
-                }' has been unplugged, electing a new host`
-              )
-              const newCenter = await this.electNewCenter(object.$network, true)
-              result.starCenter = newCenter ? newCenter.$ref : null
-              this._starCenters.delete(object.$host.$id)
-              if (newCenter) {
-                this._starCenters.set(newCenter.$id, newCenter.$ref)
-              }
-            }
-          } else {
-            if (!result.starCenter) {
-              const host = object.$host
-              log.debug(
-                `First available host: '${
-                  host.name_label
-                }' becomes star center of network: '${
-                  object.$network.name_label
-                }'`
-              )
-              result.starCenter = object.host
-              this._starCenters.set(host.$id, host.$ref)
-            }
-
-            if (object.host === result.starCenter) {
-              // Nothing to do
-              return
-            }
-
-            log.debug(
-              `PIF: '${object.device}' of network: '${
-                object.$network.name_label
-              }' host: '${object.$host.name_label}' has been plugged`
-            )
-
-            const hostClient = find(this._OvsdbBClients, {
-              host: object.host,
-            })
-            if (!hostClient) {
-              log.error(
-                `No OVSDB client found for host: '${object.$host.name_label}'`
-              )
-              return
-            }
-
-            const starCenterClient = find(this._OvsdbBClients, {
-              host: result.starCenter,
-            })
-            if (!starCenterClient) {
-              const starCenter = await xapi._getOrWaitObject(result.starCenter)
-              log.error(
-                `No OVSDB client found for star-center host: '${
-                  starCenter.name_label
-                }'`
-              )
-              return
-            }
-            await hostClient.addInterfaceAndPort(
-              object.$network.uuid,
-              object.$network.name_label,
-              starCenterClient.address
-            )
-            await starCenterClient.addInterfaceAndPort(
-              object.$network.uuid,
-              object.$network.name_label,
-              hostClient.address
-            )
-          }
+          await this._pifUpdated(object)
         } else if ($type === 'host') {
-          log.debug(`Updated host: ${object.name_label}`)
-
-          if (object.enabled) {
-            if (object.PIFs.length === 0) {
-              return
-            }
-
-            const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
-            const newHost = find(this._newHosts, { $ref: object.$ref })
-            if (newHost) {
-              this._newHosts.splice(this._newHosts.indexOf(newHost), 1)
-            }
-            let i
-            for (i = 0; i < tunnels.length; i++) {
-              const tunnel = tunnels[i]
-              const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
-              if (accessPIF.host !== object.$ref) {
-                continue
-              }
-
-              const poolNetwork = find(this._poolNetworks, {
-                network: accessPIF.network,
-              })
-              if (!poolNetwork) {
-                continue
-              }
-
-              if (accessPIF.currently_attached) {
-                continue
-              }
-
-              log.debug(
-                `Pluging PIF: ${accessPIF.device} for host: '${
-                  object.name_label
-                } on network: ${accessPIF.$network.name_label}'`
-              )
-              try {
-                await xapi.call('PIF.plug', accessPIF.$ref)
-              } catch (error) {
-                log.error(
-                  `XAPI error while pluging PIF: ${accessPIF.device} on host: ${
-                    object.name_label
-                  } fo network: ${accessPIF.$network.name_label}`
-                )
-              }
-              const starCenterClient = find(this._OvsdbBClients, {
-                host: poolNetwork.starCenter,
-              })
-              if (!starCenterClient) {
-                log.error(
-                  `Unable to find OVSDB client of star-center host '${await xapi._getOrWaitObject(
-                    poolNetwork.starCenter
-                  ).name_label}'`
-                )
-                continue
-              }
-
-              const hostClient = find(this._OvsdbBClients, {
-                host: object.$ref,
-              })
-              if (!hostClient) {
-                log.error(
-                  `Unable to find OVSDB client of host '${object.name_label}'`
-                )
-                continue
-              }
-
-              const network = accessPIF.$network
-              if (newHost) {
-                await starCenterClient.addInterfaceAndPort(
-                  network.uuid,
-                  network.name_label,
-                  hostClient.address
-                )
-              }
-            }
-          }
+          await this._hostUpdated(object)
         }
       })
     )
@@ -379,6 +223,168 @@ class SDNController {
         }
       })
     )
+  }
+
+  async _pifupdate(pif) {
+    // Only if PIF is in a private network
+    const result = find(this._poolNetworks, { network: pif.network })
+    if (!result) {
+      return
+    }
+
+    if (!pif.currently_attached) {
+      if (result.starCenter !== pif.host) {
+        return
+      }
+
+      log.debug(
+        `PIF: '${pif.device}' of network: '${
+          pif.$network.name_label
+        }' star-center host: '${
+          pif.$host.name_label
+        }' has been unplugged, electing a new host`
+      )
+      const newCenter = await this.electNewCenter(pif.$network, true)
+      result.starCenter = newCenter ? newCenter.$ref : null
+      this._starCenters.delete(pif.$host.$id)
+      if (newCenter) {
+        this._starCenters.set(newCenter.$id, newCenter.$ref)
+      }
+    } else {
+      if (!result.starCenter) {
+        const host = pif.$host
+        log.debug(
+          `First available host: '${
+            host.name_label
+          }' becomes star center of network: '${pif.$network.name_label}'`
+        )
+        result.starCenter = pif.host
+        this._starCenters.set(host.$id, host.$ref)
+      }
+
+      if (pif.host === result.starCenter) {
+        // Nothing to do
+        return
+      }
+
+      log.debug(
+        `PIF: '${pif.device}' of network: '${pif.$network.name_label}' host: '${
+          pif.$host.name_label
+        }' has been plugged`
+      )
+
+      const hostClient = find(this._OvsdbBClients, {
+        host: pif.host,
+      })
+      if (!hostClient) {
+        log.error(`No OVSDB client found for host: '${pif.$host.name_label}'`)
+        return
+      }
+
+      const starCenterClient = find(this._OvsdbBClients, {
+        host: result.starCenter,
+      })
+      if (!starCenterClient) {
+        const starCenter = await pif.$xapi._getOrWaitObject(result.starCenter)
+        log.error(
+          `No OVSDB client found for star-center host: '${
+            starCenter.name_label
+          }'`
+        )
+        return
+      }
+      await hostClient.addInterfaceAndPort(
+        pif.$network.uuid,
+        pif.$network.name_label,
+        starCenterClient.address
+      )
+      await starCenterClient.addInterfaceAndPort(
+        pif.$network.uuid,
+        pif.$network.name_label,
+        hostClient.address
+      )
+    }
+  }
+
+  async _hostUpdated(host) {
+    log.debug(`Updated host: ${host.name_label}`)
+
+    const xapi = host.$xapi
+
+    if (host.enabled) {
+      if (host.PIFs.length === 0) {
+        return
+      }
+
+      const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
+      const newHost = find(this._newHosts, { $ref: host.$ref })
+      if (newHost) {
+        this._newHosts.splice(this._newHosts.indexOf(newHost), 1)
+      }
+      let i
+      for (i = 0; i < tunnels.length; i++) {
+        const tunnel = tunnels[i]
+        const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
+        if (accessPIF.host !== host.$ref) {
+          continue
+        }
+
+        const poolNetwork = find(this._poolNetworks, {
+          network: accessPIF.network,
+        })
+        if (!poolNetwork) {
+          continue
+        }
+
+        if (accessPIF.currently_attached) {
+          continue
+        }
+
+        log.debug(
+          `Pluging PIF: ${accessPIF.device} for host: '${
+            host.name_label
+          } on network: ${accessPIF.$network.name_label}'`
+        )
+        try {
+          await xapi.call('PIF.plug', accessPIF.$ref)
+        } catch (error) {
+          log.error(
+            `XAPI error while pluging PIF: ${accessPIF.device} on host: ${
+              host.name_label
+            } fo network: ${accessPIF.$network.name_label}`
+          )
+        }
+        const starCenterClient = find(this._OvsdbBClients, {
+          host: poolNetwork.starCenter,
+        })
+        if (!starCenterClient) {
+          const starCenter = await xapi._getOrWaitObject(poolNetwork.starCenter)
+          log.error(
+            `Unable to find OVSDB client of star-center host '${
+              starCenter.name_label
+            }'`
+          )
+          continue
+        }
+
+        const hostClient = find(this._OvsdbBClients, {
+          host: host.$ref,
+        })
+        if (!hostClient) {
+          log.error(`Unable to find OVSDB client of host '${host.name_label}'`)
+          continue
+        }
+
+        const network = accessPIF.$network
+        if (newHost) {
+          await starCenterClient.addInterfaceAndPort(
+            network.uuid,
+            network.name_label,
+            hostClient.address
+          )
+        }
+      }
+    }
   }
 
   // -----------------------------------------------------------------------------
