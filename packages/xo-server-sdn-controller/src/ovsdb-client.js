@@ -9,7 +9,7 @@ const log = createLogger('xo:xo-server:sdn-controller:ovsdb-client')
 
 const CLIENT_PORT = 6640 // Standard OVSDB port
 
-export class OVSDBClient {
+export class OvsdbClient {
   constructor(host) {
     this._host = host
     this._numberOfPortAndInterface = 0
@@ -17,6 +17,8 @@ export class OVSDBClient {
 
     log.debug(`New OVSDB client for '${this._host.name_label}'`)
   }
+
+  // -----------------------------------------------------------------------------
 
   get address() {
     return this._host.address
@@ -26,36 +28,10 @@ export class OVSDBClient {
     return this._host.$ref
   }
 
-  parseJson(chunk) {
-    let data = chunk.toString()
-    let buffer = ''
-    let depth = 0
-    let pos = 0
-    const objects = []
-
-    for (let i = pos; i < data.length; ++i) {
-      const c = data.charAt(i)
-      if (c === '{') {
-        depth++
-      } else if (c === '}') {
-        depth--
-        if (depth === 0) {
-          const object = JSON.parse(buffer + data.substr(0, i + 1))
-          objects.push(object)
-          buffer = ''
-          data = data.substr(i + 1)
-          pos = 0
-          i = -1
-        }
-      }
-    }
-
-    buffer += data
-    return objects
-  }
+  // -----------------------------------------------------------------------------
 
   async addInterfaceAndPort(networkUuid, networkName, remoteAddress) {
-    const socket = await this.connect()
+    const socket = await this._connect()
     if (!socket) {
       return
     }
@@ -64,7 +40,7 @@ export class OVSDBClient {
     const index = this._numberOfPortAndInterface
     ++this._numberOfPortAndInterface
 
-    const [bridgeUuid, bridgeName] = await this.getBridgeUuidForNetwork(
+    const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
       networkName,
       socket
@@ -75,7 +51,7 @@ export class OVSDBClient {
     }
 
     if (
-      await this.interfaceAndPortAlreadyExist(
+      await this._interfaceAndPortAlreadyExist(
         bridgeUuid,
         bridgeName,
         remoteAddress,
@@ -118,7 +94,7 @@ export class OVSDBClient {
       mutations: [['ports', 'insert', ['set', [['named-uuid', 'new_port']]]]],
     }
     const req = {
-      id: this._requestID++,
+      id: ++this._requestID,
       method: 'transact',
       params: [
         'Open_vSwitch',
@@ -140,7 +116,7 @@ export class OVSDBClient {
       return
     }
 
-    const jsonObjects = this.parseJson(result)
+    const jsonObjects = this._parseJson(result)
 
     let error
     let details
@@ -174,13 +150,13 @@ export class OVSDBClient {
   }
 
   async resetForNetwork(networkUuid, networkName) {
-    const socket = await this.connect()
+    const socket = await this._connect()
     if (!socket) {
       return
     }
     const stream = socket
 
-    const [bridgeUuid, bridgeName] = await this.getBridgeUuidForNetwork(
+    const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
       networkName,
       socket
@@ -191,7 +167,7 @@ export class OVSDBClient {
     }
 
     // Delete old ports created by a SDN controller
-    const ports = await this.getBridgePorts(bridgeUuid, bridgeName, socket)
+    const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
     if (!ports) {
       socket.destroy()
       return
@@ -202,7 +178,7 @@ export class OVSDBClient {
       const portUuid = ports[i][1]
 
       const where = [['_uuid', '==', ['uuid', portUuid]]]
-      const selectResult = await this.select(
+      const selectResult = await this._select(
         'Port',
         ['name', 'other_config'],
         where,
@@ -237,7 +213,7 @@ export class OVSDBClient {
       mutations: [['ports', 'delete', ['set', portsToDelete]]],
     }
     const req = {
-      id: this._requestID++,
+      id: ++this._requestID,
       method: 'transact',
       params: ['Open_vSwitch', mutateBridgeOperation],
     }
@@ -255,7 +231,7 @@ export class OVSDBClient {
       return
     }
 
-    const jsonObjects = this.parseJson(result)
+    const jsonObjects = this._parseJson(result)
     if (jsonObjects[0].error) {
       log.error(
         `[${
@@ -277,7 +253,39 @@ export class OVSDBClient {
     socket.destroy()
   }
 
-  async getBridgeUuidForNetwork(networkUuid, networkName, socket) {
+  // =============================================================================
+
+  _parseJson(chunk) {
+    let data = chunk.toString()
+    let buffer = ''
+    let depth = 0
+    let pos = 0
+    const objects = []
+
+    for (let i = pos; i < data.length; ++i) {
+      const c = data.charAt(i)
+      if (c === '{') {
+        depth++
+      } else if (c === '}') {
+        depth--
+        if (depth === 0) {
+          const object = JSON.parse(buffer + data.substr(0, i + 1))
+          objects.push(object)
+          buffer = ''
+          data = data.substr(i + 1)
+          pos = 0
+          i = -1
+        }
+      }
+    }
+
+    buffer += data
+    return objects
+  }
+
+  // -----------------------------------------------------------------------------
+
+  async _getBridgeUuidForNetwork(networkUuid, networkName, socket) {
     const where = [
       [
         'external_ids',
@@ -285,7 +293,7 @@ export class OVSDBClient {
         ['map', [['xs-network-uuids', networkUuid]]],
       ],
     ]
-    const selectResult = await this.select(
+    const selectResult = await this._select(
       'Bridge',
       ['_uuid', 'name'],
       where,
@@ -306,13 +314,13 @@ export class OVSDBClient {
     return [bridgeUuid, bridgeName]
   }
 
-  async interfaceAndPortAlreadyExist(
+  async _interfaceAndPortAlreadyExist(
     bridgeUuid,
     bridgeName,
     remoteAddress,
     socket
   ) {
-    const ports = await this.getBridgePorts(bridgeUuid, bridgeName, socket)
+    const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
     if (!ports) {
       return
     }
@@ -320,7 +328,7 @@ export class OVSDBClient {
     let i
     for (i = 0; i < ports.length; ++i) {
       const portUuid = ports[i][1]
-      const interfaces = await this.getPortInterfaces(portUuid, socket)
+      const interfaces = await this._getPortInterfaces(portUuid, socket)
       if (!interfaces) {
         continue
       }
@@ -329,7 +337,7 @@ export class OVSDBClient {
       for (j = 0; j < interfaces.length; ++j) {
         const interfaceUuid = interfaces[j][1]
         if (
-          await this.interfaceHasRemote(interfaceUuid, remoteAddress, socket)
+          await this._interfaceHasRemote(interfaceUuid, remoteAddress, socket)
         ) {
           return true
         }
@@ -339,9 +347,9 @@ export class OVSDBClient {
     return false
   }
 
-  async getBridgePorts(bridgeUuid, bridgeName, socket) {
+  async _getBridgePorts(bridgeUuid, bridgeName, socket) {
     const where = [['_uuid', '==', ['uuid', bridgeUuid]]]
-    const selectResult = await this.select('Bridge', ['ports'], where, socket)
+    const selectResult = await this._select('Bridge', ['ports'], where, socket)
     if (!selectResult) {
       return null
     }
@@ -351,9 +359,9 @@ export class OVSDBClient {
       : [selectResult.ports]
   }
 
-  async getPortInterfaces(portUuid, socket) {
+  async _getPortInterfaces(portUuid, socket) {
     const where = [['_uuid', '==', ['uuid', portUuid]]]
-    const selectResult = await this.select(
+    const selectResult = await this._select(
       'Port',
       ['name', 'interfaces'],
       where,
@@ -368,9 +376,9 @@ export class OVSDBClient {
       : [selectResult.interfaces]
   }
 
-  async interfaceHasRemote(interfaceUuid, remoteAddress, socket) {
+  async _interfaceHasRemote(interfaceUuid, remoteAddress, socket) {
     const where = [['_uuid', '==', ['uuid', interfaceUuid]]]
-    const selectResult = await this.select(
+    const selectResult = await this._select(
       'Interface',
       ['name', 'options'],
       where,
@@ -391,7 +399,9 @@ export class OVSDBClient {
     return false
   }
 
-  async select(table, columns, where, socket) {
+  // -----------------------------------------------------------------------------
+
+  async _select(table, columns, where, socket) {
     const stream = socket
 
     const selectOperation = {
@@ -401,7 +411,7 @@ export class OVSDBClient {
       where: where,
     }
     const req = {
-      id: this._requestID++,
+      id: ++this._requestID,
       method: 'transact',
       params: ['Open_vSwitch', selectOperation],
     }
@@ -418,7 +428,7 @@ export class OVSDBClient {
       return null
     }
 
-    const jsonObjects = this.parseJson(result)
+    const jsonObjects = this._parseJson(result)
     const jsonResult = jsonObjects[0].result[0]
     if (jsonResult.error) {
       log.error(
@@ -451,7 +461,9 @@ export class OVSDBClient {
     return jsonResult.rows[0]
   }
 
-  async connect() {
+  // -----------------------------------------------------------------------------
+
+  async _connect() {
     // Connect to OVSDB server
     // TODO: Use secure connection
     /*
