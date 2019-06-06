@@ -688,10 +688,10 @@ const messages = {
   baseCopyTooltip:
     '{n, number} base cop{n, plural, one {y} other {ies}} ({usage})',
   diskTooltip: '{name} ({usage})',
-  vdisTooltip: '{n, number} VDI{n, plural, one {} other {s}} ({usage})',
   snapshotsTooltip:
     '{n, number} snapshot{n, plural, one {} other {s}} ({usage})',
   vdiOnVmTooltip: '{name} ({usage}) on {vmName}',
+  vdisTooltip: '{n, number} VDI{n, plural, one {} other {s}} ({usage})',
 
   // ----- SR advanced tab -----
 

@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
 import HomeTags from 'home-tags'
 import Icon from 'icon'
 import React from 'react'
@@ -8,14 +9,13 @@ import { addTag, removeTag, getLicense } from 'xo'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import {
-  createGetObject,
+  createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
 import {
-  differenceBy,
   find,
-  flatten,
+  flatMap,
   forEach,
   groupBy,
   keyBy,
@@ -23,111 +23,139 @@ import {
   mapValues,
   sumBy,
 } from 'lodash'
+import { injectState, provideState } from 'reaclette'
 
-@connectStore(() => {
-  const getVdis = (_, { group }) => group.vdis
-  const getVbds = createGetObjectsOfType('VBD').pick(
-    createSelector(
-      (_, { group }) => group.vdis,
-      vdis => flatten(map(vdis, _ => _.$VBDs))
+const styles = { margin: '0.2em', padding: '0.1em' }
+const ulStyles = { margin: 0, padding: '0.1em' }
+
+const UsageTooltip = decorate([
+  connectStore(() => {
+    const getVbds = createGetObjectsOfType('VBD').pick(
+      createCollectionWrapper(
+        createSelector(
+          (_, { group }) => group.vdis,
+          vdis => flatMap(vdis, _ => _.$VBDs)
+        )
+      )
     )
-  )
 
-  const getVms = createGetObjectsOfType('VM').pick(
-    createSelector(
-      getVbds,
-      (vbds, vdis) => map(vbds, vbd => vbd && vbd.VM)
+    const getVms = createGetObjectsOfType('VM').pick(
+      createCollectionWrapper(
+        createSelector(
+          getVbds,
+          vbds => map(vbds, 'VM')
+        )
+      )
     )
-  )
 
-  return {
-    vbds: getVbds,
-    vms: getVms,
-  }
-})
-class UsageTooltip extends Component {
-  _getVmsByVdi = createSelector(
-    () => this.props.vbds,
-    () => this.props.vms,
-    createSelector(
-      () => this.props.group.vdis,
-      vdis => keyBy(vdis, 'id')
-    ),
-    (vbds, vms, vdis) =>
-      mapValues(vdis, vdi => {
-        const vbd = find(vbds, { VDI: vdi.id })
-        return vbd && vms[vbd.VM]
-      })
-  )
-
-  render() {
-    const {
-      vms,
-      group: { baseCopies, vdis, snapshots, usage },
-    } = this.props
-    const vmsByVdi = this._getVmsByVdi()
-    console.log(vdis, ' vmsByVdi ', vmsByVdi)
+    return {
+      vbds: getVbds,
+      vms: getVms,
+    }
+  }),
+  provideState({
+    computed: {
+      vdis: (_, { group: { vdis } }) => keyBy(vdis, 'id'),
+      vmsByVdi: ({ vdis }, { vbds, vms }) =>
+        mapValues(vdis, vdi => {
+          const vbd = find(vbds, { VDI: vdi.id })
+          return vbd && vms[vbd.VM]
+        }),
+    },
+  }),
+  injectState,
+  ({
+    state: { vmsByVdi },
+    group: { baseCopies, id, name_label: name, usage, vdis, snapshots },
+  }) => {
+    const showBaseCopies = baseCopies !== undefined && baseCopies.n > 0
+    const showVdis = showBaseCopies || snapshots.length > 0
+    let disk
+    let vm
     return (
-      <ul style={{ margin: 0, padding: '0.1em' }}>
-        {baseCopies !== undefined && baseCopies.n > 0 && (
+      <div>
+        {vdis !== undefined ? (
+          <ul style={ulStyles}>
+            {showBaseCopies && (
+              <li>
+                {_('baseCopyTooltip', {
+                  n: baseCopies.n,
+                  usage: formatSize(baseCopies.usage),
+                })}
+              </li>
+            )}
+            {snapshots.length > 0 && (
+              <li>
+                {_('snapshotsTooltip', {
+                  n: snapshots.length,
+                  usage: formatSize(sumBy(snapshots, 'usage')),
+                })}
+              </li>
+            )}
+            {snapshots.length > 0 && (
+              <ul style={styles}>
+                {snapshots.map(({ id, name_label: name, usage }) => (
+                  <li key={id}>
+                    {_('diskTooltip', {
+                      name,
+                      usage: formatSize(usage),
+                    })}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {showVdis && (
+              <li>
+                {_('vdisTooltip', {
+                  n: vdis.length,
+                  usage: formatSize(sumBy(vdis, 'usage')),
+                })}
+              </li>
+            )}
+            {showVdis ? (
+              <ul style={styles}>
+                {vdis.map(({ id, name_label: name, usage }) => (
+                  <li key={id}>
+                    {(vm = vmsByVdi[id]) === undefined
+                      ? _('diskTooltip', {
+                          name,
+                          usage: formatSize(usage),
+                        })
+                      : _('vdiOnVmTooltip', {
+                          name,
+                          usage: formatSize(usage),
+                          vmName: vm.name_label,
+                        })}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span>
+                {((disk = vdis[0]), (vm = vmsByVdi[disk.id])) === undefined
+                  ? _('diskTooltip', {
+                      name: disk.name_label,
+                      usage: formatSize(disk.usage),
+                    })
+                  : _('vdiOnVmTooltip', {
+                      name: disk.name_label,
+                      usage: formatSize(disk.usage),
+                      vmName: vm.name_label,
+                    })}
+              </span>
+            )}
+          </ul>
+        ) : (
           <span>
-            {_('baseCopyTooltip', {
-              n: baseCopies.n,
-              usage: formatSize(baseCopies.usage),
+            {_('diskTooltip', {
+              name,
+              usage: formatSize(usage),
             })}
           </span>
         )}
-        {snapshots !== undefined && (
-          <ul style={{ margin: 0, padding: '0.1em' }}>
-            <span>
-              {_('snapshotsTooltip', {
-                n: snapshots.length,
-                usage: formatSize(sumBy(snapshots, 'usage')),
-              })}
-            </span>
-            {snapshots.map(({ id, name_label: name, usage }) => (
-              <li key={id}>
-                {_('diskTooltip', {
-                  name,
-                  usage: formatSize(usage),
-                })}
-              </li>
-            ))}
-          </ul>
-        )}
-        {vdis !== undefined && (
-          <ul style={{ margin: 0, padding: '0.1em' }}>
-            <span>
-              {_('vdisTooltip', {
-                n: vdis.length,
-                usage: formatSize(sumBy(vdis, 'usage')),
-              })}
-            </span>
-            {vdis.map(({ id, name_label: name, usage }) => {
-              const vm = vmsByVdi[id]
-              return vm === undefined ? (
-                <li key={id}>
-                  {_('diskTooltip', {
-                    name,
-                    usage: formatSize(usage),
-                  })}
-                </li>
-              ) : (
-                <li key={id}>
-                  {_('vdiOnVmTooltip', {
-                    name,
-                    usage: formatSize(usage),
-                    vmName: vm.name_label,
-                  })}
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </ul>
+      </div>
     )
-  }
-}
+  },
+])
 
 export default class TabGeneral extends Component {
   componentDidMount() {
@@ -145,115 +173,85 @@ export default class TabGeneral extends Component {
     () => this.props.vdiSnapshots,
     () => this.props.unmanagedVdis,
     (vdis, vdiSnapshots, unmanagedVdis) => {
-      //console.log(' unmanagedVdis ',unmanagedVdis)
+      const diskParents = []
       const groups = []
-      const parentDisks = []
       const snapshotsByVdi = groupBy(vdiSnapshots, '$snapshot_of')
-      //console.log(' snapshotsByVdi ',snapshotsByVdi)
       const unmanagedVdisById = keyBy(unmanagedVdis, 'id')
-      const vdisByParent = groupBy(vdis, 'parent')
-      //console.log(' vdisByParent ',vdisByParent)
-      let allSnapshots = []
+      let baseCopiesUsage
       let bc
-      let baseCopiesUsage = 0
-      let nBaseCopies = 0
-      let nSnapshots = 0
+      let nBaseCopies
       let root
-      let snapshots
-      let snapshotsUsage = 0
+      // group VDIs by their initial base copy.
+      const disksByRoot = groupBy(
+        vdis.map(({ id, parent, snapshots, ...vdi }) => {
+          baseCopiesUsage = 0
+          nBaseCopies = 0
+          root = undefined
+          while ((bc = unmanagedVdisById[parent]) !== undefined) {
+            root = bc.id
+            parent = bc.parent
+            if (!diskParents.includes(root)) {
+              nBaseCopies++
+              baseCopiesUsage += bc.usage
+              diskParents.push(root)
+            }
+          }
 
-      // search root
-      const _vdis = vdis.map(vdi => {
-        const { parent } = vdi
+          if ((snapshots = snapshotsByVdi[id]) !== undefined) {
+            // snapshot can have base copy without active VDI
+            snapshots.forEach(({ parent }) => {
+              if (parent !== undefined && !diskParents.includes(parent)) {
+                nBaseCopies++
+                baseCopiesUsage += unmanagedVdisById[parent].usage
+                diskParents.push(parent)
+              }
+            })
+          }
+
+          return {
+            ...vdi,
+            id,
+            baseCopiesUsage,
+            nBaseCopies,
+            root: root || id,
+            snapshots: snapshots || [],
+          }
+        }),
+        'root'
+      )
+
+      let orphanedVdiSnapshots
+      if ((orphanedVdiSnapshots = snapshotsByVdi[undefined]) !== undefined) {
+        orphanedVdiSnapshots.forEach(snapshot => {
+          groups.push(snapshot)
+        })
+      }
+
+      let snapshots
+      let usage
+      // group collection of VDIs and their snapshots and base copies.
+      forEach(disksByRoot, vdis => {
         baseCopiesUsage = 0
         nBaseCopies = 0
-        nSnapshots = 0
-        root = undefined
-        snapshots = undefined
-        snapshotsUsage = 0
-        if (parent !== undefined) {
-          bc = unmanagedVdisById[parent]
-          while (bc !== undefined) {
-            nBaseCopies++
-            baseCopiesUsage += bc.usage
-            root = bc.id
-            parentDisks.push(bc)
-            bc = unmanagedVdisById[bc.parent]
-          }
-        }
-        return {
-          ...vdi,
-          baseCopiesUsage,
-          nBaseCopies,
-          root,
-        }
-      })
-
-      const baseCopiesNotAttached = differenceBy(
-        unmanagedVdis,
-        parentDisks,
-        'id'
-      )
-      if (baseCopiesNotAttached.length > 0) {
-        const { id, name_label: nameLabel } = baseCopiesNotAttached[0]
+        snapshots = []
+        usage = 0
+        vdis.forEach(vdi => {
+          usage += vdi.usage
+          nBaseCopies += vdi.nBaseCopies
+          baseCopiesUsage += vdi.baseCopiesUsage
+          snapshots = snapshots.concat(vdi.snapshots)
+        })
         groups.push({
-          id,
-          baseCopy: {
-            name_label: nameLabel,
-            usage: sumBy(baseCopiesNotAttached, 'usage'),
+          id: vdis[0].id,
+          vdis,
+          baseCopies: {
+            n: nBaseCopies,
+            usage: baseCopiesUsage,
           },
+          nDisks: nBaseCopies + snapshots.length + vdis.length,
+          usage: baseCopiesUsage + usage + sumBy(snapshots, 'usage'),
+          snapshots,
         })
-      }
-
-      if ((snapshots = snapshotsByVdi[undefined]) !== undefined) {
-        // Add snapshots not attached to vdi
-        snapshots.forEach(snapshot => {
-          groups.push({
-            id: snapshot.id,
-            usage: snapshot.usage,
-            snapshot,
-          })
-        })
-      }
-
-      const vdisByRoot = groupBy(_vdis, 'root')
-      let usage
-      forEach(vdisByRoot, (vdis, key) => {
-        allSnapshots = []
-        if (key === undefined) {
-          console.log('Rajaa')
-          vdis.forEach(vdi => {
-            groups.push({
-              id: vdi.id,
-              vdis: [vdi],
-            })
-          })
-        } else {
-          console.log('Rajaaa2 ')
-          nBaseCopies = 0
-          baseCopiesUsage = 0
-          snapshots = undefined
-          usage = 0
-          vdis.forEach(vdi => {
-            usage += vdi.usage
-            nBaseCopies += vdi.nBaseCopies
-            baseCopiesUsage += vdi.baseCopiesUsage
-            if ((snapshots = snapshotsByVdi[vdi.id]) !== undefined) {
-              snapshots.forEach(s => allSnapshots.push(s))
-            }
-          })
-          groups.push({
-            id: vdis[0].id,
-            vdis,
-            baseCopies: {
-              n: nBaseCopies,
-              usage: baseCopiesUsage,
-            },
-            nDisks: nBaseCopies + allSnapshots.length + vdis.length,
-            snapshots: allSnapshots,
-            usage: usage + baseCopiesUsage + sumBy(allSnapshots, 'usage'),
-          })
-        }
       })
       return groups
     }
@@ -261,7 +259,6 @@ export default class TabGeneral extends Component {
 
   render() {
     const { sr } = this.props
-    console.log(' GROUPS ', this._getDiskGroups())
     return (
       <Container>
         <Row className='text-xs-center'>
@@ -298,10 +295,9 @@ export default class TabGeneral extends Component {
             <Usage total={sr.size} tooltipOthers type='disk'>
               {this._getDiskGroups().map(group => (
                 <UsageElement
-                  highlight={group.snapshot !== undefined}
+                  highlight={group.type === 'VDI-snapshot'}
                   key={group.id}
-                  n={group.nDisks || 1}
-                  others={group.baseCopy !== undefined}
+                  n={group.nDisks}
                   tooltip={<UsageTooltip group={group} />}
                   value={group.usage}
                 />
