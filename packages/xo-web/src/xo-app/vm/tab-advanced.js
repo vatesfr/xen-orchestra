@@ -855,25 +855,27 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
-                <tr>
-                  <th>{_('vmBootFirmware')}</th>
-                  <td>
-                    <select
-                      className='form-control'
-                      onChange={this._onBootFirmwareChange}
-                      value={defined(() => vm.boot.firmware, '')}
-                    >
-                      <option value=''>
-                        {_('vmDefaultBootFirmwareLabel')}
-                      </option>
-                      {VM_BOOT_FIRMWARES.map(val => (
-                        <option key={val} value={val}>
-                          {val}
+                {vm.virtualizationMode === 'hvm' && (
+                  <tr>
+                    <th>{_('vmBootFirmware')}</th>
+                    <td>
+                      <select
+                        className='form-control'
+                        onChange={this._onBootFirmwareChange}
+                        value={defined(() => vm.boot.firmware, '')}
+                      >
+                        <option value=''>
+                          {_('vmDefaultBootFirmwareLabel')}
                         </option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
+                        {VM_BOOT_FIRMWARES.map(val => (
+                          <option key={val} value={val}>
+                            {val}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
             <br />
