@@ -205,6 +205,7 @@ class SDNController {
               this._starCenters.set(newCenter.$id, newCenter.$ref)
             }
           }
+          return
         }
 
         // If a network is removed, clean this._poolNetworks from it
