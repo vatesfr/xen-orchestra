@@ -43,7 +43,7 @@ class SDNController {
             this._poolNetworks.push({
               pool: network.$pool.$ref,
               network: network.$ref,
-              starCenter: center.$ref,
+              starCenter: center ? center.$ref : null,
             })
             this._networks.set(network.$id, network.$ref)
             this._starCenters.set(center.$id, center.$ref)
@@ -120,13 +120,26 @@ class SDNController {
                   object.$network,
                   true
                 )
+                result.starCenter = newCenter ? newCenter.$ref : null
+                this._starCenters.delete(object.$host.$id)
                 if (newCenter) {
-                  result.starCenter = newCenter.$ref
-                  this._starCenters.delete(object.$host.$id)
                   this._starCenters.set(newCenter.$id, newCenter.$ref)
                 }
               }
             } else {
+              if (!result.starCenter) {
+                const host = object.$host
+                log.debug(
+                  `First available host: '${
+                    host.name_label
+                  }' becomes star center of network: '${
+                    object.$network.name_label
+                  }'`
+                )
+                result.starCenter = object.host
+                this._starCenters.set(host.$id, host.$ref)
+              }
+
               if (object.host === result.starCenter) {
                 // Nothing to do
                 return
@@ -143,16 +156,34 @@ class SDNController {
               })
               if (!hostClient) {
                 log.error(
-                  `No OVSDB client found for host '${object.$host.name_label}'`
+                  `No OVSDB client found for host: '${object.$host.name_label}'`
                 )
                 return
               }
 
-              const starCenter = await xapi._getOrWaitObject(result.starCenter)
+              const starCenterClient = find(this._OVSDBClients, {
+                host: result.starCenter,
+              })
+              if (!starCenterClient) {
+                const starCenter = await xapi._getOrWaitObject(
+                  result.starCenter
+                )
+                log.error(
+                  `No OVSDB client found for star-center host: '${
+                    starCenter.name_label
+                  }'`
+                )
+                return
+              }
               await hostClient.addInterfaceAndPort(
                 object.$network.uuid,
                 object.$network.name_label,
-                starCenter.address
+                starCenterClient.address
+              )
+              await starCenterClient.addInterfaceAndPort(
+                object.$network.uuid,
+                object.$network.name_label,
+                hostClient.address
               )
             }
           } else if ($type === 'host') {
@@ -255,8 +286,8 @@ class SDNController {
               const poolNetwork = poolNetworks[i]
               const network = await xapi._getOrWaitObject(poolNetwork.network)
               const newCenter = await this.electNewCenter(network, true)
+              poolNetwork.starCenter = newCenter ? newCenter.$ref : null
               if (newCenter) {
-                poolNetwork.starCenter = newCenter.$ref
                 this._starCenters.set(newCenter.$id, newCenter.$ref)
               }
             }
@@ -338,10 +369,12 @@ class SDNController {
     this._poolNetworks.push({
       pool: pool.$ref,
       network: privateNetwork.$ref,
-      starCenter: center.$ref,
+      starCenter: center ? center.$ref : null,
     })
     this._networks.set(privateNetwork.$id, privateNetwork.$ref)
-    this._starCenters.set(center.$id, center.$ref)
+    if (center) {
+      this._starCenters.set(center.$id, center.$ref)
+    }
   }
 
   async electNewCenter(network, resetNeeded) {
