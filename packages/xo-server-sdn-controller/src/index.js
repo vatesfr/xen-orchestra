@@ -225,7 +225,7 @@ class SDNController {
     )
   }
 
-  async _pifupdate(pif) {
+  async _pifUpdated(pif) {
     // Only if PIF is in a private network
     const result = find(this._poolNetworks, { network: pif.network })
     if (!result) {
