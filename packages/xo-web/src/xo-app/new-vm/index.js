@@ -329,7 +329,6 @@ export default class NewVm extends BaseComponent {
   // Actions ---------------------------------------------------------------------
 
   _reset = () => {
-    const { template } = this.state.state
     this._replaceState({
       bootAfterCreate: true,
       CPUs: '',
@@ -337,10 +336,7 @@ export default class NewVm extends BaseComponent {
       cpuWeight: '',
       existingDisks: {},
       fastClone: true,
-      hvmBootFirmware:
-        get(() => template.boot.firmware) !== undefined
-          ? get(() => template.boot.firmware)
-          : '',
+      hvmBootFirmware: '',
       installMethod: 'noConfigDrive',
       multipleVms: false,
       name_label: '',
@@ -573,6 +569,10 @@ export default class NewVm extends BaseComponent {
         ? template.name_description || ''
         : state.name_description
     const replacer = this._buildVmsNameTemplate()
+    const hvmBootFirmware =
+      get(() => template.boot.firmware) !== undefined
+        ? get(() => template.boot.firmware)
+        : ''
     this._setState({
       // infos
       name_label,
@@ -585,6 +585,7 @@ export default class NewVm extends BaseComponent {
       CPUs: template.CPUs.number,
       cpuCap: '',
       cpuWeight: '',
+      hvmBootFirmware,
       memoryDynamicMax: template.memory.dynamic[1],
       // installation
       installMethod:
