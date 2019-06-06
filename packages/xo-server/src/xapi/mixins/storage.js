@@ -89,6 +89,7 @@ export default {
     hostRef,
     name_label, // eslint-disable-line camelcase
     name_description = '', // eslint-disable-line camelcase
+    size = 0,
     type,
     device_config = {}, // eslint-disable-line camelcase
     shared = false,
@@ -97,7 +98,7 @@ export default {
       'SR.create',
       hostRef,
       device_config,
-      '0',
+      size,
       name_label,
       name_description,
       type,
