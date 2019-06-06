@@ -201,63 +201,22 @@ export class OVSDBClient {
     for (i = 0; i < ports.length; ++i) {
       const portUuid = ports[i][1]
 
-      const selectPortOperation = {
-        op: 'select',
-        table: 'Port',
-        columns: ['name', 'other_config'],
-        where: [['_uuid', '==', ['uuid', portUuid]]],
-      }
-      const portReq = {
-        id: this._requestID++,
-        method: 'transact',
-        params: ['Open_vSwitch', selectPortOperation],
-      }
-      stream.write(JSON.stringify(portReq))
-
-      let portResult
-      try {
-        portResult = await fromEvent(stream, 'data', {})
-      } catch (error) {
-        log.error(
-          `[${this._host.name_label}] Error while writing into stream: ${error}`
-        )
-        socket.destroy()
-        return
-      }
-
-      const portJsonObjects = this.parseJson(portResult)
-      const portJsonResult = portJsonObjects[0].result[0]
-      if (portJsonResult.error) {
-        log.error(
-          `[${this._host.name_label}] Couldn't retrieve port because: ${
-            portJsonResult.error
-          }: ${portJsonResult.details}`
-        )
-        socket.destroy()
-        return
-      }
-
-      if (portJsonResult.rows.length === 0) {
-        log.error(
-          `[${
-            this._host.name_label
-          }] No port were found with UUID: '${portUuid}'`
-        )
-        return
-      }
-
-      assert(
-        portJsonResult.rows.length === 1,
-        `[${
-          this._host.name_label
-        }] There should exactly 1 result when searching for bridge port`
+      const where = [['_uuid', '==', ['uuid', portUuid]]]
+      const selectResult = await this.select(
+        'Port',
+        ['name', 'other_config'],
+        where,
+        socket
       )
-      const row = portJsonResult.rows[0]
-      forOwn(row.other_config[1], config => {
+      if (!selectResult) {
+        continue
+      }
+
+      forOwn(selectResult.other_config[1], config => {
         if (config[0] === 'private_pool_wide' && config[1] === 'true') {
           log.debug(
             `[${this._host.name_label}] Adding port: '${
-              row.name
+              selectResult.name
             }' to delete list from bridge: '${bridgeName}'`
           )
           portsToDelete.push(['uuid', portUuid])
@@ -319,68 +278,25 @@ export class OVSDBClient {
   }
 
   async getBridgeUuidForNetwork(networkUuid, networkName, socket) {
-    const stream = socket
-
-    // Get bridge UUID
     const where = [
-      'external_ids',
-      'includes',
-      ['map', [['xs-network-uuids', networkUuid]]],
+      [
+        'external_ids',
+        'includes',
+        ['map', [['xs-network-uuids', networkUuid]]],
+      ],
     ]
-    const selectOperation = {
-      op: 'select',
-      table: 'Bridge',
-      columns: ['_uuid', 'name'],
-      where: [where],
-    }
-    const req = {
-      id: this._requestID++,
-      method: 'transact',
-      params: ['Open_vSwitch', selectOperation],
-    }
-    stream.write(JSON.stringify(req))
-
-    let result
-    try {
-      result = await fromEvent(stream, 'data', {})
-    } catch (error) {
-      log.error(
-        `[${this._host.name_label}] Error while writing into stream: ${error}`
-      )
-      return [null, null]
-    }
-
-    const jsonObjects = this.parseJson(result)
-
-    if (jsonObjects[0].result[0].error) {
-      log.error(
-        `[${
-          this._host.name_label
-        }] Couldn't retrieve bridge for network: '${networkName}' because: ${
-          jsonObjects.result[0].error
-        }`
-      )
-      return [null, null]
-    }
-
-    if (jsonObjects[0].result[0].rows.length === 0) {
-      log.error(
-        `[${
-          this._host.name_label
-        }] No bridge were found for network: '${networkName}'`
-      )
-      return [null, null]
-    }
-
-    assert(
-      jsonObjects[0].result[0].rows.length === 1,
-      `[${
-        this._host.name_label
-      }] There should exactly 1 result when searching for bridge UUID`
+    const selectResult = await this.select(
+      'Bridge',
+      ['_uuid', 'name'],
+      where,
+      socket
     )
+    if (!selectResult) {
+      return [null, null]
+    }
 
-    const bridgeUuid = jsonObjects[0].result[0].rows[0]._uuid[1]
-    const bridgeName = jsonObjects[0].result[0].rows[0].name
+    const bridgeUuid = selectResult._uuid[1]
+    const bridgeName = selectResult.name
     log.debug(
       `[${
         this._host.name_label
@@ -424,13 +340,65 @@ export class OVSDBClient {
   }
 
   async getBridgePorts(bridgeUuid, bridgeName, socket) {
+    const where = [['_uuid', '==', ['uuid', bridgeUuid]]]
+    const selectResult = await this.select('Bridge', ['ports'], where, socket)
+    if (!selectResult) {
+      return null
+    }
+
+    return selectResult.ports[0] === 'set'
+      ? selectResult.ports[1]
+      : [selectResult.ports]
+  }
+
+  async getPortInterfaces(portUuid, socket) {
+    const where = [['_uuid', '==', ['uuid', portUuid]]]
+    const selectResult = await this.select(
+      'Port',
+      ['name', 'interfaces'],
+      where,
+      socket
+    )
+    if (!selectResult) {
+      return null
+    }
+
+    return selectResult.interfaces[0] === 'set'
+      ? selectResult.interfaces[1]
+      : [selectResult.interfaces]
+  }
+
+  async interfaceHasRemote(interfaceUuid, remoteAddress, socket) {
+    const where = [['_uuid', '==', ['uuid', interfaceUuid]]]
+    const selectResult = await this.select(
+      'Interface',
+      ['name', 'options'],
+      where,
+      socket
+    )
+    if (!selectResult) {
+      return false
+    }
+
+    let i
+    for (i = 0; i < selectResult.options[1].length; ++i) {
+      const option = selectResult.options[1][i]
+      if (option[0] === 'remote_ip' && option[1] === remoteAddress) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  async select(table, columns, where, socket) {
     const stream = socket
 
     const selectOperation = {
       op: 'select',
-      table: 'Bridge',
-      columns: ['ports'],
-      where: [['_uuid', '==', ['uuid', bridgeUuid]]],
+      table: table,
+      columns: columns,
+      where: where,
     }
     const req = {
       id: this._requestID++,
@@ -456,7 +424,7 @@ export class OVSDBClient {
       log.error(
         `[${
           this._host.name_label
-        }] Couldn't retrieve bridge ports for bridge: '${bridgeName}' because: ${
+        }] Couldn't retrieve: '${columns}' in: '${table}' because: ${
           jsonResult.error
         }: ${jsonResult.details}`
       )
@@ -464,140 +432,23 @@ export class OVSDBClient {
     }
 
     if (jsonResult.rows.length === 0) {
-      log.error(`No ports found for bridge: '${bridgeUuid}'`)
-      return null
-    }
-
-    assert(
-      jsonResult.rows.length === 1,
-      `[${
-        this._host.name_label
-      }] There should exactly 1 result when searching for bridge ports`
-    )
-
-    return jsonResult.rows[0].ports[0] === 'set'
-      ? jsonResult.rows[0].ports[1]
-      : [jsonResult.rows[0].ports]
-  }
-
-  async getPortInterfaces(portUuid, socket) {
-    const stream = socket
-
-    const selectPortInterfacesOperation = {
-      op: 'select',
-      table: 'Port',
-      columns: ['name', 'interfaces'],
-      where: [['_uuid', '==', ['uuid', portUuid]]],
-    }
-    const req = {
-      id: this._requestID++,
-      method: 'transact',
-      params: ['Open_vSwitch', selectPortInterfacesOperation],
-    }
-
-    stream.write(JSON.stringify(req))
-
-    let result
-    try {
-      result = await fromEvent(stream, 'data', {})
-    } catch (error) {
-      log.error(
-        `[${this._host.name_label}] Error while writing into stream: ${error}`
-      )
-      return null
-    }
-
-    const jsonObjects = this.parseJson(result)
-    const jsonResult = jsonObjects[0].result[0]
-    if (jsonResult.error) {
       log.error(
         `[${
           this._host.name_label
-        }] Couldn't retrieve port interfaces because: ${jsonResult.error}: ${
-          jsonResult.details
-        }`
+        }] No '${columns}' found in: '${table}' where: '${where}'`
       )
       return null
     }
 
-    if (jsonResult.rows.length === 0) {
-      log.error(`[${this._host.name_label}] No interfaces found for port`)
-      return null
-    }
-
+    // For now all select operations should return only 1 row
     assert(
       jsonResult.rows.length === 1,
       `[${
         this._host.name_label
-      }] There should exactly 1 result when searching for port interfaces`
+      }] There should exactly 1 row when searching: '${columns}' in: '${table}' where: '${where}'`
     )
 
-    return jsonResult.rows[0].interfaces[0] === 'set'
-      ? jsonResult.rows[0].interfaces[1]
-      : [jsonResult.rows[0].interfaces]
-  }
-
-  async interfaceHasRemote(interfaceUuid, remoteAddress, socket) {
-    const stream = socket
-
-    const selectInterfaceOptionsOperation = {
-      op: 'select',
-      table: 'Interface',
-      columns: ['name', 'options'],
-      where: [['_uuid', '==', ['uuid', interfaceUuid]]],
-    }
-    const req = {
-      id: this._requestID++,
-      method: 'transact',
-      params: ['Open_vSwitch', selectInterfaceOptionsOperation],
-    }
-
-    stream.write(JSON.stringify(req))
-
-    let result
-    try {
-      result = await fromEvent(stream, 'data', {})
-    } catch (error) {
-      log.error(
-        `[${this._host.name_label}] Error while writing into stream: ${error}`
-      )
-      return null
-    }
-
-    const jsonObjects = this.parseJson(result)
-    const jsonResult = jsonObjects[0].result[0]
-    if (jsonResult.error) {
-      log.error(
-        `[${
-          this._host.name_label
-        }] Couldn't retrieve interface options because: ${jsonResult.error}: ${
-          jsonResult.details
-        }`
-      )
-      return null
-    }
-
-    if (jsonResult.rows.length === 0) {
-      log.error(`[${this._host.name_label}] No interfaces found`)
-      return null
-    }
-
-    assert(
-      jsonResult.rows.length === 1,
-      `[${
-        this._host.name_label
-      }] There should exactly 1 result when searching for interfaces options`
-    )
-
-    let i
-    for (i = 0; i < jsonResult.rows[0].options[1].length; ++i) {
-      const option = jsonResult.rows[0].options[1][i]
-      if (option[0] === 'remote_ip' && option[1] === remoteAddress) {
-        return true
-      }
-    }
-
-    return false
+    return jsonResult.rows[0]
   }
 
   async connect() {
