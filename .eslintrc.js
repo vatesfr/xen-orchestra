@@ -35,6 +35,9 @@ module.exports = {
     },
   },
   rules: {
+    // disabled because XAPI objects are using camel case
+    camelcase: ['off'],
+
     'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-var': 'error',
     'node/no-extraneous-import': 'error',

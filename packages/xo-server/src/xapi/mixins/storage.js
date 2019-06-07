@@ -87,12 +87,14 @@ export default {
 
   async createSr({
     hostRef,
-    name_label, // eslint-disable-line camelcase
-    name_description = '', // eslint-disable-line camelcase
+
+    content_type = 'user', // recommended by Citrix
+    device_config = {},
+    name_description = '',
+    name_label,
+    shared = false,
     size = 0,
     type,
-    device_config = {}, // eslint-disable-line camelcase
-    shared = false,
   }) {
     const srRef = await this.call(
       'SR.create',
@@ -102,7 +104,7 @@ export default {
       name_label,
       name_description,
       type,
-      'user', // recommended by Citrix
+      content_type,
       shared,
       {}
     )
