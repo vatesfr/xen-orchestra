@@ -93,20 +93,21 @@ export default {
     name_description = '',
     name_label,
     shared = false,
-    size = 0,
+    physical_size = 0,
+    sm_config = {},
     type,
   }) {
     const srRef = await this.call(
       'SR.create',
       hostRef,
       device_config,
-      size,
+      physical_size,
       name_label,
       name_description,
       type,
       content_type,
       shared,
-      {}
+      sm_config
     )
 
     return (await this.barrier(srRef)).uuid
