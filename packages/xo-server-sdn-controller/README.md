@@ -1,6 +1,6 @@
 # xo-server-of-controller [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> **TODO**
+XO Server plugin that allows the creation of pool-wide private networks.
 
 ## Install
 
@@ -8,7 +8,8 @@ For installing XO and the plugins from the sources, please take a look at [the d
 
 ## Usage
 
-**TODO**
+In the network creation view, select `pool-wide private network` and the `pool` where to create it.
+Create the network.
 
 ## Contributions
 
