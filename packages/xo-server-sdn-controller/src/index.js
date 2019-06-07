@@ -16,6 +16,10 @@ class SDNController {
 
     this._networks = new Map()
     this._starCenters = new Map()
+
+    this._objectsAdded = this._objectsAdded.bind(this)
+    this._objectsUpdated = this._objectsUpdated.bind(this)
+    this._objectsRemoved = this._objectsRemoved.bind(this)
   }
 
   // ---------------------------------------------------------------------------
@@ -76,15 +80,8 @@ class SDNController {
     this._networks.clear()
     this._starCenters.clear()
 
-    forOwn(this._xo.getAllXapis(), async xapi => {
-      const objects = { xapi }
-
-      objects.removeListener('add', objects => this._objectsAdded(objects))
-      objects.removeListener('update', objects => this._objectsUpdated(objects))
-      objects.removeListener('remove', objects =>
-        this._objectsRemoved(objects, xapi)
-      )
-    })
+    this._cleaners.forEach(cleaner => cleaner())
+    this._cleaners = []
   }
 
   // ---------------------------------------------------------------------------
@@ -140,9 +137,15 @@ class SDNController {
   _monitorXapi(xapi) {
     const { objects } = xapi
 
-    objects.on('add', objects => this._objectsAdded(objects))
-    objects.on('update', objects => this._objectsUpdated(objects))
-    objects.on('remove', objects => this._objectsRemoved(objects, xapi))
+    objects.on('add', this._objectsAdded)
+    objects.on('update', this._objectsUpdated)
+    objects.on('remove', this._objectsRemoved)
+
+    return () => {
+      objects.removeListener('add', this._objectsAdded)
+      objects.removeListener('update', this._objectsUpdated)
+      objects.removeListener('remove', this._objectsRemoved)
+    }
   }
 
   async _objectsAdded(objects) {
@@ -393,7 +396,7 @@ class SDNController {
       return
     }
 
-    this._monitorXapi(pool.$xapi)
+    this._cleaners.push(this._monitorXapi(pool.$xapi))
   }
 
   _setControllerNeeded(xapi) {
