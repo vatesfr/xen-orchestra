@@ -40,7 +40,9 @@ class SDNController {
         forOwn(networks, async network => {
           if (network.other_config.private_pool_wide === 'true') {
             log.debug(
-              `Adding network: '${network.name_label}' to managed networks`
+              `Adding network: '${network.name_label}' for pool: '${
+                network.$pool.name_label
+              }' to managed networks`
             )
             const center = await this._electNewCenter(network, true)
             this._poolNetworks.push({
@@ -65,17 +67,11 @@ class SDNController {
   }
 
   // TODO: remove all listeners + test load/unload
-  /*
+
   async unload() {
-    while (!this._OvsdbBClients.empty) {
-      delete this._OvsdbBClients.shift()
-    }
-    while (!this._poolNetworks.empty) {
-      this._poolNetworks.shift()
-    }
-    while (!this._newHosts.empty) {
-      this._newHosts.shift()
-    }
+    this._OvsdbBClients = []
+    this._poolNetworks = []
+    this._newHosts = []
 
     this._networks.clear()
     this._starCenters.clear()
@@ -83,12 +79,13 @@ class SDNController {
     forOwn(this._xo.getAllXapis(), async xapi => {
       const objects = { xapi }
 
-      objects.removeListener('add', this._objectsAdded)
-      objects.removeListener('update', this._objectsUpdated)
-      objects.removeListener('remove', this._objectsRemoved)
+      objects.removeListener('add', objects => this._objectsAdded(objects))
+      objects.removeListener('update', objects => this._objectsUpdated(objects))
+      objects.removeListener('remove', objects =>
+        this._objectsRemoved(objects, xapi)
+      )
     })
   }
-*/
 
   // ---------------------------------------------------------------------------
 
