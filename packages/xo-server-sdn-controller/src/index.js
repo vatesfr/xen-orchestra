@@ -9,14 +9,16 @@ const PROTOCOL = 'pssl'
 class SDNController {
   constructor({ xo }) {
     this._xo = xo
+
     this._poolNetworks = []
     this._OvsdbBClients = []
     this._newHosts = []
+
     this._networks = new Map()
     this._starCenters = new Map()
   }
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   async load() {
     // FIXME: we should monitor when xapis are added/removed
@@ -88,7 +90,7 @@ class SDNController {
   }
 */
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   async createPrivateNetwork(pool, networkName) {
     await this._setPoolControllerIfNeeded(pool)
@@ -136,14 +138,14 @@ class SDNController {
     }
   }
 
-  // =============================================================================
+  // ===========================================================================
 
   _monitorXapi(xapi) {
     const { objects } = xapi
 
-    objects.on('add', this._objectsAdded)
-    objects.on('update', this._objectsUpdated)
-    objects.on('remove', this._objectsRemoved)
+    objects.on('add', objects => this._objectsAdded(objects))
+    objects.on('update', objects => this._objectsUpdated(objects))
+    objects.on('remove', objects => this._objectsRemoved(objects, xapi))
   }
 
   async _objectsAdded(objects) {
@@ -183,9 +185,7 @@ class SDNController {
     )
   }
 
-  async _objectsRemoved(objects) {
-    const xapi = objects.$xapi
-
+  async _objectsRemoved(objects, xapi) {
     await Promise.all(
       map(objects, async (object, id) => {
         // If a Star center host is removed: re-elect a new center where needed
@@ -199,7 +199,7 @@ class SDNController {
           for (i = 0; i < poolNetworks.length; ++i) {
             const poolNetwork = poolNetworks[i]
             const network = await xapi._getOrWaitObject(poolNetwork.network)
-            const newCenter = await this.electNewCenter(network, true)
+            const newCenter = await this._electNewCenter(network, true)
             poolNetwork.starCenter = newCenter ? newCenter.$ref : null
             if (newCenter) {
               this._starCenters.set(newCenter.$id, newCenter.$ref)
@@ -245,7 +245,7 @@ class SDNController {
           pif.$host.name_label
         }' has been unplugged, electing a new host`
       )
-      const newCenter = await this.electNewCenter(pif.$network, true)
+      const newCenter = await this._electNewCenter(pif.$network, true)
       result.starCenter = newCenter ? newCenter.$ref : null
       this._starCenters.delete(pif.$host.$id)
       if (newCenter) {
@@ -388,7 +388,7 @@ class SDNController {
     }
   }
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   async _setPoolControllerIfNeeded(pool) {
     if (!this._setControllerNeeded(pool.$xapi)) {
@@ -409,7 +409,7 @@ class SDNController {
     )
   }
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   async _electNewCenter(network, resetNeeded) {
     const pool = network.$pool

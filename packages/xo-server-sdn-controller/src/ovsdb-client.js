@@ -18,7 +18,7 @@ export class OvsdbClient {
     log.debug(`New OVSDB client for '${this._host.name_label}'`)
   }
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   get address() {
     return this._host.address
@@ -28,7 +28,7 @@ export class OvsdbClient {
     return this._host.$ref
   }
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   async addInterfaceAndPort(networkUuid, networkName, remoteAddress) {
     const socket = await this._connect()
@@ -253,7 +253,7 @@ export class OvsdbClient {
     socket.destroy()
   }
 
-  // =============================================================================
+  // ===========================================================================
 
   _parseJson(chunk) {
     let data = chunk.toString()
@@ -283,7 +283,7 @@ export class OvsdbClient {
     return objects
   }
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   async _getBridgeUuidForNetwork(networkUuid, networkName, socket) {
     const where = [
@@ -399,7 +399,7 @@ export class OvsdbClient {
     return false
   }
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   async _select(table, columns, where, socket) {
     const stream = socket
@@ -461,7 +461,7 @@ export class OvsdbClient {
     return jsonResult.rows[0]
   }
 
-  // -----------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   async _connect() {
     // Connect to OVSDB server
