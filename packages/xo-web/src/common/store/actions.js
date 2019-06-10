@@ -53,3 +53,4 @@ export const setXoaConfiguration = createAction(
   'XOA_CONFIGURATION',
   configuration => configuration
 )
+export const setVmIds = createAction('SET_VM_IDS', vmIds => vmIds)

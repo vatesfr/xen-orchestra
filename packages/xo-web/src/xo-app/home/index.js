@@ -15,6 +15,7 @@ import Pagination from 'pagination'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
+// import store from 'store'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
@@ -86,6 +87,7 @@ import {
   OverlayTrigger,
   Popover,
 } from 'react-bootstrap-4/lib'
+import { setVmIds } from '../../common/store/actions'
 
 import styles from './index.css'
 import HostItem from './host-item'
@@ -179,8 +181,8 @@ const OPTIONS = {
         labelId: 'snapshotVmLabel',
       },
       {
-        handler: () => {
-          console.log(this)
+        handler: vmIds => {
+          setVmIds(vmIds)
         },
         icon: 'vm-backup',
         labelId: 'backupLabel',
@@ -456,9 +458,9 @@ const NoObjects = props =>
 @addSubscriptions({
   noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data))),
 })
-@connectStore(() => {
+@connectStore(state => {
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
-
+  const s = state.vmIds
   return {
     isAdmin,
     isPoolAdmin: getIsPoolAdmin,
@@ -477,6 +479,7 @@ const NoObjects = props =>
     ),
     type,
     user: getUser,
+    vmIds: () => s,
   }
 })
 export default class Home extends Component {

@@ -86,6 +86,13 @@ export default {
     }
   ),
 
+  vmIds: combineActionHandlers(
+    {},
+    {
+      [actions.setVmIds]: (_, vmIds) => vmIds,
+    }
+  ),
+
   objects: combineActionHandlers(
     {
       all: {}, // Mutable for performance!
