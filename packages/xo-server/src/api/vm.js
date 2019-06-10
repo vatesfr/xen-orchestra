@@ -320,6 +320,8 @@ create.params = {
       },
     },
   },
+
+  hvmBootFirmware: { type: ['string', 'null'], optional: true },
 }
 
 create.resolve = {
