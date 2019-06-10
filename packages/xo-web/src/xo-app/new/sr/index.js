@@ -549,11 +549,11 @@ export default class New extends Component {
     const probeMethodFactories = {
       hba: async hostId => {
         const hbaDevices = await probeSrHba(hostId)::ignoreErrors()
-        this.setState({ hbaDevices })
+        return { hbaDevices }
       },
       zfs: async hostId => {
         const zfsPools = await probeZfs(hostId)::ignoreErrors()
-        this.setState({ zfsPools })
+        return { zfsPools }
       },
     }
     if (
@@ -562,9 +562,10 @@ export default class New extends Component {
       host !== null
     ) {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
-      await probeMethodFactories[type](host.id)
+      const probeResult = await probeMethodFactories[type](host.id)
       this.setState(({ loading }) => ({
         loading: loading - 1,
+        ...probeResult,
       }))
     }
   }
