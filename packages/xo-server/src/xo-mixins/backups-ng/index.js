@@ -507,9 +507,17 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 // │  │  ├─ task.start(message: 'transfer')
 // │  │  │  ├─ task.warning(message: string)
 // │  │  │  └─ task.end(result: { size: number })
+// │  │  │
+// │  │  │  // in case of full backup, DR and CR
+// │  │  ├─ task.start(message: 'clean')
+// │  │  │  ├─ task.warning(message: string)
+// │  │  │  └─ task.end
+// │  │  │
+// │  │  │ // in case of delta backup
 // │  │  ├─ task.start(message: 'merge')
 // │  │  │  ├─ task.warning(message: string)
 // │  │  │  └─ task.end(result: { size: number })
+// │  │  │
 // │  │  └─ task.end
 // │  └─ task.end
 // └─ job.end
@@ -1191,11 +1199,20 @@ export default class BackupNg {
                   )
                 ): any)
 
+                const deleteOldBackups = () =>
+                  wrapTask(
+                    {
+                      logger,
+                      message: 'clean',
+                      parentId: taskId,
+                    },
+                    this._deleteFullVmBackups(handler, oldBackups)
+                  )
                 const deleteFirst = getSetting(settings, 'deleteFirst', [
                   remoteId,
                 ])
                 if (deleteFirst) {
-                  await this._deleteFullVmBackups(handler, oldBackups)
+                  await deleteOldBackups()
                 }
 
                 await wrapTask(
@@ -1211,7 +1228,7 @@ export default class BackupNg {
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
                 if (!deleteFirst) {
-                  await this._deleteFullVmBackups(handler, oldBackups)
+                  await deleteOldBackups()
                 }
               }
             )
@@ -1242,9 +1259,18 @@ export default class BackupNg {
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
+                const deleteOldBackups = () =>
+                  wrapTask(
+                    {
+                      logger,
+                      message: 'clean',
+                      parentId: taskId,
+                    },
+                    this._deleteVms(xapi, oldVms)
+                  )
                 const deleteFirst = getSetting(settings, 'deleteFirst', [srId])
                 if (deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
 
                 const vm = await xapi.barrier(
@@ -1276,7 +1302,7 @@ export default class BackupNg {
                 ])
 
                 if (!deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
               }
             )
@@ -1602,9 +1628,19 @@ export default class BackupNg {
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
+                const deleteOldBackups = () =>
+                  wrapTask(
+                    {
+                      logger,
+                      message: 'clean',
+                      parentId: taskId,
+                    },
+                    this._deleteVms(xapi, oldVms)
+                  )
+
                 const deleteFirst = getSetting(settings, 'deleteFirst', [srId])
                 if (deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
 
                 const { vm } = await wrapTask(
@@ -1634,7 +1670,7 @@ export default class BackupNg {
                 ])
 
                 if (!deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
               }
             )
