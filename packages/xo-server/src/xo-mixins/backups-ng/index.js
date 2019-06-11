@@ -1803,7 +1803,7 @@ export default class BackupNg {
               metadata.size = await timeout
                 .call(
                   handler.getSize(resolveRelativeFromFile(path, metadata.xva)),
-                  this._backupNgOptions.timeout || 2e3
+                  this._backupNgOptions.timeout
                 )
                 .catch(err => {
                   log.warn(`_listVmBackups, getSize`, { err })
