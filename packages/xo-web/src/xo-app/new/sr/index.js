@@ -934,7 +934,9 @@ export default class New extends Component {
                         required
                       >
                         <option value=''>
-                          {formatMessage(messages.noSelectedValue)}
+                          {isEmpty(zfsPools)
+                            ? _('noZfsSharedAvailable')
+                            : formatMessage(messages.noSelectedValue)}
                         </option>
                         {map(zfsPools, (pool, poolName) => (
                           <option key={poolName} value={pool.mountpoint}>
