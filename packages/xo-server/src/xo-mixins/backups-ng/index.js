@@ -1795,12 +1795,11 @@ export default class BackupNg {
       await Promise.all(
         files.filter(isMetadataFile).map(async file => {
           const path = `${dir}/${file}`
-          const backupFile = file.split('.')[0]
           try {
             const metadata = JSON.parse(String(await handler.readFile(path)))
             if (metadata.mode === 'full') {
               metadata.size = await handler
-                .getSize(`/${dir}/${backupFile}.xva`)
+                .getSize(resolveRelativeFromFile(path, metadata.xva))
                 .catch(err => {
                   log.warn(`_listVmBackups, getSize`, { err })
                 })
