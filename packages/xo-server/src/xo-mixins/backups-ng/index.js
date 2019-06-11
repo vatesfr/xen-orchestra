@@ -29,6 +29,7 @@ import {
   ignoreErrors,
   pFinally,
   pFromEvent,
+  timeout,
 } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
@@ -544,10 +545,11 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  constructor(app: any) {
+  constructor(app: any, { backupNgOptions }) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()
+    this._backupNgOptions = backupNgOptions
 
     app.on('start', async () => {
       this._logger = await app.getLogger('restore')
@@ -1798,8 +1800,11 @@ export default class BackupNg {
           try {
             const metadata = JSON.parse(String(await handler.readFile(path)))
             if (metadata.mode === 'full') {
-              metadata.size = await handler
-                .getSize(resolveRelativeFromFile(path, metadata.xva))
+              metadata.size = await timeout
+                .call(
+                  handler.getSize(resolveRelativeFromFile(path, metadata.xva)),
+                  this._backupNgOptions.timeout || 2e3
+                )
                 .catch(err => {
                   log.warn(`_listVmBackups, getSize`, { err })
                 })
