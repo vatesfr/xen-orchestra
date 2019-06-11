@@ -87,7 +87,6 @@ import {
   OverlayTrigger,
   Popover,
 } from 'react-bootstrap-4/lib'
-import { setVmIds } from '../../common/store/actions'
 
 import styles from './index.css'
 import HostItem from './host-item'
@@ -181,8 +180,9 @@ const OPTIONS = {
         labelId: 'snapshotVmLabel',
       },
       {
-        handler: vmIds => {
+        handler: (vmIds, _, { setVmIds }, { router }) => {
           setVmIds(vmIds)
+          router.push('backup-ng/new/vms')
         },
         icon: 'vm-backup',
         labelId: 'backupLabel',
@@ -458,9 +458,8 @@ const NoObjects = props =>
 @addSubscriptions({
   noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data))),
 })
-@connectStore(state => {
+@connectStore(() => {
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
-  const s = state.vmIds
   return {
     isAdmin,
     isPoolAdmin: getIsPoolAdmin,
@@ -479,7 +478,6 @@ const NoObjects = props =>
     ),
     type,
     user: getUser,
-    vmIds: () => s,
   }
 })
 export default class Home extends Component {
@@ -1020,7 +1018,9 @@ export default class Home extends Component {
                         onClick={() => {
                           action.handler(
                             this._getSelectedItemsIds(),
-                            action.params
+                            action.params,
+                            this.props,
+                            this.context
                           )
                         }}
                       >

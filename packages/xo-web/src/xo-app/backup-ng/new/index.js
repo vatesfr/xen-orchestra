@@ -120,7 +120,7 @@ const createDoesRetentionExist = name => {
   return ({ propSettings, settings = propSettings }) => settings.some(predicate)
 }
 
-const getInitialState = () => ({
+const getInitialState = ({ preSelectedVms }) => ({
   _displayAdvancedSettings: undefined,
   _vmsPattern: undefined,
   backupMode: false,
@@ -140,7 +140,7 @@ const getInitialState = () => ({
   tags: {
     notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
   },
-  vms: [],
+  vms: preSelectedVms,
 })
 
 const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
@@ -169,6 +169,7 @@ export default decorate([
     hostsById: createGetObjectsOfType('host'),
     poolsById: createGetObjectsOfType('pool'),
     srsById: createGetObjectsOfType('SR'),
+    preSelectedVms: state => state.vmIds,
   })),
   injectIntl,
   provideState({
@@ -983,7 +984,6 @@ export default decorate([
                     />
                   )}
                 </CardBlock>
-                {console.log(state.vms)}
               </Card>
               <Schedules />
             </Col>
