@@ -15,7 +15,6 @@ import Pagination from 'pagination'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
-// import store from 'store'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
