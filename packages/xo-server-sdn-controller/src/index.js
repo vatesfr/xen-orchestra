@@ -1,17 +1,41 @@
+import { address } from 'ip'
 import createLogger from '@xen-orchestra/log'
+import { createServer } from 'tls'
 import { filter, find, forOwn, map } from 'lodash'
+import fromEvent from 'promise-toolbox/fromEvent'
 import { OvsdbClient } from './ovsdb-client'
+import { readFileSync } from 'fs'
 
 const log = createLogger('xo:xo-server:sdn-controller')
 
-const PROTOCOL = 'pssl'
+const PROTOCOL = 'ssl'
+const OVSDB_PORT = 6640
+
+exports.configurationSchema = {
+  type: 'object',
+  properties: {
+    'cert-dir': {
+      description:
+        'Full path to a directory where to find: server-cert.pem, server-key.pem and ca-cert.pem to create ssl connections with hosts.',
+      type: 'string',
+    },
+  },
+}
+
+// =============================================================================
 
 class SDNController {
   constructor({ xo }) {
     this._xo = xo
 
+    this._ip = address()
+
+    this._server = null
+
+    this._certDirectory = null
+
     this._poolNetworks = []
-    this._OvsdbBClients = []
+    this._OvsdbClients = []
     this._newHosts = []
 
     this._networks = new Map()
@@ -24,7 +48,52 @@ class SDNController {
 
   // ---------------------------------------------------------------------------
 
+  configure(configuration) {
+    this._certDirectory = configuration['cert-dir']
+  }
+
   async load() {
+    const options = {
+      key: readFileSync(this._certDirectory + '/server-key.pem'),
+      cert: readFileSync(this._certDirectory + '/server-cert.pem'),
+      ca: [readFileSync(this._certDirectory + '/ca-cert.pem')],
+
+      requestCert: false,
+      rejectUnauthorized: false,
+    }
+    this._server = createServer(options, socket => {
+      const remoteAddress = socket.remoteAddress.startsWith('::ffff:')
+        ? socket.remoteAddress.substring(7) // Fake IPv6 => IPv4
+        : socket.remoteAddress
+
+      const client = find(this._OvsdbClients, {
+        address: remoteAddress,
+      })
+      if (!client) {
+        log.error(`Reject connection from unknown remote: ${remoteAddress}`)
+        socket.destroy()
+        return
+      }
+
+      log.debug(`[${client._host.name_label}] New socket`)
+
+      socket.on('error', error => {
+        log.error(
+          `[${
+            client._host.name_label
+          }] OVSDB client socket error: ${error} with code: ${error.code}`
+        )
+      })
+      socket.on('end', () => {
+        log.error(`[${client._host.name_label}] OVSDB client socket ended`)
+      })
+
+      client.socket = socket
+    })
+    this._server.listen(OVSDB_PORT, () => {
+      log.debug(`Server listening port: ${OVSDB_PORT}`)
+    })
+
     // FIXME: we should monitor when xapis are added/removed
     forOwn(this._xo.getAllXapis(), async xapi => {
       await xapi.objectsFetched
@@ -35,7 +104,7 @@ class SDNController {
         const hosts = filter(xapi.objects.all, { $type: 'host' })
         await Promise.all(
           map(hosts, async host => {
-            this._OvsdbBClients.push(new OvsdbClient(host))
+            await this._createOvsdbClient(host)
           })
         )
 
@@ -73,7 +142,11 @@ class SDNController {
   }
 
   async unload() {
-    this._OvsdbBClients = []
+    this._OvsdbClients.forEach(client => {
+      client.socket = null
+    })
+
+    this._OvsdbClients = []
     this._poolNetworks = []
     this._newHosts = []
 
@@ -82,6 +155,8 @@ class SDNController {
 
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners = []
+
+    this._server.close()
   }
 
   // ---------------------------------------------------------------------------
@@ -113,10 +188,7 @@ class SDNController {
     await Promise.all(
       map(hosts, async host => {
         await this._createTunnel(host, privateNetwork)
-
-        if (!find(this._OvsdbBClients, { host: host.$ref })) {
-          this._OvsdbBClients.push(new OvsdbClient(host))
-        }
+        await this._createOvsdbClient(host)
       })
     )
 
@@ -164,9 +236,7 @@ class SDNController {
           if (!find(this._newHosts, { $ref: object.$ref })) {
             this._newHosts.push(object)
           }
-          if (!find(this._OvsdbBClients, { host: object.$ref })) {
-            this._OvsdbBClients.push(new OvsdbClient(object))
-          }
+          await this._createOvsdbClient(object)
         }
       })
     )
@@ -189,6 +259,12 @@ class SDNController {
   async _objectsRemoved(xapi, objects) {
     await Promise.all(
       map(objects, async (object, id) => {
+        const client = find(this._OvsdbClients, { id: id })
+        if (client) {
+          client.socket = null
+          this._OvsdbClients.splice(this._OvsdbClients.indexOf(client), 1)
+        }
+
         // If a Star center host is removed: re-elect a new center where needed
         const starCenterRef = this._starCenters.get(id)
         if (starCenterRef) {
@@ -340,6 +416,19 @@ class SDNController {
       return
     }
 
+    const controller = find(pool.$xapi.objects.all, { $type: 'SDN_controller' })
+    if (controller) {
+      await pool.$xapi.call('SDN_controller.forget', controller.$ref)
+      log.debug(`Remove old SDN controller from pool: ${pool.name_label}`)
+    }
+
+    await pool.$xapi.call(
+      'SDN_controller.introduce',
+      PROTOCOL,
+      this._ip,
+      OVSDB_PORT
+    )
+    log.debug(`Became SDN controller of pool: ${pool.name_label}`)
     this._cleaners.push(this._monitorXapi(pool.$xapi))
   }
 
@@ -347,9 +436,9 @@ class SDNController {
     const controller = find(xapi.objects.all, { $type: 'SDN_controller' })
     return !(
       controller != null &&
-      controller.port === 0 &&
-      controller.address === '' &&
-      controller.protocol === PROTOCOL
+      controller.protocol === PROTOCOL &&
+      controller.address === this._ip &&
+      controller.port === OVSDB_PORT
     )
   }
 
@@ -364,7 +453,7 @@ class SDNController {
       map(hosts, async host => {
         if (resetNeeded) {
           // Clean old ports and interfaces
-          const hostClient = find(this._OvsdbBClients, { host: host.$ref })
+          const hostClient = find(this._OvsdbClients, { host: host.$ref })
           if (hostClient) {
             await hostClient.resetForNetwork(network.uuid, network.name_label)
           }
@@ -433,7 +522,7 @@ class SDNController {
       return
     }
 
-    const hostClient = find(this._OvsdbBClients, {
+    const hostClient = find(this._OvsdbClients, {
       host: host.$ref,
     })
     if (!hostClient) {
@@ -441,7 +530,7 @@ class SDNController {
       return
     }
 
-    const starCenterClient = find(this._OvsdbBClients, {
+    const starCenterClient = find(this._OvsdbClients, {
       host: starCenter.$ref,
     })
     if (!starCenterClient) {
@@ -461,6 +550,29 @@ class SDNController {
       network.name_label,
       hostClient.address
     )
+  }
+
+  // ---------------------------------------------------------------------------
+
+  async _createOvsdbClient(host) {
+    const foundClient = find(this._OvsdbClients, { host: host.$ref })
+    if (foundClient) {
+      return foundClient
+    }
+
+    const client = new OvsdbClient(host)
+    this._OvsdbClients.push(client)
+    try {
+      await fromEvent(client, 'connected', {})
+    } catch (error) {
+      log.error(
+        `[${host.name_label}] OVSDB client construction error: ${error}`
+      )
+      return null
+    }
+
+    log.debug(`[${host.name_label}] TLS connection successful`)
+    return client
   }
 }
 

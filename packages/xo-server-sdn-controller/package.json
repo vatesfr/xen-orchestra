@@ -28,6 +28,7 @@
   "dependencies": {
     "@xen-orchestra/log": "^0.1.4",
     "internal-ip": "^4.3.0",
+    "ip": "^1.1.5",
     "lodash": "^4.17.11",
     "promise-toolbox": "^0.12.1"
   },
