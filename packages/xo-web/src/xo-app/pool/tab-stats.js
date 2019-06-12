@@ -6,9 +6,8 @@ import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { fetchHostStats } from 'xo'
+import { fetchStats, SelectGranularity } from 'stats'
 import { map } from 'lodash'
-import { SelectGranularity } from 'stats'
 import { Toggle } from 'form'
 import {
   PoolCpuLineChart,
@@ -42,7 +41,7 @@ export default class PoolStats extends Component {
 
     Promise.all(
       map(this.props.hosts, host =>
-        fetchHostStats(host, this.state.granularity).then(stats => ({
+        fetchStats(host, 'host', this.state.granularity).then(stats => ({
           host: host.name_label,
           ...stats,
         }))

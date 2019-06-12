@@ -4,8 +4,7 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
-import { fetchHostStats } from 'xo'
-import { SelectGranularity } from 'stats'
+import { fetchStats, SelectGranularity } from 'stats'
 import { Toggle } from 'form'
 import {
   CpuLineChart,
@@ -34,7 +33,7 @@ export default class HostStats extends Component {
       cancelled = true
     }
 
-    fetchHostStats(host, this.state.granularity).then(stats => {
+    fetchStats(host, 'host', this.state.granularity).then(stats => {
       if (cancelled) {
         return
       }

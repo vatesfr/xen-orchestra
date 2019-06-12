@@ -4,9 +4,8 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
-import { fetchSrStats } from 'xo'
+import { fetchStats, SelectGranularity } from 'stats'
 import { get } from 'lodash'
-import { SelectGranularity } from 'stats'
 import { Toggle } from 'form'
 import {
   IopsLineChart,
@@ -34,7 +33,7 @@ export default class SrStats extends Component {
       cancelled = true
     }
 
-    fetchSrStats(sr, this.state.granularity).then(data => {
+    fetchStats(sr, 'sr', this.state.granularity).then(data => {
       if (cancelled) {
         return
       }
