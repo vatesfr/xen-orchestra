@@ -4,7 +4,10 @@ import React from 'react'
 import { confirm } from 'modal'
 import { injectState, provideState } from 'reaclette'
 import { noop } from 'utils'
-import { VM_BOOT_FIRMWARES } from 'xo'
+
+// https://docs.citrix.com/en-us/citrix-hypervisor/whats-new/experimental.html
+// XAPI values should be lowercased
+const VM_BOOT_FIRMWARES = ['bios', 'uefi']
 
 const withState = provideState({
   effects: {
@@ -20,6 +23,8 @@ const withState = provideState({
           title: _('vmBootFirmware'),
           body: _('vmBootFirmwareWarningMessage'),
         }).then(() => this.props.onChange(value), noop)
+      } else {
+        this.props.onChange(value)
       }
     },
   },

@@ -513,7 +513,7 @@ export default class TabAdvanced extends Component {
 
   _handleBootFirmware = value =>
     editVm(this.props.vm, {
-      hvmBootFirmware: value,
+      hvmBootFirmware: value !== '' ? value : null,
     })
 
   _onNicTypeChange = value =>
