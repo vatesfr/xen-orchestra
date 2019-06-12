@@ -8,7 +8,7 @@ import { VM_BOOT_FIRMWARES } from 'xo'
 
 const withState = provideState({
   effects: {
-    onBootFirmwareChange(
+    handleBootFirmwareChange(
       __,
       {
         target: { value },
@@ -28,7 +28,7 @@ const withState = provideState({
 const SelectBootFirmware = ({ effects, value }) => (
   <select
     className='form-control'
-    onChange={effects.onBootFirmwareChange}
+    onChange={effects.handleBootFirmwareChange}
     value={value}
   >
     <option value=''>{_('vmDefaultBootFirmwareLabel')}</option>
