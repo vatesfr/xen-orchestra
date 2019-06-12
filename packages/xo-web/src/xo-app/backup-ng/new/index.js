@@ -120,28 +120,31 @@ const createDoesRetentionExist = name => {
   return ({ propSettings, settings = propSettings }) => settings.some(predicate)
 }
 
-const getInitialState = ({ preSelectedVms }) => ({
-  _displayAdvancedSettings: undefined,
-  _vmsPattern: undefined,
-  backupMode: false,
-  compression: undefined,
-  crMode: false,
-  deltaMode: false,
-  drMode: false,
-  name: '',
-  paramsUpdated: false,
-  remotes: [],
-  schedules: {},
-  settings: undefined,
-  showErrors: false,
-  smartMode: false,
-  snapshotMode: false,
-  srs: [],
-  tags: {
-    notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
-  },
-  vms: preSelectedVms,
-})
+const getInitialState = ({ preSelectedVms, setVmIds }) => {
+  setVmIds([]) // Clear preselected vmIds
+  return {
+    _displayAdvancedSettings: undefined,
+    _vmsPattern: undefined,
+    backupMode: false,
+    compression: undefined,
+    crMode: false,
+    deltaMode: false,
+    drMode: false,
+    name: '',
+    paramsUpdated: false,
+    remotes: [],
+    schedules: {},
+    settings: undefined,
+    showErrors: false,
+    smartMode: false,
+    snapshotMode: false,
+    srs: [],
+    tags: {
+      notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
+    },
+    vms: preSelectedVms,
+  }
+}
 
 const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   <ActionButton
