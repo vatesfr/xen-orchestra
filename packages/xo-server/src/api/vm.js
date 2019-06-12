@@ -321,7 +321,7 @@ create.params = {
     },
   },
 
-  hvmBootFirmware: { type: ['string', 'null'], optional: true },
+  hvmBootFirmware: { type: 'string', optional: true },
 }
 
 create.resolve = {

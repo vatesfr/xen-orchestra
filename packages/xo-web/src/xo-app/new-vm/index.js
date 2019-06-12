@@ -10,6 +10,7 @@ import Link from 'link'
 import Page from '../page'
 import PropTypes from 'prop-types'
 import React from 'react'
+import SelectBootFirmware from 'select-boot-firmware'
 import store from 'store'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
@@ -53,7 +54,6 @@ import {
   subscribeCurrentUser,
   subscribeIpPools,
   subscribeResourceSets,
-  VM_BOOT_FIRMWARES,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
 } from 'xo'
@@ -83,7 +83,6 @@ import {
   formatSize,
   getCoresPerSocketPossibilities,
   generateReadableRandomString,
-  noop,
   resolveIds,
 } from 'utils'
 import {
@@ -505,7 +504,7 @@ export default class NewVm extends BaseComponent {
       vgpuType: get(() => state.vgpuType.id),
       gpuGroup: get(() => state.vgpuType.gpuGroup),
       hvmBootFirmware:
-        state.hvmBootFirmware === '' ? null : state.hvmBootFirmware,
+        state.hvmBootFirmware === '' ? undefined : state.hvmBootFirmware,
     }
 
     return state.multipleVms
@@ -569,10 +568,6 @@ export default class NewVm extends BaseComponent {
         ? template.name_description || ''
         : state.name_description
     const replacer = this._buildVmsNameTemplate()
-    const hvmBootFirmware =
-      get(() => template.boot.firmware) !== undefined
-        ? get(() => template.boot.firmware)
-        : ''
     this._setState({
       // infos
       name_label,
@@ -585,7 +580,7 @@ export default class NewVm extends BaseComponent {
       CPUs: template.CPUs.number,
       cpuCap: '',
       cpuWeight: '',
-      hvmBootFirmware,
+      hvmBootFirmware: defined(() => template.boot.firmware, ''),
       memoryDynamicMax: template.memory.dynamic[1],
       // installation
       installMethod:
@@ -915,17 +910,7 @@ export default class NewVm extends BaseComponent {
   _getRedirectionUrl = id =>
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
-  _handleHvmBootFirmware = ({ target: { value } }) => {
-    if (value !== '') {
-      // TODO: Confirm should be removed once the feature is stabilized
-      confirm({
-        title: _('vmBootFirmware'),
-        body: _('vmBootFirmwareWarningMessage'),
-      }).then(() => this._setState({ hvmBootFirmware: value }), noop)
-    } else {
-      this._setState({ hvmBootFirmware: value })
-    }
-  }
+  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value })
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1672,6 +1657,7 @@ export default class NewVm extends BaseComponent {
     } = this.state.state
     const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
+    const isHvm = this._isHvm()
 
     return (
       <Section
@@ -1855,7 +1841,7 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
-          this._isHvm() && (
+          isHvm && (
             <SectionContent>
               <Item label={_('vmVgpu')}>
                 <SelectVgpuType
@@ -1865,21 +1851,13 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
-          this._isHvm() && (
+          isHvm && (
             <SectionContent>
               <Item label={_('vmBootFirmware')}>
-                <select
-                  className='form-control'
-                  onChange={this._handleHvmBootFirmware}
+                <SelectBootFirmware
+                  onChange={this._handleBootFirmware}
                   value={hvmBootFirmware}
-                >
-                  <option value=''>{_('vmDefaultBootFirmwareLabel')}</option>
-                  {VM_BOOT_FIRMWARES.map(val => (
-                    <option key={val} value={val}>
-                      {val}
-                    </option>
-                  ))}
-                </select>
+                />
               </Item>
             </SectionContent>
           ),

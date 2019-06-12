@@ -8,6 +8,7 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
+import SelectBootFirmware from 'select-boot-firmware'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { error } from 'notification'
@@ -73,7 +74,6 @@ import {
   subscribeResourceSets,
   subscribeUsers,
   suspendVm,
-  VM_BOOT_FIRMWARES,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
@@ -511,26 +511,10 @@ export default class TabAdvanced extends Component {
   _onChangeCpuMask = cpuMask =>
     editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
-  _onBootFirmwareChange = event => {
-    const value = getEventValue(event)
-    if (value !== '') {
-      // TODO: Confirm should be removed once the feature is stabilized
-      confirm({
-        title: _('vmBootFirmware'),
-        body: _('vmBootFirmwareWarningMessage'),
-      }).then(
-        () =>
-          editVm(this.props.vm, {
-            hvmBootFirmware: value,
-          }),
-        noop
-      )
-    } else {
-      editVm(this.props.vm, {
-        hvmBootFirmware: null,
-      })
-    }
-  }
+  _handleBootFirmware = value =>
+    editVm(this.props.vm, {
+      hvmBootFirmware: value,
+    })
 
   _onNicTypeChange = value =>
     editVm(this.props.vm, { nicType: value === '' ? null : value })
@@ -859,20 +843,10 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>{_('vmBootFirmware')}</th>
                     <td>
-                      <select
-                        className='form-control'
-                        onChange={this._onBootFirmwareChange}
+                      <SelectBootFirmware
+                        onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
-                      >
-                        <option value=''>
-                          {_('vmDefaultBootFirmwareLabel')}
-                        </option>
-                        {VM_BOOT_FIRMWARES.map(val => (
-                          <option key={val} value={val}>
-                            {val}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </td>
                   </tr>
                 )}
