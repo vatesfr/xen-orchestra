@@ -87,8 +87,9 @@ export default {
   ),
 
   // These Ids are used temporary to be preselected in backup-ng/new/vms
-  tmpVmIds: combineActionHandlers([], {
-    [actions.setTmpVmIds]: (_, tmpVmIds) => tmpVmIds,
+  homeVmIdsSelection: combineActionHandlers([], {
+    [actions.setHomeVmIdsSelection]: (_, homeVmIdsSelection) =>
+      homeVmIdsSelection,
   }),
 
   objects: combineActionHandlers(

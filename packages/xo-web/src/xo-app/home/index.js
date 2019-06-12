@@ -179,8 +179,8 @@ const OPTIONS = {
         labelId: 'snapshotVmLabel',
       },
       {
-        handler: (vmIds, _, { setTmpVmIds }, { router }) => {
-          setTmpVmIds(vmIds)
+        handler: (vmIds, _, { setHomeVmIdsSelection }, { router }) => {
+          setHomeVmIdsSelection(vmIds)
           router.push('backup-ng/new/vms')
         },
         icon: 'vm-backup',
