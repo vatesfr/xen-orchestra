@@ -6,6 +6,7 @@ import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
 import { fetchSrStats } from 'xo'
 import { get } from 'lodash'
+import { SelectGranularity } from 'stats'
 import { Toggle } from 'form'
 import {
   IopsLineChart,
@@ -62,7 +63,7 @@ export default class SrStats extends Component {
     clearTimeout(this.timeout)
   }
 
-  _onGranularityChange = ({ target: { value: granularity } }) => {
+  _onGranularityChange = granularity => {
     clearTimeout(this.timeout)
     this.setState(
       {
@@ -104,26 +105,12 @@ export default class SrStats extends Component {
             )}
           </Col>
           <Col mediumSize={6}>
-            <div className='btn-tab'>
-              <select
-                className='form-control'
-                onChange={this._onGranularityChange}
-                defaultValue={granularity}
-              >
-                {_('statLastTenMinutes', message => (
-                  <option value='seconds'>{message}</option>
-                ))}
-                {_('statLastTwoHours', message => (
-                  <option value='minutes'>{message}</option>
-                ))}
-                {_('statLastWeek', message => (
-                  <option value='hours'>{message}</option>
-                ))}
-                {_('statLastYear', message => (
-                  <option value='days'>{message}</option>
-                ))}
-              </select>
-            </div>
+            <SelectGranularity
+              onChange={this._onGranularityChange}
+              required
+              simpleValue
+              value={granularity}
+            />
           </Col>
         </Row>
         <Row>

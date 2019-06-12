@@ -1,15 +1,15 @@
 import _ from 'intl'
 import Component from 'base-component'
-import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
-import { Container, Row, Col } from 'grid'
-import { Toggle } from 'form'
-import { fetchHostStats } from 'xo'
-import { createGetObjectsOfType, createSelector } from 'selectors'
-import { map } from 'lodash'
 import { connectStore } from 'utils'
+import { Container, Row, Col } from 'grid'
+import { createGetObjectsOfType, createSelector } from 'selectors'
+import { fetchHostStats } from 'xo'
+import { map } from 'lodash'
+import { SelectGranularity } from 'stats'
+import { Toggle } from 'form'
 import {
   PoolCpuLineChart,
   PoolMemoryLineChart,
@@ -74,8 +74,7 @@ export default class PoolStats extends Component {
     clearTimeout(this.timeout)
   }
 
-  _handleSelectStats = event => {
-    const granularity = getEventValue(event)
+  _handleSelectStats = granularity => {
     clearTimeout(this.timeout)
 
     this.setState(
@@ -116,26 +115,12 @@ export default class PoolStats extends Component {
             )}
           </Col>
           <Col mediumSize={6}>
-            <div className='btn-tab'>
-              <select
-                className='form-control'
-                onChange={this._handleSelectStats}
-                defaultValue={granularity}
-              >
-                {_('statLastTenMinutes', message => (
-                  <option value='seconds'>{message}</option>
-                ))}
-                {_('statLastTwoHours', message => (
-                  <option value='minutes'>{message}</option>
-                ))}
-                {_('statLastWeek', message => (
-                  <option value='hours'>{message}</option>
-                ))}
-                {_('statLastYear', message => (
-                  <option value='days'>{message}</option>
-                ))}
-              </select>
-            </div>
+            <SelectGranularity
+              onChange={this._handleSelectStats}
+              required
+              simpleValue
+              value={granularity}
+            />
           </Col>
         </Row>
         <Row>
