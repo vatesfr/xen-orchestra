@@ -5,6 +5,7 @@ import { filter, find, forOwn, map } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { OvsdbClient } from './ovsdb-client'
 import { existsSync, readFileSync, writeFile } from 'fs'
+import NodeOpenssl from 'node-openssl-cert'
 
 const log = createLogger('xo:xo-server:sdn-controller')
 
@@ -626,7 +627,6 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _generateCertificatesAndKey(dataDir) {
-    const NodeOpenssl = require('node-openssl-cert')
     const openssl = new NodeOpenssl()
 
     const rsakeyoptions = {
