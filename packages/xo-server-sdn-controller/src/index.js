@@ -407,7 +407,9 @@ class SDNController extends EventEmitter {
       }
     } else {
       const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
-      poolNetworks.forEach(async poolNetwork => {
+      let i
+      for (i = 0; i < poolNetworks.length; ++i) {
+        const poolNetwork = poolNetworks[i]
         const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
         log.debug(
           `Star center host: '${host.name_label}' of network: '${
@@ -423,7 +425,7 @@ class SDNController extends EventEmitter {
         if (newCenter) {
           this._starCenters.set(newCenter.$id, newCenter.$ref)
         }
-      })
+      }
     }
   }
 
