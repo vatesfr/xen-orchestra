@@ -10,6 +10,7 @@ import Link from 'link'
 import Page from '../page'
 import PropTypes from 'prop-types'
 import React from 'react'
+import SelectBootFirmware from 'select-boot-firmware'
 import store from 'store'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
@@ -334,6 +335,7 @@ export default class NewVm extends BaseComponent {
       cpuWeight: '',
       existingDisks: {},
       fastClone: true,
+      hvmBootFirmware: '',
       installMethod: 'noConfigDrive',
       multipleVms: false,
       name_label: '',
@@ -501,6 +503,8 @@ export default class NewVm extends BaseComponent {
       tags: state.tags,
       vgpuType: get(() => state.vgpuType.id),
       gpuGroup: get(() => state.vgpuType.gpuGroup),
+      hvmBootFirmware:
+        state.hvmBootFirmware === '' ? undefined : state.hvmBootFirmware,
     }
 
     return state.multipleVms
@@ -576,6 +580,7 @@ export default class NewVm extends BaseComponent {
       CPUs: template.CPUs.number,
       cpuCap: '',
       cpuWeight: '',
+      hvmBootFirmware: defined(() => template.boot.firmware, ''),
       memoryDynamicMax: template.memory.dynamic[1],
       // installation
       installMethod:
@@ -752,6 +757,11 @@ export default class NewVm extends BaseComponent {
     template => template && template.name_label === 'CoreOS'
   )
 
+  _isHvm = createSelector(
+    () => this.state.template,
+    template => template && template.virtualizationMode === 'hvm'
+  )
+
   // On change -------------------------------------------------------------------
 
   _onChangeSshKeys = keys =>
@@ -899,6 +909,8 @@ export default class NewVm extends BaseComponent {
 
   _getRedirectionUrl = id =>
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
+
+  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value })
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1630,6 +1642,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate,
       cpuCap,
       cpuWeight,
+      hvmBootFirmware,
       memoryDynamicMin,
       memoryDynamicMax,
       memoryStaticMax,
@@ -1641,10 +1654,11 @@ export default class NewVm extends BaseComponent {
       share,
       showAdvanced,
       tags,
-      template,
     } = this.state.state
     const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
+    const isHvm = this._isHvm()
+
     return (
       <Section
         icon='new-vm-advanced'
@@ -1827,12 +1841,22 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
-          template && template.virtualizationMode === 'hvm' && (
+          isHvm && (
             <SectionContent>
               <Item label={_('vmVgpu')}>
                 <SelectVgpuType
                   onChange={this._linkState('vgpuType')}
                   predicate={this._getVgpuTypePredicate()}
+                />
+              </Item>
+            </SectionContent>
+          ),
+          isHvm && (
+            <SectionContent>
+              <Item label={_('vmBootFirmware')}>
+                <SelectBootFirmware
+                  onChange={this._handleBootFirmware}
+                  value={hvmBootFirmware}
                 />
               </Item>
             </SectionContent>
