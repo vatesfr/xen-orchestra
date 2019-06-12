@@ -405,6 +405,25 @@ class SDNController extends EventEmitter {
         )
         await this._addHostToNetwork(host, accessPIF.$network, starCenter)
       }
+    } else {
+      const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
+      poolNetworks.forEach(async poolNetwork => {
+        const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
+        log.debug(
+          `Star center host: '${host.name_label}' of network: '${
+            network.name_label
+          }' in pool: ${
+            host.$pool.name_label
+          } is no longer reachable, electing a new host`
+        )
+
+        const newCenter = await this._electNewCenter(network, true)
+        poolNetwork.starCenter = newCenter ? newCenter.$ref : null
+        this._starCenters.delete(host.$id)
+        if (newCenter) {
+          this._starCenters.set(newCenter.$id, newCenter.$ref)
+        }
+      })
     }
   }
 
