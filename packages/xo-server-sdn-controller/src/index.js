@@ -132,7 +132,8 @@ class SDNController extends EventEmitter {
       /*
       this.createPrivateNetwork(
         xapi.pool,
-        `Private network ${xapi.pool.name_label}`
+        `Private network ${xapi.pool.name_label}`,
+        'Private network created by XO SDN controller'
       )
 */
     })
@@ -152,13 +153,13 @@ class SDNController extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  async createPrivateNetwork(pool, networkName) {
+  async createPrivateNetwork(pool, networkName, networkDescription) {
     await this._setPoolControllerIfNeeded(pool)
 
     // Create the private network
     const privateNetworkRef = await pool.$xapi.call('network.create', {
       name_label: networkName,
-      name_description: 'Private network created by XO SDN controller',
+      name_description: networkDescription,
       MTU: 0,
       other_config: {
         automatic: 'false',
