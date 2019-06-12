@@ -27,9 +27,8 @@
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.1.4",
-    "internal-ip": "^4.3.0",
-    "ip": "^1.1.5",
     "lodash": "^4.17.11",
+    "node-openssl-cert": "^0.0.81",
     "promise-toolbox": "^0.12.1"
   },
   "private": true

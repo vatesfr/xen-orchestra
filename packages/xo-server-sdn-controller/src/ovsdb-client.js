@@ -1,23 +1,22 @@
 import assert from 'assert'
 import { connect } from 'tls'
 import createLogger from '@xen-orchestra/log'
-import { EventEmitter } from 'events'
 import forOwn from 'lodash/forOwn'
 import fromEvent from 'promise-toolbox/fromEvent'
-import { readFileSync } from 'fs'
 
 const log = createLogger('xo:xo-server:sdn-controller:ovsdb-client')
 
-export class OvsdbClient extends EventEmitter {
-  constructor(host) {
-    super()
+const OVSDB_PORT = 6640
 
+export class OvsdbClient {
+  constructor(host, clientKey, clientCert, caCert) {
     this._host = host
     this._numberOfPortAndInterface = 0
     this._requestID = 0
 
-    this._socket = null
-    this._intervalId = 0
+    this._clientKey = clientKey
+    this._clientCert = clientCert
+    this._caCert = caCert
 
     log.debug(`[${this._host.name_label}] New OVSDB client`)
   }
@@ -36,34 +35,11 @@ export class OvsdbClient extends EventEmitter {
     return this._host.$id
   }
 
-  set socket(socket) {
-    this._socket = socket
-
-    if (this._intervalId) {
-      clearInterval(this._intervalId)
-      this._intervalId = 0
-    }
-
-    if (!this._socket) {
-      return
-    }
-
-    this._intervalId = setInterval(() => {
-      const dummyOperation = {
-        op: 'comment',
-        comment: 'Dummy operation to keep socket alive',
-      }
-      const params = ['Open_vSwitch', dummyOperation]
-      this._sendOvsdbTransaction(params)
-    }, 4990)
-
-    this.emit('connected')
-  }
-
   // ---------------------------------------------------------------------------
 
   async addInterfaceAndPort(networkUuid, networkName, remoteAddress) {
-    if (!this._socket) {
+    const socket = await this._connect()
+    if (!socket) {
       log.error(`[${this._host.name_label}] No TLS socket available`)
       return
     }
@@ -73,9 +49,11 @@ export class OvsdbClient extends EventEmitter {
 
     const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
-      networkName
+      networkName,
+      socket
     )
     if (!bridgeUuid) {
+      socket.destroy()
       return
     }
 
@@ -83,9 +61,11 @@ export class OvsdbClient extends EventEmitter {
       await this._interfaceAndPortAlreadyExist(
         bridgeUuid,
         bridgeName,
-        remoteAddress
+        remoteAddress,
+        socket
       )
     ) {
+      socket.destroy()
       return
     }
 
@@ -126,8 +106,9 @@ export class OvsdbClient extends EventEmitter {
       addPortOperation,
       mutateBridgeOperation,
     ]
-    const jsonObjects = await this._sendOvsdbTransaction(params)
+    const jsonObjects = await this._sendOvsdbTransaction(params, socket)
     if (!jsonObjects) {
+      socket.destroy()
       return
     }
 
@@ -150,6 +131,7 @@ export class OvsdbClient extends EventEmitter {
           this._host.name_label
         }] Error while adding port: '${portName}' and interface: '${interfaceName}' to bridge: '${bridgeName}' on network: '${networkName}' because: ${error}: ${details}`
       )
+      socket.destroy()
       return
     }
 
@@ -158,25 +140,30 @@ export class OvsdbClient extends EventEmitter {
         this._host.name_label
       }] Port: '${portName}' and interface: '${interfaceName}' added to bridge: '${bridgeName}' on network: '${networkName}'`
     )
+    socket.destroy()
   }
 
   async resetForNetwork(networkUuid, networkName) {
-    if (!this._socket) {
+    const socket = await this._connect()
+    if (!socket) {
       log.error(`[${this._host.name_label}] No TLS socket available`)
       return
     }
 
     const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
-      networkName
+      networkName,
+      socket
     )
     if (!bridgeUuid) {
+      socket.destroy()
       return
     }
 
     // Delete old ports created by a SDN controller
-    const ports = await this._getBridgePorts(bridgeUuid, bridgeName)
+    const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
     if (!ports) {
+      socket.destroy()
       return
     }
     const portsToDelete = []
@@ -188,7 +175,8 @@ export class OvsdbClient extends EventEmitter {
       const selectResult = await this._select(
         'Port',
         ['name', 'other_config'],
-        where
+        where,
+        socket
       )
       if (!selectResult) {
         continue
@@ -208,6 +196,7 @@ export class OvsdbClient extends EventEmitter {
 
     if (portsToDelete.length === 0) {
       // Nothing to do
+      socket.destroy()
       return
     }
 
@@ -219,8 +208,9 @@ export class OvsdbClient extends EventEmitter {
     }
 
     const params = ['Open_vSwitch', mutateBridgeOperation]
-    const jsonObjects = await this._sendOvsdbTransaction(params)
+    const jsonObjects = await this._sendOvsdbTransaction(params, socket)
     if (!jsonObjects) {
+      socket.destroy()
       return
     }
     if (jsonObjects[0].error) {
@@ -231,6 +221,7 @@ export class OvsdbClient extends EventEmitter {
           jsonObjects.error
         }`
       )
+      socket.destroy()
       return
     }
 
@@ -239,6 +230,7 @@ export class OvsdbClient extends EventEmitter {
         jsonObjects[0].result[0].count
       } ports from bridge: ${bridgeName}`
     )
+    socket.destroy()
   }
 
   // ===========================================================================
@@ -273,7 +265,7 @@ export class OvsdbClient extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  async _getBridgeUuidForNetwork(networkUuid, networkName) {
+  async _getBridgeUuidForNetwork(networkUuid, networkName, socket) {
     const where = [
       [
         'external_ids',
@@ -281,7 +273,12 @@ export class OvsdbClient extends EventEmitter {
         ['map', [['xs-network-uuids', networkUuid]]],
       ],
     ]
-    const selectResult = await this._select('Bridge', ['_uuid', 'name'], where)
+    const selectResult = await this._select(
+      'Bridge',
+      ['_uuid', 'name'],
+      where,
+      socket
+    )
     if (!selectResult) {
       return [null, null]
     }
@@ -297,8 +294,13 @@ export class OvsdbClient extends EventEmitter {
     return [bridgeUuid, bridgeName]
   }
 
-  async _interfaceAndPortAlreadyExist(bridgeUuid, bridgeName, remoteAddress) {
-    const ports = await this._getBridgePorts(bridgeUuid, bridgeName)
+  async _interfaceAndPortAlreadyExist(
+    bridgeUuid,
+    bridgeName,
+    remoteAddress,
+    socket
+  ) {
+    const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
     if (!ports) {
       return
     }
@@ -306,7 +308,7 @@ export class OvsdbClient extends EventEmitter {
     let i
     for (i = 0; i < ports.length; ++i) {
       const portUuid = ports[i][1]
-      const interfaces = await this._getPortInterfaces(portUuid)
+      const interfaces = await this._getPortInterfaces(portUuid, socket)
       if (!interfaces) {
         continue
       }
@@ -314,7 +316,9 @@ export class OvsdbClient extends EventEmitter {
       let j
       for (j = 0; j < interfaces.length; ++j) {
         const interfaceUuid = interfaces[j][1]
-        if (await this._interfaceHasRemote(interfaceUuid, remoteAddress)) {
+        if (
+          await this._interfaceHasRemote(interfaceUuid, remoteAddress, socket)
+        ) {
           return true
         }
       }
@@ -323,9 +327,9 @@ export class OvsdbClient extends EventEmitter {
     return false
   }
 
-  async _getBridgePorts(bridgeUuid, bridgeName) {
+  async _getBridgePorts(bridgeUuid, bridgeName, socket) {
     const where = [['_uuid', '==', ['uuid', bridgeUuid]]]
-    const selectResult = await this._select('Bridge', ['ports'], where)
+    const selectResult = await this._select('Bridge', ['ports'], where, socket)
     if (!selectResult) {
       return null
     }
@@ -335,12 +339,13 @@ export class OvsdbClient extends EventEmitter {
       : [selectResult.ports]
   }
 
-  async _getPortInterfaces(portUuid) {
+  async _getPortInterfaces(portUuid, socket) {
     const where = [['_uuid', '==', ['uuid', portUuid]]]
     const selectResult = await this._select(
       'Port',
       ['name', 'interfaces'],
-      where
+      where,
+      socket
     )
     if (!selectResult) {
       return null
@@ -351,12 +356,13 @@ export class OvsdbClient extends EventEmitter {
       : [selectResult.interfaces]
   }
 
-  async _interfaceHasRemote(interfaceUuid, remoteAddress) {
+  async _interfaceHasRemote(interfaceUuid, remoteAddress, socket) {
     const where = [['_uuid', '==', ['uuid', interfaceUuid]]]
     const selectResult = await this._select(
       'Interface',
       ['name', 'options'],
-      where
+      where,
+      socket
     )
     if (!selectResult) {
       return false
@@ -375,7 +381,7 @@ export class OvsdbClient extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  async _select(table, columns, where) {
+  async _select(table, columns, where, socket) {
     const selectOperation = {
       op: 'select',
       table: table,
@@ -384,7 +390,7 @@ export class OvsdbClient extends EventEmitter {
     }
 
     const params = ['Open_vSwitch', selectOperation]
-    const jsonObjects = await this._sendOvsdbTransaction(params)
+    const jsonObjects = await this._sendOvsdbTransaction(params, socket)
     if (!jsonObjects) {
       return
     }
@@ -420,8 +426,8 @@ export class OvsdbClient extends EventEmitter {
     return jsonResult.rows[0]
   }
 
-  async _sendOvsdbTransaction(params) {
-    const stream = this._socket
+  async _sendOvsdbTransaction(params, socket) {
+    const stream = socket
 
     const requestId = this._requestID
     ++this._requestID
@@ -464,15 +470,13 @@ export class OvsdbClient extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  // TODO: Remove me
   async _connect() {
     const options = {
-      // TODO: put in plugin config?
-      ca: readFileSync(this._certDirectory + '/ca-cert.pem'),
-      key: readFileSync(this._certDirectory + '/client-key.pem'),
-      cert: readFileSync(this._certDirectory + '/client-cert.pem'),
+      ca: this._caCert,
+      key: this._clientKey,
+      cert: this._clientCert,
       host: this._host.address,
-      port: 6640,
+      port: OVSDB_PORT,
       rejectUnauthorized: false,
       requestCert: false,
     }
@@ -482,14 +486,14 @@ export class OvsdbClient extends EventEmitter {
       await fromEvent(socket, 'secureConnect', {})
     } catch (error) {
       log.error(
-        `Connection to: '${this._host.name_label}' failed because: ${error}: ${
+        `[${this._host.name_label}] TLS connection failed because: ${error}: ${
           error.code
         }`
       )
       return null
     }
 
-    log.debug(`Connection successful to: '${this._host.name_label}'`)
+    log.debug(`[${this._host.name_label}] TLS connection successful`)
 
     socket.on('error', error => {
       log.error(

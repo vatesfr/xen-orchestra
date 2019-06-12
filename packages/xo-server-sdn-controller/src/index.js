@@ -1,22 +1,27 @@
-import { address } from 'ip'
+import assert from 'assert'
 import createLogger from '@xen-orchestra/log'
-import { createServer } from 'tls'
+import { EventEmitter } from 'events'
 import { filter, find, forOwn, map } from 'lodash'
-import fromEvent from 'promise-toolbox/fromEvent'
+import { fromCallback, fromEvent } from 'promise-toolbox'
 import { OvsdbClient } from './ovsdb-client'
-import { readFileSync } from 'fs'
+import { existsSync, readFileSync, writeFile } from 'fs'
 
 const log = createLogger('xo:xo-server:sdn-controller')
 
-const PROTOCOL = 'ssl'
-const OVSDB_PORT = 6640
+const PROTOCOL = 'pssl'
+
+const CA_CERT = '/ca-cert.pem'
+const CLIENT_KEY = '/client-key.pem'
+const CLIENT_CERT = '/client-cert.pem'
+
+const SDN_CONTROLLER_CERT = 'sdn-controller-ca.pem'
 
 exports.configurationSchema = {
   type: 'object',
   properties: {
     'cert-dir': {
       description:
-        'Full path to a directory where to find: server-cert.pem, server-key.pem and ca-cert.pem to create ssl connections with hosts.',
+        'Full path to a directory where to find: client-cert.pem, client-key.pem and ca-cert.pem to create ssl connections with hosts.',
       type: 'string',
     },
   },
@@ -24,15 +29,17 @@ exports.configurationSchema = {
 
 // =============================================================================
 
-class SDNController {
-  constructor({ xo }) {
+class SDNController extends EventEmitter {
+  constructor({ xo, getDataDir }) {
+    super()
+
     this._xo = xo
 
-    this._ip = address()
+    this._getDataDir = getDataDir
 
-    this._server = null
-
-    this._certDirectory = null
+    this._clientKey = null
+    this._clientCert = null
+    this._caCert = null
 
     this._poolNetworks = []
     this._OvsdbClients = []
@@ -48,63 +55,52 @@ class SDNController {
 
   // ---------------------------------------------------------------------------
 
-  configure(configuration) {
-    this._certDirectory = configuration['cert-dir']
+  async configure(configuration) {
+    let certDirectory = null // configuration['cert-dir']
+    if (!certDirectory) {
+      log.debug(`No cert-dir provided, creating certificates`)
+      certDirectory = await this._getDataDir()
+
+      if (!existsSync(certDirectory + CA_CERT)) {
+        // If one certificate doesn't exist, none should
+        assert(
+          !existsSync(certDirectory + CLIENT_KEY),
+          `${CLIENT_KEY} should not exist`
+        )
+        assert(
+          !existsSync(certDirectory + CLIENT_CERT),
+          `${CLIENT_CERT} should not exist`
+        )
+
+        log.debug(`No generated certificates exists, creating them`)
+        await this._generateCertificatesAndKey(certDirectory)
+      }
+    }
+
+    // All certificates MUST exist now
+    assert(existsSync(certDirectory + CA_CERT), `No ${CA_CERT}`)
+    assert(existsSync(certDirectory + CLIENT_KEY), `No ${CLIENT_KEY}`)
+    assert(existsSync(certDirectory + CLIENT_CERT), `No ${CLIENT_CERT}`)
+
+    this._clientKey = readFileSync(certDirectory + CLIENT_KEY)
+    this._clientCert = readFileSync(certDirectory + CLIENT_CERT)
+    this._caCert = readFileSync(certDirectory + CA_CERT)
+
+    // TODO: update certificates of all the hosts and install cert
   }
 
   async load() {
-    const options = {
-      key: readFileSync(this._certDirectory + '/server-key.pem'),
-      cert: readFileSync(this._certDirectory + '/server-cert.pem'),
-      ca: [readFileSync(this._certDirectory + '/ca-cert.pem')],
-
-      requestCert: false,
-      rejectUnauthorized: false,
-    }
-    this._server = createServer(options, socket => {
-      const remoteAddress = socket.remoteAddress.startsWith('::ffff:')
-        ? socket.remoteAddress.substring(7) // Fake IPv6 => IPv4
-        : socket.remoteAddress
-
-      const client = find(this._OvsdbClients, {
-        address: remoteAddress,
-      })
-      if (!client) {
-        log.error(`Reject connection from unknown remote: ${remoteAddress}`)
-        socket.destroy()
-        return
-      }
-
-      log.debug(`[${client._host.name_label}] New socket`)
-
-      socket.on('error', error => {
-        log.error(
-          `[${
-            client._host.name_label
-          }] OVSDB client socket error: ${error} with code: ${error.code}`
-        )
-      })
-      socket.on('end', () => {
-        log.error(`[${client._host.name_label}] OVSDB client socket ended`)
-      })
-
-      client.socket = socket
-    })
-    this._server.listen(OVSDB_PORT, () => {
-      log.debug(`Server listening port: ${OVSDB_PORT}`)
-    })
-
     // FIXME: we should monitor when xapis are added/removed
     forOwn(this._xo.getAllXapis(), async xapi => {
       await xapi.objectsFetched
 
       if (!this._setControllerNeeded(xapi)) {
-        this._cleaners.push(this._monitorXapi(xapi))
+        this._cleaners.push(await this._manageXapi(xapi))
 
         const hosts = filter(xapi.objects.all, { $type: 'host' })
         await Promise.all(
           map(hosts, async host => {
-            await this._createOvsdbClient(host)
+            this._createOvsdbClient(host)
           })
         )
 
@@ -142,10 +138,6 @@ class SDNController {
   }
 
   async unload() {
-    this._OvsdbClients.forEach(client => {
-      client.socket = null
-    })
-
     this._OvsdbClients = []
     this._poolNetworks = []
     this._newHosts = []
@@ -155,8 +147,6 @@ class SDNController {
 
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners = []
-
-    this._server.close()
   }
 
   // ---------------------------------------------------------------------------
@@ -188,7 +178,7 @@ class SDNController {
     await Promise.all(
       map(hosts, async host => {
         await this._createTunnel(host, privateNetwork)
-        await this._createOvsdbClient(host)
+        this._createOvsdbClient(host)
       })
     )
 
@@ -206,13 +196,15 @@ class SDNController {
 
   // ===========================================================================
 
-  _monitorXapi(xapi) {
+  async _manageXapi(xapi) {
     const { objects } = xapi
 
     const objectsRemovedXapi = this._objectsRemoved.bind(this, xapi)
     objects.on('add', this._objectsAdded)
     objects.on('update', this._objectsUpdated)
     objects.on('remove', objectsRemovedXapi)
+
+    await this._installCaCertificateIfNeeded(xapi)
 
     return () => {
       objects.removeListener('add', this._objectsAdded)
@@ -236,7 +228,7 @@ class SDNController {
           if (!find(this._newHosts, { $ref: object.$ref })) {
             this._newHosts.push(object)
           }
-          await this._createOvsdbClient(object)
+          this._createOvsdbClient(object)
         }
       })
     )
@@ -261,7 +253,6 @@ class SDNController {
       map(objects, async (object, id) => {
         const client = find(this._OvsdbClients, { id: id })
         if (client) {
-          client.socket = null
           this._OvsdbClients.splice(this._OvsdbClients.indexOf(client), 1)
         }
 
@@ -365,6 +356,15 @@ class SDNController {
       const newHost = find(this._newHosts, { $ref: host.$ref })
       if (newHost) {
         this._newHosts.splice(this._newHosts.indexOf(newHost), 1)
+        try {
+          await xapi.call('pool.certificate_sync')
+        } catch (error) {
+          log.error(
+            `Couldn't sync SDN controller ca certificate in pool: ${
+              host.$pool.name_label
+            } because: ${error}`
+          )
+        }
       }
       let i
       for (i = 0; i < tunnels.length; i++) {
@@ -422,14 +422,9 @@ class SDNController {
       log.debug(`Remove old SDN controller from pool: ${pool.name_label}`)
     }
 
-    await pool.$xapi.call(
-      'SDN_controller.introduce',
-      PROTOCOL,
-      this._ip,
-      OVSDB_PORT
-    )
-    log.debug(`Became SDN controller of pool: ${pool.name_label}`)
-    this._cleaners.push(this._monitorXapi(pool.$xapi))
+    await pool.$xapi.call('SDN_controller.introduce', PROTOCOL)
+    log.debug(`Set SDN controller of pool: ${pool.name_label}`)
+    this._cleaners.push(await this._manageXapi(pool.$xapi))
   }
 
   _setControllerNeeded(xapi) {
@@ -437,9 +432,46 @@ class SDNController {
     return !(
       controller != null &&
       controller.protocol === PROTOCOL &&
-      controller.address === this._ip &&
-      controller.port === OVSDB_PORT
+      controller.address === '' &&
+      controller.port === 0
     )
+  }
+
+  // ---------------------------------------------------------------------------
+
+  async _installCaCertificateIfNeeded(xapi) {
+    let needInstall = false
+    try {
+      const result = await xapi.call('pool.certificate_list')
+      if (!result.includes(SDN_CONTROLLER_CERT)) {
+        needInstall = true
+      }
+    } catch (error) {
+      log.error(
+        `Couldn't retrieve certificate list of pool: ${xapi.pool.name_label}`
+      )
+    }
+    if (!needInstall) {
+      return
+    }
+
+    try {
+      await xapi.call(
+        'pool.certificate_install',
+        SDN_CONTROLLER_CERT,
+        this._caCert.toString()
+      )
+      await xapi.call('pool.certificate_sync')
+      log.debug(
+        `SDN controller CA certificate install in pool: ${xapi.pool.name_label}`
+      )
+    } catch (error) {
+      log.error(
+        `Couldn't install SDN controller CA certificate in pool: ${
+          xapi.pool.name_label
+        } because: ${error}`
+      )
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -554,25 +586,129 @@ class SDNController {
 
   // ---------------------------------------------------------------------------
 
-  async _createOvsdbClient(host) {
+  _createOvsdbClient(host) {
     const foundClient = find(this._OvsdbClients, { host: host.$ref })
     if (foundClient) {
       return foundClient
     }
 
-    const client = new OvsdbClient(host)
+    const client = new OvsdbClient(
+      host,
+      this._clientKey,
+      this._clientCert,
+      this._caCert
+    )
     this._OvsdbClients.push(client)
-    try {
-      await fromEvent(client, 'connected', {})
-    } catch (error) {
-      log.error(
-        `[${host.name_label}] OVSDB client construction error: ${error}`
-      )
-      return null
+    return client
+  }
+
+  // ---------------------------------------------------------------------------
+
+  async _generateCertificatesAndKey(dataDir) {
+    const NodeOpenssl = require('node-openssl-cert')
+    const openssl = new NodeOpenssl()
+
+    const rsakeyoptions = {
+      rsa_keygen_bits: 4096,
+      format: 'PKCS8',
+    }
+    const subject = {
+      countryName: 'XX',
+      localityName: 'Default City',
+      organizationName: 'Default Company LTD',
+    }
+    const csroptions = {
+      hash: 'sha256',
+      startdate: new Date('1984-02-04 00:00:00'),
+      enddate: new Date('2143-06-04 04:16:23'),
+      subject: subject,
+    }
+    const cacsroptions = {
+      hash: 'sha256',
+      days: 9999,
+      subject: subject,
     }
 
-    log.debug(`[${host.name_label}] TLS connection successful`)
-    return client
+    openssl.generateRSAPrivateKey(rsakeyoptions, (err, cakey, cmd) => {
+      if (err) {
+        log.error(err)
+        return
+      }
+
+      openssl.generateCSR(cacsroptions, cakey, null, (err, csr, cmd) => {
+        if (err) {
+          log.error(err)
+          return
+        }
+
+        openssl.selfSignCSR(
+          csr,
+          cacsroptions,
+          cakey,
+          null,
+          async (err, cacrt, cmd) => {
+            if (err) {
+              log.error(err)
+              return
+            }
+
+            await this._writeFile(dataDir + CA_CERT, cacrt)
+            openssl.generateRSAPrivateKey(
+              rsakeyoptions,
+              async (err, key, cmd) => {
+                if (err) {
+                  log.error(err)
+                  return
+                }
+
+                await this._writeFile(dataDir + CLIENT_KEY, key)
+                openssl.generateCSR(csroptions, key, null, (err, csr, cmd) => {
+                  if (err) {
+                    log.error(err)
+                    return
+                  }
+                  openssl.CASignCSR(
+                    csr,
+                    cacsroptions,
+                    false,
+                    cacrt,
+                    cakey,
+                    null,
+                    async (err, crt, cmd) => {
+                      if (err) {
+                        log.error(err)
+                        return
+                      }
+
+                      await this._writeFile(dataDir + CLIENT_CERT, crt)
+                      this.emit('certWritten')
+                    }
+                  )
+                })
+              }
+            )
+          }
+        )
+      })
+    })
+
+    try {
+      await fromEvent(this, 'certWritten', {})
+      log.debug('All certificates have been successfully written')
+    } catch (error) {
+      log.error(`${error}`)
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+
+  async _writeFile(path, data) {
+    try {
+      await fromCallback(cb => writeFile(path, data, cb))
+      log.debug(`${path} successfully written`)
+    } catch (error) {
+      log.error(`Couldn't write in: ${path} because: ${error}`)
+    }
   }
 }
 
