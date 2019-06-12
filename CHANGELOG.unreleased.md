@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-- [VM/advanced] Enable/disable UEFI for VM [#4264](https://github.com/vatesfr/xen-orchestra/issues/4264) (PR [#4268](https://github.com/vatesfr/xen-orchestra/pull/4268))
+- [VM/Advanced] Ability to use UEFI instead of BIOS [#4264](https://github.com/vatesfr/xen-orchestra/issues/4264) (PR [#4268](https://github.com/vatesfr/xen-orchestra/pull/4268))
 
 ### Bug fixes
 
