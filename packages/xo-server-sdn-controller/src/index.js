@@ -56,7 +56,7 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async configure(configuration) {
-    let certDirectory = null // configuration['cert-dir']
+    let certDirectory = configuration['cert-dir']
     if (!certDirectory) {
       log.debug(`No cert-dir provided, creating certificates`)
       certDirectory = await this._getDataDir()
