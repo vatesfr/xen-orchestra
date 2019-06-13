@@ -554,11 +554,7 @@ export default class New extends Component {
         zfsPools: await probeZfs(hostId)::ignoreErrors(),
       }),
     }
-    if (
-      probeMethodFactories[type] !== undefined &&
-      host !== undefined &&
-      host !== null
-    ) {
+    if (probeMethodFactories[type] !== undefined && host != null) {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
       const probeResult = await probeMethodFactories[type](host.id)
       this.setState(({ loading }) => ({
