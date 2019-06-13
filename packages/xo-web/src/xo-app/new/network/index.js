@@ -4,12 +4,13 @@ import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Wizard, { Section } from 'wizard'
-import { connectStore } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
 import {
   createPrivateNetwork,
   createBondedNetwork,
   createNetwork,
   getBondModes,
+  subscribePlugins,
 } from 'xo'
 import { createGetObject, getIsPoolAdmin } from 'selectors'
 import { injectIntl } from 'react-intl'
@@ -35,6 +36,9 @@ const EMPTY = {
 }
 
 const NewNetwork = decorate([
+  addSubscriptions({
+    plugins: subscribePlugins,
+  }),
   connectStore(() => ({
     isPoolAdmin: getIsPoolAdmin,
     pool: createGetObject((_, props) => props.location.query.pool),
@@ -70,6 +74,10 @@ const NewNetwork = decorate([
           : [],
       pifPredicate: (_, { pool }) => pif =>
         pif.vlan === -1 && pif.$host === (pool && pool.master),
+      isSdnControllerLoaded: (state, { plugins = [] }) =>
+        plugins.some(
+          plugin => plugin.name === 'sdn-controller' && plugin.loaded
+        ),
     },
   }),
   injectState,
@@ -160,6 +168,7 @@ const NewNetwork = decorate([
         pifPredicate,
         pifs,
         vlan,
+        isSdnControllerLoaded,
       } = state
       const { formatMessage } = intl
       return (
@@ -176,6 +185,7 @@ const NewNetwork = decorate([
                     <Toggle
                       onChange={effects.togglePrivate}
                       value={isPrivate}
+                      disabled={!isSdnControllerLoaded}
                     />{' '}
                     <label>{_('privateNetwork')}</label>
                   </div>
