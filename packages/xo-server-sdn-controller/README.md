@@ -1,4 +1,4 @@
-# xo-server-of-controller [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-server-sdn-controller [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 XO Server plugin that allows the creation of pool-wide private networks.
 

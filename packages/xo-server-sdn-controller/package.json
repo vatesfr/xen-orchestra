@@ -1,9 +1,9 @@
 {
-  "name": "xo-server-of-controller",
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-of-controller",
+  "name": "xo-server-sdn-controller",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-sdn-controller",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
-    "directory": "packages/xo-server-of-controller",
+    "directory": "packages/xo-server-sdn-controller",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
