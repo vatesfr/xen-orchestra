@@ -681,7 +681,6 @@ export default class New extends Component {
                       <label htmlFor='selectSrPath'>{_('newSrUseNfs')}</label>
                       <select
                         className='form-control'
-                        defaultValue={null}
                         onChange={this._handleNfsOption}
                         required
                         value={nfsOption}
