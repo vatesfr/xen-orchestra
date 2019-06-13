@@ -571,7 +571,7 @@ const messages = {
   newSrPasswordPlaceHolder: 'Password',
   newSrLvmDevicePlaceHolder: 'Device, e.g /dev/sda…',
   newSrLocalPathPlaceHolder: '/path/to/directory',
-  newSrUseNfs4: 'Use NFSv4',
+  newSrUseNfs: 'Use NFS',
   newSrNfsOptions: 'Comma delimited NFS options',
   reattachNewSrTooltip: 'Reattach SR',
 
