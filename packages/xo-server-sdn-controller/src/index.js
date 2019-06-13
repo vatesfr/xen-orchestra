@@ -52,6 +52,22 @@ class SDNController extends EventEmitter {
     this._cleaners = []
     this._objectsAdded = this._objectsAdded.bind(this)
     this._objectsUpdated = this._objectsUpdated.bind(this)
+
+    const createPrivateNetwork = this.createPrivateNetwork.bind(this)
+    createPrivateNetwork.description =
+      'Creates a pool-wide private network on a selected pool'
+    createPrivateNetwork.params = {
+      poolId: { type: 'string' },
+      networkName: { type: 'string' },
+      networkDescription: { type: 'string' },
+    }
+    createPrivateNetwork.resolve = {
+      xoPool: ['poolId', 'pool', ''],
+    }
+    this._xo.addApiMethod(
+      'plugin.SDNController.createPrivateNetwork',
+      createPrivateNetwork
+    )
   }
 
   // ---------------------------------------------------------------------------
@@ -127,15 +143,6 @@ class SDNController extends EventEmitter {
           }
         })
       }
-
-      // TODO: Remove me when UI allows the creation
-      /*
-      this.createPrivateNetwork(
-        xapi.pool,
-        `Private network ${xapi.pool.name_label}`,
-        'Private network created by XO SDN controller'
-      )
-*/
     })
   }
 
@@ -153,7 +160,8 @@ class SDNController extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  async createPrivateNetwork(pool, networkName, networkDescription) {
+  async createPrivateNetwork({ xoPool, networkName, networkDescription }) {
+    const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
 
     // Create the private network
@@ -527,11 +535,11 @@ class SDNController extends EventEmitter {
 
     if (!newCenter) {
       log.error(
-        `Unable to elect a new star-center host to network: ${
+        `Unable to elect a new star-center host to network: '${
           network.name_label
-        } for pool: ${
+        }' for pool: '${
           network.$pool.name_label
-        } because there's no available host`
+        }' because there's no available host`
       )
       return null
     }
