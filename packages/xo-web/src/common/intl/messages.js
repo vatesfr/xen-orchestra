@@ -574,7 +574,7 @@ const messages = {
   newSrNfsDefaultVersion: 'Default NFS version',
   newSrNfsOptions: 'Comma delimited NFS options',
   newSrNfs: 'NFS version',
-  noZfsSharedAvailable: 'No ZFS shared available',
+  noSharedZfsAvailable: 'No shared ZFS available',
   reattachNewSrTooltip: 'Reattach SR',
   srLocation: 'Storage location',
 

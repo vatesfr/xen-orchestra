@@ -933,7 +933,7 @@ export default class New extends Component {
                       >
                         <option value=''>
                           {isEmpty(zfsPools)
-                            ? _('noZfsSharedAvailable')
+                            ? _('noSharedZfsAvailable')
                             : formatMessage(messages.noSelectedValue)}
                         </option>
                         {map(zfsPools, (pool, poolName) => (
