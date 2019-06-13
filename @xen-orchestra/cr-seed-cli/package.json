@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "golike-defer": "^0.4.1",
-    "xen-api": "^0.25.1"
+    "xen-api": "^0.25.2"
   },
   "scripts": {
     "postversion": "npm publish"
