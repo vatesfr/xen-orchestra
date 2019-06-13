@@ -53,21 +53,7 @@ class SDNController extends EventEmitter {
     this._objectsAdded = this._objectsAdded.bind(this)
     this._objectsUpdated = this._objectsUpdated.bind(this)
 
-    const createPrivateNetwork = this.createPrivateNetwork.bind(this)
-    createPrivateNetwork.description =
-      'Creates a pool-wide private network on a selected pool'
-    createPrivateNetwork.params = {
-      poolId: { type: 'string' },
-      networkName: { type: 'string' },
-      networkDescription: { type: 'string' },
-    }
-    createPrivateNetwork.resolve = {
-      xoPool: ['poolId', 'pool', ''],
-    }
-    this._xo.addApiMethod(
-      'plugin.SDNController.createPrivateNetwork',
-      createPrivateNetwork
-    )
+    this._unsetApiMethod = null
   }
 
   // ---------------------------------------------------------------------------
@@ -107,6 +93,22 @@ class SDNController extends EventEmitter {
   }
 
   async load() {
+    const createPrivateNetwork = this.createPrivateNetwork.bind(this)
+    createPrivateNetwork.description =
+      'Creates a pool-wide private network on a selected pool'
+    createPrivateNetwork.params = {
+      poolId: { type: 'string' },
+      networkName: { type: 'string' },
+      networkDescription: { type: 'string' },
+    }
+    createPrivateNetwork.resolve = {
+      xoPool: ['poolId', 'pool', ''],
+    }
+    this._unsetApiMethod = this._xo.addApiMethod(
+      'plugin.SDNController.createPrivateNetwork',
+      createPrivateNetwork
+    )
+
     // FIXME: we should monitor when xapis are added/removed
     forOwn(this._xo.getAllXapis(), async xapi => {
       await xapi.objectsFetched
@@ -156,6 +158,8 @@ class SDNController extends EventEmitter {
 
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners = []
+
+    this._unsetApiMethod()
   }
 
   // ---------------------------------------------------------------------------
