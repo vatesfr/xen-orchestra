@@ -52,11 +52,6 @@
 
 #=====================================================================
 
-# Configuration for backupNg
-[backupNgOptions]
-# timeout in milliseconds
-#timeout = 2e3
-
 # Configuration of the embedded HTTP server.
 [http]
 # If set to true, all HTTP traffic will be redirected to the first HTTPs

@@ -42,6 +42,7 @@ import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
+import parseDuration from '../../_parseDuration'
 import {
   type DeltaVmExport,
   type DeltaVmImport,
@@ -545,11 +546,11 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  constructor(app: any, { backupNgOptions }) {
+  constructor(app: any, { backup }) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()
-    this._backupNgOptions = backupNgOptions
+    this._backupOptions = backup
 
     app.on('start', async () => {
       this._logger = await app.getLogger('restore')
@@ -1803,7 +1804,7 @@ export default class BackupNg {
               metadata.size = await timeout
                 .call(
                   handler.getSize(resolveRelativeFromFile(path, metadata.xva)),
-                  this._backupNgOptions.timeout
+                  parseDuration(this._backupOptions.vmBackupSizeTimeout)
                 )
                 .catch(err => {
                   log.warn(`_listVmBackups, getSize`, { err })

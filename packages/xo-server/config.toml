@@ -48,11 +48,7 @@ maxTokenValidity = '0.5 year'
 [backup]
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
-
-# Configuration for backupNg
-[backupNgOptions]
-# timeout in milliseconds
-timeout = 2e3
+vmBackupSizeTimeout = '2 seconds'
 
 # Helmet handles HTTP security via headers
 #
