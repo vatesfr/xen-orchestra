@@ -120,7 +120,7 @@ const createDoesRetentionExist = name => {
   return ({ propSettings, settings = propSettings }) => settings.some(predicate)
 }
 
-const getInitialState = ({ preSelectedVms, setHomeVmIdsSelection }) => {
+const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
   setHomeVmIdsSelection([]) // Clear preselected vmIds
   return {
     _displayAdvancedSettings: undefined,
@@ -142,7 +142,7 @@ const getInitialState = ({ preSelectedVms, setHomeVmIdsSelection }) => {
     tags: {
       notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
     },
-    vms: preSelectedVms,
+    vms: preSelectedVmIds,
   }
 }
 
@@ -172,7 +172,7 @@ export default decorate([
     hostsById: createGetObjectsOfType('host'),
     poolsById: createGetObjectsOfType('pool'),
     srsById: createGetObjectsOfType('SR'),
-    preSelectedVms: state => state.homeVmIdsSelection,
+    preSelectedVmIds: state => state.homeVmIdsSelection,
   })),
   injectIntl,
   provideState({

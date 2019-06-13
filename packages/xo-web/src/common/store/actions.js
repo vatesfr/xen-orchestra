@@ -54,6 +54,6 @@ export const setXoaConfiguration = createAction(
   configuration => configuration
 )
 export const setHomeVmIdsSelection = createAction(
-  'SET_VM_IDS',
+  'SET_HOME_VM_IDS_SELECTION',
   homeVmIdsSelection => homeVmIdsSelection
 )

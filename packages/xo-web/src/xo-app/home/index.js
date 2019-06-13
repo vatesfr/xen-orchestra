@@ -183,7 +183,7 @@ const OPTIONS = {
           setHomeVmIdsSelection(vmIds)
           router.push('backup-ng/new/vms')
         },
-        icon: 'vm-backup',
+        icon: 'backup',
         labelId: 'backupLabel',
       },
       {
