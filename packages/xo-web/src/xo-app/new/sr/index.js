@@ -547,14 +547,12 @@ export default class New extends Component {
 
   _probe = async (host, type) => {
     const probeMethodFactories = {
-      hba: async hostId => {
-        const hbaDevices = await probeSrHba(hostId)::ignoreErrors()
-        return { hbaDevices }
-      },
-      zfs: async hostId => {
-        const zfsPools = await probeZfs(hostId)::ignoreErrors()
-        return { zfsPools }
-      },
+      hba: async hostId => ({
+        hbaDevices: await probeSrHba(hostId)::ignoreErrors(),
+      }),
+      zfs: async hostId => ({
+        zfsPools: await probeZfs(hostId)::ignoreErrors(),
+      }),
     }
     if (
       probeMethodFactories[type] !== undefined &&

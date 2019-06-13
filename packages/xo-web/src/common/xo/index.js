@@ -2351,8 +2351,8 @@ export const createSrExt = (host, nameLabel, nameDescription, device) =>
 export const createSrZfs = (host, nameLabel, nameDescription, location) =>
   _call('sr.createFile', {
     host: resolveId(host),
-    nameLabel,
     nameDescription,
+    nameLabel,
     location,
   })
 
