@@ -1,6 +1,6 @@
 import createLogger from '@xen-orchestra/log'
 import pump from 'pump'
-import convertFromVMDK from 'xo-vmdk-to-vhd'
+import convertVmdkToVhdStream from 'xo-vmdk-to-vhd'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { peekFooterFromVhdStream } from 'vhd-lib'
@@ -179,7 +179,7 @@ async function handleImport(
     req.length = req.headers['content-length']
     let vhdStream, size
     if (type === 'vmdk') {
-      vhdStream = await convertFromVMDK(req, vmdkData.blocksTable)
+      vhdStream = await convertVmdkToVhdStream(req, vmdkData.blocksTable)
       size = vmdkData.capacity
     } else if (type === 'vhd') {
       vhdStream = req

@@ -1,7 +1,8 @@
 import { createReadableSparseStream } from 'vhd-lib'
 
 import VMDKDirectParser from './vmdk-read'
-import readVmdkGrainTable, {
+export {
+  default as readVmdkGrainTable,
   readCapacityAndGrainTable,
 } from './vmdk-read-table'
 
@@ -15,9 +16,4 @@ async function convertFromVMDK(vmdkReadStream, table) {
     parser.blockIterator()
   )
 }
-
-export {
-  convertFromVMDK as default,
-  readVmdkGrainTable,
-  readCapacityAndGrainTable,
-}
+export { convertFromVMDK as default }
