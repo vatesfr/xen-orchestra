@@ -8,8 +8,15 @@ For installing XO and the plugins from the sources, please take a look at [the d
 
 ## Usage
 
-In the network creation view, select `pool-wide private network` and the `pool` where to create it.
+### Network creation
+
+In the network creation view, select a `pool` and `Private network`.
 Create the network.
+
+### Configuration
+
+Like all other xo-server plugins, it can be configured directly via
+the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
 ## Contributions
 

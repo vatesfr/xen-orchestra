@@ -21,8 +21,10 @@ exports.configurationSchema = {
   type: 'object',
   properties: {
     'cert-dir': {
-      description:
-        'Full path to a directory where to find: client-cert.pem, client-key.pem and ca-cert.pem to create ssl connections with hosts.',
+      description: `Full path to a directory where to find: client-cert.pem,
+client-key.pem and ca-cert.pem to create ssl connections with hosts.
+If none is provided, the plugin will create its own self-signed certificates.`,
+
       type: 'string',
     },
   },
