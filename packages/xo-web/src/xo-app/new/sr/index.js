@@ -678,7 +678,7 @@ export default class New extends Component {
                       </div>
                     </fieldset>,
                     <fieldset>
-                      <label htmlFor='selectSrPath'>{_('newSrUseNfs')}</label>
+                      <label htmlFor='selectSrPath'>{_('newSrNfs')}</label>
                       <select
                         className='form-control'
                         onChange={this._handleNfsVersion}
