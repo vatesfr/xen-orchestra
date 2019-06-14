@@ -8,6 +8,8 @@ const log = createLogger('xo:xo-server:sdn-controller:ovsdb-client')
 
 const OVSDB_PORT = 6640
 
+// =============================================================================
+
 export class OvsdbClient {
   constructor(host, clientKey, clientCert, caCert) {
     this._host = host
