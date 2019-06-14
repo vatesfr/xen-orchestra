@@ -22,10 +22,17 @@ exports.configurationSchema = {
   properties: {
     'cert-dir': {
       description: `Full path to a directory where to find: client-cert.pem,
-client-key.pem and ca-cert.pem to create ssl connections with hosts.
-If none is provided, the plugin will create its own self-signed certificates.`,
+ client-key.pem and ca-cert.pem to create ssl connections with hosts.
+ If none is provided, the plugin will create its own self-signed certificates.`,
 
       type: 'string',
+    },
+    'override-certs': {
+      description: `Whether or not to uninstall a SDN controller CA certificate
+ if it already exists in order to replace it with the plugin's ones`,
+
+      type: 'boolean',
+      default: false,
     },
   },
 }
@@ -55,15 +62,18 @@ class SDNController extends EventEmitter {
     this._objectsAdded = this._objectsAdded.bind(this)
     this._objectsUpdated = this._objectsUpdated.bind(this)
 
+    this._overrideCerts = false
+
     this._unsetApiMethod = null
   }
 
   // ---------------------------------------------------------------------------
 
   async configure(configuration) {
+    this._overrideCerts = configuration['override-certs']
     let certDirectory = configuration['cert-dir']
     if (!certDirectory) {
-      log.debug(`No cert-dir provided, creating certificates`)
+      log.debug(`No cert-dir provided, using default self-signed certificates`)
       certDirectory = await this._getDataDir()
 
       if (!existsSync(certDirectory + CA_CERT)) {
@@ -77,7 +87,7 @@ class SDNController extends EventEmitter {
           `${CLIENT_CERT} should not exist`
         )
 
-        log.debug(`No generated certificates exists, creating them`)
+        log.debug(`No default self-signed certificates exists, creating them`)
         await this._generateCertificatesAndKey(certDirectory)
       }
     }
@@ -95,9 +105,8 @@ class SDNController extends EventEmitter {
     this._OvsdbClients.forEach(client => {
       client.updateCertificates(this._clientKey, this._clientCert, this._caCert)
     })
-    let i
     const updatedPools = []
-    for (i = 0; i < this._poolNetworks.length; ++i) {
+    for (let i = 0; i < this._poolNetworks.length; ++i) {
       const poolNetwork = this._poolNetworks[i]
       if (updatedPools.includes(poolNetwork.pool)) {
         continue
@@ -114,7 +123,7 @@ class SDNController extends EventEmitter {
   }
 
   async load() {
-    const createPrivateNetwork = this.createPrivateNetwork.bind(this)
+    const createPrivateNetwork = this._createPrivateNetwork.bind(this)
     createPrivateNetwork.description =
       'Creates a pool-wide private network on a selected pool'
     createPrivateNetwork.params = {
@@ -183,9 +192,9 @@ class SDNController extends EventEmitter {
     this._unsetApiMethod()
   }
 
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
 
-  async createPrivateNetwork({ xoPool, networkName, networkDescription }) {
+  async _createPrivateNetwork({ xoPool, networkName, networkDescription }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
 
@@ -229,7 +238,7 @@ class SDNController extends EventEmitter {
     }
   }
 
-  // ===========================================================================
+  // ---------------------------------------------------------------------------
 
   async _manageXapi(xapi) {
     const { objects } = xapi
@@ -298,8 +307,7 @@ class SDNController extends EventEmitter {
           const poolNetworks = filter(this._poolNetworks, {
             starCenter: starCenterRef,
           })
-          let i
-          for (i = 0; i < poolNetworks.length; ++i) {
+          for (let i = 0; i < poolNetworks.length; ++i) {
             const poolNetwork = poolNetworks[i]
             const network = await xapi._getOrWaitObject(poolNetwork.network)
             const newCenter = await this._electNewCenter(network, true)
@@ -401,8 +409,7 @@ class SDNController extends EventEmitter {
           )
         }
       }
-      let i
-      for (i = 0; i < tunnels.length; i++) {
+      for (let i = 0; i < tunnels.length; i++) {
         const tunnel = tunnels[i]
         const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
         if (accessPIF.host !== host.$ref) {
@@ -442,8 +449,7 @@ class SDNController extends EventEmitter {
       }
     } else {
       const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
-      let i
-      for (i = 0; i < poolNetworks.length; ++i) {
+      for (let i = 0; i < poolNetworks.length; ++i) {
         const poolNetwork = poolNetworks[i]
         const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
         log.debug(
@@ -495,12 +501,20 @@ class SDNController extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  // TODO: uninstall existing certificate when required
   async _installCaCertificateIfNeeded(xapi) {
     let needInstall = false
     try {
       const result = await xapi.call('pool.certificate_list')
       if (!result.includes(SDN_CONTROLLER_CERT)) {
+        needInstall = true
+      } else if (this._overrideCerts) {
+        // TODO: find condition
+        await xapi.call('pool.certificate_uninstall', SDN_CONTROLLER_CERT)
+        log.debug(
+          `Old SDN Controller CA certificate uninstalled on pool: '${
+            xapi.pool.name_label
+          }'`
+        )
         needInstall = true
       }
     } catch (error) {

@@ -21,6 +21,7 @@ the web interface, see [the plugin documentation](https://xen-orchestra.com/docs
 The plugin's configuration contains:
 - `cert-dir`: A path where to find the certificates to create SSL connections with the hosts.
 If none is provided, the plugin will create its own self-signed certificates.
+- `override-certs:` Whether or not to uninstall an already existind SDN controller CA certificate in order to replace it by the plugin's ones.
 
 ## Contributions
 

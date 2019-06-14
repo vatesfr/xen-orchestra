@@ -173,8 +173,7 @@ export class OvsdbClient {
       return
     }
     const portsToDelete = []
-    let i
-    for (i = 0; i < ports.length; ++i) {
+    for (let i = 0; i < ports.length; ++i) {
       const portUuid = ports[i][1]
 
       const where = [['_uuid', '==', ['uuid', portUuid]]]
@@ -311,8 +310,7 @@ export class OvsdbClient {
       return
     }
 
-    let i
-    for (i = 0; i < ports.length; ++i) {
+    for (let i = 0; i < ports.length; ++i) {
       const portUuid = ports[i][1]
       const interfaces = await this._getPortInterfaces(portUuid, socket)
       if (!interfaces) {
@@ -374,8 +372,7 @@ export class OvsdbClient {
       return false
     }
 
-    let i
-    for (i = 0; i < selectResult.options[1].length; ++i) {
+    for (let i = 0; i < selectResult.options[1].length; ++i) {
       const option = selectResult.options[1][i]
       if (option[0] === 'remote_ip' && option[1] === remoteAddress) {
         return true
