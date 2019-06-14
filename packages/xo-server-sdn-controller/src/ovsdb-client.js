@@ -14,9 +14,7 @@ export class OvsdbClient {
     this._numberOfPortAndInterface = 0
     this._requestID = 0
 
-    this._clientKey = clientKey
-    this._clientCert = clientCert
-    this._caCert = caCert
+    this.updateCertificates(clientKey, clientCert, caCert)
 
     log.debug(`[${this._host.name_label}] New OVSDB client`)
   }
@@ -33,6 +31,14 @@ export class OvsdbClient {
 
   get id() {
     return this._host.$id
+  }
+
+  updateCertificates(clientKey, clientCert, caCert) {
+    this._clientKey = clientKey
+    this._clientCert = clientCert
+    this._caCert = caCert
+
+    log.debug(`[${this._host.name_label}] Certificates have been updated`)
   }
 
   // ---------------------------------------------------------------------------

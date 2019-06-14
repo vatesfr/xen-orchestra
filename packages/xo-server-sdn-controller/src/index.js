@@ -81,6 +81,7 @@ class SDNController extends EventEmitter {
         await this._generateCertificatesAndKey(certDirectory)
       }
     }
+    // TODO: verify certificates and create new certificates if needed
 
     // All certificates MUST exist now
     assert(existsSync(certDirectory + CA_CERT), `No ${CA_CERT}`)
@@ -91,7 +92,25 @@ class SDNController extends EventEmitter {
     this._clientCert = readFileSync(certDirectory + CLIENT_CERT)
     this._caCert = readFileSync(certDirectory + CA_CERT)
 
-    // TODO: update certificates of all the hosts and install cert
+    this._OvsdbClients.forEach(client => {
+      client.updateCertificates(this._clientKey, this._clientCert, this._caCert)
+    })
+    let i
+    const updatedPools = []
+    for (i = 0; i < this._poolNetworks.length; ++i) {
+      const poolNetwork = this._poolNetworks[i]
+      if (updatedPools.includes(poolNetwork.pool)) {
+        continue
+      }
+
+      const xapi = this._xo.getXapi(poolNetwork.pool)
+      if (!xapi) {
+        log.error(`XAPI not found`)
+        continue
+      }
+      await this._installCaCertificateIfNeeded(xapi)
+      updatedPools.push(poolNetwork.pool)
+    }
   }
 
   async load() {
@@ -476,6 +495,7 @@ class SDNController extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
+  // TODO: uninstall existing certificate when required
   async _installCaCertificateIfNeeded(xapi) {
     let needInstall = false
     try {
