@@ -646,11 +646,14 @@ export const createCompare = criterias => (...items) => {
 
 // ===================================================================
 
-export const hasLicenseRestrictions = host =>
-  host.productBrand !== 'XCP-ng' &&
-  versionSatisfies(host.version, '>=7.3.0') &&
-  host.license_params.sku_type === 'free' &&
-  host.license_params.sku_type === 'express'
+export const hasLicenseRestrictions = host => {
+  const licenseType = host.license_params.sku_type
+  return (
+    host.productBrand !== 'XCP-ng' &&
+    versionSatisfies(host.version, '>=7.3.0') &&
+    (licenseType === 'free' || licenseType === 'express')
+  )
+}
 
 // ===================================================================
 
