@@ -511,7 +511,6 @@ class SDNController extends EventEmitter {
       if (!result.includes(SDN_CONTROLLER_CERT)) {
         needInstall = true
       } else if (this._overrideCerts) {
-        // TODO: find condition
         await xapi.call('pool.certificate_uninstall', SDN_CONTROLLER_CERT)
         log.debug(
           `Old SDN Controller CA certificate uninstalled on pool: '${
