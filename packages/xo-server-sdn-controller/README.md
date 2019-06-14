@@ -18,6 +18,10 @@ Create the network.
 Like all other xo-server plugins, it can be configured directly via
 the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
+The plugin's configuration contains:
+- `cert-dir`: A path where to find the certificates to create SSL connections with the hosts.
+If none is provided, the plugin will create its own self-signed certificates.
+
 ## Contributions
 
 Contributions are *very* welcomed, either on the documentation or on
