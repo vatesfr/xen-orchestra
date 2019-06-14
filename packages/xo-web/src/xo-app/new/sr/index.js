@@ -46,7 +46,7 @@ import {
 
 // ===================================================================
 
-const NFS_OPTIONS = ['3', '4', '4.1']
+const NFS_VERSIONS = ['3', '4', '4.1']
 
 // ===================================================================
 
@@ -241,7 +241,7 @@ export default class New extends Component {
       lockCreation: undefined,
       lun: undefined,
       luns: undefined,
-      nfsOption: '',
+      nfsVersion: '',
       hbaDevices: undefined,
       name: undefined,
       path: undefined,
@@ -279,7 +279,7 @@ export default class New extends Component {
       path,
       type,
       scsiId,
-      nfsOption,
+      nfsVersion,
       nfsOptions,
     } = this.state
 
@@ -291,7 +291,7 @@ export default class New extends Component {
           description.value,
           server.value,
           path,
-          nfsOption !== '' ? nfsOption : undefined,
+          nfsVersion !== '' ? nfsVersion : undefined,
           nfsOptions
         ),
       hba: async () => {
@@ -536,9 +536,9 @@ export default class New extends Component {
     }
   }
 
-  _handleNfsOption = ({ target: { value } }) => {
+  _handleNfsVersion = ({ target: { value } }) => {
     this.setState({
-      nfsOption: value,
+      nfsVersion: value,
     })
   }
 
@@ -586,7 +586,7 @@ export default class New extends Component {
       lockCreation,
       lun,
       luns,
-      nfsOption,
+      nfsVersion,
       path,
       paths,
       summary,
@@ -681,14 +681,13 @@ export default class New extends Component {
                       <label htmlFor='selectSrPath'>{_('newSrUseNfs')}</label>
                       <select
                         className='form-control'
-                        onChange={this._handleNfsOption}
-                        required
-                        value={nfsOption}
+                        onChange={this._handleNfsVersion}
+                        value={nfsVersion}
                       >
                         <option value={null}>
-                          {formatMessage(messages.noSelectedValue)}
+                          {formatMessage(messages.newSrNfsDefaultVersion)}
                         </option>
-                        {map(NFS_OPTIONS, option => (
+                        {map(NFS_VERSIONS, option => (
                           <option key={option} value={option}>
                             {option}
                           </option>
