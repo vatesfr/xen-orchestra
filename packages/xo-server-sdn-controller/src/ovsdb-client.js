@@ -235,7 +235,7 @@ export class OvsdbClient {
     log.debug(
       `[${this._host.name_label}] Deleted ${
         jsonObjects[0].result[0].count
-      } ports from bridge: ${bridgeName}`
+      } ports from bridge: '${bridgeName}'`
     )
     socket.destroy()
   }

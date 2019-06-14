@@ -406,9 +406,9 @@ class SDNController extends EventEmitter {
           await xapi.call('pool.certificate_sync')
         } catch (error) {
           log.error(
-            `Couldn't sync SDN controller ca certificate in pool: ${
+            `Couldn't sync SDN controller ca certificate in pool: '${
               host.$pool.name_label
-            } because: ${error}`
+            }' because: ${error}`
           )
         }
       }
@@ -431,17 +431,17 @@ class SDNController extends EventEmitter {
         }
 
         log.debug(
-          `Pluging PIF: ${accessPIF.device} for host: '${
+          `Pluging PIF: '${accessPIF.device}' for host: '${
             host.name_label
-          } on network: ${accessPIF.$network.name_label}'`
+          }' on network: '${accessPIF.$network.name_label}'`
         )
         try {
           await xapi.call('PIF.plug', accessPIF.$ref)
         } catch (error) {
           log.error(
-            `XAPI error while pluging PIF: ${accessPIF.device} on host: ${
+            `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${
               host.name_label
-            } fo network: ${accessPIF.$network.name_label}`
+            }' fo network: '${accessPIF.$network.name_label}'`
           )
         }
 
@@ -458,9 +458,9 @@ class SDNController extends EventEmitter {
         log.debug(
           `Star center host: '${host.name_label}' of network: '${
             network.name_label
-          }' in pool: ${
+          }' in pool: '${
             host.$pool.name_label
-          } is no longer reachable, electing a new host`
+          }' is no longer reachable, electing a new host`
         )
 
         const newCenter = await this._electNewCenter(network, true)
@@ -484,11 +484,11 @@ class SDNController extends EventEmitter {
     const controller = find(pool.$xapi.objects.all, { $type: 'SDN_controller' })
     if (controller) {
       await pool.$xapi.call('SDN_controller.forget', controller.$ref)
-      log.debug(`Remove old SDN controller from pool: ${pool.name_label}`)
+      log.debug(`Remove old SDN controller from pool: '${pool.name_label}'`)
     }
 
     await pool.$xapi.call('SDN_controller.introduce', PROTOCOL)
-    log.debug(`Set SDN controller of pool: ${pool.name_label}`)
+    log.debug(`Set SDN controller of pool: '${pool.name_label}'`)
     this._cleaners.push(await this._manageXapi(pool.$xapi))
   }
 
@@ -521,7 +521,7 @@ class SDNController extends EventEmitter {
       }
     } catch (error) {
       log.error(
-        `Couldn't retrieve certificate list of pool: ${xapi.pool.name_label}`
+        `Couldn't retrieve certificate list of pool: '${xapi.pool.name_label}'`
       )
     }
     if (!needInstall) {
@@ -536,13 +536,15 @@ class SDNController extends EventEmitter {
       )
       await xapi.call('pool.certificate_sync')
       log.debug(
-        `SDN controller CA certificate install in pool: ${xapi.pool.name_label}`
+        `SDN controller CA certificate install in pool: '${
+          xapi.pool.name_label
+        }'`
       )
     } catch (error) {
       log.error(
-        `Couldn't install SDN controller CA certificate in pool: ${
+        `Couldn't install SDN controller CA certificate in pool: '${
           xapi.pool.name_label
-        } because: ${error}`
+        }' because: ${error}`
       )
     }
   }
