@@ -7,11 +7,11 @@ import Tooltip from 'tooltip'
 import { injectState, provideState } from 'reaclette'
 import { isHostTimeConsistentToXoaTime } from 'xo'
 
-const AssertConsistentHostTime = decorate([
+const ConsistentHostTimeWarning = decorate([
   provideState({
     computed: {
       isHostTimeConsistentToXoaTime: (_, { hostId }) =>
-        isHostTimeConsistentToXoaTime(hostId).then(() => true, () => false),
+        isHostTimeConsistentToXoaTime(hostId),
     },
   }),
   injectState,
@@ -23,8 +23,8 @@ const AssertConsistentHostTime = decorate([
     ),
 ])
 
-AssertConsistentHostTime.propTypes = {
+ConsistentHostTimeWarning.propTypes = {
   hostId: PropTypes.string.isRequired,
 }
 
-export { AssertConsistentHostTime as default }
+export { ConsistentHostTimeWarning as default }

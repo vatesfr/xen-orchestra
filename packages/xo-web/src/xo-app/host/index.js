@@ -1,5 +1,5 @@
 import _ from 'intl'
-import AssertConsistentHostTime from 'assert-consistent-host-time'
+import ConsistentHostTimeWarning from 'consistent-host-time-warning'
 import Copiable from 'copiable'
 import HostActionBar from './action-bar'
 import Icon from 'icon'
@@ -256,7 +256,7 @@ export default class Host extends Component {
                 </Tooltip>
               )}
               &nbsp;
-              <AssertConsistentHostTime hostId={host.id} />
+              <ConsistentHostTimeWarning hostId={host.id} />
             </h2>
             <Copiable tagName='pre' className='text-muted mb-0'>
               {host.uuid}

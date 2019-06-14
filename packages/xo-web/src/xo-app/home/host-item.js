@@ -1,6 +1,6 @@
 import _ from 'intl'
-import AssertConsistentHostTime from 'assert-consistent-host-time'
 import Component from 'base-component'
+import ConsistentHostTimeWarning from 'consistent-host-time-warning'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -129,7 +129,7 @@ export default class HostItem extends Component {
                   </Tooltip>
                 )}
                 &nbsp;
-                <AssertConsistentHostTime hostId={host.id} />
+                <ConsistentHostTimeWarning hostId={host.id} />
                 &nbsp;
                 {hasLicenseRestrictions(host) && <LicenseWarning />}
               </EllipsisContainer>
