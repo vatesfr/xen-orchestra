@@ -1,8 +1,8 @@
 import assert from 'assert'
-import { connect } from 'tls'
 import createLogger from '@xen-orchestra/log'
 import forOwn from 'lodash/forOwn'
 import fromEvent from 'promise-toolbox/fromEvent'
+import { connect } from 'tls'
 
 const log = createLogger('xo:xo-server:sdn-controller:ovsdb-client')
 

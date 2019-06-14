@@ -1,11 +1,13 @@
 import assert from 'assert'
 import createLogger from '@xen-orchestra/log'
+import NodeOpenssl from 'node-openssl-cert'
+
 import { EventEmitter } from 'events'
+import { existsSync, readFileSync, writeFile } from 'fs'
 import { filter, find, forOwn, map } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
+
 import { OvsdbClient } from './ovsdb-client'
-import { existsSync, readFileSync, writeFile } from 'fs'
-import NodeOpenssl from 'node-openssl-cert'
 
 const log = createLogger('xo:xo-server:sdn-controller')
 
@@ -16,6 +18,8 @@ const CLIENT_KEY = '/client-key.pem'
 const CLIENT_CERT = '/client-cert.pem'
 
 const SDN_CONTROLLER_CERT = 'sdn-controller-ca.pem'
+
+const NB_DAYS = 9999
 
 exports.configurationSchema = {
   type: 'object',
@@ -113,7 +117,7 @@ class SDNController extends EventEmitter {
       }
 
       const xapi = this._xo.getXapi(poolNetwork.pool)
-      if (!xapi) {
+      if (xapi == null) {
         log.error(`XAPI not found`)
         continue
       }
@@ -169,7 +173,7 @@ class SDNController extends EventEmitter {
               starCenter: center ? center.$ref : null,
             })
             this._networks.set(network.$id, network.$ref)
-            if (center) {
+            if (center != null) {
               this._starCenters.set(center.$id, center.$ref)
             }
           }
@@ -233,7 +237,7 @@ class SDNController extends EventEmitter {
       starCenter: center ? center.$ref : null,
     })
     this._networks.set(privateNetwork.$id, privateNetwork.$ref)
-    if (center) {
+    if (center != null) {
       this._starCenters.set(center.$id, center.$ref)
     }
   }
@@ -695,7 +699,7 @@ class SDNController extends EventEmitter {
     }
     const cacsroptions = {
       hash: 'sha256',
-      days: 9999,
+      days: NB_DAYS,
       subject: subject,
     }
 

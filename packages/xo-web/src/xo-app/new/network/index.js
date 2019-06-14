@@ -6,9 +6,9 @@ import React, { Component } from 'react'
 import Wizard, { Section } from 'wizard'
 import { addSubscriptions, connectStore } from 'utils'
 import {
-  createPrivateNetwork,
   createBondedNetwork,
   createNetwork,
+  createPrivateNetwork,
   getBondModes,
   subscribePlugins,
 } from 'xo'
@@ -58,11 +58,14 @@ const NewNetwork = decorate([
         bonded: !bonded,
         isPrivate: bonded ? isPrivate : false,
       }),
-      togglePrivate: () => ({ bonded, isPrivate }) => ({
-        ...EMPTY,
-        isPrivate: !isPrivate,
-        bonded: isPrivate ? bonded : false,
-      }),
+      togglePrivate() {
+        const { bonded, isPrivate } = this.state
+        return {
+          ...EMPTY,
+          isPrivate: !isPrivate,
+          bonded: isPrivate ? bonded : false,
+        }
+      },
     },
     computed: {
       modeOptions: ({ bondModes }) =>
@@ -183,9 +186,9 @@ const NewNetwork = decorate([
                   </div>
                   <div>
                     <Toggle
+                      disabled={!isSdnControllerLoaded}
                       onChange={effects.togglePrivate}
                       value={isPrivate}
-                      disabled={!isSdnControllerLoaded}
                     />{' '}
                     <label>{_('privateNetwork')}</label>
                   </div>
