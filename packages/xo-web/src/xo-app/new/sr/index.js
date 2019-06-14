@@ -276,11 +276,11 @@ export default class New extends Component {
       host,
       iqn,
       lun,
-      path,
-      type,
-      scsiId,
-      nfsVersion,
       nfsOptions,
+      nfsVersion,
+      path,
+      scsiId,
+      type,
     } = this.state
 
     const createMethodFactories = {

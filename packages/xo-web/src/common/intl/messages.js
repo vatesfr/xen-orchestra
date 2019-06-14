@@ -573,7 +573,7 @@ const messages = {
   newSrLocalPathPlaceHolder: '/path/to/directory',
   newSrNfsDefaultVersion: 'Default NFS version',
   newSrNfsOptions: 'Comma delimited NFS options',
-  newSrUseNfs: 'Use NFS',
+  newSrUseNfs: 'NFS',
   reattachNewSrTooltip: 'Reattach SR',
 
   // ------ New Network -----
