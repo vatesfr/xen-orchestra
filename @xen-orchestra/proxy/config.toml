@@ -1,0 +1,20 @@
+# Vendor config: DO NOT TOUCH!
+#
+# See sample.config.toml to override.
+
+authenticationToken = "J0BgKritQgPxoyZrBJ5ViafQfLk06YoyFwC3fmfO5wU"
+
+datadir = "/var/lib/xo-proxy/data"
+
+[[http.listen]]
+
+port = 80
+
+[remoteOptions]
+mountsDir = '/run/xo-proxy/mounts'
+
+# timeout in milliseconds (set to 0 to disable)
+timeout = 600e3
+
+# see https:#github.com/vatesfr/xen-orchestra/issues/3419
+# useSudo = false
