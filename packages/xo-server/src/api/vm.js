@@ -322,6 +322,9 @@ create.params = {
   },
 
   hvmBootFirmware: { type: 'string', optional: true },
+
+  // other params are passed to `editVm`
+  '*': { type: 'any' },
 }
 
 create.resolve = {
