@@ -2348,4 +2348,14 @@ export default class Xapi extends XapiBase {
       )
     }
   }
+
+  async getHyperthreading(hostId) {
+    return this.call(
+      'host.call_plugin',
+      hostId,
+      'hyperthreading.py',
+      'get_hyperthreading',
+      {}
+    )
+  }
 }
