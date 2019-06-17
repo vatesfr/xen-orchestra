@@ -43,6 +43,20 @@ type MetadataBackupJob = {
   xoMetadata?: boolean,
 }
 
+const logInstantFailureTask = (logger, { data, error, message, parentId }) => {
+  const taskId = logger.notice(message, {
+    data,
+    event: 'task.start',
+    parentId,
+  })
+  logger.error(message, {
+    event: 'task.end',
+    result: serializeError(error),
+    status: 'failure',
+    taskId,
+  })
+}
+
 const createSafeReaddir = (handler, methodName) => (path, options) =>
   handler.list(path, options).catch(error => {
     if (error?.code !== 'ENOENT') {
@@ -491,12 +505,10 @@ export default class metadataBackup {
             handlers[id] = handler
           },
           error => {
-            logger.warning(`unable to get the handler for the remote (${id})`, {
-              event: 'task.warning',
-              taskId: runJobId,
-              data: {
-                error,
-              },
+            logInstantFailureTask(logger, {
+              error,
+              message: `unable to get the handler for the remote (${id})`,
+              parentId: runJobId,
             })
           }
         )
@@ -527,16 +539,11 @@ export default class metadataBackup {
         try {
           xapi = this._app.getXapi(id)
         } catch (error) {
-          logger.warning(
-            `unable to get the xapi associated to the pool (${id})`,
-            {
-              event: 'task.warning',
-              taskId: runJobId,
-              data: {
-                error,
-              },
-            }
-          )
+          logInstantFailureTask(logger, {
+            error,
+            message: `unable to get the xapi associated to the pool (${id})`,
+            parentId: runJobId,
+          })
         }
         if (xapi !== undefined) {
           promises.push(
