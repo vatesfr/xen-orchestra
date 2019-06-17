@@ -459,6 +459,7 @@ const NoObjects = props =>
 })
 @connectStore(() => {
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
+
   return {
     isAdmin,
     isPoolAdmin: getIsPoolAdmin,
