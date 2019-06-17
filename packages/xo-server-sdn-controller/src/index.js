@@ -75,7 +75,7 @@ class SDNController extends EventEmitter {
   async configure(configuration) {
     this._overrideCerts = configuration['override-certs']
     let certDirectory = configuration['cert-dir']
-    if (certDirectory.empty() === true) {
+    if (certDirectory == null) {
       log.debug(`No cert-dir provided, using default self-signed certificates`)
       certDirectory = await this._getDataDir()
 
@@ -711,14 +711,14 @@ class SDNController extends EventEmitter {
     }
 
     openssl.generateRSAPrivateKey(rsakeyoptions, (err, cakey, cmd) => {
-      if (err != null) {
-        log.error(err)
+      if (err !== false) {
+        log.error(`Error while generating CA private key: ${err}`)
         return
       }
 
       openssl.generateCSR(cacsroptions, cakey, null, (err, csr, cmd) => {
-        if (err != null) {
-          log.error(err)
+        if (err !== false) {
+          log.error(`Error while generating CA certificate: ${err}`)
           return
         }
 
@@ -728,8 +728,8 @@ class SDNController extends EventEmitter {
           cakey,
           null,
           async (err, cacrt, cmd) => {
-            if (err) {
-              log.error(err)
+            if (err !== false) {
+              log.error(`Error while signing CA certificate: ${err}`)
               return
             }
 
@@ -737,15 +737,15 @@ class SDNController extends EventEmitter {
             openssl.generateRSAPrivateKey(
               rsakeyoptions,
               async (err, key, cmd) => {
-                if (err != null) {
-                  log.error(err)
+                if (err !== false) {
+                  log.error(`Error while generating private key: ${err}`)
                   return
                 }
 
                 await this._writeFile(dataDir + CLIENT_KEY, key)
                 openssl.generateCSR(csroptions, key, null, (err, csr, cmd) => {
-                  if (err != null) {
-                    log.error(err)
+                  if (err !== false) {
+                    log.error(`Error while generating certificate: ${err}`)
                     return
                   }
                   openssl.CASignCSR(
@@ -756,8 +756,8 @@ class SDNController extends EventEmitter {
                     cakey,
                     null,
                     async (err, crt, cmd) => {
-                      if (err != null) {
-                        log.error(err)
+                      if (err !== false) {
+                        log.error(`Error while signing certificate: ${err}`)
                         return
                       }
 
