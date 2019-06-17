@@ -47,6 +47,7 @@ const messages = {
   chooseBackup: 'Choose a backup',
   clickToShowError: 'Click to show error',
   backupJobs: 'Backup jobs',
+  proxy: 'Proxy',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -272,6 +273,7 @@ const messages = {
   selectPifs: 'Select PIF(s)…',
   selectPools: 'Select pool(s)…',
   selectRemotes: 'Select remote(s)…',
+  selectProxies: 'Select proxy(ies)…',
   selectResourceSets: 'Select resource set(s)…',
   selectResourceSetsVmTemplate: 'Select template(s)…',
   selectResourceSetsSr: 'Select SR(s)…',
