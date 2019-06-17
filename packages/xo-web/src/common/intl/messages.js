@@ -1764,21 +1764,21 @@ const messages = {
   refresh: 'Refresh',
   upgrade: 'Upgrade',
   downgrade: 'Downgrade',
-  noUpdaterCommunity: 'No updater available for Community Edition',
+  noUpdaterCommunity: 'One Click updates are not available for the Community Edition',
   considerSubscribe:
-    'Please consider subscribing and trying it with all the features for free during 15 days on {link}.',
+    'Please consider subscribing and trying XOA with all the features for free for 15 days by going to {link}.',
   noUpdaterWarning:
-    'Manual update could break your current installation due to dependencies issues, do it with caution',
+    'Manually updating your installation could break due to dependency issues, upgrade with caution',
   currentVersion: 'Current version:',
   register: 'Register',
   editRegistration: 'Edit registration',
   trialRegistration:
-    'Please, take time to register in order to enjoy your trial.',
+    'Please, take time to register and order enjoy your 15 day trial.',
   trialStartButton: 'Start trial',
   trialAvailableUntil:
     'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
   trialConsumed:
-    'Your trial has been ended. Contact us or downgrade to Free version',
+    'Your trial has been ended. Contact us or downgrade to the Free version',
   trialLocked:
     'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
   noUpdateInfo: 'No update information available',
@@ -1789,7 +1789,7 @@ const messages = {
   updaterError: "Can't fetch update information",
   promptUpgradeReloadTitle: 'Upgrade successful',
   promptUpgradeReloadMessage:
-    'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?',
+    'Your XOA has successfully been upgraded, and your browser must reload the application. Do you want to reload now ?',
   upgradeWarningTitle: 'Upgrade warning',
   upgradeWarningMessage:
     'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?',
@@ -1804,7 +1804,7 @@ const messages = {
   disclaimerText1:
     "You are using XO from the sources! That's great for a personal/non-profit usage.",
   disclaimerText2:
-    "If you are a company, it's better to use it with our appliance + pro support included:",
+    "If you are a business user, it's better to use XO with our appliance + pro support included:",
   disclaimerText3:
     'This version is not bundled with any support nor updates. Use it with caution.',
   notRegisteredDisclaimerInfo:
