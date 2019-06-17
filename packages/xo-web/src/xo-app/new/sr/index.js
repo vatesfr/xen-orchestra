@@ -684,7 +684,7 @@ export default class New extends Component {
                         onChange={this._handleNfsVersion}
                         value={nfsVersion}
                       >
-                        <option value={null}>
+                        <option value=''>
                           {formatMessage(messages.newSrNfsDefaultVersion)}
                         </option>
                         {map(NFS_VERSIONS, option => (
