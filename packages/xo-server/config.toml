@@ -48,6 +48,7 @@ maxTokenValidity = '0.5 year'
 [backup]
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
+# Delay to get the size of a full backup on restore view
 vmBackupSizeTimeout = '2 seconds'
 
 # Helmet handles HTTP security via headers
