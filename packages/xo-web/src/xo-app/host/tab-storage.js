@@ -88,6 +88,26 @@ const SR_COLUMNS = [
     sortCriteria: 'shared',
   },
   {
+    name: _('pbdDetails'),
+    itemRenderer: ({ pbdDeviceConfig }) => {
+      const keys = Object.keys(pbdDeviceConfig)
+      return (
+        !isEmpty(keys) && (
+          <div>
+            {keys.map(key => {
+              return (
+                <div>
+                  <strong>{key}: </strong>
+                  <span>{` ${pbdDeviceConfig[key]}`}</span>
+                </div>
+              )
+            })}
+          </div>
+        )
+      )
+    },
+  },
+  {
     name: _('pbdStatus'),
     itemRenderer: storage => (
       <StateButton
@@ -137,6 +157,7 @@ export default connectStore(() => {
 
         return {
           attached: pbd.attached,
+          pbdDeviceConfig: pbd.device_config,
           format: sr.SR_type,
           free: size > 0 ? size - usage : 0,
           id: sr.id,

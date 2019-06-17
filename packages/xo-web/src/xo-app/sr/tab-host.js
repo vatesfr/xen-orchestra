@@ -56,6 +56,26 @@ const HOST_COLUMNS = [
     sortCriteria: (pbd, hosts) => hosts[pbd.host].name_description,
   },
   {
+    name: _('pbdDetails'),
+    itemRenderer: ({ device_config: deviceConfig }) => {
+      const keys = Object.keys(deviceConfig)
+      return (
+        !isEmpty(keys) && (
+          <div>
+            {keys.map(key => {
+              return (
+                <div>
+                  <strong>{key}: </strong>
+                  <span>{` ${deviceConfig[key]}`}</span>
+                </div>
+              )
+            })}
+          </div>
+        )
+      )
+    },
+  },
+  {
     name: _('pbdStatus'),
     itemRenderer: pbd => (
       <StateButton
