@@ -47,7 +47,7 @@ export class OvsdbClient {
 
   async addInterfaceAndPort(networkUuid, networkName, remoteAddress) {
     const socket = await this._connect()
-    if (!socket) {
+    if (socket == null) {
       log.error(`[${this._host.name_label}] No TLS socket available`)
       return
     }
@@ -60,19 +60,18 @@ export class OvsdbClient {
       networkName,
       socket
     )
-    if (!bridgeUuid) {
+    if (bridgeUuid == null) {
       socket.destroy()
       return
     }
 
-    if (
-      await this._interfaceAndPortAlreadyExist(
-        bridgeUuid,
-        bridgeName,
-        remoteAddress,
-        socket
-      )
-    ) {
+    const alreadyExist = await this._interfaceAndPortAlreadyExist(
+      bridgeUuid,
+      bridgeName,
+      remoteAddress,
+      socket
+    )
+    if (alreadyExist === true) {
       socket.destroy()
       return
     }
@@ -115,7 +114,7 @@ export class OvsdbClient {
       mutateBridgeOperation,
     ]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (!jsonObjects) {
+    if (jsonObjects == null) {
       socket.destroy()
       return
     }
@@ -126,14 +125,14 @@ export class OvsdbClient {
     let opResult
     do {
       opResult = jsonObjects[0].result[i]
-      if (opResult && opResult.error) {
+      if (opResult != null && opResult.error != null) {
         error = opResult.error
         details = opResult.details
       }
       ++i
     } while (opResult && !error)
 
-    if (error) {
+    if (error != null) {
       log.error(
         `[${
           this._host.name_label
@@ -153,7 +152,7 @@ export class OvsdbClient {
 
   async resetForNetwork(networkUuid, networkName) {
     const socket = await this._connect()
-    if (!socket) {
+    if (socket == null) {
       log.error(`[${this._host.name_label}] No TLS socket available`)
       return
     }
@@ -163,14 +162,14 @@ export class OvsdbClient {
       networkName,
       socket
     )
-    if (!bridgeUuid) {
+    if (bridgeUuid == null) {
       socket.destroy()
       return
     }
 
     // Delete old ports created by a SDN controller
     const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
-    if (!ports) {
+    if (ports == null) {
       socket.destroy()
       return
     }
@@ -185,7 +184,7 @@ export class OvsdbClient {
         where,
         socket
       )
-      if (!selectResult) {
+      if (selectResult == null) {
         continue
       }
 
@@ -216,11 +215,11 @@ export class OvsdbClient {
 
     const params = ['Open_vSwitch', mutateBridgeOperation]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (!jsonObjects) {
+    if (jsonObjects == null) {
       socket.destroy()
       return
     }
-    if (jsonObjects[0].error) {
+    if (jsonObjects[0].error != null) {
       log.error(
         `[${
           this._host.name_label
@@ -286,7 +285,7 @@ export class OvsdbClient {
       where,
       socket
     )
-    if (!selectResult) {
+    if (selectResult == null) {
       return [null, null]
     }
 
@@ -308,23 +307,26 @@ export class OvsdbClient {
     socket
   ) {
     const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
-    if (!ports) {
+    if (ports == null) {
       return
     }
 
     for (let i = 0; i < ports.length; ++i) {
       const portUuid = ports[i][1]
       const interfaces = await this._getPortInterfaces(portUuid, socket)
-      if (!interfaces) {
+      if (interfaces == null) {
         continue
       }
 
       let j
       for (j = 0; j < interfaces.length; ++j) {
         const interfaceUuid = interfaces[j][1]
-        if (
-          await this._interfaceHasRemote(interfaceUuid, remoteAddress, socket)
-        ) {
+        const hasRemote = await this._interfaceHasRemote(
+          interfaceUuid,
+          remoteAddress,
+          socket
+        )
+        if (hasRemote === true) {
           return true
         }
       }
@@ -336,7 +338,7 @@ export class OvsdbClient {
   async _getBridgePorts(bridgeUuid, bridgeName, socket) {
     const where = [['_uuid', '==', ['uuid', bridgeUuid]]]
     const selectResult = await this._select('Bridge', ['ports'], where, socket)
-    if (!selectResult) {
+    if (selectResult == null) {
       return null
     }
 
@@ -353,7 +355,7 @@ export class OvsdbClient {
       where,
       socket
     )
-    if (!selectResult) {
+    if (selectResult == null) {
       return null
     }
 
@@ -370,7 +372,7 @@ export class OvsdbClient {
       where,
       socket
     )
-    if (!selectResult) {
+    if (selectResult == null) {
       return false
     }
 
@@ -396,11 +398,11 @@ export class OvsdbClient {
 
     const params = ['Open_vSwitch', selectOperation]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (!jsonObjects) {
+    if (jsonObjects == null) {
       return
     }
     const jsonResult = jsonObjects[0].result[0]
-    if (jsonResult.error) {
+    if (jsonResult.error != null) {
       log.error(
         `[${
           this._host.name_label
