@@ -332,6 +332,18 @@ const COLUMNS = [
     sortCriteria: (vif, userData) => userData.networks[vif.$network].name_label,
   },
   {
+    itemRenderer: vif => (
+      <pre>
+        <Text
+          value={vif.rateLimit || ''}
+          onChange={rateLimit => setVif(vif, { rateLimit: +rateLimit })}
+        />
+      </pre>
+    ),
+    name: _('vifRateLimitLabel'),
+    sortCriteria: 'rateLimit',
+  },
+  {
     component: VifAllowedIps,
     name: _('vifAllowedIps'),
   },
