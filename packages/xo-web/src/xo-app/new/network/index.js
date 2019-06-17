@@ -53,11 +53,14 @@ const NewNetwork = decorate([
       onChangePif: (_, value) => ({ bonded }) =>
         bonded ? { pifs: value } : { pif: value },
       reset: () => EMPTY,
-      toggleBonded: () => ({ bonded, isPrivate }) => ({
-        ...EMPTY,
-        bonded: !bonded,
-        isPrivate: bonded ? isPrivate : false,
-      }),
+      toggleBonded() {
+        const { bonded, isPrivate } = this.state
+        return {
+          ...EMPTY,
+          bonded: !bonded,
+          isPrivate: bonded ? isPrivate : false,
+        }
+      },
       togglePrivate() {
         const { bonded, isPrivate } = this.state
         return {

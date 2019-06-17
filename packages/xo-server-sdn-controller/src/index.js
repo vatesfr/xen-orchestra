@@ -412,7 +412,7 @@ class SDNController extends EventEmitter {
           )
         }
       }
-      for (let i = 0; i < tunnels.length; i++) {
+      for (let i = 0; i < tunnels.length; ++i) {
         const tunnel = tunnels[i]
         const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
         if (accessPIF.host !== host.$ref) {
