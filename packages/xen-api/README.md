@@ -82,7 +82,7 @@ console.log(xapi.pool.$master.$resident_VMs[0].name_label)
 A CLI is provided to help exploration and discovery of the XAPI.
 
 ```
-> xen-api https://xen1.company.net root
+> xen-api xen1.company.net root
 Password: ******
 root@xen1.company.net> xapi.status
 'connected'
@@ -90,6 +90,14 @@ root@xen1.company.net> xapi.pool.master
 'OpaqueRef:ec7c5147-8aee-990f-c70b-0de916a8e993'
 root@xen1.company.net> xapi.pool.$master.name_label
 'xen1'
+```
+
+You can optionally prefix the address by a protocol: `https://` (default) or `http://`.
+
+In case of error due to invalid or self-signed certificates you can use the `--allow-unauthorized` flag (or `--au`):
+
+```
+> xen-api --au xen1.company.net root
 ```
 
 To ease searches, `find()` and `findAll()` functions are available:
