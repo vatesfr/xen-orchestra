@@ -92,6 +92,12 @@ root@xen1.company.net> xapi.pool.$master.name_label
 'xen1'
 ```
 
+To Accept invalid certificates add `--au` before host address.
+
+```
+> xen-api --au https://xen1.company.net root
+```
+
 To ease searches, `find()` and `findAll()` functions are available:
 
 ```
