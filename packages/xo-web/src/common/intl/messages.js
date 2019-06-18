@@ -1773,7 +1773,7 @@ const messages = {
   register: 'Register',
   editRegistration: 'Edit registration',
   trialRegistration:
-    'Please, take time to register and order enjoy your 15 day trial.',
+    'Please, take time to register in order to enjoy your 15 day trial.',
   trialStartButton: 'Start trial',
   trialAvailableUntil:
     'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
