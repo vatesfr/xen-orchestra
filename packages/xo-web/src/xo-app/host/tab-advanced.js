@@ -97,8 +97,14 @@ MultipathableSrs.propTypes = {
 })
 export default class extends Component {
   async componentDidMount() {
-    const res = await getHyperthreadingHost(this.props.host)
-    // create a computed that determine if hyperthreading is enabled
+    let isHtEnabled = await getHyperthreadingHost(this.props.host)
+    isHtEnabled =
+      isHtEnabled === 'false'
+        ? false
+        : isHtEnabled === 'true'
+        ? true
+        : undefined
+    this.setState({ isHtEnabled })
   }
 
   _getPacks = createSelector(
@@ -118,10 +124,7 @@ export default class extends Component {
       return uniqPacks
     }
   )
-  _isHtEnabled = createSelector(
-    () => this.props.host.CPUs.flags,
-    flags => /\bht\b/.test(flags)
-  )
+
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
   render() {
@@ -285,7 +288,7 @@ export default class extends Component {
                 <tr>
                   <th>{_('hyperThreading')}</th>
                   <td>
-                    {this._isHtEnabled()
+                    {this.state.isHtEnabled
                       ? _('stateEnabled')
                       : _('stateDisabled')}
                   </td>

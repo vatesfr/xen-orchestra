@@ -2349,10 +2349,10 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async getHyperthreading(hostId) {
+  getHyperthreading(hostId) {
     return this.call(
       'host.call_plugin',
-      hostId,
+      this.getObject(hostId).$ref,
       'hyperthreading.py',
       'get_hyperthreading',
       {}
