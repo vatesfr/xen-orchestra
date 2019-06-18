@@ -1778,7 +1778,7 @@ const messages = {
   trialAvailableUntil:
     'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
   trialConsumed:
-    'Your trial has been ended. Contact us or downgrade to the Free version',
+    'Your trial has ended. Contact us or downgrade to the Free version',
   trialLocked:
     'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
   noUpdateInfo: 'No update information available',
