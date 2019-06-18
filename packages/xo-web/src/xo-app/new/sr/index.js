@@ -388,9 +388,9 @@ export default class New extends Component {
     }
   }
 
-  _handleSrHostSelection = host => {
+  _handleSrHostSelection = async host => {
     this.setState({ host })
-    this._probe(host, this.state.type)
+    await this._probe(host, this.state.type)
   }
   _handleNameChange = event => this.setState({ name: event.target.value })
   _handleDescriptionChange = event =>
@@ -408,7 +408,7 @@ export default class New extends Component {
       usage: undefined,
       used: undefined,
     })
-    this._probe(this.state.host, type)
+    await this._probe(this.state.host, type)
   }
 
   _handleSrHbaSelection = async scsiId => {
@@ -554,7 +554,7 @@ export default class New extends Component {
         zfsPools: await probeZfs(hostId)::ignoreErrors(),
       }),
     }
-    if (probeMethodFactories[type] !== undefined && host != null) {
+    if (probeMethodFactories[type] !== undefined && host !== null) {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
       const probeResult = await probeMethodFactories[type](host.id)
       this.setState(({ loading }) => ({
