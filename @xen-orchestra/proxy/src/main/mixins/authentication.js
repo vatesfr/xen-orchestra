@@ -1,6 +1,6 @@
 import assert from 'assert'
 
-import { Profile } from '../Profile'
+import { Profile } from '../_Profile'
 
 export default class Authentication {
   constructor(

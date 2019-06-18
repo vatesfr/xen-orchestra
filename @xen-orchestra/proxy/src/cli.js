@@ -43,7 +43,7 @@ Usage: xo-proxy-cli <XO proxy URL> <authentication token> <method> [<param>=<val
         'content-type': 'application/json',
         cookie: `authenticationToken=${authenticationToken}`,
       },
-      pathname: '/api',
+      pathname: '/api/v1',
     })
     .readAll('utf8'))
     .split(/\r?\n/)

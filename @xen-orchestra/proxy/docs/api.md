@@ -10,7 +10,7 @@ requests:
 
 ```http
 POST /api/v1 HTTP/1.1
-Cookie: authToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
+Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 ```
 
 The server will respond to an invalid token with a `401 Unauthorized` status.
@@ -19,7 +19,7 @@ The server can request the client to update its token with a `Set-Cookie` header
 
 ```http
 HTTP/1.1 200 OK
-Set-Cookie: authToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
+Set-Cookie: authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
 ```
 
 ### Remote Procedure Call

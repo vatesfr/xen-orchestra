@@ -29,7 +29,7 @@ export default class Api {
     this._ajv = new Ajv()
     this._methods = { __proto__: null }
 
-    const router = new Router({ prefix: '/api' }).post('/', async ctx => {
+    const router = new Router({ prefix: '/api/v1' }).post('/', async ctx => {
       const profile = await app.authentication.findProfile({
         authenticationToken: ctx.cookies.get('authenticationToken'),
       })
