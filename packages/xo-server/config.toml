@@ -49,6 +49,11 @@ maxTokenValidity = '0.5 year'
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
 
+# Duration for which we can wait for the backup size before returning
+#
+# It should be short to avoid blocking the display of the available backups.
+vmBackupSizeTimeout = '2 seconds'
+
 # Helmet handles HTTP security via headers
 #
 # https://helmetjs.github.io/docs/
