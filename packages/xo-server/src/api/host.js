@@ -287,16 +287,16 @@ installSupplementalPack.resolve = {
 
 // -------------------------------------------------------------------
 
-export function getHyperthreading({ host }) {
-  return this.getXapi(host).getHyperthreading(host._xapiId)
+export function isHyperthreading({ host }) {
+  return this.getXapi(host).isHyperthreading(host._xapiId)
 }
 
-getHyperthreading.description = 'get hyperthreading information'
+isHyperthreading.description = 'get hyperthreading information'
 
-getHyperthreading.params = {
+isHyperthreading.params = {
   id: { type: 'string' },
 }
 
-getHyperthreading.resolve = {
+isHyperthreading.resolve = {
   host: ['id', 'host', 'administrate'],
 }

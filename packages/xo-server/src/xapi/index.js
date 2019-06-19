@@ -2349,13 +2349,30 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  getHyperthreading(hostId) {
-    return this.call(
-      'host.call_plugin',
-      this.getObject(hostId).$ref,
-      'hyperthreading.py',
-      'get_hyperthreading',
-      {}
-    )
+  async isHyperthreading(hostId) {
+    try {
+      const hyperthreading = await this.call(
+        'host.call_plugin',
+        this.getObject(hostId).$ref,
+        'hyperthreading.py',
+        'get_hyperthreading',
+        {}
+      )
+      if (hyperthreading === 'false') {
+        return false
+      }
+      if (hyperthreading === 'true') {
+        return true
+      }
+    } catch (error) {
+      if (
+        error.code === 'XENAPI_MISSING_PLUGIN' ||
+        error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION'
+      ) {
+        return null
+      } else {
+        throw error
+      }
+    }
   }
 }

@@ -21,7 +21,7 @@ import {
   disableHost,
   enableHost,
   forgetHost,
-  getHyperthreadingHost,
+  isHyperthreadingHost,
   installSupplementalPack,
   restartHost,
   setHostsMultipathing,
@@ -97,14 +97,7 @@ MultipathableSrs.propTypes = {
 })
 export default class extends Component {
   async componentDidMount() {
-    let isHtEnabled = await getHyperthreadingHost(this.props.host)
-    isHtEnabled =
-      isHtEnabled === 'false'
-        ? false
-        : isHtEnabled === 'true'
-        ? true
-        : undefined
-    this.setState({ isHtEnabled })
+    this.setState({ isHtEnabled: await isHyperthreadingHost(this.props.host) })
   }
 
   _getPacks = createSelector(
@@ -129,6 +122,7 @@ export default class extends Component {
 
   render() {
     const { host, pcis, pgpus } = this.props
+    const { isHtEnabled } = this.state
     return (
       <Container>
         <Row>
@@ -288,9 +282,11 @@ export default class extends Component {
                 <tr>
                   <th>{_('hyperThreading')}</th>
                   <td>
-                    {this.state.isHtEnabled
+                    {isHtEnabled === null
+                      ? _('hyperThreadingNotAvailable')
+                      : isHtEnabled === true
                       ? _('stateEnabled')
-                      : _('stateDisabled')}
+                      : isHtEnabled === false && _('stateDisabled')}
                   </td>
                 </tr>
                 <tr>
