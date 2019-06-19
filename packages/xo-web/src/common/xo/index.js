@@ -780,8 +780,8 @@ export const emergencyShutdownHosts = hosts => {
 export const isHostTimeConsistentWithXoaTime = host =>
   _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
 
-export const isHyperthreadingHost = async host =>
-  _call('host.isHyperthreading', {
+export const isHyperThreadingHost = async host =>
+  _call('host.isHyperThreading', {
     id: resolveId(host),
   })
 

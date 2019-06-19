@@ -2349,7 +2349,7 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async isHyperthreading(hostId) {
+  async isHyperThreading(hostId) {
     try {
       const hyperthreading = await this.call(
         'host.call_plugin',
