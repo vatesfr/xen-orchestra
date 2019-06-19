@@ -18,7 +18,7 @@ import { confirm } from 'modal'
 import { adminOnly, connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
-import { Password, Select, Toggle } from 'form'
+import { Password, Select } from 'form'
 import { SelectHost } from 'select-objects'
 import {
   createFilter,
@@ -43,6 +43,10 @@ import {
   reattachSrIso,
   reattachSr,
 } from 'xo'
+
+// ===================================================================
+
+const NFS_VERSIONS = ['4', '4.1']
 
 // ===================================================================
 
@@ -237,6 +241,7 @@ export default class New extends Component {
       lockCreation: undefined,
       lun: undefined,
       luns: undefined,
+      nfsVersion: '',
       hbaDevices: undefined,
       name: undefined,
       path: undefined,
@@ -267,7 +272,16 @@ export default class New extends Component {
       server,
       username,
     } = this.refs
-    const { host, iqn, lun, path, type, scsiId, nfs4, nfsOptions } = this.state
+    const {
+      host,
+      iqn,
+      lun,
+      nfsOptions,
+      nfsVersion,
+      path,
+      scsiId,
+      type,
+    } = this.state
 
     const createMethodFactories = {
       nfs: () =>
@@ -277,7 +291,7 @@ export default class New extends Component {
           description.value,
           server.value,
           path,
-          nfs4 ? '4' : undefined,
+          nfsVersion !== '' ? nfsVersion : undefined,
           nfsOptions
         ),
       hba: async () => {
@@ -522,6 +536,12 @@ export default class New extends Component {
     }
   }
 
+  _handleNfsVersion = ({ target: { value } }) => {
+    this.setState({
+      nfsVersion: value,
+    })
+  }
+
   _reattach = async uuid => {
     const { host, type } = this.state
 
@@ -566,6 +586,7 @@ export default class New extends Component {
       lockCreation,
       lun,
       luns,
+      nfsVersion,
       path,
       paths,
       summary,
@@ -657,10 +678,22 @@ export default class New extends Component {
                       </div>
                     </fieldset>,
                     <fieldset>
-                      <label>{_('newSrUseNfs4')}</label>
-                      <div>
-                        <Toggle onChange={this.toggleState('nfs4')} />
-                      </div>
+                      <label htmlFor='selectNfsVersion'>{_('newSrNfs')}</label>
+                      <select
+                        className='form-control'
+                        id='selectNfsVersion'
+                        onChange={this._handleNfsVersion}
+                        value={nfsVersion}
+                      >
+                        <option value=''>
+                          {formatMessage(messages.newSrNfsDefaultVersion)}
+                        </option>
+                        {map(NFS_VERSIONS, option => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     </fieldset>,
                     <fieldset>
                       <label>{_('newSrNfsOptions')}</label>
