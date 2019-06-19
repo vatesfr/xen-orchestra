@@ -1628,14 +1628,14 @@ export const deleteVifs = vifs =>
 
 export const setVif = (
   vif,
-  { network, mac, allowedIpv4Addresses, allowedIpv6Addresses, rateLimit }
+  { allowedIpv4Addresses, allowedIpv6Addresses, mac, network, rateLimit }
 ) =>
   _call('vif.set', {
-    id: resolveId(vif),
-    network: resolveId(network),
-    mac,
     allowedIpv4Addresses,
     allowedIpv6Addresses,
+    id: resolveId(vif),
+    mac,
+    network: resolveId(network),
     rateLimit,
   })
 
