@@ -218,6 +218,8 @@ const messages = {
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
   srSharedType: 'Shared {type}',
+  warningHostTimeTooltip:
+    'Host time and XOA time are not consistent with each other',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -891,9 +893,6 @@ const messages = {
   changelogAuthor: 'Author',
   changelogDate: 'Date',
   changelogDescription: 'Description',
-  // ----- Host home -----
-  warningHostTimeTooltip:
-    'Host time and XOA time are not consistent with each other',
 
   // ----- Pool patch tabs -----
   install: 'Install',

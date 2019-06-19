@@ -1,6 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
-import ConsistentHostTimeWarning from 'consistent-host-time-warning'
+import InconsistentHostTimeWarning from 'consistent-host-time-warning'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -129,7 +129,7 @@ export default class HostItem extends Component {
                   </Tooltip>
                 )}
                 &nbsp;
-                <ConsistentHostTimeWarning hostId={host.id} />
+                <InconsistentHostTimeWarning hostId={host.id} />
                 &nbsp;
                 {hasLicenseRestrictions(host) && <LicenseWarning />}
               </EllipsisContainer>

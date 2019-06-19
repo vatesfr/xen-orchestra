@@ -5,26 +5,26 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { injectState, provideState } from 'reaclette'
-import { isHostTimeConsistentToXoaTime } from 'xo'
+import { isHostTimeConsistentWithXoaTime } from 'xo'
 
-const ConsistentHostTimeWarning = decorate([
+const InconsistentHostTimeWarning = decorate([
   provideState({
     computed: {
-      isHostTimeConsistentToXoaTime: (_, { hostId }) =>
-        isHostTimeConsistentToXoaTime(hostId),
+      isHostTimeConsistentWithXoaTime: (_, { hostId }) =>
+        isHostTimeConsistentWithXoaTime(hostId),
     },
   }),
   injectState,
-  ({ state: { isHostTimeConsistentToXoaTime = true } }) =>
-    isHostTimeConsistentToXoaTime ? null : (
+  ({ state: { isHostTimeConsistentWithXoaTime = true } }) =>
+    isHostTimeConsistentWithXoaTime ? null : (
       <Tooltip content={_('warningHostTimeTooltip')}>
         <Icon color='text-danger' icon='alarm' />
       </Tooltip>
     ),
 ])
 
-ConsistentHostTimeWarning.propTypes = {
+InconsistentHostTimeWarning.propTypes = {
   hostId: PropTypes.string.isRequired,
 }
 
-export { ConsistentHostTimeWarning as default }
+export { InconsistentHostTimeWarning as default }

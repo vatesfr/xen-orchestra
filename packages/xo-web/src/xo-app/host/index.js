@@ -1,5 +1,5 @@
 import _ from 'intl'
-import ConsistentHostTimeWarning from 'consistent-host-time-warning'
+import InconsistentHostTimeWarning from 'consistent-host-time-warning'
 import Copiable from 'copiable'
 import HostActionBar from './action-bar'
 import Icon from 'icon'
@@ -256,7 +256,7 @@ export default class Host extends Component {
                 </Tooltip>
               )}
               &nbsp;
-              <ConsistentHostTimeWarning hostId={host.id} />
+              <InconsistentHostTimeWarning hostId={host.id} />
             </h2>
             <Copiable tagName='pre' className='text-muted mb-0'>
               {host.uuid}
