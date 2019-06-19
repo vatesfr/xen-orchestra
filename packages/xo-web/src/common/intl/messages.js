@@ -893,7 +893,6 @@ const messages = {
   changelogAuthor: 'Author',
   changelogDate: 'Date',
   changelogDescription: 'Description',
-
   // ----- Pool patch tabs -----
   install: 'Install',
   installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',

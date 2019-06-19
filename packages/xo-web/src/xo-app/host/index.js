@@ -1,5 +1,5 @@
 import _ from 'intl'
-import InconsistentHostTimeWarning from 'consistent-host-time-warning'
+import InconsistentHostTimeWarning from 'inconsistent-host-time-warning'
 import Copiable from 'copiable'
 import HostActionBar from './action-bar'
 import Icon from 'icon'

@@ -1,6 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
-import InconsistentHostTimeWarning from 'consistent-host-time-warning'
+import InconsistentHostTimeWarning from 'inconsistent-host-time-warning'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
