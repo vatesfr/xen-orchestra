@@ -142,12 +142,14 @@ const getErrorMarkdown = task => {
 
 const MARKDOWN_BY_TYPE = {
   pool(task, { formatDate }) {
-    const { pool, poolMaster = {} } = task.data
+    const { id, pool = {}, poolMaster = {} } = task.data
     const name = pool.name_label || poolMaster.name_label || UNKNOWN_ITEM
 
     return {
       body: [
-        `- **UUID**: ${pool.uuid}`,
+        pool.uuid !== undefined
+          ? `- **UUID**: ${pool.uuid}`
+          : `- **ID**: ${id}`,
         ...getTemporalDataMarkdown(task.end, task.start, formatDate),
         getErrorMarkdown(task),
       ],
