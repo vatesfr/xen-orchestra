@@ -2358,12 +2358,7 @@ export default class Xapi extends XapiBase {
         'get_hyperthreading',
         {}
       )
-      if (hyperthreading === 'false') {
-        return false
-      }
-      if (hyperthreading === 'true') {
-        return true
-      }
+      return hyperthreading !== 'false'
     } catch (error) {
       if (
         error.code === 'XENAPI_MISSING_PLUGIN' ||
