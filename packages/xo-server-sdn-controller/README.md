@@ -14,7 +14,7 @@ In the network creation view, select a `pool` and `Private network`.
 Create the network.
 
 Choice is offer between `GRE` and `VxLAN`, if `VxLAN` is chosen, then the port 4789 must be open for UDP traffic.
-The following line needs to be added, if not already present, in `/etc/sysconfig/iptables`:
+The following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted:
 `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m udp --dport 4789 -j ACCEPT`
 
 ### Configuration
