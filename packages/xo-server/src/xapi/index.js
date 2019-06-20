@@ -22,8 +22,8 @@ import { forbiddenOperation } from 'xo-common/api-errors'
 import { Xapi as XapiBase, NULL_REF } from 'xen-api'
 import {
   every,
-  find,
   filter,
+  find,
   flatMap,
   flatten,
   groupBy,
@@ -2134,6 +2134,16 @@ export default class Xapi extends XapiBase {
     const bonds = uniq(flatten(mapToArray(pifs, pif => pif.bond_master_of)))
     await Promise.all(
       mapToArray(bonds, bond => this.call('Bond.destroy', bond))
+    )
+
+    const tunnels = filter(this.objects.all, { $type: 'tunnel' })
+    await Promise.all(
+      map(pifs, async pif => {
+        const tunnel = find(tunnels, { access_PIF: pif.$ref })
+        if (tunnel != null) {
+          await this.callAsync('tunnel.destroy', tunnel.$ref)
+        }
+      })
     )
 
     await this.callAsync('network.destroy', network.$ref)
