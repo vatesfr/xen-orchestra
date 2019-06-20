@@ -1,9 +1,9 @@
+import pumpify from 'pumpify'
 import setCookie from 'set-cookie-parser'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
-import { pipeline } from 'readable-stream'
 
 import Collection from '../collection/redis'
 import patch from '../patch'
@@ -100,7 +100,7 @@ export default class Proxy {
       await this.updateProxy(id, { authenticationToken })
     }
 
-    const lines = pipeline(response, split2(), () => {})
+    const lines = pumpify(response, split2())
     const firstLine = await readChunk(lines)
 
     const { result, error } = parse(firstLine)
@@ -110,9 +110,14 @@ export default class Proxy {
     const isStream = result.$responseType === 'ndjson'
     if (isStream !== expectStream) {
       throw new Error(
-        `expect the type of result to ${expectStream ? '' : 'not'} be a stream`
+        `expect the result to ${expectStream ? '' : 'not'} be a stream`
       )
     }
-    return isStream ? lines : result
+
+    if (isStream) {
+      return lines
+    }
+    lines.destroy()
+    return result
   }
 }
