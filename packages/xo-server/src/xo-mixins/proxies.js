@@ -110,7 +110,7 @@ export default class Proxy {
     const isStream = result.$responseType === 'ndjson'
     if (isStream !== expectStream) {
       throw new Error(
-        `expect the result to ${expectStream ? '' : 'not'} be a stream`
+        `expect the result ${expectStream ? '' : 'not'} to be a stream`
       )
     }
 
