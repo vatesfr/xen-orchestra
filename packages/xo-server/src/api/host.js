@@ -291,7 +291,7 @@ export function isHyperThreading({ host }) {
   return this.getXapi(host).isHyperThreading(host._xapiId)
 }
 
-isHyperThreading.description = 'get hyperthreading information'
+isHyperThreading.description = 'get hyper-threading information'
 
 isHyperThreading.params = {
   id: { type: 'string' },

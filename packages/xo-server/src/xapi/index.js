@@ -2351,14 +2351,15 @@ export default class Xapi extends XapiBase {
 
   async isHyperThreading(hostId) {
     try {
-      const hyperThreading = await this.call(
-        'host.call_plugin',
-        this.getObject(hostId).$ref,
-        'hyperthreading.py',
-        'get_hyperthreading',
-        {}
+      return (
+        (await this.call(
+          'host.call_plugin',
+          this.getObject(hostId).$ref,
+          'hyperthreading.py',
+          'get_hyperthreading',
+          {}
+        )) !== 'false'
       )
-      return hyperThreading !== 'false'
     } catch (error) {
       if (
         error.code === 'XENAPI_MISSING_PLUGIN' ||
