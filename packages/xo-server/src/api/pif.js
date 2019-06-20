@@ -22,6 +22,7 @@ async function delete_({ pif }) {
   const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
   const tunnel = find(tunnels, { access_PIF: pif._xapiRef })
   if (tunnel != null) {
+    await xapi.callAsync('PIF.unplug', pif._xapiRef)
     await xapi.callAsync('tunnel.destroy', tunnel.$ref)
     return
   }
