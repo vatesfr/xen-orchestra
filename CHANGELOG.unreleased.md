@@ -4,6 +4,7 @@
 
 - [Backup-ng/restore] Display size for full VM backup [#4009](https://github.com/vatesfr/xen-orchestra/issues/4009) (PR [#4245](https://github.com/vatesfr/xen-orchestra/pull/4245))
 - [Sr/new] Ability to select NFS version when creating NFS storage [#3951](https://github.com/vatesfr/xen-orchestra/issues/3951) (PR [#4277](https://github.com/vatesfr/xen-orchestra/pull/4277))
+- [auth-saml] Improve compatibility with Microsoft Azure Active Directory (PR [#4294](https://github.com/vatesfr/xen-orchestra/pull/4294))
 
 ### Bug fixes
 
@@ -11,6 +12,7 @@
 
 ### Released packages
 
+- xo-server-auth-saml v0.6.0
 - xo-server-backup-reports v0.16.2
 - xo-server v5.44.0
 - xo-web v5.44.0

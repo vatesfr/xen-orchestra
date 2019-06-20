@@ -10456,7 +10456,7 @@ passport-oauth2@1.x.x:
     uid2 "0.0.x"
     utils-merge "1.x.x"
 
-passport-saml@^1.0.0:
+passport-saml@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/passport-saml/-/passport-saml-1.1.0.tgz#0fdd639b905b8f5db172bc07f2e73819a043c321"
   integrity sha512-T2dKp++HQDg9dyJvb+5dyhIVVdIb5FX6DKMex0RALU16D65fiIbZ01vKZ2qtD+nW5nSOkbkfKJUolr9U689EdQ==
