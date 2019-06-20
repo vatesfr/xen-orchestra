@@ -95,7 +95,7 @@ export default class Proxy {
 
     const authenticationToken = setCookie(response, {
       map: true,
-    })?.authenticationToken?.value
+    }).authenticationToken?.value
     if (authenticationToken !== undefined) {
       await this.updateProxy(id, { authenticationToken })
     }
