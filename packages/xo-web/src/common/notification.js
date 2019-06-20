@@ -32,39 +32,37 @@ export class Notification extends Component {
     return false
   }
 
-  render() {
-    return (
-      <ReactNotify
-        ref={notification => {
-          if (!notification) {
-            return
-          }
+  _addNotifications = notification => {
+    if (!notification) {
+      return
+    }
 
-          error = (title, body) =>
-            notification.error(
-              title,
-              this.props.isAdmin ? (
-                <div>
-                  <div>{body}</div>
-                  <ButtonLink
-                    btnStyle='danger'
-                    className='mt-1'
-                    size='small'
-                    to='/settings/logs'
-                  >
-                    <Icon icon='logs' /> {_('showLogs')}
-                  </ButtonLink>
-                </div>
-              ) : (
-                body
-              ),
-              6e3
-            )
-          info = (title, body) => notification.info(title, body, 3e3)
-          success = (title, body) => notification.success(title, body, 3e3)
-        }}
-      />
-    )
+    error = (title, body) =>
+      notification.error(
+        title,
+        this.props.isAdmin ? (
+          <div>
+            <div>{body}</div>
+            <ButtonLink
+              btnStyle='danger'
+              className='mt-1'
+              size='small'
+              to='/settings/logs'
+            >
+              <Icon icon='logs' /> {_('showLogs')}
+            </ButtonLink>
+          </div>
+        ) : (
+          body
+        ),
+        6e3
+      )
+    info = (title, body) => notification.info(title, body, 3e3)
+    success = (title, body) => notification.success(title, body, 3e3)
+  }
+
+  render() {
+    return <ReactNotify ref={this._addNotifications} />
   }
 }
 
