@@ -45,7 +45,12 @@ export class OvsdbClient {
 
   // ---------------------------------------------------------------------------
 
-  async addInterfaceAndPort(networkUuid, networkName, remoteAddress) {
+  async addInterfaceAndPort(
+    networkUuid,
+    networkName,
+    remoteAddress,
+    encapsulation
+  ) {
     const socket = await this._connect()
     if (socket == null) {
       log.error(`[${this._host.name_label}] No TLS socket available`)
@@ -80,12 +85,13 @@ export class OvsdbClient {
     const portName = 'tunnel_port' + index
 
     // Add interface and port to the bridge
+    const options = ['map', [['remote_ip', remoteAddress]]]
     const addInterfaceOperation = {
       op: 'insert',
       table: 'Interface',
       row: {
-        type: 'gre',
-        options: ['map', [['remote_ip', remoteAddress]]],
+        type: encapsulation,
+        options: options,
         name: interfaceName,
         other_config: ['map', [['private_pool_wide', 'true']]],
       },

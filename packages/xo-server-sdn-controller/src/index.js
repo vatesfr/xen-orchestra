@@ -136,6 +136,7 @@ class SDNController extends EventEmitter {
       poolId: { type: 'string' },
       networkName: { type: 'string' },
       networkDescription: { type: 'string' },
+      encapsulation: { type: 'string' },
     }
     createPrivateNetwork.resolve = {
       xoPool: ['poolId', 'pool', ''],
@@ -200,7 +201,12 @@ class SDNController extends EventEmitter {
 
   // ===========================================================================
 
-  async _createPrivateNetwork({ xoPool, networkName, networkDescription }) {
+  async _createPrivateNetwork({
+    xoPool,
+    networkName,
+    networkDescription,
+    encapsulation,
+  }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
 
@@ -212,6 +218,7 @@ class SDNController extends EventEmitter {
       other_config: {
         automatic: 'false',
         private_pool_wide: 'true',
+        encapsulation: encapsulation,
       },
     })
 
@@ -237,6 +244,7 @@ class SDNController extends EventEmitter {
       pool: pool.$ref,
       network: privateNetwork.$ref,
       starCenter: center ? center.$ref : null,
+      encapsulation: encapsulation,
     })
     this._networks.set(privateNetwork.$id, privateNetwork.$ref)
     if (center != null) {
@@ -444,7 +452,7 @@ class SDNController extends EventEmitter {
           log.error(
             `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${
               host.name_label
-            }' fo network: '${accessPIF.$network.name_label}'`
+            }' for network: '${accessPIF.$network.name_label}'`
           )
         }
 
@@ -654,15 +662,21 @@ class SDNController extends EventEmitter {
       return
     }
 
+    const encapsulation =
+      network.other_config.encapsulation != null
+        ? network.other_config.encapsulation
+        : 'gre'
     await hostClient.addInterfaceAndPort(
       network.uuid,
       network.name_label,
-      starCenterClient.address
+      starCenterClient.address,
+      encapsulation
     )
     await starCenterClient.addInterfaceAndPort(
       network.uuid,
       network.name_label,
-      hostClient.address
+      hostClient.address,
+      encapsulation
     )
   }
 

@@ -1716,6 +1716,7 @@ const messages = {
   newNetworkBondMode: 'Bond mode',
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
+  newNetworkEncapsulation: 'Encapsulation',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',

@@ -26,8 +26,9 @@ import styles from './index.css'
 const EMPTY = {
   bonded: false,
   bondMode: undefined,
-  isPrivate: false,
   description: '',
+  encapsulation: 'gre',
+  isPrivate: false,
   mtu: '',
   name: '',
   pif: undefined,
@@ -52,6 +53,9 @@ const NewNetwork = decorate([
       onChangeMode: (_, bondMode) => ({ bondMode }),
       onChangePif: (_, value) => ({ bonded }) =>
         bonded ? { pifs: value } : { pif: value },
+      onChangeEncapsulation(_, encapsulation) {
+        return { encapsulation: encapsulation.value }
+      },
       reset: () => EMPTY,
       toggleBonded() {
         const { bonded, isPrivate } = this.state
@@ -99,6 +103,7 @@ const NewNetwork = decorate([
         bondMode,
         isPrivate,
         description,
+        encapsulation,
         mtu,
         name,
         pif,
@@ -120,6 +125,7 @@ const NewNetwork = decorate([
             poolId: pool.id,
             networkName: name,
             networkDescription: description,
+            encapsulation: encapsulation,
           })
         : createNetwork({
             description,
@@ -167,6 +173,7 @@ const NewNetwork = decorate([
         bondMode,
         isPrivate,
         description,
+        encapsulation,
         modeOptions,
         mtu,
         name,
@@ -215,6 +222,17 @@ const NewNetwork = decorate([
                         onChange={effects.linkState}
                         type='text'
                         value={description}
+                      />
+                      <label>{_('newNetworkEncapsulation')}</label>
+                      <Select
+                        className='form-control'
+                        name='encapsulation'
+                        onChange={effects.onChangeEncapsulation}
+                        options={[
+                          { label: 'GRE', value: 'gre' },
+                          { label: 'VxLAN', value: 'vxlan' },
+                        ]}
+                        value={encapsulation}
                       />
                     </div>
                   ) : (
