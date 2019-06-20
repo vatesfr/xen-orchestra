@@ -33,10 +33,6 @@ export class Notification extends Component {
   }
 
   _addNotifications = notification => {
-    if (!notification) {
-      return
-    }
-
     error = (title, body) =>
       notification.error(
         title,
