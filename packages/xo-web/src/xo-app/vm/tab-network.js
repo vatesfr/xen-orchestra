@@ -13,7 +13,7 @@ import Tooltip from 'tooltip'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
-import { XoSelect, Text } from 'editable'
+import { Number, Text, XoSelect } from 'editable'
 import {
   addSubscriptions,
   connectStore,
@@ -333,12 +333,10 @@ const COLUMNS = [
   },
   {
     itemRenderer: vif => (
-      <pre>
-        <Text
-          value={vif.rateLimit || ''}
-          onChange={rateLimit => setVif(vif, { rateLimit: +rateLimit })}
-        />
-      </pre>
+      <Number
+        onChange={rateLimit => setVif(vif, { rateLimit })}
+        value={vif.rateLimit || ''}
+      />
     ),
     name: _('vifRateLimitLabel'),
     sortCriteria: 'rateLimit',
