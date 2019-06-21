@@ -574,7 +574,9 @@ const messages = {
   newSrNfsDefaultVersion: 'Default NFS version',
   newSrNfsOptions: 'Comma delimited NFS options',
   newSrNfs: 'NFS version',
+  noSharedZfsAvailable: 'No shared ZFS available',
   reattachNewSrTooltip: 'Reattach SR',
+  srLocation: 'Storage location',
 
   // ------ New Network -----
   createNewNetworkNoPermission:
