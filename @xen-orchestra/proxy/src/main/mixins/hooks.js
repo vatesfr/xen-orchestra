@@ -5,19 +5,16 @@ import expect from 'expect'
 
 const { debug, warn } = createLogger('xo:proxy:hooks')
 
-const runHook = (emitter, hook) => {
+const runHook = async (emitter, hook) => {
   debug(`${hook} start…`)
-  const promise = emitAsync.call(
+  await emitAsync.call(
     emitter,
     {
       onError: error => warn(`${hook} failure`, { error }),
     },
     hook
   )
-  promise.then(() => {
-    debug(`${hook} finished`)
-  })
-  return promise
+  debug(`${hook} finished`)
 }
 
 export default class Hooks extends EventEmitter {
