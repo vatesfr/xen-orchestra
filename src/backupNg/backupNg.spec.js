@@ -19,7 +19,7 @@ describe("backupNg", () => {
       name: "default-backupNg",
       mode: "full",
       vms: {
-        id: config.vmIdXoTest,
+        id: config.vms.default,
       },
       settings: {
         "": {
@@ -127,7 +127,7 @@ describe("backupNg", () => {
           [scheduleTempId]: { snapshotRetention: 1 },
         },
         vms: {
-          id: config.vmIdXoTest,
+          id: config.vms.default,
           name: "test-vm-backupNg",
         },
       });
@@ -169,7 +169,7 @@ describe("backupNg", () => {
       const vmIdWithoutDisks = await xo.createTempVm({
         name_label: "XO Test Without Disks",
         name_description: "Creating a vm without disks",
-        template: config.xoTestTemplateId,
+        template: config.templates.default,
       });
 
       const scheduleTempId = randomId();
@@ -229,7 +229,7 @@ describe("backupNg", () => {
       const { id: jobId } = await xo.createTempBackupNgJob({
         ...defaultBackupNg,
         remotes: {
-          id: config.remotes.defaultRemote,
+          id: config.remotes.default,
         },
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
@@ -274,7 +274,7 @@ describe("backupNg", () => {
         },
         start: expect.any(Number),
       });
-      expect(task.data.id).toBe(config.vmIdXoTest);
+      expect(task.data.id).toBe(config.vms.default);
     });
   });
 
@@ -283,11 +283,11 @@ describe("backupNg", () => {
     const vmId = await xo.createTempVm({
       name_label: "XO Test Temp",
       name_description: "Creating a temporary vm",
-      template: config.xoTestTemplateId,
+      template: config.templates.default,
       VDIs: [
         {
           size: 1,
-          SR: config.srs.defaultSr,
+          SR: config.srs.default,
           type: "user",
         },
       ],

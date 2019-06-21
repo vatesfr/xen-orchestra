@@ -6,6 +6,11 @@ import { find, forOwn } from "lodash";
 
 import config from "./_config";
 
+const getDefaultCredentials = () => {
+  const { email, password } = config.xoConnection;
+  return { email, password };
+};
+
 class XoConnection extends Xo {
   constructor(opts) {
     super(opts);
@@ -65,7 +70,7 @@ class XoConnection extends Xo {
   }
 
   @defer
-  async connect($defer, credentials = config.adminCredentials) {
+  async connect($defer, credentials = getDefaultCredentials()) {
     await this.open();
     $defer.onFailure(() => this.close());
 
@@ -136,7 +141,7 @@ class XoConnection extends Xo {
 }
 
 const getConnection = credentials => {
-  const xo = new XoConnection({ url: config.xoServerUrl });
+  const xo = new XoConnection({ url: config.xoConnection.url });
   return xo.connect(credentials);
 };
 

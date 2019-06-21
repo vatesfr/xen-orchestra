@@ -1,42 +1,16 @@
-iso = 'Windows7Ultimate.iso'
-network = 'Pool-wide network associated with eth0'
-pool = 'lab3'
-pvVm = 'xo-test-pv'
-vmToMigrate = 'souad'
-xoServerUrl = 'localhost:9000'
-vmIdXoTest = '0342407f-9727-4f12-83c2-9d0c458916c2'
-xoTestTemplateId = '1a33d04d-1a9c-e2af-ae42-010554eed513'
-
-# powerOnMode has to be not empty
-host1 = 'lab1'
-
-[adminCredentials]
+[xoConnection]
+  url = 'localhost:9000'
   email = 'admin@admin.net'
   password = 'admin'
 
+[vms]
+  default = '0342407f-9727-4f12-83c2-9d0c458916c2'
+
 [templates]
-debian = 'Debian Wheezy 7.0 (64-bit)'
-otherConfig = 'Other install media'
-centOS = 'CentOS 7'
+  default = '1a33d04d-1a9c-e2af-ae42-010554eed513'
 
 [remotes]
-defaultRemote = '8565fc53-ea32-40ea-b380-dd1b8f3b5d44'
+  default = '8565fc53-ea32-40ea-b380-dd1b8f3b5d44'
 
 [srs]
-defaultSr = 'a5954951-3dfa-42b8-803f-4bc270b22a0b'
-
-[slaveServer]
-host = '192.168.100.1'
-username = 'root'
-password = 'qwerty'
-autoConnect = false
-
-[[xenServers]]
-host = '192.168.100.3'
-username = 'root'
-password = 'qwerty'
-
-[[xenServers]]
-host = '192.168.100.2'
-username = 'root'
-password = 'qwerty'
+  default = 'a5954951-3dfa-42b8-803f-4bc270b22a0b'

@@ -28,7 +28,7 @@ describe("job", () => {
             type: "set",
             values: [
               {
-                id: config.vmIdXoTest,
+                id: config.vms.default,
                 name: "test-snapshot",
               },
             ],
@@ -81,7 +81,7 @@ describe("job", () => {
               type: "set",
               values: [
                 {
-                  id: config.vmIdXoTest,
+                  id: config.vms.default,
                   name: "test2-snapshot",
                 },
               ],
@@ -136,7 +136,7 @@ describe("job", () => {
                 type: "set",
                 values: [
                   {
-                    id: config.vmIdXoTest,
+                    id: config.vms.default,
                     name: "clone",
                     full_copy: true,
                   },
@@ -190,10 +190,10 @@ describe("job", () => {
 
     it("runs a job", async () => {
       const jobId = await xo.createTempJob(defaultJob);
-      const snapshots = xo.objects.all[config.vmIdXoTest].snapshots;
+      const snapshots = xo.objects.all[config.vms.default].snapshots;
       await xo.call("job.runSequence", { idSequence: [jobId] });
       await xo.waitObjectState(
-        config.vmIdXoTest,
+        config.vms.default,
         ({ snapshots: actualSnapshots }) => {
           expect(actualSnapshots.length).toBe(snapshots.length + 1);
           id = difference(actualSnapshots, snapshots)[0];
