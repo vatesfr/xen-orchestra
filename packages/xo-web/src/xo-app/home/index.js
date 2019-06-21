@@ -179,6 +179,14 @@ const OPTIONS = {
         labelId: 'snapshotVmLabel',
       },
       {
+        handler: (vmIds, _, { setHomeVmIdsSelection }, { router }) => {
+          setHomeVmIdsSelection(vmIds)
+          router.push('backup-ng/new/vms')
+        },
+        icon: 'backup',
+        labelId: 'backupLabel',
+      },
+      {
         handler: deleteVms,
         icon: 'vm-delete',
         labelId: 'vmRemoveButton',
@@ -1010,7 +1018,9 @@ export default class Home extends Component {
                         onClick={() => {
                           action.handler(
                             this._getSelectedItemsIds(),
-                            action.params
+                            action.params,
+                            this.props,
+                            this.context
                           )
                         }}
                       >

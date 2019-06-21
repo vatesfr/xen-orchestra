@@ -6,6 +6,7 @@
 - [Sr/new] Ability to select NFS version when creating NFS storage [#3951](https://github.com/vatesfr/xen-orchestra/issues/3951) (PR [#4277](https://github.com/vatesfr/xen-orchestra/pull/4277))
 - [auth-saml] Improve compatibility with Microsoft Azure Active Directory (PR [#4294](https://github.com/vatesfr/xen-orchestra/pull/4294))
 - [Host] Display warning when "Citrix Hypervisor" license has restrictions [#4251](https://github.com/vatesfr/xen-orchestra/issues/4164) (PR [#4235](https://github.com/vatesfr/xen-orchestra/pull/4279))
+- [VM/Backup] Create backup bulk action [#2573](https://github.com/vatesfr/xen-orchestra/issues/2573) (PR [#4257](https://github.com/vatesfr/xen-orchestra/pull/4257))
 
 ### Bug fixes
 
