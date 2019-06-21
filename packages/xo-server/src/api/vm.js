@@ -565,6 +565,8 @@ set.params = {
   // Identifier of the VM to update.
   id: { type: 'string' },
 
+  auto_poweron: { type: 'boolean', optional: true },
+
   name_label: { type: 'string', optional: true },
 
   name_description: { type: 'string', optional: true },
