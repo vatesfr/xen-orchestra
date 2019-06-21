@@ -218,6 +218,8 @@ const messages = {
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
   srSharedType: 'Shared {type}',
+  warningHostTimeTooltip:
+    'Host time and XOA time are not consistent with each other',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
