@@ -2349,7 +2349,7 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async isHyperThreading(hostId) {
+  async isHyperThreadingEnabled(hostId) {
     try {
       return (
         (await this.call(

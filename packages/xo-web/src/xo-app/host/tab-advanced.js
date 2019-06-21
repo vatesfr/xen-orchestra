@@ -21,7 +21,7 @@ import {
   disableHost,
   enableHost,
   forgetHost,
-  isHyperThreadingHost,
+  isHyperThreadingEnabledHost,
   installSupplementalPack,
   restartHost,
   setHostsMultipathing,
@@ -97,7 +97,9 @@ MultipathableSrs.propTypes = {
 })
 export default class extends Component {
   async componentDidMount() {
-    this.setState({ isHtEnabled: await isHyperThreadingHost(this.props.host) })
+    this.setState({
+      isHtEnabled: await isHyperThreadingEnabledHost(this.props.host),
+    })
   }
 
   _getPacks = createSelector(
