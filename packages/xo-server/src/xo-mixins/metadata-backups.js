@@ -43,6 +43,20 @@ type MetadataBackupJob = {
   xoMetadata?: boolean,
 }
 
+const logInstantFailureTask = (logger, { data, error, message, parentId }) => {
+  const taskId = logger.notice(message, {
+    data,
+    event: 'task.start',
+    parentId,
+  })
+  logger.error(message, {
+    event: 'task.end',
+    result: serializeError(error),
+    status: 'failure',
+    taskId,
+  })
+}
+
 const createSafeReaddir = (handler, methodName) => (path, options) =>
   handler.list(path, options).catch(error => {
     if (error?.code !== 'ENOENT') {
@@ -97,7 +111,7 @@ const deleteOldBackups = (handler, dir, retention, handleError) =>
 // Task logs emitted in a metadata backup execution:
 //
 // job.start(data: { reportWhen: ReportWhen })
-// ├─ task.start(data: { type: 'pool', id: string, pool: <Pool />, poolMaster: <Host /> })
+// ├─ task.start(data: { type: 'pool', id: string, pool?: <Pool />, poolMaster?: <Host /> })
 // │  ├─ task.start(data: { type: 'remote', id: string })
 // │  │  └─ task.end
 // │  └─ task.end
@@ -527,16 +541,15 @@ export default class metadataBackup {
         try {
           xapi = this._app.getXapi(id)
         } catch (error) {
-          logger.warning(
-            `unable to get the xapi associated to the pool (${id})`,
-            {
-              event: 'task.warning',
-              taskId: runJobId,
-              data: {
-                error,
-              },
-            }
-          )
+          logInstantFailureTask(logger, {
+            data: {
+              type: 'pool',
+              id,
+            },
+            error,
+            message: `unable to get the xapi associated to the pool (${id})`,
+            parentId: runJobId,
+          })
         }
         if (xapi !== undefined) {
           promises.push(
