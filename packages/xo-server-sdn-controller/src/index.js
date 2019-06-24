@@ -9,6 +9,8 @@ import { join } from 'path'
 
 import { OvsdbClient } from './ovsdb-client'
 
+// =============================================================================
+
 const log = createLogger('xo:xo-server:sdn-controller')
 
 const PROTOCOL = 'pssl'
@@ -21,6 +23,8 @@ const SDN_CONTROLLER_CERT = 'sdn-controller-ca.pem'
 
 const NB_DAYS = 9999
 
+// =============================================================================
+
 export const configurationSchema = {
   type: 'object',
   properties: {
@@ -32,13 +36,44 @@ export const configurationSchema = {
       type: 'string',
     },
     'override-certs': {
-      description: `Whether or not to uninstall a SDN controller CA certificate
- if it already exists in order to replace it with the plugin's ones`,
+      description: `Replace already existing SDN controller CA certificate`,
 
       type: 'boolean',
       default: false,
     },
   },
+}
+
+// =============================================================================
+
+async function fileWrite(path, data) {
+  try {
+    await fromCallback(cb => writeFile(path, data, cb))
+    log.debug(`${path} successfully written`)
+  } catch (error) {
+    log.error(`Couldn't write in: ${path} because: ${error}`)
+  }
+}
+
+async function fileRead(path) {
+  let result
+  try {
+    result = await fromCallback(cb => readFile(path, cb))
+  } catch (error) {
+    log.error(`Error while reading file: ${path} because: ${error}`)
+    return null
+  }
+  return result
+}
+
+async function fileExists(path) {
+  try {
+    await fromCallback(cb => access(path, constants.F_OK, cb))
+  } catch (error) {
+    return false
+  }
+
+  return true
 }
 
 // =============================================================================
@@ -80,14 +115,14 @@ class SDNController extends EventEmitter {
       log.debug(`No cert-dir provided, using default self-signed certificates`)
       certDirectory = await this._getDataDir()
 
-      if (!(await this._existFile(join(certDirectory, CA_CERT)))) {
+      if (!(await fileExists(join(certDirectory, CA_CERT)))) {
         // If one certificate doesn't exist, none should
         assert(
-          !(await this._existFile(join(certDirectory, CLIENT_KEY))),
+          !(await fileExists(join(certDirectory, CLIENT_KEY))),
           `${CLIENT_KEY} should not exist`
         )
         assert(
-          !(await this._existFile(join(certDirectory, CLIENT_CERT))),
+          !(await fileExists(join(certDirectory, CLIENT_CERT))),
           `${CLIENT_CERT} should not exist`
         )
 
@@ -97,9 +132,11 @@ class SDNController extends EventEmitter {
     }
     // TODO: verify certificates and create new certificates if needed
 
-    this._clientKey = await this._readFile(join(certDirectory, CLIENT_KEY))
-    this._clientCert = await this._readFile(join(certDirectory, CLIENT_CERT))
-    this._caCert = await this._readFile(join(certDirectory, CA_CERT))
+    ;[this._clientKey, this._clientCert, this._caCert] = await Promise.all([
+      fileRead(join(certDirectory, CLIENT_KEY)),
+      fileRead(join(certDirectory, CLIENT_CERT)),
+      fileRead(join(certDirectory, CA_CERT)),
+    ])
 
     this._ovsdbClients.forEach(client => {
       client.updateCertificates(this._clientKey, this._clientCert, this._caCert)
@@ -732,7 +769,7 @@ class SDNController extends EventEmitter {
               return
             }
 
-            await this._writeFile(join(dataDir, CA_CERT), cacrt)
+            await fileWrite(join(dataDir, CA_CERT), cacrt)
             openssl.generateRSAPrivateKey(
               rsakeyoptions,
               async (err, key, cmd) => {
@@ -741,7 +778,7 @@ class SDNController extends EventEmitter {
                   return
                 }
 
-                await this._writeFile(join(dataDir, CLIENT_KEY), key)
+                await fileWrite(join(dataDir, CLIENT_KEY), key)
                 openssl.generateCSR(csroptions, key, null, (err, csr, cmd) => {
                   if (err) {
                     log.error(`Error while generating certificate: ${err}`)
@@ -760,7 +797,7 @@ class SDNController extends EventEmitter {
                         return
                       }
 
-                      await this._writeFile(join(dataDir, CLIENT_CERT), crt)
+                      await fileWrite(join(dataDir, CLIENT_CERT), crt)
                       this.emit('certWritten')
                     }
                   )
@@ -778,38 +815,6 @@ class SDNController extends EventEmitter {
     } catch (error) {
       log.error(`${error}`)
     }
-  }
-
-  // ---------------------------------------------------------------------------
-
-  async _writeFile(path, data) {
-    try {
-      await fromCallback(cb => writeFile(path, data, cb))
-      log.debug(`${path} successfully written`)
-    } catch (error) {
-      log.error(`Couldn't write in: ${path} because: ${error}`)
-    }
-  }
-
-  async _readFile(path) {
-    let result
-    try {
-      result = await fromCallback(cb => readFile(path, cb))
-    } catch (error) {
-      log.error(`Error while reading file: ${path} because: ${error}`)
-      return null
-    }
-    return result
-  }
-
-  async _existFile(path) {
-    try {
-      await fromCallback(cb => access(path, constants.F_OK, cb))
-    } catch (error) {
-      return false
-    }
-
-    return true
   }
 }
 
