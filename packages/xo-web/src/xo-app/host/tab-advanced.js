@@ -55,6 +55,7 @@ const MultipathableSrs = decorate([
       <Container>
         {map(pbds, pbd => {
           const [nActives, nPaths] = getIscsiPaths(pbd)
+          const nSessions = pbd.otherConfig.iscsi_sessions
           return (
             <Row key={pbd.id}>
               <Col>
@@ -64,8 +65,8 @@ const MultipathableSrs = decorate([
                   _('hostMultipathingPaths', {
                     nActives,
                     nPaths,
-                    nSessions: pbd.otherConfig.iscsi_sessions,
-                  })}
+                  })}{' '}
+                {nSessions !== undefined && _('iscsiSessions', { nSessions })}
               </Col>
             </Row>
           )

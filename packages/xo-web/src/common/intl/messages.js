@@ -47,6 +47,8 @@ const messages = {
   chooseBackup: 'Choose a backup',
   clickToShowError: 'Click to show error',
   backupJobs: 'Backup jobs',
+  iscsiSessions:
+    '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -806,7 +808,7 @@ const messages = {
   hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:
-    '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}} ({ nSessions, number } iSCSI session{nSessions, plural, one {} other {s}})',
+    '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}}',
   hostMultipathingRequiredState:
     'This action will not be fulfilled if a VM is in a running state. Please ensure that all VMs are evacuated or stopped before performing this action!',
   hostMultipathingWarning:
