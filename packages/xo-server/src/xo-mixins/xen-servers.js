@@ -211,20 +211,19 @@ export default class {
     const objects = this._xo._objects
 
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
-      // handle pool UUID change
-      if (xapiObject.$type === 'pool') {
-        const serverIdsByPool = this._serverIdsByPool
-        const poolId = xapiObject.$id
+      const serverIdsByPool = this._serverIdsByPool
 
+      // handle pool UUID change
+      if (
+        xapiObject.$type === 'pool' &&
+        serverIdsByPool[xapiObject.$id] === undefined
+      ) {
         const obsoletePoolId = findKey(
           serverIdsByPool,
-          (serverId, storedPoolId) =>
-            serverId === conId && storedPoolId !== poolId
+          serverId => serverId === conId
         )
-        if (obsoletePoolId !== undefined) {
-          delete serverIdsByPool[obsoletePoolId]
-          serverIdsByPool[poolId] = conId
-        }
+        delete serverIdsByPool[obsoletePoolId]
+        serverIdsByPool[xapiObject.$id] = conId
       }
 
       const { $ref } = xapiObject
