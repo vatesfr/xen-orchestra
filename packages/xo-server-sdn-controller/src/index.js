@@ -48,7 +48,7 @@ export const configurationSchema = {
 
 async function fileWrite(path, data) {
   try {
-    await fromCallback(cb => writeFile(path, data, cb))
+    await fromCallback(writeFile, path, data)
     log.debug(`${path} successfully written`)
   } catch (error) {
     log.error(`Couldn't write in: ${path} because: ${error}`)
@@ -58,7 +58,7 @@ async function fileWrite(path, data) {
 async function fileRead(path) {
   let result
   try {
-    result = await fromCallback(cb => readFile(path, cb))
+    result = await fromCallback(readFile, path)
   } catch (error) {
     log.error(`Error while reading file: ${path} because: ${error}`)
     return null
@@ -68,7 +68,7 @@ async function fileRead(path) {
 
 async function fileExists(path) {
   try {
-    await fromCallback(cb => access(path, constants.F_OK, cb))
+    await fromCallback(access, path, constants.F_OK)
   } catch (error) {
     return false
   }
