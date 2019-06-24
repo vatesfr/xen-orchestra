@@ -16,9 +16,9 @@ const extractProperties = _ => _.properties
 const synchronizedWrite = synchronized()
 
 export default class Proxy {
-  constructor(app, { proxy }) {
+  constructor(app, conf) {
     this._app = app
-    this._proxyConf = proxy
+    this._xoProxyConf = conf['xo-proxy']
     const db = (this._db = new Collection({
       connection: app._redis,
       indexes: ['address'],
@@ -99,7 +99,7 @@ export default class Proxy {
         method: 'POST',
         pathname: '/api/v1',
       }),
-      parseDuration(this._proxyConf.remoteMethodCallTimeout)
+      parseDuration(this._xoProxyConf.callTimeout)
     )
 
     const authenticationToken = parseSetCookie(response, {
@@ -110,9 +110,9 @@ export default class Proxy {
     }
 
     const lines = pumpify(response, split2())
-    const firstLine = await readChunk(String(lines))
+    const firstLine = await readChunk(lines)
 
-    const { result, error } = parse(firstLine)
+    const { result, error } = parse(String(firstLine))
     if (error !== undefined) {
       throw error
     }
