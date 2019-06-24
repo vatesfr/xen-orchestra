@@ -1,10 +1,11 @@
 import assert from 'assert'
 import createLogger from '@xen-orchestra/log'
 import NodeOpenssl from 'node-openssl-cert'
+import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { existsSync, readFileSync, writeFile } from 'fs'
 import { filter, find, forOwn, map } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
+import { join } from 'path'
 
 import { OvsdbClient } from './ovsdb-client'
 
@@ -12,20 +13,20 @@ const log = createLogger('xo:xo-server:sdn-controller')
 
 const PROTOCOL = 'pssl'
 
-const CA_CERT = '/ca-cert.pem'
-const CLIENT_KEY = '/client-key.pem'
-const CLIENT_CERT = '/client-cert.pem'
+const CA_CERT = 'ca-cert.pem'
+const CLIENT_KEY = 'client-key.pem'
+const CLIENT_CERT = 'client-cert.pem'
 
 const SDN_CONTROLLER_CERT = 'sdn-controller-ca.pem'
 
 const NB_DAYS = 9999
 
-exports.configurationSchema = {
+export const configurationSchema = {
   type: 'object',
   properties: {
     'cert-dir': {
-      description: `Full path to a directory where to find: client-cert.pem,
- client-key.pem and ca-cert.pem to create ssl connections with hosts.
+      description: `Full path to a directory where to find: \`client-cert.pem\`,
+ \`client-key.pem\` and \`ca-cert.pem\` to create ssl connections with hosts.
  If none is provided, the plugin will create its own self-signed certificates.`,
 
       type: 'string',
@@ -55,7 +56,7 @@ class SDNController extends EventEmitter {
     this._caCert = null
 
     this._poolNetworks = []
-    this._OvsdbClients = []
+    this._ovsdbClients = []
     this._newHosts = []
 
     this._networks = new Map()
@@ -79,14 +80,14 @@ class SDNController extends EventEmitter {
       log.debug(`No cert-dir provided, using default self-signed certificates`)
       certDirectory = await this._getDataDir()
 
-      if (existsSync(certDirectory + CA_CERT) === false) {
+      if (!(await this._existFile(join(certDirectory, CA_CERT)))) {
         // If one certificate doesn't exist, none should
         assert(
-          existsSync(certDirectory + CLIENT_KEY) === false,
+          !(await this._existFile(join(certDirectory, CLIENT_KEY))),
           `${CLIENT_KEY} should not exist`
         )
         assert(
-          existsSync(certDirectory + CLIENT_CERT) === false,
+          !(await this._existFile(join(certDirectory, CLIENT_CERT))),
           `${CLIENT_CERT} should not exist`
         )
 
@@ -96,33 +97,21 @@ class SDNController extends EventEmitter {
     }
     // TODO: verify certificates and create new certificates if needed
 
-    // All certificates MUST exist now
-    assert(existsSync(certDirectory + CA_CERT) === true, `No ${CA_CERT}`)
-    assert(existsSync(certDirectory + CLIENT_KEY) === true, `No ${CLIENT_KEY}`)
-    assert(
-      existsSync(certDirectory + CLIENT_CERT) === true,
-      `No ${CLIENT_CERT}`
-    )
+    this._clientKey = await this._readFile(join(certDirectory, CLIENT_KEY))
+    this._clientCert = await this._readFile(join(certDirectory, CLIENT_CERT))
+    this._caCert = await this._readFile(join(certDirectory, CA_CERT))
 
-    this._clientKey = readFileSync(certDirectory + CLIENT_KEY)
-    this._clientCert = readFileSync(certDirectory + CLIENT_CERT)
-    this._caCert = readFileSync(certDirectory + CA_CERT)
-
-    this._OvsdbClients.forEach(client => {
+    this._ovsdbClients.forEach(client => {
       client.updateCertificates(this._clientKey, this._clientCert, this._caCert)
     })
     const updatedPools = []
     for (let i = 0; i < this._poolNetworks.length; ++i) {
       const poolNetwork = this._poolNetworks[i]
-      if (updatedPools.includes(poolNetwork.pool) === true) {
+      if (updatedPools.includes(poolNetwork.pool)) {
         continue
       }
 
       const xapi = this._xo.getXapi(poolNetwork.pool)
-      if (xapi == null) {
-        log.error(`XAPI not found`)
-        continue
-      }
       await this._installCaCertificateIfNeeded(xapi)
       updatedPools.push(poolNetwork.pool)
     }
@@ -186,7 +175,7 @@ class SDNController extends EventEmitter {
   }
 
   async unload() {
-    this._OvsdbClients = []
+    this._ovsdbClients = []
     this._poolNetworks = []
     this._newHosts = []
 
@@ -309,9 +298,9 @@ class SDNController extends EventEmitter {
   async _objectsRemoved(xapi, objects) {
     await Promise.all(
       map(objects, async (object, id) => {
-        const client = find(this._OvsdbClients, { id: id })
+        const client = find(this._ovsdbClients, { id: id })
         if (client != null) {
-          this._OvsdbClients.splice(this._OvsdbClients.indexOf(client), 1)
+          this._ovsdbClients.splice(this._ovsdbClients.indexOf(client), 1)
         }
 
         // If a Star center host is removed: re-elect a new center where needed
@@ -404,7 +393,7 @@ class SDNController extends EventEmitter {
   async _hostUpdated(host) {
     const xapi = host.$xapi
 
-    if (host.enabled === true) {
+    if (host.enabled) {
       if (host.PIFs.length === 0) {
         return
       }
@@ -437,7 +426,7 @@ class SDNController extends EventEmitter {
           continue
         }
 
-        if (accessPIF.currently_attached === true) {
+        if (accessPIF.currently_attached) {
           continue
         }
 
@@ -487,7 +476,7 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _setPoolControllerIfNeeded(pool) {
-    if (this._setControllerNeeded(pool.$xapi) === false) {
+    if (!this._setControllerNeeded(pool.$xapi)) {
       // Nothing to do
       return
     }
@@ -519,9 +508,9 @@ class SDNController extends EventEmitter {
     let needInstall = false
     try {
       const result = await xapi.call('pool.certificate_list')
-      if (result.includes(SDN_CONTROLLER_CERT) === false) {
+      if (!result.includes(SDN_CONTROLLER_CERT)) {
         needInstall = true
-      } else if (this._overrideCerts === true) {
+      } else if (this._overrideCerts) {
         await xapi.call('pool.certificate_uninstall', SDN_CONTROLLER_CERT)
         log.debug(
           `Old SDN Controller CA certificate uninstalled on pool: '${
@@ -535,7 +524,7 @@ class SDNController extends EventEmitter {
         `Couldn't retrieve certificate list of pool: '${xapi.pool.name_label}'`
       )
     }
-    if (needInstall === false) {
+    if (!needInstall) {
       return
     }
 
@@ -569,9 +558,9 @@ class SDNController extends EventEmitter {
     const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
     await Promise.all(
       map(hosts, async host => {
-        if (resetNeeded === true) {
+        if (resetNeeded) {
           // Clean old ports and interfaces
-          const hostClient = find(this._OvsdbClients, { host: host.$ref })
+          const hostClient = find(this._ovsdbClients, { host: host.$ref })
           if (hostClient != null) {
             await hostClient.resetForNetwork(network.uuid, network.name_label)
           }
@@ -582,11 +571,7 @@ class SDNController extends EventEmitter {
         }
 
         const pif = find(host.$PIFs, { network: network.$ref })
-        if (
-          pif != null &&
-          pif.currently_attached === true &&
-          host.enabled === true
-        ) {
+        if (pif != null && pif.currently_attached && host.enabled) {
           newCenter = host
         }
       })
@@ -644,7 +629,7 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const hostClient = find(this._OvsdbClients, {
+    const hostClient = find(this._ovsdbClients, {
       host: host.$ref,
     })
     if (hostClient == null) {
@@ -652,7 +637,7 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const starCenterClient = find(this._OvsdbClients, {
+    const starCenterClient = find(this._ovsdbClients, {
       host: starCenter.$ref,
     })
     if (starCenterClient == null) {
@@ -683,7 +668,7 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   _createOvsdbClient(host) {
-    const foundClient = find(this._OvsdbClients, { host: host.$ref })
+    const foundClient = find(this._ovsdbClients, { host: host.$ref })
     if (foundClient != null) {
       return foundClient
     }
@@ -694,7 +679,7 @@ class SDNController extends EventEmitter {
       this._clientCert,
       this._caCert
     )
-    this._OvsdbClients.push(client)
+    this._ovsdbClients.push(client)
     return client
   }
 
@@ -725,13 +710,13 @@ class SDNController extends EventEmitter {
     }
 
     openssl.generateRSAPrivateKey(rsakeyoptions, (err, cakey, cmd) => {
-      if (err !== false) {
+      if (err) {
         log.error(`Error while generating CA private key: ${err}`)
         return
       }
 
       openssl.generateCSR(cacsroptions, cakey, null, (err, csr, cmd) => {
-        if (err !== false) {
+        if (err) {
           log.error(`Error while generating CA certificate: ${err}`)
           return
         }
@@ -742,23 +727,23 @@ class SDNController extends EventEmitter {
           cakey,
           null,
           async (err, cacrt, cmd) => {
-            if (err !== false) {
+            if (err) {
               log.error(`Error while signing CA certificate: ${err}`)
               return
             }
 
-            await this._writeFile(dataDir + CA_CERT, cacrt)
+            await this._writeFile(join(dataDir, CA_CERT), cacrt)
             openssl.generateRSAPrivateKey(
               rsakeyoptions,
               async (err, key, cmd) => {
-                if (err !== false) {
+                if (err) {
                   log.error(`Error while generating private key: ${err}`)
                   return
                 }
 
-                await this._writeFile(dataDir + CLIENT_KEY, key)
+                await this._writeFile(join(dataDir, CLIENT_KEY), key)
                 openssl.generateCSR(csroptions, key, null, (err, csr, cmd) => {
-                  if (err !== false) {
+                  if (err) {
                     log.error(`Error while generating certificate: ${err}`)
                     return
                   }
@@ -770,12 +755,12 @@ class SDNController extends EventEmitter {
                     cakey,
                     null,
                     async (err, crt, cmd) => {
-                      if (err !== false) {
+                      if (err) {
                         log.error(`Error while signing certificate: ${err}`)
                         return
                       }
 
-                      await this._writeFile(dataDir + CLIENT_CERT, crt)
+                      await this._writeFile(join(dataDir, CLIENT_CERT), crt)
                       this.emit('certWritten')
                     }
                   )
@@ -804,6 +789,27 @@ class SDNController extends EventEmitter {
     } catch (error) {
       log.error(`Couldn't write in: ${path} because: ${error}`)
     }
+  }
+
+  async _readFile(path) {
+    let result
+    try {
+      result = await fromCallback(cb => readFile(path, cb))
+    } catch (error) {
+      log.error(`Error while reading file: ${path} because: ${error}`)
+      return null
+    }
+    return result
+  }
+
+  async _existFile(path) {
+    try {
+      await fromCallback(cb => access(path, constants.F_OK, cb))
+    } catch (error) {
+      return false
+    }
+
+    return true
   }
 }
 

@@ -76,7 +76,7 @@ export class OvsdbClient {
       remoteAddress,
       socket
     )
-    if (alreadyExist === true) {
+    if (alreadyExist) {
       socket.destroy()
       return
     }
