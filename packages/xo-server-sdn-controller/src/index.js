@@ -207,6 +207,7 @@ class SDNController extends EventEmitter {
       networkDescription: { type: 'string' },
       encapsulation: { type: 'string' },
       pifId: { type: 'string' },
+      encrypted: { type: 'boolean' },
     }
     createPrivateNetwork.resolve = {
       xoPool: ['poolId', 'pool', ''],
@@ -394,6 +395,7 @@ class SDNController extends EventEmitter {
     encapsulation,
     xoPif,
     vni,
+    encrypted,
   }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
@@ -413,6 +415,7 @@ class SDNController extends EventEmitter {
         'xo:sdn-controller:pif-device': pif.device,
         'xo:sdn-controller:private-pool-wide': 'true',
         'xo:sdn-controller:vni': String(vni),
+        'xo:sdn-controller:encrypted': encrypted ? 'true' : 'false',
       },
     })
 
@@ -1227,22 +1230,34 @@ class SDNController extends EventEmitter {
     const encapsulation =
       otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
+
+    const chars = [
+      ...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!',
+    ]
+    const password = network.other_config.encrypted === 'true'
+      ? [...Array(16)].map(i => chars[(Math.random() * chars.length) | 0])
+          .join``
+      : undefined
+
     let bridgeName
     try {
+<<<<<<< HEAD
       ;[bridgeName] = await Promise.all([
         hostClient.addInterfaceAndPort(
           network.uuid,
           network.name_label,
           starCenterClient.host.address,
           encapsulation,
-          vni
+          vni,
+          password
         ),
         starCenterClient.addInterfaceAndPort(
           network.uuid,
           network.name_label,
           hostClient.host.address,
           encapsulation,
-          vni
+          vni,
+          password
         ),
       ])
     } catch (error) {

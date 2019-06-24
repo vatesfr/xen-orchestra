@@ -36,6 +36,7 @@ const EMPTY = {
   bondMode: undefined,
   description: '',
   encapsulation: 'gre',
+  encrypted: false,
   isPrivate: false,
   mtu: '',
   name: '',
@@ -127,6 +128,12 @@ const NewNetwork = decorate([
           bonded: isPrivate ? bonded : false,
         }
       },
+      toggleEncrypted() {
+        const { encrypted } = this.state
+        return {
+          encrypted: !encrypted,
+        }
+      },
     },
     computed: {
       disableAddPool: ({ networks }, { nPools }) =>
@@ -181,6 +188,7 @@ const NewNetwork = decorate([
         isPrivate,
         description,
         encapsulation,
+        encrypted,
         mtu,
         name,
         networks,
@@ -220,6 +228,7 @@ const NewNetwork = decorate([
               networkDescription: description,
               encapsulation: encapsulation,
               pifId: pif.id,
+              encrypted: encrypted,
             })
         : createNetwork({
             description,
@@ -268,6 +277,7 @@ const NewNetwork = decorate([
         isPrivate,
         description,
         encapsulation,
+        encrypted,
         modeOptions,
         mtu,
         name,
@@ -347,6 +357,11 @@ const NewNetwork = decorate([
                           ]}
                           value={encapsulation}
                         />
+                        <Toggle
+                          onChange={effects.toggleEncrypted}
+                          value={encrypted}
+                        />{' '}
+                        <label>{_('newNetworkEncrypted')}</label>
                         <div className='mt-1'>
                           {state.networks.map(({ pool, pif }, key) => (
                             <div key={key}>

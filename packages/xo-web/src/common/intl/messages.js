@@ -1755,6 +1755,7 @@ const messages = {
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
   newNetworkEncapsulation: 'Encapsulation',
+  newNetworkEncrypted: 'Encrypted',
   newNetworkSdnControllerTip:
     'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
   deleteNetwork: 'Delete network',
