@@ -95,7 +95,7 @@ Array [
 
 exports[`backupNg .runJob() : fails trying to run a backup job without schedule 1`] = `[JsonRpcError: invalid parameters]`;
 
-exports[`backupNg .runJob() : fails trying to run backup job with remotes without exportRetention 1`] = `
+exports[`backupNg .runJob() : fails trying to run backup job without retention 1`] = `
 Object {
   "data": Object {
     "mode": "full",
@@ -112,7 +112,7 @@ Object {
 }
 `;
 
-exports[`backupNg .runJob() : fails trying to run backup job with remotes without exportRetention 2`] = `
+exports[`backupNg .runJob() : fails trying to run backup job without retention 2`] = `
 Object {
   "data": Object {
     "id": Any<String>,

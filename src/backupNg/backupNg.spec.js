@@ -224,7 +224,7 @@ describe("backupNg", () => {
       expect(vmTask.data.id).toBe(vmIdWithoutDisks);
     });
 
-    it("fails trying to run backup job with remotes without exportRetention", async () => {
+    it("fails trying to run backup job without retentions", async () => {
       const scheduleTempId = randomId();
       const { id: jobId } = await xo.createTempBackupNgJob({
         ...defaultBackupNg,
@@ -237,6 +237,9 @@ describe("backupNg", () => {
         settings: {
           ...defaultBackupNg.settings,
           [scheduleTempId]: {},
+        },
+        srs: {
+          id: config.srs.defaultSr,
         },
       });
 
