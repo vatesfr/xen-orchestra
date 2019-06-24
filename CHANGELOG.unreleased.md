@@ -17,7 +17,7 @@
 
 - [Metadata backup] Missing XAPIs should trigger a failure job [#4281](https://github.com/vatesfr/xen-orchestra/issues/4281) (PR [#4283](https://github.com/vatesfr/xen-orchestra/pull/4283))
 - [Host/advanced] Fix host CPU hyperthreading detection [#4262](https://github.com/vatesfr/xen-orchestra/issues/4262) (PR [#4285](https://github.com/vatesfr/xen-orchestra/pull/4285))
-
+- [iSCSI] Fix fibre channel paths display [#4291](https://github.com/vatesfr/xen-orchestra/issues/4291) (PR [#4303](https://github.com/vatesfr/xen-orchestra/pull/4303))
 ### Released packages
 
 - xo-server-auth-saml v0.6.0
