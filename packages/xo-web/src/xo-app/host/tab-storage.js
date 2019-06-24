@@ -92,18 +92,11 @@ const SR_COLUMNS = [
     itemRenderer: ({ pbdDeviceConfig }) => {
       const keys = Object.keys(pbdDeviceConfig)
       return (
-        !isEmpty(keys) && (
-          <div>
-            {keys.map(key => {
-              return (
-                <div>
-                  <strong>{key}: </strong>
-                  <span>{` ${pbdDeviceConfig[key]}`}</span>
-                </div>
-              )
-            })}
-          </div>
-        )
+        <ul className='list-unstyled'>
+          {keys.map(key => (
+            <li key={key}>{_.keyValue(key, pbdDeviceConfig[key])}</li>
+          ))}
+        </ul>
       )
     },
   },

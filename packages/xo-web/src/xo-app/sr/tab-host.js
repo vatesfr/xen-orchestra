@@ -60,18 +60,11 @@ const HOST_COLUMNS = [
     itemRenderer: ({ device_config: deviceConfig }) => {
       const keys = Object.keys(deviceConfig)
       return (
-        !isEmpty(keys) && (
-          <div>
-            {keys.map(key => {
-              return (
-                <div>
-                  <strong>{key}: </strong>
-                  <span>{` ${deviceConfig[key]}`}</span>
-                </div>
-              )
-            })}
-          </div>
-        )
+        <ul className='list-unstyled'>
+          {keys.map(key => (
+            <li key={key}>{_.keyValue(key, deviceConfig[key])}</li>
+          ))}
+        </ul>
       )
     },
   },
