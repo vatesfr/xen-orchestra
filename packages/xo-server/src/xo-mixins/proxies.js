@@ -1,11 +1,14 @@
+import cookie from 'cookie'
+import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
-import setCookie from 'set-cookie-parser'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
+import { timeout } from 'promise-toolbox'
 
 import Collection from '../collection/redis'
+import parseDuration from '../_parseDuration'
 import patch from '../patch'
 import readChunk from '../_readStreamChunk'
 
@@ -13,8 +16,9 @@ const extractProperties = _ => _.properties
 const synchronizedWrite = synchronized()
 
 export default class Proxy {
-  constructor(app) {
+  constructor(app, { proxy }) {
     this._app = app
+    this._proxyConf = proxy
     const db = (this._db = new Collection({
       connection: app._redis,
       indexes: ['address'],
@@ -82,18 +86,23 @@ export default class Proxy {
   async callProxyMethod(id, method, params, expectStream = false) {
     const proxy = await this.getProxy(id)
 
-    const { httpRequest } = this._app
-    const response = await httpRequest(proxy.address, {
-      body: format.request(0, method, params),
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: `authenticationToken=${proxy.authenticationToken}`,
-      },
-      method: 'POST',
-      pathname: '/api/v1',
-    })
+    const response = await timeout.call(
+      this._app.httpRequest(proxy.address, {
+        body: format.request(0, method, params),
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: cookie.serialize(
+            'authenticationToken',
+            proxy.authenticationToken
+          ),
+        },
+        method: 'POST',
+        pathname: '/api/v1',
+      }),
+      parseDuration(this._proxyConf.remoteMethodCallTimeout)
+    )
 
-    const authenticationToken = setCookie(response, {
+    const authenticationToken = parseSetCookie(response, {
       map: true,
     }).authenticationToken?.value
     if (authenticationToken !== undefined) {
@@ -101,7 +110,7 @@ export default class Proxy {
     }
 
     const lines = pumpify(response, split2())
-    const firstLine = await readChunk(lines)
+    const firstLine = await readChunk(String(lines))
 
     const { result, error } = parse(firstLine)
     if (error !== undefined) {

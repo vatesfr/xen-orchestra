@@ -113,19 +113,18 @@ export default class {
   async getAllRemotesInfo() {
     const remotesInfo = this._remotesInfo
     await asyncMap(this._remotes.get(), async remote => {
-      const getInfo =
+      const promise =
         remote.proxy !== undefined
-          ? () =>
-              this._xo.callProxyMethod(remote.proxy, 'remote.getInfo', {
-                remote,
-              })
+          ? this._xo.callProxyMethod(remote.proxy, 'remote.getInfo', {
+              remote,
+            })
           : await this.getRemoteHandler(remote.id).then(handler =>
-              handler.getInfo.bind(handler)
+              handler.getInfo()
             )
 
       try {
         await timeout.call(
-          getInfo().then(info => {
+          promise.then(info => {
             remotesInfo[remote.id] = info
           }),
           5e3

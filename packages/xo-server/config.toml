@@ -84,3 +84,7 @@ timeout = 600e3
 
 # see https:#github.com/vatesfr/xen-orchestra/issues/3419
 # useSudo = false
+
+[proxy]
+# Max wait duration for the "xo-proxy" response
+remoteMethodCallTimeout = '1 min'
