@@ -208,17 +208,16 @@ $select-input-height: 40px; // Bootstrap input height
   top: 10px;
 }
 
-
 .notify-item {
   border-radius: 5px;
   border: 1px solid black;
   margin: 5px 10px;
   width: 250px;
-  // "input-group" (https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-web/src/common/sorted-table/index.js#L82) ,
-  // "form-control" for input(https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-web/src/common/sorted-table/index.js#L104)
-  // and "input-group-btn" (https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-web/src/common/sorted-table/index.js#L118) have hidden the notification.
-  // In bootstrap, The "z-index: 3" is for focused "form-control" (https://github.com/twbs/bootstrap/blob/master/scss/_input-group.scss#L30TOL34)
-  // so the problem is solved by adding "z-index: 3".
+  // Workaround to prevent some bootstrap elements from hiding the notifications.
+  // In bootstrap, ".input-group .form-control" and ".input-group > .input-group-btn > .btn"
+  // have "z-index: 2" and "z-index: 3" if they are hovered, focused or active.
+  // (https://github.com/twbs/bootstrap/blob/v4.0.0-alpha.5/scss/_input-group.scss#L18-L37)
+  // (https://github.com/twbs/bootstrap/blob/v4.0.0-alpha.5/scss/_input-group.scss#L177-L187)
   z-index: 3;
   &.success {
     background: $alert-success-bg;
