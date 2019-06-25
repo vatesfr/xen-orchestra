@@ -284,3 +284,19 @@ installSupplementalPack.params = {
 installSupplementalPack.resolve = {
   host: ['host', 'host', 'admin'],
 }
+
+// -------------------------------------------------------------------
+
+export function isHyperThreadingEnabled({ host }) {
+  return this.getXapi(host).isHyperThreadingEnabled(host._xapiId)
+}
+
+isHyperThreadingEnabled.description = 'get hyper-threading information'
+
+isHyperThreadingEnabled.params = {
+  id: { type: 'string' },
+}
+
+isHyperThreadingEnabled.resolve = {
+  host: ['id', 'host', 'administrate'],
+}

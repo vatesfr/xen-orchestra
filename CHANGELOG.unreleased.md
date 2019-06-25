@@ -14,6 +14,7 @@
 ### Bug fixes
 
 - [Metadata backup] Missing XAPIs should trigger a failure job [#4281](https://github.com/vatesfr/xen-orchestra/issues/4281) (PR [#4283](https://github.com/vatesfr/xen-orchestra/pull/4283))
+- [Host/advanced] Fix host CPU hyperthreading detection [#4262](https://github.com/vatesfr/xen-orchestra/issues/4262) (PR [#4285](https://github.com/vatesfr/xen-orchestra/pull/4285))
 
 ### Released packages
 

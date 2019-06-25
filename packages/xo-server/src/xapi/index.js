@@ -2348,4 +2348,27 @@ export default class Xapi extends XapiBase {
       )
     }
   }
+
+  async isHyperThreadingEnabled(hostId) {
+    try {
+      return (
+        (await this.call(
+          'host.call_plugin',
+          this.getObject(hostId).$ref,
+          'hyperthreading.py',
+          'get_hyperthreading',
+          {}
+        )) !== 'false'
+      )
+    } catch (error) {
+      if (
+        error.code === 'XENAPI_MISSING_PLUGIN' ||
+        error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION'
+      ) {
+        return null
+      } else {
+        throw error
+      }
+    }
+  }
 }

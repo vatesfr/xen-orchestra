@@ -780,6 +780,11 @@ export const emergencyShutdownHosts = hosts => {
 export const isHostTimeConsistentWithXoaTime = host =>
   _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
 
+export const isHyperThreadingEnabledHost = host =>
+  _call('host.isHyperThreadingEnabled', {
+    id: resolveId(host),
+  })
+
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
   confirm({

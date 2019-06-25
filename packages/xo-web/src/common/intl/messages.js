@@ -797,6 +797,8 @@ const messages = {
     'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
   hyperThreading: 'Hyper-threading (SMT)',
+  hyperThreadingNotAvailable:
+    'HT detection is only available on XCP-ng 7.6 and higher',
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
