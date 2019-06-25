@@ -52,11 +52,6 @@ export class OvsdbClient {
     encapsulation
   ) {
     const socket = await this._connect()
-    if (socket == null) {
-      log.error(`[${this._host.name_label}] No TLS socket available`)
-      return
-    }
-
     const index = this._numberOfPortAndInterface
     ++this._numberOfPortAndInterface
 
@@ -158,11 +153,6 @@ export class OvsdbClient {
 
   async resetForNetwork(networkUuid, networkName) {
     const socket = await this._connect()
-    if (socket == null) {
-      log.error(`[${this._host.name_label}] No TLS socket available`)
-      return
-    }
-
     const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
       networkName,
@@ -503,7 +493,7 @@ export class OvsdbClient {
           error.code
         }`
       )
-      return null
+      throw error
     }
 
     log.debug(`[${this._host.name_label}] TLS connection successful`)

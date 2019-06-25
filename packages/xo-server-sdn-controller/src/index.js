@@ -47,22 +47,12 @@ export const configurationSchema = {
 // =============================================================================
 
 async function fileWrite(path, data) {
-  try {
-    await fromCallback(writeFile, path, data)
-    log.debug(`${path} successfully written`)
-  } catch (error) {
-    log.error(`Couldn't write in: ${path} because: ${error}`)
-  }
+  await fromCallback(writeFile, path, data)
+  log.debug(`${path} successfully written`)
 }
 
 async function fileRead(path) {
-  let result
-  try {
-    result = await fromCallback(readFile, path)
-  } catch (error) {
-    log.error(`Error while reading file: ${path} because: ${error}`)
-    return null
-  }
+  const result = await fromCallback(readFile, path)
   return result
 }
 
@@ -70,7 +60,11 @@ async function fileExists(path) {
   try {
     await fromCallback(access, path, constants.F_OK)
   } catch (error) {
-    return false
+    if (error.code === 'ENOENT') {
+      return false
+    }
+
+    throw error
   }
 
   return true
@@ -111,6 +105,7 @@ class SDNController extends EventEmitter {
   async configure(configuration) {
     this._overrideCerts = configuration['override-certs']
     let certDirectory = configuration['cert-dir']
+
     if (certDirectory == null) {
       log.debug(`No cert-dir provided, using default self-signed certificates`)
       certDirectory = await this._getDataDir()
@@ -599,7 +594,16 @@ class SDNController extends EventEmitter {
           // Clean old ports and interfaces
           const hostClient = find(this._ovsdbClients, { host: host.$ref })
           if (hostClient != null) {
-            await hostClient.resetForNetwork(network.uuid, network.name_label)
+            try {
+              await hostClient.resetForNetwork(network.uuid, network.name_label)
+            } catch (error) {
+              log.error(
+                `Couldn't reset network: '${network.name_label}' for host: '${
+                  host.name_label
+                }' in pool: '${network.$pool.name_label}' because: ${error}`
+              )
+              return
+            }
           }
         }
 
@@ -688,18 +692,27 @@ class SDNController extends EventEmitter {
       network.other_config.encapsulation != null
         ? network.other_config.encapsulation
         : 'gre'
-    await hostClient.addInterfaceAndPort(
-      network.uuid,
-      network.name_label,
-      starCenterClient.address,
-      encapsulation
-    )
-    await starCenterClient.addInterfaceAndPort(
-      network.uuid,
-      network.name_label,
-      hostClient.address,
-      encapsulation
-    )
+
+    try {
+      await hostClient.addInterfaceAndPort(
+        network.uuid,
+        network.name_label,
+        starCenterClient.address,
+        encapsulation
+      )
+      await starCenterClient.addInterfaceAndPort(
+        network.uuid,
+        network.name_label,
+        hostClient.address,
+        encapsulation
+      )
+    } catch (error) {
+      log.error(
+        `Couldn't add host: '${host.name_label}' to network: '${
+          network.name_label
+        }' in pool: '${host.$pool.name_label}' because: ${error}`
+      )
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -809,12 +822,8 @@ class SDNController extends EventEmitter {
       })
     })
 
-    try {
-      await fromEvent(this, 'certWritten', {})
-      log.debug('All certificates have been successfully written')
-    } catch (error) {
-      log.error(`${error}`)
-    }
+    await fromEvent(this, 'certWritten', {})
+    log.debug('All certificates have been successfully written')
   }
 }
 
