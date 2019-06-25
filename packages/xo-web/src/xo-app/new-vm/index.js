@@ -1175,10 +1175,8 @@ export default class NewVm extends BaseComponent {
             </LineItem>
             <br />
             <LineItem>
-              <label>
-                <Tooltip
-                  content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}
-                >
+              <Tooltip content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}>
+                <label>
                   <input
                     checked={installMethod === 'SSH'}
                     disabled={!CAN_CLOUD_INIT}
@@ -1187,10 +1185,10 @@ export default class NewVm extends BaseComponent {
                     type='radio'
                     value='SSH'
                   />
-                </Tooltip>
-                &nbsp;
-                {_('newVmSshKey')}
-              </label>
+                  &nbsp;
+                  {_('newVmSshKey')}
+                </label>
+              </Tooltip>
               &nbsp;
               <span className={classNames('input-group', styles.fixedWidth)}>
                 <DebounceInput
@@ -1218,10 +1216,8 @@ export default class NewVm extends BaseComponent {
             </LineItem>
             <br />
             <LineItem>
-              <label>
-                <Tooltip
-                  content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}
-                >
+              <Tooltip content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}>
+                <label>
                   <input
                     checked={installMethod === 'customConfig'}
                     disabled={!CAN_CLOUD_INIT}
@@ -1230,10 +1226,10 @@ export default class NewVm extends BaseComponent {
                     type='radio'
                     value='customConfig'
                   />
-                </Tooltip>
-                &nbsp;
-                {_('newVmCustomConfig')}
-              </label>
+                  &nbsp;
+                  {_('newVmCustomConfig')}
+                </label>
+              </Tooltip>
               &nbsp;
               <AvailableTemplateVars />
               &nbsp;
