@@ -1,12 +1,12 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import SelectCompression from 'select-compression'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import moment from 'moment-timezone'
 import React from 'react'
+import SelectCompression from 'select-compression'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import UserError from 'user-error'
@@ -14,7 +14,6 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { flatten, includes, isEmpty, map, mapValues, omit, some } from 'lodash'
 import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
@@ -39,6 +38,16 @@ import {
   isSrWritable,
   subscribeRemotes,
 } from 'xo'
+import {
+  flatten,
+  includes,
+  isEmpty,
+  keyBy,
+  map,
+  mapValues,
+  omit,
+  some,
+} from 'lodash'
 
 import NewSchedule from './new-schedule'
 import ReportWhen from './_reportWhen'
@@ -159,6 +168,32 @@ const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
     {_('deleteOldBackupsFirst')}
   </ActionButton>
 )
+
+const RemoteProxyWarning = decorate([
+  addSubscriptions({
+    remotes: cb =>
+      subscribeRemotes(remotes => {
+        cb(keyBy(remotes, 'id'))
+      }),
+  }),
+  provideState({
+    computed: {
+      showWarning: (_, { id, proxyId, remotes = {} }) => {
+        const remote = remotes[id]
+        return (
+          proxyId != null && remote !== undefined && remote.proxy !== proxyId
+        )
+      },
+    },
+  }),
+  injectState,
+  ({ state }) =>
+    state.showWarning ? (
+      <Tooltip content={_('remoteNotLinkedToSelectedProxy')}>
+        <Icon icon='alarm' color='text-danger' />
+      </Tooltip>
+    ) : null,
+])
 
 export default decorate([
   New => props => (
@@ -785,7 +820,11 @@ export default decorate([
                         <Ul>
                           {map(state.remotes, (id, key) => (
                             <Li key={id}>
-                              <Remote id={id} />
+                              <Remote id={id} />{' '}
+                              <RemoteProxyWarning
+                                id={id}
+                                proxyId={state.proxyId}
+                              />
                               <div className='pull-right'>
                                 <DeleteOldBackupsFirst
                                   handler={effects.setTargetDeleteFirst}
