@@ -862,6 +862,7 @@ const messages = {
   // ----- Host storage tabs -----
   addSrDeviceButton: 'Add a storage',
   srType: 'Type',
+  pbdDetails: 'PBD details',
   pbdStatus: 'Status',
   pbdStatusConnected: 'Connected',
   pbdStatusDisconnected: 'Disconnected',
