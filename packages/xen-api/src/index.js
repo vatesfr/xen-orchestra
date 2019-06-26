@@ -99,6 +99,9 @@ export class Xapi extends EventEmitter {
     this._sessionId = undefined
     this._status = DISCONNECTED
 
+    this._lastFailedFetchTime = undefined
+    this._lastSuccessfulFetchTime = undefined
+
     this._debounce = opts.debounce ?? 200
     this._objects = new Collection()
     this._objectsByRef = { __proto__: null }
@@ -569,6 +572,14 @@ export class Xapi extends EventEmitter {
     throw new Error('no object with UUID: ' + uuid)
   }
 
+  getLastFailedFetchTime() {
+    return this._lastFailedFetchTime
+  }
+
+  getLastSuccessfulFetchTime() {
+    return this._lastSuccessfulFetchTime
+  }
+
   // manually run events watching if set to `false` in constructor
   watchEvents() {
     ignoreErrors.call(this._watchEvents())
@@ -954,6 +965,7 @@ export class Xapi extends EventEmitter {
             ],
             EVENT_TIMEOUT * 1e3 * 1.1
           )
+          this._lastSuccessfulFetchTime = new Date().getTime()
         } catch (error) {
           const code = error?.code
           if (code === 'EVENTS_LOST' || code === 'SESSION_INVALID') {
@@ -961,6 +973,7 @@ export class Xapi extends EventEmitter {
             continue mainLoop
           }
 
+          this._lastFailedFetchTime = new Date().getTime()
           console.warn('_watchEvents', error)
           await pDelay(this._eventPollDelay)
           continue
