@@ -89,6 +89,12 @@ describe("user", () => {
 
 ## Usage
 
+- Before running the tests, you have to create a config file for xo-server-test.  
+  ```
+  > cp sample.config.toml ~/.config/xo-server-test/config.toml
+  ```
+  And complete it.
+
 - To run the tests:  
   ```
   > npm ci

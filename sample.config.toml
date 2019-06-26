@@ -1,0 +1,16 @@
+[xoConnection]
+  url = ''
+  email = ''
+  password = ''
+
+[vms]
+  default = ''
+
+[templates]
+  default = ''
+
+[remotes]
+  default = ''
+
+[srs]
+  default = ''
