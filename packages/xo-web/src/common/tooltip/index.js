@@ -11,6 +11,10 @@ import styles from './index.css'
 
 // ===================================================================
 
+// Tooltip wont be visible on disabled HTML elements, in this case wrap your element before wrapping it with this tooltip
+
+// ===================================================================
+
 let instance
 
 export class TooltipViewer extends Component {
