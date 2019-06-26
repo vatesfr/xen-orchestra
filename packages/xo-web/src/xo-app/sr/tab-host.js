@@ -111,14 +111,17 @@ const HOST_WITH_PATHS_COLUMNS = [
       }
 
       const [nActives, nPaths] = getIscsiPaths(pbd)
+      const nSessions = pbd.otherConfig.iscsi_sessions
       return (
-        nActives !== undefined &&
-        nPaths !== undefined &&
-        _('hostMultipathingPaths', {
-          nActives,
-          nPaths,
-          nSessions: pbd.otherConfig.iscsi_sessions,
-        })
+        <span>
+          {nActives !== undefined &&
+            nPaths !== undefined &&
+            _('hostMultipathingPaths', {
+              nActives,
+              nPaths,
+            })}{' '}
+          {nSessions !== undefined && _('iscsiSessions', { nSessions })}
+        </span>
       )
     },
     sortCriteria: (pbd, hosts) => get(() => hosts[pbd.host].multipathing),
