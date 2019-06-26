@@ -11,7 +11,12 @@ import styles from './index.css'
 
 // ===================================================================
 
-// Tooltip wont be visible on disabled HTML elements, in this case wrap your element before wrapping it with this tooltip
+// Wrap disabled HTML element before wrapping it with Tooltip
+// <Tooltip>
+//   <div>
+//     <MyComponent disabled />
+//   </div>
+// </Tooltip>
 
 // ===================================================================
 
