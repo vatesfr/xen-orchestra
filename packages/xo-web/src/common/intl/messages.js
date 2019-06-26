@@ -1035,6 +1035,7 @@ const messages = {
   vifMacLabel: 'MAC address',
   vifMtuLabel: 'MTU',
   vifNetworkLabel: 'Network',
+  vifRateLimitLabel: 'Rate limit (kB/s)',
   vifStatusLabel: 'Status',
   vifStatusConnected: 'Connected',
   vifStatusDisconnected: 'Disconnected',

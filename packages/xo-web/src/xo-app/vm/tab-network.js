@@ -13,7 +13,7 @@ import Tooltip from 'tooltip'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
-import { XoSelect, Text } from 'editable'
+import { Number, Text, XoSelect } from 'editable'
 import {
   addSubscriptions,
   connectStore,
@@ -330,6 +330,17 @@ const COLUMNS = [
     ),
     name: _('vifNetworkLabel'),
     sortCriteria: (vif, userData) => userData.networks[vif.$network].name_label,
+  },
+  {
+    itemRenderer: ({ id, rateLimit }) => (
+      <Number
+        nullable
+        onChange={rateLimit => setVif(id, { rateLimit })}
+        value={rateLimit === undefined ? '' : rateLimit}
+      />
+    ),
+    name: _('vifRateLimitLabel'),
+    sortCriteria: 'rateLimit',
   },
   {
     component: VifAllowedIps,
