@@ -6,40 +6,44 @@ import _ from './intl'
 import { fetchHostStats, fetchSrStats, fetchVmStats } from './xo'
 import { Select } from './form'
 
-const DEFAULT_GRANULARITY = 'seconds'
+export const DEFAULT_GRANULARITY = {
+  granularity: 'seconds',
+  label: _('statLastTenMinutes'),
+  value: 'lastTenMinutes',
+}
 
 const OPTIONS = [
+  DEFAULT_GRANULARITY,
   {
-    label: _('statLastTenMinutes'),
-    value: 'seconds',
-  },
-  {
+    granularity: 'minutes',
     label: _('statLastTwoHours'),
-    value: 'minutes',
+    value: 'lastTwoHours',
   },
   {
+    granularity: 'hours',
+    keep: 24,
     label: _('statLastDay'),
     value: 'lastDay',
   },
   {
+    granularity: 'hours',
     label: _('statLastWeek'),
-    value: 'hours',
+    value: 'lastWeek',
   },
   {
+    granularity: 'days',
     label: _('statLastYear'),
-    value: 'days',
+    value: 'lastYear',
   },
 ]
 
-export const SelectGranularity = ({
-  onChange,
-  value = DEFAULT_GRANULARITY,
-  ...props
-}) => <Select {...props} onChange={onChange} options={OPTIONS} value={value} />
+export const SelectGranularity = ({ onChange, value, ...props }) => (
+  <Select {...props} onChange={onChange} options={OPTIONS} value={value} />
+)
 
 SelectGranularity.propTypes = {
   onChange: PropTypes.func.isRequired,
-  value: PropTypes.array.isRequired,
+  value: PropTypes.object.isRequired,
 }
 
 // ===================================================================
@@ -50,26 +54,12 @@ const FETCH_FN_BY_TYPE = {
   vm: fetchVmStats,
 }
 
-const CUSTOMIZED_GRANULARITY = {
-  lastDay: {
-    granularity: 'hours',
-    nValues: 24,
-  },
-}
-
 const contractStats = (stats, nKeptItems) =>
   Array.isArray(stats)
     ? stats.splice(0, stats.length - nKeptItems)
     : forOwn(stats, metrics => contractStats(metrics, nKeptItems))
 
-export const fetchStats = async (objOrId, type, granularity) => {
-  const customizedGranularity = CUSTOMIZED_GRANULARITY[granularity]
-  const fn = FETCH_FN_BY_TYPE[type]
-
-  if (customizedGranularity === undefined) {
-    return fn(objOrId, granularity)
-  }
-
-  const stats = await fn(objOrId, customizedGranularity.granularity)
-  return contractStats(stats, customizedGranularity.nValues)
+export const fetchStats = async (objOrId, type, { granularity, keep }) => {
+  const stats = await FETCH_FN_BY_TYPE[type](objOrId, granularity)
+  return keep !== undefined ? contractStats(stats, keep) : stats
 }

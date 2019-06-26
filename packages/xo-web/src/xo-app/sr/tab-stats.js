@@ -4,7 +4,7 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
-import { fetchStats, SelectGranularity } from 'stats'
+import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
 import { get } from 'lodash'
 import { Toggle } from 'form'
 import {
@@ -16,7 +16,7 @@ import {
 
 export default class SrStats extends Component {
   state = {
-    granularity: 'seconds',
+    granularity: DEFAULT_GRANULARITY,
   }
 
   _loop(sr = get(this.props, 'sr')) {
@@ -107,7 +107,6 @@ export default class SrStats extends Component {
             <SelectGranularity
               onChange={this._onGranularityChange}
               required
-              simpleValue
               value={granularity}
             />
           </Col>

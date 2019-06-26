@@ -6,7 +6,7 @@ import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { fetchStats, SelectGranularity } from 'stats'
+import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
 import { map } from 'lodash'
 import { Toggle } from 'form'
 import {
@@ -26,6 +26,7 @@ import {
 })
 export default class PoolStats extends Component {
   state = {
+    granularity: DEFAULT_GRANULARITY,
     useCombinedValues: false,
   }
 
@@ -117,7 +118,6 @@ export default class PoolStats extends Component {
             <SelectGranularity
               onChange={this._handleSelectStats}
               required
-              simpleValue
               value={granularity}
             />
           </Col>

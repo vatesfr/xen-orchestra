@@ -4,7 +4,7 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
-import { fetchStats, SelectGranularity } from 'stats'
+import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
 import { Toggle } from 'form'
 import {
   CpuLineChart,
@@ -14,9 +14,9 @@ import {
 } from 'xo-line-chart'
 
 export default class HostStats extends Component {
-  constructor(props) {
-    super(props)
-    this.state.useCombinedValues = false
+  state = {
+    granularity: DEFAULT_GRANULARITY,
+    useCombinedValues: false,
   }
 
   loop(host = this.props.host) {
@@ -127,7 +127,6 @@ export default class HostStats extends Component {
             <SelectGranularity
               onChange={this.handleSelectStats}
               required
-              simpleValue
               value={granularity}
             />
           </Col>
