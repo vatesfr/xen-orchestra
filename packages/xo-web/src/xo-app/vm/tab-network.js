@@ -332,10 +332,11 @@ const COLUMNS = [
     sortCriteria: (vif, userData) => userData.networks[vif.$network].name_label,
   },
   {
-    itemRenderer: vif => (
+    itemRenderer: ({ id, rateLimit }) => (
       <Number
-        onChange={rateLimit => setVif(vif, { rateLimit })}
-        value={vif.rateLimit || ''}
+        nullable
+        onChange={rateLimit => setVif(id, { rateLimit })}
+        value={rateLimit === undefined ? '' : rateLimit}
       />
     ),
     name: _('vifRateLimitLabel'),
