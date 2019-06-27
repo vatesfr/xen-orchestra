@@ -168,22 +168,6 @@ export class Xapi extends EventEmitter {
     try {
       await this._sessionOpen()
 
-      // Uses introspection to list available types.
-      const types = (this._types = (await this._interruptOnDisconnect(
-        this._call('system.listMethods')
-      ))
-        .filter(isGetAllRecordsMethod)
-        .map(method => method.slice(0, method.indexOf('.'))))
-      this._lcToTypes = { __proto__: null }
-      types.forEach(type => {
-        const lcType = type.toLowerCase()
-        if (lcType !== type) {
-          this._lcToTypes[lcType] = type
-        }
-      })
-
-      this._pool = (await this.getAllRecords('pool'))[0]
-
       debug('%s: connected', this._humanId)
       this._status = CONNECTED
       this._resolveConnected()
@@ -739,6 +723,28 @@ export class Xapi extends EventEmitter {
         },
       }
     )
+
+    const oldPoolRef = this._pool?.$ref
+    this._pool = (await this.getAllRecords('pool'))[0]
+
+    // if the pool ref has changed, it means that the XAPI has been restarted or
+    // it's not the same XAPI, we need to refetch the available types and reset
+    // the event loop in that case
+    if (this._pool.$ref !== oldPoolRef) {
+      // Uses introspection to list available types.
+      const types = (this._types = (await this._interruptOnDisconnect(
+        this._call('system.listMethods')
+      ))
+        .filter(isGetAllRecordsMethod)
+        .map(method => method.slice(0, method.indexOf('.'))))
+      this._lcToTypes = { __proto__: null }
+      types.forEach(type => {
+        const lcType = type.toLowerCase()
+        if (lcType !== type) {
+          this._lcToTypes[lcType] = type
+        }
+      })
+    }
   }
 
   _setUrl(url) {
