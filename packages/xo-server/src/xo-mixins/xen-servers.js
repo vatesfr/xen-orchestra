@@ -482,11 +482,7 @@ export default class {
       ].getLastSuccessfulFetchTime()
       const currentTime = new Date().getTime()
       if (currentTime > lastSuccessfulFetchTime + NO_EVENTS_DELAY) {
-        server.status = 'disconnected'
-        const lastError = xapis[server.id].getLastCatchedEventError()
-        if (lastError != null) {
-          server.error = lastError
-        }
+        server.error = xapis[server.id].getLastCatchedEventError()
       }
       server.status = this._getXenServerStatus(server.id)
       if (server.status === 'connected') {
