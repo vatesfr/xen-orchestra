@@ -479,10 +479,10 @@ export default class {
     forEach(servers, server => {
       const lastSuccessfulFetchTime = xapis[
         server.id
-      ]?.getLastSuccessfulFetchTime()
+      ]?.lastSuccessfulFetchTime()
       const currentTime = new Date().getTime()
       if (currentTime > lastSuccessfulFetchTime + NO_EVENTS_DELAY) {
-        server.error = xapis[server.id].getLastCatchedEventError()
+        server.error = xapis[server.id].lastCatchedEventError()
       }
       server.status = this._getXenServerStatus(server.id)
       if (server.status === 'connected') {
