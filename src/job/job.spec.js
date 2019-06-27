@@ -184,7 +184,7 @@ describe("job", () => {
 
     afterEach(async () => {
       await xo
-        .call("vm.delete", { id, delete_disks: true })
+        .call("vm.delete", { id, deleteDisks: true })
         .catch(error => console.error(error));
     });
 
