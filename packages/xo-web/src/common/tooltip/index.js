@@ -11,15 +11,6 @@ import styles from './index.css'
 
 // ===================================================================
 
-// Wrap disabled HTML element before wrapping it with Tooltip
-// <Tooltip>
-//   <div>
-//     <MyComponent disabled />
-//   </div>
-// </Tooltip>
-
-// ===================================================================
-
 let instance
 
 export class TooltipViewer extends Component {
@@ -67,6 +58,14 @@ export class TooltipViewer extends Component {
 
 // ===================================================================
 
+/**
+ * Wrap disabled HTML element before wrapping it with Tooltip
+ * <Tooltip>
+ *   <div>
+ *     <MyComponent disabled />
+ *   </div>
+ * </Tooltip>
+ */
 export default class Tooltip extends Component {
   static propTypes = {
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
