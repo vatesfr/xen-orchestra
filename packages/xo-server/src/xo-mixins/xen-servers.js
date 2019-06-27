@@ -479,7 +479,7 @@ export default class {
     forEach(servers, server => {
       const lastSuccessfulFetchTime = xapis[
         server.id
-      ].getLastSuccessfulFetchTime()
+      ]?.getLastSuccessfulFetchTime()
       const currentTime = new Date().getTime()
       if (currentTime > lastSuccessfulFetchTime + NO_EVENTS_DELAY) {
         server.error = xapis[server.id].getLastCatchedEventError()
