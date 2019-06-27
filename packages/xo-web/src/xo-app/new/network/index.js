@@ -4,8 +4,14 @@ import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Wizard, { Section } from 'wizard'
-import { connectStore } from 'utils'
-import { createBondedNetwork, createNetwork, getBondModes } from 'xo'
+import { addSubscriptions, connectStore } from 'utils'
+import {
+  createBondedNetwork,
+  createNetwork,
+  createPrivateNetwork,
+  getBondModes,
+  subscribePlugins,
+} from 'xo'
 import { createGetObject, getIsPoolAdmin } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
@@ -21,6 +27,8 @@ const EMPTY = {
   bonded: false,
   bondMode: undefined,
   description: '',
+  encapsulation: 'gre',
+  isPrivate: false,
   mtu: '',
   name: '',
   pif: undefined,
@@ -29,6 +37,9 @@ const EMPTY = {
 }
 
 const NewNetwork = decorate([
+  addSubscriptions({
+    plugins: subscribePlugins,
+  }),
   connectStore(() => ({
     isPoolAdmin: getIsPoolAdmin,
     pool: createGetObject((_, props) => props.location.query.pool),
@@ -42,11 +53,26 @@ const NewNetwork = decorate([
       onChangeMode: (_, bondMode) => ({ bondMode }),
       onChangePif: (_, value) => ({ bonded }) =>
         bonded ? { pifs: value } : { pif: value },
+      onChangeEncapsulation(_, encapsulation) {
+        return { encapsulation: encapsulation.value }
+      },
       reset: () => EMPTY,
-      toggleBonded: () => ({ bonded }) => ({
-        ...EMPTY,
-        bonded: !bonded,
-      }),
+      toggleBonded() {
+        const { bonded, isPrivate } = this.state
+        return {
+          ...EMPTY,
+          bonded: !bonded,
+          isPrivate: bonded ? isPrivate : false,
+        }
+      },
+      togglePrivate() {
+        const { bonded, isPrivate } = this.state
+        return {
+          ...EMPTY,
+          isPrivate: !isPrivate,
+          bonded: isPrivate ? bonded : false,
+        }
+      },
     },
     computed: {
       modeOptions: ({ bondModes }) =>
@@ -58,6 +84,10 @@ const NewNetwork = decorate([
           : [],
       pifPredicate: (_, { pool }) => pif =>
         pif.vlan === -1 && pif.$host === (pool && pool.master),
+      isSdnControllerLoaded: (state, { plugins = [] }) =>
+        plugins.some(
+          plugin => plugin.name === 'sdn-controller' && plugin.loaded
+        ),
     },
   }),
   injectState,
@@ -71,7 +101,9 @@ const NewNetwork = decorate([
       const {
         bonded,
         bondMode,
+        isPrivate,
         description,
+        encapsulation,
         mtu,
         name,
         pif,
@@ -87,6 +119,13 @@ const NewNetwork = decorate([
             pifs: map(pifs, 'id'),
             pool: pool.id,
             vlan,
+          })
+        : isPrivate
+        ? createPrivateNetwork({
+            poolId: pool.id,
+            networkName: name,
+            networkDescription: description,
+            encapsulation: encapsulation,
           })
         : createNetwork({
             description,
@@ -132,7 +171,9 @@ const NewNetwork = decorate([
       const {
         bonded,
         bondMode,
+        isPrivate,
         description,
+        encapsulation,
         modeOptions,
         mtu,
         name,
@@ -140,6 +181,7 @@ const NewNetwork = decorate([
         pifPredicate,
         pifs,
         vlan,
+        isSdnControllerLoaded,
       } = state
       const { formatMessage } = intl
       return (
@@ -152,69 +194,112 @@ const NewNetwork = decorate([
                     <Toggle onChange={effects.toggleBonded} value={bonded} />{' '}
                     <label>{_('bondedNetwork')}</label>
                   </div>
+                  <div>
+                    <Toggle
+                      disabled={!isSdnControllerLoaded}
+                      onChange={effects.togglePrivate}
+                      value={isPrivate}
+                    />{' '}
+                    <label>{_('privateNetwork')}</label>
+                  </div>
                 </Section>
                 <Section icon='info' title='newNetworkInfo'>
-                  <div className='form-group'>
-                    <label>{_('newNetworkInterface')}</label>
-                    <SelectPif
-                      multi={bonded}
-                      onChange={effects.onChangePif}
-                      predicate={pifPredicate}
-                      required={bonded}
-                      value={bonded ? pifs : pif}
-                    />
-                    <label>{_('newNetworkName')}</label>
-                    <input
-                      className='form-control'
-                      name='name'
-                      onChange={effects.linkState}
-                      required
-                      type='text'
-                      value={name}
-                    />
-                    <label>{_('newNetworkDescription')}</label>
-                    <input
-                      className='form-control'
-                      name='description'
-                      onChange={effects.linkState}
-                      type='text'
-                      value={description}
-                    />
-                    <label>{_('newNetworkMtu')}</label>
-                    <input
-                      className='form-control'
-                      name='mtu'
-                      onChange={effects.linkState}
-                      placeholder={formatMessage(messages.newNetworkDefaultMtu)}
-                      type='text'
-                      value={mtu}
-                    />
-                    {bonded ? (
-                      <div>
-                        <label>{_('newNetworkBondMode')}</label>
-                        <Select
-                          onChange={effects.onChangeMode}
-                          options={modeOptions}
-                          required
-                          value={bondMode}
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <label>{_('newNetworkVlan')}</label>
-                        <input
-                          className='form-control'
-                          name='vlan'
-                          onChange={effects.linkState}
-                          placeholder={formatMessage(
-                            messages.newNetworkDefaultVlan
-                          )}
-                          type='text'
-                          value={vlan}
-                        />
-                      </div>
-                    )}
-                  </div>
+                  {isPrivate ? (
+                    <div className='form-group'>
+                      <label>{_('newNetworkName')}</label>
+                      <input
+                        className='form-control'
+                        name='name'
+                        onChange={effects.linkState}
+                        required
+                        type='text'
+                        value={name}
+                      />
+                      <label>{_('newNetworkDescription')}</label>
+                      <input
+                        className='form-control'
+                        name='description'
+                        onChange={effects.linkState}
+                        type='text'
+                        value={description}
+                      />
+                      <label>{_('newNetworkEncapsulation')}</label>
+                      <Select
+                        className='form-control'
+                        name='encapsulation'
+                        onChange={effects.onChangeEncapsulation}
+                        options={[
+                          { label: 'GRE', value: 'gre' },
+                          { label: 'VxLAN', value: 'vxlan' },
+                        ]}
+                        value={encapsulation}
+                      />
+                    </div>
+                  ) : (
+                    <div className='form-group'>
+                      <label>{_('newNetworkInterface')}</label>
+                      <SelectPif
+                        multi={bonded}
+                        onChange={effects.onChangePif}
+                        predicate={pifPredicate}
+                        required={bonded}
+                        value={bonded ? pifs : pif}
+                      />
+                      <label>{_('newNetworkName')}</label>
+                      <input
+                        className='form-control'
+                        name='name'
+                        onChange={effects.linkState}
+                        required
+                        type='text'
+                        value={name}
+                      />
+                      <label>{_('newNetworkDescription')}</label>
+                      <input
+                        className='form-control'
+                        name='description'
+                        onChange={effects.linkState}
+                        type='text'
+                        value={description}
+                      />
+                      <label>{_('newNetworkMtu')}</label>
+                      <input
+                        className='form-control'
+                        name='mtu'
+                        onChange={effects.linkState}
+                        placeholder={formatMessage(
+                          messages.newNetworkDefaultMtu
+                        )}
+                        type='text'
+                        value={mtu}
+                      />
+                      {bonded ? (
+                        <div>
+                          <label>{_('newNetworkBondMode')}</label>
+                          <Select
+                            onChange={effects.onChangeMode}
+                            options={modeOptions}
+                            required
+                            value={bondMode}
+                          />
+                        </div>
+                      ) : (
+                        <div>
+                          <label>{_('newNetworkVlan')}</label>
+                          <input
+                            className='form-control'
+                            name='vlan'
+                            onChange={effects.linkState}
+                            placeholder={formatMessage(
+                              messages.newNetworkDefaultVlan
+                            )}
+                            type='text'
+                            value={vlan}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </Section>
               </Wizard>
               <div className='form-group pull-right'>
