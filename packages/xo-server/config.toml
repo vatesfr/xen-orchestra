@@ -87,7 +87,7 @@ mountsDir = '/run/xo-server/mounts'
 # timeout in milliseconds (set to 0 to disable)
 timeout = 600e3
 
-# timeout before reporting server issue
+# timeout before reporting servers issues
 noEventsTimeout = '5 minutes'
 
 # see https:#github.com/vatesfr/xen-orchestra/issues/3419
