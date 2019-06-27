@@ -20,7 +20,7 @@ import { Servers } from '../models/server'
 
 // ===================================================================
 
-const DISCONNECT_DELAY = 60000 * 5 // 5min
+const NO_EVENTS_DELAY = 60000 * 5 // 5min
 
 // ===================================================================
 
@@ -481,9 +481,12 @@ export default class {
         server.id
       ].getLastSuccessfulFetchTime()
       const currentTime = new Date().getTime()
-      if (currentTime > lastSuccessfulFetchTime + DISCONNECT_DELAY) {
-        // consider server disconnected
-        // expose the events fetching error
+      if (currentTime > lastSuccessfulFetchTime + NO_EVENTS_DELAY) {
+        server.status = 'disconnected'
+        const lastError = xapis[server.id].getLastCatchedEventError()
+        if (lastError != null) {
+          server.error = lastError
+        }
       }
       server.status = this._getXenServerStatus(server.id)
       if (server.status === 'connected') {

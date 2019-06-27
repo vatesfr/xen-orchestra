@@ -99,6 +99,7 @@ export class Xapi extends EventEmitter {
     this._sessionId = undefined
     this._status = DISCONNECTED
 
+    this._lastCatchedEventError = null
     this._lastFailedFetchTime = undefined
     this._lastSuccessfulFetchTime = undefined
 
@@ -588,6 +589,10 @@ export class Xapi extends EventEmitter {
     throw new Error('no object with UUID: ' + uuid)
   }
 
+  getLastCatchedEventError() {
+    return this._lastCatchedEventError
+  }
+
   getLastFailedFetchTime() {
     return this._lastFailedFetchTime
   }
@@ -963,6 +968,7 @@ export class Xapi extends EventEmitter {
             continue mainLoop
           }
 
+          this._lastCatchedEventError = error
           this._lastFailedFetchTime = new Date().getTime()
           console.warn('_watchEvents', error)
           await pDelay(this._eventPollDelay)

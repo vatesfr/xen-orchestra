@@ -1676,6 +1676,9 @@ const messages = {
   serverSelfSignedCertError: 'Invalid self-signed certificate',
   serverSelfSignedCertQuestion:
     'Do you want to accept self-signed certificate for this server even though it would decrease security?',
+  serverEnabled: 'Enabled',
+  serverDisabled: 'Disabled',
+  serverDisable: 'Disable server',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',
