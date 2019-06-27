@@ -100,12 +100,12 @@ const COLUMNS = [
     itemRenderer: server => (
       <div>
         <StateButton
-          disabledLabel={_('serverDisconnected')}
+          disabledLabel={_('serverDisabled')}
           disabledHandler={connectServer}
-          disabledTooltip={_('serverConnect')}
-          enabledLabel={_('serverConnected')}
+          disabledTooltip={_('serverDisabled')}
+          enabledLabel={_('serverEnabled')}
           enabledHandler={disconnectServer}
-          enabledTooltip={_('serverDisconnect')}
+          enabledTooltip={_('serverDisable')}
           handlerParam={server}
           pending={server.status === 'connecting'}
           state={server.status === 'connected'}
