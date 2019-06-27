@@ -936,9 +936,12 @@ export class Xapi extends EventEmitter {
 
         let result
         try {
-          result = await this._sessionCall(
+          // don't use _sessionCall because a session failure should break the
+          // loop and trigger a complete refetch
+          result = await this._call(
             'event.from',
             [
+              this._sessionId,
               types,
               fromToken,
               EVENT_TIMEOUT + 0.1, // must be float for XML-RPC transport
@@ -946,7 +949,8 @@ export class Xapi extends EventEmitter {
             EVENT_TIMEOUT * 1e3 * 1.1
           )
         } catch (error) {
-          if (error?.code === 'EVENTS_LOST') {
+          const code = error?.code
+          if (code === 'EVENTS_LOST' || code === 'SESSION_INVALID') {
             // eslint-disable-next-line no-labels
             continue mainLoop
           }
