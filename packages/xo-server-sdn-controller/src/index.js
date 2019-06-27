@@ -315,6 +315,8 @@ class SDNController extends EventEmitter {
           await this._pifUpdated(object)
         } else if ($type === 'host') {
           await this._hostUpdated(object)
+        } else if ($type === 'host_metrics') {
+          await this._hostMetricsUpdated(object)
         }
       })
     )
@@ -412,7 +414,6 @@ class SDNController extends EventEmitter {
         return
       }
 
-      const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
       const newHost = find(this._newHosts, { $ref: host.$ref })
       if (newHost != null) {
         this._newHosts.splice(this._newHosts.indexOf(newHost), 1)
@@ -436,40 +437,18 @@ class SDNController extends EventEmitter {
         if (poolNetwork == null) {
           continue
         }
+    }
+  }
 
-        if (accessPIF.currently_attached) {
-          continue
-        }
+  async _hostMetricsUpdated(hostMetrics) {
+    const xapi = hostMetrics.$xapi
+    const hosts = filter(xapi.objects.all, { $type: 'host' })
+    const host = find(hosts, { metrics: hostMetrics.$ref })
 
-        log.debug(
-          `Pluging PIF: '${accessPIF.device}' for host: '${host.name_label}' on network: '${accessPIF.$network.name_label}'`
-        )
-        try {
-          await xapi.call('PIF.plug', accessPIF.$ref)
-        } catch (error) {
-          log.error(
-            `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${host.name_label}' for network: '${accessPIF.$network.name_label}'`
-          )
-        }
-
-        const starCenter = host.$xapi.getObjectByRef(poolNetwork.starCenter)
-        await this._addHostToNetwork(host, accessPIF.$network, starCenter)
-      }
+    if (hostMetrics.live) {
+      await this._addHostToPoolNetworks(host)
     } else {
-      const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
-      for (const poolNetwork of poolNetworks) {
-        const network = host.$xapi.getObjectByRef(poolNetwork.network)
-        log.debug(
-          `Star center host: '${host.name_label}' of network: '${network.name_label}' in pool: '${host.$pool.name_label}' is no longer reachable, electing a new host`
-        )
-
-        const newCenter = await this._electNewCenter(network, true)
-        poolNetwork.starCenter = newCenter?.$ref
-        this._starCenters.delete(host.$id)
-        if (newCenter != null) {
-          this._starCenters.set(newCenter.$id, newCenter.$ref)
-        }
-      }
+      await this._hostUnreachable(host)
     }
   }
 
@@ -662,6 +641,70 @@ class SDNController extends EventEmitter {
       log.error(
         `Couldn't add host: '${host.name_label}' to network: '${network.name_label}' in pool: '${host.$pool.name_label}' because: ${error}`
       )
+    }
+  }
+
+  async _addHostToPoolNetworks(host) {
+    const xapi = host.$xapi
+
+    const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
+    for (let i = 0; i < tunnels.length; ++i) {
+      const tunnel = tunnels[i]
+      const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
+      if (accessPIF.host !== host.$ref) {
+        continue
+      }
+
+      const poolNetwork = find(this._poolNetworks, {
+        network: accessPIF.network,
+      })
+      if (poolNetwork == null) {
+        continue
+      }
+
+      if (accessPIF.currently_attached) {
+        continue
+      }
+
+      log.debug(
+        `Pluging PIF: '${accessPIF.device}' for host: '${
+          host.name_label
+        }' on network: '${accessPIF.$network.name_label}'`
+      )
+      try {
+        await xapi.call('PIF.plug', accessPIF.$ref)
+      } catch (error) {
+        log.error(
+          `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${
+            host.name_label
+          }' for network: '${accessPIF.$network.name_label}'`
+        )
+      }
+
+      const starCenter = await xapi._getOrWaitObject(poolNetwork.starCenter)
+      await this._addHostToNetwork(host, accessPIF.$network, starCenter)
+    }
+  }
+
+  async _hostUnreachable(host) {
+    const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
+    for (let i = 0; i < poolNetworks.length; ++i) {
+      const poolNetwork = poolNetworks[i]
+      const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
+      log.debug(
+        `Star center host: '${host.name_label}' of network: '${
+          network.name_label
+        }' in pool: '${
+          host.$pool.name_label
+        }' is no longer reachable, electing a new host`
+      )
+
+      const newCenter = await this._electNewCenter(network, true)
+      poolNetwork.starCenter = newCenter ? newCenter.$ref : null
+      this._starCenters.delete(host.$id)
+      if (newCenter != null) {
+        this._starCenters.set(newCenter.$id, newCenter.$ref)
+      }
     }
   }
 
