@@ -23,6 +23,7 @@
 
 ### Released packages
 
+- xo-server-auth-ldap v0.6.5
 - xen-api v0.26.0
 - xo-server-sdn-controller v0.1
 - xo-server-auth-saml v0.6.0

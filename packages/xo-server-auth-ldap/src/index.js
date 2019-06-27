@@ -234,6 +234,7 @@ class AuthLdap {
               entry.objectName
             } => ${username} authenticated`
           )
+          logger(JSON.stringify(entry, null, 2))
           return { username }
         } catch (error) {
           logger(`failed to bind as ${entry.objectName}: ${error.message}`)
