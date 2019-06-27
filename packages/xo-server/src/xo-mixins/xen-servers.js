@@ -5,6 +5,7 @@ import { noSuchObject } from 'xo-common/api-errors'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
 import * as XenStore from '../_XenStore'
+import parseDuration from '../_parseDuration'
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import XapiStats from '../xapi-stats'
@@ -16,10 +17,6 @@ import {
   popProperty,
 } from '../utils'
 import { Servers } from '../models/server'
-
-// ===================================================================
-
-const NO_EVENTS_DELAY = 60000 * 5 // 5min
 
 // ===================================================================
 
@@ -44,7 +41,7 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 // - _xapis[server.id] id defined
 // - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
-  constructor(xo, { guessVhdSizeOnImport, xapiOptions }) {
+  constructor(xo, { guessVhdSizeOnImport, noEventsTimeout, xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
@@ -59,6 +56,7 @@ export default class {
     }
     this._xapis = { __proto__: null }
     this._xo = xo
+    this._noEventsTimeout = parseDuration(noEventsTimeout)
 
     xo.on('clean', () => serversDb.rebuildIndexes())
     xo.on('start', async () => {
@@ -476,12 +474,10 @@ export default class {
     const servers = await this._servers.get()
     const xapis = this._xapis
     forEach(servers, server => {
-      const lastSuccessfulFetchTime = xapis[
-        server.id
-      ]?.lastSuccessfulFetchTime()
+      const lastSuccessfulFetchTime = xapis[server.id]?.lastSuccessfulFetchTime
       const currentTime = new Date().getTime()
-      if (currentTime > lastSuccessfulFetchTime + NO_EVENTS_DELAY) {
-        server.error = xapis[server.id].lastCatchedEventError()
+      if (currentTime > lastSuccessfulFetchTime + this._noEventsTimeout) {
+        server.error = xapis[server.id].lastCatchedEventError
       }
       server.status = this._getXenServerStatus(server.id)
       if (server.status === 'connected') {
