@@ -20,6 +20,10 @@ import { Servers } from '../models/server'
 
 // ===================================================================
 
+const DISCONNECT_DELAY = 60000 * 5 // 5min
+
+// ===================================================================
+
 class PoolAlreadyConnected extends BaseError {
   constructor(poolId, connectedServerId, connectingServerId) {
     super('this pool is already connected')
@@ -473,6 +477,14 @@ export default class {
     const servers = await this._servers.get()
     const xapis = this._xapis
     forEach(servers, server => {
+      const lastSuccessfulFetchTime = xapis[
+        server.id
+      ].getLastSuccessfulFetchTime()
+      const currentTime = new Date().getTime()
+      if (currentTime > lastSuccessfulFetchTime + DISCONNECT_DELAY) {
+        // consider server disconnected
+        // expose the events fetching error
+      }
       server.status = this._getXenServerStatus(server.id)
       if (server.status === 'connected') {
         server.poolId = xapis[server.id].pool.uuid
