@@ -21,6 +21,7 @@
 
 ### Released packages
 
+- xen-api v0.26.0
 - xo-server-auth-saml v0.6.0
 - xo-server-backup-reports v0.16.2
 - xo-server v5.44.0
