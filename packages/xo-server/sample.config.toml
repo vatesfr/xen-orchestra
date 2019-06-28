@@ -152,11 +152,6 @@ port = 80
 #
 # Default: '/run/xo-server/mounts'
 #mountsDir = '/run/xo-server/mounts'
-#
-# timeout before reporting servers issues
-#
-# Default: '5 minutes'
-#noEventsTimeout = '5 minutes'
 
 # Use sudo for mount with non-root user
 #
