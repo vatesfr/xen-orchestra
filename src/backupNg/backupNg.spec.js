@@ -239,7 +239,7 @@ describe("backupNg", () => {
           [scheduleTempId]: {},
         },
         srs: {
-          id: config.srs.defaultSr,
+          id: config.srs.default,
         },
       });
 
