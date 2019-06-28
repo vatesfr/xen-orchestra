@@ -2909,9 +2909,6 @@ export default {
   // Original text: "Read Only"
   serverReadOnly: 'Csak Olvasható',
 
-  // Original text: "Disconnect server"
-  serverDisconnect: 'Szerver Lecsatlakozás',
-
   // Original text: "username"
   serverPlaceHolderUser: 'felhasználónév',
 
@@ -2938,12 +2935,6 @@ export default {
 
   // Original text: "Connecting…"
   serverConnecting: 'Csatlakozás…',
-
-  // Original text: "Connected"
-  serverConnected: 'Kapcsolódva',
-
-  // Original text: "Disconnected"
-  serverDisconnected: 'Lekapcsolódva',
 
   // Original text: "Authentication error"
   serverAuthFailed: 'Bejelentkezési hiba',

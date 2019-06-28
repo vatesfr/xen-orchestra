@@ -2612,9 +2612,6 @@ export default {
   // Original text: 'Read Only'
   serverReadOnly: undefined,
 
-  // Original text: 'Disconnect server'
-  serverDisconnect: undefined,
-
   // Original text: 'username'
   serverPlaceHolderUser: undefined,
 

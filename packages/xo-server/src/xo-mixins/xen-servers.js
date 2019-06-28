@@ -41,7 +41,7 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 // - _xapis[server.id] id defined
 // - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
-  constructor(xo, { guessVhdSizeOnImport, noEventsTimeout, xapiOptions }) {
+  constructor(xo, { guessVhdSizeOnImport, remoteOptions, xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
@@ -56,7 +56,7 @@ export default class {
     }
     this._xapis = { __proto__: null }
     this._xo = xo
-    this._noEventsTimeout = parseDuration(noEventsTimeout)
+    this._noEventsTimeout = parseDuration(remoteOptions.noEventsTimeout)
 
     xo.on('clean', () => serversDb.rebuildIndexes())
     xo.on('start', async () => {

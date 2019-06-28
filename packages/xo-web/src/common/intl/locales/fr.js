@@ -3135,9 +3135,6 @@ export default {
   serverUnauthorizedCertificatesInfo:
     "Activez ceci si votre certificat est rejeté, mais ce n'est pas recommandé car votre connexion ne sera pas sécurisée.",
 
-  // Original text: "Disconnect server"
-  serverDisconnect: 'Déconnecter le serveur',
-
   // Original text: "username"
   serverPlaceHolderUser: "nom d'utilisateur",
 
@@ -3168,12 +3165,6 @@ export default {
 
   // Original text: "Connecting…"
   serverConnecting: 'Connexion…',
-
-  // Original text: "Connected"
-  serverConnected: 'Connecté',
-
-  // Original text: "Disconnected"
-  serverDisconnected: 'Déconnecté',
 
   // Original text: "Authentication error"
   serverAuthFailed: "Erreur d'authentification",

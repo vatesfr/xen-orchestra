@@ -110,7 +110,7 @@ const COLUMNS = [
           pending={server.status === 'connecting'}
           state={server.status === 'connected'}
         />{' '}
-        {server.status === 'connected' && server.error && (
+        {server.status === 'connected' && server.error != null && (
           <Tooltip content={_('serverConnectionFailed')}>
             <a
               className='text-danger btn btn-link btn-sm'

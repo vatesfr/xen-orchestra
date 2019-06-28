@@ -99,7 +99,7 @@ export class Xapi extends EventEmitter {
     this._sessionId = undefined
     this._status = DISCONNECTED
 
-    this._lastCatchedEventError = null
+    this._lastCatchedEventError = undefined
     this._lastSuccessfulFetchTime = undefined
 
     this._debounce = opts.debounce ?? 200
