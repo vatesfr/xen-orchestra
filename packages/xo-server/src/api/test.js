@@ -1,3 +1,6 @@
+import assert from 'assert'
+import { fromEvent } from 'promise-toolbox'
+
 export function getPermissionsForUser({ userId }) {
   return this.getPermissionsForUser(userId)
 }
@@ -85,4 +88,33 @@ copyVm.params = {
 copyVm.resolve = {
   vm: ['vm', 'VM'],
   sr: ['sr', 'SR'],
+}
+
+// -------------------------------------------------------------------
+
+export async function xapiPoolChange({
+  currentPoolObject,
+  newPoolHostname,
+  newPoolObject,
+}) {
+  const xapi = this.getXapi(currentPoolObject)
+  const { _pool: currentPool } = xapi
+
+  xapi._setUrl({ ...xapi._url, hostname: newPoolHostname })
+  const [newPool] = await Promise.all([
+    // used to trigger the "update" event
+    xapi.getAllRecords('pool').then(array => array[0]),
+    fromEvent(xapi.objects, 'update'),
+  ])
+
+  assert(currentPool.$id !== newPool.$id)
+  assert.doesNotThrow(() => this.getXapi(newPoolObject))
+  assert.throws(() => this.getXapi(currentPoolObject))
+}
+
+xapiPoolChange.permission = 'admin'
+xapiPoolChange.params = {
+  currentPoolObject: { type: 'string' },
+  newPoolHostname: { type: 'string' },
+  newPoolObject: { type: 'string' },
 }

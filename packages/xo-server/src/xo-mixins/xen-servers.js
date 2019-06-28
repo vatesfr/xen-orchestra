@@ -210,9 +210,8 @@ export default class {
     const conflicts = this._objectConflicts
     const objects = this._xo._objects
 
+    const serverIdsByPool = this._serverIdsByPool
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
-      const serverIdsByPool = this._serverIdsByPool
-
       // handle pool UUID change
       if (
         xapiObject.$type === 'pool' &&
