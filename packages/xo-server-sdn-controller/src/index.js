@@ -551,7 +551,12 @@ class SDNController extends EventEmitter {
         }
 
         const pif = find(host.$PIFs, { network: network.$ref })
-        if (pif != null && pif.currently_attached && host.enabled) {
+        if (
+          pif != null &&
+          pif.currently_attached &&
+          host.enabled &&
+          host.$metrics.live
+        ) {
           newCenter = host
         }
       })
@@ -648,8 +653,7 @@ class SDNController extends EventEmitter {
     const xapi = host.$xapi
 
     const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
-    for (let i = 0; i < tunnels.length; ++i) {
-      const tunnel = tunnels[i]
+    for (const tunnel of tunnels) {
       const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
       if (accessPIF.host !== host.$ref) {
         continue
@@ -688,8 +692,7 @@ class SDNController extends EventEmitter {
 
   async _hostUnreachable(host) {
     const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
-    for (let i = 0; i < poolNetworks.length; ++i) {
-      const poolNetwork = poolNetworks[i]
+    for (const poolNetwork of poolNetworks) {
       const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
       log.debug(
         `Star center host: '${host.name_label}' of network: '${
@@ -700,7 +703,7 @@ class SDNController extends EventEmitter {
       )
 
       const newCenter = await this._electNewCenter(network, true)
-      poolNetwork.starCenter = newCenter ? newCenter.$ref : null
+      poolNetwork.starCenter = newCenter != null ? newCenter.$ref : null
       this._starCenters.delete(host.$id)
       if (newCenter != null) {
         this._starCenters.set(newCenter.$id, newCenter.$ref)
