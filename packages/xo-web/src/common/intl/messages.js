@@ -959,6 +959,7 @@ const messages = {
   statDisk: 'Disk throughput',
   statLastTenMinutes: 'Last 10 minutes',
   statLastTwoHours: 'Last 2 hours',
+  statLastDay: 'Last day',
   statLastWeek: 'Last week',
   statLastYear: 'Last year',
 

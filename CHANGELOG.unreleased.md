@@ -2,6 +2,8 @@
 
 ### Enhancements
 
+- [Stats] Ability to display last day stats [#4160](https://github.com/vatesfr/xen-orchestra/issues/4160) (PR [#4168](https://github.com/vatesfr/xen-orchestra/pull/4168))
+
 ### Bug fixes
 
 ### Released packages
