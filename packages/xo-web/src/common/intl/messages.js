@@ -1621,6 +1621,9 @@ const messages = {
   deleteVmBlockedModalTitle: 'Blocked operation',
   deleteVmBlockedModalMessage:
     'Removing the VM is a blocked operation. Would you like to remove it anyway?',
+  forceVmMigrateModalTitle: 'Force migration',
+  forceVmMigrateModalMessage:
+    'Migrate VM failed. Would you like to force it anyway?',
   migrateVmModalTitle: 'Migrate VM',
   migrateVmSelectHost: 'Select a destination host:',
   migrateVmSelectMigrationNetwork: 'Select a migration network:',

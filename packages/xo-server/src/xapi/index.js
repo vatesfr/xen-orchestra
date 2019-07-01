@@ -1135,10 +1135,11 @@ export default class Xapi extends XapiBase {
     hostXapi,
     host,
     {
-      migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
-      sr,
+      force,
       mapVdisSrs,
       mapVifsNetworks,
+      migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
+      sr,
     }
   ) {
     // VDIs/SRs mapping
@@ -1186,7 +1187,7 @@ export default class Xapi extends XapiBase {
         vdis,
         vifsMap,
         {
-          force: 'true',
+          force,
         }
         // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
         // might need to be changed one day.
@@ -1440,7 +1441,7 @@ export default class Xapi extends XapiBase {
     vmId,
     hostXapi,
     hostId,
-    { sr, migrationNetworkId, mapVifsNetworks, mapVdisSrs } = {}
+    { force, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}
   ) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
@@ -1455,16 +1456,17 @@ export default class Xapi extends XapiBase {
 
     if (useStorageMotion) {
       await this._migrateVmWithStorageMotion(vm, hostXapi, host, {
+        force,
+        mapVdisSrs,
+        mapVifsNetworks,
         migrationNetwork:
           migrationNetworkId && hostXapi.getObject(migrationNetworkId),
         sr,
-        mapVdisSrs,
-        mapVifsNetworks,
       })
     } else {
       try {
         await this.callAsync('VM.pool_migrate', vm.$ref, host.$ref, {
-          force: 'true',
+          force,
         })
       } catch (error) {
         if (error.code !== 'VM_REQUIRES_SR') {
@@ -1472,7 +1474,7 @@ export default class Xapi extends XapiBase {
         }
 
         // Retry using motion storage.
-        await this._migrateVmWithStorageMotion(vm, hostXapi, host, {})
+        await this._migrateVmWithStorageMotion(vm, hostXapi, host, { force })
       }
     }
   }

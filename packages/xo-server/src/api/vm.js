@@ -448,11 +448,13 @@ insertCd.resolve = {
 
 export async function migrate({
   vm,
+
+  force = 'false',
   host,
-  sr,
   mapVdisSrs,
   mapVifsNetworks,
   migrationNetwork,
+  sr,
 }) {
   let mapVdisSrsXapi, mapVifsNetworksXapi
   const permissions = []
@@ -485,11 +487,12 @@ export async function migrate({
     this.getXapi(host),
     host._xapiId,
     {
-      sr: sr && this.getObject(sr, 'SR')._xapiId,
+      force,
+      mapVdisSrs: mapVdisSrsXapi,
+      mapVifsNetworks: mapVifsNetworksXapi,
       migrationNetworkId:
         migrationNetwork != null ? migrationNetwork._xapiId : undefined,
-      mapVifsNetworks: mapVifsNetworksXapi,
-      mapVdisSrs: mapVdisSrsXapi,
+      sr: sr && this.getObject(sr, 'SR')._xapiId,
     }
   )
 }
@@ -498,11 +501,7 @@ migrate.params = {
   // Identifier of the VM to migrate.
   vm: { type: 'string' },
 
-  // Identifier of the host to migrate to.
-  targetHost: { type: 'string' },
-
-  // Identifier of the default SR to migrate to.
-  sr: { type: 'string', optional: true },
+  force: { type: 'string', optional: true },
 
   // Map VDIs IDs --> SRs IDs
   mapVdisSrs: { type: 'object', optional: true },
@@ -512,6 +511,12 @@ migrate.params = {
 
   // Identifier of the Network use for the migration
   migrationNetwork: { type: 'string', optional: true },
+
+  // Identifier of the default SR to migrate to.
+  sr: { type: 'string', optional: true },
+
+  // Identifier of the host to migrate to.
+  targetHost: { type: 'string' },
 }
 
 migrate.resolve = {
