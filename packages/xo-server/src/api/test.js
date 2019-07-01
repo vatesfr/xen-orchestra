@@ -98,16 +98,15 @@ export async function xapiPoolChange({
   newPoolObject,
 }) {
   const xapi = this.getXapi(currentPoolObject)
-  const { _pool: currentPool } = xapi
+  const { pool: currentPool } = xapi
 
   xapi._setUrl({ ...xapi._url, hostname: newPoolHostname })
-  const [newPool] = await Promise.all([
-    // used to trigger the "update" event
-    xapi.getAllRecords('pool').then(array => array[0]),
-    fromEvent(xapi.objects, 'update'),
-  ])
+  await fromEvent(xapi.objects, 'finish')
+  if (xapi.pool.$id === currentPool.$id) {
+    await fromEvent(xapi.objects, 'finish')
+  }
 
-  assert(currentPool.$id !== newPool.$id)
+  assert(xapi.pool.$id !== currentPool.$id)
   assert.doesNotThrow(() => this.getXapi(newPoolObject))
   assert.throws(() => this.getXapi(currentPoolObject))
 }
