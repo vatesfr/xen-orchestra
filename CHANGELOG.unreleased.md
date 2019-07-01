@@ -7,7 +7,7 @@
 ### Bug fixes
 
 - [Settings/Servers] Fix read-only setting toggling
-- [SDN Controller] Dot choose physical PIF without IP configuration for tunnels.
+- [SDN Controller] Do not choose physical PIF without IP configuration for tunnels.
 
 ### Released packages
 
