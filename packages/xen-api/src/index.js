@@ -966,6 +966,7 @@ export class Xapi extends EventEmitter {
             EVENT_TIMEOUT * 1e3 * 1.1
           )
           this._lastSuccessfulFetchTime = Date.now()
+          this._lastCatchedEventError = undefined
         } catch (error) {
           const code = error?.code
           if (code === 'EVENTS_LOST' || code === 'SESSION_INVALID') {
