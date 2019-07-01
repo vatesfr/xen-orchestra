@@ -100,7 +100,7 @@ export class Xapi extends EventEmitter {
     this._status = DISCONNECTED
 
     this._lastCatchedEventError = undefined
-    this._lastSuccessfulFetchTime = undefined
+    this._lastEventFetchedTimestamp = undefined
 
     this._debounce = opts.debounce ?? 200
     this._objects = new Collection()
@@ -138,6 +138,14 @@ export class Xapi extends EventEmitter {
 
   get disconnected() {
     return this._disconnected
+  }
+
+  get lastCatchedEventError() {
+    return this._lastCatchedEventError
+  }
+
+  get lastEventFetchedTimestamp() {
+    return this._lastEventFetchedTimestamp
   }
 
   get pool() {
@@ -572,14 +580,6 @@ export class Xapi extends EventEmitter {
     throw new Error('no object with UUID: ' + uuid)
   }
 
-  get lastCatchedEventError() {
-    return this._lastCatchedEventError
-  }
-
-  get lastSuccessfulFetchTime() {
-    return this._lastSuccessfulFetchTime
-  }
-
   // manually run events watching if set to `false` in constructor
   watchEvents() {
     ignoreErrors.call(this._watchEvents())
@@ -965,7 +965,7 @@ export class Xapi extends EventEmitter {
             ],
             EVENT_TIMEOUT * 1e3 * 1.1
           )
-          this._lastSuccessfulFetchTime = Date.now()
+          this._lastEventFetchedTimestamp = Date.now()
           this._lastCatchedEventError = undefined
         } catch (error) {
           const code = error?.code

@@ -29,8 +29,8 @@ guessVhdSizeOnImport = false
 # be turned for investigation by the administrator.
 verboseApiLogsOnErrors = false
 
-# timeout before reporting servers issues
-noEventsTimeout = '5 minutes'
+# if no events could be fetched during this delay, the server will be marked as disconnected
+xapiMarkDisconnectedDelay = '5 minutes'
 
 # https:#github.com/websockets/ws#websocket-compression
 [apiWebSocketOptions]
