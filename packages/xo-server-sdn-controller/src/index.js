@@ -646,7 +646,10 @@ class SDNController extends EventEmitter {
   }
 
   async _createTunnel(host, network) {
-    const pif = find(host.$PIFs, { physical: true })
+    const pif = find(
+      host.$PIFs,
+      pif => pif.physical && pif.ip_configuration_mode !== 'None'
+    )
     if (pif == null) {
       log.error(
         `No PIF found to create tunnel on host: '${
