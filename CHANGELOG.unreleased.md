@@ -10,7 +10,7 @@
 
 - [Settings/Servers] Fix read-only setting toggling
 - [SDN Controller] Do not choose physical PIF without IP configuration for tunnels. (PR [#4319](https://github.com/vatesfr/xen-orchestra/pull/4319))
-- [Xen servers] Fix "no connection found for object" error due to a non-updated local cache in case of a pool UUID change [#4299](https://github.com/vatesfr/xen-orchestra/issues/4299) (PR [#4302](https://github.com/vatesfr/xen-orchestra/pull/4302))
+- [Xen servers] Fix `no connection found for object` error in case of reinstalling a host [#4299](https://github.com/vatesfr/xen-orchestra/issues/4299) (PR [#4302](https://github.com/vatesfr/xen-orchestra/pull/4302))
 
 ### Released packages
 
