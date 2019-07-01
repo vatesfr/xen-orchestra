@@ -49,8 +49,10 @@ describe("job", () => {
         const job = await xo.call("job.get", { id });
         expect(job).toMatchSnapshot({
           id: expect.any(String),
+          paramsVector: expect.any(Object),
           userId: expect.any(String),
         });
+        expect(job.paramsVector).toEqual(defaultJob.paramsVector);
         expect(job.userId).toBe(userId);
         await xo.call("job.delete", { id });
       });
@@ -71,7 +73,7 @@ describe("job", () => {
   describe(".getAll() :", () => {
     it("gets all available jobs", async () => {
       const jobId1 = await xo.createTempJob(defaultJob);
-      const jobId2 = await xo.createTempJob({
+      const job2 = {
         ...defaultJob,
         name: "jobTest2",
         paramsVector: {
@@ -88,18 +90,27 @@ describe("job", () => {
             },
           ],
         },
-      });
+      };
+      const jobId2 = await xo.createTempJob(job2);
       let jobs = await xo.call("job.getAll");
       expect(Array.isArray(jobs)).toBe(true);
       jobs = keyBy(jobs, "id");
-      expect(jobs[jobId1]).toMatchSnapshot({
+
+      const newJob1 = jobs[jobId1];
+      expect(newJob1).toMatchSnapshot({
         id: expect.any(String),
+        paramsVector: expect.any(Object),
         userId: expect.any(String),
       });
-      expect(jobs[jobId2]).toMatchSnapshot({
+      expect(newJob1.paramsVector).toEqual(defaultJob.paramsVector);
+
+      const newJob2 = jobs[jobId2];
+      expect(newJob2).toMatchSnapshot({
         id: expect.any(String),
+        paramsVector: expect.any(Object),
         userId: expect.any(String),
       });
+      expect(newJob2.paramsVector).toEqual(job2.paramsVector);
     });
   });
 
@@ -109,8 +120,10 @@ describe("job", () => {
       const job = await xo.call("job.get", { id });
       expect(job).toMatchSnapshot({
         id: expect.any(String),
+        paramsVector: expect.any(Object),
         userId: expect.any(String),
       });
+      expect(job.paramsVector).toEqual(defaultJob.paramsVector);
     });
 
     it("fails trying to get a job with a non existent id", async () => {
@@ -123,33 +136,39 @@ describe("job", () => {
   describe(".set() :", () => {
     it("sets a job", async () => {
       const id = await xo.createTempJob(defaultJob);
-      await xo.call("job.set", {
-        job: {
-          id,
-          type: "call",
-          key: "snapshot",
-          method: "vm.clone",
-          paramsVector: {
-            type: "cross product",
-            items: [
-              {
-                type: "set",
-                values: [
-                  {
-                    id: config.vms.default,
-                    name: "clone",
-                    full_copy: true,
-                  },
-                ],
-              },
-            ],
-          },
+      const job = {
+        id,
+        type: "call",
+        key: "snapshot",
+        method: "vm.clone",
+        paramsVector: {
+          type: "crossProduct",
+          items: [
+            {
+              type: "set",
+              values: [
+                {
+                  id: config.vms.default,
+                  name: "clone",
+                  full_copy: true,
+                },
+              ],
+            },
+          ],
         },
+      };
+
+      await xo.call("job.set", {
+        job,
       });
-      expect(await xo.call("job.get", { id })).toMatchSnapshot({
+
+      const newJob = await xo.call("job.get", { id });
+      expect(newJob).toMatchSnapshot({
         id: expect.any(String),
+        paramsVector: expect.any(Object),
         userId: expect.any(String),
       });
+      expect(newJob.paramsVector).toEqual(job.paramsVector);
     });
 
     it("fails trying to set a job without job.id", async () => {

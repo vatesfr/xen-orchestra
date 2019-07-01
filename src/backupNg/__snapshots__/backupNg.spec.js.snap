@@ -8,9 +8,7 @@ Object {
   "settings": Any<Object>,
   "type": "backup",
   "userId": Any<String>,
-  "vms": Object {
-    "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
-  },
+  "vms": Any<Object>,
 }
 `;
 
@@ -36,9 +34,7 @@ Object {
   },
   "type": "backup",
   "userId": Any<String>,
-  "vms": Object {
-    "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
-  },
+  "vms": Any<Object>,
 }
 `;
 

@@ -6,20 +6,7 @@ Object {
   "key": "snapshot",
   "method": "vm.snapshot",
   "name": "jobTest",
-  "paramsVector": Object {
-    "items": Array [
-      Object {
-        "type": "set",
-        "values": Array [
-          Object {
-            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
-            "name": "test-snapshot",
-          },
-        ],
-      },
-    ],
-    "type": "crossProduct",
-  },
+  "paramsVector": Any<Object>,
   "timeout": 2000,
   "type": "call",
   "userId": Any<String>,
@@ -40,20 +27,7 @@ Object {
   "key": "snapshot",
   "method": "vm.snapshot",
   "name": "jobTest",
-  "paramsVector": Object {
-    "items": Array [
-      Object {
-        "type": "set",
-        "values": Array [
-          Object {
-            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
-            "name": "test-snapshot",
-          },
-        ],
-      },
-    ],
-    "type": "crossProduct",
-  },
+  "paramsVector": Any<Object>,
   "timeout": 2000,
   "type": "call",
   "userId": Any<String>,
@@ -66,20 +40,7 @@ Object {
   "key": "snapshot",
   "method": "vm.snapshot",
   "name": "jobTest",
-  "paramsVector": Object {
-    "items": Array [
-      Object {
-        "type": "set",
-        "values": Array [
-          Object {
-            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
-            "name": "test-snapshot",
-          },
-        ],
-      },
-    ],
-    "type": "crossProduct",
-  },
+  "paramsVector": Any<Object>,
   "timeout": 2000,
   "type": "call",
   "userId": Any<String>,
@@ -92,20 +53,7 @@ Object {
   "key": "snapshot",
   "method": "vm.snapshot",
   "name": "jobTest2",
-  "paramsVector": Object {
-    "items": Array [
-      Object {
-        "type": "set",
-        "values": Array [
-          Object {
-            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
-            "name": "test2-snapshot",
-          },
-        ],
-      },
-    ],
-    "type": "crossProduct",
-  },
+  "paramsVector": Any<Object>,
   "timeout": 2000,
   "type": "call",
   "userId": Any<String>,
@@ -120,21 +68,7 @@ Object {
   "key": "snapshot",
   "method": "vm.clone",
   "name": "jobTest",
-  "paramsVector": Object {
-    "items": Array [
-      Object {
-        "type": "set",
-        "values": Array [
-          Object {
-            "full_copy": true,
-            "id": "0342407f-9727-4f12-83c2-9d0c458916c2",
-            "name": "clone",
-          },
-        ],
-      },
-    ],
-    "type": "cross product",
-  },
+  "paramsVector": Any<Object>,
   "timeout": 2000,
   "type": "call",
   "userId": Any<String>,

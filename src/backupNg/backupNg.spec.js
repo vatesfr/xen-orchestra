@@ -35,7 +35,9 @@ describe("backupNg", () => {
       expect(backupNg).toMatchSnapshot({
         id: expect.any(String),
         userId: expect.any(String),
+        vms: expect.any(Object),
       });
+      expect(backupNg.vms).toEqual(defaultBackupNg.vms);
       expect(backupNg.userId).toBe(xo._user.id);
     });
 
@@ -58,7 +60,9 @@ describe("backupNg", () => {
         id: expect.any(String),
         userId: expect.any(String),
         settings: expect.any(Object),
+        vms: expect.any(Object),
       });
+      expect(backupNgJob.vms).toEqual(defaultBackupNg.vms);
       expect(backupNgJob.userId).toBe(xo._user.id);
 
       expect(Object.keys(backupNgJob.settings).length).toBe(2);
