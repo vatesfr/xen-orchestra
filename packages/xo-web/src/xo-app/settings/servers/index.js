@@ -102,7 +102,7 @@ const COLUMNS = [
         <StateButton
           disabledLabel={_('serverDisabled')}
           disabledHandler={connectServer}
-          disabledTooltip={_('serverDisabled')}
+          disabledTooltip={_('serverEnable')}
           enabledLabel={_('serverEnabled')}
           enabledHandler={disconnectServer}
           enabledTooltip={_('serverDisable')}
