@@ -381,6 +381,10 @@ class SDNController extends EventEmitter {
     }
 
     if (!pif.currently_attached) {
+      const tunnel = this._getHostTunnelForNetwork(pif.$host, pif.$network)
+      const status = { active: 'false' }
+      await pif.$xapi.call('tunnel.set_status', tunnel.$ref, status)
+
       if (poolNetwork.starCenter !== pif.host) {
         return
       }
@@ -627,6 +631,12 @@ class SDNController extends EventEmitter {
       return
     }
 
+    const xapi = host.$xapi
+    const tunnel = this._getHostTunnelForNetwork(host, network)
+    const starCenterTunnel = this._getHostTunnelForNetwork(starCenter, network)
+    const status = { active: 'false' }
+    await xapi.call('tunnel.set_status', tunnel.$ref, status)
+
     const hostClient = find(
       this._ovsdbClients,
       client => client.host.$ref === host.$ref
@@ -656,8 +666,9 @@ class SDNController extends EventEmitter {
         ? network.other_config.encapsulation
         : 'gre'
 
+    let bridgeName
     try {
-      await hostClient.addInterfaceAndPort(
+      bridgeName = await hostClient.addInterfaceAndPort(
         network.uuid,
         network.name_label,
         starCenterClient.host.address,
@@ -676,6 +687,12 @@ class SDNController extends EventEmitter {
         host: host.name_label,
         pool: host.$pool.name_label,
       })
+    }
+
+    if (bridgeName != null) {
+      const activeStatus = { active: 'true', key: bridgeName }
+      await xapi.call('tunnel.set_status', tunnel.$ref, activeStatus)
+      await xapi.call('tunnel.set_status', starCenterTunnel.$ref, activeStatus)
     }
   }
 
@@ -737,7 +754,22 @@ class SDNController extends EventEmitter {
       if (newCenter !== null) {
         this._starCenters.set(newCenter.$id, newCenter.$ref)
       }
+
+      const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
+      const tunnel = this._getHostTunnelForNetwork(host, network)
+      const status = { active: 'false' }
+      await host.$xapi.call('tunnel.set_status', tunnel.$ref, status)
     }
+  }
+
+  // ---------------------------------------------------------------------------
+
+  _getHostTunnelForNetwork(host, network) {
+    const pif = find(host.$PIFs, { host: host.$ref, network: network.$ref })
+    const tunnels = filter(host.$xapi.objects.all, { $type: 'tunnel' })
+    const tunnel = find(tunnels, { access_PIF: pif.$ref })
+
+    return tunnel
   }
 
   // ---------------------------------------------------------------------------
