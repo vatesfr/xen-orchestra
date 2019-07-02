@@ -99,7 +99,7 @@ export class Xapi extends EventEmitter {
     this._sessionId = undefined
     this._status = DISCONNECTED
 
-    this._lastCatchedEventError = undefined
+    this._watchEventsError = undefined
     this._lastEventFetchedTimestamp = undefined
 
     this._debounce = opts.debounce ?? 200
@@ -138,14 +138,6 @@ export class Xapi extends EventEmitter {
 
   get disconnected() {
     return this._disconnected
-  }
-
-  get lastCatchedEventError() {
-    return this._lastCatchedEventError
-  }
-
-  get lastEventFetchedTimestamp() {
-    return this._lastEventFetchedTimestamp
   }
 
   get pool() {
@@ -488,6 +480,14 @@ export class Xapi extends EventEmitter {
 
   get objectsFetched() {
     return this._objectsFetched
+  }
+
+  get lastEventFetchedTimestamp() {
+    return this._lastEventFetchedTimestamp
+  }
+
+  get watchEventsError() {
+    return this._watchEventsError
   }
 
   // ensure we have received all events up to this call
@@ -966,7 +966,7 @@ export class Xapi extends EventEmitter {
             EVENT_TIMEOUT * 1e3 * 1.1
           )
           this._lastEventFetchedTimestamp = Date.now()
-          this._lastCatchedEventError = undefined
+          this._watchEventsError = undefined
         } catch (error) {
           const code = error?.code
           if (code === 'EVENTS_LOST' || code === 'SESSION_INVALID') {
@@ -974,7 +974,7 @@ export class Xapi extends EventEmitter {
             continue mainLoop
           }
 
-          this._lastCatchedEventError = error
+          this._watchEventsError = error
           console.warn('_watchEvents', error)
           await pDelay(this._eventPollDelay)
           continue
