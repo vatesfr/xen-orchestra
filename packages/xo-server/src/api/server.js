@@ -100,6 +100,10 @@ set.params = {
     optional: true,
     type: 'boolean',
   },
+  readOnly: {
+    optional: true,
+    type: 'boolean',
+  },
 }
 
 // -------------------------------------------------------------------

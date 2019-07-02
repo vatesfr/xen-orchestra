@@ -6,6 +6,8 @@
 
 ### Bug fixes
 
+- [Settings/Servers] Fix read-only setting toggling
+
 ### Released packages
 
 - xo-server v5.45.0
