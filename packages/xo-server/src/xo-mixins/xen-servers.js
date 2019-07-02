@@ -14,7 +14,6 @@ import {
   isEmpty,
   isString,
   popProperty,
-  serializeError,
 } from '../utils'
 import { Servers } from '../models/server'
 
@@ -94,23 +93,23 @@ export default class {
   }
 
   async registerXenServer({
-    allowUnauthorized,
+    allowUnauthorized = false,
     host,
     label,
     password,
-    readOnly,
+    readOnly = false,
     username,
   }) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
     const server = await this._servers.create({
-      allowUnauthorized: allowUnauthorized ? 'true' : undefined,
-      enabled: 'true',
+      allowUnauthorized,
+      enabled: true,
       host,
       label: label || undefined,
       password,
-      readOnly: readOnly ? 'true' : undefined,
+      readOnly,
       username,
     })
 
@@ -162,22 +161,22 @@ export default class {
     if (password) server.set('password', password)
 
     if (error !== undefined) {
-      server.set('error', error ? JSON.stringify(error) : '')
+      server.set('error', error)
     }
 
     if (enabled !== undefined) {
-      server.set('enabled', enabled ? 'true' : undefined)
+      server.set('enabled', enabled)
     }
 
     if (readOnly !== undefined) {
-      server.set('readOnly', readOnly ? 'true' : undefined)
+      server.set('readOnly', readOnly)
       if (xapi !== undefined) {
         xapi.readOnly = readOnly
       }
     }
 
     if (allowUnauthorized !== undefined) {
-      server.set('allowUnauthorized', allowUnauthorized ? 'true' : undefined)
+      server.set('allowUnauthorized', allowUnauthorized)
     }
 
     await this._servers.update(server)
@@ -275,8 +274,8 @@ export default class {
     const server = (await this._getXenServer(id)).properties
 
     const xapi = (this._xapis[server.id] = new Xapi({
-      allowUnauthorized: Boolean(server.allowUnauthorized),
-      readOnly: Boolean(server.readOnly),
+      allowUnauthorized: server.allowUnauthorized,
+      readOnly: server.readOnly,
 
       ...this._xapiOptions,
 
@@ -412,7 +411,7 @@ export default class {
     } catch (error) {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
-      this.updateXenServer(id, { error: serializeError(error) })::ignoreErrors()
+      this.updateXenServer(id, { error })::ignoreErrors()
       throw error
     }
   }

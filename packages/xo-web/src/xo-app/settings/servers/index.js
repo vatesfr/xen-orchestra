@@ -129,11 +129,11 @@ const COLUMNS = [
     itemRenderer: server => (
       <Toggle
         onChange={readOnly => editServer(server, { readOnly })}
-        value={!!server.readOnly}
+        value={server.readOnly}
       />
     ),
     name: _('serverReadOnly'),
-    sortCriteria: _ => !!_.readOnly,
+    sortCriteria: _ => _.readOnly,
   },
   {
     itemRenderer: server => (
@@ -154,7 +154,7 @@ const COLUMNS = [
         </Tooltip>
       </span>
     ),
-    sortCriteria: _ => !!_.allowUnauthorized,
+    sortCriteria: _ => _.allowUnauthorized,
   },
   {
     itemRenderer: ({ poolId }) =>
