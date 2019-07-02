@@ -190,7 +190,7 @@ const RemoteProxyWarning = decorate([
   injectState,
   ({ state }) =>
     state.showWarning ? (
-      <Tooltip content={_('remoteNotLinkedToSelectedProxy')}>
+      <Tooltip content={_('remoteNotCompatibleWithSelectedProxy')}>
         <Icon icon='alarm' color='text-danger' />
       </Tooltip>
     ) : null,
@@ -631,9 +631,7 @@ export default decorate([
         if (proxyId === null) {
           proxyId = undefined
         }
-        return (
-          remotes.indexOf(remote.id) === -1 && remote.value.proxy === proxyId
-        )
+        return !remotes.includes(remote.id) && remote.value.proxy === proxyId
       },
       propSettings: (_, { job }) =>
         Map(get(() => job.settings)).map(setting =>

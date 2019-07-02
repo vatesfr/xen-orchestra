@@ -1477,7 +1477,7 @@ const messages = {
     'Are you sure you want to delete all the backups from {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}?',
   bulkDeleteMetadataBackupsConfirmText:
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
-  remoteNotLinkedToSelectedProxy:
+  remoteNotCompatibleWithSelectedProxy:
     "The backup will not be run on this remote because it's not compatible with the selected proxy",
 
   // ----- Restore files view -----
