@@ -1362,6 +1362,7 @@ export const revertSnapshot = snapshot =>
       _call('vm.revert', {
         snapshotBefore,
         snapshot: resolveId(snapshot),
+        vm: resolveId(snapshot.$snapshot_of),
       }).then(() =>
         success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
       ),
