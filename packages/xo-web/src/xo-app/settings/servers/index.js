@@ -107,8 +107,7 @@ const COLUMNS = [
           enabledHandler={disconnectServer}
           enabledTooltip={_('serverDisable')}
           handlerParam={server}
-          pending={server.status === 'connecting'}
-          state={server.status === 'connected'}
+          state={server.enabled === 'true'}
         />{' '}
         {server.status === 'connected' && server.error != null && (
           <Tooltip content={_('serverConnectionFailed')}>
