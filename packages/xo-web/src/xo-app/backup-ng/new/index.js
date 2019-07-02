@@ -180,9 +180,10 @@ const RemoteProxyWarning = decorate([
     computed: {
       showWarning: (_, { id, proxyId, remotes = {} }) => {
         const remote = remotes[id]
-        return (
-          proxyId != null && remote !== undefined && remote.proxy !== proxyId
-        )
+        if (proxyId === null) {
+          proxyId = undefined
+        }
+        return remote !== undefined && remote.proxy !== proxyId
       },
     },
   }),
@@ -626,9 +627,14 @@ export default decorate([
             get(() => hostsById[poolsById[$container].master].version)
         ),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
-      remotePredicate: ({ proxyId, remotes }) => remote =>
-        remotes.indexOf(remote.id) === -1 &&
-        (proxyId == null || remote.value.proxy === proxyId),
+      remotePredicate: ({ proxyId, remotes }) => remote => {
+        if (proxyId === null) {
+          proxyId = undefined
+        }
+        return (
+          remotes.indexOf(remote.id) === -1 && remote.value.proxy === proxyId
+        )
+      },
       propSettings: (_, { job }) =>
         Map(get(() => job.settings)).map(setting =>
           defined(

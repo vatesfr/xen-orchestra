@@ -1478,7 +1478,7 @@ const messages = {
   bulkDeleteMetadataBackupsConfirmText:
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
   remoteNotLinkedToSelectedProxy:
-    "The backup will not be executed on this remote because it's not linked to the selected proxy",
+    "The backup will not be run on this remote because it's not compatible with the selected proxy",
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
