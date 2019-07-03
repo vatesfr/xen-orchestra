@@ -16,9 +16,9 @@ import { injectIntl } from 'react-intl'
 import { noop } from 'lodash'
 import {
   addServer,
+  disableServer,
   editServer,
-  connectServer,
-  disconnectServer,
+  enableServer,
   removeServer,
   subscribeServers,
 } from 'xo'
@@ -38,7 +38,7 @@ const showServerError = server => {
     }).then(
       () =>
         editServer(server, { allowUnauthorized: true }).then(() =>
-          connectServer(server)
+          enableServer(server)
         ),
       noop
     )
@@ -101,13 +101,13 @@ const COLUMNS = [
       <div>
         <StateButton
           disabledLabel={_('serverDisabled')}
-          disabledHandler={connectServer}
+          disabledHandler={enableServer}
           disabledTooltip={_('serverEnable')}
           enabledLabel={_('serverEnabled')}
-          enabledHandler={disconnectServer}
+          enabledHandler={disableServer}
           enabledTooltip={_('serverDisable')}
           handlerParam={server}
-          state={server.enabled === 'true'}
+          state={server.enabled === true}
         />{' '}
         {server.status === 'connected' && server.error != null && (
           <Tooltip content={_('serverConnectionFailed')}>
