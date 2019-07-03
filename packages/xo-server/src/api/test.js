@@ -92,28 +92,34 @@ copyVm.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function xapiPoolChange({
-  currentPoolObject,
-  newPoolHostname,
-  newPoolObject,
+export async function changeConnectedXapiHostname({
+  hostname,
+  newObject,
+  oldObject,
 }) {
-  const xapi = this.getXapi(currentPoolObject)
+  const xapi = this.getXapi(oldObject)
   const { pool: currentPool } = xapi
 
-  xapi._setUrl({ ...xapi._url, hostname: newPoolHostname })
+  xapi._setUrl({ ...xapi._url, hostname })
   await fromEvent(xapi.objects, 'finish')
   if (xapi.pool.$id === currentPool.$id) {
     await fromEvent(xapi.objects, 'finish')
   }
 
   assert(xapi.pool.$id !== currentPool.$id)
-  assert.doesNotThrow(() => this.getXapi(newPoolObject))
-  assert.throws(() => this.getXapi(currentPoolObject))
+  assert.doesNotThrow(() => this.getXapi(newObject))
+  assert.throws(() => this.getXapi(oldObject))
 }
 
-xapiPoolChange.permission = 'admin'
-xapiPoolChange.params = {
-  currentPoolObject: { type: 'string' },
-  newPoolHostname: { type: 'string' },
-  newPoolObject: { type: 'string' },
+changeConnectedXapiHostname.description =
+  'change the connected XAPI hostname and check if the pool and the local cache are updated'
+
+changeConnectedXapiHostname.permission = 'admin'
+
+changeConnectedXapiHostname.params = {
+  hostname: { type: 'string' },
+  // new connection's XO object
+  newObject: { type: 'string' },
+  // current connection's XO object
+  oldObject: { type: 'string' },
 }
