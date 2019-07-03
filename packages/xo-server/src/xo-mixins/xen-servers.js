@@ -479,11 +479,9 @@ export default class {
     forEach(servers, server => {
       const lastEventFetchedTimestamp =
         xapis[server.id]?.lastEventFetchedTimestamp
-      const currentTime = new Date().getTime()
       if (
         lastEventFetchedTimestamp !== undefined &&
-        currentTime >
-          lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
+        Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
       ) {
         server.error = xapis[server.id].watchEventsError
       }
