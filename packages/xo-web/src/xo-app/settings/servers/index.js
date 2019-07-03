@@ -109,7 +109,7 @@ const COLUMNS = [
           handlerParam={server}
           state={server.enabled}
         />{' '}
-        {server.enabled && server.error != null && (
+        {server.error != null && (
           <Tooltip content={_('serverConnectionFailed')}>
             <a
               className='text-danger btn btn-link btn-sm'
