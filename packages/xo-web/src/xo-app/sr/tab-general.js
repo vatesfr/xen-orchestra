@@ -178,44 +178,6 @@ export default class TabGeneral extends Component {
       let bc
       let nBaseCopies
       let root
-      // group VDIs by their root base copy.
-      const disksByRoot = groupBy(
-        vdis.map(({ id, parent, snapshots, ...vdi }) => {
-          baseCopiesUsage = 0
-          nBaseCopies = 0
-          root = undefined
-          while ((bc = unmanagedVdisById[parent]) !== undefined) {
-            root = bc.id
-            parent = bc.parent
-            if (!diskParents.includes(root)) {
-              nBaseCopies++
-              baseCopiesUsage += bc.usage
-              diskParents.push(root)
-            }
-          }
-
-          if ((snapshots = snapshotsByVdi[id]) !== undefined) {
-            // snapshot can have base copy without active VDI
-            snapshots.forEach(({ parent }) => {
-              if (parent !== undefined && !diskParents.includes(parent)) {
-                nBaseCopies++
-                baseCopiesUsage += unmanagedVdisById[parent].usage
-                diskParents.push(parent)
-              }
-            })
-          }
-
-          return {
-            ...vdi,
-            id,
-            baseCopiesUsage,
-            nBaseCopies,
-            root: root || id,
-            snapshots: snapshots || [],
-          }
-        }),
-        'root'
-      )
 
       let orphanedVdiSnapshots
       if ((orphanedVdiSnapshots = snapshotsByVdi[undefined]) !== undefined) {
@@ -224,9 +186,48 @@ export default class TabGeneral extends Component {
         })
       }
 
+      // search root base copy for each VDI
+      const disks = vdis.map(({ id, parent, snapshots, ...vdi }) => {
+        baseCopiesUsage = 0
+        nBaseCopies = 0
+        root = undefined
+        while ((bc = unmanagedVdisById[parent]) !== undefined) {
+          root = bc.id
+          parent = bc.parent
+          if (!diskParents.includes(root)) {
+            nBaseCopies++
+            baseCopiesUsage += bc.usage
+            diskParents.push(root)
+          }
+        }
+
+        if ((snapshots = snapshotsByVdi[id]) !== undefined) {
+          // snapshot can have base copy without active VDI
+          snapshots.forEach(({ parent }) => {
+            if (parent !== undefined && !diskParents.includes(parent)) {
+              nBaseCopies++
+              baseCopiesUsage += unmanagedVdisById[parent].usage
+              diskParents.push(parent)
+            }
+          })
+        }
+
+        return {
+          ...vdi,
+          id,
+          baseCopiesUsage,
+          nBaseCopies,
+          root: root || id,
+          snapshots: snapshots || [],
+        }
+      })
+
+      // group VDIs by their root base copy.
+      const disksByRoot = groupBy(disks, 'root')
+
+      // group collection of VDIs and their snapshots and base copies.
       let snapshots
       let usage
-      // group collection of VDIs and their snapshots and base copies.
       forEach(disksByRoot, vdis => {
         baseCopiesUsage = 0
         nBaseCopies = 0
@@ -250,6 +251,7 @@ export default class TabGeneral extends Component {
           snapshots,
         })
       })
+
       return groups
     }
   )
