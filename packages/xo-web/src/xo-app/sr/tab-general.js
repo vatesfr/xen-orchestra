@@ -25,8 +25,8 @@ import {
 } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 
-const styles = { margin: '0.2em', padding: '0.1em' }
-const ulStyles = { margin: 0, padding: '0.1em' }
+const styles = { margin: '0.1em', padding: '0.1em' }
+const ulStyles = { margin: 0, padding: 0 }
 
 const UsageTooltip = decorate([
   connectStore(() => {
@@ -34,7 +34,7 @@ const UsageTooltip = decorate([
       createCollectionWrapper(
         createSelector(
           (_, { group }) => group.vdis,
-          vdis => flatMap(vdis, _ => _.$VBDs)
+          vdis => flatMap(vdis, '$VBDs')
         )
       )
     )
@@ -69,7 +69,8 @@ const UsageTooltip = decorate([
     group: { baseCopies, id, name_label: name, usage, vdis, snapshots },
   }) => {
     const showBaseCopies = baseCopies !== undefined && baseCopies.n > 0
-    const showVdis = showBaseCopies || snapshots.length > 0
+    const showSnapshots = snapshots.length > 0
+    const showVdis = showBaseCopies || showSnapshots
     let disk
     let vm
     return (
@@ -84,51 +85,47 @@ const UsageTooltip = decorate([
                 })}
               </li>
             )}
-            {snapshots.length > 0 && (
+            {showSnapshots && (
               <li>
                 {_('snapshotsTooltip', {
                   n: snapshots.length,
                   usage: formatSize(sumBy(snapshots, 'usage')),
                 })}
+                <ul style={styles}>
+                  {snapshots.map(({ id, name_label: name, usage }) => (
+                    <li key={id}>
+                      {_('diskTooltip', {
+                        name,
+                        usage: formatSize(usage),
+                      })}
+                    </li>
+                  ))}
+                </ul>
               </li>
             )}
-            {snapshots.length > 0 && (
-              <ul style={styles}>
-                {snapshots.map(({ id, name_label: name, usage }) => (
-                  <li key={id}>
-                    {_('diskTooltip', {
-                      name,
-                      usage: formatSize(usage),
-                    })}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {showVdis && (
+            {showVdis ? (
               <li>
                 {_('vdisTooltip', {
                   n: vdis.length,
                   usage: formatSize(sumBy(vdis, 'usage')),
                 })}
+                <ul style={styles}>
+                  {vdis.map(({ id, name_label: name, usage }) => (
+                    <li key={id}>
+                      {(vm = vmsByVdi[id]) === undefined
+                        ? _('diskTooltip', {
+                            name,
+                            usage: formatSize(usage),
+                          })
+                        : _('vdiOnVmTooltip', {
+                            name,
+                            usage: formatSize(usage),
+                            vmName: vm.name_label,
+                          })}
+                    </li>
+                  ))}
+                </ul>
               </li>
-            )}
-            {showVdis ? (
-              <ul style={styles}>
-                {vdis.map(({ id, name_label: name, usage }) => (
-                  <li key={id}>
-                    {(vm = vmsByVdi[id]) === undefined
-                      ? _('diskTooltip', {
-                          name,
-                          usage: formatSize(usage),
-                        })
-                      : _('vdiOnVmTooltip', {
-                          name,
-                          usage: formatSize(usage),
-                          vmName: vm.name_label,
-                        })}
-                  </li>
-                ))}
-              </ul>
             ) : (
               <span>
                 {((disk = vdis[0]), (vm = vmsByVdi[disk.id])) === undefined
@@ -181,7 +178,7 @@ export default class TabGeneral extends Component {
       let bc
       let nBaseCopies
       let root
-      // group VDIs by their initial base copy.
+      // group VDIs by their root base copy.
       const disksByRoot = groupBy(
         vdis.map(({ id, parent, snapshots, ...vdi }) => {
           baseCopiesUsage = 0
@@ -292,7 +289,7 @@ export default class TabGeneral extends Component {
         </Row>
         <Row>
           <Col smallOffset={1} mediumSize={10}>
-            <Usage total={sr.size} tooltipOthers type='disk'>
+            <Usage total={sr.size} type='disk'>
               {this._getDiskGroups().map(group => (
                 <UsageElement
                   highlight={group.type === 'VDI-snapshot'}
