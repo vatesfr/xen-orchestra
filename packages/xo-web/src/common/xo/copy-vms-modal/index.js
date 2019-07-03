@@ -11,7 +11,7 @@ import { createGetObjectsOfType } from 'selectors'
 import { SelectSr } from 'select-objects'
 import { buildTemplate, connectStore } from 'utils'
 
-import SelectCompression from '../../select-compression'
+import { SelectCompression } from '../../xo-compression'
 
 @connectStore(
   () => {

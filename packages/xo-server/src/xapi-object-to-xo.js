@@ -76,6 +76,7 @@ const TRANSFORMS = {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
+      restrictions: obj.restrictions,
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
