@@ -1134,20 +1134,20 @@ resume.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function revert({ snapshot, snapshotBefore, vm }) {
-  await this.checkPermissions(this.user.id, [[vm.id, 'operate']])
+export async function revert({ snapshot, snapshotBefore }) {
+  await this.checkPermissions(this.user.id, [
+    [snapshot.$snapshot_of, 'operate'],
+  ])
   return this.getXapi(snapshot).revertVm(snapshot._xapiId, snapshotBefore)
 }
 
 revert.params = {
   snapshot: { type: 'string' },
   snapshotBefore: { type: 'boolean', optional: true },
-  vm: { type: 'string' },
 }
 
 revert.resolve = {
   snapshot: ['snapshot', 'VM-snapshot', false],
-  vm: ['vm', 'VM', 'operate'],
 }
 
 // -------------------------------------------------------------------
