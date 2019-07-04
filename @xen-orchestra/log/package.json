@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.12.1"
+    "promise-toolbox": "^0.13.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

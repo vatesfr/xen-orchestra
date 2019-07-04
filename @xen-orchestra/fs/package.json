@@ -29,7 +29,7 @@
     "fs-extra": "^8.0.1",
     "get-stream": "^4.0.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.12.1",
+    "promise-toolbox": "^0.13.0",
     "readable-stream": "^3.0.6",
     "through2": "^3.0.0",
     "tmp": "^0.1.0",
