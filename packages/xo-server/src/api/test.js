@@ -118,8 +118,6 @@ changeConnectedXapiHostname.permission = 'admin'
 
 changeConnectedXapiHostname.params = {
   hostname: { type: 'string' },
-  // new connection's XO object
-  newObject: { type: 'string' },
-  // current connection's XO object
-  oldObject: { type: 'string' },
+  newObject: { type: 'string', description: "new connection's XO object" },
+  oldObject: { type: 'string', description: "current connection's XO object" },
 }
