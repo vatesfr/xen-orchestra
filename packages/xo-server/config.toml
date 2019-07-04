@@ -29,6 +29,9 @@ guessVhdSizeOnImport = false
 # be turned for investigation by the administrator.
 verboseApiLogsOnErrors = false
 
+# if no events could be fetched during this delay, the server will be marked as disconnected
+xapiMarkDisconnectedDelay = '5 minutes'
+
 # https:#github.com/websockets/ws#websocket-compression
 [apiWebSocketOptions]
 perMessageDeflate = { threshold = 524288 } # 512kiB
@@ -48,6 +51,11 @@ maxTokenValidity = '0.5 year'
 [backup]
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
+
+# Duration for which we can wait for the backup size before returning
+#
+# It should be short to avoid blocking the display of the available backups.
+vmBackupSizeTimeout = '2 seconds'
 
 # Helmet handles HTTP security via headers
 #

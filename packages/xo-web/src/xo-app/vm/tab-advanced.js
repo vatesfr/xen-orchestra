@@ -8,6 +8,7 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
+import SelectBootFirmware from 'select-boot-firmware'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { error } from 'notification'
@@ -510,6 +511,11 @@ export default class TabAdvanced extends Component {
   _onChangeCpuMask = cpuMask =>
     editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
+  _handleBootFirmware = value =>
+    editVm(this.props.vm, {
+      hvmBootFirmware: value !== '' ? value : null,
+    })
+
   _onNicTypeChange = value =>
     editVm(this.props.vm, { nicType: value === '' ? null : value })
 
@@ -830,6 +836,17 @@ export default class TabAdvanced extends Component {
                           </option>
                         ))}
                       </select>
+                    </td>
+                  </tr>
+                )}
+                {vm.virtualizationMode === 'hvm' && (
+                  <tr>
+                    <th>{_('vmBootFirmware')}</th>
+                    <td>
+                      <SelectBootFirmware
+                        onChange={this._handleBootFirmware}
+                        value={defined(() => vm.boot.firmware, '')}
+                      />
                     </td>
                   </tr>
                 )}

@@ -6,7 +6,7 @@ import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, noop } from 'utils'
+import { addSubscriptions, formatSize, noop } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
@@ -88,6 +88,12 @@ const BACKUPS_COLUMNS = [
     sortOrder: 'desc',
   },
   {
+    name: _('labelSize'),
+    itemRenderer: ({ size }) =>
+      size !== undefined && size !== 0 && formatSize(size),
+    sortCriteria: 'size',
+  },
+  {
     name: _('availableBackupsColumn'),
     itemRenderer: ({ count }) =>
       map(count, (n, mode) => (
@@ -149,6 +155,7 @@ export default class Restore extends Component {
     })
     // TODO: perf
     let first, last
+    let size = 0
     forEach(backupDataByVm, (data, vmId) => {
       first = { timestamp: Infinity }
       last = { timestamp: 0 }
@@ -161,9 +168,13 @@ export default class Restore extends Component {
           first = backup
         }
         count[backup.mode] = (count[backup.mode] || 0) + 1
+
+        if (backup.size !== undefined) {
+          size += backup.size
+        }
       })
 
-      assign(data, { first, last, count, id: vmId })
+      assign(data, { first, last, count, id: vmId, size })
     })
 
     forEach(backupDataByVm, ({ backups }, vmId) => {

@@ -56,6 +56,19 @@ const HOST_COLUMNS = [
     sortCriteria: (pbd, hosts) => hosts[pbd.host].name_description,
   },
   {
+    name: _('pbdDetails'),
+    itemRenderer: ({ device_config: deviceConfig }) => {
+      const keys = Object.keys(deviceConfig)
+      return (
+        <ul className='list-unstyled'>
+          {keys.map(key => (
+            <li key={key}>{_.keyValue(key, deviceConfig[key])}</li>
+          ))}
+        </ul>
+      )
+    },
+  },
+  {
     name: _('pbdStatus'),
     itemRenderer: pbd => (
       <StateButton
@@ -98,14 +111,17 @@ const HOST_WITH_PATHS_COLUMNS = [
       }
 
       const [nActives, nPaths] = getIscsiPaths(pbd)
+      const nSessions = pbd.otherConfig.iscsi_sessions
       return (
-        nActives !== undefined &&
-        nPaths !== undefined &&
-        _('hostMultipathingPaths', {
-          nActives,
-          nPaths,
-          nSessions: pbd.otherConfig.iscsi_sessions,
-        })
+        <span>
+          {nActives !== undefined &&
+            nPaths !== undefined &&
+            _('hostMultipathingPaths', {
+              nActives,
+              nPaths,
+            })}{' '}
+          {nSessions !== undefined && _('iscsiSessions', { nSessions })}
+        </span>
       )
     },
     sortCriteria: (pbd, hosts) => get(() => hosts[pbd.host].multipathing),

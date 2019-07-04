@@ -142,12 +142,14 @@ const getErrorMarkdown = task => {
 
 const MARKDOWN_BY_TYPE = {
   pool(task, { formatDate }) {
-    const { pool, poolMaster = {} } = task.data
+    const { id, pool = {}, poolMaster = {} } = task.data
     const name = pool.name_label || poolMaster.name_label || UNKNOWN_ITEM
 
     return {
       body: [
-        `- **UUID**: ${pool.uuid}`,
+        pool.uuid !== undefined
+          ? `- **UUID**: ${pool.uuid}`
+          : `- **ID**: ${id}`,
         ...getTemporalDataMarkdown(task.end, task.start, formatDate),
         getErrorMarkdown(task),
       ],
@@ -355,9 +357,7 @@ class BackupReportsXoPlugin {
       nagiosStatus: log.status === 'success' ? 0 : 2,
       nagiosMarkdown:
         log.status === 'success'
-          ? `[Xen Orchestra] [Success] Metadata backup report for ${
-              log.jobName
-            }`
+          ? `[Xen Orchestra] [Success] Metadata backup report for ${log.jobName}`
           : `[Xen Orchestra] [${log.status}] Metadata backup report for ${
               log.jobName
             } - ${nagiosText.join(' ')}`,
@@ -391,9 +391,7 @@ class BackupReportsXoPlugin {
         } − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
         markdown: toMarkdown(markdown),
         nagiosStatus: 2,
-        nagiosMarkdown: `[Xen Orchestra] [${
-          log.status
-        }] Backup report for ${jobName} - Error : ${log.result.message}`,
+        nagiosMarkdown: `[Xen Orchestra] [${log.status}] Backup report for ${jobName} - Error : ${log.result.message}`,
       })
     }
 
@@ -711,9 +709,7 @@ class BackupReportsXoPlugin {
         subject: `[Xen Orchestra] ${globalStatus} ${icon}`,
         markdown,
         nagiosStatus: 2,
-        nagiosMarkdown: `[Xen Orchestra] [${globalStatus}] Error : ${
-          error.message
-        }`,
+        nagiosMarkdown: `[Xen Orchestra] [${globalStatus}] Error : ${error.message}`,
       })
     }
 

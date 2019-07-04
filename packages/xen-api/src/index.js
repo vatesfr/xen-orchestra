@@ -99,6 +99,9 @@ export class Xapi extends EventEmitter {
     this._sessionId = undefined
     this._status = DISCONNECTED
 
+    this._watchEventsError = undefined
+    this._lastEventFetchedTimestamp = undefined
+
     this._debounce = opts.debounce ?? 200
     this._objects = new Collection()
     this._objectsByRef = { __proto__: null }
@@ -167,22 +170,6 @@ export class Xapi extends EventEmitter {
 
     try {
       await this._sessionOpen()
-
-      // Uses introspection to list available types.
-      const types = (this._types = (await this._interruptOnDisconnect(
-        this._call('system.listMethods')
-      ))
-        .filter(isGetAllRecordsMethod)
-        .map(method => method.slice(0, method.indexOf('.'))))
-      this._lcToTypes = { __proto__: null }
-      types.forEach(type => {
-        const lcType = type.toLowerCase()
-        if (lcType !== type) {
-          this._lcToTypes[lcType] = type
-        }
-      })
-
-      this._pool = (await this.getAllRecords('pool'))[0]
 
       debug('%s: connected', this._humanId)
       this._status = CONNECTED
@@ -495,6 +482,14 @@ export class Xapi extends EventEmitter {
     return this._objectsFetched
   }
 
+  get lastEventFetchedTimestamp() {
+    return this._lastEventFetchedTimestamp
+  }
+
+  get watchEventsError() {
+    return this._watchEventsError
+  }
+
   // ensure we have received all events up to this call
   //
   // optionally returns the up to date object for the given ref
@@ -739,6 +734,28 @@ export class Xapi extends EventEmitter {
         },
       }
     )
+
+    const oldPoolRef = this._pool?.$ref
+    this._pool = (await this.getAllRecords('pool'))[0]
+
+    // if the pool ref has changed, it means that the XAPI has been restarted or
+    // it's not the same XAPI, we need to refetch the available types and reset
+    // the event loop in that case
+    if (this._pool.$ref !== oldPoolRef) {
+      // Uses introspection to list available types.
+      const types = (this._types = (await this._interruptOnDisconnect(
+        this._call('system.listMethods')
+      ))
+        .filter(isGetAllRecordsMethod)
+        .map(method => method.slice(0, method.indexOf('.'))))
+      this._lcToTypes = { __proto__: null }
+      types.forEach(type => {
+        const lcType = type.toLowerCase()
+        if (lcType !== type) {
+          this._lcToTypes[lcType] = type
+        }
+      })
+    }
   }
 
   _setUrl(url) {
@@ -936,21 +953,28 @@ export class Xapi extends EventEmitter {
 
         let result
         try {
-          result = await this._sessionCall(
+          // don't use _sessionCall because a session failure should break the
+          // loop and trigger a complete refetch
+          result = await this._call(
             'event.from',
             [
+              this._sessionId,
               types,
               fromToken,
               EVENT_TIMEOUT + 0.1, // must be float for XML-RPC transport
             ],
             EVENT_TIMEOUT * 1e3 * 1.1
           )
+          this._lastEventFetchedTimestamp = Date.now()
+          this._watchEventsError = undefined
         } catch (error) {
-          if (error?.code === 'EVENTS_LOST') {
+          const code = error?.code
+          if (code === 'EVENTS_LOST' || code === 'SESSION_INVALID') {
             // eslint-disable-next-line no-labels
             continue mainLoop
           }
 
+          this._watchEventsError = error
           console.warn('_watchEvents', error)
           await pDelay(this._eventPollDelay)
           continue

@@ -22,8 +22,8 @@ import { forbiddenOperation } from 'xo-common/api-errors'
 import { Xapi as XapiBase, NULL_REF } from 'xen-api'
 import {
   every,
-  find,
   filter,
+  find,
   flatMap,
   flatten,
   groupBy,
@@ -956,16 +956,20 @@ export default class Xapi extends XapiBase {
       await this._createVmRecord({
         ...delta.vm,
         affinity: null,
+        blocked_operations: {
+          ...delta.vm.blocked_operations,
+          start: 'Importing…',
+        },
+        ha_always_run: false,
         is_a_template: false,
+        name_label: `[Importing…] ${name_label}`,
+        other_config: {
+          ...delta.vm.other_config,
+          [TAG_COPY_SRC]: delta.vm.uuid,
+        },
       })
     )
     $defer.onFailure(() => this._deleteVm(vm))
-
-    await Promise.all([
-      vm.set_name_label(`[Importing…] ${name_label}`),
-      vm.update_blocked_operations('start', 'Importing…'),
-      vm.update_other_config(TAG_COPY_SRC, delta.vm.uuid),
-    ])
 
     // 2. Delete all VBDs which may have been created by the import.
     await asyncMap(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
@@ -1083,6 +1087,7 @@ export default class Xapi extends XapiBase {
     }
 
     await Promise.all([
+      delta.vm.ha_always_run && vm.set_ha_always_run(true),
       vm.set_name_label(name_label),
       // FIXME: move
       vm.update_blocked_operations(
@@ -1719,9 +1724,7 @@ export default class Xapi extends XapiBase {
     }
 
     log.debug(
-      `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${
-        sr.name_label
-      }`
+      `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${sr.name_label}`
     )
     try {
       await pRetry(
@@ -2131,6 +2134,16 @@ export default class Xapi extends XapiBase {
       mapToArray(bonds, bond => this.call('Bond.destroy', bond))
     )
 
+    const tunnels = filter(this.objects.all, { $type: 'tunnel' })
+    await Promise.all(
+      map(pifs, async pif => {
+        const tunnel = find(tunnels, { access_PIF: pif.$ref })
+        if (tunnel != null) {
+          await this.callAsync('tunnel.destroy', tunnel.$ref)
+        }
+      })
+    )
+
     await this.callAsync('network.destroy', network.$ref)
   }
 
@@ -2331,7 +2344,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _assertConsistentHostServerTime(hostRef) {
+  async assertConsistentHostServerTime(hostRef) {
     const delta =
       parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -
       Date.now()
@@ -2341,6 +2354,29 @@ export default class Xapi extends XapiBase {
           delta
         )})`
       )
+    }
+  }
+
+  async isHyperThreadingEnabled(hostId) {
+    try {
+      return (
+        (await this.call(
+          'host.call_plugin',
+          this.getObject(hostId).$ref,
+          'hyperthreading.py',
+          'get_hyperthreading',
+          {}
+        )) !== 'false'
+      )
+    } catch (error) {
+      if (
+        error.code === 'XENAPI_MISSING_PLUGIN' ||
+        error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION'
+      ) {
+        return null
+      } else {
+        throw error
+      }
     }
   }
 }

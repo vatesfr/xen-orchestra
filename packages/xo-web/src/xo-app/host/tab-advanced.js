@@ -21,6 +21,7 @@ import {
   disableHost,
   enableHost,
   forgetHost,
+  isHyperThreadingEnabledHost,
   installSupplementalPack,
   restartHost,
   setHostsMultipathing,
@@ -54,6 +55,7 @@ const MultipathableSrs = decorate([
       <Container>
         {map(pbds, pbd => {
           const [nActives, nPaths] = getIscsiPaths(pbd)
+          const nSessions = pbd.otherConfig.iscsi_sessions
           return (
             <Row key={pbd.id}>
               <Col>
@@ -63,8 +65,8 @@ const MultipathableSrs = decorate([
                   _('hostMultipathingPaths', {
                     nActives,
                     nPaths,
-                    nSessions: pbd.otherConfig.iscsi_sessions,
-                  })}
+                  })}{' '}
+                {nSessions !== undefined && _('iscsiSessions', { nSessions })}
               </Col>
             </Row>
           )
@@ -95,6 +97,12 @@ MultipathableSrs.propTypes = {
   }
 })
 export default class extends Component {
+  async componentDidMount() {
+    this.setState({
+      isHtEnabled: await isHyperThreadingEnabledHost(this.props.host),
+    })
+  }
+
   _getPacks = createSelector(
     () => this.props.host.supplementalPacks,
     packs => {
@@ -112,14 +120,12 @@ export default class extends Component {
       return uniqPacks
     }
   )
-  _isHtEnabled = createSelector(
-    () => this.props.host.CPUs.flags,
-    flags => /\bht\b/.test(flags)
-  )
+
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
   render() {
     const { host, pcis, pgpus } = this.props
+    const { isHtEnabled } = this.state
     return (
       <Container>
         <Row>
@@ -279,7 +285,9 @@ export default class extends Component {
                 <tr>
                   <th>{_('hyperThreading')}</th>
                   <td>
-                    {this._isHtEnabled()
+                    {isHtEnabled === null
+                      ? _('hyperThreadingNotAvailable')
+                      : isHtEnabled
                       ? _('stateEnabled')
                       : _('stateDisabled')}
                   </td>

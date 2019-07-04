@@ -55,6 +55,7 @@ getAllObjects.description = 'Returns all XO objects'
 getAllObjects.params = {
   filter: { type: 'object', optional: true },
   limit: { type: 'number', optional: true },
+  ndjson: { type: 'boolean', optional: true },
 }
 
 // -------------------------------------------------------------------

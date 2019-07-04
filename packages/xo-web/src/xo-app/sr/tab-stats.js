@@ -4,7 +4,7 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
-import { fetchSrStats } from 'xo'
+import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
 import { get } from 'lodash'
 import { Toggle } from 'form'
 import {
@@ -16,7 +16,7 @@ import {
 
 export default class SrStats extends Component {
   state = {
-    granularity: 'seconds',
+    granularity: DEFAULT_GRANULARITY,
   }
 
   _loop(sr = get(this.props, 'sr')) {
@@ -33,7 +33,7 @@ export default class SrStats extends Component {
       cancelled = true
     }
 
-    fetchSrStats(sr, this.state.granularity).then(data => {
+    fetchStats(sr, 'sr', this.state.granularity).then(data => {
       if (cancelled) {
         return
       }
@@ -62,7 +62,7 @@ export default class SrStats extends Component {
     clearTimeout(this.timeout)
   }
 
-  _onGranularityChange = ({ target: { value: granularity } }) => {
+  _onGranularityChange = granularity => {
     clearTimeout(this.timeout)
     this.setState(
       {
@@ -104,26 +104,11 @@ export default class SrStats extends Component {
             )}
           </Col>
           <Col mediumSize={6}>
-            <div className='btn-tab'>
-              <select
-                className='form-control'
-                onChange={this._onGranularityChange}
-                defaultValue={granularity}
-              >
-                {_('statLastTenMinutes', message => (
-                  <option value='seconds'>{message}</option>
-                ))}
-                {_('statLastTwoHours', message => (
-                  <option value='minutes'>{message}</option>
-                ))}
-                {_('statLastWeek', message => (
-                  <option value='hours'>{message}</option>
-                ))}
-                {_('statLastYear', message => (
-                  <option value='days'>{message}</option>
-                ))}
-              </select>
-            </div>
+            <SelectGranularity
+              onChange={this._onGranularityChange}
+              required
+              value={granularity}
+            />
           </Col>
         </Row>
         <Row>

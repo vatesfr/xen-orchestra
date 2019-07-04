@@ -1,10 +1,8 @@
 import ms from 'ms'
 import { forEach, isEmpty, iteratee, sortedIndexBy } from 'lodash'
-import { noSuchObject } from 'xo-common/api-errors'
 
 const isSkippedError = error =>
   error.message === 'no disks found' ||
-  noSuchObject.is(error) ||
   error.message === 'no VMs match this pattern' ||
   error.message === 'unhealthy VDI chain'
 

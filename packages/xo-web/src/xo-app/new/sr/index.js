@@ -18,7 +18,7 @@ import { confirm } from 'modal'
 import { adminOnly, connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
-import { Password, Select, Toggle } from 'form'
+import { Password, Select } from 'form'
 import { SelectHost } from 'select-objects'
 import {
   createFilter,
@@ -33,6 +33,7 @@ import {
   createSrLvm,
   createSrNfs,
   createSrHba,
+  createSrZfs,
   probeSrIscsiExists,
   probeSrIscsiIqns,
   probeSrIscsiLuns,
@@ -40,9 +41,14 @@ import {
   probeSrNfsExists,
   probeSrHba,
   probeSrHbaExists,
+  probeZfs,
   reattachSrIso,
   reattachSr,
 } from 'xo'
+
+// ===================================================================
+
+const NFS_VERSIONS = ['4', '4.1']
 
 // ===================================================================
 
@@ -192,14 +198,15 @@ class SelectLun extends Component {
 // ===================================================================
 
 const SR_TYPE_TO_LABEL = {
-  ext: 'Local Ext',
+  ext: 'ext (local)',
   hba: 'HBA',
   iscsi: 'iSCSI',
   local: 'Local',
-  lvm: 'Local LVM',
+  lvm: 'LVM (local)',
   nfs: 'NFS',
   nfsiso: 'NFS ISO',
   smb: 'SMB',
+  zfs: 'ZFS (local)',
 }
 
 const SR_GROUP_TO_LABEL = {
@@ -208,7 +215,7 @@ const SR_GROUP_TO_LABEL = {
 }
 
 const typeGroups = {
-  vdisr: ['ext', 'hba', 'iscsi', 'lvm', 'nfs'],
+  vdisr: ['ext', 'hba', 'iscsi', 'lvm', 'nfs', 'zfs'],
   isosr: ['local', 'nfsiso', 'smb'],
 }
 
@@ -237,6 +244,7 @@ export default class New extends Component {
       lockCreation: undefined,
       lun: undefined,
       luns: undefined,
+      nfsVersion: '',
       hbaDevices: undefined,
       name: undefined,
       path: undefined,
@@ -245,6 +253,7 @@ export default class New extends Component {
       unused: undefined,
       usage: undefined,
       used: undefined,
+      zfsPools: undefined,
     }
     this.getHostSrs = createFilter(
       () => this.props.srs,
@@ -266,8 +275,18 @@ export default class New extends Component {
       port,
       server,
       username,
+      zfsLocation,
     } = this.refs
-    const { host, iqn, lun, path, type, scsiId, nfs4, nfsOptions } = this.state
+    const {
+      host,
+      iqn,
+      lun,
+      nfsOptions,
+      nfsVersion,
+      path,
+      scsiId,
+      type,
+    } = this.state
 
     const createMethodFactories = {
       nfs: () =>
@@ -277,7 +296,7 @@ export default class New extends Component {
           description.value,
           server.value,
           path,
-          nfs4 ? '4' : undefined,
+          nfsVersion !== '' ? nfsVersion : undefined,
           nfsOptions
         ),
       hba: async () => {
@@ -330,6 +349,8 @@ export default class New extends Component {
         createSrLvm(host.id, name.value, description.value, device.value),
       ext: () =>
         createSrExt(host.id, name.value, description.value, device.value),
+      zfs: () =>
+        createSrZfs(host.id, name.value, description.value, zfsLocation.value),
       local: () =>
         createSrIso(
           host.id,
@@ -367,7 +388,10 @@ export default class New extends Component {
     }
   }
 
-  _handleSrHostSelection = host => this.setState({ host })
+  _handleSrHostSelection = async host => {
+    this.setState({ host })
+    await this._probe(host, this.state.type)
+  }
   _handleNameChange = event => this.setState({ name: event.target.value })
   _handleDescriptionChange = event =>
     this.setState({ description: event.target.value })
@@ -378,20 +402,13 @@ export default class New extends Component {
       hbaDevices: undefined,
       iqns: undefined,
       paths: undefined,
-      summary: includes(['ext', 'lvm', 'local', 'smb', 'hba'], type),
+      summary: includes(['ext', 'lvm', 'local', 'smb', 'hba', 'zfs'], type),
       type,
       unused: undefined,
       usage: undefined,
       used: undefined,
     })
-    if (type === 'hba' && this.state.host !== undefined) {
-      this.setState(({ loading }) => ({ loading: loading + 1 }))
-      const hbaDevices = await probeSrHba(this.state.host.id)::ignoreErrors()
-      this.setState(({ loading }) => ({
-        hbaDevices,
-        loading: loading - 1,
-      }))
-    }
+    await this._probe(this.state.host, type)
   }
 
   _handleSrHbaSelection = async scsiId => {
@@ -522,6 +539,31 @@ export default class New extends Component {
     }
   }
 
+  _handleNfsVersion = ({ target: { value } }) => {
+    this.setState({
+      nfsVersion: value,
+    })
+  }
+
+  _probe = async (host, type) => {
+    const probeMethodFactories = {
+      hba: async hostId => ({
+        hbaDevices: await probeSrHba(hostId)::ignoreErrors(),
+      }),
+      zfs: async hostId => ({
+        zfsPools: await probeZfs(hostId)::ignoreErrors(),
+      }),
+    }
+    if (probeMethodFactories[type] !== undefined && host != null) {
+      this.setState(({ loading }) => ({ loading: loading + 1 }))
+      const probeResult = await probeMethodFactories[type](host.id)
+      this.setState(({ loading }) => ({
+        loading: loading - 1,
+        ...probeResult,
+      }))
+    }
+  }
+
   _reattach = async uuid => {
     const { host, type } = this.state
 
@@ -566,6 +608,7 @@ export default class New extends Component {
       lockCreation,
       lun,
       luns,
+      nfsVersion,
       path,
       paths,
       summary,
@@ -573,6 +616,7 @@ export default class New extends Component {
       unused,
       usage,
       used,
+      zfsPools,
     } = this.state
     const { formatMessage } = this.props.intl
 
@@ -657,10 +701,22 @@ export default class New extends Component {
                       </div>
                     </fieldset>,
                     <fieldset>
-                      <label>{_('newSrUseNfs4')}</label>
-                      <div>
-                        <Toggle onChange={this.toggleState('nfs4')} />
-                      </div>
+                      <label htmlFor='selectNfsVersion'>{_('newSrNfs')}</label>
+                      <select
+                        className='form-control'
+                        id='selectNfsVersion'
+                        onChange={this._handleNfsVersion}
+                        value={nfsVersion}
+                      >
+                        <option value=''>
+                          {formatMessage(messages.newSrNfsDefaultVersion)}
+                        </option>
+                        {map(NFS_VERSIONS, option => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     </fieldset>,
                     <fieldset>
                       <label>{_('newSrNfsOptions')}</label>
@@ -857,6 +913,31 @@ export default class New extends Component {
                         required
                         type='text'
                       />
+                    </fieldset>
+                  )}
+                  {type === 'zfs' && (
+                    <fieldset>
+                      <label htmlFor='selectSrLocation'>
+                        {_('srLocation')}
+                      </label>
+                      <select
+                        className='form-control'
+                        defaultValue=''
+                        id='selectSrLocation'
+                        ref='zfsLocation'
+                        required
+                      >
+                        <option value=''>
+                          {isEmpty(zfsPools)
+                            ? formatMessage(messages.noSharedZfsAvailable)
+                            : formatMessage(messages.noSelectedValue)}
+                        </option>
+                        {map(zfsPools, (pool, poolName) => (
+                          <option key={poolName} value={pool.mountpoint}>
+                            {poolName} - {pool.mountpoint}
+                          </option>
+                        ))}
+                      </select>
                     </fieldset>
                   )}
                 </fieldset>

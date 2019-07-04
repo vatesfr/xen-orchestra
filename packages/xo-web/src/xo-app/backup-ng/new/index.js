@@ -120,28 +120,31 @@ const createDoesRetentionExist = name => {
   return ({ propSettings, settings = propSettings }) => settings.some(predicate)
 }
 
-const getInitialState = () => ({
-  _displayAdvancedSettings: undefined,
-  _vmsPattern: undefined,
-  backupMode: false,
-  compression: undefined,
-  crMode: false,
-  deltaMode: false,
-  drMode: false,
-  name: '',
-  paramsUpdated: false,
-  remotes: [],
-  schedules: {},
-  settings: undefined,
-  showErrors: false,
-  smartMode: false,
-  snapshotMode: false,
-  srs: [],
-  tags: {
-    notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
-  },
-  vms: [],
-})
+const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
+  setHomeVmIdsSelection([]) // Clear preselected vmIds
+  return {
+    _displayAdvancedSettings: undefined,
+    _vmsPattern: undefined,
+    backupMode: false,
+    compression: undefined,
+    crMode: false,
+    deltaMode: false,
+    drMode: false,
+    name: '',
+    paramsUpdated: false,
+    remotes: [],
+    schedules: {},
+    settings: undefined,
+    showErrors: false,
+    smartMode: false,
+    snapshotMode: false,
+    srs: [],
+    tags: {
+      notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
+    },
+    vms: preSelectedVmIds,
+  }
+}
 
 const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   <ActionButton
@@ -169,6 +172,7 @@ export default decorate([
     hostsById: createGetObjectsOfType('host'),
     poolsById: createGetObjectsOfType('pool'),
     srsById: createGetObjectsOfType('SR'),
+    preSelectedVmIds: state => state.homeVmIdsSelection,
   })),
   injectIntl,
   provideState({

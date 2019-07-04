@@ -211,6 +211,25 @@ emergencyShutdownHost.resolve = {
 
 // -------------------------------------------------------------------
 
+export async function isHostServerTimeConsistent({ host }) {
+  try {
+    await this.getXapi(host).assertConsistentHostServerTime(host._xapiRef)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
+isHostServerTimeConsistent.params = {
+  host: { type: 'string' },
+}
+
+isHostServerTimeConsistent.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
 export function stats({ host, granularity }) {
   return this.getXapiHostStats(host._xapiId, granularity)
 }
@@ -264,4 +283,20 @@ installSupplementalPack.params = {
 
 installSupplementalPack.resolve = {
   host: ['host', 'host', 'admin'],
+}
+
+// -------------------------------------------------------------------
+
+export function isHyperThreadingEnabled({ host }) {
+  return this.getXapi(host).isHyperThreadingEnabled(host._xapiId)
+}
+
+isHyperThreadingEnabled.description = 'get hyper-threading information'
+
+isHyperThreadingEnabled.params = {
+  id: { type: 'string' },
+}
+
+isHyperThreadingEnabled.resolve = {
+  host: ['id', 'host', 'administrate'],
 }

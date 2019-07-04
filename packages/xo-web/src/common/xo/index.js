@@ -538,13 +538,13 @@ export const editServer = (server, props) =>
     subscribeServers.forceRefresh
   )
 
-export const connectServer = server =>
-  _call('server.connect', { id: resolveId(server) })::pFinally(
+export const enableServer = server =>
+  _call('server.enable', { id: resolveId(server) })::pFinally(
     subscribeServers.forceRefresh
   )
 
-export const disconnectServer = server =>
-  _call('server.disconnect', { id: resolveId(server) })::tap(
+export const disableServer = server =>
+  _call('server.disable', { id: resolveId(server) })::tap(
     subscribeServers.forceRefresh
   )
 
@@ -778,6 +778,14 @@ export const emergencyShutdownHosts = hosts => {
     body: _('emergencyShutdownHostsModalMessage', { nHosts }),
   }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
 }
+
+export const isHostTimeConsistentWithXoaTime = host =>
+  _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
+
+export const isHyperThreadingEnabledHost = host =>
+  _call('host.isHyperThreadingEnabled', {
+    id: resolveId(host),
+  })
 
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
@@ -1622,14 +1630,15 @@ export const deleteVifs = vifs =>
 
 export const setVif = (
   vif,
-  { network, mac, allowedIpv4Addresses, allowedIpv6Addresses }
+  { allowedIpv4Addresses, allowedIpv6Addresses, mac, network, rateLimit }
 ) =>
   _call('vif.set', {
-    id: resolveId(vif),
-    network: resolveId(network),
-    mac,
     allowedIpv4Addresses,
     allowedIpv6Addresses,
+    id: resolveId(vif),
+    mac,
+    network: resolveId(network),
+    rateLimit,
   })
 
 // Network -----------------------------------------------------------
@@ -1641,6 +1650,8 @@ export const getBondModes = () => _call('network.getBondModes')
 export const createNetwork = params => _call('network.create', params)
 export const createBondedNetwork = params =>
   _call('network.createBonded', params)
+export const createPrivateNetwork = params =>
+  _call('plugin.SDNController.createPrivateNetwork', params)
 
 export const deleteNetwork = network =>
   confirm({
@@ -2296,6 +2307,8 @@ export const probeSrHba = host => _call('sr.probeHba', { host })
 export const probeSrHbaExists = (host, scsiId) =>
   _call('sr.probeHbaExists', { host, scsiId })
 
+export const probeZfs = host => _call('sr.probeZfs', { host: resolveId(host) })
+
 export const reattachSr = (host, uuid, nameLabel, nameDescription, type) =>
   _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type })
 
@@ -2358,6 +2371,14 @@ export const createSrLvm = (host, nameLabel, nameDescription, device) =>
 
 export const createSrExt = (host, nameLabel, nameDescription, device) =>
   _call('sr.createExt', { host, nameLabel, nameDescription, device })
+
+export const createSrZfs = (host, nameLabel, nameDescription, location) =>
+  _call('sr.createFile', {
+    host: resolveId(host),
+    nameDescription,
+    nameLabel,
+    location,
+  })
 
 // Job logs ----------------------------------------------------------
 

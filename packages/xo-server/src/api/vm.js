@@ -320,6 +320,11 @@ create.params = {
       },
     },
   },
+
+  hvmBootFirmware: { type: 'string', optional: true },
+
+  // other params are passed to `editVm`
+  '*': { type: 'any' },
 }
 
 create.resolve = {
@@ -560,6 +565,8 @@ set.params = {
   // Identifier of the VM to update.
   id: { type: 'string' },
 
+  auto_poweron: { type: 'boolean', optional: true },
+
   name_label: { type: 'string', optional: true },
 
   name_description: { type: 'string', optional: true },
@@ -621,6 +628,9 @@ set.params = {
 
   // set the VM network interface controller
   nicType: { type: ['string', 'null'], optional: true },
+
+  // set the VM boot firmware mode
+  hvmBootFirmware: { type: ['string', 'null'], optional: true },
 }
 
 set.resolve = {
@@ -1124,7 +1134,10 @@ resume.resolve = {
 
 // -------------------------------------------------------------------
 
-export function revert({ snapshot, snapshotBefore }) {
+export async function revert({ snapshot, snapshotBefore }) {
+  await this.checkPermissions(this.user.id, [
+    [snapshot.$snapshot_of, 'operate'],
+  ])
   return this.getXapi(snapshot).revertVm(snapshot._xapiId, snapshotBefore)
 }
 
@@ -1134,7 +1147,7 @@ revert.params = {
 }
 
 revert.resolve = {
-  snapshot: ['snapshot', 'VM-snapshot', 'administrate'],
+  snapshot: ['snapshot', 'VM-snapshot', 'view'],
 }
 
 // -------------------------------------------------------------------

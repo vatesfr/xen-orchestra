@@ -47,6 +47,8 @@ const messages = {
   chooseBackup: 'Choose a backup',
   clickToShowError: 'Click to show error',
   backupJobs: 'Backup jobs',
+  iscsiSessions:
+    '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
   proxy: 'Proxy',
 
   // ----- Modals -----
@@ -219,6 +221,8 @@ const messages = {
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
   srSharedType: 'Shared {type}',
+  warningHostTimeTooltip:
+    'Host time and XOA time are not consistent with each other',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -573,9 +577,12 @@ const messages = {
   newSrPasswordPlaceHolder: 'Password',
   newSrLvmDevicePlaceHolder: 'Device, e.g /dev/sda…',
   newSrLocalPathPlaceHolder: '/path/to/directory',
-  newSrUseNfs4: 'Use NFSv4',
+  newSrNfsDefaultVersion: 'Default NFS version',
   newSrNfsOptions: 'Comma delimited NFS options',
+  newSrNfs: 'NFS version',
+  noSharedZfsAvailable: 'No shared ZFS available',
   reattachNewSrTooltip: 'Reattach SR',
+  srLocation: 'Storage location',
 
   // ------ New Network -----
   createNewNetworkNoPermission:
@@ -677,6 +684,7 @@ const messages = {
   cloneVmLabel: 'Clone',
   fastCloneVmLabel: 'Fast clone',
   vmConsoleLabel: 'Console',
+  backupLabel: 'Backup',
 
   // ----- SR advanced tab -----
 
@@ -793,6 +801,8 @@ const messages = {
     'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
   hyperThreading: 'Hyper-threading (SMT)',
+  hyperThreadingNotAvailable:
+    'HT detection is only available on XCP-ng 7.6 and higher',
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
@@ -800,7 +810,7 @@ const messages = {
   hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:
-    '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}} ({ nSessions, number } iSCSI session{nSessions, plural, one {} other {s}})',
+    '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}}',
   hostMultipathingRequiredState:
     'This action will not be fulfilled if a VM is in a running state. Please ensure that all VMs are evacuated or stopped before performing this action!',
   hostMultipathingWarning:
@@ -856,6 +866,7 @@ const messages = {
   // ----- Host storage tabs -----
   addSrDeviceButton: 'Add a storage',
   srType: 'Type',
+  pbdDetails: 'PBD details',
   pbdStatus: 'Status',
   pbdStatusConnected: 'Connected',
   pbdStatusDisconnected: 'Disconnected',
@@ -950,6 +961,7 @@ const messages = {
   statDisk: 'Disk throughput',
   statLastTenMinutes: 'Last 10 minutes',
   statLastTwoHours: 'Last 2 hours',
+  statLastDay: 'Last day',
   statLastWeek: 'Last week',
   statLastYear: 'Last year',
 
@@ -1028,6 +1040,7 @@ const messages = {
   vifMacLabel: 'MAC address',
   vifMtuLabel: 'MTU',
   vifNetworkLabel: 'Network',
+  vifRateLimitLabel: 'Rate limit (kB/s)',
   vifStatusLabel: 'Status',
   vifStatusConnected: 'Connected',
   vifStatusDisconnected: 'Disconnected',
@@ -1133,6 +1146,10 @@ const messages = {
   addAclsErrorMessage: 'User(s)/group(s) and role are required.',
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
+  vmBootFirmware: 'Boot firmware',
+  vmDefaultBootFirmwareLabel: 'default (bios)',
+  vmBootFirmwareWarningMessage:
+    "You're about to change your boot firmware. This is still experimental in CH/XCP-ng 8.0. Are you sure you want to continue?",
 
   // ----- VM placeholders -----
 
@@ -1647,7 +1664,6 @@ const messages = {
   serverAllowUnauthorizedCertificates: 'Allow Unauthorized Certificates',
   serverUnauthorizedCertificatesInfo:
     "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured.",
-  serverDisconnect: 'Disconnect server',
   serverPlaceHolderUser: 'username',
   serverPlaceHolderPassword: 'password',
   serverPlaceHolderAddress: 'address[:port]',
@@ -1657,13 +1673,15 @@ const messages = {
   serverAddFailed: 'Adding server failed',
   serverStatus: 'Status',
   serverConnectionFailed: 'Connection failed. Click for more information.',
-  serverConnected: 'Connected',
-  serverDisconnected: 'Disconnected',
   serverAuthFailed: 'Authentication error',
   serverUnknownError: 'Unknown error',
   serverSelfSignedCertError: 'Invalid self-signed certificate',
   serverSelfSignedCertQuestion:
     'Do you want to accept self-signed certificate for this server even though it would decrease security?',
+  serverEnable: 'Enable',
+  serverEnabled: 'Enabled',
+  serverDisabled: 'Disabled',
+  serverDisable: 'Disable server',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',
@@ -1706,11 +1724,13 @@ const messages = {
   newNetworkBondMode: 'Bond mode',
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
+  newNetworkEncapsulation: 'Encapsulation',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
   pillBonded: 'Bonded',
   bondedNetwork: 'Bonded network',
+  privateNetwork: 'Private network',
 
   // ----- Add host -----
   addHostSelectHost: 'Host',

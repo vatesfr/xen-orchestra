@@ -29,6 +29,7 @@ import {
   ignoreErrors,
   pFinally,
   pFromEvent,
+  timeout,
 } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
@@ -41,6 +42,7 @@ import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
+import parseDuration from '../../_parseDuration'
 import {
   type DeltaVmExport,
   type DeltaVmImport,
@@ -66,6 +68,7 @@ export type Mode = 'full' | 'delta'
 export type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
+  bypassVdiChainsCheck?: boolean,
   concurrency?: number,
   deleteFirst?: boolean,
   copyRetention?: number,
@@ -137,6 +140,7 @@ const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
     : entries
 
 const defaultSettings: Settings = {
+  bypassVdiChainsCheck: false,
   concurrency: 0,
   deleteFirst: false,
   exportRetention: 0,
@@ -507,9 +511,17 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 // │  │  ├─ task.start(message: 'transfer')
 // │  │  │  ├─ task.warning(message: string)
 // │  │  │  └─ task.end(result: { size: number })
+// │  │  │
+// │  │  │  // in case of full backup, DR and CR
+// │  │  ├─ task.start(message: 'clean')
+// │  │  │  ├─ task.warning(message: string)
+// │  │  │  └─ task.end
+// │  │  │
+// │  │  │ // in case of delta backup
 // │  │  ├─ task.start(message: 'merge')
 // │  │  │  ├─ task.warning(message: string)
 // │  │  │  └─ task.end(result: { size: number })
+// │  │  │
 // │  │  └─ task.end
 // │  └─ task.end
 // └─ job.end
@@ -536,10 +548,11 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  constructor(app: any) {
+  constructor(app: any, { backup }) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()
+    this._backupOptions = backup
 
     app.on('start', async () => {
       this._logger = await app.getLogger('restore')
@@ -1007,7 +1020,14 @@ export default class BackupNg {
       .filter(_ => _.other_config['xo:backup:job'] === jobId)
       .sort(compareSnapshotTime)
 
-    xapi._assertHealthyVdiChains(vm)
+    const bypassVdiChainsCheck: boolean = getSetting(
+      job.settings,
+      'bypassVdiChainsCheck',
+      [vmUuid, '']
+    )
+    if (!bypassVdiChainsCheck) {
+      xapi._assertHealthyVdiChains(vm)
+    }
 
     const offlineSnapshot: boolean = getSetting(settings, 'offlineSnapshot', [
       vmUuid,
@@ -1191,11 +1211,20 @@ export default class BackupNg {
                   )
                 ): any)
 
+                const deleteOldBackups = () =>
+                  wrapTask(
+                    {
+                      logger,
+                      message: 'clean',
+                      parentId: taskId,
+                    },
+                    this._deleteFullVmBackups(handler, oldBackups)
+                  )
                 const deleteFirst = getSetting(settings, 'deleteFirst', [
                   remoteId,
                 ])
                 if (deleteFirst) {
-                  await this._deleteFullVmBackups(handler, oldBackups)
+                  await deleteOldBackups()
                 }
 
                 await wrapTask(
@@ -1211,7 +1240,7 @@ export default class BackupNg {
                 await handler.outputFile(metadataFilename, jsonMetadata)
 
                 if (!deleteFirst) {
-                  await this._deleteFullVmBackups(handler, oldBackups)
+                  await deleteOldBackups()
                 }
               }
             )
@@ -1242,9 +1271,18 @@ export default class BackupNg {
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
+                const deleteOldBackups = () =>
+                  wrapTask(
+                    {
+                      logger,
+                      message: 'clean',
+                      parentId: taskId,
+                    },
+                    this._deleteVms(xapi, oldVms)
+                  )
                 const deleteFirst = getSetting(settings, 'deleteFirst', [srId])
                 if (deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
 
                 const vm = await xapi.barrier(
@@ -1276,7 +1314,7 @@ export default class BackupNg {
                 ])
 
                 if (!deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
               }
             )
@@ -1602,9 +1640,19 @@ export default class BackupNg {
                   listReplicatedVms(xapi, scheduleId, srId, vmUuid)
                 )
 
+                const deleteOldBackups = () =>
+                  wrapTask(
+                    {
+                      logger,
+                      message: 'clean',
+                      parentId: taskId,
+                    },
+                    this._deleteVms(xapi, oldVms)
+                  )
+
                 const deleteFirst = getSetting(settings, 'deleteFirst', [srId])
                 if (deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
 
                 const { vm } = await wrapTask(
@@ -1634,7 +1682,7 @@ export default class BackupNg {
                 ])
 
                 if (!deleteFirst) {
-                  await this._deleteVms(xapi, oldVms)
+                  await deleteOldBackups()
                 }
               }
             )
@@ -1761,6 +1809,16 @@ export default class BackupNg {
           const path = `${dir}/${file}`
           try {
             const metadata = JSON.parse(String(await handler.readFile(path)))
+            if (metadata.mode === 'full') {
+              metadata.size = await timeout
+                .call(
+                  handler.getSize(resolveRelativeFromFile(path, metadata.xva)),
+                  parseDuration(this._backupOptions.vmBackupSizeTimeout)
+                )
+                .catch(err => {
+                  log.warn(`_listVmBackups, getSize`, { err })
+                })
+            }
             if (predicate === undefined || predicate(metadata)) {
               Object.defineProperty(metadata, '_filename', {
                 value: path,
