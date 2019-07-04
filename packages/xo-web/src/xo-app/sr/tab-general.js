@@ -246,7 +246,6 @@ export default class TabGeneral extends Component {
             n: nBaseCopies,
             usage: baseCopiesUsage,
           },
-          nDisks: nBaseCopies + snapshots.length + vdis.length,
           usage: baseCopiesUsage + usage + sumBy(snapshots, 'usage'),
           snapshots,
         })
@@ -296,7 +295,6 @@ export default class TabGeneral extends Component {
                 <UsageElement
                   highlight={group.type === 'VDI-snapshot'}
                   key={group.id}
-                  n={group.nDisks}
                   tooltip={<UsageTooltip group={group} />}
                   value={group.usage}
                 />
