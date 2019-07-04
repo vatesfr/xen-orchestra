@@ -68,6 +68,7 @@ export type Mode = 'full' | 'delta'
 export type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
+  bypassVdiChainsCheck?: boolean,
   concurrency?: number,
   deleteFirst?: boolean,
   copyRetention?: number,
@@ -139,6 +140,7 @@ const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
     : entries
 
 const defaultSettings: Settings = {
+  bypassVdiChainsCheck: false,
   concurrency: 0,
   deleteFirst: false,
   exportRetention: 0,
@@ -1018,7 +1020,14 @@ export default class BackupNg {
       .filter(_ => _.other_config['xo:backup:job'] === jobId)
       .sort(compareSnapshotTime)
 
-    xapi._assertHealthyVdiChains(vm)
+    const bypassVdiChainsCheck: boolean = getSetting(
+      job.settings,
+      'bypassVdiChainsCheck',
+      [vmUuid, '']
+    )
+    if (!bypassVdiChainsCheck) {
+      xapi._assertHealthyVdiChains(vm)
+    }
 
     const offlineSnapshot: boolean = getSetting(settings, 'offlineSnapshot', [
       vmUuid,
