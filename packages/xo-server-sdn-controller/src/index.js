@@ -703,7 +703,7 @@ class SDNController extends EventEmitter {
       )
 
       const newCenter = await this._electNewCenter(network, true)
-      poolNetwork.starCenter = newCenter != null ? newCenter.$ref : null
+      poolNetwork.starCenter = newCenter?.$ref
       this._starCenters.delete(host.$id)
       if (newCenter != null) {
         this._starCenters.set(newCenter.$id, newCenter.$ref)
