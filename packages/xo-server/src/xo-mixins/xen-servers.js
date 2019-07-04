@@ -1,6 +1,7 @@
 import createLogger from '@xen-orchestra/log'
 import { BaseError } from 'make-error'
 import { fibonacci } from 'iterable-backoff'
+import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
@@ -209,7 +210,21 @@ export default class {
     const conflicts = this._objectConflicts
     const objects = this._xo._objects
 
+    const serverIdsByPool = this._serverIdsByPool
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
+      // handle pool UUID change
+      if (
+        xapiObject.$type === 'pool' &&
+        serverIdsByPool[xapiObject.$id] === undefined
+      ) {
+        const obsoletePoolId = findKey(
+          serverIdsByPool,
+          serverId => serverId === conId
+        )
+        delete serverIdsByPool[obsoletePoolId]
+        serverIdsByPool[xapiObject.$id] = conId
+      }
+
       const { $ref } = xapiObject
 
       const dependent = dependents[$ref]
