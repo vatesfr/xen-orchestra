@@ -2636,9 +2636,6 @@ export default {
   // Original text: "Read Only"
   serverReadOnly: 'Modo Leitura',
 
-  // Original text: 'Disconnect server'
-  serverDisconnect: undefined,
-
   // Original text: 'username'
   serverPlaceHolderUser: undefined,
 

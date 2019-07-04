@@ -2648,9 +2648,6 @@ export default {
   // Original text: "Read Only"
   serverReadOnly: 'Tylko do odczytu',
 
-  // Original text: "Disconnect server"
-  serverDisconnect: 'Rozłącz serwer',
-
   // Original text: "username"
   serverPlaceHolderUser: 'Użytkownik',
 

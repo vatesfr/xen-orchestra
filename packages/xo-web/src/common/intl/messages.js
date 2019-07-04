@@ -1662,7 +1662,6 @@ const messages = {
   serverAllowUnauthorizedCertificates: 'Allow Unauthorized Certificates',
   serverUnauthorizedCertificatesInfo:
     "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured.",
-  serverDisconnect: 'Disconnect server',
   serverPlaceHolderUser: 'username',
   serverPlaceHolderPassword: 'password',
   serverPlaceHolderAddress: 'address[:port]',
@@ -1672,13 +1671,15 @@ const messages = {
   serverAddFailed: 'Adding server failed',
   serverStatus: 'Status',
   serverConnectionFailed: 'Connection failed. Click for more information.',
-  serverConnected: 'Connected',
-  serverDisconnected: 'Disconnected',
   serverAuthFailed: 'Authentication error',
   serverUnknownError: 'Unknown error',
   serverSelfSignedCertError: 'Invalid self-signed certificate',
   serverSelfSignedCertQuestion:
     'Do you want to accept self-signed certificate for this server even though it would decrease security?',
+  serverEnable: 'Enable',
+  serverEnabled: 'Enabled',
+  serverDisabled: 'Disabled',
+  serverDisable: 'Disable server',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',

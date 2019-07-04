@@ -108,16 +108,16 @@ set.params = {
 
 // -------------------------------------------------------------------
 
-export async function connect({ id }) {
+export async function enable({ id }) {
   this.updateXenServer(id, { enabled: true })::ignoreErrors()
   await this.connectXenServer(id)
 }
 
-connect.description = 'connect a Xen server'
+enable.description = 'enable a Xen server'
 
-connect.permission = 'admin'
+enable.permission = 'admin'
 
-connect.params = {
+enable.params = {
   id: {
     type: 'string',
   },
@@ -125,16 +125,16 @@ connect.params = {
 
 // -------------------------------------------------------------------
 
-export async function disconnect({ id }) {
+export async function disable({ id }) {
   this.updateXenServer(id, { enabled: false })::ignoreErrors()
   await this.disconnectXenServer(id)
 }
 
-disconnect.description = 'disconnect a Xen server'
+disable.description = 'disable a Xen server'
 
-disconnect.permission = 'admin'
+disable.permission = 'admin'
 
-disconnect.params = {
+disable.params = {
   id: {
     type: 'string',
   },

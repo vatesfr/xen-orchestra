@@ -536,13 +536,13 @@ export const editServer = (server, props) =>
     subscribeServers.forceRefresh
   )
 
-export const connectServer = server =>
-  _call('server.connect', { id: resolveId(server) })::pFinally(
+export const enableServer = server =>
+  _call('server.enable', { id: resolveId(server) })::pFinally(
     subscribeServers.forceRefresh
   )
 
-export const disconnectServer = server =>
-  _call('server.disconnect', { id: resolveId(server) })::tap(
+export const disableServer = server =>
+  _call('server.disable', { id: resolveId(server) })::tap(
     subscribeServers.forceRefresh
   )
 

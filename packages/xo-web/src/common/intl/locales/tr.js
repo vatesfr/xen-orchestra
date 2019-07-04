@@ -3916,9 +3916,6 @@ export default {
   serverUnauthorizedCertificatesInfo:
     'Sertifikanız reddedildiğinde bunu yapın ancak bağlantınız güvenli olmayacağı için tavsiye edilmez.',
 
-  // Original text: "Disconnect server"
-  serverDisconnect: 'Sunucu bağlantısını kes',
-
   // Original text: "username"
   serverPlaceHolderUser: 'kullanıcı adı',
 
@@ -3948,12 +3945,6 @@ export default {
 
   // Original text: "Connecting…"
   serverConnecting: 'Bağlanıyor...',
-
-  // Original text: "Connected"
-  serverConnected: 'Bağlandı',
-
-  // Original text: "Disconnected"
-  serverDisconnected: 'Bağlantı kesildi',
 
   // Original text: "Authentication error"
   serverAuthFailed: 'Kimlik doğrulama hatası',

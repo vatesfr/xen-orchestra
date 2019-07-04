@@ -3058,9 +3058,6 @@ export default {
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
   serverUnauthorizedCertificatesInfo: undefined,
 
-  // Original text: 'Disconnect server'
-  serverDisconnect: undefined,
-
   // Original text: 'username'
   serverPlaceHolderUser: undefined,
 
@@ -3090,12 +3087,6 @@ export default {
 
   // Original text: 'Connecting…'
   serverConnecting: undefined,
-
-  // Original text: 'Connected'
-  serverConnected: undefined,
-
-  // Original text: 'Disconnected'
-  serverDisconnected: undefined,
 
   // Original text: 'Authentication error'
   serverAuthFailed: undefined,

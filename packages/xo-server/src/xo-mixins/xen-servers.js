@@ -5,6 +5,7 @@ import { noSuchObject } from 'xo-common/api-errors'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
 import * as XenStore from '../_XenStore'
+import parseDuration from '../_parseDuration'
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import XapiStats from '../xapi-stats'
@@ -40,7 +41,10 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 // - _xapis[server.id] id defined
 // - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
-  constructor(xo, { guessVhdSizeOnImport, xapiOptions }) {
+  constructor(
+    xo,
+    { guessVhdSizeOnImport, xapiMarkDisconnectedDelay, xapiOptions }
+  ) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
@@ -55,6 +59,7 @@ export default class {
     }
     this._xapis = { __proto__: null }
     this._xo = xo
+    this._xapiMarkDisconnectedDelay = parseDuration(xapiMarkDisconnectedDelay)
 
     xo.on('clean', () => serversDb.rebuildIndexes())
     xo.on('start', async () => {
@@ -472,6 +477,14 @@ export default class {
     const servers = await this._servers.get()
     const xapis = this._xapis
     forEach(servers, server => {
+      const lastEventFetchedTimestamp =
+        xapis[server.id]?.lastEventFetchedTimestamp
+      if (
+        lastEventFetchedTimestamp !== undefined &&
+        Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
+      ) {
+        server.error = xapis[server.id].watchEventsError
+      }
       server.status = this._getXenServerStatus(server.id)
       if (server.status === 'connected') {
         server.poolId = xapis[server.id].pool.uuid
