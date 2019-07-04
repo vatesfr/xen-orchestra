@@ -28,6 +28,7 @@
     "execa": "^1.0.0",
     "fs-extra": "^8.0.1",
     "get-stream": "^4.0.0",
+    "limit-concurrency-decorator": "^0.4.0",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.13.0",
     "readable-stream": "^3.0.6",

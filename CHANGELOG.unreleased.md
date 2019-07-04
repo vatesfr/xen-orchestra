@@ -29,6 +29,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/fs v0.10.0
 - xo-server-sdn-controller v0.1.1
 - xen-api v0.26.0
 - xo-server v5.45.0
