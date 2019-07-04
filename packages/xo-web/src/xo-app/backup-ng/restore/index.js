@@ -155,11 +155,11 @@ export default class Restore extends Component {
     })
     // TODO: perf
     let first, last
-    let size = 0
     forEach(backupDataByVm, (data, vmId) => {
       first = { timestamp: Infinity }
       last = { timestamp: 0 }
       const count = {}
+      let size = 0
       forEach(data.backups, backup => {
         if (backup.timestamp > last.timestamp) {
           last = backup
