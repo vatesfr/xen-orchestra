@@ -32,6 +32,9 @@ const computeRate = (hrtime: number[], size: number) => {
 }
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
+const DEFAULT_MAXIMUM_OPERATIONS = 10
+
+let maximum_operations
 
 const ignoreEnoent = error => {
   if (error == null || error.code !== 'ENOENT') {
@@ -84,6 +87,8 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
+    maximum_operations =
+      options.maxParallelFsOperations || DEFAULT_MAXIMUM_OPERATIONS
   }
 
   // Public members
@@ -97,7 +102,7 @@ export default class RemoteHandlerAbstract {
     return prefix === '/' ? this : new PrefixWrapper(this, prefix)
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async closeFile(fd: FileDescriptor): Promise<void> {
     await timeout.call(this._closeFile(fd.fd), this._timeout)
   }
@@ -232,7 +237,7 @@ export default class RemoteHandlerAbstract {
     return timeout.call(this._getInfo(), this._timeout)
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async getSize(file: File): Promise<number> {
     return timeout.call(
       this._getSize(typeof file === 'string' ? normalizePath(file) : file),
@@ -240,7 +245,7 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async list(
     dir: string,
     {
@@ -265,7 +270,7 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async mkdir(dir: string): Promise<void> {
     dir = normalizePath(dir)
     try {
@@ -280,12 +285,12 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async mktree(dir: string): Promise<void> {
     await this._mktree(normalizePath(dir))
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async openFile(path: string, flags: string): Promise<FileDescriptor> {
     path = normalizePath(path)
 
@@ -295,7 +300,7 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async outputFile(
     file: string,
     data: Data,
@@ -304,7 +309,7 @@ export default class RemoteHandlerAbstract {
     await this._outputFile(normalizePath(file), data, { flags })
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async read(
     file: File,
     buffer: Buffer,
@@ -317,7 +322,7 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async readFile(
     file: string,
     { flags = 'r' }: { flags?: string } = {}
@@ -337,7 +342,7 @@ export default class RemoteHandlerAbstract {
     })
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async rename(
     oldPath: string,
     newPath: string,
@@ -356,7 +361,7 @@ export default class RemoteHandlerAbstract {
     return p
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async rmdir(dir: string): Promise<void> {
     await timeout.call(
       this._rmdir(normalizePath(dir)).catch(ignoreEnoent),
@@ -364,7 +369,7 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async rmtree(dir: string): Promise<void> {
     await this._rmtree(normalizePath(dir))
   }
@@ -413,12 +418,12 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async truncate(file: string, len: number): Promise<void> {
     await this._truncate(file, len)
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async unlink(file: string, { checksum = true }: Object = {}): Promise<void> {
     file = normalizePath(file)
 
@@ -429,7 +434,7 @@ export default class RemoteHandlerAbstract {
     await this._unlink(file).catch(ignoreEnoent)
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async write(
     file: File,
     buffer: Buffer,
@@ -442,7 +447,7 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  @limit(10)
+  @limit(maximum_operations)
   async writeFile(
     file: string,
     data: Data,

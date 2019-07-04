@@ -32,6 +32,9 @@ verboseApiLogsOnErrors = false
 # if no events could be fetched during this delay, the server will be marked as disconnected
 xapiMarkDisconnectedDelay = '5 minutes'
 
+# Maximum @xen-orchestra/fs parallel operations
+maxParallelFsOperations = 10
+
 # https:#github.com/websockets/ws#websocket-compression
 [apiWebSocketOptions]
 perMessageDeflate = { threshold = 524288 } # 512kiB
