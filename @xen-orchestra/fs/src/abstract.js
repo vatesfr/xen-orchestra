@@ -228,7 +228,6 @@ export default class RemoteHandlerAbstract {
     await this._forget()
   }
 
-  @limit(10)
   async getInfo(): Promise<RemoteInfo> {
     return timeout.call(this._getInfo(), this._timeout)
   }
