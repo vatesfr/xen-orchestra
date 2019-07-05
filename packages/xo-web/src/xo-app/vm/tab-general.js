@@ -14,6 +14,7 @@ import { FormattedRelative, FormattedDate } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
+  createCollectionWrapper,
   createFinder,
   createGetObjectsOfType,
   createGetVmLastShutdownTime,
@@ -49,7 +50,12 @@ export default connectStore(() => {
   return {
     lastShutdownTime: createGetVmLastShutdownTime(),
     tasks: createGetObjectsOfType('task')
-      .pick((_, { vm }) => Object.keys(vm.current_operations))
+      .pick(
+        createSelector(
+          (_, { vm }) => vm.current_operations,
+          createCollectionWrapper(operations => Object.keys(operations))
+        )
+      )
       .filter([{ status: 'pending' }])
       .sort(),
     vgpu: getAttachedVgpu,
