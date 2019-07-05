@@ -666,7 +666,7 @@ class SDNController extends EventEmitter {
         await xapi.call('PIF.plug', accessPIF.$ref)
       } catch (error) {
         log.error(
-          `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${host.name_label}' for network: '${accessPIF.$network.name_label}: ${error}'`
+          `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${host.name_label}' for network: '${accessPIF.$network.name_label}': ${error}`
         )
       }
 
