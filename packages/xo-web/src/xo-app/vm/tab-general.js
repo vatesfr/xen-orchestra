@@ -53,7 +53,7 @@ export default connectStore(() => {
       .pick(
         createSelector(
           (_, { vm }) => vm.current_operations,
-          createCollectionWrapper(operations => Object.keys(operations))
+          createCollectionWrapper(Object.keys)
         )
       )
       .filter([{ status: 'pending' }])
