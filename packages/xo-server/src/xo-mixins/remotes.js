@@ -18,10 +18,9 @@ const obfuscateRemote = ({ url, ...remote }) => {
 }
 
 export default class {
-  constructor(xo, { maxParallelFsOperations, remoteOptions }) {
+  constructor(xo, { remoteOptions }) {
     this._handlers = { __proto__: null }
     this._remoteOptions = remoteOptions
-    this._maxParallelFsOperations = maxParallelFsOperations
     this._remotes = new Remotes({
       connection: xo._redis,
       prefix: 'xo:remote',
@@ -68,10 +67,7 @@ export default class {
     const handlers = this._handlers
     let handler = handlers[id]
     if (handler === undefined) {
-      handler = getHandler(remote, {
-        ...this._remoteOptions,
-        maxParallelFsOperations: this._maxParallelFsOperations,
-      })
+      handler = getHandler(remote, this._remoteOptions)
 
       try {
         await handler.sync()
