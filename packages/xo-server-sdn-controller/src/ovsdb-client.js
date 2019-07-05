@@ -35,6 +35,10 @@ export class OvsdbClient {
     return this._host.$id
   }
 
+  get hostMetricsRef() {
+    return this._host.metrics
+  }
+
   updateCertificates(clientKey, clientCert, caCert) {
     this._clientKey = clientKey
     this._clientCert = clientCert

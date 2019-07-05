@@ -429,9 +429,10 @@ class SDNController extends EventEmitter {
   }
 
   async _hostMetricsUpdated(hostMetrics) {
-    const xapi = hostMetrics.$xapi
-    const hosts = filter(xapi.objects.all, { $type: 'host' })
-    const host = find(hosts, { metrics: hostMetrics.$ref })
+    const ovsdbClient = find(this._ovsdbClients, {
+      hostMetricsRef: hostMetrics.$ref,
+    })
+    const host = ovsdbClient._host
 
     if (hostMetrics.live) {
       await this._addHostToPoolNetworks(host)
