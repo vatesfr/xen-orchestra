@@ -336,7 +336,7 @@ class SDNController extends EventEmitter {
             starCenter: starCenterRef,
           })
           for (const poolNetwork of poolNetworks) {
-            const network = await xapi._getOrWaitObject(poolNetwork.network)
+            const network = await xapi.getObjectByRef(poolNetwork.network)
             const newCenter = await this._electNewCenter(network, true)
             poolNetwork.starCenter = newCenter?.$ref
             if (newCenter != null) {
@@ -399,9 +399,7 @@ class SDNController extends EventEmitter {
         `PIF: '${pif.device}' of network: '${pif.$network.name_label}' host: '${pif.$host.name_label}' has been plugged`
       )
 
-      const starCenter = await pif.$xapi._getOrWaitObject(
-        poolNetwork.starCenter
-      )
+      const starCenter = await pif.$xapi.getObjectByRef(poolNetwork.starCenter)
       await this._addHostToNetwork(pif.$host, pif.$network, starCenter)
     }
   }
@@ -427,7 +425,7 @@ class SDNController extends EventEmitter {
         }
       }
       for (const tunnel of tunnels) {
-        const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
+        const accessPIF = await xapi.getObjectByRef(tunnel.access_PIF)
         if (accessPIF.host !== host.$ref) {
           continue
         }
@@ -454,7 +452,7 @@ class SDNController extends EventEmitter {
           )
         }
 
-        const starCenter = await host.$xapi._getOrWaitObject(
+        const starCenter = await host.$xapi.getObjectByRef(
           poolNetwork.starCenter
         )
         await this._addHostToNetwork(host, accessPIF.$network, starCenter)
@@ -462,7 +460,7 @@ class SDNController extends EventEmitter {
     } else {
       const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
       for (const poolNetwork of poolNetworks) {
-        const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
+        const network = await host.$xapi.getObjectByRef(poolNetwork.network)
         log.debug(
           `Star center host: '${host.name_label}' of network: '${network.name_label}' in pool: '${host.$pool.name_label}' is no longer reachable, electing a new host`
         )
