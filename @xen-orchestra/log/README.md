@@ -24,6 +24,19 @@ log.info('this information is relevant to the user')
 log.warn('something went wrong but did not prevent current action')
 log.error('something went wrong')
 log.fatal('service/app is going down')
+
+// you can add contextual info
+log.debug('new API request', {
+  method: 'foo',
+  params: [ 'bar', 'baz' ]
+  user: 'qux'
+})
+
+// by convention, errors go into the `error` field
+log.error('could not join server', {
+  error,
+  server: 'example.org',
+})
 ```
 
 Then, at application level, configure the logs are handled:
