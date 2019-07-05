@@ -21,6 +21,7 @@ import { createGetLoneSnapshots, createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { isEmpty, map, groupBy, some } from 'lodash'
 import { NavLink, NavTabs } from 'nav'
+import { Proxy } from 'render-xo-item'
 import {
   cancelJob,
   deleteBackupJobs,
@@ -251,15 +252,20 @@ class JobsTable extends React.Component {
             concurrency,
             fullInterval,
             offlineSnapshot,
+            proxyId,
             reportWhen,
             timeout,
           } = getSettingsWithNonDefaultValue(job.mode, {
             compression: job.compression,
+            proxyId: job.proxy,
             ...job.settings[''],
           })
 
           return (
             <Ul>
+              {proxyId !== undefined && (
+                <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} />)}</Li>
+              )}
               {reportWhen !== undefined && (
                 <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>
               )}
