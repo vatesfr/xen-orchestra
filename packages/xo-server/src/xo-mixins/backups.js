@@ -411,9 +411,7 @@ export default class {
         localBaseUuid,
         {
           bypassVdiChainsCheck: force,
-          snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${
-            targetSr.uuid
-          })`,
+          snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`,
         }
       )
       $defer.onFailure(() => srcXapi.deleteVm(delta.vm.uuid))

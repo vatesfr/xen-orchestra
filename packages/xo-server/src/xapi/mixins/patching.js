@@ -256,16 +256,12 @@ export default {
       ) {
         if (getAll) {
           log(
-            `patch ${
-              patch.name
-            } (${id}) conflicts with installed patch ${conflictId}`
+            `patch ${patch.name} (${id}) conflicts with installed patch ${conflictId}`
           )
           return
         }
         throw new Error(
-          `patch ${
-            patch.name
-          } (${id}) conflicts with installed patch ${conflictId}`
+          `patch ${patch.name} (${id}) conflicts with installed patch ${conflictId}`
         )
       }
 
@@ -292,9 +288,7 @@ export default {
         if (!installed[id] && find(installable, { id }) === undefined) {
           if (requiredPatch.paid && freeHost) {
             throw new Error(
-              `required patch ${
-                requiredPatch.name
-              } (${id}) requires a XenServer license`
+              `required patch ${requiredPatch.name} (${id}) requires a XenServer license`
             )
           }
           installable.push(requiredPatch)

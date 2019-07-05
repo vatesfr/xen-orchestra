@@ -230,9 +230,7 @@ class AuthLdap {
           logger(`attempting to bind as ${entry.objectName}`)
           await bind(entry.objectName, password)
           logger(
-            `successfully bound as ${
-              entry.objectName
-            } => ${username} authenticated`
+            `successfully bound as ${entry.objectName} => ${username} authenticated`
           )
           logger(JSON.stringify(entry, null, 2))
           return { username }

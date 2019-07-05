@@ -1724,9 +1724,7 @@ export default class Xapi extends XapiBase {
     }
 
     log.debug(
-      `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${
-        sr.name_label
-      }`
+      `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${sr.name_label}`
     )
     try {
       await pRetry(

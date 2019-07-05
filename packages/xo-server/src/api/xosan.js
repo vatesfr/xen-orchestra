@@ -446,9 +446,7 @@ const createNetworkAndInsertHosts = defer(async function(
     })
     if (result.exit !== 0) {
       throw invalidParameters(
-        `Could not ping ${master.name_label}->${
-          address.pif.$host.name_label
-        } (${address.address}) \n${result.stdout}`
+        `Could not ping ${master.name_label}->${address.pif.$host.name_label} (${address.address}) \n${result.stdout}`
       )
     }
   })
@@ -1050,9 +1048,7 @@ export async function replaceBrick({
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 1 }
     await glusterCmd(
       glusterEndpoint,
-      `volume replace-brick xosan ${previousBrick} ${
-        addressAndHost.brickName
-      } commit force`
+      `volume replace-brick xosan ${previousBrick} ${addressAndHost.brickName} commit force`
     )
     await glusterCmd(glusterEndpoint, 'peer detach ' + previousIp)
     data.nodes.splice(nodeIndex, 1, {
@@ -1126,9 +1122,7 @@ async function _prepareGlusterVm(
   }
   await newVM.add_tags('XOSAN')
   await xapi.editVm(newVM, {
-    name_label: `XOSAN - ${lvmSr.name_label} - ${
-      host.name_label
-    } ${labelSuffix}`,
+    name_label: `XOSAN - ${lvmSr.name_label} - ${host.name_label} ${labelSuffix}`,
     name_description: 'Xosan VM storage',
     memory: memorySize,
   })

@@ -168,9 +168,7 @@ export async function mergeInto({ source, target, force }) {
 
   if (sourceHost.productBrand !== targetHost.productBrand) {
     throw new Error(
-      `a ${sourceHost.productBrand} pool cannot be merged into a ${
-        targetHost.productBrand
-      } pool`
+      `a ${sourceHost.productBrand} pool cannot be merged into a ${targetHost.productBrand} pool`
     )
   }
 

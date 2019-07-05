@@ -364,9 +364,7 @@ export default class Vhd {
     const offset = blockAddr + this.sectorsOfBitmap + beginSectorId
 
     debug(
-      `writeBlockSectors at ${offset} block=${
-        block.id
-      }, sectors=${beginSectorId}...${endSectorId}`
+      `writeBlockSectors at ${offset} block=${block.id}, sectors=${beginSectorId}...${endSectorId}`
     )
 
     for (let i = beginSectorId; i < endSectorId; ++i) {

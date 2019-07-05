@@ -185,9 +185,7 @@ class SDNController extends EventEmitter {
         forOwn(networks, async network => {
           if (network.other_config.private_pool_wide === 'true') {
             log.debug(
-              `Adding network: '${network.name_label}' for pool: '${
-                network.$pool.name_label
-              }' to managed networks`
+              `Adding network: '${network.name_label}' for pool: '${network.$pool.name_label}' to managed networks`
             )
             const center = await this._electNewCenter(network, true)
             this._poolNetworks.push({
@@ -245,9 +243,7 @@ class SDNController extends EventEmitter {
     const privateNetwork = await pool.$xapi._getOrWaitObject(privateNetworkRef)
 
     log.info(
-      `Private network '${
-        privateNetwork.name_label
-      }' has been created for pool '${pool.name_label}'`
+      `Private network '${privateNetwork.name_label}' has been created for pool '${pool.name_label}'`
     )
 
     // For each pool's host, create a tunnel to the private network
@@ -298,9 +294,7 @@ class SDNController extends EventEmitter {
 
         if ($type === 'host') {
           log.debug(
-            `New host: '${object.name_label}' in pool: '${
-              object.$pool.name_label
-            }'`
+            `New host: '${object.name_label}' in pool: '${object.$pool.name_label}'`
           )
 
           if (find(this._newHosts, { $ref: object.$ref }) == null) {
@@ -383,11 +377,7 @@ class SDNController extends EventEmitter {
       }
 
       log.debug(
-        `PIF: '${pif.device}' of network: '${
-          pif.$network.name_label
-        }' star-center host: '${
-          pif.$host.name_label
-        }' has been unplugged, electing a new host`
+        `PIF: '${pif.device}' of network: '${pif.$network.name_label}' star-center host: '${pif.$host.name_label}' has been unplugged, electing a new host`
       )
       const newCenter = await this._electNewCenter(pif.$network, true)
       poolNetwork.starCenter = newCenter ? newCenter.$ref : null
@@ -399,18 +389,14 @@ class SDNController extends EventEmitter {
       if (poolNetwork.starCenter == null) {
         const host = pif.$host
         log.debug(
-          `First available host: '${
-            host.name_label
-          }' becomes star center of network: '${pif.$network.name_label}'`
+          `First available host: '${host.name_label}' becomes star center of network: '${pif.$network.name_label}'`
         )
         poolNetwork.starCenter = pif.host
         this._starCenters.set(host.$id, host.$ref)
       }
 
       log.debug(
-        `PIF: '${pif.device}' of network: '${pif.$network.name_label}' host: '${
-          pif.$host.name_label
-        }' has been plugged`
+        `PIF: '${pif.device}' of network: '${pif.$network.name_label}' host: '${pif.$host.name_label}' has been plugged`
       )
 
       const starCenter = await pif.$xapi._getOrWaitObject(
@@ -436,9 +422,7 @@ class SDNController extends EventEmitter {
           await xapi.call('pool.certificate_sync')
         } catch (error) {
           log.error(
-            `Couldn't sync SDN controller ca certificate in pool: '${
-              host.$pool.name_label
-            }' because: ${error}`
+            `Couldn't sync SDN controller ca certificate in pool: '${host.$pool.name_label}' because: ${error}`
           )
         }
       }
@@ -460,17 +444,13 @@ class SDNController extends EventEmitter {
         }
 
         log.debug(
-          `Pluging PIF: '${accessPIF.device}' for host: '${
-            host.name_label
-          }' on network: '${accessPIF.$network.name_label}'`
+          `Pluging PIF: '${accessPIF.device}' for host: '${host.name_label}' on network: '${accessPIF.$network.name_label}'`
         )
         try {
           await xapi.call('PIF.plug', accessPIF.$ref)
         } catch (error) {
           log.error(
-            `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${
-              host.name_label
-            }' for network: '${accessPIF.$network.name_label}'`
+            `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${host.name_label}' for network: '${accessPIF.$network.name_label}'`
           )
         }
 
@@ -484,11 +464,7 @@ class SDNController extends EventEmitter {
       for (const poolNetwork of poolNetworks) {
         const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
         log.debug(
-          `Star center host: '${host.name_label}' of network: '${
-            network.name_label
-          }' in pool: '${
-            host.$pool.name_label
-          }' is no longer reachable, electing a new host`
+          `Star center host: '${host.name_label}' of network: '${network.name_label}' in pool: '${host.$pool.name_label}' is no longer reachable, electing a new host`
         )
 
         const newCenter = await this._electNewCenter(network, true)
@@ -541,9 +517,7 @@ class SDNController extends EventEmitter {
       } else if (this._overrideCerts) {
         await xapi.call('pool.certificate_uninstall', SDN_CONTROLLER_CERT)
         log.debug(
-          `Old SDN Controller CA certificate uninstalled on pool: '${
-            xapi.pool.name_label
-          }'`
+          `Old SDN Controller CA certificate uninstalled on pool: '${xapi.pool.name_label}'`
         )
         needInstall = true
       }
@@ -564,15 +538,11 @@ class SDNController extends EventEmitter {
       )
       await xapi.call('pool.certificate_sync')
       log.debug(
-        `SDN controller CA certificate install in pool: '${
-          xapi.pool.name_label
-        }'`
+        `SDN controller CA certificate install in pool: '${xapi.pool.name_label}'`
       )
     } catch (error) {
       log.error(
-        `Couldn't install SDN controller CA certificate in pool: '${
-          xapi.pool.name_label
-        }' because: ${error}`
+        `Couldn't install SDN controller CA certificate in pool: '${xapi.pool.name_label}' because: ${error}`
       )
     }
   }
@@ -594,9 +564,7 @@ class SDNController extends EventEmitter {
               await hostClient.resetForNetwork(network.uuid, network.name_label)
             } catch (error) {
               log.error(
-                `Couldn't reset network: '${network.name_label}' for host: '${
-                  host.name_label
-                }' in pool: '${network.$pool.name_label}' because: ${error}`
+                `Couldn't reset network: '${network.name_label}' for host: '${host.name_label}' in pool: '${network.$pool.name_label}' because: ${error}`
               )
               return
             }
@@ -616,11 +584,7 @@ class SDNController extends EventEmitter {
 
     if (newCenter == null) {
       log.error(
-        `Unable to elect a new star-center host to network: '${
-          network.name_label
-        }' for pool: '${
-          network.$pool.name_label
-        }' because there's no available host`
+        `Unable to elect a new star-center host to network: '${network.name_label}' for pool: '${network.$pool.name_label}' because there's no available host`
       )
       return null
     }
@@ -633,9 +597,7 @@ class SDNController extends EventEmitter {
     )
 
     log.info(
-      `New star center host elected: '${newCenter.name_label}' in network: '${
-        network.name_label
-      }'`
+      `New star center host elected: '${newCenter.name_label}' in network: '${network.name_label}'`
     )
 
     return newCenter
@@ -647,18 +609,14 @@ class SDNController extends EventEmitter {
     )
     if (pif == null) {
       log.error(
-        `No PIF found to create tunnel on host: '${
-          host.name_label
-        }' for network: '${network.name_label}'`
+        `No PIF found to create tunnel on host: '${host.name_label}' for network: '${network.name_label}'`
       )
       return
     }
 
     await host.$xapi.call('tunnel.create', pif.$ref, network.$ref)
     log.debug(
-      `Tunnel added on host '${host.name_label}' for network '${
-        network.name_label
-      }'`
+      `Tunnel added on host '${host.name_label}' for network '${network.name_label}'`
     )
   }
 
@@ -706,9 +664,7 @@ class SDNController extends EventEmitter {
       )
     } catch (error) {
       log.error(
-        `Couldn't add host: '${host.name_label}' to network: '${
-          network.name_label
-        }' in pool: '${host.$pool.name_label}' because: ${error}`
+        `Couldn't add host: '${host.name_label}' to network: '${network.name_label}' in pool: '${host.$pool.name_label}' because: ${error}`
       )
     }
   }

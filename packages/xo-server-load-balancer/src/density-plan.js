@@ -189,9 +189,7 @@ export default class DensityPlan extends Plan {
         const { vm, destination } = move
         const xapiDest = this.xo.getXapi(destination)
         debug(
-          `Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${
-            vm.$container
-          }).`
+          `Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${vm.$container}).`
         )
         return xapiDest.migrateVm(
           vm._xapiId,
