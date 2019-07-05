@@ -425,18 +425,6 @@ class SDNController extends EventEmitter {
           )
         }
       }
-      for (const tunnel of tunnels) {
-        const accessPIF = xapi.getObjectByRef(tunnel.access_PIF)
-        if (accessPIF.host !== host.$ref) {
-          continue
-        }
-
-        const poolNetwork = find(this._poolNetworks, {
-          network: accessPIF.network,
-        })
-        if (poolNetwork == null) {
-          continue
-        }
     }
   }
 
@@ -671,17 +659,13 @@ class SDNController extends EventEmitter {
       }
 
       log.debug(
-        `Pluging PIF: '${accessPIF.device}' for host: '${
-          host.name_label
-        }' on network: '${accessPIF.$network.name_label}'`
+        `Pluging PIF: '${accessPIF.device}' for host: '${host.name_label}' on network: '${accessPIF.$network.name_label}'`
       )
       try {
         await xapi.call('PIF.plug', accessPIF.$ref)
       } catch (error) {
         log.error(
-          `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${
-            host.name_label
-          }' for network: '${accessPIF.$network.name_label}'`
+          `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${host.name_label}' for network: '${accessPIF.$network.name_label}'`
         )
       }
 
@@ -695,11 +679,7 @@ class SDNController extends EventEmitter {
     for (const poolNetwork of poolNetworks) {
       const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
       log.debug(
-        `Star center host: '${host.name_label}' of network: '${
-          network.name_label
-        }' in pool: '${
-          host.$pool.name_label
-        }' is no longer reachable, electing a new host`
+        `Star center host: '${host.name_label}' of network: '${network.name_label}' in pool: '${host.$pool.name_label}' is no longer reachable, electing a new host`
       )
 
       const newCenter = await this._electNewCenter(network, true)
