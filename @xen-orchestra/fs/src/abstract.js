@@ -32,9 +32,9 @@ const computeRate = (hrtime: number[], size: number) => {
 }
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
-const DEFAULT_MAXIMUM_OPERATIONS = 10
+const DEFAULT_MAXIMUM_PARALLEL_OPERATIONS = 10
 
-let maximum_operations
+let maximum_operations = DEFAULT_MAXIMUM_PARALLEL_OPERATIONS
 
 const ignoreEnoent = error => {
   if (error == null || error.code !== 'ENOENT') {
@@ -87,8 +87,7 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
-    maximum_operations =
-      options.maxParallelFsOperations || DEFAULT_MAXIMUM_OPERATIONS
+    maximum_operations = options.maxParallelFsOperations
   }
 
   // Public members
