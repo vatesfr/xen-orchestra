@@ -137,8 +137,7 @@ class SDNController extends EventEmitter {
       client.updateCertificates(this._clientKey, this._clientCert, this._caCert)
     })
     const updatedPools = []
-    for (let i = 0; i < this._poolNetworks.length; ++i) {
-      const poolNetwork = this._poolNetworks[i]
+    for (const poolNetwork of this._poolNetworks) {
       if (updatedPools.includes(poolNetwork.pool)) {
         continue
       }
@@ -342,8 +341,7 @@ class SDNController extends EventEmitter {
           const poolNetworks = filter(this._poolNetworks, {
             starCenter: starCenterRef,
           })
-          for (let i = 0; i < poolNetworks.length; ++i) {
-            const poolNetwork = poolNetworks[i]
+          for (const poolNetwork of poolNetworks) {
             const network = await xapi._getOrWaitObject(poolNetwork.network)
             const newCenter = await this._electNewCenter(network, true)
             poolNetwork.starCenter = newCenter ? newCenter.$ref : null
@@ -444,8 +442,7 @@ class SDNController extends EventEmitter {
           )
         }
       }
-      for (let i = 0; i < tunnels.length; ++i) {
-        const tunnel = tunnels[i]
+      for (const tunnel of tunnels) {
         const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
         if (accessPIF.host !== host.$ref) {
           continue
@@ -484,8 +481,7 @@ class SDNController extends EventEmitter {
       }
     } else {
       const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
-      for (let i = 0; i < poolNetworks.length; ++i) {
-        const poolNetwork = poolNetworks[i]
+      for (const poolNetwork of poolNetworks) {
         const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
         log.debug(
           `Star center host: '${host.name_label}' of network: '${
