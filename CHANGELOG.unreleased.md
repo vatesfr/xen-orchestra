@@ -19,7 +19,7 @@
 - [SDN Controller] Do not choose physical PIF without IP configuration for tunnels. (PR [#4319](https://github.com/vatesfr/xen-orchestra/pull/4319))
 - [Xen servers] Fix `no connection found for object` error if pool master is reinstalled [#4299](https://github.com/vatesfr/xen-orchestra/issues/4299) (PR [#4302](https://github.com/vatesfr/xen-orchestra/pull/4302))
 - [Backup-ng/restore] Display correct size for full VM backup [#4316](https://github.com/vatesfr/xen-orchestra/issues/4316) (PR [#4332](https://github.com/vatesfr/xen-orchestra/pull/4332))
-- [SDN Controller] Better monitor of hosts' lifecycle. (PR [#4314](https://github.com/vatesfr/xen-orchestra/pull/4314))
+- [SDN Controller] Better detection host shutting down to adapt network topology. (PR [#4314](https://github.com/vatesfr/xen-orchestra/pull/4314))
 
 ### Released packages
 
