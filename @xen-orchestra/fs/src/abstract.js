@@ -84,7 +84,7 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
-    this.sharedLimit = limit(options.maxParallelFsOperations || 10)
+    this.sharedLimit = limit(Number(options.maxParallelFsOperations))
 
     this.closeFile = this.sharedLimit(this.closeFile)
     this.list = this.sharedLimit(this.list)
