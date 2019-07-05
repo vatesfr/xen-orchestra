@@ -32,7 +32,6 @@ const computeRate = (hrtime: number[], size: number) => {
 }
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
-const DEFAULT_MAXIMUM_PARALLEL_OPERATIONS = 10
 
 const ignoreEnoent = error => {
   if (error == null || error.code !== 'ENOENT') {
@@ -71,8 +70,6 @@ class PrefixWrapper {
   }
 }
 
-let sharedLimit = limit(DEFAULT_MAXIMUM_PARALLEL_OPERATIONS)
-
 export default class RemoteHandlerAbstract {
   _remote: Object
   _timeout: number
@@ -87,9 +84,21 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
-    sharedLimit = limit(
-      options.maxParallelFsOperations || DEFAULT_MAXIMUM_PARALLEL_OPERATIONS
-    )
+    this.sharedLimit = limit(options.maxParallelFsOperations || 10)
+
+    this.closeFile = this.sharedLimit(this.closeFile)
+    this.list = this.sharedLimit(this.list)
+    this.mkdir = this.sharedLimit(this.mkdir)
+    this.mktree = this.sharedLimit(this.mktree)
+    this.openFile = this.sharedLimit(this.openFile)
+    this.outputFile = this.sharedLimit(this.outputFile)
+    this.read = this.sharedLimit(this.read)
+    this.readFile = this.sharedLimit(this.readFile)
+    this.rmtree = this.sharedLimit(this.rmtree)
+    this.truncate = this.sharedLimit(this.truncate)
+    this.unlink = this.sharedLimit(this.unlink)
+    this.write = this.sharedLimit(this.write)
+    this.writeFile = this.sharedLimit(this.writeFile)
   }
 
   // Public members
@@ -103,7 +112,6 @@ export default class RemoteHandlerAbstract {
     return prefix === '/' ? this : new PrefixWrapper(this, prefix)
   }
 
-  @sharedLimit
   async closeFile(fd: FileDescriptor): Promise<void> {
     await timeout.call(this._closeFile(fd.fd), this._timeout)
   }
@@ -238,7 +246,6 @@ export default class RemoteHandlerAbstract {
     return timeout.call(this._getInfo(), this._timeout)
   }
 
-  @sharedLimit
   async getSize(file: File): Promise<number> {
     return timeout.call(
       this._getSize(typeof file === 'string' ? normalizePath(file) : file),
@@ -246,7 +253,6 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  @sharedLimit
   async list(
     dir: string,
     {
@@ -271,7 +277,6 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  @sharedLimit
   async mkdir(dir: string): Promise<void> {
     dir = normalizePath(dir)
     try {
@@ -286,12 +291,10 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  @sharedLimit
   async mktree(dir: string): Promise<void> {
     await this._mktree(normalizePath(dir))
   }
 
-  @sharedLimit
   async openFile(path: string, flags: string): Promise<FileDescriptor> {
     path = normalizePath(path)
 
@@ -301,7 +304,6 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  @sharedLimit
   async outputFile(
     file: string,
     data: Data,
@@ -310,7 +312,6 @@ export default class RemoteHandlerAbstract {
     await this._outputFile(normalizePath(file), data, { flags })
   }
 
-  @sharedLimit
   async read(
     file: File,
     buffer: Buffer,
@@ -323,7 +324,6 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  @sharedLimit
   async readFile(
     file: string,
     { flags = 'r' }: { flags?: string } = {}
@@ -343,7 +343,6 @@ export default class RemoteHandlerAbstract {
     })
   }
 
-  @sharedLimit
   async rename(
     oldPath: string,
     newPath: string,
@@ -362,7 +361,6 @@ export default class RemoteHandlerAbstract {
     return p
   }
 
-  @sharedLimit
   async rmdir(dir: string): Promise<void> {
     await timeout.call(
       this._rmdir(normalizePath(dir)).catch(ignoreEnoent),
@@ -370,7 +368,6 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  @sharedLimit
   async rmtree(dir: string): Promise<void> {
     await this._rmtree(normalizePath(dir))
   }
@@ -419,12 +416,10 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  @sharedLimit
   async truncate(file: string, len: number): Promise<void> {
     await this._truncate(file, len)
   }
 
-  @sharedLimit
   async unlink(file: string, { checksum = true }: Object = {}): Promise<void> {
     file = normalizePath(file)
 
@@ -435,7 +430,6 @@ export default class RemoteHandlerAbstract {
     await this._unlink(file).catch(ignoreEnoent)
   }
 
-  @sharedLimit
   async write(
     file: File,
     buffer: Buffer,
@@ -448,7 +442,6 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  @sharedLimit
   async writeFile(
     file: string,
     data: Data,
