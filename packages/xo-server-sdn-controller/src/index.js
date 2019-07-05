@@ -191,7 +191,7 @@ class SDNController extends EventEmitter {
             this._poolNetworks.push({
               pool: network.$pool.$ref,
               network: network.$ref,
-              starCenter: center ? center.$ref : null,
+              starCenter: center?.$ref,
             })
             this._networks.set(network.$id, network.$ref)
             if (center != null) {
@@ -259,7 +259,7 @@ class SDNController extends EventEmitter {
     this._poolNetworks.push({
       pool: pool.$ref,
       network: privateNetwork.$ref,
-      starCenter: center ? center.$ref : null,
+      starCenter: center?.$ref,
       encapsulation: encapsulation,
     })
     this._networks.set(privateNetwork.$id, privateNetwork.$ref)
@@ -338,7 +338,7 @@ class SDNController extends EventEmitter {
           for (const poolNetwork of poolNetworks) {
             const network = await xapi._getOrWaitObject(poolNetwork.network)
             const newCenter = await this._electNewCenter(network, true)
-            poolNetwork.starCenter = newCenter ? newCenter.$ref : null
+            poolNetwork.starCenter = newCenter?.$ref
             if (newCenter != null) {
               this._starCenters.set(newCenter.$id, newCenter.$ref)
             }
@@ -380,7 +380,7 @@ class SDNController extends EventEmitter {
         `PIF: '${pif.device}' of network: '${pif.$network.name_label}' star-center host: '${pif.$host.name_label}' has been unplugged, electing a new host`
       )
       const newCenter = await this._electNewCenter(pif.$network, true)
-      poolNetwork.starCenter = newCenter ? newCenter.$ref : null
+      poolNetwork.starCenter = newCenter?.$ref
       this._starCenters.delete(pif.$host.$id)
       if (newCenter != null) {
         this._starCenters.set(newCenter.$id, newCenter.$ref)
@@ -468,7 +468,7 @@ class SDNController extends EventEmitter {
         )
 
         const newCenter = await this._electNewCenter(network, true)
-        poolNetwork.starCenter = newCenter ? newCenter.$ref : null
+        poolNetwork.starCenter = newCenter?.$ref
         this._starCenters.delete(host.$id)
         if (newCenter != null) {
           this._starCenters.set(newCenter.$id, newCenter.$ref)
