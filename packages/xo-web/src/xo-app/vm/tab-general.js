@@ -56,7 +56,7 @@ export default connectStore(() => {
           createCollectionWrapper(Object.keys)
         )
       )
-      .filter([{ status: 'pending' }])
+      .filter({ status: 'pending' })
       .sort(),
     vgpu: getAttachedVgpu,
     vgpuTypes: getVgpuTypes,
