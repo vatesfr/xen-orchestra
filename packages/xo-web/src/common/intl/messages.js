@@ -50,6 +50,7 @@ const messages = {
   backupJobs: 'Backup jobs',
   iscsiSessions:
     '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
+  requiresAdminPermissions: 'Requires admin permissions',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -1157,9 +1158,11 @@ const messages = {
   vmCoresPerSocket:
     '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketNone: 'None',
-  vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
-  vmCoresPerSocketIncorrectValueSolution:
-    'Please change the selected value to fix it.',
+  vmCoresPerSocketInvalidValue:
+    '{nCores, number} core{nCores, plural, one {} other {s}} per socket',
+  vmCoresPerSocketNotDivisor: 'Not a divisor of the max VM CPUs',
+  vmCoresPerSocketExceedLimit:
+    'The number of sockets exceed the limit ({limit, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmVgpu: 'vGPU',

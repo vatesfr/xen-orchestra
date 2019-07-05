@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/new-vm] Fix template selection on creating new VM for resource sets [#4565](https://github.com/vatesfr/xen-orchestra/issues/4565) (PR [#4568](https://github.com/vatesfr/xen-orchestra/pull/4568))
+- [VM] Clearer invalid cores per socket error [#4120](https://github.com/vatesfr/xen-orchestra/issues/4120) (PR [#4187](https://github.com/vatesfr/xen-orchestra/pull/4187))
 
 ### Released packages
 
