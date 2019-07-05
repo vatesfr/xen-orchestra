@@ -643,7 +643,7 @@ class SDNController extends EventEmitter {
 
     const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
     for (const tunnel of tunnels) {
-      const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
+      const accessPIF = xapi.getObjectByRef(tunnel.access_PIF)
       if (accessPIF.host !== host.$ref) {
         continue
       }
@@ -670,7 +670,7 @@ class SDNController extends EventEmitter {
         )
       }
 
-      const starCenter = await xapi._getOrWaitObject(poolNetwork.starCenter)
+      const starCenter = xapi.getObjectByRef(poolNetwork.starCenter)
       await this._addHostToNetwork(host, accessPIF.$network, starCenter)
     }
   }
@@ -678,7 +678,7 @@ class SDNController extends EventEmitter {
   async _hostUnreachable(host) {
     const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
     for (const poolNetwork of poolNetworks) {
-      const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
+      const network = host.$xapi.getObjectByRef(poolNetwork.network)
       log.debug(
         `Star center host: '${host.name_label}' of network: '${network.name_label}' in pool: '${host.$pool.name_label}' is no longer reachable, electing a new host`
       )
