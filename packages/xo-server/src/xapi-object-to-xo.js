@@ -265,10 +265,12 @@ const TRANSFORMS = {
       }
     }
 
+    // Build a { taskId → operation } map instead of forwarding the
+    // { taskRef → operation } map directly
     const currentOperations = {}
     const { $xapi } = obj
     forEach(obj.current_operations, (operation, ref) => {
-      const task = $xapi.getObject(ref)
+      const task = $xapi.getObjectByRef(ref, undefined)
       if (task !== undefined) {
         currentOperations[task.$id] = operation
       }
