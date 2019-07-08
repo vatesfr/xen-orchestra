@@ -13,6 +13,7 @@ const Usage = ({ total, children }) => {
     return value < limit && value
   })
   const othersTotal = sum(othersValues)
+  const nOthers = othersValues.length
   return (
     <span className='usage'>
       {React.Children.map(
@@ -20,7 +21,12 @@ const Usage = ({ total, children }) => {
         (child, index) =>
           child.props.value > limit && cloneElement(child, { total })
       )}
-      <Element others tooltip={_('others')} total={total} value={othersTotal} />
+      <Element
+        others
+        tooltip={_('others', { nOthers })}
+        total={total}
+        value={othersTotal}
+      />
     </span>
   )
 }
