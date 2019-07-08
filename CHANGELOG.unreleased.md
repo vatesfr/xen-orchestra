@@ -21,6 +21,7 @@
 - [Xen servers] Fix `no connection found for object` error if pool master is reinstalled [#4299](https://github.com/vatesfr/xen-orchestra/issues/4299) (PR [#4302](https://github.com/vatesfr/xen-orchestra/pull/4302))
 - [Backup-ng/restore] Display correct size for full VM backup [#4316](https://github.com/vatesfr/xen-orchestra/issues/4316) (PR [#4332](https://github.com/vatesfr/xen-orchestra/pull/4332))
 - [VM/tab-advanced] Fix CPU limits edition (PR [#4337](https://github.com/vatesfr/xen-orchestra/pull/4337))
+- [Remotes] Fix `EIO` errors due to massive parallel fs operations [#4323](https://github.com/vatesfr/xen-orchestra/issues/4323) (PR [#4330](https://github.com/vatesfr/xen-orchestra/pull/4330))
 
 ### Released packages
 
@@ -29,6 +30,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/fs v0.10.0
 - xo-server-sdn-controller v0.1.1
 - xen-api v0.26.0
 - xo-server v5.45.0
