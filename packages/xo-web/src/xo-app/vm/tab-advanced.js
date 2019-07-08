@@ -861,7 +861,7 @@ export default class TabAdvanced extends Component {
                   <td>
                     <Number
                       value={vm.CPUs.number}
-                      onChange={cpus => editVm(vm, { cpus })}
+                      onChange={CPUs => editVm(vm, { CPUs })}
                     />
                     /
                     {vm.power_state === 'Running' ? (
@@ -869,9 +869,7 @@ export default class TabAdvanced extends Component {
                     ) : (
                       <Number
                         value={vm.CPUs.max}
-                        onChange={cpusStaticMax =>
-                          editVm(vm, { cpusStaticMax })
-                        }
+                        onChange={cpusMax => editVm(vm, { cpusMax })}
                       />
                     )}
                   </td>
