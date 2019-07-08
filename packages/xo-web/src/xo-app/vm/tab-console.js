@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Button from 'button'
 import Component from 'base-component'
 import CopyToClipboard from 'react-copy-to-clipboard'
@@ -9,17 +10,18 @@ import IsoDevice from 'iso-device'
 import NoVnc from 'react-novnc'
 import React from 'react'
 import Tooltip from 'tooltip'
-import { resolveUrl, isVmRunning } from 'xo'
-import { Container, Row, Col } from 'grid'
+import { isVmRunning, resolveUrl } from 'xo'
+import { Col, Container, Row } from 'grid'
 import {
   CpuSparkLines,
   MemorySparkLines,
   NetworkSparkLines,
   XvdSparkLines,
 } from 'xo-sparklines'
+import { form } from 'modal'
 
 export default class TabConsole extends Component {
-  state = { scale: 1 }
+  state = { clipboard: '', scale: 1 }
 
   componentWillReceiveProps(props) {
     if (
@@ -30,6 +32,13 @@ export default class TabConsole extends Component {
       this._toggleMinimalLayout()
     }
   }
+
+  _addFocus = ref => {
+    if (ref !== null) {
+      ref.focus()
+    }
+  }
+
   _sendCtrlAltDel = () => {
     this.refs.noVnc.sendCtrlAltDel()
   }
@@ -38,15 +47,42 @@ export default class TabConsole extends Component {
     this.setState({ clipboard })
     this.refs.clipboard.value = clipboard
   }
+
+  _getClipboardContent = () => this.refs.clipboard && this.refs.clipboard.value
+
   _setRemoteClipboard = invoke(() => {
     const setRemoteClipboard = debounce(value => {
       this.setState({ clipboard: value })
       this.refs.noVnc.setClipboard(value)
     }, 200)
-    return event => setRemoteClipboard(event.target.value)
+    return value => setRemoteClipboard(value)
   })
 
-  _getClipboardContent = () => this.refs.clipboard && this.refs.clipboard.value
+  _setRemoteClipboardFromInput = event =>
+    this._setRemoteClipboard(event.target.value)
+
+  _showFormModal = async () =>
+    this._setRemoteClipboard(
+      await form({
+        defaultValue: this.state.clipboard,
+        header: (
+          <span>
+            <Icon icon='file-text' /> {_('copyToClipboard')}
+          </span>
+        ),
+        render: props => (
+          <div>
+            <textarea
+              {...props}
+              className='form-control'
+              ref={this._addFocus}
+              rows={10}
+              value={props.value}
+            />
+          </div>
+        ),
+      })
+    )
 
   _toggleMinimalLayout = () => {
     this.props.toggleHeader()
@@ -101,14 +137,21 @@ export default class TabConsole extends Component {
           </Col>
           <Col mediumSize={3}>
             <div className='input-group'>
+              <span className='input-group-btn'>
+                <ActionButton
+                  handler={this._showFormModal}
+                  icon='file-text'
+                  tooltip={_('multilineCopyToClipboard')}
+                />
+              </span>
               <input
                 type='text'
                 className='form-control'
                 ref='clipboard'
-                onChange={this._setRemoteClipboard}
+                onChange={this._setRemoteClipboardFromInput}
               />
               <span className='input-group-btn'>
-                <CopyToClipboard text={this.state.clipboard || ''}>
+                <CopyToClipboard text={this.state.clipboard}>
                   <Button>
                     <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
                   </Button>

@@ -732,6 +732,11 @@
     @extend .fa-sign-out;
   }
 
+  &-file-text {
+    @extend .fa;
+    @extend .fa-file-text-o;
+  }
+
   // Menu
   &-menu-collapse {
     @extend .fa;
