@@ -6,6 +6,13 @@ import { find, forOwn } from "lodash";
 
 import config from "./_config";
 
+const ARGS_BY_TYPE = {
+  remotes: {
+    getCreationArgs: conf => ["remote.create", conf],
+    getDeletionArgs: res => ["remote.delete", { id: res.id }],
+  },
+};
+
 const getDefaultCredentials = () => {
   const { email, password } = config.xoConnection;
   return { email, password };
@@ -18,6 +25,7 @@ class XoConnection extends Xo {
     const objects = (this._objects = new XoCollection());
     const watchers = (this._watchers = {});
     this._tempResourceDisposers = [];
+    this._durableResourceDisposers = [];
 
     this.on("notification", ({ method, params }) => {
       if (method !== "all") {
@@ -123,20 +131,47 @@ class XoConnection extends Xo {
     return id;
   }
 
+  async createRequiredResources() {
+    const requiredResources = {};
+    const resourcesToCreate = config.preCreatedResources;
+    for (const typeOfResources in resourcesToCreate) {
+      const { getCreationArgs, getDeletionArgs } = ARGS_BY_TYPE[
+        typeOfResources
+      ];
+      const resources = resourcesToCreate[typeOfResources];
+      for (const resource in resources) {
+        const result = await this.call(...getCreationArgs(resources[resource]));
+        this._durableResourceDisposers.push(...getDeletionArgs(result));
+        requiredResources[typeOfResources] = {
+          ...requiredResources[typeOfResources],
+          [resource]: result,
+        };
+      }
+    }
+    return requiredResources;
+  }
+
   async getSchedule(predicate) {
     return find(await this.call("schedule.getAll"), predicate);
   }
 
-  async deleteTempResources() {
-    const disposers = this._tempResourceDisposers;
+  async _cleanDisposers(disposers) {
     for (let n = disposers.length - 1; n > 0; ) {
       const params = disposers[n--];
       const method = disposers[n--];
       await this.call(method, params).catch(error => {
-        console.warn("deleteTempResources", method, params, error);
+        console.warn("_cleanDisposers", method, params, error);
       });
     }
     disposers.length = 0;
+  }
+
+  async deleteTempResources() {
+    await this._cleanDisposers(this._tempResourceDisposers);
+  }
+
+  async deleteDurableResources() {
+    await this._cleanDisposers(this._durableResourceDisposers);
   }
 }
 
@@ -146,16 +181,19 @@ const getConnection = credentials => {
 };
 
 let xo;
+let resources;
 beforeAll(async () => {
   xo = await getConnection();
+  resources = await xo.createRequiredResources();
 });
 afterAll(async () => {
+  await xo.deleteDurableResources();
   await xo.close();
   xo = null;
 });
 afterEach(() => xo.deleteTempResources());
 
-export { xo as default };
+export { xo as default, resources };
 
 export const testConnection = ({ credentials }) =>
   getConnection(credentials).then(connection => connection.close());
