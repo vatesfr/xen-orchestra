@@ -32,7 +32,7 @@ const computeRate = (hrtime: number[], size: number) => {
 }
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
-const DEFAULT_MAX_PARALLEL_FS_OPERATIONS = 10
+const DEFAULT_MAX_PARALLEL_OPERATIONS = 10
 
 const ignoreEnoent = error => {
   if (error == null || error.code !== 'ENOENT') {
@@ -87,7 +87,7 @@ export default class RemoteHandlerAbstract {
     ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
 
     const sharedLimit = limit(
-      options.maxParallelFsOperations ?? DEFAULT_MAX_PARALLEL_FS_OPERATIONS
+      options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS
     )
     this.closeFile = sharedLimit(this.closeFile)
     this.list = sharedLimit(this.list)
