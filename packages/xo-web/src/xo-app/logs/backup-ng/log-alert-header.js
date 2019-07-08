@@ -58,6 +58,11 @@ export default decorate([
         await runBackupNgJob({
           id,
           schedule,
+          settings: {
+            '': {
+              bypassVdiChainsCheck: true,
+            },
+          },
           vms,
         })
       },
