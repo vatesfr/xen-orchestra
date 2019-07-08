@@ -32,6 +32,7 @@ const computeRate = (hrtime: number[], size: number) => {
 }
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
+const DEFAULT_MAX_PARALLEL_FS_OPERATIONS = 10
 
 const ignoreEnoent = error => {
   if (error == null || error.code !== 'ENOENT') {
@@ -83,22 +84,26 @@ export default class RemoteHandlerAbstract {
         throw new Error('Incorrect remote type')
       }
     }
-    ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
-    this.sharedLimit = limit(Number(options.maxParallelFsOperations))
+    let maxParallelFsOperations
+    ;({
+      timeout: this._timeout = DEFAULT_TIMEOUT,
+      maxParallelFsOperations: maxParallelFsOperations = DEFAULT_MAX_PARALLEL_FS_OPERATIONS,
+    } = options)
+    const sharedLimit = limit(maxParallelFsOperations)
 
-    this.closeFile = this.sharedLimit(this.closeFile)
-    this.list = this.sharedLimit(this.list)
-    this.mkdir = this.sharedLimit(this.mkdir)
-    this.mktree = this.sharedLimit(this.mktree)
-    this.openFile = this.sharedLimit(this.openFile)
-    this.outputFile = this.sharedLimit(this.outputFile)
-    this.read = this.sharedLimit(this.read)
-    this.readFile = this.sharedLimit(this.readFile)
-    this.rmtree = this.sharedLimit(this.rmtree)
-    this.truncate = this.sharedLimit(this.truncate)
-    this.unlink = this.sharedLimit(this.unlink)
-    this.write = this.sharedLimit(this.write)
-    this.writeFile = this.sharedLimit(this.writeFile)
+    this.closeFile = sharedLimit(this.closeFile)
+    this.list = sharedLimit(this.list)
+    this.mkdir = sharedLimit(this.mkdir)
+    this.mktree = sharedLimit(this.mktree)
+    this.openFile = sharedLimit(this.openFile)
+    this.outputFile = sharedLimit(this.outputFile)
+    this.read = sharedLimit(this.read)
+    this.readFile = sharedLimit(this.readFile)
+    this.rmtree = sharedLimit(this.rmtree)
+    this.truncate = sharedLimit(this.truncate)
+    this.unlink = sharedLimit(this.unlink)
+    this.write = sharedLimit(this.write)
+    this.writeFile = sharedLimit(this.writeFile)
   }
 
   // Public members

@@ -93,5 +93,4 @@ timeout = 600e3
 # see https:#github.com/vatesfr/xen-orchestra/issues/3419
 # useSudo = false
 
-# Maximum @xen-orchestra/fs parallel operations
 maxParallelFsOperations = 10
