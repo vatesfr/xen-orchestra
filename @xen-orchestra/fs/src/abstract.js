@@ -84,13 +84,11 @@ export default class RemoteHandlerAbstract {
         throw new Error('Incorrect remote type')
       }
     }
-    let maxParallelFsOperations
-    ;({
-      timeout: this._timeout = DEFAULT_TIMEOUT,
-      maxParallelFsOperations: maxParallelFsOperations = DEFAULT_MAX_PARALLEL_FS_OPERATIONS,
-    } = options)
-    const sharedLimit = limit(maxParallelFsOperations)
+    ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
 
+    const sharedLimit = limit(
+      options.maxParallelFsOperations ?? DEFAULT_MAX_PARALLEL_FS_OPERATIONS
+    )
     this.closeFile = sharedLimit(this.closeFile)
     this.list = sharedLimit(this.list)
     this.mkdir = sharedLimit(this.mkdir)
