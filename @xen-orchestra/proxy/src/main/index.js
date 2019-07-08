@@ -14,7 +14,7 @@ const MIXIN_CYCLIC_DESCRIPTOR = {
 
 export default class App {
   constructor(opts) {
-    // add lazy property for each of the mixin, this allow mixins to depend on
+    // add lazy property for each of the mixin, this allows mixins to depend on
     // one another without any special ordering
     const descriptors = {}
     keys(mixins).forEach(name => {
@@ -35,7 +35,7 @@ export default class App {
     })
     defineProperties(this, descriptors)
 
-    // ensure all mixins are instanciated
+    // access all mixin properties to trigger their creation
     keys(descriptors).forEach(name => {
       noop(this[name])
     })
