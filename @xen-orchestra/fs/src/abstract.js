@@ -90,6 +90,8 @@ export default class RemoteHandlerAbstract {
       options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS
     )
     this.closeFile = sharedLimit(this.closeFile)
+    this.getInfo = sharedLimit(this.getInfo)
+    this.getSize = sharedLimit(this.getSize)
     this.list = sharedLimit(this.list)
     this.mkdir = sharedLimit(this.mkdir)
     this.mktree = sharedLimit(this.mktree)
@@ -98,6 +100,8 @@ export default class RemoteHandlerAbstract {
     this.read = sharedLimit(this.read)
     this.readFile = sharedLimit(this.readFile)
     this.rmtree = sharedLimit(this.rmtree)
+    this.rename = sharedLimit(this.rename)
+    this.rmdir = sharedLimit(this.rmdir)
     this.truncate = sharedLimit(this.truncate)
     this.unlink = sharedLimit(this.unlink)
     this.write = sharedLimit(this.write)
