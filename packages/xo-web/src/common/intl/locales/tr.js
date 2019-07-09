@@ -1798,7 +1798,7 @@ export default {
   addHostErrorTitle: 'Sunucu ekleme başarısız',
 
   // Original text: "Host patches could not be homogenized."
-  addHostNotHomogeneousErrorMessage: 'Sunucu yamaları homojenleştirilemedi.',
+  addHostsNotHomogeneousErrorMessage: 'Sunucu yamaları homojenleştirilemedi.',
 
   // Original text: "Disconnect"
   disconnectServer: 'Bağlantıyı kes',

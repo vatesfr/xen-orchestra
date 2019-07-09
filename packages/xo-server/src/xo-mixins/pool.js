@@ -1,4 +1,4 @@
-import { difference, flatten, uniq } from 'lodash'
+import { difference, flatten, isEmpty, uniq } from 'lodash'
 
 export default class Pools {
   constructor(xo) {
@@ -34,39 +34,44 @@ export default class Pools {
       )
     )
 
-    const promises = []
-    if (targetRequiredPatches.length > 0) {
+    const allRequiredPatches = targetRequiredPatches.concat(
+      targetHost.patches.map(patchId => _xo.getObject(patchId).name)
+    )
+
+    const sourceRequiredPatches = {}
+    for (const sourceId of sourceIds) {
+      const _sourcePatches = sourcePatches[sourceId].map(
+        patchId => _xo.getObject(patchId).name
+      )
+      const requiredPatches = difference(allRequiredPatches, _sourcePatches)
+      if (requiredPatches.length > 0) {
+        sourceRequiredPatches[sourceId] = requiredPatches
+      }
+    }
+
+    if (targetRequiredPatches.length > 0 || !isEmpty(sourceRequiredPatches)) {
+      const promises = []
       const targetXapi = _xo.getXapi(target)
       promises.push(
         targetXapi.installPatches({
           patches: await targetXapi.findPatches(targetRequiredPatches),
         })
       )
-    }
 
-    const allRequiredPatches = targetRequiredPatches.concat(
-      targetHost.patches.map(patchId => _xo.getObject(patchId).name)
-    )
-
-    for (const sourceId of sourceIds) {
-      const _sourcePatches = sourcePatches[sourceId].map(
-        patchId => _xo.getObject(patchId).name
-      )
-      const sourceRequiredPatches = difference(
-        allRequiredPatches,
-        _sourcePatches
-      )
-      if (sourceRequiredPatches.length > 0) {
+      for (const sourceId of sourceIds) {
         const sourceXapi = _xo.getXapi(sourceId)
+        const patches = sourceRequiredPatches[sourceId]
         promises.push(
           sourceXapi.installPatches({
-            patches: await sourceXapi.findPatches(sourceRequiredPatches),
+            patches: await sourceXapi.findPatches(
+              patches === undefined ? [] : patches
+            ),
           })
         )
       }
-    }
 
-    await Promise.all(promises)
+      await Promise.all(promises)
+    }
 
     for (const source of sources) {
       await _xo.mergeXenPools(source._xapiId, target._xapiId, force)

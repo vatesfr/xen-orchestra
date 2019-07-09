@@ -590,7 +590,7 @@ export const addHostsToPool = pool =>
   }).then(params => {
     const { hosts } = params
     if (isEmpty(hosts)) {
-      error(_('addHostsNoHosts'), _('addHostsNoHostsMessage'))
+      error(_('addHostNoHost'), _('addHostNoHostMessage'))
       return
     }
 

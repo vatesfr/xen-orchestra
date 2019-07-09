@@ -1746,8 +1746,8 @@ const messages = {
 
   // ----- Add host -----
   hosts: 'Hosts',
-  addHostsNoHosts: 'No hosts',
-  addHostsNoHostsMessage: 'No hosts selected to be added',
+  addHostNoHost: 'No host',
+  addHostNoHostMessage: 'No host selected to be added',
 
   // ----- About View -----
   xenOrchestraServer: 'Xen Orchestra server',

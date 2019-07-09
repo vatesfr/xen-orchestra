@@ -1353,7 +1353,7 @@ export default {
   addHostErrorTitle: undefined,
 
   // Original text: 'Host patches could not be homogenized.'
-  addHostNotHomogeneousErrorMessage: undefined,
+  addHostsNotHomogeneousErrorMessage: undefined,
 
   // Original text: "Disconnect"
   disconnectServer: 'Desconectar',
