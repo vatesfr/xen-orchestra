@@ -24,7 +24,6 @@ const nicePipe = require('nice-pipe')
 const pairs = require('lodash/toPairs')
 const pick = require('lodash/pick')
 const pump = require('pump')
-const startsWith = require('lodash/startsWith')
 const prettyMs = require('pretty-ms')
 const progressStream = require('progress-stream')
 const pw = require('pw')
@@ -81,7 +80,7 @@ function parseParameters(args) {
     const name = matches[1]
     let value = matches[2]
 
-    if (startsWith(value, 'json:')) {
+    if (value.startsWith('json:')) {
       value = JSON.parse(value.slice(5))
     }
 

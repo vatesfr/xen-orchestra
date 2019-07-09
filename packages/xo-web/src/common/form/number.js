@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { injectState, provideState } from 'reaclette'
-import { startsWith } from 'lodash'
 
 import decorate from '../apply-decorators'
 
@@ -23,7 +22,7 @@ const Number_ = decorate([
         const params = {}
         let empty = true
         Object.keys(props).forEach(key => {
-          if (startsWith(key, 'data-')) {
+          if (key.startsWith('data-')) {
             empty = false
             params[key.slice(5)] = props[key]
           }

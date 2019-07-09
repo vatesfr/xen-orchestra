@@ -3,7 +3,7 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { get } from '@xen-orchestra/defined'
-import { find, startsWith } from 'lodash'
+import { find } from 'lodash'
 
 import decorate from './apply-decorators'
 import Icon from './icon'
@@ -492,7 +492,7 @@ const xoItemToRender = {
 
   gpuGroup: group => (
     <span>
-      {startsWith(group.name_label, 'Group of ')
+      {group.name_label.startsWith('Group of ')
         ? group.name_label.slice(9)
         : group.name_label}
     </span>

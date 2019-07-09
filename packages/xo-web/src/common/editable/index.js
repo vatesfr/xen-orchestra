@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { isEmpty, isFunction, isString, map, pick, startsWith } from 'lodash'
+import { isEmpty, isFunction, isString, map, pick } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
@@ -119,7 +119,7 @@ class Editable extends Component {
       this.setState({ saving: true })
 
       const params = Object.keys(props).reduce((res, val) => {
-        if (startsWith(val, 'data-')) {
+        if (val.startsWith('data-')) {
           res[val.slice(5)] = props[val]
         }
         return res

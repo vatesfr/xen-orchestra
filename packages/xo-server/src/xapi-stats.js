@@ -4,7 +4,6 @@ import synchronized from 'decorator-synchronized'
 import { BaseError } from 'make-error'
 import {
   defaults,
-  endsWith,
   findKey,
   forEach,
   identity,
@@ -184,7 +183,7 @@ const STATS = {
       transformValue: value => value * 1024,
     },
     memory: {
-      test: metricType => endsWith(metricType, 'memory'),
+      test: metricType => metricType.endsWith('memory'),
     },
     cpus: {
       test: /^cpu(\d+)$/,

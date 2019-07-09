@@ -22,7 +22,7 @@ import { createGetObjectsOfType, getUser } from 'selectors'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectSubject } from 'select-objects'
-import { forEach, isArray, map, mapValues, noop, startsWith } from 'lodash'
+import { forEach, isArray, map, mapValues, noop } from 'lodash'
 
 import { createJob, createSchedule, getRemote, editJob, editSchedule } from 'xo'
 
@@ -479,7 +479,7 @@ export default class New extends Component {
 
     if (remoteId) {
       const remote = await getRemote(remoteId)
-      if (startsWith(remote.url, 'file:')) {
+      if (remote.url.startsWith('file:')) {
         await confirm({
           title: _('localRemoteWarningTitle'),
           body: _('localRemoteWarningMessage'),

@@ -1,5 +1,3 @@
-import { startsWith } from 'lodash'
-
 import ensureArray from './_ensureArray'
 import {
   extractProperty,
@@ -119,7 +117,7 @@ const TRANSFORMS = {
           size: update.installation_size,
         }
 
-        if (startsWith(update.name_label, 'XS')) {
+        if (update.name_label.startsWith('XS')) {
           // It's a patch update but for homogeneity, we're still using pool_patches
         } else {
           supplementalPacks.push(formattedUpdate)
