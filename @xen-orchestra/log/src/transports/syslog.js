@@ -1,6 +1,6 @@
 import fromCallback from 'promise-toolbox/fromCallback'
-import splitHost from 'split-host' // eslint-disable-line node/no-extraneous-import node/no-missing-import
-import { createClient, Facility, Severity, Transport } from 'syslog-client' // eslint-disable-line node/no-extraneous-import node/no-missing-import
+import splitHost from 'split-host'
+import { createClient, Facility, Severity, Transport } from 'syslog-client'
 
 import LEVELS from '../levels'
 
