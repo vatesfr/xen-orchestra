@@ -132,7 +132,7 @@ const Warnings = ({ warnings }) =>
     </div>
   ) : null
 
-const VmTask = ({ children, restartVmJob, task }) => (
+const VmTask = ({ children, forceRestartVmJob, restartVmJob, task }) => (
   <div>
     <Vm id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />{' '}
     {restartVmJob !== undefined && hasTaskFailed(task) && (
@@ -141,6 +141,16 @@ const VmTask = ({ children, restartVmJob, task }) => (
         icon='run'
         size='small'
         tooltip={_('backupRestartVm')}
+        data-vm={task.data.id}
+      />
+    )}
+    {forceRestartVmJob !== undefined && hasTaskFailed(task) && (
+      <ActionButton
+        btnStyle='danger'
+        handler={forceRestartVmJob}
+        icon='run'
+        size='small'
+        tooltip={_('backupForceRestartVm')}
         data-vm={task.data.id}
       />
     )}
@@ -326,6 +336,21 @@ export default decorate([
           schedule: scheduleId,
         })
       },
+      forceRestartVmJob: (_, { vm }) => async (
+        _,
+        { log: { scheduleId, jobId } }
+      ) => {
+        await runBackupNgJob({
+          id: jobId,
+          vm,
+          schedule: scheduleId,
+          settings: {
+            '': {
+              bypassVdiChainsCheck: true,
+            },
+          },
+        })
+      },
     },
     computed: {
       log: (_, { log }) => {
@@ -445,6 +470,7 @@ export default decorate([
             return (
               <TaskLi
                 className='list-group-item'
+                forceRestartVmJob={scheduleId && effects.forceRestartVmJob}
                 key={taskLog.id}
                 restartVmJob={scheduleId && effects.restartVmJob}
                 task={taskLog}
