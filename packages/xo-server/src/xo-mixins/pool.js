@@ -15,15 +15,13 @@ export default class Pools {
       const sourceHost = _xo.getObject(source.master)
       if (sourceHost.productBrand !== targetHost.productBrand) {
         throw new Error(
-          `a ${sourceHost.productBrand} pool cannot be merged into a ${
-            targetHost.productBrand
-          } pool`
+          `a ${sourceHost.productBrand} pool cannot be merged into a ${targetHost.productBrand} pool`
         )
       }
       sources.push(source)
       sourcePatches[sourceId] = sourceHost.patches
     }
-
+    // Find missing patches on the target.
     const targetRequiredPatches = uniq(
       flatten(
         await Promise.all(
@@ -33,11 +31,10 @@ export default class Pools {
         )
       )
     )
-
+    // Find missing patches on the sources.
     const allRequiredPatches = targetRequiredPatches.concat(
       targetHost.patches.map(patchId => _xo.getObject(patchId).name)
     )
-
     const sourceRequiredPatches = {}
     for (const sourceId of sourceIds) {
       const _sourcePatches = sourcePatches[sourceId].map(
@@ -48,31 +45,43 @@ export default class Pools {
         sourceRequiredPatches[sourceId] = requiredPatches
       }
     }
-
+    // On XCP-ng, "installPatches" installs *all* the patches
+    // whatever the patches argument is.
+    // So we must not call it if there are no patches to install.
     if (targetRequiredPatches.length > 0 || !isEmpty(sourceRequiredPatches)) {
-      const promises = []
+      // Find patches in parallel.
+      const findPatchesPromises = []
+      const sourceXapis = {}
       const targetXapi = _xo.getXapi(target)
-      promises.push(
+      for (const sourceId of sourceIds) {
+        const sourceXapi = (sourceXapis[sourceId] = _xo.getXapi(sourceId))
+        findPatchesPromises.push(
+          sourceXapi.findPatches(sourceRequiredPatches[sourceId] ?? [])
+        )
+      }
+      const patchesName = await Promise.all([
+        targetXapi.findPatches(targetRequiredPatches),
+        ...findPatchesPromises,
+      ])
+      // Install patches in parallel.
+      const installPatchesPromises = []
+      installPatchesPromises.push(
         targetXapi.installPatches({
-          patches: await targetXapi.findPatches(targetRequiredPatches),
+          patches: patchesName[0],
         })
       )
-
+      let i = 1
       for (const sourceId of sourceIds) {
-        const sourceXapi = _xo.getXapi(sourceId)
-        const patches = sourceRequiredPatches[sourceId]
-        promises.push(
-          sourceXapi.installPatches({
-            patches: await sourceXapi.findPatches(
-              patches === undefined ? [] : patches
-            ),
+        installPatchesPromises.push(
+          sourceXapis[sourceId].installPatches({
+            patches: patchesName[i++],
           })
         )
       }
 
-      await Promise.all(promises)
+      await Promise.all(installPatchesPromises)
     }
-
+    // Merge the sources into the target sequentially to be safe.
     for (const source of sources) {
       await _xo.mergeXenPools(source._xapiId, target._xapiId, force)
     }
