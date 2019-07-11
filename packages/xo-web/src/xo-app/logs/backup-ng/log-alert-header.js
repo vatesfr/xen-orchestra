@@ -19,29 +19,6 @@ import {
   subscribeBackupNgLogs,
 } from 'xo'
 
-const getVms = (tasks, infos) => {
-  let vms
-  if (tasks !== undefined) {
-    const scheduledVms = get(
-      () => infos.find(({ message }) => message === 'vms').data.vms
-    )
-
-    if (scheduledVms !== undefined) {
-      vms = new Set(scheduledVms)
-      tasks.forEach(({ status, data: { id } }) => {
-        status === 'success' && vms.delete(id)
-      })
-      vms = Array.from(vms)
-    } else {
-      vms = []
-      tasks.forEach(({ status, data: { id } }) => {
-        status !== 'success' && vms.push(id)
-      })
-    }
-  }
-  return vms
-}
-
 export default decorate([
   addSubscriptions(({ id }) => ({
     log: cb =>
@@ -54,30 +31,39 @@ export default decorate([
     effects: {
       _downloadLog: () => ({ formattedLog }, { log }) =>
         downloadLog({ log: formattedLog, date: log.start, type: 'backup NG' }),
-      restartFailedVms: () => async (
+      restartFailedVms: (_, { force }) => async (
         _,
         { log: { jobId: id, scheduleId: schedule, tasks, infos } }
       ) => {
-        const vms = getVms(tasks, infos)
+        let vms
+        if (tasks !== undefined) {
+          const scheduledVms = get(
+            () => infos.find(({ message }) => message === 'vms').data.vms
+          )
+
+          if (scheduledVms !== undefined) {
+            vms = new Set(scheduledVms)
+            tasks.forEach(({ status, data: { id } }) => {
+              status === 'success' && vms.delete(id)
+            })
+            vms = Array.from(vms)
+          } else {
+            vms = []
+            tasks.forEach(({ status, data: { id } }) => {
+              status !== 'success' && vms.push(id)
+            })
+          }
+        }
         await runBackupNgJob({
           id,
           schedule,
-          vms,
-        })
-      },
-      forceRestartFailedVms: () => async (
-        _,
-        { log: { jobId: id, scheduleId: schedule, tasks, infos } }
-      ) => {
-        const vms = getVms(tasks, infos)
-        await runBackupNgJob({
-          id,
-          schedule,
-          settings: {
-            '': {
-              bypassVdiChainsCheck: true,
-            },
-          },
+          settings: force
+            ? {
+                '': {
+                  bypassVdiChainsCheck: true,
+                },
+              }
+            : undefined,
           vms,
         })
       },
@@ -117,22 +103,23 @@ export default decorate([
           />
         )}
         {state.jobFailed && log.scheduleId !== undefined && (
-          <ActionButton
-            handler={effects.restartFailedVms}
-            icon='run'
-            size='small'
-            tooltip={_('backupRestartFailedVms')}
-          />
-        )}
-        {state.jobFailed && log.scheduleId !== undefined && (
-          <ActionButton
-            btnStyle='danger'
-            handler={effects.forceRestartFailedVms}
-            icon='run'
-            size='small'
-            color='danger'
-            tooltip={_('backupForceRestartFailedVms')}
-          />
+          <span>
+            <ActionButton
+              handler={effects.restartFailedVms}
+              icon='run'
+              size='small'
+              tooltip={_('backupRestartFailedVms')}
+            />{' '}
+            <ActionButton
+              btnStyle='danger'
+              handler={effects.restartFailedVms}
+              data-force
+              icon='run'
+              size='small'
+              color='danger'
+              tooltip={_('backupForceRestartFailedVms')}
+            />
+          </span>
         )}
       </ButtonGroup>
     </span>
