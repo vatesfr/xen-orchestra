@@ -14,7 +14,6 @@ import {
   createSelector,
 } from 'selectors'
 import {
-  find,
   flatMap,
   forEach,
   groupBy,
@@ -22,11 +21,13 @@ import {
   map,
   mapValues,
   sumBy,
+  uniq,
 } from 'lodash'
+import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 
-const styles = { margin: '0.1em', padding: '0.1em' }
-const ulStyles = { margin: 0, padding: 0 }
+const nestedUlStyle = { margin: '0.1em', marginLeft: '0.5em', padding: 0 }
+const ulStyle = { margin: 0, padding: 0 }
 
 const UsageTooltip = decorate([
   connectStore(() => {
@@ -55,102 +56,98 @@ const UsageTooltip = decorate([
   }),
   provideState({
     computed: {
+      baseCopiesUsage: (_, { group: { baseCopies } }) =>
+        formatSize(sumBy(baseCopies, 'usage')),
       vdis: (_, { group: { vdis } }) => keyBy(vdis, 'id'),
-      vmsByVdi: ({ vdis }, { vbds, vms }) =>
-        mapValues(vdis, vdi => {
-          const vbd = find(vbds, { VDI: vdi.id })
-          return vbd && vms[vbd.VM]
-        }),
+      vdisUsage: (_, { group: { vdis } }) => formatSize(sumBy(vdis, 'usage')),
+      snapshotsUsage: (_, { group: { snapshots } }) =>
+        formatSize(sumBy(snapshots, 'usage')),
+      vmNamesByVdi: createCollectionWrapper(({ vdis }, { vbds, vms }) =>
+        mapValues(vdis, vdi => get(() => vms[vbds[vdi.VBD].VM]))
+      ),
     },
   }),
   injectState,
-  ({
-    state: { vmsByVdi },
-    group: { baseCopies, id, name_label: name, usage, vdis, snapshots },
-  }) => {
-    const showBaseCopies = baseCopies !== undefined && baseCopies.n > 0
-    const showSnapshots = snapshots.length > 0
-    const showVdis = showBaseCopies || showSnapshots
-    let disk
-    let vm
-    return (
-      <div>
-        {vdis !== undefined ? (
-          <ul style={ulStyles}>
-            {showBaseCopies && (
+  class extends Component {
+    _getVdiTooltip = vdi => {
+      const vmName = this.props.state.vmNamesByVdi[vdi.id]
+      return (
+        <span>
+          {vmName === undefined
+            ? _('diskTooltip', {
+                name: vdi.name_label,
+                usage: formatSize(vdi.usage),
+              })
+            : _('vdiOnVmTooltip', {
+                name: vdi.name_label,
+                usage: formatSize(vdi.usage),
+                vmName,
+              })}
+        </span>
+      )
+    }
+
+    render() {
+      const { group, state } = this.props
+      const {
+        baseCopies,
+        name_label: name,
+        snapshots,
+        type,
+        usage,
+        vdis,
+      } = group
+      return (
+        <div>
+          {type === 'orphanedSnapshot' ? (
+            <span>
+              {_('diskTooltip', {
+                name,
+                usage: formatSize(usage),
+              })}
+            </span>
+          ) : baseCopies.length === 0 && snapshots.length === 0 ? (
+            this._getVdiTooltip(vdis[0])
+          ) : (
+            <ul style={ulStyle}>
               <li>
                 {_('baseCopyTooltip', {
-                  n: baseCopies.n,
-                  usage: formatSize(baseCopies.usage),
+                  n: baseCopies.length,
+                  usage: state.baseCopiesUsage,
                 })}
               </li>
-            )}
-            {showSnapshots && (
               <li>
                 {_('snapshotsTooltip', {
                   n: snapshots.length,
-                  usage: formatSize(sumBy(snapshots, 'usage')),
+                  usage: state.snapshotsUsage,
                 })}
-                <ul style={styles}>
-                  {snapshots.map(({ id, name_label: name, usage }) => (
-                    <li key={id}>
+                <ul style={nestedUlStyle}>
+                  {snapshots.map(snapshot => (
+                    <li key={snapshot.id}>
                       {_('diskTooltip', {
-                        name,
-                        usage: formatSize(usage),
+                        name: snapshot.name_label,
+                        usage: formatSize(snapshot.usage),
                       })}
                     </li>
                   ))}
                 </ul>
               </li>
-            )}
-            {showVdis ? (
               <li>
                 {_('vdisTooltip', {
                   n: vdis.length,
-                  usage: formatSize(sumBy(vdis, 'usage')),
+                  usage: state.vdisUsage,
                 })}
-                <ul style={styles}>
-                  {vdis.map(({ id, name_label: name, usage }) => (
-                    <li key={id}>
-                      {(vm = vmsByVdi[id]) === undefined
-                        ? _('diskTooltip', {
-                            name,
-                            usage: formatSize(usage),
-                          })
-                        : _('vdiOnVmTooltip', {
-                            name,
-                            usage: formatSize(usage),
-                            vmName: vm.name_label,
-                          })}
-                    </li>
+                <ul style={nestedUlStyle}>
+                  {vdis.map(vdi => (
+                    <li key={vdi.id}>{this._getVdiTooltip(vdi)}</li>
                   ))}
                 </ul>
               </li>
-            ) : (
-              <span>
-                {((disk = vdis[0]), (vm = vmsByVdi[disk.id])) === undefined
-                  ? _('diskTooltip', {
-                      name: disk.name_label,
-                      usage: formatSize(disk.usage),
-                    })
-                  : _('vdiOnVmTooltip', {
-                      name: disk.name_label,
-                      usage: formatSize(disk.usage),
-                      vmName: vm.name_label,
-                    })}
-              </span>
-            )}
-          </ul>
-        ) : (
-          <span>
-            {_('diskTooltip', {
-              name,
-              usage: formatSize(usage),
-            })}
-          </span>
-        )}
-      </div>
-    )
+            </ul>
+          )}
+        </div>
+      )
+    }
   },
 ])
 
@@ -170,87 +167,77 @@ export default class TabGeneral extends Component {
     () => this.props.vdiSnapshots,
     () => this.props.unmanagedVdis,
     (vdis, vdiSnapshots, unmanagedVdis) => {
-      const diskParents = []
       const groups = []
       const snapshotsByVdi = groupBy(vdiSnapshots, '$snapshot_of')
       const unmanagedVdisById = keyBy(unmanagedVdis, 'id')
-      let baseCopiesUsage
-      let bc
-      let nBaseCopies
-      let root
 
       let orphanedVdiSnapshots
       if ((orphanedVdiSnapshots = snapshotsByVdi[undefined]) !== undefined) {
-        orphanedVdiSnapshots.forEach(snapshot => {
-          groups.push(snapshot)
-        })
+        groups.push(
+          ...orphanedVdiSnapshots.map(snapshot => ({
+            id: snapshot.id,
+            name_label: snapshot.name_label,
+            usage: snapshot.usage,
+            type: 'orphanedSnapshot',
+          }))
+        )
       }
-
       // search root base copy for each VDI
-      const disks = vdis.map(({ id, parent, snapshots, ...vdi }) => {
-        baseCopiesUsage = 0
-        nBaseCopies = 0
-        root = undefined
-        while ((bc = unmanagedVdisById[parent]) !== undefined) {
-          root = bc.id
-          parent = bc.parent
-          if (!diskParents.includes(root)) {
-            nBaseCopies++
-            baseCopiesUsage += bc.usage
-            diskParents.push(root)
-          }
+      const vdisInfo = vdis.map(({ id, parent, name_label, usage }) => {
+        const baseCopies = new Set()
+        let baseCopy
+        let root = id
+        while ((baseCopy = unmanagedVdisById[parent]) !== undefined) {
+          root = baseCopy.id
+          parent = baseCopy.parent
+          baseCopies.add(baseCopy)
         }
-
+        let snapshots
         if ((snapshots = snapshotsByVdi[id]) !== undefined) {
           // snapshot can have base copy without active VDI
           snapshots.forEach(({ parent }) => {
-            if (parent !== undefined && !diskParents.includes(parent)) {
-              nBaseCopies++
-              baseCopiesUsage += unmanagedVdisById[parent].usage
-              diskParents.push(parent)
+            while (
+              (baseCopy = unmanagedVdisById[parent]) !== undefined &&
+              !baseCopies.has(baseCopy)
+            ) {
+              parent = baseCopy.parent
+              baseCopies.add(baseCopy)
             }
           })
         }
-
         return {
-          ...vdi,
+          baseCopies,
           id,
-          baseCopiesUsage,
-          nBaseCopies,
-          root: root || id,
-          snapshots: snapshots || [],
+          name_label,
+          root,
+          snapshots: snapshots === undefined ? [] : snapshots,
+          usage,
         }
       })
-
       // group VDIs by their root base copy.
-      const disksByRoot = groupBy(disks, 'root')
+      const vdisByRoot = groupBy(vdisInfo, 'root')
 
       // group collection of VDIs and their snapshots and base copies.
-      let snapshots
-      let usage
-      forEach(disksByRoot, vdis => {
-        baseCopiesUsage = 0
-        nBaseCopies = 0
-        snapshots = []
-        usage = 0
+      forEach(vdisByRoot, vdis => {
+        let baseCopies = []
+        let snapshots = []
+        let vdisUsage = 0
         vdis.forEach(vdi => {
-          usage += vdi.usage
-          nBaseCopies += vdi.nBaseCopies
-          baseCopiesUsage += vdi.baseCopiesUsage
+          vdisUsage += vdi.usage
+          baseCopies = baseCopies.concat(...vdi.baseCopies)
           snapshots = snapshots.concat(vdi.snapshots)
         })
+        baseCopies = uniq(baseCopies)
+        snapshots = uniq(snapshots)
         groups.push({
           id: vdis[0].id,
           vdis,
-          baseCopies: {
-            n: nBaseCopies,
-            usage: baseCopiesUsage,
-          },
-          usage: baseCopiesUsage + usage + sumBy(snapshots, 'usage'),
+          baseCopies,
+          usage:
+            vdisUsage + sumBy(baseCopies, 'usage') + sumBy(snapshots, 'usage'),
           snapshots,
         })
       })
-
       return groups
     }
   )
@@ -293,7 +280,7 @@ export default class TabGeneral extends Component {
             <Usage total={sr.size} type='disk'>
               {this._getDiskGroups().map(group => (
                 <UsageElement
-                  highlight={group.type === 'VDI-snapshot'}
+                  highlight={group.type === 'orphanedSnapshot'}
                   key={group.id}
                   tooltip={<UsageTooltip group={group} />}
                   value={group.usage}
