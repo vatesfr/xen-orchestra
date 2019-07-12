@@ -118,7 +118,7 @@ describe("user", () => {
   Done in 7.92s.
   ```
 
-- You can run only tests related to changed files, and review the failed output by using: `> yarn test -w`
+- You can run only tests related to changed files, and review the failed output by using: `> yarn test --watch`
 
 ## Contributions
 
