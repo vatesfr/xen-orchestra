@@ -333,15 +333,9 @@ export default decorate([
         { log: { scheduleId, jobId } }
       ) => {
         await runBackupNgJob({
+          force,
           id: jobId,
           schedule: scheduleId,
-          settings: force
-            ? {
-                '': {
-                  bypassVdiChainsCheck: true,
-                },
-              }
-            : undefined,
           vm,
         })
       },

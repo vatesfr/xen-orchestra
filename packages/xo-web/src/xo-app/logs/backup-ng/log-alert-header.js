@@ -55,15 +55,9 @@ export default decorate([
           }
         }
         await runBackupNgJob({
+          force,
           id,
           schedule,
-          settings: force
-            ? {
-                '': {
-                  bypassVdiChainsCheck: true,
-                },
-              }
-            : undefined,
           vms,
         })
       },
@@ -112,7 +106,6 @@ export default decorate([
             />
             <ActionButton
               btnStyle='danger'
-              color='danger'
               data-force
               handler={effects.restartFailedVms}
               icon='run'
