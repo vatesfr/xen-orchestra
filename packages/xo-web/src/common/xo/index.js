@@ -2007,6 +2007,7 @@ export const runBackupNgJob = params => {
         bypassVdiChainsCheck: true,
       },
     }
+    delete params.force
   }
   return _call('backupNg.runJob', params)
 }
