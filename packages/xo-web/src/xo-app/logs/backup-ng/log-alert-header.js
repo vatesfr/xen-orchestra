@@ -103,13 +103,13 @@ export default decorate([
           />
         )}
         {state.jobFailed && log.scheduleId !== undefined && (
-          <span>
+          <ButtonGroup>
             <ActionButton
               handler={effects.restartFailedVms}
               icon='run'
               size='small'
               tooltip={_('backupRestartFailedVms')}
-            />{' '}
+            />
             <ActionButton
               btnStyle='danger'
               handler={effects.restartFailedVms}
@@ -119,7 +119,7 @@ export default decorate([
               color='danger'
               tooltip={_('backupForceRestartFailedVms')}
             />
-          </span>
+          </ButtonGroup>
         )}
       </ButtonGroup>
     </span>

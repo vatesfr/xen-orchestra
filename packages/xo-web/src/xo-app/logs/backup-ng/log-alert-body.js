@@ -132,27 +132,28 @@ const Warnings = ({ warnings }) =>
     </div>
   ) : null
 
-const VmTask = ({ children, forceRestartVmJob, restartVmJob, task }) => (
+const VmTask = ({ children, restartVmJob, task }) => (
   <div>
     <Vm id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />{' '}
     {restartVmJob !== undefined && hasTaskFailed(task) && (
-      <ActionButton
-        handler={restartVmJob}
-        icon='run'
-        size='small'
-        tooltip={_('backupRestartVm')}
-        data-vm={task.data.id}
-      />
-    )}
-    {forceRestartVmJob !== undefined && hasTaskFailed(task) && (
-      <ActionButton
-        btnStyle='danger'
-        handler={forceRestartVmJob}
-        icon='run'
-        size='small'
-        tooltip={_('backupForceRestartVm')}
-        data-vm={task.data.id}
-      />
+      <span>
+        <ActionButton
+          data-vm={task.data.id}
+          handler={restartVmJob}
+          icon='run'
+          size='small'
+          tooltip={_('backupRestartVm')}
+        />{' '}
+        <ActionButton
+          btnStyle='danger'
+          data-force
+          data-vm={task.data.id}
+          handler={restartVmJob}
+          icon='run'
+          size='small'
+          tooltip={_('backupForceRestartVm')}
+        />
+      </span>
     )}
     <Warnings warnings={task.warnings} />
     {children}
@@ -326,29 +327,21 @@ export default decorate([
       setFilter: (_, filter) => () => ({
         filter,
       }),
-      restartVmJob: (_, { vm }) => async (
+      restartVmJob: (_, { force, vm }) => async (
         _,
         { log: { scheduleId, jobId } }
       ) => {
         await runBackupNgJob({
           id: jobId,
-          vm,
           schedule: scheduleId,
-        })
-      },
-      forceRestartVmJob: (_, { vm }) => async (
-        _,
-        { log: { scheduleId, jobId } }
-      ) => {
-        await runBackupNgJob({
-          id: jobId,
+          settings: force
+            ? {
+                '': {
+                  bypassVdiChainsCheck: true,
+                },
+              }
+            : undefined,
           vm,
-          schedule: scheduleId,
-          settings: {
-            '': {
-              bypassVdiChainsCheck: true,
-            },
-          },
         })
       },
     },
@@ -470,7 +463,6 @@ export default decorate([
             return (
               <TaskLi
                 className='list-group-item'
-                forceRestartVmJob={scheduleId && effects.forceRestartVmJob}
                 key={taskLog.id}
                 restartVmJob={scheduleId && effects.restartVmJob}
                 task={taskLog}
