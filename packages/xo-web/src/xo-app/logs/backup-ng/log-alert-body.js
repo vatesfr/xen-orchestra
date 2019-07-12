@@ -1,5 +1,6 @@
 import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
+import ButtonGroup from 'button-group'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -136,14 +137,14 @@ const VmTask = ({ children, restartVmJob, task }) => (
   <div>
     <Vm id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />{' '}
     {restartVmJob !== undefined && hasTaskFailed(task) && (
-      <span>
+      <ButtonGroup>
         <ActionButton
           data-vm={task.data.id}
           handler={restartVmJob}
           icon='run'
           size='small'
           tooltip={_('backupRestartVm')}
-        />{' '}
+        />
         <ActionButton
           btnStyle='danger'
           data-force
@@ -153,7 +154,7 @@ const VmTask = ({ children, restartVmJob, task }) => (
           size='small'
           tooltip={_('backupForceRestartVm')}
         />
-      </span>
+      </ButtonGroup>
     )}
     <Warnings warnings={task.warnings} />
     {children}
