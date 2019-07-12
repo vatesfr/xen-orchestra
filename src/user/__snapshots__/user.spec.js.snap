@@ -6,10 +6,6 @@ exports[`user .changePassword() : changes the actual user password 2`] = `[JsonR
 
 exports[`user .changePassword() : fails trying to change the password with invalid oldPassword 1`] = `[JsonRpcError: invalid credentials]`;
 
-exports[`user .changePassword() : fails trying to change the password without newPassword 1`] = `[JsonRpcError: invalid parameters]`;
-
-exports[`user .changePassword() : fails trying to change the password without oldPassword 1`] = `[JsonRpcError: invalid parameters]`;
-
 exports[`user .create() : creates a user with permission 1`] = `
 Object {
   "email": "wayne2@vates.fr",

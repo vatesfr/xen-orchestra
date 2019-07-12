@@ -99,26 +99,17 @@ describe("user", () => {
       ).rejects.toMatchSnapshot();
     });
 
-    withData(
-      {
-        "fails trying to change the password without newPassword": {
-          oldPassword: SIMPLE_USER.password,
-        },
-        "fails trying to change the password without oldPassword": {
-          newPassword: "newpwd",
-        },
-        "fails trying to change the password with invalid oldPassword": {
-          oldPassword: "falsepwd",
-          newPassword: "newpwd",
-        },
-      },
-      async data => {
-        await xo.createTempUser(SIMPLE_USER);
-        await testWithOtherConnection(SIMPLE_USER, xo =>
-          expect(xo.call("user.changePassword", data)).rejects.toMatchSnapshot()
-        );
-      }
-    );
+    it("fails trying to change the password with invalid oldPassword", async () => {
+      await xo.createTempUser(SIMPLE_USER);
+      await testWithOtherConnection(SIMPLE_USER, xo =>
+        expect(
+          xo.call("user.changePassword", {
+            oldPassword: "falsepwd",
+            newPassword: "newpwd",
+          })
+        ).rejects.toMatchSnapshot()
+      );
+    });
   });
 
   describe(".getAll() :", () => {
