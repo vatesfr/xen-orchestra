@@ -112,11 +112,11 @@ export default decorate([
             />
             <ActionButton
               btnStyle='danger'
-              handler={effects.restartFailedVms}
+              color='danger'
               data-force
+              handler={effects.restartFailedVms}
               icon='run'
               size='small'
-              color='danger'
               tooltip={_('backupForceRestartFailedVms')}
             />
           </ButtonGroup>
