@@ -2000,8 +2000,8 @@ export const editBackupNgJob = props =>
 
 export const getBackupNgJob = id => _call('backupNg.getJob', { id })
 
-export const runBackupNgJob = params => {
-  if (params.force !== undefined && params.force) {
+export const runBackupNgJob = ({ force, ...params }) => {
+  if (force) {
     params.settings = {
       '': {
         bypassVdiChainsCheck: true,
