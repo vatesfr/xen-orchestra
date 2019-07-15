@@ -13,6 +13,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/Advanced] Fix virtualization mode switch (PV/HVM) (PR [#4349](https://github.com/vatesfr/xen-orchestra/pull/4349))
 
 ### Released packages
 
