@@ -10,6 +10,7 @@ export default class Pools {
     const targetHost = _xo.getObject(target.master)
     const sources = []
     const sourcePatches = {}
+    // Check sources brand.
     for (const sourceId of sourceIds) {
       const source = _xo.getObject(sourceId)
       const sourceHost = _xo.getObject(source.master)
