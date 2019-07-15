@@ -631,6 +631,8 @@ set.params = {
 
   // set the VM boot firmware mode
   hvmBootFirmware: { type: ['string', 'null'], optional: true },
+
+  virtualizationMode: { type: 'string', optional: true },
 }
 
 set.resolve = {
