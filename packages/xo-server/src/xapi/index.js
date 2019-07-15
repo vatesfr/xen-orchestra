@@ -1158,6 +1158,7 @@ export default class Xapi extends XapiBase {
         {
           force: 'true',
         }
+        // {} VGPU map is required by XAPI since XS6.1, it migh bet necessary in the future.
       )::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
         pDelay(1e4).then(loop)
       )
