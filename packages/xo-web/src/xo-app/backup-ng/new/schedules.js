@@ -6,7 +6,7 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import { Card, CardBlock, CardHeader } from 'card'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, find, size } from 'lodash'
+import { isEmpty, find } from 'lodash'
 
 import { FormFeedback } from './../utils'
 
@@ -23,10 +23,9 @@ export default decorate([
   injectState,
   provideState({
     computed: {
-      disabledDeletion: state => size(state.schedules) <= 1,
       error: state => find(FEEDBACK_ERRORS, error => state[error]),
       individualActions: (
-        { disabledDeletion, disabledEdition },
+        { disabledEdition },
         { effects: { deleteSchedule, showScheduleModal } }
       ) => [
         {
@@ -37,7 +36,6 @@ export default decorate([
           level: 'primary',
         },
         {
-          disabled: disabledDeletion,
           handler: deleteSchedule,
           icon: 'delete',
           label: _('scheduleDelete'),
