@@ -105,10 +105,10 @@ export default decorate([
               tooltip={_('backupRestartFailedVms')}
             />
             <ActionButton
-              btnStyle='danger'
+              btnStyle='warning'
               data-force
               handler={effects.restartFailedVms}
-              icon='run'
+              icon='force-restart'
               size='small'
               tooltip={_('backupForceRestartFailedVms')}
             />

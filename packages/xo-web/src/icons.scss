@@ -140,6 +140,10 @@
     @extend .fa;
     @extend .fa-play;
   }
+  &-force-restart {
+    @extend .fa;
+    @extend .fa-forward;
+  }
   &-ssh-key {
     @extend .fa;
     @extend .fa-key;

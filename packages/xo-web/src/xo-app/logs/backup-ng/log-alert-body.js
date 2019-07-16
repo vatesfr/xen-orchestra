@@ -146,11 +146,11 @@ const VmTask = ({ children, restartVmJob, task }) => (
           tooltip={_('backupRestartVm')}
         />
         <ActionButton
-          btnStyle='danger'
+          btnStyle='warning'
           data-force
           data-vm={task.data.id}
           handler={restartVmJob}
-          icon='run'
+          icon='force-restart'
           size='small'
           tooltip={_('backupForceRestartVm')}
         />
