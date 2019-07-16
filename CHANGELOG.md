@@ -8,6 +8,7 @@
 - [Settings/servers] Display servers connection issues [#4300](https://github.com/vatesfr/xen-orchestra/issues/4300) (PR [#4310](https://github.com/vatesfr/xen-orchestra/pull/4310))
 - [VM] Permission to revert to any snapshot for VM operators [#3928](https://github.com/vatesfr/xen-orchestra/issues/3928) (PR [#4247](https://github.com/vatesfr/xen-orchestra/pull/4247))
 - [VM] Show current operations and progress [#3811](https://github.com/vatesfr/xen-orchestra/issues/3811) (PR [#3982](https://github.com/vatesfr/xen-orchestra/pull/3982))
+- [SR/General] Improve SR usage graph [#3608](https://github.com/vatesfr/xen-orchestra/issues/3608) (PR [#3830](https://github.com/vatesfr/xen-orchestra/pull/3830))
 
 ### Bug fixes
 
@@ -17,14 +18,15 @@
 - [Backup-ng/restore] Display correct size for full VM backup [#4316](https://github.com/vatesfr/xen-orchestra/issues/4316) (PR [#4332](https://github.com/vatesfr/xen-orchestra/pull/4332))
 - [VM/tab-advanced] Fix CPU limits edition (PR [#4337](https://github.com/vatesfr/xen-orchestra/pull/4337))
 - [Remotes] Fix `EIO` errors due to massive parallel fs operations [#4323](https://github.com/vatesfr/xen-orchestra/issues/4323) (PR [#4330](https://github.com/vatesfr/xen-orchestra/pull/4330))
+- [VM/Advanced] Fix virtualization mode switch (PV/HVM) (PR [#4349](https://github.com/vatesfr/xen-orchestra/pull/4349))
 
 ### Released packages
 
 - @xen-orchestra/fs v0.10.0
 - xo-server-sdn-controller v0.1.1
 - xen-api v0.27.0
-- xo-server v5.45.0
-- xo-web v5.45.0
+- xo-server v5.45.1
+- xo-web v5.45.1
 
 ## **5.36.0** (2019-06-27)
 

@@ -7,13 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [SR/General] Improve SR usage graph [#3608](https://github.com/vatesfr/xen-orchestra/issues/3608) (PR [#3830](https://github.com/vatesfr/xen-orchestra/pull/3830))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [VM/Advanced] Fix virtualization mode switch (PV/HVM) (PR [#4349](https://github.com/vatesfr/xen-orchestra/pull/4349))
 
 ### Released packages
 
