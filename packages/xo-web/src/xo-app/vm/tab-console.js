@@ -81,11 +81,8 @@ export default class TabConsole extends Component {
       this.setState({ clipboard: value })
       this.refs.noVnc.setClipboard(value)
     }, 200)
-    return value => setRemoteClipboard(value)
+    return event => setRemoteClipboard(getEventValue(event))
   })
-
-  _setRemoteClipboardFromInput = event =>
-    this._setRemoteClipboard(getEventValue(event))
 
   _showFormModal = async () =>
     this._setRemoteClipboard(
@@ -157,10 +154,11 @@ export default class TabConsole extends Component {
                 />
               </span>
               <input
-                type='text'
                 className='form-control'
+                onChange={this._setRemoteClipboard}
                 ref='clipboard'
-                onChange={this._setRemoteClipboardFromInput}
+                type='text'
+                value={this.state.clipboard}
               />
               <span className='input-group-btn'>
                 <CopyToClipboard text={this.state.clipboard}>
