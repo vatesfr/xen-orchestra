@@ -22,10 +22,10 @@
 
 ### Released packages
 
-- @xen-orchestra/fs v0.10.0
+- @xen-orchestra/fs v0.10.1
 - xo-server-sdn-controller v0.1.1
 - xen-api v0.27.1
-- xo-server v5.45.2
+- xo-server v5.45.3
 - xo-web v5.45.1
 
 ## **5.36.0** (2019-06-27)
