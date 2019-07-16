@@ -1158,6 +1158,9 @@ export default class Xapi extends XapiBase {
         {
           force: 'true',
         }
+        // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
+        // might need to be changed one day.
+        // {},
       )::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
         pDelay(1e4).then(loop)
       )
