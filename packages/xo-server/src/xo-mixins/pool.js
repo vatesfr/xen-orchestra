@@ -10,7 +10,8 @@ export default class Pools {
     const targetHost = _xo.getObject(target.master)
     const sources = []
     const sourcePatches = {}
-    // Check sources brand.
+
+    // Check hosts compatibility.
     for (const sourceId of sourceIds) {
       const source = _xo.getObject(sourceId)
       const sourceHost = _xo.getObject(source.master)
@@ -22,6 +23,7 @@ export default class Pools {
       sources.push(source)
       sourcePatches[sourceId] = sourceHost.patches
     }
+
     // Find missing patches on the target.
     const targetRequiredPatches = uniq(
       flatten(
@@ -32,6 +34,7 @@ export default class Pools {
         )
       )
     )
+
     // Find missing patches on the sources.
     const allRequiredPatches = targetRequiredPatches.concat(
       targetHost.patches.map(patchId => _xo.getObject(patchId).name)
@@ -46,6 +49,7 @@ export default class Pools {
         sourceRequiredPatches[sourceId] = requiredPatches
       }
     }
+
     // On XCP-ng, "installPatches" installs *all* the patches
     // whatever the patches argument is.
     // So we must not call it if there are no patches to install.
@@ -64,6 +68,7 @@ export default class Pools {
         targetXapi.findPatches(targetRequiredPatches),
         ...findPatchesPromises,
       ])
+
       // Install patches in parallel.
       const installPatchesPromises = []
       installPatchesPromises.push(
@@ -82,6 +87,7 @@ export default class Pools {
 
       await Promise.all(installPatchesPromises)
     }
+
     // Merge the sources into the target sequentially to be safe.
     for (const source of sources) {
       await _xo.mergeXenPools(source._xapiId, target._xapiId, force)
