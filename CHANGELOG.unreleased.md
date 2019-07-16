@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup NG/New] Generate default schedule if no schedule is specified [#4036](https://github.com/vatesfr/xen-orchestra/issues/4036) (PR [#4183](https://github.com/vatesfr/xen-orchestra/pull/4183))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
