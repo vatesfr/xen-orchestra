@@ -24,8 +24,8 @@
 
 - @xen-orchestra/fs v0.10.0
 - xo-server-sdn-controller v0.1.1
-- xen-api v0.27.0
-- xo-server v5.45.1
+- xen-api v0.27.1
+- xo-server v5.45.2
 - xo-web v5.45.1
 
 ## **5.36.0** (2019-06-27)
