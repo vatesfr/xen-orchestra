@@ -65,7 +65,6 @@ export default class TabConsole extends Component {
       this._toggleMinimalLayout()
     }
   }
-
   _sendCtrlAltDel = () => {
     this.refs.noVnc.sendCtrlAltDel()
   }
