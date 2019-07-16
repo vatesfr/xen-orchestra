@@ -4,6 +4,7 @@ import Button from 'button'
 import Component from 'base-component'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import debounce from 'lodash/debounce'
+import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import invoke from 'invoke'
 import IsoDevice from 'iso-device'
@@ -12,13 +13,45 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { isVmRunning, resolveUrl } from 'xo'
 import { Col, Container, Row } from 'grid'
+import { confirm } from 'modal'
 import {
   CpuSparkLines,
   MemorySparkLines,
   NetworkSparkLines,
   XvdSparkLines,
 } from 'xo-sparklines'
-import { form } from 'modal'
+
+class SendToClipboard extends Component {
+  componentWillMount() {
+    this.setState({ value: this.props.clipboard })
+  }
+
+  get value() {
+    return this.state.value
+  }
+
+  _onChange = event => this.setState({ value: getEventValue(event) })
+
+  _selectContent = ref => {
+    if (ref !== null) {
+      ref.select()
+    }
+  }
+
+  render() {
+    return (
+      <div>
+        <textarea
+          className='form-control'
+          onChange={this._onChange}
+          ref={this._selectContent}
+          rows={10}
+          value={this.state.value}
+        />
+      </div>
+    )
+  }
+}
 
 export default class TabConsole extends Component {
   state = { clipboard: '', scale: 1 }
@@ -30,12 +63,6 @@ export default class TabConsole extends Component {
       this.state.minimalLayout
     ) {
       this._toggleMinimalLayout()
-    }
-  }
-
-  _addFocus = ref => {
-    if (ref !== null) {
-      ref.focus()
     }
   }
 
@@ -59,28 +86,14 @@ export default class TabConsole extends Component {
   })
 
   _setRemoteClipboardFromInput = event =>
-    this._setRemoteClipboard(event.target.value)
+    this._setRemoteClipboard(getEventValue(event))
 
   _showFormModal = async () =>
     this._setRemoteClipboard(
-      await form({
-        defaultValue: this.state.clipboard,
-        header: (
-          <span>
-            <Icon icon='file-text' /> {_('copyToClipboard')}
-          </span>
-        ),
-        render: props => (
-          <div>
-            <textarea
-              {...props}
-              className='form-control'
-              ref={this._addFocus}
-              rows={10}
-              value={props.value}
-            />
-          </div>
-        ),
+      await confirm({
+        icon: 'file-text',
+        title: _('sendToClipboard'),
+        body: <SendToClipboard clipboard={this.state.clipboard} />,
       })
     )
 

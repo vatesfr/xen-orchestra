@@ -983,6 +983,7 @@ const messages = {
   tipLabel: 'Tip:',
   hideHeaderTooltip: 'Hide info',
   showHeaderTooltip: 'Show info',
+  sendToClipboard: 'Send to clipboard',
 
   // ----- VM container tab -----
   containerName: 'Name',
