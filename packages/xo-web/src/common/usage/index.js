@@ -2,16 +2,18 @@ import _ from 'intl'
 import classNames from 'classnames'
 import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
-import sum from 'lodash/sum'
+import { compact, sum } from 'lodash'
 
 import Tooltip from '../tooltip'
 
 const Usage = ({ total, children }) => {
   const limit = total / 400
-  const othersValues = React.Children.map(children, child => {
-    const { value } = child.props
-    return value < limit && value
-  })
+  const othersValues = compact(
+    React.Children.map(children, child => {
+      const { value } = child.props
+      return value < limit && value
+    })
+  )
   const othersTotal = sum(othersValues)
   const nOthers = othersValues.length
   return (
