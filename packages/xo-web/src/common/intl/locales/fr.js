@@ -1383,7 +1383,7 @@ export default {
   addHostErrorTitle: "L'ajout de l'hôte a échoué.",
 
   // Original text: "Host patches could not be homogenized."
-  addHostsNotHomogeneousErrorMessage:
+  addHostNotHomogeneousErrorMessage:
     "Les patches de l'hôte n'ont pas pu être homogénéisés.",
 
   // Original text: "Disconnect"

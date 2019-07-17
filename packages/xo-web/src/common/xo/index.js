@@ -605,7 +605,7 @@ export const addHostsToPool = pool =>
 
       error(
         _('addHostsErrorTitle', { nHosts: hosts.length }),
-        _('addHostsNotHomogeneousErrorMessage')
+        _('addHostNotHomogeneousErrorMessage')
       )
     })
   })

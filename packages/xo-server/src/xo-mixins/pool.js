@@ -20,6 +20,9 @@ export default class Pools {
           `a ${sourceHost.productBrand} pool cannot be merged into a ${targetHost.productBrand} pool`
         )
       }
+      if (sourceHost.version !== targetHost.version) {
+        throw new Error('The hosts are not compatible')
+      }
       sources.push(source)
       sourcePatches[sourceId] = sourceHost.patches
     }
