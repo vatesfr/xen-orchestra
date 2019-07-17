@@ -1,0 +1,9 @@
+/coverage/
+/dist/
+/node_modules/
+
+npm-debug.log
+npm-debug.log.*
+pnpm-debug.log
+pnpm-debug.log.*
+yarn-error.log
