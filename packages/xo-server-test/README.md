@@ -1,4 +1,4 @@
-# xo-test [![Build Status](https://travis-ci.org/vatesfr/xo-test.png?branch=master)](https://travis-ci.org/vatesfr/xo-test)
+# xo-server-test
 
 > Test client for Xo-Server
 
@@ -10,7 +10,7 @@
 src
 ├─ user
 |   ├─ __snapshots__
-|   |     └─ index.spec.js.snap 
+|   |     └─ index.spec.js.snap
 |   └─ index.spec.js
 ├─ job
 ¦   └─ index.spec.js
@@ -20,7 +20,7 @@ src
 └─ util.js
 ```
 
-The tests can describe xo methods or scenarios:  
+The tests can describe xo methods or scenarios:
 ```javascript
 import xo from "../_xoConnection";
 
@@ -37,7 +37,7 @@ describe("user", () => {
       });
     });
   });
-      
+
   // testing a scenario
   test("create two users, modify a user email to be the same with the other and fail trying to connect them", () => {
     /* some tests */
@@ -48,8 +48,8 @@ describe("user", () => {
 
 ### Best practices
 
-- The test environment must remain the same before and after each test:  
-  * each resource created must be deleted  
+- The test environment must remain the same before and after each test:
+  * each resource created must be deleted
   * existing resources should not be altered
 
 - Make a sentence for the title of the test. It must be clear and consistent.
@@ -58,10 +58,10 @@ describe("user", () => {
 
 - Take values ​​that cover the maximum of testing possibilities.
 
-- If you make tests which keep track of large object, it is better to use snapshots.  
+- If you make tests which keep track of large object, it is better to use snapshots.
 
-- `_xoConnection.js` contains helpers to create temporary resources and to interface with XO.  
-  You can use it if you need to create resources which will be automatically deleted after the test:  
+- `_xoConnection.js` contains helpers to create temporary resources and to interface with XO.
+  You can use it if you need to create resources which will be automatically deleted after the test:
   ```javascript
   import xo from "../_xoConnection";
 
@@ -79,29 +79,29 @@ describe("user", () => {
   });
   ```
 
-  The available helpers:  
-  * `createTempUser(params)`  
-  * `getUser(id)`  
-  * `createTempJob(params)`  
-  * `createTempBackupNgJob(params)`  
-  * `createTempVm(params)`  
-  * `getSchedule(predicate)`  
+  The available helpers:
+  * `createTempUser(params)`
+  * `getUser(id)`
+  * `createTempJob(params)`
+  * `createTempBackupNgJob(params)`
+  * `createTempVm(params)`
+  * `getSchedule(predicate)`
 
 ## Usage
 
-- Before running the tests, you have to create a config file for xo-server-test.  
+- Before running the tests, you have to create a config file for xo-server-test.
   ```
   > cp sample.config.toml ~/.config/xo-server-test/config.toml
   ```
   And complete it.
 
-- To run the tests:  
+- To run the tests:
   ```
   > npm ci
   > yarn test
   ```
 
-  You get all the test suites passed (`PASS`) or failed (`FAIL`).  
+  You get all the test suites passed (`PASS`) or failed (`FAIL`).
   ```
   > yarn test
   yarn run v1.9.4
@@ -127,7 +127,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-test/issues)
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 
