@@ -71,10 +71,9 @@ export default class TabConsole extends Component {
 
   _getRemoteClipboard = clipboard => {
     this.setState({ clipboard })
-    this.refs.clipboard.value = clipboard
   }
 
-  _getClipboardContent = () => this.refs.clipboard && this.refs.clipboard.value
+  _getClipboardContent = () => this.state.clipboard
 
   _setRemoteClipboard = invoke(() => {
     const setRemoteClipboard = debounce(value => {
@@ -156,7 +155,6 @@ export default class TabConsole extends Component {
               <input
                 className='form-control'
                 onChange={this._setRemoteClipboard}
-                ref='clipboard'
                 type='text'
                 value={this.state.clipboard}
               />
