@@ -131,9 +131,11 @@ export default class extends Component {
       body: (
         <div>
           <p>{_('editHostIscsiIqnMessage')}</p>
-          <span className='text-muted'>
-            <Icon icon='info' /> {_('uniqueHostIscsiIqnInfo')}
-          </span>
+          <p>
+            <span className='text-muted'>
+              <Icon icon='info' /> {_('uniqueHostIscsiIqnInfo')}
+            </span>
+          </p>
         </div>
       ),
     }).then(() => editHost(this.props.host, { iscsiIqn }), noop)
