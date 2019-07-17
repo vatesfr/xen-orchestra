@@ -1897,7 +1897,7 @@ const messages = {
   OtpAuthentication: 'OTP authentication',
 
   // ----- Usage -----
-  others: 'Others',
+  others: '{nOthers, number} other{nOthers, plural, one {} other {s}}',
 
   // ----- Logs -----
   logUser: 'User',
