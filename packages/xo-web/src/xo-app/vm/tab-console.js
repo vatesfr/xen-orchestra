@@ -30,8 +30,6 @@ class SendToClipboard extends Component {
     return this.state.value
   }
 
-  _onChange = event => this.setState({ value: getEventValue(event) })
-
   _selectContent = ref => {
     if (ref !== null) {
       ref.select()
@@ -43,7 +41,7 @@ class SendToClipboard extends Component {
       <div>
         <textarea
           className='form-control'
-          onChange={this._onChange}
+          onChange={this.linkState('value')}
           ref={this._selectContent}
           rows={10}
           value={this.state.value}
@@ -73,8 +71,6 @@ export default class TabConsole extends Component {
     this.setState({ clipboard })
   }
 
-  _getClipboardContent = () => this.state.clipboard
-
   _setRemoteClipboard = invoke(() => {
     const setRemoteClipboard = debounce(value => {
       this.setState({ clipboard: value })
@@ -83,10 +79,10 @@ export default class TabConsole extends Component {
     return event => setRemoteClipboard(getEventValue(event))
   })
 
-  _showFormModal = async () =>
+  _openClipboardModal = async () =>
     this._setRemoteClipboard(
       await confirm({
-        icon: 'file-text',
+        icon: 'multiline-clipboard',
         title: _('sendToClipboard'),
         body: <SendToClipboard clipboard={this.state.clipboard} />,
       })
@@ -147,8 +143,8 @@ export default class TabConsole extends Component {
             <div className='input-group'>
               <span className='input-group-btn'>
                 <ActionButton
-                  handler={this._showFormModal}
-                  icon='file-text'
+                  handler={this._openClipboardModal}
+                  icon='multiline-clipboard'
                   tooltip={_('multilineCopyToClipboard')}
                 />
               </span>
