@@ -31,7 +31,7 @@ set.description = 'changes the properties of an host'
 
 set.params = {
   id: { type: 'string' },
-  iscsiIqn: { type: ['string'], optional: true },
+  iscsiIqn: { type: 'string', optional: true },
   name_label: {
     type: 'string',
     optional: true,
