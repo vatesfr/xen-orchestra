@@ -333,10 +333,10 @@ export default decorate([
         { log: { scheduleId, jobId } }
       ) => {
         await runBackupNgJob({
-          force: params && params.force,
+          force: get(() => params.force),
           id: jobId,
           schedule: scheduleId,
-          vm: params && params.vm,
+          vm: get(() => params.vm),
         })
       },
     },

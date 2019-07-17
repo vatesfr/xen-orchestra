@@ -55,7 +55,7 @@ export default decorate([
           }
         }
         await runBackupNgJob({
-          force: params && params.force,
+          force: get(() => params.force),
           id,
           schedule,
           vms,
