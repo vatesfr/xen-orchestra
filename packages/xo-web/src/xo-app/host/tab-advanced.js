@@ -131,7 +131,7 @@ export default class extends Component {
       body: (
         <div>
           {_('editHostIscsiIqnMessage')}
-          <br />
+          <p />
           <span className='text-muted'>
             <Icon icon='info' /> {_('uniqueHostIscsiIqnInfo')}
           </span>

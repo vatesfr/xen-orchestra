@@ -141,10 +141,7 @@ const TRANSFORMS = {
       },
       current_operations: obj.current_operations,
       hostname: obj.hostname,
-      iscsiIqn:
-        obj.iscsi_iqn === undefined
-          ? otherConfig.iscsi_iqn ?? ''
-          : obj.iscsi_iqn,
+      iscsiIqn: obj.iscsi_iqn ?? otherConfig.iscsi_iqn ?? '',
       license_params: obj.license_params,
       license_server: obj.license_server,
       license_expiry: toTimestamp(obj.license_params.expiry),

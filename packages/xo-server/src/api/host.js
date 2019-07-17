@@ -13,13 +13,13 @@ export async function set({
   host = this.getXapiObject(host)
 
   await Promise.all([
-    iscsiIqn === undefined
-      ? false
-      : host.iscsi_iqn !== undefined
-      ? host.set_iscsi_iqn(iscsiIqn)
-      : iscsiIqn === ''
-      ? host.$xapi.call('host.remove_from_other_config', host.$ref, 'iscsi_iqn')
-      : host.update_other_config('iscsi_iqn', iscsiIqn),
+    iscsiIqn !== undefined &&
+      (host.iscsi_iqn !== undefined
+        ? host.set_iscsi_iqn(iscsiIqn)
+        : host.update_other_config(
+            'iscsi_iqn',
+            iscsiIqn === '' ? null : iscsiIqn
+          )),
     nameDescription !== undefined && host.set_name_description(nameDescription),
     nameLabel !== undefined && host.set_name_label(nameLabel),
     multipathing !== undefined &&
