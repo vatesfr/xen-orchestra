@@ -328,15 +328,15 @@ export default decorate([
       setFilter: (_, filter) => () => ({
         filter,
       }),
-      restartVmJob: (_, { force, vm }) => async (
+      restartVmJob: (_, params) => async (
         _,
         { log: { scheduleId, jobId } }
       ) => {
         await runBackupNgJob({
-          force,
+          force: params && params.force,
           id: jobId,
           schedule: scheduleId,
-          vm,
+          vm: params && params.vm,
         })
       },
     },

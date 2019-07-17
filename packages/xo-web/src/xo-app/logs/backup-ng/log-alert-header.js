@@ -31,7 +31,7 @@ export default decorate([
     effects: {
       _downloadLog: () => ({ formattedLog }, { log }) =>
         downloadLog({ log: formattedLog, date: log.start, type: 'backup NG' }),
-      restartFailedVms: (_, { force }) => async (
+      restartFailedVms: (_, params) => async (
         _,
         { log: { jobId: id, scheduleId: schedule, tasks, infos } }
       ) => {
@@ -55,7 +55,7 @@ export default decorate([
           }
         }
         await runBackupNgJob({
-          force,
+          force: params && params.false,
           id,
           schedule,
           vms,
