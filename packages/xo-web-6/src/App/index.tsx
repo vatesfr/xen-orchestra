@@ -55,11 +55,12 @@ export default withStore(
           </ul>
         </nav>
 
-      <React.Suspense fallback='loading'>
-        <Route path='/' exact component={Bar} />
-        <Route path='/foo' component={Foo} />
-        <Route path='/visualization' component={Visualization} />
-      </React.Suspense>
-    </HelmetProvider>
-  </Router>
+        <React.Suspense fallback='loading'>
+          <Route path='/' exact component={Bar} />
+          <Route path='/foo' component={Foo} />
+          <Route path='/visualization' component={Visualization} />
+        </React.Suspense>
+      </HelmetProvider>
+    </Router>
+  )
 )
