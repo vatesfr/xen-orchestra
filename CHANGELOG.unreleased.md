@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backup NG/New] Generate default schedule if no schedule is specified [#4036](https://github.com/vatesfr/xen-orchestra/issues/4036) (PR [#4183](https://github.com/vatesfr/xen-orchestra/pull/4183))
+- [Host/Advanced] Ability to edit iSCSI IQN [#4048](https://github.com/vatesfr/xen-orchestra/issues/4048) (PR [#4208](https://github.com/vatesfr/xen-orchestra/pull/4208))
 
 ### Bug fixes
 
