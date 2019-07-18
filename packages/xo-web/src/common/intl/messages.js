@@ -1931,7 +1931,9 @@ const messages = {
   reportBug: 'Report a bug',
   unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
   backupRestartVm: "Restart VM's backup",
+  backupForceRestartVm: "Force restart VM's backup",
   backupRestartFailedVms: "Restart failed VMs' backup",
+  backupForceRestartFailedVms: "Force restart failed VMs' backup",
   clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------
