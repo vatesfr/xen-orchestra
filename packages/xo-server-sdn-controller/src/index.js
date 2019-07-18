@@ -518,35 +518,30 @@ class SDNController extends EventEmitter {
 
     let newCenter = null
     const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
+
+    for (const host of hosts) {
+      const pif = find(host.$PIFs, { network: network.$ref })
+      if (pif != null && pif.currently_attached && host.$metrics.live) {
+        newCenter = host
+      }
+    }
+
     await Promise.all(
       map(hosts, async host => {
-        if (resetNeeded) {
-          // Clean old ports and interfaces
-          const hostClient = find(this._ovsdbClients, { host: host.$ref })
-          if (hostClient != null) {
-            try {
-              await hostClient.resetForNetwork(network.uuid, network.name_label)
-            } catch (error) {
-              log.error(
-                `Couldn't reset network: '${network.name_label}' for host: '${host.name_label}' in pool: '${network.$pool.name_label}' because: ${error}`
-              )
-              return
-            }
-          }
-        }
-
-        if (newCenter != null) {
+        if (!resetNeeded) {
           return
         }
 
-        const pif = find(host.$PIFs, { network: network.$ref })
-        if (
-          pif != null &&
-          pif.currently_attached &&
-          host.enabled &&
-          host.$metrics.live
-        ) {
-          newCenter = host
+        // Clean old ports and interfaces
+        const hostClient = find(this._ovsdbClients, { host: host.$ref })
+        if (hostClient != null) {
+          try {
+            await hostClient.resetForNetwork(network.uuid, network.name_label)
+          } catch (error) {
+            log.error(
+              `Couldn't reset network: '${network.name_label}' for host: '${host.name_label}' in pool: '${network.$pool.name_label}' because: ${error}`
+            )
+          }
         }
       })
     )
