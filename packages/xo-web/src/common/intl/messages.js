@@ -979,9 +979,11 @@ const messages = {
   // ----- VM console tab -----
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
+  multilineCopyToClipboard: 'Multiline copy',
   tipLabel: 'Tip:',
   hideHeaderTooltip: 'Hide info',
   showHeaderTooltip: 'Show info',
+  sendToClipboard: 'Send to clipboard',
 
   // ----- VM container tab -----
   containerName: 'Name',

@@ -11,6 +11,7 @@
 - [Host/Advanced] Ability to edit iSCSI IQN [#4048](https://github.com/vatesfr/xen-orchestra/issues/4048) (PR [#4208](https://github.com/vatesfr/xen-orchestra/pull/4208))
 - [Backup NG] Ability to bypass unhealthy VDI chains check [#4324](https://github.com/vatesfr/xen-orchestra/issues/4324) (PR [#4340](https://github.com/vatesfr/xen-orchestra/pull/4340))
 - [Pool] Ability to add multiple hosts on the pool [#2402](https://github.com/vatesfr/xen-orchestra/issues/2402) (PR [#3716](https://github.com/vatesfr/xen-orchestra/pull/3716))
+- [VM/console] Multiline copy/pasting [#4261](https://github.com/vatesfr/xen-orchestra/issues/4261) (PR [#4341](https://github.com/vatesfr/xen-orchestra/pull/4341))
 
 ### Bug fixes
 
