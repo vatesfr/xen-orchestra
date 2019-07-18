@@ -22,9 +22,7 @@ import {
 } from 'xo-sparklines'
 
 class SendToClipboard extends Component {
-  componentWillMount() {
-    this.setState({ value: this.props.clipboard })
-  }
+  state = { value: this.props.clipboard }
 
   get value() {
     return this.state.value
