@@ -562,7 +562,6 @@ export const getPatchesDifference = (source, target) =>
     target: resolveId(target),
   })
 
-import AddHostModalBody from './add-host-modal' // eslint-disable-line import/first
 export const addHostToPool = (pool, host) => {
   if (host) {
     return confirm({
@@ -580,18 +579,23 @@ export const addHostToPool = (pool, host) => {
       })
     )
   }
+}
 
-  return confirm({
+import AddHostsModalBody from './add-hosts-modal' // eslint-disable-line import/first
+export const addHostsToPool = pool =>
+  confirm({
     icon: 'add',
-    title: _('addHostModalTitle'),
-    body: <AddHostModalBody pool={pool} />,
+    title: _('addHostsLabel'),
+    body: <AddHostsModalBody pool={pool} />,
   }).then(params => {
-    if (!params.host) {
+    const { hosts } = params
+    if (isEmpty(hosts)) {
       error(_('addHostNoHost'), _('addHostNoHostMessage'))
       return
     }
+
     return _call('pool.mergeInto', {
-      source: params.host.$pool,
+      sources: map(hosts, '$pool'),
       target: pool.id,
       force: true,
     }).catch(error => {
@@ -599,10 +603,12 @@ export const addHostToPool = (pool, host) => {
         throw error
       }
 
-      error(_('addHostErrorTitle'), _('addHostNotHomogeneousErrorMessage'))
+      error(
+        _('addHostsErrorTitle', { nHosts: hosts.length }),
+        _('addHostNotHomogeneousErrorMessage')
+      )
     })
-  }, noop)
-}
+  })
 
 export const detachHost = host =>
   confirm({

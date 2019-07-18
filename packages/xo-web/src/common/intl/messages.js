@@ -770,14 +770,14 @@ const messages = {
   // ----- Pool actions ------
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
-  addHostLabel: 'Add Host',
+  addHostsLabel: 'Add hosts',
   missingPatchesPool:
     'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   missingPatchesHost:
-    'This host needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
+    'The selected host{nHosts, plural, one {} other {s}} need{nHosts, plural, one {s} other {}} to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   patchUpdateNoInstall:
-    'This host cannot be added to the pool because the patches are not homogeneous.',
-  addHostErrorTitle: 'Adding host failed',
+    'The selected host{nHosts, plural, one {} other {s}} cannot be added to the pool because the patches are not homogeneous.',
+  addHostsErrorTitle: 'Adding host{nHosts, plural, one {} other {s}} failed',
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
 
@@ -1744,7 +1744,7 @@ const messages = {
   privateNetwork: 'Private network',
 
   // ----- Add host -----
-  addHostSelectHost: 'Host',
+  hosts: 'Hosts',
   addHostNoHost: 'No host',
   addHostNoHostMessage: 'No host selected to be added',
 
