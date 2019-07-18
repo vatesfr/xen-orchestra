@@ -19,6 +19,7 @@
 
 - [Task] fix hidden notification by search field [#3874](https://github.com/vatesfr/xen-orchestra/issues/3874) (PR [#4305](https://github.com/vatesfr/xen-orchestra/pull/4305)
 - [VM] Fail to change affinity (PR [#4361](https://github.com/vatesfr/xen-orchestra/pull/4361)
+- [VM] Number of CPUs not correctly changed on running VMs (PR [#4360](https://github.com/vatesfr/xen-orchestra/pull/4360)
 
 ### Released packages
 

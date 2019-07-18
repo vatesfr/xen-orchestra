@@ -306,7 +306,9 @@ export default {
       get: vm => +vm.VCPUs_at_startup,
       set: [
         'VCPUs_at_startup',
-        (value, vm) => isVmRunning(vm) && vm.set_VCPUs_number_live(value),
+        (value, vm) =>
+          isVmRunning(vm) &&
+          vm.$xapi.call('VM.set_VCPUs_number_live', vm.$ref, String(value)),
       ],
     },
 
