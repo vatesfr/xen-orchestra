@@ -31,7 +31,7 @@ export default decorate([
     effects: {
       _downloadLog: () => ({ formattedLog }, { log }) =>
         downloadLog({ log: formattedLog, date: log.start, type: 'backup NG' }),
-      restartFailedVms: () => async (
+      restartFailedVms: (_, params) => async (
         _,
         { log: { jobId: id, scheduleId: schedule, tasks, infos } }
       ) => {
@@ -54,8 +54,8 @@ export default decorate([
             })
           }
         }
-
         await runBackupNgJob({
+          force: get(() => params.force),
           id,
           schedule,
           vms,
@@ -97,12 +97,22 @@ export default decorate([
           />
         )}
         {state.jobFailed && log.scheduleId !== undefined && (
-          <ActionButton
-            handler={effects.restartFailedVms}
-            icon='run'
-            size='small'
-            tooltip={_('backupRestartFailedVms')}
-          />
+          <ButtonGroup>
+            <ActionButton
+              handler={effects.restartFailedVms}
+              icon='run'
+              size='small'
+              tooltip={_('backupRestartFailedVms')}
+            />
+            <ActionButton
+              btnStyle='warning'
+              data-force
+              handler={effects.restartFailedVms}
+              icon='force-restart'
+              size='small'
+              tooltip={_('backupForceRestartFailedVms')}
+            />
+          </ButtonGroup>
         )}
       </ButtonGroup>
     </span>
