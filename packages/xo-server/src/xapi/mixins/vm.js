@@ -259,7 +259,7 @@ export default {
     affinityHost: {
       get: 'affinity',
       set: (value, vm) =>
-        vm.set_affinity(value ? this.getObject(value).$ref : NULL_REF),
+        vm.set_affinity(value ? vm.$xapi.getObject(value).$ref : NULL_REF),
     },
 
     autoPoweron: {
