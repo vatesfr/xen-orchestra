@@ -803,6 +803,9 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
+  editHostIscsiIqnTitle: 'Edit iSCSI IQN',
+  editHostIscsiIqnMessage:
+    'Are you sure you want to edit the iSCSI IQN? This may result in failures connecting to existing SRs if the host is attached to iSCSI SRs.',
   hostTitleRamUsage: 'Host RAM usage:',
   memoryHostState:
     'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
@@ -813,7 +816,7 @@ const messages = {
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
-  hostIscsiName: 'iSCSI name',
+  hostIscsiIqn: 'iSCSI IQN',
   hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:
@@ -850,6 +853,7 @@ const messages = {
   supplementalPackInstallSuccessTitle: 'Installation success',
   supplementalPackInstallSuccessMessage:
     'Supplemental pack successfully installed.',
+  uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   pifDeviceLabel: 'Device',
@@ -1897,7 +1901,7 @@ const messages = {
   OtpAuthentication: 'OTP authentication',
 
   // ----- Usage -----
-  others: 'Others',
+  others: '{nOthers, number} other{nOthers, plural, one {} other {s}}',
 
   // ----- Logs -----
   logUser: 'User',

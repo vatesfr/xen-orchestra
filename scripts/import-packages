@@ -78,6 +78,6 @@ do
   move_"$move" "$pkg" "packages/$pkg"
 
   # merge and delete master branch
-  git merge --allow-unrelated-histories "$pkg/master"
+  git merge --no-ff --allow-unrelated-histories "$pkg/master"
   git branch -d "$pkg/master"
 done
