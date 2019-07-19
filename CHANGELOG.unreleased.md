@@ -12,6 +12,7 @@
 - [Backup NG] Ability to bypass unhealthy VDI chains check [#4324](https://github.com/vatesfr/xen-orchestra/issues/4324) (PR [#4340](https://github.com/vatesfr/xen-orchestra/pull/4340))
 - [Pool] Ability to add multiple hosts on the pool [#2402](https://github.com/vatesfr/xen-orchestra/issues/2402) (PR [#3716](https://github.com/vatesfr/xen-orchestra/pull/3716))
 - [VM/console] Multiline copy/pasting [#4261](https://github.com/vatesfr/xen-orchestra/issues/4261) (PR [#4341](https://github.com/vatesfr/xen-orchestra/pull/4341))
+- [VM,host] Improved state icons/pills (colors and tooltips) (PR [#4363](https://github.com/vatesfr/xen-orchestra/pull/4363))
 
 ### Bug fixes
 
