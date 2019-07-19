@@ -946,6 +946,8 @@ const messages = {
   powerStateRunning: 'Running',
   powerStateSuspended: 'Suspended',
   powerStatePaused: 'Paused',
+  powerStateDisabled: 'Disabled',
+  powerStateBusy: 'Busy',
 
   // ----- VM home -----
   vmCurrentStatus: 'Current status:',
