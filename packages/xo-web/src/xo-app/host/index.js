@@ -228,9 +228,22 @@ export default class Host extends Component {
   _setNameLabel = nameLabel =>
     editHost(this.props.host, { name_label: nameLabel })
 
+  _getHostState = createSelector(
+    () => this.props.host.power_state,
+    () => this.props.host.enabled,
+    () => this.props.host.current_operations,
+    (powerState, enabled, operations) =>
+      !isEmpty(operations)
+        ? 'Busy'
+        : powerState === 'Running' && !enabled
+        ? 'Disabled'
+        : powerState
+  )
+
   header() {
     const { host, pool } = this.props
     const { missingPatches } = this.state || {}
+    const state = this._getHostState()
     if (!host) {
       return <Icon icon='loading' />
     }
@@ -240,13 +253,22 @@ export default class Host extends Component {
           <Col mediumSize={6} className='header-title'>
             {pool !== undefined && <Pool id={pool.id} link />}
             <h2>
-              <Icon
-                icon={
-                  host.power_state === 'Running' && !host.enabled
-                    ? 'host-disabled'
-                    : `host-${host.power_state.toLowerCase()}`
+              <Tooltip
+                content={
+                  <span>
+                    {_(`powerState${state}`)}
+                    {state === 'Busy' && (
+                      <span>
+                        {' ('}
+                        {map(host.current_operations)[0]}
+                        {')'}
+                      </span>
+                    )}
+                  </span>
                 }
-              />{' '}
+              >
+                <Icon icon={`host-${state.toLowerCase()}`} />
+              </Tooltip>{' '}
               <Text value={host.name_label} onChange={this._setNameLabel} />
               {this.props.needsRestart && (
                 <Tooltip content={_('rebootUpdateHostLabel')}>

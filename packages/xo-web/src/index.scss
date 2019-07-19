@@ -109,7 +109,7 @@ $select-input-height: 40px; // Bootstrap input height
   @extend .text-info;
 }
 
-.xo-status-unknown, .xo-status-paused {
+.xo-status-unknown, .xo-status-paused, .xo-status-disabled {
   @extend .text-muted;
 }
 
