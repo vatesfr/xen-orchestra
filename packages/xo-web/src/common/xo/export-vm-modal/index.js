@@ -2,8 +2,8 @@ import BaseComponent from 'base-component'
 import React from 'react'
 
 import _ from '../../intl'
+import SelectCompression from '../../select-compression'
 import { Container, Row, Col } from '../../grid'
-import { SelectCompression } from '../../xo-compression'
 
 export default class ExportVmModalBody extends BaseComponent {
   state = {

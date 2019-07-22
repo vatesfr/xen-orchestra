@@ -4,10 +4,10 @@ import React from 'react'
 import { injectState, provideState } from 'reaclette'
 import { omit } from 'lodash'
 
-import decorate from '../apply-decorators'
-import Select from '../form/select'
+import decorate from './apply-decorators'
+import { Select } from './form'
 
-const COMMON_OPTIONS = [
+const OPTIONS = [
   {
     label: _('stateDisabled'),
     value: '',
@@ -18,10 +18,13 @@ const COMMON_OPTIONS = [
   },
 ]
 
-const ZSTD_OPTION = {
-  label: _('chooseCompressionZstdOption'),
-  value: 'zstd',
-}
+const OPTIONS_WITH_ZSTD = [
+  ...OPTIONS,
+  {
+    label: _('chooseCompressionZstdOption'),
+    value: 'zstd',
+  },
+]
 
 const SELECT_COMPRESSION_PROP_TYPES = {
   showZstd: PropTypes.bool,
@@ -30,8 +33,7 @@ const SELECT_COMPRESSION_PROP_TYPES = {
 const SelectCompression = decorate([
   provideState({
     computed: {
-      options: (_, { showZstd }) =>
-        showZstd ? [...COMMON_OPTIONS, ZSTD_OPTION] : COMMON_OPTIONS,
+      options: (_, { showZstd }) => (showZstd ? OPTIONS_WITH_ZSTD : OPTIONS),
       selectProps: (_, props) =>
         omit(props, Object.keys(SELECT_COMPRESSION_PROP_TYPES)),
     },

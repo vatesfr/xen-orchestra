@@ -76,7 +76,7 @@ const TRANSFORMS = {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
-      restrictions: obj.restrictions,
+      zstd_supported: obj.restrictions.restrict_zstd_export === 'false',
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
@@ -143,6 +143,7 @@ const TRANSFORMS = {
       current_operations: obj.current_operations,
       hostname: obj.hostname,
       iscsiIqn: obj.iscsi_iqn ?? otherConfig.iscsi_iqn ?? '',
+      zstd_supported: obj.license_params.restrict_zstd_export === 'false',
       license_params: obj.license_params,
       license_server: obj.license_server,
       license_expiry: toTimestamp(obj.license_params.expiry),
