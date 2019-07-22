@@ -18,7 +18,9 @@ export class OvsdbClient {
 
     this.updateCertificates(clientKey, clientCert, caCert)
 
-    log.debug(`[${this._host.name_label}] New OVSDB client`)
+    log.debug('New OVSDB client', {
+      host: this._host.name_label,
+    })
   }
 
   // ---------------------------------------------------------------------------
@@ -44,7 +46,9 @@ export class OvsdbClient {
     this._clientCert = clientCert
     this._caCert = caCert
 
-    log.debug(`[${this._host.name_label}] Certificates have been updated`)
+    log.debug('Certificates have been updated', {
+      host: this._host.name_label,
+    })
   }
 
   // ---------------------------------------------------------------------------
@@ -138,16 +142,26 @@ export class OvsdbClient {
     } while (opResult && !error)
 
     if (error != null) {
-      log.error(
-        `[${this._host.name_label}] Error while adding port: '${portName}' and interface: '${interfaceName}' to bridge: '${bridgeName}' on network: '${networkName}' because: ${error}: ${details}`
-      )
+      log.error('Error while adding port and interface to bridge', {
+        error,
+        details: details,
+        port: portName,
+        interface: interfaceName,
+        bridge: bridgeName,
+        network: networkName,
+        host: this._host.name_label,
+      })
       socket.destroy()
       return
     }
 
-    log.debug(
-      `[${this._host.name_label}] Port: '${portName}' and interface: '${interfaceName}' added to bridge: '${bridgeName}' on network: '${networkName}'`
-    )
+    log.debug('Port and interface added to bridge', {
+      port: portName,
+      interface: interfaceName,
+      bridge: bridgeName,
+      network: networkName,
+      host: this._host.name_label,
+    })
     socket.destroy()
   }
 
@@ -186,9 +200,6 @@ export class OvsdbClient {
 
       forOwn(selectResult.other_config[1], config => {
         if (config[0] === 'private_pool_wide' && config[1] === 'true') {
-          log.debug(
-            `[${this._host.name_label}] Adding port: '${selectResult.name}' to delete list from bridge: '${bridgeName}'`
-          )
           portsToDelete.push(['uuid', portUuid])
         }
       })
@@ -214,16 +225,20 @@ export class OvsdbClient {
       return
     }
     if (jsonObjects[0].error != null) {
-      log.error(
-        `[${this._host.name_label}] Couldn't delete ports from bridge: '${bridgeName}' because: ${jsonObjects.error}`
-      )
+      log.error('Error while deleting ports from bridge', {
+        error: jsonObjects.error,
+        bridge: bridgeName,
+        host: this._host.name_label,
+      })
       socket.destroy()
       return
     }
 
-    log.debug(
-      `[${this._host.name_label}] Deleted ${jsonObjects[0].result[0].count} ports from bridge: '${bridgeName}'`
-    )
+    log.debug('Ports deleted from bridge', {
+      'number-of-ports': jsonObjects[0].result[0].count,
+      bridge: bridgeName,
+      host: this._host.name_label,
+    })
     socket.destroy()
   }
 
@@ -274,14 +289,15 @@ export class OvsdbClient {
       socket
     )
     if (selectResult == null) {
+      log.error('No bridge found for network', {
+        network: networkName,
+        host: this._host.name_label,
+      })
       return [null, null]
     }
 
     const bridgeUuid = selectResult._uuid[1]
     const bridgeName = selectResult.name
-    log.debug(
-      `[${this._host.name_label}] Found bridge: '${bridgeName}' for network: '${networkName}'`
-    )
 
     return [bridgeUuid, bridgeName]
   }
@@ -387,16 +403,24 @@ export class OvsdbClient {
     }
     const jsonResult = jsonObjects[0].result[0]
     if (jsonResult.error != null) {
-      log.error(
-        `[${this._host.name_label}] Couldn't retrieve: '${columns}' in: '${table}' because: ${jsonResult.error}: ${jsonResult.details}`
-      )
+      log.error('Error while selecting columns', {
+        error: jsonResult.error,
+        details: jsonResult.details,
+        columns: columns,
+        table: table,
+        where: where,
+        host: this._host.name_label,
+      })
       return null
     }
 
     if (jsonResult.rows.length === 0) {
-      log.error(
-        `[${this._host.name_label}] No '${columns}' found in: '${table}' where: '${where}'`
-      )
+      log.error('No result for select', {
+        columns: columns,
+        table: table,
+        where: where,
+        host: this._host.name_label,
+      })
       return null
     }
 
@@ -423,9 +447,10 @@ export class OvsdbClient {
     try {
       stream.write(JSON.stringify(req))
     } catch (error) {
-      log.error(
-        `[${this._host.name_label}] Error while writing into stream: ${error}`
-      )
+      log.error('Error while writing into stream', {
+        error,
+        host: this._host.name_label,
+      })
       return null
     }
 
@@ -436,9 +461,10 @@ export class OvsdbClient {
       try {
         result = await fromEvent(stream, 'data', {})
       } catch (error) {
-        log.error(
-          `[${this._host.name_label}] Error while waiting for stream data: ${error}`
-        )
+        log.error('Error while waiting for stream data', {
+          error,
+          host: this._host.name_label,
+        })
         return null
       }
 
@@ -466,18 +492,20 @@ export class OvsdbClient {
     try {
       await fromEvent(socket, 'secureConnect', {})
     } catch (error) {
-      log.error(
-        `[${this._host.name_label}] TLS connection failed because: ${error}: ${error.code}`
-      )
+      log.error('TLS connection failed', {
+        error,
+        code: error.code,
+        host: this._host.name_label,
+      })
       throw error
     }
 
-    log.debug(`[${this._host.name_label}] TLS connection successful`)
-
     socket.on('error', error => {
-      log.error(
-        `[${this._host.name_label}] OVSDB client socket error: ${error} with code: ${error.code}`
-      )
+      log.error('Socket error', {
+        error,
+        code: error.code,
+        host: this._host.name_label,
+      })
     })
 
     return socket
