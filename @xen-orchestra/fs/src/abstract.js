@@ -4,6 +4,7 @@
 import getStream from 'get-stream'
 
 import asyncMap from '@xen-orchestra/async-map'
+import limit from 'limit-concurrency-decorator'
 import path from 'path'
 import synchronized from 'decorator-synchronized'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
@@ -31,6 +32,7 @@ const computeRate = (hrtime: number[], size: number) => {
 }
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
+const DEFAULT_MAX_PARALLEL_OPERATIONS = 10
 
 const ignoreEnoent = error => {
   if (error == null || error.code !== 'ENOENT') {
@@ -83,6 +85,25 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
+
+    const sharedLimit = limit(
+      options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS
+    )
+    this.closeFile = sharedLimit(this.closeFile)
+    this.getInfo = sharedLimit(this.getInfo)
+    this.getSize = sharedLimit(this.getSize)
+    this.list = sharedLimit(this.list)
+    this.mkdir = sharedLimit(this.mkdir)
+    this.openFile = sharedLimit(this.openFile)
+    this.outputFile = sharedLimit(this.outputFile)
+    this.read = sharedLimit(this.read)
+    this.readFile = sharedLimit(this.readFile)
+    this.rename = sharedLimit(this.rename)
+    this.rmdir = sharedLimit(this.rmdir)
+    this.truncate = sharedLimit(this.truncate)
+    this.unlink = sharedLimit(this.unlink)
+    this.write = sharedLimit(this.write)
+    this.writeFile = sharedLimit(this.writeFile)
   }
 
   // Public members

@@ -1,6 +1,5 @@
 import JsonRpcWebSocketClient, { OPEN, CLOSED } from 'jsonrpc-websocket-client'
 import { BaseError } from 'make-error'
-import { startsWith } from 'lodash'
 
 // ===================================================================
 
@@ -35,7 +34,7 @@ export default class Xo extends JsonRpcWebSocketClient {
   }
 
   call(method, args, i) {
-    if (startsWith(method, 'session.')) {
+    if (method.startsWith('session.')) {
       return Promise.reject(
         new XoError('session.*() methods are disabled from this interface')
       )

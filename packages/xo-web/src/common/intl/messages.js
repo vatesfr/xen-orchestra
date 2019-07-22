@@ -684,6 +684,15 @@ const messages = {
   vmConsoleLabel: 'Console',
   backupLabel: 'Backup',
 
+  // ----- SR general tab -----
+  baseCopyTooltip:
+    '{n, number} base cop{n, plural, one {y} other {ies}} ({usage})',
+  diskTooltip: '{name} ({usage})',
+  snapshotsTooltip:
+    '{n, number} snapshot{n, plural, one {} other {s}} ({usage})',
+  vdiOnVmTooltip: '{name} ({usage}) on {vmName}',
+  vdisTooltip: '{n, number} VDI{n, plural, one {} other {s}} ({usage})',
+
   // ----- SR advanced tab -----
 
   srUnhealthyVdiDepth: 'Depth',
@@ -761,14 +770,14 @@ const messages = {
   // ----- Pool actions ------
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
-  addHostLabel: 'Add Host',
+  addHostsLabel: 'Add hosts',
   missingPatchesPool:
     'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   missingPatchesHost:
-    'This host needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
+    'The selected host{nHosts, plural, one {} other {s}} need{nHosts, plural, one {s} other {}} to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   patchUpdateNoInstall:
-    'This host cannot be added to the pool because the patches are not homogeneous.',
-  addHostErrorTitle: 'Adding host failed',
+    'The selected host{nHosts, plural, one {} other {s}} cannot be added to the pool because the patches are not homogeneous.',
+  addHostsErrorTitle: 'Adding host{nHosts, plural, one {} other {s}} failed',
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
 
@@ -794,6 +803,9 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
+  editHostIscsiIqnTitle: 'Edit iSCSI IQN',
+  editHostIscsiIqnMessage:
+    'Are you sure you want to edit the iSCSI IQN? This may result in failures connecting to existing SRs if the host is attached to iSCSI SRs.',
   hostTitleRamUsage: 'Host RAM usage:',
   memoryHostState:
     'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
@@ -804,7 +816,7 @@ const messages = {
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
-  hostIscsiName: 'iSCSI name',
+  hostIscsiIqn: 'iSCSI IQN',
   hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:
@@ -841,6 +853,7 @@ const messages = {
   supplementalPackInstallSuccessTitle: 'Installation success',
   supplementalPackInstallSuccessMessage:
     'Supplemental pack successfully installed.',
+  uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   pifDeviceLabel: 'Device',
@@ -933,6 +946,8 @@ const messages = {
   powerStateRunning: 'Running',
   powerStateSuspended: 'Suspended',
   powerStatePaused: 'Paused',
+  powerStateDisabled: 'Disabled',
+  powerStateBusy: 'Busy',
 
   // ----- VM home -----
   vmCurrentStatus: 'Current status:',
@@ -966,9 +981,11 @@ const messages = {
   // ----- VM console tab -----
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
+  multilineCopyToClipboard: 'Multiline copy',
   tipLabel: 'Tip:',
   hideHeaderTooltip: 'Hide info',
   showHeaderTooltip: 'Show info',
+  sendToClipboard: 'Send to clipboard',
 
   // ----- VM container tab -----
   containerName: 'Name',
@@ -1731,7 +1748,7 @@ const messages = {
   privateNetwork: 'Private network',
 
   // ----- Add host -----
-  addHostSelectHost: 'Host',
+  hosts: 'Hosts',
   addHostNoHost: 'No host',
   addHostNoHostMessage: 'No host selected to be added',
 
@@ -1888,7 +1905,7 @@ const messages = {
   OtpAuthentication: 'OTP authentication',
 
   // ----- Usage -----
-  others: 'Others',
+  others: '{nOthers, number} other{nOthers, plural, one {} other {s}}',
 
   // ----- Logs -----
   logUser: 'User',
@@ -1918,7 +1935,9 @@ const messages = {
   reportBug: 'Report a bug',
   unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
   backupRestartVm: "Restart VM's backup",
+  backupForceRestartVm: "Force restart VM's backup",
   backupRestartFailedVms: "Restart failed VMs' backup",
+  backupForceRestartFailedVms: "Force restart failed VMs' backup",
   clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------

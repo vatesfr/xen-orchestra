@@ -32,7 +32,9 @@ require('exec-promise')(() =>
       pkg.version = '0.0.0'
     }
 
+    delete pkg.husky
     delete pkg.standard
+    delete pkg['lint-staged']
 
     deleteProperties(pkg, 'config', ['commitizen'])
     deleteProperties(pkg, 'devDependencies', [
@@ -43,6 +45,7 @@ require('exec-promise')(() =>
       'cz-conventional-changelog',
       'dependency-check',
       'eslint',
+      'eslint-config-prettier',
       'eslint-config-standard',
       'eslint-plugin-import',
       'eslint-plugin-node',

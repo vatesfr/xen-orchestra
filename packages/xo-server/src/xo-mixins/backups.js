@@ -10,17 +10,7 @@ import { createReadStream, readdir, stat } from 'fs'
 import { satisfies as versionSatisfies } from 'semver'
 import { utcFormat } from 'd3-time-format'
 import { basename, dirname } from 'path'
-import {
-  endsWith,
-  filter,
-  find,
-  includes,
-  once,
-  range,
-  sortBy,
-  startsWith,
-  trim,
-} from 'lodash'
+import { filter, find, includes, once, range, sortBy, trim } from 'lodash'
 import {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -104,7 +94,7 @@ const getVdiTimestamp = name => {
 
 const getDeltaBackupNameWithoutExt = name =>
   name.slice(0, -DELTA_BACKUP_EXT_LENGTH)
-const isDeltaBackup = name => endsWith(name, DELTA_BACKUP_EXT)
+const isDeltaBackup = name => name.endsWith(DELTA_BACKUP_EXT)
 
 // -------------------------------------------------------------------
 
@@ -308,13 +298,13 @@ export default class {
     const handler = await this._xo.getRemoteHandler(remoteId)
 
     // List backups. (No delta)
-    const backupFilter = file => endsWith(file, '.xva')
+    const backupFilter = file => file.endsWith('.xva')
 
     const files = await handler.list('.')
     const backups = filter(files, backupFilter)
 
     // List delta backups.
-    const deltaDirs = filter(files, file => startsWith(file, 'vm_delta_'))
+    const deltaDirs = filter(files, file => file.startsWith('vm_delta_'))
 
     for (const deltaDir of deltaDirs) {
       const files = await handler.list(deltaDir)
@@ -336,12 +326,12 @@ export default class {
     const backups = []
 
     await asyncMap(handler.list('.'), entry => {
-      if (endsWith(entry, '.xva')) {
+      if (entry.endsWith('.xva')) {
         backups.push(parseVmBackupPath(entry))
-      } else if (startsWith(entry, 'vm_delta_')) {
+      } else if (entry.startsWith('vm_delta_')) {
         return handler.list(entry).then(children =>
           asyncMap(children, child => {
-            if (endsWith(child, '.json')) {
+            if (child.endsWith('.json')) {
               const path = `${entry}/${child}`
 
               const record = parseVmBackupPath(path)
@@ -1007,7 +997,7 @@ export default class {
             // Currently, the filenames of the VHD changes over time
             // (delta → full), but the JSON is not updated, therefore the
             // VHD path may need to be fixed.
-            return endsWith(vhdPath, '_delta.vhd')
+            return vhdPath.endsWith('_delta.vhd')
               ? pFromCallback(cb => stat(vhdPath, cb)).then(
                   () => vhdPath,
                   error => {

@@ -140,6 +140,10 @@
     @extend .fa;
     @extend .fa-play;
   }
+  &-force-restart {
+    @extend .fa;
+    @extend .fa-forward;
+  }
   &-ssh-key {
     @extend .fa;
     @extend .fa-key;
@@ -324,27 +328,27 @@
     &-running {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-success;
+      @extend .xo-status-running;
     }
     &-suspended {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-primary;
+      @extend .xo-status-suspended;
     }
     &-paused {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-muted;
+      @extend .xo-status-paused;
     }
     &-halted {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-danger;
+      @extend .xo-status-halted;
     }
     &-busy {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-warning;
+      @extend .xo-status-busy;
     }
 
     // Actions
@@ -453,7 +457,7 @@
   &-disabled {
     @extend .fa;
     @extend .fa-circle;
-    @extend .xo-status-busy;
+    @extend .xo-status-disabled;
   }
 
   &-all-connected {
@@ -526,26 +530,26 @@
     &-running {
       @extend .fa;
       @extend .fa-server;
-      @extend .text-success;
+      @extend .xo-status-running;
     }
     &-halted {
       @extend .fa;
       @extend .fa-server;
-      @extend .text-danger;
+      @extend .xo-status-halted;
     }
     &-disabled {
       @extend .fa;
       @extend .fa-server;
-      @extend .text-warning;
+      @extend .xo-status-disabled;
+    }
+    &-busy {
+      @extend .fa;
+      @extend .fa-server;
+      @extend .xo-status-busy;
     }
     &-forget {
       @extend .fa;
       @extend .fa-ban;
-    }
-    &-working {
-      @extend .fa;
-      @extend .fa-circle;
-      @extend .text-warning;
     }
 
     // Actions
@@ -726,6 +730,11 @@
   &-sign-out {
     @extend .fa;
     @extend .fa-sign-out;
+  }
+
+  &-multiline-clipboard {
+    @extend .fa;
+    @extend .fa-file-text-o;
   }
 
   // Menu

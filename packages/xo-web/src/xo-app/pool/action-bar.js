@@ -5,7 +5,7 @@ import React from 'react'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { find } from 'lodash'
 import { addSubscriptions, connectStore, noop } from 'utils'
-import { addHostToPool, disconnectServer, subscribeServers } from 'xo'
+import { addHostsToPool, disconnectServer, subscribeServers } from 'xo'
 
 @connectStore({
   hosts: createGetObjectsOfType('host'),
@@ -50,9 +50,9 @@ export default class PoolActionBar extends Component {
           redirectOnSuccess={`vms/new?pool=${pool.id}`}
         />
         <Action
-          handler={addHostToPool}
+          handler={addHostsToPool}
           icon='add-host'
-          label={_('addHostLabel')}
+          label={_('addHostsLabel')}
         />
         <Action
           handler={this._disconnectServer}

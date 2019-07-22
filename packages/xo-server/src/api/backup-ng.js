@@ -123,10 +123,14 @@ getJob.params = {
 export async function runJob({
   id,
   schedule,
+  settings,
   vm,
   vms = vm !== undefined ? [vm] : undefined,
 }) {
-  return this.runJobSequence([id], await this.getSchedule(schedule), vms)
+  return this.runJobSequence([id], await this.getSchedule(schedule), {
+    settings,
+    vms,
+  })
 }
 
 runJob.permission = 'admin'
@@ -137,6 +141,13 @@ runJob.params = {
   },
   schedule: {
     type: 'string',
+  },
+  settings: {
+    type: 'object',
+    properties: {
+      '*': { type: 'object' },
+    },
+    optional: true,
   },
   vm: {
     type: 'string',

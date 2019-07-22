@@ -1,6 +1,4 @@
-import endsWith from 'lodash/endsWith'
 import levelup from 'level-party'
-import startsWith from 'lodash/startsWith'
 import sublevel from 'level-sublevel'
 import { ensureDir } from 'fs-extra'
 
@@ -38,7 +36,7 @@ const levelPromise = db => {
       return
     }
 
-    if (endsWith(name, 'Stream') || startsWith(name, 'is')) {
+    if (name.endsWith('Stream') || name.startsWith('is')) {
       dbP[name] = db::value
     } else {
       dbP[name] = promisify(value, db)

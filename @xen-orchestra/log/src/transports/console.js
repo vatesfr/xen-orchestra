@@ -1,10 +1,12 @@
 import LEVELS, { NAMES } from '../levels'
 
 // Bind console methods (necessary for browsers)
+/* eslint-disable no-console */
 const debugConsole = console.log.bind(console)
 const infoConsole = console.info.bind(console)
 const warnConsole = console.warn.bind(console)
 const errorConsole = console.error.bind(console)
+/* eslint-enable no-console */
 
 const { ERROR, INFO, WARN } = LEVELS
 

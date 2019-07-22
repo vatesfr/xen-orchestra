@@ -1,0 +1,18 @@
+[xoConnection]
+  url = ''
+  email = ''
+  password = ''
+
+[vms]
+  default = ''
+
+[templates]
+  default = ''
+
+[srs]
+  default = ''
+
+# resources created before all tests and deleted at the end.
+[preCreatedResources]
+  [preCreatedResources.remotes]
+    default = { name = '', url = '' }

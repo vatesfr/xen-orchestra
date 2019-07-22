@@ -109,7 +109,7 @@ $select-input-height: 40px; // Bootstrap input height
   @extend .text-info;
 }
 
-.xo-status-unknown, .xo-status-paused {
+.xo-status-unknown, .xo-status-paused, .xo-status-disabled {
   @extend .text-muted;
 }
 
@@ -213,6 +213,12 @@ $select-input-height: 40px; // Bootstrap input height
   border: 1px solid black;
   margin: 5px 10px;
   width: 250px;
+  // Workaround to prevent some bootstrap elements from hiding the notifications.
+  // In bootstrap, ".input-group .form-control" and ".input-group > .input-group-btn > .btn"
+  // have "z-index: 2" and "z-index: 3" if they are hovered, focused or active.
+  // (https://github.com/twbs/bootstrap/blob/v4.0.0-alpha.5/scss/_input-group.scss#L18-L37)
+  // (https://github.com/twbs/bootstrap/blob/v4.0.0-alpha.5/scss/_input-group.scss#L177-L187)
+  z-index: 3;
   &.success {
     background: $alert-success-bg;
     border-color: $alert-success-border;

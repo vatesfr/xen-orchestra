@@ -19,6 +19,7 @@ import {
   isEmpty,
   last,
   mapValues,
+  merge,
   noop,
   some,
   sum,
@@ -559,7 +560,7 @@ export default class BackupNg {
 
       const executor: Executor = async ({
         cancelToken,
-        data: vmsId,
+        data,
         job: job_,
         logger,
         runJobId,
@@ -568,6 +569,8 @@ export default class BackupNg {
         if (schedule === undefined) {
           throw new Error('backup job cannot run without a schedule')
         }
+
+        let vmsId = data?.vms
 
         const job: BackupJob = (job_: any)
         const vmsPattern = job.vms
@@ -622,7 +625,9 @@ export default class BackupNg {
           }))
         )
 
-        const timeout = getSetting(job.settings, 'timeout', [''])
+        const settings = merge(job.settings, data?.settings)
+
+        const timeout = getSetting(settings, 'timeout', [''])
         if (timeout !== 0) {
           const source = CancelToken.source([cancelToken])
           cancelToken = source.token
@@ -655,6 +660,7 @@ export default class BackupNg {
               schedule,
               logger,
               taskId,
+              settings,
               srs,
               remotes
             )
@@ -662,7 +668,7 @@ export default class BackupNg {
             // 2018-07-20, JFT: vmTimeout is disabled for the time being until
             // we figure out exactly how it should behave.
             //
-            // const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
+            // const vmTimeout: number = getSetting(settings, 'vmTimeout', [
             //   uuid,
             //   scheduleId,
             // ])
@@ -691,9 +697,7 @@ export default class BackupNg {
           }
         }
 
-        const concurrency: number = getSetting(job.settings, 'concurrency', [
-          '',
-        ])
+        const concurrency: number = getSetting(settings, 'concurrency', [''])
         if (concurrency !== 0) {
           handleVm = limitConcurrency(concurrency)(handleVm)
           logger.notice('vms', {
@@ -932,6 +936,7 @@ export default class BackupNg {
     schedule: Schedule,
     logger: any,
     taskId: string,
+    settings: Settings,
     srs: any[],
     remotes: any[]
   ): Promise<void> {
@@ -959,7 +964,7 @@ export default class BackupNg {
       )
     }
 
-    const { id: jobId, mode, settings } = job
+    const { id: jobId, mode } = job
     const { id: scheduleId } = schedule
 
     let exportRetention: number = getSetting(settings, 'exportRetention', [
@@ -1021,7 +1026,7 @@ export default class BackupNg {
       .sort(compareSnapshotTime)
 
     const bypassVdiChainsCheck: boolean = getSetting(
-      job.settings,
+      settings,
       'bypassVdiChainsCheck',
       [vmUuid, '']
     )

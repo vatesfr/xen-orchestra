@@ -186,20 +186,40 @@ export default decorate([
           }
         }
 
-        await createBackupNgJob({
-          name: state.name,
-          mode: state.isDelta ? 'delta' : 'full',
-          compression: state.compression,
-          schedules: mapValues(
+        let schedules, settings
+        if (!isEmpty(state.schedules)) {
+          schedules = mapValues(
             state.schedules,
             ({ id, ...schedule }) => schedule
-          ),
-          settings: normalizeSettings({
+          )
+          settings = normalizeSettings({
             settings: state.settings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
             snapshotMode: state.snapshotMode,
-          }).toObject(),
+          }).toObject()
+        } else {
+          const id = generateId()
+          schedules = {
+            [id]: DEFAULT_SCHEDULE,
+          }
+          settings = {
+            [id]: {
+              copyRetention: state.copyMode ? DEFAULT_RETENTION : undefined,
+              exportRetention: state.exportMode ? DEFAULT_RETENTION : undefined,
+              snapshotRetention: state.snapshotMode
+                ? DEFAULT_RETENTION
+                : undefined,
+            },
+          }
+        }
+
+        await createBackupNgJob({
+          name: state.name,
+          mode: state.isDelta ? 'delta' : 'full',
+          compression: state.compression,
+          schedules,
+          settings,
           remotes:
             state.deltaMode || state.backupMode
               ? constructPattern(state.remotes)
@@ -557,13 +577,16 @@ export default decorate([
       missingRemotes: state =>
         (state.backupMode || state.deltaMode) && isEmpty(state.remotes),
       missingSrs: state => (state.drMode || state.crMode) && isEmpty(state.srs),
-      missingSchedules: state => isEmpty(state.schedules),
-      missingExportRetention: state =>
-        state.exportMode && !state.exportRetentionExists,
-      missingCopyRetention: state =>
-        state.copyMode && !state.copyRetentionExists,
-      missingSnapshotRetention: state =>
-        state.snapshotMode && !state.snapshotRetentionExists,
+      missingSchedules: (state, { job }) =>
+        job !== undefined && isEmpty(state.schedules),
+      missingExportRetention: (state, { job }) =>
+        job !== undefined && state.exportMode && !state.exportRetentionExists,
+      missingCopyRetention: (state, { job }) =>
+        job !== undefined && state.copyMode && !state.copyRetentionExists,
+      missingSnapshotRetention: (state, { job }) =>
+        job !== undefined &&
+        state.snapshotMode &&
+        !state.snapshotRetentionExists,
       exportMode: state => state.backupMode || state.deltaMode,
       copyMode: state => state.drMode || state.crMode,
       exportRetentionExists: createDoesRetentionExist('exportRetention'),

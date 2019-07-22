@@ -22,7 +22,6 @@ import {
   replace,
   sample,
   some,
-  startsWith,
 } from 'lodash'
 
 import _ from './intl'
@@ -477,7 +476,7 @@ export const compareVersions = makeNiceCompare((v1, v2) => {
   return 0
 })
 
-export const isXosanPack = ({ name }) => startsWith(name, 'XOSAN')
+export const isXosanPack = ({ name }) => name.startsWith('XOSAN')
 
 // ===================================================================
 

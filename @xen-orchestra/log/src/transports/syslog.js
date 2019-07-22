@@ -1,7 +1,6 @@
 import fromCallback from 'promise-toolbox/fromCallback'
-import splitHost from 'split-host' // eslint-disable-line node/no-extraneous-import node/no-missing-import
-import startsWith from 'lodash/startsWith'
-import { createClient, Facility, Severity, Transport } from 'syslog-client' // eslint-disable-line node/no-extraneous-import node/no-missing-import
+import splitHost from 'split-host'
+import { createClient, Facility, Severity, Transport } from 'syslog-client'
 
 import LEVELS from '../levels'
 
@@ -19,10 +18,10 @@ const facility = Facility.User
 export default target => {
   const opts = {}
   if (target !== undefined) {
-    if (startsWith(target, 'tcp://')) {
+    if (target.startsWith('tcp://')) {
       target = target.slice(6)
       opts.transport = Transport.Tcp
-    } else if (startsWith(target, 'udp://')) {
+    } else if (target.startsWith('udp://')) {
       target = target.slice(6)
       opts.transport = Transport.Udp
     }

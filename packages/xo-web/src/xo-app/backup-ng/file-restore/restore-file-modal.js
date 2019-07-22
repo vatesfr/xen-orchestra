@@ -10,16 +10,7 @@ import { dirname } from 'path'
 import { Container, Col, Row } from 'grid'
 import { createSelector } from 'reselect'
 import { formatSize } from 'utils'
-import {
-  endsWith,
-  filter,
-  find,
-  forEach,
-  includes,
-  isEmpty,
-  map,
-  startsWith,
-} from 'lodash'
+import { filter, find, forEach, includes, isEmpty, map } from 'lodash'
 import { getRenderXoItemOfType } from 'render-xo-item'
 import { listPartitions, listFiles } from 'xo'
 
@@ -46,7 +37,7 @@ const fileOptionRenderer = ({ isFile, name }) => (
   </span>
 )
 
-const ensureTrailingSlash = path => path + (endsWith(path, '/') ? '' : '/')
+const ensureTrailingSlash = path => path + (path.endsWith('/') ? '' : '/')
 
 // -----------------------------------------------------------------------------
 
@@ -66,7 +57,7 @@ const formatFilesOptions = (rawFiles, path) => {
   return files.concat(
     map(rawFiles, (_, name) => ({
       id: `${path}${name}`,
-      isFile: !endsWith(name, '/'),
+      isFile: !name.endsWith('/'),
       name,
       path: `${path}${name}`,
     }))
@@ -262,7 +253,7 @@ export default class RestoreFileModalBody extends Component {
         redundantFiles[file.path] =
           find(
             files,
-            f => !f.isFile && f !== file && startsWith(file.path, f.path)
+            f => !f.isFile && f !== file && file.path.startsWith(f.path)
           ) !== undefined
       })
       return redundantFiles

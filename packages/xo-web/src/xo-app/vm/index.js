@@ -168,14 +168,19 @@ export default class Vm extends BaseComponent {
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
   _migrateVm = host => migrateVm(this.props.vm, host)
 
+  _getVmState = createSelector(
+    () => this.props.vm.power_state,
+    () => this.props.vm.current_operations,
+    (powerState, operations) => (!isEmpty(operations) ? 'Busy' : powerState)
+  )
+
   header() {
     const { vm, container, pool } = this.props
     if (!vm) {
       return <Icon icon='loading' />
     }
-    const state = isEmpty(vm.current_operations)
-      ? vm.power_state.toLowerCase()
-      : 'busy'
+    const state = this._getVmState()
+
     return (
       <Container>
         <Row>
@@ -207,8 +212,21 @@ export default class Vm extends BaseComponent {
               </span>
             </span>
             <h2>
-              <Tooltip content={state}>
-                <Icon icon={`vm-${state}`} />
+              <Tooltip
+                content={
+                  <span>
+                    {_(`powerState${state}`)}
+                    {state === 'Busy' && (
+                      <span>
+                        {' ('}
+                        {map(vm.current_operations)[0]}
+                        {')'}
+                      </span>
+                    )}
+                  </span>
+                }
+              >
+                <Icon icon={`vm-${state.toLowerCase()}`} />
               </Tooltip>{' '}
               <Text value={vm.name_label} onChange={this._setNameLabel} />
             </h2>{' '}

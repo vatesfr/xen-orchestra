@@ -31,7 +31,6 @@ import {
   isEmpty,
   noop,
   omit,
-  startsWith,
   uniq,
 } from 'lodash'
 import { satisfies as versionSatisfies } from 'semver'
@@ -830,7 +829,7 @@ export default class Xapi extends XapiBase {
       }
 
       // If the VDI name start with `[NOBAK]`, do not export it.
-      if (startsWith(vdi.name_label, '[NOBAK]')) {
+      if (vdi.name_label.startsWith('[NOBAK]')) {
         // FIXME: find a way to not create the VDI snapshot in the
         // first time.
         //
@@ -1159,6 +1158,9 @@ export default class Xapi extends XapiBase {
         {
           force: 'true',
         }
+        // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
+        // might need to be changed one day.
+        // {},
       )::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
         pDelay(1e4).then(loop)
       )

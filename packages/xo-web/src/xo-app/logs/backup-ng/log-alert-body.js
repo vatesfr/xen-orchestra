@@ -1,5 +1,6 @@
 import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
+import ButtonGroup from 'button-group'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -136,13 +137,24 @@ const VmTask = ({ children, restartVmJob, task }) => (
   <div>
     <Vm id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />{' '}
     {restartVmJob !== undefined && hasTaskFailed(task) && (
-      <ActionButton
-        handler={restartVmJob}
-        icon='run'
-        size='small'
-        tooltip={_('backupRestartVm')}
-        data-vm={task.data.id}
-      />
+      <ButtonGroup>
+        <ActionButton
+          data-vm={task.data.id}
+          handler={restartVmJob}
+          icon='run'
+          size='small'
+          tooltip={_('backupRestartVm')}
+        />
+        <ActionButton
+          btnStyle='warning'
+          data-force
+          data-vm={task.data.id}
+          handler={restartVmJob}
+          icon='force-restart'
+          size='small'
+          tooltip={_('backupForceRestartVm')}
+        />
+      </ButtonGroup>
     )}
     <Warnings warnings={task.warnings} />
     {children}
@@ -316,14 +328,15 @@ export default decorate([
       setFilter: (_, filter) => () => ({
         filter,
       }),
-      restartVmJob: (_, { vm }) => async (
+      restartVmJob: (_, params) => async (
         _,
         { log: { scheduleId, jobId } }
       ) => {
         await runBackupNgJob({
+          force: get(() => params.force),
           id: jobId,
-          vm,
           schedule: scheduleId,
+          vm: get(() => params.vm),
         })
       },
     },

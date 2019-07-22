@@ -80,9 +80,16 @@ export default class VmItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
+  _getVmState = createSelector(
+    () => this.props.item.power_state,
+    () => this.props.item.current_operations,
+    (powerState, operations) => (!isEmpty(operations) ? 'Busy' : powerState)
+  )
+
   render() {
     const { item: vm, container, expandAll, selected } = this.props
     const resourceSet = this._getResourceSet()
+    const state = this._getVmState()
 
     return (
       <div className={styles.item}>
@@ -99,23 +106,19 @@ export default class VmItem extends Component {
                 &nbsp;&nbsp;
                 <Tooltip
                   content={
-                    isEmpty(vm.current_operations) ? (
-                      _(`powerState${vm.power_state}`)
-                    ) : (
-                      <div>
-                        {_(`powerState${vm.power_state}`)}
-                        {' ('}
-                        {map(vm.current_operations)[0]}
-                        {')'}
-                      </div>
-                    )
+                    <span>
+                      {_(`powerState${state}`)}
+                      {state === 'Busy' && (
+                        <span>
+                          {' ('}
+                          {map(vm.current_operations)[0]}
+                          {')'}
+                        </span>
+                      )}
+                    </span>
                   }
                 >
-                  {isEmpty(vm.current_operations) ? (
-                    <Icon icon={`${vm.power_state.toLowerCase()}`} />
-                  ) : (
-                    <Icon icon='busy' />
-                  )}
+                  <Icon icon={state.toLowerCase()} />
                 </Tooltip>
                 &nbsp;&nbsp;
                 <Ellipsis>
