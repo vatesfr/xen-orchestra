@@ -521,7 +521,7 @@ class SDNController extends EventEmitter {
 
     for (const host of hosts) {
       const pif = find(host.$PIFs, { network: network.$ref })
-      if (pif != null && pif.currently_attached && host.$metrics.live) {
+      if (pif !== undefined && pif.currently_attached && host.$metrics.live) {
         newCenter = host
       }
     }
@@ -638,35 +638,31 @@ class SDNController extends EventEmitter {
 
     const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
     for (const tunnel of tunnels) {
-      const accessPIF = xapi.getObjectByRef(tunnel.access_PIF)
-      if (accessPIF.host !== host.$ref) {
+      const accessPif = xapi.getObjectByRef(tunnel.access_PIF)
+      if (accessPif.host !== host.$ref) {
         continue
       }
 
       const poolNetwork = find(this._poolNetworks, {
-        network: accessPIF.network,
+        network: accessPif.network,
       })
-      if (poolNetwork == null) {
-        continue
-      }
-
-      if (accessPIF.currently_attached) {
+      if (poolNetwork == null || accessPif.currently_attached) {
         continue
       }
 
       log.debug(
-        `Pluging PIF: '${accessPIF.device}' for host: '${host.name_label}' on network: '${accessPIF.$network.name_label}'`
+        `Plugging PIF: '${accessPif.device}' for host: '${host.name_label}' on network: '${accessPif.$network.name_label}'`
       )
       try {
-        await xapi.call('PIF.plug', accessPIF.$ref)
+        await xapi.call('PIF.plug', accessPif.$ref)
       } catch (error) {
         log.error(
-          `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${host.name_label}' for network: '${accessPIF.$network.name_label}': ${error}`
+          `XAPI error while plugging PIF: '${accessPif.device}' on host: '${host.name_label}' for network: '${accessPif.$network.name_label}': ${error}`
         )
       }
 
       const starCenter = xapi.getObjectByRef(poolNetwork.starCenter)
-      await this._addHostToNetwork(host, accessPIF.$network, starCenter)
+      await this._addHostToNetwork(host, accessPif.$network, starCenter)
     }
   }
 
@@ -681,7 +677,7 @@ class SDNController extends EventEmitter {
       const newCenter = await this._electNewCenter(network, true)
       poolNetwork.starCenter = newCenter?.$ref
       this._starCenters.delete(host.$id)
-      if (newCenter != null) {
+      if (newCenter !== null) {
         this._starCenters.set(newCenter.$id, newCenter.$ref)
       }
     }
