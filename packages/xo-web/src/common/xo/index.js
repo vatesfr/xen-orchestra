@@ -1304,9 +1304,7 @@ export const migrateVm = (vm, host) =>
         icon: 'alarm',
         title: _('forceVmMigrateModalTitle'),
         body: _('forceVmMigrateModalMessage'),
-      }).then(() =>
-        _call('vm.migrate', { vm: vm.id, force: 'true', ...params })
-      )
+      }).then(() => _call('vm.migrate', { vm: vm.id, force: true, ...params }))
     }
   }, noop)
 

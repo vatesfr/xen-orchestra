@@ -1187,7 +1187,7 @@ export default class Xapi extends XapiBase {
         vdis,
         vifsMap,
         {
-          force,
+          force: String(force),
         }
         // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
         // might need to be changed one day.
@@ -1466,7 +1466,7 @@ export default class Xapi extends XapiBase {
     } else {
       try {
         await this.callAsync('VM.pool_migrate', vm.$ref, host.$ref, {
-          force,
+          force: String(force),
         })
       } catch (error) {
         if (error.code !== 'VM_REQUIRES_SR') {

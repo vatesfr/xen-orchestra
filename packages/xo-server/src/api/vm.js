@@ -449,7 +449,7 @@ insertCd.resolve = {
 export async function migrate({
   vm,
 
-  force = 'false',
+  force = false,
   host,
   mapVdisSrs,
   mapVifsNetworks,
@@ -501,7 +501,7 @@ migrate.params = {
   // Identifier of the VM to migrate.
   vm: { type: 'string' },
 
-  force: { type: 'string', optional: true },
+  force: { type: 'boolean', optional: true },
 
   // Map VDIs IDs --> SRs IDs
   mapVdisSrs: { type: 'object', optional: true },
