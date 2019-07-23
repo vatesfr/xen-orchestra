@@ -11,12 +11,15 @@ import { connectStore } from '../../utils'
 import { createGetObject, createSelector } from '../../selectors'
 import { SelectSr } from '../../select-objects'
 
-@connectStore({
-  isZstdSupported: createSelector(
-    createGetObject((_, { vm }) => vm.$container),
-    container => container.zstdSupported
-  ),
-})
+@connectStore(
+  {
+    isZstdSupported: createSelector(
+      createGetObject((_, { vm }) => vm.$container),
+      container => container.zstdSupported
+    ),
+  },
+  { withRef: true }
+)
 class CopyVmModalBody extends BaseComponent {
   state = {
     compression: '',
