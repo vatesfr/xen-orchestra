@@ -144,7 +144,7 @@ export class OvsdbClient {
     if (error != null) {
       log.error('Error while adding port and interface to bridge', {
         error,
-        details: details,
+        details,
         port: portName,
         interface: interfaceName,
         bridge: bridgeName,
@@ -235,7 +235,7 @@ export class OvsdbClient {
     }
 
     log.debug('Ports deleted from bridge', {
-      'number-of-ports': jsonObjects[0].result[0].count,
+      nPorts: jsonObjects[0].result[0].count,
       bridge: bridgeName,
       host: this._host.name_label,
     })
@@ -406,9 +406,9 @@ export class OvsdbClient {
       log.error('Error while selecting columns', {
         error: jsonResult.error,
         details: jsonResult.details,
-        columns: columns,
-        table: table,
-        where: where,
+        columns,
+        table,
+        where,
         host: this._host.name_label,
       })
       return null
@@ -416,9 +416,9 @@ export class OvsdbClient {
 
     if (jsonResult.rows.length === 0) {
       log.error('No result for select', {
-        columns: columns,
-        table: table,
-        where: where,
+        columns,
+        table,
+        where,
         host: this._host.name_label,
       })
       return null
