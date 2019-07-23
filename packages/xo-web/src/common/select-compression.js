@@ -1,7 +1,11 @@
 import _ from 'intl'
 import PropTypes from 'prop-types'
 import React from 'react'
-import Select from 'form/select'
+import { injectState, provideState } from 'reaclette'
+import { omit } from 'lodash'
+
+import decorate from './apply-decorators'
+import { Select } from './form'
 
 const OPTIONS = [
   {
@@ -12,27 +16,40 @@ const OPTIONS = [
     label: _('chooseCompressionGzipOption'),
     value: 'native',
   },
+]
+
+const OPTIONS_WITH_ZSTD = [
+  ...OPTIONS,
   {
     label: _('chooseCompressionZstdOption'),
     value: 'zstd',
   },
 ]
 
-const SelectCompression = ({ onChange, value, ...props }) => (
-  <Select
-    labelKey='label'
-    onChange={onChange}
-    options={OPTIONS}
-    required
-    simpleValue
-    value={value}
-    {...props}
-  />
-)
-
-SelectCompression.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.string,
+const SELECT_COMPRESSION_PROP_TYPES = {
+  showZstd: PropTypes.bool,
 }
 
+const SelectCompression = decorate([
+  provideState({
+    computed: {
+      options: (_, { showZstd }) => (showZstd ? OPTIONS_WITH_ZSTD : OPTIONS),
+      selectProps: (_, props) =>
+        omit(props, Object.keys(SELECT_COMPRESSION_PROP_TYPES)),
+    },
+  }),
+  injectState,
+  ({ onChange, state, value }) => (
+    <Select
+      labelKey='label'
+      options={state.options}
+      required
+      simpleValue
+      {...state.selectProps}
+    />
+  ),
+])
+
+SelectCompression.defaultProps = { showZstd: true }
+SelectCompression.propTypes = SELECT_COMPRESSION_PROP_TYPES
 export { SelectCompression as default }
