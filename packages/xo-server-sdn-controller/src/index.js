@@ -168,38 +168,40 @@ class SDNController extends EventEmitter {
     // FIXME: we should monitor when xapis are added/removed
     forOwn(this._xo.getAllXapis(), async xapi => {
       await xapi.objectsFetched
-
-      if (this._setControllerNeeded(xapi) === false) {
-        this._cleaners.push(await this._manageXapi(xapi))
-
-        const hosts = filter(xapi.objects.all, { $type: 'host' })
-        await Promise.all(
-          map(hosts, async host => {
-            this._createOvsdbClient(host)
-          })
-        )
-
-        // Add already existing pool-wide private networks
-        const networks = filter(xapi.objects.all, { $type: 'network' })
-        forOwn(networks, async network => {
-          if (network.other_config.private_pool_wide === 'true') {
-            log.debug('Adding network to managed networks', {
-              network: network.name_label,
-              pool: network.$pool.name_label,
-            })
-            const center = await this._electNewCenter(network, true)
-            this._poolNetworks.push({
-              pool: network.$pool.$ref,
-              network: network.$ref,
-              starCenter: center?.$ref,
-            })
-            this._networks.set(network.$id, network.$ref)
-            if (center != null) {
-              this._starCenters.set(center.$id, center.$ref)
-            }
-          }
-        })
+      if (this._setControllerNeeded(xapi)) {
+        return
       }
+
+      this._cleaners.push(await this._manageXapi(xapi))
+      const hosts = filter(xapi.objects.all, { $type: 'host' })
+      await Promise.all(
+        map(hosts, async host => {
+          this._createOvsdbClient(host)
+        })
+      )
+
+      // Add already existing pool-wide private networks
+      const networks = filter(xapi.objects.all, { $type: 'network' })
+      forOwn(networks, async network => {
+        if (network.other_config.private_pool_wide !== 'true') {
+          return
+        }
+
+        log.debug('Adding network to managed networks', {
+          network: network.name_label,
+          pool: network.$pool.name_label,
+        })
+        const center = await this._electNewCenter(network, true)
+        this._poolNetworks.push({
+          pool: network.$pool.$ref,
+          network: network.$ref,
+          starCenter: center?.$ref,
+        })
+        this._networks.set(network.$id, network.$ref)
+        if (center != null) {
+          this._starCenters.set(center.$id, center.$ref)
+        }
+      })
     })
   }
 
