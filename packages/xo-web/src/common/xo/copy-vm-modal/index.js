@@ -14,7 +14,7 @@ import { SelectSr } from '../../select-objects'
 @connectStore({
   isZstdSupported: createSelector(
     createGetObject((_, { vm }) => vm.$container),
-    container => container.zstd_supported
+    container => container.zstdSupported
   ),
 })
 class CopyVmModalBody extends BaseComponent {
