@@ -81,18 +81,6 @@ export default class Tooltip extends Component {
     this._removeListeners()
   }
 
-  componentWillReceiveProps(props) {
-    if (props.children !== this.props.children) {
-      this._removeListeners()
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.children !== this.props.children) {
-      this._addListeners()
-    }
-  }
-
   _addListeners() {
     const node = (this._node = ReactDOM.findDOMNode(this))
 
@@ -116,15 +104,18 @@ export default class Tooltip extends Component {
     this._node = null
   }
 
-  _showTooltip = () => {
+  _showTooltip = event => {
     const { props } = this
 
-    instance.setState({
-      className: props.className,
-      content: props.content,
-      show: true,
-      style: props.style,
-    })
+    instance.setState(
+      {
+        className: props.className,
+        content: props.content,
+        show: true,
+        style: props.style,
+      },
+      () => this._updateTooltip(event)
+    )
   }
 
   _hideTooltip = () => {
