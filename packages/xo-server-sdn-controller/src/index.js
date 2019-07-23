@@ -48,7 +48,6 @@ export const configurationSchema = {
 
 async function fileWrite(path, data) {
   await fromCallback(writeFile, path, data)
-  log.debug(`${path} successfully written`)
 }
 
 async function fileRead(path) {
@@ -184,9 +183,10 @@ class SDNController extends EventEmitter {
         const networks = filter(xapi.objects.all, { $type: 'network' })
         forOwn(networks, async network => {
           if (network.other_config.private_pool_wide === 'true') {
-            log.debug(
-              `Adding network: '${network.name_label}' for pool: '${network.$pool.name_label}' to managed networks`
-            )
+            log.debug('Adding network to managed networks', {
+              network: network.name_label,
+              pool: network.$pool.name_label,
+            })
             const center = await this._electNewCenter(network, true)
             this._poolNetworks.push({
               pool: network.$pool.$ref,
@@ -242,9 +242,10 @@ class SDNController extends EventEmitter {
 
     const privateNetwork = await pool.$xapi._getOrWaitObject(privateNetworkRef)
 
-    log.info(
-      `Private network '${privateNetwork.name_label}' has been created for pool '${pool.name_label}'`
-    )
+    log.info('New private network created', {
+      network: privateNetwork.name_label,
+      pool: pool.name_label,
+    })
 
     // For each pool's host, create a tunnel to the private network
     const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
@@ -293,9 +294,10 @@ class SDNController extends EventEmitter {
         const { $type } = object
 
         if ($type === 'host') {
-          log.debug(
-            `New host: '${object.name_label}' in pool: '${object.$pool.name_label}'`
-          )
+          log.debug('New host', {
+            host: object.name_label,
+            pool: object.$pool.name_label,
+          })
 
           if (find(this._newHosts, { $ref: object.$ref }) == null) {
             this._newHosts.push(object)
@@ -379,7 +381,13 @@ class SDNController extends EventEmitter {
       }
 
       log.debug(
-        `PIF: '${pif.device}' of network: '${pif.$network.name_label}' star-center host: '${pif.$host.name_label}' has been unplugged, electing a new host`
+        'PIF of star-center host has been unplugged, electing a new star-center',
+        {
+          pif: pif.device,
+          network: pif.$network.name_label,
+          host: pif.$host.name_label,
+          pool: pif.$pool.name_label,
+        }
       )
       const newCenter = await this._electNewCenter(pif.$network, true)
       poolNetwork.starCenter = newCenter?.$ref
@@ -390,16 +398,21 @@ class SDNController extends EventEmitter {
     } else {
       if (poolNetwork.starCenter == null) {
         const host = pif.$host
-        log.debug(
-          `First available host: '${host.name_label}' becomes star center of network: '${pif.$network.name_label}'`
-        )
+        log.debug('First available host becomes star center of network', {
+          host: host.name_label,
+          network: pif.$network.name_label,
+          pool: pif.$pool.name_label,
+        })
         poolNetwork.starCenter = pif.host
         this._starCenters.set(host.$id, host.$ref)
       }
 
-      log.debug(
-        `PIF: '${pif.device}' of network: '${pif.$network.name_label}' host: '${pif.$host.name_label}' has been plugged`
-      )
+      log.debug('PIF plugged', {
+        pif: pif.device,
+        network: pif.$network.name_label,
+        host: pif.$host.name_label,
+        pool: pif.$pool.name_label,
+      })
 
       const starCenter = pif.$xapi.getObjectByRef(poolNetwork.starCenter)
       await this._addHostToNetwork(pif.$host, pif.$network, starCenter)
@@ -420,9 +433,10 @@ class SDNController extends EventEmitter {
         try {
           await xapi.call('pool.certificate_sync')
         } catch (error) {
-          log.error(
-            `Couldn't sync SDN controller ca certificate in pool: '${host.$pool.name_label}' because: ${error}`
-          )
+          log.error('Error while syncing SDN controller CA certificate', {
+            error,
+            pool: host.$pool.name_label,
+          })
         }
       }
     }
@@ -452,11 +466,15 @@ class SDNController extends EventEmitter {
     const controller = find(pool.$xapi.objects.all, { $type: 'SDN_controller' })
     if (controller != null) {
       await pool.$xapi.call('SDN_controller.forget', controller.$ref)
-      log.debug(`Remove old SDN controller from pool: '${pool.name_label}'`)
+      log.debug('Old SDN controller removed', {
+        pool: pool.name_label,
+      })
     }
 
     await pool.$xapi.call('SDN_controller.introduce', PROTOCOL)
-    log.debug(`Set SDN controller of pool: '${pool.name_label}'`)
+    log.debug('SDN controller has been set', {
+      pool: pool.name_label,
+    })
     this._cleaners.push(await this._manageXapi(pool.$xapi))
   }
 
@@ -480,15 +498,16 @@ class SDNController extends EventEmitter {
         needInstall = true
       } else if (this._overrideCerts) {
         await xapi.call('pool.certificate_uninstall', SDN_CONTROLLER_CERT)
-        log.debug(
-          `Old SDN Controller CA certificate uninstalled on pool: '${xapi.pool.name_label}'`
-        )
+        log.debug('Old SDN controller CA certificate uninstalled', {
+          pool: xapi.pool.name_label,
+        })
         needInstall = true
       }
     } catch (error) {
-      log.error(
-        `Couldn't retrieve certificate list of pool: '${xapi.pool.name_label}'`
-      )
+      log.error('Error while retrieving certificate list', {
+        error,
+        pool: xapi.pool.name_label,
+      })
     }
     if (!needInstall) {
       return
@@ -501,13 +520,14 @@ class SDNController extends EventEmitter {
         this._caCert.toString()
       )
       await xapi.call('pool.certificate_sync')
-      log.debug(
-        `SDN controller CA certificate install in pool: '${xapi.pool.name_label}'`
-      )
+      log.debug('SDN controller CA certficate installed', {
+        pool: xapi.pool.name_label,
+      })
     } catch (error) {
-      log.error(
-        `Couldn't install SDN controller CA certificate in pool: '${xapi.pool.name_label}' because: ${error}`
-      )
+      log.error('Error while installing SDN controller CA certificate', {
+        error,
+        pool: xapi.pool.name_label,
+      })
     }
   }
 
@@ -538,18 +558,22 @@ class SDNController extends EventEmitter {
           try {
             await hostClient.resetForNetwork(network.uuid, network.name_label)
           } catch (error) {
-            log.error(
-              `Couldn't reset network: '${network.name_label}' for host: '${host.name_label}' in pool: '${network.$pool.name_label}' because: ${error}`
-            )
+            log.error('Error while resetting private network', {
+              error,
+              network: network.name_label,
+              host: host.name_label,
+              pool: network.$pool.name_label,
+            })
           }
         }
       })
     )
 
     if (newCenter == null) {
-      log.error(
-        `Unable to elect a new star-center host to network: '${network.name_label}' for pool: '${network.$pool.name_label}' because there's no available host`
-      )
+      log.error('No available host to elect new star-center', {
+        network: network.name_label,
+        pool: network.$pool.name_label,
+      })
       return null
     }
 
@@ -560,9 +584,11 @@ class SDNController extends EventEmitter {
       })
     )
 
-    log.info(
-      `New star center host elected: '${newCenter.name_label}' in network: '${network.name_label}'`
-    )
+    log.info('New star-center elected', {
+      center: newCenter.name_label,
+      network: network.name_label,
+      pool: network.$pool.name_label,
+    })
 
     return newCenter
   }
@@ -572,16 +598,19 @@ class SDNController extends EventEmitter {
       pif => pif.physical && pif.ip_configuration_mode !== 'None'
     )
     if (pif == null) {
-      log.error(
-        `No PIF found to create tunnel on host: '${host.name_label}' for network: '${network.name_label}'`
-      )
+      log.error('No PIF found to create tunnel', {
+        host: host.name_label,
+        network: network.name_label,
+      })
       return
     }
 
     await host.$xapi.call('tunnel.create', pif.$ref, network.$ref)
-    log.debug(
-      `Tunnel added on host '${host.name_label}' for network '${network.name_label}'`
-    )
+    log.debug('New tunnel added', {
+      network: network.name_label,
+      host: host.name_label,
+      pool: host.$pool.name_label,
+    })
   }
 
   async _addHostToNetwork(host, network, starCenter) {
@@ -594,7 +623,10 @@ class SDNController extends EventEmitter {
       host: host.$ref,
     })
     if (hostClient == null) {
-      log.error(`No OVSDB client found for host: '${host.name_label}'`)
+      log.error('No OVSDB client found', {
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
       return
     }
 
@@ -602,9 +634,10 @@ class SDNController extends EventEmitter {
       host: starCenter.$ref,
     })
     if (starCenterClient == null) {
-      log.error(
-        `No OVSDB client found for star-center host: '${starCenter.name_label}'`
-      )
+      log.error('No OVSDB client found for star-center', {
+        host: starCenter.name_label,
+        pool: starCenter.$pool.name_label,
+      })
       return
     }
 
@@ -627,9 +660,12 @@ class SDNController extends EventEmitter {
         encapsulation
       )
     } catch (error) {
-      log.error(
-        `Couldn't add host: '${host.name_label}' to network: '${network.name_label}' in pool: '${host.$pool.name_label}' because: ${error}`
-      )
+      log.error('Error while connection host to private network', {
+        error,
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
     }
   }
 
@@ -650,16 +686,25 @@ class SDNController extends EventEmitter {
         continue
       }
 
-      log.debug(
-        `Plugging PIF: '${accessPif.device}' for host: '${host.name_label}' on network: '${accessPif.$network.name_label}'`
-      )
       try {
         await xapi.call('PIF.plug', accessPif.$ref)
       } catch (error) {
-        log.error(
-          `XAPI error while plugging PIF: '${accessPif.device}' on host: '${host.name_label}' for network: '${accessPif.$network.name_label}': ${error}`
-        )
+        log.error('Error while plugging PIF', {
+          error,
+          pif: accessPif.device,
+          network: accessPif.$network.name_label,
+          host: host.name_label,
+          pool: host.$pool.name_label,
+        })
+        continue
       }
+
+      log.debug('PIF plugged', {
+        pif: accessPif.device,
+        network: accessPif.$network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
 
       const starCenter = xapi.getObjectByRef(poolNetwork.starCenter)
       await this._addHostToNetwork(host, accessPif.$network, starCenter)
@@ -670,9 +715,11 @@ class SDNController extends EventEmitter {
     const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
     for (const poolNetwork of poolNetworks) {
       const network = host.$xapi.getObjectByRef(poolNetwork.network)
-      log.debug(
-        `Star center host: '${host.name_label}' of network: '${network.name_label}' in pool: '${host.$pool.name_label}' is no longer reachable, electing a new host`
-      )
+      log.debug('Unreachable star-center, electing a new one', {
+        network: network.name_label,
+        center: host.name_label,
+        pool: host.$pool.name_label,
+      })
 
       const newCenter = await this._electNewCenter(network, true)
       poolNetwork.starCenter = newCenter?.$ref
@@ -727,15 +774,19 @@ class SDNController extends EventEmitter {
       subject: subject,
     }
 
-    openssl.generateRSAPrivateKey(rsakeyoptions, (err, cakey, cmd) => {
-      if (err) {
-        log.error(`Error while generating CA private key: ${err}`)
+    openssl.generateRSAPrivateKey(rsakeyoptions, (error, cakey, cmd) => {
+      if (error !== undefined) {
+        log.error('Error while generating CA private key', {
+          error,
+        })
         return
       }
 
-      openssl.generateCSR(cacsroptions, cakey, null, (err, csr, cmd) => {
-        if (err) {
-          log.error(`Error while generating CA certificate: ${err}`)
+      openssl.generateCSR(cacsroptions, cakey, null, (error, csr, cmd) => {
+        if (error !== undefined) {
+          log.error('Error while generating CA certificate', {
+            error,
+          })
           return
         }
 
@@ -744,45 +795,58 @@ class SDNController extends EventEmitter {
           cacsroptions,
           cakey,
           null,
-          async (err, cacrt, cmd) => {
-            if (err) {
-              log.error(`Error while signing CA certificate: ${err}`)
+          async (error, cacrt, cmd) => {
+            if (error !== undefined) {
+              log.error('Error while signing CA certificate', {
+                error,
+              })
               return
             }
 
             await fileWrite(join(dataDir, CA_CERT), cacrt)
             openssl.generateRSAPrivateKey(
               rsakeyoptions,
-              async (err, key, cmd) => {
-                if (err) {
-                  log.error(`Error while generating private key: ${err}`)
+              async (error, key, cmd) => {
+                if (error !== undefined) {
+                  log.error('Error while generating private key', {
+                    error,
+                  })
                   return
                 }
 
                 await fileWrite(join(dataDir, CLIENT_KEY), key)
-                openssl.generateCSR(csroptions, key, null, (err, csr, cmd) => {
-                  if (err) {
-                    log.error(`Error while generating certificate: ${err}`)
-                    return
-                  }
-                  openssl.CASignCSR(
-                    csr,
-                    cacsroptions,
-                    false,
-                    cacrt,
-                    cakey,
-                    null,
-                    async (err, crt, cmd) => {
-                      if (err) {
-                        log.error(`Error while signing certificate: ${err}`)
-                        return
-                      }
-
-                      await fileWrite(join(dataDir, CLIENT_CERT), crt)
-                      this.emit('certWritten')
+                openssl.generateCSR(
+                  csroptions,
+                  key,
+                  null,
+                  (error, csr, cmd) => {
+                    if (error !== undefined) {
+                      log.error('Error while generating certificate', {
+                        error,
+                      })
+                      return
                     }
-                  )
-                })
+                    openssl.CASignCSR(
+                      csr,
+                      cacsroptions,
+                      false,
+                      cacrt,
+                      cakey,
+                      null,
+                      async (error, crt, cmd) => {
+                        if (error !== undefined) {
+                          log.error('Error while signing certificate', {
+                            error,
+                          })
+                          return
+                        }
+
+                        await fileWrite(join(dataDir, CLIENT_CERT), crt)
+                        this.emit('certWritten')
+                      }
+                    )
+                  }
+                )
               }
             )
           }
