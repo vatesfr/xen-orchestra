@@ -260,7 +260,11 @@ export default class Visualization extends Component<any, any> {
             this.state.maxDiskRvM2 = Math.max(...xvds.r[property])
           })
         }
-
+        this.state.maxDiskVM2 = Math.max(
+          this.state.maxDiskWvM2,
+          this.state.maxDiskRvM2
+        )
+        
         for (var i = 0; i < this.state.propNetworkTxVm2.length; i++) {
           this.state.propNetworkTxVm2.forEach((property: string | number) => {
             this.state.maxNetworkTxVm2 = Math.max(...vifs.tx[property])
@@ -273,14 +277,13 @@ export default class Visualization extends Component<any, any> {
           })
         }
 
-        this.state.maxDiskVM2 = Math.max(
-          this.state.maxDiskWvM2,
-          this.state.maxDiskRvM2
-        )
         this.state.maxVVM2 = Math.max(
           this.state.maxNetworkTxVm2,
           this.state.maxNetworkRxVm2
         )
+
+       
+       
 
         this.setState({ dataDiskVm2, dataCpuVm2, dataNetworkVm2 })
       }

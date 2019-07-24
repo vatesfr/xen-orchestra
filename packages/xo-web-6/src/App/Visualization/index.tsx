@@ -19,7 +19,7 @@ xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
 const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
 const xoCall = (method, params) => signedIn.then(() => xo.call(method, params))
 
-const getObjects = (id:any) => xoCall('xo.getAllObjects', { filter: { id }}).then(objects => objects[id])
+const getObjects = (id: any) => xoCall('xo.getAllObjects', { filter: { id } }).then(objects => objects[id])
 
 
 export default class Visualization extends Component<any, any> {
@@ -38,8 +38,8 @@ export default class Visualization extends Component<any, any> {
     dataVmMemory: [],
     startIndexMemoryVm: 0,
     endIndexMemoryVm: 0,
-    valueMaxVmMemory:0,
-   
+    valueMaxVmMemory: 0,
+
 
     //  Network
     dataVmNetwork: [],
@@ -47,7 +47,7 @@ export default class Visualization extends Component<any, any> {
     propVmNetworkRx: [],
     startIndexNetworkVm: 0,
     endIndexNetworkVm: 0,
-    maxNetwork :0,
+    maxNetwork: 0,
 
     //  Disk
     dataVmDisk: [],
@@ -55,7 +55,7 @@ export default class Visualization extends Component<any, any> {
     propXvdsR: [],
     startIndexDiskVm: 0,
     endIndexDiskVm: 0,
-    maxDisk:0,
+    maxDisk: 0,
 
     //  Host
     //  cpu
@@ -68,7 +68,7 @@ export default class Visualization extends Component<any, any> {
     dataHostMemory: [],
     startIndexMemoryHost: 0,
     endIndexMemoryHost: 0,
-    ValueMaxHostMemory:0,
+    ValueMaxHostMemory: 0,
 
     //  Network
     dataHostNetwork: [],
@@ -76,13 +76,13 @@ export default class Visualization extends Component<any, any> {
     propHostNetworkTx: [],
     startIndexNetworkHost: 0,
     endIndexNetworkHost: 0,
-    maxNetworkHost:0,
+    maxNetworkHost: 0,
 
     //  Load
     dataHostLoad: [],
     startIndexLoadHost: 0,
     endIndexLoadHost: 0,
-    maxLoad:0,
+    maxLoad: 0,
 
     //  SR
     //  IOPS
@@ -90,29 +90,29 @@ export default class Visualization extends Component<any, any> {
     propSrIops: [],
     startIndexIopsSR: 0,
     endIndexIopsSR: 0,
-    maxIOPS:0,
+    maxIOPS: 0,
 
     //  IO Throughput
     dataSrThro: [],
     propSrThro: [],
     startIndexIOSR: 0,
     endIndexIOSR: 0,
-    maxIoThroughput:0,
+    maxIoThroughput: 0,
 
     //  Latency
     dataSrLatency: [],
     propSrLatency: [],
     startIndexLatencySR: 0,
     endIndexLatencySR: 0,
-    maxLatency:0,
+    maxLatency: 0,
 
     //  IOwait
     dataSrIowait: [],
     propSrIowait: [],
     startIndexIOwaitSR: 0,
     endIndexIOwaitSR: 0,
-    maxIOwait:0,
-    
+    maxIOwait: 0,
+
   }
 
   componentDidMount() {
@@ -121,14 +121,17 @@ export default class Visualization extends Component<any, any> {
     setInterval(this.fetchSrStats.bind(this), 5e3)
   }
 
-  
+
 
   fetchVmStats = () => {
-     
-    getObjects('28851ef6-951c-08bc-a5be-8898e2a31b7a').then((vm:any) => {
-      
-     this.state.valueMaxVmMemory = vm.memory.dynamic[1]}      
-      )
+
+    getObjects('28851ef6-951c-08bc-a5be-8898e2a31b7a').then((vm: any) => {
+
+
+      this.setState({ valueMaxVmMemory: vm.memory.dynamic[1] })
+
+    }
+    )
 
 
     xoCall('vm.stats', {
@@ -144,7 +147,7 @@ export default class Visualization extends Component<any, any> {
         stats: { xvds },
       }) => {
 
-       
+
         let format: any
         if (interval === 3600 || interval === 5 || interval === 60) {
           format = 'LTS'
@@ -218,12 +221,12 @@ export default class Visualization extends Component<any, any> {
           })
         }
 
-          this.state.maxNetwork = Math.max(
+        this.state.maxNetwork = Math.max(
           this.state.maxNetworkTx,
           this.state.maxNetworkRx
         )
         /////
-          
+
         for (var i = 0; i < this.state.propXvds.length; i++) {
           this.state.propXvds.forEach((property: string | number) => {
             this.state.maxDiskW = Math.max(...xvds.w[property])
@@ -247,11 +250,11 @@ export default class Visualization extends Component<any, any> {
   }
 
   fetchHostStats = () => {
-    getObjects('73bb5ce0-f720-4621-bd68-98341b094bad').then((host:any) => {
-      
-      this.state.ValueMaxHostMemory= host.memory.sizes}
-      
-      )
+    getObjects('73bb5ce0-f720-4621-bd68-98341b094bad').then((host: any) => {
+      this.setState({ ValueMaxHostMemory: host.memory.sizes })
+    }
+
+    )
 
     xoCall('host.stats', {
       host: '73bb5ce0-f720-4621-bd68-98341b094bad',
@@ -305,7 +308,7 @@ export default class Visualization extends Component<any, any> {
 
           valuesLoad.load = load[i]
 
-         
+
 
           valuesHostMemory.memory = memory[i]
 
@@ -318,26 +321,26 @@ export default class Visualization extends Component<any, any> {
           dataHostNetwork.push(valuesHostNetwork)
           dataHostLoad.push(valuesLoad)
         }
-             
-          this.state.maxLoad = Math.max(...load)    
-          
-          for (var i = 0; i < this.state.propHostNetworkTx.length; i++) {
-            this.state.propHostNetworkTx.forEach((property: string | number) => {
-              this.state.maxNetworkTx = Math.max(...pifs.tx[property])
-            })
-          }
-  
-          for (var i = 0; i < this.state.propHostNetworkRx.length; i++) {
-            this.state.propHostNetworkRx.forEach((property: string | number) => {
-              this.state.maxNetworkRx = Math.max(...pifs.rx[property])
-            })
-          }
-  
-            this.state.maxNetworkHost = Math.max(
-            this.state.maxNetworkTx,
-            this.state.maxNetworkRx
-          )
-         
+
+        this.state.maxLoad = Math.max(...load)
+
+        for (var i = 0; i < this.state.propHostNetworkTx.length; i++) {
+          this.state.propHostNetworkTx.forEach((property: string | number) => {
+            this.state.maxNetworkTx = Math.max(...pifs.tx[property])
+          })
+        }
+
+        for (var i = 0; i < this.state.propHostNetworkRx.length; i++) {
+          this.state.propHostNetworkRx.forEach((property: string | number) => {
+            this.state.maxNetworkRx = Math.max(...pifs.rx[property])
+          })
+        }
+
+        this.state.maxNetworkHost = Math.max(
+          this.state.maxNetworkTx,
+          this.state.maxNetworkRx
+        )
+
 
         this.setState({
           dataHostCpu,
@@ -407,7 +410,7 @@ export default class Visualization extends Component<any, any> {
           this.state.propSrIowait.forEach((property: string | number) => {
             valuesSrIowait[`iowait_${property}`] = iowait[property][i]
           })
-    
+
 
           valuesSrLatency.time = valuesSrIops.time
           valuesSrThro.time = valuesSrIops.time
@@ -478,16 +481,16 @@ export default class Visualization extends Component<any, any> {
           dataVmCpu={this.state.dataVmCpu}
           propVmCpus={this.state.propVmCpus}
         />
-        <VuVmMemoryStats dataVmMemory={this.state.dataVmMemory} 
-                         valueMaxVmMemory = {this.state.valueMaxVmMemory}
-        
+        <VuVmMemoryStats dataVmMemory={this.state.dataVmMemory}
+          valueMaxVmMemory={this.state.valueMaxVmMemory}
+
         />
         <VuVmNetworkStats
           dataVmNetwork={this.state.dataVmNetwork}
           propVmNetworkTx={this.state.propVmNetworkTx}
           propVmNetworkRx={this.state.propVmNetworkRx}
-          maxNetwork ={this.state.maxNetwork}
-          
+          maxNetwork={this.state.maxNetwork}
+
         />
         <VuVmDiskStats
           dataVmDisk={this.state.dataVmDisk}
@@ -499,14 +502,14 @@ export default class Visualization extends Component<any, any> {
           dataHostCpu={this.state.dataHostCpu}
           propHostCpus={this.state.propHostCpus}
         />
-        <VuHostMemoryStats dataHostMemory={this.state.dataHostMemory}  ValueMaxHostMemory= {this.state.ValueMaxHostMemory}/>
+        <VuHostMemoryStats dataHostMemory={this.state.dataHostMemory} ValueMaxHostMemory={this.state.ValueMaxHostMemory} />
         <VuHostNetworkStats
           dataHostNetwork={this.state.dataHostNetwork}
           propHostNetworkRx={this.state.propHostNetworkRx}
           propHostNetworkTx={this.state.propHostNetworkTx}
           maxNetworkHost={this.state.maxNetworkHost}
         />
-        <VuHostLoadStats dataHostLoad={this.state.dataHostLoad} maxLoad={this.state.maxLoad}/>
+        <VuHostLoadStats dataHostLoad={this.state.dataHostLoad} maxLoad={this.state.maxLoad} />
         <VuSrIOPSstats
           dataSrIops={this.state.dataSrIops}
           propSrIops={this.state.propSrIops}
@@ -520,12 +523,12 @@ export default class Visualization extends Component<any, any> {
         <VuSrLatencyStats
           dataSrLatency={this.state.dataSrLatency}
           propSrLatency={this.state.propSrLatency}
-          maxLatency= {this.state.maxLatency}
+          maxLatency={this.state.maxLatency}
         />
         <VuSrIoWaitStats
           dataSrIowait={this.state.dataSrIowait}
           propSrIowait={this.state.propSrIowait}
-          maxIOwait= {this.state.maxIOwait}
+          maxIOwait={this.state.maxIOwait}
         />
       </div>
     )
@@ -644,7 +647,7 @@ class VuVmMemoryStats extends Component<any, any> {
     format: 'LTS',
     startIndexMemoryVm: 0,
     endIndexMemoryVm: 0,
-    valueMaxVmMemory:0
+    valueMaxVmMemory: 0
 
   }
 
@@ -689,7 +692,7 @@ class VuVmMemoryStats extends Component<any, any> {
               axisLine={false}
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 0)}
-              domain={[0, this.formatBytes(this.props.valueMaxVmMemory,2)]}
+              domain={[0, this.formatBytes(this.props.valueMaxVmMemory, 2)]}
             />
             <Tooltip />
             <Brush
@@ -803,7 +806,7 @@ class VuVmNetworkStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000,this.props.maxNetwork) ]}
+              domain={[0, Math.max(1000000, this.props.maxNetwork)]}
             />
             <Tooltip />
             <Brush
@@ -954,7 +957,7 @@ class VuVmDiskStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000000,this.props.maxDisk) ]}
+              domain={[0, Math.max(1000000000, this.props.maxDisk)]}
             />
             <Tooltip />
             <Brush
@@ -1183,7 +1186,7 @@ class VuHostMemoryStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain ={[0,this.formatBytes(this.props.ValueMaxHostMemory)]}
+              domain={[0, this.formatBytes(this.props.ValueMaxHostMemory)]}
             />
             <Tooltip />
             <Brush
@@ -1298,7 +1301,7 @@ class VuHostNetworkStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000,this.props.maxNetworkHost)]} 
+              domain={[0, Math.max(1000000, this.props.maxNetworkHost)]}
             />
             <Tooltip />
             <Brush
@@ -1381,7 +1384,7 @@ class VuHostLoadStats extends Component<any, any> {
     format: 'LTS',
     startIndexLoadHost: 0,
     endIndexLoadHost: 0,
-    
+
   }
 
   handleChangeLoadHost = (res: any) => {
@@ -1409,8 +1412,8 @@ class VuHostLoadStats extends Component<any, any> {
           >
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='time' />
-            <YAxis tick={{ fontSize: '11px' }}  
-            domain={[0, Math.max(1,this.props.maxLoad)]}
+            <YAxis tick={{ fontSize: '11px' }}
+              domain={[0, Math.max(1, this.props.maxLoad)]}
             />
             <Tooltip />
             <Brush
@@ -1503,7 +1506,7 @@ class VuSrIOPSstats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' IOPS'}
-              domain={[0, Math.max(40,this.props.maxIOPS) ]} 
+              domain={[0, Math.max(40, this.props.maxIOPS)]}
             />
             <Tooltip />
             <Brush
@@ -1616,7 +1619,7 @@ class VuSrIOThroStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000,this.props.maxIoThroughput) ]} 
+              domain={[0, Math.max(1000000, this.props.maxIoThroughput)]}
             />
             <Tooltip />
             <Brush
@@ -1717,7 +1720,7 @@ class VuSrLatencyStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' ms'}
-              domain={[0, Math.max(30,this.props.maxLatency) ]} 
+              domain={[0, Math.max(30, this.props.maxLatency)]}
             />
             <Tooltip />
             <Brush
@@ -1818,7 +1821,7 @@ class VuSrIoWaitStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' %'}
-              domain={[0, Math.max(5,this.props.maxIOwait) ]} 
+              domain={[0, Math.max(5, this.props.maxIOwait)]}
             />
             <Tooltip />
             <Brush
