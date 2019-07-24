@@ -166,7 +166,7 @@ class SDNController extends EventEmitter {
     )
 
     // FIXME: we should monitor when xapis are added/removed
-    forOwn(this._xo.getAllXapis(), async xapi => {
+    for (const xapi of this._xo.getAllXapis()) {
       await xapi.objectsFetched
       if (this._setControllerNeeded(xapi)) {
         return
@@ -175,7 +175,7 @@ class SDNController extends EventEmitter {
       this._cleaners.push(await this._manageXapi(xapi))
       const hosts = filter(xapi.objects.all, { $type: 'host' })
       await Promise.all(
-        map(hosts, async host => {
+        map(hosts, host => {
           this._createOvsdbClient(host)
         })
       )
@@ -202,7 +202,7 @@ class SDNController extends EventEmitter {
           this._starCenters.set(center.$id, center.$ref)
         }
       })
-    })
+    }
   }
 
   async unload() {

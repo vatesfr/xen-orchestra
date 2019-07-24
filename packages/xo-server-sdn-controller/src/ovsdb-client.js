@@ -412,7 +412,7 @@ export class OvsdbClient {
     // For now all select operations should return only 1 row
     assert(
       jsonResult.rows.length === 1,
-      `[${this.host.name_label}] There should exactly 1 row when searching: '${columns}' in: '${table}' where: '${where}'`
+      `[${this.host.name_label}] There should be exactly 1 row when searching: '${columns}' in: '${table}' where: '${where}'`
     )
 
     return jsonResult.rows[0]
