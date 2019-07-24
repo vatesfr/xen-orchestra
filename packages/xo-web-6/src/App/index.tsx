@@ -7,6 +7,8 @@ import { withStore } from 'reaclette'
 const Bar = React.lazy(() => import('./Bar'))
 const Foo = React.lazy(() => import('./Foo'))
 const Visualization = React.lazy(() => import('./Visualization'))
+const Visualization2 = React.lazy(() => import('./Visualization/mini-stats'))
+//import Visualization2 from './Visualization/mini-stats'
 
 const Title = styled.h1`
   color: red;
@@ -59,6 +61,7 @@ export default withStore(
           <Route path='/' exact component={Bar} />
           <Route path='/foo' component={Foo} />
           <Route path='/visualization' component={Visualization} />
+          <Route path='/visualization2' component={Visualization2} />
         </React.Suspense>
       </HelmetProvider>
     </Router>
