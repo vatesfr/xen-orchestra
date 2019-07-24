@@ -62,8 +62,9 @@ const UsageTooltip = decorate([
       vdisUsage: (_, { group: { vdis } }) => formatSize(sumBy(vdis, 'usage')),
       snapshotsUsage: (_, { group: { snapshots } }) =>
         formatSize(sumBy(snapshots, 'usage')),
-      vmNamesByVdi: createCollectionWrapper(({ vdis }, { vbds, vms }) =>
-        mapValues(vdis, vdi => get(() => vms[vbds[vdi.VBD].VM]))
+      vbdsByVdi: (_, { vbds }) => keyBy(vbds, 'VDI'),
+      vmNamesByVdi: createCollectionWrapper(({ vbdsByVdi, vdis }, { vms }) =>
+        mapValues(vdis, vdi => get(() => vms[vbdsByVdi[vdi.id].VM].name_label))
       ),
     },
   }),
@@ -183,7 +184,7 @@ export default class TabGeneral extends Component {
         )
       }
       // search root base copy for each VDI
-      const vdisInfo = vdis.map(({ id, parent, name_label, usage }) => {
+      const vdisInfo = vdis.map(({ id, parent, name_label, usage, $VBDs }) => {
         const baseCopies = new Set()
         let baseCopy
         let root = id
@@ -212,6 +213,7 @@ export default class TabGeneral extends Component {
           root,
           snapshots: snapshots === undefined ? [] : snapshots,
           usage,
+          $VBDs,
         }
       })
       // group VDIs by their root base copy.
