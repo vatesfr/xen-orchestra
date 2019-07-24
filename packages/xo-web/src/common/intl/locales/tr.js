@@ -2303,7 +2303,7 @@ export default {
   vdiAction: 'Aksiyon',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: 'Disk tak',
+  vdiAttachDevice: 'Disk tak',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: 'Yeni disk',

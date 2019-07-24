@@ -1557,7 +1557,7 @@ export default {
   vdiAction: undefined,
 
   // Original text: 'Attach disk'
-  vdiAttachDeviceButton: undefined,
+  vdiAttachDevice: undefined,
 
   // Original text: 'New disk'
   vbdCreateDeviceButton: undefined,

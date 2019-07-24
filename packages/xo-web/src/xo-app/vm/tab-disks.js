@@ -41,6 +41,7 @@ import {
   filter,
   find,
   forEach,
+  isEmpty,
   get,
   groupBy,
   map,
@@ -453,10 +454,20 @@ class AttachDisk extends Component {
         const vbd = vbds[id]
         return !vbd || !vbd.attached || vbd.read_only
       })
-    return attachDiskToVm(vdi, vm, {
-      bootable,
-      mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
-    }).then(onClose)
+
+    const _attachDisk = () =>
+      attachDiskToVm(vdi, vm, {
+        bootable,
+        mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
+      }).then(onClose)
+
+    return isEmpty(filter(vbds, { VDI: vdi.id, VM: vm.id, attached: true }))
+      ? _attachDisk()
+      : confirm({
+          body: _('vdiAttachDeviceConfirm'),
+          icon: 'alarm',
+          title: _('vdiAttachDevice'),
+        }).then(_attachDisk)
   }
 
   render() {
@@ -886,7 +897,7 @@ export default class TabDisks extends Component {
                 btnStyle={attachDisk ? 'info' : 'primary'}
                 handler={this._toggleAttachDisk}
                 icon='disk'
-                labelId='vdiAttachDeviceButton'
+                labelId='vdiAttachDevice'
               />
             )}
             {vm.virtualizationMode !== 'pv' && (
