@@ -42,6 +42,7 @@
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "/dist/",
+      "/xo-server-test/",
       "/xo-web/"
     ],
     "testRegex": "\\.spec\\.js$",

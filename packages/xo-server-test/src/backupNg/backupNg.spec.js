@@ -4,7 +4,7 @@ import { noSuchObject } from 'xo-common/api-errors'
 
 import config from '../_config'
 import randomId from '../_randomId'
-import xo, { resources } from '../_xoConnection'
+import xo from '../_xoConnection'
 
 const DEFAULT_SCHEDULE = {
   name: 'scheduleTest',
@@ -228,10 +228,11 @@ describe('backupNg', () => {
 
     it('fails trying to run backup job without retentions', async () => {
       const scheduleTempId = randomId()
+      const { id: remoteId } = await xo.createTempRemote(config.remotes.default)
       const { id: jobId } = await xo.createTempBackupNgJob({
         ...defaultBackupNg,
         remotes: {
-          id: resources.remotes.default.id,
+          id: remoteId,
         },
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
