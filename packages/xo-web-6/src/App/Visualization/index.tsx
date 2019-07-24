@@ -173,10 +173,12 @@ export default class Visualization extends Component<any, any> {
           const valuesMemory: any = {}
           const valuesNetwork: any = {}
           const ValuesDisk: any = {}
-          valuesCpus.time = moment(
+         /*  valuesCpus.time = moment(
             (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
-          ).format(format)
+          ).format(format) */
 
+          valuesCpus.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
+          
           this.state.propVmCpus.forEach((property: string | number) => {
             valuesCpus[`cpu${property}`] = cpus[property][i]
           })
@@ -290,9 +292,10 @@ export default class Visualization extends Component<any, any> {
           const valuesHostNetwork: any = {}
           const valuesLoad: any = {}
 
-          valuesHost.time = moment(
+         /*  valuesHost.time = moment(
             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-          ).format(format)
+          ).format(format) */
+          valuesHost.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
 
           this.state.propHostCpus.forEach((property: string | number) => {
             valuesHost[`cpu${property}`] = cpus[property][i]
@@ -391,9 +394,11 @@ export default class Visualization extends Component<any, any> {
           const valuesSrLatency: any = {}
           const valuesSrIowait: any = {}
 
-          valuesSrIops.time = moment(
+          /* valuesSrIops.time = moment(
             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-          ).format(format)
+          ).format(format) */
+          valuesSrIops.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+          
 
           this.state.propSrIops.forEach((property: string | number) => {
             valuesSrIops[`iops_${property}`] = iops[property][i]
