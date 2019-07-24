@@ -42,7 +42,7 @@
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "/dist/",
-      "<rootDir>/packages/xo-server-test",
+      "/xo-server-test/",
       "/xo-web/"
     ],
     "testRegex": "\\.spec\\.js$",
