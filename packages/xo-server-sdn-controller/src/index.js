@@ -175,11 +175,9 @@ class SDNController extends EventEmitter {
 
         this._cleaners.push(await this._manageXapi(xapi))
         const hosts = filter(xapi.objects.all, { $type: 'host' })
-        await Promise.all(
-          map(hosts, host => {
-            this._createOvsdbClient(host)
-          })
-        )
+        for (const host of hosts) {
+          this._createOvsdbClient(host)
+        }
 
         // Add already existing pool-wide private networks
         const networks = filter(xapi.objects.all, { $type: 'network' })
