@@ -120,6 +120,9 @@ describe("user", () => {
 
 - You can run only tests related to changed files, and review the failed output by using: `> yarn test --watch`
 
+- ⚠ Warning: snapshots ⚠  
+After each run of the tests, check that snapshots are not inadvertently modified.  
+
 ## Contributions
 
 Contributions are *very* welcomed, either on the documentation or on
