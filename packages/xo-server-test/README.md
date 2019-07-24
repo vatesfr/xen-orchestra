@@ -121,7 +121,10 @@ describe("user", () => {
 - You can run only tests related to changed files, and review the failed output by using: `> yarn test --watch`
 
 - ⚠ Warning: snapshots ⚠  
-After each run of the tests, check that snapshots are not inadvertently modified.  
+After each run of the tests, check that snapshots are not inadvertently modified.
+
+- ⚠ Jest known issue ⚠  
+If a test timeout is triggered the next async tests can fail, it is due to an inadvertently modified snapshots.
 
 ## Contributions
 
