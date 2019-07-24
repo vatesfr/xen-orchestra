@@ -7,14 +7,13 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup NG/New] Generate default schedule if no schedule is specified [#4036](https://github.com/vatesfr/xen-orchestra/issues/4036) (PR [#4183](https://github.com/vatesfr/xen-orchestra/pull/4183))
-- [Host/Advanced] Ability to edit iSCSI IQN [#4048](https://github.com/vatesfr/xen-orchestra/issues/4048) (PR [#4208](https://github.com/vatesfr/xen-orchestra/pull/4208))
+- [VM/copy] Only show zstd option when it's supported [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PR [#4326](https://github.com/vatesfr/xen-orchestra/pull/4326))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Task] fix hidden notification by search field [#3874](https://github.com/vatesfr/xen-orchestra/issues/3874) (PR [#4305](https://github.com/vatesfr/xen-orchestra/pull/4305)
+- [SDN Controller] Better detect host shutting down to adapt network topology (PR [#4314](https://github.com/vatesfr/xen-orchestra/pull/4314))
 
 ### Released packages
 
@@ -23,5 +22,6 @@
 >
 > Rule of thumb: add packages on top.
 
-- xo-server v5.46.0
-- xo-web v5.46.0
+- xo-server-sdn-controller v0.1.2
+- xo-server v5.47.0
+- xo-web v5.47.0

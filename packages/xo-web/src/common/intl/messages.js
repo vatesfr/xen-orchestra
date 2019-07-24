@@ -770,14 +770,14 @@ const messages = {
   // ----- Pool actions ------
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
-  addHostLabel: 'Add Host',
+  addHostsLabel: 'Add hosts',
   missingPatchesPool:
     'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   missingPatchesHost:
-    'This host needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
+    'The selected host{nHosts, plural, one {} other {s}} need{nHosts, plural, one {s} other {}} to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   patchUpdateNoInstall:
-    'This host cannot be added to the pool because the patches are not homogeneous.',
-  addHostErrorTitle: 'Adding host failed',
+    'The selected host{nHosts, plural, one {} other {s}} cannot be added to the pool because the patches are not homogeneous.',
+  addHostsErrorTitle: 'Adding host{nHosts, plural, one {} other {s}} failed',
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
 
@@ -946,6 +946,8 @@ const messages = {
   powerStateRunning: 'Running',
   powerStateSuspended: 'Suspended',
   powerStatePaused: 'Paused',
+  powerStateDisabled: 'Disabled',
+  powerStateBusy: 'Busy',
 
   // ----- VM home -----
   vmCurrentStatus: 'Current status:',
@@ -979,9 +981,11 @@ const messages = {
   // ----- VM console tab -----
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
+  multilineCopyToClipboard: 'Multiline copy',
   tipLabel: 'Tip:',
   hideHeaderTooltip: 'Hide info',
   showHeaderTooltip: 'Show info',
+  sendToClipboard: 'Send to clipboard',
 
   // ----- VM container tab -----
   containerName: 'Name',
@@ -1744,7 +1748,7 @@ const messages = {
   privateNetwork: 'Private network',
 
   // ----- Add host -----
-  addHostSelectHost: 'Host',
+  hosts: 'Hosts',
   addHostNoHost: 'No host',
   addHostNoHostMessage: 'No host selected to be added',
 
@@ -1931,7 +1935,9 @@ const messages = {
   reportBug: 'Report a bug',
   unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
   backupRestartVm: "Restart VM's backup",
+  backupForceRestartVm: "Force restart VM's backup",
   backupRestartFailedVms: "Restart failed VMs' backup",
+  backupForceRestartFailedVms: "Force restart failed VMs' backup",
   clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------

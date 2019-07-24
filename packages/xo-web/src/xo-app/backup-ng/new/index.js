@@ -395,7 +395,7 @@ export default decorate([
         { saveSchedule },
         storedSchedule = DEFAULT_SCHEDULE
       ) => async (
-        { copyMode, exportMode, snapshotMode },
+        { copyMode, exportMode, missingBackupMode, snapshotMode },
         { intl: { formatMessage } }
       ) => {
         const schedule = await form({
@@ -415,6 +415,7 @@ export default decorate([
           handler: value => {
             if (
               !(
+                missingBackupMode ||
                 (exportMode && value.exportRetention > 0) ||
                 (copyMode && value.copyRetention > 0) ||
                 (snapshotMode && value.snapshotRetention > 0)
