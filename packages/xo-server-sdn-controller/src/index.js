@@ -689,7 +689,7 @@ class SDNController extends EventEmitter {
       })
     }
 
-    if (bridgeName != null) {
+    if (bridgeName !== null) {
       const activeStatus = { active: 'true', key: bridgeName }
       await xapi.call('tunnel.set_status', tunnel.$ref, activeStatus)
       await xapi.call('tunnel.set_status', starCenterTunnel.$ref, activeStatus)
