@@ -14,6 +14,7 @@ import {
   createSelector,
 } from 'selectors'
 import {
+  find,
   flatMap,
   forEach,
   groupBy,
@@ -62,9 +63,17 @@ const UsageTooltip = decorate([
       vdisUsage: (_, { group: { vdis } }) => formatSize(sumBy(vdis, 'usage')),
       snapshotsUsage: (_, { group: { snapshots } }) =>
         formatSize(sumBy(snapshots, 'usage')),
-      vbdsByVdi: (_, { vbds }) => keyBy(vbds, 'VDI'),
-      vmNamesByVdi: createCollectionWrapper(({ vbdsByVdi, vdis }, { vms }) =>
-        mapValues(vdis, vdi => get(() => vms[vbdsByVdi[vdi.id].VM].name_label))
+      vbdsByVdi: (_, { vbds }) => groupBy(vbds, 'VDI'),
+      vmNamesByVdi: createCollectionWrapper(
+        ({ vbdsByVdi, vdis }, { vbds, vms }) =>
+          mapValues(vdis, vdi => {
+            const vbd = find(vbdsByVdi[vdi.id], 'attached')
+            return get(
+              () =>
+                vms[(vbd === undefined ? vbds[vdi.$VBDs[0]] : vbd).VM]
+                  .name_label
+            )
+          })
       ),
     },
   }),
