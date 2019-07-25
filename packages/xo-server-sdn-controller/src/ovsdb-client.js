@@ -55,7 +55,7 @@ export class OvsdbClient {
     )
     if (bridgeUuid == null) {
       socket.destroy()
-      return
+      return null
     }
 
     const alreadyExist = await this._interfaceAndPortAlreadyExist(
@@ -66,7 +66,7 @@ export class OvsdbClient {
     )
     if (alreadyExist) {
       socket.destroy()
-      return
+      return bridgeName
     }
 
     const interfaceName = 'tunnel_iface' + index
@@ -110,7 +110,7 @@ export class OvsdbClient {
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
     if (jsonObjects == null) {
       socket.destroy()
-      return
+      return null
     }
 
     let error
@@ -137,7 +137,7 @@ export class OvsdbClient {
         host: this.host.name_label,
       })
       socket.destroy()
-      return
+      return null
     }
 
     log.debug('Port and interface added to bridge', {
@@ -148,6 +148,7 @@ export class OvsdbClient {
       host: this.host.name_label,
     })
     socket.destroy()
+    return bridgeName
   }
 
   async resetForNetwork(networkUuid, networkName) {
