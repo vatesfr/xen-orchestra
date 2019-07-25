@@ -8,7 +8,6 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM/copy] Only show zstd option when it's supported [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PR [#4326](https://github.com/vatesfr/xen-orchestra/pull/4326))
-- [SDN Controller] Use XAPI `tunnel.status` as described [here](https://xapi-project.github.io/xapi/design/tunnelling.html) (PR [#4322](https://github.com/vatesfr/xen-orchestra/pull/4322))
 
 ### Bug fixes
 
