@@ -166,41 +166,43 @@ class SDNController extends EventEmitter {
     )
 
     // FIXME: we should monitor when xapis are added/removed
-    forOwn(this._xo.getAllXapis(), async xapi => {
-      await xapi.objectsFetched
+    await Promise.all(
+      map(this._xo.getAllXapis(), async xapi => {
+        await xapi.objectsFetched
+        if (this._setControllerNeeded(xapi)) {
+          return
+        }
 
-      if (this._setControllerNeeded(xapi) === false) {
         this._cleaners.push(await this._manageXapi(xapi))
-
         const hosts = filter(xapi.objects.all, { $type: 'host' })
-        await Promise.all(
-          map(hosts, async host => {
-            this._createOvsdbClient(host)
-          })
-        )
+        for (const host of hosts) {
+          this._createOvsdbClient(host)
+        }
 
         // Add already existing pool-wide private networks
         const networks = filter(xapi.objects.all, { $type: 'network' })
         forOwn(networks, async network => {
-          if (network.other_config.private_pool_wide === 'true') {
-            log.debug('Adding network to managed networks', {
-              network: network.name_label,
-              pool: network.$pool.name_label,
-            })
-            const center = await this._electNewCenter(network, true)
-            this._poolNetworks.push({
-              pool: network.$pool.$ref,
-              network: network.$ref,
-              starCenter: center?.$ref,
-            })
-            this._networks.set(network.$id, network.$ref)
-            if (center != null) {
-              this._starCenters.set(center.$id, center.$ref)
-            }
+          if (network.other_config.private_pool_wide !== 'true') {
+            return
+          }
+
+          log.debug('Adding network to managed networks', {
+            network: network.name_label,
+            pool: network.$pool.name_label,
+          })
+          const center = await this._electNewCenter(network, true)
+          this._poolNetworks.push({
+            pool: network.$pool.$ref,
+            network: network.$ref,
+            starCenter: center?.$ref,
+          })
+          this._networks.set(network.$id, network.$ref)
+          if (center != null) {
+            this._starCenters.set(center.$id, center.$ref)
           }
         })
-      }
-    })
+      })
+    )
   }
 
   async unload() {
@@ -327,7 +329,10 @@ class SDNController extends EventEmitter {
   async _objectsRemoved(xapi, objects) {
     await Promise.all(
       map(objects, async (object, id) => {
-        const client = find(this._ovsdbClients, { id: id })
+        const client = find(
+          this._ovsdbClients,
+          client => client.host.$id === id
+        )
         if (client != null) {
           this._ovsdbClients.splice(this._ovsdbClients.indexOf(client), 1)
         }
@@ -443,15 +448,15 @@ class SDNController extends EventEmitter {
   }
 
   async _hostMetricsUpdated(hostMetrics) {
-    const ovsdbClient = find(this._ovsdbClients, {
-      hostMetricsRef: hostMetrics.$ref,
-    })
-    const host = ovsdbClient._host
+    const ovsdbClient = find(
+      this._ovsdbClients,
+      client => client.host.metrics === hostMetrics.$ref
+    )
 
     if (hostMetrics.live) {
-      await this._addHostToPoolNetworks(host)
+      await this._addHostToPoolNetworks(ovsdbClient.host)
     } else {
-      await this._hostUnreachable(host)
+      await this._hostUnreachable(ovsdbClient.host)
     }
   }
 
@@ -553,7 +558,10 @@ class SDNController extends EventEmitter {
         }
 
         // Clean old ports and interfaces
-        const hostClient = find(this._ovsdbClients, { host: host.$ref })
+        const hostClient = find(
+          this._ovsdbClients,
+          client => client.host.$ref === host.$ref
+        )
         if (hostClient != null) {
           try {
             await hostClient.resetForNetwork(network.uuid, network.name_label)
@@ -619,9 +627,10 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const hostClient = find(this._ovsdbClients, {
-      host: host.$ref,
-    })
+    const hostClient = find(
+      this._ovsdbClients,
+      client => client.host.$ref === host.$ref
+    )
     if (hostClient == null) {
       log.error('No OVSDB client found', {
         host: host.name_label,
@@ -630,9 +639,10 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const starCenterClient = find(this._ovsdbClients, {
-      host: starCenter.$ref,
-    })
+    const starCenterClient = find(
+      this._ovsdbClients,
+      client => client.host.$ref === starCenter.$ref
+    )
     if (starCenterClient == null) {
       log.error('No OVSDB client found for star-center', {
         host: starCenter.name_label,
@@ -650,13 +660,13 @@ class SDNController extends EventEmitter {
       await hostClient.addInterfaceAndPort(
         network.uuid,
         network.name_label,
-        starCenterClient.address,
+        starCenterClient.host.address,
         encapsulation
       )
       await starCenterClient.addInterfaceAndPort(
         network.uuid,
         network.name_label,
-        hostClient.address,
+        hostClient.host.address,
         encapsulation
       )
     } catch (error) {
@@ -733,7 +743,10 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   _createOvsdbClient(host) {
-    const foundClient = find(this._ovsdbClients, { host: host.$ref })
+    const foundClient = find(
+      this._ovsdbClients,
+      client => client.host.$ref === host.$ref
+    )
     if (foundClient != null) {
       return foundClient
     }
