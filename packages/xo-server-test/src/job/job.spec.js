@@ -40,6 +40,7 @@ describe('job', () => {
 
   describe('.create() :', () => {
     it('creates a new job', async () => {
+      jest.setTimeout(6e3)
       const userId = await xo.createTempUser(ADMIN_USER)
       const { email, password } = ADMIN_USER
       await testWithOtherConnection({ email, password }, async xo => {
@@ -208,6 +209,7 @@ describe('job', () => {
     })
 
     it('runs a job', async () => {
+      jest.setTimeout(7e3)
       const jobId = await xo.createTempJob(defaultJob)
       const snapshots = xo.objects.all[config.vms.default].snapshots
       await xo.call('job.runSequence', { idSequence: [jobId] })
