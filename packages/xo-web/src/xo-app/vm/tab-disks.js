@@ -449,7 +449,7 @@ class AttachDisk extends Component {
 
     const _isFreeForWriting = vdi =>
       vdi.$VBDs.length === 0 ||
-      some(vdi.$VBDs, id => {
+      every(vdi.$VBDs, id => {
         const vbd = vbds[id]
         return !vbd || !vbd.attached || vbd.read_only
       })
