@@ -754,8 +754,10 @@ class SDNController extends EventEmitter {
       if (newCenter !== null) {
         this._starCenters.set(newCenter.$id, newCenter.$ref)
       }
+    }
 
-      const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
+    for (const poolNetwork of this._poolNetworks) {
+      const network = host.$xapi.getObjectByRef(poolNetwork.network)
       const tunnel = this._getHostTunnelForNetwork(host, network)
       const status = { active: 'false' }
       await host.$xapi.call('tunnel.set_status', tunnel.$ref, status)
