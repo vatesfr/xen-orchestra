@@ -3,7 +3,7 @@ import createLogger from '@xen-orchestra/log'
 import NodeOpenssl from 'node-openssl-cert'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { filter, find, forOwn, map } from 'lodash'
+import { filter, find, map } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { join } from 'path'
 
@@ -181,26 +181,28 @@ class SDNController extends EventEmitter {
 
         // Add already existing pool-wide private networks
         const networks = filter(xapi.objects.all, { $type: 'network' })
-        forOwn(networks, async network => {
-          if (network.other_config.private_pool_wide !== 'true') {
-            return
-          }
+        await Promise.all(
+          map(networks, async network => {
+            if (network.other_config.private_pool_wide !== 'true') {
+              return
+            }
 
-          log.debug('Adding network to managed networks', {
-            network: network.name_label,
-            pool: network.$pool.name_label,
+            log.debug('Adding network to managed networks', {
+              network: network.name_label,
+              pool: network.$pool.name_label,
+            })
+            const center = await this._electNewCenter(network, true)
+            this._poolNetworks.push({
+              pool: network.$pool.$ref,
+              network: network.$ref,
+              starCenter: center?.$ref,
+            })
+            this._networks.set(network.$id, network.$ref)
+            if (center != null) {
+              this._starCenters.set(center.$id, center.$ref)
+            }
           })
-          const center = await this._electNewCenter(network, true)
-          this._poolNetworks.push({
-            pool: network.$pool.$ref,
-            network: network.$ref,
-            starCenter: center?.$ref,
-          })
-          this._networks.set(network.$id, network.$ref)
-          if (center != null) {
-            this._starCenters.set(center.$id, center.$ref)
-          }
-        })
+        )
       })
     )
   }
