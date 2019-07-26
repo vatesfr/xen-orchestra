@@ -53,9 +53,9 @@ export class OvsdbClient {
       networkName,
       socket
     )
-    if (bridgeUuid == null) {
+    if (bridgeUuid === undefined) {
       socket.destroy()
-      return null
+      return
     }
 
     const alreadyExist = await this._interfaceAndPortAlreadyExist(
@@ -108,9 +108,9 @@ export class OvsdbClient {
       mutateBridgeOperation,
     ]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (jsonObjects == null) {
+    if (jsonObjects === undefined) {
       socket.destroy()
-      return null
+      return
     }
 
     let error
@@ -119,14 +119,14 @@ export class OvsdbClient {
     let opResult
     do {
       opResult = jsonObjects[0].result[i]
-      if (opResult != null && opResult.error != null) {
+      if (opResult !== undefined && opResult.error !== undefined) {
         error = opResult.error
         details = opResult.details
       }
       ++i
-    } while (opResult && !error)
+    } while (opResult !== undefined && error === undefined)
 
-    if (error != null) {
+    if (error !== undefined) {
       log.error('Error while adding port and interface to bridge', {
         error,
         details,
@@ -137,7 +137,7 @@ export class OvsdbClient {
         host: this.host.name_label,
       })
       socket.destroy()
-      return null
+      return
     }
 
     log.debug('Port and interface added to bridge', {
@@ -158,14 +158,14 @@ export class OvsdbClient {
       networkName,
       socket
     )
-    if (bridgeUuid == null) {
+    if (bridgeUuid === undefined) {
       socket.destroy()
       return
     }
 
     // Delete old ports created by a SDN controller
     const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
-    if (ports == null) {
+    if (ports === undefined) {
       socket.destroy()
       return
     }
@@ -180,7 +180,7 @@ export class OvsdbClient {
         where,
         socket
       )
-      if (selectResult == null) {
+      if (selectResult === undefined) {
         continue
       }
 
@@ -206,13 +206,13 @@ export class OvsdbClient {
 
     const params = ['Open_vSwitch', mutateBridgeOperation]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (jsonObjects == null) {
+    if (jsonObjects === undefined) {
       socket.destroy()
       return
     }
     if (jsonObjects[0].error != null) {
       log.error('Error while deleting ports from bridge', {
-        error: jsonObjects.error,
+        error: jsonObjects[0].error,
         bridge: bridgeName,
         host: this.host.name_label,
       })
@@ -274,12 +274,12 @@ export class OvsdbClient {
       where,
       socket
     )
-    if (selectResult == null) {
+    if (selectResult === undefined) {
       log.error('No bridge found for network', {
         network: networkName,
         host: this.host.name_label,
       })
-      return [null, null]
+      return []
     }
 
     const bridgeUuid = selectResult._uuid[1]
@@ -295,14 +295,14 @@ export class OvsdbClient {
     socket
   ) {
     const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
-    if (ports == null) {
-      return
+    if (ports === undefined) {
+      return false
     }
 
     for (const port of ports) {
       const portUuid = port[1]
       const interfaces = await this._getPortInterfaces(portUuid, socket)
-      if (interfaces == null) {
+      if (interfaces === undefined) {
         continue
       }
 
@@ -325,8 +325,8 @@ export class OvsdbClient {
   async _getBridgePorts(bridgeUuid, bridgeName, socket) {
     const where = [['_uuid', '==', ['uuid', bridgeUuid]]]
     const selectResult = await this._select('Bridge', ['ports'], where, socket)
-    if (selectResult == null) {
-      return null
+    if (selectResult === undefined) {
+      return
     }
 
     return selectResult.ports[0] === 'set'
@@ -342,8 +342,8 @@ export class OvsdbClient {
       where,
       socket
     )
-    if (selectResult == null) {
-      return null
+    if (selectResult === undefined) {
+      return
     }
 
     return selectResult.interfaces[0] === 'set'
@@ -359,7 +359,7 @@ export class OvsdbClient {
       where,
       socket
     )
-    if (selectResult == null) {
+    if (selectResult === undefined) {
       return false
     }
 
@@ -384,11 +384,11 @@ export class OvsdbClient {
 
     const params = ['Open_vSwitch', selectOperation]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (jsonObjects == null) {
+    if (jsonObjects === undefined) {
       return
     }
     const jsonResult = jsonObjects[0].result[0]
-    if (jsonResult.error != null) {
+    if (jsonResult.error !== undefined) {
       log.error('Error while selecting columns', {
         error: jsonResult.error,
         details: jsonResult.details,
@@ -397,7 +397,7 @@ export class OvsdbClient {
         where,
         host: this.host.name_label,
       })
-      return null
+      return
     }
 
     if (jsonResult.rows.length === 0) {
@@ -407,7 +407,7 @@ export class OvsdbClient {
         where,
         host: this.host.name_label,
       })
-      return null
+      return
     }
 
     // For now all select operations should return only 1 row
@@ -437,7 +437,7 @@ export class OvsdbClient {
         error,
         host: this.host.name_label,
       })
-      return null
+      return
     }
 
     let result
@@ -451,7 +451,7 @@ export class OvsdbClient {
           error,
           host: this.host.name_label,
         })
-        return null
+        return
       }
 
       jsonObjects = this._parseJson(result)

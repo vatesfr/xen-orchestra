@@ -79,10 +79,6 @@ class SDNController extends EventEmitter {
 
     this._getDataDir = getDataDir
 
-    this._clientKey = null
-    this._clientCert = null
-    this._caCert = null
-
     this._poolNetworks = []
     this._ovsdbClients = []
     this._newHosts = []
@@ -95,8 +91,6 @@ class SDNController extends EventEmitter {
     this._objectsUpdated = this._objectsUpdated.bind(this)
 
     this._overrideCerts = false
-
-    this._unsetApiMethod = null
   }
 
   // ---------------------------------------------------------------------------
@@ -105,7 +99,7 @@ class SDNController extends EventEmitter {
     this._overrideCerts = configuration['override-certs']
     let certDirectory = configuration['cert-dir']
 
-    if (certDirectory == null) {
+    if (certDirectory === undefined) {
       log.debug(`No cert-dir provided, using default self-signed certificates`)
       certDirectory = await this._getDataDir()
 
@@ -198,7 +192,7 @@ class SDNController extends EventEmitter {
               starCenter: center?.$ref,
             })
             this._networks.set(network.$id, network.$ref)
-            if (center != null) {
+            if (center !== undefined) {
               this._starCenters.set(center.$id, center.$ref)
             }
           })
@@ -268,7 +262,7 @@ class SDNController extends EventEmitter {
       encapsulation: encapsulation,
     })
     this._networks.set(privateNetwork.$id, privateNetwork.$ref)
-    if (center != null) {
+    if (center !== undefined) {
       this._starCenters.set(center.$id, center.$ref)
     }
   }
@@ -303,7 +297,7 @@ class SDNController extends EventEmitter {
             pool: object.$pool.name_label,
           })
 
-          if (find(this._newHosts, { $ref: object.$ref }) == null) {
+          if (find(this._newHosts, { $ref: object.$ref }) === undefined) {
             this._newHosts.push(object)
           }
           this._createOvsdbClient(object)
@@ -335,13 +329,13 @@ class SDNController extends EventEmitter {
           this._ovsdbClients,
           client => client.host.$id === id
         )
-        if (client != null) {
+        if (client !== undefined) {
           this._ovsdbClients.splice(this._ovsdbClients.indexOf(client), 1)
         }
 
         // If a Star center host is removed: re-elect a new center where needed
         const starCenterRef = this._starCenters.get(id)
-        if (starCenterRef != null) {
+        if (starCenterRef !== undefined) {
           this._starCenters.delete(id)
           const poolNetworks = filter(this._poolNetworks, {
             starCenter: starCenterRef,
@@ -350,7 +344,7 @@ class SDNController extends EventEmitter {
             const network = xapi.getObjectByRef(poolNetwork.network)
             const newCenter = await this._electNewCenter(network, true)
             poolNetwork.starCenter = newCenter?.$ref
-            if (newCenter != null) {
+            if (newCenter !== undefined) {
               this._starCenters.set(newCenter.$id, newCenter.$ref)
             }
           }
@@ -359,12 +353,12 @@ class SDNController extends EventEmitter {
 
         // If a network is removed, clean this._poolNetworks from it
         const networkRef = this._networks.get(id)
-        if (networkRef != null) {
+        if (networkRef !== undefined) {
           this._networks.delete(id)
           const poolNetwork = find(this._poolNetworks, {
             network: networkRef,
           })
-          if (poolNetwork != null) {
+          if (poolNetwork !== undefined) {
             this._poolNetworks.splice(
               this._poolNetworks.indexOf(poolNetwork),
               1
@@ -378,7 +372,7 @@ class SDNController extends EventEmitter {
   async _pifUpdated(pif) {
     // Only if PIF is in a private network
     const poolNetwork = find(this._poolNetworks, { network: pif.network })
-    if (poolNetwork == null) {
+    if (poolNetwork === undefined) {
       return
     }
 
@@ -404,11 +398,11 @@ class SDNController extends EventEmitter {
       const newCenter = await this._electNewCenter(pif.$network, true)
       poolNetwork.starCenter = newCenter?.$ref
       this._starCenters.delete(pif.$host.$id)
-      if (newCenter != null) {
+      if (newCenter !== undefined) {
         this._starCenters.set(newCenter.$id, newCenter.$ref)
       }
     } else {
-      if (poolNetwork.starCenter == null) {
+      if (poolNetwork.starCenter === undefined) {
         const host = pif.$host
         log.debug('First available host becomes star center of network', {
           host: host.name_label,
@@ -432,18 +426,20 @@ class SDNController extends EventEmitter {
   }
 
   async _hostUpdated(host) {
-    const xapi = host.$xapi
-
     if (host.enabled) {
       if (host.PIFs.length === 0) {
         return
       }
 
       const newHost = find(this._newHosts, { $ref: host.$ref })
-      if (newHost != null) {
+      if (newHost !== undefined) {
+        log.debug('Sync pool certificates', {
+          newHost: newHost.name_label,
+          pool: newHost.$pool.name_label,
+        })
         this._newHosts.splice(this._newHosts.indexOf(newHost), 1)
         try {
-          await xapi.call('pool.certificate_sync')
+          await host.$xapi.call('pool.certificate_sync')
         } catch (error) {
           log.error('Error while syncing SDN controller CA certificate', {
             error,
@@ -476,7 +472,7 @@ class SDNController extends EventEmitter {
     }
 
     const controller = find(pool.$xapi.objects.all, { $type: 'SDN_controller' })
-    if (controller != null) {
+    if (controller !== undefined) {
       await pool.$xapi.call('SDN_controller.forget', controller.$ref)
       log.debug('Old SDN controller removed', {
         pool: pool.name_label,
@@ -493,7 +489,7 @@ class SDNController extends EventEmitter {
   _setControllerNeeded(xapi) {
     const controller = find(xapi.objects.all, { $type: 'SDN_controller' })
     return !(
-      controller != null &&
+      controller !== undefined &&
       controller.protocol === PROTOCOL &&
       controller.address === '' &&
       controller.port === 0
@@ -548,7 +544,7 @@ class SDNController extends EventEmitter {
   async _electNewCenter(network, resetNeeded) {
     const pool = network.$pool
 
-    let newCenter = null
+    let newCenter
     const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
 
     for (const host of hosts) {
@@ -569,7 +565,7 @@ class SDNController extends EventEmitter {
           this._ovsdbClients,
           client => client.host.$ref === host.$ref
         )
-        if (hostClient != null) {
+        if (hostClient !== undefined) {
           try {
             await hostClient.resetForNetwork(network.uuid, network.name_label)
           } catch (error) {
@@ -584,12 +580,12 @@ class SDNController extends EventEmitter {
       })
     )
 
-    if (newCenter == null) {
+    if (newCenter === undefined) {
       log.error('No available host to elect new star-center', {
         network: network.name_label,
         pool: network.$pool.name_label,
       })
-      return null
+      return
     }
 
     // Recreate star topology
@@ -612,7 +608,7 @@ class SDNController extends EventEmitter {
     const pif = host.$PIFs.find(
       pif => pif.physical && pif.ip_configuration_mode !== 'None'
     )
-    if (pif == null) {
+    if (pif === undefined) {
       log.error('No PIF found to create tunnel', {
         host: host.name_label,
         network: network.name_label,
@@ -646,7 +642,7 @@ class SDNController extends EventEmitter {
       this._ovsdbClients,
       client => client.host.$ref === host.$ref
     )
-    if (hostClient == null) {
+    if (hostClient === undefined) {
       log.error('No OVSDB client found', {
         host: host.name_label,
         pool: host.$pool.name_label,
@@ -658,7 +654,7 @@ class SDNController extends EventEmitter {
       this._ovsdbClients,
       client => client.host.$ref === starCenter.$ref
     )
-    if (starCenterClient == null) {
+    if (starCenterClient === undefined) {
       log.error('No OVSDB client found for star-center', {
         host: starCenter.name_label,
         pool: starCenter.$pool.name_label,
@@ -667,7 +663,7 @@ class SDNController extends EventEmitter {
     }
 
     const encapsulation =
-      network.other_config.encapsulation != null
+      network.other_config.encapsulation !== undefined
         ? network.other_config.encapsulation
         : 'gre'
 
@@ -694,7 +690,7 @@ class SDNController extends EventEmitter {
       })
     }
 
-    if (bridgeName !== null) {
+    if (bridgeName !== undefined) {
       const activeStatus = { active: 'true', key: bridgeName }
       await Promise.all([
         xapi.call('tunnel.set_status', tunnel.$ref, activeStatus),
@@ -716,7 +712,7 @@ class SDNController extends EventEmitter {
       const poolNetwork = find(this._poolNetworks, {
         network: accessPif.network,
       })
-      if (poolNetwork == null || accessPif.currently_attached) {
+      if (poolNetwork === undefined || accessPif.currently_attached) {
         continue
       }
 
@@ -758,7 +754,7 @@ class SDNController extends EventEmitter {
       const newCenter = await this._electNewCenter(network, true)
       poolNetwork.starCenter = newCenter?.$ref
       this._starCenters.delete(host.$id)
-      if (newCenter !== null) {
+      if (newCenter !== undefined) {
         this._starCenters.set(newCenter.$id, newCenter.$ref)
       }
     }
@@ -790,7 +786,7 @@ class SDNController extends EventEmitter {
       this._ovsdbClients,
       client => client.host.$ref === host.$ref
     )
-    if (foundClient != null) {
+    if (foundClient !== undefined) {
       return foundClient
     }
 
