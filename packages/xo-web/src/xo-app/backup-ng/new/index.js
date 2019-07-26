@@ -116,6 +116,12 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
+const checkRetentions = (value, { copyMode, exportMode, snapshotMode }) =>
+  (!copyMode && !exportMode && !snapshotMode) ||
+  (copyMode && value.copyRetention > 0) ||
+  (exportMode && value.exportRetention > 0) ||
+  (snapshotMode && value.snapshotRetention > 0)
+
 const createDoesRetentionExist = name => {
   const predicate = setting => setting[name] > 0
   return ({ propSettings, settings = propSettings }) => settings.some(predicate)
@@ -396,14 +402,16 @@ export default decorate([
         { saveSchedule },
         storedSchedule = DEFAULT_SCHEDULE
       ) => async (
-        { copyMode, exportMode, missingBackupMode, snapshotMode },
+        { copyMode, exportMode, snapshotMode },
         { intl: { formatMessage } }
       ) => {
+        const modes = { copyMode, exportMode, snapshotMode }
         const schedule = await form({
           defaultValue: storedSchedule,
           render: props => (
             <NewSchedule
-              modes={{ copyMode, exportMode, snapshotMode }}
+              missingRetentions={!checkRetentions(props.value, modes)}
+              modes={modes}
               {...props}
             />
           ),
@@ -414,14 +422,7 @@ export default decorate([
           ),
           size: 'large',
           handler: value => {
-            if (
-              !(
-                missingBackupMode ||
-                (exportMode && value.exportRetention > 0) ||
-                (copyMode && value.copyRetention > 0) ||
-                (snapshotMode && value.snapshotRetention > 0)
-              )
-            ) {
+            if (!checkRetentions(value, modes)) {
               throw new UserError(_('newScheduleError'), _('retentionNeeded'))
             }
             return value
