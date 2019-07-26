@@ -79,10 +79,6 @@ class SDNController extends EventEmitter {
 
     this._getDataDir = getDataDir
 
-    this._clientKey = undefined
-    this._clientCert = undefined
-    this._caCert = undefined
-
     this._poolNetworks = []
     this._ovsdbClients = []
     this._newHosts = []
@@ -95,8 +91,6 @@ class SDNController extends EventEmitter {
     this._objectsUpdated = this._objectsUpdated.bind(this)
 
     this._overrideCerts = false
-
-    this._unsetApiMethod = undefined
   }
 
   // ---------------------------------------------------------------------------
