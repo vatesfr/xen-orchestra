@@ -1297,15 +1297,15 @@ export const migrateVm = (vm, host) =>
       )
     }
 
-    try {
-      await _call('vm.migrate', { vm: vm.id, ...params })
-    } catch (error) {
-      return confirm({
+    return _call('vm.migrate', { vm: vm.id, ...params }).catch(err =>
+      confirm({
         icon: 'alarm',
         title: _('forceVmMigrateModalTitle'),
-        body: _('forceVmMigrateModalMessage'),
+        body: _('forceVmMigrateModalMessage', {
+          error: err.message || String(err),
+        }),
       }).then(() => _call('vm.migrate', { vm: vm.id, force: true, ...params }))
-    }
+    )
   }, noop)
 
 import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line import/first

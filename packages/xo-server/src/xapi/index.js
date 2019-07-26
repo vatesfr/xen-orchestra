@@ -1135,7 +1135,7 @@ export default class Xapi extends XapiBase {
     hostXapi,
     host,
     {
-      force,
+      force = false,
       mapVdisSrs,
       mapVifsNetworks,
       migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
@@ -1441,7 +1441,7 @@ export default class Xapi extends XapiBase {
     vmId,
     hostXapi,
     hostId,
-    { force, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}
+    { force = false, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}
   ) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
