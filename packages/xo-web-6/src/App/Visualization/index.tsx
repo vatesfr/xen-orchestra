@@ -137,12 +137,13 @@ export default class Visualization extends Component<any, any> {
         stats: { vifs },
         stats: { xvds },
       }) => {
+
         let format: any
-        if (interval === 3600 || interval === 5 || interval === 60) {
+        if (interval === 5 || interval === 60) {
           format = 'LTS'
-        } else if (interval === 86400) {
+        } else if (interval === 86400 || interval === 3600) {
           format = 'l'
-        }
+        } 
 
         this.setState({ propVmCpus: Object.keys(cpus) })
 
@@ -174,11 +175,9 @@ export default class Visualization extends Component<any, any> {
           let valuesNetwork: any = {}
           let ValuesDisk: any = {}
 
-          /*  valuesCpus.time = moment(
-             (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
-           ).format(format) */
-
-          valuesCpus.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
+            valuesCpus.time = moment(
+             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+           ).format(format) 
 
           this.state.propVmCpus.forEach((property: string | number) => {
             valuesCpus[`cpu${property}`] = cpus[property][i]
@@ -265,9 +264,9 @@ export default class Visualization extends Component<any, any> {
         stats: { pifs },
       }) => {
         let format: any
-        if (interval === 3600 || interval === 5 || interval === 60) {
+        if ( interval === 5 || interval === 60) {
           format = 'LTS'
-        } else if (interval === 86400) {
+        } else if (interval === 86400 || interval === 3600) {
           format = 'l'
         }
 
@@ -297,10 +296,9 @@ export default class Visualization extends Component<any, any> {
           let valuesHostNetwork: any = {}
           let valuesLoad: any = {}
 
-          /*  valuesHost.time = moment(
+           valuesHost.time = moment(
              (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-           ).format(format) */
-          valuesHost.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
+           ).format(format) 
 
           this.state.propHostCpus.forEach((property: string | number) => {
             valuesHost[`cpu${property}`] = cpus[property][i]
@@ -370,9 +368,9 @@ export default class Visualization extends Component<any, any> {
         stats: { ioThroughput },
       }) => {
         let format: any
-        if (interval === 3600 || interval === 5 || interval === 60) {
+        if ( interval === 5 || interval === 60) {
           format = 'LTS'
-        } else if (interval === 86400) {
+        } else if (interval === 86400 || interval ===3600) {
           format = 'l'
         }
 
@@ -392,12 +390,10 @@ export default class Visualization extends Component<any, any> {
           const valuesSrLatency: any = {}
           const valuesSrIowait: any = {}
 
-          /* valuesSrIops.time = moment(
+           valuesSrIops.time = moment(
             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-          ).format(format) */
-          valuesSrIops.time =
-            (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
-
+          ).format(format) 
+          
           this.state.propSrIops.forEach((property: string | number) => {
             valuesSrIops[`iops_${property}`] = iops[property][i]
           })
