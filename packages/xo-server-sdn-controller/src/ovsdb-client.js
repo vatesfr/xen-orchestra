@@ -55,7 +55,7 @@ export class OvsdbClient {
     )
     if (bridgeUuid === undefined) {
       socket.destroy()
-      return undefined
+      return
     }
 
     const alreadyExist = await this._interfaceAndPortAlreadyExist(
@@ -110,7 +110,7 @@ export class OvsdbClient {
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
     if (jsonObjects === undefined) {
       socket.destroy()
-      return undefined
+      return
     }
 
     let error
@@ -124,7 +124,7 @@ export class OvsdbClient {
         details = opResult.details
       }
       ++i
-    } while (opResult === undefined && error !== undefined)
+    } while (opResult !== undefined && error === undefined)
 
     if (error !== undefined) {
       log.error('Error while adding port and interface to bridge', {
@@ -137,7 +137,7 @@ export class OvsdbClient {
         host: this.host.name_label,
       })
       socket.destroy()
-      return undefined
+      return
     }
 
     log.debug('Port and interface added to bridge', {
@@ -279,7 +279,7 @@ export class OvsdbClient {
         network: networkName,
         host: this.host.name_label,
       })
-      return [undefined, undefined]
+      return []
     }
 
     const bridgeUuid = selectResult._uuid[1]
@@ -326,7 +326,7 @@ export class OvsdbClient {
     const where = [['_uuid', '==', ['uuid', bridgeUuid]]]
     const selectResult = await this._select('Bridge', ['ports'], where, socket)
     if (selectResult === undefined) {
-      return undefined
+      return
     }
 
     return selectResult.ports[0] === 'set'
@@ -343,7 +343,7 @@ export class OvsdbClient {
       socket
     )
     if (selectResult === undefined) {
-      return undefined
+      return
     }
 
     return selectResult.interfaces[0] === 'set'
@@ -385,7 +385,7 @@ export class OvsdbClient {
     const params = ['Open_vSwitch', selectOperation]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
     if (jsonObjects === undefined) {
-      return undefined
+      return
     }
     const jsonResult = jsonObjects[0].result[0]
     if (jsonResult.error !== undefined) {
@@ -397,7 +397,7 @@ export class OvsdbClient {
         where,
         host: this.host.name_label,
       })
-      return undefined
+      return
     }
 
     if (jsonResult.rows.length === 0) {
@@ -407,7 +407,7 @@ export class OvsdbClient {
         where,
         host: this.host.name_label,
       })
-      return undefined
+      return
     }
 
     // For now all select operations should return only 1 row
@@ -437,7 +437,7 @@ export class OvsdbClient {
         error,
         host: this.host.name_label,
       })
-      return undefined
+      return
     }
 
     let result
@@ -451,7 +451,7 @@ export class OvsdbClient {
           error,
           host: this.host.name_label,
         })
-        return undefined
+        return
       }
 
       jsonObjects = this._parseJson(result)

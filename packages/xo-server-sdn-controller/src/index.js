@@ -591,7 +591,7 @@ class SDNController extends EventEmitter {
         network: network.name_label,
         pool: network.$pool.name_label,
       })
-      return undefined
+      return
     }
 
     // Recreate star topology
