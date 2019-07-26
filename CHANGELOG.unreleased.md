@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup NG/logs] Show warning when not supported zstd compression is selected [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PR [#4375](https://github.com/vatesfr/xen-orchestra/pull/4375)
+
 ### Released packages
 
 > Packages will be released in the order they are here, therefore, they should
