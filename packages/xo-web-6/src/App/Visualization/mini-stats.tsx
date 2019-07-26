@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { YAxis, AreaChart, Legend } from 'recharts'
+import { YAxis, AreaChart, Legend, XAxis } from 'recharts'
 
 import { Area, Brush, CartesianGrid } from 'recharts'
 import Xo from 'xo-lib'
@@ -10,6 +10,8 @@ const xo = new Xo({ url: '/' })
 xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
 const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
 const xoCall = (method, params) => signedIn.then(() => xo.call(method, params))
+const getObjects = (id: any) =>
+  xoCall('xo.getAllObjects', { filter: { id } }).then(objects => objects[id])
 
 export default class Visualization extends Component<any, any> {
   state: any = {
@@ -32,6 +34,9 @@ export default class Visualization extends Component<any, any> {
 
     maxNetworkTxVm1: 0,
     maxNetworkRxVm1: 0,
+    //Memory
+    dataMemoryVm1: [],
+    valueMaxVm1Memory: 0,
 
     //Valeur max
 
@@ -60,7 +65,19 @@ export default class Visualization extends Component<any, any> {
     maxNetworkTxVm2: 0,
     maxNetworkRxVm2: 0,
 
+    //Memory
+    dataMemoryVm2: [],
+    valueMaxVm2Memory: 0,
     click: true,
+
+    //host1
+    //Cpu
+
+    dataCpuHost1: [],
+    propCpusHost1: [],
+    //host2
+    dataCpuHost2: [],
+    propCpusHost2: [],
 
     granularity: 'seconds',
     format: 'LTS',
@@ -77,6 +94,10 @@ export default class Visualization extends Component<any, any> {
 
   //days, hours, minutes, seconds
   fetchStatsVm1 = () => {
+    getObjects('28851ef6-951c-08bc-a5be-8898e2a31b7a').then((vm: any) => {
+      this.setState({ valueMaxVm1Memory: vm.memory.dynamic[1] })
+    })
+
     xoCall('vm.stats', {
       id: '28851ef6-951c-08bc-a5be-8898e2a31b7a',
       granularity: this.state.granularity,
@@ -85,6 +106,7 @@ export default class Visualization extends Component<any, any> {
         endTimestamp,
         stats: { cpus },
         interval,
+        stats: { memory },
         stats: { xvds },
         stats: { vifs },
       }) => {
@@ -103,6 +125,7 @@ export default class Visualization extends Component<any, any> {
         const dataDiskVm1: any[] = []
         const dataCpuVm1: any[] = []
         const dataNetworkVm1: any[] = []
+        const dataMemoryVm1: any[] = []
         const cumulCpuVm1: any[] = []
 
         for (var i = 0; i < NB_VALUES; i++) {
@@ -116,9 +139,11 @@ export default class Visualization extends Component<any, any> {
           const valuesDisk: any = {}
           const valuesCpu: any = {}
           const valuesNetwork: any = {}
+          const valuesMemory: any = {}
 
           valuesDisk.time = start += 5
-          valuesCpu.cpu = valuesDisk.time
+          valuesCpu.time = valuesDisk.time
+          valuesMemory.time = valuesDisk.time
           valuesCpu.cpu = cumulCpuVm1
 
           this.state.propDiskWVm1.forEach((property: string | number) => {
@@ -137,10 +162,13 @@ export default class Visualization extends Component<any, any> {
             valuesNetwork[`vifs_rx_${property}`] = vifs.rx[property][i]
           })
 
+          valuesMemory.memory = memory[i]
+
           dataNetworkVm1.push(valuesNetwork)
 
           dataCpuVm1.push(valuesCpu)
           dataDiskVm1.push(valuesDisk)
+          dataMemoryVm1.push(valuesMemory)
         }
 
         //Calcule du max
@@ -177,14 +205,23 @@ export default class Visualization extends Component<any, any> {
           this.state.maxNetworkRxVm1
         )
 
-        this.setState({ dataDiskVm1, dataCpuVm1, dataNetworkVm1 })
+        this.setState({
+          dataDiskVm1,
+          dataCpuVm1,
+          dataNetworkVm1,
+          dataMemoryVm1,
+        })
       }
     )
   }
 
   fetchStatsVm2 = () => {
+    getObjects('854918b4-94e7-dbcb-8ae9-c8701785aa71').then((vm: any) => {
+      this.setState({ valueMaxVm2Memory: vm.memory.dynamic[1] })
+    })
+
     xoCall('vm.stats', {
-      id: '8c05611a-0f25-948e-dc1a-49329576866d',
+      id: '854918b4-94e7-dbcb-8ae9-c8701785aa71',
       granularity: this.state.granularity,
     }).then(
       ({
@@ -192,6 +229,7 @@ export default class Visualization extends Component<any, any> {
         stats: { vifs },
         interval,
         stats: { cpus },
+        stats: { memory },
         stats: { xvds },
       }) => {
         //let interval =this.getHours()
@@ -210,6 +248,8 @@ export default class Visualization extends Component<any, any> {
 
         const dataNetworkVm2: any[] = []
         const cumulCpuVm2: any[] = []
+        const dataMemoryVm2: any[] = []
+
         for (var i = 0; i < NB_VALUES; i++) {
           cumulCpuVm2[i] = 0
           for (var j = 0; j < this.state.propCpusVm2.length; j++) {
@@ -221,13 +261,14 @@ export default class Visualization extends Component<any, any> {
           const valuesDisk: any = {}
           const valuesCpu: any = {}
           const valuesNetwork: any = {}
-
+          const valuesMemory: any = {}
           valuesDisk.time = start += interval
           valuesCpu.time = valuesDisk.time
           valuesNetwork.time = valuesDisk.time
-
+          valuesMemory.time = valuesDisk.time
           valuesCpu.cpu = cumulCpuVm2
 
+          valuesMemory.memory = memory[i]
           this.state.propDiskWVm2.forEach((property: string | number) => {
             valuesDisk[`xvds_w_${property}`] = xvds.w[property][i]
           })
@@ -247,6 +288,7 @@ export default class Visualization extends Component<any, any> {
           dataNetworkVm2.push(valuesNetwork)
           dataCpuVm2.push(valuesCpu)
           dataDiskVm2.push(valuesDisk)
+          dataMemoryVm2.push(valuesMemory)
         }
 
         for (var i = 0; i < this.state.propDiskWVm2.length; i++) {
@@ -264,7 +306,7 @@ export default class Visualization extends Component<any, any> {
           this.state.maxDiskWvM2,
           this.state.maxDiskRvM2
         )
-        
+
         for (var i = 0; i < this.state.propNetworkTxVm2.length; i++) {
           this.state.propNetworkTxVm2.forEach((property: string | number) => {
             this.state.maxNetworkTxVm2 = Math.max(...vifs.tx[property])
@@ -282,18 +324,23 @@ export default class Visualization extends Component<any, any> {
           this.state.maxNetworkRxVm2
         )
 
-       
-       
-
-        this.setState({ dataDiskVm2, dataCpuVm2, dataNetworkVm2 })
+        this.setState({
+          dataDiskVm2,
+          dataCpuVm2,
+          dataNetworkVm2,
+          dataMemoryVm2,
+        })
       }
     )
   }
 
   setMaxValueDisk = () => {
     if (this.state.click) {
-      if (this.state.maxDiskVM1 < 1000000 && this.state.maxDiskVM2 < 1000000) {
-        this.state.maxVif = 1000000
+      if (
+        this.state.maxDiskVM1 < 1000000000 &&
+        this.state.maxDiskVM2 < 1000000000
+      ) {
+        this.state.maxVif = 1000000000
         this.state.click = false
       } else {
         this.state.maxVif = Math.max(
@@ -378,6 +425,125 @@ export default class Visualization extends Component<any, any> {
           propNetworkRxVm2={this.state.propNetworkRxVm2}
           maxV={this.state.maxV}
         />
+        <VuStatsMemoryVM1
+          dataMemoryVm1={this.state.dataMemoryVm1}
+          valueMaxVm1Memory={this.state.valueMaxVm1Memory}
+        />
+
+        <VuStatsMemoryVM2
+          dataMemoryVm2={this.state.dataMemoryVm2}
+          valueMaxVm2Memory={this.state.valueMaxVm2Memory}
+        />
+      </div>
+    )
+  }
+}
+
+class VuStatsMemoryVM2 extends Component<any, any> {
+  state: any = {
+    granularity: 'seconds',
+    format: 'LTS',
+  }
+
+  formatBytes(bytes: any, decimals = 2) {
+    if (bytes === 0) return '0 B'
+
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
+  }
+
+  render() {
+    return (
+      <div>
+        <div>
+          <h2>Memory Vm2</h2>
+        </div>
+        <div>
+          <AreaChart
+            width={400}
+            height={100}
+            data={this.props.dataMemoryVm2}
+            margin={{
+              top: 5,
+              right: 20,
+              left: 90,
+              bottom: 5,
+            }}
+          >
+            <Legend iconType='rect' iconSize={10} />
+            <YAxis
+              tick={{ fontSize: '11px' }}
+              tickFormatter={tick => this.formatBytes(tick, 0)}
+              domain={[0, this.props.valueMaxVm2Memory]}
+            />
+            <Area
+              type='monotone'
+              dataKey='memory'
+              stroke='#493BD8'
+              fill='#493BD8'
+            />
+          </AreaChart>
+        </div>
+      </div>
+    )
+  }
+}
+
+class VuStatsMemoryVM1 extends Component<any, any> {
+  state: any = {
+    granularity: 'seconds',
+    format: 'LTS',
+  }
+
+  formatBytes(bytes: any, decimals = 2) {
+    if (bytes === 0) return '0 B'
+
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
+  }
+
+  render() {
+    return (
+      <div>
+        <div>
+          <h2>Memory Vm1</h2>
+        </div>
+        <div>
+          <AreaChart
+            width={400}
+            height={100}
+            data={this.props.dataMemoryVm1}
+            margin={{
+              top: 5,
+              right: 20,
+              left: 90,
+              bottom: 5,
+            }}
+          >
+            <Legend iconType='rect' iconSize={10} />
+            <YAxis
+              tick={{ fontSize: '11px' }}
+              tickFormatter={tick => this.formatBytes(tick, 0)}
+              domain={[0, this.props.valueMaxVm1Memory]}
+            />
+            <Area
+              type='monotone'
+              dataKey='memory'
+              stroke='#493BD8'
+              fill='#493BD8'
+            />
+          </AreaChart>
+        </div>
       </div>
     )
   }
@@ -418,7 +584,9 @@ class VuStatsDiskVM1 extends Component<any, any> {
 
     return (
       <div>
-        <div>Disk throughput Vm1</div>
+        <div>
+          <h2>Disk throughput Vm1</h2>
+        </div>
         <div>
           <AreaChart
             width={400}
@@ -499,7 +667,9 @@ class VuStatsDiskVM2 extends Component<any, any> {
 
     return (
       <div>
-        <div>Disk throughput Vm2</div>
+        <div>
+          <h2>Disk throughput Vm2</h2>
+        </div>
         <div>
           <AreaChart
             width={400}
@@ -661,7 +831,7 @@ class VuStatsNetworkVM1 extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     format: 'LTS',
-    maxVif: 0,
+    maxV: 0,
   }
 
   render() {
@@ -692,7 +862,9 @@ class VuStatsNetworkVM1 extends Component<any, any> {
 
     return (
       <div>
-        <div>Network throughput Vm1</div>
+        <div>
+          <h2>Network throughput Vm1</h2>
+        </div>
         <div>
           <AreaChart
             width={400}
@@ -742,7 +914,7 @@ class VuStatsNetworkVM2 extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     format: 'LTS',
-    maxVif: 0,
+    maxV: 0,
   }
 
   render() {
@@ -773,7 +945,9 @@ class VuStatsNetworkVM2 extends Component<any, any> {
 
     return (
       <div>
-        <div>Network throughput Vm2</div>
+        <div>
+          <h2>Network throughput Vm2</h2>
+        </div>
         <div>
           <AreaChart
             width={400}
@@ -786,7 +960,7 @@ class VuStatsNetworkVM2 extends Component<any, any> {
               bottom: 5,
             }}
           >
-            <YAxis domain={[0, this.props.maxVif]} />
+            <YAxis domain={[0, this.props.maxV]} />
             <Legend iconType='rect' iconSize={10} />
             {this.props.propNetworkTxVm2
               .map((currProperty: any) => `vifs_tx_${currProperty}`)

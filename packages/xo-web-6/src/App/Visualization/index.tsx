@@ -19,8 +19,8 @@ xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
 const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
 const xoCall = (method, params) => signedIn.then(() => xo.call(method, params))
 
-const getObjects = (id: any) => xoCall('xo.getAllObjects', { filter: { id } }).then(objects => objects[id])
-
+const getObjects = (id: any) =>
+  xoCall('xo.getAllObjects', { filter: { id } }).then(objects => objects[id])
 
 export default class Visualization extends Component<any, any> {
   state: any = {
@@ -39,7 +39,6 @@ export default class Visualization extends Component<any, any> {
     startIndexMemoryVm: 0,
     endIndexMemoryVm: 0,
     valueMaxVmMemory: 0,
-
 
     //  Network
     dataVmNetwork: [],
@@ -112,7 +111,6 @@ export default class Visualization extends Component<any, any> {
     startIndexIOwaitSR: 0,
     endIndexIOwaitSR: 0,
     maxIOwait: 0,
-
   }
 
   componentDidMount() {
@@ -121,18 +119,10 @@ export default class Visualization extends Component<any, any> {
     setInterval(this.fetchSrStats.bind(this), 5e3)
   }
 
-
-
   fetchVmStats = () => {
-
     getObjects('28851ef6-951c-08bc-a5be-8898e2a31b7a').then((vm: any) => {
-
-
       this.setState({ valueMaxVmMemory: vm.memory.dynamic[1] })
-
-    }
-    )
-
+    })
 
     xoCall('vm.stats', {
       id: '28851ef6-951c-08bc-a5be-8898e2a31b7a',
@@ -143,11 +133,10 @@ export default class Visualization extends Component<any, any> {
         stats: { cpus },
         interval,
         stats: { memory },
+        stats: { memoryFree },
         stats: { vifs },
         stats: { xvds },
       }) => {
-
-
         let format: any
         if (interval === 3600 || interval === 5 || interval === 60) {
           format = 'LTS'
@@ -163,22 +152,34 @@ export default class Visualization extends Component<any, any> {
         this.setState({ propXvds: Object.keys(xvds.w) })
         this.setState({ propXvdsR: Object.keys(xvds.r) })
 
-        const dataVmCpu: any[] = []
-        const dataVmMemory: any[] = []
-        const dataVmNetwork: any[] = []
-        const dataVmDisk: any[] = []
+        let dataVmCpu: any[] = []
+        let dataVmMemory: any[] = []
+        let dataVmNetwork: any[] = []
+        let dataVmDisk: any[] = []
+        let newDataMemory: any[] = []
+
+        if (memoryFree == undefined) {
+          newDataMemory = memory.map(
+            (value: any, index: any) => memory[index] - value
+          )
+        } else {
+          newDataMemory = memoryFree.map(
+            (value: any, index: any) => memory[index] - value
+          )
+        }
 
         for (var i = 0; i < NB_VALUES; i++) {
-          const valuesCpus: any = {}
-          const valuesMemory: any = {}
-          const valuesNetwork: any = {}
-          const ValuesDisk: any = {}
-         /*  valuesCpus.time = moment(
-            (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
-          ).format(format) */
+          let valuesCpus: any = {}
+          let valuesMemory: any = {}
+          let valuesNetwork: any = {}
+          let ValuesDisk: any = {}
+
+          /*  valuesCpus.time = moment(
+             (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
+           ).format(format) */
 
           valuesCpus.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
-          
+
           this.state.propVmCpus.forEach((property: string | number) => {
             valuesCpus[`cpu${property}`] = cpus[property][i]
           })
@@ -198,18 +199,17 @@ export default class Visualization extends Component<any, any> {
           this.state.propXvdsR.forEach((property: string | number) => {
             ValuesDisk[`xvds_R_${property}`] = xvds.r[property][i]
           })
-          valuesMemory.memory = memory[i]
+
+          valuesMemory.memory = newDataMemory[i]
 
           valuesMemory.time = valuesCpus.time
           valuesNetwork.time = valuesCpus.time
           ValuesDisk.time = valuesCpus.time
-
           dataVmDisk.push(ValuesDisk)
           dataVmCpu.push(valuesCpus)
-          dataVmMemory.push(valuesMemory)
           dataVmNetwork.push(valuesNetwork)
+          dataVmMemory.push(valuesMemory)
         }
-
 
         for (var i = 0; i < this.state.propVmNetworkTx.length; i++) {
           this.state.propVmNetworkTx.forEach((property: string | number) => {
@@ -227,7 +227,6 @@ export default class Visualization extends Component<any, any> {
           this.state.maxNetworkTx,
           this.state.maxNetworkRx
         )
-        /////
 
         for (var i = 0; i < this.state.propXvds.length; i++) {
           this.state.propXvds.forEach((property: string | number) => {
@@ -240,11 +239,7 @@ export default class Visualization extends Component<any, any> {
             this.state.maxDiskR = Math.max(...xvds.r[property])
           })
         }
-        this.state.maxDisk = Math.max(
-          this.state.maxDiskW,
-          this.state.maxDiskR
-        )
-
+        this.state.maxDisk = Math.max(this.state.maxDiskW, this.state.maxDiskR)
 
         this.setState({ dataVmCpu, dataVmMemory, dataVmNetwork, dataVmDisk })
       }
@@ -252,14 +247,12 @@ export default class Visualization extends Component<any, any> {
   }
 
   fetchHostStats = () => {
-    getObjects('73bb5ce0-f720-4621-bd68-98341b094bad').then((host: any) => {
-      this.setState({ ValueMaxHostMemory: host.memory.sizes })
-    }
-
-    )
+    getObjects('470b64a4-2767-4e1d-a20c-fbc2a6d4de57').then((host: any) => {
+      this.setState({ ValueMaxHostMemory: host.memory.size })
+    })
 
     xoCall('host.stats', {
-      host: '73bb5ce0-f720-4621-bd68-98341b094bad',
+      host: '470b64a4-2767-4e1d-a20c-fbc2a6d4de57',
       granularity: this.state.granularity,
     }).then(
       ({
@@ -268,6 +261,7 @@ export default class Visualization extends Component<any, any> {
         interval,
         stats: { load },
         stats: { memory },
+        stats: { memoryFree },
         stats: { pifs },
       }) => {
         let format: any
@@ -281,21 +275,32 @@ export default class Visualization extends Component<any, any> {
         this.setState({ propHostNetworkRx: Object.keys(pifs.rx) })
         this.setState({ propHostNetworkTx: Object.keys(pifs.tx) })
 
-        const dataHostCpu: any[] = []
-        const dataHostMemory: any[] = []
-        const dataHostNetwork: any[] = []
-        const dataHostLoad: any[] = []
+        let dataHostCpu: any[] = []
+        let dataHostMemory: any[] = []
+        let dataHostNetwork: any[] = []
+        let dataHostLoad: any[] = []
+        let newDataMemory: any = []
+
+        if (memoryFree == undefined) {
+          newDataMemory = memory.map(
+            (value: any, index: any) => memory[index] - value
+          )
+        } else {
+          newDataMemory = memoryFree.map(
+            (value: any, index: any) => memory[index] - value
+          )
+        }
 
         for (var i = 0; i < NB_VALUES; i++) {
-          const valuesHost: any = {}
-          const valuesHostMemory: any = {}
-          const valuesHostNetwork: any = {}
-          const valuesLoad: any = {}
+          let valuesHost: any = {}
+          let valuesHostMemory: any = {}
+          let valuesHostNetwork: any = {}
+          let valuesLoad: any = {}
 
-         /*  valuesHost.time = moment(
-            (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-          ).format(format) */
-          valuesHost.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+          /*  valuesHost.time = moment(
+             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+           ).format(format) */
+          valuesHost.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
 
           this.state.propHostCpus.forEach((property: string | number) => {
             valuesHost[`cpu${property}`] = cpus[property][i]
@@ -310,19 +315,16 @@ export default class Visualization extends Component<any, any> {
           })
 
           valuesLoad.load = load[i]
-
-
-
-          valuesHostMemory.memory = memory[i]
+          valuesHostMemory.memory = newDataMemory[i]
 
           valuesHostMemory.time = valuesHost.time
           valuesHostNetwork.time = valuesHost.time
           valuesLoad.time = valuesHost.time
 
           dataHostCpu.push(valuesHost)
-          dataHostMemory.push(valuesHostMemory)
           dataHostNetwork.push(valuesHostNetwork)
           dataHostLoad.push(valuesLoad)
+          dataHostMemory.push(valuesHostMemory)
         }
 
         this.state.maxLoad = Math.max(...load)
@@ -344,7 +346,6 @@ export default class Visualization extends Component<any, any> {
           this.state.maxNetworkRx
         )
 
-
         this.setState({
           dataHostCpu,
           dataHostMemory,
@@ -354,9 +355,6 @@ export default class Visualization extends Component<any, any> {
       }
     )
   }
-
-
-
 
   fetchSrStats = () => {
     xoCall('sr.stats', {
@@ -397,8 +395,8 @@ export default class Visualization extends Component<any, any> {
           /* valuesSrIops.time = moment(
             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
           ).format(format) */
-          valuesSrIops.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-          
+          valuesSrIops.time =
+            (endTimestamp - (NB_VALUES - i - 1) * interval) * 10
 
           this.state.propSrIops.forEach((property: string | number) => {
             valuesSrIops[`iops_${property}`] = iops[property][i]
@@ -416,7 +414,6 @@ export default class Visualization extends Component<any, any> {
             valuesSrIowait[`iowait_${property}`] = iowait[property][i]
           })
 
-
           valuesSrLatency.time = valuesSrIops.time
           valuesSrThro.time = valuesSrIops.time
           valuesSrIowait.time = valuesSrIops.time
@@ -426,7 +423,6 @@ export default class Visualization extends Component<any, any> {
           dataSrLatency.push(valuesSrLatency)
           dataSrIowait.push(valuesSrIowait)
         }
-
 
         for (var i = 0; i < this.state.propSrLatency.length; i++) {
           this.state.propSrLatency.forEach((property: string | number) => {
@@ -475,9 +471,9 @@ export default class Visualization extends Component<any, any> {
         <div>
           <form>
             <select onChange={this.setTime} value={this.state.granularity}>
-              <option value='seconds'>Last 5 secondes</option>
-              <option value='minutes'>Last 10 minutes</option>
-              <option value='hours'>Last 2 hours</option>
+              <option value='seconds'>Last 10 minutes</option>
+              <option value='minutes'>Last 2 hours</option>
+              <option value='hours'>Last week</option>
               <option value='days'>Last year</option>
             </select>
           </form>
@@ -486,16 +482,16 @@ export default class Visualization extends Component<any, any> {
           dataVmCpu={this.state.dataVmCpu}
           propVmCpus={this.state.propVmCpus}
         />
-        <VuVmMemoryStats dataVmMemory={this.state.dataVmMemory}
+        <VuVmMemoryStats
+          dataVmMemory={this.state.dataVmMemory}
           valueMaxVmMemory={this.state.valueMaxVmMemory}
-
         />
+
         <VuVmNetworkStats
           dataVmNetwork={this.state.dataVmNetwork}
           propVmNetworkTx={this.state.propVmNetworkTx}
           propVmNetworkRx={this.state.propVmNetworkRx}
           maxNetwork={this.state.maxNetwork}
-
         />
         <VuVmDiskStats
           dataVmDisk={this.state.dataVmDisk}
@@ -507,14 +503,20 @@ export default class Visualization extends Component<any, any> {
           dataHostCpu={this.state.dataHostCpu}
           propHostCpus={this.state.propHostCpus}
         />
-        <VuHostMemoryStats dataHostMemory={this.state.dataHostMemory} ValueMaxHostMemory={this.state.ValueMaxHostMemory} />
+        <VuHostMemoryStats
+          dataHostMemory={this.state.dataHostMemory}
+          ValueMaxHostMemory={this.state.ValueMaxHostMemory}
+        />
         <VuHostNetworkStats
           dataHostNetwork={this.state.dataHostNetwork}
           propHostNetworkRx={this.state.propHostNetworkRx}
           propHostNetworkTx={this.state.propHostNetworkTx}
           maxNetworkHost={this.state.maxNetworkHost}
         />
-        <VuHostLoadStats dataHostLoad={this.state.dataHostLoad} maxLoad={this.state.maxLoad} />
+        <VuHostLoadStats
+          dataHostLoad={this.state.dataHostLoad}
+          maxLoad={this.state.maxLoad}
+        />
         <VuSrIOPSstats
           dataSrIops={this.state.dataSrIops}
           propSrIops={this.state.propSrIops}
@@ -542,8 +544,6 @@ export default class Visualization extends Component<any, any> {
 
 class VuVmCpuStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexCpuVm: 0,
     endIndexCpuVm: 0,
   }
@@ -648,12 +648,8 @@ class VuVmCpuStats extends Component<any, any> {
 
 class VuVmMemoryStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexMemoryVm: 0,
     endIndexMemoryVm: 0,
-    valueMaxVmMemory: 0
-
   }
 
   handleChangeMemoryVm = (res: any) => {
@@ -694,10 +690,9 @@ class VuVmMemoryStats extends Component<any, any> {
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='time' />
             <YAxis
-              axisLine={false}
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 0)}
-              domain={[0, this.formatBytes(this.props.valueMaxVmMemory, 2)]}
+              domain={[0, this.props.valueMaxVmMemory]}
             />
             <Tooltip />
             <Brush
@@ -740,8 +735,6 @@ class VuVmMemoryStats extends Component<any, any> {
 
 class VuVmNetworkStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexNetworkVm: 0,
     endIndexNetworkVm: 0,
   }
@@ -890,8 +883,6 @@ class VuVmNetworkStats extends Component<any, any> {
 
 class VuVmDiskStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexDiskVm: 0,
     endIndexDiskVm: 0,
   }
@@ -1041,8 +1032,6 @@ class VuVmDiskStats extends Component<any, any> {
 
 class VuHostCpuStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexCpuHost: 0,
     endIndexCpuHost: 0,
   }
@@ -1146,8 +1135,6 @@ class VuHostCpuStats extends Component<any, any> {
 
 class VuHostMemoryStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexMemoryHost: 0,
     endIndexMemoryHost: 0,
   }
@@ -1158,13 +1145,10 @@ class VuHostMemoryStats extends Component<any, any> {
   }
   formatBytes(bytes: any, decimals = 2) {
     if (bytes === 0) return '0 B'
-
     const k = 1024
     const dm = decimals < 0 ? 0 : decimals
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
@@ -1191,7 +1175,7 @@ class VuHostMemoryStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, this.formatBytes(this.props.ValueMaxHostMemory)]}
+              domain={[0, this.props.ValueMaxHostMemory]}
             />
             <Tooltip />
             <Brush
@@ -1234,8 +1218,6 @@ class VuHostMemoryStats extends Component<any, any> {
 
 class VuHostNetworkStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexNetworkHost: 0,
     endIndexNetworkHost: 0,
   }
@@ -1385,11 +1367,8 @@ class VuHostNetworkStats extends Component<any, any> {
 
 class VuHostLoadStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexLoadHost: 0,
     endIndexLoadHost: 0,
-
   }
 
   handleChangeLoadHost = (res: any) => {
@@ -1417,7 +1396,8 @@ class VuHostLoadStats extends Component<any, any> {
           >
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='time' />
-            <YAxis tick={{ fontSize: '11px' }}
+            <YAxis
+              tick={{ fontSize: '11px' }}
               domain={[0, Math.max(1, this.props.maxLoad)]}
             />
             <Tooltip />
@@ -1461,8 +1441,6 @@ class VuHostLoadStats extends Component<any, any> {
 
 class VuSrIOPSstats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexIopsSR: 0,
     endIndexIopsSR: 0,
   }
@@ -1566,8 +1544,6 @@ class VuSrIOPSstats extends Component<any, any> {
 
 class VuSrIOThroStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexIOSR: 0,
     endIndexIOSR: 0,
   }
@@ -1679,8 +1655,6 @@ class VuSrIOThroStats extends Component<any, any> {
 
 class VuSrLatencyStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexLatencySR: 0,
     endIndexLatencySR: 0,
   }
@@ -1780,8 +1754,6 @@ class VuSrLatencyStats extends Component<any, any> {
 
 class VuSrIoWaitStats extends Component<any, any> {
   state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
     startIndexIOwaitSR: 0,
     endIndexIOwaitSR: 0,
   }
