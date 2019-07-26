@@ -624,18 +624,18 @@ class SDNController extends EventEmitter {
     } catch (error) {
       log.error('Error while creating tunnel', {
         error,
+        pif: pif.device,
         network: network.name_label,
         host: host.name_label,
-        pif: pif.device,
         pool: host.$pool.name_label,
       })
       return
     }
 
     log.debug('New tunnel added', {
+      pif: pif.device,
       network: network.name_label,
       host: host.name_label,
-      pif: pif.device,
       pool: host.$pool.name_label,
     })
   }
