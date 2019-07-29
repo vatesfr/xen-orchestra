@@ -130,6 +130,22 @@ class XoConnection extends Xo {
     return remote
   }
 
+  addTempServer(params) {
+    return this.call('server.add', params).then(
+      async id => {
+        this._tempResourceDisposers.push('server.remove', { id })
+        return xo.call('server.enable', { id }).then(
+          () => id,
+          err => {
+            console.warn('server.enable', err)
+            return undefined
+          }
+        )
+      },
+      err => console.warn('server.add', err)
+    )
+  }
+
   async getSchedule(predicate) {
     return find(await this.call('schedule.getAll'), predicate)
   }

@@ -3,6 +3,13 @@
   email = ''
   password = ''
 
+[servers]
+  [servers.default]
+    username = ''
+    password = ''
+    host = ''
+    allowUnauthorized = true
+
 [vms]
   default = ''
 
