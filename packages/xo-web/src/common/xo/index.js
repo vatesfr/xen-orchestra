@@ -6,6 +6,7 @@ import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import reflect from 'promise-toolbox/reflect'
 import tap from 'promise-toolbox/tap'
+import Tooltip from 'tooltip'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
@@ -29,13 +30,14 @@ import {
   noHostsAvailable,
   vmIsTemplate,
 } from 'xo-common/api-errors'
+import store from 'store'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
+import Link from '../link'
 import logError from '../log-error'
 import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
-import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
@@ -1289,7 +1291,7 @@ export const migrateVm = (vm, host) =>
   confirm({
     title: _('migrateVmModalTitle'),
     body: <MigrateVmModalBody vm={vm} host={host} />,
-  }).then(async params => {
+  }).then(params => {
     if (!params.targetHost) {
       return error(
         _('migrateVmNoTargetHost'),
@@ -1299,11 +1301,24 @@ export const migrateVm = (vm, host) =>
 
     return _call('vm.migrate', { vm: vm.id, ...params }).catch(err =>
       confirm({
+        body: (
+          <div>
+            <p>{_('forceVmMigrateModalMessage')}</p>
+            <p>
+              <Tooltip content={_('showLogs')}>
+                <Link
+                  className='text-danger'
+                  target='_blank'
+                  to='/settings/logs'
+                >
+                  <Icon icon='alarm' /> {err.message || _('showLogs')}
+                </Link>
+              </Tooltip>
+            </p>
+          </div>
+        ),
         icon: 'alarm',
         title: _('forceVmMigrateModalTitle'),
-        body: _('forceVmMigrateModalMessage', {
-          error: err.message || String(err),
-        }),
       }).then(() => _call('vm.migrate', { vm: vm.id, force: true, ...params }))
     )
   }, noop)
