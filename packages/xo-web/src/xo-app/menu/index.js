@@ -354,6 +354,11 @@ export default class Menu extends Component {
           },
         ],
       },
+      {
+        to: '/hub',
+        icon: 'menu-hub',
+        label: 'hubPage',
+      },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       !noOperatablePools && {
         to: '/tasks',

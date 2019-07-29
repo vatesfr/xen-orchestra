@@ -886,6 +886,10 @@
     @extend .fa;
     @extend .fa-database;
   }
+  &-menu-hub {
+    @extend .fa;
+    @extend .fa-plug;
+  }
   // New VM
   &-new-vm {
     &-infos {

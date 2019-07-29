@@ -24,6 +24,7 @@ import { Container, Row, Col } from 'grid'
 import About from './about'
 import Backup from './backup'
 import BackupNg from './backup-ng'
+import Hub from './hub'
 import Dashboard from './dashboard'
 import Home from './home'
 import Host from './host'
@@ -93,6 +94,7 @@ const BODY_STYLE = {
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
+  hub: Hub,
 })
 @connectStore(state => {
   return {

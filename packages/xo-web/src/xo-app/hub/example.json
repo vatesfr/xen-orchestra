@@ -1,0 +1,129 @@
+{
+    "xosan": {
+      "xva": {
+        "id": "1",
+        "version": "3.13.0",
+        "name": "xosan",
+        "description": "XOSAN RC",
+        "popularity": 9,
+        "size": 730000000,
+        "shasum": "225dc8c762cb0120194434923c482110ea05478d",
+        "type": "xva",
+        "path": "resource/files/xosan_prod_313.xva",
+        "data": {
+          "public": {
+            "any": "any"
+          },
+          "private": {
+            "any": "any"
+          }
+        }
+      }
+    },
+    "ubuntu_hasura_graphQl": {
+      "xva": {
+        "id": "1",
+        "version": "4.19.0",
+        "name": "Hasura GraphQL",
+        "description": "XOSAN RC",
+        "popularity": 7,
+        "size": 550000000,
+        "shasum": "225dc8c762cb0120194434923c482110ea05478d",
+        "type": "xva",
+        "path": "resource/files/xosan_prod_313.xva",
+        "data": {
+          "public": {
+            "any": "any"
+          },
+          "private": {
+            "any": "any"
+          }
+        }
+      }
+    },
+    "ubuntu_mattermost": {
+      "xva": {
+        "id": "1",
+        "version": "9.29.0",
+        "name": "Mattermost",
+        "description": "XOSAN RC",
+        "popularity": 6,
+        "size": 320000000,
+        "shasum": "225dc8c762cb0120194434923c482110ea05478d",
+        "type": "xva",
+        "path": "resource/files/xosan_prod_313.xva",
+        "data": {
+          "public": {
+            "any": "any"
+          },
+          "private": {
+            "any": "any"
+          }
+        }
+      }
+    },
+    "ubuntu_cloudbees_jenkins_distribution": {
+      "xva": {
+        "id": "1",
+        "version": "1.22.0",
+        "name": "CloudBees",
+        "description": "XOSAN RC",
+        "popularity": 25,
+        "size": 920000000,
+        "shasum": "225dc8c762cb0120194434923c482110ea05478d",
+        "type": "xva",
+        "path": "resource/files/xosan_prod_313.xva",
+        "data": {
+          "public": {
+            "any": "any"
+          },
+          "private": {
+            "any": "any"
+          }
+        }
+      }
+    },
+    "lamp": {
+        "xva": {
+          "id": "1",
+          "version": "8.45.0",
+          "name": "LAMP",
+          "description": "XOSAN RC",
+          "popularity": 10,
+          "size": 130000000,
+          "shasum": "225dc8c762cb0120194434923c482110ea05478d",
+          "type": "xva",
+          "path": "resource/files/xosan_prod_313.xva",
+          "data": {
+            "public": {
+              "any": "any"
+            },
+            "private": {
+              "any": "any"
+            }
+          }
+        }
+      },
+    "Grafana": {
+        "xva": {
+          "id": "1",
+          "version": "7.25.0",
+          "name": "Grafana",
+          "description": "XOSAN RC",
+          "popularity": 2,
+          "size": 780000000,
+          "shasum": "225dc8c762cb0120194434923c482110ea05478d",
+          "type": "xva",
+          "path": "resource/files/xosan_prod_313.xva",
+          "data": {
+            "public": {
+              "any": "any"
+            },
+            "private": {
+              "any": "any"
+            }
+          }
+        }
+      }
+  }
+  
