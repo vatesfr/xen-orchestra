@@ -9,7 +9,7 @@
 
 - [VM/copy, VM/export] Only show zstd option when it's supported [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PRs [#4326](https://github.com/vatesfr/xen-orchestra/pull/4326) [#4368](https://github.com/vatesfr/xen-orchestra/pull/4368))
 - [SDN Controller] Let the user choose on which PIF to create a private network (PR [#4379](https://github.com/vatesfr/xen-orchestra/pull/4379))
-- [VMs/copy] Show warning if zstd compression is not supported on a VM [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PR [#4346](https://github.com/vatesfr/xen-orchestra/pull/4346))
+- [VM/Bulk copy] Show warning if zstd compression is not supported on a VM [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PR [#4346](https://github.com/vatesfr/xen-orchestra/pull/4346))
 
 ### Bug fixes
 
