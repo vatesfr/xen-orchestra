@@ -1,22 +1,22 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import SelectCompression from 'select-compression'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import moment from 'moment-timezone'
 import React from 'react'
+import SelectCompression from 'select-compression'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import UserError from 'user-error'
 import { Card, CardBlock, CardHeader } from 'card'
-import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
+import { constructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { flatten, includes, isEmpty, map, mapValues, omit, some } from 'lodash'
 import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
+import { includes, isEmpty, map, mapValues, omit, some } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
@@ -28,7 +28,6 @@ import {
   connectStore,
   generateRandomId,
   resolveId,
-  resolveIds,
 } from 'utils'
 import {
   createBackupNgJob,
@@ -43,7 +42,7 @@ import {
 import NewSchedule from './new-schedule'
 import ReportWhen from './_reportWhen'
 import Schedules from './schedules'
-import SmartBackup from './smart-backup'
+import SmartBackup, { normalizeTagValues } from './smart-backup'
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import {
   canDeltaBackup,
@@ -87,8 +86,6 @@ const ThinProvisionedTip = ({ label }) => (
   </Tooltip>
 )
 
-const normalizeTagValues = values => resolveIds(values).map(value => [value])
-
 const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
   settings.map(setting =>
     defined(
@@ -106,15 +103,6 @@ const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
       : setting
   )
 
-const destructVmsPattern = pattern =>
-  pattern.id === undefined
-    ? {
-        tags: destructSmartPattern(pattern.tags, flatten),
-      }
-    : {
-        vms: destructPattern(pattern),
-      }
-
 const createDoesRetentionExist = name => {
   const predicate = setting => setting[name] > 0
   return ({ propSettings, settings = propSettings }) => settings.some(predicate)
@@ -124,7 +112,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
   setHomeVmIdsSelection([]) // Clear preselected vmIds
   return {
     _displayAdvancedSettings: undefined,
-    _vmsPattern: undefined,
+    _vmsSmartPattern: undefined,
     backupMode: false,
     compression: undefined,
     crMode: false,
@@ -139,9 +127,6 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
     smartMode: false,
     snapshotMode: false,
     srs: [],
-    tags: {
-      notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
-    },
     vms: preSelectedVmIds,
   }
 }
@@ -372,11 +357,12 @@ export default decorate([
         const remotes =
           job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
+        const smartMode = job.vms.id === undefined
 
         return {
           name: job.name,
           paramsUpdated: true,
-          smartMode: job.vms.id === undefined,
+          smartMode,
           snapshotMode: some(
             job.settings,
             ({ snapshotRetention }) => snapshotRetention > 0
@@ -388,7 +374,7 @@ export default decorate([
           remotes,
           srs,
           schedules,
-          ...destructVmsPattern(job.vms),
+          vms: !smartMode ? destructPattern(job.vms) : undefined,
         }
       },
       showScheduleModal: (
@@ -473,22 +459,8 @@ export default decorate([
           snapshotRetention,
         }),
       }),
-      onVmsPatternChange: (_, _vmsPattern) => ({
-        _vmsPattern,
-      }),
-      setTagValues: (_, values) => state => ({
-        ...state,
-        tags: {
-          ...state.tags,
-          values,
-        },
-      }),
-      setTagNotValues: (_, notValues) => state => ({
-        ...state,
-        tags: {
-          ...state.tags,
-          notValues,
-        },
+      onVmsSmartPatternChange: (_, _vmsSmartPattern) => ({
+        _vmsSmartPattern,
       }),
       resetJob: ({ updateParams }) => (state, { job }) => {
         if (job !== undefined) {
@@ -551,12 +523,22 @@ export default decorate([
       inputFullIntervalId: generateId,
       inputTimeoutId: generateId,
 
-      vmsPattern: ({ _vmsPattern }, { job }) =>
+      vmsSmartPattern: ({ _vmsSmartPattern }, { job }) =>
         defined(
-          _vmsPattern,
+          _vmsSmartPattern,
           () => (job.vms.id !== undefined ? undefined : job.vms),
           {
             type: 'VM',
+            tags: constructSmartPattern(
+              {
+                notValues: [
+                  'Continuous Replication',
+                  'Disaster Recovery',
+                  'XOSAN',
+                ],
+              },
+              normalizeTagValues
+            ),
           }
         ),
       needUpdateParams: (state, { job, schedules }) =>
@@ -595,10 +577,6 @@ export default decorate([
       snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
       isDelta: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
-      vmsSmartPattern: ({ tags, vmsPattern }) => ({
-        ...vmsPattern,
-        tags: constructSmartPattern(tags, normalizeTagValues),
-      }),
       vmPredicate: ({ isDelta }, { hostsById, poolsById }) => ({
         $container,
       }) =>
@@ -995,8 +973,8 @@ export default decorate([
                     <Upgrade place='newBackup' required={3}>
                       <SmartBackup
                         deltaMode={state.isDelta}
-                        onChange={effects.onVmsPatternChange}
-                        pattern={state.vmsPattern}
+                        onChange={effects.onVmsSmartPatternChange}
+                        pattern={state.vmsSmartPattern}
                       />
                     </Upgrade>
                   ) : (
