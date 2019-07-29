@@ -450,6 +450,22 @@ class SDNController extends EventEmitter {
             pool: host.$pool.name_label,
           })
         }
+
+        const poolNetworks = find(this._poolNetworks, { pool: newHost.pool })
+        for (const poolNetwork of poolNetworks) {
+          let tunnel = this._getHostTunnelForNetwork(
+            newHost,
+            poolNetwork.network
+          )
+          if (tunnel !== undefined) {
+            continue
+          }
+
+          // TODO: create the tunnel for the host.
+          tunnel = null
+        }
+
+        this._addHostToPoolNetworks(newHost)
       }
     }
   }
