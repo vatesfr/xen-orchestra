@@ -35,6 +35,7 @@ describe('user', () => {
         },
       },
       async data => {
+        jest.setTimeout(6e3)
         const userId = await xo.createTempUser(data)
         expect(typeof userId).toBe('string')
         expect(await xo.getUser(userId)).toMatchSnapshot({
@@ -69,6 +70,7 @@ describe('user', () => {
 
   describe('.changePassword() :', () => {
     it('changes the actual user password', async () => {
+      jest.setTimeout(7e3)
       const user = {
         email: 'wayne7@vates.fr',
         password: 'batman',
@@ -149,6 +151,7 @@ describe('user', () => {
         },
       },
       async data => {
+        jest.setTimeout(6e3)
         data.id = await xo.createTempUser(SIMPLE_USER)
         expect(await xo.call('user.set', data)).toBe(true)
         expect(await xo.getUser(data.id)).toMatchSnapshot({
