@@ -618,6 +618,15 @@ class SDNController extends EventEmitter {
     }
 
     const hostPif = find(host.$PIFs, { device: pif.device })
+    if (hostPif === undefined) {
+      log.error("Can't create tunnel: no available PIF", {
+        pif: pif.device,
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
+      return
+    }
 
     try {
       await host.$xapi.call('tunnel.create', hostPif.$ref, network.$ref)
