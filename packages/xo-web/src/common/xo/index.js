@@ -1457,7 +1457,7 @@ export const importVms = (vms, sr) =>
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
 export const exportVm = vm =>
   confirm({
-    body: <ExportVmModalBody />,
+    body: <ExportVmModalBody vm={vm} />,
     icon: 'export',
     title: _('exportVmLabel'),
   }).then(compress => {
