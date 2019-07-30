@@ -349,6 +349,10 @@ export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
 )
 
+export const subscribeAllResourceCatalog = createSubscription(() =>
+  _call('cloud.getAllResourceCatalog')
+)
+
 const getNotificationCookie = () => {
   const notificationCookie = cookies.get(
     `notifications:${store.getState().user.id}`
@@ -2872,6 +2876,8 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 // XOSAN packs -----------------------------------------------------------------
 
 export const getResourceCatalog = () => _call('cloud.getResourceCatalog')
+
+export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
 
 const downloadAndInstallXosanPack = (pack, pool, { version }) =>
   _call('xosan.downloadAndInstallXosanPack', {

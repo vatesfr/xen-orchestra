@@ -21,8 +21,14 @@ class XoServerCloud {
 
   async load() {
     const getResourceCatalog = () => this._getCatalog()
-    getResourceCatalog.description = 'Get the list of all available resources'
+    getResourceCatalog.description =
+      "Get the list of user's available resources"
     getResourceCatalog.permission = 'admin'
+
+    const getAllResourceCatalog = () => this._getAllCatalog()
+    getAllResourceCatalog.description =
+      'Get the list of all available resources'
+    getAllResourceCatalog.permission = 'admin'
 
     const registerResource = ({ namespace }) =>
       this._registerResource(namespace)
@@ -36,6 +42,7 @@ class XoServerCloud {
 
     this._unsetApiMethods = this._xo.addApiMethods({
       cloud: {
+        getAllResourceCatalog,
         getResourceCatalog,
         registerResource,
       },
@@ -68,6 +75,16 @@ class XoServerCloud {
 
   async _getCatalog() {
     const catalog = await this._updater.call('getResourceCatalog')
+
+    if (!catalog) {
+      throw new Error('cannot get catalog')
+    }
+
+    return catalog
+  }
+
+  async _getAllCatalog() {
+    const catalog = await this._updater.call('getAllResourceCatalog')
 
     if (!catalog) {
       throw new Error('cannot get catalog')

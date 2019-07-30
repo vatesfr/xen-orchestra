@@ -5,12 +5,11 @@ import Page from '../page'
 import React from 'react'
 import { Container, Col, Row } from 'grid'
 import { addSubscriptions } from 'utils'
-import { subscribePlugins, subscribeResourceCatalog } from 'xo'
+import { subscribePlugins, subscribeAllResourceCatalog } from 'xo'
 import { filter, map, mapValues, orderBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 
-import example from './example'
 import Resource from './resource'
 import './style.css'
 
@@ -39,7 +38,7 @@ const HEADER = (
 
 export default decorate([
   addSubscriptions({
-    catalog: subscribeResourceCatalog,
+    catalog: subscribeAllResourceCatalog,
     plugins: subscribePlugins,
   }),
   provideState({
@@ -63,7 +62,6 @@ export default decorate([
       resources: ({ availableResources, sortBy, sortOrder }) =>
         orderBy(availableResources, res => res[sortBy], sortOrder),
       availableResources: (_, { catalog }) => {
-        catalog = example
         return mapValues(
           filter(catalog, (_, res) => !res.startsWith('_')),
           'xva'
