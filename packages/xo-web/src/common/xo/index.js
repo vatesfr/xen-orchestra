@@ -1,12 +1,10 @@
 import asap from 'asap'
 import cookies from 'cookies-js'
 import fpSortBy from 'lodash/fp/sortBy'
-import Icon from 'icon'
 import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import reflect from 'promise-toolbox/reflect'
 import tap from 'promise-toolbox/tap'
-import Tooltip from 'tooltip'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
@@ -30,14 +28,16 @@ import {
   noHostsAvailable,
   vmIsTemplate,
 } from 'xo-common/api-errors'
-import store from 'store'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
+import Icon from '../icon'
 import invoke from '../invoke'
 import Link from '../link'
 import logError from '../log-error'
 import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
+import store from 'store'
+import Tooltip from '../tooltip'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
@@ -1319,7 +1319,10 @@ export const migrateVm = (vm, host) =>
         ),
         icon: 'alarm',
         title: _('forceVmMigrateModalTitle'),
-      }).then(() => _call('vm.migrate', { vm: vm.id, force: true, ...params }))
+      }).then(
+        () => _call('vm.migrate', { vm: vm.id, force: true, ...params }),
+        noop
+      )
     )
   }, noop)
 
