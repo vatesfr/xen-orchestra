@@ -255,7 +255,7 @@ export default {
         )) !== undefined
       ) {
         if (getAll) {
-          log(
+          log.debug(
             `patch ${patch.name} (${id}) conflicts with installed patch ${conflictId}`
           )
           return
@@ -271,7 +271,7 @@ export default {
         )) !== undefined
       ) {
         if (getAll) {
-          log(`patches ${id} and ${conflictId} conflict with eachother`)
+          log.debug(`patches ${id} and ${conflictId} conflict with eachother`)
           return
         }
         throw new Error(
