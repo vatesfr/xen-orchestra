@@ -852,7 +852,7 @@ class SDNController extends EventEmitter {
     }
 
     openssl.generateRSAPrivateKey(rsakeyoptions, (error, cakey, cmd) => {
-      if (error !== undefined) {
+      if (error !== false) {
         log.error('Error while generating CA private key', {
           error,
         })
@@ -860,7 +860,7 @@ class SDNController extends EventEmitter {
       }
 
       openssl.generateCSR(cacsroptions, cakey, null, (error, csr, cmd) => {
-        if (error !== undefined) {
+        if (error !== false) {
           log.error('Error while generating CA certificate', {
             error,
           })
@@ -873,7 +873,7 @@ class SDNController extends EventEmitter {
           cakey,
           null,
           async (error, cacrt, cmd) => {
-            if (error !== undefined) {
+            if (error !== false) {
               log.error('Error while signing CA certificate', {
                 error,
               })
@@ -884,7 +884,7 @@ class SDNController extends EventEmitter {
             openssl.generateRSAPrivateKey(
               rsakeyoptions,
               async (error, key, cmd) => {
-                if (error !== undefined) {
+                if (error !== false) {
                   log.error('Error while generating private key', {
                     error,
                   })
@@ -897,7 +897,7 @@ class SDNController extends EventEmitter {
                   key,
                   null,
                   (error, csr, cmd) => {
-                    if (error !== undefined) {
+                    if (error !== false) {
                       log.error('Error while generating certificate', {
                         error,
                       })
@@ -911,7 +911,7 @@ class SDNController extends EventEmitter {
                       cakey,
                       null,
                       async (error, crt, cmd) => {
-                        if (error !== undefined) {
+                        if (error !== false) {
                           log.error('Error while signing certificate', {
                             error,
                           })
