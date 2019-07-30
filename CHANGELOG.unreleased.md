@@ -7,13 +7,14 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/copy] Only show zstd option when it's supported [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PR [#4326](https://github.com/vatesfr/xen-orchestra/pull/4326))
+- [VM/copy, VM/export] Only show zstd option when it's supported [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PRs [#4326](https://github.com/vatesfr/xen-orchestra/pull/4326) [#4368](https://github.com/vatesfr/xen-orchestra/pull/4368))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [SDN Controller] Better detect host shutting down to adapt network topology (PR [#4314](https://github.com/vatesfr/xen-orchestra/pull/4314))
+- [SR/General] Display VDI VM name in SR usage graph (PR [#4370](https://github.com/vatesfr/xen-orchestra/pull/4370))
 
 ### Released packages
 
