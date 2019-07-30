@@ -17,12 +17,12 @@ import './style.css'
 
 const SORT_OPTIONS = [
   {
-    labelId: 'catalogSortByPopularity',
+    labelId: 'hubSortByPopularity',
     sortBy: 'popularity',
     sortOrder: 'desc',
   },
   {
-    labelId: 'catalogSortByName',
+    labelId: 'hubSortByName',
     sortBy: 'name',
     sortOrder: 'asc',
   },
@@ -68,7 +68,7 @@ export default decorate([
         )
       },
       sortTitle: ({ sortBy }) =>
-        sortBy === undefined ? _('homeSortBy') : sortBy,
+        sortBy === undefined ? _('hubSortBy') : sortBy,
     },
   }),
   injectState,
@@ -99,11 +99,12 @@ export default decorate([
       </Row>
       <br />
       <Row>
-        {map(resources, ({ name, popularity, size, version }, key) => (
-          <Col key={key} mediumSize={3}>
+        {map(resources, ({ name, popularity, size, version }, namespace) => (
+          <Col key={namespace} mediumSize={3}>
             <Resource
               className='card-style'
               name={name}
+              namespace={namespace}
               popularity={popularity}
               size={size}
               version={version}
