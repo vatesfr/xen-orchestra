@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { difference, keyBy } from 'lodash'
+import { difference, find, keyBy } from 'lodash'
 
 import config from '../_config'
 import xo, { testWithOtherConnection } from '../_xoConnection'
@@ -210,6 +210,14 @@ describe('job', () => {
 
     it('runs a job', async () => {
       jest.setTimeout(7e3)
+      const serverId = await xo.addTempServer(config.servers.real)
+      if (serverId !== undefined) {
+        const { status } = find(await xo.call('server.getAll'), {
+          id: serverId,
+        })
+        expect(status).toBe('connected')
+      }
+
       const jobId = await xo.createTempJob(defaultJob)
       const snapshots = xo.objects.all[config.vms.default].snapshots
       await xo.call('job.runSequence', { idSequence: [jobId] })
