@@ -240,6 +240,7 @@ class SDNController extends EventEmitter {
         automatic: 'false',
         private_pool_wide: 'true',
         encapsulation: encapsulation,
+        pif_device: pif.device,
       },
     })
 
@@ -254,7 +255,7 @@ class SDNController extends EventEmitter {
     const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
     await Promise.all(
       map(hosts, async host => {
-        await this._createTunnel(host, privateNetwork, pif)
+        await this._createTunnel(host, privateNetwork, pif.device)
         this._createOvsdbClient(host)
       })
     )
@@ -453,7 +454,7 @@ class SDNController extends EventEmitter {
 
         const poolNetworks = find(this._poolNetworks, { pool: newHost.pool })
         for (const poolNetwork of poolNetworks) {
-          let tunnel = this._getHostTunnelForNetwork(
+          const tunnel = this._getHostTunnelForNetwork(
             newHost,
             poolNetwork.network
           )
@@ -461,8 +462,12 @@ class SDNController extends EventEmitter {
             continue
           }
 
-          // TODO: create the tunnel for the host.
-          tunnel = null
+          const network = host.$xapi.getObjectByRef(poolNetwork.network)
+          const pifDevice =
+            network.other_config.pif_device !== undefined
+              ? network.other_config.pif_device
+              : 'eth0'
+          this._createTunnel(newHost, network, pifDevice)
         }
 
         this._addHostToPoolNetworks(newHost)
@@ -624,19 +629,11 @@ class SDNController extends EventEmitter {
     return newCenter
   }
 
-  async _createTunnel(host, network, pif) {
-    if (pif === undefined) {
-      log.error('No PIF found to create tunnel', {
-        host: host.name_label,
-        network: network.name_label,
-      })
-      return
-    }
-
-    const hostPif = find(host.$PIFs, { device: pif.device })
+  async _createTunnel(host, network, pifDevice) {
+    const hostPif = find(host.$PIFs, { device: pifDevice })
     if (hostPif === undefined) {
       log.error("Can't create tunnel: no available PIF", {
-        pif: pif.device,
+        pif: pifDevice,
         network: network.name_label,
         host: host.name_label,
         pool: host.$pool.name_label,
@@ -649,7 +646,7 @@ class SDNController extends EventEmitter {
     } catch (error) {
       log.error('Error while creating tunnel', {
         error,
-        pif: pif.device,
+        pif: pifDevice,
         network: network.name_label,
         host: host.name_label,
         pool: host.$pool.name_label,
@@ -658,7 +655,7 @@ class SDNController extends EventEmitter {
     }
 
     log.debug('New tunnel added', {
-      pif: pif.device,
+      pif: pifDevice,
       network: network.name_label,
       host: host.name_label,
       pool: host.$pool.name_label,
