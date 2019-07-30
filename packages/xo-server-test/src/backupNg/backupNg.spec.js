@@ -171,7 +171,7 @@ describe('backupNg', () => {
 
     it('fails trying to run a backup job with a VM without disks', async () => {
       jest.setTimeout(8e3)
-      const serverId = await xo.addTempServer(config.servers.real)
+      const serverId = await xo.createTempServer(config.servers.default)
       if (serverId !== undefined) {
         const { status } = find(await xo.call('server.getAll'), {
           id: serverId,
@@ -240,7 +240,7 @@ describe('backupNg', () => {
     it('fails trying to run backup job without retentions', async () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
-      const serverId = await xo.addTempServer(config.servers.real)
+      const serverId = await xo.createTempServer(config.servers.default)
       if (serverId !== undefined) {
         const { status } = find(await xo.call('server.getAll'), {
           id: serverId,
@@ -306,7 +306,7 @@ describe('backupNg', () => {
 
   test('execute three times a rolling snapshot with 2 as retention & revert to an old state', async () => {
     jest.setTimeout(6e4)
-    const serverId = await xo.addTempServer(config.servers.default)
+    const serverId = await xo.createTempServer(config.servers.default)
     if (serverId !== undefined) {
       const { status } = find(await xo.call('server.getAll'), { id: serverId })
       expect(status).toBe('connected')

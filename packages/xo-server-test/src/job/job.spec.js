@@ -210,7 +210,7 @@ describe('job', () => {
 
     it('runs a job', async () => {
       jest.setTimeout(7e3)
-      const serverId = await xo.addTempServer(config.servers.real)
+      const serverId = await xo.createTempServer(config.servers.default)
       if (serverId !== undefined) {
         const { status } = find(await xo.call('server.getAll'), {
           id: serverId,

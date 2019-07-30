@@ -3,6 +3,7 @@ import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
 import { find, forOwn } from 'lodash'
+import { fromEvent } from 'promise-toolbox'
 
 import config from './_config'
 
@@ -130,20 +131,13 @@ class XoConnection extends Xo {
     return remote
   }
 
-  addTempServer(params) {
-    return this.call('server.add', params).then(
-      async id => {
-        this._tempResourceDisposers.push('server.remove', { id })
-        return xo.call('server.enable', { id }).then(
-          () => id,
-          err => {
-            console.warn('server.enable', err)
-            return undefined
-          }
-        )
-      },
-      err => console.warn('server.add', err)
+  async createTempServer(params) {
+    const id = await this.call('server.add', params).catch(err =>
+      console.warn('server.add', err)
     )
+    this._tempResourceDisposers.push('server.remove', { id })
+    await fromEvent(this._objects, 'finish')
+    return id
   }
 
   async getSchedule(predicate) {
