@@ -189,7 +189,7 @@ class SDNController extends EventEmitter {
             })
             const center = await this._electNewCenter(network, true)
 
-            // Previously created network didn't store `pif_device``
+            // Previously created network didn't store `pif_device`
             if (network.other_config.pif_device === undefined) {
               const tunnel = this._getHostTunnelForNetwork(center, network.$ref)
               const pif = xapi.getObjectByRef(tunnel.transport_PIF)
