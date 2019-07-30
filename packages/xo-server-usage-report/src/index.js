@@ -761,7 +761,7 @@ class UsageReportPlugin {
   async _sendReport(storeData) {
     if (this._xo.sendEmail === undefined) {
       throw new Error(
-        'The plugin usage-report requires the plugin transport-email to be enabled'
+        'The plugin usage-report requires the plugin transport-email to be loaded'
       )
     }
 
