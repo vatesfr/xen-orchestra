@@ -851,6 +851,9 @@ class SDNController extends EventEmitter {
       subject: subject,
     }
 
+    // In all the following callbacks error is:
+    // - either an error object if there was an error
+    // - or a boolean set to 'false' if no error occured
     openssl.generateRSAPrivateKey(rsakeyoptions, (error, cakey, cmd) => {
       if (error !== false) {
         log.error('Error while generating CA private key', {
