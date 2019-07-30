@@ -84,6 +84,10 @@ const NewNetwork = decorate([
           : [],
       pifPredicate: (_, { pool }) => pif =>
         pif.vlan === -1 && pif.$host === (pool && pool.master),
+      pifPredicateSdnController: (_, { pool }) => pif =>
+        pif.physical &&
+        pif.ip_configuration_mode !== 'None' &&
+        pif.$host === (pool && pool.master),
       isSdnControllerLoaded: (state, { plugins = [] }) =>
         plugins.some(
           plugin => plugin.name === 'sdn-controller' && plugin.loaded
@@ -126,6 +130,7 @@ const NewNetwork = decorate([
             networkName: name,
             networkDescription: description,
             encapsulation: encapsulation,
+            pifId: pif.id,
           })
         : createNetwork({
             description,
@@ -179,6 +184,7 @@ const NewNetwork = decorate([
         name,
         pif,
         pifPredicate,
+        pifPredicateSdnController,
         pifs,
         vlan,
         isSdnControllerLoaded,
@@ -204,102 +210,89 @@ const NewNetwork = decorate([
                   </div>
                 </Section>
                 <Section icon='info' title='newNetworkInfo'>
-                  {isPrivate ? (
-                    <div className='form-group'>
-                      <label>{_('newNetworkName')}</label>
-                      <input
-                        className='form-control'
-                        name='name'
-                        onChange={effects.linkState}
-                        required
-                        type='text'
-                        value={name}
-                      />
-                      <label>{_('newNetworkDescription')}</label>
-                      <input
-                        className='form-control'
-                        name='description'
-                        onChange={effects.linkState}
-                        type='text'
-                        value={description}
-                      />
-                      <label>{_('newNetworkEncapsulation')}</label>
-                      <Select
-                        className='form-control'
-                        name='encapsulation'
-                        onChange={effects.onChangeEncapsulation}
-                        options={[
-                          { label: 'GRE', value: 'gre' },
-                          { label: 'VxLAN', value: 'vxlan' },
-                        ]}
-                        value={encapsulation}
-                      />
-                    </div>
-                  ) : (
-                    <div className='form-group'>
-                      <label>{_('newNetworkInterface')}</label>
-                      <SelectPif
-                        multi={bonded}
-                        onChange={effects.onChangePif}
-                        predicate={pifPredicate}
-                        required={bonded}
-                        value={bonded ? pifs : pif}
-                      />
-                      <label>{_('newNetworkName')}</label>
-                      <input
-                        className='form-control'
-                        name='name'
-                        onChange={effects.linkState}
-                        required
-                        type='text'
-                        value={name}
-                      />
-                      <label>{_('newNetworkDescription')}</label>
-                      <input
-                        className='form-control'
-                        name='description'
-                        onChange={effects.linkState}
-                        type='text'
-                        value={description}
-                      />
-                      <label>{_('newNetworkMtu')}</label>
-                      <input
-                        className='form-control'
-                        name='mtu'
-                        onChange={effects.linkState}
-                        placeholder={formatMessage(
-                          messages.newNetworkDefaultMtu
+                  <div className='form-group'>
+                    <label>{_('newNetworkInterface')}</label>
+                    <SelectPif
+                      multi={bonded}
+                      onChange={effects.onChangePif}
+                      predicate={
+                        isPrivate ? pifPredicateSdnController : pifPredicate
+                      }
+                      required={bonded || isPrivate}
+                      value={bonded ? pifs : pif}
+                    />
+                    <label>{_('newNetworkName')}</label>
+                    <input
+                      className='form-control'
+                      name='name'
+                      onChange={effects.linkState}
+                      required
+                      type='text'
+                      value={name}
+                    />
+                    <label>{_('newNetworkDescription')}</label>
+                    <input
+                      className='form-control'
+                      name='description'
+                      onChange={effects.linkState}
+                      type='text'
+                      value={description}
+                    />
+                    {isPrivate ? (
+                      <div>
+                        <label>{_('newNetworkEncapsulation')}</label>
+                        <Select
+                          className='form-control'
+                          name='encapsulation'
+                          onChange={effects.onChangeEncapsulation}
+                          options={[
+                            { label: 'GRE', value: 'gre' },
+                            { label: 'VxLAN', value: 'vxlan' },
+                          ]}
+                          value={encapsulation}
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label>{_('newNetworkMtu')}</label>
+                        <input
+                          className='form-control'
+                          name='mtu'
+                          onChange={effects.linkState}
+                          placeholder={formatMessage(
+                            messages.newNetworkDefaultMtu
+                          )}
+                          type='text'
+                          value={mtu}
+                        />
+                        {bonded ? (
+                          <div>
+                            <label>{_('newNetworkBondMode')}</label>
+                            <Select
+                              onChange={effects.onChangeMode}
+                              options={modeOptions}
+                              required
+                              value={bondMode}
+                            />
+                          </div>
+                        ) : (
+                          <div>
+                            <label>{_('newNetworkVlan')}</label>
+                            <input
+                              className='form-control'
+                              name='vlan'
+                              onChange={effects.linkState}
+                              placeholder={formatMessage(
+                                messages.newNetworkDefaultVlan
+                              )}
+                              type='text'
+                              value={vlan}
+                            />
+                          </div>
                         )}
-                        type='text'
-                        value={mtu}
-                      />
-                      {bonded ? (
-                        <div>
-                          <label>{_('newNetworkBondMode')}</label>
-                          <Select
-                            onChange={effects.onChangeMode}
-                            options={modeOptions}
-                            required
-                            value={bondMode}
-                          />
-                        </div>
-                      ) : (
-                        <div>
-                          <label>{_('newNetworkVlan')}</label>
-                          <input
-                            className='form-control'
-                            name='vlan'
-                            onChange={effects.linkState}
-                            placeholder={formatMessage(
-                              messages.newNetworkDefaultVlan
-                            )}
-                            type='text'
-                            value={vlan}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
                 </Section>
               </Wizard>
               <div className='form-group pull-right'>
