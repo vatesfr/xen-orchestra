@@ -16,7 +16,6 @@
 
 - [SDN Controller] Better detect host shutting down to adapt network topology (PR [#4314](https://github.com/vatesfr/xen-orchestra/pull/4314))
 - [SR/General] Display VDI VM name in SR usage graph (PR [#4370](https://github.com/vatesfr/xen-orchestra/pull/4370))
-- [SDN Controller] Fix certificate generator (PR [#4383](https://github.com/vatesfr/xen-orchestra/pull/4383))
 
 ### Released packages
 
