@@ -15,6 +15,8 @@ export class OvsdbClient {
     this._numberOfPortAndInterface = 0
     this._requestID = 0
 
+    this._adding = []
+
     this.host = host
 
     this.updateCertificates(clientKey, clientCert, caCert)
@@ -44,6 +46,16 @@ export class OvsdbClient {
     remoteAddress,
     encapsulation
   ) {
+    if (
+      this._adding.find(
+        elem => elem.id === networkUuid && elem.addr === remoteAddress
+      ) !== undefined
+    ) {
+      return
+    }
+    const adding = { id: networkUuid, addr: remoteAddress }
+    this._adding.push(adding)
+
     const socket = await this._connect()
     const index = this._numberOfPortAndInterface
     ++this._numberOfPortAndInterface
@@ -55,6 +67,7 @@ export class OvsdbClient {
     )
     if (bridgeUuid === undefined) {
       socket.destroy()
+      this._adding.splice(this._adding.indexOf(adding), 1)
       return
     }
 
@@ -66,6 +79,7 @@ export class OvsdbClient {
     )
     if (alreadyExist) {
       socket.destroy()
+      this._adding.splice(this._adding.indexOf(adding), 1)
       return bridgeName
     }
 
@@ -108,6 +122,8 @@ export class OvsdbClient {
       mutateBridgeOperation,
     ]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
+
+    this._adding.splice(this._adding.indexOf(adding), 1)
     if (jsonObjects === undefined) {
       socket.destroy()
       return
