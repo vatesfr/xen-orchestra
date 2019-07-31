@@ -134,6 +134,35 @@ class XoConnection extends Xo {
     return find(await this.call('schedule.getAll'), predicate)
   }
 
+  async runBackupJob(jobId, scheduleId, { remotes, nExecutions = 1 }) {
+    for (let i = 0; i < nExecutions; i++) {
+      await xo.call('backupNg.runJob', { id: jobId, schedule: scheduleId })
+    }
+    const backups = {}
+    if (remotes !== undefined) {
+      const backupsByRemote = await xo.call('backupNg.listVmBackups', {
+        remotes,
+      })
+      forOwn(backupsByRemote, (remote, remoteId) => {
+        backups[remoteId] = []
+        forOwn(remote, backupsByVm => {
+          forOwn(
+            backupsByVm,
+            ({ jobId: backupJobId, scheduleId: backupScheduleId, id }) => {
+              if (jobId === backupJobId && scheduleId === backupScheduleId) {
+                this._tempResourceDisposers.push('backupNg.deleteVmBackup', {
+                  id,
+                })
+                backups[remoteId].push(id)
+              }
+            }
+          )
+        })
+      })
+    }
+    return backups
+  }
+
   async deleteTempResources() {
     const disposers = this._tempResourceDisposers
     for (let n = disposers.length - 1; n > 0; ) {

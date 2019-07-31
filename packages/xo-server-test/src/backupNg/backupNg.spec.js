@@ -1,5 +1,6 @@
 /* eslint-env jest */
 
+import { forOwn } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import config from '../_config'
@@ -9,6 +10,60 @@ import xo from '../_xoConnection'
 const DEFAULT_SCHEDULE = {
   name: 'scheduleTest',
   cron: '0 * * * * *',
+}
+
+const validateRootTask = (log, props) =>
+  expect(log).toMatchSnapshot({
+    end: expect.any(Number),
+    id: expect.any(String),
+    jobId: expect.any(String),
+    scheduleId: expect.any(String),
+    start: expect.any(Number),
+    ...props,
+  })
+
+const validateVmTask = (task, vmId, props = {}) => {
+  expect(task).toMatchSnapshot({
+    data: {
+      id: expect.any(String),
+    },
+    end: expect.any(Number),
+    id: expect.any(String),
+    message: expect.any(String),
+    start: expect.any(Number),
+    ...props,
+  })
+  expect(task.data.id).toBe(vmId)
+}
+
+const validateSnapshotTask = (task, props) =>
+  expect(task).toMatchSnapshot({
+    end: expect.any(Number),
+    id: expect.any(String),
+    result: expect.any(String),
+    start: expect.any(Number),
+    ...props,
+  })
+
+const validateExportTask = (task, srOrRemoteIds, props) => {
+  expect(task).toMatchSnapshot({
+    end: expect.any(Number),
+    id: expect.any(String),
+    message: expect.any(String),
+    start: expect.any(Number),
+    ...props,
+  })
+  expect(srOrRemoteIds).toContain(task.data.id)
+}
+
+const validateOperationTask = (task, props) => {
+  expect(task).toMatchSnapshot({
+    end: expect.any(Number),
+    id: expect.any(String),
+    message: expect.any(String),
+    start: expect.any(Number),
+    ...props,
+  })
 }
 
 describe('backupNg', () => {
@@ -385,5 +440,115 @@ describe('backupNg', () => {
       start: expect.any(Number),
     })
     expect(vmTask.data.id).toBe(vmId)
+  })
+
+  test('execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval', async () => {
+    jest.setTimeout(6e4)
+
+    const { nfs, smb } = config.remotes
+    const { id: nfsId } = await xo.createTempRemote(nfs)
+    const remotes = [nfsId]
+    if (smb !== undefined) {
+      const { id: smbId } = await xo.createTempRemote(smb)
+      remotes.push(smbId)
+    }
+
+    const scheduleTempId = randomId()
+    const vmId = config.vms.vmToBackup
+    const fullInterval = 2
+    const { id: jobId } = await xo.createTempBackupNgJob({
+      mode: 'delta',
+      remotes: {
+        id: {
+          __or: remotes,
+        },
+      },
+      schedules: {
+        [scheduleTempId]: DEFAULT_SCHEDULE,
+      },
+      settings: {
+        '': {
+          reportWhen: 'never',
+          fullInterval,
+        },
+        [nfs.id]: { deleteFirst: true },
+        [scheduleTempId]: { exportRetention: 2 },
+      },
+      vms: {
+        id: vmId,
+      },
+    })
+
+    const schedule = await xo.getSchedule({ jobId })
+    expect(typeof schedule).toBe('object')
+
+    const nExecutions = 3
+    const backupsByRemote = await xo.runBackupJob(jobId, schedule.id, {
+      remotes,
+      nExecutions,
+    })
+    forOwn(backupsByRemote, backups => expect(backups.length).toBe(2))
+
+    const backupLogs = await xo.call('backupNg.getLogs', {
+      jobId,
+      scheduleId: schedule.id,
+    })
+    expect(backupLogs.length).toBe(nExecutions)
+
+    backupLogs.forEach(({ tasks, ...log }, key) => {
+      validateRootTask(log, {
+        data: {
+          mode: 'delta',
+          reportWhen: 'never',
+        },
+        message: 'backup',
+        status: 'success',
+      })
+      let vmTaskValidated = false
+      tasks.forEach(({ tasks, ...vmTask }) => {
+        if (vmTask.data !== undefined && vmTask.data.type === 'VM') {
+          expect(vmTaskValidated).toBe(false)
+          validateVmTask(vmTask, vmId, { status: 'success' })
+          tasks.forEach(({ tasks, ...subTask }) => {
+            if (subTask.message === 'snapshot') {
+              validateSnapshotTask(subTask, { status: 'success' })
+            }
+            if (subTask.message === 'export') {
+              validateExportTask(subTask, remotes, {
+                data: {
+                  id: expect.any(String),
+                  isFull: key % fullInterval === 0,
+                  type: 'remote',
+                },
+                status: 'success',
+              })
+              let mergeTaskKey, transferTaskKey
+              tasks.forEach((operationTask, key) => {
+                if (
+                  operationTask.message === 'transfer' ||
+                  operationTask.message === 'merge'
+                ) {
+                  validateOperationTask(operationTask, {
+                    result: { size: expect.any(Number) },
+                    status: 'success',
+                  })
+                  if (operationTask.message === 'transfer') {
+                    mergeTaskKey = key
+                  } else {
+                    transferTaskKey = key
+                  }
+                }
+              })
+              expect(
+                subTask.data.id === nfs.id
+                  ? mergeTaskKey > transferTaskKey
+                  : mergeTaskKey < transferTaskKey
+              ).toBe(true)
+            }
+          })
+          vmTaskValidated = true
+        }
+      })
+    })
   })
 })

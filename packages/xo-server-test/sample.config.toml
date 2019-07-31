@@ -14,3 +14,5 @@
 
 [remotes]
   default = { name = '', url = '' }
+  nfs = { name = '', url = '' }
+  # smb = { name = '', url = '' }
