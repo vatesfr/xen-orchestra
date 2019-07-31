@@ -19,7 +19,7 @@ xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
 const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
 const xoCall = (method, params) => signedIn.then(() => xo.call(method, params))
 
-const getObjects = (id: any) =>
+const getObject = (id: any) =>
   xoCall('xo.getAllObjects', { filter: { id } }).then(objects => objects[id])
 
 export default class Visualization extends Component<any, any> {
@@ -29,87 +29,66 @@ export default class Visualization extends Component<any, any> {
     //  VM
     //  Cpu
     dataVmCpu: [],
-    propVmCpus: [],
-
-    startIndexCpuVm: 0,
-    endIndexCpuVm: 0,
+    cpusVm: [],
 
     //  Memory
     dataVmMemory: [],
-    startIndexMemoryVm: 0,
-    endIndexMemoryVm: 0,
     valueMaxVmMemory: 0,
 
     //  Network
     dataVmNetwork: [],
-    propVmNetworkTx: [],
-    propVmNetworkRx: [],
-    startIndexNetworkVm: 0,
-    endIndexNetworkVm: 0,
+    networksTxVm: [],
+    networksRxVm: [],
     maxNetwork: 0,
 
     //  Disk
     dataVmDisk: [],
-    propXvds: [],
-    propXvdsR: [],
-    startIndexDiskVm: 0,
-    endIndexDiskVm: 0,
+    disksW: [],
+    disksR: [],
+
     maxDisk: 0,
 
     //  Host
     //  cpu
     dataHostCpu: [],
-    propHostCpus: [],
-    startIndexCpuHost: 0,
-    endIndexCpuHost: 0,
+    cpusHost: [],
 
     // Memory
     dataHostMemory: [],
-    startIndexMemoryHost: 0,
-    endIndexMemoryHost: 0,
     ValueMaxHostMemory: 0,
 
     //  Network
     dataHostNetwork: [],
-    propHostNetworkRx: [],
-    propHostNetworkTx: [],
-    startIndexNetworkHost: 0,
-    endIndexNetworkHost: 0,
+    networksRxHost: [],
+    networksTxHost: [],
+
     maxNetworkHost: 0,
 
     //  Load
     dataHostLoad: [],
-    startIndexLoadHost: 0,
-    endIndexLoadHost: 0,
     maxLoad: 0,
 
     //  SR
     //  IOPS
     dataSrIops: [],
-    propSrIops: [],
-    startIndexIopsSR: 0,
-    endIndexIopsSR: 0,
+    iopsSr: [],
     maxIOPS: 0,
 
     //  IO Throughput
     dataSrThro: [],
-    propSrThro: [],
-    startIndexIOSR: 0,
-    endIndexIOSR: 0,
+    throSr: [],
+
     maxIoThroughput: 0,
 
     //  Latency
     dataSrLatency: [],
-    propSrLatency: [],
-    startIndexLatencySR: 0,
-    endIndexLatencySR: 0,
+    latencySr: [],
+
     maxLatency: 0,
 
     //  IOwait
     dataSrIowait: [],
-    propSrIowait: [],
-    startIndexIOwaitSR: 0,
-    endIndexIOwaitSR: 0,
+    iowaitSr: [],
     maxIOwait: 0,
   }
 
@@ -120,12 +99,13 @@ export default class Visualization extends Component<any, any> {
   }
 
   fetchVmStats = () => {
-    getObjects('28851ef6-951c-08bc-a5be-8898e2a31b7a').then((vm: any) => {
+    getObject('ebd131c8-d8df-144a-5997-f1969da1f022').then((vm: any) => {
       this.setState({ valueMaxVmMemory: vm.memory.dynamic[1] })
     })
-
+    //
+    //28851ef6-951c-08bc-a5be-8898e2a31b7a
     xoCall('vm.stats', {
-      id: '28851ef6-951c-08bc-a5be-8898e2a31b7a',
+      id: 'ebd131c8-d8df-144a-5997-f1969da1f022',
       granularity: this.state.granularity,
     }).then(
       ({
@@ -137,21 +117,20 @@ export default class Visualization extends Component<any, any> {
         stats: { vifs },
         stats: { xvds },
       }) => {
-
         let format: any
         if (interval === 5 || interval === 60) {
           format = 'LTS'
         } else if (interval === 86400 || interval === 3600) {
           format = 'l'
-        } 
+        }
 
-        this.setState({ propVmCpus: Object.keys(cpus) })
+        this.setState({ cpusVm: Object.keys(cpus) })
 
-        this.setState({ propVmNetworkTx: Object.keys(vifs.tx) })
-        this.setState({ propVmNetworkRx: Object.keys(vifs.rx) })
+        this.setState({ networksTxVm: Object.keys(vifs.tx) })
+        this.setState({ networksRxVm: Object.keys(vifs.rx) })
 
-        this.setState({ propXvds: Object.keys(xvds.w) })
-        this.setState({ propXvdsR: Object.keys(xvds.r) })
+        this.setState({ disksW: Object.keys(xvds.w) })
+        this.setState({ disksR: Object.keys(xvds.r) })
 
         let dataVmCpu: any[] = []
         let dataVmMemory: any[] = []
@@ -175,32 +154,31 @@ export default class Visualization extends Component<any, any> {
           let valuesNetwork: any = {}
           let ValuesDisk: any = {}
 
-            valuesCpus.time = moment(
-             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-           ).format(format) 
+          valuesCpus.time = moment(
+            (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+          ).format(format)
 
-          this.state.propVmCpus.forEach((property: string | number) => {
+          this.state.cpusVm.forEach((property: string | number) => {
             valuesCpus[`cpu${property}`] = cpus[property][i]
           })
 
-          this.state.propVmNetworkTx.forEach((property: string | number) => {
-            valuesNetwork[`vifs_tx_${property}`] = vifs.tx[property][i]
+          this.state.networksTxVm.forEach((property: string | number) => {
+            valuesNetwork[`vifs_${property}_(tx)`] = vifs.tx[property][i]
           })
 
-          this.state.propVmNetworkRx.forEach((property: string | number) => {
-            valuesNetwork[`vifs_rx_${property}`] = vifs.rx[property][i]
+          this.state.networksRxVm.forEach((property: string | number) => {
+            valuesNetwork[`vifs_${property}_(rx)`] = vifs.rx[property][i]
           })
 
-          this.state.propXvds.forEach((property: string | number) => {
-            ValuesDisk[`xvds_w_${property}`] = xvds.w[property][i]
+          this.state.disksW.forEach((property: string | number) => {
+            ValuesDisk[`xvds_${property}_(w)`] = xvds.w[property][i]
           })
 
-          this.state.propXvdsR.forEach((property: string | number) => {
-            ValuesDisk[`xvds_R_${property}`] = xvds.r[property][i]
+          this.state.disksR.forEach((property: string | number) => {
+            ValuesDisk[`xvds_${property}_(r)`] = xvds.r[property][i]
           })
 
           valuesMemory.memory = newDataMemory[i]
-
           valuesMemory.time = valuesCpus.time
           valuesNetwork.time = valuesCpus.time
           ValuesDisk.time = valuesCpus.time
@@ -210,46 +188,38 @@ export default class Visualization extends Component<any, any> {
           dataVmMemory.push(valuesMemory)
         }
 
-        for (var i = 0; i < this.state.propVmNetworkTx.length; i++) {
-          this.state.propVmNetworkTx.forEach((property: string | number) => {
-            this.state.maxNetworkTx = Math.max(...vifs.tx[property])
-          })
-        }
+        this.state.networksTxVm.forEach((property: string | number) => {
+          this.setState({ maxNetworkTx: Math.max(...vifs.tx[property]) })
+        })
 
-        for (var i = 0; i < this.state.propVmNetworkRx.length; i++) {
-          this.state.propVmNetworkRx.forEach((property: string | number) => {
-            this.state.maxNetworkRx = Math.max(...vifs.rx[property])
-          })
-        }
+        this.state.networksRxVm.forEach((property: string | number) => {
+          this.setState({ maxNetworkRx: Math.max(...vifs.rx[property]) })
+        })
 
         this.state.maxNetwork = Math.max(
           this.state.maxNetworkTx,
           this.state.maxNetworkRx
         )
 
-        for (var i = 0; i < this.state.propXvds.length; i++) {
-          this.state.propXvds.forEach((property: string | number) => {
-            this.state.maxDiskW = Math.max(...xvds.w[property])
-          })
-        }
+        this.state.disksW.forEach((property: string | number) => {
+          this.setState({ maxDiskW: Math.max(...xvds.w[property]) })
+        })
 
-        for (var i = 0; i < this.state.propXvdsR.length; i++) {
-          this.state.propXvdsR.forEach((property: string | number) => {
-            this.state.maxDiskR = Math.max(...xvds.r[property])
-          })
-        }
+        this.state.disksR.forEach((property: string | number) => {
+          this.setState({ maxDiskR: Math.max(...xvds.r[property]) })
+        })
+
         this.state.maxDisk = Math.max(this.state.maxDiskW, this.state.maxDiskR)
-
         this.setState({ dataVmCpu, dataVmMemory, dataVmNetwork, dataVmDisk })
       }
     )
   }
 
   fetchHostStats = () => {
-    getObjects('470b64a4-2767-4e1d-a20c-fbc2a6d4de57').then((host: any) => {
+    getObject('470b64a4-2767-4e1d-a20c-fbc2a6d4de57').then((host: any) => {
       this.setState({ ValueMaxHostMemory: host.memory.size })
     })
-
+    //ebd131c8-d8df-144a-5997-f1969da1f022
     xoCall('host.stats', {
       host: '470b64a4-2767-4e1d-a20c-fbc2a6d4de57',
       granularity: this.state.granularity,
@@ -264,15 +234,15 @@ export default class Visualization extends Component<any, any> {
         stats: { pifs },
       }) => {
         let format: any
-        if ( interval === 5 || interval === 60) {
+        if (interval === 5 || interval === 60) {
           format = 'LTS'
         } else if (interval === 86400 || interval === 3600) {
           format = 'l'
         }
 
-        this.setState({ propHostCpus: Object.keys(cpus) })
-        this.setState({ propHostNetworkRx: Object.keys(pifs.rx) })
-        this.setState({ propHostNetworkTx: Object.keys(pifs.tx) })
+        this.setState({ cpusHost: Object.keys(cpus) })
+        this.setState({ networksRxHost: Object.keys(pifs.rx) })
+        this.setState({ networksTxHost: Object.keys(pifs.tx) })
 
         let dataHostCpu: any[] = []
         let dataHostMemory: any[] = []
@@ -296,29 +266,27 @@ export default class Visualization extends Component<any, any> {
           let valuesHostNetwork: any = {}
           let valuesLoad: any = {}
 
-           valuesHost.time = moment(
-             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-           ).format(format) 
+          valuesHost.time = moment(
+            (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+          ).format(format)
 
-          this.state.propHostCpus.forEach((property: string | number) => {
+          this.state.cpusHost.forEach((property: string | number) => {
             valuesHost[`cpu${property}`] = cpus[property][i]
           })
 
-          this.state.propHostNetworkRx.forEach((property: string | number) => {
-            valuesHostNetwork[`pifs_rx_${property}`] = pifs.rx[property][i]
+          this.state.networksRxHost.forEach((property: string | number) => {
+            valuesHostNetwork[`pifs_${property}_(rx)`] = pifs.rx[property][i]
           })
 
-          this.state.propHostNetworkTx.forEach((property: string | number) => {
-            valuesHostNetwork[`pifs_tx_${property}`] = pifs.tx[property][i]
+          this.state.networksTxHost.forEach((property: string | number) => {
+            valuesHostNetwork[`pifs_${property}_(tx)`] = pifs.tx[property][i]
           })
 
           valuesLoad.load = load[i]
           valuesHostMemory.memory = newDataMemory[i]
-
           valuesHostMemory.time = valuesHost.time
           valuesHostNetwork.time = valuesHost.time
           valuesLoad.time = valuesHost.time
-
           dataHostCpu.push(valuesHost)
           dataHostNetwork.push(valuesHostNetwork)
           dataHostLoad.push(valuesLoad)
@@ -327,22 +295,20 @@ export default class Visualization extends Component<any, any> {
 
         this.state.maxLoad = Math.max(...load)
 
-        for (var i = 0; i < this.state.propHostNetworkTx.length; i++) {
-          this.state.propHostNetworkTx.forEach((property: string | number) => {
-            this.state.maxNetworkTx = Math.max(...pifs.tx[property])
-          })
-        }
+        this.state.networksTxHost.forEach((property: string | number) => {
+          this.setState({ maxNetworkTx: Math.max(...pifs.tx[property]) })
+        })
 
-        for (var i = 0; i < this.state.propHostNetworkRx.length; i++) {
-          this.state.propHostNetworkRx.forEach((property: string | number) => {
-            this.state.maxNetworkRx = Math.max(...pifs.rx[property])
-          })
-        }
+        this.state.networksRxHost.forEach((property: string | number) => {
+          this.setState({ maxNetworkRx: Math.max(...pifs.rx[property]) })
+        })
 
-        this.state.maxNetworkHost = Math.max(
-          this.state.maxNetworkTx,
-          this.state.maxNetworkRx
-        )
+        this.setState({
+          maxNetworkHost: Math.max(
+            this.state.maxNetworkTx,
+            this.state.maxNetworkRx
+          ),
+        })
 
         this.setState({
           dataHostCpu,
@@ -368,16 +334,16 @@ export default class Visualization extends Component<any, any> {
         stats: { ioThroughput },
       }) => {
         let format: any
-        if ( interval === 5 || interval === 60) {
+        if (interval === 5 || interval === 60) {
           format = 'LTS'
-        } else if (interval === 86400 || interval ===3600) {
+        } else if (interval === 86400 || interval === 3600) {
           format = 'l'
         }
 
-        this.setState({ propSrIops: Object.keys(iops) })
-        this.setState({ propSrThro: Object.keys(ioThroughput) })
-        this.setState({ propSrLatency: Object.keys(latency) })
-        this.setState({ propSrIowait: Object.keys(iowait) })
+        this.setState({ iopsSr: Object.keys(iops) })
+        this.setState({ throSr: Object.keys(ioThroughput) })
+        this.setState({ latencySr: Object.keys(latency) })
+        this.setState({ iowaitSr: Object.keys(iowait) })
 
         const dataSrIops: any[] = []
         const dataSrThro: any[] = []
@@ -390,23 +356,23 @@ export default class Visualization extends Component<any, any> {
           const valuesSrLatency: any = {}
           const valuesSrIowait: any = {}
 
-           valuesSrIops.time = moment(
+          valuesSrIops.time = moment(
             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-          ).format(format) 
-          
-          this.state.propSrIops.forEach((property: string | number) => {
+          ).format(format)
+
+          this.state.iopsSr.forEach((property: string | number) => {
             valuesSrIops[`iops_${property}`] = iops[property][i]
           })
 
-          this.state.propSrThro.forEach((property: string | number) => {
+          this.state.throSr.forEach((property: string | number) => {
             valuesSrThro[`thr_${property}`] = ioThroughput[property][i]
           })
 
-          this.state.propSrLatency.forEach((property: string | number) => {
+          this.state.latencySr.forEach((property: string | number) => {
             valuesSrLatency[`latency_${property}`] = latency[property][i]
           })
 
-          this.state.propSrIowait.forEach((property: string | number) => {
+          this.state.iowaitSr.forEach((property: string | number) => {
             valuesSrIowait[`iowait_${property}`] = iowait[property][i]
           })
 
@@ -420,29 +386,23 @@ export default class Visualization extends Component<any, any> {
           dataSrIowait.push(valuesSrIowait)
         }
 
-        for (var i = 0; i < this.state.propSrLatency.length; i++) {
-          this.state.propSrLatency.forEach((property: string | number) => {
-            this.state.maxLatency = Math.max(...latency[property])
-          })
-        }
+        this.state.latencySr.forEach((property: string | number) => {
+          this.setState({ maxLatency: Math.max(...latency[property]) })
+        })
 
-        for (var i = 0; i < this.state.propSrIops.length; i++) {
-          this.state.propSrIops.forEach((property: string | number) => {
-            this.state.maxIOPS = Math.max(...iops[property])
-          })
-        }
+        this.state.iopsSr.forEach((property: string | number) => {
+          this.setState({ maxIOPS: Math.max(...iops[property]) })
+        })
 
-        for (var i = 0; i < this.state.propSrIowait.length; i++) {
-          this.state.propSrIowait.forEach((property: string | number) => {
-            this.state.maxIOwait = Math.max(...iowait[property])
-          })
-        }
+        this.state.iowaitSr.forEach((property: string | number) => {
+          this.setState({ maxIOwait: Math.max(...iowait[property]) })
+        })
 
-        for (var i = 0; i < this.state.propSrThro.length; i++) {
-          this.state.propSrThro.forEach((property: string | number) => {
-            this.state.maxIoThroughput = Math.max(...ioThroughput[property])
+        this.state.throSr.forEach((property: string | number) => {
+          this.setState({
+            maxIoThroughput: Math.max(...ioThroughput[property]),
           })
-        }
+        })
 
         this.setState({ dataSrIops, dataSrThro, dataSrLatency, dataSrIowait })
       }
@@ -474,71 +434,92 @@ export default class Visualization extends Component<any, any> {
             </select>
           </form>
         </div>
-        <VuVmCpuStats
+        <VmCpuGraph
           dataVmCpu={this.state.dataVmCpu}
-          propVmCpus={this.state.propVmCpus}
+          cpusVm={this.state.cpusVm}
         />
-        <VuVmMemoryStats
+        <VmMemoryGraph
           dataVmMemory={this.state.dataVmMemory}
           valueMaxVmMemory={this.state.valueMaxVmMemory}
         />
-
-        <VuVmNetworkStats
+        <VmNetworkGraph
           dataVmNetwork={this.state.dataVmNetwork}
-          propVmNetworkTx={this.state.propVmNetworkTx}
-          propVmNetworkRx={this.state.propVmNetworkRx}
+          networksTxVm={this.state.networksTxVm}
+          networksRxVm={this.state.networksRxVm}
           maxNetwork={this.state.maxNetwork}
         />
-        <VuVmDiskStats
+        <VmDiskGraph
           dataVmDisk={this.state.dataVmDisk}
-          propXvds={this.state.propXvds}
-          propXvdsR={this.state.propXvdsR}
+          disksW={this.state.disksW}
+          disksR={this.state.disksR}
           maxDisk={this.state.maxDisk}
         />
-        <VuHostCpuStats
+        <HostCpuGraph
           dataHostCpu={this.state.dataHostCpu}
-          propHostCpus={this.state.propHostCpus}
+          cpusHost={this.state.cpusHost}
         />
-        <VuHostMemoryStats
+        <HostMemoryGraph
           dataHostMemory={this.state.dataHostMemory}
           ValueMaxHostMemory={this.state.ValueMaxHostMemory}
         />
-        <VuHostNetworkStats
+        <HostNetworkGraph
           dataHostNetwork={this.state.dataHostNetwork}
-          propHostNetworkRx={this.state.propHostNetworkRx}
-          propHostNetworkTx={this.state.propHostNetworkTx}
+          networksRxHost={this.state.networksRxHost}
+          networksTxHost={this.state.networksTxHost}
           maxNetworkHost={this.state.maxNetworkHost}
         />
-        <VuHostLoadStats
+        <HostLoadGraph
           dataHostLoad={this.state.dataHostLoad}
           maxLoad={this.state.maxLoad}
         />
-        <VuSrIOPSstats
+        <SrIOPSGraph
           dataSrIops={this.state.dataSrIops}
-          propSrIops={this.state.propSrIops}
+          iopsSr={this.state.iopsSr}
           maxIOPS={this.state.maxIOPS}
         />
-        <VuSrIOThroStats
+        <SrIOThroGraph
           dataSrThro={this.state.dataSrThro}
-          propSrThro={this.state.propSrThro}
+          throSr={this.state.throSr}
           maxIoThroughput={this.state.maxIoThroughput}
         />
-        <VuSrLatencyStats
+        <SrLatencyGraph
           dataSrLatency={this.state.dataSrLatency}
-          propSrLatency={this.state.propSrLatency}
+          latencySr={this.state.latencySr}
           maxLatency={this.state.maxLatency}
         />
-        <VuSrIoWaitStats
+        <SrIoWaitGraph
           dataSrIowait={this.state.dataSrIowait}
-          propSrIowait={this.state.propSrIowait}
+          iowaitSr={this.state.iowaitSr}
           maxIOwait={this.state.maxIOwait}
         />
       </div>
     )
   }
 }
+const allColors = [
+  '#493BD8',
+  '#ADD83B',
+  '#D83BB7',
+  '#3BC1D8',
+  '#aabd8a',
+  '#667772',
+  '#FA8072',
+  '#800080',
+  '#00FF00',
+  '#8abda7',
+  '#cee866',
+  '#6f9393',
+  '#bb97cd',
+  '#8778db',
+  '#2f760b',
+  '#a9578a',
+  '#C0C0C0',
+  '#000080',
+  '#000000',
+  '#800000',
+]
 
-class VuVmCpuStats extends Component<any, any> {
+class VmCpuGraph extends Component<any, any> {
   state: any = {
     startIndexCpuVm: 0,
     endIndexCpuVm: 0,
@@ -550,18 +531,6 @@ class VuVmCpuStats extends Component<any, any> {
   }
 
   render() {
-    const allColors = [
-      '#493BD8',
-      '#ADD83B',
-      '#D83BB7',
-      '#3BC1D8',
-      '#aabd8a',
-      '#667772',
-      '#FA8072',
-      '#800080',
-      '#00FF00',
-      '#8abda7',
-    ]
     return (
       <div>
         <div>
@@ -574,7 +543,6 @@ class VuVmCpuStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataVmCpu}
-            syncId='vm'
             margin={{
               top: 5,
               right: 20,
@@ -606,11 +574,10 @@ class VuVmCpuStats extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.propVmCpus
+                {this.props.cpusVm
                   .map((currProperty: any) => `cpu${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
-                      stackId='3'
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
@@ -622,11 +589,10 @@ class VuVmCpuStats extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.propVmCpus
+            {this.props.cpusVm
               .map((currProperty: any) => `cpu${currProperty}`)
               .map((property: any, index: any) => (
                 <Area
-                  stackId='3'
                   connectNulls
                   isAnimationActive={false}
                   type='monotone'
@@ -642,7 +608,7 @@ class VuVmCpuStats extends Component<any, any> {
   }
 }
 
-class VuVmMemoryStats extends Component<any, any> {
+class VmMemoryGraph extends Component<any, any> {
   state: any = {
     startIndexMemoryVm: 0,
     endIndexMemoryVm: 0,
@@ -655,13 +621,10 @@ class VuVmMemoryStats extends Component<any, any> {
 
   formatBytes(bytes: any, decimals = 2) {
     if (bytes === 0) return '0 B'
-
     const k = 1024
     const dm = decimals < 0 ? 0 : decimals
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
   }
 
@@ -675,7 +638,6 @@ class VuVmMemoryStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataVmMemory}
-            syncId='vm'
             margin={{
               top: 5,
               right: 20,
@@ -729,54 +691,27 @@ class VuVmMemoryStats extends Component<any, any> {
   }
 }
 
-class VuVmNetworkStats extends Component<any, any> {
+class VmNetworkGraph extends Component<any, any> {
   state: any = {
     startIndexNetworkVm: 0,
     endIndexNetworkVm: 0,
   }
 
   handleChangeNetworkVm = (res: any) => {
-    this.state.startIndexNetworkVm = res.startIndex
-    this.state.endIndexNetworkVm = res.endIndex
+    this.setState({ startIndexNetworkVm: res.startIndex })
+    this.setState({ endIndexNetworkVm: res.endIndex })
   }
 
   formatBytes(bytes: any, decimals = 2) {
     if (bytes === 0) return '0 B'
-
     const k = 1024
     const dm = decimals < 0 ? 0 : decimals
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
   render() {
-    const colors = [
-      '#cee866',
-      '#6f9393',
-      '#bb97cd',
-      '#8778db',
-      '#2f760b',
-      '#a9578a',
-      '#C0C0C0',
-      '#000080',
-      '#000000',
-      '#800000',
-    ]
-    const allColors = [
-      '#493BD8',
-      '#ADD83B',
-      '#D83BB7',
-      '#3BC1D8',
-      '#aabd8a',
-      '#667772',
-      '#FA8072',
-      '#800080',
-      '#00FF00',
-      '#8abda7',
-    ]
     return (
       <div>
         <br />
@@ -787,7 +722,6 @@ class VuVmNetworkStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataVmNetwork}
-            syncId='vm'
             margin={{
               top: 5,
               right: 20,
@@ -819,8 +753,8 @@ class VuVmNetworkStats extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.propVmNetworkTx
-                  .map((currProperty: any) => `vifs_tx_${currProperty}`)
+                {this.props.networksTxVm
+                  .map((currProperty: any) => `vifs_${currProperty}_(tx)`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
@@ -831,23 +765,23 @@ class VuVmNetworkStats extends Component<any, any> {
                       fill={allColors[index]}
                     />
                   ))}
-                {this.props.propVmNetworkRx
-                  .map((currProperty: any) => `vifs_rx_${currProperty}`)
+                {this.props.networksRxVm
+                  .map((currProperty: any) => `vifs_${currProperty}_(rx)`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
                       dataKey={property}
-                      stroke={colors[index]}
-                      fill={colors[index]}
+                      stroke={allColors[this.props.networksTxVm.length + index]}
+                      fill={allColors[this.props.networksTxVm.length + index]}
                     />
                   ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.propVmNetworkTx
-              .map((currProperty: any) => `vifs_tx_${currProperty}`)
+            {this.props.networksTxVm
+              .map((currProperty: any) => `vifs_${currProperty}_(tx)`)
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
@@ -858,16 +792,16 @@ class VuVmNetworkStats extends Component<any, any> {
                   fill={allColors[index]}
                 />
               ))}
-            {this.props.propVmNetworkRx
-              .map((currProperty: any) => `vifs_rx_${currProperty}`)
+            {this.props.networksRxVm
+              .map((currProperty: any) => `vifs_${currProperty}_(rx)`)
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
                   isAnimationActive={false}
                   type='monotone'
                   dataKey={property}
-                  stroke={colors[index]}
-                  fill={colors[index]}
+                  stroke={allColors[this.props.networksTxVm.length + index]}
+                  fill={allColors[this.props.networksTxVm.length + index]}
                 />
               ))}
           </AreaChart>
@@ -877,55 +811,27 @@ class VuVmNetworkStats extends Component<any, any> {
   }
 }
 
-class VuVmDiskStats extends Component<any, any> {
+class VmDiskGraph extends Component<any, any> {
   state: any = {
     startIndexDiskVm: 0,
     endIndexDiskVm: 0,
   }
 
   handleChangeDiskVm = (res: any) => {
-    this.state.startIndexDiskVm = res.startIndex
-    this.state.endIndexDiskVm = res.endIndex
+    this.setState({ startIndexDiskVm: res.startIndex })
+    this.setState({ endIndexDiskVm: res.endIndex })
   }
 
   formatBytes(bytes: any, decimals = 2) {
     if (bytes === 0) return '0 B'
-
     const k = 1024
     const dm = decimals < 0 ? 0 : decimals
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
   render() {
-    const colors = [
-      '#cee866',
-      '#6f9393',
-      '#bb97cd',
-      '#8778db',
-      '#2f760b',
-      '#a9578a',
-      '#C0C0C0',
-      '#000080',
-      '#000000',
-      '#800000',
-    ]
-
-    const allColors = [
-      '#493BD8',
-      '#ADD83B',
-      '#D83BB7',
-      '#3BC1D8',
-      '#aabd8a',
-      '#667772',
-      '#FA8072',
-      '#800080',
-      '#00FF00',
-      '#8abda7',
-    ]
     return (
       <div>
         <br />
@@ -936,7 +842,7 @@ class VuVmDiskStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataVmDisk}
-            syncId='vm'
+            //syncId='vm'
             margin={{
               top: 5,
               right: 20,
@@ -968,8 +874,8 @@ class VuVmDiskStats extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.propXvds
-                  .map((currProperty: any) => `xvds_w_${currProperty}`)
+                {this.props.disksW
+                  .map((currProperty: any) => `xvds_${currProperty}_(w)`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
@@ -980,23 +886,23 @@ class VuVmDiskStats extends Component<any, any> {
                       fill={allColors[index]}
                     />
                   ))}
-                {this.props.propXvdsR
-                  .map((currProperty: any) => `xvds_R_${currProperty}`)
+                {this.props.disksR
+                  .map((currProperty: any) => `xvds_${currProperty}_(r)`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
                       dataKey={property}
-                      stroke={colors[index]}
-                      fill={colors[index]}
+                      stroke={allColors[this.props.disksW.length + index]}
+                      fill={allColors[this.props.disksW.length + index]}
                     />
                   ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.propXvds
-              .map((currProperty: any) => `xvds_w_${currProperty}`)
+            {this.props.disksW
+              .map((currProperty: any) => `xvds_${currProperty}_(w)`)
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
@@ -1007,16 +913,16 @@ class VuVmDiskStats extends Component<any, any> {
                   fill={allColors[index]}
                 />
               ))}
-            {this.props.propXvdsR
-              .map((currProperty: any) => `xvds_R_${currProperty}`)
+            {this.props.disksR
+              .map((currProperty: any) => `xvds_${currProperty}_(r)`)
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
                   isAnimationActive={false}
                   type='monotone'
                   dataKey={property}
-                  stroke={colors[index]}
-                  fill={colors[index]}
+                  stroke={allColors[this.props.disksW.length + index]}
+                  fill={allColors[this.props.disksW.length + index]}
                 />
               ))}
           </AreaChart>
@@ -1026,30 +932,18 @@ class VuVmDiskStats extends Component<any, any> {
   }
 }
 
-class VuHostCpuStats extends Component<any, any> {
+class HostCpuGraph extends Component<any, any> {
   state: any = {
     startIndexCpuHost: 0,
     endIndexCpuHost: 0,
   }
 
   handleChangeCpuHost = (res: any) => {
-    this.state.startIndexCpuHost = res.startIndex
-    this.state.endIndexCpuHost = res.endIndex
+    this.setState({ startIndexCpuHost: res.startIndex })
+    this.setState({ endIndexCpuHost: res.endIndex })
   }
 
   render() {
-    const allColors = [
-      '#493BD8',
-      '#ADD83B',
-      '#D83BB7',
-      '#3BC1D8',
-      '#aabd8a',
-      '#667772',
-      '#FA8072',
-      '#800080',
-      '#00FF00',
-      '#8abda7',
-    ]
     return (
       <div>
         <div>
@@ -1063,7 +957,6 @@ class VuHostCpuStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataHostCpu}
-            syncId='host'
             margin={{
               top: 5,
               right: 20,
@@ -1095,7 +988,7 @@ class VuHostCpuStats extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.propHostCpus
+                {this.props.cpusHost
                   .map((currProperty: any) => `cpu${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
@@ -1110,7 +1003,7 @@ class VuHostCpuStats extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.propHostCpus
+            {this.props.cpusHost
               .map((currProperty: any) => `cpu${currProperty}`)
               .map((property: any, index: any) => (
                 <Area
@@ -1129,15 +1022,15 @@ class VuHostCpuStats extends Component<any, any> {
   }
 }
 
-class VuHostMemoryStats extends Component<any, any> {
+class HostMemoryGraph extends Component<any, any> {
   state: any = {
     startIndexMemoryHost: 0,
     endIndexMemoryHost: 0,
   }
 
   handleChangeMemoryHost = (res: any) => {
-    this.state.startIndexMemoryHost = res.startIndex
-    this.state.endIndexMemoryHost = res.endIndex
+    this.setState({ startIndexMemoryHost: res.startIndex })
+    this.setState({ endIndexMemoryHost: res.endIndex })
   }
   formatBytes(bytes: any, decimals = 2) {
     if (bytes === 0) return '0 B'
@@ -1158,7 +1051,6 @@ class VuHostMemoryStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataHostMemory}
-            syncId='host'
             margin={{
               top: 5,
               right: 20,
@@ -1212,55 +1104,27 @@ class VuHostMemoryStats extends Component<any, any> {
   }
 }
 
-class VuHostNetworkStats extends Component<any, any> {
+class HostNetworkGraph extends Component<any, any> {
   state: any = {
     startIndexNetworkHost: 0,
     endIndexNetworkHost: 0,
   }
 
   handleChangeNetworkHost = (res: any) => {
-    this.state.startIndexNetworkHost = res.startIndex
-    this.state.endIndexNetworkHost = res.endIndex
+    this.setState({ startIndexNetworkHost: res.startIndex })
+    this.setState({ endIndexNetworkHost: res.endIndex })
   }
 
   formatBytes(bytes: any, decimals = 2) {
     if (bytes === 0) return '0 B'
-
     const k = 1024
     const dm = decimals < 0 ? 0 : decimals
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
   render() {
-    const colors = [
-      '#cee866',
-      '#6f9393',
-      '#bb97cd',
-      '#8778db',
-      '#2f760b',
-      '#a9578a',
-      '#C0C0C0',
-      '#000080',
-      '#000000',
-      '#800000',
-    ]
-
-    const allColors = [
-      '#493BD8',
-      '#ADD83B',
-      '#D83BB7',
-      '#3BC1D8',
-      '#aabd8a',
-      '#667772',
-      '#FA8072',
-      '#800080',
-      '#00FF00',
-      '#8abda7',
-    ]
     return (
       <div>
         <br />
@@ -1271,7 +1135,6 @@ class VuHostNetworkStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataHostNetwork}
-            syncId='host'
             margin={{
               top: 5,
               right: 20,
@@ -1303,8 +1166,8 @@ class VuHostNetworkStats extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.propHostNetworkRx
-                  .map((currProperty: any) => `pifs_rx_${currProperty}`)
+                {this.props.networksRxHost
+                  .map((currProperty: any) => `pifs_${currProperty}_(rx)`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
@@ -1315,23 +1178,25 @@ class VuHostNetworkStats extends Component<any, any> {
                       fill={allColors[index]}
                     />
                   ))}
-                {this.props.propHostNetworkTx
-                  .map((currProperty: any) => `pifs_tx_${currProperty}`)
+                {this.props.networksTxHost
+                  .map((currProperty: any) => `pifs_${currProperty}_(tx)`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
                       dataKey={property}
-                      stroke={colors[index]}
-                      fill={colors[index]}
+                      stroke={
+                        allColors[this.props.networksRxHost.length + index]
+                      }
+                      fill={allColors[this.props.networksRxHost.length + index]}
                     />
                   ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.propHostNetworkRx
-              .map((currProperty: any) => `pifs_rx_${currProperty}`)
+            {this.props.networksRxHost
+              .map((currProperty: any) => `pifs_${currProperty}_(rx)`)
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
@@ -1342,16 +1207,16 @@ class VuHostNetworkStats extends Component<any, any> {
                   fill={allColors[index]}
                 />
               ))}
-            {this.props.propHostNetworkTx
-              .map((currProperty: any) => `pifs_tx_${currProperty}`)
+            {this.props.networksTxHost
+              .map((currProperty: any) => `pifs_${currProperty}_(tx)`)
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
                   isAnimationActive={false}
                   type='monotone'
                   dataKey={property}
-                  stroke={colors[index]}
-                  fill={colors[index]}
+                  stroke={allColors[this.props.networksRxHost.length + index]}
+                  fill={allColors[this.props.networksRxHost.length + index]}
                 />
               ))}
           </AreaChart>
@@ -1361,15 +1226,15 @@ class VuHostNetworkStats extends Component<any, any> {
   }
 }
 
-class VuHostLoadStats extends Component<any, any> {
+class HostLoadGraph extends Component<any, any> {
   state: any = {
     startIndexLoadHost: 0,
     endIndexLoadHost: 0,
   }
 
   handleChangeLoadHost = (res: any) => {
-    this.state.startIndexLoadHost = res.startIndex
-    this.state.endIndexLoadHost = res.endIndex
+    this.setState({ startIndexLoadHost: res.startIndex })
+    this.setState({ endIndexLoadHost: res.endIndex })
   }
 
   render() {
@@ -1382,7 +1247,6 @@ class VuHostLoadStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataHostLoad}
-            syncId='host'
             margin={{
               top: 5,
               right: 20,
@@ -1416,8 +1280,8 @@ class VuHostLoadStats extends Component<any, any> {
                 <Area
                   type='monotone'
                   dataKey='load'
-                  stroke='#3BC1D8'
-                  fill='#3BC1D8'
+                  stroke='#493BD8'
+                  fill='#493BD8'
                 />
               </AreaChart>
             </Brush>
@@ -1425,8 +1289,8 @@ class VuHostLoadStats extends Component<any, any> {
             <Area
               type='monotone'
               dataKey='load'
-              stroke='#3BC1D8'
-              fill='#3BC1D8'
+              stroke='#493BD8'
+              fill='#493BD8'
             />
           </AreaChart>
         </div>
@@ -1435,30 +1299,18 @@ class VuHostLoadStats extends Component<any, any> {
   }
 }
 
-class VuSrIOPSstats extends Component<any, any> {
+class SrIOPSGraph extends Component<any, any> {
   state: any = {
     startIndexIopsSR: 0,
     endIndexIopsSR: 0,
   }
 
   handleChangeIopsSR = (res: any) => {
-    this.state.startIndexIopsSR = res.startIndex
-    this.state.endIndexIopsSR = res.endIndex
+    this.setState({ startIndexIopsSR: res.startIndex })
+    this.setState({ endIndexIopsSR: res.endIndex })
   }
 
   render() {
-    const allColors = [
-      '#493BD8',
-      '#ADD83B',
-      '#D83BB7',
-      '#3BC1D8',
-      '#aabd8a',
-      '#667772',
-      '#FA8072',
-      '#800080',
-      '#00FF00',
-      '#8abda7',
-    ]
     return (
       <div>
         <div>
@@ -1466,13 +1318,11 @@ class VuSrIOPSstats extends Component<any, any> {
         </div>
         <br />
         <div>IOPS (IOPS)</div>
-
         <div>
           <AreaChart
             width={830}
             height={300}
             data={this.props.dataSrIops}
-            syncId='sr'
             margin={{
               top: 5,
               right: 20,
@@ -1504,7 +1354,7 @@ class VuSrIOPSstats extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.propSrIops
+                {this.props.iopsSr
                   .map((currProperty: any) => `iops_${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
@@ -1519,7 +1369,7 @@ class VuSrIOPSstats extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.propSrIops
+            {this.props.iopsSr
               .map((currProperty: any) => `iops_${currProperty}`)
               .map((property: any, index: any) => (
                 <Area
@@ -1538,42 +1388,37 @@ class VuSrIOPSstats extends Component<any, any> {
   }
 }
 
-class VuSrIOThroStats extends Component<any, any> {
+class SrIOThroGraph extends Component<any, any> {
   state: any = {
     startIndexIOSR: 0,
     endIndexIOSR: 0,
   }
 
   handleChangeIOSR = (res: any) => {
-    this.state.startIndexIOSR = res.startIndex
-    this.state.endIndexIOSR = res.endIndex
+    this.setState({ startIndexIOSR: res.startIndex })
+    this.setState({ endIndexIOSR: res.endIndex })
   }
 
   formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-
+    if (bytes === 0) return '0 B/s'
     const k = 1024
     const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-
+    const sizes = [
+      'B/s',
+      'KB/s',
+      'MB/s',
+      'GB/s',
+      'TB/s',
+      'PB/s',
+      'EB/s',
+      'ZB/s',
+      'YB/s',
+    ]
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
   render() {
-    const allColors = [
-      '#493BD8',
-      '#ADD83B',
-      '#D83BB7',
-      '#3BC1D8',
-      '#aabd8a',
-      '#667772',
-      '#FA8072',
-      '#800080',
-      '#00FF00',
-      '#8abda7',
-    ]
     return (
       <div>
         <div>IO throughput </div>
@@ -1583,7 +1428,6 @@ class VuSrIOThroStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataSrThro}
-            syncId='sr'
             margin={{
               top: 5,
               right: 20,
@@ -1615,7 +1459,7 @@ class VuSrIOThroStats extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.propSrThro
+                {this.props.throSr
                   .map((currProperty: any) => `thr_${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
@@ -1630,7 +1474,7 @@ class VuSrIOThroStats extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.propSrThro
+            {this.props.throSr
               .map((currProperty: any) => `thr_${currProperty}`)
               .map((property: any, index: any) => (
                 <Area
@@ -1649,30 +1493,18 @@ class VuSrIOThroStats extends Component<any, any> {
   }
 }
 
-class VuSrLatencyStats extends Component<any, any> {
+class SrLatencyGraph extends Component<any, any> {
   state: any = {
     startIndexLatencySR: 0,
     endIndexLatencySR: 0,
   }
 
   handleChangeLatencySR = (res: any) => {
-    this.state.startIndexLatencySR = res.startIndex
-    this.state.endIndexLatencySR = res.endIndex
+    this.setState({ startIndexLatencySR: res.startIndex })
+    this.setState({ endIndexLatencySR: res.endIndex })
   }
 
   render() {
-    const allColors = [
-      '#493BD8',
-      '#ADD83B',
-      '#D83BB7',
-      '#3BC1D8',
-      '#aabd8a',
-      '#667772',
-      '#FA8072',
-      '#800080',
-      '#00FF00',
-      '#8abda7',
-    ]
     return (
       <div>
         <div> Latency </div>
@@ -1682,7 +1514,6 @@ class VuSrLatencyStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataSrLatency}
-            syncId='sr'
             margin={{
               top: 5,
               right: 20,
@@ -1714,7 +1545,7 @@ class VuSrLatencyStats extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.propSrLatency
+                {this.props.latencySr
                   .map((currProperty: any) => `latency_${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
@@ -1729,7 +1560,7 @@ class VuSrLatencyStats extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.propSrLatency
+            {this.props.latencySr
               .map((currProperty: any) => `latency_${currProperty}`)
               .map((property: any, index: any) => (
                 <Area
@@ -1748,30 +1579,18 @@ class VuSrLatencyStats extends Component<any, any> {
   }
 }
 
-class VuSrIoWaitStats extends Component<any, any> {
+class SrIoWaitGraph extends Component<any, any> {
   state: any = {
     startIndexIOwaitSR: 0,
     endIndexIOwaitSR: 0,
   }
 
   handleChangeIOwaitSR = (res: any) => {
-    this.state.startIndexIOwaitSR = res.startIndex
-    this.state.endIndexIOwaitSR = res.endIndex
+    this.setState({ startIndexIOwaitSR: res.startIndex })
+    this.setState({ endIndexIOwaitSR: res.endIndex })
   }
 
   render() {
-    const allColors = [
-      '#493BD8',
-      '#ADD83B',
-      '#D83BB7',
-      '#3BC1D8',
-      '#aabd8a',
-      '#667772',
-      '#FA8072',
-      '#800080',
-      '#00FF00',
-      '#8abda7',
-    ]
     return (
       <div>
         <div>IOwait</div>
@@ -1781,7 +1600,6 @@ class VuSrIoWaitStats extends Component<any, any> {
             width={830}
             height={300}
             data={this.props.dataSrIowait}
-            syncId='sr'
             margin={{
               top: 5,
               right: 20,
@@ -1813,7 +1631,7 @@ class VuSrIoWaitStats extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.propSrIowait
+                {this.props.iowaitSr
                   .map((currProperty: any) => `iowait_${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
@@ -1828,7 +1646,7 @@ class VuSrIoWaitStats extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.propSrIowait
+            {this.props.iowaitSr
               .map((currProperty: any) => `iowait_${currProperty}`)
               .map((property: any, index: any) => (
                 <Area

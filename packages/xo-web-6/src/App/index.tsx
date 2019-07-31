@@ -10,6 +10,7 @@ const Visualization = React.lazy(() => import('./Visualization'))
 const Visualization2 = React.lazy(() => import('./Visualization/mini-stats'))
 //import Visualization2 from './Visualization/mini-stats'
 
+
 const Title = styled.h1`
   color: red;
   text-align: center;
