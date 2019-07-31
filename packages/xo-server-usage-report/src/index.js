@@ -19,7 +19,7 @@ import {
   values,
   zipObject,
 } from 'lodash'
-import { promisify } from 'promise-toolbox'
+import { ignoreErrors, promisify } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
 // ===================================================================
@@ -761,7 +761,7 @@ class UsageReportPlugin {
   async _sendReport(storeData) {
     const xo = this._xo
     if (xo.sendEmail === undefined) {
-      await xo.unloadPlugin('usage-report')
+      ignoreErrors.call(xo.unloadPlugin('usage-report'))
       throw new Error(
         'The plugin usage-report requires the plugin transport-email to be loaded'
       )
