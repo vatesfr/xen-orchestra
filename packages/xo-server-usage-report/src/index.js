@@ -19,7 +19,7 @@ import {
   values,
   zipObject,
 } from 'lodash'
-import { promisify } from 'promise-toolbox'
+import { ignoreErrors, promisify } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
 // ===================================================================
@@ -759,14 +759,22 @@ class UsageReportPlugin {
   }
 
   async _sendReport(storeData) {
+    const xo = this._xo
+    if (xo.sendEmail === undefined) {
+      ignoreErrors.call(xo.unloadPlugin('usage-report'))
+      throw new Error(
+        'The plugin usage-report requires the plugin transport-email to be loaded'
+      )
+    }
+
     const data = await dataBuilder({
-      xo: this._xo,
+      xo,
       storedStatsPath: this._storedStatsPath,
       all: this._conf.all,
     })
 
     await Promise.all([
-      this._xo.sendEmail({
+      xo.sendEmail({
         to: this._conf.emails,
         subject: `[Xen Orchestra] Xo Report - ${currDate}`,
         markdown: `Hi there,
