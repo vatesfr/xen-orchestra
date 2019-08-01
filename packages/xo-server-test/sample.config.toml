@@ -9,7 +9,6 @@
     password = ''
     host = ''
     allowUnauthorized = true
-    autoConnect = true
 
 [vms]
   default = ''
