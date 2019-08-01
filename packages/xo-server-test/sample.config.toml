@@ -8,7 +8,6 @@
     username = ''
     password = ''
     host = ''
-    allowUnauthorized = true
 
 [vms]
   default = ''

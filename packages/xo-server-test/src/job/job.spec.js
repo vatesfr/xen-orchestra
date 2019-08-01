@@ -14,8 +14,7 @@ const ADMIN_USER = {
 describe('job', () => {
   let defaultJob
 
-  beforeAll(async () => {
-    await xo.createTempServer(config.servers.default)
+  beforeAll(() => {
     defaultJob = {
       name: 'jobTest',
       timeout: 2000,
@@ -211,6 +210,7 @@ describe('job', () => {
 
     it('runs a job', async () => {
       jest.setTimeout(7e3)
+      await xo.createTempServer(config.servers.default)
       const jobId = await xo.createTempJob(defaultJob)
       const snapshots = xo.objects.all[config.vms.default].snapshots
       await xo.call('job.runSequence', { idSequence: [jobId] })

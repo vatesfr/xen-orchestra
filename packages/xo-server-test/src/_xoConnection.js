@@ -143,7 +143,11 @@ class XoConnection extends Xo {
       return
     }
 
-    const id = await this.call('server.add', params)
+    const id = await this.call('server.add', {
+      ...params,
+      allowUnauthorized: true,
+      autoConnect: false,
+    })
     this._durableResourceDisposers.push('server.remove', { id })
     await this.call('server.enable', { id })
     await fromEvent(this._objects, 'finish')

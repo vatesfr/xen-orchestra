@@ -2,6 +2,8 @@
 
 > Test client for Xo-Server
 
+Tests are ran sequentially to avoid concurrency issues.
+
 ## Adding a test
 
 ### Organization
@@ -88,8 +90,6 @@ describe("user", () => {
   * `getSchedule(predicate)`
 
 ## Usage
-
-We run the tests **sequentially** because some asynchronous tests can cause concurrency problems for some resources (servers, ...).  
 
 - Before running the tests, you have to create a config file for xo-server-test.
   ```
