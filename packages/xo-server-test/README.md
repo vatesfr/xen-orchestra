@@ -89,6 +89,8 @@ describe("user", () => {
 
 ## Usage
 
+We run the tests **sequentially** because some asynchronous tests can cause concurrency problems for some resources (servers, ...).  
+
 - Before running the tests, you have to create a config file for xo-server-test.
   ```
   > cp sample.config.toml ~/.config/xo-server-test/config.toml
