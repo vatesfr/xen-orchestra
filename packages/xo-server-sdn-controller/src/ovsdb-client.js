@@ -67,7 +67,7 @@ export class OvsdbClient {
     )
     if (bridgeUuid === undefined) {
       socket.destroy()
-      this._adding.splice(this._adding.indexOf(adding), 1)
+      this._adding = this._adding.slice(this._adding.indexOf(adding), 1)
       return
     }
 
@@ -79,7 +79,7 @@ export class OvsdbClient {
     )
     if (alreadyExist) {
       socket.destroy()
-      this._adding.splice(this._adding.indexOf(adding), 1)
+      this._adding = this._adding.slice(this._adding.indexOf(adding), 1)
       return bridgeName
     }
 
