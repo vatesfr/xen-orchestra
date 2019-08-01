@@ -137,7 +137,7 @@ class XoConnection extends Xo {
     if (server !== undefined) {
       if (server.status === 'disconnected') {
         await this.call('server.enable', { id: server.id })
-        this._durableResourceDisposers.push('server.enable', { id: server.id })
+        this._durableResourceDisposers.push('server.disable', { id: server.id })
         await fromEvent(this._objects, 'finish')
       }
       return
