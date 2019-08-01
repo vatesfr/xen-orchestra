@@ -141,7 +141,7 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async load() {
+  load() {
     const createPrivateNetwork = this._createPrivateNetwork.bind(this)
     createPrivateNetwork.description =
       'Creates a pool-wide private network on a selected pool'
@@ -162,7 +162,7 @@ class SDNController extends EventEmitter {
     )
 
     // FIXME: we should monitor when xapis are added/removed
-    await Promise.all(
+    return Promise.all(
       map(this._xo.getAllXapis(), async xapi => {
         await xapi.objectsFetched
         if (this._setControllerNeeded(xapi)) {
@@ -304,44 +304,44 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _objectsAdded(objects) {
-    await Promise.all(
-      map(objects, async object => {
-        const { $type } = object
+  _objectsAdded(objects) {
+    map(objects, object => {
+      const { $type } = object
 
-        if ($type === 'host') {
-          log.debug('New host', {
-            host: object.name_label,
-            pool: object.$pool.name_label,
-          })
+      if ($type === 'host') {
+        log.debug('New host', {
+          host: object.name_label,
+          pool: object.$pool.name_label,
+        })
 
-          if (find(this._newHosts, { $ref: object.$ref }) === undefined) {
-            this._newHosts.push(object)
-          }
-          this._createOvsdbClient(object)
+        if (find(this._newHosts, { $ref: object.$ref }) === undefined) {
+          this._newHosts.push(object)
         }
-      })
-    )
+        this._createOvsdbClient(object)
+      }
+    })
   }
 
-  async _objectsUpdated(objects) {
-    await Promise.all(
+  _objectsUpdated(objects) {
+    return Promise.all(
       map(objects, object => {
         const { $type } = object
 
         if ($type === 'PIF') {
           return this._pifUpdated(object)
-        } else if ($type === 'host') {
+        }
+        if ($type === 'host') {
           return this._hostUpdated(object)
-        } else if ($type === 'host_metrics') {
+        }
+        if ($type === 'host_metrics') {
           return this._hostMetricsUpdated(object)
         }
       })
     )
   }
 
-  async _objectsRemoved(xapi, objects) {
-    await Promise.all(
+  _objectsRemoved(xapi, objects) {
+    return Promise.all(
       map(objects, async (object, id) => {
         this._ovsdbClients = this._ovsdbClients.filter(
           client => client.host.$id !== id
@@ -481,17 +481,17 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _hostMetricsUpdated(hostMetrics) {
+  _hostMetricsUpdated(hostMetrics) {
     const ovsdbClient = find(
       this._ovsdbClients,
       client => client.host.metrics === hostMetrics.$ref
     )
 
     if (hostMetrics.live) {
-      await this._addHostToPoolNetworks(ovsdbClient.host)
-    } else {
-      await this._hostUnreachable(ovsdbClient.host)
+      return this._addHostToPoolNetworks(ovsdbClient.host)
     }
+
+    return this._hostUnreachable(ovsdbClient.host)
   }
 
   // ---------------------------------------------------------------------------
@@ -621,8 +621,8 @@ class SDNController extends EventEmitter {
 
     // Recreate star topology
     await Promise.all(
-      await map(hosts, async host => {
-        await this._addHostToNetwork(host, network, newCenter)
+      map(hosts, host => {
+        return this._addHostToNetwork(host, network, newCenter)
       })
     )
 
