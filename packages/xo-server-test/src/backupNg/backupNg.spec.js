@@ -14,7 +14,8 @@ const DEFAULT_SCHEDULE = {
 describe('backupNg', () => {
   let defaultBackupNg
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    await xo.createTempServer(config.servers.default)
     defaultBackupNg = {
       name: 'default-backupNg',
       mode: 'full',

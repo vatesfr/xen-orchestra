@@ -14,7 +14,8 @@ const ADMIN_USER = {
 describe('job', () => {
   let defaultJob
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    await xo.createTempServer(config.servers.default)
     defaultJob = {
       name: 'jobTest',
       timeout: 2000,

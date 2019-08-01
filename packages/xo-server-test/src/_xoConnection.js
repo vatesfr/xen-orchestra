@@ -181,7 +181,6 @@ const getConnection = credentials => {
 let xo
 beforeAll(async () => {
   xo = await getConnection()
-  await xo.createTempServer(config.servers.default)
 })
 afterAll(async () => {
   await xo.deleteDurableResources()
