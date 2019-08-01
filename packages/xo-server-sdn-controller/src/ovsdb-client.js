@@ -123,7 +123,7 @@ export class OvsdbClient {
     ]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
 
-    this._adding.splice(this._adding.indexOf(adding), 1)
+    this._adding = this._adding.slice(this._adding.indexOf(adding), 1)
     if (jsonObjects === undefined) {
       socket.destroy()
       return

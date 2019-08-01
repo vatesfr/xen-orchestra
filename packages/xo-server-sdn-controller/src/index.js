@@ -326,15 +326,15 @@ class SDNController extends EventEmitter {
 
   async _objectsUpdated(objects) {
     await Promise.all(
-      map(objects, object => {
+      map(objects, async (object, id) => {
         const { $type } = object
 
         if ($type === 'PIF') {
-          return this._pifUpdated(object)
+          await this._pifUpdated(object)
         } else if ($type === 'host') {
-          return this._hostUpdated(object)
+          await this._hostUpdated(object)
         } else if ($type === 'host_metrics') {
-          return this._hostMetricsUpdated(object)
+          await this._hostMetricsUpdated(object)
         }
       })
     )
@@ -451,7 +451,10 @@ class SDNController extends EventEmitter {
 
       const newHost = find(this._newHosts, { $ref: host.$ref })
       if (newHost !== undefined) {
-        this._newHosts.splice(this._newHosts.indexOf(newHost), 1)
+        this._newHosts = this._newHosts.slice(
+          this._newHosts.indexOf(newHost),
+          1
+        )
 
         log.debug('Sync pool certificates', {
           newHost: host.name_label,
@@ -479,10 +482,7 @@ class SDNController extends EventEmitter {
           }
 
           const network = host.$xapi.getObjectByRef(poolNetwork.network)
-          const pifDevice =
-            network.other_config.pif_device !== undefined
-              ? network.other_config.pif_device
-              : 'eth0'
+          const pifDevice = network.other_config.pif_device || 'eth0'
           this._createTunnel(host, network, pifDevice)
         }
 
