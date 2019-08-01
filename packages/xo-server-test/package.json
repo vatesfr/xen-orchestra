@@ -42,14 +42,15 @@
     "xo-lib": "^0.9.0"
   },
   "scripts": {
-    "dev-test": "jest --bail --watch --runInBand",
-    "test": "jest --runInBand"
+    "dev-test": "jest --bail --watch",
+    "test": "jest"
   },
   "jest": {
     "modulePathIgnorePatterns": [
       "<rootDir>/src/old-tests"
     ],
     "testEnvironment": "node",
-    "testRegex": "\\.spec\\.js$"
+    "testRegex": "\\.spec\\.js$",
+    "maxConcurrency": 1
   }
 }
