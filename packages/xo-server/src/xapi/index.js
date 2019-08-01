@@ -1135,7 +1135,7 @@ export default class Xapi extends XapiBase {
     hostXapi,
     host,
     {
-      force = false,
+      force,
       mapVdisSrs,
       mapVifsNetworks,
       migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
@@ -1187,7 +1187,7 @@ export default class Xapi extends XapiBase {
         vdis,
         vifsMap,
         {
-          force: String(force),
+          force: force ? 'true' : 'false',
         }
         // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
         // might need to be changed one day.
@@ -1441,7 +1441,7 @@ export default class Xapi extends XapiBase {
     vmId,
     hostXapi,
     hostId,
-    { force = false, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}
+    { force, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}
   ) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
@@ -1466,7 +1466,7 @@ export default class Xapi extends XapiBase {
     } else {
       try {
         await this.callAsync('VM.pool_migrate', vm.$ref, host.$ref, {
-          force: String(force),
+          force: force ? 'true' : 'false',
         })
       } catch (error) {
         if (error.code !== 'VM_REQUIRES_SR') {
