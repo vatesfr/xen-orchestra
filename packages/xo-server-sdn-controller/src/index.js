@@ -326,15 +326,15 @@ class SDNController extends EventEmitter {
 
   async _objectsUpdated(objects) {
     await Promise.all(
-      map(objects, async (object, id) => {
+      map(objects, object => {
         const { $type } = object
 
         if ($type === 'PIF') {
-          await this._pifUpdated(object)
+          return this._pifUpdated(object)
         } else if ($type === 'host') {
-          await this._hostUpdated(object)
+          return this._hostUpdated(object)
         } else if ($type === 'host_metrics') {
-          await this._hostMetricsUpdated(object)
+          return this._hostMetricsUpdated(object)
         }
       })
     )
