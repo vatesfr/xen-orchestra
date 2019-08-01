@@ -132,20 +132,28 @@ class XoConnection extends Xo {
   }
 
   async createTempServer(params) {
-    const id = await this.call('server.add', params).catch(err =>
-      console.warn('server.add', err)
-    )
-    this._tempResourceDisposers.push('server.remove', { id })
+    const servers = await this.call('server.getAll')
+    const server = servers.find(server => server.host === params.host)
+    if (server !== undefined) {
+      if (server.status === 'disconnected') {
+        await this.call('server.enable', { id: server.id })
+        this._durableResourceDisposers.push('server.enable', { id: server.id })
+        await fromEvent(this._objects, 'finish')
+      }
+      return
+    }
+
+    const id = await this.call('server.add', params)
+    this._durableResourceDisposers.push('server.remove', { id })
+    await this.call('server.enable', { id })
     await fromEvent(this._objects, 'finish')
-    return id
   }
 
   async getSchedule(predicate) {
     return find(await this.call('schedule.getAll'), predicate)
   }
 
-  async deleteTempResources() {
-    const disposers = this._tempResourceDisposers
+  async _cleanDisposers(disposers) {
     for (let n = disposers.length - 1; n > 0; ) {
       const params = disposers[n--]
       const method = disposers[n--]
@@ -154,6 +162,14 @@ class XoConnection extends Xo {
       })
     }
     disposers.length = 0
+  }
+
+  async deleteTempResources() {
+    await this._cleanDisposers(this._tempResourceDisposers)
+  }
+
+  async deleteDurableResources() {
+    await this._cleanDisposers(this._durableResourceDisposers)
   }
 }
 
@@ -165,8 +181,10 @@ const getConnection = credentials => {
 let xo
 beforeAll(async () => {
   xo = await getConnection()
+  await xo.createTempServer(config.servers.default)
 })
 afterAll(async () => {
+  await xo.deleteDurableResources()
   await xo.close()
   xo = null
 })

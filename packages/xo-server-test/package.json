@@ -42,8 +42,8 @@
     "xo-lib": "^0.9.0"
   },
   "scripts": {
-    "dev-test": "jest --bail --watch",
-    "test": "jest"
+    "dev-test": "jest --bail --watch --runInBand",
+    "test": "jest --runInBand"
   },
   "jest": {
     "modulePathIgnorePatterns": [
