@@ -47,11 +47,14 @@ class XoServerCloud {
         registerResource,
       },
     })
-    this._unsetRequestResource = this._xo.defineProperty(
-      'requestResource',
-      this._requestResource,
-      this
-    )
+    this._unsetRequestResource = (() => {
+      this._xo.defineProperty('requestResource', this._requestResource, this)
+      this._xo.defineProperty(
+        'requestFreeResource',
+        this._requestFreeResource,
+        this
+      )
+    })()
 
     const updater = (this._updater = new Client(WS_URL))
     const connect = () =>
@@ -97,6 +100,16 @@ class XoServerCloud {
 
   async _getNamespaces() {
     const catalog = await this._getCatalog()
+
+    if (!catalog._namespaces) {
+      throw new Error('cannot get namespaces')
+    }
+
+    return catalog._namespaces
+  }
+
+  async _getFreeNamespaces() {
+    const catalog = await this._getAllCatalog()
 
     if (!catalog._namespaces) {
       throw new Error('cannot get namespaces')
@@ -160,6 +173,38 @@ class XoServerCloud {
     }
 
     const response = await hrp(HTTP_URL, {
+      headers: {
+        Authorization: `Bearer ${downloadToken}`,
+      },
+    })
+
+    // currently needed for XenApi#putResource()
+    response.length = response.headers['content-length']
+
+    return response
+  }
+
+  async _requestFreeResource(namespace, id, version) {
+    const _namespace = (await this._getFreeNamespaces())[namespace]
+
+    if (!_namespace) {
+      throw new Error(`cannot get resource: ${namespace}`)
+    }
+
+    const downloadToken = await this._updater.call(
+      'getFreeResourceDownloadToken',
+      {
+        namespace,
+        id,
+        version,
+      }
+    )
+
+    if (!downloadToken) {
+      throw new Error('cannot get download token')
+    }
+
+    const response = await hrp(`${HTTP_URL}/free`, {
       headers: {
         Authorization: `Bearer ${downloadToken}`,
       },

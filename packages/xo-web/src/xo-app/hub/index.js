@@ -62,10 +62,14 @@ export default decorate([
       resources: ({ availableResources, sortBy, sortOrder }) =>
         orderBy(availableResources, res => res[sortBy], sortOrder),
       availableResources: (_, { catalog }) => {
-        return mapValues(
-          filter(catalog, (_, res) => !res.startsWith('_')),
-          'xva'
-        )
+        console.log(catalog)
+        if (catalog !== undefined) {
+          delete catalog._namespaces
+        }
+        return map(mapValues(catalog, 'xva'), (info, namespace) => ({
+          ...info,
+          namespace,
+        }))
       },
       sortTitle: ({ sortBy }) =>
         sortBy === undefined ? _('hubSortBy') : sortBy,
@@ -99,16 +103,9 @@ export default decorate([
       </Row>
       <br />
       <Row>
-        {map(resources, ({ name, popularity, size, version }, namespace) => (
+        {map(resources, (info, namespace) => (
           <Col key={namespace} mediumSize={3}>
-            <Resource
-              className='card-style'
-              name={name}
-              namespace={namespace}
-              popularity={popularity}
-              size={size}
-              version={version}
-            />
+            <Resource className='card-style' namespace={namespace} {...info} />
           </Col>
         ))}
       </Row>
