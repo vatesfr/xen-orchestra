@@ -11,7 +11,7 @@ import Shortcuts from 'shortcuts'
 import themes from 'themes'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess } from 'xoa-updater'
-import { connectStore, routes } from 'utils'
+import { connectStore, getXoaPlan, routes } from 'utils'
 import { Notification } from 'notification'
 import { ShortcutManager } from 'react-shortcuts'
 import { ThemeProvider } from 'styled-components'
@@ -132,6 +132,8 @@ export default class XoApp extends Component {
     }
   }
 
+  dismissSourceBanner = () => this.setState({ dismissedSourceBanner: true })
+
   componentDidMount() {
     this.refs.bodyWrapper.style.minHeight =
       this.refs.menu.getWrappedInstance().height + 'px'
@@ -201,13 +203,14 @@ export default class XoApp extends Component {
   render() {
     const { signedUp, trial, registerNeeded } = this.props
     const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
+    const plan = getXoaPlan()
 
     return (
       <IntlProvider>
         <ThemeProvider theme={themes.base}>
           <DocumentTitle title='Xen Orchestra'>
             <div>
-              {process.env.XOA_PLAN < 5 && registerNeeded && (
+              {plan !== 'Community' && registerNeeded && (
                 <div className='alert alert-danger mb-0'>
                   {_('notRegisteredDisclaimerInfo')}{' '}
                   <a
@@ -222,7 +225,7 @@ export default class XoApp extends Component {
                   </Link>
                 </div>
               )}
-              {+process.env.XOA_PLAN === 5 && (
+              {plan === 'Community' && !this.state.dismissedSourceBanner && (
                 <div className='alert alert-danger mb-0'>
                   <a
                     href='https://xen-orchestra.com/#!/xoa?pk_campaign=xo_source_banner'
@@ -231,6 +234,9 @@ export default class XoApp extends Component {
                   >
                     {_('disclaimerText3')}
                   </a>
+                  <button className='close' onClick={this.dismissSourceBanner}>
+                    &times;
+                  </button>
                 </div>
               )}
               <div style={CONTAINER_STYLE}>

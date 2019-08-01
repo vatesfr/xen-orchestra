@@ -150,9 +150,11 @@ class SDNController extends EventEmitter {
       networkName: { type: 'string' },
       networkDescription: { type: 'string' },
       encapsulation: { type: 'string' },
+      pifId: { type: 'string' },
     }
     createPrivateNetwork.resolve = {
       xoPool: ['poolId', 'pool', ''],
+      xoPif: ['pifId', 'PIF', ''],
     }
     this._unsetApiMethod = this._xo.addApiMethod(
       'plugin.SDNController.createPrivateNetwork',
@@ -222,9 +224,12 @@ class SDNController extends EventEmitter {
     networkName,
     networkDescription,
     encapsulation,
+    xoPif,
   }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
+
+    const pif = this._xo.getXapiObject(xoPif)
 
     // Create the private network
     const privateNetworkRef = await pool.$xapi.call('network.create', {
@@ -249,7 +254,7 @@ class SDNController extends EventEmitter {
     const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
     await Promise.all(
       map(hosts, async host => {
-        await this._createTunnel(host, privateNetwork)
+        await this._createTunnel(host, privateNetwork, pif)
         this._createOvsdbClient(host)
       })
     )
@@ -259,7 +264,6 @@ class SDNController extends EventEmitter {
       pool: pool.$ref,
       network: privateNetwork.$ref,
       starCenter: center?.$ref,
-      encapsulation: encapsulation,
     })
     this._networks.set(privateNetwork.$id, privateNetwork.$ref)
     if (center !== undefined) {
@@ -604,10 +608,7 @@ class SDNController extends EventEmitter {
     return newCenter
   }
 
-  async _createTunnel(host, network) {
-    const pif = host.$PIFs.find(
-      pif => pif.physical && pif.ip_configuration_mode !== 'None'
-    )
+  async _createTunnel(host, network, pif) {
     if (pif === undefined) {
       log.error('No PIF found to create tunnel', {
         host: host.name_label,
@@ -616,8 +617,32 @@ class SDNController extends EventEmitter {
       return
     }
 
-    await host.$xapi.call('tunnel.create', pif.$ref, network.$ref)
+    const hostPif = find(host.$PIFs, { device: pif.device })
+    if (hostPif === undefined) {
+      log.error("Can't create tunnel: no available PIF", {
+        pif: pif.device,
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
+      return
+    }
+
+    try {
+      await host.$xapi.call('tunnel.create', hostPif.$ref, network.$ref)
+    } catch (error) {
+      log.error('Error while creating tunnel', {
+        error,
+        pif: pif.device,
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
+      return
+    }
+
     log.debug('New tunnel added', {
+      pif: pif.device,
       network: network.name_label,
       host: host.name_label,
       pool: host.$pool.name_label,
@@ -826,8 +851,11 @@ class SDNController extends EventEmitter {
       subject: subject,
     }
 
+    // In all the following callbacks, `error` is:
+    // - either an error object if there was an error
+    // - or a boolean set to `false` if no error occurred
     openssl.generateRSAPrivateKey(rsakeyoptions, (error, cakey, cmd) => {
-      if (error !== undefined) {
+      if (error !== false) {
         log.error('Error while generating CA private key', {
           error,
         })
@@ -835,7 +863,7 @@ class SDNController extends EventEmitter {
       }
 
       openssl.generateCSR(cacsroptions, cakey, null, (error, csr, cmd) => {
-        if (error !== undefined) {
+        if (error !== false) {
           log.error('Error while generating CA certificate', {
             error,
           })
@@ -848,7 +876,7 @@ class SDNController extends EventEmitter {
           cakey,
           null,
           async (error, cacrt, cmd) => {
-            if (error !== undefined) {
+            if (error !== false) {
               log.error('Error while signing CA certificate', {
                 error,
               })
@@ -859,7 +887,7 @@ class SDNController extends EventEmitter {
             openssl.generateRSAPrivateKey(
               rsakeyoptions,
               async (error, key, cmd) => {
-                if (error !== undefined) {
+                if (error !== false) {
                   log.error('Error while generating private key', {
                     error,
                   })
@@ -872,7 +900,7 @@ class SDNController extends EventEmitter {
                   key,
                   null,
                   (error, csr, cmd) => {
-                    if (error !== undefined) {
+                    if (error !== false) {
                       log.error('Error while generating certificate', {
                         error,
                       })
@@ -886,7 +914,7 @@ class SDNController extends EventEmitter {
                       cakey,
                       null,
                       async (error, crt, cmd) => {
-                        if (error !== undefined) {
+                        if (error !== false) {
                           log.error('Error while signing certificate', {
                             error,
                           })

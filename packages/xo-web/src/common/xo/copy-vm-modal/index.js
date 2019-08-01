@@ -15,7 +15,7 @@ import { SelectSr } from '../../select-objects'
   {
     isZstdSupported: createSelector(
       createGetObject((_, { vm }) => vm.$container),
-      container => container.zstdSupported
+      container => container === undefined || container.zstdSupported
     ),
   },
   { withRef: true }
