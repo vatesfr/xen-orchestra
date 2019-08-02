@@ -15,7 +15,11 @@ import Icon from '../../icon'
 import Link from '../../link'
 import SelectCompression from '../../select-compression'
 import Tooltip from '../../tooltip'
-import { createGetObjectsOfType, createSelector } from '../../selectors'
+import {
+  createCollectionWrapper,
+  createGetObjectsOfType,
+  createSelector,
+} from '../../selectors'
 
 @connectStore(
   () => {
@@ -71,7 +75,7 @@ class CopyVmsModalBody extends BaseComponent {
   _getVmsWithNoZstdCompression = createSelector(
     () => this.props.vms,
     () => this.props.containers,
-    (vms, containers) => {
+    createCollectionWrapper((vms, containers) => {
       const vmIds = []
       for (const id in vms) {
         const container = containers[vms[id].$container]
@@ -80,7 +84,7 @@ class CopyVmsModalBody extends BaseComponent {
         }
       }
       return vmIds
-    }
+    })
   )
 
   _getVmsWithNoZstdCompressionLink = createSelector(
