@@ -449,7 +449,7 @@ class AttachDisk extends Component {
 
     const _isFreeForWriting = vdi =>
       vdi.$VBDs.length === 0 ||
-      some(vdi.$VBDs, id => {
+      every(vdi.$VBDs, id => {
         const vbd = vbds[id]
         return !vbd || !vbd.attached || vbd.read_only
       })
@@ -867,7 +867,7 @@ export default class TabDisks extends Component {
   ]
 
   render() {
-    const { srs, vbds, vdis, vm } = this.props
+    const { allVbds, srs, vdis, vm } = this.props
 
     const { attachDisk, bootOrder, newDisk } = this.state
 
@@ -916,7 +916,7 @@ export default class TabDisks extends Component {
                 <AttachDisk
                   checkSr={this._getCheckSr()}
                   vm={vm}
-                  vbds={vbds}
+                  vbds={allVbds}
                   onClose={this._toggleAttachDisk}
                 />
                 <hr />
