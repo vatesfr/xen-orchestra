@@ -213,6 +213,7 @@ const getConnection = credentials => {
 
 let xo
 beforeAll(async () => {
+  // TOFIX: stop tests if the connection is not established properly and show the error
   xo = await getConnection()
 })
 afterAll(async () => {
