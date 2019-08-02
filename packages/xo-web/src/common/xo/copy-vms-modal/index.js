@@ -79,7 +79,7 @@ class CopyVmsModalBody extends BaseComponent {
       const vmIds = []
       for (const id in vms) {
         const container = containers[vms[id].$container]
-        if (!container.zstdSupported) {
+        if (container !== undefined && !container.zstdSupported) {
           vmIds.push(id)
         }
       }
