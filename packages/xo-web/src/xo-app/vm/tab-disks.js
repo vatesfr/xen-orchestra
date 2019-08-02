@@ -449,14 +449,25 @@ class AttachDisk extends Component {
 
     const _isFreeForWriting = vdi =>
       vdi.$VBDs.length === 0 ||
-      some(vdi.$VBDs, id => {
+      every(vdi.$VBDs, id => {
         const vbd = vbds[id]
         return !vbd || !vbd.attached || vbd.read_only
       })
-    return attachDiskToVm(vdi, vm, {
-      bootable,
-      mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
-    }).then(onClose)
+
+    const _attachDisk = () =>
+      attachDiskToVm(vdi, vm, {
+        bootable,
+        mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
+      }).then(onClose)
+
+    // check if the selected VDI is already attached to this VM.
+    return some(vbds, { VDI: vdi.id, VM: vm.id })
+      ? confirm({
+          body: _('vdiAttachDeviceConfirm'),
+          icon: 'alarm',
+          title: _('vdiAttachDevice'),
+        }).then(_attachDisk)
+      : _attachDisk()
   }
 
   render() {
@@ -867,7 +878,7 @@ export default class TabDisks extends Component {
   ]
 
   render() {
-    const { srs, vbds, vdis, vm } = this.props
+    const { allVbds, srs, vdis, vm } = this.props
 
     const { attachDisk, bootOrder, newDisk } = this.state
 
@@ -886,7 +897,7 @@ export default class TabDisks extends Component {
                 btnStyle={attachDisk ? 'info' : 'primary'}
                 handler={this._toggleAttachDisk}
                 icon='disk'
-                labelId='vdiAttachDeviceButton'
+                labelId='vdiAttachDevice'
               />
             )}
             {vm.virtualizationMode !== 'pv' && (
@@ -916,7 +927,7 @@ export default class TabDisks extends Component {
                 <AttachDisk
                   checkSr={this._getCheckSr()}
                   vm={vm}
-                  vbds={vbds}
+                  vbds={allVbds}
                   onClose={this._toggleAttachDisk}
                 />
                 <hr />

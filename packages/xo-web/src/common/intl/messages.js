@@ -1001,8 +1001,10 @@ const messages = {
   containerRestart: 'Restart this container',
 
   // ----- VM disk tab -----
-  vdiAttachDeviceButton: 'Attach disk',
   vbdCreateDeviceButton: 'New disk',
+  vdiAttachDevice: 'Attach disk',
+  vdiAttachDeviceConfirm:
+    'The selected VDI is already attached to this VM. Are you sure you want to continue?',
   vdiBootOrder: 'Boot order',
   vdiNameLabel: 'Name',
   vdiNameDescription: 'Description',

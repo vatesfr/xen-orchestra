@@ -1176,7 +1176,7 @@ export default {
   vdiAction: '操作',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: '附加磁盘',
+  vdiAttachDevice: '附加磁盘',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: '新建磁盘',

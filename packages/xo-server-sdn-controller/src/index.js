@@ -3,7 +3,7 @@ import createLogger from '@xen-orchestra/log'
 import NodeOpenssl from 'node-openssl-cert'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { filter, find, map } from 'lodash'
+import { filter, find, forEach, map } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { join } from 'path'
 
@@ -141,7 +141,7 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async load() {
+  load() {
     const createPrivateNetwork = this._createPrivateNetwork.bind(this)
     createPrivateNetwork.description =
       'Creates a pool-wide private network on a selected pool'
@@ -162,7 +162,7 @@ class SDNController extends EventEmitter {
     )
 
     // FIXME: we should monitor when xapis are added/removed
-    await Promise.all(
+    return Promise.all(
       map(this._xo.getAllXapis(), async xapi => {
         await xapi.objectsFetched
         if (this._setControllerNeeded(xapi)) {
@@ -304,52 +304,48 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _objectsAdded(objects) {
-    await Promise.all(
-      map(objects, async object => {
-        const { $type } = object
+  _objectsAdded(objects) {
+    forEach(objects, object => {
+      const { $type } = object
 
-        if ($type === 'host') {
-          log.debug('New host', {
-            host: object.name_label,
-            pool: object.$pool.name_label,
-          })
+      if ($type === 'host') {
+        log.debug('New host', {
+          host: object.name_label,
+          pool: object.$pool.name_label,
+        })
 
-          if (find(this._newHosts, { $ref: object.$ref }) === undefined) {
-            this._newHosts.push(object)
-          }
-          this._createOvsdbClient(object)
+        if (find(this._newHosts, { $ref: object.$ref }) === undefined) {
+          this._newHosts.push(object)
         }
-      })
-    )
+        this._createOvsdbClient(object)
+      }
+    })
   }
 
-  async _objectsUpdated(objects) {
-    await Promise.all(
-      map(objects, async (object, id) => {
+  _objectsUpdated(objects) {
+    return Promise.all(
+      map(objects, object => {
         const { $type } = object
 
         if ($type === 'PIF') {
-          await this._pifUpdated(object)
-        } else if ($type === 'host') {
-          await this._hostUpdated(object)
-        } else if ($type === 'host_metrics') {
-          await this._hostMetricsUpdated(object)
+          return this._pifUpdated(object)
+        }
+        if ($type === 'host') {
+          return this._hostUpdated(object)
+        }
+        if ($type === 'host_metrics') {
+          return this._hostMetricsUpdated(object)
         }
       })
     )
   }
 
-  async _objectsRemoved(xapi, objects) {
-    await Promise.all(
+  _objectsRemoved(xapi, objects) {
+    return Promise.all(
       map(objects, async (object, id) => {
-        const client = find(
-          this._ovsdbClients,
-          client => client.host.$id === id
+        this._ovsdbClients = this._ovsdbClients.filter(
+          client => client.host.$id !== id
         )
-        if (client !== undefined) {
-          this._ovsdbClients.splice(this._ovsdbClients.indexOf(client), 1)
-        }
 
         // If a Star center host is removed: re-elect a new center where needed
         const starCenterRef = this._starCenters.get(id)
@@ -373,15 +369,9 @@ class SDNController extends EventEmitter {
         const networkRef = this._networks.get(id)
         if (networkRef !== undefined) {
           this._networks.delete(id)
-          const poolNetwork = find(this._poolNetworks, {
-            network: networkRef,
-          })
-          if (poolNetwork !== undefined) {
-            this._poolNetworks.splice(
-              this._poolNetworks.indexOf(poolNetwork),
-              1
-            )
-          }
+          this._poolNetworks = this._poolNetworks.filter(
+            poolNetwork => poolNetwork.network !== networkRef
+          )
         }
       })
     )
@@ -491,17 +481,17 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _hostMetricsUpdated(hostMetrics) {
+  _hostMetricsUpdated(hostMetrics) {
     const ovsdbClient = find(
       this._ovsdbClients,
       client => client.host.metrics === hostMetrics.$ref
     )
 
     if (hostMetrics.live) {
-      await this._addHostToPoolNetworks(ovsdbClient.host)
-    } else {
-      await this._hostUnreachable(ovsdbClient.host)
+      return this._addHostToPoolNetworks(ovsdbClient.host)
     }
+
+    return this._hostUnreachable(ovsdbClient.host)
   }
 
   // ---------------------------------------------------------------------------
@@ -631,9 +621,7 @@ class SDNController extends EventEmitter {
 
     // Recreate star topology
     await Promise.all(
-      await map(hosts, async host => {
-        await this._addHostToNetwork(host, network, newCenter)
-      })
+      map(hosts, host => this._addHostToNetwork(host, network, newCenter))
     )
 
     log.info('New star-center elected', {
@@ -716,11 +704,7 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const encapsulation =
-      network.other_config.encapsulation !== undefined
-        ? network.other_config.encapsulation
-        : 'gre'
-
+    const encapsulation = network.other_config.encapsulation || 'gre'
     let bridgeName
     try {
       bridgeName = await hostClient.addInterfaceAndPort(
