@@ -188,6 +188,19 @@ class SDNController extends EventEmitter {
               pool: network.$pool.name_label,
             })
             const center = await this._electNewCenter(network, true)
+
+            // Previously created network didn't store `pif_device`
+            if (network.other_config.pif_device === undefined) {
+              const tunnel = this._getHostTunnelForNetwork(center, network.$ref)
+              const pif = xapi.getObjectByRef(tunnel.transport_PIF)
+              await xapi.call(
+                'network.add_to_other_config',
+                network.$ref,
+                'pif_device',
+                pif.device
+              )
+            }
+
             this._poolNetworks.push({
               pool: network.$pool.$ref,
               network: network.$ref,
@@ -240,6 +253,7 @@ class SDNController extends EventEmitter {
         automatic: 'false',
         private_pool_wide: 'true',
         encapsulation: encapsulation,
+        pif_device: pif.device,
       },
     })
 
@@ -254,7 +268,7 @@ class SDNController extends EventEmitter {
     const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
     await Promise.all(
       map(hosts, async host => {
-        await this._createTunnel(host, privateNetwork, pif)
+        await this._createTunnel(host, privateNetwork, pif.device)
         this._createOvsdbClient(host)
       })
     )
@@ -437,11 +451,15 @@ class SDNController extends EventEmitter {
 
       const newHost = find(this._newHosts, { $ref: host.$ref })
       if (newHost !== undefined) {
+        this._newHosts = this._newHosts.slice(
+          this._newHosts.indexOf(newHost),
+          1
+        )
+
         log.debug('Sync pool certificates', {
-          newHost: newHost.name_label,
-          pool: newHost.$pool.name_label,
+          newHost: host.name_label,
+          pool: host.$pool.name_label,
         })
-        this._newHosts.splice(this._newHosts.indexOf(newHost), 1)
         try {
           await host.$xapi.call('pool.certificate_sync')
         } catch (error) {
@@ -450,6 +468,25 @@ class SDNController extends EventEmitter {
             pool: host.$pool.name_label,
           })
         }
+
+        const poolNetworks = filter(this._poolNetworks, {
+          pool: host.$pool.$ref,
+        })
+        for (const poolNetwork of poolNetworks) {
+          const tunnel = this._getHostTunnelForNetwork(
+            host,
+            poolNetwork.network
+          )
+          if (tunnel !== undefined) {
+            continue
+          }
+
+          const network = host.$xapi.getObjectByRef(poolNetwork.network)
+          const pifDevice = network.other_config.pif_device || 'eth0'
+          this._createTunnel(host, network, pifDevice)
+        }
+
+        this._addHostToPoolNetworks(host)
       }
     }
   }
@@ -608,19 +645,11 @@ class SDNController extends EventEmitter {
     return newCenter
   }
 
-  async _createTunnel(host, network, pif) {
-    if (pif === undefined) {
-      log.error('No PIF found to create tunnel', {
-        host: host.name_label,
-        network: network.name_label,
-      })
-      return
-    }
-
-    const hostPif = find(host.$PIFs, { device: pif.device })
+  async _createTunnel(host, network, pifDevice) {
+    const hostPif = find(host.$PIFs, { device: pifDevice })
     if (hostPif === undefined) {
       log.error("Can't create tunnel: no available PIF", {
-        pif: pif.device,
+        pif: pifDevice,
         network: network.name_label,
         host: host.name_label,
         pool: host.$pool.name_label,
@@ -633,7 +662,7 @@ class SDNController extends EventEmitter {
     } catch (error) {
       log.error('Error while creating tunnel', {
         error,
-        pif: pif.device,
+        pif: pifDevice,
         network: network.name_label,
         host: host.name_label,
         pool: host.$pool.name_label,
@@ -642,7 +671,7 @@ class SDNController extends EventEmitter {
     }
 
     log.debug('New tunnel added', {
-      pif: pif.device,
+      pif: pifDevice,
       network: network.name_label,
       host: host.name_label,
       pool: host.$pool.name_label,
@@ -707,7 +736,7 @@ class SDNController extends EventEmitter {
         encapsulation
       )
     } catch (error) {
-      log.error('Error while connection host to private network', {
+      log.error('Error while connecting host to private network', {
         error,
         network: network.name_label,
         host: host.name_label,
@@ -796,6 +825,10 @@ class SDNController extends EventEmitter {
 
   _getHostTunnelForNetwork(host, networkRef) {
     const pif = find(host.$PIFs, { network: networkRef })
+    if (pif === undefined) {
+      return
+    }
+
     const tunnel = find(host.$xapi.objects.all, {
       $type: 'tunnel',
       access_PIF: pif.$ref,

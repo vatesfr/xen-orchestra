@@ -2,6 +2,8 @@
 
 > Test client for Xo-Server
 
+Tests are ran sequentially to avoid concurrency issues.
+
 ## Adding a test
 
 ### Organization
