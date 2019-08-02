@@ -184,7 +184,8 @@ const getConnection = credentials => {
 
 let xo
 beforeAll(async () => {
-  xo = await getConnection().then(xo => xo, () => process.exit(1))
+  // TOFIX: stop tests if the connection is not established properly and show the error
+  xo = await getConnection()
 })
 afterAll(async () => {
   await xo.deleteDurableResources()
