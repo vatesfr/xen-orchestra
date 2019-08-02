@@ -62,7 +62,6 @@ export default decorate([
       resources: ({ availableResources, sortBy, sortOrder }) =>
         orderBy(availableResources, res => res[sortBy], sortOrder),
       availableResources: (_, { catalog }) => {
-        console.log(catalog)
         if (catalog !== undefined) {
           delete catalog._namespaces
         }

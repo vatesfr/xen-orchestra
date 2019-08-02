@@ -4,7 +4,7 @@ import React from 'react'
 import { Col, Row } from 'grid'
 import { createSelector } from 'selectors'
 import { addSubscriptions, createFakeProgress } from 'utils'
-import { subscribeCheckSrCurrentState } from 'xo'
+import { subscribeCheckResCurrentState } from 'xo'
 import { map, sum } from 'lodash'
 
 const ESTIMATED_DURATIONS = [
@@ -20,13 +20,13 @@ const ESTIMATED_DURATIONS = [
 const TOTAL_ESTIMATED_DURATION = sum(ESTIMATED_DURATIONS)
 
 @addSubscriptions(props => ({
-  currentState: cb => subscribeCheckSrCurrentState(props.pool, cb),
+  currentState: cb => subscribeCheckResCurrentState(props.pool, cb),
 }))
 export default class CreationProgress extends Component {
   constructor() {
     super()
 
-    this.state = { intermediateProgress: 0, index: 0 }
+    this.state = { intermediateProgress: 0 }
 
     let sum = 0
     let _sum = 0
@@ -56,13 +56,13 @@ export default class CreationProgress extends Component {
       this._startNewFakeProgress(currentState.state)
     }
 
-    let i = 0
-    setInterval(() => {
-      if (i < 140) {
-        i += 10
-      }
-      this.setState({ index: i })
-    }, 1000)
+    // let i = 0
+    // setInterval(() => {
+    //   if (i < 140) {
+    //     i += 10
+    //   }
+    //   this.setState({ index: i })
+    // }, 1000)
   }
 
   componentWillUnmount() {
@@ -109,15 +109,16 @@ export default class CreationProgress extends Component {
   render() {
     const { currentState, pool } = this.props
 
-    // if (currentState == null || currentState.operation !== 'createSr') {
-    //   return null
-    // }
+    if (currentState == null) {
+      return null
+    }
 
-    // const { state, states } = currentState
+    const { state, states } = currentState
 
     return (
       <div>
         <Row>
+          {console.log(currentState)}
           <Col>
             <strong>Downloading</strong>
           </Col>
@@ -127,7 +128,7 @@ export default class CreationProgress extends Component {
             <progress
               className='progress'
               max={TOTAL_ESTIMATED_DURATION}
-              value={this.state.index}
+              value={this._getMainProgress()}
             />
           </Col>
         </Row>

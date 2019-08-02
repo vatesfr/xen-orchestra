@@ -433,6 +433,32 @@ subscribeCheckSrCurrentState.forceRefresh = pool => {
   }
 }
 
+const checkResCurrentStateSubscriptions = {}
+export const subscribeCheckResCurrentState = (pool, cb) => {
+  const poolId = resolveId(pool)
+
+  if (!checkResCurrentStateSubscriptions[poolId]) {
+    checkResCurrentStateSubscriptions[poolId] = createSubscription(() =>
+      _call('resource.checkResCurrentState', { poolId })
+    )
+  }
+
+  return checkResCurrentStateSubscriptions[poolId](cb)
+}
+subscribeCheckSrCurrentState.forceRefresh = pool => {
+  if (pool === undefined) {
+    forEach(checkResCurrentStateSubscriptions, subscription =>
+      subscription.forceRefresh()
+    )
+    return
+  }
+
+  const subscription = checkResCurrentStateSubscriptions[resolveId(pool)]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
+
 const missingPatchesByHost = {}
 export const subscribeHostMissingPatches = (host, cb) => {
   const hostId = resolveId(host)

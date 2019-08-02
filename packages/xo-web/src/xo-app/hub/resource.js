@@ -112,29 +112,30 @@ export default decorate([
         )}
         <br />
         {state.loading ? (
-          <CreationProgress
-            key={'6d4da817-9f43-56a2-cc5c-2f23469e54cb'}
-            pool={{
-              default_SR: 'a5954951-3dfa-42b8-803f-4bc270b22a0b',
-              HA_enabled: false,
-              master: 'b54bf91f-51d7-4af5-b1b3-f14dcf1146ee',
-              tags: [],
-              name_description: 'Intel Xeon E3-1225',
-              name_label: 'XenServer',
-              xosanPackInstallationTime: 1550756113,
-              cpus: {
-                cores: 12,
-                sockets: 3,
-              },
-              zstdSupported: false,
-              id: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
-              type: 'pool',
-              uuid: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
-              $pool: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
-              $poolId: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
-            }}
-          />
+          <CreationProgress key={state.pool.id} pool={state.pool} />
         ) : (
+          // <CreationProgress
+          //   key={'6d4da817-9f43-56a2-cc5c-2f23469e54cb'}
+          //   pool={{
+          //     default_SR: 'a5954951-3dfa-42b8-803f-4bc270b22a0b',
+          //     HA_enabled: false,
+          //     master: 'b54bf91f-51d7-4af5-b1b3-f14dcf1146ee',
+          //     tags: [],
+          //     name_description: 'Intel Xeon E3-1225',
+          //     name_label: 'XenServer',
+          //     xosanPackInstallationTime: 1550756113,
+          //     cpus: {
+          //       cores: 12,
+          //       sockets: 3,
+          //     },
+          //     zstdSupported: false,
+          //     id: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
+          //     type: 'pool',
+          //     uuid: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
+          //     $pool: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
+          //     $poolId: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
+          //   }}
+          // />
           <Row>
             <Col size={6}>
               <ActionButton
