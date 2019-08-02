@@ -122,7 +122,7 @@ describe("user", () => {
 
 - ⚠ Warning: same error for all the tests ⚠
 If all the tests return the same error for some unknown reason, it surely comes from the `beforeAll()`.  
-For example, if the error returned is:
+For example, if for each test the error returned is:
 ```
 TypeError: Cannot read property 'close' of undefined
 
@@ -132,7 +132,7 @@ TypeError: Cannot read property 'close' of undefined
       161 |   xo = null
       162 | })
 ```
-make sure your server is running properly. There is a problem with the xo connection, not with the tests.  
+there is a problem with the xo connection, not with the tests. Make sure that your server has been launched properly in the `beforeAll()`.  
 
 - ⚠ Warning: snapshots ⚠  
 After each run of the tests, check that snapshots are not inadvertently modified.
