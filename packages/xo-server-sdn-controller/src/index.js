@@ -3,7 +3,7 @@ import createLogger from '@xen-orchestra/log'
 import NodeOpenssl from 'node-openssl-cert'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { filter, find, map } from 'lodash'
+import { filter, find, forEach, map } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { join } from 'path'
 
@@ -305,7 +305,7 @@ class SDNController extends EventEmitter {
   }
 
   _objectsAdded(objects) {
-    map(objects, object => {
+    forEach(objects, object => {
       const { $type } = object
 
       if ($type === 'host') {
@@ -621,9 +621,7 @@ class SDNController extends EventEmitter {
 
     // Recreate star topology
     await Promise.all(
-      map(hosts, host => {
-        return this._addHostToNetwork(host, network, newCenter)
-      })
+      map(hosts, host => this._addHostToNetwork(host, network, newCenter))
     )
 
     log.info('New star-center elected', {
