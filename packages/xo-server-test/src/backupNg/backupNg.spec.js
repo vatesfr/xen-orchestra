@@ -170,6 +170,7 @@ describe('backupNg', () => {
 
     it('fails trying to run a backup job with a VM without disks', async () => {
       jest.setTimeout(8e3)
+      await xo.createTempServer(config.servers.default)
       const vmIdWithoutDisks = await xo.createTempVm({
         name_label: 'XO Test Without Disks',
         name_description: 'Creating a vm without disks',
@@ -231,6 +232,7 @@ describe('backupNg', () => {
     it('fails trying to run backup job without retentions', async () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
+      await xo.createTempServer(config.servers.default)
       const { id: remoteId } = await xo.createTempRemote(config.remotes.default)
       const { id: jobId } = await xo.createTempBackupNgJob({
         ...defaultBackupNg,
@@ -289,6 +291,7 @@ describe('backupNg', () => {
 
   test('execute three times a rolling snapshot with 2 as retention & revert to an old state', async () => {
     jest.setTimeout(6e4)
+    await xo.createTempServer(config.servers.default)
     const vmId = await xo.createTempVm({
       name_label: 'XO Test Temp',
       name_description: 'Creating a temporary vm',
