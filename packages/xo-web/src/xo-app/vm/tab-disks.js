@@ -460,6 +460,7 @@ class AttachDisk extends Component {
         mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
       }).then(onClose)
 
+    // check if the selected VDI is already attached to this VM.
     return some(vbds, { VDI: vdi.id, VM: vm.id })
       ? confirm({
           body: _('vdiAttachDeviceConfirm'),

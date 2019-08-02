@@ -1004,7 +1004,7 @@ const messages = {
   vbdCreateDeviceButton: 'New disk',
   vdiAttachDevice: 'Attach disk',
   vdiAttachDeviceConfirm:
-    'The selected VDI is already attached. Are you sure you want to continue?',
+    'The selected VDI is already attached to this VM. Are you sure you want to continue?',
   vdiBootOrder: 'Boot order',
   vdiNameLabel: 'Name',
   vdiNameDescription: 'Description',
