@@ -72,7 +72,7 @@ class CopyVmsModalBody extends BaseComponent {
   _onChangeNamePattern = event =>
     this.setState({ namePattern: event.target.value })
 
-  _getVmsWithNoZstdCompression = createSelector(
+  _getVmsWithoutZstd = createSelector(
     () => this.props.vms,
     () => this.props.containers,
     createCollectionWrapper((vms, containers) => {
@@ -87,8 +87,8 @@ class CopyVmsModalBody extends BaseComponent {
     })
   )
 
-  _getVmsWithNoZstdCompressionLink = createSelector(
-    this._getVmsWithNoZstdCompression,
+  _getVmsWithoutZstdLink = createSelector(
+    this._getVmsWithoutZstd,
     vms => ({
       pathname: '/home',
       query: {
@@ -105,8 +105,8 @@ class CopyVmsModalBody extends BaseComponent {
   render() {
     const { formatMessage } = this.props.intl
     const { compression, namePattern, sr } = this.state
-    const nVms =
-      compression === 'zstd' ? this._getVmsWithNoZstdCompression().length : 0
+    const nVmsWithoutZstd =
+      compression === 'zstd' ? this._getVmsWithoutZstd().length : 0
     return process.env.XOA_PLAN > 2 ? (
       <div>
         <SingleLineRow>
@@ -136,16 +136,16 @@ class CopyVmsModalBody extends BaseComponent {
               onChange={this.linkState('compression')}
               value={compression}
             />
-            {nVms !== 0 && (
+            {compression === 'zstd' && nVmsWithoutZstd > 0 && (
               <Tooltip content={_('notSupportedZstdTooltip')}>
                 <Link
                   className='text-warning'
                   target='_blank'
-                  to={this._getVmsWithNoZstdCompressionLink()}
+                  to={this._getVmsWithoutZstdLink()}
                 >
                   <Icon icon='alarm' />{' '}
                   {_('notSupportedZstdWarning', {
-                    nVms,
+                    nVmsWithoutZstd,
                   })}
                 </Link>
               </Tooltip>
