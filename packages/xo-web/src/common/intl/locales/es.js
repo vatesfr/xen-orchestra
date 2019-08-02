@@ -1827,7 +1827,7 @@ export default {
   vdiAction: 'Acción',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: 'Adjuntar disco',
+  vdiAttachDevice: 'Adjuntar disco',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: 'Nuevo disco',

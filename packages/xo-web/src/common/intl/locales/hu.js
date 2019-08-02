@@ -1773,7 +1773,7 @@ export default {
   vdiAction: 'Művelet',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: 'Diszk Hozzácsatolás',
+  vdiAttachDevice: 'Diszk Hozzácsatolás',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: 'Új diszk',
