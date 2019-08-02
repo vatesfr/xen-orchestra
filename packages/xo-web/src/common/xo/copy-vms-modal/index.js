@@ -145,7 +145,7 @@ class CopyVmsModalBody extends BaseComponent {
                 >
                   <Icon icon='alarm' />{' '}
                   {_('notSupportedZstdWarning', {
-                    nVmsWithoutZstd,
+                    nVms: nVmsWithoutZstd,
                   })}
                 </Link>
               </Tooltip>
