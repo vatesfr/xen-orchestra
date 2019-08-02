@@ -479,13 +479,20 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   pbd(obj) {
+    const deviceConfig = obj.device_config
     return {
       type: 'PBD',
 
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config: obj.device_config,
+      device_config:
+        deviceConfig.cifspassword !== undefined
+          ? {
+              ...deviceConfig,
+              cifspassword: '* obfuscated *',
+            }
+          : deviceConfig,
       otherConfig: obj.other_config,
     }
   },
