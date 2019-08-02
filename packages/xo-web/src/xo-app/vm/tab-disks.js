@@ -41,7 +41,6 @@ import {
   filter,
   find,
   forEach,
-  isEmpty,
   get,
   groupBy,
   map,
@@ -461,13 +460,13 @@ class AttachDisk extends Component {
         mode: readOnly || !_isFreeForWriting(vdi) ? 'RO' : 'RW',
       }).then(onClose)
 
-    return isEmpty(filter(vbds, { VDI: vdi.id, VM: vm.id, attached: true }))
-      ? _attachDisk()
-      : confirm({
+    return some(vbds, { VDI: vdi.id, VM: vm.id })
+      ? confirm({
           body: _('vdiAttachDeviceConfirm'),
           icon: 'alarm',
           title: _('vdiAttachDevice'),
         }).then(_attachDisk)
+      : _attachDisk()
   }
 
   render() {
