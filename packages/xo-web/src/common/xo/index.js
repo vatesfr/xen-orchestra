@@ -1298,32 +1298,21 @@ export const migrateVm = (vm, host) =>
         _('migrateVmNoTargetHostMessage')
       )
     }
-
-    return _call('vm.migrate', { vm: vm.id, ...params }).catch(err =>
-      confirm({
-        body: (
-          <div>
-            <p>{_('forceVmMigrateModalMessage')}</p>
-            <p>
-              <Tooltip content={_('showLogs')}>
-                <Link
-                  className='text-danger'
-                  target='_blank'
-                  to='/settings/logs'
-                >
-                  <Icon icon='alarm' /> {err.message || _('showLogs')}
-                </Link>
-              </Tooltip>
-            </p>
-          </div>
-        ),
-        icon: 'alarm',
-        title: _('forceVmMigrateModalTitle'),
-      }).then(
-        () => _call('vm.migrate', { vm: vm.id, force: true, ...params }),
-        noop
-      )
-    )
+    //VM_INCOMPATIBLE_WITH_THIS_HOST
+    return _call('vm.migrate', { vm: vm.id, ...params }).catch(error => {
+      console.log('ERROR', error)
+      if (error.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
+        return confirm({
+          body: _('forceVmMigrateModalMessage'),
+          icon: 'alarm',
+          title: _('forceVmMigrateModalTitle'),
+        }).then(
+          () => _call('vm.migrate', { vm: vm.id, force: true, ...params }),
+          noop
+        )
+      }
+      throw error
+    })
   }, noop)
 
 import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line import/first
