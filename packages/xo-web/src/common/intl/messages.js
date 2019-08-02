@@ -1708,6 +1708,9 @@ const messages = {
   copyVmSelectSr: 'Select SR',
   copyVmsNoTargetSr: 'No target SR',
   copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
+  notSupportedZstdWarning:
+    'Zstd is not supported on {nVms, number} VM{nVms, plural, one {} other {s}}',
+  notSupportedZstdTooltip: 'Click to see the concerned VMs',
   fastCloneMode: 'Fast clone',
   fullCopyMode: 'Full copy',
 
