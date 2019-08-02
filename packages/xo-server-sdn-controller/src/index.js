@@ -343,13 +343,9 @@ class SDNController extends EventEmitter {
   async _objectsRemoved(xapi, objects) {
     await Promise.all(
       map(objects, async (object, id) => {
-        const client = find(
-          this._ovsdbClients,
-          client => client.host.$id === id
+        this._ovsdbClients = this._ovsdbClients.filter(
+          client => client.host.$id !== id
         )
-        if (client !== undefined) {
-          this._ovsdbClients.splice(this._ovsdbClients.indexOf(client), 1)
-        }
 
         // If a Star center host is removed: re-elect a new center where needed
         const starCenterRef = this._starCenters.get(id)
@@ -373,15 +369,9 @@ class SDNController extends EventEmitter {
         const networkRef = this._networks.get(id)
         if (networkRef !== undefined) {
           this._networks.delete(id)
-          const poolNetwork = find(this._poolNetworks, {
-            network: networkRef,
-          })
-          if (poolNetwork !== undefined) {
-            this._poolNetworks.splice(
-              this._poolNetworks.indexOf(poolNetwork),
-              1
-            )
-          }
+          this._poolNetworks = this._poolNetworks.filter(
+            poolNetwork => poolNetwork.network !== networkRef
+          )
         }
       })
     )
