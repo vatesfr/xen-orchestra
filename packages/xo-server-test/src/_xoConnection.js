@@ -184,7 +184,7 @@ const getConnection = credentials => {
 
 let xo
 beforeAll(async () => {
-  xo = await getConnection()
+  xo = await getConnection().then(xo => xo, () => process.exit(1))
 })
 afterAll(async () => {
   await xo.deleteDurableResources()

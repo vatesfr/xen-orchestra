@@ -122,20 +122,6 @@ describe("user", () => {
 
 - You can run only tests related to changed files, and review the failed output by using: `> yarn test --watch`
 
-- ⚠ Warning: same error for all the tests ⚠
-If all the tests return the same error for some unknown reason, it surely comes from the `beforeAll()`.  
-For example, if for each test the error returned is:
-```
-TypeError: Cannot read property 'close' of undefined
-
-      159 | afterAll(async () => {
-    > 160 |   await xo.close()
-          |            ^
-      161 |   xo = null
-      162 | })
-```
-there is a problem with the xo connection, not with the tests. Make sure that your server has been launched properly in the `beforeAll()`.  
-
 - ⚠ Warning: snapshots ⚠  
 After each run of the tests, check that snapshots are not inadvertently modified.
 
