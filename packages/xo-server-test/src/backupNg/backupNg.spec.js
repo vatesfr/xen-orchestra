@@ -507,14 +507,22 @@ describe('backupNg', () => {
         message: 'backup',
         status: 'success',
       })
-      let vmTaskValidated = false
+
+      const numberOfTasks = {
+        export: 0,
+        merge: 0,
+        snapshot: 0,
+        transfer: 0,
+        VM: 0,
+      }
       tasks.forEach(({ tasks, ...vmTask }) => {
         if (vmTask.data !== undefined && vmTask.data.type === 'VM') {
-          expect(vmTaskValidated).toBe(false)
           validateVmTask(vmTask, vmId, { status: 'success' })
+          numberOfTasks.VM++
           tasks.forEach(({ tasks, ...subTask }) => {
             if (subTask.message === 'snapshot') {
               validateSnapshotTask(subTask, { status: 'success' })
+              numberOfTasks.snapshot++
             }
             if (subTask.message === 'export') {
               validateExportTask(subTask, remotes, {
@@ -525,6 +533,7 @@ describe('backupNg', () => {
                 },
                 status: 'success',
               })
+              numberOfTasks.export++
               let mergeTaskKey, transferTaskKey
               tasks.forEach((operationTask, key) => {
                 if (
@@ -537,8 +546,10 @@ describe('backupNg', () => {
                   })
                   if (operationTask.message === 'transfer') {
                     mergeTaskKey = key
+                    numberOfTasks.merge++
                   } else {
                     transferTaskKey = key
+                    numberOfTasks.transfer++
                   }
                 }
               })
@@ -549,8 +560,14 @@ describe('backupNg', () => {
               ).toBe(true)
             }
           })
-          vmTaskValidated = true
         }
+      })
+      expect(numberOfTasks).toEqual({
+        export: 1,
+        merge: 1,
+        snapshot: 1,
+        transfer: 1,
+        VM: 1,
       })
     })
   })

@@ -11,6 +11,7 @@
 
 [vms]
   default = ''
+  vmToBackup = ''
 
 [templates]
   default = ''
