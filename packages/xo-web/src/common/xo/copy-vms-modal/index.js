@@ -10,27 +10,15 @@ import { Col } from 'grid'
 import { SelectSr } from 'select-objects'
 import { buildTemplate, connectStore } from 'utils'
 
-import constructQueryString from '../../construct-query-string'
-import Icon from '../../icon'
-import Link from '../../link'
 import SelectCompression from '../../select-compression'
-import Tooltip from '../../tooltip'
-import {
-  createCollectionWrapper,
-  createGetObjectsOfType,
-  createSelector,
-} from '../../selectors'
+import ZstdChecker from '../../zstd-checker'
+import { createGetObjectsOfType } from '../../selectors'
 
 @connectStore(
   () => {
     const getVms = createGetObjectsOfType('VM').pick((_, props) => props.vms)
     return {
-      containers: createSelector(
-        createGetObjectsOfType('pool'),
-        createGetObjectsOfType('host'),
-        (pools, hosts) => ({ ...pools, ...hosts })
-      ),
-      vms: getVms,
+      resolvedVms: getVms,
     }
   },
   { withRef: true }
@@ -41,18 +29,18 @@ class CopyVmsModalBody extends BaseComponent {
     if (!state || !state.sr) {
       return {}
     }
-    const { vms } = this.props
+    const { resolvedVms } = this.props
     const { namePattern } = state
 
     const names = namePattern
       ? map(
-          vms,
+          resolvedVms,
           buildTemplate(namePattern, {
             '{name}': vm => vm.name_label,
             '{id}': vm => vm.id,
           })
         )
-      : map(vms, vm => vm.name_label)
+      : map(resolvedVms, vm => vm.name_label)
     return {
       compression:
         state.compression === 'zstd' ? 'zstd' : state.compression === 'native',
@@ -72,41 +60,13 @@ class CopyVmsModalBody extends BaseComponent {
   _onChangeNamePattern = event =>
     this.setState({ namePattern: event.target.value })
 
-  _getVmsWithoutZstd = createSelector(
-    () => this.props.vms,
-    () => this.props.containers,
-    createCollectionWrapper((vms, containers) => {
-      const vmIds = []
-      for (const id in vms) {
-        const container = containers[vms[id].$container]
-        if (container !== undefined && !container.zstdSupported) {
-          vmIds.push(id)
-        }
-      }
-      return vmIds
-    })
-  )
-
-  _getVmsWithoutZstdLink = createSelector(
-    this._getVmsWithoutZstd,
-    vms => ({
-      pathname: '/home',
-      query: {
-        t: 'VM',
-        s: constructQueryString({
-          id: {
-            __or: vms,
-          },
-        }),
-      },
-    })
-  )
-
   render() {
-    const { formatMessage } = this.props.intl
+    const {
+      intl: { formatMessage },
+      vms,
+    } = this.props
     const { compression, namePattern, sr } = this.state
-    const nVmsWithoutZstd =
-      compression === 'zstd' ? this._getVmsWithoutZstd().length : 0
+
     return process.env.XOA_PLAN > 2 ? (
       <div>
         <SingleLineRow>
@@ -136,20 +96,7 @@ class CopyVmsModalBody extends BaseComponent {
               onChange={this.linkState('compression')}
               value={compression}
             />
-            {compression === 'zstd' && nVmsWithoutZstd > 0 && (
-              <Tooltip content={_('notSupportedZstdTooltip')}>
-                <Link
-                  className='text-warning'
-                  target='_blank'
-                  to={this._getVmsWithoutZstdLink()}
-                >
-                  <Icon icon='alarm' />{' '}
-                  {_('notSupportedZstdWarning', {
-                    nVms: nVmsWithoutZstd,
-                  })}
-                </Link>
-              </Tooltip>
-            )}
+            {compression === 'zstd' && <ZstdChecker vms={vms} />}
           </Col>
         </SingleLineRow>
       </div>
