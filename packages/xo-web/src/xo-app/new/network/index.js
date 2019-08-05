@@ -7,6 +7,7 @@ import Wizard, { Section } from 'wizard'
 import { addSubscriptions, connectStore } from 'utils'
 import {
   createBondedNetwork,
+  // createCrossPoolPrivateNetwork,
   createNetwork,
   createPrivateNetwork,
   getBondModes,

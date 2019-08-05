@@ -80,12 +80,14 @@ class SDNController extends EventEmitter {
     this._getDataDir = getDataDir
 
     this._poolNetworks = []
+    this._crossPoolNetworks = []
     this._ovsdbClients = []
     this._newHosts = []
 
     this._networks = new Map()
     this._starCenters = new Map()
 
+    this._unsetApiMethod = []
     this._cleaners = []
     this._objectsAdded = this._objectsAdded.bind(this)
     this._objectsUpdated = this._objectsUpdated.bind(this)
@@ -147,6 +149,7 @@ class SDNController extends EventEmitter {
   }
 
   load() {
+    // Exposte method to create pool-wide private network
     const createPrivateNetwork = this._createPrivateNetwork.bind(this)
     createPrivateNetwork.description =
       'Creates a pool-wide private network on a selected pool'
@@ -161,9 +164,41 @@ class SDNController extends EventEmitter {
       xoPool: ['poolId', 'pool', ''],
       xoPif: ['pifId', 'PIF', ''],
     }
-    this._unsetApiMethod = this._xo.addApiMethod(
-      'plugin.SDNController.createPrivateNetwork',
-      createPrivateNetwork
+    this._unsetApiMethod.push(
+      this._xo.addApiMethod(
+        'plugin.SDNController.createPrivateNetwork',
+        createPrivateNetwork
+      )
+    )
+
+    // Exposte method to create cross-pool private network
+    const createCrossPoolPrivateNetwork = this._createCrossPoolPrivateNetwork.bind(
+      this
+    )
+    createCrossPoolPrivateNetwork.description =
+      'Creates a cross-pool private network on selected pools'
+    createCrossPoolPrivateNetwork.params = {
+      xoPoolIds: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+      },
+      networkName: { type: 'string' },
+      networkDescription: { type: 'string' },
+      encapsulation: { type: 'string' },
+      xoPifIds: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+      },
+    }
+    this._unsetApiMethod.push(
+      this._xo.addApiMethod(
+        'plugin.SDNController.createCrossPoolPrivateNetwork',
+        createCrossPoolPrivateNetwork
+      )
     )
 
     // FIXME: we should monitor when xapis are added/removed
@@ -248,6 +283,7 @@ class SDNController extends EventEmitter {
   async unload() {
     this._ovsdbClients = []
     this._poolNetworks = []
+    this._crossPoolNetworks = []
     this._newHosts = []
 
     this._networks.clear()
@@ -256,7 +292,8 @@ class SDNController extends EventEmitter {
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners = []
 
-    this._unsetApiMethod()
+    this._unsetApiMethod.forEach(method => method())
+    this._unsetApiMethod = []
   }
 
   // ===========================================================================
@@ -304,15 +341,70 @@ class SDNController extends EventEmitter {
     )
 
     const center = await this._electNewCenter(privateNetwork, false)
-    this._poolNetworks.push({
+    const poolNetwork = {
       pool: pool.$ref,
       network: privateNetwork.$ref,
       starCenter: center?.$ref,
-    })
+    }
+    this._poolNetworks.push(poolNetwork)
     this._networks.set(privateNetwork.$id, privateNetwork.$ref)
     if (center !== undefined) {
       this._starCenters.set(center.$id, center.$ref)
     }
+
+    return poolNetwork
+  }
+
+  async _createCrossPoolPrivateNetwork({
+    xoPoolIds,
+    networkName,
+    networkDescription,
+    encapsulation,
+    xoPifIds,
+  }) {
+    const crossPoolNetwork = {
+      pools: [],
+      networks: [],
+    }
+
+    for (const xoPoolId of xoPoolIds) {
+      const xoPool = this._xo.getObject(xoPoolId, 'pool')
+      const pool = this._xo.getXapiObject(xoPool)
+
+      const xoPifId = find(xoPifIds, id => {
+        const pif = this._xo.getXapiObject(this._xo.getObject(id, 'PIF'))
+        return pif.$pool.$ref === pool.$ref
+      })
+      const xoPif = this._xo.getObject(xoPifId, 'PIF')
+
+      const poolNetwork = await this._createPrivateNetwork({
+        xoPool,
+        networkName,
+        networkDescription,
+        encapsulation,
+        xoPif,
+      })
+
+      crossPoolNetwork.pools.push(poolNetwork.pool)
+      crossPoolNetwork.networks.push(poolNetwork.network)
+      if (
+        crossPoolNetwork.poolCenter === undefined &&
+        poolNetwork.starCenter !== undefined
+      ) {
+        crossPoolNetwork.poolCenter = pool.$ref
+        log.debug('New pool center', {
+          network: networkName,
+          poolCenter: pool.name_label,
+        })
+      }
+
+      log.debug('Pool added to cross pool network', {
+        network: networkName,
+        pool: pool.name_label,
+      })
+    }
+
+    this._crossPoolNetworks.push(crossPoolNetwork)
   }
 
   // ---------------------------------------------------------------------------
