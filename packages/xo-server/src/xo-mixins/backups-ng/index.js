@@ -1153,9 +1153,7 @@ export default class BackupNg {
         pool.restrictions.restrict_zstd_export !== 'false'
       ) {
         logger.warning(
-          `Zstd is not supported on the pool ${
-            pool.name_label !== '' ? pool.name_label : pool.uuid
-          }, the VM will be exported without compression`,
+          `Zstd is not supported on the pool ${pool.name_label}, the VM will be exported without compression`,
           {
             event: 'task.warning',
             taskId,
