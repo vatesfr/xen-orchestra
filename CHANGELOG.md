@@ -11,9 +11,24 @@
 - xo-server v5.47.0
 - xo-web v5.47.0
 
-## **5.37.0** (2019-07-25)
+## **5.37.1** (2019-08-06)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Enhancements
+
+- [SDN Controller] Let the user choose on which PIF to create a private network (PR [#4379](https://github.com/vatesfr/xen-orchestra/pull/4379))
+
+### Bug fixes
+
+- [SDN Controller] Better detect host shutting down to adapt network topology (PR [#4314](https://github.com/vatesfr/xen-orchestra/pull/4314))
+- [SDN Controller] Add new hosts to pool's private networks (PR [#4382](https://github.com/vatesfr/xen-orchestra/pull/4382))
+
+### Released packages
+
+- xo-server-sdn-controller v0.1.2
+
+## **5.37.0** (2019-07-25)
 
 ### Highlights
 
