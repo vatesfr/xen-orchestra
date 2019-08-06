@@ -5,6 +5,7 @@ import { assignWith, concat } from 'lodash'
 import {
   forbiddenOperation,
   invalidParameters,
+  vmIncombatibleWithHost,
   noSuchObject,
   unauthorized,
 } from 'xo-common/api-errors'
@@ -482,19 +483,21 @@ export async function migrate({
 
   await this.checkPermissions(this.user.id, permissions)
 
-  await this.getXapi(vm).migrateVm(
-    vm._xapiId,
-    this.getXapi(host),
-    host._xapiId,
-    {
+  await this.getXapi(vm)
+    .migrateVm(vm._xapiId, this.getXapi(host), host._xapiId, {
       force,
       mapVdisSrs: mapVdisSrsXapi,
       mapVifsNetworks: mapVifsNetworksXapi,
       migrationNetworkId:
         migrationNetwork != null ? migrationNetwork._xapiId : undefined,
       sr: sr && this.getObject(sr, 'SR')._xapiId,
-    }
-  )
+    })
+    .catch(error => {
+      if (error.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
+        throw vmIncombatibleWithHost()
+      }
+      throw error
+    })
 }
 
 migrate.params = {

@@ -31,13 +31,10 @@ import {
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
-import Icon from '../icon'
 import invoke from '../invoke'
-import Link from '../link'
 import logError from '../log-error'
 import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
 import store from 'store'
-import Tooltip from '../tooltip'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
@@ -1298,10 +1295,9 @@ export const migrateVm = (vm, host) =>
         _('migrateVmNoTargetHostMessage')
       )
     }
-    //VM_INCOMPATIBLE_WITH_THIS_HOST
+
     return _call('vm.migrate', { vm: vm.id, ...params }).catch(error => {
-      console.log('ERROR', error)
-      if (error.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
+      if (error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
         return confirm({
           body: _('forceVmMigrateModalMessage'),
           icon: 'alarm',
