@@ -770,11 +770,28 @@ class SDNController extends EventEmitter {
       })
     )
 
+    const crossPoolNetwork = find(this._crossPoolNetworks, crossPoolNetwork =>
+      crossPoolNetwork.networks.includes(network.$ref)
+    )
     if (newCenter === undefined) {
       log.error('No available host to elect new star-center', {
         network: network.name_label,
         pool: network.$pool.name_label,
       })
+
+      // Re-elect a cross pool center if needed
+      if (
+        crossPoolNetwork !== undefined &&
+        crossPoolNetwork.poolCenter === network.$pool.$ref
+      ) {
+        const centerPoolNetwork = this._getPoolNetwork(
+          crossPoolNetwork.poolCenter,
+          crossPoolNetwork
+        )
+        centerPoolNetwork.starCenter = undefined
+        await this._electNewPoolCenter(crossPoolNetwork)
+      }
+
       return
     }
 
@@ -788,6 +805,31 @@ class SDNController extends EventEmitter {
       network: network.name_label,
       pool: network.$pool.name_label,
     })
+
+    // If the network is cross pool: reconnect to other networks
+    if (crossPoolNetwork !== undefined) {
+      const centerPoolNetwork = this._getPoolNetwork(
+        crossPoolNetwork.poolCenter,
+        crossPoolNetwork
+      )
+      if (crossPoolNetwork.poolCenter === newCenter.$pool.$ref) {
+        centerPoolNetwork.starCenter = newCenter.$ref
+        for (const poolRef of crossPoolNetwork.pools) {
+          if (poolRef === crossPoolNetwork.poolCenter) {
+            continue
+          }
+          const poolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
+          await this._connectNetworks(poolNetwork, centerPoolNetwork)
+        }
+      } else {
+        const poolNetwork = this._getPoolNetwork(
+          newCenter.$pool.$ref,
+          crossPoolNetwork
+        )
+        poolNetwork.starCenter = newCenter.$ref
+        await this._connectNetworks(poolNetwork, centerPoolNetwork)
+      }
+    }
 
     return newCenter
   }
@@ -831,6 +873,9 @@ class SDNController extends EventEmitter {
       this._ovsdbClients,
       client => client.host.$ref === poolNetwork.starCenter
     )
+    if (client === undefined) {
+      return
+    }
 
     const centerClient = find(
       this._ovsdbClients,
