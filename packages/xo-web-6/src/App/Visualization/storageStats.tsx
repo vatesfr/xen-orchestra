@@ -17,16 +17,13 @@ const NB_VALUES = 118
 const xo = new Xo({ url: '/' })
 xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
 const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
-const xoCall = (method, params) => signedIn.then(() => xo.call(method, params))
-
-const getObject = (id: any) =>
-  xoCall('xo.getAllObjects', { filter: { id } }).then(objects => objects[id])
+const xoCall = (method:string, params:object) => signedIn.then(() => xo.call(method, params))
 
 export default class Visualization extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     format: 'LTS',
-   
+
     //  SR
     //  IOPS
     dataSrIops: [],
@@ -50,8 +47,7 @@ export default class Visualization extends Component<any, any> {
   }
 
   componentDidMount() {
-
-    setInterval(this.fetchSrStats.bind(this), 5e3) 
+    setInterval(this.fetchSrStats.bind(this), 5e3)
   }
 
   fetchSrStats = () => {
@@ -140,12 +136,12 @@ export default class Visualization extends Component<any, any> {
         this.setState({ dataSrIops, dataSrThro, dataSrLatency, dataSrIowait })
       }
     )
-  } 
+  }
 
-  setTime = (event: any) => {
-     this.setState({ granularity: event.target.value }, () => {
+  setGranularity = (event: any) => {
+    this.setState({ granularity: event.target.value }, () => {
       this.fetchSrStats()
-    })  
+    })
   }
 
   render() {
@@ -153,7 +149,7 @@ export default class Visualization extends Component<any, any> {
       <div>
         <div>
           <form>
-            <select onChange={this.setTime} value={this.state.granularity}>
+            <select onChange={this.setGranularity} value={this.state.granularity}>
               <option value='seconds'>Last 10 minutes</option>
               <option value='minutes'>Last 2 hours</option>
               <option value='hours'>Last week</option>
@@ -161,7 +157,7 @@ export default class Visualization extends Component<any, any> {
             </select>
           </form>
         </div>
-         <SrIOPSGraph
+        <SrIOPSGraph
           dataSrIops={this.state.dataSrIops}
           iopsSr={this.state.iopsSr}
           maxIOPS={this.state.maxIOPS}
@@ -180,7 +176,7 @@ export default class Visualization extends Component<any, any> {
           dataSrIowait={this.state.dataSrIowait}
           iowaitSr={this.state.iowaitSr}
           maxIOwait={this.state.maxIOwait}
-        />  
+        />
       </div>
     )
   }
@@ -265,13 +261,12 @@ class SrIOPSGraph extends Component<any, any> {
                 }}
               >
                 {this.props.iopsSr
-                  .map((currProperty: any) => `iops_${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
-                      dataKey={property}
+                      dataKey={`iops_${property}`}
                       stroke={allColors[index]}
                       fill={allColors[index]}
                     />
@@ -280,13 +275,12 @@ class SrIOPSGraph extends Component<any, any> {
             </Brush>
             <Legend iconType='rect' iconSize={18} />
             {this.props.iopsSr
-              .map((currProperty: any) => `iops_${currProperty}`)
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
                   isAnimationActive={false}
                   type='monotone'
-                  dataKey={property}
+                  dataKey={`iops_${property}`}
                   stroke={allColors[index]}
                   fill={allColors[index]}
                 />
@@ -371,13 +365,12 @@ class SrIOThroGraph extends Component<any, any> {
                 }}
               >
                 {this.props.throSr
-                  .map((currProperty: any) => `thr_${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
-                      dataKey={property}
+                      dataKey={`thr_${property}`}
                       stroke={allColors[index]}
                       fill={allColors[index]}
                     />
@@ -386,13 +379,12 @@ class SrIOThroGraph extends Component<any, any> {
             </Brush>
             <Legend iconType='rect' iconSize={18} />
             {this.props.throSr
-              .map((currProperty: any) => `thr_${currProperty}`)
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
                   isAnimationActive={false}
                   type='monotone'
-                  dataKey={property}
+                  dataKey={`thr_${property}`}
                   stroke={allColors[index]}
                   fill={allColors[index]}
                 />
@@ -458,13 +450,12 @@ class SrLatencyGraph extends Component<any, any> {
                 }}
               >
                 {this.props.latencySr
-                  .map((currProperty: any) => `latency_${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
-                      dataKey={property}
+                      dataKey={`latency_${property}`}
                       stroke={allColors[index]}
                       fill={allColors[index]}
                     />
@@ -473,13 +464,12 @@ class SrLatencyGraph extends Component<any, any> {
             </Brush>
             <Legend iconType='rect' iconSize={18} />
             {this.props.latencySr
-              .map((currProperty: any) => `latency_${currProperty}`)
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
                   isAnimationActive={false}
                   type='monotone'
-                  dataKey={property}
+                  dataKey={`latency_${property}`}
                   stroke={allColors[index]}
                   fill={allColors[index]}
                 />
@@ -545,13 +535,12 @@ class SrIoWaitGraph extends Component<any, any> {
                 }}
               >
                 {this.props.iowaitSr
-                  .map((currProperty: any) => `iowait_${currProperty}`)
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
-                      dataKey={property}
+                      dataKey={`iowait_${property}`}
                       stroke={allColors[index]}
                       fill={allColors[index]}
                     />
@@ -560,21 +549,19 @@ class SrIoWaitGraph extends Component<any, any> {
             </Brush>
             <Legend iconType='rect' iconSize={18} />
             {this.props.iowaitSr
-              .map((currProperty: any) => `iowait_${currProperty}`)
-              .map((property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={property}
-                  stroke={allColors[index]}
-                  fill={allColors[index]}
-                />
-              ))}
+                  .map((property: any, index: any) => (
+                    <Area
+                      connectNulls
+                      isAnimationActive={false}
+                      type='monotone'
+                      dataKey={`iowait_${property}`}
+                      stroke={allColors[index]}
+                      fill={allColors[index]}
+                    />
+                  ))}
           </AreaChart>
         </div>
       </div>
     )
   }
 }
- 

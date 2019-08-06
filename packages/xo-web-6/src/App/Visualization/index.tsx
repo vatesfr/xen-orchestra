@@ -9,7 +9,6 @@ import {
   Brush,
   CartesianGrid,
 } from 'recharts'
-
 import Xo from 'xo-lib'
 import moment, { max } from 'moment'
 const NB_VALUES = 118
@@ -17,7 +16,7 @@ const NB_VALUES = 118
 const xo = new Xo({ url: '/' })
 xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
 const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
-const xoCall = (method, params) => signedIn.then(() => xo.call(method, params))
+const xoCall = (method:string, params:object) => signedIn.then(() => xo.call(method, params))
 
 const getObject = (id: any) =>
   xoCall('xo.getAllObjects', { filter: { id } }).then(objects => objects[id])
@@ -28,24 +27,23 @@ export default class Visualization extends Component<any, any> {
     format: 'LTS',
     //  VM
     //  Cpu
-    dataVmCpu: [],
+    cpuDataVm: [],
     cpusVm: [],
 
     //  Memory
-    dataVmMemory: [],
-    valueMaxVmMemory: 0,
+    memoryDataVm: [],
+    memoryMaxVm: 0,
 
     //  Network
-    dataVmNetwork: [],
-    networksTxVm: [],
-    networksRxVm: [],
-    maxNetwork: 0,
+    networkDataVm: [],
+    networksTransmissionVm: [],
+    networksReceptionVm: [],
+    maxNetworkVm: 0,
 
     //  Disk
-    dataVmDisk: [],
-    disksW: [],
-    disksR: [],
-
+    diskDataVm: [],
+    disksWriting: [],
+    disksReading: [],
     maxDisk: 0,
   }
 
@@ -54,21 +52,19 @@ export default class Visualization extends Component<any, any> {
   }
 
   fetchVmStats = () => {
-    getObject('ebd131c8-d8df-144a-5997-f1969da1f022').then((vm: any) => {
-      this.setState({ valueMaxVmMemory: vm.memory.dynamic[1] })
+    getObject('28851ef6-951c-08bc-a5be-8898e2a31b7a').then((vm: any) => {
+      this.setState({ memoryMaxVm: vm.memory.dynamic[1] })
     })
-    //
-    //28851ef6-951c-08bc-a5be-8898e2a31b7a
+
     xoCall('vm.stats', {
-      id: 'ebd131c8-d8df-144a-5997-f1969da1f022',
+      id: '28851ef6-951c-08bc-a5be-8898e2a31b7a',
       granularity: this.state.granularity,
     }).then(
       ({
         endTimestamp,
         stats: { cpus },
         interval,
-        stats: { memory },
-        stats: { memoryFree },
+        stats: { memory, memoryFree = memory },
         stats: { vifs },
         stats: { xvds },
       }) => {
@@ -81,27 +77,20 @@ export default class Visualization extends Component<any, any> {
 
         this.setState({ cpusVm: Object.keys(cpus) })
 
-        this.setState({ networksTxVm: Object.keys(vifs.tx) })
-        this.setState({ networksRxVm: Object.keys(vifs.rx) })
+        this.setState({ networksTransmissionVm: Object.keys(vifs.tx) })
+        this.setState({ networksReceptionVm: Object.keys(vifs.rx) })
 
-        this.setState({ disksW: Object.keys(xvds.w) })
-        this.setState({ disksR: Object.keys(xvds.r) })
+        this.setState({ disksWriting: Object.keys(xvds.w) })
+        this.setState({ disksReading: Object.keys(xvds.r) })
 
-        let dataVmCpu: any[] = []
-        let dataVmMemory: any[] = []
-        let dataVmNetwork: any[] = []
-        let dataVmDisk: any[] = []
+        let cpuDataVm: any[] = []
+        let memoryDataVm: any[] = []
+        let networkDataVm: any[] = []
+        let diskDataVm: any[] = []
         let newDataMemory: any[] = []
 
-        if (memoryFree == undefined) {
-          newDataMemory = memory.map(
-            (value: any, index: any) => memory[index] - value
-          )
-        } else {
-          newDataMemory = memoryFree.map(
-            (value: any, index: any) => memory[index] - value
-          )
-        }
+        newDataMemory = memoryFree.map(
+          (value: any, index: any) => memory[index] - value)   
 
         for (var i = 0; i < NB_VALUES; i++) {
           let valuesCpus: any = {}
@@ -117,19 +106,19 @@ export default class Visualization extends Component<any, any> {
             valuesCpus[`cpu${property}`] = cpus[property][i]
           })
 
-          this.state.networksTxVm.forEach((property: string | number) => {
+          this.state.networksTransmissionVm.forEach((property: string | number) => {
             valuesNetwork[`vifs_${property}_(tx)`] = vifs.tx[property][i]
           })
 
-          this.state.networksRxVm.forEach((property: string | number) => {
+          this.state.networksReceptionVm.forEach((property: string | number) => {
             valuesNetwork[`vifs_${property}_(rx)`] = vifs.rx[property][i]
           })
 
-          this.state.disksW.forEach((property: string | number) => {
+          this.state.disksWriting.forEach((property: string | number) => {
             ValuesDisk[`xvds_${property}_(w)`] = xvds.w[property][i]
           })
 
-          this.state.disksR.forEach((property: string | number) => {
+          this.state.disksReading.forEach((property: string | number) => {
             ValuesDisk[`xvds_${property}_(r)`] = xvds.r[property][i]
           })
 
@@ -137,40 +126,41 @@ export default class Visualization extends Component<any, any> {
           valuesMemory.time = valuesCpus.time
           valuesNetwork.time = valuesCpus.time
           ValuesDisk.time = valuesCpus.time
-          dataVmDisk.push(ValuesDisk)
-          dataVmCpu.push(valuesCpus)
-          dataVmNetwork.push(valuesNetwork)
-          dataVmMemory.push(valuesMemory)
+          diskDataVm.push(ValuesDisk)
+          cpuDataVm.push(valuesCpus)
+          networkDataVm.push(valuesNetwork)
+          memoryDataVm.push(valuesMemory)
         }
+       
 
-        this.state.networksTxVm.forEach((property: string | number) => {
+        this.state.networksTransmissionVm.forEach((property: string | number) => {
           this.setState({ maxNetworkTx: Math.max(...vifs.tx[property]) })
         })
 
-        this.state.networksRxVm.forEach((property: string | number) => {
+        this.state.networksReceptionVm.forEach((property: string | number) => {
           this.setState({ maxNetworkRx: Math.max(...vifs.rx[property]) })
         })
 
-        this.state.maxNetwork = Math.max(
+        this.state.maxNetworkVm = Math.max(
           this.state.maxNetworkTx,
           this.state.maxNetworkRx
         )
 
-        this.state.disksW.forEach((property: string | number) => {
+        this.state.disksWriting.forEach((property: string | number) => {
           this.setState({ maxDiskW: Math.max(...xvds.w[property]) })
         })
 
-        this.state.disksR.forEach((property: string | number) => {
+        this.state.disksReading.forEach((property: string | number) => {
           this.setState({ maxDiskR: Math.max(...xvds.r[property]) })
         })
 
         this.state.maxDisk = Math.max(this.state.maxDiskW, this.state.maxDiskR)
-        this.setState({ dataVmCpu, dataVmMemory, dataVmNetwork, dataVmDisk })
+        this.setState({ cpuDataVm, memoryDataVm, networkDataVm, diskDataVm })
       }
     )
   }
 
-  setTime = (event: any) => {
+  setGranularity = (event: any) => {
     this.setState({ granularity: event.target.value }, () => {
       this.fetchVmStats()
     })
@@ -181,7 +171,7 @@ export default class Visualization extends Component<any, any> {
       <div>
         <div>
           <form>
-            <select onChange={this.setTime} value={this.state.granularity}>
+            <select onChange={this.setGranularity} value={this.state.granularity}>
               <option value='seconds'>Last 10 minutes</option>
               <option value='minutes'>Last 2 hours</option>
               <option value='hours'>Last week</option>
@@ -189,24 +179,24 @@ export default class Visualization extends Component<any, any> {
             </select>
           </form>
         </div>
-        <VmCpuGraph
-          dataVmCpu={this.state.dataVmCpu}
+        <CpuVmGraph
+          cpuDataVm={this.state.cpuDataVm}
           cpusVm={this.state.cpusVm}
         />
-        <VmMemoryGraph
-          dataVmMemory={this.state.dataVmMemory}
-          valueMaxVmMemory={this.state.valueMaxVmMemory}
+        <MemoryVmGraph
+          memoryDataVm={this.state.memoryDataVm}
+          memoryMaxVm={this.state.memoryMaxVm}
         />
-        <VmNetworkGraph
-          dataVmNetwork={this.state.dataVmNetwork}
-          networksTxVm={this.state.networksTxVm}
-          networksRxVm={this.state.networksRxVm}
-          maxNetwork={this.state.maxNetwork}
+        <NetworkVmGraph
+          networkDataVm={this.state.networkDataVm}
+          networksTransmissionVm={this.state.networksTransmissionVm}
+          networksReceptionVm={this.state.networksReceptionVm}
+          maxNetworkVm={this.state.maxNetworkVm}
         />
-        <VmDiskGraph
-          dataVmDisk={this.state.dataVmDisk}
-          disksW={this.state.disksW}
-          disksR={this.state.disksR}
+        <DiskVmGraph
+          diskDataVm={this.state.diskDataVm}
+          disksWriting={this.state.disksWriting}
+          disksReading={this.state.disksReading}
           maxDisk={this.state.maxDisk}
         />
       </div>
@@ -236,15 +226,14 @@ const allColors = [
   '#800000',
 ]
 
-class VmCpuGraph extends Component<any, any> {
+class CpuVmGraph extends Component<any, any> {
   state: any = {
     startIndexCpuVm: 0,
     endIndexCpuVm: 0,
   }
 
   handleChangeCpuVm = (res: any) => {
-    this.setState({ startIndexCpuVm: res.startIndex })
-    this.setState({ endIndexCpuVm: res.endIndex })
+    this.setState({ startIndexCpuVm: res.startIndex,endIndexCpuVm: res.endIndex })
   }
 
   render() {
@@ -259,7 +248,7 @@ class VmCpuGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.dataVmCpu}
+            data={this.props.cpuDataVm}
             syncId='vm'
             margin={{
               top: 5,
@@ -284,7 +273,7 @@ class VmCpuGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={350}
-                data={this.props.dataVmCpu}
+                data={this.props.cpuDataVm}
                 margin={{
                   top: 5,
                   right: 20,
@@ -292,29 +281,27 @@ class VmCpuGraph extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.cpusVm
-                  .map((currProperty: any) => `cpu${currProperty}`)
-                  .map((property: any, index: any) => (
-                    <Area
-                      connectNulls
-                      isAnimationActive={false}
-                      type='monotone'
-                      dataKey={property}
-                      stroke={allColors[index]}
-                      fill={allColors[index]}
-                    />
-                  ))}
-              </AreaChart>
-            </Brush>
-            <Legend iconType='rect' iconSize={18} />
-            {this.props.cpusVm
-              .map((currProperty: any) => `cpu${currProperty}`)
+               {this.props.cpusVm
               .map((property: any, index: any) => (
                 <Area
                   connectNulls
                   isAnimationActive={false}
                   type='monotone'
-                  dataKey={property}
+                  dataKey={`cpu${property}`}
+                  stroke={allColors[index]}
+                  fill={allColors[index]}
+                />
+              ))}
+              </AreaChart>
+            </Brush>
+            <Legend iconType='rect' iconSize={18} />
+            {this.props.cpusVm
+              .map((property: any, index: any) => (
+                <Area
+                  connectNulls
+                  isAnimationActive={false}
+                  type='monotone'
+                  dataKey={`cpu${property}`}
                   stroke={allColors[index]}
                   fill={allColors[index]}
                 />
@@ -326,7 +313,7 @@ class VmCpuGraph extends Component<any, any> {
   }
 }
 
-class VmMemoryGraph extends Component<any, any> {
+class MemoryVmGraph extends Component<any, any> {
   state: any = {
     startIndexMemoryVm: 0,
     endIndexMemoryVm: 0,
@@ -355,7 +342,7 @@ class VmMemoryGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.dataVmMemory}
+            data={this.props.memoryDataVm}
             syncId='vm'
             margin={{
               top: 5,
@@ -369,7 +356,7 @@ class VmMemoryGraph extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 0)}
-              domain={[0, this.props.valueMaxVmMemory]}
+              domain={[0, this.props.memoryMaxVm]}
             />
             <Tooltip />
             <Brush
@@ -380,7 +367,7 @@ class VmMemoryGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.props.dataVmMemory}
+                data={this.props.memoryDataVm}
                 margin={{
                   top: 5,
                   right: 20,
@@ -410,7 +397,7 @@ class VmMemoryGraph extends Component<any, any> {
   }
 }
 
-class VmNetworkGraph extends Component<any, any> {
+class NetworkVmGraph extends Component<any, any> {
   state: any = {
     startIndexNetworkVm: 0,
     endIndexNetworkVm: 0,
@@ -440,7 +427,7 @@ class VmNetworkGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.dataVmNetwork}
+            data={this.props.networkDataVm}
             syncId='vm'
             margin={{
               top: 5,
@@ -454,7 +441,7 @@ class VmNetworkGraph extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000, this.props.maxNetwork)]}
+              domain={[0, Math.max(1000000, this.props.maxNetworkVm)]}
             />
             <Tooltip />
             <Brush
@@ -465,7 +452,7 @@ class VmNetworkGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.props.dataVmNetwork}
+                data={this.props.networkDataVm}
                 margin={{
                   top: 5,
                   right: 20,
@@ -473,57 +460,31 @@ class VmNetworkGraph extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.networksTxVm
-                  .map((currProperty: any) => `vifs_${currProperty}_(tx)`)
-                  .map((property: any, index: any) => (
-                    <Area
+                {[ ...this.props.networksTransmissionVm, ...this.props.networksReceptionVm]
+                  .map((property: any, index: any) => (  
+                    <Area                                 
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
-                      dataKey={property}
+                      dataKey={`vifs_${property}_(${index < this.props.networksTransmissionVm.length ? 'tx' : 'rx'})`}
                       stroke={allColors[index]}
                       fill={allColors[index]}
-                    />
-                  ))}
-                {this.props.networksRxVm
-                  .map((currProperty: any) => `vifs_${currProperty}_(rx)`)
-                  .map((property: any, index: any) => (
-                    <Area
-                      connectNulls
-                      isAnimationActive={false}
-                      type='monotone'
-                      dataKey={property}
-                      stroke={allColors[this.props.networksTxVm.length + index]}
-                      fill={allColors[this.props.networksTxVm.length + index]}
                     />
                   ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.networksTxVm
-              .map((currProperty: any) => `vifs_${currProperty}_(tx)`)
-              .map((property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={property}
-                  stroke={allColors[index]}
-                  fill={allColors[index]}
-                />
-              ))}
-            {this.props.networksRxVm
-              .map((currProperty: any) => `vifs_${currProperty}_(rx)`)
-              .map((property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={property}
-                  stroke={allColors[this.props.networksTxVm.length + index]}
-                  fill={allColors[this.props.networksTxVm.length + index]}
-                />
-              ))}
+            {[ ...this.props.networksTransmissionVm, ...this.props.networksReceptionVm]
+                  .map((property: any, index: any) => (
+                    <Area
+                      connectNulls
+                      isAnimationActive={false}
+                      type='monotone'
+                      dataKey={`vifs_${property}_(${index < this.props.networksTransmissionVm.length ? 'tx' : 'rx'})`}
+                      stroke={allColors[index]}
+                      fill={allColors[index]}
+                    />
+                  ))}
           </AreaChart>
         </div>
       </div>
@@ -531,7 +492,7 @@ class VmNetworkGraph extends Component<any, any> {
   }
 }
 
-class VmDiskGraph extends Component<any, any> {
+class DiskVmGraph extends Component<any, any> {
   state: any = {
     startIndexDiskVm: 0,
     endIndexDiskVm: 0,
@@ -561,7 +522,7 @@ class VmDiskGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.dataVmDisk}
+            data={this.props.diskDataVm}
             syncId='vm'
             margin={{
               top: 5,
@@ -586,7 +547,7 @@ class VmDiskGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.state.dataVmDisk}
+                data={this.state.diskDataVm}
                 margin={{
                   top: 5,
                   right: 20,
@@ -594,60 +555,37 @@ class VmDiskGraph extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.disksW
-                  .map((currProperty: any) => `xvds_${currProperty}_(w)`)
+               {[ ...this.props.disksWriting, ...this.props.disksReading]
                   .map((property: any, index: any) => (
                     <Area
                       connectNulls
                       isAnimationActive={false}
                       type='monotone'
-                      dataKey={property}
+                      dataKey={`xvds_${property}_(${index < this.props.disksWriting.length ? 'w' : 'r'})`}
                       stroke={allColors[index]}
                       fill={allColors[index]}
-                    />
-                  ))}
-                {this.props.disksR
-                  .map((currProperty: any) => `xvds_${currProperty}_(r)`)
-                  .map((property: any, index: any) => (
-                    <Area
-                      connectNulls
-                      isAnimationActive={false}
-                      type='monotone'
-                      dataKey={property}
-                      stroke={allColors[this.props.disksW.length + index]}
-                      fill={allColors[this.props.disksW.length + index]}
                     />
                   ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.disksW
-              .map((currProperty: any) => `xvds_${currProperty}_(w)`)
-              .map((property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={property}
-                  stroke={allColors[index]}
-                  fill={allColors[index]}
-                />
-              ))}
-            {this.props.disksR
-              .map((currProperty: any) => `xvds_${currProperty}_(r)`)
-              .map((property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={property}
-                  stroke={allColors[this.props.disksW.length + index]}
-                  fill={allColors[this.props.disksW.length + index]}
-                />
-              ))}
+
+            {[ ...this.props.disksWriting, ...this.props.disksReading]
+                  .map((property: any, index: any) => (
+                    <Area
+                      connectNulls
+                      isAnimationActive={false}
+                      type='monotone'
+                      dataKey={`xvds_${property}_(${index < this.props.disksWriting.length ? 'w' : 'r'})`}
+                      stroke={allColors[index]}
+                      fill={allColors[index]}
+                    />
+                  ))}
           </AreaChart>
         </div>
       </div>
     )
   }
 }
+
+////// .map((property: any, index: any) => ( //// dataKey={`vifs_${property}_(${index < this.props.networksTransmissionVm.length ? 'tx' : 'rx'})`}

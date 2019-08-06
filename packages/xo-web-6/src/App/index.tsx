@@ -8,7 +8,9 @@ const Bar = React.lazy(() => import('./Bar'))
 const Foo = React.lazy(() => import('./Foo'))
 const Visualization = React.lazy(() => import('./Visualization'))
 const VisualizationHost = React.lazy(() => import('./Visualization/hostStats'))
-const Visualization2 = React.lazy(() => import('./Visualization/mini-stats'))
+const Visualization2 = React.lazy(() => import('./Visualization/miniStatsVm'))
+const VisualizationMiniStatsHost = React.lazy(() => import('./Visualization/miniStatsHost'))
+const VisualizationMiniStatsStorage = React.lazy(() => import('./Visualization/miniStatsStorage'))
 const VisualizationSr = React.lazy(() => import('./Visualization/storageStats'))
 
 //import Visualization2 from './Visualization/mini-stats'
@@ -65,9 +67,13 @@ export default withStore(
           <Route path='/' exact component={Bar} />
           <Route path='/foo' component={Foo} />
           <Route path='/vm' component={Visualization} />
-          <Route path='/miniStats' component={Visualization2} />
+          <Route path='/miniStatsVm' component={Visualization2} />
           <Route path='/host' component={VisualizationHost}/>
           <Route path='/storage' component={VisualizationSr}/>
+          <Route path='/miniStatsHost' component={VisualizationMiniStatsHost}/>
+          <Route path='/miniStatsStorage' component={VisualizationMiniStatsStorage}/>
+         
+          
         </React.Suspense>
       </HelmetProvider>
     </Router>
