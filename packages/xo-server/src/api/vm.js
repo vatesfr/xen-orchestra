@@ -1139,12 +1139,12 @@ resume.resolve = {
 export async function revert({ snapshot, snapshotBefore }) {
   const { id: userId, permission } = this.user
   await this.checkPermissions(userId, [[snapshot.$snapshot_of, 'operate']])
-  const { $id: snapshotId } = await this.getXapi(snapshot).revertVm(
+  const vmSnapshot = await this.getXapi(snapshot).revertVm(
     snapshot._xapiId,
     snapshotBefore
   )
-  if (snapshotId !== undefined && permission !== 'admin') {
-    await this.addAcl(userId, snapshotId, 'admin')
+  if (vmSnapshot !== undefined && permission !== 'admin') {
+    await this.addAcl(userId, vmSnapshot.$id, 'admin')
   }
 }
 
