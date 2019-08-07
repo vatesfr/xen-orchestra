@@ -594,6 +594,35 @@ class SDNController extends EventEmitter {
         })
         poolNetwork.starCenter = pif.host
         this._starCenters.set(host.$id, host.$ref)
+
+        const crossPoolNetwork = find(
+          this._crossPoolNetworks,
+          crossPoolNetwork =>
+            crossPoolNetwork.networks.includes(pif.$network.$ref)
+        )
+        if (crossPoolNetwork !== undefined) {
+          if (crossPoolNetwork.poolCenter !== undefined) {
+            const centerPoolNetwork = this._getPoolNetwork(
+              crossPoolNetwork.poolCenter,
+              crossPoolNetwork
+            )
+            this._connectNetworks(
+              poolNetwork,
+              centerPoolNetwork,
+              crossPoolNetwork.uuid
+            )
+          } else {
+            crossPoolNetwork.poolCenter = host.$pool.$ref
+            log.debug(
+              'First available pool becomes pool center or cross-pool network',
+              {
+                network: pif.$network.$ref,
+                pool: host.$pool.name_label,
+                uuid: crossPoolNetwork.uuid,
+              }
+            )
+          }
+        }
       }
 
       log.debug('PIF plugged', {
@@ -748,11 +777,13 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _electNewPoolCenter(crossPoolNetwork) {
+    crossPoolNetwork.poolCenter = undefined
+    let network
     for (const poolRef of crossPoolNetwork.pools) {
       const xapi = find(this._xapis, xapi => xapi.pool.$ref === poolRef)
       const poolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
       const pool = xapi.getObjectByRef(poolRef)
-      const network = xapi.getObjectByRef(poolNetwork.network)
+      network = xapi.getObjectByRef(poolNetwork.network)
       if (poolNetwork.starCenter !== undefined) {
         crossPoolNetwork.poolCenter = pool.$ref
         log.debug('New pool center in cross-pool network', {
@@ -762,6 +793,14 @@ class SDNController extends EventEmitter {
         })
         break
       }
+    }
+
+    if (crossPoolNetwork.poolCenter === undefined) {
+      log.error('No available pool center for cross-pool network', {
+        network: network.name_label,
+        uuid: crossPoolNetwork.uuid,
+      })
+      return
     }
 
     for (const poolRef of crossPoolNetwork.pools) {
