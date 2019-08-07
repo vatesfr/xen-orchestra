@@ -447,18 +447,18 @@ describe('backupNg', () => {
 
   test('execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval', async () => {
     jest.setTimeout(6e4)
-    await xo.createTempServer(config.servers.default)
-    const { nfs, smb } = config.remotes
-    const { id: nfsId } = await xo.createTempRemote(nfs)
-    const remotes = [nfsId]
-    if (smb !== undefined) {
-      const { id: smbId } = await xo.createTempRemote(smb)
-      remotes.push(smbId)
-    }
-
-    const scheduleTempId = randomId()
     const vmId = config.vms.vmToBackup
+    if (xo.objects.all[vmId] === undefined) throw new Error('no vm to backup')
+
+    await xo.createTempServer(config.servers.default)
+    const { remote1, remote2 } = config.remotes
+    const { id: remoteId1 } = await xo.createTempRemote(remote1)
+    const { id: remoteId2 } = await xo.createTempRemote(remote2)
+    const remotes = [remoteId1, remoteId2]
+
+    const exportRetention = 2
     const fullInterval = 2
+    const scheduleTempId = randomId()
     const { id: jobId } = await xo.createTempBackupNgJob({
       mode: 'delta',
       remotes: {
@@ -474,8 +474,8 @@ describe('backupNg', () => {
           reportWhen: 'never',
           fullInterval,
         },
-        [nfs.id]: { deleteFirst: true },
-        [scheduleTempId]: { exportRetention: 2 },
+        [remoteId1]: { deleteFirst: true },
+        [scheduleTempId]: { exportRetention },
       },
       vms: {
         id: vmId,
@@ -490,7 +490,9 @@ describe('backupNg', () => {
       remotes,
       nExecutions,
     })
-    forOwn(backupsByRemote, backups => expect(backups.length).toBe(2))
+    forOwn(backupsByRemote, backups =>
+      expect(backups.length).toBe(exportRetention)
+    )
 
     const backupLogs = await xo.call('backupNg.getLogs', {
       jobId,
@@ -513,12 +515,12 @@ describe('backupNg', () => {
         merge: 0,
         snapshot: 0,
         transfer: 0,
-        VM: 0,
+        vm: 0,
       }
       tasks.forEach(({ tasks, ...vmTask }) => {
         if (vmTask.data !== undefined && vmTask.data.type === 'VM') {
           validateVmTask(vmTask, vmId, { status: 'success' })
-          numberOfTasks.VM++
+          numberOfTasks.vm++
           tasks.forEach(({ tasks, ...subTask }) => {
             if (subTask.message === 'snapshot') {
               validateSnapshotTask(subTask, { status: 'success' })
@@ -554,7 +556,7 @@ describe('backupNg', () => {
                 }
               })
               expect(
-                subTask.data.id === nfs.id
+                subTask.data.id === remoteId1
                   ? mergeTaskKey > transferTaskKey
                   : mergeTaskKey < transferTaskKey
               ).toBe(true)
@@ -563,11 +565,11 @@ describe('backupNg', () => {
         }
       })
       expect(numberOfTasks).toEqual({
-        export: 1,
-        merge: 1,
+        export: 2,
+        merge: 2,
         snapshot: 1,
-        transfer: 1,
-        VM: 1,
+        transfer: 2,
+        vm: 1,
       })
     })
   })
