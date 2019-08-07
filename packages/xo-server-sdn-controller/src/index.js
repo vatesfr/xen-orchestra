@@ -985,19 +985,45 @@ class SDNController extends EventEmitter {
       centerPoolNetwork.network
     )
     const network = client.host.$xapi.getObjectByRef(poolNetwork.network)
+
+    try {
+      await client.resetForNetwork(
+        network.uuid,
+        network.name_label,
+        centerNetwork.uuid
+      )
+      await centerClient.resetForNetwork(
+        centerNetwork.uuid,
+        centerNetwork.name_label,
+        network.uuid
+      )
+    } catch (error) {
+      log.error('Error while cleaning networks from old connections', {
+        error,
+        network: network.name_label,
+        host: client.host.name_label,
+        pool: client.host.$pool.name_label,
+        centerHost: centerClient.host.name_label,
+        centerPool: centerClient.host.$pool.name_label,
+        uuid,
+      })
+    }
+
     const encapsulation = network.other_config.encapsulation || 'gre'
     try {
       await client.addInterfaceAndPort(
         network.uuid,
         network.name_label,
         centerClient.host.address,
-        encapsulation
+        encapsulation,
+        centerNetwork.uuid
       )
       await centerClient.addInterfaceAndPort(
         centerNetwork.uuid,
         centerNetwork.name_label,
         client.host.address,
-        encapsulation
+        encapsulation,
+        network.uuid
       )
     } catch (error) {
       log.error('Error while connecting networks', {
