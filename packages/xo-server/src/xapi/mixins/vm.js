@@ -463,9 +463,9 @@ export default {
 
   async revertVm(snapshotId, snapshotBefore = true) {
     const snapshot = this.getObject(snapshotId)
-    let snapshotVm
+    let vmSnapshot
     if (snapshotBefore) {
-      snapshotVm = await this._snapshotVm(snapshot.$snapshot_of)
+      vmSnapshot = await this._snapshotVm(snapshot.$snapshot_of)
     }
     await this.callAsync('VM.revert', snapshot.$ref)
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
@@ -476,7 +476,7 @@ export default {
         this.resumeVm(vm.$id)::ignoreErrors()
       }
     }
-    return snapshotVm
+    return vmSnapshot
   },
 
   async resumeVm(vmId) {
