@@ -4,6 +4,7 @@ import { YAxis, AreaChart, Legend } from 'recharts'
 import Xo from 'xo-lib'
 
 import { Area } from 'recharts'
+import { number } from 'prop-types'
 
 const xo = new Xo({ url: '/' })
 
@@ -13,7 +14,6 @@ const xoCall = (method: any, params: any) =>
   signedIn.then(() => xo.call(method, params))
 
 const NB_VALUES = 118
-
 const tabId = [
   'a5954951-3dfa-42b8-803f-4bc270b22a0b',
   '9a208896-fff9-caa0-d3ab-6ada542ae8ca',
@@ -46,6 +46,7 @@ export default class Visualization extends Component<any, any> {
   state: any = {
     srIds: 0,
   }
+
   render() {
     return (
       <div>
@@ -66,131 +67,107 @@ export default class Visualization extends Component<any, any> {
   }
 }
 
-class StoragesIopsStats extends Component<any, any> {
+
+
+
+
+class StoragesIowaitStats extends Component<any, any> {
   state: any = {
     srId: 0,
+    valueMaxIowait: 0,
+  }
+  setMaxIowait = (value: number) => {
+    if (this.state.valueMaxIowait < value) {
+      this.setState({
+        valueMaxIowait: value,
+      })
+    }
   }
   render() {
     return this.props.srIds.map((srId: any) => (
-      <StorageIopsStats srId={srId} key={srId} />
+      <StorageIowaitStats
+        srId={srId}
+        key={srId}
+        setMaxIowait={this.setMaxIowait}
+        valueMaxIowait={this.state.valueMaxIowait}
+      />
+    ))
+  }
+}
+
+class StoragesIopsStats extends Component<any, any> {
+  state: any = {
+    srId: 0,
+    valueMaxIops: 0,
+  }
+  setMaxGlobal = (maxGlobal: number) => {
+    if (this.state.valueMaxIops < maxGlobal) {
+      this.setState({
+        valueMaxIops: maxGlobal,
+      })
+    }
+  }
+  render() {
+    return this.props.srIds.map((srId: any) => (
+      <StorageIopsStats
+        srId={srId}
+        key={srId}
+        setMaxGlobal={this.setMaxGlobal}
+        valueMaxIops={this.state.valueMaxIops}
+      />
+    ))
+  }
+}
+
+class StoragesLatencyStats extends Component<any, any> {
+  state: any = {
+    srId: 0,
+    valueMaxLatency: 0,
+  }
+
+  setMaxLatency = (value: number) => {
+    if (this.state.valueMaxLatency < value) {
+      this.setState({
+        valueMaxLatency: value,
+      })
+    }
+  }
+  render() {
+    return this.props.srIds.map((srId: any) => (
+      <StorageLatencyStats
+        srId={srId}
+        key={srId}
+        setMaxLatency={this.setMaxLatency}
+        valueMaxLatency={this.state.valueMaxLatency}
+      />
     ))
   }
 }
 
 class StoragesThroughputStats extends Component<any, any> {
-    state: any = {
-      srId: 0,
-    }
-    render() {
-      return this.props.srIds.map((srId: any) => (
-        <StorageThroughputStats srId={srId} key={srId} />
-      ))
-    }
-  }
-
-
-
-class StoragesLatencyStats extends Component<any, any> {
   state: any = {
     srId: 0,
-  }
-  render() {
-    return this.props.srIds.map((srId: any) => (
-      <StorageLatencyStats srId={srId} key={srId} />
-    ))
-  }
-}
-class StoragesIowaitStats extends Component<any, any> {
-  state: any = {
-    srId: 0,
-  }
-  render() {
-    return this.props.srIds.map((srId: any) => (
-      <StorageIowaitStats srId={srId} key={srId} />
-    ))
-  }
-}
-
-class StorageIopsStats extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-    iopsData: [],
-    iopsSr: [],
-    maxIOPS: 0,
-  }
-  componentDidMount() {
-    setInterval(this.fetchSrStats.bind(this), 5e3)
+    valueMaxThroughput: 0,
   }
 
-  fetchSrStats = () => {
-    xoCall('sr.stats', {
-      id: this.props.srId,
-      granularity: this.state.granularity,
-    }).then(({ endTimestamp, stats: { iops }, interval }) => {
-      this.setState({ iopsSr: Object.keys(iops) })
-
-      const iopsData: any[] = []
-
-      for (var i = 0; i < NB_VALUES; i++) {
-        const valuesSrIops: any = {}
-
-        valuesSrIops.time =
-          (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-
-        this.state.iopsSr.forEach((property: string | number) => {
-          valuesSrIops[`iops_${property}`] = iops[property][i]
-        })
-        iopsData.push(valuesSrIops)
-      }
-      this.state.iopsSr.forEach((property: string | number) => {
-        this.setState({ maxIOPS: Math.max(...iops[property]) })
+  setMaxThroughput = (value: number) => {
+    if (this.state.valueMaxThroughput < value) {
+      this.setState({
+        valueMaxThroughput: value,
       })
-      this.setState({ iopsData })
-    })
+    }
   }
-
   render() {
-    return (
-      <div>
-        <br />
-        <div>IOPS (IOPS)</div>
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.state.iopsData}
-            syncId='sr'
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={tick => tick + ' IOPS'}
-              domain={[0, Math.max(40, this.state.maxIOPS)]}
-            />
-            <Legend iconType='rect' iconSize={10} />
-            {this.state.iopsSr.map((property: any, index: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`iops_${property}`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
-              />
-            ))}
-          </AreaChart>
-        </div>
-      </div>
-    )
+    return this.props.srIds.map((srId: any) => (
+      <StorageThroughputStats
+        srId={srId}
+        key={srId}
+        setMaxThroughput={this.setMaxThroughput}
+        valueMaxThroughput={this.state.valueMaxThroughput}
+      />
+    ))
   }
 }
-
-//
 
 class StorageLatencyStats extends Component<any, any> {
   state: any = {
@@ -229,6 +206,8 @@ class StorageLatencyStats extends Component<any, any> {
 
       this.setState({ latencyData })
     })
+
+    this.props.setMaxLatency(this.state.maxLatency)
   }
 
   render() {
@@ -251,7 +230,7 @@ class StorageLatencyStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' ms'}
-              domain={[0, Math.max(30, this.state.maxLatency)]}
+              domain={[0, Math.max(30, this.props.valueMaxLatency)]}
             />
             <Legend iconType='rect' iconSize={10} />
             {this.state.latencySr.map((property: any, index: any) => (
@@ -271,7 +250,94 @@ class StorageLatencyStats extends Component<any, any> {
   }
 }
 
-//
+class StorageIopsStats extends Component<any, any> {
+  state: any = {
+    granularity: 'seconds',
+    iopsData: [],
+    iopsSr: [],
+    localMaxIops: 0,
+    maxIpos: 0,
+    valueMaxIops: 0,
+  }
+
+  componentDidMount() {
+    setInterval(this.fetchSrStats.bind(this), 5e3)
+  }
+
+  fetchSrStats = () => {
+    xoCall('sr.stats', {
+      id: this.props.srId,
+      granularity: this.state.granularity,
+    }).then(({ endTimestamp, stats: { iops }, interval }) => {
+      this.setState({ iopsSr: Object.keys(iops) })
+
+      const iopsData: any[] = []
+
+      for (var i = 0; i < NB_VALUES; i++) {
+        const valuesSrIops: any = {}
+
+        valuesSrIops.time =
+          (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+
+        this.state.iopsSr.forEach((property: string | number) => {
+          const iopsValue = iops[property][i]
+          if (
+            this.state.maxIpos === undefined ||
+            iopsValue > this.state.maxIpos
+          ) {
+            this.state.maxIpos = iopsValue
+          }
+          valuesSrIops[`iops_${property}`] = iopsValue
+        })
+        iopsData.push(valuesSrIops)
+      }
+
+      this.setState({ iopsData })
+    })
+
+    this.props.setMaxGlobal(this.state.maxIpos)
+  }
+
+  render() {
+    return (
+      <div>
+        <br />
+        <div>IOPS (IOPS)</div>
+        <div>
+          <AreaChart
+            width={400}
+            height={100}
+            data={this.state.iopsData}
+            syncId='sr'
+            margin={{
+              top: 5,
+              right: 20,
+              left: 90,
+              bottom: 5,
+            }}
+          >
+            <YAxis
+              tick={{ fontSize: '11px' }}
+              tickFormatter={tick => tick + ' IOPS'}
+              domain={[0, Math.max(40, this.props.valueMaxIops)]}
+            />
+            <Legend iconType='rect' iconSize={10} />
+            {this.state.iopsSr.map((property: any, index: any) => (
+              <Area
+                connectNulls
+                isAnimationActive={false}
+                type='monotone'
+                dataKey={`iops_${property}`}
+                stroke={allColors[index]}
+                fill={allColors[index]}
+              />
+            ))}
+          </AreaChart>
+        </div>
+      </div>
+    )
+  }
+}
 
 class StorageIowaitStats extends Component<any, any> {
   state: any = {
@@ -307,6 +373,7 @@ class StorageIowaitStats extends Component<any, any> {
       })
       this.setState({ dataSrIowait })
     })
+    this.props.setMaxIowait(this.state.maxIOwait)
   }
 
   render() {
@@ -329,7 +396,7 @@ class StorageIowaitStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' %'}
-              domain={[0, Math.max(5, this.state.maxIOwait)]}
+              domain={[0, Math.max(5, this.props.valueMaxIowait)]}
             />
             <Legend iconType='rect' iconSize={10} />
             {this.state.iowaitSr.map((property: any, index: any) => (
@@ -349,112 +416,104 @@ class StorageIowaitStats extends Component<any, any> {
   }
 }
 
-//
-
 class StorageThroughputStats extends Component<any, any> {
-    state: any = {
+  state: any = {
     granularity: 'seconds',
     throughputData: [],
     throSr: [],
     maxIoThroughput: 0,
-    }
-  
-    componentDidMount() {
-        setInterval(this.fetchSrStats.bind(this), 5e3)
-      }
-    
-      fetchSrStats = () => {
-        xoCall('sr.stats', {
-          id: this.props.srId,
-          granularity: this.state.granularity,
-        }).then(
-          ({
-            endTimestamp,
-            interval,
-            stats: { ioThroughput },
-          }) => {
-            this.setState({ throSr: Object.keys(ioThroughput) })
-            const throughputData: any[] = []
-            for (var i = 0; i < NB_VALUES; i++) {
-              const valuesSrThro: any = {}
-                     
-              this.state.throSr.forEach((property: string | number) => {
-                valuesSrThro[`thr_${property}`] = ioThroughput[property][i]
-              })
-              valuesSrThro.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-              throughputData.push(valuesSrThro)
-            }
-    
-            this.state.throSr.forEach((property: string | number) => {
-              this.setState({
-                maxIoThroughput: Math.max(...ioThroughput[property]),
-              })
-            })
-            this.setState({ throughputData })
-          }
-        )
-      }
-    
-
-    formatBytes(bytes: any, decimals = 2) {
-      if (bytes === 0) return '0 B/s'
-      const k = 1024
-      const dm = decimals < 0 ? 0 : decimals
-      const sizes = [
-        'B/s',
-        'KB/s',
-        'MB/s',
-        'GB/s',
-        'TB/s',
-        'PB/s',
-        'EB/s',
-        'ZB/s',
-        'YB/s',
-      ]
-      const i = Math.floor(Math.log(bytes) / Math.log(k))
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-    }
-  
-    render() {
-      return (
-        <div>
-          <div>IO throughput </div>
-          <br />
-          <div>
-            <AreaChart
-              width={400}
-              height={100}
-              data={this.state.throughputData}
-              syncId='sr'
-              margin={{
-                top: 5,
-                right: 20,
-                left: 90,
-                bottom: 5,
-              }}
-            >
-
-              <YAxis
-                tick={{ fontSize: '11px' }}
-                tickFormatter={tick => this.formatBytes(tick, 2)}
-                domain={[0, Math.max(1000000, this.state.maxIoThroughput)]}
-              />
-             
-              <Legend iconType='rect' iconSize={10} />
-              {this.state.throSr
-                .map((property: any, index: any) => (
-                  <Area
-                    connectNulls
-                    isAnimationActive={false}
-                    type='monotone'
-                    dataKey={`thr_${property}`}
-                    stroke={allColors[index]}
-                    fill={allColors[index]}
-                  />
-                ))}
-            </AreaChart>
-          </div>
-        </div>
-      )
-    }
   }
+
+  componentDidMount() {
+    setInterval(this.fetchSrStats.bind(this), 5e3)
+  }
+
+  fetchSrStats = () => {
+    xoCall('sr.stats', {
+      id: this.props.srId,
+      granularity: this.state.granularity,
+    }).then(({ endTimestamp, interval, stats: { ioThroughput } }) => {
+      this.setState({ throSr: Object.keys(ioThroughput) })
+      const throughputData: any[] = []
+      for (var i = 0; i < NB_VALUES; i++) {
+        const valuesSrThro: any = {}
+
+        this.state.throSr.forEach((property: string | number) => {
+          valuesSrThro[`thr_${property}`] = ioThroughput[property][i]
+        })
+        valuesSrThro.time =
+          (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+        throughputData.push(valuesSrThro)
+      }
+
+      this.state.throSr.forEach((property: string | number) => {
+        this.setState({
+          maxIoThroughput: Math.max(...ioThroughput[property]),
+        })
+      })
+
+      this.setState({ throughputData })
+    })
+    this.props.setMaxThroughput(this.state.maxIoThroughput)
+  }
+
+  formatBytes(bytes: any, decimals = 2) {
+    if (bytes === 0) return '0 B/s'
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = [
+      'B/s',
+      'KB/s',
+      'MB/s',
+      'GB/s',
+      'TB/s',
+      'PB/s',
+      'EB/s',
+      'ZB/s',
+      'YB/s',
+    ]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+  }
+
+  render() {
+    return (
+      <div>
+        <div>IO throughput </div>
+        <br />
+        <div>
+          <AreaChart
+            width={400}
+            height={100}
+            data={this.state.throughputData}
+            syncId='sr'
+            margin={{
+              top: 5,
+              right: 20,
+              left: 90,
+              bottom: 5,
+            }}
+          >
+            <YAxis
+              tick={{ fontSize: '11px' }}
+              tickFormatter={tick => this.formatBytes(tick, 2)}
+              domain={[0, Math.max(1000000, this.props.valueMaxThroughput)]}
+            />
+
+            <Legend iconType='rect' iconSize={10} />
+            {this.state.throSr.map((property: any, index: any) => (
+              <Area
+                connectNulls
+                isAnimationActive={false}
+                type='monotone'
+                dataKey={`thr_${property}`}
+                stroke={allColors[index]}
+                fill={allColors[index]}
+              />
+            ))}
+          </AreaChart>
+        </div>
+      </div>
+    )
+  }
+}

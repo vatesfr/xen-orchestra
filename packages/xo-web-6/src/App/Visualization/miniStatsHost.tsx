@@ -72,10 +72,21 @@ class HostsCpuStats extends Component<any, any> {
 class HostsNetworkStats extends Component<any, any> {
     state: any = {
       hostId: 0,
+      valueMaxNetwork: 0,
     }
+
+    setMaxNetwork = (value: number) => {
+      if (this.state.valueMaxNetwork < value) {
+        this.setState({
+          valueMaxNetwork: value,
+        })
+        console.log('************',this.state.valueMaxNetwork)
+      }
+    }
+
     render() {
       return this.props.hostIds.map((hostId: any) => (
-        <HostNetworkStats hostId={hostId} key={hostId} />
+        <HostNetworkStats hostId={hostId} key={hostId}  setMaxNetwork={this.setMaxNetwork} valueMaxNetwork={this.state.valueMaxNetwork} />
       ))
     }
   }
@@ -83,10 +94,20 @@ class HostsNetworkStats extends Component<any, any> {
   class HostsLoadStats extends Component<any, any> {
     state: any = {
       hostId: 0,
+      valueMaxLoad:0
     }
+
+    setMaxLoad = (value: number) => {
+      if (this.state.valueMaxLoad < value) {
+        this.setState({
+          valueMaxLoad: value,
+        })
+      }
+    }
+
     render() {
       return this.props.hostIds.map((hostId: any) => (
-        <HostLoadStats hostId={hostId} key={hostId} />
+        <HostLoadStats hostId={hostId} key={hostId} setMaxLoad={this.setMaxLoad} valueMaxLoad={this.state.valueMaxLoad}/>
       ))
     }
   }
@@ -336,29 +357,33 @@ class HostsNetworkStats extends Component<any, any> {
             networkDataVm.push(valuesNetwork)
           }
          
+  
           this.state.networksTransmissionVm.forEach((property: string | number) => {
-            this.state.maxNetworkTx= Math.max(...pifs.tx[property])
+    
             this.setState({ maxNetworkTx: Math.max(...pifs.tx[property]) })
           })
   
           this.state.networksReceptionVm.forEach((property: string | number) => {
-            this.state.maxNetworkRx= Math.max(...pifs.rx[property])
+
             this.setState({ maxNetworkRx: Math.max(...pifs.rx[property]) })
           })
-  
-          this.setState({ maxNetworkVm :Math.max(
+
+
+           this.setState({ maxNetworkVm :Math.max(
             this.state.maxNetworkTx,
             this.state.maxNetworkRx
-          ) })
+          ) }) 
+    
   
          /*  this.state.maxNetworkVm = Math.max(
             this.state.maxNetworkTx,
             this.state.maxNetworkRx
-          )  */
+          )  */ 
   
           this.setState({ networkDataVm})
         }
       )
+      this.props.setMaxNetwork(this.state.maxNetworkVm)
     }
    
     formatBytes(bytes: any, decimals = 2) {
@@ -378,8 +403,8 @@ class HostsNetworkStats extends Component<any, any> {
           <br />
           <div>
             <AreaChart
-              width={400}
-              height={100}
+              width={430}
+              height={130}
               data={this.state.networkDataVm}
               syncId='vm'
               margin={{
@@ -393,7 +418,7 @@ class HostsNetworkStats extends Component<any, any> {
               <YAxis
                 tick={{ fontSize: '11px' }}
                 tickFormatter={tick => this.formatBytes(tick, 2)}
-                domain={[0, Math.max(1000000, this.state.maxNetworkVm)]}
+                domain={[0, Math.max(1000000, this.props.valueMaxNetwork)]}
               /> 
               <Legend iconType='rect' iconSize={10} />
               {[ ...this.state.networksTransmissionVm, ...this.state.networksReceptionVm]
@@ -457,6 +482,8 @@ class HostsNetworkStats extends Component<any, any> {
             })
           }
         )
+
+        this.props.setMaxLoad(this.state.maxLoad)
       }
   
     render() {
@@ -480,7 +507,7 @@ class HostsNetworkStats extends Component<any, any> {
               
               <YAxis
                 tick={{ fontSize: '11px' }}
-                domain={[0, Math.max(1, this.state.maxLoad)]}
+                domain={[0, Math.max(1, this.props.valueMaxLoad)]}
               />
         
               <Legend iconType='rect' iconSize={10} />
