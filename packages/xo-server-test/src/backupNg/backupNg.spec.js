@@ -449,11 +449,7 @@ describe('backupNg', () => {
     jest.setTimeout(6e4)
     const {
       vms: { default: defaultVm, vmToBackup = defaultVm },
-      remotes: {
-        default: defaultRemote,
-        remote1 = defaultRemote,
-        remote2 = defaultRemote,
-      },
+      remotes: { default: defaultRemote, remote1, remote2 = defaultRemote },
       servers: { default: defaultServer },
     } = config
 

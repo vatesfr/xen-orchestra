@@ -21,6 +21,5 @@
 
 [remotes]
   default = { name = '', url = '' }
-  # For delta backup, we need two remotes
-  # remote1 = { name = '', url = '' }
+  remote1 = { name = '', url = '' }
   # remote2 = { name = '', url = '' }
