@@ -734,15 +734,25 @@ export default class Xapi extends XapiBase {
       const { SR } = vdi
       let childrenMap = cache[SR]
       if (childrenMap === undefined) {
-        childrenMap = cache[SR] = groupBy(
-          vdi.$SR.$VDIs,
-          _ => _.sm_config['vhd-parent']
-        )
+        try {
+          childrenMap = cache[SR] = groupBy(
+            vdi.$SR.$VDIs,
+            _ => _.sm_config['vhd-parent']
+          )
+        } catch (error) {
+          log.warn('_assertHealthyVdiChain', { error })
+        }
       }
 
       // an unmanaged VDI should not have exactly one child: they
       // should coalesce
-      const children = childrenMap[vdi.uuid]
+      const children =
+        childrenMap !== undefined
+          ? childrenMap[vdi.uuid]
+          : vdi.$SR.$VDIs.filter(
+              _ => _ !== undefined && _.sm_config['vhd-parent'] === vdi.uuid
+            )
+
       if (
         children.length === 1 &&
         !children[0].managed // some SRs do not coalesce the leaf
