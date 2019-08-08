@@ -73,20 +73,38 @@ class VmsCpuStats extends Component<any, any> {
 class VmsDiskStats extends Component<any, any> {
   state: any = {
     vmId: 0,
+    valueMaxDisk: 0,
+  }
+  setMaxDisk = (value: number) => {
+    if (this.state.valueMaxDisk < value) {
+      this.setState({
+        valueMaxDisk: value,
+      })
+    }
   }
   render() {
     return this.props.vmIds.map((vmId: any) => (
-      <VmDiskStats vmId={vmId} key={vmId} />
+      <VmDiskStats vmId={vmId} key={vmId} setMaxDisk={this.setMaxDisk} valueMaxDisk={this.state.valueMaxDisk}/>
     ))
   }
 }
 class VmsNetworkStats extends Component<any, any> {
   state: any = {
     vmId: 0,
+    valueMaxNetwork:0
   }
+
+  setMaxNetwork = (value: number) => {
+    if (this.state.valueMaxNetwork < value) {
+      this.setState({
+        valueMaxNetwork: value,
+      })
+    }
+  }
+
   render() {
     return this.props.vmIds.map((vmId: any) => (
-      <VmNetworkStats vmId={vmId} key={vmId} />
+      <VmNetworkStats vmId={vmId} key={vmId} setMaxNetwork={this.setMaxNetwork} valueMaxNetwork={this.state.valueMaxNetwork} />
     ))
   }
 }
@@ -295,6 +313,7 @@ class VmCpuStats extends Component<any, any> {
 //
 class VmDiskStats extends Component<any, any> {
   state: any = {
+    granularity: 'seconds',
     diskDataVm: [],
     disksWriting: [],
     disksReading: [],
@@ -323,13 +342,24 @@ class VmDiskStats extends Component<any, any> {
         for (var i = 0; i < NB_VALUES; i++) {
         
           let ValuesDisk: any = {}
-          
+         
        
           this.state.disksWriting.forEach((property: string | number) => {
+             const diskValuesWriting = xvds.w[property][i]
+
+             if(this.state.maxDiskW === undefined || diskValuesWriting >this.state.maxDiskW ){
+              this.state.maxDiskW=diskValuesWriting
+             }
             ValuesDisk[`xvds_${property}_(w)`] = xvds.w[property][i]
           })
 
           this.state.disksReading.forEach((property: string | number) => {
+            const diskValuesReading= xvds.w[property][i]
+
+            if(this.state.maxDiskR === undefined || diskValuesReading >this.state.maxDiskR ){
+             this.state.maxDiskR=diskValuesReading
+            }
+
             ValuesDisk[`xvds_${property}_(r)`] = xvds.r[property][i]
           })
       
@@ -338,7 +368,7 @@ class VmDiskStats extends Component<any, any> {
         
         }
   
-        this.state.disksWriting.forEach((property: string | number) => {
+        /* this.state.disksWriting.forEach((property: string | number) => {
           this.state.maxDiskW=Math.max(...xvds.w[property]);
           this.setState({ maxDiskW: Math.max(...xvds.w[property]) })
         })
@@ -346,7 +376,7 @@ class VmDiskStats extends Component<any, any> {
         this.state.disksReading.forEach((property: string | number) => {
           this.state.maxDiskR=Math.max(...xvds.r[property]);
           this.setState({ maxDiskR: Math.max(...xvds.r[property]) })
-        })
+        }) */
       
           this.setState({ maxDisk: Math.max(this.state.maxDiskW, this.state.maxDiskR) })
         
@@ -354,6 +384,7 @@ class VmDiskStats extends Component<any, any> {
         this.setState({ diskDataVm })
       }
     )
+    this.props.setMaxDisk(this.state.maxDisk)
   }
  
 
@@ -388,7 +419,7 @@ class VmDiskStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000000, this.state.maxDisk)]}
+              domain={[0, Math.max(1000000000, this.props.valueMaxDisk)]}
             />
             <Legend iconType='rect' iconSize={10} />
 
@@ -414,6 +445,7 @@ class VmDiskStats extends Component<any, any> {
 
 class VmNetworkStats extends Component<any, any> {
   state: any = {
+    granularity: 'seconds',
     networkDataVm: [],
     networksTransmissionVm: [],
     networksReceptionVm: [],
@@ -444,11 +476,33 @@ class VmNetworkStats extends Component<any, any> {
         for (var i = 0; i < NB_VALUES; i++) {
         
           let valuesNetwork: any = {}
+               /**
+ * 
+ *  this.state.iopsSr.forEach((property: string | number) => {
+          const iopsValue = iops[property][i]
+          if (
+            this.state.maxIpos === undefined ||
+            iopsValue > this.state.maxIpos
+          ) {
+            this.state.maxIpos = iopsValue
+          }
+          valuesSrIops[`iops_${property}`] = iopsValue
+        })
+ */
+         
           this.state.networksTransmissionVm.forEach((property: string | number) => {
+const networkValues = vifs.tx[property][i]
+if(this.state.maxNetworkTx=== undefined || networkValues > this.state.maxNetworkTx){
+  this.state.maxNetworkTx = networkValues
+}
             valuesNetwork[`vifs_${property}_(tx)`] = vifs.tx[property][i]
           })
 
           this.state.networksReceptionVm.forEach((property: string | number) => {
+            const networkValuesR = vifs.rx[property][i]
+            if(this.state.maxNetworkRx=== undefined || networkValuesR > this.state.maxNetworkRx){
+              this.state.maxNetworkRx = networkValuesR
+            }
             valuesNetwork[`vifs_${property}_(rx)`] = vifs.rx[property][i]
           })
 
@@ -456,7 +510,7 @@ class VmNetworkStats extends Component<any, any> {
           networkDataVm.push(valuesNetwork)
         }
        
-        this.state.networksTransmissionVm.forEach((property: string | number) => {
+       /*  this.state.networksTransmissionVm.forEach((property: string | number) => {
           this.state.maxNetworkTx= Math.max(...vifs.tx[property])
           this.setState({ maxNetworkTx: Math.max(...vifs.tx[property]) })
         })
@@ -464,7 +518,7 @@ class VmNetworkStats extends Component<any, any> {
         this.state.networksReceptionVm.forEach((property: string | number) => {
           this.state.maxNetworkRx= Math.max(...vifs.rx[property])
           this.setState({ maxNetworkRx: Math.max(...vifs.rx[property]) })
-        })
+        }) */
 
         this.setState({ maxNetworkVm :Math.max(
           this.state.maxNetworkTx,
@@ -475,10 +529,10 @@ class VmNetworkStats extends Component<any, any> {
           this.state.maxNetworkTx,
           this.state.maxNetworkRx
         )  */
-
         this.setState({ networkDataVm})
       }
     )
+    this.props.setMaxNetwork(this.state.maxNetworkVm)
   }
  
   formatBytes(bytes: any, decimals = 2) {
@@ -513,7 +567,7 @@ class VmNetworkStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000, this.state.maxNetworkVm)]}
+              domain={[0, Math.max(1000000, this.props.valueMaxNetwork)]}
             /> 
             <Legend iconType='rect' iconSize={10} />
             {[ ...this.state.networksTransmissionVm, ...this.state.networksReceptionVm]

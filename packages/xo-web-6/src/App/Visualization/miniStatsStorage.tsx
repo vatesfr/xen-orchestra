@@ -190,9 +190,27 @@ class StorageLatencyStats extends Component<any, any> {
 
       const latencyData: any[] = []
 
+
+      /**
+ * 
+ *  this.state.iopsSr.forEach((property: string | number) => {
+          const iopsValue = iops[property][i]
+          if (
+            this.state.maxIpos === undefined ||
+            iopsValue > this.state.maxIpos
+          ) {
+            this.state.maxIpos = iopsValue
+          }
+          valuesSrIops[`iops_${property}`] = iopsValue
+        })
+ */
       for (var i = 0; i < NB_VALUES; i++) {
         const valuesSrLatency: any = {}
         this.state.latencySr.forEach((property: string | number) => {
+          const latencyValues = latency[property][i]
+          if(this.state.maxLatency === undefined || latencyValues> this.state.maxLatency ){
+           this.state.maxLatency = latencyValues
+          }
           valuesSrLatency[`latency_${property}`] = latency[property][i]
         })
         valuesSrLatency.time =
@@ -200,9 +218,9 @@ class StorageLatencyStats extends Component<any, any> {
         latencyData.push(valuesSrLatency)
       }
 
-      this.state.latencySr.forEach((property: string | number) => {
+     /*  this.state.latencySr.forEach((property: string | number) => {
         this.setState({ maxLatency: Math.max(...latency[property]) })
-      })
+      }) */
 
       this.setState({ latencyData })
     })
@@ -289,6 +307,7 @@ class StorageIopsStats extends Component<any, any> {
           }
           valuesSrIops[`iops_${property}`] = iopsValue
         })
+
         iopsData.push(valuesSrIops)
       }
 
@@ -438,7 +457,14 @@ class StorageThroughputStats extends Component<any, any> {
       for (var i = 0; i < NB_VALUES; i++) {
         const valuesSrThro: any = {}
 
+
+
         this.state.throSr.forEach((property: string | number) => {
+        const throughputValue= ioThroughput[property][i]
+        if(this.state.maxIoThroughput=== undefined || throughputValue> this.state.maxIoThroughput){
+this.state.maxIoThroughput=throughputValue
+        }
+        
           valuesSrThro[`thr_${property}`] = ioThroughput[property][i]
         })
         valuesSrThro.time =
@@ -446,11 +472,11 @@ class StorageThroughputStats extends Component<any, any> {
         throughputData.push(valuesSrThro)
       }
 
-      this.state.throSr.forEach((property: string | number) => {
+     /*  this.state.throSr.forEach((property: string | number) => {
         this.setState({
           maxIoThroughput: Math.max(...ioThroughput[property]),
         })
-      })
+      }) */
 
       this.setState({ throughputData })
     })

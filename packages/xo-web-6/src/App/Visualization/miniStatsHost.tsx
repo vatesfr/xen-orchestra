@@ -345,35 +345,64 @@ class HostsNetworkStats extends Component<any, any> {
           for (var i = 0; i < NB_VALUES; i++) {
           
             let valuesNetwork: any = {}
+
+
+/**
+ * 
+ *  this.state.iopsSr.forEach((property: string | number) => {
+          const iopsValue = iops[property][i]
+          if (
+            this.state.maxIpos === undefined ||
+            iopsValue > this.state.maxIpos
+          ) {
+            this.state.maxIpos = iopsValue
+          }
+          valuesSrIops[`iops_${property}`] = iopsValue
+        })
+ */
+
             this.state.networksTransmissionVm.forEach((property: string | number) => {
+              const networkValueT= pifs.tx[property][i]
+              if(this.state.maxNetworkTx === undefined || networkValueT > this.state.maxNetworkTx){
+              this.state.maxNetworkTx = networkValueT
+              }
+
               valuesNetwork[`pifs_${property}_(tx)`] = pifs.tx[property][i]
             })
   
             this.state.networksReceptionVm.forEach((property: string | number) => {
+              const networkValueR= pifs.rx[property][i]
+              if(this.state.maxNetworkRx === undefined || networkValueR > this.state.maxNetworkRx){
+              this.state.maxNetworkRx = networkValueR
+              }
+
               valuesNetwork[`pifs_${property}_(rx)`] = pifs.rx[property][i]
             })
+          
   
             valuesNetwork.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000  
+          
             networkDataVm.push(valuesNetwork)
+
           }
-         
+          this.setState({ maxNetworkVm :Math.max(
+            this.state.maxNetworkTx,
+            this.state.maxNetworkRx
+          ) }) 
+
   
-          this.state.networksTransmissionVm.forEach((property: string | number) => {
+         /*  this.state.networksTransmissionVm.forEach((property: string | number) => {
     
-            this.setState({ maxNetworkTx: Math.max(...pifs.tx[property]) })
+            this.setState({ maxNetworkTx: Math.max( ...pifs.tx[property]) })
           })
   
           this.state.networksReceptionVm.forEach((property: string | number) => {
 
-            this.setState({ maxNetworkRx: Math.max(...pifs.rx[property]) })
-          })
+            this.setState({ maxNetworkRx: Math.max( ...pifs.rx[property]) })
+          }) */
 
 
-           this.setState({ maxNetworkVm :Math.max(
-            this.state.maxNetworkTx,
-            this.state.maxNetworkRx
-          ) }) 
-    
+           
   
          /*  this.state.maxNetworkVm = Math.max(
             this.state.maxNetworkTx,

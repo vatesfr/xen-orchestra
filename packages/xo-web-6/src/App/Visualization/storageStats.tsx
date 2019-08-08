@@ -26,17 +26,17 @@ export default class Visualization extends Component<any, any> {
 
     //  SR
     //  IOPS
-    dataSrIops: [],
+    iopsData: [],
     iopsSr: [],
     maxIOPS: 0,
 
     //  IO Throughput
-    dataSrThro: [],
+    throughputData: [],
     throSr: [],
     maxIoThroughput: 0,
 
     //  Latency
-    dataSrLatency: [],
+    latencyData: [],
     latencySr: [],
     maxLatency: 0,
 
@@ -75,9 +75,9 @@ export default class Visualization extends Component<any, any> {
         this.setState({ latencySr: Object.keys(latency) })
         this.setState({ iowaitSr: Object.keys(iowait) })
 
-        const dataSrIops: any[] = []
-        const dataSrThro: any[] = []
-        const dataSrLatency: any[] = []
+        const iopsData: any[] = []
+        const throughputData: any[] = []
+        const latencyData: any[] = []
         const dataSrIowait: any[] = []
 
         for (var i = 0; i < NB_VALUES; i++) {
@@ -110,9 +110,9 @@ export default class Visualization extends Component<any, any> {
           valuesSrThro.time = valuesSrIops.time
           valuesSrIowait.time = valuesSrIops.time
 
-          dataSrIops.push(valuesSrIops)
-          dataSrThro.push(valuesSrThro)
-          dataSrLatency.push(valuesSrLatency)
+          iopsData.push(valuesSrIops)
+          throughputData.push(valuesSrThro)
+          latencyData.push(valuesSrLatency)
           dataSrIowait.push(valuesSrIowait)
         }
 
@@ -133,7 +133,7 @@ export default class Visualization extends Component<any, any> {
             maxIoThroughput: Math.max(...ioThroughput[property]),
           })
         })
-        this.setState({ dataSrIops, dataSrThro, dataSrLatency, dataSrIowait })
+        this.setState({ iopsData, throughputData, latencyData, dataSrIowait })
       }
     )
   }
@@ -158,17 +158,17 @@ export default class Visualization extends Component<any, any> {
           </form>
         </div>
         <SrIOPSGraph
-          dataSrIops={this.state.dataSrIops}
+          iopsData={this.state.iopsData}
           iopsSr={this.state.iopsSr}
           maxIOPS={this.state.maxIOPS}
         />
         <SrIOThroGraph
-          dataSrThro={this.state.dataSrThro}
+          throughputData={this.state.throughputData}
           throSr={this.state.throSr}
           maxIoThroughput={this.state.maxIoThroughput}
         />
         <SrLatencyGraph
-          dataSrLatency={this.state.dataSrLatency}
+          latencyData={this.state.latencyData}
           latencySr={this.state.latencySr}
           maxLatency={this.state.maxLatency}
         />
@@ -227,7 +227,7 @@ class SrIOPSGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.dataSrIops}
+            data={this.props.iopsData}
             syncId='sr'
             margin={{
               top: 5,
@@ -252,7 +252,7 @@ class SrIOPSGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.props.dataSrIops}
+                data={this.props.iopsData}
                 margin={{
                   top: 5,
                   right: 20,
@@ -331,7 +331,7 @@ class SrIOThroGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.dataSrThro}
+            data={this.props.throughputData}
             syncId='sr'
             margin={{
               top: 5,
@@ -356,7 +356,7 @@ class SrIOThroGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.props.dataSrThro}
+                data={this.props.throughputData}
                 margin={{
                   top: 5,
                   right: 20,
@@ -416,7 +416,7 @@ class SrLatencyGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.dataSrLatency}
+            data={this.props.latencyData}
             syncId='sr'
             margin={{
               top: 5,
@@ -441,7 +441,7 @@ class SrLatencyGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.props.dataSrLatency}
+                data={this.props.latencyData}
                 margin={{
                   top: 5,
                   right: 20,
