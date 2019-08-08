@@ -447,11 +447,21 @@ describe('backupNg', () => {
 
   test('execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval', async () => {
     jest.setTimeout(6e4)
-    const vmId = config.vms.vmToBackup
-    if (xo.objects.all[vmId] === undefined) throw new Error('no vm to backup')
+    const {
+      vms: { default: defaultVm, vmToBackup = defaultVm },
+      remotes: {
+        default: defaultRemote,
+        remote1 = defaultRemote,
+        remote2 = defaultRemote,
+      },
+      servers: { default: defaultServer },
+    } = config
 
-    await xo.createTempServer(config.servers.default)
-    const { remote1, remote2 } = config.remotes
+    expect(vmToBackup).not.toBe(undefined)
+    expect(remote1).not.toBe(undefined)
+    expect(remote2).not.toBe(undefined)
+
+    await xo.createTempServer(defaultServer)
     const { id: remoteId1 } = await xo.createTempRemote(remote1)
     const { id: remoteId2 } = await xo.createTempRemote(remote2)
     const remotes = [remoteId1, remoteId2]
@@ -478,7 +488,7 @@ describe('backupNg', () => {
         [scheduleTempId]: { exportRetention },
       },
       vms: {
-        id: vmId,
+        id: vmToBackup,
       },
     })
 
@@ -519,7 +529,7 @@ describe('backupNg', () => {
       }
       tasks.forEach(({ tasks, ...vmTask }) => {
         if (vmTask.data !== undefined && vmTask.data.type === 'VM') {
-          validateVmTask(vmTask, vmId, { status: 'success' })
+          validateVmTask(vmTask, vmToBackup, { status: 'success' })
           numberOfTasks.vm++
           tasks.forEach(({ tasks, ...subTask }) => {
             if (subTask.message === 'snapshot') {
