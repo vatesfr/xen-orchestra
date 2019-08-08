@@ -18,17 +18,25 @@ const Usage = ({ total, children }) => {
   const nOthers = othersValues.length
   return (
     <span className='usage'>
-      {React.Children.map(
-        children,
-        (child, index) =>
-          child.props.value > limit && cloneElement(child, { total })
+      {nOthers > 1 ? (
+        <span>
+          {React.Children.map(
+            children,
+            (child, index) =>
+              child.props.value > limit && cloneElement(child, { total })
+          )}
+          <Element
+            others
+            tooltip={_('others', { nOthers })}
+            total={total}
+            value={othersTotal}
+          />
+        </span>
+      ) : (
+        React.Children.map(children, (child, index) =>
+          cloneElement(child, { total })
+        )
       )}
-      <Element
-        others
-        tooltip={_('others', { nOthers })}
-        total={total}
-        value={othersTotal}
-      />
     </span>
   )
 }
