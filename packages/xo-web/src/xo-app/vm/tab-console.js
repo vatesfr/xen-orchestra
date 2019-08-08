@@ -13,7 +13,7 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { isVmRunning, resolveUrl } from 'xo'
 import { Col, Container, Row } from 'grid'
-import { confirm } from 'modal'
+import { confirm, form } from 'modal'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -61,7 +61,9 @@ export default class TabConsole extends Component {
       this._toggleMinimalLayout()
     }
   }
-  _sendCtrlAltDel = () => {
+
+  _sendCtrlAltDel = async () => {
+    await confirm({ body: _('ctrlAltDelConfirmation') })
     this.refs.noVnc.sendCtrlAltDel()
   }
 
@@ -91,9 +93,33 @@ export default class TabConsole extends Component {
     this.setState({ minimalLayout: !this.state.minimalLayout })
   }
 
+  _openSsh = () => {
+    window.location = `ssh://root@${this.props.vm.addresses['0/ip']}`
+  }
+
+  _openSshMore = async () => {
+    const SshName = ({ value, onChange }) => (
+      <div>
+        <input
+          type='text'
+          className='form-control'
+          onChange={onChange}
+          value={value}
+        />
+      </div>
+    )
+    const username = await form({
+      defaultValue: 'root',
+      header: <span>{_('sshUsernameLabel')}</span>,
+      render: props => <SshName {...props} />,
+    })
+    window.location = `ssh://${username}@${this.props.vm.addresses['0/ip']}`
+  }
+
   render() {
     const { statsOverview, vm } = this.props
     const { minimalLayout, scale } = this.state
+    const canSSH = vm.addresses && vm.addresses['0/ip']
 
     if (!isVmRunning(vm)) {
       return (
@@ -161,12 +187,38 @@ export default class TabConsole extends Component {
               </span>
             </div>
           </Col>
-          <Col mediumSize={2}>
-            <Button onClick={this._sendCtrlAltDel}>
-              <Icon icon='vm-keyboard' /> {_('ctrlAltDelButtonLabel')}
-            </Button>
-          </Col>
           <Col mediumSize={3}>
+            <div className='input-group'>
+              <span className='input-group-btn'>
+                <ActionButton
+                  handler={this._openSsh}
+                  tooltip={_('sshRootTooltip')}
+                  disabled={!canSSH}
+                  icon='remote'
+                >
+                  {_('sshRootLabel')}
+                </ActionButton>
+              </span>
+              <span className='input-group-btn'>
+                <ActionButton
+                  handler={this._openSshMore}
+                  tooltip={_('sshUserTooltip')}
+                  disabled={!canSSH}
+                  icon='remote'
+                >
+                  {_('sshUserLabel')}
+                </ActionButton>
+              </span>
+              <span className='input-group-btn'>
+                <ActionButton
+                  handler={this._sendCtrlAltDel}
+                  tooltip={_('ctrlAltDelButtonLabel')}
+                  icon='vm-keyboard'
+                />
+              </span>
+            </div>
+          </Col>
+          <Col mediumSize={2}>
             <input
               className='form-control'
               max={3}
