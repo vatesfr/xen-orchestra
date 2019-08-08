@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM/disks] Display duplicated disks  [#4400](https://github.com/vatesfr/xen-orchestra/issues/4400) (PR [#4414](https://github.com/vatesfr/xen-orchestra/pull/4414))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”

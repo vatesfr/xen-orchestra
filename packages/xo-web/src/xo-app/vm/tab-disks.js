@@ -39,15 +39,12 @@ import { error } from 'notification'
 import {
   every,
   filter,
-  find,
   forEach,
   get,
-  groupBy,
   map,
-  mapValues,
-  pick,
   some,
   sortedUniq,
+  uniq,
 } from 'lodash'
 import {
   attachDiskToVm,
@@ -85,11 +82,20 @@ class VdiSr extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-  _onChangeSr = sr => migrateVdi(this.props.item, sr)
+  _onChangeSr = sr => {
+    const {
+      item: vbd,
+      userData: { vdis },
+    } = this.props
+    return migrateVdi(vdis[vbd.VDI], sr)
+  }
 
   render() {
-    const { item: vdi, userData } = this.props
-    const sr = userData.srs[vdi.$SR]
+    const {
+      item: vbd,
+      userData: { vdis, srs },
+    } = this.props
+    const sr = srs[vdis[vbd.VDI].$SR]
     return (
       sr !== undefined && (
         <XoSelect
@@ -111,81 +117,82 @@ class VdiSr extends Component {
 
 const COLUMNS_VM_PV = [
   {
-    itemRenderer: vdi => (
-      <Text
-        value={vdi.name_label}
-        onChange={value => editVdi(vdi, { name_label: value })}
-      />
-    ),
+    itemRenderer: (vbd, { vdis }) => {
+      const vdi = vdis[vbd.VDI]
+      return (
+        <Text
+          value={vdi.name_label}
+          onChange={value => editVdi(vdi, { name_label: value })}
+        />
+      )
+    },
     name: _('vdiNameLabel'),
-    sortCriteria: 'name_label',
+    sortCriteria: (vbd, { vdis }) => vdis[vbd.VDI].name_label,
     default: true,
   },
   {
-    itemRenderer: vdi => (
-      <Text
-        value={vdi.name_description}
-        onChange={value => editVdi(vdi, { name_description: value })}
-      />
-    ),
+    itemRenderer: (vbd, { vdis }) => {
+      const vdi = vdis[vbd.VDI]
+      return (
+        <Text
+          value={vdi.name_description}
+          onChange={value => editVdi(vdi, { name_description: value })}
+        />
+      )
+    },
     name: _('vdiNameDescription'),
-    sortCriteria: 'name_description',
+    sortCriteria: (vbd, { vdis }) => vdis[vbd.VDI].name_description,
   },
   {
-    itemRenderer: vdi => (
-      <Size
-        value={vdi.size || null}
-        onChange={size => editVdi(vdi, { size })}
-      />
-    ),
+    itemRenderer: (vbd, { vdis }) => {
+      const vdi = vdis[vbd.VDI]
+      return (
+        <Size
+          value={vdi.size || null}
+          onChange={size => editVdi(vdi, { size })}
+        />
+      )
+    },
     name: _('vdiSize'),
-    sortCriteria: 'size',
+    sortCriteria: (vbd, { vdis }) => vdis[vbd.VDI].size,
   },
   {
     component: VdiSr,
     name: _('vdiSr'),
-    sortCriteria: (vdi, userData) => {
-      const sr = userData.srs[vdi.$SR]
+    sortCriteria: (vbd, { vdis, srs }) => {
+      const sr = srs[vdis[vbd.VDI].$SR]
       return sr !== undefined && sr.name_label
     },
   },
   {
-    itemRenderer: ({ id }, userData) => (
-      <span>{userData.vbdsByVdi[id].device}</span>
-    ),
+    itemRenderer: vbd => <span>{vbd.device}</span>,
     name: _('vbdDevice'),
-    sortCriteria: ({ id }, userData) => userData.vbdsByVdi[id].device,
+    sortCriteria: 'device',
   },
   {
-    itemRenderer: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return (
-        <Toggle
-          onChange={bootable => setBootableVbd(vbd, bootable)}
-          value={vbd.bootable}
-        />
-      )
-    },
+    itemRenderer: vbd => (
+      <Toggle
+        onChange={bootable => setBootableVbd(vbd, bootable)}
+        value={vbd.bootable}
+      />
+    ),
     name: _('vbdBootableStatus'),
     id: 'vbdBootableStatus',
   },
   {
-    itemRenderer: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return (
-        <StateButton
-          disabledLabel={_('vbdStatusDisconnected')}
-          disabledHandler={connectVbd}
-          disabledTooltip={_('vbdConnect')}
-          enabledLabel={_('vbdStatusConnected')}
-          enabledHandler={disconnectVbd}
-          enabledTooltip={_('vbdDisconnect')}
-          disabled={!(vbd.attached || isVmRunning(userData.vm))}
-          handlerParam={vbd}
-          state={vbd.attached}
-        />
-      )
-    },
+    itemRenderer: (vbd, { vm }) => (
+      <StateButton
+        disabledLabel={_('vbdStatusDisconnected')}
+        disabledHandler={connectVbd}
+        disabledTooltip={_('vbdConnect')}
+        enabledLabel={_('vbdStatusConnected')}
+        enabledHandler={disconnectVbd}
+        enabledTooltip={_('vbdDisconnect')}
+        disabled={!(vbd.attached || isVmRunning(vm))}
+        handlerParam={vbd}
+        state={vbd.attached}
+      />
+    ),
     name: _('vbdStatus'),
   },
 ]
@@ -194,31 +201,20 @@ const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
 
 const ACTIONS = [
   {
-    disabled: (selectedItems, userData) =>
-      some(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]), 'attached'),
-    handler: (selectedItems, userData) =>
-      deleteVbds(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id])),
-    individualDisabled: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return vbd !== undefined && vbd.attached
-    },
-    individualHandler: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return vbd !== undefined && deleteVbd(vbd)
-    },
+    disabled: selectedItems => some(selectedItems, 'attached'),
+    handler: deleteVbds,
+    individualDisabled: vbd => vbd.attached,
+    individualHandler: deleteVbd,
     icon: 'vdi-forget',
     label: _('vdiForget'),
     level: 'danger',
   },
   {
-    disabled: (selectedItems, userData) =>
-      some(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]), 'attached'),
-    handler: deleteVdis,
-    individualDisabled: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return vbd !== undefined && vbd.attached
-    },
-    individualHandler: deleteVdi,
+    disabled: selectedItems => some(selectedItems, 'attached'),
+    handler: (selectedItems, { vdis }) =>
+      deleteVdis(uniq(map(selectedItems, vbd => vdis[vbd.VDI]))),
+    individualDisabled: vbd => vbd.attached,
+    individualHandler: (vbd, { vdis }) => deleteVdi(vdis[vbd.VDI]),
     individualLabel: _('vdiRemove'),
     icon: 'vdi-remove',
     label: _('deleteSelectedVdis'),
@@ -407,13 +403,13 @@ class NewDisk extends Component {
 }
 
 @connectStore({
+  vbds: createGetObjectsOfType('VBD'),
   srs: createGetObjectsOfType('SR'),
 })
 class AttachDisk extends Component {
   static propTypes = {
     checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
-    vbds: PropTypes.array.isRequired,
     vm: PropTypes.object.isRequired,
   }
 
@@ -710,7 +706,6 @@ class MigrateVdiModalBody extends Component {
 @connectStore(() => ({
   checkPermissions: getCheckPermissions,
   isAdmin,
-  allVbds: createGetObjectsOfType('VBD'),
 }))
 export default class TabDisks extends Component {
   constructor(props) {
@@ -833,52 +828,42 @@ export default class TabDisks extends Component {
       sr.$container === requiredHost
   )
 
-  _getVbdsByVdi = createSelector(
-    () => this.props.vdis,
+  _getVbds = createSelector(
     () => this.props.vbds,
-    () => this.props.vm,
-    (vdis, vbds, vm) => mapValues(vdis, vdi => find(vbds, { VDI: vdi.id }))
-  )
-
-  _getIsVdiAttached = createSelector(
-    createSelector(
-      () => this.props.allVbds,
-      () => Object.keys(this.props.vdis),
-      (vbds, vdis) => pick(groupBy(vbds, 'VDI'), vdis)
-    ),
-    vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
+    () => this.props.vdis,
+    (vbds, vdis) => filter(vbds, vbd => vdis[vbd.VDI] !== undefined)
   )
 
   individualActions = [
     ...(process.env.XOA_PLAN > 1
       ? [
           {
-            handler: exportVdi,
+            handler: (vbd, { vdis }) => exportVdi(vdis[vbd.VDI]),
             icon: 'export',
             label: _('exportVdi'),
           },
           {
-            disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
-            handler: importVdi,
+            disabled: vbd => vbd.attached,
+            handler: (vbd, { vdis }) => importVdi(vdis[vbd.VDI]),
             icon: 'import',
             label: _('importVdi'),
           },
         ]
       : []),
     {
-      handler: this._migrateVdi,
+      handler: (vbd, { vdis }) => this._migrateVdi(vdis[vbd.VDI]),
       icon: 'vdi-migrate',
       label: _('vdiMigrate'),
     },
     {
-      handler: vdi => copy(vdi.uuid),
+      handler: (vbd, { vdis }) => copy(vdis[vbd.VDI].uuid),
       icon: 'clipboard',
-      label: vdi => _('copyUuid', { uuid: vdi.uuid }),
+      label: (vbd, { vdis }) => _('copyUuid', { uuid: vdis[vbd.VDI].uuid }),
     },
   ]
 
   render() {
-    const { allVbds, srs, vdis, vm } = this.props
+    const { srs, vdis, vm } = this.props
 
     const { attachDisk, bootOrder, newDisk } = this.state
 
@@ -927,7 +912,6 @@ export default class TabDisks extends Component {
                 <AttachDisk
                   checkSr={this._getCheckSr()}
                   vm={vm}
-                  vbds={allVbds}
                   onClose={this._toggleAttachDisk}
                 />
                 <hr />
@@ -952,11 +936,10 @@ export default class TabDisks extends Component {
           <Col>
             <SortedTable
               actions={ACTIONS}
-              collection={vdis}
+              collection={this._getVbds()}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
-              data-isVdiAttached={this._getIsVdiAttached()}
               data-srs={srs}
-              data-vbdsByVdi={this._getVbdsByVdi()}
+              data-vdis={vdis}
               data-vm={vm}
               individualActions={this.individualActions}
               shortcutsTarget='body'
