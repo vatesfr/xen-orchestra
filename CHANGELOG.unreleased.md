@@ -11,6 +11,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [SR/General] Display VDI VM name in SR usage graph (PR [#4370](https://github.com/vatesfr/xen-orchestra/pull/4370))
+- [VM/Attach disk] Fix checking VDI mode (PR [#4373](https://github.com/vatesfr/xen-orchestra/pull/4373))
+
 ### Released packages
 
 > Packages will be released in the order they are here, therefore, they should
