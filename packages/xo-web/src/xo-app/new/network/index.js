@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
@@ -13,7 +14,11 @@ import {
   getBondModes,
   subscribePlugins,
 } from 'xo'
-import { createGetObject, getIsPoolAdmin } from 'selectors'
+import {
+  createGetObject,
+  createGetObjectsOfType,
+  getIsPoolAdmin,
+} from 'selectors'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { linkState } from 'reaclette-utils'
@@ -32,6 +37,7 @@ const EMPTY = {
   isPrivate: false,
   mtu: '',
   name: '',
+  networks: [],
   pif: undefined,
   pifs: [],
   vlan: '',
@@ -43,12 +49,31 @@ const NewNetwork = decorate([
   }),
   connectStore(() => ({
     isPoolAdmin: getIsPoolAdmin,
+    nPools: createGetObjectsOfType('pool').count(),
     pool: createGetObject((_, props) => props.location.query.pool),
   })),
   injectIntl,
   provideState({
     initialState: () => ({ ...EMPTY, bondModes: undefined }),
     effects: {
+      addPool() {
+        const { state } = this
+        state.networks = [
+          ...state.networks,
+          { pool: undefined, pif: undefined },
+        ]
+      },
+      onChangeNetwork(_, key, pool, pif) {
+        const networks = [...this.state.networks]
+        const entry = networks[key]
+        if (pool !== undefined) {
+          entry.pool = pool
+        }
+        if (pif !== undefined) {
+          entry.pif = pif
+        }
+        this.state.networks = networks
+      },
       initialize: async () => ({ bondModes: await getBondModes() }),
       linkState,
       onChangeMode: (_, bondMode) => ({ bondMode }),
@@ -56,6 +81,16 @@ const NewNetwork = decorate([
         bonded ? { pifs: value } : { pif: value },
       onChangeEncapsulation(_, encapsulation) {
         return { encapsulation: encapsulation.value }
+      },
+      onDeletePool(
+        _,
+        {
+          currentTarget: { dataset },
+        }
+      ) {
+        const networks = [...this.state.networks]
+        networks.splice(dataset.position, 1)
+        this.state.networks = networks
       },
       reset: () => EMPTY,
       toggleBonded() {
@@ -76,6 +111,8 @@ const NewNetwork = decorate([
       },
     },
     computed: {
+      disableAddPool: ({ networks }, { nPools }) =>
+        networks.length >= nPools - 1,
       modeOptions: ({ bondModes }) =>
         bondModes !== undefined
           ? bondModes.map(mode => ({
@@ -89,6 +126,23 @@ const NewNetwork = decorate([
         pif.physical &&
         pif.ip_configuration_mode !== 'None' &&
         pif.$host === (pool && pool.master),
+      pifNetworkPredicate: ({ networks }) => (pif, key) => {
+        const pool = networks[key].pool
+        return (
+          pif.physical &&
+          pif.ip_configuration_mode !== 'None' &&
+          pif.$host === (pool !== undefined && pool.master)
+        )
+      },
+      poolNetworkPredicate: ({ networks }, { pool: rootPool }) => (
+        selectedPool,
+        selectedKey
+      ) =>
+        selectedPool.id !== rootPool.id &&
+        !networks.some(
+          ({ pool = {} }, key) =>
+            selectedPool.id === pool.id && selectedKey !== key
+        ),
       isSdnControllerLoaded: (state, { plugins = [] }) =>
         plugins.some(
           plugin => plugin.name === 'sdn-controller' && plugin.loaded
@@ -242,7 +296,6 @@ const NewNetwork = decorate([
                       <div>
                         <label>{_('newNetworkEncapsulation')}</label>
                         <Select
-                          className='form-control'
                           name='encapsulation'
                           onChange={effects.onChangeEncapsulation}
                           options={[
@@ -251,6 +304,45 @@ const NewNetwork = decorate([
                           ]}
                           value={encapsulation}
                         />
+                        <div className='mt-1'>
+                          {state.networks.map(({ pool, pif }, key) => (
+                            <div key={key}>
+                              <SelectPool
+                                onChange={value =>
+                                  effects.onChangeNetwork(key, value)
+                                }
+                                value={pool}
+                                predicate={pool =>
+                                  state.poolNetworkPredicate(pool, key)
+                                }
+                                required
+                              />
+                              <SelectPif
+                                onChange={value =>
+                                  effects.onChangeNetwork(key, undefined, value)
+                                }
+                                value={pif}
+                                predicate={pif =>
+                                  state.pifNetworkPredicate(pif, key)
+                                }
+                                required
+                              />
+                              <Button
+                                onClick={effects.onDeletePool}
+                                data-position={key}
+                              >
+                                <Icon icon='new-vm-remove' />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            onClick={effects.addPool}
+                            disabled={state.disableAddPool}
+                          >
+                            <Icon icon='add' />
+                            {_('addPool')}
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       <div>
