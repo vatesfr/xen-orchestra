@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+  - [Usage graph] show the item if there's only 1 "other" [#4392](https://github.com/vatesfr/xen-orchestra/issues/4392) (PR [#4419](https://github.com/vatesfr/xen-orchestra/pull/4419))
+  
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
