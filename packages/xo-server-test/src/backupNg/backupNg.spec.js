@@ -229,7 +229,7 @@ describe('backupNg', () => {
       const vmIdWithoutDisks = await xo.createTempVm({
         name_label: 'XO Test Without Disks',
         name_description: 'Creating a vm without disks',
-        template: config.templates.default,
+        template: config.templates.templateWithoutDisks,
       })
 
       const scheduleTempId = randomId()
