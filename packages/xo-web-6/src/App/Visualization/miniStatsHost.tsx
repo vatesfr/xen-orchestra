@@ -80,7 +80,7 @@ class HostsNetworkStats extends Component<any, any> {
         this.setState({
           valueMaxNetwork: value,
         })
-        console.log('************',this.state.valueMaxNetwork)
+       
       }
     }
 
@@ -222,8 +222,6 @@ class HostsNetworkStats extends Component<any, any> {
     }
   }
 
-  //HostCpuStats
-
   class HostCpuStats extends Component<any, any> {
     state: any = {
       granularity: 'seconds',
@@ -251,15 +249,19 @@ class HostsNetworkStats extends Component<any, any> {
           this.setState({ cpusVm: Object.keys(cpus) })
   
           let cpuDataVm: any[] = []
+          const averageCpu: any[] = []
+
+          for (var i = 0; i < NB_VALUES; i++) {
+            averageCpu[i] = 0
+            for (var j = 0; j < this.state.cpusVm.length; j++) {
+              averageCpu[i] += cpus[j][i] / this.state.cpusVm.length
+            }
+          }
   
           for (var i = 0; i < NB_VALUES; i++) {
             let valuesCpus: any = {}
-         
-            valuesCpus.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-            
-            this.state.cpusVm.forEach((property: string | number) => {
-              valuesCpus[`cpu${property}`] = cpus[property][i]
-            })         
+            valuesCpus.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000   
+            valuesCpus.cpu = averageCpu[i]    
             cpuDataVm.push(valuesCpus)       
           }
          
@@ -267,8 +269,6 @@ class HostsNetworkStats extends Component<any, any> {
         }
       )
     }
-  
-  
     render() {
       return (
         <div>
@@ -293,17 +293,14 @@ class HostsNetworkStats extends Component<any, any> {
                 tickFormatter={tick => tick + ' %'}
               /> 
               <Legend iconType='rect' iconSize={10} />
-              {this.state.cpusVm
-                .map((property: any, index: any) => (
                   <Area
                     connectNulls
                     isAnimationActive={false}
                     type='monotone'
-                    dataKey={`cpu${property}`}
-                    stroke={allColors[index]}
-                    fill={allColors[index]}
+                    dataKey='cpu'
+                    stroke='blue'
+                    fill='blue'
                   />
-                ))}
             </AreaChart>
           </div>
         </div>
@@ -346,42 +343,23 @@ class HostsNetworkStats extends Component<any, any> {
           
             let valuesNetwork: any = {}
 
-
-/**
- * 
- *  this.state.iopsSr.forEach((property: string | number) => {
-          const iopsValue = iops[property][i]
-          if (
-            this.state.maxIpos === undefined ||
-            iopsValue > this.state.maxIpos
-          ) {
-            this.state.maxIpos = iopsValue
-          }
-          valuesSrIops[`iops_${property}`] = iopsValue
-        })
- */
-
             this.state.networksTransmissionVm.forEach((property: string | number) => {
               const networkValueT= pifs.tx[property][i]
               if(this.state.maxNetworkTx === undefined || networkValueT > this.state.maxNetworkTx){
-              this.state.maxNetworkTx = networkValueT
+              this.setState({ maxNetworkTx: networkValueT })
               }
-
               valuesNetwork[`pifs_${property}_(tx)`] = pifs.tx[property][i]
             })
   
             this.state.networksReceptionVm.forEach((property: string | number) => {
               const networkValueR= pifs.rx[property][i]
               if(this.state.maxNetworkRx === undefined || networkValueR > this.state.maxNetworkRx){
-              this.state.maxNetworkRx = networkValueR
+                this.setState({ maxNetworkRx: networkValueR })
               }
 
               valuesNetwork[`pifs_${property}_(rx)`] = pifs.rx[property][i]
-            })
-          
-  
+            })  
             valuesNetwork.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000  
-          
             networkDataVm.push(valuesNetwork)
 
           }
@@ -389,25 +367,6 @@ class HostsNetworkStats extends Component<any, any> {
             this.state.maxNetworkTx,
             this.state.maxNetworkRx
           ) }) 
-
-  
-         /*  this.state.networksTransmissionVm.forEach((property: string | number) => {
-    
-            this.setState({ maxNetworkTx: Math.max( ...pifs.tx[property]) })
-          })
-  
-          this.state.networksReceptionVm.forEach((property: string | number) => {
-
-            this.setState({ maxNetworkRx: Math.max( ...pifs.rx[property]) })
-          }) */
-
-
-           
-  
-         /*  this.state.maxNetworkVm = Math.max(
-            this.state.maxNetworkTx,
-            this.state.maxNetworkRx
-          )  */ 
   
           this.setState({ networkDataVm})
         }
@@ -503,7 +462,6 @@ class HostsNetworkStats extends Component<any, any> {
               loadDataHost.push(valuesLoad)
             }
     
-            //this.state.maxLoad = Math.max(...load)
             this.setState({maxLoad:  Math.max(...load)})
     
             this.setState({
