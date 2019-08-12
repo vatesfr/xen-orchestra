@@ -202,18 +202,12 @@ class SDNController extends EventEmitter {
       )
     )
 
-    const poolIds = []
-    const pifIds = []
     // FIXME: we should monitor when xapis are added/removed
     this._xapis = this._xo.getAllXapis()
     await Promise.all(
       map(this._xapis, async xapi => {
         await xapi.objectsFetched
 
-        poolIds.push(xapi.pool.$id)
-        pifIds.push(
-          find(xapi.pool.$master.$PIFs, pif => pif.device === 'eth0').$id
-        )
         if (this._setControllerNeeded(xapi)) {
           return
         }
@@ -315,19 +309,6 @@ class SDNController extends EventEmitter {
     for (const crossPoolNetwork of this._crossPoolNetworks) {
       this._electNewPoolCenter(crossPoolNetwork)
     }
-
-    /*
-    // TODO: Remove me when UI allows
-    log.debug('Creating cross pool network')
-    await this._createCrossPoolPrivateNetwork({
-      xoPoolIds: poolIds,
-      networkName: 'cross pool',
-      networkDescription: 'cross pool private network',
-      encapsulation: 'gre',
-      xoPifIds: pifIds,
-    })
-    log.debug('Cross pool network created')
-*/
   }
 
   async unload() {
