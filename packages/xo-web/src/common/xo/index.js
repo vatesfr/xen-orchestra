@@ -1288,7 +1288,7 @@ export const migrateVm = (vm, host) =>
   confirm({
     title: _('migrateVmModalTitle'),
     body: <MigrateVmModalBody vm={vm} host={host} />,
-  }).then(params => {
+  }).then(async params => {
     if (!params.targetHost) {
       return error(
         _('migrateVmNoTargetHost'),
@@ -1296,7 +1296,7 @@ export const migrateVm = (vm, host) =>
       )
     }
 
-    return _call('vm.migrate', { vm: vm.id, ...params }).catch(error => {
+    await _call('vm.migrate', { vm: vm.id, ...params }).catch(error => {
       if (error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
         return confirm({
           body: _('forceVmMigrateModalMessage'),

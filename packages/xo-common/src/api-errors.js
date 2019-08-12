@@ -173,9 +173,11 @@ export const patchPrecheckFailed = create(20, ({ errorType, patch }) => ({
   message: `patch precheck failed: ${errorType}`,
 }))
 
-export const vmIncombatibleWithHost = create(21, () => ({
+export const vmIncompatibleWithHost = create(21, ({ vm, host }) => ({
   data: {
+    objectId: vm,
+    destinationId: host,
     code: 'VM_INCOMPATIBLE_WITH_THIS_HOST',
   },
-  message: `The VM is incompatible with the CPU features of this host`,
+  message: 'The VM is incompatible with the CPU features of this host',
 }))
