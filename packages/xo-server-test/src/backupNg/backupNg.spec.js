@@ -450,12 +450,15 @@ describe('backupNg', () => {
     const {
       vms: { default: defaultVm, vmToBackup = defaultVm },
       remotes: { default: defaultRemote, remote1, remote2 = defaultRemote },
+      srs: { localSr, sharedSr },
       servers: { default: defaultServer },
     } = config
 
     expect(vmToBackup).not.toBe(undefined)
     expect(remote1).not.toBe(undefined)
     expect(remote2).not.toBe(undefined)
+    expect(localSr).not.toBe(undefined)
+    expect(sharedSr).not.toBe(undefined)
 
     await xo.createTempServer(defaultServer)
     const { id: remoteId1 } = await xo.createTempRemote(remote1)
@@ -578,5 +581,20 @@ describe('backupNg', () => {
         vm: 1,
       })
     })
+
+    const vmBackupOnLocalSr = await xo.importVmBackup({
+      id: backupsByRemote[remoteId1][0],
+      sr: localSr,
+    })
+    const vmBackupOnSharedSr = await xo.importVmBackup({
+      id: backupsByRemote[remoteId2][0],
+      sr: sharedSr,
+    })
+
+    expect(xo.objects.all[vmBackupOnLocalSr]).not.toBe(undefined)
+    expect(xo.objects.all[vmBackupOnSharedSr]).not.toBe(undefined)
+
+    await xo.call('vm.start', { id: vmBackupOnLocalSr })
+    await xo.call('vm.start', { id: vmBackupOnSharedSr })
   })
 })

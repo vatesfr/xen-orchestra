@@ -197,6 +197,12 @@ class XoConnection extends Xo {
     return backups
   }
 
+  async importVmBackup(params) {
+    const id = await xo.call('backupNg.importVmBackup', params)
+    this._tempResourceDisposers.push('vm.delete', { id })
+    return id
+  }
+
   async _cleanDisposers(disposers) {
     for (let n = disposers.length - 1; n > 0; ) {
       const params = disposers[n--]

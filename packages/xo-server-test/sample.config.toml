@@ -19,6 +19,8 @@
 
 [srs]
   default = ''
+  localSr = ''
+  sharedSr = ''
 
 [remotes]
   default = { name = '', url = '' }
