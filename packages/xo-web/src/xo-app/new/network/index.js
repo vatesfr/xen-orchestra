@@ -1,6 +1,7 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
+import classNames from 'classnames'
 import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
@@ -42,6 +43,22 @@ const EMPTY = {
   pifs: [],
   vlan: '',
 }
+
+const LineItem = ({ children }) => (
+  <div className={styles.lineItem}>{children}</div>
+)
+
+const Item = ({ label, children, className }) => (
+  <span className={styles.item}>
+    {label && (
+      <span>
+        {label}
+        &nbsp;
+      </span>
+    )}
+    <span className={classNames(styles.input, className)}>{children}</span>
+  </span>
+)
 
 const NewNetwork = decorate([
   addSubscriptions({
@@ -322,32 +339,48 @@ const NewNetwork = decorate([
                         <div className='mt-1'>
                           {state.networks.map(({ pool, pif }, key) => (
                             <div key={key}>
-                              <SelectPool
-                                onChange={value =>
-                                  effects.onChangeNetwork(key, value)
-                                }
-                                value={pool}
-                                predicate={pool =>
-                                  state.poolNetworkPredicate(pool, key)
-                                }
-                                required
-                              />
-                              <SelectPif
-                                onChange={value =>
-                                  effects.onChangeNetwork(key, undefined, value)
-                                }
-                                value={pif}
-                                predicate={pif =>
-                                  state.pifNetworkPredicate(pif, key)
-                                }
-                                required
-                              />
-                              <Button
-                                onClick={effects.onDeletePool}
-                                data-position={key}
-                              >
-                                <Icon icon='new-vm-remove' />
-                              </Button>
+                              <LineItem>
+                                <Item label={_('homeTypePool')}>
+                                  <span className={styles.inlineSelect}>
+                                    <SelectPool
+                                      onChange={value =>
+                                        effects.onChangeNetwork(key, value)
+                                      }
+                                      value={pool}
+                                      predicate={pool =>
+                                        state.poolNetworkPredicate(pool, key)
+                                      }
+                                      required
+                                    />
+                                  </span>
+                                </Item>
+                                <Item label={_('pif')}>
+                                  <span className={styles.inlineSelect}>
+                                    <SelectPif
+                                      onChange={value =>
+                                        effects.onChangeNetwork(
+                                          key,
+                                          undefined,
+                                          value
+                                        )
+                                      }
+                                      value={pif}
+                                      predicate={pif =>
+                                        state.pifNetworkPredicate(pif, key)
+                                      }
+                                      required
+                                    />
+                                  </span>
+                                </Item>
+                                <Item>
+                                  <Button
+                                    onClick={effects.onDeletePool}
+                                    data-position={key}
+                                  >
+                                    <Icon icon='new-vm-remove' />
+                                  </Button>
+                                </Item>
+                              </LineItem>
                             </div>
                           ))}
                           <Button
