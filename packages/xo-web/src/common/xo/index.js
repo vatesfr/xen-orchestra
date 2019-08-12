@@ -1298,6 +1298,7 @@ export const migrateVm = (vm, host) =>
 
     await _call('vm.migrate', { vm: vm.id, ...params }).catch(error => {
       if (error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
+        // Retry with force.
         return confirm({
           body: _('forceVmMigrateModalMessage'),
           icon: 'alarm',
