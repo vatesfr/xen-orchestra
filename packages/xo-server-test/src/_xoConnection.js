@@ -181,6 +181,18 @@ class XoConnection extends Xo {
           )
         })
       })
+      for (const id in this.objects.all) {
+        if (this.objects.all[id].other) {
+          const { 'xo:backup:schedule': snapshotSchedule } = this.objects.all[
+            id
+          ].other
+          if (snapshotSchedule === scheduleId) {
+            this._tempResourceDisposers.push('vm.delete', {
+              id,
+            })
+          }
+        }
+      }
     }
     return backups
   }
