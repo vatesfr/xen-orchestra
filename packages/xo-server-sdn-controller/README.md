@@ -1,6 +1,6 @@
 # xo-server-sdn-controller [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-XO Server plugin that allows the creation of pool-wide private networks.
+XO Server plugin that allows the creation of pool-wide and cross-pool private networks.
 
 ## Install
 
@@ -12,6 +12,8 @@ For installing XO and the plugins from the sources, please take a look at [the d
 
 In the network creation view, select a `pool` and `Private network`.
 Create the network.
+
+It is also possible to add other pools to a network.
 
 Choice is offer between `GRE` and `VxLAN`, if `VxLAN` is chosen, then the port 4789 must be open for UDP traffic.
 The following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted:
