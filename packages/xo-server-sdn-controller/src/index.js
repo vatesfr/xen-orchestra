@@ -307,7 +307,7 @@ class SDNController extends EventEmitter {
     )
 
     for (const crossPoolNetwork of this._crossPoolNetworks) {
-      this._electNewPoolCenter(crossPoolNetwork)
+      await this._electNewPoolCenter(crossPoolNetwork)
     }
   }
 
@@ -440,7 +440,7 @@ class SDNController extends EventEmitter {
       })
     }
 
-    this._electNewPoolCenter(crossPoolNetwork)
+    await this._electNewPoolCenter(crossPoolNetwork)
     this._crossPoolNetworks.push(crossPoolNetwork)
   }
 
@@ -587,7 +587,16 @@ class SDNController extends EventEmitter {
               crossPoolNetwork.poolCenter,
               crossPoolNetwork
             )
-            this._connectNetworks(
+            await this._resetCrossPoolConnections(
+              poolNetwork,
+              crossPoolNetwork.uuid
+            )
+            await this._clearCenterPoolFromNetwork(
+              centerPoolNetwork,
+              poolNetwork,
+              crossPoolNetwork.uuid
+            )
+            await this._connectNetworks(
               poolNetwork,
               centerPoolNetwork,
               crossPoolNetwork.uuid
@@ -784,17 +793,21 @@ class SDNController extends EventEmitter {
       return
     }
 
+    const centerPoolNetwork = this._getPoolNetwork(
+      crossPoolNetwork.poolCenter,
+      crossPoolNetwork
+    )
+    await this._resetCrossPoolConnections(
+      centerPoolNetwork,
+      crossPoolNetwork.uuid
+    )
     for (const poolRef of crossPoolNetwork.pools) {
       if (poolRef === crossPoolNetwork.poolCenter) {
         continue
       }
 
       const poolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
-      const centerPoolNetwork = this._getPoolNetwork(
-        crossPoolNetwork.poolCenter,
-        crossPoolNetwork
-      )
-
+      await this._resetCrossPoolConnections(poolNetwork, crossPoolNetwork.uuid)
       await this._connectNetworks(
         poolNetwork,
         centerPoolNetwork,
@@ -829,7 +842,11 @@ class SDNController extends EventEmitter {
         )
         if (hostClient !== undefined) {
           try {
-            await hostClient.resetForNetwork(network.uuid, network.name_label)
+            await hostClient.resetForNetwork(
+              network.uuid,
+              network.name_label,
+              false
+            )
           } catch (error) {
             log.error('Error while resetting private network', {
               error,
@@ -886,11 +903,19 @@ class SDNController extends EventEmitter {
       )
       if (crossPoolNetwork.poolCenter === newCenter.$pool.$ref) {
         centerPoolNetwork.starCenter = newCenter.$ref
+        await this._resetCrossPoolConnections(
+          centerPoolNetwork,
+          crossPoolNetwork.uuid
+        )
         for (const poolRef of crossPoolNetwork.pools) {
           if (poolRef === crossPoolNetwork.poolCenter) {
             continue
           }
           const poolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
+          await this._resetCrossPoolConnections(
+            poolNetwork,
+            crossPoolNetwork.uuid
+          )
           await this._connectNetworks(
             poolNetwork,
             centerPoolNetwork,
@@ -903,6 +928,12 @@ class SDNController extends EventEmitter {
           crossPoolNetwork
         )
         poolNetwork.starCenter = newCenter.$ref
+        await this._resetCrossPoolConnections(poolNetwork)
+        await this._clearCenterPoolFromNetwork(
+          centerPoolNetwork,
+          poolNetwork,
+          crossPoolNetwork.uuid
+        )
         await this._connectNetworks(
           poolNetwork,
           centerPoolNetwork,
@@ -947,6 +978,68 @@ class SDNController extends EventEmitter {
     })
   }
 
+  // ---------------------------------------------------------------------------
+
+  async _clearCenterPoolFromNetwork(centerPoolNetwork, poolNetwork, uuid) {
+    const centerClient = find(
+      this._ovsdbClients,
+      client => client.host.$ref === centerPoolNetwork.starCenter
+    )
+    if (centerClient === undefined) {
+      return
+    }
+
+    const client = find(
+      this._ovsdbClients,
+      client => client.host.$ref === poolNetwork.starCenter
+    )
+    if (client === undefined) {
+      return
+    }
+
+    const centerNetwork = centerClient.host.$xapi.getObjectByRef(
+      centerPoolNetwork.network
+    )
+    const remoteNetwork = client.host.$xapi.getObjectByRef(poolNetwork.network)
+    try {
+      await centerClient.resetForNetwork(
+        centerNetwork.uuid,
+        centerNetwork.name_label,
+        true,
+        remoteNetwork.uuid
+      )
+    } catch (error) {
+      log.error('Error while clearing pool center from network', {
+        error,
+        network: remoteNetwork.name_label,
+        host: client.host.name_label,
+        uuid,
+      })
+    }
+  }
+
+  async _resetCrossPoolConnections(poolNetwork, uuid) {
+    const client = find(
+      this._ovsdbClients,
+      client => client.host.$ref === poolNetwork.starCenter
+    )
+    if (client === undefined) {
+      return
+    }
+
+    const network = client.host.$xapi.getObjectByRef(poolNetwork.network)
+    try {
+      await client.resetForNetwork(network.uuid, network.name_label, true)
+    } catch (error) {
+      log.error('Error while resetting cross pool connections', {
+        error,
+        network: network.name_label,
+        host: client.host.name_label,
+        uuid,
+      })
+    }
+  }
+
   async _connectNetworks(poolNetwork, centerPoolNetwork, uuid) {
     // TODO: see if possible to use tunnel status.
     const client = find(
@@ -961,35 +1054,10 @@ class SDNController extends EventEmitter {
       this._ovsdbClients,
       client => client.host.$ref === centerPoolNetwork.starCenter
     )
-
     const centerNetwork = centerClient.host.$xapi.getObjectByRef(
       centerPoolNetwork.network
     )
     const network = client.host.$xapi.getObjectByRef(poolNetwork.network)
-
-    try {
-      await client.resetForNetwork(
-        network.uuid,
-        network.name_label,
-        centerNetwork.uuid
-      )
-      await centerClient.resetForNetwork(
-        centerNetwork.uuid,
-        centerNetwork.name_label,
-        network.uuid
-      )
-    } catch (error) {
-      log.error('Error while cleaning networks from old connections', {
-        error,
-        network: network.name_label,
-        host: client.host.name_label,
-        pool: client.host.$pool.name_label,
-        centerHost: centerClient.host.name_label,
-        centerPool: centerClient.host.$pool.name_label,
-        uuid,
-      })
-    }
-
     const encapsulation = network.other_config.encapsulation || 'gre'
     try {
       await client.addInterfaceAndPort(
@@ -1026,6 +1094,8 @@ class SDNController extends EventEmitter {
       uuid,
     })
   }
+
+  // ---------------------------------------------------------------------------
 
   async _addHostToNetwork(host, network, starCenter) {
     if (host.$ref === starCenter.$ref) {
