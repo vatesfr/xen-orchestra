@@ -531,6 +531,16 @@ class SDNController extends EventEmitter {
           this._poolNetworks = this._poolNetworks.filter(
             poolNetwork => poolNetwork.network !== networkRef
           )
+
+          for (const crossPoolNetwork of this._crossPoolNetworks) {
+            crossPoolNetwork.networks = crossPoolNetwork.networks.filter(
+              ref => ref !== networkRef
+            )
+          }
+
+          this._crossPoolNetworks = this._crossPoolNetworks.filter(
+            crossPoolNetwork => crossPoolNetwork.networks.length !== 0
+          )
         }
       })
     )
