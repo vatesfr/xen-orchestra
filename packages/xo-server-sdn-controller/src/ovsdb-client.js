@@ -220,7 +220,7 @@ export class OvsdbClient {
         const shouldDelete =
           (config[0] === 'private_pool_wide' && !crossPoolOnly) ||
           (config[0] === 'cross_pool' &&
-            (remoteNetwork === undefined || config[1] === remoteNetwork))
+            (remoteNetwork === undefined || remoteNetwork === config[1]))
 
         if (shouldDelete) {
           portsToDelete.push(['uuid', portUuid])
