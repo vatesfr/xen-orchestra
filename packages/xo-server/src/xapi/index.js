@@ -1135,11 +1135,11 @@ export default class Xapi extends XapiBase {
     hostXapi,
     host,
     {
-      force,
-      mapVdisSrs,
-      mapVifsNetworks,
       migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
       sr,
+      mapVdisSrs,
+      mapVifsNetworks,
+      force,
     }
   ) {
     // VDIs/SRs mapping
@@ -1456,12 +1456,12 @@ export default class Xapi extends XapiBase {
 
     if (useStorageMotion) {
       await this._migrateVmWithStorageMotion(vm, hostXapi, host, {
-        force,
-        mapVdisSrs,
-        mapVifsNetworks,
         migrationNetwork:
           migrationNetworkId && hostXapi.getObject(migrationNetworkId),
         sr,
+        mapVdisSrs,
+        mapVifsNetworks,
+        force,
       })
     } else {
       try {

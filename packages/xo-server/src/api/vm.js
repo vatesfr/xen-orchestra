@@ -449,13 +449,12 @@ insertCd.resolve = {
 
 export async function migrate({
   vm,
-
-  force,
   host,
+  sr,
   mapVdisSrs,
   mapVifsNetworks,
   migrationNetwork,
-  sr,
+  force,
 }) {
   let mapVdisSrsXapi, mapVifsNetworksXapi
   const permissions = []
@@ -485,16 +484,16 @@ export async function migrate({
 
   await this.getXapi(vm)
     .migrateVm(vm._xapiId, this.getXapi(host), host._xapiId, {
-      force,
-      mapVdisSrs: mapVdisSrsXapi,
-      mapVifsNetworks: mapVifsNetworksXapi,
+      sr: sr && this.getObject(sr, 'SR')._xapiId,
       migrationNetworkId:
         migrationNetwork != null ? migrationNetwork._xapiId : undefined,
-      sr: sr && this.getObject(sr, 'SR')._xapiId,
+      mapVifsNetworks: mapVifsNetworksXapi,
+      mapVdisSrs: mapVdisSrsXapi,
+      force,
     })
     .catch(error => {
       if (error.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
-        throw vmIncompatibleWithHost({ vm: vm.id, host: host.id })
+        throw vmIncompatibleWithHost({ vmId: vm.id, hostId: host.id })
       }
       throw error
     })

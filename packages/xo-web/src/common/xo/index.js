@@ -1284,33 +1284,30 @@ export const deleteSnapshots = vms =>
   )
 
 import MigrateVmModalBody from './migrate-vm-modal' // eslint-disable-line import/first
-export const migrateVm = (vm, host) =>
-  confirm({
+export const migrateVm = async (vm, host) => {
+  const params = await confirm({
     title: _('migrateVmModalTitle'),
     body: <MigrateVmModalBody vm={vm} host={host} />,
-  }).then(async params => {
-    if (!params.targetHost) {
-      return error(
-        _('migrateVmNoTargetHost'),
-        _('migrateVmNoTargetHostMessage')
-      )
-    }
+  })
 
-    await _call('vm.migrate', { vm: vm.id, ...params }).catch(error => {
-      if (error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
-        // Retry with force.
-        return confirm({
-          body: _('forceVmMigrateModalMessage'),
-          icon: 'alarm',
-          title: _('forceVmMigrateModalTitle'),
-        }).then(
-          () => _call('vm.migrate', { vm: vm.id, force: true, ...params }),
-          noop
-        )
-      }
-      throw error
-    })
-  }, noop)
+  if (!params.targetHost) {
+    return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+  }
+
+  try {
+    await _call('vm.migrate', { vm: vm.id, ...params })
+  } catch (error) {
+    if (error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
+      // Retry with force.
+      await confirm({
+        body: _('forceVmMigrateModalMessage'),
+        title: _('forceVmMigrateModalTitle'),
+      })
+      _call('vm.migrate', { vm: vm.id, force: true, ...params })
+    }
+    throw error
+  }
+}
 
 import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line import/first
 export const migrateVms = vms =>
