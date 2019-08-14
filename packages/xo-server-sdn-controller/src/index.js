@@ -1224,7 +1224,7 @@ class SDNController extends EventEmitter {
   }
 
   async _hostUnreachable(host) {
-    const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
+    let poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
     for (const poolNetwork of poolNetworks) {
       const network = host.$xapi.getObjectByRef(poolNetwork.network)
       log.debug('Unreachable star-center, electing a new one', {
@@ -1241,10 +1241,15 @@ class SDNController extends EventEmitter {
       }
     }
 
+    poolNetworks = this._poolNetworks.filter(
+      poolNetwork => poolNetwork.pool === host.$pool.$ref
+    )
     await Promise.all(
-      map(this._poolNetworks, poolNetwork => {
+      map(poolNetworks, poolNetwork => {
         const tunnel = this._getHostTunnelForNetwork(host, poolNetwork.network)
-        return tunnel.set_status({ active: 'false' })
+        if (tunnel !== undefined) {
+          return tunnel.set_status({ active: 'false' })
+        }
       })
     )
   }
