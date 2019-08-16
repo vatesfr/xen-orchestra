@@ -110,16 +110,16 @@ $ systemctl restart xo-server
 
 ### Behind a transparent proxy
 
-If your are behind a transparent proxy, you'll probably have issues with the updater (SSL/TLS issues).
+If you're behind a transparent proxy, you'll probably have issues with the updater (SSL/TLS issues).
 
-First, run the following commands:
+Run the following commands to allow the updater to work:
 
 ```
-$ echo NODE_TLS_REJECT_UNAUTHORIZED=0 >> /etc/xo-appliance/env
-$ npm config -g set strict-ssl=false
+$ sudo echo NODE_TLS_REJECT_UNAUTHORIZED=0 >> /etc/xo-appliance/env
+$ sudo npm config -g set strict-ssl=false
+$ sudo systemctl restart xoa-updater
 ```
-
-Then, restart the updater with `systemctl restart xoa-updater`.
+Now try running an update again.
 
 ### Updating SSL self-signed certificate
 
