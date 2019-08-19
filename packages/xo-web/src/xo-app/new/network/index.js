@@ -122,7 +122,6 @@ const NewNetwork = decorate([
             name,
             pifs: map(pifs, 'id'),
             pool: pool.id,
-            vlan,
           })
         : isPrivate
         ? createPrivateNetwork({
