@@ -1023,6 +1023,7 @@ class SDNController extends EventEmitter {
         error,
         network: remoteNetwork.name_label,
         host: client.host.name_label,
+        remotePool: remoteNetwork.$pool.name_label,
         uuid,
       })
     }
@@ -1051,7 +1052,6 @@ class SDNController extends EventEmitter {
   }
 
   async _connectNetworks(poolNetwork, centerPoolNetwork, uuid) {
-    // TODO: see if possible to use tunnel status.
     const client = find(
       this._ovsdbClients,
       client => client.host.$ref === poolNetwork.starCenter
