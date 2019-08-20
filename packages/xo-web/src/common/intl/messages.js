@@ -2006,7 +2006,6 @@ const messages = {
   importConfigError: 'Error while importing config file',
   exportConfig: 'Export',
   downloadConfig: 'Download current config',
-  noConfigImportCommunity: 'No config import available for Community Edition',
 
   // ----- SR -----
   srReconnectAllModalTitle: 'Reconnect all hosts',
