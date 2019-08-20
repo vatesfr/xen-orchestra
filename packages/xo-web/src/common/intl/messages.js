@@ -757,8 +757,6 @@ const messages = {
   poolNetworkDescription: 'Description',
   poolNetworkPif: 'PIFs',
   privateNetworks: 'Private networks',
-  privateNetworkWarning:
-    'Warning: a pool can have 1 GRE and 1 VxLAN network max',
   manage: 'Manage',
   poolNoNetwork: 'No networks',
   poolNetworkMTU: 'MTU',
@@ -1753,6 +1751,8 @@ const messages = {
   pillBonded: 'Bonded',
   bondedNetwork: 'Bonded network',
   privateNetwork: 'Private network',
+  privateNetworkWarning:
+    'Warning: a pool can have 1 GRE and 1 VxLAN network max',
 
   // ----- Add host -----
   hosts: 'Hosts',
