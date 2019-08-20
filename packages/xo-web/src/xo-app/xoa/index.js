@@ -40,24 +40,10 @@ const Xoa = routes('xoa', {
   update: Update,
   licenses: Licenses,
   notifications: Notifications,
-})(({ children }) =>
-  +process.env.XOA_PLAN === 5 ? (
-    <Container>
-      <h2 className='text-danger'>{_('noUpdaterCommunity')}</h2>
-      <p>
-        {_('considerSubscribe', {
-          link: (
-            <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a>
-          ),
-        })}
-      </p>
-      <p className='text-danger'>{_('noUpdaterWarning')}</p>
-    </Container>
-  ) : (
-    <Page header={HEADER} title='xoaPage' formatTitle>
-      {children}
-    </Page>
-  )
-)
+})(({ children }) => (
+  <Page header={HEADER} title='xoaPage' formatTitle>
+    {children}
+  </Page>
+))
 
 export default Xoa

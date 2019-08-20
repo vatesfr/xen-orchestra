@@ -21,6 +21,7 @@ const messages = {
   messageSubject: 'Subject',
   messageFrom: 'From',
   messageReply: 'Reply',
+  tryXoa: 'Try XOA for free and deploy it here.',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -1804,11 +1805,8 @@ const messages = {
   refresh: 'Refresh',
   upgrade: 'Upgrade',
   downgrade: 'Downgrade',
-  noUpdaterCommunity: 'No updater available for Community Edition',
   considerSubscribe:
     'Please consider subscribing and trying it with all the features for free during 15 days on {link}.',
-  noUpdaterWarning:
-    'Manual update could break your current installation due to dependencies issues, do it with caution',
   currentVersion: 'Current version:',
   register: 'Register',
   editRegistration: 'Edit registration',
@@ -1838,6 +1836,8 @@ const messages = {
   unlistedChannelName: 'Unlisted channel name',
   selectChannel: 'Select channel',
   changeChannel: 'Change channel',
+  updaterCommunity:
+    'The Web updater, the release channels and the proxy settings are available in XOA.',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
@@ -2053,7 +2053,7 @@ const messages = {
   xosanAvailableSpace: 'Available space',
   xosanDiskLossLegend: '* Can fail without data loss',
   xosanCreate: 'Create',
-  xosanCommunity: 'No XOSAN available for Community Edition',
+  xosanCommunity: 'XOSAN is available in XOA',
   xosanNew: 'New',
   xosanAdvanced: 'Advanced',
   xosanRemoveSubvolumes: 'Remove subvolumes',
