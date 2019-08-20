@@ -1,6 +1,7 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
+import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Wizard, { Section } from 'wizard'
@@ -251,6 +252,9 @@ const NewNetwork = decorate([
                           ]}
                           value={encapsulation}
                         />
+                        <em>
+                          <Icon icon='info' /> {_('privateNetworkWarning')}
+                        </em>
                       </div>
                     ) : (
                       <div>
