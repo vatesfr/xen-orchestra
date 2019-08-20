@@ -115,9 +115,10 @@ If you're behind a transparent proxy, you'll probably have issues with the updat
 Run the following commands to allow the updater to work:
 
 ```
-$ sudo echo NODE_TLS_REJECT_UNAUTHORIZED=0 >> /etc/xo-appliance/env
-$ sudo npm config -g set strict-ssl=false
-$ sudo systemctl restart xoa-updater
+$ sudo -s
+$ echo NODE_TLS_REJECT_UNAUTHORIZED=0 >> /etc/xo-appliance/env
+$ npm config -g set strict-ssl=false
+$ systemctl restart xoa-updater
 ```
 Now try running an update again.
 
