@@ -66,17 +66,16 @@ export default class About extends Component {
             <div>
               <Row>
                 <Col>
-                  <h2 className='text-danger'>{_('noProSupport')}</h2>
-                  <h4 className='text-danger'>{_('noProductionUse')}</h4>
-                  <p className='text-muted'>
-                    {_('downloadXoaFromWebsite', {
+                  <h2 className='text-info'>{_('productionUse')}</h2>
+                  <h4 className='text-info'>
+                    {_('getSupport', {
                       website: (
-                        <a href='https://xen-orchestra.com/#!/?pk_campaign=xoa_source_upgrade&pk_kwd=about'>
-                          http://xen-orchestra.com
+                        <a href='https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_source_upgrade&pk_kwd=about'>
+                          https://xen-orchestra.com
                         </a>
                       ),
                     })}
-                  </p>
+                  </h4>
                 </Col>
               </Row>
               <Row>
