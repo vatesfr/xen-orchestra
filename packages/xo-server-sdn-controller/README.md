@@ -11,11 +11,8 @@ For installing XO and the plugins from the sources, please take a look at [the d
 ### Network creation
 
 In the network creation view, select a `pool` and `Private network`.
-
 Select other pool to add them to the network if wanted.
-
 Create the network.
-
 
 Choice is offer between `GRE` and `VxLAN`, if `VxLAN` is chosen, then the port 4789 must be open for UDP traffic.
 The following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted:
