@@ -1,14 +1,10 @@
 import * as FormGrid from 'form-grid'
 import _ from 'intl'
-import ActionButton from 'action-button'
-import Button from 'button'
 import Component from 'base-component'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
-import map from 'lodash/map'
-import orderBy from 'lodash/orderBy'
-import PropTypes from 'prop-types'
 import React from 'react'
+import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
 import { importVms, isSrWritable } from 'xo'
 import { SizeInput } from 'form'
@@ -20,6 +16,7 @@ import {
 } from 'selectors'
 import { connectStore, formatSize, mapPlus, noop } from 'utils'
 import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
+import { error } from 'notification'
 
 export default class Import extends Component {
   constructor(props) {
@@ -28,7 +25,14 @@ export default class Import extends Component {
       pool: undefined,
       sr: undefined,
       srPredicate: undefined,
+      poolPredicate: undefined,
     }
+  }
+
+  componentDidMount() {
+    this.setState({
+      poolPredicate: pool => pool.uuid !== this.props.uuid,
+    })
   }
 
   _handleSelectedPool = async pool => {
@@ -44,41 +48,50 @@ export default class Import extends Component {
   }
 
   _handleSelectedSr = async sr => {
-    await this.setState({
-      sr: sr === '' ? undefined : sr,
-    })
-    this.props.onChange({
-      sr: sr === '' ? undefined : sr,
-      pool: this.state.pool,
-    })
+    if (this.props.xvaSize > sr.size) {
+      error('Select SR', 'Not Enough Free Disk Space')
+    } else {
+      await this.setState({
+        sr: sr === '' ? undefined : sr,
+      })
+      this.props.onChange({
+        sr: sr === '' ? undefined : sr,
+        pool: this.state.pool,
+      })
+    }
   }
 
   render() {
-    const { pool, sr, srPredicate } = this.state
+    const { pool, poolPredicate, sr, srPredicate } = this.state
 
     return (
       <Container>
         <FormGrid.Row>
-          <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
-          <FormGrid.InputCol>
-            <SelectPool
-              value={pool}
-              onChange={this._handleSelectedPool}
-              required
-            />
-          </FormGrid.InputCol>
+          <label>
+            {_('vmImportToPool')}
+            &nbsp;
+            <Tooltip
+              content={'We are hiding pools with already installed template'}
+            >
+              <Icon icon='info' />
+            </Tooltip>
+          </label>
+          <SelectPool
+            value={pool}
+            onChange={this._handleSelectedPool}
+            predicate={poolPredicate}
+            required
+          />
         </FormGrid.Row>
         <FormGrid.Row>
-          <FormGrid.LabelCol>{_('vmImportToSr')}</FormGrid.LabelCol>
-          <FormGrid.InputCol>
-            <SelectSr
-              disabled={!pool}
-              onChange={this._handleSelectedSr}
-              predicate={srPredicate}
-              required
-              value={sr}
-            />
-          </FormGrid.InputCol>
+          <label>{_('vmImportToSr')}</label>
+          <SelectSr
+            disabled={!pool}
+            onChange={this._handleSelectedSr}
+            predicate={srPredicate}
+            required
+            value={sr}
+          />
         </FormGrid.Row>
       </Container>
     )

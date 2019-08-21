@@ -277,6 +277,10 @@
     @extend .fa;
     @extend .fa-thumbs-up;
   }
+  &-deploy {
+    @extend .fa;
+    @extend .fa-rocket;
+  }
 
   // Backups
   &-backup {

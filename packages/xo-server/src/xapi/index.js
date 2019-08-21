@@ -1292,7 +1292,6 @@ export default class Xapi extends XapiBase {
         .then(onVmCreation)
         ::ignoreErrors()
     }
-
     const vmRef = await this.putResource($cancelToken, stream, '/import/', {
       query,
       task: taskRef,
@@ -1400,7 +1399,6 @@ export default class Xapi extends XapiBase {
   // TODO: an XVA can contain multiple VMs
   async importVm(stream, { data, srId, type = 'xva' } = {}) {
     const sr = srId && this.getObject(srId)
-
     if (type === 'xva') {
       return /* await */ this._getOrWaitObject(await this._importVm(stream, sr))
     }

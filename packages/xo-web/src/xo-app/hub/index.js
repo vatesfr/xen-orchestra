@@ -4,7 +4,19 @@ import Icon from 'icon'
 import Page from '../page'
 import React from 'react'
 import { Container, Col, Row } from 'grid'
-import { addSubscriptions } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
+import {
+  areObjectsFetched,
+  createCounter,
+  createFilter,
+  createGetObjectsOfType,
+  createPager,
+  createSelector,
+  createSort,
+  getIsPoolAdmin,
+  getUser,
+  isAdmin,
+} from 'selectors'
 import { subscribePlugins, subscribeAllResourceCatalog } from 'xo'
 import { filter, map, mapValues, orderBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
@@ -41,6 +53,20 @@ export default decorate([
     catalog: subscribeAllResourceCatalog,
     plugins: subscribePlugins,
   }),
+  connectStore(() => {
+    return {
+      isAdmin,
+      isPoolAdmin: getIsPoolAdmin,
+      items: createGetObjectsOfType('VM-template').filter(
+        createSelector(
+          (_, props) => props.item.id,
+          poolId => obj => obj.$pool === poolId
+        )
+      ),
+      type: 'VM-template',
+      user: getUser,
+    }
+  }),
   provideState({
     initialState: () => ({
       sortBy: undefined,
@@ -75,7 +101,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ effects, state: { resources, sortTitle } }) => (
+  ({ effects, state: { resources, sortTitle }, items }) => (
     <Page
       header={HEADER}
       title='hubPage'

@@ -10,66 +10,74 @@ import { downloadAndInstallResource } from 'xo'
 import { formatSize } from 'utils'
 // import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import CreationProgress from './creation-progress'
+import ImportProgress from './import-progress'
+import { error, success } from 'notification'
+import { withRouter } from 'react-router'
 
 import ResourceForm from './resource-form'
 
+const subscribeAlert = () =>
+  alert(
+    _('hubResourceAlert'),
+    <div>
+      <p>
+        {_('considerSubscribe', {
+          link: 'https://xen-orchestra.com',
+        })}
+      </p>
+    </div>
+  )
+
 export default decorate([
+  withRouter,
   provideState({
     initialState: () => ({
-      pool: undefined,
       loading: false,
     }),
     effects: {
       initialize: () => {},
-      async install(__, { name, namespace, id, version }) {
-        const { isFromSources, pool } = this.state
+      async install(__, { deploy, name, namespace, id, size, version, uuid }) {
+        const { isFromSources } = this.state
         if (!isFromSources) {
-          alert(
-            _('hubResourceAlert'),
-            <div>
-              <p>
-                {_('considerSubscribe', {
-                  link: 'https://xen-orchestra.com',
-                })}
-              </p>
-            </div>
-          )
-        } else if (this.state.pool === undefined) {
-          this.effects.showResourceParamsModal({
-            namespace,
-            id,
-            version,
-            pool,
-            name,
+          subscribeAlert()
+        } else {
+          const resourceParams = await form({
+            render: props => (
+              <ResourceForm {...props} xvaSize={size} uuid={uuid} />
+            ),
+            header: (
+              <span>
+                <Icon icon='add-vm' /> {name}
+              </span>
+            ),
+            size: 'medium',
+            handler: value => {
+              return value
+            },
           })
+          this.state.loading = true
+          try {
+            const vmUuid = await downloadAndInstallResource({
+              namespace,
+              id,
+              version,
+              sr: resourceParams.sr,
+            })
+            success('XVA import', 'XVA installed successfuly')
+            if (deploy) {
+              this.props.router.push(`vms/${vmUuid}`)
+            } else {
+              this.props.router.push(`/home?p=1&s=${name}&t=VM-template`)
+            }
+          } catch (_error) {
+            error('Error', _error.message)
+          } finally {
+            this.state.loading = false
+          }
         }
       },
-      async showResourceParamsModal(
-        __,
-        { name, namespace, id, version, pool }
-      ) {
-        const resourceParams = await form({
-          render: props => <ResourceForm {...props} />,
-          header: (
-            <span>
-              <Icon icon='add-vm' /> {name}
-            </span>
-          ),
-          size: 'medium',
-          handler: value => {
-            return value
-          },
-        })
-        this.state.pool = resourceParams.pool
-        this.state.loading = true
-        await downloadAndInstallResource({
-          namespace,
-          id,
-          version,
-          pool: resourceParams.pool,
-        })
-        this.state.loading = false
+      redirectToTaskPage() {
+        this.props.router.push('/tasks')
       },
     },
     computed: {
@@ -101,42 +109,16 @@ export default decorate([
           <strong>{formatSize(size)}</strong>
         </div>
         <hr />
-        {state.poolName !== undefined ? (
+        {state.loading ? (
           <div>
-            <span className='text-muted'>POOL</span>
-            {'  '}
-            <strong>{state.poolName}</strong>
+            <a href='/#/tasks' target='_blank'>
+              Click here to see progress
+            </a>
+            <ImportProgress />
           </div>
         ) : (
-          <br />
-        )}
-        <br />
-        {state.loading ? (
-          <CreationProgress key={state.pool.id} pool={state.pool} />
-        ) : (
-          // <CreationProgress
-          //   key={'6d4da817-9f43-56a2-cc5c-2f23469e54cb'}
-          //   pool={{
-          //     default_SR: 'a5954951-3dfa-42b8-803f-4bc270b22a0b',
-          //     HA_enabled: false,
-          //     master: 'b54bf91f-51d7-4af5-b1b3-f14dcf1146ee',
-          //     tags: [],
-          //     name_description: 'Intel Xeon E3-1225',
-          //     name_label: 'XenServer',
-          //     xosanPackInstallationTime: 1550756113,
-          //     cpus: {
-          //       cores: 12,
-          //       sockets: 3,
-          //     },
-          //     zstdSupported: false,
-          //     id: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
-          //     type: 'pool',
-          //     uuid: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
-          //     $pool: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
-          //     $poolId: '6d4da817-9f43-56a2-cc5c-2f23469e54cb',
-          //   }}
-          // />
           <Row>
+            <br />
             <Col size={6}>
               <ActionButton
                 block
@@ -146,10 +128,7 @@ export default decorate([
                 data-id={id}
                 data-version={version}
                 icon={'add'}
-                //   pending={pending}
-                //   redirectOnSuccess={redirectOnSuccess}
                 size='meduim'
-                //   tooltip={display === 'icon' ? label : undefined}
               >
                 Install
               </ActionButton>
@@ -157,13 +136,14 @@ export default decorate([
             <Col size={6}>
               <ActionButton
                 block
-                //   handler={handler}
-                //   handlerParam={handlerParam}
-                icon={'add-vm'}
-                //   pending={pending}
-                //   redirectOnSuccess={redirectOnSuccess}
+                handler={effects.install}
+                data-name={name}
+                data-namespace={namespace}
+                data-id={id}
+                data-version={version}
+                data-deploy
+                icon={'deploy'}
                 size='meduim'
-                //   tooltip={display === 'icon' ? label : undefined}
               >
                 Deploy
               </ActionButton>
