@@ -152,13 +152,13 @@ const NewNetwork = decorate([
         )
       },
       poolNetworkPredicate: ({ networks }, { pool: rootPool }) => (
-        selectedPool,
-        selectedKey
+        pool,
+        index
       ) =>
-        selectedPool.id !== rootPool.id &&
+        pool.id !== rootPool.id &&
         !networks.some(
-          ({ pool = {} }, key) =>
-            selectedPool.id === pool.id && selectedKey !== key
+          ({ networksPool = {} }, networksIndex) =>
+            pool.id === networksPool.id && index !== networksIndex
         ),
       isSdnControllerLoaded: (state, { plugins = [] }) =>
         plugins.some(
