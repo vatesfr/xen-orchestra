@@ -165,12 +165,6 @@ class SDNController extends EventEmitter {
       xoPool: ['poolId', 'pool', ''],
       xoPif: ['pifId', 'PIF', ''],
     }
-    this._unsetApiMethod.push(
-      this._xo.addApiMethod(
-        'plugin.SDNController.createPrivateNetwork',
-        createPrivateNetwork
-      )
-    )
 
     // Expose method to create cross-pool private network
     const createCrossPoolPrivateNetwork = this._createCrossPoolPrivateNetwork.bind(
@@ -195,12 +189,13 @@ class SDNController extends EventEmitter {
         },
       },
     }
-    this._unsetApiMethod.push(
-      this._xo.addApiMethod(
-        'plugin.SDNController.createCrossPoolPrivateNetwork',
-        createCrossPoolPrivateNetwork
-      )
-    )
+
+    this._unsetApiMethods = this._xo.addApiMethods({
+      sdnController: {
+        createPrivateNetwork,
+        createCrossPoolPrivateNetwork,
+      },
+    })
 
     // FIXME: we should monitor when xapis are added/removed
     this._xapis = this._xo.getAllXapis()
@@ -328,8 +323,7 @@ class SDNController extends EventEmitter {
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners = []
 
-    this._unsetApiMethod.forEach(method => method())
-    this._unsetApiMethod = []
+    this._unsetApiMethods()
   }
 
   // ===========================================================================
