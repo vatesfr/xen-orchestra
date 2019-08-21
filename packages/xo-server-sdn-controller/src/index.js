@@ -4,7 +4,7 @@ import NodeOpenssl from 'node-openssl-cert'
 import uuidv4 from 'uuid/v4'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { filter, find, forEach, map } from 'lodash'
+import { filter, find, forEach, map, omitBy } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { join } from 'path'
 
@@ -81,7 +81,7 @@ class SDNController extends EventEmitter {
     this._getDataDir = getDataDir
 
     this._poolNetworks = []
-    this._crossPoolNetworks = []
+    this._crossPoolNetworks = {}
     this._ovsdbClients = []
     this._newHosts = []
 
@@ -276,9 +276,9 @@ class SDNController extends EventEmitter {
             const crossPoolNetworkUuid =
               network.other_config.cross_pool_network_uuid
             if (crossPoolNetworkUuid !== undefined) {
-              let crossPoolNetwork = find(this._crossPoolNetworks, {
-                uuid: crossPoolNetworkUuid,
-              })
+              let crossPoolNetwork = this._crossPoolNetworks[
+                crossPoolNetworkUuid
+              ]
               if (crossPoolNetwork === undefined) {
                 crossPoolNetwork = {
                   pools: [],
@@ -288,7 +288,7 @@ class SDNController extends EventEmitter {
                 log.debug('Adding cross-pool network', {
                   uuid: crossPoolNetworkUuid,
                 })
-                this._crossPoolNetworks.push(crossPoolNetwork)
+                this._crossPoolNetworks[crossPoolNetworkUuid] = crossPoolNetwork
               }
 
               crossPoolNetwork.pools.push(network.$pool.$ref)
@@ -314,7 +314,7 @@ class SDNController extends EventEmitter {
   async unload() {
     this._ovsdbClients = []
     this._poolNetworks = []
-    this._crossPoolNetworks = []
+    this._crossPoolNetworks = {}
     this._newHosts = []
 
     this._networks.clear()
@@ -436,7 +436,7 @@ class SDNController extends EventEmitter {
     }
 
     await this._electNewPoolCenter(crossPoolNetwork)
-    this._crossPoolNetworks.push(crossPoolNetwork)
+    this._crossPoolNetworks[uuid] = crossPoolNetwork
   }
 
   // ---------------------------------------------------------------------------
@@ -527,14 +527,15 @@ class SDNController extends EventEmitter {
             poolNetwork => poolNetwork.network !== networkRef
           )
 
-          for (const crossPoolNetwork of this._crossPoolNetworks) {
+          forEach(this._crossPoolNetworks, crossPoolNetwork => {
             crossPoolNetwork.networks = crossPoolNetwork.networks.filter(
               ref => ref !== networkRef
             )
-          }
+          })
 
-          this._crossPoolNetworks = this._crossPoolNetworks.filter(
-            crossPoolNetwork => crossPoolNetwork.networks.length !== 0
+          this._crossPoolNetworks = omitBy(
+            this._crossPoolNetworks,
+            crossPoolNetwork => crossPoolNetwork.networks.length === 0
           )
         }
       })
