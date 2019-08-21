@@ -150,7 +150,7 @@ class SDNController extends EventEmitter {
   }
 
   async load() {
-    // Exposte method to create pool-wide private network
+    // Expose method to create pool-wide private network
     const createPrivateNetwork = this._createPrivateNetwork.bind(this)
     createPrivateNetwork.description =
       'Creates a pool-wide private network on a selected pool'
@@ -172,7 +172,7 @@ class SDNController extends EventEmitter {
       )
     )
 
-    // Exposte method to create cross-pool private network
+    // Expose method to create cross-pool private network
     const createCrossPoolPrivateNetwork = this._createCrossPoolPrivateNetwork.bind(
       this
     )
@@ -278,18 +278,21 @@ class SDNController extends EventEmitter {
               this._starCenters.set(center.$id, center.$ref)
             }
 
-            const uuid = network.other_config.cross_pool_network_uuid
-            if (uuid !== undefined) {
+            const crossPoolNetworkUuid =
+              network.other_config.cross_pool_network_uuid
+            if (crossPoolNetworkUuid !== undefined) {
               let crossPoolNetwork = find(this._crossPoolNetworks, {
-                uuid: uuid,
+                uuid: crossPoolNetworkUuid,
               })
               if (crossPoolNetwork === undefined) {
                 crossPoolNetwork = {
                   pools: [],
                   networks: [],
-                  uuid,
+                  uuid: crossPoolNetworkUuid,
                 }
-                log.debug('Adding cross-pool network', { uuid })
+                log.debug('Adding cross-pool network', {
+                  uuid: crossPoolNetworkUuid,
+                })
                 this._crossPoolNetworks.push(crossPoolNetwork)
               }
 
@@ -298,7 +301,7 @@ class SDNController extends EventEmitter {
               log.debug('Pool network added to cross-pool network', {
                 network: network.name_label,
                 pool: network.$pool.name_label,
-                uuid,
+                uuid: crossPoolNetworkUuid,
               })
             }
           })
@@ -306,9 +309,11 @@ class SDNController extends EventEmitter {
       })
     )
 
-    for (const crossPoolNetwork of this._crossPoolNetworks) {
-      await this._electNewPoolCenter(crossPoolNetwork)
-    }
+    await Promise.all(
+      map(this._crossPoolNetworks, crossPoolNetwork => {
+        return this._electNewPoolCenter(crossPoolNetwork)
+      })
+    )
   }
 
   async unload() {
@@ -393,11 +398,7 @@ class SDNController extends EventEmitter {
     encapsulation,
     xoPifIds,
   }) {
-    let uuid
-    do {
-      uuid = uuidv4()
-    } while (find(this._crossPoolNetworks, { uuid: uuid }) !== undefined)
-
+    const uuid = uuidv4()
     const crossPoolNetwork = {
       pools: [],
       networks: [],
