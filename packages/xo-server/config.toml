@@ -17,9 +17,11 @@ createUserOnFirstSignin = true
 # their size just by looking at the beginning of the stream.
 #
 # But it is a guess, not a certainty, it depends on how the VHDs are formatted
-# by XenServer, therefore it's disabled for the moment but can be enabled
-# specifically for a user if necessary.
-guessVhdSizeOnImport = false
+# by XenServer.
+#
+# This has been tested for 5 months, therefore it's enabled by default but can
+# be disabled specifically for a user if necessary.
+guessVhdSizeOnImport = true
 
 # Whether API logs should contains the full request/response on
 # errors.
