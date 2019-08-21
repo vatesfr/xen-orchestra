@@ -91,6 +91,8 @@ class SDNController extends EventEmitter {
     this._objectsUpdated = this._objectsUpdated.bind(this)
 
     this._overrideCerts = false
+
+    this._key = 0
   }
 
   // ---------------------------------------------------------------------------
@@ -705,19 +707,23 @@ class SDNController extends EventEmitter {
     }
 
     const encapsulation = network.other_config.encapsulation || 'gre'
+    const key = this._key
+    ++this._key
     let bridgeName
     try {
       bridgeName = await hostClient.addInterfaceAndPort(
         network.uuid,
         network.name_label,
         starCenterClient.host.address,
-        encapsulation
+        encapsulation,
+        key
       )
       await starCenterClient.addInterfaceAndPort(
         network.uuid,
         network.name_label,
         hostClient.host.address,
-        encapsulation
+        encapsulation,
+        key
       )
     } catch (error) {
       log.error('Error while connecting host to private network', {
