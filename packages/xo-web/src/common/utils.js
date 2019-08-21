@@ -662,3 +662,13 @@ export const adminOnly = Component =>
   })(({ _isAdmin, ...props }) =>
     _isAdmin ? <Component {...props} /> : <_NotFound />
   )
+
+// ===================================================================
+
+export const TryXoa = ({ page }) => (
+  <a
+    href={`https://xen-orchestra.com/#/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=${page}`}
+  >
+    {_('tryXoa')}
+  </a>
+)

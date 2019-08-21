@@ -22,6 +22,10 @@ import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { Password, Select } from 'form'
 import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
+import { getXoaPlan, TryXoa } from '../../../common/utils'
+
+const COMMUNITY = getXoaPlan() === 'Community'
+
 const ansiUp = new AnsiUp()
 
 if (+process.env.XOA_PLAN < 5) {
@@ -115,7 +119,9 @@ const Updates = decorate([
         ])
       },
       initialize() {
-        return this.effects.update()
+        if (!COMMUNITY) {
+          return this.effects.update()
+        }
       },
       linkState,
       onChannelChange: (_, channel) => ({ channel }),
@@ -187,7 +193,7 @@ const Updates = decorate([
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
       channelsFormId: generateId,
-      channels: () => xoaUpdater.getReleaseChannels(),
+      channels: COMMUNITY ? () => [] : () => xoaUpdater.getReleaseChannels(),
       channelsOptions: ({ channels }) =>
         channels === undefined
           ? undefined
@@ -205,12 +211,20 @@ const Updates = decorate([
                 value: UNLISTED_CHANNEL_VALUE,
               },
             ],
-      consolidatedChannel: ({ channel }, { xoaConfiguration }) =>
-        defined(channel, xoaConfiguration.channel),
-      async installedPackages() {
-        const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
-        return { ...installer, ...updater, ...npm }
-      },
+      consolidatedChannel: COMMUNITY
+        ? () => 'sources'
+        : ({ channel }, { xoaConfiguration }) =>
+            defined(channel, xoaConfiguration.channel),
+      installedPackages: COMMUNITY
+        ? () => ({ 'xen-orchestra': 'sources' })
+        : async function() {
+            const {
+              installer,
+              updater,
+              npm,
+            } = await xoaUpdater.getLocalManifest()
+            return { ...installer, ...updater, ...npm }
+          },
       isDisconnected: (_, { xoaUpdaterState }) =>
         xoaUpdater === 'disconnected' || xoaUpdaterState === 'error',
       isProxyConfigEdited: state =>
@@ -251,6 +265,14 @@ const Updates = decorate([
     xoaUpdaterState,
   }) => (
     <Container>
+      {COMMUNITY && (
+        <Row className='mb-1'>
+          <Col>
+            <p className='text-info'>{_('updaterCommunity')}</p>
+            <TryXoa page='updater' />
+          </Col>
+        </Row>
+      )}
       <Row>
         <Col mediumSize={6}>
           <Card>
@@ -258,70 +280,72 @@ const Updates = decorate([
               <UpdateTag /> {LABELS_BY_STATE[xoaUpdaterState]}
             </CardHeader>
             <CardBlock>
-              <p>
-                {_('currentVersion')}{' '}
-                {defined(
-                  () => state.installedPackages['xen-orchestra'],
-                  'unknown'
-                )}{' '}
-                {state.installedPackages !== undefined && (
-                  <Button
-                    name='showPackagesList'
-                    onClick={effects.toggleState}
-                    size='small'
-                  >
-                    <Icon icon={state.showPackagesList ? 'minus' : 'plus'} />
-                  </Button>
+              <fieldset disabled={COMMUNITY}>
+                <p>
+                  {_('currentVersion')}{' '}
+                  {defined(
+                    () => state.installedPackages['xen-orchestra'],
+                    'unknown'
+                  )}{' '}
+                  {state.installedPackages !== undefined && (
+                    <Button
+                      name='showPackagesList'
+                      onClick={effects.toggleState}
+                      size='small'
+                    >
+                      <Icon icon={state.showPackagesList ? 'minus' : 'plus'} />
+                    </Button>
+                  )}
+                </p>
+                {state.showPackagesList && (
+                  <p>
+                    <Copiable tagName='pre'>{state.packagesList}</Copiable>
+                  </p>
                 )}
-              </p>
-              {state.showPackagesList && (
-                <p>
-                  <Copiable tagName='pre'>{state.packagesList}</Copiable>
-                </p>
-              )}
-              {state.isDisconnected && (
-                <p>
-                  <a href='https://xen-orchestra.com/docs/updater.html#troubleshooting'>
-                    {_('updaterTroubleshootingLink')}
-                  </a>
-                </p>
-              )}
-              <ActionButton
-                btnStyle='info'
-                handler={effects.update}
-                icon='refresh'
-              >
-                {_('refresh')}
-              </ActionButton>{' '}
-              <ActionButton
-                btnStyle='success'
-                disabled={
-                  xoaUpdaterState !== 'upgradeNeeded' &&
-                  xoaTrialState.state !== 'untrustedTrial'
-                } // enables button for updating packages OR ending trial
-                handler={effects.upgrade}
-                icon='upgrade'
-              >
-                {xoaTrialState.state !== 'untrustedTrial'
-                  ? _('upgrade')
-                  : _('downgrade')}
-              </ActionButton>
-              <hr />
-              <pre>
-                {map(xoaUpdaterLog, (log, key) => (
-                  <div key={key}>
-                    <span className={LEVELS_TO_CLASSES[log.level]}>
-                      {log.date}
-                    </span>
-                    :{' '}
-                    <span
-                      dangerouslySetInnerHTML={{
-                        __html: ansiUp.ansi_to_html(log.message),
-                      }}
-                    />
-                  </div>
-                ))}
-              </pre>
+                {state.isDisconnected && (
+                  <p>
+                    <a href='https://xen-orchestra.com/docs/updater.html#troubleshooting'>
+                      {_('updaterTroubleshootingLink')}
+                    </a>
+                  </p>
+                )}
+                <ActionButton
+                  btnStyle='info'
+                  handler={effects.update}
+                  icon='refresh'
+                >
+                  {_('refresh')}
+                </ActionButton>{' '}
+                <ActionButton
+                  btnStyle='success'
+                  disabled={
+                    xoaUpdaterState !== 'upgradeNeeded' &&
+                    xoaTrialState.state !== 'untrustedTrial'
+                  } // enables button for updating packages OR ending trial
+                  handler={effects.upgrade}
+                  icon='upgrade'
+                >
+                  {xoaTrialState.state !== 'untrustedTrial'
+                    ? _('upgrade')
+                    : _('downgrade')}
+                </ActionButton>
+                <hr />
+                <pre>
+                  {map(xoaUpdaterLog, (log, key) => (
+                    <div key={key}>
+                      <span className={LEVELS_TO_CLASSES[log.level]}>
+                        {log.date}
+                      </span>
+                      :{' '}
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: ansiUp.ansi_to_html(log.message),
+                        }}
+                      />
+                    </div>
+                  ))}
+                </pre>
+              </fieldset>
             </CardBlock>
           </Card>
         </Col>
@@ -330,47 +354,50 @@ const Updates = decorate([
             <CardHeader>{_('releaseChannels')}</CardHeader>
             <CardBlock>
               <form id={state.channelsFormId} className='form'>
-                <div className='form-group'>
-                  <Select
-                    isLoading={state.channelsOptions === undefined}
-                    onChange={effects.onChannelChange}
-                    options={state.channelsOptions}
-                    placeholder={formatMessage(messages.selectChannel)}
-                    required
-                    simpleValue
-                    value={
-                      state.isUnlistedChannel
-                        ? UNLISTED_CHANNEL_VALUE
-                        : state.consolidatedChannel
-                    }
-                  />
-                  <br />
-                  {state.isUnlistedChannel && (
-                    <div className='form-group'>
-                      <DebounceInput
-                        autoFocus
-                        className='form-control'
-                        debounceTimeout={500}
-                        name='channel'
-                        onChange={effects.linkState}
-                        placeholder={formatMessage(
-                          messages.unlistedChannelName
-                        )}
-                        required
-                        type='text'
-                        value={state.consolidatedChannel}
-                      />
-                    </div>
-                  )}
-                </div>{' '}
-                <ActionButton
-                  btnStyle='primary'
-                  form={state.channelsFormId}
-                  handler={effects.configure}
-                  icon='success'
-                >
-                  {_('changeChannel')}
-                </ActionButton>
+                <fieldset disabled={COMMUNITY}>
+                  <div className='form-group'>
+                    <Select
+                      disabled={COMMUNITY}
+                      isLoading={state.channelsOptions === undefined}
+                      onChange={effects.onChannelChange}
+                      options={state.channelsOptions}
+                      placeholder={formatMessage(messages.selectChannel)}
+                      required
+                      simpleValue
+                      value={
+                        state.isUnlistedChannel
+                          ? UNLISTED_CHANNEL_VALUE
+                          : state.consolidatedChannel
+                      }
+                    />
+                    <br />
+                    {state.isUnlistedChannel && (
+                      <div className='form-group'>
+                        <DebounceInput
+                          autoFocus
+                          className='form-control'
+                          debounceTimeout={500}
+                          name='channel'
+                          onChange={effects.linkState}
+                          placeholder={formatMessage(
+                            messages.unlistedChannelName
+                          )}
+                          required
+                          type='text'
+                          value={state.consolidatedChannel}
+                        />
+                      </div>
+                    )}
+                  </div>{' '}
+                  <ActionButton
+                    btnStyle='primary'
+                    form={state.channelsFormId}
+                    handler={effects.configure}
+                    icon='success'
+                  >
+                    {_('changeChannel')}
+                  </ActionButton>
+                </fieldset>
               </form>
             </CardBlock>
           </Card>
@@ -384,7 +411,7 @@ const Updates = decorate([
             </CardHeader>
             <CardBlock>
               <form>
-                <fieldset>
+                <fieldset disabled={COMMUNITY}>
                   <div className='form-group'>
                     <input
                       className='form-control'
@@ -430,7 +457,7 @@ const Updates = decorate([
                   </div>
                 </fieldset>
                 <br />
-                <fieldset>
+                <fieldset disabled={COMMUNITY}>
                   <ActionButton
                     icon='save'
                     btnStyle='primary'
@@ -460,38 +487,42 @@ const Updates = decorate([
               <span className='text-danger'> {xoaRegisterState.error}</span>
               {!state.isRegistered || state.askRegisterAgain ? (
                 <form id='registrationForm'>
-                  <div className='form-group'>
-                    <input
-                      className='form-control'
-                      name='email'
-                      onChange={effects.linkState}
-                      placeholder={formatMessage(
-                        messages.updateRegistrationEmailPlaceHolder
-                      )}
-                      required
-                      value={helper(state, xoaRegisterState, 'email')}
-                    />
-                  </div>{' '}
-                  <div className='form-group'>
-                    <Password
-                      disabled={helper(state, xoaRegisterState, 'email') === ''}
-                      name='password'
-                      onChange={effects.linkState}
-                      placeholder={formatMessage(
-                        messages.updateRegistrationPasswordPlaceHolder
-                      )}
-                      required
-                      value={defined(state.password, '')}
-                    />
-                  </div>{' '}
-                  <ActionButton
-                    form='registrationForm'
-                    icon='success'
-                    btnStyle='primary'
-                    handler={effects.register}
-                  >
-                    {_('register')}
-                  </ActionButton>
+                  <fieldset disabled={COMMUNITY}>
+                    <div className='form-group'>
+                      <input
+                        className='form-control'
+                        name='email'
+                        onChange={effects.linkState}
+                        placeholder={formatMessage(
+                          messages.updateRegistrationEmailPlaceHolder
+                        )}
+                        required
+                        value={helper(state, xoaRegisterState, 'email')}
+                      />
+                    </div>{' '}
+                    <div className='form-group'>
+                      <Password
+                        disabled={
+                          helper(state, xoaRegisterState, 'email') === ''
+                        }
+                        name='password'
+                        onChange={effects.linkState}
+                        placeholder={formatMessage(
+                          messages.updateRegistrationPasswordPlaceHolder
+                        )}
+                        required
+                        value={defined(state.password, '')}
+                      />
+                    </div>{' '}
+                    <ActionButton
+                      form='registrationForm'
+                      icon='success'
+                      btnStyle='primary'
+                      handler={effects.register}
+                    >
+                      {_('register')}
+                    </ActionButton>
+                  </fieldset>
                 </form>
               ) : (
                 <Button

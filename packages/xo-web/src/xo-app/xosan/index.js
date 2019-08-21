@@ -19,6 +19,7 @@ import {
   cowSet,
   formatSize,
   ShortDate,
+  TryXoa,
 } from 'utils'
 import {
   deleteSr,
@@ -498,15 +499,9 @@ export default class Xosan extends Component {
           </Container>
         ) : (
           <Container>
-            <h2 className='text-danger'>{_('xosanCommunity')}</h2>
+            <h2 className='text-info'>{_('xosanCommunity')}</h2>
             <p>
-              {_('considerSubscribe', {
-                link: (
-                  <a href='https://xen-orchestra.com'>
-                    https://xen-orchestra.com
-                  </a>
-                ),
-              })}
+              <TryXoa page='xosan' />
             </p>
           </Container>
         )}
