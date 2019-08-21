@@ -157,7 +157,7 @@ const NewNetwork = decorate([
       ) =>
         pool.id !== rootPool.id &&
         !networks.some(
-          ({ networksPool = {} }, networksIndex) =>
+          ({ pool: networksPool = {} }, networksIndex) =>
             pool.id === networksPool.id && index !== networksIndex
         ),
       isSdnControllerLoaded: (state, { plugins = [] }) =>
