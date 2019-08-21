@@ -119,10 +119,9 @@ const Updates = decorate([
         ])
       },
       initialize() {
-        if (COMMUNITY) {
-          return
+        if (!COMMUNITY) {
+          return this.effects.update()
         }
-        return this.effects.update()
       },
       linkState,
       onChannelChange: (_, channel) => ({ channel }),
@@ -212,8 +211,10 @@ const Updates = decorate([
                 value: UNLISTED_CHANNEL_VALUE,
               },
             ],
-      consolidatedChannel: ({ channel }, { xoaConfiguration }) =>
-        COMMUNITY ? 'sources' : defined(channel, xoaConfiguration.channel),
+      consolidatedChannel: COMMUNITY
+        ? () => 'sources'
+        : ({ channel }, { xoaConfiguration }) =>
+            defined(channel, xoaConfiguration.channel),
       installedPackages: COMMUNITY
         ? () => ({ 'xen-orchestra': 'sources' })
         : async function() {
