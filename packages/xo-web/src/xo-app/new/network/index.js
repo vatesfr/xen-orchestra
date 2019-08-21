@@ -383,13 +383,13 @@ const NewNetwork = decorate([
                               </LineItem>
                             </div>
                           ))}
-                          <Button
-                            onClick={effects.addPool}
+                          <ActionButton
+                            handler={effects.addPool}
                             disabled={state.disableAddPool}
+                            icon='add'
                           >
-                            <Icon icon='add' />
                             {_('addPool')}
-                          </Button>
+                          </ActionButton>
                         </div>
                       </div>
                     ) : (
