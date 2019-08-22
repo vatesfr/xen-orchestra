@@ -229,12 +229,6 @@ const messages = {
   snapshotVmsName: 'Name',
   snapshotVmsDescription: 'Description',
 
-  // ----- Hub view ------
-  hubSortBy: 'Sort by',
-  hubSortByName: 'Name',
-  hubSortByPopularity: 'Popularity',
-  hubResourceAlert: 'Resource alert',
-
   // ----- Common components -----
   sortedTableAllItemsSelected: 'All of them are selected',
   sortedTableNoItems: 'No items found',
@@ -2149,6 +2143,18 @@ const messages = {
   xosanCustomIpNetwork: 'Custom IP network (/24)',
   xosanIssueHostNotInNetwork:
     'Will configure the host xosan network device with a static IP address and plug it in.',
+
+  // Hub
+  hubInstallXva: 'Install',
+  hubDeployXva: 'Deploy',
+  hubSortBy: 'Sort by',
+  hubSortByName: 'Name',
+  hubSortByPopularity: 'Popularity',
+  hubResourceAlert: 'Resource alert',
+  hubXvaOs: 'OS',
+  hubXvaVersion: 'VERSION',
+  hubXvaSize: 'SIZE',
+  hubXvaProgressMessage: 'Click here to see progress',
 
   // Licenses
   xosanUnregisteredDisclaimer:

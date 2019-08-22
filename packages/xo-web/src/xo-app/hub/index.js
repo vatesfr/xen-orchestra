@@ -4,23 +4,11 @@ import Icon from 'icon'
 import Page from '../page'
 import React from 'react'
 import { Container, Col, Row } from 'grid'
-import { addSubscriptions, connectStore } from 'utils'
-import {
-  areObjectsFetched,
-  createCounter,
-  createFilter,
-  createGetObjectsOfType,
-  createPager,
-  createSelector,
-  createSort,
-  getIsPoolAdmin,
-  getUser,
-  isAdmin,
-} from 'selectors'
-import { subscribePlugins, subscribeAllResourceCatalog } from 'xo'
-import { filter, map, mapValues, orderBy } from 'lodash'
-import { injectState, provideState } from 'reaclette'
 import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
+import { addSubscriptions } from 'utils'
+import { injectState, provideState } from 'reaclette'
+import { map, mapValues, orderBy } from 'lodash'
+import { subscribePlugins, subscribeAllResourceCatalog } from 'xo'
 
 import Resource from './resource'
 import './style.css'
@@ -52,20 +40,6 @@ export default decorate([
   addSubscriptions({
     catalog: subscribeAllResourceCatalog,
     plugins: subscribePlugins,
-  }),
-  connectStore(() => {
-    return {
-      isAdmin,
-      isPoolAdmin: getIsPoolAdmin,
-      items: createGetObjectsOfType('VM-template').filter(
-        createSelector(
-          (_, props) => props.item.id,
-          poolId => obj => obj.$pool === poolId
-        )
-      ),
-      type: 'VM-template',
-      user: getUser,
-    }
   }),
   provideState({
     initialState: () => ({
@@ -101,7 +75,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ effects, state: { resources, sortTitle }, items }) => (
+  ({ effects, state: { resources, sortTitle } }) => (
     <Page
       header={HEADER}
       title='hubPage'

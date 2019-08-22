@@ -2,21 +2,12 @@ import * as FormGrid from 'form-grid'
 import _ from 'intl'
 import Component from 'base-component'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import Tooltip from 'tooltip'
-import { Container, Col, Row } from 'grid'
-import { importVms, isSrWritable } from 'xo'
-import { SizeInput } from 'form'
-import {
-  createFinder,
-  createGetObject,
-  createGetObjectsOfType,
-  createSelector,
-} from 'selectors'
-import { connectStore, formatSize, mapPlus, noop } from 'utils'
-import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
+import { Container } from 'grid'
+import { SelectPool, SelectSr } from 'select-objects'
 import { error } from 'notification'
+import { isSrWritable } from 'xo'
 
 export default class Import extends Component {
   constructor(props) {

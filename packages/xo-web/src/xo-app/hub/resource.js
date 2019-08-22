@@ -2,16 +2,15 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
+import ImportProgress from './import-progress'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
 import { alert, form } from 'modal'
 import { downloadAndInstallResource } from 'xo'
-import { formatSize } from 'utils'
-// import { injectIntl } from 'react-intl'
-import { injectState, provideState } from 'reaclette'
-import ImportProgress from './import-progress'
 import { error, success } from 'notification'
+import { formatSize } from 'utils'
+import { injectState, provideState } from 'reaclette'
 import { withRouter } from 'react-router'
 
 import ResourceForm from './resource-form'
@@ -86,25 +85,24 @@ export default decorate([
     },
   }),
   injectState,
-  ({ name, namespace, popularity, size, version, id, effects, state }) => (
+  ({ name, namespace, os, popularity, size, version, id, effects, state }) => (
     <Card shadow>
       <CardHeader>{name}</CardHeader>
       <CardBlock className='text-center'>
         <div>
-          <span className='text-muted'>OS</span>
-          {'  '}
-          <strong>Ubuntu</strong>
+          <span className='text-muted'>{_('hubXvaOs')}</span>{' '}
+          <strong>{os}</strong>
           <span className='pull-right'>
             {popularity} <Icon icon='plan-trial' />
           </span>
         </div>
         <div>
-          <span className='text-muted'>VERSION</span>
+          <span className='text-muted'>{_('hubXvaVersion')}</span>
           {'  '}
           <strong>{version}</strong>
         </div>
         <div>
-          <span className='text-muted'>SIZE</span>
+          <span className='text-muted'>{_('hubXvaSize')}</span>
           {'  '}
           <strong>{formatSize(size)}</strong>
         </div>
@@ -112,7 +110,7 @@ export default decorate([
         {state.loading ? (
           <div>
             <a href='/#/tasks' target='_blank'>
-              Click here to see progress
+              {_('hubXvaProgressMessage')}
             </a>
             <ImportProgress />
           </div>
@@ -130,7 +128,7 @@ export default decorate([
                 icon={'add'}
                 size='meduim'
               >
-                Install
+                {_('hubInstallXva')}
               </ActionButton>
             </Col>
             <Col size={6}>
@@ -145,7 +143,7 @@ export default decorate([
                 icon={'deploy'}
                 size='meduim'
               >
-                Deploy
+                {_('hubDeployXva')}
               </ActionButton>
             </Col>
             <br />
