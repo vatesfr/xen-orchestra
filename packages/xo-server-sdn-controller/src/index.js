@@ -219,6 +219,7 @@ class SDNController extends EventEmitter {
               network: network.$ref,
               starCenter: center?.$ref,
             })
+            this._networks.set(network.$id, network.$ref)
             if (center !== undefined) {
               this._starCenters.set(center.$id, center.$ref)
             }
@@ -232,7 +233,6 @@ class SDNController extends EventEmitter {
 
             // Re-elect a center to apply the VNI
             const center = await this._electNewCenter(network, true)
-            this._networks.set(network.$id, network.$ref)
             if (center !== undefined) {
               this._starCenters.set(center.$id, center.$ref)
             }
