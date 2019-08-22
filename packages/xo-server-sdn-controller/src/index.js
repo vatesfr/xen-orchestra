@@ -95,7 +95,7 @@ class SDNController extends EventEmitter {
     // VNI: VxLAN Network Identifier, it is used by OpenVSwitch
     // to route traffic of different networks in a single tunnel.
     // See: https://tools.ietf.org/html/rfc7348
-    this._nextVni = 0
+    this._prevVni = 0
   }
 
   // ---------------------------------------------------------------------------
@@ -193,7 +193,7 @@ class SDNController extends EventEmitter {
             if (vni === undefined) {
               noVniNetworks.push(network)
             } else {
-              this._nextVni = Math.max(this._nextVni, +vni)
+              this._prevVni = Math.max(this._prevVni, +vni)
             }
 
             log.debug('Adding network to managed networks', {
@@ -219,7 +219,6 @@ class SDNController extends EventEmitter {
               network: network.$ref,
               starCenter: center?.$ref,
             })
-            this._networks.set(network.$id, network.$ref)
             if (center !== undefined) {
               this._starCenters.set(center.$id, center.$ref)
             }
@@ -229,8 +228,7 @@ class SDNController extends EventEmitter {
         // Add VNI to other config of networks without VNI
         await Promise.all(
           map(noVniNetworks, async network => {
-            const vni = ++this._nextVni
-            await network.update_other_config('vni', String(vni))
+            await network.update_other_config('vni', String(++this._prevVni))
 
             // Re-elect a center to apply the VNI
             const center = await this._electNewCenter(network, true)
@@ -267,7 +265,6 @@ class SDNController extends EventEmitter {
     encapsulation,
     xoPif,
   }) {
-    const vni = ++this._nextVni
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
 
@@ -283,7 +280,7 @@ class SDNController extends EventEmitter {
         private_pool_wide: 'true',
         encapsulation: encapsulation,
         pif_device: pif.device,
-        vni: String(vni),
+        vni: String(++this._prevVni),
       },
     })
 
