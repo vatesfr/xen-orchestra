@@ -149,7 +149,6 @@ const messages = {
   customJob: 'Custom Job',
   userPage: 'User',
   xoa: 'XOA',
-  hubPage: 'Hub',
 
   // ----- Support -----
   noSupport: 'No support',
@@ -2145,6 +2144,7 @@ const messages = {
     'Will configure the host xosan network device with a static IP address and plug it in.',
 
   // Hub
+  hubPage: 'Hub',
   hubInstallXva: 'Install',
   hubDeployXva: 'Deploy',
   hubSortBy: 'Sort by',
