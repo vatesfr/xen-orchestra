@@ -92,6 +92,9 @@ class SDNController extends EventEmitter {
 
     this._overrideCerts = false
 
+    // VNI: VxLAN Network Identifier, it is used by OpenVSwitch
+    // to route traffic of different network in a sing tunnel.
+    // See: https://tools.ietf.org/html/rfc7348
     this._nextVni = 0
   }
 
