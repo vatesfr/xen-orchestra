@@ -88,7 +88,6 @@ class SDNController extends EventEmitter {
     this._networks = new Map()
     this._starCenters = new Map()
 
-    this._unsetApiMethod = []
     this._cleaners = []
     this._objectsAdded = this._objectsAdded.bind(this)
     this._objectsUpdated = this._objectsUpdated.bind(this)
@@ -213,7 +212,7 @@ class SDNController extends EventEmitter {
           this._createOvsdbClient(host)
         }
 
-        // Add already existing pool-wide private networks
+        // Add already existing pool-wide & cross-pool private networks
         const networks = filter(xapi.objects.all, { $type: 'network' })
         const noVniNetworks = []
         await Promise.all(
@@ -255,23 +254,6 @@ class SDNController extends EventEmitter {
             if (center !== undefined) {
               this._starCenters.set(center.$id, center.$ref)
             }
-          })
-        )
-
-        // Add VNI to other config of networks without VNI
-        //
-        // 2019-08-22
-        // This is used to add the VNI to networks created before this version. (v0.1.3)
-        // This will be removed in 1 year.
-        await Promise.all(
-          map(noVniNetworks, async network => {
-            await network.update_other_config('vni', String(++this._prevVni))
-
-            // Re-elect a center to apply the VNI
-            const center = await this._electNewCenter(network, true)
-            if (center !== undefined) {
-              this._starCenters.set(center.$id, center.$ref)
-            }
 
             const crossPoolNetworkUuid =
               network.other_config.cross_pool_network_uuid
@@ -301,13 +283,30 @@ class SDNController extends EventEmitter {
             }
           })
         )
+
+        // Add VNI to other config of networks without VNI
+        //
+        // 2019-08-22
+        // This is used to add the VNI to networks created before this version. (v0.1.3)
+        // This will be removed in 1 year.
+        await Promise.all(
+          map(noVniNetworks, async network => {
+            await network.update_other_config('vni', String(++this._prevVni))
+
+            // Re-elect a center to apply the VNI
+            const center = await this._electNewCenter(network, true)
+            if (center !== undefined) {
+              this._starCenters.set(center.$id, center.$ref)
+            }
+          })
+        )
       })
     )
 
     await Promise.all(
-      map(this._crossPoolNetworks, crossPoolNetwork => {
-        return this._electNewPoolCenter(crossPoolNetwork)
-      })
+      map(this._crossPoolNetworks, crossPoolNetwork =>
+        this._electNewPoolCenter(crossPoolNetwork)
+      )
     )
   }
 
@@ -610,7 +609,7 @@ class SDNController extends EventEmitter {
           } else {
             crossPoolNetwork.poolCenter = host.$pool.$ref
             log.debug(
-              'First available pool becomes pool center or cross-pool network',
+              'First available pool becomes pool center of cross-pool network',
               {
                 network: pif.$network.$ref,
                 pool: host.$pool.name_label,
@@ -773,27 +772,28 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _electNewPoolCenter(crossPoolNetwork) {
-    crossPoolNetwork.poolCenter = undefined
-    let network
-    for (const poolRef of crossPoolNetwork.pools) {
-      const xapi = find(this._xapis, xapi => xapi.pool.$ref === poolRef)
-      const poolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
-      const pool = xapi.getObjectByRef(poolRef)
-      network = xapi.getObjectByRef(poolNetwork.network)
-      if (poolNetwork.starCenter !== undefined) {
-        crossPoolNetwork.poolCenter = pool.$ref
-        log.debug('New pool center in cross-pool network', {
-          network: network.name_label,
-          poolCenter: pool.name_label,
-          uuid: crossPoolNetwork.uuid,
-        })
-        break
-      }
-    }
+    delete crossPoolNetwork.poolCenter
 
-    if (crossPoolNetwork.poolCenter === undefined) {
-      log.error('No available pool center for cross-pool network', {
+    const crossPoolCenter = crossPoolNetwork.pools.find(poolRef => {
+      const poolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
+      return poolNetwork.starCenter !== undefined
+    })
+    if (crossPoolCenter !== undefined) {
+      const poolNetwork = this._getPoolNetwork(
+        crossPoolCenter,
+        crossPoolNetwork
+      )
+      const xapi = find(this._xapis, xapi => xapi.pool.$ref === crossPoolCenter)
+      const network = xapi.getObjectByRef(poolNetwork.network)
+      const pool = xapi.getObjectByRef(crossPoolCenter)
+      crossPoolNetwork.poolCenter = crossPoolCenter
+      log.debug('New pool center in cross-pool network', {
         network: network.name_label,
+        poolCenter: pool.name_label,
+        uuid: crossPoolNetwork.uuid,
+      })
+    } else {
+      log.error('No available pool center for cross-pool network', {
         uuid: crossPoolNetwork.uuid,
       })
       return
@@ -883,7 +883,7 @@ class SDNController extends EventEmitter {
           crossPoolNetwork.poolCenter,
           crossPoolNetwork
         )
-        centerPoolNetwork.starCenter = undefined
+        delete centerPoolNetwork.starCenter
         await this._electNewPoolCenter(crossPoolNetwork)
       }
 
@@ -986,7 +986,11 @@ class SDNController extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  async _clearCenterPoolFromNetwork(centerPoolNetwork, poolNetwork, uuid) {
+  async _clearCenterPoolFromNetwork(
+    centerPoolNetwork,
+    poolNetwork,
+    crossPoolNetworkUuid
+  ) {
     const centerClient = find(
       this._ovsdbClients,
       client => client.host.$ref === centerPoolNetwork.starCenter
@@ -1020,7 +1024,7 @@ class SDNController extends EventEmitter {
         network: remoteNetwork.name_label,
         host: client.host.name_label,
         remotePool: remoteNetwork.$pool.name_label,
-        uuid,
+        uuid: crossPoolNetworkUuid,
       })
     }
   }
@@ -1064,13 +1068,17 @@ class SDNController extends EventEmitter {
       centerPoolNetwork.network
     )
     const network = client.host.$xapi.getObjectByRef(poolNetwork.network)
-    const encapsulation = network.other_config.encapsulation || 'gre'
+    const { encapsulation = 'gre' } = network.other_config
+
+    // Use centerNetwork VNI by convention
+    const { vni = '0' } = centerNetwork.other_config
     try {
       await client.addInterfaceAndPort(
         network.uuid,
         network.name_label,
         centerClient.host.address,
         encapsulation,
+        vni,
         centerNetwork.uuid
       )
       await centerClient.addInterfaceAndPort(
@@ -1078,6 +1086,7 @@ class SDNController extends EventEmitter {
         centerNetwork.name_label,
         client.host.address,
         encapsulation,
+        vni,
         network.uuid
       )
     } catch (error) {
@@ -1263,11 +1272,10 @@ class SDNController extends EventEmitter {
       }
     })
 
-    const poolNetwork = find(this._poolNetworks, {
+    return find(this._poolNetworks, {
       pool: poolRef,
       network: networkRef,
     })
-    return poolNetwork
   }
 
   _getHostTunnelForNetwork(host, networkRef) {
