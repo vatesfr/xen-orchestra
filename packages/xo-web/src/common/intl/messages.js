@@ -995,6 +995,7 @@ const messages = {
   sshUserTooltip: 'Connect using external SSH tool as user...',
   sshUserLabel: 'SSH as...',
   sshUsernameLabel: 'SSH user name',
+  sshNeedClientTools: 'No IP address reported by client tools',
 
   // ----- VM container tab -----
   containerName: 'Name',

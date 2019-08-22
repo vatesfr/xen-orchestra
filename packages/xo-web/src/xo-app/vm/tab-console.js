@@ -94,32 +94,33 @@ export default class TabConsole extends Component {
   }
 
   _openSsh = () => {
-    window.location = `ssh://root@${this.props.vm.addresses['0/ip']}`
+    window.open(`ssh://root@${this.props.vm.addresses['0/ip']}`)
   }
 
+  _sshName = ({ value, onChange }) => (
+    <div>
+      <input
+        type='text'
+        className='form-control'
+        onChange={onChange}
+        value={value}
+      />
+    </div>
+  )
+
   _openSshMore = async () => {
-    const SshName = ({ value, onChange }) => (
-      <div>
-        <input
-          type='text'
-          className='form-control'
-          onChange={onChange}
-          value={value}
-        />
-      </div>
-    )
     const username = await form({
       defaultValue: 'root',
       header: <span>{_('sshUsernameLabel')}</span>,
-      render: props => <SshName {...props} />,
+      render: props => <this._sshName {...props} />,
     })
-    window.location = `ssh://${username}@${this.props.vm.addresses['0/ip']}`
+    window.open(`ssh://${username}@${this.props.vm.addresses['0/ip']}`)
   }
 
   render() {
     const { statsOverview, vm } = this.props
     const { minimalLayout, scale } = this.state
-    const canSSH = vm.addresses && vm.addresses['0/ip']
+    const canSsh = vm.addresses && vm.addresses['0/ip']
 
     if (!isVmRunning(vm)) {
       return (
@@ -187,13 +188,15 @@ export default class TabConsole extends Component {
               </span>
             </div>
           </Col>
-          <Col mediumSize={3}>
-            <div className='input-group'>
+          <Col mediumSize={5} largeSize={3}>
+            <div className='btn-group'>
               <span className='input-group-btn'>
                 <ActionButton
                   handler={this._openSsh}
-                  tooltip={_('sshRootTooltip')}
-                  disabled={!canSSH}
+                  tooltip={
+                    canSsh ? _('sshRootTooltip') : _('sshNeedClientTools')
+                  }
+                  disabled={!canSsh}
                   icon='remote'
                 >
                   {_('sshRootLabel')}
@@ -202,8 +205,10 @@ export default class TabConsole extends Component {
               <span className='input-group-btn'>
                 <ActionButton
                   handler={this._openSshMore}
-                  tooltip={_('sshUserTooltip')}
-                  disabled={!canSSH}
+                  tooltip={
+                    canSsh ? _('sshUserTooltip') : _('sshNeedClientTools')
+                  }
+                  disabled={!canSsh}
                   icon='remote'
                 >
                   {_('sshUserLabel')}
@@ -218,7 +223,7 @@ export default class TabConsole extends Component {
               </span>
             </div>
           </Col>
-          <Col mediumSize={2}>
+          <Col mediumSize={2} className='hidden-lg-down'>
             <input
               className='form-control'
               max={3}
