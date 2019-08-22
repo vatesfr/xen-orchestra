@@ -92,7 +92,7 @@ class SDNController extends EventEmitter {
 
     this._overrideCerts = false
 
-    this._key = 0
+    this._nextVni = 0
   }
 
   // ---------------------------------------------------------------------------
@@ -179,10 +179,19 @@ class SDNController extends EventEmitter {
 
         // Add already existing pool-wide private networks
         const networks = filter(xapi.objects.all, { $type: 'network' })
+        const noVniNetworks = []
         await Promise.all(
           map(networks, async network => {
             if (network.other_config.private_pool_wide !== 'true') {
               return
+            }
+            if (network.other_config.vni === undefined) {
+              noVniNetworks.push(network)
+            } else {
+              this._nextVni = Math.max(
+                this._nextVni,
+                parseInt(network.other_config.vni, 10)
+              )
             }
 
             log.debug('Adding network to managed networks', {
@@ -208,6 +217,27 @@ class SDNController extends EventEmitter {
               network: network.$ref,
               starCenter: center?.$ref,
             })
+            this._networks.set(network.$id, network.$ref)
+            if (center !== undefined) {
+              this._starCenters.set(center.$id, center.$ref)
+            }
+          })
+        )
+
+        // Add VNI to other config of networks without VNI
+        await Promise.all(
+          map(noVniNetworks, async network => {
+            ++this._nextVni
+            const vni = this._nextVni
+            await xapi.call(
+              'network.add_to_other_config',
+              network.$ref,
+              'vni',
+              vni.toString()
+            )
+
+            // Re-elect a center to apply the VNI
+            const center = await this._electNewCenter(network, true)
             this._networks.set(network.$id, network.$ref)
             if (center !== undefined) {
               this._starCenters.set(center.$id, center.$ref)
@@ -241,6 +271,9 @@ class SDNController extends EventEmitter {
     encapsulation,
     xoPif,
   }) {
+    ++this._nextVni
+    const vni = this._nextVni
+
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
 
@@ -256,6 +289,7 @@ class SDNController extends EventEmitter {
         private_pool_wide: 'true',
         encapsulation: encapsulation,
         pif_device: pif.device,
+        vni: vni.toString(),
       },
     })
 
@@ -707,8 +741,6 @@ class SDNController extends EventEmitter {
     }
 
     const encapsulation = network.other_config.encapsulation || 'gre'
-    const key = this._key
-    ++this._key
     let bridgeName
     try {
       bridgeName = await hostClient.addInterfaceAndPort(
@@ -716,14 +748,14 @@ class SDNController extends EventEmitter {
         network.name_label,
         starCenterClient.host.address,
         encapsulation,
-        key
+        network.other_config.vni
       )
       await starCenterClient.addInterfaceAndPort(
         network.uuid,
         network.name_label,
         hostClient.host.address,
         encapsulation,
-        key
+        network.other_config.vni
       )
     } catch (error) {
       log.error('Error while connecting host to private network', {
