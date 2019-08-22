@@ -186,10 +186,11 @@ class SDNController extends EventEmitter {
               return
             }
 
-            if (network.other_config.vni === undefined) {
+            const { vni } = network.other_config
+            if (vni === undefined) {
               noVniNetworks.push(network)
             } else {
-              this._nextVni = Math.max(this._nextVni, +network.other_config.vni)
+              this._nextVni = Math.max(this._nextVni, +vni)
             }
 
             log.debug('Adding network to managed networks', {
@@ -225,14 +226,8 @@ class SDNController extends EventEmitter {
         // Add VNI to other config of networks without VNI
         await Promise.all(
           map(noVniNetworks, async network => {
-            ++this._nextVni
-            const vni = this._nextVni
-            await xapi.call(
-              'network.add_to_other_config',
-              network.$ref,
-              'vni',
-              vni.toString()
-            )
+            const vni = ++this._nextVni
+            await network.update_other_config('vni', String(vni))
 
             // Re-elect a center to apply the VNI
             const center = await this._electNewCenter(network, true)
@@ -269,9 +264,7 @@ class SDNController extends EventEmitter {
     encapsulation,
     xoPif,
   }) {
-    ++this._nextVni
-    const vni = this._nextVni
-
+    const vni = ++this._nextVni
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
 
@@ -287,7 +280,7 @@ class SDNController extends EventEmitter {
         private_pool_wide: 'true',
         encapsulation: encapsulation,
         pif_device: pif.device,
-        vni: vni.toString(),
+        vni: String(vni),
       },
     })
 
