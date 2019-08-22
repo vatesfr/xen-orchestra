@@ -38,7 +38,7 @@ export default decorate([
       initialize: () => {},
       async install(__, { deploy, name, namespace, id, size, version, uuid }) {
         const { isFromSources } = this.state
-        if (!isFromSources) {
+        if (isFromSources) {
           subscribeAlert()
         } else {
           const resourceParams = await form({
@@ -81,7 +81,7 @@ export default decorate([
       },
     },
     computed: {
-      isFromSources: () => Number(process.env.XOA_PLAN) === 5,
+      isFromSources: () => +process.env.XOA_PLAN === 5,
       poolName: ({ pool }) => pool && pool.name_label,
     },
   }),
