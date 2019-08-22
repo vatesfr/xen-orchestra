@@ -203,6 +203,7 @@ class SDNController extends EventEmitter {
             const center = await this._electNewCenter(network, true)
 
             // Previously created network didn't store `pif_device`
+            //
             // 2019-08-22
             // This is used to add the pif_device to networks created before this version. (v0.1.2)
             // This will be removed in 1 year.
