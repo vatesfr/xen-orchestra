@@ -185,13 +185,11 @@ class SDNController extends EventEmitter {
             if (network.other_config.private_pool_wide !== 'true') {
               return
             }
+
             if (network.other_config.vni === undefined) {
               noVniNetworks.push(network)
             } else {
-              this._nextVni = Math.max(
-                this._nextVni,
-                parseInt(network.other_config.vni, 10)
-              )
+              this._nextVni = Math.max(this._nextVni, +network.other_config.vni)
             }
 
             log.debug('Adding network to managed networks', {
