@@ -118,7 +118,10 @@ export class OvsdbClient {
 
     const options =
       password !== undefined
-        ? ['map', [['remote_ip', remoteAddress], ['key', key], ['psk', password]]]
+        ? [
+            'map',
+            [['remote_ip', remoteAddress], ['key', key], ['psk', password]],
+          ]
         : ['map', [['remote_ip', remoteAddress], ['key', key]]]
     const addInterfaceOperation = {
       op: 'insert',
