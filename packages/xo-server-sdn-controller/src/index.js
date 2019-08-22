@@ -91,6 +91,11 @@ class SDNController extends EventEmitter {
     this._objectsUpdated = this._objectsUpdated.bind(this)
 
     this._overrideCerts = false
+
+    // VNI: VxLAN Network Identifier, it is used by OpenVSwitch
+    // to route traffic of different networks in a single tunnel.
+    // See: https://tools.ietf.org/html/rfc7348
+    this._prevVni = 0
   }
 
   // ---------------------------------------------------------------------------
@@ -177,10 +182,18 @@ class SDNController extends EventEmitter {
 
         // Add already existing pool-wide private networks
         const networks = filter(xapi.objects.all, { $type: 'network' })
+        const noVniNetworks = []
         await Promise.all(
           map(networks, async network => {
             if (network.other_config.private_pool_wide !== 'true') {
               return
+            }
+
+            const { vni } = network.other_config
+            if (vni === undefined) {
+              noVniNetworks.push(network)
+            } else {
+              this._prevVni = Math.max(this._prevVni, +vni)
             }
 
             log.debug('Adding network to managed networks', {
@@ -190,6 +203,10 @@ class SDNController extends EventEmitter {
             const center = await this._electNewCenter(network, true)
 
             // Previously created network didn't store `pif_device`
+            //
+            // 2019-08-22
+            // This is used to add the pif_device to networks created before this version. (v0.1.2)
+            // This will be removed in 1 year.
             if (network.other_config.pif_device === undefined) {
               const tunnel = this._getHostTunnelForNetwork(center, network.$ref)
               const pif = xapi.getObjectByRef(tunnel.transport_PIF)
@@ -207,6 +224,23 @@ class SDNController extends EventEmitter {
               starCenter: center?.$ref,
             })
             this._networks.set(network.$id, network.$ref)
+            if (center !== undefined) {
+              this._starCenters.set(center.$id, center.$ref)
+            }
+          })
+        )
+
+        // Add VNI to other config of networks without VNI
+        //
+        // 2019-08-22
+        // This is used to add the VNI to networks created before this version. (v0.1.3)
+        // This will be removed in 1 year.
+        await Promise.all(
+          map(noVniNetworks, async network => {
+            await network.update_other_config('vni', String(++this._prevVni))
+
+            // Re-elect a center to apply the VNI
+            const center = await this._electNewCenter(network, true)
             if (center !== undefined) {
               this._starCenters.set(center.$id, center.$ref)
             }
@@ -254,6 +288,7 @@ class SDNController extends EventEmitter {
         private_pool_wide: 'true',
         encapsulation: encapsulation,
         pif_device: pif.device,
+        vni: String(++this._prevVni),
       },
     })
 
@@ -705,19 +740,22 @@ class SDNController extends EventEmitter {
     }
 
     const encapsulation = network.other_config.encapsulation || 'gre'
+    const { vni = '0' } = network.other_config
     let bridgeName
     try {
       bridgeName = await hostClient.addInterfaceAndPort(
         network.uuid,
         network.name_label,
         starCenterClient.host.address,
-        encapsulation
+        encapsulation,
+        vni
       )
       await starCenterClient.addInterfaceAndPort(
         network.uuid,
         network.name_label,
         hostClient.host.address,
-        encapsulation
+        encapsulation,
+        vni
       )
     } catch (error) {
       log.error('Error while connecting host to private network', {

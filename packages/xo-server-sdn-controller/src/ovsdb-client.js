@@ -44,7 +44,8 @@ export class OvsdbClient {
     networkUuid,
     networkName,
     remoteAddress,
-    encapsulation
+    encapsulation,
+    key
   ) {
     if (
       this._adding.find(
@@ -87,7 +88,7 @@ export class OvsdbClient {
     const portName = 'tunnel_port' + index
 
     // Add interface and port to the bridge
-    const options = ['map', [['remote_ip', remoteAddress]]]
+    const options = ['map', [['remote_ip', remoteAddress], ['key', key]]]
     const addInterfaceOperation = {
       op: 'insert',
       table: 'Interface',
