@@ -203,6 +203,9 @@ class SDNController extends EventEmitter {
             const center = await this._electNewCenter(network, true)
 
             // Previously created network didn't store `pif_device`
+            // 2019-08-22
+            // This is used to add the pif_device to networks created before this version. (v0.1.2)
+            // This will be removed in 1 year.
             if (network.other_config.pif_device === undefined) {
               const tunnel = this._getHostTunnelForNetwork(center, network.$ref)
               const pif = xapi.getObjectByRef(tunnel.transport_PIF)
@@ -227,6 +230,10 @@ class SDNController extends EventEmitter {
         )
 
         // Add VNI to other config of networks without VNI
+        //
+        // 2019-08-22
+        // This is used to add the VNI to networks created before this version. (v0.1.3)
+        // This will be removed in 1 year.
         await Promise.all(
           map(noVniNetworks, async network => {
             await network.update_other_config('vni', String(++this._prevVni))
