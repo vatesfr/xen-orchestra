@@ -1068,10 +1068,9 @@ class SDNController extends EventEmitter {
       centerPoolNetwork.network
     )
     const network = client.host.$xapi.getObjectByRef(poolNetwork.network)
-    const { encapsulation = 'gre' } = network.other_config
 
     // Use centerNetwork VNI by convention
-    const { vni = '0' } = centerNetwork.other_config
+    const { encapsulation = 'gre', vni = '0' } = centerNetwork.other_config
     try {
       await client.addInterfaceAndPort(
         network.uuid,
