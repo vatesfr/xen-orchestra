@@ -13,7 +13,7 @@ const OVSDB_PORT = 6640
 export class OvsdbClient {
   constructor(host, clientKey, clientCert, caCert) {
     this._numberOfPortAndInterface = 0
-    this._requestID = 0
+    this._requestId = 0
 
     this._adding = []
 
@@ -436,7 +436,7 @@ export class OvsdbClient {
 
   async _sendOvsdbTransaction(params, socket) {
     const stream = socket
-    const requestId = ++this._requestID
+    const requestId = ++this._requestId
     const req = {
       id: requestId,
       method: 'transact',
